@@ -1,0 +1,358 @@
+<!-- dualtests/dual-test-setup.html -->
+<!-- 🌟 [جديد بالكامل] شاشة إعداد "الاختبارات الثنائية" — ملف مستقل تماماً عن شاشات الواجبات
+     والألعاب الحالية (games/, settings/homework-prep.html) بطلب صريح من المعلم. تستخدم نفس
+     الهوية البصرية (--dh-emerald / --dh-gold) ونفس الأصناف المشتركة العامة الموجودة أصلاً
+     (screen, modal-overlay, modal-content, btn, btn-outline, form-grid, input-group) بدون أي
+     تعديل عليها، مع طبقة <style> معزولة تماماً هنا لكل ما هو خاص بهذه الشاشة فقط
+     (بادئة الأصناف كلها dts- حتى لا تتعارض مع أي قاعدة موجودة في css/home.css أو غيره).
+     🌟 [مُحدَّث] محرر الاختبار أصبح معالج (wizard) من 3 خطوات متتالية بدل صفحة واحدة طويلة —
+     راجع التعليق أعلى dual-test-setup.js لتفاصيل القرار. 🌟 -->
+
+<style>
+    .dts-wrapper { max-width: 1100px; }
+    .dts-back-btn { margin-bottom: 18px; font-size: 1.1rem; transition: transform 0.15s ease; }
+    .dts-back-btn:active { transform: scale(0.96); }
+
+    /* 🌟 [جديد] بنّر عنوان بالهوية البصرية للمنصة (نفس تدرّج بطاقة VS في شاشة اللعب) — بدل
+       عنوان نصي مجرّد، لوحدة بصرية بين شاشتَي الإعداد واللعب */
+    @keyframes dts-fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes dts-scaleIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
+    .dts-header-banner {
+        background: linear-gradient(135deg, var(--dh-emerald-900), var(--dh-emerald-700));
+        border-radius: 22px; padding: 20px 24px; margin-bottom: 24px;
+        display: flex; align-items: center; gap: 16px;
+        box-shadow: 0 15px 32px rgba(6,35,28,0.25);
+        animation: dts-fadeInUp 0.45s ease both;
+    }
+    .dts-header-icon {
+        font-size: 2.1rem; width: 56px; height: 56px; flex-shrink: 0;
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+    }
+    .dts-editor-title { color: #fffdf6; font-size: 1.7rem; margin: 0; }
+
+    .dts-panel {
+        background: #fff;
+        border-radius: 20px;
+        padding: 25px 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+        border: 2px solid #e2e8f0;
+        text-align: right;
+        animation: dts-fadeInUp 0.4s ease both;
+    }
+
+    /* ===== قائمة الاختبارات المحفوظة ===== */
+    .dts-list-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; }
+    .dts-list-header h2 { color: var(--dh-emerald-700); margin: 0; font-size: 1.6rem; }
+    .dts-test-row {
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+        background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 14px; padding: 14px 18px; margin-bottom: 12px;
+        animation: dts-fadeInUp 0.3s ease both;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+    .dts-test-row:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(15,23,42,0.1); border-color: var(--dh-gold-500); }
+    .dts-test-row-info { display: flex; align-items: center; gap: 12px; }
+    .dts-test-row-vs-icon {
+        width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%;
+        background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-900));
+        color: var(--dh-gold-300); display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; font-weight: 900; box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .dts-test-row-text { display: flex; flex-direction: column; gap: 4px; }
+    .dts-test-row-names { font-weight: bold; font-size: 1.15rem; color: #1e293b; }
+    .dts-test-row-meta { font-size: 0.95rem; color: #64748b; }
+    .dts-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+    .dts-badge-draft { background: #fef3c7; color: #92400e; }
+    .dts-badge-ready { background: #dcfce7; color: #166534; box-shadow: 0 0 0 3px rgba(22,101,52,0.08); }
+    .dts-test-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .dts-test-row-actions button {
+        padding: 8px 14px; font-size: 0.95rem; border-radius: 10px; border: 2px solid #cbd5e1; background: #fff;
+        cursor: pointer; font-weight: bold; transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dts-test-row-actions button:hover { border-color: var(--dh-emerald-600); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+    .dts-test-row-actions button:active { transform: scale(0.95); }
+    .dts-btn-danger { color: #b91c1c !important; border-color: #fecaca !important; }
+    .dts-empty-msg { text-align: center; color: #94a3b8; padding: 40px 10px; font-size: 1.1rem; }
+    .dts-empty-msg::before { content: "📭"; display: block; font-size: 2.6rem; margin-bottom: 10px; }
+
+    /* ===== محرر الاختبار (معالج 3 خطوات) ===== */
+    .dts-hint { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; background: #f0fdf4; border: 1px dashed var(--dh-emerald-600); border-radius: 10px; padding: 10px 14px; }
+
+    /* 🌟 [جديد] مؤشر الخطوات الثلاث أعلى المحرر — دوائر مرقّمة + خط واصل، يتلوّن حسب التقدّم
+       (الحالية بارزة بالذهبي، المكتملة بعلامة صح خضراء) حتى يعرف المعلم مكانه بلمحة دائماً */
+    .dts-step-indicator { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 26px; }
+    .dts-step-dot {
+        width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+        background: #e2e8f0; color: #64748b; display: flex; align-items: center; justify-content: center;
+        font-weight: 900; font-size: 1.05rem; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+    .dts-step-dot-active { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); box-shadow: 0 4px 12px rgba(212,175,55,0.4); transform: scale(1.12); }
+    .dts-step-dot-done { background: var(--dh-emerald-600); color: #fff; }
+    .dts-step-dot-done .dts-step-dot-num { font-size: 0; }
+    .dts-step-dot-done .dts-step-dot-num::before { content: "✓"; font-size: 1.05rem; }
+    .dts-step-connector { width: 34px; height: 3px; background: #e2e8f0; border-radius: 3px; }
+
+    .dts-step-heading { color: var(--dh-emerald-700); font-size: 1.3rem; margin: 0 0 6px 0; }
+    .dts-step-sub-hint { color: #64748b; font-size: 0.95rem; margin: 0 0 16px 0; }
+
+    .dts-competitors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+    .dts-competitors-grid select {
+        width: 100%; padding: 10px; font-size: 1.15rem; border: 2px solid #cbd5e1; border-radius: 10px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dts-competitors-grid select:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(22,101,52,0.12); }
+
+    /* 🌟 [جديد] بطاقات نطاق الجولات الثلاث (الخطوة 1) — اسم سورة فقط بلا رقم آية */
+    .dts-range-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 10px; }
+    .dts-range-card {
+        border: 2px solid var(--dh-gold-500); border-radius: 16px; padding: 16px;
+        background: linear-gradient(180deg, #fffdf6, #ffffff); box-shadow: 0 6px 16px rgba(212,175,55,0.12);
+        animation: dts-fadeInUp 0.35s ease both;
+    }
+    .dts-range-card-title { display: flex; align-items: center; gap: 8px; font-weight: bold; color: var(--dh-emerald-800); margin-bottom: 10px; font-size: 1.05rem; }
+    .dts-round-range-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 0.95rem; color: #475569; }
+    .dts-round-range-row select { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; flex: 1; min-width: 120px; }
+
+    /* 🌟 [جديد] الخطوة 2: 3 أزرار كبيرة لاختيار الجولة المراد تجهيزها */
+    .dts-roundpick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 10px; }
+    .dts-roundpick-btn {
+        display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
+        background: linear-gradient(165deg, var(--dh-emerald-900), var(--dh-emerald-700)); color: #fffdf6;
+        border: none; border-radius: 20px; padding: 26px 16px; cursor: pointer;
+        box-shadow: 0 12px 26px rgba(6,35,28,0.22);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        animation: dts-fadeInUp 0.3s ease both;
+    }
+    .dts-roundpick-btn:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 18px 34px rgba(6,35,28,0.3); }
+    .dts-roundpick-btn:active { transform: scale(0.97); }
+    .dts-roundpick-badge {
+        width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        font-weight: 900; font-size: 1.3rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .dts-roundpick-title { font-weight: bold; font-size: 1.1rem; }
+    .dts-roundpick-range { font-size: 0.9rem; color: var(--dh-gold-300); }
+    .dts-roundpick-progress { font-size: 0.85rem; background: rgba(255,255,255,0.14); padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+
+    /* 🌟 [جديد] أزرار التنقل داخل خطوة (التالي / رجوع) — منفصلة عن شريط الحفظ الثابت أسفل الشاشة */
+    .dts-step-nav { display: flex; justify-content: flex-end; margin-top: 18px; }
+    .dts-step-nav-top { justify-content: flex-start; margin-top: 0; margin-bottom: 18px; }
+    .dts-btn-step-next, .dts-btn-step-back {
+        padding: 12px 22px; font-size: 1.05rem; font-weight: bold; border-radius: 12px; border: none; cursor: pointer;
+        transition: transform 0.12s ease, box-shadow 0.15s ease;
+    }
+    .dts-btn-step-next { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); }
+    .dts-btn-step-next:hover { box-shadow: 0 8px 18px rgba(212,175,55,0.3); transform: translateY(-2px); }
+    .dts-btn-step-back { background: #fff; border: 2px solid #cbd5e1 !important; color: #475569; }
+    .dts-btn-step-back:hover { border-color: var(--dh-emerald-600) !important; color: var(--dh-emerald-700); }
+    .dts-btn-step-next:active, .dts-btn-step-back:active { transform: scale(0.96); }
+
+    .dts-round-block {
+        border: 2px solid var(--dh-gold-500); border-radius: 18px; padding: 20px;
+        background: linear-gradient(180deg, #fffdf6, #ffffff);
+        box-shadow: 0 8px 20px rgba(212,175,55,0.14);
+        animation: dts-fadeInUp 0.4s ease both;
+        transition: box-shadow 0.2s ease;
+    }
+    .dts-round-block:hover { box-shadow: 0 12px 28px rgba(212,175,55,0.2); }
+
+    /* 🌟 [جديد] رأس الجولة: شارة رقم دائرية + العنوان + عدّاد الأسئلة المضافة */
+    .dts-round-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .dts-round-badge {
+        width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        font-weight: 900; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+    .dts-round-title { color: var(--dh-emerald-800); font-size: 1.3rem; margin: 0; }
+    .dts-round-progress {
+        margin-inline-start: auto; font-size: 0.85rem; color: #475569; background: #f1f5f9;
+        padding: 4px 12px; border-radius: 20px; font-weight: bold;
+    }
+
+    /* 🌟 [جديد] ملخص نطاق الجولة (للقراءة فقط) داخل الخطوة 3 + رابط رجوع للتعديل في الخطوة 1 */
+    .dts-range-summary {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.95rem; color: #475569;
+        background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 8px 14px; margin-bottom: 18px;
+    }
+    .dts-range-summary strong { color: #1e293b; }
+    .dts-edit-range-link {
+        margin-inline-start: auto; background: none; border: none; color: var(--dh-emerald-700); font-weight: bold;
+        cursor: pointer; font-size: 0.9rem; padding: 2px 6px; transition: color 0.15s ease;
+    }
+    .dts-edit-range-link:hover { color: var(--dh-emerald-900); text-decoration: underline; }
+
+    .dts-q-list { display: flex; flex-direction: column; gap: 10px; }
+    .dts-q-row {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #f8fafc; border-radius: 12px;
+        padding: 10px 12px; border: 1px solid #e2e8f0; animation: dts-fadeInUp 0.25s ease both;
+        transition: background 0.15s ease;
+    }
+    .dts-q-row:hover { background: #eef2f7; }
+    .dts-q-row.dts-swap-row { background: #fff7ed; border: 1px dashed #f59e0b; }
+    .dts-q-row.dts-swap-row:hover { background: #fef3c7; }
+    .dts-q-number {
+        font-weight: bold; color: var(--dh-emerald-700); background: #ecfdf5;
+        padding: 3px 12px; border-radius: 20px; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .dts-swap-row .dts-q-number { color: #b45309; background: #fff7ed; }
+    .dts-q-display { flex: 1; min-width: 200px; color: #334155; font-size: 0.98rem; line-height: 1.6; }
+    .dts-q-remove { background: none; border: none; color: #ef4444; font-size: 1.2rem; cursor: pointer; padding: 4px 8px; transition: transform 0.15s ease; }
+    .dts-q-remove:hover { transform: scale(1.15); }
+    .dts-add-q-btn {
+        margin-top: 12px; background: var(--dh-emerald-600); color: #fff; border: none; padding: 10px 18px;
+        border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.15s ease;
+    }
+    .dts-add-q-btn:hover { background: var(--dh-emerald-700); box-shadow: 0 6px 14px rgba(22,101,52,0.25); }
+    .dts-add-q-btn:active { transform: scale(0.96); }
+
+    /* 🌟 نموذج إدخال سؤال بنص حر — مربعا "من"/"إلى" تحت بعض بطلب صريح من المعلم، بدل قوائم
+       سور/آيات منسدلة، ثم زر الإضافة أسفلهما */
+    .dts-entry-form { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 14px; }
+    .dts-entry-form label { font-weight: bold; color: var(--dh-emerald-700); font-size: 0.95rem; }
+    .dts-entry-form textarea { width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 1rem; font-family: inherit; resize: vertical; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+    .dts-entry-form textarea:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(22,101,52,0.15); }
+
+    .dts-swap-section { margin-top: 20px; border-top: 2px dashed #f59e0b; padding-top: 15px; }
+    .dts-swap-section h4 { color: #b45309; margin: 0 0 6px 0; font-size: 1.15rem; }
+    .dts-swap-section p { color: #92400e; font-size: 0.9rem; margin-bottom: 12px; }
+    .dts-add-swap-btn {
+        margin-top: 12px; background: #f59e0b; color: #fff; border: none; padding: 10px 18px;
+        border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.15s ease;
+    }
+    .dts-add-swap-btn:hover { background: #d97706; box-shadow: 0 6px 14px rgba(217,119,6,0.25); }
+    .dts-add-swap-btn:active { transform: scale(0.96); }
+    .dts-swap-section .dts-entry-form { border-color: #fbbf24; }
+
+    /* 🌟 شريط الحفظ ثابت أسفل المحرر، ظاهر دائماً بصرف النظر عن الخطوة الحالية */
+    .dts-editor-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 25px; padding-top: 20px; border-top: 2px dashed #e2e8f0; }
+    .dts-editor-actions button {
+        flex: 1; min-width: 180px; padding: 14px; font-size: 1.15rem; border-radius: 12px; border: none;
+        font-weight: bold; cursor: pointer; transition: transform 0.12s ease, box-shadow 0.15s ease;
+    }
+    .dts-editor-actions button:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.12); }
+    .dts-editor-actions button:active { transform: scale(0.97); }
+    .dts-btn-draft { background: #e2e8f0; color: #334155; }
+    .dts-btn-ready { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); }
+    .dts-btn-cancel-edit { background: #fff; border: 2px solid #cbd5e1 !important; color: #475569; }
+
+    /* 🌟 لمسة دخول أنعم لنوافذ الشاشة (بدون لمس القاعدة العامة .modal-content، فقط سياقها هنا) */
+    #dts-start-match-modal .modal-content { animation: dts-scaleIn 0.22s ease both; }
+
+    [dir="ltr"] .dts-panel, [dir="ltr"] .dts-test-row-info { text-align: left; }
+    [dir="ltr"] .dts-round-progress, [dir="ltr"] .dts-edit-range-link { margin-inline-start: auto; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .dts-header-banner, .dts-panel, .dts-test-row, .dts-round-block, .dts-q-row, .dts-range-card, .dts-roundpick-btn,
+        #dts-start-match-modal .modal-content {
+            animation: none !important;
+        }
+    }
+</style>
+
+<div class="screen active dts-wrapper">
+    <button class="btn btn-outline dts-back-btn" id="dts-back-btn">🔙 <span data-i18n="dts_back">العودة</span></button>
+    <div class="dts-header-banner">
+        <span class="dts-header-icon">🆚</span>
+        <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي 🆚</h1>
+    </div>
+
+    <!-- ===== طبقة القائمة (تظهر افتراضياً) ===== -->
+    <div id="dts-list-view">
+        <div class="dts-panel">
+            <div class="dts-list-header">
+                <h2 data-i18n="dts_list_title">الاختبارات المحفوظة</h2>
+                <button class="btn dts-add-q-btn" id="dts-new-test-btn" data-i18n="dts_new_test_btn">+ اختبار جديد</button>
+            </div>
+            <div id="dts-tests-container"></div>
+        </div>
+    </div>
+
+    <!-- ===== طبقة المحرر (مخفية افتراضياً) — معالج 3 خطوات ===== -->
+    <div id="dts-editor-view" style="display:none;">
+        <div class="dts-panel">
+            <p class="dts-hint" data-i18n="dts_reuse_hint">الاسمان هنا افتراضيان فقط — تقدر تستخدم نفس الاختبار مع طلاب آخرين لاحقاً من زر «ابدأ مواجهة».</p>
+
+            <!-- 🌟 [جديد] مؤشر الخطوات الثلاث -->
+            <div class="dts-step-indicator" id="dts-step-indicator">
+                <span class="dts-step-dot dts-step-dot-active" data-step="1"><span class="dts-step-dot-num">1</span></span>
+                <span class="dts-step-connector"></span>
+                <span class="dts-step-dot" data-step="2"><span class="dts-step-dot-num">2</span></span>
+                <span class="dts-step-connector"></span>
+                <span class="dts-step-dot" data-step="3"><span class="dts-step-dot-num">3</span></span>
+            </div>
+
+            <!-- ===== الخطوة 1: المتسابقان + نطاق كل جولة (اسم سورة فقط) ===== -->
+            <div id="dts-step-1">
+                <h3 class="dts-step-heading" data-i18n="dts_step1_heading">١) المتسابقان ونطاق كل جولة</h3>
+
+                <div class="dts-competitors-grid">
+                    <div class="input-group">
+                        <label data-i18n="dts_competitor_a">المتسابق الأول</label>
+                        <select id="dts-student-a"></select>
+                    </div>
+                    <div class="input-group">
+                        <label data-i18n="dts_competitor_b">المتسابق الثاني</label>
+                        <select id="dts-student-b"></select>
+                    </div>
+                </div>
+
+                <p class="dts-step-sub-hint" data-i18n="dts_step1_hint">حدّد اسم السورة التي سيختبر فيها الطالبان في كل جولة (السورة كاملة).</p>
+                <div id="dts-rounds-range-container" class="dts-range-cards-grid"></div>
+
+                <div class="dts-step-nav">
+                    <button class="dts-btn-step-next" id="dts-step1-next-btn" data-i18n="dts_step1_next_btn">التالي: اختيار الجولة ▶️</button>
+                </div>
+            </div>
+
+            <!-- ===== الخطوة 2: اختيار الجولة المراد تجهيزها (3 أزرار كبيرة) ===== -->
+            <div id="dts-step-2" style="display:none;">
+                <h3 class="dts-step-heading" data-i18n="dts_step2_heading">٢) اختر الجولة التي تريد تجهيزها</h3>
+                <p class="dts-step-sub-hint" data-i18n="dts_step2_hint">اختر أي جولة تريد إضافة أو مراجعة أسئلتها الآن.</p>
+
+                <div class="dts-roundpick-grid" id="dts-roundpick-grid"></div>
+
+                <div class="dts-step-nav">
+                    <button class="dts-btn-step-back" id="dts-step2-back-btn" data-i18n="dts_step2_back_btn">⬅️ رجوع لتعديل النطاق</button>
+                </div>
+            </div>
+
+            <!-- ===== الخطوة 3: أسئلة الجولة المختارة فقط ===== -->
+            <div id="dts-step-3" style="display:none;">
+                <div class="dts-step-nav dts-step-nav-top">
+                    <button class="dts-btn-step-back" id="dts-step3-back-btn" data-i18n="dts_step3_back_btn">⬅️ رجوع لاختيار الجولة</button>
+                </div>
+                <div id="dts-active-round-container"></div>
+            </div>
+
+            <!-- 🌟 شريط الحفظ ثابت، ظاهر دائماً بصرف النظر عن الخطوة الحالية -->
+            <div class="dts-editor-actions">
+                <button class="dts-btn-cancel-edit" id="dts-cancel-edit-btn">✖️ <span data-i18n="dts_start_match_cancel_btn">إلغاء</span></button>
+                <button class="dts-btn-draft" id="dts-save-draft-btn" data-i18n="dts_save_draft_btn">💾 حفظ كمسودة</button>
+                <button class="dts-btn-ready" id="dts-save-ready-btn" data-i18n="dts_save_ready_btn">✅ حفظ كاختبار جاهز</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== نافذة بدء مواجهة جديدة ===== -->
+<div id="dts-start-match-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <h2 style="color:var(--dh-emerald-700); margin-top:0;" data-i18n="dts_start_match_modal_title">بدء مواجهة جديدة</h2>
+        <div class="input-group" style="margin-bottom:15px;">
+            <label data-i18n="dts_competitor_a">المتسابق الأول</label>
+            <select id="dts-match-student-a" style="width:100%; padding:10px; font-size:1.1rem; border-radius:10px; border:2px solid #cbd5e1;"></select>
+        </div>
+        <div class="input-group" style="margin-bottom:20px;">
+            <label data-i18n="dts_competitor_b">المتسابق الثاني</label>
+            <select id="dts-match-student-b" style="width:100%; padding:10px; font-size:1.1rem; border-radius:10px; border:2px solid #cbd5e1;"></select>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button class="btn btn-outline" style="flex:1;" id="dts-match-cancel-btn" data-i18n="dts_start_match_cancel_btn">إلغاء</button>
+            <button class="btn" style="flex:1;" id="dts-match-confirm-btn" data-i18n="dts_start_match_confirm_btn">🚀 ابدأ</button>
+        </div>
+    </div>
+</div>

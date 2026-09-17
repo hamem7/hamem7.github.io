@@ -1,0 +1,341 @@
+<!-- dualtests/dual-test-play.html -->
+<!-- 🌟 [جديد بالكامل] شاشة اللعب الفعلية لـ"الاختبارات الثنائية" — ملف مستقل تماماً، في
+     نفس مجلد dualtests/ الجديد بجانب dual-test-setup. راجع مستند المشروع
+     "تصميم-نظام-الاختبارات-الثنائية.md" لكل القرارات المعتمدة من المعلم. نفس فلسفة الشاشة
+     السابقة: طبقة <style> معزولة بادئتها dtp- فقط، وإعادة استخدام الأصناف العامة الموجودة
+     أصلاً (screen, modal-overlay, modal-content, btn, timer-text, timer-warning, quran-text)
+     بدون أي تعديل عليها. 🌟 -->
+
+<style>
+    .dtp-wrapper { max-width: 900px; }
+    .dtp-back-btn { margin-bottom: 15px; font-size: 1rem; transition: transform 0.15s ease; }
+    .dtp-back-btn:active { transform: scale(0.96); }
+
+    @keyframes dtp-fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes dtp-scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    @keyframes dtp-popIn { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
+    @keyframes dtp-pulseRing { 0% { box-shadow: 0 0 0 2px var(--dh-emerald-600) inset, 0 0 0 0 rgba(22,101,52,0.35); } 70% { box-shadow: 0 0 0 2px var(--dh-emerald-600) inset, 0 0 0 8px rgba(22,101,52,0); } 100% { box-shadow: 0 0 0 2px var(--dh-emerald-600) inset, 0 0 0 0 rgba(22,101,52,0); } }
+    @keyframes dtp-shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
+    @keyframes dtp-pulseGold { 0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.5); } 70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); } 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } }
+
+    /* ===== شاشة الترحيب / VS ===== */
+    .dtp-vs-card { background: linear-gradient(165deg, var(--dh-emerald-900), var(--dh-emerald-700)); border-radius: 24px; padding: 35px 20px; text-align: center; color: #fffdf6; box-shadow: 0 20px 40px rgba(6,35,28,0.3); animation: dtp-fadeInUp 0.45s ease both; position: relative; overflow: hidden; }
+    .dtp-vs-round-label { display: inline-block; background: var(--dh-gold-500); color: var(--dh-emerald-900); font-weight: bold; padding: 6px 18px; border-radius: 20px; margin-bottom: 20px; font-size: 1.05rem; }
+    .dtp-vs-row { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .dtp-vs-player { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 130px; animation: dtp-popIn 0.5s ease both; }
+    .dtp-vs-player:nth-child(3) { animation-delay: 0.12s; }
+    .dtp-vs-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid var(--dh-gold-500); background: #fff; display:flex; align-items:center; justify-content:center; font-size:2.8rem; box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
+    .dtp-vs-name { font-size: 1.3rem; font-weight: bold; }
+    .dtp-vs-score { font-size: 1.6rem; font-weight: 900; color: var(--dh-gold-300); }
+    .dtp-vs-sep { font-size: 2rem; font-weight: 900; color: var(--dh-gold-300); animation: dtp-popIn 0.6s ease 0.2s both; }
+    .dtp-vs-start-btn { margin-top: 25px; background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); border: none; padding: 14px 30px; border-radius: 14px; font-size: 1.3rem; font-weight: bold; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .dtp-vs-start-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+    .dtp-vs-start-btn:active:not(:disabled) { transform: scale(0.97); }
+    .dtp-vs-start-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* 🌟 [جديد بالكامل] شاشة القرعة ملء الشاشة — بديل احترافي لعجلة الدوران القديمة، بطلب
+       صريح من المعلم بعد عدم إعجابه بشكلها. اسما الطالبَين يتبادلان بسرعة "سلوت مشين" (تسريع
+       تدريجي واقعي) ثم يستقران على اسم الفائز بالقرعة بخط ضخم يملأ جزءاً كبيراً من الشاشة.
+       راجع runNameDraw في dual-test-play.js. */
+    @keyframes dtp-draw-tick { 0% { transform: scale(0.9); opacity: 0.6; } 40% { transform: scale(1.04); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes dtp-draw-land { 0% { transform: scale(0.85); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
+    @keyframes dtp-draw-glow { 0%, 100% { text-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 0 rgba(212,175,55,0); } 50% { text-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 34px rgba(212,175,55,0.65); } }
+
+    .dtp-draw-screen {
+        position: fixed; inset: 0; z-index: 400;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+        background: linear-gradient(160deg, var(--dh-emerald-900), var(--dh-emerald-700));
+        padding: 20px; text-align: center;
+    }
+    .dtp-draw-heading { font-size: clamp(1.2rem, 3.5vw, 1.8rem); font-weight: bold; color: var(--dh-gold-300); }
+    .dtp-draw-name-box { display: flex; align-items: center; justify-content: center; min-height: 30vh; }
+    .dtp-draw-name {
+        font-size: clamp(2.6rem, 13vw, 7.5rem); font-weight: 900; color: #fffdf6; line-height: 1.1;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.3); word-break: break-word;
+    }
+    .dtp-draw-name.dtp-draw-landed { color: var(--dh-gold-300); animation: dtp-draw-land 0.45s ease both, dtp-draw-glow 1.6s ease-in-out 0.45s infinite; }
+    .dtp-draw-tick-anim { animation: dtp-draw-tick 0.12s ease both; }
+    .dtp-draw-result { font-size: clamp(1.1rem, 3vw, 1.5rem); font-weight: bold; color: var(--dh-gold-300); min-height: 1.8em; }
+
+    /* 🌟 [جديد] نص السؤال بخط كبير وعريض يملأ جزءاً كبيراً من الشاشة — لمناسبة الأطفال على
+       موبايل/آيباد. حجم متجاوب عبر clamp() بدل رقم ثابت، بلا أي مكتبة خطوط خارجية */
+    .dtp-question-range-box { margin: 20px 0 22px 0; display: flex; flex-direction: column; gap: 14px; }
+    .dtp-range-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; background: #f0fdf4; border-radius: 18px; padding: 16px 18px; }
+    .dtp-range-row.dtp-range-to { background: #fffbeb; }
+    .dtp-range-icon { font-size: clamp(1.6rem, 4.5vw, 2.4rem); flex-shrink: 0; }
+    .dtp-range-label { font-size: clamp(1rem, 2.6vw, 1.3rem); font-weight: bold; color: #64748b; flex-shrink: 0; }
+    .dtp-range-text { font-size: clamp(2rem, 7vw, 3.6rem); font-weight: 900; color: #1e293b; line-height: 1.4; }
+    .dtp-range-row.dtp-range-to .dtp-range-text { color: #92400e; }
+
+    /* ===== شريط النقاط الحي ===== */
+    .dtp-scorebar { display: flex; justify-content: space-between; gap: 15px; background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; flex-wrap: wrap; animation: dtp-fadeInUp 0.35s ease both; }
+    .dtp-score-side { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 120px; transition: background 0.2s ease; }
+    .dtp-score-side.dtp-turn-active { background: #f0fdf4; border-radius: 12px; padding: 6px; animation: dtp-pulseRing 1.8s ease-in-out infinite; }
+    /* 🌟 [جديد] "لحظة حاسمة" — توهج ذهبي نابض على شريط النقاط كله لما الفرق بين الطالبين
+       يبقى بسيط جداً (راجع updateScorebarTension في dual-test-play.js) */
+    .dtp-scorebar.dtp-tension { border-color: var(--dh-gold-500); animation: dtp-pulseGold 1.3s ease-in-out infinite; }
+    .dtp-score-name { font-weight: bold; color: #1e293b; }
+    .dtp-score-points { font-size: 1.5rem; font-weight: 900; color: var(--dh-emerald-700); }
+    /* 🌟 [جديد] نطّة popIn خفيفة عند اكتمال العد التصاعدي لنقاط الطالب (راجع animateScoreCountUp) */
+    .dtp-score-pop-anim { animation: dtp-popIn 0.3s ease; }
+    .dtp-score-icons { display: flex; gap: 6px; font-size: 1rem; }
+    .dtp-score-icons span.used { opacity: 0.25; text-decoration: line-through; }
+
+    /* ===== لوحة الأسئلة ===== */
+    .dtp-round-title { color: var(--dh-emerald-700); text-align:center; font-size: 1.4rem; margin-bottom: 15px; }
+    .dtp-board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .dtp-board-cell {
+        aspect-ratio: 1; border-radius: 14px; border: 2px solid var(--dh-gold-500);
+        background: linear-gradient(150deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        font-size: 1.6rem; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease; animation: dtp-popIn 0.35s ease both;
+    }
+    .dtp-board-cell:hover { transform: scale(1.08) translateY(-2px); box-shadow: 0 8px 16px rgba(212,175,55,0.35); }
+    .dtp-board-cell:active { transform: scale(0.95); }
+    .dtp-board-cell.dtp-cell-done { background: #e2e8f0; color: #94a3b8; border-color: #cbd5e1; cursor: not-allowed; font-size: 1.2rem; animation: dtp-popIn 0.3s ease both; }
+    .dtp-board-cell.dtp-cell-done:hover { transform: none; box-shadow: none; }
+    .dtp-end-round-btn { display:block; margin: 0 auto; background:none; border: 2px dashed #cbd5e1; color:#64748b; padding: 8px 18px; border-radius: 10px; cursor:pointer; font-size:0.95rem; transition: border-color 0.15s ease, color 0.15s ease; }
+    .dtp-end-round-btn:hover { border-color: #94a3b8; color: #475569; }
+
+    /* ===== شاشة السؤال ===== */
+    .dtp-question-card { background: #fff; border: 3px solid var(--dh-emerald-600); border-radius: 20px; padding: 25px 20px; text-align: center; box-shadow: 0 12px 28px rgba(15,23,42,0.08); animation: dtp-scaleIn 0.3s ease both; }
+    .dtp-question-turn { font-size: 1.2rem; font-weight: bold; color: var(--dh-emerald-700); margin-bottom: 10px; }
+    .dtp-question-range { font-size: 1.5rem; font-weight: bold; color: #1e293b; margin: 15px 0 20px 0; line-height: 2; }
+    .dtp-question-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 15px; }
+    .dtp-question-actions button { padding: 12px 18px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 1.05rem; transition: transform 0.12s ease, box-shadow 0.15s ease; }
+    .dtp-question-actions button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+    .dtp-question-actions button:active:not(:disabled) { transform: scale(0.96); }
+    .dtp-btn-mistake { background: #fee2e2; color: #991b1b; }
+    .dtp-btn-helper { background: #dbeafe; color: #1e40af; }
+    .dtp-btn-swap { background: #fef3c7; color: #92400e; }
+    .dtp-btn-finish { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700)); color: #fff; }
+    .dtp-question-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .dtp-mistakes-counter { margin-top: 10px; color: #991b1b; font-weight: bold; }
+    /* 🌟 [جديد] اهتزاز بصري خفيف لبطاقة السؤال عند كل خطأ يُسجَّل — يُضاف/يُزال عبر JS في كل
+       ضغطة (retrigger)، وليس مباشرة على العنصر، حتى يتكرر التأثير مع كل خطأ جديد */
+    .dtp-shake-anim { animation: dtp-shake 0.4s ease; }
+    /* 🌟 الدرجة الحالية المتوقعة لهذا السؤال — تُحدَّث حياً مع كل خطأ، وتتلوّن حسب مقدارها */
+    .dtp-current-points { margin-top: 6px; font-weight: bold; font-size: 1.05rem; transition: color 0.2s ease; }
+    .dtp-current-points.pts-full { color: var(--dh-emerald-700); }
+    .dtp-current-points.pts-mid { color: #b45309; }
+    .dtp-current-points.pts-low { color: #b91c1c; }
+
+    /* ===== نافذة ملخص نتيجة السؤال ===== */
+    #dtp-question-result-modal .modal-content { animation: dtp-scaleIn 0.25s ease both; }
+    .dtp-result-modal-content { text-align: center; }
+    .dtp-result-title { color: var(--dh-emerald-700); margin: 0 0 10px 0; font-size: 1.4rem; }
+    .dtp-result-student-name { font-weight: bold; font-size: 1.15rem; color: #1e293b; margin-bottom: 14px; }
+    .dtp-result-points-box {
+        display: flex; flex-direction: column; align-items: center; gap: 2px;
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        border-radius: 16px; padding: 14px; margin-bottom: 18px; animation: dtp-popIn 0.35s ease 0.05s both;
+        transition: background 0.2s ease, color 0.2s ease;
+    }
+    .dtp-result-points-box.pts-mid { background: linear-gradient(135deg, #fde68a, #f59e0b); }
+    .dtp-result-points-box.pts-low { background: linear-gradient(135deg, #fca5a5, #ef4444); color: #fff; }
+    .dtp-result-points-value { font-size: 2.2rem; font-weight: 900; }
+    .dtp-result-points-label { font-size: 0.95rem; font-weight: bold; }
+    .dtp-result-details-grid { display: flex; justify-content: space-around; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .dtp-result-detail { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 90px; }
+    .dtp-result-detail-label { font-size: 0.85rem; color: #64748b; }
+    .dtp-result-detail-value { font-size: 1.2rem; font-weight: bold; color: #1e293b; }
+    .dtp-result-deduction-value { color: #b91c1c; }
+    .dtp-result-continue-btn { background: var(--dh-emerald-600); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.12s ease, background 0.2s ease; }
+    .dtp-result-continue-btn:hover { background: var(--dh-emerald-700); }
+    .dtp-result-continue-btn:active { transform: scale(0.97); }
+
+    /* ===== ملخص الجولة / النتيجة النهائية ===== */
+    .dtp-summary-card { background: #fff; border-radius: 20px; padding: 30px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.06); animation: dtp-fadeInUp 0.4s ease both; }
+    .dtp-summary-title { color: var(--dh-emerald-700); font-size: 1.6rem; margin-bottom: 20px; }
+    .dtp-summary-row { display: flex; justify-content: center; gap: 30px; margin-bottom: 20px; flex-wrap: wrap; }
+    .dtp-summary-side { text-align: center; }
+    .dtp-summary-side .name { font-weight: bold; font-size: 1.15rem; }
+    .dtp-summary-side .val { font-size: 2rem; font-weight: 900; color: var(--dh-emerald-700); }
+    .dtp-winner-badge { display: inline-block; margin: 10px 0 20px 0; padding: 10px 22px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); animation: dtp-popIn 0.4s ease both; }
+    .dtp-tie-badge { background: #e2e8f0; color: #334155; }
+    .dtp-next-btn { background: var(--dh-emerald-600); color: #fff; border: none; padding: 14px 30px; border-radius: 14px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .dtp-next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,0.15); }
+    .dtp-next-btn:active { transform: scale(0.97); }
+
+    /* 🌟 [جديد] بطاقة إعلان الأوسمة الجديدة في شاشة النتيجة النهائية */
+    .dtp-badges-reveal { margin-top: 20px; padding: 18px; border-radius: 16px; background: linear-gradient(135deg, #fffbeb, #ffffff); border: 2px dashed var(--dh-gold-500); animation: dtp-popIn 0.4s ease both; }
+    .dtp-badges-reveal-title { font-weight: bold; color: var(--dh-emerald-700); margin-bottom: 12px; font-size: 1.15rem; }
+    .dtp-badge-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--dh-gold-500); border-radius: 30px; padding: 8px 16px; margin: 4px; font-weight: bold; color: #1e293b; animation: dtp-popIn 0.4s ease both; }
+    .dtp-badge-chip .dtp-badge-chip-icon { font-size: 1.4rem; }
+
+    /* ===== نافذة اختيار رمز الاستبدال ===== */
+    #dtp-swap-modal .modal-content { animation: dtp-scaleIn 0.22s ease both; }
+    .dtp-swap-code-btn { min-width: 70px; padding: 12px 16px; border-radius: 12px; border: 2px solid #f59e0b; background: #fff7ed; color: #92400e; font-weight: bold; font-size: 1.2rem; cursor: pointer; transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease; }
+    .dtp-swap-code-btn:hover { background: #f59e0b; color: #fff; transform: translateY(-2px); }
+    .dtp-swap-code-btn:active { transform: scale(0.95); }
+
+    [dir="ltr"] .dtp-scorebar, [dir="ltr"] .dtp-summary-row { direction: ltr; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .dtp-vs-card, .dtp-vs-player, .dtp-vs-sep, .dtp-scorebar, .dtp-board-cell, .dtp-question-card,
+        .dtp-result-points-box, .dtp-summary-card, .dtp-winner-badge, .dtp-score-side.dtp-turn-active,
+        .dtp-shake-anim, #dtp-question-result-modal .modal-content, #dtp-swap-modal .modal-content,
+        .dtp-scorebar.dtp-tension, .dtp-badges-reveal, .dtp-badge-chip, .dtp-score-pop-anim,
+        .dtp-draw-name.dtp-draw-landed, .dtp-draw-tick-anim {
+            animation: none !important;
+        }
+    }
+</style>
+
+<div class="screen active dtp-wrapper">
+    <button class="btn btn-outline dtp-back-btn" id="dtp-back-btn">🔙 <span data-i18n="dts_back">العودة</span></button>
+
+    <!-- ===== الترحيب / VS ===== -->
+    <div id="dtp-welcome-view">
+        <div class="dtp-vs-card">
+            <span class="dtp-vs-round-label" id="dtp-round-label"></span>
+            <div class="dtp-vs-row">
+                <div class="dtp-vs-player">
+                    <div class="dtp-vs-avatar" id="dtp-avatar-a"></div>
+                    <span class="dtp-vs-name" id="dtp-name-a"></span>
+                    <span class="dtp-vs-score" id="dtp-roundswon-a"></span>
+                </div>
+                <span class="dtp-vs-sep">🆚</span>
+                <div class="dtp-vs-player">
+                    <div class="dtp-vs-avatar" id="dtp-avatar-b"></div>
+                    <span class="dtp-vs-name" id="dtp-name-b"></span>
+                    <span class="dtp-vs-score" id="dtp-roundswon-b"></span>
+                </div>
+            </div>
+            <button class="dtp-vs-start-btn" id="dtp-start-round-btn" data-i18n="dtp_start_round_btn">🚀 ابدأ الجولة</button>
+        </div>
+    </div>
+
+    <!-- ===== شاشة القرعة ملء الشاشة (سلوت مشين) ===== -->
+    <!-- 🌟 [جديد بالكامل] بديل احترافي لعجلة الدوران القديمة — بطلب صريح من المعلم بعد عدم
+         إعجابه بشكلها. اسما الطالبَين يتبادلان بسرعة متناقصة تدريجياً ثم يستقران على اسم
+         الفائز بالقرعة بخط ضخم يملأ جزءاً كبيراً من الشاشة. راجع runNameDraw في dual-test-play.js -->
+    <div id="dtp-draw-view" style="display:none;">
+        <div class="dtp-draw-screen">
+            <span class="dtp-draw-heading" id="dtp-draw-heading"></span>
+            <div class="dtp-draw-name-box">
+                <span class="dtp-draw-name" id="dtp-draw-name"></span>
+            </div>
+            <span class="dtp-draw-result" id="dtp-draw-result"></span>
+        </div>
+    </div>
+
+    <!-- ===== لوحة الأسئلة ===== -->
+    <div id="dtp-board-view" style="display:none;">
+        <h2 class="dtp-round-title" id="dtp-board-round-title"></h2>
+        <div class="dtp-scorebar" id="dtp-scorebar"></div>
+        <div class="dtp-board-grid" id="dtp-board-grid"></div>
+        <button class="dtp-end-round-btn" id="dtp-end-round-btn" data-i18n="dtp_end_round_manual_btn">⏹️ إنهاء الجولة الآن يدوياً</button>
+    </div>
+
+    <!-- ===== شاشة السؤال ===== -->
+    <div id="dtp-question-view" style="display:none;">
+        <div class="dtp-scorebar" id="dtp-question-scorebar"></div>
+        <div class="dtp-question-card">
+            <div class="dtp-question-turn" id="dtp-question-turn"></div>
+            <!-- 🌟 [مُحدَّث] المؤقت مُعطَّل مؤقتاً بطلب صريح من المعلم — العنصر باقٍ في DOM (مخفي
+                 بـ display:none) والدوال البرمجية كاملة في الملف، فقط بانتظار طلب تفعيله لاحقاً -->
+            <span class="timer-text" id="dtp-timer" style="display:none;">01:00</span>
+            <!-- 🌟 [مُحدَّث] نص السؤال أصبح كتلتين كبيرتين منفصلتين ("من"/"إلى") بخط كبير وعريض
+                 يملأ جزءاً كبيراً من الشاشة — بطلب صريح لمناسبة قراءة الأطفال من موبايل/آيباد -->
+            <div class="dtp-question-range-box quran-text">
+                <div class="dtp-range-row dtp-range-from">
+                    <span class="dtp-range-icon">📖</span>
+                    <span class="dtp-range-label" data-i18n="dts_from_label">سمّع من</span>
+                    <span class="dtp-range-text" id="dtp-question-from"></span>
+                </div>
+                <div class="dtp-range-row dtp-range-to">
+                    <span class="dtp-range-icon">🏁</span>
+                    <span class="dtp-range-label" data-i18n="dts_to_label">إلى</span>
+                    <span class="dtp-range-text" id="dtp-question-to"></span>
+                </div>
+            </div>
+            <div class="dtp-mistakes-counter" id="dtp-mistakes-counter"></div>
+            <!-- 🌟 [جديد] الدرجة الحالية المتوقعة لهذا السؤال (10 كاملة أو أقل حسب الأخطاء) -->
+            <div class="dtp-current-points" id="dtp-current-points"></div>
+            <div class="dtp-question-actions">
+                <button type="button" class="dtp-btn-mistake" id="dtp-btn-mistake" data-i18n="dtp_btn_mistake">❌ تسجيل خطأ</button>
+                <button type="button" class="dtp-btn-helper" id="dtp-btn-helper" data-i18n="dtp_btn_helper">💡 مساعدة</button>
+                <button type="button" class="dtp-btn-swap" id="dtp-btn-swap" data-i18n="dtp_btn_swap">🔄 تبديل</button>
+                <button type="button" class="dtp-btn-finish" id="dtp-btn-finish" data-i18n="dtp_btn_finish">✅ اعتماد الإجابة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ملخص الجولة ===== -->
+    <div id="dtp-round-summary-view" style="display:none;">
+        <div class="dtp-summary-card">
+            <h2 class="dtp-summary-title" id="dtp-summary-title"></h2>
+            <div id="dtp-summary-winner-badge"></div>
+            <div class="dtp-summary-row">
+                <div class="dtp-summary-side"><div class="name" id="dtp-summary-name-a"></div><div class="val" id="dtp-summary-score-a"></div></div>
+                <div class="dtp-summary-side"><div class="name" id="dtp-summary-name-b"></div><div class="val" id="dtp-summary-score-b"></div></div>
+            </div>
+            <button class="dtp-next-btn" id="dtp-summary-next-btn"></button>
+        </div>
+    </div>
+
+    <!-- ===== النتيجة النهائية ===== -->
+    <div id="dtp-final-view" style="display:none;">
+        <div class="dtp-summary-card">
+            <h2 class="dtp-summary-title" data-i18n="dtp_final_title">🏆 النتيجة النهائية</h2>
+            <div id="dtp-final-winner-badge"></div>
+            <div class="dtp-summary-row">
+                <div class="dtp-summary-side">
+                    <div class="name" id="dtp-final-name-a"></div>
+                    <div class="val" id="dtp-final-rounds-a"></div>
+                    <div id="dtp-final-points-a"></div>
+                </div>
+                <div class="dtp-summary-side">
+                    <div class="name" id="dtp-final-name-b"></div>
+                    <div class="val" id="dtp-final-rounds-b"></div>
+                    <div id="dtp-final-points-b"></div>
+                </div>
+            </div>
+            <!-- 🌟 [جديد] بطاقة إعلان الأوسمة الجديدة (إن وُجدت) — تظهر فقط لو استحق أي طالب
+                 وساماً في هذه المواجهة تحديداً (راجع engine/dualTestEngine.js) -->
+            <div class="dtp-badges-reveal" id="dtp-badges-reveal" style="display:none;"></div>
+            <button class="dtp-next-btn" id="dtp-final-back-btn" data-i18n="dtp_final_back_btn">🏠 العودة للرئيسية</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== نافذة اختيار رمز سؤال الاستبدال ===== -->
+<div id="dtp-swap-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 450px;">
+        <h2 style="color:var(--dh-emerald-700); margin-top:0;" data-i18n="dtp_swap_modal_title">اختر رمز سؤال الاستبدال</h2>
+        <p style="color:#64748b; margin-bottom:15px;" data-i18n="dtp_swap_modal_desc">هذه المرة فقط — اختر أي رمز تريده.</p>
+        <div id="dtp-swap-codes-list" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:20px;"></div>
+        <button class="btn btn-outline" style="width:100%;" id="dtp-swap-cancel-btn" data-i18n="dts_start_match_cancel_btn">إلغاء</button>
+    </div>
+</div>
+
+<!-- ===== نافذة ملخص نتيجة السؤال (تظهر فور "اعتماد الإجابة") ===== -->
+<!-- 🌟 [جديد] بطلب صريح من المعلم: عند اعتماد إجابة الطالب على أي سؤال، تظهر هذه النافذة
+     مباشرة بملخص كامل — اسم الطالب، الدرجة المكتسَبة من أصل 10، عدد الأخطاء، مقدار الخصم،
+     وهل استخدم وسيلة المساعدة في هذا السؤال تحديداً أم لا — قبل الانتقال للسؤال التالي -->
+<div id="dtp-question-result-modal" class="modal-overlay">
+    <div class="modal-content dtp-result-modal-content" style="max-width: 420px;">
+        <h2 class="dtp-result-title" data-i18n="dtp_result_title">✅ نتيجة السؤال</h2>
+        <div class="dtp-result-student-name" id="dtp-result-student-name"></div>
+        <div class="dtp-result-points-box">
+            <span class="dtp-result-points-value" id="dtp-result-points"></span>
+            <span class="dtp-result-points-label" data-i18n="dtp_result_points_of_label">الدرجة</span>
+        </div>
+        <div class="dtp-result-details-grid">
+            <div class="dtp-result-detail">
+                <span class="dtp-result-detail-label" data-i18n="dtp_result_mistakes_label">عدد الأخطاء</span>
+                <span class="dtp-result-detail-value" id="dtp-result-mistakes"></span>
+            </div>
+            <div class="dtp-result-detail">
+                <span class="dtp-result-detail-label" data-i18n="dtp_result_deduction_label">الخصم</span>
+                <span class="dtp-result-detail-value dtp-result-deduction-value" id="dtp-result-deduction"></span>
+            </div>
+            <div class="dtp-result-detail">
+                <span class="dtp-result-detail-label" data-i18n="dtp_result_helper_label">استخدام المساعدة</span>
+                <span class="dtp-result-detail-value" id="dtp-result-helper"></span>
+            </div>
+        </div>
+        <button class="btn dtp-result-continue-btn" style="width:100%;" id="dtp-result-continue-btn" data-i18n="dtp_result_continue_btn">متابعة ▶️</button>
+    </div>
+</div>

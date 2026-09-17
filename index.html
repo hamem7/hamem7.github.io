@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة دار حم - أبطال القرآن</title>
+
+    <meta name="theme-color" content="#064e3b">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- 🌟 التعديل التجريبي: تم استبدال خطي Tajawal و Amiri بخط IBM Plex Sans Arabic بأوزانه المطلوبة 🌟 -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/adults.css">
+    <link rel="stylesheet" href="css/kids.css">
+    <!-- 🌟 [جديد] ملف تصميم الهيدر العلوي والشاشة الرئيسية الجديدة فقط — لا يعدّل أي قاعدة
+         موجودة في الملفات الثلاثة أعلاه ولا يؤثر على أي شاشة أخرى في المنصة 🌟 -->
+    <link rel="stylesheet" href="css/home.css">
+    <!-- 🌟 [جديد] تصميم شاشات "ركن المتشابهات" (مجلد similarities/) — ملف معزول تماماً بنفس
+         فلسفة home.css أعلاه، لا يلمس أي قاعدة في الملفات الأخرى 🌟 -->
+    <link rel="stylesheet" href="css/similarities.css">
+</head>
+
+<body class="adult-theme" id="main-body">
+    <canvas id="confetti"></canvas>
+    <div id="toast-encouragement"></div>
+
+    <!-- 🌟 شاشة "الجديد في هذا التحديث" — عنصر ثابت خارج #app-root (زي الكونفيتي والتوست
+         بالضبط) حتى يفضل موجود بغض النظر عن الشاشة الحالية. core/app.js (دالة checkForUpdates)
+         هو اللي يتحكم في إظهارها بمقارنة رقم الإصدار في core/version.js مع آخر رقم شافه
+         المعلم على هذا الجهاز. مخفية افتراضياً بـ display:none ولا تظهر إلا لو فيه تحديثات
+         فعلية لم يراها المعلم بعد 🌟 -->
+    <div class="whats-new-modal" id="whats-new-modal" style="display:none;">
+        <div class="whats-new-modal-box">
+            <h3 data-i18n="whats_new_title">✨ الجديد في هذا التحديث</h3>
+            <div id="whats-new-list"></div>
+            <div class="whats-new-modal-actions">
+                <button type="button" class="btn" id="whats-new-close" data-i18n="whats_new_close_btn">تمام، فهمت 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bar" id="main-header">
+        <div class="home-header-brand">
+            <!-- 🌟 شعار SVG مرسوم بدل الإيموجي 📖 القديم — نفس الفكرة (مصحف) لكن بخط ذهبي أنيق -->
+            <span class="home-header-logo" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6.5c-1.5-1-3.6-1.3-5.5-0.7v10c1.9-0.6 4-0.3 5.5 0.7 1.5-1 3.6-1.3 5.5-0.7v-10c-1.9-0.6-4-0.3-5.5 0.7Z" stroke="#06231c" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                    <path d="M12 6.5v10.7" stroke="#06231c" stroke-width="1.3"/>
+                </svg>
+            </span>
+            <div class="home-header-text">
+                <span id="header-title" data-i18n="header_title">🏆 رحلة إتقان القرآن</span>
+                <span id="top-student-name" data-i18n="header_subtitle">منصة دار حم</span>
+            </div>
+        </div>
+        <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
+    </div>
+
+    <div id="app-root"></div>
+
+    <script type="module" src="core/app.js"></script>
+
+    <!-- 🌟 [تجربة بطلب المعلم بتاريخ 2026-09-14] أعدنا تفعيل كود تسجيل Service Worker الطبيعي
+         (كان معطّلاً مؤقتاً أثناء التطوير بسبب مشكلة تحميل نسخ قديمة من الملفات — راجع تاريخ الملف
+         في Git/النسخ الاحتياطية لو احتجت ترجع للكود المؤقت القديم اللي كان بيلغي تسجيل SW ويمسح
+         الكاش عند كل فتح للصفحة). تم رفع رقم CACHE_NAME في service-worker.js من v1 إلى v2 في نفس
+         هذا التعديل حتى يجبر أي متصفح فتح النسخة القديمة على تحميل كل الملفات من جديد بدل الكاش.
+         ⚠️ هذه تجربة: لو ظهرت نفس مشكلة "نسخة قديمة من الملفات" تاني أثناء التطوير المستمر، ارجع
+         لتعطيل التسجيل مؤقتاً (بنفس أسلوب الكود القديم: getRegistrations + reg.unregister +
+         caches.delete لكل الأسماء) وارفع رقم الكاش كل مرة تعمل فيها تعديل جوهري في الملفات. -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('تم تسجيل ServiceWorker بنجاح للمسار: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('فشل تسجيل ServiceWorker: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

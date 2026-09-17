@@ -1,0 +1,1062 @@
+/* css/home.css */
+/* 🌟 هذا الملف مخصص حصراً لتصميم: (1) الهيدر العلوي #main-header الذي يظهر في كل شاشات
+   المنصة، و(2) الشاشة الرئيسية الجديدة .home-screen (components/splash.html) فقط.
+   لا يعدّل أو يكرر أي قاعدة موجودة في global.css / adults.css / kids.css، ولا يستخدم أي اسم
+   كلاس قديم مشترك مع شاشات أخرى (splash-title, login-container, btn, main-menu-btn...) —
+   لذلك لا يوجد أي تأثير على أي شاشة أخرى في المنصة غير هاتين المنطقتين. 🌟 */
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+
+:root {
+    --dh-emerald-900: #06231c;
+    --dh-emerald-800: #0b3d30;
+    --dh-emerald-700: #0d5c46;
+    --dh-emerald-600: #147c5e;
+    --dh-gold-500: #d4af37;
+    --dh-gold-300: #f0d878;
+    --dh-surface: #fffdf6;
+    --dh-surface-alt: #f6f3e8;
+    --dh-ink: #10241c;
+    --dh-ink-soft: #4a6058;
+    --dh-radius-lg: 26px;
+    --dh-radius-md: 18px;
+    --dh-shadow-soft: 0 10px 30px rgba(6, 35, 28, 0.12);
+    --dh-shadow-lift: 0 22px 45px rgba(6, 35, 28, 0.18);
+}
+
+/* ==========================================================================
+   1) الهيدر العلوي — يظهر في كل شاشات المنصة (بموافقة صريحة على إعادة تصميمه بالكامل)
+   نستخدم مُحدِّدات بمعرّف (#) لضمان الأولوية على قواعد adults.css/kids.css الخاصة بالثيمات
+   ========================================================================== */
+#main-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    padding: 14px 35px;
+    background: linear-gradient(120deg, var(--dh-emerald-900), var(--dh-emerald-700) 55%, var(--dh-emerald-600));
+    border-bottom: 3px solid var(--dh-gold-500);
+    box-shadow: var(--dh-shadow-soft);
+    color: #fffdf6;
+    position: relative;
+    z-index: 100;
+}
+
+#main-header .home-header-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* 🌟 الشعار أصبح SVG مرسوم بدل الإيموجي 📖 — نفس الحاوية والحجم، الأيقونة فقط تغيّرت */
+#main-header .home-header-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.35);
+    flex-shrink: 0;
+}
+
+#main-header .home-header-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.35;
+    text-align: right;
+}
+
+#main-header #header-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+#main-header #top-student-name {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    font-weight: 500;
+}
+
+#lang-toggle-btn {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #fffdf6 !important;
+    border: 1.5px solid rgba(255, 253, 246, 0.4);
+    padding: 8px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: none !important;
+    transition: 0.25s ease;
+}
+
+#lang-toggle-btn:hover {
+    background: var(--dh-gold-500) !important;
+    border-color: var(--dh-gold-500);
+    color: var(--dh-emerald-900) !important;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* ==========================================================================
+   2) الشاشة الرئيسية (.home-screen) — components/splash.html فقط
+   ========================================================================== */
+.home-screen {
+    /* إلغاء قيود .screen العامة (max-width: 1200px و padding: 2rem) لأن أقسام هذه الشاشة
+       (Hero/لماذا دار حم/الفوتر) تحتاج عرضاً كاملاً بلا حدود جانبية */
+    max-width: 100% !important;
+    padding: 0 !important;
+    text-align: center;
+}
+
+/* ---------- Hero ---------- */
+.home-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 60px 20px 0;
+    background: linear-gradient(165deg, var(--dh-emerald-900) 0%, var(--dh-emerald-800) 45%, var(--dh-emerald-700) 100%);
+    color: #fffdf6;
+    text-align: right;
+}
+
+.home-hero-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23d4af37' stroke-opacity='0.14' stroke-width='1'%3E%3Cpath d='M30 2 L36 14 L50 14 L40 24 L44 38 L30 30 L16 38 L20 24 L10 14 L24 14 Z'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: repeat;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* 🌟 نجمة زخرفية ثانية أكبر وأخفت في الزاوية — لإحساس أعمق بالنقشة الإسلامية */
+.home-hero-pattern-2 {
+    position: absolute;
+    bottom: -150px;
+    left: 40px;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.home-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding-bottom: 60px;
+}
+
+.home-hero-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.home-hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--dh-gold-300);
+    padding: 7px 18px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.home-title {
+    font-family: 'Amiri', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 0 0 14px;
+    line-height: 1.22;
+    background: linear-gradient(90deg, #fffdf6, var(--dh-gold-300));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.home-subtitle {
+    font-size: 1.15rem;
+    font-weight: 500;
+    opacity: 0.9;
+    margin: 0 0 20px;
+    max-width: 520px;
+}
+
+.home-greeting {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fffdf6;
+    min-height: 1.4em;
+    margin-bottom: 18px;
+}
+
+.home-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+/* 🌟 شريط التاريخ الهجري/الميلادي واليوم — النص يُملأ ديناميكياً في #home-date-bar-text
+   من core/app.js، والأيقونة SVG ثابتة في splash.html 🌟 */
+.home-date-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 14px;
+    background: rgba(255, 253, 246, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--dh-gold-300);
+}
+
+.home-summary-bar {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 14px;
+    background: rgba(255, 253, 246, 0.06);
+    border: 1px dashed rgba(255, 253, 246, 0.3);
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #fffdf6;
+}
+
+/* موجة فاصلة أسفل الهيرو — لون التعبئة يطابق خلفية قسم "لماذا دار حم؟" التالي مباشرة */
+.home-hero-wave {
+    display: block;
+    width: 100%;
+    height: 60px;
+    position: relative;
+    z-index: 1;
+}
+.home-hero-wave path { fill: var(--dh-surface-alt); }
+
+/* ==========================================================================
+   🌟 بطاقة "نظرة سريعة" الزجاجية — عمود الهيرو الثاني
+   ========================================================================== */
+.home-quickcard {
+    position: relative;
+    text-align: right;
+    background: rgba(255, 253, 246, 0.07);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 253, 246, 0.16);
+    border-radius: 24px;
+    padding: 26px 26px 24px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+}
+
+.home-quickcard-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #fffdf6;
+    margin-bottom: 18px;
+}
+
+.home-quickcard-head-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* 🌟 تذكير عيد ميلاد طالب — يظهر فقط إن كان اليوم عيد ميلاد أحد الطلاب فعلاً
+   (يتحكم في display من components/homeQuickview.js) */
+.home-quickcard-bday {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(212, 175, 55, 0.16);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    color: #fffdf6;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.home-quickcard-bday-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* 🌟 آية/حديث/دعاء اليوم */
+.home-quickcard-quote {
+    text-align: center;
+    padding: 14px 6px;
+    margin-bottom: 16px;
+    border-top: 1px solid rgba(255, 253, 246, 0.12);
+    border-bottom: 1px solid rgba(255, 253, 246, 0.12);
+}
+
+.home-quickcard-quote p {
+    /* 🌟 كانت 'Amiri' العادي — تغيّرت لـ 'Amiri Quran' لأن هذه البطاقة قد تعرض آية قرآنية
+       فعلية (من DAILY_QUOTES في homeQuickview.js) وتحتاج نفس خط الرسم العثماني المستخدم بباقي
+       نصوص القرآن في المنصة؛ لا يؤثر هذا على عرض الحديث/الدعاء لأنهما بدون رموز عثمانية خاصة 🌟 */
+    font-family: 'Amiri Quran', serif;
+    font-size: 1.05rem;
+    color: var(--dh-gold-300);
+    margin: 0 0 6px;
+    line-height: 1.7;
+}
+
+.home-quickcard-quote span {
+    font-size: 0.75rem;
+    color: rgba(255, 253, 246, 0.55);
+}
+
+.home-quickcard-mastery {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.home-mastery-ring {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    /* الخلفية (conic-gradient بنسبة الإتقان الفعلية) تُضبط ديناميكياً من homeQuickview.js */
+    background: conic-gradient(rgba(255, 253, 246, 0.18) 0% 100%);
+}
+
+.home-mastery-ring-inner {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--dh-emerald-800);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fffdf6;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.home-mastery-label {
+    color: #fffdf6;
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-bottom: 3px;
+}
+
+.home-mastery-sub {
+    color: rgba(255, 253, 246, 0.6);
+    font-size: 0.78rem;
+}
+
+.home-quickcard-reports {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #fffdf6;
+    font-size: 0.9rem;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 253, 246, 0.14);
+    margin-bottom: 18px;
+}
+
+.home-quickcard-reports-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--dh-gold-300);
+}
+
+.home-quickcard-publish-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    color: var(--dh-emerald-900);
+    border: none;
+    border-radius: 14px;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.home-quickcard-publish-btn:hover { transform: translateY(-2px); }
+
+/* ==========================================================================
+   🌟 شارة إكمال البيانات + بانر عيد ميلاد المعلم + نافذة تعديل البيانات — كل هذه
+   العناصر اختيارية بالكامل ولا تُجبر المعلم على شيء 🌟
+   ========================================================================== */
+.teacher-profile-badge {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px 18px;
+    border-radius: 30px;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    color: var(--dh-emerald-900);
+    border: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.35);
+    transition: transform 0.2s ease;
+}
+
+.teacher-profile-badge:hover { transform: translateY(-2px); }
+
+.teacher-profile-badge .badge-pct {
+    background: rgba(255, 253, 246, 0.5);
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+}
+
+.teacher-bday-banner {
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px 20px;
+    background: linear-gradient(90deg, var(--dh-gold-500), var(--dh-gold-300));
+    color: var(--dh-emerald-900);
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-align: center;
+}
+
+.teacher-bday-banner .bday-banner-close {
+    background: rgba(6, 35, 28, 0.15);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.teacher-profile-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 35, 28, 0.55);
+    padding: 20px;
+}
+
+.teacher-profile-modal-box {
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--dh-surface);
+    border-radius: var(--dh-radius-lg);
+    padding: 28px 26px;
+    box-shadow: var(--dh-shadow-lift);
+    text-align: center;
+}
+
+.teacher-profile-modal-box h3 {
+    font-family: 'Amiri', serif;
+    font-size: 1.5rem;
+    color: var(--dh-emerald-700);
+    margin-bottom: 20px;
+}
+
+.teacher-profile-photo-zone {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--dh-gold-500);
+    cursor: pointer;
+    position: relative;
+}
+
+.teacher-profile-photo-zone img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.teacher-profile-photo-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(6, 35, 28, 0.6);
+    color: #fffdf6;
+    font-size: 0.6rem;
+    padding: 3px 0;
+}
+
+/* 🌟 [جديد] منطقة رفع الختم — مربعة بخلاف الصورة الشخصية الدائرية (الأختام غالباً
+   مستطيلة/مربعة)، وحدودها متقطعة (dashed) للدلالة على أنها اختيارية بالكامل 🌟 */
+.teacher-profile-stamp-zone {
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 18px;
+    border-radius: var(--dh-radius-md);
+    border: 2px dashed rgba(13, 92, 70, 0.35);
+    background: var(--dh-surface-alt);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.teacher-profile-stamp-zone img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.teacher-profile-stamp-hint {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(6, 35, 28, 0.6);
+    color: #fffdf6;
+    font-size: 0.58rem;
+    padding: 3px 0;
+}
+
+.teacher-profile-modal .input-group {
+    text-align: right;
+    margin-bottom: 14px;
+}
+
+.teacher-profile-modal .input-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--dh-ink);
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.teacher-profile-modal .input-group input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.teacher-profile-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.teacher-profile-modal-actions .btn {
+    flex: 1;
+}
+
+/* ---------- لماذا دار حم؟ ---------- */
+.home-why {
+    padding: 10px 20px 55px;
+    background: var(--dh-surface-alt);
+    text-align: center;
+}
+
+.home-why-title {
+    font-family: 'Amiri', serif;
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--dh-emerald-700);
+    margin-bottom: 8px;
+}
+
+.home-why-subtitle {
+    font-size: 1.1rem;
+    color: var(--dh-ink-soft);
+    margin-bottom: 35px;
+}
+
+.home-why-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    text-align: right;
+}
+
+.home-why-card {
+    background: var(--dh-surface);
+    border-radius: var(--dh-radius-md);
+    padding: 22px 16px;
+    box-shadow: var(--dh-shadow-soft);
+    border: 1px solid rgba(13, 92, 70, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-why-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--dh-shadow-lift);
+}
+
+.home-why-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700));
+    color: #fffdf6;
+    margin-bottom: 12px;
+}
+
+.home-why-card h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dh-ink);
+    margin-bottom: 6px;
+}
+
+.home-why-card p {
+    font-size: 0.95rem;
+    color: var(--dh-ink-soft);
+    line-height: 1.5;
+}
+
+/* ---------- شبكة الأزرار الرئيسية ---------- */
+.home-menu {
+    padding: 55px 20px 70px;
+    background: var(--dh-surface);
+    text-align: center;
+}
+
+/* 🌟 الصف الأساسي: بطاقتان كبيرتان بارزتان (الكبار/الأطفال) لإعطائهما أولوية بصرية
+   واضحة باعتبارهما أكثر إجراءين يستخدمهما المعلم يومياً 🌟 */
+.home-menu-primary {
+    max-width: 1100px;
+    margin: 0 auto 20px;
+    display: grid;
+    /* 🌟 [عدّل] كانت 1fr 1fr (بطاقتان) قبل إضافة بطاقة "تحدي المتشابهات" الثالثة 🌟 */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.home-menu-primary .home-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 190px;
+    justify-content: flex-end;
+    border: none;
+    color: inherit;
+}
+
+.home-menu-primary .home-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+    background: rgba(255, 253, 246, 0.22);
+    margin-bottom: 14px;
+}
+
+.home-menu-primary .home-card-title { font-size: 1.3rem; }
+.home-menu-primary .home-card-desc { font-size: 0.9rem; }
+
+/* 🌟 [إصلاح][مهم] كل قواعد التدرّجات الثلاثة تحت بادئة .home-menu-primary عمداً (وليس
+   .home-card-adult بمفردها) — لأن قاعدة .home-card العامة (بلا أي بادئة) تُعرَّف لاحقاً
+   في هذا الملف بخاصية background لبطاقات الصف الثانوي، وبنفس مستوى التخصيص (0,1,0) تماماً
+   مثل .home-card-adult بمفردها؛ وعند تساوي مستوى التخصيص، القاعدة الأحدث ترتيباً في
+   الملف هي الفائزة بغض النظر عن أي قاعدة سبقتها — فكانت الخلفيات الملوّنة الثلاث تُستبدَل
+   بالخلفية البيضاء الافتراضية للبطاقات الصغيرة! إضافة .home-menu-primary كبادئة ترفع
+   مستوى التخصيص إلى (0,2,0) فتضمن فوز التدرّج الصحيح دائماً بغض النظر عن ترتيب القواعد 🌟 */
+
+/* 🌟 [عدّل] بطاقة "واجهة الكبار" أصبحت بالتدرّج الزمرّدي (الهوية البصرية الأساسية للمنصة
+   --dh-emerald) بدل الذهبي القديم، حتى تتميّز بوضوح عن بطاقتي "ركن الأطفال" و"تحدي
+   المتشابهات" الجديدة (اللي أخذت الذهبي والتدرّج المُختلط بينهما بالترتيب) 🌟 */
+.home-menu-primary .home-card-adult { background: linear-gradient(150deg, var(--dh-emerald-900), var(--dh-emerald-600) 75%); color: #fffdf6; box-shadow: 0 18px 36px rgba(6, 35, 28, 0.35); }
+.home-card-adult .home-card-title,
+.home-card-adult .home-card-desc,
+.home-card-adult .home-card-arrow { color: #fffdf6; }
+.home-card-adult .home-card-desc { opacity: 0.82; }
+
+/* 🌟 [عدّل] بطاقة "ركن الأطفال" أصبحت بالتدرّج الذهبي (الهوية البصرية الثانية --dh-gold)
+   بدل الأزرق القديم — أكثر بهجة وملاءمة للصغار، ومتميّزة تماماً عن الزمرّدي أعلاه 🌟 */
+.home-menu-primary .home-card-kids { background: linear-gradient(150deg, var(--dh-gold-500), var(--dh-gold-300) 75%); color: #4b3609; box-shadow: 0 18px 36px rgba(212, 175, 55, 0.32); }
+.home-card-kids .home-card-title,
+.home-card-kids .home-card-desc,
+.home-card-kids .home-card-arrow { color: #4b3609; }
+.home-card-kids .home-card-desc { opacity: 0.8; }
+
+/* 🌟 [جديد] بطاقة "تحدي المتشابهات" — تدرّج يمزج بين لوني الهوية البصرية (الزمرّدي
+   والذهبي) معاً في تدرّج واحد، لتبقى البطاقة الثالثة متسقة مع هوية المنصة مع تميّزها
+   بصرياً عن بطاقتي الكبار (زمرّدي بالكامل) والأطفال (ذهبي بالكامل) 🌟 */
+.home-menu-primary .home-card-similarities { background: linear-gradient(150deg, var(--dh-emerald-800), var(--dh-emerald-600) 55%, var(--dh-gold-500) 100%); color: #fffdf6; box-shadow: 0 18px 36px rgba(11, 61, 48, 0.3); }
+.home-card-similarities .home-card-title,
+.home-card-similarities .home-card-desc,
+.home-card-similarities .home-card-arrow { color: #fffdf6; }
+.home-card-similarities .home-card-desc { opacity: 0.85; }
+
+/* 🌟 شارة "قيد التطوير" فوق بطاقات الصف الأساسي (الملوّنة بتدرّجات غامقة) — نُعيد
+   ضبط ألوانها هنا فقط (بدون التأثير على شارة بطاقة "الاختبارات الثنائية" في الصف
+   الثانوي) حتى تبقى واضحة وسهلة القراءة فوق التدرّجات الزمرّدية/الذهبية 🌟 */
+.home-menu-primary .home-card-badge {
+    background: rgba(255, 253, 246, 0.85);
+    color: var(--dh-emerald-800);
+}
+
+/* 🌟 الصف الثانوي: ثلاث بطاقات أصغر بنفس لغة تصميم بطاقات "لماذا دار حم؟" */
+.home-menu-secondary {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.home-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: right;
+    gap: 4px;
+    padding: 20px 18px 22px;
+    border: 1px solid rgba(13, 92, 70, 0.08);
+    border-radius: var(--dh-radius-md);
+    cursor: pointer;
+    background: var(--dh-surface);
+    color: var(--dh-ink);
+    box-shadow: var(--dh-shadow-soft);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.home-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--dh-shadow-lift);
+}
+
+.home-menu-primary .home-card:hover { transform: translateY(-4px); }
+
+.home-card:hover .home-card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.home-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    color: #fffdf6;
+}
+
+.home-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dh-ink);
+}
+
+.home-card-desc {
+    font-size: 0.82rem;
+    color: var(--dh-ink-soft);
+    font-weight: 500;
+}
+
+.home-card-arrow {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    display: flex;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: 0.25s ease;
+}
+
+/* شارة "قيد التطوير" على بطاقة الاختبارات الثنائية */
+.home-card-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(100, 116, 139, 0.14);
+    color: #475569;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.home-card-students .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700)); }
+.home-card-homework .home-card-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.home-card-dual .home-card-icon { background: linear-gradient(135deg, #64748b, #475569); }
+
+/* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
+   .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
+   الطويلة (min-height:190px مع justify-content:flex-end تحجز مكاناً له تحت النص دائماً).
+   بطاقات الصف الثانوي أقصر وارتفاعها يتغيّر حسب طول نص الوصف، فوضع السهم بنفس الطريقة
+   المطلقة كان سيخاطر بتراكبه فوق نص الوصف في بعض الحالات. هذه القاعدة (تخصيص أعلى:
+   0,2,0 مقابل 0,1,0 للقاعدة العامة) تعيده لتدفّق طبيعي أسفل البطاقة بدل التموضع المطلق 🌟 */
+.home-menu-secondary .home-card-arrow {
+    position: static;
+    align-self: flex-end;
+    margin-top: 10px;
+    color: var(--dh-ink-soft);
+    opacity: 0.55;
+    transform: none;
+}
+.home-menu-secondary .home-card:hover .home-card-arrow {
+    opacity: 1;
+}
+
+/* ---------- الفوتر ---------- */
+.home-footer {
+    background: var(--dh-emerald-900);
+    color: rgba(255, 253, 246, 0.85);
+    padding: 40px 20px 25px;
+}
+
+.home-footer-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 253, 246, 0.15);
+}
+
+.home-footer-about {
+    text-align: right;
+}
+
+.home-footer-about strong {
+    display: block;
+    color: var(--dh-gold-300);
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
+
+.home-footer-about p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    max-width: 320px;
+}
+
+.home-footer-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(37, 211, 102, 0.3);
+    transition: transform 0.25s ease;
+}
+
+.home-footer-contact:hover { transform: translateY(-3px); }
+
+.home-footer-copy {
+    font-size: 0.85rem;
+    opacity: 0.75;
+}
+
+.home-footer-credit {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.95rem;
+}
+
+.home-footer-credit span:first-child {
+    opacity: 0.75;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.home-footer-credit span:last-child {
+    color: var(--dh-gold-300);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+/* ==========================================================================
+   3) الاستجابة للجوال
+   ========================================================================== */
+@media (max-width: 900px) {
+    .home-hero-grid { grid-template-columns: 1fr; }
+    .home-hero-inner { padding-bottom: 40px; }
+    .home-quickcard { max-width: 480px; margin: 10px auto 0; }
+    /* 🌟 [جديد] على شاشات التابلت، بطاقتان في الصف بدل 3 بطاقات ضيقة (تنكمش بشكل غير
+       مريح)؛ البطاقة الثالثة (تحدي المتشابهات) تنتقل لصف جديد بعرض عمود كامل 🌟 */
+    .home-menu-primary { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+    #main-header { padding: 12px 18px; }
+    #main-header #header-title { font-size: 0.95rem; }
+    #main-header #top-student-name { font-size: 0.75rem; }
+
+    .home-hero { padding: 44px 16px 0; text-align: center; }
+    .home-hero-eyebrow { font-size: 0.75rem; }
+    .home-title { font-size: 2.1rem; }
+    .home-subtitle { font-size: 1.02rem; max-width: 100%; margin-left: auto; margin-right: auto; }
+    .home-chips-row { justify-content: center; }
+
+    .home-why-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .home-menu-primary { grid-template-columns: 1fr; }
+    .home-menu-secondary { grid-template-columns: 1fr; }
+
+    .home-footer-inner { flex-direction: column; text-align: center; }
+    .home-footer-about { text-align: center; }
+    .home-footer-about p { max-width: 100%; }
+}
+
+@media (max-width: 480px) {
+    .home-why-grid { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
+   🌟 [جديد] شاشة "الجديد في هذا التحديث" — عنصر ثابت مستقل تماماً خارج #app-root
+   (زي .teacher-profile-modal بالضبط)، بكلاسات whats-new-* خاصة به فقط، فلا يعدّل أو
+   يكرر أي قاعدة موجودة في هذا الملف أو غيره. يعتمد على نفس متغيرات الهوية البصرية
+   (--dh-emerald / --dh-gold) المعرّفة أعلى هذا الملف 🌟
+   ========================================================================== */
+.whats-new-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6, 35, 28, 0.55);
+    padding: 20px;
+}
+
+.whats-new-modal-box {
+    width: 100%;
+    max-width: 460px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: var(--dh-surface);
+    border-radius: var(--dh-radius-lg);
+    padding: 28px 26px;
+    box-shadow: var(--dh-shadow-lift);
+    border-top: 4px solid var(--dh-gold-500);
+    text-align: center;
+}
+
+.whats-new-modal-box h3 {
+    font-family: 'Amiri', serif;
+    font-size: 1.5rem;
+    color: var(--dh-emerald-700);
+    margin-bottom: 18px;
+}
+
+.whats-new-entry {
+    text-align: right;
+    margin-bottom: 16px;
+}
+
+.whats-new-entry-header {
+    font-weight: 700;
+    color: var(--dh-emerald-800);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed rgba(13, 92, 70, 0.25);
+}
+
+.whats-new-entry-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.whats-new-entry-items li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.92rem;
+    color: var(--dh-ink);
+    line-height: 1.5;
+}
+
+.whats-new-badge {
+    flex-shrink: 0;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--dh-surface-alt);
+    color: var(--dh-emerald-700);
+    white-space: nowrap;
+}
+
+.whats-new-badge-new {
+    background: var(--dh-gold-300);
+    color: var(--dh-emerald-900);
+}
+
+.whats-new-badge-improved {
+    background: var(--dh-emerald-600);
+    color: var(--dh-surface);
+}
+
+.whats-new-badge-fixed {
+    background: var(--dh-surface-alt);
+    color: var(--dh-ink-soft);
+}
+
+.whats-new-modal-actions {
+    margin-top: 20px;
+}
+
+.whats-new-modal-actions .btn {
+    width: 100%;
+}

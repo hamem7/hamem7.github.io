@@ -1,0 +1,187 @@
+<!-- settings/dashboard.html -->
+<!-- 🌟🌟 [جديد] تجديد بصري لشاشة "لوحة التقييم" — أول شاشة تجريبية لتوحيد الهوية البصرية
+     (--dh-emerald / --dh-gold المعرَّفة في css/home.css) مع الشاشات الداخلية القديمة التي
+     كانت لسه بألوان adults.css المختلفة تماماً (أزرق/تركواز/ذهبي بني). كل قواعد التنسيق
+     هنا معزولة بادئتها "dash-" فقط (نفس فلسفة hw-/dts-/sim- المتّبعة في باقي المنصة)، ولا
+     تُعدّل أي قاعدة عامة في global.css أو adults.css، فلا تؤثر على أي شاشة أخرى. كل الـid
+     المستخدمة في settings/dashboard.js باقية بلا أي تغيير — التعديل شكلي بالكامل 🌟🌟 -->
+<style>
+    @keyframes dash-fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* 🌟 حاوية اللوحة — بدل الخلفية شبه البيضاء والظل الغامق القادمَين من .control-panel
+       العامة في adults.css، هوية المنصة الجديدة: خلفية --dh-surface وحافة ذهبية علوية
+       وظل ناعم --dh-shadow-soft، بنفس روح .dts-panel المعتمدة في شاشات الاختبارات الثنائية.
+       🌟 [مهم] كل قاعدة هنا بتتصادم مباشرة مع قاعدة !important موجودة فعلاً في adults.css
+       بنفس درجة التخصيص تقريباً (.adult-theme .control-panel إلخ) — فبادئة #app-root هنا
+       مش تجميلية، هي الضمانة الوحيدة إن قاعدتنا الجديدة تكسب دايماً بغض النظر عن ترتيب
+       تحميل ملفات CSS، من غير ما نلمس أو نعدّل قاعدة adults.css نفسها إطلاقاً 🌟 */
+    #app-root .dash-panel {
+        background: var(--dh-surface) !important;
+        border-radius: var(--dh-radius-lg) !important;
+        box-shadow: var(--dh-shadow-soft) !important;
+        border-top: 5px solid var(--dh-gold-500);
+        max-width: 640px;
+        margin: 4vh auto !important;
+        padding: 36px 30px !important;
+        animation: dash-fadeInUp 0.4s ease both;
+    }
+
+    .dash-title-row { margin-bottom: 6px; }
+    #app-root .dash-panel .splash-title {
+        color: var(--dh-emerald-800) !important;
+        font-size: 2.1rem !important;
+    }
+    .dash-title-underline {
+        width: 64px; height: 4px; margin: 0 auto 22px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, var(--dh-gold-300), var(--dh-gold-500));
+    }
+
+    .dash-student-chip {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--dh-surface-alt);
+        color: var(--dh-emerald-700) !important;
+        font-weight: bold; font-size: 1.15rem !important;
+        padding: 8px 20px; border-radius: 30px;
+        margin-bottom: 22px;
+        border: 1px solid rgba(13, 92, 70, 0.12);
+    }
+
+    /* 🌟 شرائح "نوع التقييم" — نفس البنية (label + input radio) بلا أي تعديل على دلالتها
+       أو سلوكها، فقط شكل جديد + تمييز الشريحة المختارة حالياً عبر :has() (بلا أي JS إضافي،
+       فمفيش خطر على المنطق الموجود في dashboard.js) */
+    .dash-eval-pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: var(--dh-surface-alt);
+        border: 2px solid transparent;
+        color: var(--dh-ink);
+        padding: 9px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+    .dash-eval-pill input { accent-color: var(--dh-emerald-600); cursor: pointer; }
+    .dash-eval-pill:hover { border-color: var(--dh-gold-500); }
+    .dash-eval-pill:has(input:checked) {
+        background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600));
+        color: #fffdf6;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(13, 92, 70, 0.25);
+    }
+
+    /* 🌟 زر "ابدأ التقييم" — الفعل الأساسي في الشاشة، بلون الذهب المعتمد لكل أزرار
+       "الإجراء الرئيسي" في الهوية الجديدة (زي home-quickcard-publish-btn وdts-btn-ready).
+       بادئة #app-root هنا لنفس سبب .dash-panel أعلاه: قاعدة .adult-theme .btn في adults.css
+       بتحط !important على الخلفية، فلازم نضمن الأولوية بلا ما نلمس تلك القاعدة العامة */
+    #app-root .dash-btn-primary {
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
+        color: var(--dh-emerald-900) !important;
+        border: none !important;
+        box-shadow: 0 12px 24px rgba(212, 175, 55, 0.32) !important;
+    }
+    #app-root .dash-btn-primary:hover { box-shadow: 0 16px 30px rgba(212, 175, 55, 0.4) !important; }
+
+    /* 🌟 زر "تغيير الطالب / العودة" — كان بحدود/نص أحمر بالـ inline style قديماً، لكن
+       !important الخاصة بـ .adult-theme .btn-outline في adults.css كانت تلغي هذا التلوين
+       فعلياً (يظهر تركوازياً زي أي زر .btn-outline عادي بلا فرق) رغم أن الإجراء نفسه ليس
+       "خطراً" أصلاً (مجرد تنقّل)، فاستبدلناه بزر "ثانوي" هادئ بحدود زمرّدية بدل الأحمر غير
+       الفعّال أصلاً وغير المناسب دلالياً لإجراء تنقّل عادي */
+    #app-root .dash-btn-secondary {
+        background: #fff !important;
+        color: var(--dh-emerald-700) !important;
+        border: 2px solid var(--dh-emerald-600) !important;
+        box-shadow: none !important;
+    }
+    #app-root .dash-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+        #app-root .dash-panel { animation: none; }
+    }
+</style>
+
+<div class="screen active dashboard-wrapper">
+    <div class="control-panel dash-panel">
+        <div class="dash-title-row">
+            <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:10px;" id="dash-title" data-i18n="dash_title">لوحة التقييم ⚙️</h1>
+        </div>
+        <div class="dash-title-underline" aria-hidden="true"></div>
+        <div id="top-student-name" class="dash-student-chip" style="font-weight:bold;"></div>
+
+        <div class="eval-type-selector" id="eval-radios" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap:wrap;">
+            <label class="dash-eval-pill"><input type="radio" name="evalType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
+            <label class="dash-eval-pill"><input type="radio" name="evalType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
+            <label class="dash-eval-pill"><input type="radio" name="evalType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
+        </div>
+
+        <div id="surah-settings" class="form-grid" style="text-align:right;">
+            <div class="input-group">
+                <label data-i18n="surah_label">السورة:</label>
+                <select id="surah-select"></select>
+            </div>
+            <div class="input-group">
+                <label data-i18n="q_count">عدد الأسئلة:</label>
+                <input type="number" id="q-count-surah" value="10" min="5" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';">
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="range_label">النطاق (من - إلى):</label>
+                <div style="display:flex; gap:10px;">
+                    <select id="ayah-from"></select>
+                    <select id="ayah-to"></select>
+                </div>
+            </div>
+        </div>
+
+        <div id="range-settings" class="form-grid" style="display:none; text-align:right;">
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="from_surah">من سورة:</label>
+                <select id="range-from-surah"></select>
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="to_surah">إلى سورة:</label>
+                <select id="range-to-surah"></select>
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="q_count">عدد الأسئلة:</label>
+                <input type="number" id="q-count-range" value="15" min="5" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';">
+            </div>
+        </div>
+
+        <div id="juz-settings" class="form-grid" style="display:none; text-align:right;">
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="select_juz">اختر الجزء:</label>
+                <select id="juz-select"></select>
+            </div>
+            <div class="input-group" style="grid-column: span 2;">
+                <label data-i18n="q_count">عدد الأسئلة:</label>
+                <input type="number" id="q-count-juz" value="20" min="5" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';">
+            </div>
+        </div>
+
+        <div id="kids-settings" style="display:none; text-align:center; width: 100%;">
+            <div style="color:#db2777; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
+                نطاق الأسئلة (جزئي تبارك وعم):
+            </div>
+
+            <div class="kids-range-row">
+                <div class="kids-range-item">
+                    <label data-i18n="from_surah">من سورة:</label>
+                    <select id="kids-from-surah" class="kids-styled-select"></select>
+                </div>
+                <div class="kids-range-item">
+                    <label data-i18n="to_surah">إلى سورة:</label>
+                    <select id="kids-to-surah" class="kids-styled-select"></select>
+                </div>
+            </div>
+
+            <div class="kids-range-item" style="max-width: 320px; margin: 20px auto;">
+                <label data-i18n="kids_q_count">عدد الألعاب (الأسئلة):</label>
+                <input type="number" id="q-count-kids" value="10" min="5" max="30" class="kids-styled-input">
+            </div>
+        </div>
+
+        <button class="btn dash-btn-primary" style="width: 100%; margin-top:25px; font-size:1.6rem; padding:15px;" id="btn-start-mission" data-i18n="btn_start_eval">🚀 ابدأ التقييم الآن</button>
+
+        <button class="btn btn-outline dash-btn-secondary" style="width: 100%; margin-top:15px; font-size:1.2rem;" id="btn-change-student" data-i18n="btn_change_student">🔙 تغيير الطالب / العودة</button>
+    </div>
+</div>

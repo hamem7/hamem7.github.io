@@ -1,0 +1,40 @@
+<!-- student/homework-welcome.html -->
+<div class="screen active" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-content" style="background: white; padding: 40px 30px; border-radius: 25px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15); border: 2px solid #bae6fd;">
+        
+        <!-- أيقونة احتفالية -->
+        <div style="font-size: 5rem; margin-bottom: 10px; animation: bounce 2s infinite;">🎯</div>
+        
+        <h1 style="color: #0369a1; font-size: 2.2rem; margin-top: 0; margin-bottom: 10px;">تحدي قرآني جديد!</h1>
+        <p style="color: #64748b; font-size: 1.3rem; margin-bottom: 25px;">معلمك يرسل لك مهمة خاصة.. هل أنت مستعد لإثبات مهارتك يا بطل؟</p>
+        
+        <!-- 🌟 قسم الترحيب المخصص للطالب (يظهر برمجياً إذا تم تحديد الطالب) 🌟 -->
+        <div id="hw-personalized-welcome" style="display: none; margin-bottom: 25px; padding: 30px 20px; background: #ecfdf5; border-radius: 20px; border: 2px dashed #10b981;">
+            <h2 id="hw-welcome-name" style="color: #047857; margin: 0; font-size: 1.8rem; font-weight: bold; line-height: 1.6;"></h2>
+        </div>
+
+        <!-- ⚙️ قسم قائمة الاختيار العادية (كحل بديل لو لم يتم تحديد طالب للواجب) -->
+        <div id="hw-dropdown-section" style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #cbd5e1;">
+            <label style="display: block; font-weight: bold; color: #334155; margin-bottom: 15px; font-size: 1.2rem;">أخبرنا من أنت لنسجل درجاتك:</label>
+            <select id="hw-student-select" style="width: 100%; padding: 15px; font-size: 1.4rem; font-family: 'Tajawal', sans-serif; font-weight: bold; color: #1e3a5f; border: 2px solid #93c5fd; border-radius: 10px; text-align: center; outline: none; appearance: none; background: white; cursor: pointer;">
+                <option value="" disabled selected>-- اختر اسمك من هنا --</option>
+                <!-- سيتم ملء الأسماء عبر الجافاسكربت -->
+            </select>
+        </div>
+
+        <button class="btn" id="btn-enter-hw" style="width: 100%; background: linear-gradient(45deg, #10b981, #059669); font-size: 1.5rem; padding: 15px; border-radius: 12px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
+            🚀 انطلق للتحدي!
+        </button>
+        
+        <button class="btn btn-outline" id="btn-cancel-hw" style="width: 100%; margin-top: 15px; font-size: 1.2rem; border-color: #ef4444; color: #ef4444; border-radius: 12px;">
+            ✖️ لست مستعداً الآن (عودة)
+        </button>
+    </div>
+</div>
+
+<style>
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>

@@ -1,0 +1,629 @@
+/* css/similarities.css */
+/* 🌟 [جديد] تنسيقات شاشات "ركن المتشابهات" الجديدة (مجلد similarities/) — ملف معزول
+   تماماً، لا يلمس أي قاعدة في css/global.css أو css/adults.css أو حتى css/home.css نفسه،
+   بنفس فلسفة العزل المتبعة مع dualtests/. كل الفئات هنا مُسبَّقة بـ .sim- لتفادي أي
+   تعارض أسماء مع بقية المنصة. يعتمد على متغيرات الهوية البصرية --dh-emerald-*/--dh-gold-*
+   المعرّفة أصلاً في css/home.css (راجع القاعدة الخاصة بذلك في تعليمات المشروع) 🌟 */
+
+.sim-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.sim-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.sim-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.sim-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 1.1rem;
+    margin: 0 0 25px;
+}
+
+.sim-btn-exit {
+    white-space: nowrap;
+    padding: 10px 18px !important;
+    font-size: 1rem !important;
+}
+
+/* 🌟 [جديد] شكل "شبح" خفيف لزر "رجوع خطوة" — متعمَّد أن يكون أخف بصرياً من زر "الخروج
+   الكامل" (.sim-btn-exit أعلاه، لسه بتصميم .btn.btn-outline المعتمد في المنصة) حتى يفرّق
+   المعلم بينهما بلمحة: هذا رجوع بسيط داخل شاشات المتشابهات، مش خروج كامل منها */
+.sim-btn-level-back {
+    white-space: nowrap;
+    padding: 9px 16px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 2px solid var(--dh-emerald-600);
+    color: var(--dh-emerald-700);
+    border-radius: 14px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sim-btn-level-back:hover {
+    background: var(--dh-emerald-600);
+    color: #fffdf6;
+}
+
+.sim-container {
+    min-height: 200px;
+}
+
+.sim-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.sim-grid-juz {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.sim-grid-surahs,
+.sim-grid-words {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.sim-grid-amma-choice {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.sim-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 25px 15px;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(150deg, var(--dh-emerald-800), var(--dh-emerald-600) 70%);
+    color: #fffdf6;
+    box-shadow: 0 10px 24px rgba(11, 61, 48, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    text-align: center;
+}
+
+.sim-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(11, 61, 48, 0.35);
+}
+
+/* 🌟 بطاقة جزء عمّ تتميّز بتدرّج يمزج الذهبي مع الأخضر (نفس فكرة .home-card-similarities
+   في css/home.css) لأنها تفرّعت لزرّين بدل الانتقال المباشر لقائمة سور 🌟 */
+.sim-juz-amma-card {
+    background: linear-gradient(150deg, var(--dh-emerald-800), var(--dh-gold-500) 130%);
+}
+
+.sim-juz-icon {
+    font-size: 2rem;
+}
+
+.sim-juz-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.sim-surah-card {
+    background: #fff;
+    color: var(--dh-emerald-800);
+    border: 2px solid rgba(11, 61, 48, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.sim-surah-card:hover {
+    border-color: var(--dh-gold-500);
+}
+
+.sim-surah-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.sim-surah-count {
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.sim-word-card {
+    background: #fff;
+    color: var(--dh-emerald-800);
+    border: 2px solid rgba(11, 61, 48, 0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    align-items: flex-start;
+    text-align: right;
+}
+
+.sim-word-card:hover {
+    border-color: var(--dh-gold-500);
+}
+
+.sim-word-anchor {
+    font-size: 1.3rem;
+}
+
+.sim-word-meta {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.sim-groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.sim-group-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(11, 61, 48, 0.1);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.sim-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 2px dashed rgba(11, 61, 48, 0.12);
+}
+
+.sim-anchor {
+    font-size: 1.4rem;
+    color: var(--dh-emerald-800);
+}
+
+/* 🌟 [جديد] "صندوق العنوان" الذهبي لعبارة المتشابهات (anchorPhrase) — بطلب صريح من
+   المعلم ليطابق شكل عرض العبارة في مصدر الـ PDF نفسه. [عدّل] كان تدرّجاً كريمياً فاتحاً،
+   أصبح أصفر ذهبي (var(--dh-gold-300)) صريح وواضح بحدود سميكة (var(--dh-gold-500)) —
+   بطلب صريح من المعلم "نفس اللون الاصفر الثقيل الواضح"، ونفس لون تظليل .sim-highlight
+   أدناه بالضبط حتى يبقى شكل العرض متّسقاً 🌟 */
+.sim-anchor-box {
+    display: inline-block;
+    background: var(--dh-gold-300);
+    border: 2px solid var(--dh-gold-500);
+    color: var(--dh-emerald-900);
+    font-size: 1.3rem;
+    font-weight: 800;
+    padding: 8px 22px;
+    border-radius: 14px;
+    box-shadow: 0 3px 8px rgba(212, 175, 55, 0.35);
+}
+
+/* 🌟 [جديد] تظليل العبارة المشتركة داخل نص كل آية (<mark class="sim-highlight">) — بنفس
+   لون صندوق العنوان أعلاه بالضبط لثبات الهوية البصرية داخل البطاقة الواحدة. box-decoration-break
+   يضمن أن التظليل يفضل يبان صح حتى لو العبارة امتدت وانقسمت على أكتر من سطر 🌟 */
+.sim-highlight {
+    background: var(--dh-gold-300);
+    color: var(--dh-emerald-900);
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 6px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+.sim-cat-badge {
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    color: var(--dh-emerald-900);
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 5px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.sim-note {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px dashed var(--dh-gold-500);
+    color: #6b5410;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    margin-bottom: 14px;
+}
+
+.sim-occ-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sim-occ {
+    background: rgba(11, 61, 48, 0.04);
+    border-radius: 12px;
+    padding: 12px 15px;
+}
+
+.sim-occ-meta {
+    font-size: 0.9rem;
+    color: var(--dh-emerald-700);
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.sim-occ-text {
+    font-size: 1.6rem;
+    line-height: 2.1;
+}
+
+/* 🌟 [عدّل] موضع بآية مفردة (sim-occ-single): النص يُعرض بأسلوب المصحف مباشرة (بدون
+   قوسين ﴿ ﴾) مع "دائرة" رقم الآية الخضراء **قبل** نصها (تظهر بصرياً يمين السطر لأن اتجاه
+   النص RTL — نفس ترتيب الصورة المرجعية اللي أرسلها المعلم بالضبط). التسمية (اسم السورة)
+   نزلت تحت النص بدل فوقه لتفسح المجال للنص المتدفق. هذا الشكل أصبح موحّداً الآن على كل
+   المتشابهات (داخلية وجزء عمّ) — راجع splitRangeFullTextIntoAyahs في similarities.js 🌟 */
+.sim-occ-single .sim-occ-text {
+    font-size: 1.7rem;
+    line-height: 2.3;
+}
+
+.sim-occ-single .sim-occ-meta {
+    margin-top: 8px;
+    margin-bottom: 0;
+    font-weight: normal;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* 🌟 [جديد] موضع بنطاق آيات (جزء عمّ) بعد تقسيمه لعدة آيات مفردة — كل آية بسطرها
+   الخاص (دائرة رقم + نص)، بنفس المسافة الرأسية بين المواضع المختلفة داخل .sim-occ-list 🌟 */
+.sim-occ-ayah-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.sim-ayah-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-800));
+    color: #fffdf6;
+    font-size: 0.95rem;
+    font-weight: bold;
+    font-family: Arial, Tahoma, sans-serif;
+    vertical-align: middle;
+    box-shadow: 0 2px 5px rgba(11, 61, 48, 0.3);
+}
+
+.sim-tail-diff {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.sim-own-block,
+.sim-other-block {
+    margin-bottom: 10px;
+}
+
+.sim-block-label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #b8860b;
+    margin-bottom: 8px;
+}
+
+/* 🌟 [Old] زر اللعب الفردي القديم على كل بطاقة مجموعة — لم يعد يُرسَم في أي مكان بعد
+   تحديث 2026-09-16 (الجولة الثانية: اللعب أصبح على مستوى السورة/الجزء بالكامل، راجع
+   .sim-game-scope-btn أدناه)، أُبقي على القاعدة بلا حذف تحسباً لأي استخدام مستقبلي بنفس
+   فلسفة الإبقاء على القواعد القديمة غير المستخدمة في هذا الملف (مثل .sim-grid-amma-choice) */
+.sim-start-game-btn {
+    display: block;
+    margin: 16px auto 0;
+}
+
+/* 🌟 [جديد — 2026-09-16، الجولة الثانية] أزرار "🎮 العب لعبة هذه السورة/هذا الجزء" الجديدة
+   — تحل محل زر اللعب الفردي أعلاه، وتظهر أعلى شاشة قائمة السور/قائمة كلمات جزء عمّ (لعبة
+   الجزء) وأعلى شاشة تفصيل السورة (لعبة السورة). حجم أبرز قليلاً من الزر القديم لأنها أصبحت
+   الفعل الرئيسي لبدء اللعب على مستوى الشاشة كلها، لا مجرد زر داخل بطاقة واحدة من عدة. */
+.sim-game-scope-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
+}
+
+.sim-game-scope-btn {
+    padding: 14px 30px !important;
+    font-size: 1.1rem !important;
+}
+
+.sim-empty,
+.sim-loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+    font-size: 1.2rem;
+}
+
+/* 🌟 [جديد] شاشة لعب "ركن المتشابهات" التفاعلية (similarities-play.html/js) — قواعد جديدة
+   بادئة بـ .sim-play- لعزلها بوضوح عن بقية قواعد هذا الملف، بنفس فلسفة العزل المعتمدة في
+   كل قسم ركن المتشابهات. تعتمد على نفس متغيرات الهوية البصرية --dh-emerald-*/--dh-gold-*
+   ونفس فئات .btn-correct/.btn-wrong الموجودة أصلاً في css/adults.css (تحت .adult-theme)
+   بدل اختراع ألوان جديدة 🌟 */
+.sim-play-anchor {
+    display: block;
+    width: fit-content;
+    margin: 0 auto 20px;
+}
+
+.sim-play-progress {
+    font-weight: bold;
+    color: var(--dh-emerald-700);
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.sim-play-prompt {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin: 18px 0 14px;
+}
+
+.sim-play-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.sim-play-option-btn {
+    min-width: 110px;
+    font-size: 1.1rem !important;
+    padding: 12px 20px !important;
+}
+
+.sim-play-option-btn.quran-text {
+    font-size: 1.3rem !important;
+}
+
+.sim-play-option-btn:disabled {
+    opacity: 0.65;
+    cursor: default;
+    transform: none !important;
+}
+
+.sim-play-feedback {
+    text-align: center;
+    font-size: 1.15rem;
+    font-weight: bold;
+    min-height: 28px;
+    margin-top: 8px;
+    color: var(--dh-emerald-800);
+}
+
+/* 🌟 [جديد] فراغ إخفاء الكلمة المميزة في لعبة "أكمل الآية الصحيحة" (blankPhraseInText في
+   core/quranTextUtils.js) — خط منقّط بلون الهوية البصرية بدل مربع فارغ عادي 🌟 */
+.sim-blank-slot {
+    display: inline-block;
+    min-width: 70px;
+    border-bottom: 3px dotted var(--dh-emerald-700);
+    margin: 0 4px;
+}
+
+.sim-play-results {
+    text-align: center;
+}
+
+.sim-play-results-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin-bottom: 10px;
+}
+
+.sim-play-results-score {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--dh-gold-500);
+    margin-bottom: 20px;
+}
+
+/* 🌟 [جديد — 2026-09-16] "إضافة متشابهة يدويًا" — زر داخل شاشة تفصيل السورة، شارة/أزرار
+   تحكّم على بطاقات المجموعات اليدوية، ونموذج الإضافة/التعديل نفسه. كل القواعد هنا بادئة
+   بـ .sim- بنفس فلسفة عزل باقي الملف، وتعتمد فقط على متغيرات الهوية البصرية
+   --dh-emerald-*/--dh-gold-* المعرّفة أصلاً في css/home.css، وتعيد استخدام فئات
+   .btn/.btn-outline/.btn-wrong الموجودة أصلاً (تحت .adult-theme في css/adults.css) بدل
+   اختراع ألوان جديدة — نفس القرار الموثّق سابقاً لقواعد .sim-play-* 🌟 */
+.sim-add-group-btn {
+    display: block;
+    margin: 20px auto 0;
+}
+
+/* 🌟 [جديد — الجولة الثالثة] مربع بحث قائمة "كل سور القرآن" في مسار الإضافة اليدوية —
+   يعيد استخدام .sim-form-input الموجودة أصلاً للحقل نفسه (بلا أي قاعدة جديدة له)، وهذه
+   القاعدة فقط لتوسيطه وتحديد عرضه الأقصى بنفس فلسفة .sim-form أسفل هذا الملف */
+.sim-add-search-wrap {
+    max-width: 480px;
+    margin: 0 auto 20px;
+}
+
+.sim-manual-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.sim-manual-badge {
+    background: rgba(11, 61, 48, 0.08);
+    color: var(--dh-emerald-700);
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-inline-end: auto;
+}
+
+.sim-icon-btn {
+    background: none;
+    border: 1px solid rgba(11, 61, 48, 0.15);
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.sim-icon-btn:hover {
+    background: rgba(11, 61, 48, 0.06);
+}
+
+.sim-icon-btn-danger:hover {
+    background: #fee2e2;
+    border-color: #df4e4e;
+}
+
+.sim-form {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(11, 61, 48, 0.1);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+.sim-form-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin: 14px 0 6px;
+}
+
+.sim-form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid rgba(11, 61, 48, 0.15);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: #fff;
+    color: var(--dh-emerald-900);
+}
+
+.sim-form-input:focus {
+    outline: none;
+    border-color: var(--dh-gold-500);
+}
+
+.sim-form-input.quran-text {
+    font-size: 1.3rem;
+}
+
+.sim-form-textarea {
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.9;
+}
+
+.sim-form-occurrences {
+    margin-top: 18px;
+}
+
+.sim-form-occurrences-label {
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin-bottom: 8px;
+}
+
+.sim-form-occ-row {
+    background: rgba(11, 61, 48, 0.04);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+}
+
+.sim-form-occ-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.sim-form-occ-row-title {
+    font-weight: bold;
+    color: var(--dh-emerald-700);
+}
+
+.sim-form-remove-occ-btn {
+    background: none;
+    border: none;
+    color: #b91c1c;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.sim-form-add-occ-btn {
+    display: block;
+    margin: 4px auto 0;
+    padding: 8px 20px !important;
+    font-size: 0.95rem !important;
+}
+
+.sim-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 2px dashed rgba(11, 61, 48, 0.12);
+}
+
+@media (max-width: 600px) {
+    .sim-title {
+        font-size: 1.5rem;
+    }
+
+    .sim-topbar {
+        flex-direction: column;
+    }
+
+    .sim-form {
+        padding: 18px;
+    }
+}

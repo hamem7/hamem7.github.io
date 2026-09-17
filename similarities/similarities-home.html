@@ -1,0 +1,29 @@
+<!-- similarities/similarities-home.html -->
+<!-- 🌟 [جديد] القالب الوحيد لكل شاشات "ركن المتشابهات". بدل إنشاء ملف HTML منفصل لكل
+     شاشة فرعية (القائمة الرئيسية، قوائم السور، التفصيل...)، اعتمدنا على "حاوية" واحدة
+     (#sim-container) يعيد similarities.js رسم محتواها بالكامل حسب الشاشة الحالية —
+     نفس فكرة العرض متعدد الأنماط في عارض HTML الذي بُني أثناء تفريغ بيانات المتشابهات.
+     هذا يبقي التنقل بين الشاشات فورياً (بلا أي طلب fetch إضافي) ويبسّط الصيانة 🌟 -->
+<div class="screen active">
+    <div class="sim-wrap">
+        <div class="sim-topbar">
+            <!-- 🌟 زر "رجوع" هذا للتنقل بين مستويات شاشات المتشابهات نفسها (مثلاً من تفصيل
+                 السورة للعودة لقائمة السور)، ويظهر فقط لو لسنا في الشاشة الرئيسية.
+                 🌟 [محدَّث] أزلنا صنفَي btn/btn-outline العامَّين هنا عمداً — كانا يخلّوا هذا
+                 الزر مطابقاً تماماً (نفس التدرّج اللوني الأخضر المزرق ونفس أيقونة 🔙) لزر
+                 "الخروج الكامل" المجاور له في الطرف الآخر من الشريط، رغم اختلاف ثقل الإجراء
+                 (رجوع خطوة واحدة داخل المتشابهات، مقابل خروج كامل منها للرئيسية). الآن له شكل
+                 "شبح" أخف (راجع .sim-btn-level-back في css/similarities.css) 🌟 -->
+            <button class="sim-btn-level-back" id="sim-btn-level-back" style="display:none;" data-i18n="sim_btn_back_level">⬅️ رجوع</button>
+            <h1 class="sim-title" id="sim-title" data-i18n="sim_home_title">ركن المتشابهات</h1>
+            <!-- وهذا زر الخروج الكامل من "ركن المتشابهات" للعودة للوحة التحكم الرئيسية — بقي
+                 بنفس تصميم زر "العودة للقائمة الرئيسية" المعتمد في باقي شاشات المنصة عمداً -->
+            <button class="btn btn-outline sim-btn-exit" id="sim-btn-exit" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>
+        </div>
+        <p class="sim-subtitle" id="sim-subtitle" data-i18n="sim_home_subtitle">اختر الجزء الذي تريد تصفح متشابهاته</p>
+
+        <div id="sim-container" class="sim-container">
+            <div class="sim-loading" data-i18n="sim_loading">⏳ جاري التحميل...</div>
+        </div>
+    </div>
+</div>

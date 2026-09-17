@@ -1,0 +1,36 @@
+<!-- student/all-students.html -->
+<div class="screen active">
+    <h1 style="font-size: 2.5rem;">📊 السجل العام لبيانات وإنجازات الطلاب</h1>
+    <div class="btn-group" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn" id="btn-export-backup">📥 حفظ نسخة احتياطية</button>
+        <button class="btn btn-outline" id="btn-import-backup-trigger">📤 استعادة البيانات</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+    </div>
+    <div style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
+        <table class="history-table" style="width: 100%; white-space: nowrap;">
+            <thead><tr><th>م</th><th>اسم البطل</th><th>العمر</th><th>الصف</th><th>النقاط</th><th>التقييمات</th><th>إدارة وتعديل</th><th>تحدي الأخطاء</th></tr></thead>
+            <tbody id="all-students-body"></tbody>
+        </table>
+    </div>
+    <button class="btn btn-outline" style="margin-top: 20px; font-size: 1.4rem;" id="btn-back-login">🔙 العودة</button>
+</div>
+
+<!-- نافذة تعديل بيانات البطل -->
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="margin-top:0; font-size: 2.2rem;">تعديل بيانات البطل</h2>
+        <input type="hidden" id="edit-stu-id">
+        <div class="form-grid">
+            <div class="input-group"><label>الاسم (ثلاثي):</label><input type="text" id="edit-stu-name" placeholder="اسم الطالب..."></div>
+            <div class="input-group"><label>تاريخ الميلاد: <span id="edit-age-display" style="font-size:0.9rem;"></span></label><input type="date" id="edit-stu-dob"></div>
+            <div class="input-group"><label>الصف الدراسي:</label><select id="edit-stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>المرحلة الإعدادية</option><option>المرحلة الثانوية</option><option>المرحلة الجامعية</option><option>خريج</option></select></div>
+            <div class="input-group"><label>البلد:</label><input type="text" id="edit-stu-country" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="input-group"><label>رقم ولي الأمر (اختياري):</label><input type="text" id="edit-stu-phone" placeholder="لإرسال التقارير..."></div>
+            <div class="input-group"><label>الجنس (للصورة الرمزية):</label><select id="edit-stu-gender"><option value="boy">👦🏻 ولد</option><option value="girl">👧🏻 بنت</option></select></div>
+            <div class="input-group" style="grid-column: span 2;"><label>مقدار الحفظ (من سورة - إلى سورة):</label><div style="display:flex; gap:10px;"><select id="edit-stu-memo-from"></select><select id="edit-stu-memo-to"></select></div></div>
+            <div class="input-group" style="grid-column: span 2;"><label>صورة شخصية (اختياري):</label><input type="file" id="edit-stu-avatar" accept="image/*"></div>
+        </div>
+        <button class="btn" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student">حفظ التعديلات ✔️</button>
+        <button class="btn btn-outline" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal">إلغاء</button>
+    </div>
+</div>

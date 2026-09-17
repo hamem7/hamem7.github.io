@@ -1,0 +1,195 @@
+/* css/adults.css */
+body.adult-theme {
+    background: #092b46;
+    background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,.18), transparent 25%),
+        radial-gradient(circle at 80% 80%, rgba(255,214,80,.18), transparent 25%),
+        linear-gradient(135deg, #082a46, #126c80, #d59c36);
+    background-attachment: fixed; 
+    color: #fffdf5; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    overflow-x: hidden; 
+    transition: 0.5s;
+}
+
+.adult-theme .header-bar { 
+    width: 100%; 
+    background: linear-gradient(145deg, #12627d, #29aeb8); 
+    color: white; 
+    padding: 15px 40px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 5px solid #d59c32; 
+    font-size: 1.3rem; 
+    box-shadow: var(--shadow-sm); 
+    z-index: 100; 
+    transition: 0.5s; 
+}
+
+.adult-theme .login-container, 
+.adult-theme .control-panel, 
+.adult-theme .game-sidebar, 
+.adult-theme .game-main-area, 
+.adult-theme .report-card, 
+.adult-theme .profile-container, 
+.adult-theme #screen-all-students > div:not(.btn-group) {
+    background: #fffdf4 !important; 
+    border-radius: 30px; 
+    box-shadow: 0 25px 60px rgba(0,0,0,.3); 
+    border: none; 
+    color: #172b3a;
+}
+
+.adult-theme .login-container { 
+    width: 100%; 
+    max-width: 600px; 
+    padding: 3rem; 
+    text-align: center; 
+    margin: 0 auto; 
+}
+
+.adult-theme .game-sidebar { 
+    width: 280px; 
+    padding: 20px; 
+}
+
+.adult-theme .game-main-area { 
+    flex: 1; 
+    padding: 40px; 
+    position: relative;
+}
+
+.adult-theme .splash-title, 
+.adult-theme .splash-subtitle, 
+.adult-theme h1, 
+.adult-theme h2, 
+.adult-theme h3, 
+.adult-theme label { 
+    color: #123b56 !important; 
+}
+
+/* 🌟 تم التعديل: تغيير الخط إلى IBM Plex Sans Arabic بدلاً من Amiri وضبط الوزن 🌟 */
+.adult-theme .splash-title { 
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 3.8rem; 
+    font-weight: 700; /* وزن 700 أنسب وأكثر وضوحاً لهذا الخط من 800 */
+    margin-bottom: 10px; 
+    line-height: 1.2; 
+}
+
+.adult-theme .btn { 
+    background: linear-gradient(135deg, #e7ad35, #ffe18a) !important; 
+    color: #4b3609 !important; 
+    padding: 15px 35px; 
+    font-size: 1.3rem; 
+    font-weight: 600; /* تخفيف الوزن قليلاً للأزرار */
+    border-radius: 15px; 
+    cursor: pointer; 
+    transition: all 0.3s; 
+    box-shadow: 0 10px 20px rgba(231,173,53,0.3) !important; 
+    border: none !important; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px; 
+    text-shadow: none; 
+}
+
+.adult-theme .btn:hover { 
+    transform: translateY(-3px); 
+}
+
+.adult-theme .btn-outline { 
+    background: linear-gradient(135deg, #12627d, #29aeb8) !important; 
+    color: white !important; 
+    box-shadow: none !important; 
+}
+
+.adult-theme .btn-wrong { 
+    background: #df4e4e !important; 
+    color: white !important; 
+}
+
+.adult-theme .btn-correct { 
+    background: #35a66e !important; 
+    color: white !important; 
+}
+
+.adult-theme select, 
+.adult-theme input[type="text"], 
+.adult-theme input[type="date"] { 
+    padding: 12px; 
+    font-size: 1.2rem; 
+    width: 100%; 
+    transition: 0.3s; 
+    outline: none; 
+    margin-bottom: 10px; 
+    border: 2px solid #d9e4e7; 
+    border-radius: 16px; 
+    background: white; 
+    color: #172b3a; 
+}
+
+.adult-theme select:focus, 
+.adult-theme input:focus { 
+    border-color: #27a8ba; 
+    background: #f0fbfc; 
+}
+
+.adult-theme .q-circle.active { 
+    background: linear-gradient(135deg, #e7ad35, #ffe18a); 
+    color: #4b3609; 
+    border-color: #d59c32; 
+    transform: scale(1.15); 
+    box-shadow: 0 4px 10px rgba(212, 175, 55, 0.4);
+}
+
+.adult-theme .q-circle { 
+    width: 45px; 
+    height: 45px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: 700; 
+    font-size: 1.3rem; 
+    background: #f1f5f9; 
+    color: #64748b; 
+    border: 2px solid #cbd5e1; 
+    transition: 0.3s; 
+}
+
+.adult-theme .q-circle.correct { 
+    background: var(--success); 
+    color: white; 
+    border-color: #156643; 
+}
+
+.adult-theme .q-circle.wrong { 
+    background: var(--danger); 
+    color: white; 
+    border-color: #7f1d1d; 
+}
+
+.adult-theme .floating-logo { 
+    width: 110px; 
+    height: 110px; 
+    margin: 0 auto 20px auto; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 60px; 
+    background: linear-gradient(145deg, #ffe88b, #d59c32); 
+    box-shadow: 0 0 0 8px rgba(255,255,255,.5); 
+    animation: float 3s ease-in-out infinite; 
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}

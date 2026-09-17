@@ -1,0 +1,20 @@
+<!-- similarities/similarities-play.html -->
+<!-- 🌟 [جديد] قالب شاشة لعب "ركن المتشابهات" التفاعلية — معزول تماماً عن games/kidsGame.html
+     (لا يشاركه أي عنصر DOM أو منطق) بنفس فلسفة عزل similarities-home.html عن بقية المنصة، حتى
+     لا يخاطر أي تعديل هنا بكسر شاشة ألعاب الأطفال الحالية الشغالة فعلياً. تصميم مبسّط عمداً
+     (بلا مؤقت أو تسجيل تفصيلي للأخطاء كما في kidsGame) لأن الهدف هنا تدريب تمييز سريع بين
+     الآيات المتشابهة فقط — راجع similarities-play.js وengine/similarityEngine.js للمنطق 🌟 -->
+<div class="screen active">
+    <div class="sim-wrap">
+        <div class="sim-topbar">
+            <button class="btn btn-outline sim-btn-exit" id="simplay-btn-exit" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>
+            <h1 class="sim-title" id="simplay-title" data-i18n="sim_game_title">🎮 لعبة المتشابهات</h1>
+            <span class="sim-play-progress" id="simplay-progress"></span>
+        </div>
+        <div class="sim-anchor-box quran-text sim-play-anchor" id="simplay-anchor"></div>
+
+        <div id="simplay-container" class="sim-container">
+            <div class="sim-loading" data-i18n="sim_loading">⏳ جاري التحميل...</div>
+        </div>
+    </div>
+</div>

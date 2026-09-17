@@ -1,0 +1,91 @@
+<!-- games/kidsGame.html -->
+<div class="screen active">
+    <div class="game-layout">
+        
+        <!-- الشريط الجانبي للصغار -->
+        <div class="game-sidebar">
+            <span class="timer-text" id="timer-display" style="display: none;"></span>
+            <h3 data-i18n="kids_club" style="font-size: 1.4rem; margin:15px 0; border-bottom: 2px dashed rgba(0,0,0,0.1); padding-bottom:10px; color: #db2777;">🎈 نادي الأبطال الصغار</h3>
+            <div class="tracker-grid" id="questions-tracker"></div>
+            <button class="btn btn-outline" data-i18n="exit_game" style="width: 100%; margin-top: 25px; padding: 10px;" id="btn-exit-game">🚪 خروج وإنهاء</button>
+        </div>
+        
+        <!-- منطقة اللعب الرئيسية -->
+        <div class="game-main-area">
+            <div class="in-game-student" id="in-game-student-info" style="display: none;">
+                <img id="in-game-avatar" src="" alt="avatar">
+                <h3 id="in-game-name">اسم الطالب</h3>
+            </div>
+            
+            <div id="game-title" style="margin-bottom: 20px;"></div>
+            
+            <div id="teacher-eval-area">
+                <div id="game-question" style="margin-bottom: 20px;"></div>
+                <button class="btn btn-outline" id="hint-btn" data-i18n="hint_btn" style="display:none; margin: 15px auto;">💡 تلميح</button>
+                <!-- 🌟 نفس تعديل نسخة الكبار: 'Amiri' → 'Amiri Quran' لأن التلميح يعرض جزءاً
+                     فعلياً من نص الآية 🌟 -->
+                <div id="hint-text" style="display:none; font-family:'Amiri Quran',serif; font-size:2rem; font-weight:bold; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed rgba(0,0,0,0.2);"></div>
+                
+                <div class="answer-box" id="game-answer"></div>
+                
+                <div id="temp-errors-container" style="display:none; margin: 15px 0; padding: 15px; border-radius: 10px; background: #fef2f2; border: 1px dashed #fecaca;">
+                    <span data-i18n="notes_on_q" style="font-size:1.2rem; color:#991b1b; font-weight:bold; display:block; margin-bottom:12px; text-align:center;">📝 ملاحظات على السؤال</span>
+                    <div id="temp-errors-list" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center;"></div>
+                </div>
+
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin-top: 25px;">
+                    <button class="btn btn-outline" id="show-ans-btn" data-i18n="show_ans_match" style="display:none; font-size: 1.4rem; padding: 12px 25px;">👁️ إظهار الإجابة للمطابقة</button>
+                </div>
+                
+                <div class="eval-buttons" id="teacher-eval-buttons" style="display: none; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
+                    <button class="btn btn-correct" id="btn-record-correct" data-i18n="correct_ans_btn" style="font-size: 1.4rem; padding: 12px 25px;">🟢 إجابة صحيحة تامة</button>
+                    <button class="btn btn-wrong" id="btn-record-wrong" data-i18n="record_note_btn" style="font-size: 1.4rem; padding: 12px 25px;">📝 تسجيل ملاحظة</button>
+                    <button class="btn" id="btn-submit-all-errors" data-i18n="submit_next_btn" style="display:none; background: linear-gradient(135deg, #f97316, #ea580c) !important; color:white !important; border:none; padding:12px 25px; font-size:1.4rem; font-weight:bold; border-radius:15px; cursor:pointer; box-shadow:0 4px 10px rgba(234, 88, 12, 0.3) !important;">
+                        ✅ اعتماد والانتقال للسؤال التالي
+                    </button>
+                </div>
+            </div>
+
+            <!-- ألعاب الكلمات المبعثرة (للصغار فقط) -->
+            <div id="kids-word-order-area" style="display: none;">
+                <p data-i18n="kids_order_inst" style="font-size: 1.3rem; font-weight:bold; margin-bottom: 15px; color:#db2777;">اضغط على الكلمة لنقلها وتكوين الآية الصحيحة! 👆</p>
+                <div class="order-grid">
+                    <div class="order-col" style="background:#f0f9ff; border-color:#bae6fd;">
+                        <h3 data-i18n="correct_ayah" style="text-align:center;">الآية الصحيحة</h3>
+                        <div id="word-order-slots" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;"></div>
+                    </div>
+                    <div class="order-col">
+                        <h3 data-i18n="shuffled_words" style="text-align:center;">الكلمات المبعثرة</h3>
+                        <div id="word-order-shuffled" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ألعاب الخيارات المتعددة (للصغار فقط) -->
+            <div id="kids-mcq-area" style="display: none; margin-top:30px;">
+                <div id="kids-options-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تسجيل الأخطاء المشتركة -->
+<!-- 🌟 [تعديل] خفّفنا صياغة العنوان والاختيارات (بلا كلمة "خطأ") لأن هذه النافذة تظهر
+     أمام الطفل نفسه أثناء الجلسة، وكانت الكلمة بالأحمر تخوّفه. قيم checkbox اتغيّرت
+     بنفس الصياغة الجديدة عشان تتطابق مع ما بيتسجّل ويظهر لاحقاً في التقارير 🌟 -->
+<div id="error-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+        <h2 data-i18n="record_error_title" style="color: #df4e4e; margin-top:0;">تسجيل ملاحظة مؤقتة</h2>
+        <p data-i18n="record_error_desc" style="color:#64748b; font-size:1.1rem; margin-bottom:15px;">سجل الملاحظة ثم اضغط (إضافة ومتابعة) ليبقى الطالب في نفس السؤال.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: right; margin-bottom:15px;">
+            <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="كلمة تحتاج مراجعة"> <span data-i18n="err_word">كلمة تحتاج مراجعة</span></label>
+            <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="أكتر من نقطة تحتاج مراجعة"> <span data-i18n="err_multi">أكتر من نقطة تحتاج مراجعة</span></label>
+            <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="حركة تحتاج تصحيح"> <span data-i18n="err_haraka">حركة تحتاج تصحيح</span></label>
+            <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="نسيان آية"> <span data-i18n="err_forget">نسيان آية</span></label>
+            <label style="background:#fee2e2; padding:10px; border-radius:8px; border:1px solid #fecaca; grid-column:span 2;"><input type="checkbox" value="لم يعرف الإجابة"> <span data-i18n="err_dont_know">لم يعرف الإجابة</span></label>
+        </div>
+        <textarea id="custom-note" data-i18n-placeholder="note_ph" placeholder="اكتب ملاحظتك اليدوية هنا (اختياري)..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'Tajawal', sans-serif; font-size: 1.2rem; resize: none; margin-bottom: 15px;"></textarea>
+        <button class="btn btn-wrong" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px; background:#f59e0b; border:none;" id="btn-save-error-temp">➕ إضافة الملاحظة ومتابعة التسميع</button>
+        <button class="btn btn-outline" data-i18n="cancel" style="width: 100%; margin-top:10px; font-size: 1.3rem; padding: 12px;" id="btn-close-error">إلغاء</button>
+    </div>
+</div>

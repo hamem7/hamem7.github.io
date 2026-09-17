@@ -1,0 +1,530 @@
+// student/student.js
+import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, t } from '../core/app.js';
+import { loadScreen } from '../core/navigation.js';
+import { openModal, closeModal } from '../components/ui.js';
+import { openAdultGameScreen } from '../games/adultGame.js';
+import { openKidsGameScreen } from '../games/kidsGame.js';
+// 🌟 [جديد] عرض إنجازات/أوسمة "الاختبارات الثنائية" في ملف الطالب — راجع
+// renderDualTestAchievements أدناه وBADGE_CATALOG في engine/dualTestEngine.js
+import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.js';
+
+export async function populateStudentsDropdown() {
+    const students = await AppState.studentManager.getAllStudents();
+    const dataList = document.getElementById('student-list');
+    const searchInput = document.getElementById('student-search-input');
+
+    if (!dataList || !searchInput) return;
+
+    dataList.innerHTML = '';
+
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+    let bdayBoys = [];
+
+    students.filter(s => !s.isHidden).forEach(s => {
+        let option = document.createElement('option');
+        option.value = s.name;
+        dataList.appendChild(option);
+
+        if (s.dob) {
+            const parts = s.dob.split('-');
+            if (parts.length === 3) {
+                if (parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay) {
+                    bdayBoys.push(s.name);
+                }
+            }
+        }
+    });
+
+    if (bdayBoys.length > 0 && !window.bdayShown) {
+        window.bdayShown = true;
+        setTimeout(() => alert(`🎉 إشعار تربوي هام:\nاليوم يوافق يوم ميلاد البطل (${bdayBoys.join(' و ')})! لا تنسَ تهنئته 🎂`), 800);
+    }
+}
+
+function calcAgeDynamic(inputId, displayId) {
+    const dobInput = document.getElementById(inputId);
+    const displaySpan = document.getElementById(displayId);
+    if (!dobInput || !displaySpan) return;
+    const dob = new Date(dobInput.value);
+    if (isNaN(dob)) return;
+    const ageDate = new Date(Date.now() - dob.getTime());
+    displaySpan.innerText = `(العمر: ${Math.abs(ageDate.getUTCFullYear() - 1970)} سنة)`;
+}
+
+function populateSurahOptions(fromId, toId) {
+    const selFrom = document.getElementById(fromId);
+    const selTo = document.getElementById(toId);
+    if (!selFrom || !selTo) return;
+    selFrom.innerHTML = '';
+    selTo.innerHTML = '';
+    AppState.surahsData.forEach(s => {
+        selFrom.appendChild(new Option(s.name, s.name));
+        selTo.appendChild(new Option(s.name, s.name));
+    });
+}
+
+export function setupLoginListeners() {
+    document.getElementById('btn-back-splash')?.addEventListener('click', loadSplashScreen);
+
+    const searchInput = document.getElementById('student-search-input');
+    if(searchInput) {
+        searchInput.removeAttribute('list');
+
+        searchInput.addEventListener('input', function() {
+            if(this.value.trim().length > 0) {
+                this.setAttribute('list', 'student-list');
+            } else {
+                this.removeAttribute('list');
+            }
+        });
+
+        searchInput.addEventListener('focus', function() {
+            if(this.value.trim().length === 0) {
+                this.removeAttribute('list');
+            }
+        });
+    }
+
+    // زر دخول المعلم المعتاد
+    document.getElementById('btn-login-submit')?.addEventListener('click', async () => {
+        const typedName = document.getElementById('student-search-input').value.trim();
+        if (!typedName) return alert("الرجاء كتابة أو اختيار اسم الطالب أولاً!");
+
+        const students = await AppState.studentManager.getAllStudents();
+        AppState.currentStudent = students.find(s => s.name === typedName);
+
+        if (AppState.currentStudent) {
+            document.getElementById('top-student-name').innerText = `البطل: ${AppState.currentStudent.name}`;
+            loadDashboardScreen();
+        } else {
+            alert("هذا الاسم غير مسجل! تأكد من كتابة الاسم صحيحاً أو اختره من القائمة.");
+        }
+    });
+}
+
+export async function loadMyStudentsScreen() {
+    await loadScreen({
+        templateUrl: 'student/my-students.html',
+        initFunction: setupMyStudentsListeners
+    });
+}
+
+function setupMyStudentsListeners() {
+    document.getElementById('btn-back-my-students')?.addEventListener('click', loadSplashScreen);
+    document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
+
+    document.getElementById('btn-add-student')?.addEventListener('click', () => {
+        populateSurahOptions('stu-memo-from', 'stu-memo-to');
+        openModal('add-modal');
+    });
+
+    document.querySelectorAll('.avatar-opt').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('active'));
+            e.target.classList.add('active');
+            document.getElementById('selected-avatar').value = e.target.dataset.av;
+        });
+    });
+
+    document.getElementById('btn-close-add-modal')?.addEventListener('click', () => closeModal('add-modal'));
+    document.getElementById('stu-dob')?.addEventListener('change', () => calcAgeDynamic('stu-dob', 'age-display'));
+
+    document.getElementById('btn-save-new-student')?.addEventListener('click', async () => {
+        const data = {
+            name: document.getElementById('stu-name').value.trim(),
+            dob: document.getElementById('stu-dob').value,
+            grade: document.getElementById('stu-grade').value,
+            country: document.getElementById('stu-country').value,
+            phone: document.getElementById('stu-phone').value,
+            gender: 'boy',
+            memoFrom: document.getElementById('stu-memo-from').value,
+            memoTo: document.getElementById('stu-memo-to').value,
+            avatar: document.getElementById('selected-avatar').value,
+            isHidden: false,
+            weaknesses: [],
+            // 🌟 أرشيف الأخطاء المصححة — يحتفظ بتفاصيل كل خطأ بعد حله بدل حذفه نهائياً،
+            // ليبقى سجل تاريخي كامل لأخطاء الطالب حتى يوم الاختبار (راجع adultGame.js/
+            // kidsGame.js في recordAnswer) 🌟
+            resolvedWeaknesses: []
+        };
+        if (!data.name) return alert("الاسم مطلوب!");
+
+        const fileInput = document.getElementById('stu-avatar');
+        if (fileInput && fileInput.files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                data.avatar = e.target.result;
+                await AppState.studentManager.addStudent(data);
+                closeModal('add-modal');
+                populateStudentsDropdown();
+                alert("تم الحفظ بنجاح!");
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            await AppState.studentManager.addStudent(data);
+            closeModal('add-modal');
+            populateStudentsDropdown();
+            alert("تم الحفظ بنجاح!");
+        }
+    });
+}
+
+export async function loadAllStudentsScreen() {
+    await loadScreen({
+        templateUrl: 'student/all-students.html',
+        initFunction: async () => {
+            await renderAllStudentsTable();
+            setupAllStudentsListeners();
+        }
+    });
+}
+
+async function renderAllStudentsTable() {
+    const students = await AppState.studentManager.getAllStudents();
+    const tbody = document.getElementById('all-students-body');
+    if(!tbody) return;
+    tbody.innerHTML = "";
+    students.forEach((s, index) => {
+        let ageStr = "غير محدد";
+        if(s.dob) {
+            let d = new Date(s.dob);
+            ageStr = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) + " سنة";
+        }
+        let evalsCount = JSON.parse(localStorage.getItem(`history_${s.id}`))?.length || 0;
+        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="استعادة البطل">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="إخفاء البطل">🙈</button>`;
+        let manageBtns = `<button class="btn btn-edit" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="تعديل البيانات">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="حذف البطل نهائياً">🗑️</button>`;
+        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${s.id}" style="padding:5px 10px; font-size:1rem;">🛠️ الأخطاء (${s.weaknesses.length})</button>` : `<span style="color:#aaa;">لا أخطاء</span>`;
+
+        let nameButton = `<button class="btn-prof-link" data-id="${s.id}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${s.name}</button>`;
+
+        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td>${index+1}</td><td>${nameButton}</td><td>${ageStr}</td><td>${s.grade || 'غير محدد'}</td><td style="font-weight:bold;">${s.totalScore || 0}</td><td>${evalsCount}</td><td>${manageBtns}</td><td>${weaknessBtn}</td></tr>`;
+    });
+}
+
+function setupAllStudentsListeners() {
+    document.getElementById('btn-back-login')?.addEventListener('click', loadMyStudentsScreen);
+    document.getElementById('all-students-body')?.addEventListener('click', async (e) => {
+        const target = e.target.closest('button');
+        if(!target) return;
+        const id = parseInt(target.dataset.id);
+
+        if(target.classList.contains('btn-prof-link')) {
+            const students = await AppState.studentManager.getAllStudents();
+            const studentProfile = students.find(s => s.id === id);
+            if(studentProfile) {
+                AppState.currentStudent = studentProfile;
+                loadStudentProfileScreen();
+            }
+        }
+        else if(target.classList.contains('btn-edit')) await openEditStudentModal(id);
+        else if(target.classList.contains('btn-delete')) await deleteStudentAction(id);
+        else if(target.classList.contains('btn-hide')) await toggleHideStudentAction(id, true);
+        else if(target.classList.contains('btn-show')) await toggleHideStudentAction(id, false);
+        else if(target.classList.contains('btn-weakness')) {
+            const students = await AppState.studentManager.getAllStudents();
+            const studentToChallenge = students.find(s => s.id === id);
+            if(studentToChallenge && studentToChallenge.weaknesses.length > 0) {
+                AppState.currentStudent = studentToChallenge;
+                if (AppState.isKidsMode) {
+                    openKidsGameScreen({}, true);
+                } else {
+                    openAdultGameScreen({}, true);
+                }
+            }
+        }
+    });
+    document.getElementById('btn-close-edit-modal')?.addEventListener('click', () => closeModal('edit-modal'));
+    document.getElementById('edit-stu-dob')?.addEventListener('change', () => calcAgeDynamic('edit-stu-dob', 'edit-age-display'));
+    document.getElementById('btn-save-edited-student')?.addEventListener('click', saveEditedStudentAction);
+
+    document.getElementById('btn-export-backup')?.addEventListener('click', () => {
+        AppState.studentManager.getAllStudents().then(students => {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
+            let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `DarHam_Backup_${new Date().toLocaleDateString()}.json`); dl.click();
+        });
+    });
+
+    const fileInput = document.getElementById('importFile');
+    document.getElementById('btn-import-backup-trigger')?.addEventListener('click', () => fileInput.click());
+    fileInput?.addEventListener('change', (event) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                let imported = JSON.parse(e.target.result);
+                let db = AppState.studentManager.db;
+                let tx = db.transaction("students", "readwrite");
+                let store = tx.objectStore("students");
+                imported.forEach(stu => store.put(stu));
+                tx.oncomplete = () => { alert("تم استعادة البيانات بنجاح!"); renderAllStudentsTable(); };
+            } catch(err) { alert("ملف غير صالح!"); }
+        };
+        reader.readAsText(event.target.files[0]);
+    });
+}
+
+// 🌟 [جديد] بناء بطاقة عرض واحدة لعنصر مؤرشَف في "أرشيف الأخطاء المصححة" —
+// تعرض نوع السؤال، مصدره (ركن الكبار/الصغار)، نص الآية، الخطأ الذي سُجِّل وقتها،
+// وتاريخي الارتكاب والتصحيح. نفس فلسفة تخزين تفاصيل السؤال الكاملة المستخدمة في
+// شاشة "علاج الخطأ السابق" بـ adultGame.js/kidsGame.js 🌟
+function buildArchiveCard(w) {
+    let sectionBadge = w.sourceSection === 'kids' ? '🎈' : (w.sourceSection === 'adult' ? '👤' : '');
+    let typeLabel = w.questionTypeLabel || t('hw_q_type_label');
+    let locationText = w.surahName ? `سورة ${w.surahName}${w.num ? ' - آية ' + w.num : ''}` : '';
+    let lang = AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US';
+    let recordedDate = w.dateRecorded ? new Date(w.dateRecorded).toLocaleDateString(lang) : '—';
+    let resolvedDate = w.dateResolved ? new Date(w.dateResolved).toLocaleDateString(lang) : '—';
+    let errorLine = w.errorTypes ? `<div style="font-size:0.95rem; color:#991b1b; margin-bottom:8px;">${t("الخطأ السابق المسجل:")} [ ${w.errorTypes} ]</div>` : '';
+
+    return `
+    <div style="border:2px solid #e2e8f0; border-radius: 14px; padding: 15px; background:#f8fafc;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+            <span style="background: var(--dh-emerald-700); color:white; padding:4px 12px; border-radius:20px; font-size:0.95rem; font-weight:bold;">${sectionBadge} ${typeLabel}</span>
+            <span style="color:#94a3b8; font-size:0.9rem;">${locationText}</span>
+        </div>
+        <div class="quran-text" style="font-size:1.8rem; color:#1e293b; margin-bottom:10px; line-height:1.6;">﴿ ${w.text || ''} ﴾</div>
+        ${errorLine}
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:0.85rem; color:#64748b; border-top:1px dashed #e2e8f0; padding-top:8px;">
+            <span>📌 ${t('error_recorded_on')} ${recordedDate}</span>
+            <span>✅ ${t('archive_resolved_on')} ${resolvedDate}</span>
+        </div>
+    </div>`;
+}
+
+// 🌟 [جديد] يملأ نافذة الأرشيف بكل عناصر resolvedWeaknesses الخاصة بالطالب
+// (الأحدث أولاً) — أو رسالة "لا يوجد أرشيف بعد" لو القائمة فارغة 🌟
+function renderArchiveList(student) {
+    const listDiv = document.getElementById('archive-list');
+    if (!listDiv) return;
+    const archive = Array.isArray(student.resolvedWeaknesses) ? [...student.resolvedWeaknesses].reverse() : [];
+    if (archive.length === 0) {
+        listDiv.innerHTML = `<p style="text-align:center; color:#94a3b8; padding: 30px 0;">${t('archive_empty')}</p>`;
+        return;
+    }
+    listDiv.innerHTML = archive.map(w => buildArchiveCard(w)).join('');
+}
+
+export async function loadStudentProfileScreen() {
+    await loadScreen({
+        templateUrl: 'student/student-profile.html',
+        // 🌟 [مُحدَّث] initFunction أصبحت async لإتاحة انتظار قراءة إنجازات "الاختبارات الثنائية"
+        // من IndexedDB (renderDualTestAchievements) — آمن تماماً لأن loadScreen في
+        // core/navigation.js لا ينتظر (await) initFunction أصلاً (fire-and-forget)، فلا يتأثر
+        // أي سلوك آخر بهذا التحويل
+        initFunction: async () => {
+            const student = AppState.currentStudent;
+            if (!student) return;
+
+            document.getElementById('btn-back-from-prof')?.addEventListener('click', () => {
+                loadAllStudentsScreen();
+            });
+
+            document.getElementById('prof-name').innerText = student.name;
+            document.getElementById('prof-grade').innerText = student.grade || "الصف غير محدد";
+            document.getElementById('prof-points').innerText = student.totalScore || 0;
+
+            let ageStr = "العمر غير محدد";
+            if(student.dob) {
+                let d = new Date(student.dob);
+                ageStr = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) + " سنة";
+            }
+            document.getElementById('prof-age').innerText = `🎂 ${ageStr}`;
+            document.getElementById('prof-country').innerText = student.country ? `🌍 ${student.country}` : "🌍 البلد غير محدد";
+            document.getElementById('prof-phone').innerText = student.phone ? `📱 ${student.phone}` : "📱 الهاتف غير مسجل";
+
+            const avatarImg = document.getElementById('prof-avatar');
+            if (student.avatar) {
+                if(student.avatar.length < 10) {
+                    avatarImg.style.display = 'none';
+                    const parent = avatarImg.parentElement;
+                    const emojiDiv = document.createElement('div');
+                    emojiDiv.className = 'profile-avatar';
+                    emojiDiv.innerText = student.avatar;
+                    parent.insertBefore(emojiDiv, avatarImg);
+                } else {
+                    avatarImg.src = student.avatar;
+                    avatarImg.style.display = 'block';
+                }
+            }
+
+            const btnWeakness = document.getElementById('btn-prof-weakness');
+            if (student.weaknesses && student.weaknesses.length > 0) {
+                btnWeakness.innerText = `🛠️ بدء تحدي الأخطاء (${student.weaknesses.length})`;
+                btnWeakness.onclick = () => {
+                    if (AppState.isKidsMode) {
+                        openKidsGameScreen({}, true);
+                    } else {
+                        openAdultGameScreen({}, true);
+                    }
+                };
+            } else {
+                btnWeakness.style.background = "#cbd5e1";
+                btnWeakness.style.color = "#475569";
+                btnWeakness.innerText = "لا توجد أخطاء مسجلة 🎉";
+                btnWeakness.disabled = true;
+            }
+
+            // 🌟 [جديد] زر أرشيف الأخطاء المصححة — يفتح نافذة تعرض كل خطأ سابق
+            // صحّحه الطالب بكامل تفاصيله (راجع resolvedWeaknesses في recordAnswer
+            // بـ adultGame.js/kidsGame.js) بدل ما يختفي أثره نهائياً بعد تصحيحه 🌟
+            const btnArchive = document.getElementById('btn-prof-archive');
+            const archiveCount = Array.isArray(student.resolvedWeaknesses) ? student.resolvedWeaknesses.length : 0;
+            if (archiveCount > 0) {
+                btnArchive.innerHTML = `📂 ${t('archive_title')} (${archiveCount})`;
+                btnArchive.disabled = false;
+                btnArchive.onclick = () => { renderArchiveList(student); openModal('archive-modal'); };
+            } else {
+                btnArchive.innerHTML = `📂 ${t('archive_empty')}`;
+                btnArchive.disabled = true;
+            }
+            document.getElementById('btn-close-archive')?.addEventListener('click', () => closeModal('archive-modal'));
+
+            // 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يستورد reports/monthly-report.js
+            // ديناميكيًا (نفس نمط openHomeworkPrep/openDualTestSetup في core/app.js بالضبط)
+            // بدل استيراد ثابت أعلى الملف، تفادياً لأي حلقة استيراد بين الملفين (الشاشة
+            // الجديدة تعود لملف الطالب عبر استيراد ديناميكي مماثل لـ loadStudentProfileScreen) 🌟
+            document.getElementById('btn-prof-monthly-report')?.addEventListener('click', () => {
+                import('../reports/monthly-report.js').then(m => m.openMonthlyReportScreen()).catch(err => {
+                    console.error('تعذر تحميل شاشة التقرير الشهري:', err);
+                    alert('جاري تجهيز شاشة التقرير الشهري 🛠️');
+                });
+            });
+
+            const histData = JSON.parse(localStorage.getItem(`history_${student.id}`)) || [];
+            document.getElementById('prof-evals').innerText = histData.length;
+
+            const tbody = document.getElementById('prof-history-body');
+            tbody.innerHTML = "";
+            if (histData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4">لا توجد تقييمات سابقة لهذا البطل.</td></tr>`;
+            } else {
+                histData.reverse().forEach((record, index) => {
+                    let color = record.score >= 90 ? '#166534' : (record.score >= 80 ? '#064e3b' : (record.score >= 70 ? '#b45309' : '#dc2626'));
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${record.date}</td>
+                            <td>${record.range}</td>
+                            <td style="color:${color}; font-size:1.3rem;">${record.score}%</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 🌟 [جديد] عدد انتصارات وأوسمة "الاختبارات الثنائية" — راجع الدالة أدناه
+            renderDualTestAchievements(student);
+        }
+    });
+}
+
+// 🌟 [جديد] عرض عدد انتصارات وأوسمة "الاختبارات الثنائية" في ملف الطالب — يُقرأ من
+// AppState.dualTestsManager (راجع database/dualTestsDB.js وengine/dualTestEngine.js).
+// best-effort بالكامل: لو فشلت القراءة لأي سبب (مثلاً الميزة غير مُهيَّأة بعد)، تُعرض حالة
+// "لا توجد أوسمة بعد" بدل تعطيل باقي شاشة الملف الشخصي.
+async function renderDualTestAchievements(student) {
+    const winsEl = document.getElementById('prof-duel-wins');
+    const gridEl = document.getElementById('dtpa-badges-grid');
+    if (!winsEl || !gridEl) return;
+
+    if (!AppState.dualTestsManager) {
+        winsEl.textContent = '0';
+        gridEl.innerHTML = `<p class="dtpa-badges-empty">${t('dtpa_no_badges_yet')}</p>`;
+        return;
+    }
+
+    try {
+        const [allMatches, achievements] = await Promise.all([
+            AppState.dualTestsManager.getAllMatches(),
+            AppState.dualTestsManager.getAchievementsByStudent(student.id)
+        ]);
+
+        const winsCount = allMatches.filter(m => studentOutcomeInMatch(m, student.id) === 'win').length;
+        winsEl.textContent = winsCount;
+
+        if (achievements.length === 0) {
+            gridEl.innerHTML = `<p class="dtpa-badges-empty">${t('dtpa_no_badges_yet')}</p>`;
+            return;
+        }
+
+        // 🌟 تجميع الأوسمة القابلة للتكرار في بطاقة واحدة بعدّاد (×n) بدل تكرار نفس الوسام
+        const counts = {};
+        achievements.forEach(a => { counts[a.badgeKey] = (counts[a.badgeKey] || 0) + 1; });
+
+        gridEl.innerHTML = Object.keys(counts).map(badgeKey => {
+            const def = BADGE_CATALOG[badgeKey];
+            if (!def) return '';
+            const count = counts[badgeKey];
+            const countHTML = count > 1 ? `<span class="dtpa-badge-count">×${count}</span>` : '';
+            return `
+            <div class="dtpa-badge-item" title="${t(def.descKey)}">
+                <span class="dtpa-badge-icon">${def.icon}</span>
+                <span class="dtpa-badge-info">
+                    <span class="dtpa-badge-name">${t(def.nameKey)}</span>
+                    ${countHTML}
+                </span>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        winsEl.textContent = '0';
+        gridEl.innerHTML = `<p class="dtpa-badges-empty">${t('dtpa_no_badges_yet')}</p>`;
+    }
+}
+
+async function openEditStudentModal(id) {
+    populateSurahOptions('edit-stu-memo-from', 'edit-stu-memo-to');
+    const students = await AppState.studentManager.getAllStudents();
+    let s = students.find(x => x.id === id);
+    if(!s) return;
+    document.getElementById('edit-stu-id').value = s.id;
+    document.getElementById('edit-stu-name').value = s.name;
+    document.getElementById('edit-stu-dob').value = s.dob || '';
+    if(s.dob) calcAgeDynamic('edit-stu-dob', 'edit-age-display');
+    document.getElementById('edit-stu-grade').value = s.grade || '';
+    document.getElementById('edit-stu-country').value = s.country || '';
+    document.getElementById('edit-stu-phone').value = s.phone || '';
+    document.getElementById('edit-stu-memo-from').value = s.memoFrom || '';
+    document.getElementById('edit-stu-memo-to').value = s.memoTo || '';
+    openModal('edit-modal');
+}
+
+async function saveEditedStudentAction() {
+    let id = parseInt(document.getElementById('edit-stu-id').value);
+    const students = await AppState.studentManager.getAllStudents();
+    let s = students.find(x => x.id === id);
+    if(!s) return;
+    s.name = document.getElementById('edit-stu-name').value.trim();
+    s.dob = document.getElementById('edit-stu-dob').value;
+    s.grade = document.getElementById('edit-stu-grade').value;
+    s.country = document.getElementById('edit-stu-country').value;
+    s.phone = document.getElementById('edit-stu-phone').value;
+    s.memoFrom = document.getElementById('edit-stu-memo-from').value;
+    s.memoTo = document.getElementById('edit-stu-memo-to').value;
+    const fileInput = document.getElementById('edit-stu-avatar');
+    if(fileInput && fileInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            s.avatar = e.target.result;
+            await AppState.studentManager.updateStudent(s);
+            closeModal('edit-modal'); renderAllStudentsTable(); alert("تم التعديل ✔️");
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        await AppState.studentManager.updateStudent(s);
+        closeModal('edit-modal'); renderAllStudentsTable(); alert("تم التعديل ✔️");
+    }
+}
+
+async function deleteStudentAction(id) {
+    if(confirm("⚠️ تحذير: هل أنت متأكد من حذف بيانات وسجل هذا البطل نهائياً؟")) {
+        await AppState.studentManager.deleteStudent(id);
+        localStorage.removeItem(`history_${id}`);
+        renderAllStudentsTable();
+    }
+}
+
+async function toggleHideStudentAction(id, hide) {
+    const students = await AppState.studentManager.getAllStudents();
+    let s = students.find(x => x.id === id);
+    if(s) { s.isHidden = hide; await AppState.studentManager.updateStudent(s); renderAllStudentsTable(); }
+}

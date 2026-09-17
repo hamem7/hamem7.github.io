@@ -1,0 +1,233 @@
+<!-- settings/homework-prep.html -->
+<!-- 🌟🌟 [محدَّث] تنسيق "رقاقات" (chips) اقتراحات نطاق الاختبار — قواعد معزولة
+     في نطاق واضح خاص بها، ولا تُعدّل أي قاعدة CSS مشتركة أخرى. اقتراح واحد لكل
+     سورة ضمن نطاق حفظ الطالب المسجَّل (أو رقاقة واحدة لجزء عم كاملاً كحالة
+     خاصة)، بنفس ألوان الصندوق الأخضر الموجود أصلاً في هذه الشاشة -->
+<style>
+    .hw-memo-suggestion-chip {
+        background: white;
+        border: 2px solid #6ee7b7;
+        color: #047857;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s, color 0.15s;
+    }
+    .hw-memo-suggestion-chip:hover {
+        background: #f0fdf4;
+    }
+    .hw-memo-suggestion-chip.active {
+        background: #10b981;
+        border-color: #10b981;
+        color: white;
+    }
+
+    /* 🌟🌟 [جديد] بطاقة "يحتاج تصحيح" أصبحت قابلة للنقر — قاعدة معزولة في نطاقها الخاص
+       (لا تعدّل أي بطاقة إحصائية أخرى) لإعطاء إحساس واضح بأنها فعّالة وليست مجرد عرض */
+    #stat-needs-grading-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 14px 26px rgba(220, 38, 38, 0.32);
+    }
+</style>
+<div class="screen active dashboard-wrapper" style="background: #f8fafc; min-height: 100vh; padding-bottom: 50px;">
+    <div class="control-panel" style="max-width: 1000px; margin: 0 auto; background: transparent; box-shadow: none;">
+
+        <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:20px;" data-i18n="hw_management_title">نظام إدارة الواجبات 📚</h1>
+
+        <!-- 📊 بطاقات الإحصائيات العلوية -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+            <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-published">0</div>
+                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_published_now">منشور الآن 🚀</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);">
+                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-draft">0</div>
+                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_draft_status">مسودة 📝</div>
+            </div>
+            <!-- 🌟🌟 [محدَّث] كانت هذه البطاقة "إجمالي التسليمات" بلا أي كود يحدّثها (تعرض "0" ثابتة
+                 دائماً). استُبدلت ببطاقة "يحتاج تصحيح" فعّالة فعلياً: رقمها الحقيقي يُجلب من
+                 السحابة (core/firebase.js → getSubmissionsNeedingGrading)، والنقر عليها ينقل
+                 المعلم مباشرة لتبويب "سجل الواجبات" حيث تظهر علامة تنبيه ⚠️ بجانب أي واجب متأثر -->
+            <!-- ⚠️ التلميح (tooltip) لا يُكتب هنا كنص ثابت لأن data-i18n لا يدعم خاصية title —
+                 يُضبط ويُحدَّث ديناميكياً من JS (homework-prep.js) حتى يبقى مطابقاً للغة الحالية دائماً -->
+            <!-- 🌟 [جديد] role="button" + tabindex حتى تُعامَل كزر فعلي لقارئات الشاشة ولوحة
+                 المفاتيح (كانت div عادية بلا أي دلالة على أنها قابلة للنقر رغم أن JS يعاملها
+                 كزر فعلاً). ونص hw_needs_grading_hint الصغير أسفلها ثابت الظهور دائماً (مش
+                 tooltip بيظهر بالـ hover فقط) حتى يوضح تفاعليتها على تابلت/موبايل أيضاً 🌟 -->
+            <div id="stat-needs-grading-card" role="button" tabindex="0" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-needs-grading">0</div>
+                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_needs_grading">يحتاج تصحيح ✍️</div>
+                <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 4px;" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
+            </div>
+        </div>
+
+        <!-- 🗂️ أزرار التنقل بين (إنشاء جديد) و (سجل الواجبات) -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button class="btn" id="btn-tab-new" style="flex: 1; background: #0ea5e9; font-size: 1.4rem;" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
+            <button class="btn btn-outline" id="btn-tab-history" style="flex: 1; border-color: #0ea5e9; color: #0ea5e9; background: white; font-size: 1.4rem;" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 📝 تبويب: إعداد واجب جديد -->
+        <!-- ========================================== -->
+        <div id="tab-new-hw" style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <p style="text-align:center; color:#64748b; font-size:1.2rem; margin-bottom:25px;" data-i18n="hw_desc">حدد النطاق لتوليد الأسئلة، ويمكنك التعديل عليها أو إضافة أسئلة يدوية.</p>
+
+            <div id="hw-config-section">
+                <!-- 🌟 حقل تخصيص الواجب لطالب محدد 🌟 -->
+                <div class="input-group" style="margin-bottom: 25px; text-align: right; background: #f0fdf4; padding: 15px; border-radius: 10px; border: 1px dashed #86efac;">
+                    <label style="font-weight: bold; color: #047857; margin-bottom: 10px; display: block; font-size: 1.2rem;" data-i18n="hw_assign_student">👤 تخصيص الواجب لطالب محدد (اختياري):</label>
+                    <select id="hw-target-student" style="width: 100%; padding: 10px; font-size: 1.3rem; border: 2px solid #6ee7b7; border-radius: 8px; font-family: inherit; outline: none; background: white;">
+                        <option value="" data-i18n="hw_general_link">-- رابط عام (لجميع الطلاب) --</option>
+                        <!-- سيتم تعبئة أسماء الطلاب هنا برمجياً -->
+                    </select>
+                    <!-- 🌟🌟 [محدَّث] صندوق اقتراحات سريعة بناءً على حفظ الطالب المسجَّل
+                         (memoFrom/memoTo) — تظهر فقط بعد اختيار طالب محدد له نطاق حفظ مسجَّل.
+                         رقاقة (chip) واحدة لكل سورة ضمن نطاقه (سورة بسورة، وليس نطاقاً واحداً
+                         يجمع عدة سور)، إلا لو كان نطاقه بالكامل داخل جزء عم (الجزء 30) فتظهر
+                         رقاقة واحدة فقط لاختبار الجزء كاملاً — النقر على أي رقاقة يعبّئ إعدادات
+                         الاختبار المناسبة (سورة محددة/بالأجزاء) وتبقى قابلة للتعديل اليدوي الكامل -->
+                    <div id="hw-memo-suggestion-box" style="display:none; margin-top:10px; text-align:right;">
+                        <div id="hw-memo-suggestion-label" style="color:#047857; font-weight:bold; margin-bottom:8px; font-size:0.95rem;"></div>
+                        <div id="hw-memo-suggestion-chips" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                    </div>
+                </div>
+
+                <div class="eval-type-selector" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap:wrap;">
+                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
+                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
+                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
+                </div>
+
+                <!-- إعدادات النطاق -->
+                <div id="hw-surah-settings" class="form-grid" style="text-align:right;">
+                    <div class="input-group"><label data-i18n="surah_label">السورة:</label><select id="hw-surah-select"></select></div>
+                    <div class="input-group"><label data-i18n="q_count">عدد الأسئلة:</label><input type="number" id="hw-q-count-surah" value="10" min="1" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';"></div>
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="range_label">النطاق (من - إلى):</label><div style="display:flex; gap:10px;"><select id="hw-ayah-from"></select><select id="hw-ayah-to"></select></div></div>
+                </div>
+
+                <div id="hw-range-settings" class="form-grid" style="display:none; text-align:right;">
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="from_surah">من سورة:</label><select id="hw-range-from"></select></div>
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="to_surah">إلى سورة:</label><select id="hw-range-to"></select></div>
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="q_count">عدد الأسئلة:</label><input type="number" id="hw-q-count-range" value="15" min="1" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';"></div>
+                </div>
+
+                <div id="hw-juz-settings" class="form-grid" style="display:none; text-align:right;">
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="select_juz">اختر الجزء:</label><select id="hw-juz-select"></select></div>
+                    <div class="input-group" style="grid-column: span 2;"><label data-i18n="q_count">عدد الأسئلة:</label><input type="number" id="hw-q-count-juz" value="20" min="1" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';"></div>
+                </div>
+
+                <button class="btn" id="btn-generate-hw" style="width: 100%; margin-top:25px; font-size:1.5rem; padding:15px; background:linear-gradient(45deg, #0ea5e9, #0284c7);" data-i18n="hw_btn_generate">
+                    ⚙️ توليد الأسئلة آلياً
+                </button>
+            </div>
+
+            <!-- 🔍 قسم مراجعة الأسئلة والتعديل اليدوي -->
+            <div id="hw-preview-section" style="display:none; margin-top:30px; background: #f8fafc; padding: 20px; border-radius: 15px; border: 2px dashed #0ea5e9;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom:2px solid #bae6fd; padding-bottom:10px; margin-bottom: 15px;">
+                    <h2 style="color:#0369a1; margin: 0;" data-i18n="hw_review_q">🔍 مراجعة الأسئلة</h2>
+                    <button class="btn" id="btn-add-manual-q" style="background: #10b981; font-size: 1.1rem; padding: 8px 15px;" data-i18n="hw_add_manual_q">➕ إضافة سؤال يدوي</button>
+                </div>
+
+                <div id="hw-questions-list" style="max-height: 500px; overflow-y: auto; text-align: right; padding: 10px;">
+                    <!-- سيتم حقن الأسئلة هنا -->
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button class="btn" id="btn-save-hw-publish" style="flex: 2; background: linear-gradient(45deg, #8b5cf6, #6d28d9); font-size: 1.4rem; min-width: 200px;" data-i18n="hw_publish_btn">🚀 اعتماد ونشر الواجب</button>
+                    <button class="btn btn-outline" id="btn-save-hw-draft" style="flex: 1; border-color: #f59e0b; color: #d97706; background: white; font-size: 1.4rem; min-width: 150px;" data-i18n="hw_draft_btn">📝 حفظ كمسودة</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 📊 تبويب: سجل الواجبات -->
+        <!-- ========================================== -->
+        <div id="tab-history" style="display:none; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+            <h2 style="color:#1e293b; margin-top:0; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;" data-i18n="hw_history_title">سجل الواجبات المُنْشأة</h2>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: center; margin-top: 15px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; color: #475569;">
+                            <th style="padding: 15px; border-radius: 0 10px 10px 0;" data-i18n="hw_created_date">تاريخ الإنشاء</th>
+                            <th style="padding: 15px;" data-i18n="hw_q_type">الأسئلة والنوع</th>
+                            <th style="padding: 15px;" data-i18n="hw_status">الحالة</th>
+                            <th style="padding: 15px; border-radius: 10px 0 0 10px;" data-i18n="hw_actions">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="hw-history-tbody">
+                        <!-- سيتم تعبئتها برمجياً -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="btn btn-outline" id="btn-back-home" style="width: 100%; margin-top:20px; font-size:1.2rem; border-color:#ef4444; color:#ef4444; background: white;" data-i18n="hw_btn_back_home">🔙 العودة للرئيسية</button>
+    </div>
+</div>
+
+<!-- 🌟 النافذة المنبثقة: بناء/تعديل سؤال يدوي 🌟 -->
+<div id="hw-question-builder-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; padding: 30px; border-radius: 20px; max-width: 600px; width: 95%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: right; max-height: 90vh; overflow-y: auto;">
+        <h2 style="color: #0ea5e9; font-size: 1.8rem; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;" id="qb-modal-title" data-i18n="hw_modal_q_title">إضافة/تعديل سؤال</h2>
+
+        <input type="hidden" id="qb-edit-index" value="-1">
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_type_label">نوع السؤال:</label>
+            <select id="qb-type" style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
+                <option value="mcq">اختيار من متعدد (إجابة واحدة)</option>
+                <option value="checkbox">مربعات اختيار (عدة إجابات)</option>
+                <option value="dropdown">قائمة منسدلة (فراغات)</option>
+                <option value="written_blank">أكمل الفراغ (كتابة يدوية)</option>
+                <option value="write_3_ayahs">تسميع مقطع (كتابة يدوية)</option>
+                <option value="audio_record">تسميع (تسجيل صوتي)</option>
+            </select>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_title_label">عنوان السؤال:</label>
+            <input type="text" id="qb-title" placeholder="اكتب عنوان السؤال..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_text_label">نص السؤال / الآية:</label>
+            <textarea id="qb-text" rows="3" placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: #047857;"></textarea>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_options_label">الخيارات المتاحة (افصل بينها بسطر جديد):</label>
+            <textarea id="qb-options" rows="3" placeholder="الخيار الأول&#10;الخيار الثاني&#10;الخيار الثالث" style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;"></textarea>
+        </div>
+
+        <div class="input-group" style="margin-bottom: 25px;">
+            <label style="font-weight: bold; color: #10b981; display: block; margin-bottom: 5px;" data-i18n="hw_q_correct_label">الإجابة الصحيحة:</label>
+            <input type="text" id="qb-correct" placeholder="اكتب الإجابة الصحيحة هنا..." style="width: 100%; padding: 10px; border: 2px solid #10b981; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
+            <small style="color: #64748b; display: block; margin-top: 5px;">* إذا كان النوع (مربعات اختيار)، افصل الإجابات الصحيحة بفاصلة (،).</small>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" id="btn-save-qb" style="flex: 2; background: #0ea5e9; font-size: 1.3rem;" data-i18n="hw_save_q_btn">حفظ السؤال في الواجب</button>
+            <button class="btn btn-outline" id="btn-close-qb" style="flex: 1; border-color: #ef4444; color: #ef4444; font-size: 1.3rem;" data-i18n="hw_cancel_btn">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 النافذة المنبثقة: مشاركة الرابط 🌟 -->
+<div id="hw-share-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="modal-content" style="background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+        <div style="font-size: 4rem; margin-bottom: 10px;">🎉</div>
+        <h2 style="color: #10b981; font-size: 2rem; margin-top: 0; margin-bottom: 10px;" id="share-modal-title" data-i18n="hw_share_success">تم الحفظ بنجاح!</h2>
+        <p style="color: #64748b; font-size: 1.2rem; margin-bottom: 25px;" data-i18n="hw_share_desc">قم بنسخ الرابط التالي وإرساله لطلابك عبر الواتساب ليبدأوا التحدي مباشرة:</p>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+            <input type="text" id="hw-link-input" readonly style="flex: 1; padding: 12px; font-size: 1rem; border: 2px solid #cbd5e1; border-radius: 8px; background: #f8fafc; color: #334155; text-align: left; direction: ltr; outline: none;">
+            <button class="btn" id="btn-copy-hw-link" style="background: #8b5cf6; border: none; padding: 10px 20px; font-size: 1.2rem; border-radius: 8px; cursor: pointer;" data-i18n="hw_copy_btn">📋 نسخ</button>
+        </div>
+
+        <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق والعودة 🏠</button>
+    </div>
+</div>
