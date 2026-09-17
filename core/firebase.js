@@ -51,7 +51,7 @@ const db = getFirestore(app);
 // Firebase Console → App Check → تسجيل تطبيق الويب → reCAPTCHA v3 (خطوات كاملة في ملف
 // دليل-تفعيل-App-Check.md المرفق). لحد ما يُستبدل، هذا الكود يتجاهل نفسه بأمان تام بدون أي
 // خطأ — بنفس فلسفة measurementId أعلاه بالضبط.
-const RECAPTCHA_V3_SITE_KEY = "PASTE_YOUR_RECAPTCHA_SITE_KEY_HERE";
+const RECAPTCHA_V3_SITE_KEY = "6LeDocAtAAAAAOQPBzcLzORrBzwhYejcBi-i5piU";
 // 🌟 استيراد كسول (Dynamic Import) ومغلّف بالكامل بـ try/catch — بنفس فلسفة Storage/Analytics
 // أعلاه بالضبط. أي فشل في هذا الجزء (مفتاح غير صحيح، حظر إعلانات، لا يوجد إنترنت) لا يؤثر
 // إطلاقًا على أي شاشة أو ميزة أخرى في المنصة، فقط لن تُضاف طبقة الحماية هذه لهذه الجلسة.
