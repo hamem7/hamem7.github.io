@@ -1,0 +1,79 @@
+<!-- recitation/recitation-play.html -->
+<!-- 🌟 [جديد بالكامل] شاشة التسميع المباشر — قلب الميزة. 4 أزرار كبيرة فقط لتسجيل نوع
+     الملاحظة بضغطة واحدة، بلا أي نافذة أو تأكيد، بطلب صريح من المعلم بأقصى بساطة ممكنة
+     أثناء استماعه المباشر للطالب (لو حسّ إن الموضوع معقد مش هيستخدمها). حقل "أين حدث؟"
+     اختياري تمامًا يظهر فقط بعد الضغط، ويقدر المعلم يتجاهله ويكمل بلا أي التزام. -->
+<div class="screen active">
+    <div class="rec-wrap">
+        <div class="rec-play-topbar">
+            <button class="btn btn-outline rec-btn-back" id="rec-exit-btn">🔙 <span data-i18n="mr_back_btn">العودة لملف الطالب</span></button>
+            <div class="rec-play-header">
+                <div class="rec-play-student">👤 <span id="rec-play-student-name">--</span></div>
+                <div class="rec-play-meta">
+                    <span class="rec-type-badge" id="rec-play-type-badge">--</span>
+                    <span class="rec-play-range" id="rec-play-range">--</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="rec-play-hint" data-i18n="rec_play_hint">اضغط الزر المناسب فور حدوث الملاحظة أثناء استماعك للطالب — بلا توقف.</p>
+
+        <div class="rec-err-grid">
+            <button type="button" class="rec-err-btn rec-err-pronounce" id="rec-btn-pronounce">
+                <span class="rec-err-icon">🗣️</span>
+                <span class="rec-err-label" data-i18n="rec_err_pronounce">خطأ نطق</span>
+                <span class="rec-err-count" id="rec-count-pronounce">0</span>
+            </button>
+            <button type="button" class="rec-err-btn rec-err-verse" id="rec-btn-verse">
+                <span class="rec-err-icon">📄</span>
+                <span class="rec-err-label" data-i18n="rec_err_verse">نسيان آية</span>
+                <span class="rec-err-count" id="rec-count-verse">0</span>
+            </button>
+            <button type="button" class="rec-err-btn rec-err-word" id="rec-btn-word">
+                <span class="rec-err-icon">✋</span>
+                <span class="rec-err-label" data-i18n="rec_err_word">نسيان كلمة</span>
+                <span class="rec-err-count" id="rec-count-word">0</span>
+            </button>
+            <button type="button" class="rec-err-btn rec-err-hesitation" id="rec-btn-hesitation">
+                <span class="rec-err-icon">⏳</span>
+                <span class="rec-err-label" data-i18n="rec_err_hesitation">تردد</span>
+                <span class="rec-err-count" id="rec-count-hesitation">0</span>
+            </button>
+        </div>
+
+        <!-- 🌟 [قرار صريح من المعلم]: حقل "أين؟" اختياري يظهر فقط بعد الضغط على أحد الأزرار
+             أعلاه، ويمكن للمعلم تجاهله تمامًا ومتابعة التسميع بلا أي التزام بتعبئته -->
+        <div class="rec-location-panel" id="rec-location-panel" style="display:none;">
+            <span id="rec-location-last-label" class="rec-location-label">--</span>
+            <input type="text" id="rec-location-input" class="rec-location-input" data-i18n-placeholder="rec_location_ph" placeholder="أين حدث؟ (اختياري)">
+            <button type="button" class="rec-location-save-btn" id="rec-location-save-btn" data-i18n="rec_location_save_btn">✓</button>
+        </div>
+
+        <div class="rec-total-row">
+            <span data-i18n="rec_total_label">إجمالي الملاحظات المسجَّلة:</span>
+            <b id="rec-total-count">0</b>
+        </div>
+
+        <button type="button" class="btn rec-btn-finish" id="rec-finish-btn" data-i18n="rec_finish_btn">✅ إنهاء التسميع</button>
+    </div>
+</div>
+
+<!-- ===== نافذة ملخص الجلسة قبل الحفظ ===== -->
+<div id="rec-summary-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 550px;">
+        <h2 style="color:var(--dh-emerald-700); margin-top:0;" data-i18n="rec_summary_title">ملخص جلسة التسميع</h2>
+        <div id="rec-summary-body" class="rec-summary-body"></div>
+        <div class="rec-summary-total-row">
+            <span data-i18n="rec_total_label">إجمالي الملاحظات المسجَّلة:</span>
+            <b id="rec-summary-total">0</b>
+        </div>
+        <div class="input-group" style="margin:15px 0;">
+            <label data-i18n="rec_note_label">ملاحظة عامة على الجلسة (اختياري)</label>
+            <textarea id="rec-summary-note" class="rec-summary-note" data-i18n-placeholder="rec_note_ph" placeholder="اكتب أي ملاحظة عامة هنا..."></textarea>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <button class="btn btn-outline" style="flex:1;" id="rec-summary-cancel-btn" data-i18n="rec_cancel_btn">↩️ رجوع للتسجيل</button>
+            <button class="btn" style="flex:1;" id="rec-summary-save-btn" data-i18n="rec_save_btn">💾 حفظ الجلسة</button>
+        </div>
+    </div>
+</div>

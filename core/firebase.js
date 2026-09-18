@@ -301,15 +301,73 @@ export async function flushPendingSubmissions() {
 // دالة 3: رفع الواجب إلى السحابة عند نشره (للمعلم)
 export async function saveHomeworkToCloud(hwData) {
     try {
+        // 🌟🌟 [إصلاح] نفس حماية saveSubmissionToCloud أعلاه بالضبط: Firestore يرفض تمامًا أي
+        // حقل قيمته undefined (حتى لو متداخل)، فيفشل setDoc بالكامل بصمت (كان يُطبع في الـ
+        // console فقط دون أي أثر آخر). التحويل لنص JSON ورجوع يحذف أي undefined تلقائيًا.
+        const cleanData = JSON.parse(JSON.stringify(hwData));
         // نستخدم setDoc مع مسار (homeworks/hw_id) لكي نضمن أن الآي دي في السحابة هو نفس الآي دي المحلي
-        const hwRef = doc(db, "homeworks", hwData.id);
-        await setDoc(hwRef, hwData);
+        const hwRef = doc(db, "homeworks", cleanData.id);
+        await setDoc(hwRef, cleanData);
         console.log("تم رفع الواجب للسحابة بنجاح!");
         return true;
     } catch (e) {
         console.error("حدث خطأ أثناء رفع الواجب للسحابة: ", e);
         return false;
     }
+}
+
+// ==========================================
+// 📦 [جديد] طابور احتياطي محلي لإعادة رفع أي واجب فشل رفعه للسحابة عند النشر
+// ==========================================
+// لماذا هذا ضروري؟ رفع الواجب للسحابة عند النشر كان (قبل هذا الإصلاح) يُنفَّذ في الخلفية دون
+// انتظار (fire-and-forget) داخل settings/homework-prep.js، فلو فشل الرفع (لا يوجد إنترنت،
+// خطأ مؤقت، حقل undefined...) كان المعلم يرى نافذة "تم الحفظ بنجاح" ورابطاً جاهزاً للمشاركة
+// رغم أن الواجب لم يصل فعلياً للسحابة — فيعمل الرابط فقط على نفس جهاز المعلم (عبر IndexedDB
+// المحلي) ويفشل فوراً برسالة "هذا الواجب غير موجود" على أي جهاز آخر (جهاز الطالب الفعلي، أو
+// حتى نافذة متصفح مختلفة على نفس الجهاز يستخدمها المعلم للتجربة). الآن: أي رفع فاشل يُحفظ في
+// طابور محلي (localStorage، بنفس نمط PENDING_KEY لتسليمات الطلاب أعلاه) ويُعاد رفعه تلقائياً
+// في أقرب فرصة (عند فتح المنصة مرة أخرى على نفس هذا الجهاز — راجع flushPendingHomeworkSync
+// المستدعاة من core/app.js عند الإقلاع).
+const PENDING_HW_KEY = 'pendingHwCloudSync';
+
+function getPendingHomeworks() {
+    try {
+        return JSON.parse(localStorage.getItem(PENDING_HW_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setPendingHomeworks(list) {
+    try {
+        localStorage.setItem(PENDING_HW_KEY, JSON.stringify(list));
+    } catch (e) {
+        console.error("تعذر حفظ طابور الواجبات المعلّقة محلياً:", e);
+    }
+}
+
+export function queuePendingHomeworkSync(hwData) {
+    const list = getPendingHomeworks();
+    // 🌟 تفادي تكرار نفس الواجب في الطابور لو استدعيت الدالة أكثر من مرة له (مثلاً بعد تعديله)
+    const filtered = list.filter(item => item.id !== hwData.id);
+    filtered.push(hwData);
+    setPendingHomeworks(filtered);
+}
+
+export async function flushPendingHomeworkSync() {
+    const list = getPendingHomeworks();
+    if (list.length === 0) return { sent: 0, remaining: 0 };
+
+    const stillPending = [];
+    let sentCount = 0;
+    for (const item of list) {
+        const ok = await saveHomeworkToCloud(item);
+        if (ok) sentCount++;
+        else stillPending.push(item);
+    }
+    setPendingHomeworks(stillPending);
+    if (sentCount > 0) console.log(`تم رفع ${sentCount} واجب(ات) كانت معلّقة محلياً للسحابة بنجاح.`);
+    return { sent: sentCount, remaining: stillPending.length };
 }
 
 // دالة 4: البحث عن واجب وجلبه من السحابة (للطالب)

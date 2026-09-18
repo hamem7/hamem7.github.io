@@ -3,6 +3,9 @@ import { ensureQuranLoaded } from '../database/quranDB.js';
 import { initStudentDB, StudentManager } from '../database/studentDB.js';
 import { initHomeworkDB, HomeworkManager } from '../database/homeworkDB.js';
 import { initTeacherDB, TeacherManager } from '../database/teacherDB.js';
+// 🌟 [جديد] قاعدة بيانات تخزين أصوات آيات لعبة "استمع وخمّن الآية" (ركن الأطفال) محليًا —
+// راجع تعليق database/kidsAudioDB.js لتفاصيل الفكرة والافتراضات
+import { initKidsAudioDB, KidsAudioManager } from '../database/kidsAudioDB.js';
 // 🌟 قاعدة بيانات نظام "المراجعة المتباعدة" (Anki/Duolingo) الجديدة 🌟
 import { initReviewScheduleDB, ReviewScheduleManager } from '../database/reviewScheduleDB.js';
 // 🌟 [جديد] قاعدة بيانات "الاختبارات الثنائية" — بنك الاختبارات المحفوظة + سجل المواجهات
@@ -22,9 +25,14 @@ import { initTeacherProfileUI, renderTeacherGreeting } from '../components/teach
 import { initHomeQuickview } from '../components/homeQuickview.js';
 // 🌟 توست التنويه أسفل الشاشة — يُستخدم في شاشة "الاختبارات الثنائية" (بدل alert())
 import { showToastEncouragement } from '../components/ui.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js لتفاصيل الآلية
+import { showSectionHintOnce } from '../components/sectionHint.js';
 import { translations, t, applyLanguage, toggleLanguage } from './i18n.js';
 // 🌟 رقم إصدار المنصة وسجل التحديثات — لشاشة "الجديد في هذا التحديث" 🌟
 import { APP_VERSION, getUnseenChangelog } from './version.js';
+// 🌟 [جديد] إعادة محاولة رفع أي واجب فشل رفعه للسحابة وقت النشر (راجع الشرح الكامل بجانب
+// flushPendingHomeworkSync في core/firebase.js) — تُستدعى مرة عند كل إقلاع للمنصة
+import { flushPendingHomeworkSync } from './firebase.js';
 
 // 🛡️ إعادة تصدير دوال الترجمة لضمان عدم كسر أي ملف خارجي يستوردها من app.js
 export { translations, t, applyLanguage, toggleLanguage };
@@ -33,6 +41,7 @@ export const AppState = {
     studentManager: null,
     quranEngine: null,
     kidsEngine: null,
+    kidsAudioManager: null,
     homeworkManager: null,
     teacherManager: null,
     // 🌟 مدير جدول "المراجعة المتباعدة" (Anki/Duolingo) — يتتبع لكل طالب متى
@@ -194,12 +203,22 @@ async function bootSystem() {
         AppState.quranEngine = new QuranEngine(quranDB);
         AppState.kidsEngine = new KidsEngine(AppState.quranEngine);
 
+        // 🌟 [جديد] تهيئة قاعدة بيانات تخزين أصوات آيات ركن الأطفال محليًا — نفس نمط تهيئة
+        // بقية قواعد البيانات هنا بالضبط (راجع database/kidsAudioDB.js للتفاصيل الكاملة)
+        const kidsAudioDB = await initKidsAudioDB();
+        AppState.kidsAudioManager = new KidsAudioManager(kidsAudioDB);
+
         const studentDB = await initStudentDB();
         AppState.studentManager = new StudentManager(studentDB);
 
         // 📚 تهيئة قاعدة بيانات الواجبات المستقلة
         const hwDB = await initHomeworkDB();
         AppState.homeworkManager = new HomeworkManager(hwDB);
+
+        // 🌟🌟 [إصلاح] إعادة محاولة رفع أي واجب فشل رفعه للسحابة في جلسة سابقة (طابور
+        // pendingHwCloudSync في core/firebase.js) — بدون انتظار (لا نُجمّد إقلاع المنصة
+        // بسببها) وبصمت تام لو نجحت أو لو كان الطابور فارغاً أصلاً (الحالة الشائعة)
+        flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة:", err));
 
         // 🧑‍🏫 تهيئة ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
@@ -259,6 +278,17 @@ async function bootSystem() {
         // مسار دخول الطالب عبر رابط واجب مباشر أعلاه (لأن التحديثات غالباً خاصة بأدوات
         // إدارة المعلم وليست جزءاً من تجربة الطالب) 🌟
         checkForUpdates();
+
+        // 🌟 [جديد] تلميح الترحيب العام بالمنصة — يظهر مرة واحدة فقط على هذا الجهاز عند أول
+        // فتح للشاشة الرئيسية للمعلم (بعد whats-new-modal مباشرة لتفادي ظهور بطاقتين دفعة
+        // واحدة في نفس اللحظة، رغم أن الأولى فقط تظهر عملياً غالباً لأن whats-new تتطلب وجود
+        // نسخة سابقة محفوظة أصلاً، بعكس هذا التلميح الذي يظهر تحديداً في أول مرة لا يوجد فيها
+        // ذلك). راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح" 🌟
+        showSectionHintOnce('general', {
+            type: 'tip',
+            titleKey: 'hint_general_title',
+            bodyKey: 'hint_general_body'
+        });
     } catch (error) {
         console.error("خطأ قاتل أثناء إقلاع النظام:", error);
     }

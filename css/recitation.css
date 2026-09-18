@@ -1,0 +1,313 @@
+/* css/recitation.css */
+/* 🌟 [جديد] تنسيقات شاشتي "التسميع" الجديدتين (مجلد recitation/) — ملف معزول تمامًا،
+   لا يلمس أي قاعدة في css/global.css أو css/adults.css أو css/kids.css أو حتى
+   css/home.css نفسه، بنفس فلسفة العزل المتبعة مع dualtests/ وsimilarities/. كل الفئات
+   هنا مُسبَّقة بـ .rec- لتفادي أي تعارض أسماء مع بقية المنصة. تعتمد على متغيرات الهوية
+   البصرية --dh-emerald-*/--dh-gold-* المعرّفة أصلاً في css/home.css، بالإضافة لألوان
+   --success/--danger/--secondary العامة المعرّفة في css/global.css (لإعطاء كل نوع
+   ملاحظة تمييزًا بصريًا سريعًا بضغطة واحدة أثناء التسميع المباشر) 🌟 */
+
+.rec-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.rec-btn-back {
+    padding: 10px 18px !important;
+    font-size: 1rem !important;
+    margin-bottom: 15px;
+}
+
+.rec-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    margin: 0 0 8px;
+}
+
+.rec-subtitle {
+    color: #64748b;
+    font-size: 1.05rem;
+    margin: 0 0 25px;
+}
+
+.rec-student-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fffdf6;
+    border: 2px solid var(--dh-gold-500);
+    color: var(--dh-emerald-800);
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 10px 22px;
+    border-radius: 30px;
+    margin-bottom: 25px;
+}
+
+/* ---------- شاشة الإعداد: نوع الجلسة والنطاق ---------- */
+.rec-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.rec-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 22px 12px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    font-family: inherit;
+    color: var(--dh-emerald-800);
+    background: #fff;
+    border: 3px solid #e2e8f0;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rec-type-icon { font-size: 2.2rem; }
+
+.rec-type-btn:hover { border-color: var(--dh-gold-500); }
+
+.rec-type-selected {
+    border-color: var(--dh-emerald-600);
+    background: linear-gradient(135deg, #fffdf6, #f0fdf4);
+    box-shadow: 0 6px 16px rgba(13, 92, 70, 0.15);
+}
+
+.rec-range-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+    text-align: right;
+}
+
+.rec-range-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 14px;
+    font-family: inherit;
+}
+
+.rec-btn-start {
+    width: 100%;
+    padding: 18px !important;
+    font-size: 1.4rem !important;
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
+    color: var(--dh-emerald-900) !important;
+    font-weight: bold !important;
+}
+
+/* ---------- شاشة التسميع المباشر ---------- */
+.rec-play-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.rec-play-header { text-align: left; }
+[dir="rtl"] .rec-play-header { text-align: right; }
+
+.rec-play-student {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+}
+
+.rec-play-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.rec-type-badge {
+    background: var(--dh-emerald-700);
+    color: #fffdf6;
+    font-size: 0.9rem;
+    font-weight: bold;
+    padding: 4px 14px;
+    border-radius: 20px;
+}
+
+.rec-play-range {
+    color: #64748b;
+    font-size: 0.95rem;
+    align-self: center;
+}
+
+.rec-play-hint {
+    color: #64748b;
+    font-size: 1rem;
+    margin: 15px 0 20px;
+}
+
+.rec-err-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.rec-err-btn {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 26px 10px;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 1.15rem;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+    transition: transform 0.15s ease;
+}
+
+.rec-err-btn:active { transform: scale(0.96); }
+.rec-err-btn:hover { transform: translateY(-3px); }
+
+.rec-err-icon { font-size: 2.4rem; }
+
+.rec-err-count {
+    position: absolute;
+    top: 10px;
+    inset-inline-end: 12px;
+    background: rgba(255,255,255,0.9);
+    color: #1e293b;
+    font-size: 1.1rem;
+    font-weight: 800;
+    min-width: 30px;
+    padding: 2px 6px;
+    border-radius: 50px;
+}
+
+.rec-err-pronounce { background: linear-gradient(135deg, var(--secondary), var(--primary)); }
+.rec-err-verse { background: linear-gradient(135deg, #b91c1c, var(--danger)); }
+.rec-err-word { background: linear-gradient(135deg, #d97706, #b45309); }
+.rec-err-hesitation { background: linear-gradient(135deg, #7c3aed, #5b21b6); }
+
+.rec-location-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #fffbea;
+    border: 2px dashed var(--dh-gold-500);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.rec-location-label {
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    white-space: nowrap;
+}
+
+.rec-location-input {
+    flex: 1;
+    min-width: 140px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    font-family: inherit;
+}
+
+.rec-location-save-btn {
+    background: var(--dh-emerald-700);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.rec-total-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1.15rem;
+    color: #475569;
+    margin-bottom: 20px;
+}
+
+.rec-total-row b { color: var(--dh-emerald-800); font-size: 1.3rem; }
+
+.rec-btn-finish {
+    width: 100%;
+    padding: 18px !important;
+    font-size: 1.4rem !important;
+    background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-800)) !important;
+    color: #fffdf6 !important;
+    font-weight: bold !important;
+}
+
+/* ---------- نافذة ملخص الجلسة ---------- */
+.rec-summary-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.rec-summary-row {
+    display: flex;
+    justify-content: space-between;
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: 1.05rem;
+}
+
+.rec-summary-row b { color: var(--dh-emerald-800); }
+
+.rec-summary-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 10px 0;
+}
+
+.rec-summary-total-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    color: #475569;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 12px;
+}
+
+.rec-summary-note {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px;
+    border: 2px solid #cbd5e1;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+}
+
+@media (max-width: 560px) {
+    .rec-type-grid, .rec-range-row, .rec-err-grid { grid-template-columns: 1fr; }
+}

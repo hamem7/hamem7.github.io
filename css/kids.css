@@ -262,4 +262,41 @@ h1, h2, h3, .question-text {
 .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #64748b; }
 .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #b45309; transform: scale(1.1); }
 .q-circle.correct { background: #dcfce7; border-color: #10b981; color: #166534; }
+
+/* =========================================
+   🌟 [جديد بالكامل] زر تشغيل الصوت للعبة "استمع وخمّن الآية" — قواعد معزولة تمامًا بادئة
+   بـ .kids-listen- فقط، بلا أي لمس لقواعد الأزرار الأخرى (.kids-mcq-btn/.kids-tf-btn).
+   الألوان بنفس الهوية البصرية للمنصة (--dh-emerald/--dh-gold المعرّفة في css/home.css)
+========================================= */
+.kids-listen-play-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--dh-emerald-700, #0d5c46), var(--dh-emerald-600, #147c5e));
+    color: #ffffff;
+    border: 4px solid var(--dh-gold-300, #f0d878);
+    border-radius: 50px;
+    padding: 16px 42px;
+    font-size: 1.7rem;
+    font-weight: 700;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(13, 92, 70, 0.35);
+    transition: 0.3s;
+}
+
+.kids-listen-play-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, var(--dh-emerald-600, #147c5e), var(--dh-gold-500, #d4af37));
+}
+
+/* 🌟 نبضة بصرية بسيطة أثناء تشغيل الصوت فعليًا (تُضاف/تُزال عبر JS في kidsGame.js) 🌟 */
+.kids-listen-play-btn.playing {
+    animation: kidsListenPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes kidsListenPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.07); }
+}
 .q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }

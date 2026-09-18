@@ -22,6 +22,12 @@ import { loadScreen } from '../core/navigation.js';
 import { showToastEncouragement, openModal, closeModal } from '../components/ui.js';
 import { createEmptyDualTest } from '../database/dualTestsDB.js';
 import { generateSwapCode } from '../engine/dualTestEngine.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
+import { showSectionHintOnce } from '../components/sectionHint.js';
+// 🌟 [جديد] شاشة "تقرير المواجهة" — تُستخدم هنا لفتح تقرير أي مباراة سابقة منتهية من نافذة
+// "📜 المباريات السابقة" أسفل، بنفس الطريقة التي يفتحه بها زر "عرض التقرير" في شاشة اللعب
+// نفسها مباشرة بعد انتهاء المباراة (راجع dual-test-play.js وreports/dual-test-report.js)
+import { openDualTestReportScreen } from '../reports/dual-test-report.js';
 
 // حالة الشاشة أثناء العمل عليها (تُعاد تهيئتها كل مرة تُفتَح فيها الشاشة عبر initDualTestSetup)
 let currentTest = null;      // الاختبار قيد التحرير حالياً (null = طبقة القائمة معروضة)
@@ -30,6 +36,10 @@ let allStudents = [];        // كل الطلاب غير المخفيين، لق
 // 🌟 [جديد] الاختبار المفتوح حالياً في نافذة "بدء مواجهة جديدة" — يُستخدم عند تأكيد
 // النافذة لمعرفة أي اختبار محفوظ نبني منه المواجهة الجديدة
 let activeMatchTestId = null;
+// 🌟 [جديد] الاختبار (بنك الأسئلة كاملاً) المفتوح حالياً في نافذة "📜 المباريات السابقة" —
+// يُمرَّر كما هو لشاشة التقرير عند اختيار مباراة معينة (التقرير يحتاج بنك الأسئلة الأصلي
+// لاسترجاع نص "من/إلى" الفعلي لكل سؤال — راجع reports/dual-test-report.js)
+let historyTestCache = null;
 
 // 🌟 [جديد] حالة معالج خطوات محرر الاختبار (1/2/3) + الجولة المختارة حالياً في الخطوة 3
 let currentStep = 1;
@@ -40,6 +50,15 @@ const ROUND_TITLE_KEYS = ['dts_round1_title', 'dts_round2_title', 'dts_round3_ti
 // ===================== نقطة الدخول =====================
 
 export async function initDualTestSetup() {
+    // 🌟 [جديد] تلميح ما قبل أول اختبار ثنائي — يشرح المعالج ثلاثي الخطوات وزرَّي "تبديل"
+    // و"مساعدة" وطريقة احتساب الخصم. بلا أي إشارة لكون الميزة "قيد التطوير" بطلب صريح من
+    // المعلم بعد اكتمال أساسياتها (راجع حذف الشارة المقابلة في components/splash.html)
+    showSectionHintOnce('dual_test_setup', {
+        type: 'tip',
+        titleKey: 'hint_dual_test_title',
+        bodyKey: 'hint_dual_test_body'
+    });
+
     currentTest = null;
     editingTestId = null;
 
@@ -119,6 +138,12 @@ function buildTestRowHTML(test) {
         <div class="dts-test-row-actions">
             ${startBtn}
             <button type="button" data-action="edit" data-id="${test.id}">${t('dts_edit_btn')}</button>
+            <!-- 🌟 [جديد] "📜 المباريات السابقة" — يظهر دائماً بغض النظر عن حالة الاختبار
+                 (مسودة/جاهز)، لأن المباريات المُلعَبة سابقاً محفوظة بشكل مستقل عن حالة بنك
+                 الأسئلة نفسه وتبقى موجودة حتى لو عُدِّل الاختبار لاحقاً. لو لا توجد مباريات
+                 منتهية بعد، النافذة نفسها تعرض رسالة "لا توجد مباريات" بدل إخفاء الزر شرطياً
+                 (بيحتاج استعلام إضافي لكل صف بلا داعٍ حقيقي) -->
+            <button type="button" data-action="history" data-id="${test.id}">${t('dts_history_btn')}</button>
             <button type="button" class="dts-btn-danger" data-action="delete" data-id="${test.id}">${t('dts_delete_btn')}</button>
         </div>
     </div>`;
@@ -357,6 +382,58 @@ async function openStartMatchModal(testId) {
     openModal('dts-start-match-modal');
 }
 
+// ===================== 🌟 [جديد] نافذة سجل المباريات السابقة =====================
+// راجع مستند المشروع "تصميم-تقرير-الاختبارات-الثنائية-المقترح.md" — أُضيفت هذه النافذة بعد أن
+// لاحظ المعلم أن المسار الوحيد لفتح تقرير مواجهة كان زر "عرض التقرير" في شاشة النتيجة النهائية
+// مباشرة بعد انتهاء المباراة، بلا أي طريقة للرجوع لمباراة قديمة لاحقاً رغم أن بياناتها تبقى
+// محفوظة فعلياً في dual_matches. هنا يفتح المعلم سجل كل مباريات اختبار معيّن ويختار أي واحدة
+// منها لفتح تقريرها الكامل وطباعته/تصديره وقتما يحب.
+//
+// ⚠️ الافتراض المتّبع: تُعرَض فقط المباريات المنتهية فعلياً (match.status === 'completed').
+// مباراة لسه "قيد التقدّم" ليس لها نتيجة نهائية محسومة (match.result لا يزال null) ولا أوسمة
+// منحت بعد، فعرضها هنا كصف قابل لفتح "تقرير" قبل انتهائها الفعلي كان سيكون تقريراً غير مكتمل،
+// يخالف فلسفة "الصدق" نفسها التي بُني عليها التقرير أصلاً.
+
+async function openMatchesHistoryModal(testId) {
+    const test = await AppState.dualTestsManager.getTestById(testId);
+    if (!test) return;
+    historyTestCache = test;
+
+    const allMatches = await AppState.dualTestsManager.getMatchesByTestId(testId);
+    const finishedMatches = allMatches
+        .filter(m => m.status === 'completed')
+        .sort((a, b) => new Date(b.finishedAt || 0) - new Date(a.finishedAt || 0));
+
+    const container = document.getElementById('dts-history-list');
+    if (container) {
+        container.innerHTML = finishedMatches.length
+            ? finishedMatches.map(buildHistoryRowHTML).join('')
+            : `<div class="dts-empty-msg">${t('dts_history_empty')}</div>`;
+    }
+
+    openModal('dts-matches-history-modal');
+}
+
+function buildHistoryRowHTML(match) {
+    const dateLabel = match.finishedAt
+        ? new Date(match.finishedAt).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')
+        : '';
+    // 🌟 نفس صياغة شريط الفوز/التعادل المستخدمة بالضبط في شاشة اللعب وفي رأس التقرير نفسه
+    // (dtp_final_tie_label / dtp_final_winner_label) — استمرارية بصرية ولفظية كاملة
+    const resultLabel = match.result === 'tie'
+        ? t('dtp_final_tie_label')
+        : t('dtp_final_winner_label').replace('{name}', match.result === 'A_win' ? match.studentNameA : match.studentNameB);
+
+    return `
+    <div class="dts-history-row">
+        <div class="dts-history-row-info">
+            <span class="dts-history-row-names">${escapeHtml(match.studentNameA)} 🆚 ${escapeHtml(match.studentNameB)}</span>
+            <span class="dts-history-row-meta">${resultLabel} · ${dateLabel}</span>
+        </div>
+        <button type="button" class="btn" data-history-match-id="${match.id}">${t('dtp_view_report_btn')}</button>
+    </div>`;
+}
+
 // ===================== ربط كل مستمعي الأحداث (مرة واحدة عند فتح الشاشة) =====================
 
 function wireStaticListeners() {
@@ -402,7 +479,26 @@ function wireStaticListeners() {
             }
         } else if (action === 'start') {
             openStartMatchModal(id);
+        } else if (action === 'history') {
+            openMatchesHistoryModal(id);
         }
+    });
+
+    // ----- 🌟 [جديد] نافذة "المباريات السابقة": إغلاق + فتح تقرير مباراة مختارة -----
+    document.getElementById('dts-history-close-btn')?.addEventListener('click', () => {
+        closeModal('dts-matches-history-modal');
+    });
+
+    document.getElementById('dts-history-list')?.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-history-match-id]');
+        if (!btn || !historyTestCache) return;
+        const matchId = parseInt(btn.dataset.historyMatchId, 10);
+        const match = await AppState.dualTestsManager.getMatchById(matchId);
+        if (!match) return;
+        closeModal('dts-matches-history-modal');
+        // 🌟 نفس نقطة الدخول بالضبط المستخدمة في dual-test-play.js — تستبدل محتوى #app-root
+        // كاملاً بشاشة التقرير، فلا حاجة لأي تنقّل إضافي عبر loadScreen هنا
+        openDualTestReportScreen(match, historyTestCache);
     });
 
     // ----- المعالج: التنقل بين الخطوات الثلاث -----

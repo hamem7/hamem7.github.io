@@ -9,7 +9,13 @@ import { t } from '../core/i18n.js';
 
 // تصغير الصورة قبل حفظها (نفس فكرة resizeImageToDataUrl الموجودة في reports/report.js
 // لكن نسخة محلية صغيرة هنا لتفادي تضخيم حجم قاعدة البيانات المحلية بصور كبيرة جداً)
-function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85) {
+// 🌟 [إصلاح] أضفنا معامل format (افتراضيًا jpeg كما كان، بدون أي تغيير على صورة المعلم
+// الشخصية). سبب الإصلاح: صورة الختم/التوقيع غالبًا ملف PNG بخلفية شفافة، ولون البكسلات
+// تحت الشفافية عادة أسود. عند تحويلها بـ toDataURL('image/jpeg', ...) تُفقَد قناة
+// الشفافية تمامًا لأن JPEG لا يدعمها، فتظهر الخلفية الشفافة كمربع أسود كامل حول التوقيع
+// بدل أن تختفي — وهذا هو سبب المربع الأسود الذي يظهر في التقارير. الحل: نحفظ الختم
+// بصيغة PNG (تحافظ على الشفافية) بدل JPEG، فيظهر خط التوقيع فقط بلا أي خلفية.
+function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85, format = 'image/jpeg') {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(reader.error);
@@ -23,7 +29,7 @@ function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85) {
                 const canvas = document.createElement('canvas');
                 canvas.width = width; canvas.height = height;
                 canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                resolve(canvas.toDataURL('image/jpeg', quality));
+                resolve(canvas.toDataURL(format, quality));
             };
             img.src = reader.result;
         };
@@ -219,7 +225,9 @@ export function initTeacherProfileUI() {
             if (!file) return;
             if (!file.type || !file.type.startsWith('image/')) return;
             try {
-                pendingStamp = await resizeImageToDataUrl(file, 420, 0.9);
+                // 🌟 [إصلاح] نحفظ الختم بصيغة PNG لا JPEG حتى تبقى خلفيته الشفافة شفافة
+                // فعليًا (راجع تعليق resizeImageToDataUrl أعلى الملف لتفاصيل السبب)
+                pendingStamp = await resizeImageToDataUrl(file, 420, 0.9, 'image/png');
                 renderStampPreview();
             } catch (e) {
                 console.error("تعذر معالجة صورة الختم:", e);

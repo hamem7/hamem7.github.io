@@ -21,6 +21,9 @@
     <!-- 🌟 [جديد] تصميم شاشات "ركن المتشابهات" (مجلد similarities/) — ملف معزول تماماً بنفس
          فلسفة home.css أعلاه، لا يلمس أي قاعدة في الملفات الأخرى 🌟 -->
     <link rel="stylesheet" href="css/similarities.css">
+    <!-- 🌟 [جديد] تصميم بطاقة "تلميحات الأقسام عند أول دخول" العائمة — ملف معزول تماماً بنفس
+         الفلسفة أعلاه، راجع components/sectionHint.js 🌟 -->
+    <link rel="stylesheet" href="css/sectionHint.css">
 </head>
 
 <body class="adult-theme" id="main-body">
@@ -59,7 +62,45 @@
         <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
     </div>
 
+    <!-- 🌟 [جديد] بطاقة "تلميحات الأقسام عند أول دخول" العائمة — عنصر ثابت خارج #app-root
+         (بنفس نمط whats-new-modal والكونفيتي والتوست أعلاه) حتى يفضل موجود بغض النظر عن
+         الشاشة الحالية. مخفية افتراضياً، وcomponents/sectionHint.js هو المسؤول الوحيد عن ملء
+         محتواها وإظهارها/إخفائها من داخل initFunction الخاصة بكل شاشة. بعكس whats-new-modal
+         الحاجب تماماً (خلفية سوداء شبه شفافة تمنع كل تفاعل)، هذه البطاقة عائمة فقط بلا أي
+         خلفية حاجبة، فالمعلم يقدر يستمر بالتفاعل مع الشاشة تحتها. راجع مستند "تصميم نظام
+         تلميحات الأقسام عند أول دخول المقترح" لتفاصيل القرار الكامل 🌟 -->
+    <div class="dh-hint-card" id="section-hint-card" style="display:none;">
+        <div class="dh-hint-icon">💡</div>
+        <div class="dh-hint-content">
+            <h3 class="dh-hint-title"></h3>
+            <div class="dh-hint-body"></div>
+            <div class="dh-hint-actions">
+                <button type="button" class="dh-hint-extra-btn" style="display:none;"></button>
+                <button type="button" class="dh-hint-ok-btn"></button>
+            </div>
+        </div>
+        <button type="button" class="dh-hint-close-btn" aria-label="✕">✕</button>
+    </div>
+
     <div id="app-root"></div>
+
+    <!-- ⚠️ [مؤقت للتجربة المحلية فقط] راجع دليل-تفعيل-App-Check.md قسم "للتجربة المحلية
+         قبل النشر" — بما إن App Check (reCAPTCHA v3) بقى مفعّل فعليًا في core/firebase.js،
+         والتجربة المحلية بتحصل من سيرفر محلي (زي 127.0.0.1:5500 أو localhost) وهو دومين غير
+         مسجّل عند reCAPTCHA، السطر ده بيخلي المتصفح يطبع "Debug Token" في الـ Console بدل ما
+         يحاول يتحقق فعليًا من reCAPTCHA — تسجيل هذا الـ Token (مرة واحدة فقط) في Firebase
+         Console (App Check → Manage debug tokens) هو ما يسمح للتجربة المحلية تعمل حتى بعد
+         تفعيل Enforce.
+         🌟 [تعديل] كان السطر ده بيتفعّل دايمًا بغض النظر عن الدومين، فكان لازم نفتكر نمسحه
+         يدويًا قبل كل رفع للمستودع المنشور (وده معرّض للنسيان). دلوقتي اتحط جوه شرط بيتأكد
+         إن الصفحة شغالة فعليًا على localhost/127.0.0.1 بس قبل ما يفعّل وضع الـ Debug Token —
+         فلو اتفتح على أي دومين تاني (زي hamem7.github.io بعد الرفع)، السطر ده يتجاهل نفسه
+         تلقائيًا وبأمان تام، وreCAPTCHA الحقيقي هو اللي يشتغل عادي من غير أي تدخل يدوي. -->
+    <script>
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+            self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        }
+    </script>
 
     <script type="module" src="core/app.js"></script>
 

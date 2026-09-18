@@ -395,16 +395,17 @@
                 </span>
             </button>
 
-            <!-- 🌟 [تحديث] شاشة إعداد الاختبار (اختيار المتسابقَين، النطاق، الأسئلة) أصبحت
-                 مبنية فعلياً الآن في مجلد dualtests/ الجديد المعزول تماماً — استبدلنا onclick
-                 alert() المؤقت بزر حقيقي (openDualTestSetup في core/app.js، نفس نمط زر
-                 الواجبات btn-homework-main بالضبط). شاشة اللعب الفعلية (المواجهة الحية) لسه
-                 قيد الإنشاء، فالشارة "قيد التطوير" باقية عمداً حتى تكتمل تجربة المعلم كاملة. -->
+            <!-- 🌟 [محدَّث] شاشة إعداد الاختبار وشاشة اللعب الفعلية (المواجهة الحية) أصبحتا مبنيتين
+                 بالكامل وشغالتين الآن في مجلد dualtests/ — بطلب صريح من المعلم بعد اكتمال أساسيات
+                 الفكرة، أُزيلت شارة "قيد التطوير" من هذه البطاقة وحُذفت نفس العبارة من وصفها
+                 (كانت عبر مفتاحي dual_in_progress_badge وcard_dual_desc في core/i18n.js). أُبقي
+                 على مفتاح dual_in_progress_badge نفسه بلا حذف رغم عدم استخدامه الآن — بنفس منطق
+                 similarities_in_progress_badge المُبقى عليه أعلاه لنفس السبب — تحسباً لأي رجوع
+                 مستقبلي، بدل حذفه فجأة 🌟 -->
             <button class="home-card home-card-dual" id="btn-dual-main">
-                <span class="home-card-badge" data-i18n="dual_in_progress_badge">قيد التطوير</span>
                 <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/></svg></span>
                 <span class="home-card-title" data-i18n="btn_dual">الاختبارات الثنائية</span>
-                <span class="home-card-desc" data-i18n="card_dual_desc">تحدٍ بين طالبين (قيد التطوير)</span>
+                <span class="home-card-desc" data-i18n="card_dual_desc">تحدٍ بين طالبين</span>
                 <span class="home-card-arrow" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
                 </span>

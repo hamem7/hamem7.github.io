@@ -96,6 +96,34 @@
 .order-slot.filled { border-style: solid; border-color: var(--primary); background: #f0fdf4; color: var(--primary); font-size: 2.2rem; font-family: 'Amiri Quran', serif !important; font-weight: 400 !important; box-shadow: var(--shadow-sm); line-height: 2.2;}
 .order-slot.filled:hover { background: #fee2e2; border-color: var(--danger); }
 
+/* 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — نفس فكرة تخطيط شبكة الترتيب (order-grid) أعلاه، لكن
+   بعناصر تُختار فردياً بالنقر (لا نقل ولا سحب) ضمن أسماء classes مستقلة تماماً بدل التعديل
+   المباشر على order-item/order-slot الحاليين، حتى لا تتأثر أي شاشة أخرى تستخدمهما 🌟 */
+.link-grid { display: flex; gap: 20px; margin-top: 20px; justify-content: center; }
+.link-col { flex: 1; background: rgba(0,0,0,0.05); padding: 20px; border-radius: 15px; border: 2px solid rgba(0,0,0,0.1); }
+.link-item { background: white; border: 2px solid #cbd5e1; padding: 15px 20px; margin-bottom: 10px; border-radius: 10px; cursor: pointer; font-family: 'Amiri Quran', serif !important; font-size: 2rem; font-weight: 400 !important; color: var(--primary); box-shadow: var(--shadow-sm); transition: 0.2s; line-height: 2.2; }
+.link-item:hover { background: #f0fdf4; border-color: var(--primary); }
+.link-item.selected { border-color: var(--gold); background: #fffbea; box-shadow: 0 0 0 3px rgba(212,175,55,0.4); }
+.link-item.matched { border-color: var(--success); background: #f0fdf4; color: var(--success); cursor: default; opacity: 0.7; }
+.link-item.wrong-flash { animation: linkWrongFlash 0.6s ease; }
+@keyframes linkWrongFlash { 0%, 100% { background: white; border-color: #cbd5e1; } 50% { background: #fee2e2; border-color: var(--danger); } }
+/* 🌟 [جديد] ألوان مميّزة لكل زوج مطابَق في لعبة "اربط أول الآية بآخرها" (بدل اللون الأخضر
+   الموحّد لكل الأزواج سابقاً) - عشان الطالب/المعلم يقدر يتابع بصريًا كل ربط لوحده. الترتيب
+   يتكرر (pair-0..pair-5) لو عدد الأزواج تعدّى 6 (راجع PAIR_COLORS_COUNT في buildLinkGameUI
+   بـgames/adultGame.js وgames/kidsGame.js). الألوان مُختارة صراحة لتكون بعيدة عن الأحمر
+   المستخدم للإجابة الخاطئة (wrong-flash/--danger) والذهبي المستخدم للتحديد (selected/--gold)
+   حتى ما يحصل تعارض بصري مع أي حالة تانية من حالات اللعبة 🌟 */
+.link-item.matched.pair-0 { border-color: #0d5c46; background: #e6f4ef; color: #0d5c46; }
+.link-item.matched.pair-1 { border-color: #1d4ed8; background: #eff6ff; color: #1d4ed8; }
+.link-item.matched.pair-2 { border-color: #7c3aed; background: #f5f3ff; color: #7c3aed; }
+.link-item.matched.pair-3 { border-color: #0891b2; background: #ecfeff; color: #0891b2; }
+.link-item.matched.pair-4 { border-color: #92400e; background: #fef3e2; color: #92400e; }
+.link-item.matched.pair-5 { border-color: #be185d; background: #fdf2f8; color: #be185d; }
+/* 🌟 [جديد] حركة "pop" خفيفة لحظة المطابقة الصحيحة - كانت التغذية الرجعية غير متماثلة
+   (فيه وميضة حمراء للخطأ عبر linkWrongFlash فوق، ومفيش أي حركة مقابلة للصح) 🌟 */
+.link-item.correct-pop { animation: linkCorrectPop 0.4s ease; }
+@keyframes linkCorrectPop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
+
 /* النوافذ المنبثقة والتوست */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease;}
 .modal-content { background: white; padding: 2.5rem; border-radius: 20px; width: 90%; max-width: 650px; text-align: center; box-shadow: var(--shadow-md); max-height: 95vh; overflow-y: auto; color: #333;}
@@ -120,6 +148,7 @@
     .splash-title { font-size: 2.5rem; }
     .radio-group { flex-direction: column; align-items: center; gap: 10px;}
     .order-grid { flex-direction: column; }
+    .link-grid { flex-direction: column; }
     /* ✅ تكبير الآيات جداً في الموبايل ليقرأها الأطفال براحة، مع الحفاظ على التباعد */
     .quran-text { font-size: 3.2rem !important; line-height: 2.2 !important; }
 }

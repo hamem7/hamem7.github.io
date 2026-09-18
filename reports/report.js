@@ -19,12 +19,20 @@
 // =============================================================================
 
 import { AppState, applyLanguage, loadDashboardScreen } from '../core/app.js';
-// TODO: عدّل هذا المسار إذا كان GameState في ملف مختلف عندك
-// (games/adultGame.js أو games/kidsGame.js حسب نوع اللعبة الجاري تقييمها).
-import { GameState } from '../games/adultGame.js';
 // التنسيق (CSS) منقول بالكامل إلى report.styles.js بدل تضخيم هذا الملف —
 // نفس المحتوى تمامًا، منظَّم في ملف مستقل فقط.
 import { REPORT_STYLES } from './report.styles.js';
+
+// 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
+// (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
+// اللي انتهت فعليًا — ولها GameState خاص بها منفصل تمامًا عن adultGame.js — كان
+// التقرير يقرأ GameState.reportDetails الفاضي بتاع adultGame.js دايمًا، فتطلع كل
+// الأسئلة "غير موجودة" (totalMax = 0) ويرجع مسار احتياطي خاطئ تمامًا (راجع تعليق
+// النسبة الاحتياطية بالأسفل) — وهو بالضبط سبب ظهور نسب غير منطقية زي 154%.
+// الحل: لا نستورد GameState من أي ملف لعبة بعينه، بل نستقبله كمعامل من المستدعي
+// نفسه (adultGame.js أو kidsGame.js، كل واحد بيمرر GameState بتاعه) عند فتح
+// التقرير، ونخزّنه هنا في هذا المتغيّر لحين إعادة بناء بيانات التقرير 🌟
+let activeGameState = null;
 
 // -----------------------------------------------------------------------------
 // 0) القالب الكامل لشاشة التقرير — مضمَّن هنا كنص مباشرة بدل تحميله من ملف
@@ -295,7 +303,7 @@ function questionNoteText(d, status){
   return '';
 }
 function getQuestionResults(){
-  const details = (GameState && Array.isArray(GameState.reportDetails)) ? GameState.reportDetails : [];
+  const details = (activeGameState && Array.isArray(activeGameState.reportDetails)) ? activeGameState.reportDetails : [];
   if (!details.length) return [];
   return details.map((d, i) => {
     const status = classifyQuestion(d);
@@ -327,10 +335,16 @@ function buildStats(questionResults){
   const totalTime = withTime.reduce((s, r) => s + r.timeTaken, 0);
   const avgTime = withTime.length ? totalTime / withTime.length : 0;
   return {
-    totalTime: withTime.length ? formatDuration(totalTime) : ((GameState && GameState.totalTimeLabel) || '—'),
-    avgTime: withTime.length ? formatDuration(avgTime) : ((GameState && GameState.avgTimeLabel) || '—'),
+    totalTime: withTime.length ? formatDuration(totalTime) : ((activeGameState && activeGameState.totalTimeLabel) || '—'),
+    avgTime: withTime.length ? formatDuration(avgTime) : ((activeGameState && activeGameState.avgTimeLabel) || '—'),
     hints: questionResults.filter(r => r.usedHint).length,
-    reorders: questionResults.filter(r => r.orderAttempts >= 2).length
+    // 🌟 [إصلاح] كانت تحسب فقط الأسئلة التي احتاجت محاولتين خاطئتين فأكثر (orderAttempts >= 2)،
+    // فأي سؤال ترتيب/ربط أُخطئ فيه مرة واحدة فقط (orderAttempts === 1) كان لا يُحتسب هنا إطلاقاً
+    // رغم أنه بالفعل أُعيدت محاولته وظهر في تصنيف السؤال (classifyQuestion) كـ"reorder" وخُصمت من
+    // درجته (8/10 بدل 10/10) — تناقض بين تصنيف كل سؤال على حدة والإحصائية الإجمالية. الصواب: أي
+    // محاولة خاطئة واحدة على الأقل عند الترتيب/الربط تُحتسب "محاولة متكررة"، بنفس عتبة
+    // classifyQuestion تمامًا (orderAttempts >= 1) 🌟
+    reorders: questionResults.filter(r => r.orderAttempts >= 1).length
   };
 }
 
@@ -428,14 +442,14 @@ const GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
 // بوصف القصور فقط.
 function getHonestyLine(tier){
   if (tier === 'excellent') return 'نتيجة تعكس إتقانًا حقيقيًا لمعظم أسئلة هذا الاختبار.';
-  if (tier === 'good') return 'نتيجة جيدة تدل على حفظ متين لمعظم الأسئلة، مع بعض الجوانب التي تستحق مزيدًا من الصقل.';
+  if (tier === 'good') return 'نتيجة جيدة تدل على حفظ متين لمعظم الأسئلة، مع بعض الجوانب التي تستحق مزيدًا من المراجعة والتثبيت.';
   if (tier === 'average') return 'نتيجة متوسطة تُظهر أساسًا موجودًا يمكن تقويته بمراجعة أكثر انتظامًا.';
   return 'الأداء في هذا الاختبار ما زال دون المستوى المطلوب، وهذه فرصة جيدة لتكثيف المراجعة معًا خطوة بخطوة.';
 }
 function getAutoParentNote(tier, name, needsFocus){
   const leadByTier = {
     excellent: `أداء ${name} في هذا الاختبار كان ممتازًا وعكس حفظًا متينًا لمعظم الأسئلة.`,
-    good: `أداء ${name} كان جيدًا وتضمّن حفظًا صحيحًا لغالبية الأسئلة، مع بعض النقاط التي تحتاج مزيدًا من الصقل.`,
+    good: `أداء ${name} كان جيدًا وتضمّن حفظًا صحيحًا لغالبية الأسئلة، مع بعض النقاط التي تحتاج مزيدًا من المراجعة والتثبيت.`,
     average: `أداء ${name} كان متوسطًا بشكل عام، وهناك نقاط محددة يمكن تحسينها بمراجعة منتظمة.`,
     weak: `بذل ${name} جهدًا في هذا الاختبار، لكنه ما زال بحاجة إلى دعم إضافي في بعض الجوانب.`
   };
@@ -482,7 +496,16 @@ function buildReportData(){
   const questionResults = getQuestionResults();
   const totalMax = questionResults.reduce((sum, r) => sum + (r.max || 0), 0);
   const totalEarned = questionResults.reduce((sum, r) => sum + (r.score || 0), 0);
-  const score = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : Math.round(student.totalScore || 0);
+  // 🌟 [إصلاح] student.totalScore حقل تراكمي مفتوح (بيزيد مع كل إجابة صحيحة عبر كل
+  // جلسات الطالب، بدون أي حد أعلى — راجع AppState.currentStudent.totalScore += earnedScore
+  // في adultGame.js/kidsGame.js)، وليس نسبة مئوية أصلًا. كان استخدامه هنا مباشرة كنسبة
+  // (بدون تحديد سقف) هو سبب ظهور نسب غير منطقية زي 154%. الآن — بعد إصلاح تمرير
+  // GameState الصحيح لكل لعبة أعلاه — هذا المسار الاحتياطي بقى حالة نادرة جدًا (تقرير
+  // بلا أي أسئلة مسجَّلة إطلاقًا)، لكن نُبقي عليه كخط دفاع أخير مع تحديد سقف 0-100 حتى
+  // لا يظهر رقم خارج النطاق المنطقي مهما كانت قيمة الحقل التراكمي 🌟
+  const score = totalMax > 0
+    ? Math.round((totalEarned / totalMax) * 100)
+    : Math.max(0, Math.min(100, Math.round(student.totalScore || 0)));
   const tier = getTier(score);
   const tone = TONE[tier];
   const { strengths, needsFocus } = getSkillHighlights(student, questionResults);
@@ -494,7 +517,7 @@ function buildReportData(){
   return {
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
     name: student.name || 'الطالب',
-    scope: (GameState && GameState.range) || (history.length ? history[history.length - 1].range : '') || '—',
+    scope: (activeGameState && activeGameState.range) || (history.length ? history[history.length - 1].range : '') || '—',
     date: formatDateArabic(new Date()),
     score,
     tier,
@@ -755,7 +778,12 @@ function avatarStorageKey(student){
   const s = student || AppState.currentStudent || {};
   return 'darham_avatar_' + (s.id != null ? s.id : slugifyForFilename(s.name || 'unknown'));
 }
-function resizeImageToDataUrl(file, maxSize, quality){
+// 🌟 [إصلاح] أضفنا معامل format اختياري (افتراضيًا jpeg كما كان — لا تغيير على صورة
+// الطالب الرمزية). سبب الإصلاح: JPEG لا يدعم الشفافية، فأي صورة ختم/توقيع بخلفية شفافة
+// (PNG) تتحول خلفيتها الشفافة إلى مربع أسود صلب عند التحويل لـ JPEG بدل أن تختفي — وهذا
+// كان سبب المربع الأسود حول التوقيع في نهاية التقرير. نستخدم PNG عند نداء الدالة لرفع
+// الختم تحديدًا (أسفل) للحفاظ على الشفافية.
+function resizeImageToDataUrl(file, maxSize, quality, format){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('تعذّرت قراءة الملف'));
@@ -772,7 +800,7 @@ function resizeImageToDataUrl(file, maxSize, quality){
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', quality || 0.85));
+        resolve(canvas.toDataURL(format || 'image/jpeg', quality || 0.85));
       };
       img.src = reader.result;
     };
@@ -1074,7 +1102,9 @@ function initReportScreen(){
       if (!file) return;
       if (!file.type || !file.type.startsWith('image/')) { alert('يرجى اختيار ملف صورة صالح للختم.'); return; }
       try {
-        const dataUrl = await resizeImageToDataUrl(file, 260, 0.9);
+        // 🌟 [إصلاح] PNG بدل JPEG هنا تحديدًا حتى تبقى خلفية الختم الشفافة شفافة
+        // فعليًا (راجع تعليق resizeImageToDataUrl أعلى الملف لتفاصيل السبب)
+        const dataUrl = await resizeImageToDataUrl(file, 260, 0.9, 'image/png');
         try { localStorage.setItem('darham_teacher_signature', dataUrl); } catch (e) { /* تجاهل */ }
         persistTeacherIdentity({ stamp: dataUrl });
         if (reportData) { reportData.teacher.signature = dataUrl; renderTeacherSign(reportData); }
@@ -1095,7 +1125,13 @@ function initReportScreen(){
   if (homeBtn2) homeBtn2.addEventListener('click', goHome);
 }
 
-export function openReportScreen(){
+// 🌟 [إصلاح] openReportScreen بقت تستقبل GameState بتاع اللعبة اللي فتحت التقرير
+// فعليًا (kidsGame.js أو adultGame.js يمرران GameState بتاعهما عند النداء)، بدل ما
+// كان الملف يستورد نسخة واحدة ثابتة من adultGame.js فقط — راجع تعليق activeGameState
+// في أول الملف لتفاصيل السبب. لو اتنادت بدون معامل (مثلاً عبر window.openReportScreen
+// من مكان قديم)، نكمل بآخر GameState معروف بدل ما نفضي activeGameState بغلط 🌟
+export function openReportScreen(gameState){
+  if (gameState) activeGameState = gameState;
   const root = document.getElementById('app-root');
   if (!root) {
     console.error(

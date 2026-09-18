@@ -829,6 +829,32 @@
 .home-card-homework .home-card-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 .home-card-dual .home-card-icon { background: linear-gradient(135deg, #64748b, #475569); }
 
+/* 🌟 [جديد] تمييز بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) بألوان مختلفة —
+   كانت الثلاثة تشترك في نفس خلفية .home-card البيضاء (--dh-surface) ولا يميّزها
+   عن بعضها غير لون الأيقونة الصغيرة، فتبدو "كلها بيضاء متطابقة" من بعيد. أضفنا هنا
+   فقط (بنفس منطق تخصيص .home-menu-primary أعلاه: قاعدة أكثر تحديداً من .home-card
+   العامة عبر خاصية إضافية بدل الكتابة فوقها بالكامل) صبغة خلفية خفيفة + شريط علوي
+   ملوّن + لون عنوان مطابق للون أيقونة كل بطاقة، بنفس ألوان الأيقونات المستخدمة
+   فعلاً أعلاه (زمرّدي/بنفسجي/رمادي) حتى يبقى الشكل متسقاً معها بدل اختراع ألوان
+   جديدة. لا تعديل على .home-card نفسها ولا على بطاقات الصف الأساسي إطلاقاً 🌟 */
+.home-card-students {
+    background: linear-gradient(180deg, rgba(13, 92, 70, 0.07), var(--dh-surface) 60%);
+    border-top: 3px solid var(--dh-emerald-600);
+}
+.home-card-students .home-card-title { color: var(--dh-emerald-800); }
+
+.home-card-homework {
+    background: linear-gradient(180deg, rgba(109, 40, 217, 0.07), var(--dh-surface) 60%);
+    border-top: 3px solid #7c3aed;
+}
+.home-card-homework .home-card-title { color: #5b21b6; }
+
+.home-card-dual {
+    background: linear-gradient(180deg, rgba(71, 85, 105, 0.07), var(--dh-surface) 60%);
+    border-top: 3px solid #64748b;
+}
+.home-card-dual .home-card-title { color: #334155; }
+
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
    الطويلة (min-height:190px مع justify-content:flex-end تحجز مكاناً له تحت النص دائماً).

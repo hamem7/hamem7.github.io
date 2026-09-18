@@ -228,6 +228,11 @@
             <button class="btn" id="btn-copy-hw-link" style="background: #8b5cf6; border: none; padding: 10px 20px; font-size: 1.2rem; border-radius: 8px; cursor: pointer;" data-i18n="hw_copy_btn">📋 نسخ</button>
         </div>
 
+        <!-- 🌟 [جديد] تحذير يظهر فقط لو فشل رفع الواجب للسحابة بعد الحفظ المحلي — مخفي
+             افتراضياً، ويُظهره/يُخفيه settings/homework-prep.js (saveHomeworkToDB) بناءً على
+             نتيجة saveHomeworkToCloud الفعلية بدل الادعاء الصامت بالنجاح دائماً -->
+        <div id="hw-cloud-sync-warning" style="display:none; background:#fef3c7; color:#92400e; padding:12px 15px; border-radius:10px; margin-bottom:20px; font-size:0.95rem; line-height:1.7; border:1px solid #fcd34d;"></div>
+
         <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق والعودة 🏠</button>
     </div>
 </div>

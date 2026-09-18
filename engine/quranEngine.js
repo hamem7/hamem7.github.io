@@ -233,6 +233,267 @@ export class QuranEngine {
         if (pos === 0) { hiddenPart = displayWords.splice(0, hideCount).join(' '); displayWords.unshift("....."); } 
         else if (pos === 2) { hiddenPart = displayWords.splice(words.length - hideCount, hideCount).join(' '); displayWords.push("....."); } 
         else { let mid = Math.floor(words.length / 2) - Math.floor(hideCount / 2); hiddenPart = displayWords.splice(mid, hideCount).join(' '); displayWords.splice(mid, 0, "....."); }
-        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${displayWords.join(' ')} ﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${displayWords.join(' ')} ﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
+    }
+
+    // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تُستخدم في ركن الكبار وركن الأطفال معاً (نفس
+    // الدالة بالضبط، بمعامل isKids فقط لاختيار صياغة العنوان المناسبة). تختار حتى 4 آيات (أو
+    // أقل لو النطاق صغيراً) وتقسّم كل واحدة لنصفين (بدايتها ونهايتها)، ثم تخلط عمود البدايات
+    // وعمود النهايات كل واحد بترتيب عشوائي مستقل، والمطلوب من الطالب الربط بين كل بداية
+    // ونهايتها الصحيحة. بخلاف لعبة "رتب الآيات" لا يُشترط أن تكون الآيات المختارة متتابعة أو من
+    // نفس السورة — فقط فريدة وغير مكررة، لأن الهدف هنا اختبار حفظ بداية/نهاية كل آية بمفردها
+    // لا ترتيبها النسبي ضمن السورة.
+    // ⚠️ [افتراض صريح]: نقطة تقسيم كل آية لنصفين هي منتصف عدد الكلمات (بالتقريب للأعلى)، وليس
+    // تقسيماً لغوياً/نحوياً دقيقاً لموضع الوقف — اختيار مبسّط وثابت بدل محاولة اكتشاف "منتصف
+    // المعنى" آلياً.
+    async generateLinkGame(ayahsPool, isKids, chunkIndex, totalChunks) {
+        const targetCount = 4;
+        let validPool = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 4);
+        if (validPool.length < 2) validPool = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 2);
+        if (validPool.length < 2) return null;
+
+        let anchor = pickTargetAyah(validPool, chunkIndex, totalChunks);
+        if (!anchor) return null;
+        let anchorKey = `${anchor.surahNumber}-${anchor.numberInSurah}`;
+        let restShuffled = [...validPool].sort(() => Math.random() - 0.5);
+
+        let picked = [anchor];
+        let usedKeys = new Set([anchorKey]);
+        let neededCount = Math.min(targetCount, validPool.length);
+        for (let a of restShuffled) {
+            if (picked.length >= neededCount) break;
+            let key = `${a.surahNumber}-${a.numberInSurah}`;
+            if (!usedKeys.has(key)) { usedKeys.add(key); picked.push(a); }
+        }
+        if (picked.length < 2) return null;
+
+        let pairs = picked.map(a => {
+            let cleanText = cleanAyahText(a.text);
+            let words = cleanText.split(/\s+/);
+            let splitIdx = Math.ceil(words.length / 2);
+            if (splitIdx < 1) splitIdx = 1;
+            if (splitIdx >= words.length) splitIdx = words.length - 1;
+            return {
+                id: `${a.surahNumber}-${a.numberInSurah}`,
+                startText: words.slice(0, splitIdx).join(' '),
+                endText: words.slice(splitIdx).join(' '),
+                ayah: a
+            };
+        });
+
+        let starts = pairs.map(p => ({ id: p.id, text: p.startText })).sort(() => Math.random() - 0.5);
+        let ends = pairs.map(p => ({ id: p.id, text: p.endText })).sort(() => Math.random() - 0.5);
+        // 🌟 نضمن ألا يتطابق ترتيب عمود النهايات مع عمود البدايات صفاً بصف بمحض الصدفة، حتى لا
+        // يبدو الحل بديهياً بصرياً بدل الحاجة لربط فعلي 🌟
+        if (ends.length > 1) {
+            let attempts = 0;
+            while (attempts < 5 && ends.every((e, i) => e.id === starts[i].id)) {
+                ends.sort(() => Math.random() - 0.5);
+                attempts++;
+            }
+        }
+
+        let verseNums = pairs.map(p => p.ayah.numberInSurah).join('، ');
+        return {
+            type: isKids ? 'kids_link_ends' : 'link_ends',
+            questionTitle: isKids ? "اربط بداية الآية بنهايتها يا بطل 🔗" : "🔗 اربط أول الآية بآخرها",
+            starts: starts,
+            ends: ends,
+            original: pairs.map(p => p.ayah),
+            surahName: pairs[0].ayah.surahName,
+            ayahObj: pairs[0].ayah,
+            reportText: `${isKids ? "ربط بدايات ونهايات الآيات" : "ربط أوائل الآيات بأواخرها"}: ${verseNums}`
+        };
+    }
+
+    // 🌟 [جديد] لعبة "رتب السور" — نفس فكرة "رتب الآيات" تماماً لكن العناصر المُراد ترتيبها هي
+    // أسماء السور الموجودة فعلياً ضمن النطاق الممرَّر (ayahsPool) بدل آيات سورة واحدة. تُستخدم في
+    // ركن الأطفال ضمن أي نطاق سور يختاره المعلم، وفي ركن الكبار فقط عند اختيار نطاق "جزء" (حيث
+    // تتوفر غالباً أكثر من سورة ضمن الجزء نفسه) — هذا القيد الخاص بالكبار مطبَّق من طرف المستدعي
+    // (games/adultGame.js) عبر عدم إضافة هذا النوع لقائمة الألعاب إلا في وضع الجزء، وليس هنا.
+    // 🌟 [حيلة تقنية متعمَّدة]: نُرجع كل سورة بنفس شكل كائن الآية الذي تتوقعه دالة بناء واجهة
+    // "رتب الآيات" الحالية (buildOrderGameUI في كلا ملفي اللعبة) — أي بحقلي `text` و
+    // `numberInSurah` — لكن بقيمة numberInSurah هنا هي رقم السورة نفسه (لا رقم آية). هذا يسمح
+    // بإعادة استخدام نفس دالة بناء الواجهة عند الكبار حرفياً بلا أي تعديل عليها.
+    // ⚠️ [افتراض صريح]: لو كان النطاق المُمرَّر يحتوي على أكثر من 4 سور، نختار نافذة عشوائية من
+    // 4 سور متتالية (بترتيب المصحف) ضمنه بدل عرض كل السور دفعة واحدة، حفاظاً على نفس صعوبة بقية
+    // ألعاب الترتيب في المنصة (رتب الآيات تستخدم نفس عدد الأربعة عند الكبار).
+    async generateOrderSurahsGame(ayahsPool, isKids) {
+        let seen = new Set();
+        let surahsInRange = [];
+        for (let a of ayahsPool) {
+            if (!seen.has(a.surahNumber)) { seen.add(a.surahNumber); surahsInRange.push({ number: a.surahNumber, name: a.surahName }); }
+        }
+        surahsInRange.sort((x, y) => x.number - y.number);
+        if (surahsInRange.length < 2) return null;
+
+        let count = Math.min(4, surahsInRange.length);
+        let maxStart = surahsInRange.length - count;
+        let startIdx = maxStart > 0 ? Math.floor(Math.random() * (maxStart + 1)) : 0;
+        let chosenSurahs = surahsInRange.slice(startIdx, startIdx + count);
+        if (chosenSurahs.length < 2) return null;
+
+        let toItem = (s) => ({ text: s.name, numberInSurah: s.number, surahNumber: s.number, surahName: s.name });
+        let original = chosenSurahs.map(toItem);
+        let shuffled = [...original].sort(() => Math.random() - 0.5);
+        // 🌟 نضمن ألا يخرج الترتيب المبعثر مطابقاً للترتيب الصحيح بمحض الصدفة 🌟
+        if (shuffled.length > 1) {
+            let attempts = 0;
+            while (attempts < 5 && shuffled.every((s, i) => s.numberInSurah === original[i].numberInSurah)) {
+                shuffled.sort(() => Math.random() - 0.5);
+                attempts++;
+            }
+        }
+
+        let namesList = chosenSurahs.map(s => s.name).join('، ');
+        return {
+            type: isKids ? 'kids_order_surahs' : 'order_surahs',
+            questionTitle: isKids ? "رتب السور يا بطل 📚" : "📚 رتب السور",
+            original: original,
+            shuffled: shuffled,
+            surahName: namesList,
+            reportText: `ترتيب السور: ${namesList}`
+        };
+    }
+
+    // 🌟 [إعادة تصميم] لعبة "اربط الكلمة بالسورة" — تحل محل لعبة "رتب السور" أعلاه في كل شاشات
+    // اللعب الفعلية (games/adultGame.js وgames/kidsGame.js لم يعودا يستدعيان
+    // generateOrderSurahsGame إطلاقاً)، لكن الدالة القديمة تركناها كما هي بلا حذف حفاظاً على أي
+    // مرجع مستقبلي محتمل، بدل حذفها فجأة.
+    // 🌟 [سبب إعادة التصميم — ملاحظة صريحة من المعلم]: الأطفال غالباً يحفظون القرآن ابتداءً من
+    // آخر السور (سورة الناس) للخلف، فترتيب المصحف الصحيح (الفاتحة ← الناس) الذي كانت تطلبه لعبة
+    // "رتب السور" يجيء معكوسًا تمامًا عن ترتيب حفظهم الفعلي ويسبب لخبطة حقيقية لا تقيس حفظهم. لعبة
+    // "ربط" لا تحتاج معرفة أي ترتيب نسبي بين السور إطلاقاً — فقط التعرّف على السورة من كلمة وردت
+    // فيها فعلاً — فتزول المشكلة من جذرها بدل تلطيفها.
+    // الفكرة: تختار حتى 4 سور مختلفة **عشوائياً بلا أي قيد على ترتيبها أو تتاليها** (بخلاف نافذة
+    // الأربع سور المتتالية التي كانت تُستخدم في لعبة الترتيب) من السور المتاحة فعلياً ضمن النطاق
+    // الممرَّر (ayahsPool)، ولكل سورة كلمة واحدة "مميِّزة" من إحدى آياتها الموجودة فعلياً ضمن
+    // النطاق، ثم تُبنى منها بيانات بنفس الشكل الذي تتوقعه لعبة "اربط أول الآية بآخرها" الموجودة
+    // (starts/ends/id) — فتُعرض بنفس حاويتها ودالة بنائها (buildLinkGameUI في كلا ملفي اللعبة)
+    // بلا أي كود واجهة جديد: عمود الكلمات وعمود أسماء السور، كل واحد بترتيب عشوائي مستقل، والمطلوب
+    // الربط بينهما بالنقر.
+    // ⚠️ [افتراض صريح 1]: "الكلمة المميِّزة" = كلمة عربية من 4 أحرف فعلية على الأقل (بعد إزالة
+    // التشكيل) وليست ضمن قائمة كلمات شائعة جداً تتكرر في أغلب السور (الله، الرحمن، الذين...) —
+    // اختيار مبسّط يقلل احتمال ظهور نفس الكلمة (أو كلمة شبه بديهية) في أكثر من سورة بالجولة نفسها،
+    // وليس تحليلاً لغوياً دقيقاً لـ"تفرّد" الكلمة الفعلي.
+    // ⚠️ [افتراض صريح 2]: لو تعذّر إيجاد كلمة تحقق الشرط أعلاه لسورة معينة ضمن كل آياتها المتاحة في
+    // النطاق (سور قصيرة جداً أو كل كلماتها شائعة)، نقبل أي كلمة عربية من حرفين فأكثر من أول آية
+    // متاحة بدل استبعاد السورة من الجولة كلياً — أفضل من تقليل عدد أزواج الجولة بلا داعٍ.
+    // ⚠️ [افتراض صريح 3]: بقيت نفس قيود مكان الظهور القديمة (ركن الأطفال: دائماً ضمن نطاق الطفل،
+    // ركن الكبار: وضع "الجزء" فقط) لأن السبب الأصلي ما زال قائماً — الحاجة لسورتين مختلفتين على
+    // الأقل ضمن النطاق، وهذا غالباً غير متوفر في نطاق "سورة واحدة" أو "من سورة لأخرى" بنفس السورة.
+    async generateLinkWordSurahGame(ayahsPool, isKids) {
+        // كلمات شائعة جداً تتكرر في أغلب السور فلا تصلح "علامة مميِّزة" لسورة بعينها
+        // 🌟 [إصلاح] وسّعنا القائمة لتشمل أفعالاً وتراكيب شائعة جداً كانت تمر من الفلتر القديم رغم
+        // شيوعها الفعلي (زي "يجعل"/"إنما"/"الليل") لأنها ببساطة ≥4 أحرف وغير موجودة بالقائمة
+        // القصيرة السابقة — راجع التعليق الأكبر أسفل الدالة لتفاصيل الإصلاح الرئيسي (فلتر التكرار) 🌟
+        const COMMON_WORDS = new Set([
+            "الله", "لله", "بالله", "والله", "اللهم", "الرحمن", "الرحيم", "رب", "ربك", "ربكم", "ربهم", "ربنا",
+            "الذين", "الذي", "التي", "اللذين", "اللاتي", "كان", "كانوا", "كانت", "إن", "أن", "إنه", "إنها",
+            "لا", "لم", "لن", "ما", "من", "في", "على", "إلى", "قال", "قالوا", "قالت", "ثم", "أو", "بل", "قد",
+            "لقد", "ولا", "فلا", "ذلك", "هذا", "هذه", "هؤلاء", "عليهم", "عليكم", "لهم", "لكم", "منهم",
+            "بهم", "فيهم", "إليهم", "معهم", "أنتم", "أنفسهم", "يومئذ", "فإن", "وإن", "وما", "فما",
+            "جعل", "جعلنا", "نجعل", "يجعل", "وجعل", "فجعل", "وجعلنا", "إنما", "فإنما", "وإنما", "كأنما",
+            "بينما", "حتى", "عند", "عندما", "بعد", "قبل", "الليل", "النهار", "اليوم", "يوم", "يومهم",
+            "الأرض", "السماء", "السماوات", "جميعا", "جميعاً", "أيضا", "أيضاً", "إذ", "إذا", "لعل", "لعلكم",
+            "لعلهم", "كي", "لكي", "سوف", "غير", "سوى", "نحو", "مثل", "كل", "بعض", "جميع", "يقول", "تقول",
+            "نقول", "أقول", "قل", "قلنا", "فقال", "وقال", "له", "لها", "منها", "فيها", "عليها", "إليها",
+            "بها", "معها", "كذلك", "وكذلك", "أولئك", "الذي", "أولاء"
+        ]);
+
+        let bySurah = new Map();
+        for (let a of ayahsPool) {
+            if (!bySurah.has(a.surahNumber)) bySurah.set(a.surahNumber, { number: a.surahNumber, name: a.surahName, ayahs: [] });
+            bySurah.get(a.surahNumber).ayahs.push(a);
+        }
+        let surahsInRange = [...bySurah.values()];
+        if (surahsInRange.length < 2) return null;
+
+        let shuffledSurahs = [...surahsInRange].sort(() => Math.random() - 0.5);
+        let targetCount = Math.min(4, shuffledSurahs.length);
+        let chosen = shuffledSurahs.slice(0, targetCount);
+
+        // 🌟 [إصلاح جوهري] المشكلة اللي بلّغ عنها المعلم: الكلمات المُختارة كانت "عشوائية" فعلاً —
+        // شائعة جداً وتتكرر بمواضع كثيرة (زي "فإنما"، "يجعل"، "والليل") فيصعب على الطالب معرفة أي
+        // سورة تخصّها تحديداً لأنها لا ترتبط ذهنياً بسورة بعينها. القائمة اليدوية أعلاه وحدها غير
+        // كافية لأنها لا تغطي كل الأفعال/التراكيب المتكررة في القرآن كله.
+        // الحل: نحسب تكرار كل كلمة عربية (بعد إزالة التشكيل) عبر *كل* آيات النطاق الممرَّر بالكامل
+        // (ayahsPool)، لا فقط آيات السور المختارة لهذه الجولة تحديداً — ثم نُفضّل دائماً الكلمة
+        // الأقل تكراراً (والأفضل: التي تظهر مرة واحدة فقط `freq === 1`) كـ"الكلمة المميِّزة" لكل
+        // سورة. هذا يضمن أن الكلمة لا تتكرر فعلياً في أي مكان آخر ضمن نفس النطاق الذي يُختبر فيه
+        // الطالب في هذه الجولة تحديداً — معيار تفرّد حقيقي محسوب من البيانات الفعلية بدل قائمة
+        // شائعة ثابتة فقط. ⚠️ [افتراض صريح]: "الأقل تكراراً" هنا يُحسب داخل النطاق الممرَّر فقط
+        // (مثلاً الجزء أو نطاق سور الطفل)، وليس عبر القرآن الكريم كاملاً — لا حاجة لتحميل نص
+        // القرآن كله لهذا الحساب، والنطاق المحلي كافٍ عملياً لأن الجولة نفسها لا تختبر إلا سوراً من
+        // نفس النطاق.
+        let globalFreq = new Map();
+        for (let a of ayahsPool) {
+            let words = cleanAyahText(a.text).split(/\s+/);
+            for (let w of words) {
+                let bare = w.replace(/[^أ-ي]/g, "");
+                if (bare.length < 2) continue;
+                globalFreq.set(bare, (globalFreq.get(bare) || 0) + 1);
+            }
+        }
+
+        let usedWords = new Set();
+        let pairs = [];
+        for (let s of chosen) {
+            let surahNameBare = s.name.replace(/[^أ-ي]/g, "");
+            // 🌟 نجمع كل الكلمات المرشَّحة من *كل* آيات السورة المتاحة بالنطاق (لا نتوقف عند أول
+            // آية فيها مرشَّح واحد كما كان سابقاً) لنقدر نختار الأندر فعلياً من بينها كلها 🌟
+            let candidates = [];
+            for (let ayah of s.ayahs) {
+                let words = cleanAyahText(ayah.text).split(/\s+/);
+                for (let w of words) {
+                    let bare = w.replace(/[^أ-ي]/g, "");
+                    if (bare.length < 4 || usedWords.has(bare)) continue;
+                    // نسمح باسم السورة نفسه ككلمة مميِّزة لها حتى لو كان ضمن القائمة الشائعة —
+                    // رابط تعليمي قوي ومقصود (راجع الافتراض الصريح 3 في تعليق الدالة أعلاه)
+                    let isSurahNameItself = bare === surahNameBare;
+                    if (COMMON_WORDS.has(bare) && !isSurahNameItself) continue;
+                    candidates.push({ word: w, bare, freq: globalFreq.get(bare) || 1 });
+                }
+            }
+            let picked = null;
+            if (candidates.length > 0) {
+                let minFreq = Math.min(...candidates.map(c => c.freq));
+                let rarest = candidates.filter(c => c.freq === minFreq);
+                picked = rarest[Math.floor(Math.random() * rarest.length)].word;
+            }
+            if (!picked) {
+                // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
+                let ayahsShuffled = [...s.ayahs].sort(() => Math.random() - 0.5);
+                let fallbackWords = cleanAyahText(ayahsShuffled[0].text).split(/\s+/).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2);
+                picked = fallbackWords.length ? fallbackWords[Math.floor(Math.random() * fallbackWords.length)] : s.name;
+            }
+            usedWords.add(picked.replace(/[^أ-ي]/g, ""));
+            pairs.push({ number: s.number, name: s.name, word: picked });
+        }
+        if (pairs.length < 2) return null;
+
+        let starts = pairs.map(p => ({ id: p.number, text: p.word })).sort(() => Math.random() - 0.5);
+        let ends = pairs.map(p => ({ id: p.number, text: p.name })).sort(() => Math.random() - 0.5);
+        // 🌟 نفس ضمان generateLinkGame أعلاه: تجنّب تطابق ترتيب العمودين صفاً بصف بمحض الصدفة 🌟
+        if (ends.length > 1) {
+            let attempts = 0;
+            while (attempts < 5 && ends.every((e, i) => e.id === starts[i].id)) {
+                ends.sort(() => Math.random() - 0.5);
+                attempts++;
+            }
+        }
+
+        let namesList = pairs.map(p => p.name).join('، ');
+        return {
+            type: isKids ? 'kids_link_word_surah' : 'link_word_surah',
+            questionTitle: isKids ? "اربط الكلمة بسورتها يا بطل 🔗📖" : "🔗📖 اربط الكلمة بالسورة",
+            starts: starts,
+            ends: ends,
+            // 🌟 نفس شكل original الذي كانت تُرجعه generateOrderSurahsGame (numberInSurah = رقم
+            // السورة) — يبقى مفيداً لـrecordAnswer في كلا ملفي اللعبة كخط رجوع عند غياب ayahObj 🌟
+            original: pairs.map(p => ({ text: p.name, numberInSurah: p.number, surahNumber: p.number, surahName: p.name })),
+            surahName: namesList,
+            reportText: `${isKids ? "ربط كلمة بسورتها" : "ربط كلمات بسورها"}: ${namesList}`
+        };
     }
 }

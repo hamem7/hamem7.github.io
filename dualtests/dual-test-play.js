@@ -9,23 +9,37 @@
 //    لتحديد مدة مخصصة). المؤقت بصري بحت فقط كما تقرر — لا يحدث أي شيء تلقائي عند وصوله للصفر.
 // 2) القرعة (تحديد من يبدأ الاختيار) تُجرى فقط قبل الجولة الأولى؛ الجولتان الثانية والثالثة
 //    يبدأ فيهما الطالب الآخر (تبديل تلقائي لمن بدأ الجولة السابقة)، لضمان عدالة تقريبية.
-// 3) تقدّم المباراة (الأسئلة المُجابة) يُحفَظ في قاعدة البيانات فقط عند اكتمال كل جولة
-//    كاملة (ملخص الجولة)، وليس سؤالاً بسؤال أثناء اللعب — فلو أُغلق المتصفح منتصف جولة
-//    تُفقَد تلك الجولة الجزئية فقط (الجولات المكتملة سابقاً تبقى محفوظة بأمان).
+// 3) [مُحدَّث بطلب صريح من المعلم بعد ملاحظة تكرار ريفريش غير متوقع للصفحة أثناء الاستخدام]
+//    تقدّم المباراة كان يُحفَظ في قاعدة البيانات فقط عند اكتمال كل جولة كاملة (ملخص الجولة)،
+//    فلو حصل ريفريش منتصف جولة كانت تلك الجولة الجزئية بالكامل (كل الأسئلة المُجابة فيها لحد
+//    لحظة الريفريش) تضيع. الآن: بعد كل سؤال يُعتمد (وبعد أي استخدام مساعدة/تبديل) تُحفَظ لقطة
+//    من تقدّم الجولة الجارية في match.inProgressRound (راجع persistInProgressRound وتعليقها
+//    الكامل أسفل هذا الملف). عند إعادة فتح شاشة اللعب لنفس المواجهة (matchId نفسه) يُستكمَل
+//    من هذه اللقطة تلقائياً بلا أي تدخل من المعلم. 🌟 حدّان لهذا الحل يستحقان التوضيح صراحة:
+//    (أ) السؤال المفتوح حالياً أمام الطالب لحظة الريفريش (لم يُعتمد بعد بـ"✅ اعتماد الإجابة")
+//    تُفقَد أخطاؤه المسجَّلة له تحديداً فقط (يُعاد فتحه بعدّاد أخطاء صفر) — الأسئلة المُعتمَدة
+//    فعلاً قبله تبقى محفوظة كاملة. (ب) لو حصل الريفريش أثناء عرض "القرعة" (شاشة تحديد من يبدأ)
+//    قبل أي سؤال، تُعاد القرعة من جديد عند فتح الشاشة تاني (لا تأثير على النتيجة، فقط تُعاد
+//    الحركة البصرية). هذان الحدّان مقبولان لأنهما يفقدان ثوانٍ من العمل الحالي فقط، وليس جولة
+//    كاملة كما كان يحدث سابقاً.
 // 4) عند استخدام "تبديل"، يُصفَّر عداد أخطاء هذا السؤال تحديداً (بداية نظيفة مع السؤال
 //    البديل)، والأخطاء المسجَّلة فعلاً قبل التبديل (إن وُجدت) تبقى محسوبة ضمن نقاط الطالب.
 // 5) "مين يلعب الرقم التالي" (دور بالتبادل) مؤشر إرشادي فقط للمعلم — لا قفل برمجي صارم
 //    يمنع النقر، لأن المعلم هو من يدير التسلسل فعلياً مع الطالبَين حضورياً.
 
 import { AppState, loadSplashScreen, t } from '../core/app.js';
-import { openModal, closeModal, triggerConfetti } from '../components/ui.js';
+// 🌟 [جديد] showToastEncouragement — لتنبيه المعلم بلطف عند استرجاع تقدّم جولة جارية بعد
+// تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
+import { openModal, closeModal, triggerConfetti, showToastEncouragement } from '../components/ui.js';
 import {
     computeQuestionScore, QUESTION_POINTS, computeRoundWinner, computeSeriesResult,
-    evaluateMatchAchievements, BADGE_CATALOG
+    evaluateMatchAchievements, BADGE_CATALOG, shuffleArray
 } from '../engine/dualTestEngine.js';
 // 🌟 [جديد] أصوات بسيطة (نغمة خطأ/نجاح/فوز) — ملف مستقل معزول، راجع تعليقاته لتفاصيل الأسلوب
 // 🌟 [جديد] playDrawTickSound/playDrawLandSound لشاشة القرعة الجديدة ملء الشاشة (راجع runNameDraw)
 import { playMistakeSound, playSuccessSound, playWinSound, playDrawTickSound, playDrawLandSound } from './dual-test-sounds.js';
+// 🌟 [جديد] فتح تقرير المواجهة الكامل من شاشة النتيجة النهائية — راجع reports/dual-test-report.js
+import { openDualTestReportScreen } from '../reports/dual-test-report.js';
 
 const QUESTION_SECONDS = 60; // 🌟 افتراض رقم 1 أعلاه — القيمة الافتراضية، غير مستخدمة فعلياً حالياً (المؤقت مُعطَّل، انظر TIMER_ENABLED)
 
@@ -61,7 +75,13 @@ export async function initDualTestPlay() {
     if (!test) { alert('تعذر العثور على الاختبار المرتبط بهذه المواجهة.'); loadSplashScreen(); return; }
 
     document.getElementById('dtp-back-btn')?.addEventListener('click', () => {
-        if (confirm('العودة الآن ستُنهي هذه الجلسة دون حفظ الجولة الجارية إن وُجدت. متابعة؟')) {
+        // 🌟 [عدّل] النص القديم كان يقول إن العودة "تُنهي الجلسة دون حفظ الجولة الجارية" —
+        // كان صحيحاً وقت كتابته، لكنه أصبح غير دقيق بعد إضافة الحفظ التلقائي الدوري
+        // (persistInProgressRound أعلى الملف): تقدّم الجولة حتى آخر سؤال مُعتمَد محفوظ فعلاً،
+        // فقط السؤال المفتوح حالياً (لو لم يُعتمد بعد) هو ما قد يُفقَد. عدّلنا النص ليعكس هذا
+        // بدقة بدل تخويف المعلم من فقد جولة كاملة لم تعد تُفقَد. (نص هذا التأكيد تحديداً كان
+        // أصلاً بلا مفتاح i18n قبل هذا التعديل — أبقيناه بنفس النمط الحالي دون توسيع النطاق)
+        if (confirm('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟')) {
             loadSplashScreen();
         }
     });
@@ -119,6 +139,53 @@ async function startRoundFlow() {
     const roundIndex = match.currentRoundIndex;
     const round = test.rounds[roundIndex];
 
+    // 🌟 [جديد] استكمال جولة جارية محفوظة (راجع الافتراض المُحدَّث رقم 3 أعلاه وتعليق
+    // persistInProgressRound أسفل هذا الملف) — بشرط أن اللقطة المحفوظة تخص هذه الجولة
+    // بالذات (roundIndex نفسه)، تفادياً لأي تعارض لو تغيّر شكل البيانات مستقبلاً
+    const saved = match.inProgressRound;
+    if (saved && saved.roundIndex === roundIndex) {
+        // 🌟 [جديد] إعادة بناء نفس ترتيب الأسئلة المخلوط الذي رآه الطالبان قبل الريفريش (راجع
+        // التعليق الكامل عند إنشاء جولة جديدة أسفل هذه الدالة) — لو كانت اللقطة المحفوظة من
+        // قبل إضافة ميزة العشوائية هذه (بلا questionOrder محفوظ)، نستخدم ترتيب الإدخال الأصلي
+        // بلا خلط، توافقاً مع أي جولة جارية محفوظة فعلاً قبل هذا التحديث (بلا كسرها)
+        const order = Array.isArray(saved.questionOrder) && saved.questionOrder.length === round.mainQuestions.length
+            ? saved.questionOrder
+            : round.mainQuestions.map(q => q.number);
+        const orderedMainQuestions = order
+            .map(num => round.mainQuestions.find(q => q.number === num))
+            .filter(Boolean);
+        const roundForPlay = { ...round, mainQuestions: orderedMainQuestions };
+
+        roundState = {
+            roundIndex,
+            round: roundForPlay,
+            questionOrder: order,
+            mainStatus: saved.mainStatus,
+            swapStatus: saved.swapStatus,
+            scoreA: saved.scoreA, scoreB: saved.scoreB,
+            mistakesA: saved.mistakesA, mistakesB: saved.mistakesB,
+            helperUsed: saved.helperUsed,
+            swapUsed: saved.swapUsed,
+            swapCode: saved.swapCode,
+            currentTurn: saved.currentTurn,
+            roundStarter: saved.roundStarter,
+            questionsLog: saved.questionsLog
+        };
+        // 🌟 نعرض النقاط المُستَرجَعة فوراً بلا "عدّ تصاعدي" من صفر (ده مش نقاط جديدة اتكسبت
+        // الآن، ده استرجاع لحالة موجودة فعلاً) — راجع animateScoreCountUp/renderScorebar
+        lastScorebarScores = { A: roundState.scoreA, B: roundState.scoreB };
+
+        document.getElementById('dtp-round-label').textContent = t('dtp_round_label').replace('{n}', roundIndex + 1);
+        document.getElementById('dtp-name-a').textContent = match.studentNameA;
+        document.getElementById('dtp-name-b').textContent = match.studentNameB;
+        document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
+        document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+
+        showToastEncouragement('toast-encouragement', t('dtp_round_restored_toast'));
+        renderBoardView(); // نتجاوز شاشتي الترحيب والقرعة تماماً — القرعة سبق إجراؤها فعلاً
+        return;
+    }
+
     // 🌟 تحديد من يبدأ الاختيار في هذه الجولة (افتراض رقم 2 أعلاه)
     let starter;
     if (roundIndex === 0) {
@@ -127,10 +194,28 @@ async function startRoundFlow() {
         starter = match.lastRoundStarter === 'A' ? 'B' : 'A';
     }
 
+    // 🌟 [جديد] عشوائية ترتيب الأسئلة الأساسية المعروضة على اللوحة — بطلب صريح من المعلم ألا
+    // يرى الطلاب الأسئلة بنفس الترتيب الذي أدخله في شاشة الإعداد. الترتيب يُخلَط مرة واحدة فقط
+    // عند بداية الجولة (وليس عند كل رسم للوحة، وإلا لاختلف الترتيب مع كل نقرة) ويُحفَظ رقمياً
+    // (قائمة قيم `number` بالترتيب المخلوط) ضمن match.inProgressRound فور أول حفظ تلقائي —
+    // راجع فرع الاستكمال بعد ريفريش أعلى هذه الدالة، وتعليق persistInProgressRound أسفل الملف.
+    // بلا هذا الحفظ كانت الأسئلة ستُخلَط من جديد بترتيب مختلف بعد كل ريفريش، فتتعارض فهارس
+    // mainStatus/questionsLog المحفوظة مسبقاً مع الترتيب الجديد وتُظهر حالة أسئلة خاطئة.
+    // 🌟 افتراض صريح غير محسوم بتوضيح مباشر من المعلم: العشوائية هنا لكل "جولة" عند بدايتها
+    // (وليست لكل مواجهة كاملة أو لكل سؤال منفرد) — كل مرة تُلعَب فيها هذه الجولة (ولو بنفس
+    // الاختبار المحفوظ مع طالبَين مختلفين لاحقاً) يُعاد خلط ترتيبها من جديد. ترقيم الأسئلة
+    // (q.number) وبنك الأسئلة نفسه في شاشة الإعداد (dual-test-setup.js) لا يتأثران إطلاقاً —
+    // الخلط يحدث فقط في نسخة العرض المستخدَمة هنا لشاشة اللعب، ولا يُحفَظ أبداً في الاختبار
+    // المحفوظ (dual_tests)، فيبقى ترتيب إدخال المعلم كما هو دائماً عند فتح المحرر لاحقاً.
+    const shuffledMainQuestions = shuffleArray(round.mainQuestions);
+    const questionOrder = shuffledMainQuestions.map(q => q.number);
+    const roundForPlay = { ...round, mainQuestions: shuffledMainQuestions };
+
     roundState = {
         roundIndex,
-        round,
-        mainStatus: round.mainQuestions.map(() => 'available'),
+        round: roundForPlay,
+        questionOrder,
+        mainStatus: shuffledMainQuestions.map(() => 'available'),
         swapStatus: round.swapQuestions.map(() => 'available'),
         scoreA: 0, scoreB: 0,
         mistakesA: 0, mistakesB: 0,
@@ -229,15 +314,72 @@ function runNameDraw(starter, onDone) {
 
 // ===================== لوحة الأسئلة =====================
 
+// 🌟 [جديد] حفظ لقطة من تقدّم الجولة الجارية في match.inProgressRound + كتابتها فوراً في
+// IndexedDB (dual_matches) — راجع الافتراض المُحدَّث رقم 3 أعلى الملف لشرح الفكرة والحدّين
+// المقبولين عليها. best-effort بالكامل (نفس فلسفة saveMatch في finishRound/finishMatch):
+// فشل الحفظ (مثلاً IndexedDB مشغولة لحظياً) لا يوقف اللعب إطلاقاً، فقط لن تُحفَظ هذه اللقطة
+// بعينها؛ اللقطة التالية (بعد السؤال الجاي) ستحاول تاني. لا await هنا عمداً حتى لا "تُعلِّق"
+// أي إجراء للمعلم في انتظار كتابة القرص — الحفظ يحدث في الخلفية تماماً.
+function persistInProgressRound() {
+    if (!match || !roundState) return;
+    match.inProgressRound = {
+        roundIndex: roundState.roundIndex,
+        // 🌟 [جديد] ترتيب عرض الأسئلة المخلوط لهذه الجولة — راجع تعليق العشوائية الكامل في
+        // startRoundFlow أعلى الملف لسبب حفظه هنا تحديداً
+        questionOrder: roundState.questionOrder,
+        mainStatus: roundState.mainStatus,
+        swapStatus: roundState.swapStatus,
+        scoreA: roundState.scoreA, scoreB: roundState.scoreB,
+        mistakesA: roundState.mistakesA, mistakesB: roundState.mistakesB,
+        helperUsed: roundState.helperUsed,
+        swapUsed: roundState.swapUsed,
+        swapCode: roundState.swapCode,
+        currentTurn: roundState.currentTurn,
+        roundStarter: roundState.roundStarter,
+        questionsLog: roundState.questionsLog
+    };
+    AppState.dualTestsManager.saveMatch(match).catch(() => { /* best-effort — راجع تعليق الدالة أعلاه */ });
+}
+
 function renderBoardView() {
     document.getElementById('dtp-board-round-title').textContent = t('dtp_round_label').replace('{n}', roundState.roundIndex + 1);
-    renderScorebar('dtp-scorebar');
+    // 🌟 [جديد — جولة تحسينات ثامنة] تحديث حالة نقاط مؤشر تقدّم الجولات (dtp-round-stepper) —
+    // زخرفي بصرياً فقط بجانب عنوان "الجولة X من 3" النصي أعلاه، ولا يقرأ أو يُعدّل أي بيانات
+    // فعلية: النقطة الخاصة بالجولة الحالية (roundState.roundIndex) تصبح "نشطة"، وكل جولة قبلها
+    // تصبح "منتهية"، وما بعدها يبقى بلا تمييز
+    const stepper = document.getElementById('dtp-round-stepper');
+    if (stepper) {
+        stepper.querySelectorAll('.dtp-round-dot').forEach(dot => {
+            const dotRound = parseInt(dot.dataset.round, 10) - 1;
+            dot.classList.toggle('dtp-round-dot-active', dotRound === roundState.roundIndex);
+            dot.classList.toggle('dtp-round-dot-done', dotRound < roundState.roundIndex);
+        });
+    }
+    // 🌟 [مُحدَّث] "arena" = تصميم "المواجهة الحيوية النابضة" الجديد للوحة الأسئلة تحديداً —
+    // يضيف ميدالية الأحرف الأولى فوق كل بطاقة (راجع sideHTML في renderScorebar أدناه). شريط
+    // نقاط شاشة السؤال (dtp-question-scorebar) لا يزال يُستدعى بلا هذا المعامل فيبقى كما هو
+    renderScorebar('dtp-scorebar', 'arena');
+    // 🌟 نقطة الحفظ الفعلية: renderBoardView يُستدعى عند بداية كل جولة (لقطة أوّلية) وبعد كل
+    // سؤال يُعتمد (advanceAfterQuestion → renderBoardView) — نقطتا التوقف الطبيعيتان لتحديث
+    // اللقطة المحفوظة، راجع تعليق persistInProgressRound أعلاه
+    persistInProgressRound();
+
+    // 🌟 [جديد] تحديد البطاقة صاحبة أعلى قيمة متاحة حالياً على اللوحة، لوضع نجمة زخرفية
+    // بصرية عليها فقط (راجع .dtp-cell-top في dual-test-play.html) — لا علاقة له بالاختيار
+    // أو الاحتساب، مجرد لفتة بصرية "أعلى الجوائز" تحاكي لوحات المسابقات العالمية
+    const availableEntries = roundState.round.mainQuestions
+        .map((q, i) => ({ number: q.number, index: i }))
+        .filter(entry => roundState.mainStatus[entry.index] === 'available');
+    const topIndex = availableEntries.length
+        ? availableEntries.reduce((best, cur) => (cur.number > best.number ? cur : best)).index
+        : -1;
 
     const grid = document.getElementById('dtp-board-grid');
     grid.innerHTML = roundState.round.mainQuestions.map((q, i) => {
         const status = roundState.mainStatus[i];
         if (status === 'available') {
-            return `<div class="dtp-board-cell" data-index="${i}">${q.number}</div>`;
+            const topClass = i === topIndex ? ' dtp-cell-top' : '';
+            return `<div class="dtp-board-cell${topClass}" data-index="${i}">${q.number}</div>`;
         }
         const icon = status === 'swapped' ? '🔄' : '✅';
         return `<div class="dtp-board-cell dtp-cell-done">${icon}</div>`;
@@ -259,7 +401,7 @@ function renderBoardView() {
     showView('dtp-board-view');
 }
 
-function renderScorebar(containerId) {
+function renderScorebar(containerId, variant) {
     const el = document.getElementById(containerId);
     if (!el) return;
     // 🌟 [جديد] القيم القديمة (قبل هذا الرسم) — نبني بها العنصر أولاً، ثم نُحرّكه بصرياً
@@ -272,8 +414,14 @@ function renderScorebar(containerId) {
         const swapUsed = roundState.swapUsed[key] ? 'used' : '';
         const displayScore = key === 'A' ? prevA : prevB;
         const mistakes = key === 'A' ? roundState.mistakesA : roundState.mistakesB;
+        // 🌟 [جديد] ميدالية بأول حرف من اسم الطالب — فقط في تصميم "arena" الجديد للوحة
+        // الأسئلة (راجع #dtp-scorebar في dual-test-play.html)، لا تظهر في شريط شاشة السؤال
+        const avatarHTML = variant === 'arena'
+            ? `<span class="dtp-score-avatar">${studentName(key).trim().charAt(0)}</span>`
+            : '';
         return `
         <div class="dtp-score-side ${active}">
+            ${avatarHTML}
             <span class="dtp-score-name">${studentName(key)}</span>
             <span class="dtp-score-points" data-score-side="${key}">${displayScore}</span>
             <span class="dtp-score-icons">
@@ -436,8 +584,10 @@ function onSwapClick() {
 
     if (available.length === 0) { alert(t('dtp_no_swap_available_alert')); return; }
 
+    // 🌟 [جديد] عرض أزرار رموز الاستبدال بترتيب عشوائي أيضاً (بنفس منطق عشوائية اللوحة أعلاه) —
+    // خلط بصري بحت للعرض فقط، لا علاقة له بمعرّف السؤال (i) نفسه المستخدَم للاحتساب والحفظ
     const list = document.getElementById('dtp-swap-codes-list');
-    list.innerHTML = available.map(({ q, i }) =>
+    list.innerHTML = shuffleArray(available).map(({ q, i }) =>
         `<button type="button" class="dtp-swap-code-btn" data-swap-index="${i}">${q.code}</button>`
     ).join('');
 
@@ -566,6 +716,9 @@ async function finishRound() {
 
     match.rounds.push(roundResult);
     match.lastRoundStarter = roundState.roundStarter;
+    // 🌟 الجولة اكتملت وانتقلت بياناتها كاملة لـ match.rounds أعلاه — لم تعد هناك حاجة للقطة
+    // الجزئية المؤقتة (راجع persistInProgressRound)، فنمسحها حتى لا تُستخدَم بالغلط لجولة تالية
+    match.inProgressRound = null;
 
     try { await AppState.dualTestsManager.saveMatch(match); } catch (e) { /* best-effort */ }
 
@@ -648,6 +801,9 @@ async function finishMatch() {
     renderBadgesReveal(newBadgesA, newBadgesB);
 
     document.getElementById('dtp-final-back-btn').onclick = () => loadSplashScreen();
+    // 🌟 [جديد] "📄 عرض تقرير المواجهة" — يمرّر match (بحالته النهائية المحفوظة أعلاه) وtest
+    // (بنك الأسئلة الأصلي، لازم لاسترجاع نص "من/إلى" الفعلي لكل سؤال) مباشرة لشاشة التقرير
+    document.getElementById('dtp-view-report-btn').onclick = () => openDualTestReportScreen(match, test);
 
     showView('dtp-final-view');
 }

@@ -7,6 +7,8 @@ import { openKidsGameScreen } from '../games/kidsGame.js';
 // 🌟 [جديد] عرض إنجازات/أوسمة "الاختبارات الثنائية" في ملف الطالب — راجع
 // renderDualTestAchievements أدناه وBADGE_CATALOG في engine/dualTestEngine.js
 import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
+import { showSectionHintOnce } from '../components/sectionHint.js';
 
 export async function populateStudentsDropdown() {
     const students = await AppState.studentManager.getAllStudents();
@@ -68,6 +70,25 @@ function populateSurahOptions(fromId, toId) {
 export function setupLoginListeners() {
     document.getElementById('btn-back-splash')?.addEventListener('click', loadSplashScreen);
 
+    // 🌟 [جديد] تلميح "أضف طالباً أولاً" — يظهر تلقائياً فقط لو لا يوجد أي طالب مسجَّل في
+    // المنصة إطلاقاً بعد (وليس بعد محاولة كتابة اسم خاطئ، ذلك تنبيه alert منفصل أسفل هذا
+    // الملف). راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح" — القسم الموضّح
+    // فيه أن لوحة التقييم نفسها لا تُفتح إلا بعد اختيار طالب، فمكان هذا التلميح هنا تحديداً
+    // في شاشة تسجيل الدخول، لا في لوحة التقييم كما كان مقترحاً أول مرة 🌟
+    AppState.studentManager.getAllStudents().then(students => {
+        if (!students || students.length === 0) {
+            showSectionHintOnce('login_no_students', {
+                type: 'tip',
+                titleKey: 'hint_login_title',
+                bodyKey: 'hint_login_body',
+                extraAction: {
+                    labelKey: 'hint_login_action_btn',
+                    onClick: loadMyStudentsScreen
+                }
+            });
+        }
+    }).catch(() => { /* تجاهل بصمت — التلميح غير حرج لعمل الشاشة */ });
+
     const searchInput = document.getElementById('student-search-input');
     if(searchInput) {
         searchInput.removeAttribute('list');
@@ -99,7 +120,9 @@ export function setupLoginListeners() {
             document.getElementById('top-student-name').innerText = `البطل: ${AppState.currentStudent.name}`;
             loadDashboardScreen();
         } else {
-            alert("هذا الاسم غير مسجل! تأكد من كتابة الاسم صحيحاً أو اختره من القائمة.");
+            // 🌟 [عدّل] صياغة أقصر بطلب صريح من المعلم — أصبح لها مفتاح ترجمة في core/i18n.js
+            // بدل نص عربي ثابت هنا (نفس أسلوب بقية رسائل الشاشة)
+            alert(t('login_name_not_found_alert'));
         }
     });
 }
@@ -414,6 +437,10 @@ export async function loadStudentProfileScreen() {
 
             // 🌟 [جديد] عدد انتصارات وأوسمة "الاختبارات الثنائية" — راجع الدالة أدناه
             renderDualTestAchievements(student);
+
+            // 🌟 [جديد] تفعيل التعديل المباشر لكل بيانات ملف الطالب المعروضة هنا (الصورة،
+            // الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف) — راجع الدالة أدناه لتفاصيل الفكرة
+            setupInlineProfileEditing(student);
         }
     });
 }
@@ -469,6 +496,138 @@ async function renderDualTestAchievements(student) {
         winsEl.textContent = '0';
         gridEl.innerHTML = `<p class="dtpa-badges-empty">${t('dtpa_no_badges_yet')}</p>`;
     }
+}
+
+// 🌟 [جديد بالكامل] التعديل المباشر (Inline Edit) لملف الطالب — بدل ما يضطر المعلم
+// يقفل الملف ويروح لجدول "كل الطلاب" عشان يعدّل (زر ✏️ هناك يفتح مودال منفصل)، أصبح
+// ملف الطالب نفسه (الشاشة اللي بيفتحها المعلم أولاً) قابل للتعديل المباشر في مكانه:
+// أي بيانة معروضة (الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف، الصورة) بيضغط عليها
+// فتتحول لحقل إدخال، والحفظ فوري عند الخروج من الحقل (blur) أو Enter — عبر نفس
+// AppState.studentManager.updateStudent() المستخدم أصلاً في saveEditedStudentAction.
+// بعد الانتهاء من أي تعديل، زر "📅 تقرير الإنجاز الشهري" الموجود بالفعل في نفس الشاشة
+// هو أمر "الطباعة" — بلا مودال جديد، بلا وضع تعديل عام، وبلا أي شاشة معاينة إضافية،
+// التزامًا بطلب المعلم صراحة بالبساطة.
+// ⚠️ الافتراض المتّبع هنا: "كل حاجة في الشاشة" تعني بيانات هوية الطالب المعروضة في
+// رأس الملف تحديدًا (الصورة/الاسم/الصف/العمر/الدولة/الهاتف) — أما الإحصائيات المحسوبة
+// (النقاط، عدد التقييمات، الانتصارات)، الأوسمة، وسجل التقييمات السابقة فهي نتائج/سجلات
+// تُبنى تلقائيًا من نشاط الطالب الفعلي، فتبقى للعرض فقط ولا تُعدَّل يدويًا هنا.
+function computeAgeLabel(dob) {
+    if (!dob) return "العمر غير محدد";
+    const d = new Date(dob);
+    if (isNaN(d)) return "العمر غير محدد";
+    const years = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970);
+    return `${years} سنة`;
+}
+
+function setupInlineProfileEditing(student) {
+    // دالة عامة تحوّل أي عنصر عرض بسيط لحقل إدخال بالضغط عليه، وتحفظ القيمة تلقائيًا
+    // عند الخروج منه — نفس السلوك لكل الحقول، فرقها بس نوع الحقل وطريقة العرض/الحفظ
+    function bindInlineFieldEdit(el, { inputType = 'text', getValue, setValue, render, onAfterSave }) {
+        if (!el) return;
+        el.classList.add('prof-editable-field');
+        el.addEventListener('click', () => {
+            if (el.dataset.editing === '1') return;
+            el.dataset.editing = '1';
+            el.classList.add('is-editing');
+
+            const input = document.createElement('input');
+            input.type = inputType;
+            input.className = 'prof-inline-input';
+            input.value = getValue();
+            el.textContent = '';
+            el.appendChild(input);
+            input.focus();
+            if (input.select) input.select();
+
+            let settled = false;
+            const finish = async (commit) => {
+                if (settled) return;
+                settled = true;
+                el.dataset.editing = '0';
+                el.classList.remove('is-editing');
+                if (commit) {
+                    setValue(input.value);
+                    await AppState.studentManager.updateStudent(student);
+                    if (onAfterSave) onAfterSave();
+                }
+                el.innerHTML = render();
+            };
+            input.addEventListener('blur', () => finish(true));
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+                else if (e.key === 'Escape') finish(false);
+            });
+        });
+    }
+
+    // الاسم — مطلوب دائمًا (يُستخدم في تسجيل الدخول بالبحث بالاسم)، فلو تُرك فارغًا
+    // يُحتفَظ بالاسم القديم بدل حفظ اسم فارغ يكسر تسجيل الدخول
+    bindInlineFieldEdit(document.getElementById('prof-name'), {
+        getValue: () => student.name || '',
+        setValue: (v) => { const trimmed = v.trim(); if (trimmed) student.name = trimmed; },
+        render: () => student.name,
+        onAfterSave: () => populateStudentsDropdown()
+    });
+
+    // الصف الدراسي — اختياري
+    bindInlineFieldEdit(document.getElementById('prof-grade'), {
+        getValue: () => student.grade || '',
+        setValue: (v) => { student.grade = v.trim(); },
+        render: () => student.grade || "الصف غير محدد"
+    });
+
+    // الدولة — اختياري
+    bindInlineFieldEdit(document.getElementById('prof-country'), {
+        getValue: () => student.country || '',
+        setValue: (v) => { student.country = v.trim(); },
+        render: () => student.country ? `🌍 ${student.country}` : "🌍 البلد غير محدد"
+    });
+
+    // الهاتف — اختياري
+    bindInlineFieldEdit(document.getElementById('prof-phone'), {
+        inputType: 'tel',
+        getValue: () => student.phone || '',
+        setValue: (v) => { student.phone = v.trim(); },
+        render: () => student.phone ? `📱 ${student.phone}` : "📱 الهاتف غير مسجل"
+    });
+
+    // تاريخ الميلاد — الحقل المعروض فعليًا هو "العمر" المحسوب، لكن التعديل يتم على
+    // تاريخ الميلاد نفسه (منتقي تاريخ) ثم يُعاد حساب العمر وعرضه بعد الحفظ
+    bindInlineFieldEdit(document.getElementById('prof-age'), {
+        inputType: 'date',
+        getValue: () => student.dob || '',
+        setValue: (v) => { student.dob = v; },
+        render: () => `🎂 ${computeAgeLabel(student.dob)}`
+    });
+
+    setupAvatarEdit(student);
+}
+
+// 🌟 [جديد] تعديل صورة الطالب مباشرة من ملف الطالب — نفس أسلوب قراءة الملف
+// (FileReader → DataURL) المستخدم أصلاً في مودالي إضافة/تعديل الطالب، لكن بلا مودال:
+// الضغط على شارة الكاميرا الصغيرة فوق الصورة يفتح منتقي الملفات مباشرة
+function setupAvatarEdit(student) {
+    const wrap = document.getElementById('prof-avatar-wrap');
+    const fileInput = document.getElementById('prof-avatar-file');
+    const editBtn = document.getElementById('btn-prof-avatar-edit');
+    if (!wrap || !fileInput || !editBtn) return;
+
+    editBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+        if (!fileInput.files || fileInput.files.length === 0) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            student.avatar = e.target.result;
+            await AppState.studentManager.updateStudent(student);
+
+            // إزالة أي شكل إيموجي بديل كان معروضًا قبل رفع صورة حقيقية، وإظهار الصورة الجديدة
+            wrap.querySelectorAll('.profile-avatar').forEach(elx => { if (elx.tagName !== 'IMG') elx.remove(); });
+            const img = document.getElementById('prof-avatar');
+            img.src = student.avatar;
+            img.style.display = 'block';
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    });
 }
 
 async function openEditStudentModal(id) {

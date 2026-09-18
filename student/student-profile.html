@@ -22,13 +22,35 @@
     .dtpa-badge-item .dtpa-badge-name { font-weight: bold; color: #1e293b; font-size: 1rem; }
     .dtpa-badge-item .dtpa-badge-count { font-size: 0.8rem; color: #92400e; }
     .dtpa-badges-empty { color: #94a3b8; text-align: center; padding: 15px 0; }
+
+    /* 🌟 [جديد] التعديل المباشر (Inline Edit) لبيانات ملف الطالب — الشاشة تفتح على
+       عرضها المعتاد، وأي بيانة معروضة (الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف،
+       الصورة) قابلة للتعديل بالضغط عليها مباشرة، من غير مودال منفصل. الحفظ فوري عند
+       الخروج من الحقل، وزر "📅 تقرير الإنجاز الشهري" الموجود أصلاً هو أمر الطباعة
+       النهائي بعد الانتهاء من أي تعديل (راجع setupInlineProfileEditing في student.js) 🌟 */
+    .prof-edit-hint { color: #92400e; background: #fffbeb; border: 1px dashed var(--dh-gold-500); border-radius: 10px; padding: 8px 14px; font-size: 0.95rem; margin-bottom: 15px; display: inline-block; }
+    .prof-editable-field { cursor: pointer; border-radius: 6px; }
+    .prof-editable-field:hover:not(.is-editing) { background: #fffbeb; outline: 1px dashed var(--dh-gold-500); }
+    .prof-editable-field:hover:not(.is-editing)::after { content: " ✏️"; opacity: 0.6; font-size: 0.75em; }
+    .prof-inline-input { font: inherit; color: inherit; background: #fff; border: 2px solid var(--dh-gold-500); border-radius: 6px; padding: 2px 8px; width: 100%; max-width: 260px; box-sizing: border-box; }
+    .profile-avatar-wrap { position: relative; }
+    .prof-avatar-edit-btn { position: absolute; bottom: -2px; inset-inline-end: -2px; width: 32px; height: 32px; border-radius: 50%; background: var(--dh-gold-500); color: #1e293b; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); padding: 0; }
 </style>
 
 <div class="screen active profile-wrapper">
     <button class="btn btn-outline" id="btn-back-from-prof" style="margin-bottom: 20px; font-size: 1.2rem;">🔙 العودة</button>
-    
+
+    <!-- 🌟 [جديد] تنويه بسيط لتوضيح إن كل البيانات المعروضة قابلة للتعديل مباشرة 🌟 -->
+    <p class="prof-edit-hint" data-i18n="prof_edit_hint">💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر "تقرير الإنجاز الشهري" للطباعة بعد الانتهاء</p>
+
     <div class="profile-header">
-        <img id="prof-avatar" class="profile-avatar" src="" alt="صورة البطل">
+        <!-- 🌟 [جديد] غلاف الصورة + زر تغييرها — يحيط بالصورة الفعلية أو شكل الإيموجي
+             البديل (يُدرَج ديناميكياً من student.js) على حدٍ سواء 🌟 -->
+        <div class="profile-avatar-wrap" id="prof-avatar-wrap">
+            <img id="prof-avatar" class="profile-avatar" src="" alt="صورة البطل">
+            <button type="button" class="prof-avatar-edit-btn" id="btn-prof-avatar-edit" data-i18n-title="prof_avatar_change_title" title="تغيير الصورة">📷</button>
+            <input type="file" id="prof-avatar-file" accept="image/*" style="display:none;">
+        </div>
         <div style="flex: 1;">
             <h1 id="prof-name" style="margin: 0; color: #064e3b; font-size: 2.2rem; font-family: 'Tajawal', sans-serif;">اسم الطالب</h1>
             <p id="prof-grade" style="margin: 5px 0 0 0; color: #10b981; font-weight: bold; font-size: 1.2rem;">الصف الدراسي</p>

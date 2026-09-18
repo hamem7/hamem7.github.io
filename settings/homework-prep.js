@@ -3,11 +3,38 @@ import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
-import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud } from '../core/firebase.js';
+// 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
+// إعادة المحاولة (راجع الشرح الكامل في core/firebase.js بجانب هذه الدالة)
+import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync } from '../core/firebase.js';
 import { t } from '../core/i18n.js';
+// 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
+// فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
+// (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
+import { encodeHomeworkForLink } from '../database/homeworkDB.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
+import { showSectionHintOnce } from '../components/sectionHint.js';
 
 let currentGeneratedQuestions = [];
 let hwEngine = null;
+
+// 🌟🌟 [جديد] بناء رابط المشاركة: نفضّل دائماً الرابط "المكتفي ذاتياً" (يحمل الواجب كامل، بلا
+// أي حاجة لاتصال عند فتحه — راجع database/homeworkDB.js). لكن لو الواجب كبير جداً (عدد أسئلة
+// كثير + آيات طويلة)، الرابط الناتج ممكن يطول جداً (آلاف الأحرف)، وبعض الخوادم/الوسطاء
+// (proxies) بترفض الروابط الطويلة جداً. لتفادي ده: لو تجاوز الرابط حد معقول (6000 حرف تقريباً)
+// نرجع تلقائياً للرابط القديم بالمعرّف البسيط فقط (?hw=HW_xxx)، اللي يعتمد على البحث
+// المحلي/السحابي كخط رجوع (زي ما كان قبل هذا التحديث تمامًا، ولسه شغّال بفضل إصلاحات
+// core/firebase.js الأخيرة). كده نضمن أفضل حل ممكن للحالة الشائعة (واجب عادي) مع خط رجوع آمن
+// للحالة النادرة (واجب ضخم جداً).
+const SELF_CONTAINED_LINK_MAX_LENGTH = 6000;
+
+function buildHomeworkShareLink(baseUrl, hwData) {
+    const encodedLink = `${baseUrl}?hw=${encodeHomeworkForLink(hwData)}`;
+    if (encodedLink.length <= SELF_CONTAINED_LINK_MAX_LENGTH) {
+        return encodedLink;
+    }
+    console.warn(`رابط الواجب المكتفي ذاتياً طويل جداً (${encodedLink.length} حرف) — تم الرجوع للرابط بالمعرّف البسيط بدلاً منه (يعتمد على البحث المحلي/السحابي عند فتحه).`);
+    return `${baseUrl}?hw=${hwData.id}`;
+}
 
 let currentSubmissionsList = [];
 let currentHwIdForGrading = null;
@@ -17,6 +44,14 @@ let currentHwIdForGrading = null;
 let pendingGradingHwIds = new Set();
 
 export async function initHomeworkPrep() {
+    // 🌟 [جديد] تلميح ما قبل إعداد أول واجب — راجع مستند "تصميم نظام تلميحات الأقسام عند
+    // أول دخول المقترح"
+    showSectionHintOnce('homework_prep', {
+        type: 'tip',
+        titleKey: 'hint_homework_title',
+        bodyKey: 'hint_homework_body'
+    });
+
     if (AppState.quranEngine) {
         hwEngine = new HomeworkEngine(AppState.quranEngine);
     } else {
@@ -185,7 +220,9 @@ async function loadHomeworkDashboard() {
                 : `<div style="color:#64748b; font-size:0.9rem; margin-top:5px;">🌍 ${generalLinkText}</div>`;
 
             const baseUrl = window.location.origin + window.location.pathname;
-            const hwLink = `${baseUrl}?hw=${hw.id}`;
+            // 🌟 [إصلاح] رابط مكتفي ذاتياً (يحمل الواجب كامل، بلا حاجة لأي اتصال عند فتحه)
+            // بدل رابط بمعرّف بسيط فقط — راجع buildHomeworkShareLink أعلاه في هذا الملف
+            const hwLink = buildHomeworkShareLink(baseUrl, hw);
 
             const tr = document.createElement('tr');
             tr.style.borderBottom = "1px solid #e2e8f0";
@@ -892,10 +929,34 @@ async function saveHomeworkToDB(statusType) {
             if(saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`;
             document.getElementById('share-modal-title').innerText = t('hw_share_success');
             const baseUrl = window.location.origin + window.location.pathname;
-            document.getElementById('hw-link-input').value = `${baseUrl}?hw=${homeworkObj.id}`;
+            // 🌟🌟 [إصلاح جوهري] رابط مكتفي ذاتياً يحمل الواجب كامل داخله بدل معرّف بسيط —
+            // يفتح فوراً عند الطالب بلا أي حاجة لاتصال بالسحابة (وبالتالي بلا أي تأثر بمشاكل
+            // App Check/الصلاحيات/انقطاع الشبكة). راجع buildHomeworkShareLink أعلاه في هذا
+            // الملف (وخط الرجوع للرابط بالمعرّف البسيط لو الواجب كبير جداً).
+            document.getElementById('hw-link-input').value = buildHomeworkShareLink(baseUrl, homeworkObj);
+            // 🌟 نُظهر النافذة فوراً (الحفظ المحلي في IndexedDB تم بالفعل أعلاه) دون انتظار
+            // رفع السحابة، حتى لا نُجمّد الواجهة على المعلم بلا داعٍ — لكن نتابع نتيجة الرفع
+            // بعدها مباشرة (راجع الشرح تحت) بدل تركها fire-and-forget كما كانت سابقاً
+            const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
+            if (syncWarningEl) syncWarningEl.style.display = 'none';
             document.getElementById('hw-share-modal').style.display = 'flex';
 
-            saveHomeworkToCloud(homeworkObj).catch(err => console.log("خطأ في رفع السحابة: ", err));
+            // 🌟🌟 [إصلاح جوهري] كانت هذه الاستدعاء "fire-and-forget" (بدون await): لو فشل الرفع
+            // للسحابة (لا يوجد إنترنت، خطأ مؤقت، حقل undefined...) كان المعلم يرى رابطاً "جاهزاً"
+            // رغم أن الواجب لم يصل فعلياً للسحابة، فيعمل الرابط فقط على نفس جهاز المعلم (عبر
+            // IndexedDB المحلي) ويفشل بصمت برسالة "هذا الواجب غير موجود" لأي طالب حقيقي يفتحه من
+            // جهازه — وهذا بالضبط ما كان يحدث. الآن ننتظر النتيجة الحقيقية ونحذّر المعلم صراحةً
+            // لو فشل الرفع، بدل الادعاء الصامت بالنجاح، ونحفظه في طابور لإعادة المحاولة تلقائياً
+            // لاحقاً (راجع core/firebase.js).
+            const cloudSaved = await saveHomeworkToCloud(homeworkObj);
+            if (!cloudSaved) {
+                console.warn("فشل رفع الواجب للسحابة عند النشر — تم حفظه في طابور إعادة المحاولة.");
+                queuePendingHomeworkSync(homeworkObj);
+                if (syncWarningEl) {
+                    syncWarningEl.textContent = t('hw_cloud_sync_warning');
+                    syncWarningEl.style.display = 'block';
+                }
+            }
         } else {
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));

@@ -1,0 +1,41 @@
+<!-- recitation/recitation-setup.html -->
+<!-- 🌟 [جديد بالكامل] شاشة إعداد جلسة "تسميع" — معزولة تمامًا عن games/ (لا تشارك أي
+     عنصر DOM أو منطق مع adultGame.js/kidsGame.js)، بنفس فلسفة عزل dualtests/ وsimilarities/.
+     هذا تسميع متصل حر (الطالب يقرأ من حفظه باستمرار، تسجيل ملاحظات فقط) — مختلف تمامًا عن
+     نوع السؤال "تسميع مقطع" الموجود أصلاً داخل غرفة الألعاب (type: 'recite')، والذي يبقى
+     كما هو بلا أي تعديل. راجع core/i18n.js لكل النصوص الجديدة (بادئة rec_) وdatabase/
+     recitationDB.js لتخزين الجلسات. -->
+<div class="screen active">
+    <div class="rec-wrap">
+        <button class="btn btn-outline rec-btn-back" id="rec-setup-back-btn">🔙 <span data-i18n="mr_back_btn">العودة لملف الطالب</span></button>
+
+        <h1 class="rec-title" data-i18n="rec_setup_title">🎙️ بدء جلسة تسميع</h1>
+        <p class="rec-subtitle" data-i18n="rec_setup_sub">اختر نوع الجلسة ونطاقها، ثم ابدأ — تسجيل أي ملاحظة أثناء الاستماع بضغطة واحدة فقط.</p>
+
+        <div class="rec-student-badge">👤 <span id="rec-setup-student-name">--</span></div>
+
+        <div class="rec-type-grid">
+            <button type="button" class="rec-type-btn rec-type-selected" id="rec-type-new-btn">
+                <span class="rec-type-icon">📖</span>
+                <span data-i18n="rec_type_new">حفظ جديد</span>
+            </button>
+            <button type="button" class="rec-type-btn" id="rec-type-review-btn">
+                <span class="rec-type-icon">🔄</span>
+                <span data-i18n="rec_type_review">مراجعة</span>
+            </button>
+        </div>
+
+        <div class="rec-range-row">
+            <div class="input-group">
+                <label data-i18n="rec_range_from">من</label>
+                <input type="text" id="rec-range-from" class="rec-range-input" data-i18n-placeholder="rec_range_from_ph" placeholder="مثال: سورة البقرة - آية 1">
+            </div>
+            <div class="input-group">
+                <label data-i18n="rec_range_to">إلى</label>
+                <input type="text" id="rec-range-to" class="rec-range-input" data-i18n-placeholder="rec_range_to_ph" placeholder="مثال: سورة البقرة - آية 20">
+            </div>
+        </div>
+
+        <button type="button" class="btn rec-btn-start" id="rec-setup-start-btn" data-i18n="rec_start_btn">🎙️ ابدأ التسميع</button>
+    </div>
+</div>

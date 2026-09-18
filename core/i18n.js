@@ -50,7 +50,10 @@ export const translations = {
         card_kids_desc: "تجربة ممتعة وتفاعلية للصغار",
         card_students_desc: "إدارة سجلات الطلاب وبياناتهم",
         card_homework_desc: "إرسال ومتابعة واجبات الحفظ",
-        card_dual_desc: "تحدٍ بين طالبين (قيد التطوير)",
+        // 🌟 [عدّل] بعد اكتمال أساسيات فكرة الاختبارات الثنائية (إعداد + لعب فعلي)، أُزيلت
+        // عبارة "(قيد التطوير)" من وصف البطاقة بطلب صريح من المعلم — راجع تعليق البطاقة نفسها
+        // في components/splash.html لتفاصيل إزالة الشارة المصاحبة أيضاً
+        card_dual_desc: "تحدٍ بين طالبين",
         // 🌟 [عدّل] كانت "قيد التطوير" بالكامل، ثم أصبح التصفح فعلياً وشغالاً بلا ألعاب
         // تفاعلية، والآن (بعد بناء similarities-play.js) أصبحت الميزة كاملة: تصفح + ألعاب
         // تفاعلية بتصحيح تلقائي فوري — حدّثنا الوصف ليعكس هذا بدقة
@@ -120,7 +123,7 @@ export const translations = {
         teacher_bday_notification_msg: "كل عام وأنت بخير يا شيخ ",
 
         // 🌟 الشاشة الرئيسية الجديدة: الهيرو وبطاقة "نظرة سريعة" 🌟
-        hero_eyebrow: "منصة تعليمية متكاملة لمعلم واحد",
+        hero_eyebrow: "منصة تعليمية متكاملة",
         home_card_homework_title: "نظام الواجبات المنزلية",
         dual_in_progress_badge: "قيد التطوير",
         // 🌟 [قديم، لم يعد مستخدماً بعد بناء شاشات التصفح الفعلية أسفل] أُبقي عليه بلا حذف
@@ -246,6 +249,13 @@ export const translations = {
         dts_start_match_btn: "▶️ ابدأ مواجهة",
         dts_delete_btn: "🗑️ حذف",
         dts_delete_confirm: "هل أنت متأكد من حذف هذا الاختبار؟ لا يمكن التراجع.",
+        // 🌟 [جديد] نافذة "سجل المباريات السابقة" — راجع openMatchesHistoryModal في
+        // dual-test-setup.js. dtp_view_report_btn المُستخدَم لزر كل صف موجود مسبقاً (من تقرير
+        // المواجهة نفسه) وأُعيد استخدامه هنا للاتساق بدل تكرار نفس النص بمفتاح مختلف.
+        dts_history_btn: "📜 المباريات السابقة",
+        dts_history_modal_title: "سجل مباريات هذا الاختبار",
+        dts_history_close_btn: "إغلاق",
+        dts_history_empty: "لا توجد مباريات منتهية على هذا الاختبار بعد.",
         dts_competitor_a: "المتسابق الأول",
         dts_competitor_b: "المتسابق الثاني",
         dts_choose_student: "-- اختر الطالب --",
@@ -302,6 +312,9 @@ export const translations = {
         dts_edit_range_btn: "✏️ تعديل",
 
         // 🌟 [جديد] شاشة اللعب الفعلية dualtests/dual-test-play.js
+        // 🌟 [جديد] حفظ تلقائي دوري لتقدّم الجولة الجارية — راجع تعليق persistInProgressRound
+        // في dual-test-play.js لتفاصيل الفكرة الكاملة
+        dtp_round_restored_toast: "✅ تم استرجاع تقدّم الجولة السابق بعد التحديث",
         dtp_round_label: "الجولة {n} من 3",
         dtp_start_round_btn: "🚀 ابدأ الجولة",
         dtp_coin_flip_start_msg: "🎲 مين يبدأ؟...",
@@ -337,6 +350,11 @@ export const translations = {
         dtp_final_rounds_label: "عدد الجولات: {n}",
         dtp_final_points_label: "مجموع النقاط: {n}",
         dtp_final_back_btn: "🏠 العودة للرئيسية",
+        // 🌟 [جديد] زر فتح تقرير المواجهة الكامل من شاشة النتيجة النهائية، ومُعاد استخدامه
+        // أيضاً لكل صف في نافذة "📜 المباريات السابقة" (dual-test-setup.js) — راجع
+        // reports/dual-test-report.js. ⚠️ كان هذا المفتاح مُستخدَماً بالفعل في dual-test-play.html
+        // (data-i18n="dtp_view_report_btn") لكنه لم يكن مُعرَّفاً هنا فعلياً — تم تداركه الآن.
+        dtp_view_report_btn: "📄 عرض تقرير المواجهة",
         // 🌟 [جديد] نظام الأوسمة/الإنجازات — راجع BADGE_CATALOG في engine/dualTestEngine.js
         dtp_new_badges_title: "🎖️ أوسمة جديدة!",
         badge_first_duel_name: "أول نزال 🥇",
@@ -406,6 +424,23 @@ export const translations = {
         kids_order_inst: "اضغط على الكلمة لنقلها وتكوين الآية الصحيحة! 👆",
         correct_ayah: "الآية الصحيحة",
         shuffled_words: "الكلمات المبعثرة",
+
+        // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" (ركن الكبار وركن الأطفال معاً)
+        link_inst: "اضغط على بداية الآية أولاً من العمود الأول، ثم اضغط على نهايتها الصحيحة من العمود الثاني لتوصيلهما",
+        link_starts_title: "بدايات الآيات",
+        link_ends_title: "نهايات الآيات",
+
+        // 🌟 [قديم — غير مُستخدَمة حالياً] كانت خاصة بلعبة "رتب السور" (استُبدلت بلعبة "اربط
+        // الكلمة بالسورة" أدناه)، تركناها بلا حذف احترازًا
+        order_surahs_inst: "اضغط على اسم السورة لنقلها، وللإرجاع اضغط عليها في الترتيب الصحيح",
+        shuffled_surahs: "السور المبعثرة",
+
+        // 🌟 [إعادة تصميم] لعبة "اربط الكلمة بالسورة" (ركن الكبار في وضع الجزء، وركن الأطفال ضمن
+        // نطاقه المختار) — محل لعبة "رتب السور" أعلاه. تشارك نفس حاوية لعبة "اربط أول الآية
+        // بآخرها" فتحتاج نصوص تعليمة وعناوين أعمدة مستقلة خاصة بها
+        link_word_surah_inst: "اضغط على الكلمة أولاً من العمود الأول، ثم اضغط على اسم السورة التي وردت فيها هذه الكلمة من العمود الثاني",
+        link_word_surah_starts_title: "كلمات من القرآن الكريم",
+        link_word_surah_ends_title: "أسماء السور",
 
         // Reports HTML
         report_title: "تقرير التقييم القرآني",
@@ -491,6 +526,10 @@ export const translations = {
         hw_cancel_btn: "إلغاء",
         hw_share_success: "تم الحفظ بنجاح! 🎉",
         hw_share_desc: "قم بنسخ الرابط التالي وإرساله لطلابك عبر الواتساب ليبدأوا التحدي مباشرة:",
+        // 🌟 [جديد] تحذير يظهر في نافذة المشاركة فقط لو فشل رفع الواجب للسحابة (راجع
+        // saveHomeworkToDB في settings/homework-prep.js) — الرابط في هذه الحالة يعمل حالياً
+        // على جهاز المعلم فقط (عبر النسخة المحلية)، وسيُعاد رفعه تلقائياً لاحقاً
+        hw_cloud_sync_warning: "⚠️ تم حفظ الواجب على هذا الجهاز، لكن تعذّر رفعه للسحابة الآن (تحقق من الاتصال بالإنترنت). لن يعمل هذا الرابط إلا على هذا الجهاز حتى تتم إعادة رفعه تلقائياً — يُفضَّل عدم إرساله للطلاب الآن، وإعادة فتح هذه الشاشة لاحقاً للتأكد من نجاح الرفع.",
         hw_copy_btn: "📋 نسخ",
         hw_close_return: "إغلاق والعودة 🏠",
         hw_subs_modal_title: "📊 نتائج وتسليمات الطلاب",
@@ -617,7 +656,60 @@ export const translations = {
         mr_source_kids: "ركن الأطفال",
         mr_table_col_range: "النطاق",
         mr_table_col_section: "القسم",
-        mr_auto_note_gameeval: "خاض {name} {n} جلسة تقييم فردية في غرفة اللعب هذا الشهر بمتوسط درجات {avg}%."
+        mr_auto_note_gameeval: "خاض {name} {n} جلسة تقييم فردية في غرفة اللعب هذا الشهر بمتوسط درجات {avg}%.",
+
+        // 🌟 [جديد بالكامل] لعبة "استمع وخمّن الآية" (ركن الأطفال فقط) — راجع تعليق
+        // generateKidsListenAyah في engine/kidsEngine.js لتفاصيل الفكرة الكاملة. عنوان اللعبة
+        // فقط له مفتاح i18n حقيقي هنا (نصوص questionBody داخل المحرك نفسه بالعربي مباشرة بلا
+        // ترجمة، بنفس أسلوب كل ألعاب kidsEngine.js الأخرى — راجع تعليق الدالة هناك)
+        kids_listen_title: "استمع وخمّن الآية يا بطل 🎧",
+        kids_listen_audio_error: "تعذّر تشغيل الصوت، تأكد من اتصال الإنترنت وحاول مرة أخرى 🌐",
+
+        // 🌟 [جديد] تعديل بيانات ملف الطالب مباشرة من نفس الشاشة (بدون مودال منفصل) —
+        // راجع setupInlineProfileEditing في student/student.js
+        prof_edit_hint: "💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر \"تقرير الإنجاز الشهري\" للطباعة بعد الانتهاء",
+        prof_avatar_change_title: "تغيير الصورة",
+
+        // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — بطاقات عائمة غير حاجبة (بعكس
+        // whats-new-modal الحاجب) تظهر مرة واحدة فقط لكل قسم على هذا الجهاز بالذات (تخزين
+        // localStorage فقط، بلا مزامنة سحابية، بنفس فلسفة dh_last_seen_version في core/app.js).
+        // راجع components/sectionHint.js ومستند "تصميم نظام تلميحات الأقسام عند أول دخول
+        // المقترح" في توثيق المشروع لتفاصيل القرار، وكل الصياغات هنا معتمدة نهائياً من المعلم
+        // بالفصحى بعد عدة جولات مراجعة صريحة 🌟
+        hint_ok_btn: "حسناً، فهمت 👍",
+
+        hint_general_title: "🌟 مرحباً بك في منصة دار حم",
+        hint_general_body: "مرحباً شيخنا، نرحّب بك في منصة دار حم لتحفيظ القرآن الكريم ومراجعته وتقييمه. يمكنك من الصفحة الرئيسية الدخول إلى «واجهة الكبار» أو «ركن الأطفال» للتقييم المباشر، وإدارة سجلات طلابك من «طلابي»، وإرسال الواجبات المنزلية ومتابعتها، بالإضافة إلى تحدي المتشابهات والاختبارات الثنائية. وستظهر لك تنبيهات خاصة بكل قسم عند أول دخول إليه.\nوفي حال رغبتك في اقتراح فكرة إضافية، فلا تتردد في التواصل معنا.",
+
+        hint_login_title: "مرحباً شيخنا 👋",
+        hint_login_body: "قبل أن تتمكن من بدء أي تقييم، يُرجى إضافة اسم طالب واحد على الأقل من قسم «طلابي»، وبعد ذلك يمكنك اختياره من هذه الشاشة والبدء معه.",
+        hint_login_action_btn: "الانتقال إلى طلابي الآن ➕",
+        // 🌟 [عدّل] صياغة أقصر لتنبيه الاسم غير المسجَّل عند تسجيل الدخول، بطلب صريح من المعلم —
+        // كانت أطول وأكثر تفصيلاً (النص القديم كان دالة alert() مباشرة في setupLoginListeners
+        // بـ student/student.js بلا مفتاح ترجمة أصلاً؛ أصبح له الآن مفتاح كباقي نصوص الواجهة)
+        login_name_not_found_alert: "هذا الاسم غير مسجَّل. تأكد من كتابته صحيحاً، أو أضِفه أولاً من «طلابي».",
+
+        hint_adult_game_title: "⚠️ تنبيه قبل بدء التقييم",
+        hint_adult_game_body: "استخدام الطالب زر «تلميح 💡» في سؤال الآية التي قبل يؤدي إلى خصم نقطتين من عشر.\nترتيب جميع آيات السؤال بترتيب خاطئ بالكامل من المحاولة الأولى يؤدي إلى خصم نقطتين، وفي حال الخطأ مرة أخرى يُخصم أربع نقاط.\nزر «تسجيل ملاحظة 📝» ليس عقوبة، بل وسيلة لتسجيل نقاط الضعف في سجل الطالب للرجوع إليها لاحقاً ومعالجتها.",
+        hint_adult_game_ok_btn: "حسناً، لنبدأ 🚀",
+
+        // 🌟 [مهم] بلا أي ذكر لميزة "التلميح" هنا عمداً بطلب صريح من المعلم — زر التلميح في ركن
+        // الأطفال موجود شكلياً في games/kidsGame.html فقط بلا أي منطق فعلي موصول به بعد (راجع
+        // تعليق GameState.hintUsed في games/kidsGame.js)
+        hint_kids_game_title: "🎈 تنبيه قبل بدء اللعب",
+        hint_kids_game_body: "ترتيب الطالب جميع الآيات بترتيب خاطئ بالكامل من المحاولة الأولى يؤدي إلى خصم نقطتين من عشر، وفي حال الخطأ مرة أخرى يُخصم أربع نقاط.\nزر «تسجيل ملاحظة 📝» ليس عقوبة، بل تذكير بسيط بنقطة تحتاج مراجعة، لنعود إليها معاً ونتدرّب عليها لاحقاً.",
+        hint_kids_game_ok_btn: "حسناً، لنبدأ 🎈",
+
+        hint_homework_title: "📚 تنبيه قبل إعداد الواجب",
+        hint_homework_body: "يمكنك تخصيص الواجب لطالب معين من خانة «تخصيص الواجب لطالب محدد»، أو تركه رابطاً عاماً يصل إلى جميع طلابك. وبعد توليد الأسئلة تلقائياً، يمكنك مراجعتها وتعديلها أو إضافة أسئلة يدوية قبل اعتماد النشر. كما أن بطاقة «يحتاج تصحيح ✍️» أعلى الشاشة تنقلك مباشرة إلى أي تسليم لا يزال بحاجة إلى مراجعتك.",
+
+        // 🌟 [عدّل] حُذفت الإشارة إلى أن الميزة "لا تزال قيد التطوير" بطلب صريح من المعلم بعد
+        // اكتمال أساسيات الفكرة (راجع حذف الشارة المقابلة في components/splash.html)
+        hint_dual_test_title: "🆚 تنبيه حول الاختبارات الثنائية",
+        hint_dual_test_body: "يتم إعداد الاختبار عبر معالج من ثلاث خطوات: تحديد المتسابقين ونطاق كل جولة، ثم اختيار الجولة، ثم إضافة أسئلتها. أثناء اللعب، يتيح زر «تبديل 🔄» سؤالاً بديلاً مرة واحدة فقط في كل جولة، ويسجّل زر «مساعدة 💡» استخدام الطالب حقَّه في مساعدتك الصوتية له مرة واحدة في الجولة دون خصم مباشر، بينما يُحتسب الخصم الفعلي من عدد الأخطاء المسجَّلة في كل سؤال (نصف نقطة عن كل خطأ من أصل عشر).",
+
+        hint_similarities_title: "🧩 تنبيه قبل بدء ركن المتشابهات",
+        hint_similarities_body: "الهدف من هذا الركن تعريف الطالب بالآيات المتشابهة وتيسير حفظها، وليس تقييمه رسمياً. تُصحَّح الإجابة فور اختيارها، وفي حال الخطأ تُعرض الإجابة الصحيحة مباشرة، دون احتساب درجة نهائية أو تسجيل ملاحظة في سجل الطالب."
     },
     en: {
         header_title: "🏆 Quran Mastery Journey",
@@ -667,7 +759,10 @@ export const translations = {
         card_kids_desc: "A fun, interactive experience for kids",
         card_students_desc: "Manage student records and data",
         card_homework_desc: "Send and track memorization homework",
-        card_dual_desc: "A challenge between two students (in development)",
+        // 🌟 [Updated] after the dual-tests basics (setup + real play) were completed, removed
+        // "(in development)" from the card description at the teacher's explicit request — see
+        // the card's own comment in components/splash.html for the matching badge removal
+        card_dual_desc: "A challenge between two students",
         // 🌟 [Updated] used to say "in development" entirely, then browsing became real
         // with no games yet, and now (after building similarities-play.js) the feature is
         // complete: browsing + auto-graded interactive games — description updated to match
@@ -737,7 +832,7 @@ export const translations = {
         teacher_bday_notification_msg: "Happy birthday, Sheikh ",
 
         // 🌟 New home screen: hero & "Quick Overview" card 🌟
-        hero_eyebrow: "A complete platform for one teacher",
+        hero_eyebrow: "A complete educational platform",
         home_card_homework_title: "Homework System",
         dual_in_progress_badge: "In Progress",
         // 🌟 [Old, no longer used now that the real browsing screens below exist] Kept
@@ -863,6 +958,12 @@ export const translations = {
         dts_start_match_btn: "▶️ Start Match",
         dts_delete_btn: "🗑️ Delete",
         dts_delete_confirm: "Delete this test? This cannot be undone.",
+        // 🌟 [New] "Past Matches" history modal — see openMatchesHistoryModal in
+        // dual-test-setup.js. dtp_view_report_btn is reused for each row's button.
+        dts_history_btn: "📜 Past Matches",
+        dts_history_modal_title: "This Test's Match History",
+        dts_history_close_btn: "Close",
+        dts_history_empty: "No finished matches for this test yet.",
         dts_competitor_a: "Competitor A",
         dts_competitor_b: "Competitor B",
         dts_choose_student: "-- Choose Student --",
@@ -918,6 +1019,9 @@ export const translations = {
         dts_edit_range_btn: "✏️ Edit",
 
         // 🌟 [New] Live play screen dualtests/dual-test-play.js
+        // 🌟 [New] Periodic autosave for the in-progress round — see the persistInProgressRound
+        // comment in dual-test-play.js for the full idea
+        dtp_round_restored_toast: "✅ Round progress restored after the refresh",
         dtp_round_label: "Round {n} of 3",
         dtp_start_round_btn: "🚀 Start Round",
         dtp_coin_flip_start_msg: "🎲 Who starts?...",
@@ -953,6 +1057,11 @@ export const translations = {
         dtp_final_rounds_label: "Rounds won: {n}",
         dtp_final_points_label: "Total points: {n}",
         dtp_final_back_btn: "🏠 Back to Home",
+        // 🌟 [New] Opens the full match report from the final result screen, also reused for
+        // each row in the "Past Matches" modal (dual-test-setup.js) — see
+        // reports/dual-test-report.js. This key was already referenced in dual-test-play.html
+        // (data-i18n="dtp_view_report_btn") but was missing here — now fixed.
+        dtp_view_report_btn: "📄 View Match Report",
         // 🌟 [New] Badges/achievements system — see BADGE_CATALOG in engine/dualTestEngine.js
         dtp_new_badges_title: "🎖️ New Badges!",
         badge_first_duel_name: "First Duel 🥇",
@@ -1017,6 +1126,31 @@ export const translations = {
         kids_order_inst: "Click the word to move it and form the correct Ayah! 👆",
         correct_ayah: "Correct Ayah",
         shuffled_words: "Shuffled Words",
+
+        // 🌟 [جديد] "Link the ayah's beginning to its ending" game (adults' and kids' corners)
+        link_inst: "Tap a verse's beginning in the first column, then tap its correct ending in the second column to connect them",
+        link_starts_title: "Verse Beginnings",
+        link_ends_title: "Verse Endings",
+        // 🌟 عناوين اللعبة الديناميكية من محرك الأسئلة (quranEngine.generateLinkGame) — نفس
+        // أسلوب باقي عناوين الألعاب في المنصة (النص العربي نفسه هو المفتاح)، لكننا أضفنا لها
+        // ترجمة إنجليزية فعلية هنا التزاماً بقاعدة دعم اللغتين لكل نص جديد
+        "🔗 اربط أول الآية بآخرها": "🔗 Link the Beginning of the Ayah to Its Ending",
+        "اربط بداية الآية بنهايتها يا بطل 🔗": "Link the ayah's beginning to its ending, champ! 🔗",
+        "🔗 ربط الآيات": "🔗 Link the Ayahs",
+
+        // 🌟 [قديم — غير مُستخدَمة حالياً] "Order the Surahs" game (replaced below by "Link the
+        // Word to Its Surah") — kept without deleting as a precaution
+        order_surahs_inst: "Tap a surah's name to move it. To return it, tap it in the correct order",
+        shuffled_surahs: "Shuffled Surahs",
+        "📚 رتب السور": "📚 Order the Surahs",
+        "رتب السور يا بطل 📚": "Order the surahs, champ! 📚",
+
+        // 🌟 [إعادة تصميم] "Link the Word to Its Surah" game — replaces "Order the Surahs" above
+        link_word_surah_inst: "Tap a word from the first column, then tap the name of the surah it appears in from the second column",
+        link_word_surah_starts_title: "Words from the Quran",
+        link_word_surah_ends_title: "Surah Names",
+        "🔗📖 اربط الكلمة بالسورة": "🔗📖 Link the Word to Its Surah",
+        "اربط الكلمة بسورتها يا بطل 🔗📖": "Link the word to its surah, champ! 🔗📖",
 
         // Reports HTML
         report_title: "Quranic Evaluation Report",
@@ -1098,6 +1232,8 @@ export const translations = {
         hw_cancel_btn: "Cancel",
         hw_share_success: "Saved Successfully! 🎉",
         hw_share_desc: "Copy the following link and send it via WhatsApp to your students to start the challenge:",
+        // 🌟 New: warning shown in the share modal only if the cloud upload failed
+        hw_cloud_sync_warning: "⚠️ The homework was saved on this device, but uploading it to the cloud failed just now (check your internet connection). This link will only work on this device until it's re-uploaded automatically — it's best not to send it to students yet; reopen this screen later to confirm the upload succeeded.",
         hw_copy_btn: "📋 Copy",
         hw_close_return: "Close & Return 🏠",
         hw_subs_modal_title: "📊 Students Results & Submissions",
@@ -1224,7 +1360,48 @@ export const translations = {
         mr_source_kids: "Kids corner",
         mr_table_col_range: "Range",
         mr_table_col_section: "Section",
-        mr_auto_note_gameeval: "{name} played {n} individual game-room evaluation session(s) this month with an average score of {avg}%."
+        mr_auto_note_gameeval: "{name} played {n} individual game-room evaluation session(s) this month with an average score of {avg}%.",
+
+        // 🌟 [جديد بالكامل] "Listen and Guess the Ayah" game (kids corner only)
+        kids_listen_title: "Listen and Guess the Ayah, Champ! 🎧",
+        kids_listen_audio_error: "Couldn't play the audio — check your internet connection and try again 🌐",
+
+        // 🌟 [New] Inline editing of the student profile screen (no separate modal) —
+        // see setupInlineProfileEditing in student/student.js
+        prof_edit_hint: "💡 Click any info to edit it directly, then use the \"Monthly Achievement Report\" button to print once you're done",
+        prof_avatar_change_title: "Change photo",
+
+        // 🌟 [New] "Section hints on first entry" system — see the matching Arabic block above
+        // for the full rationale comment; English strings mirror the teacher-approved Arabic
+        // wording in meaning, not a literal word-for-word translation
+        hint_ok_btn: "Alright, got it 👍",
+
+        hint_general_title: "🌟 Welcome to Dar Ham",
+        hint_general_body: "Welcome, Sheikh. We are pleased to welcome you to the Dar Ham platform for memorizing, reviewing, and evaluating the Holy Quran. From the home screen you can open the Adults Interface or the Kids Corner for direct evaluation, manage your students' records from My Students, and send and track homework, in addition to the Similarities Challenge and the Dual Tests. Each section will show you its own notes the first time you open it.\nIf you would like to suggest an idea, please do not hesitate to contact us.",
+
+        hint_login_title: "Welcome, Sheikh 👋",
+        hint_login_body: "Before you can start any evaluation, please add at least one student's name from the My Students section. You can then select them from this screen and begin.",
+        hint_login_action_btn: "Go to My Students now ➕",
+        login_name_not_found_alert: "This name is not registered. Make sure it is spelled correctly, or add it first from My Students.",
+
+        hint_adult_game_title: "⚠️ Notice before starting the evaluation",
+        hint_adult_game_body: "If the student uses the Hint 💡 button on the \"preceding verse\" question, two points out of ten are deducted.\nArranging all the verses of a question completely wrong on the first attempt deducts two points, and a second wrong attempt deducts four points.\nThe Record Note 📝 button is not a punishment — it records the weak point in the student's file so you can return to it later and address it.",
+        hint_adult_game_ok_btn: "Alright, let's begin 🚀",
+
+        // 🌟 [Important] Deliberately no mention of the "Hint" feature here — the hint button in
+        // the kids corner exists only visually in games/kidsGame.html with no working logic yet
+        hint_kids_game_title: "🎈 Notice before starting the game",
+        hint_kids_game_body: "If the student arranges all the verses completely wrong on the first attempt, two points out of ten are deducted, and a second wrong attempt deducts four points.\nThe Record Note 📝 button is not a punishment — it is a simple reminder of a point that needs review, so we can come back to it together and practice it later.",
+        hint_kids_game_ok_btn: "Alright, let's begin 🎈",
+
+        hint_homework_title: "📚 Notice before preparing homework",
+        hint_homework_body: "You can assign the homework to a specific student from the \"Assign homework to a specific student\" field, or leave it as a general link reachable by all your students. After the questions are generated automatically, you can review and edit them or add manual questions before approving publication. The \"Needs Grading ✍️\" card at the top of the screen also takes you directly to any submission still awaiting your review.",
+
+        hint_dual_test_title: "🆚 Notice about the Dual Tests",
+        hint_dual_test_body: "The test is prepared through a three-step wizard: choosing the two competitors and the range for each round, then selecting the round, then adding its questions. During play, the Swap 🔄 button gives one alternative question per round only, and the Help 💡 button records that the student used their one-time right to your verbal assistance during the round without a direct deduction, while the actual deduction is calculated from the number of mistakes recorded on each question (half a point per mistake out of ten).",
+
+        hint_similarities_title: "🧩 Notice before starting the Similarities Corner",
+        hint_similarities_body: "The purpose of this corner is to introduce the student to similar verses and make them easier to memorize, not to formally evaluate the student. The answer is corrected as soon as it is chosen, and if wrong, the correct answer is shown immediately, without a final score or a note being recorded in the student's file."
     }
 };
 
@@ -1253,6 +1430,15 @@ export function applyLanguage() {
         const key = el.getAttribute('data-i18n-placeholder');
         if (translations[lang] && translations[lang][key]) {
             el.placeholder = translations[lang][key];
+        }
+    });
+
+    // 🌟 [جديد] دعم ترجمة سمة title (تلميحات الأزرار الصغيرة) — نفس فلسفة
+    // data-i18n-placeholder أعلاه بالحرف، لكن لسمة title بدل placeholder
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (translations[lang] && translations[lang][key]) {
+            el.title = translations[lang][key];
         }
     });
 }

@@ -125,18 +125,104 @@ export class KidsEngine {
         
         return { type: 'kids_mcq', questionTitle: "ماذا قبل هذه الآية؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
     }
+    // 🌟 [حذف] لعبة "كم عدد آيات هذه السورة؟" (generateKidsAyahCount) — طلب المعلم إزالتها من
+    // ركن الأطفال لأنها صعبة على الصغار (تتطلب حفظ عدد آيات دقيق بدل حفظ نص/معنى الآية نفسها).
+    // أُزيلت من قائمة ألعاب kidsGame.js بالكامل (gamesList + استدعاؤها)، وحُذفت الدالة هنا لأنها
+    // أصبحت غير مستخدَمة في أي مكان آخر بالمنصة (تحققنا بالبحث في كل الملفات قبل الحذف).
 
-    async generateKidsAyahCount(ayahsPool, chunkIndex, totalChunks) {
-        const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null;
-        let surah = await this.quranEngine.getSurah(ayah.surahNumber);
-        let correctCount = surah.ayahs.length;
-        
-        let options = [String(correctCount), String(correctCount + Math.floor(Math.random()*5)+1), String(Math.abs(correctCount - (Math.floor(Math.random()*3)+1)))];
-        if(options[2] === "0") options[2] = "15"; 
-        options = [...new Set(options)]; 
-        while(options.length < 3) options.push(String(Math.floor(Math.random()*30)+5));
-        options.sort(() => Math.random() - 0.5);
-        
-        return { type: 'kids_mcq', questionTitle: "كم عدد آيات هذه السورة؟ 🔢", questionBody: `<div style="font-size:2.5rem; color:var(--primary); font-weight:bold; margin-bottom:20px;">سورة ( ${cleanName(surah.name)} )</div>`, correctAns: String(correctCount), options: options, ayahObj: ayah, reportText: `عدد آيات سورة ${surah.name}` };
+    // 🌟 [جديد بالكامل] لعبة "استمع وخمّن الآية" — أول ميزة استماع فعلي لتلاوة قرآنية حقيقية في
+    // المنصة كلها. قبل هذه الميزة لم يوجد أي صوت تلاوة مسجَّل يُشغَّل من المنصة إطلاقًا؛ قسم
+    // "التسميع المباشر" (recitation/) هو فقط لتسجيل ملاحظات المعلم أثناء استماعه هو للطالب مباشرة
+    // (بلا أي صوت تشغّله المنصة نفسها). تُشغَّل الآية هنا بصوت القارئ عبد الباسط عبد الصمد —
+    // رواية "المرتل" تحديدًا (`ar.abdulbasitmurattal`)، وليس "المجوَّد" رغم طلب المعلم الأصلي:
+    // تأكدنا فعليًا (بطلب رابط آية مفردة من واجهة alquran.cloud قبل البناء) أن نسخة "المجوَّد"
+    // مسجَّلة فقط كملفات سور كاملة (نمط التلاوة المجوَّدة نفسه مبني على مقاطع طويلة متصلة لا آية
+    // منفردة)، فرجعت خطأ 404 عند طلب آية واحدة منها — بخلاف "المرتل" المتوفرة فعليًا لكل آية على
+    // حدة. عُرض هذا على المعلم صراحة واختار "المرتل" بديلاً.
+    // 🌟 [تعديل] الرابط هنا (audioUrl) أصبح مجرد "خط رجوع" فقط، وليس مصدر التشغيل المعتاد كما
+    // كان أول ما بُنيت هذه اللعبة: أضفنا طبقة تخزين محلي (database/kidsAudioDB.js، بنفس فلسفة
+    // IndexedDB المتّبعة في كل قواعد بيانات المشروع) تُحمِّل صوت كل آيات نطاق الطالب دفعة واحدة
+    // في الخلفية عند فتح شاشة ألعاب الأطفال (راجع الاستدعاء في openKidsGameScreen بـ
+    // games/kidsGame.js)، فتعمل اللعبة بعدها بدون إنترنت تمامًا مثل باقي ألعاب المنصة. الرابط هنا
+    // يُستخدَم فقط لو (نادرًا) طُلبت آية قبل اكتمال تحميلها المسبق — عندها window.playKidsListenAyahAudio
+    // (راجع تعليقها في kidsGame.js) تشغّله مباشرة وتخزّنه في نفس اللحظة للمرة القادمة، ولو تعذّر
+    // ذلك أيضًا (لا إنترنت + غير مخزَّن بعد) تظهر رسالة تنبيه بدل فشل صامت.
+    // ⚠️ [افتراض صريح — بقرار المعلم]: جودة الصوت 64kbps بدل 192kbps المُستخدَمة أول بناء لهذه
+    // اللعبة — راجع تفاصيل السبب والتحقق الفعلي منها في تعليق database/kidsAudioDB.js. الرقم 64
+    // هنا مكرَّر يدويًا من ذلك الملف (وليس مستوردًا منه) لأن kidsEngine.js لا يستورد من database/
+    // في أي مكان بالمشروع كله حاليًا — حافظنا على نفس هذا الفصل القائم بين "محرك نقي" و"طبقة
+    // تخزين" بدل كسره لأجل توحيد سطر واحد فقط. ⚠️ لو تغيّر الـbitrate مستقبلاً يلزم تعديل الرقم
+    // في الملفين معًا (هنا وفي database/kidsAudioDB.js).
+    // ⚠️ [افتراض صريح — بقرار المعلم]: نطاق آيات هذه اللعبة هو نفس ayahsPool الممرَّر من المستدعي
+    // (نطاق حفظ الطفل نفسه المحدَّد من المعلم)، بلا جلب نطاق مستقل عبر getAyahsByJuz(29)/(30)،
+    // لأن نطاق ركن الأطفال بالكامل أصلاً محصور في جزء عمّ وتبارك بقرار المعلم.
+    // ⚠️ [افتراض صريح — بقرار المعلم]: المشتِّتان (الخياران الخطآن) يُفضَّلان من نفس سورة الآية
+    // الصحيحة قدر الإمكان (تدريب أدق وأصعب)، ولو السورة لا تحتوي آيتين بديلتين مختلفتين كافيتين
+    // (نصًا، لا رقمًا فقط — تجنبًا لتكرار الآيات المتشابهة لفظيًا زي "ويل يومئذ للمكذبين")، تُكمَّل
+    // المشتتات تلقائيًا من باقي آيات النطاق (سور أخرى) بدل إرجاع اللعبة null بلا داعٍ.
+    async generateKidsListenAyah(ayahsPool, chunkIndex, totalChunks) {
+        let validAyahs = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 3);
+        if (validAyahs.length === 0) validAyahs = ayahsPool;
+        const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks);
+        if (!ayah || !ayah.number) return null;
+
+        let cleanText = cleanAyahText(ayah.text);
+        let usedKeys = new Set([`${ayah.surahNumber}-${ayah.numberInSurah}`]);
+        let usedTexts = new Set([cleanText]);
+
+        // 🌟 المشتتات من نفس السورة أولاً (أصعب وأدق تدريبًا، بطلب صريح من المعلم)
+        let sameSurahCandidates = validAyahs.filter(a => a.surahNumber === ayah.surahNumber && a.numberInSurah !== ayah.numberInSurah);
+        sameSurahCandidates.sort(() => Math.random() - 0.5);
+
+        let distractors = [];
+        for (let a of sameSurahCandidates) {
+            if (distractors.length >= 2) break;
+            let key = `${a.surahNumber}-${a.numberInSurah}`;
+            let txt = cleanAyahText(a.text);
+            if (usedKeys.has(key) || usedTexts.has(txt)) continue;
+            usedKeys.add(key); usedTexts.add(txt); distractors.push(txt);
+        }
+
+        // 🌟 لو نفس السورة ما فيهاش آيتين بديلتين كافيتين، نكمل من باقي النطاق (سور أخرى)
+        if (distractors.length < 2) {
+            let otherCandidates = validAyahs.filter(a => a.surahNumber !== ayah.surahNumber);
+            otherCandidates.sort(() => Math.random() - 0.5);
+            for (let a of otherCandidates) {
+                if (distractors.length >= 2) break;
+                let key = `${a.surahNumber}-${a.numberInSurah}`;
+                let txt = cleanAyahText(a.text);
+                if (usedKeys.has(key) || usedTexts.has(txt)) continue;
+                usedKeys.add(key); usedTexts.add(txt); distractors.push(txt);
+            }
+        }
+        if (distractors.length < 2) return null;
+
+        let options = [cleanText, ...distractors].sort(() => Math.random() - 0.5);
+        // 🌟 رقم الآية العام (number، لا numberInSurah) هو نفسه المستخدَم في مسار الصوت على
+        // cdn.islamic.network — نفس ترقيم alquran.cloud الذي تُبنى منه قاعدة بيانات القرآن أصلاً.
+        // 🌟 [تعديل] 64 بدل 192 (bitrate أقل — راجع الشرح أعلى الدالة ثم في kidsAudioDB.js)
+        let audioUrl = `https://cdn.islamic.network/quran/audio/64/ar.abdulbasitmurattal/${ayah.number}.mp3`;
+
+        // 🌟 نصوص هذا الـquestionBody (التعليمة وزر الاستماع) بالعربي مباشرة بلا مفاتيح i18n —
+        // بنفس أسلوب كل دوال هذا الملف تمامًا (لا توجد أي ترجمة لنصوص questionBody/questionTitle
+        // في أي منها)، حفاظًا على مبدأ "محرك نقي بلا استيراد t()/DOM" في kidsEngine.js. عنوان
+        // اللعبة (questionTitle) وحده مفتاح i18n حقيقي (`kids_listen_title`) لأنه يمر أصلاً عبر
+        // t() في games/kidsGame.js عند العرض بلا أي تكلفة إضافية هنا.
+        let questionBody = `
+        <div style="text-align:center;">
+            <div style="font-size:1.5rem; font-weight:bold; color:#1e3a5f; margin-bottom:20px;">🎧 استمع جيدًا، ثم اختر الآية التي سمعتها</div>
+            <audio id="kids-listen-audio-player" src="${audioUrl}" preload="auto"></audio>
+            <button type="button" id="kids-listen-play-btn" class="kids-listen-play-btn" onclick="window.playKidsListenAyahAudio()">🔊 استمع للآية</button>
+        </div>`;
+
+        return {
+            type: 'kids_mcq',
+            questionTitle: 'kids_listen_title',
+            questionBody: questionBody,
+            correctAns: cleanText,
+            options: options,
+            ayahObj: ayah,
+            reportText: cleanText
+        };
     }
 }

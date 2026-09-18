@@ -65,6 +65,8 @@ import { AppState, loadSplashScreen, openSimilarityGame, t } from '../core/app.j
 // من engine/similarityEngine.js وsimilarities-play.js بلا ازدواجية — بلا أي تغيير في السلوك
 // (نفس الدوال المُختبَرة فعلياً على الـ 800 موضع الحقيقية، فقط استيراد بدل تعريف محلي) 🌟
 import { highlightAnchorInText, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
+import { showSectionHintOnce } from '../components/sectionHint.js';
 
 // 🌟 تُحمَّل مرة واحدة عند فتح "ركن المتشابهات" ثم يُعاد استخدامها في الذاكرة لكل عمليات
 // الفلترة (بدل استدعاء SimilaritiesManager.getBySurah بشكل متكرر لكل سورة في القوائم) —
@@ -147,6 +149,13 @@ export async function getOfficialAyahText(surahNumber, ayahNumber) {
 // نقطة الدخول — تُستدعى من core/app.js عبر openSimilaritiesBrowser()
 // ============================================================
 export async function initSimilaritiesHome() {
+    // 🌟 [جديد] تلميح ما قبل بدء ركن المتشابهات — يوضّح أن الهدف تعريفي وليس تقييمياً رسمياً
+    showSectionHintOnce('similarities_home', {
+        type: 'tip',
+        titleKey: 'hint_similarities_title',
+        bodyKey: 'hint_similarities_body'
+    });
+
     // 🌟 خط دفاع احتياطي: لو حدث خطأ صامت أثناء تهيئة bootSystem() ولم يُنشأ
     // AppState.similaritiesManager بعد، نهيّئه هنا مباشرة بدل ترك الشاشة معطوبة
     if (!AppState.similaritiesManager) {

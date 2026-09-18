@@ -7,6 +7,8 @@ import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
 import { normalizeForCompare } from '../engine/quranEngine.js';
+// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
+import { showSectionHintOnce } from '../components/sectionHint.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0 };
 
@@ -87,7 +89,16 @@ function getShuffledBag(gamesList) {
 }
 
 export async function openAdultGameScreen(config, isWeakness = false) {
-    GameState.config = config; 
+    // 🌟 [جديد] تنبيه ما قبل بدء التقييم — يشرح خصم نقاط التلميح والترتيب الخاطئ، وطبيعة
+    // زر "تسجيل ملاحظة". راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح"
+    showSectionHintOnce('adult_game', {
+        type: 'warning',
+        titleKey: 'hint_adult_game_title',
+        bodyKey: 'hint_adult_game_body',
+        okKey: 'hint_adult_game_ok_btn'
+    });
+
+    GameState.config = config;
     GameState.isWeaknessMode = isWeakness; 
     GameState.reportDetails = []; 
     GameState.currentIndex = 0; 
@@ -126,9 +137,16 @@ export async function openAdultGameScreen(config, isWeakness = false) {
             GameState.pool = ayahsPool; 
             GameState.queue = [];
             
-            let gamesList = config.isJuzMode 
-                ? ['catch', 'previous', 'guess_surah', 'order', 'mistake', 'complete_ayah', 'visual_memory'] 
-                : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory']; 
+            // 🌟 [جديد] أضفنا 'link_ends' (لعبة اربط أول الآية بآخرها) لكلا وضعي التقييم.
+            // 🌟 [إعادة تصميم] استبدلنا 'order_surahs' (لعبة "رتب السور" القديمة، كانت تطلب
+            // ترتيب السور بترتيب المصحف من الفاتحة للناس) بـ'link_word_surah' (لعبة "اربط الكلمة
+            // بالسورة" الجديدة — راجع تعليق generateLinkWordSurahGame في quranEngine.js لسبب
+            // الاستبدال الكامل). بقيت نفس القيود القديمة: وضع "الجزء" فقط عند الكبار، بطلب صريح
+            // من المعلم، لأن وضع الجزء غالباً يحتوي على أكثر من سورة ضمنه (بعكس وضع نطاق سورة
+            // واحدة أو نطاق من سورة لأخرى، حيث لا معنى واضح لهذه اللعبة لأن السورة غالباً واحدة) 🌟
+            let gamesList = config.isJuzMode
+                ? ['catch', 'previous', 'guess_surah', 'order', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
+                : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
             
             let currentBag = getShuffledBag(gamesList);
             for(let i=0; i<qCount; i++) { 
@@ -272,7 +290,10 @@ async function playNextMission() {
             // 🌟 openReportScreen() بقت تحقن واجهة التقرير بنفسها مباشرة في #app-root
             // (القالب مضمَّن داخل report.js نفسه)، فلم نعد نحتاج المرور عبر loadScreen
             // ولا جلب أي ملف report.html منفصل 🌟
-            return openReportScreen();
+            // 🌟 [إصلاح] نمرر GameState بتاع لعبة الكبار صراحة (راجع نفس التعليق في
+            // kidsGame.js) — report.js بقى يستخدم أي GameState يُمرَّر له عند فتح
+            // التقرير بدل استيراد ثابت من adultGame.js فقط 🌟
+            return openReportScreen(GameState);
         }
         
         updateTrackerUI();
@@ -297,10 +318,12 @@ async function playNextMission() {
             };
         }
         
-        document.getElementById('teacher-eval-buttons').style.display = 'none'; 
-        document.getElementById('teacher-eval-area').style.display = 'none'; 
-        document.getElementById('interactive-order-area').style.display = 'none'; 
-        document.getElementById('game-answer').style.display = 'none'; 
+        document.getElementById('teacher-eval-buttons').style.display = 'none';
+        document.getElementById('teacher-eval-area').style.display = 'none';
+        document.getElementById('interactive-order-area').style.display = 'none';
+        // 🌟 [جديد] إخفاء منطقة لعبة "اربط أول الآية بآخرها" عند بداية كل سؤال جديد 🌟
+        document.getElementById('interactive-link-area').style.display = 'none';
+        document.getElementById('game-answer').style.display = 'none';
         document.getElementById('show-ans-btn').style.display = 'inline-block'; 
         // 🌟 تطبيق الترجمة هنا 🌟
         document.getElementById('show-ans-btn').innerHTML = t('show_ans_match'); 
@@ -369,12 +392,57 @@ async function playNextMission() {
         }
 
         if(type === 'order') {
-            GameState.currentData = await AppState.quranEngine.generateOrderGame(activePool, false, chunkIndex, totalChunks); 
+            GameState.currentData = await AppState.quranEngine.generateOrderGame(activePool, false, chunkIndex, totalChunks);
             if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
-            GameState.currentData.studentAnswer = []; 
-            document.getElementById('interactive-order-area').style.display = 'block'; 
+            GameState.currentData.studentAnswer = [];
+            document.getElementById('interactive-order-area').style.display = 'block';
+            // 🌟 [قديم] نعيد نص التعليمة وعنوان العمود الثاني لأصلهما الخاص بـ"رتب الآيات" —
+            // كانت لعبة "رتب السور" (order_surahs، مُستبدَلة الآن بـ'link_word_surah' التي تستخدم
+            // حاوية الربط لا حاوية الترتيب) تشارك هذه الحاوية وتُغيّر هذين النصّين مؤقتاً أثناء
+            // عرضها. أبقينا هذا التصحيح رغم ذلك بلا ضرر، احترازًا لأي استخدام مستقبلي مشابه 🌟
+            let orderInstEl = document.querySelector('#interactive-order-area p[data-i18n="order_inst"]');
+            if (orderInstEl) orderInstEl.innerHTML = t('order_inst');
+            let orderShufTitleEl = document.querySelector('#interactive-order-area h3[data-i18n="shuffled_ayahs"]');
+            if (orderShufTitleEl) orderShufTitleEl.innerHTML = t('shuffled_ayahs');
             buildOrderGameUI();
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle) || t('🔀 رتب الآيات')}</span>`;
+        } else if (type === 'link_word_surah') {
+            // 🌟 [إعادة تصميم] لعبة "اربط الكلمة بالسورة" — محل لعبة "رتب السور" القديمة (نفس
+            // قيد الظهور السابق: ركن الكبار في وضع الجزء فقط). تعيد استخدام نفس حاوية ودالة بناء
+            // واجهة لعبة "اربط أول الآية بآخرها" (interactive-link-area / buildLinkGameUI) بالحرف
+            // بلا أي تعديل عليهما، لأن شكل البيانات (starts/ends/id/matchedPairs) مطابق تماماً —
+            // راجع تعليق generateLinkWordSurahGame في quranEngine.js لتفاصيل الفكرة وسبب
+            // الاستبدال والافتراضات الكاملة. بما إن الحاوية أصبحت مشتركة الآن بين نوعي ربط
+            // مختلفين، لازم نضبط نص التعليمة وعنواني العمودين حسب النوع الحالي في كل مرة 🌟
+            GameState.currentData = await AppState.quranEngine.generateLinkWordSurahGame(activePool, false);
+            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+
+            if (GameState.currentData.type === 'link_word_surah') {
+                GameState.currentData.matchedPairs = [];
+                GameState.currentData.selectedStart = null;
+                GameState.currentData.locked = false;
+                document.getElementById('interactive-link-area').style.display = 'block';
+                let instEl = document.querySelector('#interactive-link-area p[data-i18n="link_inst"]');
+                if (instEl) instEl.innerHTML = t('link_word_surah_inst');
+                let startsTitleEl = document.querySelector('#interactive-link-area h3[data-i18n="link_starts_title"]');
+                if (startsTitleEl) startsTitleEl.innerHTML = t('link_word_surah_starts_title');
+                let endsTitleEl = document.querySelector('#interactive-link-area h3[data-i18n="link_ends_title"]');
+                if (endsTitleEl) endsTitleEl.innerHTML = t('link_word_surah_ends_title');
+                buildLinkGameUI();
+                document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
+            } else {
+                // 🌟 fallback نادر جداً: تعذّر إيجاد سورتين مختلفتين على الأقل ضمن الجزء المختار
+                // — نعرض سؤال "صيد الآية" العادي بديلاً عنها بدل تعطّل الشاشة، بنفس فallback لعبة
+                // "رتب السور" القديمة بالحرف 🌟
+                document.getElementById('teacher-eval-area').style.display = 'block';
+                document.getElementById('teacher-eval-buttons').style.display = 'flex';
+                document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
+                document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+                let linkWordSurahFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
+                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkWordSurahFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${GameState.currentData.ayahObj.surahName} - آية ${GameState.currentData.ayahObj.numberInSurah} )</div>`;
+                linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                document.getElementById('game-answer').innerHTML = linkWordSurahFallbackAnsHTML;
+            }
         } else if (type === 'visual_memory') {
             GameState.currentData = await AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks);
             if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
@@ -383,9 +451,53 @@ async function playNextMission() {
             document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
             document.getElementById('show-ans-btn').style.display = 'inline-block';
             
-            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
-            document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
+            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
+            document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
             document.getElementById('game-answer').innerHTML = GameState.currentData.fullAnswer;
+        } else if (type === 'link_ends') {
+            // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تفاعلية بالكامل بلا أزرار تقييم يدوية،
+            // بنفس فلسفة لعبة "رتب الآيات" أعلاه (تصحيح تلقائي عند اكتمال الربط الصحيح) 🌟
+            // 🌟 [إصلاح] كان هنا خطأ نسخ-ولصق: مُرِّر `GameState.config.isJuzMode` كمعامل ثانٍ
+            // (المفروض يكون `isKids`) بدل `false` — نفس اسم المعامل بالترتيب المستخدم في استدعاءات
+            // أخرى (generateCatchGame/generateNextAyahGame...) لكن بمعنى مختلف تمامًا هناك (وضع
+            // الجزء)، لا علاقة له بكون الشاشة أطفال أو كبار. هذا الملف شاشة الكبار حصرًا، فالقيمة
+            // الصحيحة هنا ثابتة دائمًا `false`. الأثر العملي للخطأ: عند اختيار وضع "الجزء" تحديدًا
+            // (حيث isJuzMode=true)، كانت الدالة تُرجع type:'kids_link_ends' وعنواناً بصياغة الأطفال
+            // ("يا بطل")، فيفشل الشرط `GameState.currentData.type === 'link_ends'` أدناه ويقع
+            // الاختيار خطأً على فرع الـfallback (الذي يعرض `questionBody` غير موجود أصلاً في بيانات
+            // لعبة الربط، فيظهر النص الحرفي "undefined" مع أزرار تقييم يدوية لا يجب ظهورها) 🌟
+            GameState.currentData = await AppState.quranEngine.generateLinkGame(activePool, false, chunkIndex, totalChunks);
+            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+
+            if (GameState.currentData.type === 'link_ends') {
+                GameState.currentData.matchedPairs = [];
+                GameState.currentData.selectedStart = null;
+                GameState.currentData.locked = false;
+                document.getElementById('interactive-link-area').style.display = 'block';
+                // 🌟 [جديد] نعيد نص التعليمة وعنواني العمودين لأصلهما الخاص بـ"اربط أول الآية
+                // بآخرها" — لازم الآن بعد أن أصبحت الحاوية مشتركة مع لعبة "اربط الكلمة بالسورة"
+                // الجديدة (order_surahs سابقاً) التي تُغيّر هذه النصوص مؤقتاً أثناء عرضها 🌟
+                let instEl = document.querySelector('#interactive-link-area p[data-i18n="link_inst"]');
+                if (instEl) instEl.innerHTML = t('link_inst');
+                let startsTitleEl = document.querySelector('#interactive-link-area h3[data-i18n="link_starts_title"]');
+                if (startsTitleEl) startsTitleEl.innerHTML = t('link_starts_title');
+                let endsTitleEl = document.querySelector('#interactive-link-area h3[data-i18n="link_ends_title"]');
+                if (endsTitleEl) endsTitleEl.innerHTML = t('link_ends_title');
+                buildLinkGameUI();
+                document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
+            } else {
+                // 🌟 [جديد] فallback نادر جداً: لو تعذّر توليد لعبة الربط (نطاق الآيات المتاح
+                // صغير جداً بلا آيتين صالحتين على الأقل) نعرض سؤال "صيد الآية" العادي بديلاً
+                // عنها بدل تعطّل الشاشة، بنفس أسلوب فallback لعبة "رتب الآيات" أعلاه 🌟
+                document.getElementById('teacher-eval-area').style.display = 'block';
+                document.getElementById('teacher-eval-buttons').style.display = 'flex';
+                document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
+                document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+                let linkFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
+                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${GameState.currentData.ayahObj.surahName} - آية ${GameState.currentData.ayahObj.numberInSurah} )</div>`;
+                linkFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                document.getElementById('game-answer').innerHTML = linkFallbackAnsHTML;
+            }
         } else {
             document.getElementById('teacher-eval-area').style.display = 'block'; 
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
@@ -472,13 +584,20 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if(tType==='catch') typeLabel= t("🏹 صيد الآية"); 
         else if(tType==='next') typeLabel= t("➡️ ماذا بعدها؟"); 
         else if(tType==='previous') typeLabel= t("⬅️ ماذا قبلها؟"); 
-        else if(tType==='order') typeLabel= t("🔀 رتب الآيات"); 
-        else if(tType==='between') typeLabel= t("↔️ الآية بين آيتين"); 
-        else if(tType==='guess_surah') typeLabel= t("🔍 خمن السورة"); 
-        else if(tType==='recite') typeLabel= t("🎙️ تسميع مقطع"); 
-        else if(tType==='mistake') typeLabel= t("🔍 اكتشف الخطأ"); 
-        else if(tType==='complete_ayah') typeLabel= t("🧩 أكمل الآية"); 
+        else if(tType==='order') typeLabel= t("🔀 رتب الآيات");
+        // 🌟 [قديم] تصنيف لعبة "رتب السور" السابقة — لم تعد هذه اللعبة تُستخدم في أي جولة جديدة
+        // (استُبدلت بـ'link_word_surah' أدناه)، لكن أبقينا هذا السطر بلا حذف احترازًا 🌟
+        else if(tType==='order_surahs') typeLabel= t("📚 رتب السور");
+        else if(tType==='between') typeLabel= t("↔️ الآية بين آيتين");
+        else if(tType==='guess_surah') typeLabel= t("🔍 خمن السورة");
+        else if(tType==='recite') typeLabel= t("🎙️ تسميع مقطع");
+        else if(tType==='mistake') typeLabel= t("🔍 اكتشف الخطأ");
+        else if(tType==='complete_ayah') typeLabel= t("🧩 أكمل الآية");
         else if(tType==='visual_memory') typeLabel= t("📖 الذاكرة البصرية");
+        // 🌟 [جديد] تصنيف لعبة "اربط أول الآية بآخرها" في التقرير وسجل التاريخ 🌟
+        else if(tType==='link_ends') typeLabel= t("🔗 ربط الآيات");
+        // 🌟 [إعادة تصميم] تصنيف لعبة "اربط الكلمة بالسورة" الجديدة (محل "رتب السور") 🌟
+        else if(tType==='link_word_surah') typeLabel= t("🔗📖 اربط الكلمة بالسورة");
     }
     
     let ayahNum = GameState.currentData.ayahObj ? GameState.currentData.ayahObj.numberInSurah : (GameState.currentData.original ? GameState.currentData.original[0].numberInSurah : 0);
@@ -596,9 +715,97 @@ function buildOrderGameUI() {
             slot.className = 'order-slot filled quran-text'; 
             slot.innerText = GameState.currentData.studentAnswer[i].text;
             slot.onclick = () => { GameState.currentData.studentAnswer.splice(i, 1); buildOrderGameUI(); }; 
-        } else { 
-            slot.className = 'order-slot'; slot.innerHTML = `<span style="color:#cbd5e1;">${t("مكان فارغ...")}</span>`; 
+        } else {
+            slot.className = 'order-slot'; slot.innerHTML = `<span style="color:#cbd5e1;">${t("مكان فارغ...")}</span>`;
         }
         slotDiv.appendChild(slot);
     }
+}
+
+// 🌟 [جديد] بناء واجهة لعبة "اربط أول الآية بآخرها" — تعتمد على النقر فقط (بلا سحب) بنفس فلسفة
+// buildOrderGameUI أعلاه: يضغط المعلم/الطالب على بداية آية من العمود الأول (تُحدَّد بإطار ذهبي)،
+// ثم على النهاية المتوقّعة من العمود الثاني. لو الربط صحيح تتحوّل الآيتان لحالة "مطابَقة" دائمة
+// (لون أخضر)، ولو خطأ تظهر وميضة حمراء قصيرة على العنصرين معاً ثم يُلغى التحديد تلقائياً.
+// GameState.orderAttempts (المستخدم أصلاً في تصحيح لعبة "رتب الآيات") يُستخدم هنا أيضاً لحساب
+// عدد المحاولات الخاطئة — فتنطبق عليه بالضبط نفس معادلة الدرجة الموجودة في recordAnswer/
+// computeQuestionScoreForHistory بلا أي تعديل إضافي.
+function buildLinkGameUI() {
+    const startsDiv = document.getElementById('link-starts-col');
+    const endsDiv = document.getElementById('link-ends-col');
+    if (!startsDiv || !endsDiv) return;
+    startsDiv.innerHTML = ""; endsDiv.innerHTML = "";
+    const data = GameState.currentData;
+    // 🌟 [جديد] عدد ألوان الأزواج المتاحة في CSS (.pair-0 إلى .pair-5) - لو عدد الأزواج في
+    // السؤال أكبر من العدد ده (نادر جداً) بيتكرر الترتيب (modulo) بدل ما تتوقف الميزة 🌟
+    const PAIR_COLORS_COUNT = 6;
+
+    data.starts.forEach((item, idx) => {
+        let isMatched = data.matchedPairs.includes(item.id);
+        let el = document.createElement('div');
+        let cls = 'link-item quran-text';
+        // 🌟 [جديد] كل زوج مطابَق بيتلوّن بلون مميز ثابت حسب ترتيبه الأصلي في data.starts (idx)
+        // - بدل اللون الأخضر الموحّد لكل الأزواج سابقاً - عشان الطالب/المعلم يقدر يتابع بصريًا
+        // كل ربط لوحده. correct-pop بتُضاف مرة واحدة فقط لحظة المطابقة (راجع data.justMatchedId
+        // تحت) مش في كل إعادة رسم، حتى ما تتكرر حركة الـpop لكل الأزواج القديمة كل مرة 🌟
+        if (isMatched) {
+            cls += ' matched pair-' + (idx % PAIR_COLORS_COUNT);
+            if (data.justMatchedId === item.id) cls += ' correct-pop';
+        }
+        if (data.selectedStart === idx) cls += ' selected';
+        el.className = cls;
+        el.innerText = item.text;
+        if (!isMatched && !data.locked) {
+            el.onclick = () => {
+                data.selectedStart = (data.selectedStart === idx) ? null : idx;
+                buildLinkGameUI();
+            };
+        }
+        startsDiv.appendChild(el);
+    });
+
+    data.ends.forEach((item) => {
+        let isMatched = data.matchedPairs.includes(item.id);
+        let el = document.createElement('div');
+        let cls = 'link-item quran-text';
+        if (isMatched) {
+            // 🌟 [جديد] نفس فكرة تلوين الزوج أعلاه، لكن لازم نحسب رقم الزوج من ترتيبه في
+            // data.starts (مش ترتيبه هنا في data.ends) لأن كل عمود يُخلَط عشوائياً لوحده
+            // باستقلال عن الآخر (راجع generateLinkGame في quranEngine.js)، فترتيب العنصر هنا
+            // مش بالضرورة نفس ترتيب زوجه في العمود الأول 🌟
+            let pairIdx = data.starts.findIndex(s => s.id === item.id);
+            cls += ' matched pair-' + (pairIdx % PAIR_COLORS_COUNT);
+            if (data.justMatchedId === item.id) cls += ' correct-pop';
+        }
+        el.className = cls;
+        el.innerText = item.text;
+        if (!isMatched && !data.locked) {
+            el.onclick = () => {
+                if (data.selectedStart === null) return;
+                let startItem = data.starts[data.selectedStart];
+                if (startItem.id === item.id) {
+                    data.matchedPairs.push(item.id);
+                    data.selectedStart = null;
+                    // 🌟 [جديد] نعلّم الزوج اللي اتطابق حالاً بس، عشان حركة correct-pop تشتغل
+                    // مرة واحدة له فقط في الرسم الجاي، ثم نصفّر العلامة فوراً بعد الرسم حتى ما
+                    // تتكرر الحركة لنفس الزوج تاني في أي إعادة رسم لاحقة 🌟
+                    data.justMatchedId = item.id;
+                    // 🌟 [جديد] صوت تأكيد فوري لكل مطابقة صحيحة - افتراض صريح: إلا آخر زوج في
+                    // السؤال، لأن recordAnswer أدناه هيشغّل صوت النجاح العام تلقائياً بعد 400ms
+                    // فيبقى صوتان متتاليان لنفس اللحظة بلا فايدة حقيقية 🌟
+                    if (data.matchedPairs.length < data.starts.length) playSuccessSound();
+                    buildLinkGameUI();
+                    data.justMatchedId = null;
+                    if (data.matchedPairs.length === data.starts.length) setTimeout(() => recordAnswer(true), 400);
+                } else {
+                    playErrorSound();
+                    GameState.orderAttempts++;
+                    data.locked = true;
+                    el.classList.add('wrong-flash');
+                    startsDiv.children[data.selectedStart].classList.add('wrong-flash');
+                    setTimeout(() => { data.locked = false; data.selectedStart = null; buildLinkGameUI(); }, 700);
+                }
+            };
+        }
+        endsDiv.appendChild(el);
+    });
 }

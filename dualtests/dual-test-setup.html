@@ -242,12 +242,27 @@
     /* 🌟 لمسة دخول أنعم لنوافذ الشاشة (بدون لمس القاعدة العامة .modal-content، فقط سياقها هنا) */
     #dts-start-match-modal .modal-content { animation: dts-scaleIn 0.22s ease both; }
 
+    /* 🌟 [جديد] نافذة "📜 المباريات السابقة" لكل اختبار — تسمح للمعلم بالرجوع لأي مباراة
+       منتهية سابقاً وفتح تقريرها الكامل (راجع reports/dual-test-report.js) وقتما يحب، بدل ما
+       يكون التقرير متاحاً فقط في نفس لحظة انتهاء المباراة. قواعد معزولة تماماً بنفس بادئة
+       dts- ولا تلمس أي قاعدة موجودة. */
+    #dts-matches-history-modal .modal-content { animation: dts-scaleIn 0.22s ease both; max-height: 80vh; overflow-y: auto; }
+    .dts-history-list { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; }
+    .dts-history-row {
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+        background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 16px;
+    }
+    .dts-history-row-info { display: flex; flex-direction: column; gap: 3px; }
+    .dts-history-row-names { font-weight: bold; font-size: 1.05rem; color: #1e293b; }
+    .dts-history-row-meta { font-size: 0.9rem; color: #64748b; }
+    .dts-history-row button { padding: 8px 14px; font-size: 0.9rem; border-radius: 10px; }
+
     [dir="ltr"] .dts-panel, [dir="ltr"] .dts-test-row-info { text-align: left; }
     [dir="ltr"] .dts-round-progress, [dir="ltr"] .dts-edit-range-link { margin-inline-start: auto; }
 
     @media (prefers-reduced-motion: reduce) {
         .dts-header-banner, .dts-panel, .dts-test-row, .dts-round-block, .dts-q-row, .dts-range-card, .dts-roundpick-btn,
-        #dts-start-match-modal .modal-content {
+        #dts-start-match-modal .modal-content, #dts-matches-history-modal .modal-content {
             animation: none !important;
         }
     }
@@ -354,5 +369,16 @@
             <button class="btn btn-outline" style="flex:1;" id="dts-match-cancel-btn" data-i18n="dts_start_match_cancel_btn">إلغاء</button>
             <button class="btn" style="flex:1;" id="dts-match-confirm-btn" data-i18n="dts_start_match_confirm_btn">🚀 ابدأ</button>
         </div>
+    </div>
+</div>
+
+<!-- ===== 🌟 [جديد] نافذة سجل المباريات السابقة لاختبار محفوظ معيّن ===== -->
+<!-- يفتح كل صف تقرير مباراة منتهية (reports/dual-test-report.js) بمعرّف/بيانات المباراة
+     الفعلية المحفوظة في dual_matches — راجع openMatchesHistoryModal في dual-test-setup.js -->
+<div id="dts-matches-history-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 520px;">
+        <h2 style="color:var(--dh-emerald-700); margin-top:0;" data-i18n="dts_history_modal_title">سجل مباريات هذا الاختبار</h2>
+        <div id="dts-history-list" class="dts-history-list"></div>
+        <button class="btn btn-outline" style="width:100%;" id="dts-history-close-btn" data-i18n="dts_history_close_btn">إغلاق</button>
     </div>
 </div>
