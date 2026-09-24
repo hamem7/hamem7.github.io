@@ -659,6 +659,12 @@ async function submitHomework() {
     }
 
     const cloudSubmissionData = {
+        // 🌟🌟 [جديد — المرحلة 2] حقل id ثابت للتسليم نفسه (نفس submissionId المستخدَم أصلاً
+        // أعلاه كمسار تخزين الصوت في Storage، لم يكن يُخزَّن داخل بيانات التسليم نفسها من قبل).
+        // يُمكّن core/firebase.js من تتبّع "هل هذا التسليم بعينه لا يزال عالقاً في طابور إعادة
+        // المحاولة المحلي؟" (isSubmissionPendingSync/getPendingSubmissionsCountForHomework) —
+        // إضافة حقل جديد بحتة، لا تؤثر على أي كود قديم يقرأ هذا الكائن.
+        id: submissionId,
         hwId: hw.id,
         studentId: student.id,
         studentName: student.name,

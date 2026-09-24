@@ -172,9 +172,24 @@ export class HomeworkEngine {
 
         if (targetAyah.numberInSurah > 1) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text));
         if (targetAyah.numberInSurah + 1 < surah.ayahs.length) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah + 1].text));
-        
+
+        // ==========================================
+        // 🌟🌟 [إصلاح — المرحلة 5] منع تكرار نفس الآية كاختيارين مختلفين في نفس السؤال
+        // ==========================================
+        // اكتشفناه عبر اختبارات tests/homeworkEngine.test.js الجديدة: extraWrongs كان يُستبعد منه
+        // فقط nextAyah وtargetAyah (بالـ number)، لكن لم يكن يُستبعد الآيتان اللتان أُضيفتا يدوياً
+        // فوق (الآية السابقة للهدف، والآية التالية لـ nextAyah) — فلو رجعت extraWrongs بنفس نص
+        // إحداهما (ممكن فعلياً مع آيات القرآن المتكررة حرفياً، مثل "فبأي آلاء ربكما تكذبان" في سورة
+        // الرحمن)، يظهر نفس النص مرتين كاختيارين منفصلين في نفس السؤال. الحل: نتحقق من عدم التكرار
+        // النصي (وليس فقط رقم الآية) قبل إضافة أي اختيار جديد.
         let extraWrongs = pool.filter(a => a.number !== nextAyah.number && a.number !== targetAyah.number).sort(() => 0.5 - Math.random());
-        while (wrongOptions.length < 3 && extraWrongs.length > 0) wrongOptions.push(cleanAyahText(extraWrongs.pop().text));
+        while (wrongOptions.length < 3 && extraWrongs.length > 0) {
+            let candidateText = cleanAyahText(extraWrongs.pop().text);
+            if (candidateText !== correctAnswer && !wrongOptions.includes(candidateText)) {
+                wrongOptions.push(candidateText);
+            }
+        }
+        wrongOptions = [...new Set(wrongOptions)].filter(w => w !== correctAnswer);
 
         let options = [correctAnswer, ...wrongOptions].slice(0, 4).sort(() => 0.5 - Math.random());
 
@@ -192,11 +207,19 @@ export class HomeworkEngine {
         let correctAnswer = cleanAyahText(prevAyah.text);
         let wrongOptions = [];
 
-        if (targetAyah.numberInSurah < surah.ayahs.length) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text)); 
-        if (targetAyah.numberInSurah > 2) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text)); 
-        
+        if (targetAyah.numberInSurah < surah.ayahs.length) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text));
+        if (targetAyah.numberInSurah > 2) wrongOptions.push(cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text));
+
+        // 🌟🌟 [إصلاح — المرحلة 5] نفس إصلاح تكرار الاختيارات المطبَّق في createMCQNextAyah أعلاه
+        // (راجع تعليقه للشرح الكامل) — اكتُشف بنفس اختبارات tests/homeworkEngine.test.js الجديدة.
         let extraWrongs = pool.filter(a => a.number !== prevAyah.number && a.number !== targetAyah.number).sort(() => 0.5 - Math.random());
-        while (wrongOptions.length < 3 && extraWrongs.length > 0) wrongOptions.push(cleanAyahText(extraWrongs.pop().text));
+        while (wrongOptions.length < 3 && extraWrongs.length > 0) {
+            let candidateText = cleanAyahText(extraWrongs.pop().text);
+            if (candidateText !== correctAnswer && !wrongOptions.includes(candidateText)) {
+                wrongOptions.push(candidateText);
+            }
+        }
+        wrongOptions = [...new Set(wrongOptions)].filter(w => w !== correctAnswer);
 
         let options = [correctAnswer, ...wrongOptions].slice(0, 4).sort(() => 0.5 - Math.random());
 
@@ -214,13 +237,17 @@ export class HomeworkEngine {
         let textWithBlank = startWords + " [ ....... ]";
         let correctAnswer = endingWords;
 
-        let wrongOptions = pool.map(a => getCleanWords(a.text))
-            .filter(w => w.length >= endingCount)
-            .map(w => w.slice(-endingCount).join(" "))
-            .filter(e => e !== correctAnswer)
-            .sort(() => 0.5 - Math.random()).slice(0, 3);
+        // 🌟🌟 [إصلاح — المرحلة 5] نفس مشكلة تكرار الاختيارات: آيتان مختلفتان تماماً قد تنتهيان
+        // بنفس آخر 2-3 كلمات (شائع في القرآن، مثل "وَاللَّهُ غَفُورٌ رَّحِيمٌ" في آيات متعددة)، وكان
+        // ذلك يُنتج نفس نص الخاتمة كاختيارين منفصلين. أضفنا new Set لضمان تفرّد كل خاتمة قبل الأخذ.
+        let wrongOptions = [...new Set(
+            pool.map(a => getCleanWords(a.text))
+                .filter(w => w.length >= endingCount)
+                .map(w => w.slice(-endingCount).join(" "))
+                .filter(e => e !== correctAnswer)
+        )].sort(() => 0.5 - Math.random()).slice(0, 3);
 
-        if (wrongOptions.length < 3) wrongOptions.push("وَاللَّهُ غَفُورٌ رَّحِيمٌ", "وَاللَّهُ سَمِيعٌ عَلِيمٌ", "وَهُوَ الْعَزِيزُ الْحَكِيمُ"); 
+        if (wrongOptions.length < 3) wrongOptions.push("وَاللَّهُ غَفُورٌ رَّحِيمٌ", "وَاللَّهُ سَمِيعٌ عَلِيمٌ", "وَهُوَ الْعَزِيزُ الْحَكِيمُ");
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
 
         return { type: 'mcq', title: "اختر الخاتمة الصحيحة والدقيقة لهذه الآية:", text: `﴿ ${textWithBlank} ﴾`, options: options, correctAnswer: correctAnswer, points: 1 };

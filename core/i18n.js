@@ -655,6 +655,10 @@ export const translations = {
         // 🌟🌟 [جديد] علامة صغيرة تظهر بجانب أي واجب منشور في سجل الواجبات لا يزال عالقاً محلياً
         // ولم يصل للسحابة بعد (راجع isHomeworkPendingSync في core/firebase.js)
         hw_pending_sync_row_badge: "لم يُرفع للسحابة بعد",
+        // 🌟🌟 [جديد — المرحلة 2] تنبيه يظهر في شاشة نتائج واجب معيّن لو فيه تسليم طالب (أو أكثر)
+        // فشل رفعه للسحابة ولا يزال عالقاً محلياً على جهاز الطالب نفسه فقط — راجع
+        // getPendingSubmissionsCountForHomework في core/firebase.js. {n} = العدد.
+        hw_pending_submissions_banner: "يوجد {n} تسليم(ات) لطلاب حلّوا هذا الواجب لكن لم تصل نتيجتهم للسحابة بعد (لا تزال عالقة على جهاز الطالب). ستصل تلقائياً بمجرد توفر الاتصال لديه.",
         hw_copy_btn: "📋 نسخ",
         hw_close_return: "إغلاق والعودة 🏠",
         hw_subs_modal_title: "📊 نتائج وتسليمات الطلاب",
@@ -1765,6 +1769,10 @@ export const translations = {
         // still stuck locally and hasn't reached the cloud yet (see isHomeworkPendingSync in
         // core/firebase.js)
         hw_pending_sync_row_badge: "Not uploaded to cloud yet",
+        // 🌟🌟 New — Phase 2: banner shown on a homework's results screen when one or more
+        // student submissions failed to upload and are still stuck on the student's own device
+        // — see getPendingSubmissionsCountForHomework in core/firebase.js. {n} = the count.
+        hw_pending_submissions_banner: "{n} submission(s) from students who finished this homework haven't reached the cloud yet (still stuck on the student's device). They'll arrive automatically once that device is back online.",
         hw_copy_btn: "📋 Copy",
         hw_close_return: "Close & Return 🏠",
         hw_subs_modal_title: "📊 Students Results & Submissions",

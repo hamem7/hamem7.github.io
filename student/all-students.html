@@ -23,7 +23,10 @@
         <div class="form-grid">
             <div class="input-group"><label>الاسم (ثلاثي):</label><input type="text" id="edit-stu-name" placeholder="اسم الطالب..."></div>
             <div class="input-group"><label>تاريخ الميلاد: <span id="edit-age-display" style="font-size:0.9rem;"></span></label><input type="date" id="edit-stu-dob"></div>
-            <div class="input-group"><label>الصف الدراسي:</label><select id="edit-stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>المرحلة الإعدادية</option><option>المرحلة الثانوية</option><option>المرحلة الجامعية</option><option>خريج</option></select></div>
+            <!-- 🌟 [عدّل] نفس تعديل قائمة الصف في student/my-students.html بالحرف: تفصيل
+            المرحلتين الإعدادية والثانوية لصفوف فردية 1/2/3 بدل خيار مجمَّع واحد لكل
+            منهما، و"خريج" صارت "خريج جامعي" — راجع تعليق my-students.html للتفاصيل 🌟 -->
+            <div class="input-group"><label>الصف الدراسي:</label><select id="edit-stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>الأول الإعدادي</option><option>الثاني الإعدادي</option><option>الثالث الإعدادي</option><option>الأول الثانوي</option><option>الثاني الثانوي</option><option>الثالث الثانوي</option><option>المرحلة الجامعية</option><option>خريج جامعي</option></select></div>
             <div class="input-group"><label>البلد:</label><input type="text" id="edit-stu-country" placeholder="مثال: مصر، السعودية..."></div>
             <div class="input-group"><label>رقم ولي الأمر (اختياري):</label><input type="text" id="edit-stu-phone" placeholder="لإرسال التقارير..."></div>
             <div class="input-group"><label>الجنس (للصورة الرمزية):</label><select id="edit-stu-gender"><option value="boy">👦🏻 ولد</option><option value="girl">👧🏻 بنت</option></select></div>

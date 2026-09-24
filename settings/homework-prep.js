@@ -8,7 +8,17 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟🌟 [جديد] أضفنا flushPendingHomeworkSync (إعادة محاولة الرفع يدوياً وعند فتح هذه الشاشة)
 // وisHomeworkPendingSync (لمعرفة هل واجب معيّن لا يزال عالقاً محلياً، لعرض علامة ⏳ في سجل
 // الواجبات) — راجع الشرح الكامل بجانب الدالتين في core/firebase.js
-import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync } from '../core/firebase.js';
+// 🌟🌟 [جديد — المرحلة 2] أضفنا getPendingSubmissionsCountForHomework: تسليمات الطلاب التي
+// فشل رفعها للسحابة ولا تزال عالقة محلياً على جهاز الطالب نفسه لا تظهر إطلاقاً في نتيجة
+// getSubmissionsFromCloud (لأنها أصلاً لم تصل للسحابة) — فكان المعلم لا يرى أي أثر لها هنا،
+// حتى لو كان الطالب قد حل الواجب فعلاً. راجع core/firebase.js للشرح الكامل.
+import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework } from '../core/firebase.js';
+// 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
+// نفس المقارنة هنا وفي core/firebase.js — راجع core/submissionStatus.js للشرح الكامل.
+// 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
+// المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
+// core/submissionStatus.js.
+import { submissionNeedsGrading, syncSubmissionScoreToLocalHistory } from '../core/submissionStatus.js';
 import { t } from '../core/i18n.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
@@ -375,13 +385,24 @@ async function loadSubmissionsInline(hwId) {
 
         currentSubmissionsList = await Promise.race([fetchPromise, timeoutPromise]);
 
+        // 🌟🌟 [جديد — المرحلة 2] تسليمات فشل رفعها للسحابة ولا تزال عالقة محلياً على جهاز
+        // الطالب نفسه — لن تظهر أبداً في currentSubmissionsList (جاءت من السحابة فقط)، فبدون
+        // هذا التنبيه يظن المعلم أن الطالب لم يحل الواجب إطلاقاً رغم أنه حله فعلاً. راجع
+        // core/firebase.js (getPendingSubmissionsCountForHomework) للشرح الكامل.
+        const pendingLocalCount = getPendingSubmissionsCountForHomework(hwId);
+        const pendingBanner = pendingLocalCount > 0
+            ? `<div style="padding: 10px 15px; margin-bottom: 10px; background:#fef3c7; color:#92400e; border-radius:10px; font-size:0.9rem; font-weight:bold;">⏳ ${t('hw_pending_submissions_banner').replace('{n}', pendingLocalCount)}</div>`
+            : '';
+
         if (currentSubmissionsList.length === 0) {
-            container.innerHTML = `<div style="padding: 15px; color: #64748b;">${t("لم يقم أي طالب بتسليم هذا الواجب حتى الآن.")}</div>`;
+            container.innerHTML = pendingBanner + `<div style="padding: 15px; color: #64748b;">${t("لم يقم أي طالب بتسليم هذا الواجب حتى الآن.")}</div>`;
         } else {
             let tableHtml = `<table style="width: 100%; border-collapse: collapse; text-align: center;"><tbody>`;
             currentSubmissionsList.forEach((sub, index) => {
                 let scoreColor = sub.score >= 90 ? '#10b981' : (sub.score >= 70 ? '#f59e0b' : '#ef4444');
-                let needsGrading = sub.details && sub.details.some(d => d.needsManualGrading && d.manualScore === undefined);
+                // 🌟 [محدَّث — المرحلة 2] نفس الفحص بالضبط، عبر الدالة المشتركة submissionNeedsGrading
+                // بدل تكرار المقارنة هنا محلياً — راجع core/submissionStatus.js
+                let needsGrading = submissionNeedsGrading(sub);
                 let badge = needsGrading ? `<span style="background: #fef08a; color: #854d0e; font-size: 0.8rem; padding: 2px 5px; border-radius: 5px;">يحتاج تصحيح</span>` : "";
 
                 tableHtml += `
@@ -396,7 +417,7 @@ async function loadSubmissionsInline(hwId) {
                 `;
             });
             tableHtml += `</tbody></table>`;
-            container.innerHTML = tableHtml;
+            container.innerHTML = pendingBanner + tableHtml;
 
             document.querySelectorAll('.btn-open-grading').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -590,25 +611,41 @@ async function saveManualGrades(subIndex) {
         }
     }
 
+    // 🌟 [محدَّث — المرحلة 3] استخراج معرّف الطالب صار مشتركًا الآن بين ميزتين (جدول المراجعة
+    // المتباعدة تحت، ومزامنة السجل المحلي بعده) بدل ما يتكرر داخل كل واحدة منهما — ونقلناه خارج
+    // شرط "AppState.reviewScheduleManager" لأنه لازم يشتغل حتى لو الميزة دي مش مفعّلة.
+    let studentIdForGradingSync = sub.studentId;
+    if (!studentIdForGradingSync) {
+        try {
+            const students = await AppState.studentManager.getAllStudents();
+            const std = students.find(s => s.name === sub.studentName);
+            studentIdForGradingSync = std ? std.id : null;
+        } catch (err) {
+            console.error("تعذر تحديد معرّف الطالب لتحديث جدول المراجعة/السجل المحلي:", err);
+        }
+    }
+
     // 🌟🌟 [جديد] نظام "المراجعة المتباعدة" (على نمط Anki/Duolingo): نقطة
     // التحديث المتفق عليها هي هنا بالضبط — بعد اعتماد المعلم للدرجة النهائية
     // يدوياً — وليس عند كل واجب تلقائي التصحيح لا يفتحه المعلم أبداً للمراجعة.
     // نجاح كبير (≥90%) يُبعد موعد المراجعة القادمة، وضعف (<50%) يُعيدها لليوم
     // التالي مباشرة. محاولة best-effort لا توقف حفظ الدرجات لو فشلت لأي سبب.
-    if (AppState.reviewScheduleManager) {
+    if (AppState.reviewScheduleManager && studentIdForGradingSync) {
         try {
-            let studentIdForSchedule = sub.studentId;
-            if (!studentIdForSchedule) {
-                const students = await AppState.studentManager.getAllStudents();
-                const std = students.find(s => s.name === sub.studentName);
-                studentIdForSchedule = std ? std.id : null;
-            }
-            if (studentIdForSchedule) {
-                await AppState.reviewScheduleManager.recordReviewResult(studentIdForSchedule, newScore);
-            }
+            await AppState.reviewScheduleManager.recordReviewResult(studentIdForGradingSync, newScore);
         } catch (err) {
             console.error("تعذر تحديث جدول المراجعة المتباعدة لهذا الطالب:", err);
         }
+    }
+
+    // 🌟🌟 [جديد — المرحلة 3] نُبقي نسخة history_ المحلية متزامنة مع الدرجة النهائية بعد
+    // التصحيح اليدوي — بدون هذا، جدول "سجل التقييمات السابقة" في ملف الطالب ورسم "الأداء عبر
+    // آخر التقييمات" في تقرير التقييم الفردي كانا سيظلان يعرضان الدرجة الأولية التلقائية للأبد،
+    // حتى بعد تصحيح المعلم يدويًا (تأكّدنا من هذا بقراءة student/student.js وreports/report.js
+    // فعليًا). راجع core/submissionStatus.js للشرح الكامل. محاولة best-effort مستقلة تمامًا عن
+    // جدول المراجعة أعلاه — تعمل حتى لو reviewScheduleManager غير مفعّل.
+    if (studentIdForGradingSync && sub.hwId) {
+        syncSubmissionScoreToLocalHistory(studentIdForGradingSync, sub.hwId, newScore);
     }
 
     // 🌟 رفع النتيجة المحدثة إلى السحابة للأبد 🌟

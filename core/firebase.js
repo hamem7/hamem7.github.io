@@ -11,6 +11,16 @@ import { getFirestore, collection, addDoc, getDocs, query, where, doc, setDoc, g
 // (Dynamic Import) فقط داخل دالة uploadAudioAndGetUrl نفسها، ومغلّفة بالكامل بـ try/catch، بحيث
 // أي فشل في هذا الجزء تحديداً لا يؤثر إطلاقاً على بقية التطبيق.
 
+// 🌟🌟 [جديد] طبقة حماية مشتركة لكل نداءات السحابة في هذا الملف (مهلة زمنية قصوى موحّدة،
+// حارس ضد الحقول الضخمة، ومصنع طابور إعادة محاولة موحّد) — راجع core/netUtils.js للشرح
+// الكامل لسبب توحيدها في ملف واحد بدل تكرارها. هذا التعديل جزء من "المرحلة 1" من خطة تصليب
+// نظام الواجبات المتفَق عليها مع المعلم — راجع
+// claude/توحيد-طبقة-مزامنة-الواجبات-ومهلات-الشبكة-المرحلة-1.md في مشروع المنصة للتفاصيل الكاملة.
+import { withTimeout, withTimeoutOrThrow, stripOversizedFields, createPendingQueue, DEFAULT_TIMEOUT_MS } from './netUtils.js';
+// 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
+// نفس المقارنة هنا وفي settings/homework-prep.js — راجع core/submissionStatus.js للشرح الكامل.
+import { submissionNeedsGrading } from './submissionStatus.js';
+
 // مفاتيح الربط الخاصة بمشروعك (DarHam-Quran)
 const firebaseConfig = {
     apiKey: "AIzaSyCbyVInjIEIYq51qoKBK-DZKbBLhhUAsfY",
@@ -63,6 +73,26 @@ const db = getFirestore(app);
 // لكنه يحتاج تفعيل الفوترة (Billing) على مشروع Google Cloud المرتبط — راجع ذلك في Google Cloud
 // Console لو ظهرت أي مشاكل رغم هذا الإصلاح.
 const RECAPTCHA_ENTERPRISE_SITE_KEY = "6LeBbsAtAAAAAPISU_0KVYI3C41I3EtWtWoJPPf4";
+
+// ==========================================
+// 🌟🌟 [جديد] تفعيل تلقائي وآمن لوضع تصحيح App Check أثناء الاختبار المحلي (Live Server) فقط
+// ==========================================
+// ⚠️ [افتراض صريح]: App Check فوق مفعَّل وواقف (Enforce) على الدومين الحقيقي المنشور فقط —
+// أي اختبار محلي (Live Server على localhost أو 127.0.0.1) هيترفض تلقائيًا من Firestore/Storage
+// لأن الدومين المحلي مش مسجَّل في reCAPTCHA Enterprise أصلاً، حتى لو كل الكود سليم 100%. هذا على
+// الأرجح تحديدًا سبب أي "مشكلة" ظهرت عند تجربة حفظ/رفع واجب محليًا. الحل الرسمي الموثَّق من
+// Firebase: "وضع التصحيح" (Debug Mode) يتجاوز مزوّد الحماية الفعلي (Enterprise) بمزوّد اختباري
+// خاص — يعمل تلقائيًا هنا فقط لو الدومين localhost/127.0.0.1 (بالضبط زي Live Server)، وأبداً لا
+// يعمل على الموقع الحقيقي المنشور، فلا داعي لحذف هذا الجزء يدويًا قبل أي رفع مستقبلي.
+// خطوة يدوية واحدة مطلوبة من المعلم (مرة واحدة فقط): افتح المنصة محلياً بـLive Server، افتح
+// أدوات المطور (F12) → Console، هتلاقي رسالة فيها "Debug Token" (نص عشوائي طويل) — انسخه، وأضِفه
+// من Firebase Console → App Check → التطبيق (DarHamWeb) → Manage debug tokens. بعدها كل حفظ/رفع
+// واجب من الجهاز ده تحديداً هيشتغل محلياً بالضبط زي الموقع الحقيقي، طول ما التطوير مستمر.
+if (typeof self !== 'undefined' && self.location &&
+    (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1')) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 // 🌟 استيراد كسول (Dynamic Import) ومغلّف بالكامل بـ try/catch — بنفس فلسفة Storage/Analytics
 // أعلاه بالضبط. أي فشل في هذا الجزء (مفتاح غير صحيح، حظر إعلانات، لا يوجد إنترنت) لا يؤثر
 // إطلاقًا على أي شاشة أو ميزة أخرى في المنصة، فقط لن تُضاف طبقة الحماية هذه لهذه الجلسة.
@@ -113,25 +143,34 @@ const RECAPTCHA_ENTERPRISE_SITE_KEY = "6LeBbsAtAAAAAPISU_0KVYI3C41I3EtWtWoJPPf4"
 // ==========================================
 
 // دالة 1: رفع نتيجة الطالب إلى السحابة
+// 🌟 [محدَّث] الآن مُغلَّفة بمهلة قصوى موحّدة (DEFAULT_TIMEOUT_MS) عبر withTimeout — لو
+// تعلّق addDoc لأي سبب (شبكة متذبذبة، Storage...)، تُعاد false بعد المهلة بدل تعليق أي
+// شاشة تستدعي هذه الدالة للأبد. الدالة أصلاً لا ترمي استثناءً (تُعيد true/false فقط)، فهذا
+// التغيير لا يُغيّر شكل تعاملها مع أي مستدعٍ حالي إطلاقاً.
 export async function saveSubmissionToCloud(submissionData) {
-    try {
-        // 🌟🌟 حماية عامة نهائية: Firestore يرفض تمامًا أي حقل قيمته undefined في أي مكان
-        // بالمستند (حتى لو كان متداخلاً جوه مصفوفة أو كائن فرعي) ويفشل الحفظ بالكامل برسالة
-        // "Unsupported field value: undefined" — وهذا كان يمنع حفظ كل تسليمات الطلاب من الأساس.
-        // الطريقة دي (تحويل لنص JSON ورجوع) بتحذف أي مفتاح قيمته undefined تلقائيًا وبأمان،
-        // فتضمن عدم تكرار هذه المشكلة مستقبلاً من أي مكان في الكود، حتى لو ظهر undefined جديد
-        // لم نتوقعه هنا.
-        const cleanData = JSON.parse(JSON.stringify(submissionData));
-        const docRef = await addDoc(collection(db, "submissions"), cleanData);
-        console.log("تم رفع النتيجة بنجاح للسحابة برقم: ", docRef.id);
-        return true;
-    } catch (e) {
-        // 🌟 مهم: هذا هو المكان الذي كانت تفشل فيه الرفعات بصمت (مثلاً بسبب تجاوز حجم المستند 1MB
-        // عند وجود تسجيل صوتي Base64 ضخم، أو بسبب قواعد أمان Firestore). نطبع الخطأ كاملاً هنا
-        // ليسهل تشخيصه من console المتصفح، ونعيد false حتى يتعامل معه المستدعي (تسجيل محلي وإعادة محاولة).
-        console.error("حدث خطأ أثناء رفع النتيجة للسحابة: ", e);
-        return false;
-    }
+    return withTimeout((async () => {
+        try {
+            // 🌟🌟 حماية عامة نهائية: Firestore يرفض تمامًا أي حقل قيمته undefined في أي مكان
+            // بالمستند (حتى لو كان متداخلاً جوه مصفوفة أو كائن فرعي) ويفشل الحفظ بالكامل برسالة
+            // "Unsupported field value: undefined" — وهذا كان يمنع حفظ كل تسليمات الطلاب من الأساس.
+            // الطريقة دي (تحويل لنص JSON ورجوع) بتحذف أي مفتاح قيمته undefined تلقائيًا وبأمان،
+            // فتضمن عدم تكرار هذه المشكلة مستقبلاً من أي مكان في الكود، حتى لو ظهر undefined جديد
+            // لم نتوقعه هنا.
+            let cleanData = JSON.parse(JSON.stringify(submissionData));
+            // 🌟 [جديد] حارس إضافي ضد أي حقل ضخم غير متوقع (راجع core/netUtils.js) — نفس سبب
+            // استبعاد الصور الكبيرة من الواجبات نفسها أدناه في saveHomeworkToCloud.
+            cleanData = stripOversizedFields(cleanData);
+            const docRef = await addDoc(collection(db, "submissions"), cleanData);
+            console.log("تم رفع النتيجة بنجاح للسحابة برقم: ", docRef.id);
+            return true;
+        } catch (e) {
+            // 🌟 مهم: هذا هو المكان الذي كانت تفشل فيه الرفعات بصمت (مثلاً بسبب تجاوز حجم المستند 1MB
+            // عند وجود تسجيل صوتي Base64 ضخم، أو بسبب قواعد أمان Firestore). نطبع الخطأ كاملاً هنا
+            // ليسهل تشخيصه من console المتصفح، ونعيد false حتى يتعامل معه المستدعي (تسجيل محلي وإعادة محاولة).
+            console.error("حدث خطأ أثناء رفع النتيجة للسحابة: ", e);
+            return false;
+        }
+    })(), DEFAULT_TIMEOUT_MS, false);
 }
 
 // دالة 2: جلب نتائج الطلاب لمعلم معين أو لواجب معين من السحابة
@@ -139,25 +178,30 @@ export async function saveSubmissionToCloud(submissionData) {
 // وتعيد مصفوفة فارغة [] كأن لا أحد قد سلّم الواجب، فتظهر رسالة "لم يقم أي طالب بحل الاختبار"
 // حتى لو كانت المشكلة الحقيقية "تعذر الاتصال/الصلاحيات". الآن نرفع الخطأ (throw) ليستطيع
 // المستدعي (homework-prep.js) التفريق بين الحالتين وعرض رسالة الخطأ الصحيحة.
+// 🌟 [محدَّث] مُغلَّفة الآن بـ withTimeoutOrThrow: لو تعلّقت للأبد، تُرفض (reject) بخطأ واضح
+// بعد المهلة القصوى بدل التعليق الصامت — بنفس فلسفة "لا نُخفي الخطأ" المذكورة أعلاه بالضبط،
+// فالمهلة المنتهية تُعامَل كأي فشل شبكة آخر تتعامل معه هذه الدالة أصلاً.
 export async function getSubmissionsFromCloud(hwId) {
-    try {
-        const q = query(collection(db, "submissions"), where("hwId", "==", hwId));
-        const querySnapshot = await getDocs(q);
-        let results = [];
-        querySnapshot.forEach((doc) => {
-            // 🌟 التعديل الذكي هنا: جلب المعرف السري للملف (docId) لكي نستطيع تحديثه لاحقاً
-            let data = doc.data();
-            data.docId = doc.id;
-            results.push(data);
-        });
+    return withTimeoutOrThrow((async () => {
+        try {
+            const q = query(collection(db, "submissions"), where("hwId", "==", hwId));
+            const querySnapshot = await getDocs(q);
+            let results = [];
+            querySnapshot.forEach((doc) => {
+                // 🌟 التعديل الذكي هنا: جلب المعرف السري للملف (docId) لكي نستطيع تحديثه لاحقاً
+                let data = doc.data();
+                data.docId = doc.id;
+                results.push(data);
+            });
 
-        // ترتيب النتائج من الأحدث للأقدم
-        results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        return results;
-    } catch (e) {
-        console.error("حدث خطأ أثناء جلب النتائج من السحابة: ", e);
-        throw e; // لا نُخفي الخطأ عن الواجهة
-    }
+            // ترتيب النتائج من الأحدث للأقدم
+            results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            return results;
+        } catch (e) {
+            console.error("حدث خطأ أثناء جلب النتائج من السحابة: ", e);
+            throw e; // لا نُخفي الخطأ عن الواجهة
+        }
+    })());
 }
 
 // 🌟🌟 [جديد] دالة: جلب كل التسليمات (عبر كل الواجبات دفعة واحدة) التي بها سؤال واحد على الأقل
@@ -168,25 +212,27 @@ export async function getSubmissionsFromCloud(hwId) {
 // وأرخص من تكرار الاستعلام لكل واجب على حدة (getSubmissionsFromCloud) بعدد الواجبات. الحجم
 // المتوقع (تسليمات معلم واحد) صغير بما يكفي لتحميله دفعة واحدة؛ لو تضخّم العدد كثيرًا مستقبلاً
 // قد نحتاج تحويلها لعدّاد مجمَّع على الخادم (getCountFromServer) بدل تنزيل كل المستندات.
+// 🌟 [محدَّث] نفس تغليف withTimeoutOrThrow المطبَّق على getSubmissionsFromCloud أعلاه، ولنفس السبب.
 export async function getSubmissionsNeedingGrading() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "submissions"));
-        let results = [];
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const needsGrading = data.details && data.details.some(
-                d => d.needsManualGrading && d.manualScore === undefined
-            );
-            if (needsGrading) {
-                data.docId = docSnap.id;
-                results.push(data);
-            }
-        });
-        return results;
-    } catch (e) {
-        console.error("حدث خطأ أثناء جلب التسليمات التي تحتاج تصحيح: ", e);
-        throw e; // نفس فلسفة getSubmissionsFromCloud: لا نُخفي الخطأ، المستدعي يقرر كيف يعرضه
-    }
+    return withTimeoutOrThrow((async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "submissions"));
+            let results = [];
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                // 🌟 [محدَّث — المرحلة 2] نفس الفحص بالضبط، لكن الآن عبر الدالة المشتركة
+                // submissionNeedsGrading بدل تكرار المقارنة هنا محلياً — راجع core/submissionStatus.js
+                if (submissionNeedsGrading(data)) {
+                    data.docId = docSnap.id;
+                    results.push(data);
+                }
+            });
+            return results;
+        } catch (e) {
+            console.error("حدث خطأ أثناء جلب التسليمات التي تحتاج تصحيح: ", e);
+            throw e; // نفس فلسفة getSubmissionsFromCloud: لا نُخفي الخطأ، المستدعي يقرر كيف يعرضه
+        }
+    })());
 }
 
 // 🌟 [جديد] دالة: جلب كل تسليمات كل الواجبات دفعة واحدة، بلا أي فلترة — تُستخدَم في
@@ -195,36 +241,43 @@ export async function getSubmissionsNeedingGrading() {
 // نفس [الافتراض الصريح] المستخدم أعلاه بالضبط في getSubmissionsNeedingGrading: منصة لمعلم
 // واحد، فاستعلام واحد على المجموعة كاملة كافٍ وأرخص، والفلترة بالطالب/التاريخ تتم بالذاكرة
 // في المستدعي (نفس فلسفة بقية قواعد بيانات المنصة: بلا فهارس مخصصة لحجم استخدام معلم واحد).
+// 🌟 [محدَّث] نفس تغليف withTimeoutOrThrow، ولنفس السبب بالضبط.
 export async function getAllSubmissionsFromCloud() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "submissions"));
-        let results = [];
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            data.docId = docSnap.id;
-            results.push(data);
-        });
-        return results;
-    } catch (e) {
-        // نفس فلسفة getSubmissionsFromCloud/getSubmissionsNeedingGrading: لا نُخفي الخطأ
-        // (لا نعيد [] بصمت)، حتى يستطيع المستدعي (monthly-report.js) التفريق بين "لا توجد
-        // تسليمات" الحقيقية و"تعذر الاتصال بالسحابة" ويعرض رسالة الخطأ الصحيحة للمعلم.
-        console.error("حدث خطأ أثناء جلب كل التسليمات من السحابة: ", e);
-        throw e;
-    }
+    return withTimeoutOrThrow((async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, "submissions"));
+            let results = [];
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                data.docId = docSnap.id;
+                results.push(data);
+            });
+            return results;
+        } catch (e) {
+            // نفس فلسفة getSubmissionsFromCloud/getSubmissionsNeedingGrading: لا نُخفي الخطأ
+            // (لا نعيد [] بصمت)، حتى يستطيع المستدعي (monthly-report.js) التفريق بين "لا توجد
+            // تسليمات" الحقيقية و"تعذر الاتصال بالسحابة" ويعرض رسالة الخطأ الصحيحة للمعلم.
+            console.error("حدث خطأ أثناء جلب كل التسليمات من السحابة: ", e);
+            throw e;
+        }
+    })());
 }
 
 // 🌟 [دالة جديدة] دالة 5: تحديث نتيجة الطالب بعد التصحيح اليدوي للمعلم 🌟
+// 🌟 [محدَّث] مُغلَّفة بـ withTimeout (تُعيد false عند التعليق، بنفس شكلها الأصلي — لا ترمي
+// استثناءً أصلاً)، حتى لا تتجمد غرفة التصحيح للأبد عند "حفظ الدرجات" لو الشبكة متذبذبة.
 export async function updateSubmissionInCloud(docId, updatedFields) {
-    try {
-        const docRef = doc(db, "submissions", docId);
-        await updateDoc(docRef, updatedFields);
-        console.log("تم تحديث النتيجة بعد التصحيح في السحابة بنجاح!");
-        return true;
-    } catch (e) {
-        console.error("حدث خطأ أثناء تحديث النتيجة بعد التصحيح: ", e);
-        return false;
-    }
+    return withTimeout((async () => {
+        try {
+            const docRef = doc(db, "submissions", docId);
+            await updateDoc(docRef, updatedFields);
+            console.log("تم تحديث النتيجة بعد التصحيح في السحابة بنجاح!");
+            return true;
+        } catch (e) {
+            console.error("حدث خطأ أثناء تحديث النتيجة بعد التصحيح: ", e);
+            return false;
+        }
+    })(), DEFAULT_TIMEOUT_MS, false);
 }
 
 // ==========================================
@@ -237,73 +290,68 @@ export async function updateSubmissionInCloud(docId, updatedFields) {
 // الرفع بالكامل بصمت (لأن الاستدعاء كان .catch(err => console.log(...)) فقط) ويختفي تسليم
 // الطالب بأكمله من لوحة المعلم — ولو كان الواجب يحتوي سؤالاً صوتياً واحداً فقط ضمن أسئلته.
 // الحل: نرفع الصوت إلى Firebase Storage ونخزّن فقط رابط التحميل (سطر نص قصير) في Firestore.
+// 🌟 [محدَّث] مُغلَّفة الآن بـ withTimeout أيضاً — كانت هذه الدالة تحديداً سبب "جاري الاعتماد..."
+// المعلّق للأبد قبل أن يُعالَج محلياً في games/homework-play.js عبر withTimeout خاصة بذلك
+// الملف؛ الآن الحماية موجودة في المصدر نفسه فتسري تلقائياً لأي شاشة تستخدم هذه الدالة مستقبلاً.
 export async function uploadAudioAndGetUrl(base64AudioDataUrl, submissionId, questionId) {
-    try {
-        // 🌟 استيراد كسول (Dynamic Import) — يحدث فقط عند استدعاء هذه الدالة فعلياً (أي عند وجود
-        // سؤال صوتي فقط)، وليس عند تحميل التطبيق. هذا يضمن أن أي مشكلة في Storage (غير مفعّل،
-        // شبكة، حظر) لا يمكن أن تكسر بقية التطبيق أبداً — أسوأ ما يحدث هو فشل رفع هذا الصوت تحديداً.
-        const { getStorage, ref, uploadString, getDownloadURL } =
-            await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js");
+    return withTimeout((async () => {
+        try {
+            // 🌟 استيراد كسول (Dynamic Import) — يحدث فقط عند استدعاء هذه الدالة فعلياً (أي عند وجود
+            // سؤال صوتي فقط)، وليس عند تحميل التطبيق. هذا يضمن أن أي مشكلة في Storage (غير مفعّل،
+            // شبكة، حظر) لا يمكن أن تكسر بقية التطبيق أبداً — أسوأ ما يحدث هو فشل رفع هذا الصوت تحديداً.
+            const { getStorage, ref, uploadString, getDownloadURL } =
+                await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js");
 
-        const storage = getStorage(app);
-        const path = `homework_audio/${submissionId}/${questionId}.webm`;
-        const storageRef = ref(storage, path);
-        // base64AudioDataUrl على شكل: "data:audio/webm;base64,....."
-        await uploadString(storageRef, base64AudioDataUrl, 'data_url');
-        const url = await getDownloadURL(storageRef);
-        return url;
-    } catch (e) {
-        console.error("حدث خطأ أثناء رفع الملف الصوتي إلى Storage (تأكد من تفعيل Firebase Storage في لوحة التحكم): ", e);
-        return null; // في حال الفشل، الدالة المستدعية تتعامل مع الأمر بأمان دون التأثير على بقية النظام
-    }
+            const storage = getStorage(app);
+            const path = `homework_audio/${submissionId}/${questionId}.webm`;
+            const storageRef = ref(storage, path);
+            // base64AudioDataUrl على شكل: "data:audio/webm;base64,....."
+            await uploadString(storageRef, base64AudioDataUrl, 'data_url');
+            const url = await getDownloadURL(storageRef);
+            return url;
+        } catch (e) {
+            console.error("حدث خطأ أثناء رفع الملف الصوتي إلى Storage (تأكد من تفعيل Firebase Storage في لوحة التحكم): ", e);
+            return null; // في حال الفشل، الدالة المستدعية تتعامل مع الأمر بأمان دون التأثير على بقية النظام
+        }
+    })(), DEFAULT_TIMEOUT_MS, null);
 }
 
 // ==========================================
-// 📦 [جديد] طابور احتياطي محلي لإعادة إرسال أي تسليم فشل رفعه للسحابة
+// 📦 طابورا احتياطيان محليان لإعادة إرسال أي تسليم/واجب فشل رفعه للسحابة
 // ==========================================
-// لماذا هذا ضروري؟
-// عملية رفع نتيجة الطالب للسحابة كانت (ولا تزال) تُنفَّذ في الخلفية دون انتظار (fire-and-forget).
-// إن فشلت (لا يوجد إنترنت، صلاحيات، حجم مستند...) كان الطالب لا يرى أي تنبيه، والنتيجة تختفي
-// نهائياً من عالم المعلم. الآن: أي تسليم يفشل يُحفظ في طابور محلي (localStorage) ويُعاد إرساله
-// تلقائياً في أقرب فرصة (مثلاً عند فتح صفحة حل الواجب مرة أخرى على نفس الجهاز).
-const PENDING_KEY = 'pendingHwSubmissions';
-
-function getPendingSubmissions() {
-    try {
-        return JSON.parse(localStorage.getItem(PENDING_KEY)) || [];
-    } catch (e) {
-        return [];
-    }
-}
-
-function setPendingSubmissions(list) {
-    try {
-        localStorage.setItem(PENDING_KEY, JSON.stringify(list));
-    } catch (e) {
-        console.error("تعذر حفظ طابور التسليمات المعلّقة محلياً:", e);
-    }
-}
-
+// لماذا هذا ضروري؟ عمليات الرفع للسحابة تُنفَّذ في الخلفية دون انتظار (fire-and-forget) من
+// نقاط استدعاء متعددة. إن فشلت (لا يوجد إنترنت، صلاحيات، حجم مستند، مهلة منتهية...) كان
+// المستخدم لا يرى أي أثر دائم، والبيانات تختفي من عالم المعلم. أي رفع فاشل يُحفظ في طابور
+// محلي (localStorage) ويُعاد إرساله تلقائياً في أقرب فرصة (فتح الشاشة، رجوع الاتصال، إقلاع
+// المنصة — راجع core/app.js وsettings/homework-prep.js لنقاط الاستدعاء الفعلية).
+// 🌟🌟 [محدَّث] كان هذا القسم يحتوي نسختين مكررتين حرفياً من نفس منطق get/set/queue/flush
+// (واحدة للتسليمات، وواحدة للواجبات) — الآن كلاهما يُبنى من مصنع واحد مشترك
+// (createPendingQueue في core/netUtils.js)، بنفس التوقيعات والسلوك والأسماء المُصدَّرة
+// تماماً، فلا يتغيّر أي شيء بالنسبة لأي ملف آخر يستدعي هذه الدوال.
+// 🌟 [محدَّث — المرحلة 2] أضفنا idField='id' لطابور التسليمات (لم يكن موجوداً في المرحلة 1،
+// بخلاف طابور الواجبات) — الآن كل تسليم يحمل حقل id ثابت (راجع games/homework-play.js حيث
+// أصبح submissionId يُخزَّن كحقل id داخل البيانات نفسها، لا يُستخدم فقط لمسار رفع الصوت كما كان
+// سابقاً). هذا يُمكّن isSubmissionPendingSync وgetPendingSubmissionsCountForHomework أدناه.
+const submissionsQueue = createPendingQueue('pendingHwSubmissions', saveSubmissionToCloud, 'id');
 export function queuePendingSubmission(submissionData) {
-    const list = getPendingSubmissions();
-    list.push(submissionData);
-    setPendingSubmissions(list);
+    submissionsQueue.queue(submissionData);
 }
-
-export async function flushPendingSubmissions() {
-    const list = getPendingSubmissions();
-    if (list.length === 0) return { sent: 0, remaining: 0 };
-
-    const stillPending = [];
-    let sentCount = 0;
-    for (const item of list) {
-        const ok = await saveSubmissionToCloud(item);
-        if (ok) sentCount++;
-        else stillPending.push(item);
-    }
-    setPendingSubmissions(stillPending);
-    if (sentCount > 0) console.log(`تم إرسال ${sentCount} تسليم(ات) كانت معلّقة محلياً بنجاح.`);
-    return { sent: sentCount, remaining: stillPending.length };
+export function flushPendingSubmissions() {
+    return submissionsQueue.flush();
+}
+// 🌟🌟 [جديد — المرحلة 2] هل تسليم معيّن (بمعرّفه) لا يزال عالقاً محلياً ولم يصل للسحابة بعد؟
+// نفس فكرة isHomeworkPendingSync تماماً، لكن للتسليمات — كانت غائبة تماماً قبل هذا التحديث،
+// فلا توجد أي وسيلة للمعلم يعرف بيها إن تسليم طالب معيّن فشل رفعه ولا يزال عالقاً على جهاز
+// الطالب فقط.
+export function isSubmissionPendingSync(submissionId) {
+    return submissionsQueue.isPending(submissionId);
+}
+// 🌟🌟 [جديد — المرحلة 2] كم تسليماً معلّقاً محلياً (لم يصل للسحابة بعد) يخص واجباً معيناً بالذات؟
+// تُستخدَم في settings/homework-prep.js لعرض تنبيه في شاشة نتائج الواجب نفسه — بدون هذا، كان
+// أي تسليم فشل رفعه يختفي تماماً من رؤية المعلم (شاشة النتائج تجلب من السحابة فقط، فتسليم لم
+// يصل للسحابة لا يظهر فيها إطلاقاً، لا حتى كعلامة "معلّق").
+export function getPendingSubmissionsCountForHomework(hwId) {
+    return submissionsQueue.list().filter(item => item.hwId === hwId).length;
 }
 
 // ==========================================
@@ -311,90 +359,53 @@ export async function flushPendingSubmissions() {
 // ==========================================
 
 // دالة 3: رفع الواجب إلى السحابة عند نشره (للمعلم)
+// 🌟 [محدَّث] مُغلَّفة الآن بـ withTimeout أيضاً — نفس سبب saveSubmissionToCloud أعلاه بالضبط.
 export async function saveHomeworkToCloud(hwData) {
-    try {
-        // 🌟🌟 [إصلاح جوهري] السبب الحقيقي الذي كان يمنع نظام الواجبات من الرفع للسحابة بشكل
-        // دائم (وليس مؤقتاً) عند إسناد الواجب لطالب معين: حقل assignedStudentAvatar قد يكون
-        // صورة الطالب الحقيقية كاملة بصيغة Base64 (لو رفع المعلم صورة له من شاشة الملف الشخصي —
-        // راجع student/student.js، دالة uploadAvatar وما شابهها)، وحجمها يمكن أن يكون كبيراً
-        // بما يكفي لتجاوز الحد الأقصى لحجم أي مستند Firestore (1 ميجابايت)، فيفشل setDoc
-        // بالكامل. والأخطر: بما أن flushPendingHomeworkSync (أسفل) يعيد إرسال نفس البيانات
-        // كما هي عند كل إقلاع للمنصة، فإن هذا الفشل لم يكن مؤقتاً بل دائماً — نفس الواجب يبقى
-        // عالقاً للأبد في طابور إعادة المحاولة ولا يصل للسحابة أبداً، فيفشل رابط الطالب برسالة
-        // "هذا الواجب غير موجود" إلى الأبد. هذا الحقل غير مستخدم أصلاً في شاشتي الطالب
-        // (student/homework-welcome.js و games/homework-play.js) — نفس السبب والاستبعاد
-        // المطبّق أصلاً في encodeHomeworkForLink (database/homeworkDB.js)، وننقله هنا أيضاً
-        // لأن الرفع للسحابة كان قد فاته هذا الاستبعاد تحديداً.
-        const { assignedStudentAvatar, ...dataWithoutAvatar } = hwData;
-        // 🌟🌟 [إصلاح] نفس حماية saveSubmissionToCloud أعلاه بالضبط: Firestore يرفض تمامًا أي
-        // حقل قيمته undefined (حتى لو متداخل)، فيفشل setDoc بالكامل بصمت (كان يُطبع في الـ
-        // console فقط دون أي أثر آخر). التحويل لنص JSON ورجوع يحذف أي undefined تلقائيًا.
-        const cleanData = JSON.parse(JSON.stringify(dataWithoutAvatar));
-        // نستخدم setDoc مع مسار (homeworks/hw_id) لكي نضمن أن الآي دي في السحابة هو نفس الآي دي المحلي
-        const hwRef = doc(db, "homeworks", cleanData.id);
-        await setDoc(hwRef, cleanData);
-        console.log("تم رفع الواجب للسحابة بنجاح!");
-        return true;
-    } catch (e) {
-        console.error("حدث خطأ أثناء رفع الواجب للسحابة: ", e);
-        return false;
-    }
+    return withTimeout((async () => {
+        try {
+            // 🌟🌟 [إصلاح جوهري] السبب الحقيقي الذي كان يمنع نظام الواجبات من الرفع للسحابة بشكل
+            // دائم (وليس مؤقتاً) عند إسناد الواجب لطالب معين: حقل assignedStudentAvatar قد يكون
+            // صورة الطالب الحقيقية كاملة بصيغة Base64 (لو رفع المعلم صورة له من شاشة الملف الشخصي —
+            // راجع student/student.js، دالة uploadAvatar وما شابهها)، وحجمها يمكن أن يكون كبيراً
+            // بما يكفي لتجاوز الحد الأقصى لحجم أي مستند Firestore (1 ميجابايت)، فيفشل setDoc
+            // بالكامل. والأخطر: بما أن flushPendingHomeworkSync (أسفل) يعيد إرسال نفس البيانات
+            // كما هي عند كل إقلاع للمنصة، فإن هذا الفشل لم يكن مؤقتاً بل دائماً — نفس الواجب يبقى
+            // عالقاً للأبد في طابور إعادة المحاولة ولا يصل للسحابة أبداً، فيفشل رابط الطالب برسالة
+            // "هذا الواجب غير موجود" إلى الأبد. هذا الحقل غير مستخدم أصلاً في شاشتي الطالب
+            // (student/homework-welcome.js و games/homework-play.js) — نفس السبب والاستبعاد
+            // المطبّق أصلاً في encodeHomeworkForLink (database/homeworkDB.js)، وننقله هنا أيضاً
+            // لأن الرفع للسحابة كان قد فاته هذا الاستبعاد تحديداً.
+            const { assignedStudentAvatar, ...dataWithoutAvatar } = hwData;
+            // 🌟🌟 [إصلاح] نفس حماية saveSubmissionToCloud أعلاه بالضبط: Firestore يرفض تمامًا أي
+            // حقل قيمته undefined (حتى لو متداخل)، فيفشل setDoc بالكامل بصمت (كان يُطبع في الـ
+            // console فقط دون أي أثر آخر). التحويل لنص JSON ورجوع يحذف أي undefined تلقائيًا.
+            let cleanData = JSON.parse(JSON.stringify(dataWithoutAvatar));
+            // 🌟 [جديد] حارس عام إضافي (راجع core/netUtils.js): يمسك أي حقل ضخم آخر غير
+            // assignedStudentAvatar لم نكتشفه بعد بنفس الطريقة، بدل انتظار فشل جديد في الإنتاج.
+            cleanData = stripOversizedFields(cleanData);
+            // نستخدم setDoc مع مسار (homeworks/hw_id) لكي نضمن أن الآي دي في السحابة هو نفس الآي دي المحلي
+            const hwRef = doc(db, "homeworks", cleanData.id);
+            await setDoc(hwRef, cleanData);
+            console.log("تم رفع الواجب للسحابة بنجاح!");
+            return true;
+        } catch (e) {
+            console.error("حدث خطأ أثناء رفع الواجب للسحابة: ", e);
+            return false;
+        }
+    })(), DEFAULT_TIMEOUT_MS, false);
 }
 
-// ==========================================
-// 📦 [جديد] طابور احتياطي محلي لإعادة رفع أي واجب فشل رفعه للسحابة عند النشر
-// ==========================================
-// لماذا هذا ضروري؟ رفع الواجب للسحابة عند النشر كان (قبل هذا الإصلاح) يُنفَّذ في الخلفية دون
-// انتظار (fire-and-forget) داخل settings/homework-prep.js، فلو فشل الرفع (لا يوجد إنترنت،
-// خطأ مؤقت، حقل undefined...) كان المعلم يرى نافذة "تم الحفظ بنجاح" ورابطاً جاهزاً للمشاركة
-// رغم أن الواجب لم يصل فعلياً للسحابة — فيعمل الرابط فقط على نفس جهاز المعلم (عبر IndexedDB
-// المحلي) ويفشل فوراً برسالة "هذا الواجب غير موجود" على أي جهاز آخر (جهاز الطالب الفعلي، أو
-// حتى نافذة متصفح مختلفة على نفس الجهاز يستخدمها المعلم للتجربة). الآن: أي رفع فاشل يُحفظ في
-// طابور محلي (localStorage، بنفس نمط PENDING_KEY لتسليمات الطلاب أعلاه) ويُعاد رفعه تلقائياً
-// في أقرب فرصة — راجع flushPendingHomeworkSync المستدعاة من core/app.js في 3 لحظات مختلفة
-// (عند إقلاع المنصة، عند عودة الاتصال بالإنترنت أثناء الجلسة عبر حدث 'online'، وعند فتح شاشة
-// إعداد الواجبات نفسها كل مرة) بدل الاعتماد على إقلاع كامل للمنصة فقط — راجع الشرح الكامل
-// بجانب كل استدعاء منها في core/app.js وsettings/homework-prep.js.
-const PENDING_HW_KEY = 'pendingHwCloudSync';
-
-function getPendingHomeworks() {
-    try {
-        return JSON.parse(localStorage.getItem(PENDING_HW_KEY)) || [];
-    } catch (e) {
-        return [];
-    }
-}
-
-function setPendingHomeworks(list) {
-    try {
-        localStorage.setItem(PENDING_HW_KEY, JSON.stringify(list));
-    } catch (e) {
-        console.error("تعذر حفظ طابور الواجبات المعلّقة محلياً:", e);
-    }
-}
-
+// 🌟 [محدَّث] طابور الواجبات المعلّقة أصبح الآن مبنياً من نفس المصنع المشترك أعلاه
+// (createPendingQueue)، بدل نسخة منفصلة مكررة — راجع الشرح الكامل بجانب submissionsQueue
+// أعلاه، ونفس الملاحظة: الأسماء المُصدَّرة وسلوكها الظاهر للمستدعي لم يتغيّر إطلاقاً.
+// idField: 'id' — يحافظ بالضبط على سلوك منع تكرار نفس الواجب في الطابور لو استدعيت
+// queuePendingHomeworkSync أكثر من مرة له (مثلاً بعد تعديله)، تماماً كالنسخة الأصلية.
+const homeworkQueue = createPendingQueue('pendingHwCloudSync', saveHomeworkToCloud, 'id');
 export function queuePendingHomeworkSync(hwData) {
-    const list = getPendingHomeworks();
-    // 🌟 تفادي تكرار نفس الواجب في الطابور لو استدعيت الدالة أكثر من مرة له (مثلاً بعد تعديله)
-    const filtered = list.filter(item => item.id !== hwData.id);
-    filtered.push(hwData);
-    setPendingHomeworks(filtered);
+    homeworkQueue.queue(hwData);
 }
-
-export async function flushPendingHomeworkSync() {
-    const list = getPendingHomeworks();
-    if (list.length === 0) return { sent: 0, remaining: 0 };
-
-    const stillPending = [];
-    let sentCount = 0;
-    for (const item of list) {
-        const ok = await saveHomeworkToCloud(item);
-        if (ok) sentCount++;
-        else stillPending.push(item);
-    }
-    setPendingHomeworks(stillPending);
-    if (sentCount > 0) console.log(`تم رفع ${sentCount} واجب(ات) كانت معلّقة محلياً للسحابة بنجاح.`);
-    return { sent: sentCount, remaining: stillPending.length };
+export function flushPendingHomeworkSync() {
+    return homeworkQueue.flush();
 }
 
 // 🌟🌟 [جديد] هل واجب معيّن (بمعرّفه) لا يزال عالقاً في طابور إعادة المحاولة ولم يصل للسحابة
@@ -402,23 +413,27 @@ export async function flushPendingHomeworkSync() {
 // الواجبات لم يُرفع بعد (بدل الاكتفاء بتحذير لحظي يختفي بمجرد إغلاق نافذة المشاركة، والاعتماد
 // على أن يتذكر المعلم فتح الشاشة لاحقاً)، وأيضاً لتحديد نجاح/فشل زر "إعادة المحاولة الآن" اليدوي.
 export function isHomeworkPendingSync(hwId) {
-    return getPendingHomeworks().some(item => item.id === hwId);
+    return homeworkQueue.isPending(hwId);
 }
 
 // دالة 4: البحث عن واجب وجلبه من السحابة (للطالب)
+// 🌟 [محدَّث] مُغلَّفة بـ withTimeout — نفس سبب باقي الدوال أعلاه، بدل ترك شاشة الترحيب
+// (student/homework-welcome.js) معلّقة للأبد لو تعذّر الاتصال بالسحابة أثناء البحث عن الواجب.
 export async function getHomeworkFromCloud(hwId) {
-    try {
-        const hwRef = doc(db, "homeworks", hwId);
-        const docSnap = await getDoc(hwRef);
+    return withTimeout((async () => {
+        try {
+            const hwRef = doc(db, "homeworks", hwId);
+            const docSnap = await getDoc(hwRef);
 
-        if (docSnap.exists()) {
-            return docSnap.data();
-        } else {
-            console.warn("الواجب غير موجود في السحابة!");
+            if (docSnap.exists()) {
+                return docSnap.data();
+            } else {
+                console.warn("الواجب غير موجود في السحابة!");
+                return null;
+            }
+        } catch (e) {
+            console.error("حدث خطأ أثناء جلب الواجب من السحابة: ", e);
             return null;
         }
-    } catch (e) {
-        console.error("حدث خطأ أثناء جلب الواجب من السحابة: ", e);
-        return null;
-    }
+    })(), DEFAULT_TIMEOUT_MS, null);
 }

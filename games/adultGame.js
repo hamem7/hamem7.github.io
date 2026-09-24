@@ -252,6 +252,19 @@ function computeQuestionScoreForHistory(d) {
 //     الذي قد يحمل أرقامًا هندية-عربية يصعب تحليلها برمجيًا بثقة.
 // ⚠️ [افتراض صريح]: لا يوجد سجل رجعي — الجلسات التي لُعبت قبل هذا التحديث لن تظهر أبداً
 // في history_ ولا في التقرير الشهري لأنها لم تُحفَظ وقتها أصلاً.
+//
+// 🌟 [إصلاح] كان حقل date هنا يُبنى بـ toLocaleDateString('ar-EG')، التي تُرجع الترتيب
+// يوم/شهر/سنة، بينما shortDateLabel في reports/report.js (المسؤولة عن عرض تاريخ كل
+// محطة في "سُلّم التقدّم") تفترض أن date دائمًا بترتيب سنة/شهر/يوم (نفس صيغة
+// formatDateArabic هناك) فتقرأ جزء "السنة" هنا على أنه "اليوم" فيظهر رقم غير منطقي
+// (كـ"٢٠٣٦") بدل يوم الشهر الصحيح. الحل: نبني date هنا بنفس ترتيب formatDateArabic
+// حرفيًا (سنة / شهر / يوم بأرقام إنجليزية) بدل الاعتماد على تنسيق المتصفح المحلي،
+// حتى يتطابق كل مصدر يكتب على history_ مع الصيغة التي يقرأها التقرير.
+function historyDateLabel() {
+    const now = new Date();
+    const yyyy = now.getFullYear(), mm = now.getMonth() + 1, dd = now.getDate();
+    return `${yyyy} / ${String(mm).padStart(2, '0')} / ${String(dd).padStart(2, '0')}`;
+}
 function persistEvaluationToHistory() {
     try {
         const student = AppState.currentStudent;
@@ -264,7 +277,7 @@ function persistEvaluationToHistory() {
         const historyKey = `history_${student.id}`;
         const historyArray = JSON.parse(localStorage.getItem(historyKey)) || [];
         historyArray.push({
-            date: new Date().toLocaleDateString('ar-EG'),
+            date: historyDateLabel(),
             range: GameState.evalRangeText || t('hist_eval_default_range'),
             score: scorePercent,
             source: 'adult_game',

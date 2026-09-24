@@ -222,6 +222,16 @@ function computeQuestionScoreForHistory(d) {
 // مطابقة تماماً لـ persistEvaluationToHistory في games/adultGame.js (راجع تعليقها هناك
 // لكل تفاصيل السبب والافتراضات)، والفرق الوحيد هنا هو source: 'kids_game' بدل 'adult_game'
 // لتمييز مصدر الجلسة عند عرضها لاحقاً في تقرير الإنجاز الشهري.
+//
+// 🌟 [إصلاح] نفس إصلاح تنسيق date الموجود في adultGame.js بالحرف: كانت
+// toLocaleDateString('ar-EG') تُرجع ترتيب يوم/شهر/سنة، بينما shortDateLabel في
+// reports/report.js تفترض ترتيب سنة/شهر/يوم فتعرض رقم السنة مكان اليوم في
+// "سُلّم التقدّم". الحل: نفس صيغة formatDateArabic هناك حرفيًا.
+function historyDateLabel() {
+    const now = new Date();
+    const yyyy = now.getFullYear(), mm = now.getMonth() + 1, dd = now.getDate();
+    return `${yyyy} / ${String(mm).padStart(2, '0')} / ${String(dd).padStart(2, '0')}`;
+}
 function persistEvaluationToHistory() {
     try {
         const student = AppState.currentStudent;
@@ -234,7 +244,7 @@ function persistEvaluationToHistory() {
         const historyKey = `history_${student.id}`;
         const historyArray = JSON.parse(localStorage.getItem(historyKey)) || [];
         historyArray.push({
-            date: new Date().toLocaleDateString('ar-EG'),
+            date: historyDateLabel(),
             range: GameState.evalRangeText || t('hist_eval_default_range'),
             score: scorePercent,
             source: 'kids_game',

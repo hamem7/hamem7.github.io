@@ -419,6 +419,11 @@ function getQuestionResults(){
       location: d.surahName
         ? `سورة ${d.surahName}${d.num != null ? ' - آية ' + d.num : ''}`
         : (d.location || d.ayahRef || d.reference || ''),
+      // 🌟 [جديد] نسخة من الموقع خاصة بصندوق "بحاجة إلى تركيز" فقط: تذكر اسم
+      // السورة كاملة دون تحديد رقم آية بعينها — بناءً على طلب صريح أن يكون
+      // التثبيت مراجعةً للسورة كلها لا لآية واحدة منها. location (بالأعلى) يبقى
+      // كما هو بذكر رقم الآية، لأنه يُستخدم أيضًا في عرض تفصيل كل سؤال على حدة.
+      focusLocation: d.surahName ? `سورة ${d.surahName}` : (d.location || d.ayahRef || d.reference || ''),
       text: d.text || '',
       status,
       score: computeQuestionScore(d),
@@ -522,11 +527,13 @@ function focusMoreLabel(n){
 function focusKeyOfResult(r){
   return normalizeFocusKey(r.text || `${r.location || ''} ${r.type || ''}`);
 }
-// "سورة الشمس - آية 5" — نفس صيغة location المبنية في getQuestionResults تمامًا،
-// حتى يظهر بند السجل القديم بنفس شكل بند اليوم بلا اختلاف بصري.
+// "سورة الشمس" — نفس صيغة focusLocation المبنية في getQuestionResults تمامًا،
+// حتى يظهر بند السجل القديم بنفس شكل بند اليوم بلا اختلاف بصري. هذه الدالة
+// تُستخدم فقط داخل صندوق "بحاجة إلى تركيز" (طبقة "متابعة سابقة")، لذا لا تذكر
+// رقم الآية عمدًا — راجع تعليق focusLocation أعلاه في getQuestionResults 🌟
 function weaknessLocation(w){
   if (!w.surahName) return '';
-  return `سورة ${w.surahName}${w.num != null ? ' - آية ' + w.num : ''}`;
+  return `سورة ${w.surahName}`;
 }
 function joinFocusParts(location, type, reason){
   const head = [location, type].filter(Boolean).join(' · ');
@@ -598,7 +605,10 @@ function getSkillHighlights(student, questionResults, speedCompare){
   // البند الذي أخطأ فيه الطالب اليوم وهو مسجَّل أصلًا في سجله القديم = خطأ متكرر،
   // وهي أقوى إشارة يمكن إعطاؤها لولي الأمر، ومبنية على بيانات مسجَّلة 100%.
   const buildToday = (r, kind) => {
-    const body = joinFocusParts(r.location, r.type, r.note || 'إجابة غير صحيحة');
+    // 🌟 [عدّل] نستخدم focusLocation (السورة كاملة بلا رقم آية) بدل location هنا
+    // تحديدًا، لأن هذا البند يُعرض داخل صندوق "بحاجة إلى تركيز" — راجع تعليق
+    // focusLocation في getQuestionResults أعلاه للسبب.
+    const body = joinFocusParts(r.focusLocation, r.type, r.note || 'إجابة غير صحيحة');
     return {
       kind,
       text: pastKeys.has(focusKeyOfResult(r)) ? `${t('report_focus_repeated')}: ${body}` : body

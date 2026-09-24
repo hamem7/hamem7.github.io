@@ -29,7 +29,11 @@
         <div class="form-grid" style="text-align: right;">
             <div class="input-group"><label data-i18n="name_full">الاسم (ثلاثي):</label><input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
             <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span id="age-display" style="font-size:0.9rem; color:#10b981;"></span></label><input type="date" id="stu-dob"></div>
-            <div class="input-group"><label data-i18n="grade">الصف الدراسي:</label><select id="stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>المرحلة الإعدادية</option><option>المرحلة الثانوية</option><option>المرحلة الجامعية</option><option>خريج</option></select></div>
+            <!-- 🌟 [عدّل] كانت المرحلتان الإعدادية والثانوية خيارًا واحدًا مجمَّعًا لكل منهما،
+            فصرنا الآن نفصّلهما لصفوف فردية (الأول/الثاني/الثالث) بنفس أسلوب تسمية صفوف
+            الابتدائي أعلاه بالحرف، حتى يغطي الصف صفوف 1 إلى 12 دراسيًا كاملة. المرحلة
+            الجامعية بقيت كما هي، و"خريج" أصبحت "خريج جامعي" (نفس الطلب صراحة) 🌟 -->
+            <div class="input-group"><label data-i18n="grade">الصف الدراسي:</label><select id="stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>الأول الإعدادي</option><option>الثاني الإعدادي</option><option>الثالث الإعدادي</option><option>الأول الثانوي</option><option>الثاني الثانوي</option><option>الثالث الثانوي</option><option>المرحلة الجامعية</option><option>خريج جامعي</option></select></div>
             <div class="input-group"><label data-i18n="country">البلد:</label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
             <div class="input-group" style="grid-column: span 2;"><label data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</label><input type="text" id="stu-phone" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
             <div class="input-group" style="grid-column: span 2;"><label data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</label><div style="display:flex; gap:10px;"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>

@@ -796,6 +796,24 @@ function setupAvatarEdit(student) {
     });
 }
 
+// 🌟 [جديد] يضبط قيمة <select> الصف الدراسي مع الحفاظ على أي قيمة قديمة لم تعد
+// موجودة ضمن خياراته الحالية (راجع تعليق استدعائها في openEditStudentModal). لو
+// القيمة فارغة أو موجودة أصلاً كخيار، لا يفعل شيئًا زيادة عن select.value العادي.
+function setGradeSelectValuePreservingLegacy(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.value = value;
+    if (!value || select.value === value) return;
+    // لا نضيف خيارًا مكرَّرًا لو سبق فتح طالب آخر بنفس القيمة القديمة في نفس الجلسة
+    const alreadyExists = Array.from(select.options).some(o => o.value === value);
+    if (!alreadyExists) {
+        const legacyOption = document.createElement('option');
+        legacyOption.value = value;
+        legacyOption.textContent = value;
+        select.insertBefore(legacyOption, select.firstChild);
+    }
+    select.value = value;
+}
 async function openEditStudentModal(id) {
     populateSurahOptions('edit-stu-memo-from', 'edit-stu-memo-to');
     const students = await AppState.studentManager.getAllStudents();
@@ -805,7 +823,13 @@ async function openEditStudentModal(id) {
     document.getElementById('edit-stu-name').value = s.name;
     document.getElementById('edit-stu-dob').value = s.dob || '';
     if(s.dob) calcAgeDynamic('edit-stu-dob', 'edit-age-display');
-    document.getElementById('edit-stu-grade').value = s.grade || '';
+    // 🌟 [جديد] بعد تفصيل "المرحلة الإعدادية/الثانوية" إلى صفوف فردية في قائمة
+    // edit-stu-grade، أي طالب قديم محفوظ بقيمة "المرحلة الإعدادية" أو "المرحلة
+    // الثانوية" أو "خريج" (القيم المحذوفة من القائمة) لن تجد <option> مطابقًا، فيعرض
+    // المتصفح القائمة فارغة ويُخاطر بمسح بيانة الصف الحقيقية للطالب لو حُفظ التعديل
+    // دون انتباه. حفاظًا على التوافق مع البيانات القديمة (بدل حذفها بصمت)، نضيف خيارًا
+    // مؤقتًا بنفس القيمة القديمة إن لم تكن أصلاً ضمن خيارات القائمة الجديدة.
+    setGradeSelectValuePreservingLegacy('edit-stu-grade', s.grade || '');
     document.getElementById('edit-stu-country').value = s.country || '';
     document.getElementById('edit-stu-phone').value = s.phone || '';
     document.getElementById('edit-stu-memo-from').value = s.memoFrom || '';
