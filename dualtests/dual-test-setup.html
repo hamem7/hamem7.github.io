@@ -257,12 +257,26 @@
     .dts-history-row-meta { font-size: 0.9rem; color: #64748b; }
     .dts-history-row button { padding: 8px 14px; font-size: 0.9rem; border-radius: 10px; }
 
+    /* 🌟 [جديد] نافذة "⏸️ المواجهات المعلقة" + زرها في صف الاختبار — تعيد استخدام نفس أصناف
+       صفوف نافذة المباريات السابقة (.dts-history-row) بلا تعديل أي قاعدة منها، وتضيف فقط
+       ما يخصها: لون شارة "الجولة التالية" وتجميع زرَّي (استكمال/حذف) في صف واحد. */
+    #dts-pending-matches-modal .modal-content { animation: dts-scaleIn 0.22s ease both; max-height: 80vh; overflow-y: auto; }
+    .dts-badge-pending { background: #fef3c7; color: #92400e; }
+    .dts-pending-row { border-color: var(--dh-gold-500); background: #fffbeb; }
+    .dts-pending-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    /* زر "مواجهات معلقة" في صف الاختبار — لون كهرماني مميّز ليلفت النظر أنه يوجد عمل ناقص */
+    .dts-test-row-actions button.dts-btn-pending {
+        border-color: var(--dh-gold-500); background: #fffbeb; color: #92400e; font-weight: bold;
+    }
+    .dts-test-row-actions button.dts-btn-pending:hover { border-color: #92400e; }
+
     [dir="ltr"] .dts-panel, [dir="ltr"] .dts-test-row-info { text-align: left; }
     [dir="ltr"] .dts-round-progress, [dir="ltr"] .dts-edit-range-link { margin-inline-start: auto; }
 
     @media (prefers-reduced-motion: reduce) {
         .dts-header-banner, .dts-panel, .dts-test-row, .dts-round-block, .dts-q-row, .dts-range-card, .dts-roundpick-btn,
-        #dts-start-match-modal .modal-content, #dts-matches-history-modal .modal-content {
+        #dts-start-match-modal .modal-content, #dts-matches-history-modal .modal-content,
+        #dts-pending-matches-modal .modal-content {
             animation: none !important;
         }
     }
@@ -369,6 +383,23 @@
             <button class="btn btn-outline" style="flex:1;" id="dts-match-cancel-btn" data-i18n="dts_start_match_cancel_btn">إلغاء</button>
             <button class="btn" style="flex:1;" id="dts-match-confirm-btn" data-i18n="dts_start_match_confirm_btn">🚀 ابدأ</button>
         </div>
+    </div>
+</div>
+
+<!-- ===== 🌟 [جديد] نافذة "المواجهات المعلقة" (استكمال مواجهة لم تكتمل جولاتها الثلاث) ===== -->
+<!-- بطلب صريح من المعلم: كل جولة تُلعَب في جلسة/يوم مستقل، ثم تنتهي الجلسة وتبقى المواجهة
+     محفوظة بنفس الطالبَين ونتائجهما. من هنا يستكملها المعلم من الجولة التالية مباشرة بلا
+     إعادة أي شيء من الصفر — راجع openPendingMatchesModal في dual-test-setup.js -->
+<div id="dts-pending-matches-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 560px;">
+        <h2 style="color:var(--dh-emerald-700); margin-top:0;" data-i18n="dts_pending_modal_title">⏸️ مواجهات لم تكتمل</h2>
+        <p style="color:#64748b; margin:0;" data-i18n="dts_pending_modal_desc">اختر مواجهة لاستكمالها من الجولة التالية بنفس الطالبَين ونتائجهما المحفوظة.</p>
+        <!-- 🌟 [جديد] يظهر فقط لو النافذة فُتحت من زر زوج طلاب محدَّد على صف الاختبار (وليس
+             زراً عاماً)، ليكون واضحاً للمعلم أن القائمة أسفله خاصة بهذين الطالبَين فقط — راجع
+             updatePendingModalPairLabel في dual-test-setup.js -->
+        <p id="dts-pending-pair-label" style="display:none; color:var(--dh-emerald-700); font-weight:bold; margin:0;"></p>
+        <div id="dts-pending-list" class="dts-history-list"></div>
+        <button class="btn btn-outline" style="width:100%;" id="dts-pending-close-btn" data-i18n="dts_history_close_btn">إغلاق</button>
     </div>
 </div>
 

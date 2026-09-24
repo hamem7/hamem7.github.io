@@ -292,6 +292,10 @@ async function playNextMission() {
         // 🌟 [جديد] إخفاء منطقة لعبة "رتب السور" عند بداية كل سؤال جديد 🌟
         document.getElementById('kids-order-surahs-area').style.display = 'none';
         document.getElementById('kids-mcq-area').style.display = 'none';
+        // 🌟 [جديد] إعادة ضبط خطوتَي لعبة "استمع وخمّن الآية" (الآيات ثم السور) عند بداية كل
+        // سؤال جديد — راجع تعليق generateKidsListenAyah و showKidsListenSurahStep أدناه 🌟
+        document.getElementById('kids-listen-surah-area').style.display = 'none';
+        document.getElementById('kids-options-container').style.display = '';
         document.getElementById('game-answer').style.display = 'none'; 
         document.getElementById('show-ans-btn').style.display = 'none'; 
         // 🌟 تطبيق الترجمة هنا 🌟
@@ -435,14 +439,30 @@ async function playNextMission() {
                             <button class="kids-tf-btn" style="background:#10b981;" onclick="window.recordKidsAnswer(${GameState.currentData.isTrue})">✅ ${t("نـعـم")}</button>
                             <button class="kids-tf-btn" style="background:#ef4444;" onclick="window.recordKidsAnswer(${!GameState.currentData.isTrue})">❌ ${t("لا")}</button>
                         </div>`; 
-                } else { 
-                    GameState.currentData.options.forEach(opt => { 
-                        let btn = document.createElement('button'); 
-                        btn.className = 'kids-mcq-btn quran-text'; 
-                        btn.innerHTML = `﴿ ${opt} ﴾`; 
-                        btn.onclick = () => window.recordKidsAnswer(opt.trim() === GameState.currentData.correctAns.trim()); 
-                        optsContainer.appendChild(btn); 
-                    }); 
+                } else {
+                    GameState.currentData.options.forEach(opt => {
+                        let btn = document.createElement('button');
+                        btn.className = 'kids-mcq-btn quran-text';
+                        btn.innerHTML = `﴿ ${opt} ﴾`;
+                        let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
+                        // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في
+                        // بيانات السؤال (راجع generateKidsListenAyah في engine/kidsEngine.js)،
+                        // بلا أي أثر على أي لعبة kids_mcq أخرى لا تملك هذا الحقل إطلاقًا. لو
+                        // اختار الطفل الآية الصحيحة، لا نُنهي السؤال فورًا كباقي الألعاب — بل
+                        // نعرض خطوة ثانية "من أي سورة هذه الآية؟"، ولا تُحتسب الإجابة صحيحة
+                        // نهائيًا إلا لو اختار السورة الصحيحة أيضًا (بطلب صريح من المعلم: لازم
+                        // الاثنان صح). لو أخطأ في اختيار الآية من الأساس، يُسجَّل السؤال خاطئًا
+                        // فورًا كالمعتاد بلا عرض خطوة السورة إطلاقًا 🌟
+                        if (Array.isArray(GameState.currentData.surahOptions)) {
+                            btn.onclick = () => {
+                                if (isAyahCorrect) showKidsListenSurahStep();
+                                else window.recordKidsAnswer(false, 'kids_listen_wrong_ayah_error');
+                            };
+                        } else {
+                            btn.onclick = () => window.recordKidsAnswer(isAyahCorrect);
+                        }
+                        optsContainer.appendChild(btn);
+                    });
                 }
                 document.getElementById('kids-mcq-area').style.display = 'block'; 
             }
@@ -450,9 +470,36 @@ async function playNextMission() {
     } catch (err) { console.error(err); GameState.currentIndex++; playNextMission(); }
 }
 
-window.recordKidsAnswer = function(isCorrect) {
+// 🌟 [تعديل] أضفنا معامل ثانٍ اختياري errorKey (مفتاح i18n) لدعم رسائل خطأ مخصّصة للعبة
+// "استمع وخمّن الآية" (راجع showKidsListenSurahStep أدناه) — بلا أي تغيير في سلوك أي استدعاء
+// قديم لا يمرّر هذا المعامل إطلاقًا (يبقى يستخدم الرسالة الافتراضية كما كانت) 🌟
+window.recordKidsAnswer = function(isCorrect, errorKey) {
     if(isCorrect) recordAnswer(true);
-    else { playErrorSound(); recordAnswer(false, [t("أخطأ في الاختيار")]); }
+    else { playErrorSound(); recordAnswer(false, [t(errorKey || "أخطأ في الاختيار")]); }
+}
+
+// 🌟 [جديد بالكامل] الخطوة الثانية من لعبة "استمع وخمّن الآية": تُستدعى فقط بعد اختيار الطفل
+// للآية الصحيحة (راجع فرع surahOptions أعلاه) — تُخفي خيارات الآيات وتعرض بدلاً منها خيارات
+// أسماء السور (GameState.currentData.surahOptions) ليختار الطفل من أي سورة هذه الآية. الإجابة
+// النهائية للسؤال بالكامل (صح/خطأ) لا تُحسَم إلا هنا — بطلب صريح من المعلم: لازم الآية والسورة
+// معًا صحيحتين حتى يُحتسب السؤال صحيحًا 🌟
+function showKidsListenSurahStep() {
+    document.getElementById('kids-options-container').style.display = 'none';
+    let surahContainer = document.getElementById('kids-listen-surah-options');
+    surahContainer.innerHTML = '';
+    GameState.currentData.surahOptions.forEach(surahName => {
+        let btn = document.createElement('button');
+        // 🌟 نفس الكلاس المستخدَم لأسماء السور في لعبة "خمن السورة" (generateKidsGuessSurah)
+        // بالضبط — للحفاظ على نفس الهوية البصرية بين اللعبتين 🌟
+        btn.className = 'kids-mcq-btn quran-text';
+        btn.innerText = surahName;
+        btn.onclick = () => {
+            if (surahName === GameState.currentData.correctSurah) window.recordKidsAnswer(true);
+            else window.recordKidsAnswer(false, 'kids_listen_wrong_surah_error');
+        };
+        surahContainer.appendChild(btn);
+    });
+    document.getElementById('kids-listen-surah-area').style.display = 'block';
 }
 
 // 🌟 [جديد بالكامل] تشغيل صوت الآية للعبة "استمع وخمّن الآية" — أول تشغيل صوت تلاوة حقيقي في

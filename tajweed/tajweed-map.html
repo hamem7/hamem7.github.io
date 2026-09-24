@@ -1,0 +1,21 @@
+<!-- tajweed/tajweed-map.html -->
+<!-- 🌟 [جديد بالكامل] القالب الوحيد لكل شاشات "أبطال التجويد" — بنفس فلسفة القالب الواحد
+     المتَّبعة في similarities/similarities-home.html بالضبط: حاوية واحدة (#tjw-container)
+     يعيد tajweed-map.js رسم محتواها بالكامل حسب الحالة الحالية (اختيار طالب، تصفّح
+     المراحل، بطاقة حكم مفتوحة...)، بلا أي طلب fetch إضافي لكل تنقّل. هذا الملف يبقى بسيطًا
+     ومستقرًا حتى لو تغيّرت شاشات التصفّح الداخلية لاحقًا في مراحل البناء القادمة. -->
+<div class="screen active">
+    <div class="tjw-wrap">
+        <div class="tjw-topbar">
+            <!-- 🌟 زر "رجوع خطوة" — يظهر فقط داخل شاشات التصفّح (وليس عند اختيار الطالب) -->
+            <button class="tjw-btn-level-back" id="tjw-btn-level-back" style="display:none;" data-i18n="sim_btn_back_level">⬅️ رجوع</button>
+            <h1 class="tjw-title" id="tjw-title" data-i18n="tjw_home_title">أبطال التجويد</h1>
+            <button class="btn btn-outline tjw-btn-exit" id="tjw-btn-exit" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>
+        </div>
+        <p class="tjw-subtitle" id="tjw-subtitle" data-i18n="tjw_home_subtitle">اختر اسم الطالب لتبدأ رحلته في تعلّم أحكام التجويد</p>
+
+        <div id="tjw-container" class="tjw-container">
+            <div class="tjw-loading" data-i18n="sim_loading">⏳ جاري التحميل...</div>
+        </div>
+    </div>
+</div>

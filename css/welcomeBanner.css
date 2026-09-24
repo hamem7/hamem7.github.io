@@ -1,0 +1,169 @@
+/* css/welcomeBanner.css */
+/* 🌟 [جديد بالكامل] تصميم "بطاقة الترحيب بالطالب" التي تظهر في وسط الشاشة لثوانٍ ثم تختفي —
+   ملف معزول تماماً بنفس فلسفة عزل sectionHint.css / similarities.css / home.css: كل القواعد
+   هنا ببادئة فريدة "dh-welcome-" ولا تعدّل ولا تكرر أي قاعدة موجودة في global.css أو
+   adults.css أو kids.css أو home.css. يعتمد فقط على متغيّرات الهوية البصرية المعرَّفة أصلاً
+   في home.css (--dh-emerald-*، --dh-gold-*، --dh-surface) بلا اختراع أي لون جديد. */
+
+.dh-welcome-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 7000; /* أعلى من بطاقة التلميحات (6000) لأنها تحية لحظية تسبق كل شيء */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    /* خلفية زمردية شفافة خفيفة — تُبرز البطاقة دون أن تحجب رؤية الشاشة خلفها تماماً */
+    background: radial-gradient(circle at center, rgba(6, 35, 28, 0.55), rgba(6, 35, 28, 0.78));
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    cursor: pointer; /* إشارة بصرية إلى أن أي نقرة تُخطّي البطاقة فوراً */
+    opacity: 0;
+    transition: opacity 0.4s ease; /* 🌟 لازم تطابق ثابت FADE_MS في components/welcomeBanner.js */
+}
+
+.dh-welcome-overlay.dh-welcome-visible {
+    opacity: 1;
+}
+
+.dh-welcome-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    padding: 34px 40px 30px;
+    max-width: 440px;
+    width: 100%;
+    /* تصريح واضح حتى لا يتأثر عرض البطاقة بالحشو والإطار مهما كانت قاعدة box-sizing
+       السائدة في global.css أو ثيم الشاشة الحالية */
+    box-sizing: border-box;
+    background: var(--dh-surface);
+    border-radius: var(--dh-radius-lg);
+    border: 2px solid var(--dh-gold-500);
+    box-shadow: 0 26px 60px rgba(6, 35, 28, 0.45);
+    transform: scale(0.88);
+    transition: transform 0.45s cubic-bezier(0.18, 1.1, 0.35, 1);
+}
+
+.dh-welcome-overlay.dh-welcome-visible .dh-welcome-card {
+    transform: scale(1);
+}
+
+/* ==========================================================================
+   دائرة الصورة — تحتوي إما صورة حقيقية، أو إيموجي، أو أول حرف من اسم الطالب
+   ========================================================================== */
+.dh-welcome-avatar {
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    /* حالة "أول حرف / إيموجي": تدرّج زمردي بحرف ذهبي كبير */
+    background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600));
+    color: var(--dh-gold-300);
+    font-size: 3.1rem;
+    font-weight: 700;
+    line-height: 1;
+    border: 4px solid var(--dh-gold-500);
+    box-shadow: 0 10px 24px rgba(6, 35, 28, 0.28);
+}
+
+/* حالة الصورة الحقيقية: نلغي التدرّج حتى لا يظهر خلف أي صورة شفافة الأطراف */
+.dh-welcome-avatar.dh-welcome-avatar-photo {
+    background: var(--dh-surface-alt);
+}
+
+.dh-welcome-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ==========================================================================
+   النصوص
+   ========================================================================== */
+.dh-welcome-hello {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--dh-ink-soft);
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.dh-welcome-name {
+    font-size: 2.1rem;
+    font-weight: 700;
+    color: var(--dh-emerald-800);
+    margin: 0;
+    line-height: 1.25;
+    /* حماية من الأسماء الطويلة جداً حتى لا تكسر البطاقة */
+    overflow-wrap: anywhere;
+}
+
+.dh-welcome-sub {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--dh-gold-500);
+    margin: 0;
+}
+
+/* خط ذهبي فاصل صغير أسفل الاسم — لمسة بصرية من نفس الهوية */
+.dh-welcome-divider {
+    width: 70px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, transparent, var(--dh-gold-500), transparent);
+}
+
+/* ==========================================================================
+   🌟 نمط ركن الأطفال — نفس البطاقة بحجم أكبر قليلاً وألوان أدفأ، يُفعَّل تلقائياً بإضافة
+   الكلاس dh-welcome-kids من components/welcomeBanner.js عند كون المنصة في وضع الأطفال
+   ========================================================================== */
+.dh-welcome-overlay.dh-welcome-kids .dh-welcome-card {
+    border-radius: 32px;
+    border-width: 3px;
+}
+.dh-welcome-overlay.dh-welcome-kids .dh-welcome-avatar {
+    width: 132px;
+    height: 132px;
+    font-size: 3.6rem;
+}
+.dh-welcome-overlay.dh-welcome-kids .dh-welcome-name {
+    font-size: 2.4rem;
+}
+
+/* ==========================================================================
+   الشاشات الصغيرة
+   ========================================================================== */
+@media (max-width: 480px) {
+    .dh-welcome-card {
+        padding: 26px 22px 24px;
+        gap: 12px;
+    }
+    .dh-welcome-avatar,
+    .dh-welcome-overlay.dh-welcome-kids .dh-welcome-avatar {
+        width: 94px;
+        height: 94px;
+        font-size: 2.6rem;
+    }
+    .dh-welcome-name,
+    .dh-welcome-overlay.dh-welcome-kids .dh-welcome-name {
+        font-size: 1.7rem;
+    }
+    .dh-welcome-sub { font-size: 1.1rem; }
+}
+
+/* احترام تفضيل تقليل الحركة — نفس ما فعلناه في sectionHint.css */
+@media (prefers-reduced-motion: reduce) {
+    .dh-welcome-overlay,
+    .dh-welcome-card {
+        transition: none;
+    }
+    .dh-welcome-card { transform: none; }
+    .dh-welcome-overlay.dh-welcome-visible .dh-welcome-card { transform: none; }
+}

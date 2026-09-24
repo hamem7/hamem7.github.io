@@ -1,5 +1,25 @@
 # دليل تفعيل Firebase App Check — قبل نشر المستودع Public
 
+## ⚠️⚠️ [تحديث 2026-09-24] الدليل ده بقى قديم جزئياً — خطوة 4 تحديداً بطلت متاحة
+
+اكتشفنا (بعد مشكلة حقيقية منعت رفع كل الواجبات وتسليمات الطلاب للسحابة بشكل شبه دائم — لوحة
+App Check كانت بتوضّح إن 94% من الطلبات "Unverified") إن **Firebase أوقف تمامًا تسجيل
+reCAPTCHA v3 العادي كخيار جديد** في App Check — خانة إدخال site key بتاعته بقت معطّلة تمامًا
+في لوحة التحكم، وبيظهر تحذير أحمر "reCAPTCHA has been deprecated. Please use reCAPTCHA
+Enterprise instead". يعني خطوة 4 تحت (اختيار reCAPTCHA v3) **بطلت ممكنة التنفيذ من الأساس**.
+
+**الحل اللي طبّقناه فعليًا:** التطبيق كان أصلاً مسجَّل (من غير قصد على ما يبدو) تحت
+**reCAPTCHA Enterprise** في نفس لوحة App Check، وFirebase بينشئ site key خاص بـ Enterprise
+تلقائيًا وقت هذا التسجيل. جبنا هذا المفتاح (Firebase Console → App Check → Apps → DarHamWeb →
+reCAPTCHA Enterprise → يظهر فيه الـ site key)، وعدّلنا `core/firebase.js` يستخدم
+`ReCaptchaEnterpriseProvider` بدل `ReCaptchaV3Provider` بهذا المفتاح الجديد (راجع التعليق
+🌟🌟 المفصّل بجانب `RECAPTCHA_ENTERPRISE_SITE_KEY` في الملف نفسه). **خطوات 4 و5 تحت أصبحت
+تاريخية فقط (توضّح كيف كان الإعداد الأصلي المقصود)، ومش المسار المتبع فعليًا حالياً.**
+
+**ملحوظة تستحق المتابعة:** reCAPTCHA Enterprise له حصة مجانية شهرية سخية، لكنه عادةً يحتاج
+تفعيل Billing (فوترة) على مشروع Google Cloud المرتبط بمشروع Firebase — لو ظهرت مشاكل رفع
+جديدة رغم هذا الإصلاح، أول حاجة تتأكد منها هي حالة الفوترة دي في Google Cloud Console.
+
 ## ليه محتاجين ده دلوقتي بالذات
 
 زي ما هو موضّح في `دليل-تطبيق-قواعد-الأمان.md`، قواعد Firestore وStorage الحالية مضطرة

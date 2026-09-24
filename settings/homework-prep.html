@@ -231,7 +231,14 @@
         <!-- 🌟 [جديد] تحذير يظهر فقط لو فشل رفع الواجب للسحابة بعد الحفظ المحلي — مخفي
              افتراضياً، ويُظهره/يُخفيه settings/homework-prep.js (saveHomeworkToDB) بناءً على
              نتيجة saveHomeworkToCloud الفعلية بدل الادعاء الصامت بالنجاح دائماً -->
-        <div id="hw-cloud-sync-warning" style="display:none; background:#fef3c7; color:#92400e; padding:12px 15px; border-radius:10px; margin-bottom:20px; font-size:0.95rem; line-height:1.7; border:1px solid #fcd34d;"></div>
+        <div id="hw-cloud-sync-warning" style="display:none; background:#fef3c7; color:#92400e; padding:12px 15px; border-radius:10px; margin-bottom:12px; font-size:0.95rem; line-height:1.7; border:1px solid #fcd34d;"></div>
+
+        <!-- 🌟🌟 [جديد] زر "إعادة المحاولة الآن" يظهر فقط بجانب تحذير فشل الرفع أعلاه — يتيح
+             للمعلم إعادة محاولة رفع هذا الواجب تحديداً للسحابة فوراً بضغطة واحدة، بدل انتظار
+             سلبي (إقلاع تالٍ للمنصة، أو عودة اتصال، أو تذكّر فتح هذه الشاشة لاحقاً)، مع تحديث
+             حقيقي فوري لنجاح/فشل المحاولة — راجع retryHomeworkCloudSync في
+             settings/homework-prep.js -->
+        <button type="button" id="btn-retry-hw-sync" class="btn" style="display:none; background:#f59e0b; margin-bottom:20px; width:100%; padding:10px; font-size:1rem; border:none; border-radius:8px; cursor:pointer; color:#fff;" data-i18n="hw_retry_sync_btn">🔄 إعادة المحاولة الآن</button>
 
         <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق والعودة 🏠</button>
     </div>

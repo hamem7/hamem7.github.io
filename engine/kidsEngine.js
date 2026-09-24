@@ -1,5 +1,8 @@
 // engine/kidsEngine.js
-import { cleanName, cleanAyahText, pickTargetAyah } from './quranEngine.js';
+// 🌟 splitAyahWords / splitAyahTokens / realWordIndexes: دوال مركزية في quranEngine.js تستبعد
+// علامات الوقف القرآنية (ۚ ۖ ۗ / ج / صلى / قلى...) من "كلمات" الآية، حتى لا تظهر كبطاقة اختيار
+// أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
+import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes } from './quranEngine.js';
 
 export class KidsEngine {
     constructor(quranEngine) {
@@ -7,9 +10,14 @@ export class KidsEngine {
     }
 
     async generateKidsCatchGame(ayahsPool, chunkIndex, totalChunks) { 
-        const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text); let words = cleanText.split(/\s+/); if(words.length < 4) return null; 
-        let hideIdx = Math.floor(words.length / 2); let missingWord = words[hideIdx]; words[hideIdx] = " ..... "; let visibleWords = words.join(" "); 
-        let sameSurahAyahs = ayahsPool.filter(a => a.surahNumber === ayah.surahNumber && a.number !== ayah.number); let distractors = []; sameSurahAyahs.forEach(a => distractors.push(...cleanAyahText(a.text).split(/\s+/))); distractors = [...new Set(distractors)].filter(w => w.length > 3 && w !== missingWord); distractors.sort(() => Math.random() - 0.5); 
+        // 🌟🌟 [إصلاح] الكلمة المخفية لا يجوز أن تكون علامة وقف (زي ۚ "الجيم الصغيرة") — كانت
+        // القسمة بالمسافات تعتبر رمز الوقف كلمةً مستقلة، فلو صادف وقوعه في منتصف الآية بالضبط
+        // يصبح هو "الإجابة الصحيحة" ويظهر للطفل كبطاقة اختيار، وهو رمز تلاوة لا كلمة من الآية.
+        // الحل: نحتفظ بالنص المعروض كما هو (برموز وقفه، splitAyahTokens)، لكن نختار موضع الإخفاء
+        // من مواضع الكلمات الفعلية فقط (realWordIndexes)، ونسحب المشتتات من splitAyahWords 🌟🌟
+        const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text); let words = splitAyahTokens(ayah.text); let realIdxs = realWordIndexes(words); if(realIdxs.length < 4) return null;
+        let hideIdx = realIdxs[Math.floor(realIdxs.length / 2)]; let missingWord = words[hideIdx]; words[hideIdx] = " ..... "; let visibleWords = words.join(" ");
+        let sameSurahAyahs = ayahsPool.filter(a => a.surahNumber === ayah.surahNumber && a.number !== ayah.number); let distractors = []; sameSurahAyahs.forEach(a => distractors.push(...splitAyahWords(a.text))); distractors = [...new Set(distractors)].filter(w => w.length > 3 && w !== missingWord); distractors.sort(() => Math.random() - 0.5);
         let options = [missingWord]; while(options.length < 3 && distractors.length > 0) { let d = distractors.pop(); if(!options.includes(d)) options.push(d); } 
         let backup = ["الْأَرْضِ", "السَّمَاءِ", "الْعَظِيمِ", "الْكَرِيمِ"]; while(options.length < 3 && backup.length > 0) { let b = backup.pop(); if(!options.includes(b)) options.push(b); } options.sort(() => Math.random() - 0.5); 
         return { type: 'kids_mcq', questionTitle: "اختر الكلمة الناقصة يا بطل! 🎯", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿ ${visibleWords} ﴾</div>`, correctAns: missingWord, options: options, ayahObj: ayah, reportText: cleanText }; 
@@ -21,12 +29,15 @@ export class KidsEngine {
         let options = [nextAyahText]; let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1 && cleanAyahText(a.text).length > 5); otherAyahs.sort(() => Math.random() - 0.5); 
         for(let a of otherAyahs) { if(options.length >= 3) break; let txt = cleanAyahText(a.text); if(txt !== nextAyahText) options.push(txt); }
         if(options.length < 3) { let externalAyahs = ayahsPool.filter(a => a.surahNumber !== targetAyah.surahNumber); externalAyahs.sort(() => Math.random() - 0.5); for(let a of externalAyahs) { if(options.length >= 3) break; let txt = cleanAyahText(a.text); if(!options.includes(txt)) options.push(txt); } } options.sort(() => Math.random() - 0.5); 
-        return { type: 'kids_mcq', questionTitle: "ماذا بعد هذه الآية يا بطل؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div><div style="font-size:1.8rem; font-weight:bold;">اختر الآية التي تليها:</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
+        // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
+        return { type: 'kids_mcq', questionTitle: "ماذا بعد هذه الآية يا بطل؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div><div style="font-size:1.8rem; font-weight:bold;">اختر الآية التي تليها:</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generateKidsWordOrderGame(ayahsPool, chunkIndex, totalChunks) {
-        let validAyahs = ayahsPool.filter(a => { let w = cleanAyahText(a.text).split(/\s+/); return w.length >= 3 && w.length <= 6; }); if(validAyahs.length === 0) return null; 
-        const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); let cleanText = cleanAyahText(ayah.text); let words = cleanText.split(/\s+/); let shuffled = [...words].sort(() => Math.random() - 0.5); 
+        // 🌟 [إصلاح] بطاقات الترتيب = كلمات فعلية فقط؛ رمز الوقف كان يظهر كبطاقة مستقلة يُطلب من
+        // الطفل وضعها في مكانها الصحيح، وهو ليس كلمة من كلمات الآية 🌟
+        let validAyahs = ayahsPool.filter(a => { let w = splitAyahWords(a.text); return w.length >= 3 && w.length <= 6; }); if(validAyahs.length === 0) return null;
+        const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); let cleanText = cleanAyahText(ayah.text); let words = splitAyahWords(ayah.text); let shuffled = [...words].sort(() => Math.random() - 0.5);
         return { type: 'kids_word_order', questionTitle: "رتب كلمات الآية يا بطل 🧩", originalWords: words, shuffledWords: shuffled, ayahObj: ayah, reportText: cleanText }; 
     }
 
@@ -72,12 +83,15 @@ export class KidsEngine {
     }
 
     async generateKidsExtraWord(ayahsPool, chunkIndex, totalChunks) {
-        let validAyahs = ayahsPool.filter(a => { let w = cleanAyahText(a.text).split(/\s+/); return w.length >= 4 && w.length <= 8; });
-        if(validAyahs.length === 0) validAyahs = ayahsPool; 
+        // 🌟 [إصلاح] الآية هنا تُعرض بعد دسّ كلمة زائدة، والاختيارات الثلاثة كلها كلمات من الآية
+        // (أول كلمة / آخر كلمة / الكلمة المدسوسة) — فنستبعد رموز الوقف من التقطيع كلياً حتى لا
+        // يصادف أن تكون أول أو آخر "كلمة" رمز وقف فتظهر كبطاقة اختيار أمام الطفل 🌟
+        let validAyahs = ayahsPool.filter(a => { let w = splitAyahWords(a.text); return w.length >= 4 && w.length <= 8; });
+        if(validAyahs.length === 0) validAyahs = ayahsPool;
         const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!ayah) return null;
-        
+
         let cleanText = cleanAyahText(ayah.text);
-        let words = cleanText.split(/\s+/);
+        let words = splitAyahWords(ayah.text);
         
         let surah = await this.quranEngine.getSurah(ayah.surahNumber);
         let poolWords = [];
@@ -85,7 +99,7 @@ export class KidsEngine {
         let endA = Math.min(surah.ayahs.length - 1, ayah.numberInSurah + 1); 
         for(let i = startA; i <= endA; i++) {
             if (i !== (ayah.numberInSurah - 1)) { 
-                let wArr = cleanAyahText(surah.ayahs[i].text).split(/\s+/);
+                let wArr = splitAyahWords(surah.ayahs[i].text);
                 poolWords.push(...wArr);
             }
         }
@@ -123,7 +137,8 @@ export class KidsEngine {
         for(let a of otherAyahs) { if(options.length >= 3) break; options.push(cleanAyahText(a.text)); }
         options.sort(() => Math.random() - 0.5);
         
-        return { type: 'kids_mcq', questionTitle: "ماذا قبل هذه الآية؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
+        // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
+        return { type: 'kids_mcq', questionTitle: "ماذا قبل هذه الآية؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
     }
     // 🌟 [حذف] لعبة "كم عدد آيات هذه السورة؟" (generateKidsAyahCount) — طلب المعلم إزالتها من
     // ركن الأطفال لأنها صعبة على الصغار (تتطلب حفظ عدد آيات دقيق بدل حفظ نص/معنى الآية نفسها).
@@ -161,7 +176,8 @@ export class KidsEngine {
     // (نصًا، لا رقمًا فقط — تجنبًا لتكرار الآيات المتشابهة لفظيًا زي "ويل يومئذ للمكذبين")، تُكمَّل
     // المشتتات تلقائيًا من باقي آيات النطاق (سور أخرى) بدل إرجاع اللعبة null بلا داعٍ.
     async generateKidsListenAyah(ayahsPool, chunkIndex, totalChunks) {
-        let validAyahs = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 3);
+        // 🌟 عدّ الكلمات الفعلية فقط (بلا رموز وقف) حتى لا تُعتبر آية قصيرة "صالحة" بالخطأ 🌟
+        let validAyahs = ayahsPool.filter(a => splitAyahWords(a.text).length >= 3);
         if (validAyahs.length === 0) validAyahs = ayahsPool;
         const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks);
         if (!ayah || !ayah.number) return null;
@@ -215,6 +231,20 @@ export class KidsEngine {
             <button type="button" id="kids-listen-play-btn" class="kids-listen-play-btn" onclick="window.playKidsListenAyahAudio()">🔊 استمع للآية</button>
         </div>`;
 
+        // 🌟 [جديد] الخطوة الثانية من اللعبة (بطلب المعلم): بعد ما يختار الطفل الآية الصحيحة
+        // اللي سمعها، تظهر له خطوة ثانية يختار فيها من أي سورة هذه الآية — نفس فكرة لعبة "خمن
+        // السورة" (generateKidsGuessSurah أعلاه) لكن بفارق مهم بقرار صريح من المعلم: مشتّتات
+        // أسماء السور هنا تُسحب من نطاق حفظ الطالب فقط (validAyahs/activePool)، ولا يوجد أي
+        // رجوع لكامل سور المصحف عبر getAllSurahsList() كما تفعل generateKidsGuessSurah — لأن
+        // الهدف تدريب الطفل على سور نطاقه الفعلي فقط. لو النطاق يحوي أقل من 3 سور مختلفة (حالة
+        // نادرة لنطاق ضيق جداً)، لا يمكن توليد 3 خيارات سور صادقة، فتُرجع الدالة null بالكامل —
+        // نفس آلية fallback القياسية الموجودة أصلاً لهذه اللعبة (تتحول تلقائيًا للعبة بديلة) 🌟
+        let correctSurah = ayah.surahName;
+        let otherSurahNames = [...new Set(validAyahs.map(a => a.surahName))].filter(n => n !== correctSurah);
+        if (otherSurahNames.length < 2) return null;
+        otherSurahNames.sort(() => Math.random() - 0.5);
+        let surahOptions = [correctSurah, ...otherSurahNames.slice(0, 2)].sort(() => Math.random() - 0.5);
+
         return {
             type: 'kids_mcq',
             questionTitle: 'kids_listen_title',
@@ -222,7 +252,12 @@ export class KidsEngine {
             correctAns: cleanText,
             options: options,
             ayahObj: ayah,
-            reportText: cleanText
+            reportText: cleanText,
+            // 🌟 [جديد] وجود surahOptions هو ما يميّز هذه اللعبة عن باقي ألعاب kids_mcq في
+            // games/kidsGame.js — لتفعيل خطوة "من أي سورة؟" الإضافية بعد الإجابة الصحيحة، بلا
+            // أي أثر على أي لعبة kids_mcq أخرى لا تملك هذا الحقل إطلاقًا 🌟
+            surahOptions: surahOptions,
+            correctSurah: correctSurah
         };
     }
 }

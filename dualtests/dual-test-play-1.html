@@ -624,95 +624,31 @@
         pointer-events: none;
     }
 
-    /* --- شبكة قيم الأسئلة --- */
-    /* 🌟 [مُحدَّث] بطلب صريح من المعلم: تكبير البطاقات وأرقامها/أيقوناتها وإعطاؤها شكلاً مميزاً.
-       تحويل الشبكة من grid بعمود 70px (كانت تُظهر 10 بطاقات صغيرة في صف واحد) إلى flex-wrap
-       ببطاقات أكبر متمركزة، فتلتف الصفوف تلقائياً وتبقى متوسطة حتى لو كان الصف الأخير ناقصاً.
-       كل القواعد هنا محصورة بـ #dtp-board-view فقط — قواعد .dtp-board-grid/.dtp-board-cell العامة
-       أعلى الملف لم تُلمس */
+    /* --- شبكة قيم الأسئلة، بطاقات متعرجة بدل الصف المستقيم --- */
     #dtp-board-view .dtp-board-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: clamp(12px, 2.2vw, 20px);
         background: rgba(255,253,246,0.94);
         border-radius: 24px;
-        padding: 28px 18px 22px 18px;
+        padding: 22px 18px 12px 18px;
     }
-    /* 🌟 [جديد] "بلاطة المسابقة": بطاقة ذهبية بارزة بإطار زمردي داخلي مزدوج، ونجمة ثمانية
-       (رمز ربع الحزب) باهتة كعلامة مائية خلف الرقم — نفس الزخرفة على كل البطاقات بالتساوي، فلا
-       تُفهم كتمييز لسؤال بعينه. isolation:isolate + z-index:-1 للطبقتين الزخرفيتين يضمنان بقاءهما
-       فوق خلفية البطاقة وتحت الرقم مباشرة */
     #dtp-board-view .dtp-board-cell {
         position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        width: clamp(78px, 22vw, 124px);
-        aspect-ratio: 1;
-        border-radius: 22px;
-        background: linear-gradient(160deg, #fbecb8 0%, var(--dh-gold-300) 30%, var(--dh-gold-500) 70%, #b8912a 100%);
-        border: 3px solid var(--dh-emerald-800);
-        box-shadow:
-            inset 0 0 0 3px rgba(255,253,246,0.75),
-            inset 0 0 0 6px rgba(6,35,28,0.28),
-            inset 0 3px 0 6px rgba(255,255,255,0.35),
-            0 6px 0 var(--dh-emerald-900),
-            0 14px 22px rgba(6,35,28,0.35);
-        color: var(--dh-emerald-900);
-        font-size: clamp(1.9rem, 4.5vw, 2.8rem);
-        font-weight: 900;
-        text-shadow: 0 2px 0 rgba(255,253,246,0.7);
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
+        border-radius: 14px;
+        background: linear-gradient(160deg, #f7e3a1, var(--dh-gold-500) 60%, #b8912a);
+        border: 2px solid rgba(6,35,28,0.35);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.55), 0 8px 14px rgba(180,140,30,0.3);
+        color: #3d2c06;
     }
-    /* --- العلامة المائية: مربعان متراكبان أحدهما مُدار 45° = نجمة ثمانية --- */
-    #dtp-board-view .dtp-board-cell::before,
-    #dtp-board-view .dtp-board-cell::after {
-        content: "";
-        position: absolute;
-        inset: 22%;
-        border: 2px solid rgba(6,35,28,0.16);
-        background: rgba(255,253,246,0.12);
-        border-radius: 4px;
-        z-index: -1;
-        pointer-events: none;
-    }
-    #dtp-board-view .dtp-board-cell::after { transform: rotate(45deg); }
     #dtp-board-view .dtp-board-cell:nth-child(odd) { transform: translateY(-4px); }
     #dtp-board-view .dtp-board-cell:nth-child(even) { transform: translateY(3px); }
-    #dtp-board-view .dtp-board-cell:hover {
-        transform: translateY(-8px) scale(1.06);
-        box-shadow:
-            inset 0 0 0 3px rgba(255,253,246,0.75),
-            inset 0 0 0 6px rgba(6,35,28,0.28),
-            inset 0 3px 0 6px rgba(255,255,255,0.35),
-            0 10px 0 var(--dh-emerald-900),
-            0 22px 30px rgba(6,35,28,0.4);
-    }
-    #dtp-board-view .dtp-board-cell:active {
-        transform: translateY(2px) scale(0.97);
-        box-shadow:
-            inset 0 0 0 3px rgba(255,253,246,0.75),
-            inset 0 0 0 6px rgba(6,35,28,0.28),
-            0 2px 0 var(--dh-emerald-900),
-            0 6px 10px rgba(6,35,28,0.3);
-    }
-    /* --- البطاقة المُجابة/المُبدَّلة: خلفية زمردية هادئة وأيقونة كبيرة واضحة --- */
+    #dtp-board-view .dtp-board-cell:hover { transform: scale(1.08) translateY(-6px); }
     #dtp-board-view .dtp-board-cell.dtp-cell-done {
-        background: linear-gradient(160deg, #e8efe9, #cfdcd3);
-        border-color: rgba(6,35,28,0.25);
-        box-shadow: inset 0 0 0 3px rgba(255,253,246,0.8), 0 3px 0 rgba(6,35,28,0.18);
-        font-size: clamp(1.9rem, 4.5vw, 2.6rem);
-        text-shadow: none;
+        background: #e2e8f0;
+        box-shadow: none;
         transform: none;
-        opacity: 0.85;
     }
-    #dtp-board-view .dtp-board-cell.dtp-cell-done::before,
-    #dtp-board-view .dtp-board-cell.dtp-cell-done::after { border-color: rgba(6,35,28,0.08); background: transparent; }
-    #dtp-board-view .dtp-board-cell.dtp-cell-done:hover { transform: none; }
-
-    /* 🌟 [مُعطَّل] نجمة "أعلى قيمة متاحة" — أُوقفت بطلب المعلم لأنها قد تُفهم كسؤال مميز (راجع
-       BOARD_TOP_STAR_ENABLED في dual-test-play.js). ملاحظة: ::after صار مستخدَماً الآن للعلامة
-       المائية أعلاه، فعند إعادة تفعيلها يجب نقلها لعنصر مستقل بدل ::after
+    /* 🌟 [جديد] نجمة صغيرة على البطاقة صاحبة أعلى قيمة متاحة حالياً في اللوحة — علامة
+       "أعلى الجوائز" بصرية فقط (راجع topIndex في renderBoardView بـ dual-test-play.js)، بلا
+       أي تأثير على إمكانية الاختيار أو طريقة الاحتساب */
     #dtp-board-view .dtp-board-cell.dtp-cell-top::after {
         content: "★";
         position: absolute;
@@ -729,7 +665,6 @@
         justify-content: center;
         box-shadow: 0 3px 6px rgba(0,0,0,0.3);
     }
-    */
 
     /* --- زر إنهاء الجولة يدوياً --- */
     #dtp-end-round-btn.dtp-end-round-btn {

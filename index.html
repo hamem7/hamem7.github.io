@@ -24,6 +24,13 @@
     <!-- 🌟 [جديد] تصميم بطاقة "تلميحات الأقسام عند أول دخول" العائمة — ملف معزول تماماً بنفس
          الفلسفة أعلاه، راجع components/sectionHint.js 🌟 -->
     <link rel="stylesheet" href="css/sectionHint.css">
+    <!-- 🌟 [جديد] تصميم "بطاقة الترحيب بالطالب" التي تظهر لحظة اختيار اسمه قبل لوحة التقييم —
+         ملف معزول تماماً بنفس الفلسفة أعلاه، راجع components/welcomeBanner.js 🌟 -->
+    <link rel="stylesheet" href="css/welcomeBanner.css">
+    <!-- 🌟 [جديد] تصميم شاشات "أبطال التجويد" (مجلد tajweed/) — ملف معزول تماماً بنفس فلسفة
+         home.css/similarities.css أعلاه، بلوحة ألوان مستقلة خاصة به (راجع تعليق الاستثناء
+         الموثَّق في رأس css/tajweed.css نفسه) 🌟 -->
+    <link rel="stylesheet" href="css/tajweed.css">
 </head>
 
 <body class="adult-theme" id="main-body">
@@ -41,6 +48,23 @@
             <div id="whats-new-list"></div>
             <div class="whats-new-modal-actions">
                 <button type="button" class="btn" id="whats-new-close" data-i18n="whats_new_close_btn">تمام، فهمت 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [جديد] نافذة "تذكير شهري بالنسخة الاحتياطية" — نفس نمط whats-new-modal أعلاه
+         بالضبط (عنصر ثابت خارج #app-root، مخفي افتراضياً بـ display:none)، وتستخدم نفس
+         كلاسات whats-new-modal/whats-new-modal-box البصرية حرفياً لتوحيد الهوية بلا أي
+         CSS جديد مكرَّر. core/app.js (checkMonthlyBackupReminder) هو المتحكم الوحيد في
+         إظهارها (مرة واحدة تلقائياً عند أول دخول كل شهر جديد على هذا الجهاز)، وcore/backupRestore.js
+         هو المسؤول عن التصدير الفعلي عند الضغط على "نزّل النسخة الآن" 🌟 -->
+    <div class="whats-new-modal" id="backup-reminder-modal" style="display:none;">
+        <div class="whats-new-modal-box">
+            <h3 data-i18n="backup_reminder_title">🗄️ تذكير شهري بالنسخة الاحتياطية</h3>
+            <p style="text-align:right; color:var(--dh-ink); line-height:1.6; margin-bottom:6px;" data-i18n="backup_reminder_body">مرّ شهر منذ آخر مرة أخذت فيها نسخة احتياطية من بيانات طلابك. يُفضَّل تنزيل نسخة جديدة الآن والاحتفاظ بها على جهازك للطوارئ.</p>
+            <div class="whats-new-modal-actions dh-backup-reminder-actions">
+                <button type="button" class="btn" id="backup-reminder-download-btn" data-i18n="backup_reminder_download_btn">⬇️ نزّل النسخة الآن</button>
+                <button type="button" class="btn btn-outline" id="backup-reminder-later-btn" data-i18n="backup_reminder_later_btn">لاحقاً</button>
             </div>
         </div>
     </div>
@@ -80,6 +104,23 @@
             </div>
         </div>
         <button type="button" class="dh-hint-close-btn" aria-label="✕">✕</button>
+    </div>
+
+    <!-- 🌟 [جديد] "بطاقة الترحيب بالطالب" — عنصر ثابت خارج #app-root (بنفس نمط بطاقة
+         التلميحات وwhats-new-modal والكونفيتي والتوست أعلاه)، وهذا مقصود تماماً: البطاقة
+         تُعرض في نفس اللحظة التي تُحمَّل فيها لوحة التقييم داخل #app-root، فلو كانت جزءاً من
+         قالب أي شاشة لاختفت فور استبدال محتوى الجذر. مخفية افتراضياً، وملف
+         components/welcomeBanner.js هو المسؤول الوحيد عن ملئها وإظهارها وإخفائها تلقائياً
+         بعد ثوانٍ قليلة (أو فوراً بنقرة من المعلم أو بزر Esc).
+         aria-live="polite" حتى يقرأ قارئ الشاشة التحية دون مقاطعة ما يقرأه المعلم حالياً 🌟 -->
+    <div class="dh-welcome-overlay" id="student-welcome-overlay" style="display:none;" role="status" aria-live="polite">
+        <div class="dh-welcome-card">
+            <div class="dh-welcome-avatar" aria-hidden="true"></div>
+            <p class="dh-welcome-hello"></p>
+            <h2 class="dh-welcome-name"></h2>
+            <div class="dh-welcome-divider" aria-hidden="true"></div>
+            <p class="dh-welcome-sub"></p>
+        </div>
     </div>
 
     <div id="app-root"></div>

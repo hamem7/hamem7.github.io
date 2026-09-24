@@ -47,6 +47,54 @@ export const cleanAyahText = (text) => {
     return toQuranicSukun(original);
 };
 
+// ==========================================
+// 🌟🌟 [نقل مركزي] فلترة علامات الوقف القرآنية من "كلمات" الآية
+// ==========================================
+// المشكلة: نص الآية في الرسم العثماني عند تقطيعه بالمسافات (split(/\s+/)) قد يحتوي على علامات
+// وقف قرآنية (مثل: ۚ الجيم الصغيرة "الوقف الجائز"، ۖ، ۗ، صلى، قلى...) تظهر كأنها "كلمة" مستقلة
+// بذاتها لأنها محاطة بمسافات في النص. هذا كان يتسبب في ظهورها بالخطأ كاختيار (صحيح أو خاطئ)
+// داخل أسئلة الاختيار من متعدد وألعاب الأطفال، رغم أنها ليست كلمة من كلمات الآية إطلاقاً بل رمز
+// توجيهي للوقف أثناء التلاوة — فيجد الطالب نفسه مطالباً باختيار "علامة" بدل كلمة.
+// كانت هذه الفلترة موجودة أصلاً *محلية وغير مُصدَّرة* داخل engine/homeworkEngine.js فقط، فتم
+// رفعها هنا للمحرك المركزي ليستفيد منها كل مكان يقطّع الآية إلى كلمات (ألعاب الأطفال، ألعاب
+// الكبار، الواجبات، الاختبارات...) بدل تكرار نفس المنطق في كل ملف على حدة.
+// ⚠️ [افتراض صريح]: أي "كلمة" مكوّنة من حرف عربي واحد منفرد محاط بمسافات تُعتبر علامة وقف وليست
+// كلمة فعلية، لأن حروف المعاني المفردة (و، ب، ل، ف...) تُكتب في الرسم العثماني متصلة بالكلمة
+// التالية ولا تظهر منفصلة بمسافة عنها إطلاقاً.
+const WAQF_MARKS = new Set(['صلى', 'صلي', 'قلى', 'قلي', 'سكتة', 'سكته']);
+
+export function isWaqfMark(word) {
+    if (!word) return true;
+    const w = word.trim();
+    if (!w) return true;
+    // نطاق يونيكود رموز الوقف القرآنية الرسمية (تُستخدم في بعض مصادر النص كرموز منفصلة)
+    if (/^[ۖ-ۭ]+$/.test(w)) return true;
+    // الأسماء المتعارف عليها لعلامات الوقف عندما تُكتب كنص عادي
+    if (WAQF_MARKS.has(w)) return true;
+    // حرف عربي واحد منفرد ومحاط بمسافات يكاد يكون دائماً رمز وقف (مثل: ج، م، ص، ق...)
+    if (w.length === 1 && /^[ء-ي]$/.test(w)) return true;
+    return false;
+}
+
+// 🌟 تقطيع نص الآية إلى كلمات فعلية فقط (بعد استبعاد رموز الوقف تماماً) — تُستخدم في كل موضع
+// كانت النتيجة فيه ستظهر للطالب كاختيار أو كبطاقة كلمة أو كمشتت.
+export function splitAyahWords(text) {
+    return cleanAyahText(text).split(/\s+/).filter(w => w && !isWaqfMark(w));
+}
+
+// 🌟 تقطيع يحافظ على رموز الوقف داخل المصفوفة (لأن النص المعروض للطالب يجب أن يظل كما هو في
+// المصحف برموز وقفه)، ويُستخدم مع realWordIndexes أدناه لمعرفة مواضع الكلمات الفعلية فقط.
+export function splitAyahTokens(text) {
+    return cleanAyahText(text).split(/\s+/).filter(w => w);
+}
+
+// 🌟 مواضع (فهارس) الكلمات الفعلية داخل مصفوفة ناتجة عن splitAyahTokens — أي موضع ليس رمز وقف.
+export function realWordIndexes(tokens) {
+    let idxs = [];
+    (tokens || []).forEach((t, i) => { if (!isWaqfMark(t)) idxs.push(i); });
+    return idxs;
+}
+
 export function pickTargetAyah(pool, chunkIndex, totalChunks) {
     if (!pool || pool.length === 0) return null;
     if (chunkIndex === undefined || chunkIndex === -1 || totalChunks === undefined || totalChunks === 0) {
@@ -165,7 +213,8 @@ export class QuranEngine {
         if(currentIndex !== -1 && currentIndex < ayahsPool.length - 1) { nextAyahText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         let targetText = cleanAyahText(targetAyah.text);
-        return { type: 'next', questionTitle: "ماذا بعدها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
+        // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
+        return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
@@ -174,7 +223,8 @@ export class QuranEngine {
         if(currentIndex > 0) { prevAyahText = cleanAyahText(ayahsPool[currentIndex - 1].text); if(currentIndex > 1) { let prev2 = cleanAyahText(ayahsPool[currentIndex - 2].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = "أول النطاق"; } } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = "أول السورة"; } }
         let targetText = cleanAyahText(targetAyah.text);
-        return { type: 'previous', questionTitle: "ماذا قبلها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
+        // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
+        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
     async generateOrderGame(ayahsPool, isKids, chunkIndex, totalChunks) { 
@@ -218,11 +268,15 @@ export class QuranEngine {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text);
         const words = cleanText.split(/\s+/); if(words.length < 3) return null; 
         let candidates = []; for(let i=0; i<words.length; i++) { if(words[i].replace(/[^أ-ي]/g, "").length >= 3) candidates.push(i); } 
-        if(candidates.length === 0) candidates = [Math.floor(words.length / 2)]; 
+        // 🌟 خط الرجوع نفسه يتجنب رموز الوقف: نأخذ مواضع الكلمات الفعلية، وفقط لو لم توجد إطلاقاً
+        // نرجع للسلوك القديم (منتصف الآية) 🌟
+        if(candidates.length === 0) { let realIdxs = realWordIndexes(words); candidates = realIdxs.length ? realIdxs : [Math.floor(words.length / 2)]; }
         const replaceIdx = candidates[Math.floor(Math.random() * candidates.length)]; let targetLen = words[replaceIdx].length; 
         let otherAyahs = ayahsPool.filter(a => a.numberInSurah !== ayah.numberInSurah || a.number !== ayah.number); if(otherAyahs.length === 0) otherAyahs = ayahsPool; 
         let stolenWord = "بَلْ"; 
-        for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = cleanAyahText(randAyah.text).split(/\s+/); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx]); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } } 
+        // 🌟 الكلمة "المدسوسة" تُسحب من كلمات فعلية فقط (splitAyahWords) — قبل ذلك كان ممكن أن
+        // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
+        for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx]); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
         const wrongWords = [...words]; wrongWords[replaceIdx] = stolenWord; 
         return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${wrongWords.join(" ")} ﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
     }
@@ -237,7 +291,7 @@ export class QuranEngine {
     }
 
     // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تُستخدم في ركن الكبار وركن الأطفال معاً (نفس
-    // الدالة بالضبط، بمعامل isKids فقط لاختيار صياغة العنوان المناسبة). تختار حتى 4 آيات (أو
+    // الدالة بالضبط، بمعامل isKids فقط لاختيار صياغة العنوان المناسبة). تختار حتى 5 آيات (أو
     // أقل لو النطاق صغيراً) وتقسّم كل واحدة لنصفين (بدايتها ونهايتها)، ثم تخلط عمود البدايات
     // وعمود النهايات كل واحد بترتيب عشوائي مستقل، والمطلوب من الطالب الربط بين كل بداية
     // ونهايتها الصحيحة. بخلاف لعبة "رتب الآيات" لا يُشترط أن تكون الآيات المختارة متتابعة أو من
@@ -246,8 +300,31 @@ export class QuranEngine {
     // ⚠️ [افتراض صريح]: نقطة تقسيم كل آية لنصفين هي منتصف عدد الكلمات (بالتقريب للأعلى)، وليس
     // تقسيماً لغوياً/نحوياً دقيقاً لموضع الوقف — اختيار مبسّط وثابت بدل محاولة اكتشاف "منتصف
     // المعنى" آلياً.
+    // 🌟 [جديد] تقليل النص المعروض في ركن الكبار فقط: عرض نصفي الآية كاملين (نصف على اليمين
+    // ونصف على اليسار) كان بيخلّي الربط أحياناً مجرد قراءة مباشرة لنص الآية موزَّعاً على
+    // العمودين، بدل استحضار حقيقي للمحفوظ. عند الكبار صارت اللعبة تعرض أول كلمات قليلة من الآية
+    // في عمود البدايات وآخر كلمات قليلة منها في عمود النهايات فقط، مع حذف وسط الآية تماماً
+    // والإشارة للمحذوف بعلامة (…) — فيضطر الطالب يفتكر الآية كاملة ليعرف أي بداية تخص أي نهاية.
+    // ركن الأطفال باقٍ كما هو بالضبط (نصف/نصف) بلا أي تغيير، لأن الهدف هناك التعرّف المبسّط لا
+    // اختبار الإتقان.
+    // ⚠️ [افتراض صريح 2]: عدد الكلمات المعروضة في كل طرف عند الكبار = ثلث كلمات الآية تقريباً،
+    // بحدّ أقصى 3 كلمات وحدّ أدنى كلمتان — اختيار عددي مبسّط بدل محاولة تحديد "أقل قدر مميِّز"
+    // لغوياً. ولأن أغلب آيات قصار السور 4 كلمات فقط (وعندها 2+2 = الآية كاملة موزّعة على
+    // العمودين، أي المشكلة نفسها)، نضمن حذف كلمة واحدة على الأقل من وسط أي آية طولها 4 كلمات
+    // فأكثر، والتقليص يقع على طرف النهاية لا البداية (فتظهر مثلاً: "ألم نجعل …" ↔ "… مهادًا").
+    // أما الآيات الأقصر من ذلك (كلمتان أو ثلاث، ولا تظهر إلا في خط الرجوع النادر) فتُعرض كاملة
+    // موزّعة بلا حذف ولا علامة (…) لتعذّر التقليص أصلاً.
     async generateLinkGame(ayahsPool, isKids, chunkIndex, totalChunks) {
-        const targetCount = 4;
+        // 🌟 [تعديل] عدد الأزواج صار 5 بدل 4 (في الركنين معاً: الكبار والأطفال) — طلب المعلم أن
+        // يكون العدد فردياً حتى لا يسهل على الطالب توقّع أن كل نهاية أمام بدايتها. العدد يقلّ
+        // تلقائياً لو كان النطاق المختار يحتوي آيات صالحة أقل من 5 (راجع neededCount أدناه).
+        // ⚠️ [افتراض صريح]: منطق الخلط بقي كما هو بلا تغيير — الضمان الموجود يمنع فقط أن يخرج
+        // عمود النهايات مطابقاً لعمود البدايات صفاً بصف بالكامل، ولا يمنع أن تصادف آية أو اثنتان
+        // وقوفهما في نفس الصف مع نهايتهما الصحيحة (وهذا وارد مع أي عدد، فردياً كان أو زوجياً).
+        const targetCount = 5;
+        // 🌟 [جديد] حدود عدد الكلمات المعروضة في كل طرف عند الكبار (راجع الافتراض الصريح 2 أعلاه)
+        const ADULT_SIDE_MAX_WORDS = 3;
+        const ADULT_SIDE_MIN_WORDS = 2;
         let validPool = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 4);
         if (validPool.length < 2) validPool = ayahsPool.filter(a => cleanAyahText(a.text).split(/\s+/).length >= 2);
         if (validPool.length < 2) return null;
@@ -270,13 +347,34 @@ export class QuranEngine {
         let pairs = picked.map(a => {
             let cleanText = cleanAyahText(a.text);
             let words = cleanText.split(/\s+/);
-            let splitIdx = Math.ceil(words.length / 2);
-            if (splitIdx < 1) splitIdx = 1;
-            if (splitIdx >= words.length) splitIdx = words.length - 1;
+            let startText, endText;
+            if (isKids) {
+                // 🌟 ركن الأطفال: نفس السلوك القديم حرفياً بلا أي تغيير — نصف الآية الأول في عمود
+                // البدايات ونصفها الثاني في عمود النهايات (بلا حذف ولا علامة …) 🌟
+                let splitIdx = Math.ceil(words.length / 2);
+                if (splitIdx < 1) splitIdx = 1;
+                if (splitIdx >= words.length) splitIdx = words.length - 1;
+                startText = words.slice(0, splitIdx).join(' ');
+                endText = words.slice(splitIdx).join(' ');
+            } else {
+                // 🌟 [جديد] ركن الكبار: طرفان قصيران فقط ووسط الآية محذوف (راجع شرح الدالة أعلاه) 🌟
+                let desired = Math.min(ADULT_SIDE_MAX_WORDS, Math.max(ADULT_SIDE_MIN_WORDS, Math.round(words.length / 3)));
+                // نمنع تداخل الطرفين: مجموع كلمات الطرفين لا يتجاوز كلمات الآية أبداً
+                let startSide = Math.max(1, Math.min(desired, words.length - 1));
+                let endSide = Math.max(1, Math.min(desired, words.length - startSide));
+                // 🌟 نضمن حذف كلمة واحدة على الأقل من وسط أي آية طولها 4 كلمات فأكثر (وهي الغالبة
+                // في قصار السور) — وإلا لظهرت الآية كاملة موزّعة على العمودين وعاد الربط قراءةً
+                // مباشرة. التقليص يقع على طرف النهاية لا البداية، لأن آخر كلمة هي الفاصلة
+                // المميِّزة للآية، بينما أول كلمة وحدها (زي "إنَّ" أو "ألم") غالباً بلا دلالة 🌟
+                if (words.length - (startSide + endSide) === 0 && words.length >= 4 && endSide > 1) endSide--;
+                let omittedCount = words.length - (startSide + endSide);
+                startText = words.slice(0, startSide).join(' ') + (omittedCount > 0 ? ' …' : '');
+                endText = (omittedCount > 0 ? '… ' : '') + words.slice(words.length - endSide).join(' ');
+            }
             return {
                 id: `${a.surahNumber}-${a.numberInSurah}`,
-                startText: words.slice(0, splitIdx).join(' '),
-                endText: words.slice(splitIdx).join(' '),
+                startText: startText,
+                endText: endText,
                 ayah: a
             };
         });

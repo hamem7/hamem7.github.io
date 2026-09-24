@@ -51,13 +51,6 @@ const QUESTION_SECONDS = 60; // 🌟 افتراض رقم 1 أعلاه — الق
 // إلى true (والعنصر #dtp-timer في dual-test-play.html يحتاج حذف display:none منه وقتها أيضاً)
 const TIMER_ENABLED = false;
 
-// 🌟 [جديد] نجمة "أعلى قيمة متاحة" على لوحة الأسئلة مُعطَّلة بطلب صريح من المعلم — لأن رقم
-// البطاقة مجرد ترتيب للسؤال لا قيمته (كل الأسئلة بنفس QUESTION_POINTS)، فقد يفهمها الطالب
-// خطأً على أنها "سؤال مميز" أو بنقاط أعلى. منطق topIndex في renderBoardView باقٍ كما هو بلا
-// حذف، فقط إضافة الصنف dtp-cell-top مشروطة بهذا العلم (وقاعدة CSS الخاصة بها مُعلَّقة في
-// dual-test-play.html)؛ لإعادتها مستقبلاً يكفي تغييره إلى true وإلغاء تعليق تلك القاعدة
-const BOARD_TOP_STAR_ENABLED = false;
-
 let test = null;           // الاختبار المحفوظ (بنك الأسئلة الثابت)
 let match = null;          // سجل المواجهة الحالي (يُحفَظ تدريجياً في dual_matches)
 let roundState = null;     // حالة الجولة الجارية فقط (تُبنى من جديد كل جولة)
@@ -387,8 +380,7 @@ function renderBoardView() {
     grid.innerHTML = roundState.round.mainQuestions.map((q, i) => {
         const status = roundState.mainStatus[i];
         if (status === 'available') {
-            // 🌟 [مُحدَّث] مشروطة بـ BOARD_TOP_STAR_ENABLED (مُعطَّلة حالياً) — راجع تعريفه أعلى الملف
-            const topClass = (BOARD_TOP_STAR_ENABLED && i === topIndex) ? ' dtp-cell-top' : '';
+            const topClass = i === topIndex ? ' dtp-cell-top' : '';
             return `<div class="dtp-board-cell${topClass}" data-index="${i}">${q.number}</div>`;
         }
         const icon = status === 'swapped' ? '🔄' : '✅';
@@ -739,12 +731,6 @@ async function finishRound() {
     // الحالة تبقى 'in_progress' طالما لم تكتمل الجولات الثلاث — finishMatch وحدها هي التي
     // تحوّلها لـ 'completed' (لا تغيير في ذلك المنطق)
     match.status = match.rounds.length >= 3 ? match.status : 'in_progress';
-    // 🌟 [جديد] لحظة "توقف" المواجهة معلّقة — تُستخدَم لاحقاً لحساب مرور أسبوع بلا استكمال
-    // وعرض تذكير للمعلم في بطاقة "نظرة سريعة" بالشاشة الرئيسية (راجع
-    // renderPendingDualMatchesReminder في components/homeQuickview.js). تُحدَّث في كل مرة
-    // تنتهي فيها جولة (بما فيها الجولة الثالثة، رغم أن المواجهة وقتها مكتملة ولن تظهر ضمن
-    // المعلّقة — لا ضرر من تحديثها دائماً وأبسط من فحص شرطي إضافي هنا)
-    match.pausedAt = new Date().toISOString();
 
     try { await AppState.dualTestsManager.saveMatch(match); } catch (e) { /* best-effort */ }
 

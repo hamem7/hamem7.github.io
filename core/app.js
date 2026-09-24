@@ -16,6 +16,9 @@ import { initDualTestsDB, DualTestsManager } from '../database/dualTestsDB.js';
 // بالضبط. شاشات التصفح الفعلية (السور/الكلمات) معزولة بالكامل في مجلد similarities/
 // الجديد (بنفس فلسفة عزل dualtests/)، ولا تلمس أي ملف من games/ أو settings/ الحالية.
 import { initSimilaritiesDB, ensureSimilaritiesLoaded, SimilaritiesManager } from '../database/similaritiesDB.js';
+// 🌟 [جديد — المرحلة 3] قاعدة بيانات "أبطال التجويد" (DarHamTajweed) — إتقان الطالب لكل حكم +
+// سجل الجلسات + الأوسمة. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط. راجع database/tajweedDB.js
+import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
 import { KidsEngine } from '../engine/kidsEngine.js';
 import { loadScreen, switchTheme } from './navigation.js';
@@ -32,7 +35,19 @@ import { translations, t, applyLanguage, toggleLanguage } from './i18n.js';
 import { APP_VERSION, getUnseenChangelog } from './version.js';
 // 🌟 [جديد] إعادة محاولة رفع أي واجب فشل رفعه للسحابة وقت النشر (راجع الشرح الكامل بجانب
 // flushPendingHomeworkSync في core/firebase.js) — تُستدعى مرة عند كل إقلاع للمنصة
-import { flushPendingHomeworkSync } from './firebase.js';
+// 🌟🌟 [إصلاح] أضفنا هنا أيضاً flushPendingSubmissions (نفس الفكرة بالضبط، لكن لتسليمات
+// الطلاب وليس الواجبات) — كانت هذه الدالة تُستدعى فقط عند فتح شاشة حل الواجب نفسها
+// (games/homework-play.js)، رغم أن الرسالة التي تظهر للطالب عند فشل إرسال نتيجته تَعِد صراحةً
+// بأنها "ستُعاد تلقائياً بمجرد توفر الاتصال" — وهذا الوعد لم يكن صحيحاً فعلياً لأنه لا يوجد أي
+// استماع لعودة الاتصال. الآن تُستدعى هنا أيضاً (عند إقلاع المنصة وعند حدث 'online' أسفل)، فتصبح
+// الرسالة صحيحة، وتُتاح فرصة أكبر لوصول نتيجة الطالب للمعلم حتى لو أغلق الطالب المتصفح فوراً
+// بعد ظهور رسالة "تعذر الإرسال" ثم فتح المنصة لاحقاً على نفس الجهاز لأي سبب آخر.
+import { flushPendingHomeworkSync, flushPendingSubmissions } from './firebase.js';
+// 🌟 [جديد] نظام "النسخة الاحتياطية المحلية" — تصدير كل بيانات المنصة لملف على جهاز
+// المعلم فقط (بلا رفع سحابي)، تُستخدم هنا فقط لتشغيل التنزيل من نافذة التذكير الشهري
+// أدناه (checkMonthlyBackupReminder). راجع core/backupRestore.js للآلية الكاملة، وزرّي
+// "نسخة احتياطية الآن"/"استرجاع" الفعليين في components/teacherProfile.js
+import { exportFullBackup } from './backupRestore.js';
 
 // 🛡️ إعادة تصدير دوال الترجمة لضمان عدم كسر أي ملف خارجي يستوردها من app.js
 export { translations, t, applyLanguage, toggleLanguage };
@@ -75,6 +90,13 @@ export const AppState = {
     juzAmmaSurahs: [],
     // 🌟 [جديد] مدير قاعدة بيانات "ركن المتشابهات" — يُهيَّأ في bootSystem أسفل هذا الملف
     similaritiesManager: null,
+    // 🌟 [جديد — المرحلة 3] مدير قاعدة بيانات "أبطال التجويد" (إتقان/جلسات/أوسمة) — يُهيَّأ
+    // في bootSystem أسفل هذا الملف بنفس نمط بقية المديرين أعلاه
+    tajweedManager: null,
+    // 🌟 [جديد — المرحلة 2] معاملات فتح شاشة نشاط "أبطال التجويد" (تدرّب/تحدي مرحلة/مراجعة) —
+    // نفس فكرة dualTestPlayMatchId أعلاه بالضبط: تُملأ لحظة الانتقال من tajweed-map.js، ثم
+    // تُقرأ مرة واحدة وتُفرَّغ فوراً في initTajweedActivity() حتى لا تؤثر على أي فتح لاحق
+    tajweedActivityParams: null,
     currentLang: localStorage.getItem('app_lang') || 'ar'
 };
 
@@ -180,6 +202,63 @@ function renderWhatsNewModal(entries) {
     }, { once: true });
 }
 
+// 🌟🌟 [جديد] تذكير شهري بأخذ نسخة احتياطية محلية للبيانات — بناءً على طلب صريح من المعلم
+// بعد سؤاله عن مصير بيانات الطلاب عند تحديث الكود (كل البيانات محلية في IndexedDB بلا
+// مزامنة سحابية إلا الواجبات وتسليماتها، راجع core/backupRestore.js لتفاصيل الآلية).
+// نفس فلسفة checkForUpdates()/WHATS_NEW_STORAGE_KEY أعلاه بالضبط: مقارنة محلية عبر
+// localStorage فقط (لا مزامنة سحابية، المنصة لمعلم واحد)، وتسجيل صامت لأول تشغيل على هذا
+// الجهاز حتى لا نستقبل المعلم بتذكير نسخة احتياطية وهو لسه بيجرّب المنصة لأول مرة بلا
+// بيانات فعلية تستحق النسخ بعد. 🌟🌟
+const BACKUP_REMINDER_STORAGE_KEY = 'dh_last_backup_reminder_month';
+
+function currentMonthKey() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function checkMonthlyBackupReminder() {
+    const lastShownMonth = localStorage.getItem(BACKUP_REMINDER_STORAGE_KEY);
+    const thisMonth = currentMonthKey();
+
+    if (!lastShownMonth) {
+        localStorage.setItem(BACKUP_REMINDER_STORAGE_KEY, thisMonth);
+        return;
+    }
+
+    if (lastShownMonth === thisMonth) return;
+
+    renderBackupReminderModal(thisMonth);
+}
+
+function renderBackupReminderModal(thisMonth) {
+    const modal = document.getElementById('backup-reminder-modal');
+    const downloadBtn = document.getElementById('backup-reminder-download-btn');
+    const laterBtn = document.getElementById('backup-reminder-later-btn');
+    if (!modal || !downloadBtn || !laterBtn) return;
+
+    modal.style.display = 'flex';
+
+    // 🌟 نحدّث "آخر شهر ظهر فيه التذكير" فور الظهور (بعكس whats-new-modal التي تنتظر
+    // ضغط "فهمت") لأن التذكير هنا مجرد تنبيه دوري لا معلومة قد يفوّتها المعلم لو أغلق
+    // النافذة بسرعة — سيظهر تلقائياً تاني الشهر الجاي على أي حال بغض النظر عن رده الآن
+    localStorage.setItem(BACKUP_REMINDER_STORAGE_KEY, thisMonth);
+
+    const dismiss = () => { modal.style.display = 'none'; };
+
+    downloadBtn.addEventListener('click', async () => {
+        try {
+            await exportFullBackup();
+        } catch (e) {
+            console.error('تعذر إنشاء النسخة الاحتياطية من نافذة التذكير الشهري:', e);
+            alert(t('backup_export_error'));
+        }
+        dismiss();
+    }, { once: true });
+
+    laterBtn.addEventListener('click', dismiss, { once: true });
+    modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); }, { once: true });
+}
+
 async function bootSystem() {
     try {
         applyLanguage();
@@ -220,6 +299,30 @@ async function bootSystem() {
         // بسببها) وبصمت تام لو نجحت أو لو كان الطابور فارغاً أصلاً (الحالة الشائعة)
         flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة:", err));
 
+        // 🌟🌟 [إصلاح] نفس الفكرة بالضبط، لكن لتسليمات الطلاب (طابور pendingHwSubmissions في
+        // core/firebase.js) بدل الواجبات. كانت هذه الدالة تُستدعى فقط داخل
+        // games/homework-play.js عند فتح شاشة حل الواجب تحديداً — فلو الطالب سلّم واجبه وفشل
+        // إرسال نتيجته (رسالة "سيُعاد إرسالها تلقائياً بمجرد توفر الاتصال")، ثم أغلق المتصفح
+        // فوراً بدل إعادة فتح نفس الرابط، كانت نتيجته تبقى عالقة على جهازه للأبد بلا أي محاولة
+        // أخرى إطلاقاً — رغم أن نفس المنصة (index.html) قد تُفتح لاحقاً على جهازه لأي سبب آخر
+        // (مثلاً لحل واجب تالٍ). نستدعيها هنا أيضاً ليصبح الوعد في تلك الرسالة صحيحاً فعلاً.
+        flushPendingSubmissions().catch(err => console.error("خطأ أثناء إعادة محاولة رفع تسليمات الطلاب المعلّقة:", err));
+
+        // 🌟🌟 [إصلاح] كانت كل عمليات إعادة المحاولة أعلاه تحدث مرة واحدة فقط عند إقلاع المنصة.
+        // المشكلة: المنصة تعمل كتطبيق صفحة واحدة (SPA) — بمجرد تحميلها، التنقل بين الشاشات
+        // (زي فتح "إعداد الواجبات"، أو حل واجب) لا يُعيد تحميل هذا الملف ولا يُشغّل هذا الكود
+        // مرة أخرى. فلو فشل الرفع بسبب انقطاع مؤقت في الإنترنت، وعاد الاتصال بعدها بدقائق أثناء
+        // إن المستخدم (معلم أو طالب) لسه شغّال بنفس الجلسة (بدون إغلاق المنصة وإعادة فتحها من
+        // الصفر)، كانت إعادة المحاولة التلقائية لا تحدث أبداً طوال هذه الجلسة رغم عودة الاتصال
+        // فعلاً. الحل: نستمع لحدث 'online' القياسي في المتصفح (يُطلَق تلقائياً بمجرد عودة
+        // الاتصال) ونعيد نفس محاولتَي الرفع فوراً عند حدوثه — بالإضافة لإعادة المحاولة الثالثة
+        // للواجبات تحديداً عند فتح شاشة إعداد الواجبات نفسها (راجع initHomeworkPrep في
+        // settings/homework-prep.js) — دون أي حاجة لتدخل يدوي في الحالة الشائعة (انقطاع مؤقت).
+        window.addEventListener('online', () => {
+            flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة بعد عودة الاتصال:", err));
+            flushPendingSubmissions().catch(err => console.error("خطأ أثناء إعادة محاولة رفع تسليمات الطلاب المعلّقة بعد عودة الاتصال:", err));
+        });
+
         // 🧑‍🏫 تهيئة ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
         const teacherDB = await initTeacherDB();
@@ -244,6 +347,11 @@ async function bootSystem() {
         const similaritiesDB = await initSimilaritiesDB();
         await ensureSimilaritiesLoaded(similaritiesDB);
         AppState.similaritiesManager = new SimilaritiesManager(similaritiesDB);
+
+        // 🌟 [جديد — المرحلة 3] تهيئة قاعدة بيانات "أبطال التجويد" — نفس نمط تهيئة بقية
+        // قواعد البيانات أعلاه بالضبط
+        const tajweedDB = await initTajweedDB();
+        AppState.tajweedManager = new TajweedManager(tajweedDB);
 
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
         AppState.juzAmmaSurahs = AppState.surahsData.filter(s => s.number >= 78 && s.number <= 114);
@@ -278,6 +386,21 @@ async function bootSystem() {
         // مسار دخول الطالب عبر رابط واجب مباشر أعلاه (لأن التحديثات غالباً خاصة بأدوات
         // إدارة المعلم وليست جزءاً من تجربة الطالب) 🌟
         checkForUpdates();
+
+        // 🌟 [جديد] تذكير النسخة الاحتياطية الشهري — مؤجَّل لحين إغلاق شاشة "الجديد في هذا
+        // التحديث" أعلاه إن ظهرت في نفس اللحظة (كلتاهما نافذة حاجبة كاملة الشاشة)، حتى لا
+        // تتراكب شاشتان حاجبتان دفعة واحدة على المعلم. لا حاجة لتعديل checkForUpdates أو
+        // renderWhatsNewModal أعلاه لتحقيق هذا التسلسل — نكتفي بفحص هل ظهرت شاشتهما فعلاً
+        // (display=='flex') ثم نعلّق تذكيرنا على نفس أزرار إغلاقها الموجودة بالفعل 🌟
+        const whatsNewModalEl = document.getElementById('whats-new-modal');
+        if (whatsNewModalEl && whatsNewModalEl.style.display === 'flex') {
+            document.getElementById('whats-new-close')?.addEventListener('click', () => checkMonthlyBackupReminder(), { once: true });
+            whatsNewModalEl.addEventListener('click', (e) => {
+                if (e.target === whatsNewModalEl) checkMonthlyBackupReminder();
+            }, { once: true });
+        } else {
+            checkMonthlyBackupReminder();
+        }
 
         // 🌟 [جديد] تلميح الترحيب العام بالمنصة — يظهر مرة واحدة فقط على هذا الجهاز عند أول
         // فتح للشاشة الرئيسية للمعلم (بعد whats-new-modal مباشرة لتفادي ظهور بطاقتين دفعة
@@ -355,6 +478,10 @@ function setupSplashListeners() {
     const btnSimilarities = document.getElementById('btn-similarities-main');
     // 🌟 [جديد] بطاقة "الاختبارات الثنائية" — أصبحت تفتح شاشة الإعداد الحقيقية الآن
     const btnDual = document.getElementById('btn-dual-main');
+    // 🌟 [جديد] بطاقة الدخول لمسار "أبطال التجويد" — لا توجد بعد شاشات تجويد فعلية (قيد
+    // البناء على مراحل)، فحالياً الضغط عليها يعرض رسالة ودّية فقط (راجع تعليق الزر في
+    // core/i18n.js لتفاصيل سبب استخدام alert() هنا تحديداً)
+    const btnTajweed = document.getElementById('btn-tajweed-main');
 
     if (btnAdult) btnAdult.addEventListener('click', () => {
         AppState.isKidsMode = false;
@@ -394,6 +521,12 @@ function setupSplashListeners() {
     if (btnSimilarities) btnSimilarities.addEventListener('click', openSimilaritiesBrowser);
 
     if (btnDual) btnDual.addEventListener('click', openDualTestSetup);
+
+    // 🌟 [عدّل] بعد بناء المرحلة 1 (كتالوج القلقلة والنون الساكنة + شاشات تصفّح فعلية في
+    // مجلد tajweed/)، أصبحت البطاقة تفتح شاشات "أبطال التجويد" الحقيقية عبر
+    // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
+    // بالضبط. كانت تعرض توست "قيد التطوير" فقط (لا شاشة فعلية بعد) قبل هذه المرحلة.
+    if (btnTajweed) btnTajweed.addEventListener('click', openTajweedSection);
 
     // 🌟 منطق البيانات الحية لبطاقة "نظرة سريعة" الجديدة (متوسط الإتقان، عدد
     // التقارير، تذكير عيد ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
@@ -452,6 +585,42 @@ export function openSimilaritiesBrowser() {
     }).catch(err => {
         console.error("تعذر تحميل شاشات ركن المتشابهات:", err);
         alert("جاري تجهيز شاشات ركن المتشابهات 🛠️");
+    });
+}
+
+// 🌟 [جديد] فتح شاشات "أبطال التجويد" — نفس نمط openSimilaritiesBrowser/openDualTestSetup
+// أعلاه بالضبط، لكن يستورد من مجلد tajweed/ الجديد المعزول تماماً (نفس فلسفة عزل
+// dualtests/وsimilarities/). المرحلة 1 فقط حالياً: كتالوج القلقلة والنون الساكنة + بطاقات
+// ثابتة للتصفّح (راجع tajweed/tajweed-map.js ومستند "التصور-المعماري-الكامل-لمسار-التجويد.md").
+export function openTajweedSection() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+
+    import('../tajweed/tajweed-map.js').then(module => {
+        loadScreen({
+            templateUrl: 'tajweed/tajweed-map.html',
+            initFunction: () => module.initTajweedMap()
+        });
+    }).catch(err => {
+        console.error("تعذر تحميل شاشات أبطال التجويد:", err);
+        alert("جاري تجهيز شاشات أبطال التجويد 🛠️");
+    });
+}
+
+// 🌟 [جديد — المرحلة 2] فتح شاشة نشاط "أبطال التجويد" (تدرّب على حكم / اربط أحكام المرحلة /
+// تحدي المرحلة / جولة مراجعة) — نفس نمط openTajweedSection أعلاه بالضبط، ويُستدعى من أزرار
+// النشاط داخل tajweed/tajweed-map.js بعد تعبئة AppState.tajweedActivityParams. لا يغيّر الثيم
+// (البقاء على نفس هوية "أبطال التجويد" المستقلة من الشاشة التي فُتح منها).
+export function openTajweedActivityScreen(params) {
+    AppState.tajweedActivityParams = params;
+    import('../tajweed/tajweed-activity.js').then(module => {
+        loadScreen({
+            templateUrl: 'tajweed/tajweed-activity.html',
+            initFunction: () => module.initTajweedActivity()
+        });
+    }).catch(err => {
+        console.error("تعذر تحميل شاشة نشاط أبطال التجويد:", err);
+        alert("جاري تجهيز شاشة النشاط 🛠️");
     });
 }
 

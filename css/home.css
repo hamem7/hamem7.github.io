@@ -193,7 +193,48 @@
     font-weight: 600;
     color: #fffdf6;
     min-height: 1.4em;
+}
+
+/* ==========================================================================
+   🌟 [جديد] صف يجمع دائرة صورة المعلم/ـة (دائمة الظهور) مع نص الترحيب بجانبها —
+   راجع تعليق الشرح الكامل في splash.html فوق #teacher-avatar-btn
+   ========================================================================== */
+.home-greeting-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-bottom: 18px;
+}
+
+.teacher-avatar-btn {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 2px solid var(--dh-gold-500);
+    background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600));
+    color: var(--dh-gold-300);
+    font-weight: 700;
+    font-size: 1.1rem;
+    font-family: inherit;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(6, 35, 28, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.teacher-avatar-btn:hover { transform: translateY(-2px); }
+
+.teacher-avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .home-chips-row {
@@ -572,7 +613,8 @@
     font-size: 0.9rem;
 }
 
-.teacher-profile-modal .input-group input {
+.teacher-profile-modal .input-group input,
+.teacher-profile-modal .input-group select {
     width: 100%;
     padding: 10px 14px;
     font-size: 1rem;
@@ -580,6 +622,8 @@
     border-radius: 12px;
     font-family: inherit;
     box-sizing: border-box;
+    background: #fff;
+    color: inherit;
 }
 
 .teacher-profile-modal-actions {
@@ -592,10 +636,54 @@
     flex: 1;
 }
 
+/* 🌟 [جديد] قسم "نسخة احتياطية للبيانات" داخل نافذة ملف المعلم — فاصل علوي خفيف فقط
+   لتمييزه بصرياً عن حقول البيانات الشخصية أعلاه (اسم/صورة/تاريخ ميلاد/ختم) دون كسر أو
+   تكرار أي قاعدة موجودة في هذه النافذة. راجع core/backupRestore.js وcomponents/teacherProfile.js 🌟 */
+.dh-backup-section {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed rgba(13, 92, 70, 0.25);
+    text-align: right;
+}
+
+.dh-backup-section-title {
+    font-weight: 700;
+    color: var(--dh-emerald-800);
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+}
+
+.dh-backup-last-info {
+    font-size: 0.82rem;
+    color: var(--dh-ink-soft);
+    margin-bottom: 12px;
+}
+
+.dh-backup-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.dh-backup-actions .btn {
+    flex: 1;
+    font-size: 0.85rem;
+    padding: 10px 8px;
+}
+
+@media (max-width: 480px) {
+    .dh-backup-actions { flex-direction: column; }
+}
+
 /* ---------- لماذا دار حم؟ ---------- */
+/* 🌟 [إعادة ترتيب 2026-09-22] هذا القسم بقى تاني قسم في الصفحة بدل الأول (راجع
+   التعليق فوق .home-screen section.home-menu في components/splash.html)، فبدّلنا
+   خلفيته لـ var(--dh-surface) (بدل var(--dh-surface-alt) القديمة) حتى يستمر
+   التبادل اللوني بين الأقسام (.home-menu بقى دلوقتي هو صاحب var(--dh-surface-alt)
+   عشان يتصل بصرياً بموجة الـ Hero اللي لونها نفسه). كمان رفّعنا الـ padding العلوي
+   من 10px لـ 55px لأنه بقى مش ملاصق للموجة مباشرة زي ما كان 🌟 */
 .home-why {
-    padding: 10px 20px 55px;
-    background: var(--dh-surface-alt);
+    padding: 55px 20px 55px;
+    background: var(--dh-surface);
     text-align: center;
 }
 
@@ -662,9 +750,15 @@
 }
 
 /* ---------- شبكة الأزرار الرئيسية ---------- */
+/* 🌟 [إعادة ترتيب 2026-09-22] هذا القسم بقى أول قسم بعد الـ Hero مباشرة (بدل
+   .home-why)، فبدّلنا خلفيته لـ var(--dh-surface-alt) (بدل var(--dh-surface)
+   القديمة) — نفس لون .home-hero-wave path (fill: var(--dh-surface-alt)) — حتى
+   تفضل الموجة متصلة بصرياً بالقسم اللي تحتها مباشرة زي ما كانت بالظبط قبل
+   إعادة الترتيب. كمان قلّلنا الـ padding العلوي من 55px لـ 10px لأنه بقى ملاصق
+   للموجة مباشرة (بنفس المسافة اللي كانت مستخدمة لـ .home-why قبل ما تاخد مكانه) 🌟 */
 .home-menu {
-    padding: 55px 20px 70px;
-    background: var(--dh-surface);
+    padding: 10px 20px 70px;
+    background: var(--dh-surface-alt);
     text-align: center;
 }
 
@@ -674,8 +768,11 @@
     max-width: 1100px;
     margin: 0 auto 20px;
     display: grid;
-    /* 🌟 [عدّل] كانت 1fr 1fr (بطاقتان) قبل إضافة بطاقة "تحدي المتشابهات" الثالثة 🌟 */
-    grid-template-columns: repeat(3, 1fr);
+    /* 🌟 [عدّل] كانت 1fr 1fr (بطاقتان)، ثم repeat(3, 1fr) بعد إضافة بطاقة "تحدي المتشابهات"،
+       والآن repeat(4, 1fr) بعد إضافة بطاقة "أبطال التجويد" الرابعة — نقاط الاستجابة أسفل
+       الملف (900px تصبح عمودين، 768px يصبح عمود واحد) لم تحتج أي تعديل لأنها أصلاً مصمَّمة
+       لتنكمش تلقائياً مهما زاد عدد البطاقات 🌟 */
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
 
@@ -732,6 +829,24 @@
 .home-card-similarities .home-card-desc,
 .home-card-similarities .home-card-arrow { color: #fffdf6; }
 .home-card-similarities .home-card-desc { opacity: 0.85; }
+
+/* 🌟 [جديد] بطاقة "أبطال التجويد" — بطلب صريح من المعلم، هذه البطاقة (ونطاق قسم التجويد
+   كله لاحقاً) تستخدم هوية بصرية مستقلة تمامًا عن --dh-emerald/--dh-gold، وليس امتداداً
+   لهما كباقي بطاقات هذا الصف. الألوان هنا (لازوردي #1e3a5f ↔ عنّابي #8c2f3d) مأخوذة من
+   لوحة الهوية المقترحة والمعتمدة "أبطال التجويد" (راجع مستند المشروع
+   "التصور-المعماري-الكامل-لمسار-التجويد.md" §10) — استثناء موثّق ومقصود من قاعدة الهوية
+   البصرية الموحّدة للمنصة، وليس نسياناً لاستخدام متغيرات --dh-emerald/--dh-gold 🌟 */
+.home-menu-primary .home-card-tajweed { background: linear-gradient(150deg, #1e3a5f 10%, #6b3350 55%, #8c2f3d 100%); color: #fffdf6; box-shadow: 0 18px 36px rgba(140, 47, 61, 0.32); }
+.home-card-tajweed .home-card-title,
+.home-card-tajweed .home-card-desc,
+.home-card-tajweed .home-card-arrow { color: #fffdf6; }
+.home-card-tajweed .home-card-desc { opacity: 0.85; }
+/* 🌟 [جديد] شارة هذه البطاقة تحديداً بلون العنّابي (نفس هوية القلقلة في تصميم التجويد)
+   بدل اللون الزمرّدي الافتراضي أدناه — بنفس منطق تخصيص .home-menu-primary الموثّق أعلاه
+   بالضبط: لازم بادئة .home-menu-primary هنا أيضاً (وليس .home-card-tajweed بمفردها) لأن
+   قاعدة .home-menu-primary .home-card-badge أدناه بنفس مستوى التخصيص (0,2,0)، وستُكتب
+   لاحقاً في الملف فتفوز هي بدل هذه إن لم نرفع التخصيص لـ(0,3,0) 🌟 */
+.home-menu-primary .home-card-tajweed .home-card-badge { color: #8c2f3d; }
 
 /* 🌟 شارة "قيد التطوير" فوق بطاقات الصف الأساسي (الملوّنة بتدرّجات غامقة) — نُعيد
    ضبط ألوانها هنا فقط (بدون التأثير على شارة بطاقة "الاختبارات الثنائية" في الصف
@@ -837,20 +952,26 @@
    ملوّن + لون عنوان مطابق للون أيقونة كل بطاقة، بنفس ألوان الأيقونات المستخدمة
    فعلاً أعلاه (زمرّدي/بنفسجي/رمادي) حتى يبقى الشكل متسقاً معها بدل اختراع ألوان
    جديدة. لا تعديل على .home-card نفسها ولا على بطاقات الصف الأساسي إطلاقاً 🌟 */
+/* 🌟 [محدَّث] الصبغة أعلاه كانت تتلاشى إلى خلفية بيضاء (--dh-surface) عند 60% من
+   ارتفاع البطاقة، فتبقى البطاقة بيضاء بصرياً في أغلب مساحتها ولا يظهر التمييز
+   الملوّن إلا كخط رفيع علوي. افتراض صريح: المطلوب أن تبدو المربعات الثلاثة نفسها
+   ملوّنة بوضوح (لا مجرد شريط علوي رفيع)، فاستبدلنا التلاشي إلى الأبيض بصبغة موحّدة
+   بنفس اللون على كامل مساحة البطاقة (شفافية أعلى تحافظ على تباين النص الداكن فوقها)
+   مع إبقاء نفس الألوان الثلاثة (زمرّدي/بنفسجي/رمادي) وشريط الحافة العلوية كما هي 🌟 */
 .home-card-students {
-    background: linear-gradient(180deg, rgba(13, 92, 70, 0.07), var(--dh-surface) 60%);
+    background: rgba(13, 92, 70, 0.14);
     border-top: 3px solid var(--dh-emerald-600);
 }
 .home-card-students .home-card-title { color: var(--dh-emerald-800); }
 
 .home-card-homework {
-    background: linear-gradient(180deg, rgba(109, 40, 217, 0.07), var(--dh-surface) 60%);
+    background: rgba(109, 40, 217, 0.12);
     border-top: 3px solid #7c3aed;
 }
 .home-card-homework .home-card-title { color: #5b21b6; }
 
 .home-card-dual {
-    background: linear-gradient(180deg, rgba(71, 85, 105, 0.07), var(--dh-surface) 60%);
+    background: rgba(71, 85, 105, 0.14);
     border-top: 3px solid #64748b;
 }
 .home-card-dual .home-card-title { color: #334155; }
@@ -1085,4 +1206,14 @@
 
 .whats-new-modal-actions .btn {
     width: 100%;
+}
+
+/* 🌟 [جديد] تعديل إضافي خاص بنافذة "تذكير النسخة الاحتياطية الشهري" فقط (backup-reminder-modal
+   في index.html) — تُضاف هذه الكلاس الثانية فوق whats-new-modal-actions العامة أعلاه بدل
+   تعديلها مباشرة (نطاق واضح ومعزول)، فقط لإضافة مسافة بين زرّي "نزّل الآن"/"لاحقاً" المتتاليين
+   بعد أن كانت whats-new-modal-actions مصمَّمة أصلاً لزر واحد فقط بلا حاجة لفاصل بينها */
+.dh-backup-reminder-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }

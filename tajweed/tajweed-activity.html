@@ -1,0 +1,18 @@
+<!-- tajweed/tajweed-activity.html -->
+<!-- 🌟 [جديد بالكامل — المرحلة 2] قالب شاشة "نشاط أبطال التجويد" التفاعلي — نفس فلسفة القالب
+     الواحد المتَّبعة في tajweed-map.html: حاوية واحدة (#tjwa-container) يعيد
+     tajweed-activity.js رسم محتواها بالكامل حسب السؤال الحالي، من فتح النشاط حتى شاشة
+     النتيجة النهائية والأوسمة. -->
+<div class="screen active">
+    <div class="tjw-wrap">
+        <div class="tjw-topbar">
+            <h1 class="tjw-title" id="tjwa-title" data-i18n="tjw_activity_title">🎯 نشاط تفاعلي</h1>
+            <button class="btn btn-outline tjw-btn-exit" id="tjwa-btn-exit" data-i18n="btn_back">🔙 العودة للخريطة</button>
+        </div>
+        <div id="tjwa-progress" class="tjw-activity-progress"></div>
+
+        <div id="tjwa-container" class="tjw-container">
+            <div class="tjw-loading" data-i18n="sim_loading">⏳ جاري التحميل...</div>
+        </div>
+    </div>
+</div>

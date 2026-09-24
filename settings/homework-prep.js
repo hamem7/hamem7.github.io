@@ -5,7 +5,10 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
 // 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
 // إعادة المحاولة (راجع الشرح الكامل في core/firebase.js بجانب هذه الدالة)
-import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync } from '../core/firebase.js';
+// 🌟🌟 [جديد] أضفنا flushPendingHomeworkSync (إعادة محاولة الرفع يدوياً وعند فتح هذه الشاشة)
+// وisHomeworkPendingSync (لمعرفة هل واجب معيّن لا يزال عالقاً محلياً، لعرض علامة ⏳ في سجل
+// الواجبات) — راجع الشرح الكامل بجانب الدالتين في core/firebase.js
+import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync } from '../core/firebase.js';
 import { t } from '../core/i18n.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
@@ -16,6 +19,11 @@ import { showSectionHintOnce } from '../components/sectionHint.js';
 
 let currentGeneratedQuestions = [];
 let hwEngine = null;
+
+// 🌟🌟 [جديد] آخر واجب فشل رفعه للسحابة في نافذة المشاركة الحالية — تحتفظ به saveHomeworkToDB
+// ليستخدمه retryHomeworkCloudSync عند ضغط المعلم على زر "إعادة المحاولة الآن" (راجع الدالتين
+// أسفل هذا الملف)
+let lastFailedHomeworkForRetry = null;
 
 // 🌟🌟 [جديد] بناء رابط المشاركة: نفضّل دائماً الرابط "المكتفي ذاتياً" (يحمل الواجب كامل، بلا
 // أي حاجة لاتصال عند فتحه — راجع database/homeworkDB.js). لكن لو الواجب كبير جداً (عدد أسئلة
@@ -64,6 +72,17 @@ export async function initHomeworkPrep() {
     toggleHwType();
 
     await loadHomeworkDashboard();
+
+    // 🌟🌟 [إصلاح جوهري] كان تحذير فشل الرفع (hw_cloud_sync_warning) يطلب من المعلم "إعادة فتح
+    // هذه الشاشة لاحقاً للتأكد من نجاح الرفع" — لكن إعادة فتح الشاشة (قبل هذا الإصلاح) لم تكن
+    // تُعيد المحاولة فعلياً على الإطلاق؛ إعادة المحاولة التلقائية الوحيدة كانت مرتبطة بإقلاع
+    // كامل للمنصة (core/app.js). الآن نُعيد المحاولة فعلياً في كل مرة تُفتح فيها هذه الشاشة
+    // تحديداً، فتصبح تعليمة التحذير صحيحة فعلاً. لا ننتظرها (fire-and-forget) حتى لا نُجمّد فتح
+    // الشاشة على المعلم، ونعيد رسم سجل الواجبات فقط لو نجح رفع واجب واحد على الأقل (لإخفاء
+    // علامة ⏳ الخاصة به فوراً).
+    flushPendingHomeworkSync()
+        .then(result => { if (result.sent > 0) loadHomeworkDashboard(); })
+        .catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة عند فتح شاشة الواجبات:", err));
 }
 
 async function populateTargetStudents() {
@@ -235,6 +254,14 @@ async function loadHomeworkDashboard() {
                 <td style="padding: 15px; color: #0f172a;">${qCount} ${t("سؤال")} ${targetInfo}</td>
                 <td style="padding: 15px;">
                     ${statusBadge}
+                    <!-- 🌟🌟 [جديد] علامة "لم يُرفع للسحابة بعد" — تُحسَب مباشرة (بلا انتظار أي رد
+                         شبكة) من طابور إعادة المحاولة المحلي عبر isHomeworkPendingSync، فتظهر فوراً
+                         مع كل رسم لسجل الواجبات لأي واجب منشور لا يزال عالقاً محلياً فقط. هذا يجعل
+                         مشكلة فشل الرفع مرئية دائماً للمعلم في سجل الواجبات نفسه، بدل الاعتماد فقط
+                         على تحذير لحظي يظهر مرة واحدة في نافذة المشاركة ثم يختفي للأبد. -->
+                    ${hw.status === 'published' && isHomeworkPendingSync(hw.id)
+                        ? `<div style="margin-top:6px; background:#fef3c7; color:#92400e; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⏳ ${t('hw_pending_sync_row_badge')}</div>`
+                        : ''}
                     <!-- 🌟 مخفية افتراضياً؛ تظهرها loadNeedsGradingStat فقط لو فيه تسليم لهذا الواجب
                          بانتظار تصحيح المعلم اليدوي (نفس معيار needsManualGrading المستخدم أصلاً
                          في loadSubmissionsInline) -->
@@ -678,6 +705,8 @@ function setupListeners() {
     document.getElementById('btn-save-qb')?.addEventListener('click', saveManualQuestion);
 
     document.getElementById('btn-copy-hw-link')?.addEventListener('click', copyHomeworkLink);
+    // 🌟🌟 [جديد] زر "إعادة المحاولة الآن" — راجع retryHomeworkCloudSync أسفل هذا الملف
+    document.getElementById('btn-retry-hw-sync')?.addEventListener('click', retryHomeworkCloudSync);
     document.getElementById('btn-close-hw-modal')?.addEventListener('click', () => {
         document.getElementById('hw-share-modal').style.display = 'none';
         currentGeneratedQuestions = [];
@@ -938,7 +967,9 @@ async function saveHomeworkToDB(statusType) {
             // رفع السحابة، حتى لا نُجمّد الواجهة على المعلم بلا داعٍ — لكن نتابع نتيجة الرفع
             // بعدها مباشرة (راجع الشرح تحت) بدل تركها fire-and-forget كما كانت سابقاً
             const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
+            const retryBtn = document.getElementById('btn-retry-hw-sync');
             if (syncWarningEl) syncWarningEl.style.display = 'none';
+            if (retryBtn) retryBtn.style.display = 'none';
             document.getElementById('hw-share-modal').style.display = 'flex';
 
             // 🌟🌟 [إصلاح جوهري] كانت هذه الاستدعاء "fire-and-forget" (بدون await): لو فشل الرفع
@@ -952,11 +983,24 @@ async function saveHomeworkToDB(statusType) {
             if (!cloudSaved) {
                 console.warn("فشل رفع الواجب للسحابة عند النشر — تم حفظه في طابور إعادة المحاولة.");
                 queuePendingHomeworkSync(homeworkObj);
+                // 🌟🌟 [جديد] نحتفظ بالواجب الذي فشل رفعه ليستخدمه زر "إعادة المحاولة الآن"
+                lastFailedHomeworkForRetry = homeworkObj;
                 if (syncWarningEl) {
                     syncWarningEl.textContent = t('hw_cloud_sync_warning');
                     syncWarningEl.style.display = 'block';
                 }
+                // 🌟🌟 [جديد] نُظهر زر "إعادة المحاولة الآن" بدل ترك المعلم يعتمد فقط على إعادة
+                // المحاولة الصامتة التلقائية (عند الاتصال أو فتح الشاشة لاحقاً — راجع
+                // core/app.js وinitHomeworkPrep أعلاه) — راجع retryHomeworkCloudSync أسفل
+                if (retryBtn) {
+                    retryBtn.disabled = false;
+                    retryBtn.innerHTML = `🔄 ${t('hw_retry_sync_btn')}`;
+                    retryBtn.style.display = 'block';
+                }
             }
+            // 🌟🌟 [جديد] الواجب المنشور (سواء وصل للسحابة فوراً أو كان لا يزال معلّقاً) قد يُغيّر
+            // علامة ⏳ في سجل الواجبات، فنعيد رسمه ليعكس الحالة الحقيقية فوراً
+            await loadHomeworkDashboard();
         } else {
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));
@@ -970,6 +1014,43 @@ async function saveHomeworkToDB(statusType) {
         alert(t("حدث خطأ أثناء الحفظ. يرجى تحديث الصفحة."));
         if(saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`;
     }
+}
+
+// 🌟🌟 [جديد] معالج زر "إعادة المحاولة الآن" في نافذة المشاركة — يتيح للمعلم إعادة محاولة رفع
+// الواجب الذي فشل رفعه فوراً بضغطة واحدة، بدل الانتظار السلبي لإعادة المحاولة التلقائية
+// (عودة الاتصال، أو فتح الشاشة لاحقاً — راجع core/app.js وinitHomeworkPrep أعلاه). نستدعي
+// flushPendingHomeworkSync (تعيد رفع كل الواجبات المعلّقة، وليس هذا الواجب فقط — لا ضرر في ذلك
+// وأبسط من دالة منفصلة)، ثم نتحقق من isHomeworkPendingSync لمعرفة هل هذا الواجب تحديداً نجح
+// رفعه فعلاً أم لا يزال عالقاً، ونعرض نتيجة حقيقية للمعلم بدل افتراض النجاح.
+async function retryHomeworkCloudSync() {
+    const retryBtn = document.getElementById('btn-retry-hw-sync');
+    const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
+    if (!lastFailedHomeworkForRetry) return;
+
+    if (retryBtn) {
+        retryBtn.disabled = true;
+        retryBtn.innerHTML = `⏳ ${t('hw_submitting')}`;
+    }
+
+    await flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة المحاولة اليدوية لرفع الواجب:", err));
+
+    const stillPending = isHomeworkPendingSync(lastFailedHomeworkForRetry.id);
+    if (!stillPending) {
+        // 🌟 نجحت إعادة المحاولة: نُخفي التحذير والزر تماماً، الرابط المعروض بالفعل صحيح الآن
+        if (syncWarningEl) syncWarningEl.style.display = 'none';
+        if (retryBtn) retryBtn.style.display = 'none';
+        lastFailedHomeworkForRetry = null;
+    } else {
+        // 🌟 لا تزال المحاولة فاشلة: نُبقي التحذير ظاهراً ونعيد الزر لحالته الطبيعية ليحاول المعلم
+        // مرة أخرى لاحقاً (غالباً بسبب استمرار انقطاع الإنترنت)
+        if (retryBtn) {
+            retryBtn.disabled = false;
+            retryBtn.innerHTML = `🔄 ${t('hw_retry_sync_btn')}`;
+        }
+    }
+
+    // 🌟 نعكس النتيجة فوراً على علامة ⏳ في سجل الواجبات أيضاً
+    await loadHomeworkDashboard();
 }
 
 function copyHomeworkLink() {

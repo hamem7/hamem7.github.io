@@ -20,6 +20,9 @@ export const translations = {
         // 🌟 [عدّل] بطاقة "تحدي المتشابهات" في الشاشة الرئيسية — أصبحت الآن تفتح شاشات
         // تصفح وألعاب تفاعلية فعلية كاملة (راجع similarities/ وengine/similarityEngine.js)
         btn_similarities: "تحدي المتشابهات",
+        // 🌟 [جديد] بطاقة الدخول لمسار "أبطال التجويد" — لسه قيد البناء على مراحل (راجع
+        // مستندي التصميم في مشروع المنصة)، والزر حالياً يعرض رسالة "قيد التطوير" فقط
+        btn_tajweed: "أبطال التجويد",
         btn_my_students: "طلابي",
         my_students_title: "طلابي",
         my_students_subtitle: "إدارة سجلات الطلاب",
@@ -58,6 +61,8 @@ export const translations = {
         // تفاعلية، والآن (بعد بناء similarities-play.js) أصبحت الميزة كاملة: تصفح + ألعاب
         // تفاعلية بتصحيح تلقائي فوري — حدّثنا الوصف ليعكس هذا بدقة
         card_similarities_desc: "تصفح الآيات المتشابهة بين السور والعب ألعاباً تفاعلية لتثبيت حفظها",
+        // 🌟 [جديد] وصف بطاقة "أبطال التجويد"
+        card_tajweed_desc: "رحلة تعلّم تجويد تدريجية وممتعة لكل طالب",
 
         footer_about_title: "عن دار حم",
         footer_about_text: "فكرة قديمة حديثة لتثبيت الحفظ والمراجعة",
@@ -69,6 +74,10 @@ export const translations = {
         search_student_ph: "🔍 اكتب اسم البطل للبحث...",
         btn_quick_login: "دخول سريع للتقييم 🚀",
         btn_all_students: "📊 سجل الطلاب العام",
+        // 🌟 [جديد] رسائل النسخة الاحتياطية (v2 تشمل سجل التقييمات)
+        backup_restore_ok: "تم استعادة البيانات بنجاح (الطلاب + سجل التقييمات)!",
+        backup_restore_ok_legacy: "تم استعادة بيانات الطلاب. ⚠️ هذا ملف بصيغة قديمة لا يحتوي على سجل التقييمات — صدّر نسخة جديدة من الجهاز الأصلي لاستعادتها.",
+        backup_invalid_file: "ملف غير صالح!",
         btn_add_student: "تسجيل بطل جديد ➕",
         btn_back: "🔙 العودة للقائمة الرئيسية",
         add_new_champion: "إضافة بطل جديد",
@@ -108,7 +117,24 @@ export const translations = {
         // 🌟 ترحيب الشاشة الرئيسية وملف المعلم الشخصي 🌟
         greeting_morning: "صبّحكم الله بالخير",
         greeting_evening: "مساء الخير",
+        // 🌟 [جديد] دورة يومية لصيغ ترحيب إضافية — بنفس فلسفة DAILY_QUOTES في
+        // components/homeQuickview.js: صيغة واحدة لكل يوم (حسب رقم اليوم منذ Epoch)،
+        // وليست عشوائية حقيقية، فتبقى ثابتة طول اليوم وتتغيّر تلقائيًا غدًا. راجع
+        // MORNING_GREETING_KEYS / EVENING_GREETING_KEYS في components/teacherProfile.js
+        greeting_morning_2: "صباح الخير والبركة",
+        greeting_morning_3: "بارك الله في صباحكم",
+        greeting_morning_4: "صباح النور والعلم",
+        greeting_evening_2: "مساء النور والبركة",
+        greeting_evening_3: "مساء الخير والتوفيق",
+        greeting_evening_4: "بارك الله مساءكم",
+        // 🌟 [جديد] تحية خاصة بيوم الجمعة — تحل محل دورة الصباح/المساء أعلاه طوال يوم
+        // الجمعة بأكمله (بلا اعتبار للوقت)، وتدور هي الأخرى بين صيغتين حسب رقم الأسبوع
+        greeting_friday: "جمعة مباركة",
+        greeting_friday_2: "جمعة مباركة، تقبّل الله دعاءكم",
         greeting_title: "يا شيخ",
+        // 🌟 [جديد] صيغة التحية المؤنّثة — تُستخدم بدل السطر أعلاه إن كان جنس المعلم/ـة
+        // المحفوظ "أنثى" (راجع profile_gender_* أدناه)
+        greeting_title_female: "يا أستاذة",
         home_summary_hw_label: "واجب منشور حالياً",
         profile_badge_text: "أكمل بياناتك 👋",
         profile_modal_title: "بياناتك الشخصية",
@@ -116,11 +142,35 @@ export const translations = {
         // 🌟 [جديد] رفع اختياري لصورة الختم الرسمي (يُستخدم عند توقيع التقارير) 🌟
         profile_stamp_label: "الختم (اختياري)",
         profile_name_label: "الاسم:",
+        // 🌟 [جديد] تحديد الجنس — اختياري تمامًا ويبقى "ذكر" افتراضيًا (فيبقى اللقب
+        // "شيخ" كما كان قبل هذه الميزة تمامًا) ما لم يُختَر "أنثى" صراحةً. حقل بيانات
+        // عام (وليس مجرد اختيار نص لقب) حتى يصلح لاحقًا لأي نص آخر بالمنصة يحتاج
+        // تذكير/تأنيث نحوي، لا لتحية الشاشة الرئيسية فقط.
+        profile_gender_label: "الجنس:",
+        profile_gender_male: "ذكر",
+        profile_gender_female: "أنثى",
         profile_dob_label: "تاريخ الميلاد:",
         profile_save_btn: "حفظ",
         profile_close_btn: "إغلاق",
+
+        // 🌟 [جديد] قسم "نسخة احتياطية للبيانات" داخل نافذة ملف المعلم — تصدير/استرجاع
+        // كل بيانات المنصة المحفوظة في IndexedDB (طلاب، واجبات، جلسات تسميع، اختبارات
+        // ثنائية...) من/إلى ملف واحد يبقى على جهاز المعلم فقط بلا أي رفع على الإنترنت،
+        // بناءً على طلب صريح من المعلم. راجع core/backupRestore.js للآلية الكاملة 🌟
+        profile_backup_section_title: "🗄️ نسخة احتياطية للبيانات",
+        profile_backup_last_never: "لم تُؤخَذ أي نسخة احتياطية بعد على هذا الجهاز",
+        profile_backup_last_prefix: "آخر نسخة احتياطية: ",
+        profile_backup_download_btn: "⬇️ نسخة احتياطية الآن",
+        profile_backup_restore_btn: "⬆️ استرجاع نسخة احتياطية",
+        profile_backup_restore_confirm: "سيتم استبدال كل البيانات الحالية على هذا الجهاز بمحتوى ملف النسخة الاحتياطية المختار، ولا يمكن التراجع عن هذه الخطوة. هل أنت متأكد من المتابعة؟",
+        profile_backup_restore_invalid_file: "هذا الملف ليس نسخة احتياطية صالحة من منصة دار حم.",
+        profile_backup_restore_error: "تعذّر استرجاع النسخة الاحتياطية. تأكد من اختيار الملف الصحيح.",
+        profile_backup_restore_success: "تم استرجاع البيانات بنجاح ✅ سيُعاد تحميل المنصة الآن.",
+
         teacher_bday_notification_title: "🎉 عيد ميلاد سعيد!",
         teacher_bday_notification_msg: "كل عام وأنت بخير يا شيخ ",
+        // 🌟 [جديد] صيغة مؤنّثة لرسالة عيد ميلاد المعلمة نفسها (وأنتِ بدل وأنت)
+        teacher_bday_notification_msg_female: "كل عام وأنتِ بخير يا أستاذة ",
 
         // 🌟 الشاشة الرئيسية الجديدة: الهيرو وبطاقة "نظرة سريعة" 🌟
         hero_eyebrow: "منصة تعليمية متكاملة",
@@ -130,6 +180,11 @@ export const translations = {
         // تفادياً لكسر أي مرجع قديم، لكن البطاقة تستخدم الآن similarities_browse_badge
         similarities_in_progress_badge: "قيد التطوير",
         similarities_toast_soon: "⚔️ تحدي المتشابهات قيد التطوير حالياً، تابعنا قريباً بإذن الله!",
+        // 🌟 [جديد] شارة ورسالة بطاقة "أبطال التجويد" على الشاشة الرئيسية — تُستخدم فعلياً
+        // من core/app.js (setupSplashListeners) عبر alert() بسيطة، بنفس آلية الرجوع
+        // المستخدمة أصلاً عند فشل تحميل أي شاشة في هذا الملف (راجع openHomeworkPrep وغيرها)
+        tajweed_in_progress_badge: "قيد التطوير",
+        tajweed_toast_soon: "🌟 أبطال التجويد قيد التصميم حالياً، تابعونا قريباً بإذن الله!",
 
         // 🌟 [جديد] شاشات "ركن المتشابهات" الفعلية (مجلد similarities/) — التصفح بقى حقيقياً
         // الآن (القراءة فقط، بلا ألعاب تفاعلية بعد)، فالشارة على البطاقة تغيّرت من "قيد
@@ -229,6 +284,14 @@ export const translations = {
         sim_game_q_position_ayah: "في أي آية وردت هذه العبارة؟",
         sim_game_q_position_surah: "في أي سورة وردت هذه الآية؟",
         sim_game_q_ending: "ما الكلمة الصحيحة التي تُكمل الآية؟",
+        // 🌟 [جديد — 2026-09-23] 4 أنواع أسئلة جديدة تغطي مهارات "التعرّف/التمييز/الاستدعاء/منع
+        // الخلط أثناء التسميع" الأربعة بطلب صريح من المعلم — راجع تعليق رأس
+        // engine/similarityEngine.js للخريطة الكاملة بين كل مهارة ونوع السؤال المقابل لها
+        sim_game_q_discrimination: "ما النهاية الصحيحة لهذه الآية بالذات؟",
+        sim_game_q_recitation_check: "وصلت إلى هنا وأنت تُسمِّع... بم تُكمل؟",
+        sim_game_q_recognition: "أي هذه الآيات وردت فيها هذه العبارة فعلاً؟",
+        sim_game_q_recall_ayah: "اختر النص الصحيح الذي ورد في هذا الموضع",
+        sim_game_q_recall_surah: "اختر نص الآية الصحيحة التي وردت في هذه السورة",
         sim_game_opt_ayah_prefix: "آية",
         sim_game_correct_feedback: "🎉 إجابة صحيحة!",
         sim_game_wrong_feedback: "❌ حاول أن تنتبه أكثر في المرة القادمة",
@@ -256,6 +319,23 @@ export const translations = {
         dts_history_modal_title: "سجل مباريات هذا الاختبار",
         dts_history_close_btn: "إغلاق",
         dts_history_empty: "لا توجد مباريات منتهية على هذا الاختبار بعد.",
+        // 🌟 [جديد] "المواجهات المعلقة" — بعد تحويل المواجهة إلى جولة واحدة لكل جلسة، صارت
+        // المواجهة تبقى محفوظة بين الجلسات ويُستكمَل منها لاحقاً (راجع openPendingMatchesModal
+        // في dual-test-setup.js و finishRound في dual-test-play.js)
+        dts_pending_btn: "⏸️ مواجهات معلقة ({n})",
+        // 🌟 [جديد] زر مستقل لكل زوج طلاب له مواجهات معلقة (بدل رقم واحد مجمّع على الاختبار
+        // كله) — راجع pendingPairKeyCache في dual-test-setup.js
+        dts_pending_pair_btn: "⏸️ {a} 🆚 {b} ({n})",
+        dts_pending_pair_label: "مواجهات {a} 🆚 {b} المعلقة فقط:",
+        dts_pending_modal_title: "⏸️ مواجهات لم تكتمل",
+        dts_pending_modal_desc: "اختر مواجهة لاستكمالها من الجولة التالية بنفس الطالبَين ونتائجهما المحفوظة.",
+        dts_pending_empty: "لا توجد مواجهات معلقة على هذا الاختبار.",
+        dts_pending_next_round: "يُستكمَل من الجولة {n}",
+        dts_pending_rounds_tally: "الجولات المكسوبة: {a} — {b}",
+        dts_pending_resume_btn: "▶️ استكمال",
+        dts_pending_delete_btn: "🗑️ حذف",
+        dts_pending_delete_confirm: "حذف هذه المواجهة المعلقة نهائياً؟ كل نتائج جولاتها المحفوظة ستُفقَد ولن يمكن استكمالها.",
+        dts_pending_conflict_confirm: "⏸️ يوجد بالفعل مواجهة معلقة بين هذين الطالبَين على هذا الاختبار، متوقفة عند الجولة {n}.\n\n• «موافق» = استكمال المواجهة المعلقة من الجولة {n}.\n• «إلغاء» = بدء مواجهة جديدة من الصفر (المعلقة تبقى محفوظة كما هي).",
         dts_competitor_a: "المتسابق الأول",
         dts_competitor_b: "المتسابق الثاني",
         dts_choose_student: "-- اختر الطالب --",
@@ -340,9 +420,38 @@ export const translations = {
         dtp_swap_modal_title: "اختر رمز سؤال الاستبدال",
         dtp_swap_modal_desc: "هذه المرة فقط — اختر أي رمز تريده من المتاح.",
         dtp_summary_title: "نتيجة الجولة {n}",
+        // 🌟 [مُحتفَظ به] dtp_winner_label لم يعد مستخدَماً في شاشة نتيجة الجولة بعد إعادة
+        // تصميمها (صار اسم الفائز يظهر بخط ضخم مستقل + شارة "الفائز بالجولة" فوقه)، لكنه
+        // يبقى معرَّفاً هنا بلا حذف — توافقاً مع أي استخدام قديم أو لاحق (نفس سياسة عدم
+        // حذف المفاتيح فجأة)
         dtp_winner_label: "الفائز بالجولة: {name} 🏆",
         dtp_tie_label: "تعادل الجولة 🤝",
+        // 🌟 [جديد] مفاتيح شاشة "نتيجة الجولة" بتصميمها الجديد (منصة تتويج + بطاقتا نقاط +
+        // تقدّم المواجهة + إحصائيات الجولة) — راجع renderRoundSummary في dual-test-play.js
+        dtp_summary_winner_caption: "🏆 الفائز بهذه الجولة",
+        dtp_summary_tie_caption: "🤝 لا غالب ولا مغلوب",
+        // نسخة بلا إيموجي من نص التعادل — لأنه يُعرض بخط ضخم بجوار رمز 🤝 ظاهر أصلاً بين
+        // صورتَي الطالبَين، فلا داعي لتكراره مرتين (dtp_tie_label الأصلي باقٍ كما هو)
+        dtp_summary_tie_big: "تعادل الجولة",
+        dtp_summary_diff_label: "بفارق {n} نقطة 🔥",
+        dtp_summary_card_winner_flag: "🏆 الفائز",
+        dtp_summary_points_unit: "نقطة",
+        dtp_summary_series_title: "تقدّم المواجهة",
+        dtp_summary_round_pending: "الجولة {n}: لم تُلعب بعد",
+        dtp_summary_round_tied: "الجولة {n}: تعادل",
+        dtp_summary_round_won_by: "الجولة {n}: {name}",
+        dtp_summary_stats_title: "إحصائيات الجولة",
+        dtp_summary_stat_mistakes: "الأخطاء",
+        dtp_summary_stat_helper: "المساعدة",
+        dtp_summary_stat_swap: "التبديل",
+        dtp_summary_used_yes: "استُخدمت ✔️",
+        dtp_summary_used_no: "لم تُستخدم",
+        // 🌟 [مُحتفَظ به] dtp_next_round_btn لم يعد مستخدَماً بعد اعتماد "جولة واحدة لكل جلسة"
+        // (الجولة التالية لم تعد تبدأ من شاشة نتيجة الجولة إطلاقاً)، لكنه يبقى معرَّفاً بلا حذف
         dtp_next_round_btn: "التالي ▶️",
+        // 🌟 [جديد] زر إنهاء الجلسة بعد كل جولة + سطر التطمين تحته
+        dtp_end_session_btn: "💾 إنهاء الجلسة وحفظ التقدّم",
+        dtp_session_saved_note: "✅ تم حفظ نتيجة هذه الجولة. المواجهة ستبقى محفوظة بنفس الطالبَين، وتُستكمَل من الجولة {n} في جلسة قادمة من: الاختبارات الثنائية ← ⏸️ مواجهات معلقة.",
         dtp_view_final_btn: "عرض النتيجة النهائية 🏁",
         dtp_final_title: "🏆 النتيجة النهائية",
         dtp_final_winner_label: "الفائز: {name} 🏆🎉",
@@ -375,10 +484,20 @@ export const translations = {
         home_quick_publish_btn: "نشر واجب جديد الآن",
         // 🌟 [جديد] نظام "المراجعة المتباعدة" (Anki/Duolingo) — قائمة "مستحق اليوم"
         home_due_title: "مستحق المراجعة اليوم",
+        // 🌟🌟 [جديد] سطر الملخص المطوي فوق القائمة التفصيلية (بطلب المعلم لتقليل
+        // طول بطاقة "نظرة سريعة") — النقر عليه يفتح/يطوي القائمة أسفله. راجع
+        // renderDueForReview في components/homeQuickview.js
+        home_due_badge: "📚 {n} مستحق المراجعة اليوم",
         home_due_no_range: "لا يوجد نطاق حفظ مسجَّل",
         home_due_overdue_by: "متأخر",
         home_due_days_unit: "يوم",
         home_due_today: "اليوم",
+        // 🌟🌟 [جديد] تذكير "مواجهات ثنائية تنتظر الاستكمال" على الشاشة الرئيسية — راجع
+        // renderPendingDualMatchesReminder في components/homeQuickview.js
+        home_pm_title: "⏰ مواجهات تنتظر الاستكمال",
+        // 🌟🌟 [جديد] سطر الملخص المطوي (نفس فلسفة home_due_badge أعلاه)
+        home_pm_badge: "⏰ {n} مواجهات تنتظر الاستكمال",
+        home_pm_paused_since: "معلّقة منذ",
         // 🌟 [جديد] تذكير شهري بتحديث بيانات حفظ الطلاب (بانر الشاشة الرئيسية)
         home_memo_reminder_text: "حان وقت مراجعة نطاق حفظ الطلاب وتحديثه لمن تقدّم في الحفظ هذا الشهر 📖",
         home_memo_reminder_btn: "تحديث الآن",
@@ -529,7 +648,13 @@ export const translations = {
         // 🌟 [جديد] تحذير يظهر في نافذة المشاركة فقط لو فشل رفع الواجب للسحابة (راجع
         // saveHomeworkToDB في settings/homework-prep.js) — الرابط في هذه الحالة يعمل حالياً
         // على جهاز المعلم فقط (عبر النسخة المحلية)، وسيُعاد رفعه تلقائياً لاحقاً
-        hw_cloud_sync_warning: "⚠️ تم حفظ الواجب على هذا الجهاز، لكن تعذّر رفعه للسحابة الآن (تحقق من الاتصال بالإنترنت). لن يعمل هذا الرابط إلا على هذا الجهاز حتى تتم إعادة رفعه تلقائياً — يُفضَّل عدم إرساله للطلاب الآن، وإعادة فتح هذه الشاشة لاحقاً للتأكد من نجاح الرفع.",
+        hw_cloud_sync_warning: "⚠️ تم حفظ الواجب على هذا الجهاز، لكن تعذّر رفعه للسحابة الآن (تحقق من الاتصال بالإنترنت). لن يعمل هذا الرابط إلا على هذا الجهاز حتى تتم إعادة رفعه — يُفضَّل عدم إرساله للطلاب الآن. سيُعاد رفعه تلقائياً بمجرد عودة الاتصال أو عند فتح هذه الشاشة لاحقاً، أو يمكنك الضغط على زر إعادة المحاولة تحت مباشرة.",
+        // 🌟🌟 [جديد] زر يظهر فقط بجانب التحذير أعلاه — يعيد محاولة رفع هذا الواجب للسحابة فوراً
+        // بضغطة واحدة (راجع retryHomeworkCloudSync في settings/homework-prep.js)
+        hw_retry_sync_btn: "🔄 إعادة المحاولة الآن",
+        // 🌟🌟 [جديد] علامة صغيرة تظهر بجانب أي واجب منشور في سجل الواجبات لا يزال عالقاً محلياً
+        // ولم يصل للسحابة بعد (راجع isHomeworkPendingSync في core/firebase.js)
+        hw_pending_sync_row_badge: "لم يُرفع للسحابة بعد",
         hw_copy_btn: "📋 نسخ",
         hw_close_return: "إغلاق والعودة 🏠",
         hw_subs_modal_title: "📊 نتائج وتسليمات الطلاب",
@@ -564,6 +689,17 @@ export const translations = {
         whats_new_cat_new: "جديد",
         whats_new_cat_improved: "تحسين",
         whats_new_cat_fixed: "إصلاح",
+
+        // 🌟 [جديد] نافذة التذكير الشهري بالنسخة الاحتياطية — تظهر مرة واحدة تلقائياً عند
+        // أول دخول للمعلم في كل شهر جديد على هذا الجهاز (localStorage فقط، بلا مزامنة
+        // سحابية، بنفس فلسفة dh_last_seen_version في core/app.js). راجع checkMonthlyBackupReminder
+        // في core/app.js وcore/backupRestore.js لتفاصيل الآلية الكاملة 🌟
+        backup_reminder_title: "🗄️ تذكير شهري بالنسخة الاحتياطية",
+        backup_reminder_body: "مرّ شهر منذ آخر مرة أخذت فيها نسخة احتياطية من بيانات طلابك. يُفضَّل تنزيل نسخة جديدة الآن والاحتفاظ بها على جهازك للطوارئ.",
+        backup_reminder_download_btn: "⬇️ نزّل النسخة الآن",
+        backup_reminder_later_btn: "لاحقاً",
+        backup_export_error: "تعذّر إنشاء النسخة الاحتياطية. حاول مرة أخرى.",
+        backup_export_success: "تم تنزيل النسخة الاحتياطية بنجاح ✅",
 
         // 🌟 [جديد] شاشة "تقرير الإنجاز الشهري" — تجميع الواجبات + الاختبارات الثنائية +
         // الأخطاء المعالَجة + انتظام المراجعة المتباعدة عبر شهر كامل (راجع
@@ -664,11 +800,24 @@ export const translations = {
         // ترجمة، بنفس أسلوب كل ألعاب kidsEngine.js الأخرى — راجع تعليق الدالة هناك)
         kids_listen_title: "استمع وخمّن الآية يا بطل 🎧",
         kids_listen_audio_error: "تعذّر تشغيل الصوت، تأكد من اتصال الإنترنت وحاول مرة أخرى 🌐",
+        // 🌟 [جديد] خطوة ثانية للعبة "استمع وخمّن الآية": بعد اختيار الآية الصحيحة، يُسأل الطفل
+        // من أي سورة هذه الآية — راجع تعليق generateKidsListenAyah في engine/kidsEngine.js
+        kids_listen_which_surah: "🕌 من أي سورة هذه الآية؟",
+        kids_listen_wrong_ayah_error: "أخطأ في اختيار الآية المسموعة",
+        kids_listen_wrong_surah_error: "عرف الآية الصحيحة، لكن أخطأ في تحديد السورة",
 
         // 🌟 [جديد] تعديل بيانات ملف الطالب مباشرة من نفس الشاشة (بدون مودال منفصل) —
         // راجع setupInlineProfileEditing في student/student.js
         prof_edit_hint: "💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر \"تقرير الإنجاز الشهري\" للطباعة بعد الانتهاء",
         prof_avatar_change_title: "تغيير الصورة",
+
+        // 🌟 [جديد] "بطاقة الترحيب بالطالب" — تحية قصيرة في وسط الشاشة مع صورة الطالب، تظهر
+        // فور اختيار اسمه وقبل لوحة التقييم مباشرة ثم تختفي وحدها بعد ثوانٍ قليلة.
+        // راجع components/welcomeBanner.js. النص مقسَّم إلى ثلاثة مفاتيح منفصلة (وليس نصاً
+        // واحداً فيه {name}) لأن كل سطر له حجم ولون مختلف في البطاقة، والاسم نفسه يُحقَن
+        // بـ textContent لا innerHTML حمايةً من أي اسم يحتوي رموزاً خاصة 🌟
+        welcome_hello: "مرحباً",
+        welcome_back_line: "أهلاً بعودتك 🌟",
 
         // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — بطاقات عائمة غير حاجبة (بعكس
         // whats-new-modal الحاجب) تظهر مرة واحدة فقط لكل قسم على هذا الجهاز بالذات (تخزين
@@ -709,7 +858,223 @@ export const translations = {
         hint_dual_test_body: "يتم إعداد الاختبار عبر معالج من ثلاث خطوات: تحديد المتسابقين ونطاق كل جولة، ثم اختيار الجولة، ثم إضافة أسئلتها. أثناء اللعب، يتيح زر «تبديل 🔄» سؤالاً بديلاً مرة واحدة فقط في كل جولة، ويسجّل زر «مساعدة 💡» استخدام الطالب حقَّه في مساعدتك الصوتية له مرة واحدة في الجولة دون خصم مباشر، بينما يُحتسب الخصم الفعلي من عدد الأخطاء المسجَّلة في كل سؤال (نصف نقطة عن كل خطأ من أصل عشر).",
 
         hint_similarities_title: "🧩 تنبيه قبل بدء ركن المتشابهات",
-        hint_similarities_body: "الهدف من هذا الركن تعريف الطالب بالآيات المتشابهة وتيسير حفظها، وليس تقييمه رسمياً. تُصحَّح الإجابة فور اختيارها، وفي حال الخطأ تُعرض الإجابة الصحيحة مباشرة، دون احتساب درجة نهائية أو تسجيل ملاحظة في سجل الطالب."
+        hint_similarities_body: "الهدف من هذا الركن تعريف الطالب بالآيات المتشابهة وتيسير حفظها، وليس تقييمه رسمياً. تُصحَّح الإجابة فور اختيارها، وفي حال الخطأ تُعرض الإجابة الصحيحة مباشرة، دون احتساب درجة نهائية أو تسجيل ملاحظة في سجل الطالب.",
+        // 🌟 [جديد] تقرير التقييم الفردي — التصميم الجديد (reports/report.js)
+        // كل نص جديد في هذا التقرير يمر من هنا بالعربية والإنجليزية، حتى لو كان
+        // الاستخدام الأساسي بالعربية، التزامًا بقاعدة ثنائية اللغة في المنصة.
+        rep_tb_teacher_data: "بيانات المعلم",
+        rep_tb_teacher_name_ph: "اسم المعلم",
+        rep_tb_upload_stamp: "رفع ختم المعلم",
+        rep_tb_export: "تصدير",
+        rep_tb_png: "صورة مختصرة",
+        rep_tb_pdf: "ملف PDF شامل",
+        rep_tb_home: "العودة للرئيسية",
+        rep_tb_note_label: "ملاحظة لولي الأمر (اختياري):",
+        rep_tb_note_ph: "اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار.",
+        rep_tb_note_hint: "تظهر في صندوق \"ملاحظة المعلم\" بالأسفل",
+        rep_tb_extra_label: "نص إضافي داخل التقرير (اختياري):",
+        rep_tb_extra_ph: "أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه.",
+        rep_tb_extra_hint: "يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا",
+
+        rep_eyebrow: "دار حم · منصة تحفيظ القرآن الكريم",
+        rep_title: "تقرير تقدّم الطالب",
+        rep_subtitle: "في حفظ القرآن الكريم",
+        rep_tagline: "خطوة بخطوة ... نحو كتاب الله",
+
+        rep_avatar_hint: "اضغط أو اسحب صورة لتغيير صورة الطالب",
+        rep_avatar_change: "تغيير صورة الطالب",
+
+        rep_fact_grade: "الصف",
+        rep_fact_scope: "نطاق التقييم",
+        rep_fact_duration: "مدة التقييم",
+
+        rep_this_eval: "نتيجة هذا التقييم",
+        rep_delta_vs_prev: "عن المحاولة السابقة",
+        rep_delta_same: "مثل المحاولة السابقة",
+
+        rep_ladder_title: "مستوى التقدّم العام",
+        rep_ladder_sub: "مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة",
+        rep_ladder_first_attempt: "هذه أول محاولة مسجَّلة في سجل الطالب — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.",
+        rep_step_current: "هذا التقييم",
+        rep_step_prev1: "المحاولة السابقة",
+        rep_step_prev2: "قبلها",
+        rep_step_prev3: "أقدم محاولة",
+        rep_step_prev_generic: "محاولة سابقة",
+
+        rep_qtable_title: "تفاصيل الاختبار — سؤالًا بسؤال",
+        rep_qtable_sub: "كل الأسئلة التي وردت في هذا الاختبار كما جرت بالفعل، دون حذف",
+        rep_col_num: "م",
+        rep_col_status: "الاستجابة",
+        rep_col_subject: "السؤال / الموضوع",
+        rep_col_score: "الدرجة",
+        rep_col_note: "ملاحظة",
+        rep_no_questions: "لا توجد تفاصيل أسئلة متاحة لهذا التقييم.",
+
+        rep_chip_full: "صحيحة بالكامل",
+        rep_chip_partial: "صحيحة جزئيًا",
+        rep_chip_wrong: "غير صحيحة",
+
+        rep_stat_avgtime: "متوسط وقت الإجابة",
+        rep_stat_hints: "تلميحات مستخدمة",
+        rep_stat_reorders: "محاولات ترتيب متكررة",
+
+        rep_strengths: "نقاط القوة",
+        rep_needs: "بحاجة إلى تركيز",
+        rep_note_label: "ملاحظة المعلم لولي الأمر",
+        rep_extra_label: "ملاحظة إضافية",
+
+        rep_report_no: "رقم التقرير",
+        rep_date: "التاريخ",
+        rep_sign_label_stamp: "ختم المعلم",
+        rep_sign_label_plain: "المعلم",
+
+        // 🌟 [إصلاح] مفاتيح صندوق "بحاجة إلى تركيز" المعاد تصميمه كانت مستخدمة في
+        // reports/report.js عبر t() لكنها غير معرَّفة هنا إطلاقًا، وt() ترجع المفتاح
+        // نفسه عند عدم إيجاده — فكانت الأسماء البرمجية (report_focus_group_today ...)
+        // تظهر نصًّا خامًا داخل التقرير المطبوع لولي الأمر. القيم أدناه مكتوبة لتطابق
+        // بالضبط تركيب الجمل في focusMoreLabel و focusAgeLabel و needsFocusHtml 🌟
+        report_focus_group_today: "أخطاء اختبار اليوم",
+        report_focus_group_partial: "يحتاج تثبيتًا اليوم",
+        report_focus_group_past: "متابعة من جلسات سابقة",
+        report_focus_repeated: "خطأ متكرر",
+        report_focus_not_resolved: "لم يُعالَج بعد",
+        report_note_focus_past_prefix: "بند سابق:",
+        report_focus_more_one: "بند آخر",
+        report_focus_more_two: "بندان آخران",
+        report_focus_more_few: "بنود أخرى",
+        report_focus_more_many: "بندًا آخر",
+        report_focus_age_today: "اليوم",
+        report_focus_age_day1: "أمس",
+        report_focus_age_day2: "قبل يومين",
+        report_focus_age_since: "منذ",
+        report_focus_age_unit_few: "أيام",
+        report_focus_age_unit_many: "يومًا",
+
+        // ============================================================
+        // 🌟 [جديد بالكامل] شاشات "أبطال التجويد" — المرحلة 1 (كتالوج + تصفّح ثابت)
+        // راجع tajweed/tajweed-map.js وengine/tajweedRulesCatalog.js ومستند المشروع
+        // "التصور-المعماري-الكامل-لمسار-التجويد.md". بادئة tjw_ لكل مفاتيح هذا القسم.
+        // ============================================================
+        tjw_home_title: "أبطال التجويد",
+        tjw_home_subtitle: "اختر اسم الطالب لتبدأ رحلته في تعلّم أحكام التجويد",
+        tjw_no_students: "لا يوجد طلاب مسجَّلون بعد — أضف طالباً أولاً من قسم 'طلابي'",
+        // 🌟 [جديد] مفاتيح شاشة اختيار الطالب الجديدة (حقل بحث + قائمة منسدلة + زر)، بنفس نمط
+        // شاشة تسجيل الدخول الأساسية في student/login.html — راجع renderPickStudentHTML في
+        // tajweed-map.js. مفتاحا search_student_ph وlogin_name_not_found_alert أعلاه في هذا
+        // الملف (قسم تسجيل الدخول) يُعاد استخدامهما هنا كما هما لضمان نفس الصياغة تماماً 🌟
+        tjw_pick_label: "اختر اسم الطالب من القائمة أو اكتبه للبحث",
+        tjw_start_journey_btn: "ابدأ الرحلة 🚀",
+        tjw_pick_name_required_alert: "الرجاء كتابة أو اختيار اسم الطالب أولاً!",
+        // 🌟 {name} يُستبدَل باسم الطالب المختار فعلياً (راجع renderBrowseHTML في tajweed-map.js)
+        tjw_browsing_intro: "تتصفّح الآن بطاقات التجويد مع {name} 🌟",
+        tjw_change_student: "تغيير الطالب",
+        tjw_rule_not_found: "تعذّر العثور على هذا الحكم",
+        tjw_example_unavailable: "تعذّر تحميل المثال القرآني حالياً (تحقّق من الاتصال بالإنترنت)",
+        tjw_listen_btn: "استمع للآية",
+        tjw_ayah_word: "آية",
+        tjw_letters_label: "الحروف:",
+        tjw_example_source_note: "مثال حقيقي من نص القرآن — يُعرَض مباشرة من محرك القرآن الفعلي بالمنصة",
+        tjw_reveal_btn: "شاهدت، ماذا يعني؟ 🤔",
+        // 🌟 شارة البطاقة على الشاشة الرئيسية بعد اكتمال التصفّح الفعلي — بنفس منطق ترقية
+        // similarities_browse_badge بعد اكتمال شاشات التصفّح الحقيقية لركن المتشابهات
+        tjw_browse_badge: "تصفح متاح",
+
+        tjw_stage_qalqalah_name: "القلقلة",
+        tjw_stage_noon_sakinah_name: "النون الساكنة والتنوين",
+
+        tjw_rule_qalqalah_sughra_name: "القلقلة الصغرى",
+        tjw_rule_qalqalah_sughra_def: "لما يكون حرف القلقلة ساكناً في وسط الكلام (مش عند الوقف)، صوته يرتدّ برفق",
+        tjw_rule_qalqalah_sughra_notice: "استمع لصوت القاف في 'قُلْ' — هل تسمع ارتداداً خفيفاً؟",
+
+        tjw_rule_qalqalah_kubra_name: "القلقلة الكبرى",
+        tjw_rule_qalqalah_kubra_def: "لما يكون حرف القلقلة آخر الكلمة ونقف عليه، صوته يرتدّ ويهتزّ بقوة أوضح",
+        tjw_rule_qalqalah_kubra_notice: "استمع للقاف في نهاية 'الْفَلَقِ' عند الوقف عليها — هل تسمع ارتداداً أقوى؟",
+
+        tjw_rule_izhar_name: "الإظهار الحلقي",
+        tjw_rule_izhar_def: "لما تيجي النون الساكنة أو التنوين قبل أحد حروف الحلق الستة، تُنطق النون واضحة تماماً بلا أي تغيير",
+        tjw_rule_izhar_notice: "استمع للنون في 'مِّنْ خَوْفٍ' — هل تسمع نطقها واضحة بلا أي تغيير؟",
+
+        tjw_rule_idgham_name: "الإدغام",
+        tjw_rule_idgham_def: "لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها وتختفي (وغالباً تبقى غنّة خفيفة)؛ ولها نوع آخر بلا غنّة قبل حرفَي (ر ل)",
+        tjw_rule_idgham_notice: "استمع لـ 'مَن يَعْمَلْ' — هل تسمع اختفاء صوت النون واندماجها في الياء؟",
+
+        tjw_rule_iqlab_name: "الإقلاب",
+        tjw_rule_iqlab_def: "لما تيجي النون الساكنة أو التنوين قبل حرف الباء، تتحوّل النون لصوت ميم مخفاة مع غنّة",
+        tjw_rule_iqlab_notice: "استمع لـ 'سَمِيعًا بَصِيرًا' — هل تسمع صوت ميم خفيفة بدل النون قبل الباء؟",
+
+        tjw_rule_ikhfa_name: "الإخفاء",
+        tjw_rule_ikhfa_def: "لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة",
+        tjw_rule_ikhfa_notice: "استمع لـ 'مِّن سِجِّيلٍ' — هل تسمع غنّة خفيفة بدل نطق النون بوضوح؟",
+
+        // 🌟 [جديد — المراحل 2+3+4+5] خريطة التقدّم، بوّابة المراجعة، الأنشطة التفاعلية،
+        // شاشة النتيجة، الأوسمة، اللوحة، وقسم ملف الطالب — راجع
+        // "التصور-المعماري-الكامل-لمسار-التجويد.md" §3-§9
+        tjw_review_gate_alert: "عندك مراجعة مستحقة أولاً — أكمل جولة المراجعة قبل فتح حكم جديد 🔔",
+        tjw_leaderboard_title: "أبطال التجويد",
+        tjw_stage_locked_note: "أكمل المرحلة السابقة أولاً لفتح هذه المرحلة 🔒",
+        tjw_link_activity_btn: "اربط الأحكام بحروفها",
+        tjw_challenge_btn: "تحدي المرحلة",
+        tjw_review_due_banner: "عندك {n} حكم يحتاج مراجعة قبل أن تفتح حكماً جديداً",
+        tjw_start_review_btn: "ابدأ المراجعة الآن",
+        tjw_status_mastered: "✅ متقَن",
+        tjw_status_needs_review: "🔁 يحتاج مراجعة",
+        tjw_status_in_progress: "⏳ قيد التدرّب",
+        tjw_status_available: "لم يبدأ بعد",
+        tjw_start_practice_btn: "ابدأ التدرّب",
+        tjw_lb_progress_week: "الأكثر تقدّماً هذا الأسبوع",
+        tjw_lb_review_streak: "أطول سلسلة مراجعة يومية",
+        tjw_lb_latest_badge: "آخر من حصل على وسام جديد",
+        tjw_lb_sessions_unit: "جلسة",
+        tjw_lb_days_unit: "يوم",
+        tjw_lb_empty: "لا يوجد بيانات كافية بعد",
+
+        tjw_activity_title: "🎯 نشاط تفاعلي",
+        tjw_activity_error: "تعذّر تجهيز هذا النشاط، برجاء المحاولة مرة أخرى",
+        tjw_act_choose_prompt: "أي حكم يُطبَّق على هذه الحروف الساكنة؟",
+        tjw_act_discover_prompt: "أي كلمة في هذه الآية فيها الحكم الذي تعلّمته؟",
+        tjw_act_apply_prompt: "طبّق ما تعلّمته: أي كلمة في هذه الآية الجديدة فيها نفس الحكم؟",
+        tjw_act_link_prompt: "اربط كل حكم بحروفه الصحيحة",
+        tjw_question_label: "سؤال",
+        tjw_finish_activity_btn: "إنهاء النشاط",
+        tjw_next_question_btn: "السؤال التالي",
+        tjw_rule_mastered_note: "أتقنت هذا الحكم! 🎉",
+        tjw_stage_completed_note: "أكملت هذه المرحلة بالكامل! المرحلة التالية فُتحت الآن",
+        tjw_next_rule_btn: "الحكم التالي",
+        tjw_correct_answers_unit: "إجابة صحيحة",
+        tjw_retry_activity_btn: "حاول مرة أخرى",
+        tjw_back_to_map_btn: "العودة للخريطة",
+
+        tjw_badge_first_step_name: "أول خطوة",
+        tjw_badge_first_step_desc: "أول نشاط تلعبه في مسار أبطال التجويد",
+        tjw_badge_first_mastery_name: "أول إتقان",
+        tjw_badge_first_mastery_desc: "أتقنت أول حكم تجويد لك بالكامل",
+        tjw_badge_stage_master_qalqalah_name: "بطل القلقلة",
+        tjw_badge_stage_master_noon_sakinah_name: "بطل النون الساكنة",
+        tjw_badge_stage_master_desc: "أتقنت كل أحكام هذه المرحلة",
+        tjw_badge_perfect_challenge_name: "أداء مثالي",
+        tjw_badge_perfect_challenge_desc: "أجبت بلا أي خطأ في تحدي مرحلة أو جولة مراجعة",
+        tjw_badge_review_streak_name: "مراجع مواظب",
+        tjw_badge_review_streak_desc: "راجعت 3 أيام متتالية على الأقل",
+        tjw_badge_five_rules_name: "خمسة أحكام",
+        tjw_badge_five_rules_desc: "أتقنت خمسة أحكام تجويد",
+        tjw_badge_all_rules_name: "تاج الإتقان",
+        tjw_badge_all_rules_desc: "أتقنت كل الأحكام المتاحة حالياً",
+        tjw_badge_no_mistakes_name: "بلا أخطاء",
+        tjw_badge_no_mistakes_desc: "أجبت عن كل أسئلة نشاط واحد بشكل صحيح",
+        tjw_badge_comeback_name: "عودة قوية",
+        tjw_badge_comeback_desc: "راجعت حكماً كان يحتاج مراجعة ونجحت فيه",
+        tjw_badge_daily_practice_name: "ممارسة منتظمة",
+        tjw_badge_daily_practice_desc: "تدرّبت على مسار التجويد في 5 أيام مختلفة",
+        tjw_badge_ten_sessions_name: "عشر جلسات",
+        tjw_badge_ten_sessions_desc: "أكملت عشر جلسات نشاط في مسار التجويد",
+        tjw_badge_quick_learner_name: "متعلّم سريع",
+        tjw_badge_quick_learner_desc: "أتقنت حكماً من أول محاولتين فقط",
+
+        tjw_profile_section_title: "مسار التجويد 🏆",
+        tjw_profile_no_progress: "لم يبدأ هذا الطالب مسار أبطال التجويد بعد",
+        tjw_profile_current_stage: "المرحلة الحالية",
+        tjw_profile_mastered_count: "أحكام متقَنة",
+        tjw_profile_badges_empty: "لا توجد أوسمة تجويد بعد"
     },
     en: {
         header_title: "🏆 Quran Mastery Journey",
@@ -729,6 +1094,8 @@ export const translations = {
         // still under construction (engine/similarityEngine.js and database/similaritiesDB.js
         // exist as a partial base, but there's no actual gameplay screen yet)
         btn_similarities: "Similarities Challenge",
+        // 🌟 [New] entry card for the "Tajweed Heroes" path — still being built in phases
+        btn_tajweed: "Tajweed Heroes",
         btn_my_students: "My Students",
         my_students_title: "My Students",
         my_students_subtitle: "Manage Student Records",
@@ -767,6 +1134,8 @@ export const translations = {
         // with no games yet, and now (after building similarities-play.js) the feature is
         // complete: browsing + auto-graded interactive games — description updated to match
         card_similarities_desc: "Browse similar verses across surahs and play interactive games to master them",
+        // 🌟 [New] "Tajweed Heroes" card description
+        card_tajweed_desc: "A gradual, fun Tajweed learning journey for every student",
 
         footer_about_title: "About Dar Ham",
         footer_about_text: "An old-new idea for solidifying memorization and review",
@@ -778,6 +1147,10 @@ export const translations = {
         search_student_ph: "🔍 Type champion's name to search...",
         btn_quick_login: "Quick Entry for Evaluation 🚀",
         btn_all_students: "📊 General Students Record",
+        // 🌟 [New] Backup messages (v2 includes evaluations history)
+        backup_restore_ok: "Data restored successfully (students + evaluations history)!",
+        backup_restore_ok_legacy: "Students restored. ⚠️ This is an old-format file without evaluations history — export a new backup from the original device to restore it.",
+        backup_invalid_file: "Invalid file!",
         btn_add_student: "Register New Champion ➕",
         btn_back: "🔙 Back to Main Menu",
         add_new_champion: "Add New Champion",
@@ -817,7 +1190,26 @@ export const translations = {
         // 🌟 Home screen greeting & teacher profile 🌟
         greeting_morning: "Good morning",
         greeting_evening: "Good evening",
+        // 🌟 [New] Daily rotation of extra greeting phrasings — same philosophy as
+        // DAILY_QUOTES in components/homeQuickview.js: one phrasing per day (by day
+        // number since Epoch), not truly random, so it stays fixed all day and changes
+        // automatically tomorrow. See MORNING_GREETING_KEYS / EVENING_GREETING_KEYS in
+        // components/teacherProfile.js
+        greeting_morning_2: "Good morning, a blessed day to you",
+        greeting_morning_3: "Wishing you a blessed morning",
+        greeting_morning_4: "Good morning, full of light and knowledge",
+        greeting_evening_2: "Good evening, peace and blessings",
+        greeting_evening_3: "Good evening, wishing you well",
+        greeting_evening_4: "A blessed evening to you",
+        // 🌟 [New] Special Friday greeting — replaces the morning/evening rotation above
+        // for the whole day on Fridays (regardless of time), rotating between two
+        // phrasings by week number
+        greeting_friday: "Blessed Friday",
+        greeting_friday_2: "Blessed Friday, may your prayers be answered",
         greeting_title: "Sheikh",
+        // 🌟 [New] Feminine greeting form — used instead of the line above when the
+        // teacher's saved gender is female (see profile_gender_* below)
+        greeting_title_female: "Ustadha",
         home_summary_hw_label: "homework(s) currently published",
         profile_badge_text: "Complete your profile 👋",
         profile_modal_title: "Your Profile",
@@ -825,11 +1217,36 @@ export const translations = {
         // 🌟 [New] Optional official stamp/seal upload (used when signing reports) 🌟
         profile_stamp_label: "Seal/Stamp (optional)",
         profile_name_label: "Name:",
+        // 🌟 [New] Gender selection — fully optional, defaults to "Male" (unchanged old
+        // behavior, title stays "Sheikh") unless "Female" is explicitly picked. A general
+        // data field (not just a title label) so any other gender-agreeing text added
+        // later in the platform can reuse it, not only the home screen greeting.
+        profile_gender_label: "Gender:",
+        profile_gender_male: "Male",
+        profile_gender_female: "Female",
         profile_dob_label: "Date of Birth:",
         profile_save_btn: "Save",
         profile_close_btn: "Close",
+
+        // 🌟 [New] "Data Backup" section inside the teacher profile modal — export/restore
+        // all platform data stored in IndexedDB (students, homework, recitation sessions,
+        // dual tests...) to/from a single file that stays on the teacher's own device only,
+        // with no upload to the internet, per the teacher's explicit request. See
+        // core/backupRestore.js for the full export/restore mechanism 🌟
+        profile_backup_section_title: "🗄️ Data Backup",
+        profile_backup_last_never: "No backup has been taken on this device yet",
+        profile_backup_last_prefix: "Last backup: ",
+        profile_backup_download_btn: "⬇️ Backup Now",
+        profile_backup_restore_btn: "⬆️ Restore Backup",
+        profile_backup_restore_confirm: "This will replace ALL current data on this device with the content of the selected backup file, and cannot be undone. Are you sure you want to continue?",
+        profile_backup_restore_invalid_file: "This file is not a valid Dar Ham backup.",
+        profile_backup_restore_error: "Couldn't restore the backup. Make sure you selected the correct file.",
+        profile_backup_restore_success: "Data restored successfully ✅ The platform will reload now.",
+
         teacher_bday_notification_title: "🎉 Happy Birthday!",
         teacher_bday_notification_msg: "Happy birthday, Sheikh ",
+        // 🌟 [New] Feminine variant of the teacher's own birthday message
+        teacher_bday_notification_msg_female: "Happy birthday, Ustadha ",
 
         // 🌟 New home screen: hero & "Quick Overview" card 🌟
         hero_eyebrow: "A complete educational platform",
@@ -840,6 +1257,11 @@ export const translations = {
         // similarities_browse_badge instead
         similarities_in_progress_badge: "In Progress",
         similarities_toast_soon: "⚔️ The Similarities Challenge is still in development — stay tuned, God willing!",
+        // 🌟 [New] badge & message for the "Tajweed Heroes" home card — actually used from
+        // core/app.js (setupSplashListeners) via a plain alert(), the same fallback mechanism
+        // already used elsewhere in that file when a screen isn't ready yet
+        tajweed_in_progress_badge: "In Progress",
+        tajweed_toast_soon: "🌟 Tajweed Heroes is still being designed — stay tuned, God willing!",
 
         // 🌟 [New] The real "Similar Verses Corner" screens (similarities/ folder) — browsing
         // is now real (read-only, no interactive games yet), so the card badge changed from
@@ -938,6 +1360,14 @@ export const translations = {
         sim_game_q_position_ayah: "In which ayah does this phrase appear?",
         sim_game_q_position_surah: "In which surah does this ayah appear?",
         sim_game_q_ending: "What is the correct word that completes the ayah?",
+        // 🌟 [New — 2026-09-23] 4 new question types covering "recognition / discrimination /
+        // recall / avoiding confusion during recitation" — see engine/similarityEngine.js
+        // header comment for the full skill → question-type mapping
+        sim_game_q_discrimination: "What is the correct ending for this specific ayah?",
+        sim_game_q_recitation_check: "You've reached this point while reciting... how does it continue?",
+        sim_game_q_recognition: "Which of these ayahs actually contains this phrase?",
+        sim_game_q_recall_ayah: "Choose the correct text that appears at this position",
+        sim_game_q_recall_surah: "Choose the correct ayah that appears in this surah",
         sim_game_opt_ayah_prefix: "Ayah",
         sim_game_correct_feedback: "🎉 Correct answer!",
         sim_game_wrong_feedback: "❌ Pay closer attention next time",
@@ -964,6 +1394,21 @@ export const translations = {
         dts_history_modal_title: "This Test's Match History",
         dts_history_close_btn: "Close",
         dts_history_empty: "No finished matches for this test yet.",
+        // 🌟 [جديد] Unfinished (paused) matches — one round per session, resumed later
+        dts_pending_btn: "⏸️ Unfinished ({n})",
+        // 🌟 [New] one button per student pair with pending matches (instead of one merged
+        // count for the whole test) — see pendingPairKeyCache in dual-test-setup.js
+        dts_pending_pair_btn: "⏸️ {a} vs {b} ({n})",
+        dts_pending_pair_label: "Showing only {a} vs {b}'s unfinished matches:",
+        dts_pending_modal_title: "⏸️ Unfinished Matches",
+        dts_pending_modal_desc: "Pick a match to resume from its next round, with the same students and their saved scores.",
+        dts_pending_empty: "No unfinished matches for this test.",
+        dts_pending_next_round: "Resumes at round {n}",
+        dts_pending_rounds_tally: "Rounds won: {a} — {b}",
+        dts_pending_resume_btn: "▶️ Resume",
+        dts_pending_delete_btn: "🗑️ Delete",
+        dts_pending_delete_confirm: "Permanently delete this unfinished match? All its saved round results will be lost and it cannot be resumed.",
+        dts_pending_conflict_confirm: "⏸️ These two students already have an unfinished match on this test, paused at round {n}.\n\n• “OK” = resume the unfinished match from round {n}.\n• “Cancel” = start a brand new match from scratch (the unfinished one is kept).",
         dts_competitor_a: "Competitor A",
         dts_competitor_b: "Competitor B",
         dts_choose_student: "-- Choose Student --",
@@ -1049,7 +1494,27 @@ export const translations = {
         dtp_summary_title: "Round {n} Result",
         dtp_winner_label: "Round winner: {name} 🏆",
         dtp_tie_label: "Round tied 🤝",
+        // 🌟 [جديد] Redesigned round-result screen keys (see renderRoundSummary)
+        dtp_summary_winner_caption: "🏆 Winner of this round",
+        dtp_summary_tie_caption: "🤝 No winner this round",
+        dtp_summary_tie_big: "Round tied",
+        dtp_summary_diff_label: "By {n} points 🔥",
+        dtp_summary_card_winner_flag: "🏆 Winner",
+        dtp_summary_points_unit: "points",
+        dtp_summary_series_title: "Match progress",
+        dtp_summary_round_pending: "Round {n}: not played yet",
+        dtp_summary_round_tied: "Round {n}: tied",
+        dtp_summary_round_won_by: "Round {n}: {name}",
+        dtp_summary_stats_title: "Round stats",
+        dtp_summary_stat_mistakes: "Mistakes",
+        dtp_summary_stat_helper: "Helper",
+        dtp_summary_stat_swap: "Swap",
+        dtp_summary_used_yes: "Used ✔️",
+        dtp_summary_used_no: "Not used",
         dtp_next_round_btn: "Next ▶️",
+        // 🌟 [جديد] One round per session: end the session and resume later
+        dtp_end_session_btn: "💾 End session & save progress",
+        dtp_session_saved_note: "✅ This round's result is saved. The match stays saved with the same students and resumes at round {n} in a later session from: Dual Tests → ⏸️ Unfinished matches.",
         dtp_view_final_btn: "View Final Result 🏁",
         dtp_final_title: "🏆 Final Result",
         dtp_final_winner_label: "Winner: {name} 🏆🎉",
@@ -1082,10 +1547,20 @@ export const translations = {
         home_quick_publish_btn: "Publish New Homework Now",
         // 🌟 New: spaced-repetition system (Anki/Duolingo) — "due today" list
         home_due_title: "Due for review today",
+        // 🌟🌟 [New] Collapsed summary line shown above the detailed list (requested
+        // by the teacher to shorten the "Quick Overview" card) — clicking it toggles
+        // the list below. See renderDueForReview in components/homeQuickview.js
+        home_due_badge: "📚 {n} due for review today",
         home_due_no_range: "No memorization range on file",
         home_due_overdue_by: "Overdue by",
         home_due_days_unit: "day(s)",
         home_due_today: "Today",
+        // 🌟🌟 [New] "Matches waiting to resume" reminder on the home screen — see
+        // renderPendingDualMatchesReminder in components/homeQuickview.js
+        home_pm_title: "⏰ Matches Waiting to Resume",
+        // 🌟🌟 [New] Collapsed summary line (same idea as home_due_badge above)
+        home_pm_badge: "⏰ {n} matches waiting to resume",
+        home_pm_paused_since: "Paused for",
         // 🌟 New: monthly reminder to update students' memorization data (home banner)
         home_memo_reminder_text: "Time to review and update each student's memorization range for anyone who's progressed this month 📖",
         home_memo_reminder_btn: "Update Now",
@@ -1151,6 +1626,55 @@ export const translations = {
         link_word_surah_ends_title: "Surah Names",
         "🔗📖 اربط الكلمة بالسورة": "🔗📖 Link the Word to Its Surah",
         "اربط الكلمة بسورتها يا بطل 🔗📖": "Link the word to its surah, champ! 🔗📖",
+
+        // 🌟 [جديد] عناوين بقية أسئلة/ألعاب المنصة التي كانت لسه بلا ترجمة إنجليزية فعلية — نفس
+        // أسلوب النصوص أعلاه تمامًا (النص العربي نفسه هو المفتاح)، والوضع العربي يعمل تلقائيًا
+        // برجوع t() للمفتاح كما هو دون أي حاجة لإضافته هنا. تغطي عناوين ألعاب واجهة الكبار
+        // (engine/quranEngine.js) وركن الأطفال (engine/kidsEngine.js)، عنوان جولة "علاج الخطأ
+        // السابق" المشترك بينهما، وتصنيفات الأنشطة (typeLabel) في تقارير واجهة الكبار فقط
+        // (games/adultGame.js) — ركن الأطفال يستخدم questionTitle نفسه كتصنيف فلا يحتاج مفاتيح
+        // إضافية له 🌟
+
+        // عناوين ألعاب واجهة الكبار (engine/quranEngine.js)
+        "الذاكرة البصرية للمصحف 📖": "Visual Memory of the Mushaf 📖",
+        "استدعِ الآية التي تحتوي على الكلمات 🏹:": "Recall the ayah containing these words 🏹:",
+        "خمن السورة 🔍": "Guess the Surah 🔍",
+        "ماذا بعدها؟ ⬅️": "What comes after it? ⬅️",
+        "ماذا قبلها؟ ➡️": "What comes before it? ➡️",
+        "رتب الآيات يا بطل 🔀": "Order the ayahs, champ! 🔀",
+        "🔀 رتب الآيات": "🔀 Order the Ayahs",
+        "الآية بين آيتين ↔️": "The Ayah Between Two Ayahs ↔️",
+        "🎙️ أسمعنا صوتك العذب!": "🎙️ Let us hear your beautiful voice!",
+        "تسميع مقطع 🎙️": "Recite a Passage 🎙️",
+        "اكتشف الخطأ 🔍": "Spot the Mistake 🔍",
+        "أكمل الجزء الناقص من الآية الكريمة 🧩": "Complete the Missing Part of the Noble Ayah 🧩",
+
+        // عناوين ألعاب ركن الأطفال (engine/kidsEngine.js)
+        "اختر الكلمة الناقصة يا بطل! 🎯": "Choose the missing word, champ! 🎯",
+        "ماذا بعد هذه الآية يا بطل؟ ⬅️": "What comes after this ayah, champ? ⬅️",
+        "رتب كلمات الآية يا بطل 🧩": "Order the ayah's words, champ! 🧩",
+        "صح أم خطأ؟ 🚦": "True or False? 🚦",
+        "خمن السورة يا بطل! 🌟": "Guess the surah, champ! 🌟",
+        "بأي آية تبدأ هذه السورة؟ 🏁": "Which ayah does this surah start with? 🏁",
+        "استخرج الكلمة الزائدة الخاطئة! 🚫": "Find the wrong extra word! 🚫",
+        "ماذا قبل هذه الآية؟ ➡️": "What comes before this ayah? ➡️",
+
+        // عنوان جولة "علاج الخطأ السابق" (مشترك بين واجهة الكبار وركن الأطفال)
+        "تحدي تصحيح الخطأ السابق": "Previous Mistake Correction Challenge",
+        "علاج الخطأ السابق": "Fixing the Previous Mistake",
+
+        // تصنيفات الأنشطة (typeLabel) في سجل تقارير واجهة الكبار (games/adultGame.js)
+        "تحدي علاج الخطأ": "Mistake-Fixing Challenge",
+        "نشاط": "Activity",
+        "🏹 صيد الآية": "🏹 Catch the Ayah",
+        "⬅️ ماذا بعدها؟": "⬅️ What Comes After It?",
+        "➡️ ماذا قبلها؟": "➡️ What Comes Before It?",
+        "↔️ الآية بين آيتين": "↔️ The Ayah Between Two Ayahs",
+        "🔍 خمن السورة": "🔍 Guess the Surah",
+        "🎙️ تسميع مقطع": "🎙️ Recite a Passage",
+        "🔍 اكتشف الخطأ": "🔍 Spot the Mistake",
+        "🧩 أكمل الآية": "🧩 Complete the Ayah",
+        "📖 الذاكرة البصرية": "📖 Visual Memory",
 
         // Reports HTML
         report_title: "Quranic Evaluation Report",
@@ -1233,7 +1757,14 @@ export const translations = {
         hw_share_success: "Saved Successfully! 🎉",
         hw_share_desc: "Copy the following link and send it via WhatsApp to your students to start the challenge:",
         // 🌟 New: warning shown in the share modal only if the cloud upload failed
-        hw_cloud_sync_warning: "⚠️ The homework was saved on this device, but uploading it to the cloud failed just now (check your internet connection). This link will only work on this device until it's re-uploaded automatically — it's best not to send it to students yet; reopen this screen later to confirm the upload succeeded.",
+        hw_cloud_sync_warning: "⚠️ The homework was saved on this device, but uploading it to the cloud failed just now (check your internet connection). This link will only work on this device until it's re-uploaded — it's best not to send it to students yet. It will retry automatically once your connection returns or when you reopen this screen, or you can press the retry button below now.",
+        // 🌟🌟 New: button shown only next to the warning above — retries uploading this
+        // homework right away (see retryHomeworkCloudSync in settings/homework-prep.js)
+        hw_retry_sync_btn: "🔄 Retry Now",
+        // 🌟🌟 New: small badge next to any published homework in the history table that is
+        // still stuck locally and hasn't reached the cloud yet (see isHomeworkPendingSync in
+        // core/firebase.js)
+        hw_pending_sync_row_badge: "Not uploaded to cloud yet",
         hw_copy_btn: "📋 Copy",
         hw_close_return: "Close & Return 🏠",
         hw_subs_modal_title: "📊 Students Results & Submissions",
@@ -1268,6 +1799,18 @@ export const translations = {
         whats_new_cat_new: "New",
         whats_new_cat_improved: "Improved",
         whats_new_cat_fixed: "Fixed",
+
+        // 🌟 [New] Monthly backup reminder modal — shown automatically once, the first time
+        // the teacher opens the platform in a new calendar month on this device
+        // (localStorage only, no cloud sync, same philosophy as dh_last_seen_version in
+        // core/app.js). See checkMonthlyBackupReminder in core/app.js and
+        // core/backupRestore.js for the full mechanism 🌟
+        backup_reminder_title: "🗄️ Monthly Backup Reminder",
+        backup_reminder_body: "It's been a month since you last backed up your students' data. It's best to download a fresh backup now and keep it on your device for emergencies.",
+        backup_reminder_download_btn: "⬇️ Download Now",
+        backup_reminder_later_btn: "Later",
+        backup_export_error: "Couldn't create the backup. Please try again.",
+        backup_export_success: "Backup downloaded successfully ✅",
 
         // 🌟 [New] "Monthly Achievement Report" screen — aggregates homework + dual tests +
         // resolved mistakes + spaced-review consistency over a full month (see
@@ -1365,11 +1908,22 @@ export const translations = {
         // 🌟 [جديد بالكامل] "Listen and Guess the Ayah" game (kids corner only)
         kids_listen_title: "Listen and Guess the Ayah, Champ! 🎧",
         kids_listen_audio_error: "Couldn't play the audio — check your internet connection and try again 🌐",
+        // 🌟 [New] Second step of "Listen and Guess the Ayah": after picking the right ayah,
+        // the child is asked which surah it's from — see generateKidsListenAyah in
+        // engine/kidsEngine.js
+        kids_listen_which_surah: "🕌 Which surah is this ayah from?",
+        kids_listen_wrong_ayah_error: "Picked the wrong ayah",
+        kids_listen_wrong_surah_error: "Got the ayah right, but the surah wrong",
 
         // 🌟 [New] Inline editing of the student profile screen (no separate modal) —
         // see setupInlineProfileEditing in student/student.js
         prof_edit_hint: "💡 Click any info to edit it directly, then use the \"Monthly Achievement Report\" button to print once you're done",
         prof_avatar_change_title: "Change photo",
+
+        // 🌟 [New] "Student welcome card" — see the matching Arabic block above for the full
+        // rationale comment (components/welcomeBanner.js)
+        welcome_hello: "Welcome",
+        welcome_back_line: "Good to have you back 🌟",
 
         // 🌟 [New] "Section hints on first entry" system — see the matching Arabic block above
         // for the full rationale comment; English strings mirror the teacher-approved Arabic
@@ -1401,7 +1955,209 @@ export const translations = {
         hint_dual_test_body: "The test is prepared through a three-step wizard: choosing the two competitors and the range for each round, then selecting the round, then adding its questions. During play, the Swap 🔄 button gives one alternative question per round only, and the Help 💡 button records that the student used their one-time right to your verbal assistance during the round without a direct deduction, while the actual deduction is calculated from the number of mistakes recorded on each question (half a point per mistake out of ten).",
 
         hint_similarities_title: "🧩 Notice before starting the Similarities Corner",
-        hint_similarities_body: "The purpose of this corner is to introduce the student to similar verses and make them easier to memorize, not to formally evaluate the student. The answer is corrected as soon as it is chosen, and if wrong, the correct answer is shown immediately, without a final score or a note being recorded in the student's file."
+        hint_similarities_body: "The purpose of this corner is to introduce the student to similar verses and make them easier to memorize, not to formally evaluate the student. The answer is corrected as soon as it is chosen, and if wrong, the correct answer is shown immediately, without a final score or a note being recorded in the student's file.",
+        // 🌟 [New] Individual evaluation report — new design (reports/report.js)
+        rep_tb_teacher_data: "Teacher details",
+        rep_tb_teacher_name_ph: "Teacher name",
+        rep_tb_upload_stamp: "Upload teacher stamp",
+        rep_tb_export: "Export",
+        rep_tb_png: "Summary image",
+        rep_tb_pdf: "Full PDF file",
+        rep_tb_home: "Back to home",
+        rep_tb_note_label: "Note to the parent (optional):",
+        rep_tb_note_ph: "Write your own note to the parent here — if left empty, an automatic comment based on the test result is shown.",
+        rep_tb_note_hint: "Appears in the \"Teacher's note\" box below",
+        rep_tb_extra_label: "Extra text inside the report (optional):",
+        rep_tb_extra_ph: "Any additional text you would like inside the report — leave it empty if you do not need it.",
+        rep_tb_extra_hint: "Appears as a separate box, and is hidden entirely if left empty",
+
+        rep_eyebrow: "Dar Ham · Quran Memorization Platform",
+        rep_title: "Student Progress Report",
+        rep_subtitle: "In memorizing the Holy Quran",
+        rep_tagline: "Step by step ... towards the Book of Allah",
+
+        rep_avatar_hint: "Click or drag an image to change the student's photo",
+        rep_avatar_change: "Change student photo",
+
+        rep_fact_grade: "Grade",
+        rep_fact_scope: "Evaluation range",
+        rep_fact_duration: "Evaluation duration",
+
+        rep_this_eval: "This evaluation's result",
+        rep_delta_vs_prev: "vs. the previous attempt",
+        rep_delta_same: "same as the previous attempt",
+
+        rep_ladder_title: "Overall progress level",
+        rep_ladder_sub: "This evaluation compared with the student's latest recorded attempts",
+        rep_ladder_first_attempt: "This is the first attempt recorded in the student's history — the comparison with previous attempts will appear from the next evaluation onwards.",
+        rep_step_current: "This evaluation",
+        rep_step_prev1: "Previous attempt",
+        rep_step_prev2: "The one before",
+        rep_step_prev3: "Oldest attempt",
+        rep_step_prev_generic: "Earlier attempt",
+
+        rep_qtable_title: "Test details — question by question",
+        rep_qtable_sub: "Every question asked in this test exactly as it happened, with nothing omitted",
+        rep_col_num: "#",
+        rep_col_status: "Response",
+        rep_col_subject: "Question / Topic",
+        rep_col_score: "Score",
+        rep_col_note: "Note",
+        rep_no_questions: "No question details are available for this evaluation.",
+
+        rep_chip_full: "Fully correct",
+        rep_chip_partial: "Partially correct",
+        rep_chip_wrong: "Incorrect",
+
+        rep_stat_avgtime: "Average answer time",
+        rep_stat_hints: "Hints used",
+        rep_stat_reorders: "Repeated ordering attempts",
+
+        rep_strengths: "Strengths",
+        rep_needs: "Needs focus",
+        rep_note_label: "Teacher's note to the parent",
+        rep_extra_label: "Additional note",
+
+        rep_report_no: "Report no.",
+        rep_date: "Date",
+        rep_sign_label_stamp: "Teacher's stamp",
+        rep_sign_label_plain: "Teacher",
+
+        // 🌟 [Fix] Keys for the redesigned "Needs focus" box — they were used via t()
+        // in reports/report.js but never defined, so the raw key names were printed
+        // inside the parent-facing report.
+        report_focus_group_today: "Mistakes in today's test",
+        report_focus_group_partial: "Needs reinforcement today",
+        report_focus_group_past: "Follow-up from earlier sessions",
+        report_focus_repeated: "Repeated mistake",
+        report_focus_not_resolved: "not resolved yet",
+        report_note_focus_past_prefix: "an earlier item:",
+        report_focus_more_one: "more item",
+        report_focus_more_two: "more items",
+        report_focus_more_few: "more items",
+        report_focus_more_many: "more items",
+        report_focus_age_today: "today",
+        report_focus_age_day1: "yesterday",
+        report_focus_age_day2: "2 days ago",
+        report_focus_age_since: "",
+        report_focus_age_unit_few: "days ago",
+        report_focus_age_unit_many: "days ago",
+
+        // ============================================================
+        // 🌟 [New] "Tajweed Heroes" screens — Phase 1 (catalog + static browsing)
+        // ============================================================
+        tjw_home_title: "Tajweed Heroes",
+        tjw_home_subtitle: "Choose a student's name to begin their Tajweed learning journey",
+        tjw_no_students: "No students registered yet — add a student first from 'My Students'",
+        tjw_pick_label: "Select the student's name from the list or type to search",
+        tjw_start_journey_btn: "Start the Journey 🚀",
+        tjw_pick_name_required_alert: "Please type or select the student's name first!",
+        tjw_browsing_intro: "You're browsing the Tajweed cards with {name} 🌟",
+        tjw_change_student: "Change Student",
+        tjw_rule_not_found: "This rule could not be found",
+        tjw_example_unavailable: "Could not load the Quranic example right now (check your internet connection)",
+        tjw_listen_btn: "Listen to the Ayah",
+        tjw_ayah_word: "Ayah",
+        tjw_letters_label: "Letters:",
+        tjw_example_source_note: "A real example from the Quran — shown directly from the platform's actual Quran engine",
+        tjw_reveal_btn: "I noticed it, what does it mean? 🤔",
+        tjw_browse_badge: "Browsing Available",
+
+        tjw_stage_qalqalah_name: "Qalqalah",
+        tjw_stage_noon_sakinah_name: "Noon Sakinah & Tanween",
+
+        tjw_rule_qalqalah_sughra_name: "Minor Qalqalah",
+        tjw_rule_qalqalah_sughra_def: "When a Qalqalah letter has a sukoon in the middle of speech (not at a stop), its sound rebounds gently",
+        tjw_rule_qalqalah_sughra_notice: "Listen to the qaaf sound in 'Qul' — can you hear a gentle rebound?",
+
+        tjw_rule_qalqalah_kubra_name: "Major Qalqalah",
+        tjw_rule_qalqalah_kubra_def: "When a Qalqalah letter is at the end of a word and we stop on it, its sound rebounds and vibrates more strongly",
+        tjw_rule_qalqalah_kubra_notice: "Listen to the qaaf at the end of 'al-Falaq' when stopping on it — can you hear a stronger rebound?",
+
+        tjw_rule_izhar_name: "Clear Pronunciation (Izhar)",
+        tjw_rule_izhar_def: "When Noon Sakinah or Tanween is followed by one of the six throat letters, the noon is pronounced clearly with no change",
+        tjw_rule_izhar_notice: "Listen to the noon in 'min khawf' — do you hear it pronounced clearly, unchanged?",
+
+        tjw_rule_idgham_name: "Idgham (Merging)",
+        tjw_rule_idgham_def: "When Noon Sakinah or Tanween is followed by one of the letters (ي ن م و), the noon merges into the next letter and disappears (usually with a light nasal sound); there's another type without the nasal sound before (ر ل)",
+        tjw_rule_idgham_notice: "Listen to 'man ya'mal' — can you hear the noon disappear and merge into the yaa?",
+
+        tjw_rule_iqlab_name: "Iqlab (Conversion)",
+        tjw_rule_iqlab_def: "When Noon Sakinah or Tanween is followed by the letter baa, the noon converts into a hidden meem sound with a nasal tone",
+        tjw_rule_iqlab_notice: "Listen to 'sami'an basiran' — can you hear a light meem sound instead of the noon before the baa?",
+
+        tjw_rule_ikhfa_name: "Ikhfa (Concealment)",
+        tjw_rule_ikhfa_def: "When Noon Sakinah or Tanween is followed by one of the remaining letters, the noon is pronounced midway between clear and merged, with a nasal tone",
+        tjw_rule_ikhfa_notice: "Listen to 'min sijjeel' — can you hear a light nasal tone instead of a clear noon?",
+
+        // 🌟 [New — Phases 2+3+4+5] progress map, mandatory review gate, interactive
+        // activities, result screen, badges, leaderboard, and student-profile section
+        tjw_review_gate_alert: "You have a review due first — finish it before opening a new rule 🔔",
+        tjw_leaderboard_title: "Tajweed Heroes",
+        tjw_stage_locked_note: "Complete the previous stage first to unlock this one 🔒",
+        tjw_link_activity_btn: "Match rules to their letters",
+        tjw_challenge_btn: "Stage challenge",
+        tjw_review_due_banner: "You have {n} rule(s) due for review before opening a new one",
+        tjw_start_review_btn: "Start review now",
+        tjw_status_mastered: "✅ Mastered",
+        tjw_status_needs_review: "🔁 Needs review",
+        tjw_status_in_progress: "⏳ In progress",
+        tjw_status_available: "Not started yet",
+        tjw_start_practice_btn: "Start practicing",
+        tjw_lb_progress_week: "Most progress this week",
+        tjw_lb_review_streak: "Longest daily review streak",
+        tjw_lb_latest_badge: "Latest new badge earned",
+        tjw_lb_sessions_unit: "session(s)",
+        tjw_lb_days_unit: "day(s)",
+        tjw_lb_empty: "Not enough data yet",
+
+        tjw_activity_title: "🎯 Interactive activity",
+        tjw_activity_error: "Couldn't prepare this activity, please try again",
+        tjw_act_choose_prompt: "Which rule applies to these silent letters?",
+        tjw_act_discover_prompt: "Which word in this ayah has the rule you just learned?",
+        tjw_act_apply_prompt: "Apply what you learned: which word in this new ayah has the same rule?",
+        tjw_act_link_prompt: "Match each rule to its correct letters",
+        tjw_question_label: "Question",
+        tjw_finish_activity_btn: "Finish activity",
+        tjw_next_question_btn: "Next question",
+        tjw_rule_mastered_note: "You mastered this rule! 🎉",
+        tjw_stage_completed_note: "You completed this whole stage! The next stage is now unlocked",
+        tjw_next_rule_btn: "Next rule",
+        tjw_correct_answers_unit: "correct",
+        tjw_retry_activity_btn: "Try again",
+        tjw_back_to_map_btn: "Back to map",
+
+        tjw_badge_first_step_name: "First step",
+        tjw_badge_first_step_desc: "The first activity you played in Tajweed Heroes",
+        tjw_badge_first_mastery_name: "First mastery",
+        tjw_badge_first_mastery_desc: "You fully mastered your first tajweed rule",
+        tjw_badge_stage_master_qalqalah_name: "Qalqalah Hero",
+        tjw_badge_stage_master_noon_sakinah_name: "Noon Sakinah Hero",
+        tjw_badge_stage_master_desc: "You mastered every rule in this stage",
+        tjw_badge_perfect_challenge_name: "Perfect performance",
+        tjw_badge_perfect_challenge_desc: "You answered a stage challenge or review with zero mistakes",
+        tjw_badge_review_streak_name: "Dedicated reviewer",
+        tjw_badge_review_streak_desc: "You reviewed for at least 3 days in a row",
+        tjw_badge_five_rules_name: "Five rules",
+        tjw_badge_five_rules_desc: "You mastered five tajweed rules",
+        tjw_badge_all_rules_name: "Crown of mastery",
+        tjw_badge_all_rules_desc: "You mastered every rule currently available",
+        tjw_badge_no_mistakes_name: "No mistakes",
+        tjw_badge_no_mistakes_desc: "You answered every question in an activity correctly",
+        tjw_badge_comeback_name: "Strong comeback",
+        tjw_badge_comeback_desc: "You reviewed a rule that needed review and succeeded",
+        tjw_badge_daily_practice_name: "Regular practice",
+        tjw_badge_daily_practice_desc: "You practiced Tajweed on 5 different days",
+        tjw_badge_ten_sessions_name: "Ten sessions",
+        tjw_badge_ten_sessions_desc: "You completed ten Tajweed activity sessions",
+        tjw_badge_quick_learner_name: "Quick learner",
+        tjw_badge_quick_learner_desc: "You mastered a rule in just two attempts",
+
+        tjw_profile_section_title: "Tajweed Journey 🏆",
+        tjw_profile_no_progress: "This student hasn't started the Tajweed Heroes journey yet",
+        tjw_profile_current_stage: "Current stage",
+        tjw_profile_mastered_count: "Rules mastered",
+        tjw_profile_badges_empty: "No Tajweed badges yet"
     }
 };
 

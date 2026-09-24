@@ -582,8 +582,9 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         let tType = GameState.currentData.type;
         // 🌟 نستخدم الدالة t() هنا، إن لم تكن في القاموس ستعيد النص العربي بأمان 🌟
         if(tType==='catch') typeLabel= t("🏹 صيد الآية"); 
-        else if(tType==='next') typeLabel= t("➡️ ماذا بعدها؟"); 
-        else if(tType==='previous') typeLabel= t("⬅️ ماذا قبلها؟"); 
+        // 🌟 [تصحيح] اتجاه السهمين عُكِس ليوافق اتجاه القراءة العربية (RTL): "ماذا بعدها" ⬅️ و"ماذا قبلها" ➡️ 🌟
+        else if(tType==='next') typeLabel= t("⬅️ ماذا بعدها؟"); 
+        else if(tType==='previous') typeLabel= t("➡️ ماذا قبلها؟"); 
         else if(tType==='order') typeLabel= t("🔀 رتب الآيات");
         // 🌟 [قديم] تصنيف لعبة "رتب السور" السابقة — لم تعد هذه اللعبة تُستخدم في أي جولة جديدة
         // (استُبدلت بـ'link_word_surah' أدناه)، لكن أبقينا هذا السطر بلا حذف احترازًا 🌟
@@ -680,15 +681,28 @@ async function recordAnswer(isCorrect, errorTypes = []) {
     }
 }
 
+// 🌟 [جديد] تصغير خط الآيات الطويلة في لعبة "رتب الآيات" بدل تركها دايمًا 2.2rem — الآية
+// الطويلة كانت بتخلي عمود كامل يمتد لعشر أسطر فيضطر الطالب يعمل سكرول للصفحة كلها بدل
+// سكرول محلي بسيط، وده اللي طلب المعلم حله صراحة. الآيات القصيرة ما بتتأثرش إطلاقًا
+// (بترجع '' فترجع الكلاس الافتراضي .order-item/.order-slot.filled بحجمه الأصلي).
+// ⚠️ افتراض صريح: حدود الطول (70/140 حرفًا شاملة التشكيل) اختيار عملي مبدئي، راجع
+// css/global.css لتفاصيل قاعدة order-text-long/xlong المرتبطة بيها 🌟
+function getOrderTextSizeClass(text) {
+    const len = (text || '').length;
+    if (len > 140) return ' order-text-xlong';
+    if (len > 70) return ' order-text-long';
+    return '';
+}
+
 function buildOrderGameUI() {
-    const shufDiv = document.getElementById('order-shuffled'); 
-    const slotDiv = document.getElementById('order-slots'); 
+    const shufDiv = document.getElementById('order-shuffled');
+    const slotDiv = document.getElementById('order-slots');
     shufDiv.innerHTML = ""; slotDiv.innerHTML = "";
-    
+
     GameState.currentData.shuffled.forEach((ayah) => {
         if (!GameState.currentData.studentAnswer.some(a => a.numberInSurah === ayah.numberInSurah)) {
-            let item = document.createElement('div'); 
-            item.className = 'order-item quran-text'; 
+            let item = document.createElement('div');
+            item.className = 'order-item quran-text' + getOrderTextSizeClass(ayah.text);
             item.innerText = ayah.text;
             item.onclick = () => { 
                 GameState.currentData.studentAnswer.push(ayah); 
@@ -712,7 +726,7 @@ function buildOrderGameUI() {
     for(let i=0; i < GameState.currentData.original.length; i++) {
         let slot = document.createElement('div');
         if (GameState.currentData.studentAnswer[i]) {
-            slot.className = 'order-slot filled quran-text'; 
+            slot.className = 'order-slot filled quran-text' + getOrderTextSizeClass(GameState.currentData.studentAnswer[i].text);
             slot.innerText = GameState.currentData.studentAnswer[i].text;
             slot.onclick = () => { GameState.currentData.studentAnswer.splice(i, 1); buildOrderGameUI(); }; 
         } else {

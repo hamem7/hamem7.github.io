@@ -70,7 +70,12 @@ function playErrorSound() {
 // (عنوان النطاق المعروض في شريط العنوان: اسم السورة أو اسم الجزء) — بلا حاجة لأي تخزين دائم
 // (لا تقارير، لا حفظ في سجل الطالب)، لأن هذه لعبة تعريف/تدريب سريعة وليست تقييماً رسمياً
 // يُحفظ لملف الطالب (بخلاف ألعاب الأطفال الرسمية في games/kidsGame.js).
-let PlayState = { groups: [], scopeTitle: '', round: null, currentIndex: 0, correctCount: 0 };
+// 🌟 [جديد — 2026-09-23] allGroupsPool: كل مجموعات المتشابهات في المنصة (لا فقط مجموعات نطاق
+// الجولة الحالية) — يُحمَّل مرة واحدة عند بدء اللعبة ويُخزَّن هنا لإعادة استخدامه في "العب مرة
+// أخرى" بلا إعادة استعلام IndexedDB. يلزم لسؤال "التعرّف" (sim_recognition) الذي يحتاج مشتتات
+// دخيلة من مجموعات أخرى تماماً — راجع تعليق generateRecognitionQuestions في
+// engine/similarityEngine.js.
+let PlayState = { groups: [], allGroupsPool: [], scopeTitle: '', round: null, currentIndex: 0, correctCount: 0 };
 
 // 🌟 [جديد] يحل مجموعات اللعب الفعلية + عنوان النطاق من كائن scope الممرَّر عبر
 // AppState.similarityGamePlayScope — راجع تعليق رأس الملف وتعليق الحقل في core/app.js.
@@ -125,7 +130,11 @@ export async function initSimilarityGamePlay() {
     const titleEl = document.getElementById('simplay-title');
     if (titleEl) titleEl.textContent = `${t('sim_game_title')} — ${title}`;
 
-    const round = buildGameRound(groups);
+    // 🌟 [جديد — 2026-09-23] نجلب كل مجموعات المتشابهات في المنصة (وليس فقط مجموعات هذا
+    // النطاق) لبناء مشتتات "التعرّف" الدخيلة — راجع تعليق PlayState.allGroupsPool أعلاه.
+    const allGroupsPool = await AppState.similaritiesManager.getAllSimilarities();
+
+    const round = buildGameRound(groups, allGroupsPool);
     // 🛡️ خط دفاع صريح (لا نفترض صمتاً أن كل مجموعة صالحة للعب): لو لم تتوفر بيانات كافية
     // (كل المجموعات بموضع واحد، أو كل مواضعها بنفس رقم آية/سورة...) نعرض رسالة ودّية للمعلم
     // بدل شاشة أسئلة فارغة أو خطأ برمجي — راجع تعليق buildGameRound في
@@ -135,7 +144,7 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0 };
+    PlayState = { groups, allGroupsPool, scopeTitle: title, round, currentIndex: 0, correctCount: 0 };
     initAudio();
     renderQuestion();
 }
@@ -167,7 +176,12 @@ async function resolveDisplayText(o, scope) {
 function buildOccurrenceHTML(text, q, occurrence, showBadge) {
     const isSingleAyah = occurrence.ayahNumber != null;
 
-    if (q.type === 'sim_ending') {
+    // 🌟 [عدّل — 2026-09-23] sim_discrimination (التمييز) تستخدم بالضبط نفس منطق الإخفاء
+    // المستخدم في sim_ending — الفارق الوحيد أن q.correctAnswer هنا "مقطع مميِّز" مُشتق آلياً
+    // من fullText (deriveDistinguishingSegment في engine/similarityEngine.js) بدل
+    // distinctiveTailWord اليدوي، لكن blankPhraseInText/findPhraseRanges يتعاملان مع أي نص
+    // مُمرَّر بنفس الطريقة تماماً بلا حاجة لأي تمييز إضافي هنا.
+    if (q.type === 'sim_ending' || q.type === 'sim_discrimination') {
         // ⚠️ الترتيب هنا مقصود: نُخفي الكلمة المميزة على النص الكامل غير المُقسَّم أولاً
         // (وليس بعد التقسيم لآيات) لأن بعض مواضع جزء عمّ تحمل صيغتين للكلمة المميزة مفصولتين
         // بـ "/" قد تقع كل واحدة منهما في آية مختلفة ضمن نفس النطاق (مثال حقيقي موثّق: مجموعة
@@ -207,6 +221,64 @@ function buildOccurrenceHTML(text, q, occurrence, showBadge) {
     return `<div class="sim-occ-ayah-group">${ayahsHTML}</div>`;
 }
 
+// 🌟 [جديد — 2026-09-23] بناء سياق العرض (النص/الموضع المعروض قبل الخيارات) لكل نوع سؤال —
+// أنواع "التعرّف"/"الاستدعاء"/"منع الخلط" الجديدة لا تعرض نصاً كاملاً ومظلَّلاً كسائر
+// الأسئلة (هذا هو صلب الفرق بينها وبين sim_position/sim_ending/sim_discrimination)، فاستُخرج
+// هذا المنطق لدالة مستقلة بدل توسيع renderQuestion بفروع if/else متشابكة. راجع تعليق كل فرع
+// لسبب اختيار طريقة العرض هذه تحديداً وربطها بالمهارة المستهدفة (تفصيل كامل في تعليق رأس
+// engine/similarityEngine.js).
+async function buildContextHTML(q, o) {
+    if (q.type === 'sim_position' || q.type === 'sim_ending' || q.type === 'sim_discrimination') {
+        const isAyahGuessQuestion = q.promptKey === 'sim_game_q_position_ayah';
+        const isSurahGuessQuestion = q.promptKey === 'sim_game_q_position_surah';
+        const showBadge = !isAyahGuessQuestion; // راجع تعليق buildOccurrenceHTML أعلاه
+        const showSurahMeta = !isSurahGuessQuestion;
+        const baseText = await resolveDisplayText(o, q.scope);
+        const occurrenceHTML = buildOccurrenceHTML(baseText, q, o, showBadge);
+        const metaHTML = showSurahMeta ? `<div class="sim-occ-meta">${o.surahName || ''}</div>` : '';
+        return `<div class="sim-occ sim-occ-single">${occurrenceHTML}${metaHTML}</div>`;
+    }
+
+    if (q.type === 'sim_recitation_check' || q.type === 'sim_recognition') {
+        // منع الخلط أثناء التسميع: بلا أي سياق مساعد (لا نص، لا رقم آية، لا اسم سورة) — فقط
+        // عبارة الالتقاء المشتركة (المعروضة أصلاً في صندوق العنوان أعلى الشاشة) ثم الخيارات
+        // مباشرة، بقصد محاكاة لحظة الالتباس الحقيقية أثناء التسميع الحي.
+        // التعرّف: أيضاً بلا سياق — الخيارات نفسها آيات كاملة (واحدة صحيحة من نفس المجموعة،
+        // والباقي دخيل من مجموعات مختلفة)، فلا داعي لعرض أي نص إضافي قبلها.
+        return '';
+    }
+
+    if (q.type === 'sim_recall') {
+        // الاستدعاء (موجّه): نعرض "أين" فقط (رقم الآية أو اسم السورة) بلا أي نص — عكس اتجاه
+        // sim_position تماماً بقصد (راجع تعليق generateGuidedRecallQuestions في
+        // engine/similarityEngine.js). لا خطر تسريب هنا: الإجابة المطلوبة هي النص لا الموضع.
+        const positionLabel = o.ayahNumber != null
+            ? `${o.surahName || ''} — ${t('sim_game_opt_ayah_prefix')} ${o.ayahNumber}`
+            : (o.surahName || '');
+        return `<div class="sim-recall-position">${positionLabel}</div>`;
+    }
+
+    return '';
+}
+
+// 🌟 [جديد — 2026-09-23] أنواع الخيارات: "قصيرة" (أرقام آيات/أسماء سور/مقاطع مميِّزة، أزرار
+// متجاورة أفقياً كالسابق) أو "نص كامل" (آيات كاملة لأسئلة التعرّف/الاستدعاء، تحتاج عرضاً
+// كاملاً وسطراً مستقلاً لكل خيار — راجع .sim-play-option-fulltext في css/similarities.css).
+const FULLTEXT_OPTION_TYPES = new Set(['sim_recognition', 'sim_recall']);
+
+function buildOptionsHTML(q) {
+    const isAyahGuessQuestion = q.promptKey === 'sim_game_q_position_ayah';
+    const isFullText = FULLTEXT_OPTION_TYPES.has(q.type);
+    const useQuranFont = q.type !== 'sim_position'; // sim_position خياراتها أرقام/أسماء سور، لا نص قرآني
+    return q.options.map(opt => {
+        const label = isAyahGuessQuestion ? `${t('sim_game_opt_ayah_prefix')} ${opt}` : opt;
+        const classes = ['btn', 'btn-outline', 'sim-play-option-btn'];
+        if (useQuranFont) classes.push('quran-text');
+        if (isFullText) classes.push('sim-play-option-fulltext');
+        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${label}</button>`;
+    }).join('');
+}
+
 async function renderQuestion() {
     const container = document.getElementById('simplay-container');
     if (!container) return;
@@ -214,7 +286,6 @@ async function renderQuestion() {
 
     const q = PlayState.round.questions[PlayState.currentIndex];
     const o = q.occurrence;
-    const baseText = await resolveDisplayText(o, q.scope);
 
     // 🌟 [جديد — 2026-09-16، الجولة الثانية] صندوق العنوان الذهبي (#simplay-anchor) كان
     // يُضبط مرة واحدة فقط عند بداية الجولة (لأن الجولة كانت كلها من مجموعة واحدة بعبارة
@@ -223,29 +294,16 @@ async function renderQuestion() {
     const anchorEl = document.getElementById('simplay-anchor');
     if (anchorEl) anchorEl.textContent = `« ${q.anchorPhrase} »`;
 
-    const isAyahGuessQuestion = q.promptKey === 'sim_game_q_position_ayah';
-    const isSurahGuessQuestion = q.promptKey === 'sim_game_q_position_surah';
-    const showBadge = !isAyahGuessQuestion; // راجع تعليق buildOccurrenceHTML أعلاه
-    const showSurahMeta = !isSurahGuessQuestion;
-
-    const occurrenceHTML = buildOccurrenceHTML(baseText, q, o, showBadge);
-    const metaHTML = showSurahMeta ? `<div class="sim-occ-meta">${o.surahName || ''}</div>` : '';
-
+    const contextHTML = await buildContextHTML(q, o);
     const promptText = t(q.promptKey);
-    const optionsHTML = q.options.map(opt => {
-        const label = isAyahGuessQuestion ? `${t('sim_game_opt_ayah_prefix')} ${opt}` : opt;
-        const extraClass = q.type === 'sim_ending' ? ' quran-text' : '';
-        return `<button class="btn btn-outline sim-play-option-btn${extraClass}" data-opt="${encodeURIComponent(String(opt))}">${label}</button>`;
-    }).join('');
+    const optionsHTML = buildOptionsHTML(q);
+    const optionsExtraClass = FULLTEXT_OPTION_TYPES.has(q.type) ? ' sim-play-options-fulltext' : '';
 
     container.innerHTML = `
         <div class="sim-group-card">
-            <div class="sim-occ sim-occ-single">
-                ${occurrenceHTML}
-                ${metaHTML}
-            </div>
+            ${contextHTML}
             <div class="sim-play-prompt">${promptText}</div>
-            <div class="sim-play-options">${optionsHTML}</div>
+            <div class="sim-play-options${optionsExtraClass}">${optionsHTML}</div>
             <div class="sim-play-feedback" id="simplay-feedback"></div>
         </div>`;
 
@@ -311,7 +369,7 @@ function renderResultsScreen() {
         // المشتتات عشوائياً أيضاً في كل محاولة — ولأن buildGameRound تختار عشوائياً من كل
         // الأسئلة المتاحة (سقف MAX_ROUND_QUESTIONS)، هذا يعني أيضاً مجموعة فرعية مختلفة من
         // الأسئلة نفسها في كل محاولة لو النطاق أكبر من السقف، بدل تكرار نفس الخيارات بالضبط
-        PlayState.round = buildGameRound(PlayState.groups);
+        PlayState.round = buildGameRound(PlayState.groups, PlayState.allGroupsPool);
         PlayState.currentIndex = 0;
         PlayState.correctCount = 0;
         renderQuestion();

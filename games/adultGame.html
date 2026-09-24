@@ -53,11 +53,13 @@
                 <div class="order-grid">
                     <div class="order-col">
                         <h3 data-i18n="correct_order" style="text-align:center;">الترتيب الصحيح</h3>
-                        <div id="order-slots"></div>
+                        <!-- 🌟 [جديد] order-list-scroll: سكرول داخلي خاص بالعمود بدل ما الصفحة كلها
+                             تعمل سكرول لما الآيات تطول — راجع global.css وgames/adultGame.js 🌟 -->
+                        <div id="order-slots" class="order-list-scroll"></div>
                     </div>
                     <div class="order-col">
                         <h3 data-i18n="shuffled_ayahs" style="text-align:center;">الآيات المبعثرة</h3>
-                        <div id="order-shuffled"></div>
+                        <div id="order-shuffled" class="order-list-scroll"></div>
                     </div>
                 </div>
             </div>

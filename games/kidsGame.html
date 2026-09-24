@@ -64,6 +64,14 @@
             <!-- ألعاب الخيارات المتعددة (للصغار فقط) -->
             <div id="kids-mcq-area" style="display: none; margin-top:30px;">
                 <div id="kids-options-container"></div>
+                <!-- 🌟 [جديد] الخطوة الثانية للعبة "استمع وخمّن الآية" فقط: تظهر بعد اختيار
+                     الطفل الآية الصحيحة، ويُطلَب منه تحديد سورتها. مخفية افتراضيًا ولا تُفعَّل
+                     إلا من games/kidsGame.js عند وجود surahOptions في بيانات السؤال — راجع
+                     تعليق generateKidsListenAyah في engine/kidsEngine.js 🌟 -->
+                <div id="kids-listen-surah-area" style="display: none; margin-top:25px;">
+                    <div data-i18n="kids_listen_which_surah" style="font-size:1.4rem; font-weight:bold; color:#1e3a5f; margin-bottom:15px; text-align:center;">🕌 من أي سورة هذه الآية؟</div>
+                    <div id="kids-listen-surah-options"></div>
+                </div>
             </div>
 
             <!-- 🌟 [جديد] لعبة "اربط بداية الآية بنهايتها" — نفس لعبة ركن الكبار بالضبط 🌟 -->

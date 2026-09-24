@@ -41,29 +41,41 @@ const db = getFirestore(app);
 // (darham-quran) في هذا الملف مباشرة، ويستخدمه لقراءة بيانات كل الطلاب من برا التطبيق تمامًا.
 //
 // App Check بيقفل التهديد ده تحديدًا: بيتأكد إن أي طلب واصل لـ Firestore/Storage جاي فعلاً من
-// نسخة المنصة المنشورة (عبر reCAPTCHA v3 يعمل تلقائيًا في الخلفية ولا يظهر للمستخدم إطلاقاً —
+// نسخة المنصة المنشورة (عبر reCAPTCHA يعمل تلقائيًا في الخلفية ولا يظهر للمستخدم إطلاقاً —
 // مفيش أي "اختر كل الصور اللي فيها إشارة مرور" أو أي شيء مرئي)، مش من سكربت خارجي (زي curl)
 // بيضرب الـ API مباشرة بمعرفة اسم المشروع بس. هذا لا يحل مشكلة "أي مستخدم للتطبيق الفعلي يقدر
 // يشوف بيانات كل الطلاب" (دي محتاجة تسجيل دخول حقيقي للمعلم لاحقًا)، لكنه يقفل التهديد الأكبر:
 // زائر عشوائي من الإنترنت لا يستخدم التطبيق إطلاقًا.
 //
-// [افتراض صريح] المفتاح تحت (RECAPTCHA_V3_SITE_KEY) لازم يُستبدل بمفتاح site key حقيقي من
-// Firebase Console → App Check → تسجيل تطبيق الويب → reCAPTCHA v3 (خطوات كاملة في ملف
-// دليل-تفعيل-App-Check.md المرفق). لحد ما يُستبدل، هذا الكود يتجاهل نفسه بأمان تام بدون أي
-// خطأ — بنفس فلسفة measurementId أعلاه بالضبط.
-const RECAPTCHA_V3_SITE_KEY = "6LeDocAtAAAAAOQPBzcLzORrBzwhYejcBi-i5piU";
+// 🌟🌟 [إصلاح جوهري — 2026-09-24] هذا كان السبب الحقيقي الأكبر وراء فشل رفع كل الواجبات
+// وتسليمات الطلاب للسحابة بشكل شبه دائم (94% من الطلبات كانت "Unverified" في لوحة Firebase):
+// الكود هنا كان يستخدم مزوّد reCAPTCHA v3 العادي (ReCaptchaV3Provider) بمفتاح v3 كلاسيكي، لكن
+// تطبيق الويب في Firebase Console كان مسجَّلاً (App Check → Apps) تحت نوع مختلف تمامًا:
+// reCAPTCHA Enterprise. لكل نوع بروتوكول تحقّق مختلف تمامًا عن التاني، فأي تذكرة (token) ينتجها
+// الكود بطريقة v3 كانت تترفض تلقائيًا من Firebase لأنها مش من النوع المسجَّل (Enterprise).
+// اكتشفنا كمان إن Firebase أوقف (deprecated) تسجيل reCAPTCHA v3 العادي كخيار جديد بالكامل —
+// خانة إدخاله في لوحة التحكم بقت معطّلة تمامًا لأي تسجيل جديد — فالحل الوحيد المتاح فعلياً هو
+// التوافق مع Enterprise (المسجَّل بالفعل)، مش الرجوع لـ v3. لذلك استبدلنا المزوّد بالكامل
+// بـ ReCaptchaEnterpriseProvider، والمفتاح القديم بمفتاح الـ Enterprise site key الحقيقي الذي
+// أنشأه Firebase تلقائيًا وقت تسجيل التطبيق تحت Enterprise (Firebase Console → App Check →
+// Apps → DarHamWeb → reCAPTCHA Enterprise → يظهر فيه الـ site key). ملحوظة: استخدام Enterprise
+// له حصة مجانية شهرية سخية (عادة عشرات الآلاف من التقييمات) كافية جداً لحجم استخدام معلم واحد،
+// لكنه يحتاج تفعيل الفوترة (Billing) على مشروع Google Cloud المرتبط — راجع ذلك في Google Cloud
+// Console لو ظهرت أي مشاكل رغم هذا الإصلاح.
+const RECAPTCHA_ENTERPRISE_SITE_KEY = "6LeBbsAtAAAAAPISU_0KVYI3C41I3EtWtWoJPPf4";
 // 🌟 استيراد كسول (Dynamic Import) ومغلّف بالكامل بـ try/catch — بنفس فلسفة Storage/Analytics
 // أعلاه بالضبط. أي فشل في هذا الجزء (مفتاح غير صحيح، حظر إعلانات، لا يوجد إنترنت) لا يؤثر
 // إطلاقًا على أي شاشة أو ميزة أخرى في المنصة، فقط لن تُضاف طبقة الحماية هذه لهذه الجلسة.
 (async function initAppCheckSafely() {
     try {
-        if (!RECAPTCHA_V3_SITE_KEY || RECAPTCHA_V3_SITE_KEY === "PASTE_YOUR_RECAPTCHA_SITE_KEY_HERE") {
+        if (!RECAPTCHA_ENTERPRISE_SITE_KEY || RECAPTCHA_ENTERPRISE_SITE_KEY === "PASTE_YOUR_RECAPTCHA_SITE_KEY_HERE") {
             return; // لسه مفتاح reCAPTCHA مش متضاف — تجاهل صامت بدون أي خطأ في الـ console
         }
-        const { initializeAppCheck, ReCaptchaV3Provider } =
+        // 🌟🌟 [إصلاح] ReCaptchaEnterpriseProvider بدل ReCaptchaV3Provider — راجع الشرح الكامل أعلاه
+        const { initializeAppCheck, ReCaptchaEnterpriseProvider } =
             await import("https://www.gstatic.com/firebasejs/10.8.1/firebase-app-check.js");
         initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider(RECAPTCHA_V3_SITE_KEY),
+            provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_SITE_KEY),
             isTokenAutoRefreshEnabled: true
         });
     } catch (e) {
@@ -301,10 +313,23 @@ export async function flushPendingSubmissions() {
 // دالة 3: رفع الواجب إلى السحابة عند نشره (للمعلم)
 export async function saveHomeworkToCloud(hwData) {
     try {
+        // 🌟🌟 [إصلاح جوهري] السبب الحقيقي الذي كان يمنع نظام الواجبات من الرفع للسحابة بشكل
+        // دائم (وليس مؤقتاً) عند إسناد الواجب لطالب معين: حقل assignedStudentAvatar قد يكون
+        // صورة الطالب الحقيقية كاملة بصيغة Base64 (لو رفع المعلم صورة له من شاشة الملف الشخصي —
+        // راجع student/student.js، دالة uploadAvatar وما شابهها)، وحجمها يمكن أن يكون كبيراً
+        // بما يكفي لتجاوز الحد الأقصى لحجم أي مستند Firestore (1 ميجابايت)، فيفشل setDoc
+        // بالكامل. والأخطر: بما أن flushPendingHomeworkSync (أسفل) يعيد إرسال نفس البيانات
+        // كما هي عند كل إقلاع للمنصة، فإن هذا الفشل لم يكن مؤقتاً بل دائماً — نفس الواجب يبقى
+        // عالقاً للأبد في طابور إعادة المحاولة ولا يصل للسحابة أبداً، فيفشل رابط الطالب برسالة
+        // "هذا الواجب غير موجود" إلى الأبد. هذا الحقل غير مستخدم أصلاً في شاشتي الطالب
+        // (student/homework-welcome.js و games/homework-play.js) — نفس السبب والاستبعاد
+        // المطبّق أصلاً في encodeHomeworkForLink (database/homeworkDB.js)، وننقله هنا أيضاً
+        // لأن الرفع للسحابة كان قد فاته هذا الاستبعاد تحديداً.
+        const { assignedStudentAvatar, ...dataWithoutAvatar } = hwData;
         // 🌟🌟 [إصلاح] نفس حماية saveSubmissionToCloud أعلاه بالضبط: Firestore يرفض تمامًا أي
         // حقل قيمته undefined (حتى لو متداخل)، فيفشل setDoc بالكامل بصمت (كان يُطبع في الـ
         // console فقط دون أي أثر آخر). التحويل لنص JSON ورجوع يحذف أي undefined تلقائيًا.
-        const cleanData = JSON.parse(JSON.stringify(hwData));
+        const cleanData = JSON.parse(JSON.stringify(dataWithoutAvatar));
         // نستخدم setDoc مع مسار (homeworks/hw_id) لكي نضمن أن الآي دي في السحابة هو نفس الآي دي المحلي
         const hwRef = doc(db, "homeworks", cleanData.id);
         await setDoc(hwRef, cleanData);
@@ -326,8 +351,10 @@ export async function saveHomeworkToCloud(hwData) {
 // المحلي) ويفشل فوراً برسالة "هذا الواجب غير موجود" على أي جهاز آخر (جهاز الطالب الفعلي، أو
 // حتى نافذة متصفح مختلفة على نفس الجهاز يستخدمها المعلم للتجربة). الآن: أي رفع فاشل يُحفظ في
 // طابور محلي (localStorage، بنفس نمط PENDING_KEY لتسليمات الطلاب أعلاه) ويُعاد رفعه تلقائياً
-// في أقرب فرصة (عند فتح المنصة مرة أخرى على نفس هذا الجهاز — راجع flushPendingHomeworkSync
-// المستدعاة من core/app.js عند الإقلاع).
+// في أقرب فرصة — راجع flushPendingHomeworkSync المستدعاة من core/app.js في 3 لحظات مختلفة
+// (عند إقلاع المنصة، عند عودة الاتصال بالإنترنت أثناء الجلسة عبر حدث 'online'، وعند فتح شاشة
+// إعداد الواجبات نفسها كل مرة) بدل الاعتماد على إقلاع كامل للمنصة فقط — راجع الشرح الكامل
+// بجانب كل استدعاء منها في core/app.js وsettings/homework-prep.js.
 const PENDING_HW_KEY = 'pendingHwCloudSync';
 
 function getPendingHomeworks() {
@@ -368,6 +395,14 @@ export async function flushPendingHomeworkSync() {
     setPendingHomeworks(stillPending);
     if (sentCount > 0) console.log(`تم رفع ${sentCount} واجب(ات) كانت معلّقة محلياً للسحابة بنجاح.`);
     return { sent: sentCount, remaining: stillPending.length };
+}
+
+// 🌟🌟 [جديد] هل واجب معيّن (بمعرّفه) لا يزال عالقاً في طابور إعادة المحاولة ولم يصل للسحابة
+// بعد؟ تُستخدَم في settings/homework-prep.js لعرض علامة تنبيه ⏳ بجانب أي واجب في سجل
+// الواجبات لم يُرفع بعد (بدل الاكتفاء بتحذير لحظي يختفي بمجرد إغلاق نافذة المشاركة، والاعتماد
+// على أن يتذكر المعلم فتح الشاشة لاحقاً)، وأيضاً لتحديد نجاح/فشل زر "إعادة المحاولة الآن" اليدوي.
+export function isHomeworkPendingSync(hwId) {
+    return getPendingHomeworks().some(item => item.id === hwId);
 }
 
 // دالة 4: البحث عن واجب وجلبه من السحابة (للطالب)

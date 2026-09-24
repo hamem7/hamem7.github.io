@@ -21,9 +21,7 @@ import { AppState, loadSplashScreen, t } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { showToastEncouragement, openModal, closeModal } from '../components/ui.js';
 import { createEmptyDualTest } from '../database/dualTestsDB.js';
-// 🌟 [جديد] computeSeriesResult — لعرض "عدد الجولات المكسوبة حتى الآن" لكل مواجهة معلّقة
-// داخل نافذة "⏸️ المواجهات المعلقة" (نفس الدالة المستخدَمة في شاشة اللعب والنتيجة النهائية)
-import { generateSwapCode, computeSeriesResult } from '../engine/dualTestEngine.js';
+import { generateSwapCode } from '../engine/dualTestEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] شاشة "تقرير المواجهة" — تُستخدم هنا لفتح تقرير أي مباراة سابقة منتهية من نافذة
@@ -45,15 +43,6 @@ let historyTestCache = null;
 // 🌟 [جديد] الاختبار المفتوح حالياً في نافذة "⏸️ المواجهات المعلقة" — تُستخدم لإعادة رسم
 // النافذة بعد حذف مواجهة معلقة من داخلها بلا إغلاقها
 let pendingTestIdCache = null;
-// 🌟 [جديد] زوج الطلاب المحدَّد حالياً لنافذة "⏸️ المواجهات المعلقة" (أو null = بلا تصفية).
-// بعد أن لاحظ المعلم أن نفس بنك الأسئلة (test) يُستخدم أحياناً مع أكثر من زوج طلاب مختلف
-// (راجع newMatch في معالج "ابدأ مواجهة" — المواجهة مرتبطة بالاختبار فقط لا بزوج طلاب ثابت)،
-// صار لكل زوج طلاب له مواجهات معلقة زرّه المستقل على صف الاختبار، والنافذة تُفتَح مُصفّاة على
-// هذا الزوج تحديداً بدل عرض كل المواجهات المعلقة على الاختبار مجمّعة في رقم واحد مُضلِّل.
-// مفتاح الزوج بنفس صيغة التطابق المستخدمة فعلاً في فحص "منع البدء من الصفر بالغلط" أدناه:
-// [studentIdA, studentIdB] مُرتَّبين كنصوص ومفصولين بـ "|"، بصرف النظر عن ترتيبهما الأصلي.
-let pendingPairKeyCache = null;
-let pendingPairNamesCache = null; // {a, b} — لعرضهما في عنوان النافذة أثناء التصفية
 
 // 🌟 [جديد] حالة معالج خطوات محرر الاختبار (1/2/3) + الجولة المختارة حالياً في الخطوة 3
 let currentStep = 1;
@@ -124,36 +113,24 @@ async function renderTestsList() {
         return;
     }
 
-    // 🌟 [مُحدَّث] "المواجهات المعلقة" لكل اختبار — كانت تُجمَّع في رقم واحد لكل testId فقط،
-    // لكن نفس بنك الأسئلة (test) يمكن استخدامه مع أكثر من زوج طلاب مختلف عبر الوقت (راجع
-    // newMatch في معالج "ابدأ مواجهة": المواجهة مرتبطة بالاختبار فقط، لا بزوج طلاب ثابت).
-    // فرقم مجمّع مثل "(3)" فوق صف اختبار واحد قد يخص فعلياً ثلاثة أزواج طلاب مختلفين تماماً —
-    // وهو ما لاحظه المعلم وطلب تصحيحه صراحةً. الآن تُجمَّع المواجهات المعلقة لكل اختبار حسب
-    // زوج الطلاب الفعلي (بصرف النظر عن ترتيبهما، بنفس مفتاح المطابقة المستخدم في فحص "منع
-    // البدء من الصفر بالغلط" أسفل الملف)، فيظهر زر مستقل باسمَي الطالبَين الحقيقيَّين لكل زوج.
-    // تُجلَب كل المواجهات مرة واحدة هنا ثم تُجمَّع بالذاكرة، بدل استعلام منفصل لكل صف اختبار.
-    let pendingGroupsByTest = {};
+    // 🌟 [جديد] عدد "المواجهات المعلقة" لكل اختبار — مواجهة بدأت ولم تكتمل جولاتها الثلاث
+    // بعد (status !== 'completed'). تُجلَب كل المواجهات مرة واحدة هنا ثم تُجمَّع بالذاكرة، بدل
+    // استعلام منفصل لكل صف اختبار (نفس فلسفة getMatchesByTestId: فلترة بالذاكرة بلا فهرس).
+    // 🌟 الحاجة لهذا ظهرت بعد تحويل المواجهة إلى "جولة واحدة لكل جلسة" — صار لا بد من مدخل
+    // واضح لاستكمال مواجهة قديمة بنفس الطالبَين بدل بدئها من الصفر.
+    let pendingCountByTest = {};
     try {
         const allMatches = await AppState.dualTestsManager.getAllMatches();
         allMatches.filter(m => m.status !== 'completed').forEach(m => {
-            const pairKey = [String(m.studentIdA), String(m.studentIdB)].sort().join('|');
-            if (!pendingGroupsByTest[m.testId]) pendingGroupsByTest[m.testId] = {};
-            const testGroups = pendingGroupsByTest[m.testId];
-            if (!testGroups[pairKey]) {
-                testGroups[pairKey] = { pairKey, nameA: m.studentNameA, nameB: m.studentNameB, count: 0 };
-            }
-            testGroups[pairKey].count++;
+            pendingCountByTest[m.testId] = (pendingCountByTest[m.testId] || 0) + 1;
         });
-    } catch (e) { pendingGroupsByTest = {}; /* best-effort — لا يمنع عرض القائمة */ }
+    } catch (e) { pendingCountByTest = {}; /* best-effort — لا يمنع عرض القائمة */ }
 
     tests.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
-    container.innerHTML = tests.map(tst => {
-        const groups = Object.values(pendingGroupsByTest[tst.id] || {});
-        return buildTestRowHTML(tst, groups);
-    }).join('');
+    container.innerHTML = tests.map(tst => buildTestRowHTML(tst, pendingCountByTest[tst.id] || 0)).join('');
 }
 
-function buildTestRowHTML(test, pendingGroups = []) {
+function buildTestRowHTML(test, pendingCount = 0) {
     const namesLabel = `${test.defaultStudentNameA || '—'} 🆚 ${test.defaultStudentNameB || '—'}`;
     const isReady = test.status === 'ready';
     const badgeClass = isReady ? 'dts-badge-ready' : 'dts-badge-draft';
@@ -164,15 +141,11 @@ function buildTestRowHTML(test, pendingGroups = []) {
     const startBtn = isReady
         ? `<button type="button" data-action="start" data-id="${test.id}">${t('dts_start_match_btn')}</button>`
         : '';
-    // 🌟 [مُحدَّث] زر مستقل لكل زوج طلاب له مواجهات معلقة على هذا الاختبار (بدل زر واحد
-    // مجمّع) — كل زر يحمل اسمَي الطالبَين الفعليَّين وعدد مواجهاتهما المعلقة تحديداً، ويفتح
-    // النافذة مُصفّاة على هذا الزوج فقط (data-pair + اسمان يُمرَّران عبر data attributes
-    // لتجنّب إعادة البحث عنهما وقت الفتح). لا يظهر أي زر إطلاقاً لو لا توجد مواجهات معلقة.
-    const pendingBtns = pendingGroups.map(g => `
-        <button type="button" class="dts-btn-pending" data-action="pending" data-id="${test.id}"
-                data-pair="${escapeHtml(g.pairKey)}" data-name-a="${escapeHtml(g.nameA)}" data-name-b="${escapeHtml(g.nameB)}">
-            ${t('dts_pending_pair_btn').replace('{a}', escapeHtml(g.nameA)).replace('{b}', escapeHtml(g.nameB)).replace('{n}', g.count)}
-        </button>`).join('');
+    // 🌟 [جديد] زر "⏸️ مواجهات معلقة (n)" — يظهر فقط لو فعلاً توجد مواجهات غير مكتملة لهذا
+    // الاختبار، حتى لا يزدحم صف الاختبار بزر بلا فائدة في الحالة الشائعة
+    const pendingBtn = pendingCount > 0
+        ? `<button type="button" class="dts-btn-pending" data-action="pending" data-id="${test.id}">${t('dts_pending_btn').replace('{n}', pendingCount)}</button>`
+        : '';
 
     return `
     <div class="dts-test-row">
@@ -184,7 +157,7 @@ function buildTestRowHTML(test, pendingGroups = []) {
             </div>
         </div>
         <div class="dts-test-row-actions">
-            ${pendingBtns}
+            ${pendingBtn}
             ${startBtn}
             <button type="button" data-action="edit" data-id="${test.id}">${t('dts_edit_btn')}</button>
             <!-- 🌟 [جديد] "📜 المباريات السابقة" — يظهر دائماً بغض النظر عن حالة الاختبار
@@ -483,110 +456,6 @@ function buildHistoryRowHTML(match) {
     </div>`;
 }
 
-// ===================== 🌟 [جديد] نافذة "المواجهات المعلقة" (استكمال مواجهة) =====================
-// بطلب صريح من المعلم: المواجهة لم تعد تُلعَب بجولاتها الثلاث في جلسة واحدة. تنتهي الجولة
-// فتنتهي الجلسة (راجع finishRound في dual-test-play.js)، وتبقى المواجهة محفوظة "معلّقة"
-// بنفس الطالبَين ونفس النتائج، ويُستكمَل منها هنا لاحقاً من الجولة التالية مباشرة بلا إعادة
-// أي شيء من الصفر.
-//
-// ⚠️ افتراض صريح: "المواجهة المعلقة" = أي مواجهة في dual_matches حالتها ليست 'completed'
-// (أي 'in_progress')، سواء توقفت بنهاية جولة كاملة أو في منتصف جولة (خروج/إغلاق مفاجئ —
-// تقدّمها الجزئي محفوظ في match.inProgressRound ويُستأنَف تلقائياً). لا يوجد حالياً "انتهاء
-// صلاحية" زمني لأي مواجهة معلقة: تبقى معروضة هنا حتى تكتمل أو يحذفها المعلم يدوياً.
-
-// 🌟 [مُحدَّث] تفتح الآن مُصفّاة على زوج طلاب محدَّد (pairKey + اسماهما، ممرَّرَين من الزر
-// نفسه في صف الاختبار) بدل عرض كل المواجهات المعلقة على الاختبار مجمّعة معاً — راجع تعليق
-// pendingPairKeyCache أعلى الملف لسبب هذا التغيير.
-async function openPendingMatchesModal(testId, pairKey = null, nameA = '', nameB = '') {
-    pendingTestIdCache = testId;
-    pendingPairKeyCache = pairKey;
-    pendingPairNamesCache = pairKey ? { a: nameA, b: nameB } : null;
-    await renderPendingMatchesList();
-    updatePendingModalPairLabel();
-    openModal('dts-pending-matches-modal');
-}
-
-// 🌟 [جديد] يعرض/يخفي سطر "مواجهات فلان 🆚 علان فقط" أعلى نافذة المواجهات المعلقة، حتى يكون
-// واضحاً للمعلم أن القائمة مُصفّاة على زوج معيّن وليست كل مواجهات الاختبار
-function updatePendingModalPairLabel() {
-    const el = document.getElementById('dts-pending-pair-label');
-    if (!el) return;
-    if (pendingPairNamesCache) {
-        el.textContent = t('dts_pending_pair_label')
-            .replace('{a}', pendingPairNamesCache.a).replace('{b}', pendingPairNamesCache.b);
-        el.style.display = '';
-    } else {
-        el.style.display = 'none';
-    }
-}
-
-async function renderPendingMatchesList() {
-    const container = document.getElementById('dts-pending-list');
-    if (!container || !pendingTestIdCache) return;
-
-    const allMatches = await AppState.dualTestsManager.getMatchesByTestId(pendingTestIdCache);
-    const pending = allMatches
-        .filter(m => m.status !== 'completed')
-        // 🌟 [جديد] تصفية على زوج الطلاب المحدَّد (pendingPairKeyCache) لو النافذة فُتحت من
-        // زر زوج معيّن — نفس مفتاح المطابقة [studentIdA, studentIdB] مُرتَّبين المستخدم في
-        // فحص "منع البدء من الصفر بالغلط"
-        .filter(m => !pendingPairKeyCache || [String(m.studentIdA), String(m.studentIdB)].sort().join('|') === pendingPairKeyCache)
-        .sort((a, b) => new Date(b.startedAt || 0) - new Date(a.startedAt || 0));
-
-    container.innerHTML = pending.length
-        ? pending.map(buildPendingRowHTML).join('')
-        : `<div class="dts-empty-msg">${t('dts_pending_empty')}</div>`;
-}
-
-function buildPendingRowHTML(match) {
-    const roundsDone = Array.isArray(match.rounds) ? match.rounds.length : 0;
-    // الجولة التي سيُستكمَل منها = currentRoundIndex المحفوظ (يُثبَّت بنهاية كل جولة في
-    // finishRound)، ومع ذلك نحسب احتياطاً من عدد الجولات المنتهية لأي مواجهة قديمة محفوظة
-    // قبل هذا التحديث بلا currentRoundIndex محدَّث
-    const nextRound = Math.min(3, (Number.isInteger(match.currentRoundIndex) ? match.currentRoundIndex : roundsDone) + 1);
-    const series = computeSeriesResult(match.rounds || []);
-    const dateLabel = match.startedAt
-        ? new Date(match.startedAt).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')
-        : '';
-
-    return `
-    <div class="dts-history-row dts-pending-row">
-        <div class="dts-history-row-info">
-            <span class="dts-history-row-names">${escapeHtml(match.studentNameA)} 🆚 ${escapeHtml(match.studentNameB)}</span>
-            <span class="dts-history-row-meta">
-                <span class="dts-badge dts-badge-pending">${t('dts_pending_next_round').replace('{n}', nextRound)}</span>
-                · ${t('dts_pending_rounds_tally').replace('{a}', series.roundsWonA).replace('{b}', series.roundsWonB)}
-                · ${dateLabel}
-            </span>
-        </div>
-        <div class="dts-pending-row-actions">
-            <button type="button" class="btn" data-pending-resume-id="${match.id}">${t('dts_pending_resume_btn')}</button>
-            <button type="button" class="btn btn-outline dts-btn-danger" data-pending-delete-id="${match.id}">${t('dts_pending_delete_btn')}</button>
-        </div>
-    </div>`;
-}
-
-// 🌟 [جديد] فتح شاشة اللعب لمواجهة موجودة (جديدة كانت أو معلّقة) — استُخرجت من معالج زر
-// "🚀 ابدأ" حتى يستخدمها الاستكمال أيضاً بنفس الطريقة بالضبط بلا تكرار الكود
-// 🌟 [مُصدَّرة] بعد إضافة تذكير "مواجهات تنتظر الاستكمال" على الشاشة الرئيسية — النقر على أي
-// صف في التذكير يستدعي هذه الدالة مباشرة عبر استيراد ديناميكي لهذا الملف (راجع
-// renderPendingDualMatchesReminder في components/homeQuickview.js)، بلا أي تكرار للمنطق
-export function openDualTestPlayScreen(matchId) {
-    // 🌟 تمرير معرّف المواجهة لشاشة اللعب بنفس نمط homeworkPrepPrefillStudentName
-    // الموجود أصلاً — يُقرأ مرة واحدة هناك ثم يُفرَّغ فوراً
-    AppState.dualTestPlayMatchId = matchId;
-
-    import('./dual-test-play.js').then(module => {
-        loadScreen({
-            templateUrl: 'dualtests/dual-test-play.html',
-            initFunction: () => module.initDualTestPlay()
-        });
-    }).catch(err => {
-        console.error("تعذر تحميل شاشة اللعب الفعلية:", err);
-        showToastEncouragement('toast-encouragement', t('dts_play_screen_soon'));
-    });
-}
-
 // ===================== ربط كل مستمعي الأحداث (مرة واحدة عند فتح الشاشة) =====================
 
 function wireStaticListeners() {
@@ -634,42 +503,6 @@ function wireStaticListeners() {
             openStartMatchModal(id);
         } else if (action === 'history') {
             openMatchesHistoryModal(id);
-        } else if (action === 'pending') {
-            // 🌟 [مُحدَّث] استكمال مواجهة معلّقة (توقفت بنهاية جولة سابقة) — كل زر الآن خاص
-            // بزوج طلاب محدَّد (data-pair + data-name-a/b مأخوذة من الزر نفسه)، فتُفتَح
-            // النافذة مُصفّاة على هذا الزوج فقط. راجع openPendingMatchesModal أعلاه
-            openPendingMatchesModal(id, btn.dataset.pair || null, btn.dataset.nameA || '', btn.dataset.nameB || '');
-        }
-    });
-
-    // ----- 🌟 [جديد] نافذة "المواجهات المعلقة": إغلاق + استكمال/حذف مواجهة -----
-    document.getElementById('dts-pending-close-btn')?.addEventListener('click', () => {
-        closeModal('dts-pending-matches-modal');
-        pendingPairKeyCache = null;
-        pendingPairNamesCache = null;
-    });
-
-    document.getElementById('dts-pending-list')?.addEventListener('click', async (e) => {
-        const resumeBtn = e.target.closest('button[data-pending-resume-id]');
-        if (resumeBtn) {
-            const matchId = parseInt(resumeBtn.dataset.pendingResumeId, 10);
-            const match = await AppState.dualTestsManager.getMatchById(matchId);
-            if (!match) return;
-            closeModal('dts-pending-matches-modal');
-            // شاشة اللعب نفسها تقرأ match.currentRoundIndex وتبدأ من الجولة الصحيحة تلقائياً
-            // (راجع initDualTestPlay/startRoundFlow في dual-test-play.js) — لا حاجة لأي
-            // معامل إضافي هنا
-            openDualTestPlayScreen(matchId);
-            return;
-        }
-
-        const deleteBtn = e.target.closest('button[data-pending-delete-id]');
-        if (deleteBtn) {
-            const matchId = parseInt(deleteBtn.dataset.pendingDeleteId, 10);
-            if (!confirm(t('dts_pending_delete_confirm'))) return;
-            await AppState.dualTestsManager.deleteMatch(matchId);
-            await renderPendingMatchesList(); // إعادة رسم النافذة بلا إغلاقها
-            await renderTestsList();          // تحديث عدّاد "مواجهات معلقة" على صف الاختبار
         }
     });
 
@@ -780,33 +613,6 @@ function wireStaticListeners() {
         const studentB = allStudents.find(s => String(s.id) === bSel.value);
         if (!studentA || !studentB) return;
 
-        // 🌟 [جديد] منع البدء من الصفر بالغلط: لو فيه مواجهة معلّقة بالفعل بين نفس الطالبَين
-        // في نفس الاختبار (بصرف النظر عن ترتيبهما أول/ثاني)، نسأل المعلم صراحةً قبل إنشاء
-        // مواجهة جديدة. هذا هو الخطأ المتوقّع بعد تحويل المواجهة إلى "جولة واحدة لكل جلسة":
-        // يفتح المعلم "بدء مواجهة" بالعادة القديمة فيضيع تقدّم الجولة الأولى بلا قصد.
-        try {
-            const existing = (await AppState.dualTestsManager.getMatchesByTestId(activeMatchTestId))
-                .filter(m => m.status !== 'completed')
-                .filter(m => {
-                    const pair = [String(m.studentIdA), String(m.studentIdB)].sort().join('|');
-                    const chosen = [String(studentA.id), String(studentB.id)].sort().join('|');
-                    return pair === chosen;
-                })
-                .sort((x, y) => new Date(y.startedAt || 0) - new Date(x.startedAt || 0))[0];
-
-            if (existing) {
-                const roundsDone = Array.isArray(existing.rounds) ? existing.rounds.length : 0;
-                const nextRound = Math.min(3, (Number.isInteger(existing.currentRoundIndex) ? existing.currentRoundIndex : roundsDone) + 1);
-                // موافق = استكمال المعلّقة، إلغاء = بدء مواجهة جديدة من الصفر (المعلّقة تبقى
-                // كما هي بلا حذف). النص نفسه يشرح الخيارين حرفياً حتى لا يلتبس معنى "إلغاء"
-                if (confirm(t('dts_pending_conflict_confirm').replace('{n}', nextRound))) {
-                    closeModal('dts-start-match-modal');
-                    openDualTestPlayScreen(existing.id);
-                    return;
-                }
-            }
-        } catch (e) { /* best-effort — أي فشل في الفحص لا يمنع بدء مواجهة جديدة */ }
-
         // 🌟 [جديد] بناء سجل "مواجهة" جديد مرتبط بالاختبار المحفوظ (testId) — يسمح
         // بإعادة استخدام نفس بنك الأسئلة مع أي زوج طلاب لاحقاً بلا أي تكرار لكتابة الأسئلة
         const newMatch = {
@@ -827,8 +633,18 @@ function wireStaticListeners() {
         const matchId = await AppState.dualTestsManager.saveMatch(newMatch);
         closeModal('dts-start-match-modal');
 
-        // 🌟 [مُحدَّث] فتح شاشة اللعب عبر الدالة المشتركة openDualTestPlayScreen (نفسها
-        // المستخدَمة لاستكمال مواجهة معلّقة) بدل تكرار نفس الكود هنا
-        openDualTestPlayScreen(matchId);
+        // 🌟 تمرير معرّف المواجهة لشاشة اللعب بنفس نمط homeworkPrepPrefillStudentName
+        // الموجود أصلاً — يُقرأ مرة واحدة هناك ثم يُفرَّغ فوراً
+        AppState.dualTestPlayMatchId = matchId;
+
+        import('./dual-test-play.js').then(module => {
+            loadScreen({
+                templateUrl: 'dualtests/dual-test-play.html',
+                initFunction: () => module.initDualTestPlay()
+            });
+        }).catch(err => {
+            console.error("تعذر تحميل شاشة اللعب الفعلية:", err);
+            showToastEncouragement('toast-encouragement', t('dts_play_screen_soon'));
+        });
     });
 }

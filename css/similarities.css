@@ -421,6 +421,37 @@
     transform: none !important;
 }
 
+/* 🌟 [جديد — 2026-09-23] خيارات "نص كامل" (آية كاملة) لأسئلة التعرّف (sim_recognition)
+   والاستدعاء (sim_recall) — أزرار الأرقام/الأسماء القصيرة المتجاورة أفقياً غير مناسبة هنا
+   (آية كاملة لا تُقرأ بشكل جيد في زر ضيق)، فتُعرض عمودياً بعرض كامل بدلاً من ذلك. */
+.sim-play-options.sim-play-options-fulltext {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.sim-play-option-btn.sim-play-option-fulltext {
+    width: 100%;
+    min-width: 0;
+    text-align: center;
+    white-space: normal;
+    line-height: 2;
+    font-size: 1.25rem !important;
+    padding: 14px 18px !important;
+}
+
+/* 🌟 [جديد — 2026-09-23] عرض "الموضع فقط" (رقم آية/اسم سورة، بلا نص) لسؤال الاستدعاء الموجّه
+   (sim_recall) — نفس فكرة .sim-occ لكن بلا نص قرآني، فقط تسمية الموضع المطلوب استدعاء نصه */
+.sim-recall-position {
+    text-align: center;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--dh-emerald-800);
+    background: rgba(11, 61, 48, 0.06);
+    border-radius: 12px;
+    padding: 18px 14px;
+    margin-bottom: 4px;
+}
+
 .sim-play-feedback {
     text-align: center;
     font-size: 1.15rem;

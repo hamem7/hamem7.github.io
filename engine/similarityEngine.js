@@ -47,7 +47,29 @@
 // الشاشة المستهلكة (similarities/similarities-play.js) تعرض رسالة ودّية "لا توجد بيانات
 // كافية" لو buildGameRound() رجعت hasEnoughData: false، بدل أي افتراض صامت بأن كل مجموعة
 // صالحة للعب دائماً (راجع قاعدة "التوضيح الصريح للافتراضات" في تعليمات المشروع).
-import { findPhraseRanges } from '../core/quranTextUtils.js';
+import { findPhraseRanges, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
+
+// 🌟 [جديد — 2026-09-23] توسيع اختبار المتشابهات ليغطي 5 مهارات صريحة بطلب المعلم، بدل
+// الاكتفاء بمهارتين (الربط بالموضع sim_position، والاستكمال sim_ending المعطّلة فعلياً بلا
+// بيانات distinctiveTailWord): "لإثبات أن الطالب أتقن المتشابهات فعلًا، لا يكفي أن يجيب عن
+// سؤال «اختر الإجابة الصحيحة». يجب أن تختبر عدة مهارات مختلفة: التعرّف، التمييز، الاستدعاء،
+// الربط بالموضع، ومنع الخلط أثناء التسميع." الخريطة المعتمدة:
+//   • الربط بالموضع  → sim_position (موجودة، بلا تعديل).
+//   • التمييز        → sim_discrimination (جديد أدناه).
+//   • منع الخلط أثناء التسميع → sim_recitation_check (جديد أدناه).
+//   • التعرّف        → sim_recognition (جديد أدناه).
+//   • الاستدعاء (موجّه) → sim_recall (جديد أدناه).
+// sim_ending (الاستكمال بالكلمة المميزة اليدوية) أُبقيت بلا أي تعديل لأي بيانات مستقبلية
+// يضيفها المعلم بحقل distinctiveTailWord — راجع تعليقها الأصلي أسفل هذا التعليق.
+//
+// ⚠️ افتراض صريح مهم: sim_discrimination وsim_recitation_check لا تعتمدان على
+// distinctiveTailWord (شبه غائب من بيانات الـ Seed الحالية بالكامل — راجع
+// claude/ركن-المتشابهات-بيانات-آخر-5-أجزاء.md). بدلاً منه، "المقطع المميِّز" يُشتق آلياً من
+// fullText نفسه (آخر الكلمات بعد أول ورود لـ anchorPhrase في الآية) عبر
+// deriveDistinguishingSegment أدناه — نفس فلسفة اشتقاق "بداية/نهاية الآية" المستخدمة فعلاً في
+// generateLinkGame (engine/quranEngine.js) للعبة "ربط أول الآية بآخرها"، لكن هنا الاشتقاق من
+// نقطة افتراق anchorPhrase تحديداً بدل منتصف الآية. هذا يُفعِّل اختبار "التمييز"/"منع الخلط"
+// فعلياً على كل الـ 290 مجموعة الحالية بلا انتظار بيانات إضافية من المعلم.
 
 // 🌟 خلط عشوائي (Fisher-Yates) — نسخة مستقلة بلا اعتماد على أي مكتبة خارجية، ولا تُعدّل
 // المصفوفة الأصلية (تُرجع نسخة جديدة دائماً) حتى تبقى الدالة نقية بالكامل
@@ -151,6 +173,208 @@ export function generateEndingQuestions(group) {
 }
 
 // ============================================================
+// 🌟 [جديد] اشتقاق "المقطع المميِّز" آلياً من fullText (بديل distinctiveTailWord الغائب)
+// ============================================================
+
+// 🌟 عدد الكلمات المعروضة كمقطع مميِّز — نفس فلسفة حدّي 2-3 كلمة المستخدمين فعلياً في
+// generateLinkGame (engine/quranEngine.js) لطرفي "البداية/النهاية"، هنا سقف أعلى قليلاً (5)
+// لأن الهدف مقطع مائز مقروء بذاته لا مجرد كلمة مفردة قد تتكرر مصادفةً بين مجموعات مختلفة.
+const MAX_TAIL_WORDS = 5;
+const MIN_TAIL_WORDS = 2;
+
+// لمواضع "جزء عمّ" (ayahRange)، نقطة الافتراق الفعلية غالباً تقع داخل آخر آية من النطاق (بعد
+// أن تشترك بقية الآيات في نفس العبارة) — نستخدم splitRangeFullTextIntoAyahs الموجودة أصلاً
+// (نفس الدالة المستخدمة لعرض شاشات التصفح) بدل التعامل مع نص المدى الكامل بفواصله ﴿رقم﴾.
+function getTailSourceText(occurrence) {
+    if (!occurrence || !occurrence.fullText) return '';
+    if (occurrence.ayahNumber != null) return occurrence.fullText;
+    const ayahs = splitRangeFullTextIntoAyahs(occurrence.fullText);
+    return ayahs.length > 0 ? ayahs[ayahs.length - 1].text : occurrence.fullText;
+}
+
+// 🛡️ تدهور رشيق مقصود: لو anchorPhrase لم يُطابَق كنص متصل (فئة "ربط_موضوعي" مثلاً)، أو كان
+// الباقي بعد آخر مطابقة قصيراً جداً (أقل من MIN_TAIL_WORDS، أي العبارة المشتركة قريبة جداً من
+// نهاية الآية أو الآية نفسها كلها عبارة مشتركة تقريباً) — نرجع لآخر MAX_TAIL_WORDS كلمة من
+// النص كاملاً بدل إرجاع مقطع فارغ أو بلا معنى. الدالة تُرجع null فقط لو النص نفسه غير موجود.
+export function deriveDistinguishingSegment(occurrence, anchorPhrase) {
+    const sourceText = getTailSourceText(occurrence);
+    if (!sourceText) return null;
+
+    let tail = '';
+    const ranges = findPhraseRanges(sourceText, anchorPhrase);
+    if (ranges.length > 0) {
+        const [, end] = ranges[ranges.length - 1];
+        tail = sourceText.slice(end).trim();
+    }
+
+    let words = tail.split(/\s+/).filter(Boolean);
+    if (words.length < MIN_TAIL_WORDS) {
+        words = sourceText.trim().split(/\s+/).filter(Boolean);
+    }
+    if (words.length === 0) return null;
+    const segment = words.slice(-MAX_TAIL_WORDS).join(' ').trim();
+    return segment || null;
+}
+
+// ============================================================
+// لعبة "ما النهاية الصحيحة؟" — التمييز (مُشتقة آلياً، بلا حاجة لـ distinctiveTailWord)
+// ============================================================
+export function generateDiscriminationQuestions(group) {
+    const occs = (group && group.occurrences) || [];
+    const withSegments = occs
+        .map(o => ({ o, segment: deriveDistinguishingSegment(o, group.anchorPhrase) }))
+        .filter(x => x.segment);
+    if (withSegments.length < 2) return [];
+
+    const uniqueSegments = [...new Set(withSegments.map(x => x.segment))];
+    if (uniqueSegments.length < 2) return []; // كل المقاطع المُشتقة متطابقة (لا مشتت حقيقي)
+
+    return withSegments.map(({ o, segment }) => {
+        const distractorPool = uniqueSegments.filter(s => s !== segment);
+        const distractors = shuffle(distractorPool).slice(0, MAX_DISTRACTORS);
+        return {
+            type: 'sim_discrimination',
+            promptKey: 'sim_game_q_discrimination',
+            occurrence: o,
+            correctAnswer: segment,
+            options: shuffle([segment, ...distractors]),
+            groupId: group.groupId, anchorPhrase: group.anchorPhrase,
+            scope: group.scope, category: group.category
+        };
+    });
+}
+
+// ============================================================
+// لعبة "وصلت هنا وأنت تُسمِّع... أكمل" — منع الخلط أثناء التسميع
+// ============================================================
+// 🌟 نفس بيانات المقاطع المُشتقة أعلاه بالضبط (نفس عدد الأسئلة الناتجة عن كل مجموعة تقريباً)،
+// لكن بفارق جوهري في العرض (راجع similarities-play.js): بلا أي سياق مساعد — لا نص الآية
+// الكامل، لا رقم آية، لا اسم سورة — فقط عبارة الالتقاء المشتركة (anchorPhrase، المعروضة أصلاً
+// في صندوق العنوان أعلى الشاشة) ثم الخيارات مباشرة. هذا يحاكي فعلياً لحظة الالتباس الحقيقية
+// أثناء التسميع الحي حين يصل الطالب لنفس نقطة الافتراق بين آيتين متشابهتين بلا أي مساعدة بصرية
+// إضافية — بخلاف sim_discrimination (نفس البيانات، لكن بسياق كامل مرئي، تمرين أسهل تدريجياً).
+export function generateRecitationCheckQuestions(group) {
+    const occs = (group && group.occurrences) || [];
+    const withSegments = occs
+        .map(o => ({ o, segment: deriveDistinguishingSegment(o, group.anchorPhrase) }))
+        .filter(x => x.segment);
+    if (withSegments.length < 2) return [];
+
+    const uniqueSegments = [...new Set(withSegments.map(x => x.segment))];
+    if (uniqueSegments.length < 2) return [];
+
+    return withSegments.map(({ o, segment }) => {
+        const distractorPool = uniqueSegments.filter(s => s !== segment);
+        const distractors = shuffle(distractorPool).slice(0, MAX_DISTRACTORS);
+        return {
+            type: 'sim_recitation_check',
+            promptKey: 'sim_game_q_recitation_check',
+            occurrence: o,
+            correctAnswer: segment,
+            options: shuffle([segment, ...distractors]),
+            groupId: group.groupId, anchorPhrase: group.anchorPhrase,
+            scope: group.scope, category: group.category
+        };
+    });
+}
+
+// ============================================================
+// لعبة "أي هذه الآيات هي المقصودة؟" — التعرّف
+// ============================================================
+// 🌟 [جديد] بخلاف كل الألعاب الأخرى في هذا الملف (مشتتاتها كلها من نفس المجموعة)، هذه اللعبة
+// تحتاج مشتتات "دخيلة" فعلاً من مجموعات مختلفة تماماً (anchorPhrase مختلف) حتى تختبر قدرة
+// الطفل على تمييز "هل هذه الآية من نفس عائلة المتشابهة المعروضة أم لا" — لذلك تستقبل معامل
+// ثانٍ allGroupsPool (كل مجموعات المتشابهات المتاحة، وليس فقط مجموعات النطاق الحالي/جولة
+// اللعب) حتى تعمل بمشتتات حقيقية متنوعة حتى لو كان نطاق اللعب نفسه ضيقاً (لعبة سورة واحدة بها
+// مجموعة أو مجموعتان فقط مثلاً). راجع buildGameRound أدناه لكيفية تمرير هذا المجمّع الكامل.
+export function generateRecognitionQuestions(group, allGroupsPool) {
+    const occs = (group && group.occurrences) || [];
+    if (occs.length === 0) return [];
+    // 🛡️ [اكتُشف فعلياً بالاختبار ضد البيانات الحقيقية] نفس الآية القرآنية قد تنتمي فعلياً
+    // لأكثر من مجموعة متشابهات مختلفة معاً (مثال حقيقي موثّق: الآية 51:22 عضو في كل من
+    // المجموعتين "51-4" و"51-5" لاشتراكها في لفظين مختلفين تماماً). أي موضع "دخيل" مرشَّح من
+    // مجموعة أخرى لكنه يحمل نفس نص أحد مواضع المجموعة الحالية ليس دخيلاً حقيقياً (لو اختاره
+    // الطفل، فهو فعلياً محقّ) — نستبعده صراحة قبل الاختيار العشوائي بدل السماح بمشتت "صحيح
+    // خطأً" يكسر منطق السؤال بالكامل.
+    const ownTexts = new Set(occs.map(o => o.fullText));
+
+    const pool = Array.isArray(allGroupsPool) ? allGroupsPool : [];
+    const others = pool.filter(g =>
+        g && g.groupId !== group.groupId && g.anchorPhrase !== group.anchorPhrase && (g.occurrences || []).length > 0
+    );
+    if (others.length === 0) return []; // لا توجد مجموعات أخرى كافية لبناء مشتتات دخيلة حقيقية
+
+    return occs.map(o => {
+        // 🛡️ [اكتُشف فعلياً بالاختبار — جولة ثانية] نفس المشكلة أعلاه لكن بين مجموعتين "أخريين"
+        // مختلفتين معاً: ممكن يشترك موضع واحد (نفس نص الآية حرفياً) بين مجموعتين مختلفتين من
+        // مجموعات "others"، فيُختار نفس النص مرتين كمشتتين من مجموعتين مختلفتين (خياران بنص
+        // واحد مكرر). usedTexts يتراكم مع كل مشتت يُختار (وليس فقط نصوص المجموعة الحالية) حتى
+        // نضمن عدم تكرار أي نص بين كل الخيارات الأربعة النهائية إطلاقاً.
+        const candidateGroups = shuffle(others);
+        const usedTexts = new Set(ownTexts);
+        const distractorOccs = [];
+        for (const g of candidateGroups) {
+            if (distractorOccs.length >= MAX_DISTRACTORS) break;
+            const validOccs = (g.occurrences || []).filter(gOcc => !usedTexts.has(gOcc.fullText));
+            if (validOccs.length === 0) continue; // كل مواضع هذه المجموعة الأخرى مُستخدَمة/متقاطعة بالفعل — تخطَّها
+            const picked = validOccs[Math.floor(Math.random() * validOccs.length)];
+            distractorOccs.push(picked);
+            usedTexts.add(picked.fullText);
+        }
+        if (distractorOccs.length === 0) return null;
+
+        const shuffledChoices = shuffle([o, ...distractorOccs]);
+        return {
+            type: 'sim_recognition',
+            promptKey: 'sim_game_q_recognition',
+            occurrence: o,
+            correctAnswer: o.fullText,
+            options: shuffledChoices.map(x => x.fullText),
+            groupId: group.groupId, anchorPhrase: group.anchorPhrase,
+            scope: group.scope, category: group.category
+        };
+    }).filter(Boolean);
+}
+
+// ============================================================
+// لعبة "ما نص المتشابهة في هذا الموضع؟" — الاستدعاء (موجّه)
+// ============================================================
+// 🌟 [جديد] عكس اتجاه sim_position تماماً بقصد: sim_position يعرض النص ويسأل عن "أين"،
+// وهذه تعرض "أين" (رقم الآية أو اسم السورة فقط، بلا أي نص) وتسأل عن "ماذا" — يفرض على الطفل
+// استدعاء الصياغة الفعلية من الذاكرة بدل مجرد التعرف عليها لما تُعرض أمامه، وهو بالضبط الفرق
+// بين "الاستدعاء" و"التعرّف" في تصنيف مهارات الحفظ. المشتتات هنا مقصودة من نفس المجموعة (وليس
+// دخيلة كالتعرّف) لأن الهدف تمييز الصياغة الدقيقة بين مواضع شديدة التشابه فعلاً، لا استبعاد
+// نص غريب تماماً.
+export function generateGuidedRecallQuestions(group) {
+    const occs = (group && group.occurrences) || [];
+    if (occs.length < 2) return [];
+
+    const uniqueTexts = [...new Set(occs.map(o => o.fullText))];
+    if (uniqueTexts.length < 2) return [];
+
+    return occs.map(o => {
+        // 🛡️ [اكتُشف فعلياً بالاختبار] بعض المجموعات (مثال حقيقي: "56-7") تحتوي موضعين مختلفين
+        // (رقمي آية مختلفين) لكن بنفس النص الحرفي بالضبط — آية "فَسَبِّحْ بِاسْمِ رَبِّكَ
+        // الْعَظِيمِ" تتكرر فعلياً بنفس اللفظ في سورة الواقعة (74 و96). الاختيار العشوائي من
+        // occurrences مباشرة كان قد يسحب كلا الموضعين المتطابقين نصياً كمشتتين مختلفين فينتج
+        // خياران بنص واحد مكرر — نبني مجمّع المشتتات من uniqueTexts (نصوص مفردة لا تتكرر) بدل
+        // occurrences الخام لضمان عدم تكرار أي نص بين الخيارات إطلاقاً.
+        const distractorTextPool = uniqueTexts.filter(txt => txt !== o.fullText);
+        const distractorTexts = shuffle(distractorTextPool).slice(0, MAX_DISTRACTORS);
+        const promptKey = group.scope === 'internal' ? 'sim_game_q_recall_ayah' : 'sim_game_q_recall_surah';
+        return {
+            type: 'sim_recall',
+            promptKey,
+            occurrence: o,
+            correctAnswer: o.fullText,
+            options: shuffle([o.fullText, ...distractorTexts]),
+            groupId: group.groupId, anchorPhrase: group.anchorPhrase,
+            scope: group.scope, category: group.category
+        };
+    });
+}
+
+// ============================================================
 // بناء جولة لعب كاملة من مجموعة أو أكثر
 // ============================================================
 // 🌟 [عدّل — 2026-09-16] كانت هذه الدالة تبني الجولة لمجموعة واحدة فقط. أصبحت الآن تستقبل
@@ -167,11 +391,24 @@ export function generateEndingQuestions(group) {
 // الصفر ويُعيد الاختيار العشوائي أيضاً — راجع similarities-play.js).
 const MAX_ROUND_QUESTIONS = 18;
 
-export function buildGameRound(groups) {
+// 🌟 [عدّل — 2026-09-23] معامل ثانٍ جديد allGroupsPool: كل مجموعات المتشابهات المتاحة (وليس
+// فقط مجموعات نطاق الجولة الحالية) — تحتاجه generateRecognitionQuestions لبناء مشتتات دخيلة
+// حقيقية من مجموعات خارج النطاق (راجع تعليقها أعلاه). اختياري وبتوافق رجعي كامل: لو لم يُمرَّر
+// (استدعاء قديم بمعامل واحد فقط)، نستخدم list نفسها كبديل — يبقى كل شيء يعمل كالسابق تماماً،
+// فقط قد لا تظهر أسئلة "تعرّف" لو كان النطاق نفسه ضيقاً جداً (أقل من مجموعة واحدة أخرى).
+export function buildGameRound(groups, allGroupsPool) {
     const list = Array.isArray(groups) ? groups : (groups ? [groups] : []);
+    const pool = Array.isArray(allGroupsPool) && allGroupsPool.length > 0 ? allGroupsPool : list;
     let allQuestions = [];
     list.forEach(group => {
-        allQuestions = allQuestions.concat(generatePositionQuestions(group), generateEndingQuestions(group));
+        allQuestions = allQuestions.concat(
+            generatePositionQuestions(group),        // الربط بالموضع
+            generateEndingQuestions(group),           // استكمال يدوي (distinctiveTailWord، حالياً بلا بيانات)
+            generateDiscriminationQuestions(group),   // التمييز
+            generateRecitationCheckQuestions(group),  // منع الخلط أثناء التسميع
+            generateRecognitionQuestions(group, pool),// التعرّف
+            generateGuidedRecallQuestions(group)      // الاستدعاء (موجّه)
+        );
     });
     const shuffled = shuffle(allQuestions);
     const totalAvailable = shuffled.length;

@@ -22,6 +22,11 @@ import { AppState, applyLanguage, loadDashboardScreen } from '../core/app.js';
 // التنسيق (CSS) منقول بالكامل إلى report.styles.js بدل تضخيم هذا الملف —
 // نفس المحتوى تمامًا، منظَّم في ملف مستقل فقط.
 import { REPORT_STYLES } from './report.styles.js';
+// 🌟 [جديد] هذا الملف كان عربيًا بالكامل بنصوص مكتوبة مباشرة بلا أي ربط بنظام الترجمة.
+// لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
+// أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
+// core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
+import { t } from '../core/i18n.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -43,8 +48,25 @@ let activeGameState = null;
 // (لا يوجد بعد الآن ملف report.html منفصل يُطابق هذا القالب — كان نسخة
 // مكررة غير مستخدمة فعليًا في التشغيل، وحذفه أزال خطر تعارض النسختين.)
 // -----------------------------------------------------------------------------
-const CORNER_ORN_INNER = `<path d="M2 20C2 9 9 2 20 2" stroke="#c9932f" stroke-width="1.3" opacity=".55"/><circle cx="2" cy="20" r="2" fill="#c9932f" opacity=".55"/><circle cx="20" cy="2" r="2" fill="#c9932f" opacity=".55"/>`;
-const cornerOrnSvg = (cls) => `<svg class="corner-orn ${cls}" width="34" height="34" viewBox="0 0 40 40" fill="none">${CORNER_ORN_INNER}</svg>`;
+// 🌟 زخارف الصفحة — صور حقيقية مقصوصة من التصميم المرجعي الذي اعتمده المعلم، لا رسوم
+// SVG يدوية (المحاولة اليدوية لم تكن مقنعة بصريًا). الملفات في assets/report/ والمسار
+// نسبي لجذر الموقع (index.html) بنفس أسلوب assets/kids_bg/ المستخدم فعلاً في core/app.js.
+// ⚠️ مهم: html2canvas يلتقط الصور المحمَّلة فقط — راجع ensureArtReady() أسفل الملف،
+// فهي تنتظر اكتمال تحميل هذه الصور قبل أي تصدير وإلا خرجت فارغة في PNG/PDF.
+const ART_DIR = 'assets/report/';
+const cornerOrnImg = (cls) => `<img class="corner-orn ${cls}" src="${ART_DIR}report-corner-orn.png" alt="">`;
+
+// 🌟 ثلاث نجمات في قلب الدائرة: عدد الممتلئ منها يعبّر عن المستوى الفعلي (getTier)
+// — ممتاز 3، جيد 2، متوسط 1، بحاجة إلى دعم 0 — والباقي يُرسم كحدٍّ باهت حتى يبقى
+// عدد الأشكال ثابتًا فلا يتغيّر اتزان التصميم بتغيّر النتيجة.
+const STAR_PATH = 'M10 1.6l2.5 5.3 5.6.7-4.1 4 1.1 5.6L10 14.5l-5.1 2.7 1.1-5.6-4.1-4 5.6-.7z';
+function starSvg(filled, size){
+  const s = size || 15;
+  return filled
+    ? `<svg width="${s}" height="${s}" viewBox="0 0 20 20" aria-hidden="true"><path d="${STAR_PATH}" fill="#d4af37"/></svg>`
+    : `<svg width="${s}" height="${s}" viewBox="0 0 20 20" aria-hidden="true"><path d="${STAR_PATH}" fill="none" stroke="#e4d9c4" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+}
+const STARS_BY_TIER = { excellent: 3, good: 2, average: 1, weak: 0 };
 
 const REPORT_TEMPLATE = `
 <style>${REPORT_STYLES}</style>
@@ -53,41 +75,41 @@ const REPORT_TEMPLATE = `
 
   <div class="report-toolbar">
     <div class="grp">
-      <span class="grp-label">بيانات المعلم</span>
-      <input type="text" id="report-teacher-name-input" class="teacher-name-input" placeholder="اسم المعلم">
+      <span class="grp-label" data-i18n="rep_tb_teacher_data">بيانات المعلم</span>
+      <input type="text" id="report-teacher-name-input" class="teacher-name-input" data-i18n-placeholder="rep_tb_teacher_name_ph" placeholder="اسم المعلم">
       <button class="rbtn ghost" id="btn-teacher-sig">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        رفع توقيع
+        <span data-i18n="rep_tb_upload_stamp">رفع ختم المعلم</span>
       </button>
       <input type="file" id="report-teacher-sig-input" accept="image/*" style="display:none;">
     </div>
     <div class="grp">
-      <span class="grp-label">تصدير</span>
+      <span class="grp-label" data-i18n="rep_tb_export">تصدير</span>
       <button class="rbtn primary" id="btn-report-png">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
-        صورة عالية الجودة
+        <span data-i18n="rep_tb_png">صورة مختصرة</span>
       </button>
       <button class="rbtn" id="btn-report-pdf">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
-        ملف PDF
+        <span data-i18n="rep_tb_pdf">ملف PDF شامل</span>
       </button>
     </div>
     <div class="grp">
       <button class="rbtn ghost" id="btn-report-home">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
-        العودة للرئيسية
+        <span data-i18n="rep_tb_home">العودة للرئيسية</span>
       </button>
     </div>
   </div>
   <div class="note-bar">
-    <label for="report-custom-note-input">ملاحظة لولي الأمر (اختياري):</label>
-    <textarea id="report-custom-note-input" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار."></textarea>
-    <span class="hint">تظهر في صندوق "ملاحظة المعلم" بالأسفل</span>
+    <label for="report-custom-note-input" data-i18n="rep_tb_note_label">ملاحظة لولي الأمر (اختياري):</label>
+    <textarea id="report-custom-note-input" data-i18n-placeholder="rep_tb_note_ph" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار."></textarea>
+    <span class="hint" data-i18n="rep_tb_note_hint">تظهر في صندوق "ملاحظة المعلم" بالأسفل</span>
   </div>
   <div class="note-bar">
-    <label for="report-extra-note-input">نص إضافي داخل التقرير (اختياري):</label>
-    <textarea id="report-extra-note-input" placeholder="أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه."></textarea>
-    <span class="hint">يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا</span>
+    <label for="report-extra-note-input" data-i18n="rep_tb_extra_label">نص إضافي داخل التقرير (اختياري):</label>
+    <textarea id="report-extra-note-input" data-i18n-placeholder="rep_tb_extra_ph" placeholder="أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه."></textarea>
+    <span class="hint" data-i18n="rep_tb_extra_hint">يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا</span>
   </div>
 
   <div class="report-stage">
@@ -95,122 +117,157 @@ const REPORT_TEMPLATE = `
       <div>
 
       <div class="page" id="report-page" dir="rtl">
-        ${cornerOrnSvg('tl')}
-        ${cornerOrnSvg('tr')}
-        ${cornerOrnSvg('bl')}
-        ${cornerOrnSvg('br')}
+        ${cornerOrnImg('tr')}
+        ${cornerOrnImg('tl')}
+        ${cornerOrnImg('br')}
+        ${cornerOrnImg('bl')}
 
         <div class="pdf-block" id="report-intro-block">
-          <div class="eyebrow">دار حم · منصة تحفيظ القرآن الكريم</div>
-          <div class="title-row">
-            <h1 class="title">تقرير تحليل الأداء</h1>
-            <div class="title-sub" id="report-title-date">--</div>
-          </div>
-          <div class="gold-rule"></div>
 
-          <div class="meta-row">
-            <div class="meta-student">
+          <div class="dh-head">
+            <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
+            <img class="head-star" src="${ART_DIR}report-star-cluster.png" alt="">
+            <div class="eyebrow" data-i18n="rep_eyebrow">دار حم · منصة تحفيظ القرآن الكريم</div>
+            <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
+            <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
+            <div class="r-tagline" data-i18n="rep_tagline">خطوة بخطوة ... نحو كتاب الله</div>
+          </div>
+
+          <div class="top-row">
+            <div class="student-card">
               <div class="avatar-wrap">
-                <div class="avatar-circle" id="report-avatar-circle" title="اضغط أو اسحب صورة لتغيير صورة الطالب">
+                <div class="avatar-circle" id="report-avatar-circle" data-i18n-title="rep_avatar_hint" title="اضغط أو اسحب صورة لتغيير صورة الطالب">
                   <img id="report-avatar-img" style="display:none;" alt="">
                 </div>
-                <button type="button" class="avatar-edit-btn no-export" id="report-avatar-edit-btn" title="تغيير صورة الطالب">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
+                <button type="button" class="avatar-edit-btn no-export" id="report-avatar-edit-btn" data-i18n-title="rep_avatar_change" title="تغيير صورة الطالب">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2Z"/><circle cx="12" cy="13" r="4"/></svg>
                 </button>
                 <input type="file" id="report-avatar-input" accept="image/*" style="display:none;">
               </div>
-              <div>
+              <div class="student-body">
                 <div class="student-name" id="report-student-name">--</div>
-                <div class="student-scope" id="report-student-scope">--</div>
+
+                <div class="fact" id="report-fact-grade" style="display:none;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+                  <span><span data-i18n="rep_fact_grade">الصف</span>: <b id="report-grade-val">--</b></span>
+                </div>
+
+                <div class="fact" id="report-fact-scope" style="display:none;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg>
+                  <span><span data-i18n="rep_fact_scope">نطاق التقييم</span>: <b id="report-scope-val">--</b></span>
+                </div>
+
+                <div class="fact" id="report-fact-time" style="display:none;">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l2.9 1.7"/></svg>
+                  <span><span data-i18n="rep_fact_duration">مدة التقييم</span>: <b id="report-time-val">--</b></span>
+                </div>
               </div>
             </div>
-            <div class="meta-right">
-              المعلم: <b id="report-teacher-name-meta">--</b><br>
-              المدة الإجمالية: <b id="report-total-time-meta">--</b>
+
+            <div class="gauge-card">
+              <div class="gauge-wrap">
+                <svg width="158" height="158" viewBox="0 0 208 208">
+                  <circle cx="104" cy="104" r="86" fill="none" stroke="#e4d9c4" stroke-width="17"></circle>
+                  <circle class="gauge-arc" id="report-gauge-arc" cx="104" cy="104" r="86" fill="none" stroke-width="17"
+                    stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0"
+                    transform="rotate(-90 104 104)"></circle>
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-stars" id="report-gauge-stars"></div>
+                  <div class="gauge-pct" id="report-gauge-pct">--</div>
+                  <div class="gauge-tier" id="report-gauge-tier">--</div>
+                </div>
+              </div>
+              <div class="gauge-foot">
+                <span class="gauge-label" data-i18n="rep_this_eval">نتيجة هذا التقييم</span>
+                <span class="delta" id="report-delta" style="display:none;"></span>
+              </div>
             </div>
           </div>
 
-          <div class="hero">
-            <div class="gauge-wrap">
-              <svg width="168" height="168" viewBox="0 0 208 208">
-                <circle cx="104" cy="104" r="86" fill="none" stroke="#e4d9c4" stroke-width="18"></circle>
-                <circle class="gauge-arc" id="report-gauge-arc" cx="104" cy="104" r="86" fill="none" stroke-width="18"
-                  stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0"
-                  transform="rotate(-90 104 104)"></circle>
-              </svg>
-              <div class="gauge-center">
-                <div class="gauge-pct" id="report-gauge-pct">--</div>
-                <div class="gauge-tier" id="report-gauge-tier">--</div>
-              </div>
-            </div>
-            <div class="hero-body">
-              <p class="hero-headline" id="report-honesty-line"></p>
-              <div class="status-chips">
-                <span class="chip-status chip-full">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 10.2l2.3 2.3 4.7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-                  صحيحة بالكامل: <span id="report-count-full">0</span>
-                </span>
-                <span class="chip-status chip-partial">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M10 6v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="13.6" r="0.9" fill="currentColor"/></svg>
-                  صحيحة جزئيًا: <span id="report-count-partial">0</span>
-                </span>
-                <span class="chip-status chip-wrong">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M7.3 7.3l5.4 5.4M12.7 7.3l-5.4 5.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                  غير صحيحة: <span id="report-count-wrong">0</span>
-                </span>
-              </div>
-              <div class="stat-line">
-                <span class="stat-item">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#a79a83" stroke-width="1.6"/><path d="M10 6v4.3l3 1.7" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  متوسط وقت الإجابة: <span id="report-stat-avgtime">--</span>
-                </span>
-                <span class="stat-item">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M10 3.5a4.5 4.5 0 0 0-2.4 8.3c.5.3.9.9.9 1.5v.4h3v-.4c0-.6.4-1.2.9-1.5A4.5 4.5 0 0 0 10 3.5z" stroke="#a79a83" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 16.3h2.6M9.1 17.8h1.8" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/></svg>
-                  تلميحات مستخدمة: <span id="report-stat-hints">0</span>
-                </span>
-                <span class="stat-item">
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 0 1 10.2-4.2M16 10a6 6 0 0 1-10.2 4.2" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/><path d="M14 3.5v2.6h-2.6M6 16.5v-2.6h2.6" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  محاولات ترتيب متكررة: <span id="report-stat-reorders">0</span>
-                </span>
-              </div>
-            </div>
+          <p class="honesty-line" id="report-honesty-line"></p>
+        </div>
+
+        <div class="ladder-card pdf-block">
+          <div class="sec-head">
+            <h3 class="section-title" data-i18n="rep_ladder_title">مستوى التقدّم العام</h3>
+            <p class="section-sub" data-i18n="rep_ladder_sub">مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة</p>
           </div>
+          <div id="report-ladder-wrap"></div>
         </div>
 
-        <div class="trend-block pdf-block">
-          <div class="section-title">الأداء عبر آخر التقييمات</div>
-          <div class="section-sub">مقارنة هذا التقييم بمحاولات الطالب السابقة في نفس النطاق</div>
-          <div class="trend-bars" id="report-trend-bars"></div>
-        </div>
-
-        <div class="qlist">
+        <!-- 🌟 جدول الأسئلة — الجزء الوحيد الذي يختفي في الصورة المختصرة (class="pdf-only") -->
+        <div class="qlist pdf-only">
           <div class="pdf-block" id="report-qhead-group">
-            <div class="section-title">تفاصيل الاختبار — سؤالاً بسؤال</div>
-            <div class="section-sub">كل الأسئلة التي وردت في هذا الاختبار كما جرت بالفعل، دون حذف</div>
+            <div class="sec-head">
+              <h3 class="section-title" data-i18n="rep_qtable_title">تفاصيل الاختبار — سؤالًا بسؤال</h3>
+              <p class="section-sub" data-i18n="rep_qtable_sub">كل الأسئلة التي وردت في هذا الاختبار كما جرت بالفعل، دون حذف</p>
+            </div>
+            <div class="qgrid-head" id="report-qgrid-head">
+              <div data-i18n="rep_col_num">م</div>
+              <div data-i18n="rep_col_status">الاستجابة</div>
+              <div data-i18n="rep_col_subject">السؤال / الموضوع</div>
+              <div data-i18n="rep_col_score">الدرجة</div>
+              <div data-i18n="rep_col_note">ملاحظة</div>
+            </div>
             <div id="report-qrow-first"></div>
           </div>
           <div id="report-qrows-rest"></div>
         </div>
 
+        <!-- ⚠️ شرائط العدّ خارج بطاقة الجدول عمدًا حتى تبقى ظاهرة في الصورة المختصرة -->
+        <div class="chips-row pdf-block">
+          <span class="chip-status chip-full">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M6.4 10.2l2.4 2.4 4.8-5.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="rep_chip_full">صحيحة بالكامل</span>: <span id="report-count-full">0</span>
+          </span>
+          <span class="chip-status chip-partial">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M10 5.6V10l3 1.8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="rep_chip_partial">صحيحة جزئيًا</span>: <span id="report-count-partial">0</span>
+          </span>
+          <span class="chip-status chip-wrong">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M7.4 7.4l5.2 5.2M12.6 7.4l-5.2 5.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+            <span data-i18n="rep_chip_wrong">غير صحيحة</span>: <span id="report-count-wrong">0</span>
+          </span>
+        </div>
+
+        <div class="stat-line pdf-block">
+          <span class="stat-item">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#a79a83" stroke-width="1.6"/><path d="M10 6v4.3l3 1.7" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="rep_stat_avgtime">متوسط وقت الإجابة</span>: <b id="report-stat-avgtime">--</b>
+          </span>
+          <span class="stat-item">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 3.5a4.5 4.5 0 0 0-2.4 8.3c.5.3.9.9.9 1.5v.4h3v-.4c0-.6.4-1.2.9-1.5A4.5 4.5 0 0 0 10 3.5z" stroke="#a79a83" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 16.3h2.6M9.1 17.8h1.8" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span data-i18n="rep_stat_hints">تلميحات مستخدمة</span>: <b id="report-stat-hints">0</b>
+          </span>
+          <span class="stat-item">
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 0 1 10.2-4.2M16 10a6 6 0 0 1-10.2 4.2" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/><path d="M14 3.5v2.6h-2.6M6 16.5v-2.6h2.6" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="rep_stat_reorders">محاولات ترتيب متكررة</span>: <b id="report-stat-reorders">0</b>
+          </span>
+        </div>
+
         <div class="insights pdf-block">
-          <div class="insight-card">
+          <div class="insight-card good">
             <div class="insight-head">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2.5l2.1 4.6 5 .6-3.7 3.5.9 5-4.3-2.5-4.3 2.5.9-5-3.7-3.5 5-.6z" stroke="#8a6221" stroke-width="1.4" stroke-linejoin="round" fill="#efe9e0"/></svg>
-              <span class="insight-title" style="color:#8a6221;">نقاط القوة</span>
+              <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#10694c"/><path d="M10 4.4l1.8 3.7 4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.6z" fill="#fffdf8"/></svg>
+              <span class="insight-title" data-i18n="rep_strengths">نقاط القوة</span>
             </div>
             <ul class="insight-list" id="report-strengths-list"></ul>
           </div>
-          <div class="insight-card">
+          <div class="insight-card focus">
             <div class="insight-head">
-              <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.2" stroke="#a15230" stroke-width="1.4" fill="#f2e7e2"/><circle cx="10" cy="10" r="3.6" stroke="#a15230" stroke-width="1.4"/><circle cx="10" cy="10" r="1" fill="#a15230"/></svg>
-              <span class="insight-title" style="color:#a15230;">بحاجة إلى تركيز</span>
+              <svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.4" fill="#9e3b2d"/><circle cx="10" cy="10" r="4.6" stroke="#fffdf8" stroke-width="1.5" fill="none"/><circle cx="10" cy="10" r="1.2" fill="#fffdf8"/></svg>
+              <span class="insight-title" data-i18n="rep_needs">بحاجة إلى تركيز</span>
             </div>
             <ul class="insight-list" id="report-needs-list"></ul>
           </div>
         </div>
 
         <div class="note-box pdf-block">
-          <div class="note-label">ملاحظة المعلم لولي الأمر — للمتابعة أولًا بأول</div>
+          <div class="note-head">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b3d30" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2 2 0 0 1 6 4h4.5v16H6a2 2 0 0 1-2-2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-4.5v16H18a2 2 0 0 0 2-2z"/></svg>
+            <span class="note-label" data-i18n="rep_note_label">ملاحظة المعلم لولي الأمر</span>
+          </div>
           <p class="note-text" id="report-note-text"></p>
         </div>
 
@@ -218,20 +275,28 @@ const REPORT_TEMPLATE = `
              أعلى الشاشة (report-extra-note-input) — يبقى مخفيًا تمامًا (display:none)
              ولا يأخذ أي مساحة في الصورة أو PDF إن تُرك فارغًا. -->
         <div class="note-box pdf-block" id="report-extra-note-block" style="display:none;">
-          <div class="note-label">ملاحظة إضافية</div>
+          <div class="note-head">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b3d30" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2 2 0 0 1 6 4h4.5v16H6a2 2 0 0 1-2-2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-4.5v16H18a2 2 0 0 0 2-2z"/></svg>
+            <span class="note-label" data-i18n="rep_extra_label">ملاحظة إضافية</span>
+          </div>
           <p class="note-text" id="report-extra-note-text"></p>
         </div>
 
         <div class="closing pdf-block">
-          <div class="footer-note">
-            دار حم · منصة مراجعة القرآن التفاعلية<br>
-            <span dir="ltr" id="report-footer-id">--</span> &nbsp;·&nbsp; <span dir="ltr" id="report-footer-date">--</span>
+          <div class="footer-meta">
+            <span data-i18n="rep_report_no">رقم التقرير</span>: <b id="report-footer-id" dir="ltr">--</b><br>
+            <span data-i18n="rep_date">التاريخ</span>: <b id="report-footer-date">--</b><span id="report-footer-hijri"></span>
           </div>
-          <div class="teacher-sign">
-            <div class="sig-img-wrap"><img id="report-sign-img" style="display:none;" alt=""></div>
-            <div class="teacher-line"></div>
-            <div class="sig-name" id="report-sign-name">المعلم</div>
-            <div class="teacher-label">توقيع المعلم</div>
+          <div class="sign">
+            <!-- 🌟 ختم المعلم الرسمي المرفوع في "ملف المعلم" (teacherDB.stamp) — فوق سطر
+                 الاسم مباشرة كما في التقارير الرسمية، ومخفي تمامًا بحاويته إن لم يُرفع
+                 فلا يترك أي فراغ أعلى الاسم -->
+            <div class="stamp-wrap" id="report-stamp-wrap" style="display:none;">
+              <img class="stamp-img" id="report-stamp-img" alt="">
+            </div>
+            <div class="sign-line"></div>
+            <div class="sign-name" id="report-sign-name">المعلم</div>
+            <div class="teacher-label" id="report-sign-label">المعلم</div>
           </div>
         </div>
       </div>
@@ -239,7 +304,7 @@ const REPORT_TEMPLATE = `
       <div class="home-bar no-export">
         <button class="home-btn" id="btn-report-home-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
-          العودة للرئيسية
+          <span data-i18n="rep_tb_home">العودة للرئيسية</span>
         </button>
       </div>
 
@@ -259,12 +324,53 @@ function formatDateArabic(d){
   return `${yyyy} / ${String(mm).padStart(2,'0')} / ${String(dd).padStart(2,'0')}`;
 }
 
+// 🌟 [جديد] التاريخ الهجري بجانب الميلادي في تذييل التقرير — عبر Intl المدمج في
+// المتصفح بلا أي مكتبة خارجية (نفس تفضيل المشروع المعلن). يرجع سلسلة فارغة لو لم
+// يدعم المتصفح تقويم أم القرى، فيختفي السطر الهجري تمامًا بدل أن يظهر ناقصًا أو خطأ.
+// ملاحظة: Intl يُلحق "هـ" بنفسه، فلا تُضاف يدويًا وإلا تكررت.
+function formatDateHijri(d){
+  try {
+    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).format(d);
+  } catch (e) { return ''; }
+}
+// صيغة مختصرة (يوم / شهر) لمحطات سُلّم التقدّم حتى لا يتزاحم النص تحت كل نجمة
+function shortDateLabel(dateStr){
+  const parts = String(dateStr || '').split('/').map(s => s.trim());
+  return parts.length >= 3 ? `${parts[2]} / ${parts[1]}` : String(dateStr || '');
+}
+
+const HISTORY_MAX = 7; // نقرأ ونحفظ آخر 7 محاولات فقط — نفس السقف الذي كان معمولاً به
+function historyKey(studentId){ return `history_${studentId}`; }
+
 function getHistory(studentId){
   try {
-    const raw = localStorage.getItem(`history_${studentId}`);
+    const raw = localStorage.getItem(historyKey(studentId));
     const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.slice(-7) : [];
+    return Array.isArray(arr) ? arr.slice(-HISTORY_MAX) : [];
   } catch (e) { return []; }
+}
+
+// 🌟 [جديد — مهم] كان `history_<id>` يُقرأ هنا فقط ولا يكتبه أي ملف في المنصة إطلاقًا
+// (تحقّقنا: لا وجود لأي setItem على هذا المفتاح في أي ملف)، فكان رسم "الأداء عبر آخر
+// التقييمات" يعود دائماً للمسار الاحتياطي بمحاولة واحدة فقط هي الحالية. بلا كتابة فعلية
+// للسجل لا يمكن أن يوجد "سُلّم تقدّم" ولا "فرق عن المحاولة السابقة" أصلاً.
+//
+// 🌟 افتراض صريح غير محسوم: نعتبر أن كل فتح لشاشة التقرير = محاولة واحدة مكتملة جديرة
+// بالتسجيل (لأن التقرير لا يُفتح إلا بعد انتهاء تقييم فعلي). لتفادي تسجيل مكرر لو أُعيد
+// بناء الشاشة لأي سبب، نتجاهل الإضافة إن كان آخر سجل مطابقاً تماماً (نفس اليوم ونفس
+// النتيجة ونفس النطاق). لو رغب المعلم لاحقاً في ربط التسجيل بحدث "إنهاء الاختبار" داخل
+// adultGame.js/kidsGame.js بدل فتح التقرير، فهذا هو المكان الوحيد الذي يحتاج تعديلاً.
+function appendHistoryEntry(studentId, entry){
+  if (studentId == null) return;
+  try {
+    const arr = getHistory(studentId);
+    const last = arr[arr.length - 1];
+    if (last && last.date === entry.date && last.score === entry.score && last.range === entry.range) return;
+    arr.push(entry);
+    localStorage.setItem(historyKey(studentId), JSON.stringify(arr.slice(-HISTORY_MAX)));
+  } catch (e) { /* تجاهل — لا نمنع عرض التقرير بسبب فشل حفظ السجل فقط */ }
 }
 
 // ✅ مطابقة فعلية لشكل GameState.reportDetails كما هو موجود بالحرف في
@@ -337,6 +443,10 @@ function buildStats(questionResults){
   return {
     totalTime: withTime.length ? formatDuration(totalTime) : ((activeGameState && activeGameState.totalTimeLabel) || '—'),
     avgTime: withTime.length ? formatDuration(avgTime) : ((activeGameState && activeGameState.avgTimeLabel) || '—'),
+    // 🌟 [جديد] القيمة الرقمية الخام لمتوسط الزمن (بالثواني) — تُحفظ في سجل الطالب
+    // ليصبح من الممكن مقارنة سرعة هذه المحاولة بمتوسط محاولاته السابقة فعليًا.
+    // null عند غياب أي قياس زمني، فلا تُحفظ قيمة وهمية ولا تُبنى عليها أي مقارنة.
+    avgTimeSec: withTime.length ? Math.round(avgTime) : null,
     hints: questionResults.filter(r => r.usedHint).length,
     // 🌟 [إصلاح] كانت تحسب فقط الأسئلة التي احتاجت محاولتين خاطئتين فأكثر (orderAttempts >= 2)،
     // فأي سؤال ترتيب/ربط أُخطئ فيه مرة واحدة فقط (orderAttempts === 1) كان لا يُحتسب هنا إطلاقاً
@@ -352,7 +462,92 @@ function buildStats(questionResults){
 // لو الدالة متاحة استوردها واستخدمها بدل هذا التبسيط. حاليًا نبني نقاط
 // القوة/التركيز من نتائج الأسئلة الفعلية + currentStudent.weaknesses
 // (عناصرها كائنات {text, num, surahName, errorTypes} كما في adultGame.js).
-function getSkillHighlights(student, questionResults){
+//
+// 🌟 [إعادة تصميم كاملة لصندوق "بحاجة إلى تركيز"] 🌟
+// السلوك القديم: كان الصندوق يأخذ أول 3 عناصر من student.weaknesses فقط، ولا
+// ينزل لأخطاء الاختبار الحالي إلا إذا كان السجل فارغًا تمامًا. ولأن weaknesses
+// سجل *تراكمي* عبر كل الجلسات (كبار + أطفال) ولا يُشطب منه بند إلا بعد نجاح
+// الطالب فيه داخل "تحدي تصحيح الأخطاء"، كانت النتيجة أن:
+//   1) بندًا قديمًا من جلسة سابقة يظهر لولي الأمر وكأنه خطأ ابنه في اختبار اليوم،
+//   2) وأخطاء اليوم الحقيقية قد لا تظهر إطلاقًا لأن السجل القديم يحجبها،
+//   3) والأسئلة التي حُلّت بتلميح أو بعد إعادة ترتيب (وخُصمت درجتها فعلًا 8/10)
+//      لا تظهر أبدًا رغم أنها أصدق مؤشر على "حفظ غير مثبَّت".
+//
+// السلوك الجديد — ثلاث طبقات بترتيب صارم، كلٌّ منها بعنوان فرعي ظاهر في التقرير
+// حتى يعرف ولي الأمر مصدر كل بند بالضبط:
+//   الطبقة 1: أخطاء اختبار اليوم        (status === 'wrong')            حتى 3 بنود
+//   الطبقة 2: ما يحتاج تثبيتًا اليوم      (status === 'hint' | 'reorder') حتى بندين
+//   الطبقة 3: متابعة من جلسات سابقة      (student.weaknesses)            حتى بندين
+//   وإن خلت الثلاث: السطر الثابت المعتاد كما كان تمامًا.
+// بسقف إجمالي 4 بنود، مع ذكر عدد ما زاد صراحة ("+ن بندًا آخر") بدل إخفائه صامتًا.
+//
+// افتراضات صرّحنا بها بدل تنفيذها بصمت:
+//   • "متابعة سابقة" = أي عنصر باقٍ في weaknesses لم يُعالَج بعد، أيًّا كان مصدره
+//     (ركن الكبار أو ركن الأطفال) وأيًّا كان نطاق اختبار اليوم — لأن السجل نفسه
+//     لا يحمل ما يربطه بنطاق بعينه.
+//   • عمر البند يُحسب من w.dateRecorded المخزَّن فعلًا في errorObj، ويُعرض كما هو
+//     دون تقريب؛ وأي سجل قديم بلا هذا الحقل يظهر بلا ذكر عمر بدل تخمينه.
+//   • تطابق بند اليوم مع بند في السجل القديم يُعتبر "خطأ متكرر" ويُدمجان في بند
+//     واحد، والمقارنة بنص السؤال (reportText) بعد تجريد التشكيل — نفس مفتاح
+//     المقارنة المستخدم في adultGame.js/kidsGame.js بالحرف.
+// -----------------------------------------------------------------------------
+const FOCUS_MAX_TOTAL   = 4;  // سقف بنود الصندوق كله
+const FOCUS_MAX_TODAY   = 3;  // سقف أخطاء اليوم
+const FOCUS_MAX_PARTIAL = 2;  // سقف "يحتاج تثبيتًا"
+const FOCUS_MAX_PAST    = 2;  // سقف المتابعة السابقة
+
+// تجريد النص من التشكيل والتطويل وعلامات الآية قبل المقارنة — نفس فلسفة
+// normalizeForCompare في ملفات الألعاب، منسوخة هنا محليًا فقط حتى يبقى التقرير
+// غير مرتبط بأي ملف لعبة بعينه (وهو ما أصلح مشكلة GameState الموضّحة بأعلى).
+function normalizeFocusKey(text){
+  return String(text || '')
+    .replace(/[ً-ْٰـۖ-ۭ]/g, '')
+    // توحيد صور الهمزة والألف المقصورة والتاء المربوطة أيضًا — لأن البند القديم قد
+    // يكون مخزَّنًا بصيغة إملائية مختلفة قليلًا عن نص اليوم، فلا يُكتشف التكرار.
+    .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+    .replace(/[﴿﴾()[\]:،.\-–—]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+// صياغة سطر الفائض بصيغة عربية سليمة (مفرد/مثنى/جمع قلة/جمع كثرة) بدل رقم ملصوق
+// بصيغة واحدة تنتج "+ 1 بندًا آخر" وهو خطأ لغوي في تقرير يُطبع لولي الأمر.
+function focusMoreLabel(n){
+  if (AppState.currentLang === 'en') {
+    return `+ ${n} ${n === 1 ? t('report_focus_more_one') : t('report_focus_more_many')}`;
+  }
+  if (n === 1) return `+ ${t('report_focus_more_one')}`;
+  if (n === 2) return `+ ${t('report_focus_more_two')}`;
+  return `+ ${n} ${n <= 10 ? t('report_focus_more_few') : t('report_focus_more_many')}`;
+}
+function focusKeyOfResult(r){
+  return normalizeFocusKey(r.text || `${r.location || ''} ${r.type || ''}`);
+}
+// "سورة الشمس - آية 5" — نفس صيغة location المبنية في getQuestionResults تمامًا،
+// حتى يظهر بند السجل القديم بنفس شكل بند اليوم بلا اختلاف بصري.
+function weaknessLocation(w){
+  if (!w.surahName) return '';
+  return `سورة ${w.surahName}${w.num != null ? ' - آية ' + w.num : ''}`;
+}
+function joinFocusParts(location, type, reason){
+  const head = [location, type].filter(Boolean).join(' · ');
+  if (!head) return reason || '';
+  return reason ? `${head} — ${reason}` : head;
+}
+function focusAgeLabel(dateRecorded){
+  if (!dateRecorded) return '';
+  const then = new Date(dateRecorded);
+  if (isNaN(then.getTime())) return '';
+  const days = Math.max(0, Math.floor((Date.now() - then.getTime()) / 86400000));
+  if (days === 0) return t('report_focus_age_today');
+  if (days === 1) return t('report_focus_age_day1');
+  if (days === 2) return t('report_focus_age_day2');
+  const unit = days <= 10 ? t('report_focus_age_unit_few') : t('report_focus_age_unit_many');
+  // العربية: "منذ 5 أيام" | الإنجليزية: "5 days ago" — ترتيب الكلمات مختلف بين
+  // اللغتين، لذا نركّب الجملة حسب اللغة بدل ربط المفاتيح بترتيب عربي ثابت.
+  return AppState.currentLang === 'en' ? `${days} ${unit}` : `${t('report_focus_age_since')} ${days} ${unit}`;
+}
+
+function getSkillHighlights(student, questionResults, speedCompare){
   const correct = questionResults.filter(r => r.status === 'full');
   const wrong = questionResults.filter(r => r.status === 'wrong');
 
@@ -363,24 +558,67 @@ function getSkillHighlights(student, questionResults){
   // ⚠️ لا نضيف أي وصف غير مبني على بيانات فعلية (مثل "سريع" أو "واثق") ما لم
   // يكن مقيسًا فعليًا من timeTaken — هذا هو المقصود بـ"الصدق" في هذا التقرير:
   // لا يظهر أي مديح لا تدعمه بيانات حقيقية.
+  // 🌟 [جديد] timeTaken كان مسجّلاً لكل سؤال لكن لا يُستخدم هنا إطلاقاً. الآن نستخدمه —
+  // لكن **فقط كمقارنة بمتوسط محاولات الطالب السابقة المحفوظة في سجله**، لا كحكم مطلق
+  // بأن الزمن "سريع" (لا يوجد في المنصة أي معيار مرجعي يبرر حكماً مطلقاً كهذا).
+  // speedCompare يأتي null في أول محاولة مسجَّلة، فلا يظهر هذا السطر إطلاقاً وقتها.
+  if (speedCompare && speedCompare.faster) {
+    strengths.push(
+      `متوسط زمن الإجابة ${speedCompare.nowLabel} — أسرع من متوسط محاولاته السابقة (${speedCompare.prevLabel})`
+    );
+  }
   if (correct.length >= 2) {
     strengths.push(`ثبات واضح في الحفظ عبر أكثر من سؤال في هذا النطاق دون الحاجة لأي مساعدة`);
   }
 
+  // 🌟 [إعادة تصميم] بناء بنود "بحاجة إلى تركيز" على ثلاث طبقات معنونة بدل قائمة
+  // مسطّحة كانت تخلط أخطاء اليوم بأخطاء قديمة بلا تمييز (راجع الشرح المطوّل أعلى
+  // هذا القسم). الترتيب صارم: أخطاء اليوم ← ما يحتاج تثبيتًا اليوم ← متابعة سابقة.
+  const partial = questionResults.filter(r => r.status === 'hint' || r.status === 'reorder');
   const weaknesses = Array.isArray(student.weaknesses) ? student.weaknesses : [];
+
+  // الطبقة 3 (نُجهّزها أولًا لأن مفاتيحها لازمة لكشف "الخطأ المتكرر" في الطبقة 1)
+  const pastAll = weaknesses.map(w => {
+    if (typeof w === 'string') return { key: normalizeFocusKey(w), text: w };
+    const head = joinFocusParts(weaknessLocation(w), w.questionTypeLabel || '', '');
+    // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض
+    // نصه الخام كما كان يُعرض تمامًا قبل هذا التعديل، فلا يختفي أي بند مسجَّل.
+    const label = head
+      || w.text
+      || (Array.isArray(w.errorTypes) ? w.errorTypes.join('، ') : w.errorTypes)
+      || '';
+    if (!label) return null;
+    const age = focusAgeLabel(w.dateRecorded);
+    const tail = t('report_focus_not_resolved') + (age ? ` (${age})` : '');
+    return { key: normalizeFocusKey(w.text || label), text: `${label} — ${tail}` };
+  }).filter(Boolean);
+
+  const todayKeys = new Set(wrong.concat(partial).map(focusKeyOfResult));
+  const pastKeys = new Set(pastAll.map(p => p.key));
+  // البند الذي أخطأ فيه الطالب اليوم وهو مسجَّل أصلًا في سجله القديم = خطأ متكرر،
+  // وهي أقوى إشارة يمكن إعطاؤها لولي الأمر، ومبنية على بيانات مسجَّلة 100%.
+  const buildToday = (r, kind) => {
+    const body = joinFocusParts(r.location, r.type, r.note || 'إجابة غير صحيحة');
+    return {
+      kind,
+      text: pastKeys.has(focusKeyOfResult(r)) ? `${t('report_focus_repeated')}: ${body}` : body
+    };
+  };
+
+  const pastPending = pastAll.filter(p => !todayKeys.has(p.key));
   const needsFocus = [];
-  weaknesses.slice(0, 3).forEach(w => {
-    const label = typeof w === 'string'
-      ? w
-      : (w.text || (Array.isArray(w.errorTypes) ? w.errorTypes.join('، ') : w.errorTypes) || null);
-    if (label) needsFocus.push(label);
-  });
-  if (!needsFocus.length && wrong.length) {
-    wrong.slice(0, 3).forEach(r => needsFocus.push(`${r.location || r.type}: ${r.note || 'إجابة غير صحيحة'}`));
-  }
+  const pushCapped = (arr) => arr.forEach(it => { if (needsFocus.length < FOCUS_MAX_TOTAL) needsFocus.push(it); });
+  pushCapped(wrong.slice(0, FOCUS_MAX_TODAY).map(r => buildToday(r, 'today')));
+  pushCapped(partial.slice(0, FOCUS_MAX_PARTIAL).map(r => buildToday(r, 'partial')));
+  pushCapped(pastPending.slice(0, FOCUS_MAX_PAST).map(p => ({ kind: 'past', text: p.text })));
+
+  // ⚠️ لا نُخفي الفائض بصمت: نذكر عدده صراحة — الإخفاء الصامت يخالف مبدأ الصدق
+  // الذي يقوم عليه هذا التقرير كله.
+  const remaining = (wrong.length + partial.length + pastPending.length) - needsFocus.length;
+  if (remaining > 0) needsFocus.push({ kind: 'more', text: focusMoreLabel(remaining) });
 
   if (!strengths.length) strengths.push('إكمال المحاولة كاملة رغم صعوبة بعض الأسئلة، وهذا بحد ذاته إنجاز يستحق التقدير');
-  if (!needsFocus.length) needsFocus.push('الاستمرار في المراجعة اليومية المعتادة للحفاظ على هذا المستوى');
+  if (!needsFocus.length) needsFocus.push({ kind: 'none', text: 'الاستمرار في المراجعة اليومية المعتادة للحفاظ على هذا المستوى' });
   return { strengths, needsFocus };
 }
 
@@ -428,9 +666,13 @@ function getTier(score){
   if (score >= 60) return 'average';
   return 'weak';
 }
+// 🌟 [عدّل] الألوان فقط — الحدود والتسميات كما هي بالحرف. الأعلى صار أخضر الهوية
+// (--dh-emerald في css/home.css) بدل الذهبي البُني، بعد اعتماد التصميم المرجعي الجديد،
+// والذهبي صار للنجوم والزخارف فقط. ⚠️ هذه الألوان مستخدمة أيضاً في ألوان محطات سُلّم
+// التقدّم، فكل محطة تأخذ لون مستواها الفعلي لا لونًا يعبّر عن ترتيبها الزمني.
 const TONE = {
-  excellent: { color: '#8a6221', label: 'ممتاز' },
-  good:      { color: '#a97b2e', label: 'جيد' },
+  excellent: { color: '#0d5c46', label: 'ممتاز' },
+  good:      { color: '#147c5e', label: 'جيد' },
   average:   { color: '#b8863b', label: 'متوسط' },
   weak:      { color: '#a15230', label: 'بحاجة إلى دعم إضافي' }
 };
@@ -446,6 +688,16 @@ function getHonestyLine(tier){
   if (tier === 'average') return 'نتيجة متوسطة تُظهر أساسًا موجودًا يمكن تقويته بمراجعة أكثر انتظامًا.';
   return 'الأداء في هذا الاختبار ما زال دون المستوى المطلوب، وهذه فرصة جيدة لتكثيف المراجعة معًا خطوة بخطوة.';
 }
+// أولوية اختيار البند الذي تذكره ملاحظة ولي الأمر: خطأ اليوم ← ما يحتاج تثبيتًا
+// اليوم ← متابعة سابقة. وتُستبعد بنود العدّ ("+ن بندًا آخر") والسطر الافتراضي لأنها
+// ليست نقاط تركيز فعلية يصح بناء توصية عليها.
+function pickNoteFocus(items){
+  const usable = (items || []).filter(it => it && (it.kind === 'today' || it.kind === 'partial' || it.kind === 'past'));
+  if (!usable.length) return null;
+  return usable.find(it => it.kind === 'today')
+      || usable.find(it => it.kind === 'partial')
+      || usable[0];
+}
 function getAutoParentNote(tier, name, needsFocus){
   const leadByTier = {
     excellent: `أداء ${name} في هذا الاختبار كان ممتازًا وعكس حفظًا متينًا لمعظم الأسئلة.`,
@@ -454,7 +706,14 @@ function getAutoParentNote(tier, name, needsFocus){
     weak: `بذل ${name} جهدًا في هذا الاختبار، لكنه ما زال بحاجة إلى دعم إضافي في بعض الجوانب.`
   };
   const lead = leadByTier[tier] || leadByTier.average;
-  const focus = needsFocus[0] ? ` نوصي بالتركيز على: ${needsFocus[0]}.` : '';
+  // 🌟 كانت الملاحظة تأخذ needsFocus[0] حرفيًا، وهو بعد إعادة تصميم الصندوق قد يكون
+  // بندًا من "المتابعة السابقة" لا من اختبار اليوم. فنختار الآن بند اليوم أولًا، ولا
+  // نلجأ لبند قديم إلا إذا خلا اليوم من أي ملاحظة — ونصرّح حينها أنه سابق، حتى لا
+  // يفهم ولي الأمر أنه خطأ حدث اليوم 🌟
+  const pick = pickNoteFocus(needsFocus);
+  const focus = pick
+    ? ` نوصي بالتركيز على: ${pick.kind === 'past' ? t('report_note_focus_past_prefix') + ' ' : ''}${pick.text}.`
+    : '';
   const closing = tier === 'weak'
     ? ' ونثق أن متابعة قريبة معًا خلال الأيام القادمة ستُحدث فرقًا واضحًا بإذن الله.'
     : ' وسنتابع التقدم معًا أولًا بأول.';
@@ -467,15 +726,21 @@ function getAutoParentNote(tier, name, needsFocus){
 // عند إقلاع النظام، وهو ما يُعتمد عليه أولاً. يبقى localStorage كخط رجوع فقط لأي جهاز/نسخة
 // قديمة أدخل فيها المعلم اسمه/ختمه يدوياً من شريط الأدوات قبل وجود هذا الملف.
 // -----------------------------------------------------------------------------
+// 🌟 [عدّل] الحقل صار اسمه stamp بدل signature لأن ما يُعرض فعلاً في نهاية التقرير هو
+// **ختم المعلم الرسمي** الذي يرفعه في "ملف المعلم" (teacherDB.stamp) — وهذا ما أكّده
+// المعلم صراحة. المصدر لم يتغيّر (كان يقرأ teacher.stamp أصلاً)، لكن الاسم كان مضلِّلاً
+// والتسمية في الواجهة كانت "توقيع".
+// ⚠️ مفتاح localStorage القديم 'darham_teacher_signature' يبقى كخط رجوع كما هو — أي
+// جهاز أو نسخة قديمة رفع فيها المعلم ختمه قبل وجود teacherDB لن يفقده.
 function getTeacherIdentity(){
   const teacher = AppState.currentTeacher || {};
   const fromApp = teacher.name || AppState.teacherName || null;
   const fromAppStamp = teacher.stamp || null;
   let savedName = '';
   try { savedName = localStorage.getItem('darham_teacher_name') || ''; } catch (e) { /* تجاهل */ }
-  let savedSig = '';
-  try { savedSig = localStorage.getItem('darham_teacher_signature') || ''; } catch (e) { /* تجاهل */ }
-  return { name: fromApp || savedName || 'المعلم', signature: fromAppStamp || savedSig || null };
+  let savedStamp = '';
+  try { savedStamp = localStorage.getItem('darham_teacher_signature') || ''; } catch (e) { /* تجاهل */ }
+  return { name: fromApp || savedName || 'المعلم', stamp: fromAppStamp || savedStamp || null };
 }
 
 // 🌟 يحفظ أي تعديل يدخله المعلم من شريط أدوات التقرير في ملفه الدائم (teacherDB) أيضاً،
@@ -508,25 +773,84 @@ function buildReportData(){
     : Math.max(0, Math.min(100, Math.round(student.totalScore || 0)));
   const tier = getTier(score);
   const tone = TONE[tier];
-  const { strengths, needsFocus } = getSkillHighlights(student, questionResults);
-  const history = getHistory(student.id);
-  const historyForChart = history.length ? history : [{ date: formatDateArabic(new Date()), score }];
   const stats = buildStats(questionResults);
   const teacher = getTeacherIdentity();
+  const now = new Date();
+  const dateLabel = formatDateArabic(now);
+
+  // 🌟 السجل السابق يُقرأ **قبل** تسجيل هذه المحاولة، فيبقى معناه "ما قبل هذا التقييم"
+  // بدقة — وهو أساس كل من فرق النتيجة ومقارنة السرعة أدناه.
+  const previous = getHistory(student.id);
+  const lastPrev = previous.length ? previous[previous.length - 1] : null;
+  const scope = (activeGameState && activeGameState.range)
+    || (lastPrev && lastPrev.range)
+    || '';
+
+  // فرق النتيجة عن المحاولة السابقة — null تمامًا لو لم توجد محاولة سابقة مسجَّلة،
+  // فتختفي الشارة بدل أن تعرض "+0" أو رقمًا لا معنى له في أول تقرير للطالب.
+  const delta = lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
+
+  // مقارنة السرعة بمتوسط المحاولات السابقة — تحتاج قياسًا زمنيًا في الطرفين معًا
+  const prevWithTime = previous.filter(h => typeof h.avgTimeSec === 'number' && h.avgTimeSec > 0);
+  let speedCompare = null;
+  if (stats.avgTimeSec && prevWithTime.length) {
+    const prevAvg = prevWithTime.reduce((s, h) => s + h.avgTimeSec, 0) / prevWithTime.length;
+    speedCompare = {
+      faster: stats.avgTimeSec < prevAvg,
+      nowLabel: formatDuration(stats.avgTimeSec),
+      prevLabel: formatDuration(Math.round(prevAvg))
+    };
+  }
+
+  const { strengths, needsFocus } = getSkillHighlights(student, questionResults, speedCompare);
+
+  // 🌟 تسجيل هذه المحاولة في سجل الطالب ليبني سُلّم التقدّم في التقارير القادمة
+  // (راجع تعليق appendHistoryEntry أعلاه للافتراض الصريح المستخدم هنا)
+  appendHistoryEntry(student.id, { date: dateLabel, score, range: scope, avgTimeSec: stats.avgTimeSec });
+
+  // محطات سُلّم التقدّم: هذه المحاولة أولاً (أقصى اليمين في RTL) ثم أحدث ثلاث محاولات
+  // سابقة. لون كل محطة = لون مستواها الفعلي، لا تدرّج يعبّر عن ترتيبها الزمني.
+  const ladder = [{
+    isCurrent: true,
+    whenLabel: t('rep_step_current'),
+    dateShort: shortDateLabel(dateLabel),
+    score, tier,
+    tierLabel: tone.label,
+    color: tone.color
+  }];
+  const PREV_LABELS = [t('rep_step_prev1'), t('rep_step_prev2'), t('rep_step_prev3')];
+  previous.slice(-3).reverse().forEach((h, i) => {
+    const hTier = getTier(h.score);
+    ladder.push({
+      isCurrent: false,
+      whenLabel: PREV_LABELS[i] || t('rep_step_prev_generic'),
+      dateShort: shortDateLabel(h.date),
+      score: h.score,
+      tier: hTier,
+      tierLabel: TONE[hTier].label,
+      color: TONE[hTier].color
+    });
+  });
 
   return {
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
     name: student.name || 'الطالب',
-    scope: (activeGameState && activeGameState.range) || (history.length ? history[history.length - 1].range : '') || '—',
-    date: formatDateArabic(new Date()),
+    // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
+    // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
+    grade: student.grade || '',
+    scope: scope || '',
+    date: dateLabel,
+    dateHijri: formatDateHijri(now),
     score,
     tier,
+    stars: STARS_BY_TIER[tier] != null ? STARS_BY_TIER[tier] : 0,
     toneColor: tone.color,
     tierLabel: tone.label,
     gaugeOffset: GAUGE_CIRC * (1 - Math.max(0, Math.min(100, score)) / 100),
     honestyLine: getHonestyLine(tier),
     avatar: getAvatarHtml(student),
-    history: historyForChart.map(h => h.score),
+    delta,
+    ladder,
     counts: {
       full: questionResults.filter(r => r.status === 'full').length,
       partial: questionResults.filter(r => r.status === 'hint' || r.status === 'reorder').length,
@@ -572,17 +896,58 @@ function escapeHtml(str){
   }[ch]));
 }
 
-function renderTrend(d){
-  const container = $('report-trend-bars');
-  if (!container) return;
-  const maxH = 66, minH = 10;
-  container.innerHTML = d.history.map((score, i) => {
-    const isLast = i === d.history.length - 1;
-    const h = Math.round(minH + (Math.max(0, Math.min(100, score)) / 100) * (maxH - minH));
-    const color = isLast ? d.toneColor : '#e4d9c4';
-    const labelColor = isLast ? d.toneColor : '#a79a83';
-    return `<div class="trend-bar-col"><div class="trend-bar" style="height:${h}px;background:${color};"></div><div class="trend-label" style="color:${labelColor}">${score}%</div></div>`;
-  }).join('');
+// 🌟 [جديد] "سُلّم التقدّم" — يحل محل رسم الأعمدة السابق (renderTrend/trend-bars).
+// كل محطة نجمة ملوّنة بلون **مستواها الفعلي** (getTier/TONE)، والمحطة الحالية تتميّز
+// بحلقة ذهبية لا بلون مختلف.
+// ⚠️ سبب هذا القرار: التدرّج اللوني التنازلي (أخضر ← ذهبي ← أحمر حسب الترتيب الزمني)
+// يوحي لولي الأمر بأربعة مستويات مختلفة، بينما قد تكون ثلاث محاولات في نفس المستوى
+// تمامًا. التمييز هنا زمني، والتلوين مستوائي — ولا يختلطان.
+function renderLadder(d){
+  const wrap = $('report-ladder-wrap');
+  if (!wrap) return;
+
+  const stepHtml = (s) => `
+    <div class="step${s.isCurrent ? ' is-current' : ''}" style="color:${s.color};">
+      <div class="step-dot" style="background:${s.color};">
+        <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="${STAR_PATH}" fill="#fffdf8"/></svg>
+      </div>
+      <div class="step-when">${escapeHtml(s.whenLabel)}<span dir="ltr">${escapeHtml(s.dateShort)} — ${s.score}%</span></div>
+      <div class="step-tier" style="color:${s.color};">${escapeHtml(s.tierLabel)}</div>
+    </div>`;
+
+  const connector = '<div class="conn-cell"><i></i></div>';
+  const ladderHtml = `<div class="ladder">${d.ladder.map(stepHtml).join(connector)}</div>`;
+
+  // أول محاولة مسجَّلة للطالب: محطة واحدة فقط. نوضّح ذلك صراحةً بدل ترك السُلّم
+  // يبدو ناقصًا أو موحيًا بأن بقية المحطات اختفت لسبب ما.
+  const firstNote = d.ladder.length < 2
+    ? `<p class="ladder-empty">${escapeHtml(t('rep_ladder_first_attempt'))}</p>`
+    : '';
+
+  wrap.innerHTML = ladderHtml + firstNote;
+}
+
+// 🌟 [جديد] شارة فرق النتيجة عن المحاولة السابقة — مخفية تمامًا في أول تقرير للطالب
+function renderDelta(d){
+  const el = $('report-delta');
+  if (!el) return;
+  if (d.delta == null) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  const up = d.delta > 0, flat = d.delta === 0;
+  const cls = flat ? 'flat' : (up ? 'up' : 'down');
+  const arrow = flat
+    ? '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 6h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+    : (up
+      ? '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.5l4.2 6.4H1.8z" fill="currentColor"/></svg>'
+      : '<svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 10.5L1.8 4.1h8.4z" fill="currentColor"/></svg>');
+
+  // ⚠️ بلا علامة + أو − قبل الرقم عمدًا: هذه العلامات محايدة اتجاهيًا في خوارزمية
+  // البايدي، فتقفز إلى الطرف الخطأ من الرقم داخل فقرة عربية (تظهر "5−" بدل "−5")
+  // حتى مع dir="ltr". السهم واللون يحملان الاتجاه بوضوح أكبر من العلامة أصلاً.
+  const suffix = flat ? t('rep_delta_same') : t('rep_delta_vs_prev');
+  el.className = 'delta ' + cls;
+  el.style.display = '';
+  el.innerHTML = `${arrow}${flat ? '' : `<b>${Math.abs(d.delta)}</b> `}${escapeHtml(suffix)}`;
 }
 
 // أيقونة الدائرة الخضراء "صحيح" مستخدَمة في مكانين بمقاسين مختلفين (20px
@@ -593,35 +958,49 @@ function checkCircleIcon(size){
   const strokeWidth = size >= 18 ? 1.8 : 1.7;
   return `<svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="${r}" fill="#efe9e0" stroke="#d3c3ab"/><path d="M6.2 10.3l2.4 2.4 5-5.4" stroke="#8a6221" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
 }
+// 🌟 [عدّل] أيقونات حالة السؤال — ألوان ممتلئة عالية التباين لتُقرأ داخل خلية جدول
+// ضيّقة، بدل الدوائر الباهتة السابقة التي كانت مناسبة لبطاقة عريضة لكل سؤال.
 function statusIconSvg(status){
-  if (status === 'full') return checkCircleIcon(20);
-  if (status === 'wrong') {
-    return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#f2e7e2" stroke="#dbbdb0"/><path d="M7.2 7.2l5.6 5.6M12.8 7.2l-5.6 5.6" stroke="#a15230" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  if (status === 'full') {
+    return `<svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#10694c"/><path d="M6 10.3l2.6 2.6 5.4-5.6" stroke="#fffdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
   }
-  return `<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#f5eee4" stroke="#e4d1b5"/><path d="M10 6v4.4" stroke="#b8863b" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="13.6" r="1" fill="#b8863b"/></svg>`;
+  if (status === 'wrong') {
+    return `<svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#9e3b2d"/><path d="M7.2 7.2l5.6 5.6M12.8 7.2l-5.6 5.6" stroke="#fffdf8" stroke-width="2" stroke-linecap="round"/></svg>`;
+  }
+  return `<svg width="19" height="19" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="#d4af37"/><path d="M10 5.4V10l3 1.8" stroke="#3a2f10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`;
 }
+
+// 🌟 [عدّل] صف الجدول الجديد بخمسة أعمدة (م / الاستجابة / السؤال / الدرجة / ملاحظة).
+// ⚠️ الدرجة تبقى بصيغة "8 / 10" لا نسبة مئوية: هذا هو المقياس الفعلي الذي يحسبه
+// computeQuestionScore، وتحويله لنسبة يوحي بمقياس آخر غير الموجود في المنصة.
 function qrowHtml(r, withBreakClass){
-  const pointsColor = r.status === 'full' ? '#8a6221' : (r.status === 'wrong' ? '#a15230' : '#b8863b');
-  const typeLine = escapeHtml(r.type) + (r.location ? ' · ' + escapeHtml(r.location) : '');
-  return `<div class="qrow${withBreakClass ? ' pdf-block' : ''}">
+  const pointsColor = r.status === 'full' ? '#10694c' : (r.status === 'wrong' ? '#9e3b2d' : '#a07a1c');
+  const rowState = r.status === 'wrong' ? ' is-wrong' : (r.status === 'full' ? '' : ' is-partial');
+  return `<div class="qrow${rowState}${withBreakClass ? ' pdf-block' : ''}">
     <div class="qnum">${r.num}</div>
     <div class="qicon">${statusIconSvg(r.status)}</div>
-    <div class="qbody">
-      <div class="qtop"><span class="qtype">${typeLine}</span><span class="qpoints" style="color:${pointsColor}">${r.score} / ${r.max}</span></div>
-      <div class="qtext">${escapeHtml(r.text)}</div>
-      ${r.note ? `<div class="qnote">${escapeHtml(r.note)}</div>` : ''}
+    <div class="qsubject">
+      <div class="qtype">${escapeHtml(r.type)}</div>
+      ${r.location ? `<div class="qloc">${escapeHtml(r.location)}</div>` : ''}
+      ${r.text ? `<div class="qtext">${escapeHtml(r.text)}</div>` : ''}
     </div>
+    <div class="qscore" dir="ltr" style="color:${pointsColor}">${r.score} / ${r.max}</div>
+    <div class="qnote">${r.note ? escapeHtml(r.note) : '—'}</div>
   </div>`;
 }
 function renderQuestions(d){
   const firstWrap = $('report-qrow-first');
   const restWrap = $('report-qrows-rest');
+  const gridHead = $('report-qgrid-head');
   if (!firstWrap || !restWrap) return;
   if (!d.ledger.length) {
-    firstWrap.innerHTML = '<p style="text-align:center;color:#a79a83;font-size:14.5px;">لا توجد تفاصيل أسئلة متاحة لهذا التقييم.</p>';
+    // بلا أسئلة: نخفي ترويسة الجدول أيضًا حتى لا تظهر أعمدة فارغة بلا معنى
+    if (gridHead) gridHead.style.display = 'none';
+    firstWrap.innerHTML = `<p class="qempty">${escapeHtml(t('rep_no_questions'))}</p>`;
     restWrap.innerHTML = '';
     return;
   }
+  if (gridHead) gridHead.style.display = '';
   firstWrap.innerHTML = qrowHtml(d.ledger[0], false);
   restWrap.innerHTML = d.ledger.slice(1).map(r => qrowHtml(r, true)).join('');
 }
@@ -630,7 +1009,33 @@ function renderInsights(d){
   const checkIcon = checkCircleIcon(14);
   const dotIcon = `<svg width="14" height="14" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#f2e7e2" stroke="#dbbdb0"/><path d="M10 6.3v4.4M10 13.2v.1" stroke="#a15230" stroke-width="1.7" stroke-linecap="round"/></svg>`;
   setHTML('report-strengths-list', d.strengths.map(s => `<li class="insight-item">${checkIcon}<span>${escapeHtml(s)}</span></li>`).join(''));
-  setHTML('report-needs-list', d.needsFocus.map(s => `<li class="insight-item">${dotIcon}<span>${escapeHtml(s)}</span></li>`).join(''));
+  setHTML('report-needs-list', needsFocusHtml(d.needsFocus, dotIcon));
+}
+
+// 🌟 [جديد] عرض بنود "بحاجة إلى تركيز" مجمَّعة تحت عناوين فرعية حسب مصدر كل بند
+// (اليوم / يحتاج تثبيتًا / متابعة سابقة) — هذا العنوان هو جوهر التعديل كله: هو ما
+// يمنع ولي الأمر من قراءة بند قديم على أنه خطأ اليوم 🌟
+const FOCUS_GROUP_KEY = {
+  today:   'report_focus_group_today',
+  partial: 'report_focus_group_partial',
+  past:    'report_focus_group_past'
+};
+function needsFocusHtml(items, dotIcon){
+  let html = '';
+  let lastKind = null;
+  (items || []).forEach(it => {
+    // خط رجوع: لو وصل بند كنص مجرد (نسخة قديمة من البيانات) نعرضه كبند عادي بلا عنوان.
+    const item = (typeof it === 'string') ? { kind: 'none', text: it } : (it || { kind: 'none', text: '' });
+    const kind = item.kind || 'none';
+    if (FOCUS_GROUP_KEY[kind] && kind !== lastKind) {
+      html += `<li class="insight-sub">${escapeHtml(t(FOCUS_GROUP_KEY[kind]))}</li>`;
+    }
+    lastKind = kind;
+    html += (kind === 'more')
+      ? `<li class="insight-more">${escapeHtml(item.text)}</li>`
+      : `<li class="insight-item">${dotIcon}<span>${escapeHtml(item.text)}</span></li>`;
+  });
+  return html;
 }
 
 function renderNoteBox(){
@@ -651,14 +1056,136 @@ function renderExtraNote(){
   block.style.display = text ? '' : 'none';
 }
 
+// -----------------------------------------------------------------------------
+// 🌟 [جديد] تنظيف خلفية الختم قبل عرضه
+//
+// المشكلة كما ظهرت فعلاً في تقرير مطبوع: ختم المعلم خرج **مربعًا أسود صلبًا** حوله
+// الخط بالأبيض. السبب ليس في كود التقرير: ملف الختم نفسه خطٌّ فاتح على خلفية داكنة
+// صلبة (أو PNG شفاف فقد شفافيته في مرحلة سابقة)، ولا توجد طريقة لعرض ذلك على ورق
+// كريمي اللون دون معالجة.
+//
+// المعالجة هنا **عند العرض لا عند الرفع**، لسببين: (1) تُصلح الختم المحفوظ فعلاً في
+// ملف المعلم بلا أن يعيد المعلم رفعه، (2) لا تُعدّل البيانات المخزَّنة إطلاقًا — الأصل
+// يبقى كما هو في teacherDB، والتنظيف يحدث في الذاكرة فقط في كل مرة يُفتح فيها التقرير.
+//
+// الخطوات، وكلها مشروطة فلا تُطبَّق على ختم سليم أصلاً:
+//   1) ختم بخلفية شفافة فعلاً (أركانه alpha≈0) → يُترك كما هو بلا أي لمس.
+//   2) أركان غير متجانسة اللون (صورة فيها تفاصيل تصل للحواف) → يُترك كما هو، لأن
+//      أي إزالة خلفية هنا ستكون تخمينًا قد يأكل جزءًا من الختم.
+//   3) خلفية داكنة متجانسة (الحالة التي ظهرت) → تُعكس الألوان، فيصير الخط داكنًا
+//      والخلفية فاتحة، وهو ما يُقرأ فعلاً على ورق كريمي.
+//   4) ثم تُزال الخلفية المتجانسة (الفاتحة الآن) بتدرّج شفافية حسب بُعد كل بكسل عن
+//      لونها، فتبقى حواف الخط ناعمة بلا تسنين.
+//
+// ⚠️ افتراض صريح: نعتبر لون الأركان الأربعة هو لون الخلفية. هذا صحيح لأي ختم ممسوح
+// ضوئيًا أو مصمَّم على خلفية واحدة، وقد لا يصح لختم صُمِّم بخلفية متدرّجة — ولهذا
+// شرط التجانس في الخطوة (2) يترك تلك الحالة بلا تعديل بدل إفسادها.
+// -----------------------------------------------------------------------------
+const STAMP_KEY_SOFT = 60;   // أقل من هذا البُعد عن لون الخلفية = خلفية بحتة (شفاف تمامًا)
+const STAMP_KEY_HARD = 115;  // أكثر من هذا = حبر بحت (معتم تمامًا)، وما بينهما تدرّج
+
+function cleanStampImage(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onerror = () => resolve(dataUrl);
+    img.onload = () => {
+      try {
+        const w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) return resolve(dataUrl);
+
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        const ctx = cv.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const px = imgData.data;
+
+        const cornerAt = (x, y) => {
+          const i = (y * w + x) * 4;
+          return { r: px[i], g: px[i + 1], b: px[i + 2], a: px[i + 3] };
+        };
+        const corners = [cornerAt(0, 0), cornerAt(w - 1, 0), cornerAt(0, h - 1), cornerAt(w - 1, h - 1)];
+
+        // (1) خلفية شفافة أصلاً — الختم سليم، لا نلمسه
+        if (corners.every(c => c.a < 16)) return resolve(dataUrl);
+
+        // (2) الأركان غير متجانسة — لا نخمّن، نترك الصورة كما هي
+        const dist = (a, b) => Math.sqrt((a.r - b.r) ** 2 + (a.g - b.g) ** 2 + (a.b - b.b) ** 2);
+        const maxSpread = Math.max(...corners.map(c => dist(c, corners[0])));
+        if (maxSpread > 45) return resolve(dataUrl);
+
+        let bg = {
+          r: Math.round(corners.reduce((s, c) => s + c.r, 0) / 4),
+          g: Math.round(corners.reduce((s, c) => s + c.g, 0) / 4),
+          b: Math.round(corners.reduce((s, c) => s + c.b, 0) / 4)
+        };
+
+        // (3) خلفية داكنة ⇒ نعكس الصورة كلها ليصير الحبر داكنًا على ورق فاتح
+        const luma = 0.2126 * bg.r + 0.7152 * bg.g + 0.0722 * bg.b;
+        if (luma < 110) {
+          for (let i = 0; i < px.length; i += 4) {
+            px[i] = 255 - px[i]; px[i + 1] = 255 - px[i + 1]; px[i + 2] = 255 - px[i + 2];
+          }
+          bg = { r: 255 - bg.r, g: 255 - bg.g, b: 255 - bg.b };
+        }
+
+        // (4) إزالة الخلفية بتدرّج شفافية حسب بُعد كل بكسل عن لونها
+        const span = STAMP_KEY_HARD - STAMP_KEY_SOFT;
+        for (let i = 0; i < px.length; i += 4) {
+          if (px[i + 3] === 0) continue;
+          const d = Math.sqrt((px[i] - bg.r) ** 2 + (px[i + 1] - bg.g) ** 2 + (px[i + 2] - bg.b) ** 2);
+          const k = d <= STAMP_KEY_SOFT ? 0 : (d >= STAMP_KEY_HARD ? 1 : (d - STAMP_KEY_SOFT) / span);
+          px[i + 3] = Math.round(px[i + 3] * k);
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        // PNG إلزامًا — أي صيغة بلا قناة شفافية تعيد المشكلة من أولها
+        resolve(cv.toDataURL('image/png'));
+      } catch (e) {
+        // أي فشل (متصفح قديم، صورة ملوَّثة المصدر...) = نعرض الختم الأصلي كما هو
+        console.warn('[report.js] تعذّر تنظيف خلفية الختم، سيُعرض كما هو:', e);
+        resolve(dataUrl);
+      }
+    };
+    img.src = dataUrl;
+  });
+}
+
+// وعد واحد لكل ختم: التنظيف يحدث مرة واحدة لا عند كل إعادة رسم، والتصدير ينتظره
+// قبل الالتقاط حتى لا تخرج الصورة أو الـ PDF بالختم غير المنظَّف.
+let stampCleanPromise = null;
+function ensureStampCleaned(){
+  if (stampCleanPromise) return stampCleanPromise;
+  const raw = reportData && reportData.teacher ? reportData.teacher.stamp : null;
+  if (!raw) { stampCleanPromise = Promise.resolve(null); return stampCleanPromise; }
+  stampCleanPromise = cleanStampImage(raw).then(clean => {
+    if (reportData && reportData.teacher) reportData.teacher.stampClean = clean;
+    const el = $('report-stamp-img');
+    if (el && clean) el.src = clean;
+    return clean;
+  }).catch(() => null);
+  return stampCleanPromise;
+}
+
+// 🌟 [عدّل] ما يُعرض هنا هو **ختم المعلم الرسمي** المرفوع في ملف المعلم
+// (teacherDB.stamp)، لا توقيعًا مرسومًا. لذلك:
+//   - الختم فوق سطر الاسم مباشرة (مكانه المعتاد في التقارير الرسمية).
+//   - التسمية أسفل الاسم تتغيّر حسب وجود الختم فعلاً: "ختم المعلم" عند وجوده،
+//     و"المعلم" فقط عند غيابه — فلا نَعِد القارئ بختم غير موجود في الورقة.
+//   - عند غياب الختم تُخفى حاويته كلها (display:none) فلا يظهر فراغ أعلى الاسم.
 function renderTeacherSign(d){
   setText('report-sign-name', d.teacher.name);
-  setText('report-teacher-name-meta', d.teacher.name);
-  const sigImg = $('report-sign-img');
-  if (sigImg) {
-    if (d.teacher.signature) { sigImg.src = d.teacher.signature; sigImg.style.display = 'block'; }
-    else sigImg.style.display = 'none';
+
+  const wrap = $('report-stamp-wrap');
+  const stampImg = $('report-stamp-img');
+  const hasStamp = !!d.teacher.stamp;
+  if (wrap) wrap.style.display = hasStamp ? '' : 'none';
+  if (stampImg) {
+    if (hasStamp) stampImg.src = d.teacher.stampClean || d.teacher.stamp;
+    else stampImg.removeAttribute('src');
   }
+  setText('report-sign-label', hasStamp ? t('rep_sign_label_stamp') : t('rep_sign_label_plain'));
+  if (hasStamp) ensureStampCleaned();
 }
 
 // -----------------------------------------------------------------------------
@@ -728,22 +1255,47 @@ function playExcellentReportSound() {
   [659.25, 783.99, 987.77].forEach((f, i) => playReportTone(f, 0.2, 0.4 + i * 0.13, 0.18));
 }
 
+// 🌟 [جديد] أسطر بطاقة الطالب الثلاثة (الصف / نطاق التقييم / مدة التقييم) اختيارية
+// بالكامل: كل سطر يظهر فقط إن كانت قيمته مسجَّلة فعلاً، ولا يُطلب من المعلم إدخال أي
+// منها إجباريًا (نفس فلسفة بيانات المعلم والختم المعتمدة في المشروع).
+// بما أن أي سطر قد يكون مخفيًا، لا يصلح :first-of-type في CSS لإزالة الخط العلوي —
+// نضع الكلاس is-first على أول سطر ظاهر فعليًا هنا.
+function renderStudentFacts(d){
+  const rows = [
+    { box: 'report-fact-grade', val: 'report-grade-val', value: d.grade },
+    { box: 'report-fact-scope', val: 'report-scope-val', value: d.scope },
+    { box: 'report-fact-time',  val: 'report-time-val',  value: d.stats.totalTime && d.stats.totalTime !== '—' ? d.stats.totalTime : '' }
+  ];
+  let firstShown = true;
+  rows.forEach(row => {
+    const box = $(row.box);
+    if (!box) return;
+    const has = !!(row.value && String(row.value).trim());
+    box.style.display = has ? '' : 'none';
+    box.classList.toggle('is-first', has && firstShown);
+    if (has) { setText(row.val, row.value); firstShown = false; }
+  });
+}
+
 function renderReport(d){
   const stage = $('report-stage-inner');
   if (stage) stage.className = 'tier-' + d.tier;
 
-  setText('report-title-date', d.date);
   setText('report-footer-date', d.date);
+  // التاريخ الهجري بجانب الميلادي — يختفي تمامًا لو لم يدعمه المتصفح
+  const hijriEl = $('report-footer-hijri');
+  if (hijriEl) hijriEl.textContent = d.dateHijri ? ('  ·  ' + d.dateHijri) : '';
   setText('report-footer-id', d.id);
   setText('report-student-name', d.name);
-  setText('report-student-scope', d.scope);
-  setText('report-total-time-meta', d.stats.totalTime);
+  renderStudentFacts(d);
   applyAvatar('report', d.avatar);
 
   const arc = $('report-gauge-arc');
   if (arc) { arc.style.stroke = d.toneColor; arc.style.strokeDashoffset = String(d.gaugeOffset); }
   const pctEl = $('report-gauge-pct'); if (pctEl) pctEl.textContent = d.score + '%';
   const tierEl = $('report-gauge-tier'); if (tierEl) tierEl.textContent = d.tierLabel;
+  // النجمات الثلاث: الممتلئ منها بعدد مستوى النتيجة، والباقي حدٌّ باهت
+  setHTML('report-gauge-stars', [0, 1, 2].map(i => starSvg(i < d.stars)).join(''));
   setText('report-honesty-line', d.honestyLine);
 
   // 🌟 [جديد] صوت تصفيق احتفالي عند نتيجة "ممتاز" (راجع تعليق playExcellentReportSound أعلاه)
@@ -756,7 +1308,8 @@ function renderReport(d){
   setText('report-stat-hints', d.stats.hints);
   setText('report-stat-reorders', d.stats.reorders);
 
-  renderTrend(d);
+  renderLadder(d);
+  renderDelta(d);
   renderQuestions(d);
   renderInsights(d);
   renderNoteBox();
@@ -846,18 +1399,53 @@ async function ensureHtml2Canvas(){
 async function ensureJsPdf(){
   if (!(window.jspdf && window.jspdf.jsPDF)) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
 }
+// 🌟 [عدّل] كانت تُحمِّل وزن Amiri 700 فقط وتتجاهل Amiri Quran تمامًا.
+// ⚠️ document.fonts.load يحمّل **الوجه المطلوب بعينه** لا العائلة كلها، فأي وزن لم
+// يُطلب هنا قد لا يكون جاهزًا لحظة الالتقاط فيستبدله html2canvas بخط احتياطي — وهو
+// سبب خروج نص عربي بخط مختلف تمامًا في الصورة/الـPDF رغم ظهوره سليمًا على الشاشة.
+// الأوزان أدناه مطابقة لما تستخدمه report.styles.js فعليًا:
+//   Amiri 400 (نص ملاحظة المعلم) · Amiri 700 (العنوان، العنوان الفرعي، اسم المعلم)
+//   Amiri Quran 400 (نصوص الآيات في جدول الأسئلة) · Cairo 600/700/800 (بقية الواجهة)
 async function ensureFontsReady(){
   if (document.fonts && document.fonts.ready) {
     try {
       await Promise.all([
-        document.fonts.load('700 32px Amiri'), document.fonts.load('italic 700 16px Amiri'),
-        document.fonts.load('700 14px Cairo'), document.fonts.load('600 13px Cairo'), document.fonts.load('800 14px Cairo')
+        document.fonts.load('400 18px Amiri'),
+        document.fonts.load('700 38px Amiri'),
+        document.fonts.load('italic 700 16px Amiri'),
+        document.fonts.load('400 15px "Amiri Quran"'),
+        document.fonts.load('600 13px Cairo'),
+        document.fonts.load('700 14px Cairo'),
+        document.fonts.load('800 14px Cairo')
       ]);
       await document.fonts.ready;
     } catch (e) { /* تجاهل — لن نمنع التصدير بسبب هذا فقط */ }
   }
 }
-function withBusyLabel(btn, busyText, fn){
+
+// 🌟 [جديد] انتظار اكتمال تحميل كل صور الصفحة (زخارف assets/report/ + صورة الطالب
+// + ختم المعلم) قبل أي تصدير.
+// ⚠️ ضروري لا تحسيني: html2canvas يلتقط ما هو محمَّل في لحظة النداء فقط — أي صورة
+// لم يكتمل تحميلها بعد تخرج فارغة تمامًا في الـ PNG أو الـ PDF بلا أي رسالة خطأ.
+// الزخارف ملفات على القرص تُحمَّل بسرعة عادةً، لكن أول فتح للتقرير (أو كاش بارد) قد
+// يسبق اكتمالَها ضغطُ زر التصدير مباشرةً.
+async function ensureArtReady(){
+  const target = currentTarget();
+  if (!target) return;
+  const imgs = Array.from(target.querySelectorAll('img'))
+    .filter(img => img.getAttribute('src') && img.style.display !== 'none');
+  await Promise.all(imgs.map(img => {
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    if (typeof img.decode === 'function') return img.decode().catch(() => {});
+    return new Promise(resolve => { img.addEventListener('load', resolve, { once: true }); img.addEventListener('error', resolve, { once: true }); });
+  }));
+}
+
+// إطارا رسم متتاليان — يضمنان أن المتصفح أعاد التخطيط فعليًا بعد إضافة/إزالة
+// كلاس dh-brief قبل أن يبدأ html2canvas القياس
+function nextFrames(){
+  return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}function withBusyLabel(btn, busyText, fn){
   return async function () {
     const original = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = busyText;
@@ -894,14 +1482,42 @@ function logReportGenerated(){
   } catch (e) { /* تجاهل — لا نمنع التصدير بسبب فشل تسجيل العدّاد فقط */ }
 }
 
+// 🌟 [جديد] الصورة صارت **مختصرة**: نفس الورقة تمامًا بعد إخفاء كتلة واحدة فقط هي
+// جدول "تفاصيل الاختبار — سؤالًا بسؤال" (كل ما هو class="pdf-only")، بينما يبقى ملف
+// الـ PDF شاملاً كل شيء. بطلب صريح من المعلم: صورة واضحة ومختصرة تُرسَل لولي الأمر،
+// وملف شامل للأرشيف والمتابعة التفصيلية.
+//
+// ⚠️ لماذا كلاس على الـ DOM الحقيقي ولا نستخدم ignoreElements الموجودة أصلاً؟
+// html2canvas يحسب أبعاد الكانفس من العنصر **الأصلي** ثم يرسم نسخة مستنسخة منه بعد
+// حذف العناصر المتجاهَلة، فإخفاء كتلة كبيرة بهذه الطريقة يترك فراغًا أبيض ضخمًا أسفل
+// الصورة بمقدار ارتفاع الجدول المحذوف. إضافة الكلاس على الصفحة الحقيقية تجعل المتصفح
+// يعيد التخطيط فعليًا أولاً، فيخرج ارتفاع الكانفس مطابقًا للمحتوى الظاهر بالضبط.
+// ignoreElements تبقى كما هي لعناصر .no-export الصغيرة (أزرار مطلقة الموضع لا تؤثر
+// على التخطيط أصلاً).
+//
+// الكلاس يُزال في finally مهما حدث، حتى لا تبقى الشاشة ناقصة الجدول أمام المعلم لو
+// فشل الالتقاط لأي سبب.
+const BRIEF_CLASS = 'dh-brief';
+
 async function exportPng(){
   await ensureHtml2Canvas();
   await ensureFontsReady();
+  await ensureStampCleaned();
+  await ensureArtReady();
   const target = currentTarget();
-  const canvas = await window.html2canvas(target, {
-    scale: HQ_SCALE, backgroundColor: '#f9f4ea', useCORS: true,
-    ignoreElements: ignoreNoExport
-  });
+
+  let canvas;
+  target.classList.add(BRIEF_CLASS);
+  try {
+    await nextFrames();
+    canvas = await window.html2canvas(target, {
+      scale: HQ_SCALE, backgroundColor: '#f9f4ea', useCORS: true,
+      ignoreElements: ignoreNoExport
+    });
+  } finally {
+    target.classList.remove(BRIEF_CLASS);
+  }
+
   const link = document.createElement('a');
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
@@ -958,10 +1574,14 @@ function packBlocksIntoPages(blocks, maxPageHeight){
   return pages;
 }
 
+// 🌟 ملف الـ PDF يبقى **شاملاً** كل أقسام التقرير بما فيها جدول الأسئلة — لا يُضاف
+// هنا كلاس dh-brief إطلاقًا. هذا هو الفرق الوحيد بينه وبين تصدير الصورة أعلاه.
 async function exportPdf(){
   await ensureHtml2Canvas();
   await ensureJsPdf();
   await ensureFontsReady();
+  await ensureStampCleaned();
+  await ensureArtReady();
   const target = currentTarget();
 
   // نقيس حدود الأقسام قبل الالتقاط (بوحدات بكسل DOM الفعلية).
@@ -1105,9 +1725,17 @@ function initReportScreen(){
         // 🌟 [إصلاح] PNG بدل JPEG هنا تحديدًا حتى تبقى خلفية الختم الشفافة شفافة
         // فعليًا (راجع تعليق resizeImageToDataUrl أعلى الملف لتفاصيل السبب)
         const dataUrl = await resizeImageToDataUrl(file, 260, 0.9, 'image/png');
+        // مفتاح localStorage يحتفظ باسمه القديم عمدًا حفاظًا على التوافق مع أي جهاز
+        // رفع فيه المعلم ختمه قبل وجود teacherDB — راجع getTeacherIdentity أعلاه
         try { localStorage.setItem('darham_teacher_signature', dataUrl); } catch (e) { /* تجاهل */ }
         persistTeacherIdentity({ stamp: dataUrl });
-        if (reportData) { reportData.teacher.signature = dataUrl; renderTeacherSign(reportData); }
+        // إبطال نتيجة التنظيف السابقة حتى يُنظَّف الختم الجديد من أول مرة
+        stampCleanPromise = null;
+        if (reportData) {
+          reportData.teacher.stamp = dataUrl;
+          reportData.teacher.stampClean = null;
+          renderTeacherSign(reportData);
+        }
       } catch (e) { console.error(e); alert('تعذّر تحميل صورة الختم، حاول مرة أخرى.'); }
     });
   }

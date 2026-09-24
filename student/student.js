@@ -7,8 +7,14 @@ import { openKidsGameScreen } from '../games/kidsGame.js';
 // 🌟 [جديد] عرض إنجازات/أوسمة "الاختبارات الثنائية" في ملف الطالب — راجع
 // renderDualTestAchievements أدناه وBADGE_CATALOG في engine/dualTestEngine.js
 import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.js';
+// 🌟 [جديد — المرحلة 5] كتالوج أوسمة وحساب تقدّم "أبطال التجويد" — لعرض قسم "مسار التجويد"
+// في ملف الطالب (راجع renderTajweedProfileSection أدناه)
+import { TAJWEED_BADGE_CATALOG, computeAllStageProgress } from '../engine/tajweedEngine.js';
+import { TAJWEED_STAGES } from '../engine/tajweedRulesCatalog.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
+// 🌟 [جديد] بطاقة الترحيب بالطالب عند اختيار اسمه — راجع components/welcomeBanner.js
+import { showStudentWelcome } from '../components/welcomeBanner.js';
 
 export async function populateStudentsDropdown() {
     const students = await AppState.studentManager.getAllStudents();
@@ -118,6 +124,15 @@ export function setupLoginListeners() {
 
         if (AppState.currentStudent) {
             document.getElementById('top-student-name').innerText = `البطل: ${AppState.currentStudent.name}`;
+
+            // 🌟 [جديد] بطاقة الترحيب بالطالب — تُعرض هنا تحديداً: بعد التأكد من أن الاسم
+            // مسجَّل فعلاً وقبل الدخول إلى لوحة التقييم مباشرة. مقصود ألا ننتظرها (بلا await
+            // ولا setTimeout قبل التحميل): البطاقة تظهر فوق الشاشة بينما تُحمَّل لوحة التقييم
+            // خلفها في نفس اللحظة، فلا يضيع على المعلم أي وقت، وتختفي هي وحدها بعد ثوانٍ
+            // قليلة أو فوراً بأي نقرة/زر Esc. وضع الأطفال يُمرَّر لتكبير البطاقة قليلاً فقط
+            // (نفس محتوى وألوان الهوية، راجع dh-welcome-kids في css/welcomeBanner.css) 🌟
+            showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
+
             loadDashboardScreen();
         } else {
             // 🌟 [عدّل] صياغة أقصر بطلب صريح من المعلم — أصبح لها مفتاح ترجمة في core/i18n.js
@@ -262,28 +277,117 @@ function setupAllStudentsListeners() {
     document.getElementById('edit-stu-dob')?.addEventListener('change', () => calcAgeDynamic('edit-stu-dob', 'edit-age-display'));
     document.getElementById('btn-save-edited-student')?.addEventListener('click', saveEditedStudentAction);
 
+    // 🌟 [إصلاح] النسخة الاحتياطية كانت تحفظ مخزن "students" فقط من IndexedDB، بينما سجل
+    // التقييمات (history_<id>) وصور الطلاب (darham_avatar_<id>) وعدّاد التقارير
+    // (darham_reports_log) وبيانات المعلم محفوظة في localStorage ولم تكن تُصدَّر إطلاقاً —
+    // لذلك بعد الاستعادة على جهاز/متصفح آخر كان عمود "التقييمات" يظهر ناقصاً أو صفراً.
+    // الآن الملف بصيغة جديدة (v2) تحمل الطلاب + هذه المفاتيح معاً 🌟
     document.getElementById('btn-export-backup')?.addEventListener('click', () => {
         AppState.studentManager.getAllStudents().then(students => {
-            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(students));
-            let dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `DarHam_Backup_${new Date().toLocaleDateString()}.json`); dl.click();
+            const backup = {
+                format: BACKUP_FORMAT_ID,
+                version: 2,
+                exportedAt: new Date().toISOString(),
+                students,
+                localStorage: collectBackupLocalStorage()
+            };
+            const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            let dl = document.createElement('a'); dl.href = url; dl.download = `DarHam_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
     });
 
     const fileInput = document.getElementById('importFile');
     document.getElementById('btn-import-backup-trigger')?.addEventListener('click', () => fileInput.click());
     fileInput?.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 let imported = JSON.parse(e.target.result);
+                // 🌟 توافق مع الملفات القديمة: الصيغة القديمة كانت مصفوفة طلاب مباشرة
+                // (بدون أي سجل تقييمات)، والجديدة كائن فيه students + localStorage 🌟
+                const isV2 = imported && !Array.isArray(imported) && imported.format === BACKUP_FORMAT_ID;
+                const students = isV2 ? (imported.students || []) : imported;
+                if (!Array.isArray(students)) throw new Error('bad backup');
+
                 let db = AppState.studentManager.db;
                 let tx = db.transaction("students", "readwrite");
                 let store = tx.objectStore("students");
-                imported.forEach(stu => store.put(stu));
-                tx.oncomplete = () => { alert("تم استعادة البيانات بنجاح!"); renderAllStudentsTable(); };
-            } catch(err) { alert("ملف غير صالح!"); }
+                students.forEach(stu => store.put(stu));
+                tx.oncomplete = () => {
+                    if (isV2) restoreBackupLocalStorage(imported.localStorage || {});
+                    alert(isV2 ? t('backup_restore_ok') : t('backup_restore_ok_legacy'));
+                    renderAllStudentsTable();
+                };
+                tx.onerror = () => alert(t('backup_invalid_file'));
+            } catch(err) { alert(t('backup_invalid_file')); }
+            fileInput.value = ''; // 🌟 للسماح باختيار نفس الملف مرة أخرى
         };
-        reader.readAsText(event.target.files[0]);
+        reader.readAsText(file);
+    });
+}
+
+// 🌟 [جديد] معرّف صيغة النسخة الاحتياطية الجديدة (v2)
+const BACKUP_FORMAT_ID = 'darham_backup';
+
+// 🌟 [جديد] مفاتيح localStorage التي تدخل في النسخة الاحتياطية:
+// - history_<id>: سجل التقييمات (هو مصدر عمود "التقييمات" وتقارير التطور)
+// - darham_avatar_<id>: صورة الطالب في التقارير
+// - darham_reports_log: عدّاد التقارير المُصدَّرة
+// - darham_teacher_name / darham_teacher_signature: خط الرجوع القديم لبيانات المعلم
+// لا نُصدِّر مفاتيح خاصة بالجهاز نفسه (اللغة، التلميحات المشاهَدة، طوابير المزامنة المعلقة) 🌟
+function isBackupLocalStorageKey(key) {
+    return key.startsWith('history_') || key.startsWith('darham_avatar_') ||
+           key === 'darham_reports_log' || key === 'darham_teacher_name' || key === 'darham_teacher_signature';
+}
+
+function collectBackupLocalStorage() {
+    const out = {};
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && isBackupLocalStorageKey(key)) out[key] = localStorage.getItem(key);
+        }
+    } catch (e) { console.error('تعذر قراءة localStorage للنسخة الاحتياطية:', e); }
+    return out;
+}
+
+// 🌟 [جديد] دمج مصفوفتين بدون تكرار — يُستخدم لسجل التقييمات وسجل التقارير، حتى لا
+// تمسح الاستعادة أي تقييمات جديدة موجودة على هذا الجهاز ولا تكرر الموجود منها.
+// الافتراض: التقييم المكرر = نفس السجل حرفياً (نفس التاريخ/المدى/الدرجة/الوقت) 🌟
+function mergeJsonArrays(existingRaw, incomingRaw) {
+    let a = [], b = [];
+    try { a = JSON.parse(existingRaw) || []; } catch (e) {}
+    try { b = JSON.parse(incomingRaw) || []; } catch (e) {}
+    if (!Array.isArray(a)) a = [];
+    if (!Array.isArray(b)) return JSON.stringify(a);
+    const seen = new Set(a.map(x => JSON.stringify(x)));
+    const merged = [...a];
+    b.forEach(x => { const k = JSON.stringify(x); if (!seen.has(k)) { seen.add(k); merged.push(x); } });
+    // ترتيب زمني عند توفر timestamp (السجلات الأقدم بلا timestamp تبقى بترتيبها)
+    if (merged.every(x => x && typeof x === 'object' && x.timestamp)) merged.sort((x, y) => x.timestamp - y.timestamp);
+    else if (merged.every(x => typeof x === 'string')) merged.sort();
+    return JSON.stringify(merged);
+}
+
+function restoreBackupLocalStorage(data) {
+    Object.keys(data).forEach(key => {
+        if (!isBackupLocalStorageKey(key)) return;
+        const incoming = data[key];
+        if (typeof incoming !== 'string') return;
+        try {
+            const existing = localStorage.getItem(key);
+            if (key.startsWith('history_') || key === 'darham_reports_log') {
+                localStorage.setItem(key, existing ? mergeJsonArrays(existing, incoming) : incoming);
+            } else if (existing === null) {
+                // الصور وبيانات المعلم: لا نستبدل الموجود على هذا الجهاز، نضيف الناقص فقط
+                localStorage.setItem(key, incoming);
+            }
+        } catch (e) { console.error('تعذر استعادة المفتاح', key, e); }
     });
 }
 
@@ -438,6 +542,9 @@ export async function loadStudentProfileScreen() {
             // 🌟 [جديد] عدد انتصارات وأوسمة "الاختبارات الثنائية" — راجع الدالة أدناه
             renderDualTestAchievements(student);
 
+            // 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" — راجع الدالة أدناه
+            renderTajweedProfileSection(student);
+
             // 🌟 [جديد] تفعيل التعديل المباشر لكل بيانات ملف الطالب المعروضة هنا (الصورة،
             // الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف) — راجع الدالة أدناه لتفاصيل الفكرة
             setupInlineProfileEditing(student);
@@ -495,6 +602,65 @@ async function renderDualTestAchievements(student) {
     } catch (e) {
         winsEl.textContent = '0';
         gridEl.innerHTML = `<p class="dtpa-badges-empty">${t('dtpa_no_badges_yet')}</p>`;
+    }
+}
+
+// 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" في ملف الطالب — نفس فلسفة best-effort في
+// renderDualTestAchievements أعلاه بالضبط: لو AppState.tajweedManager غير مُهيَّأ لأي سبب،
+// أو فشلت القراءة، تُعرض حالة "لم يبدأ بعد" بدل تعطيل باقي شاشة الملف الشخصي.
+async function renderTajweedProfileSection(student) {
+    const contentEl = document.getElementById('tjp-content');
+    if (!contentEl) return;
+
+    if (!AppState.tajweedManager) {
+        contentEl.innerHTML = `<p class="tjp-empty">${t('tjw_profile_no_progress')}</p>`;
+        return;
+    }
+
+    try {
+        const [allMastery, achievements] = await Promise.all([
+            AppState.tajweedManager.getMasteryByStudent(student.id),
+            AppState.tajweedManager.getAchievementsByStudent(student.id)
+        ]);
+
+        if (allMastery.length === 0 && achievements.length === 0) {
+            contentEl.innerHTML = `<p class="tjp-empty">${t('tjw_profile_no_progress')}</p>`;
+            return;
+        }
+
+        const stageProgress = computeAllStageProgress(allMastery);
+        const masteredCount = allMastery.filter(m => m.status === 'mastered').length;
+        const currentStageDef = TAJWEED_STAGES.find(s => stageProgress[s.id] && stageProgress[s.id].status !== 'completed')
+            || TAJWEED_STAGES[TAJWEED_STAGES.length - 1];
+        const currentStageLabel = currentStageDef ? `${currentStageDef.icon} ${t(currentStageDef.nameKey)}` : '—';
+
+        // 🌟 تجميع الأوسمة القابلة للتكرار في بطاقة واحدة بعدّاد (×n)، بنفس أسلوب
+        // renderDualTestAchievements أعلاه بالضبط
+        const counts = {};
+        achievements.forEach(a => { counts[a.badgeKey] = (counts[a.badgeKey] || 0) + 1; });
+        const badgesHTML = Object.keys(counts).length === 0
+            ? `<p class="tjp-empty">${t('tjw_profile_badges_empty')}</p>`
+            : `<div class="tjp-badges-grid">${Object.keys(counts).map(badgeKey => {
+                const def = TAJWEED_BADGE_CATALOG[badgeKey];
+                if (!def) return '';
+                const count = counts[badgeKey];
+                const countHTML = count > 1 ? ` ×${count}` : '';
+                return `
+                <div class="tjp-badge-item" title="${t(def.descKey)}">
+                    <span class="tjp-badge-icon">${def.icon}</span>
+                    <span class="tjp-badge-name">${t(def.nameKey)}${countHTML}</span>
+                </div>`;
+            }).join('')}</div>`;
+
+        contentEl.innerHTML = `
+            <div class="tjp-summary">
+                <div class="tjp-summary-item"><strong>${currentStageLabel}</strong><span>${t('tjw_profile_current_stage')}</span></div>
+                <div class="tjp-summary-item"><strong>${masteredCount}</strong><span>${t('tjw_profile_mastered_count')}</span></div>
+            </div>
+            ${badgesHTML}`;
+    } catch (e) {
+        console.warn('تعذرت قراءة تقدّم أبطال التجويد لهذا الطالب:', e);
+        contentEl.innerHTML = `<p class="tjp-empty">${t('tjw_profile_no_progress')}</p>`;
     }
 }
 
@@ -686,4 +852,4 @@ async function toggleHideStudentAction(id, hide) {
     const students = await AppState.studentManager.getAllStudents();
     let s = students.find(x => x.id === id);
     if(s) { s.isHidden = hide; await AppState.studentManager.updateStudent(s); renderAllStudentsTable(); }
-}
+}

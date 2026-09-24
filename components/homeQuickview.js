@@ -168,10 +168,22 @@ function wireQuickPublishButton() {
 // زمنياً حسب تاريخ الحفظ. القائمة تظهر بحد أقصى 5 طلاب حتى لا تُطيل البطاقة.
 // افتراض صريح: لا يظهر أي طالب هنا إطلاقاً قبل أن يُعتمَد له تصحيح يدوي واحد
 // على الأقل لأي واجب (لا يوجد سجل مراجعة له بعد في قاعدة البيانات الجديدة).
+//
+// 🌟🌟 [تحديث] القائمة التفصيلية أصبحت مطوية افتراضياً خلف سطر ملخّص واحد قابل
+// للنقر (بطلب صريح من المعلم لتقليل طول بطاقة "نظرة سريعة" عند تراكم عناصر
+// كثيرة معلّقة)، بدل عرض كل الصفوف دائماً. افتراضات صريحة استُخدمت هنا:
+// 1) حالة الطي/الفتح لا تُحفَظ بين الزيارات — تبدأ مطوية دائماً عند كل تحميل
+//    للشاشة الرئيسية، حتى يظهر العدد المُحدَّث (الأقل بعد معالجة عنصر) واضحاً
+//    فوراً بدل أن تبقى قائمة قديمة مفتوحة من زيارة سابقة.
+// 2) نص الملخص "{n} مستحق المراجعة اليوم" لا يطبّق قواعد الجمع العربية الكاملة
+//    (مثنى/جمع تكسير حسب العدد)، بنفس الأسلوب المبسّط المستخدَم أصلاً في باقي
+//    عدّادات المنصة (مثال: "متأخر N يوم").
 async function renderDueForReview() {
     const wrap = document.getElementById('home-quickcard-due');
+    const summaryBtn = document.getElementById('home-quickcard-due-summary');
+    const summaryTextEl = document.getElementById('home-quickcard-due-summary-text');
     const listEl = document.getElementById('home-quickcard-due-list');
-    if (!wrap || !listEl || !AppState.studentManager || !AppState.reviewScheduleManager) return;
+    if (!wrap || !summaryBtn || !summaryTextEl || !listEl || !AppState.studentManager || !AppState.reviewScheduleManager) return;
 
     try {
         const [students, schedules] = await Promise.all([
@@ -201,6 +213,14 @@ async function renderDueForReview() {
         // 🌟 الأولوية للأكثر تأخراً في المراجعة أولاً (نظام أولوية/إلحاح، وليس
         // ترتيباً زمنياً لتسلسل الحفظ) — هذا هو الفرق الجوهري عن الفرز الزمني البسيط
         dueRows.sort((a, b) => b.overdueDays - a.overdueDays);
+
+        // 🌟🌟 [جديد] سطر الملخص المطوي — يُعاد ضبطه لحالة "مطوي" في كل رسم (راجع
+        // الافتراض 1 أعلاه). .onclick بدل addEventListener عمداً: هذا العنصر ثابت
+        // ولا يُعاد إنشاؤه بين الرسمات المتكررة، فالتعيين المباشر يستبدل أي معالج
+        // سابق بدل تكديس معالجات مكرَّرة في كل استدعاء لـ initHomeQuickview
+        summaryTextEl.textContent = t('home_due_badge').replace('{n}', dueRows.length);
+        wrap.classList.remove('is-expanded');
+        summaryBtn.onclick = () => wrap.classList.toggle('is-expanded');
 
         listEl.innerHTML = '';
         dueRows.slice(0, 5).forEach(({ student, overdueDays }) => {
@@ -286,6 +306,85 @@ function wireMonthlyMemoBanner() {
     if (goBtn) goBtn.addEventListener('click', () => { loadMyStudentsScreen(); });
 }
 
+// 🌟🌟 [جديد] تذكير "مواجهات ثنائية تنتظر الاستكمال" — بنفس فلسفة بطاقة "مستحق اليوم" أعلاه:
+// المعلم طلب صراحةً أنه لو مواجهة بين طالبَين انتهت جولتها الأخيرة المُلعَبة وبقيت "معلّقة"
+// بلا استكمال لمدة أسبوع كامل، يظهر تذكير نصّي بسيط يذكر اسمَي الطالبَين — بلا أي تحديد أو
+// حفظ موعد فعلي (بطلب صريح: "نص توضيحي فقط"). النقر على أي صف يفتح شاشة اللعب مباشرة
+// لاستكمال هذه المواجهة بعينها من الجولة التالية (راجع openDualTestPlayScreen المُصدَّرة من
+// dualtests/dual-test-setup.js).
+//
+// 🌟 افتراضات صريحة استُخدمت هنا (لا يوجد تعريف سابق "أسبوع بلا استكمال" في المنصة):
+// 1) "أسبوع" = 7 أيام كاملة (168 ساعة)، محسوبة من match.pausedAt — الحقل الجديد الذي يُحدَّث
+//    في finishRound() بـ dual-test-play.js عند نهاية كل جولة (يمثّل لحظة "توقف" المواجهة).
+// 2) مواجهة قديمة محفوظة قبل هذا التحديث (بلا pausedAt)، أو مواجهة لم تُلعَب أي جولة منها
+//    بعد (توقفت فور الإنشاء)، تُحسَب احتياطاً من match.startedAt بدل تجاهلها تماماً.
+// 3) لا حد أقصى زمني علوي: مواجهة متوقفة منذ شهور تبقى تظهر (بلا "انتهاء صلاحية")، بنفس
+//    فلسفة عدم انتهاء الصلاحية المعتمدة أصلاً لنافذة "المواجهات المعلقة" نفسها.
+// 4) حد أقصى 5 مواجهات معروضة (الأقدم توقفاً أولاً) حتى لا تُطيل البطاقة، بنفس نمط "مستحق اليوم".
+const PENDING_MATCH_REMINDER_DAYS = 7;
+
+// 🌟🌟 [تحديث] نفس تحويل "مستحق اليوم" أعلاه: القائمة التفصيلية مطوية افتراضياً
+// خلف سطر ملخّص واحد قابل للنقر، وتبدأ مطوية في كل رسم (نفس الافتراضات الموثَّقة
+// في renderDueForReview أعلاه تنطبق هنا بالحرف).
+async function renderPendingDualMatchesReminder() {
+    const wrap = document.getElementById('home-quickcard-pm');
+    const summaryBtn = document.getElementById('home-quickcard-pm-summary');
+    const summaryTextEl = document.getElementById('home-quickcard-pm-summary-text');
+    const listEl = document.getElementById('home-quickcard-pm-list');
+    if (!wrap || !summaryBtn || !summaryTextEl || !listEl || !AppState.dualTestsManager) return;
+
+    try {
+        const allMatches = await AppState.dualTestsManager.getAllMatches();
+        const now = Date.now();
+        const thresholdMs = PENDING_MATCH_REMINDER_DAYS * 86400000;
+
+        const overdue = (allMatches || [])
+            .filter(m => m.status !== 'completed')
+            .map(m => {
+                const refIso = m.pausedAt || m.startedAt; // راجع الافتراض (2) أعلاه
+                const refTime = refIso ? new Date(refIso).getTime() : NaN;
+                return { match: m, refTime };
+            })
+            .filter(({ refTime }) => !isNaN(refTime) && (now - refTime) >= thresholdMs)
+            .sort((a, b) => a.refTime - b.refTime); // الأقدم توقفاً أولاً = الأكثر إلحاحاً
+
+        if (overdue.length === 0) {
+            wrap.style.display = 'none';
+            return;
+        }
+
+        summaryTextEl.textContent = t('home_pm_badge').replace('{n}', overdue.length);
+        wrap.classList.remove('is-expanded');
+        summaryBtn.onclick = () => wrap.classList.toggle('is-expanded');
+
+        listEl.innerHTML = '';
+        overdue.slice(0, 5).forEach(({ match, refTime }) => {
+            const overdueDays = Math.floor((now - refTime) / 86400000);
+            const row = document.createElement('div');
+            row.className = 'home-quickcard-pm-row';
+            row.innerHTML = `
+                <span class="home-quickcard-pm-names">${match.studentNameA} 🆚 ${match.studentNameB}</span>
+                <span class="home-quickcard-pm-when">${t('home_pm_paused_since')} ${overdueDays} ${t('home_due_days_unit')}</span>
+            `;
+            // 🌟 نقرة على أي صف تفتح شاشة اللعب مباشرة لاستكمال هذه المواجهة بعينها — نفس
+            // مبدأ نقرة صف "مستحق اليوم" أعلاه، لكن هنا نستورد dual-test-setup.js ديناميكياً
+            // (بدل استيراد ثابت أعلى الملف) حتى لا تُحمَّل شاشة الاختبارات الثنائية كاملة إلا
+            // عند الحاجة الفعلية
+            row.addEventListener('click', () => {
+                import('../dualtests/dual-test-setup.js').then(module => {
+                    module.openDualTestPlayScreen(match.id);
+                }).catch(e => console.warn('تعذر فتح شاشة استكمال المواجهة المعلقة:', e));
+            });
+            listEl.appendChild(row);
+        });
+
+        wrap.style.display = 'block';
+    } catch (e) {
+        console.warn('تعذر التحقق من المواجهات الثنائية المعلقة منذ أكثر من أسبوع:', e);
+        wrap.style.display = 'none';
+    }
+}
+
 // يُستدعى مرة واحدة من setupSplashListeners() في core/app.js عند تحميل الشاشة الرئيسية
 export function initHomeQuickview() {
     renderDailyQuote();
@@ -293,6 +392,7 @@ export function initHomeQuickview() {
     renderMasteryAverage();
     renderReportsCount();
     renderDueForReview();
+    renderPendingDualMatchesReminder();
     wireQuickPublishButton();
     wireMonthlyMemoBanner();
     checkMonthlyMemoReminder();

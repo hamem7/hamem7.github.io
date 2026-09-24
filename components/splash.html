@@ -13,15 +13,42 @@
         margin-bottom: 14px;
     }
     .home-quickcard-due-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
         font-weight: bold;
         font-size: 0.95rem;
         color: var(--dh-gold-500, #f0d878);
-        margin-bottom: 8px;
+        /* 🌟🌟 [جديد] أصبح سطر ملخّص قابل للنقر (فتح/طي التفاصيل) بدل عنوان ثابت —
+             بطلب المعلم لتقليل طول البطاقة عند وجود عناصر كثيرة معلّقة. راجع
+             renderDueForReview في components/homeQuickview.js */
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    .home-quickcard-due-title:hover {
+        background: rgba(255, 253, 246, 0.12);
+    }
+    /* 🌟🌟 [جديد] سهم صغير يدور 180° عند فتح التفاصيل */
+    .home-quickcard-due-chevron {
+        font-size: 0.75rem;
+        transition: transform 0.2s;
+    }
+    .home-quickcard-due.is-expanded .home-quickcard-due-chevron {
+        transform: rotate(180deg);
     }
     .home-quickcard-due-list {
-        display: flex;
+        /* 🌟🌟 [جديد] مطوي افتراضياً الآن — يظهر فقط عند إضافة is-expanded على
+             .home-quickcard-due (بالنقر على سطر الملخص أعلاه) */
+        display: none;
         flex-direction: column;
         gap: 2px;
+        margin-top: 8px;
+    }
+    .home-quickcard-due.is-expanded .home-quickcard-due-list {
+        display: flex;
     }
     .home-quickcard-due-row {
         display: flex;
@@ -46,6 +73,83 @@
         color: rgba(255, 253, 246, 0.75);
     }
     .home-quickcard-due-when {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: var(--dh-gold-500, #f0d878);
+        background: rgba(6, 35, 28, 0.35);
+        padding: 2px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+    /* 🌟🌟 [جديد] تنسيق بطاقة "مواجهات ثنائية تنتظر الاستكمال" — قواعد معزولة تماماً بأسماء
+         أصناف خاصة بها (.home-quickcard-pm-*)، ولو متطابقة بصرياً مع بطاقة "مستحق اليوم"
+         أعلاه عمداً (نفس الهوية البصرية)، حتى لا يتأثر تصميم إحداهما لو عُدِّلت الأخرى لاحقاً
+         — راجع renderPendingDualMatchesReminder في components/homeQuickview.js */
+    .home-quickcard-pm {
+        background: rgba(255, 253, 246, 0.08);
+        border: 1px solid rgba(240, 216, 120, 0.35);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+    }
+    .home-quickcard-pm-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        color: var(--dh-gold-500, #f0d878);
+        /* 🌟🌟 [جديد] أصبح سطر ملخّص قابل للنقر (فتح/طي التفاصيل) بدل عنوان ثابت —
+             نفس فلسفة .home-quickcard-due-title أعلاه، بأصناف معزولة خاصة بهذه
+             البطاقة (راجع تعليق العزل الأصلي أعلى هذا الملف) */
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    .home-quickcard-pm-title:hover {
+        background: rgba(255, 253, 246, 0.12);
+    }
+    /* 🌟🌟 [جديد] سهم صغير يدور 180° عند فتح التفاصيل */
+    .home-quickcard-pm-chevron {
+        font-size: 0.75rem;
+        transition: transform 0.2s;
+    }
+    .home-quickcard-pm.is-expanded .home-quickcard-pm-chevron {
+        transform: rotate(180deg);
+    }
+    .home-quickcard-pm-list {
+        /* 🌟🌟 [جديد] مطوي افتراضياً الآن — يظهر فقط عند إضافة is-expanded على
+             .home-quickcard-pm (بالنقر على سطر الملخص أعلاه) */
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 8px;
+    }
+    .home-quickcard-pm.is-expanded .home-quickcard-pm-list {
+        display: flex;
+    }
+    .home-quickcard-pm-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        padding: 6px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .home-quickcard-pm-row:hover {
+        background: rgba(255, 253, 246, 0.12);
+    }
+    .home-quickcard-pm-names {
+        font-weight: bold;
+        color: #fffdf6;
+    }
+    .home-quickcard-pm-when {
         font-size: 0.8rem;
         font-weight: bold;
         color: var(--dh-gold-500, #f0d878);
@@ -123,9 +227,22 @@
                     <h1 class="home-title" id="main-title" data-i18n="splash_title">أبطال القرآن الكريم</h1>
                     <p class="home-subtitle" id="main-subtitle" data-i18n="splash_subtitle">منظومة التثبيت والمراجعة التفاعلية 🏆</p>
 
-                    <!-- 🌟 ترحيب شخصي متغيّر حسب الوقت + اسم المعلم (إن وُجد) — يُملأ ديناميكياً
-                         من components/teacherProfile.js -->
-                    <div class="home-greeting" id="home-greeting" aria-live="polite"></div>
+                    <!-- 🌟 [جديد] دائرة صورة المعلم/ـة بجانب الترحيب — دائمة الظهور دائماً (بعكس
+                         شارة "أكمل بياناتك" أسفلها التي تختفي بعد اكتمال البيانات)، فتبقى نقطة
+                         دخول ثابتة لفتح نافذة البيانات الشخصية حتى بعد اكتمالها بالكامل (كانت
+                         هذه النافذة ستُفقَد تمامًا من الواجهة بدون هذه الدائرة). تعرض الصورة
+                         المرفوعة، أو أول حرف من الاسم كخط رجوع (نفس منطق دائرة الطالب في
+                         components/welcomeBanner.js)، أو أيقونة شخص افتراضية إن لم يُدخَل اسم
+                         بعد. المنطق الكامل في renderTeacherAvatar() بـ components/teacherProfile.js -->
+                    <div class="home-greeting-row">
+                        <button type="button" class="teacher-avatar-btn" id="teacher-avatar-btn" data-i18n-title="profile_modal_title" title="بياناتك الشخصية">
+                            <img id="teacher-avatar-btn-photo" src="" alt="" hidden>
+                            <span id="teacher-avatar-btn-fallback" class="teacher-avatar-btn-fallback"></span>
+                        </button>
+                        <!-- 🌟 ترحيب شخصي متغيّر حسب الوقت + اسم المعلم (إن وُجد) — يُملأ ديناميكياً
+                             من components/teacherProfile.js -->
+                        <div class="home-greeting" id="home-greeting" aria-live="polite"></div>
+                    </div>
 
                     <div class="home-chips-row">
                         <div class="home-date-bar" id="home-date-bar" aria-live="polite">
@@ -168,9 +285,32 @@
                     <!-- 🌟🌟 [جديد] "مستحق اليوم" — نظام المراجعة المتباعدة (Anki/Duolingo):
                          يظهر فقط عند وجود طالب واحد على الأقل حان أو فات موعد مراجعته،
                          ويختفي بأدب تماماً في غير ذلك (انظر components/homeQuickview.js) -->
+                    <!-- 🌟🌟 [جديد] أصبح العنوان الآن سطر ملخّص قابل للنقر (فتح/طي التفاصيل)
+                         بدل عرض القائمة كاملة دائماً — بطلب المعلم لتقليل طول البطاقة.
+                         data-i18n أُزيل عمداً من هنا لأن النص أصبح ديناميكياً بالكامل
+                         (يتضمن العدد) ويُضبط من JS في كل رسم، بخلاف applyLanguage() الذي
+                         يستبدل innerHTML العنصر كاملاً (راجع renderDueForReview في
+                         components/homeQuickview.js) -->
                     <div class="home-quickcard-due" id="home-quickcard-due" style="display:none;">
-                        <div class="home-quickcard-due-title" data-i18n="home_due_title">مستحق المراجعة اليوم</div>
+                        <div class="home-quickcard-due-title" id="home-quickcard-due-summary">
+                            <span id="home-quickcard-due-summary-text"></span>
+                            <span class="home-quickcard-due-chevron" aria-hidden="true">▾</span>
+                        </div>
                         <div class="home-quickcard-due-list" id="home-quickcard-due-list"></div>
+                    </div>
+
+                    <!-- 🌟🌟 [جديد] "مواجهات تنتظر الاستكمال" — يظهر فقط لمواجهات ثنائية
+                         توقفت (بقيت معلّقة) بلا استكمال لأسبوع كامل فأكثر، ويختفي بأدب في
+                         غير ذلك (انظر renderPendingDualMatchesReminder في
+                         components/homeQuickview.js) -->
+                    <!-- 🌟🌟 [جديد] نفس تحويل العنوان لسطر ملخّص قابل للنقر أعلاه (راجع
+                         renderPendingDualMatchesReminder في components/homeQuickview.js) -->
+                    <div class="home-quickcard-pm" id="home-quickcard-pm" style="display:none;">
+                        <div class="home-quickcard-pm-title" id="home-quickcard-pm-summary">
+                            <span id="home-quickcard-pm-summary-text"></span>
+                            <span class="home-quickcard-pm-chevron" aria-hidden="true">▾</span>
+                        </div>
+                        <div class="home-quickcard-pm-list" id="home-quickcard-pm-list"></div>
                     </div>
 
                     <!-- 🌟 آية أو حديث أو دعاء يتغيّر يومياً — مجموعة صغيرة مختارة يدوياً
@@ -263,9 +403,43 @@
                 <input type="text" id="teacher-profile-name-input">
             </div>
 
+            <!-- 🌟 [جديد] تحديد الجنس — اختياري بالكامل، "ذكر" افتراضياً (فيبقى اللقب
+                 "شيخ" في تحية الشاشة الرئيسية كما كان قبل هذه الميزة تماماً) ما لم يُختَر
+                 "أنثى" صراحة، فتتحول التحية لـ"يا أستاذة". حقل جنس عام (وليس قائمة ألقاب)
+                 حتى يصلح لاحقًا لأي نص آخر بالمنصة يحتاج تأنيث نحوي — راجع تعليق
+                 teacherTitleKey في components/teacherProfile.js -->
+            <div class="input-group">
+                <label data-i18n="profile_gender_label">الجنس:</label>
+                <select id="teacher-profile-gender-input">
+                    <option value="male" data-i18n="profile_gender_male">ذكر</option>
+                    <option value="female" data-i18n="profile_gender_female">أنثى</option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <label data-i18n="profile_dob_label">تاريخ الميلاد:</label>
                 <input type="date" id="teacher-profile-dob-input">
+            </div>
+
+            <!-- 🌟 [جديد] قسم "نسخة احتياطية للبيانات" — بناءً على طلب صريح من المعلم بعد
+                 سؤاله عن مصير بيانات الطلاب عند تحديث الكود. يصدّر/يسترجع كل قواعد بيانات
+                 المنصة المحلية (IndexedDB) من/إلى ملف واحد على جهاز المعلم فقط، بلا أي رفع
+                 على الإنترنت. راجع core/backupRestore.js للآلية الكاملة، وcomponents/teacherProfile.js
+                 لمنطق الأزرار أدناه. أُضيف هنا (لا في شاشة منفصلة) لعدم وجود شاشة "إعدادات"
+                 عامة مستقلة بعد في المشروع، وهذه أقرب نقطة موجودة فعلاً 🌟 -->
+            <div class="dh-backup-section">
+                <div class="dh-backup-section-title" data-i18n="profile_backup_section_title">🗄️ نسخة احتياطية للبيانات</div>
+                <!-- 🌟 بلا data-i18n عمداً (بعكس بقية عناصر هذه النافذة) — النص هنا ديناميكي
+                     بالكامل ويُحدَّث دائمًا عبر renderBackupLastInfo() في teacherProfile.js
+                     (باستخدام t() هي نفسها)، فوجود data-i18n هنا كان سيجعل applyLanguage()
+                     يستبدله بالنص الافتراضي الثابت عند أي تبديل لغة ويمحو تاريخ آخر نسخة
+                     احتياطية المعروض فعلاً — نفس نمط .bday-banner-text المجاور تماماً -->
+                <div class="dh-backup-last-info" id="teacher-profile-backup-last-info">لم تُؤخَذ أي نسخة احتياطية بعد على هذا الجهاز</div>
+                <div class="dh-backup-actions">
+                    <button type="button" class="btn" id="teacher-profile-backup-btn" data-i18n="profile_backup_download_btn">⬇️ نسخة احتياطية الآن</button>
+                    <button type="button" class="btn btn-outline" id="teacher-profile-restore-btn" data-i18n="profile_backup_restore_btn">⬆️ استرجاع نسخة احتياطية</button>
+                </div>
+                <input type="file" id="teacher-profile-restore-input" accept="application/json,.json" hidden>
             </div>
 
             <div class="teacher-profile-modal-actions">
@@ -276,60 +450,15 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 🌟 لماذا دار حم؟ — نفس المحتوى، أيقونات SVG بدل الإيموجي 🌟 -->
-    <!-- ========================================== -->
-    <section class="home-why">
-        <h2 class="home-why-title" data-i18n="why_darham_title">لماذا دار حم؟</h2>
-        <p class="home-why-subtitle" data-i18n="why_darham_subtitle">منصة متكاملة لحفظ القرآن ومراجعته وتقييمه</p>
-
-        <div class="home-why-grid">
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg></span>
-                <h3 data-i18n="why_free_title">مجانية</h3>
-                <p data-i18n="why_free_desc">مجانية بالكامل</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M9 10h6M9 14h6M9 18h3"/></svg></span>
-                <h3 data-i18n="why_complete_title">شاملة</h3>
-                <p data-i18n="why_complete_desc">القرآن الكريم كاملاً</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.6-3 8.4-7 9.5C8 20.4 5 16.6 5 12V6Z"/><path d="M9.5 12l1.8 1.8L15 9.8"/></svg></span>
-                <h3 data-i18n="why_privacy_title">خصوصية</h3>
-                <p data-i18n="why_privacy_desc">نهتم بخصوصية المستخدمين</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="7.5" r="3"/><path d="M2.5 20c0.8-3.6 3.2-5.6 6-5.6s5.2 2 6 5.6"/><circle cx="17" cy="8.5" r="2.4"/><path d="M15.2 13.2c2 0.3 3.6 1.9 4.3 4.8"/></svg></span>
-                <h3 data-i18n="why_ages_title">لجميع الأعمار</h3>
-                <p data-i18n="why_ages_desc">تجربة للصغار والناشئة والكبار</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg></span>
-                <h3 data-i18n="why_eval_title">تقييم دقيق</h3>
-                <p data-i18n="why_eval_desc">تحديات متنوعة لقياس إتقان الحفظ</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 19V11M12 19V5M17 19v9"/></svg></span>
-                <h3 data-i18n="why_reports_title">تقارير احترافية</h3>
-                <p data-i18n="why_reports_desc">تقارير واضحة لمتابعة مستوى الطالب</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg></span>
-                <h3 data-i18n="why_homework_title">واجبات منزلية</h3>
-                <p data-i18n="why_homework_desc">متابعة المراجعة خارج وقت الحلقة</p>
-            </div>
-            <div class="home-why-card">
-                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4Z"/><path d="M18.5 15.5l0.8 2 2 0.8-2 0.8-0.8 2-0.8-2-2-0.8 2-0.8Z"/></svg></span>
-                <h3 data-i18n="why_experts_title">بإعداد متخصصين</h3>
-                <p data-i18n="why_experts_desc">أدوات مصممة لخدمة تعليم القرآن</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========================================== -->
-    <!-- 🌟 شبكة الأزرار الرئيسية — تسلسل هرمي جديد: بطاقتان رئيسيتان كبيرتان
-         (الكبار/الأطفال) ثم صف ثانوي أصغر (طلابي/الواجبات/الثنائية). نفس
-         الـ id القديمة تماماً حتى لا ينكسر core/app.js 🌟 -->
+    <!-- 🌟🌟 [إعادة ترتيب] بطلب المعلم بتاريخ 2026-09-22: بدّلنا ترتيب قسم "شبكة
+         الأزرار الرئيسية" وقسم "لماذا دار حم؟" — الأزرار بقت أول حاجة بعد الـ Hero
+         مباشرة، والتعريف/البادجز بعدها. السبب: المعلم (المستخدم الوحيد للمنصة) مش
+         محتاج يقتنع بالمنصة قبل ما يستخدمها زي زائر لموقع تسويقي، فالأولوية للفعل
+         الوظيفي (الدخول لواجهة الكبار/ركن الأطفال) مش للتعريف الوصفي. بدّلنا كمان
+         لون خلفية القسمين في home.css (var(--dh-surface-alt) بقت لقسم .home-menu
+         و var(--dh-surface) بقت لقسم .home-why) حتى تفضل موجة الـ Hero
+         (.home-hero-wave، لونها var(--dh-surface-alt)) متصلة بصرياً بالقسم اللي
+         بعدها مباشرة زي ما كانت بالظبط، بدون أي تغيير في الـ id أو المحتوى 🌟🌟 -->
     <!-- ========================================== -->
     <section class="home-menu">
         <div class="home-menu-primary">
@@ -364,6 +493,33 @@
                 <span class="home-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/></svg></span>
                 <span class="home-card-title" data-i18n="btn_similarities">تحدي المتشابهات</span>
                 <span class="home-card-desc" data-i18n="card_similarities_desc">قارن بين الآيات المتشابهة واختبر دقة حفظك (قيد التطوير)</span>
+                <span class="home-card-arrow" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                </span>
+            </button>
+
+            <!-- 🌟 [جديد] بطاقة "أبطال التجويد" — نقطة الدخول لمسار التجويد المستقل للأطفال
+                 (راجع مستندي المشروع "تصميم-مسار-التجويد-للأطفال-المقترح.md" و
+                 "التصور-المعماري-الكامل-لمسار-التجويد.md" للتصميم الكامل المتفق عليه). لا توجد
+                 بعد شاشات تجويد فعلية (قيد البناء على مراحل)، فاتبعنا نفس منطق بطاقتي
+                 "المتشابهات"/"الاختبارات الثنائية" في مرحلتيهما الأولى: شارة "قيد التطوير"
+                 + رسالة ودّية عند الضغط بدل فتح شاشة غير مكتملة. [تصحيح] عنصر
+                 toast-encouragement المذكور في تعليق بطاقة المتشابهات أعلاه موجود فعلاً
+                 وشغال (showToastEncouragement في components/ui.js + #toast-encouragement
+                 الثابت في index.html)، وهو المستخدَم هنا فعلياً عبر مفتاح الترجمة
+                 tajweed_toast_soon — وليس alert() كما ظننا أول مرة قبل فحص ui.js. الهوية
+                 البصرية (تدرّج لازوردي↔عنّابي) مستقلة تماماً عن --dh-emerald/--dh-gold بطلب
+                 صريح من المعلم لهذا القسم فقط (راجع css/home.css) 🌟 -->
+            <button class="home-card home-card-tajweed" id="btn-tajweed-main">
+                <!-- 🌟 [عدّل] بعد اكتمال شاشات التصفّح الفعلية (المرحلة 1)، تغيّرت الشارة من
+                     "قيد التطوير" إلى "تصفح متاح" — بنفس منطق ترقية similarities_browse_badge
+                     في بطاقة "تحدي المتشابهات" أعلاه بالضبط. مفتاح tajweed_in_progress_badge
+                     نفسه أُبقي عليه بلا حذف في core/i18n.js (بنفس فلسفة الإبقاء على المفاتيح
+                     القديمة تحسباً لأي رجوع مستقبلي) -->
+                <span class="home-card-badge" data-i18n="tjw_browse_badge">تصفح متاح</span>
+                <span class="home-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 14.5 8.5 21 6 18.5 12 21 18 14.5 15.5 12 22 9.5 15.5 3 18 5.5 12 3 6 9.5 8.5 Z"/></svg></span>
+                <span class="home-card-title" data-i18n="btn_tajweed">أبطال التجويد</span>
+                <span class="home-card-desc" data-i18n="card_tajweed_desc">رحلة تعلّم تجويد تدريجية وممتعة لكل طالب</span>
                 <span class="home-card-arrow" aria-hidden="true">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
                 </span>
@@ -410,6 +566,59 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
                 </span>
             </button>
+        </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- 🌟 لماذا دار حم؟ — نفس المحتوى، أيقونات SVG بدل الإيموجي. [إعادة ترتيب
+         2026-09-22] نزلت تحت قسم الأزرار (راجع التعليق فوق .home-menu أعلاه
+         لتفاصيل السبب) 🌟 -->
+    <!-- ========================================== -->
+    <section class="home-why">
+        <h2 class="home-why-title" data-i18n="why_darham_title">لماذا دار حم؟</h2>
+        <p class="home-why-subtitle" data-i18n="why_darham_subtitle">منصة متكاملة لحفظ القرآن ومراجعته وتقييمه</p>
+
+        <div class="home-why-grid">
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.6L16 9.5"/></svg></span>
+                <h3 data-i18n="why_free_title">مجانية</h3>
+                <p data-i18n="why_free_desc">مجانية بالكامل</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z"/><path d="M9 10h6M9 14h6M9 18h3"/></svg></span>
+                <h3 data-i18n="why_complete_title">شاملة</h3>
+                <p data-i18n="why_complete_desc">القرآن الكريم كاملاً</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.6-3 8.4-7 9.5C8 20.4 5 16.6 5 12V6Z"/><path d="M9.5 12l1.8 1.8L15 9.8"/></svg></span>
+                <h3 data-i18n="why_privacy_title">خصوصية</h3>
+                <p data-i18n="why_privacy_desc">نهتم بخصوصية المستخدمين</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="7.5" r="3"/><path d="M2.5 20c0.8-3.6 3.2-5.6 6-5.6s5.2 2 6 5.6"/><circle cx="17" cy="8.5" r="2.4"/><path d="M15.2 13.2c2 0.3 3.6 1.9 4.3 4.8"/></svg></span>
+                <h3 data-i18n="why_ages_title">لجميع الأعمار</h3>
+                <p data-i18n="why_ages_desc">تجربة للصغار والناشئة والكبار</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="0.8" fill="currentColor"/></svg></span>
+                <h3 data-i18n="why_eval_title">تقييم دقيق</h3>
+                <p data-i18n="why_eval_desc">تحديات متنوعة لقياس إتقان الحفظ</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19h16M7 19V11M12 19V5M17 19v9"/></svg></span>
+                <h3 data-i18n="why_reports_title">تقارير احترافية</h3>
+                <p data-i18n="why_reports_desc">تقارير واضحة لمتابعة مستوى الطالب</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-6 8 6"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg></span>
+                <h3 data-i18n="why_homework_title">واجبات منزلية</h3>
+                <p data-i18n="why_homework_desc">متابعة المراجعة خارج وقت الحلقة</p>
+            </div>
+            <div class="home-why-card">
+                <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4Z"/><path d="M18.5 15.5l0.8 2 2 0.8-2 0.8-0.8 2-0.8-2-2-0.8 2-0.8Z"/></svg></span>
+                <h3 data-i18n="why_experts_title">بإعداد متخصصين</h3>
+                <p data-i18n="why_experts_desc">أدوات مصممة لخدمة تعليم القرآن</p>
+            </div>
         </div>
     </section>
 

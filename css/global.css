@@ -96,6 +96,26 @@
 .order-slot.filled { border-style: solid; border-color: var(--primary); background: #f0fdf4; color: var(--primary); font-size: 2.2rem; font-family: 'Amiri Quran', serif !important; font-weight: 400 !important; box-shadow: var(--shadow-sm); line-height: 2.2;}
 .order-slot.filled:hover { background: #fee2e2; border-color: var(--danger); }
 
+/* 🌟 [جديد] حل مشكلة الآيات الطويلة في لعبة "رتب الآيات": بدل ما الصفحة كلها تعمل سكرول
+   لما محتوى عمود يطول (آية طويلة جدًا مثلاً)، بقى لكل عمود (.order-col) سكرول داخلي خاص
+   بيه عن طريق class إضافي (.order-list-scroll) يُوضع على الـ div الداخلي فقط
+   (#order-slots/#order-shuffled في games/adultGame.html) — .order-col نفسها ما اتلمستش
+   عشان ما تتأثرش أي شاشة تانية بتستخدمها (ترتيب كلمات الآية/ترتيب السور عند الأطفال).
+   عنوان العمود (h3) بيفضل ثابت فوق (sticky) كمرجع بصري أثناء السكرول الداخلي 🌟 */
+.order-col h3 { position: sticky; top: 0; background: inherit; padding-bottom: 8px; z-index: 1; }
+.order-list-scroll { max-height: 55vh; overflow-y: auto; padding-inline-end: 6px; }
+
+/* 🌟 [جديد] تصغير خط الآيات الطويلة في لعبة "رتب الآيات" فقط، بدل تكبيرها 2.2rem دايمًا:
+   الحجم يُحسب ديناميكيًا حسب طول نص الآية في buildOrderGameUI (games/adultGame.js) — الآيات
+   القصيرة تفضل بحجمها الافتراضي بلا أي تغيير. لو الآية طويلة جدًا لدرجة إنها ما بتكفيش حتى
+   بعد التصغير، order-list-scroll أعلاه هو خط الدفاع الأخير (سكرول داخلي).
+   ⚠️ افتراض صريح: الحدود (70/140 حرفًا) اختيار عملي مبدئي بلا مصدر موثّق لتعريف "الآية
+   الطويلة" في المشروع — قابلة للتعديل بسهولة من نفس الدالة لو ظهر إنها مش مناسبة عمليًا.
+   !important ضرورية هنا للتغلّب على قاعدة .order-item/.order-slot.filled أعلاه وعلى
+   .quran-text في الموبايل (كلاهما !important أصلاً) 🌟 */
+.order-item.order-text-long, .order-slot.filled.order-text-long { font-size: 1.6rem !important; line-height: 1.9 !important; }
+.order-item.order-text-xlong, .order-slot.filled.order-text-xlong { font-size: 1.3rem !important; line-height: 1.7 !important; }
+
 /* 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — نفس فكرة تخطيط شبكة الترتيب (order-grid) أعلاه، لكن
    بعناصر تُختار فردياً بالنقر (لا نقل ولا سحب) ضمن أسماء classes مستقلة تماماً بدل التعديل
    المباشر على order-item/order-slot الحاليين، حتى لا تتأثر أي شاشة أخرى تستخدمهما 🌟 */
@@ -151,4 +171,10 @@
     .link-grid { flex-direction: column; }
     /* ✅ تكبير الآيات جداً في الموبايل ليقرأها الأطفال براحة، مع الحفاظ على التباعد */
     .quran-text { font-size: 3.2rem !important; line-height: 2.2 !important; }
+    /* 🌟 [جديد] نفس فكرة order-text-long/xlong أعلاه لكن بأحجام أكبر تناسب تكبير الموبايل
+       العام (.quran-text 3.2rem) بدل ما ترجع الآية الطويلة لنفس حجم الشاشات الكبيرة 🌟 */
+    .order-item.order-text-long, .order-slot.filled.order-text-long { font-size: 1.9rem !important; }
+    .order-item.order-text-xlong, .order-slot.filled.order-text-xlong { font-size: 1.5rem !important; }
+    /* الجوال أصلاً محدود الارتفاع بعد ظهور لوحة المفاتيح أو الشريط العلوي، فنقلل السقف قليلاً */
+    .order-list-scroll { max-height: 45vh; }
 }
