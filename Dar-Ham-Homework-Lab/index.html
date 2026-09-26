@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dar Ham Homework Lab</title>
+  <link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+  <header class="lab-head"><h1>🧪 معمل الواجبات — دار حم</h1>
+    <nav><a href="index.html">الرئيسية</a><a href="teacher.html">إنشاء</a><a href="results.html">النتائج</a><a href="diagnostics.html">التشخيص</a></nav></header>
+  <main>
+    <section class="card">
+      <h2>⚠️ بيئة تجريبية</h2>
+      <p class="muted">هذا المعمل معزول عن منصة دار حم ولا يستخدم Firebase ولا App Check ولا reCAPTCHA. الخلفية: Google Apps Script (واجهة API) + Google Sheets (تخزين فقط — لا أحد يفتح الجدول).</p>
+    </section>
+
+    <section class="card">
+      <h2>1) ربط الخادم</h2>
+      <label for="api-url">رابط الـ Web App (ينتهي بـ <code>/exec</code>)</label>
+      <input type="url" id="api-url" placeholder="https://script.google.com/macros/s/…/exec" dir="ltr">
+      <label for="teacher-key">مفتاح المعلم (Teacher Key) — يُحفظ على جهازك فقط</label>
+      <input type="password" id="teacher-key" autocomplete="off" dir="ltr">
+      <p class="row"><button class="btn" id="btn-save">💾 حفظ واختبار الاتصال</button></p>
+      <div id="conn" class="banner info hidden"></div>
+      <p class="muted">لم تنشر الخادم بعد؟ اتبع خطوات README.md (5 دقائق).</p>
+    </section>
+
+    <section class="card">
+      <h2>2) الصفحات</h2>
+      <p class="row"><a class="btn" href="teacher.html">👨‍🏫 إنشاء واجب</a><a class="btn" href="results.html">📊 النتائج والتصحيح</a><a class="btn gold" href="diagnostics.html">🩺 اختبارات الواقع (شغّلها من موبايلك)</a></p>
+    </section>
+
+    <section class="card">
+      <h2>حالات التسليم (كما يراها الطالب والمعلم)</h2>
+      <p><span class="badge b-grey">محفوظ محلياً</span> ← <span class="badge b-info">قيد الإرسال</span> ← <span class="badge b-ok">مؤكَّد (الخادم أعاد قراءته)</span> ← <span class="badge b-warn">مُصحَّح</span> ← <span class="badge b-ok">معتمد</span> &nbsp; | &nbsp; <span class="badge b-warn">فشل الإرسال (يمكن إعادة المحاولة)</span> <span class="badge b-bad">مرفوض</span></p>
+      <p class="muted">لا تظهر أي رسالة نجاح للطالب إلا بعد أن يردّ الخادم بأنه حفظ التسليم وأعاد قراءته.</p>
+    </section>
+  </main>
+  <script type="module">
+    import { getApiUrl, setApiUrl, getTeacherKey, setTeacherKey, call, friendlyError } from './js/api.js';
+    const $ = (i) => document.getElementById(i);
+    $('api-url').value = getApiUrl(); $('teacher-key').value = getTeacherKey();
+    $('btn-save').addEventListener('click', async () => {
+      const c = $('conn'); c.classList.remove('hidden');
+      try { setApiUrl($('api-url').value.trim()); } catch (e) { c.className = 'banner bad'; c.textContent = '❌ ' + e.message; return; }
+      setTeacherKey($('teacher-key').value.trim());
+      c.className = 'banner info'; c.textContent = '⏳ جاري الاختبار…';
+      try {
+        const p = await call('ping', {});
+        if (!p.configured) { c.className = 'banner warn'; c.textContent = '⚠️ الخادم يعمل لكن لم يتم تشغيل setup() بعد في Apps Script.'; return; }
+        const a = await call('authCheck', {}, { teacher: true });
+        c.className = 'banner ok'; c.textContent = `✅ الاتصال سليم (إصدار الخادم ${p.version}) ومفتاح المعلم صحيح.`;
+      } catch (e) { c.className = 'banner bad'; c.textContent = '❌ ' + friendlyError(e); }
+    });
+  </script>
+</body>
+</html>

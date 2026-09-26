@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>واجب دار حم</title>
+  <link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+  <header class="lab-head"><h1>📖 دار حم — الواجب المنزلي</h1></header>
+  <main>
+    <div id="offline-banner" class="banner warn hidden">📴 لا يوجد اتصال بالإنترنت الآن. إجاباتك تُحفظ على جهازك ولن تضيع.</div>
+    <div id="storage-banner" class="banner warn hidden">⚠️ المتصفح لا يسمح بحفظ الإجابات على الجهاز (وضع التصفح الخاص؟). لا تُغلق الصفحة قبل التسليم.</div>
+
+    <section id="screen-loading" class="card"><div class="status-big"><div class="ico">⏳</div><p id="loading-text">جاري تحميل الواجب…</p></div></section>
+
+    <section id="screen-error" class="card hidden"><div class="status-big"><div class="ico" id="error-ico">❌</div><h2 id="error-title"></h2><p id="error-text" class="muted"></p><button class="btn" id="btn-reload">🔄 إعادة المحاولة</button></div></section>
+
+    <section id="screen-name" class="card hidden">
+      <h2>مرحباً بك يا بطل 👑</h2>
+      <p class="muted">واجب من <span id="q-count"></span> سؤال. إجاباتك تُحفظ تلقائياً على جهازك أثناء الحل.</p>
+      <div id="assigned-box" class="hidden banner info">هذا الواجب مخصّص لـ: <b id="assigned-name"></b></div>
+      <div id="name-box"><label for="student-name">اكتب اسمك الكامل</label><input type="text" id="student-name" maxlength="80" autocomplete="name" placeholder="مثال: أحمد محمد"></div>
+      <div id="draft-note" class="banner info hidden">وجدنا إجابات محفوظة على هذا الجهاز من قبل — سنكمل من حيث توقفت.</div>
+      <p><button class="btn gold" id="btn-start">ابدأ الحل ▶</button></p>
+    </section>
+
+    <section id="screen-quiz" class="card hidden">
+      <div class="row" style="align-items:center"><b id="progress-text"></b><span id="save-indicator" class="muted"></span></div>
+      <div class="progress"><div id="progress-bar"></div></div>
+      <div id="question-host" style="margin-top:14px"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn ghost" id="btn-prev">◀ السابق</button>
+        <button class="btn" id="btn-next">التالي ▶</button>
+        <button class="btn gold hidden" id="btn-submit">📨 تسليم الواجب</button>
+      </div>
+      <p id="unanswered-hint" class="muted"></p>
+    </section>
+
+    <section id="screen-status" class="card hidden">
+      <div class="status-big">
+        <div class="ico" id="status-ico"></div>
+        <h2 id="status-title"></h2>
+        <p id="status-text" class="muted"></p>
+        <p><span id="status-badge" class="badge"></span></p>
+        <p id="status-meta" class="muted"></p>
+        <button class="btn hidden" id="btn-retry">🔄 إعادة إرسال الآن</button>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="js/student.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>المعلم — إنشاء واجب | Dar Ham Lab</title>
+  <link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+  <header class="lab-head"><h1>👨‍🏫 المعلم — إنشاء الواجب</h1>
+    <nav><a href="index.html">الرئيسية</a><a href="teacher.html">إنشاء</a><a href="results.html">النتائج</a><a href="diagnostics.html">التشخيص</a></nav></header>
+  <main>
+    <div id="conn" class="banner info">⏳ جاري فحص الاتصال بالخادم…</div>
+
+    <section class="card">
+      <h2>1) اختر السورة وأنشئ الأسئلة</h2>
+      <div class="row">
+        <div><label for="surah">السورة</label><select id="surah"><option>جاري تحميل السور…</option></select></div>
+        <div><label for="from">من آية</label><input type="number" id="from" min="1" value="1"></div>
+        <div><label for="to">إلى آية</label><input type="number" id="to" min="1" value="1"></div>
+        <div><label for="qcount">عدد الأسئلة</label><input type="number" id="qcount" min="1" max="40" value="10"></div>
+      </div>
+      <label for="assign">تخصيص لطالب (اختياري)</label>
+      <select id="assign"><option value="">— رابط عام (الطالب يكتب اسمه) —</option></select>
+      <p class="muted">الطلاب هنا هم طلاب سجلّك المحلي (نفس سجل دار حم). الواجب المخصّص يُنسب تلقائياً لسجل الطالب عند الاعتماد.</p>
+      <p><button class="btn" id="btn-generate" disabled>🎲 توليد الأسئلة</button> <span id="gen-status" class="muted"></span></p>
+      <div id="preview" class="hidden"></div>
+    </section>
+
+    <section class="card hidden" id="publish-card">
+      <h2>2) إنشاء الواجب</h2>
+      <p class="muted">لن يظهر أي رابط إلا بعد أن يؤكّد الخادم أنه حفظ الواجب فعلاً، ثم نتحقق أن الرابط يفتح كما سيراه الطالب.</p>
+      <button class="btn gold" id="btn-publish">🚀 إنشاء الواجب (Create Homework)</button>
+      <ol class="steps" id="publish-steps"></ol>
+      <div id="link-box" class="hidden">
+        <label for="link">رابط الطالب</label>
+        <input type="text" id="link" readonly>
+        <p class="row"><button class="btn" id="btn-copy">📋 نسخ الرابط</button><a class="btn wa" id="btn-wa" target="_blank" rel="noopener">💬 إرسال عبر واتساب</a></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>الواجبات المنشورة</h2>
+      <div id="hw-list" class="muted">جاري التحميل…</div>
+      <p><button class="btn ghost small" id="btn-refresh">🔄 تحديث</button></p>
+    </section>
+  </main>
+  <script type="module" src="js/teacher.js"></script>
+</body>
+</html>

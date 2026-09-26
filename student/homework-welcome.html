@@ -13,14 +13,17 @@
             <h2 id="hw-welcome-name" style="color: #047857; margin: 0; font-size: 1.8rem; font-weight: bold; line-height: 1.6;"></h2>
         </div>
 
-        <!-- ⚙️ قسم قائمة الاختيار العادية (كحل بديل لو لم يتم تحديد طالب للواجب) -->
+        <!-- 🌟🌟 [محدَّث] قسم إدخال الاسم (يظهر فقط لو الواجب "رابط عام" غير مخصَّص لطالب بعينه).
+             كان قائمة اختيار من طلاب الجهاز نفسه، وهذا لا يصلح لهاتف طالب جديد لا يحتوي أي طلاب. الاسم
+             يُرسَل مع التسليم، والمعلم هو من يربطه بسجل الطالب عند الاعتماد. -->
         <div id="hw-dropdown-section" style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #cbd5e1;">
-            <label style="display: block; font-weight: bold; color: #334155; margin-bottom: 15px; font-size: 1.2rem;">أخبرنا من أنت لنسجل درجاتك:</label>
-            <select id="hw-student-select" style="width: 100%; padding: 15px; font-size: 1.4rem; font-family: 'Tajawal', sans-serif; font-weight: bold; color: #1e3a5f; border: 2px solid #93c5fd; border-radius: 10px; text-align: center; outline: none; appearance: none; background: white; cursor: pointer;">
-                <option value="" disabled selected>-- اختر اسمك من هنا --</option>
-                <!-- سيتم ملء الأسماء عبر الجافاسكربت -->
-            </select>
+            <label for="hw-student-name-input" data-i18n="hw_st_name_label" style="display: block; font-weight: bold; color: #334155; margin-bottom: 15px; font-size: 1.2rem;">اكتب اسمك الكامل ليصل واجبك لمعلمك:</label>
+            <input type="text" id="hw-student-name-input" maxlength="80" autocomplete="name" data-i18n-placeholder="hw_st_name_placeholder" placeholder="مثال: أحمد محمد" style="width: 100%; box-sizing: border-box; padding: 15px; font-size: 1.4rem; font-weight: bold; color: #1e3a5f; border: 2px solid #93c5fd; border-radius: 10px; text-align: center; outline: none; background: white;">
         </div>
+
+        <!-- 🌟 [جديد] رسالة الحالة (جاري التحميل / خطأ صادق) — لا تظهر أي رسالة "نجاح" هنا إطلاقاً -->
+        <div id="hw-welcome-msg" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 12px; font-size: 1.15rem; line-height: 1.7; font-weight: bold;"></div>
+        <button class="btn" id="btn-retry-load-hw" data-i18n="hw_st_retry_load" style="display: none; width: 100%; margin-bottom: 15px; background: #0ea5e9; font-size: 1.2rem; padding: 12px; border-radius: 12px;">🔄 إعادة المحاولة</button>
 
         <button class="btn" id="btn-enter-hw" style="width: 100%; background: linear-gradient(45deg, #10b981, #059669); font-size: 1.5rem; padding: 15px; border-radius: 12px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
             🚀 انطلق للتحدي!

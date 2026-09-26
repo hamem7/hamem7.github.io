@@ -1,12 +1,7 @@
 // games/homework-play.js
-import { AppState } from '../core/app.js';
-// 🌟🌟 [محدَّث] كان هذا الملف يستورد رفع النتيجة/الصوت من core/firebase.js ويحسب الدرجة على هاتف الطالب ويدّعي
-// النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
-// أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
-import { t } from '../core/i18n.js';
-import { friendlyErrorText } from '../core/homeworkApi.js';
-import { ApiError } from '../core/api.js';
-import { saveDraft, loadDraft, getAttempt, startSubmission, attemptSend, startAutoRetry, watchAttempt, isLocalStorageWorking } from '../core/submitQueue.js';
+import { AppState, loadSplashScreen } from '../core/app.js';
+// 🌟 استدعاء دوال جديدة: رفع الصوت لـ Storage، وطابور إعادة الإرسال المحلي
+import { saveSubmissionToCloud, uploadAudioAndGetUrl, queuePendingSubmission, flushPendingSubmissions } from '../core/firebase.js';
 
 let hw = null;
 let student = null;
@@ -22,76 +17,20 @@ export function initHomeworkPlay() {
     student = AppState.currentStudent;
 
     if (!hw || !student) {
-        alert(t('hw_st_incomplete_data'));
-        window.location.href = window.location.pathname;
+        alert("بيانات التحدي غير مكتملة، سنعود للرئيسية.");
+        loadSplashScreen();
         return;
     }
 
-    document.getElementById('hp-student-name').innerText = `${t('hw_st_hero_prefix')} ${student.name}`;
+    document.getElementById('hp-student-name').innerText = `البطل: ${student.name}`;
     currentIndex = 0;
     answers = {};
 
-    // 🌟 شريط تنبيه عدم وجود اتصال + تنبيه لو منع المتصفح الحفظ المحلي (وضع التصفح الخاص)
-    bindConnectivityBanner();
-    const storageBanner = document.getElementById('hp-storage-banner');
-    if (storageBanner && !isLocalStorageWorking()) storageBanner.style.display = 'block';
+    // 🌟 محاولة إعادة إرسال أي تسليمات سابقة فشلت في الرفع للسحابة (بصمت، دون إزعاج الطالب)
+    flushPendingSubmissions().catch(() => {});
 
     setupListeners();
-
-    // 🌟🌟 لو كان لهذا الواجب تسليم سابق على هذا الجهاز (مؤكَّد أو عالق) نعرض حالته الحقيقية فقط، ولا نسمح بإعادة
-    // الحل. (سبب: إعادة فتح الرابط بعد "وصل واجبك" كانت تسمح بحل ثانٍ وتسليم مكرر)
-    const prev = getAttempt(hw.id);
-    if (prev && prev.state !== 'rejected') {
-        watchAttempt(hw.id, renderSubmissionStatus);
-        renderSubmissionStatus(prev);
-        if (prev.state === 'pending' || prev.state === 'failed') {
-            attemptSend(hw.id, renderSubmissionStatus).then(() => {
-                const a = getAttempt(hw.id);
-                // 🌟 pending أيضاً: قد يكون إرسال آخر جارياً (استئناف عند الإقلاع) فنتابعه حتى تُحدَّث الشاشة
-                if (a && (a.state === 'failed' || a.state === 'pending')) startAutoRetry(hw.id, renderSubmissionStatus);
-            });
-        }
-        return;
-    }
-
-    // 🌟 استعادة مسودة الإجابات المحفوظة على الجهاز (بعد تحديث الصفحة/إغلاق المتصفح/انقطاع الإنترنت)
-    const draft = loadDraft(hw.id);
-    if (draft && draft.answers) {
-        answers = draft.answers;
-        currentIndex = Math.min(draft.index || 0, hw.questions.length - 1);
-    }
-    startDraftAutosave();
     renderQuestion();
-}
-
-// ==========================================================
-// 🌟 [جديد] حفظ المسودة تلقائياً على الجهاز (الإجابات لا تعيش في الذاكرة فقط بعد اليوم)
-// ==========================================================
-let draftTimer = null;
-function persistDraft() {
-    if (!hw || !student) return;
-    try { saveCurrentAnswer(); } catch (e) { /* الشاشة قد تكون أُغلقت */ }
-    saveDraft(hw.id, { studentName: student.name, answers, index: currentIndex });
-}
-function startDraftAutosave() {
-    if (draftTimer) clearInterval(draftTimer);
-    draftTimer = setInterval(persistDraft, 2000);
-    window.addEventListener('pagehide', persistDraft);
-    const container = document.getElementById('hp-question-container');
-    if (container) {
-        container.addEventListener('input', persistDraft);
-        container.addEventListener('change', persistDraft);
-    }
-}
-function stopDraftAutosave() { if (draftTimer) { clearInterval(draftTimer); draftTimer = null; } }
-
-function bindConnectivityBanner() {
-    const banner = document.getElementById('hp-offline-banner');
-    if (!banner) return;
-    const update = () => { banner.style.display = (navigator.onLine === false) ? 'block' : 'none'; };
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    update();
 }
 
 function setupListeners() {
@@ -509,86 +448,236 @@ function saveCurrentAnswer() {
     // ملاحظة: matching يُحفظ أيضاً تلقائياً فور كل ضغطة ربط/فك ربط (renderMatchingColumns)، لنفس سبب الصوت
 }
 
-// ==========================================================
-// 📨 التسليم — صادق بالكامل (بديل submitHomework القديمة التي كانت تدّعي النجاح قبل أي رفع)
-// ==========================================================
-async function submitHomework() {
-    const submitBtn = document.getElementById('btn-hp-submit');
-    submitBtn.disabled = true;
-    stopDraftAutosave();
-
-    // 🌟 التسجيل الصوتي غير مدعوم حالياً (يحتاج تخزين ملفات) — لا نرسل أي صوت، ولا نعرضه كأنه أُرسل
-    const cleanAnswers = {};
-    hw.questions.forEach(q => {
-        let a = answers[q.id];
-        if (q.type === 'audio_record') a = null;
-        if (a !== undefined) cleanAnswers[q.id] = a;
+// 🌟 [جديد] دالة حماية عامة: تُنفّذ أي Promise لكن لا تنتظره أبداً أكثر من مهلة محددة.
+// إن لم يُنجز الـ Promise خلال المهلة، تُرجع القيمة الاحتياطية فوراً بدل تعليق الصفحة للأبد.
+// هذا هو الإصلاح الأساسي لمشكلة "جاري الاعتماد..." التي لا تنتهي أبداً.
+function withTimeout(promise, ms, fallbackValue = null) {
+    return new Promise((resolve) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+            if (!settled) { settled = true; resolve(fallbackValue); }
+        }, ms);
+        promise.then((val) => {
+            if (!settled) { settled = true; clearTimeout(timer); resolve(val); }
+        }).catch(() => {
+            if (!settled) { settled = true; clearTimeout(timer); resolve(fallbackValue); }
+        });
     });
-
-    saveDraft(hw.id, { studentName: student.name, answers, index: currentIndex });
-    // تجميد الإجابات في سجل محاولة يُحفظ محلياً "قبل" أي نداء للشبكة
-    const attempt = startSubmission(hw.id, student.name, cleanAnswers);
-    renderSubmissionStatus(attempt);
-    await attemptSend(hw.id, renderSubmissionStatus);
-    const after = getAttempt(hw.id);
-    if (after && after.state === 'failed') startAutoRetry(hw.id, renderSubmissionStatus);
 }
 
-// شاشة الحالة الحقيقية للتسليم — الوحيدة التي يمكنها القول إن الواجب "وصل" (فقط عند state=confirmed)
-function renderSubmissionStatus(a) {
-    const modal = document.getElementById('hp-result-modal');
-    if (!modal) return;
-    modal.style.display = 'flex';
-    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-    const icon = document.getElementById('hp-result-icon');
-    const badge = document.getElementById('hp-result-badge');
-    const retry = document.getElementById('btn-hp-retry');
-    const finish = document.getElementById('btn-hp-finish');
-    retry.style.display = 'none';
-    finish.style.display = 'none';
+async function submitHomework() {
+    const submitBtn = document.getElementById('btn-hp-submit');
+    submitBtn.innerHTML = "⏳ جاري الاعتماد...";
+    submitBtn.disabled = true;
 
-    const badgeStyles = {
-        ok: 'background:#dcfce7; color:#166534;', info: 'background:#e0f2fe; color:#0369a1;',
-        warn: 'background:#fef3c7; color:#92400e;', bad: 'background:#fee2e2; color:#b91c1c;'
-    };
-    const setBadge = (kind, key) => {
-        badge.style.cssText = 'display:inline-block; padding:5px 16px; border-radius:20px; font-size:1.05rem; font-weight:bold; ' + badgeStyles[kind];
-        badge.textContent = t(key);
-    };
-    const meta = [];
+    let totalPoints = 0;
+    let earnedPoints = 0;
+    const detailedLog = [];
+    const submissionId = `${hw.id}_${student.id}_${Date.now()}`;
 
-    if (a.state === 'confirmed') {
-        icon.textContent = '✅';
-        set('hp-result-title', t('hw_st_confirmed_title'));
-        set('hp-result-score', t('hw_st_confirmed_text'));
-        set('hp-result-note', t('hw_st_confirmed_note'));
-        setBadge('ok', 'hw_st_badge_confirmed');
-        if (a.receipt && a.receipt.submissionId) meta.push(t('hw_st_receipt') + ' ' + String(a.receipt.submissionId).slice(-8));
-        if (a.confirmedAt) meta.push(t('hw_st_confirmed_at') + ' ' + new Date(a.confirmedAt).toLocaleString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US'));
-        finish.style.display = 'block';
-    } else if (a.state === 'pending') {
-        icon.textContent = '⏳';
-        set('hp-result-title', t('hw_st_pending_title'));
-        set('hp-result-score', t('hw_st_pending_text'));
-        set('hp-result-note', '');
-        setBadge('info', 'hw_st_badge_pending');
-    } else if (a.state === 'failed') {
-        icon.textContent = '⚠️';
-        set('hp-result-title', t('hw_st_failed_title'));
-        set('hp-result-score', t('hw_st_failed_text'));
-        set('hp-result-note', t('hw_st_failed_note'));
-        setBadge('warn', 'hw_st_badge_failed');
-        retry.style.display = 'block';
-        retry.onclick = () => attemptSend(hw.id, renderSubmissionStatus);
-        if (a.lastError) meta.push(t('hw_st_reason') + ' ' + friendlyErrorText(new ApiError('x', a.lastError.code, a.lastError.message)));
+    // 🌟🌟 إصلاح جوهري (كان هو سبب تجمّد "جاري الاعتماد..." للأبد): كان رفع الصوت لـ Storage
+    // يحدث هنا في أول الدالة، وإن كانت خدمة Storage غير مفعّلة أو بها مشكلة اتصال، يمكن أن
+    // يُعلَّق الطلب دون أن ينجح أو يفشل أبداً، فتتجمد كل الشاشة قبل حتى حساب النتيجة.
+    // الحل: حساب النتيجة وعرضها للطالب أولاً (لا يعتمد على الشبكة إطلاقاً)، ثم تنفيذ رفع
+    // الصوت والحفظ في السحابة بعد ذلك، بمهلة قصوى (20 ثانية) لكل عملية شبكة حتى لا تتجمد الصفحة مهما حدث.
+
+    hw.questions.forEach(q => {
+        const stdAns = answers[q.id];
+        let isCorrect = false;
+        const qPoints = q.points || 1;
+
+        if (q.needsManualGrading) {
+            isCorrect = false;
+        } else {
+            totalPoints += qPoints;
+            if (q.type === 'matrix_order') {
+                let correctRows = 0;
+                if (Array.isArray(stdAns)) {
+                    q.correctAnswer.forEach((correctAyah, idx) => {
+                        if (stdAns[idx] === correctAyah) correctRows++;
+                    });
+                }
+                earnedPoints += correctRows;
+                isCorrect = (correctRows === qPoints);
+            } else if (q.type === 'dual_dropdown') {
+                let correctParts = 0;
+                if (Array.isArray(stdAns)) {
+                    if (stdAns[0] === q.correctAnswer[0]) correctParts++;
+                    if (stdAns[1] === q.correctAnswer[1]) correctParts++;
+                }
+                earnedPoints += correctParts;
+                isCorrect = (correctParts === qPoints);
+            } else if (q.type === 'checkbox') {
+                if (Array.isArray(stdAns) && Array.isArray(q.correctAnswer) && stdAns.length === q.correctAnswer.length) {
+                    const sortedStd = [...stdAns].sort();
+                    const sortedCorr = [...q.correctAnswer].sort();
+                    isCorrect = sortedStd.every((val, idx) => val === sortedCorr[idx]);
+                }
+                if (isCorrect) earnedPoints += qPoints;
+            } else {
+                isCorrect = (stdAns === q.correctAnswer);
+                if (isCorrect) earnedPoints += qPoints;
+            }
+        }
+
+        let safeStdAns = stdAns;
+        if (q.type === 'audio_record') {
+            safeStdAns = stdAns ? '[مقطع صوتي مُسجل 🎤]' : 'لم يُسجل';
+        } else if (q.type === 'matching') {
+            // 🌟 [جديد] نلخّص أزواج المطابقة كنص مقروء (نسخة احتياطية نصية فقط؛ العرض التفاعلي
+            // الحقيقي في غرفة التصحيح يعتمد على matchingData الخام أدناه لا هذا النص الملخّص)
+            const pairsObj = (stdAns && typeof stdAns === 'object') ? stdAns : {};
+            const pairEntries = Object.keys(pairsObj);
+            if (pairEntries.length === 0) {
+                safeStdAns = 'لم يُجب';
+            } else {
+                safeStdAns = pairEntries.map(leftId => {
+                    const leftItem = q.leftItems.find(it => it.id === leftId);
+                    const rightItem = q.rightItems.find(it => it.id === pairsObj[leftId]);
+                    return `(${leftItem ? leftItem.text : leftId} ⇄ ${rightItem ? rightItem.text : pairsObj[leftId]})`;
+                }).join(' ، ');
+            }
+        } else if (Array.isArray(stdAns)) {
+            safeStdAns = stdAns.map(x => x || 'فارغ').join(' ، ');
+        } else if (!stdAns) {
+            safeStdAns = 'لم يُجب';
+        }
+
+        let safeCorrAns;
+        if (q.type === 'matching') {
+            // 🌟 [جديد] الأزواج الصحيحة نص مقروء (بديل احتياطي فقط، نفس سبب safeStdAns أعلاه)
+            safeCorrAns = q.correctAnswer.map(p => {
+                const leftItem = q.leftItems.find(it => it.id === p.left);
+                const rightItem = q.rightItems.find(it => it.id === p.right);
+                return `(${leftItem ? leftItem.text : p.left} ⇄ ${rightItem ? rightItem.text : p.right})`;
+            }).join(' ، ');
+        } else {
+            safeCorrAns = Array.isArray(q.correctAnswer) ? q.correctAnswer.join(' ، ') : q.correctAnswer;
+        }
+        // 🌟 حماية إضافية: لو correctAnswer غير معرّف لأي سبب، نستبدلها بقيمة صالحة بدل undefined
+        if (safeCorrAns === undefined) safeCorrAns = '';
+
+        if (q.needsManualGrading) safeStdAns += " (بانتظار تقييم المعلم)";
+
+        detailedLog.push({
+            question: q.text,
+            type: q.type,
+            studentAnswer: safeStdAns,
+            correctAnswer: safeCorrAns,
+            isCorrect: isCorrect,
+            // 🌟🌟 إصلاح جوهري (هذا هو السبب الحقيقي وراء فشل حفظ كل التسليمات منذ البداية):
+            // Firestore يرفض تمامًا أي حقل قيمته undefined ويفشل الحفظ بالكامل برسالة
+            // "Unsupported field value: undefined". أسئلة الاختيار من متعدد والقوائم المنسدلة
+            // وغيرها لا تحمل خانة needsManualGrading أصلاً من homeworkEngine.js، فتكون قيمتها
+            // undefined هنا. نستخدم "|| false" لضمان أنها دائماً true أو false، لا أكثر ولا أقل.
+            needsManualGrading: q.needsManualGrading || false,
+            // 🌟 [جديد] نخزّن الدرجة القصوى لهذا السؤال مباشرة بدل ترك المعلم (homework-prep.js)
+            // يعيد تخمينها لاحقاً من نوع السؤال فقط، وهو أسلوب هش يفقد التزامن إن تغيرت نقاط الأنواع مستقبلاً.
+            points: qPoints,
+            // 🌟 نفس المشكلة بالضبط: لو سؤال صوتي والطالب لم يسجل شيئاً، stdAns تكون undefined.
+            // "|| null" يضمن قيمة صالحة دائماً (null مقبول في Firestore، undefined غير مقبول أبداً).
+            audioData: q.type === 'audio_record' ? (stdAns || null) : null,
+            // 🌟 [جديد] بيانات المطابقة الخام (الأعمدة + ربط الطالب + الأزواج الصحيحة) لعرضها
+            // بشكل تفاعلي في غرفة التصحيح بـ homework-prep.js، بدل الاكتفاء بالنص الملخّص أعلاه فقط.
+            // نفس منطق "|| null" السابق: matchingData لازم تكون null لا undefined لأي سؤال آخر.
+            matchingData: q.type === 'matching' ? {
+                leftItems: q.leftItems,
+                rightItems: q.rightItems,
+                studentPairs: (stdAns && typeof stdAns === 'object') ? stdAns : {},
+                correctPairs: q.correctAnswer
+            } : null
+        });
+    });
+
+    const scorePercent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 100;
+
+    const historyKey = `history_${student.id}`;
+    let historyArray = JSON.parse(localStorage.getItem(historyKey)) || [];
+    historyArray.push({
+        date: new Date().toLocaleDateString('ar-EG'),
+        range: `واجب منزلي (${hw.questions.length} أسئلة)`,
+        score: scorePercent,
+        hwId: hw.id,
+        details: detailedLog
+    });
+    localStorage.setItem(historyKey, JSON.stringify(historyArray));
+
+    // 🌟🌟 [تعديل بناءً على طلب المعلم] لا نعرض للطالب أي نتيجة أو نسبة مئوية إطلاقاً عند
+    // التسليم — حتى لو كانت كل الأسئلة تلقائية التصحيح بالكامل — لأن المعلم طلب صراحة ألا يرى
+    // الطالب أي رقم إلا بعد انتهاء المعلم من المراجعة والتصحيح اليدوي الكامل لكل الواجب، حتى
+    // تكون النتيجة التي يراها الطالب في النهاية دقيقة ونهائية، بدل رقم أولي قد يتغير لاحقاً.
+    // ملحوظة: النتيجة (scorePercent) ما زالت تُحسب وتُحفظ بالكامل كالمعتاد في السجل المحلي
+    // وفي السحابة (يستخدمها المعلم كنتيجة أولية قابلة للتعديل من نافذة التصحيح) — نحن فقط لا
+    // نعرضها في واجهة الطالب هنا.
+    submitBtn.innerHTML = "✅ تم الاعتماد";
+    const resultScoreEl = document.getElementById('hp-result-score');
+    resultScoreEl.style.color = '#0ea5e9';
+    resultScoreEl.innerHTML = `
+        <div style="font-size: 3rem; margin-bottom: 10px;">📨</div>
+        تم استلام إجاباتك بنجاح يا بطل!
+        <br><span style="font-size: 1.1rem; color:#475569;">سيقوم معلمك بمراجعة إجاباتك واعتماد نتيجتك النهائية، وستُبلَّغ بها منه مباشرة. 🌟</span>
+    `;
+
+    const resultModal = document.getElementById('hp-result-modal');
+    if (resultModal) {
+        resultModal.style.display = 'flex';
     } else {
-        icon.textContent = '❌';
-        set('hp-result-title', t('hw_st_rejected_title'));
-        set('hp-result-score', a.lastError ? friendlyErrorText(new ApiError('x', a.lastError.code, a.lastError.message)) : '');
-        set('hp-result-note', '');
-        setBadge('bad', 'hw_st_badge_rejected');
-        finish.style.display = 'block';
+        // 🌟 خطة بديلة: لو كان معرّف العنصر مختلفاً في ملف HTML لديك، لن نفقد الرسالة بصمت
+        console.error("⚠️ لم يتم العثور على عنصر hp-result-modal في الصفحة! تحقق من homework-play.html");
+        alert(`تم استلام إجاباتك بنجاح! سيقوم معلمك بمراجعتها واعتماد نتيجتك النهائية قريباً.`);
     }
-    if (a.attempts) meta.push(t('hw_st_attempts') + ' ' + a.attempts);
-    set('hp-result-meta', meta.join(' • '));
+
+    // ==========================================
+    // 🌐 من هنا فصاعداً: كل ما يخص الشبكة (لا يجب أن يُعلّق الصفحة أبداً بعد الآن)
+    // ==========================================
+
+    // 1) تحديث رصيد نقاط الطالب محلياً — بمهلة قصوى ومعالجة أخطاء منفصلة
+    try {
+        student.totalScore = (student.totalScore || 0) + earnedPoints;
+        await withTimeout(AppState.studentManager.updateStudent(student), 10000);
+    } catch (e) {
+        console.error("تعذر تحديث رصيد نقاط الطالب:", e);
+    }
+
+    // 2) رفع أي تسجيل صوتي إلى Firebase Storage، بمهلة قصوى 20 ثانية لكل تسجيل
+    for (let i = 0; i < hw.questions.length; i++) {
+        const q = hw.questions[i];
+        if (q.type === 'audio_record' && answers[q.id] && String(answers[q.id]).startsWith('data:')) {
+            const url = await withTimeout(uploadAudioAndGetUrl(answers[q.id], submissionId, q.id), 20000, null);
+            // 🌟 نطابق بالفهرس (i) مباشرة بدل البحث بنص السؤال، لأن detailedLog بُني بنفس
+            // ترتيب hw.questions تماماً في الحلقة أعلاه — هذا أضمن من مطابقة النص.
+            if (url) {
+                // نحدّث الرابط في نسخة التفاصيل التي سترسل للسحابة (وليس فقط answers المحلية)
+                detailedLog[i].audioData = url;
+            } else {
+                // فشل الرفع (Storage غير مفعّل / لا إنترنت): لا نُرسل Base64 ضخماً للسحابة
+                // لأنه سيفشل حتماً بسبب حد حجم مستند Firestore، ونكتفي بترك ملاحظة واضحة.
+                detailedLog[i].audioData = null;
+                console.warn(`تعذر رفع التسجيل الصوتي للسؤال ${q.id} إلى Storage — تأكد من تفعيل Firebase Storage.`);
+            }
+        }
+    }
+
+    const cloudSubmissionData = {
+        // 🌟🌟 [جديد — المرحلة 2] حقل id ثابت للتسليم نفسه (نفس submissionId المستخدَم أصلاً
+        // أعلاه كمسار تخزين الصوت في Storage، لم يكن يُخزَّن داخل بيانات التسليم نفسها من قبل).
+        // يُمكّن core/firebase.js من تتبّع "هل هذا التسليم بعينه لا يزال عالقاً في طابور إعادة
+        // المحاولة المحلي؟" (isSubmissionPendingSync/getPendingSubmissionsCountForHomework) —
+        // إضافة حقل جديد بحتة، لا تؤثر على أي كود قديم يقرأ هذا الكائن.
+        id: submissionId,
+        hwId: hw.id,
+        studentId: student.id,
+        studentName: student.name,
+        score: scorePercent,
+        date: new Date().toLocaleDateString('ar-EG'),
+        timestamp: Date.now(),
+        details: detailedLog
+    };
+
+    // 3) إرسال النتيجة للسحابة، بمهلة قصوى 20 ثانية أيضاً حتى لا تتعلق أي شاشة أخرى مستقبلاً
+    const uploaded = await withTimeout(saveSubmissionToCloud(cloudSubmissionData), 20000, false);
+    if (!uploaded) {
+        queuePendingSubmission(cloudSubmissionData);
+        resultScoreEl.innerHTML += '<br><span style="color:#ef4444; font-size:1.05rem;">⚠️ تعذر إرسال نتيجتك للمعلم الآن (تحقق من اتصال الإنترنت). سيُعاد إرسالها تلقائياً بمجرد توفر الاتصال.</span>';
+    }
 }

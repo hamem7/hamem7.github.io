@@ -12,27 +12,18 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // فشل رفعها للسحابة ولا تزال عالقة محلياً على جهاز الطالب نفسه لا تظهر إطلاقاً في نتيجة
 // getSubmissionsFromCloud (لأنها أصلاً لم تصل للسحابة) — فكان المعلم لا يرى أي أثر لها هنا،
 // حتى لو كان الطالب قد حل الواجب فعلاً. راجع core/firebase.js للشرح الكامل.
-// 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كانت هذه الدوال تُستورد من core/firebase.js (Firestore + App Check).
-// الآن من core/homeworkApi.js (خادم Google Apps Script) — أبقينا نفس أسماء دوال القراءة لتقليل التغيير هنا،
-// وأضفنا publishHomeworkToServer/fetchPublicHomework/gradeSubmissionOnServer. الدوال القديمة الخاصة بطوابير
-// إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
-import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
-// 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
-import { findLocalStudentForSubmission, createLocalStudent, recordApprovedResult } from '../core/homeworkRecords.js';
-// 🌟 [جديد] بوابة مفتاح المعلم (لو انتهت صلاحية المفتاح المحفوظ أثناء الجلسة)
-import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
+import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, saveHomeworkToCloud, updateSubmissionInCloud, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework } from '../core/firebase.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
 // نفس المقارنة هنا وفي core/firebase.js — راجع core/submissionStatus.js للشرح الكامل.
 // 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
-import { submissionNeedsGrading } from '../core/submissionStatus.js';
+import { submissionNeedsGrading, syncSubmissionScoreToLocalHistory } from '../core/submissionStatus.js';
 import { t } from '../core/i18n.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
-// 🌟 [محدَّث] لم يعد الرابط يحمل الواجب مُرمَّزاً داخله (كان يحمل الإجابات الصحيحة للطالب!) — الرابط الآن معرّف فقط
-
+import { encodeHomeworkForLink } from '../database/homeworkDB.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 
@@ -44,9 +35,22 @@ let hwEngine = null;
 // أسفل هذا الملف)
 let lastFailedHomeworkForRetry = null;
 
-// 🌟🌟 [محدَّث] رابط المشاركة = عنوان المنصة + ?hw=<معرّف الواجب>. المعرّف عشوائي غير قابل للتخمين (يولّده الخادم)،
-// والرابط لا يحمل أي أسئلة أو إجابات؛ الطالب يجلب الواجب (بدون الإجابات الصحيحة) من الخادم عند فتحه.
+// 🌟🌟 [جديد] بناء رابط المشاركة: نفضّل دائماً الرابط "المكتفي ذاتياً" (يحمل الواجب كامل، بلا
+// أي حاجة لاتصال عند فتحه — راجع database/homeworkDB.js). لكن لو الواجب كبير جداً (عدد أسئلة
+// كثير + آيات طويلة)، الرابط الناتج ممكن يطول جداً (آلاف الأحرف)، وبعض الخوادم/الوسطاء
+// (proxies) بترفض الروابط الطويلة جداً. لتفادي ده: لو تجاوز الرابط حد معقول (6000 حرف تقريباً)
+// نرجع تلقائياً للرابط القديم بالمعرّف البسيط فقط (?hw=HW_xxx)، اللي يعتمد على البحث
+// المحلي/السحابي كخط رجوع (زي ما كان قبل هذا التحديث تمامًا، ولسه شغّال بفضل إصلاحات
+// core/firebase.js الأخيرة). كده نضمن أفضل حل ممكن للحالة الشائعة (واجب عادي) مع خط رجوع آمن
+// للحالة النادرة (واجب ضخم جداً).
+const SELF_CONTAINED_LINK_MAX_LENGTH = 6000;
+
 function buildHomeworkShareLink(baseUrl, hwData) {
+    const encodedLink = `${baseUrl}?hw=${encodeHomeworkForLink(hwData)}`;
+    if (encodedLink.length <= SELF_CONTAINED_LINK_MAX_LENGTH) {
+        return encodedLink;
+    }
+    console.warn(`رابط الواجب المكتفي ذاتياً طويل جداً (${encodedLink.length} حرف) — تم الرجوع للرابط بالمعرّف البسيط بدلاً منه (يعتمد على البحث المحلي/السحابي عند فتحه).`);
     return `${baseUrl}?hw=${hwData.id}`;
 }
 
@@ -248,8 +252,6 @@ async function loadHomeworkDashboard() {
             // 🌟 [إصلاح] رابط مكتفي ذاتياً (يحمل الواجب كامل، بلا حاجة لأي اتصال عند فتحه)
             // بدل رابط بمعرّف بسيط فقط — راجع buildHomeworkShareLink أعلاه في هذا الملف
             const hwLink = buildHomeworkShareLink(baseUrl, hw);
-            // 🌟 واجب منشور من النظام القديم (Firebase) لا يعمل رابطه مع الخادم الجديد — نُظهر شارة بدل رابط مضلِّل
-            const isLegacyPublished = hw.status === 'published' && !isServerHomeworkId(hw.id);
 
             const tr = document.createElement('tr');
             tr.style.borderBottom = "1px solid #e2e8f0";
@@ -277,9 +279,7 @@ async function loadHomeworkDashboard() {
                 </td>
                 <td style="padding: 15px; display: flex; gap: 5px; justify-content: center;">
                     <button class="btn btn-view-results" data-id="${hw.id}" style="padding: 5px 10px; background: #0ea5e9; font-size:1rem; min-width:unset;" title="${t('hw_subs_modal_title')}">📊</button>
-                    ${isLegacyPublished
-                        ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                        : `<button class="btn" onclick="navigator.clipboard.writeText('${hwLink}').then(()=>alert(t('hw_share_success')))" style="padding: 5px 10px; background: #8b5cf6; font-size:1rem; min-width:unset;" title="${t('hw_copy_btn')}">🔗</button>`}
+                    <button class="btn" onclick="navigator.clipboard.writeText('${hwLink}').then(()=>alert(t('hw_share_success')))" style="padding: 5px 10px; background: #8b5cf6; font-size:1rem; min-width:unset;" title="${t('hw_copy_btn')}">🔗</button>
                     <button class="btn btn-delete-hw-record" data-id="${hw.id}" style="padding: 5px 10px; background: #ef4444; font-size:1rem; min-width:unset;" title="${t('حذف')}">🗑️</button>
                 </td>
             `;
@@ -430,7 +430,7 @@ async function loadSubmissionsInline(hwId) {
         // 🌟 الآن يظهر هنا فقط عند وجود خطأ فعلي (صلاحيات/اتصال)، وليس كحالة افتراضية دائمة
         console.error("خطأ فعلي أثناء جلب نتائج الواجب من السحابة:", e);
         container.innerHTML = `<div style="padding: 20px; color: #ef4444;">
-            ${t('hw_results_load_error')} ${friendlyErrorText(e)}
+            ${t("تعذر الاتصال بالسحابة. تأكد من تفعيل Firestore وضبط قواعد الأمان (Security Rules) في لوحة تحكم Firebase.")}
             <br><button class="btn" id="btn-retry-submissions" style="margin-top:10px; background:#0ea5e9;">🔄 إعادة المحاولة</button>
         </div>`;
         document.getElementById('btn-retry-submissions')?.addEventListener('click', () => loadSubmissionsInline(hwId));
@@ -560,79 +560,104 @@ function openGradingRoom(subIndex) {
     });
 }
 
-// 🌟🌟 [أُعيدت كتابتها — دمج نظام الواجبات الجديد] دالة "حفظ الدرجات وإعادة الحساب" = اعتماد النتيجة النهائية.
-// ما تغيّر (راجع مستند "تدقيق نظام الواجبات"):
-//  - الدرجة النهائية تُحسب في الخادم من الإجابات المخزّنة + درجات المعلم اليدوية (لا نثق بأي حساب على العميل).
-//  - لا نقول "تم الحفظ" إلا بعد أن يؤكد الخادم الحفظ (persisted). كانت الرسالة القديمة تُعرض حتى لو فشل التحديث.
-//  - النتيجة المعتمدة تُكتب في سجل الطالب الحقيقي على جهاز المعلم (history_<id>) وتُضاف نقاطه مرة واحدة (بالفرق).
-//  - الخادم يرفض الاعتماد لو بقي سؤال يدوي بلا درجة (حقل الدرجة يبدأ بصفر فلا يحدث هذا عادةً).
-// ⚠️ افتراض صريح: الطالب يُربط بسجل المعلم بالمعرّف المُخزَّن مع الواجب المخصَّص، وإلا بالاسم المطابق؛ ولو لم
-// يوجد يُسأل المعلم هل يُنشئ طالباً جديداً باسمه. لو رفض، تُعتمد النتيجة على الخادم بدون كتابتها في سجل طالب.
+// 🌟 دالة رصد الدرجات وإعادة حساب النتيجة (مع تحديث السحابة ورصيد نقاط الطالب) 🌟
 async function saveManualGrades(subIndex) {
     const sub = currentSubmissionsList[subIndex];
-    const btn = document.getElementById('btn-save-grading');
-    const restoreBtn = () => { if (btn) { btn.disabled = false; btn.innerHTML = t('hw_grade_save_btn'); } };
+    let totalPoints = 0;
+    let earnedPoints = 0;
+    // 🌟 [جديد] فرق نقاط التصحيح اليدوي فقط (وليس كل نقاط الواجب) لإضافته لرصيد الطالب،
+    // بحيث لو أعاد المعلم تصحيح نفس الواجب مرة ثانية لا تُحتسب النقاط مرتين.
+    let manualPointsDelta = 0;
 
-    // 1) درجات الأسئلة اليدوية بمعرّف السؤال (qid) — مقيّدة بين 0 والنقاط القصوى
-    const manualScores = {};
     sub.details.forEach((d, qIdx) => {
-        if (!d.needsManualGrading) return;
-        const inputEl = document.querySelector(`.manual-grade-input[data-qidx="${qIdx}"]`);
-        const maxP = d.points || 1;
-        const raw = inputEl ? (parseInt(inputEl.value) || 0) : (d.manualScore || 0);
-        manualScores[d.qid] = Math.max(0, Math.min(maxP, raw));
+        let maxP = d.points || (d.type === 'matrix_order' ? d.correctAnswer.length : (d.type === 'checkbox' || d.type === 'dual_dropdown' || d.type === 'written_blank' || d.type === 'audio_record' ? 2 : (d.type === 'write_3_ayahs' ? 3 : 1)));
+        totalPoints += maxP;
+
+        if (d.needsManualGrading) {
+            const inputEl = document.querySelector(`.manual-grade-input[data-qidx="${qIdx}"]`);
+            if (inputEl) {
+                let score = Math.max(0, Math.min(maxP, parseInt(inputEl.value) || 0));
+                const previousScore = d.manualScore || 0;
+                manualPointsDelta += (score - previousScore);
+                d.manualScore = score;
+                earnedPoints += score;
+            } else {
+                earnedPoints += (d.manualScore || 0);
+            }
+        } else {
+            if (d.isCorrect) earnedPoints += maxP;
+        }
     });
 
-    // 2) تحديد الطالب في سجل المعلم قبل الاعتماد (يُخزَّن معرّفه مع التسليم ليقرأه التقرير الشهري)
-    let localStudent = null;
-    try {
-        localStudent = await findLocalStudentForSubmission(sub);
-        if (!localStudent && confirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
-            localStudent = await createLocalStudent(sub.studentName);
-        }
-    } catch (err) {
-        console.error("تعذر تحديد/إنشاء الطالب في سجل المعلم:", err);
-    }
+    const newScore = Math.round((earnedPoints / totalPoints) * 100);
+    sub.score = newScore;
 
-    // 3) الاعتماد في الخادم (مصدر الحقيقة) — لا نُكمل بأي "نجاح" قبل تأكيده
-    const wasApprovedBefore = sub.status === 'approved';
-    let updated;
-    try {
-        updated = await gradeSubmissionOnServer(sub.docId, manualScores, localStudent ? localStudent.id : undefined, sub.version);
-    } catch (err) {
-        console.error("فشل اعتماد النتيجة في الخادم:", err);
-        alert(t('hw_grade_failed') + '\n' + friendlyErrorText(err));
-        restoreBtn();
-        return;
-    }
-    currentSubmissionsList[subIndex] = updated;
-    const scoreCell = document.getElementById(`score-cell-${subIndex}`);
-    if (scoreCell) scoreCell.innerText = `${updated.finalScore}%`;
-    document.getElementById('grading-room-modal')?.remove();
+    document.getElementById(`score-cell-${subIndex}`).innerText = `${newScore}%`;
+    document.getElementById('grading-room-modal').remove();
 
-    // 4) كتابة النتيجة في سجل الطالب + المراجعة المتباعدة (best-effort لا توقف الاعتماد لو فشلت)
-    let recordNote = '';
-    if (localStudent) {
+    // 🌟🌟 إصلاح جوهري: كانت درجات التصحيح اليدوي (الفراغ الكتابي، تسميع 3 آيات، التسجيل
+    // الصوتي) تُحفظ فقط داخل مستند التسليم في السحابة، دون أن تُضاف أبداً إلى رصيد نقاط
+    // الطالب (student.totalScore) المستخدم في التطبيق. الآن نضيف الفرق الفعلي لرصيد الطالب.
+    if (manualPointsDelta !== 0) {
         try {
-            const w = await recordApprovedResult(localStudent, updated);
-            if (!w.verified) throw new Error('read-back mismatch');
-            recordNote = t('hw_grade_record_saved').replace('{name}', localStudent.name);
+            const students = await AppState.studentManager.getAllStudents();
+            const std = students.find(s => s.id === sub.studentId) || students.find(s => s.name === sub.studentName);
+            if (std) {
+                std.totalScore = (std.totalScore || 0) + manualPointsDelta;
+                await AppState.studentManager.updateStudent(std);
+            }
         } catch (err) {
-            console.error("تعذر كتابة النتيجة في سجل الطالب:", err);
-            recordNote = t('hw_grade_record_failed');
+            console.error("تعذر تحديث رصيد نقاط الطالب بعد التصحيح اليدوي:", err);
         }
-        // 🌟 نظام "المراجعة المتباعدة" (Anki/Duolingo): يُحدَّث عند أول اعتماد فقط لتجنب احتساب نفس الواجب مرتين
-        if (!wasApprovedBefore && AppState.reviewScheduleManager) {
-            try { await AppState.reviewScheduleManager.recordReviewResult(localStudent.id, updated.finalScore); }
-            catch (err) { console.error("تعذر تحديث جدول المراجعة المتباعدة لهذا الطالب:", err); }
-        }
-    } else {
-        recordNote = t('hw_grade_record_skipped');
     }
 
-    alert(t('hw_grade_saved').replace('{score}', updated.finalScore) + '\n\n' + recordNote);
-    // إعادة رسم بطاقة "يحتاج تصحيح" وعلامات التنبيه بعد الاعتماد
-    loadNeedsGradingStat();
+    // 🌟 [محدَّث — المرحلة 3] استخراج معرّف الطالب صار مشتركًا الآن بين ميزتين (جدول المراجعة
+    // المتباعدة تحت، ومزامنة السجل المحلي بعده) بدل ما يتكرر داخل كل واحدة منهما — ونقلناه خارج
+    // شرط "AppState.reviewScheduleManager" لأنه لازم يشتغل حتى لو الميزة دي مش مفعّلة.
+    let studentIdForGradingSync = sub.studentId;
+    if (!studentIdForGradingSync) {
+        try {
+            const students = await AppState.studentManager.getAllStudents();
+            const std = students.find(s => s.name === sub.studentName);
+            studentIdForGradingSync = std ? std.id : null;
+        } catch (err) {
+            console.error("تعذر تحديد معرّف الطالب لتحديث جدول المراجعة/السجل المحلي:", err);
+        }
+    }
+
+    // 🌟🌟 [جديد] نظام "المراجعة المتباعدة" (على نمط Anki/Duolingo): نقطة
+    // التحديث المتفق عليها هي هنا بالضبط — بعد اعتماد المعلم للدرجة النهائية
+    // يدوياً — وليس عند كل واجب تلقائي التصحيح لا يفتحه المعلم أبداً للمراجعة.
+    // نجاح كبير (≥90%) يُبعد موعد المراجعة القادمة، وضعف (<50%) يُعيدها لليوم
+    // التالي مباشرة. محاولة best-effort لا توقف حفظ الدرجات لو فشلت لأي سبب.
+    if (AppState.reviewScheduleManager && studentIdForGradingSync) {
+        try {
+            await AppState.reviewScheduleManager.recordReviewResult(studentIdForGradingSync, newScore);
+        } catch (err) {
+            console.error("تعذر تحديث جدول المراجعة المتباعدة لهذا الطالب:", err);
+        }
+    }
+
+    // 🌟🌟 [جديد — المرحلة 3] نُبقي نسخة history_ المحلية متزامنة مع الدرجة النهائية بعد
+    // التصحيح اليدوي — بدون هذا، جدول "سجل التقييمات السابقة" في ملف الطالب ورسم "الأداء عبر
+    // آخر التقييمات" في تقرير التقييم الفردي كانا سيظلان يعرضان الدرجة الأولية التلقائية للأبد،
+    // حتى بعد تصحيح المعلم يدويًا (تأكّدنا من هذا بقراءة student/student.js وreports/report.js
+    // فعليًا). راجع core/submissionStatus.js للشرح الكامل. محاولة best-effort مستقلة تمامًا عن
+    // جدول المراجعة أعلاه — تعمل حتى لو reviewScheduleManager غير مفعّل.
+    if (studentIdForGradingSync && sub.hwId) {
+        syncSubmissionScoreToLocalHistory(studentIdForGradingSync, sub.hwId, newScore);
+    }
+
+    // 🌟 رفع النتيجة المحدثة إلى السحابة للأبد 🌟
+    if (sub.docId) {
+        await updateSubmissionInCloud(sub.docId, {
+            score: sub.score,
+            details: sub.details
+        });
+        alert(`✅ تم رصد الدرجات! النتيجة الجديدة للطالب أصبحت: ${newScore}%\n\nتم حفظ النتيجة وتحديثها في السحابة بنجاح! ☁️`);
+    } else {
+        alert(`✅ تم رصد الدرجات! النتيجة الجديدة للطالب أصبحت: ${newScore}%\n\n(ملاحظة: تم الحفظ محلياً فقط لعدم العثور على معرّف سحابي).`);
+    }
 }
 
 // ==========================================
@@ -879,7 +904,7 @@ function openQuestionBuilderModal(index = -1) {
             <option value="dropdown">قائمة منسدلة (فراغات)</option>
             <option value="written_blank">أكمل الفراغ (كتابة يدوية)</option>
             <option value="write_3_ayahs">تسميع مقطع (كتابة يدوية)</option>
-            <option value="audio_record" disabled>تسميع (تسجيل صوتي) — غير متاح حالياً</option>
+            <option value="audio_record">تسميع (تسجيل صوتي)</option>
         `;
     }
 
@@ -938,116 +963,93 @@ function saveManualQuestion() {
     renderPreview();
 }
 
-// 🌟🌟 [أُعيدت كتابتها — دمج نظام الواجبات الجديد] حفظ/نشر الواجب.
-// - "مسودة": تُحفظ محلياً فقط (بلا أي اتصال) كما كانت تماماً.
-// - "نشر": يُرسَل للخادم أولاً، ولا يظهر أي رابط للمشاركة إلا بعد أن يؤكد الخادم أنه حفظ الواجب وأعاد قراءته
-//   (persisted)، ثم نتحقق أن الرابط يفتح فعلاً كما سيراه الطالب (وأنه لا يحتوي الإجابات الصحيحة). كان النظام
-//   القديم يعرض الرابط فوراً حتى لو لم يصل الواجب للسحابة، فيفشل عند أي طالب بـ"الواجب غير موجود".
-//   معرّف الواجب يولّده الخادم (عشوائي غير قابل للتخمين) وتُحفظ نسخة محلية بنفس المعرّف بنفس بنية السجل القديمة.
 async function saveHomeworkToDB(statusType) {
     if (currentGeneratedQuestions.length === 0) return alert(t("لا يوجد أسئلة لحفظها!"));
 
     const targetStudentName = document.getElementById('hw-target-student').value;
     const saveBtn = document.getElementById('btn-save-hw-publish');
-    const restorePublishBtn = () => { if (saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`; };
-
-    // النشر يحتاج مفتاح المعلم (المسودة لا تحتاجه)
-    if (statusType === 'published' && !(await ensureTeacherAuth())) return;
-
-    if (saveBtn) saveBtn.innerHTML = `⏳ ${t('hw_submitting')}`;
+    if(saveBtn) saveBtn.innerHTML = `⏳ ${t('hw_submitting')}`;
 
     let targetStudentAvatar = null;
-    let targetStudentId = null;
     if (targetStudentName) {
         const students = await AppState.studentManager.getAllStudents();
         const std = students.find(s => s.name === targetStudentName);
         if (std) {
             targetStudentAvatar = std.avatar || std.image || std.photo || std.profilePic || std.picture || std.icon || null;
-            targetStudentId = std.id;
         }
     }
 
     try {
-        if (statusType !== 'published') {
-            // ---- مسودة محلية فقط ----
-            const draftObj = {
-                id: 'HW_' + Date.now(),
-                createdAt: new Date().toISOString(),
-                questions: currentGeneratedQuestions,
-                status: statusType,
-                assignedStudentName: targetStudentName || null,
-                assignedStudentAvatar: targetStudentAvatar || null
-            };
-            await AppState.homeworkManager.createHomework(draftObj);
+        const homeworkObj = {
+            id: 'HW_' + Date.now(),
+            createdAt: new Date().toISOString(),
+            questions: currentGeneratedQuestions,
+            status: statusType,
+            assignedStudentName: targetStudentName || null,
+            assignedStudentAvatar: targetStudentAvatar || null
+        };
+
+        await AppState.homeworkManager.createHomework(homeworkObj);
+
+        if (statusType === 'published') {
+            if(saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`;
+            document.getElementById('share-modal-title').innerText = t('hw_share_success');
+            const baseUrl = window.location.origin + window.location.pathname;
+            // 🌟🌟 [إصلاح جوهري] رابط مكتفي ذاتياً يحمل الواجب كامل داخله بدل معرّف بسيط —
+            // يفتح فوراً عند الطالب بلا أي حاجة لاتصال بالسحابة (وبالتالي بلا أي تأثر بمشاكل
+            // App Check/الصلاحيات/انقطاع الشبكة). راجع buildHomeworkShareLink أعلاه في هذا
+            // الملف (وخط الرجوع للرابط بالمعرّف البسيط لو الواجب كبير جداً).
+            document.getElementById('hw-link-input').value = buildHomeworkShareLink(baseUrl, homeworkObj);
+            // 🌟 نُظهر النافذة فوراً (الحفظ المحلي في IndexedDB تم بالفعل أعلاه) دون انتظار
+            // رفع السحابة، حتى لا نُجمّد الواجهة على المعلم بلا داعٍ — لكن نتابع نتيجة الرفع
+            // بعدها مباشرة (راجع الشرح تحت) بدل تركها fire-and-forget كما كانت سابقاً
+            const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
+            const retryBtn = document.getElementById('btn-retry-hw-sync');
+            if (syncWarningEl) syncWarningEl.style.display = 'none';
+            if (retryBtn) retryBtn.style.display = 'none';
+            document.getElementById('hw-share-modal').style.display = 'flex';
+
+            // 🌟🌟 [إصلاح جوهري] كانت هذه الاستدعاء "fire-and-forget" (بدون await): لو فشل الرفع
+            // للسحابة (لا يوجد إنترنت، خطأ مؤقت، حقل undefined...) كان المعلم يرى رابطاً "جاهزاً"
+            // رغم أن الواجب لم يصل فعلياً للسحابة، فيعمل الرابط فقط على نفس جهاز المعلم (عبر
+            // IndexedDB المحلي) ويفشل بصمت برسالة "هذا الواجب غير موجود" لأي طالب حقيقي يفتحه من
+            // جهازه — وهذا بالضبط ما كان يحدث. الآن ننتظر النتيجة الحقيقية ونحذّر المعلم صراحةً
+            // لو فشل الرفع، بدل الادعاء الصامت بالنجاح، ونحفظه في طابور لإعادة المحاولة تلقائياً
+            // لاحقاً (راجع core/firebase.js).
+            const cloudSaved = await saveHomeworkToCloud(homeworkObj);
+            if (!cloudSaved) {
+                console.warn("فشل رفع الواجب للسحابة عند النشر — تم حفظه في طابور إعادة المحاولة.");
+                queuePendingHomeworkSync(homeworkObj);
+                // 🌟🌟 [جديد] نحتفظ بالواجب الذي فشل رفعه ليستخدمه زر "إعادة المحاولة الآن"
+                lastFailedHomeworkForRetry = homeworkObj;
+                if (syncWarningEl) {
+                    syncWarningEl.textContent = t('hw_cloud_sync_warning');
+                    syncWarningEl.style.display = 'block';
+                }
+                // 🌟🌟 [جديد] نُظهر زر "إعادة المحاولة الآن" بدل ترك المعلم يعتمد فقط على إعادة
+                // المحاولة الصامتة التلقائية (عند الاتصال أو فتح الشاشة لاحقاً — راجع
+                // core/app.js وinitHomeworkPrep أعلاه) — راجع retryHomeworkCloudSync أسفل
+                if (retryBtn) {
+                    retryBtn.disabled = false;
+                    retryBtn.innerHTML = `🔄 ${t('hw_retry_sync_btn')}`;
+                    retryBtn.style.display = 'block';
+                }
+            }
+            // 🌟🌟 [جديد] الواجب المنشور (سواء وصل للسحابة فوراً أو كان لا يزال معلّقاً) قد يُغيّر
+            // علامة ⏳ في سجل الواجبات، فنعيد رسمه ليعكس الحالة الحقيقية فوراً
+            await loadHomeworkDashboard();
+        } else {
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));
             document.getElementById('btn-tab-history').click();
             currentGeneratedQuestions = [];
             document.getElementById('hw-preview-section').style.display = 'none';
-            return;
         }
 
-        // ---- نشر: الخادم أولاً ----
-        let created;
-        try {
-            created = await publishHomeworkToServer({
-                questions: currentGeneratedQuestions,
-                assignedStudentName: targetStudentName || null,
-                assignedStudentId: targetStudentId,
-                meta: { app: 'darham', createdFrom: 'homework-prep' }
-            });
-        } catch (err) {
-            console.error("فشل نشر الواجب في الخادم:", err);
-            alert(t('hw_publish_failed') + '\n' + friendlyErrorText(err));
-            restorePublishBtn();
-            return;
-        }
-
-        // فحص أن الرابط يعمل كما سيراه الطالب (نسخة عامة بلا إجابات صحيحة)
-        try {
-            const pub = await fetchPublicHomework(created.id);
-            if (JSON.stringify(pub).includes('correctAnswer')) throw new Error('answers leaked in public homework');
-        } catch (err) {
-            console.error("تم حفظ الواجب لكن فحص الرابط العام فشل:", err);
-            alert(t('hw_link_check_failed') + '\n' + friendlyErrorText(err));
-            restorePublishBtn();
-            return;
-        }
-
-        // نسخة محلية في سجل الواجبات (نفس البنية القديمة) بنفس معرّف الخادم
-        const homeworkObj = {
-            id: created.id,
-            createdAt: created.createdAt,
-            questions: currentGeneratedQuestions,
-            status: 'published',
-            assignedStudentName: targetStudentName || null,
-            assignedStudentAvatar: targetStudentAvatar || null,
-            cloudConfirmed: true
-        };
-        try { await AppState.homeworkManager.createHomework(homeworkObj); }
-        catch (err) { console.error("تعذر حفظ النسخة المحلية (لا يؤثر على الواجب المنشور):", err); }
-
-        restorePublishBtn();
-        document.getElementById('share-modal-title').innerText = t('hw_share_success');
-        const baseUrl = window.location.origin + window.location.pathname;
-        const link = buildHomeworkShareLink(baseUrl, homeworkObj);
-        document.getElementById('hw-link-input').value = link;
-        const wa = document.getElementById('btn-share-wa');
-        if (wa) {
-            const msg = targetStudentName ? t('hw_wa_message_named').replace('{name}', targetStudentName) : t('hw_wa_message');
-            wa.href = 'https://wa.me/?text=' + encodeURIComponent(msg + '\n' + link);
-        }
-        // لا يوجد تحذير "لم يُرفع للسحابة" بعد الآن: الرابط لا يظهر أصلاً إلا بعد تأكيد الخادم
-        const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
-        const retryBtn = document.getElementById('btn-retry-hw-sync');
-        if (syncWarningEl) syncWarningEl.style.display = 'none';
-        if (retryBtn) retryBtn.style.display = 'none';
-        document.getElementById('hw-share-modal').style.display = 'flex';
-        await loadHomeworkDashboard();
     } catch (error) {
         console.error("خطأ عام في حفظ الواجب:", error);
         alert(t("حدث خطأ أثناء الحفظ. يرجى تحديث الصفحة."));
-        restorePublishBtn();
+        if(saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`;
     }
 }
 

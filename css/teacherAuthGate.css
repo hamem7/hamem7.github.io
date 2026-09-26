@@ -1,0 +1,121 @@
+/* css/teacherAuthGate.css */
+/* ========================================================== */
+/* 🌟🌟 [جديد] تصميم بوابة تسجيل دخول المعلم (components/teacherAuthGate.js) */
+/* ========================================================== */
+/* ملف معزول تماماً بنفس فلسفة sectionHint.css/welcomeBanner.css — لا يعدّل أي قاعدة موجودة
+   في أي ملف CSS آخر ولا يؤثر على أي شاشة أخرى في المنصة. يستخدم نفس متغيرات الهوية البصرية
+   المعرّفة في css/home.css (--dh-emerald-*، --dh-gold-*) حتى تتطابق نافذة تسجيل الدخول مع
+   باقي هوية المنصة البصرية. */
+
+.dh-teacher-auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 35, 28, 0.72);
+    z-index: 10500; /* أعلى من نافذة غرفة التصحيح (10000) حتى تظهر فوقها لو احتاج المعلم يدخل من هناك */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.dh-teacher-auth-box {
+    background: #fff;
+    border-radius: 20px;
+    border: 2px solid var(--dh-gold-500);
+    padding: 28px 26px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    text-align: center;
+}
+
+.dh-teacher-auth-title {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+    color: var(--dh-emerald-900);
+}
+
+.dh-teacher-auth-sub {
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    color: var(--dh-ink-soft);
+    line-height: 1.6;
+}
+
+.dh-teacher-auth-label {
+    display: block;
+    text-align: right;
+    font-weight: 600;
+    color: var(--dh-emerald-900);
+    margin: 10px 0 6px;
+    font-size: 0.9rem;
+}
+
+.dh-teacher-auth-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 1rem;
+    text-align: right;
+    outline: none;
+}
+
+.dh-teacher-auth-input:focus {
+    border-color: var(--dh-emerald-600);
+}
+
+.dh-teacher-auth-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.dh-teacher-auth-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dh-teacher-auth-submit {
+    flex: 2;
+    background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)) !important;
+    border-color: var(--dh-emerald-600) !important;
+}
+
+.dh-teacher-auth-cancel {
+    flex: 1;
+}
+
+/* 🌟 شريحة صغيرة ثابتة (خارج أي شاشة، بنفس نمط whats-new-modal في index.html) تظهر فقط
+   بعد نجاح تسجيل دخول المعلم، لإتاحة تسجيل الخروج من أي شاشة إدارية دون الحاجة للبحث عنه. */
+.dh-teacher-auth-chip {
+    position: fixed;
+    bottom: 14px;
+    inset-inline-start: 14px;
+    z-index: 9998;
+    background: var(--dh-emerald-900);
+    color: #fff;
+    border: 1px solid var(--dh-gold-500);
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    opacity: 0.85;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.dh-teacher-auth-chip:hover {
+    opacity: 1;
+}
+
+@media (max-width: 480px) {
+    .dh-teacher-auth-box {
+        padding: 22px 18px;
+    }
+}

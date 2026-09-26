@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>المعلم — النتائج | Dar Ham Lab</title>
+  <link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+  <header class="lab-head"><h1>📊 المعلم — النتائج والتصحيح</h1>
+    <nav><a href="index.html">الرئيسية</a><a href="teacher.html">إنشاء</a><a href="results.html">النتائج</a><a href="diagnostics.html">التشخيص</a></nav></header>
+  <main>
+    <div id="conn" class="banner info hidden"></div>
+    <section class="card">
+      <h2>واردات الواجبات</h2>
+      <div class="row"><div><label for="hw-select">الواجب</label><select id="hw-select"><option value="">— كل الواجبات —</option></select></div>
+        <div style="align-self:end"><button class="btn ghost" id="btn-reload">🔄 تحديث</button> <button class="btn gold" id="btn-sync">⬇️ مزامنة المعتمَد إلى سجل الطلاب</button></div></div>
+      <div id="list" class="muted">جاري التحميل…</div>
+    </section>
+    <section class="card">
+      <h2>سجل الطلاب (محلي — بنفس بنية دار حم)</h2>
+      <p class="muted">هذه هي النتائج المعتمدة المحفوظة في <code>history_&lt;studentId&gt;</code>. تبقى بعد إعادة تحميل الصفحة.</p>
+      <div id="records" class="muted">—</div>
+      <p><button class="btn ghost small" id="btn-add-student">➕ إضافة طالب تجريبي</button></p>
+    </section>
+  </main>
+  <div id="modal" class="modal hidden"><div class="card" id="modal-card"></div></div>
+  <script type="module" src="js/results.js"></script>
+</body>
+</html>

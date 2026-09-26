@@ -355,13 +355,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
   let homeworkEntries = [];
   let homeworkErrorMsg = null;
   try {
-    // 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد ديناميكي من core/firebase.js (Firestore). الآن من
-    // core/homeworkApi.js: نتائج الواجبات "المعتمدة" فقط من الخادم (درجات نهائية اعتمدها المعلم)، وتُطابَق مع الطالب
-    // بمعرّف الطالب المُخزَّن مع التسليم وقت الاعتماد. تتطلب مفتاح المعلم؛ لو لم يكن مُدخلاً على هذا الجهاز نطلبه هنا
-    // (أو تظهر رسالة "تعذّر الاتصال بالسحابة" في قسم الواجبات فقط لو ألغى المعلم، وباقي التقرير يعمل كالمعتاد).
-    const { ensureTeacherAuth } = await import('../components/teacherAuthGate.js');
-    if (!(await ensureTeacherAuth())) throw new Error('teacher key required');
-    const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
+    const { getAllSubmissionsFromCloud } = await import('../core/firebase.js');
     const allSubs = await getAllSubmissionsFromCloud();
     const mineThisMonth = allSubs.filter(s =>
       String(s.studentId) === String(student.id) &&

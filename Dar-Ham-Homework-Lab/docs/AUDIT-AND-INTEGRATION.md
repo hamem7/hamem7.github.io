@@ -1,0 +1,49 @@
+# Homework System — audit, root causes, and integration plan
+Audited: `D:\المنصة\الاحتياطي\test-test` (read-only; nothing in the platform was modified). Line numbers refer to that snapshot.
+
+## A. Actual current data flow (from the code, not assumed)
+1. **Create** — `settings/homework-prep.js › generateQuestions/renderPreview` → `HomeworkEngine.generateAutoQuestions` (`engine/homeworkEngine.js`; chunked coverage of the ayah range, type cycle).
+2. **Save** — `saveHomeworkToDB` (:966): id `'HW_' + Date.now()` (guessable) → IndexedDB `DarHamHomeworks` (`database/homeworkDB.js`) → then `saveHomeworkToCloud` (Firestore `homeworks/{id}`), failure → local queue `pendingHwCloudSync`.
+3. **Link** — `buildHomeworkShareLink` (:48) = `?hw=` + `encodeHomeworkForLink` (`homeworkDB.js:113`): the **entire homework incl. `correctAnswer`** in base64; falls back to `?hw=<id>` above 6000 chars.
+4. **Open** — `core/app.js:364` reads `?hw`; `student/homework-welcome.js` decodes the link (no network) or looks up IndexedDB/Firestore.
+5. **Student identity** — assigned homework: a student record is **auto-created in the student's own phone IndexedDB** with `id:'std_'+Date.now()` (:49); general link: dropdown of *that phone's* local students (empty on a fresh phone → "حسابك موجود في المنصة؟" error).
+6. **Answer** — `games/homework-play.js`: `answers = {}` in memory only (:9,:27) — no draft persistence.
+7. **Submit** — `submitHomework` (:~490): grades **on the client**, writes `history_<localStudentId>` on the **student's phone** (:594), shows "✅ تم الاعتماد / تم استلام إجاباتك بنجاح" (:612-617) **before** any network call, then uploads audio, then `saveSubmissionToCloud` (Firestore `addDoc`, `core/firebase.js:163`); failure → queue `pendingHwSubmissions`.
+8. **Teacher inbox** — `loadSubmissionsInline` → `getSubmissionsFromCloud(hwId)` (`where hwId ==`), banner for local pending (only counts the *teacher's* device queue).
+9. **Grade** — `openGradingRoom/saveManualGrades` (:440/:564) → `updateSubmissionInCloud`; **no separate approve step exists**.
+10. **Record** — `syncSubmissionScoreToLocalHistory` (`core/submissionStatus.js:41`) updates `history_<id>` **only if an entry already exists on the teacher's device** ("`if (idx === -1) return false` — normal, not an error"). A student on another phone never creates one there.
+11. **Reports** — `reports/monthly-report.js:358-361` reads all Firestore submissions and filters `String(s.studentId) === String(student.id)` (student.id = teacher-device id ≠ the phone-generated id). `student/student.js`/`report.js` read `history_<id>` locally.
+
+## B. Root causes (verified in code unless marked)
+| # | Finding | Evidence |
+|---|---|---|
+| 1 | **App Check is the gate that fails.** `core/firebase.js:99-114` initialises App Check with reCAPTCHA **Enterprise**; failures `appCheck/recaptcha-error` + HTTP 400 from `google.com/recaptcha/enterprise` are token-acquisition failures. Whether Firestore then rejects requests depends on the *Enforce* toggle and Google Cloud billing/key-domain setup — **configuration outside the repo (not verifiable from code; your own project doc `تشخيص-حاسم-…` reaches the same conclusion from console screenshots).** | firebase.js:75,99-114; project doc |
+| 2 | **App Check is not required for this use case.** `firestore.rules` never references it; it was added only to compensate for world-readable data (`allow get, list: if true` on `submissions`, rules :63; homework readable by id). Auth is not used. The complexity exists to mitigate an open-rules design. | firestore.rules:63; firebase.js:45-58 comments |
+| 3 | **Rules reject phones with a wrong clock**: `data.timestamp <= request.time.toMillis() + 300000` (rules :91) while `timestamp` is the client's `Date.now()` — silent "permission denied" for any phone > 5 min ahead. | rules:91; homework-play.js:673 |
+| 4 | **Service worker never caches yet intercepts everything**: `event.respondWith(fetch(req).catch(() => caches.match(req)))` (service-worker.js:15). No `cache.put` exists anywhere, so on any failed request `caches.match` resolves `undefined` → `respondWith(undefined)` → *"TypeError: Failed to convert value to 'Response'"* — a **second, misleading error** (the "FetchEvent" errors) layered on the real network error, for cross-origin Google/Firestore requests too. It does not cause the failures but hides their cause. | service-worker.js:14-20 |
+| 5 | **Fake success messages.** Student sees "✅ تم الاعتماد / تم استلام إجاباتك بنجاح" before upload (:612-617) and only afterwards may see a warning line (:681). Teacher sees "…تم حفظ النتيجة… في السحابة بنجاح ☁️" (homework-prep.js:657) even though `updateSubmissionInCloud` returns `false` on failure and the return value is ignored (:653). | as cited |
+| 6 | **Results never reach the teacher's student record across devices** (flow steps 5, 7, 10, 11): history is written on the student's phone under a phone-local id; the teacher-side sync is a no-op without a local entry; the monthly report's id equality can't match. This is why "the approved result in the student's Dar Ham record" was never true for real students. | homework-play.js:594; submissionStatus.js:41; monthly-report.js:361 |
+| 7 | **Answers are exposed**: the link carries every `correctAnswer` (homeworkDB.js:113-116); the Firestore homework doc is readable by anyone with the id; submissions (names + scores) are listable by anyone. | as cited |
+| 8 | **Duplicate submissions on retry**: `addDoc` always creates a new doc (firebase.js:163). `withTimeout(...,20000,false)` (homework-play.js:678) reports failure after 20 s while the write may still complete → item queued → later re-sent → duplicate. No idempotency key is honoured. | firebase.js:163; homework-play.js:678-680 |
+| 9 | **Answers lost on refresh/close** (in-memory only). | homework-play.js:9,27 |
+| 10 | **Half-finished Supabase migration**: `core/supabase.js` still holds `PASTE_YOUR_…` keys and calls `createClient(...)` at module scope (:46-49), which throws on import; every homework file still imports `./firebase.js`; only `components/teacherAuthGate.js` imports `supabase.js` and nothing imports the gate. Dead code today, a landmine if wired in. | grep of all imports |
+| 11 | **Guessable ids** (`HW_<Date.now()>`, `<hwId>_<studentId>_<Date.now()>`). | homework-prep.js:984; homework-play.js:~496 |
+
+Verdict on "is the architecture more complicated than necessary?" **Yes.** A single teacher + share-by-link needs: an unguessable id, a server that stores questions and answers separately, an idempotent submit, and a teacher-authenticated read. Firebase + App Check + reCAPTCHA + self-contained links + device-local records + retry queues are patches around problems the design created.
+
+## C. Chosen architecture (Lab)
+Frontend (static, GitHub Pages) → `js/api.js` → **Google Apps Script Web App** → **Google Sheets** as storage. Teacher key in Script Properties. Server-side grading, idempotent submit, persistence read-back. Fallbacks (Cloudflare Workers+D1, Supabase, PostgreSQL) keep the same `js/api.js` contract. See README for the decision table.
+
+## D. Integration into the full platform (only after the real-world protocol passes)
+Files that change (all others untouched):
+1. **`core/api.js`** (new) — copy of `Lab/js/api.js`; **`core/submitQueue.js`** (new) — copy of `Lab/js/submitQueue.js`.
+2. **`settings/homework-prep.js`** — replace imports from `../core/firebase.js` with `../core/api.js`; in `saveHomeworkToDB` replace `createHomework(local)+saveHomeworkToCloud` by `call('createHomework',{homework:{questions,assignedStudentName,assignedStudentId: <teacher student id>}})`, use the returned `id`, **build link `student.html`-style `?hw=<id>` (drop `encodeHomeworkForLink`)**, show the link only after `persisted:true`; results list → `listSubmissions`; `saveManualGrades` → `gradeSubmission {manualScores, finalize}` with a real Approve step; on approve call the Lab's `recordApprovedResult` (same `history_<id>` shape) using the **teacher-side** student id; delete the pending-count banner (server is truth).
+3. **`games/homework-play.js`** — replace the submit block (:~490-683) with `startSubmission/attemptSend` and the truthful status screen; remove client grading, remove the `history_` write on the student device and the "✅ تم الاعتماد" text; add draft autosave.
+4. **`student/homework-welcome.js`** — `getHomeworkFromCloud` → `call('getHomework')`; use `assignedStudentName` from the server; free-name entry instead of the local-students dropdown (no more auto-created phone-local student).
+5. **`core/app.js`** — remove `flushPending*` from `firebase.js`; use `startAutoRetry` only on the student page.
+6. **`reports/monthly-report.js`** — `getAllSubmissionsFromCloud` → `listSubmissions {statuses:['approved']}`; filter by server-recorded `studentId`.
+7. **`database/homeworkDB.js`** — keep `HomeworkManager`; drop `encodeHomeworkForLink/decodeHomeworkFromLink` usage (keep functions until old links expire).
+8. **`core/i18n.js`** — add keys for the new status strings (Lab uses inline Arabic).
+9. **`service-worker.js`** — `if (req.method!=='GET' || new URL(req.url).origin!==self.location.origin) return;` and `.then(r => r || Response.error())`; bump `CACHE_NAME`.
+10. **Retain** `core/firebase.js`, `firestore.rules`, `storage.rules` until old links are gone and no import remains (`grep -R "core/firebase"`), then delete together with the App Check docs. **Delete/ignore** `core/supabase.js`, `supabase-migration.sql`, `components/teacherAuthGate.js` if Apps Script is chosen (teacher key replaces login).
+Verify after wiring: `grep -R "firebase" --include=*.js` shows no homework import; run `tests/homeworkEngine.test.js`; run Lab `tests/e2e.py` pointed at the integrated pages; test the whole platform (splash, games, reports) since only homework files changed.

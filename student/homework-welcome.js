@@ -1,123 +1,142 @@
 // student/homework-welcome.js
-import { AppState, loadSplashScreen } from '../core/app.js';
+// ==========================================================
+// 🌟🌟 [أُعيدت كتابته] شاشة ترحيب الطالب بالواجب — تعمل الآن مع خادم Google الجديد
+// ==========================================================
+// التغييرات الجوهرية (راجع مستند "تدقيق نظام الواجبات"):
+//  - الرابط يحمل معرّف الواجب فقط (HW_ + 32 خانة عشوائية) ولا يحمل أي أسئلة أو إجابات؛ الواجب يُجلب من الخادم
+//    بنسخة "آمنة للطالب" (بلا الإجابات الصحيحة). كان الرابط القديم يحمل كل الإجابات الصحيحة داخله.
+//  - لم يعد يُنشأ ملف طالب على هاتف الطالب ولا تُعرض قائمة طلاب محلية؛ الطالب يكتب اسمه (أو يأتي مخصَّصاً من
+//    الخادم). ربط الاسم بسجل الطالب الحقيقي يتم عند المعلم وقت اعتماد النتيجة.
+//  - أي خطأ (رابط غير صحيح، واجب مغلق، لا إنترنت...) يظهر بصدق بدل التلميح بأن الواجب "غير موجود" دائماً.
+//  - لو كان على هذا الجهاز تسليم سابق لنفس الواجب (مؤكَّد/معلَّق) نذهب مباشرة لشاشة حالته الحقيقية بدل
+//    السماح بإعادة الحل (حتى بلا إنترنت، لأننا لا نحتاج جلب الواجب من جديد لعرض حالة تسليم موجود).
+import { AppState } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
-import { getHomeworkFromCloud } from '../core/firebase.js';
-// 🌟 [جديد] فك ترميز بيانات الواجب المضمّنة مباشرة داخل الرابط (راجع الشرح الكامل بجانب
-// encodeHomeworkForLink/decodeHomeworkFromLink في database/homeworkDB.js)
-import { decodeHomeworkFromLink } from '../database/homeworkDB.js';
+import { t } from '../core/i18n.js';
+import { ApiError } from '../core/api.js';
+import { fetchPublicHomework, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
+import { getAttempt } from '../core/submitQueue.js';
 
 let currentHwId = null;
 
+function showMsg(text, kind) {
+    const box = document.getElementById('hw-welcome-msg');
+    if (!box) return;
+    const styles = {
+        error: 'background:#fee2e2; color:#b91c1c;',
+        info: 'background:#e0f2fe; color:#0369a1;'
+    };
+    box.style.cssText = 'display:block; margin-bottom:20px; padding:15px; border-radius:12px; font-size:1.15rem; line-height:1.7; font-weight:bold; ' + (styles[kind] || styles.info);
+    box.textContent = text;
+}
+function hideMsg() { const b = document.getElementById('hw-welcome-msg'); if (b) b.style.display = 'none'; }
+
+function goHome() {
+    // 🌟 نرجع للمنصة بدون باراميتر الرابط (إقلاع كامل عادي)
+    window.location.href = window.location.pathname;
+}
+
+function goToPlay() {
+    import('../games/homework-play.js').then(module => {
+        loadScreen({
+            templateUrl: 'games/homework-play.html',
+            initFunction: () => module.initHomeworkPlay()
+        });
+    }).catch(err => {
+        console.error("شاشة اللعب غير متوفرة:", err);
+        showMsg(t('hw_st_play_load_error'), 'error');
+    });
+}
+
 export async function initHomeworkWelcome(hwId) {
     currentHwId = hwId;
+    setupCommonListeners();
 
-    // 🌟🌟 [إصلاح جوهري] المسار الجديد الأول: الرابط الحديث يحمل بيانات الواجب كاملة مُرمَّزة
-    // داخله (لا يحتاج أي بحث محلي ولا اتصال بالسحابة إطلاقاً — أضمن حل ممكن، لأنه مش عرضة لأي
-    // مشكلة اتصال/صلاحيات/App Check). لو فك الترميز نجح، نستخدم الناتج مباشرة ونتجاوز كل
-    // البحث القديم تحت بالكامل.
-    let targetHomework = decodeHomeworkFromLink(hwId);
-
-    if (targetHomework) {
-        currentHwId = targetHomework.id;
-    } else {
-        // 🔗 مسار التوافق مع الروابط القديمة (معرّف بسيط فقط، بلا بيانات مُرمَّزة) — بنفس
-        // السلوك الأصلي بالضبط: بحث محلي أولاً، ثم سحابي كخط رجوع
-        const allHomeworks = await AppState.homeworkManager.getAllHomeworks();
-        targetHomework = allHomeworks.find(hw => hw.id === hwId);
-
-        if (!targetHomework) {
-            console.log("الواجب غير موجود محلياً، جاري البحث في السحابة...");
-            targetHomework = await getHomeworkFromCloud(hwId);
-        }
-    }
-
-    if (!targetHomework) {
-        alert("عذراً! هذا الواجب غير موجود أو تم حذفه من قبل المعلم.");
-        loadSplashScreen();
+    // 1) رابط قديم من نظام Firebase (معرّف بشكل مختلف أو رابط مُرمَّز فيه الواجب كاملاً)
+    if (!isServerHomeworkId(hwId)) {
+        document.getElementById('btn-enter-hw').style.display = 'none';
+        document.getElementById('hw-dropdown-section').style.display = 'none';
+        showMsg(t('hw_st_legacy_link'), 'error');
         return;
     }
 
-    AppState.currentHomework = targetHomework;
-
-    if (targetHomework.assignedStudentName) {
-        const students = await AppState.studentManager.getAllStudents();
-        let assignedStudent = students.find(s => s.name === targetHomework.assignedStudentName);
-
-        if (!assignedStudent) {
-            console.log("جهاز جديد: جاري إنشاء ملف شخصي للطالب المخصص آلياً...");
-            
-            assignedStudent = {
-                id: 'std_' + Date.now(),
-                name: targetHomework.assignedStudentName,
-                totalScore: 0,
-                isHidden: false
-            };
-            
-            try {
-                if (AppState.studentManager.addStudent) {
-                    await AppState.studentManager.addStudent(assignedStudent);
-                }
-            } catch(e) {}
-        }
-
-        AppState.currentStudent = assignedStudent;
-        
-        document.getElementById('hw-dropdown-section').style.display = 'none';
-        document.getElementById('hw-personalized-welcome').style.display = 'block';
-        
-        // 🌟 تطبيق الصيغة التشجيعية الجديدة التي تناسب الجميع 🌟
-        document.getElementById('hw-welcome-name').innerHTML = `مرحباً بك في تحدي الإتقان:<br>👑 <span style="color:#0f766e;">${assignedStudent.name}</span> 🚀`;
-
-    } else {
-        await populateStudentDropdown();
+    // 2) تسليم سابق على هذا الجهاز؟ نعرض حالته الحقيقية مباشرة
+    const prev = getAttempt(hwId);
+    if (prev && prev.state !== 'rejected') {
+        AppState.currentHomework = { id: hwId, questions: [] };
+        AppState.currentStudent = { id: null, name: prev.studentName };
+        goToPlay();
+        return;
     }
 
-    setupWelcomeListeners();
+    // 3) جلب الواجب (نسخة الطالب الآمنة) من الخادم
+    await loadHomework(hwId);
 }
 
-async function populateStudentDropdown() {
-    const students = await AppState.studentManager.getAllStudents();
-    const select = document.getElementById('hw-student-select');
-    
-    if (!select) return;
-    
-    students.filter(s => !s.isHidden).forEach(s => {
-        let option = document.createElement('option');
-        option.value = s.name;
-        option.text = `👑 ${s.name}`; // تعديل بسيط ليناسب الصيغة العامة
-        select.appendChild(option);
-    });
-}
+async function loadHomework(hwId) {
+    const retryBtn = document.getElementById('btn-retry-load-hw');
+    const enterBtn = document.getElementById('btn-enter-hw');
+    retryBtn.style.display = 'none';
+    enterBtn.disabled = true;
+    showMsg(t('hw_st_loading'), 'info');
 
-function setupWelcomeListeners() {
-    document.getElementById('btn-cancel-hw')?.addEventListener('click', () => {
-        window.history.pushState({}, document.title, window.location.pathname);
-        loadSplashScreen();
-    });
-
-    document.getElementById('btn-enter-hw')?.addEventListener('click', async () => {
-        if (!AppState.currentStudent) {
-            const select = document.getElementById('hw-student-select');
-            const selectedName = select.value;
-
-            if (!selectedName) {
-                return alert("الرجاء اختيار اسمك أولاً حتى نسجل درجاتك! 🏅");
-            }
-
-            const students = await AppState.studentManager.getAllStudents();
-            AppState.currentStudent = students.find(s => s.name === selectedName);
-
-            if (!AppState.currentStudent) return alert("حدث خطأ في تحديد الطالب. تأكد من أن حسابك موجود في المنصة.");
+    let homework;
+    try {
+        homework = await fetchPublicHomework(hwId);
+    } catch (e) {
+        enterBtn.disabled = false;
+        const final = (e instanceof ApiError) && (e.code === 'NOT_FOUND' || e.code === 'CLOSED');
+        showMsg(friendlyErrorText(e) + (final ? '' : ' — ' + t('hw_st_nothing_submitted')), 'error');
+        if (final) {
+            enterBtn.style.display = 'none';
+            document.getElementById('hw-dropdown-section').style.display = 'none';
+        } else {
+            retryBtn.style.display = 'block';
+            retryBtn.onclick = () => loadHomework(hwId);
+            enterBtn.style.display = 'none';
         }
+        return;
+    }
 
-        import('../games/homework-play.js').then(module => {
-            loadScreen({
-                templateUrl: 'games/homework-play.html',
-                initFunction: () => module.initHomeworkPlay()
-            });
-        }).catch(err => {
-            console.error("شاشة اللعب غير متوفرة:", err);
-            alert("حدث خطأ في تحميل ساحة التحدي. تأكد من وجود ملف games/homework-play.js");
-        });
+    enterBtn.style.display = '';
+    enterBtn.disabled = false;
+    hideMsg();
+    AppState.currentHomework = homework;
+    currentHwId = homework.id;
+
+    if (homework.assignedStudentName) {
+        // واجب مخصَّص: الاسم يأتي من الخادم ولا يستطيع الطالب تغييره
+        AppState.currentStudent = { id: null, name: homework.assignedStudentName };
+        document.getElementById('hw-dropdown-section').style.display = 'none';
+        document.getElementById('hw-personalized-welcome').style.display = 'block';
+        const nameEl = document.getElementById('hw-welcome-name');
+        nameEl.textContent = '';
+        nameEl.append(t('hw_st_welcome_prefix'), document.createElement('br'));
+        const span = document.createElement('span');
+        span.style.color = '#0f766e';
+        span.textContent = '👑 ' + homework.assignedStudentName + ' 🚀';
+        nameEl.append(span);
+    } else {
+        AppState.currentStudent = null;
+        document.getElementById('hw-dropdown-section').style.display = '';
+    }
+}
+
+function setupCommonListeners() {
+    document.getElementById('btn-cancel-hw')?.addEventListener('click', goHome);
+
+    document.getElementById('btn-enter-hw')?.addEventListener('click', () => {
+        if (!AppState.currentHomework || !AppState.currentHomework.questions || !AppState.currentHomework.questions.length) return;
+        if (!AppState.currentStudent) {
+            const input = document.getElementById('hw-student-name-input');
+            const name = (input.value || '').replace(/\s+/g, ' ').trim();
+            if (name.length < 2) {
+                input.focus();
+                showMsg(t('hw_st_name_required'), 'error');
+                return;
+            }
+            AppState.currentStudent = { id: null, name };
+        }
+        goToPlay();
     });
 }

@@ -1,0 +1,5 @@
+644f88f7287af8cb9e7673046d7cf23c  vendor/database/homeworkDB.js
+b31ed243745993e9b7fd7b81d0e67645  vendor/database/quranDB.js
+e4df5fb11c9f188af8ded74dd958d4df  vendor/database/studentDB.js
+c3b397f893320f24bd7f028e1dfe71fd  vendor/engine/homeworkEngine.js
+f44ebf30c8baf46303565e14b73b12de  vendor/engine/quranEngine.js

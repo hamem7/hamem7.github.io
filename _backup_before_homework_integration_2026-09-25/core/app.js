@@ -33,11 +33,16 @@ import { showSectionHintOnce } from '../components/sectionHint.js';
 import { translations, t, applyLanguage, toggleLanguage } from './i18n.js';
 // 🌟 رقم إصدار المنصة وسجل التحديثات — لشاشة "الجديد في هذا التحديث" 🌟
 import { APP_VERSION, getUnseenChangelog } from './version.js';
-// 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد flushPendingHomeworkSync/flushPendingSubmissions من
-// core/firebase.js، وهو يُحمّل Firebase وApp Check (وتحقق reCAPTCHA) عند كل إقلاع للمنصة حتى في الشاشات التي لا
-// تحتاجه. الآن نستورد فقط استئناف تسليمات الطلاب العالقة على هذا الجهاز (core/submitQueue.js) — لا تحميل
-// لأي خدمة خارجية عند الإقلاع. (ملف core/firebase.js نفسه أُبقي في المشروع بلا استيراد إلى أن يُحذف نهائياً لاحقاً)
-import { resumeAllPendingSubmissions } from './submitQueue.js';
+// 🌟 [جديد] إعادة محاولة رفع أي واجب فشل رفعه للسحابة وقت النشر (راجع الشرح الكامل بجانب
+// flushPendingHomeworkSync في core/firebase.js) — تُستدعى مرة عند كل إقلاع للمنصة
+// 🌟🌟 [إصلاح] أضفنا هنا أيضاً flushPendingSubmissions (نفس الفكرة بالضبط، لكن لتسليمات
+// الطلاب وليس الواجبات) — كانت هذه الدالة تُستدعى فقط عند فتح شاشة حل الواجب نفسها
+// (games/homework-play.js)، رغم أن الرسالة التي تظهر للطالب عند فشل إرسال نتيجته تَعِد صراحةً
+// بأنها "ستُعاد تلقائياً بمجرد توفر الاتصال" — وهذا الوعد لم يكن صحيحاً فعلياً لأنه لا يوجد أي
+// استماع لعودة الاتصال. الآن تُستدعى هنا أيضاً (عند إقلاع المنصة وعند حدث 'online' أسفل)، فتصبح
+// الرسالة صحيحة، وتُتاح فرصة أكبر لوصول نتيجة الطالب للمعلم حتى لو أغلق الطالب المتصفح فوراً
+// بعد ظهور رسالة "تعذر الإرسال" ثم فتح المنصة لاحقاً على نفس الجهاز لأي سبب آخر.
+import { flushPendingHomeworkSync, flushPendingSubmissions } from './firebase.js';
 // 🌟 [جديد] نظام "النسخة الاحتياطية المحلية" — تصدير كل بيانات المنصة لملف على جهاز
 // المعلم فقط (بلا رفع سحابي)، تُستخدم هنا فقط لتشغيل التنزيل من نافذة التذكير الشهري
 // أدناه (checkMonthlyBackupReminder). راجع core/backupRestore.js للآلية الكاملة، وزرّي
@@ -268,26 +273,6 @@ async function bootSystem() {
             });
         }
 
-        // 🌟🌟 [جديد] مسار سريع لرابط واجب الطالب (?hw=...): كان الإقلاع الكامل (تنزيل نص القرآن كاملاً + بيانات المتشابهات
-        // + فتح 10 قواعد بيانات + طلب إذن الإشعارات) يحدث قبل أن يرى الطالب أي شيء — وأي فشل فيه (لا إنترنت وقت الفتح مثلاً)
-        // كان يمنع الواجب من الظهور نهائياً. الطالب لا يحتاج أياً من ذلك: الواجب يُجلب من الخادم، وإجاباته تُحفظ محلياً.
-        // الشاشة الرئيسية للمعلم تبقى بإقلاعها الكامل كما هو تماماً (هذا الفرع يعمل فقط عند وجود ?hw في الرابط).
-        const hwParamEarly = new URLSearchParams(window.location.search).get('hw');
-        if (hwParamEarly) {
-            switchTheme('adult');
-            resumeAllPendingSubmissions();
-            import('../student/homework-welcome.js').then(module => {
-                loadScreen({
-                    templateUrl: 'student/homework-welcome.html',
-                    initFunction: () => module.initHomeworkWelcome(hwParamEarly)
-                });
-            }).catch(err => {
-                console.error("تعذر تحميل شاشة ترحيب الواجب:", err);
-                document.getElementById('app-root').textContent = 'Error loading homework screen.';
-            });
-            return;
-        }
-
         // 🔔 طلب إذن الإشعارات المكتبية عند فتح المنصة
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
@@ -309,10 +294,34 @@ async function bootSystem() {
         const hwDB = await initHomeworkDB();
         AppState.homeworkManager = new HomeworkManager(hwDB);
 
-        // 🌟🌟 [محدَّث] استئناف أي تسليم واجب عالق على هذا الجهاز (طالب سلّم بلا إنترنت ثم أغلق الصفحة) — بدون انتظار
-        // وبصمت تام لو لا يوجد شيء (الحالة الشائعة). آمن بلا تكرار لأن المعرّف ثابت والخادم لا يُنشئ نسخة ثانية.
-        resumeAllPendingSubmissions();
-        window.addEventListener('online', () => resumeAllPendingSubmissions());
+        // 🌟🌟 [إصلاح] إعادة محاولة رفع أي واجب فشل رفعه للسحابة في جلسة سابقة (طابور
+        // pendingHwCloudSync في core/firebase.js) — بدون انتظار (لا نُجمّد إقلاع المنصة
+        // بسببها) وبصمت تام لو نجحت أو لو كان الطابور فارغاً أصلاً (الحالة الشائعة)
+        flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة:", err));
+
+        // 🌟🌟 [إصلاح] نفس الفكرة بالضبط، لكن لتسليمات الطلاب (طابور pendingHwSubmissions في
+        // core/firebase.js) بدل الواجبات. كانت هذه الدالة تُستدعى فقط داخل
+        // games/homework-play.js عند فتح شاشة حل الواجب تحديداً — فلو الطالب سلّم واجبه وفشل
+        // إرسال نتيجته (رسالة "سيُعاد إرسالها تلقائياً بمجرد توفر الاتصال")، ثم أغلق المتصفح
+        // فوراً بدل إعادة فتح نفس الرابط، كانت نتيجته تبقى عالقة على جهازه للأبد بلا أي محاولة
+        // أخرى إطلاقاً — رغم أن نفس المنصة (index.html) قد تُفتح لاحقاً على جهازه لأي سبب آخر
+        // (مثلاً لحل واجب تالٍ). نستدعيها هنا أيضاً ليصبح الوعد في تلك الرسالة صحيحاً فعلاً.
+        flushPendingSubmissions().catch(err => console.error("خطأ أثناء إعادة محاولة رفع تسليمات الطلاب المعلّقة:", err));
+
+        // 🌟🌟 [إصلاح] كانت كل عمليات إعادة المحاولة أعلاه تحدث مرة واحدة فقط عند إقلاع المنصة.
+        // المشكلة: المنصة تعمل كتطبيق صفحة واحدة (SPA) — بمجرد تحميلها، التنقل بين الشاشات
+        // (زي فتح "إعداد الواجبات"، أو حل واجب) لا يُعيد تحميل هذا الملف ولا يُشغّل هذا الكود
+        // مرة أخرى. فلو فشل الرفع بسبب انقطاع مؤقت في الإنترنت، وعاد الاتصال بعدها بدقائق أثناء
+        // إن المستخدم (معلم أو طالب) لسه شغّال بنفس الجلسة (بدون إغلاق المنصة وإعادة فتحها من
+        // الصفر)، كانت إعادة المحاولة التلقائية لا تحدث أبداً طوال هذه الجلسة رغم عودة الاتصال
+        // فعلاً. الحل: نستمع لحدث 'online' القياسي في المتصفح (يُطلَق تلقائياً بمجرد عودة
+        // الاتصال) ونعيد نفس محاولتَي الرفع فوراً عند حدوثه — بالإضافة لإعادة المحاولة الثالثة
+        // للواجبات تحديداً عند فتح شاشة إعداد الواجبات نفسها (راجع initHomeworkPrep في
+        // settings/homework-prep.js) — دون أي حاجة لتدخل يدوي في الحالة الشائعة (انقطاع مؤقت).
+        window.addEventListener('online', () => {
+            flushPendingHomeworkSync().catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة بعد عودة الاتصال:", err));
+            flushPendingSubmissions().catch(err => console.error("خطأ أثناء إعادة محاولة رفع تسليمات الطلاب المعلّقة بعد عودة الاتصال:", err));
+        });
 
         // 🧑‍🏫 تهيئة ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
@@ -528,15 +537,7 @@ function setupSplashListeners() {
 // 🌟 استُخرجت من داخل مستمع زر "نظام الواجبات المنزلية" لتكون قابلة لإعادة
 // الاستخدام من زر "نشر واجب جديد الآن" الجديد في بطاقة "نظرة سريعة" أيضاً —
 // نفس السلوك بالضبط، بدون أي تغيير في المنطق.
-// 🌟 [محدَّث] صارت async: تتأكد أولاً من وجود مفتاح المعلم (شاشة الواجبات تتعامل مع بيانات الطلاب الحقيقية على
-// الخادم). لو كان المفتاح محفوظاً على الجهاز لا يظهر أي شيء ويُفتح الشاشة فوراً كالمعتاد.
-export async function openHomeworkPrep() {
-    try {
-        const { ensureTeacherAuth } = await import('../components/teacherAuthGate.js');
-        if (!(await ensureTeacherAuth())) return;
-    } catch (err) {
-        console.error("تعذر تحميل بوابة مفتاح المعلم — سيُفتح شاشة الواجبات بدونها:", err);
-    }
+export function openHomeworkPrep() {
     switchTheme('adult');
     document.body.style.backgroundImage = '';
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>اختبارات الواقع | Dar Ham Lab</title>
+  <link rel="stylesheet" href="css/lab.css">
+</head>
+<body>
+  <header class="lab-head"><h1>🩺 اختبارات الواقع (Real-world diagnostics)</h1>
+    <nav><a href="index.html">الرئيسية</a><a href="teacher.html">إنشاء</a><a href="results.html">النتائج</a><a href="diagnostics.html">التشخيص</a></nav></header>
+  <main>
+    <section class="card">
+      <h2>ما هذه الصفحة؟</h2>
+      <p>تختبر الخادم الحقيقي الذي ضبطته (Apps Script + Sheets) <b>من الجهاز الذي تفتحها عليه</b>: الاتصال عبر الـ redirect و CORS، الكتابة والقراءة، منع التكرار، الاختبار المتزامن، وحفظ البيانات. شغّلها على <b>موبايلك الحقيقي</b> (وعلى بيانات الجوال لا الواي فاي مرة أخرى) ثم اضغط «نسخ التقرير» وأرسله.</p>
+      <p class="muted">تُنشئ واجباً تجريبياً وتسليمات وهمية علامتها diagnostic. لا تلمس واجباتك الحقيقية. اضغط «تنظيف» بعد الانتهاء.</p>
+      <p class="row"><button class="btn gold" id="btn-run">▶️ تشغيل كل الاختبارات</button><button class="btn ghost" id="btn-recheck">🔁 إعادة فحص بيانات الاختبار السابق (بعد ساعات)</button><button class="btn ghost" id="btn-clean">🧹 تنظيف</button></p>
+      <div id="verdict" class="banner info hidden"></div>
+    </section>
+    <section class="card"><h2>النتائج</h2><div id="results" class="muted">لم يبدأ الاختبار.</div></section>
+    <section class="card"><h2>التقرير (للنسخ)</h2><p><button class="btn small" id="btn-copy">📋 نسخ التقرير</button></p><pre class="report" id="report">—</pre></section>
+  </main>
+  <script type="module" src="js/diagnostics.js"></script>
+</body>
+</html>
