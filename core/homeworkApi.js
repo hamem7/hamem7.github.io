@@ -9,7 +9,7 @@
 //
 // ⚠️ افتراض صريح: تسليم الطالب الذي "ينتظر تصحيحاً" = حالته في الخادم submitted أو graded وبه سؤال يدوي بلا
 // درجة (نفس تعريف submissionNeedsGrading المستخدم سابقاً بلا أي تغيير).
-import { call, callWithRetry, ApiError, clearTeacherKey } from './api.js';
+import { call, callWithRetry, ApiError, clearAnyTeacherAuth } from './api.js';
 import { submissionNeedsGrading } from './submissionStatus.js';
 import { t } from './i18n.js';
 
@@ -31,10 +31,13 @@ export function friendlyErrorText(e) {
     return map[e.code] ? t(map[e.code]) : (t('hw_err_generic') + ' (' + (e.code || e.kind) + ')');
 }
 
-// نداء خاص بالمعلم: لو رفض الخادم المفتاح نمسحه محلياً فيُطلب من المعلم إدخاله من جديد في الدخول التالي
+// نداء خاص بالمعلم: لو رفض الخادم التفويض (مفتاح قديم أو جلسة جوجل) نمسحه محلياً فيُطلب من المعلم
+// تسجيل الدخول من جديد في المرة التالية.
+// 🌟 [عدّل] كان يمسح مفتاح المعلم القديم فقط (clearTeacherKey) — الآن يمسح أي تفويض فعّال (جلسة
+// جوجل أو المفتاح القديم) عبر clearAnyTeacherAuth حتى لا تعلق شاشة معلم دخل بجوجل ثم رُفضت جلسته.
 async function teacherCall(action, params, opts = {}) {
     try { return await call(action, params, { teacher: true, ...opts }); }
-    catch (e) { if (e instanceof ApiError && e.code === 'UNAUTHORIZED') clearTeacherKey(); throw e; }
+    catch (e) { if (e instanceof ApiError && e.code === 'UNAUTHORIZED') clearAnyTeacherAuth(); throw e; }
 }
 
 // ---------- المعلم: نشر واجب ----------

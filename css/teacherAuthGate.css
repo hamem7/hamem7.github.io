@@ -119,3 +119,65 @@
         padding: 22px 18px;
     }
 }
+
+/* ========================================================== */
+/* 🌟🌟 [جديد] تسجيل الدخول بجوجل — زر جوجل + الفاصل + رابط المفتاح القديم + حقل ربط الواجبات
+   القديمة. نفس فلسفة الملف: قواعد جديدة فقط، لا تعديل على أي قاعدة موجودة أعلاه. */
+
+.dh-teacher-auth-google-btn {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 4px;
+    min-height: 40px; /* حتى لا "تقفز" البطاقة لحظة تحميل زر جوجل */
+}
+
+.dh-teacher-auth-hint {
+    margin: 6px 0 0;
+    font-size: 0.82rem;
+    color: var(--dh-ink-soft);
+    line-height: 1.5;
+}
+
+.dh-teacher-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 10px;
+    color: var(--dh-ink-soft);
+    font-size: 0.85rem;
+}
+
+.dh-teacher-auth-divider::before,
+.dh-teacher-auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+/* رابط نصي بسيط (بلا خلفية) لطيّ/فرد أقسام اختيارية — مفتاح المعلم القديم وحقل ربط الواجبات القديمة */
+.dh-teacher-auth-linklike {
+    background: none;
+    border: none;
+    color: var(--dh-emerald-600);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px 0;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.dh-teacher-auth-linklike:hover {
+    color: var(--dh-emerald-700);
+}
+
+.dh-teacher-auth-migrate-wrap {
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+.dh-teacher-auth-legacy-form {
+    text-align: right;
+}

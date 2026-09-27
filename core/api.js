@@ -14,12 +14,27 @@
 //   - لا نعتبر أي عملية كتابة "ناجحة" إلا لو ردّ الخادم بـ persisted:true (الخادم يعيد قراءة الصف
 //     بعد كتابته ويتحقق منه) — هذا ما يمنع رسائل النجاح الكاذبة التي كانت في النظام القديم.
 //   - مفتاح المعلم لا يوجد في أي ملف: يُدخله المعلم مرة واحدة على جهازه ويُحفظ في localStorage.
+//
+// ================================================================================ 🌟🌟 [جديد]
+// تسجيل دخول المعلم بجوجل (بريد إلكتروني) — يحلّ محل "مفتاح المعلم" كواجهة أساسية بطلب من
+// المعلم (راجع مستند "تحويل معمل الواجبات إلى نظام متعدد المعلمين" ومحادثة تفعيل Google Sign-In).
+// تمت تجربته أولاً في "معمل الواجبات" المعزول ثم نُقل هنا حرفياً بنفس الأسلوب. مفتاح المعلم القديم
+// (LS_KEY أعلاه) **لم يُحذف ولن يُحذف** — يبقى خط رجوع كامل (راجع components/teacherAuthGate.js)
+// حتى لا تنكسر أي شاشة لو تعطّل تسجيل الدخول بجوجل لأي سبب (حجب سكربت، عدم توفر إنترنت لجوجل...).
+// ================================================================================
+
+// 🌟 Client ID من Google Cloud Console (Google Auth Platform → Clients). ليس سرّاً — كل Client ID
+// علني بطبيعته، الأمان يعتمد على Authorised JavaScript origins المسجّلة له (hamem7.github.io) لا
+// على إخفائه.
+export const GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 
 // 🌟 رابط تطبيق الويب (ينتهي بـ /exec). ليس سرّاً: أي عملية خاصة بالمعلم تتطلب مفتاح المعلم.
 export const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzynu0klKsGI3W168LfxV6LVTDk8pRHVFvATpug4iJR0o_jwRDi128RwBMCgAg52Q7L/exec';
 
 const LS_URL = 'dh_hw_api_url';
 const LS_KEY = 'dh_hw_teacher_key';
+const LS_USERID = 'dh_hw_teacher_userid';       // 🌟 [جديد] هوية المعلم بعد تسجيل الدخول بجوجل
+const LS_SESSIONKEY = 'dh_hw_teacher_sessionkey'; // 🌟 [جديد] جلسة تُصدرها googleSignIn/migrateLegacyKey
 const EXEC_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]+\/exec$/;
 const LOCAL_RE = /^http:\/\/(localhost|127\.0\.0\.1):\d+\/macros\/s\/[A-Za-z0-9_\-]+\/exec$/;
 const isLocalDev = () => ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -39,9 +54,25 @@ export function getApiUrl() {
     return DEFAULT_API_URL || '';
 }
 export function setApiUrl(u) { if (!isAllowedApiUrl(u)) throw new Error('invalid api url'); lsSet(LS_URL, u); }
+
+// ---- مفتاح المعلم القديم (خط الرجوع — لا يزال يعمل بالكامل، راجع التعليق أعلاه) ----
 export function getTeacherKey() { return lsGet(LS_KEY) || ''; }
 export function setTeacherKey(k) { lsSet(LS_KEY, k); }
 export function clearTeacherKey() { try { localStorage.removeItem(LS_KEY); } catch (e) { /* لا شيء */ } }
+
+// ---- 🌟 [جديد] جلسة تسجيل الدخول بجوجل — تُقرأ/تُكتب بواسطة googleSignIn/migrateLegacyKey أدناه ----
+export function getTeacherAuth() {
+    const userId = lsGet(LS_USERID), sessionKey = lsGet(LS_SESSIONKEY);
+    return (userId && sessionKey) ? { userId, sessionKey } : null;
+}
+export function setTeacherAuth(userId, sessionKey) { lsSet(LS_USERID, userId); lsSet(LS_SESSIONKEY, sessionKey); }
+export function clearTeacherAuth() {
+    try { localStorage.removeItem(LS_USERID); localStorage.removeItem(LS_SESSIONKEY); } catch (e) { /* لا شيء */ }
+}
+// 🌟 تُستخدم لمسح أي تفويض (جلسة جوجل أو المفتاح القديم) دفعة واحدة، مثلاً عند رفض الخادم UNAUTHORIZED.
+export function clearAnyTeacherAuth() { clearTeacherAuth(); clearTeacherKey(); }
+/** true لو المعلم مفوَّض بأي من الطريقتين (بلا حاجة لنداء شبكة) — تُستخدم لإخفاء بوابة الدخول. */
+export function isTeacherAuthed() { return !!(getTeacherAuth() || getTeacherKey()); }
 
 // 🌟 أي شيء غير "نجاح مؤكَّد" يُرمى كـ ApiError، وحقل retryable يخبر المستدعي هل إعادة المحاولة مفيدة.
 export class ApiError extends Error {
@@ -91,7 +122,14 @@ export async function call(action, params = {}, opts = {}) {
     const method = opts.method || (['ping', 'getHomework'].includes(action) ? 'GET' : 'POST');
     const timeoutMs = opts.timeoutMs || 25000;
     const payload = { action, ...params };
-    if (opts.teacher) payload.teacherKey = getTeacherKey();
+    if (opts.teacher) {
+        // 🌟 [جديد] نفضّل جلسة جوجل لو موجودة، ولو مش موجودة نرجع لمفتاح المعلم القديم بلا أي تغيير
+        // — هذا هو المكان الوحيد اللي بيقرر "مين المعلم" في كل نداء، فأي شاشة تستخدم {teacher:true}
+        // تستفيد من الطريقتين تلقائياً بلا أي تعديل فيها.
+        const auth = getTeacherAuth();
+        if (auth) { payload.userId = auth.userId; payload.sessionKey = auth.sessionKey; }
+        else payload.teacherKey = getTeacherKey();
+    }
     const t0 = performance.now();
     const json = await transport(method, payload, timeoutMs);
     const ms = Math.round(performance.now() - t0);
@@ -118,4 +156,22 @@ export async function callWithRetry(action, params, opts = {}, tries = 3) {
         }
     }
     throw last;
+}
+
+// ============================================================================ 🌟🌟 [جديد]
+/** يتحقق من idToken في الخادم، ويرجع userId + sessionKey دائمَين ويحفظهما (getTeacherAuth أعلاه)
+ *  حتى يُفوَّض كل نداء {teacher:true} تالٍ تلقائياً بلا تسجيل دخول متكرر. */
+export async function googleSignIn(idToken) {
+    const r = await call('googleSignIn', { idToken });
+    setTeacherAuth(r.userId, r.sessionKey);
+    return r;
+}
+
+/** ربط الواجبات "القديمة" (المنشورة قبل تفعيل تعدّد المعلمين، بلا مالك محدَّد) بحساب جوجل الذي سجّل
+ *  دخوله الآن — مرة واحدة تكفي. آمنة الاستدعاء أكثر من مرة (لا تُكرِّر الربط)، ولو رُبطت من قبل بحساب
+ *  آخر ترجع claimed:false بدل أن تفشل. تحتاج teacherKey القديم لإثبات أن صاحب الطلب هو نفسه المعلم. */
+export async function migrateLegacyKey(idToken, teacherKey) {
+    const r = await call('migrateLegacyKey', { idToken, teacherKey });
+    setTeacherAuth(r.userId, r.sessionKey);
+    return r;
 }
