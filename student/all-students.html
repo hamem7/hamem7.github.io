@@ -1,9 +1,38 @@
 <!-- student/all-students.html -->
+<!-- 🌟 [جديد] توحيد بصري لأزرار هذه الشاشة مع الهوية الجديدة (--dh-emerald/--dh-gold
+     المعتمدة في css/home.css وsettings/dashboard.html) — كانت تستخدم ألوان .btn/.btn-outline
+     القديمة من adults.css (تركوازي) المختلفة تماماً عن باقي المنصة. نفس فلسفة بادئة "dash-"
+     في settings/dashboard.html بالحرف: قواعد معزولة ببادئة "as-" فقط تخص هذه الشاشة، وبادئة
+     #app-root ضرورية للتغلب على !important الموجودة فعلاً في .adult-theme .btn (adults.css)
+     بدون تعديل تلك القاعدة العامة إطلاقاً 🌟 -->
+<style>
+    #app-root .as-btn-primary {
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
+        color: var(--dh-emerald-900) !important;
+        border: none !important;
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important;
+    }
+    #app-root .as-btn-primary:hover { box-shadow: 0 14px 26px rgba(212, 175, 55, 0.4) !important; }
+
+    #app-root .as-btn-secondary {
+        background: #fff !important;
+        color: var(--dh-emerald-700) !important;
+        border: 2px solid var(--dh-emerald-600) !important;
+        box-shadow: none !important;
+    }
+    #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
+</style>
+
 <div class="screen active">
     <h1 style="font-size: 2.5rem;">📊 السجل العام لبيانات وإنجازات الطلاب</h1>
     <div class="btn-group" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-        <button class="btn" id="btn-export-backup">📥 حفظ نسخة احتياطية</button>
-        <button class="btn btn-outline" id="btn-import-backup-trigger">📤 استعادة البيانات</button>
+        <!-- 🌟 [جديد] لم يكن بهذه الشاشة زر مباشر لإضافة طالب جديد رغم أنها الشاشة
+             الطبيعية لإدارة قائمة الطلاب — يفتح شاشة "طلابي" ثم يُطلق تلقائياً نافذة
+             "إضافة بطل جديد" الموجودة فعلاً هناك بدل تكرار نفس النافذة هنا (راجع
+             student.js: setupAllStudentsListeners) 🌟 -->
+        <button class="btn as-btn-primary" id="btn-add-champion-shortcut" data-i18n="btn_add_student">تسجيل بطل جديد ➕</button>
+        <button class="btn as-btn-secondary" id="btn-export-backup">📥 حفظ نسخة احتياطية</button>
+        <button class="btn btn-outline as-btn-secondary" id="btn-import-backup-trigger">📤 استعادة البيانات</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
     </div>
     <div style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
@@ -12,7 +41,10 @@
             <tbody id="all-students-body"></tbody>
         </table>
     </div>
-    <button class="btn btn-outline" style="margin-top: 20px; font-size: 1.4rem;" id="btn-back-login">🔙 العودة</button>
+    <!-- 🌟 [عدّل] كان النص "العودة" بلا مفتاح ترجمة وبلا توضيح للوجهة — الزر فعلياً يرجع
+         لشاشة "طلابي" (loadMyStudentsScreen في student.js)، وأصبح لونه متوافقاً مع باقي
+         أزرار هذه الشاشة (as-btn-secondary) بدل التركوازي القديم 🌟 -->
+    <button class="btn btn-outline as-btn-secondary" style="margin-top: 20px; font-size: 1.4rem;" id="btn-back-login" data-i18n="btn_back_to_my_students">🔙 رجوع لطلابي</button>
 </div>
 
 <!-- نافذة تعديل بيانات البطل -->
@@ -33,7 +65,7 @@
             <div class="input-group" style="grid-column: span 2;"><label>مقدار الحفظ (من سورة - إلى سورة):</label><div style="display:flex; gap:10px;"><select id="edit-stu-memo-from"></select><select id="edit-stu-memo-to"></select></div></div>
             <div class="input-group" style="grid-column: span 2;"><label>صورة شخصية (اختياري):</label><input type="file" id="edit-stu-avatar" accept="image/*"></div>
         </div>
-        <button class="btn" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student">حفظ التعديلات ✔️</button>
-        <button class="btn btn-outline" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal">إلغاء</button>
+        <button class="btn as-btn-primary" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student">حفظ التعديلات ✔️</button>
+        <button class="btn btn-outline as-btn-secondary" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal">إلغاء</button>
     </div>
 </div>

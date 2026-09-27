@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.5';
+export const APP_VERSION = '1.0.6';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 🌟🌟 [أُضيف 2026-09-27] نظام تحليلات خصوصي (Plausible) — راجع core/analytics.js
+    {
+        version: '1.0.6',
+        date: '2026-09-27',
+        items: [
+            {
+                type: 'new',
+                ar: 'تحليلات زوار خصوصية بسيطة (عدد الزوار، الأجهزة، الصفحات الأكثر زيارة، وتقدير تثبيتات PWA) عبر لوحة Plausible الخاصة بك فقط — لا تظهر أي أرقام داخل المنصة نفسها، ولا يُرسَل أي اسم أو درجة أو بيانات طالب.',
+                en: 'Simple, privacy-friendly visitor analytics (visitor counts, devices, top pages, and estimated PWA installs) via your own private Plausible dashboard only — no numbers appear inside the platform itself, and no names, scores, or student data are ever sent.'
+            }
+        ]
+    },
     // 🌟🌟 [أُضيف 2026-09-25] دمج نظام الواجبات الجديد (خادم Google Apps Script بدل Firebase/App Check) بعد اختباره
     // في "معمل الواجبات" على الخادم الحقيقي. راجع مستند "تدقيق نظام الواجبات — الأسباب الجذرية وخطة الدمج".
     {

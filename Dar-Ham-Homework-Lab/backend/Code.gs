@@ -34,9 +34,10 @@ function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.0.0';
+var VERSION = '1.1.0';
 var SHEET_HW = 'Homeworks';
 var SHEET_SUB = 'Submissions';
+var SHEET_TEACHERS = 'Teachers';    // 🌟 multi-teacher: Google-authenticated teacher accounts
 var CHUNK_SIZE = 45000;            // Sheets cell limit is 50,000 chars
 var MAX_CHUNKS = 8;                // => max ~360 KB per record
 var MAX_BODY_CHARS = 300000;
@@ -49,6 +50,11 @@ var HW_FIXED = ['id', 'createdAt', 'status', 'assignedStudentName', 'assignedStu
 var SUB_FIXED = ['id', 'hwId', 'clientSubmissionId', 'studentName', 'studentNameNorm', 'studentId',
   'status', 'provisionalScore', 'finalScore', 'earnedPoints', 'totalPoints',
   'submittedAt', 'gradedAt', 'approvedAt', 'version'];
+// 🌟 multi-teacher: indexed by both userId (our internal id) and googleSub (Google's stable id).
+// `ownerId` on Homeworks is NOT a new physical column (see createHomework_) — it lives inside the
+// existing JSON blob, exactly like `meta`/`assignedStudentId` already do. That means zero changes
+// to the Homeworks/Submissions sheet schema, so no migration of already-deployed rows is needed.
+var TEACHERS_FIXED = ['userId', 'googleSub'];
 
 // =====================================================================================
 // Entry points
@@ -77,14 +83,42 @@ function handle_(req, method) {
       case 'getHomework':      return out_(getHomeworkPublic_(req));
       case 'submit':           return out_(withLock_(function () { return submit_(req); }));
 
-      case 'authCheck':        requireTeacher_(req); return out_(ok_({ teacher: true }));
-      case 'createHomework':   requireTeacher_(req); return out_(withLock_(function () { return createHomework_(req); }));
-      case 'listHomeworks':    requireTeacher_(req); return out_(listHomeworks_());
-      case 'getHomeworkFull':  requireTeacher_(req); return out_(getHomeworkFull_(req));
-      case 'setHomeworkStatus':requireTeacher_(req); return out_(withLock_(function () { return setHomeworkStatus_(req); }));
-      case 'listSubmissions':  requireTeacher_(req); return out_(listSubmissions_(req));
-      case 'gradeSubmission':  requireTeacher_(req); return out_(withLock_(function () { return gradeSubmission_(req); }));
-      case 'voidSubmission':   requireTeacher_(req); return out_(withLock_(function () { return voidSubmission_(req); }));
+      // 🌟 multi-teacher: public (no prior auth needed) — the Google ID token IS the proof of identity.
+      case 'googleSignIn':     return out_(withLock_(function () { return googleSignIn_(req); }));
+      case 'migrateLegacyKey': return out_(withLock_(function () { return migrateLegacyKey_(req); }));
+
+      case 'authCheck': {
+        var authA = authenticateTeacher_(req);
+        return out_(ok_({ teacher: true, userId: authA.userId, isLegacy: authA.isLegacy }));
+      }
+      case 'createHomework': {
+        var authC = authenticateTeacher_(req);
+        return out_(withLock_(function () { return createHomework_(req, authC); }));
+      }
+      case 'listHomeworks': {
+        var authL = authenticateTeacher_(req);
+        return out_(listHomeworks_(authL));
+      }
+      case 'getHomeworkFull': {
+        var authF = authenticateTeacher_(req);
+        return out_(getHomeworkFull_(req, authF));
+      }
+      case 'setHomeworkStatus': {
+        var authS = authenticateTeacher_(req);
+        return out_(withLock_(function () { return setHomeworkStatus_(req, authS); }));
+      }
+      case 'listSubmissions': {
+        var authLS = authenticateTeacher_(req);
+        return out_(listSubmissions_(req, authLS));
+      }
+      case 'gradeSubmission': {
+        var authG = authenticateTeacher_(req);
+        return out_(withLock_(function () { return gradeSubmission_(req, authG); }));
+      }
+      case 'voidSubmission': {
+        var authV = authenticateTeacher_(req);
+        return out_(withLock_(function () { return voidSubmission_(req, authV); }));
+      }
       default: throw err_('UNKNOWN_ACTION', 'Unknown action: ' + action);
     }
   } catch (e) {
@@ -117,6 +151,144 @@ function isConfigured_() {
   return !!PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
 }
 
+// =====================================================================================
+// 🌟 multi-teacher: Google Sign-In identity (backend/js/teacherAuth.js on the frontend)
+// =====================================================================================
+//
+// Design (documented explicitly, per project convention, since the brief left this open):
+//   - Each teacher gets a permanent internal `userId` (never their email) the first time they sign
+//     in with Google, plus a random `sessionKey` (kept in the Teachers sheet). The frontend stores
+//     {userId, sessionKey} and sends BOTH on every teacher-only call instead of the old `teacherKey`.
+//     The server never trusts a client-supplied ownerId/userId by itself — it always re-derives the
+//     caller's identity from a value (sessionKey) it alone issued and can look up.
+//   - The legacy shared TEACHER_KEY keeps working exactly as before (existing behaviour/tests
+//     unchanged) and acts as an admin/master key: it can see and manage ALL homeworks regardless of
+//     owner. It is never handed to a new teacher — only Google Sign-In is offered to them — so this
+//     does not weaken isolation between teachers who onboard through Google.
+//   - `ownerId` is stored INSIDE each homework's JSON record (like `meta`/`assignedStudentId`
+//     already are), not as a new physical sheet column — so no destructive migration of the already
+//     deployed Homeworks/Submissions sheets is needed. Homeworks created before this change, or
+//     created via the raw legacy key, have no ownerId ("legacy / unowned").
+//   - Migration of PRE-EXISTING unowned homeworks: since this Lab only ever had ONE shared key, the
+//     first teacher who proves they hold BOTH a valid Google session AND the correct legacy
+//     teacherKey (action `migrateLegacyKey`) is recorded as the legacy owner (Script Property
+//     LEGACY_OWNER_USERID, set once). From then on that teacher keeps seeing their pre-existing
+//     unowned homeworks; no other Google account is ever guessed into owning them.
+
+function verifyGoogleIdToken_(idToken) {
+  if (!idToken || typeof idToken !== 'string') throw err_('BAD_REQUEST', 'idToken required');
+  var resp;
+  try {
+    resp = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(idToken), { muteHttpExceptions: true });
+  } catch (e) { throw err_('SERVER_ERROR', 'Could not reach Google to verify sign-in'); }
+  var data = null;
+  try { data = JSON.parse(resp.getContentText()); } catch (e) { data = null; }
+  if (resp.getResponseCode() !== 200 || !data || !data.sub) throw err_('UNAUTHORIZED', 'Invalid or expired Google sign-in');
+  if (String(data.iss) !== 'accounts.google.com' && String(data.iss) !== 'https://accounts.google.com') {
+    throw err_('UNAUTHORIZED', 'Untrusted token issuer');
+  }
+  var clientId = PropertiesService.getScriptProperties().getProperty('GOOGLE_CLIENT_ID');
+  if (clientId && String(data.aud) !== clientId) throw err_('UNAUTHORIZED', 'Token was issued for a different app');
+  return { sub: String(data.sub), email: data.email ? String(data.email) : null, name: data.name ? String(data.name) : null };
+}
+
+function getTeachersSheet_() {
+  var ss = ss_();
+  var sh = ss.getSheetByName(SHEET_TEACHERS);
+  if (!sh) sh = ensureSheet_(ss, SHEET_TEACHERS, TEACHERS_FIXED, MAX_CHUNKS);
+  return sh;
+}
+function findTeacherBySub_(sub) {
+  var rows = readAllRows_(getTeachersSheet_(), TEACHERS_FIXED);
+  for (var i = 0; i < rows.length; i++) if (rows[i].rec && rows[i].rec.googleSub === sub) return { sh: getTeachersSheet_(), row: rows[i] };
+  return null;
+}
+function findTeacherByUserId_(userId) {
+  var rows = readAllRows_(getTeachersSheet_(), TEACHERS_FIXED);
+  for (var i = 0; i < rows.length; i++) if (rows[i].rec && rows[i].rec.userId === userId) return { sh: getTeachersSheet_(), row: rows[i] };
+  return null;
+}
+function createTeacher_(sub, email, name) {
+  var sh = getTeachersSheet_();
+  var userId = newId_('T_');
+  var rec = { userId: userId, googleSub: sub, email: email || null, name: name || null,
+    sessionKey: randomKey_(24), createdAt: nowIso_(), lastLoginAt: nowIso_() };
+  var rowIndex = nextRow_(sh, TEACHERS_FIXED);
+  var hash = writeRow_(sh, TEACHERS_FIXED, rowIndex, [userId, sub], rec);
+  verifyRow_(sh, TEACHERS_FIXED, rowIndex, userId, hash);
+  return rec;
+}
+function touchTeacherLogin_(found) {
+  var rec = found.row.rec;
+  rec.lastLoginAt = nowIso_();
+  var hash = writeRow_(found.sh, TEACHERS_FIXED, found.row.rowIndex, [rec.userId, rec.googleSub], rec);
+  verifyRow_(found.sh, TEACHERS_FIXED, found.row.rowIndex, rec.userId, hash);
+  return rec;
+}
+
+/** googleSignIn: {idToken} -> permanent userId + sessionKey the frontend stores for every future call. */
+function googleSignIn_(req) {
+  var info = verifyGoogleIdToken_(req.idToken);
+  var found = findTeacherBySub_(info.sub);
+  var isNew = !found;
+  var rec = found ? touchTeacherLogin_(found) : createTeacher_(info.sub, info.email, info.name);
+  return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, email: rec.email, isNewTeacher: isNew });
+}
+
+/** migrateLegacyKey: {idToken, teacherKey} -> claims pre-existing unowned homeworks for this Google
+ *  account, ONLY the first time it is ever called successfully (never re-guessed afterwards). */
+function migrateLegacyKey_(req) {
+  var info = verifyGoogleIdToken_(req.idToken);
+  var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
+  if (!expected || !safeEqual_(String(req.teacherKey || ''), expected)) throw err_('UNAUTHORIZED', 'Wrong teacher key');
+  var found = findTeacherBySub_(info.sub);
+  var rec = found ? touchTeacherLogin_(found) : createTeacher_(info.sub, info.email, info.name);
+  var props = PropertiesService.getScriptProperties();
+  var current = props.getProperty('LEGACY_OWNER_USERID');
+  if (!current) { props.setProperty('LEGACY_OWNER_USERID', rec.userId); return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: true }); }
+  if (current === rec.userId) return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: true, alreadyClaimed: true });
+  return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: false });
+}
+
+function isLegacyOwnerUserId_(userId) {
+  var v = PropertiesService.getScriptProperties().getProperty('LEGACY_OWNER_USERID');
+  return !!v && !!userId && v === userId;
+}
+/** Access rule for a homework record, shared by every teacher-only read/write below. */
+function canAccessHw_(rec, auth) {
+  if (auth.isLegacy) return true;                          // legacy shared key = unchanged admin bypass
+  if (rec.ownerId) return rec.ownerId === auth.userId;      // owned record: only its owner
+  return isLegacyOwnerUserId_(auth.userId);                 // unowned/legacy record: only the migrated owner
+}
+
+/** Resolves the caller's identity. New Google-session auth (userId+sessionKey) takes priority;
+ *  falls back to the legacy shared teacherKey untouched (same lockout counter, same error shape). */
+function authenticateTeacher_(req) {
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get('auth_fails') || 0);
+  if (fails >= 20) throw err_('LOCKED', 'Too many wrong keys. Try again in 10 minutes.');
+
+  if (req.userId && req.sessionKey) {
+    var found = findTeacherByUserId_(String(req.userId));
+    if (found && found.row.rec && safeEqual_(String(req.sessionKey), String(found.row.rec.sessionKey))) {
+      return { userId: found.row.rec.userId, isLegacy: false };
+    }
+    cache.put('auth_fails', String(fails + 1), 600);
+    Utilities.sleep(400);
+    throw err_('UNAUTHORIZED', 'Sign-in session is invalid, please sign in again');
+  }
+
+  var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
+  if (!expected) throw err_('NOT_CONFIGURED', 'Run setup() once in the Apps Script editor');
+  var given = String(req.teacherKey || '');
+  if (!safeEqual_(given, expected)) {
+    cache.put('auth_fails', String(fails + 1), 600);
+    Utilities.sleep(400);
+    throw err_('UNAUTHORIZED', 'Wrong teacher key');
+  }
+  return { userId: null, isLegacy: true };
+}
+
 function ensureSheet_(ss, name, fixedCols, chunks) {
   var sh = ss.getSheetByName(name);
   if (!sh) sh = ss.insertSheet(name);
@@ -134,20 +306,6 @@ function getSheet_(name) {
   var sh = ss_().getSheetByName(name);
   if (!sh) throw err_('NOT_SET_UP', 'Run setup() once in the Apps Script editor');
   return sh;
-}
-
-function requireTeacher_(req) {
-  var cache = CacheService.getScriptCache();
-  var fails = Number(cache.get('auth_fails') || 0);
-  if (fails >= 20) throw err_('LOCKED', 'Too many wrong keys. Try again in 10 minutes.');
-  var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
-  if (!expected) throw err_('NOT_CONFIGURED', 'Run setup() once in the Apps Script editor');
-  var given = String(req.teacherKey || '');
-  if (!safeEqual_(given, expected)) {
-    cache.put('auth_fails', String(fails + 1), 600);
-    Utilities.sleep(400);
-    throw err_('UNAUTHORIZED', 'Wrong teacher key');
-  }
 }
 
 function safeEqual_(a, b) {
@@ -293,7 +451,7 @@ function validateQuestions_(qs) {
   }
 }
 
-function createHomework_(req) {
+function createHomework_(req, auth) {
   var hw = req.homework || {};
   validateQuestions_(hw.questions);
   var id = newId_('HW_');
@@ -301,6 +459,7 @@ function createHomework_(req) {
     id: id,
     createdAt: nowIso_(),
     status: 'published',
+    ownerId: auth.isLegacy ? null : auth.userId, // 🌟 multi-teacher: never trust a client-supplied ownerId
     assignedStudentName: hw.assignedStudentName ? String(hw.assignedStudentName).slice(0, 80) : null,
     assignedStudentId: (hw.assignedStudentId !== undefined && hw.assignedStudentId !== null) ? hw.assignedStudentId : null,
     questions: hw.questions,
@@ -338,25 +497,28 @@ function getHomeworkPublic_(req) {
   });
 }
 
-function getHomeworkFull_(req) {
+function getHomeworkFull_(req, auth) {
   var found = findHomework_(String(req.id || ''));
-  if (!found) throw err_('NOT_FOUND', 'Homework not found');
+  if (!found || !found.row.rec || !canAccessHw_(found.row.rec, auth)) throw err_('NOT_FOUND', 'Homework not found');
   return ok_({ homework: found.row.rec });
 }
 
-function listHomeworks_() {
-  var hwRows = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
+function listHomeworks_(auth) {
+  var hwRows = readAllRows_(getSheet_(SHEET_HW), HW_FIXED).filter(function (r) { return r.rec && canAccessHw_(r.rec, auth); });
   var subRows = readAllRows_(getSheet_(SHEET_SUB), SUB_FIXED);
+  var allowedIds = {};
+  hwRows.forEach(function (r) { allowedIds[r.rec.id] = true; });
   var counts = {};
   subRows.forEach(function (r) {
     var hwId = String(r.fixed[1]);
+    if (!allowedIds[hwId]) return;
     var st = String(r.fixed[6]);
     if (st === 'void') return;
     counts[hwId] = counts[hwId] || { total: 0, submitted: 0, graded: 0, approved: 0 };
     counts[hwId].total++;
     if (counts[hwId][st] !== undefined) counts[hwId][st]++;
   });
-  var list = hwRows.filter(function (r) { return r.rec; }).map(function (r) {
+  var list = hwRows.map(function (r) {
     var rec = r.rec;
     return {
       id: rec.id, createdAt: rec.createdAt, status: rec.status,
@@ -370,11 +532,11 @@ function listHomeworks_() {
   return ok_({ homeworks: list, serverTime: nowIso_() });
 }
 
-function setHomeworkStatus_(req) {
+function setHomeworkStatus_(req, auth) {
   var status = String(req.status || '');
   if (status !== 'published' && status !== 'closed') throw err_('BAD_REQUEST', 'status must be published|closed');
   var found = findHomework_(String(req.id || ''));
-  if (!found) throw err_('NOT_FOUND', 'Homework not found');
+  if (!found || !found.row.rec || !canAccessHw_(found.row.rec, auth)) throw err_('NOT_FOUND', 'Homework not found');
   var rec = found.row.rec;
   rec.status = status;
   var f = found.row.fixed;
@@ -601,13 +763,17 @@ function submit_(req) {
   return publicReceipt_(rec, { receipt: { row: rowIndex, hash: hash } });
 }
 
-function listSubmissions_(req) {
+function listSubmissions_(req, auth) {
+  var hwRows = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
+  var allowedIds = {};
+  hwRows.forEach(function (r) { if (r.rec && canAccessHw_(r.rec, auth)) allowedIds[r.rec.id] = true; });
   var loaded = loadSubmissionRows_();
   var hwId = req.hwId ? String(req.hwId) : null;
   var statuses = Array.isArray(req.statuses) ? req.statuses : null;
   var list = [];
   loaded.rows.forEach(function (r) {
     if (!r.rec) return;
+    if (!allowedIds[r.rec.hwId]) return;
     if (hwId && r.rec.hwId !== hwId) return;
     if (r.rec.status === 'void') return;
     if (statuses && statuses.indexOf(r.rec.status) === -1) return;
@@ -617,7 +783,7 @@ function listSubmissions_(req) {
   return ok_({ submissions: list, serverTime: nowIso_() });
 }
 
-function gradeSubmission_(req) {
+function gradeSubmission_(req, auth) {
   var loaded = loadSubmissionRows_();
   var target = null, i;
   for (i = 0; i < loaded.rows.length; i++) if (String(loaded.rows[i].fixed[0]) === String(req.submissionId)) target = loaded.rows[i];
@@ -628,7 +794,7 @@ function gradeSubmission_(req) {
     throw err_('VERSION_CONFLICT', 'Submission changed since you loaded it; reload and retry');
   }
   var hwFound = findHomework_(rec.hwId);
-  if (!hwFound || !hwFound.row.rec) throw err_('NOT_FOUND', 'Homework definition missing');
+  if (!hwFound || !hwFound.row.rec || !canAccessHw_(hwFound.row.rec, auth)) throw err_('NOT_FOUND', 'Homework definition missing');
 
   // Merge previously saved manual scores with new ones (new wins).
   var merged = {};
@@ -656,11 +822,13 @@ function gradeSubmission_(req) {
   return ok_({ persisted: true, submission: rec });
 }
 
-function voidSubmission_(req) {
+function voidSubmission_(req, auth) {
   var loaded = loadSubmissionRows_();
   var target = null, i;
   for (i = 0; i < loaded.rows.length; i++) if (String(loaded.rows[i].fixed[0]) === String(req.submissionId)) target = loaded.rows[i];
   if (!target || !target.rec) throw err_('NOT_FOUND', 'Submission not found');
+  var hwFound = findHomework_(target.rec.hwId);
+  if (!hwFound || !hwFound.row.rec || !canAccessHw_(hwFound.row.rec, auth)) throw err_('NOT_FOUND', 'Submission not found');
   var rec = target.rec;
   rec.status = 'void';
   rec.version = (rec.version || 1) + 1;

@@ -100,6 +100,48 @@
     transform: translateY(-2px) scale(1.05);
 }
 
+/* 🌟 [جديد] غلاف "header-actions" — يجمع زر "الرئيسية" الجديد مع زر اللغة في طرف واحد
+   من الهيدر (راجع تعليق الشرح الكامل فوق هذا الغلاف في index.html) 🌟 */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 🌟 [جديد] زر "الرئيسية" الثابت في الهيدر — يظهر في كل شاشات المنصة الداخلية ليعيد
+   المعلم للشاشة الرئيسية من أي مكان (كان مفقوداً تماماً: الرجوع كان يعتمد فقط على أزرار
+   "🔙" متفرقة داخل كل شاشة). نفس شكل #lang-toggle-btn بالضبط (نفس الحجم والحواف) لتناسق
+   بصري كامل بين الزرين المتجاورين، فرقهما فقط أيقونة البيت الإضافية 🌟 */
+.header-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fffdf6;
+    border: 1.5px solid rgba(255, 253, 246, 0.4);
+    padding: 8px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: 0.25s ease;
+}
+
+.header-home-btn:hover {
+    background: var(--dh-gold-500);
+    border-color: var(--dh-gold-500);
+    color: var(--dh-emerald-900);
+    transform: translateY(-2px) scale(1.05);
+}
+
+@media (max-width: 768px) {
+    /* 🌟 على الجوال: إخفاء نص "الرئيسية" والإبقاء على الأيقونة فقط لتوفير مساحة —
+       نفس فكرة تصغير باقي عناصر الهيدر في نفس نطاق الاستجابة أسفل هذا الملف 🌟 */
+    .header-home-btn span { display: none; }
+    .header-home-btn { padding: 8px 12px; }
+}
+
 /* ==========================================================================
    2) الشاشة الرئيسية (.home-screen) — components/splash.html فقط
    ========================================================================== */

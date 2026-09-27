@@ -788,19 +788,38 @@ function buildReportData(){
   const now = new Date();
   const dateLabel = formatDateArabic(now);
 
-  // 🌟 السجل السابق يُقرأ **قبل** تسجيل هذه المحاولة، فيبقى معناه "ما قبل هذا التقييم"
-  // بدقة — وهو أساس كل من فرق النتيجة ومقارنة السرعة أدناه.
-  const previous = getHistory(student.id);
+  // 🌟 [إصلاح — جوهري] كانت هذه الدالة تقرأ history_<id> وتُعامل آخر عنصر فيه دائمًا
+  // على أنه "المحاولة السابقة"، بينما games/adultGame.js وgames/kidsGame.js يكتبان
+  // نتيجة *هذا التقييم نفسه* في history_<id> (persistEvaluationToHistory) قبل فتح هذا
+  // التقرير مباشرة (راجع تعليقهما). فكان آخر عنصر في السجل عند وصولنا هنا هو هذا
+  // الاختبار نفسه لا محاولة سابقة فعلية — فتُقارَن كل نتيجة بنفسها: "المحاولة السابقة"
+  // تطابق "هذا التقييم" تمامًا (نفس التاريخ ونفس النسبة) في كل تقرير ولكل طالب. هذا هو
+  // سبب الخلل الذي أبلغ عنه المعلم صراحةً (بيانات مكررة/غير صادقة بلا أي تغيير).
+  //
+  // 🌟 الإصلاح: نقرأ السجل الخام أولًا، ثم نستبعد صراحةً آخر عنصر فيه لو كان يطابق
+  // (نفس التاريخ + نفس النسبة) هذا الاختبار الحالي — عندها هو تسجيل لهذا الاختبار نفسه
+  // كُتب قبل لحظات، لا محاولة سابقة. الباقي بعد الاستبعاد هو "التاريخ الحقيقي السابق"
+  // الذي تُبنى عليه كل مقارنة (الشارة والسُلّم ومقارنة السرعة) — فتظهر بدقة:
+  //   • لا يوجد أي بيان سابق حقيقي  → لا شارة فرق ولا سُلّم، ورسالة "أول تقييم" فقط.
+  //   • بيان سابق حقيقي واحد        → شارة الفرق ومحطة واحدة سابقة، بتاريخها الحقيقي.
+  //   • عدة بيانات سابقة حقيقية      → حتى ٣ محطات سابقة، كل واحدة بتاريخها ونتيجتها.
+  const rawHistory = getHistory(student.id);
+  const lastRaw = rawHistory.length ? rawHistory[rawHistory.length - 1] : null;
+  const lastRawIsThisAttempt = !!(lastRaw && lastRaw.date === dateLabel && lastRaw.score === score);
+  const previous = lastRawIsThisAttempt ? rawHistory.slice(0, -1) : rawHistory;
+
   const lastPrev = previous.length ? previous[previous.length - 1] : null;
   const scope = (activeGameState && activeGameState.range)
+    || (lastRaw && lastRaw.range)
     || (lastPrev && lastPrev.range)
     || '';
 
-  // فرق النتيجة عن المحاولة السابقة — null تمامًا لو لم توجد محاولة سابقة مسجَّلة،
-  // فتختفي الشارة بدل أن تعرض "+0" أو رقمًا لا معنى له في أول تقرير للطالب.
+  // فرق النتيجة عن المحاولة السابقة — null تمامًا لو لم توجد محاولة سابقة *حقيقية*
+  // مسجَّلة (أول تقييم للطالب فعليًا)، فتختفي الشارة بدل أن تعرض "+0" أو رقمًا لا معنى له.
   const delta = lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
 
-  // مقارنة السرعة بمتوسط المحاولات السابقة — تحتاج قياسًا زمنيًا في الطرفين معًا
+  // مقارنة السرعة بمتوسط المحاولات السابقة *الحقيقية* فقط (لا تشمل هذا الاختبار نفسه) —
+  // تحتاج قياسًا زمنيًا في الطرفين معًا
   const prevWithTime = previous.filter(h => typeof h.avgTimeSec === 'number' && h.avgTimeSec > 0);
   let speedCompare = null;
   if (stats.avgTimeSec && prevWithTime.length) {
@@ -814,12 +833,18 @@ function buildReportData(){
 
   const { strengths, needsFocus } = getSkillHighlights(student, questionResults, speedCompare);
 
-  // 🌟 تسجيل هذه المحاولة في سجل الطالب ليبني سُلّم التقدّم في التقارير القادمة
-  // (راجع تعليق appendHistoryEntry أعلاه للافتراض الصريح المستخدم هنا)
-  appendHistoryEntry(student.id, { date: dateLabel, score, range: scope, avgTimeSec: stats.avgTimeSec });
+  // 🌟 تسجيل هذه المحاولة في سجل الطالب ليبني سُلّم التقدّم في التقارير القادمة —
+  // *فقط* لو لم تكن مسجَّلة فيه بالفعل. الحالة المعتادة: games/adultGame.js أو
+  // games/kidsGame.js سجّلاها بالفعل قبل فتح هذا التقرير (lastRawIsThisAttempt = true)،
+  // فتسجيلها هنا مرة أخرى كان هو بالضبط سبب "قراءة الاختبار كمحاولة سابقة لنفسه"
+  // أعلاه. لا نسجّلها هنا إلا لو وصلنا هذا التقرير من مسار لم يكتب في السجل مسبقًا.
+  if (!lastRawIsThisAttempt) {
+    appendHistoryEntry(student.id, { date: dateLabel, score, range: scope, avgTimeSec: stats.avgTimeSec });
+  }
 
   // محطات سُلّم التقدّم: هذه المحاولة أولاً (أقصى اليمين في RTL) ثم أحدث ثلاث محاولات
-  // سابقة. لون كل محطة = لون مستواها الفعلي، لا تدرّج يعبّر عن ترتيبها الزمني.
+  // سابقة *حقيقية* (previous بعد استبعاد هذا الاختبار نفسه أعلاه). لون كل محطة = لون
+  // مستواها الفعلي، لا تدرّج يعبّر عن ترتيبها الزمني.
   const ladder = [{
     isCurrent: true,
     whenLabel: t('rep_step_current'),

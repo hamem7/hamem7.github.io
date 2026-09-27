@@ -1,9 +1,11 @@
 // js/results.js — teacher inbox, grading room, approval, and writing the approved result into the student's record.
-import { call, callWithRetry, friendlyError, getApiUrl, getTeacherKey } from './api.js';
+import { call, callWithRetry, friendlyError, getApiUrl } from './api.js';
+import { ensureTeacherAuth, renderAuthStatus } from './teacherAuth.js';
 import { listStudents, addStudent, findStudentByName, findStudentById, recordApprovedResult, readHistory } from './studentRecords.js';
 
 const $ = (id) => document.getElementById(id);
 let subs = [], homeworks = [];
+renderAuthStatus($('auth-status'));
 
 const STATUS = { submitted: ['b-info', 'مُسلَّم — بانتظار التصحيح'], graded: ['b-warn', 'مُصحَّح (غير معتمد)'], approved: ['b-ok', 'معتمد'] };
 const badge = (st) => { const s = document.createElement('span'); s.className = 'badge ' + (STATUS[st] || ['b-grey'])[0]; s.textContent = (STATUS[st] || [0, st])[1]; return s; };
@@ -21,7 +23,7 @@ async function loadHomeworks() {
 
 async function loadSubs() {
   const host = $('list');
-  if (!getApiUrl() || !getTeacherKey()) { host.textContent = 'أدخل رابط الخادم ومفتاح المعلم من الصفحة الرئيسية.'; return; }
+  if (!getApiUrl()) { host.textContent = 'أدخل رابط الخادم من الصفحة الرئيسية.'; return; }
   host.textContent = '⏳ جاري التحميل…';
   try {
     const hw = $('hw-select').value;
@@ -158,4 +160,12 @@ $('btn-sync').addEventListener('click', async () => {
 
 $('hw-select').addEventListener('change', loadSubs);
 $('btn-reload').addEventListener('click', () => { loadHomeworks().then(loadSubs); });
-(async () => { try { await loadHomeworks(); } catch (e) { $('list').textContent = '❌ ' + friendlyError(e); return; } await loadSubs(); await loadRecords(); })();
+
+// 🌟 multi-teacher: every single thing on this page is a teacher action (there is no guest use of
+// "results/grading"), so — unlike teacher.html, where generating questions works guest-only — this
+// page gates itself once, up front, instead of gating each button separately.
+(async () => {
+  if (!(await ensureTeacherAuth())) { $('list').textContent = 'سجّل الدخول لعرض النتائج والتصحيح.'; return; }
+  try { await loadHomeworks(); } catch (e) { $('list').textContent = '❌ ' + friendlyError(e); return; }
+  await loadSubs(); await loadRecords();
+})();

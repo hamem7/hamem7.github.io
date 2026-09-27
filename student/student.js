@@ -243,6 +243,15 @@ async function renderAllStudentsTable() {
 
 function setupAllStudentsListeners() {
     document.getElementById('btn-back-login')?.addEventListener('click', loadMyStudentsScreen);
+
+    // 🌟 [جديد] زر "تسجيل بطل جديد" المضاف حديثاً في أعلى هذه الشاشة — لا يكرر نافذة
+    // الإضافة هنا، بل يفتح شاشة "طلابي" (حيث نافذة الإضافة الحقيقية موجودة فعلاً) ثم
+    // يُطلق تلقائياً نفس زرها #btn-add-student، فيفتح المعلم النافذة مباشرة بلا خطوة
+    // وسيطة يدوية 🌟
+    document.getElementById('btn-add-champion-shortcut')?.addEventListener('click', async () => {
+        await loadMyStudentsScreen();
+        document.getElementById('btn-add-student')?.click();
+    });
     document.getElementById('all-students-body')?.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if(!target) return;

@@ -112,6 +112,9 @@ export function createBackend(opts = {}) {
       Charset: { UTF_8: 'UTF_8' },
       computeDigest: (alg, str) => Array.from(crypto.createHash('md5').update(str, 'utf8').digest()).map(b => (b > 127 ? b - 256 : b))
     },
+    // 🌟 multi-teacher: mock of UrlFetchApp.fetch, used only by Code.gs's verifyGoogleIdToken_ to call
+    // Google's tokeninfo endpoint. Tests supply opts.urlFetch (url) => {getResponseCode, getContentText}.
+    UrlFetchApp: { fetch: (url) => (opts.urlFetch ? opts.urlFetch(url) : { getResponseCode: () => 500, getContentText: () => '{}' }) },
     Date, JSON, Math, Object, Array, String, Number, Error, RegExp, parseInt, isNaN
   };
   vm.createContext(sandbox);

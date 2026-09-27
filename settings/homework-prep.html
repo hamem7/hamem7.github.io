@@ -62,12 +62,26 @@
                 <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_needs_grading">يحتاج تصحيح ✍️</div>
                 <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 4px;" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
             </div>
+            <!-- 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — بنفس فلسفة بطاقة "يحتاج تصحيح" فوق تماماً:
+                 رقمها الحقيقي يُجلب من loadOverdueHomeworkStat في settings/homework-prep.js (يقارن
+                 كل واجب "مخصَّص لطالب محدد" منشور منذ HW_OVERDUE_DAYS يوماً أو أكثر بقائمة كل
+                 التسليمات لمعرفة هل سلّمه صاحبه أم لا)، والنقر عليها ينقل المعلم لتبويب "سجل
+                 الواجبات" حيث تظهر علامة ⏰ بجانب كل واجب متأخر بعينه -->
+            <div id="stat-overdue-card" role="button" tabindex="0" style="background: linear-gradient(135deg, #f97316, #c2410c); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(194, 65, 12, 0.2); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
+                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-overdue">0</div>
+                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_overdue_stat">متأخر عن التسليم ⏰</div>
+                <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 4px;" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
+            </div>
         </div>
 
         <!-- 🗂️ أزرار التنقل بين (إنشاء جديد) و (سجل الواجبات) -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button class="btn" id="btn-tab-new" style="flex: 1; background: #0ea5e9; font-size: 1.4rem;" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
-            <button class="btn btn-outline" id="btn-tab-history" style="flex: 1; border-color: #0ea5e9; color: #0ea5e9; background: white; font-size: 1.4rem;" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="btn" id="btn-tab-new" style="flex: 1; min-width:180px; background: #0ea5e9; font-size: 1.4rem;" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
+            <button class="btn btn-outline" id="btn-tab-history" style="flex: 1; min-width:180px; border-color: #0ea5e9; color: #0ea5e9; background: white; font-size: 1.4rem;" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
+            <!-- 🌟🌟 [جديد] نافذة تعرض كل الاختبارات/الواجبات المصححة والمعتمدة مع نتيجتها
+                 النهائية لكل طالب، وإمكانية إعادة فتح شهادة تقديره منها — راجع core/homework-prep.js
+                 (openFinalResultsModal) وreports/hwCertificate.js -->
+            <button class="btn btn-outline" id="btn-final-results" style="flex: 1; min-width:180px; border-color: #d97706; color: #d97706; background: white; font-size: 1.4rem;" data-i18n="hw_final_results_btn">🎓 النتائج النهائية للطلاب</button>
         </div>
 
         <!-- ========================================== -->

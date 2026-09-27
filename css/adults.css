@@ -113,9 +113,27 @@ body.adult-theme {
     color: white !important; 
 }
 
-.adult-theme .btn-correct { 
-    background: #35a66e !important; 
-    color: white !important; 
+.adult-theme .btn-correct {
+    background: #35a66e !important;
+    color: white !important;
+}
+
+/* 🌟 [جديد] كلاسات دلالية موحّدة لزرّين كانا بستايل inline منفصل تماماً في شاشات
+   الألعاب (games/adultGame.html وgames/kidsGame.html): زر "إضافة ملاحظة ومتابعة" كان
+   يعيد استخدام .btn-wrong الأحمر (دلالته الأصلية "إجابة خاطئة") لفعل مختلف تماماً، وزر
+   "اعتماد والانتقال للسؤال التالي" لم يكن له أي كلاس أصلاً. لا تغيير في الألوان الفعلية —
+   فقط نقلها لكلاسات معزولة بنفس نمط .btn-wrong/.btn-correct أعلاه بالضبط 🌟 */
+.adult-theme .btn-note {
+    background: #f59e0b !important;
+    color: white !important;
+    border: none !important;
+}
+
+.adult-theme .btn-confirm-next {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3) !important;
 }
 
 .adult-theme select, 

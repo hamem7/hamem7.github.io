@@ -1,5 +1,6 @@
 // js/teacher.js — create homework, get a link ONLY after the server confirmed persistence + a student-view check.
-import { call, callWithRetry, friendlyError, getApiUrl, getTeacherKey, ApiError } from './api.js';
+import { call, callWithRetry, friendlyError, getApiUrl, isTeacherAuthed, ApiError } from './api.js';
+import { ensureTeacherAuth, renderAuthStatus } from './teacherAuth.js';
 import { listSurahs, generateQuestions, typeSummary, typeLabel, studentLink, whatsappUrl, saveLocalCopy } from './homework.js';
 import { listStudents } from './studentRecords.js';
 
@@ -7,13 +8,15 @@ const $ = (id) => document.getElementById(id);
 let surahs = [], questions = [], lastCfg = null;
 
 function setConn(cls, text) { const c = $('conn'); c.className = 'banner ' + cls; c.textContent = text; }
+const repaintAuthStatus = renderAuthStatus($('auth-status'), () => loadList());
 
+// 🌟 guest-first: opening this page never asks for sign-in — a guest can browse and generate
+// questions freely. We only check that the SERVER is reachable (not who the teacher is).
 async function checkConnection() {
   if (!getApiUrl()) return setConn('bad', '⚠️ لم يتم ضبط رابط الخادم. افتح "الرئيسية" وأدخله أولاً.');
-  if (!getTeacherKey()) return setConn('warn', '🔑 لم تُدخل مفتاح المعلم بعد. افتح "الرئيسية" وأدخله.');
   try {
-    const r = await call('authCheck', {}, { teacher: true });
-    setConn('ok', `✅ متصل بالخادم ومفتاح المعلم صحيح (${r._ms}ms)`);
+    const p = await call('ping', {});
+    setConn(p.configured ? 'ok' : 'warn', p.configured ? `✅ متصل بالخادم (إصدار ${p.version})` : '⚠️ الخادم يعمل لكن لم يتم تشغيل setup() بعد.');
     return true;
   } catch (e) { setConn('bad', '❌ ' + friendlyError(e)); return false; }
 }
@@ -57,6 +60,11 @@ function setStep(li, text, state) { li.textContent = ({ run: '⏳ ', ok: '✅ ',
 
 $('btn-publish').addEventListener('click', async () => {
   const btn = $('btn-publish'); btn.disabled = true; $('publish-steps').innerHTML = ''; $('link-box').classList.add('hidden');
+  // 🌟 multi-teacher: publishing is exactly the action that needs a teacher identity — this is the
+  // ONLY place on this page that can pop the Google Sign-In prompt, and only when not already signed in.
+  const signedIn = await ensureTeacherAuth();
+  repaintAuthStatus();
+  if (!signedIn) { btn.disabled = false; return; }
   const assignId = $('assign').value;
   const assignName = assignId ? $('assign').selectedOptions[0].textContent : null;
   const s1 = step('حفظ الواجب في الخادم…', 'run');
@@ -92,7 +100,15 @@ $('btn-copy').addEventListener('click', async () => {
 
 async function loadList() {
   const host = $('hw-list');
-  if (!getApiUrl() || !getTeacherKey()) { host.textContent = 'أدخل رابط الخادم ومفتاح المعلم من الصفحة الرئيسية.'; return; }
+  if (!getApiUrl()) { host.textContent = 'أدخل رابط الخادم من الصفحة الرئيسية.'; return; }
+  if (!isTeacherAuthed()) {
+    host.textContent = '';
+    const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'سجّل الدخول لعرض واجباتك المنشورة.';
+    const b = document.createElement('button'); b.className = 'btn small'; b.textContent = '🔐 تسجيل الدخول';
+    b.addEventListener('click', async () => { if (await ensureTeacherAuth()) { repaintAuthStatus(); loadList(); } });
+    host.append(p, b);
+    return;
+  }
   try {
     const r = await callWithRetry('listHomeworks', {}, { teacher: true }, 2);
     if (!r.homeworks.length) { host.textContent = 'لا توجد واجبات بعد.'; return; }

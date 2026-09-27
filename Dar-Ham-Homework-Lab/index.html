@@ -19,15 +19,27 @@
       <h2>1) ربط الخادم</h2>
       <label for="api-url">رابط الـ Web App (ينتهي بـ <code>/exec</code>)</label>
       <input type="url" id="api-url" placeholder="https://script.google.com/macros/s/…/exec" dir="ltr">
-      <label for="teacher-key">مفتاح المعلم (Teacher Key) — يُحفظ على جهازك فقط</label>
-      <input type="password" id="teacher-key" autocomplete="off" dir="ltr">
       <p class="row"><button class="btn" id="btn-save">💾 حفظ واختبار الاتصال</button></p>
       <div id="conn" class="banner info hidden"></div>
       <p class="muted">لم تنشر الخادم بعد؟ اتبع خطوات README.md (5 دقائق).</p>
     </section>
 
     <section class="card">
-      <h2>2) الصفحات</h2>
+      <h2>2) المعلم</h2>
+      <p class="muted">يمكنك تصفح المعمل واستخدام أدواته مباشرة كضيف. سيُطلب منك تسجيل الدخول بحساب Google فقط عند إصدار واجب أو عرض واجباتك المحفوظة.</p>
+      <p class="row"><span id="auth-status" class="dh-auth-status hidden"></span><button class="btn" id="btn-google-signin">تسجيل الدخول باستخدام Google</button></p>
+      <div id="auth-msg" class="banner hidden"></div>
+
+      <details id="legacy-box">
+        <summary class="muted">مفتاح المعلم القديم (اختياري — لربط واجباتك السابقة فقط)</summary>
+        <label for="teacher-key">مفتاح المعلم (Teacher Key) — يُحفظ على جهازك فقط</label>
+        <input type="password" id="teacher-key" autocomplete="off" dir="ltr">
+        <p class="muted">أدخل مفتاحك القديم هنا ثم سجّل الدخول بـ Google أعلاه: سيتم ربط واجباتك السابقة بحسابك تلقائياً في نفس الخطوة.</p>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>3) الصفحات</h2>
       <p class="row"><a class="btn" href="teacher.html">👨‍🏫 إنشاء واجب</a><a class="btn" href="results.html">📊 النتائج والتصحيح</a><a class="btn gold" href="diagnostics.html">🩺 اختبارات الواقع (شغّلها من موبايلك)</a></p>
     </section>
 
@@ -39,19 +51,33 @@
   </main>
   <script type="module">
     import { getApiUrl, setApiUrl, getTeacherKey, setTeacherKey, call, friendlyError } from './js/api.js';
+    import { ensureTeacherAuth, renderAuthStatus } from './js/teacherAuth.js';
     const $ = (i) => document.getElementById(i);
     $('api-url').value = getApiUrl(); $('teacher-key').value = getTeacherKey();
+    const repaint = renderAuthStatus($('auth-status'));
+
+    // 🌟 guest-first: this only tests server reachability — it does NOT ask for a teacher identity.
     $('btn-save').addEventListener('click', async () => {
       const c = $('conn'); c.classList.remove('hidden');
       try { setApiUrl($('api-url').value.trim()); } catch (e) { c.className = 'banner bad'; c.textContent = '❌ ' + e.message; return; }
-      setTeacherKey($('teacher-key').value.trim());
       c.className = 'banner info'; c.textContent = '⏳ جاري الاختبار…';
       try {
         const p = await call('ping', {});
-        if (!p.configured) { c.className = 'banner warn'; c.textContent = '⚠️ الخادم يعمل لكن لم يتم تشغيل setup() بعد في Apps Script.'; return; }
-        const a = await call('authCheck', {}, { teacher: true });
-        c.className = 'banner ok'; c.textContent = `✅ الاتصال سليم (إصدار الخادم ${p.version}) ومفتاح المعلم صحيح.`;
+        c.className = p.configured ? 'banner ok' : 'banner warn';
+        c.textContent = p.configured ? `✅ الاتصال سليم (إصدار الخادم ${p.version}).` : '⚠️ الخادم يعمل لكن لم يتم تشغيل setup() بعد في Apps Script.';
       } catch (e) { c.className = 'banner bad'; c.textContent = '❌ ' + friendlyError(e); }
+    });
+
+    // Saved as soon as it's typed so a Google sign-in right after can migrate it in the same click
+    // (see js/teacherAuth.js handleCredential) — this field itself never triggers a server call.
+    $('teacher-key').addEventListener('change', () => setTeacherKey($('teacher-key').value.trim()));
+
+    $('btn-google-signin').addEventListener('click', async () => {
+      const m = $('auth-msg'); m.classList.remove('hidden'); m.className = 'banner info'; m.textContent = '⏳ جاري تسجيل الدخول…';
+      const ok = await ensureTeacherAuth();
+      repaint();
+      if (!ok) { m.classList.add('hidden'); return; }
+      m.className = 'banner ok'; m.textContent = '✅ تم تسجيل الدخول. يمكنك الآن إنشاء الواجبات وعرض نتائجك.';
     });
   </script>
 </body>

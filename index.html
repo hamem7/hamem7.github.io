@@ -33,6 +33,20 @@
          home.css/similarities.css أعلاه، بلوحة ألوان مستقلة خاصة به (راجع تعليق الاستثناء
          الموثَّق في رأس css/tajweed.css نفسه) 🌟 -->
     <link rel="stylesheet" href="css/tajweed.css">
+
+    <!-- 🌟🌟 [جديد] تحليلات خصوصية بسيطة عبر GoatCounter (مجاني بالكامل، مفتوح المصدر،
+         بدون أي إعلانات وبدون بصمة متصفح Fingerprinting) — لا تُخزَّن أي بيانات شخصية
+         (طلاب/معلم)، ولوحة النتائج خاصة تماماً (خارج المنصة) على
+         https://dar-ham.goatcounter.com فقط. لو غيّرت حساب GoatCounter لاحقاً، بدّل
+         الكود "dar-ham" في data-goatcounter أدناه بالكود الجديد.
+         no_onload:true يوقف الإرسال الأوتوماتيكي لأول تحميل، لأن هذه المنصة SPA بالكامل
+         (راجع core/navigation.js + core/analytics.js) — كل تغيير شاشة يُرسَل يدوياً بدلاً
+         من ذلك حتى تُحسب كل الشاشات لا فقط أول تحميل لـ index.html 🌟🌟 -->
+    <script>
+        window.goatcounter = { no_onload: true };
+    </script>
+    <script data-goatcounter="https://dar-ham.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
 </head>
 
 <body class="adult-theme" id="main-body">
@@ -85,7 +99,24 @@
                 <span id="top-student-name" data-i18n="header_subtitle">منصة دار حم</span>
             </div>
         </div>
-        <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
+        <!-- 🌟 [جديد] غلاف "header-actions" يجمع زر "الرئيسية" الجديد مع زر تبديل اللغة —
+             ضروري لأن #main-header display:flex justify-content:space-between (css/home.css)
+             تتوقع عنصرين فقط (البراند + طرف ثانٍ)، فلو أضفنا الزر كشقيق مباشر للغة كانا
+             سيتوزعان على طرفي الهيدر بدل الظهور معاً. لا تعديل على البنية القديمة، فقط
+             تغليف إضافي جديد 🌟 -->
+        <div class="header-actions">
+            <!-- 🌟 data-i18n موضوعة على <span> الداخلي فقط وليس على <button> نفسه، لأن
+                 applyLanguage() (core/i18n.js) تستبدل innerHTML بالكامل للعنصر صاحب data-i18n —
+                 لو وُضعت على الزر مباشرة كانت ستمسح أيقونة الـSVG بجانب النص عند كل تبديل لغة 🌟 -->
+            <button id="header-home-btn" class="header-home-btn" data-i18n-title="header_home_btn" title="الرئيسية">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span data-i18n="header_home_btn">الرئيسية</span>
+            </button>
+            <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
+        </div>
     </div>
 
     <!-- 🌟 [جديد] بطاقة "تلميحات الأقسام عند أول دخول" العائمة — عنصر ثابت خارج #app-root

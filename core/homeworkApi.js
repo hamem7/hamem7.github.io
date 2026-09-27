@@ -79,6 +79,15 @@ export async function gradeSubmissionOnServer(submissionId, manualScores, studen
     return withDocId(r.submission);
 }
 
+// ---------- المعلم: كل التسليمات الحالية بلا فلتر حالة (لإشعار "تسليم جديد" الدوري) ----------
+// 🌟🌟 [جديد] راجع core/homeworkNotifier.js. عمداً بلا معامل statuses (يعيد الخادم كل التسليمات
+// غير الملغاة submitted/graded/approved معاً — راجع listSubmissions_ في الخادم) لأن الإشعار
+// المطلوب هو "عند تسليم الطالب" بحد ذاته بصرف النظر عن حالة تصحيحه بعد ذلك.
+export async function listAllSubmissionsForNotifications() {
+    const r = await teacherCall('listSubmissions', {});
+    return r.submissions.map(withDocId);
+}
+
 // ---------- دوال قديمة أُبقيت فارغة عمداً (لا تؤثر على أي شيء) ----------
 // كان الواجب يُحفظ محلياً ثم يُرفع لاحقاً بطابور إعادة محاولة، والآن النشر لا يُعرض رابطه إلا بعد تأكيد
 // الخادم (لا وجود لحالة "محفوظ محلياً فقط" لواجب منشور)، وتسليمات الطلاب تُدار بـ core/submitQueue.js على جهاز الطالب.

@@ -357,5 +357,120 @@ await test('lock timeout surfaces as BUSY (client can retry) rather than a false
   assert.equal(r.code, 'BUSY'); assert.notEqual(r.ok, true);
 });
 
+// ============================================================================ 🌟 multi-teacher (Google Sign-In)
+// Fakes Google's tokeninfo endpoint: each fake idToken string is registered up-front with the
+// {sub,email} it should resolve to, exactly like real Google would return for a real ID token.
+function googleMock(tokens) {
+  return (url) => {
+    const m = /id_token=([^&]+)/.exec(url);
+    const info = m && tokens[decodeURIComponent(m[1])];
+    if (!info) return { getResponseCode: () => 400, getContentText: () => JSON.stringify({ error_description: 'Invalid Value' }) };
+    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sub: info.sub, email: info.email, name: info.name || '', iss: 'accounts.google.com', aud: info.aud || 'test-client' }) };
+  };
+}
+function freshMulti(tokens) {
+  const be = createBackend({ urlFetch: googleMock(tokens) });
+  const key = be.setup();
+  return { be, key };
+}
+
+await test('googleSignIn: verifies the ID token, creates a permanent userId (not the email), returns a sessionKey', () => {
+  const { be } = freshMulti({ tokA: { sub: 'sub-A', email: 'a@example.com' } });
+  const r = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  assert.equal(r.ok, true); assert.equal(r.isNewTeacher, true);
+  assert.match(r.userId, /^T_[0-9a-f]{32}$/);
+  assert.notEqual(r.userId, 'a@example.com');
+  assert.ok(r.sessionKey && r.sessionKey.length >= 20);
+  // signing in again with the SAME Google account returns the SAME userId (not a new one)
+  const r2 = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  assert.equal(r2.userId, r.userId); assert.equal(r2.isNewTeacher, false);
+});
+
+await test('googleSignIn: an invalid/unrecognised ID token is rejected', () => {
+  const { be } = freshMulti({ tokA: { sub: 'sub-A' } });
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'not-a-real-token' }).code, 'UNAUTHORIZED');
+  assert.equal(be.post({ action: 'googleSignIn' }).code, 'BAD_REQUEST');
+});
+
+await test('createHomework with a Google session stamps ownerId=userId; a plain sessionKey typo is UNAUTHORIZED', () => {
+  const { be } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const login = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  const c = be.post({ action: 'createHomework', userId: login.userId, sessionKey: login.sessionKey, homework: { questions: [{ id: 'q1', type: 'mcq', text: 't', correctAnswer: 'A', options: ['A', 'B'] }] } });
+  assert.equal(c.ok, true); assert.equal(c.persisted, true);
+  assert.equal(be.post({ action: 'authCheck', userId: login.userId, sessionKey: 'wrong' }).code, 'UNAUTHORIZED');
+});
+
+await test('ISOLATION: Teacher A never sees Teacher B homeworks/submissions/grading, and cannot close B\'s homework', async () => {
+  const { be } = freshMulti({ tokA: { sub: 'sub-A' }, tokB: { sub: 'sub-B' } });
+  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  const b = be.post({ action: 'googleSignIn', idToken: 'tokB' });
+  assert.notEqual(a.userId, b.userId);
+  const authA = { userId: a.userId, sessionKey: a.sessionKey };
+  const authB = { userId: b.userId, sessionKey: b.sessionKey };
+  const qs = await makeQuestions(3);
+  const hwA = be.post({ action: 'createHomework', ...authA, homework: { questions: qs } });
+  const hwB = be.post({ action: 'createHomework', ...authB, homework: { questions: qs } });
+
+  const listA = be.post({ action: 'listHomeworks', ...authA });
+  assert.deepEqual(listA.homeworks.map(h => h.id), [hwA.id]);
+  const listB = be.post({ action: 'listHomeworks', ...authB });
+  assert.deepEqual(listB.homeworks.map(h => h.id), [hwB.id]);
+
+  // A cannot read, close, or grade against B's homework — NOT_FOUND, never leaked
+  assert.equal(be.post({ action: 'getHomeworkFull', ...authA, id: hwB.id }).code, 'NOT_FOUND');
+  assert.equal(be.post({ action: 'setHomeworkStatus', ...authA, id: hwB.id, status: 'closed' }).code, 'NOT_FOUND');
+
+  const sub = be.post({ action: 'submit', hwId: hwB.id, clientSubmissionId: cid(), studentName: 'طالب واحد', answers: {} });
+  assert.equal(be.post({ action: 'listSubmissions', ...authA }).submissions.length, 0);
+  assert.equal(be.post({ action: 'listSubmissions', ...authB }).submissions.length, 1);
+  assert.equal(be.post({ action: 'gradeSubmission', ...authA, submissionId: sub.submissionId, manualScores: {} }).code, 'NOT_FOUND');
+  assert.equal(be.post({ action: 'voidSubmission', ...authA, submissionId: sub.submissionId }).code, 'NOT_FOUND');
+});
+
+await test('the legacy shared teacherKey keeps working exactly as before, and still sees everything (admin bypass)', async () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  const hwA = be.post({ action: 'createHomework', userId: a.userId, sessionKey: a.sessionKey, homework: { questions: await makeQuestions(2) } });
+  const hwLegacy = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  const listViaKey = be.post({ action: 'listHomeworks', teacherKey: key });
+  assert.deepEqual(listViaKey.homeworks.map(h => h.id).sort(), [hwA.id, hwLegacy.id].sort());
+  // but Teacher A (Google-only) still cannot see the legacy/unowned homework before migrating
+  const listViaA = be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey });
+  assert.deepEqual(listViaA.homeworks.map(h => h.id), [hwA.id]);
+});
+
+await test('MIGRATION: first Google account to present the correct legacy key claims all pre-existing unowned homeworks, once', async () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' }, tokB: { sub: 'sub-B' } });
+  const legacyHw = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+
+  // wrong key never claims anything
+  const badClaim = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: 'WRONG' });
+  assert.equal(badClaim.code, 'UNAUTHORIZED');
+
+  const a = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: key });
+  assert.equal(a.ok, true); assert.equal(a.claimed, true);
+  const listA = be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey });
+  assert.deepEqual(listA.homeworks.map(h => h.id), [legacyHw.id]);
+
+  // a second, different Google account can never claim the same legacy data, even with the right key
+  const b = be.post({ action: 'migrateLegacyKey', idToken: 'tokB', teacherKey: key });
+  assert.equal(b.ok, true); assert.equal(b.claimed, false);
+  const listB = be.post({ action: 'listHomeworks', userId: b.userId, sessionKey: b.sessionKey });
+  assert.equal(listB.homeworks.length, 0);
+
+  // re-claiming with the SAME account that already migrated is a harmless no-op
+  const again = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: key });
+  assert.equal(again.claimed, true); assert.equal(again.alreadyClaimed, true);
+});
+
+await test('NO DATA LOSS: existing student-facing links and submit flow are completely unaffected by the auth rewrite', async () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(3) } });
+  const pub = be.get({ action: 'getHomework', id: c.id });
+  assert.equal(pub.ok, true);
+  const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'طالب قديم', answers: {} });
+  assert.equal(sub.ok, true); assert.equal(sub.persisted, true);
+});
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

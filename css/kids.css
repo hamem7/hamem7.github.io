@@ -169,6 +169,23 @@ body.kids-theme {
     border: 2px solid rgba(255, 255, 255, 0.5) !important;
 }
 
+/* 🌟 [جديد] نظيرة .adult-theme .btn-note/.btn-confirm-next في css/adults.css — نفس
+   الألوان بالضبط، فقط بنطاق .kids-theme بدل .adult-theme، لأن زرّي "إضافة ملاحظة
+   ومتابعة" و"اعتماد والانتقال للسؤال التالي" في games/kidsGame.html يستخدمان نفس
+   الكلاسات الجديدة (كانتا سابقاً بستايل inline منفصل تماماً هنا أيضاً) 🌟 */
+.kids-theme .btn-note {
+    background: #f59e0b !important;
+    color: white !important;
+    border: none !important;
+}
+
+.kids-theme .btn-confirm-next {
+    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3) !important;
+}
+
 .btn:hover {
     transform: translateY(-4px) scale(1.03) !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;

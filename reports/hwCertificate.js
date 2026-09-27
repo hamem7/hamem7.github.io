@@ -1,0 +1,228 @@
+// reports/hwCertificate.js
+// ==========================================================
+// 🌟🌟 [جديد] شهادة تقدير تظهر فور اعتماد المعلم للدرجة النهائية لأي تسليم واجب
+// ==========================================================
+// نقطة الاستدعاء الوحيدة: saveManualGrades() في settings/homework-prep.js، مباشرة بعد نجاح
+// gradeSubmissionOnServer (اعتماد مؤكَّد من الخادم). تعرض: اسم الطالب وصورته (إن وُجدت في سجله)،
+// الدرجة النهائية، كلمة تشجيعية تتدرَّج حسب مستوى الدرجة، وقائمة الأسئلة التي أخطأ فيها الطالب
+// إن وُجدت. زرّان: حفظ كصورة (html2canvas — نفس مكتبة reports/report.js بالضبط، بلا أي مكتبة
+// جديدة) ومشاركة عبر واتساب (Web Share API مع الصورة كملف مرفَق لو دعمها المتصفح، وإلا تنزيل
+// الصورة + توجيه المعلم لإرفاقها يدوياً في واتساب — واتساب لا يقبل صورة جاهزة عبر رابط wa.me
+// إطلاقاً بأي حال).
+//
+// 🌟 العزل التقني: ملف مستقل تماماً (بادئة CSS/DOM خاصة به hwcert-)، بلا استيراد أو لمس أي
+// سطر من reports/report.js أو reports/dual-test-report.js — نفس فلسفة العزل المتّبعة فعلاً في
+// كل ملفات التقارير بالمنصة، حتى لو كرّرنا هنا تحميل html2canvas محلياً.
+import { t } from '../core/i18n.js';
+
+// ------------------------------------------------------------
+// تحميل html2canvas من cdnjs — نفس الرابط والنسخة المستخدمة بالضبط في reports/report.js
+// ------------------------------------------------------------
+function loadScript(src) {
+    return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) return resolve();
+        const el = document.createElement('script');
+        el.src = src;
+        el.onload = resolve;
+        el.onerror = () => reject(new Error('تعذّر تحميل المكتبة: ' + src));
+        document.head.appendChild(el);
+    });
+}
+async function ensureHtml2Canvas() {
+    if (!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+}
+
+// ------------------------------------------------------------
+// تدرّج الدرجة → لون/كلمة تشجيعية — نفس حدود getTier في reports/report.js بالحرف (>=90/75/60)
+// حتى تبقى تصنيفات "ممتاز/جيد/متوسط" موحّدة في كل تقارير المنصة، بلا استيراد مباشر (عزل الملف).
+// ------------------------------------------------------------
+function getTier(score) {
+    if (score >= 90) return 'excellent';
+    if (score >= 75) return 'good';
+    if (score >= 60) return 'average';
+    return 'weak';
+}
+const TIER_COLOR = {
+    excellent: '#0d5c46',
+    good: '#147c5e',
+    average: '#b8863b',
+    weak: '#a15230'
+};
+
+function getStudentAvatar(student) {
+    if (!student) return null;
+    return student.avatar || student.image || student.photo || student.profilePic || student.picture || student.icon || null;
+}
+
+// 🌟 يجمع الأسئلة التي لم يحصل الطالب فيها على الدرجة الكاملة — تلقائية التصحيح (isCorrect
+// === false) أو يدوية (manualScore أقل من points القصوى) — لعرضها في قسم "نقاط تحتاج مراجعة".
+function collectMistakes(submission) {
+    return (submission.details || []).filter(d => {
+        if (d.needsManualGrading) {
+            const max = d.points || 1;
+            const got = d.manualScore !== undefined ? d.manualScore : 0;
+            return got < max;
+        }
+        return d.isCorrect === false;
+    }).map(d => ({
+        question: d.question || '',
+        correctAnswer: d.correctAnswer || null
+    }));
+}
+
+function ensureStyles() {
+    if (document.getElementById('hwcert-style')) return;
+    const style = document.createElement('style');
+    style.id = 'hwcert-style';
+    style.textContent = `
+        .hwcert-overlay { position: fixed; inset: 0; background: rgba(6,35,28,0.82); z-index: 10050;
+            display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+        .hwcert-card-wrap { max-width: 560px; width: 100%; }
+        .hwcert-card { background: linear-gradient(160deg, #fdf6e3, #f7ead0); border: 3px solid var(--dh-gold-500, #d4af37);
+            border-radius: 20px; padding: 30px 26px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+            font-family: inherit; position: relative; }
+        .hwcert-title { font-size: 1.6rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); margin: 0 0 4px; }
+        .hwcert-subtitle { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin: 0 0 18px; }
+        .hwcert-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px;
+            border: 3px solid var(--dh-gold-500, #d4af37); display: block; background: #fff; }
+        .hwcert-avatar-fallback { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 12px; display: flex;
+            align-items: center; justify-content: center; font-size: 2.4rem; background: var(--dh-emerald-700, #0d5c46);
+            color: #fdf6e3; border: 3px solid var(--dh-gold-500, #d4af37); }
+        .hwcert-name { font-size: 1.4rem; font-weight: bold; color: var(--dh-ink, #10241c); margin: 4px 0 14px; }
+        .hwcert-score-badge { display: inline-block; padding: 10px 26px; border-radius: 999px; color: #fff;
+            font-size: 1.8rem; font-weight: bold; margin-bottom: 6px; }
+        .hwcert-score-caption { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin-bottom: 16px; }
+        .hwcert-encourage { font-size: 1.05rem; line-height: 1.7; color: var(--dh-ink, #10241c); background: rgba(212,175,55,0.14);
+            border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; }
+        .hwcert-mistakes { text-align: right; background: #fff; border: 1px solid #e7d9ad; border-radius: 14px;
+            padding: 14px 16px; margin-bottom: 6px; }
+        .hwcert-mistakes-title { font-weight: bold; color: #a15230; margin: 0 0 8px; font-size: 0.95rem; }
+        .hwcert-mistake-item { font-size: 0.92rem; color: var(--dh-ink, #10241c); padding: 6px 0; border-top: 1px dashed #e7d9ad; }
+        .hwcert-mistake-item:first-child { border-top: none; }
+        .hwcert-mistake-correct { color: #147c5e; font-weight: bold; }
+        .hwcert-no-mistakes { text-align: center; color: #147c5e; font-weight: bold; padding: 10px; }
+        .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+        .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
+            font-weight: bold; cursor: pointer; font-family: inherit; }
+        .hwcert-btn-save { background: var(--dh-emerald-700, #0d5c46); color: #fdf6e3; }
+        .hwcert-btn-share { background: #25D366; color: #fff; }
+        .hwcert-btn-close { background: transparent; color: #a15230; border: 2px solid #a15230 !important; }
+        .hwcert-note { font-size: 0.8rem; color: var(--dh-ink-soft, #4a6058); margin-top: 10px; }
+    `;
+    document.head.appendChild(style);
+}
+
+async function buildCertificateBlob(cardEl) {
+    await ensureHtml2Canvas();
+    const canvas = await window.html2canvas(cardEl, { scale: 3, backgroundColor: '#fdf6e3', useCORS: true });
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+// submission = نتيجة gradeSubmissionOnServer المُعتمَدة (finalScore/details/studentName/...)
+// student = سجل الطالب المحلي (قد يكون null لو لم يُربط التسليم بأي طالب في سجل المعلم)
+export function showHomeworkCertificate(submission, student) {
+    ensureStyles();
+
+    const studentName = (student && student.name) || submission.studentName || t('hwcert_default_student');
+    const score = Math.round(submission.finalScore);
+    const tier = getTier(score);
+    const color = TIER_COLOR[tier];
+    const avatarUrl = getStudentAvatar(student);
+    const mistakes = collectMistakes(submission);
+    const filename = `شهادة-${studentName}.png`.replace(/[\\/:*?"<>|]/g, '_');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'hwcert-overlay';
+    overlay.innerHTML = `
+        <div class="hwcert-card-wrap">
+            <div class="hwcert-card" id="hwcert-card">
+                <h2 class="hwcert-title">${t('hwcert_title')}</h2>
+                <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
+                ${avatarUrl
+                    ? `<img class="hwcert-avatar" src="${avatarUrl}" alt="">`
+                    : `<div class="hwcert-avatar-fallback">🎓</div>`}
+                <div class="hwcert-name">${studentName}</div>
+                <div class="hwcert-score-badge" style="background:${color};">${score}%</div>
+                <div class="hwcert-score-caption">${t('hwcert_score_label')}</div>
+                <div class="hwcert-encourage">${t('hwcert_tier_' + tier)}</div>
+                ${mistakes.length ? `
+                    <div class="hwcert-mistakes">
+                        <div class="hwcert-mistakes-title">${t('hwcert_mistakes_title')}</div>
+                        ${mistakes.map(m => `
+                            <div class="hwcert-mistake-item">
+                                ${m.question}
+                                ${m.correctAnswer ? `<br><span class="hwcert-mistake-correct">${t('hwcert_correct_answer_label')} ${m.correctAnswer}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `<div class="hwcert-mistakes"><div class="hwcert-no-mistakes">${t('hwcert_no_mistakes')}</div></div>`}
+            </div>
+            <div class="hwcert-actions">
+                <button type="button" class="hwcert-btn-save" id="hwcert-save-btn">${t('hwcert_save_btn')}</button>
+                <button type="button" class="hwcert-btn-share" id="hwcert-share-btn">${t('hwcert_share_btn')}</button>
+                <button type="button" class="hwcert-btn-close" id="hwcert-close-btn">${t('hwcert_close_btn')}</button>
+            </div>
+            <div class="hwcert-note" id="hwcert-note" style="display:none;"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const cardEl = overlay.querySelector('#hwcert-card');
+    const noteEl = overlay.querySelector('#hwcert-note');
+    const showNote = (msg) => { noteEl.textContent = msg; noteEl.style.display = 'block'; };
+
+    overlay.querySelector('#hwcert-close-btn').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelector('#hwcert-save-btn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = '⏳';
+        try {
+            const blob = await buildCertificateBlob(cardEl);
+            downloadBlob(blob, filename);
+        } catch (err) {
+            console.error('تعذّر إنشاء صورة الشهادة:', err);
+            alert(t('hwcert_save_failed'));
+        } finally {
+            btn.disabled = false; btn.textContent = original;
+        }
+    });
+
+    overlay.querySelector('#hwcert-share-btn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = '⏳';
+        try {
+            const blob = await buildCertificateBlob(cardEl);
+            const file = new File([blob], filename, { type: 'image/png' });
+            // 🌟 Web Share API مع ملف مرفَق — الطريقة الوحيدة التي تسمح لواتساب باستقبال الصورة
+            // جاهزة مباشرة (رابط wa.me يدعم نصاً فقط، بلا أي مرفق، في كل الحالات بلا استثناء).
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file], title: t('hwcert_title'), text: studentName });
+            } else {
+                downloadBlob(blob, filename);
+                showNote(t('hwcert_share_unsupported_note'));
+            }
+        } catch (err) {
+            // 🌟 المستخدم قد يُلغي نافذة المشاركة نفسها (AbortError) — ليست خطأً فعلياً
+            if (err && err.name !== 'AbortError') {
+                console.error('تعذّر مشاركة الشهادة:', err);
+                alert(t('hwcert_save_failed'));
+            }
+        } finally {
+            btn.disabled = false; btn.textContent = original;
+        }
+    });
+}

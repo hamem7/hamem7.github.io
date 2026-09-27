@@ -18,7 +18,7 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
 import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
-import { findLocalStudentForSubmission, createLocalStudent, recordApprovedResult } from '../core/homeworkRecords.js';
+import { findLocalStudentForSubmission, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
 // 🌟 [جديد] بوابة مفتاح المعلم (لو انتهت صلاحية المفتاح المحفوظ أثناء الجلسة)
 import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
@@ -27,7 +27,14 @@ import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
 import { submissionNeedsGrading } from '../core/submissionStatus.js';
-import { t } from '../core/i18n.js';
+import { t, applyLanguage } from '../core/i18n.js';
+// 🌟🌟 [جديد] شهادة تقدير + "النتائج النهائية للطلاب" — راجع reports/hwCertificate.js
+import { showHomeworkCertificate } from '../reports/hwCertificate.js';
+// 🌟🌟 [جديد] كل التسليمات المعتمدة (بلا فلتر واجب معيّن) لنافذة "النتائج النهائية للطلاب"
+import { getAllSubmissionsFromCloud } from '../core/homeworkApi.js';
+// 🌟🌟 [جديد] كل التسليمات بلا فلتر حالة — نحتاجها هنا أيضاً لمعرفة "هل وصل أي تسليم من هذا
+// الطالب لهذا الواجب؟" بغض النظر عن كونه مصحَّحاً أم لا بعد — راجع loadOverdueHomeworkStat
+import { listAllSubmissionsForNotifications } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -49,6 +56,19 @@ let lastFailedHomeworkForRetry = null;
 function buildHomeworkShareLink(baseUrl, hwData) {
     return `${baseUrl}?hw=${hwData.id}`;
 }
+
+// 🌟🌟 [جديد] رسالة "نسخ رابط الواجب" الجاهزة كاملة للمشاركة عبر واتساب أو أي تطبيق مراسلة —
+// بدل نسخ الرابط وحده كما كان سابقاً. تُستخدَم في كل مكان يوجد فيه زر "نسخ" (🔗/📋) لرابط
+// الواجب: الصف المضمّن في سجل الواجبات (buildHomeworkList) وزر النسخ في نافذة المشاركة
+// (copyHomeworkLink). لا تُستخدَم لزر واتساب المباشر (btn-share-wa) لأن له رسالته الترحيبية
+// الخاصة أصلاً (hw_wa_message/hw_wa_message_named) وتُفتح مباشرة في واتساب لا تُنسخ.
+function buildHomeworkShareMessage(link) {
+    return `${t('hw_copy_msg_title')}\n${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
+}
+
+// 🌟🌟 [جديد] الحد الأقصى لعدد رقاقات "اقتراحات سريعة بناءً على حفظ الطالب" المعروضة دفعة
+// واحدة — راجع suggestRangeFromStudentMemo أدناه. سهل التعديل لاحقاً من هنا فقط.
+const MEMO_SUGGESTION_MAX_SURAHS = 5;
 
 let currentSubmissionsList = [];
 let currentHwIdForGrading = null;
@@ -158,6 +178,15 @@ async function suggestRangeFromStudentMemo() {
     const isFullyJuzAmma = (minNum >= JUZ_AMMA_START && maxNum <= JUZ_AMMA_END);
 
     let suggestions = [];
+    let wasTruncatedToRecent = false; // 🌟 يُستخدَم أدناه لتعديل نص التسمية فوق الرقاقات
+    // 🌟🌟 [محدَّث — بطلب صريح من المعلم بعد التجربة الفعلية] كانت تُعرض رقاقة لكل سورة ضمن
+    // نطاق حفظ الطالب بالكامل دفعة واحدة — لطالب حافظ نطاقاً واسعاً (مثلاً من الفاتحة إلى
+    // النبأ = 78 سورة) كانت تتحول لكتلة رقاقات مزدحمة غير عملية إطلاقاً (هذا بالضبط ما رفضه
+    // المعلم). الآن تُعرض فقط آخر MEMO_SUGGESTION_MAX_SURAHS سورة من النطاق.
+    // ⚠️ افتراض صريح غير محسوم بتوضيح إضافي من المعلم: اعتبرنا memoTo هو آخر نقطة وصل إليها
+    // حفظ الطالب فعلياً (لا مجرد الحد الأعلى رقمياً للنطاق)، فـ"آخر ما حفظ" = السور الأقرب
+    // رقمياً من memoTo، سواء كان رقمها أكبر أو أصغر من memoFrom. لو كان المقصود عكس هذا
+    // الاتجاه، التعديل سطر واحد فقط (قلب الشرط towardsTo أدناه).
     if (isFullyJuzAmma) {
         suggestions.push({
             label: `📖 ${t('hw_memo_suggestion_juz_amma')}`,
@@ -169,9 +198,20 @@ async function suggestRangeFromStudentMemo() {
             }
         });
     } else {
-        for (let num = minNum; num <= maxNum; num++) {
+        const fullRangeNums = [];
+        for (let num = minNum; num <= maxNum; num++) fullRangeNums.push(num);
+
+        wasTruncatedToRecent = fullRangeNums.length > MEMO_SUGGESTION_MAX_SURAHS;
+        const towardsTo = toSurah.number >= fromSurah.number; // النطاق يتجه تصاعديًا نحو toSurah
+        const recentNums = wasTruncatedToRecent
+            ? (towardsTo
+                ? fullRangeNums.slice(-MEMO_SUGGESTION_MAX_SURAHS)   // الأقرب لـ toSurah = الأعلى رقماً
+                : fullRangeNums.slice(0, MEMO_SUGGESTION_MAX_SURAHS)) // الأقرب لـ toSurah = الأدنى رقماً
+            : fullRangeNums;
+
+        recentNums.forEach(num => {
             const surah = AppState.surahsData.find(s => s.number === num);
-            if (!surah) continue;
+            if (!surah) return;
             suggestions.push({
                 label: `${num}. ${surah.name}`,
                 apply: () => {
@@ -181,12 +221,16 @@ async function suggestRangeFromStudentMemo() {
                     if (surahSelect) { surahSelect.value = String(num); updateAyahRange(); }
                 }
             });
-        }
+        });
     }
 
     if (suggestions.length === 0) return;
 
-    if (labelEl) labelEl.textContent = `${t('hw_memo_suggestion_prefix')} ${student.memoFrom} ← ${student.memoTo}`;
+    if (labelEl) {
+        labelEl.textContent = wasTruncatedToRecent
+            ? `${t('hw_memo_suggestion_recent_prefix').replace('{n}', MEMO_SUGGESTION_MAX_SURAHS)} (${student.memoFrom} ← ${student.memoTo})`
+            : `${t('hw_memo_suggestion_prefix')} ${student.memoFrom} ← ${student.memoTo}`;
+    }
 
     suggestions.forEach((sug) => {
         const chip = document.createElement('button');
@@ -274,12 +318,16 @@ async function loadHomeworkDashboard() {
                          بانتظار تصحيح المعلم اليدوي (نفس معيار needsManualGrading المستخدم أصلاً
                          في loadSubmissionsInline) -->
                     <div id="hw-alert-${hw.id}" style="display:none; margin-top:6px; background:#fee2e2; color:#b91c1c; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⚠️ ${t('hw_needs_grading_row_badge')}</div>
+                    <!-- 🌟🌟 [جديد] مخفية افتراضياً؛ تظهرها loadOverdueHomeworkStat فقط لو كان هذا
+                         الواجب مخصَّصاً لطالب محدد، منشوراً منذ HW_OVERDUE_DAYS يوماً أو أكثر، ولم
+                         يصل أي تسليم منه بعد لهذا الطالب — راجع الدالة أسفل هذا الملف -->
+                    <div id="hw-overdue-${hw.id}" style="display:none; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⏰ ${t('hw_overdue_row_badge')}</div>
                 </td>
                 <td style="padding: 15px; display: flex; gap: 5px; justify-content: center;">
                     <button class="btn btn-view-results" data-id="${hw.id}" style="padding: 5px 10px; background: #0ea5e9; font-size:1rem; min-width:unset;" title="${t('hw_subs_modal_title')}">📊</button>
                     ${isLegacyPublished
                         ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                        : `<button class="btn" onclick="navigator.clipboard.writeText('${hwLink}').then(()=>alert(t('hw_share_success')))" style="padding: 5px 10px; background: #8b5cf6; font-size:1rem; min-width:unset;" title="${t('hw_copy_btn')}">🔗</button>`}
+                        : `<button type="button" class="btn btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" style="padding: 5px 10px; background: #8b5cf6; font-size:1rem; min-width:unset;" title="${t('hw_copy_btn')}">🔗</button>`}
                     <button class="btn btn-delete-hw-record" data-id="${hw.id}" style="padding: 5px 10px; background: #ef4444; font-size:1rem; min-width:unset;" title="${t('حذف')}">🗑️</button>
                 </td>
             `;
@@ -314,6 +362,18 @@ async function loadHomeworkDashboard() {
                 await toggleInlineSubmissions(hwId);
             });
         });
+
+        // 🌟🌟 [جديد] زر نسخ رابط الواجب في سجل الواجبات — ينسخ رسالة جاهزة كاملة للمشاركة
+        // (buildHomeworkShareMessage) بدل الرابط وحده. عبر data-attribute + addEventListener
+        // (لا onclick مباشر في الـ HTML) لتفادي أي تعارض بين علامات الاقتباس والنص العربي/الرابط.
+        document.querySelectorAll('.btn-copy-hw-row-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
+                navigator.clipboard.writeText(buildHomeworkShareMessage(link))
+                    .then(() => alert(t('hw_share_success')))
+                    .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
+            });
+        });
     }
 
     document.getElementById('stat-published').innerText = publishedCount;
@@ -324,6 +384,11 @@ async function loadHomeworkDashboard() {
     // استعلام سحابي (Firestore) قد يستغرق ثانية أو أكثر — تشغيلها بدون انتظار يمنع تجميد
     // ظهور سجل الواجبات كله بسبب بطء الشبكة أو انقطاعها.
     loadNeedsGradingStat();
+
+    // 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — نفس فلسفة "يحتاج تصحيح" أعلاه بالضبط (استعلام
+    // سحابي بلا await هنا حتى لا يُجمَّد ظهور الجدول). نمرّر allHWs (محلية بالفعل، بلا استعلام
+    // إضافي) لأن هذه الدالة تحتاج معرفة أي الواجبات "مخصَّصة لطالب محدد" ومتى نُشرت.
+    loadOverdueHomeworkStat(allHWs);
 }
 
 // 🌟🌟 [جديد] تجلب من السحابة (عبر getSubmissionsNeedingGrading) عدد كل التسليمات التي تحتاج
@@ -348,6 +413,72 @@ async function loadNeedsGradingStat() {
         // 🌟 نعرض ⚠️ بدل رقم (وليس "0") حتى لا نوهم المعلم بعدم وجود أي تسليم محتاج تصحيح بينما
         // السبب الحقيقي هو تعذّر الاتصال بالسحابة — نفس فلسفة معالجة الخطأ في loadSubmissionsInline
         console.error("تعذر جلب عدد التسليمات التي تحتاج تصحيح:", e);
+        statEl.innerText = '⚠️';
+    }
+}
+
+// 🌟🌟 [جديد] الحد الأدنى بالأيام قبل اعتبار واجب "مخصَّص لطالب محدد" متأخراً عن التسليم —
+// بناءً على طلب صريح من المعلم ("تنبيه بعد يومين تقريباً إن الطالب لم يرسل الواجب"). رقم
+// واحد هنا فقط، سهل التعديل لاحقاً لو أراد المعلم مهلة مختلفة.
+const HW_OVERDUE_DAYS = 2;
+
+// 🌟🌟 [جديد] معرّفات الواجبات المتأخرة عن التسليم حالياً — تُملأ من loadOverdueHomeworkStat
+// أدناه، وتُستخدَم فقط لإخفاء علامات الصفوف السابقة عند إعادة التحميل.
+let overdueHwIds = new Set();
+
+// 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — تفحص كل واجب "مخصَّص لطالب محدد" (hw.assignedStudentName)
+// منشور منذ HW_OVERDUE_DAYS يوماً أو أكثر (حسب hw.createdAt)، وتتأكد هل وصل أي تسليم من نفس
+// الطالب لهذا الواجب بعينه — عبر listAllSubmissionsForNotifications (بلا فلتر حالة، حتى
+// تسليم لم يُصحَّح بعد يُعتبر "وصل" ولا يُعَد متأخراً؛ المطلوب فقط معرفة هل أرسل الطالب شيئاً
+// أصلاً). لا نفحص "الرابط العام" (بلا طالب محدد) لأنه غير موجَّه لطالب بعينه فلا معنى لتذكير
+// أحد بعينه به، ولا الواجبات القديمة (Firebase) التي لا يصل لها تسليم عبر الخادم الجديد أصلاً.
+// ⚠️ افتراض صريح غير محسوم بتوضيح إضافي من المعلم: المطابقة بين طالب الواجب وطالب التسليم
+// بالاسم (عبر normalizeName)، لأن الواجب لا يخزّن معرّف طالب دائماً — نفس أسلوب المطابقة
+// المستخدم أصلاً في findLocalStudentForSubmission (core/homeworkRecords.js).
+async function loadOverdueHomeworkStat(allHWs) {
+    const statEl = document.getElementById('stat-overdue');
+    if (!statEl) return;
+    statEl.innerText = '⏳';
+
+    // نُخفي علامات الصفوف من الدورة السابقة أولاً (تحسباً لإعادة تحميل بعد تعديل بيانات)
+    overdueHwIds.forEach(hwId => {
+        const el = document.getElementById(`hw-overdue-${hwId}`);
+        if (el) el.style.display = 'none';
+    });
+
+    const cutoffMs = Date.now() - HW_OVERDUE_DAYS * 24 * 60 * 60 * 1000;
+    const candidates = (allHWs || []).filter(hw =>
+        hw.status === 'published' &&
+        hw.assignedStudentName &&
+        isServerHomeworkId(hw.id) &&
+        new Date(hw.createdAt).getTime() <= cutoffMs
+    );
+
+    if (!candidates.length) {
+        statEl.innerText = '0';
+        overdueHwIds = new Set();
+        return;
+    }
+
+    try {
+        const allSubs = await listAllSubmissionsForNotifications();
+        const submittedKeys = new Set(allSubs.map(s => `${s.hwId}::${normalizeName(s.studentName)}`));
+
+        overdueHwIds = new Set(
+            candidates
+                .filter(hw => !submittedKeys.has(`${hw.id}::${normalizeName(hw.assignedStudentName)}`))
+                .map(hw => hw.id)
+        );
+
+        statEl.innerText = overdueHwIds.size;
+        overdueHwIds.forEach(hwId => {
+            const el = document.getElementById(`hw-overdue-${hwId}`);
+            if (el) el.style.display = 'inline-block';
+        });
+    } catch (e) {
+        // 🌟 نفس فلسفة loadNeedsGradingStat أعلاه بالضبط: ⚠️ بدل "0" حتى لا نوهم المعلم بعدم
+        // وجود أي واجب متأخر بينما السبب الحقيقي تعذّر الاتصال بالسحابة
+        console.error("تعذر جلب قائمة الواجبات المتأخرة عن التسليم:", e);
         statEl.innerText = '⚠️';
     }
 }
@@ -633,6 +764,83 @@ async function saveManualGrades(subIndex) {
     alert(t('hw_grade_saved').replace('{score}', updated.finalScore) + '\n\n' + recordNote);
     // إعادة رسم بطاقة "يحتاج تصحيح" وعلامات التنبيه بعد الاعتماد
     loadNeedsGradingStat();
+
+    // 🌟🌟 [جديد] شهادة تقدير فور اعتماد النتيجة النهائية — راجع reports/hwCertificate.js.
+    // تُعرض بعد alert النجاح أعلاه (لا تحجب رسالة تأكيد الحفظ نفسها) وتُبنى من نفس بيانات
+    // الاعتماد المؤكَّدة من الخادم (updated)، وسجل الطالب المحلي إن وُجد (لعرض صورته).
+    try { showHomeworkCertificate(updated, localStudent); }
+    catch (err) { console.error("تعذّر عرض شهادة التقدير (لا يؤثر على اعتماد النتيجة نفسها):", err); }
+}
+
+// 🌟🌟 [جديد] نافذة "النتائج النهائية للطلاب" — تسرد كل تسليمات الواجبات المعتمدة (عبر كل
+// الواجبات دفعة واحدة، عبر getAllSubmissionsFromCloud التي تجلب statuses:['approved'] فقط —
+// راجع core/homeworkApi.js) مع الدرجة النهائية لكل طالب، وزر لإعادة فتح شهادة تقديره من هنا
+// في أي وقت لاحق (بلا الحاجة لتصحيح جديد لإظهارها مرة أخرى).
+async function openFinalResultsModal() {
+    let modal = document.getElementById('hw-final-results-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'hw-final-results-modal';
+        modal.className = 'modal-overlay';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; display: flex; justify-content: center; align-items: center;';
+        modal.innerHTML = `
+            <div style="background: white; padding: 30px; border-radius: 20px; max-width: 700px; width: 95%; max-height: 85vh; overflow-y: auto; text-align: right; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:15px;">
+                    <h2 style="color:#d97706; margin:0; font-size:1.6rem;" data-i18n="hw_final_results_title">🎓 الاختبارات المصحَّحة والنتائج النهائية</h2>
+                    <button type="button" id="hw-final-results-close" style="background:transparent; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">✕</button>
+                </div>
+                <div id="hw-final-results-body"><div style="padding:15px; color:#0ea5e9;">⏳</div></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        modal.querySelector('#hw-final-results-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+        applyLanguage();
+    }
+    modal.style.display = 'flex';
+
+    const body = modal.querySelector('#hw-final-results-body');
+    body.innerHTML = `<div style="padding:15px; color:#0ea5e9;">⏳</div>`;
+    try {
+        const approved = await getAllSubmissionsFromCloud();
+        approved.sort((a, b) => (b.approvedAt ? Date.parse(b.approvedAt) : 0) - (a.approvedAt ? Date.parse(a.approvedAt) : 0));
+
+        if (!approved.length) {
+            body.innerHTML = `<div style="padding:20px; text-align:center; color:#64748b;" data-i18n="hw_final_results_empty">لا توجد نتائج معتمدة بعد.</div>`;
+            applyLanguage();
+            return;
+        }
+
+        body.innerHTML = `<table style="width:100%; border-collapse:collapse; text-align:center;"><tbody>` +
+            approved.map((sub, idx) => {
+                const scoreColor = sub.finalScore >= 90 ? '#10b981' : (sub.finalScore >= 75 ? '#147c5e' : (sub.finalScore >= 60 ? '#b8863b' : '#ef4444'));
+                const dateStr = sub.approvedAt ? new Date(sub.approvedAt).toLocaleDateString('ar-EG') : '';
+                return `
+                    <tr style="border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:12px; font-weight:bold; color:#1e293b; text-align:right;">${sub.studentName}</td>
+                        <td style="padding:12px; color:#64748b; font-size:0.9rem;">${dateStr}</td>
+                        <td style="padding:12px; font-weight:bold; font-size:1.2rem; color:${scoreColor};">${sub.finalScore}%</td>
+                        <td style="padding:12px;"><button type="button" class="btn btn-view-final-cert" data-idx="${idx}" data-i18n="hw_final_results_view_cert_btn" style="padding:6px 14px; background:#8b5cf6; font-size:0.95rem; min-width:unset;">🏅 عرض الشهادة</button></td>
+                    </tr>
+                `;
+            }).join('') + `</tbody></table>`;
+
+        body.querySelectorAll('.btn-view-final-cert').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+                const sub = approved[idx];
+                let localStudent = null;
+                try { localStudent = await findLocalStudentForSubmission(sub); } catch (err) { /* تجاهل — الشهادة تعمل بلا صورة */ }
+                showHomeworkCertificate(sub, localStudent);
+            });
+        });
+        applyLanguage();
+    } catch (e) {
+        console.error("تعذر تحميل النتائج النهائية:", e);
+        body.innerHTML = `<div style="padding:20px; color:#ef4444;">${t('hw_final_results_load_error')} ${friendlyErrorText(e)}
+            <br><button type="button" class="btn" id="btn-retry-final-results" style="margin-top:10px; background:#0ea5e9;">🔄</button></div>`;
+        body.querySelector('#btn-retry-final-results')?.addEventListener('click', openFinalResultsModal);
+    }
 }
 
 // ==========================================
@@ -686,6 +894,18 @@ function setupListeners() {
         });
     }
 
+    // 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — نفس سلوك بطاقة "يحتاج تصحيح" أعلاه بالضبط (بما
+    // فيها الاستجابة للوحة المفاتيح)، وتنقل المعلم لنفس تبويب "سجل الواجبات" حيث تظهر علامة
+    // ⏰ بجانب كل واجب متأخر بعينه.
+    const statOverdueCard = document.getElementById('stat-overdue-card');
+    if (statOverdueCard) {
+        statOverdueCard.title = t('hw_overdue_tooltip');
+        statOverdueCard.addEventListener('click', () => btnHistory?.click());
+        statOverdueCard.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btnHistory?.click(); }
+        });
+    }
+
     btnNew?.addEventListener('click', () => {
         tabNew.style.display = 'block'; tabHistory.style.display = 'none';
         btnNew.style.background = '#0ea5e9'; btnNew.style.color = 'white'; btnNew.classList.remove('btn-outline');
@@ -698,6 +918,9 @@ function setupListeners() {
         btnNew.style.background = 'white'; btnNew.style.color = '#0ea5e9'; btnNew.classList.add('btn-outline');
         loadHomeworkDashboard();
     });
+
+    // 🌟🌟 [جديد] نافذة "النتائج النهائية للطلاب" — راجع openFinalResultsModal أسفل هذا الملف
+    document.getElementById('btn-final-results')?.addEventListener('click', openFinalResultsModal);
 
     document.querySelectorAll('input[name="hwType"]').forEach(r => r.addEventListener('change', toggleHwType));
     document.getElementById('hw-surah-select')?.addEventListener('change', updateAyahRange);
@@ -1088,6 +1311,10 @@ async function retryHomeworkCloudSync() {
     await loadHomeworkDashboard();
 }
 
+// 🌟🌟 [محدَّث] كان يُنسَخ الرابط وحده — الآن يُنسَخ رسالة جاهزة كاملة للمشاركة عبر واتساب أو
+// أي تطبيق مراسلة (buildHomeworkShareMessage)، والرابط المكتوب في حقل الإدخال المرئي نفسه
+// (hw-link-input) لا يتغيّر — يبقى الرابط الخام وحده، حتى يظل قابلاً للنسخ اليدوي/التحديد
+// كما هو تماماً لو احتاج المعلم الرابط فقط بلا النص المحيط به.
 function copyHomeworkLink() {
     const linkInput = document.getElementById('hw-link-input');
     const copyBtn = document.getElementById('btn-copy-hw-link');
@@ -1095,7 +1322,7 @@ function copyHomeworkLink() {
     linkInput.select();
     linkInput.setSelectionRange(0, 99999);
 
-    navigator.clipboard.writeText(linkInput.value).then(() => {
+    navigator.clipboard.writeText(buildHomeworkShareMessage(linkInput.value)).then(() => {
         const originalText = copyBtn.innerHTML;
         const originalBg = copyBtn.style.background;
         copyBtn.innerHTML = `✔️ ${t('hw_copy_btn')}`;

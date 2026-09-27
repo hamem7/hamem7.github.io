@@ -2,6 +2,9 @@
 
 // 🌟 استيراد دالة الترجمة من المنطق المركزي 🌟
 import { applyLanguage } from './app.js';
+// 🌟 [جديد] تتبع تحليلات خصوصي (GoatCounter) — راجع core/analytics.js للشرح الكامل. استدعاء
+// trackPageview هنا يدوي لأن المنصة SPA بالكامل (fetch + إحقان innerHTML بلا تحميل صفحة فعلي)
+import { trackPageview } from './analytics.js';
 
 // دالة لجلب كود الـ HTML من المجلدات الأخرى وحقنه في الـ Root
 export async function loadScreen(route) {
@@ -26,6 +29,11 @@ export async function loadScreen(route) {
         if (route.initFunction) {
             route.initFunction();
         }
+
+        // 🌟 [جديد] كل تغيير شاشة هنا يعادل "زيارة صفحة جديدة" من منظور التحليلات، رغم عدم
+        // وجود أي تحميل فعلي جديد من المتصفح — نُبلّغ GoatCounter يدوياً بكل شاشة (وليس فقط
+        // أول تحميل لـ index.html) حتى تظهر "الصفحات الأكثر زيارة" بشكل صحيح في لوحته
+        trackPageview(route.templateUrl);
     } catch (error) {
         console.error("فشل في تحميل الواجهة:", error);
         root.innerHTML = `<div style="color:red; text-align:center; font-size:2rem;">عفواً، حدث خطأ في تحميل الشاشة. ❌ Error loading screen.</div>`;

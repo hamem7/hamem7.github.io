@@ -13,14 +13,34 @@ Student page ─┘   (text/plain POST)   Web App /exec └─ Script Properties
 
 | Layer | State |
 |---|---|
-| Backend logic (`backend/Code.gs`) | ✅ 27 logic tests pass on an in-memory Sheets emulator (`node tests/backend.test.mjs`) |
+| Backend logic (`backend/Code.gs`) | ✅ 34 logic tests pass on an in-memory Sheets emulator (`node tests/backend.test.mjs`) — 27 original + 7 new multi-teacher tests (Google Sign-In, per-teacher isolation, legacy-key migration) |
 | Lab frontend + backend, two "devices", offline/retry/duplicate/XSS | ✅ 11 browser scenarios pass (`python3 tests/e2e.py`) against the emulator |
 | **Real Google Apps Script + Sheets** (deployed 2026-09-25, account elmayah.27) | ✅ 17/17 API checks passed against the LIVE /exec URL from a foreign origin (desktop Chrome): redirect+CORS, POST text/plain, persisted read-back, no answer leak, idempotent replay, 8 parallel submits (8/8), grading, approve, closed link. Latency p50 ≈ 3.0 s, p95 ≈ 12.7 s (the 8-parallel burst serialises on the script lock, ≈14 s total). |
+| **Multi-teacher (Google Sign-In)** — added since | ✅ Logic proven on the emulator (34/34). ⏳ **NOT YET run against the live deployment** — needs a real Google Cloud OAuth Client ID (step 0 below), a redeploy of `Code.gs`, and a real Google sign-in from a browser. |
 | **GitHub Pages hosting + real phone + full UI flow on the live backend** | ⏳ **NOT YET PROVEN.** Needs: host the Lab, then run `diagnostics.html` + the two-device WhatsApp protocol on a real phone. |
 
 The emulator runs the real `Code.gs` but is **not Google**. Redirect/CORS behaviour, latency, quotas and cold starts
 can only be proven by `diagnostics.html` against your real deployment. The system is **not "done"** until the
 real-world protocol at the bottom passes.
+
+## 0. Multi-teacher: Google Cloud configuration (do this once, manually)
+
+The Lab now supports **Google Sign-In** so more than one teacher can use it, each seeing only their own
+homeworks. This needs one manual step in Google Cloud Console — nothing here can create it for you:
+
+1. Go to **console.cloud.google.com** → pick or create a project → **APIs & Services → Credentials**.
+2. **Create Credentials → OAuth client ID → Application type: Web application**.
+3. Under **Authorized JavaScript origins**, add every origin the Lab will be opened from, e.g.
+   `https://<you>.github.io` (GitHub Pages) and `http://localhost:8080` (local dev). No path, no trailing slash.
+4. **Create**. Copy the **Client ID** (ends with `.apps.googleusercontent.com` — it is not secret, no "Client secret" is needed for this flow).
+5. Paste it into **`js/api.js`**, replacing `GOOGLE_CLIENT_ID`'s placeholder value.
+6. Paste the **same** Client ID into the backend too, so the server rejects tokens meant for a different app:
+   Apps Script editor → **Project Settings → Script properties → Add property** → name `GOOGLE_CLIENT_ID`, value = the same client id.
+7. Redeploy the backend (step 1 below) — Apps Script will ask you to re-approve permissions because `Code.gs`
+   now also calls Google's `tokeninfo` endpoint to verify sign-ins (new scope: "Connect to an external service").
+
+If you skip step 6, sign-in still works but the server does not check *which* app a token was issued for — fine for
+a single trusted deployment, but step 6 costs one extra minute and is worth doing.
 
 ## 1. Deploy the backend (~5 minutes)
 
@@ -29,18 +49,37 @@ real-world protocol at the bottom passes.
    (Optional: Project Settings → "Show appsscript.json" and paste `backend/appsscript.json`.)
 3. Select function **`setup`** → **Run**. Approve permissions (Google says the app is unverified because *you* wrote
    it: Advanced → "Go to … (unsafe)" → Allow). Open **Execution log** and copy the **TEACHER KEY** it prints.
-   (Or set your own: Project Settings → Script properties → `TEACHER_KEY`.)
-4. **Deploy → New deployment → ⚙️ Web app** → *Execute as*: **Me** → *Who has access*: **Anyone** → Deploy.
+   (Or set your own: Project Settings → Script properties → `TEACHER_KEY`.) This key still works exactly as before —
+   see "Old Teacher Key migration" below.
+4. Set the `GOOGLE_CLIENT_ID` script property from step 0.6 above (skip only if you skipped step 0.6).
+5. **Deploy → New deployment → ⚙️ Web app** → *Execute as*: **Me** → *Who has access*: **Anyone** → Deploy.
    Copy the **Web app URL** (ends with `/exec`).
-5. Later code edits: Deploy → **Manage deployments → ✏️ → Version: New version → Deploy** (the URL stays the same).
-   Saving the script alone does **not** update the live web app.
+6. Later code edits: Deploy → **Manage deployments → ✏️ → Version: New version → Deploy** (the URL stays the same).
+   Saving the script alone does **not** update the live web app. A new Teachers sheet is created automatically the
+   first time anyone signs in — you do **not** need to re-run `setup()` for existing deployments.
 
 ## 2. Host the Lab (students must open an https link)
 
 Put the folder in a **new GitHub repository** (e.g. `dar-ham-homework-lab`) → Settings → Pages → deploy from `main`.
-Open `https://<you>.github.io/dar-ham-homework-lab/`, paste the `/exec` URL and the teacher key in "ربط الخادم", press
-"حفظ واختبار الاتصال". (Optional: put the URL in `DEFAULT_API_URL` in `js/api.js` for shorter student links.)
-The teacher key is stored only in that browser's localStorage; it is never in the repo.
+Open `https://<you>.github.io/dar-ham-homework-lab/`, paste the `/exec` URL in "ربط الخادم", press
+"حفظ واختبار الاتصال" — that's it, you're in as a guest. Sign in with Google only when you create/publish a
+homework or want to see your saved ones (teacher.html / results.html will prompt you at that point).
+(Optional: put the URL in `DEFAULT_API_URL` in `js/api.js` for shorter student links.)
+
+### Old Teacher Key migration
+
+If you were already using the shared Teacher Key before this update:
+
+1. Open `index.html` → expand **"مفتاح المعلم القديم"** → paste your old key (saved locally only, never sent anywhere by itself).
+2. Click **"تسجيل الدخول باستخدام Google"** and sign in with your usual Google account.
+3. In that same step the Lab silently calls `migrateLegacyKey` with both the key and your new Google session — if
+   this is the *first* Google account ever to do this, all of your pre-existing (un-owned) homeworks become yours
+   permanently; the raw key itself is never removed and keeps working as a full-access admin key (see
+   `backend/Code.gs`'s `canAccessHw_` for the exact rule, documented inline).
+4. From then on you are never asked for the old key again — only Google Sign-In.
+
+New teachers never see or need the old key at all: they just click "تسجيل الدخول باستخدام Google" the first time
+they publish a homework, and get their own empty homework list.
 
 ## 3. Real-world test protocol (this is what "DONE" means)
 

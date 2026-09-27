@@ -55,4 +55,15 @@ pre.report { background: #0b1f19; color: #d1fae5; padding: 12px; border-radius: 
 .pair.active { border-color: var(--dh-gold-500); background: #fffbeb; } .pair.linked { border-color: var(--ok); background: #f0fdf4; }
 .test-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px dashed #d6d3c4; } .test-row .t-name { flex: 1; } .test-row .t-detail { font-size: .8rem; color: var(--dh-ink-soft); direction: ltr; text-align: left; }
 .hidden { display: none !important; }
+
+/* 🌟 multi-teacher: Google Sign-In modal (js/teacherAuth.js). New, scoped classes only — nothing
+   here touches an existing rule, so it cannot affect any screen that doesn't open this modal. */
+.dh-auth-overlay { position: fixed; inset: 0; background: rgba(6,35,28,.72); z-index: 80; display: none; align-items: center; justify-content: center; padding: 16px; }
+.dh-auth-overlay.open { display: flex; }
+.dh-auth-card { background: var(--dh-surface); border-radius: var(--dh-radius-lg); box-shadow: var(--dh-shadow-soft); padding: 24px; max-width: 380px; width: 100%; text-align: center; }
+.dh-auth-msg { font-weight: 700; margin: 0 0 16px; color: var(--dh-emerald-800); }
+.dh-gsi-btn { display: flex; justify-content: center; margin-bottom: 12px; min-height: 40px; }
+.dh-auth-err { color: var(--bad); font-size: .88rem; margin: 8px 0; }
+.dh-auth-status { font-size: .88rem; color: var(--dh-ink-soft); margin-inline-start: auto; }
+
 @media (max-width: 600px) { main { padding: 10px; } .card { padding: 14px; } .quran { font-size: 1.4rem; } }

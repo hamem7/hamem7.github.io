@@ -41,7 +41,10 @@
                 <div class="eval-buttons" id="teacher-eval-buttons" style="display: none; justify-content: center; flex-wrap: wrap; gap: 15px; margin-top: 15px;">
                     <button class="btn btn-correct" id="btn-record-correct" data-i18n="correct_ans_btn" style="font-size: 1.4rem; padding: 12px 25px;">🟢 إجابة صحيحة تامة</button>
                     <button class="btn btn-wrong" id="btn-record-wrong" data-i18n="record_note_btn" style="font-size: 1.4rem; padding: 12px 25px;">📝 تسجيل ملاحظة</button>
-                    <button class="btn" id="btn-submit-all-errors" data-i18n="submit_next_btn" style="display:none; background: linear-gradient(135deg, #f97316, #ea580c) !important; color:white !important; border:none; padding:12px 25px; font-size:1.4rem; font-weight:bold; border-radius:15px; cursor:pointer; box-shadow:0 4px 10px rgba(234, 88, 12, 0.3) !important;">
+                    <!-- 🌟 [عدّل] كان بستايل inline كامل منفصل عن هوية المنصة — نُقل لكلاس
+                         .btn-confirm-next الموحّد (راجع css/adults.css) بنفس الألوان بالضبط،
+                         بلا أي تغيير بصري 🌟 -->
+                    <button class="btn btn-confirm-next" id="btn-submit-all-errors" data-i18n="submit_next_btn" style="display:none; padding:12px 25px; font-size:1.4rem; font-weight:bold; border-radius:15px;">
                         ✅ اعتماد والانتقال للسؤال التالي
                     </button>
                 </div>
@@ -107,7 +110,10 @@
             <label style="background:#fee2e2; padding:10px; border-radius:8px; border:1px solid #fecaca; grid-column:span 2;"><input type="checkbox" value="لم يعرف الإجابة"> <span data-i18n="err_dont_know">لم يعرف الإجابة</span></label>
         </div>
         <textarea id="custom-note" data-i18n-placeholder="note_ph" placeholder="اكتب ملاحظتك اليدوية هنا (اختياري)..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'Tajawal', sans-serif; font-size: 1.2rem; resize: none; margin-bottom: 15px;"></textarea>
-        <button class="btn btn-wrong" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px; background:#f59e0b; border:none;" id="btn-save-error-temp">➕ إضافة الملاحظة ومتابعة التسميع</button>
+        <!-- 🌟 [عدّل] كان يستخدم .btn-wrong (الأحمر، دلالته "إجابة خاطئة") مع تلوين inline
+             يدوي فوقه — نُقل لكلاس .btn-note الموحّد المخصص فعلاً لفعل "تسجيل ملاحظة"
+             (راجع css/adults.css)، بنفس اللون البرتقالي بالضبط بلا أي تغيير بصري 🌟 -->
+        <button class="btn btn-note" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px;" id="btn-save-error-temp">➕ إضافة الملاحظة ومتابعة التسميع</button>
         <button class="btn btn-outline" data-i18n="cancel" style="width: 100%; margin-top:10px; font-size: 1.3rem; padding: 12px;" id="btn-close-error">إلغاء</button>
     </div>
 </div>
