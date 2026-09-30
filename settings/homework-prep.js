@@ -18,7 +18,7 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
 import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
-import { findLocalStudentForSubmission, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
+import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
 // 🌟 [جديد] بوابة مفتاح المعلم (لو انتهت صلاحية المفتاح المحفوظ أثناء الجلسة)
 import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
@@ -28,6 +28,8 @@ import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
 // core/submissionStatus.js.
 import { submissionNeedsGrading } from '../core/submissionStatus.js';
 import { t, applyLanguage } from '../core/i18n.js';
+// 🌟 [جديد — إصلاح XSS] تنظيف أي نص قادم من الخادم (اسم الطالب/إجاباته) قبل حقنه في innerHTML
+import { esc } from '../core/escape.js';
 // 🌟🌟 [جديد] شهادة تقدير + "النتائج النهائية للطلاب" — راجع reports/hwCertificate.js
 import { showHomeworkCertificate } from '../reports/hwCertificate.js';
 // 🌟🌟 [جديد] كل التسليمات المعتمدة (بلا فلتر واجب معيّن) لنافذة "النتائج النهائية للطلاب"
@@ -60,8 +62,9 @@ function buildHomeworkShareLink(baseUrl, hwData) {
 // 🌟🌟 [جديد] رسالة "نسخ رابط الواجب" الجاهزة كاملة للمشاركة عبر واتساب أو أي تطبيق مراسلة —
 // بدل نسخ الرابط وحده كما كان سابقاً. تُستخدَم في كل مكان يوجد فيه زر "نسخ" (🔗/📋) لرابط
 // الواجب: الصف المضمّن في سجل الواجبات (buildHomeworkList) وزر النسخ في نافذة المشاركة
-// (copyHomeworkLink). لا تُستخدَم لزر واتساب المباشر (btn-share-wa) لأن له رسالته الترحيبية
-// الخاصة أصلاً (hw_wa_message/hw_wa_message_named) وتُفتح مباشرة في واتساب لا تُنسخ.
+// (copyHomeworkLink).
+// 🌟 [محدَّث] بعد حذف زر "إرسال عبر واتساب" المباشر (btn-share-wa)، لم يعد هناك سوى طريقة
+// واحدة للمشاركة عبر واتساب: نسخ هذه الرسالة الجاهزة ولصقها يدوياً.
 function buildHomeworkShareMessage(link) {
     return `${t('hw_copy_msg_title')}\n${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
 }
@@ -323,12 +326,17 @@ async function loadHomeworkDashboard() {
                          يصل أي تسليم منه بعد لهذا الطالب — راجع الدالة أسفل هذا الملف -->
                     <div id="hw-overdue-${hw.id}" style="display:none; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⏰ ${t('hw_overdue_row_badge')}</div>
                 </td>
-                <td style="padding: 15px; display: flex; gap: 5px; justify-content: center;">
-                    <button class="btn btn-view-results" data-id="${hw.id}" style="padding: 5px 10px; background: #0ea5e9; font-size:1rem; min-width:unset;" title="${t('hw_subs_modal_title')}">📊</button>
-                    ${isLegacyPublished
-                        ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                        : `<button type="button" class="btn btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" style="padding: 5px 10px; background: #8b5cf6; font-size:1rem; min-width:unset;" title="${t('hw_copy_btn')}">🔗</button>`}
-                    <button class="btn btn-delete-hw-record" data-id="${hw.id}" style="padding: 5px 10px; background: #ef4444; font-size:1rem; min-width:unset;" title="${t('حذف')}">🗑️</button>
+                <!-- 🌟🌟 [إعادة تصميم] أزرار الإجراءات أصبحت دائرية أكبر وأوضح (hwp2-action-btn
+                     المعرَّفة في settings/homework-prep.html) بدل الأزرار المستطيلة الصغيرة
+                     السابقة — كل إجراء محتفظ بلونه المميز (عرض/نسخ/حذف) لسهولة التمييز بصرياً 🌟🌟 -->
+                <td style="padding: 15px;">
+                    <div class="hwp2-actions-cell">
+                        <button class="hwp2-action-btn hwp2-action-view btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}">📊</button>
+                        ${isLegacyPublished
+                            ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
+                            : `<button type="button" class="hwp2-action-btn hwp2-action-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_copy_btn')}">🔗</button>`}
+                        <button class="hwp2-action-btn hwp2-action-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('حذف')}">🗑️</button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -530,20 +538,27 @@ async function loadSubmissionsInline(hwId) {
         } else {
             let tableHtml = `<table style="width: 100%; border-collapse: collapse; text-align: center;"><tbody>`;
             currentSubmissionsList.forEach((sub, index) => {
-                let scoreColor = sub.score >= 90 ? '#10b981' : (sub.score >= 70 ? '#f59e0b' : '#ef4444');
-                // 🌟 [محدَّث — المرحلة 2] نفس الفحص بالضبط، عبر الدالة المشتركة submissionNeedsGrading
-                // بدل تكرار المقارنة هنا محلياً — راجع core/submissionStatus.js
+                // 🌟🌟 [عدّل] نفس الفحص بالضبط، عبر الدالة المشتركة submissionNeedsGrading — راجع core/submissionStatus.js
                 let needsGrading = submissionNeedsGrading(sub);
                 let badge = needsGrading ? `<span style="background: #fef08a; color: #854d0e; font-size: 0.8rem; padding: 2px 5px; border-radius: 5px;">يحتاج تصحيح</span>` : "";
+
+                // 🌟🌟 [جديد] لا نعرض أي رقم/نسبة مئوية قبل اكتمال التصحيح اليدوي: sub.score قبل الاعتماد
+                // (provisionalScore من الخادم) محسوب من الأسئلة الآلية فقط ويتجاهل الأسئلة اليدوية المعلّقة
+                // تماماً من البسط والمقام معاً — عرضه كأنه "الدرجة" يضلّل المعلم (قد تبدو 93% ثم تصبح 83%
+                // فعلياً بعد التصحيح رغم عدم وجود أي خطأ حسابي). فالنسبة تُعرض فقط بعد اكتمال كل الأسئلة
+                // اليدوية (حينها sub.score = finalScore الحقيقي = كل نقاط الواجب مجتمعة، حساب عادل بلا استثناء أي سؤال).
+                let scoreCellHtml = needsGrading
+                    ? `<span style="color:#b45309; font-size:0.95rem; font-weight:bold;">⏳ بانتظار التصحيح</span>`
+                    : `<span style="color:${sub.score >= 90 ? '#10b981' : (sub.score >= 70 ? '#f59e0b' : '#ef4444')};">${sub.score}%</span>`;
 
                 tableHtml += `
                     <tr style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 15px; font-weight: bold; color: #1e293b; text-align: right;">
-                            ${sub.studentName} ${badge}
+                            ${esc(sub.studentName)} ${badge}
                             <button class="btn btn-open-grading" data-idx="${index}" style="background: #8b5cf6; padding: 4px 12px; font-size: 0.95rem; margin-right: 10px;">🔍 مراجعة وتصحيح</button>
                         </td>
                         <td style="padding: 15px; color: #64748b;">${sub.date}</td>
-                        <td style="padding: 15px; font-weight: bold; font-size: 1.3rem; color: ${scoreColor};" id="score-cell-${index}">${sub.score}%</td>
+                        <td style="padding: 15px; font-weight: bold; font-size: 1.3rem;" id="score-cell-${index}">${scoreCellHtml}</td>
                     </tr>
                 `;
             });
@@ -576,8 +591,12 @@ function openGradingRoom(subIndex) {
         <div id="grading-room-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; display: flex; justify-content: center; align-items: center;">
             <div class="modal-content" style="background: white; padding: 30px; border-radius: 20px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; text-align: right; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
-                    <h2 style="color: #0369a1; margin: 0; font-size: 1.8rem;">✍️ غرفة التصحيح: ${sub.studentName}</h2>
-                    <div style="background: #f1f5f9; padding: 5px 15px; border-radius: 10px; font-weight: bold; color: #475569;">النتيجة الحالية: ${sub.score}%</div>
+                    <h2 style="color: #0369a1; margin: 0; font-size: 1.8rem;">✍️ غرفة التصحيح: ${esc(sub.studentName)}</h2>
+                    <div id="grading-room-score-badge" style="background: #f1f5f9; padding: 5px 15px; border-radius: 10px; font-weight: bold; color: #475569;">${
+                        submissionNeedsGrading(sub)
+                            ? '⏳ الدرجة النهائية ستظهر بعد اعتماد كل الأسئلة اليدوية'
+                            : `النتيجة: ${sub.score}%`
+                    }</div>
                 </div>
 
                 <div id="grading-questions-container" style="display: flex; flex-direction: column; gap: 20px;">
@@ -593,21 +612,24 @@ function openGradingRoom(subIndex) {
 
         modalHtml += `
             <div style="background: ${cardBg}; border: 2px solid ${cardBorder}; padding: 20px; border-radius: 15px;">
-                <h3 style="color: #1e293b; font-size: 1.3rem; margin-top: 0;">السؤال ${qIdx + 1}: ${d.question}</h3>
+                <h3 style="color: #1e293b; font-size: 1.3rem; margin-top: 0;">السؤال ${qIdx + 1}: ${esc(d.question)}</h3>
         `;
 
         if (isAudio && d.audioData) {
             modalHtml += `
                 <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 10px; border: 1px solid #cbd5e1;">
                     <strong style="color:#0ea5e9;">🎤 تلاوة الطالب:</strong><br>
-                    <audio controls src="${d.audioData}" style="width: 100%; margin-top: 10px;"></audio>
+                    <audio controls src="${/^data:audio\//.test(String(d.audioData)) ? esc(d.audioData) : ''}" style="width: 100%; margin-top: 10px;"></audio>
                 </div>
             `;
         } else if (isMatching && d.matchingData) {
-            // 🌟🌟 [جديد] عرض تفاعلي لأزواج المطابقة: ربط الطالب الفعلي بجانب "الاقتراح" (الأزواج
-            // الصحيحة المعروفة أصلاً من بيانات توليد السؤال، وليس تخميناً) — بحسب الاتفاق مع المعلم،
-            // هذا مجرد عرض مرجعي مساعد؛ لا يُحتسب منه أي درجة تلقائياً، والدرجة النهائية يُدخلها
-            // المعلم بنفسه في حقل "أعطِ الطالب درجة" أدناه تماماً كباقي أسئلة التصحيح اليدوي.
+            // 🌟🌟 [عُدّل — أصبح تصحيحاً آلياً] عرض تفاعلي لأزواج المطابقة: ربط الطالب الفعلي بجانب
+            // الأزواج الصحيحة الفعلية (من بيانات توليد السؤال، لا تخميناً). ✅/❌ هنا هو بالضبط ما
+            // يحتسبه الخادم درجة (كل ✅ = نقطة من points) — لم يعد مجرد اقتراح مرجعي، بل هو الأساس
+            // الفعلي للدرجة الآلية المعروضة أسفل هذه البطاقة (راجع autoGradeQuestion_ في Code.gs).
+            // تسليمات قديمة (قبل هذا التعديل) قد تظهر هنا حقل "أعطِ الطالب درجة" اليدوي بدل ذلك،
+            // لأنها ما زالت تحمل needsManualGrading:true المحفوظ وقت إنشائها — راجع الملاحظة عن
+            // عدم الأثر الرجعي في نهاية هذا الملف.
             const { leftItems, rightItems, studentPairs, correctPairs } = d.matchingData;
             modalHtml += `<div style="margin: 15px 0; padding: 15px; background: white; border-radius: 10px; border: 1px solid #cbd5e1;">`;
             leftItems.forEach(leftItem => {
@@ -619,11 +641,11 @@ function openGradingRoom(subIndex) {
 
                 modalHtml += `
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed #e2e8f0; font-family:'Amiri Quran', serif; font-size:1.1rem;">
-                        <span style="color:#0369a1; font-weight:bold;">${leftItem.text}</span>
+                        <span style="color:#0369a1; font-weight:bold;">${esc(leftItem.text)}</span>
                         <span style="color:${isPairMatchingSuggestion ? '#10b981' : '#ef4444'};">
-                            ${studentRightItem ? studentRightItem.text : '— لم يربطها —'} ${isPairMatchingSuggestion ? '✅' : '❌'}
+                            ${studentRightItem ? esc(studentRightItem.text) : '— لم يربطها —'} ${isPairMatchingSuggestion ? '✅' : '❌'}
                         </span>
-                        <span style="color:#94a3b8; font-size:0.9rem;">(الاقتراح: ${correctRightItem ? correctRightItem.text : '-'})</span>
+                        <span style="color:#94a3b8; font-size:0.9rem;">(الاقتراح: ${correctRightItem ? esc(correctRightItem.text) : '-'})</span>
                     </div>
                 `;
             });
@@ -632,11 +654,11 @@ function openGradingRoom(subIndex) {
             modalHtml += `
                 <div style="margin: 10px 0; font-size: 1.2rem;">
                     <span style="color: #64748b;">إجابة الطالب:</span>
-                    <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${d.studentAnswer}</strong>
+                    <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${esc(d.studentAnswer)}</strong>
                 </div>
                 <div style="margin: 10px 0; font-size: 1.2rem;">
                     <span style="color: #64748b;">الإجابة النموذجية:</span>
-                    <strong style="color: #10b981;">${d.correctAnswer}</strong>
+                    <strong style="color: #10b981;">${esc(d.correctAnswer)}</strong>
                 </div>
             `;
         }
@@ -654,9 +676,15 @@ function openGradingRoom(subIndex) {
                 </div>
             `;
         } else {
+            // 🌟🌟 [عُدّل] بعض الأسئلة الآلية (matrix_order، dual_dropdown، matching) درجتها جزئية —
+            // d.isCorrect وحده ثنائي (صح/خطأ فقط لو كل النقاط اكتملت)، فنعرض النقاط الفعلية
+            // (d.earnedPoints) لو موجودة بدل حكم ثنائي مضلل ("❌ خاطئ" رغم كسب 3 من 4 نقاط مثلاً).
+            let partialLabel = (typeof d.earnedPoints === 'number' && d.earnedPoints !== d.points)
+                ? ` — ${d.earnedPoints} / ${d.points}`
+                : '';
             modalHtml += `
                 <div style="margin-top: 10px; font-size: 1rem; color: #64748b;">
-                    ${d.isCorrect ? '✅ تم التصحيح آلياً (صحيح)' : '❌ تم التصحيح آلياً (خاطئ)'}
+                    ${d.isCorrect ? '✅ تم التصحيح آلياً (صحيح)' : (partialLabel ? '🟡 تم التصحيح آلياً (جزئي)' : '❌ تم التصحيح آلياً (خاطئ)')}${partialLabel}
                 </div>
             `;
         }
@@ -716,9 +744,18 @@ async function saveManualGrades(subIndex) {
 
     // 2) تحديد الطالب في سجل المعلم قبل الاعتماد (يُخزَّن معرّفه مع التسليم ليقرأه التقرير الشهري)
     let localStudent = null;
+    let ambiguousHandled = false;
     try {
         localStudent = await findLocalStudentForSubmission(sub);
-        if (!localStudent && confirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
+        // 🌟 [إصلاح تدقيق] اسم مكرر بين أكثر من طالب: نسأل المعلم بدل التخمين الصامت (موافق = ربط بأول طالب، إلغاء = بلا ربط)
+        if (!localStudent) {
+            const dupes = await findAmbiguousNameMatches(sub);
+            if (dupes.length > 1) {
+                if (confirm(t('hw_ambiguous_student_confirm').replace('{name}', sub.studentName).replace('{n}', dupes.length))) localStudent = dupes[0];
+                ambiguousHandled = true;
+            }
+        }
+        if (!localStudent && !ambiguousHandled && confirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
             localStudent = await createLocalStudent(sub.studentName);
         }
     } catch (err) {
@@ -777,29 +814,14 @@ async function saveManualGrades(subIndex) {
 // راجع core/homeworkApi.js) مع الدرجة النهائية لكل طالب، وزر لإعادة فتح شهادة تقديره من هنا
 // في أي وقت لاحق (بلا الحاجة لتصحيح جديد لإظهارها مرة أخرى).
 async function openFinalResultsModal() {
-    let modal = document.getElementById('hw-final-results-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'hw-final-results-modal';
-        modal.className = 'modal-overlay';
-        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; display: flex; justify-content: center; align-items: center;';
-        modal.innerHTML = `
-            <div style="background: white; padding: 30px; border-radius: 20px; max-width: 700px; width: 95%; max-height: 85vh; overflow-y: auto; text-align: right; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:15px; margin-bottom:15px;">
-                    <h2 style="color:#d97706; margin:0; font-size:1.6rem;" data-i18n="hw_final_results_title">🎓 الاختبارات المصحَّحة والنتائج النهائية</h2>
-                    <button type="button" id="hw-final-results-close" style="background:transparent; border:none; font-size:1.4rem; cursor:pointer; color:#94a3b8;">✕</button>
-                </div>
-                <div id="hw-final-results-body"><div style="padding:15px; color:#0ea5e9;">⏳</div></div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        modal.querySelector('#hw-final-results-close').addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-        applyLanguage();
-    }
-    modal.style.display = 'flex';
-
-    const body = modal.querySelector('#hw-final-results-body');
+    // 🌟🌟 [إعادة تصميم] كانت هذه الدالة تبني طبقة overlay مستقلة فوق الصفحة كاملة (document.body).
+    // المعلم فضّل ظهور النتائج بنفس طريقة تبويبَي "إعداد واجب جديد" و"سجل الواجبات" تماماً —
+    // أي داخل نفس منطقة المحتوى أسفل شريط التبويبات، لا في صفحة/طبقة منفصلة. التبويب نفسه
+    // (إظهاره/إخفاؤه وتفعيل شكل زرّه) تديره switchHwTab في setupListeners؛ هذه الدالة الآن
+    // مسؤولة فقط عن تعبئة #hw-final-results-body داخل #tab-final-results الثابت في
+    // settings/homework-prep.html 🌟🌟
+    const body = document.getElementById('hw-final-results-body');
+    if (!body) return;
     body.innerHTML = `<div style="padding:15px; color:#0ea5e9;">⏳</div>`;
     try {
         const approved = await getAllSubmissionsFromCloud();
@@ -817,7 +839,7 @@ async function openFinalResultsModal() {
                 const dateStr = sub.approvedAt ? new Date(sub.approvedAt).toLocaleDateString('ar-EG') : '';
                 return `
                     <tr style="border-bottom:1px solid #e2e8f0;">
-                        <td style="padding:12px; font-weight:bold; color:#1e293b; text-align:right;">${sub.studentName}</td>
+                        <td style="padding:12px; font-weight:bold; color:#1e293b; text-align:right;">${esc(sub.studentName)}</td>
                         <td style="padding:12px; color:#64748b; font-size:0.9rem;">${dateStr}</td>
                         <td style="padding:12px; font-weight:bold; font-size:1.2rem; color:${scoreColor};">${sub.finalScore}%</td>
                         <td style="padding:12px;"><button type="button" class="btn btn-view-final-cert" data-idx="${idx}" data-i18n="hw_final_results_view_cert_btn" style="padding:6px 14px; background:#8b5cf6; font-size:0.95rem; min-width:unset;">🏅 عرض الشهادة</button></td>
@@ -876,8 +898,10 @@ function populateDropdowns() {
 function setupListeners() {
     const btnNew = document.getElementById('btn-tab-new');
     const btnHistory = document.getElementById('btn-tab-history');
+    const btnFinalResults = document.getElementById('btn-final-results');
     const tabNew = document.getElementById('tab-new-hw');
     const tabHistory = document.getElementById('tab-history');
+    const tabFinalResults = document.getElementById('tab-final-results');
 
     // 🌟🌟 [جديد] بطاقة "يحتاج تصحيح" أصبحت فعّالة: النقر عليها ينقل المعلم مباشرة لتبويب
     // "سجل الواجبات" (نفس زر btn-tab-history) حيث تظهر علامات ⚠️ بجانب الواجبات المتأثرة.
@@ -906,24 +930,48 @@ function setupListeners() {
         });
     }
 
-    btnNew?.addEventListener('click', () => {
-        tabNew.style.display = 'block'; tabHistory.style.display = 'none';
-        btnNew.style.background = '#0ea5e9'; btnNew.style.color = 'white'; btnNew.classList.remove('btn-outline');
-        btnHistory.style.background = 'white'; btnHistory.style.color = '#0ea5e9'; btnHistory.classList.add('btn-outline');
-    });
+    // 🌟🌟 [إعادة تصميم] التبويبات الثلاثة ("إعداد واجب جديد"، "سجل الواجبات"، "النتائج النهائية
+    // للطلاب") أصبحت تُدار بدالة واحدة موحَّدة switchHwTab بدل معالِجين منفصلين مكرَّرين — كل
+    // نقرة تُظهر محتوى تبويبها فقط (أسفل شريط التبويبات نفسه، بلا أي طبقة عائمة منفصلة) وتُخفي
+    // البقية، وتُحدِّث شكل الأزرار الثلاثة معاً حتى يبقى واضحاً أيّها المفعَّل حالياً. النتائج
+    // النهائية كانت سابقاً نافذة/صفحة منفصلة تُفتح فوق كل شيء عبر openFinalResultsModal — الآن
+    // openFinalResultsModal تملأ #tab-final-results في مكانها بدل بناء طبقة overlay مستقلة 🌟🌟
+    function setActiveTabBtn(activeBtn) {
+        [btnNew, btnHistory].forEach(b => {
+            if (!b) return;
+            const isActive = b === activeBtn;
+            b.style.background = isActive ? '#0ea5e9' : 'white';
+            b.style.color = isActive ? 'white' : '#0ea5e9';
+            b.classList.toggle('btn-outline', !isActive);
+        });
+        if (btnFinalResults) {
+            // 🌟 نفس فلسفة زرّي الجدول أعلاه، لكن بألوان الهوية الذهبية الخاصة بهذا الزر تحديداً
+            // (hwp2-seg-gold) بدل الأزرق، حتى يبقى متسقاً بصرياً مع باقي الصفحة
+            const isActive = btnFinalResults === activeBtn;
+            btnFinalResults.classList.toggle('btn-outline', !isActive);
+            btnFinalResults.style.background = isActive ? 'var(--dh-gold-500)' : '';
+            btnFinalResults.style.color = isActive ? '#2b2100' : '';
+        }
+    }
 
-    btnHistory?.addEventListener('click', () => {
-        tabHistory.style.display = 'block'; tabNew.style.display = 'none';
-        btnHistory.style.background = '#0ea5e9'; btnHistory.style.color = 'white'; btnHistory.classList.remove('btn-outline');
-        btnNew.style.background = 'white'; btnNew.style.color = '#0ea5e9'; btnNew.classList.add('btn-outline');
-        loadHomeworkDashboard();
-    });
+    function switchHwTab(tab) {
+        tabNew.style.display = (tab === 'new') ? 'block' : 'none';
+        tabHistory.style.display = (tab === 'history') ? 'block' : 'none';
+        tabFinalResults.style.display = (tab === 'final') ? 'block' : 'none';
+        setActiveTabBtn(tab === 'new' ? btnNew : (tab === 'history' ? btnHistory : btnFinalResults));
+        if (tab === 'history') loadHomeworkDashboard();
+        if (tab === 'final') openFinalResultsModal();
+    }
 
-    // 🌟🌟 [جديد] نافذة "النتائج النهائية للطلاب" — راجع openFinalResultsModal أسفل هذا الملف
-    document.getElementById('btn-final-results')?.addEventListener('click', openFinalResultsModal);
+    btnNew?.addEventListener('click', () => switchHwTab('new'));
+    btnHistory?.addEventListener('click', () => switchHwTab('history'));
+    btnFinalResults?.addEventListener('click', () => switchHwTab('final'));
 
     document.querySelectorAll('input[name="hwType"]').forEach(r => r.addEventListener('change', toggleHwType));
     document.getElementById('hw-surah-select')?.addEventListener('change', updateAyahRange);
+    // 🌟 [إصلاح] زر "العودة للرئيسية" الخاص بهذه الشاشة اتحذف من settings/homework-prep.html
+    // (كان مكرِّراً لزر "الرئيسية" الثابت في الهيدر العلوي العام) — المستمع هنا يبقى بأمان بفضل
+    // ?. رغم عدم وجود العنصر، لكن نتركه معلَّقاً هنا فقط لو رجع id="btn-back-home" مستقبلاً
     document.getElementById('btn-back-home')?.addEventListener('click', loadSplashScreen);
 
     // 🌟 [جديد] إعادة تطبيق اقتراح النطاق كل مرة يغيّر فيها المعلم الطالب المستهدف يدوياً
@@ -1255,11 +1303,6 @@ async function saveHomeworkToDB(statusType) {
         const baseUrl = window.location.origin + window.location.pathname;
         const link = buildHomeworkShareLink(baseUrl, homeworkObj);
         document.getElementById('hw-link-input').value = link;
-        const wa = document.getElementById('btn-share-wa');
-        if (wa) {
-            const msg = targetStudentName ? t('hw_wa_message_named').replace('{name}', targetStudentName) : t('hw_wa_message');
-            wa.href = 'https://wa.me/?text=' + encodeURIComponent(msg + '\n' + link);
-        }
         // لا يوجد تحذير "لم يُرفع للسحابة" بعد الآن: الرابط لا يظهر أصلاً إلا بعد تأكيد الخادم
         const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
         const retryBtn = document.getElementById('btn-retry-hw-sync');

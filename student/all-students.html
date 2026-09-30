@@ -21,6 +21,20 @@
         box-shadow: none !important;
     }
     #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
+
+    /* 🌟 [إصلاح فحص الأزرار] على الهاتف كانت أعمدة الإدارة والأخطاء (✏️🙈🗑️🛠️) تقع خارج الشاشة بلا مؤشر.
+       الآن تتحول كل صف إلى بطاقة رأسية بنطاق #all-students-body فقط (بلا مساس بأي قاعدة عامة)،
+       وتظهر تسمية كل حقل من data-label، وتُكبَّر أزرار الإجراءات لحد لمس مريح 🌟 */
+    @media (max-width: 640px) {
+        #app-root .as-table-wrap { overflow-x: visible !important; padding: 0 !important; }
+        #app-root .as-table-wrap table, #app-root .as-table-wrap tbody { display: block; width: 100%; white-space: normal !important; }
+        #app-root .as-table-wrap thead { display: none; }
+        #all-students-body tr { display: block; margin-bottom: 14px; padding: 8px 12px; border-radius: 14px; background: rgba(255,255,255,0.12); border: 2px solid rgba(0,0,0,0.1); }
+        #all-students-body td { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none !important; padding: 6px 4px !important; text-align: right; }
+        #all-students-body td::before { content: attr(data-label); font-weight: 600; font-size: 1rem; opacity: 0.8; flex-shrink: 0; }
+        #all-students-body td .btn { min-width: 44px !important; min-height: 44px; }
+        #all-students-body td .btn-prof-link { min-height: 44px; }
+    }
 </style>
 
 <div class="screen active">
@@ -31,13 +45,13 @@
              "إضافة بطل جديد" الموجودة فعلاً هناك بدل تكرار نفس النافذة هنا (راجع
              student.js: setupAllStudentsListeners) 🌟 -->
         <button class="btn as-btn-primary" id="btn-add-champion-shortcut" data-i18n="btn_add_student">تسجيل بطل جديد ➕</button>
-        <button class="btn as-btn-secondary" id="btn-export-backup">📥 حفظ نسخة احتياطية</button>
-        <button class="btn btn-outline as-btn-secondary" id="btn-import-backup-trigger">📤 استعادة البيانات</button>
+        <button class="btn as-btn-secondary" id="btn-export-backup" data-i18n="backup_export_students_btn">📥 تصدير الطلاب فقط</button>
+        <button class="btn btn-outline as-btn-secondary" id="btn-import-backup-trigger" data-i18n="backup_import_students_btn">📤 استيراد الطلاب</button>
         <input type="file" id="importFile" accept=".json" style="display:none;">
     </div>
-    <div style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
+    <div class="as-table-wrap" style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
         <table class="history-table" style="width: 100%; white-space: nowrap;">
-            <thead><tr><th>م</th><th>اسم البطل</th><th>العمر</th><th>الصف</th><th>النقاط</th><th>التقييمات</th><th>إدارة وتعديل</th><th>تحدي الأخطاء</th></tr></thead>
+            <thead><tr><th data-i18n="as_col_no">م</th><th data-i18n="as_col_name">اسم البطل</th><th data-i18n="as_col_age">العمر</th><th data-i18n="as_col_grade">الصف</th><th data-i18n="as_col_points">النقاط</th><th data-i18n="as_col_evals">التقييمات</th><th data-i18n="as_col_manage">إدارة وتعديل</th><th data-i18n="as_col_errors">تحدي الأخطاء</th></tr></thead>
             <tbody id="all-students-body"></tbody>
         </table>
     </div>
@@ -68,4 +82,4 @@
         <button class="btn as-btn-primary" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student">حفظ التعديلات ✔️</button>
         <button class="btn btn-outline as-btn-secondary" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal">إلغاء</button>
     </div>
-</div>
+</div>

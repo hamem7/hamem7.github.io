@@ -17,6 +17,13 @@
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <button class="btn" style="width: 100%; font-size: 1.3rem;" id="btn-all-students" data-i18n="btn_all_students">📊 سجل الطلاب العام</button>
             <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-add-student" data-i18n="btn_add_student">تسجيل بطل جديد ➕</button>
+            <!-- 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا في أي وقت —
+                 مفيد لمعالجة أي طالب تم تخطّيه في العرض التلقائي اليومي (راجع
+                 components/monthlyMemorizationBulkScreen.js وcore/app.js) -->
+            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-memo-bulk" data-i18n="btn_monthly_memo_bulk">📋 تسجيل الحفظ الشهري لكل الطلاب</button>
+            <!-- 🌟 [جديد] مركز التقارير الشهرية — اكتب اسم الطالب واختر الشهر ثم واتساب/PDF (راجع
+                 components/monthlyReportsHub.js). زر التقرير داخل ملف الطالب باقٍ كما هو. -->
+            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-reports-hub" data-i18n="btn_monthly_reports_hub">📅 تقارير الشهر</button>
         </div>
 
         <button class="btn btn-outline" style="width: 100%; margin-top:20px; background:#64748b !important; border:none; color:white!important;" id="btn-back-my-students" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>

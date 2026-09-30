@@ -36,10 +36,15 @@ export const ACTIVITY_DIMENSION_MAP = {
     discover_in_ayah: 'discovers',
     apply_new_ayah: 'applies',
     review: 'recalls',
-    stage_challenge: 'recalls'
+    stage_challenge: 'recalls',
+    // 🌟🌟 [جديد ٢٨ سبتمبر] بُعد سادس "pronounces" — لا يُحدَّثه إلا نشاط "سمّع لي" (تقييم معلم
+    // مباشر عبر شاشة teacher-checkpoint)، وليس أي لعبة تلقائية. راجع §2 من مستند التعميق
+    // للسبب المعماري: بلا هذا البُعد كان ممكن يظهر حكم "متقن" اعتماداً على MCQ فقط بلا أي
+    // تسميع فعلي من المعلم — تناقض مباشر مع طبيعة التجويد كمهارة نطقية أولاً وأخيراً
+    teacher_checkpoint: 'pronounces'
 };
 
-const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls'];
+const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'];
 const MASTERY_THRESHOLD = 80;
 const WEAK_DIMENSION_THRESHOLD = 60;
 // 🌟 [افتراض صريح]: الحد الأدنى لاعتبار فجوة زمنية "حقيقية" بين آخر تدرّب وجلسة الاستدعاء —
@@ -271,6 +276,33 @@ export function buildReviewQuestions(dueRules, ayahInfoByRuleId) {
 }
 
 // ============================================================
+// §2 — بوّابة تسميع المعلم "سمّع لي" (بُعد pronounces) — 🌟🌟 [جديد ٢٨ سبتمبر]
+// ============================================================
+// 🌟 تبني قائمة معايير التقييم التي سيقيّمها المعلم مباشرة أثناء استماعه لتلاوة الطالب: بند
+// مخرج الحرف (makhrajNote) وبند الخطأ الشائع الذي ينتبه له المعلم تحديداً (commonMistakes)،
+// كلاهما مأخوذان حرفياً من بيانات الحكم في tajweedRulesCatalog.js (المستخرجة من الكتاب
+// المرجعي). لو حكم قديم (قلقلة) لا يملك هذين الحقلين بعد، نستخدم معياراً عاماً واحداً بدل
+// شاشة فارغة — حتى لا تتعطّل بوّابة التسميع على الأحكام التي لم تُثرَ بعد من الكتاب.
+export function buildTeacherCheckpointCriteria(rule) {
+    const criteria = [];
+    if (rule.makhrajNote) criteria.push({ key: 'makhraj', text: rule.makhrajNote });
+    if (rule.commonMistakes) criteria.push({ key: 'mistake', text: rule.commonMistakes });
+    if (criteria.length === 0) {
+        criteria.push({ key: 'generic', textKey: 'tjw_checkpoint_generic_criterion' });
+    }
+    return criteria;
+}
+
+// 🌟 تحويل تقييمات المعلم الثلاثية (نعم/جزئي/لا) لكل معيار إلى درجة واحدة 0-100 (متوسط بسيط) —
+// تُمرَّر بعدها لـ applySessionToMastery بنفس آلية أي نشاط آخر (activityType='teacher_checkpoint')
+const CHECKPOINT_RATING_SCORE = { yes: 100, partial: 50, no: 0 };
+export function computeCheckpointScore(ratings) {
+    const values = Object.values(ratings || {}).map(r => CHECKPOINT_RATING_SCORE[r] ?? 0);
+    if (values.length === 0) return 0;
+    return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+}
+
+// ============================================================
 // §8 — الأوسمة (13 وسام)
 // ============================================================
 // 🌟 [جديد بالكامل] كتالوج أوسمة "أبطال التجويد" — بنفس نمط BADGE_CATALOG في
@@ -282,6 +314,12 @@ export const TAJWEED_BADGE_CATALOG = {
     first_step: { icon: '👣', nameKey: 'tjw_badge_first_step_name', descKey: 'tjw_badge_first_step_desc', repeatable: false },
     first_mastery: { icon: '🌱', nameKey: 'tjw_badge_first_mastery_name', descKey: 'tjw_badge_first_mastery_desc', repeatable: false },
     stage_master_qalqalah: { icon: '💥', nameKey: 'tjw_badge_stage_master_qalqalah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'qalqalah' },
+    // 🌟🌟 [جديد ٢٨ سبتمبر — تعميق المحتوى من الكتاب] وسامان جديدان يطابقان المرحلتين
+    // الجديدتين في tajweedRulesCatalog.js (راجع التعليق التوثيقي هناك لسبب الترتيب والمصدر).
+    // evaluateSessionAchievements أدناه يستدعي badgeKeyForStageMaster(stageId) تلقائياً لأي
+    // مرحلة تكتمل — لازم يكون لكل stageId مدخل هنا بنفس النمط، وإلا ظهر وسام بلا أيقونة/اسم.
+    stage_master_meem_noon_mushaddadah: { icon: '🎵', nameKey: 'tjw_badge_stage_master_meem_noon_mushaddadah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'meem_noon_mushaddadah' },
+    stage_master_meem_sakinah: { icon: '🟠', nameKey: 'tjw_badge_stage_master_meem_sakinah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'meem_sakinah' },
     stage_master_noon_sakinah: { icon: '🔵', nameKey: 'tjw_badge_stage_master_noon_sakinah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'noon_sakinah' },
     perfect_challenge: { icon: '🌟', nameKey: 'tjw_badge_perfect_challenge_name', descKey: 'tjw_badge_perfect_challenge_desc', repeatable: true },
     review_streak_3: { icon: '🔥', nameKey: 'tjw_badge_review_streak_name', descKey: 'tjw_badge_review_streak_desc', repeatable: true },

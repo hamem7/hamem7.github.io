@@ -431,12 +431,14 @@ export class HomeworkEngine {
     }
 
     // ==========================================
-    // 🌟🌟 [جديد] نمط 13: مطابقة بدايات الآيات بنهاياتها (تقييم المعلم بالكامل، لا تصحيح آلي)
+    // 🌟🌟 [جديد] نمط 13: مطابقة بدايات الآيات بنهاياتها (تصحيح آلي كامل)
     // ==========================================
-    // اتفاق صريح مع المعلم: هذا السؤال needsManualGrading دائماً — لا تُحسب له أي درجة تلقائياً
-    // مهما كانت إجابة الطالب مطابقة تماماً، لأن القرار النهائي يجب أن يبقى بيد المعلم دوماً.
-    // النظام فقط يوفّر "الأزواج الصحيحة" كمرجع جاهز (من correctAnswer أدناه، نفس بيانات التوليد،
-    // وليس تخميناً) لتُعرض كاقتراح في غرفة التصحيح بـ homework-prep.js، لا لحساب الدرجة نيابةً عنه.
+    // 🌟🌟 [عُدّل — بقرار صريح من المعلم 2026-09-28] كان هذا السؤال needsManualGrading دائماً
+    // (قرار سابق مقصود بحجة أن القرار النهائي يجب أن يبقى بيد المعلم)، لكن بما أن النظام أصلاً
+    // يعرف الأزواج الصحيحة (correctAnswer أدناه من بيانات التوليد الحقيقية، لا تخميناً) ويقارنها
+    // بدقة تامة — طلب المعلم تحويله لتصحيح آلي مثل باقي أسئلة الاختيار، بلا أي فرق في الموثوقية.
+    // الدرجة الآن = عدد الأزواج الصحيحة (كل زوج نقطة واحدة من points)، تُحسب في الخادم عبر
+    // autoGradeQuestion_ في backend/Code.gs (حالة 'matching' جديدة تقارن ans[left] === right لكل زوج).
     async createMatchingQuestion(targetAyah, pool) {
         let surah = await this.quranEngine.getSurah(targetAyah.surahNumber);
         let startIdx = targetAyah.numberInSurah - 1;
@@ -480,7 +482,7 @@ export class HomeworkEngine {
             rightItems: rightItems,
             correctAnswer: correctPairs,
             points: correctPairs.length,
-            needsManualGrading: true
+            needsManualGrading: false
         };
     }
 }

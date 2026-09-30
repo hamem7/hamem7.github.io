@@ -25,12 +25,26 @@ export async function findLocalStudentForSubmission(sub) {
         if (byId) return byId;
     }
     const n = normalizeName(sub.studentName);
-    return students.find(s => normalizeName(s.name) === n) || null;
+    // 🌟 [إصلاح تدقيق] لو تطابق الاسم مع أكثر من طالب لا نخمّن (كان يُنسب التسليم للأول صامتاً)؛ نرجع null ويسأل المعلم عبر findAmbiguousNameMatches
+    const matches = students.filter(s => normalizeName(s.name) === n);
+    return matches.length === 1 ? matches[0] : null;
+}
+
+// 🌟 [جديد] الطلاب المتطابقو الاسم مع التسليم (يُستخدم فقط عند وجود أكثر من واحد ولا معرّف مخزَّن يحسم الأمر)
+export async function findAmbiguousNameMatches(sub) {
+    const students = await AppState.studentManager.getAllStudents();
+    if (sub.studentId !== undefined && sub.studentId !== null && sub.studentId !== '' &&
+        students.some(s => String(s.id) === String(sub.studentId))) return [];
+    const n = normalizeName(sub.studentName);
+    const matches = students.filter(s => normalizeName(s.name) === n);
+    return matches.length > 1 ? matches : [];
 }
 
 export async function createLocalStudent(name) {
-    const student = { id: 'std_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), name: String(name).trim(), isHidden: false };
-    await AppState.studentManager.addStudent(student);
+    // 🌟 [إصلاح تدقيق] بلا id يدوي: مخزن الطلاب autoIncrement فيُعطي رقماً مثل باقي الطلاب (كان 'std_...' النصي يعطّل أزرار شاشة "كل الطلاب")
+    const student = { name: String(name).trim(), isHidden: false };
+    const newId = await AppState.studentManager.addStudent(student);
+    student.id = newId;
     return student;
 }
 

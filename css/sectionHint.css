@@ -105,13 +105,21 @@
     color: #94a3b8;
     cursor: pointer;
     flex-shrink: 0;
-    padding: 2px 4px;
+    /* 🌟 [إصلاح فحص الأزرار] كان 23×22px فقط — نكبّر منطقة اللمس (≥36px) بلا تغيير الشكل المرئي كثيرًا 🌟 */
+    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 36px;
+    margin: -6px -6px 0 0;
     line-height: 1;
 }
 .dh-hint-close-btn:hover { color: #475569; }
 
 @media (max-width: 480px) {
     .dh-hint-card {
+        /* 🌟 [إصلاح فحص الأزرار] كانت البطاقة الطويلة تغطي أكثر من نصف الشاشة على الهاتف فتحجب أزرار الصفحة؛ الآن ارتفاعها محدود مع تمرير داخلي 🌟 */
+        max-height: 40vh;
+        max-height: 40dvh;
+        overflow-y: auto;
         bottom: 10px;
         inset-inline-end: 10px;
         inset-inline-start: 10px;
@@ -122,4 +130,23 @@
 
 @media (prefers-reduced-motion: reduce) {
     .dh-hint-card { animation: none; }
+}
+
+/* 🌟 [إصلاح تدقيق ما قبل الإطلاق] على شاشات الموبايل كانت البطاقة تغطي أسفل الشاشة (وفي شاشة دخول المعلم
+   كانت تغطي زر الدخول فلا يمكن الوصول إليه). الآن تصبح شريطاً مضغوطاً بحد أقصى ~34% من ارتفاع الشاشة مع تمرير
+   داخلي لو المحتوى أطول، وبنفس نطاق ".dh-hint-" المعزول فقط (لا تأثير على أي شاشة أخرى). */
+@media (max-width: 600px) {
+    .dh-hint-card {
+        bottom: 8px;
+        inset-inline: 8px;
+        width: auto;
+        max-width: none;
+        max-height: 34vh;
+        overflow-y: auto;
+        padding: 12px 12px;
+        border-radius: 14px;
+    }
+    .dh-hint-title { font-size: 1rem; margin-bottom: 4px; }
+    .dh-hint-body { font-size: 0.9rem; line-height: 1.55; }
+    .dh-hint-actions { margin-top: 8px; }
 }

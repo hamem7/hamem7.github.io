@@ -7,6 +7,7 @@
 // كل عنصر هنا اختياري بالكامل ويختفي بأدب لو لم تتوفر بياناته، بدل اختلاق أرقام.
 
 import { AppState, openHomeworkPrep } from '../core/app.js';
+import { esc } from '../core/escape.js';
 import { t } from '../core/i18n.js';
 // 🌟 [جديد] لفتح شاشة "طلابي" من زر بانر التذكير الشهري بتحديث بيانات الحفظ
 import { loadMyStudentsScreen } from '../student/student.js';
@@ -234,7 +235,7 @@ async function renderDueForReview() {
             const row = document.createElement('div');
             row.className = 'home-quickcard-due-row';
             row.innerHTML = `
-                <span class="home-quickcard-due-name">${student.name}</span>
+                <span class="home-quickcard-due-name">${esc(student.name)}</span>
                 <span class="home-quickcard-due-range">${rangeText}</span>
                 <span class="home-quickcard-due-when">${whenText}</span>
             `;
@@ -334,6 +335,12 @@ async function renderPendingDualMatchesReminder() {
     if (!wrap || !summaryBtn || !summaryTextEl || !listEl || !AppState.dualTestsManager) return;
 
     try {
+        // 🌟 [جديد] تنظيف أي مواجهات "يتيمة" (تشير لاختبار محذوف) قبل الحساب — كانت هذه
+        // المواجهات تظهر هنا كتذكير مضلل رغم اختفاء اختبارها تماماً من شاشة الاختبارات
+        // الثنائية (راجع cleanupOrphanedMatches الجديدة في database/dualTestsDB.js). best-effort:
+        // لو فشل التنظيف لأي سبب، يكمل الحساب بالبيانات كما هي بلا توقف.
+        await AppState.dualTestsManager.cleanupOrphanedMatches();
+
         const allMatches = await AppState.dualTestsManager.getAllMatches();
         const now = Date.now();
         const thresholdMs = PENDING_MATCH_REMINDER_DAYS * 86400000;
@@ -363,7 +370,7 @@ async function renderPendingDualMatchesReminder() {
             const row = document.createElement('div');
             row.className = 'home-quickcard-pm-row';
             row.innerHTML = `
-                <span class="home-quickcard-pm-names">${match.studentNameA} 🆚 ${match.studentNameB}</span>
+                <span class="home-quickcard-pm-names">${esc(match.studentNameA)} 🆚 ${esc(match.studentNameB)}</span>
                 <span class="home-quickcard-pm-when">${t('home_pm_paused_since')} ${overdueDays} ${t('home_due_days_unit')}</span>
             `;
             // 🌟 نقرة على أي صف تفتح شاشة اللعب مباشرة لاستكمال هذه المواجهة بعينها — نفس

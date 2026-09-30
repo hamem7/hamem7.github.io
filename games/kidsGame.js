@@ -9,8 +9,15 @@ import { openReportScreen } from '../reports/report.js';
 import { normalizeForCompare } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
+// 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
+import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFixWrongAnswer, summarizeFixSession } from '../components/fixErrorsPrompt.js';
 
-export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0 };
+export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
+    // 🌟 [إصلاح] لقطة ثابتة من قائمة الأخطاء وقت بدء التحدي — نفس إصلاح adultGame.js بالضبط:
+    // القائمة الحيّة كانت تقصر مع كل إجابة صحيحة فيتخطى المؤشر أخطاء ثم يقرأ عنصراً غير موجود 🌟
+    weaknessSnapshot: [],
+    // 🌟 [جديد] جلسة بدأت من مسار "إصلاح الأخطاء عند الدخول" — تنتهي بملخص ثم شاشة الألعاب 🌟
+    fixFromLogin: false };
 
 const AudioContext = window.AudioContext || window.webkitAudioContext; let audioCtx;
 
@@ -71,15 +78,24 @@ export async function openKidsGameScreen(config, isWeakness = false) {
     });
 
     GameState.config = config;
-    GameState.isWeaknessMode = isWeakness; 
-    GameState.reportDetails = []; 
+    GameState.isWeaknessMode = isWeakness;
+    // 🌟 [جديد] استهلاك علم "مسار الإصلاح عند الدخول" مرة واحدة ثم تصفيره (نفس adultGame.js) 🌟
+    GameState.fixFromLogin = !!(isWeakness && AppState.fixFlow && AppState.fixFlow.fromLogin);
+    AppState.fixFlow = null;
+    GameState.weaknessSnapshot = [];
+    GameState.reportDetails = [];
     GameState.currentIndex = 0; 
     GameState.consecutiveCorrect = 0;
     
     try {
         if (isWeakness) {
             if(!AppState.currentStudent.weaknesses || AppState.currentStudent.weaknesses.length === 0) return alert(t("لا توجد أخطاء مسجلة!"));
-            GameState.queue = AppState.currentStudent.weaknesses.map(w => ({type: 'weakness', chunkIndex: 0}));
+            // 🌟 [إصلاح] اللقطة الثابتة ثم الطابور منها (راجع weaknessSnapshot أعلاه) 🌟
+            // 🌟 [جديد] الجلسة تشمل الأخطاء "المستحقة" فقط (راجع getDueWeaknesses) 🌟
+            const dueList = getDueWeaknesses(AppState.currentStudent);
+            if (dueList.length === 0) return alert(t('fixp_none_due'));
+            GameState.weaknessSnapshot = dueList;
+            GameState.queue = GameState.weaknessSnapshot.map(w => ({type: 'weakness', chunkIndex: 0}));
             GameState.evalRangeText = t("جلسة علاج وتصحيح الأخطاء السابقة");
         } else {
             let qCount = config.qCount; 
@@ -130,7 +146,7 @@ export async function openKidsGameScreen(config, isWeakness = false) {
 }
 
 function initGameUI() {
-    window.recordKidsAnswer = recordKidsAnswer; 
+    // 🌟 [إصلاح فحص الأزرار] أُزيل سطر الإسناد الذاتي هنا (كان يشير لمعرّف مجرد)؛ التعريف الفعلي لـ window.recordKidsAnswer أدناه على مستوى الملف 🌟
     initAudio(); 
     
     GameState.sessionStartTime = new Date(); 
@@ -184,9 +200,13 @@ function updateTrackerUI() {
         if(!circle) continue; 
         circle.className = 'q-circle'; 
         if (i < GameState.currentIndex) { 
-            let reportObj = GameState.reportDetails[i]; 
-            if(reportObj) circle.classList.add(reportObj.isCorrect ? 'correct' : 'wrong'); 
-            else circle.classList.add('wrong'); 
+            // 🌟 [إصلاح "الدائرة الحمراء المتنقلة"] كان الربط بين الدائرة ونتيجتها بالفهرس المباشر
+            // (reportDetails[i])، فلو تم تخطّي سؤال فشل بناؤه (راجع catch في playNextMission) يختل
+            // التطابق وتصير دائرة آخر سؤال بلا نتيجة → كانت تُلوَّن "خطأ" حتى لو كل إجاباته صحيحة، وتنتقل
+            // مع كل سؤال. الآن نبحث بالرقم الفعلي للسؤال (qIndex المحفوظ في recordAnswer)، والسؤال المتخطّى
+            // فعلاً يبقى محايداً (بلا لون) بدل اعتباره خطأ 🌟
+            let reportObj = GameState.reportDetails.find(r => r.qIndex === i);
+            if(reportObj) circle.classList.add(reportObj.isCorrect ? 'correct' : 'wrong');
         } else if (i === GameState.currentIndex) { 
             circle.classList.add('active'); 
         } 
@@ -248,6 +268,8 @@ function persistEvaluationToHistory() {
             range: GameState.evalRangeText || t('hist_eval_default_range'),
             score: scorePercent,
             source: 'kids_game',
+            // 🌟 [جديد] نوع الجلسة ('weakness' لتحدي الأخطاء) — راجع نفس التعليق في adultGame.js 🌟
+            mode: GameState.isWeaknessMode ? 'weakness' : 'eval',
             timestamp: Date.now()
         });
         localStorage.setItem(historyKey, JSON.stringify(historyArray));
@@ -269,6 +291,16 @@ async function playNextMission() {
             // report.js لم يعد يستورد GameState من adultGame.js بشكل ثابت (كان هذا هو
             // سبب ظهور نسب تقييم خاطئة زي 154% في تقارير ألعاب الأطفال — كان التقرير
             // يقرأ GameState الفاضي بتاع adultGame.js بدل GameState الحقيقي هنا) 🌟
+            // 🌟 [جديد] لو الجلسة بدأت من مسار "إصلاح الأخطاء عند الدخول": ملخص قصير ثم شاشة
+            // الألعاب بدل شاشة التقرير (نفس منطق adultGame.js). غير ذلك يبقى السلوك القديم 🌟
+            if (GameState.isWeaknessMode && GameState.fixFromLogin) {
+                GameState.fixFromLogin = false;
+                const summary = summarizeFixSession(AppState.currentStudent, GameState.weaknessSnapshot, (a, b) => normalizeForCompare(a.text) === normalizeForCompare(b.text));
+                return showFixErrorsSummary(AppState.currentStudent, {
+                    kids: true, ...summary,
+                    onContinue: () => loadDashboardScreen()
+                });
+            }
             return openReportScreen(GameState);
         }
         
@@ -287,7 +319,10 @@ async function playNextMission() {
         
         let avatarImg = document.getElementById('in-game-avatar');
         if (avatarImg) {
-            avatarImg.src = AppState.currentStudent.avatar || 'assets/default.png'; 
+            // 🌟 [إصلاح تدقيق] assets/default.png غير موجود (404 عند كل فتح)، والأفاتار الإيموجي (نص قصير) لا يصلح كـ src لصورة —
+            // لذا نستخدم الصورة فقط لو كانت data URL/مسار حقيقي، وإلا الأيقونة الافتراضية المدمجة مباشرة.
+            const _av = AppState.currentStudent.avatar;
+            avatarImg.src = (_av && _av.length >= 10) ? _av : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23cbd5e1"><circle cx="50" cy="50" r="50"/><path fill="%23fff" d="M50 55c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20zm0 5c15 0 30 10 30 25v5H20v-5c0-15 15-25 30-25z"/></svg>'; 
             avatarImg.onerror = function() { 
                 this.onerror = null; 
                 this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23cbd5e1"><circle cx="50" cy="50" r="50"/><path fill="%23fff" d="M50 55c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20zm0 5c15 0 30 10 30 25v5H20v-5c0-15 15-25 30-25z"/></svg>';
@@ -310,7 +345,7 @@ async function playNextMission() {
         document.getElementById('show-ans-btn').style.display = 'none'; 
         // 🌟 تطبيق الترجمة هنا 🌟
         document.getElementById('show-ans-btn').innerHTML = t('show_ans_match'); 
-        document.getElementById('hint-btn').style.display = 'none'; 
+        document.getElementById('hint-btn')?.style && (document.getElementById('hint-btn').style.display = 'none'); 
         document.getElementById('hint-text').style.display = 'none';
 
         let queueItem = GameState.queue[GameState.currentIndex]; 
@@ -331,7 +366,8 @@ async function playNextMission() {
         }
 
         if (GameState.isWeaknessMode) {
-            let wItem = AppState.currentStudent.weaknesses[GameState.currentIndex];
+            // 🌟 [إصلاح] القراءة من اللقطة الثابتة (والقائمة الحيّة احتياط توافق فقط) 🌟
+            let wItem = GameState.weaknessSnapshot[GameState.currentIndex] || AppState.currentStudent.weaknesses[GameState.currentIndex];
 
             // 🌟 نفس فكرة نسخة الكبار: نعيد عرض السؤال الأصلي بكل تفاصيله (نوع اللعبة
             // الصغيرة التي أخطأ فيها الطفل، ونص السؤال كما ظهر له أول مرة) بدل نص
@@ -477,7 +513,19 @@ async function playNextMission() {
                 document.getElementById('kids-mcq-area').style.display = 'block'; 
             }
         }
-    } catch (err) { console.error(err); GameState.currentIndex++; playNextMission(); }
+    } catch (err) {
+        console.error(err);
+        // 🌟 [إصلاح] كان أي خطأ أثناء بناء سؤال يقفز للسؤال التالي فوراً بلا تسجيل نتيجة، فيختل ترتيب
+        // الدوائر والتقرير. الآن نجرّب مرة واحدة سؤالاً بديلاً (كلمة ناقصة) بدل تخطي الخانة؛ ولو فشل
+        // البديل أيضاً (أو كنا في وضع علاج الأخطاء) نتخطى كما كان سابقاً — والدائرة تبقى محايدة 🌟
+        const _qi = GameState.queue[GameState.currentIndex];
+        if (_qi && !_qi.__fallbackTried && _qi.type !== 'weakness') {
+            console.error('فشل بناء سؤال من نوع', _qi.type, '— استبداله بسؤال بديل');
+            _qi.__fallbackTried = true; _qi.type = 'kids_catch';
+            return playNextMission();
+        }
+        GameState.currentIndex++; playNextMission();
+    }
 }
 
 // 🌟 [تعديل] أضفنا معامل ثانٍ اختياري errorKey (مفتاح i18n) لدعم رسائل خطأ مخصّصة للعبة
@@ -588,6 +636,11 @@ function submitAllErrors() {
 }
 
 async function recordAnswer(isCorrect, errorTypes = []) {
+    // 🌟 [إصلاح فحص الأزرار] حارس ضد الضغط المزدوج/السريع (خصوصًا على اللمس): كل سؤال
+    // يُنشأ له كائن currentData جديد، فنعلّم الكائن الحالي بأنه أُجيب عليه، وأي استدعاء ثانٍ
+    // لنفس السؤال يُتجاهل بدل أن يُسجَّل نتيجتين ويقفز سؤالين 🌟
+    if (GameState.currentData && GameState.currentData.__answered) return;
+    if (GameState.currentData) GameState.currentData.__answered = true;
     let timeTaken = GameState.currentQuestionStartTime ? (Date.now() - GameState.currentQuestionStartTime) / 1000 : 0;
     let typeLabel = GameState.isWeaknessMode ? t("تحدي علاج الخطأ") : t(GameState.currentData.questionTitle);
     
@@ -595,7 +648,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
     let surahName = GameState.currentData.ayahObj ? GameState.currentData.ayahObj.surahName : (GameState.currentData.surahName || "");
     let reportText = GameState.currentData.reportText;
 
-    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: false, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts });
+    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: false, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, qIndex: GameState.currentIndex });
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة
     // الإتقان الحقيقية (0-100%) في بطاقة "نظرة سريعة" بالشاشة الرئيسية. نحسب كل سؤال
@@ -608,12 +661,8 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 نفس فكرة نسخة الكبار: أرشفة بدل الحذف — ننقل الخطأ المصحَّح بكل تفاصيله
         // إلى student.resolvedWeaknesses + تاريخ الحل، بدل حذفه نهائياً وفقدان أثره 🌟
         // 🌟 نفس تعديل نسخة الكبار: مقارنة عبر normalizeForCompare بدل تطابق حرفي كامل
-        let resolvedItem = AppState.currentStudent.weaknesses.find(w => normalizeForCompare(w.text) === normalizeForCompare(reportText));
-        if (resolvedItem) {
-            if (!AppState.currentStudent.resolvedWeaknesses) AppState.currentStudent.resolvedWeaknesses = [];
-            AppState.currentStudent.resolvedWeaknesses.push({ ...resolvedItem, dateResolved: new Date().toISOString() });
-        }
-        AppState.currentStudent.weaknesses = AppState.currentStudent.weaknesses.filter(w => normalizeForCompare(w.text) !== normalizeForCompare(reportText));
+        // 🌟 [تعديل] التثبيت بمراجعتين — نفس منطق نسخة الكبار (راجع applyFixCorrectAnswer) 🌟
+        applyFixCorrectAnswer(AppState.currentStudent, w => normalizeForCompare(w.text) === normalizeForCompare(reportText));
         await AppState.studentManager.updateStudent(AppState.currentStudent);
     }
     
@@ -657,6 +706,9 @@ async function recordAnswer(isCorrect, errorTypes = []) {
             };
             if(!AppState.currentStudent.weaknesses) AppState.currentStudent.weaknesses = [];
             if(!AppState.currentStudent.weaknesses.some(w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) AppState.currentStudent.weaknesses.push(errorObj);
+            await AppState.studentManager.updateStudent(AppState.currentStudent);
+        } else if (applyFixWrongAnswer(AppState.currentStudent, w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) {
+            // 🌟 [جديد] إجابة خاطئة في مراجعة خطأ سبق أن أُجيب صح مرة: تصفير التثبيت ثم الحفظ 🌟
             await AppState.studentManager.updateStudent(AppState.currentStudent);
         }
         GameState.currentIndex++; 

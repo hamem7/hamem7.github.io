@@ -115,7 +115,7 @@ export const REPORT_STYLES = `
      حرفًا حرفًا حين يجد letter-spacing غير صفري، وتقطيع النص العربي إلى حروف منفصلة
      يُفقده التشكيل السياقي (الوصل بين الحروف)، فتخرج العبارة في الملف المطبوع مفكّكة
      ومقلوبة الترتيب بينما تبدو سليمة تمامًا على الشاشة — وهو بالضبط ما حدث في سطر
-     "دار حم · منصة تحفيظ القرآن الكريم" أعلى التقرير. */
+     "منصة حمٓ لتثبيت الحفظ و المراجعة" أعلى التقرير. */
   #report-screen .eyebrow{font-size:11.5px; font-weight:700; color:#a79a83;}
   #report-screen .r-title{
     font-family:'Amiri',serif; font-weight:700; font-size:38px; line-height:1.15;

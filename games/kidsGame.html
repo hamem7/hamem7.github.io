@@ -21,7 +21,7 @@
             
             <div id="teacher-eval-area">
                 <div id="game-question" style="margin-bottom: 20px;"></div>
-                <button class="btn btn-outline" id="hint-btn" data-i18n="hint_btn" style="display:none; margin: 15px auto;">💡 تلميح</button>
+                <!-- 🌟 [إصلاح فحص الأزرار] أُزيل زر #hint-btn: لا مستمع له في kidsGame.js ولا مسار يُظهره (ميت ومخفي دائمًا) 🌟 -->
                 <!-- 🌟 نفس تعديل نسخة الكبار: 'Amiri' → 'Amiri Quran' لأن التلميح يعرض جزءاً
                      فعلياً من نص الآية 🌟 -->
                 <div id="hint-text" style="display:none; font-family:'Amiri Quran',serif; font-size:2rem; font-weight:bold; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed rgba(0,0,0,0.2);"></div>
@@ -44,7 +44,7 @@
                          .btn-confirm-next الموحّد (راجع css/kids.css) بنفس الألوان بالضبط،
                          بلا أي تغيير بصري 🌟 -->
                     <button class="btn btn-confirm-next" id="btn-submit-all-errors" data-i18n="submit_next_btn" style="display:none; padding:12px 25px; font-size:1.4rem; font-weight:bold; border-radius:15px;">
-                        ✅ اعتماد والانتقال للسؤال التالي
+                        ⏭️ تم، إلى السؤال التالي
                     </button>
                 </div>
             </div>
@@ -117,7 +117,7 @@
 <div id="error-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 500px;">
         <h2 data-i18n="record_error_title" style="color: #df4e4e; margin-top:0;">تسجيل ملاحظة مؤقتة</h2>
-        <p data-i18n="record_error_desc" style="color:#64748b; font-size:1.1rem; margin-bottom:15px;">سجل الملاحظة ثم اضغط (إضافة ومتابعة) ليبقى الطالب في نفس السؤال.</p>
+        <p data-i18n="record_error_desc" style="color:#64748b; font-size:1.1rem; margin-bottom:15px;">سجل الملاحظة ثم اضغط (حفظ وتكملة السؤال) ليبقى الطالب في نفس السؤال.</p>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: right; margin-bottom:15px;">
             <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="كلمة تحتاج مراجعة"> <span data-i18n="err_word">كلمة تحتاج مراجعة</span></label>
             <label style="background:rgba(0,0,0,0.05); padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.1);"><input type="checkbox" value="أكتر من نقطة تحتاج مراجعة"> <span data-i18n="err_multi">أكتر من نقطة تحتاج مراجعة</span></label>
@@ -129,7 +129,7 @@
         <!-- 🌟 [عدّل] كان يستخدم .btn-wrong (الأحمر، دلالته "إجابة خاطئة") مع تلوين inline
              يدوي فوقه — نُقل لكلاس .btn-note الموحّد المخصص فعلاً لفعل "تسجيل ملاحظة"
              (راجع css/kids.css)، بنفس اللون البرتقالي بالضبط بلا أي تغيير بصري 🌟 -->
-        <button class="btn btn-note" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px;" id="btn-save-error-temp">➕ إضافة الملاحظة ومتابعة التسميع</button>
+        <button class="btn btn-note" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px;" id="btn-save-error-temp">➕ حفظ وتكملة السؤال</button>
         <button class="btn btn-outline" data-i18n="cancel" style="width: 100%; margin-top:10px; font-size: 1.3rem; padding: 12px;" id="btn-close-error">إلغاء</button>
     </div>
-</div>
+</div>

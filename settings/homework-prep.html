@@ -1,9 +1,140 @@
 <!-- settings/homework-prep.html -->
-<!-- 🌟🌟 [محدَّث] تنسيق "رقاقات" (chips) اقتراحات نطاق الاختبار — قواعد معزولة
-     في نطاق واضح خاص بها، ولا تُعدّل أي قاعدة CSS مشتركة أخرى. اقتراح واحد لكل
-     سورة ضمن نطاق حفظ الطالب المسجَّل (أو رقاقة واحدة لجزء عم كاملاً كحالة
-     خاصة)، بنفس ألوان الصندوق الأخضر الموجود أصلاً في هذه الشاشة -->
+<!-- 🌟🌟🌟 [إعادة تصميم كاملة] تصميم "ملء الصفحة" (full-bleed) لشاشة "نظام إدارة الواجبات" —
+     مبني على معاينة تصميم اعتمدها المعلم (Design canvas artifact) قبل التنفيذ الفعلي.
+     كل الأصناف الجديدة بادئتها "hwp2-" حتى تنفصل تماماً عن التصميم السابق (hwp-) ولا تتصادم
+     معه في أي مكان. الفكرة: الشاشة تمتد بعرض الصفحة الكامل (100vw) عبر حيلة hwp2-bleed التي
+     تُلغي أثر max-width/padding في .screen (المعرَّفة في global.css) دون لمس تلك القاعدة
+     العامة إطلاقاً — نفس فلسفة الفصل التام المستخدمة من قبل مع #app-root + !important
+     لتخطّي .adult-theme .btn/.control-panel في adults.css. كل الـid المستخدمة فعلياً في
+     settings/homework-prep.js باقية بلا أي تغيير — التعديل شكلي/تخطيطي بالكامل 🌟🌟🌟 -->
 <style>
+    @keyframes hwp2-fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* -------- حيلة "ملء الصفحة" -------- */
+    .hwp2-bleed { width: 100vw; margin-inline-start: calc(50% - 50vw); margin-inline-end: calc(50% - 50vw); box-sizing: border-box; }
+    .hwp2-pad { padding-inline: clamp(20px, 4vw, 56px); box-sizing: border-box; }
+    #app-root .hwp2-panel {
+        background: transparent !important; max-width: none !important; width: 100% !important;
+        margin: 0 !important; padding: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+        text-align: initial !important; color: var(--dh-ink) !important;
+    }
+
+    /* -------- شريط العنوان -------- */
+    .hwp2-header-bar {
+        background: linear-gradient(120deg, var(--dh-emerald-900), var(--dh-emerald-700) 55%, var(--dh-emerald-600));
+        border-bottom: 3px solid var(--dh-gold-500);
+        animation: hwp2-fadeInUp .4s ease both;
+    }
+    .hwp2-header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-block: 22px; }
+    /* 🌟 [إصلاح] min-width:0 على كل من الحاوية والنص الداخلي ضروري داخل flex حتى لا يتمدد
+       العنوان فوق العناصر المجاورة له (كان النص أحياناً يظهر متداخلاً/متراكباً مع الأيقونة على
+       الشاشات الضيقة أو عند تكبير الخط من إعدادات المتصفح، لأن flex-item بلا min-width:0 لا
+       ينكمش ولا يلتف نصه بشكل صحيح افتراضياً) — overflow-wrap يضمن كذلك التفاف أي كلمة طويلة
+       بدل خروجها عن حدود صندوقها 🌟 */
+    .hwp2-header-brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .hwp2-header-icon {
+        width: 52px; height: 52px; border-radius: 15px; background: rgba(255,255,255,.12); color: var(--dh-gold-300);
+        display: flex; align-items: center; justify-content: center; font-size: 1.7rem; flex-shrink: 0;
+    }
+    .hwp2-header-brand > div:last-child { min-width: 0; }
+    <!-- 🌟 [إصلاح فعلي] السبب الحقيقي وراء ظهور العنوان "متداخلاً/مشوَّهاً": كان font-weight هنا
+         800، لكن خط 'IBM Plex Sans Arabic' المحمَّل في index.html بأوزان 400/500/600/700 فقط
+         (بلا 800) — فكان المتصفح يصنع "بولد اصطناعي" (Faux Bold) بنفسه لعدم توفر الوزن المطلوب،
+         وهذا التصنيع الاصطناعي هو ما يُنتج مضاعفة/تشوّه ظاهر في حروف الخط العربي المتصل عادة.
+         الحل: استخدام 700 (الوزن الأثقل المحمَّل فعلياً) بدل 800 -->
+    #app-root .hwp2-header-title { color: var(--dh-surface) !important; font-size: 1.7rem !important; font-weight: 700 !important; margin: 0 !important; line-height: 1.35 !important; overflow-wrap: break-word !important; }
+    .hwp2-header-sub { color: var(--dh-gold-300); font-size: .95rem; margin-top: 3px; }
+    #app-root .hwp2-btn-ghost {
+        background: rgba(255,255,255,.1) !important; color: var(--dh-surface) !important; border: 1px solid rgba(255,255,255,.35) !important;
+        border-radius: var(--dh-radius-md) !important; padding: 10px 18px !important; font-weight: 700 !important; box-shadow: none !important;
+        transition: background .15s ease;
+    }
+    #app-root .hwp2-btn-ghost:hover { background: rgba(255,255,255,.2) !important; }
+
+    /* -------- شريط بطاقات الإحصائيات -------- */
+    .hwp2-stats-bar { background: var(--dh-surface-alt); }
+    .hwp2-stats-grid { padding-top: 22px; padding-bottom: 22px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .hwp2-stat-card {
+        background: var(--dh-surface); border-radius: var(--dh-radius-md); box-shadow: var(--dh-shadow-soft);
+        padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+        border-inline-start: 5px solid var(--hwp2-accent, var(--dh-emerald-600));
+        animation: hwp2-fadeInUp .45s ease both;
+    }
+    .hwp2-stat-card .hwp-stat-icon {
+        width: 44px; height: 44px; border-radius: 13px; font-size: 1.4rem; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--hwp2-accent-soft, rgba(13, 92, 70, .12)); color: var(--hwp2-accent, var(--dh-emerald-700));
+    }
+    .hwp2-stat-card .hwp-stat-value { font-size: 1.9rem; font-weight: 700; color: var(--dh-ink); line-height: 1.15; }
+    .hwp2-stat-card .hwp-stat-label { font-size: .95rem; font-weight: 700; color: var(--dh-ink-soft); margin-top: 2px; }
+    .hwp2-stat-card .hwp-stat-hint { font-size: .76rem; font-weight: 700; color: var(--hwp2-accent, var(--dh-emerald-600)); margin-top: 4px; opacity: .85; }
+
+    .hwp2-stat-published { --hwp2-accent: var(--dh-emerald-600); --hwp2-accent-soft: rgba(20, 124, 94, .12); }
+    .hwp2-stat-draft { --hwp2-accent: var(--dh-gold-500); --hwp2-accent-soft: rgba(212, 175, 55, .18); }
+    .hwp2-stat-grading { --hwp2-accent: #dc2626; --hwp2-accent-soft: rgba(220, 38, 38, .1); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    .hwp2-stat-overdue { --hwp2-accent: #c2410c; --hwp2-accent-soft: rgba(194, 65, 12, .1); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    /* 🌟 [محافَظ عليه] بطاقتا "يحتاج تصحيح" و"متأخر عن التسليم" قابلتان للنقر فعلياً */
+    .hwp2-stat-grading:hover, .hwp2-stat-overdue:hover { transform: translateY(-4px); box-shadow: 0 16px 28px rgba(0, 0, 0, .14); }
+    .hwp2-stat-grading:focus-visible, .hwp2-stat-overdue:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; transform: translateY(-4px); }
+
+    /* -------- شريط التبويبات -------- */
+    .hwp2-tabs-bar { background: var(--dh-surface); border-bottom: 1px solid #e7ece8; }
+    .hwp2-tabs-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding-block: 14px; }
+    .hwp2-segmented { display: inline-flex; background: var(--dh-surface-alt); padding: 5px; border-radius: 14px; gap: 4px; }
+    #app-root .hwp2-seg-btn {
+        padding: 11px 22px !important; border-radius: 10px !important; font-size: 1.02rem !important; font-weight: 700 !important;
+        border: none !important; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+        min-height: auto !important;
+    }
+    #app-root .hwp2-seg-btn:not(.btn-outline) {
+        background: var(--dh-surface) !important; color: var(--dh-emerald-700) !important; border: none !important;
+        box-shadow: 0 4px 10px rgba(6,35,28,.12) !important;
+    }
+    #app-root .hwp2-seg-btn.btn-outline { background: transparent !important; color: var(--dh-ink-soft) !important; border: none !important; box-shadow: none !important; }
+    #app-root .hwp2-seg-gold {
+        background: var(--dh-surface) !important; color: #92400e !important; border: 2px solid var(--dh-gold-500) !important;
+        border-radius: var(--dh-radius-md) !important; padding: 10px 20px !important; font-weight: 700 !important; box-shadow: none !important;
+        min-height: auto !important; transition: background .15s ease;
+    }
+    #app-root .hwp2-seg-gold:hover { background: var(--dh-surface-alt) !important; }
+
+    /* -------- منطقة المحتوى -------- */
+    .hwp2-content-bar { background: #f8fafc; min-height: 60vh; }
+    .hwp2-content-inner { padding-top: 28px; padding-bottom: 40px; }
+    .hwp2-card { background: var(--dh-surface); border-radius: var(--dh-radius-lg); box-shadow: var(--dh-shadow-soft); padding: 30px; }
+    .hwp2-desc { color: #64748b; font-size: 1.05rem; margin-bottom: 22px; text-align: center; }
+
+    .hwp2-config-grid { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 26px; align-items: start; }
+    .hwp2-config-col-left, .hwp2-config-col-right { min-width: 0; }
+
+    .hwp2-assign-box {
+        margin-bottom: 22px; text-align: right; background: var(--dh-surface-alt);
+        padding: 16px 18px; border-radius: var(--dh-radius-md); border: 1px dashed var(--dh-emerald-600);
+    }
+    .hwp2-assign-box label { color: var(--dh-emerald-800); font-size: 1.1rem; }
+    .hwp2-assign-box select {
+        width: 100%; padding: 11px; font-size: 1.15rem; border: 2px solid var(--dh-emerald-600);
+        border-radius: 10px; font-family: inherit; outline: none; background: var(--dh-surface); color: var(--dh-ink);
+    }
+    .hwp2-assign-box select:focus { outline: 3px solid var(--dh-gold-300); border-color: var(--dh-gold-500); }
+
+    .hwp2-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .hwp2-pills label {
+        background: var(--dh-surface-alt); padding: 10px 18px; border-radius: 50px; font-weight: 700; cursor: pointer;
+        color: var(--dh-ink-soft); transition: background .15s ease, color .15s ease;
+    }
+    .hwp2-pills label:has(input:checked) {
+        background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)); color: var(--dh-surface);
+    }
+
+    #app-root .hwp2-gen-btn {
+        width: 100% !important; margin-top: 18px !important; font-size: 1.25rem !important; padding: 14px !important;
+        background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)) !important; border: none !important;
+        border-radius: var(--dh-radius-md) !important; color: var(--dh-surface) !important; font-weight: 700 !important;
+        box-shadow: 0 10px 20px rgba(13, 92, 70, .28) !important; transition: transform .15s ease;
+    }
+    #app-root .hwp2-gen-btn:hover { transform: translateY(-2px); }
+
     .hw-memo-suggestion-chip {
         background: white;
         border: 2px solid #6ee7b7;
@@ -25,76 +156,136 @@
         color: white;
     }
 
-    /* 🌟🌟 [جديد] بطاقة "يحتاج تصحيح" أصبحت قابلة للنقر — قاعدة معزولة في نطاقها الخاص
-       (لا تعدّل أي بطاقة إحصائية أخرى) لإعطاء إحساس واضح بأنها فعّالة وليست مجرد عرض */
-    #stat-needs-grading-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 14px 26px rgba(220, 38, 38, 0.32);
+    /* 🌟🌟 [جديد] أزرار "إجراءات" دائرية أكبر وأوضح بدل الأزرار المستطيلة الصغيرة السابقة في
+       عمود "إجراءات" بجدول "سجل الواجبات" — بنفس الهوية البصرية (ذهبي/زمرّدي) مع الاحتفاظ
+       بلون مختلف لكل إجراء (عرض/نسخ/حذف) حتى يبقى الفرق بينها واضحاً بصرياً. مستخدَمة من
+       settings/homework-prep.js عند بناء صفوف الجدول 🌟🌟 */
+    .hwp2-action-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 42px; height: 42px; min-width: 42px; padding: 0; border: none; border-radius: 50%;
+        font-size: 1.15rem; cursor: pointer; box-shadow: 0 6px 14px rgba(6, 35, 28, .18);
+        transition: transform .15s ease, box-shadow .15s ease; color: #fff;
+    }
+    .hwp2-action-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 10px 18px rgba(6, 35, 28, .24); }
+    .hwp2-action-btn:active { transform: translateY(-1px) scale(1); }
+    .hwp2-action-view { background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)); }
+    .hwp2-action-link { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: #2b2100; }
+    .hwp2-action-delete { background: linear-gradient(135deg, #f87171, #dc2626); }
+    .hwp2-actions-cell { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+    @media (max-width: 980px) {
+        .hwp2-config-grid { grid-template-columns: 1fr; }
+        .hwp2-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        #app-root .hwp2-header-title { font-size: 1.3rem !important; }
+        .hwp2-header-row, .hwp2-tabs-row { flex-direction: column; align-items: stretch; }
+        .hwp2-segmented { justify-content: center; }
     }
 </style>
-<div class="screen active dashboard-wrapper" style="background: #f8fafc; min-height: 100vh; padding-bottom: 50px;">
-    <div class="control-panel" style="max-width: 1000px; margin: 0 auto; background: transparent; box-shadow: none;">
+<div class="screen active dashboard-wrapper" style="background: #f8fafc;">
+    <div class="control-panel hwp2-panel">
 
-        <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:20px;" data-i18n="hw_management_title">نظام إدارة الواجبات 📚</h1>
+        <!-- 🗂️ شريط العنوان بعرض الصفحة الكامل -->
+        <div class="hwp2-bleed hwp2-header-bar">
+            <div class="hwp2-pad hwp2-header-row">
+                <!-- 🌟 [إصلاح] زر "العودة للرئيسية" الخاص بهذه الشاشة اتحذف من هنا لأنه كان
+                     مكرِّراً لزر "الرئيسية" الثابت في الهيدر العلوي العام للمنصة (#header-home-btn
+                     في index.html، ظاهر فوق في كل الشاشات) — الإبقاء على الزر العلوي فقط بدل
+                     تكرار نفس الوظيفة بزرّين متجاورين. لو رجعت الحاجة لزر عودة مستقل هنا مستقبلاً
+                     (زي لو تغيّر الهيدر العام)، أعد إضافته بنفس id="btn-back-home" حتى يشتغل
+                     المستمع الموجود أصلاً في settings/homework-prep.js بلا أي تعديل إضافي 🌟 -->
+                <div class="hwp2-header-brand">
+                    <div class="hwp2-header-icon" aria-hidden="true">📚</div>
+                    <div>
+                        <h1 class="hwp2-header-title" data-i18n="hw_management_title">نظام إدارة الواجبات</h1>
+                        <div class="hwp2-header-sub" data-i18n="hw_header_subtitle">حمٓ — لوحة تحكم المعلم</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- 📊 بطاقات الإحصائيات العلوية -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-            <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(109, 40, 217, 0.2);">
-                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-published">0</div>
-                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_published_now">منشور الآن 🚀</div>
-            </div>
-            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(217, 119, 6, 0.2);">
-                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-draft">0</div>
-                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_draft_status">مسودة 📝</div>
-            </div>
-            <!-- 🌟🌟 [محدَّث] كانت هذه البطاقة "إجمالي التسليمات" بلا أي كود يحدّثها (تعرض "0" ثابتة
-                 دائماً). استُبدلت ببطاقة "يحتاج تصحيح" فعّالة فعلياً: رقمها الحقيقي يُجلب من
-                 السحابة (core/firebase.js → getSubmissionsNeedingGrading)، والنقر عليها ينقل
-                 المعلم مباشرة لتبويب "سجل الواجبات" حيث تظهر علامة تنبيه ⚠️ بجانب أي واجب متأثر -->
-            <!-- ⚠️ التلميح (tooltip) لا يُكتب هنا كنص ثابت لأن data-i18n لا يدعم خاصية title —
-                 يُضبط ويُحدَّث ديناميكياً من JS (homework-prep.js) حتى يبقى مطابقاً للغة الحالية دائماً -->
-            <!-- 🌟 [جديد] role="button" + tabindex حتى تُعامَل كزر فعلي لقارئات الشاشة ولوحة
-                 المفاتيح (كانت div عادية بلا أي دلالة على أنها قابلة للنقر رغم أن JS يعاملها
-                 كزر فعلاً). ونص hw_needs_grading_hint الصغير أسفلها ثابت الظهور دائماً (مش
-                 tooltip بيظهر بالـ hover فقط) حتى يوضح تفاعليتها على تابلت/موبايل أيضاً 🌟 -->
-            <div id="stat-needs-grading-card" role="button" tabindex="0" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(220, 38, 38, 0.2); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
-                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-needs-grading">0</div>
-                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_needs_grading">يحتاج تصحيح ✍️</div>
-                <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 4px;" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
-            </div>
-            <!-- 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — بنفس فلسفة بطاقة "يحتاج تصحيح" فوق تماماً:
-                 رقمها الحقيقي يُجلب من loadOverdueHomeworkStat في settings/homework-prep.js (يقارن
-                 كل واجب "مخصَّص لطالب محدد" منشور منذ HW_OVERDUE_DAYS يوماً أو أكثر بقائمة كل
-                 التسليمات لمعرفة هل سلّمه صاحبه أم لا)، والنقر عليها ينقل المعلم لتبويب "سجل
-                 الواجبات" حيث تظهر علامة ⏰ بجانب كل واجب متأخر بعينه -->
-            <div id="stat-overdue-card" role="button" tabindex="0" style="background: linear-gradient(135deg, #f97316, #c2410c); color: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 10px 20px rgba(194, 65, 12, 0.2); cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;">
-                <div style="font-size: 2.5rem; font-weight: bold;" id="stat-overdue">0</div>
-                <div style="font-size: 1.2rem; opacity: 0.9;" data-i18n="hw_overdue_stat">متأخر عن التسليم ⏰</div>
-                <div style="font-size: 0.8rem; opacity: 0.85; margin-top: 4px;" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
+        <div class="hwp2-bleed hwp2-stats-bar">
+            <div class="hwp2-pad hwp2-stats-grid">
+                <div class="hwp2-stat-card hwp2-stat-published">
+                    <div class="hwp-stat-icon" aria-hidden="true">🚀</div>
+                    <div>
+                        <div class="hwp-stat-value" id="stat-published">0</div>
+                        <div class="hwp-stat-label" data-i18n="hw_published_now">منشور الآن</div>
+                    </div>
+                </div>
+                <div class="hwp2-stat-card hwp2-stat-draft">
+                    <div class="hwp-stat-icon" aria-hidden="true">📝</div>
+                    <div>
+                        <div class="hwp-stat-value" id="stat-draft">0</div>
+                        <div class="hwp-stat-label" data-i18n="hw_draft_status">مسودة</div>
+                    </div>
+                </div>
+                <!-- 🌟🌟 [محدَّث] كانت هذه البطاقة "إجمالي التسليمات" بلا أي كود يحدّثها (تعرض "0" ثابتة
+                     دائماً). استُبدلت ببطاقة "يحتاج تصحيح" فعّالة فعلياً: رقمها الحقيقي يُجلب من
+                     السحابة (core/firebase.js → getSubmissionsNeedingGrading)، والنقر عليها ينقل
+                     المعلم مباشرة لتبويب "سجل الواجبات" حيث تظهر علامة تنبيه ⚠️ بجانب أي واجب متأثر -->
+                <!-- ⚠️ التلميح (tooltip) لا يُكتب هنا كنص ثابت لأن data-i18n لا يدعم خاصية title —
+                     يُضبط ويُحدَّث ديناميكياً من JS (homework-prep.js) حتى يبقى مطابقاً للغة الحالية دائماً -->
+                <!-- 🌟 [جديد] role="button" + tabindex حتى تُعامَل كزر فعلي لقارئات الشاشة ولوحة
+                     المفاتيح (كانت div عادية بلا أي دلالة على أنها قابلة للنقر رغم أن JS يعاملها
+                     كزر فعلاً). ونص hw_needs_grading_hint الصغير أسفلها ثابت الظهور دائماً (مش
+                     tooltip بيظهر بالـ hover فقط) حتى يوضح تفاعليتها على تابلت/موبايل أيضاً 🌟 -->
+                <div id="stat-needs-grading-card" class="hwp2-stat-card hwp2-stat-grading" role="button" tabindex="0">
+                    <div class="hwp-stat-icon" aria-hidden="true">✍️</div>
+                    <div>
+                        <div class="hwp-stat-value" id="stat-needs-grading">0</div>
+                        <div class="hwp-stat-label" data-i18n="hw_needs_grading">يحتاج تصحيح</div>
+                        <div class="hwp-stat-hint" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
+                    </div>
+                </div>
+                <!-- 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — بنفس فلسفة بطاقة "يحتاج تصحيح" فوق تماماً:
+                     رقمها الحقيقي يُجلب من loadOverdueHomeworkStat في settings/homework-prep.js (يقارن
+                     كل واجب "مخصَّص لطالب محدد" منشور منذ HW_OVERDUE_DAYS يوماً أو أكثر بقائمة كل
+                     التسليمات لمعرفة هل سلّمه صاحبه أم لا)، والنقر عليها ينقل المعلم لتبويب "سجل
+                     الواجبات" حيث تظهر علامة ⏰ بجانب كل واجب متأخر بعينه -->
+                <div id="stat-overdue-card" class="hwp2-stat-card hwp2-stat-overdue" role="button" tabindex="0">
+                    <div class="hwp-stat-icon" aria-hidden="true">⏰</div>
+                    <div>
+                        <div class="hwp-stat-value" id="stat-overdue">0</div>
+                        <div class="hwp-stat-label" data-i18n="hw_overdue_stat">متأخر عن التسليم</div>
+                        <div class="hwp-stat-hint" data-i18n="hw_needs_grading_hint">اضغط لعرض التفاصيل ›</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 🗂️ أزرار التنقل بين (إنشاء جديد) و (سجل الواجبات) -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-            <button class="btn" id="btn-tab-new" style="flex: 1; min-width:180px; background: #0ea5e9; font-size: 1.4rem;" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
-            <button class="btn btn-outline" id="btn-tab-history" style="flex: 1; min-width:180px; border-color: #0ea5e9; color: #0ea5e9; background: white; font-size: 1.4rem;" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
-            <!-- 🌟🌟 [جديد] نافذة تعرض كل الاختبارات/الواجبات المصححة والمعتمدة مع نتيجتها
-                 النهائية لكل طالب، وإمكانية إعادة فتح شهادة تقديره منها — راجع core/homework-prep.js
-                 (openFinalResultsModal) وreports/hwCertificate.js -->
-            <button class="btn btn-outline" id="btn-final-results" style="flex: 1; min-width:180px; border-color: #d97706; color: #d97706; background: white; font-size: 1.4rem;" data-i18n="hw_final_results_btn">🎓 النتائج النهائية للطلاب</button>
+        <!-- 🗂️ شريط التبويبات -->
+        <div class="hwp2-bleed hwp2-tabs-bar">
+            <div class="hwp2-pad hwp2-tabs-row">
+                <div class="hwp2-segmented">
+                    <button class="btn hwp2-seg-btn" id="btn-tab-new" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
+                    <button class="btn btn-outline hwp2-seg-btn" id="btn-tab-history" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
+                </div>
+                <!-- 🌟🌟 [جديد] نافذة تعرض كل الاختبارات/الواجبات المصححة والمعتمدة مع نتيجتها
+                     النهائية لكل طالب، وإمكانية إعادة فتح شهادة تقديره منها — راجع core/homework-prep.js
+                     (openFinalResultsModal) وreports/hwCertificate.js -->
+                <button class="btn btn-outline hwp2-seg-gold" id="btn-final-results" data-i18n="hw_final_results_btn">🎓 النتائج النهائية للطلاب</button>
+            </div>
         </div>
+
+        <!-- 📄 منطقة المحتوى -->
+        <div class="hwp2-bleed hwp2-content-bar">
+            <div class="hwp2-pad hwp2-content-inner">
 
         <!-- ========================================== -->
         <!-- 📝 تبويب: إعداد واجب جديد -->
         <!-- ========================================== -->
-        <div id="tab-new-hw" style="background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div id="tab-new-hw" class="hwp2-card">
             <p style="text-align:center; color:#64748b; font-size:1.2rem; margin-bottom:25px;" data-i18n="hw_desc">حدد النطاق لتوليد الأسئلة، ويمكنك التعديل عليها أو إضافة أسئلة يدوية.</p>
 
-            <div id="hw-config-section">
+            <div id="hw-config-section" class="hwp2-config-grid">
+              <div class="hwp2-config-col-left">
                 <!-- 🌟 حقل تخصيص الواجب لطالب محدد 🌟 -->
-                <div class="input-group" style="margin-bottom: 25px; text-align: right; background: #f0fdf4; padding: 15px; border-radius: 10px; border: 1px dashed #86efac;">
-                    <label style="font-weight: bold; color: #047857; margin-bottom: 10px; display: block; font-size: 1.2rem;" data-i18n="hw_assign_student">👤 تخصيص الواجب لطالب محدد (اختياري):</label>
-                    <select id="hw-target-student" style="width: 100%; padding: 10px; font-size: 1.3rem; border: 2px solid #6ee7b7; border-radius: 8px; font-family: inherit; outline: none; background: white;">
+                <div class="input-group hwp2-assign-box">
+                    <label style="font-weight: bold; margin-bottom: 10px; display: block;" data-i18n="hw_assign_student">👤 تخصيص الواجب لطالب محدد (اختياري):</label>
+                    <select id="hw-target-student">
                         <option value="" data-i18n="hw_general_link">-- رابط عام (لجميع الطلاب) --</option>
                         <!-- سيتم تعبئة أسماء الطلاب هنا برمجياً -->
                     </select>
@@ -110,12 +301,14 @@
                     </div>
                 </div>
 
-                <div class="eval-type-selector" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap:wrap;">
-                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
-                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
-                    <label style="background:#f1f5f9; padding:10px 20px; border-radius:50px; font-weight:bold; cursor:pointer;"><input type="radio" name="hwType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
+                <div class="eval-type-selector hwp2-pills" style="justify-content: center;">
+                    <label><input type="radio" name="hwType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
+                    <label><input type="radio" name="hwType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
+                    <label><input type="radio" name="hwType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
                 </div>
+              </div>
 
+              <div class="hwp2-config-col-right">
                 <!-- إعدادات النطاق -->
                 <div id="hw-surah-settings" class="form-grid" style="text-align:right;">
                     <div class="input-group"><label data-i18n="surah_label">السورة:</label><select id="hw-surah-select"></select></div>
@@ -134,9 +327,10 @@
                     <div class="input-group" style="grid-column: span 2;"><label data-i18n="q_count">عدد الأسئلة:</label><input type="number" id="hw-q-count-juz" value="20" min="1" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Tajawal';"></div>
                 </div>
 
-                <button class="btn" id="btn-generate-hw" style="width: 100%; margin-top:25px; font-size:1.5rem; padding:15px; background:linear-gradient(45deg, #0ea5e9, #0284c7);" data-i18n="hw_btn_generate">
+                <button class="btn hwp2-gen-btn" id="btn-generate-hw" data-i18n="hw_btn_generate">
                     ⚙️ توليد الأسئلة آلياً
                 </button>
+              </div>
             </div>
 
             <!-- 🔍 قسم مراجعة الأسئلة والتعديل اليدوي -->
@@ -160,7 +354,7 @@
         <!-- ========================================== -->
         <!-- 📊 تبويب: سجل الواجبات -->
         <!-- ========================================== -->
-        <div id="tab-history" style="display:none; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        <div id="tab-history" class="hwp2-card" style="display:none;">
             <h2 style="color:#1e293b; margin-top:0; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;" data-i18n="hw_history_title">سجل الواجبات المُنْشأة</h2>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: center; margin-top: 15px;">
@@ -179,7 +373,20 @@
             </div>
         </div>
 
-        <button class="btn btn-outline" id="btn-back-home" style="width: 100%; margin-top:20px; font-size:1.2rem; border-color:#ef4444; color:#ef4444; background: white;" data-i18n="hw_btn_back_home">🔙 العودة للرئيسية</button>
+        <!-- ========================================== -->
+        <!-- 🎓 تبويب: النتائج النهائية للطلاب -->
+        <!-- ========================================== -->
+        <!-- 🌟🌟 [إعادة تصميم] كانت هذه نافذة/صفحة منفصلة تُفتح فوق كل شيء (document.body).
+             حُوِّلت الآن لتبويب ثالث عادي بنفس معاملة تبويبي "إعداد واجب جديد" و"سجل الواجبات"
+             تماماً — يظهر بالمكان نفسه أسفل شريط التبويبات، بلا أي طبقة عائمة منفصلة. راجع
+             settings/homework-prep.js (openFinalResultsModal) لمنطق التحميل 🌟🌟 -->
+        <div id="tab-final-results" class="hwp2-card" style="display:none;">
+            <h2 style="color:#d97706; margin-top:0; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;" data-i18n="hw_final_results_title">🎓 الاختبارات المصحَّحة والنتائج النهائية</h2>
+            <div id="hw-final-results-body"><div style="padding:15px; color:#0ea5e9;">⏳</div></div>
+        </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
@@ -253,9 +460,6 @@
              حقيقي فوري لنجاح/فشل المحاولة — راجع retryHomeworkCloudSync في
              settings/homework-prep.js -->
         <button type="button" id="btn-retry-hw-sync" class="btn" style="display:none; background:#f59e0b; margin-bottom:20px; width:100%; padding:10px; font-size:1rem; border:none; border-radius:8px; cursor:pointer; color:#fff;" data-i18n="hw_retry_sync_btn">🔄 إعادة المحاولة الآن</button>
-
-        <!-- 🌟 [جديد] زر إرسال الرابط مباشرة عبر واتساب (يفتح wa.me برسالة جاهزة تحتوي الرابط) -->
-        <a id="btn-share-wa" target="_blank" rel="noopener" class="btn" data-i18n="hw_wa_btn" style="display:block; text-decoration:none; background:#1faa54; color:#fff; margin-bottom:12px; width:100%; box-sizing:border-box; padding:12px; font-size:1.2rem; border-radius:8px;">💬 إرسال عبر واتساب</a>
 
         <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق والعودة 🏠</button>
     </div>

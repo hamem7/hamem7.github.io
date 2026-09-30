@@ -45,7 +45,7 @@ $('btn-generate').addEventListener('click', async () => {
     lastCfg = { mode: 'surah', surahNum, startAyah, endAyah, qCount };
     const sum = typeSummary(questions);
     $('preview').classList.remove('hidden');
-    $('preview').innerHTML = `<div class="banner ok">تم توليد ${questions.length} سؤالاً — سورة ${surahs.find(s => s.number === surahNum).name} (الآيات ${startAyah}–${endAyah}) — موزّعة على النطاق بنفس منطق دار حم.</div>
+    $('preview').innerHTML = `<div class="banner ok">تم توليد ${questions.length} سؤالاً — سورة ${surahs.find(s => s.number === surahNum).name} (الآيات ${startAyah}–${endAyah}) — موزّعة على النطاق بنفس منطق حمٓ.</div>
       <p>${Object.entries(sum).map(([t, n]) => `<span class="badge b-info">${typeLabel(t)} × ${n}</span>`).join(' ')}</p>`;
     const list = document.createElement('ol');
     questions.forEach(q => { const li = document.createElement('li'); li.textContent = q.title.replace(/[*🔽☑️✍️🎤🔗]/g, '').trim() + (q.needsManualGrading ? '  [تصحيح يدوي]' : ''); list.append(li); });
@@ -89,7 +89,7 @@ $('btn-publish').addEventListener('click', async () => {
 
   const link = studentLink(created.id);
   $('link').value = link; $('link-box').classList.remove('hidden');
-  $('btn-wa').href = whatsappUrl(link, assignName ? `واجب ${assignName} من منصة دار حم:` : 'واجب من منصة دار حم:');
+  $('btn-wa').href = whatsappUrl(link, assignName ? `واجب ${assignName} من منصة حمٓ:` : 'واجب من منصة حمٓ:');
   btn.disabled = false; loadList();
 });
 $('btn-copy').addEventListener('click', async () => {

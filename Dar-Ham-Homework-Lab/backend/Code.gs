@@ -28,13 +28,15 @@
 
 // If you created the script from script.google.com (standalone, NOT from inside the sheet), paste the
 // Google Sheet id here (the long text between /d/ and /edit in the sheet's URL). Otherwise leave ''.
-var SPREADSHEET_ID = '';
+// 🌟 [إصلاح 2026-09-29] معرّف شيت "قاعدة واجبات دار حم". كان فارغًا هنا فيُمسح المعرّف المضبوط في السكربت
+// المنشور كلما لُصقت هذه النسخة، فيرجع getActiveSpreadsheet() بـ null ويظهر SERVER_ERROR في كل الطلبات.
+var SPREADSHEET_ID = '1nuVzb4suJDIZaD2uk8Iex4qf9sLc15Iy3ogaoxP3aDs';
 
 function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.1.0';
+var VERSION = '1.2.0';
 var SHEET_HW = 'Homeworks';
 var SHEET_SUB = 'Submissions';
 var SHEET_TEACHERS = 'Teachers';    // 🌟 multi-teacher: Google-authenticated teacher accounts
@@ -44,6 +46,9 @@ var MAX_BODY_CHARS = 300000;
 var MAX_QUESTIONS = 60;
 var MAX_SUBMISSIONS_PER_HW = 500;
 var LOCK_WAIT_MS = 25000;
+// 🌟 [جديد — تدقيق 2026-09-29] حدّ أقصى لعدد الواجبات لكل معلم (وإجمالي عام) حتى لا يملأ حسابٌ واحد الشيت
+var MAX_HOMEWORKS_PER_TEACHER = 300;
+var MAX_HOMEWORKS_TOTAL = 3000;
 
 // Fixed (indexed) columns before the JSON chunks. Column numbers are 1-based.
 var HW_FIXED = ['id', 'createdAt', 'status', 'assignedStudentName', 'assignedStudentId', 'questionCount'];
@@ -187,8 +192,18 @@ function verifyGoogleIdToken_(idToken) {
   if (String(data.iss) !== 'accounts.google.com' && String(data.iss) !== 'https://accounts.google.com') {
     throw err_('UNAUTHORIZED', 'Untrusted token issuer');
   }
-  var clientId = PropertiesService.getScriptProperties().getProperty('GOOGLE_CLIENT_ID');
-  if (clientId && String(data.aud) !== clientId) throw err_('UNAUTHORIZED', 'Token was issued for a different app');
+  // 🌟🌟 [عُدّل — تدقيق 2026-09-29] كان فحص aud اختياريًا (يُتجاهل لو لم تُضبط GOOGLE_CLIENT_ID) وكان أي حساب جوجل
+  // يصبح "معلمًا" ويُنشئ واجبات بلا حد. المنصة لمعلم واحد، فصار الفحصان إجباريين:
+  //   • GOOGLE_CLIENT_ID (Script Property): يجب أن يطابق aud في التوكن.
+  //   • TEACHER_EMAILS (Script Property): قائمة بريد مسموح بها مفصولة بفاصلة، والبريد يجب أن يكون موثَّقًا.
+  // لو لم تُضبطا يفشل الدخول بجوجل برسالة واضحة (مفتاح المعلم القديم يبقى يعمل كخط رجوع).
+  var props = PropertiesService.getScriptProperties();
+  var clientId = props.getProperty('GOOGLE_CLIENT_ID');
+  var allowed = String(props.getProperty('TEACHER_EMAILS') || '').toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  if (!clientId || !allowed.length) throw err_('NOT_CONFIGURED', 'Set GOOGLE_CLIENT_ID and TEACHER_EMAILS in Script Properties to enable Google sign-in');
+  if (String(data.aud) !== clientId) throw err_('UNAUTHORIZED', 'Token was issued for a different app');
+  var mail = data.email ? String(data.email).toLowerCase() : '';
+  if (!mail || String(data.email_verified) === 'false' || allowed.indexOf(mail) === -1) throw err_('UNAUTHORIZED', 'This Google account is not allowed');
   return { sub: String(data.sub), email: data.email ? String(data.email) : null, name: data.name ? String(data.name) : null };
 }
 
@@ -265,28 +280,29 @@ function canAccessHw_(rec, auth) {
  *  falls back to the legacy shared teacherKey untouched (same lockout counter, same error shape). */
 function authenticateTeacher_(req) {
   var cache = CacheService.getScriptCache();
-  var fails = Number(cache.get('auth_fails') || 0);
-  if (fails >= 20) throw err_('LOCKED', 'Too many wrong keys. Try again in 10 minutes.');
 
+  // 🌟🌟 [عُدّل — تدقيق 2026-09-29] كان عدّاد الفشل واحدًا لكل المستخدمين، فيستطيع أي مجهول بـ20 طلبًا خاطئًا
+  // قفل المعلم نفسه (حتى بمفتاح صحيح). الآن: جلسة جوجل (sessionKey عشوائي 24 خانة، غير قابل للتخمين) لا تُقفل
+  // ولا تُحتسب عليها محاولات؛ والقفل يخص فقط مفتاح المعلم القديم القصير (تخمينه هو الخطر الفعلي).
   if (req.userId && req.sessionKey) {
     var found = findTeacherByUserId_(String(req.userId));
     if (found && found.row.rec && safeEqual_(String(req.sessionKey), String(found.row.rec.sessionKey))) {
       return { userId: found.row.rec.userId, isLegacy: false };
     }
-    cache.put('auth_fails', String(fails + 1), 600);
     Utilities.sleep(400);
     throw err_('UNAUTHORIZED', 'Sign-in session is invalid, please sign in again');
   }
 
+  var fails = Number(cache.get('auth_fails') || 0);
   var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
   if (!expected) throw err_('NOT_CONFIGURED', 'Run setup() once in the Apps Script editor');
   var given = String(req.teacherKey || '');
-  if (!safeEqual_(given, expected)) {
-    cache.put('auth_fails', String(fails + 1), 600);
-    Utilities.sleep(400);
-    throw err_('UNAUTHORIZED', 'Wrong teacher key');
-  }
-  return { userId: null, isLegacy: true };
+  // 🌟 المفتاح الصحيح يُقبل دائمًا حتى أثناء القفل (لا يستطيع مهاجم مجهول منع المعلم)؛ القفل يوقف فقط تخمين المفاتيح الخاطئة
+  if (safeEqual_(given, expected)) return { userId: null, isLegacy: true };
+  if (fails >= 20) throw err_('LOCKED', 'Too many wrong keys. Try again in 10 minutes.');
+  cache.put('auth_fails', String(fails + 1), 600);
+  Utilities.sleep(400);
+  throw err_('UNAUTHORIZED', 'Wrong teacher key');
 }
 
 function ensureSheet_(ss, name, fixedCols, chunks) {
@@ -454,13 +470,21 @@ function validateQuestions_(qs) {
 function createHomework_(req, auth) {
   var hw = req.homework || {};
   validateQuestions_(hw.questions);
+  // 🌟 [جديد — تدقيق 2026-09-29] حدّ الحصة: لا يستطيع حساب واحد ولا الإجمالي ملء الشيت
+  var existing = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
+  if (existing.length >= MAX_HOMEWORKS_TOTAL) throw err_('LIMIT', 'Homework storage is full');
+  if (!auth.isLegacy) {
+    var mine = 0;
+    existing.forEach(function (r) { if (r.rec && r.rec.ownerId === auth.userId) mine++; });
+    if (mine >= MAX_HOMEWORKS_PER_TEACHER) throw err_('LIMIT', 'Homework limit reached for this account');
+  }
   var id = newId_('HW_');
   var record = {
     id: id,
     createdAt: nowIso_(),
     status: 'published',
     ownerId: auth.isLegacy ? null : auth.userId, // 🌟 multi-teacher: never trust a client-supplied ownerId
-    assignedStudentName: hw.assignedStudentName ? String(hw.assignedStudentName).slice(0, 80) : null,
+    assignedStudentName: hw.assignedStudentName ? String(hw.assignedStudentName).replace(/[<>"'`\u0000-\u001f]/g, '').slice(0, 80) : null,
     assignedStudentId: (hw.assignedStudentId !== undefined && hw.assignedStudentId !== null) ? hw.assignedStudentId : null,
     questions: hw.questions,
     meta: hw.meta || null
@@ -575,6 +599,15 @@ function autoGradeQuestion_(q, ans) {
       isCorrect = a.every(function (v, idx) { return v === b[idx]; });
     }
     earned = isCorrect ? pts : 0;
+  } else if (q.type === 'matching') {
+    // 🌟🌟 [جديد] تصحيح آلي لسؤال المطابقة — كل زوج (بداية/نهاية) صحيح = نقطة واحدة من points.
+    // ans = {leftId: rightId, ...} كما يحفظها الطالب في homework-play.js. correctAnswer = الأزواج
+    // الصحيحة الفعلية من بيانات التوليد (لا تخميناً)، فمطابقة ans[p.left] === p.right دقيقة 100%.
+    var pairsCorrect = 0;
+    if (ans && typeof ans === 'object' && Array.isArray(q.correctAnswer)) {
+      q.correctAnswer.forEach(function (p) { if (ans[p.left] === p.right) pairsCorrect++; });
+    }
+    earned = pairsCorrect; isCorrect = (pts > 0 && pairsCorrect === pts);
   } else {
     isCorrect = (ans === q.correctAnswer);
     earned = isCorrect ? pts : 0;
@@ -654,6 +687,10 @@ function gradeSubmissionData_(questions, answers, manualScores) {
     } else {
       var g = autoGradeQuestion_(q, ans);
       d.isCorrect = g.isCorrect;
+      // 🌟🌟 [جديد] نُرجع الدرجة الفعلية المكتسبة لكل سؤال آلي (لا فقط صح/خطأ ثنائي) — أسئلة الدرجة
+      // الجزئية (matrix_order، dual_dropdown، matching) قد تكسب بعض النقاط دون كل النقاط، وعرضها
+      // كـ"خطأ" مطلق يضلّل المعلم. راجع settings/homework-prep.js (openGradingRoom) لمكان الاستخدام.
+      d.earnedPoints = g.earned;
       autoTotal += pts; autoEarned += g.earned;
       earnedAll += g.earned;
     }
@@ -709,13 +746,17 @@ function submit_(req) {
   // 1) Idempotency: same clientSubmissionId => return the stored one, never create a duplicate.
   for (i = 0; i < loaded.rows.length; i++) {
     if (String(loaded.rows[i].fixed[2]) === clientId && loaded.rows[i].rec) {
+      // 🌟 [إصلاح] المعرّف يجب أن يخص نفس الواجب؛ كان يعيد إيصال تسليم واجب آخر
+      if (String(loaded.rows[i].fixed[1]) !== hwId) throw err_('BAD_REQUEST', 'clientSubmissionId already used for another homework');
       return publicReceipt_(loaded.rows[i].rec, { duplicate: true });
     }
   }
   if (hw.status === 'closed') throw err_('CLOSED', 'This homework is closed');
 
   // 2) Identity: assigned homework forces the assigned name; otherwise a name is required.
-  var studentName = hw.assignedStudentName ? String(hw.assignedStudentName) : String(req.studentName || '').replace(/\s+/g, ' ').trim();
+  // 🌟🌟 [جديد — إصلاح XSS في الخادم أيضًا] نحذف <>"'` والرموز التحكمية من اسم الطالب المكتوب يدويًا (دفاع متعدد الطبقات؛
+  // الواجهة تنظّف عند العرض كذلك). الأسماء العربية/الإنجليزية العادية لا تتأثر.
+  var studentName = hw.assignedStudentName ? String(hw.assignedStudentName) : String(req.studentName || '').replace(/[<>"'`\u0000-\u001f]/g, '').replace(/\s+/g, ' ').trim();
   if (studentName.length < 2 || studentName.length > 80) throw err_('BAD_REQUEST', 'A student name (2-80 characters) is required');
   var norm = normName_(studentName);
 

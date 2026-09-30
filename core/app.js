@@ -19,6 +19,10 @@ import { initSimilaritiesDB, ensureSimilaritiesLoaded, SimilaritiesManager } fro
 // 🌟 [جديد — المرحلة 3] قاعدة بيانات "أبطال التجويد" (DarHamTajweed) — إتقان الطالب لكل حكم +
 // سجل الجلسات + الأوسمة. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط. راجع database/tajweedDB.js
 import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
+// 🌟 [جديد] قاعدة بيانات "سجل الحفظ الشهري" — بداية/نهاية موضع الحفظ لكل (طالب × شهر)
+// + عدد الآيات الجديدة المحسوب آليًا. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط.
+// راجع database/monthlyMemorizationDB.js وcomponents/monthlyMemorizationPrompt.js
+import { initMonthlyMemorizationDB, MonthlyMemorizationManager } from '../database/monthlyMemorizationDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
 import { KidsEngine } from '../engine/kidsEngine.js';
 import { loadScreen, switchTheme } from './navigation.js';
@@ -91,6 +95,9 @@ export const AppState = {
     // 🌟 [جديد — المرحلة 3] مدير قاعدة بيانات "أبطال التجويد" (إتقان/جلسات/أوسمة) — يُهيَّأ
     // في bootSystem أسفل هذا الملف بنفس نمط بقية المديرين أعلاه
     tajweedManager: null,
+    // 🌟 [جديد] مدير "سجل الحفظ الشهري" — يُهيَّأ في bootSystem أسفل هذا الملف بنفس
+    // نمط بقية المديرين أعلاه
+    monthlyMemorizationManager: null,
     // 🌟 [جديد — المرحلة 2] معاملات فتح شاشة نشاط "أبطال التجويد" (تدرّب/تحدي مرحلة/مراجعة) —
     // نفس فكرة dualTestPlayMatchId أعلاه بالضبط: تُملأ لحظة الانتقال من tajweed-map.js، ثم
     // تُقرأ مرة واحدة وتُفرَّغ فوراً في initTajweedActivity() حتى لا تؤثر على أي فتح لاحق
@@ -366,6 +373,11 @@ async function bootSystem() {
         const tajweedDB = await initTajweedDB();
         AppState.tajweedManager = new TajweedManager(tajweedDB);
 
+        // 🌟 [جديد] تهيئة قاعدة بيانات "سجل الحفظ الشهري" — نفس نمط تهيئة بقية
+        // قواعد البيانات أعلاه بالضبط
+        const monthlyMemorizationDB = await initMonthlyMemorizationDB();
+        AppState.monthlyMemorizationManager = new MonthlyMemorizationManager(monthlyMemorizationDB);
+
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
         AppState.juzAmmaSurahs = AppState.surahsData.filter(s => s.number >= 78 && s.number <= 114);
 
@@ -394,6 +406,15 @@ async function bootSystem() {
 
         // إذا لم يكن هناك رابط مباشر، افتح شاشة المعلم الرئيسية
         await loadSplashScreen();
+
+        // 🌟 [جديد] فحص تلقائي (مرة واحدة يوميًا كحد أقصى) هل يحتاج أي طالب تسجيل
+        // بداية شهر جديد أو نهاية شهر سابق غير مكتمل في "سجل الحفظ الشهري" — استيراد
+        // ديناميكي حتى لا يُحمَّل هذا الملف إطلاقًا في مسار دخول الطالب عبر رابط واجب
+        // مباشر أعلاه. لا يُعطّل إقلاع المنصة إطلاقًا حتى لو فشل (best-effort بالكامل).
+        // راجع components/monthlyMemorizationBulkScreen.js لتفاصيل "مرة يوميًا".
+        import('../components/monthlyMemorizationBulkScreen.js')
+            .then(m => m.maybeAutoOpenMonthlyMemorizationBulk())
+            .catch(err => console.error('تعذر الفحص التلقائي للحفظ الشهري:', err));
 
         // 🌟 فحص "الجديد في هذا التحديث" — بعد فتح الشاشة الرئيسية للمعلم فقط، وليس في
         // مسار دخول الطالب عبر رابط واجب مباشر أعلاه (لأن التحديثات غالباً خاصة بأدوات
@@ -427,7 +448,34 @@ async function bootSystem() {
         });
     } catch (error) {
         console.error("خطأ قاتل أثناء إقلاع النظام:", error);
+        // 🌟 [إصلاح تدقيق ما قبل الإطلاق] كان الخطأ يُسجَّل في الكونسول فقط فتبقى الشاشة فارغة بلا أي تفسير
+        // (مثلاً أول تشغيل بلا إنترنت لتنزيل نص القرآن). الآن تظهر رسالة مفهومة مع زر إعادة المحاولة.
+        showBootFailure(error);
     }
+}
+
+// 🌟 [جديد] شاشة فشل الإقلاع — عناصر DOM عبر textContent (بلا innerHTML)، بألوان الهوية (--dh-emerald/--dh-gold)
+function showBootFailure(error) {
+    try {
+        const isQuran = !!(error && error.code === 'QURAN_LOAD_FAILED');
+        const root = document.getElementById('app-root') || document.body;
+        root.innerHTML = '';
+        const box = document.createElement('div');
+        box.setAttribute('role', 'alert');
+        box.style.cssText = 'max-width:420px;margin:15vh auto;padding:28px 22px;text-align:center;background:#fff;border:2px solid var(--dh-gold,#c9a227);border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.12);';
+        const h = document.createElement('h2');
+        h.style.cssText = 'color:var(--dh-emerald,#047857);margin:0 0 12px;';
+        h.textContent = t(isQuran ? 'boot_fail_quran_title' : 'boot_fail_generic_title');
+        const p = document.createElement('p');
+        p.style.cssText = 'color:#334155;line-height:1.8;margin:0 0 20px;';
+        p.textContent = t(isQuran ? 'boot_fail_quran_body' : 'boot_fail_generic_body');
+        const b = document.createElement('button');
+        b.textContent = t('boot_fail_retry');
+        b.style.cssText = 'background:var(--dh-emerald,#047857);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:1.1rem;font-weight:bold;cursor:pointer;';
+        b.addEventListener('click', () => window.location.reload());
+        box.append(h, p, b);
+        root.appendChild(box);
+    } catch (e) { /* لا شيء: آخر خط دفاع */ }
 }
 
 export async function loadSplashScreen() {

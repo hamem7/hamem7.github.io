@@ -39,7 +39,15 @@ export function initDualTestsDB() {
                 db.createObjectStore(DUALTEST_ACHIEVEMENTS_STORE, { keyPath: "id", autoIncrement: true });
             }
         };
-        request.onsuccess = (e) => resolve(e.target.result);
+        request.onsuccess = (e) => {
+            const openedDb = e.target.result;
+            // 🌟 [إصلاح تدقيق ما قبل الإطلاق] لو فُتحت المنصة في تبويبين وترقّى أحدهما هيكل القاعدة، كان الآخر يحجب الترقية بصمت
+            // (تعليق/فشل الإقلاع). الآن يغلق التبويب القديم اتصاله عند طلب الترقية فتكمل الترقية في التبويب الجديد.
+            openedDb.onversionchange = () => { try { openedDb.close(); } catch (err) { /* لا شيء */ } };
+            resolve(openedDb);
+        };
+        // 🌟 ترقية محجوبة بتبويب آخر مفتوح: نُنبّه في الكونسول بدل الصمت (الفتح يكتمل تلقائياً بعد إغلاقه)
+        request.onblocked = () => console.warn('ترقية قاعدة البيانات محجوبة بتبويب آخر للمنصة — أغلق التبويبات الأخرى.');
         request.onerror = (e) => reject(e.target.error);
     });
 }
@@ -120,13 +128,34 @@ export class DualTestsManager {
         });
     }
 
+    // 🌟 [مُحدَّث] حذف اختبار كان يحذف سجله من dual_tests فقط، ويترك أي مواجهات مرتبطة به
+    // "يتيمة" في dual_matches (تشير إلى testId لم يعد موجوداً). هذا كان يسبب ظهور تذكير
+    // "مواجهات تنتظر الاستكمال" على الشاشة الرئيسية رغم اختفاء الاختبار تماماً من شاشة
+    // الاختبارات الثنائية، ويمنع فتح أي مواجهة يتيمة بخطأ "تعذر العثور على الاختبار المرتبط
+    // بهذه المواجهة" (المعلم أبلغ عن الحالتين معاً). الآن حذف الاختبار يحذف معه كل مواجهاته
+    // (المكتملة وغير المكتملة) — نفس منطق حذف الواجب مع تسليماته المعتمد في homeworkDB.
     deleteTest(id) {
-        return new Promise((resolve) => {
-            const tx = this.db.transaction(DUALTESTS_STORE, "readwrite");
-            const store = tx.objectStore(DUALTESTS_STORE);
-            const request = store.delete(id);
-            request.onsuccess = () => resolve();
+        return this.getMatchesByTestId(id).then(matches => {
+            return Promise.all(matches.map(m => this.deleteMatch(m.id)));
+        }).then(() => {
+            return new Promise((resolve) => {
+                const tx = this.db.transaction(DUALTESTS_STORE, "readwrite");
+                const store = tx.objectStore(DUALTESTS_STORE);
+                const request = store.delete(id);
+                request.onsuccess = () => resolve();
+            });
         });
+    }
+
+    // 🌟 [جديد] تنظيف المواجهات اليتيمة الموجودة فعلاً من قبل هذا التحديث (اختبارات اتحذفت
+    // قبل ما تُصلَح deleteTest أعلاه، وبقيت مواجهاتها معلّقة بلا اختبار). best-effort بحت:
+    // لا تُستخدَم نتيجتها لمنع أي عرض، فقط لتنظيف القاعدة في الخلفية عند أول تحميل.
+    cleanupOrphanedMatches() {
+        return Promise.all([this.getAllTests(), this.getAllMatches()]).then(([tests, matches]) => {
+            const validTestIds = new Set(tests.map(t => t.id));
+            const orphaned = matches.filter(m => !validTestIds.has(m.testId));
+            return Promise.all(orphaned.map(m => this.deleteMatch(m.id))).then(() => orphaned.length);
+        }).catch(() => 0);
     }
 
     // ===================== المواجهات الفعلية (dual_matches) =====================

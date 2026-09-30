@@ -131,7 +131,7 @@ const DUAL_TEST_REPORT_TEMPLATE = `
 
         <div class="dtr-footer pdf-block">
           <div class="dtr-footer-note">
-            <span data-i18n="mr_footer_line1">دار حم · منصة مراجعة القرآن التفاعلية</span><br>
+            <span data-i18n="mr_footer_line1">منصة حمٓ لتثبيت الحفظ و المراجعة</span><br>
             <span data-i18n="dtr_footer_auto_line">تقرير مواجهة تلقائي، معتمد من المعلم</span>
           </div>
           <div class="dtr-sign">

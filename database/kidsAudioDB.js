@@ -47,7 +47,15 @@ export function initKidsAudioDB() {
                 db.createObjectStore(KIDS_AUDIO_STORE, { keyPath: "number" });
             }
         };
-        request.onsuccess = (e) => resolve(e.target.result);
+        request.onsuccess = (e) => {
+            const openedDb = e.target.result;
+            // 🌟 [إصلاح تدقيق ما قبل الإطلاق] لو فُتحت المنصة في تبويبين وترقّى أحدهما هيكل القاعدة، كان الآخر يحجب الترقية بصمت
+            // (تعليق/فشل الإقلاع). الآن يغلق التبويب القديم اتصاله عند طلب الترقية فتكمل الترقية في التبويب الجديد.
+            openedDb.onversionchange = () => { try { openedDb.close(); } catch (err) { /* لا شيء */ } };
+            resolve(openedDb);
+        };
+        // 🌟 ترقية محجوبة بتبويب آخر مفتوح: نُنبّه في الكونسول بدل الصمت (الفتح يكتمل تلقائياً بعد إغلاقه)
+        request.onblocked = () => console.warn('ترقية قاعدة البيانات محجوبة بتبويب آخر للمنصة — أغلق التبويبات الأخرى.');
         request.onerror = (e) => reject(e.target.error);
     });
 }

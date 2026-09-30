@@ -1,6 +1,8 @@
 // student/student.js
 import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, t } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
+import { esc } from '../core/escape.js';
+import { purgeStudentRelatedData } from '../core/studentCleanup.js';
 import { openModal, closeModal } from '../components/ui.js';
 import { openAdultGameScreen } from '../games/adultGame.js';
 import { openKidsGameScreen } from '../games/kidsGame.js';
@@ -13,8 +15,12 @@ import { TAJWEED_BADGE_CATALOG, computeAllStageProgress } from '../engine/tajwee
 import { TAJWEED_STAGES } from '../engine/tajweedRulesCatalog.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
+// 🌟 [جديد] مسار "إصلاح الأخطاء السابقة عند الدخول" — راجع components/fixErrorsPrompt.js
+import { showFixErrorsPrompt, shouldShowFixPromptToday, markFixPromptHandledToday, getDueWeaknesses } from '../components/fixErrorsPrompt.js';
 // 🌟 [جديد] بطاقة الترحيب بالطالب عند اختيار اسمه — راجع components/welcomeBanner.js
 import { showStudentWelcome } from '../components/welcomeBanner.js';
+// 🌟 [إصلاح فحص الأزرار] لتوجيه ملف "النسخة الشاملة" المرفوع بالخطأ هنا إلى مسار استرجاعه الصحيح
+import { restoreFromBackupFile } from '../core/backupRestore.js';
 
 export async function populateStudentsDropdown() {
     const students = await AppState.studentManager.getAllStudents();
@@ -117,7 +123,7 @@ export function setupLoginListeners() {
     // زر دخول المعلم المعتاد
     document.getElementById('btn-login-submit')?.addEventListener('click', async () => {
         const typedName = document.getElementById('student-search-input').value.trim();
-        if (!typedName) return alert("الرجاء كتابة أو اختيار اسم الطالب أولاً!");
+        if (!typedName) return alert(t("stu_login_name_required"));
 
         const students = await AppState.studentManager.getAllStudents();
         AppState.currentStudent = students.find(s => s.name === typedName);
@@ -131,6 +137,37 @@ export function setupLoginListeners() {
             // خلفها في نفس اللحظة، فلا يضيع على المعلم أي وقت، وتختفي هي وحدها بعد ثوانٍ
             // قليلة أو فوراً بأي نقرة/زر Esc. وضع الأطفال يُمرَّر لتكبير البطاقة قليلاً فقط
             // (نفس محتوى وألوان الهوية، راجع dh-welcome-kids في css/welcomeBanner.css) 🌟
+            // 🌟 [جديد] مسار "إصلاح الأخطاء السابقة أولاً": لو للطالب أخطاء مسجَّلة، نعرض بطاقة
+            // تعرض عليه بدء جلسة الإصلاح الآن (نفس جلسة "تحدي الأخطاء" الموجودة أصلاً) ثم — بعد
+            // انتهائها وملخصها القصير — الانتقال إلى شاشة الألعاب (راجع games/adultGame.js
+            // وkidsGame.js: GameState.fixFromLogin). ليست إجبارية: "لاحقاً" يدخل الألعاب فوراً
+            // بنفس السلوك القديم بالضبط (بطاقة الترحيب ثم لوحة التقييم). طالب بلا أخطاء لا يرى
+            // أي تغيير إطلاقاً 🌟
+            // 🌟 [تعديل] العدّاد = الأخطاء "المستحقة" الآن فقط (جديدة أو تنتظر مراجعتها الثانية
+            // للتثبيت في يوم لاحق — راجع getDueWeaknesses). فالخطأ الذي أُجيب صح اليوم لا يستدعي
+            // البطاقة، ويعود تلقائياً في أول دخول بعد اليوم (بعد يوم أو أسبوع) 🌟
+            // 🌟 [افتراض صريح] البطاقة تظهر مرة واحدة يومياً لكل طالب: أي اختيار فيها (ابدأ أو
+            // لاحقاً) يسجّل "تم التعامل اليوم" فلا تتكرر لنفس الطالب حتى اليوم التالي 🌟
+            const pendingFixCount = getDueWeaknesses(AppState.currentStudent).length;
+            if (pendingFixCount > 0 && shouldShowFixPromptToday(AppState.currentStudent)) {
+                const enterGames = () => {
+                    markFixPromptHandledToday(AppState.currentStudent);
+                    showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
+                    loadDashboardScreen();
+                };
+                showFixErrorsPrompt(AppState.currentStudent, {
+                    kids: AppState.isKidsMode,
+                    onStart: () => {
+                        markFixPromptHandledToday(AppState.currentStudent);
+                        AppState.fixFlow = { fromLogin: true };
+                        if (AppState.isKidsMode) openKidsGameScreen({}, true);
+                        else openAdultGameScreen({}, true);
+                    },
+                    onLater: enterGames
+                });
+                return;
+            }
+
             showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
 
             loadDashboardScreen();
@@ -156,6 +193,24 @@ function setupMyStudentsListeners() {
     document.getElementById('btn-add-student')?.addEventListener('click', () => {
         populateSurahOptions('stu-memo-from', 'stu-memo-to');
         openModal('add-modal');
+    });
+
+    // 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا — استيراد ديناميكي
+    // بنفس نمط بقية الشاشات المستوردة ديناميكيًا في هذا الملف
+    // 🌟 [جديد] مركز التقارير الشهرية — استيراد ديناميكي (نفس نمط الأزرار المجاورة)
+    document.getElementById('btn-monthly-reports-hub')?.addEventListener('click', () => {
+        import('../components/monthlyReportsHub.js')
+            .then(m => m.openMonthlyReportsHub())
+            .catch(err => console.error('تعذر فتح مركز التقارير الشهرية:', err));
+    });
+
+    document.getElementById('btn-monthly-memo-bulk')?.addEventListener('click', () => {
+        import('../components/monthlyMemorizationBulkScreen.js')
+            .then(m => m.openMonthlyMemorizationBulkScreen())
+            .catch(err => {
+                console.error('تعذر تحميل شاشة الحفظ الشهري الجماعية:', err);
+                alert(t('stu_screen_preparing'));
+            });
     });
 
     document.querySelectorAll('.avatar-opt').forEach(opt => {
@@ -187,26 +242,49 @@ function setupMyStudentsListeners() {
             // kidsGame.js في recordAnswer) 🌟
             resolvedWeaknesses: []
         };
-        if (!data.name) return alert("الاسم مطلوب!");
+        if (!data.name) return alert(t("stu_name_required"));
+        // 🌟 [إصلاح تدقيق] منع تسجيل طالبين بنفس الاسم: تسجيل الدخول وربط الواجبات يعتمدان على الاسم فيختلط الطلاب.
+        // ⚠️ [افتراض صريح]: المقارنة على الاسم بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف.
+        {
+            const _norm = (x) => String(x || '').replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+            const _existing = await AppState.studentManager.getAllStudents();
+            if (_existing.some(x => _norm(x.name) === _norm(data.name))) return alert(t("stu_name_duplicate"));
+        }
 
         const fileInput = document.getElementById('stu-avatar');
         if (fileInput && fileInput.files.length > 0) {
             const reader = new FileReader();
             reader.onload = async (e) => {
-                data.avatar = e.target.result;
-                await AppState.studentManager.addStudent(data);
+                // 🌟 [إصلاح تدقيق] كانت الصورة تُخزَّن بحجمها الأصلي كاملاً (قد تبلغ عدة ميجابايت لكل طالب فتتضخم القاعدة والنسخ
+                // الاحتياطي). الآن تُصغَّر إلى 256px كحد أقصى (JPEG) عبر canvas المدمج في المتصفح؛ لو فشل التصغير نستخدم الأصل.
+                data.avatar = await shrinkAvatarDataUrl(e.target.result);
+                const newId = await AppState.studentManager.addStudent(data);
                 closeModal('add-modal');
                 populateStudentsDropdown();
-                alert("تم الحفظ بنجاح!");
+                alert(t("stu_saved_ok"));
+                promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
             };
             reader.readAsDataURL(fileInput.files[0]);
         } else {
-            await AppState.studentManager.addStudent(data);
+            const newId = await AppState.studentManager.addStudent(data);
             closeModal('add-modal');
             populateStudentsDropdown();
-            alert("تم الحفظ بنجاح!");
+            alert(t("stu_saved_ok"));
+            promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
         }
     });
+}
+
+// 🌟 [جديد] بعد حفظ بطل جديد مباشرة — نطلب منه "نقطة البداية الأولى" في الحفظ
+// مرة واحدة فقط (بدل انتظار ظهورها لاحقًا كخطوة "first-time" في الشاشة الجماعية
+// الشهرية). استيراد ديناميكي بنفس نمط بقية الاستدعاءات في هذا الملف؛ الشاشة نفسها
+// قابلة للتخطي بزر "لاحقًا"، فلا تُجبر المعلم على إدخال بيانة اختيارية فورًا —
+// راجع openInitialPositionForNewStudent في components/monthlyMemorizationBulkScreen.js
+// لتفاصيل خط الرجوع لو تخطّاها المعلم الآن.
+function promptInitialMemorizationPositionForNewStudent(student) {
+    import('../components/monthlyMemorizationBulkScreen.js')
+        .then(m => m.openInitialPositionForNewStudent(student))
+        .catch(err => console.error('تعذر عرض شاشة نقطة البداية الأولى للطالب الجديد:', err));
 }
 
 export async function loadAllStudentsScreen() {
@@ -217,6 +295,13 @@ export async function loadAllStudentsScreen() {
             setupAllStudentsListeners();
         }
     });
+}
+
+// 🌟 [إصلاح تدقيق] معرّف الطالب قد يكون رقماً (طلاب المنصة) أو نصاً std_... (طلاب أُنشئوا من الواجبات)؛ parseInt كان يحوّل
+// النصي إلى NaN فتتعطل أزرار التعديل/الحذف/الإخفاء/الملف. الرقمي الخالص يُحوَّل رقماً، وغيره يبقى نصاً كما هو 🌟
+function parseStudentId(raw) {
+    const str = String(raw == null ? '' : raw).trim();
+    return /^\d+$/.test(str) ? Number(str) : str;
 }
 
 async function renderAllStudentsTable() {
@@ -231,13 +316,14 @@ async function renderAllStudentsTable() {
             ageStr = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) + " سنة";
         }
         let evalsCount = JSON.parse(localStorage.getItem(`history_${s.id}`))?.length || 0;
-        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="استعادة البطل">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="إخفاء البطل">🙈</button>`;
-        let manageBtns = `<button class="btn btn-edit" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="تعديل البيانات">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${s.id}" style="padding:5px; font-size:1rem; min-width:unset;" title="حذف البطل نهائياً">🗑️</button>`;
-        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${s.id}" style="padding:5px 10px; font-size:1rem;">🛠️ الأخطاء (${s.weaknesses.length})</button>` : `<span style="color:#aaa;">لا أخطاء</span>`;
+        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="استعادة البطل">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="إخفاء البطل">🙈</button>`;
+        let manageBtns = `<button class="btn btn-edit" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="تعديل البيانات">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="حذف البطل نهائياً">🗑️</button>`;
+        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${esc(s.id)}" style="padding:5px 10px; font-size:1rem;">🛠️ الأخطاء (${s.weaknesses.length})</button>` : `<span style="color:#aaa;">لا أخطاء</span>`;
 
-        let nameButton = `<button class="btn-prof-link" data-id="${s.id}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${s.name}</button>`;
+        let nameButton = `<button class="btn-prof-link" data-id="${esc(s.id)}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${esc(s.name)}</button>`;
 
-        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td>${index+1}</td><td>${nameButton}</td><td>${ageStr}</td><td>${s.grade || 'غير محدد'}</td><td style="font-weight:bold;">${s.totalScore || 0}</td><td>${evalsCount}</td><td>${manageBtns}</td><td>${weaknessBtn}</td></tr>`;
+        // 🌟 [إصلاح فحص الأزرار] data-label على كل خلية ليعرض CSS الهاتف (بطاقات) اسم الحقل بجانب قيمته 🌟
+        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td data-label="${t('as_col_no')}">${index+1}</td><td data-label="${t('as_col_name')}">${nameButton}</td><td data-label="${t('as_col_age')}">${ageStr}</td><td data-label="${t('as_col_grade')}">${esc(s.grade || 'غير محدد')}</td><td data-label="${t('as_col_points')}" style="font-weight:bold;">${s.totalScore || 0}</td><td data-label="${t('as_col_evals')}">${evalsCount}</td><td data-label="${t('as_col_manage')}">${manageBtns}</td><td data-label="${t('as_col_errors')}">${weaknessBtn}</td></tr>`;
     });
 }
 
@@ -255,7 +341,7 @@ function setupAllStudentsListeners() {
     document.getElementById('all-students-body')?.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if(!target) return;
-        const id = parseInt(target.dataset.id);
+        const id = parseStudentId(target.dataset.id);
 
         if(target.classList.contains('btn-prof-link')) {
             const students = await AppState.studentManager.getAllStudents();
@@ -317,6 +403,21 @@ function setupAllStudentsListeners() {
         reader.onload = async (e) => {
             try {
                 let imported = JSON.parse(e.target.result);
+                // 🌟 [إصلاح فحص الأزرار] لو الملف هو النسخة الشاملة (databases) من ملف المعلم، كان يُرفض هنا
+                // بـ"ملف غير صالح". الآن نوجّهه تلقائيًا لدالة الاسترجاع الشاملة نفسها بعد تأكيد صريح
+                // (لأنها تستبدل بيانات المنصة كلها لا تدمجها كما يفعل هذا الزر مع ملف السجل) 🌟
+                if (imported && !Array.isArray(imported) && imported.databases && typeof imported.databases === 'object') {
+                    if (confirm(t('profile_backup_restore_confirm'))) {
+                        try {
+                            await restoreFromBackupFile(file);
+                            alert(t('profile_backup_restore_success'));
+                            location.reload();
+                            return;
+                        } catch (err2) { alert(t('profile_backup_restore_error')); }
+                    }
+                    fileInput.value = '';
+                    return;
+                }
                 // 🌟 توافق مع الملفات القديمة: الصيغة القديمة كانت مصفوفة طلاب مباشرة
                 // (بدون أي سجل تقييمات)، والجديدة كائن فيه students + localStorage 🌟
                 const isV2 = imported && !Array.isArray(imported) && imported.format === BACKUP_FORMAT_ID;
@@ -485,8 +586,13 @@ export async function loadStudentProfileScreen() {
             }
 
             const btnWeakness = document.getElementById('btn-prof-weakness');
-            if (student.weaknesses && student.weaknesses.length > 0) {
-                btnWeakness.innerText = `🛠️ بدء تحدي الأخطاء (${student.weaknesses.length})`;
+            // 🌟 [تعديل] الزر يعدّ الأخطاء "المستحقة" الآن (راجع getDueWeaknesses). لو كل ما تبقّى
+            // أُجيب صح اليوم وينتظر مراجعته الثانية، يظهر الزر معطَّلاً بنص "بانتظار المراجعة
+            // الثانية" بدل أن يفتح جلسة فارغة 🌟
+            const dueWeaknessCount = getDueWeaknesses(student).length;
+            const totalWeaknessCount = Array.isArray(student.weaknesses) ? student.weaknesses.length : 0;
+            if (dueWeaknessCount > 0) {
+                btnWeakness.innerText = t('fixp_prof_start').replace('{n}', dueWeaknessCount);
                 btnWeakness.onclick = () => {
                     if (AppState.isKidsMode) {
                         openKidsGameScreen({}, true);
@@ -494,6 +600,11 @@ export async function loadStudentProfileScreen() {
                         openAdultGameScreen({}, true);
                     }
                 };
+            } else if (totalWeaknessCount > 0) {
+                btnWeakness.style.background = "#cbd5e1";
+                btnWeakness.style.color = "#475569";
+                btnWeakness.innerText = t('fixp_prof_waiting').replace('{n}', totalWeaknessCount);
+                btnWeakness.disabled = true;
             } else {
                 btnWeakness.style.background = "#cbd5e1";
                 btnWeakness.style.color = "#475569";
@@ -523,9 +634,17 @@ export async function loadStudentProfileScreen() {
             document.getElementById('btn-prof-monthly-report')?.addEventListener('click', () => {
                 import('../reports/monthly-report.js').then(m => m.openMonthlyReportScreen()).catch(err => {
                     console.error('تعذر تحميل شاشة التقرير الشهري:', err);
-                    alert('جاري تجهيز شاشة التقرير الشهري 🛠️');
+                    alert(t('stu_screen_preparing'));
                 });
             });
+
+            // 🌟 [مُعدَّل — بطلب صريح من المعلم بعد أول تجربة] كان هنا فحص "تسجيل الحفظ
+            // الشهري" يظهر عند فتح كل ملف طالب على حدة — أُزيل نهائيًا من هنا لأنه كان
+            // يظهر بشكل مزعج (نفس النافذة تتكرر عند كل دخول لنفس الطالب طالما لم تُكمَّل
+            // كل خطواته). الفحص الآن أصبح شاشة واحدة جامعة لكل الطلاب معًا، تُفتح تلقائيًا
+            // مرة واحدة يوميًا من الشاشة الرئيسية (راجع maybeAutoOpenMonthlyMemorizationBulk
+            // في core/app.js)، أو يدويًا في أي وقت من زر "📋 تسجيل الحفظ الشهري لكل
+            // الطلاب" في شاشة "طلابي" (راجع components/monthlyMemorizationBulkScreen.js).
 
             const histData = JSON.parse(localStorage.getItem(`history_${student.id}`)) || [];
             document.getElementById('prof-evals').innerText = histData.length;
@@ -755,7 +874,7 @@ function setupInlineProfileEditing(student) {
     bindInlineFieldEdit(document.getElementById('prof-country'), {
         getValue: () => student.country || '',
         setValue: (v) => { student.country = v.trim(); },
-        render: () => student.country ? `🌍 ${student.country}` : "🌍 البلد غير محدد"
+        render: () => student.country ? `🌍 ${esc(student.country)}` : "🌍 البلد غير محدد"
     });
 
     // الهاتف — اختياري
@@ -763,7 +882,7 @@ function setupInlineProfileEditing(student) {
         inputType: 'tel',
         getValue: () => student.phone || '',
         setValue: (v) => { student.phone = v.trim(); },
-        render: () => student.phone ? `📱 ${student.phone}` : "📱 الهاتف غير مسجل"
+        render: () => student.phone ? `📱 ${esc(student.phone)}` : "📱 الهاتف غير مسجل"
     });
 
     // تاريخ الميلاد — الحقل المعروض فعليًا هو "العمر" المحسوب، لكن التعديل يتم على
@@ -843,11 +962,18 @@ async function openEditStudentModal(id) {
     document.getElementById('edit-stu-phone').value = s.phone || '';
     document.getElementById('edit-stu-memo-from').value = s.memoFrom || '';
     document.getElementById('edit-stu-memo-to').value = s.memoTo || '';
+    // 🌟 [إصلاح فحص الأزرار] كان حقل "الجنس (للصورة الرمزية)" يظهر بلا أي ربط بالحفظ. الآن يعكس نوع
+    // الصورة الرمزية الحالية (لو كانت رمزًا تعبيريًا) ويُطبَّق عند الحفظ؛ ولا أثر له إن كان للطالب صورة مرفوعة 🌟
+    const _genderSel = document.getElementById('edit-stu-gender');
+    if (_genderSel) _genderSel.value = (s.avatar && s.avatar.length < 10 && EDIT_GIRL_AVATARS.includes(s.avatar)) ? 'girl' : 'boy';
     openModal('edit-modal');
 }
 
+// 🌟 رموز الصور الرمزية للبنات (مطابقة لخيارات my-students.html) 🌟
+const EDIT_GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];
+
 async function saveEditedStudentAction() {
-    let id = parseInt(document.getElementById('edit-stu-id').value);
+    let id = parseStudentId(document.getElementById('edit-stu-id').value);
     const students = await AppState.studentManager.getAllStudents();
     let s = students.find(x => x.id === id);
     if(!s) return;
@@ -858,25 +984,34 @@ async function saveEditedStudentAction() {
     s.phone = document.getElementById('edit-stu-phone').value;
     s.memoFrom = document.getElementById('edit-stu-memo-from').value;
     s.memoTo = document.getElementById('edit-stu-memo-to').value;
+    // 🌟 [إصلاح فحص الأزرار] تطبيق اختيار الجنس على الصورة الرمزية (رمز تعبيري فقط، لا الصور المرفوعة) 🌟
+    const _g = document.getElementById('edit-stu-gender')?.value;
+    if (_g && (!s.avatar || s.avatar.length < 10)) {
+        const isGirlNow = EDIT_GIRL_AVATARS.includes(s.avatar);
+        if (_g === 'girl' && !isGirlNow) s.avatar = '👧🏻';
+        else if (_g === 'boy' && (isGirlNow)) s.avatar = '👦🏻';
+    }
     const fileInput = document.getElementById('edit-stu-avatar');
     if(fileInput && fileInput.files.length > 0) {
         const reader = new FileReader();
         reader.onload = async (e) => {
-            s.avatar = e.target.result;
+            // 🌟 [إصلاح فحص الأزرار] نفس تصغير صورة مسار الإضافة (256px) كي لا تتضخم القاعدة عند التعديل 🌟
+            s.avatar = await shrinkAvatarDataUrl(e.target.result);
             await AppState.studentManager.updateStudent(s);
-            closeModal('edit-modal'); renderAllStudentsTable(); alert("تم التعديل ✔️");
+            closeModal('edit-modal'); renderAllStudentsTable(); alert(t("stu_edited_ok"));
         };
         reader.readAsDataURL(fileInput.files[0]);
     } else {
         await AppState.studentManager.updateStudent(s);
-        closeModal('edit-modal'); renderAllStudentsTable(); alert("تم التعديل ✔️");
+        closeModal('edit-modal'); renderAllStudentsTable(); alert(t("stu_edited_ok"));
     }
 }
 
 async function deleteStudentAction(id) {
-    if(confirm("⚠️ تحذير: هل أنت متأكد من حذف بيانات وسجل هذا البطل نهائياً؟")) {
+    if(confirm(t("stu_delete_confirm"))) {
         await AppState.studentManager.deleteStudent(id);
-        localStorage.removeItem(`history_${id}`);
+        // 🌟 [إصلاح تدقيق] تنظيف كل بقايا الطالب (history_ + الصورة + جلسات/مراجعات/أوسمة/حفظ شهري) لا history_ فقط
+        await purgeStudentRelatedData(id);
         renderAllStudentsTable();
     }
 }
@@ -885,4 +1020,28 @@ async function toggleHideStudentAction(id, hide) {
     const students = await AppState.studentManager.getAllStudents();
     let s = students.find(x => x.id === id);
     if(s) { s.isHidden = hide; await AppState.studentManager.updateStudent(s); renderAllStudentsTable(); }
-}
+}
+
+
+// 🌟 [جديد] تصغير صورة الطالب (data URL) إلى 256px كحد أقصى — حل مدمج بالمتصفح بلا مكتبات. يُرجع الأصل عند أي فشل.
+function shrinkAvatarDataUrl(dataUrl, max = 256) {
+    return new Promise((resolve) => {
+        try {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const ratio = Math.min(1, max / Math.max(img.width, img.height));
+                    const w = Math.max(1, Math.round(img.width * ratio));
+                    const h = Math.max(1, Math.round(img.height * ratio));
+                    const c = document.createElement('canvas');
+                    c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const out = c.toDataURL('image/jpeg', 0.85);
+                    resolve(out && out.length < dataUrl.length ? out : dataUrl);
+                } catch (err) { resolve(dataUrl); }
+            };
+            img.onerror = () => resolve(dataUrl);
+            img.src = dataUrl;
+        } catch (err) { resolve(dataUrl); }
+    });
+}

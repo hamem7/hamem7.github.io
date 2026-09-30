@@ -210,7 +210,8 @@ await test('generateAutoQuestions: matching يبني أزواج متسقة (كل
         const matching = questions.find(q => q.type === 'matching');
         if (matching) {
             foundAtLeastOne = true;
-            assert.equal(matching.needsManualGrading, true, 'matching يجب أن يبقى needsManualGrading دائماً بحسب الاتفاق مع المعلم');
+            // 🌟 [تحديث تدقيق] قرار المعلم بتاريخ 2026-09-28: المطابقة تُصحَّح آلياً (needsManualGrading=false) — كان الاختبار يؤكد القرار القديم
+            assert.equal(matching.needsManualGrading, false, 'matching يُصحَّح آلياً بحسب قرار المعلم (2026-09-28)');
             const leftIds = new Set(matching.leftItems.map(i => i.id));
             const rightIds = new Set(matching.rightItems.map(i => i.id));
             for (const pair of matching.correctAnswer) {

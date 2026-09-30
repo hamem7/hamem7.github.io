@@ -14,6 +14,8 @@
 // سطر من reports/report.js أو reports/dual-test-report.js — نفس فلسفة العزل المتّبعة فعلاً في
 // كل ملفات التقارير بالمنصة، حتى لو كرّرنا هنا تحميل html2canvas محلياً.
 import { t } from '../core/i18n.js';
+// 🌟 [جديد — إصلاح XSS] تنظيف اسم الطالب وإجاباته (قادمة من الخادم) قبل الحقن في innerHTML
+import { esc } from '../core/escape.js';
 
 // ------------------------------------------------------------
 // تحميل html2canvas من cdnjs — نفس الرابط والنسخة المستخدمة بالضبط في reports/report.js
@@ -150,9 +152,9 @@ export function showHomeworkCertificate(submission, student) {
                 <h2 class="hwcert-title">${t('hwcert_title')}</h2>
                 <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
                 ${avatarUrl
-                    ? `<img class="hwcert-avatar" src="${avatarUrl}" alt="">`
+                    ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
                     : `<div class="hwcert-avatar-fallback">🎓</div>`}
-                <div class="hwcert-name">${studentName}</div>
+                <div class="hwcert-name">${esc(studentName)}</div>
                 <div class="hwcert-score-badge" style="background:${color};">${score}%</div>
                 <div class="hwcert-score-caption">${t('hwcert_score_label')}</div>
                 <div class="hwcert-encourage">${t('hwcert_tier_' + tier)}</div>
@@ -161,8 +163,8 @@ export function showHomeworkCertificate(submission, student) {
                         <div class="hwcert-mistakes-title">${t('hwcert_mistakes_title')}</div>
                         ${mistakes.map(m => `
                             <div class="hwcert-mistake-item">
-                                ${m.question}
-                                ${m.correctAnswer ? `<br><span class="hwcert-mistake-correct">${t('hwcert_correct_answer_label')} ${m.correctAnswer}</span>` : ''}
+                                ${esc(m.question)}
+                                ${m.correctAnswer ? `<br><span class="hwcert-mistake-correct">${t('hwcert_correct_answer_label')} ${esc(m.correctAnswer)}</span>` : ''}
                             </div>
                         `).join('')}
                     </div>

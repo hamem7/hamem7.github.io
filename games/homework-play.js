@@ -4,6 +4,8 @@ import { AppState } from '../core/app.js';
 // النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
 // أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
 import { t } from '../core/i18n.js';
+// 🌟 [إصلاح تدقيق ما قبل الإطلاق] escape للخيارات وإجابة الطالب المحفوظة داخل HTML/attributes: كان علامة " في خيار أو إجابة تكسر الـ attribute وتضيّع الإجابة عند إعادة الفتح
+import { esc } from '../core/escape.js';
 import { friendlyErrorText } from '../core/homeworkApi.js';
 import { ApiError } from '../core/api.js';
 import { saveDraft, loadDraft, getAttempt, startSubmission, attemptSend, startAutoRetry, watchAttempt, isLocalStorageWorking } from '../core/submitQueue.js';
@@ -168,8 +170,8 @@ function renderQuestion() {
             const isChecked = savedAns === opt ? 'checked' : '';
             html += `
                 <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
-                    <input type="radio" name="hp_q_${q.id}" value="${opt}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${opt}
+                    <input type="radio" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
+                    ${esc(opt)}
                 </label>
             `;
         });
@@ -179,8 +181,8 @@ function renderQuestion() {
             const isChecked = savedArr.includes(opt) ? 'checked' : '';
             html += `
                 <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
-                    <input type="checkbox" name="hp_q_${q.id}" value="${opt}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${opt}
+                    <input type="checkbox" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
+                    ${esc(opt)}
                 </label>
             `;
         });
@@ -192,15 +194,15 @@ function renderQuestion() {
         `;
         q.options.forEach(opt => {
             const isSelected = savedAns === opt ? 'selected' : '';
-            html += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
         });
         html += `</select>`;
     } else if (q.type === 'written_blank') {
         // 🌟 حقول كتابة الطالب هنا أيضاً تغيّرت لـ 'Amiri Quran' (بدل 'Amiri' العادي) حتى يرى
         // الطالب أثناء الكتابة نفس رسم الحروف والتشكيل المستخدم في بقية المنصة 🌟
-        html += `<input type="text" id="hp_q_${q.id}_text" value="${savedAns}" placeholder="اكتب الكلمة الناقصة هنا..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
+        html += `<input type="text" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="اكتب الكلمة الناقصة هنا..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
     } else if (q.type === 'write_3_ayahs') {
-        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="اكتب الآيات الثلاث هنا بتركيز..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${savedAns}</textarea>`;
+        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="اكتب الآيات الثلاث هنا بتركيز..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
     } else if (q.type === 'audio_record') {
         // 🌟 واجهة تسجيل المقطع الصوتي المباشر والرفع 🌟
         html += `
@@ -236,7 +238,7 @@ function renderQuestion() {
             <option value="" disabled ${!savedArr[0] ? 'selected' : ''}>-- اختر الكلمة الأولى --</option>`;
         q.options1.forEach(opt => {
             const isSelected = savedArr[0] === opt ? 'selected' : '';
-            html += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
         });
         html += `</select></div>`;
         html += `<div style="flex: 1; min-width: 200px;">
@@ -245,7 +247,7 @@ function renderQuestion() {
             <option value="" disabled ${!savedArr[1] ? 'selected' : ''}>-- اختر الكلمة الثانية --</option>`;
         q.options2.forEach(opt => {
             const isSelected = savedArr[1] === opt ? 'selected' : '';
-            html += `<option value="${opt}" ${isSelected}>${opt}</option>`;
+            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
         });
         html += `</select></div>`;
         html += `</div>`;
@@ -259,7 +261,7 @@ function renderQuestion() {
         for (let c = 1; c <= colsCount; c++) { html += `<th style="padding: 15px;">${c}</th>`; }
         html += `</tr>`;
         q.options.forEach((opt, rIdx) => {
-            html += `<tr><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: #047857; line-height: 1.6; min-width: 250px;">${opt}</td>`;
+            html += `<tr><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: #047857; line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
             let selectedCol = savedArr.indexOf(opt) + 1;
             for (let c = 1; c <= colsCount; c++) {
                 const isChecked = (selectedCol === c) ? 'checked' : '';

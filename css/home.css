@@ -147,7 +147,7 @@
    ========================================================================== */
 .home-screen {
     /* إلغاء قيود .screen العامة (max-width: 1200px و padding: 2rem) لأن أقسام هذه الشاشة
-       (Hero/لماذا دار حم/الفوتر) تحتاج عرضاً كاملاً بلا حدود جانبية */
+       (Hero/لماذا حمٓ/الفوتر) تحتاج عرضاً كاملاً بلا حدود جانبية */
     max-width: 100% !important;
     padding: 0 !important;
     text-align: center;
@@ -314,7 +314,7 @@
     color: #fffdf6;
 }
 
-/* موجة فاصلة أسفل الهيرو — لون التعبئة يطابق خلفية قسم "لماذا دار حم؟" التالي مباشرة */
+/* موجة فاصلة أسفل الهيرو — لون التعبئة يطابق خلفية قسم "لماذا حمٓ؟" التالي مباشرة */
 .home-hero-wave {
     display: block;
     width: 100%;
@@ -561,6 +561,7 @@
     width: 100%;
     max-width: 420px;
     max-height: 90vh;
+    max-height: 90dvh; /* 🌟 [إصلاح فحص الأزرار] dvh يراعي شريط عنوان متصفح الهاتف؛ السطر السابق احتياط للمتصفحات القديمة 🌟 */
     overflow-y: auto;
     background: var(--dh-surface);
     border-radius: var(--dh-radius-lg);
@@ -672,6 +673,11 @@
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    /* 🌟 [إصلاح فحص الأزرار] شريط الحفظ/الإغلاق يبقى ظاهرًا أسفل النافذة أثناء التمرير على الهاتف 🌟 */
+    position: sticky;
+    bottom: -28px;
+    padding: 12px 0 4px;
+    background: var(--dh-surface);
 }
 
 .teacher-profile-modal-actions .btn {
@@ -716,7 +722,7 @@
     .dh-backup-actions { flex-direction: column; }
 }
 
-/* ---------- لماذا دار حم؟ ---------- */
+/* ---------- لماذا حمٓ؟ ---------- */
 /* 🌟 [إعادة ترتيب 2026-09-22] هذا القسم بقى تاني قسم في الصفحة بدل الأول (راجع
    التعليق فوق .home-screen section.home-menu في components/splash.html)، فبدّلنا
    خلفيته لـ var(--dh-surface) (بدل var(--dh-surface-alt) القديمة) حتى يستمر
@@ -898,7 +904,7 @@
     color: var(--dh-emerald-800);
 }
 
-/* 🌟 الصف الثانوي: ثلاث بطاقات أصغر بنفس لغة تصميم بطاقات "لماذا دار حم؟" */
+/* 🌟 الصف الثانوي: ثلاث بطاقات أصغر بنفس لغة تصميم بطاقات "لماذا حمٓ؟" */
 .home-menu-secondary {
     max-width: 1100px;
     margin: 0 auto;

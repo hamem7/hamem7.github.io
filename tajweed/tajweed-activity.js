@@ -12,7 +12,9 @@ import { getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds } fro
 import {
     generateChooseRuleQuestion, generateLinkQuestion, generateDiscoverQuestion, generateApplyQuestion,
     buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress,
-    evaluateSessionAchievements, TAJWEED_BADGE_CATALOG, isStageUnlocked
+    evaluateSessionAchievements, TAJWEED_BADGE_CATALOG, isStageUnlocked,
+    // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — راجع تعليق الاستيراد أدناه عند استخدامهما
+    buildTeacherCheckpointCriteria, computeCheckpointScore
 } from '../engine/tajweedEngine.js';
 import { getAyahForExample, syncStudentTajweedProgress } from './tajweed-shared.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
@@ -30,6 +32,9 @@ let linkSelectedLetter = null;
 let linkMatchedRuleIds = new Set();
 let linkWrongAttempts = 0;
 let answerLocked = false; // يمنع نقر متكرر على نفس السؤال قبل الانتقال للتالي
+// 🌟🌟 [جديد ٢٨ سبتمبر] حالة خاصة بشاشة "سمّع لي" — تقييمات المعلم لكل معيار {criterionKey: 'yes'|'partial'|'no'}
+let checkpointRatings = {};
+let checkpointNote = '';
 
 export async function initTajweedActivity() {
     params = AppState.tajweedActivityParams;
@@ -102,6 +107,24 @@ async function buildQuestions() {
             ayahInfoByRuleId[rule.id] = await getAyahForExample(rule.example.surah, rule.example.ayah);
         }
         questions = buildReviewQuestions(dueRules, ayahInfoByRuleId);
+    } else if (params.mode === 'teacher_checkpoint') {
+        // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — "سؤال" واحد فقط من نوع خاص يحمل معايير
+        // التقييم + الآيتين المرجعيتين (للتصفّح، لا لبناء سؤال MCQ). راجع §2 من مستند التعميق.
+        const rule = getTajweedRule(params.stageId, params.ruleId);
+        if (!rule) return;
+        checkpointRatings = {};
+        checkpointNote = '';
+        const [exAyah, practiceAyah] = await Promise.all([
+            getAyahForExample(rule.example.surah, rule.example.ayah),
+            getAyahForExample(rule.practiceExample.surah, rule.practiceExample.ayah)
+        ]);
+        questions = [{
+            type: 'teacher_checkpoint',
+            ruleId: rule.id,
+            criteria: buildTeacherCheckpointCriteria(rule),
+            exAyah,
+            practiceAyah
+        }];
     }
 }
 
@@ -133,6 +156,7 @@ function renderCurrentQuestion() {
     if (q.type === 'choose_rule') container.innerHTML = renderChooseRuleHTML(q);
     else if (q.type === 'discover_in_ayah' || q.type === 'apply_new_ayah') container.innerHTML = renderDiscoverHTML(q);
     else if (q.type === 'link_rule_letters') container.innerHTML = renderLinkHTML(q);
+    else if (q.type === 'teacher_checkpoint') container.innerHTML = renderTeacherCheckpointHTML(q);
     else container.innerHTML = `<div class="tjw-empty-state">${t('tjw_activity_error')}</div>`;
 }
 
@@ -187,6 +211,53 @@ function renderLinkHTML(q) {
         </div>`;
 }
 
+// 🌟🌟 [جديد ٢٨ سبتمبر] شاشة "سمّع لي" — تعرض للمعلم الآيتين المرجعيتين للحكم (ليستمع لتلاوة
+// الطالب عليهما مباشرة، بلا أي تصحيح آلي للتلاوة بالذكاء الاصطناعي — قرار معماري ثابت للمنصة)
+// ثم يقيّم كل معيار (مخرج الحرف / الخطأ الشائع) بثلاث درجات: نعم أتقنه تماماً / جزئياً / لا،
+// مع ملاحظة نصية اختيارية يكتبها المعلم بحرّية. راجع buildTeacherCheckpointCriteria في
+// tajweedEngine.js لمصدر المعايير.
+function renderTeacherCheckpointHTML(q) {
+    const audioExBtn = q.exAyah
+        ? `<button class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(q.exAyah.number)}">🔊 ${t('tjw_listen_btn')}</button>` : '';
+    const audioPracticeBtn = q.practiceAyah
+        ? `<button class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(q.practiceAyah.number)}">🔊 ${t('tjw_listen_btn')}</button>` : '';
+
+    const criteriaHTML = q.criteria.map(c => {
+        const text = c.text || t(c.textKey);
+        const current = checkpointRatings[c.key];
+        const rate = (val, icon, key) => `<button class="tjw-rate-btn ${current === val ? 'tjw-rate-selected tjw-rate-' + val : ''}"
+            data-checkpoint-rate="${c.key}" data-rate-value="${val}">${icon} ${t(key)}</button>`;
+        return `
+        <div class="tjw-checkpoint-criterion">
+            <p class="tjw-checkpoint-criterion-text">${text}</p>
+            <div class="tjw-checkpoint-rate-row">
+                ${rate('yes', '✅', 'tjw_checkpoint_rate_yes')}
+                ${rate('partial', '➖', 'tjw_checkpoint_rate_partial')}
+                ${rate('no', '❌', 'tjw_checkpoint_rate_no')}
+            </div>
+        </div>`;
+    }).join('');
+
+    return `
+        <div class="tjw-activity-card tjw-checkpoint-card">
+            <p class="tjw-activity-prompt">${t('tjw_checkpoint_prompt')}</p>
+            <div class="tjw-activity-ayah-box">
+                <div class="tjw-example-text">${q.exAyah ? q.exAyah.text : ''}</div>
+                <div class="tjw-example-ref">${q.exAyah ? q.exAyah.surahName || '' : ''}</div>
+                ${audioExBtn}
+            </div>
+            <div class="tjw-activity-ayah-box">
+                <div class="tjw-example-text">${q.practiceAyah ? q.practiceAyah.text : ''}</div>
+                <div class="tjw-example-ref">${q.practiceAyah ? q.practiceAyah.surahName || '' : ''}</div>
+                ${audioPracticeBtn}
+            </div>
+            <div class="tjw-checkpoint-criteria-list">${criteriaHTML}</div>
+            <textarea id="tjwa-checkpoint-note" class="tjw-checkpoint-note"
+                placeholder="${t('tjw_checkpoint_note_placeholder')}">${checkpointNote}</textarea>
+            <button class="tjw-cta-btn" data-action="submit-checkpoint">✅ ${t('tjw_checkpoint_submit_btn')}</button>
+        </div>`;
+}
+
 // ============================================================
 // معالجة النقرات
 // ============================================================
@@ -232,6 +303,36 @@ async function handleActivityClick(e) {
 
     if (e.target.closest('[data-action="back-to-map"]')) {
         openTajweedSection();
+        return;
+    }
+
+    // 🌟🌟 [جديد ٢٨ سبتمبر] نقرات شاشة "سمّع لي" — خارج آلية answerLocked المستخدَمة لأسئلة
+    // MCQ العادية، لأن هذه الشاشة تسمح بتغيير التقييم قبل الإرسال النهائي
+    const rateBtn = e.target.closest('[data-checkpoint-rate]');
+    if (rateBtn) {
+        const noteEl = document.getElementById('tjwa-checkpoint-note');
+        if (noteEl) checkpointNote = noteEl.value;
+        checkpointRatings[rateBtn.dataset.checkpointRate] = rateBtn.dataset.rateValue;
+        renderCurrentQuestion();
+        return;
+    }
+
+    const submitCheckpointBtn = e.target.closest('[data-action="submit-checkpoint"]');
+    if (submitCheckpointBtn) {
+        const q = questions[qIndex];
+        const noteEl = document.getElementById('tjwa-checkpoint-note');
+        if (noteEl) checkpointNote = noteEl.value;
+        const allRated = q.criteria.every(c => checkpointRatings[c.key]);
+        if (!allRated) {
+            alert(t('tjw_checkpoint_incomplete_alert'));
+            return;
+        }
+        const scorePercent = computeCheckpointScore(checkpointRatings);
+        await updateRuleMastery(q.ruleId, 'teacher_checkpoint', scorePercent);
+        questionResults.push({ ruleId: q.ruleId, correct: scorePercent >= 70 });
+        qIndex++;
+        renderProgress();
+        renderCurrentQuestion();
         return;
     }
 
@@ -397,7 +498,8 @@ async function finishSession() {
     }
 
     // 🌟 حفظ سجل الجلسة (tajweed_sessions) — activityType هنا هو "وضع" النشاط ككل (mode)،
-    // بخلاف effectiveActivityType الداخلي المستخدَم لتحديث كل بُعد على حدة أعلاه
+    // بخلاف effectiveActivityType الداخلي المستخدَم لتحديث كل بُعد على حدة أعلاه. لجلسات
+    // "سمّع لي" فقط نحفظ ملاحظة المعلم النصية الاختيارية معها (🌟🌟 جديد ٢٨ سبتمبر)
     await AppState.tajweedManager.addSession({
         studentId,
         stageId: params.stageId || null,
@@ -405,7 +507,8 @@ async function finishSession() {
         activityType: params.mode,
         totalQuestions,
         correctCount,
-        scorePercent
+        scorePercent,
+        ...(params.mode === 'teacher_checkpoint' && checkpointNote ? { teacherNote: checkpointNote } : {})
     });
 
     const allMasteryAfter = await AppState.tajweedManager.getMasteryByStudent(studentId);

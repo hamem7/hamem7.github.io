@@ -28,6 +28,7 @@
 //    يمنع النقر، لأن المعلم هو من يدير التسلسل فعلياً مع الطالبَين حضورياً.
 
 import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { esc } from '../core/escape.js';
 // 🌟 [جديد] showToastEncouragement — لتنبيه المعلم بلطف عند استرجاع تقدّم جولة جارية بعد
 // تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
 import { openModal, closeModal, triggerConfetti, showToastEncouragement } from '../components/ui.js';
@@ -427,12 +428,12 @@ function renderScorebar(containerId, variant) {
         // 🌟 [جديد] ميدالية بأول حرف من اسم الطالب — فقط في تصميم "arena" الجديد للوحة
         // الأسئلة (راجع #dtp-scorebar في dual-test-play.html)، لا تظهر في شريط شاشة السؤال
         const avatarHTML = variant === 'arena'
-            ? `<span class="dtp-score-avatar">${studentName(key).trim().charAt(0)}</span>`
+            ? `<span class="dtp-score-avatar">${esc(studentName(key).trim().charAt(0))}</span>`
             : '';
         return `
         <div class="dtp-score-side ${active}">
             ${avatarHTML}
-            <span class="dtp-score-name">${studentName(key)}</span>
+            <span class="dtp-score-name">${esc(studentName(key))}</span>
             <span class="dtp-score-points" data-score-side="${key}">${displayScore}</span>
             <span class="dtp-score-icons">
                 <span class="${helperUsed}" title="${t('dtp_btn_helper')}">💡</span>
@@ -847,7 +848,7 @@ async function renderRoundSummary(roundResult) {
                 <span class="dtp-rs-crown">👑</span>
                 <span class="dtp-rs-avatar">${avatarOf(winner)}</span>
             </div>
-            <span class="dtp-rs-winner-name">${studentName(winner)}</span>
+            <span class="dtp-rs-winner-name">${esc(studentName(winner))}</span>
             <div><span class="dtp-rs-diff">${t('dtp_summary_diff_label').replace('{n}', diff)}</span></div>`;
     }
 
@@ -860,7 +861,7 @@ async function renderRoundSummary(roundResult) {
         return `
         <div class="dtp-rs-score-card ${isWinner ? 'dtp-rs-won' : ''}">
             ${isWinner ? `<span class="dtp-rs-score-flag">${t('dtp_summary_card_winner_flag')}</span>` : ''}
-            <span class="dtp-rs-score-name">${studentName(key)}</span>
+            <span class="dtp-rs-score-name">${esc(studentName(key))}</span>
             <span class="dtp-rs-score-val" data-rs-score="${key}">0</span>
             <span class="dtp-rs-score-unit">${t('dtp_summary_points_unit')}</span>
             <span class="dtp-rs-bar"><span class="dtp-rs-bar-fill" style="width:${pct}%;"></span></span>
@@ -893,9 +894,9 @@ async function renderRoundSummary(roundResult) {
     document.getElementById('dtp-summary-series').innerHTML = `
         <div class="dtp-rs-panel-title">🏁 ${t('dtp_summary_series_title')}</div>
         <div class="dtp-rs-series-line">
-            <span class="dtp-rs-series-name dtp-rs-name-a">${match.studentNameA}</span>
+            <span class="dtp-rs-series-name dtp-rs-name-a">${esc(match.studentNameA)}</span>
             <span class="dtp-rs-series-tally"><span>${series.roundsWonA}</span><span>—</span><span>${series.roundsWonB}</span></span>
-            <span class="dtp-rs-series-name dtp-rs-name-b">${match.studentNameB}</span>
+            <span class="dtp-rs-series-name dtp-rs-name-b">${esc(match.studentNameB)}</span>
         </div>
         <div class="dtp-rs-series-dots">${dotsHTML}</div>`;
 
@@ -910,9 +911,9 @@ async function renderRoundSummary(roundResult) {
     document.getElementById('dtp-summary-stats').innerHTML = `
         <div class="dtp-rs-panel-title">📊 ${t('dtp_summary_stats_title')}</div>
         <div class="dtp-rs-stat-row dtp-rs-stat-head">
-            <span class="dtp-rs-stat-val dtp-rs-stat-a dtp-rs-name-a">${match.studentNameA}</span>
+            <span class="dtp-rs-stat-val dtp-rs-stat-a dtp-rs-name-a">${esc(match.studentNameA)}</span>
             <span class="dtp-rs-stat-label"></span>
-            <span class="dtp-rs-stat-val dtp-rs-stat-b dtp-rs-name-b">${match.studentNameB}</span>
+            <span class="dtp-rs-stat-val dtp-rs-stat-b dtp-rs-name-b">${esc(match.studentNameB)}</span>
         </div>
         ${statRow(`❌ ${t('dtp_summary_stat_mistakes')}`, roundResult.mistakesA, roundResult.mistakesB)}
         ${statRow(`💡 ${t('dtp_summary_stat_helper')}`, usedMark(roundResult.helperUsedA), usedMark(roundResult.helperUsedB))}

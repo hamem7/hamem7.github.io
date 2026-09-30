@@ -4,6 +4,10 @@ import { openAdultGameScreen } from '../games/adultGame.js';
 import { openKidsGameScreen } from '../games/kidsGame.js';   
 
 export function populateDashboardData() {
+    // 🌟 [إصلاح فحص الأزرار] عرض اسم الطالب في شريحة اللوحة (كانت فارغة بمعرّف مكرر) 🌟
+    const _chip = document.getElementById('dash-student-chip');
+    if (_chip) _chip.textContent = AppState.currentStudent ? `🏅 ${AppState.currentStudent.name}` : '';
+
     const headerTitle = document.getElementById('header-title');
     
     if (AppState.isKidsMode) { 
@@ -161,4 +165,4 @@ function updateAyahRange() {
         toSelect.appendChild(new Option(`آية ${i}`, i)); 
     }
     toSelect.value = surah.ayahsCount;
-}
+}

@@ -9,8 +9,18 @@ import { openReportScreen } from '../reports/report.js';
 import { normalizeForCompare } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
+// 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
+import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFixWrongAnswer, summarizeFixSession } from '../components/fixErrorsPrompt.js';
 
-export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0 };
+export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
+    // 🌟 [إصلاح] لقطة ثابتة من قائمة الأخطاء وقت بدء جلسة "تحدي الأخطاء" — كانت الشاشة تقرأ
+    // student.weaknesses[currentIndex] مباشرة بينما القائمة نفسها تقصر مع كل إجابة صحيحة
+    // (الخطأ المصحَّح ينتقل للأرشيف)، فكان المؤشر يتخطى أخطاء لم تُسأل أصلاً وقرب النهاية
+    // يقرأ عنصراً غير موجود (undefined) فيتوقف التحدي. اللقطة تبقى بطول الطابور تماماً 🌟
+    weaknessSnapshot: [],
+    // 🌟 [جديد] هل بدأت هذه الجلسة من مسار "إصلاح الأخطاء عند الدخول"؟ لو نعم، بعد انتهائها
+    // نعرض ملخصاً قصيراً ثم نذهب إلى شاشة الألعاب بدل شاشة التقرير 🌟
+    fixFromLogin: false };
 
 const AudioContext = window.AudioContext || window.webkitAudioContext; let audioCtx;
 
@@ -88,6 +98,116 @@ function getShuffledBag(gamesList) {
     return bag;
 }
 
+// 🌟 [إصلاح] نطاق الآيات الفعلي لكل سؤال — كان هذا المنطق مكتوباً مباشرة داخل playNextMission،
+// أخرجناه لدالة مستقلة حتى يستخدمه أيضاً فحص الجاهزية أثناء بناء القائمة (probeGameType) بنفس
+// الشروط بالضبط، فلا يختلف حكم "هل تُولَّد اللعبة؟" بين وقت البناء ووقت العرض.
+// (سؤال "رتب الآيات" لا يُستثنى منه شيء، وباقي الأسئلة تستثني آيات التكرار الشهيرة كالرحمن والمرسلات)
+function getActivePoolForType(type, pool) {
+    if (type === 'order') return pool;
+    let filtered = pool.filter(a => {
+        let plainText = a.text.replace(/[ؗ-ًؚ-ْۖ-ۜ۟-۪ۨ-ۭ]/g, '');
+        return !plainText.includes('فبأي آلاء ربكما تكذبان') &&
+               !plainText.includes('فباي الاء ربكما تكذبان') &&
+               !plainText.includes('ويل يومئذ للمكذبين');
+    });
+    return filtered.length > 0 ? filtered : pool;
+}
+
+// 🌟 [إصلاح] فحص جاهزية: هل تستطيع هذه اللعبة أن تُولِّد سؤالاً فعلياً في النطاق المختار؟
+// السبب الجذري للمشكلة: كثير من مولّدات quranEngine.js تُرجع null في النطاقات الصغيرة (مثلاً
+// "رتب الآيات" تحتاج 4 آيات متتالية من نفس السورة، و"أكمل الآية" تحتاج 4 كلمات، و"الذاكرة
+// البصرية" تحتاج حقل page، ولعبتا الربط تحتاجان آيتين صالحتين على الأقل)، وكان الكود عند
+// فشل أي منها يستبدلها صامتاً بـ"صيد الآية" — فتختفي ألعاب من القائمة ويتكرر "صيد الآية".
+// هذه الدالة تجرّب التوليد مسبقاً (المولّدات لا تملك أي أثر جانبي؛ تبني نصوصاً فقط) وتُرجع
+// true/false. أي استثناء يُعتبر فشلاً.
+// 🌟 [إصلاح] بعض المولّدات تفشل أحياناً بمحض الصدفة (مثلاً اختارت آخر آية في السورة لسؤال "الآية
+// التالية") رغم أنها تنجح في محاولة ثانية. نعيد المحاولة حتى n مرات قبل اعتبارها فاشلة، سواء في فحص
+// الجاهزية أو وقت عرض السؤال، بدل التحويل الفوري لـ"صيد الآية".
+async function retryGen(fn, attempts = 6) {
+    for (let a = 0; a < attempts; a++) {
+        const d = await fn();
+        if (d) return d;
+    }
+    return null;
+}
+
+async function probeGameType(type, pool, chunkIndex, totalChunks, isJuz) {
+    for (let a = 0; a < 4; a++) { if (await probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz)) return true; }
+    return false;
+}
+
+async function probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz) {
+    try {
+        const eng = AppState.quranEngine;
+        const p = getActivePoolForType(type, pool);
+        let d = null;
+        switch (type) {
+            case 'catch': d = await eng.generateCatchGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'next': d = await eng.generateNextAyahGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'previous': d = await eng.generatePreviousAyahGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'between': d = await eng.generateBetweenGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'guess_surah': d = await eng.generateGuessSurahGame(p, chunkIndex, totalChunks); break;
+            case 'recite': d = await eng.generateReciteGame(p, isJuz, false, chunkIndex, totalChunks); break;
+            case 'mistake': d = await eng.generateMistakeGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'complete_ayah': d = await eng.generateCompleteAyahGame(p, chunkIndex, totalChunks); break;
+            case 'order': d = await eng.generateOrderGame(p, false, chunkIndex, totalChunks); break;
+            case 'visual_memory': d = await eng.generateVisualMemoryGame(p, chunkIndex, totalChunks); break;
+            case 'link_ends': d = await eng.generateLinkGame(p, false, chunkIndex, totalChunks); return !!d && d.type === 'link_ends';
+            case 'link_word_surah': d = await eng.generateLinkWordSurahGame(p, false); return !!d && d.type === 'link_word_surah';
+            default: return false;
+        }
+        return !!d;
+    } catch (e) { return false; }
+}
+
+// 🌟 [إصلاح] بناء قائمة الأسئلة بنظام "الكيس المُخلوط" مع ضمانين جديدين:
+// 1) لا تدخل القائمة إلا لعبة نجح فحصها (probeGameType). اللعبة الفاشلة تبقى في الكيس ولا
+//    تُستهلك، فتُجرَّب في سؤال لاحق (قد ينجح لأن اختيار الآية عشوائي)، وتُتخطّى مؤقتاً فقط.
+//    لو فشلت كل ألعاب الكيس الحالي في خانة ما، نستخدم 'catch' كملاذ أخير (سلوك قديم).
+// 2) عند إعادة تعبئة الكيس بعد اكتمال كل الألعاب، لا نسمح بأن تكون أول لعبة فيه هي نفسها
+//    آخر لعبة ظهرت (تكرار متتالي)، إلا لو كانت اللعبة الوحيدة الممكنة.
+// ⚠️ [افتراض صريح]: "الدور الكامل" = كل ألعاب gamesList القابلة للتوليد في هذا النطاق. لو لعبة
+//    لا يمكن توليدها إطلاقاً في النطاق (مثلاً نطاق صغير جداً) تُتخطّى في كل الأدوار ولا تُحسب.
+async function buildGameQueue(gamesList, qCount, pool, isJuz) {
+    const queue = [];
+    let bag = getShuffledBag(gamesList);
+    let lastType = null;
+    for (let i = 0; i < qCount; i++) {
+        if (bag.length === 0) {
+            bag = getShuffledBag(gamesList);
+            // نضع اللعبة المطابقة لآخر لعبة في أول الكيس (بداية القائمة) لأن الاختيار يبدأ من النهاية
+            if (bag.length > 1 && bag[bag.length - 1] === lastType) {
+                [bag[bag.length - 1], bag[0]] = [bag[0], bag[bag.length - 1]];
+            }
+        }
+        let chosenIdx = -1;
+        for (let k = bag.length - 1; k >= 0; k--) {
+            if (await probeGameType(bag[k], pool, i, qCount, isJuz)) { chosenIdx = k; break; }
+        }
+        // ما تبقّى في الكيس كله غير قابل للتوليد (مثلاً "اربط الكلمة بالسورة" في جزء كله سورة واحدة):
+        // نعتبر الدور مكتملاً ونبدأ كيساً جديداً بدل الوقوع في "صيد الآية" لباقي الأسئلة.
+        if (chosenIdx === -1 && bag.length < gamesList.length) {
+            bag = getShuffledBag(gamesList);
+            if (bag.length > 1 && bag[bag.length - 1] === lastType) {
+                [bag[bag.length - 1], bag[0]] = [bag[0], bag[bag.length - 1]];
+            }
+            for (let k = bag.length - 1; k >= 0; k--) {
+                if (await probeGameType(bag[k], pool, i, qCount, isJuz)) { chosenIdx = k; break; }
+            }
+        }
+        let selectedType;
+        if (chosenIdx === -1) {
+            // كل ألعاب الكيس الحالي تعذّر توليدها الآن — ملاذ أخير (بلا استهلاك الكيس)
+            selectedType = 'catch';
+        } else {
+            selectedType = bag.splice(chosenIdx, 1)[0];
+        }
+        queue.push({ type: selectedType, chunkIndex: i });
+        lastType = selectedType;
+    }
+    return queue;
+}
+
 export async function openAdultGameScreen(config, isWeakness = false) {
     // 🌟 [جديد] تنبيه ما قبل بدء التقييم — يشرح خصم نقاط التلميح والترتيب الخاطئ، وطبيعة
     // زر "تسجيل ملاحظة". راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح"
@@ -99,15 +219,26 @@ export async function openAdultGameScreen(config, isWeakness = false) {
     });
 
     GameState.config = config;
-    GameState.isWeaknessMode = isWeakness; 
-    GameState.reportDetails = []; 
+    GameState.isWeaknessMode = isWeakness;
+    // 🌟 [جديد] استهلاك علم "مسار الإصلاح عند الدخول" مرة واحدة فقط ثم تصفيره، حتى لا يتسرّب
+    // لجلسة تحدٍّ لاحقة تُفتح من ملف الطالب (تلك تبقى تنتهي بشاشة التقرير كما كانت) 🌟
+    GameState.fixFromLogin = !!(isWeakness && AppState.fixFlow && AppState.fixFlow.fromLogin);
+    AppState.fixFlow = null;
+    GameState.weaknessSnapshot = [];
+    GameState.reportDetails = [];
     GameState.currentIndex = 0; 
     GameState.consecutiveCorrect = 0;
     
     try {
         if (isWeakness) {
             if(!AppState.currentStudent.weaknesses || AppState.currentStudent.weaknesses.length === 0) return alert(t("لا توجد أخطاء مسجلة!"));
-            GameState.queue = AppState.currentStudent.weaknesses.map(w => ({type: 'weakness', chunkIndex: 0}));
+            // 🌟 [إصلاح] نأخذ اللقطة الثابتة ثم نبني الطابور منها (راجع weaknessSnapshot أعلاه) 🌟
+            // 🌟 [جديد] الجلسة تشمل الأخطاء "المستحقة" فقط: الجديدة، أو التي أُجيبت صح في يوم سابق
+            // وتنتظر مراجعتها الثانية للتثبيت. ما أُجيب صح اليوم يُستثنى حتى يوم لاحق 🌟
+            const dueList = getDueWeaknesses(AppState.currentStudent);
+            if (dueList.length === 0) return alert(t('fixp_none_due'));
+            GameState.weaknessSnapshot = dueList;
+            GameState.queue = GameState.weaknessSnapshot.map(w => ({type: 'weakness', chunkIndex: 0}));
             GameState.evalRangeText = t("جلسة علاج وتصحيح الأخطاء السابقة");
         } else {
             let qCount = config.qCount; 
@@ -144,16 +275,20 @@ export async function openAdultGameScreen(config, isWeakness = false) {
             // الاستبدال الكامل). بقيت نفس القيود القديمة: وضع "الجزء" فقط عند الكبار، بطلب صريح
             // من المعلم، لأن وضع الجزء غالباً يحتوي على أكثر من سورة ضمنه (بعكس وضع نطاق سورة
             // واحدة أو نطاق من سورة لأخرى، حيث لا معنى واضح لهذه اللعبة لأن السورة غالباً واحدة) 🌟
+            // 🌟 [تحديث] أضفنا 'next' (الآية التالية) و'between' (آية بين آيتين) و'recite' (التسميع) لوضع
+            // "الجزء" أيضاً (كانت غائبة عنه دون سبب موثّق في الكود). ⚠️ افتراض صريح: أرجح سبب غيابها
+            // القديم أن المولّدات كانت تعرض أحياناً آية من سورة مختلفة عند حدود السور داخل الجزء، ولا
+            // تلتزم بحدود الجزء في التسميع — أصلحنا الأمرين في quranEngine.js (راجع تعليقات 🌟 في
+            // generateNextAyahGame / generateBetweenGame / generateReciteGame). لو كان غيابها بقرار
+            // تربوي من المعلم يمكن إرجاعها بحذفها من هذه القائمة فقط، بلا أي تعديل آخر.
+            // وضع الجزء الآن 12 لعبة (كل الألعاب)، وضع السورة/النطاق 10 ألعاب.
             let gamesList = config.isJuzMode
-                ? ['catch', 'previous', 'guess_surah', 'order', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
+                ? ['catch', 'next', 'previous', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
                 : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
             
-            let currentBag = getShuffledBag(gamesList);
-            for(let i=0; i<qCount; i++) { 
-                if (currentBag.length === 0) currentBag = getShuffledBag(gamesList);
-                let selectedType = currentBag.pop();
-                GameState.queue.push({ type: selectedType, chunkIndex: i }); 
-            }
+            // 🌟 [إصلاح] استبدلنا الحلقة القديمة (كانت تختار الأنواع بلا التأكد أنها ستُولَّد فعلاً،
+            // فتتحول الألعاب الفاشلة صامتة إلى "صيد الآية") بـbuildGameQueue أعلاه
+            GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
     } catch (err) { alert("حدث خطأ: " + err.message); }
@@ -281,6 +416,10 @@ function persistEvaluationToHistory() {
             range: GameState.evalRangeText || t('hist_eval_default_range'),
             score: scorePercent,
             source: 'adult_game',
+            // 🌟 [جديد] نوع الجلسة — 'weakness' لجلسات "تحدي الأخطاء" و'eval' لغيرها، ليتمكن التقرير
+            // الشهري من عدّ جلسات الإصلاح بدقة بدل تخمينها من نص range (السجلات القديمة بلا
+            // هذا الحقل يتعرّف عليها التقرير من نص range كخط رجوع) 🌟
+            mode: GameState.isWeaknessMode ? 'weakness' : 'eval',
             timestamp: Date.now()
         });
         localStorage.setItem(historyKey, JSON.stringify(historyArray));
@@ -306,15 +445,28 @@ async function playNextMission() {
             // 🌟 [إصلاح] نمرر GameState بتاع لعبة الكبار صراحة (راجع نفس التعليق في
             // kidsGame.js) — report.js بقى يستخدم أي GameState يُمرَّر له عند فتح
             // التقرير بدل استيراد ثابت من adultGame.js فقط 🌟
+            // 🌟 [جديد] لو الجلسة بدأت من مسار "إصلاح الأخطاء عند الدخول": ملخص قصير (كم أُصلح وكم
+            // تبقّى) ثم شاشة الألعاب، بدل شاشة التقرير الكاملة. ما عدا ذلك (تحدٍّ من ملف الطالب
+            // أو تقييم عادي) يبقى السلوك القديم تماماً 🌟
+            if (GameState.isWeaknessMode && GameState.fixFromLogin) {
+                GameState.fixFromLogin = false;
+                const summary = summarizeFixSession(AppState.currentStudent, GameState.weaknessSnapshot, (a, b) => normalizeForCompare(a.text) === normalizeForCompare(b.text));
+                return showFixErrorsSummary(AppState.currentStudent, {
+                    kids: false, ...summary,
+                    onContinue: () => loadDashboardScreen()
+                });
+            }
             return openReportScreen(GameState);
         }
-        
+
         updateTrackerUI();
-        GameState.hintUsed = false; 
+        GameState.hintUsed = false;
         GameState.currentQuestionStartTime = Date.now();
         GameState.tempErrors = [];
         GameState.orderAttempts = 0;
         
+        // 🌟 [إصلاح تدقيق] لو غادر المعلم اللعبة أثناء انتظار مؤقّت الانتقال للمهمة التالية تكون عناصر الشاشة قد أُزيلت فيحدث TypeError؛ نتوقف بهدوء
+        if (!document.getElementById('temp-errors-container')) return;
         document.getElementById('temp-errors-container').style.display = 'none';
         document.getElementById('temp-errors-list').innerHTML = '';
         document.getElementById('btn-submit-all-errors').style.display = 'none';
@@ -324,7 +476,10 @@ async function playNextMission() {
         
         let avatarImg = document.getElementById('in-game-avatar');
         if (avatarImg) {
-            avatarImg.src = AppState.currentStudent.avatar || 'assets/default.png'; 
+            // 🌟 [إصلاح تدقيق] assets/default.png غير موجود (404 عند كل فتح)، والأفاتار الإيموجي (نص قصير) لا يصلح كـ src لصورة —
+            // لذا نستخدم الصورة فقط لو كانت data URL/مسار حقيقي، وإلا الأيقونة الافتراضية المدمجة مباشرة.
+            const _av = AppState.currentStudent.avatar;
+            avatarImg.src = (_av && _av.length >= 10) ? _av : 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23cbd5e1"><circle cx="50" cy="50" r="50"/><path fill="%23fff" d="M50 55c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20zm0 5c15 0 30 10 30 25v5H20v-5c0-15 15-25 30-25z"/></svg>'; 
             avatarImg.onerror = function() { 
                 this.onerror = null; 
                 this.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="%23cbd5e1"><circle cx="50" cy="50" r="50"/><path fill="%23fff" d="M50 55c-11 0-20-9-20-20s9-20 20-20 20 9 20 20-9 20-20 20zm0 5c15 0 30 10 30 25v5H20v-5c0-15 15-25 30-25z"/></svg>';
@@ -349,19 +504,13 @@ async function playNextMission() {
         let chunkIndex = queueItem.chunkIndex; 
         let totalChunks = GameState.config ? GameState.config.qCount : 1;
         
-        let activePool = pool;
-        if (type !== 'order') {
-            let filtered = pool.filter(a => {
-                let plainText = a.text.replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '');
-                return !plainText.includes('فبأي آلاء ربكما تكذبان') && 
-                       !plainText.includes('فباي الاء ربكما تكذبان') && 
-                       !plainText.includes('ويل يومئذ للمكذبين');
-            });
-            if (filtered.length > 0) activePool = filtered;
-        }
+        // 🌟 [إصلاح] نفس المنطق القديم بالضبط لكن عبر الدالة المشتركة getActivePoolForType
+        let activePool = getActivePoolForType(type, pool);
 
         if (GameState.isWeaknessMode) {
-            let wItem = AppState.currentStudent.weaknesses[GameState.currentIndex];
+            // 🌟 [إصلاح] القراءة من اللقطة الثابتة بدل القائمة الحيّة التي تقصر مع كل إجابة صحيحة؛
+            // الرجوع للقائمة الحيّة احتياط توافق فقط لو اللقطة غير موجودة لأي سبب 🌟
+            let wItem = GameState.weaknessSnapshot[GameState.currentIndex] || AppState.currentStudent.weaknesses[GameState.currentIndex];
 
             // 🌟 إعادة بناء عرض السؤال الأصلي بكل تفاصيله (نوعه الكامل، ونصه بصيغته
             // التي ظهرت للطالب أول مرة) بدل الاكتفاء بعرض نص الآية المجرد بلا سياق كما
@@ -405,8 +554,8 @@ async function playNextMission() {
         }
 
         if(type === 'order') {
-            GameState.currentData = await AppState.quranEngine.generateOrderGame(activePool, false, chunkIndex, totalChunks);
-            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+            GameState.currentData = await retryGen(() => AppState.quranEngine.generateOrderGame(activePool, false, chunkIndex, totalChunks));
+            if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             GameState.currentData.studentAnswer = [];
             document.getElementById('interactive-order-area').style.display = 'block';
             // 🌟 [قديم] نعيد نص التعليمة وعنوان العمود الثاني لأصلهما الخاص بـ"رتب الآيات" —
@@ -427,8 +576,8 @@ async function playNextMission() {
             // راجع تعليق generateLinkWordSurahGame في quranEngine.js لتفاصيل الفكرة وسبب
             // الاستبدال والافتراضات الكاملة. بما إن الحاوية أصبحت مشتركة الآن بين نوعي ربط
             // مختلفين، لازم نضبط نص التعليمة وعنواني العمودين حسب النوع الحالي في كل مرة 🌟
-            GameState.currentData = await AppState.quranEngine.generateLinkWordSurahGame(activePool, false);
-            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+            GameState.currentData = await retryGen(() => AppState.quranEngine.generateLinkWordSurahGame(activePool, false));
+            if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
 
             if (GameState.currentData.type === 'link_word_surah') {
                 GameState.currentData.matchedPairs = [];
@@ -457,8 +606,8 @@ async function playNextMission() {
                 document.getElementById('game-answer').innerHTML = linkWordSurahFallbackAnsHTML;
             }
         } else if (type === 'visual_memory') {
-            GameState.currentData = await AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks);
-            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+            GameState.currentData = await retryGen(() => AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks));
+            if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             
             document.getElementById('teacher-eval-area').style.display = 'block'; 
             document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
@@ -479,8 +628,8 @@ async function playNextMission() {
             // ("يا بطل")، فيفشل الشرط `GameState.currentData.type === 'link_ends'` أدناه ويقع
             // الاختيار خطأً على فرع الـfallback (الذي يعرض `questionBody` غير موجود أصلاً في بيانات
             // لعبة الربط، فيظهر النص الحرفي "undefined" مع أزرار تقييم يدوية لا يجب ظهورها) 🌟
-            GameState.currentData = await AppState.quranEngine.generateLinkGame(activePool, false, chunkIndex, totalChunks);
-            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+            GameState.currentData = await retryGen(() => AppState.quranEngine.generateLinkGame(activePool, false, chunkIndex, totalChunks));
+            if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
 
             if (GameState.currentData.type === 'link_ends') {
                 GameState.currentData.matchedPairs = [];
@@ -515,16 +664,16 @@ async function playNextMission() {
             document.getElementById('teacher-eval-area').style.display = 'block'; 
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
             
-            if(type === 'catch') GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks);
-            else if(type === 'next') GameState.currentData = await AppState.quranEngine.generateNextAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks);
-            else if(type === 'previous') { GameState.currentData = await AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks); if(GameState.currentData && GameState.currentData.hint !== "لا يوجد") document.getElementById('hint-btn').style.display = 'inline-block'; }
-            else if(type === 'between') GameState.currentData = await AppState.quranEngine.generateBetweenGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks);
-            else if(type === 'guess_surah') GameState.currentData = await AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks);
-            else if(type === 'recite') GameState.currentData = await AppState.quranEngine.generateReciteGame(activePool, GameState.config.isJuzMode, false, chunkIndex, totalChunks);
-            else if(type === 'mistake') GameState.currentData = await AppState.quranEngine.generateMistakeGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks);
-            else if(type === 'complete_ayah') GameState.currentData = await AppState.quranEngine.generateCompleteAyahGame(activePool, chunkIndex, totalChunks); 
+            if(type === 'catch') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
+            else if(type === 'next') GameState.currentData = await retryGen(() => AppState.quranEngine.generateNextAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
+            else if(type === 'previous') { GameState.currentData = await retryGen(() => AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint !== "لا يوجد") document.getElementById('hint-btn').style.display = 'inline-block'; }
+            else if(type === 'between') GameState.currentData = await retryGen(() => AppState.quranEngine.generateBetweenGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
+            else if(type === 'guess_surah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks));
+            else if(type === 'recite') GameState.currentData = await retryGen(() => AppState.quranEngine.generateReciteGame(activePool, GameState.config.isJuzMode, false, chunkIndex, totalChunks));
+            else if(type === 'mistake') GameState.currentData = await retryGen(() => AppState.quranEngine.generateMistakeGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
+            else if(type === 'complete_ayah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCompleteAyahGame(activePool, chunkIndex, totalChunks)); 
 
-            if(!GameState.currentData) GameState.currentData = await AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1);
+            if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
@@ -588,6 +737,11 @@ function submitAllErrors() {
 }
 
 async function recordAnswer(isCorrect, errorTypes = []) {
+    // 🌟 [إصلاح فحص الأزرار] حارس ضد الضغط المزدوج/السريع (خصوصًا على اللمس): كل سؤال
+    // يُنشأ له كائن currentData جديد، فنعلّم الكائن الحالي بأنه أُجيب عليه، وأي استدعاء ثانٍ
+    // لنفس السؤال يُتجاهل بدل أن يُسجَّل نتيجتين ويقفز سؤالين 🌟
+    if (GameState.currentData && GameState.currentData.__answered) return;
+    if (GameState.currentData) GameState.currentData.__answered = true;
     let timeTaken = GameState.currentQuestionStartTime ? (Date.now() - GameState.currentQuestionStartTime) / 1000 : 0;
     let typeLabel = GameState.isWeaknessMode ? t("تحدي علاج الخطأ") : t("نشاط");
     
@@ -635,12 +789,10 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 المقارنة بقت عبر normalizeForCompare (تجريد كامل من التشكيل) بدل تطابق حرفي
         // للنص المنسّق بالكامل، حتى تفضل شغالة صح حتى لو نقطة الضعف اتحفظت قديماً بشكل تشكيل
         // مختلف شوية عن النص المُولَّد حالياً (زي شكل علامة السكون)
-        let resolvedItem = AppState.currentStudent.weaknesses.find(w => normalizeForCompare(w.text) === normalizeForCompare(reportText));
-        if (resolvedItem) {
-            if (!AppState.currentStudent.resolvedWeaknesses) AppState.currentStudent.resolvedWeaknesses = [];
-            AppState.currentStudent.resolvedWeaknesses.push({ ...resolvedItem, dateResolved: new Date().toISOString() });
-        }
-        AppState.currentStudent.weaknesses = AppState.currentStudent.weaknesses.filter(w => normalizeForCompare(w.text) !== normalizeForCompare(reportText));
+        // 🌟 [تعديل] التثبيت بمراجعتين: الأرشفة صارت تحدث عند الإجابة الصحيحة "الثانية" في يوم
+        // مختلف فقط (راجع applyFixCorrectAnswer في components/fixErrorsPrompt.js)؛ أول إجابة
+        // صحيحة تعلّم الخطأ وتُبقيه في القائمة لمراجعته في المرة القادمة 🌟
+        applyFixCorrectAnswer(AppState.currentStudent, w => normalizeForCompare(w.text) === normalizeForCompare(reportText));
         await AppState.studentManager.updateStudent(AppState.currentStudent);
     }
     
@@ -687,6 +839,10 @@ async function recordAnswer(isCorrect, errorTypes = []) {
             };
             if(!AppState.currentStudent.weaknesses) AppState.currentStudent.weaknesses = [];
             if(!AppState.currentStudent.weaknesses.some(w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) AppState.currentStudent.weaknesses.push(errorObj);
+            await AppState.studentManager.updateStudent(AppState.currentStudent);
+        } else if (applyFixWrongAnswer(AppState.currentStudent, w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) {
+            // 🌟 [جديد] إجابة خاطئة في مراجعة خطأ سبق أن أُجيب صح مرة: تصفير التثبيت (يحتاج
+            // إجابتين صحيحتين من جديد) ثم حفظ السجل 🌟
             await AppState.studentManager.updateStudent(AppState.currentStudent);
         }
         GameState.currentIndex++; 

@@ -41,7 +41,11 @@ const isLocalDev = () => ['localhost', '127.0.0.1'].includes(location.hostname);
 
 // 🔒 نقبل فقط روابط Apps Script (أو محاكي محلي وقت التطوير على localhost) — حتى لا يستطيع رابط
 // مُصطنع توجيه متصفح طالب إلى خادم عشوائي عبر باراميتر api في الرابط.
-export function isAllowedApiUrl(u) { return EXEC_RE.test(u) || (isLocalDev() && LOCAL_RE.test(u)); }
+// 🌟 [إصلاح تدقيق ما قبل الإطلاق] كان أي رابط Apps Script (حتى سكربت مهاجم) مقبولاً عبر ?api= فيستطيع رابط مُصطنع تحويل طلبات
+// المعلم/الطالب (وفيها مفتاح المعلم وجلسته) إلى سكربت غير سكربتك. الآن على الإنتاج لا يُقبل إلا DEFAULT_API_URL المكتوب في الكود
+// نفسه؛ وعلى localhost فقط (وقت التطوير) يُسمح بأي سكربت أو المحاكي المحلي للاختبار.
+// ⚠️ [افتراض صريح]: لو نشرت نسخة جديدة من Apps Script فغيّر DEFAULT_API_URL أعلاه ولا تعتمد على ?api= بعد اليوم.
+export function isAllowedApiUrl(u) { return u === DEFAULT_API_URL || (isLocalDev() && (EXEC_RE.test(u) || LOCAL_RE.test(u))); }
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }

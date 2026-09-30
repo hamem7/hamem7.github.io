@@ -209,8 +209,12 @@ export class QuranEngine {
     
     async generateNextAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
         const targetAyah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!targetAyah) return null; 
+        // 🌟 [إصلاح] كان المولّد يأخذ "الآية التالية" من ترتيب النطاق (pool) دون التأكد أنها من نفس السورة،
+        // فإذا كانت الآية المختارة هي آخر آية في سورة داخل نطاق يضم عدة سور (وضع الجزء أو نطاق سور)
+        // تظهر أول آية من السورة التالية كإجابة خاطئة. أضفنا شرط تطابق surahNumber، وعند عدم التطابق
+        // يقع الكود في فرع الرجوع لقاعدة البيانات الذي يُرجع null لآخر آية في السورة (فتُختار لعبة أخرى).
         let nextAyahText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex !== -1 && currentIndex < ayahsPool.length - 1) { nextAyahText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
+        if(currentIndex !== -1 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { nextAyahText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
@@ -239,22 +243,37 @@ export class QuranEngine {
     
     async generateBetweenGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
         if(ayahsPool.length < 3) return null; let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
+        // 🌟 [إصلاح] نفس علة "الآية التالية": الآيتان المحيطتان لازم تكونا من نفس سورة الآية المختارة، وإلا
+        // نرجع لقاعدة البيانات (التي ترفض آخر آية في السورة بإرجاع null) بدل عرض آية من سورة أخرى.
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex > 0 && currentIndex < ayahsPool.length - 1) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
+        if(currentIndex > 0 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex - 1].surahNumber === targetAyah.surahNumber && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿ ${prevText} ﴾<br><span style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:bold; color:var(--primary);">( .................... )</span><br>﴿ ${nextText} ﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
     }
     
     async generateReciteGame(ayahsPool, isJuz, isKids, chunkIndex, totalChunks) { 
         if(ayahsPool.length === 0) return null; const startAyah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); let surah = await this.getSurah(startAyah.surahNumber); let totalSurahAyahs = surah.ayahs.length;
+        // 🌟 [جديد] حدود التسميع داخل النطاق المختار: في وضع الجزء (isJuz) قد يبدأ الجزء أو ينتهي في منتصف السورة،
+        // فلا نُسمّع آيات خارج الجزء. في الأوضاع الأخرى تبقى الحدود كل السورة (السلوك القديم بلا تغيير).
+        // ⚠️ افتراض صريح: في وضع الجزء لا نستخدم فرع "السورة كاملة" إلا لو كانت السورة كلها داخل الجزء.
+        let reciteLo = 0, reciteHi = totalSurahAyahs - 1, surahFullyInPool = true;
+        if (isJuz) {
+            const inSurah = ayahsPool.filter(a => a.surahNumber === startAyah.surahNumber);
+            if (inSurah.length > 0) {
+                reciteLo = Math.min(...inSurah.map(a => a.numberInSurah)) - 1;
+                reciteHi = Math.max(...inSurah.map(a => a.numberInSurah)) - 1;
+                surahFullyInPool = (reciteHi - reciteLo + 1) === totalSurahAyahs;
+            }
+        }
         let qBody = ""; let fullText = ""; let reportText = ""; let qTitle = isKids ? "🎙️ أسمعنا صوتك العذب!" : "تسميع مقطع 🎙️";
-        if (totalSurahAyahs <= 10) {
+        if (totalSurahAyahs <= 10 && surahFullyInPool) {
             fullText = surah.ayahs.map(a => ` ﴿ ${cleanAyahText(a.text)} ﴾ `).join("");
             qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">سمّع سورة <span style="${isKids ? 'color:#db2777;' : 'color:var(--danger)'}">[ ${startAyah.surahName} ]</span> كاملة</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
         } else {
             let startIdx = surah.ayahs.findIndex(a => a.numberInSurah === startAyah.numberInSurah); let jump = Math.floor(Math.random() * 4) + 6; 
-            if (startIdx + jump >= totalSurahAyahs) startIdx = Math.max(0, totalSurahAyahs - jump - 1);
-            let endIdx = Math.min(startIdx + jump, totalSurahAyahs - 1); let actualCount = (endIdx - startIdx) + 1;
+            if (startIdx < reciteLo) startIdx = reciteLo;
+            if (startIdx + jump > reciteHi) startIdx = Math.max(reciteLo, reciteHi - jump);
+            let endIdx = Math.min(startIdx + jump, reciteHi); let actualCount = (endIdx - startIdx) + 1;
             for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿ ${cleanAyahText(surah.ayahs[i].text)} ﴾ `; 
             let startClean = cleanAyahText(surah.ayahs[startIdx].text); let endClean = cleanAyahText(surah.ayahs[endIdx].text);
             let startWords = startClean.split(/\s+/); let startHalf = startWords.length > 3 ? startWords.slice(0, Math.ceil(startWords.length / 2)).join(" ") + " ...." : startClean + " ....";

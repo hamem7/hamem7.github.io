@@ -56,10 +56,13 @@ await test('teacher actions cannot be invoked via GET (keys must not travel in U
   assert.equal(be.get({ action: 'listSubmissions', teacherKey: key }).code, 'METHOD_NOT_ALLOWED');
 });
 
-await test('brute force: after 20 wrong keys even the right key is locked out', () => {
+// 🌟 [تحديث تدقيق ما قبل الإطلاق] السلوك القديم (المفتاح الصحيح يُقفل أيضاً) كان يسمح لأي مجهول بقفل المعلم بـ20 طلباً خاطئاً.
+// الآن: التخمينات الخاطئة تُقفل (LOCKED)، لكن المفتاح الصحيح (60 بت عشوائي + تأخير 400ms لكل تخمين) يبقى مقبولاً.
+await test('brute force: after 20 wrong keys further wrong guesses are LOCKED, but the right key still works (no lockout DoS)', () => {
   const { be, key } = fresh();
   for (let i = 0; i < 20; i++) be.post({ action: 'authCheck', teacherKey: 'nope' + i });
-  assert.equal(be.post({ action: 'authCheck', teacherKey: key }).code, 'LOCKED');
+  assert.equal(be.post({ action: 'authCheck', teacherKey: 'nope-again' }).code, 'LOCKED');
+  assert.equal(be.post({ action: 'authCheck', teacherKey: key }).ok, true);
 });
 
 await test('malformed JSON / unknown action / oversized body are rejected cleanly', () => {
@@ -365,12 +368,15 @@ function googleMock(tokens) {
     const m = /id_token=([^&]+)/.exec(url);
     const info = m && tokens[decodeURIComponent(m[1])];
     if (!info) return { getResponseCode: () => 400, getContentText: () => JSON.stringify({ error_description: 'Invalid Value' }) };
-    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sub: info.sub, email: info.email, name: info.name || '', iss: 'accounts.google.com', aud: info.aud || 'test-client' }) };
+    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sub: info.sub, email: info.email || (info.sub + '@example.com'), email_verified: info.email_verified || 'true', name: info.name || '', iss: 'accounts.google.com', aud: info.aud || 'test-client' }) };
   };
 }
 function freshMulti(tokens) {
   const be = createBackend({ urlFetch: googleMock(tokens) });
   const key = be.setup();
+  // 🌟 [تحديث تدقيق ما قبل الإطلاق] الخادم صار يشترط GOOGLE_CLIENT_ID (يطابق aud) وقائمة TEACHER_EMAILS البيضاء
+  be.props.GOOGLE_CLIENT_ID = 'test-client';
+  be.props.TEACHER_EMAILS = Object.values(tokens).map(i => (i.email || (i.sub + '@example.com'))).join(',');
   return { be, key };
 }
 
@@ -470,6 +476,49 @@ await test('NO DATA LOSS: existing student-facing links and submit flow are comp
   assert.equal(pub.ok, true);
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'طالب قديم', answers: {} });
   assert.equal(sub.ok, true); assert.equal(sub.persisted, true);
+});
+
+
+
+// ============================================================================ 🌟 تحصينات تدقيق ما قبل الإطلاق
+await test('googleSignIn: NOT_CONFIGURED when GOOGLE_CLIENT_ID/TEACHER_EMAILS are not set (no open registration)', () => {
+  const be = createBackend({ urlFetch: googleMock({ tokA: { sub: 'sub-A' } }) }); be.setup();
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).code, 'NOT_CONFIGURED');
+});
+
+await test('googleSignIn: an email outside the TEACHER_EMAILS allowlist, wrong audience, or unverified email are rejected', () => {
+  const { be } = freshMulti({ tokA: { sub: 'sub-A' }, tokX: { sub: 'sub-X', email: 'stranger@example.com' }, tokW: { sub: 'sub-W', aud: 'other-app' }, tokU: { sub: 'sub-U', email_verified: 'false' } });
+  be.props.TEACHER_EMAILS = 'sub-A@example.com,sub-W@example.com,sub-U@example.com';
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).ok, true);
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokX' }).code, 'UNAUTHORIZED');
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokW' }).code, 'UNAUTHORIZED');
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokU' }).code, 'UNAUTHORIZED');
+});
+
+await test('lockout DoS: wrong legacy keys lock only legacy-key guessing; a valid Google session and the correct key keep working', () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  for (let i = 0; i < 25; i++) be.post({ action: 'listHomeworks', teacherKey: 'WRONG' + i });
+  assert.equal(be.post({ action: 'listHomeworks', teacherKey: 'WRONG-again' }).code, 'LOCKED');
+  assert.equal(be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey }).ok, true);
+  assert.equal(be.post({ action: 'listHomeworks', teacherKey: key }).ok, true);
+});
+
+await test('submit: a reused clientSubmissionId on a DIFFERENT homework is BAD_REQUEST (never returns another homework\'s submission)', async () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const h1 = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  const h2 = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  const id = cid();
+  assert.equal(be.post({ action: 'submit', hwId: h1.id, clientSubmissionId: id, studentName: 'طالب أول', answers: {} }).ok, true);
+  assert.equal(be.post({ action: 'submit', hwId: h2.id, clientSubmissionId: id, studentName: 'طالب أول', answers: {} }).code, 'BAD_REQUEST');
+});
+
+await test('submit: studentName is stripped of HTML-significant characters (stored-XSS defence in depth)', async () => {
+  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
+  const h = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  be.post({ action: 'submit', hwId: h.id, clientSubmissionId: cid(), studentName: 'ab<img src=x onerror=alert(1)>cd', answers: {} });
+  const list = be.post({ action: 'listSubmissions', teacherKey: key });
+  assert.ok(!/[<>"'`]/.test(list.submissions[0].studentName));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

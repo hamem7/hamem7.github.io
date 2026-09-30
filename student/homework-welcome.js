@@ -15,7 +15,7 @@ import { loadScreen } from '../core/navigation.js';
 import { t } from '../core/i18n.js';
 import { ApiError } from '../core/api.js';
 import { fetchPublicHomework, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
-import { getAttempt } from '../core/submitQueue.js';
+import { getAttempt, loadDraft } from '../core/submitQueue.js';
 
 let currentHwId = null;
 
@@ -119,6 +119,13 @@ async function loadHomework(hwId) {
     } else {
         AppState.currentStudent = null;
         document.getElementById('hw-dropdown-section').style.display = '';
+        // 🌟 [إصلاح تدقيق] بعد تحديث الصفحة كانت الإجابات تُستعاد لكن خانة الاسم تعود فارغة فيضطر الطالب لإعادة كتابته.
+        // نملؤها من المسودة المحفوظة على الجهاز (إن وُجدت)؛ لا شيء يُرسل قبل ضغط الطالب "ابدأ".
+        try {
+            const d = loadDraft(AppState.currentHomework && AppState.currentHomework.id);
+            const inp = document.getElementById('hw-student-name-input');
+            if (d && d.studentName && inp && !inp.value) inp.value = String(d.studentName);
+        } catch (e) { /* لا شيء: ميزة راحة فقط */ }
     }
 }
 

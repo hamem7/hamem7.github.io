@@ -31,7 +31,15 @@ export function initTajweedDB() {
                 db.createObjectStore(TAJWEED_ACHIEVEMENTS_STORE, { keyPath: "id", autoIncrement: true });
             }
         };
-        request.onsuccess = (e) => resolve(e.target.result);
+        request.onsuccess = (e) => {
+            const openedDb = e.target.result;
+            // 🌟 [إصلاح تدقيق ما قبل الإطلاق] لو فُتحت المنصة في تبويبين وترقّى أحدهما هيكل القاعدة، كان الآخر يحجب الترقية بصمت
+            // (تعليق/فشل الإقلاع). الآن يغلق التبويب القديم اتصاله عند طلب الترقية فتكمل الترقية في التبويب الجديد.
+            openedDb.onversionchange = () => { try { openedDb.close(); } catch (err) { /* لا شيء */ } };
+            resolve(openedDb);
+        };
+        // 🌟 ترقية محجوبة بتبويب آخر مفتوح: نُنبّه في الكونسول بدل الصمت (الفتح يكتمل تلقائياً بعد إغلاقه)
+        request.onblocked = () => console.warn('ترقية قاعدة البيانات محجوبة بتبويب آخر للمنصة — أغلق التبويبات الأخرى.');
         request.onerror = (e) => reject(e.target.error);
     });
 }
@@ -43,7 +51,12 @@ export function createEmptyMasteryRecord(studentId, stageId, ruleId) {
         studentId,
         stageId,
         ruleId,
-        dimensions: { knows: 0, distinguishes: 0, discovers: 0, applies: 0, recalls: 0 },
+        // 🌟🌟 [جديد ٢٨ سبتمبر] "pronounces" بُعد سادس — لا يُحدَّثه إلا تقييم معلم مباشر عبر
+        // شاشة "سمّع لي" (نوع نشاط teacher_checkpoint في tajweedEngine.js)، وليس أي لعبة
+        // تلقائية. [ملاحظة توافق]: سجلات الإتقان القديمة المحفوظة فعلاً في IndexedDB قبل هذا
+        // التعديل لا تملك هذا الحقل — غير مؤثر لأن كل قراءات dimensions.pronounces في الكود
+        // تستخدم `|| 0` كقيمة افتراضية (نفس نمط بقية الأبعاد)، فلا حاجة لأي ترحيل بيانات يدوي
+        dimensions: { knows: 0, distinguishes: 0, discovers: 0, applies: 0, recalls: 0, pronounces: 0 },
         status: 'available', // 'available' | 'in_progress' | 'mastered' | 'needs_review'
         attemptsCount: 0,
         lastPracticedAt: null,

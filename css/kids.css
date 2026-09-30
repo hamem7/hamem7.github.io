@@ -186,6 +186,22 @@ body.kids-theme {
     box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3) !important;
 }
 
+/* 🌟 [إصلاح فحص الأزرار] كان .btn في ركن الأطفال بلا نمط أساسي (النمط الأساسي في adults.css تحت
+   .adult-theme فقط)، فتظهر بعض الأزرار بلا لون أو حجم موحّد. أضفنا قيمًا افتراضية بـ :where()
+   (خصوصية صفر) كي لا تتغلب على أي ستايل خاص بزر بعينه أو inline، مع تكبير أدنى لهدف اللمس 🌟 */
+:where(.kids-theme .btn) {
+    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    color: #fff;
+    padding: 12px 26px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    min-height: 44px;
+}
+:where(.kids-theme .btn-outline) {
+    background: #fff;
+    color: #0369a1;
+}
+
 .btn:hover {
     transform: translateY(-4px) scale(1.03) !important;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
@@ -316,4 +332,4 @@ h1, h2, h3, .question-text {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.07); }
 }
-.q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+.q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }

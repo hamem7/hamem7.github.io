@@ -18,6 +18,7 @@
 // يضغط المعلم فعلياً أحد زرَي الحفظ، تماماً كسلوك المحرر القديم.
 
 import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { esc } from '../core/escape.js';
 import { loadScreen } from '../core/navigation.js';
 import { showToastEncouragement, openModal, closeModal } from '../components/ui.js';
 import { createEmptyDualTest } from '../database/dualTestsDB.js';
@@ -95,7 +96,7 @@ function populateCompetitorSelect(selectEl, selectedId) {
     if (!selectEl) return;
     let html = `<option value="">${t('dts_choose_student')}</option>`;
     allStudents.forEach(s => {
-        html += `<option value="${s.id}" ${String(s.id) === String(selectedId) ? 'selected' : ''}>${s.name}</option>`;
+        html += `<option value="${s.id}" ${String(s.id) === String(selectedId) ? 'selected' : ''}>${esc(s.name)}</option>`;
     });
     selectEl.innerHTML = html;
 }

@@ -24,27 +24,16 @@
 // نداء فتُمسح النسخة المحلية (راجع core/homeworkApi.js) ويُطلب الدخول من جديد في المرة التالية.
 import {
     call, ApiError, googleSignIn, migrateLegacyKey, GOOGLE_CLIENT_ID,
-    clearAnyTeacherAuth, setTeacherKey, clearTeacherKey, isTeacherAuthed
+    setTeacherKey, clearTeacherKey, isTeacherAuthed
 } from '../core/api.js';
 import { t } from '../core/i18n.js';
 import { AppState } from '../core/app.js';
 
-function injectSignOutChip() {
-    if (document.getElementById('teacher-auth-chip')) return;
-    const chip = document.createElement('button');
-    chip.id = 'teacher-auth-chip';
-    chip.type = 'button';
-    chip.className = 'dh-teacher-auth-chip';
-    chip.title = t('teacher_auth_signed_in_as');
-    chip.textContent = '🔓 ' + t('teacher_auth_signout_btn');
-    chip.addEventListener('click', () => {
-        if (!confirm(t('teacher_auth_signout_confirm'))) return;
-        clearAnyTeacherAuth();          // 🌟 [عدّل] يمسح جلسة جوجل والمفتاح القديم معاً أياً كان الفعّال
-        chip.remove();
-        location.reload();
-    });
-    document.body.appendChild(chip);
-}
+// 🌟 [حُذفت] شريحة "خروج المعلم" العائمة (injectSignOutChip) — بطلب المستخدم صراحة، لأن
+// الاستخدام الفعلي للمنصة معلم واحد فقط على جهازه الخاص، فلا فائدة عملية من تسجيل خروج/مسح
+// جلسة جوجل من نفس الجهاز بشكل متكرر. الدالة clearAnyTeacherAuth() نفسها لم تُحذف من core/api.js
+// (تبقى متاحة لو احتجناها لاحقاً)، وكذلك مفاتيح i18n (teacher_auth_signout_btn/confirm) ومحتوى
+// CSS (.dh-teacher-auth-chip) — إبقاؤها بلا استخدام حالياً أأمن من حذفها وسط ملفات مشتركة.
 
 // 🌟 [جديد] ينتظر تحميل سكربت Google Identity Services (مُحمَّل من index.html بوسم async) — لا يُفترض
 // أنه جاهز فوراً لحظة فتح المودال، لكنه عملياً يكون جاهزاً دائماً تقريباً لأنه في <head>.
@@ -182,7 +171,6 @@ function buildModal() {
 // تُرجع true لو المعلم مفوَّض (بجلسة جوجل أو المفتاح القديم)، و false لو ألغى.
 export async function ensureTeacherAuth() {
     if (isTeacherAuthed()) {
-        injectSignOutChip();
         return true;
     }
     return new Promise((resolve) => {
@@ -206,7 +194,6 @@ export async function ensureTeacherAuth() {
                 const legacyKey = migrateInput.value.trim();
                 if (legacyKey) await migrateLegacyKey(response.credential, legacyKey);
                 else await googleSignIn(response.credential);
-                injectSignOutChip();
                 finish(true);
             } catch (ex) {
                 googleLoading.style.display = 'none';
@@ -253,7 +240,6 @@ export async function ensureTeacherAuth() {
             try {
                 setTeacherKey(key);
                 await call('authCheck', {}, { teacher: true });      // تحقق حقيقي من الخادم
-                injectSignOutChip();
                 finish(true);
             } catch (ex) {
                 clearTeacherKey();

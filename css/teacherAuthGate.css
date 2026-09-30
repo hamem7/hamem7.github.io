@@ -92,27 +92,9 @@
     flex: 1;
 }
 
-/* 🌟 شريحة صغيرة ثابتة (خارج أي شاشة، بنفس نمط whats-new-modal في index.html) تظهر فقط
-   بعد نجاح تسجيل دخول المعلم، لإتاحة تسجيل الخروج من أي شاشة إدارية دون الحاجة للبحث عنه. */
-.dh-teacher-auth-chip {
-    position: fixed;
-    bottom: 14px;
-    inset-inline-start: 14px;
-    z-index: 9998;
-    background: var(--dh-emerald-900);
-    color: #fff;
-    border: 1px solid var(--dh-gold-500);
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    opacity: 0.85;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-}
-
-.dh-teacher-auth-chip:hover {
-    opacity: 1;
-}
+/* 🌟 [حُذفت] قواعد .dh-teacher-auth-chip (شريحة "خروج المعلم" العائمة) — الزر نفسه أُزيل من
+   components/teacherAuthGate.js بطلب المستخدم (معلم واحد فقط، لا فائدة عملية من تسجيل الخروج
+   المتكرر من نفس الجهاز). القواعد لم تُحذف نهائياً بل تُركت كتعليق هنا لو احتجنا إعادتها لاحقاً. */
 
 @media (max-width: 480px) {
     .dh-teacher-auth-box {
@@ -163,7 +145,7 @@
     font-size: 0.85rem;
     text-decoration: underline;
     cursor: pointer;
-    padding: 4px 0;
+    padding: 10px 0; /* 🌟 [إصلاح فحص الأزرار] كان 4px (ارتفاع 24px) — مساحة لمس أكبر 🌟 */
     display: block;
     width: 100%;
     text-align: center;

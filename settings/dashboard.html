@@ -37,6 +37,7 @@
         background: linear-gradient(90deg, var(--dh-gold-300), var(--dh-gold-500));
     }
 
+    .dash-student-chip:empty { display: none; }
     .dash-student-chip {
         display: inline-flex; align-items: center; gap: 8px;
         background: var(--dh-surface-alt);
@@ -106,7 +107,8 @@
             <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:10px;" id="dash-title" data-i18n="dash_title">لوحة التقييم ⚙️</h1>
         </div>
         <div class="dash-title-underline" aria-hidden="true"></div>
-        <div id="top-student-name" class="dash-student-chip" style="font-weight:bold;"></div>
+        <!-- 🌟 [إصلاح فحص الأزرار] كان id مكررًا مع عنصر الرأس في index.html؛ صار dash-student-chip وتملؤه populateDashboardData 🌟 -->
+        <div id="dash-student-chip" class="dash-student-chip" style="font-weight:bold;"></div>
 
         <div class="eval-type-selector" id="eval-radios" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap:wrap;">
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>

@@ -127,7 +127,7 @@ const REPORT_TEMPLATE = `
           <div class="dh-head">
             <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
             <img class="head-star" src="${ART_DIR}report-star-cluster.png" alt="">
-            <div class="eyebrow" data-i18n="rep_eyebrow">دار حم · منصة تحفيظ القرآن الكريم</div>
+            <div class="eyebrow" data-i18n="rep_eyebrow">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
             <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
             <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
             <div class="r-tagline" data-i18n="rep_tagline">خطوة بخطوة ... نحو كتاب الله</div>

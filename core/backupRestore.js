@@ -15,11 +15,32 @@
 // الإنترنت وليست "إنجاز طالب" فعلي — تحذيرنا من حجم الملف الأكبر بسبب الصوتيات وُوجِه
 // باختيار المعلم الصريح "كل شيء بلا استثناء" على أن يبقى الأمر بسيطاً وواحداً بلا فلترة.
 //
-// ⚠️ [افتراض صريح]: النسخة الاحتياطية تشمل قواعد IndexedDB فقط، وليس مفاتيح localStorage
+// ⚠️ [افتراض صريح — عُدِّل بعد تدقيق ما قبل الإطلاق]: النسخة تشمل IndexedDB + مفاتيح بيانات الطلاب في localStorage
+// (history_* وdarham_avatar_* وغيرها، راجع isBackupLocalStorageKey أعلاه)؛ أما باقي المفاتيح (اللغة،...) فلا تدخل.
+// (النص الأصلي القديم للافتراض: قواعد IndexedDB فقط، وليس مفاتيح localStorage
 // (اللغة المختارة، آخر إصدار شوهد، تلميحات الأقسام...) لأنها إعدادات عرض/تذكيرات جهاز بحتة
 // وليست "بيانات" يخشى المعلم ضياعها، وإعادة ضبطها تلقائياً بعد أي استرجاع غير ضارة إطلاقاً.
 
 import { APP_VERSION } from './version.js';
+
+// 🌟🌟 [إصلاح تدقيق ما قبل الإطلاق] سجل التقييمات (history_<id>) وصور الطلاب (darham_avatar_<id>) وعدّاد التقارير
+// وبيانات المعلم القديمة تعيش في localStorage وليست في IndexedDB، وكانت النسخة الشاملة تتجاهلها فتضيع عند الاسترجاع
+// على جهاز جديد. هذا التصحيح يضيف هذه المفاتيح فقط (لا اللغة ولا التلميحات) تحت حقل جديد localStorageData
+// داخل الملف، بحيث تبقى الملفات القديمة (بلا هذا الحقل) قابلة للاسترجاع كما كانت (توافق خلفي) 🌟
+function isBackupLocalStorageKey(key) {
+    return key.startsWith('history_') || key.startsWith('darham_avatar_') ||
+           key === 'darham_reports_log' || key === 'darham_teacher_name' || key === 'darham_teacher_signature';
+}
+function collectBackupLocalStorage() {
+    const out = {};
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && isBackupLocalStorageKey(key)) out[key] = localStorage.getItem(key);
+        }
+    } catch (e) { console.warn('تعذر قراءة localStorage للنسخة الاحتياطية:', e); }
+    return out;
+}
 
 const LAST_BACKUP_STORAGE_KEY = 'dh_last_backup_at';
 
@@ -36,7 +57,10 @@ const KNOWN_DB_NAMES_FALLBACK = [
     'DarHamReviewSchedule',
     'DarHamSimilarities',
     'DarHamDualTests',
-    'DarHamKidsAudio'
+    'DarHamKidsAudio',
+    // 🌟 [إصلاح تدقيق] قاعدتان فعليتان كانتا ناقصتين من القائمة اليدوية (تُستخدمان فقط لو indexedDB.databases() غير مدعومة)
+    'DarHamTajweed',
+    'DarHamMonthlyMemorization'
 ];
 
 // 🌟 سرد كل قواعد بيانات المنصة تلقائياً عبر indexedDB.databases() المدمجة في المتصفح
@@ -165,7 +189,9 @@ export async function buildBackupPayload() {
             appVersion: APP_VERSION,
             exportedAt: new Date().toISOString()
         },
-        databases
+        databases,
+        // 🌟 [إصلاح تدقيق] بيانات الطلاب المخزنة في localStorage (سجل التقييمات، الصور...)
+        localStorageData: collectBackupLocalStorage()
     };
 }
 
@@ -197,7 +223,7 @@ export function getLastBackupAt() {
 }
 
 // 🌟 استرجاع نسخة احتياطية من ملف اختاره المعلم — يرمي استثناءً بنص واضح (INVALID_JSON أو
-// INVALID_FORMAT) لو الملف تالف أو ليس نسخة احتياطية من دار حم أصلاً، تتولى الواجهة ترجمته
+// INVALID_FORMAT) لو الملف تالف أو ليس نسخة احتياطية من دار حمٓ أصلاً، تتولى الواجهة ترجمته
 // لرسالة مناسبة للمعلم. كل مخزن يُفرَّغ بالكامل (store.clear()) قبل إعادة إدراج سجلات
 // النسخة الاحتياطية فيه — استرجاع مطابق تماماً للحظة أخذ النسخة، بلا سجلات "يتيمة" قديمة
 // متبقية من قبل الاسترجاع. مخزن موجود في ملف النسخة الاحتياطية لكن غير موجود في هذا الإصدار
@@ -209,6 +235,11 @@ export async function restoreFromBackupFile(file) {
         payload = JSON.parse(text);
     } catch (e) {
         throw new Error('INVALID_JSON');
+    }
+    // 🌟 [إصلاح فحص الأزرار] ملف "سجل الطلاب" (format: darham_backup أو مصفوفة طلاب قديمة) صيغة مختلفة
+    // عن النسخة الشاملة؛ نميّزه برمز خطأ خاص لتُعرض للمعلم رسالة توضّح أين يستعيده بدل "ملف غير صالح" 🌟
+    if (Array.isArray(payload) || (payload && payload.format === 'darham_backup')) {
+        throw new Error('STUDENTS_ONLY_BACKUP');
     }
     if (!payload || typeof payload !== 'object' || !payload.databases || typeof payload.databases !== 'object') {
         throw new Error('INVALID_FORMAT');
@@ -235,12 +266,25 @@ export async function restoreFromBackupFile(file) {
                 continue;
             }
             try {
+                // 🌟 [إصلاح] مخزن الطلاب: قبل التفريغ نقرأ السجلات الحالية، وأي طالب سجله في
+                // النسخة الاحتياطية بلا صورة نُبقي له صورته الحالية بدل أن تُمحى بالاسترجاع 🌟
+                let existingAvatarById = null;
+                if (dbName === 'DarHamStudents' && storeName === 'students') {
+                    try {
+                        const current = await getAllFromStore(db, storeName);
+                        existingAvatarById = new Map(current.filter(x => x && x.avatar).map(x => [x.id, x.avatar]));
+                    } catch (e) { existingAvatarById = null; }
+                }
                 await new Promise((resolve, reject) => {
                     const tx = db.transaction(storeName, 'readwrite');
                     const store = tx.objectStore(storeName);
                     store.clear();
                     (records || []).forEach(record => {
-                        store.put(deserializeRecordFromBackup(record));
+                        const restored = deserializeRecordFromBackup(record);
+                        if (existingAvatarById && restored && !restored.avatar && existingAvatarById.has(restored.id)) {
+                            restored.avatar = existingAvatarById.get(restored.id);
+                        }
+                        store.put(restored);
                     });
                     tx.oncomplete = () => resolve();
                     tx.onerror = (e) => reject(e.target.error);
@@ -254,5 +298,16 @@ export async function restoreFromBackupFile(file) {
         db.close();
     }
 
-    return { restoredStores, restoredRecords, skippedStores };
+    // 🌟 [إصلاح تدقيق] استرجاع مفاتيح localStorage الخاصة بالطلاب (لو موجودة في الملف؛ الملفات القديمة بلا الحقل تُتخطّى)
+    let restoredLocalKeys = 0;
+    const lsData = payload.localStorageData;
+    if (lsData && typeof lsData === 'object') {
+        for (const [key, value] of Object.entries(lsData)) {
+            if (!isBackupLocalStorageKey(key) || typeof value !== 'string') continue;
+            try { localStorage.setItem(key, value); restoredLocalKeys++; }
+            catch (e) { console.warn('تعذر استرجاع مفتاح localStorage', key, e); }
+        }
+    }
+
+    return { restoredStores, restoredRecords, skippedStores, restoredLocalKeys };
 }

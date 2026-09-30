@@ -141,6 +141,12 @@ async function handleContainerClick(e) {
         startActivity('link', { stageId: btn.dataset.stage, ruleId: null });
     } else if (action === 'start-challenge') {
         startActivity('challenge', { stageId: btn.dataset.stage, ruleId: null });
+    } else if (action === 'start-checkpoint') {
+        // 🌟🌟 [جديد ٢٨ سبتمبر] "سمّع لي" — بوّابة تسميع المعلم المباشرة (البُعد السادس
+        // pronounces). راجع "تعميق-مادة-وتقييم-أبطال-التجويد-المقترح.md" §2. [افتراض صريح]:
+        // الزر متاح دائماً على بطاقة الحكم بلا شرط تقدّم أدنى — المعلم نفسه أقدر على تقدير
+        // اللحظة المناسبة للتسميع من أي قفل آلي، بخلاف بوّابة المراجعة الآلية الأخرى بالأعلى
+        startActivity('teacher_checkpoint', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
     }
 }
 
@@ -322,6 +328,12 @@ async function renderBrowseHTML() {
         }).join('');
 
         const canChallenge = stage.rules.some(r => masteryByRule[r.id] && (masteryByRule[r.id].attemptsCount || 0) > 0);
+        // 🌟🌟 [جديد ٢٨ سبتمبر] نشاط "اربط الحكم بحروفه" (generateLinkQuestion) يحتاج حكمين
+        // على الأقل بالمرحلة ليكون له معنى (مطابقة اسم↔حروف) — بعد دمج القلقلة الصغرى/الكبرى
+        // بحكم واحد، مرحلة القلقلة أصبحت بحكم واحد فقط، فيُخفى الزر بدل عرضه ليؤدي لشاشة خطأ
+        const linkBtnHTML = stage.rules.length >= 2
+            ? `<button class="tjw-outline-btn" data-action="start-link" data-stage="${stage.id}">🔗 ${t('tjw_link_activity_btn')}</button>`
+            : '';
 
         return `
             <section class="tjw-stage-section" style="--tjw-stage-color: var(${stage.colorVar});">
@@ -333,7 +345,7 @@ async function renderBrowseHTML() {
                 <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${progress.percentComplete}%; background: var(${stage.colorVar});"></div></div>
                 <div class="tjw-rule-tiles">${tilesHTML}</div>
                 <div class="tjw-stage-actions">
-                    <button class="tjw-outline-btn" data-action="start-link" data-stage="${stage.id}">🔗 ${t('tjw_link_activity_btn')}</button>
+                    ${linkBtnHTML}
                     <button class="tjw-outline-btn" data-action="start-challenge" data-stage="${stage.id}" ${canChallenge ? '' : 'disabled'}>🏆 ${t('tjw_challenge_btn')}</button>
                 </div>
             </section>`;
@@ -380,6 +392,13 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
         : mastery && mastery.status === 'needs_review' ? t('tjw_status_needs_review')
         : mastery && mastery.status === 'in_progress' ? t('tjw_status_in_progress')
         : t('tjw_status_available');
+    // 🌟🌟 [جديد ٢٨ سبتمبر] تفرقة بصرية بين "أتقن معرفياً" و"متقَن فعلاً" (راجع §2 من مستند
+    // التعميق) — pct أعلاه أصبح متوسط الأبعاد الستة كلها (بما فيها pronounces)، فنحسب هنا
+    // متوسط الأبعاد المعرفية الخمسة فقط (بلا pronounces) لمعرفة هل الطالب جاهز للتسميع
+    const cognitiveDims = mastery ? ['knows', 'distinguishes', 'discovers', 'applies', 'recalls'].map(k => mastery.dimensions[k] || 0) : [];
+    const cognitivePct = cognitiveDims.length ? Math.round(cognitiveDims.reduce((a, b) => a + b, 0) / cognitiveDims.length) : 0;
+    const pronouncesPct = mastery ? (mastery.dimensions.pronounces || 0) : 0;
+    const awaitingCheckpoint = mastery && mastery.status !== 'mastered' && cognitivePct >= 80 && pronouncesPct < 80;
 
     return `
         <div class="tjw-rule-card" style="--tjw-card-color: var(${stage.colorVar});">
@@ -414,7 +433,9 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     <span>${pct}%</span>
                 </div>
                 <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${pct}%; background: var(${stage.colorVar});"></div></div>
+                ${awaitingCheckpoint ? `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_checkpoint_note')}</p>` : ''}
                 <button class="tjw-cta-btn" data-action="start-practice" data-stage="${stageId}" data-rule="${ruleId}">🎯 ${t('tjw_start_practice_btn')}</button>
+                <button class="tjw-outline-btn" data-action="start-checkpoint" data-stage="${stageId}" data-rule="${ruleId}">🎤 ${t('tjw_start_checkpoint_btn')}</button>
             </div>
         </div>`;
 }

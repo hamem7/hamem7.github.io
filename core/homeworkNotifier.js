@@ -31,6 +31,8 @@
 import { getTeacherKey } from './api.js';
 import { listAllSubmissionsForNotifications } from './homeworkApi.js';
 import { t } from './i18n.js';
+// 🌟 [جديد — إصلاح XSS] اسم الطالب في إشعار التسليم يأتي من الخادم، فيُنظَّف قبل الحقن في innerHTML
+import { esc } from './escape.js';
 
 const SEEN_IDS_KEY = 'dh_hw_notif_seen_ids';
 const FIRST_RUN_DONE_KEY = 'dh_hw_notif_first_run_done';
@@ -152,7 +154,7 @@ function showNewSubmissionToast(sub) {
         <span class="dh-hw-notif-icon" aria-hidden="true">🔔</span>
         <span class="dh-hw-notif-text">
             <span class="dh-hw-notif-title">${t('hw_notif_new_submission_title')}</span>
-            <span class="dh-hw-notif-body">${t('hw_notif_new_submission_body').replace('{name}', studentName)}</span>
+            <span class="dh-hw-notif-body">${t('hw_notif_new_submission_body').replace('{name}', esc(studentName))}</span>
         </span>
         <button type="button" class="dh-hw-notif-close" aria-label="✕">✕</button>
     `;

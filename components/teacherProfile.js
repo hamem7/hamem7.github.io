@@ -384,7 +384,7 @@ export function initTeacherProfileUI() {
                 location.reload();
             } catch (e) {
                 console.error('تعذر استرجاع النسخة الاحتياطية:', e);
-                const msgKey = (e && e.message === 'INVALID_JSON') || (e && e.message === 'INVALID_FORMAT')
+                const msgKey = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only' : (e && e.message === 'INVALID_JSON') || (e && e.message === 'INVALID_FORMAT')
                     ? 'profile_backup_restore_invalid_file'
                     : 'profile_backup_restore_error';
                 alert(t(msgKey));

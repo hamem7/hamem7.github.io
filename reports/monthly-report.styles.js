@@ -67,6 +67,43 @@ export const MONTHLY_REPORT_STYLES = `
     padding:6px 14px; font-size:13px; font-weight:700; color:#8a6221;
   }
 
+  /* ============== 🌟 [جديد] "رحلة الحفظ الشهرية" — بصمة مصحفية مميّزة بخلفية خضراء
+     فاتحة وحدود متقطعة ذهبية، تميّزها عن باقي الأقسام كأهم قسم بصري في التقرير
+     (راجع القسم 12 من طلب الميزة: "من أهم الأقسام البصرية في التقرير") ============== */
+  #report-screen .mr-journey-box{
+    background:#f4f8ee; border:2px dashed #c9932f; border-radius:16px;
+    padding:20px 24px; text-align:center; margin-top:8px;
+  }
+  #report-screen .mr-journey-row{
+    display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+  }
+  #report-screen .mr-journey-label{font-size:12px; font-weight:700; color:#6b6252;}
+  #report-screen .mr-journey-pos{
+    font-family:'Amiri',serif; font-size:20px; font-weight:700; color:#0d5c46;
+  }
+  #report-screen .mr-journey-arrow{font-size:18px; color:#c9932f; margin:4px 0;}
+  #report-screen .mr-journey-new{
+    margin-top:12px; font-family:'Amiri',serif; font-size:22px; font-weight:700; color:#8a6221;
+  }
+
+  /* ============== 🌟 [جديد] مفتاح "نبرة الملاحظة التلقائية" (رسمية/دافئة) ============== */
+  #report-screen .mr-tone-toggle{display:inline-flex; align-items:center; gap:8px; margin-top:8px;}
+  #report-screen .mr-tone-btn{
+    font-family:'Cairo',sans-serif; font-size:11.5px; font-weight:700; cursor:pointer;
+    border:1px solid #55503f; background:#3a352a; color:#c2b393; border-radius:999px;
+    padding:5px 14px; transition:.15s ease;
+  }
+  #report-screen .mr-tone-btn.active{background:var(--dh-gold-500, #d4af37); border-color:var(--dh-gold-500, #d4af37); color:#2b2620;}
+
+  /* ============== 🌟 [جديد] "اتجاه الحفظ التراكمي" عبر عدّة أشهر ============== */
+  #report-screen .mr-trend-svg{width:100%; height:auto; max-height:200px; display:block; margin-top:4px;}
+  #report-screen .mr-trend-val{font-family:'Cairo',sans-serif; font-size:11px; font-weight:800; fill:#8a6221;}
+  #report-screen .mr-trend-lbl{font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:600; fill:#a79a83;}
+  #report-screen .mr-trend-total{
+    text-align:center; margin-top:10px; font-family:'Amiri',serif; font-size:17px;
+    font-weight:700; color:#0d5c46;
+  }
+
   /* ============== ملاحظة "بيانات غير متتبَّعة حاليًا" (نطاق الحفظ) ============== */
   #report-screen .mr-note-inline{
     font-size:12px; color:#a79a83; font-weight:600; margin-top:8px; line-height:1.7;
