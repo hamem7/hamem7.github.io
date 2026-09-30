@@ -266,8 +266,12 @@ export class QuranEngine {
             }
         }
         let qBody = ""; let fullText = ""; let reportText = ""; let qTitle = isKids ? "🎙️ أسمعنا صوتك العذب!" : "تسميع مقطع 🎙️";
+        // 🌟 [جديد] قائمة آيات المقطع المعروض للطالب فعلاً (رقم الآية في السورة + نصها) — يستخدمها
+        // components/reciteRangePicker.js ليحدد المعلم "من آية ... إلى آية ..." موضع الخطأ بالتحديد
+        let reciteAyahs = [];
         if (totalSurahAyahs <= 10 && surahFullyInPool) {
             fullText = surah.ayahs.map(a => ` ﴿ ${cleanAyahText(a.text)} ﴾ `).join("");
+            reciteAyahs = surah.ayahs.map(a => ({ num: a.numberInSurah, text: cleanAyahText(a.text) }));
             qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">سمّع سورة <span style="${isKids ? 'color:#db2777;' : 'color:var(--danger)'}">[ ${startAyah.surahName} ]</span> كاملة</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
         } else {
             let startIdx = surah.ayahs.findIndex(a => a.numberInSurah === startAyah.numberInSurah); let jump = Math.floor(Math.random() * 4) + 6; 
@@ -275,12 +279,13 @@ export class QuranEngine {
             if (startIdx + jump > reciteHi) startIdx = Math.max(reciteLo, reciteHi - jump);
             let endIdx = Math.min(startIdx + jump, reciteHi); let actualCount = (endIdx - startIdx) + 1;
             for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿ ${cleanAyahText(surah.ayahs[i].text)} ﴾ `; 
+            for(let i=startIdx; i<=endIdx; i++) reciteAyahs.push({ num: surah.ayahs[i].numberInSurah, text: cleanAyahText(surah.ayahs[i].text) });
             let startClean = cleanAyahText(surah.ayahs[startIdx].text); let endClean = cleanAyahText(surah.ayahs[endIdx].text);
             let startWords = startClean.split(/\s+/); let startHalf = startWords.length > 3 ? startWords.slice(0, Math.ceil(startWords.length / 2)).join(" ") + " ...." : startClean + " ....";
             let endWords = endClean.split(/\s+/); let endHalf = endWords.length > 3 ? ".... " + endWords.slice(Math.floor(endWords.length / 2)).join(" ") : ".... " + endClean;
             qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">سمّع ${actualCount} آيات من سورة <span style="${isKids ? 'color:#db2777;' : ''}">[ ${startAyah.surahName} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">من قوله تعالى:</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${startHalf} ﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">إلى قوله تعالى:</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${endHalf} ﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
         }
-        return { type: isKids ? 'kids_recite' : 'recite', questionTitle: qTitle, questionBody: qBody, fullAnswer: fullText, ayahObj: startAyah, reportText: reportText }; 
+        return { type: isKids ? 'kids_recite' : 'recite', questionTitle: qTitle, questionBody: qBody, fullAnswer: fullText, ayahObj: startAyah, reportText: reportText, reciteAyahs: reciteAyahs, reciteSurahName: startAyah.surahName }; 
     }
     
     async generateMistakeGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 

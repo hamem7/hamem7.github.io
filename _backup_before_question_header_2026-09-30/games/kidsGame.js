@@ -13,7 +13,7 @@ import { showSectionHintOnce } from '../components/sectionHint.js';
 import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFixWrongAnswer, summarizeFixSession } from '../components/fixErrorsPrompt.js';
 // 🌟 [جديد] تحديد موضع الخطأ (من آية ... إلى آية ...) في أسئلة التسميع — راجع components/reciteRangePicker.js
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
-import { buildLinkQuestionRecord, buildWeaknessQuestionHeader } from '../components/questionTextRecord.js';
+import { buildLinkQuestionRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -391,12 +391,11 @@ async function playNextMission() {
                 originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.text} ﴾</div>`;
             }
 
-            // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
-            let headLine = buildWeaknessQuestionHeader(wItem, t, 'var(--kids-primary)');
+            let typeLine = wItem.questionTypeLabel ? `<div style="font-size:1.3rem; font-weight:bold; margin-top:15px; color:var(--kids-primary);">${t('hw_q_type_label')} ${wItem.questionTypeLabel}</div>` : '';
             let dateLine = wItem.dateRecorded ? `<div style="font-size:1rem; color:#64748b; margin-top:5px;">${t('error_recorded_on')} ${new Date(wItem.dateRecorded).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</div>` : '';
             let errorLine = `<div style="font-size:1.4rem; font-weight:bold; margin-top:10px;">${t("الخطأ السابق المسجل:")} [ ${wItem.errorTypes} ]</div>`;
 
-            GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${headLine}${originalBodyHTML}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.correctAns || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
+            GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${originalBodyHTML}${typeLine}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.correctAns || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
             document.getElementById('teacher-eval-area').style.display = 'block';
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
@@ -698,7 +697,6 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 errorTypesList: errs,
                 questionType: cd.type || null,
                 questionTypeLabel: typeLabel,
-                questionTitle: cd.questionTitle || null,
                 questionBody: reciteRec ? reciteRec.questionBody : (linkRec ? linkRec.questionBody : ((cd.type !== 'kids_word_order' && cd.questionBody) ? cd.questionBody : null)),
                 fullAnswer: reciteRec ? reciteRec.fullAnswer : (linkRec ? linkRec.fullAnswer : (cd.fullAnswer || null)),
                 reciteRanges: reciteRec ? reciteRec.ranges : null,

@@ -147,6 +147,19 @@
 .link-item.matched.pair-3 { border-color: #0891b2; background: #ecfeff; color: #0891b2; }
 .link-item.matched.pair-4 { border-color: #92400e; background: #fef3e2; color: #92400e; }
 .link-item.matched.pair-5 { border-color: #be185d; background: #fdf2f8; color: #be185d; }
+/* 🌟 [جديد] تقوية وضوح ألوان الأزواج المطابَقة في لعبة "اربط أول الآية بآخرها" — الأطفال ما كانوا
+   يميّزون اللون لأنه باهت (السبب: opacity:0.7 في .link-item.matched + خلفيات فاتحة جداً + نص بنفس
+   لون الحد). الحل: إلغاء الشفافية، خلفية مليئة باللون نفسه، نص أبيض، حد أغمق أسمك، وظل خفيف.
+   القواعد مفصولة هنا في نطاق .link-item.matched.pair-N فقط (بدون لمس القواعد الأصلية أعلاه)، فلا
+   تتأثر أي شاشة أخرى. درجات الألوان اتغمّقت شوية عشان يبقى تباين النص الأبيض مقروءًا، وما زالت
+   بعيدة عن الأحمر (الخطأ) والذهبي (التحديد) 🌟 */
+.link-item.matched[class*="pair-"] { opacity: 1; color: #ffffff; border-width: 3px; font-weight: 700 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.25); box-shadow: 0 3px 8px rgba(0,0,0,0.22); }
+.link-item.matched.pair-0 { background: #0d5c46; border-color: #06382a; }
+.link-item.matched.pair-1 { background: #1d4ed8; border-color: #1e3a8a; }
+.link-item.matched.pair-2 { background: #7c3aed; border-color: #4c1d95; }
+.link-item.matched.pair-3 { background: #0e7490; border-color: #164e63; }
+.link-item.matched.pair-4 { background: #b45309; border-color: #78350f; }
+.link-item.matched.pair-5 { background: #be185d; border-color: #831843; }
 /* 🌟 [جديد] حركة "pop" خفيفة لحظة المطابقة الصحيحة - كانت التغذية الرجعية غير متماثلة
    (فيه وميضة حمراء للخطأ عبر linkWrongFlash فوق، ومفيش أي حركة مقابلة للصح) 🌟 */
 .link-item.correct-pop { animation: linkCorrectPop 0.4s ease; }

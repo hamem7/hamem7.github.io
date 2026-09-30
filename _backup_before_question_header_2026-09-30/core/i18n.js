@@ -666,9 +666,6 @@ export const translations = {
         // 🌟 [جديد] تاريخ تسجيل الخطأ — يظهر في شاشة "علاج الخطأ السابق" حتى يعرف
         // المعلم متى أخطأ الطالب في هذا السؤال تحديداً 🌟
         error_recorded_on: "سُجل بتاريخ:",
-        // 🌟 [جديد] ترويسة صيغة السؤال في شاشة "علاج الخطأ السابق" + تنبيه الأخطاء القديمة غير القابلة للاسترجاع 🌟
-        weak_q_label: "السؤال:",
-        weak_q_legacy: "خطأ قديم: سُجِّل قبل أن تُحفظ تفاصيل السؤال، لذلك لا يمكن استرجاع صيغة السؤال الأصلية. اسأل الطالب عن الآية بالصيغة التي تراها مناسبة.",
         // 🌟 [جديد] تحديد موضع الخطأ بالتحديد (من آية ... إلى آية ...) في أسئلة التسميع —
         // راجع components/reciteRangePicker.js
         recite_range_title: "📍 موضع الخطأ بالتحديد (اختياري)",
@@ -2214,9 +2211,6 @@ export const translations = {
         strengths_title: "🌟 Main Strengths:",
         weaknesses_title: "📈 Needs Review:",
         error_recorded_on: "Recorded on:",
-        // 🌟 [New] Question header on the "Fix previous mistake" screen + notice for old, unrecoverable records 🌟
-        weak_q_label: "Question:",
-        weak_q_legacy: "Old mistake: it was recorded before question details were saved, so the original question can't be recovered. Ask the student about this ayah in whatever form you prefer.",
         // 🌟 [New] Pinpoint where the mistake happened (from ayah ... to ayah ...) in recitation questions —
         // see components/reciteRangePicker.js
         recite_range_title: "📍 Exact mistake location (optional)",

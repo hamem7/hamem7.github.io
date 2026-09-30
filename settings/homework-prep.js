@@ -114,16 +114,126 @@ export async function initHomeworkPrep() {
         .catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة عند فتح شاشة الواجبات:", err));
 }
 
+// 🌟 [جديد] أسماء الطلاب الظاهرين (غير المخفيين) المتاحين لقائمة "تخصيص الواجب لطالب محدد"
+let targetStudentNames = [];
+
+// 🌟 [جديد] تطبيع نص البحث العربي: يتجاهل التشكيل والتطويل والفروق بين (أ إ آ ا) و(ى ي) و(ة ه)
+// حتى يجد المعلم الاسم مهما كانت طريقة كتابته (مثلاً "احمد" تجد "أحمد")
+function normalizeSearchText(str) {
+    return String(str || '')
+        .toLowerCase()
+        .replace(/[ً-ٰٟـ]/g, '')
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .trim();
+}
+
+// 🌟🌟 [أُعيد تصميمه بطلب المعلم] واجهة "تخصيص الواجب" صارت: زر "رابط عام لكل الطلاب" + حقل بحث واحد.
+//  - الوضع الافتراضي = رابط عام (الزر مفعَّل)، فيكتب الطالب اسمه بنفسه عند فتح الرابط.
+//  - الكتابة في البحث تعرض النتائج؛ اختيار اسم منها يخصّص الواجب له ويُلغي تفعيل زر "رابط عام" تلقائياً.
+//  - الضغط على زر "رابط عام" يمسح الطالب المختار والبحث ويرجع الواجب عاماً.
+// القائمة الأصلية <select id="hw-target-student"> بقيت مخفية كمصدر الحقيقة الوحيد للقيمة، حتى لا يتغير
+// أي كود آخر يقرؤها (اقتراح النطاق، الحفظ، التجهيل المسبق من "مستحق اليوم").
+const TARGET_SEARCH_MAX_RESULTS = 8;
+
+// يضبط الطالب المستهدف ("" = رابط عام) ويُطلق حدث change ليعمل اقتراح النطاق كما كان
+function setTargetStudent(name) {
+    const select = document.getElementById('hw-target-student');
+    if (!select) return;
+    select.value = name || '';
+    select.dispatchEvent(new Event('change'));
+    syncTargetStudentUI();
+}
+
+// يعكس القيمة الحالية على الواجهة: حالة زر "رابط عام"، شريط الطالب المختار، وسطر التوضيح
+function syncTargetStudentUI() {
+    const select = document.getElementById('hw-target-student');
+    const generalBtn = document.getElementById('hw-general-btn');
+    const chip = document.getElementById('hw-target-student-chip');
+    const chipName = document.getElementById('hw-target-student-chip-name');
+    const hint = document.getElementById('hw-target-mode-hint');
+    const searchInput = document.getElementById('hw-target-student-search');
+    const results = document.getElementById('hw-target-student-results');
+    const noResult = document.getElementById('hw-target-student-noresult');
+    if (!select) return;
+
+    const name = select.value;
+    if (generalBtn) {
+        generalBtn.classList.toggle('is-active', !name);
+        generalBtn.setAttribute('aria-pressed', String(!name));
+    }
+    if (chip) chip.style.display = name ? 'flex' : 'none';
+    if (chipName) chipName.textContent = name;
+    if (hint) hint.textContent = name ? t('hw_hint_student') : t('hw_hint_general');
+    if (searchInput) searchInput.value = '';
+    if (results) { results.innerHTML = ''; results.style.display = 'none'; }
+    if (noResult) noResult.style.display = 'none';
+}
+
+// يعرض نتائج البحث (أول TARGET_SEARCH_MAX_RESULTS مطابقة) كأزرار قابلة للنقر تحت الحقل
+function renderTargetStudentResults(query) {
+    const results = document.getElementById('hw-target-student-results');
+    const noResult = document.getElementById('hw-target-student-noresult');
+    if (!results) return;
+
+    const q = normalizeSearchText(query);
+    results.innerHTML = '';
+    if (!q) {
+        results.style.display = 'none';
+        if (noResult) noResult.style.display = 'none';
+        return;
+    }
+
+    const matches = targetStudentNames.filter(name => normalizeSearchText(name).includes(q));
+    matches.slice(0, TARGET_SEARCH_MAX_RESULTS).forEach(name => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'hwp2-student-result';
+        btn.textContent = '👤 ' + name;
+        btn.dataset.name = name;
+        results.appendChild(btn);
+    });
+    results.style.display = matches.length ? 'flex' : 'none';
+    if (noResult) noResult.style.display = matches.length ? 'none' : 'block';
+}
+
+function setupTargetStudentSearch() {
+    const searchInput = document.getElementById('hw-target-student-search');
+    const results = document.getElementById('hw-target-student-results');
+    const generalBtn = document.getElementById('hw-general-btn');
+    const clearBtn = document.getElementById('hw-target-student-clear');
+    if (!searchInput || !results) return;
+
+    searchInput.addEventListener('input', () => renderTargetStudentResults(searchInput.value));
+    // Enter يختار أول نتيجة مباشرة (اختصار للمعلم)
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const first = results.querySelector('.hwp2-student-result');
+        if (first) setTargetStudent(first.dataset.name);
+    });
+    results.addEventListener('click', (e) => {
+        const btn = e.target.closest('.hwp2-student-result');
+        if (btn) setTargetStudent(btn.dataset.name);
+    });
+    // زر "رابط عام لكل الطلاب": يمسح أي طالب مختار ويوقف البحث الجاري
+    generalBtn?.addEventListener('click', () => setTargetStudent(''));
+    clearBtn?.addEventListener('click', () => setTargetStudent(''));
+}
+
 async function populateTargetStudents() {
     const select = document.getElementById('hw-target-student');
     if (!select) return;
 
-    select.innerHTML = `<option value="">${t('hw_general_link')}</option>`;
-
     const students = await AppState.studentManager.getAllStudents();
-    students.filter(s => !s.isHidden).forEach(s => {
-        select.appendChild(new Option(s.name, s.name));
-    });
+    // 🌟 [جديد] نحتفظ بأسماء الطلاب الظاهرين فقط (المخفي لا يظهر لا في القائمة ولا في البحث
+    // إلا بعد إعادة تفعيله) لاستخدامها في التصفية عند البحث دون إعادة الاستعلام من قاعدة البيانات
+    targetStudentNames = students.filter(s => !s.isHidden).map(s => s.name);
+
+    // القائمة المخفية تحمل كل الطلاب الظاهرين ليعمل select.value (التجهيل المسبق والحفظ) كما كان
+    select.innerHTML = `<option value="">${t('hw_general_link')}</option>`;
+    targetStudentNames.forEach(name => select.appendChild(new Option(name, name)));
 
     // 🌟 [جديد] تجهيل مسبق للطالب المستهدف عند القدوم من نقرة "مستحق اليوم" في
     // بطاقة نظرة سريعة بالشاشة الرئيسية — تُقرأ القيمة مرة واحدة فقط ثم تُفرَّغ
@@ -132,6 +242,7 @@ async function populateTargetStudents() {
         select.value = AppState.homeworkPrepPrefillStudentName;
         AppState.homeworkPrepPrefillStudentName = null;
     }
+    syncTargetStudentUI(); // 🌟 عكس القيمة الحالية على الأزرار وسطر التوضيح
 
     // 🌟 [جديد] تطبيق اقتراح النطاق تلقائياً إن كان هناك طالب مختار بالفعل الآن
     // (سواء من التجهيل المسبق أعلاه، أو لو أُعيد تحميل هذه القائمة وطالب ما
@@ -976,6 +1087,8 @@ function setupListeners() {
 
     // 🌟 [جديد] إعادة تطبيق اقتراح النطاق كل مرة يغيّر فيها المعلم الطالب المستهدف يدوياً
     document.getElementById('hw-target-student')?.addEventListener('change', suggestRangeFromStudentMemo);
+    // 🌟 [جديد] البحث بالاسم داخل قائمة الطلاب المستهدفين
+    setupTargetStudentSearch();
 
     document.getElementById('btn-generate-hw')?.addEventListener('click', generateQuestions);
     document.getElementById('btn-re-generate')?.addEventListener('click', generateQuestions);

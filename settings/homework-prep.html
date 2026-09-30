@@ -116,6 +116,36 @@
         width: 100%; padding: 11px; font-size: 1.15rem; border: 2px solid var(--dh-emerald-600);
         border-radius: 10px; font-family: inherit; outline: none; background: var(--dh-surface); color: var(--dh-ink);
     }
+    /* 🌟 [جديد] حقل البحث عن طالب — مقيّد بنطاق .hwp2-assign-box فقط حتى لا يؤثر على أي شاشة أخرى */
+    .hwp2-assign-box .hwp2-student-search {
+        width: 100%; box-sizing: border-box; padding: 10px 12px; margin-bottom: 8px; font-size: 1.05rem;
+        border: 2px solid var(--dh-gold-500); border-radius: 10px; font-family: inherit; outline: none;
+        background: var(--dh-surface); color: var(--dh-ink);
+    }
+    .hwp2-assign-box .hwp2-student-search:focus { outline: 3px solid var(--dh-gold-300); }
+    .hwp2-assign-box .hwp2-student-noresult { color: #b45309; font-size: 0.95rem; margin-bottom: 8px; }
+    /* 🌟 [أُعيد تصميمه] زر الرابط العام + نتائج البحث + شريط الطالب المختار (كلها داخل نطاق .hwp2-assign-box) */
+    .hwp2-assign-box .hwp2-general-btn {
+        width: 100%; padding: 12px; font-size: 1.15rem; font-weight: 800; font-family: inherit; cursor: pointer;
+        border: 2px solid var(--dh-emerald-600); border-radius: 10px; background: var(--dh-surface); color: var(--dh-emerald-800);
+        transition: background .15s ease, color .15s ease;
+    }
+    .hwp2-assign-box .hwp2-general-btn.is-active { background: var(--dh-emerald-800); color: #fff; }
+    .hwp2-assign-box .hwp2-or-line { text-align: center; color: #64748b; font-size: 0.95rem; margin: 10px 0 8px; }
+    .hwp2-assign-box .hwp2-student-results { flex-direction: column; gap: 6px; margin-bottom: 8px; }
+    .hwp2-assign-box .hwp2-student-result {
+        text-align: right; padding: 10px 12px; font-size: 1.05rem; font-family: inherit; cursor: pointer;
+        border: 1px solid var(--dh-gold-500); border-radius: 10px; background: var(--dh-surface); color: var(--dh-ink);
+    }
+    .hwp2-assign-box .hwp2-student-result:hover { background: var(--dh-gold-300); }
+    .hwp2-assign-box .hwp2-student-chip {
+        display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;
+        padding: 10px 12px; border-radius: 10px; background: var(--dh-emerald-800); color: #fff; font-weight: 800;
+    }
+    .hwp2-assign-box .hwp2-student-chip::before { content: '👤'; }
+    .hwp2-assign-box .hwp2-student-chip span { flex: 1; }
+    .hwp2-assign-box .hwp2-student-chip button { background: transparent; border: 0; color: #fff; font-size: 1.1rem; cursor: pointer; }
+    .hwp2-assign-box .hwp2-mode-hint { color: #64748b; font-size: 0.9rem; line-height: 1.6; }
     .hwp2-assign-box select:focus { outline: 3px solid var(--dh-gold-300); border-color: var(--dh-gold-500); }
 
     .hwp2-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
@@ -285,7 +315,21 @@
                 <!-- 🌟 حقل تخصيص الواجب لطالب محدد 🌟 -->
                 <div class="input-group hwp2-assign-box">
                     <label style="font-weight: bold; margin-bottom: 10px; display: block;" data-i18n="hw_assign_student">👤 تخصيص الواجب لطالب محدد (اختياري):</label>
-                    <select id="hw-target-student">
+                    <!-- 🌟🌟 [أُعيد تصميمه] زر "رابط عام لكل الطلاب" (الافتراضي) + حقل بحث واحد لتخصيص الواجب لطالب.
+                         اختيار طالب من النتائج يُلغي تفعيل الزر تلقائياً؛ والزر يمسح الطالب ويرجع الواجب عاماً. -->
+                    <button type="button" id="hw-general-btn" class="hwp2-general-btn is-active" aria-pressed="true" data-i18n="hw_general_btn">🌐 رابط عام لكل الطلاب</button>
+                    <div class="hwp2-or-line" data-i18n="hw_or_specific">أو خصّص الواجب لطالب محدد:</div>
+                    <input type="search" id="hw-target-student-search" class="hwp2-student-search" autocomplete="off"
+                           data-i18n-placeholder="hw_student_search_placeholder" placeholder="🔍 ابحث عن اسم طالب...">
+                    <div id="hw-target-student-results" class="hwp2-student-results" style="display:none;"></div>
+                    <div id="hw-target-student-noresult" class="hwp2-student-noresult" style="display:none;" data-i18n="hw_student_search_noresult">لا يوجد طالب بهذا الاسم</div>
+                    <div id="hw-target-student-chip" class="hwp2-student-chip" style="display:none;">
+                        <span id="hw-target-student-chip-name"></span>
+                        <button type="button" id="hw-target-student-clear" aria-label="✕">✕</button>
+                    </div>
+                    <div id="hw-target-mode-hint" class="hwp2-mode-hint" data-i18n="hw_hint_general">سيكتب الطالب اسمه بنفسه عند فتح الرابط.</div>
+                    <!-- القائمة الأصلية مخفية: مصدر الحقيقة الوحيد لقيمة الطالب المستهدف لباقي الكود -->
+                    <select id="hw-target-student" style="display:none;" aria-hidden="true" tabindex="-1">
                         <option value="" data-i18n="hw_general_link">-- رابط عام (لجميع الطلاب) --</option>
                         <!-- سيتم تعبئة أسماء الطلاب هنا برمجياً -->
                     </select>

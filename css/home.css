@@ -6,6 +6,8 @@
    لذلك لا يوجد أي تأثير على أي شاشة أخرى في المنصة غير هاتين المنطقتين. 🌟 */
 
 @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+/* 🌟 [جديد] خط Lateef لعنوان الواجهة (آية "حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ") — يدعم التشكيل الكامل وعلامات المصحف */
+@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@500;600;700&display=swap');
 
 :root {
     --dh-emerald-900: #06231c;
@@ -1264,4 +1266,151 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+
+/* ==========================================================================
+   🌟 [جديد] تنسيق عنوان الواجهة الرئيسية (آية "حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ")
+   - سبب التداخل السابق: النص كان يعتمد على تدرّج لوني مقصوص بشكل الحروف (background-clip: text)،
+     والتدرّج لا يُرسم إلا داخل صندوق العنصر، فتُقصّ علامات التشكيل البارزة خارجه (تظهر كبقع أو تختفي)،
+     كما أن الوزن 700 يسمّن الحروف فتلتحم بالتشكيل، والظل (filter) يزيد التلطخ.
+   - السبب الجذري الفعلي: قاعدة عامة في kids.css على h1,h2,h3 تفرض font-weight:700 و text-shadow أبيض
+     سميك بـ !important (حدّ أبيض حول كل حرف). لذلك نتجاوزها هنا بقاعدة أخص وبـ !important.
+   - الحل: لون كريمي ثابت بدون قصّ، ووزن أخف، وظل ناعم يعطي عمقًا وتوهجًا ذهبيًا خفيفًا.
+   - لم نعدّل adults.css؛ النطاق محصور بـ h1.home-title فقط.
+   ========================================================================== */
+h1.home-title {
+    font-family: 'Lateef', 'Amiri Quran', 'Amiri', serif;
+    font-weight: 500 !important;   /* kids.css يفرض 700 على كل h1 بـ !important */
+    font-size: clamp(2.6rem, 4.2vw, 3.7rem);   /* حجم متناسب مع باقي عناصر الواجهة بدل 4.6rem */
+    line-height: 1.8;              /* مساحة كافية للتشكيل أعلى وأسفل الحروف */
+    padding-block: 0.05em;
+    margin: 10px 0 0;
+    text-align: center;            /* الشارة والآية والعنوان الفرعي على محور واحد في المنتصف */
+    letter-spacing: 0;
+    background: none;              /* التوهج صار هالة القمر على .home-hero-text::before */
+    -webkit-background-clip: border-box;
+    background-clip: border-box;
+    color: #fffdf6;
+    -webkit-text-fill-color: #fffdf6;
+    /* kids.css كان يفرض حدًّا أبيض سميكًا (text-shadow 2px بـ !important) على كل h1 — وهو سبب الحروف الملتحمة البيضاء */
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), 0 0 34px rgba(231, 194, 106, 0.22) !important;
+}
+
+@media (max-width: 768px) {
+    h1.home-title { font-size: 2.7rem; text-align: center; }
+}
+
+/* ==========================================================================
+   🌟 [جديد] إضافات تجميلية لعنوان الواجهة: أقواس قرآنية، "حمٓ" ذهبية، فاصل زخرفي،
+   عنوان فرعي مهذّب، وظهور تدريجي متتابع. كلها محصورة بـ .home-hero-text و h1.home-title
+   ولا تمسّ أي شاشة أخرى.
+   ========================================================================== */
+h1.home-title::before,
+h1.home-title::after {
+    color: var(--dh-gold-300, #e7c26a);
+    font-family: 'Amiri Quran', serif;
+    font-size: 0.7em;
+    opacity: 0.9;
+}
+h1.home-title::before { content: "\FD3F"; margin-inline-end: 0.35em; }
+h1.home-title::after  { content: "\FD3E"; margin-inline-start: 0.35em; }
+
+h1.home-title .home-title-ha {
+    /* نفس خط ووزن وحجم بقية الآية تمامًا (Lateef)، والفرق في اللون فقط */
+    font: inherit;
+    letter-spacing: inherit;
+    color: var(--dh-gold-300, #e7c26a);
+    -webkit-text-fill-color: var(--dh-gold-300, #e7c26a);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.home-title-orn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: min(300px, 70%);
+    margin: 4px 0 14px;      /* يبدأ من نفس حافة النص (يمين) */
+    color: var(--dh-gold-300, #e7c26a);
+}
+.home-title-orn i {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(231, 194, 106, 0.6));
+}
+.home-title-orn i:last-child {
+    background: linear-gradient(270deg, transparent, rgba(231, 194, 106, 0.6));
+}
+.home-title-orn svg { flex: none; width: 22px; height: 22px; }
+
+.home-hero-text .home-subtitle {
+    font-size: 1.25rem;            /* يوازي حجم العنوان الفرعي مع الآية بشكل مريح */
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.7;
+    opacity: 0.92;
+    margin: 0 0 22px;
+}
+
+@keyframes dhTitleRise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: none; }
+}
+.home-hero-text > .home-hero-eyebrow { animation: dhTitleRise 0.9s cubic-bezier(.2,.7,.2,1) 0.05s both; }
+.home-hero-text > h1.home-title      { animation: dhTitleRise 0.9s cubic-bezier(.2,.7,.2,1) 0.25s both; }
+.home-hero-text > .home-title-orn    { animation: dhTitleRise 0.9s cubic-bezier(.2,.7,.2,1) 0.6s both; }
+.home-hero-text > .home-subtitle     { animation: dhTitleRise 0.9s cubic-bezier(.2,.7,.2,1) 0.85s both; }
+
+@media (max-width: 768px) {
+    .home-title-orn { margin-inline: auto; }
+    .home-hero-text .home-greeting-row { justify-content: center; }   /* توسيط صف الترحيب مع الصورة على الجوال */
+}
+@media (prefers-reduced-motion: reduce) {
+    .home-hero-text > .home-hero-eyebrow,
+    .home-hero-text > h1.home-title,
+    .home-hero-text > .home-title-orn,
+    .home-hero-text > .home-subtitle { animation: none; }
+}
+
+/* ==========================================================================
+   🌟 [جديد] تنسيق الواجهة الرئيسية بمحور مركزي: الشارة ← الآية ← الفاصل ← العنوان الفرعي
+   في المنتصف، تحتها هالة ذهبية ناعمة تشبه ضوء القمر، وتصغير بطاقة "نظرة سريعة".
+   النطاق محصور داخل .home-hero فلا يتأثر أي جزء آخر من المنصة.
+   ========================================================================== */
+.home-hero-text {
+    position: relative;
+    isolation: isolate;             /* لتبقى الهالة خلف النص دون التأثير على بقية الصفحة */
+    text-align: center;
+    padding-inline-end: 60px;       /* يزيح محور (الشارة/الآية/الفاصل/العنوان الفرعي) ~30px نحو اليمين */
+}
+.home-hero-text::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: -170px;
+    left: calc(50% + 30px);         /* الهالة تتبع المحور المُزاح */
+    width: min(560px, 115%);
+    aspect-ratio: 1;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(231, 194, 106, 0.30) 0, rgba(231, 194, 106, 0.11) 38%, transparent 68%);
+    pointer-events: none;
+}
+.home-hero-text .home-title-orn { margin-inline: auto; }
+.home-hero-text .home-subtitle { margin-inline: auto; text-align: center; max-width: 100%; }
+.home-hero-text .home-greeting-row,
+.home-hero-text .home-chips-row { justify-content: center; }
+
+.home-hero-grid { grid-template-columns: minmax(0, 1fr) 372px; gap: 40px; }
+.home-hero-grid .home-quickcard {
+    width: 100%;
+    max-width: 372px;
+    margin-inline-start: auto;
+    padding: 20px 20px 18px;        /* أخف من الأصل (26px) لكن محتواها مقروء بحجمه الطبيعي */
+    border-radius: 22px;
+}
+@media (max-width: 768px) {
+    .home-hero-grid { grid-template-columns: 1fr; }
+    .home-hero-grid .home-quickcard { max-width: 400px; margin-inline: auto; }
+    .home-hero-text { padding-inline-end: 0; }   /* على الجوال المحور في المنتصف تمامًا */
+    .home-hero-text::before { top: -150px; left: 50%; width: 115%; }
 }
