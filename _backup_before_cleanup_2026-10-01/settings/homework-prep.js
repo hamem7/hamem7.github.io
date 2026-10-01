@@ -38,8 +38,6 @@ import { getAllSubmissionsFromCloud } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] كل التسليمات بلا فلتر حالة — نحتاجها هنا أيضاً لمعرفة "هل وصل أي تسليم من هذا
 // الطالب لهذا الواجب؟" بغض النظر عن كونه مصحَّحاً أم لا بعد — راجع loadOverdueHomeworkStat
 import { listAllSubmissionsForNotifications } from '../core/homeworkApi.js';
-// 🌟 [جديد 2026-10-01] التنظيف التلقائي: التأكد من حذف الواجب من الخادم قبل إزالة نسخته المحلية
-import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -533,8 +531,6 @@ async function loadHomeworkDashboard() {
     // 🌟 [جديد 2026-10-01] تطبيق حالة الأزرار والمرشِّح الحالي فوراً على الصفوف المرسومة (قبل وصول ردود السحابة)
     applyHwRowStates();
     applyHwFilter();
-    // 🌟 [جديد 2026-10-01] إزالة نسخ الواجبات المحلية التي حذفها التنظيف التلقائي من الخادم (بلا انتظار — لا تحجب الجدول)
-    reconcileServerDeletedHomeworks(allHWs);
 
     // 🌟🌟 [جديد] بطاقة "يحتاج تصحيح" تُحدَّث بشكل منفصل وغير محجوب (بدون await هنا عمداً):
     // الجدول أعلاه يظهر فوراً من البيانات المحلية (IndexedDB)، بينما هذه البطاقة تعتمد على
@@ -568,7 +564,6 @@ async function loadNeedsGradingStat() {
         });
         applyHwRowStates();   // 🌟 زر الصف يتحول إلى "يحتاج تصحيح" أو يعود "النتائج" بعد التصحيح
         applyHwFilter();
-        showStaleGradingAlert(pending);
     } catch (e) {
         // 🌟 نعرض ⚠️ بدل رقم (وليس "0") حتى لا نوهم المعلم بعدم وجود أي تسليم محتاج تصحيح بينما
         // السبب الحقيقي هو تعذّر الاتصال بالسحابة — نفس فلسفة معالجة الخطأ في loadSubmissionsInline
@@ -778,88 +773,6 @@ function bindHwRowExtras() {
     });
 }
 
-// ==========================================================================================
-// 🌟🌟 [جديد 2026-10-01] ربط الواجهة بالتنظيف التلقائي في الخادم
-// ==========================================================================================
-// الحد الأدنى لعمر الواجب قبل أن نفحص هل حذفه الخادم: 14 يوماً (أقصر مهلة حذف في الخادم)، فلا نسأل عن الواجبات الحديثة.
-const HW_CLEANUP_MIN_AGE_DAYS = 14;
-const HW_STALE_GRADING_DAYS = 14;               // قرار المعلم: تنبيه واحد بعد 14 يوماً بلا تصحيح
-const HW_STALE_NOTIFIED_KEY = 'hw_stale_notified';   // localStorage: معرّفات الواجبات التي نُبِّه عنها مرة (قيمة صغيرة جداً)
-let reconcileRunning = false;
-
-// يحذف من IndexedDB (نسختك المحلية فقط) كل واجب منشور حذفه الخادم. الحذف لا يتم إلا بعد تأكيد صريح NOT_FOUND من القراءة
-// العامة؛ أي فشل/عدم يقين (لا إنترنت، حساب آخر، خادم مشغول) = لا يُحذف شيء.
-async function reconcileServerDeletedHomeworks(allHWs) {
-    if (reconcileRunning) return;
-    reconcileRunning = true;
-    try {
-        const cutoff = Date.now() - HW_CLEANUP_MIN_AGE_DAYS * 24 * 60 * 60 * 1000;
-        let candidates = (allHWs || []).filter(hw =>
-            hw.status === 'published' && isServerHomeworkId(hw.id) && new Date(hw.createdAt).getTime() <= cutoff);
-        if (!candidates.length) return;
-        // تصفية مسبقة بقائمة الخادم (نداء واحد): الموجود فيها بالتأكيد لم يُحذف. إن فشل النداء نكمل بلا تصفية (محدودة العدد أدناه)
-        try {
-            const serverIds = new Set((await listServerHomeworkIds()).map(String));
-            candidates = candidates.filter(hw => !serverIds.has(String(hw.id)));
-        } catch (e) { /* غير مؤكَّد → نتابع بالفحص الفردي المحدود */ }
-        let removed = 0;
-        for (const hw of candidates.slice(0, 15)) {
-            if (await isHomeworkMissingOnServer(hw.id)) {
-                await AppState.homeworkManager.deleteHomework(hw.id);
-                removed++;
-            }
-        }
-        if (removed > 0) await loadHomeworkDashboard();
-    } catch (e) {
-        console.error("تعذرت مزامنة الواجبات المحذوفة من الخادم:", e);
-    } finally {
-        reconcileRunning = false;
-    }
-}
-
-function readStaleNotified() {
-    try { return new Set(JSON.parse(localStorage.getItem(HW_STALE_NOTIFIED_KEY) || '[]')); } catch (e) { return new Set(); }
-}
-function writeStaleNotified(set) {
-    try { localStorage.setItem(HW_STALE_NOTIFIED_KEY, JSON.stringify(Array.from(set).slice(-300))); } catch (e) { /* التخزين غير متاح → قد يتكرر التنبيه فقط */ }
-}
-
-// تنبيه واحد لكل واجب ينتظر تصحيح المعلم منذ 14 يوماً أو أكثر (العمر = من أقدم تسليم ما زال ينتظر). بعد الضغط على "حسناً" لا يتكرر لنفس الواجب.
-// ⚠️ افتراض صريح: "ينتظر تصحيحك منذ ١٤ يوماً" تُحسب من تاريخ أقدم تسليم لم يُصحَّح بعد (submittedAt)، لا من تاريخ إنشاء الواجب.
-async function showStaleGradingAlert(pending) {
-    const box = document.getElementById('hw-stale-alert');
-    if (!box) return;
-    const now = Date.now();
-    const oldestByHw = new Map();
-    (pending || []).forEach(sub => {
-        const ms = Date.parse(sub.submittedAt);
-        if (isNaN(ms)) return;
-        if (!oldestByHw.has(sub.hwId) || ms < oldestByHw.get(sub.hwId)) oldestByHw.set(sub.hwId, ms);
-    });
-    const notified = readStaleNotified();
-    const stale = [];
-    oldestByHw.forEach((ms, hwId) => {
-        const days = Math.floor((now - ms) / (24 * 60 * 60 * 1000));
-        if (days >= HW_STALE_GRADING_DAYS && !notified.has(String(hwId))) stale.push({ hwId: String(hwId), days });
-    });
-    if (!stale.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
-    let all = [];
-    try { all = await AppState.homeworkManager.getAllHomeworks() || []; } catch (e) { /* نعرض التنبيه بلا اسم الهدف */ }
-    const lines = stale.slice(0, 5).map(s => {
-        const hw = all.find(h => String(h.id) === s.hwId);
-        const target = hw ? (hw.assignedStudentName || t('hw_general_link').replace(/[-]/g, '').trim()) : '';
-        return `<div class="hwp3-stale-line">⏰ ${t('hw_stale_alert').replace('{days}', s.days)}${target ? ` — ${esc(target)}` : ''}</div>`;
-    });
-    box.innerHTML = lines.join('') + `<button type="button" id="btn-stale-ok">${t('hw_stale_ok')}</button>`;
-    box.style.display = 'block';
-    box.querySelector('#btn-stale-ok')?.addEventListener('click', () => {
-        const n = readStaleNotified();
-        stale.forEach(s => n.add(s.hwId));
-        writeStaleNotified(n);
-        box.style.display = 'none';
-    });
-}
-
 // 🌟 تبديل عرض صف التسليمات المضمّن أسفل الواجب مباشرة (بدل النافذة المنبثقة سابقاً)،
 // مع إغلاق أي صف آخر مفتوح أولاً لتفادي تداخل currentSubmissionsList بين صفين مفتوحين.
 async function toggleInlineSubmissions(hwId) {
@@ -1053,15 +966,7 @@ function openGradingRoom(subIndex) {
         modalHtml += `</div>`;
     });
 
-    // 🌟🌟 [جديد] مربع اختياري في آخر غرفة التصحيح: كلمة من المعلم تظهر في شهادة التقدير. غير إلزامي
-    // إطلاقاً (لا يمنع الاعتماد لو تُرك فارغاً)، ويُملأ مسبقاً بالنص المحفوظ لو أعاد المعلم فتح تسليم معتمد.
-    // الحد 300 حرف حتى تبقى الشهادة متناسقة (راجع TEACHER_NOTE_MAX في Code.gs وreports/hwCertificate.js).
     modalHtml += `
-                </div>
-                <div style="margin-top: 25px; padding: 16px; background: #f0fdf4; border: 2px dashed #86efac; border-radius: 15px;">
-                    <label for="grading-teacher-note" style="display:block; font-weight: bold; color: #166534; margin-bottom: 8px; font-size: 1.1rem;">💬 ${t('hw_teacher_note_label')}</label>
-                    <textarea id="grading-teacher-note" maxlength="300" rows="3" placeholder="${esc(t('hw_teacher_note_placeholder'))}" style="width: 100%; box-sizing: border-box; padding: 10px; font-size: 1.05rem; border: 2px solid #bbf7d0; border-radius: 10px; font-family: inherit; resize: vertical; outline: none;">${esc(sub.teacherNote || '')}</textarea>
-                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">${t('hw_teacher_note_hint')}</div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 30px;">
                     <button class="btn" id="btn-save-grading" style="flex: 2; background: #10b981; font-size: 1.4rem;">💾 ${t('حفظ الدرجات وإعادة الحساب')}</button>
@@ -1135,9 +1040,7 @@ async function saveManualGrades(subIndex) {
     const wasApprovedBefore = sub.status === 'approved';
     let updated;
     try {
-        // 🌟 [جديد] نص المعلم الاختياري للشهادة (قد يكون فارغاً = لا ملاحظة / مسح ملاحظة سابقة)
-        const teacherNote = (document.getElementById('grading-teacher-note')?.value || '').trim();
-        updated = await gradeSubmissionOnServer(sub.docId, manualScores, localStudent ? localStudent.id : undefined, sub.version, teacherNote);
+        updated = await gradeSubmissionOnServer(sub.docId, manualScores, localStudent ? localStudent.id : undefined, sub.version);
     } catch (err) {
         console.error("فشل اعتماد النتيجة في الخادم:", err);
         alert(t('hw_grade_failed') + '\n' + friendlyErrorText(err));

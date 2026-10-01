@@ -868,7 +868,6 @@ export const translations = {
         header_home_btn: "الرئيسية",
         hw_publish_failed: "❌ لم يتم نشر الواجب (لم يؤكد الخادم حفظه). لم يُنشأ أي رابط.",
         hw_link_check_failed: "❌ تعذّر التأكد من الرابط.",
-        hw_link_check_late_failed: "⚠️ الواجب منشور، لكن تعذّر التأكد من أن الرابط يفتح عند الطالب. جرّب فتح الرابط بنفسك قبل إرساله.", // 🌟
         hw_results_load_error: "⚠️ تعذّر تحميل النتائج:",
         hw_legacy_row_badge: "واجب قديم",
         hw_grade_save_btn: "💾 حفظ الدرجات واعتماد النتيجة",
@@ -889,7 +888,7 @@ export const translations = {
         // 🌟🌟 [جديد] شهادة التقدير التي تظهر فور اعتماد المعلم للدرجة النهائية لأي تسليم واجب —
         // راجع reports/hwCertificate.js
         hwcert_title: "شهادة تقدير 🏅",
-        hwcert_subtitle: "منصة حمٓ لتثبيت الحفظ و المراجعة", // 🌟 الاسم المعتمد بعلامة المد (U+0653) وبدون "دار"
+        hwcert_subtitle: "منصة دار حمٓ لتحفيظ ومراجعة القرآن الكريم",
         hwcert_score_label: "النتيجة النهائية",
         hwcert_tier_excellent: "🌟 أداء رائع ومتميز! استمر بهذا التألق، أنت قدوة لزملائك.",
         hwcert_tier_good: "👏 عمل جيد جدًا! خطوة كبيرة نحو الإتقان، واصل بهذا الجهد.",
@@ -904,11 +903,6 @@ export const translations = {
         hwcert_share_unsupported_note: "تم تنزيل الشهادة كصورة — أرفقها يدوياً في محادثة واتساب مع الطالب.",
         hwcert_save_failed: "❌ تعذّر إنشاء صورة الشهادة. حاول مرة أخرى.",
         hwcert_default_student: "الطالب",
-        // 🌟 [جديد] مربع "كلمة من المعلم" الاختياري في غرفة التصحيح + ظهوره في شهادة التقدير
-        hw_teacher_note_label: "كلمة من المعلم للطالب (اختياري)",
-        hw_teacher_note_placeholder: "اكتب هنا كلمة تشجيع أو توجيه تظهر في شهادة التقدير…",
-        hw_teacher_note_hint: "اختياري — لو تركته فارغًا لن يظهر شيء في الشهادة. الحد الأقصى 300 حرف.",
-        hwcert_teacher_note_title: "💬 كلمة من المعلم",
         // 🌟🌟 [جديد] زر ونافذة "النتائج النهائية للطلاب" — قائمة كل الواجبات المصحَّحة والمعتمدة
         // مع إمكانية إعادة فتح شهادة أي طالب منها
         hw_final_results_btn: "🎓 النتائج النهائية للطلاب",
@@ -988,16 +982,6 @@ export const translations = {
         hw_close_return: "إغلاق",
         // 🌟 [جديد 2026-10-01] نصوص أزرار سجل الواجبات + رسالة نسخ الرابط + بطاقة "ابدأ من هنا" (الرئيسية)
         hw_act_results: "النتائج", hw_act_link: "نسخ الرابط", hw_act_delete: "حذف", hw_act_publish: "نشر",
-        // 🌟 [جديد 2026-10-01 — إعادة تصميم سجل الواجبات]
-        hw_hero_title: "إعداد واجب جديد", hw_hero_sub: "اختر السورة والآيات، وتُولَّد الأسئلة تلقائياً، ثم شارك الرابط مع الطالب",
-        hw_act_grade_now: "يحتاج تصحيح", hw_act_remind: "تذكير الطالب", hw_act_more: "المزيد من الإجراءات",
-        hw_filter_all: "الكل", hw_filter_published: "منشور", hw_filter_draft: "مسودة", hw_filter_grading: "يحتاج تصحيح", hw_filter_overdue: "متأخر",
-        hw_search_ph: "ابحث باسم الطالب", hw_filter_empty: "لا توجد واجبات مطابقة.",
-        hw_remind_msg: "السلام عليكم {name}، تذكير بواجبك المنزلي في منصة حمٓ. رابط الواجب:",
-        // 🌟 [جديد 2026-10-01 — التنظيف التلقائي]
-        hw_cleanup_title: "🧹 تنظيف تلقائي:",
-        hw_cleanup_body: "الواجب الذي تم تصحيحه واعتماده تُحذف تسليماته وشهاداته معه تلقائياً بعد 20 يوماً من اعتماد آخر تسليم فيه، ولا يُحذف إلا إذا كانت كل تسليماته معتمدة. والواجب الذي لم يسلّمه أحد يُحذف بعد 14 يوماً من إنشائه. أما الواجب الذي ينتظر تصحيحك فلا يُحذف أبداً. احفظ الشهادة كصورة قبل الحذف إن أردت الاحتفاظ بها، وتبقى درجات الطلاب المسجّلة في سجلاتهم.",
-        hw_stale_alert: "هذا الواجب ينتظر تصحيحك منذ {days} يوماً", hw_stale_ok: "حسناً",
         hw_link_copied: "تم نسخ الرابط ✅",
         hw_draft_publish_empty: "هذه المسودة لا تحتوي أسئلة.",
         home_start_title: "ابدأ من هنا 👋",
@@ -2665,7 +2649,6 @@ export const translations = {
         header_home_btn: "Home",
         hw_publish_failed: "❌ Homework was NOT published (the server did not confirm saving). No link was created.",
         hw_link_check_failed: "❌ Could not verify the link.",
-        hw_link_check_late_failed: "⚠️ The homework is published, but we could not confirm the link opens for students. Try opening it yourself before sending.", // 🌟
         hw_results_load_error: "⚠️ Could not load results:",
         hw_legacy_row_badge: "Old homework",
         hw_grade_save_btn: "💾 Save scores & approve result",
@@ -2684,7 +2667,7 @@ export const translations = {
         hw_ambiguous_student_confirm: "{n} students named \"{name}\" exist in your records. Link this result to the first one? (Cancel = approve without linking to any student record)",
         hw_create_student_confirm: "No student named \"{name}\" in your records. Create them and add the result to their record?",
         hwcert_title: "Certificate of Appreciation 🏅",
-        hwcert_subtitle: "Ham Platform for Retaining & Reviewing Memorization", // 🌟 نفس صياغة splash_subtitle
+        hwcert_subtitle: "Dar Ham Platform for Qur'an Memorization & Review",
         hwcert_score_label: "Final Score",
         hwcert_tier_excellent: "🌟 Outstanding performance! Keep shining, you're a role model for your classmates.",
         hwcert_tier_good: "👏 Very good work! A big step towards mastery, keep up the effort.",
@@ -2699,11 +2682,6 @@ export const translations = {
         hwcert_share_unsupported_note: "The certificate image was downloaded — attach it manually in a WhatsApp chat with the student.",
         hwcert_save_failed: "❌ Could not generate the certificate image. Try again.",
         hwcert_default_student: "Student",
-        // 🌟 [جديد] optional teacher note box in the grading room + shown on the certificate
-        hw_teacher_note_label: "A word from the teacher to the student (optional)",
-        hw_teacher_note_placeholder: "Write an encouraging or guiding note to appear on the certificate…",
-        hw_teacher_note_hint: "Optional — if left empty, nothing extra appears on the certificate. Max 300 characters.",
-        hwcert_teacher_note_title: "💬 A word from the teacher",
         hw_final_results_btn: "🎓 Students' Final Results",
         hw_final_results_title: "🎓 Graded Tests & Final Results",
         hw_final_results_empty: "No approved results yet.",
@@ -2776,16 +2754,6 @@ export const translations = {
         hw_close_return: "Close",
         // 🌟 [New 2026-10-01] Homework history action labels + copy-link message + "Start here" home card
         hw_act_results: "Results", hw_act_link: "Copy link", hw_act_delete: "Delete", hw_act_publish: "Publish",
-        // 🌟 [New 2026-10-01 — homework history redesign]
-        hw_hero_title: "Create new homework", hw_hero_sub: "Pick the surah and verses, questions are generated automatically, then share the link with the student",
-        hw_act_grade_now: "Needs grading", hw_act_remind: "Remind student", hw_act_more: "More actions",
-        hw_filter_all: "All", hw_filter_published: "Published", hw_filter_draft: "Draft", hw_filter_grading: "Needs grading", hw_filter_overdue: "Overdue",
-        hw_search_ph: "Search by student name", hw_filter_empty: "No matching homework.",
-        hw_remind_msg: "Peace be upon you {name}, a reminder about your homework on Ham. Homework link:",
-        // 🌟 [New 2026-10-01 — automatic cleanup]
-        hw_cleanup_title: "🧹 Automatic cleanup:",
-        hw_cleanup_body: "A homework that has been graded and approved is deleted automatically, together with its submissions and certificates, 20 days after its last submission was approved, and only if all of its submissions are approved. A homework nobody submitted is deleted 14 days after it was created. A homework that is waiting for your grading is never deleted. Save the certificate as an image before deletion if you want to keep it; students' scores recorded in their records are kept.",
-        hw_stale_alert: "This homework has been waiting for your grading for {days} days", hw_stale_ok: "OK",
         hw_link_copied: "Link copied ✅",
         hw_draft_publish_empty: "This draft has no questions.",
         home_start_title: "Start here 👋",

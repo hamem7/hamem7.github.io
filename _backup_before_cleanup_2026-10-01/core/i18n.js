@@ -904,11 +904,6 @@ export const translations = {
         hwcert_share_unsupported_note: "تم تنزيل الشهادة كصورة — أرفقها يدوياً في محادثة واتساب مع الطالب.",
         hwcert_save_failed: "❌ تعذّر إنشاء صورة الشهادة. حاول مرة أخرى.",
         hwcert_default_student: "الطالب",
-        // 🌟 [جديد] مربع "كلمة من المعلم" الاختياري في غرفة التصحيح + ظهوره في شهادة التقدير
-        hw_teacher_note_label: "كلمة من المعلم للطالب (اختياري)",
-        hw_teacher_note_placeholder: "اكتب هنا كلمة تشجيع أو توجيه تظهر في شهادة التقدير…",
-        hw_teacher_note_hint: "اختياري — لو تركته فارغًا لن يظهر شيء في الشهادة. الحد الأقصى 300 حرف.",
-        hwcert_teacher_note_title: "💬 كلمة من المعلم",
         // 🌟🌟 [جديد] زر ونافذة "النتائج النهائية للطلاب" — قائمة كل الواجبات المصحَّحة والمعتمدة
         // مع إمكانية إعادة فتح شهادة أي طالب منها
         hw_final_results_btn: "🎓 النتائج النهائية للطلاب",
@@ -994,10 +989,6 @@ export const translations = {
         hw_filter_all: "الكل", hw_filter_published: "منشور", hw_filter_draft: "مسودة", hw_filter_grading: "يحتاج تصحيح", hw_filter_overdue: "متأخر",
         hw_search_ph: "ابحث باسم الطالب", hw_filter_empty: "لا توجد واجبات مطابقة.",
         hw_remind_msg: "السلام عليكم {name}، تذكير بواجبك المنزلي في منصة حمٓ. رابط الواجب:",
-        // 🌟 [جديد 2026-10-01 — التنظيف التلقائي]
-        hw_cleanup_title: "🧹 تنظيف تلقائي:",
-        hw_cleanup_body: "الواجب الذي تم تصحيحه واعتماده تُحذف تسليماته وشهاداته معه تلقائياً بعد 20 يوماً من اعتماد آخر تسليم فيه، ولا يُحذف إلا إذا كانت كل تسليماته معتمدة. والواجب الذي لم يسلّمه أحد يُحذف بعد 14 يوماً من إنشائه. أما الواجب الذي ينتظر تصحيحك فلا يُحذف أبداً. احفظ الشهادة كصورة قبل الحذف إن أردت الاحتفاظ بها، وتبقى درجات الطلاب المسجّلة في سجلاتهم.",
-        hw_stale_alert: "هذا الواجب ينتظر تصحيحك منذ {days} يوماً", hw_stale_ok: "حسناً",
         hw_link_copied: "تم نسخ الرابط ✅",
         hw_draft_publish_empty: "هذه المسودة لا تحتوي أسئلة.",
         home_start_title: "ابدأ من هنا 👋",
@@ -2699,11 +2690,6 @@ export const translations = {
         hwcert_share_unsupported_note: "The certificate image was downloaded — attach it manually in a WhatsApp chat with the student.",
         hwcert_save_failed: "❌ Could not generate the certificate image. Try again.",
         hwcert_default_student: "Student",
-        // 🌟 [جديد] optional teacher note box in the grading room + shown on the certificate
-        hw_teacher_note_label: "A word from the teacher to the student (optional)",
-        hw_teacher_note_placeholder: "Write an encouraging or guiding note to appear on the certificate…",
-        hw_teacher_note_hint: "Optional — if left empty, nothing extra appears on the certificate. Max 300 characters.",
-        hwcert_teacher_note_title: "💬 A word from the teacher",
         hw_final_results_btn: "🎓 Students' Final Results",
         hw_final_results_title: "🎓 Graded Tests & Final Results",
         hw_final_results_empty: "No approved results yet.",
@@ -2782,10 +2768,6 @@ export const translations = {
         hw_filter_all: "All", hw_filter_published: "Published", hw_filter_draft: "Draft", hw_filter_grading: "Needs grading", hw_filter_overdue: "Overdue",
         hw_search_ph: "Search by student name", hw_filter_empty: "No matching homework.",
         hw_remind_msg: "Peace be upon you {name}, a reminder about your homework on Ham. Homework link:",
-        // 🌟 [New 2026-10-01 — automatic cleanup]
-        hw_cleanup_title: "🧹 Automatic cleanup:",
-        hw_cleanup_body: "A homework that has been graded and approved is deleted automatically, together with its submissions and certificates, 20 days after its last submission was approved, and only if all of its submissions are approved. A homework nobody submitted is deleted 14 days after it was created. A homework that is waiting for your grading is never deleted. Save the certificate as an image before deletion if you want to keep it; students' scores recorded in their records are kept.",
-        hw_stale_alert: "This homework has been waiting for your grading for {days} days", hw_stale_ok: "OK",
         hw_link_copied: "Link copied ✅",
         hw_draft_publish_empty: "This draft has no questions.",
         home_start_title: "Start here 👋",

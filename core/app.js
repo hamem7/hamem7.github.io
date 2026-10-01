@@ -563,7 +563,8 @@ function updateHomeDateBar() {
         const gregSuffix = lang === 'ar' ? 'م' : '';
         const hijriSuffix = lang === 'ar' ? 'هـ' : 'AH';
 
-        textEl.textContent = `${weekday} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''} • ${hijriDate} ${hijriSuffix}`;
+        // 🌟 [2026-10-01 — بطلب المعلم] الهجري أولاً ثم الميلادي (كان الترتيب معكوساً)
+        textEl.textContent = `${weekday} • ${hijriDate} ${hijriSuffix} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''}`;
     } catch (e) {
         console.warn("تعذر حساب التاريخ الهجري في هذا المتصفح:", e);
         bar.style.display = 'none';

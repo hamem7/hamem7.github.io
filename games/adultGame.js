@@ -360,7 +360,10 @@ function initGameUI() {
             const student = AppState.currentStudent;
             if (!student) return;
             // اختبار معلّق آخر موجود (لم يبدأ منه هذا الاختبار) → تأكيد قبل استبداله (افتراض: معلّق واحد لكل طالب)
-            if (student.pausedEvaluation && !GameState.resumedFromPause && !confirm(t('pause_replace_confirm'))) return;
+            // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (تجنّباً للضغط بالخطأ). لو فيه اختبار معلّق آخر
+            // سيُستبدل نعرض رسالة الاستبدال وحدها (هي أصلاً تأكيد) بدل نافذتين متتاليتين؛ وإلا نعرض تأكيد الحفظ
+            const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
+            if (!confirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
                 student.pausedEvaluation = buildPausedSnapshot(GameState, false);

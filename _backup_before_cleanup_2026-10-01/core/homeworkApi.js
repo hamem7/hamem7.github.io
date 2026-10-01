@@ -52,24 +52,6 @@ export async function fetchPublicHomework(id) {
     return r.homework;
 }
 
-// ---------- 🌟 [جديد 2026-10-01] التنظيف التلقائي: هل حُذف هذا الواجب فعلاً من الخادم؟ ----------
-// الخادم يحذف يومياً الواجبات القديمة (راجع dailyCleanup في backend/Code.gs). نسخة الواجب المحلية على جهاز
-// المعلم تبقى حتى نتأكد أنه اختفى من الخادم. نستعمل القراءة العامة getHomework (بلا أي فحص صلاحية) لأن
-// NOT_FOUND منها معناها الوحيد: لا يوجد صف بهذا المعرّف أبداً — بخلاف قراءة المعلم التي ترجع NOT_FOUND أيضاً
-// حين لا يملك الحساب الحالي صلاحية الواجب (كحساب جوجل مختلف)، فلا يصح الاعتماد عليها قبل حذف أي شيء محلياً.
-// أي خطأ آخر (شبكة، إغلاق، خادم مشغول...) = "غير مؤكَّد" فنُرجع false ولا يُحذف شيء.
-export async function isHomeworkMissingOnServer(id) {
-    if (!isServerHomeworkId(id)) return false;
-    try { await call('getHomework', { id }, {}); return false; }
-    catch (e) { return (e instanceof ApiError && e.code === 'NOT_FOUND'); }
-}
-
-// معرّفات واجبات الحساب الحالي الموجودة في الخادم (للتصفية المسبقة فقط؛ الحذف المحلي لا يعتمد عليها وحدها)
-export async function listServerHomeworkIds() {
-    const r = await teacherCall('listHomeworks', {});
-    return (r.homeworks || []).map(h => h.id);
-}
-
 // ---------- المعلم: تسليمات الطلاب ----------
 const withDocId = (s) => ({ ...s, docId: s.id });   // docId اسم قديم يستخدمه homework-prep.js
 
@@ -92,11 +74,8 @@ export async function getAllSubmissionsFromCloud() {
 // ---------- المعلم: تصحيح واعتماد ----------
 // manualScores = {<qid>: درجة}. الخادم يعيد حساب الدرجة من الإجابات المخزّنة (لا يثق بأي درجة من العميل).
 // studentId = معرّف الطالب في سجل المعلم المحلي (يُخزَّن مع التسليم ليقرأه التقرير الشهري).
-// 🌟 [جديد] teacherNote (اختياري): نص المعلم الذي يظهر في شهادة التقدير. undefined = لا يُرسَل (الخادم يُبقي القديم)،
-// وسلسلة فارغة = مسح الملاحظة السابقة.
-export async function gradeSubmissionOnServer(submissionId, manualScores, studentId, expectedVersion, teacherNote) {
+export async function gradeSubmissionOnServer(submissionId, manualScores, studentId, expectedVersion) {
     const params = { submissionId, manualScores, finalize: true };
-    if (typeof teacherNote === 'string') params.teacherNote = teacherNote;
     if (studentId !== undefined && studentId !== null) params.studentId = studentId;
     if (expectedVersion !== undefined) params.expectedVersion = expectedVersion;
     const r = await teacherCall('gradeSubmission', params, { write: true, timeoutMs: 30000 });

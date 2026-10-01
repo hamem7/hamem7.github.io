@@ -38,8 +38,6 @@ import { getAllSubmissionsFromCloud } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] كل التسليمات بلا فلتر حالة — نحتاجها هنا أيضاً لمعرفة "هل وصل أي تسليم من هذا
 // الطالب لهذا الواجب؟" بغض النظر عن كونه مصحَّحاً أم لا بعد — راجع loadOverdueHomeworkStat
 import { listAllSubmissionsForNotifications } from '../core/homeworkApi.js';
-// 🌟 [جديد 2026-10-01] التنظيف التلقائي: التأكد من حذف الواجب من الخادم قبل إزالة نسخته المحلية
-import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -417,9 +415,6 @@ async function loadHomeworkDashboard() {
             // 🌟 نحتاج معرّف الواجب على الصف نفسه حتى تقدر loadNeedsGradingStat لاحقاً (بعد وصول
             // رد السحابة) تحدد أي صف تضيف له علامة تنبيه "يحتاج تصحيح" بدون إعادة رسم الجدول كله
             tr.dataset.hwId = hw.id;
-            // 🌟 [جديد 2026-10-01] حالة الواجب واسم الطالب على الصف نفسه لتعمل التصفية والبحث (applyHwFilter) بلا إعادة رسم
-            tr.dataset.status = hw.status;
-            tr.dataset.name = String(hw.assignedStudentName || '').toLowerCase();
 
             tr.innerHTML = `
                 <td style="padding: 15px; color: #475569; font-weight: bold;">${dateStr}</td>
@@ -446,27 +441,26 @@ async function loadHomeworkDashboard() {
                 <!-- 🌟🌟 [إعادة تصميم] أزرار الإجراءات أصبحت دائرية أكبر وأوضح (hwp2-action-btn
                      المعرَّفة في settings/homework-prep.html) بدل الأزرار المستطيلة الصغيرة
                      السابقة — كل إجراء محتفظ بلونه المميز (عرض/نسخ/حذف) لسهولة التمييز بصرياً 🌟🌟 -->
-                <!-- 🌟🌟 [إعادة تصميم 2026-10-01] أزرار الإجراءات: زر أساسي واحد واضح يتغير حسب حالة الواجب
-                     (نشر للمسودة / يحتاج تصحيح / النتائج / تذكير الطالب للمتأخر — تُضبط حالته في applyHwRowStates)،
-                     ثم نسخ الرابط، و"حذف" داخل قائمة ⋯ حتى لا يُضغط بالخطأ. نفس أصناف الأزرار القديمة
-                     (btn-view-results / btn-copy-hw-row-link / btn-delete-hw-record / btn-publish-draft-row)
-                     محفوظة حتى تبقى كل المستمعات الموجودة تعمل بلا أي تغيير 🌟🌟 -->
                 <td style="padding: 15px;">
-                    <div class="hwp3-actions">
+                    <div class="hwp2-actions-cell">
                         ${hw.status === 'draft' ? `
-                        <button type="button" class="hwp3-btn hwp3-btn-publish btn-publish-draft-row" data-id="${hw.id}" title="${t('hw_act_publish')}"><span aria-hidden="true">🚀</span> <span class="hwp3-lbl">${t('hw_act_publish')}</span></button>` : `
-                        <button type="button" class="hwp3-btn hwp3-btn-results btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}"><span class="hwp3-ic" aria-hidden="true">📊</span> <span class="hwp3-lbl">${t('hw_act_results')}</span></button>
-                        ${(!isLegacyPublished && hw.assignedStudentName)
-                            ? `<button type="button" class="hwp3-btn hwp3-btn-remind btn-remind-hw-row" hidden data-hw-link="${encodeURIComponent(hwLink)}" data-student="${encodeURIComponent(hw.assignedStudentName)}"><span aria-hidden="true">🔔</span> ${t('hw_act_remind')}</button>`
-                            : ''}
+                        <div class="hwp2-action-item">
+                            <button type="button" class="hwp2-action-btn hwp2-action-publish btn-publish-draft-row" data-id="${hw.id}" title="${t('hw_act_publish')}">🚀</button>
+                            <span class="hwp2-action-label">${t('hw_act_publish')}</span>
+                        </div>` : `
+                        <div class="hwp2-action-item">
+                            <button class="hwp2-action-btn hwp2-action-view btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}">📊</button>
+                            <span class="hwp2-action-label">${t('hw_act_results')}</span>
+                        </div>
                         ${isLegacyPublished
                             ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                            : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
-                        <div class="hwp3-more">
-                            <button type="button" class="hwp3-more-btn btn-hw-more" aria-haspopup="true" aria-expanded="false" aria-label="${t('hw_act_more')}" title="${t('hw_act_more')}">⋯</button>
-                            <div class="hwp3-menu" role="menu">
-                                <button type="button" class="hwp3-menu-item btn-delete-hw-record" role="menuitem" data-id="${hw.id}"><span aria-hidden="true">🗑️</span> ${t('hw_act_delete')}</button>
-                            </div>
+                            : `<div class="hwp2-action-item">
+                                <button type="button" class="hwp2-action-btn hwp2-action-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_act_link')}">🔗</button>
+                                <span class="hwp2-action-label">${t('hw_act_link')}</span>
+                            </div>`}`}
+                        <div class="hwp2-action-item is-danger">
+                            <button class="hwp2-action-btn hwp2-action-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('hw_act_delete')}">🗑️</button>
+                            <span class="hwp2-action-label">${t('hw_act_delete')}</span>
                         </div>
                     </div>
                 </td>
@@ -524,17 +518,10 @@ async function loadHomeworkDashboard() {
                     .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
             });
         });
-
-        bindHwRowExtras();
     }
 
     document.getElementById('stat-published').innerText = publishedCount;
     document.getElementById('stat-draft').innerText = draftCount;
-    // 🌟 [جديد 2026-10-01] تطبيق حالة الأزرار والمرشِّح الحالي فوراً على الصفوف المرسومة (قبل وصول ردود السحابة)
-    applyHwRowStates();
-    applyHwFilter();
-    // 🌟 [جديد 2026-10-01] إزالة نسخ الواجبات المحلية التي حذفها التنظيف التلقائي من الخادم (بلا انتظار — لا تحجب الجدول)
-    reconcileServerDeletedHomeworks(allHWs);
 
     // 🌟🌟 [جديد] بطاقة "يحتاج تصحيح" تُحدَّث بشكل منفصل وغير محجوب (بدون await هنا عمداً):
     // الجدول أعلاه يظهر فوراً من البيانات المحلية (IndexedDB)، بينما هذه البطاقة تعتمد على
@@ -566,9 +553,6 @@ async function loadNeedsGradingStat() {
             const alertEl = document.getElementById(`hw-alert-${hwId}`);
             if (alertEl) alertEl.style.display = 'inline-block';
         });
-        applyHwRowStates();   // 🌟 زر الصف يتحول إلى "يحتاج تصحيح" أو يعود "النتائج" بعد التصحيح
-        applyHwFilter();
-        showStaleGradingAlert(pending);
     } catch (e) {
         // 🌟 نعرض ⚠️ بدل رقم (وليس "0") حتى لا نوهم المعلم بعدم وجود أي تسليم محتاج تصحيح بينما
         // السبب الحقيقي هو تعذّر الاتصال بالسحابة — نفس فلسفة معالجة الخطأ في loadSubmissionsInline
@@ -617,8 +601,6 @@ async function loadOverdueHomeworkStat(allHWs) {
     if (!candidates.length) {
         statEl.innerText = '0';
         overdueHwIds = new Set();
-        applyHwRowStates();
-        applyHwFilter();
         return;
     }
 
@@ -637,227 +619,12 @@ async function loadOverdueHomeworkStat(allHWs) {
             const el = document.getElementById(`hw-overdue-${hwId}`);
             if (el) el.style.display = 'inline-block';
         });
-        applyHwRowStates();   // 🌟 الصف المتأخر يعرض زر "تذكير الطالب"
-        applyHwFilter();
     } catch (e) {
         // 🌟 نفس فلسفة loadNeedsGradingStat أعلاه بالضبط: ⚠️ بدل "0" حتى لا نوهم المعلم بعدم
         // وجود أي واجب متأخر بينما السبب الحقيقي تعذّر الاتصال بالسحابة
         console.error("تعذر جلب قائمة الواجبات المتأخرة عن التسليم:", e);
         statEl.innerText = '⚠️';
     }
-}
-
-// ==========================================================================================
-// 🌟🌟 [جديد 2026-10-01 — إعادة تصميم سجل الواجبات لتسهيل عمل المعلم]
-// كل ما يلي إضافات فقط: لا يغيّر مصدر البيانات ولا الاستعلامات السحابية، بل يعمل على الصفوف المرسومة أصلاً.
-// ⚠️ افتراض صريح: "متأخر" هو نفس تعريف loadOverdueHomeworkStat (واجب مخصَّص لطالب، منشور منذ HW_OVERDUE_DAYS
-// أو أكثر، ولم يصل منه أي تسليم)، و"يحتاج تصحيح" هو نفس تعريف loadNeedsGradingStat — لم أغيّر أياً منهما.
-// ==========================================================================================
-let activeHwFilter = 'all';   // all | published | draft | grading | overdue
-let hwSearchText = '';
-
-// مقارنة المعرّفات كنصوص لأن بعض المعرّفات قد تكون أرقاماً (محلية) وبعضها نصوصاً (من الخادم)
-function hwSetHas(set, id) {
-    for (const x of set) { if (String(x) === String(id)) return true; }
-    return false;
-}
-
-// الزر الأساسي في كل صف يتبع حالة الواجب: يحتاج تصحيح (أحمر) → بعد التصحيح يعود "النتائج"؛
-// متأخر عن التسليم → "تذكير الطالب" مكان "النتائج" (لا نتائج أصلاً ليعرضها).
-function applyHwRowStates() {
-    document.querySelectorAll('#hw-history-tbody tr[data-hw-id]').forEach(tr => {
-        if (tr.dataset.status !== 'published') return;
-        const id = tr.dataset.hwId;
-        const resBtn = tr.querySelector('.btn-view-results');
-        const remindBtn = tr.querySelector('.btn-remind-hw-row');
-        const needsGrading = hwSetHas(pendingGradingHwIds, id);
-        const isOverdue = !needsGrading && hwSetHas(overdueHwIds, id);
-        if (resBtn) {
-            resBtn.classList.toggle('is-grading', needsGrading);
-            const ic = resBtn.querySelector('.hwp3-ic');
-            const lbl = resBtn.querySelector('.hwp3-lbl');
-            if (ic) ic.textContent = needsGrading ? '✍️' : '📊';
-            if (lbl) lbl.textContent = needsGrading ? t('hw_act_grade_now') : t('hw_act_results');
-            resBtn.hidden = isOverdue && !!remindBtn;
-        }
-        if (remindBtn) remindBtn.hidden = !isOverdue;
-    });
-}
-
-function hwRowMatches(tr) {
-    const id = tr.dataset.hwId;
-    let ok = true;
-    switch (activeHwFilter) {
-        case 'published': ok = tr.dataset.status === 'published'; break;
-        case 'draft': ok = tr.dataset.status === 'draft'; break;
-        case 'grading': ok = hwSetHas(pendingGradingHwIds, id); break;
-        case 'overdue': ok = hwSetHas(overdueHwIds, id); break;
-        default: ok = true;
-    }
-    if (ok && hwSearchText) ok = (tr.dataset.name || '').includes(hwSearchText);
-    return ok;
-}
-
-function applyHwFilter() {
-    const tbody = document.getElementById('hw-history-tbody');
-    if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll('tr[data-hw-id]'));
-    const counts = { all: rows.length, published: 0, draft: 0, grading: 0, overdue: 0 };
-    let visible = 0;
-    rows.forEach(tr => {
-        const id = tr.dataset.hwId;
-        if (tr.dataset.status === 'published') counts.published++;
-        else if (tr.dataset.status === 'draft') counts.draft++;
-        if (hwSetHas(pendingGradingHwIds, id)) counts.grading++;
-        if (hwSetHas(overdueHwIds, id)) counts.overdue++;
-        const show = hwRowMatches(tr);
-        tr.style.display = show ? '' : 'none';
-        if (!show) {
-            const subsRow = document.getElementById(`hw-subs-row-${id}`);
-            if (subsRow) subsRow.style.display = 'none';
-        } else {
-            visible++;
-        }
-    });
-    document.querySelectorAll('#hw-history-chips [data-count]').forEach(el => {
-        el.textContent = ' ' + (counts[el.getAttribute('data-count')] ?? 0);
-    });
-    const oldEmpty = document.getElementById('hw-filter-empty');
-    if (oldEmpty) oldEmpty.remove();
-    if (rows.length && visible === 0) {
-        const tr = document.createElement('tr');
-        tr.id = 'hw-filter-empty';
-        tr.className = 'hwp3-empty-row';
-        tr.innerHTML = `<td colspan="4">${t('hw_filter_empty')}</td>`;
-        tbody.appendChild(tr);
-    }
-    document.querySelectorAll('#hw-history-chips .hwp3-chip').forEach(c => {
-        c.classList.toggle('is-on', c.getAttribute('data-filter') === activeHwFilter);
-    });
-    const cardMap = { published: 'stat-published-card', draft: 'stat-draft-card', grading: 'stat-needs-grading-card', overdue: 'stat-overdue-card' };
-    Object.keys(cardMap).forEach(k => {
-        document.getElementById(cardMap[k])?.classList.toggle('is-on', activeHwFilter === k);
-    });
-}
-
-// toggle=true: الضغط مرة ثانية على نفس البطاقة يلغي التصفية ويرجع "الكل"
-function setHwFilter(f, toggle) {
-    activeHwFilter = (toggle && activeHwFilter === f) ? 'all' : f;
-    applyHwFilter();
-}
-
-function closeAllHwMenus() {
-    document.querySelectorAll('.hwp3-more.is-open').forEach(w => {
-        w.classList.remove('is-open');
-        w.querySelector('.btn-hw-more')?.setAttribute('aria-expanded', 'false');
-    });
-}
-
-// مستمعات الأزرار الجديدة داخل صفوف الجدول (تذكير الطالب + قائمة ⋯)
-function bindHwRowExtras() {
-    document.querySelectorAll('.btn-remind-hw-row').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
-            const name = decodeURIComponent(e.currentTarget.getAttribute('data-student') || '');
-            // واتساب بلا رقم محدد (wa.me/?text=) فيختار المعلم جهة الاتصال بنفسه — لأن رقم الطالب غير مخزَّن في هذه الشاشة
-            const msg = `${t('hw_remind_msg').replace('{name}', name)}\n${link}`;
-            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-        });
-    });
-    document.querySelectorAll('.btn-hw-more').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const wrap = e.currentTarget.closest('.hwp3-more');
-            const willOpen = !wrap.classList.contains('is-open');
-            closeAllHwMenus();
-            if (willOpen) {
-                wrap.classList.add('is-open');
-                e.currentTarget.setAttribute('aria-expanded', 'true');
-            }
-        });
-    });
-}
-
-// ==========================================================================================
-// 🌟🌟 [جديد 2026-10-01] ربط الواجهة بالتنظيف التلقائي في الخادم
-// ==========================================================================================
-// الحد الأدنى لعمر الواجب قبل أن نفحص هل حذفه الخادم: 14 يوماً (أقصر مهلة حذف في الخادم)، فلا نسأل عن الواجبات الحديثة.
-const HW_CLEANUP_MIN_AGE_DAYS = 14;
-const HW_STALE_GRADING_DAYS = 14;               // قرار المعلم: تنبيه واحد بعد 14 يوماً بلا تصحيح
-const HW_STALE_NOTIFIED_KEY = 'hw_stale_notified';   // localStorage: معرّفات الواجبات التي نُبِّه عنها مرة (قيمة صغيرة جداً)
-let reconcileRunning = false;
-
-// يحذف من IndexedDB (نسختك المحلية فقط) كل واجب منشور حذفه الخادم. الحذف لا يتم إلا بعد تأكيد صريح NOT_FOUND من القراءة
-// العامة؛ أي فشل/عدم يقين (لا إنترنت، حساب آخر، خادم مشغول) = لا يُحذف شيء.
-async function reconcileServerDeletedHomeworks(allHWs) {
-    if (reconcileRunning) return;
-    reconcileRunning = true;
-    try {
-        const cutoff = Date.now() - HW_CLEANUP_MIN_AGE_DAYS * 24 * 60 * 60 * 1000;
-        let candidates = (allHWs || []).filter(hw =>
-            hw.status === 'published' && isServerHomeworkId(hw.id) && new Date(hw.createdAt).getTime() <= cutoff);
-        if (!candidates.length) return;
-        // تصفية مسبقة بقائمة الخادم (نداء واحد): الموجود فيها بالتأكيد لم يُحذف. إن فشل النداء نكمل بلا تصفية (محدودة العدد أدناه)
-        try {
-            const serverIds = new Set((await listServerHomeworkIds()).map(String));
-            candidates = candidates.filter(hw => !serverIds.has(String(hw.id)));
-        } catch (e) { /* غير مؤكَّد → نتابع بالفحص الفردي المحدود */ }
-        let removed = 0;
-        for (const hw of candidates.slice(0, 15)) {
-            if (await isHomeworkMissingOnServer(hw.id)) {
-                await AppState.homeworkManager.deleteHomework(hw.id);
-                removed++;
-            }
-        }
-        if (removed > 0) await loadHomeworkDashboard();
-    } catch (e) {
-        console.error("تعذرت مزامنة الواجبات المحذوفة من الخادم:", e);
-    } finally {
-        reconcileRunning = false;
-    }
-}
-
-function readStaleNotified() {
-    try { return new Set(JSON.parse(localStorage.getItem(HW_STALE_NOTIFIED_KEY) || '[]')); } catch (e) { return new Set(); }
-}
-function writeStaleNotified(set) {
-    try { localStorage.setItem(HW_STALE_NOTIFIED_KEY, JSON.stringify(Array.from(set).slice(-300))); } catch (e) { /* التخزين غير متاح → قد يتكرر التنبيه فقط */ }
-}
-
-// تنبيه واحد لكل واجب ينتظر تصحيح المعلم منذ 14 يوماً أو أكثر (العمر = من أقدم تسليم ما زال ينتظر). بعد الضغط على "حسناً" لا يتكرر لنفس الواجب.
-// ⚠️ افتراض صريح: "ينتظر تصحيحك منذ ١٤ يوماً" تُحسب من تاريخ أقدم تسليم لم يُصحَّح بعد (submittedAt)، لا من تاريخ إنشاء الواجب.
-async function showStaleGradingAlert(pending) {
-    const box = document.getElementById('hw-stale-alert');
-    if (!box) return;
-    const now = Date.now();
-    const oldestByHw = new Map();
-    (pending || []).forEach(sub => {
-        const ms = Date.parse(sub.submittedAt);
-        if (isNaN(ms)) return;
-        if (!oldestByHw.has(sub.hwId) || ms < oldestByHw.get(sub.hwId)) oldestByHw.set(sub.hwId, ms);
-    });
-    const notified = readStaleNotified();
-    const stale = [];
-    oldestByHw.forEach((ms, hwId) => {
-        const days = Math.floor((now - ms) / (24 * 60 * 60 * 1000));
-        if (days >= HW_STALE_GRADING_DAYS && !notified.has(String(hwId))) stale.push({ hwId: String(hwId), days });
-    });
-    if (!stale.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
-    let all = [];
-    try { all = await AppState.homeworkManager.getAllHomeworks() || []; } catch (e) { /* نعرض التنبيه بلا اسم الهدف */ }
-    const lines = stale.slice(0, 5).map(s => {
-        const hw = all.find(h => String(h.id) === s.hwId);
-        const target = hw ? (hw.assignedStudentName || t('hw_general_link').replace(/[-]/g, '').trim()) : '';
-        return `<div class="hwp3-stale-line">⏰ ${t('hw_stale_alert').replace('{days}', s.days)}${target ? ` — ${esc(target)}` : ''}</div>`;
-    });
-    box.innerHTML = lines.join('') + `<button type="button" id="btn-stale-ok">${t('hw_stale_ok')}</button>`;
-    box.style.display = 'block';
-    box.querySelector('#btn-stale-ok')?.addEventListener('click', () => {
-        const n = readStaleNotified();
-        stale.forEach(s => n.add(s.hwId));
-        writeStaleNotified(n);
-        box.style.display = 'none';
-    });
 }
 
 // 🌟 تبديل عرض صف التسليمات المضمّن أسفل الواجب مباشرة (بدل النافذة المنبثقة سابقاً)،
@@ -1053,15 +820,7 @@ function openGradingRoom(subIndex) {
         modalHtml += `</div>`;
     });
 
-    // 🌟🌟 [جديد] مربع اختياري في آخر غرفة التصحيح: كلمة من المعلم تظهر في شهادة التقدير. غير إلزامي
-    // إطلاقاً (لا يمنع الاعتماد لو تُرك فارغاً)، ويُملأ مسبقاً بالنص المحفوظ لو أعاد المعلم فتح تسليم معتمد.
-    // الحد 300 حرف حتى تبقى الشهادة متناسقة (راجع TEACHER_NOTE_MAX في Code.gs وreports/hwCertificate.js).
     modalHtml += `
-                </div>
-                <div style="margin-top: 25px; padding: 16px; background: #f0fdf4; border: 2px dashed #86efac; border-radius: 15px;">
-                    <label for="grading-teacher-note" style="display:block; font-weight: bold; color: #166534; margin-bottom: 8px; font-size: 1.1rem;">💬 ${t('hw_teacher_note_label')}</label>
-                    <textarea id="grading-teacher-note" maxlength="300" rows="3" placeholder="${esc(t('hw_teacher_note_placeholder'))}" style="width: 100%; box-sizing: border-box; padding: 10px; font-size: 1.05rem; border: 2px solid #bbf7d0; border-radius: 10px; font-family: inherit; resize: vertical; outline: none;">${esc(sub.teacherNote || '')}</textarea>
-                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">${t('hw_teacher_note_hint')}</div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 30px;">
                     <button class="btn" id="btn-save-grading" style="flex: 2; background: #10b981; font-size: 1.4rem;">💾 ${t('حفظ الدرجات وإعادة الحساب')}</button>
@@ -1135,9 +894,7 @@ async function saveManualGrades(subIndex) {
     const wasApprovedBefore = sub.status === 'approved';
     let updated;
     try {
-        // 🌟 [جديد] نص المعلم الاختياري للشهادة (قد يكون فارغاً = لا ملاحظة / مسح ملاحظة سابقة)
-        const teacherNote = (document.getElementById('grading-teacher-note')?.value || '').trim();
-        updated = await gradeSubmissionOnServer(sub.docId, manualScores, localStudent ? localStudent.id : undefined, sub.version, teacherNote);
+        updated = await gradeSubmissionOnServer(sub.docId, manualScores, localStudent ? localStudent.id : undefined, sub.version);
     } catch (err) {
         console.error("فشل اعتماد النتيجة في الخادم:", err);
         alert(t('hw_grade_failed') + '\n' + friendlyErrorText(err));
@@ -1278,22 +1035,14 @@ function setupListeners() {
     // "سجل الواجبات" (نفس زر btn-tab-history) حيث تظهر علامات ⚠️ بجانب الواجبات المتأثرة.
     // التلميح (title) يُضبط هنا ديناميكياً بدل كتابته ثابتاً في HTML لأن data-i18n لا يدعم
     // خاصية title، فهذا يضمن تطابقه مع اللغة الحالية دائماً.
-    // 🌟 [جديد 2026-10-01] نقر بطاقة الأعداد = تصفية السجل بحالتها (وينتقل المعلم لتبويب السجل إن لم يكن فيه).
-    // إن كان في السجل أصلاً فالنقر المتكرر على نفس البطاقة يلغي التصفية.
-    function filterFromCard(f) {
-        const wasOnHistory = tabHistory.style.display === 'block';
-        if (!wasOnHistory) btnHistory?.click();
-        setHwFilter(f, wasOnHistory);
-    }
-
     const statNeedsGradingCard = document.getElementById('stat-needs-grading-card');
     if (statNeedsGradingCard) {
         statNeedsGradingCard.title = t('hw_needs_grading_tooltip');
-        statNeedsGradingCard.addEventListener('click', () => filterFromCard('grading'));
+        statNeedsGradingCard.addEventListener('click', () => btnHistory?.click());
         // 🌟 [جديد] العنصر أصبح له role="button" و tabindex في HTML (بدل div عادية بلا أي
         // دلالة تفاعلية)، فلازم يستجيب أيضاً لـ Enter/Space من لوحة المفاتيح مثل أي زر حقيقي
         statNeedsGradingCard.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterFromCard('grading'); }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btnHistory?.click(); }
         });
     }
 
@@ -1303,31 +1052,11 @@ function setupListeners() {
     const statOverdueCard = document.getElementById('stat-overdue-card');
     if (statOverdueCard) {
         statOverdueCard.title = t('hw_overdue_tooltip');
-        statOverdueCard.addEventListener('click', () => filterFromCard('overdue'));
+        statOverdueCard.addEventListener('click', () => btnHistory?.click());
         statOverdueCard.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterFromCard('overdue'); }
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btnHistory?.click(); }
         });
     }
-
-    // 🌟🌟 [جديد 2026-10-01] بطاقتا "منشور الآن" و"مسودة" تعملان كمرشِّحات أيضاً
-    ['published', 'draft'].forEach(k => {
-        const card = document.getElementById(`stat-${k}-card`);
-        if (!card) return;
-        card.addEventListener('click', () => filterFromCard(k));
-        card.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filterFromCard(k); }
-        });
-    });
-    document.querySelectorAll('#hw-history-chips .hwp3-chip').forEach(c => {
-        c.addEventListener('click', () => setHwFilter(c.getAttribute('data-filter'), false));
-    });
-    document.getElementById('hw-history-search')?.addEventListener('input', (e) => {
-        hwSearchText = e.target.value.trim().toLowerCase();
-        applyHwFilter();
-    });
-    // إغلاق قائمة ⋯ بالنقر خارجها أو بمفتاح Escape
-    document.addEventListener('click', closeAllHwMenus);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllHwMenus(); });
 
     // 🌟🌟 [إعادة تصميم] التبويبات الثلاثة ("إعداد واجب جديد"، "سجل الواجبات"، "النتائج النهائية
     // للطلاب") أصبحت تُدار بدالة واحدة موحَّدة switchHwTab بدل معالِجين منفصلين مكرَّرين — كل
@@ -1358,18 +1087,11 @@ function setupListeners() {
         tabHistory.style.display = (tab === 'history') ? 'block' : 'none';
         tabFinalResults.style.display = (tab === 'final') ? 'block' : 'none';
         setActiveTabBtn(tab === 'new' ? btnNew : (tab === 'history' ? btnHistory : btnFinalResults));
-        // 🌟 [جديد 2026-10-01] الزر الكبير "إعداد واجب جديد" يختفي داخل تبويب الإعداد نفسه ويظهر في بقية التبويبات
-        const heroBar = document.getElementById('hwp3-hero-bar');
-        if (heroBar) heroBar.style.display = (tab === 'new') ? 'none' : '';
         if (tab === 'history') loadHomeworkDashboard();
         if (tab === 'final') openFinalResultsModal();
     }
 
     btnNew?.addEventListener('click', () => switchHwTab('new'));
-    document.getElementById('btn-hero-new')?.addEventListener('click', () => {
-        switchHwTab('new');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
     btnHistory?.addEventListener('click', () => switchHwTab('history'));
     btnFinalResults?.addEventListener('click', () => switchHwTab('final'));
 
@@ -1614,26 +1336,6 @@ function saveManualQuestion() {
     renderPreview();
 }
 
-// 🌟 [جديد 2026-10-01 — تسريع ظهور رابط المشاركة] فحص الرابط العام (نسخة الطالب بلا إجابات صحيحة) صار يجري في
-// الخلفية بعد ظهور الرابط، بدل الانتظار له قبل العرض (كان يضيف نداءً كاملاً للخادم + حتى 3 محاولات). الرابط لا يظهر
-// أصلاً إلا بعد أن أكّد الخادم حفظ الواجب (persisted) فالفحص هنا شبكة أمان فقط.
-// ⚠️ افتراض صريح: لو فشل الفحص المتأخر نعرض تحذيراً داخل نافذة المشاركة نفسها (لا نُلغي الرابط ولا الواجب المنشور)،
-// ونتجاهل النتيجة لو أُغلقت النافذة أو تغيّر الرابط المعروض قبل وصولها (حتى لا يظهر تحذير واجب قديم على واجب جديد).
-function verifyPublicLinkInBackground(hwId) {
-    fetchPublicHomework(hwId).then(pub => {
-        if (JSON.stringify(pub).includes('correctAnswer')) throw new Error('answers leaked in public homework');
-    }).catch(err => {
-        console.error("تم نشر الواجب لكن فحص الرابط العام (في الخلفية) فشل:", err);
-        const input = document.getElementById('hw-link-input');
-        const modal = document.getElementById('hw-share-modal');
-        const warnEl = document.getElementById('hw-cloud-sync-warning');
-        if (!input || !modal || !warnEl) return;
-        if (modal.style.display === 'none' || !String(input.value || '').includes(hwId)) return;
-        warnEl.textContent = t('hw_link_check_late_failed') + ' ' + friendlyErrorText(err);
-        warnEl.style.display = 'block';
-    });
-}
-
 // 🌟🌟 [أُعيدت كتابتها — دمج نظام الواجبات الجديد] حفظ/نشر الواجب.
 // - "مسودة": تُحفظ محلياً فقط (بلا أي اتصال) كما كانت تماماً.
 // - "نشر": يُرسَل للخادم أولاً، ولا يظهر أي رابط للمشاركة إلا بعد أن يؤكد الخادم أنه حفظ الواجب وأعاد قراءته
@@ -1699,7 +1401,16 @@ async function saveHomeworkToDB(statusType) {
             return;
         }
 
-        // 🌟 [عدّل 2026-10-01] فحص الرابط العام انتقل للخلفية (verifyPublicLinkInBackground) ويبدأ بعد عرض الرابط أدناه.
+        // فحص أن الرابط يعمل كما سيراه الطالب (نسخة عامة بلا إجابات صحيحة)
+        try {
+            const pub = await fetchPublicHomework(created.id);
+            if (JSON.stringify(pub).includes('correctAnswer')) throw new Error('answers leaked in public homework');
+        } catch (err) {
+            console.error("تم حفظ الواجب لكن فحص الرابط العام فشل:", err);
+            alert(t('hw_link_check_failed') + '\n' + friendlyErrorText(err));
+            restorePublishBtn();
+            return;
+        }
 
         // نسخة محلية في سجل الواجبات (نفس البنية القديمة) بنفس معرّف الخادم
         const homeworkObj = {
@@ -1725,7 +1436,6 @@ async function saveHomeworkToDB(statusType) {
         if (syncWarningEl) syncWarningEl.style.display = 'none';
         if (retryBtn) retryBtn.style.display = 'none';
         document.getElementById('hw-share-modal').style.display = 'flex';
-        verifyPublicLinkInBackground(created.id);   // 🌟 فحص متأخر غير حاجز (راجع التعليق أعلاه)
         await loadHomeworkDashboard();
     } catch (error) {
         console.error("خطأ عام في حفظ الواجب:", error);
@@ -1763,7 +1473,13 @@ async function publishDraftFromHistory(draftId) {
         return alert(t('hw_publish_failed') + '\n' + friendlyErrorText(err));
     }
 
-    // 🌟 [عدّل 2026-10-01] فحص الرابط العام انتقل للخلفية (verifyPublicLinkInBackground) ويبدأ بعد عرض الرابط أدناه.
+    try {
+        const pub = await fetchPublicHomework(created.id);
+        if (JSON.stringify(pub).includes('correctAnswer')) throw new Error('answers leaked in public homework');
+    } catch (err) {
+        console.error("تم نشر المسودة لكن فحص الرابط العام فشل:", err);
+        return alert(t('hw_link_check_failed') + '\n' + friendlyErrorText(err));
+    }
 
     const homeworkObj = {
         id: created.id,
@@ -1787,7 +1503,6 @@ async function publishDraftFromHistory(draftId) {
     if (syncWarningEl) syncWarningEl.style.display = 'none';
     if (retryBtn) retryBtn.style.display = 'none';
     document.getElementById('hw-share-modal').style.display = 'flex';
-    verifyPublicLinkInBackground(created.id);   // 🌟 فحص متأخر غير حاجز (راجع التعليق أعلاه)
     await loadHomeworkDashboard();
 }
 

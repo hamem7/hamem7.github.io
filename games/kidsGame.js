@@ -197,7 +197,10 @@ function initGameUI() {
             if (GameState.reportDetails.length >= GameState.queue.length) return; // كل الأسئلة أُجيبت — الانتقال للتقرير جارٍ
             const student = AppState.currentStudent;
             if (!student) return;
-            if (student.pausedEvaluation && !GameState.resumedFromPause && !confirm(t('pause_replace_confirm'))) return;
+            // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (نفس منطق adultGame.js): رسالة الاستبدال وحدها
+            // لو سيُستبدل اختبار معلّق آخر، وإلا تأكيد الحفظ العادي
+            const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
+            if (!confirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
                 student.pausedEvaluation = buildPausedSnapshot(GameState, true);

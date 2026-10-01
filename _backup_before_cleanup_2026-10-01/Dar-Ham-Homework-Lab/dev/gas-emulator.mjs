@@ -75,8 +75,6 @@ class MockSheet {
   getRange(r, c, nr = 1, nc = 1) { return new MockRange(this, r, c, nr, nc); }
   setFrozenRows() {}
   insertRowsAfter(after, n) { this.maxRows += n; }
-  // 🌟 [جديد 2026-10-01] محاكاة deleteRows (لاختبار التنظيف التلقائي): يزيح الأسطر لأعلى كما يفعل Sheets فعلاً
-  deleteRows(pos, n) { if (pos < 1 || pos + n - 1 > this.maxRows) throw new Error('Invalid row range'); this.data.splice(pos - 1, n); this.maxRows -= n; }
 }
 
 class MockSpreadsheet {

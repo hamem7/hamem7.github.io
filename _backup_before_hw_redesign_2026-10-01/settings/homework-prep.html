@@ -210,97 +210,6 @@
     .hwp2-action-item.is-danger { margin-inline-start: 18px; padding-inline-start: 18px; border-inline-start: 1px solid #e2e8f0; }
     .hwp2-action-publish { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
-    /* ================================================================================
-       🌟🌟 [جديد 2026-10-01 — إعادة تصميم سجل الواجبات لتسهيل عمل المعلم]
-       كل القواعد أدناه بادئتها "hwp3-" حصراً (نطاق معزول)، ولا تلمس أي قاعدة hwp2- أو hwp- موجودة،
-       فلا تتأثر أي شاشة أخرى. الأصناف القديمة hwp2-action-* تبقى معرَّفة أعلاه كما هي (غير مستخدمة الآن).
-       ================================================================================ */
-
-    /* زر "إعداد واجب جديد" الكبير — يظهر أعلى الصفحة في تبويبَي السجل والنتائج النهائية (يخفيه JS داخل تبويب الإعداد نفسه) */
-    .hwp3-hero-bar { background: var(--dh-surface-alt); }
-    .hwp3-hero-bar .hwp2-pad { padding-top: 22px; padding-bottom: 0; }
-    .hwp3-hero {
-        display: flex; align-items: center; gap: 20px; width: 100%; box-sizing: border-box; padding: 22px 28px;
-        border: 2px solid var(--dh-gold-500); border-radius: var(--dh-radius-lg); cursor: pointer; text-align: start; font-family: inherit;
-        background: linear-gradient(120deg, var(--dh-emerald-900), var(--dh-emerald-700) 60%, var(--dh-emerald-600));
-        color: var(--dh-surface); box-shadow: 0 14px 34px rgba(6, 35, 28, .28); transition: transform .15s ease, box-shadow .15s ease;
-    }
-    .hwp3-hero:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(6, 35, 28, .34); }
-    .hwp3-hero:focus-visible { outline: 4px solid var(--dh-gold-300); outline-offset: 3px; }
-    .hwp3-hero-ic { width: 64px; height: 64px; border-radius: 20px; background: var(--dh-gold-500); color: var(--dh-emerald-900); display: grid; place-items: center; font-size: 2rem; font-weight: 700; flex-shrink: 0; }
-    .hwp3-hero-txt { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
-    .hwp3-hero-title { font-size: 1.9rem; font-weight: 700; line-height: 1.25; color: var(--dh-gold-300); }
-    .hwp3-hero-sub { font-size: 1rem; font-weight: 500; color: #e6efe9; line-height: 1.6; }
-    .hwp3-hero-go { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,.14); display: grid; place-items: center; font-size: 1.6rem; flex-shrink: 0; }
-
-    /* بطاقات الأعداد القابلة للنقر كمرشِّحات للسجل */
-    .hwp2-stat-card.hwp3-filterable { cursor: pointer; border: 2px solid transparent; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
-    .hwp2-stat-card.hwp3-filterable:hover { transform: translateY(-3px); }
-    .hwp2-stat-card.hwp3-filterable:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
-    .hwp2-stat-card.hwp3-filterable.is-on { border-color: var(--hwp2-accent, var(--dh-emerald-600)); }
-
-    /* شريط البحث والتصفية أعلى جدول السجل */
-    .hwp3-toolbar { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 6px; }
-    .hwp3-search { width: 100%; max-width: 340px; box-sizing: border-box; min-height: 44px; padding: 0 14px; font-family: inherit; font-size: 1rem;
-        border: 1.5px solid #e3dfcc; border-radius: 12px; background: var(--dh-surface); color: var(--dh-ink); }
-    .hwp3-search:focus-visible { outline: 3px solid var(--dh-gold-300); border-color: var(--dh-gold-500); }
-    .hwp3-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-    .hwp3-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; border: 1px solid #e3dfcc; border-radius: 999px;
-        background: var(--dh-surface); color: var(--dh-ink-soft); font-family: inherit; font-size: .95rem; font-weight: 700; cursor: pointer; }
-    .hwp3-chip:hover { background: var(--dh-surface-alt); }
-    .hwp3-chip:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
-    .hwp3-chip.is-on { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: #fff; }
-    .hwp3-chip-n { opacity: .75; font-weight: 500; }
-    .hwp3-empty-row td { padding: 28px; color: var(--dh-ink-soft); }
-
-    /* أزرار الإجراءات داخل صف السجل — الزر الأساسي يتغير حسب الحالة (نشر / يحتاج تصحيح / النتائج / تذكير) */
-    .hwp3-actions { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
-    .hwp3-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 0 16px; border-radius: 12px;
-        border: 1.5px solid transparent; font-family: inherit; font-size: .95rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
-    .hwp3-btn:focus-visible, .hwp3-more-btn:focus-visible, .hwp3-menu-item:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
-    .hwp3-btn[disabled] { opacity: .6; cursor: default; }
-    .hwp3-btn[hidden] { display: none; }
-    .hwp3-btn-results { background: var(--dh-emerald-700); color: #fff; }
-    .hwp3-btn-results:hover { background: var(--dh-emerald-800); }
-    .hwp3-btn-results.is-grading { background: #b42318; }
-    .hwp3-btn-results.is-grading:hover { background: #8f1d14; }
-    .hwp3-btn-publish { background: var(--dh-gold-500); color: #2b2100; }
-    .hwp3-btn-publish:hover { background: var(--dh-gold-300); }
-    .hwp3-btn-remind { background: #9a4a06; color: #fff; }
-    .hwp3-btn-remind:hover { background: #7a3a04; }
-    .hwp3-btn-link { background: transparent; color: var(--dh-emerald-700); border-color: #cfe3d9; }
-    .hwp3-btn-link:hover { background: #eef7f2; }
-    .hwp3-more { position: relative; display: inline-flex; }
-    .hwp3-more-btn { width: 42px; height: 42px; border: 0; border-radius: 12px; background: transparent; color: var(--dh-ink-soft); font-size: 1.4rem; font-weight: 700; line-height: 1; cursor: pointer; font-family: inherit; }
-    .hwp3-more-btn:hover { background: #f0ecdb; }
-    .hwp3-menu { display: none; position: absolute; inset-inline-end: 0; top: calc(100% + 4px); z-index: 20; min-width: 170px; padding: 6px;
-        background: var(--dh-surface); border: 1px solid #e3dfcc; border-radius: 12px; box-shadow: 0 12px 30px rgba(6, 35, 28, .18); }
-    .hwp3-more.is-open .hwp3-menu { display: block; }
-    .hwp3-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent;
-        font-family: inherit; font-size: .95rem; font-weight: 700; color: #b42318; cursor: pointer; text-align: start; }
-    .hwp3-menu-item:hover { background: #fdecea; }
-
-
-    /* 🌟 [جديد 2026-10-01] شريط "تنظيف تلقائي" الدائم + شريط تنبيه الواجب المنتظر للتصحيح (مرة واحدة لكل واجب) */
-    .hwp3-cleanup-note { margin: 14px 0 4px; padding: 12px 16px; border-radius: 12px; background: rgba(212, 175, 55, .16);
-        border-inline-start: 5px solid var(--dh-gold-500); color: var(--dh-ink); font-size: .95rem; line-height: 1.7; text-align: start; }
-    .hwp3-cleanup-note strong { color: #7a4b00; }
-    .hwp3-stale { margin: 12px 0 0; padding: 12px 16px; border-radius: 12px; background: #fdecea; border-inline-start: 5px solid #b42318;
-        color: #7a1a12; font-size: .95rem; line-height: 1.7; text-align: start; display: none; }
-    .hwp3-stale-line { margin: 2px 0; font-weight: 700; }
-    .hwp3-stale button { margin-top: 8px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #b42318; color: #fff;
-        font-family: inherit; font-weight: 700; cursor: pointer; }
-    .hwp3-stale button:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
-
-    @media (max-width: 600px) {
-        .hwp3-hero { padding: 16px; gap: 14px; }
-        .hwp3-hero-ic { width: 52px; height: 52px; font-size: 1.6rem; }
-        .hwp3-hero-title { font-size: 1.4rem; }
-        .hwp3-hero-sub { font-size: .9rem; }
-        .hwp3-hero-go { display: none; }
-        .hwp3-search { max-width: none; }
-    }
-
     @media (max-width: 980px) {
         .hwp2-config-grid { grid-template-columns: 1fr; }
         .hwp2-stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -333,33 +242,17 @@
             </div>
         </div>
 
-        <!-- 🌟🌟 [جديد 2026-10-01] زر "إعداد واجب جديد" الكبير — أسهل نقطة دخول للمعلم. يضغطه فيفتح تبويب الإعداد
-             (نفس زر btn-tab-new الموجود في شريط التبويبات، فلا منطق جديد)، ويخفيه JS داخل تبويب الإعداد نفسه
-             لأن المعلم هناك بالفعل. مخفي افتراضياً لأن التبويب الافتراضي هو الإعداد 🌟🌟 -->
-        <div class="hwp2-bleed hwp3-hero-bar" id="hwp3-hero-bar" style="display:none;">
-            <div class="hwp2-pad">
-                <button type="button" class="hwp3-hero" id="btn-hero-new">
-                    <span class="hwp3-hero-ic" aria-hidden="true">＋</span>
-                    <span class="hwp3-hero-txt">
-                        <span class="hwp3-hero-title" data-i18n="hw_hero_title">إعداد واجب جديد</span>
-                        <span class="hwp3-hero-sub" data-i18n="hw_hero_sub">اختر السورة والآيات، وتُولَّد الأسئلة تلقائياً، ثم شارك الرابط مع الطالب</span>
-                    </span>
-                    <span class="hwp3-hero-go" aria-hidden="true">‹</span>
-                </button>
-            </div>
-        </div>
-
         <!-- 📊 بطاقات الإحصائيات العلوية -->
         <div class="hwp2-bleed hwp2-stats-bar">
             <div class="hwp2-pad hwp2-stats-grid">
-                <div id="stat-published-card" class="hwp2-stat-card hwp2-stat-published hwp3-filterable" role="button" tabindex="0">
+                <div class="hwp2-stat-card hwp2-stat-published">
                     <div class="hwp-stat-icon" aria-hidden="true">🚀</div>
                     <div>
                         <div class="hwp-stat-value" id="stat-published">0</div>
                         <div class="hwp-stat-label" data-i18n="hw_published_now">منشور الآن</div>
                     </div>
                 </div>
-                <div id="stat-draft-card" class="hwp2-stat-card hwp2-stat-draft hwp3-filterable" role="button" tabindex="0">
+                <div class="hwp2-stat-card hwp2-stat-draft">
                     <div class="hwp-stat-icon" aria-hidden="true">📝</div>
                     <div>
                         <div class="hwp-stat-value" id="stat-draft">0</div>
@@ -376,7 +269,7 @@
                      المفاتيح (كانت div عادية بلا أي دلالة على أنها قابلة للنقر رغم أن JS يعاملها
                      كزر فعلاً). ونص hw_needs_grading_hint الصغير أسفلها ثابت الظهور دائماً (مش
                      tooltip بيظهر بالـ hover فقط) حتى يوضح تفاعليتها على تابلت/موبايل أيضاً 🌟 -->
-                <div id="stat-needs-grading-card" class="hwp2-stat-card hwp2-stat-grading hwp3-filterable" role="button" tabindex="0">
+                <div id="stat-needs-grading-card" class="hwp2-stat-card hwp2-stat-grading" role="button" tabindex="0">
                     <div class="hwp-stat-icon" aria-hidden="true">✍️</div>
                     <div>
                         <div class="hwp-stat-value" id="stat-needs-grading">0</div>
@@ -389,7 +282,7 @@
                      كل واجب "مخصَّص لطالب محدد" منشور منذ HW_OVERDUE_DAYS يوماً أو أكثر بقائمة كل
                      التسليمات لمعرفة هل سلّمه صاحبه أم لا)، والنقر عليها ينقل المعلم لتبويب "سجل
                      الواجبات" حيث تظهر علامة ⏰ بجانب كل واجب متأخر بعينه -->
-                <div id="stat-overdue-card" class="hwp2-stat-card hwp2-stat-overdue hwp3-filterable" role="button" tabindex="0">
+                <div id="stat-overdue-card" class="hwp2-stat-card hwp2-stat-overdue" role="button" tabindex="0">
                     <div class="hwp-stat-icon" aria-hidden="true">⏰</div>
                     <div>
                         <div class="hwp-stat-value" id="stat-overdue">0</div>
@@ -514,30 +407,6 @@
         <!-- ========================================== -->
         <div id="tab-history" class="hwp2-card" style="display:none;">
             <h2 style="color:#1e293b; margin-top:0; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;" data-i18n="hw_history_title">سجل الواجبات المُنْشأة</h2>
-            <!-- 🌟🌟 [جديد 2026-10-01] إشعار التنظيف التلقائي — دائم الظهور (غير قابل للإخفاء) لأن الحذف يتم بلا تنبيه مسبق.
-                 القواعد بقرار المعلم: واجب معتمد بالكامل يُحذف مع شهاداته بعد 20 يوماً من اعتماد آخر تسليم، وواجب لم يسلّمه أحد بعد
-                 14 يوماً من إنشائه، وواجب ينتظر التصحيح لا يُحذف أبداً. الحذف الفعلي يتم في الخادم (dailyCleanup في backend/Code.gs) 🌟🌟 -->
-            <div class="hwp3-cleanup-note" role="note">
-                <strong data-i18n="hw_cleanup_title">🧹 تنظيف تلقائي:</strong>
-                <span data-i18n="hw_cleanup_body">الواجب الذي تم تصحيحه واعتماده تُحذف تسليماته وشهاداته معه تلقائياً بعد 20 يوماً من اعتماد آخر تسليم فيه، ولا يُحذف إلا إذا كانت كل تسليماته معتمدة. والواجب الذي لم يسلّمه أحد يُحذف بعد 14 يوماً من إنشائه. أما الواجب الذي ينتظر تصحيحك فلا يُحذف أبداً. احفظ الشهادة كصورة قبل الحذف إن أردت الاحتفاظ بها، وتبقى درجات الطلاب المسجّلة في سجلاتهم.</span>
-            </div>
-            <!-- 🌟 تنبيه واحد (مرة لكل واجب) حين ينتظر واجب تصحيح المعلم 14 يوماً أو أكثر — يملؤه loadNeedsGradingStat -->
-            <div class="hwp3-stale" id="hw-stale-alert" role="alert"></div>
-
-            <!-- 🌟🌟 [جديد 2026-10-01] شريط بحث + مرشِّحات سريعة للسجل (الكل / منشور / مسودة / يحتاج تصحيح / متأخر).
-                 نفس بطاقات الأعداد في الأعلى تتحكم بالمرشِّح نفسه؛ التصفية كلها في المتصفح فقط (تخفي/تُظهر الصفوف
-                 المرسومة أصلاً) بلا أي استعلام جديد 🌟🌟 -->
-            <div class="hwp3-toolbar">
-                <input type="search" id="hw-history-search" class="hwp3-search" autocomplete="off"
-                       data-i18n-placeholder="hw_search_ph" placeholder="ابحث باسم الطالب" aria-label="ابحث باسم الطالب">
-                <div class="hwp3-chips" id="hw-history-chips">
-                    <button type="button" class="hwp3-chip is-on" data-filter="all"><span data-i18n="hw_filter_all">الكل</span><span class="hwp3-chip-n" data-count="all"></span></button>
-                    <button type="button" class="hwp3-chip" data-filter="published"><span data-i18n="hw_filter_published">منشور</span><span class="hwp3-chip-n" data-count="published"></span></button>
-                    <button type="button" class="hwp3-chip" data-filter="draft"><span data-i18n="hw_filter_draft">مسودة</span><span class="hwp3-chip-n" data-count="draft"></span></button>
-                    <button type="button" class="hwp3-chip" data-filter="grading"><span data-i18n="hw_filter_grading">يحتاج تصحيح</span><span class="hwp3-chip-n" data-count="grading"></span></button>
-                    <button type="button" class="hwp3-chip" data-filter="overdue"><span data-i18n="hw_filter_overdue">متأخر</span><span class="hwp3-chip-n" data-count="overdue"></span></button>
-                </div>
-            </div>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; text-align: center; margin-top: 15px;">
                     <thead>

@@ -103,6 +103,10 @@ function ensureStyles() {
         .hwcert-mistake-item:first-child { border-top: none; }
         .hwcert-mistake-correct { color: #147c5e; font-weight: bold; }
         .hwcert-no-mistakes { text-align: center; color: #147c5e; font-weight: bold; padding: 10px; }
+        .hwcert-teacher-note { background: rgba(13,92,70,0.07); border: 1px dashed var(--dh-emerald-700, #0d5c46);
+            border-radius: 14px; padding: 12px 16px; margin: 12px 0 6px; text-align: right; }
+        .hwcert-teacher-note-title { font-weight: bold; color: var(--dh-emerald-700, #0d5c46); font-size: 0.9rem; margin-bottom: 4px; }
+        .hwcert-teacher-note-text { color: var(--dh-ink, #10241c); line-height: 1.8; font-size: 1rem; white-space: pre-wrap; word-break: break-word; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
@@ -142,6 +146,8 @@ export function showHomeworkCertificate(submission, student) {
     const color = TIER_COLOR[tier];
     const avatarUrl = getStudentAvatar(student);
     const mistakes = collectMistakes(submission);
+    // 🌟 [جديد] كلمة المعلم الاختيارية (تُحفظ مع التسليم من غرفة التصحيح) — لا تظهر الكتلة لو فارغة
+    const teacherNote = String(submission.teacherNote || '').trim();
     const filename = `شهادة-${studentName}.png`.replace(/[\\/:*?"<>|]/g, '_');
 
     const overlay = document.createElement('div');
@@ -169,6 +175,12 @@ export function showHomeworkCertificate(submission, student) {
                         `).join('')}
                     </div>
                 ` : `<div class="hwcert-mistakes"><div class="hwcert-no-mistakes">${t('hwcert_no_mistakes')}</div></div>`}
+                ${teacherNote ? `
+                    <div class="hwcert-teacher-note">
+                        <div class="hwcert-teacher-note-title">${t('hwcert_teacher_note_title')}</div>
+                        <div class="hwcert-teacher-note-text">${esc(teacherNote)}</div>
+                    </div>
+                ` : ''}
             </div>
             <div class="hwcert-actions">
                 <button type="button" class="hwcert-btn-save" id="hwcert-save-btn">${t('hwcert_save_btn')}</button>
