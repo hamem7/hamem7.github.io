@@ -1,0 +1,165 @@
+/* css/teacherAuthGate.css */
+/* ========================================================== */
+/* 🌟🌟 [جديد] تصميم بوابة تسجيل دخول المعلم (components/teacherAuthGate.js) */
+/* ========================================================== */
+/* ملف معزول تماماً بنفس فلسفة sectionHint.css/welcomeBanner.css — لا يعدّل أي قاعدة موجودة
+   في أي ملف CSS آخر ولا يؤثر على أي شاشة أخرى في المنصة. يستخدم نفس متغيرات الهوية البصرية
+   المعرّفة في css/home.css (--dh-emerald-*، --dh-gold-*) حتى تتطابق نافذة تسجيل الدخول مع
+   باقي هوية المنصة البصرية. */
+
+.dh-teacher-auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 35, 28, 0.72);
+    z-index: 10500; /* أعلى من نافذة غرفة التصحيح (10000) حتى تظهر فوقها لو احتاج المعلم يدخل من هناك */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.dh-teacher-auth-box {
+    background: #fff;
+    border-radius: 20px;
+    border: 2px solid var(--dh-gold-500);
+    padding: 28px 26px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    text-align: center;
+}
+
+.dh-teacher-auth-title {
+    margin: 0 0 8px;
+    font-size: 1.4rem;
+    color: var(--dh-emerald-900);
+}
+
+.dh-teacher-auth-sub {
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    color: var(--dh-ink-soft);
+    line-height: 1.6;
+}
+
+.dh-teacher-auth-label {
+    display: block;
+    text-align: right;
+    font-weight: 600;
+    color: var(--dh-emerald-900);
+    margin: 10px 0 6px;
+    font-size: 0.9rem;
+}
+
+.dh-teacher-auth-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid #e2e8f0;
+    font-size: 1rem;
+    text-align: right;
+    outline: none;
+}
+
+.dh-teacher-auth-input:focus {
+    border-color: var(--dh-emerald-600);
+}
+
+.dh-teacher-auth-error {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 10px;
+    font-size: 0.9rem;
+}
+
+.dh-teacher-auth-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dh-teacher-auth-submit {
+    flex: 2;
+    background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)) !important;
+    border-color: var(--dh-emerald-600) !important;
+}
+
+.dh-teacher-auth-cancel {
+    flex: 1;
+}
+
+/* 🌟 [حُذفت] قواعد .dh-teacher-auth-chip (شريحة "خروج المعلم" العائمة) — الزر نفسه أُزيل من
+   components/teacherAuthGate.js بطلب المستخدم (معلم واحد فقط، لا فائدة عملية من تسجيل الخروج
+   المتكرر من نفس الجهاز). القواعد لم تُحذف نهائياً بل تُركت كتعليق هنا لو احتجنا إعادتها لاحقاً. */
+
+@media (max-width: 480px) {
+    .dh-teacher-auth-box {
+        padding: 22px 18px;
+    }
+}
+
+/* ========================================================== */
+/* 🌟🌟 [جديد] تسجيل الدخول بجوجل — زر جوجل + الفاصل + رابط المفتاح القديم + حقل ربط الواجبات
+   القديمة. نفس فلسفة الملف: قواعد جديدة فقط، لا تعديل على أي قاعدة موجودة أعلاه. */
+
+.dh-teacher-auth-google-btn {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 4px;
+    min-height: 40px; /* حتى لا "تقفز" البطاقة لحظة تحميل زر جوجل */
+}
+
+.dh-teacher-auth-hint {
+    margin: 6px 0 0;
+    font-size: 0.82rem;
+    color: var(--dh-ink-soft);
+    line-height: 1.5;
+}
+
+.dh-teacher-auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 10px;
+    color: var(--dh-ink-soft);
+    font-size: 0.85rem;
+}
+
+.dh-teacher-auth-divider::before,
+.dh-teacher-auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+/* رابط نصي بسيط (بلا خلفية) لطيّ/فرد أقسام اختيارية — مفتاح المعلم القديم وحقل ربط الواجبات القديمة */
+.dh-teacher-auth-linklike {
+    background: none;
+    border: none;
+    color: var(--dh-emerald-600);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 10px 0; /* 🌟 [إصلاح فحص الأزرار] كان 4px (ارتفاع 24px) — مساحة لمس أكبر 🌟 */
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.dh-teacher-auth-linklike:hover {
+    color: var(--dh-emerald-700);
+}
+
+.dh-teacher-auth-migrate-wrap {
+    margin-bottom: 8px;
+    text-align: right;
+}
+
+.dh-teacher-auth-legacy-form {
+    text-align: right;
+}

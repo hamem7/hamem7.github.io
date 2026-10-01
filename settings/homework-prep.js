@@ -27,7 +27,8 @@ import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
 import { submissionNeedsGrading } from '../core/submissionStatus.js';
-import { t, applyLanguage } from '../core/i18n.js';
+import { t, applyLanguage, localizeHomeworkText, surahLabel } from '../core/i18n.js';
+const hl = localizeHomeworkText; // 🌟 ترجمة نص السؤال المخزَّن بالعربية وقت العرض فقط
 // 🌟 [جديد — إصلاح XSS] تنظيف أي نص قادم من الخادم (اسم الطالب/إجاباته) قبل حقنه في innerHTML
 import { esc } from '../core/escape.js';
 // 🌟🌟 [جديد] شهادة تقدير + "النتائج النهائية للطلاب" — راجع reports/hwCertificate.js
@@ -442,11 +443,25 @@ async function loadHomeworkDashboard() {
                      السابقة — كل إجراء محتفظ بلونه المميز (عرض/نسخ/حذف) لسهولة التمييز بصرياً 🌟🌟 -->
                 <td style="padding: 15px;">
                     <div class="hwp2-actions-cell">
-                        <button class="hwp2-action-btn hwp2-action-view btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}">📊</button>
+                        ${hw.status === 'draft' ? `
+                        <div class="hwp2-action-item">
+                            <button type="button" class="hwp2-action-btn hwp2-action-publish btn-publish-draft-row" data-id="${hw.id}" title="${t('hw_act_publish')}">🚀</button>
+                            <span class="hwp2-action-label">${t('hw_act_publish')}</span>
+                        </div>` : `
+                        <div class="hwp2-action-item">
+                            <button class="hwp2-action-btn hwp2-action-view btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}">📊</button>
+                            <span class="hwp2-action-label">${t('hw_act_results')}</span>
+                        </div>
                         ${isLegacyPublished
                             ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                            : `<button type="button" class="hwp2-action-btn hwp2-action-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_copy_btn')}">🔗</button>`}
-                        <button class="hwp2-action-btn hwp2-action-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('حذف')}">🗑️</button>
+                            : `<div class="hwp2-action-item">
+                                <button type="button" class="hwp2-action-btn hwp2-action-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_act_link')}">🔗</button>
+                                <span class="hwp2-action-label">${t('hw_act_link')}</span>
+                            </div>`}`}
+                        <div class="hwp2-action-item is-danger">
+                            <button class="hwp2-action-btn hwp2-action-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('hw_act_delete')}">🗑️</button>
+                            <span class="hwp2-action-label">${t('hw_act_delete')}</span>
+                        </div>
                     </div>
                 </td>
             `;
@@ -475,6 +490,16 @@ async function loadHomeworkDashboard() {
             });
         });
 
+        // 🌟 [جديد 2026-10-01] نشر مسودة محفوظة مسبقاً من سجل الواجبات (كانت المسودة طريقاً مسدوداً: لا تعديل ولا نشر)
+        document.querySelectorAll('.btn-publish-draft-row').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const b = e.currentTarget;
+                b.disabled = true;
+                try { await publishDraftFromHistory(b.getAttribute('data-id')); }
+                finally { b.disabled = false; }
+            });
+        });
+
         document.querySelectorAll('.btn-view-results').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const hwId = e.currentTarget.getAttribute('data-id');
@@ -489,7 +514,7 @@ async function loadHomeworkDashboard() {
             btn.addEventListener('click', (e) => {
                 const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
                 navigator.clipboard.writeText(buildHomeworkShareMessage(link))
-                    .then(() => alert(t('hw_share_success')))
+                    .then(() => alert(t('hw_link_copied')))
                     .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
             });
         });
@@ -651,7 +676,7 @@ async function loadSubmissionsInline(hwId) {
             currentSubmissionsList.forEach((sub, index) => {
                 // 🌟🌟 [عدّل] نفس الفحص بالضبط، عبر الدالة المشتركة submissionNeedsGrading — راجع core/submissionStatus.js
                 let needsGrading = submissionNeedsGrading(sub);
-                let badge = needsGrading ? `<span style="background: #fef08a; color: #854d0e; font-size: 0.8rem; padding: 2px 5px; border-radius: 5px;">يحتاج تصحيح</span>` : "";
+                let badge = needsGrading ? `<span style="background: #fef08a; color: #854d0e; font-size: 0.8rem; padding: 2px 5px; border-radius: 5px;">${t('يحتاج تصحيح')}</span>` : "";
 
                 // 🌟🌟 [جديد] لا نعرض أي رقم/نسبة مئوية قبل اكتمال التصحيح اليدوي: sub.score قبل الاعتماد
                 // (provisionalScore من الخادم) محسوب من الأسئلة الآلية فقط ويتجاهل الأسئلة اليدوية المعلّقة
@@ -659,14 +684,14 @@ async function loadSubmissionsInline(hwId) {
                 // فعلياً بعد التصحيح رغم عدم وجود أي خطأ حسابي). فالنسبة تُعرض فقط بعد اكتمال كل الأسئلة
                 // اليدوية (حينها sub.score = finalScore الحقيقي = كل نقاط الواجب مجتمعة، حساب عادل بلا استثناء أي سؤال).
                 let scoreCellHtml = needsGrading
-                    ? `<span style="color:#b45309; font-size:0.95rem; font-weight:bold;">⏳ بانتظار التصحيح</span>`
+                    ? `<span style="color:#b45309; font-size:0.95rem; font-weight:bold;">${t('⏳ بانتظار التصحيح')}</span>`
                     : `<span style="color:${sub.score >= 90 ? '#10b981' : (sub.score >= 70 ? '#f59e0b' : '#ef4444')};">${sub.score}%</span>`;
 
                 tableHtml += `
                     <tr style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 15px; font-weight: bold; color: #1e293b; text-align: right;">
                             ${esc(sub.studentName)} ${badge}
-                            <button class="btn btn-open-grading" data-idx="${index}" style="background: #8b5cf6; padding: 4px 12px; font-size: 0.95rem; margin-right: 10px;">🔍 مراجعة وتصحيح</button>
+                            <button class="btn btn-open-grading" data-idx="${index}" style="background: #8b5cf6; padding: 4px 12px; font-size: 0.95rem; margin-right: 10px;">🔍 ${t('مراجعة وتصحيح')}</button>
                         </td>
                         <td style="padding: 15px; color: #64748b;">${sub.date}</td>
                         <td style="padding: 15px; font-weight: bold; font-size: 1.3rem;" id="score-cell-${index}">${scoreCellHtml}</td>
@@ -688,7 +713,7 @@ async function loadSubmissionsInline(hwId) {
         console.error("خطأ فعلي أثناء جلب نتائج الواجب من السحابة:", e);
         container.innerHTML = `<div style="padding: 20px; color: #ef4444;">
             ${t('hw_results_load_error')} ${friendlyErrorText(e)}
-            <br><button class="btn" id="btn-retry-submissions" style="margin-top:10px; background:#0ea5e9;">🔄 إعادة المحاولة</button>
+            <br><button class="btn" id="btn-retry-submissions" style="margin-top:10px; background:#0ea5e9;">🔄 ${t('إعادة المحاولة')}</button>
         </div>`;
         document.getElementById('btn-retry-submissions')?.addEventListener('click', () => loadSubmissionsInline(hwId));
     }
@@ -702,11 +727,11 @@ function openGradingRoom(subIndex) {
         <div id="grading-room-modal" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 10000; display: flex; justify-content: center; align-items: center;">
             <div class="modal-content" style="background: white; padding: 30px; border-radius: 20px; max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; text-align: right; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px;">
-                    <h2 style="color: #0369a1; margin: 0; font-size: 1.8rem;">✍️ غرفة التصحيح: ${esc(sub.studentName)}</h2>
+                    <h2 style="color: #0369a1; margin: 0; font-size: 1.8rem;">✍️ ${t('غرفة التصحيح:')} ${esc(sub.studentName)}</h2>
                     <div id="grading-room-score-badge" style="background: #f1f5f9; padding: 5px 15px; border-radius: 10px; font-weight: bold; color: #475569;">${
                         submissionNeedsGrading(sub)
-                            ? '⏳ الدرجة النهائية ستظهر بعد اعتماد كل الأسئلة اليدوية'
-                            : `النتيجة: ${sub.score}%`
+                            ? t('⏳ الدرجة النهائية ستظهر بعد اعتماد كل الأسئلة اليدوية')
+                            : `${t('النتيجة:')} ${sub.score}%`
                     }</div>
                 </div>
 
@@ -715,7 +740,6 @@ function openGradingRoom(subIndex) {
 
     sub.details.forEach((d, qIdx) => {
         let isManual = d.needsManualGrading;
-        let isAudio = d.type === 'audio_record';
         let isMatching = d.type === 'matching';
 
         let cardBg = isManual ? '#fefce8' : '#f8fafc';
@@ -723,17 +747,10 @@ function openGradingRoom(subIndex) {
 
         modalHtml += `
             <div style="background: ${cardBg}; border: 2px solid ${cardBorder}; padding: 20px; border-radius: 15px;">
-                <h3 style="color: #1e293b; font-size: 1.3rem; margin-top: 0;">السؤال ${qIdx + 1}: ${esc(d.question)}</h3>
+                <h3 style="color: #1e293b; font-size: 1.3rem; margin-top: 0;">${t('السؤال')} ${qIdx + 1}: ${esc(hl(d.question))}</h3>
         `;
 
-        if (isAudio && d.audioData) {
-            modalHtml += `
-                <div style="margin: 15px 0; padding: 15px; background: white; border-radius: 10px; border: 1px solid #cbd5e1;">
-                    <strong style="color:#0ea5e9;">🎤 تلاوة الطالب:</strong><br>
-                    <audio controls src="${/^data:audio\//.test(String(d.audioData)) ? esc(d.audioData) : ''}" style="width: 100%; margin-top: 10px;"></audio>
-                </div>
-            `;
-        } else if (isMatching && d.matchingData) {
+        if (isMatching && d.matchingData) {
             // 🌟🌟 [عُدّل — أصبح تصحيحاً آلياً] عرض تفاعلي لأزواج المطابقة: ربط الطالب الفعلي بجانب
             // الأزواج الصحيحة الفعلية (من بيانات توليد السؤال، لا تخميناً). ✅/❌ هنا هو بالضبط ما
             // يحتسبه الخادم درجة (كل ✅ = نقطة من points) — لم يعد مجرد اقتراح مرجعي، بل هو الأساس
@@ -754,9 +771,9 @@ function openGradingRoom(subIndex) {
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed #e2e8f0; font-family:'Amiri Quran', serif; font-size:1.1rem;">
                         <span style="color:#0369a1; font-weight:bold;">${esc(leftItem.text)}</span>
                         <span style="color:${isPairMatchingSuggestion ? '#10b981' : '#ef4444'};">
-                            ${studentRightItem ? esc(studentRightItem.text) : '— لم يربطها —'} ${isPairMatchingSuggestion ? '✅' : '❌'}
+                            ${studentRightItem ? esc(studentRightItem.text) : t('— لم يربطها —')} ${isPairMatchingSuggestion ? '✅' : '❌'}
                         </span>
-                        <span style="color:#94a3b8; font-size:0.9rem;">(الاقتراح: ${correctRightItem ? esc(correctRightItem.text) : '-'})</span>
+                        <span style="color:#94a3b8; font-size:0.9rem;">(${t('(الاقتراح:').replace(/^\(/, '')} ${correctRightItem ? esc(correctRightItem.text) : '-'})</span>
                     </div>
                 `;
             });
@@ -764,11 +781,11 @@ function openGradingRoom(subIndex) {
         } else {
             modalHtml += `
                 <div style="margin: 10px 0; font-size: 1.2rem;">
-                    <span style="color: #64748b;">إجابة الطالب:</span>
+                    <span style="color: #64748b;">${t('إجابة الطالب:')}</span>
                     <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${esc(d.studentAnswer)}</strong>
                 </div>
                 <div style="margin: 10px 0; font-size: 1.2rem;">
-                    <span style="color: #64748b;">الإجابة النموذجية:</span>
+                    <span style="color: #64748b;">${t('الإجابة النموذجية:')}</span>
                     <strong style="color: #10b981;">${esc(d.correctAnswer)}</strong>
                 </div>
             `;
@@ -782,7 +799,7 @@ function openGradingRoom(subIndex) {
 
             modalHtml += `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; gap: 10px;">
-                    <label style="font-weight: bold; color: #b45309;">أعطِ الطالب درجة من (${maxPoints}):</label>
+                    <label style="font-weight: bold; color: #b45309;">${t('أعطِ الطالب درجة من')} (${maxPoints}):</label>
                     <input type="number" class="manual-grade-input" data-qidx="${qIdx}" min="0" max="${maxPoints}" value="${currentScore}" style="width: 80px; padding: 10px; font-size: 1.2rem; border: 2px solid #f59e0b; border-radius: 8px; text-align: center; outline: none;">
                 </div>
             `;
@@ -795,7 +812,7 @@ function openGradingRoom(subIndex) {
                 : '';
             modalHtml += `
                 <div style="margin-top: 10px; font-size: 1rem; color: #64748b;">
-                    ${d.isCorrect ? '✅ تم التصحيح آلياً (صحيح)' : (partialLabel ? '🟡 تم التصحيح آلياً (جزئي)' : '❌ تم التصحيح آلياً (خاطئ)')}${partialLabel}
+                    ${d.isCorrect ? t('✅ تم التصحيح آلياً (صحيح)') : (partialLabel ? t('🟡 تم التصحيح آلياً (جزئي)') : t('❌ تم التصحيح آلياً (خاطئ)'))}${partialLabel}
                 </div>
             `;
         }
@@ -806,8 +823,8 @@ function openGradingRoom(subIndex) {
     modalHtml += `
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 30px;">
-                    <button class="btn" id="btn-save-grading" style="flex: 2; background: #10b981; font-size: 1.4rem;">💾 حفظ الدرجات وإعادة الحساب</button>
-                    <button class="btn btn-outline" id="btn-close-grading" style="flex: 1; border-color: #ef4444; color: #ef4444; font-size: 1.4rem;">إغلاق</button>
+                    <button class="btn" id="btn-save-grading" style="flex: 2; background: #10b981; font-size: 1.4rem;">💾 ${t('حفظ الدرجات وإعادة الحساب')}</button>
+                    <button class="btn btn-outline" id="btn-close-grading" style="flex: 1; border-color: #ef4444; color: #ef4444; font-size: 1.4rem;">${t('إغلاق')}</button>
                 </div>
             </div>
         </div>
@@ -824,7 +841,7 @@ function openGradingRoom(subIndex) {
     // 🌟 تحويل زر الحفظ ليكون Async لانتظار رفع البيانات للسحابة 🌟
     document.getElementById('btn-save-grading').addEventListener('click', async (e) => {
         const btn = e.currentTarget;
-        btn.innerHTML = "⏳ جاري الحفظ في السحابة...";
+        btn.innerHTML = t("⏳ جاري الحفظ في السحابة...");
         btn.disabled = true;
         await saveManualGrades(subIndex);
     });
@@ -990,7 +1007,7 @@ function populateDropdowns() {
         rangeTo.innerHTML = '';
 
         AppState.surahsData.forEach(s => {
-            let optStr = `${s.number}. ${t("سورة")} ${s.name}`;
+            let optStr = AppState.currentLang === 'en' ? `${s.number}. ${surahLabel(s.number)}` : `${s.number}. ${t("سورة")} ${s.name}`; // 🌟 الاسم الإنجليزي للعرض فقط
             selSurah.appendChild(new Option(optStr, s.number));
             rangeFrom.appendChild(new Option(optStr, s.number));
             rangeTo.appendChild(new Option(optStr, s.number));
@@ -1185,8 +1202,8 @@ function renderPreview() {
         if (q.type === 'matrix_order') {
             optionsHTML = `<table style="width:100%; text-align:center; border-collapse: collapse; margin-top:10px;">
                 <tr style="background:#f1f5f9; color: #475569;">
-                    <th style="padding:10px;">الآية المبعثرة</th>
-                    <th style="padding:10px;">الترتيب الصحيح لها</th>
+                    <th style="padding:10px;">${t('الآية المبعثرة')}</th>
+                    <th style="padding:10px;">${t('الترتيب الصحيح لها')}</th>
                 </tr>`;
             q.options.forEach(opt => {
                 let correctIndex = q.correctAnswer.indexOf(opt) + 1;
@@ -1198,15 +1215,13 @@ function renderPreview() {
             optionsHTML += `</table>`;
         } else if (q.type === 'dual_dropdown') {
             optionsHTML = `<div style="margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                <div style="margin-bottom: 8px;"><strong style="color:#0369a1;">إجابة الفراغ الأول [ 1 ]:</strong> <span style="color:#10b981; font-weight:bold; font-size: 1.2rem;">${q.correctAnswer[0]}</span></div>
-                <div><strong style="color:#0369a1;">إجابة الفراغ الثاني [ 2 ]:</strong> <span style="color:#10b981; font-weight:bold; font-size: 1.2rem;">${q.correctAnswer[1]}</span></div>
+                <div style="margin-bottom: 8px;"><strong style="color:#0369a1;">${t('إجابة الفراغ الأول [ 1 ]:')}</strong> <span style="color:#10b981; font-weight:bold; font-size: 1.2rem;">${q.correctAnswer[0]}</span></div>
+                <div><strong style="color:#0369a1;">${t('إجابة الفراغ الثاني [ 2 ]:')}</strong> <span style="color:#10b981; font-weight:bold; font-size: 1.2rem;">${q.correctAnswer[1]}</span></div>
             </div>`;
         } else if (q.type === 'written_blank') {
-            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981;">✍️ <strong style="color:#0369a1;">الكلمة المطلوبة:</strong> ${q.correctAnswer}</div>`;
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981;">✍️ <strong style="color:#0369a1;">${t('الكلمة المطلوبة:')}</strong> ${q.correctAnswer}</div>`;
         } else if (q.type === 'write_3_ayahs') {
-            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">الآيات الثلاث المطلوبة:</strong><br>${q.correctAnswer}</div>`;
-        } else if (q.type === 'audio_record') {
-            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #0ea5e9; background: #e0f2fe; padding: 10px; border-radius: 8px;">🎤 <strong>سيقوم الطالب بتسجيل هذا المقطع صوتياً.</strong></div>`;
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">${t('الآيات الثلاث المطلوبة:')}</strong><br>${q.correctAnswer}</div>`;
         } else if (q.type === 'matching') {
             // 🌟 [جديد] معاينة أزواج المطابقة الصحيحة للمعلم قبل النشر (بدايات ↔ نهايات)
             optionsHTML = `<div style="margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">`;
@@ -1230,11 +1245,11 @@ function renderPreview() {
             optionsHTML += `</ul>`;
         }
 
-        let manualBadge = q.needsManualGrading ? `<span style="font-size:0.8rem; background:#fef08a; color:#854d0e; padding:3px 8px; border-radius:10px; margin-right:10px;">يحتاج تقييم يدوي ✍️</span>` : "";
+        let manualBadge = q.needsManualGrading ? `<span style="font-size:0.8rem; background:#fef08a; color:#854d0e; padding:3px 8px; border-radius:10px; margin-right:10px;">${t('يحتاج تقييم يدوي ✍️')}</span>` : "";
 
         qCard.innerHTML = actionsHtml + `
-            <div style="font-weight: bold; color: #0f172a; font-size: 1.2rem; width: 70%;">${t("السؤال")} ${index + 1}: ${q.title} <span style="font-size:0.9rem; color:#64748b; font-weight:normal;">(${q.points || 1} نقاط)</span> ${manualBadge}</div>
-            <div class="quran-text" style="font-size: 1.6rem; color: #047857; margin-top: 10px;">${q.text}</div>
+            <div style="font-weight: bold; color: #0f172a; font-size: 1.2rem; width: 70%;">${t("السؤال")} ${index + 1}: ${hl(q.title)} <span style="font-size:0.9rem; color:#64748b; font-weight:normal;">(${q.points || 1} ${t('نقاط')})</span> ${manualBadge}</div>
+            <div class="quran-text" style="font-size: 1.6rem; color: #047857; margin-top: 10px;">${hl(q.text)}</div>
             ${optionsHTML}
         `;
         listDiv.appendChild(qCard);
@@ -1258,12 +1273,11 @@ function openQuestionBuilderModal(index = -1) {
     const selectEl = document.getElementById('qb-type');
     if (!selectEl.querySelector('option[value="written_blank"]')) {
         selectEl.innerHTML = `
-            <option value="mcq">اختيار من متعدد (إجابة واحدة)</option>
-            <option value="checkbox">مربعات اختيار (عدة إجابات)</option>
-            <option value="dropdown">قائمة منسدلة (فراغات)</option>
-            <option value="written_blank">أكمل الفراغ (كتابة يدوية)</option>
-            <option value="write_3_ayahs">تسميع مقطع (كتابة يدوية)</option>
-            <option value="audio_record" disabled>تسميع (تسجيل صوتي) — غير متاح حالياً</option>
+            <option value="mcq">${t('اختيار من متعدد (إجابة واحدة)')}</option>
+            <option value="checkbox">${t('مربعات اختيار (عدة إجابات)')}</option>
+            <option value="dropdown">${t('قائمة منسدلة (فراغات)')}</option>
+            <option value="written_blank">${t('أكمل الفراغ (كتابة يدوية)')}</option>
+            <option value="write_3_ayahs">${t('تسميع مقطع (كتابة يدوية)')}</option>
         `;
     }
 
@@ -1298,7 +1312,7 @@ function saveManualQuestion() {
 
     const editIndex = parseInt(document.getElementById('qb-edit-index').value);
 
-    let needsManual = (type === 'written_blank' || type === 'write_3_ayahs' || type === 'audio_record');
+    let needsManual = (type === 'written_blank' || type === 'write_3_ayahs');
 
     const newQ = {
         id: editIndex >= 0 ? currentGeneratedQuestions[editIndex].id : 'q_manual_' + Date.now(),
@@ -1307,7 +1321,7 @@ function saveManualQuestion() {
         text: text,
         options: optionsRaw,
         correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctRaw,
-        points: (type === 'checkbox' || type === 'written_blank' || type === 'audio_record') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
+        points: (type === 'checkbox' || type === 'written_blank') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
 
@@ -1428,6 +1442,68 @@ async function saveHomeworkToDB(statusType) {
         alert(t("حدث خطأ أثناء الحفظ. يرجى تحديث الصفحة."));
         restorePublishBtn();
     }
+}
+
+// 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] نشر مسودة محلية موجودة في سجل الواجبات. نفس خطوات "النشر" في
+// saveHomeworkToDB بالضبط (الخادم أولاً ثم فحص الرابط العام ثم نسخة محلية بمعرّف الخادم)، ثم تُحذف المسودة
+// القديمة حتى لا يظهر الواجب مرتين. ⚠️ افتراض صريح: المسودة تُنشر بنفس أسئلتها وطالبها المخصَّص كما حُفظت.
+async function publishDraftFromHistory(draftId) {
+    const all = await AppState.homeworkManager.getAllHomeworks() || [];
+    const draft = all.find(h => String(h.id) === String(draftId));
+    if (!draft || !Array.isArray(draft.questions) || draft.questions.length === 0) return alert(t('hw_draft_publish_empty'));
+    if (!(await ensureTeacherAuth())) return;
+
+    let studentId = null;
+    if (draft.assignedStudentName) {
+        const students = await AppState.studentManager.getAllStudents();
+        const std = students.find(s => s.name === draft.assignedStudentName);
+        if (std) studentId = std.id;
+    }
+
+    let created;
+    try {
+        created = await publishHomeworkToServer({
+            questions: draft.questions,
+            assignedStudentName: draft.assignedStudentName || null,
+            assignedStudentId: studentId,
+            meta: { app: 'darham', createdFrom: 'homework-prep-draft' }
+        });
+    } catch (err) {
+        console.error("فشل نشر المسودة في الخادم:", err);
+        return alert(t('hw_publish_failed') + '\n' + friendlyErrorText(err));
+    }
+
+    try {
+        const pub = await fetchPublicHomework(created.id);
+        if (JSON.stringify(pub).includes('correctAnswer')) throw new Error('answers leaked in public homework');
+    } catch (err) {
+        console.error("تم نشر المسودة لكن فحص الرابط العام فشل:", err);
+        return alert(t('hw_link_check_failed') + '\n' + friendlyErrorText(err));
+    }
+
+    const homeworkObj = {
+        id: created.id,
+        createdAt: created.createdAt,
+        questions: draft.questions,
+        status: 'published',
+        assignedStudentName: draft.assignedStudentName || null,
+        assignedStudentAvatar: draft.assignedStudentAvatar || null,
+        cloudConfirmed: true
+    };
+    try {
+        await AppState.homeworkManager.createHomework(homeworkObj);
+        await AppState.homeworkManager.deleteHomework(draft.id);   // لا يُحذف إلا بعد نجاح حفظ النسخة المنشورة
+    } catch (err) { console.error("تعذر تحديث النسخة المحلية بعد نشر المسودة (لا يؤثر على الواجب المنشور):", err); }
+
+    document.getElementById('share-modal-title').innerText = t('hw_share_success');
+    const baseUrl = window.location.origin + window.location.pathname;
+    document.getElementById('hw-link-input').value = buildHomeworkShareLink(baseUrl, homeworkObj);
+    const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
+    const retryBtn = document.getElementById('btn-retry-hw-sync');
+    if (syncWarningEl) syncWarningEl.style.display = 'none';
+    if (retryBtn) retryBtn.style.display = 'none';
+    document.getElementById('hw-share-modal').style.display = 'flex';
+    await loadHomeworkDashboard();
 }
 
 // 🌟🌟 [جديد] معالج زر "إعادة المحاولة الآن" في نافذة المشاركة — يتيح للمعلم إعادة محاولة رفع

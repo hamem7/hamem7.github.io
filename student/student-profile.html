@@ -1,5 +1,10 @@
 <!-- student/student-profile.html -->
 <style>
+    /* 🌟 [جديد 2026-10-01] زرّا "ابدأ تقييم" — الأول بنفس لون الإجراء الرئيسي المعتمد في المنصة (ذهبي) والثاني ثانوي زمرّدي.
+       بادئة #app-root لازمة للتغلب على !important الموجودة في .adult-theme .btn (adults.css) بلا لمس تلك القاعدة العامة 🌟 */
+    #app-root .prof-start-eval-btn { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important; color: var(--dh-emerald-900) !important; border: none !important; box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important; }
+    #app-root .prof-start-eval-alt { background: #fff !important; color: var(--dh-emerald-700) !important; border: 2px solid var(--dh-emerald-600) !important; box-shadow: none !important; }
+
     .profile-wrapper { padding: 40px 20px; max-width: 900px; margin: 0 auto; direction: rtl; }
     .profile-header { display: flex; align-items: center; gap: 20px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; border: 2px solid #e2e8f0; flex-wrap: wrap; }
     .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #10b981; background: #f8fafc; font-size: 3rem; display: flex; align-items: center; justify-content: center; }
@@ -56,7 +61,7 @@
 </style>
 
 <div class="screen active profile-wrapper">
-    <button class="btn btn-outline" id="btn-back-from-prof" style="margin-bottom: 20px; font-size: 1.2rem;">🔙 العودة</button>
+    <button class="btn btn-outline" id="btn-back-from-prof" data-i18n="pfx_back" style="margin-bottom: 20px; font-size: 1.2rem;">🔙 العودة</button>
 
     <!-- 🌟 [جديد] تنويه بسيط لتوضيح إن كل البيانات المعروضة قابلة للتعديل مباشرة 🌟 -->
     <p class="prof-edit-hint" data-i18n="prof_edit_hint">💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر "تقرير الإنجاز الشهري" للطباعة بعد الانتهاء</p>
@@ -65,7 +70,7 @@
         <!-- 🌟 [جديد] غلاف الصورة + زر تغييرها — يحيط بالصورة الفعلية أو شكل الإيموجي
              البديل (يُدرَج ديناميكياً من student.js) على حدٍ سواء 🌟 -->
         <div class="profile-avatar-wrap" id="prof-avatar-wrap">
-            <img id="prof-avatar" class="profile-avatar" src="" alt="صورة البطل">
+            <img id="prof-avatar" class="profile-avatar" src="" alt="صورة الطالب">
             <button type="button" class="prof-avatar-edit-btn" id="btn-prof-avatar-edit" data-i18n-title="prof_avatar_change_title" title="تغيير الصورة">📷</button>
             <input type="file" id="prof-avatar-file" accept="image/*" style="display:none;">
         </div>
@@ -78,10 +83,15 @@
             </p>
         </div>
         <div style="display:flex; flex-direction:column; gap:10px;">
-            <button class="btn btn-wrong" id="btn-prof-weakness" style="padding: 15px 25px; font-size: 1.3rem;">🛠️ بدء تحدي الأخطاء الذكي</button>
+            <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] بدء تقييم هذا الطالب مباشرة بدل المرور بالرئيسية ثم
+                 واجهة الكبار/الأطفال ثم كتابة الاسم. الزر الأول بالوضع المناسب لصف الطالب (تخمين موثَّق في
+                 student.js: isKidsGrade) والثاني للوضع الآخر — النصوص تُضبط من loadStudentProfileScreen 🌟 -->
+            <button class="btn prof-start-eval-btn" id="btn-prof-start-eval" style="padding: 15px 25px; font-size: 1.3rem;"></button>
+            <button class="btn btn-outline prof-start-eval-alt" id="btn-prof-start-eval-alt" style="padding: 10px 25px; font-size: 1rem;"></button>
+            <button class="btn btn-wrong" id="btn-prof-weakness" style="padding: 15px 25px; font-size: 1.3rem;">🛠️ علاج الأخطاء</button>
             <!-- 🌟 [جديد] زر أرشيف الأخطاء المصححة — يعرض كل خطأ سابق صحّحه الطالب
                  بدل ما يختفي أثره نهائياً (راجع resolvedWeaknesses في student.js) 🌟 -->
-            <button class="btn btn-outline" id="btn-prof-archive" data-i18n="archive_title" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">📂 أرشيف الأخطاء المصححة</button>
+            <button class="btn btn-outline" id="btn-prof-archive" data-i18n="archive_title" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">📂 أرشيف الأخطاء المعالَجة</button>
             <!-- 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يجمع الواجبات المنزلية والاختبارات
                  الثنائية والأخطاء المعالَجة وانتظام المراجعة عبر شهر كامل (راجع
                  reports/monthly-report.js وشاشة فتحه في student.js) 🌟 -->
@@ -91,17 +101,17 @@
 
     <div class="profile-stats">
         <div class="stat-card">
-            <h3 style="margin:0; color:#64748b;">إجمالي النقاط المكتسبة 🏆</h3>
+            <h3 data-i18n="pfx_total_points" style="margin:0; color:#64748b;">إجمالي النقاط المكتسبة 🏆</h3>
             <p id="prof-points" style="font-size: 2.5rem; font-weight: bold; color:#f59e0b; margin:10px 0 0 0;">0</p>
         </div>
         <div class="stat-card">
-            <h3 style="margin:0; color:#64748b;">عدد التقييمات السابقة 📈</h3>
+            <h3 data-i18n="pfx_eval_count" style="margin:0; color:#64748b;">عدد التقييمات السابقة 📈</h3>
             <p id="prof-evals" style="font-size: 2.5rem; font-weight: bold; color:#10b981; margin:10px 0 0 0;">0</p>
         </div>
         <!-- 🌟 [جديد] عدد انتصارات "الاختبارات الثنائية" — يُملأ من dualtests/dual-test-play.js
              عبر AppState.dualTestsManager (راجع renderDualTestAchievements في student.js) -->
         <div class="stat-card">
-            <h3 style="margin:0; color:#64748b;">انتصارات الاختبارات الثنائية 🆚</h3>
+            <h3 data-i18n="pfx_dual_wins" style="margin:0; color:#64748b;">انتصارات الاختبارات الثنائية 🆚</h3>
             <p id="prof-duel-wins" style="font-size: 2.5rem; font-weight: bold; color:#166534; margin:10px 0 0 0;">0</p>
         </div>
     </div>
@@ -109,7 +119,7 @@
     <!-- 🌟 [جديد] بطاقة أوسمة/إنجازات "الاختبارات الثنائية" — راجع BADGE_CATALOG في
          engine/dualTestEngine.js وrenderDualTestAchievements في student.js -->
     <div class="dtpa-badges-section">
-        <h3 class="dtpa-badges-title">🎖️ أوسمة الاختبارات الثنائية</h3>
+        <h3 class="dtpa-badges-title" data-i18n="pfx_dual_badges">🎖️ أوسمة الاختبارات الثنائية</h3>
         <div id="dtpa-badges-grid" class="dtpa-badges-grid"></div>
     </div>
 
@@ -124,15 +134,15 @@
         <div id="tjp-content"></div>
     </div>
 
-    <h2 style="color: #064e3b; border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: inline-block;">سجل التقييمات السابقة 📅</h2>
+    <h2 data-i18n="pfx_history_title" style="color: #064e3b; border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: inline-block;">سجل التقييمات السابقة 📅</h2>
     <div style="overflow-x: auto; margin-top: 15px;">
         <table class="history-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;">م</th>
-                    <th style="width: 25%;">التاريخ</th>
-                    <th style="width: 50%;">نطاق التقييم</th>
-                    <th style="width: 15%;">النسبة المئوية</th>
+                    <th style="width: 10%;" data-i18n="pfx_col_no">م</th>
+                    <th style="width: 25%;" data-i18n="pfx_col_date">التاريخ</th>
+                    <th style="width: 50%;" data-i18n="pfx_col_range">نطاق التقييم</th>
+                    <th style="width: 15%;" data-i18n="pfx_col_pct">النسبة المئوية</th>
                 </tr>
             </thead>
             <tbody id="prof-history-body"></tbody>
@@ -146,7 +156,7 @@
      وadultGame.js/kidsGame.js) 🌟 -->
 <div id="archive-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 750px; text-align: right;">
-        <h2 data-i18n="archive_title" style="color: var(--dh-emerald-700); margin-top:0;">أرشيف الأخطاء المصححة</h2>
+        <h2 data-i18n="archive_title" style="color: var(--dh-emerald-700); margin-top:0;">أرشيف الأخطاء المعالَجة</h2>
         <p data-i18n="archive_desc" style="color:#64748b; font-size:1.05rem; margin-bottom:20px;">سجل كامل لكل خطأ سابق صحّحه الطالب، مع تاريخ ارتكابه وتاريخ تصحيحه.</p>
         <div id="archive-list" style="max-height: 55vh; overflow-y: auto; display:flex; flex-direction:column; gap:15px;"></div>
         <button class="btn btn-outline" data-i18n="profile_close_btn" id="btn-close-archive" style="width: 100%; margin-top:20px; font-size: 1.2rem; padding: 12px;">إغلاق</button>

@@ -3,6 +3,7 @@
 // علامات الوقف القرآنية (ۚ ۖ ۗ / ج / صلى / قلى...) من "كلمات" الآية، حتى لا تظهر كبطاقة اختيار
 // أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
 import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes } from './quranEngine.js';
+import { t, tf, surahNameLocal } from '../core/i18n.js';
 
 export class KidsEngine {
     constructor(quranEngine) {
@@ -20,7 +21,7 @@ export class KidsEngine {
         let sameSurahAyahs = ayahsPool.filter(a => a.surahNumber === ayah.surahNumber && a.number !== ayah.number); let distractors = []; sameSurahAyahs.forEach(a => distractors.push(...splitAyahWords(a.text))); distractors = [...new Set(distractors)].filter(w => w.length > 3 && w !== missingWord); distractors.sort(() => Math.random() - 0.5);
         let options = [missingWord]; while(options.length < 3 && distractors.length > 0) { let d = distractors.pop(); if(!options.includes(d)) options.push(d); } 
         let backup = ["الْأَرْضِ", "السَّمَاءِ", "الْعَظِيمِ", "الْكَرِيمِ"]; while(options.length < 3 && backup.length > 0) { let b = backup.pop(); if(!options.includes(b)) options.push(b); } options.sort(() => Math.random() - 0.5); 
-        return { type: 'kids_mcq', questionTitle: "اختر الكلمة الناقصة يا بطل! 🎯", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿ ${visibleWords} ﴾</div>`, correctAns: missingWord, options: options, ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'kids_mcq', questionTitle: t("اختر الكلمة الناقصة يا بطل! 🎯"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿ ${visibleWords} ﴾</div>`, correctAns: missingWord, options: options, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateKidsNextAyahGame(ayahsPool, chunkIndex, totalChunks) {
@@ -30,7 +31,7 @@ export class KidsEngine {
         for(let a of otherAyahs) { if(options.length >= 3) break; let txt = cleanAyahText(a.text); if(txt !== nextAyahText) options.push(txt); }
         if(options.length < 3) { let externalAyahs = ayahsPool.filter(a => a.surahNumber !== targetAyah.surahNumber); externalAyahs.sort(() => Math.random() - 0.5); for(let a of externalAyahs) { if(options.length >= 3) break; let txt = cleanAyahText(a.text); if(!options.includes(txt)) options.push(txt); } } options.sort(() => Math.random() - 0.5); 
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
-        return { type: 'kids_mcq', questionTitle: "ماذا بعد هذه الآية يا بطل؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div><div style="font-size:1.8rem; font-weight:bold;">اختر الآية التي تليها:</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
+        return { type: 'kids_mcq', questionTitle: t("ماذا بعد هذه الآية يا بطل؟ ⬅️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div><div style="font-size:1.8rem; font-weight:bold;">${t('kids_choose_next_ayah')}</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generateKidsWordOrderGame(ayahsPool, chunkIndex, totalChunks) {
@@ -38,20 +39,20 @@ export class KidsEngine {
         // الطفل وضعها في مكانها الصحيح، وهو ليس كلمة من كلمات الآية 🌟
         let validAyahs = ayahsPool.filter(a => { let w = splitAyahWords(a.text); return w.length >= 3 && w.length <= 6; }); if(validAyahs.length === 0) return null;
         const ayah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); let cleanText = cleanAyahText(ayah.text); let words = splitAyahWords(ayah.text); let shuffled = [...words].sort(() => Math.random() - 0.5);
-        return { type: 'kids_word_order', questionTitle: "رتب كلمات الآية يا بطل 🧩", originalWords: words, shuffledWords: shuffled, ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'kids_word_order', questionTitle: t("رتب كلمات الآية يا بطل 🧩"), originalWords: words, shuffledWords: shuffled, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateKidsTrueFalse(ayahsPool, chunkIndex, totalChunks) { 
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let isTrue = Math.random() > 0.5; let displayedSurahName = ayah.surahName; 
         if(!isTrue) { let otherSurahs = [...new Set(ayahsPool.map(a => a.surahName))].filter(n => n !== ayah.surahName); if(otherSurahs.length === 0) { let allSurahsList = await this.quranEngine.getAllSurahsList(); otherSurahs = allSurahsList.map(s => s.name).filter(n => n !== ayah.surahName); } if(otherSurahs.length > 0) displayedSurahName = otherSurahs[Math.floor(Math.random() * otherSurahs.length)]; else isTrue = true; } 
-        let cleanText = cleanAyahText(ayah.text); return { type: 'kids_tf', questionTitle: `صح أم خطأ؟ 🚦`, questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#b91c1c; margin-bottom:20px;">﴿ ${cleanText} ﴾</div><div style="font-size:2.2rem; font-weight:bold; background:white; padding:15px; border-radius:15px; border:4px dashed #38bdf8; display:inline-block;">هل هذه الآية من سورة <span style="color:#0284c7;">( ${displayedSurahName} )</span> ؟</div>`, isTrue: isTrue, ayahObj: ayah, reportText: cleanText }; 
+        let cleanText = cleanAyahText(ayah.text); return { type: 'kids_tf', questionTitle: t("صح أم خطأ؟ 🚦"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#b91c1c; margin-bottom:20px;">﴿ ${cleanText} ﴾</div><div style="font-size:2.2rem; font-weight:bold; background:white; padding:15px; border-radius:15px; border:4px dashed #38bdf8; display:inline-block;">${tf('kids_tf_question', { surah: surahNameLocal(displayedSurahName) })}</div>`, isTrue: isTrue, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateKidsGuessSurah(ayahsPool, chunkIndex, totalChunks) {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let correctSurah = ayah.surahName; let allSurahNames = [...new Set(ayahsPool.map(a => a.surahName))].filter(n => n !== correctSurah); 
         if (allSurahNames.length < 2) { let allQuranSurahs = await this.quranEngine.getAllSurahsList(); let extraNames = allQuranSurahs.map(s => s.name).filter(n => n !== correctSurah); extraNames.sort(() => Math.random() - 0.5); allSurahNames = allSurahNames.concat(extraNames); }
         let options = [correctSurah]; while(options.length < 3 && allSurahNames.length > 0) { let rIdx = Math.floor(Math.random() * allSurahNames.length); let choice = allSurahNames.splice(rIdx, 1)[0]; if(!options.includes(choice)) options.push(choice); } options.sort(() => Math.random() - 0.5); 
-        let cleanText = cleanAyahText(ayah.text); return { type: 'kids_mcq', questionTitle: "خمن السورة يا بطل! 🌟", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7;">﴿ ${cleanText} ﴾</div>`, correctAns: correctSurah, options: options, ayahObj: ayah, reportText: cleanText }; 
+        let cleanText = cleanAyahText(ayah.text); return { type: 'kids_mcq', questionTitle: t("خمن السورة يا بطل! 🌟"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7;">﴿ ${cleanText} ﴾</div>`, correctAns: correctSurah, options: options, optionsKind: 'surah', ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateKidsStartSurah(ayahsPool, chunkIndex, totalChunks) {
@@ -66,7 +67,7 @@ export class KidsEngine {
         
         if(otherSurahs.length < 2) {
             let allList = await this.quranEngine.getAllSurahsList();
-            let extras = allList.filter(s => s.number >= 67 && s.number !== surah.number && !otherSurahs.includes(s.number)).sort(() => Math.random() - 0.5);
+            let extras = allList.filter(s => s.number >= 46 /* 🌟 من الجزء 26 (الأحقاف) بدل 67 — يتبع نطاق ركن الأطفال الجديد */ && s.number !== surah.number && !otherSurahs.includes(s.number)).sort(() => Math.random() - 0.5);
             for(let ex of extras) {
                 if(otherSurahs.length >= 2) break;
                 otherSurahs.push(ex.number);
@@ -79,7 +80,7 @@ export class KidsEngine {
         }
         options.sort(() => Math.random() - 0.5);
         
-        return { type: 'kids_mcq', questionTitle: "بأي آية تبدأ هذه السورة؟ 🏁", questionBody: `<div style="font-size:2.5rem; color:var(--primary); font-weight:bold; margin-bottom:20px;">سورة ( ${cleanName(surah.name)} )</div>`, correctAns: firstAyahText, options: options, ayahObj: surah.ayahs[0], reportText: `أول آية من سورة ${surah.name}` };
+        return { type: 'kids_mcq', questionTitle: t("بأي آية تبدأ هذه السورة؟ 🏁"), questionBody: `<div style="font-size:2.5rem; color:var(--primary); font-weight:bold; margin-bottom:20px;">${tf('kids_surah_label', { name: surahNameLocal(surah.name) })}</div>`, correctAns: firstAyahText, options: options, ayahObj: surah.ayahs[0], reportText: `أول آية من سورة ${surah.name}` };
     }
 
     async generateKidsExtraWord(ayahsPool, chunkIndex, totalChunks) {
@@ -121,7 +122,7 @@ export class KidsEngine {
         let options = [extraWord, words[0], words[words.length-1]]; 
         options.sort(() => Math.random() - 0.5);
         
-        return { type: 'kids_mcq', questionTitle: "استخرج الكلمة الزائدة الخاطئة! 🚫", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿ ${fakeAyahText.join(" ")} ﴾</div>`, correctAns: extraWord, options: options, ayahObj: ayah, reportText: `استخراج كلمة ${extraWord}` };
+        return { type: 'kids_mcq', questionTitle: t("استخرج الكلمة الزائدة الخاطئة! 🚫"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿ ${fakeAyahText.join(" ")} ﴾</div>`, correctAns: extraWord, options: options, ayahObj: ayah, reportText: `استخراج كلمة ${extraWord}` };
     }
 
     async generateKidsPrevious(ayahsPool, chunkIndex, totalChunks) {
@@ -138,7 +139,7 @@ export class KidsEngine {
         options.sort(() => Math.random() - 0.5);
         
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
-        return { type: 'kids_mcq', questionTitle: "ماذا قبل هذه الآية؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
+        return { type: 'kids_mcq', questionTitle: t("ماذا قبل هذه الآية؟ ➡️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿ ${targetText} ﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
     }
     // 🌟 [حذف] لعبة "كم عدد آيات هذه السورة؟" (generateKidsAyahCount) — طلب المعلم إزالتها من
     // ركن الأطفال لأنها صعبة على الصغار (تتطلب حفظ عدد آيات دقيق بدل حفظ نص/معنى الآية نفسها).
@@ -170,7 +171,7 @@ export class KidsEngine {
     // في الملفين معًا (هنا وفي database/kidsAudioDB.js).
     // ⚠️ [افتراض صريح — بقرار المعلم]: نطاق آيات هذه اللعبة هو نفس ayahsPool الممرَّر من المستدعي
     // (نطاق حفظ الطفل نفسه المحدَّد من المعلم)، بلا جلب نطاق مستقل عبر getAyahsByJuz(29)/(30)،
-    // لأن نطاق ركن الأطفال بالكامل أصلاً محصور في جزء عمّ وتبارك بقرار المعلم.
+    // لأن نطاق ركن الأطفال بالكامل أصلاً محصور في الأجزاء 26–30 (من سورة الأحقاف حتى الناس) بقرار المعلم 🌟 (كان سابقاً جزء عمّ وتبارك فقط).
     // ⚠️ [افتراض صريح — بقرار المعلم]: المشتِّتان (الخياران الخطآن) يُفضَّلان من نفس سورة الآية
     // الصحيحة قدر الإمكان (تدريب أدق وأصعب)، ولو السورة لا تحتوي آيتين بديلتين مختلفتين كافيتين
     // (نصًا، لا رقمًا فقط — تجنبًا لتكرار الآيات المتشابهة لفظيًا زي "ويل يومئذ للمكذبين")، تُكمَّل
@@ -226,9 +227,9 @@ export class KidsEngine {
         // t() في games/kidsGame.js عند العرض بلا أي تكلفة إضافية هنا.
         let questionBody = `
         <div style="text-align:center;">
-            <div style="font-size:1.5rem; font-weight:bold; color:#1e3a5f; margin-bottom:20px;">🎧 استمع جيدًا، ثم اختر الآية التي سمعتها</div>
+            <div style="font-size:1.5rem; font-weight:bold; color:#1e3a5f; margin-bottom:20px;">${t('kids_listen_instruction')}</div>
             <audio id="kids-listen-audio-player" src="${audioUrl}" preload="auto"></audio>
-            <button type="button" id="kids-listen-play-btn" class="kids-listen-play-btn" onclick="window.playKidsListenAyahAudio()">🔊 استمع للآية</button>
+            <button type="button" id="kids-listen-play-btn" class="kids-listen-play-btn" onclick="window.playKidsListenAyahAudio()">${t('kids_listen_play_btn')}</button>
         </div>`;
 
         // 🌟 [جديد] الخطوة الثانية من اللعبة (بطلب المعلم): بعد ما يختار الطفل الآية الصحيحة

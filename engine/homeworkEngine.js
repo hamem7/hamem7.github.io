@@ -81,10 +81,7 @@ export class HomeworkEngine {
 
         let isSingleSurah = (config.mode === 'surah');
         // 🌟 الأنواع الجديدة بعد التحديث وحذف الصح والخطأ
-        // ⚠️ [تعديل] تم استبعاد 'audio_record' من التوليد التلقائي العشوائي مؤقتاً: هذا النوع يتطلب
-        // رفع ملفات صوتية فعلية إلى Firebase Storage (وليس مجرد نص)، وهو أثقل تقنياً وأكثر عرضة للأعطال
-        // من بقية الأنواع (يحتاج تفعيل Storage، صلاحيات، اتصال أقوى). لا يزال بإمكان المعلم إضافته
-        // يدوياً وبوعي كامل من نافذة "إضافة سؤال يدوي" في homework-prep.js إن أراد فعلاً استخدامه.
+        // 🌟 [حُذف 2026-09-30 بطلب المعلم] نوع 'audio_record' (التسميع الصوتي) أُزيل من المنصة بالكامل لأنه لم يُفعَّل أصلاً.
         // 🌟 [جديد] أضفنا 'matching' (مطابقة بدايات الآيات بنهاياتها) لدورة التوليد التلقائي، بنفس
         // معاملة 'written_blank' و'write_3_ayahs' الموجودين أصلاً رغم كونهما تصحيحاً يدوياً — دخول
         // نوع ضمن هذه القائمة لا يعني تصحيحاً آلياً بالضرورة، فقط أنه مؤهل للظهور تلقائياً.
@@ -123,7 +120,6 @@ export class HomeworkEngine {
                 case 'checkbox': questionObj = await this.createCheckboxQuestion(ayah, validPool); break;
                 case 'matrix_order': questionObj = await this.createMatrixOrderQuestion(ayah, validPool); break;
                 case 'write_3_ayahs': questionObj = await this.createWrite3AyahsQuestion(ayah, validPool); break;
-                case 'audio_record': questionObj = await this.createAudioRecordQuestion(ayah, validPool); break;
                 case 'matching': questionObj = await this.createMatchingQuestion(ayah, validPool); break;
             }
 
@@ -414,18 +410,6 @@ export class HomeworkEngine {
             text: `اكتب الآيات الثلاث المتتالية ابتداءً من قوله تعالى:<br>﴿ ${firstAyahPart} ... ﴾`,
             correctAnswer: fullText,
             points: 3, 
-            needsManualGrading: true
-        };
-    }
-
-    // 🌟 نمط 12 الجديد: التسميع الصوتي (تقييم المعلم)
-    async createAudioRecordQuestion(targetAyah, pool) {
-        return {
-            type: 'audio_record',
-            title: "تسميع صوتي: 🎤",
-            text: `قم بتسجيل قراءتك للآية التالية بصوتك:<br>سورة ${targetAyah.surahName} - الآية ${targetAyah.numberInSurah}`,
-            correctAnswer: cleanAyahText(targetAyah.text),
-            points: 2,
             needsManualGrading: true
         };
     }

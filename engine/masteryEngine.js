@@ -1,5 +1,6 @@
 // engine/masteryEngine.js
 
+import { t } from '../core/i18n.js';
 export class MasteryEngine {
     constructor() {
         // الأوزان النسبية للأنشطة المختلفة (كل نشاط ومدى قياسه لعمق الحفظ)
@@ -53,7 +54,7 @@ export class MasteryEngine {
             return {
                 overallScore: 0,
                 level: this.getLevel(0),
-                statusText: "بانتظار أول تقييم 🎯"
+                statusText: t("بانتظار أول تقييم 🎯")
             };
         }
 
@@ -76,11 +77,11 @@ export class MasteryEngine {
 
     // تصنيف المستويات حسب السلم المعتمد
     getLevel(percentage) {
-        if (percentage >= 95) return { name: "إتقان ممتاز 🏆", badgeClass: "badge-excellent", color: "#15803d" };
-        if (percentage >= 90) return { name: "إتقان متقدم 🌟", badgeClass: "badge-advanced", color: "#16a34a" };
-        if (percentage >= 80) return { name: "إتقان جيد 👍", badgeClass: "badge-good", color: "#2563eb" };
-        if (percentage >= 70) return { name: "إتقان متوسط ⚖️", badgeClass: "badge-medium", color: "#d97706" };
-        if (percentage >= 50) return { name: "إتقان ضعيف ⚠️", badgeClass: "badge-weak", color: "#ea580c" };
-        return { name: "يحتاج إلى تأسيس وتثبيت 🛠️", badgeClass: "badge-foundation", color: "#dc2626" };
+        if (percentage >= 95) return { name: t("إتقان ممتاز 🏆"), badgeClass: "badge-excellent", color: "#15803d" };
+        if (percentage >= 90) return { name: t("إتقان متقدم 🌟"), badgeClass: "badge-advanced", color: "#16a34a" };
+        if (percentage >= 80) return { name: t("إتقان جيد 👍"), badgeClass: "badge-good", color: "#2563eb" };
+        if (percentage >= 70) return { name: t("إتقان متوسط ⚖️"), badgeClass: "badge-medium", color: "#d97706" };
+        if (percentage >= 50) return { name: t("إتقان ضعيف ⚠️"), badgeClass: "badge-weak", color: "#ea580c" };
+        return { name: t("يحتاج إلى تأسيس وتثبيت 🛠️"), badgeClass: "badge-foundation", color: "#dc2626" };
     }
 }

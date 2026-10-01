@@ -17,5 +17,27 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "اختبار طالب",
+      "short_name": "اختبار",
+      "url": "./index.html?go=evaluate"
+    },
+    {
+      "name": "طلابي",
+      "short_name": "طلابي",
+      "url": "./index.html?go=students"
+    },
+    {
+      "name": "الواجبات المنزلية",
+      "short_name": "الواجبات",
+      "url": "./index.html?go=homework"
+    },
+    {
+      "name": "الاختبارات الثنائية",
+      "short_name": "ثنائي",
+      "url": "./index.html?go=dual"
+    }
   ]
 }

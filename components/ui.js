@@ -1,5 +1,6 @@
 // components/ui.js
 
+import { t } from '../core/i18n.js';
 export function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const targetScreen = document.getElementById(id);
@@ -27,7 +28,7 @@ export function closeModal(id) {
 // عشوائية كما كان، ولو مُرِّر نص محدد (زي تنويه "قيد التطوير" لبطاقة جديدة) يُعرض
 // هو بدل العبارات العشوائية، بنفس شكل وموضع التوست تماماً 🌟
 export function showToastEncouragement(toastId = "toast-encouragement", customMessage = null) {
-    const ENCOURAGEMENTS = ["ما شاء الله عليك! 🌟", "بطل! استمر 🚀", "ممتاز جداً! 👏", "بارك الله فيك! 💚", "أحسنت يا مبدع! 🎯"];
+    const ENCOURAGEMENTS = [t('enc_1'), t('enc_2'), t('enc_3'), t('enc_4'), t('enc_5')];
     let toast = document.getElementById(toastId);
     if(toast) {
         toast.innerText = customMessage || ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)];

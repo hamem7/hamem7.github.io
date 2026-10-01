@@ -18,7 +18,7 @@
 // localStorage) — عدّل getTeacherIdentity() فور توفر نظام تسجيل دخول حقيقي.
 // =============================================================================
 
-import { AppState, applyLanguage, loadDashboardScreen } from '../core/app.js';
+import { AppState, applyLanguage, loadDashboardScreen, loadLoginScreen } from '../core/app.js';
 // التنسيق (CSS) منقول بالكامل إلى report.styles.js بدل تضخيم هذا الملف —
 // نفس المحتوى تمامًا، منظَّم في ملف مستقل فقط.
 import { REPORT_STYLES } from './report.styles.js';
@@ -26,7 +26,7 @@ import { REPORT_STYLES } from './report.styles.js';
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
-import { t } from '../core/i18n.js';
+import { t, tf, localizeGenerated, surahNamesLocal } from '../core/i18n.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -95,6 +95,12 @@ const REPORT_TEMPLATE = `
       </button>
     </div>
     <div class="grp">
+      <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] "تقييم طالب آخر": يفتح شاشة اختيار الطالب مباشرة بنفس الوضع الحالي
+           (كبار/أطفال) بدل الرجوع للوحة التقييم أو الرئيسية ثم البدء من الأول -->
+      <button class="rbtn primary" id="btn-report-another">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.6 3-5.4 6-5.4s5.2 1.8 6 5.4"/><path d="M19 8v6M16 11h6"/></svg>
+        <span data-i18n="rep_tb_another">تقييم طالب آخر</span>
+      </button>
       <button class="rbtn ghost" id="btn-report-home">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
         <span data-i18n="rep_tb_home">العودة للرئيسية</span>
@@ -302,6 +308,10 @@ const REPORT_TEMPLATE = `
       </div>
 
       <div class="home-bar no-export">
+        <button class="home-btn" id="btn-report-another-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.6 3-5.4 6-5.4s5.2 1.8 6 5.4"/><path d="M19 8v6M16 11h6"/></svg>
+          <span data-i18n="rep_tb_another">تقييم طالب آخر</span>
+        </button>
         <button class="home-btn" id="btn-report-home-2">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
           <span data-i18n="rep_tb_home">العودة للرئيسية</span>
@@ -330,7 +340,7 @@ function formatDateArabic(d){
 // ملاحظة: Intl يُلحق "هـ" بنفسه، فلا تُضاف يدويًا وإلا تكررت.
 function formatDateHijri(d){
   try {
-    return new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+    return new Intl.DateTimeFormat((AppState.currentLang === 'en' ? 'en-US' : 'ar-SA') + '-u-ca-islamic-umalqura', {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(d);
   } catch (e) { return ''; }
@@ -396,15 +406,15 @@ function classifyQuestion(d){
   return 'full';
 }
 function questionNoteText(d, status){
-  if (status === 'hint') return 'استخدم تلميحًا للوصول إلى الإجابة';
+  if (status === 'hint') return t('rp_note_hint');
   if (status === 'reorder') {
     return d.orderAttempts >= 2
-      ? 'احتاج أكثر من محاولة لترتيب الكلمات بشكل صحيح'
-      : 'احتاج محاولة إضافية لترتيب الكلمات بشكل صحيح';
+      ? t('rp_note_reorder_many')
+      : t('rp_note_reorder_one');
   }
   if (status === 'wrong') {
-    if (Array.isArray(d.errors) && d.errors.length) return 'خطأ: ' + d.errors.join('، ');
-    return 'إجابة غير صحيحة';
+    if (Array.isArray(d.errors) && d.errors.length) return tf('rp_note_error', { errors: d.errors.map(localizeGenerated).join(AppState.currentLang === 'en' ? ', ' : '، ') });
+    return t('rp_note_wrong');
   }
   return '';
 }
@@ -415,16 +425,16 @@ function getQuestionResults(){
     const status = classifyQuestion(d);
     return {
       num: i + 1,
-      type: d.label || d.question || d.title || 'سؤال',
+      type: localizeGenerated(d.label || d.question || d.title || t('rp_question')),
       location: d.surahName
-        ? `سورة ${d.surahName}${d.num != null ? ' - آية ' + d.num : ''}`
+        ? (d.num != null ? tf('rp_loc_ayah', { name: surahNamesLocal(d.surahName), n: d.num }) : tf('rp_loc_surah', { name: surahNamesLocal(d.surahName) }))
         : (d.location || d.ayahRef || d.reference || ''),
       // 🌟 [جديد] نسخة من الموقع خاصة بصندوق "بحاجة إلى تركيز" فقط: تذكر اسم
       // السورة كاملة دون تحديد رقم آية بعينها — بناءً على طلب صريح أن يكون
       // التثبيت مراجعةً للسورة كلها لا لآية واحدة منها. location (بالأعلى) يبقى
       // كما هو بذكر رقم الآية، لأنه يُستخدم أيضًا في عرض تفصيل كل سؤال على حدة.
-      focusLocation: d.surahName ? `سورة ${d.surahName}` : (d.location || d.ayahRef || d.reference || ''),
-      text: d.text || '',
+      focusLocation: d.surahName ? tf('rp_loc_surah', { name: surahNamesLocal(d.surahName) }) : (d.location || d.ayahRef || d.reference || ''),
+      text: localizeGenerated(d.text || ''),
       status,
       score: computeQuestionScore(d),
       max: 10,
@@ -439,7 +449,7 @@ function getQuestionResults(){
 function formatDuration(totalSeconds){
   if (!totalSeconds || totalSeconds <= 0) return '—';
   const m = Math.floor(totalSeconds / 60), s = Math.round(totalSeconds % 60);
-  return m > 0 ? `${m} د ${s} ث` : `${s} ث`;
+  return m > 0 ? tf('rp_dur_min_sec', { m, s }) : tf('rp_dur_sec', { s });
 }
 function buildStats(questionResults){
   const withTime = questionResults.filter(r => typeof r.timeTaken === 'number');
@@ -533,7 +543,7 @@ function focusKeyOfResult(r){
 // رقم الآية عمدًا — راجع تعليق focusLocation أعلاه في getQuestionResults 🌟
 function weaknessLocation(w){
   if (!w.surahName) return '';
-  return `سورة ${w.surahName}`;
+  return tf('rp_loc_surah', { name: surahNamesLocal(w.surahName) });
 }
 function joinFocusParts(location, type, reason){
   const head = [location, type].filter(Boolean).join(' · ');
@@ -560,7 +570,7 @@ function getSkillHighlights(student, questionResults, speedCompare){
 
   const strengths = [];
   if (correct.length) {
-    strengths.push(`حفظ صحيح ودقيق لعدد ${correct.length} من ${questionResults.length} سؤالًا دون أي مساعدة`);
+    strengths.push(tf('rp_strength_correct', { c: correct.length, n: questionResults.length }));
   }
   // ⚠️ لا نضيف أي وصف غير مبني على بيانات فعلية (مثل "سريع" أو "واثق") ما لم
   // يكن مقيسًا فعليًا من timeTaken — هذا هو المقصود بـ"الصدق" في هذا التقرير:
@@ -571,11 +581,11 @@ function getSkillHighlights(student, questionResults, speedCompare){
   // speedCompare يأتي null في أول محاولة مسجَّلة، فلا يظهر هذا السطر إطلاقاً وقتها.
   if (speedCompare && speedCompare.faster) {
     strengths.push(
-      `متوسط زمن الإجابة ${speedCompare.nowLabel} — أسرع من متوسط محاولاته السابقة (${speedCompare.prevLabel})`
+      tf('rp_strength_speed', { now: speedCompare.nowLabel, prev: speedCompare.prevLabel })
     );
   }
   if (correct.length >= 2) {
-    strengths.push(`ثبات واضح في الحفظ عبر أكثر من سؤال في هذا النطاق دون الحاجة لأي مساعدة`);
+    strengths.push(t('rp_strength_consistent'));
   }
 
   // 🌟 [إعادة تصميم] بناء بنود "بحاجة إلى تركيز" على ثلاث طبقات معنونة بدل قائمة
@@ -587,12 +597,12 @@ function getSkillHighlights(student, questionResults, speedCompare){
   // الطبقة 3 (نُجهّزها أولًا لأن مفاتيحها لازمة لكشف "الخطأ المتكرر" في الطبقة 1)
   const pastAll = weaknesses.map(w => {
     if (typeof w === 'string') return { key: normalizeFocusKey(w), text: w };
-    const head = joinFocusParts(weaknessLocation(w), w.questionTypeLabel || '', '');
+    const head = joinFocusParts(weaknessLocation(w), localizeGenerated(w.questionTypeLabel || ''), '');
     // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض
     // نصه الخام كما كان يُعرض تمامًا قبل هذا التعديل، فلا يختفي أي بند مسجَّل.
     const label = head
       || w.text
-      || (Array.isArray(w.errorTypes) ? w.errorTypes.join('، ') : w.errorTypes)
+      || (Array.isArray(w.errorTypes) ? w.errorTypes.map(localizeGenerated).join(AppState.currentLang === 'en' ? ', ' : '، ') : localizeGenerated(w.errorTypes))
       || '';
     if (!label) return null;
     const age = focusAgeLabel(w.dateRecorded);
@@ -608,7 +618,7 @@ function getSkillHighlights(student, questionResults, speedCompare){
     // 🌟 [عدّل] نستخدم focusLocation (السورة كاملة بلا رقم آية) بدل location هنا
     // تحديدًا، لأن هذا البند يُعرض داخل صندوق "بحاجة إلى تركيز" — راجع تعليق
     // focusLocation في getQuestionResults أعلاه للسبب.
-    const body = joinFocusParts(r.focusLocation, r.type, r.note || 'إجابة غير صحيحة');
+    const body = joinFocusParts(r.focusLocation, r.type, r.note || t('rp_note_wrong'));
     return {
       kind,
       text: pastKeys.has(focusKeyOfResult(r)) ? `${t('report_focus_repeated')}: ${body}` : body
@@ -627,8 +637,8 @@ function getSkillHighlights(student, questionResults, speedCompare){
   const remaining = (wrong.length + partial.length + pastPending.length) - needsFocus.length;
   if (remaining > 0) needsFocus.push({ kind: 'more', text: focusMoreLabel(remaining) });
 
-  if (!strengths.length) strengths.push('إكمال المحاولة كاملة رغم صعوبة بعض الأسئلة، وهذا بحد ذاته إنجاز يستحق التقدير');
-  if (!needsFocus.length) needsFocus.push({ kind: 'none', text: 'الاستمرار في المراجعة اليومية المعتادة للحفاظ على هذا المستوى' });
+  if (!strengths.length) strengths.push(t('rp_strength_default'));
+  if (!needsFocus.length) needsFocus.push({ kind: 'none', text: t('rp_focus_default') });
   return { strengths, needsFocus };
 }
 
@@ -681,10 +691,10 @@ function getTier(score){
 // والذهبي صار للنجوم والزخارف فقط. ⚠️ هذه الألوان مستخدمة أيضاً في ألوان محطات سُلّم
 // التقدّم، فكل محطة تأخذ لون مستواها الفعلي لا لونًا يعبّر عن ترتيبها الزمني.
 const TONE = {
-  excellent: { color: '#0d5c46', label: 'ممتاز' },
-  good:      { color: '#147c5e', label: 'جيد' },
-  average:   { color: '#b8863b', label: 'متوسط' },
-  weak:      { color: '#a15230', label: 'بحاجة إلى دعم إضافي' }
+  excellent: { color: '#0d5c46', get label() { return t('rp_tone_excellent'); } },
+  good:      { color: '#147c5e', get label() { return t('rp_tone_good'); } },
+  average:   { color: '#b8863b', get label() { return t('rp_tone_average'); } },
+  weak:      { color: '#a15230', get label() { return t('rp_tone_weak'); } }
 };
 const GAUGE_R = 86;
 const GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
@@ -693,10 +703,10 @@ const GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
 // بلغة تحترم أن القارئ ولي أمر طفل، فتُبرز المحاولة والأمل بدل الاكتفاء
 // بوصف القصور فقط.
 function getHonestyLine(tier){
-  if (tier === 'excellent') return 'نتيجة تعكس إتقانًا حقيقيًا لمعظم أسئلة هذا الاختبار.';
-  if (tier === 'good') return 'نتيجة جيدة تدل على حفظ متين لمعظم الأسئلة، مع بعض الجوانب التي تستحق مزيدًا من المراجعة والتثبيت.';
-  if (tier === 'average') return 'نتيجة متوسطة تُظهر أساسًا موجودًا يمكن تقويته بمراجعة أكثر انتظامًا.';
-  return 'الأداء في هذا الاختبار ما زال دون المستوى المطلوب، وهذه فرصة جيدة لتكثيف المراجعة معًا خطوة بخطوة.';
+  if (tier === 'excellent') return t('rp_honesty_excellent');
+  if (tier === 'good') return t('rp_honesty_good');
+  if (tier === 'average') return t('rp_honesty_average');
+  return t('rp_honesty_weak');
 }
 // أولوية اختيار البند الذي تذكره ملاحظة ولي الأمر: خطأ اليوم ← ما يحتاج تثبيتًا
 // اليوم ← متابعة سابقة. وتُستبعد بنود العدّ ("+ن بندًا آخر") والسطر الافتراضي لأنها
@@ -710,10 +720,10 @@ function pickNoteFocus(items){
 }
 function getAutoParentNote(tier, name, needsFocus){
   const leadByTier = {
-    excellent: `أداء ${name} في هذا الاختبار كان ممتازًا وعكس حفظًا متينًا لمعظم الأسئلة.`,
-    good: `أداء ${name} كان جيدًا وتضمّن حفظًا صحيحًا لغالبية الأسئلة، مع بعض النقاط التي تحتاج مزيدًا من المراجعة والتثبيت.`,
-    average: `أداء ${name} كان متوسطًا بشكل عام، وهناك نقاط محددة يمكن تحسينها بمراجعة منتظمة.`,
-    weak: `بذل ${name} جهدًا في هذا الاختبار، لكنه ما زال بحاجة إلى دعم إضافي في بعض الجوانب.`
+    excellent: tf('rp_note_lead_excellent', { name }),
+    good: tf('rp_note_lead_good', { name }),
+    average: tf('rp_note_lead_average', { name }),
+    weak: tf('rp_note_lead_weak', { name })
   };
   const lead = leadByTier[tier] || leadByTier.average;
   // 🌟 كانت الملاحظة تأخذ needsFocus[0] حرفيًا، وهو بعد إعادة تصميم الصندوق قد يكون
@@ -722,11 +732,11 @@ function getAutoParentNote(tier, name, needsFocus){
   // يفهم ولي الأمر أنه خطأ حدث اليوم 🌟
   const pick = pickNoteFocus(needsFocus);
   const focus = pick
-    ? ` نوصي بالتركيز على: ${pick.kind === 'past' ? t('report_note_focus_past_prefix') + ' ' : ''}${pick.text}.`
+    ? tf('rp_note_focus', { text: (pick.kind === 'past' ? t('report_note_focus_past_prefix') + ' ' : '') + pick.text })
     : '';
   const closing = tier === 'weak'
-    ? ' ونثق أن متابعة قريبة معًا خلال الأيام القادمة ستُحدث فرقًا واضحًا بإذن الله.'
-    : ' وسنتابع التقدم معًا أولًا بأول.';
+    ? t('rp_note_close_weak')
+    : t('rp_note_close_other');
   return lead + focus + closing;
 }
 
@@ -750,7 +760,7 @@ function getTeacherIdentity(){
   try { savedName = localStorage.getItem('darham_teacher_name') || ''; } catch (e) { /* تجاهل */ }
   let savedStamp = '';
   try { savedStamp = localStorage.getItem('darham_teacher_signature') || ''; } catch (e) { /* تجاهل */ }
-  return { name: fromApp || savedName || 'المعلم', stamp: fromAppStamp || savedStamp || null };
+  return { name: fromApp || savedName || t('rp_default_teacher'), stamp: fromAppStamp || savedStamp || null };
 }
 
 // 🌟 يحفظ أي تعديل يدخله المعلم من شريط أدوات التقرير في ملفه الدائم (teacherDB) أيضاً،
@@ -869,7 +879,7 @@ function buildReportData(){
 
   return {
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
-    name: student.name || 'الطالب',
+    name: student.name || t('rp_default_student'),
     // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
     // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
     grade: student.grade || '',
@@ -895,7 +905,7 @@ function buildReportData(){
     ledger: questionResults,
     strengths,
     needsFocus,
-    autoNote: getAutoParentNote(tier, student.name || 'الطالب', needsFocus),
+    autoNote: getAutoParentNote(tier, student.name || t('rp_default_student'), needsFocus),
     teacher
   };
 }
@@ -1298,7 +1308,7 @@ function playExcellentReportSound() {
 function renderStudentFacts(d){
   const rows = [
     { box: 'report-fact-grade', val: 'report-grade-val', value: d.grade },
-    { box: 'report-fact-scope', val: 'report-scope-val', value: d.scope },
+    { box: 'report-fact-scope', val: 'report-scope-val', value: localizeGenerated(d.scope) },
     { box: 'report-fact-time',  val: 'report-time-val',  value: d.stats.totalTime && d.stats.totalTime !== '—' ? d.stats.totalTime : '' }
   ];
   let firstShown = true;
@@ -1374,10 +1384,10 @@ function avatarStorageKey(student){
 function resizeImageToDataUrl(file, maxSize, quality, format){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error('تعذّرت قراءة الملف'));
+    reader.onerror = () => reject(new Error(t('rp_err_read_file')));
     reader.onload = () => {
       const img = new Image();
-      img.onerror = () => reject(new Error('الملف ليس صورة صالحة'));
+      img.onerror = () => reject(new Error(t('rp_err_bad_image')));
       img.onload = () => {
         let { width, height } = img;
         if (width > maxSize || height > maxSize) {
@@ -1397,7 +1407,7 @@ function resizeImageToDataUrl(file, maxSize, quality, format){
 }
 async function handleAvatarFile(file){
   if (!file || !file.type || !file.type.startsWith('image/')) {
-    alert('يرجى اختيار ملف صورة صالح (JPG أو PNG).');
+    alert(t('rp_err_pick_image'));
     return;
   }
   try {
@@ -1410,7 +1420,7 @@ async function handleAvatarFile(file){
     }
   } catch (e) {
     console.error(e);
-    alert('تعذّر تحميل الصورة، حاول مرة أخرى بصورة أخرى.');
+    alert(t('rp_err_load_image'));
   }
 }
 
@@ -1424,7 +1434,7 @@ function loadScript(src){
     const el = document.createElement('script');
     el.src = src;
     el.onload = resolve;
-    el.onerror = () => reject(new Error('تعذّر تحميل المكتبة: ' + src));
+    el.onerror = () => reject(new Error(tf('rp_err_load_lib', { src })));
     document.head.appendChild(el);
   });
 }
@@ -1485,7 +1495,7 @@ function nextFrames(){
     const original = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = busyText;
     try { await fn(); }
-    catch (err) { console.error(err); alert('حدث خطأ أثناء التصدير: ' + err.message); }
+    catch (err) { console.error(err); alert(tf('rp_err_export', { msg: err.message })); }
     finally { btn.disabled = false; btn.innerHTML = original; }
   };
 }
@@ -1494,8 +1504,8 @@ function ignoreNoExport(el){ return !!(el.classList && el.classList.contains('no
 function buildFileName(ext){
   const namePart = slugifyForFilename(reportData.name);
   const datePart = reportData.date.replace(/\s+/g, '').replace(/\//g, '-');
-  const scopePart = slugifyForFilename(reportData.scope);
-  return `تقرير_${namePart}_${datePart}_${scopePart}.${ext}`;
+  const scopePart = slugifyForFilename(localizeGenerated(reportData.scope));
+  return `${t('rp_file_prefix')}_${namePart}_${datePart}_${scopePart}.${ext}`;
 }
 const HQ_SCALE = 3; // جودة عالية جدًا للتصدير
 
@@ -1699,6 +1709,11 @@ function goHome(){
   );
 }
 
+// 🌟 [جديد 2026-10-01] يفتح شاشة اختيار الطالب (مع اقتراح الأسماء) لبدء تقييم طالب آخر مباشرة
+function goAnotherStudent(){
+  try { loadLoginScreen(); } catch (e) { console.error(e); goHome(); }
+}
+
 function initReportScreen(){
   renderAll();
   renderNoteBox();
@@ -1744,7 +1759,7 @@ function initReportScreen(){
       const val = teacherNameInput.value.trim();
       try { localStorage.setItem('darham_teacher_name', val); } catch (e) { /* تجاهل */ }
       persistTeacherIdentity({ name: val });
-      if (reportData) { reportData.teacher.name = val || 'المعلم'; renderTeacherSign(reportData); }
+      if (reportData) { reportData.teacher.name = val || t('rp_default_teacher'); renderTeacherSign(reportData); }
     });
   }
   const teacherSigBtn = $('btn-teacher-sig');
@@ -1755,7 +1770,7 @@ function initReportScreen(){
       const file = teacherSigInput.files && teacherSigInput.files[0];
       teacherSigInput.value = '';
       if (!file) return;
-      if (!file.type || !file.type.startsWith('image/')) { alert('يرجى اختيار ملف صورة صالح للختم.'); return; }
+      if (!file.type || !file.type.startsWith('image/')) { alert(t('rp_err_pick_stamp')); return; }
       try {
         // 🌟 [إصلاح] PNG بدل JPEG هنا تحديدًا حتى تبقى خلفية الختم الشفافة شفافة
         // فعليًا (راجع تعليق resizeImageToDataUrl أعلى الملف لتفاصيل السبب)
@@ -1771,21 +1786,26 @@ function initReportScreen(){
           reportData.teacher.stampClean = null;
           renderTeacherSign(reportData);
         }
-      } catch (e) { console.error(e); alert('تعذّر تحميل صورة الختم، حاول مرة أخرى.'); }
+      } catch (e) { console.error(e); alert(t('rp_err_load_stamp')); }
     });
   }
 
   // -- التصدير --
   const pngBtn = $('btn-report-png');
   const pdfBtn = $('btn-report-pdf');
-  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, 'جارِ التجهيز…', exportPng));
-  if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, 'جارِ التجهيز…', exportPdf));
+  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('rp_busy'), exportPng));
+  if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('rp_busy'), exportPdf));
 
   // -- العودة للرئيسية (زر في الشريط العلوي وآخر في نهاية التقرير) --
   const homeBtn = $('btn-report-home');
   const homeBtn2 = $('btn-report-home-2');
   if (homeBtn) homeBtn.addEventListener('click', goHome);
   if (homeBtn2) homeBtn2.addEventListener('click', goHome);
+  // 🌟 [جديد 2026-10-01] تقييم طالب آخر (الزر في الشريط العلوي وآخر في نهاية التقرير)
+  const anotherBtn = $('btn-report-another');
+  const anotherBtn2 = $('btn-report-another-2');
+  if (anotherBtn) anotherBtn.addEventListener('click', goAnotherStudent);
+  if (anotherBtn2) anotherBtn2.addEventListener('click', goAnotherStudent);
 }
 
 // 🌟 [إصلاح] openReportScreen بقت تستقبل GameState بتاع اللعبة اللي فتحت التقرير

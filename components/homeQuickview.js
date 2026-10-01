@@ -392,14 +392,62 @@ async function renderPendingDualMatchesReminder() {
     }
 }
 
+// 🌟🌟 [جديد 2026-10-01] مجموعة "يحتاج منك اليوم" — تُرتِّب بطاقة "نظرة سريعة" بحسب ما ينتظر
+// إجراءً فعلياً من المعلم اليوم، لا بحسب نوع المعلومة. لا تحسب شيئاً بنفسها: تقرأ فقط حالة
+// الظهور التي ضبطتها الدوال الثلاث أعلاه (renderStudentBirthdayReminder / renderDueForReview /
+// renderPendingDualMatchesReminder) على عناصرها الأصلية، فلا تتعارض مع أي منطق موجود.
+//
+// 🌟 افتراضات صريحة:
+// 1) "يحتاج منك اليوم" = عيد ميلاد طالب اليوم + طلاب حان موعد مراجعتهم + مواجهات ثنائية معلّقة
+//    أسبوعاً فأكثر. لا يدخل فيه بانر "التذكير الشهري بتحديث الحفظ" (يبقى بانراً مستقلاً خارج
+//    البطاقة)، ولا الواجبات المنتظِرة للتصحيح (لا يوجد لها مصدر بيانات سريع داخل هذه البطاقة).
+// 2) رسالة "لا شيء معلّق اليوم" تظهر فقط عند وجود طالب واحد مسجَّل على الأقل؛ قبل ذلك تبقى
+//    المجموعة مخفية بالكامل (حتى لا تُوحي بأن "كل شيء تمام" والمنصة فارغة أصلاً — الإرشاد لهذه
+//    الحالة هو بطاقة "ابدأ من هنا" الموجودة في الشاشة الرئيسية).
+async function updateTodayGroup() {
+    const wrap = document.getElementById('home-quickcard-today');
+    const label = document.getElementById('home-quickcard-today-label');
+    const clear = document.getElementById('home-quickcard-today-clear');
+    if (!wrap || !label || !clear) return;
+
+    const ids = ['home-quickcard-bday', 'home-quickcard-due', 'home-quickcard-pm'];
+    const anyVisible = ids.some(id => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+    });
+
+    if (anyVisible) {
+        label.style.display = 'flex';
+        clear.style.display = 'none';
+        wrap.style.display = 'block';
+        return;
+    }
+
+    label.style.display = 'none';
+    try {
+        const students = AppState.studentManager ? await AppState.studentManager.getAllStudents() : [];
+        const hasStudents = !!(students && students.length > 0);
+        if (!wrap.isConnected) return; // الشاشة الرئيسية استُبدلت أثناء القراءة
+        clear.style.display = hasStudents ? 'flex' : 'none';
+        wrap.style.display = hasStudents ? 'block' : 'none';
+    } catch (e) {
+        wrap.style.display = 'none';
+    }
+}
+
 // يُستدعى مرة واحدة من setupSplashListeners() في core/app.js عند تحميل الشاشة الرئيسية
 export function initHomeQuickview() {
     renderDailyQuote();
-    renderStudentBirthdayReminder();
     renderMasteryAverage();
     renderReportsCount();
-    renderDueForReview();
-    renderPendingDualMatchesReminder();
+    // 🌟 [تعديل] الدوال الثلاث الخاصة بمجموعة "يحتاج منك اليوم" تُنفَّذ معاً ثم نحدّث المجموعة
+    // بعد اكتمالها كلها (allSettled: فشل إحداها لا يمنع تحديث المجموعة). كانت تُستدعى سابقاً
+    // منفصلة بلا انتظار، بنفس الترتيب والنتيجة لكل واحدة منها.
+    Promise.allSettled([
+        renderStudentBirthdayReminder(),
+        renderDueForReview(),
+        renderPendingDualMatchesReminder()
+    ]).then(updateTodayGroup);
     wireQuickPublishButton();
     wireMonthlyMemoBanner();
     checkMonthlyMemoReminder();

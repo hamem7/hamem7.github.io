@@ -72,10 +72,10 @@ export async function initDualTestPlay() {
     if (!matchId) { loadSplashScreen(); return; }
 
     match = await AppState.dualTestsManager.getMatchById(matchId);
-    if (!match) { alert('تعذر العثور على المواجهة.'); loadSplashScreen(); return; }
+    if (!match) { alert(t('تعذر العثور على المواجهة.')); loadSplashScreen(); return; }
 
     test = await AppState.dualTestsManager.getTestById(match.testId);
-    if (!test) { alert('تعذر العثور على الاختبار المرتبط بهذه المواجهة.'); loadSplashScreen(); return; }
+    if (!test) { alert(t('تعذر العثور على الاختبار المرتبط بهذه المواجهة.')); loadSplashScreen(); return; }
 
     document.getElementById('dtp-back-btn')?.addEventListener('click', () => {
         // 🌟 [عدّل] النص القديم كان يقول إن العودة "تُنهي الجلسة دون حفظ الجولة الجارية" —
@@ -84,7 +84,7 @@ export async function initDualTestPlay() {
         // فقط السؤال المفتوح حالياً (لو لم يُعتمد بعد) هو ما قد يُفقَد. عدّلنا النص ليعكس هذا
         // بدقة بدل تخويف المعلم من فقد جولة كاملة لم تعد تُفقَد. (نص هذا التأكيد تحديداً كان
         // أصلاً بلا مفتاح i18n قبل هذا التعديل — أبقيناه بنفس النمط الحالي دون توسيع النطاق)
-        if (confirm('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟')) {
+        if (confirm(t('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟'))) {
             loadSplashScreen();
         }
     });
@@ -396,7 +396,7 @@ function renderBoardView() {
     });
 
     document.getElementById('dtp-end-round-btn').onclick = () => {
-        if (confirm('إنهاء الجولة الآن يدوياً؟ الأسئلة المتبقية على اللوحة تبقى بلا إجابة.')) {
+        if (confirm(t('إنهاء الجولة الآن يدوياً؟ الأسئلة المتبقية على اللوحة تبقى بلا إجابة.'))) {
             finishRound();
         }
     };

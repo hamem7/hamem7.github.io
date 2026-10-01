@@ -153,19 +153,47 @@ function buildModal() {
     cancel.textContent = t('teacher_auth_cancel_btn');
     cancelWrap.append(cancel);
 
+    // 🌟 [عدّل 2026-10-01 — فحص سهولة الاستخدام] كان المعلم الجديد يرى 3 مسارات دخول معاً (ربط واجبات قديمة +
+    // زر جوجل + مفتاح قديم). الآن يظهر زر جوجل وحده، وبقية الخيارات (ربط الواجبات القديمة والمفتاح القديم) داخل
+    // رابط صغير "خيارات دخول أخرى" — لم يُحذف أي منها (خط رجوع كامل كما هو في التعليق أعلى الملف). لو تعذّر زر جوجل
+    // تُفتح الخيارات تلقائياً (more.open = true في ensureTeacherAuth).
+    const more = document.createElement('details');
+    more.className = 'dh-teacher-auth-more';
+    const moreSummary = document.createElement('summary');
+    moreSummary.textContent = t('teacher_auth_more_options');
+    more.append(moreSummary, migrateToggle, migrateWrap, divider, legacyToggle, legacyForm);
+
     box.append(
         title, sub,
-        migrateToggle, migrateWrap,
         googleBtnHost, googleLoading, googleErr,
-        divider, legacyToggle, legacyForm,
+        more,
         cancelWrap
     );
     overlay.append(box);
     return {
-        overlay, cancel,
+        overlay, cancel, more,
         googleBtnHost, googleErr, googleLoading, migrateInput,
         legacyForm, legacyInput, legacyErr, legacySubmit
     };
+}
+
+// 🌟 [جديد 2026-10-01] يحوّل خطأ تسجيل الدخول بجوجل إلى مفتاح i18n دقيق.
+// ⚠️ افتراض صريح: الخادم يردّ برسائل إنجليزية ثابتة (Code.gs → verifyGoogleIdToken_)، فنعتمد على الرمز code
+// أولاً ثم على نص الرسالة للتفريق بين أسباب UNAUTHORIZED المختلفة.
+function googleErrorKey(ex) {
+    if (!(ex instanceof ApiError)) return 'teacher_auth_google_error';
+    if (ex.kind === 'network' || ex.kind === 'timeout' || ex.kind === 'bad_response') return 'teacher_auth_error_network';
+    const msg = String(ex.message || '');
+    if (ex.code === 'NOT_CONFIGURED') return 'teacher_auth_error_not_configured';
+    if (ex.code === 'BUSY') return 'teacher_auth_error_busy';
+    if (ex.code === 'UNAUTHORIZED') {
+        if (/not allowed/i.test(msg)) return 'teacher_auth_error_not_allowed';
+        if (/different app/i.test(msg)) return 'teacher_auth_error_wrong_app';
+        if (/invalid or expired/i.test(msg)) return 'teacher_auth_error_expired';
+        if (/wrong teacher key/i.test(msg)) return 'teacher_auth_error';
+        return 'teacher_auth_google_error';
+    }
+    return 'teacher_auth_error_server';
 }
 
 // تُرجع true لو المعلم مفوَّض (بجلسة جوجل أو المفتاح القديم)، و false لو ألغى.
@@ -175,7 +203,7 @@ export async function ensureTeacherAuth() {
     }
     return new Promise((resolve) => {
         const {
-            overlay, cancel,
+            overlay, cancel, more,
             googleBtnHost, googleErr, googleLoading, migrateInput,
             legacyForm, legacyInput, legacyErr, legacySubmit
         } = buildModal();
@@ -197,7 +225,9 @@ export async function ensureTeacherAuth() {
                 finish(true);
             } catch (ex) {
                 googleLoading.style.display = 'none';
-                googleErr.textContent = (ex instanceof ApiError) ? t('teacher_auth_error_network') : t('teacher_auth_google_error');
+                // 🌟 [إصلاح 2026-10-01] كان أي ApiError (حتى رفض الخادم الصريح) يظهر كـ"تعذّر الاتصال بالخادم" فيُخفي
+                // السبب الحقيقي (مثل بريد غير مسموح به). الآن تُعرض رسالة بحسب نوع الخطأ؛ والاتصال الفعلي وحده يبقى "تعذّر الاتصال".
+                googleErr.textContent = t(googleErrorKey(ex));
                 googleErr.style.display = 'block';
             }
         }
@@ -209,6 +239,7 @@ export async function ensureTeacherAuth() {
                 googleErr.textContent = t('teacher_auth_google_error');
                 googleErr.style.display = 'block';
                 legacyForm.style.display = 'block';
+                more.open = true;
                 legacyInput.focus();
                 return;
             }
@@ -226,6 +257,7 @@ export async function ensureTeacherAuth() {
                 googleErr.textContent = t('teacher_auth_google_error');
                 googleErr.style.display = 'block';
                 legacyForm.style.display = 'block';
+                more.open = true;
             }
         });
 

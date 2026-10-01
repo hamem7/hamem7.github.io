@@ -36,7 +36,7 @@
 // بين "لا تزعج" و"لا تنسَ" بدل عدم التذكير إطلاقًا بعد أول تأجيل.
 // =============================================================================
 
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import {
   calcMemorizationProgress,
@@ -122,7 +122,7 @@ function ensureStylesInjected() {
 
 function surahOptionsHtml(surahsData, selectedNumber) {
   return getSurahsInMemorizationOrder(surahsData)
-    .map(s => `<option value="${s.number}" ${s.number === selectedNumber ? 'selected' : ''}>${s.name}</option>`)
+    .map(s => `<option value="${s.number}" ${s.number === selectedNumber ? 'selected' : ''}>${surahNameLocal(s.name)}</option>`)
     .join('');
 }
 

@@ -63,13 +63,13 @@ function paintQuestion() {
   $('btn-prev').style.visibility = idx > 0 ? 'visible' : 'hidden';
   const last = idx === n - 1;
   $('btn-next').classList.toggle('hidden', last); $('btn-submit').classList.toggle('hidden', !last);
-  const un = homework.questions.filter(x => x.type !== 'audio_record' && !hasAnswer(x, answers[x.id])).length;
+  const un = homework.questions.filter(x => !hasAnswer(x, answers[x.id])).length;
   $('unanswered-hint').textContent = last && un ? `تنبيه: لديك ${un} سؤال بدون إجابة.` : '';
 }
 $('btn-next').addEventListener('click', () => { if (idx < homework.questions.length - 1) { idx++; persistDraft(); paintQuestion(); window.scrollTo(0, 0); } });
 $('btn-prev').addEventListener('click', () => { if (idx > 0) { idx--; persistDraft(); paintQuestion(); window.scrollTo(0, 0); } });
 $('btn-submit').addEventListener('click', async () => {
-  const un = homework.questions.filter(x => x.type !== 'audio_record' && !hasAnswer(x, answers[x.id])).length;
+  const un = homework.questions.filter(x => !hasAnswer(x, answers[x.id])).length;
   if (un && !confirm(`لديك ${un} سؤال بدون إجابة. هل تريد التسليم على أي حال؟`)) return;
   $('btn-submit').disabled = true;
   persistDraft();

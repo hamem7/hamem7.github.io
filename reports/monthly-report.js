@@ -39,7 +39,7 @@
 //      هذا الشهر تحديدًا" — يُعرض النطاق الحالي فقط مع ملاحظة توضيحية داخل التقرير.
 // =============================================================================
 
-import { AppState, applyLanguage, t } from '../core/app.js';
+import { AppState, applyLanguage, t, localizeGenerated, trStored } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // 🌟 [جديد] هوية "منازل القمر" الخاصة بالتقرير الشهري (ملف مستقل معزول تحت .mr2 —
@@ -323,7 +323,7 @@ const MONTHLY_REPORT_TEMPLATE = `
         <div class="closing pdf-block">
           <div class="teacher-sign">
             <div class="teacher-line"></div>
-            <div class="sig-name" id="mr-sign-name">المعلم</div>
+            <div class="sig-name" id="mr-sign-name">${t('mr_default_teacher_label')}</div>
             <div class="teacher-label" data-i18n="mr_teacher_sign_label">توقيع المعلم</div>
           </div>
           <div class="mr2-stamp-wrap"><img id="mr-sign-img" style="display:none;" alt=""></div>
@@ -1099,7 +1099,7 @@ function renderGameEvalBlock(d) {
         ${d.gameEvalEntries.map(e => `
           <tr>
             <td>${e.date}</td>
-            <td>${e.range}</td>
+            <td>${localizeGenerated(trStored(String(e.range || '')))}</td>
             <td>${sourceLabel[e.source] || '—'}</td>
             <td style="color:${scoreTierColor(e.score)}; font-weight:800;">${e.score}%</td>
           </tr>

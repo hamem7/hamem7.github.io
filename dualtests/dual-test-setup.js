@@ -17,7 +17,7 @@
 // التنقل بين الخطوات لا يحفظ شيئاً بنفسه — كل التعديلات تبقى في currentTest بالذاكرة حتى
 // يضغط المعلم فعلياً أحد زرَي الحفظ، تماماً كسلوك المحرر القديم.
 
-import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { AppState, loadSplashScreen, t, surahNameLocal } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { loadScreen } from '../core/navigation.js';
 import { showToastEncouragement, openModal, closeModal } from '../components/ui.js';
@@ -91,7 +91,7 @@ export async function initDualTestSetup() {
 function surahOptionsHTML(selectedSurah) {
     let html = `<option value="" ${!selectedSurah ? 'selected' : ''}>--</option>`;
     (AppState.surahsData || []).forEach(s => {
-        html += `<option value="${s.number}" ${selectedSurah === s.number ? 'selected' : ''}>${s.number}. ${s.name}</option>`;
+        html += `<option value="${s.number}" ${selectedSurah === s.number ? 'selected' : ''}>${s.number}. ${surahNameLocal(s.name)}</option>`;
     });
     return html;
 }

@@ -1,0 +1,85 @@
+<!-- student/all-students.html -->
+<!-- 🌟 [جديد] توحيد بصري لأزرار هذه الشاشة مع الهوية الجديدة (--dh-emerald/--dh-gold
+     المعتمدة في css/home.css وsettings/dashboard.html) — كانت تستخدم ألوان .btn/.btn-outline
+     القديمة من adults.css (تركوازي) المختلفة تماماً عن باقي المنصة. نفس فلسفة بادئة "dash-"
+     في settings/dashboard.html بالحرف: قواعد معزولة ببادئة "as-" فقط تخص هذه الشاشة، وبادئة
+     #app-root ضرورية للتغلب على !important الموجودة فعلاً في .adult-theme .btn (adults.css)
+     بدون تعديل تلك القاعدة العامة إطلاقاً 🌟 -->
+<style>
+    #app-root .as-btn-primary {
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
+        color: var(--dh-emerald-900) !important;
+        border: none !important;
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important;
+    }
+    #app-root .as-btn-primary:hover { box-shadow: 0 14px 26px rgba(212, 175, 55, 0.4) !important; }
+
+    #app-root .as-btn-secondary {
+        background: #fff !important;
+        color: var(--dh-emerald-700) !important;
+        border: 2px solid var(--dh-emerald-600) !important;
+        box-shadow: none !important;
+    }
+    #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
+
+    /* 🌟 [إصلاح فحص الأزرار] على الهاتف كانت أعمدة الإدارة والأخطاء (✏️🙈🗑️🛠️) تقع خارج الشاشة بلا مؤشر.
+       الآن تتحول كل صف إلى بطاقة رأسية بنطاق #all-students-body فقط (بلا مساس بأي قاعدة عامة)،
+       وتظهر تسمية كل حقل من data-label، وتُكبَّر أزرار الإجراءات لحد لمس مريح 🌟 */
+    @media (max-width: 640px) {
+        #app-root .as-table-wrap { overflow-x: visible !important; padding: 0 !important; }
+        #app-root .as-table-wrap table, #app-root .as-table-wrap tbody { display: block; width: 100%; white-space: normal !important; }
+        #app-root .as-table-wrap thead { display: none; }
+        #all-students-body tr { display: block; margin-bottom: 14px; padding: 8px 12px; border-radius: 14px; background: rgba(255,255,255,0.12); border: 2px solid rgba(0,0,0,0.1); }
+        #all-students-body td { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none !important; padding: 6px 4px !important; text-align: right; }
+        #all-students-body td::before { content: attr(data-label); font-weight: 600; font-size: 1rem; opacity: 0.8; flex-shrink: 0; }
+        #all-students-body td .btn { min-width: 44px !important; min-height: 44px; }
+        #all-students-body td .btn-prof-link { min-height: 44px; }
+    }
+</style>
+
+<div class="screen active">
+    <h1 style="font-size: 2.5rem;" data-i18n="as_page_title">📊 السجل العام لبيانات وإنجازات الطلاب</h1>
+    <div class="btn-group" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+        <!-- 🌟 [جديد] لم يكن بهذه الشاشة زر مباشر لإضافة طالب جديد رغم أنها الشاشة
+             الطبيعية لإدارة قائمة الطلاب — يفتح شاشة "طلابي" ثم يُطلق تلقائياً نافذة
+             "إضافة بطل جديد" الموجودة فعلاً هناك بدل تكرار نفس النافذة هنا (راجع
+             student.js: setupAllStudentsListeners) 🌟 -->
+        <button class="btn as-btn-primary" id="btn-add-champion-shortcut" data-i18n="btn_add_student">تسجيل بطل جديد ➕</button>
+        <button class="btn as-btn-secondary" id="btn-export-backup" data-i18n="backup_export_students_btn">📥 تصدير الطلاب فقط</button>
+        <button class="btn btn-outline as-btn-secondary" id="btn-import-backup-trigger" data-i18n="backup_import_students_btn">📤 استيراد الطلاب</button>
+        <input type="file" id="importFile" accept=".json" style="display:none;">
+    </div>
+    <div class="as-table-wrap" style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
+        <table class="history-table" style="width: 100%; white-space: nowrap;">
+            <thead><tr><th data-i18n="as_col_no">م</th><th data-i18n="as_col_name">اسم البطل</th><th data-i18n="as_col_age">العمر</th><th data-i18n="as_col_grade">الصف</th><th data-i18n="as_col_points">النقاط</th><th data-i18n="as_col_evals">التقييمات</th><th data-i18n="as_col_manage">إدارة وتعديل</th><th data-i18n="as_col_errors">تحدي الأخطاء</th></tr></thead>
+            <tbody id="all-students-body"></tbody>
+        </table>
+    </div>
+    <!-- 🌟 [عدّل] كان النص "العودة" بلا مفتاح ترجمة وبلا توضيح للوجهة — الزر فعلياً يرجع
+         لشاشة "طلابي" (loadMyStudentsScreen في student.js)، وأصبح لونه متوافقاً مع باقي
+         أزرار هذه الشاشة (as-btn-secondary) بدل التركوازي القديم 🌟 -->
+    <button class="btn btn-outline as-btn-secondary" style="margin-top: 20px; font-size: 1.4rem;" id="btn-back-login" data-i18n="btn_back_to_my_students">🔙 رجوع لطلابي</button>
+</div>
+
+<!-- نافذة تعديل بيانات البطل -->
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="margin-top:0; font-size: 2.2rem;" data-i18n="as_edit_title">تعديل بيانات البطل</h2>
+        <input type="hidden" id="edit-stu-id">
+        <div class="form-grid">
+            <div class="input-group"><label data-i18n="name_full">الاسم (ثلاثي):</label><input type="text" id="edit-stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
+            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span id="edit-age-display" style="font-size:0.9rem;"></span></label><input type="date" id="edit-stu-dob"></div>
+            <!-- 🌟 [عدّل] نفس تعديل قائمة الصف في student/my-students.html بالحرف: تفصيل
+            المرحلتين الإعدادية والثانوية لصفوف فردية 1/2/3 بدل خيار مجمَّع واحد لكل
+            منهما، و"خريج" صارت "خريج جامعي" — راجع تعليق my-students.html للتفاصيل 🌟 -->
+            <div class="input-group"><label data-i18n="grade">الصف الدراسي:</label><select id="edit-stu-grade"><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select></div>
+            <div class="input-group"><label data-i18n="country">البلد:</label><input type="text" id="edit-stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="input-group"><label data-i18n="as_parent_phone">رقم ولي الأمر (اختياري):</label><input type="text" id="edit-stu-phone" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
+            <div class="input-group"><label data-i18n="as_gender_label">الجنس (للصورة الرمزية):</label><select id="edit-stu-gender"><option value="boy" data-i18n="as_gender_boy">👦🏻 ولد</option><option value="girl" data-i18n="as_gender_girl">👧🏻 بنت</option></select></div>
+            <div class="input-group" style="grid-column: span 2;"><label data-i18n="as_memo_label">مقدار الحفظ (من سورة - إلى سورة):</label><div style="display:flex; gap:10px;"><select id="edit-stu-memo-from"></select><select id="edit-stu-memo-to"></select></div></div>
+            <div class="input-group" style="grid-column: span 2;"><label data-i18n="as_photo_label">صورة شخصية (اختياري):</label><input type="file" id="edit-stu-avatar" accept="image/*"></div>
+        </div>
+        <button class="btn as-btn-primary" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student" data-i18n="as_save_edits">حفظ التعديلات ✔️</button>
+        <button class="btn btn-outline as-btn-secondary" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal" data-i18n="cancel">إلغاء</button>
+    </div>
+</div>

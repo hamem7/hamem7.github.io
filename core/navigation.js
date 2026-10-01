@@ -22,6 +22,11 @@ export async function loadScreen(route) {
         // حقن الواجهة
         root.innerHTML = html;
 
+        // 🌟 [جديد 2026-10-01 — الدخول السريع] نسجّل الشاشة الحالية على <body> (data-dh-screen — خاصية بيانات لا class حتى لا
+        // تمسحها switchTheme التي تستبدل className كاملاً) ونبلّغ components/homeFast.js بحدث dh:screen لضبط الترويسة والشريط السفلي
+        document.body.dataset.dhScreen = route.templateUrl;
+        document.dispatchEvent(new CustomEvent('dh:screen', { detail: { screen: route.templateUrl } }));
+
         // 🌟 السحر هنا: تطبيق لغة النظام فوراً على الشاشة الجديدة المجلوبة 🌟
         applyLanguage();
 

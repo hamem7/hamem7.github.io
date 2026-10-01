@@ -1,6 +1,6 @@
 // games/adultGame.js
 // 🌟 استيراد دالة الترجمة t 🌟
-import { AppState, loadDashboardScreen, t } from '../core/app.js';
+import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
@@ -250,22 +250,22 @@ export async function openAdultGameScreen(config, isWeakness = false) {
             
             if(config.isJuzMode) {
                 ayahsPool = await AppState.quranEngine.getAyahsByJuz(config.juzNum); 
-                GameState.evalRangeText = `${t("الجزء")} ${config.juzNum}`;
+                GameState.evalRangeText = tfAr('adult_juz_text', { n: config.juzNum });
             } else if(config.isRangeMode) {
                 ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.rangeFrom, config.rangeTo);
                 let sNameF = AppState.surahsData.find(s => s.number === config.rangeFrom).name; 
                 let sNameT = AppState.surahsData.find(s => s.number === config.rangeTo).name; 
-                GameState.evalRangeText = `${t("نطاق (من سورة")} ${sNameF} ${t("إلى")} ${sNameT})`;
+                GameState.evalRangeText = tfAr('adult_range_text', { sfrom: sNameF, sto: sNameT });
             } else {
                 let surah = await AppState.quranEngine.getSurah(config.surahNum); 
                 ayahsPool = AppState.quranEngine.getAyahsInRange(surah, config.startAyah, config.endAyah); 
                 let cleanName = surah.name.replace(/سُورَةُ\s*/g, '').replace(/سورة\s*/g, '').trim(); 
-                GameState.evalRangeText = `${t("سورة")} ${cleanName} (${t("من")} ${config.startAyah} ${t("إلى")} ${config.endAyah})`;
+                GameState.evalRangeText = tfAr('adult_surah_text', { name: cleanName, a: config.startAyah, b: config.endAyah });
             }
             
             if(ayahsPool.length === 0) return alert(t("عفواً، لا توجد آيات في النطاق المحدد!"));
             if(ayahsPool.length < qCount) { 
-                alert(`${t("تم تقليل الأسئلة إلى")} ${ayahsPool.length} ${t("لتناسب حجم السورة.")}`); 
+                alert(tf('adult_reduced_questions', { n: ayahsPool.length })); 
                 qCount = ayahsPool.length; 
             }
 
@@ -419,7 +419,7 @@ function persistEvaluationToHistory() {
         const historyArray = JSON.parse(localStorage.getItem(historyKey)) || [];
         historyArray.push({
             date: historyDateLabel(),
-            range: GameState.evalRangeText || t('hist_eval_default_range'),
+            range: GameState.evalRangeText || tfAr('hist_eval_default_range'),
             score: scorePercent,
             source: 'adult_game',
             // 🌟 [جديد] نوع الجلسة — 'weakness' لجلسات "تحدي الأخطاء" و'eval' لغيرها، ليتمكن التقرير
@@ -539,9 +539,9 @@ async function playNextMission() {
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
-            let headLine = buildWeaknessQuestionHeader(wItem, t, 'var(--primary)');
+            let headLine = buildWeaknessQuestionHeader(wItem, (k) => localizeGenerated(trStored(t(k))), 'var(--primary)');
             let dateLine = wItem.dateRecorded ? `<div style="font-size:1rem; color:#64748b; margin-top:5px;">${t('error_recorded_on')} ${new Date(wItem.dateRecorded).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</div>` : '';
-            let errorLine = `<div style="font-size:1.4rem; font-weight:bold; margin-top:10px;">${t("الخطأ السابق المسجل:")} [ ${wItem.errorTypes} ]</div>`;
+            let errorLine = `<div style="font-size:1.4rem; font-weight:bold; margin-top:10px;">${t("الخطأ السابق المسجل:")} [ ${localizeErrorTypes(wItem.errorTypes)} ]</div>`;
 
             GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${headLine}${originalBodyHTML}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
             document.getElementById('teacher-eval-area').style.display = 'block';
@@ -556,7 +556,7 @@ async function playNextMission() {
                 document.getElementById('game-answer').innerHTML = wItem.fullAnswer;
             } else {
                 let extraCorrectAns = (wItem.correctAns && wItem.questionType === 'complete_ayah') ? `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${wItem.correctAns}</span>` : '';
-                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${wItem.surahName} - آية ${wItem.num} )</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>${extraCorrectAns}`;
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>${extraCorrectAns}`;
             }
             return;
         }
@@ -609,7 +609,7 @@ async function playNextMission() {
                 document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkWordSurahFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
-                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkWordSurahFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${GameState.currentData.ayahObj.surahName} - آية ${GameState.currentData.ayahObj.numberInSurah} )</div>`;
+                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkWordSurahFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
                 linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkWordSurahFallbackAnsHTML;
             }
@@ -623,7 +623,10 @@ async function playNextMission() {
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
-            document.getElementById('game-answer').innerHTML = GameState.currentData.fullAnswer;
+            // 🌟 [جديد] إجابة التسميع تحمل آيات بين ﴿ ﴾ مباشرة بلا .quran-text — نلفّها في .dh-verse
+            // (css/global.css) فقط إذا احتوت أقواساً، حتى لا تنقلب في الإنجليزية، وبقية الأنواع كما هي.
+            { const _fa = GameState.currentData.fullAnswer;
+              document.getElementById('game-answer').innerHTML = (typeof _fa === 'string' && _fa.includes('\uFD3F')) ? `<div class="dh-verse">${_fa}</div>` : _fa; }
         } else if (type === 'link_ends') {
             // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تفاعلية بالكامل بلا أزرار تقييم يدوية،
             // بنفس فلسفة لعبة "رتب الآيات" أعلاه (تصحيح تلقائي عند اكتمال الربط الصحيح) 🌟
@@ -664,7 +667,7 @@ async function playNextMission() {
                 document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
-                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${GameState.currentData.ayahObj.surahName} - آية ${GameState.currentData.ayahObj.numberInSurah} )</div>`;
+                if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
                 linkFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkFallbackAnsHTML;
             }
@@ -674,7 +677,7 @@ async function playNextMission() {
             
             if(type === 'catch') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'next') GameState.currentData = await retryGen(() => AppState.quranEngine.generateNextAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
-            else if(type === 'previous') { GameState.currentData = await retryGen(() => AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint !== "لا يوجد") document.getElementById('hint-btn').style.display = 'inline-block'; }
+            else if(type === 'previous') { GameState.currentData = await retryGen(() => AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint !== t('qe_none')) document.getElementById('hint-btn').style.display = 'inline-block'; }
             else if(type === 'between') GameState.currentData = await retryGen(() => AppState.quranEngine.generateBetweenGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'guess_surah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks));
             else if(type === 'recite') GameState.currentData = await retryGen(() => AppState.quranEngine.generateReciteGame(activePool, GameState.config.isJuzMode, false, chunkIndex, totalChunks));
@@ -688,8 +691,8 @@ async function playNextMission() {
             
             let ansHTML = `${t("الإجابة الصحيحة:")}<br>`;
             if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) {
-                if(GameState.currentData.type === 'recite') ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( ${GameState.currentData.reportText.replace('تسميع من ', '').replace('تسميع ', '')} )</div>`;
-                else ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${GameState.currentData.ayahObj.surahName} - آية ${GameState.currentData.ayahObj.numberInSurah} )</div>`;
+                if(GameState.currentData.type === 'recite') ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( ${localizeGenerated(GameState.currentData.reportText).replace(/^(تسميع من |تسميع |Reciting from |Reciting )/, '')} )</div>`;
+                else ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
             }
             ansHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
             
@@ -728,7 +731,7 @@ function saveTempError() {
     let errorTypes = []; 
     document.querySelectorAll('#error-modal input[type="checkbox"]:checked').forEach(cb => errorTypes.push(cb.value)); 
     let customNote = document.getElementById('custom-note').value.trim();
-    if(customNote) errorTypes.push(`ملاحظة: ${customNote}`);
+    if(customNote) errorTypes.push(tfAr('gen_note_prefix', { text: customNote }));
     // 🌟 [جديد] موضع الخطأ بالتحديد (من آية ... إلى آية ...) لأسئلة التسميع — اختياري؛ يكفي
     // اختياره وحده كملاحظة. يُضاف كشريحة نصية ضمن errorTypes فيظهر أيضاً في التقرير وشاشة العلاج 🌟
     let rangeSel = readReciteRangeSelection();

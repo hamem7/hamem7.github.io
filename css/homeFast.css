@@ -1,0 +1,249 @@
+/* css/homeFast.css
+   🌟🌟 [جديد 2026-10-01 — "الدخول السريع"] تنسيق مستقل بالكامل لميزات components/homeFast.js:
+   مربع البحث + بطاقة "تابع من حيث توقفت" + الشارات + شريط "قريباً" + الشريط السفلي للهاتف + سلوك الترويسة.
+   كل الكلاسات جديدة (dh-fast-*, dh-bnav-*) والقواعد التي تمسّ عناصر قائمة (#main-header, .home-hero ...) محصورة
+   بكلاسات تضعها homeFast على <body> فقط (dh-home-screen / dh-core-screen)، فلا تتأثر أي شاشة أخرى.
+   الألوان من متغيرات الهوية --dh-emerald-* و--dh-gold-* المعرّفة في css/home.css. 🌟🌟 */
+
+/* ===== 1) الشاشة الرئيسية: الترويسة مخفية (الشعار واللغة موجودان في الهيرو) + هيرو أكثر إحكاماً ===== */
+body.dh-home-screen #main-header { display: none; }
+body.dh-home-screen .home-hero .home-title-orn { display: none; }          /* الفاصل الزخرفي للزينة فقط */
+
+/* ===== 2) الشاشات الأساسية الداخلية: ترويسة نحيفة ثابتة تنزلق عند التمرير للأسفل ===== */
+body.dh-core-screen:not(.dh-home-screen) #main-header {
+    position: sticky;
+    top: 0;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    transition: transform .25s ease;
+}
+body.dh-core-screen:not(.dh-home-screen) #main-header .home-header-logo { transform: scale(.85); }
+body.dh-core-screen.dh-header-hidden:not(.dh-home-screen) #main-header { transform: translateY(-110%); }
+
+/* ===== 3) مربع البحث السريع ===== */
+.dh-fast { margin: 14px 0 6px; max-width: 560px; position: relative; z-index: 5; }
+.dh-fast-row { display: flex; gap: 8px; align-items: stretch; }
+.dh-fast-box {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    background: #fffdf6; color: var(--dh-emerald-800, #0b3d30);
+    border: 1.5px solid var(--dh-gold-500, #d4af37); border-radius: 14px;
+    padding: 0 14px; min-height: 48px; box-shadow: 0 6px 18px rgba(6, 35, 28, .18);
+}
+.dh-fast-box:focus-within { box-shadow: 0 0 0 3px rgba(212, 175, 55, .35), 0 6px 18px rgba(6, 35, 28, .18); }
+.dh-fast-box input {
+    flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+    font: inherit; font-size: 1rem; color: var(--dh-ink, #10241c); padding: 12px 0;
+}
+.dh-fast-box input::placeholder { color: #7a8c84; }
+.dh-fast-kbd {
+    font: 600 .75rem/1 monospace; color: #7a8c84; border: 1px solid #d9d2b8; border-radius: 6px; padding: 3px 7px; background: #f6f3e8;
+}
+
+.dh-fast-results {
+    margin-top: 8px; background: #fffdf6; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 12px 28px rgba(6, 35, 28, .25); color: var(--dh-ink, #10241c);
+}
+.dh-fast-results[hidden] { display: none; }
+.dh-fast-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #efe9d4; flex-wrap: wrap; }
+.dh-fast-item:last-child { border-bottom: 0; }
+.dh-fast-name { flex: 1 1 140px; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.dh-fast-go {
+    border: 0; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+    background: var(--dh-emerald-700, #0d5c46); color: #fff;
+}
+.dh-fast-go.is-kids { background: #fff3c7; color: #6b4f00; border: 1px solid var(--dh-gold-500, #d4af37); }
+.dh-fast-go:hover { filter: brightness(1.08); }
+.dh-fast-empty { padding: 14px; color: #6a7c74; text-align: center; font-size: .9rem; }
+
+/* ===== 5) الشارات على أزرار الواجبات والاختبارات الثنائية ===== */
+.dh-fast-badge {
+    position: absolute; top: 10px; inset-inline-start: 10px;
+    background: var(--dh-gold-500, #d4af37); color: #3a2c00; font-size: .72rem; font-weight: 700;
+    padding: 3px 9px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+}
+#btn-homework-main, #btn-dual-main { position: relative; }
+
+/* ===== 7) الشريط السفلي (هاتف فقط) ===== */
+.dh-bnav { display: none; }
+@media (max-width: 768px) {
+    .dh-bnav:not([hidden]) {
+        display: flex; position: fixed; inset-inline: 0; bottom: 0; z-index: 900;
+        background: #fffdf6; border-top: 2px solid var(--dh-gold-500, #d4af37);
+        box-shadow: 0 -6px 18px rgba(6, 35, 28, .12); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    }
+    .dh-bnav-item {
+        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: transparent;
+        color: #5b6f66; font: inherit; font-size: .68rem; padding: 4px 2px; cursor: pointer;
+    }
+    .dh-bnav-item.is-active { color: var(--dh-emerald-700, #0d5c46); font-weight: 700; }
+    .dh-bnav-item.is-center .dh-bnav-ic {
+        background: var(--dh-emerald-700, #0d5c46); color: #fff; border-radius: 50%; width: 42px; height: 42px;
+        display: flex; align-items: center; justify-content: center; margin-top: -18px; border: 3px solid #fffdf6;
+        box-shadow: 0 4px 10px rgba(6, 35, 28, .25);
+    }
+    body.dh-core-screen { padding-bottom: 72px; }
+    .dh-fast-kbd { display: none; }
+}
+
+/* ===== 8) تعويض سطر كان ضاع من css/home.css بسبب كتابة متزامنة (سطر "عن حمٓ" الإضافي) ===== */
+.home-footer-about .home-footer-about-more { line-height: 1.7; }
+
+
+/* ==========================================================================
+   9) 🌟 تنفيذ تصميم المعاينة للشاشة الرئيسية (سطح المكتب أولاً ثم الهاتف) — كله مقيّد بـ body.dh-home-screen
+   ========================================================================== */
+/* --- الهيرو المضغوط: العنوان + الترحيب + التاريخ في سطر، والبحث يتداخل مع حافته السفلية --- */
+body.dh-home-screen .home-hero { padding: 26px 20px 0; overflow: visible; }
+body.dh-home-screen .home-hero .home-title-orn,
+body.dh-home-screen .home-hero-wave,
+body.dh-home-screen .home-hero-pattern-2,
+body.dh-home-screen .home-hero-text::before { display: none; }
+body.dh-home-screen .home-hero-inner { padding-bottom: 0; max-width: 1120px; }
+body.dh-home-screen .home-hero-grid { display: block; }
+/* 🌟 [تعديل 2026-10-01] إرجاع نص الشارة ("منصة تعليمية متكاملة") والعنوان الفرعي تحت الآية بصيغة مضغوطة:
+   عمود يمين (الآية ← العنوان الفرعي ← الشارة) وعمود يسار (الترحيب ← التاريخ ← شارة "أكمل بياناتك")، ثم البحث بعرض كامل */
+body.dh-home-screen .home-hero-text {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; row-gap: 4px; align-items: center;
+    padding-inline-end: 0; text-align: start;
+}
+body.dh-home-screen .home-hero-text > h1.home-title { grid-column: 1; grid-row: 1; margin: 0; font-size: 2.9rem; text-align: start; animation: none; }
+body.dh-home-screen .home-hero-text > .home-subtitle { grid-column: 1; grid-row: 2; margin: 0; font-size: 1.05rem; text-align: start; animation: none; max-width: none; }
+body.dh-home-screen .home-hero-text > .home-hero-eyebrow { grid-column: 1; grid-row: 3; justify-self: start; margin: 4px 0 0; animation: none; }
+body.dh-home-screen .home-hero-text .home-greeting-row { grid-column: 2; grid-row: 1; margin: 0; gap: 10px; justify-content: flex-start; }
+body.dh-home-screen .home-hero-text .home-chips-row { grid-column: 2; grid-row: 2; margin: 0; justify-content: flex-start; flex-wrap: nowrap; }
+body.dh-home-screen .home-hero-text .home-date-bar { padding: 6px 14px; border-radius: 999px; font-size: .82rem; }
+body.dh-home-screen .home-hero-text .home-summary-bar { display: none !important; }   /* عدد الواجبات المنشورة: صار شارة على زر الواجبات */
+body.dh-home-screen .home-hero-text .teacher-profile-badge { grid-column: 2; grid-row: 3; }
+body.dh-home-screen .home-hero-text .dh-fast { grid-column: 1 / -1; grid-row: 4; max-width: none; margin: 14px 0 0; transform: translateY(30px); }
+body.dh-home-screen .dh-fast-box { min-height: 60px; border-radius: 18px; padding: 0 20px; }
+body.dh-home-screen .dh-fast-box input { font-size: 1.05rem; }
+body.dh-home-screen .dh-fast-results { position: absolute; inset-inline: 0; top: 68px; z-index: 20; }
+.dh-fast-lang {
+    border: 1px solid rgba(255, 253, 246, .35); background: transparent; color: #fffdf6;
+    border-radius: 999px; padding: 6px 14px; min-height: 32px; font: inherit; font-size: .8rem; cursor: pointer; white-space: nowrap;
+}
+.dh-fast-lang:hover { background: rgba(255, 255, 255, .14); }
+body.dh-home-screen .home-hero { margin-bottom: 0; padding-bottom: 0; }
+
+/* --- المحتوى: شبكة عمودين (الأزرار 2fr + نظرة سريعة 1fr) --- */
+body.dh-home-screen .home-menu {
+    max-width: 1120px; margin: 0 auto; padding: 56px 20px 40px; background: transparent; text-align: start;
+    display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px 24px; align-content: start; align-items: start;
+}
+body.dh-home-screen .home-menu > * { grid-column: 1; margin: 0; max-width: none; }
+body.dh-home-screen .home-menu > #home-quickcard-slot { grid-column: 2; grid-row: 1 / span 6; }
+body.dh-home-screen .home-menu > .home-start-here { grid-column: 1 / -1; }
+body.dh-home-screen .home-menu { background: var(--dh-surface-alt); max-width: none; padding-inline: max(20px, calc((100% - 1120px) / 2)); }
+body.dh-home-screen #home-quickcard-slot .home-quickcard {
+    max-width: none; width: 100%; margin: 0; border-radius: 24px; padding: 20px;
+    background: linear-gradient(165deg, var(--dh-emerald-900), var(--dh-emerald-800) 70%); color: #fffdf6;
+    box-shadow: 0 22px 44px rgba(6, 35, 28, .3);
+}
+
+/* --- بطاقة "تابع من حيث توقفت" --- */
+.dh-fast-continue-wrap { width: 100%; }
+.dh-fast-continue {
+    width: 100%; display: flex; flex-direction: row; align-items: center; gap: 16px; text-align: start; cursor: pointer;
+    background: #fffdf6; color: #1f2a26; border: 1px solid rgba(212, 175, 55, .55); border-radius: 18px;
+    padding: 14px 18px; font: inherit; box-shadow: 0 6px 16px rgba(6, 35, 28, .06);
+}
+.dh-fast-continue[hidden] { display: none; }
+.dh-fast-continue:hover { box-shadow: 0 10px 22px rgba(6, 35, 28, .12); }
+.dh-fast-continue-ic {
+    width: 46px; height: 46px; border-radius: 14px; flex: none; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #f0d878, #d4af37); color: #06231c;
+}
+.dh-fast-continue-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.dh-fast-continue-k { font-size: .8rem; color: #55605b; font-weight: 500; }
+.dh-fast-continue-v { font-size: 1.05rem; font-weight: 700; overflow-wrap: anywhere; }
+.dh-fast-continue-m { font-weight: 500; color: #55605b; font-size: .85rem; }
+.dh-fast-continue-go { background: #0d5c46; color: #fffdf6; border-radius: 12px; padding: 11px 22px; font-weight: 700; white-space: nowrap; }
+
+/* --- الأزرار الرئيسية الثلاثة: أقصر من السابق --- */
+body.dh-home-screen .home-menu-primary.home-menu-main { gap: 16px; }
+body.dh-home-screen .home-menu-main .home-card { min-height: 168px; padding: 20px; border-radius: 22px; }
+body.dh-home-screen .home-menu-main .home-card-title { font-size: 1.35rem; }
+
+/* --- الواجبات + الاختبارات الثنائية: صفّا أفقيان مدمجان مع الشارة --- */
+body.dh-home-screen .home-menu-secondary.home-menu-two { gap: 16px; }
+body.dh-home-screen .home-menu-two .home-card {
+    min-height: 0; flex-direction: row; align-items: center; gap: 12px; padding: 16px 18px; border-radius: 20px; text-align: start;
+}
+body.dh-home-screen .home-menu-two .home-card .home-card-arrow { display: none; }
+body.dh-home-screen .home-menu-two .home-card .dh-fast-badge { position: static; margin-inline-start: auto; white-space: nowrap; }
+body.dh-home-screen #btn-homework-main .dh-fast-badge { background: #6d28d9; color: #fff; }
+body.dh-home-screen #btn-dual-main .dh-fast-badge { background: #b45309; color: #fff; }
+
+/* --- شريط "قريباً": صف أقراص منقّطة واحد --- */
+body.dh-home-screen .home-menu-primary.home-menu-later {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 4px 4px 0;
+}
+.dh-fast-soon { font-size: .9rem; font-weight: 700; color: #55605b; }
+body.dh-home-screen .home-menu-later .home-card {
+    min-height: 0; width: auto; flex-direction: row; align-items: center; gap: 8px; padding: 7px 16px; border-radius: 999px;
+    background: #fffdf6; color: #3d4a45; border: 1px dashed #b9b39b; box-shadow: none; transform: none; font-size: .9rem;
+}
+body.dh-home-screen .home-menu-later .home-card:hover { transform: none; background: #f6f3e8; }
+body.dh-home-screen .home-menu-later .home-card-icon,
+body.dh-home-screen .home-menu-later .home-card-desc,
+body.dh-home-screen .home-menu-later .home-card-arrow { display: none; }
+body.dh-home-screen .home-menu-later .home-card-title { font-size: .95rem; color: inherit; margin: 0; }
+body.dh-home-screen .home-menu-later .home-card-badge { position: static; background: transparent; color: #8c2f3d; font-weight: 700; font-size: .75rem; padding: 0; box-shadow: none; }
+
+/* --- هاتف: عمود واحد، الهيرو مكدّس، نظرة سريعة تُنقل لأسفل بواسطة arrangeHomeForMobile --- */
+@media (max-width: 768px) {
+    body.dh-home-screen .home-hero { padding: 16px 16px 0; }
+    body.dh-home-screen .home-hero-text { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; justify-content: space-between; }
+    body.dh-home-screen .home-hero-text > h1.home-title { order: 2; flex: 0 0 100%; text-align: center; font-size: 2.3rem; }
+    body.dh-home-screen .home-hero-text > .home-subtitle { order: 3; flex: 0 0 100%; text-align: center; font-size: .9rem; }
+    body.dh-home-screen .home-hero-text > .home-hero-eyebrow { order: 4; margin: 2px 0 0; }
+    body.dh-home-screen .home-hero-text .home-chips-row { order: 5; flex: 0 0 100%; justify-content: center; }
+    body.dh-home-screen .home-hero-text .teacher-profile-badge { order: 6; }
+    body.dh-home-screen .home-hero-text .dh-fast { order: 7; flex: 0 0 100%; }
+    body.dh-home-screen .home-hero-text .home-date-bar { font-size: .75rem; background: transparent; border: 0; padding: 0; }
+    body.dh-home-screen .home-hero-text .home-date-bar svg { display: none; }
+    body.dh-home-screen .home-hero-text .dh-fast { margin-top: 6px; transform: translateY(26px); }
+    body.dh-home-screen .dh-fast-box { min-height: 52px; border-radius: 16px; padding: 0 14px; }
+    body.dh-home-screen .home-menu { display: block; padding: 44px 14px 14px; }
+    body.dh-home-screen .home-menu > * { margin-bottom: 12px; }
+    body.dh-home-screen .home-menu > #home-quickcard-slot { display: none; }
+    body.dh-home-screen .home-menu-primary.home-menu-main { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    body.dh-home-screen .home-menu-main .home-card-icon { width: 36px; height: 36px; }
+    body.dh-home-screen .home-menu-two .home-card-desc { display: none; }
+    body.dh-home-screen .home-menu-two .home-card { padding: 12px 14px; }
+    body.dh-home-screen .home-menu-two .home-card-title { font-size: 1rem; }
+    body.dh-home-screen .home-menu-main .home-card { min-height: 100px; padding: 12px; border-radius: 18px; }
+    body.dh-home-screen .home-menu-main .home-card-desc { display: none; }
+    body.dh-home-screen .home-menu-main .home-card-title { font-size: .95rem; }
+    body.dh-home-screen .home-menu-secondary.home-menu-two { grid-template-columns: 1fr; gap: 10px; }
+    body.dh-home-screen .dh-fast-continue { padding: 10px 12px; gap: 12px; }
+    body.dh-home-screen .dh-fast-continue-ic { width: 40px; height: 40px; }
+    body.dh-home-screen .dh-fast-continue-go { padding: 9px 16px; }
+}
+
+
+/* ===== 10) 🌟 نص دعوة المساهمة تحت زر "تواصل معنا" في الفوتر ===== */
+.home-footer-contact-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; max-width: 300px; }
+.home-footer-donate { margin: 0; font-size: .8rem; line-height: 1.8; text-align: center; color: rgba(255, 253, 246, .72); }
+
+/* ===== 11) 🌟 توحيد العرض والإيقاع بين أقسام الشاشة الرئيسية (الهيرو/الأزرار/لماذا حمٓ/الفوتر كلها بمحتوى عرضه 1080px) ===== */
+body.dh-home-screen .home-why { padding: 48px 20px; }
+body.dh-home-screen .home-why-grid { max-width: 1080px; }
+body.dh-home-screen .home-why-subtitle { margin-bottom: 28px; }
+body.dh-home-screen .home-why-card { height: 100%; }
+body.dh-home-screen .home-footer { padding: 36px 20px 22px; }
+body.dh-home-screen .home-footer-inner {
+    max-width: 1080px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px;
+    align-items: start; padding-bottom: 22px;
+}
+body.dh-home-screen .home-footer-about { text-align: start; }
+body.dh-home-screen .home-footer-about p { max-width: 340px; margin: 0 0 6px; line-height: 1.8; }
+body.dh-home-screen .home-footer-contact-wrap { justify-self: center; width: 100%; max-width: 320px; }
+body.dh-home-screen .home-footer-copy { justify-self: end; text-align: end; font-size: .82rem; line-height: 1.8; padding-top: 6px; }
+@media (max-width: 900px) {
+    body.dh-home-screen .home-footer-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 18px; }
+    body.dh-home-screen .home-footer-about { text-align: center; }
+    body.dh-home-screen .home-footer-about p { margin-inline: auto; }
+    body.dh-home-screen .home-footer-copy { justify-self: center; text-align: center; padding-top: 0; }
+}

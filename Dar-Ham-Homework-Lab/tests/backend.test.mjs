@@ -481,9 +481,9 @@ await test('NO DATA LOSS: existing student-facing links and submit flow are comp
 
 
 // ============================================================================ 🌟 تحصينات تدقيق ما قبل الإطلاق
-await test('googleSignIn: NOT_CONFIGURED when GOOGLE_CLIENT_ID/TEACHER_EMAILS are not set (no open registration)', () => {
-  const be = createBackend({ urlFetch: googleMock({ tokA: { sub: 'sub-A' } }) }); be.setup();
-  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).code, 'NOT_CONFIGURED');
+await test('googleSignIn: open registration — with no TEACHER_EMAILS any verified email signs in (🌟 2026-10-01)', () => {
+  const be = createBackend({ urlFetch: googleMock({ tokA: { sub: 'sub-A', aud: '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com' } }) }); be.setup();
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).ok, true);
 });
 
 await test('googleSignIn: an email outside the TEACHER_EMAILS allowlist, wrong audience, or unverified email are rejected', () => {

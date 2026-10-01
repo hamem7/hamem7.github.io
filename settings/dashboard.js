@@ -1,5 +1,5 @@
 // settings/dashboard.js
-import { AppState, loadLoginScreen } from '../core/app.js';
+import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
 import { openKidsGameScreen } from '../games/kidsGame.js';   
 
@@ -11,17 +11,17 @@ export function populateDashboardData() {
     const headerTitle = document.getElementById('header-title');
     
     if (AppState.isKidsMode) { 
-        if (headerTitle) headerTitle.innerText = "🎈 ركن الأبطال الصغار"; 
+        if (headerTitle) headerTitle.innerText = t('header_title_kids'); 
         document.getElementById('eval-radios').style.display = 'none';
         document.getElementById('surah-settings').style.display = 'none';
         document.getElementById('range-settings').style.display = 'none';
         document.getElementById('juz-settings').style.display = 'none';
         document.getElementById('kids-settings').style.display = 'grid';
-        document.getElementById('dash-title').innerText = "🎈 هيا نلعب 🎈";
+        document.getElementById('dash-title').innerText = t('dash_kids_play_title');
     } else { 
         document.getElementById('eval-radios').style.display = 'flex';
         document.getElementById('kids-settings').style.display = 'none';
-        document.getElementById('dash-title').innerText = "لوحة التقييم ⚙️";
+        document.getElementById('dash-title').innerText = t('dash_title');
         toggleEvalType(); 
     }
 
@@ -30,12 +30,12 @@ export function populateDashboardData() {
     const rangeTo = document.getElementById('range-to-surah');
     
     if (selSurah && rangeFrom && rangeTo) {
-        selSurah.innerHTML = '<option value="" disabled selected>-- اختر السورة --</option>';
+        selSurah.innerHTML = `<option value="" disabled selected>${t('dash_choose_surah')}</option>`;
         rangeFrom.innerHTML = ''; 
         rangeTo.innerHTML = '';
         
         AppState.surahsData.forEach(s => {
-            let optStr = `${s.number}. سورة ${s.name}`;
+            let optStr = tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) });
             selSurah.appendChild(new Option(optStr, s.number));
             rangeFrom.appendChild(new Option(optStr, s.number));
             rangeTo.appendChild(new Option(optStr, s.number));
@@ -45,9 +45,9 @@ export function populateDashboardData() {
     const juzSel = document.getElementById('juz-select');
     if (juzSel) {
         juzSel.innerHTML = '';
-        const juzNames = ["(الم)", "(سيقول)", "(تلك الرسل)", "(لن تنالوا)", "(والمحصنات)", "(لا يحب الله)", "(وإذا سمعوا)", "(ولو أننا)", "(قال الملأ)", "(واعلموا)", "(يعتذرون)", "(وما من دابة)", "(وما أبرئ)", "(ربما)", "(سبحان)", "(قال ألم)", "(اقترب للناس)", "(قد أفلح)", "(وقال الذين)", "(أمن خلق)", "(اتل ما أوحي)", "(ومن يقنت)", "(وما أنزلنا)", "(فمن أظلم)", "(إليه يرد)", "(حم)", "(قال فما خطبكم)", "(قد سمع)", "(تبارك)", "(عم)"];
+        const juzNames = (AppState.currentLang === 'en' ? ["(Alif Lam Mim)","(Sayaqul)","(Tilka ar-Rusul)","(Lan Tanalu)","(Wal-Muhsanat)","(La Yuhibbullah)","(Wa Idha Sami'u)","(Wa Law Annana)","(Qalal-Mala')","(Wa'lamu)","(Ya'tadhirun)","(Wa Ma Min Dabbah)","(Wa Ma Ubarri'u)","(Rubama)","(Subhan)","(Qal Alam)","(Iqtaraba lin-Nas)","(Qad Aflaha)","(Wa Qalalladhina)","(A'man Khalaq)","(Utlu Ma Uhiya)","(Wa Man Yaqnut)","(Wa Ma Anzalna)","(Fa Man Azlam)","(Ilayhi Yuraddu)","(Ha Mim)","(Qala Fa Ma Khatbukum)","(Qad Sami'a)","(Tabarak)","(Amma)"] : ["(الم)", "(سيقول)", "(تلك الرسل)", "(لن تنالوا)", "(والمحصنات)", "(لا يحب الله)", "(وإذا سمعوا)", "(ولو أننا)", "(قال الملأ)", "(واعلموا)", "(يعتذرون)", "(وما من دابة)", "(وما أبرئ)", "(ربما)", "(سبحان)", "(قال ألم)", "(اقترب للناس)", "(قد أفلح)", "(وقال الذين)", "(أمن خلق)", "(اتل ما أوحي)", "(ومن يقنت)", "(وما أنزلنا)", "(فمن أظلم)", "(إليه يرد)", "(حم)", "(قال فما خطبكم)", "(قد سمع)", "(تبارك)", "(عم)"]); // 🌟 أسماء الأجزاء بنطق إنجليزي في الوضع الإنجليزي (تسمية الجزء ليست نص آية)
         for (let i = 30; i >= 1; i--) {
-            juzSel.appendChild(new Option(`الجزء ${i} ${juzNames[i-1]}`, i));
+            juzSel.appendChild(new Option(tf('dash_juz_label', { n: i, name: juzNames[i-1] }), i));
         }
     }
 
@@ -58,10 +58,14 @@ export function populateDashboardData() {
         kFrom.innerHTML = ''; 
         kTo.innerHTML = '';
         
-        const kidsSurahs = AppState.surahsData.filter(s => s.number >= 67 && s.number <= 114);
+        // 🌟 [تعديل] نطاق ركن الأطفال صار من الجزء 26 (أول سورة الأحقاف = 46) حتى الجزء 30 (الناس = 114)،
+        // بعد أن كان محصورًا في جزأي تبارك وعمّ فقط (من 67). الأجزاء: 26 الأحقاف، 27 الذاريات، 28 المجادلة،
+        // 29 تبارك، 30 عمّ. الافتراضي أدناه (114 → 67) لم يتغيّر حتى لا يختلف سلوك المعلم المعتاد.
+        // ملاحظة: سورة الأحقاف (46) هي أول سورة في الجزء 26 حسب JUZ_STARTS في engine/reviewParts.js.
+        const kidsSurahs = AppState.surahsData.filter(s => s.number >= 46 && s.number <= 114);
         kidsSurahs.forEach(s => { 
-            kFrom.appendChild(new Option(`${s.number}. سورة ${s.name}`, s.number)); 
-            kTo.appendChild(new Option(`${s.number}. سورة ${s.name}`, s.number)); 
+            kFrom.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
+            kTo.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
         });
         
         kFrom.value = 114; 
@@ -108,8 +112,8 @@ export function setupDashboardListeners() {
     document.getElementById('btn-start-mission')?.addEventListener('click', () => {
         const config = getTeacherConfig();
 
-        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && isNaN(config.surahNum)) return alert("الرجاء اختيار السورة أولاً!");
-        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && config.startAyah > config.endAyah) return alert("نطاق الآيات غير صحيح!");
+        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && isNaN(config.surahNum)) return alert(t('dash_alert_choose_surah'));
+        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && config.startAyah > config.endAyah) return alert(t('dash_alert_bad_range'));
 
         if (config.isKidsMode) {
             openKidsGameScreen(config, false);
@@ -139,14 +143,14 @@ function updateHeaderSurahName() {
     if (mode === 'surah') {
         const selSurah = document.getElementById('surah-select');
         if (selSurah.selectedIndex > 0 && selSurah.value) {
-            const pureName = selSurah.options[selSurah.selectedIndex].text.replace(/^\d+\.\s*سورة\s*/, '').replace(/^سورة\s*/, '').trim();
-            headerTitle.innerText = `🏆 رحلة إتقان القرآن - سورة ${pureName}`;
-        } else { headerTitle.innerText = `🏆 رحلة إتقان القرآن`; }
+            const pureName = surahNameLocal(selSurah.value);
+            headerTitle.innerText = tf('dash_header_surah', { name: pureName });
+        } else { headerTitle.innerText = t('header_title'); }
     } else if (mode === 'range') {
-        headerTitle.innerText = `🏆 رحلة إتقان القرآن - عدة سور`;
+        headerTitle.innerText = t('dash_header_multi');
     } else if (mode === 'juz') {
         const selJuz = document.getElementById('juz-select');
-        if (selJuz.selectedIndex >= 0) headerTitle.innerText = `🏆 رحلة إتقان القرآن - ${selJuz.options[selJuz.selectedIndex].text}`;
+        if (selJuz.selectedIndex >= 0) headerTitle.innerText = tf('dash_header_other', { label: selJuz.options[selJuz.selectedIndex].text });
     }
 }
 
@@ -161,8 +165,8 @@ function updateAyahRange() {
     toSelect.innerHTML = "";
     
     for (let i = 1; i <= surah.ayahsCount; i++) { 
-        fromSelect.appendChild(new Option(`آية ${i}`, i)); 
-        toSelect.appendChild(new Option(`آية ${i}`, i)); 
+        fromSelect.appendChild(new Option(tf('dash_ayah_label', { n: i }), i)); 
+        toSelect.appendChild(new Option(tf('dash_ayah_label', { n: i }), i)); 
     }
     toSelect.value = surah.ayahsCount;
-}
+}

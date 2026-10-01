@@ -1,6 +1,6 @@
 // games/kidsGame.js
 // 🌟 استيراد الدالة السحرية للترجمة 🌟
-import { AppState, loadDashboardScreen, t } from '../core/app.js';
+import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
@@ -106,7 +106,7 @@ export async function openKidsGameScreen(config, isWeakness = false) {
             let ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.kidsFrom, config.kidsTo);
             let sNameF = AppState.surahsData.find(s => s.number === config.kidsFrom).name; 
             let sNameT = AppState.surahsData.find(s => s.number === config.kidsTo).name; 
-            GameState.evalRangeText = `${t("ألعاب أطفال (من سورة")} ${sNameF} ${t("إلى")} ${sNameT})`;
+            GameState.evalRangeText = tfAr('kids_range_text', { sfrom: sNameF, sto: sNameT });
             
             if(ayahsPool.length === 0) return alert(t("عفواً، لا توجد آيات في النطاق المحدد!"));
 
@@ -271,7 +271,7 @@ function persistEvaluationToHistory() {
         const historyArray = JSON.parse(localStorage.getItem(historyKey)) || [];
         historyArray.push({
             date: historyDateLabel(),
-            range: GameState.evalRangeText || t('hist_eval_default_range'),
+            range: GameState.evalRangeText || tfAr('hist_eval_default_range'),
             score: scorePercent,
             source: 'kids_game',
             // 🌟 [جديد] نوع الجلسة ('weakness' لتحدي الأخطاء) — راجع نفس التعليق في adultGame.js 🌟
@@ -392,9 +392,9 @@ async function playNextMission() {
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
-            let headLine = buildWeaknessQuestionHeader(wItem, t, 'var(--kids-primary)');
+            let headLine = buildWeaknessQuestionHeader(wItem, (k) => localizeGenerated(trStored(t(k))), 'var(--kids-primary)');
             let dateLine = wItem.dateRecorded ? `<div style="font-size:1rem; color:#64748b; margin-top:5px;">${t('error_recorded_on')} ${new Date(wItem.dateRecorded).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</div>` : '';
-            let errorLine = `<div style="font-size:1.4rem; font-weight:bold; margin-top:10px;">${t("الخطأ السابق المسجل:")} [ ${wItem.errorTypes} ]</div>`;
+            let errorLine = `<div style="font-size:1.4rem; font-weight:bold; margin-top:10px;">${t("الخطأ السابق المسجل:")} [ ${localizeErrorTypes(wItem.errorTypes || [])} ]</div>`;
 
             GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${headLine}${originalBodyHTML}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.correctAns || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
             document.getElementById('teacher-eval-area').style.display = 'block';
@@ -405,7 +405,7 @@ async function playNextMission() {
             // 🌟 [جديد] كانت شاشة علاج الخطأ عند الأطفال لا تعرض الإجابة الصحيحة إطلاقاً
             // (خلافاً لنسخة الكبار) — أضفناها هنا مع زر "إظهار الإجابة للمطابقة" 🌟
             document.getElementById('show-ans-btn').style.display = 'inline-block';
-            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( سورة ${wItem.surahName} - آية ${wItem.num} )</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
             return;
         }
 
@@ -497,7 +497,7 @@ async function playNextMission() {
                     GameState.currentData.options.forEach(opt => {
                         let btn = document.createElement('button');
                         btn.className = 'kids-mcq-btn quran-text';
-                        btn.innerHTML = `﴿ ${opt} ﴾`;
+                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿ ${opt} ﴾`;
                         let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
                         // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في
                         // بيانات السؤال (راجع generateKidsListenAyah في engine/kidsEngine.js)،
@@ -558,7 +558,7 @@ function showKidsListenSurahStep() {
         // 🌟 نفس الكلاس المستخدَم لأسماء السور في لعبة "خمن السورة" (generateKidsGuessSurah)
         // بالضبط — للحفاظ على نفس الهوية البصرية بين اللعبتين 🌟
         btn.className = 'kids-mcq-btn quran-text';
-        btn.innerText = surahName;
+        btn.innerText = AppState.currentLang === 'en' ? surahNameLocal(surahName) : surahName;
         btn.onclick = () => {
             if (surahName === GameState.currentData.correctSurah) window.recordKidsAnswer(true);
             else window.recordKidsAnswer(false, 'kids_listen_wrong_surah_error');
@@ -627,7 +627,7 @@ function saveTempError() {
     let errorTypes = []; 
     document.querySelectorAll('#error-modal input[type="checkbox"]:checked').forEach(cb => errorTypes.push(cb.value)); 
     let customNote = document.getElementById('custom-note').value.trim();
-    if(customNote) errorTypes.push(`${t("ملاحظة:")} ${customNote}`);
+    if(customNote) errorTypes.push(tfAr('gen_note_prefix', { text: customNote }));
     // 🌟 [جديد] موضع الخطأ بالتحديد (من آية ... إلى آية ...) لأسئلة التسميع — اختياري؛ يكفي
     // اختياره وحده كملاحظة. يُضاف كشريحة نصية ضمن errorTypes فيظهر أيضاً في التقرير وشاشة العلاج 🌟
     let rangeSel = readReciteRangeSelection();

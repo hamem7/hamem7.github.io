@@ -37,6 +37,8 @@ function ss_() {
 }
 
 var VERSION = '1.2.0';
+// 🌟 [جديد 2026-10-01] Client ID العلني للواجهة (نفس GOOGLE_CLIENT_ID في core/api.js) — احتياطي لو لم تُضبط الخاصية في Script Properties
+var DEFAULT_GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 var SHEET_HW = 'Homeworks';
 var SHEET_SUB = 'Submissions';
 var SHEET_TEACHERS = 'Teachers';    // 🌟 multi-teacher: Google-authenticated teacher accounts
@@ -197,13 +199,18 @@ function verifyGoogleIdToken_(idToken) {
   //   • GOOGLE_CLIENT_ID (Script Property): يجب أن يطابق aud في التوكن.
   //   • TEACHER_EMAILS (Script Property): قائمة بريد مسموح بها مفصولة بفاصلة، والبريد يجب أن يكون موثَّقًا.
   // لو لم تُضبطا يفشل الدخول بجوجل برسالة واضحة (مفتاح المعلم القديم يبقى يعمل كخط رجوع).
+  // 🌟🌟 [عُدّل 2026-10-01 بطلب المالك] التسجيل مفتوح: أي معلم يدخل ببريد جوجل موثَّق يُسجَّل تلقائيًا ويفتح نظام الواجبات.
+  //   • GOOGLE_CLIENT_ID (Script Property) اختياري: لو لم يُضبط نستخدم DEFAULT_GOOGLE_CLIENT_ID الثابت (ليس سرًّا). فحص aud يبقى إجباريًا.
+  //   • TEACHER_EMAILS (Script Property) صار اختياريًا: لو ضُبط (بريد مفصول بفاصلة) نقيّد الدخول به، ولو ترك فارغًا يُسمح لأي بريد موثَّق.
+  //   • الحماية من إساءة الاستخدام باقية: لكل معلم حد MAX_HOMEWORKS_PER_TEACHER وإجمالي MAX_HOMEWORKS_TOTAL، وكل معلم لا يرى إلا واجباته.
+  // ⚠️ افتراض صريح: "أي معلم" = أي حساب جوجل بريده موثَّق (email_verified). لإرجاع القائمة البيضاء اضبط TEACHER_EMAILS.
   var props = PropertiesService.getScriptProperties();
-  var clientId = props.getProperty('GOOGLE_CLIENT_ID');
+  var clientId = props.getProperty('GOOGLE_CLIENT_ID') || DEFAULT_GOOGLE_CLIENT_ID;
   var allowed = String(props.getProperty('TEACHER_EMAILS') || '').toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(Boolean);
-  if (!clientId || !allowed.length) throw err_('NOT_CONFIGURED', 'Set GOOGLE_CLIENT_ID and TEACHER_EMAILS in Script Properties to enable Google sign-in');
   if (String(data.aud) !== clientId) throw err_('UNAUTHORIZED', 'Token was issued for a different app');
   var mail = data.email ? String(data.email).toLowerCase() : '';
-  if (!mail || String(data.email_verified) === 'false' || allowed.indexOf(mail) === -1) throw err_('UNAUTHORIZED', 'This Google account is not allowed');
+  if (!mail || String(data.email_verified) === 'false') throw err_('UNAUTHORIZED', 'This Google account has no verified email');
+  if (allowed.length && allowed.indexOf(mail) === -1) throw err_('UNAUTHORIZED', 'This Google account is not allowed');
   return { sub: String(data.sub), email: data.email ? String(data.email) : null, name: data.name ? String(data.name) : null };
 }
 

@@ -15,7 +15,7 @@
 // ⚠️ راجع افتراضات العدّ في engine/reviewParts.js (بلا التفاف ولا دورات، والاتجاه غير مؤثر).
 // =============================================================================
 
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import { JUZ_COUNT, juzLabel, juzBounds, juzSurahs, coveredAyahs, normalizeReview } from '../engine/reviewParts.js';
 
 const STYLE_ID = 'mrv-styles';
@@ -54,7 +54,7 @@ function ensureStyles() {
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function surahName(n) {
   const s = (AppState.surahsData || []).find(x => x.number === n);
-  return s ? s.name : String(n);
+  return s ? surahNameLocal(s.name) : String(n);
 }
 
 /**

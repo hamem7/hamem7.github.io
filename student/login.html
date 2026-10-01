@@ -4,9 +4,30 @@
         <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:20px;" id="login-title">تسجيل الدخول</h1>
         <h2 style="font-size: 1.6rem; margin-bottom: 25px;" data-i18n="login_subtitle">اختر طالباً مسجلاً لمتابعة التقدم</h2>
 
-        <input type="text" id="student-search-input" autocomplete="off" data-i18n-placeholder="search_student_ph" placeholder="🔍 اكتب اسم البطل للبحث..." style="width: 90%; padding: 15px 20px; font-size: 1.6rem; font-family: 'Tajawal', sans-serif; font-weight: bold; color: #1e3a5f; background: rgba(255, 255, 255, 0.95); border: 3px solid #cbd5e1; border-radius: 50px; text-align: center; margin-bottom: 25px; outline: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+        <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] كان المعلم مضطراً لكتابة اسم الطالب كاملاً بالحرف،
+             وقائمة <datalist> المتصفح لا تظهر إلا بعد بدء الكتابة وبسلوك يختلف بين المتصفحات (وضعيفة على الهاتف).
+             الآن قائمة اقتراحات مخصّصة (student/student.js: setupStudentSuggest) تظهر فور كتابة أي حرف وتضيق
+             تدريجياً مع كل حرف إضافي حتى يضغط المعلم على الاسم المطلوب. الـ id الأصلي للحقل وللـ datalist باقيان
+             كما هما (توافق خلفي) — القائمة المخصّصة بادئتها dhs- ومعزولة تماماً -->
+        <style>
+            .dhs-wrap { position: relative; width: 90%; margin: 0 auto 25px; }
+            .dhs-wrap #student-search-input { width: 100% !important; box-sizing: border-box; margin-bottom: 0 !important; }
+            .dhs-list { position: absolute; top: calc(100% + 6px); inset-inline: 0; z-index: 60; background: #fff; border-radius: 18px;
+                        box-shadow: 0 14px 34px rgba(6, 35, 28, 0.22); border: 1px solid rgba(13, 92, 70, 0.15);
+                        max-height: 280px; overflow-y: auto; text-align: right; display: none; }
+            .dhs-list.is-open { display: block; }
+            .dhs-item { display: block; width: 100%; background: none; border: none; text-align: right; font-family: inherit; cursor: pointer;
+                        padding: 13px 20px; font-size: 1.3rem; font-weight: bold; color: #1e3a5f; border-bottom: 1px solid #f1f5f9; min-height: 48px; }
+            .dhs-item:last-child { border-bottom: none; }
+            .dhs-item:hover, .dhs-item.is-active { background: var(--dh-surface-alt, #f1f5f9); color: var(--dh-emerald-700, #0d5c46); }
+            .dhs-item mark { background: rgba(212, 175, 55, 0.35); color: inherit; border-radius: 4px; padding: 0 1px; }
+            .dhs-empty { padding: 14px 20px; color: #64748b; font-size: 1.05rem; }
+        </style>
+        <div class="dhs-wrap">
+            <input type="text" id="student-search-input" autocomplete="off" data-i18n-placeholder="search_student_ph" placeholder="🔍 اكتب اسم الطالب للبحث..." role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="student-suggest-list" style="width: 100%; padding: 15px 20px; font-size: 1.6rem; font-family: 'Tajawal', sans-serif; font-weight: bold; color: #1e3a5f; background: rgba(255, 255, 255, 0.95); border: 3px solid #cbd5e1; border-radius: 50px; text-align: center; outline: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+            <div class="dhs-list" id="student-suggest-list" role="listbox"></div>
+        </div>
         <datalist id="student-list"></datalist>
-        <br>
 
         <button class="btn" style="width: 100%; font-size: 1.4rem; margin-bottom:25px;" id="btn-login-submit" data-i18n="btn_quick_login">دخول سريع للتقييم 🚀</button>
 

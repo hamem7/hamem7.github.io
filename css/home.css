@@ -668,7 +668,17 @@
     font-family: inherit;
     box-sizing: border-box;
     background: #fff;
-    color: inherit;
+    /* 🌟 [إصلاح] كان color: inherit فيرث اللون الأبيض من النافذة فيختفي النص (اسم/نوع/تاريخ ميلاد) على الخلفية البيضاء.
+       الآن لون الحبر الداكن المعرّف في :root، مع -webkit-text-fill-color لضمان الظهور على iOS/Safari 🌟 */
+    color: var(--dh-ink, #10241c);
+    -webkit-text-fill-color: var(--dh-ink, #10241c);
+}
+
+/* 🌟 [إصلاح] لون النص التوضيحي (placeholder) داخل حقول ملف المعلم — رمادي واضح بدل الأبيض 🌟 */
+.teacher-profile-modal .input-group input::placeholder {
+    color: var(--dh-ink-soft, #4a6058);
+    -webkit-text-fill-color: var(--dh-ink-soft, #4a6058);
+    opacity: 0.6;
 }
 
 .teacher-profile-modal-actions {
@@ -1414,3 +1424,117 @@ h1.home-title .home-title-ha {
     .home-hero-text { padding-inline-end: 0; }   /* على الجوال المحور في المنتصف تمامًا */
     .home-hero-text::before { top: -150px; left: 50%; width: 115%; }
 }
+
+
+/* ==========================================================================
+   🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] قسم "نظرة سريعة" على الهاتف فقط
+   core/app.js (arrangeHomeForMobile) ينقل #home-quickcard إلى هذا القسم بعد بطاقات الأقسام، فتظهر
+   البطاقات أولاً. قواعد جديدة معزولة ببادئة home-quick-mobile — لا تعدّل أي قاعدة موجودة أعلاه.
+   ========================================================================== */
+.home-quick-mobile {
+    position: relative;
+    margin-top: -36px;                 /* يتداخل مع هامش قسم الأزرار السفلي (70px) فلا فراغ زائد */
+    padding: 22px 14px 30px;
+    border-radius: 28px 28px 0 0;
+    background: linear-gradient(165deg, var(--dh-emerald-900) 0%, var(--dh-emerald-800) 45%, var(--dh-emerald-700) 100%);
+    color: #fffdf6;
+    z-index: 2;
+}
+.home-quick-mobile .home-quickcard { max-width: 480px; margin: 0 auto; }
+
+
+/* ==========================================================================
+   🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] إعادة ترتيب بطاقات الشاشة الرئيسية + بطاقة "ابدأ من هنا"
+   قواعد معزولة بأسماء أصناف جديدة (home-menu-main / home-menu-two / home-menu-later / home-start-here)
+   ولا تعدّل أي قاعدة موجودة أعلاه. الصف الأول 3 بطاقات بنفس الحجم، والثاني بطاقتان، وفي الأخير بطاقتان
+   (المتشابهات والتجويد) بارتفاع أقل.
+   ========================================================================== */
+.home-menu-primary.home-menu-main { grid-template-columns: repeat(3, 1fr); }
+.home-menu-secondary.home-menu-two { grid-template-columns: repeat(2, 1fr); margin-bottom: 20px; }
+.home-menu-primary.home-menu-later { grid-template-columns: repeat(2, 1fr); margin-bottom: 0; }
+.home-menu-primary.home-menu-later .home-card { min-height: 130px; }
+
+/* بطاقة "طلابي" داخل الصف الأول: نفس مقاس بطاقتي الكبار/الأطفال بلون فاتح مميّز */
+.home-menu-primary .home-card-students {
+    background: linear-gradient(150deg, #ffffff, #dff1e8 85%);
+    border-top: 4px solid var(--dh-emerald-600);
+    box-shadow: var(--dh-shadow-soft);
+}
+.home-menu-primary .home-card-students .home-card-title { color: var(--dh-emerald-800); }
+.home-menu-primary .home-card-students .home-card-desc { color: var(--dh-ink-soft); }
+.home-menu-primary .home-card-students .home-card-arrow { color: var(--dh-emerald-700); }
+
+/* بطاقة "ابدأ من هنا" (للمعلم الجديد فقط) */
+.home-start-here {
+    max-width: 1100px;
+    margin: 0 auto 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 18px 22px;
+    background: var(--dh-surface);
+    border: 2px solid var(--dh-gold-500);
+    border-radius: var(--dh-radius-md);
+    box-shadow: var(--dh-shadow-soft);
+    text-align: right;
+}
+.home-start-here-text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 220px; }
+.home-start-here-text strong { font-size: 1.25rem; color: var(--dh-emerald-800); }
+.home-start-here-text span { color: var(--dh-ink-soft); font-size: 0.98rem; }
+.home-start-here-btn {
+    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
+    color: var(--dh-emerald-900);
+    border: none;
+    border-radius: 14px;
+    padding: 14px 28px;
+    min-height: 48px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+}
+.home-start-here-btn:hover { box-shadow: 0 14px 26px rgba(212, 175, 55, 0.4); }
+@media (max-width: 768px) {
+    .home-menu-primary.home-menu-main,
+    .home-menu-primary.home-menu-later,
+    .home-menu-secondary.home-menu-two { grid-template-columns: 1fr; }
+    .home-start-here { flex-direction: column; align-items: stretch; text-align: center; }
+    .home-start-here-btn { width: 100%; }
+}
+
+/* ==========================================================================
+   🌟🌟 [جديد 2026-10-01 — بطلب المعلم] تصغير قسم "لماذا حمٓ؟" إلى 4 بطاقات، وبطاقة "خصوصية" صارت رابطاً
+   إلى privacy.html، وسطر "عن حمٓ" المدمج بالفوتر. قواعد معزولة بأسماء جديدة
+   (home-why-card-link / home-why-more / home-footer-about-more) ولا تعدّل أي قاعدة موجودة أعلاه.
+   ========================================================================== */
+.home-why-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+.home-why-card-link:focus-visible {
+    outline: 2px solid var(--dh-gold-500);
+    outline-offset: 3px;
+}
+.home-why-more {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--dh-emerald-700);
+}
+.home-why-card-link:hover .home-why-more { text-decoration: underline; }
+.home-footer-about .home-footer-about-more { margin-top: 6px; }
+
+/* ==========================================================================
+   🌟 [جديد] إصلاح انعكاس الأقواس المزخرفة حول عنوان الآية في الإنجليزية (dir=ltr).
+   في العربية (RTL): ::before = ﴿ على اليمين و::after = ﴾ على اليسار وهذا صحيح. في الإنجليزية
+   يُرسم ::before على اليسار فينقلب شكله، فنبدّل الحرفين ليبقى القوس الأيمن ﴿ على اليمين
+   والأيسر ﴾ على اليسار بنفس الشكل الصحيح. نفس العنوان، لا يمسّ العربية. 🌟
+   ========================================================================== */
+[dir="ltr"] h1.home-title::before { content: "\FD3E"; }
+[dir="ltr"] h1.home-title::after  { content: "\FD3F"; }

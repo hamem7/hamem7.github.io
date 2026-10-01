@@ -30,7 +30,7 @@
 // لعرض عدة أشهر متراكمة معًا) — تبسيط متعمَّد بدل تعقيد واجهة قائمة أشهر متعددة.
 // =============================================================================
 
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import {
   calcMemorizationProgress,
   isValidPosition,
@@ -97,7 +97,7 @@ function closeOverlay(overlay) {
 
 function surahOptionsHtml(surahsData, selectedNumber) {
   return getSurahsInMemorizationOrder(surahsData)
-    .map(s => `<option value="${s.number}" ${s.number === selectedNumber ? 'selected' : ''}>${s.name}</option>`)
+    .map(s => `<option value="${s.number}" ${s.number === selectedNumber ? 'selected' : ''}>${surahNameLocal(s.name)}</option>`)
     .join('');
 }
 

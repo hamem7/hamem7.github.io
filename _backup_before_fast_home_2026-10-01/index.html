@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة حمٓ - أبطال القرآن</title>
+
+    <meta name="theme-color" content="#064e3b">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- 🌟 التعديل التجريبي: تم استبدال خطي Tajawal و Amiri بخط IBM Plex Sans Arabic بأوزانه المطلوبة 🌟 -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/adults.css">
+    <link rel="stylesheet" href="css/kids.css">
+    <!-- 🌟 [جديد] ملف تصميم الهيدر العلوي والشاشة الرئيسية الجديدة فقط — لا يعدّل أي قاعدة
+         موجودة في الملفات الثلاثة أعلاه ولا يؤثر على أي شاشة أخرى في المنصة 🌟 -->
+    <link rel="stylesheet" href="css/home.css">
+    <!-- 🌟 [جديد] تصميم شاشات "ركن المتشابهات" (مجلد similarities/) — ملف معزول تماماً بنفس
+         فلسفة home.css أعلاه، لا يلمس أي قاعدة في الملفات الأخرى 🌟 -->
+    <link rel="stylesheet" href="css/similarities.css">
+    <!-- 🌟 [جديد] تصميم بطاقة "تلميحات الأقسام عند أول دخول" العائمة — ملف معزول تماماً بنفس
+         الفلسفة أعلاه، راجع components/sectionHint.js 🌟 -->
+    <link rel="stylesheet" href="css/sectionHint.css">
+    <!-- 🌟 [جديد] تصميم "بطاقة الترحيب بالطالب" التي تظهر لحظة اختيار اسمه قبل لوحة التقييم —
+         ملف معزول تماماً بنفس الفلسفة أعلاه، راجع components/welcomeBanner.js 🌟 -->
+    <link rel="stylesheet" href="css/welcomeBanner.css">
+    <!-- 🌟 [جديد] تصميم بوابة دخول المعلم (جوجل + مفتاح قديم كخط رجوع) لنظام الواجبات (ملف معزول لا يمسّ أي قاعدة موجودة) -->
+    <link rel="stylesheet" href="css/teacherAuthGate.css">
+    <!-- 🌟🌟 [جديد] Google Identity Services — لعرض زر "تسجيل الدخول بجوجل" في بوابة دخول المعلم
+         (راجع components/teacherAuthGate.js وcore/api.js). سكربت رسمي من جوجل، لا يحتاج مفتاحاً
+         سرياً (Client ID علني بطبيعته)، ولا يُستخدم أو يظهر في أي شاشة أخرى في المنصة إلا عند فتح
+         بوابة دخول المعلم صراحة. async حتى لا يؤخر عرض الصفحة لأي زائر/طالب لا يحتاجه أبداً. -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- 🌟 [جديد] تصميم شاشات "أبطال التجويد" (مجلد tajweed/) — ملف معزول تماماً بنفس فلسفة
+         home.css/similarities.css أعلاه، بلوحة ألوان مستقلة خاصة به (راجع تعليق الاستثناء
+         الموثَّق في رأس css/tajweed.css نفسه) 🌟 -->
+    <link rel="stylesheet" href="css/tajweed.css">
+
+    <!-- 🌟🌟 [جديد] تحليلات خصوصية بسيطة عبر GoatCounter (مجاني بالكامل، مفتوح المصدر،
+         بدون أي إعلانات وبدون بصمة متصفح Fingerprinting) — لا تُخزَّن أي بيانات شخصية
+         (طلاب/معلم)، ولوحة النتائج خاصة تماماً (خارج المنصة) على
+         https://dar-ham.goatcounter.com فقط. لو غيّرت حساب GoatCounter لاحقاً، بدّل
+         الكود "dar-ham" في data-goatcounter أدناه بالكود الجديد.
+         no_onload:true يوقف الإرسال الأوتوماتيكي لأول تحميل، لأن هذه المنصة SPA بالكامل
+         (راجع core/navigation.js + core/analytics.js) — كل تغيير شاشة يُرسَل يدوياً بدلاً
+         من ذلك حتى تُحسب كل الشاشات لا فقط أول تحميل لـ index.html 🌟🌟 -->
+    <script>
+        window.goatcounter = { no_onload: true };
+    </script>
+    <script data-goatcounter="https://dar-ham.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+</head>
+
+<body class="adult-theme" id="main-body">
+    <canvas id="confetti"></canvas>
+    <div id="toast-encouragement"></div>
+
+    <!-- 🌟 شاشة "الجديد في هذا التحديث" — عنصر ثابت خارج #app-root (زي الكونفيتي والتوست
+         بالضبط) حتى يفضل موجود بغض النظر عن الشاشة الحالية. core/app.js (دالة checkForUpdates)
+         هو اللي يتحكم في إظهارها بمقارنة رقم الإصدار في core/version.js مع آخر رقم شافه
+         المعلم على هذا الجهاز. مخفية افتراضياً بـ display:none ولا تظهر إلا لو فيه تحديثات
+         فعلية لم يراها المعلم بعد 🌟 -->
+    <div class="whats-new-modal" id="whats-new-modal" style="display:none;">
+        <div class="whats-new-modal-box">
+            <h3 data-i18n="whats_new_title">✨ الجديد في هذا التحديث</h3>
+            <div id="whats-new-list"></div>
+            <div class="whats-new-modal-actions">
+                <button type="button" class="btn" id="whats-new-close" data-i18n="whats_new_close_btn">تمام، فهمت 👍</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [جديد] نافذة "تذكير شهري بالنسخة الاحتياطية" — نفس نمط whats-new-modal أعلاه
+         بالضبط (عنصر ثابت خارج #app-root، مخفي افتراضياً بـ display:none)، وتستخدم نفس
+         كلاسات whats-new-modal/whats-new-modal-box البصرية حرفياً لتوحيد الهوية بلا أي
+         CSS جديد مكرَّر. core/app.js (checkMonthlyBackupReminder) هو المتحكم الوحيد في
+         إظهارها (مرة واحدة تلقائياً عند أول دخول كل شهر جديد على هذا الجهاز)، وcore/backupRestore.js
+         هو المسؤول عن التصدير الفعلي عند الضغط على "نزّل النسخة الآن" 🌟 -->
+    <div class="whats-new-modal" id="backup-reminder-modal" style="display:none;">
+        <div class="whats-new-modal-box">
+            <h3 data-i18n="backup_reminder_title">🗄️ تذكير شهري بالنسخة الاحتياطية</h3>
+            <p style="text-align:right; color:var(--dh-ink); line-height:1.6; margin-bottom:6px;" data-i18n="backup_reminder_body">مرّ شهر منذ آخر مرة أخذت فيها نسخة احتياطية من بيانات طلابك. يُفضَّل تنزيل نسخة جديدة الآن والاحتفاظ بها على جهازك للطوارئ.</p>
+            <div class="whats-new-modal-actions dh-backup-reminder-actions">
+                <button type="button" class="btn" id="backup-reminder-download-btn" data-i18n="backup_reminder_download_btn">⬇️ نزّل النسخة الآن</button>
+                <button type="button" class="btn btn-outline" id="backup-reminder-later-btn" data-i18n="backup_reminder_later_btn">لاحقاً</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bar" id="main-header">
+        <div class="home-header-brand">
+            <!-- 🌟 شعار SVG مرسوم بدل الإيموجي 📖 القديم — نفس الفكرة (مصحف) لكن بخط ذهبي أنيق -->
+            <span class="home-header-logo" aria-hidden="true">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6.5c-1.5-1-3.6-1.3-5.5-0.7v10c1.9-0.6 4-0.3 5.5 0.7 1.5-1 3.6-1.3 5.5-0.7v-10c-1.9-0.6-4-0.3-5.5 0.7Z" stroke="#06231c" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                    <path d="M12 6.5v10.7" stroke="#06231c" stroke-width="1.3"/>
+                </svg>
+            </span>
+            <div class="home-header-text">
+                <span id="header-title" data-i18n="header_title">🏆 رحلة إتقان القرآن</span>
+                <span id="top-student-name" data-i18n="header_subtitle">منصة حمٓ</span>
+            </div>
+        </div>
+        <!-- 🌟 [جديد] غلاف "header-actions" يجمع زر "الرئيسية" الجديد مع زر تبديل اللغة —
+             ضروري لأن #main-header display:flex justify-content:space-between (css/home.css)
+             تتوقع عنصرين فقط (البراند + طرف ثانٍ)، فلو أضفنا الزر كشقيق مباشر للغة كانا
+             سيتوزعان على طرفي الهيدر بدل الظهور معاً. لا تعديل على البنية القديمة، فقط
+             تغليف إضافي جديد 🌟 -->
+        <div class="header-actions">
+            <!-- 🌟 data-i18n موضوعة على <span> الداخلي فقط وليس على <button> نفسه، لأن
+                 applyLanguage() (core/i18n.js) تستبدل innerHTML بالكامل للعنصر صاحب data-i18n —
+                 لو وُضعت على الزر مباشرة كانت ستمسح أيقونة الـSVG بجانب النص عند كل تبديل لغة 🌟 -->
+            <button id="header-home-btn" class="header-home-btn" data-i18n-title="header_home_btn" title="الرئيسية">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span data-i18n="header_home_btn">الرئيسية</span>
+            </button>
+            <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
+        </div>
+    </div>
+
+    <!-- 🌟 [جديد] بطاقة "تلميحات الأقسام عند أول دخول" العائمة — عنصر ثابت خارج #app-root
+         (بنفس نمط whats-new-modal والكونفيتي والتوست أعلاه) حتى يفضل موجود بغض النظر عن
+         الشاشة الحالية. مخفية افتراضياً، وcomponents/sectionHint.js هو المسؤول الوحيد عن ملء
+         محتواها وإظهارها/إخفائها من داخل initFunction الخاصة بكل شاشة. بعكس whats-new-modal
+         الحاجب تماماً (خلفية سوداء شبه شفافة تمنع كل تفاعل)، هذه البطاقة عائمة فقط بلا أي
+         خلفية حاجبة، فالمعلم يقدر يستمر بالتفاعل مع الشاشة تحتها. راجع مستند "تصميم نظام
+         تلميحات الأقسام عند أول دخول المقترح" لتفاصيل القرار الكامل 🌟 -->
+    <div class="dh-hint-card" id="section-hint-card" style="display:none;">
+        <div class="dh-hint-icon">💡</div>
+        <div class="dh-hint-content">
+            <h3 class="dh-hint-title"></h3>
+            <div class="dh-hint-body"></div>
+            <div class="dh-hint-actions">
+                <button type="button" class="dh-hint-extra-btn" style="display:none;"></button>
+                <button type="button" class="dh-hint-ok-btn"></button>
+            </div>
+        </div>
+        <button type="button" class="dh-hint-close-btn" aria-label="✕">✕</button>
+    </div>
+
+    <!-- 🌟 [جديد] "بطاقة الترحيب بالطالب" — عنصر ثابت خارج #app-root (بنفس نمط بطاقة
+         التلميحات وwhats-new-modal والكونفيتي والتوست أعلاه)، وهذا مقصود تماماً: البطاقة
+         تُعرض في نفس اللحظة التي تُحمَّل فيها لوحة التقييم داخل #app-root، فلو كانت جزءاً من
+         قالب أي شاشة لاختفت فور استبدال محتوى الجذر. مخفية افتراضياً، وملف
+         components/welcomeBanner.js هو المسؤول الوحيد عن ملئها وإظهارها وإخفائها تلقائياً
+         بعد ثوانٍ قليلة (أو فوراً بنقرة من المعلم أو بزر Esc).
+         aria-live="polite" حتى يقرأ قارئ الشاشة التحية دون مقاطعة ما يقرأه المعلم حالياً 🌟 -->
+    <div class="dh-welcome-overlay" id="student-welcome-overlay" style="display:none;" role="status" aria-live="polite">
+        <div class="dh-welcome-card">
+            <div class="dh-welcome-avatar" aria-hidden="true"></div>
+            <p class="dh-welcome-hello"></p>
+            <h2 class="dh-welcome-name"></h2>
+            <div class="dh-welcome-divider" aria-hidden="true"></div>
+            <p class="dh-welcome-sub"></p>
+        </div>
+    </div>
+
+    <div id="app-root"></div>
+
+    <!-- ⚠️ [مؤقت للتجربة المحلية فقط] راجع دليل-تفعيل-App-Check.md قسم "للتجربة المحلية
+         قبل النشر" — بما إن App Check (reCAPTCHA v3) بقى مفعّل فعليًا في core/firebase.js،
+         والتجربة المحلية بتحصل من سيرفر محلي (زي 127.0.0.1:5500 أو localhost) وهو دومين غير
+         مسجّل عند reCAPTCHA، السطر ده بيخلي المتصفح يطبع "Debug Token" في الـ Console بدل ما
+         يحاول يتحقق فعليًا من reCAPTCHA — تسجيل هذا الـ Token (مرة واحدة فقط) في Firebase
+         Console (App Check → Manage debug tokens) هو ما يسمح للتجربة المحلية تعمل حتى بعد
+         تفعيل Enforce.
+         🌟 [تعديل] كان السطر ده بيتفعّل دايمًا بغض النظر عن الدومين، فكان لازم نفتكر نمسحه
+         يدويًا قبل كل رفع للمستودع المنشور (وده معرّض للنسيان). دلوقتي اتحط جوه شرط بيتأكد
+         إن الصفحة شغالة فعليًا على localhost/127.0.0.1 بس قبل ما يفعّل وضع الـ Debug Token —
+         فلو اتفتح على أي دومين تاني (زي hamem7.github.io بعد الرفع)، السطر ده يتجاهل نفسه
+         تلقائيًا وبأمان تام، وreCAPTCHA الحقيقي هو اللي يشتغل عادي من غير أي تدخل يدوي. -->
+    <script>
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+            self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        }
+    </script>
+
+    <script type="module" src="core/app.js"></script>
+
+    <!-- 🌟 [تجربة بطلب المعلم بتاريخ 2026-09-14] أعدنا تفعيل كود تسجيل Service Worker الطبيعي
+         (كان معطّلاً مؤقتاً أثناء التطوير بسبب مشكلة تحميل نسخ قديمة من الملفات — راجع تاريخ الملف
+         في Git/النسخ الاحتياطية لو احتجت ترجع للكود المؤقت القديم اللي كان بيلغي تسجيل SW ويمسح
+         الكاش عند كل فتح للصفحة). تم رفع رقم CACHE_NAME في service-worker.js من v1 إلى v2 في نفس
+         هذا التعديل حتى يجبر أي متصفح فتح النسخة القديمة على تحميل كل الملفات من جديد بدل الكاش.
+         ⚠️ هذه تجربة: لو ظهرت نفس مشكلة "نسخة قديمة من الملفات" تاني أثناء التطوير المستمر، ارجع
+         لتعطيل التسجيل مؤقتاً (بنفس أسلوب الكود القديم: getRegistrations + reg.unregister +
+         caches.delete لكل الأسماء) وارفع رقم الكاش كل مرة تعمل فيها تعديل جوهري في الملفات. -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                .then(registration => {
+                    console.log('تم تسجيل ServiceWorker بنجاح للمسار: ', registration.scope);
+                })
+                .catch(err => {
+                    console.log('فشل تسجيل ServiceWorker: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>

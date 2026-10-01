@@ -30,11 +30,13 @@ import { setupLoginListeners, populateStudentsDropdown, loadMyStudentsScreen } f
 import { setupDashboardListeners, populateDashboardData } from '../settings/dashboard.js';
 import { initTeacherProfileUI, renderTeacherGreeting } from '../components/teacherProfile.js';
 import { initHomeQuickview } from '../components/homeQuickview.js';
+// 🌟 [جديد 2026-10-01] الدخول السريع (بحث الطلاب + تابع من حيث توقفت + الشارات + الشريط السفلي + ?go=)
+import { initHomeFast } from '../components/homeFast.js';
 // 🌟 توست التنويه أسفل الشاشة — يُستخدم في شاشة "الاختبارات الثنائية" (بدل alert())
 import { showToastEncouragement } from '../components/ui.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js لتفاصيل الآلية
 import { showSectionHintOnce } from '../components/sectionHint.js';
-import { translations, t, applyLanguage, toggleLanguage } from './i18n.js';
+import { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage } from './i18n.js';
 // 🌟 رقم إصدار المنصة وسجل التحديثات — لشاشة "الجديد في هذا التحديث" 🌟
 import { APP_VERSION, getUnseenChangelog } from './version.js';
 // 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد flushPendingHomeworkSync/flushPendingSubmissions من
@@ -52,7 +54,7 @@ import { startHomeworkSubmissionWatcher } from './homeworkNotifier.js';
 import { exportFullBackup } from './backupRestore.js';
 
 // 🛡️ إعادة تصدير دوال الترجمة لضمان عدم كسر أي ملف خارجي يستوردها من app.js
-export { translations, t, applyLanguage, toggleLanguage };
+export { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage };
 
 export const AppState = {
     studentManager: null,
@@ -398,7 +400,7 @@ async function bootSystem() {
                 });
             }).catch(err => {
                 console.error("شاشة الترحيب قيد البرمجة:", err);
-                alert("جاري تجهيز شاشة ترحيب الطالب 🛠️ (انتقل للخطوة التالية من فضلك!)");
+                alert(t("جاري تجهيز شاشة ترحيب الطالب 🛠️ (انتقل للخطوة التالية من فضلك!)"));
                 loadSplashScreen(); // العودة للرئيسية في حال عدم وجود الملف بعد
             });
             return; // إيقاف إقلاع الشاشة الرئيسية للمعلم
@@ -492,6 +494,53 @@ const kidsBackgrounds = [
     'assets/kids_bg/4.jpg',
     'assets/kids_bg/5.jpg'
 ];
+
+// 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] ضبط وضع التقييم (كبار/أطفال) من خارج الشاشة الرئيسية — يُستعمل
+// من زرّي "ابدأ تقييم" في سجل الطلاب وملف الطالب حتى لا يضطر المعلم للمرور بالرئيسية ثم واجهة الكبار/الأطفال.
+// نفس منطق مستمعي بطاقتي "واجهة الكبار"/"ركن الأطفال" في setupSplashListeners تماماً (الثيم + الخلفية العشوائية للأطفال).
+export function setEvaluationMode(kids) {
+    AppState.isKidsMode = !!kids;
+    if (kids) {
+        switchTheme('kids');
+        const randomBg = kidsBackgrounds[Math.floor(Math.random() * kidsBackgrounds.length)];
+        const img = new Image();
+        img.src = randomBg;
+        img.onload = () => { document.body.style.backgroundImage = `url('${randomBg}')`; };
+    } else {
+        switchTheme('adult');
+        document.body.style.backgroundImage = '';
+    }
+}
+
+// 🌟 [جديد 2026-10-01] على الهاتف فقط (≤768px): بطاقات الأقسام تظهر قبل بطاقة "نظرة سريعة" بدل أن تُدفن تحتها.
+// تُنقَل البطاقة (بنفس عناصرها وidها فلا يتأثر initHomeQuickview) إلى قسم أخضر مستقل بعد قسم الأزرار، وتُعاد
+// لمكانها الأصلي في الهيرو عند اتساع الشاشة. التنسيق في آخر css/home.css (بادئة home-quick-mobile).
+function arrangeHomeForMobile() {
+    const card = document.getElementById('home-quickcard');
+    const grid = document.querySelector('.home-hero-grid');
+    const menu = document.querySelector('.home-menu');
+    if (!card || !grid || !menu || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    let holder = null;
+    const apply = () => {
+        if (!card.isConnected && !(holder && holder.isConnected)) return;   // الشاشة الرئيسية استُبدلت
+        if (mq.matches) {
+            if (!holder) {
+                holder = document.createElement('section');
+                holder.className = 'home-quick-mobile';
+            }
+            holder.appendChild(card);
+            menu.after(holder);
+        } else {
+            // 🌟 [2026-10-01] على سطح المكتب تعود البطاقة إلى خانة العمود الجانبي (#home-quickcard-slot من homeFast) إن وُجدت، وإلا للهيرو كما كانت
+            (document.getElementById('home-quickcard-slot') || grid).appendChild(card);
+            if (holder) { holder.remove(); }
+        }
+    };
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+    else if (mq.addListener) mq.addListener(apply);
+}
 
 // 🌟 شريط التاريخ الهجري/الميلادي واليوم في الشاشة الرئيسية — يعتمد على Intl المدمجة
 // في المتصفح (calendar: islamic-umalqura) فلا يحتاج أي مكتبة خارجية إضافية 🌟
@@ -593,6 +642,38 @@ function setupSplashListeners() {
     // التقارير، تذكير عيد ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
     // كل شيء في components/homeQuickview.js حتى لا يتضخم هذا الملف
     initHomeQuickview();
+
+    // 🌟 [جديد 2026-10-01] بطاقة "ابدأ من هنا" للمعلم الجديد (لا طلاب مسجَّلون بعد)
+    initStartHereCard();
+
+    // 🌟 [جديد 2026-10-01] الدخول السريع للتقييم: بحث الطلاب، بطاقة المتابعة، الشارات، شريط "قريباً"، الشريط السفلي
+    // (قبل arrangeHomeForMobile لأنه ينشئ خانة #home-quickcard-slot التي تستقبل بطاقة "نظرة سريعة" على سطح المكتب)
+    initHomeFast();
+
+    // 🌟 [جديد] ترتيب الشاشة الرئيسية للهاتف (البطاقات أولاً)
+    arrangeHomeForMobile();
+}
+
+// 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] بطاقة "ابدأ من هنا": تظهر فقط لو لا يوجد أي طالب مسجَّل
+// (⚠️ افتراض صريح: العدّ يشمل كل السجلات بما فيها المخفية، فمن أضاف طالباً ولو أخفاه لا يُعتبر "جديداً").
+// الزر يفتح "طلابي" ثم يُطلق نافذة "تسجيل طالب جديد" الموجودة فعلاً (نفس نمط زر الاختصار في سجل الطلاب).
+// best-effort: أي فشل في قراءة الطلاب يُبقي البطاقة مخفية ولا يؤثر على الشاشة الرئيسية.
+async function initStartHereCard() {
+    const card = document.getElementById('home-start-here');
+    const btn = document.getElementById('home-start-here-btn');
+    if (!card || !btn || !AppState.studentManager) return;
+    try {
+        const students = await AppState.studentManager.getAllStudents();
+        if (students && students.length > 0) return;
+    } catch (e) { return; }
+    if (!card.isConnected) return;   // الشاشة الرئيسية استُبدلت أثناء القراءة
+    card.style.display = '';
+    btn.addEventListener('click', async () => {
+        switchTheme('adult');
+        document.body.style.backgroundImage = '';
+        await loadMyStudentsScreen();
+        document.getElementById('btn-add-student')?.click();
+    });
 }
 
 // 🌟 استُخرجت من داخل مستمع زر "نظام الواجبات المنزلية" لتكون قابلة لإعادة
@@ -617,7 +698,7 @@ export async function openHomeworkPrep() {
         });
     }).catch(err => {
         console.error("سيتم بناء ملف الواجبات في الخطوة القادمة:", err);
-        alert("جاري تجهيز شاشة إعداد الواجبات 🛠️ (انتقل للخطوة التالية من فضلك)");
+        alert(t("جاري تجهيز شاشة إعداد الواجبات 🛠️ (انتقل للخطوة التالية من فضلك)"));
     });
 }
 
@@ -634,7 +715,7 @@ export function openDualTestSetup() {
         });
     }).catch(err => {
         console.error("تعذر تحميل شاشة إعداد الاختبارات الثنائية:", err);
-        alert("جاري تجهيز شاشة الاختبارات الثنائية 🛠️");
+        alert(t("جاري تجهيز شاشة الاختبارات الثنائية 🛠️"));
     });
 }
 
@@ -653,7 +734,7 @@ export function openSimilaritiesBrowser() {
         });
     }).catch(err => {
         console.error("تعذر تحميل شاشات ركن المتشابهات:", err);
-        alert("جاري تجهيز شاشات ركن المتشابهات 🛠️");
+        alert(t("جاري تجهيز شاشات ركن المتشابهات 🛠️"));
     });
 }
 
@@ -672,7 +753,7 @@ export function openTajweedSection() {
         });
     }).catch(err => {
         console.error("تعذر تحميل شاشات أبطال التجويد:", err);
-        alert("جاري تجهيز شاشات أبطال التجويد 🛠️");
+        alert(t("جاري تجهيز شاشات أبطال التجويد 🛠️"));
     });
 }
 
@@ -689,7 +770,7 @@ export function openTajweedActivityScreen(params) {
         });
     }).catch(err => {
         console.error("تعذر تحميل شاشة نشاط أبطال التجويد:", err);
-        alert("جاري تجهيز شاشة النشاط 🛠️");
+        alert(t("جاري تجهيز شاشة النشاط 🛠️"));
     });
 }
 
@@ -711,7 +792,7 @@ export function openSimilarityGame(scope) {
         });
     }).catch(err => {
         console.error('تعذر تحميل شاشة لعب ركن المتشابهات:', err);
-        alert('جاري تجهيز شاشة اللعب 🛠️');
+        alert(t('جاري تجهيز شاشة اللعب 🛠️'));
     });
 }
 

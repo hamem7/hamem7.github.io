@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>سياسة الخصوصية — حمٓ</title>
+<title data-i18n="priv_title">سياسة الخصوصية — حمٓ</title>
 <style>
   :root {
     --dh-emerald: #0f6b52;
@@ -72,32 +72,51 @@
 </head>
 <body>
   <header>
-    <h1>سياسة الخصوصية</h1>
-    <p>منصة حمٓ لتثبيت الحفظ و المراجعة</p>
+    <h1 data-i18n="priv_title">سياسة الخصوصية</h1>
+    <p data-i18n="priv_sub">منصة حمٓ لتثبيت الحفظ و المراجعة</p>
   </header>
 
   <main>
     <div class="card">
-      <div class="updated">آخر تحديث: 27 سبتمبر 2026</div>
+      <div class="updated" data-i18n="priv_updated">آخر تحديث: 27 سبتمبر 2026</div>
 
-      <p>منصة "حمٓ" لا تجمع أي بيانات شخصية من الطلاب أو المعلمين بشكل افتراضي.</p>
+      <p data-i18n="priv_intro">منصة "حمٓ" لا تجمع أي بيانات شخصية من الطلاب أو المعلمين بشكل افتراضي.</p>
 
-      <h2>استخدام البريد الإلكتروني</h2>
-      <p>يُستخدم البريد الإلكتروني فقط عند تسجيل دخول المعلم، لغرضين اثنين لا غير:</p>
+      <h2 data-i18n="priv_h_email">استخدام البريد الإلكتروني</h2>
+      <p data-i18n="priv_email_p">يُستخدم البريد الإلكتروني فقط عند تسجيل دخول المعلم، لغرضين اثنين لا غير:</p>
       <ul>
-        <li>حفظ بيانات كل معلم بشكل مستقل وآمن، دون اختلاطها ببيانات معلم آخر.</li>
-        <li>ضمان وصول إجابات الطلاب وتسليماتهم إلى المعلم الصحيح المسؤول عنهم.</li>
+        <li data-i18n="priv_li1">حفظ بيانات كل معلم بشكل مستقل وآمن، دون اختلاطها ببيانات معلم آخر.</li>
+        <li data-i18n="priv_li2">ضمان وصول إجابات الطلاب وتسليماتهم إلى المعلم الصحيح المسؤول عنهم.</li>
       </ul>
 
-      <h2>مشاركة البيانات</h2>
-      <p>لا تتم مشاركة هذا البريد أو أي بيانات مرتبطة به مع أي طرف ثالث، ولا يُستخدم لأي غرض تسويقي أو إعلاني.</p>
+      <h2 data-i18n="priv_h_share">مشاركة البيانات</h2>
+      <p data-i18n="priv_share_p">لا تتم مشاركة هذا البريد أو أي بيانات مرتبطة به مع أي طرف ثالث، ولا يُستخدم لأي غرض تسويقي أو إعلاني.</p>
 
       <div class="contact">
-        لأي استفسار، تواصل عبر: <a href="tel:+201027814948" dir="ltr">00201027814948</a>
+        <span data-i18n="priv_contact">لأي استفسار، تواصل عبر:</span> <a href="tel:+201027814948" dir="ltr">00201027814948</a>
       </div>
     </div>
   </main>
 
-  <footer>© حمٓ</footer>
+  <footer data-i18n="priv_footer">© حمٓ</footer>
+
+  <!-- 🌟 ترجمة الصفحة حسب لغة المنصة المحفوظة (app_lang) عبر نفس قاموس core/i18n.js -->
+  <script type="module">
+    (async () => {
+      let lang = 'ar';
+      try { lang = localStorage.getItem('app_lang') === 'en' ? 'en' : 'ar'; } catch (e) {}
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
+      if (lang !== 'en') return;
+      try {
+        const { translations } = await import('./core/i18n.js');
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const v = translations.en[el.getAttribute('data-i18n')];
+          if (v) el.textContent = v;
+        });
+        document.title = translations.en.priv_title || document.title;
+      } catch (e) { /* 🌟 يبقى النص العربي كخط رجوع */ }
+    })();
+  </script>
 </body>
 </html>

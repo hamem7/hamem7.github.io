@@ -223,7 +223,7 @@ function renderTeacherCheckpointHTML(q) {
         ? `<button class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(q.practiceAyah.number)}">🔊 ${t('tjw_listen_btn')}</button>` : '';
 
     const criteriaHTML = q.criteria.map(c => {
-        const text = c.text || t(c.textKey);
+        const text = c.text ? t(c.text) : t(c.textKey); // 🌟 معايير المخرج/الخطأ الشائع نصوص عربية أصلية في الكتالوج → تُترجم وقت العرض
         const current = checkpointRatings[c.key];
         const rate = (val, icon, key) => `<button class="tjw-rate-btn ${current === val ? 'tjw-rate-selected tjw-rate-' + val : ''}"
             data-checkpoint-rate="${c.key}" data-rate-value="${val}">${icon} ${t(key)}</button>`;

@@ -3,7 +3,8 @@ import { AppState } from '../core/app.js';
 // 🌟🌟 [محدَّث] كان هذا الملف يستورد رفع النتيجة/الصوت من core/firebase.js ويحسب الدرجة على هاتف الطالب ويدّعي
 // النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
 // أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
-import { t } from '../core/i18n.js';
+import { t, localizeHomeworkText } from '../core/i18n.js';
+const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤال وقت العرض فقط (الآيات لا تُمَسّ)
 // 🌟 [إصلاح تدقيق ما قبل الإطلاق] escape للخيارات وإجابة الطالب المحفوظة داخل HTML/attributes: كان علامة " في خيار أو إجابة تكسر الـ attribute وتضيّع الإجابة عند إعادة الفتح
 import { esc } from '../core/escape.js';
 import { friendlyErrorText } from '../core/homeworkApi.js';
@@ -16,8 +17,6 @@ let currentIndex = 0;
 let answers = {};
 
 // متغيرات خاصة بنظام تسجيل الصوت
-let mediaRecorder = null;
-let audioChunks = [];
 
 export function initHomeworkPlay() {
     hw = AppState.currentHomework;
@@ -124,8 +123,8 @@ function setupListeners() {
             <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f8fafc; text-align: center; padding: 20px;">
                 <div>
                     <div style="font-size: 5rem; margin-bottom: 20px;">👋</div>
-                    <h1 style="color: #10b981; font-size: 2.5rem; margin-bottom: 10px;">تم إرسال التقييم!</h1>
-                    <p style="color: #475569; font-size: 1.5rem;">يمكنك إغلاق هذه الصفحة (النافذة) الآن بأمان يا بطل.</p>
+                    <h1 style="color: #10b981; font-size: 2.5rem; margin-bottom: 10px;">${t('تم إرسال التقييم!')}</h1>
+                    <p style="color: #475569; font-size: 1.5rem;">${t('يمكنك إغلاق هذه الصفحة (النافذة) الآن بأمان يا بطل.')}</p>
                 </div>
             </div>
         `;
@@ -150,12 +149,13 @@ function renderQuestion() {
     }
 
     let html = `
-        <h3 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 15px;">${q.title}</h3>
-        <!-- 🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
+        <h3 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 15px;">${hl(q.title)}</h3>
+        <!-- 🌟 [جديد] class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية.
+             🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
              الآية الفعلي (نفس خط class="quran-text" المستخدم بباقي المنصة) حتى يظهر برسم عثماني
              دقيق يشمل كل علامات الضبط الخاصة بالقرآن 🌟 -->
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: #047857; margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;">
-            ${q.text}
+        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: #047857; margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;">
+            ${hl(q.text)}
         </div>
         <div id="hp-options-container" style="display: flex; flex-direction: column; gap: 10px;">
     `;
@@ -171,7 +171,7 @@ function renderQuestion() {
             html += `
                 <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
                     <input type="radio" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${esc(opt)}
+                    ${esc(hl(opt))}
                 </label>
             `;
         });
@@ -182,7 +182,7 @@ function renderQuestion() {
             html += `
                 <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
                     <input type="checkbox" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${esc(opt)}
+                    ${esc(hl(opt))}
                 </label>
             `;
         });
@@ -190,7 +190,7 @@ function renderQuestion() {
         // 🌟 خيارات القائمة المنسدلة هنا كلمات قرآنية (إكمال الفراغ) — الخط تغيّر لـ 'Amiri Quran'
         // بدل 'Tajawal' حتى تظهر الكلمة بنفس رسمها العثماني الصحيح 🌟
         html += `<select id="hp_q_${q.id}_select" style="padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedAns ? 'selected' : ''}>-- اختر الكلمة الصحيحة --</option>
+            <option value="" disabled ${!savedAns ? 'selected' : ''}>${t('-- اختر الكلمة الصحيحة --')}</option>
         `;
         q.options.forEach(opt => {
             const isSelected = savedAns === opt ? 'selected' : '';
@@ -200,51 +200,25 @@ function renderQuestion() {
     } else if (q.type === 'written_blank') {
         // 🌟 حقول كتابة الطالب هنا أيضاً تغيّرت لـ 'Amiri Quran' (بدل 'Amiri' العادي) حتى يرى
         // الطالب أثناء الكتابة نفس رسم الحروف والتشكيل المستخدم في بقية المنصة 🌟
-        html += `<input type="text" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="اكتب الكلمة الناقصة هنا..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
+        html += `<input type="text" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="${t('اكتب الكلمة الناقصة هنا...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
     } else if (q.type === 'write_3_ayahs') {
-        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="اكتب الآيات الثلاث هنا بتركيز..." style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
-    } else if (q.type === 'audio_record') {
-        // 🌟 واجهة تسجيل المقطع الصوتي المباشر والرفع 🌟
-        html += `
-            <div style="display: flex; flex-direction: column; gap: 15px; background: white; padding: 20px; border-radius: 10px; border: 2px solid #cbd5e1;">
-
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <button id="btn-start-record-${q.id}" style="background: #ef4444; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-size: 1.2rem; cursor: pointer; font-weight: bold; flex: 1; min-width: 150px;">
-                        🔴 ابدأ التسجيل المباشر
-                    </button>
-                    <button id="btn-stop-record-${q.id}" style="background: #64748b; color: white; padding: 12px 20px; border: none; border-radius: 8px; font-size: 1.2rem; cursor: pointer; font-weight: bold; flex: 1; min-width: 150px; display: none;">
-                        ⬛ إيقاف التسجيل
-                    </button>
-                </div>
-
-                <div style="text-align: center; color: #64748b; font-weight: bold;">--- أو ---</div>
-
-                <label style="display: block; background: #0ea5e9; color: white; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 1.2rem; font-weight: bold;">
-                    📁 ارفع مقطعاً صوتياً جاهزاً
-                    <input type="file" id="hp_q_${q.id}_audio" accept="audio/*" style="display: none;">
-                </label>
-
-                <div id="hp_q_${q.id}_audio_status" style="margin-top: 10px; color: ${savedAns ? '#10b981' : '#f59e0b'}; font-weight: bold; text-align: center; font-size: 1.2rem; background: ${savedAns ? '#dcfce7' : '#fef3c7'}; padding: 10px; border-radius: 8px;">
-                    ${savedAns ? '✅ تم حفظ تسجيلك بنجاح. يمكنك المتابعة.' : '⚠️ لم تقم بالتسجيل أو الرفع بعد'}
-                </div>
-            </div>
-        `;
+        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الآيات الثلاث هنا بتركيز...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
     } else if (q.type === 'dual_dropdown') {
         const savedArr = Array.isArray(savedAns) ? savedAns : ["", ""];
         html += `<div style="display: flex; gap: 15px; flex-wrap: wrap;">`;
         html += `<div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">اختر الفراغ الأول [ 1 ]:</label>
+            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">${t('اختر الفراغ الأول [ 1 ]:')}</label>
             <select id="hp_q_${q.id}_select1" style="width: 100%; padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedArr[0] ? 'selected' : ''}>-- اختر الكلمة الأولى --</option>`;
+            <option value="" disabled ${!savedArr[0] ? 'selected' : ''}>${t('-- اختر الكلمة الأولى --')}</option>`;
         q.options1.forEach(opt => {
             const isSelected = savedArr[0] === opt ? 'selected' : '';
             html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
         });
         html += `</select></div>`;
         html += `<div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">اختر الفراغ الثاني [ 2 ]:</label>
+            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">${t('اختر الفراغ الثاني [ 2 ]:')}</label>
             <select id="hp_q_${q.id}_select2" style="width: 100%; padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedArr[1] ? 'selected' : ''}>-- اختر الكلمة الثانية --</option>`;
+            <option value="" disabled ${!savedArr[1] ? 'selected' : ''}>${t('-- اختر الكلمة الثانية --')}</option>`;
         q.options2.forEach(opt => {
             const isSelected = savedArr[1] === opt ? 'selected' : '';
             html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
@@ -257,7 +231,7 @@ function renderQuestion() {
         html += `<div style="overflow-x: auto; background: white; border-radius: 10px; border: 1px solid #cbd5e1; direction: rtl;">
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 1.2rem;">
                 <tr style="background: #f1f5f9; color: #334155;">
-                    <th style="padding: 15px; text-align: right;">الآية المبعثرة</th>`;
+                    <th style="padding: 15px; text-align: right;">${t('الآية المبعثرة')}</th>`;
         for (let c = 1; c <= colsCount; c++) { html += `<th style="padding: 15px;">${c}</th>`; }
         html += `</tr>`;
         q.options.forEach((opt, rIdx) => {
@@ -280,13 +254,13 @@ function renderQuestion() {
         html += `
             <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 <div id="hp-match-left-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">البدايات</div>
+                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t('البدايات')}</div>
                 </div>
                 <div id="hp-match-right-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">النهايات</div>
+                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t('النهايات')}</div>
                 </div>
             </div>
-            <div style="margin-top: 15px; text-align: center; color: #64748b; font-size: 1rem;">اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.</div>
+            <div style="margin-top: 15px; text-align: center; color: #64748b; font-size: 1rem;">${t('اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.')}</div>
         `;
     }
 
@@ -315,73 +289,6 @@ function renderQuestion() {
             }
         });
     });
-
-    // 🌟 تفعيل أحداث الميكروفون المباشر ورفع الملف للصوت 🌟
-    if (q.type === 'audio_record') {
-        const btnStart = document.getElementById(`btn-start-record-${q.id}`);
-        const btnStop = document.getElementById(`btn-stop-record-${q.id}`);
-        const statusDiv = document.getElementById(`hp_q_${q.id}_audio_status`);
-        const fileInput = document.getElementById(`hp_q_${q.id}_audio`);
-
-        // رفع ملف جاهز
-        fileInput.addEventListener('change', (e) => {
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    answers[q.id] = ev.target.result;
-                    statusDiv.innerHTML = "✅ تم رفع الملف الصوتي وحفظه بنجاح!";
-                    statusDiv.style.color = "#10b981"; statusDiv.style.background = "#dcfce7";
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // تسجيل مباشر من المايكروفون
-        btnStart.addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    if (event.data.size > 0) audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        answers[q.id] = reader.result; // حفظ كـ Base64 (سيُرفع لاحقاً لـ Storage عند الإرسال النهائي)
-                        statusDiv.innerHTML = "✅ اكتمل التسجيل المباشر وتم الحفظ!";
-                        statusDiv.style.color = "#10b981"; statusDiv.style.background = "#dcfce7";
-                    };
-                    reader.readAsDataURL(audioBlob);
-                    // إغلاق المايكروفون بعد الانتهاء
-                    stream.getTracks().forEach(track => track.stop());
-                };
-
-                mediaRecorder.start();
-                btnStart.style.display = "none";
-                btnStop.style.display = "block";
-                statusDiv.innerHTML = "🎙️ جاري التسجيل الآن... تحدث بوضوح.";
-                statusDiv.style.color = "#ef4444"; statusDiv.style.background = "#fee2e2";
-
-            } catch (err) {
-                console.error("خطأ في الميكروفون:", err);
-                alert("لم نتمكن من الوصول للميكروفون. تأكد من إعطاء الصلاحية للمتصفح، أو استخدم خيار (رفع ملف).");
-            }
-        });
-
-        btnStop.addEventListener('click', () => {
-            if (mediaRecorder && mediaRecorder.state !== "inactive") {
-                mediaRecorder.stop();
-                btnStop.style.display = "none";
-                btnStart.style.display = "block";
-                btnStart.innerHTML = "🔄 إعادة التسجيل";
-            }
-        });
-    }
 
     // 🌟 تفعيل تفاعل المطابقة (نقر-للربط) بعد حقن أعمدتها الفارغة في الـ HTML أعلاه 🌟
     if (q.type === 'matching') {
@@ -507,7 +414,6 @@ function saveCurrentAnswer() {
         });
         answers[q.id] = studentOrder;
     }
-    // ملاحظة: audio_record يُحفظ تلقائياً في الحدث (onstop أو change) لتجنب فقدانه
     // ملاحظة: matching يُحفظ أيضاً تلقائياً فور كل ضغطة ربط/فك ربط (renderMatchingColumns)، لنفس سبب الصوت
 }
 
@@ -519,11 +425,9 @@ async function submitHomework() {
     submitBtn.disabled = true;
     stopDraftAutosave();
 
-    // 🌟 التسجيل الصوتي غير مدعوم حالياً (يحتاج تخزين ملفات) — لا نرسل أي صوت، ولا نعرضه كأنه أُرسل
     const cleanAnswers = {};
     hw.questions.forEach(q => {
         let a = answers[q.id];
-        if (q.type === 'audio_record') a = null;
         if (a !== undefined) cleanAnswers[q.id] = a;
     });
 

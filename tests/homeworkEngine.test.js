@@ -138,7 +138,7 @@ function buildFakeQuranEngine() {
 
 const KNOWN_TYPES = new Set([
     'mcq', 'dropdown', 'written_blank', 'dual_dropdown', 'checkbox',
-    'matrix_order', 'write_3_ayahs', 'audio_record', 'matching'
+    'matrix_order', 'write_3_ayahs', 'matching'
 ]);
 
 await test('generateAutoQuestions: يرجع العدد المطلوب من الأسئلة (عبر 15 تكرار عشوائي)', async () => {

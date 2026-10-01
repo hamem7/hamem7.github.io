@@ -5,6 +5,9 @@
     #add-modal .modal-content { background: white !important; border: none !important; border-radius: 20px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; color: #1e293b !important; }
     #add-modal input, #add-modal select { border: 2px solid #cbd5e1 !important; border-radius: 10px !important; padding: 12px !important; background: #f8fafc !important; color: #1e293b !important; box-shadow: none !important; }
     #add-modal label { color: #475569 !important; font-weight: bold !important; margin-bottom: 5px !important; display: block !important; }
+    /* 🌟 [جديد 2026-10-01] وسم الحقول: "مطلوب" للاسم فقط و"اختياري" لباقي الحقول (الاسم وحده إلزامي فعلاً) */
+    #add-modal .dh-opt-tag { font-size: 0.85rem !important; font-weight: normal !important; color: #94a3b8 !important; }
+    #add-modal .dh-req-tag { color: #b45309 !important; font-weight: bold !important; }
     .avatar-opt { font-size: 2.8rem; cursor: pointer; padding: 5px; border-radius: 50%; border: 3px solid transparent; transition: 0.3s; user-select: none; }
     .avatar-opt.active { border-color: #10b981; background: #f1f5f9; transform: scale(1.1); }
 </style>
@@ -16,7 +19,7 @@
 
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <button class="btn" style="width: 100%; font-size: 1.3rem;" id="btn-all-students" data-i18n="btn_all_students">📊 سجل الطلاب العام</button>
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-add-student" data-i18n="btn_add_student">تسجيل بطل جديد ➕</button>
+            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-add-student" data-i18n="btn_add_student">تسجيل طالب جديد ➕</button>
             <!-- 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا في أي وقت —
                  مفيد لمعالجة أي طالب تم تخطّيه في العرض التلقائي اليومي (راجع
                  components/monthlyMemorizationBulkScreen.js وcore/app.js) -->
@@ -32,18 +35,18 @@
 
 <div id="add-modal" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="margin-top:0; font-size: 2.2rem; text-align:center; color:#1e3a5f!important;" data-i18n="add_new_champion">إضافة بطل جديد</h2>
+        <h2 style="margin-top:0; font-size: 2.2rem; text-align:center; color:#1e3a5f!important;" data-i18n="add_new_champion">إضافة طالب جديد</h2>
         <div class="form-grid" style="text-align: right;">
-            <div class="input-group"><label data-i18n="name_full">الاسم (ثلاثي):</label><input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
-            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span id="age-display" style="font-size:0.9rem; color:#10b981;"></span></label><input type="date" id="stu-dob"></div>
+            <div class="input-group"><label><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label><input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
+            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="age-display" style="font-size:0.9rem; color:#10b981;"></span></label><input type="date" id="stu-dob"></div>
             <!-- 🌟 [عدّل] كانت المرحلتان الإعدادية والثانوية خيارًا واحدًا مجمَّعًا لكل منهما،
             فصرنا الآن نفصّلهما لصفوف فردية (الأول/الثاني/الثالث) بنفس أسلوب تسمية صفوف
             الابتدائي أعلاه بالحرف، حتى يغطي الصف صفوف 1 إلى 12 دراسيًا كاملة. المرحلة
             الجامعية بقيت كما هي، و"خريج" أصبحت "خريج جامعي" (نفس الطلب صراحة) 🌟 -->
-            <div class="input-group"><label data-i18n="grade">الصف الدراسي:</label><select id="stu-grade"><option>التمهيدي</option><option>الأول الابتدائي</option><option>الثاني الابتدائي</option><option>الثالث الابتدائي</option><option>الرابع الابتدائي</option><option>الخامس الابتدائي</option><option>السادس الابتدائي</option><option>الأول الإعدادي</option><option>الثاني الإعدادي</option><option>الثالث الإعدادي</option><option>الأول الثانوي</option><option>الثاني الثانوي</option><option>الثالث الثانوي</option><option>المرحلة الجامعية</option><option>خريج جامعي</option></select></div>
-            <div class="input-group"><label data-i18n="country">البلد:</label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="input-group"><label><span data-i18n="grade">الصف الدراسي:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><select id="stu-grade"><option value="" data-i18n="stu_not_set">غير محدد</option><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select></div>
+            <div class="input-group"><label><span data-i18n="country">البلد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
             <div class="input-group" style="grid-column: span 2;"><label data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</label><input type="text" id="stu-phone" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
-            <div class="input-group" style="grid-column: span 2;"><label data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</label><div style="display:flex; gap:10px;"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
+            <div class="input-group" style="grid-column: span 2;"><label><span data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><div style="display:flex; gap:10px;"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
 
             <div class="input-group" style="grid-column: span 2; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px; border: 1px dashed #cbd5e1;">
                 <label style="text-align:center;" data-i18n="choose_avatar">اختر أفاتار للبطل:</label>
@@ -60,7 +63,7 @@
                 <input type="file" id="stu-avatar" accept="image/*" style="width: 100%;">
             </div>
         </div>
-        <button class="btn" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem; background:#10b981; border:none;" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات البطل ✔️</button>
+        <button class="btn" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem; background:#10b981; border:none;" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات الطالب ✔️</button>
         <button class="btn btn-outline" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
     </div>
 </div>

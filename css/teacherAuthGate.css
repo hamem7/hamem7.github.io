@@ -163,3 +163,11 @@
 .dh-teacher-auth-legacy-form {
     text-align: right;
 }
+
+
+/* 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] "خيارات دخول أخرى": يطوي ربط الواجبات القديمة والمفتاح القديم خلف رابط
+   صغير حتى يظهر زر جوجل وحده. قواعد جديدة فقط (بادئة dh-teacher-auth-more) بلا تعديل أي قاعدة موجودة. */
+.dh-teacher-auth-more { margin: 16px 0 6px; text-align: center; }
+.dh-teacher-auth-more > summary { cursor: pointer; display: inline-block; list-style: none; padding: 6px 12px; font-size: 0.92rem; color: var(--dh-emerald-700, #0d5c46); text-decoration: underline; }
+.dh-teacher-auth-more > summary::-webkit-details-marker { display: none; }
+.dh-teacher-auth-more[open] > summary { margin-bottom: 10px; }

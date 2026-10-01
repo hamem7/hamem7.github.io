@@ -8,13 +8,57 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.6';
+export const APP_VERSION = '1.0.8';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 🌟🌟 [أُضيف 2026-10-01] ترتيب الرئيسية + توحيد المصطلحات + تحسينات سجل الواجبات
+    {
+        version: '1.0.8',
+        date: '2026-10-01',
+        items: [
+            {
+                type: 'improved',
+                ar: 'الشاشة الرئيسية: صف أول بثلاث بطاقات متساوية (طلابي — الكبار — الأطفال)، ثم الواجبات والاختبارات الثنائية، وفي الأخير المتشابهات والتجويد. وتظهر بطاقة "ابدأ من هنا" للمعلم الجديد فقط حتى يضيف أول طالب.',
+                en: 'Home screen: a first row of three equal cards (My Students — Adults — Kids), then Homework and Dual Tests, with Similarities and Tajweed last. A "Start here" card shows only for a new teacher until the first student is added.'
+            },
+            {
+                type: 'improved',
+                ar: 'سجل الواجبات: زر "نشر" للمسودات، ونص تحت كل أيقونة (النتائج / نسخ الرابط / حذف)، وزر الحذف منفصل. ورسالة نسخ الرابط صارت "تم نسخ الرابط".',
+                en: 'Homework history: a "Publish" button for drafts, a short label under each icon (Results / Copy link / Delete), and the delete button set apart. Copying a link now says "Link copied".'
+            },
+            {
+                type: 'improved',
+                ar: 'توحيد المصطلحات: "طالب" بدل "بطل" في الإدارة والسجلات، و"علاج الأخطاء" لكل ما يخص معالجة الأخطاء السابقة. وزر التقرير صار "العودة للوحة التقييم" لأنه يفتحها فعلاً.',
+                en: 'Consistent wording: "Student" instead of "Champion" in management screens, and "Fix mistakes" for everything about previous mistakes. The report button now reads "Back to evaluation panel", which is where it goes.'
+            }
+        ]
+    },
+    // 🌟🌟 [أُضيف 2026-10-01] تحسينات سهولة الاستخدام بعد فحص رحلة المعلم
+    {
+        version: '1.0.7',
+        date: '2026-10-01',
+        items: [
+            {
+                type: 'improved',
+                ar: 'اختيار الطالب للتقييم: اكتب أي حرف من اسمه فتظهر الأسماء المطابقة وتضيق مع كل حرف، ثم اضغط على الاسم المطلوب.',
+                en: 'Choosing a student for evaluation: type any letter of the name to see matching names, narrowing with every letter, then tap the one you want.'
+            },
+            {
+                type: 'new',
+                ar: 'زر "ابدأ تقييم" في سجل الطلاب وفي ملف الطالب، وزر "تقييم طالب آخر" في شريط التقرير.',
+                en: 'A "Start evaluation" button in the students list and student profile, and an "Evaluate another student" button in the report toolbar.'
+            },
+            {
+                type: 'improved',
+                ar: 'إضافة طالب: الاسم وحده هو المطلوب، وباقي الحقول موسومة "اختياري". وعلى الهاتف تظهر بطاقات الأقسام قبل "نظرة سريعة"، وتظهر بوابة المعلم بزر جوجل وحده.',
+                en: 'Adding a student: only the name is required, other fields are marked "optional". On phones the section cards now appear before "Quick view", and the teacher gate shows the Google button alone.'
+            }
+        ]
+    },
     // 🌟🌟 [أُضيف 2026-09-27] نظام تحليلات خصوصي (Plausible) — راجع core/analytics.js
     {
         version: '1.0.6',

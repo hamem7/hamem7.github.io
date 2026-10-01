@@ -202,6 +202,13 @@
     .hwp2-action-link { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: #2b2100; }
     .hwp2-action-delete { background: linear-gradient(135deg, #f87171, #dc2626); }
     .hwp2-actions-cell { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
+    /* 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] كل زر إجراء في سجل الواجبات صار تحته نص قصير (نتائج / رابط / نشر / حذف)
+       لأن الأيقونات وحدها لا يظهر لها تلميح على الهاتف، وزر الحذف يُفصل عن بقية الأزرار بمسافة وخط حتى لا يُضغط بالخطأ.
+       قواعد جديدة بأسماء أصناف جديدة فقط (hwp2-action-item / hwp2-action-label) بلا لمس القواعد أعلاه 🌟 */
+    .hwp2-action-item { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+    .hwp2-action-label { font-size: .78rem; font-weight: 700; color: var(--dh-ink-soft); line-height: 1.2; }
+    .hwp2-action-item.is-danger { margin-inline-start: 18px; padding-inline-start: 18px; border-inline-start: 1px solid #e2e8f0; }
+    .hwp2-action-publish { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 
     @media (max-width: 980px) {
         .hwp2-config-grid { grid-template-columns: 1fr; }
@@ -444,34 +451,33 @@
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_type_label">نوع السؤال:</label>
             <select id="qb-type" style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
-                <option value="mcq">اختيار من متعدد (إجابة واحدة)</option>
-                <option value="checkbox">مربعات اختيار (عدة إجابات)</option>
-                <option value="dropdown">قائمة منسدلة (فراغات)</option>
-                <option value="written_blank">أكمل الفراغ (كتابة يدوية)</option>
-                <option value="write_3_ayahs">تسميع مقطع (كتابة يدوية)</option>
-                <option value="audio_record" disabled>تسميع (تسجيل صوتي) — غير متاح حالياً</option>
+                <option value="mcq" data-i18n="اختيار من متعدد (إجابة واحدة)">اختيار من متعدد (إجابة واحدة)</option>
+                <option value="checkbox" data-i18n="مربعات اختيار (عدة إجابات)">مربعات اختيار (عدة إجابات)</option>
+                <option value="dropdown" data-i18n="قائمة منسدلة (فراغات)">قائمة منسدلة (فراغات)</option>
+                <option value="written_blank" data-i18n="أكمل الفراغ (كتابة يدوية)">أكمل الفراغ (كتابة يدوية)</option>
+                <option value="write_3_ayahs" data-i18n="تسميع مقطع (كتابة يدوية)">تسميع مقطع (كتابة يدوية)</option>
             </select>
         </div>
 
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_title_label">عنوان السؤال:</label>
-            <input type="text" id="qb-title" placeholder="اكتب عنوان السؤال..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
+            <input type="text" id="qb-title" data-i18n-placeholder="اكتب عنوان السؤال..." placeholder="اكتب عنوان السؤال..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
         </div>
 
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_text_label">نص السؤال / الآية:</label>
-            <textarea id="qb-text" rows="3" placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: #047857;"></textarea>
+            <textarea id="qb-text" rows="3" data-i18n-placeholder="اكتب الآية أو النص هنا..." placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: #047857;"></textarea>
         </div>
 
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_options_label">الخيارات المتاحة (افصل بينها بسطر جديد):</label>
-            <textarea id="qb-options" rows="3" placeholder="الخيار الأول&#10;الخيار الثاني&#10;الخيار الثالث" style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;"></textarea>
+            <textarea id="qb-options" rows="3" data-i18n-placeholder="الخيار الأول&#10;الخيار الثاني&#10;الخيار الثالث" placeholder="الخيار الأول&#10;الخيار الثاني&#10;الخيار الثالث" style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;"></textarea>
         </div>
 
         <div class="input-group" style="margin-bottom: 25px;">
             <label style="font-weight: bold; color: #10b981; display: block; margin-bottom: 5px;" data-i18n="hw_q_correct_label">الإجابة الصحيحة:</label>
-            <input type="text" id="qb-correct" placeholder="اكتب الإجابة الصحيحة هنا..." style="width: 100%; padding: 10px; border: 2px solid #10b981; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
-            <small style="color: #64748b; display: block; margin-top: 5px;">* إذا كان النوع (مربعات اختيار)، افصل الإجابات الصحيحة بفاصلة (،).</small>
+            <input type="text" id="qb-correct" data-i18n-placeholder="اكتب الإجابة الصحيحة هنا..." placeholder="اكتب الإجابة الصحيحة هنا..." style="width: 100%; padding: 10px; border: 2px solid #10b981; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
+            <small data-i18n="* إذا كان النوع (مربعات اختيار)، افصل الإجابات الصحيحة بفاصلة (،)." style="color: #64748b; display: block; margin-top: 5px;">* إذا كان النوع (مربعات اختيار)، افصل الإجابات الصحيحة بفاصلة (،).</small>
         </div>
 
         <div style="display: flex; gap: 10px;">
@@ -505,6 +511,6 @@
              settings/homework-prep.js -->
         <button type="button" id="btn-retry-hw-sync" class="btn" style="display:none; background:#f59e0b; margin-bottom:20px; width:100%; padding:10px; font-size:1rem; border:none; border-radius:8px; cursor:pointer; color:#fff;" data-i18n="hw_retry_sync_btn">🔄 إعادة المحاولة الآن</button>
 
-        <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق والعودة 🏠</button>
+        <button class="btn btn-outline" id="btn-close-hw-modal" style="width: 100%; padding: 12px; font-size: 1.2rem; border-color: #0ea5e9; color: #0ea5e9; background: transparent; border-radius: 8px; border-width: 2px; cursor: pointer;" data-i18n="hw_close_return">إغلاق</button>
     </div>
 </div>

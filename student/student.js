@@ -1,5 +1,5 @@
 // student/student.js
-import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, t } from '../core/app.js';
+import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
 import { purgeStudentRelatedData } from '../core/studentCleanup.js';
@@ -53,7 +53,7 @@ export async function populateStudentsDropdown() {
 
     if (bdayBoys.length > 0 && !window.bdayShown) {
         window.bdayShown = true;
-        setTimeout(() => alert(`🎉 إشعار تربوي هام:\nاليوم يوافق يوم ميلاد البطل (${bdayBoys.join(' و ')})! لا تنسَ تهنئته 🎂`), 800);
+        setTimeout(() => alert(tf('stu_bday_alert', { names: bdayBoys.join(t('stu_and')) })), 800);
     }
 }
 
@@ -64,7 +64,7 @@ function calcAgeDynamic(inputId, displayId) {
     const dob = new Date(dobInput.value);
     if (isNaN(dob)) return;
     const ageDate = new Date(Date.now() - dob.getTime());
-    displaySpan.innerText = `(العمر: ${Math.abs(ageDate.getUTCFullYear() - 1970)} سنة)`;
+    displaySpan.innerText = tf('stu_age_paren', { n: Math.abs(ageDate.getUTCFullYear() - 1970) });
 }
 
 function populateSurahOptions(fromId, toId) {
@@ -73,10 +73,141 @@ function populateSurahOptions(fromId, toId) {
     if (!selFrom || !selTo) return;
     selFrom.innerHTML = '';
     selTo.innerHTML = '';
+    // 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] خيار أول فارغ "غير محدد": كان أول سورة (الفاتحة) تُحفظ تلقائياً
+    // كنطاق حفظ للطالب حتى لو لم يُرِد المعلم إدخاله، والمطلوب أن الاسم وحده هو الإلزامي. كل الأماكن التي
+    // تقرأ memoFrom/memoTo تتعامل مع القيمة الفارغة أصلاً (راجع homeQuickview/homework-prep/monthly-report) 🌟
+    selFrom.appendChild(new Option(t('stu_not_set'), ''));
+    selTo.appendChild(new Option(t('stu_not_set'), ''));
     AppState.surahsData.forEach(s => {
-        selFrom.appendChild(new Option(s.name, s.name));
-        selTo.appendChild(new Option(s.name, s.name));
+        selFrom.appendChild(new Option(surahNameLocal(s.name), s.name));
+        selTo.appendChild(new Option(surahNameLocal(s.name), s.name));
     });
+}
+
+// 🌟🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] اقتراحات أسماء الطلاب أثناء الكتابة في شاشة اختيار الطالب.
+// كان المعلم مضطراً لكتابة الاسم كاملاً بالحرف. الآن بمجرد كتابة أي حرف تظهر الأسماء المطابقة، وتضيق القائمة
+// مع كل حرف إضافي إلى أن يضغط على الاسم المطلوب. المطابقة تتجاهل التشكيل واختلاف الهمزات (أ/إ/آ/ا) و(ة/ه) و(ى/ي)،
+// وتُقدِّم الأسماء التي تبدأ بما كُتب، ثم التي تبدأ إحدى كلماتها به، ثم التي تحتويه. الطلاب المخفيون لا يُقترحون
+// (نفس سلوك القائمة السابقة). 🌟🌟
+export function normName(x) {
+    return String(x == null ? '' : x)
+        .replace(/[ً-ٰٟـ]/g, '')
+        .replace(/[أإآٱ]/g, 'ا')
+        .replace(/ى/g, 'ي')
+        .replace(/ة/g, 'ه')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+}
+
+export function rankStudentMatches(students, query) {
+    const q = normName(query);
+    if (!q) return [];
+    const scored = [];
+    students.forEach(st => {
+        const n = normName(st.name);
+        let score = -1;
+        if (n.startsWith(q)) score = 0;
+        else if (n.split(' ').some(w => w.startsWith(q))) score = 1;
+        else if (n.includes(q)) score = 2;
+        if (score >= 0) scored.push({ st, score });
+    });
+    scored.sort((a, b) => a.score - b.score || String(a.st.name).localeCompare(String(b.st.name), 'ar'));
+    return scored.map(x => x.st);
+}
+
+function setupStudentSuggest(input, listEl) {
+    let cache = [];
+    let current = [];
+    let active = -1;
+
+    AppState.studentManager.getAllStudents()
+        .then(all => { cache = all.filter(s => !s.isHidden); if (document.activeElement === input) render(); })
+        .catch(() => { /* بلا اقتراحات لو فشلت القراءة — الكتابة اليدوية تبقى تعمل */ });
+
+    function close() {
+        listEl.classList.remove('is-open');
+        listEl.innerHTML = '';
+        input.setAttribute('aria-expanded', 'false');
+        current = [];
+        active = -1;
+    }
+
+    function pick(st) {
+        input.value = st.name;
+        close();
+    }
+
+    function setActive(i) {
+        const items = listEl.querySelectorAll('.dhs-item');
+        items.forEach((el, idx) => el.classList.toggle('is-active', idx === i));
+        active = i;
+        if (items[i]) items[i].scrollIntoView({ block: 'nearest' });
+    }
+
+    function render() {
+        if (!normName(input.value)) { close(); return; }
+        current = rankStudentMatches(cache, input.value).slice(0, 8);
+        listEl.innerHTML = '';
+        if (current.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'dhs-empty';
+            empty.textContent = t('login_no_match');
+            listEl.appendChild(empty);
+        } else {
+            current.forEach(st => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'dhs-item';
+                b.setAttribute('role', 'option');
+                b.textContent = st.name;
+                // mousedown + preventDefault حتى لا يفقد الحقل التركيز قبل وصول النقرة
+                b.addEventListener('mousedown', e => e.preventDefault());
+                b.addEventListener('click', () => pick(st));
+                listEl.appendChild(b);
+            });
+        }
+        active = -1;
+        listEl.classList.add('is-open');
+        input.setAttribute('aria-expanded', 'true');
+    }
+
+    input.removeAttribute('list');   // نعتمد القائمة المخصّصة بدل datalist المتصفح (سلوكه يختلف بين المتصفحات)
+    input.addEventListener('input', render);
+    input.addEventListener('focus', () => { if (normName(input.value)) render(); });
+    input.addEventListener('keydown', (e) => {
+        const open = listEl.classList.contains('is-open') && current.length > 0;
+        if (e.key === 'ArrowDown' && open) { e.preventDefault(); setActive((active + 1) % current.length); }
+        else if (e.key === 'ArrowUp' && open) { e.preventDefault(); setActive((active - 1 + current.length) % current.length); }
+        else if (e.key === 'Escape') { close(); }
+        else if (e.key === 'Enter') {
+            if (open && active >= 0) { e.preventDefault(); pick(current[active]); }
+            else document.getElementById('btn-login-submit')?.click();
+        }
+    });
+
+    // إغلاق القائمة عند النقر خارجها (يُزيل المستمع تلقائياً عند مغادرة الشاشة)
+    const outside = (e) => {
+        if (!input.isConnected) { document.removeEventListener('pointerdown', outside); return; }
+        if (e.target !== input && !listEl.contains(e.target)) close();
+    };
+    document.addEventListener('pointerdown', outside);
+
+    return { refresh: render };
+}
+
+// 🌟 [جديد] الصفوف من التمهيدي حتى السادس الابتدائي → "ركن الأطفال" افتراضياً عند بدء تقييم من سجل الطلاب/ملف
+// الطالب؛ غير ذلك (أو صف غير محدد) → واجهة الكبار. ⚠️ افتراض صريح: هذه قاعدة تخمين فقط، وملف الطالب يعرض زراً
+// ثانياً لبدء التقييم بالوضع الآخر لو أراد المعلم عكسها.
+const KIDS_GRADES = ['التمهيدي', 'الأول الابتدائي', 'الثاني الابتدائي', 'الثالث الابتدائي', 'الرابع الابتدائي', 'الخامس الابتدائي', 'السادس الابتدائي'];
+function isKidsGrade(grade) { return KIDS_GRADES.includes(grade); }
+
+// 🌟 [جديد] بدء تقييم طالب مباشرة (من سجل الطلاب أو ملفه) بدل المرور بالرئيسية ثم واجهة الكبار/الأطفال
+// ثم كتابة الاسم — يضبط الوضع (كبار/أطفال) ثم يدخل نفس مسار الدخول المعتاد (بطاقة إصلاح الأخطاء إن وُجدت،
+// ثم الترحيب ثم لوحة التقييم).
+function startEvaluationForStudent(student, kids) {
+    setEvaluationMode(!!kids);
+    enterStudentEvaluation(student);
 }
 
 export function setupLoginListeners() {
@@ -101,24 +232,10 @@ export function setupLoginListeners() {
         }
     }).catch(() => { /* تجاهل بصمت — التلميح غير حرج لعمل الشاشة */ });
 
+    // 🌟 [عدّل 2026-10-01] اقتراحات الأسماء أثناء الكتابة بدل datalist المتصفح (راجع setupStudentSuggest أعلاه)
     const searchInput = document.getElementById('student-search-input');
-    if(searchInput) {
-        searchInput.removeAttribute('list');
-
-        searchInput.addEventListener('input', function() {
-            if(this.value.trim().length > 0) {
-                this.setAttribute('list', 'student-list');
-            } else {
-                this.removeAttribute('list');
-            }
-        });
-
-        searchInput.addEventListener('focus', function() {
-            if(this.value.trim().length === 0) {
-                this.removeAttribute('list');
-            }
-        });
-    }
+    const suggestList = document.getElementById('student-suggest-list');
+    const suggest = (searchInput && suggestList) ? setupStudentSuggest(searchInput, suggestList) : null;
 
     // زر دخول المعلم المعتاد
     document.getElementById('btn-login-submit')?.addEventListener('click', async () => {
@@ -126,57 +243,89 @@ export function setupLoginListeners() {
         if (!typedName) return alert(t("stu_login_name_required"));
 
         const students = await AppState.studentManager.getAllStudents();
-        AppState.currentStudent = students.find(s => s.name === typedName);
+        let found = students.find(s => s.name === typedName);
 
-        if (AppState.currentStudent) {
-            document.getElementById('top-student-name').innerText = `البطل: ${AppState.currentStudent.name}`;
-
-            // 🌟 [جديد] بطاقة الترحيب بالطالب — تُعرض هنا تحديداً: بعد التأكد من أن الاسم
-            // مسجَّل فعلاً وقبل الدخول إلى لوحة التقييم مباشرة. مقصود ألا ننتظرها (بلا await
-            // ولا setTimeout قبل التحميل): البطاقة تظهر فوق الشاشة بينما تُحمَّل لوحة التقييم
-            // خلفها في نفس اللحظة، فلا يضيع على المعلم أي وقت، وتختفي هي وحدها بعد ثوانٍ
-            // قليلة أو فوراً بأي نقرة/زر Esc. وضع الأطفال يُمرَّر لتكبير البطاقة قليلاً فقط
-            // (نفس محتوى وألوان الهوية، راجع dh-welcome-kids في css/welcomeBanner.css) 🌟
-            // 🌟 [جديد] مسار "إصلاح الأخطاء السابقة أولاً": لو للطالب أخطاء مسجَّلة، نعرض بطاقة
-            // تعرض عليه بدء جلسة الإصلاح الآن (نفس جلسة "تحدي الأخطاء" الموجودة أصلاً) ثم — بعد
-            // انتهائها وملخصها القصير — الانتقال إلى شاشة الألعاب (راجع games/adultGame.js
-            // وkidsGame.js: GameState.fixFromLogin). ليست إجبارية: "لاحقاً" يدخل الألعاب فوراً
-            // بنفس السلوك القديم بالضبط (بطاقة الترحيب ثم لوحة التقييم). طالب بلا أخطاء لا يرى
-            // أي تغيير إطلاقاً 🌟
-            // 🌟 [تعديل] العدّاد = الأخطاء "المستحقة" الآن فقط (جديدة أو تنتظر مراجعتها الثانية
-            // للتثبيت في يوم لاحق — راجع getDueWeaknesses). فالخطأ الذي أُجيب صح اليوم لا يستدعي
-            // البطاقة، ويعود تلقائياً في أول دخول بعد اليوم (بعد يوم أو أسبوع) 🌟
-            // 🌟 [افتراض صريح] البطاقة تظهر مرة واحدة يومياً لكل طالب: أي اختيار فيها (ابدأ أو
-            // لاحقاً) يسجّل "تم التعامل اليوم" فلا تتكرر لنفس الطالب حتى اليوم التالي 🌟
-            const pendingFixCount = getDueWeaknesses(AppState.currentStudent).length;
-            if (pendingFixCount > 0 && shouldShowFixPromptToday(AppState.currentStudent)) {
-                const enterGames = () => {
-                    markFixPromptHandledToday(AppState.currentStudent);
-                    showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
-                    loadDashboardScreen();
-                };
-                showFixErrorsPrompt(AppState.currentStudent, {
-                    kids: AppState.isKidsMode,
-                    onStart: () => {
-                        markFixPromptHandledToday(AppState.currentStudent);
-                        AppState.fixFlow = { fromLogin: true };
-                        if (AppState.isKidsMode) openKidsGameScreen({}, true);
-                        else openAdultGameScreen({}, true);
-                    },
-                    onLater: enterGames
-                });
-                return;
+        // 🌟 [جديد 2026-10-01] لو لم يطابق ما كُتب اسماً حرفياً: (أ) تطابق بعد تجاهل التشكيل/الهمزات لطالب واحد
+        // → ندخل مباشرة؛ (ب) ما كُتب جزء من اسم طالب واحد فقط → نملأ الحقل باسمه الكامل ليؤكد المعلم بضغطة
+        // ثانية (لا ندخل تلقائياً حتى لا يُقيَّم طالب خطأ)؛ (ج) عدة احتمالات → نعرض القائمة؛ (د) لا شيء → التنبيه القديم.
+        if (!found) {
+            const nt = normName(typedName);
+            const sameNorm = students.filter(s => normName(s.name) === nt);
+            if (sameNorm.length === 1) {
+                found = sameNorm[0];
+            } else {
+                const partial = rankStudentMatches(students.filter(s => !s.isHidden), typedName);
+                if (partial.length === 1) {
+                    document.getElementById('student-search-input').value = partial[0].name;
+                    return;
+                }
+                if (partial.length > 1 && suggest) { suggest.refresh(); return; }
             }
+        }
 
-            showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
-
-            loadDashboardScreen();
+        if (found) {
+            enterStudentEvaluation(found);
         } else {
             // 🌟 [عدّل] صياغة أقصر بطلب صريح من المعلم — أصبح لها مفتاح ترجمة في core/i18n.js
             // بدل نص عربي ثابت هنا (نفس أسلوب بقية رسائل الشاشة)
             alert(t('login_name_not_found_alert'));
         }
     });
+}
+
+
+// 🌟 [استُخرجت 2026-10-01 من مستمع زر "دخول سريع للتقييم" أعلاه بلا أي تغيير في المنطق] مسار الدخول لتقييم طالب:
+// بطاقة إصلاح الأخطاء (لو للطالب أخطاء مستحقة) ثم بطاقة الترحيب ثم لوحة التقييم. صارت دالة مستقلة حتى يستعملها أيضاً
+// زرّا "ابدأ تقييم" في سجل الطلاب وملف الطالب (راجع startEvaluationForStudent).
+export function enterStudentEvaluation(student) {
+    AppState.currentStudent = student;
+    // 🌟 [جديد 2026-10-01 — الدخول السريع] تسجيل "آخر تقييم" (طالب + وضع كبار/أطفال) لبطاقة "تابع من حيث توقفت" في الرئيسية
+    // (components/homeFast.js). localStorage خفيف وbest-effort: أي فشل لا يؤثر على الدخول للتقييم إطلاقاً.
+    try { if (student && student.id != null) localStorage.setItem('dh_last_evaluation', JSON.stringify({ id: student.id, name: student.name || '', kids: !!AppState.isKidsMode, at: Date.now() })); } catch (e) { /* اختياري */ }
+    {
+        document.getElementById('top-student-name').innerText = tf('stu_hero_name', { name: AppState.currentStudent.name });
+
+        // 🌟 [جديد] بطاقة الترحيب بالطالب — تُعرض هنا تحديداً: بعد التأكد من أن الاسم
+        // مسجَّل فعلاً وقبل الدخول إلى لوحة التقييم مباشرة. مقصود ألا ننتظرها (بلا await
+        // ولا setTimeout قبل التحميل): البطاقة تظهر فوق الشاشة بينما تُحمَّل لوحة التقييم
+        // خلفها في نفس اللحظة، فلا يضيع على المعلم أي وقت، وتختفي هي وحدها بعد ثوانٍ
+        // قليلة أو فوراً بأي نقرة/زر Esc. وضع الأطفال يُمرَّر لتكبير البطاقة قليلاً فقط
+        // (نفس محتوى وألوان الهوية، راجع dh-welcome-kids في css/welcomeBanner.css) 🌟
+        // 🌟 [جديد] مسار "إصلاح الأخطاء السابقة أولاً": لو للطالب أخطاء مسجَّلة، نعرض بطاقة
+        // تعرض عليه بدء جلسة الإصلاح الآن (نفس جلسة "تحدي الأخطاء" الموجودة أصلاً) ثم — بعد
+        // انتهائها وملخصها القصير — الانتقال إلى شاشة الألعاب (راجع games/adultGame.js
+        // وkidsGame.js: GameState.fixFromLogin). ليست إجبارية: "لاحقاً" يدخل الألعاب فوراً
+        // بنفس السلوك القديم بالضبط (بطاقة الترحيب ثم لوحة التقييم). طالب بلا أخطاء لا يرى
+        // أي تغيير إطلاقاً 🌟
+        // 🌟 [تعديل] العدّاد = الأخطاء "المستحقة" الآن فقط (جديدة أو تنتظر مراجعتها الثانية
+        // للتثبيت في يوم لاحق — راجع getDueWeaknesses). فالخطأ الذي أُجيب صح اليوم لا يستدعي
+        // البطاقة، ويعود تلقائياً في أول دخول بعد اليوم (بعد يوم أو أسبوع) 🌟
+        // 🌟 [افتراض صريح] البطاقة تظهر مرة واحدة يومياً لكل طالب: أي اختيار فيها (ابدأ أو
+        // لاحقاً) يسجّل "تم التعامل اليوم" فلا تتكرر لنفس الطالب حتى اليوم التالي 🌟
+        const pendingFixCount = getDueWeaknesses(AppState.currentStudent).length;
+        if (pendingFixCount > 0 && shouldShowFixPromptToday(AppState.currentStudent)) {
+            const enterGames = () => {
+                markFixPromptHandledToday(AppState.currentStudent);
+                showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
+                loadDashboardScreen();
+            };
+            showFixErrorsPrompt(AppState.currentStudent, {
+                kids: AppState.isKidsMode,
+                onStart: () => {
+                    markFixPromptHandledToday(AppState.currentStudent);
+                    AppState.fixFlow = { fromLogin: true };
+                    if (AppState.isKidsMode) openKidsGameScreen({}, true);
+                    else openAdultGameScreen({}, true);
+                },
+                onLater: enterGames
+            });
+            return;
+        }
+
+        showStudentWelcome(AppState.currentStudent, { kids: AppState.isKidsMode });
+
+        loadDashboardScreen();
+    }
 }
 
 export async function loadMyStudentsScreen() {
@@ -310,20 +459,23 @@ async function renderAllStudentsTable() {
     if(!tbody) return;
     tbody.innerHTML = "";
     students.forEach((s, index) => {
-        let ageStr = "غير محدد";
+        let ageStr = t("stu_not_set");
         if(s.dob) {
             let d = new Date(s.dob);
-            ageStr = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) + " سنة";
+            ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
         }
         let evalsCount = JSON.parse(localStorage.getItem(`history_${s.id}`))?.length || 0;
-        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="استعادة البطل">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="إخفاء البطل">🙈</button>`;
-        let manageBtns = `<button class="btn btn-edit" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="تعديل البيانات">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="حذف البطل نهائياً">🗑️</button>`;
-        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${esc(s.id)}" style="padding:5px 10px; font-size:1rem;">🛠️ الأخطاء (${s.weaknesses.length})</button>` : `<span style="color:#aaa;">لا أخطاء</span>`;
+        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_restore')}">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_hide')}">🙈</button>`;
+        let manageBtns = `<button class="btn btn-edit" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_edit_data')}">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_delete_final')}">🗑️</button>`;
+        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${esc(s.id)}" style="padding:5px 10px; font-size:1rem;">${tf('stu_errors_btn', { n: s.weaknesses.length })}</button>` : `<span style="color:#aaa;">${t('stu_no_errors')}</span>`;
 
         let nameButton = `<button class="btn-prof-link" data-id="${esc(s.id)}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${esc(s.name)}</button>`;
 
+        // 🌟 [جديد 2026-10-01] زر "ابدأ تقييم" في صف الطالب (مخفي للطالب المخفي) — يبدأ التقييم مباشرة بلا المرور بالرئيسية
+        let startEvalBtn = s.isHidden ? '<span style="color:#aaa;">—</span>' : `<button class="btn as-btn-primary btn-start-eval" data-id="${esc(s.id)}" style="padding:6px 12px; font-size:1rem; min-width:unset;">${t('stu_start_eval_row')}</button>`;
+
         // 🌟 [إصلاح فحص الأزرار] data-label على كل خلية ليعرض CSS الهاتف (بطاقات) اسم الحقل بجانب قيمته 🌟
-        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td data-label="${t('as_col_no')}">${index+1}</td><td data-label="${t('as_col_name')}">${nameButton}</td><td data-label="${t('as_col_age')}">${ageStr}</td><td data-label="${t('as_col_grade')}">${esc(s.grade || 'غير محدد')}</td><td data-label="${t('as_col_points')}" style="font-weight:bold;">${s.totalScore || 0}</td><td data-label="${t('as_col_evals')}">${evalsCount}</td><td data-label="${t('as_col_manage')}">${manageBtns}</td><td data-label="${t('as_col_errors')}">${weaknessBtn}</td></tr>`;
+        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td data-label="${t('as_col_no')}">${index+1}</td><td data-label="${t('as_col_name')}">${nameButton}</td><td data-label="${t('as_col_age')}">${ageStr}</td><td data-label="${t('as_col_grade')}">${esc(s.grade ? trStored(s.grade) : t('stu_not_set'))}</td><td data-label="${t('as_col_points')}" style="font-weight:bold;">${s.totalScore || 0}</td><td data-label="${t('as_col_start_eval')}">${startEvalBtn}</td><td data-label="${t('as_col_evals')}">${evalsCount}</td><td data-label="${t('as_col_manage')}">${manageBtns}</td><td data-label="${t('as_col_errors')}">${weaknessBtn}</td></tr>`;
     });
 }
 
@@ -350,6 +502,12 @@ function setupAllStudentsListeners() {
                 AppState.currentStudent = studentProfile;
                 loadStudentProfileScreen();
             }
+        }
+        // 🌟 [جديد 2026-10-01] بدء تقييم الطالب من صفه مباشرة (الوضع كبار/أطفال بحسب صفه — راجع isKidsGrade)
+        else if(target.classList.contains('btn-start-eval')) {
+            const students = await AppState.studentManager.getAllStudents();
+            const stu = students.find(x => x.id === id);
+            if (stu) startEvaluationForStudent(stu, isKidsGrade(stu.grade));
         }
         else if(target.classList.contains('btn-edit')) await openEditStudentModal(id);
         else if(target.classList.contains('btn-delete')) await deleteStudentAction(id);
@@ -507,12 +665,12 @@ function restoreBackupLocalStorage(data) {
 // شاشة "علاج الخطأ السابق" بـ adultGame.js/kidsGame.js 🌟
 function buildArchiveCard(w) {
     let sectionBadge = w.sourceSection === 'kids' ? '🎈' : (w.sourceSection === 'adult' ? '👤' : '');
-    let typeLabel = w.questionTypeLabel || t('hw_q_type_label');
-    let locationText = w.surahName ? `سورة ${w.surahName}${w.num ? ' - آية ' + w.num : ''}` : '';
+    let typeLabel = w.questionTypeLabel ? localizeGenerated(trStored(w.questionTypeLabel)) : t('hw_q_type_label'); // 🌟 نص مخزَّن عربي ← يُترجم وقت العرض
+    let locationText = w.surahName ? tf('stu_loc_text', { surah: surahNameLocal(w.surahName), ayah: w.num ? tf('stu_loc_ayah', { n: w.num }) : '' }) : '';
     let lang = AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US';
     let recordedDate = w.dateRecorded ? new Date(w.dateRecorded).toLocaleDateString(lang) : '—';
     let resolvedDate = w.dateResolved ? new Date(w.dateResolved).toLocaleDateString(lang) : '—';
-    let errorLine = w.errorTypes ? `<div style="font-size:0.95rem; color:#991b1b; margin-bottom:8px;">${t("الخطأ السابق المسجل:")} [ ${w.errorTypes} ]</div>` : '';
+    let errorLine = w.errorTypes ? `<div style="font-size:0.95rem; color:#991b1b; margin-bottom:8px;">${t("الخطأ السابق المسجل:")} [ ${localizeErrorTypes(w.errorTypes)} ]</div>` : '';
 
     return `
     <div style="border:2px solid #e2e8f0; border-radius: 14px; padding: 15px; background:#f8fafc;">
@@ -558,17 +716,17 @@ export async function loadStudentProfileScreen() {
             });
 
             document.getElementById('prof-name').innerText = student.name;
-            document.getElementById('prof-grade').innerText = student.grade || "الصف غير محدد";
+            document.getElementById('prof-grade').innerText = (student.grade ? trStored(student.grade) : t("stu_grade_not_set"));
             document.getElementById('prof-points').innerText = student.totalScore || 0;
 
-            let ageStr = "العمر غير محدد";
+            let ageStr = t("stu_age_not_set");
             if(student.dob) {
                 let d = new Date(student.dob);
-                ageStr = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) + " سنة";
+                ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
             }
             document.getElementById('prof-age').innerText = `🎂 ${ageStr}`;
-            document.getElementById('prof-country').innerText = student.country ? `🌍 ${student.country}` : "🌍 البلد غير محدد";
-            document.getElementById('prof-phone').innerText = student.phone ? `📱 ${student.phone}` : "📱 الهاتف غير مسجل";
+            document.getElementById('prof-country').innerText = student.country ? `🌍 ${student.country}` : t("stu_country_not_set");
+            document.getElementById('prof-phone').innerText = student.phone ? `📱 ${student.phone}` : t("stu_phone_not_set");
 
             const avatarImg = document.getElementById('prof-avatar');
             if (student.avatar) {
@@ -582,6 +740,21 @@ export async function loadStudentProfileScreen() {
                 } else {
                     avatarImg.src = student.avatar;
                     avatarImg.style.display = 'block';
+                }
+            }
+
+            // 🌟 [جديد 2026-10-01] زرّا بدء التقييم من ملف الطالب — الأول بالوضع المناسب لصفه والثاني بالوضع الآخر
+            {
+                const kidsDefault = isKidsGrade(student.grade);
+                const mainEval = document.getElementById('btn-prof-start-eval');
+                const altEval = document.getElementById('btn-prof-start-eval-alt');
+                if (mainEval) {
+                    mainEval.textContent = t(kidsDefault ? 'stu_start_eval_kids' : 'stu_start_eval_adult');
+                    mainEval.onclick = () => startEvaluationForStudent(student, kidsDefault);
+                }
+                if (altEval) {
+                    altEval.textContent = t(kidsDefault ? 'stu_start_eval_adult' : 'stu_start_eval_kids');
+                    altEval.onclick = () => startEvaluationForStudent(student, !kidsDefault);
                 }
             }
 
@@ -608,7 +781,7 @@ export async function loadStudentProfileScreen() {
             } else {
                 btnWeakness.style.background = "#cbd5e1";
                 btnWeakness.style.color = "#475569";
-                btnWeakness.innerText = "لا توجد أخطاء مسجلة 🎉";
+                btnWeakness.innerText = t("stu_no_errors_btn");
                 btnWeakness.disabled = true;
             }
 
@@ -652,7 +825,7 @@ export async function loadStudentProfileScreen() {
             const tbody = document.getElementById('prof-history-body');
             tbody.innerHTML = "";
             if (histData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4">لا توجد تقييمات سابقة لهذا البطل.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4">${t('stu_no_history')}</td></tr>`;
             } else {
                 histData.reverse().forEach((record, index) => {
                     let color = record.score >= 90 ? '#166534' : (record.score >= 80 ? '#064e3b' : (record.score >= 70 ? '#b45309' : '#dc2626'));
@@ -660,7 +833,7 @@ export async function loadStudentProfileScreen() {
                         <tr>
                             <td>${index + 1}</td>
                             <td>${record.date}</td>
-                            <td>${record.range}</td>
+                            <td>${esc(localizeGenerated(trStored(String(record.range || ''))))}</td>
                             <td style="color:${color}; font-size:1.3rem;">${record.score}%</td>
                         </tr>
                     `;
@@ -806,11 +979,11 @@ async function renderTajweedProfileSection(student) {
 // (النقاط، عدد التقييمات، الانتصارات)، الأوسمة، وسجل التقييمات السابقة فهي نتائج/سجلات
 // تُبنى تلقائيًا من نشاط الطالب الفعلي، فتبقى للعرض فقط ولا تُعدَّل يدويًا هنا.
 function computeAgeLabel(dob) {
-    if (!dob) return "العمر غير محدد";
+    if (!dob) return t("stu_age_not_set");
     const d = new Date(dob);
-    if (isNaN(d)) return "العمر غير محدد";
+    if (isNaN(d)) return t("stu_age_not_set");
     const years = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970);
-    return `${years} سنة`;
+    return tf("stu_age_years", { n: years });
 }
 
 function setupInlineProfileEditing(student) {
@@ -867,14 +1040,14 @@ function setupInlineProfileEditing(student) {
     bindInlineFieldEdit(document.getElementById('prof-grade'), {
         getValue: () => student.grade || '',
         setValue: (v) => { student.grade = v.trim(); },
-        render: () => student.grade || "الصف غير محدد"
+        render: () => (student.grade ? trStored(student.grade) : t("stu_grade_not_set"))
     });
 
     // الدولة — اختياري
     bindInlineFieldEdit(document.getElementById('prof-country'), {
         getValue: () => student.country || '',
         setValue: (v) => { student.country = v.trim(); },
-        render: () => student.country ? `🌍 ${esc(student.country)}` : "🌍 البلد غير محدد"
+        render: () => student.country ? `🌍 ${esc(student.country)}` : t("stu_country_not_set")
     });
 
     // الهاتف — اختياري
@@ -882,7 +1055,7 @@ function setupInlineProfileEditing(student) {
         inputType: 'tel',
         getValue: () => student.phone || '',
         setValue: (v) => { student.phone = v.trim(); },
-        render: () => student.phone ? `📱 ${esc(student.phone)}` : "📱 الهاتف غير مسجل"
+        render: () => student.phone ? `📱 ${esc(student.phone)}` : t("stu_phone_not_set")
     });
 
     // تاريخ الميلاد — الحقل المعروض فعليًا هو "العمر" المحسوب، لكن التعديل يتم على
