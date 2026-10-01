@@ -1,15 +1,13 @@
-<!-- games/adultGame.html -->
+<!-- games/kidsGame.html -->
 <div class="screen active">
     <div class="game-layout">
         
-        <!-- الشريط الجانبي للكبار -->
+        <!-- الشريط الجانبي للصغار -->
         <div class="game-sidebar">
-            <span class="timer-text" id="timer-display">30:00 ⏱️</span>
-            <h3 data-i18n="eval_path" style="font-size: 1.2rem; margin:15px 0; border-bottom: 2px solid rgba(0,0,0,0.1); padding-bottom:10px;">مسار التقييم الشامل</h3>
+            <span class="timer-text" id="timer-display" style="display: none;"></span>
+            <h3 data-i18n="kids_club" style="font-size: 1.4rem; margin:15px 0; border-bottom: 2px dashed rgba(0,0,0,0.1); padding-bottom:10px; color: #db2777;">🎈 نادي الأبطال الصغار</h3>
             <div class="tracker-grid" id="questions-tracker"></div>
-            <!-- 🌟 [جديد] حفظ الاختبار والعودة لاستكماله لاحقاً (راجع components/pausedSession.js) -->
-            <button class="btn" style="width: 100%; margin-top: 25px; padding: 10px;" id="btn-pause-game" data-i18n="pause_game_btn">⏸️ حفظ والعودة لاحقًا</button>
-            <button class="btn btn-outline" style="width: 100%; margin-top: 10px; padding: 10px;" id="btn-exit-game" data-i18n="exit_game">🚪 خروج وإنهاء</button>
+            <button class="btn btn-outline" data-i18n="exit_game" style="width: 100%; margin-top: 25px; padding: 10px;" id="btn-exit-game">🚪 خروج وإنهاء</button>
         </div>
         
         <!-- منطقة اللعب الرئيسية -->
@@ -23,10 +21,9 @@
             
             <div id="teacher-eval-area">
                 <div id="game-question" style="margin-bottom: 20px;"></div>
-                <button class="btn btn-outline" id="hint-btn" data-i18n="hint_btn" style="display:none; margin: 15px auto;">💡 تلميح</button>
-                <!-- 🌟 الخط كان 'Amiri' العادي فقط — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق
-                     يعرض جزءاً فعلياً من نص الآية (تلميح)، فلازم يظهر برسم عثماني مطابق تماماً
-                     لباقي نصوص القرآن بالمنصة 🌟 -->
+                <!-- 🌟 [إصلاح فحص الأزرار] أُزيل زر #hint-btn: لا مستمع له في kidsGame.js ولا مسار يُظهره (ميت ومخفي دائمًا) 🌟 -->
+                <!-- 🌟 نفس تعديل نسخة الكبار: 'Amiri' → 'Amiri Quran' لأن التلميح يعرض جزءاً
+                     فعلياً من نص الآية 🌟 -->
                 <div id="hint-text" style="display:none; font-family:'Amiri Quran',serif; font-size:2rem; font-weight:bold; background: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed rgba(0,0,0,0.2);"></div>
                 
                 <div class="answer-box" id="game-answer"></div>
@@ -44,7 +41,7 @@
                     <button class="btn btn-correct" id="btn-record-correct" data-i18n="correct_ans_btn" style="font-size: 1.4rem; padding: 12px 25px;">🟢 إجابة صحيحة تامة</button>
                     <button class="btn btn-wrong" id="btn-record-wrong" data-i18n="record_note_btn" style="font-size: 1.4rem; padding: 12px 25px;">📝 تسجيل ملاحظة</button>
                     <!-- 🌟 [عدّل] كان بستايل inline كامل منفصل عن هوية المنصة — نُقل لكلاس
-                         .btn-confirm-next الموحّد (راجع css/adults.css) بنفس الألوان بالضبط،
+                         .btn-confirm-next الموحّد (راجع css/kids.css) بنفس الألوان بالضبط،
                          بلا أي تغيير بصري 🌟 -->
                     <button class="btn btn-confirm-next" id="btn-submit-all-errors" data-i18n="submit_next_btn" style="display:none; padding:12px 25px; font-size:1.4rem; font-weight:bold; border-radius:15px;">
                         ⏭️ تم، إلى السؤال التالي
@@ -52,28 +49,39 @@
                 </div>
             </div>
 
-            <!-- ألعاب الترتيب (للكبار فقط) -->
-            <div id="interactive-order-area" style="display: none;">
-                <p data-i18n="order_inst" style="font-size: 1.2rem; font-weight:bold; margin-bottom: 15px;">اضغط على الآية لنقلها، وللإرجاع اضغط عليها في الترتيب الصحيح</p>
+            <!-- ألعاب الكلمات المبعثرة (للصغار فقط) -->
+            <div id="kids-word-order-area" style="display: none;">
+                <p data-i18n="kids_order_inst" style="font-size: 1.3rem; font-weight:bold; margin-bottom: 15px; color:#db2777;">اضغط على الكلمة لنقلها وتكوين الآية الصحيحة! 👆</p>
                 <div class="order-grid">
-                    <div class="order-col">
-                        <h3 data-i18n="correct_order" style="text-align:center;">الترتيب الصحيح</h3>
-                        <!-- 🌟 [جديد] order-list-scroll: سكرول داخلي خاص بالعمود بدل ما الصفحة كلها
-                             تعمل سكرول لما الآيات تطول — راجع global.css وgames/adultGame.js 🌟 -->
-                        <div id="order-slots" class="order-list-scroll"></div>
+                    <div class="order-col" style="background:#f0f9ff; border-color:#bae6fd;">
+                        <h3 data-i18n="correct_ayah" style="text-align:center;">الآية الصحيحة</h3>
+                        <div id="word-order-slots" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;"></div>
                     </div>
                     <div class="order-col">
-                        <h3 data-i18n="shuffled_ayahs" style="text-align:center;">الآيات المبعثرة</h3>
-                        <div id="order-shuffled" class="order-list-scroll"></div>
+                        <h3 data-i18n="shuffled_words" style="text-align:center;">الكلمات المبعثرة</h3>
+                        <div id="word-order-shuffled" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;"></div>
                     </div>
                 </div>
             </div>
+            
+            <!-- ألعاب الخيارات المتعددة (للصغار فقط) -->
+            <div id="kids-mcq-area" style="display: none; margin-top:30px;">
+                <div id="kids-options-container"></div>
+                <!-- 🌟 [جديد] الخطوة الثانية للعبة "استمع وخمّن الآية" فقط: تظهر بعد اختيار
+                     الطفل الآية الصحيحة، ويُطلَب منه تحديد سورتها. مخفية افتراضيًا ولا تُفعَّل
+                     إلا من games/kidsGame.js عند وجود surahOptions في بيانات السؤال — راجع
+                     تعليق generateKidsListenAyah في engine/kidsEngine.js 🌟 -->
+                <div id="kids-listen-surah-area" style="display: none; margin-top:25px;">
+                    <div data-i18n="kids_listen_which_surah" style="font-size:1.4rem; font-weight:bold; color:#1e3a5f; margin-bottom:15px; text-align:center;">🕌 من أي سورة هذه الآية؟</div>
+                    <div id="kids-listen-surah-options"></div>
+                </div>
+            </div>
 
-            <!-- 🌟 [جديد] لعبة "اربط أول الآية بآخرها" (للكبار والأطفال معاً) 🌟 -->
-            <div id="interactive-link-area" style="display: none;">
-                <p data-i18n="link_inst" style="font-size: 1.2rem; font-weight:bold; margin-bottom: 15px;">اضغط على بداية الآية أولاً من العمود الأول، ثم اضغط على نهايتها الصحيحة من العمود الثاني لتوصيلهما</p>
+            <!-- 🌟 [جديد] لعبة "اربط بداية الآية بنهايتها" — نفس لعبة ركن الكبار بالضبط 🌟 -->
+            <div id="kids-link-area" style="display: none; margin-top:20px;">
+                <p data-i18n="link_inst" style="font-size: 1.3rem; font-weight:bold; margin-bottom: 15px; color:#db2777;">اضغط على بداية الآية أولاً من العمود الأول، ثم اضغط على نهايتها الصحيحة من العمود الثاني لتوصيلهما</p>
                 <div class="link-grid">
-                    <div class="link-col">
+                    <div class="link-col" style="background:#f0f9ff; border-color:#bae6fd;">
                         <h3 data-i18n="link_starts_title" style="text-align:center;">بدايات الآيات</h3>
                         <div id="link-starts-col"></div>
                     </div>
@@ -83,23 +91,29 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 🌟 [جديد] لعبة "رتب السور" — ضمن نطاق السور الذي يختاره المعلم للطفل 🌟 -->
+            <div id="kids-order-surahs-area" style="display: none; margin-top:20px;">
+                <p data-i18n="order_surahs_inst" style="font-size: 1.3rem; font-weight:bold; margin-bottom: 15px; color:#db2777;">اضغط على اسم السورة لنقلها، وللإرجاع اضغط عليها في الترتيب الصحيح</p>
+                <div class="order-grid">
+                    <div class="order-col" style="background:#f0f9ff; border-color:#bae6fd;">
+                        <h3 data-i18n="correct_order" style="text-align:center;">الترتيب الصحيح</h3>
+                        <div id="kids-order-surahs-slots"></div>
+                    </div>
+                    <div class="order-col">
+                        <h3 data-i18n="shuffled_surahs" style="text-align:center;">السور المبعثرة</h3>
+                        <div id="kids-order-surahs-shuffled"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- نافذة تكبير المصحف (للكبار فقط) -->
-<div id="zoomModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; flex-direction:column; align-items:center; justify-content:center;">
-    <div style="color:white; font-size:1.5rem; margin-bottom:15px;"><span data-i18n="right_page">(الصفحة اليمنى)</span> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <span data-i18n="left_page">(الصفحة اليسرى)</span></div>
-    <div style="display:flex; gap:15px; max-width:95%; max-height:80vh;">
-        <img id="zoom-img-right" src="" style="max-width:48%; object-fit:contain; border:4px solid #d4af37; border-radius:10px; background:#fffdf5;">
-        <img id="zoom-img-left" src="" style="max-width:48%; object-fit:contain; border:4px solid #d4af37; border-radius:10px; background:#fffdf5;">
-    </div>
-    <button class="btn btn-wrong" data-i18n="close_zoom" style="margin-top:25px; font-size: 1.4rem; padding: 12px 40px;" onclick="document.getElementById('zoomModal').style.display='none'">✖️ إغلاق التكبير</button>
-</div>
-
-<!-- نافذة تسجيل الأخطاء المعدلة -->
-<!-- 🌟 [تعديل] نفس تخفيف الصياغة المطبَّق في نسخة الأطفال — عشان يكون شكل الكلمة
-     موحّد بين الشاشتين طالما القيم بتتخزّن وتُعرض في نفس التقارير 🌟 -->
+<!-- نافذة تسجيل الأخطاء المشتركة -->
+<!-- 🌟 [تعديل] خفّفنا صياغة العنوان والاختيارات (بلا كلمة "خطأ") لأن هذه النافذة تظهر
+     أمام الطفل نفسه أثناء الجلسة، وكانت الكلمة بالأحمر تخوّفه. قيم checkbox اتغيّرت
+     بنفس الصياغة الجديدة عشان تتطابق مع ما بيتسجّل ويظهر لاحقاً في التقارير 🌟 -->
 <div id="error-modal" class="modal-overlay">
     <div class="modal-content" style="max-width: 500px;">
         <h2 data-i18n="record_error_title" style="color: #df4e4e; margin-top:0;">تسجيل ملاحظة مؤقتة</h2>
@@ -115,8 +129,8 @@
         <textarea id="custom-note" data-i18n-placeholder="note_ph" placeholder="اكتب ملاحظتك اليدوية هنا (اختياري)..." style="width: 100%; height: 80px; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: 'Tajawal', sans-serif; font-size: 1.2rem; resize: none; margin-bottom: 15px;"></textarea>
         <!-- 🌟 [عدّل] كان يستخدم .btn-wrong (الأحمر، دلالته "إجابة خاطئة") مع تلوين inline
              يدوي فوقه — نُقل لكلاس .btn-note الموحّد المخصص فعلاً لفعل "تسجيل ملاحظة"
-             (راجع css/adults.css)، بنفس اللون البرتقالي بالضبط بلا أي تغيير بصري 🌟 -->
+             (راجع css/kids.css)، بنفس اللون البرتقالي بالضبط بلا أي تغيير بصري 🌟 -->
         <button class="btn btn-note" data-i18n="add_err_cont" style="width: 100%; font-size: 1.3rem; padding: 12px;" id="btn-save-error-temp">➕ حفظ وتكملة السؤال</button>
         <button class="btn btn-outline" data-i18n="cancel" style="width: 100%; margin-top:10px; font-size: 1.3rem; padding: 12px;" id="btn-close-error">إلغاء</button>
     </div>
-</div>
+</div>

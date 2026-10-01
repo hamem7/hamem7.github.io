@@ -607,22 +607,7 @@ export const translations = {
         // التأكيد الموجودة في dualtests/dual-test-play.js عند الخروج من مواجهة جارية، لمنع فقد
         // تقييم كامل بضغطة واحدة بالخطأ (راجع الشرط في adultGame.js/kidsGame.js: لا يظهر
         // التأكيد إلا لو فيه إجابة واحدة على الأقل مسجَّلة في هذه الجلسة)
-        // 🌟 [عدّل] أُضيفت الإشارة لزر "حفظ والعودة لاحقًا" الجديد كبديل عن فقد الإجابات
-        exit_game_confirm_msg: "سجّلت إجابات في هذه الجلسة ولم تُحفظ بعد. الخروج الآن سيفقدها نهائياً (لو تريد الاستكمال لاحقاً اضغط «⏸️ حفظ والعودة لاحقًا» بدل الخروج). هل تريد المتابعة بالخروج؟",
-        // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js
-        pause_game_btn: "⏸️ حفظ والعودة لاحقًا",
-        pause_nothing_yet: "أجب عن سؤال واحد على الأقل أولاً، ثم يمكنك حفظ الاختبار والعودة لاستكماله لاحقاً.",
-        pause_replace_confirm: "لهذا الطالب اختبار غير مكتمل محفوظ من قبل. حفظ هذا الاختبار سيستبدله. هل تريد المتابعة؟",
-        pause_save_failed: "تعذّر حفظ الاختبار. لم يتغيّر شيء — يمكنك المحاولة مرة أخرى.",
-        pause_saved_msg: "✅ تم حفظ الاختبار. عند اختيار هذا الطالب مرة أخرى ستظهر بطاقة «استكمال».",
-        paused_card_title: "اختبار غير مكتمل",
-        paused_card_progress: "أنجز {done} من {total}",
-        paused_card_resume_btn: "▶️ استكمال",
-        paused_card_discard_btn: "🗑️ إلغاء",
-        paused_discard_confirm: "سيُحذف هذا الاختبار غير المكتمل نهائياً ولن يمكن استكماله. (أخطاء الطالب ونقاطه المسجَّلة سابقاً تبقى محفوظة). هل أنت متأكد؟",
-        paused_when_today: "اليوم",
-        paused_when_yesterday: "أمس",
-        paused_when_days: "منذ {n} أيام",
+        exit_game_confirm_msg: "سجّلت إجابات في هذه الجلسة ولم تُحفظ بعد. الخروج الآن سيفقدها نهائياً. هل تريد المتابعة؟",
         notes_on_q: "📝 ملاحظات على السؤال",
         show_ans_match: "👁️ إظهار الإجابة للمطابقة",
         hide_ans: "🙈 إخفاء الإجابة",
@@ -2349,22 +2334,7 @@ export const translations = {
         // 🌟 [New] Confirmation message before exiting an evaluation session that already has
         // recorded answers — mirrors the confirm() used in dualtests/dual-test-play.js when
         // leaving a live match, to prevent losing a whole evaluation with one accidental click.
-        // 🌟 [Updated] now mentions the new "Save & continue later" button as an alternative to losing answers
-        exit_game_confirm_msg: "You've recorded answers in this session that haven't been saved yet. Leaving now will lose them permanently (to continue later, press “⏸️ Save & continue later” instead of exiting). Leave anyway?",
-        // 🌟 [New] "Save & continue later" for a student's test — see components/pausedSession.js
-        pause_game_btn: "⏸️ Save & continue later",
-        pause_nothing_yet: "Answer at least one question first, then you can save the test and continue it later.",
-        pause_replace_confirm: "This student already has a saved unfinished test. Saving this one will replace it. Continue?",
-        pause_save_failed: "Couldn't save the test. Nothing was changed — you can try again.",
-        pause_saved_msg: "✅ Test saved. When you select this student again, a “Resume” card will appear.",
-        paused_card_title: "Unfinished test",
-        paused_card_progress: "Completed {done} of {total}",
-        paused_card_resume_btn: "▶️ Resume",
-        paused_card_discard_btn: "🗑️ Discard",
-        paused_discard_confirm: "This unfinished test will be permanently deleted and can't be resumed. (The student's previously recorded mistakes and points stay saved.) Are you sure?",
-        paused_when_today: "Today",
-        paused_when_yesterday: "Yesterday",
-        paused_when_days: "{n} days ago",
+        exit_game_confirm_msg: "You've recorded answers in this session that haven't been saved yet. Leaving now will lose them permanently. Continue?",
         notes_on_q: "📝 Notes on Question",
         show_ans_match: "👁️ Show Answer for Matching",
         hide_ans: "🙈 Hide Answer",

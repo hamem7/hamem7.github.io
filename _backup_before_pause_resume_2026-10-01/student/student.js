@@ -17,8 +17,6 @@ import { TAJWEED_STAGES } from '../engine/tajweedRulesCatalog.js';
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] مسار "إصلاح الأخطاء السابقة عند الدخول" — راجع components/fixErrorsPrompt.js
 import { showFixErrorsPrompt, shouldShowFixPromptToday, markFixPromptHandledToday, getDueWeaknesses } from '../components/fixErrorsPrompt.js';
-// 🌟 [جديد] بطاقة "اختبار غير مكتمل" عند اختيار الطالب (حفظ والعودة لاحقًا) — راجع components/pausedSession.js
-import { getPausedEvaluation, clearPausedEvaluation, showPausedEvaluationPrompt } from '../components/pausedSession.js';
 // 🌟 [جديد] بطاقة الترحيب بالطالب عند اختيار اسمه — راجع components/welcomeBanner.js
 import { showStudentWelcome } from '../components/welcomeBanner.js';
 // 🌟 [إصلاح فحص الأزرار] لتوجيه ملف "النسخة الشاملة" المرفوع بالخطأ هنا إلى مسار استرجاعه الصحيح
@@ -284,35 +282,6 @@ export function enterStudentEvaluation(student) {
     // 🌟 [جديد 2026-10-01 — الدخول السريع] تسجيل "آخر تقييم" (طالب + وضع كبار/أطفال) لبطاقة "تابع من حيث توقفت" في الرئيسية
     // (components/homeFast.js). localStorage خفيف وbest-effort: أي فشل لا يؤثر على الدخول للتقييم إطلاقاً.
     try { if (student && student.id != null) localStorage.setItem('dh_last_evaluation', JSON.stringify({ id: student.id, name: student.name || '', kids: !!AppState.isKidsMode, at: Date.now() })); } catch (e) { /* اختياري */ }
-
-    // 🌟 [جديد] اختبار معلّق ("⏸️ حفظ والعودة لاحقًا") — أول ما يُختار الطالب، قبل بطاقتي "علاج الأخطاء" والترحيب:
-    // لو له اختبار غير مكتمل في هذا القسم (كبار/أطفال) تظهر بطاقة "اختبار غير مكتمل" بزرّين:
-    //   • ▶️ استكمال: يفتح الاختبار من أول سؤال لم يُجَب (راجع resumeSnapshot في games/adultGame.js وkidsGame.js).
-    //   • 🗑️ إلغاء: يحذف المعلّق (بعد تأكيد داخل البطاقة) ثم يكمل المسار المعتاد أدناه كما هو.
-    // طالب بلا اختبار معلّق (كل الطلاب الحاليين) لا يرى أي تغيير. كل طرق الدخول للتقييم (الدخول السريع، سجل
-    // الطلاب، ملف الطالب) تمر من هذه الدالة فتشملها هذه الخطوة تلقائياً.
-    const pausedEval = getPausedEvaluation(student, AppState.isKidsMode);
-    if (pausedEval) {
-        showPausedEvaluationPrompt(student, pausedEval, {
-            kids: AppState.isKidsMode,
-            onResume: () => {
-                if (AppState.isKidsMode) openKidsGameScreen(pausedEval.config || {}, false, pausedEval);
-                else openAdultGameScreen(pausedEval.config || {}, false, pausedEval);
-            },
-            onDiscard: async () => {
-                clearPausedEvaluation(student);
-                try { await AppState.studentManager.updateStudent(student); } catch (e) { console.error('تعذر حذف الاختبار المعلّق:', e); }
-                continueStudentEvaluationEntry();
-            }
-        });
-        return;
-    }
-    continueStudentEvaluationEntry();
-}
-
-// 🌟 [استُخرجت 2026-10-01 من enterStudentEvaluation أعلاه بلا أي تغيير في المنطق] بقية مسار الدخول بعد التأكد من
-// عدم وجود اختبار معلّق: بطاقة علاج الأخطاء (إن لزمت) ثم بطاقة الترحيب ثم لوحة التقييم.
-function continueStudentEvaluationEntry() {
     {
         document.getElementById('top-student-name').innerText = tf('stu_hero_name', { name: AppState.currentStudent.name });
 

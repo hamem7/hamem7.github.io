@@ -15,8 +15,6 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
-// 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
-import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
     // 🌟 [إصلاح] لقطة ثابتة من قائمة الأخطاء وقت بدء جلسة "تحدي الأخطاء" — كانت الشاشة تقرأ
@@ -214,11 +212,7 @@ async function buildGameQueue(gamesList, qCount, pool, isJuz) {
     return queue;
 }
 
-// 🌟 [جديد] المعامل الثالث resumeSnapshot (اختياري): لقطة اختبار معلّق من components/pausedSession.js.
-// لو مُرِّرت، يُستكمَل الاختبار من أول سؤال لم يُجَب بنفس النطاق والطابور ونتائج الأسئلة السابقة، ويُسجَّل
-// التقرير والتاريخ في النهاية مرة واحدة لكل الأسئلة. غيابه = السلوك القديم تماماً بلا أي تغيير.
-export async function openAdultGameScreen(config, isWeakness = false, resumeSnapshot = null) {
-    if (resumeSnapshot) { config = resumeSnapshot.config || config; isWeakness = false; }
+export async function openAdultGameScreen(config, isWeakness = false) {
     // 🌟 [جديد] تنبيه ما قبل بدء التقييم — يشرح خصم نقاط التلميح والترتيب الخاطئ، وطبيعة
     // زر "تسجيل ملاحظة". راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح"
     showSectionHintOnce('adult_game', {
@@ -236,8 +230,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
     AppState.fixFlow = null;
     GameState.weaknessSnapshot = [];
     GameState.reportDetails = [];
-    GameState.resumedFromPause = false; // 🌟 [جديد] يُضبط true فقط عند استكمال اختبار معلّق (أدناه)
-    GameState.currentIndex = 0;
+    GameState.currentIndex = 0; 
     GameState.consecutiveCorrect = 0;
     
     try {
@@ -271,7 +264,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             }
             
             if(ayahsPool.length === 0) return alert(t("عفواً، لا توجد آيات في النطاق المحدد!"));
-            if(!resumeSnapshot && ayahsPool.length < qCount) {
+            if(ayahsPool.length < qCount) { 
                 alert(tf('adult_reduced_questions', { n: ayahsPool.length })); 
                 qCount = ayahsPool.length; 
             }
@@ -299,19 +292,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             
             // 🌟 [إصلاح] استبدلنا الحلقة القديمة (كانت تختار الأنواع بلا التأكد أنها ستُولَّد فعلاً،
             // فتتحول الألعاب الفاشلة صامتة إلى "صيد الآية") بـbuildGameQueue أعلاه
-            if (resumeSnapshot && Array.isArray(resumeSnapshot.queue) && resumeSnapshot.queue.length) {
-                // 🌟 [جديد] استكمال اختبار معلّق: نفس الطابور المحفوظ (بنفس عدد الأسئلة وأنواعها)، والأسئلة
-                // الباقية تُولَّد من نفس نطاق الآيات عند وصول دورها في playNextMission كالمعتاد. نص النطاق
-                // يُستعاد كما حُفظ (تفادياً لتغيّر لغة الواجهة بين الجلستين)، ونتائج الأسئلة السابقة تُعاد
-                // كما هي ليشملها التقرير النهائي وسجل التاريخ مرة واحدة.
-                GameState.queue = resumeSnapshot.queue;
-                GameState.currentIndex = Math.min(resumeSnapshot.currentIndex || 0, GameState.queue.length - 1);
-                GameState.reportDetails = Array.isArray(resumeSnapshot.reportDetails) ? resumeSnapshot.reportDetails : [];
-                if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
-                GameState.resumedFromPause = true;
-            } else {
-                GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
-            }
+            GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
     } catch (err) { alert("حدث خطأ: " + err.message); }
@@ -347,38 +328,7 @@ function initGameUI() {
         loadDashboardScreen();
     });
     
-    // 🌟 [جديد] زر "⏸️ حفظ والعودة لاحقًا": يحفظ لقطة الاختبار داخل سجل الطالب (راجع
-    // components/pausedSession.js) ثم يعود للوحة. لا يظهر في جلسة "علاج الأخطاء" (إجاباتها محفوظة
-    // أصلاً). السؤال المفتوح حالياً (غير المُجاب) يُعاد توليده عند الاستكمال — لا شيء منه يُحفَظ.
-    const pauseBtn = document.getElementById('btn-pause-game');
-    if (pauseBtn) {
-        if (GameState.isWeaknessMode) pauseBtn.style.display = 'none';
-        pauseBtn.addEventListener('click', async () => {
-            if (GameState.isWeaknessMode) return;
-            if (GameState.reportDetails.length === 0) { alert(t('pause_nothing_yet')); return; }
-            if (GameState.reportDetails.length >= GameState.queue.length) return; // كل الأسئلة أُجيبت — الانتقال للتقرير جارٍ
-            const student = AppState.currentStudent;
-            if (!student) return;
-            // اختبار معلّق آخر موجود (لم يبدأ منه هذا الاختبار) → تأكيد قبل استبداله (افتراض: معلّق واحد لكل طالب)
-            if (student.pausedEvaluation && !GameState.resumedFromPause && !confirm(t('pause_replace_confirm'))) return;
-            pauseBtn.disabled = true;
-            try {
-                student.pausedEvaluation = buildPausedSnapshot(GameState, false);
-                await AppState.studentManager.updateStudent(student);
-            } catch (err) {
-                console.error('تعذر حفظ الاختبار المعلّق:', err);
-                delete student.pausedEvaluation;
-                pauseBtn.disabled = false;
-                alert(t('pause_save_failed'));
-                return;
-            }
-            clearInterval(GameState.timerInterval);
-            alert(t('pause_saved_msg'));
-            loadDashboardScreen();
-        });
-    }
-
-    document.getElementById('btn-record-wrong')?.addEventListener('click', () => {
+    document.getElementById('btn-record-wrong')?.addEventListener('click', () => { 
         document.querySelectorAll('#error-modal input[type="checkbox"]').forEach(cb => cb.checked = false); 
         document.getElementById('custom-note').value = ''; 
         // 🌟 صندوق "موضع الخطأ" يظهر لأسئلة التسميع فقط ويُخفى لغيرها
@@ -476,8 +426,6 @@ function persistEvaluationToHistory() {
             // الشهري من عدّ جلسات الإصلاح بدقة بدل تخمينها من نص range (السجلات القديمة بلا
             // هذا الحقل يتعرّف عليها التقرير من نص range كخط رجوع) 🌟
             mode: GameState.isWeaknessMode ? 'weakness' : 'eval',
-            // 🌟 [جديد] حقل اختياري: الاختبار أُكمل على مرحلتين (حفظ والعودة لاحقًا). غيابه = جلسة واحدة
-            ...(GameState.resumedFromPause ? { resumed: true } : {}),
             timestamp: Date.now()
         });
         localStorage.setItem(historyKey, JSON.stringify(historyArray));
@@ -497,12 +445,6 @@ async function playNextMission() {
             // 🌟 [جديد] تسجيل هذا التقييم في history_ قبل عرض التقرير — راجع تعليق
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
-            // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (best-effort) حتى لا تظهر
-            // بطاقة "اختبار غير مكتمل" مرة أخرى. اختبار جديد عادي لا يمسّ أي لقطة موجودة
-            if (GameState.resumedFromPause && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
-                clearPausedEvaluation(AppState.currentStudent);
-                AppState.studentManager.updateStudent(AppState.currentStudent).catch(() => { /* best-effort */ });
-            }
             // 🌟 openReportScreen() بقت تحقن واجهة التقرير بنفسها مباشرة في #app-root
             // (القالب مضمَّن داخل report.js نفسه)، فلم نعد نحتاج المرور عبر loadScreen
             // ولا جلب أي ملف report.html منفصل 🌟
