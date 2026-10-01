@@ -258,7 +258,7 @@ export const translations = {
         profile_backup_download_btn: "⬇️ نسخة احتياطية الآن",
         profile_backup_restore_btn: "⬆️ استرجاع نسخة احتياطية",
         profile_backup_restore_confirm: "سيتم استبدال كل البيانات الحالية على هذا الجهاز بمحتوى ملف النسخة الاحتياطية المختار، ولا يمكن التراجع عن هذه الخطوة. هل أنت متأكد من المتابعة؟",
-        profile_backup_restore_invalid_file: "هذا الملف ليس نسخة احتياطية صالحة من منصة حمٓ.",
+        profile_backup_restore_invalid_file: "هذا الملف ليس نسخة احتياطية صالحة من منصة دار حمٓ.",
         profile_backup_restore_error: "تعذّر استرجاع النسخة الاحتياطية. تأكد من اختيار الملف الصحيح.",
         profile_backup_restore_success: "تم استرجاع البيانات بنجاح ✅ سيُعاد تحميل المنصة الآن.",
 
@@ -739,7 +739,7 @@ export const translations = {
         hw_management_title: "نظام إدارة الواجبات",
         // 🌟🌟 [جديد] عنوان فرعي صغير أسفل عنوان الشاشة في التصميم الجديد بعرض الصفحة الكامل —
         // نص ثابت وصفي فقط (اسم المنصة + دور الشاشة)، وليس بيانات تُجلب من مكان آخر
-        hw_header_subtitle: "منصة حمٓ — لوحة تحكم المعلم",
+        hw_header_subtitle: "دار حمٓ — لوحة تحكم المعلم",
         hw_published_now: "منشور الآن 🚀",
         hw_draft_status: "مسودة 📝",
         // 🌟🌟 [محدَّث] استُبدل مفتاح hw_total_submissions (بطاقة كانت تعرض "0" ثابتة، بلا أي كود
@@ -1053,7 +1053,7 @@ export const translations = {
         // reports/monthly-report.js ومستند المشروع "تصميم-تقرير-الإنجاز-الشهري-المقترح.md") 🌟
         monthly_report_btn: "📅 تقرير الإنجاز الشهري",
         mr_title: "تقرير إنجاز شهري",
-        mr_eyebrow: "منصة حمٓ · تحفيظ القرآن الكريم",
+        mr_eyebrow: "دار حمٓ · منصة تحفيظ القرآن الكريم",
         mr_teacher_group_label: "بيانات المعلم",
         mr_teacher_name_ph: "اسم المعلم",
         mr_upload_sig_btn: "رفع توقيع",
@@ -1107,7 +1107,7 @@ export const translations = {
         mr_errors_section_title: "أخطاء عولجت هذا الشهر",
         mr_review_section_title: "انتظام المراجعة المتباعدة",
         mr_note_box_label: "رسالة المعلم لولي الأمر",
-        mr_footer_line1: "منصة حمٓ · مراجعة القرآن التفاعلية",
+        mr_footer_line1: "دار حمٓ · منصة مراجعة القرآن التفاعلية",
         mr_teacher_sign_label: "توقيع المعلم",
         mr_tile_homework_avg: "متوسط درجات الواجبات",
         mr_tile_homework_count: "عدد الواجبات المسلَّمة: {n}",
@@ -1330,7 +1330,7 @@ export const translations = {
         rep_tb_extra_ph: "أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه.",
         rep_tb_extra_hint: "يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا",
 
-        rep_eyebrow: "منصة حمٓ · تحفيظ القرآن الكريم",
+        rep_eyebrow: "دار حمٓ · منصة تحفيظ القرآن الكريم",
         rep_title: "تقرير تقدّم الطالب",
         rep_subtitle: "في حفظ القرآن الكريم",
         rep_tagline: "خطوة بخطوة ... نحو كتاب الله",
@@ -2033,7 +2033,7 @@ export const translations = {
         profile_backup_download_btn: "⬇️ Backup Now",
         profile_backup_restore_btn: "⬆️ Restore Backup",
         profile_backup_restore_confirm: "This will replace ALL current data on this device with the content of the selected backup file, and cannot be undone. Are you sure you want to continue?",
-        profile_backup_restore_invalid_file: "This file is not a valid Ham Platform backup.",
+        profile_backup_restore_invalid_file: "This file is not a valid Dar Ham backup.",
         profile_backup_restore_error: "Couldn't restore the backup. Make sure you selected the correct file.",
         profile_backup_restore_success: "Data restored successfully ✅ The platform will reload now.",
 
@@ -2540,7 +2540,7 @@ export const translations = {
 
         // 🌟 Homework System Additions 🌟
         hw_management_title: "Homework Management System",
-        hw_header_subtitle: "Ham Platform — Teacher Dashboard",
+        hw_header_subtitle: "Dar Ham — Teacher Dashboard",
         hw_published_now: "Published Now 🚀",
         hw_draft_status: "Drafts 📝",
         // 🌟🌟 [Updated] Replaced hw_total_submissions (a card stuck at "0" — nothing ever updated
@@ -2843,7 +2843,7 @@ export const translations = {
         // reports/monthly-report.js) 🌟
         monthly_report_btn: "📅 Monthly Achievement Report",
         mr_title: "Monthly Achievement Report",
-        mr_eyebrow: "Ham Platform · Quran Memorization",
+        mr_eyebrow: "Dar Ham · Quran Memorization Platform",
         mr_teacher_group_label: "Teacher Info",
         mr_teacher_name_ph: "Teacher name",
         mr_upload_sig_btn: "Upload signature",
@@ -2895,7 +2895,7 @@ export const translations = {
         mr_errors_section_title: "Mistakes resolved this month",
         mr_review_section_title: "Spaced review consistency",
         mr_note_box_label: "Teacher's message to the parent",
-        mr_footer_line1: "Ham Platform · Interactive Quran Review",
+        mr_footer_line1: "Dar Ham · Interactive Quran Review Platform",
         mr_teacher_sign_label: "Teacher's signature",
         mr_tile_homework_avg: "Average homework score",
         mr_tile_homework_count: "Homework submitted: {n}",
@@ -3098,7 +3098,7 @@ export const translations = {
         rep_tb_extra_ph: "Any additional text you would like inside the report — leave it empty if you do not need it.",
         rep_tb_extra_hint: "Appears as a separate box, and is hidden entirely if left empty",
 
-        rep_eyebrow: "Ham Platform · Quran Memorization",
+        rep_eyebrow: "Dar Ham · Quran Memorization Platform",
         rep_title: "Student Progress Report",
         rep_subtitle: "In memorizing the Holy Quran",
         rep_tagline: "Step by step ... towards the Book of Allah",

@@ -97,8 +97,6 @@
         min-height: auto !important; transition: background .15s ease;
     }
     #app-root .hwp2-seg-gold:hover { background: var(--dh-surface-alt) !important; }
-    /* 🌟 [جديد 2026-10-01] زر "النتائج النهائية" صار بجوار "سجل الواجبات" على جهة البداية (اليمين في العربية) بدل أن ينزاح للطرف الآخر */
-    .hwp2-tabs-row { justify-content: flex-start; }
 
     /* -------- منطقة المحتوى -------- */
     .hwp2-content-bar { background: #f8fafc; min-height: 60vh; }
@@ -338,7 +336,7 @@
         <!-- 🌟🌟 [جديد 2026-10-01] زر "إعداد واجب جديد" الكبير — أسهل نقطة دخول للمعلم. يضغطه فيفتح تبويب الإعداد
              (نفس زر btn-tab-new الموجود في شريط التبويبات، فلا منطق جديد)، ويخفيه JS داخل تبويب الإعداد نفسه
              لأن المعلم هناك بالفعل. مخفي افتراضياً لأن التبويب الافتراضي هو الإعداد 🌟🌟 -->
-        <div class="hwp2-bleed hwp3-hero-bar" id="hwp3-hero-bar">
+        <div class="hwp2-bleed hwp3-hero-bar" id="hwp3-hero-bar" style="display:none;">
             <div class="hwp2-pad">
                 <button type="button" class="hwp3-hero" id="btn-hero-new">
                     <span class="hwp3-hero-ic" aria-hidden="true">＋</span>
@@ -406,10 +404,8 @@
         <div class="hwp2-bleed hwp2-tabs-bar">
             <div class="hwp2-pad hwp2-tabs-row">
                 <div class="hwp2-segmented">
-                    <!-- 🌟🌟 [جديد 2026-10-01] حُذف زر "➕ إعداد واجب جديد" الصغير (id="btn-tab-new") — كان تكراراً للزر الكبير
-                         #btn-hero-new أعلاه (نفس الإجراء بالضبط). صار الزر الكبير هو المدخل الوحيد لتبويب الإعداد،
-                         وتبويب "سجل الواجبات" هو الافتراضي عند فتح الشاشة (لذلك هو بحالة "مفعَّل" هنا) 🌟🌟 -->
-                    <button class="btn hwp2-seg-btn" id="btn-tab-history" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
+                    <button class="btn hwp2-seg-btn" id="btn-tab-new" data-i18n="hw_btn_new">➕ إعداد واجب جديد</button>
+                    <button class="btn btn-outline hwp2-seg-btn" id="btn-tab-history" data-i18n="hw_btn_history">📊 سجل الواجبات</button>
                 </div>
                 <!-- 🌟🌟 [جديد] نافذة تعرض كل الاختبارات/الواجبات المصححة والمعتمدة مع نتيجتها
                      النهائية لكل طالب، وإمكانية إعادة فتح شهادة تقديره منها — راجع core/homework-prep.js
@@ -425,7 +421,7 @@
         <!-- ========================================== -->
         <!-- 📝 تبويب: إعداد واجب جديد -->
         <!-- ========================================== -->
-        <div id="tab-new-hw" class="hwp2-card" style="display:none;">
+        <div id="tab-new-hw" class="hwp2-card">
             <p style="text-align:center; color:#64748b; font-size:1.2rem; margin-bottom:25px;" data-i18n="hw_desc">حدد النطاق لتوليد الأسئلة، ويمكنك التعديل عليها أو إضافة أسئلة يدوية.</p>
 
             <div id="hw-config-section" class="hwp2-config-grid">
@@ -516,7 +512,7 @@
         <!-- ========================================== -->
         <!-- 📊 تبويب: سجل الواجبات -->
         <!-- ========================================== -->
-        <div id="tab-history" class="hwp2-card" style="display:block;">
+        <div id="tab-history" class="hwp2-card" style="display:none;">
             <h2 style="color:#1e293b; margin-top:0; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px;" data-i18n="hw_history_title">سجل الواجبات المُنْشأة</h2>
             <!-- 🌟🌟 [جديد 2026-10-01] إشعار التنظيف التلقائي — دائم الظهور (غير قابل للإخفاء) لأن الحذف يتم بلا تنبيه مسبق.
                  القواعد بقرار المعلم: واجب معتمد بالكامل يُحذف مع شهاداته بعد 20 يوماً من اعتماد آخر تسليم، وواجب لم يسلّمه أحد بعد

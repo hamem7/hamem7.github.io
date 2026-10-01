@@ -1267,7 +1267,7 @@ function populateDropdowns() {
 }
 
 function setupListeners() {
-    // 🌟 [2026-10-01] حُذف زر btn-tab-new الصغير؛ الدخول لتبويب الإعداد صار من الزر الكبير #btn-hero-new فقط
+    const btnNew = document.getElementById('btn-tab-new');
     const btnHistory = document.getElementById('btn-tab-history');
     const btnFinalResults = document.getElementById('btn-final-results');
     const tabNew = document.getElementById('tab-new-hw');
@@ -1336,7 +1336,7 @@ function setupListeners() {
     // النهائية كانت سابقاً نافذة/صفحة منفصلة تُفتح فوق كل شيء عبر openFinalResultsModal — الآن
     // openFinalResultsModal تملأ #tab-final-results في مكانها بدل بناء طبقة overlay مستقلة 🌟🌟
     function setActiveTabBtn(activeBtn) {
-        [btnHistory].forEach(b => {
+        [btnNew, btnHistory].forEach(b => {
             if (!b) return;
             const isActive = b === activeBtn;
             b.style.background = isActive ? '#0ea5e9' : 'white';
@@ -1357,7 +1357,7 @@ function setupListeners() {
         tabNew.style.display = (tab === 'new') ? 'block' : 'none';
         tabHistory.style.display = (tab === 'history') ? 'block' : 'none';
         tabFinalResults.style.display = (tab === 'final') ? 'block' : 'none';
-        setActiveTabBtn(tab === 'new' ? null : (tab === 'history' ? btnHistory : btnFinalResults));
+        setActiveTabBtn(tab === 'new' ? btnNew : (tab === 'history' ? btnHistory : btnFinalResults));
         // 🌟 [جديد 2026-10-01] الزر الكبير "إعداد واجب جديد" يختفي داخل تبويب الإعداد نفسه ويظهر في بقية التبويبات
         const heroBar = document.getElementById('hwp3-hero-bar');
         if (heroBar) heroBar.style.display = (tab === 'new') ? 'none' : '';
@@ -1365,6 +1365,7 @@ function setupListeners() {
         if (tab === 'final') openFinalResultsModal();
     }
 
+    btnNew?.addEventListener('click', () => switchHwTab('new'));
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {
         switchHwTab('new');
         window.scrollTo({ top: 0, behavior: 'smooth' });
