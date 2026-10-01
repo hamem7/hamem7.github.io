@@ -85,6 +85,16 @@ const NEW_KEYS = {
     Object.keys(NEW_KEYS[lang]).forEach(k => { if (!(k in translations[lang])) translations[lang][k] = NEW_KEYS[lang][k]; });
 });
 
+// 🌟 [2026-10-01 — بطلب المعلم] أوصاف بطاقات الدخول الثلاث بصياغة "من صف … إلى …" (تُفرَض هنا بدل تعديل core/i18n.js
+// تفادياً لتضارب الكتابة المتزامنة عليه). ⚠️ افتراض صريح: "كبار" = من الأول الإعدادي فما فوق، و"أطفال" = من التمهيدي إلى السادس
+// الابتدائي (نفس KIDS_GRADES في student/student.js)، و"طلابي" = سجلات الطلاب وتقاريرهم.
+// [تحديث بطلب المعلم] صياغة الكبار/الصغار صارت وصفاً لنوع الألعاب لا لنطاق الصفوف.
+const OVERRIDE_KEYS = {
+    ar: { card_students_desc: 'سجلات الطلاب وتقاريرهم', card_adult_desc: 'ألعاب تناسب سن الكبار لتثبيت الحفظ والمراجعة', card_kids_desc: 'ألعاب ممتعة تناسب سن الصغار لتثبيت الحفظ والمراجعة' },
+    en: { card_students_desc: 'Student records and reports', card_adult_desc: 'Games suited to adults to strengthen memorization and review', card_kids_desc: 'Fun games suited to children to strengthen memorization and review' }
+};
+['ar', 'en'].forEach(lang => Object.assign(translations[lang], OVERRIDE_KEYS[lang]));
+
 // ---------------------------------------------------------------------------
 // 🌟 سجل "آخر تقييم" (localStorage خفيف: اسم + معرّف + وضع + وقت — لا صور ولا بيانات كبيرة)
 export function recordLastEvaluation(student, kids) {
@@ -165,8 +175,17 @@ function initSearch(sec) {
     const list = sec.querySelector('#dh-fast-results');
     let cache = [];
     AppState.studentManager?.getAllStudents()
-        .then(all => { cache = (all || []).filter(s => !s.isHidden); renderContinue(); if (input.value) render(); })
+        .then(all => { cache = (all || []).filter(s => !s.isHidden); applyEmptyState(!all || all.length === 0); renderContinue(); if (input.value) render(); })
         .catch(() => { /* بلا بحث لو فشلت القراءة */ });
+
+    // 🌟 [جديد — اقتراح المعلم] معلم بلا أي طالب: البحث بلا فائدة، فتحلّ بطاقة "ابدأ من هنا" محلّه في الهيرو؛ وبمجرد وجود طالب
+    // يعود البحث وتعود البطاقة للعمود الجانبي (⚠️ نفس تعريف initStartHereCard: العدّ يشمل الطلاب المخفيين).
+    function applyEmptyState(none) {
+        const sh = document.getElementById('home-start-here');
+        sec.hidden = !!none;
+        if (!sh) return;
+        if (none) { sh.dataset.dhInHero = '1'; sh.classList.add('dh-fast-start-hero'); sec.after(sh); }
+    }
 
     function render() {
         const q = input.value;
@@ -239,6 +258,19 @@ function buildLayout() {
     slot.id = 'home-quickcard-slot';
     slot.className = 'dh-fast-slot';
     menu.appendChild(slot);
+
+    // بطاقة "ابدأ من هنا" (للمعلم الجديد بلا طلاب): على سطح المكتب تُوضع في العمود الجانبي فوق "نظرة سريعة" بعيداً عن الأزرار،
+    // وعلى الهاتف تعود لأعلى قسم الأزرار. ما زال الـid ومستمع initStartHereCard كما هما (نقل العنصر لا نسخه)
+    const startHere = document.getElementById('home-start-here');
+    if (startHere && window.matchMedia) {
+        const mq = window.matchMedia('(max-width: 768px)');
+        const place = () => {
+            if (!startHere.isConnected || startHere.dataset.dhInHero) return;   // في الهيرو (معلم بلا طلاب): لا تُنقل
+            if (mq.matches) menu.prepend(startHere); else slot.prepend(startHere);
+        };
+        place();
+        if (mq.addEventListener) mq.addEventListener('change', place);
+    }
 
     const cont = document.createElement('div');
     cont.className = 'dh-fast-continue-wrap';
