@@ -170,6 +170,42 @@ function showNewSubmissionToast(sub) {
 }
 
 // ------------------------------------------------------------
+// 3-ب) 🌟 [جديد] إشعار سطح المكتب (نظام التشغيل) عند وصول تسليم جديد
+//    كان التنبيه صوتاً + Toast داخل الصفحة فقط، فلا يراه المعلم لو كانت المنصة في تبويب خلفي أو
+//    نافذة مصغّرة. إذن الإشعارات يُطلب أصلاً عند إقلاع المنصة (core/app.js) — هنا نستخدمه فقط لو كان
+//    "granted" ولا نطلبه ثانيةً (لا إزعاج جديد).
+//    ⚠️ افتراضات صريحة:
+//      1) يظهر الإشعار فقط حين لا تكون صفحة المنصة أمام المعلم (مخفية أو بلا تركيز)، لأن الـToast
+//         كافٍ ومرئي وقت التركيز، وتفادياً لتكرار التنبيه على الشاشة نفسها.
+//      2) الإشعار يعمل فقط والمنصة مفتوحة في المتصفح (الفحص الدوري يتطلب ذلك؛ لا Push حقيقي من
+//         الخادم). وللإبقاء عليه يلزم ترك تبويب المنصة مفتوحاً.
+//      3) لو وصل أكثر من 3 تسليمات دفعة واحدة يُعرض إشعار واحد مجمَّع بدل إغراق الشاشة.
+// ------------------------------------------------------------
+function showDesktopNotifications(subs) {
+    try {
+        if (!subs.length || !('Notification' in window) || Notification.permission !== 'granted') return;
+        const pageInFront = document.visibilityState === 'visible' && document.hasFocus();
+        if (pageInFront) return;
+        const title = t('hw_notif_new_submission_title');
+        const open = (n) => { n.onclick = () => { try { window.focus(); } catch (e) { /* */ } n.close(); }; };
+        if (subs.length > 3) {
+            open(new Notification(title, {
+                body: t('hw_notif_many_body').replace('{n}', String(subs.length)),
+                icon: 'icons/icon-192.png', tag: 'dh-hw-many'
+            }));
+            return;
+        }
+        subs.forEach(sub => {
+            const name = sub.studentName || t('hw_notif_unknown_student');
+            open(new Notification(title, {
+                body: t('hw_notif_new_submission_body').replace('{name}', name),
+                icon: 'icons/icon-192.png', tag: 'dh-hw-' + (sub.docId || sub.id || name)
+            }));
+        });
+    } catch (e) { console.warn('تعذر عرض إشعار سطح المكتب للتسليم الجديد:', e); }
+}
+
+// ------------------------------------------------------------
 // 4) الفحص الدوري نفسه
 // ------------------------------------------------------------
 async function pollOnce() {
@@ -199,6 +235,7 @@ async function pollOnce() {
             freshOnes
                 .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0))
                 .forEach(sub => showNewSubmissionToast(sub));
+            showDesktopNotifications(freshOnes); // 🌟 [جديد] إشعار سطح المكتب لو المنصة ليست أمام المعلم
             // 🌟 لو كانت شاشة "نظام إدارة الواجبات" مفتوحة حالياً، تسمعها لتُحدّث بطاقاتها فوراً
             // بلا أي ربط مباشر بينها وبين هذا الملف (فصل كامل — راجع settings/homework-prep.js)
             document.dispatchEvent(new CustomEvent('dh:new-homework-submissions', { detail: { submissions: freshOnes } }));

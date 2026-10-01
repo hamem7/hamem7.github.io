@@ -43,6 +43,7 @@ const NEW_KEYS = {
         home_fast_continue_mode_kids: 'الأطفال',
         home_soon_label: 'قريبًا',
         home_fast_continue_go: 'تابع التقييم',
+        home_fast_continue_close: 'إخفاء',
         home_badge_new: '{n} جديدة',
         home_badge_matches: '{n} معلّقة',
         bnav_home: 'الرئيسية',
@@ -66,6 +67,7 @@ const NEW_KEYS = {
         home_fast_continue_mode_kids: 'Kids',
         home_soon_label: 'Coming soon',
         home_fast_continue_go: 'Continue',
+        home_fast_continue_close: 'Hide',
         home_badge_new: '{n} new',
         home_badge_matches: '{n} pending',
         bnav_home: 'Home',
@@ -106,6 +108,12 @@ export function recordLastEvaluation(student, kids) {
 function readLastEvaluation() {
     try { const r = JSON.parse(localStorage.getItem(LAST_EVAL_KEY) || 'null'); return (r && r.id != null) ? r : null; } catch (e) { return null; }
 }
+
+// 🌟 [جديد] إخفاء بطاقة "تابع من حيث توقفت" بعلامة ✕: نخزّن وقت التقييم المُغلَق فقط (localStorage خفيف).
+// ⚠️ افتراض صريح: الإغلاق خاص بهذا التقييم؛ أي تقييم جديد يبدأه المعلم يُظهر البطاقة من جديد.
+const DISMISS_KEY = 'dh_last_evaluation_dismissed';
+function readDismissedAt() { try { return localStorage.getItem(DISMISS_KEY); } catch (e) { return null; } }
+function writeDismissedAt(at) { try { localStorage.setItem(DISMISS_KEY, String(at)); } catch (e) { /* التخزين غير متاح: تعود البطاقة فقط */ } }
 
 function startEvaluation(student, kids) {
     setEvaluationMode(!!kids);
@@ -234,14 +242,26 @@ function initSearch(sec) {
         const last = readLastEvaluation();
         const st = last && cache.find(s => s.id === last.id);
         if (!st) { btn.hidden = true; return; }
-        const mode = t(last.kids ? 'home_fast_continue_mode_kids' : 'home_fast_continue_mode_adult');
-        btn.querySelector('.dh-fast-continue-k').textContent = t('home_fast_continue');
+        // 🌟 [جديد] لو أغلق المعلم البطاقة (✕) لهذا التقييم بعينه فلا تظهر ثانيةً حتى يبدأ تقييماً جديداً (يتغيّر last.at)
+        const xBtn = document.getElementById('dh-fast-continue-x');
+        if (readDismissedAt() === String(last.at)) { btn.hidden = true; if (xBtn) xBtn.hidden = true; return; }
+        // 🌟 [إصلاح] النصوص صارت بسمة data-i18n بدل t() لمرة واحدة، فتتبدّل مع زر اللغة عبر applyLanguage (كانت تبقى عربية)
+        const modeKey = last.kids ? 'home_fast_continue_mode_kids' : 'home_fast_continue_mode_adult';
+        const k = btn.querySelector('.dh-fast-continue-k');
+        k.setAttribute('data-i18n', 'home_fast_continue');
+        k.textContent = t('home_fast_continue');
         const v = btn.querySelector('.dh-fast-continue-v');
         v.textContent = st.name + ' ';
-        const m = document.createElement('span'); m.className = 'dh-fast-continue-m'; m.textContent = `· ${mode}`;
+        const m = document.createElement('span'); m.className = 'dh-fast-continue-m'; m.append('· ');
+        const mi = document.createElement('span'); mi.setAttribute('data-i18n', modeKey); mi.textContent = t(modeKey);
+        m.appendChild(mi);
         v.appendChild(m);
         btn.onclick = () => startEvaluation(st, last.kids);
         btn.hidden = false;
+        if (xBtn) {
+            xBtn.hidden = false;
+            xBtn.onclick = () => { writeDismissedAt(last.at); btn.hidden = true; xBtn.hidden = true; };
+        }
     }
     return { focus: () => { input.focus(); input.scrollIntoView({ block: 'center', behavior: 'smooth' }); } };
 }
@@ -279,7 +299,8 @@ function buildLayout() {
             <span class="dh-fast-continue-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8Z"/></svg></span>
             <span class="dh-fast-continue-txt"><span class="dh-fast-continue-k"></span><span class="dh-fast-continue-v"></span></span>
             <span class="dh-fast-continue-go" data-i18n="home_fast_continue_go">${t('home_fast_continue_go')}</span>
-        </button>`;
+        </button>
+        <button type="button" class="dh-fast-continue-x" id="dh-fast-continue-x" hidden data-i18n-title="home_fast_continue_close" title="${t('home_fast_continue_close')}" aria-label="${t('home_fast_continue_close')}">✕</button>`;
     const first = menu.querySelector('.home-menu-main');
     if (first) first.before(cont); else menu.prepend(cont);
 

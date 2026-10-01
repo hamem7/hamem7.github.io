@@ -140,7 +140,16 @@ body.dh-home-screen #home-quickcard-slot .home-quickcard {
 }
 
 /* --- بطاقة "تابع من حيث توقفت" --- */
-.dh-fast-continue-wrap { width: 100%; }
+.dh-fast-continue-wrap { width: 100%; position: relative; }
+/* 🌟 علامة ✕ لإخفاء البطاقة (دائرة صغيرة على ركن البطاقة، بخصائص منطقية تعمل في RTL وLTR) */
+.dh-fast-continue-x {
+    position: absolute; inset-block-start: -9px; inset-inline-end: -9px; z-index: 2;
+    width: 26px; height: 26px; padding: 0; border-radius: 50%; cursor: pointer; line-height: 1; font-size: .8rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    background: #fffdf6; color: #55605b; border: 1px solid rgba(212, 175, 55, .75); box-shadow: 0 2px 6px rgba(6, 35, 28, .15);
+}
+.dh-fast-continue-x[hidden] { display: none; }
+.dh-fast-continue-x:hover { background: #0d5c46; color: #fffdf6; border-color: #0d5c46; }
 .dh-fast-continue {
     width: 100%; display: flex; flex-direction: row; align-items: center; gap: 16px; text-align: start; cursor: pointer;
     background: #fffdf6; color: #1f2a26; border: 1px solid rgba(212, 175, 55, .55); border-radius: 18px;

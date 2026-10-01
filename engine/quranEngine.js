@@ -406,15 +406,9 @@ export class QuranEngine {
 
         let starts = pairs.map(p => ({ id: p.id, text: p.startText })).sort(() => Math.random() - 0.5);
         let ends = pairs.map(p => ({ id: p.id, text: p.endText })).sort(() => Math.random() - 0.5);
-        // 🌟 نضمن ألا يتطابق ترتيب عمود النهايات مع عمود البدايات صفاً بصف بمحض الصدفة، حتى لا
-        // يبدو الحل بديهياً بصرياً بدل الحاجة لربط فعلي 🌟
-        if (ends.length > 1) {
-            let attempts = 0;
-            while (attempts < 5 && ends.every((e, i) => e.id === starts[i].id)) {
-                ends.sort(() => Math.random() - 0.5);
-                attempts++;
-            }
-        }
+        // 🌟 [تعديل] ضمان أقوى بطلب المعلم: لا تقف أي نهاية في نفس صف بدايتها الصحيحة إطلاقاً
+        // (بدل الاكتفاء بمنع التطابق الكامل فقط) — راجع arrangeEndsNotFacing أسفل الملف 🌟
+        ends = arrangeEndsNotFacing(starts, ends);
 
         let verseNums = pairs.map(p => p.ayah.numberInSurah).join('، ');
         return {
@@ -597,14 +591,8 @@ export class QuranEngine {
 
         let starts = pairs.map(p => ({ id: p.number, text: p.word })).sort(() => Math.random() - 0.5);
         let ends = pairs.map(p => ({ id: p.number, text: p.name })).sort(() => Math.random() - 0.5);
-        // 🌟 نفس ضمان generateLinkGame أعلاه: تجنّب تطابق ترتيب العمودين صفاً بصف بمحض الصدفة 🌟
-        if (ends.length > 1) {
-            let attempts = 0;
-            while (attempts < 5 && ends.every((e, i) => e.id === starts[i].id)) {
-                ends.sort(() => Math.random() - 0.5);
-                attempts++;
-            }
-        }
+        // 🌟 [تعديل] نفس ضمان generateLinkGame أعلاه: لا تقف أي إجابة صحيحة أمام أختها في نفس الصف 🌟
+        ends = arrangeEndsNotFacing(starts, ends);
 
         let namesList = pairs.map(p => p.name).join('، ');
         return {
@@ -619,4 +607,21 @@ export class QuranEngine {
             reportText: `${isKids ? "ربط كلمة بسورتها" : "ربط كلمات بسورها"}: ${namesList}`
         };
     }
+}
+// 🌟 [جديد] ترتيب عمود النهايات بحيث لا تقف أي نهاية في نفس صف بدايتها الصحيحة إطلاقاً
+// (طلب المعلم: الإجابة الصحيحة يجب ألا تكون أمام أختها في أي صف). يُستخدم في لعبتي
+// "اربط أول الآية بآخرها" و"اربط الكلمة بالسورة" (الركنين: الكبار والأطفال).
+// الطريقة: محاولات خلط عشوائي أولاً (للحفاظ على العشوائية)، ثم خط رجوع مضمون: ترتيب النهايات
+// بمحاذاة البدايات ثم إزاحتها دورياً بمقدار k (من 1 إلى n-1) فيستحيل أن يبقى أي زوج في صفه.
+function arrangeEndsNotFacing(starts, ends) {
+    const n = ends.length;
+    if (n < 2) return ends;
+    for (let t = 0; t < 50; t++) {
+        const candidate = [...ends].sort(() => Math.random() - 0.5);
+        if (candidate.every((e, i) => e.id !== starts[i].id)) return candidate;
+    }
+    const byId = new Map(ends.map(e => [e.id, e]));
+    const aligned = starts.map(s => byId.get(s.id));
+    const k = 1 + Math.floor(Math.random() * (n - 1));
+    return aligned.map((_, i) => aligned[(i + k) % n]);
 }
