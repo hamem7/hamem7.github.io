@@ -72,6 +72,24 @@ function collectMistakes(submission) {
     }));
 }
 
+// 🌟 [جديد] نص نطاق الواجب من النطاق الحقيقي المسجَّل مع الواجب (scope) — لا نص ثابت ولا تخمين.
+// surah: "سورة X — من الآية a إلى الآية b" | range: "من سورة A إلى سورة B" | juz: "الجزء N".
+// أي نطاق ناقص/غير صالح (أو واجب قديم بلا نطاق) → '' فلا يظهر سطر النطاق أصلاً.
+function formatScope(scope) {
+    if (!scope || typeof scope !== 'object') return '';
+    const fill = (key, map) => Object.keys(map).reduce((s, k) => s.replace('{' + k + '}', map[k]), t(key));
+    if (scope.mode === 'surah' && scope.surahName && scope.startAyah && scope.endAyah) {
+        return fill('hwcert_scope_surah', { surah: scope.surahName, from: scope.startAyah, to: scope.endAyah });
+    }
+    if (scope.mode === 'range' && scope.fromName && scope.toName) {
+        return fill('hwcert_scope_range', { from: scope.fromName, to: scope.toName });
+    }
+    if (scope.mode === 'juz' && scope.juzNum) {
+        return fill('hwcert_scope_juz', { juz: scope.juzNum });
+    }
+    return '';
+}
+
 function ensureStyles() {
     if (document.getElementById('hwcert-style')) return;
     const style = document.createElement('style');
@@ -94,6 +112,10 @@ function ensureStyles() {
         .hwcert-score-badge { display: inline-block; padding: 10px 26px; border-radius: 999px; color: #fff;
             font-size: 1.8rem; font-weight: bold; margin-bottom: 6px; }
         .hwcert-score-caption { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin-bottom: 16px; }
+        .hwcert-scope { background: rgba(13,92,70,0.08); border: 1px solid rgba(13,92,70,0.28); border-radius: 14px;
+            padding: 10px 16px; margin-bottom: 14px; }
+        .hwcert-scope-title { font-size: 0.8rem; color: var(--dh-ink-soft, #4a6058); margin-bottom: 2px; }
+        .hwcert-scope-text { font-size: 1.1rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); line-height: 1.6; }
         .hwcert-encourage { font-size: 1.05rem; line-height: 1.7; color: var(--dh-ink, #10241c); background: rgba(212,175,55,0.14);
             border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; }
         .hwcert-mistakes { text-align: right; background: #fff; border: 1px solid #e7d9ad; border-radius: 14px;
@@ -137,8 +159,10 @@ function downloadBlob(blob, filename) {
 
 // submission = نتيجة gradeSubmissionOnServer المُعتمَدة (finalScore/details/studentName/...)
 // student = سجل الطالب المحلي (قد يكون null لو لم يُربط التسليم بأي طالب في سجل المعلم)
-export function showHomeworkCertificate(submission, student) {
+// 🌟 scope = نطاق الواجب الحقيقي المسجَّل مع الواجب وقت نشره (اختياري؛ null لواجب قديم بلا نطاق مسجَّل)
+export function showHomeworkCertificate(submission, student, scope) {
     ensureStyles();
+    const scopeText = formatScope(scope);
 
     const studentName = (student && student.name) || submission.studentName || t('hwcert_default_student');
     const score = Math.round(submission.finalScore);
@@ -161,6 +185,12 @@ export function showHomeworkCertificate(submission, student) {
                     ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
                     : `<div class="hwcert-avatar-fallback">🎓</div>`}
                 <div class="hwcert-name">${esc(studentName)}</div>
+                ${scopeText ? `
+                    <div class="hwcert-scope">
+                        <div class="hwcert-scope-title">${t('hwcert_scope_title')}</div>
+                        <div class="hwcert-scope-text">${esc(scopeText)}</div>
+                    </div>
+                ` : ''}
                 <div class="hwcert-score-badge" style="background:${color};">${score}%</div>
                 <div class="hwcert-score-caption">${t('hwcert_score_label')}</div>
                 <div class="hwcert-encourage">${t('hwcert_tier_' + tier)}</div>

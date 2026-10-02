@@ -281,6 +281,10 @@
     display: block;
 }
 
+/* 🌟 [2026-10-02 — إصلاح أيقونة الصورة المكسورة] القاعدة أعلاه (display:block) كانت تتغلب على خاصية hidden
+   فتظهر <img src=""> فارغة كأيقونة مكسورة بجانب الدائرة. هذه القاعدة محصورة بهذا العنصر فقط. */
+.teacher-avatar-btn img[hidden] { display: none; }
+
 .home-chips-row {
     display: flex;
     flex-wrap: wrap;
@@ -1538,3 +1542,38 @@ h1.home-title .home-title-ha {
    ========================================================================== */
 [dir="ltr"] h1.home-title::before { content: "\FD3E"; }
 [dir="ltr"] h1.home-title::after  { content: "\FD3F"; }
+
+/* ==========================================================================
+   🌟 [جديد] زر "تعديل بياناتي" بجانب الترحيب + صف قوائم تاريخ الميلاد (يوم/شهر/سنة)
+   قواعد محصورة بكلاسات جديدة فقط، لا تمس أي قاعدة موجودة.
+   ========================================================================== */
+.teacher-profile-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border-radius: 30px;
+    border: 1.5px solid var(--dh-gold-500);
+    background: rgba(255, 253, 246, 0.12);
+    color: var(--dh-gold-300);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+.teacher-profile-edit-btn:hover { transform: translateY(-2px); background: rgba(255, 253, 246, 0.22); }
+@media (max-width: 480px) {
+    .home-greeting-row { flex-wrap: wrap; }
+}
+
+/* ترتيب العناصر يتبع ترتيب الـDOM (يوم ← شهر ← سنة) ويتبع اتجاه الصفحة: اليوم أولاً من اليمين بالعربية */
+.teacher-profile-modal .teacher-dob-row {
+    display: flex;
+    gap: 8px;
+}
+.teacher-profile-modal .teacher-dob-row select {
+    flex: 1 1 0;
+    min-width: 0;
+}

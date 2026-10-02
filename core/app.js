@@ -563,8 +563,12 @@ function updateHomeDateBar() {
         const gregSuffix = lang === 'ar' ? 'م' : '';
         const hijriSuffix = lang === 'ar' ? 'هـ' : 'AH';
 
+        // 🌟 [2026-10-02 — إصلاح تكرار «هـ هـ» / «AH AH»] بعض نسخ المتصفح (ICU) تُلحق رمز العصر الهجري
+        // تلقائياً بنتيجة Intl، فكنّا نضيف الرمز مرة ثانية فيظهر مكرراً. الآن نضيفه فقط إن لم يكن موجوداً أصلاً.
+        const hijriText = /(هـ|AH)\s*$/.test(hijriDate) ? hijriDate : `${hijriDate} ${hijriSuffix}`;
+
         // 🌟 [2026-10-01 — بطلب المعلم] الهجري أولاً ثم الميلادي (كان الترتيب معكوساً)
-        textEl.textContent = `${weekday} • ${hijriDate} ${hijriSuffix} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''}`;
+        textEl.textContent = `${weekday} • ${hijriText} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''}`;
     } catch (e) {
         console.warn("تعذر حساب التاريخ الهجري في هذا المتصفح:", e);
         bar.style.display = 'none';

@@ -40,6 +40,8 @@ import { getAllSubmissionsFromCloud } from '../core/homeworkApi.js';
 import { listAllSubmissionsForNotifications } from '../core/homeworkApi.js';
 // 🌟 [جديد 2026-10-01] التنظيف التلقائي: التأكد من حذف الواجب من الخادم قبل إزالة نسخته المحلية
 import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homeworkApi.js';
+// 🌟 [جديد] نطاق الواجب الحقيقي المسجَّل في الخادم (meta.scope) — احتياط لو لم تتوفر النسخة المحلية للواجب
+import { fetchHomeworkScope } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -49,6 +51,9 @@ import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homewo
 import { showSectionHintOnce } from '../components/sectionHint.js';
 
 let currentGeneratedQuestions = [];
+// 🌟 [جديد] نطاق الواجب الفعلي الذي وُلّدت منه الأسئلة الحالية (من إعدادات المعلم وقت التوليد) — يُحفظ مع الواجب
+// ويظهر في شهادة التقدير. null = أسئلة بلا نطاق مسجَّل (مثل واجب بُني يدوياً بالكامل).
+let currentHwScope = null;
 let hwEngine = null;
 
 // 🌟🌟 [جديد] آخر واجب فشل رفعه للسحابة في نافذة المشاركة الحالية — تحتفظ به saveHomeworkToDB
@@ -441,7 +446,7 @@ async function loadHomeworkDashboard() {
                     <!-- 🌟🌟 [جديد] مخفية افتراضياً؛ تظهرها loadOverdueHomeworkStat فقط لو كان هذا
                          الواجب مخصَّصاً لطالب محدد، منشوراً منذ HW_OVERDUE_DAYS يوماً أو أكثر، ولم
                          يصل أي تسليم منه بعد لهذا الطالب — راجع الدالة أسفل هذا الملف -->
-                    <div id="hw-overdue-${hw.id}" style="display:none; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⏰ ${t('hw_overdue_row_badge')}</div>
+                    <div id="hw-overdue-${hw.id}" style="display:none; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.85rem; padding:4px 12px; border-radius:12px; font-weight:bold;">⏰ ${hw.assignedStudentName ? t('hw_overdue_not_solved').replace('{name}', esc(hw.assignedStudentName)) : t('hw_overdue_row_badge')}</div>
                 </td>
                 <!-- 🌟🌟 [إعادة تصميم] أزرار الإجراءات أصبحت دائرية أكبر وأوضح (hwp2-action-btn
                      المعرَّفة في settings/homework-prep.html) بدل الأزرار المستطيلة الصغيرة
@@ -456,18 +461,11 @@ async function loadHomeworkDashboard() {
                         ${hw.status === 'draft' ? `
                         <button type="button" class="hwp3-btn hwp3-btn-publish btn-publish-draft-row" data-id="${hw.id}" title="${t('hw_act_publish')}"><span aria-hidden="true">🚀</span> <span class="hwp3-lbl">${t('hw_act_publish')}</span></button>` : `
                         <button type="button" class="hwp3-btn hwp3-btn-results btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}"><span class="hwp3-ic" aria-hidden="true">📊</span> <span class="hwp3-lbl">${t('hw_act_results')}</span></button>
-                        ${(!isLegacyPublished && hw.assignedStudentName)
-                            ? `<button type="button" class="hwp3-btn hwp3-btn-remind btn-remind-hw-row" hidden data-hw-link="${encodeURIComponent(hwLink)}" data-student="${encodeURIComponent(hw.assignedStudentName)}"><span aria-hidden="true">🔔</span> ${t('hw_act_remind')}</button>`
-                            : ''}
                         ${isLegacyPublished
                             ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
                             : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
-                        <div class="hwp3-more">
-                            <button type="button" class="hwp3-more-btn btn-hw-more" aria-haspopup="true" aria-expanded="false" aria-label="${t('hw_act_more')}" title="${t('hw_act_more')}">⋯</button>
-                            <div class="hwp3-menu" role="menu">
-                                <button type="button" class="hwp3-menu-item btn-delete-hw-record" role="menuitem" data-id="${hw.id}"><span aria-hidden="true">🗑️</span> ${t('hw_act_delete')}</button>
-                            </div>
-                        </div>
+                        <!-- 🌟 [تعديل] "حذف" زر ظاهر مباشرة في الصف (بدل قائمة ⋯ المنسدلة)، وتأكيده في نافذة بوسط الشاشة -->
+                        <button type="button" class="hwp3-btn hwp3-btn-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('hw_act_delete')}"><span aria-hidden="true">🗑️</span> ${t('hw_act_delete')}</button>
                     </div>
                 </td>
             `;
@@ -489,7 +487,7 @@ async function loadHomeworkDashboard() {
         document.querySelectorAll('.btn-delete-hw-record').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const id = e.currentTarget.getAttribute('data-id');
-                if (confirm(t("هل أنت متأكد من حذف هذا الواجب نهائياً؟"))) {
+                if (await confirmHwDelete()) {   // 🌟 نافذة تأكيد في وسط الصفحة بدل confirm() العلوي
                     await AppState.homeworkManager.deleteHomework(id);
                     await loadHomeworkDashboard();
                 }
@@ -637,7 +635,7 @@ async function loadOverdueHomeworkStat(allHWs) {
             const el = document.getElementById(`hw-overdue-${hwId}`);
             if (el) el.style.display = 'inline-block';
         });
-        applyHwRowStates();   // 🌟 الصف المتأخر يعرض زر "تذكير الطالب"
+        applyHwRowStates();
         applyHwFilter();
     } catch (e) {
         // 🌟 نفس فلسفة loadNeedsGradingStat أعلاه بالضبط: ⚠️ بدل "0" حتى لا نوهم المعلم بعدم
@@ -669,18 +667,16 @@ function applyHwRowStates() {
         if (tr.dataset.status !== 'published') return;
         const id = tr.dataset.hwId;
         const resBtn = tr.querySelector('.btn-view-results');
-        const remindBtn = tr.querySelector('.btn-remind-hw-row');
         const needsGrading = hwSetHas(pendingGradingHwIds, id);
-        const isOverdue = !needsGrading && hwSetHas(overdueHwIds, id);
         if (resBtn) {
             resBtn.classList.toggle('is-grading', needsGrading);
             const ic = resBtn.querySelector('.hwp3-ic');
             const lbl = resBtn.querySelector('.hwp3-lbl');
             if (ic) ic.textContent = needsGrading ? '✍️' : '📊';
             if (lbl) lbl.textContent = needsGrading ? t('hw_act_grade_now') : t('hw_act_results');
-            resBtn.hidden = isOverdue && !!remindBtn;
         }
-        if (remindBtn) remindBtn.hidden = !isOverdue;
+        // 🌟 [تعديل] لا زر "تذكير الطالب" ولا أي إرسال تلقائي: الواجب المتأخر يظهر للمعلم كتنبيه فقط (شارة ⏰ + بطاقة المتأخر)،
+        // والمعلم هو من يتواصل مع الطالب بنفسه (واتساب مثلاً).
     });
 }
 
@@ -746,37 +742,44 @@ function setHwFilter(f, toggle) {
     applyHwFilter();
 }
 
-function closeAllHwMenus() {
-    document.querySelectorAll('.hwp3-more.is-open').forEach(w => {
-        w.classList.remove('is-open');
-        w.querySelector('.btn-hw-more')?.setAttribute('aria-expanded', 'false');
+// 🌟 [جديد] نافذة تأكيد حذف الواجب في وسط الصفحة (بدل confirm() الذي يظهر من أعلى المتصفح).
+// تُرجع Promise<boolean>: true = المعلم أكّد الحذف، false = إلغاء/إغلاق/Esc/نقر على الخلفية. لا تحذف شيئاً بنفسها.
+function confirmHwDelete() {
+    return new Promise((resolve) => {
+        const prevFocus = document.activeElement;
+        const overlay = document.createElement('div');
+        overlay.className = 'hwp3-confirm-overlay';
+        overlay.innerHTML = `
+            <div class="hwp3-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="hwp3-confirm-title" aria-describedby="hwp3-confirm-body">
+                <div class="hwp3-confirm-icon" aria-hidden="true">🗑️</div>
+                <h3 id="hwp3-confirm-title" class="hwp3-confirm-title">${t('hw_delete_confirm_title')}</h3>
+                <p id="hwp3-confirm-body" class="hwp3-confirm-body">${t('hw_delete_confirm_body')}</p>
+                <div class="hwp3-confirm-actions">
+                    <button type="button" class="hwp3-confirm-btn hwp3-confirm-cancel">${t('hw_delete_cancel_btn')}</button>
+                    <button type="button" class="hwp3-confirm-btn hwp3-confirm-ok">${t('hw_delete_confirm_btn')}</button>
+                </div>
+            </div>`;
+        let done = false;
+        const finish = (val) => {
+            if (done) return;
+            done = true;
+            document.removeEventListener('keydown', onKey, true);
+            overlay.remove();
+            try { prevFocus && prevFocus.focus && prevFocus.focus(); } catch (e) { /* لا شيء */ }
+            resolve(val);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); } };
+        document.addEventListener('keydown', onKey, true);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) finish(false); });
+        overlay.querySelector('.hwp3-confirm-cancel').addEventListener('click', () => finish(false));
+        overlay.querySelector('.hwp3-confirm-ok').addEventListener('click', () => finish(true));
+        document.body.appendChild(overlay);
+        overlay.querySelector('.hwp3-confirm-cancel').focus();   // الافتراضي الآمن: "إلغاء"
     });
 }
 
-// مستمعات الأزرار الجديدة داخل صفوف الجدول (تذكير الطالب + قائمة ⋯)
-function bindHwRowExtras() {
-    document.querySelectorAll('.btn-remind-hw-row').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
-            const name = decodeURIComponent(e.currentTarget.getAttribute('data-student') || '');
-            // واتساب بلا رقم محدد (wa.me/?text=) فيختار المعلم جهة الاتصال بنفسه — لأن رقم الطالب غير مخزَّن في هذه الشاشة
-            const msg = `${t('hw_remind_msg').replace('{name}', name)}\n${link}`;
-            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-        });
-    });
-    document.querySelectorAll('.btn-hw-more').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const wrap = e.currentTarget.closest('.hwp3-more');
-            const willOpen = !wrap.classList.contains('is-open');
-            closeAllHwMenus();
-            if (willOpen) {
-                wrap.classList.add('is-open');
-                e.currentTarget.setAttribute('aria-expanded', 'true');
-            }
-        });
-    });
-}
+// مستمعات الأزرار الإضافية داخل صفوف الجدول (لا يوجد الآن أي زر إضافي — أُزيل "تذكير الطالب" وقائمة ⋯)
+function bindHwRowExtras() { /* لا شيء — أُبقيت الدالة فارغة حتى لا ينكسر استدعاؤها في loadHomeworkDashboard */ }
 
 // ==========================================================================================
 // 🌟🌟 [جديد 2026-10-01] ربط الواجهة بالتنظيف التلقائي في الخادم
@@ -968,6 +971,19 @@ function openGradingRoom(subIndex) {
                     }</div>
                 </div>
 
+                <!-- 🌟 أنماط أزرار الدرجة اليدوية — محصورة داخل #grading-room-modal فقط حتى لا تؤثر على أي شاشة أخرى -->
+                <style>
+                    #grading-room-modal .hw-score-group { display: flex; flex-wrap: wrap; gap: 10px; }
+                    #grading-room-modal .hw-score-btn {
+                        flex: 1 1 80px; min-height: 52px; padding: 10px 14px; font-size: 1.15rem; font-weight: bold;
+                        font-family: inherit; color: #475569; background: #fff; border: 2px solid #cbd5e1;
+                        border-radius: 12px; cursor: pointer; touch-action: manipulation;
+                        -webkit-tap-highlight-color: transparent; transition: background .15s, border-color .15s, color .15s;
+                    }
+                    #grading-room-modal .hw-score-btn.hw-score-selected { background: var(--dh-emerald, #10b981); border-color: var(--dh-emerald, #10b981); color: #fff; box-shadow: 0 0 0 3px rgba(16,185,129,.25); }
+                    #grading-room-modal .hw-score-btn.hw-score-selected::after { content: ' ✓'; }
+                    #grading-room-modal .hw-score-btn.hw-score-zero.hw-score-selected { background: #ef4444; border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+                </style>
                 <div id="grading-questions-container" style="display: flex; flex-direction: column; gap: 20px;">
     `;
 
@@ -1030,10 +1046,27 @@ function openGradingRoom(subIndex) {
             let maxPoints = d.points || ((d.type === 'write_3_ayahs') ? 3 : 2);
             let currentScore = d.manualScore !== undefined ? d.manualScore : 0;
 
+            // 🌟🌟 [عُدّل — منع تغيّر الدرجة بالخطأ أثناء Scroll] كان هنا حقل <input type="number">
+            // يتغيّر رقمه بعجلة الماوس/السحب أثناء تمرير الصفحة. استُبدل بأزرار درجات مستقلة (0..النقاط القصوى)،
+            // ولا يتغيّر شيء إلا بنقرة/لمسة مقصودة على زر. الحقل الأصلي بقي كـ <input type="hidden">
+            // بنفس الصنف (manual-grade-input) والمعرّف (data-qidx) حتى تبقى saveManualGrades وكل منطق
+            // الحفظ والحساب في الخادم كما هي بلا أي تعديل. الحقل المخفي غير قابل للتمرير أو الكتابة أصلاً.
+            // ⚠️ افتراض صريح: "تُحفظ مباشرة" = تُسجَّل فوراً كاختيار لهذا السؤال في غرفة التصحيح، ويبقى
+            // زر "حفظ الدرجات وإعادة الحساب" هو ما يرسلها للخادم (لم نغيّر مسار الحفظ/الـAPI).
+            // سؤال لم يُقيَّم بعد (manualScore غير موجودة) = لا زر مضاء والقيمة المخفية فارغة (تُحتسب 0 كما كان سابقاً).
+            const hasScore = d.manualScore !== undefined;
+            let scoreBtns = '';
+            for (let p = 0; p <= maxPoints; p++) {
+                const stars = p === 0 ? '❌' : '⭐'.repeat(Math.min(p, 3));
+                const label = p === 0 ? t('hw_grade_wrong') : String(p);
+                const isSel = hasScore && Number(currentScore) === p;
+                scoreBtns += `<button type="button" class="hw-score-btn${p === 0 ? ' hw-score-zero' : ''}${isSel ? ' hw-score-selected' : ''}" data-qidx="${qIdx}" data-score="${p}" aria-pressed="${isSel}">${stars} ${label}</button>`;
+            }
             modalHtml += `
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1; display: flex; align-items: center; gap: 10px;">
-                    <label style="font-weight: bold; color: #b45309;">${t('أعطِ الطالب درجة من')} (${maxPoints}):</label>
-                    <input type="number" class="manual-grade-input" data-qidx="${qIdx}" min="0" max="${maxPoints}" value="${currentScore}" style="width: 80px; padding: 10px; font-size: 1.2rem; border: 2px solid #f59e0b; border-radius: 8px; text-align: center; outline: none;">
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #cbd5e1;">
+                    <label style="display:block; font-weight: bold; color: #b45309; margin-bottom: 10px;">${t('أعطِ الطالب درجة من')} (${maxPoints}):</label>
+                    <div class="hw-score-group" data-qidx="${qIdx}" role="group">${scoreBtns}</div>
+                    <input type="hidden" class="manual-grade-input" data-qidx="${qIdx}" value="${hasScore ? currentScore : ''}">
                 </div>
             `;
         } else {
@@ -1077,6 +1110,21 @@ function openGradingRoom(subIndex) {
 
     document.getElementById('btn-close-grading').addEventListener('click', () => {
         document.getElementById('grading-room-modal').remove();
+    });
+
+    // 🌟🌟 [جديد] اختيار درجة السؤال اليدوي: حدث click فقط (لا wheel/touchmove/pointermove)، فلا تتغيّر
+    // الدرجة إلا بنقرة/لمسة مقصودة. السحب أو التمرير على الشاشة لا يُنتج click في المتصفحات.
+    document.querySelectorAll('#grading-room-modal .hw-score-btn').forEach(btnEl => {
+        btnEl.addEventListener('click', () => {
+            const qIdx = btnEl.dataset.qidx;
+            const hidden = document.querySelector(`#grading-room-modal .manual-grade-input[data-qidx="${qIdx}"]`);
+            if (hidden) hidden.value = btnEl.dataset.score;
+            document.querySelectorAll(`#grading-room-modal .hw-score-btn[data-qidx="${qIdx}"]`).forEach(b => {
+                const on = b === btnEl;
+                b.classList.toggle('hw-score-selected', on);
+                b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            });
+        });
     });
 
     // 🌟 تحويل زر الحفظ ليكون Async لانتظار رفع البيانات للسحابة 🌟
@@ -1176,7 +1224,7 @@ async function saveManualGrades(subIndex) {
     // 🌟🌟 [جديد] شهادة تقدير فور اعتماد النتيجة النهائية — راجع reports/hwCertificate.js.
     // تُعرض بعد alert النجاح أعلاه (لا تحجب رسالة تأكيد الحفظ نفسها) وتُبنى من نفس بيانات
     // الاعتماد المؤكَّدة من الخادم (updated)، وسجل الطالب المحلي إن وُجد (لعرض صورته).
-    try { showHomeworkCertificate(updated, localStudent); }
+    try { showHomeworkCertificate(updated, localStudent, await resolveHomeworkScope(updated.hwId)); }
     catch (err) { console.error("تعذّر عرض شهادة التقدير (لا يؤثر على اعتماد النتيجة نفسها):", err); }
 }
 
@@ -1224,7 +1272,7 @@ async function openFinalResultsModal() {
                 const sub = approved[idx];
                 let localStudent = null;
                 try { localStudent = await findLocalStudentForSubmission(sub); } catch (err) { /* تجاهل — الشهادة تعمل بلا صورة */ }
-                showHomeworkCertificate(sub, localStudent);
+                showHomeworkCertificate(sub, localStudent, await resolveHomeworkScope(sub.hwId));
             });
         });
         applyLanguage();
@@ -1326,8 +1374,6 @@ function setupListeners() {
         applyHwFilter();
     });
     // إغلاق قائمة ⋯ بالنقر خارجها أو بمفتاح Escape
-    document.addEventListener('click', closeAllHwMenus);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAllHwMenus(); });
 
     // 🌟🌟 [إعادة تصميم] التبويبات الثلاثة ("إعداد واجب جديد"، "سجل الواجبات"، "النتائج النهائية
     // للطلاب") أصبحت تُدار بدالة واحدة موحَّدة switchHwTab بدل معالِجين منفصلين مكرَّرين — كل
@@ -1400,6 +1446,7 @@ function setupListeners() {
     document.getElementById('btn-close-hw-modal')?.addEventListener('click', () => {
         document.getElementById('hw-share-modal').style.display = 'none';
         currentGeneratedQuestions = [];
+        currentHwScope = null;
         document.getElementById('hw-preview-section').style.display = 'none';
         btnHistory.click();
     });
@@ -1456,7 +1503,41 @@ async function generateQuestions() {
     currentGeneratedQuestions = await hwEngine.generateAutoQuestions(config);
     if (!currentGeneratedQuestions || currentGeneratedQuestions.length === 0) return alert(t("لم يتم العثور على آيات كافية."));
 
+    currentHwScope = buildHwScope(config);   // 🌟 النطاق الحقيقي كما اختاره المعلم (لا نص ثابت)
     renderPreview();
+}
+
+// 🌟 [جديد] يحوّل إعدادات التوليد إلى نطاق مُخزَّن بأسماء السور (نص عربي صريح) ليُعرض في شهادة التقدير كما هو.
+// surah: سورة + من آية إلى آية | range: من سورة إلى سورة | juz: الجزء. أي بيانات ناقصة/غير صالحة → null (لا تخمين).
+function buildHwScope(config) {
+    const nameOf = (num) => { const s = AppState.surahsData.find(x => x.number === num); return s ? s.name : null; };
+    if (config.mode === 'surah') {
+        const name = nameOf(config.surahNum);
+        if (!name || isNaN(config.startAyah) || isNaN(config.endAyah)) return null;
+        return { mode: 'surah', surahNum: config.surahNum, surahName: name, startAyah: config.startAyah, endAyah: config.endAyah };
+    }
+    if (config.mode === 'range') {
+        const fromName = nameOf(config.rangeFrom), toName = nameOf(config.rangeTo);
+        if (!fromName || !toName) return null;
+        return { mode: 'range', fromNum: config.rangeFrom, fromName, toNum: config.rangeTo, toName };
+    }
+    if (config.mode === 'juz') {
+        if (isNaN(config.juzNum)) return null;
+        return { mode: 'juz', juzNum: config.juzNum };
+    }
+    return null;
+}
+
+// 🌟 [جديد] نطاق واجب معيّن للشهادة: النسخة المحلية أولاً (سجّلناها وقت النشر)، ثم الخادم (meta.scope) إن لم توجد محلياً.
+// واجب قديم نُشر قبل هذا التعديل لا نطاق له → null، والشهادة حينها لا تعرض سطر النطاق (بدل تخمين نطاق خاطئ).
+async function resolveHomeworkScope(hwId) {
+    if (!hwId) return null;
+    try {
+        const all = await AppState.homeworkManager.getAllHomeworks() || [];
+        const local = all.find(h => String(h.id) === String(hwId));
+        if (local && local.scope) return local.scope;
+    } catch (e) { /* ننتقل للخادم */ }
+    return await fetchHomeworkScope(hwId);
 }
 
 function renderPreview() {
@@ -1671,13 +1752,15 @@ async function saveHomeworkToDB(statusType) {
                 questions: currentGeneratedQuestions,
                 status: statusType,
                 assignedStudentName: targetStudentName || null,
-                assignedStudentAvatar: targetStudentAvatar || null
+                assignedStudentAvatar: targetStudentAvatar || null,
+                scope: currentHwScope || null   // 🌟 نطاق الواجب الحقيقي (للشهادة)
             };
             await AppState.homeworkManager.createHomework(draftObj);
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));
             document.getElementById('btn-tab-history').click();
             currentGeneratedQuestions = [];
+            currentHwScope = null;
             document.getElementById('hw-preview-section').style.display = 'none';
             return;
         }
@@ -1689,7 +1772,7 @@ async function saveHomeworkToDB(statusType) {
                 questions: currentGeneratedQuestions,
                 assignedStudentName: targetStudentName || null,
                 assignedStudentId: targetStudentId,
-                meta: { app: 'darham', createdFrom: 'homework-prep' }
+                meta: { app: 'darham', createdFrom: 'homework-prep', scope: currentHwScope || null }   // 🌟 النطاق يُخزَّن في الخادم مع الواجب
             });
         } catch (err) {
             console.error("فشل نشر الواجب في الخادم:", err);
@@ -1708,6 +1791,7 @@ async function saveHomeworkToDB(statusType) {
             status: 'published',
             assignedStudentName: targetStudentName || null,
             assignedStudentAvatar: targetStudentAvatar || null,
+            scope: currentHwScope || null,   // 🌟 نطاق الواجب الحقيقي (للشهادة)
             cloudConfirmed: true
         };
         try { await AppState.homeworkManager.createHomework(homeworkObj); }
@@ -1755,7 +1839,7 @@ async function publishDraftFromHistory(draftId) {
             questions: draft.questions,
             assignedStudentName: draft.assignedStudentName || null,
             assignedStudentId: studentId,
-            meta: { app: 'darham', createdFrom: 'homework-prep-draft' }
+            meta: { app: 'darham', createdFrom: 'homework-prep-draft', scope: draft.scope || null }   // 🌟 نطاق المسودة المحفوظ
         });
     } catch (err) {
         console.error("فشل نشر المسودة في الخادم:", err);
@@ -1771,6 +1855,7 @@ async function publishDraftFromHistory(draftId) {
         status: 'published',
         assignedStudentName: draft.assignedStudentName || null,
         assignedStudentAvatar: draft.assignedStudentAvatar || null,
+        scope: draft.scope || null,
         cloudConfirmed: true
     };
     try {

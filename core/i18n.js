@@ -245,6 +245,11 @@ export const translations = {
         profile_gender_male: "ذكر",
         profile_gender_female: "أنثى",
         profile_dob_label: "تاريخ الميلاد:",
+        // 🌟 [جديد] حقول تاريخ الميلاد بترتيب ثابت: اليوم / الشهر / السنة + زر تعديل البيانات
+        profile_dob_day: "اليوم",
+        profile_dob_month: "الشهر",
+        profile_dob_year: "السنة",
+        profile_edit_btn: "تعديل بياناتي",
         profile_save_btn: "حفظ",
         profile_close_btn: "إغلاق",
 
@@ -908,7 +913,19 @@ export const translations = {
         hw_teacher_note_label: "كلمة من المعلم للطالب (اختياري)",
         hw_teacher_note_placeholder: "اكتب هنا كلمة تشجيع أو توجيه تظهر في شهادة التقدير…",
         hw_teacher_note_hint: "اختياري — لو تركته فارغًا لن يظهر شيء في الشهادة. الحد الأقصى 300 حرف.",
+        hw_grade_wrong: "خطأ",
         hwcert_teacher_note_title: "💬 كلمة من المعلم",
+        // 🌟 نطاق الواجب في شهادة التقدير (يُملأ من النطاق الحقيقي المسجَّل مع الواجب)
+        hwcert_scope_title: "📖 نطاق الواجب",
+        hwcert_scope_surah: "سورة {surah} — من الآية {from} إلى الآية {to}",
+        hwcert_scope_range: "من سورة {from} إلى سورة {to}",
+        hwcert_scope_juz: "الجزء {juz}",
+        // 🌟 حذف الواجب: نافذة تأكيد بوسط الشاشة + تنبيه "لم يحل الواجب" (بلا أي إرسال تلقائي)
+        hw_delete_confirm_title: "حذف الواجب",
+        hw_delete_confirm_body: "هل أنت متأكد من حذف هذا الواجب نهائياً؟",
+        hw_delete_confirm_btn: "نعم، احذف",
+        hw_delete_cancel_btn: "إلغاء",
+        hw_overdue_not_solved: "الطالب {name} لم يحلّ الواجب بعد",
         // 🌟🌟 [جديد] زر ونافذة "النتائج النهائية للطلاب" — قائمة كل الواجبات المصحَّحة والمعتمدة
         // مع إمكانية إعادة فتح شهادة أي طالب منها
         hw_final_results_btn: "🎓 النتائج النهائية للطلاب",
@@ -2019,6 +2036,10 @@ export const translations = {
         profile_gender_male: "Male",
         profile_gender_female: "Female",
         profile_dob_label: "Date of Birth:",
+        profile_dob_day: "Day",
+        profile_dob_month: "Month",
+        profile_dob_year: "Year",
+        profile_edit_btn: "Edit my profile",
         profile_save_btn: "Save",
         profile_close_btn: "Close",
 
@@ -2704,7 +2725,19 @@ export const translations = {
         hw_teacher_note_label: "A word from the teacher to the student (optional)",
         hw_teacher_note_placeholder: "Write an encouraging or guiding note to appear on the certificate…",
         hw_teacher_note_hint: "Optional — if left empty, nothing extra appears on the certificate. Max 300 characters.",
+        hw_grade_wrong: "Wrong",
         hwcert_teacher_note_title: "💬 A word from the teacher",
+        // 🌟 Homework scope on the certificate (filled from the real scope recorded with the homework)
+        hwcert_scope_title: "📖 Homework scope",
+        hwcert_scope_surah: "Surah {surah} — verse {from} to verse {to}",
+        hwcert_scope_range: "From Surah {from} to Surah {to}",
+        hwcert_scope_juz: "Juz {juz}",
+        // 🌟 Delete homework: centered confirmation dialog + "student has not solved it" alert (no automatic sending)
+        hw_delete_confirm_title: "Delete homework",
+        hw_delete_confirm_body: "Are you sure you want to permanently delete this homework?",
+        hw_delete_confirm_btn: "Yes, delete",
+        hw_delete_cancel_btn: "Cancel",
+        hw_overdue_not_solved: "{name} has not solved the homework yet",
         hw_final_results_btn: "🎓 Students' Final Results",
         hw_final_results_title: "🎓 Graded Tests & Final Results",
         hw_final_results_empty: "No approved results yet.",

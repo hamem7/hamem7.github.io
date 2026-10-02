@@ -61,12 +61,24 @@ function openGrading(i) {
     const ca = document.createElement('p'); ca.append('الإجابة النموذجية: '); const b2 = document.createElement('b'); b2.style.color = 'var(--ok)'; b2.textContent = d.correctAnswer; ca.append(b2);
     q.append(qt, sa, ca);
     if (d.needsManualGrading) {
-      const row = document.createElement('div'); row.className = 'row'; row.style.alignItems = 'center';
-      const lab = document.createElement('span'); lab.textContent = `الدرجة من (${d.points}):`;
-      const inp = document.createElement('input'); inp.type = 'number'; inp.min = 0; inp.max = d.points; inp.style.maxWidth = '110px'; inp.dataset.qid = d.qid;
-      inp.placeholder = '—'; if (d.manualScore !== undefined) inp.value = d.manualScore;
-      if (s.status === 'approved') inp.disabled = true;
-      inputs[d.qid] = inp; row.append(lab, inp); q.append(row);
+      // 🌟 [عُدّل — منع تغيّر الدرجة بالخطأ أثناء Scroll] كان هنا <input type="number"> يتغيّر بالتمرير.
+      // الآن أزرار درجات مستقلة (0..d.points) لا تتغيّر إلا بنقرة/لمسة مقصودة. الحقل بقي كـ <input type="hidden">
+      // بنفس الاسم inp ليبقى collect() وحفظ الدرجات في الخادم بلا أي تغيير (القيمة الفارغة = لم تُقيَّم بعد).
+      const lab = document.createElement('div'); lab.style.fontWeight = '700'; lab.style.margin = '6px 0'; lab.textContent = `الدرجة من (${d.points}):`;
+      const inp = document.createElement('input'); inp.type = 'hidden'; inp.dataset.qid = d.qid;
+      if (d.manualScore !== undefined) inp.value = d.manualScore;
+      const grp = document.createElement('div'); grp.className = 'score-group'; grp.setAttribute('role', 'group');
+      const pts = Number(d.points) || 1; const sel = [];
+      for (let p = 0; p <= pts; p++) {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'score-btn' + (p === 0 ? ' zero' : '');
+        b.textContent = (p === 0 ? '❌ خطأ' : '⭐'.repeat(Math.min(p, 3)) + ' ' + p);
+        const on = d.manualScore !== undefined && Number(d.manualScore) === p;
+        b.classList.toggle('selected', on); b.setAttribute('aria-pressed', String(on));
+        if (s.status === 'approved') b.disabled = true;
+        b.addEventListener('click', () => { inp.value = String(p); sel.forEach(([bb, pp]) => { bb.classList.toggle('selected', pp === p); bb.setAttribute('aria-pressed', String(pp === p)); }); });
+        sel.push([b, p]); grp.append(b);
+      }
+      inputs[d.qid] = inp; q.append(lab, grp, inp);
     } else { const r = document.createElement('p'); r.textContent = d.isCorrect ? '✅ صحيح (تصحيح آلي من الخادم)' : '❌ خطأ (تصحيح آلي من الخادم)'; q.append(r); }
     card.append(q);
   });

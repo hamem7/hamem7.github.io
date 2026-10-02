@@ -193,5 +193,9 @@ export const DUAL_TEST_REPORT_STYLES = `
     #dtr-screen .dtr-qcols{grid-template-columns:1fr;}
     #dtr-screen .dtr-vs-row{gap:14px;}
     #dtr-screen .dtr-side{max-width:150px;}
+    /* 🌟 [إصلاح التوافق مع الشاشات] نفس معالجة شريط الملاحظة في report.styles.js: يلتفّ على الهاتف بدل أن يوسّع الصفحة. 🌟 */
+    #dtr-screen .dtr-note-bar{flex-wrap:wrap;}
+    #dtr-screen .dtr-note-bar textarea{flex:1 1 100%; min-width:0;}
+    #dtr-screen .dtr-note-bar .dtr-hint{flex:1 1 auto; min-width:0;}
   }
 `;

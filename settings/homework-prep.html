@@ -305,7 +305,8 @@
 
     @media (max-width: 980px) {
         .hwp2-config-grid { grid-template-columns: 1fr; }
-        .hwp2-stats-grid { grid-template-columns: repeat(2, 1fr); }
+        .hwp2-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } /* 🌟 minmax(0,1fr): كان 1fr يتمدد لأدنى محتوى البطاقة فيفيض ~10px على شاشة 320px 🌟 */
+        .hwp2-stat-card { min-width: 0; }
     }
     @media (max-width: 640px) {
         #app-root .hwp2-header-title { font-size: 1.3rem !important; }

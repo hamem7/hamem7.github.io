@@ -112,4 +112,14 @@ export const MONTHLY_REPORT_STYLES = `
   @media (max-width:760px){
     #report-screen .mr-summary-grid{grid-template-columns:repeat(2, 1fr);}
   }
+
+  /* 🌟 [إصلاح التوافق مع الشاشات] صفحة التقرير ورقة ثابتة 794px (مقصودة لتبقى مطابقة تمامًا عند التصدير PDF/PNG)،
+     وكانت تُوسّع عرض الصفحة كلها على الهاتف/الآيباد الرأسي فيخرج شريط التنقل والرأس عن الشاشة. الآن إطار المعاينة
+     نفسه يتمرر أفقيًا داخليًا (min-width:0 + overflow-x:auto) والورقة لا تتغير أبعادها إطلاقًا فلا يتأثر التصدير.
+     محصور بالإطار الذي يحوي #mr-stage-inner فقط (لا يمسّ تقرير التقييم الفردي). 🌟 */
+  #report-screen .report-stage:has(#mr-stage-inner){
+    min-width:0; max-width:100%; box-sizing:border-box; overflow-x:auto;
+    justify-content:safe center; -webkit-overflow-scrolling:touch;
+  }
+  #report-screen .report-stage:has(#mr-stage-inner) > #mr-stage-inner{flex:none;}
 `;

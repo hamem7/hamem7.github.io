@@ -46,6 +46,17 @@ export function publishHomeworkToServer(homework) {
     return teacherCall('createHomework', { homework }, { write: true, timeoutMs: 30000 });
 }
 
+// 🌟 [جديد] نطاق الواجب المسجَّل وقت النشر (meta.scope) — للشهادة. قراءة المعلم الكاملة (فيها meta)،
+// وتُرجع null لو الواجب قديم (نُشر قبل تسجيل النطاق) أو تعذّرت القراءة؛ لا تخمين أبداً.
+export async function fetchHomeworkScope(id) {
+    if (!isServerHomeworkId(id)) return null;
+    try {
+        const r = await teacherCall('getHomeworkFull', { id });
+        const sc = r && r.homework && r.homework.meta && r.homework.meta.scope;
+        return (sc && typeof sc === 'object') ? sc : null;
+    } catch (e) { return null; }
+}
+
 // ---------- الطالب/المعلم: قراءة الواجب العام (بلا إجابات صحيحة أبداً) ----------
 export async function fetchPublicHomework(id) {
     const r = await callWithRetry('getHomework', { id }, {}, 3);

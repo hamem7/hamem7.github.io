@@ -1,5 +1,21 @@
 <!-- games/homework-play.html -->
 <div class="screen active" style="background: #f8fafc; min-height: 100vh; padding: 20px;">
+<style>
+/* 🌟 [إصلاح التوافق مع الشاشات] شارة التقدّم كانت absolute (يسار 20px) فوق العنوان المتمركز، فيتقاطعان ويُقصّ العنوان
+   مع اسم الطالب الطويل على الهاتف الصغير. تحت 480px تنزل لتصبح عنصرًا عاديًا أسفل الاسم. نطاقها المعرّف hp-progress-text فقط. 🌟 */
+@media (max-width: 480px) {
+    #hp-progress-text { position: static !important; display: inline-block; margin-top: 10px; }
+    #hp-student-name { overflow-wrap: anywhere; }
+    /* 🌟 أزرار التنقل السفلية (السابق/التالي/التسليم) كانت بلا التفاف ولا gap فينضغط زر «إنهاء وتسليم الواجب» ويُقصّ من الحافة
+       على الهاتف الصغير. الآن حشوة أقل + التفاف + الأزرار تتقاسم العرض. 🌟 */
+    .hp-nav-bar { padding: 16px 14px !important; gap: 10px; flex-wrap: wrap; }
+    .hp-nav-bar .btn { min-width: 0; flex: 1 1 120px; padding-inline: 12px; }
+}
+@media (max-width: 360px) {
+    /* 🌟 عنوان الهيدر 2rem يتجاوز عرض المحتوى (297px من 280px) على شاشة 320px؛ نصغّره قليلًا فقط هناك. 🌟 */
+    h2[data-i18n="hw_pl_title"] { font-size: 1.65rem !important; }
+}
+</style>
     <!-- 🌟 [جديد] تنبيهات: لا يوجد اتصال (الإجابات محفوظة على جهازك) / المتصفح لا يسمح بالحفظ المحلي -->
     <div id="hp-offline-banner" data-i18n="hw_st_offline_banner" style="display:none; max-width:800px; margin:0 auto 12px; background:#fef3c7; color:#92400e; padding:12px 16px; border-radius:12px; font-weight:bold; text-align:center;">📴 لا يوجد اتصال بالإنترنت الآن. إجاباتك تُحفظ على جهازك ولن تضيع.</div>
     <div id="hp-storage-banner" data-i18n="hw_st_storage_banner" style="display:none; max-width:800px; margin:0 auto 12px; background:#fee2e2; color:#b91c1c; padding:12px 16px; border-radius:12px; font-weight:bold; text-align:center;">⚠️ المتصفح لا يسمح بحفظ الإجابات على الجهاز (وضع التصفح الخاص؟). لا تُغلق الصفحة قبل التسليم.</div>
@@ -21,7 +37,7 @@
         </div>
 
         <!-- أزرار التنقل السفلية -->
-        <div style="padding: 20px 30px; background: #f1f5f9; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0;">
+        <div class="hp-nav-bar" style="padding: 20px 30px; background: #f1f5f9; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0;">
             <button class="btn btn-outline" id="btn-hp-prev" data-i18n="hw_pl_prev" style="visibility: hidden; font-size: 1.3rem;">السابق</button>
             <button class="btn" id="btn-hp-next" data-i18n="hw_pl_next" style="background: #0ea5e9; font-size: 1.3rem;">التالي ➡️</button>
             <button class="btn" id="btn-hp-submit" data-i18n="hw_pl_submit" style="display: none; background: #8b5cf6; font-size: 1.4rem;">📨 إنهاء وتسليم الواجب</button>

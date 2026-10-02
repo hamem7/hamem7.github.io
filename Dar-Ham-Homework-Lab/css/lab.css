@@ -67,3 +67,11 @@ pre.report { background: #0b1f19; color: #d1fae5; padding: 12px; border-radius: 
 .dh-auth-status { font-size: .88rem; color: var(--dh-ink-soft); margin-inline-start: auto; }
 
 @media (max-width: 600px) { main { padding: 10px; } .card { padding: 14px; } .quran { font-size: 1.4rem; } }
+
+/* 🌟 أزرار الدرجة اليدوية في غرفة التصحيح (بديل حقل الرقم الذي كان يتغيّر بالـScroll) — نطاق .score-* فقط */
+.score-group { display: flex; flex-wrap: wrap; gap: 10px; }
+.score-btn { flex: 1 1 80px; min-height: 52px; padding: 10px 14px; font: inherit; font-weight: 700; color: var(--dh-ink-soft); background: #fff; border: 2px solid #cbd5c8; border-radius: 12px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.score-btn.selected { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: #fff; box-shadow: 0 0 0 3px rgba(20, 124, 94, .25); }
+.score-btn.selected::after { content: ' ✓'; }
+.score-btn.zero.selected { background: var(--bad); border-color: var(--bad); box-shadow: 0 0 0 3px rgba(185, 28, 28, .25); }
+.score-btn:disabled { opacity: .7; cursor: not-allowed; }

@@ -76,6 +76,15 @@ export const REPORT_STYLES = `
 
   #report-screen .report-stage{display:flex; justify-content:center; padding:36px 16px 60px; background:#e9e4d8; border-radius:0 0 12px 12px;}
 
+  /* 🌟 [إصلاح التوافق مع الشاشات] ورقة التقرير عرضها 720px (max-width:100% لا يعمل داخل عنصر flex بلا min-width:0)،
+     فكانت توسّع الصفحة كلها على الهاتف. نجعل إطار المعاينة نفسه قابلًا للتمرير أفقيًا والورقة بأبعادها الأصلية تمامًا
+     (فلا يتغير ناتج التصدير PDF/PNG). محصور بالإطار الذي يحوي #report-stage-inner فقط. 🌟 */
+  #report-screen .report-stage:has(#report-stage-inner){
+    min-width:0; max-width:100%; box-sizing:border-box; overflow-x:auto; justify-content:safe center;
+    -webkit-overflow-scrolling:touch;
+  }
+  #report-screen .report-stage:has(#report-stage-inner) > #report-stage-inner{flex:none;}
+
   /* ============== إطار الصفحة ============== */
   #report-screen .page{
     width:720px; max-width:100%;
@@ -371,5 +380,13 @@ export const REPORT_STYLES = `
     #report-screen .qlist{overflow-x:auto;}
     #report-screen .qgrid-head, #report-screen .qrow{min-width:560px;}
     #report-screen .closing{flex-direction:column; align-items:center; text-align:center;}
+    /* 🌟 [إصلاح التوافق مع الشاشات] شريط الملاحظة وشريط الأدوات كانا لا يلتفّان (label/hint بـ flex:none + textarea بعرض ~26px)
+       فيتّسع عرض الصفحة كلها على الهاتف. الآن يلتفّان ويأخذ مربع الملاحظة سطرًا كاملًا. تؤثر فقط في شاشة التقرير (#report-screen). 🌟 */
+    #report-screen .note-bar{flex-wrap:wrap;}
+    #report-screen .note-bar textarea{flex:1 1 100%; min-width:0;}
+    #report-screen .note-bar .hint{flex:1 1 auto; min-width:0;}
+    #report-screen .report-toolbar{padding-inline:10px;}
+    #report-screen .report-toolbar .grp{flex-wrap:wrap; justify-content:center; padding-inline-end:0; border-inline-end:none;}
+    #report-screen .teacher-name-input{min-width:0; max-width:100%;}
   }
 `;

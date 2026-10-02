@@ -658,3 +658,15 @@
         padding: 18px;
     }
 }
+
+/* 🌟 [إصلاح التوافق مع الشاشات] نص الموضع المتشابه كان يرث من global.css حجم .quran-text الكبير (3.2rem !important) مع
+   inline-block وحشوة 25px، فتكون الكلمة الواحدة أعرض من البطاقة على الهاتف فتتسع الصفحة كلها أفقيًا. نخفّف الحجم
+   تدريجيًا حسب عرض الشاشة (دون تغيير النص أو التشكيل) ونقيّد العرض بالحاوية. محصور في .sim-occ-text فقط. 🌟 */
+@media (max-width: 768px) {
+    .sim-occ-text.quran-text {
+        font-size: clamp(1.7rem, 7vw, 3.2rem) !important;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding-inline: 10px;
+    }
+}

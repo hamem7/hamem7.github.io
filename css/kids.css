@@ -332,4 +332,33 @@ h1, h2, h3, .question-text {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.07); }
 }
-.q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+.q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+/* ==========================================================================
+   🌟 [إصلاح التوافق مع الشاشات] التخطيط الجانبي (مسار + مربع اللعب) كان بقواعد !important صفّية وعرض ثابت 280px
+   بلا أي media query، فكان يفيض أفقيًا على الهاتف والآيباد الرأسي (الصفحة تتّسع أكثر من الشاشة).
+   الحل: تحت 900px يتحول إلى عمود واحد بعرض كامل، وتخف الحشوات. القواعد محصورة في .game-layout/.game-sidebar/
+   .game-main-area فقط، وفوق 900px لا يتغير شيء إطلاقًا (سطح المكتب والآيباد الأفقي كما هما). 🌟
+   ========================================================================== */
+@media (max-width: 900px) {
+    .game-layout {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin: 3vh auto !important;
+        gap: 16px !important;
+        padding: 0 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .game-sidebar {
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 16px !important;
+    }
+    .game-main-area {
+        flex: none !important;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 20px 14px !important;
+    }
+}

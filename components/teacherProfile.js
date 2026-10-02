@@ -226,6 +226,11 @@ export function initTeacherProfileUI() {
     const stampPlaceholder = document.getElementById('teacher-profile-stamp-placeholder');
     const nameInput = document.getElementById('teacher-profile-name-input');
     const dobInput = document.getElementById('teacher-profile-dob-input');
+    // 🌟 [جديد] قوائم تاريخ الميلاد (اليوم/الشهر/السنة) + زر "تعديل بياناتي" الظاهر بجانب الترحيب
+    const dobDay = document.getElementById('teacher-profile-dob-day');
+    const dobMonth = document.getElementById('teacher-profile-dob-month');
+    const dobYear = document.getElementById('teacher-profile-dob-year');
+    const editBtn = document.getElementById('teacher-profile-edit-btn');
     // 🌟 [جديد] تحديد الجنس (ذكر/أنثى) — اختياري، "ذكر" افتراضياً (يبقى اللقب "شيخ"
     // كما كان قبل هذه الميزة)
     const genderInput = document.getElementById('teacher-profile-gender-input');
@@ -272,10 +277,54 @@ export function initTeacherProfileUI() {
         }
     }
 
+    // 🌟 [إصلاح ترتيب تاريخ الميلاد] ثلاث قوائم بترتيب DOM ثابت (يوم ← شهر ← سنة) بدل <input type="date">
+    // الذي كان يعكس الترتيب مع RTL. القيمة المحفوظة تبقى بنفس الصيغة القديمة YYYY-MM-DD تمامًا
+    // (الحقل المخفي dobInput هو مصدر القيمة عند الحفظ)، فلا يتأثر أي كود آخر يقرأ profile.dob.
+    function fillDobSelect(sel, placeholderKey, from, to, descending, pad) {
+        if (!sel) return;
+        sel.innerHTML = '';
+        const ph = document.createElement('option');
+        ph.value = '';
+        ph.textContent = t(placeholderKey);
+        sel.appendChild(ph);
+        const add = (n) => {
+            const o = document.createElement('option');
+            o.value = String(n);
+            o.textContent = pad ? String(n).padStart(2, '0') : String(n);
+            sel.appendChild(o);
+        };
+        if (descending) { for (let n = to; n >= from; n--) add(n); }
+        else { for (let n = from; n <= to; n++) add(n); }
+        sel.setAttribute('aria-label', t(placeholderKey));
+    }
+    function buildDobSelects() {
+        fillDobSelect(dobDay, 'profile_dob_day', 1, 31, false, false);
+        fillDobSelect(dobMonth, 'profile_dob_month', 1, 12, false, false);
+        fillDobSelect(dobYear, 'profile_dob_year', 1900, new Date().getFullYear(), true, false);
+    }
+    // يملأ القوائم من القيمة المحفوظة YYYY-MM-DD (لا يغيّر القيمة نفسها، فقط عرضها)
+    function setDobSelects(dob) {
+        buildDobSelects();
+        const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(dob || '');
+        if (!m) return;
+        if (dobYear) dobYear.value = String(parseInt(m[1], 10));
+        if (dobMonth) dobMonth.value = String(parseInt(m[2], 10));
+        if (dobDay) dobDay.value = String(parseInt(m[3], 10));
+    }
+    // يجمع القوائم إلى YYYY-MM-DD؛ يُرجع null إن لم تكتمل الأجزاء الثلاثة أو كان التاريخ غير حقيقي (مثل 31 فبراير)
+    function readDobFromSelects() {
+        const y = parseInt(dobYear?.value, 10), mo = parseInt(dobMonth?.value, 10), d = parseInt(dobDay?.value, 10);
+        if (!y || !mo || !d) return null;
+        const check = new Date(y, mo - 1, d);
+        if (check.getFullYear() !== y || check.getMonth() !== mo - 1 || check.getDate() !== d) return null;
+        return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
+
     function openModal() {
         const profile = AppState.currentTeacher || {};
         if (nameInput) nameInput.value = profile.name || '';
         if (dobInput) dobInput.value = profile.dob || '';
+        setDobSelects(profile.dob || '');
         if (genderInput) genderInput.value = profile.gender === 'female' ? 'female' : 'male';
         pendingPhoto = profile.photo || null;
         if (photoPreview) photoPreview.src = profile.photo || 'icons/icon-192.png';
@@ -290,6 +339,8 @@ export function initTeacherProfileUI() {
     // 🌟 [جديد] دائرة الصورة بجانب الترحيب تفتح نفس نافذة التعديل — وتبقى موجودة حتى
     // بعد اختفاء شارة "أكمل بياناتك" عند اكتمال البيانات
     if (avatarBtn) avatarBtn.addEventListener('click', openModal);
+    // 🌟 [جديد] زر "تعديل بياناتي" الواضح — يفتح نفس النافذة بالبيانات المسجّلة، والحفظ يحدّث سجل 'main' نفسه
+    if (editBtn) editBtn.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
@@ -396,7 +447,8 @@ export function initTeacherProfileUI() {
         saveBtn.addEventListener('click', async () => {
             const data = {
                 name: (nameInput?.value || '').trim(),
-                dob: dobInput?.value || null,
+                // 🌟 يُحفظ بنفس صيغة YYYY-MM-DD القديمة؛ لو لم يكتمل اليوم/الشهر/السنة (أو تاريخ غير حقيقي) يُحفظ null كما كان عند ترك الحقل فارغًا
+                dob: readDobFromSelects(),
                 gender: genderInput?.value === 'female' ? 'female' : 'male',
                 photo: pendingPhoto || null,
                 stamp: pendingStamp || null
