@@ -55,6 +55,7 @@ document.addEventListener('fullscreenchange', () => {
 // مغادرة شاشة الاختبار (تقرير/لوحة) → خروج من ملء الشاشة
 document.addEventListener('dh:screen', () => {
     if (isGameScreen()) return;
+    delete document.body.dataset.gameQ;
     if (document.body.dataset.gameFs === '1') {
         delete document.body.dataset.gameFs;
         if (document.fullscreenElement) document.exitFullscreen().catch(() => {});

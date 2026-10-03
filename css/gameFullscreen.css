@@ -6,16 +6,18 @@
    - المساحة = ارتفاع النافذة ناقص الترويسة (--dh-game-header-h يقيسها components/gameFullscreen.js)،
      وأي محتوى أطول يُمرَّر داخل صندوق السؤال نفسه بدل تمرير الصفحة كلها.
    - زر "⛶ ملء الشاشة" يُخفي الترويسة ويطلب وضع ملء الشاشة من المتصفح (data-game-fs على <body>،
-     خاصية بيانات لا class حتى لا تمسحها switchTheme). */
+     خاصية بيانات لا class حتى لا تمسحها switchTheme).
+   - مستثنى: سؤال "الذاكرة البصرية" (data-game-q="visual_memory" يضعها games/adultGame.js) يبقى
+     بالتخطيط الأصلي تماماً كما كان قبل هذا التعديل. */
 
 @media (min-width: 901px) {
-    body[data-dh-screen$="Game.html"] #app-root > .screen {
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) #app-root > .screen {
         max-width: none;
         padding: 12px 20px;
         box-sizing: border-box;
     }
 
-    body[data-dh-screen$="Game.html"] .game-layout {
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-layout {
         max-width: 1800px !important;
         width: 100%;
         box-sizing: border-box;
@@ -28,7 +30,7 @@
         height: calc(100dvh - var(--dh-game-header-h, 90px) - 24px);
     }
 
-    body[data-dh-screen$="Game.html"] .game-sidebar {
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-sidebar {
         align-self: flex-start;
         max-height: 100%;
         overflow-y: auto;
@@ -36,19 +38,19 @@
         padding: 18px !important;
     }
 
-    body[data-dh-screen$="Game.html"] .game-main-area {
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-main-area {
         min-width: 0;
         overflow-y: auto;
         box-sizing: border-box;
         padding: 20px 32px !important;
     }
 
-    body[data-dh-screen$="Game.html"] .in-game-student { margin-bottom: 14px !important; }
-    body[data-dh-screen$="Game.html"] #game-title { margin-bottom: 14px !important; }
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .in-game-student { margin-bottom: 14px !important; }
+    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) #game-title { margin-bottom: 14px !important; }
 
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
-    body[data-game-fs="1"] #main-header { display: none !important; }
-    body[data-game-fs="1"] .game-layout {
+    body[data-game-fs="1"]:not([data-game-q="visual_memory"]) #main-header { display: none !important; }
+    body[data-game-fs="1"]:not([data-game-q="visual_memory"]) .game-layout {
         height: calc(100vh - 24px);
         height: calc(100dvh - 24px);
     }

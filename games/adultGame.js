@@ -494,6 +494,8 @@ function persistEvaluationToHistory() {
 
 async function playNextMission() {
     try {
+        // 🌟 [جديد] سؤال "الذاكرة البصرية" مستثنى من ملء الشاشة (راجع css/gameFullscreen.css) — نمسح العلامة مع كل سؤال جديد
+        delete document.body.dataset.gameQ;
         if(GameState.currentIndex >= GameState.queue.length) {
             updateTrackerUI();
             clearInterval(GameState.timerInterval);
@@ -733,6 +735,7 @@ async function playNextMission() {
         } else if (type === 'visual_memory') {
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            if(GameState.currentData && GameState.currentData.type === 'visual_memory') document.body.dataset.gameQ = 'visual_memory';
             
             document.getElementById('teacher-eval-area').style.display = 'block'; 
             document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
