@@ -105,7 +105,7 @@ export const AppState = {
     currentLang: localStorage.getItem('app_lang') || 'ar'
 };
 
-// 🎂 دالة التحقق من أعياد الميلاد وإرسال إشعار فوري لسطح المكتب
+// 🎂 دالة التحقق من أيام الميلاد وإرسال إشعار فوري لسطح المكتب
 async function checkBirthdays() {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     if (!AppState.studentManager) return;
@@ -133,7 +133,7 @@ async function checkBirthdays() {
             }
         });
     } catch (e) {
-        console.warn("تعذر التحقق من أعياد الميلاد:", e);
+        console.warn("تعذر التحقق من أيام الميلاد:", e);
     }
 }
 
@@ -573,7 +573,7 @@ function updateHomeDateBar() {
 
 function setupSplashListeners() {
     updateHomeDateBar();
-    // 🧑‍🏫 الترحيب الشخصي، شارة إكمال البيانات، ملخص الواجبات، وتنبيه عيد ميلاد المعلم
+    // 🧑‍🏫 الترحيب الشخصي، شارة إكمال البيانات، ملخص الواجبات، وتنبيه يوم ميلاد المعلم
     initTeacherProfileUI();
 
     const btnAdult = document.getElementById('btn-adult-main');
@@ -640,7 +640,7 @@ function setupSplashListeners() {
     if (btnTajweed) btnTajweed.addEventListener('click', openTajweedSection);
 
     // 🌟 منطق البيانات الحية لبطاقة "نظرة سريعة" الجديدة (متوسط الإتقان، عدد
-    // التقارير، تذكير عيد ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
+    // التقارير، تذكير يوم ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
     // كل شيء في components/homeQuickview.js حتى لا يتضخم هذا الملف
     initHomeQuickview();
 

@@ -205,8 +205,8 @@ export const translations = {
         btn_start_eval: "🚀 ابدأ التقييم الآن",
         btn_change_student: "🔙 تغيير الطالب / العودة",
         btn_homework_module: "📝 نظام الواجبات المنزلية",
-        bday_notification_title: "🎉 تنبيه عيد ميلاد!",
-        bday_notification_msg: "اليوم يوافق عيد ميلاد الطالب: ",
+        bday_notification_title: "🎉 تنبيه يوم ميلاد!",
+        bday_notification_msg: "اليوم يوافق يوم ميلاد الطالب: ",
 
         // 🌟 ترحيب الشاشة الرئيسية وملف المعلم الشخصي 🌟
         greeting_morning: "صبّحكم الله بالخير",
@@ -266,9 +266,9 @@ export const translations = {
         profile_backup_restore_error: "تعذّر استرجاع النسخة الاحتياطية. تأكد من اختيار الملف الصحيح.",
         profile_backup_restore_success: "تم استرجاع البيانات بنجاح ✅ سيُعاد تحميل المنصة الآن.",
 
-        teacher_bday_notification_title: "🎉 عيد ميلاد سعيد!",
+        teacher_bday_notification_title: "🎉 يوم ميلاد سعيد!",
         teacher_bday_notification_msg: "كل عام وأنت بخير يا شيخ ",
-        // 🌟 [جديد] صيغة مؤنّثة لرسالة عيد ميلاد المعلمة نفسها (وأنتِ بدل وأنت)
+        // 🌟 [جديد] صيغة مؤنّثة لرسالة يوم ميلاد المعلمة نفسها (وأنتِ بدل وأنت)
         teacher_bday_notification_msg_female: "كل عام وأنتِ بخير يا أستاذة ",
 
         // 🌟 الشاشة الرئيسية الجديدة: الهيرو وبطاقة "نظرة سريعة" 🌟
@@ -576,7 +576,7 @@ export const translations = {
         badge_streak_desc: "تحقيق 3 انتصارات متتالية (أو مضاعفاتها) عبر المواجهات",
         dtpa_no_badges_yet: "لا توجد أوسمة بعد — أول مواجهة ثنائية مكتملة ستُغيّر ذلك! 🎯",
         home_quickview_title: "نظرة سريعة",
-        home_bday_today: "عيد ميلاد الطالب {name} اليوم",
+        home_bday_today: "يوم ميلاد الطالب {name} اليوم",
         home_mastery_avg_label: "متوسط نسبة الإتقان العام",
         home_mastery_avg_sub: "بناءً على آخر التقييمات",
         home_mastery_no_data: "لا توجد بيانات كافية بعد",

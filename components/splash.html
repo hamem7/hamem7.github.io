@@ -160,7 +160,7 @@
     }
 
     /* 🌟🌟 [جديد] بانر التذكير الشهري بتحديث بيانات حفظ الطلاب — قواعد معزولة
-         تماماً هنا أيضاً (نفس فلسفة العزل أعلاه)، بنفس لغة بانر عيد ميلاد
+         تماماً هنا أيضاً (نفس فلسفة العزل أعلاه)، بنفس لغة بانر يوم ميلاد
          المعلم الموجود فعلاً في css/home.css (.teacher-bday-banner) لكن دون
          الاعتماد على تلك القاعدة نفسها لتفادي أي تداخل غير مقصود بينهما */
     .dh-monthly-memo-banner {
@@ -325,7 +325,7 @@
                     </div>
 
                     <!-- 🌟🌟 [جديد 2026-10-01] مجموعة "يحتاج منك اليوم" — تجمع كل العناصر التي تنتظر
-                         إجراءً فعلياً من المعلم اليوم (عيد ميلاد طالب، مستحق المراجعة، مواجهات معلّقة)
+                         إجراءً فعلياً من المعلم اليوم (يوم ميلاد طالب، مستحق المراجعة، مواجهات معلّقة)
                          وتُوضَع أولاً في البطاقة، قبل الإحصاءات والآية. مخفية افتراضياً، وfunction
                          updateTodayGroup في components/homeQuickview.js هي المتحكم الوحيد في إظهارها:
                          تظهر العنوان لو في عنصر واحد على الأقل، أو رسالة "لا شيء معلّق اليوم" لو لا
@@ -333,7 +333,7 @@
                          الـids القديمة لكل عنصر بالداخل لم تتغير إطلاقاً (لا تأثير على أي منطق سابق). -->
                     <div class="home-quickcard-today" id="home-quickcard-today" style="display:none;">
                         <div class="home-quickcard-today-label" id="home-quickcard-today-label" style="display:none;" data-i18n="home_today_label">يحتاج منك اليوم</div>
-                        <!-- 🌟 تذكير عيد ميلاد طالب — يظهر فقط إن كان اليوم عيد ميلاد أحد الطلاب الفعليين -->
+                        <!-- 🌟 تذكير يوم ميلاد طالب — يظهر فقط إن كان اليوم يوم ميلاد أحد الطلاب الفعليين -->
                         <div class="home-quickcard-bday" id="home-quickcard-bday" style="display:none;">
                             <span class="home-quickcard-bday-icon" aria-hidden="true">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06231c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6"/><path d="M2 21h20"/><path d="M4 13c1-1 2-1 3 0s2 1 3 0 2-1 3 0 2 1 3 0 2-1 3 0"/><path d="M12 9V5"/></svg>
@@ -434,7 +434,7 @@
         <button type="button" class="dh-monthly-memo-banner-close" id="monthly-memo-banner-close" aria-label="close">✖️</button>
     </div>
 
-    <!-- 🌟 بانر عيد ميلاد المعلم — يظهر فقط في يوم ميلاده الحقيقي -->
+    <!-- 🌟 بانر يوم ميلاد المعلم — يظهر فقط في يوم ميلاده الحقيقي -->
     <div class="teacher-bday-banner" id="teacher-bday-banner" style="display:none;">
         <span class="bday-banner-text"></span>
         <button type="button" class="bday-banner-close" id="teacher-bday-banner-close" aria-label="close">✖️</button>
