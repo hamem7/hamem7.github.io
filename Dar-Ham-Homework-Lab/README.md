@@ -6,7 +6,7 @@ reCAPTCHA and no login for students. It does **not** touch the 100+ file platfor
 ```
 Teacher page ─┐                                     ┌─ Google Sheet (storage only, nobody opens it)
               ├─ js/api.js ─ fetch ─▶ Apps Script ──┤
-Student page ─┘   (text/plain POST)   Web App /exec └─ Script Properties (TEACHER_KEY, never in frontend JS)
+Student page ─┘   (text/plain POST)   Web App /exec └─ Script Properties (GOOGLE_CLIENT_ID; no Teacher Key)  
 ```
 
 ## Status — read this first
@@ -48,9 +48,10 @@ a single trusted deployment, but step 6 costs one extra minute and is worth doin
 2. **Extensions → Apps Script**. Delete the default code, paste all of `backend/Code.gs`. Save.
    (Optional: Project Settings → "Show appsscript.json" and paste `backend/appsscript.json`.)
 3. Select function **`setup`** → **Run**. Approve permissions (Google says the app is unverified because *you* wrote
-   it: Advanced → "Go to … (unsafe)" → Allow). Open **Execution log** and copy the **TEACHER KEY** it prints.
-   (Or set your own: Project Settings → Script properties → `TEACHER_KEY`.) This key still works exactly as before —
-   see "Old Teacher Key migration" below.
+   it: Advanced → "Go to … (unsafe)" → Allow). It creates the sheets. 🌟 2026-10-03: there is **no Teacher Key**
+   any more and **no email allowlist** — every teacher signs in with Google and gets their own isolated homeworks.
+   Re-running `setup()` on an existing deployment also deletes the obsolete `TEACHER_KEY` / `TEACHER_EMAILS`
+   script properties (no data is touched).
 4. Set the `GOOGLE_CLIENT_ID` script property from step 0.6 above (skip only if you skipped step 0.6).
 5. **Deploy → New deployment → ⚙️ Web app** → *Execute as*: **Me** → *Who has access*: **Anyone** → Deploy.
    Copy the **Web app URL** (ends with `/exec`).
@@ -66,17 +67,14 @@ Open `https://<you>.github.io/dar-ham-homework-lab/`, paste the `/exec` URL in "
 homework or want to see your saved ones (teacher.html / results.html will prompt you at that point).
 (Optional: put the URL in `DEFAULT_API_URL` in `js/api.js` for shorter student links.)
 
-### Old Teacher Key migration
+### Old (un-owned) homeworks — Teacher Key removed 2026-10-03
 
-If you were already using the shared Teacher Key before this update:
+The shared Teacher Key, its admin bypass and the `migrateLegacyKey` action were removed. Homeworks created before
+multi-teacher (no `ownerId`) are **kept**: they belong to the teacher stored in the `LEGACY_OWNER_USERID` script
+property (already set if you migrated earlier). If it was never set, the script owner runs this once from the Apps
+Script editor, after that teacher has signed in with Google at least once:
 
-1. Open `index.html` → expand **"مفتاح المعلم القديم"** → paste your old key (saved locally only, never sent anywhere by itself).
-2. Click **"تسجيل الدخول باستخدام Google"** and sign in with your usual Google account.
-3. In that same step the Lab silently calls `migrateLegacyKey` with both the key and your new Google session — if
-   this is the *first* Google account ever to do this, all of your pre-existing (un-owned) homeworks become yours
-   permanently; the raw key itself is never removed and keeps working as a full-access admin key (see
-   `backend/Code.gs`'s `canAccessHw_` for the exact rule, documented inline).
-4. From then on you are never asked for the old key again — only Google Sign-In.
+    assignLegacyHomeworksToEmail('teacher@gmail.com')
 
 New teachers never see or need the old key at all: they just click "تسجيل الدخول باستخدام Google" the first time
 they publish a homework, and get their own empty homework list.
@@ -131,9 +129,10 @@ server is idempotent, so retries can never duplicate.
 
 ## Security decisions
 * Homework URL = `?hw=<122-bit random id>` (+ optional `api=` restricted to `script.google.com/macros/s/*/exec`). No answers, no keys.
-* Teacher key lives in Apps Script *Script Properties*, sent only in POST bodies, brute-force lockout after 20 wrong tries.
+* Teacher identity = Google Sign-In only: the server verifies the ID token (issuer, audience, verified email) and issues a random
+  24-char `sessionKey`, sent only in POST bodies. No Teacher Key, no email allowlist; isolation comes from `ownerId`.
 * Server validates ids/sizes/names, grades from the stored definition, ignores client scores/status/studentId, uses its own clock.
-* Public GET can only read a student-safe homework by id. Everything else is POST + key.
+* Public GET can only read a student-safe homework by id. Everything else is POST + Google session.
 * Sheets hazards handled: text-formatted columns (no formula injection / numeric coercion), row-cap growth, 45k-char chunking.
 
 ## Known limitations (honest)
@@ -147,4 +146,4 @@ server is idempotent, so retries can never duplicate.
 ## Files
 `vendor/*` are **byte-identical copies** of platform files (do not edit): `engine/homeworkEngine.js` md5 `c3b397f8…`,
 `engine/quranEngine.js`, `database/quranDB.js|studentDB.js|homeworkDB.js`.
-Local emulator (optional): `node dev/server.mjs` → http://localhost:8080 (prints a demo teacher key). Tests: see Status.
+Local emulator (optional): `node dev/server.mjs` → http://localhost:8080 (prints a demo Google teacher session). Tests: see Status.

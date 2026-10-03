@@ -32,7 +32,7 @@ Audited: `D:\المنصة\الاحتياطي\test-test` (read-only; nothing in t
 Verdict on "is the architecture more complicated than necessary?" **Yes.** A single teacher + share-by-link needs: an unguessable id, a server that stores questions and answers separately, an idempotent submit, and a teacher-authenticated read. Firebase + App Check + reCAPTCHA + self-contained links + device-local records + retry queues are patches around problems the design created.
 
 ## C. Chosen architecture (Lab)
-Frontend (static, GitHub Pages) → `js/api.js` → **Google Apps Script Web App** → **Google Sheets** as storage. Teacher key in Script Properties. Server-side grading, idempotent submit, persistence read-back. Fallbacks (Cloudflare Workers+D1, Supabase, PostgreSQL) keep the same `js/api.js` contract. See README for the decision table.
+Frontend (static, GitHub Pages) → `js/api.js` → **Google Apps Script Web App** → **Google Sheets** as storage. Teacher identity via Google Sign-In only (Teacher Key removed 2026-10-03). Server-side grading, idempotent submit, persistence read-back. Fallbacks (Cloudflare Workers+D1, Supabase, PostgreSQL) keep the same `js/api.js` contract. See README for the decision table.
 
 ## D. Integration into the full platform (only after the real-world protocol passes)
 Files that change (all others untouched):

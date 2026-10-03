@@ -12,7 +12,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createBackend } from './gas-emulator.mjs';
+import { createTeacherBackend } from './gas-emulator.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -20,8 +20,8 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
   '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.md': 'text/plain; charset=utf-8' };
 
 export function startDevServer({ webPort = 8080, apiPort = 8081, echoPort = 8082, latencyMs = 120, quiet = true } = {}) {
-  const backend = createBackend();
-  const teacherKey = backend.setup();
+  // 🌟 [2026-10-03] no Teacher Key any more: the emulator signs one fake Google teacher in and exposes its session.
+  const { be: backend, auth: teacherAuth } = createTeacherBackend();
   const chaos = { mode: 'none', count: 0, ms: 0 };
   const echo = new Map();
   let counter = 0;
@@ -62,7 +62,7 @@ export function startDevServer({ webPort = 8080, apiPort = 8081, echoPort = 8082
     if (u.pathname === '/__state') {
       const rows = (name) => { const sh = backend.ss.getSheetByName(name); return sh ? sh.getLastRow() - 1 : 0; };
       res.writeHead(200, { ...cors, 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ homeworks: rows('Homeworks'), submissions: rows('Submissions'), teacherKey, stats }));
+      return res.end(JSON.stringify({ homeworks: rows('Homeworks'), submissions: rows('Submissions'), teacherAuth, stats }));
     }
     if (!u.pathname.endsWith('/exec')) { res.writeHead(404, cors); return res.end('nope'); }
 
@@ -98,7 +98,7 @@ export function startDevServer({ webPort = 8080, apiPort = 8081, echoPort = 8082
 
   return new Promise((resolve) => {
     let n = 0; const done = () => { if (++n === 3) resolve({
-      backend, teacherKey, chaos, stats,
+      backend, teacherAuth, chaos, stats,
       webUrl: `http://localhost:${webPort}`, apiUrl: `http://localhost:${apiPort}/macros/s/DEV/exec`,
       setChaos: (mode, count = -1, ms = 0) => { chaos.mode = mode; chaos.count = count; chaos.ms = ms; },
       close: () => { web.close(); api.close(); echoSrv.close(); web.closeAllConnections?.(); api.closeAllConnections?.(); echoSrv.closeAllConnections?.(); }
@@ -109,5 +109,5 @@ export function startDevServer({ webPort = 8080, apiPort = 8081, echoPort = 8082
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const s = await startDevServer({ quiet: false });
-  console.log(`\nDar Ham Homework Lab — LOCAL EMULATOR (not Google)\n  Lab:        ${s.webUrl}\n  API URL:    ${s.apiUrl}\n  Teacher key: ${s.teacherKey}\n`);
+  console.log(`\nDar Ham Homework Lab — LOCAL EMULATOR (not Google)\n  Lab:        ${s.webUrl}\n  API URL:    ${s.apiUrl}\n  Teacher session: ${s.teacherAuth.userId} ${s.teacherAuth.sessionKey}\n`);
 }

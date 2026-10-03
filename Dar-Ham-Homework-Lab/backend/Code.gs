@@ -6,9 +6,8 @@
  * Setup (5 minutes, see README.md):
  *   1. Create a NEW Google Sheet (name it e.g. "DarHam Homework DB").
  *   2. Extensions -> Apps Script -> paste this whole file into Code.gs -> Save.
- *   3. Run the function `setup` once (authorize when asked). Open View -> Logs / Executions
- *      and copy the TEACHER KEY it prints (or set your own: Project Settings -> Script
- *      Properties -> TEACHER_KEY).
+ *   3. Run the function `setup` once (authorize when asked). It creates the sheets. There is NO
+ *      teacher key any more: teachers identify themselves with Google Sign-In only (see below).
  *   4. Deploy -> New deployment -> type "Web app" -> Execute as: Me -> Who has access: Anyone
  *      -> Deploy -> copy the /exec URL into the Lab (index.html).
  *
@@ -20,7 +19,8 @@
  *   POST {action:'submit', ...}                    (public, idempotent by clientSubmissionId)
  *   POST {action:'authCheck'|'createHomework'|'listHomeworks'|'getHomeworkFull'|
  *         'setHomeworkStatus'|'listSubmissions'|'gradeSubmission'|'voidSubmission',
- *         teacherKey:'...', ...}                   (teacher only)
+ *         userId:'...', sessionKey:'...', ...}     (teacher only — issued by googleSignIn)
+ *   POST {action:'googleSignIn', idToken:'...'}    (public — the Google ID token is the proof)
  *
  * The client MUST send POST bodies as Content-Type: text/plain (a "simple request", so the
  * browser does not send a CORS preflight, which Apps Script cannot answer).
@@ -36,7 +36,7 @@ function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.2.0';
+var VERSION = '1.3.0';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
 // 🌟 [جديد 2026-10-01] Client ID العلني للواجهة (نفس GOOGLE_CLIENT_ID في core/api.js) — احتياطي لو لم تُضبط الخاصية في Script Properties
 var DEFAULT_GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 var SHEET_HW = 'Homeworks';
@@ -86,17 +86,18 @@ function handle_(req, method) {
     if (method === 'GET' && !isPublicGet) throw err_('METHOD_NOT_ALLOWED', 'This action requires POST');
 
     switch (action) {
-      case 'ping':             return out_(ok_({ version: VERSION, serverTime: nowIso_(), configured: isConfigured_() }));
+      case 'ping':             return out_(ok_({ version: VERSION, serverTime: nowIso_(), configured: true }));
       case 'getHomework':      return out_(getHomeworkPublic_(req));
       case 'submit':           return out_(withLock_(function () { return submit_(req); }));
 
       // 🌟 multi-teacher: public (no prior auth needed) — the Google ID token IS the proof of identity.
+      // 🌟🌟 [2026-10-03] حُذف إجراء migrateLegacyKey مع حذف مفتاح المعلم — ربط الواجبات القديمة صار من محرّر
+      // Apps Script فقط بواسطة مالك السكربت (assignLegacyHomeworksToEmail أدناه)، بلا أي مفتاح في الواجهة.
       case 'googleSignIn':     return out_(withLock_(function () { return googleSignIn_(req); }));
-      case 'migrateLegacyKey': return out_(withLock_(function () { return migrateLegacyKey_(req); }));
 
       case 'authCheck': {
         var authA = authenticateTeacher_(req);
-        return out_(ok_({ teacher: true, userId: authA.userId, isLegacy: authA.isLegacy }));
+        return out_(ok_({ teacher: true, userId: authA.userId }));
       }
       case 'createHomework': {
         var authC = authenticateTeacher_(req);
@@ -139,23 +140,27 @@ function handle_(req, method) {
 // Setup / config / auth
 // =====================================================================================
 
-/** Run once from the Apps Script editor. Idempotent. */
+/** Run once from the Apps Script editor. Idempotent.
+ *  🌟🌟 [2026-10-03] لم يعد يُنشئ مفتاح معلم (TEACHER_KEY) — الدخول لنظام الواجبات بجوجل فقط. ويمسح خاصيتَي
+ *  TEACHER_KEY و TEACHER_EMAILS القديمتين لو وُجدتا (لم يعد أي كود يقرؤهما، فمسحهما لا يمس أي بيانات). */
 function setup() {
   var ss = ss_();
   ensureSheet_(ss, SHEET_HW, HW_FIXED, MAX_CHUNKS);
   ensureSheet_(ss, SHEET_SUB, SUB_FIXED, MAX_CHUNKS);
-  var props = PropertiesService.getScriptProperties();
-  var key = props.getProperty('TEACHER_KEY');
-  if (!key) {
-    key = randomKey_(12);
-    props.setProperty('TEACHER_KEY', key);
-  }
-  Logger.log('DarHam Homework Lab is ready. TEACHER KEY = ' + key);
-  return key;
+  ensureSheet_(ss, SHEET_TEACHERS, TEACHERS_FIXED, MAX_CHUNKS);
+  var removed = removeObsoleteAuthProperties_();
+  Logger.log('DarHam Homework is ready (Google Sign-In only).' + (removed.length ? ' Removed obsolete properties: ' + removed.join(', ') : ''));
+  return true;
 }
 
-function isConfigured_() {
-  return !!PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
+/** 🌟 [2026-10-03] خصائص المصادقة القديمة: مفتاح المعلم المشترك وقائمة البريد البيضاء. لا يقرؤها أي كود بعد الآن. */
+function removeObsoleteAuthProperties_() {
+  var props = PropertiesService.getScriptProperties();
+  var removed = [];
+  ['TEACHER_KEY', 'TEACHER_EMAILS'].forEach(function (k) {
+    if (props.getProperty(k) !== null) { props.deleteProperty(k); removed.push(k); }
+  });
+  return removed;
 }
 
 // =====================================================================================
@@ -165,22 +170,21 @@ function isConfigured_() {
 // Design (documented explicitly, per project convention, since the brief left this open):
 //   - Each teacher gets a permanent internal `userId` (never their email) the first time they sign
 //     in with Google, plus a random `sessionKey` (kept in the Teachers sheet). The frontend stores
-//     {userId, sessionKey} and sends BOTH on every teacher-only call instead of the old `teacherKey`.
+//     {userId, sessionKey} and sends BOTH on every teacher-only call.
 //     The server never trusts a client-supplied ownerId/userId by itself — it always re-derives the
 //     caller's identity from a value (sessionKey) it alone issued and can look up.
-//   - The legacy shared TEACHER_KEY keeps working exactly as before (existing behaviour/tests
-//     unchanged) and acts as an admin/master key: it can see and manage ALL homeworks regardless of
-//     owner. It is never handed to a new teacher — only Google Sign-In is offered to them — so this
-//     does not weaken isolation between teachers who onboard through Google.
+//   - 🌟🌟 [2026-10-03] Google Sign-In is the ONLY way in. The old shared TEACHER_KEY (and its admin
+//     bypass, lockout counter and `migrateLegacyKey` action) and the TEACHER_EMAILS allowlist were
+//     removed: any teacher with a verified Google email gets their own isolated account. Isolation
+//     between teachers comes from ownerId (below), not from an allowlist.
 //   - `ownerId` is stored INSIDE each homework's JSON record (like `meta`/`assignedStudentId`
 //     already are), not as a new physical sheet column — so no destructive migration of the already
-//     deployed Homeworks/Submissions sheets is needed. Homeworks created before this change, or
-//     created via the raw legacy key, have no ownerId ("legacy / unowned").
-//   - Migration of PRE-EXISTING unowned homeworks: since this Lab only ever had ONE shared key, the
-//     first teacher who proves they hold BOTH a valid Google session AND the correct legacy
-//     teacherKey (action `migrateLegacyKey`) is recorded as the legacy owner (Script Property
-//     LEGACY_OWNER_USERID, set once). From then on that teacher keeps seeing their pre-existing
-//     unowned homeworks; no other Google account is ever guessed into owning them.
+//     deployed Homeworks/Submissions sheets is needed. Homeworks created before multi-teacher, or
+//     created with the old shared key, have no ownerId ("legacy / unowned") — they are NOT deleted.
+//   - Those unowned homeworks belong to the teacher recorded in Script Property LEGACY_OWNER_USERID
+//     (set once — either earlier by the old migrateLegacyKey flow, or now by the script owner running
+//     assignLegacyHomeworksToEmail('teacher@gmail.com') from the Apps Script editor). No other Google
+//     account is ever guessed into owning them.
 
 function verifyGoogleIdToken_(idToken) {
   if (!idToken || typeof idToken !== 'string') throw err_('BAD_REQUEST', 'idToken required');
@@ -194,23 +198,16 @@ function verifyGoogleIdToken_(idToken) {
   if (String(data.iss) !== 'accounts.google.com' && String(data.iss) !== 'https://accounts.google.com') {
     throw err_('UNAUTHORIZED', 'Untrusted token issuer');
   }
-  // 🌟🌟 [عُدّل — تدقيق 2026-09-29] كان فحص aud اختياريًا (يُتجاهل لو لم تُضبط GOOGLE_CLIENT_ID) وكان أي حساب جوجل
-  // يصبح "معلمًا" ويُنشئ واجبات بلا حد. المنصة لمعلم واحد، فصار الفحصان إجباريين:
-  //   • GOOGLE_CLIENT_ID (Script Property): يجب أن يطابق aud في التوكن.
-  //   • TEACHER_EMAILS (Script Property): قائمة بريد مسموح بها مفصولة بفاصلة، والبريد يجب أن يكون موثَّقًا.
-  // لو لم تُضبطا يفشل الدخول بجوجل برسالة واضحة (مفتاح المعلم القديم يبقى يعمل كخط رجوع).
-  // 🌟🌟 [عُدّل 2026-10-01 بطلب المالك] التسجيل مفتوح: أي معلم يدخل ببريد جوجل موثَّق يُسجَّل تلقائيًا ويفتح نظام الواجبات.
+  // 🌟🌟 [عُدّل 2026-10-03] التسجيل مفتوح لأي معلم: أي حساب جوجل ببريد موثَّق يُسجَّل تلقائيًا ويحصل على حسابه المعزول.
+  //   • حُذفت قائمة البريد البيضاء TEACHER_EMAILS نهائيًا — كانت هي مصدر رسالة "هذا البريد غير مسموح له..." على
+  //     الأجهزة الجديدة (لم تكن تظهر على جهاز قديم لأن جلسته/مفتاحه محفوظ محليًا فلا يُستدعى googleSignIn أصلًا).
   //   • GOOGLE_CLIENT_ID (Script Property) اختياري: لو لم يُضبط نستخدم DEFAULT_GOOGLE_CLIENT_ID الثابت (ليس سرًّا). فحص aud يبقى إجباريًا.
-  //   • TEACHER_EMAILS (Script Property) صار اختياريًا: لو ضُبط (بريد مفصول بفاصلة) نقيّد الدخول به، ولو ترك فارغًا يُسمح لأي بريد موثَّق.
   //   • الحماية من إساءة الاستخدام باقية: لكل معلم حد MAX_HOMEWORKS_PER_TEACHER وإجمالي MAX_HOMEWORKS_TOTAL، وكل معلم لا يرى إلا واجباته.
-  // ⚠️ افتراض صريح: "أي معلم" = أي حساب جوجل بريده موثَّق (email_verified). لإرجاع القائمة البيضاء اضبط TEACHER_EMAILS.
   var props = PropertiesService.getScriptProperties();
   var clientId = props.getProperty('GOOGLE_CLIENT_ID') || DEFAULT_GOOGLE_CLIENT_ID;
-  var allowed = String(props.getProperty('TEACHER_EMAILS') || '').toLowerCase().split(',').map(function (x) { return x.trim(); }).filter(Boolean);
   if (String(data.aud) !== clientId) throw err_('UNAUTHORIZED', 'Token was issued for a different app');
   var mail = data.email ? String(data.email).toLowerCase() : '';
   if (!mail || String(data.email_verified) === 'false') throw err_('UNAUTHORIZED', 'This Google account has no verified email');
-  if (allowed.length && allowed.indexOf(mail) === -1) throw err_('UNAUTHORIZED', 'This Google account is not allowed');
   return { sub: String(data.sub), email: data.email ? String(data.email) : null, name: data.name ? String(data.name) : null };
 }
 
@@ -257,19 +254,26 @@ function googleSignIn_(req) {
   return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, email: rec.email, isNewTeacher: isNew });
 }
 
-/** migrateLegacyKey: {idToken, teacherKey} -> claims pre-existing unowned homeworks for this Google
- *  account, ONLY the first time it is ever called successfully (never re-guessed afterwards). */
-function migrateLegacyKey_(req) {
-  var info = verifyGoogleIdToken_(req.idToken);
-  var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
-  if (!expected || !safeEqual_(String(req.teacherKey || ''), expected)) throw err_('UNAUTHORIZED', 'Wrong teacher key');
-  var found = findTeacherBySub_(info.sub);
-  var rec = found ? touchTeacherLogin_(found) : createTeacher_(info.sub, info.email, info.name);
+/** 🌟🌟 [جديد 2026-10-03 — بديل migrateLegacyKey بلا مفتاح] تشغَّل يدويًا من محرّر Apps Script فقط (ليست إجراء ويب،
+ *  فلا يستطيع أي زائر استدعاءها): تربط الواجبات القديمة بلا مالك (المنشورة قبل تعدّد المعلمين أو بالمفتاح القديم)
+ *  بحساب المعلم صاحب هذا البريد. يجب أن يكون المعلم قد سجّل الدخول بجوجل مرة واحدة على الأقل (حتى يوجد له صف في
+ *  شيت Teachers). لا تحذف ولا تعدّل أي واجب — تكتب فقط LEGACY_OWNER_USERID. لا تستبدل مالكًا مضبوطًا مسبقًا إلا بـ force.
+ *  مثال: assignLegacyHomeworksToEmail('teacher@gmail.com') */
+function assignLegacyHomeworksToEmail(email, force) {
+  var mail = String(email || '').trim().toLowerCase();
+  if (!mail) throw new Error('email required');
+  var rows = readAllRows_(getTeachersSheet_(), TEACHERS_FIXED);
+  var rec = null;
+  for (var i = 0; i < rows.length; i++) if (rows[i].rec && String(rows[i].rec.email || '').toLowerCase() === mail) { rec = rows[i].rec; break; }
+  if (!rec) throw new Error('No teacher with this email has signed in with Google yet: ' + mail);
   var props = PropertiesService.getScriptProperties();
   var current = props.getProperty('LEGACY_OWNER_USERID');
-  if (!current) { props.setProperty('LEGACY_OWNER_USERID', rec.userId); return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: true }); }
-  if (current === rec.userId) return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: true, alreadyClaimed: true });
-  return ok_({ userId: rec.userId, sessionKey: rec.sessionKey, claimed: false });
+  if (current && current !== rec.userId && !force) {
+    throw new Error('Legacy homeworks already belong to userId ' + current + '. Call assignLegacyHomeworksToEmail(email, true) to change it.');
+  }
+  props.setProperty('LEGACY_OWNER_USERID', rec.userId);
+  Logger.log('Legacy (unowned) homeworks now belong to ' + mail + ' (userId ' + rec.userId + ')');
+  return rec.userId;
 }
 
 function isLegacyOwnerUserId_(userId) {
@@ -278,38 +282,23 @@ function isLegacyOwnerUserId_(userId) {
 }
 /** Access rule for a homework record, shared by every teacher-only read/write below. */
 function canAccessHw_(rec, auth) {
-  if (auth.isLegacy) return true;                          // legacy shared key = unchanged admin bypass
   if (rec.ownerId) return rec.ownerId === auth.userId;      // owned record: only its owner
   return isLegacyOwnerUserId_(auth.userId);                 // unowned/legacy record: only the migrated owner
 }
 
-/** Resolves the caller's identity. New Google-session auth (userId+sessionKey) takes priority;
- *  falls back to the legacy shared teacherKey untouched (same lockout counter, same error shape). */
+/** Resolves the caller's identity from the Google-issued session (userId+sessionKey) — the ONLY teacher auth.
+ *  🌟🌟 [2026-10-03] حُذف مسار مفتاح المعلم المشترك (teacherKey) وعدّاد القفل الخاص به نهائيًا: أي طلب بلا جلسة
+ *  جوجل صالحة يُرفض UNAUTHORIZED (حتى لو أرسل teacherKey قديمًا). sessionKey عشوائي 24 خانة فلا حاجة لقفل تخمين. */
 function authenticateTeacher_(req) {
-  var cache = CacheService.getScriptCache();
-
-  // 🌟🌟 [عُدّل — تدقيق 2026-09-29] كان عدّاد الفشل واحدًا لكل المستخدمين، فيستطيع أي مجهول بـ20 طلبًا خاطئًا
-  // قفل المعلم نفسه (حتى بمفتاح صحيح). الآن: جلسة جوجل (sessionKey عشوائي 24 خانة، غير قابل للتخمين) لا تُقفل
-  // ولا تُحتسب عليها محاولات؛ والقفل يخص فقط مفتاح المعلم القديم القصير (تخمينه هو الخطر الفعلي).
   if (req.userId && req.sessionKey) {
     var found = findTeacherByUserId_(String(req.userId));
     if (found && found.row.rec && safeEqual_(String(req.sessionKey), String(found.row.rec.sessionKey))) {
-      return { userId: found.row.rec.userId, isLegacy: false };
+      return { userId: found.row.rec.userId };
     }
     Utilities.sleep(400);
     throw err_('UNAUTHORIZED', 'Sign-in session is invalid, please sign in again');
   }
-
-  var fails = Number(cache.get('auth_fails') || 0);
-  var expected = PropertiesService.getScriptProperties().getProperty('TEACHER_KEY');
-  if (!expected) throw err_('NOT_CONFIGURED', 'Run setup() once in the Apps Script editor');
-  var given = String(req.teacherKey || '');
-  // 🌟 المفتاح الصحيح يُقبل دائمًا حتى أثناء القفل (لا يستطيع مهاجم مجهول منع المعلم)؛ القفل يوقف فقط تخمين المفاتيح الخاطئة
-  if (safeEqual_(given, expected)) return { userId: null, isLegacy: true };
-  if (fails >= 20) throw err_('LOCKED', 'Too many wrong keys. Try again in 10 minutes.');
-  cache.put('auth_fails', String(fails + 1), 600);
-  Utilities.sleep(400);
-  throw err_('UNAUTHORIZED', 'Wrong teacher key');
+  throw err_('UNAUTHORIZED', 'Sign in with Google to use the homework system');
 }
 
 function ensureSheet_(ss, name, fixedCols, chunks) {
@@ -480,17 +469,15 @@ function createHomework_(req, auth) {
   // 🌟 [جديد — تدقيق 2026-09-29] حدّ الحصة: لا يستطيع حساب واحد ولا الإجمالي ملء الشيت
   var existing = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
   if (existing.length >= MAX_HOMEWORKS_TOTAL) throw err_('LIMIT', 'Homework storage is full');
-  if (!auth.isLegacy) {
-    var mine = 0;
-    existing.forEach(function (r) { if (r.rec && r.rec.ownerId === auth.userId) mine++; });
-    if (mine >= MAX_HOMEWORKS_PER_TEACHER) throw err_('LIMIT', 'Homework limit reached for this account');
-  }
+  var mine = 0;
+  existing.forEach(function (r) { if (r.rec && r.rec.ownerId === auth.userId) mine++; });
+  if (mine >= MAX_HOMEWORKS_PER_TEACHER) throw err_('LIMIT', 'Homework limit reached for this account');
   var id = newId_('HW_');
   var record = {
     id: id,
     createdAt: nowIso_(),
     status: 'published',
-    ownerId: auth.isLegacy ? null : auth.userId, // 🌟 multi-teacher: never trust a client-supplied ownerId
+    ownerId: auth.userId, // 🌟 multi-teacher: never trust a client-supplied ownerId
     assignedStudentName: hw.assignedStudentName ? String(hw.assignedStudentName).replace(/[<>"'`\u0000-\u001f]/g, '').slice(0, 80) : null,
     assignedStudentId: (hw.assignedStudentId !== undefined && hw.assignedStudentId !== null) ? hw.assignedStudentId : null,
     questions: hw.questions,
