@@ -343,6 +343,25 @@
     .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
     .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
 
+    /* --- 🌟 [جديد] أزرار التنقل بين الخطوات: أيقونة سهم + الخطوة 2 فيها رجوع وتالي --- */
+    .dts-btn-step-next, .dts-btn-step-back { display: inline-flex; align-items: center; gap: 8px; }
+    .dt-next-ico { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    [dir="ltr"] .dt-next-ico { transform: scaleX(-1); }
+    .dts-step-nav-split { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .dts-btn-step-next:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; transform: none; }
+    /* الجولة المختارة في الخطوة 2 */
+    .dts-roundpick-btn.dts-roundpick-selected {
+        box-shadow: 0 0 0 4px var(--dh-gold-500), 0 18px 34px rgba(6,35,28,0.3);
+        transform: translateY(-4px);
+    }
+    .dts-roundpick-check {
+        position: absolute; top: 12px; inset-inline-start: 12px; width: 28px; height: 28px; border-radius: 50%;
+        background: var(--dh-gold-500); color: var(--dh-emerald-900); display: none; align-items: center; justify-content: center;
+    }
+    .dts-roundpick-check svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .dts-roundpick-btn { position: relative; }
+    .dts-roundpick-btn.dts-roundpick-selected .dts-roundpick-check { display: flex; }
+
     /* --- 🌟 [مُحدَّث] نطاق الجولة: "من سورة" و"إلى سورة" سطران مستقلان، العنوان بجانب القائمة
        بعرض ثابت حتى تصطف القائمتان تحت بعض تماماً --- */
     .dts-round-range-fields { display: flex; flex-direction: column; gap: 10px; }
@@ -442,7 +461,7 @@
                 <div id="dts-rounds-range-container" class="dts-range-cards-grid"></div>
 
                 <div class="dts-step-nav">
-                    <button class="dts-btn-step-next" id="dts-step1-next-btn" data-i18n="dts_step1_next_btn">التالي: اختيار الجولة ▶️</button>
+                    <button class="dts-btn-step-next" id="dts-step1-next-btn"><span data-i18n="dts_step1_next_btn">التالي: اختيار الجولة</span><svg class="dt-next-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
                 </div>
             </div>
 
@@ -453,15 +472,17 @@
 
                 <div class="dts-roundpick-grid" id="dts-roundpick-grid"></div>
 
-                <div class="dts-step-nav">
-                    <button class="dts-btn-step-back" id="dts-step2-back-btn" data-i18n="dts_step2_back_btn">⬅️ رجوع لتعديل النطاق</button>
+                <!-- 🌟 [مُحدَّث] بطلب المعلم: اختيار الجولة ثم «التالي» للأسئلة (تقدّم طبيعي خطوة بخطوة) -->
+                <div class="dts-step-nav dts-step-nav-split">
+                    <button class="dts-btn-step-back" id="dts-step2-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_step2_back_btn">رجوع لتعديل النطاق</span></button>
+                    <button class="dts-btn-step-next" id="dts-step2-next-btn"><span data-i18n="dts_step2_next_btn">التالي: وضع الأسئلة</span><svg class="dt-next-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
                 </div>
             </div>
 
             <!-- ===== الخطوة 3: أسئلة الجولة المختارة فقط ===== -->
             <div id="dts-step-3" style="display:none;">
                 <div class="dts-step-nav dts-step-nav-top">
-                    <button class="dts-btn-step-back" id="dts-step3-back-btn" data-i18n="dts_step3_back_btn">⬅️ رجوع لاختيار الجولة</button>
+                    <button class="dts-btn-step-back" id="dts-step3-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_step3_back_btn">رجوع لاختيار الجولة</span></button>
                 </div>
                 <div id="dts-active-round-container"></div>
             </div>

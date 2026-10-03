@@ -359,14 +359,37 @@ function buildRoundRangeCardHTML(round, roundIndex) {
 function renderRoundsRangeContainer() {
     const container = document.getElementById('dts-rounds-range-container');
     if (!container || !currentTest) return;
-    container.innerHTML = currentTest.rounds.map((r, i) => buildRoundRangeCardHTML(r, i)).join('');
+    // 🌟 [مُحدَّث] بطلب المعلم: الخطوة الأولى = المتسابقان + نطاق الجولات المفتوحة فقط. الجولات
+    // المقفلة لا تظهر هنا (تظهر مقفلة في الخطوة 2 "اختيار الجولة" وحدها)
+    container.innerHTML = currentTest.rounds
+        .map((r, i) => (i < unlockedRoundCount ? buildRoundRangeCardHTML(r, i) : ''))
+        .join('');
 }
 
 // ----- الخطوة 2: اختيار الجولة المراد تجهيزها -----
 
+// 🌟 [جديد] الجولة المختارة افتراضياً عند دخول الخطوة 2: أول جولة مفتوحة بلا أسئلة أساسية بعد،
+// وإلا الجولة المختارة سابقاً (لو ما زالت مفتوحة)، وإلا آخر جولة مفتوحة
+function defaultPickedRoundIndex() {
+    for (let i = 0; i < unlockedRoundCount; i++) {
+        if (!(currentTest.rounds[i].mainQuestions || []).length) return i;
+    }
+    if (activeRoundIndex < unlockedRoundCount) return activeRoundIndex;
+    return unlockedRoundCount - 1;
+}
+
+function updateRoundPickSelection() {
+    document.querySelectorAll('#dts-roundpick-grid .dts-roundpick-btn:not(.dts-round-locked)').forEach(btn => {
+        const selected = parseInt(btn.dataset.roundIndex, 10) === activeRoundIndex;
+        btn.classList.toggle('dts-roundpick-selected', selected);
+        btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+}
+
 function renderRoundPickGrid() {
     const container = document.getElementById('dts-roundpick-grid');
     if (!container || !currentTest) return;
+    activeRoundIndex = defaultPickedRoundIndex();
 
     container.innerHTML = currentTest.rounds.map((round, i) => {
         const mains = round.mainQuestions.length;
@@ -383,7 +406,8 @@ function renderRoundPickGrid() {
         </button>`;
         }
         return `
-        <button type="button" class="dts-roundpick-btn" data-round-index="${i}">
+        <button type="button" class="dts-roundpick-btn" data-round-index="${i}" aria-pressed="false">
+            <span class="dts-roundpick-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
             <span class="dts-roundpick-badge">${i + 1}</span>
             <span class="dts-roundpick-title">${t(ROUND_TITLE_KEYS[i])}</span>
             <span class="dts-roundpick-range">
@@ -394,12 +418,15 @@ function renderRoundPickGrid() {
         </button>`;
     }).join('');
 
+    // 🌟 [مُحدَّث] بطلب المعلم: الضغط على الجولة يختارها فقط (تتميّز بإطار ذهبي وعلامة ✓)،
+    // والانتقال للأسئلة بزر «التالي: وضع الأسئلة» — تقدّم طبيعي خطوة بخطوة
     container.querySelectorAll('.dts-roundpick-btn:not(.dts-round-locked)').forEach(btn => {
         btn.addEventListener('click', () => {
             activeRoundIndex = parseInt(btn.dataset.roundIndex, 10);
-            goToStep(3);
+            updateRoundPickSelection();
         });
     });
+    updateRoundPickSelection();
 }
 
 // ----- الخطوة 3: محرر أسئلة الجولة المختارة فقط -----
@@ -805,6 +832,9 @@ function wireStaticListeners() {
     // ----- المعالج: التنقل بين الخطوات الثلاث -----
     document.getElementById('dts-step1-next-btn')?.addEventListener('click', () => goToStep(2));
     document.getElementById('dts-step2-back-btn')?.addEventListener('click', () => goToStep(1));
+    document.getElementById('dts-step2-next-btn')?.addEventListener('click', () => {
+        if (activeRoundIndex >= 0 && activeRoundIndex < unlockedRoundCount) goToStep(3);
+    });
     document.getElementById('dts-step3-back-btn')?.addEventListener('click', () => goToStep(2));
 
     // ----- الخطوة 1: قوائم نطاق كل جولة (اسم سورة فقط) -----
