@@ -494,7 +494,7 @@ function persistEvaluationToHistory() {
 
 async function playNextMission() {
     try {
-        // 🌟 [جديد] سؤال "الذاكرة البصرية" مستثنى من ملء الشاشة (راجع css/gameFullscreen.css) — نمسح العلامة مع كل سؤال جديد
+        // 🌟 [جديد] data-game-q = نوع السؤال الحالي لضبط تخطيط ملء الشاشة لأسئلة بعينها (راجع css/gameFullscreen.css) — نمسح العلامة مع كل سؤال جديد
         delete document.body.dataset.gameQ;
         if(GameState.currentIndex >= GameState.queue.length) {
             updateTrackerUI();
@@ -808,6 +808,7 @@ async function playNextMission() {
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
+            if(GameState.currentData.type === 'between') document.body.dataset.gameQ = 'between';
             
             let ansHTML = `${t("الإجابة الصحيحة:")}<br>`;
             if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) {

@@ -7,17 +7,20 @@
      وأي محتوى أطول يُمرَّر داخل صندوق السؤال نفسه بدل تمرير الصفحة كلها.
    - زر "⛶ ملء الشاشة" يُخفي الترويسة ويطلب وضع ملء الشاشة من المتصفح (data-game-fs على <body>،
      خاصية بيانات لا class حتى لا تمسحها switchTheme).
-   - مستثنى: سؤال "الذاكرة البصرية" (data-game-q="visual_memory" يضعها games/adultGame.js) يبقى
-     بالتخطيط الأصلي تماماً كما كان قبل هذا التعديل. */
+   - data-game-q على <body> = نوع السؤال الحالي (يضعها games/adultGame.js) لضبط أسئلة بعينها:
+     · "الذاكرة البصرية": نفس العرض الكامل لكن بلا ارتفاع ثابت — صفحتا المصحف أطول من الشاشة،
+       فتنزل الصفحة كلها قليلاً (لا تمرير داخلي) والقائمة الجانبية تبقى ظاهرة (sticky).
+     · "الآية بين آيتين": ثلاثة أسطر بخط 3rem وارتفاع سطر 2.2 كانت تتجاوز الشاشة — حجم الخط يتبع
+       ارتفاع النافذة وسطر الفراغ ( ...... ) أقصر، فيظهر السؤال والأزرار بلا تمرير. */
 
 @media (min-width: 901px) {
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) #app-root > .screen {
+    body[data-dh-screen$="Game.html"] #app-root > .screen {
         max-width: none;
         padding: 12px 20px;
         box-sizing: border-box;
     }
 
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-layout {
+    body[data-dh-screen$="Game.html"] .game-layout {
         max-width: 1800px !important;
         width: 100%;
         box-sizing: border-box;
@@ -30,7 +33,7 @@
         height: calc(100dvh - var(--dh-game-header-h, 90px) - 24px);
     }
 
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-sidebar {
+    body[data-dh-screen$="Game.html"] .game-sidebar {
         align-self: flex-start;
         max-height: 100%;
         overflow-y: auto;
@@ -38,21 +41,54 @@
         padding: 18px !important;
     }
 
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .game-main-area {
+    body[data-dh-screen$="Game.html"] .game-main-area {
         min-width: 0;
         overflow-y: auto;
         box-sizing: border-box;
         padding: 20px 32px !important;
     }
 
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) .in-game-student { margin-bottom: 14px !important; }
-    body[data-dh-screen$="Game.html"]:not([data-game-q="visual_memory"]) #game-title { margin-bottom: 14px !important; }
+    body[data-dh-screen$="Game.html"] .in-game-student { margin-bottom: 14px !important; }
+    body[data-dh-screen$="Game.html"] #game-title { margin-bottom: 14px !important; }
+
+    /* الذاكرة البصرية: الصفحة تمتد لأسفل بدل التمرير داخل الصندوق */
+    body[data-dh-screen$="Game.html"][data-game-q="visual_memory"] .game-layout {
+        height: auto !important;
+        min-height: calc(100vh - var(--dh-game-header-h, 90px) - 24px);
+        min-height: calc(100dvh - var(--dh-game-header-h, 90px) - 24px);
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="visual_memory"] .game-main-area { overflow: visible; }
+    body[data-dh-screen$="Game.html"][data-game-q="visual_memory"] .game-sidebar {
+        position: sticky;
+        top: 12px;
+        max-height: calc(100vh - 24px);
+    }
+
+    /* الآية بين آيتين: حجم يتبع ارتفاع الشاشة + سطر فراغ مضغوط */
+    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text {
+        font-size: clamp(1.9rem, 4.4vh, 3rem) !important;
+        line-height: 1.9 !important;
+        margin-top: 0 !important;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span {
+        display: block;
+        line-height: 1.2;
+        font-size: 1.4rem !important;
+        margin: 0;
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span + br { display: none; }
 
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
-    body[data-game-fs="1"]:not([data-game-q="visual_memory"]) #main-header { display: none !important; }
-    body[data-game-fs="1"]:not([data-game-q="visual_memory"]) .game-layout {
+    body[data-game-fs="1"] #main-header { display: none !important; }
+    body[data-game-fs="1"] .game-layout {
         height: calc(100vh - 24px);
         height: calc(100dvh - 24px);
+    }
+    body[data-game-fs="1"][data-game-q="visual_memory"] .game-layout {
+        min-height: calc(100vh - 24px);
+        min-height: calc(100dvh - 24px);
     }
 }
 
