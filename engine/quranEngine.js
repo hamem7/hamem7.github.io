@@ -2,6 +2,9 @@
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
 
+// 🌟 [2026-10-03] مفتاح فهرس السور الخفيف (راجع getAllSurahsList)
+const SURAH_INDEX_KEY = 'dh_surah_index_v1';
+
 export const cleanName = (name) => { 
     if(!name) return ""; 
     return name.replace(/سُورَةُ\s*/g, '').replace(/سورة\s*/g, '').trim(); 
@@ -121,7 +124,21 @@ export class QuranEngine {
     constructor(db) { this.db = db; }
     
     async getSurah(surahNumber) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).get(surahNumber); req.onsuccess = () => resolve(req.result); }); }
-    async getAllSurahsList() { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => resolve(req.result.map(s => ({ number: s.number, name: cleanName(s.name), ayahsCount: s.ayahs.length }))); }); }
+    // 🌟 [2026-10-03 — سرعة الفتح] كانت تقرأ المصحف كاملاً (6236 آية) من IndexedDB في كل فتح للمنصة لأجل الأسماء وعدد الآيات فقط.
+    // الآن تُحفظ هذه القائمة الصغيرة (الاسم الخام كما في القاعدة) في localStorage بعد أول قراءة، وcleanName يُطبَّق عند كل قراءة كما كان،
+    // فالناتج مطابق حرفياً. أي خلل في النسخة المحفوظة (ليست 114 سورة/تالفة/التخزين غير متاح) → الرجوع للقراءة الكاملة كالسابق.
+    async getAllSurahsList() {
+        const toList = (rows) => rows.map(s => ({ number: s.number, name: cleanName(s.name), ayahsCount: s.ayahsCount }));
+        try {
+            const cached = JSON.parse(localStorage.getItem(SURAH_INDEX_KEY) || 'null');
+            if (Array.isArray(cached) && cached.length === 114 && cached.every(s => s && typeof s.number === 'number' && typeof s.name === 'string' && typeof s.ayahsCount === 'number')) {
+                return toList(cached);
+            }
+        } catch (e) { /* نسخة تالفة أو تخزين غير متاح: نكمل بالقراءة الكاملة */ }
+        const rows = await new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => resolve(req.result.map(s => ({ number: s.number, name: s.name, ayahsCount: s.ayahs.length }))); });
+        if (rows.length === 114) { try { localStorage.setItem(SURAH_INDEX_KEY, JSON.stringify(rows)); } catch (e) { /* التخزين ممتلئ: لا مشكلة */ } }
+        return toList(rows);
+    }
     async getAllAyahsOnPage(pageNum) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let pageAyahs = []; req.result.forEach(surah => { surah.ayahs.forEach(a => { if (a.page === pageNum) { a.surahName = cleanName(surah.name); a.surahNumber = surah.number; pageAyahs.push(a); } }); }); resolve(pageAyahs); }; }); }
     async getAyahsByJuz(juzNumber) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let allSurahs = req.result; let juzAyahs = []; allSurahs.forEach(surah => { let filtered = surah.ayahs.filter(a => a.juz === juzNumber); if(filtered.length > 0) { let cName = cleanName(surah.name); filtered.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); juzAyahs = juzAyahs.concat(filtered); } }); resolve(juzAyahs); }; }); }
     getAyahsInRange(surah, start, end) { let cName = cleanName(surah.name); let ayahs = surah.ayahs.filter(a => a.numberInSurah >= start && a.numberInSurah <= end); ayahs.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); return ayahs; }

@@ -30,7 +30,39 @@ export function initQuranDB() {
 // خطأ HTTP أو JSON غير صالح، أو رُفضت الكتابة (امتلاء التخزين)، إما يبقى الـ Promise معلّقاً للأبد أو ينهار
 // الإقلاع وتبقى الشاشة فارغة بلا أي رسالة. الآن: كل مسار فشل يُرفض بخطأ واضح (code = QURAN_LOAD_FAILED) ليعرضه
 // core/app.js برسالة مفهومة وزر "إعادة المحاولة". لا تغيير في السلوك الناجح ولا في بنية البيانات.
+// 🌟 [2026-10-03] مصدر نص المصحف: نسخة محلية مرفوعة مع المنصة نفسها (database/quran-uthmani.json — نفس استجابة
+// alquran.cloud حرفياً، المبنية على نص "تنزيل" الموثّق) حتى لا يتوقف أول تشغيل على جهاز جديد على خادم خارجي.
+// الرابط الخارجي يبقى احتياطياً فقط لو تعذّر الملف المحلي لأي سبب. كلا المصدرين يمرّان بنفس فحص الشكل (114 سورة).
+const QURAN_SOURCES = [
+    'database/quran-uthmani.json',
+    'https://api.alquran.cloud/v1/quran/quran-uthmani'
+];
+
+async function fetchQuranPayload() {
+    let lastError = null;
+    for (const url of QURAN_SOURCES) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('HTTP ' + response.status + ' ' + url);
+            const data = await response.json();
+            // تحقق من شكل البيانات (114 سورة) قبل الكتابة حتى لا نخزّن استجابة ناقصة/تالفة كأنها المصحف
+            if (!data || !data.data || !Array.isArray(data.data.surahs) || data.data.surahs.length !== 114) {
+                throw new Error('BAD_QURAN_PAYLOAD ' + url);
+            }
+            return data;
+        } catch (e) {
+            lastError = e;
+            console.warn('تعذّر تحميل نص المصحف من', url, e);
+        }
+    }
+    throw lastError;
+}
+
 export async function ensureQuranLoaded() { 
+    // 🌟 [2026-10-03] طلب "تخزين دائم" حتى لا يمسح المتصفح المصحف وبيانات الطلاب تلقائياً عند امتلاء الجهاز
+    // (best-effort: بلا انتظار ولا أي رسالة للمستخدم، وأي رفض أو عدم دعم يُتجاهل بصمت)
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) { /* لا شيء */ }
+
     const db = await initQuranDB(); 
     return new Promise((resolve, reject) => { 
         const fail = (cause) => {
@@ -47,13 +79,7 @@ export async function ensureQuranLoaded() {
         countReq.onsuccess = async () => { 
             if (countReq.result === 0) { 
                 try { 
-                    const response = await fetch('https://api.alquran.cloud/v1/quran/quran-uthmani'); 
-                    if (!response.ok) throw new Error('HTTP ' + response.status);
-                    const data = await response.json(); 
-                    // تحقق من شكل البيانات (114 سورة) قبل الكتابة حتى لا نخزّن استجابة ناقصة/تالفة كأنها المصحف
-                    if (!data || !data.data || !Array.isArray(data.data.surahs) || data.data.surahs.length !== 114) {
-                        throw new Error('BAD_QURAN_PAYLOAD');
-                    }
+                    const data = await fetchQuranPayload();
                     const writeTx = db.transaction(QURAN_STORE, "readwrite"); 
                     const writeStore = writeTx.objectStore(QURAN_STORE); 
                     data.data.surahs.forEach(surah => writeStore.put(surah)); 

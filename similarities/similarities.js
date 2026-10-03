@@ -169,6 +169,8 @@ export async function initSimilaritiesHome() {
         }
     }
 
+    // 🌟 [2026-10-03] تحميل الـ Seed صار في الخلفية أثناء الإقلاع (core/app.js) — ننتظر اكتماله قبل أول قراءة
+    if (AppState.similaritiesReady) await AppState.similaritiesReady;
     allSimilarities = AppState.similaritiesManager ? await AppState.similaritiesManager.getAllSimilarities() : [];
     navStack = [];
     currentView = { view: 'home', params: null };
