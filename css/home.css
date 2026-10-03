@@ -51,17 +51,23 @@
     gap: 14px;
 }
 
-/* 🌟 الشعار أصبح SVG مرسوم بدل الإيموجي 📖 — نفس الحاوية والحجم، الأيقونة فقط تغيّرت */
+/* 🌟 [2026-10-03] شعار المنصة بألوان فاتحة مباشرة على الترويسة (بدل أيقونة الكتاب داخل المربع الذهبي) —
+   يُرسم من core/brandLogo.js. النسبة 253/352 هي نسبة الشعار الكامل */
 #main-header .home-header-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
-    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.35);
+    display: block;
+    height: 52px;
+    aspect-ratio: 253 / 352;
     flex-shrink: 0;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+/* 🌟 [2026-10-03] شعار المنصة بجوار الآية في الرئيسية — الحجم والموضع في css/homeFast.css (وcss/mobile.css للهاتف) */
+.home-hero-logo {
+    display: block;
+    height: 120px;
+    aspect-ratio: 253 / 352;
+    flex-shrink: 0;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3));
 }
 
 #main-header .home-header-text {

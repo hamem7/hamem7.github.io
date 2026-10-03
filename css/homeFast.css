@@ -148,17 +148,19 @@ body.dh-home-screen .home-hero-grid { display: block; }
 /* 🌟 [تعديل 2026-10-01] إرجاع نص الشارة ("منصة تعليمية متكاملة") والعنوان الفرعي تحت الآية بصيغة مضغوطة:
    عمود يمين (الآية ← العنوان الفرعي ← الشارة) وعمود يسار (الترحيب ← التاريخ ← شارة "أكمل بياناتك")، ثم البحث بعرض كامل */
 body.dh-home-screen .home-hero-text {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; row-gap: 4px; align-items: center;
+    /* 🌟 [2026-10-03] عمود أول جديد لشعار المنصة يمين الآية (يمتد بجوار الآية والعنوان الفرعي والشارة)، فانزاحت بقية الأعمدة واحداً */
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 24px; row-gap: 4px; align-items: center;
     padding-inline-end: 0; text-align: start;
 }
-body.dh-home-screen .home-hero-text > h1.home-title { grid-column: 1; grid-row: 1; margin: 0; font-size: 2.9rem; text-align: start; animation: none; }
-body.dh-home-screen .home-hero-text > .home-subtitle { grid-column: 1; grid-row: 2; margin: 0; font-size: 1.05rem; text-align: start; animation: none; max-width: none; }
-body.dh-home-screen .home-hero-text > .home-hero-eyebrow { grid-column: 1; grid-row: 3; justify-self: start; margin: 4px 0 0; animation: none; }
-body.dh-home-screen .home-hero-text .home-greeting-row { grid-column: 2; grid-row: 1; margin: 0; gap: 10px; justify-content: flex-start; }
-body.dh-home-screen .home-hero-text .home-chips-row { grid-column: 2; grid-row: 2; margin: 0; justify-content: flex-start; flex-wrap: nowrap; }
+body.dh-home-screen .home-hero-text > .home-hero-logo { grid-column: 1; grid-row: 1 / span 3; align-self: center; height: 132px; margin-inline-end: -6px; }
+body.dh-home-screen .home-hero-text > h1.home-title { grid-column: 2; grid-row: 1; margin: 0; font-size: 2.9rem; text-align: start; animation: none; }
+body.dh-home-screen .home-hero-text > .home-subtitle { grid-column: 2; grid-row: 2; margin: 0; font-size: 1.05rem; text-align: start; animation: none; max-width: none; }
+body.dh-home-screen .home-hero-text > .home-hero-eyebrow { grid-column: 2; grid-row: 3; justify-self: start; margin: 4px 0 0; animation: none; }
+body.dh-home-screen .home-hero-text .home-greeting-row { grid-column: 3; grid-row: 1; margin: 0; gap: 10px; justify-content: flex-start; }
+body.dh-home-screen .home-hero-text .home-chips-row { grid-column: 3; grid-row: 2; margin: 0; justify-content: flex-start; flex-wrap: nowrap; }
 body.dh-home-screen .home-hero-text .home-date-bar { padding: 6px 14px; border-radius: 999px; font-size: .82rem; }
 body.dh-home-screen .home-hero-text .home-summary-bar { display: none !important; }   /* عدد الواجبات المنشورة: صار شارة على زر الواجبات */
-body.dh-home-screen .home-hero-text .teacher-profile-badge { grid-column: 2; grid-row: 3; }
+body.dh-home-screen .home-hero-text .teacher-profile-badge { grid-column: 3; grid-row: 3; }
 body.dh-home-screen .home-hero-text .dh-fast { grid-column: 1 / -1; grid-row: 4; max-width: none; margin: 14px 0 0; transform: translateY(30px); }
 body.dh-home-screen .dh-fast-box { min-height: 60px; border-radius: 18px; padding: 0 20px; }
 body.dh-home-screen .dh-fast-box input { font-size: 1.05rem; }

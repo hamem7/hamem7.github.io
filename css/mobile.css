@@ -44,8 +44,7 @@
         border-bottom-width: 3px;
     }
     #main-header .home-header-brand { gap: 8px; min-width: 0; flex: 1 1 auto; }
-    #main-header .home-header-logo { width: 34px; height: 34px; border-radius: 10px; }
-    #main-header .home-header-logo svg { width: 20px; height: 20px; }
+    #main-header .home-header-logo { height: 40px; }
     #main-header .home-header-text { min-width: 0; }
     #main-header #header-title { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #main-header #top-student-name { font-size: .72rem; }
@@ -274,7 +273,9 @@
     body.dh-home-screen .dh-fast-lang { padding: 4px 10px; min-height: 30px; font-size: .74rem; flex: none; }
 
     /* الآية (هوية حمٓ) تبقى، بحجم يناسب سطراً واحداً؛ الشعار الفرعي سطر صغير؛ شارة «منصة تعليمية متكاملة» التسويقية تُخفى على الهاتف */
-    body.dh-home-screen .home-hero-text > h1.home-title { order: 2; flex: 0 0 100%; margin: 0; font-size: 1.6rem; line-height: 1.55; text-align: center; }
+    /* 🌟 [2026-10-03] الشعار والآية في سطر واحد (الشعار يمين الآية) بدل أن تأخذ الآية السطر كاملاً */
+    body.dh-home-screen .home-hero-text > .home-hero-logo { order: 2; flex: none; height: 58px; }
+    body.dh-home-screen .home-hero-text > h1.home-title { order: 2; flex: 0 1 auto; min-width: 0; margin: 0; font-size: 1.6rem; line-height: 1.55; text-align: center; }
     body.dh-home-screen .home-hero-text > .home-subtitle { order: 3; flex: 0 0 100%; margin: 0; font-size: .8rem; line-height: 1.5; text-align: center; opacity: .85; }
     body.dh-home-screen .home-hero-text > .home-hero-eyebrow { display: none; }
     /* التاريخ + «أكمل بياناتك» في سطر واحد */

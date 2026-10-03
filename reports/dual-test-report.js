@@ -87,7 +87,8 @@ const DUAL_TEST_REPORT_TEMPLATE = `
 
       <div class="dtr-header">
         <div class="dtr-eyebrow-row">
-          <span class="dtr-eyebrow" data-i18n="dtr_eyebrow">🆚 تقرير مواجهة — الاختبارات الثنائية</span>
+          <!-- 🌟 [2026-10-03] رمز شعار المنصة قبل عنوان التقرير (ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة) -->
+          <span class="dtr-brand"><img class="dtr-logo" src="assets/brand/ham-mark-light.svg" alt=""><span class="dtr-eyebrow" data-i18n="dtr_eyebrow">🆚 تقرير مواجهة — الاختبارات الثنائية</span></span>
           <span class="dtr-meta" id="dtr-title-date">--</span>
         </div>
 

@@ -66,11 +66,8 @@ import { summarizeReview, juzLabel } from '../engine/reviewParts.js';
 const CORNER_ORN_INNER = `<path d="M2 20C2 9 9 2 20 2" stroke="#c9932f" stroke-width="1.3" opacity=".55"/><circle cx="2" cy="20" r="2" fill="#c9932f" opacity=".55"/><circle cx="20" cy="2" r="2" fill="#c9932f" opacity=".55"/>`;
 const cornerOrnSvg = (cls) => `<svg class="corner-orn ${cls}" width="34" height="34" viewBox="0 0 40 40" fill="none">${CORNER_ORN_INNER}</svg>`;
 
-// 🌟 [جديد] رموز هوية "منازل القمر" (SVG مضمَّنة، بلا أي ملف صورة خارجي): علامة الخاتم
-// (مربعان متراكبان + هلال) ونجمة الفاصل. الهلال مرسوم كمسار (لا mask) حتى يلتقطه
-// html2canvas بثبات في التصدير.
-const MR2_MARK_PATHS = `<rect x="12" y="12" width="40" height="40" fill="none" stroke="#d4af37" stroke-width="2"/><rect x="12" y="12" width="40" height="40" fill="none" stroke="#d4af37" stroke-width="2" transform="rotate(45 32 32)"/><path transform="translate(4 0)" d="M38 20 A13.4 13.4 0 1 0 38 44 A12 12 0 0 1 38 20Z" fill="#f0d878"/>`;
-const mr2MarkSvg = (size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">${MR2_MARK_PATHS}</svg>`;
+// 🌟 [جديد] رموز هوية "منازل القمر" (SVG مضمَّنة، بلا أي ملف صورة خارجي): نجمة الفاصل وأيقونة الخطة.
+// (علامة الخاتم والهلال في الشريط العلوي استُبدلت في 2026-10-03 بشعار المنصة assets/brand/ham-mark-light.svg)
 const MR2_HERO_STAR_SVG = `<svg class="mr2-hero-star" viewBox="0 0 52 52" aria-hidden="true"><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5"/><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5" transform="rotate(45 26 26)"/><circle cx="26" cy="26" r="6" fill="#d4af37"/></svg>`;
 const MR2_PLAN_CHIP_ICON = `<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="8" width="32" height="32" fill="none" stroke="#d4af37" stroke-width="3.5"/><rect x="8" y="8" width="32" height="32" fill="none" stroke="#d4af37" stroke-width="3.5" transform="rotate(45 24 24)"/></svg>`;
 // حلقة الهيرو: 8 علامات ذهبية زخرفية فقط (لا تمثّل أي بيان — المنصة لا تتتبّع الحضور/الغياب
@@ -163,7 +160,8 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div class="mr2-hero-inner">
 
             <div class="mr2-topbar">
-              ${mr2MarkSvg(54)}
+              <!-- 🌟 [2026-10-03] رمز شعار المنصة (بألوان فاتحة للهيرو الأخضر) بدل علامة النجمة والهلال — ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة -->
+              <img class="mr2-logo" src="assets/brand/ham-mark-light.svg" alt="">
               <div>
                 <div class="mr2-brand-name">حمٓ</div>
                 <div class="mr2-brand-sub" data-i18n="mr2_brand_sub">أبطال القرآن</div>

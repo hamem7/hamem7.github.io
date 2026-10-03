@@ -132,7 +132,8 @@ const REPORT_TEMPLATE = `
 
           <div class="dh-head">
             <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
-            <img class="head-star" src="${ART_DIR}report-star-cluster.png" alt="">
+            <!-- 🌟 [2026-10-03] شعار المنصة مكان عنقود النجوم أعلى يمين الترويسة (ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة) -->
+            <img class="head-logo" src="assets/brand/ham-logo.svg" alt="">
             <div class="eyebrow" data-i18n="rep_eyebrow">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
             <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
             <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
@@ -290,6 +291,7 @@ const REPORT_TEMPLATE = `
 
         <div class="closing pdf-block">
           <div class="footer-meta">
+            <img class="footer-logo" src="assets/brand/ham-mark.svg" alt="">
             <span data-i18n="rep_report_no">رقم التقرير</span>: <b id="report-footer-id" dir="ltr">--</b><br>
             <span data-i18n="rep_date">التاريخ</span>: <b id="report-footer-date">--</b><span id="report-footer-hijri"></span>
           </div>

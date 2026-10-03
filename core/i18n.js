@@ -969,6 +969,7 @@ export const translations = {
         // 🌟🌟 [جديد] شهادة التقدير التي تظهر فور اعتماد المعلم للدرجة النهائية لأي تسليم واجب —
         // راجع reports/hwCertificate.js
         hwcert_title: "شهادة تقدير 🏅",
+        hwcert_logo_alt: "شعار منصة حمٓ",
         hwcert_subtitle: "منصة حمٓ لتثبيت الحفظ و المراجعة", // 🌟 الاسم المعتمد بعلامة المد (U+0653) وبدون "دار"
         hwcert_score_label: "النتيجة النهائية",
         hwcert_tier_excellent: "🌟 أداء رائع ومتميز! استمر بهذا التألق، أنت قدوة لزملائك.",
@@ -2901,6 +2902,7 @@ export const translations = {
         hw_ambiguous_student_confirm: "{n} students named \"{name}\" exist in your records. Link this result to the first one? (Cancel = approve without linking to any student record)",
         hw_create_student_confirm: "No student named \"{name}\" in your records. Create them and add the result to their record?",
         hwcert_title: "Certificate of Appreciation 🏅",
+        hwcert_logo_alt: "Ham platform logo",
         hwcert_subtitle: "Ham Platform for Retaining & Reviewing Memorization", // 🌟 نفس صياغة splash_subtitle
         hwcert_score_label: "Final Score",
         hwcert_tier_excellent: "🌟 Outstanding performance! Keep shining, you're a role model for your classmates.",

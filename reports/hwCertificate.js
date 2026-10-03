@@ -101,6 +101,18 @@ function ensureStyles() {
         .hwcert-card { background: linear-gradient(160deg, #fdf6e3, #f7ead0); border: 3px solid var(--dh-gold-500, #d4af37);
             border-radius: 20px; padding: 30px 26px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.35);
             font-family: inherit; position: relative; }
+        /* 🌟 [2026-10-03] ختم شعار المنصة أعلى الشهادة: <img> لملف SVG ثابت (لا SVG مضمَّن) لأن html2canvas يرسم الصور
+           المحمَّلة بثبات عند حفظ الشهادة/مشاركتها. يقفز مرة عند فتح الشهادة مع شرارات ذهبية (تختفي قبل أي حفظ) */
+        .hwcert-seal { position: relative; width: 92px; height: 92px; margin: 0 auto 10px; border-radius: 50%; background: #fffdf6;
+            border: 2px solid var(--dh-gold-500, #d4af37); box-shadow: 0 0 0 5px rgba(212,175,55,0.18);
+            display: flex; align-items: center; justify-content: center; animation: hwcert-seal-pop .7s cubic-bezier(.3,1.5,.5,1) both; }
+        .hwcert-seal img { width: 56px; height: auto; display: block; }
+        .hwcert-seal i { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px; background: #f0d878;
+            opacity: 0; transform: rotate(45deg); animation: hwcert-spark .9s ease-out .15s both; }
+        @keyframes hwcert-seal-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: none; opacity: 1; } }
+        @keyframes hwcert-spark { 0% { opacity: 1; transform: translate(0,0) rotate(45deg) scale(.4); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(45deg) scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .hwcert-seal, .hwcert-seal i { animation: none; } .hwcert-seal i { display: none; } }
         .hwcert-title { font-size: 1.6rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); margin: 0 0 4px; }
         .hwcert-subtitle { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin: 0 0 18px; }
         .hwcert-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px;
@@ -140,9 +152,24 @@ function ensureStyles() {
     document.head.appendChild(style);
 }
 
+// شرارات الختم: 10 معيّنات ذهبية تنطلق في دائرة (اتجاه كل واحدة عبر --dx/--dy)
+const SEAL_SPARKS = Array.from({ length: 10 }, (_, k) => {
+    const a = k / 10 * Math.PI * 2, r = 70 + (k % 3) * 14;
+    return `<i style="--dx:${Math.round(Math.cos(a) * r)}px;--dy:${Math.round(Math.sin(a) * r)}px;animation-delay:${150 + (k % 4) * 40}ms"></i>`;
+}).join('');
+
 async function buildCertificateBlob(cardEl) {
     await ensureHtml2Canvas();
-    const canvas = await window.html2canvas(cardEl, { scale: 3, backgroundColor: '#fdf6e3', useCORS: true });
+    // 🌟 [2026-10-03] html2canvas يرسم نسخة مستنسخة تبدأ فيها حركات CSS من أولها، فيظهر ختم الشعار صغيراً شفافاً والشرارات
+    // في منتصفها — نوقف حركة الختم ونخفي الشرارات في النسخة المستنسخة فقط (الشاشة نفسها لا تتأثر)
+    const canvas = await window.html2canvas(cardEl, {
+        scale: 3, backgroundColor: '#fdf6e3', useCORS: true,
+        onclone: (doc) => {
+            const st = doc.createElement('style');
+            st.textContent = '.hwcert-seal{animation:none!important}.hwcert-seal i{display:none!important}';
+            doc.head.appendChild(st);
+        }
+    });
     return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 }
 
@@ -179,6 +206,10 @@ export function showHomeworkCertificate(submission, student, scope) {
     overlay.innerHTML = `
         <div class="hwcert-card-wrap">
             <div class="hwcert-card" id="hwcert-card">
+                <div class="hwcert-seal">
+                    <img src="assets/brand/ham-logo.svg" alt="${t('hwcert_logo_alt')}">
+                    ${SEAL_SPARKS}
+                </div>
                 <h2 class="hwcert-title">${t('hwcert_title')}</h2>
                 <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
                 ${avatarUrl
