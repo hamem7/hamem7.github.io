@@ -531,7 +531,7 @@ async function loadHomeworkDashboard() {
     // الجدول أعلاه يظهر فوراً من البيانات المحلية (IndexedDB)، بينما هذه البطاقة تعتمد على
     // استعلام سحابي (Firestore) قد يستغرق ثانية أو أكثر — تشغيلها بدون انتظار يمنع تجميد
     // ظهور سجل الواجبات كله بسبب بطء الشبكة أو انقطاعها.
-    loadNeedsGradingStat();
+    loadNeedsGradingStat(allHWs);
 
     // 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — نفس فلسفة "يحتاج تصحيح" أعلاه بالضبط (استعلام
     // سحابي بلا await هنا حتى لا يُجمَّد ظهور الجدول). نمرّر allHWs (محلية بالفعل، بلا استعلام
@@ -543,13 +543,18 @@ async function loadHomeworkDashboard() {
 // تصحيح المعلم اليدوي عبر كل الواجبات دفعة واحدة، وتُحدّث بطاقة "يحتاج تصحيح" في الأعلى + تضع
 // علامة تنبيه ⚠️ بجانب كل واجب متأثر في سجل الواجبات (الصفوف مبنية مسبقاً بمعرّف hw-alert-<id>
 // مخفي افتراضياً في loadHomeworkDashboard أعلاه).
-async function loadNeedsGradingStat() {
+// 🌟 [إصلاح 2026-10-03] حذف الواجب من السجل يحذف نسخته المحلية فقط، وتسليماته تبقى في الخادم —
+// فكانت البطاقة تعدّ تسليمات واجبات محذوفة ("يحتاج تصحيح 1" والقائمة فارغة). نعدّ الآن فقط تسليمات
+// الواجبات الموجودة في سجلك (allHWs)، فتطابق البطاقة القائمة دائماً.
+async function loadNeedsGradingStat(allHWs) {
     const statEl = document.getElementById('stat-needs-grading');
     if (!statEl) return;
     statEl.innerText = '⏳';
 
     try {
-        const pending = await getSubmissionsNeedingGrading();
+        if (!allHWs) allHWs = await AppState.homeworkManager.getAllHomeworks() || [];   // نداء بلا معامل (بعد حفظ التصحيح)
+        const localIds = new Set(allHWs.map(hw => String(hw.id)));
+        const pending = (await getSubmissionsNeedingGrading()).filter(sub => localIds.has(String(sub.hwId)));
         pendingGradingHwIds = new Set(pending.map(sub => sub.hwId));
         statEl.innerText = pending.length;
 
@@ -737,7 +742,8 @@ function setHwFilter(f, toggle) {
 
 // 🌟 [جديد] نافذة تأكيد حذف الواجب في وسط الصفحة (بدل confirm() الذي يظهر من أعلى المتصفح).
 // تُرجع Promise<boolean>: true = المعلم أكّد الحذف، false = إلغاء/إغلاق/Esc/نقر على الخلفية. لا تحذف شيئاً بنفسها.
-function confirmHwDelete() {
+// 🌟 [2026-10-03] titleKey/bodyKey اختياريان لاستعمال نفس النافذة لحذف سؤال من المعاينة (بدل confirm() العلوي هناك أيضاً)
+function confirmHwDelete({ titleKey = 'hw_delete_confirm_title', bodyKey = 'hw_delete_confirm_body' } = {}) {
     return new Promise((resolve) => {
         // 🌟 [إصلاح 2026-10-02] منع تكرار النافذة: إن كانت نافذة تأكيد مفتوحة أصلاً لا نفتح ثانية (ولا نحذف شيئاً)
         if (document.querySelector('.hwp3-confirm-overlay')) { resolve(false); return; }
@@ -747,8 +753,8 @@ function confirmHwDelete() {
         overlay.innerHTML = `
             <div class="hwp3-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="hwp3-confirm-title" aria-describedby="hwp3-confirm-body">
                 <div class="hwp3-confirm-icon" aria-hidden="true">🗑️</div>
-                <h3 id="hwp3-confirm-title" class="hwp3-confirm-title">${t('hw_delete_confirm_title')}</h3>
-                <p id="hwp3-confirm-body" class="hwp3-confirm-body">${t('hw_delete_confirm_body')}</p>
+                <h3 id="hwp3-confirm-title" class="hwp3-confirm-title">${t(titleKey)}</h3>
+                <p id="hwp3-confirm-body" class="hwp3-confirm-body">${t(bodyKey)}</p>
                 <div class="hwp3-confirm-actions">
                     <button type="button" class="hwp3-confirm-btn hwp3-confirm-cancel">${t('hw_delete_cancel_btn')}</button>
                     <button type="button" class="hwp3-confirm-btn hwp3-confirm-ok">${t('hw_delete_confirm_btn')}</button>
@@ -1609,9 +1615,10 @@ function renderPreview() {
     });
 
     document.querySelectorAll('.btn-edit-q').forEach(btn => btn.addEventListener('click', (e) => openQuestionBuilderModal(parseInt(e.target.dataset.idx))));
-    document.querySelectorAll('.btn-delete-q').forEach(btn => btn.addEventListener('click', (e) => {
-        if(confirm(t("هل أنت متأكد من حذف هذا السؤال؟"))) {
-            currentGeneratedQuestions.splice(parseInt(e.target.dataset.idx), 1);
+    document.querySelectorAll('.btn-delete-q').forEach(btn => btn.addEventListener('click', async (e) => {
+        const idx = parseInt(e.currentTarget.dataset.idx);
+        if (await confirmHwDelete({ titleKey: 'hw_delete_q_title', bodyKey: 'hw_delete_q_body' })) {   // 🌟 نافذة وسط الصفحة بدل confirm() العلوي
+            currentGeneratedQuestions.splice(idx, 1);
             renderPreview();
         }
     }));
