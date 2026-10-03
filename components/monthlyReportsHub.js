@@ -23,7 +23,7 @@
 //   4) الطلاب المخفيون (isHidden) لا يظهرون في البحث.
 // =============================================================================
 
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 import { summarizeReview } from '../engine/reviewParts.js';
 
@@ -136,8 +136,8 @@ async function getMonthInfo(student, year, month1) {
         const sd = AppState.surahsData || [];
         const b = rec.beginning ? getSurahInfo(sd, rec.beginning.surahNumber) : null;
         const e = getSurahInfo(sd, rec.ending.surahNumber);
-        info.beginLabel = rec.beginning ? `${b ? b.name : '؟'} ${rec.beginning.ayahNumber}` : '';
-        info.endLabel = `${e ? e.name : '؟'} ${rec.ending.ayahNumber}`;
+        info.beginLabel = rec.beginning ? `${b ? surahNameLocal(b.name) : '؟'} ${rec.beginning.ayahNumber}` : '';
+        info.endLabel = `${e ? surahNameLocal(e.name) : '؟'} ${rec.ending.ayahNumber}`;
         info.newAyahs = typeof rec.newAyahs === 'number' ? rec.newAyahs : null;
       } else if (!rec && all.length) {
         const earliest = all.reduce((m, r) => Math.min(m, r.year * 12 + r.month), Infinity);

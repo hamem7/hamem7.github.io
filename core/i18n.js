@@ -4147,7 +4147,43 @@ export function localizeGenerated(text) {
         });
         return tf(pat.key, params);
     }
+    // 🌟 [إصلاح ترجمة التقارير] شريحة "📍 موضع الخطأ: من آية 3 إلى آية 5" المخزَّنة ضمن الأخطاء
+    const chip = s.match(/^📍\s*(.+)$/);
+    if (chip) {
+        for (const src of [translations.ar, translations.en]) {
+            const lbl = src.recite_range_label;
+            if (lbl && chip[1].startsWith(lbl)) {
+                const r = _rangeListLocal(chip[1].slice(lbl.length).trim());
+                if (r) return `📍 ${t('recite_range_label')} ${r}`;
+            }
+        }
+    }
+    // 🌟 نص تسميع مع موضع الخطأ ملحق بين قوسين: "تسميع سورة X كاملة (من آية 3 إلى آية 5)"
+    const tail = s.match(/^(.*\S)\s*\(([^()]+)\)$/);
+    if (tail) {
+        const r = _rangeListLocal(tail[2]);
+        if (r) return `${localizeGenerated(tail[1])} (${r})`;
+    }
     return text;
+}
+
+// 🌟 وصف موضع الخطأ ("من آية 3 إلى آية 5" / "آية 3"، وقد تتعدد مفصولة بفاصلة) بلغة الواجهة الحالية.
+// يقبل الصيغة العربية أو الإنجليزية المخزَّنة؛ يرجع null لو النص ليس وصف موضع (فلا يُمَسّ).
+function _rangeListLocal(str) {
+    const cur = AppState.currentLang === 'en' ? translations.en : translations.ar;
+    const one = (desc) => {
+        for (const src of [translations.ar, translations.en]) {
+            const a = _escRe(src.recite_range_ayah || ''), f = _escRe(src.recite_range_from || ''), to = _escRe(src.recite_range_to || '');
+            if (!a) continue;
+            let m = desc.match(new RegExp('^' + f + '\\s+' + a + '\\s+(\\d+)\\s+' + to + '\\s+' + a + '\\s+(\\d+)$', 'i'));
+            if (m) return `${cur.recite_range_from} ${cur.recite_range_ayah} ${m[1]} ${cur.recite_range_to} ${cur.recite_range_ayah} ${m[2]}`;
+            m = desc.match(new RegExp('^' + a + '\\s+(\\d+)$', 'i'));
+            if (m) return `${cur.recite_range_ayah} ${m[1]}`;
+        }
+        return null;
+    };
+    const parts = String(str).split(/[،,]\s*/).map(p => one(p.trim()));
+    return parts.every(Boolean) ? parts.join(AppState.currentLang === 'en' ? ', ' : '، ') : null;
 }
 
 // 🌟 localizeErrorTypes: نص "أنواع الأخطاء" المخزَّن (قائمة عربية مفصولة بفاصلة عربية) يُعرَض بلغة الواجهة الحالية

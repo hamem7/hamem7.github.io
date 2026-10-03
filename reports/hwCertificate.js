@@ -13,7 +13,7 @@
 // 🌟 العزل التقني: ملف مستقل تماماً (بادئة CSS/DOM خاصة به hwcert-)، بلا استيراد أو لمس أي
 // سطر من reports/report.js أو reports/dual-test-report.js — نفس فلسفة العزل المتّبعة فعلاً في
 // كل ملفات التقارير بالمنصة، حتى لو كرّرنا هنا تحميل html2canvas محلياً.
-import { t } from '../core/i18n.js';
+import { t, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i18n.js';
 // 🌟 [جديد — إصلاح XSS] تنظيف اسم الطالب وإجاباته (قادمة من الخادم) قبل الحقن في innerHTML
 import { esc } from '../core/escape.js';
 
@@ -67,8 +67,8 @@ function collectMistakes(submission) {
         }
         return d.isCorrect === false;
     }).map(d => ({
-        question: d.question || '',
-        correctAnswer: d.correctAnswer || null
+        question: localizeHomeworkText(d.question || ''),
+        correctAnswer: d.correctAnswer ? (isSurahName(d.correctAnswer) ? surahNameLocal(d.correctAnswer) : d.correctAnswer) : null
     }));
 }
 
@@ -79,10 +79,10 @@ function formatScope(scope) {
     if (!scope || typeof scope !== 'object') return '';
     const fill = (key, map) => Object.keys(map).reduce((s, k) => s.replace('{' + k + '}', map[k]), t(key));
     if (scope.mode === 'surah' && scope.surahName && scope.startAyah && scope.endAyah) {
-        return fill('hwcert_scope_surah', { surah: scope.surahName, from: scope.startAyah, to: scope.endAyah });
+        return fill('hwcert_scope_surah', { surah: surahNameLocal(scope.surahName), from: scope.startAyah, to: scope.endAyah });
     }
     if (scope.mode === 'range' && scope.fromName && scope.toName) {
-        return fill('hwcert_scope_range', { from: scope.fromName, to: scope.toName });
+        return fill('hwcert_scope_range', { from: surahNameLocal(scope.fromName), to: surahNameLocal(scope.toName) });
     }
     if (scope.mode === 'juz' && scope.juzNum) {
         return fill('hwcert_scope_juz', { juz: scope.juzNum });

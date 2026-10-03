@@ -39,7 +39,7 @@
 //      هذا الشهر تحديدًا" — يُعرض النطاق الحالي فقط مع ملاحظة توضيحية داخل التقرير.
 // =============================================================================
 
-import { AppState, applyLanguage, t, localizeGenerated, trStored } from '../core/app.js';
+import { AppState, applyLanguage, t, localizeGenerated, trStored, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // 🌟 [جديد] هوية "منازل القمر" الخاصة بالتقرير الشهري (ملف مستقل معزول تحت .mr2 —
@@ -682,14 +682,14 @@ async function buildMonthlyReportData(year, monthIndex0) {
       if (record && record.beginning) {
         const beginInfo = getSurahInfo(AppState.surahsData, record.beginning.surahNumber);
         journey = {
-          beginLabel: `${beginInfo ? beginInfo.name : '؟'} — ${record.beginning.ayahNumber}`,
+          beginLabel: `${beginInfo ? surahNameLocal(beginInfo.name) : '؟'} — ${record.beginning.ayahNumber}`,
           hasEnding: !!record.ending,
           endLabel: null,
           newAyahs: typeof record.newAyahs === 'number' ? record.newAyahs : null
         };
         if (record.ending) {
           const endInfo = getSurahInfo(AppState.surahsData, record.ending.surahNumber);
-          journey.endLabel = `${endInfo ? endInfo.name : '؟'} — ${record.ending.ayahNumber}`;
+          journey.endLabel = `${endInfo ? surahNameLocal(endInfo.name) : '؟'} — ${record.ending.ayahNumber}`;
         }
       }
     }
@@ -761,7 +761,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // اختيارية لا تُطلب إجباريًا).
   const hasMemoRange = !!(student.memoFrom && student.memoTo);
   const memoScope = hasMemoRange
-    ? t('mr2_memo_scope_fmt').replace('{from}', student.memoFrom).replace('{to}', student.memoTo)
+    ? t('mr2_memo_scope_fmt').replace('{from}', surahNameLocal(student.memoFrom)).replace('{to}', surahNameLocal(student.memoTo))
     : t('mr_no_memo_range');
 
   // 🌟 [جديد] ملخص مراجعة الأجزاء الخمسة لهذا الشهر (null لو لم تُسجَّل)
@@ -786,7 +786,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
     name: student.name || t('mr_default_student_label'),
     // الصف من ملف الطالب (student.grade) — اختياري، يُخفى لو فارغ
-    grade: student.grade || '',
+    grade: student.grade ? trStored(student.grade) : '',
     memoScope, hasMemoRange,
     avatar: getAvatarHtml(student),
     teacher,
@@ -1003,7 +1003,7 @@ function renderReviewPartsBlock(d) {
   const rows = rs.entries.map(p => `
     <div class="mr-rev-row">
       <div class="mr-rev-name">${juzLabel(p.juz, t)}</div>
-      <div class="mr-rev-range">${p.fromName} ${p.fromAyah} <span class="mr-rev-arrow">${arrow}</span> ${p.toName} ${p.toAyah}</div>
+      <div class="mr-rev-range">${surahNameLocal(p.fromName)} ${p.fromAyah} <span class="mr-rev-arrow">${arrow}</span> ${surahNameLocal(p.toName)} ${p.toAyah}</div>
       <div class="mr-rev-count">${t('mr_revparts_count_fmt').replace('{n}', p.count)}</div>
       <div class="mr-rev-bar"><div class="mr-rev-fill" style="width:${Math.min(100, p.pct)}%;"></div></div>
     </div>`).join('');
@@ -1216,7 +1216,7 @@ function renderErrorsBlock(d) {
         ${d.resolvedThisMonth.map(w => `
           <tr>
             <td>${new Date(w.dateResolved).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
-            <td>${w.surahName ? `${t('mr_surah_prefix')} ${w.surahName}${w.num ? ' - ' + w.num : ''}` : (w.text || '—')}</td>
+            <td>${w.surahName ? `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}` : (localizeGenerated(w.text) || '—')}</td>
           </tr>
         `).join('')}
       </tbody>

@@ -26,7 +26,7 @@ import { REPORT_STYLES } from './report.styles.js';
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
-import { t, tf, localizeGenerated, surahNamesLocal } from '../core/i18n.js';
+import { t, tf, localizeGenerated, surahNamesLocal, trStored } from '../core/i18n.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -603,7 +603,7 @@ function getSkillHighlights(student, questionResults, speedCompare){
     // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض
     // نصه الخام كما كان يُعرض تمامًا قبل هذا التعديل، فلا يختفي أي بند مسجَّل.
     const label = head
-      || w.text
+      || localizeGenerated(w.text)
       || (Array.isArray(w.errorTypes) ? w.errorTypes.map(localizeGenerated).join(AppState.currentLang === 'en' ? ', ' : '، ') : localizeGenerated(w.errorTypes))
       || '';
     if (!label) return null;
@@ -884,7 +884,7 @@ function buildReportData(){
     name: student.name || t('rp_default_student'),
     // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
     // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
-    grade: student.grade || '',
+    grade: student.grade ? trStored(student.grade) : '',
     scope: scope || '',
     date: dateLabel,
     dateHijri: formatDateHijri(now),
@@ -1844,6 +1844,9 @@ export function openReportScreen(gameState){
     return;
   }
   root.innerHTML = REPORT_TEMPLATE;
+  // 🌟 [إصلاح] اتجاه صفحة التقرير يتبع لغة الواجهة (كان rtl ثابتًا فتنقلب علامات الترقيم في الإنجليزية)
+  const reportPage = document.getElementById('report-page');
+  if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
   try { applyLanguage(); } catch (e) { /* غير حرِج — نكمل حتى لو لم تتوفر */ }
   initReportScreen();
 }

@@ -27,7 +27,7 @@
 // الحقيقة الوحيد لتعريف الأوسمة، لا معنى لتكراره).
 // =============================================================================
 
-import { AppState, applyLanguage, loadSplashScreen, t } from '../core/app.js';
+import { AppState, applyLanguage, loadSplashScreen, t, surahNameLocal } from '../core/app.js';
 import { DUAL_TEST_REPORT_STYLES } from './dual-test-report.styles.js';
 import { BADGE_CATALOG } from '../engine/dualTestEngine.js';
 
@@ -216,13 +216,13 @@ function avatarHtml(name, avatarVal) {
 function surahNameByNumber(num) {
   if (!num) return '';
   const surah = (AppState.surahsData || []).find(s => s.number === num);
-  return surah ? `${surah.number}. ${surah.name}` : '';
+  return surah ? `${surah.number}. ${surahNameLocal(surah.name)}` : '';
 }
 function roundRangeLabel(round) {
   const fromName = surahNameByNumber(round && round.rangeFrom && round.rangeFrom.surah);
   const toName = surahNameByNumber(round && round.rangeTo && round.rangeTo.surah);
   if (!fromName && !toName) return t('dts_range_not_set');
-  return `${fromName || '—'} ← ${toName || '—'}`;
+  return `${fromName || '—'} ${AppState.currentLang === 'en' ? '→' : '←'} ${toName || '—'}`;
 }
 
 // -----------------------------------------------------------------------------
