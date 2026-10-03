@@ -366,6 +366,12 @@ export const REPORT_STYLES = `
   #report-screen .page.dh-brief .pdf-only{display:none !important;}
 
   @media (max-width:760px){
+    /* 🌟 [2026-10-03 — مراجعة تجربة الهاتف] الورقة بعرض الشاشة على الهاتف: كانت #report-stage-inner بـ flex:none فتبقى الورقة 720px
+       مقصوصة داخل إطار يُمرَّر أفقيًا (يرى المعلم جزءًا من التقرير فقط)، فلا تعمل قواعد الهاتف أدناه أصلًا. أثناء التصدير يضيف
+       report.js الكلاس dh-export-width فتعود الورقة 720px كما كانت تمامًا، فلا يتغير ناتج الصورة/PDF. */
+    #report-screen .report-stage:has(#report-stage-inner){padding:12px 8px 24px;}
+    #report-screen .report-stage:has(#report-stage-inner) > #report-stage-inner{flex:1 1 auto; width:100%; min-width:0;}
+    #report-screen .report-stage.dh-export-width:has(#report-stage-inner) > #report-stage-inner{flex:none; width:auto;}
     #report-screen .page{padding:30px 18px 26px;}
     #report-screen .r-title{font-size:28px;}
     #report-screen .r-subtitle{font-size:18px;}
@@ -379,6 +385,14 @@ export const REPORT_STYLES = `
     /* الجدول أضيق من أن يُعرض بخمسة أعمدة على الجوال — يُمرَّر أفقيًا داخل حاويته وحده */
     #report-screen .qlist{overflow-x:auto;}
     #report-screen .qgrid-head, #report-screen .qrow{min-width:560px;}
+    /* 🌟 [2026-10-03] على شاشة الهاتف (لا أثناء التصدير): كل سؤال صف بعرض الشاشة بلا تمرير أفقي — م | الحالة | السؤال | الدرجة،
+       والملاحظة في سطر تحته بدل عمود مخفي خارج الشاشة. التصدير (dh-export-width) يبقى بالجدول كما كان تمامًا. */
+    #report-screen .report-stage:not(.dh-export-width) .qlist{overflow-x:visible;}
+    #report-screen .report-stage:not(.dh-export-width) .qgrid-head,
+    #report-screen .report-stage:not(.dh-export-width) .qrow{min-width:0; grid-template-columns:22px 22px minmax(0,1fr) auto; gap:4px 8px;}
+    #report-screen .report-stage:not(.dh-export-width) .qgrid-head > :nth-child(5){display:none;}
+    #report-screen .report-stage:not(.dh-export-width) .qrow{padding:9px 6px;}
+    #report-screen .report-stage:not(.dh-export-width) .qnote{grid-column:3 / -1;}
     #report-screen .closing{flex-direction:column; align-items:center; text-align:center;}
     /* 🌟 [إصلاح التوافق مع الشاشات] شريط الملاحظة وشريط الأدوات كانا لا يلتفّان (label/hint بـ flex:none + textarea بعرض ~26px)
        فيتّسع عرض الصفحة كلها على الهاتف. الآن يلتفّان ويأخذ مربع الملاحظة سطرًا كاملًا. تؤثر فقط في شاشة التقرير (#report-screen). 🌟 */

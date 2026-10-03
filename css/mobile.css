@@ -194,6 +194,30 @@
     /* القائمة الطويلة تتمرّر داخل عمودها؛ العمودان معاً لا يتجاوزان الجزء الظاهر */
     #app-root .order-list-scroll { max-height: 62dvh; }
 
+    /* ===== 8-ج) «سمّع من … إلى …» (كبار) و«أسمعنا صوتك العذب» (صغار) و«الآية بين آيتين» + صندوق الإجابة =====
+       السبب: قوالب هذه الأسئلة في المحرّك (engine/quranEngine.js) تحمل أنماطاً مضمَّنة لسطح المكتب — صندوق بحشوة 25px 40px (80px فراغاً
+       جانبياً على الهاتف) وعنوان 1.6–1.8rem ونص الآيات 3–3.2rem — وkids.css يضيف لكل .quran-text إطاراً متقطعاً بحشوة 15px 25px.
+       فصار السؤال الواحد ~1150–1450px والإجابة ~1700px. نصلحها من هنا دون لمس المحرّك (المحدِّدات تطابق شكل هذين القالبين فقط). */
+    #app-root #game-question > div[style*="25px 40px"] { padding: 10px !important; margin-top: 4px !important; border-radius: 12px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > div:not(.quran-text) { font-size: 1.02rem !important; line-height: 1.6; margin-bottom: 4px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > div:first-child { font-size: 1.12rem !important; margin-bottom: 8px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > .quran-text {
+        display: block; font-size: clamp(1.35rem, 6vw, 1.7rem) !important; line-height: 2 !important;
+        padding: 6px 10px !important; margin: 0 0 10px !important; border-radius: 12px !important;
+    }
+    #app-root #game-question > .quran-text[style*="3rem"] {
+        display: block; font-size: clamp(1.35rem, 6vw, 1.7rem) !important; line-height: 2 !important;
+        padding: 8px 10px !important; margin-top: 4px !important; border-radius: 12px !important;
+    }
+    #app-root #game-question > .quran-text[style*="3rem"] > span { font-size: 1.05rem !important; }
+    /* الإجابة للمطابقة: نفس حجم الآيات المقروء بدل 2–3.2rem (تسميع 7 آيات كان ~1700px) */
+    #app-root #game-answer { font-size: .95rem; }
+    #app-root #game-answer > div[style*="font-size"] { font-size: 1rem !important; margin: 6px 0 !important; }
+    #app-root #game-answer .quran-text {
+        display: block; font-size: clamp(1.25rem, 5.6vw, 1.55rem) !important; line-height: 2 !important;
+        padding: 8px 10px !important; border-radius: 12px !important; max-width: 100%;
+    }
+
     /* أزرار الإجراء داخل شاشة اللعب: عرض كامل موحّد (كانت بعروض وأحجام inline متفاوتة 1.4rem) */
     #app-root #teacher-eval-buttons { gap: 8px !important; }
     #app-root #show-ans-btn,

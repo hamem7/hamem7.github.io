@@ -1544,7 +1544,24 @@ function logReportGenerated(){
 // فشل الالتقاط لأي سبب.
 const BRIEF_CLASS = 'dh-brief';
 
-async function exportPng(){
+// 🌟 [2026-10-03 — مراجعة تجربة الهاتف] على الهاتف تُعرض الورقة بعرض الشاشة (راجع قاعدة ≤760px في report.styles.js)
+// بدل 720px مقصوصة داخل إطار يُمرَّر أفقيًا. لكن ملفات التصدير يجب أن تبقى كما كانت تمامًا، فنعيد الورقة إلى عرضها
+// الأصلي 720px أثناء الالتقاط فقط (كلاس على إطار المعاينة)، ثم نعيدها لعرض الشاشة في finally مهما حدث.
+// على سطح المكتب لا أثر لهذا الكلاس (الورقة 720px أصلًا).
+const EXPORT_WIDTH_CLASS = 'dh-export-width';
+async function withExportWidth(fn){
+  const stage = currentTarget()?.closest('.report-stage');
+  if (stage) stage.classList.add(EXPORT_WIDTH_CLASS);
+  try {
+    await nextFrames();
+    return await fn();
+  } finally {
+    if (stage) stage.classList.remove(EXPORT_WIDTH_CLASS);
+  }
+}
+
+async function exportPng(){ return withExportWidth(exportPngAtPageWidth); }
+async function exportPngAtPageWidth(){
   await ensureHtml2Canvas();
   await ensureFontsReady();
   await ensureStampCleaned();
@@ -1621,7 +1638,8 @@ function packBlocksIntoPages(blocks, maxPageHeight){
 
 // 🌟 ملف الـ PDF يبقى **شاملاً** كل أقسام التقرير بما فيها جدول الأسئلة — لا يُضاف
 // هنا كلاس dh-brief إطلاقًا. هذا هو الفرق الوحيد بينه وبين تصدير الصورة أعلاه.
-async function exportPdf(){
+async function exportPdf(){ return withExportWidth(exportPdfAtPageWidth); }
+async function exportPdfAtPageWidth(){
   await ensureHtml2Canvas();
   await ensureJsPdf();
   await ensureFontsReady();
