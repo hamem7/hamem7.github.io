@@ -12,6 +12,9 @@
 
     /* -------- حيلة "ملء الصفحة" -------- */
     .hwp2-bleed { width: 100vw; margin-inline-start: calc(50% - 50vw); margin-inline-end: calc(50% - 50vw); box-sizing: border-box; }
+    /* 🌟 [إصلاح] إلغاء padding وخلفية .screen العامة (global.css/mobile.css) لهذه الشاشة فقط —
+       كانا يُظهران مستطيلاً فاتحاً خلف التصميم (شريط بين الهيدر العام وشريط العنوان الأخضر) 🌟 */
+    #app-root .screen.hwp2-screen { max-width: 100% !important; padding-block: 0 !important; background: transparent !important; }
     .hwp2-pad { padding-inline: clamp(20px, 4vw, 56px); box-sizing: border-box; }
     #app-root .hwp2-panel {
         background: transparent !important; max-width: none !important; width: 100% !important;
@@ -346,7 +349,7 @@
     .hwp3-confirm-ok { background: #b91c1c; color: #ffffff; }
     .hwp3-confirm-ok:hover { background: #991b1b; }
 </style>
-<div class="screen active dashboard-wrapper" style="background: #f8fafc;">
+<div class="screen active dashboard-wrapper hwp2-screen">
     <div class="control-panel hwp2-panel">
 
         <!-- 🗂️ شريط العنوان بعرض الصفحة الكامل -->
