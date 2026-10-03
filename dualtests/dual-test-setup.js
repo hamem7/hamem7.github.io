@@ -341,11 +341,17 @@ function buildRoundRangeCardHTML(round, roundIndex) {
             <span class="dts-round-badge">${roundIndex + 1}</span>
             <span>${t(ROUND_TITLE_KEYS[roundIndex])}</span>
         </div>
-        <div class="dts-round-range-row">
-            <span>${t('from_surah')}</span>
-            <select data-round="${roundIndex}" data-round-range="from" data-field="surah">${surahOptionsHTML(round.rangeFrom.surah)}</select>
-            <span>${t('to_surah')}</span>
-            <select data-round="${roundIndex}" data-round-range="to" data-field="surah">${surahOptionsHTML(round.rangeTo.surah)}</select>
+        <!-- 🌟 [مُحدَّث] بطلب صريح من المعلم: "من سورة" و"إلى سورة" في سطرين واضحين تحت بعض
+             (عنوان + قائمة لكل سطر) بدل صف واحد ملتف بشكل غير مرتب -->
+        <div class="dts-round-range-fields">
+            <label class="dts-range-field" for="dts-range-${roundIndex}-from">
+                <span class="dts-range-field-label">${t('from_surah')}</span>
+                <select id="dts-range-${roundIndex}-from" data-round="${roundIndex}" data-round-range="from" data-field="surah">${surahOptionsHTML(round.rangeFrom.surah)}</select>
+            </label>
+            <label class="dts-range-field" for="dts-range-${roundIndex}-to">
+                <span class="dts-range-field-label">${t('to_surah')}</span>
+                <select id="dts-range-${roundIndex}-to" data-round="${roundIndex}" data-round-range="to" data-field="surah">${surahOptionsHTML(round.rangeTo.surah)}</select>
+            </label>
         </div>
     </div>`;
 }
@@ -380,7 +386,10 @@ function renderRoundPickGrid() {
         <button type="button" class="dts-roundpick-btn" data-round-index="${i}">
             <span class="dts-roundpick-badge">${i + 1}</span>
             <span class="dts-roundpick-title">${t(ROUND_TITLE_KEYS[i])}</span>
-            <span class="dts-roundpick-range">${fromName} — ${toName}</span>
+            <span class="dts-roundpick-range">
+                <span class="dts-roundpick-range-line"><span class="dts-roundpick-range-label">${t('from_surah')}</span> ${fromName}</span>
+                <span class="dts-roundpick-range-line"><span class="dts-roundpick-range-label">${t('to_surah')}</span> ${toName}</span>
+            </span>
             <span class="dts-roundpick-progress">${progress}</span>
         </button>`;
     }).join('');
@@ -445,7 +454,9 @@ function buildRoundInnerHTML(round, roundIndex) {
 
         <div class="dts-range-summary">
             <span>${t('dts_round_range_summary_label')}</span>
-            <strong>${escapeHtml(fromName)}</strong> — <strong>${escapeHtml(toName)}</strong>
+            ${t('from_surah')} <strong>${escapeHtml(fromName)}</strong>
+            <span class="dts-range-summary-sep">·</span>
+            ${t('to_surah')} <strong>${escapeHtml(toName)}</strong>
             <button type="button" class="dts-edit-range-link" data-action="edit-range">${t('dts_edit_range_btn')}</button>
         </div>
 
