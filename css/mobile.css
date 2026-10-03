@@ -218,6 +218,35 @@
         padding: 8px 10px !important; border-radius: 12px !important; max-width: 100%;
     }
 
+    /* ===== 8-د) أسئلة ركن الصغار متعددة الخيارات: «اختر الكلمة الناقصة»، «بأي آية تبدأ السورة»، «ماذا بعد/قبل هذه الآية»،
+       «استمع وخمّن الآية»، «استخرج الكلمة الزائدة»، «خمن السورة»، «صح أم خطأ» =====
+       السبب: قوالبها في engine/kidsEngine.js بأنماط مضمَّنة لسطح المكتب (الآية 3.5rem، العناوين 1.8–2.5rem)، وزر كل خيار
+       (.kids-mcq-btn) آيةٌ كاملة بخط 2rem وإطار .quran-text، فكان الخيار الواحد 190–350px والسؤال 1000–1730px — يقرأ الطفل
+       السؤال ثم ينزل للخيارات ثم يصعد. نصلحها من هنا دون لمس المحرّك (المحدِّدات تطابق أنماط قوالب الصغار فقط). */
+    #app-root #game-question > .quran-text[style*="3.5rem"] {
+        display: block; font-size: clamp(1.45rem, 6.6vw, 1.85rem) !important; line-height: 1.9 !important;
+        padding: 8px 10px !important; margin: 0 0 8px !important; border-radius: 14px !important;
+    }
+    #app-root #game-question > div[style*="1.8rem"] { font-size: 1.08rem !important; }
+    #app-root #game-question > div[style*="2.5rem"] { font-size: 1.3rem !important; margin-bottom: 6px !important; }
+    #app-root #game-question > div[style*="2.2rem"] { font-size: 1.05rem !important; padding: 8px 12px !important; border-width: 3px !important; border-radius: 12px !important; }
+    #app-root #game-question div[style*="1.5rem"] { font-size: 1.05rem !important; margin-bottom: 10px !important; }
+    #app-root #kids-mcq-area { margin-top: 10px !important; }
+    #app-root #kids-options-container { display: flex; flex-direction: column; gap: 8px; }
+    #app-root #kids-options-container .kids-mcq-btn,
+    #app-root #kids-listen-surah-options .kids-mcq-btn {
+        display: block; width: 100%; margin: 0 !important; padding: 6px 12px !important;
+        font-size: clamp(1.3rem, 5.8vw, 1.6rem) !important; line-height: 1.85 !important;
+        border-width: 3px; border-radius: 16px !important;
+    }
+    #app-root #kids-options-container .kids-mcq-btn:hover { transform: none; }
+    #app-root #kids-options-container > div { gap: 10px !important; margin-top: 6px !important; }
+    #app-root .kids-tf-btn { padding: 10px 22px !important; font-size: 1.3rem !important; min-width: 120px !important; margin: 0 !important; border-width: 3px !important; }
+    #app-root #kids-listen-surah-area { margin-top: 12px !important; }
+    #app-root #kids-listen-surah-area > div[style*="1.4rem"] { font-size: 1.1rem !important; margin-bottom: 8px !important; }
+    #app-root #kids-listen-surah-options { display: flex; flex-direction: column; gap: 8px; }
+    #app-root .kids-listen-play-btn { padding: 10px 20px; font-size: 1.05rem; }
+
     /* أزرار الإجراء داخل شاشة اللعب: عرض كامل موحّد (كانت بعروض وأحجام inline متفاوتة 1.4rem) */
     #app-root #teacher-eval-buttons { gap: 8px !important; }
     #app-root #show-ans-btn,
