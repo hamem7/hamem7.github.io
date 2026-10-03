@@ -18,7 +18,7 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, loadSplashScreen, loadLoginScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
@@ -29,7 +29,7 @@ const LOGIN_SCREEN = 'student/login.html';
 // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] أُضيفت شاشتا تصفّح المتشابهات والتجويد (ألعاب) ليبقى الشريط متاحاً فيهما؛ شاشات اللعب الفعلي تبقى بلا شريط
 const SIM_SCREEN = 'similarities/similarities-home.html';
 const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
-const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
+const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
 const HW_NEW_KEY = 'dh_hw_new_count';
 
@@ -377,7 +377,7 @@ function sheetItems(kind) {
         { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
         { key: 'sheet_profile', icon: IC.profile, run: openProfile },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
-        { key: 'sheet_privacy', icon: IC.privacy, href: 'privacy.html', sameTab: true },
+        { key: 'sheet_privacy', icon: IC.privacy, run: openPrivacyScreen },
         { key: 'sheet_contact', icon: IC.contact, href: 'https://wa.me/201027814948' }
     ];
 }

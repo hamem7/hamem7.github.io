@@ -651,6 +651,13 @@ function setupSplashListeners() {
     // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
     // بالضبط. كانت تعرض توست "قيد التطوير" فقط (لا شاشة فعلية بعد) قبل هذه المرحلة.
     if (btnTajweed) btnTajweed.addEventListener('click', openTajweedSection);
+    // 🌟 [2026-10-03] بطاقة «خصوصية» تفتح شاشة الخصوصية داخل المنصة (href="privacy.html" يبقى رجوعاً لو تعذّر الجافاسكريبت
+    // أو فُتح الرابط في تبويب جديد بزر الفأرة الأوسط/Ctrl)
+    document.querySelectorAll('#app-root a[href="privacy.html"]').forEach(a => a.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        openPrivacyScreen();
+    }));
 
     // 🌟 منطق البيانات الحية لبطاقة "نظرة سريعة" الجديدة (متوسط الإتقان، عدد
     // التقارير، تذكير يوم ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
@@ -731,6 +738,22 @@ export function openDualTestSetup() {
     }).catch(err => {
         console.error("تعذر تحميل شاشة إعداد الاختبارات الثنائية:", err);
         alert(t("جاري تجهيز شاشة الاختبارات الثنائية 🛠️"));
+    });
+}
+
+// 🌟 [2026-10-03 — بطلب صاحب المنصة] سياسة الخصوصية كشاشة داخل المنصة (components/privacy-screen.html) بنفس الترويسة
+// والشريط السفلي ونمط رأس الشاشات الداخلية، بدل الانتقال لصفحة privacy.html المستقلة ذات الشكل المختلف.
+export function openPrivacyScreen() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return loadScreen({
+        templateUrl: 'components/privacy-screen.html',
+        initFunction: () => {
+            const backBtn = document.getElementById('btn-back-privacy');
+            backBtn?.setAttribute('aria-label', t('ms_back'));
+            backBtn?.setAttribute('title', t('ms_back'));
+            backBtn?.addEventListener('click', loadSplashScreen);
+        }
     });
 }
 
