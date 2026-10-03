@@ -377,7 +377,7 @@ function sheetItems(kind) {
         { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
         { key: 'sheet_profile', icon: IC.profile, run: openProfile },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
-        { key: 'sheet_privacy', icon: IC.privacy, href: 'privacy.html' },
+        { key: 'sheet_privacy', icon: IC.privacy, href: 'privacy.html', sameTab: true },
         { key: 'sheet_contact', icon: IC.contact, href: 'https://wa.me/201027814948' }
     ];
 }
@@ -438,7 +438,7 @@ function openSheet(kind) {
         if (card) grid.appendChild(card);
     } else sheetItems(kind).forEach(it => {
         const b = document.createElement(it.href ? 'a' : 'button');
-        if (it.href) { b.href = it.href; b.target = '_blank'; b.rel = 'noopener noreferrer'; } else { b.type = 'button'; }
+        if (it.href) { b.href = it.href; if (!it.sameTab) { b.target = '_blank'; b.rel = 'noopener noreferrer'; } } else { b.type = 'button'; }
         b.className = 'dh-sheet-item';
         b.innerHTML = `<span class="dh-sheet-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span>`;
         const txt = document.createElement('span');
