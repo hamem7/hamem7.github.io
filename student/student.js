@@ -35,30 +35,13 @@ export async function populateStudentsDropdown() {
 
     dataList.innerHTML = '';
 
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentDay = today.getDate();
-    let bdayBoys = [];
-
     students.filter(s => !s.isHidden).forEach(s => {
         let option = document.createElement('option');
         option.value = s.name;
         dataList.appendChild(option);
-
-        if (s.dob) {
-            const parts = s.dob.split('-');
-            if (parts.length === 3) {
-                if (parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay) {
-                    bdayBoys.push(s.name);
-                }
-            }
-        }
     });
-
-    if (bdayBoys.length > 0 && !window.bdayShown) {
-        window.bdayShown = true;
-        setTimeout(() => alert(tf('stu_bday_alert', { names: bdayBoys.join(t('stu_and')) })), 800);
-    }
+    // 🌟 [2026-10-03 — بطلب المعلم] حُذفت نافذة alert ليوم ميلاد الطالب التي كانت تظهر عند
+    // دخول شاشة الكبار/الصغار: التذكير يكفيه بطاقة «نظرة سريعة» + إشعار الجهاز (مرة يوميًا)
 }
 
 function calcAgeDynamic(inputId, displayId) {
