@@ -139,22 +139,61 @@
     #app-root .game-layout { margin: 0 auto !important; gap: 10px !important; padding: 0 !important; }
     #app-root .game-sidebar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 10px 12px !important; border-radius: var(--m-radius-lg) !important; }
     #app-root .game-sidebar > * { flex: 0 0 100%; }
-    #app-root .game-sidebar .timer-text { font-size: 1.6rem; margin: 0; padding-bottom: 6px; border-bottom-width: 1px; }
-    #app-root .game-sidebar > h3 { font-size: .9rem !important; margin: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
-    #app-root .tracker-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
-    #app-root .q-circle { width: 32px; height: 32px; font-size: .88rem; }
+    /* المؤقت وعنوان المسار في سطر واحد، ودوائر الأسئلة في صف واحد (كانت سطرين) */
+    #app-root .game-sidebar .timer-text { flex: 0 0 auto; font-size: 1.45rem; margin: 0; padding: 0; border-bottom: 0; line-height: 1.2; }
+    #app-root .game-sidebar > h3 { flex: 0 1 auto; font-size: .85rem !important; margin: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
+    #app-root .tracker-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+    #app-root .q-circle { width: 28px; height: 28px; font-size: .8rem; border-width: 1.5px; }
+    #app-root .q-circle.active { transform: scale(1.08); }
     #app-root .game-sidebar #btn-pause-game,
     #app-root .game-sidebar #btn-exit-game {
         flex: 1 1 0; width: auto !important; margin: 2px 0 0 !important; min-width: 0;
         font-size: var(--m-btn-sm-fs) !important; min-height: var(--m-btn-sm-h); padding: var(--m-btn-sm-pad) !important;
     }
     #app-root .game-main-area { padding: 14px 12px !important; border-radius: var(--m-radius-lg) !important; }
-    #app-root .in-game-student { padding: 4px 10px !important; margin-bottom: 10px !important; gap: 10px !important; }
+    #app-root .in-game-student { padding: 2px 10px !important; margin-bottom: 8px !important; gap: 10px !important; }
     #app-root .in-game-student img { width: 38px !important; height: 38px !important; border-width: 2px !important; }
     #app-root .in-game-student h3 { font-size: 1.05rem !important; }
-    #app-root #game-title { margin-bottom: 12px !important; }
+    #app-root #game-title { margin-bottom: 8px !important; }
     #app-root #game-title > span { font-size: 1.1rem !important; padding: 6px 16px !important; line-height: 1.5; }
     #app-root #game-question { margin-bottom: 12px !important; }
+    /* ===== 8-ب) «رتب الآيات» و«اربط أول الآية بآخرها» (الكبار والصغار): العمودان متجاوران =====
+       السبب: global.css يكدّس العمودين رأسياً على الهاتف (.order-grid/.link-grid → column) ويكبّر نص الآية إلى ~36px، فيصير العمود
+       الثاني بعد ~900px من الأول: يضغط المعلم في الأعلى ثم ينزل ليكمل ثم يصعد. الآن: العمود الأول يميناً والثاني يساراً في نفس الشاشة
+       (كما على سطح المكتب)، بخط آيات مقروء يناسب نصف العرض. تخطيط وأحجام فقط — النص ومنطق الربط/الترتيب كما هما. */
+    #app-root .order-grid,
+    #app-root .link-grid { flex-direction: row !important; align-items: flex-start; gap: 8px; }
+    #app-root .order-col,
+    #app-root .link-col { flex: 1 1 0; min-width: 0; padding: 8px 6px; border-radius: 12px; }
+    #app-root .order-col h3,
+    #app-root .link-col h3 { font-size: .85rem; line-height: 1.4; margin: 0 0 6px; padding-bottom: 0; }
+    #app-root #interactive-order-area > p,
+    #app-root #interactive-link-area > p,
+    #app-root #kids-word-order-area > p,
+    #app-root #kids-link-area > p { font-size: .9rem !important; line-height: 1.6; margin-bottom: 8px !important; }
+    #app-root #kids-link-area { margin-top: 8px !important; }
+    /* عناصر الآيات: كتلة بعرض العمود، خط ~19–22px بدل 36px */
+    #app-root .link-item.quran-text,
+    #app-root #order-shuffled .order-item.quran-text,
+    #app-root #order-slots .order-slot.filled.quran-text {
+        display: block; width: 100%; margin: 0 0 6px; padding: 6px 8px;
+        font-size: clamp(1.15rem, 5.2vw, 1.4rem) !important; line-height: 1.85 !important; border-radius: 10px;
+    }
+    #app-root #order-shuffled .order-item.order-text-long,
+    #app-root #order-slots .order-slot.filled.order-text-long { font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; }
+    #app-root #order-shuffled .order-item.order-text-xlong,
+    #app-root #order-slots .order-slot.filled.order-text-xlong { font-size: clamp(.98rem, 4.2vw, 1.12rem) !important; line-height: 1.75 !important; }
+    #app-root #order-shuffled .order-item:hover { transform: none; }
+    #app-root #order-slots .order-slot:not(.filled) { min-height: 44px; margin: 0 0 6px; padding: 6px 8px; font-size: .85rem; }
+    /* «رتب كلمات الآية» (الصغار): كلمات قصيرة تبقى أقراصاً متجاورة، بحجم يناسب نصف العرض */
+    #app-root #word-order-slots,
+    #app-root #word-order-shuffled { gap: 6px !important; margin-top: 6px !important; }
+    #app-root #word-order-slots .quran-text,
+    #app-root #word-order-shuffled .quran-text { font-size: clamp(1.15rem, 5.2vw, 1.4rem) !important; line-height: 1.8 !important; padding: 4px 10px; margin: 0; }
+    #app-root #word-order-slots .order-slot:not(.filled) { min-height: 40px; padding: 4px 8px; margin: 0; }
+    /* القائمة الطويلة تتمرّر داخل عمودها؛ العمودان معاً لا يتجاوزان الجزء الظاهر */
+    #app-root .order-list-scroll { max-height: 62dvh; }
+
     /* أزرار الإجراء داخل شاشة اللعب: عرض كامل موحّد (كانت بعروض وأحجام inline متفاوتة 1.4rem) */
     #app-root #teacher-eval-buttons { gap: 8px !important; }
     #app-root #show-ans-btn,
