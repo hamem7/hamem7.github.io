@@ -297,6 +297,11 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             let gamesList = config.isJuzMode
                 ? ['catch', 'next', 'previous', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
                 : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
+            // 🌟 [2026-10-03] بطلب المعلم: "اربط الكلمة بسورتها" تدخل أيضاً وضع "من سورة إلى سورة" إذا
+            // كان النطاق ثلاث سور فما فوق (تُعدّ السور المختلفة الموجودة فعلاً في آيات النطاق)
+            if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
+                gamesList.push('link_word_surah');
+            }
             
             // 🌟 [إصلاح] استبدلنا الحلقة القديمة (كانت تختار الأنواع بلا التأكد أنها ستُولَّد فعلاً،
             // فتتحول الألعاب الفاشلة صامتة إلى "صيد الآية") بـbuildGameQueue أعلاه
