@@ -555,6 +555,8 @@ export const translations = {
         dtp_round_label: "الجولة {n} من 3",
         // 🌟 [جديد — التصميم الاحترافي] تسميات مؤشر خطوات المحرر + عنوان الجولات المكسوبة في شاشة الترحيب
         dtp_vs_wins_label: "جولات مكسوبة",
+        dtp_turn_now_label: "الدور الآن",
+        dtp_board_pick_label: "اختر رقم السؤال",
         dts_step_label_1: "المتسابقان والنطاق",
         dts_step_label_2: "اختيار الجولة",
         dts_step_label_3: "الأسئلة",
@@ -2452,6 +2454,8 @@ export const translations = {
         dtp_round_label: "Round {n} of 3",
         // 🌟 [New — professional design] Editor step labels + rounds-won caption on the welcome screen
         dtp_vs_wins_label: "Rounds won",
+        dtp_turn_now_label: "Their turn",
+        dtp_board_pick_label: "Pick a question number",
         dts_step_label_1: "Competitors & range",
         dts_step_label_2: "Pick a round",
         dts_step_label_3: "Questions",
