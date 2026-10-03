@@ -424,7 +424,7 @@ function renderBoardView() {
             const topClass = (BOARD_TOP_STAR_ENABLED && i === topIndex) ? ' dtp-cell-top' : '';
             return `<div class="dtp-board-cell${topClass}" data-index="${i}">${q.number}</div>`;
         }
-        const icon = status === 'swapped' ? '🔄' : '✅';
+        const icon = status === 'swapped' ? DTP_PILL_ICONS.swapCell : DTP_PILL_ICONS.check;
         return `<div class="dtp-board-cell dtp-cell-done">${icon}</div>`;
     }).join('');
 
@@ -444,6 +444,15 @@ function renderBoardView() {
     showView('dtp-board-view');
 }
 
+// 🌟 [جديد — ترتيب شاشة اللعب] أيقونات خطّية لشارات حالة الطالب في شريط النقاط
+const DTP_PILL_ICONS = {
+    helper: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>',
+    swap: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    x: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    check: '<svg class="dtp-cell-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
+    swapCell: '<svg class="dtp-cell-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>'
+};
+
 function renderScorebar(containerId, variant) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -462,15 +471,21 @@ function renderScorebar(containerId, variant) {
         const avatarHTML = variant === 'arena'
             ? `<span class="dtp-score-avatar">${esc(studentName(key).trim().charAt(0))}</span>`
             : '';
+        // 🌟 [مُحدَّث — ترتيب شاشة اللعب] الاسم في سطر مستقل بخط أكبر، وشارة "الدور الآن" (تظهر
+        // بالـCSS لصاحب الدور فقط)، وحالة المساعدة/التبديل/الأخطاء كشارات صغيرة بأيقونات خطّية
+        // ونص بدل الإيموجي. نفس البيانات ونفس أصناف الحالة (used / dtp-turn-active) بلا تغيير
         return `
         <div class="dtp-score-side ${active}">
             ${avatarHTML}
-            <span class="dtp-score-name">${esc(studentName(key))}</span>
+            <span class="dtp-score-main">
+                <span class="dtp-score-name">${esc(studentName(key))}</span>
+                <span class="dtp-score-turn">${t('dtp_turn_now_label')}</span>
+            </span>
             <span class="dtp-score-points" data-score-side="${key}">${displayScore}</span>
             <span class="dtp-score-icons">
-                <span class="${helperUsed}" title="${t('dtp_btn_helper')}">💡</span>
-                <span class="${swapUsed}" title="${t('dtp_btn_swap')}">🔄</span>
-                <span title="${t('dtp_mistakes_count_label').replace('{n}', mistakes)}">❌${mistakes}</span>
+                <span class="dtp-score-pill ${helperUsed}" title="${t('dtp_btn_helper')}">${DTP_PILL_ICONS.helper}${t('dtp_btn_helper')}</span>
+                <span class="dtp-score-pill ${swapUsed}" title="${t('dtp_btn_swap')}">${DTP_PILL_ICONS.swap}${t('dtp_btn_swap')}</span>
+                <span class="dtp-score-pill dtp-score-pill-x" title="${t('dtp_mistakes_count_label').replace('{n}', mistakes)}">${DTP_PILL_ICONS.x}${mistakes}</span>
             </span>
         </div>`;
     };
@@ -559,6 +574,8 @@ function renderQuestionView() {
 
     if (TIMER_ENABLED) startTimer(); // 🌟 المؤقت مُعطَّل حالياً — راجع تعريف TIMER_ENABLED أعلاه
     showView('dtp-question-view');
+    bindFitOnResize();
+    fitQuestionText();
 
     document.getElementById('dtp-btn-mistake').onclick = onMistakeClick;
     document.getElementById('dtp-btn-helper').onclick = onHelperClick;
@@ -586,6 +603,36 @@ function renderQuestionMeter(mistakes, liveScore) {
     if (val) val.textContent = liveScore;
     const max = document.getElementById('dtp-points-ring-max');
     if (max) max.textContent = '/ ' + QUESTION_POINTS;
+}
+
+// 🌟 [جديد — ترتيب شاشة اللعب] بطلب المعلم: نص السؤال يظهر كاملاً بلا نزول وطلوع. نبدأ بالحجم
+// الكامل ثم نصغّر خط "من/إلى" تدريجياً (حتى 45% كحد أدنى) إلى أن تتسع شاشة السؤال كلها بلا
+// تمرير. عرض فقط — لا يمس أي بيانات. يُعاد عند كل رسم للسؤال وعند تغيير حجم النافذة
+function fitQuestionText() {
+    const view = document.getElementById('dtp-question-view');
+    if (!view || view.style.display === 'none') return;
+    const inner = view.querySelector('.dtp-q-inner');
+    if (!inner) return;
+    // القياس مقابل ارتفاع النافذة نفسها (وليس ارتفاع الطبقة): أي أب عليه transform يغيّر
+    // مرجع position:fixed فلا يمكن الاعتماد على scrollHeight/clientHeight للطبقة
+    view.scrollTop = 0;
+    const limit = window.innerHeight - 16;
+    let scale = 1;
+    view.style.setProperty('--dtp-q-scale', scale);
+    while (inner.getBoundingClientRect().bottom > limit && scale > 0.45) {
+        scale = Math.round((scale - 0.05) * 100) / 100;
+        view.style.setProperty('--dtp-q-scale', scale);
+    }
+}
+let fitResizeBound = false;
+function bindFitOnResize() {
+    if (fitResizeBound) return;
+    fitResizeBound = true;
+    let raf = 0;
+    window.addEventListener('resize', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(fitQuestionText);
+    });
 }
 
 function startTimer() {
