@@ -139,34 +139,6 @@ body.dh-home-screen #home-quickcard-slot .home-quickcard {
     box-shadow: 0 22px 44px rgba(6, 35, 28, .3);
 }
 
-/* --- بطاقة "تابع من حيث توقفت" --- */
-.dh-fast-continue-wrap { width: 100%; position: relative; }
-/* 🌟 علامة ✕ لإخفاء البطاقة (دائرة صغيرة على ركن البطاقة، بخصائص منطقية تعمل في RTL وLTR) */
-.dh-fast-continue-x {
-    position: absolute; inset-block-start: -9px; inset-inline-end: -9px; z-index: 2;
-    width: 26px; height: 26px; padding: 0; border-radius: 50%; cursor: pointer; line-height: 1; font-size: .8rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    background: #fffdf6; color: #55605b; border: 1px solid rgba(212, 175, 55, .75); box-shadow: 0 2px 6px rgba(6, 35, 28, .15);
-}
-.dh-fast-continue-x[hidden] { display: none; }
-.dh-fast-continue-x:hover { background: #0d5c46; color: #fffdf6; border-color: #0d5c46; }
-.dh-fast-continue {
-    width: 100%; display: flex; flex-direction: row; align-items: center; gap: 16px; text-align: start; cursor: pointer;
-    background: #fffdf6; color: #1f2a26; border: 1px solid rgba(212, 175, 55, .55); border-radius: 18px;
-    padding: 14px 18px; font: inherit; box-shadow: 0 6px 16px rgba(6, 35, 28, .06);
-}
-.dh-fast-continue[hidden] { display: none; }
-.dh-fast-continue:hover { box-shadow: 0 10px 22px rgba(6, 35, 28, .12); }
-.dh-fast-continue-ic {
-    width: 46px; height: 46px; border-radius: 14px; flex: none; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #f0d878, #d4af37); color: #06231c;
-}
-.dh-fast-continue-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.dh-fast-continue-k { font-size: .8rem; color: #55605b; font-weight: 500; }
-.dh-fast-continue-v { font-size: 1.05rem; font-weight: 700; overflow-wrap: anywhere; }
-.dh-fast-continue-m { font-weight: 500; color: #55605b; font-size: .85rem; }
-.dh-fast-continue-go { background: #0d5c46; color: #fffdf6; border-radius: 12px; padding: 11px 22px; font-weight: 700; white-space: nowrap; }
-
 /* --- الأزرار الرئيسية الثلاثة: أقصر من السابق --- */
 body.dh-home-screen .home-menu-primary.home-menu-main { gap: 16px; }
 body.dh-home-screen .home-menu-main .home-card { min-height: 168px; padding: 20px; border-radius: 22px; }
@@ -225,9 +197,6 @@ body.dh-home-screen .home-menu-later .home-card-badge { position: static; backgr
     body.dh-home-screen .home-menu-main .home-card-desc { display: none; }
     body.dh-home-screen .home-menu-main .home-card-title { font-size: .95rem; }
     body.dh-home-screen .home-menu-secondary.home-menu-two { grid-template-columns: 1fr; gap: 10px; }
-    body.dh-home-screen .dh-fast-continue { padding: 10px 12px; gap: 12px; }
-    body.dh-home-screen .dh-fast-continue-ic { width: 40px; height: 40px; }
-    body.dh-home-screen .dh-fast-continue-go { padding: 9px 16px; }
 }
 
 
