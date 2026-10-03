@@ -518,6 +518,7 @@ function renderQuestionView() {
     const currentPointsEl = document.getElementById('dtp-current-points');
     currentPointsEl.textContent = t('dtp_current_points_label').replace('{score}', liveScore).replace('{max}', QUESTION_POINTS);
     currentPointsEl.className = 'dtp-current-points ' + pointsRatingClass(liveScore);
+    renderQuestionMeter(activeQuestion.mistakesThisQuestion, liveScore);
 
     const studentKey = activeQuestion.forStudent;
     document.getElementById('dtp-btn-helper').disabled = roundState.helperUsed[studentKey];
@@ -531,6 +532,28 @@ function renderQuestionView() {
     document.getElementById('dtp-btn-helper').onclick = onHelperClick;
     document.getElementById('dtp-btn-swap').onclick = onSwapClick;
     document.getElementById('dtp-btn-finish').onclick = onFinishQuestionClick;
+}
+
+// 🌟 [جديد — التصميم الاحترافي] عرض بصري فقط للأخطاء والدرجة الحالية في شاشة السؤال: نقاط
+// تمتلئ بعدد الأخطاء + حلقة دائرية تمتلئ بنسبة الدرجة من QUESTION_POINTS. لا يغيّر أي حساب —
+// يقرأ نفس القيم التي حسبها renderQuestionView أعلاه (عدد الأخطاء وناتج computeQuestionScore)
+function renderQuestionMeter(mistakes, liveScore) {
+    const pips = document.getElementById('dtp-mistake-pips');
+    if (pips) {
+        const shown = Math.min(Math.max(6, mistakes), 20);
+        let html = '';
+        for (let i = 0; i < shown; i++) html += `<i class="${i < mistakes ? 'on' : ''}"></i>`;
+        pips.innerHTML = html;
+    }
+    const ring = document.getElementById('dtp-points-ring');
+    if (ring) {
+        ring.style.setProperty('--dtp-ring-p', Math.max(0, Math.min(100, (liveScore / QUESTION_POINTS) * 100)));
+        ring.className = 'dtp-points-ring ' + pointsRatingClass(liveScore);
+    }
+    const val = document.getElementById('dtp-points-ring-value');
+    if (val) val.textContent = liveScore;
+    const max = document.getElementById('dtp-points-ring-max');
+    if (max) max.textContent = '/ ' + QUESTION_POINTS;
 }
 
 function startTimer() {
@@ -941,6 +964,10 @@ async function finishMatch() {
     document.getElementById('dtp-final-rounds-b').textContent = t('dtp_final_rounds_label').replace('{n}', series.roundsWonB);
     document.getElementById('dtp-final-points-a').textContent = t('dtp_final_points_label').replace('{n}', series.totalPointsA);
     document.getElementById('dtp-final-points-b').textContent = t('dtp_final_points_label').replace('{n}', series.totalPointsB);
+
+    // 🌟 [جديد — التصميم الاحترافي] تمييز بطاقة الفائز بصرياً في شاشة النتيجة النهائية (صنف CSS فقط)
+    document.getElementById('dtp-final-side-a')?.classList.toggle('dtp-fin-won', series.result === 'A_win');
+    document.getElementById('dtp-final-side-b')?.classList.toggle('dtp-fin-won', series.result === 'B_win');
 
     const badgeEl = document.getElementById('dtp-final-winner-badge');
     if (series.result === 'tie') {

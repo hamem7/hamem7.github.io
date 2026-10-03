@@ -147,8 +147,17 @@ async function renderTestsList() {
     }).join('');
 }
 
+// 🌟 [جديد — التصميم الاحترافي] أيقونات SVG خطّية موحّدة لأزرار صف الاختبار، بدل الإيموجي
+// (يختلف شكله بين الأجهزة). شكلية بحتة: كل زر يحتفظ بنفس data-action ونفس النص المترجم
+const DTS_ICONS = {
+    start: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg>',
+    edit: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    history: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg>',
+    delete: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'
+};
+
 function buildTestRowHTML(test, pendingGroups = []) {
-    const namesLabel = `${test.defaultStudentNameA || '—'} 🆚 ${test.defaultStudentNameB || '—'}`;
+    const namesLabel = `${test.defaultStudentNameA || '—'} <span class="dts-names-vs">VS</span> ${test.defaultStudentNameB || '—'}`;
     const isReady = test.status === 'ready';
     const badgeClass = isReady ? 'dts-badge-ready' : 'dts-badge-draft';
     const badgeText = isReady ? t('dts_status_ready') : t('dts_status_draft');
@@ -156,7 +165,7 @@ function buildTestRowHTML(test, pendingGroups = []) {
         ? new Date(test.updatedAt).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')
         : '';
     const startBtn = isReady
-        ? `<button type="button" data-action="start" data-id="${test.id}">${t('dts_start_match_btn')}</button>`
+        ? `<button type="button" class="dts-btn-start" data-action="start" data-id="${test.id}">${DTS_ICONS.start}${t('dts_start_match_btn')}</button>`
         : '';
     // 🌟 [مُحدَّث] زر مستقل لكل زوج طلاب له مواجهات معلقة على هذا الاختبار (بدل زر واحد
     // مجمّع) — كل زر يحمل اسمَي الطالبَين الفعليَّين وعدد مواجهاتهما المعلقة تحديداً، ويفتح
@@ -171,23 +180,23 @@ function buildTestRowHTML(test, pendingGroups = []) {
     return `
     <div class="dts-test-row">
         <div class="dts-test-row-info">
-            <span class="dts-test-row-vs-icon">🆚</span>
+            <span class="dts-test-row-vs-icon">VS</span>
             <div class="dts-test-row-text">
                 <span class="dts-test-row-names">${namesLabel}</span>
                 <span class="dts-test-row-meta"><span class="dts-badge ${badgeClass}">${badgeText}</span> · ${dateLabel}</span>
             </div>
         </div>
         <div class="dts-test-row-actions">
-            ${pendingBtns}
             ${startBtn}
-            <button type="button" data-action="edit" data-id="${test.id}">${t('dts_edit_btn')}</button>
+            ${pendingBtns}
+            <button type="button" class="dts-btn-quiet" data-action="edit" data-id="${test.id}">${DTS_ICONS.edit}${t('dts_edit_btn')}</button>
             <!-- 🌟 [جديد] "📜 المباريات السابقة" — يظهر دائماً بغض النظر عن حالة الاختبار
                  (مسودة/جاهز)، لأن المباريات المُلعَبة سابقاً محفوظة بشكل مستقل عن حالة بنك
                  الأسئلة نفسه وتبقى موجودة حتى لو عُدِّل الاختبار لاحقاً. لو لا توجد مباريات
                  منتهية بعد، النافذة نفسها تعرض رسالة "لا توجد مباريات" بدل إخفاء الزر شرطياً
                  (بيحتاج استعلام إضافي لكل صف بلا داعٍ حقيقي) -->
-            <button type="button" data-action="history" data-id="${test.id}">${t('dts_history_btn')}</button>
-            <button type="button" class="dts-btn-danger" data-action="delete" data-id="${test.id}">${t('dts_delete_btn')}</button>
+            <button type="button" class="dts-btn-quiet" data-action="history" data-id="${test.id}">${DTS_ICONS.history}${t('dts_history_btn')}</button>
+            <button type="button" class="dts-btn-danger dts-btn-quiet" data-action="delete" data-id="${test.id}">${DTS_ICONS.delete}${t('dts_delete_btn')}</button>
         </div>
     </div>`;
 }

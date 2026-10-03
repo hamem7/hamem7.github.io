@@ -422,21 +422,21 @@ export const translations = {
 
         // 🌟 [جديد] شاشة إعداد "الاختبارات الثنائية" — منفصلة تماماً عن شاشات الواجبات
         // والألعاب الأخرى (بطلب صريح من المعلم)، راجع dualtests/dual-test-setup.js
-        dts_title: "إعداد اختبار ثنائي 🆚",
+        dts_title: "إعداد اختبار ثنائي",
         dts_back: "العودة",
         dts_list_title: "الاختبارات المحفوظة",
         dts_new_test_btn: "+ اختبار جديد",
         dts_no_tests: "لا يوجد أي اختبار محفوظ بعد. اضغط «اختبار جديد» للبدء.",
         dts_status_draft: "مسودة",
         dts_status_ready: "جاهز ✅",
-        dts_edit_btn: "✏️ تعديل",
-        dts_start_match_btn: "▶️ ابدأ مواجهة",
-        dts_delete_btn: "🗑️ حذف",
+        dts_edit_btn: "تعديل",
+        dts_start_match_btn: "ابدأ مواجهة",
+        dts_delete_btn: "حذف",
         dts_delete_confirm: "هل أنت متأكد من حذف هذا الاختبار؟ لا يمكن التراجع.",
         // 🌟 [جديد] نافذة "سجل المباريات السابقة" — راجع openMatchesHistoryModal في
         // dual-test-setup.js. dtp_view_report_btn المُستخدَم لزر كل صف موجود مسبقاً (من تقرير
         // المواجهة نفسه) وأُعيد استخدامه هنا للاتساق بدل تكرار نفس النص بمفتاح مختلف.
-        dts_history_btn: "📜 المباريات السابقة",
+        dts_history_btn: "المباريات السابقة",
         dts_history_modal_title: "سجل مباريات هذا الاختبار",
         dts_history_close_btn: "إغلاق",
         dts_history_empty: "لا توجد مباريات منتهية على هذا الاختبار بعد.",
@@ -446,7 +446,7 @@ export const translations = {
         dts_pending_btn: "⏸️ مواجهات معلقة ({n})",
         // 🌟 [جديد] زر مستقل لكل زوج طلاب له مواجهات معلقة (بدل رقم واحد مجمّع على الاختبار
         // كله) — راجع pendingPairKeyCache في dual-test-setup.js
-        dts_pending_pair_btn: "⏸️ {a} 🆚 {b} ({n})",
+        dts_pending_pair_btn: "معلّقة: {a} · {b} ({n})",
         dts_pending_pair_label: "مواجهات {a} 🆚 {b} المعلقة فقط:",
         dts_pending_modal_title: "⏸️ مواجهات لم تكتمل",
         dts_pending_modal_desc: "اختر مواجهة لاستكمالها من الجولة التالية بنفس الطالبَين ونتائجهما المحفوظة.",
@@ -483,8 +483,8 @@ export const translations = {
         dts_to_placeholder: "مثال: سورة البقرة آية 10",
         dts_fill_both_fields_alert: "الرجاء كتابة نص «من» و«إلى» قبل إضافة السؤال.",
         dts_remove_btn: "إزالة",
-        dts_save_draft_btn: "💾 حفظ كمسودة",
-        dts_save_ready_btn: "✅ حفظ كاختبار جاهز",
+        dts_save_draft_btn: "حفظ كمسودة",
+        dts_save_ready_btn: "حفظ كاختبار جاهز",
         dts_ready_validation_error: "لكل جولة من الثلاث سؤال أساسي واحد مكتمل البيانات على الأقل قبل الحفظ كـ«جاهز». تقدر تحفظه كمسودة وتكمله لاحقاً.",
         dts_saved_draft_toast: "تم حفظ الاختبار كمسودة 📝",
         dts_saved_ready_toast: "تم حفظ الاختبار وأصبح جاهزاً ✅",
@@ -517,24 +517,29 @@ export const translations = {
         // في dual-test-play.js لتفاصيل الفكرة الكاملة
         dtp_round_restored_toast: "✅ تم استرجاع تقدّم الجولة السابق بعد التحديث",
         dtp_round_label: "الجولة {n} من 3",
-        dtp_start_round_btn: "🚀 ابدأ الجولة",
+        // 🌟 [جديد — التصميم الاحترافي] تسميات مؤشر خطوات المحرر + عنوان الجولات المكسوبة في شاشة الترحيب
+        dtp_vs_wins_label: "جولات مكسوبة",
+        dts_step_label_1: "المتسابقان والنطاق",
+        dts_step_label_2: "اختيار الجولة",
+        dts_step_label_3: "الأسئلة",
+        dtp_start_round_btn: "ابدأ الجولة",
         dtp_coin_flip_start_msg: "🎲 مين يبدأ؟...",
         dtp_coin_flip_result_msg: "يبدأ: {name} 🎉",
         dtp_end_round_manual_btn: "⏹️ إنهاء الجولة الآن يدوياً",
         dtp_question_turn_label: "دور: {name}",
-        dtp_btn_mistake: "❌ تسجيل خطأ",
-        dtp_btn_helper: "💡 مساعدة",
-        dtp_btn_swap: "🔄 تبديل",
-        dtp_btn_finish: "✅ اعتماد الإجابة",
+        dtp_btn_mistake: "تسجيل خطأ",
+        dtp_btn_helper: "مساعدة",
+        dtp_btn_swap: "تبديل",
+        dtp_btn_finish: "اعتماد الإجابة",
         dtp_mistakes_count_label: "عدد الأخطاء المسجَّلة لهذا السؤال: {n}",
         // 🌟 [جديد] كل سؤال = 10 درجات، والدرجة الحالية المتوقعة تُعرض حياً قبل الاعتماد
         dtp_current_points_label: "الدرجة الحالية لهذا السؤال: {score} من {max}",
-        dtp_result_title: "✅ نتيجة السؤال",
+        dtp_result_title: "نتيجة السؤال",
         dtp_result_points_of_label: "الدرجة",
         dtp_result_mistakes_label: "عدد الأخطاء",
         dtp_result_deduction_label: "الخصم",
         dtp_result_helper_label: "استخدام المساعدة",
-        dtp_result_continue_btn: "متابعة ▶️",
+        dtp_result_continue_btn: "متابعة",
         dtp_yes: "نعم ✅",
         dtp_no: "لا",
         dtp_no_swap_available_alert: "لا يوجد أي رمز استبدال متاح حالياً في هذه الجولة.",
@@ -574,17 +579,17 @@ export const translations = {
         dtp_end_session_btn: "💾 إنهاء الجلسة وحفظ التقدّم",
         dtp_session_saved_note: "✅ تم حفظ نتيجة هذه الجولة. المواجهة ستبقى محفوظة بنفس الطالبَين، وتُستكمَل من الجولة {n} في جلسة قادمة من: الاختبارات الثنائية ← ⏸️ مواجهات معلقة.",
         dtp_view_final_btn: "عرض النتيجة النهائية 🏁",
-        dtp_final_title: "🏆 النتيجة النهائية",
+        dtp_final_title: "النتيجة النهائية",
         dtp_final_winner_label: "الفائز: {name} 🏆🎉",
         dtp_final_tie_label: "تعادل الأبطال 🤝",
         dtp_final_rounds_label: "عدد الجولات: {n}",
         dtp_final_points_label: "مجموع النقاط: {n}",
-        dtp_final_back_btn: "🏠 العودة للرئيسية",
+        dtp_final_back_btn: "العودة للرئيسية",
         // 🌟 [جديد] زر فتح تقرير المواجهة الكامل من شاشة النتيجة النهائية، ومُعاد استخدامه
         // أيضاً لكل صف في نافذة "📜 المباريات السابقة" (dual-test-setup.js) — راجع
         // reports/dual-test-report.js. ⚠️ كان هذا المفتاح مُستخدَماً بالفعل في dual-test-play.html
         // (data-i18n="dtp_view_report_btn") لكنه لم يكن مُعرَّفاً هنا فعلياً — تم تداركه الآن.
-        dtp_view_report_btn: "📄 عرض تقرير المواجهة",
+        dtp_view_report_btn: "عرض تقرير المواجهة",
         // 🌟 [جديد] نظام الأوسمة/الإنجازات — راجع BADGE_CATALOG في engine/dualTestEngine.js
         dtp_new_badges_title: "🎖️ أوسمة جديدة!",
         badge_first_duel_name: "أول نزال 🥇",
@@ -2279,20 +2284,20 @@ export const translations = {
 
         // 🌟 [New] "Dual Tests" setup screen — kept fully separate from homework and
         // game screens (explicit teacher request), see dualtests/dual-test-setup.js
-        dts_title: "Set Up a Dual Test 🆚",
+        dts_title: "Set Up a Dual Test",
         dts_back: "Back",
         dts_list_title: "Saved Tests",
         dts_new_test_btn: "+ New Test",
         dts_no_tests: "No saved tests yet. Tap “New Test” to start.",
         dts_status_draft: "Draft",
         dts_status_ready: "Ready ✅",
-        dts_edit_btn: "✏️ Edit",
-        dts_start_match_btn: "▶️ Start Match",
-        dts_delete_btn: "🗑️ Delete",
+        dts_edit_btn: "Edit",
+        dts_start_match_btn: "Start Match",
+        dts_delete_btn: "Delete",
         dts_delete_confirm: "Delete this test? This cannot be undone.",
         // 🌟 [New] "Past Matches" history modal — see openMatchesHistoryModal in
         // dual-test-setup.js. dtp_view_report_btn is reused for each row's button.
-        dts_history_btn: "📜 Past Matches",
+        dts_history_btn: "Past Matches",
         dts_history_modal_title: "This Test's Match History",
         dts_history_close_btn: "Close",
         dts_history_empty: "No finished matches for this test yet.",
@@ -2300,7 +2305,7 @@ export const translations = {
         dts_pending_btn: "⏸️ Unfinished ({n})",
         // 🌟 [New] one button per student pair with pending matches (instead of one merged
         // count for the whole test) — see pendingPairKeyCache in dual-test-setup.js
-        dts_pending_pair_btn: "⏸️ {a} vs {b} ({n})",
+        dts_pending_pair_btn: "Pending: {a} · {b} ({n})",
         dts_pending_pair_label: "Showing only {a} vs {b}'s unfinished matches:",
         dts_pending_modal_title: "⏸️ Unfinished Matches",
         dts_pending_modal_desc: "Pick a match to resume from its next round, with the same students and their saved scores.",
@@ -2336,8 +2341,8 @@ export const translations = {
         dts_to_placeholder: "e.g. Surah Al-Baqarah, Ayah 10",
         dts_fill_both_fields_alert: "Please write both the “from” and “to” text before adding the question.",
         dts_remove_btn: "Remove",
-        dts_save_draft_btn: "💾 Save as Draft",
-        dts_save_ready_btn: "✅ Save as Ready",
+        dts_save_draft_btn: "Save as Draft",
+        dts_save_ready_btn: "Save as Ready",
         dts_ready_validation_error: "Each of the 3 rounds needs at least one complete main question before saving as “Ready”. You can save as a draft and finish it later.",
         dts_saved_draft_toast: "Test saved as a draft 📝",
         dts_saved_ready_toast: "Test saved and marked ready ✅",
@@ -2370,24 +2375,29 @@ export const translations = {
         // comment in dual-test-play.js for the full idea
         dtp_round_restored_toast: "✅ Round progress restored after the refresh",
         dtp_round_label: "Round {n} of 3",
-        dtp_start_round_btn: "🚀 Start Round",
+        // 🌟 [New — professional design] Editor step labels + rounds-won caption on the welcome screen
+        dtp_vs_wins_label: "Rounds won",
+        dts_step_label_1: "Competitors & range",
+        dts_step_label_2: "Pick a round",
+        dts_step_label_3: "Questions",
+        dtp_start_round_btn: "Start Round",
         dtp_coin_flip_start_msg: "🎲 Who starts?...",
         dtp_coin_flip_result_msg: "Starting: {name} 🎉",
         dtp_end_round_manual_btn: "⏹️ End Round Now Manually",
         dtp_question_turn_label: "Turn: {name}",
-        dtp_btn_mistake: "❌ Log Mistake",
-        dtp_btn_helper: "💡 Hint",
-        dtp_btn_swap: "🔄 Swap",
-        dtp_btn_finish: "✅ Confirm Answer",
+        dtp_btn_mistake: "Log Mistake",
+        dtp_btn_helper: "Hint",
+        dtp_btn_swap: "Swap",
+        dtp_btn_finish: "Confirm Answer",
         dtp_mistakes_count_label: "Mistakes logged for this question: {n}",
         // 🌟 [New] Each question is worth 10 points; the live expected score shows before confirming
         dtp_current_points_label: "Current score for this question: {score} of {max}",
-        dtp_result_title: "✅ Question Result",
+        dtp_result_title: "Question Result",
         dtp_result_points_of_label: "Score",
         dtp_result_mistakes_label: "Mistakes",
         dtp_result_deduction_label: "Deduction",
         dtp_result_helper_label: "Used Hint",
-        dtp_result_continue_btn: "Continue ▶️",
+        dtp_result_continue_btn: "Continue",
         dtp_yes: "Yes ✅",
         dtp_no: "No",
         dtp_no_swap_available_alert: "No swap code is available in this round right now.",
@@ -2418,17 +2428,17 @@ export const translations = {
         dtp_end_session_btn: "💾 End session & save progress",
         dtp_session_saved_note: "✅ This round's result is saved. The match stays saved with the same students and resumes at round {n} in a later session from: Dual Tests → ⏸️ Unfinished matches.",
         dtp_view_final_btn: "View Final Result 🏁",
-        dtp_final_title: "🏆 Final Result",
+        dtp_final_title: "Final Result",
         dtp_final_winner_label: "Winner: {name} 🏆🎉",
         dtp_final_tie_label: "Champions' Tie 🤝",
         dtp_final_rounds_label: "Rounds won: {n}",
         dtp_final_points_label: "Total points: {n}",
-        dtp_final_back_btn: "🏠 Back to Home",
+        dtp_final_back_btn: "Back to Home",
         // 🌟 [New] Opens the full match report from the final result screen, also reused for
         // each row in the "Past Matches" modal (dual-test-setup.js) — see
         // reports/dual-test-report.js. This key was already referenced in dual-test-play.html
         // (data-i18n="dtp_view_report_btn") but was missing here — now fixed.
-        dtp_view_report_btn: "📄 View Match Report",
+        dtp_view_report_btn: "View Match Report",
         // 🌟 [New] Badges/achievements system — see BADGE_CATALOG in engine/dualTestEngine.js
         dtp_new_badges_title: "🎖️ New Badges!",
         badge_first_duel_name: "First Duel 🥇",
