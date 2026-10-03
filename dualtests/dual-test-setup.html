@@ -292,7 +292,9 @@
     [dir="ltr"] .dt-back-ico { transform: scaleX(-1); }
     .dts-back-btn { display: inline-flex; align-items: center; gap: 6px; }
     /* !important للتغلّب على .adult-theme h1 (adults.css) الذي كان يُظهر العنوان داكناً فوق البنّر الداكن */
-    .dts-header-banner h1.dts-editor-title { color: #fffdf6 !important; }
+    /* text-shadow: none يلغي الظل الأبيض المتعدد الذي تفرضه kids.css على كل h1 (كان يجعل
+       العنوان الأبيض فوق البنّر الداكن يبدو مشوّهاً) */
+    .dts-header-banner h1.dts-editor-title { color: #fffdf6 !important; text-shadow: none !important; font-size: 1.5rem; }
     .dts-header-icon { font-size: 1.05rem; font-weight: 900; color: var(--dh-emerald-900); letter-spacing: 0.5px; }
 
     /* --- مؤشر الخطوات: اسم تحت كل دائرة، والخط الواصل يمتلئ بالأخضر بعد اكتمال الخطوة --- */
@@ -342,6 +344,60 @@
     }
     .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
     .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
+
+    /* ===== 🌟 [جديد — الاقتراح ١ المعتمد] شاشة الأسئلة: تبويبان + بطاقات + نموذج إضافة ===== */
+    #dts-active-round-container .dts-round-block { border: none; background: none; box-shadow: none; padding: 0; animation: none; }
+    .dts-qx-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid #efeadc; }
+    .dts-qx-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .dts-qx-badge { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 1.1rem; background: var(--dh-emerald-800); color: var(--dh-gold-300); flex-shrink: 0; }
+    .dts-qx-title .dts-round-title { margin: 0; font-size: 1.2rem; text-shadow: none !important; }
+    .dts-qx-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.92rem; }
+    .dts-qx-range-label { color: #66736c; font-weight: 600; }
+    .dts-qx-chip { display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border-radius: 999px; background: #eef6f1; color: var(--dh-emerald-800); font-weight: 600; }
+    .dts-qx-chip b { font-weight: 700; }
+    .dts-qx-range .dts-edit-range-link { margin: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+    .dts-qx-tabs { display: flex; gap: 6px; margin: 16px 0 12px; background: #f6f4ee; padding: 5px; border-radius: 14px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+    .dts-qx-tabs button { font: inherit; font-weight: 600; font-size: 0.95rem; border: 0; background: transparent; color: #66736c; padding: 9px 16px; border-radius: 10px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+    .dts-qx-count { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.8rem; font-variant-numeric: tabular-nums; background: #e6e0cf; color: #12261f; }
+    .dts-qx-tabs button[aria-selected="true"] { background: #fff; color: var(--dh-emerald-800); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .dts-qx-tabs button[aria-selected="true"] .dts-qx-count { background: var(--dh-emerald-700); color: #fff; }
+    .dts-qx-tabs button.dts-qx-tab-swap[aria-selected="true"] { color: #b4630b; }
+    .dts-qx-tabs button.dts-qx-tab-swap[aria-selected="true"] .dts-qx-count { background: #b4630b; }
+    .dts-qx-desc { font-size: 0.88rem; color: #66736c; margin: 0 0 12px; }
+
+    .dts-qx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .dts-qx-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e6e0cf; border-radius: 14px; background: #fff; min-width: 0; animation: dts-fadeInUp 0.25s ease both; }
+    .dts-qx-card-swap { background: #fffaf2; border-color: #f1d3a4; }
+    .dts-qx-num { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--dh-emerald-700); color: #fffdf6; flex-shrink: 0; }
+    .dts-qx-num-swap { background: #fdf3e2; color: #b4630b; border: 1.5px solid #f1d3a4; font-size: 0.8rem; letter-spacing: 0.5px; }
+    .dts-qx-lines { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .dts-qx-line { display: grid; grid-template-columns: 4.4em 1fr; gap: 6px; font-size: 0.95rem; line-height: 1.5; }
+    .dts-qx-line span:first-child { color: #66736c; font-weight: 600; font-size: 0.82rem; padding-top: 2px; }
+    .dts-qx-line span:last-child { overflow-wrap: anywhere; font-weight: 600; color: #12261f; }
+    .dts-qx-card .dts-q-remove { width: 36px; height: 36px; border-radius: 10px; border: 1px solid transparent; color: #a0a8a3; display: grid; place-items: center; padding: 0; font-size: 1rem; }
+    .dts-qx-card .dts-q-remove:hover { transform: none; color: #b4321f; border-color: #f3d6cf; background: #fdf1ee; }
+    .dts-qx-empty { text-align: center; color: #66736c; padding: 22px 12px; border: 1.5px dashed #e6e0cf; border-radius: 14px; font-size: 0.92rem; }
+
+    .dts-qx-composer { margin-top: 14px; padding: 14px; border-radius: 16px; background: #f6f4ee; border: 1.5px solid #e6e0cf; display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+    .dts-qx-composer-swap { background: #fffaf2; border-color: #f1d3a4; }
+    .dts-qx-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .dts-qx-field label { font-weight: 700; font-size: 0.88rem; color: var(--dh-emerald-800) !important; display: flex; align-items: center; gap: 6px; margin: 0; }
+    .dts-qx-field-to label { color: #8a6a12 !important; }
+    .dts-qx-field textarea { font: inherit; font-size: 1rem; width: 100%; min-height: 46px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid #e6e0cf; background: #fff; color: #12261f; resize: vertical; line-height: 1.5; }
+    .dts-qx-field textarea:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(20,124,94,0.14); }
+    .dts-qx-add { font: inherit; font-weight: 700; font-size: 1rem; min-height: 46px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--dh-emerald-700); color: #fffdf6; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; white-space: nowrap; transition: background 0.15s ease, transform 0.12s ease; }
+    .dts-qx-add:hover { background: var(--dh-emerald-800); }
+    .dts-qx-add:active { transform: scale(0.97); }
+    .dts-qx-add-swap { background: #b4630b; }
+    .dts-qx-add-swap:hover { background: #8f4e08; }
+    .dts-qx-hint { grid-column: 1 / -1; font-size: 0.8rem; color: #66736c; margin-top: -4px; }
+    @media (max-width: 760px) {
+        .dts-qx-tabs { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+        .dts-qx-tabs button { justify-content: center; padding: 9px 8px; font-size: 0.88rem; gap: 6px; }
+        .dts-qx-composer { grid-template-columns: 1fr; }
+        .dts-qx-grid { grid-template-columns: 1fr; }
+    }
 
     /* --- 🌟 [جديد] أزرار التنقل بين الخطوات: أيقونة سهم + الخطوة 2 فيها رجوع وتالي --- */
     .dts-btn-step-next, .dts-btn-step-back { display: inline-flex; align-items: center; gap: 8px; }
@@ -411,7 +467,7 @@
 </style>
 
 <div class="screen active dts-wrapper">
-    <button class="btn btn-outline dts-back-btn" id="dts-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_back">العودة</span></button>
+    <!-- 🌟 [مُحدَّث] زر "العودة" حُذف بطلب المعلم — التنقّل من الشريط السفلي/القائمة الرئيسية -->
     <div class="dts-header-banner">
         <span class="dts-header-icon">VS</span>
         <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي</h1>

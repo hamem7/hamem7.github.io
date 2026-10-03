@@ -972,6 +972,8 @@
         color: var(--dh-gold-300); animation: dtp-popIn 0.5s ease both;
     }
     .dtp-fin-trophy-svg { width: 58px; height: 58px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    #dtp-final-view .dtp-summary-title, #dtp-board-round-title { text-shadow: none !important; } /* يلغي ظل kids.css الأبيض على h2 */
+    #dtp-board-round-title.dtp-round-title { color: #fffdf6 !important; } /* يتغلّب على .adult-theme h2 */
     #dtp-final-view .dtp-summary-title { color: var(--dh-gold-300) !important; /* يتغلّب على .adult-theme h2 */ font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; margin: -6px 0 0 0; }
     #dtp-final-view .dtp-winner-badge {
         background: none; color: #fffdf6; padding: 0; margin: 0; border-radius: 0;
