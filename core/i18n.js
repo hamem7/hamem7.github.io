@@ -500,10 +500,16 @@ export const translations = {
         dts_from_ayah: "من آية",
         dts_to_ayah: "إلى آية",
         dts_main_questions_title: "الأسئلة الأساسية",
-        dts_add_question_btn: "+ إضافة سؤال",
+        dts_add_question_btn: "إضافة سؤال",
+        // 🌟 [جديد] شاشة الأسئلة بتبويبين (الاقتراح ١ المعتمد)
+        dts_swap_tab_title: "أسئلة الاستبدال",
+        dts_main_tab_desc: "تظهر على لوحة الأسئلة بأرقامها، ويختار منها الطالبان بالتناوب.",
+        dts_no_main_questions: "لا توجد أسئلة بعد. اكتب أول سؤال في الخانتين بالأسفل.",
+        dts_no_swap_questions: "لا توجد أسئلة استبدال بعد. اكتب أول سؤال في الخانتين بالأسفل.",
+        dts_entry_enter_hint: "اكتب السؤال يدوياً. Enter في «سمّع من» ينقلك لـ«إلى»، وEnter في «إلى» يضيف السؤال.",
         dts_swap_questions_title: "🔄 أسئلة الاستبدال (احتياطية، برمز مستقل)",
         dts_swap_questions_desc: "هذه الأسئلة غير معروضة على لوحة الأسئلة، وتُستخدم فقط عند طلب أي طالب تبديل سؤاله — الطالب نفسه يختار أي رمز يريده من هذه القائمة.",
-        dts_add_swap_btn: "+ إضافة سؤال استبدال",
+        dts_add_swap_btn: "إضافة سؤال استبدال",
         dts_question_number_prefix: "سؤال",
         // 🌟 [جديد] نموذج إدخال السؤال بنص حر — مربعا "من"/"إلى" يكتبهما المعلم بيده بالكامل
         dts_from_label: "سمّع من",
@@ -531,7 +537,7 @@ export const translations = {
         // أسئلة الجولة المختارة وحفظها. راجع goToStep في dual-test-setup.js.
         dts_step_label: "الخطوة {n} من 3",
         dts_step1_heading: "١) المتسابقان والنطاق",
-        dts_step1_hint: "حدّد اسم السورة التي سيختبر فيها الطالبان في كل جولة (السورة كاملة). تقدر تعدّل هذا لاحقاً في أي وقت من زر «✏️ تعديل».",
+        dts_step1_hint: "حدّد السورة التي يبدأ منها النطاق والسورة التي ينتهي عندها. تقدر تعدّل هذا لاحقاً في أي وقت من زر «تعديل النطاق».",
         dts_step1_next_btn: "التالي: اختيار الجولة",
         dts_step2_heading: "٢) اختر الجولة التي تريد تجهيزها",
         dts_step2_hint: "اختر الجولة التي تريد تجهيزها، ثم اضغط «التالي» لوضع أسئلتها.",
@@ -540,7 +546,7 @@ export const translations = {
         dts_step3_back_btn: "رجوع لاختيار الجولة",
         dts_range_not_set: "لم تُحدَّد بعد",
         dts_round_range_summary_label: "نطاق هذه الجولة:",
-        dts_edit_range_btn: "✏️ تعديل",
+        dts_edit_range_btn: "تعديل النطاق",
 
         // 🌟 [جديد] شاشة اللعب الفعلية dualtests/dual-test-play.js
         // 🌟 [جديد] حفظ تلقائي دوري لتقدّم الجولة الجارية — راجع تعليق persistInProgressRound
@@ -2391,10 +2397,16 @@ export const translations = {
         dts_from_ayah: "From Ayah",
         dts_to_ayah: "To Ayah",
         dts_main_questions_title: "Main Questions",
-        dts_add_question_btn: "+ Add Question",
+        dts_add_question_btn: "Add Question",
+        // 🌟 [New] Two-tab questions screen (approved proposal 1)
+        dts_swap_tab_title: "Swap Questions",
+        dts_main_tab_desc: "Shown on the question board by number; the two students pick from them in turn.",
+        dts_no_main_questions: "No questions yet. Type the first one in the two fields below.",
+        dts_no_swap_questions: "No swap questions yet. Type the first one in the two fields below.",
+        dts_entry_enter_hint: "Type the question manually. Enter in “Recite from” moves to “To”; Enter in “To” adds the question.",
         dts_swap_questions_title: "🔄 Swap Questions (reserve, independent codes)",
         dts_swap_questions_desc: "These are not shown on the question board — used only when a student asks to swap. The student picks whichever code they want from this list.",
-        dts_add_swap_btn: "+ Add Swap Question",
+        dts_add_swap_btn: "Add Swap Question",
         dts_question_number_prefix: "Question",
         // 🌟 [New] Free-text question entry form — teacher writes "from"/"to" fully by hand
         dts_from_label: "Recite from",
@@ -2422,7 +2434,7 @@ export const translations = {
         // round's questions and save. See goToStep in dual-test-setup.js.
         dts_step_label: "Step {n} of 3",
         dts_step1_heading: "1) Competitors & Range",
-        dts_step1_hint: "Pick the surah the two students will be tested on in each round (the whole surah). You can change this later anytime from the “✏️ Edit” button.",
+        dts_step1_hint: "Choose the surah the range starts from and the surah it ends at. You can change this later anytime from the “Edit range” button.",
         dts_step1_next_btn: "Next: Choose Round",
         dts_step2_heading: "2) Choose the Round You Want to Prepare",
         dts_step2_hint: "Pick the round you want to prepare, then press “Next” to add its questions.",
@@ -2431,7 +2443,7 @@ export const translations = {
         dts_step3_back_btn: "Back to Choose Round",
         dts_range_not_set: "Not set yet",
         dts_round_range_summary_label: "This round's range:",
-        dts_edit_range_btn: "✏️ Edit",
+        dts_edit_range_btn: "Edit range",
 
         // 🌟 [New] Live play screen dualtests/dual-test-play.js
         // 🌟 [New] Periodic autosave for the in-progress round — see the persistInProgressRound
