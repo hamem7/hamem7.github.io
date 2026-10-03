@@ -26,6 +26,24 @@
     text-align: center;
     border-bottom: 4px solid var(--dh-gold);
   }
+  /* 🌟 شريط علوي بزر الرئيسية بنفس أسلوب أزرار الرجوع في المنصة (مثل .ms-back في «طلابي») */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--dh-bg);
+    border-bottom: 1px solid #e4dfcc;
+    padding: 10px 16px;
+  }
+  .home-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    min-height: 44px; padding: 0 16px 0 12px;
+    border-radius: 14px; border: 1px solid #e4dfcc;
+    background: #fff; color: #0d5c46;
+    font: inherit; font-weight: 700; font-size: 0.95rem;
+    text-decoration: none; cursor: pointer;
+  }
+  .home-btn:hover { background: #eaf4ef; text-decoration: none; }
+  .home-btn:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+  .home-btn svg { flex-shrink: 0; }
   header h1 { margin: 0 0 8px; font-size: 1.9rem; }
   header p { margin: 0; opacity: 0.85; font-size: 0.95rem; }
   main {
@@ -71,6 +89,13 @@
 </style>
 </head>
 <body>
+  <nav class="topbar">
+    <a class="home-btn" id="priv-home-btn" href="index.html">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/></svg>
+      <span data-i18n="header_home_btn">الرئيسية</span>
+    </a>
+  </nav>
+
   <header>
     <h1 data-i18n="priv_title">سياسة الخصوصية</h1>
     <p data-i18n="priv_sub">منصة حمٓ لتثبيت الحفظ و المراجعة</p>
@@ -109,6 +134,11 @@
       document.documentElement.dir = lang === 'en' ? 'ltr' : 'rtl';
       if (lang !== 'en') return;
       try {
+        // 🌟 i18n.js وapp.js يستورد كلٌّ منهما الآخر؛ استيراد i18n.js وحده يفشل (translations قبل تهيئتها)
+        // فتبقى الصفحة عربية. نستورد app.js أولاً كما تفعل index.html، وبعد اكتمال تحميل الصفحة فقط حتى
+        // لا يعمل إقلاع المنصة (bootSystem مربوط بـ DOMContentLoaded الذي يكون قد مضى).
+        if (document.readyState !== 'complete') await new Promise(r => window.addEventListener('load', r, { once: true }));
+        await import('./core/app.js');
         const { translations } = await import('./core/i18n.js');
         document.querySelectorAll('[data-i18n]').forEach(el => {
           const v = translations.en[el.getAttribute('data-i18n')];
