@@ -607,6 +607,8 @@ export const translations = {
         // Games (Adult & Kids) HTML
         eval_path: "مسار التقييم الشامل",
         exit_game: "🚪 خروج وإنهاء",
+        game_fs_enter: "⛶ ملء الشاشة",
+        game_fs_exit: "🗗 الخروج من ملء الشاشة",
         // 🌟 [جديد] رسالة تأكيد قبل الخروج من جلسة تقييم بها إجابات مسجَّلة بالفعل — نفس فكرة
         // التأكيد الموجودة في dualtests/dual-test-play.js عند الخروج من مواجهة جارية، لمنع فقد
         // تقييم كامل بضغطة واحدة بالخطأ (راجع الشرط في adultGame.js/kidsGame.js: لا يظهر
@@ -2425,6 +2427,8 @@ export const translations = {
         // Games (Adult & Kids) HTML
         eval_path: "Comprehensive Evaluation Path",
         exit_game: "🚪 Exit and End",
+        game_fs_enter: "⛶ Full screen",
+        game_fs_exit: "🗗 Exit full screen",
         // 🌟 [New] Confirmation message before exiting an evaluation session that already has
         // recorded answers — mirrors the confirm() used in dualtests/dual-test-play.js when
         // leaving a live match, to prevent losing a whole evaluation with one accidental click.

@@ -16,6 +16,7 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
+import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -167,6 +168,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
 
 function initGameUI() {
     // 🌟 [إصلاح فحص الأزرار] أُزيل سطر الإسناد الذاتي هنا (كان يشير لمعرّف مجرد)؛ التعريف الفعلي لـ window.recordKidsAnswer أدناه على مستوى الملف 🌟
+    initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     
     GameState.sessionStartTime = new Date(); 

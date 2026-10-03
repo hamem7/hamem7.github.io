@@ -16,6 +16,7 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
+import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -324,6 +325,7 @@ function initGameUI() {
         document.getElementById('zoomModal').style.display = 'flex';
     };
 
+    initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     startTimer(30); 
     
