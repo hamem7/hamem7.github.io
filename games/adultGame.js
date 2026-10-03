@@ -808,7 +808,7 @@ async function playNextMission() {
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
-            if(GameState.currentData.type === 'between') document.body.dataset.gameQ = 'between';
+            if(['between', 'recite'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             
             let ansHTML = `${t("الإجابة الصحيحة:")}<br>`;
             if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) {

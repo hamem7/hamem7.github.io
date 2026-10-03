@@ -11,7 +11,11 @@
      · "الذاكرة البصرية": نفس العرض الكامل لكن بلا ارتفاع ثابت — صفحتا المصحف أطول من الشاشة،
        فتنزل الصفحة كلها قليلاً (لا تمرير داخلي) والقائمة الجانبية تبقى ظاهرة (sticky).
      · "الآية بين آيتين": ثلاثة أسطر بخط 3rem وارتفاع سطر 2.2 كانت تتجاوز الشاشة — حجم الخط يتبع
-       ارتفاع النافذة وسطر الفراغ ( ...... ) أقصر، فيظهر السؤال والأزرار بلا تمرير. */
+       ارتفاع النافذة وسطر الفراغ ( ...... ) أقصر، فيظهر السؤال والأزرار بلا تمرير.
+     · "تسميع مقطع" (كبار recite / أطفال kids_recite): آيتا البداية والنهاية بخط 3.2rem وحشوات كبيرة
+       كانت تتجاوز الشاشة — الخط يتبع ارتفاع النافذة والمسافات أضيق، فيظهر السؤال وأزراره بلا تمرير.
+     · "صح أم خطأ" (أطفال kids_tf): الآية وسؤال "هل هذه الآية من سورة...؟" كانا متجاورين بعرض غير
+       متوازن — الآن الآية في المنتصف والسؤال تحتها ثم زرا نعم/لا، بنفس ألوان وصناديق الصفحة. */
 
 @media (min-width: 901px) {
     body[data-dh-screen$="Game.html"] #app-root > .screen {
@@ -80,6 +84,44 @@
     }
     body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span + br { display: none; }
 
+    /* تسميع مقطع: خط يتبع ارتفاع الشاشة + مسافات أضيق */
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question { margin-bottom: 8px !important; }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question > div {
+        max-width: 1000px !important;
+        margin-top: 0 !important;
+        padding: 12px 30px !important;
+    }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question > div > div { margin-bottom: 4px !important; }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question > div > div:first-child { margin-bottom: 10px !important; }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question .quran-text {
+        font-size: clamp(1.8rem, 4.6vh, 3.2rem) !important;
+        line-height: 1.8 !important;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        margin-bottom: 10px !important;
+    }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #show-ans-btn { margin-top: -10px; }
+
+    /* صح أم خطأ: الآية في المنتصف والسؤال تحتها */
+    body[data-dh-screen$="Game.html"][data-game-q="kids_tf"] #game-question {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        margin-top: 10px;
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="kids_tf"] #game-question > .quran-text {
+        margin: 0 !important;
+        max-width: 100%;
+        box-sizing: border-box;
+        font-size: clamp(2.2rem, 5.6vh, 3.5rem) !important;
+        padding: 10px 40px;
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="kids_tf"] #game-question > div:not(.quran-text) {
+        font-size: clamp(1.5rem, 3.4vh, 2.2rem) !important;
+        padding: 12px 30px !important;
+    }
+
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
     body[data-game-fs="1"] #main-header { display: none !important; }
     body[data-game-fs="1"] .game-layout {
@@ -90,6 +132,18 @@
         min-height: calc(100vh - 24px);
         min-height: calc(100dvh - 24px);
     }
+}
+
+/* شاشات لابتوب قصيرة (ارتفاع ≤780px): مسافات أضيق حول السؤال حتى يظهر هو وأزراره بلا تمرير */
+@media (min-width: 901px) and (max-height: 780px) {
+    body[data-dh-screen$="Game.html"] .game-main-area { padding-top: 12px !important; padding-bottom: 12px !important; }
+    body[data-dh-screen$="Game.html"] .in-game-student { padding: 4px 10px !important; margin-bottom: 8px !important; }
+    body[data-dh-screen$="Game.html"] .in-game-student img { width: 44px !important; height: 44px !important; }
+    body[data-dh-screen$="Game.html"] .in-game-student h3 { font-size: 1.35rem !important; }
+    body[data-dh-screen$="Game.html"] #game-title { margin-bottom: 8px !important; }
+    body[data-dh-screen$="Game.html"] #game-title > span { font-size: 1.5rem !important; padding: 6px 26px !important; }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #teacher-eval-area > div[style*="margin-top: 25px"] { margin-top: 12px !important; }
+    body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #teacher-eval-buttons { margin-top: 8px !important; }
 }
 
 /* زر ملء الشاشة — مخفي على الهاتف (لا فائدة منه هناك وتدعمه متصفحات قليلة) */
