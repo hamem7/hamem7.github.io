@@ -573,30 +573,97 @@ function parseStudentId(raw) {
     return /^\d+$/.test(str) ? Number(str) : str;
 }
 
+// 🌟 [عدّل 2026-10-03] السجل العام صار قائمة مبسّطة بدل جدول التسعة أعمدة (راجع تعليق all-students.html):
+// صف لكل طالب (صورة + اسم + صف/عمر + نقاط + زر تقييم + قائمة ⋯)، والمخفيون في مجموعة قابلة للطي أسفل القائمة.
+// أسماء الأصناف (btn-prof-link/btn-start-eval/btn-edit/btn-hide/btn-show/btn-delete/btn-weakness) كما هي ليعمل مستمع النقر بلا تغيير.
+const AS_AVATAR_COLORS = ['#0d5c46', '#147c5e', '#8a6a12', '#1e5a7a', '#6b3f8a', '#9a3b3b', '#3d6b2f', '#8a5a1e'];
+
+function allStudentsAvatarHtml(s) {
+    const a = s.avatar || '';
+    if (a && a.length >= 10) return `<div class="as-avatar"><img src="${esc(a)}" alt=""></div>`;
+    const key = String(s.id);
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    const bg = AS_AVATAR_COLORS[h % AS_AVATAR_COLORS.length];
+    const inner = a ? esc(a) : esc((s.name || '؟').trim().charAt(0) || '★');
+    return `<div class="as-avatar" style="background:${bg}">${inner}</div>`;
+}
+
+function allStudentsRowHtml(s) {
+    const id = esc(s.id);
+    const details = [s.grade ? trStored(s.grade) : t('stu_not_set')];
+    if (s.dob) {
+        const d = new Date(s.dob);
+        details.push(tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) }));
+    }
+    const weakness = (s.weaknesses && s.weaknesses.length > 0)
+        ? `<button class="btn-weakness" data-id="${id}">${tf('as_fix_errors', { n: s.weaknesses.length })}</button>` : '';
+    const mainBtn = s.isHidden
+        ? `<button class="btn as-go btn-show" data-id="${id}">${t('as_show_btn')}</button>`
+        : `<button class="btn as-go btn-start-eval" data-id="${id}">${t('stu_start_eval_row')}</button>`;
+    const hideItem = s.isHidden
+        ? `<button class="btn-show" data-id="${id}">👁️ ${t('stu_restore')}</button>`
+        : `<button class="btn-hide" data-id="${id}">🙈 ${t('stu_hide')}</button>`;
+    return `<div class="as-row${s.isHidden ? ' as-hidden-row' : ''}" data-name="${esc((s.name || '').toLowerCase())}">
+        ${allStudentsAvatarHtml(s)}
+        <div class="as-info">
+            <button class="btn-prof-link" data-id="${id}">${esc(s.name)}</button>
+            <span class="as-sub">${esc(details.join(' · '))}</span>
+            ${weakness}
+        </div>
+        <div class="as-pts">${s.totalScore || 0} <small>${t('as_points_unit')}</small></div>
+        ${mainBtn}
+        <div class="as-menu-wrap">
+            <button class="as-more" aria-label="${t('as_more_options')}" title="${t('as_more_options')}">⋯</button>
+            <div class="as-menu">
+                <button class="btn-edit" data-id="${id}">✏️ ${t('stu_edit_data')}</button>
+                ${hideItem}
+                <button class="btn-delete" data-id="${id}">🗑️ ${t('stu_delete_final')}</button>
+            </div>
+        </div>
+    </div>`;
+}
+
 async function renderAllStudentsTable() {
     const students = await AppState.studentManager.getAllStudents();
-    const tbody = document.getElementById('all-students-body');
-    if(!tbody) return;
-    tbody.innerHTML = "";
-    students.forEach((s, index) => {
-        let ageStr = t("stu_not_set");
-        if(s.dob) {
-            let d = new Date(s.dob);
-            ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
-        }
-        let evalsCount = JSON.parse(localStorage.getItem(`history_${s.id}`))?.length || 0;
-        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_restore')}">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_hide')}">🙈</button>`;
-        let manageBtns = `<button class="btn btn-edit" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_edit_data')}">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_delete_final')}">🗑️</button>`;
-        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${esc(s.id)}" style="padding:5px 10px; font-size:1rem;">${tf('stu_errors_btn', { n: s.weaknesses.length })}</button>` : `<span style="color:#aaa;">${t('stu_no_errors')}</span>`;
+    const box = document.getElementById('all-students-body');
+    if(!box) return;
+    const visible = students.filter(s => !s.isHidden);
+    const hidden = students.filter(s => s.isHidden);
+    const countEl = document.getElementById('as-count');
+    if (countEl) countEl.textContent = tf('as_count', { n: visible.length });
 
-        let nameButton = `<button class="btn-prof-link" data-id="${esc(s.id)}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${esc(s.name)}</button>`;
+    if (!students.length) { box.innerHTML = `<div class="as-empty">${t('as_empty')}</div>`; return; }
+    let html = visible.length ? `<div class="as-list">${visible.map(allStudentsRowHtml).join('')}</div>` : '';
+    if (hidden.length) {
+        html += `<details class="as-hidden-box"${visible.length ? '' : ' open'}><summary>${tf('as_hidden_group', { n: hidden.length })}</summary><div class="as-list">${hidden.map(allStudentsRowHtml).join('')}</div></details>`;
+    }
+    html += `<div class="as-empty" id="as-no-match" style="display:none;">${t('as_no_match')}</div>`;
+    box.innerHTML = html;
+    filterAllStudentsList();
+}
 
-        // 🌟 [جديد 2026-10-01] زر "ابدأ تقييم" في صف الطالب (مخفي للطالب المخفي) — يبدأ التقييم مباشرة بلا المرور بالرئيسية
-        let startEvalBtn = s.isHidden ? '<span style="color:#aaa;">—</span>' : `<button class="btn as-btn-primary btn-start-eval" data-id="${esc(s.id)}" style="padding:6px 12px; font-size:1rem; min-width:unset;">${t('stu_start_eval_row')}</button>`;
-
-        // 🌟 [إصلاح فحص الأزرار] data-label على كل خلية ليعرض CSS الهاتف (بطاقات) اسم الحقل بجانب قيمته 🌟
-        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td data-label="${t('as_col_no')}">${index+1}</td><td data-label="${t('as_col_name')}">${nameButton}</td><td data-label="${t('as_col_age')}">${ageStr}</td><td data-label="${t('as_col_grade')}">${esc(s.grade ? trStored(s.grade) : t('stu_not_set'))}</td><td data-label="${t('as_col_points')}" style="font-weight:bold;">${s.totalScore || 0}</td><td data-label="${t('as_col_start_eval')}">${startEvalBtn}</td><td data-label="${t('as_col_evals')}">${evalsCount}</td><td data-label="${t('as_col_manage')}">${manageBtns}</td><td data-label="${t('as_col_errors')}">${weaknessBtn}</td></tr>`;
+// بحث فوري بالاسم: يخفي الصفوف غير المطابقة بلا إعادة رسم
+function filterAllStudentsList() {
+    const q = (document.getElementById('as-search')?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('#all-students-body .as-row');
+    let shown = 0;
+    rows.forEach(r => { const ok = !q || r.dataset.name.includes(q); r.style.display = ok ? '' : 'none'; if (ok) shown++; });
+    const hiddenBox = document.querySelector('#all-students-body .as-hidden-box');
+    if (hiddenBox) {
+        const anyHidden = [...hiddenBox.querySelectorAll('.as-row')].some(r => r.style.display !== 'none');
+        hiddenBox.style.display = anyHidden ? '' : 'none';
+        if (q && anyHidden) hiddenBox.open = true;
+    }
+    document.querySelectorAll('#all-students-body > .as-list').forEach(l => {
+        l.style.display = [...l.querySelectorAll('.as-row')].some(r => r.style.display !== 'none') ? '' : 'none';
     });
+    const none = document.getElementById('as-no-match');
+    if (none) none.style.display = (q && rows.length && !shown) ? '' : 'none';
+}
+
+function closeAllStudentsMenus(except) {
+    document.querySelectorAll('#all-students-body .as-menu-wrap.open').forEach(w => { if (w !== except) w.classList.remove('open'); });
 }
 
 function setupAllStudentsListeners() {
@@ -610,9 +677,21 @@ function setupAllStudentsListeners() {
         await loadMyStudentsScreen();
         document.getElementById('btn-add-student')?.click();
     });
+    document.getElementById('as-search')?.addEventListener('input', filterAllStudentsList);
+    // إغلاق قائمة ⋯ المفتوحة عند النقر في أي مكان آخر من الشاشة
+    document.querySelector('#app-root .as-panel')?.addEventListener('click', (e) => {
+        if (!e.target.closest('.as-menu-wrap')) closeAllStudentsMenus(null);
+    });
     document.getElementById('all-students-body')?.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if(!target) return;
+        if (target.classList.contains('as-more')) {
+            const wrap = target.closest('.as-menu-wrap');
+            closeAllStudentsMenus(wrap);
+            wrap.classList.toggle('open');
+            return;
+        }
+        closeAllStudentsMenus(null);
         const id = parseStudentId(target.dataset.id);
 
         if(target.classList.contains('btn-prof-link')) {
