@@ -57,6 +57,10 @@ let pendingPairNamesCache = null; // {a, b} — لعرضهما في عنوان �
 // 🌟 [جديد] حالة معالج خطوات محرر الاختبار (1/2/3) + الجولة المختارة حالياً في الخطوة 3
 let currentStep = 1;
 let activeRoundIndex = 0;
+// 🌟 [جديد] عدد الجولات المفتوحة للتجهيز في الاختبار قيد التحرير (1..3) — بطلب صريح من المعلم:
+// الاختبار الجديد يُجهَّز جولة بجولة؛ تظهر الجولة الأولى فقط مفتوحة، والجولتان الأخريان ظاهرتان
+// لكن مقفلتان، وتُفتح كل جولة تلقائياً بعد لعب الجولة التي قبلها. راجع computeUnlockedRoundCount
+let unlockedRoundCount = 3;
 
 const ROUND_TITLE_KEYS = ['dts_round1_title', 'dts_round2_title', 'dts_round3_title'];
 
@@ -75,6 +79,15 @@ export async function initDualTestSetup() {
 
     await renderTestsList();
     wireStaticListeners();
+
+    // 🌟 [جديد] فتح مباشر لتجهيز جولة محددة — يُضبط من شاشة اللعب عند محاولة لعب جولة لم تُجهَّز
+    // أسئلتها بعد (راجع renderRoundNotReady في dual-test-play.js). يُقرأ مرة واحدة ثم يُفرَّغ
+    const deepLink = AppState.dualTestSetupOpenRound;
+    AppState.dualTestSetupOpenRound = null;
+    if (deepLink && deepLink.testId != null) {
+        const test = await AppState.dualTestsManager.getTestById(deepLink.testId);
+        if (test) await openEditor(test, deepLink.testId, deepLink.roundIndex);
+    }
 }
 
 // ===================== أدوات بناء قوائم السور المنسدلة =====================
@@ -127,8 +140,13 @@ async function renderTestsList() {
     // البدء من الصفر بالغلط" أسفل الملف)، فيظهر زر مستقل باسمَي الطالبَين الحقيقيَّين لكل زوج.
     // تُجلَب كل المواجهات مرة واحدة هنا ثم تُجمَّع بالذاكرة، بدل استعلام منفصل لكل صف اختبار.
     let pendingGroupsByTest = {};
+    let playedByTest = {}; // 🌟 [جديد] أقصى عدد جولات لُعبت لكل اختبار (لشارة "بانتظار التجهيز")
     try {
         const allMatches = await AppState.dualTestsManager.getAllMatches();
+        allMatches.forEach(m => {
+            const n = Array.isArray(m.rounds) ? m.rounds.length : 0;
+            playedByTest[m.testId] = Math.max(playedByTest[m.testId] || 0, n);
+        });
         allMatches.filter(m => m.status !== 'completed').forEach(m => {
             const pairKey = [String(m.studentIdA), String(m.studentIdB)].sort().join('|');
             if (!pendingGroupsByTest[m.testId]) pendingGroupsByTest[m.testId] = {};
@@ -143,9 +161,52 @@ async function renderTestsList() {
     tests.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
     container.innerHTML = tests.map(tst => {
         const groups = Object.values(pendingGroupsByTest[tst.id] || {});
-        return buildTestRowHTML(tst, groups);
+        return buildTestRowHTML(tst, groups, playedByTest[tst.id] || 0);
     }).join('');
 }
+
+// ===================== 🌟 [جديد] تجهيز الجولات تدريجياً (جولة بجولة) =====================
+// قاعدة الفتح: الجولة رقم (i+1) مفتوحة إذا كانت الأولى، أو لُعبت الجولة التي قبلها في أي مواجهة
+// على هذا الاختبار (أقصى match.rounds.length)، أو كان فيها محتوى محفوظ مسبقاً (نطاق أو أسئلة) —
+// الشرط الأخير يُبقي الاختبارات القديمة التي جُهّزت جولاتها الثلاث دفعة واحدة كما هي بلا قفل.
+
+function roundHasContent(round) {
+    if (!round) return false;
+    return (round.mainQuestions || []).length > 0
+        || (round.swapQuestions || []).length > 0
+        || !!(round.rangeFrom && round.rangeFrom.surah)
+        || !!(round.rangeTo && round.rangeTo.surah);
+}
+
+function maxRoundsPlayed(matches) {
+    return (matches || []).reduce((max, m) => Math.max(max, Array.isArray(m.rounds) ? m.rounds.length : 0), 0);
+}
+
+function unlockedCountFor(test, playedRounds) {
+    let count = Math.min(3, Math.max(1, playedRounds + 1));
+    (test.rounds || []).forEach((round, i) => { if (roundHasContent(round)) count = Math.max(count, i + 1); });
+    return Math.min(3, count);
+}
+
+async function computeUnlockedRoundCount(test, testId) {
+    let played = 0;
+    if (testId != null) {
+        try { played = maxRoundsPlayed(await AppState.dualTestsManager.getMatchesByTestId(testId)); }
+        catch (e) { played = 0; /* best-effort — أسوأ حالة: الجولة الأولى فقط + ما فيه محتوى */ }
+    }
+    return unlockedCountFor(test, played);
+}
+
+// أول جولة مفتوحة لم تُضَف لها أي أسئلة أساسية بعد (أو -1) — لشارة "بانتظار التجهيز" على صف الاختبار
+function nextRoundToPrepare(test, playedRounds) {
+    const unlocked = unlockedCountFor(test, playedRounds);
+    for (let i = 0; i < unlocked; i++) {
+        if (!((test.rounds[i] || {}).mainQuestions || []).length) return i;
+    }
+    return -1;
+}
+
+const DTS_LOCK_ICON = '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
 // 🌟 [جديد — التصميم الاحترافي] أيقونات SVG خطّية موحّدة لأزرار صف الاختبار، بدل الإيموجي
 // (يختلف شكله بين الأجهزة). شكلية بحتة: كل زر يحتفظ بنفس data-action ونفس النص المترجم
@@ -156,7 +217,7 @@ const DTS_ICONS = {
     delete: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'
 };
 
-function buildTestRowHTML(test, pendingGroups = []) {
+function buildTestRowHTML(test, pendingGroups = [], playedRounds = 0) {
     const namesLabel = `${test.defaultStudentNameA || '—'} <span class="dts-names-vs">VS</span> ${test.defaultStudentNameB || '—'}`;
     const isReady = test.status === 'ready';
     const badgeClass = isReady ? 'dts-badge-ready' : 'dts-badge-draft';
@@ -177,6 +238,12 @@ function buildTestRowHTML(test, pendingGroups = []) {
             ${t('dts_pending_pair_btn').replace('{a}', escapeHtml(g.nameA)).replace('{b}', escapeHtml(g.nameB)).replace('{n}', g.count)}
         </button>`).join('');
 
+    // 🌟 [جديد] شارة "الجولة N بانتظار التجهيز" — تفتح المحرر مباشرة على أسئلة تلك الجولة
+    const prepIndex = nextRoundToPrepare(test, playedRounds);
+    const prepBtn = prepIndex >= 0
+        ? `<button type="button" class="dts-btn-prep" data-action="prep" data-id="${test.id}" data-round="${prepIndex}">${DTS_ICONS.edit}${t('dts_round_needs_prep').replace('{n}', prepIndex + 1)}</button>`
+        : '';
+
     return `
     <div class="dts-test-row">
         <div class="dts-test-row-info">
@@ -188,6 +255,7 @@ function buildTestRowHTML(test, pendingGroups = []) {
         </div>
         <div class="dts-test-row-actions">
             ${startBtn}
+            ${prepBtn}
             ${pendingBtns}
             <button type="button" class="dts-btn-quiet" data-action="edit" data-id="${test.id}">${DTS_ICONS.edit}${t('dts_edit_btn')}</button>
             <!-- 🌟 [جديد] "📜 المباريات السابقة" — يظهر دائماً بغض النظر عن حالة الاختبار
@@ -203,10 +271,13 @@ function buildTestRowHTML(test, pendingGroups = []) {
 
 // ===================== طبقة المحرر (إنشاء/تعديل اختبار) — معالج 3 خطوات =====================
 
-function openEditor(test, id) {
+// 🌟 [مُحدَّث] openRoundIndex (اختياري): فتح المحرر مباشرة على أسئلة جولة محددة (الخطوة 3) —
+// من شارة "بانتظار التجهيز" أو من زر "جهّز الجولة الآن" في شاشة اللعب
+async function openEditor(test, id, openRoundIndex = null) {
     currentTest = test;
     editingTestId = id;
     activeRoundIndex = 0;
+    unlockedRoundCount = await computeUnlockedRoundCount(test, id);
 
     document.getElementById('dts-list-view').style.display = 'none';
     document.getElementById('dts-editor-view').style.display = 'block';
@@ -214,7 +285,12 @@ function openEditor(test, id) {
     populateCompetitorSelect(document.getElementById('dts-student-a'), currentTest.defaultStudentIdA);
     populateCompetitorSelect(document.getElementById('dts-student-b'), currentTest.defaultStudentIdB);
 
-    goToStep(1);
+    if (Number.isInteger(openRoundIndex) && openRoundIndex >= 0 && openRoundIndex < unlockedRoundCount) {
+        activeRoundIndex = openRoundIndex;
+        goToStep(3);
+    } else {
+        goToStep(1);
+    }
 }
 
 function closeEditor() {
@@ -248,6 +324,17 @@ function goToStep(n) {
 // ----- الخطوة 1: المتسابقان (مربوطة أصلاً بمستمعين ثابتين) + نطاق كل جولة -----
 
 function buildRoundRangeCardHTML(round, roundIndex) {
+    // 🌟 [جديد] جولة مقفلة: بطاقة باهتة بلا قوائم اختيار، مع سبب القفل
+    if (roundIndex >= unlockedRoundCount) {
+        return `
+    <div class="dts-range-card dts-round-locked">
+        <div class="dts-range-card-title">
+            <span class="dts-round-badge">${roundIndex + 1}</span>
+            <span>${t(ROUND_TITLE_KEYS[roundIndex])}</span>
+        </div>
+        <div class="dts-locked-note">${DTS_LOCK_ICON}${t('dts_round_locked_note').replace('{n}', roundIndex)}</div>
+    </div>`;
+    }
     return `
     <div class="dts-range-card">
         <div class="dts-range-card-title">
@@ -281,6 +368,14 @@ function renderRoundPickGrid() {
         const progress = t('dts_round_progress_label').replace('{main}', mains).replace('{swap}', swaps);
         const fromName = surahNameByNumber(round.rangeFrom.surah) || t('dts_range_not_set');
         const toName = surahNameByNumber(round.rangeTo.surah) || t('dts_range_not_set');
+        if (i >= unlockedRoundCount) {
+            return `
+        <button type="button" class="dts-roundpick-btn dts-round-locked" disabled aria-disabled="true">
+            <span class="dts-roundpick-badge">${i + 1}</span>
+            <span class="dts-roundpick-title">${t(ROUND_TITLE_KEYS[i])}</span>
+            <span class="dts-roundpick-progress">${DTS_LOCK_ICON}${t('dts_round_locked_note').replace('{n}', i)}</span>
+        </button>`;
+        }
         return `
         <button type="button" class="dts-roundpick-btn" data-round-index="${i}">
             <span class="dts-roundpick-badge">${i + 1}</span>
@@ -290,7 +385,7 @@ function renderRoundPickGrid() {
         </button>`;
     }).join('');
 
-    container.querySelectorAll('.dts-roundpick-btn').forEach(btn => {
+    container.querySelectorAll('.dts-roundpick-btn:not(.dts-round-locked)').forEach(btn => {
         btn.addEventListener('click', () => {
             activeRoundIndex = parseInt(btn.dataset.roundIndex, 10);
             goToStep(3);
@@ -633,6 +728,9 @@ function wireStaticListeners() {
                 await AppState.dualTestsManager.deleteTest(id);
                 await renderTestsList();
             }
+        } else if (action === 'prep') {
+            const test = await AppState.dualTestsManager.getTestById(id);
+            if (test) await openEditor(test, id, parseInt(btn.dataset.round, 10));
         } else if (action === 'start') {
             openStartMatchModal(id);
         } else if (action === 'history') {

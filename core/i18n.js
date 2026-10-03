@@ -551,6 +551,11 @@ export const translations = {
         dts_step_label_1: "المتسابقان والنطاق",
         dts_step_label_2: "اختيار الجولة",
         dts_step_label_3: "الأسئلة",
+        // 🌟 [جديد] تجهيز الجولات تدريجياً (جولة بجولة)
+        dts_round_locked_note: "تُفتح بعد لعب الجولة {n}",
+        dts_round_needs_prep: "الجولة {n} بانتظار التجهيز",
+        dtp_round_not_ready_label: "الجولة {n} لم تُجهَّز أسئلتها بعد",
+        dtp_round_not_ready_btn: "جهّز الجولة {n} الآن",
         dtp_start_round_btn: "ابدأ الجولة",
         dtp_coin_flip_start_msg: "🎲 مين يبدأ؟...",
         dtp_coin_flip_result_msg: "يبدأ: {name} 🎉",
@@ -2437,6 +2442,11 @@ export const translations = {
         dts_step_label_1: "Competitors & range",
         dts_step_label_2: "Pick a round",
         dts_step_label_3: "Questions",
+        // 🌟 [New] Round-by-round preparation
+        dts_round_locked_note: "Unlocks after round {n} is played",
+        dts_round_needs_prep: "Round {n} needs preparing",
+        dtp_round_not_ready_label: "Round {n} has no questions yet",
+        dtp_round_not_ready_btn: "Prepare round {n} now",
         dtp_start_round_btn: "Start Round",
         dtp_coin_flip_start_msg: "🎲 Who starts?...",
         dtp_coin_flip_result_msg: "Starting: {name} 🎉",
