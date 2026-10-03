@@ -354,17 +354,52 @@
     body.dh-home-screen .home-menu-two .home-card-title { font-size: .86rem; line-height: 1.35; white-space: normal; }
     body.dh-home-screen .home-menu-two .home-card .dh-fast-badge { position: absolute; top: -7px; inset-inline-end: 6px; margin: 0; font-size: .66rem; padding: 2px 7px; }
 
-    /* نظرة سريعة: بطاقة مضغوطة بعد الأدوات (ينقلها arrangeHomeForMobile في core/app.js) */
-    body.dh-home-screen .home-quick-mobile { margin-top: 0; padding: 14px var(--m-gutter) 16px; border-radius: 22px 22px 0 0; }
-    body.dh-home-screen .home-quick-mobile .home-quickcard { padding: 14px; border-radius: var(--m-radius-lg); }
-    body.dh-home-screen .home-quickcard-head { margin-bottom: 10px; }
-    body.dh-home-screen .home-quickcard-mastery { gap: 12px; padding: 10px 0; }
-    body.dh-home-screen .home-mastery-ring { width: 54px; height: 54px; }
-    body.dh-home-screen .home-mastery-ring-inner { width: 42px; height: 42px; font-size: .85rem; }
-    body.dh-home-screen .home-mastery-label { font-size: .88rem; }
-    body.dh-home-screen .home-quickcard-publish-btn { min-height: 44px; padding: 10px 14px; font-size: .95rem; }
-    body.dh-home-screen .home-quickcard-quote { padding-top: 10px; }
-    body.dh-home-screen .home-quickcard-quote p { font-size: 1.05rem; line-height: 1.6; }
+    /* «نظرة سريعة» على الهاتف = «شريط اليوم» (بطلب المعلم: كانت ~430–470px وفائدتها قليلة على الهاتف).
+       نفس العناصر ونفس البيانات (components/homeQuickview.js بلا تغيير)، معروضة شريطاً مضغوطاً:
+       «يحتاج منك اليوم» أولاً بعرض كامل (تفاصيله تُفتح بالضغط كما هي) ← الإتقان + تقارير الشهر شارتان متجاورتان ← آية/دعاء اليوم سطر واحد.
+       العنوان «نظرة سريعة» وزر «نشر واجب» يُخفيان على الهاتف فقط (الزر مكرر: بطاقة الواجبات في «أدوات المعلم» تفتح نفس الشاشة). */
+    body.dh-home-screen .home-quick-mobile { margin-top: 4px; padding: 10px var(--m-gutter) 12px; border-radius: 18px 18px 0 0; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+        padding: 0; margin: 0; max-width: none; background: transparent; border: 0; box-shadow: none; border-radius: 0;
+    }
+    body.dh-home-screen .home-quick-mobile .home-quickcard::before,
+    body.dh-home-screen .home-quick-mobile .home-quickcard::after { display: none; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-head,
+    body.dh-home-screen .home-quick-mobile .home-quickcard-publish-btn { display: none; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard > * { margin: 0 !important; min-width: 0; }
+    /* يحتاج منك اليوم */
+    body.dh-home-screen .home-quick-mobile .home-quickcard-today {
+        grid-column: 1 / -1; padding: 8px 10px; border-radius: 12px;
+        background: rgba(255, 253, 246, .08); border: 1px solid rgba(240, 216, 120, .35);
+    }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-today > * { margin-bottom: 4px; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-today > :last-child { margin-bottom: 0; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-today-label { font-size: .8rem; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-today-clear { font-size: .82rem; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-bday,
+    body.dh-home-screen .home-quick-mobile .home-quickcard-due,
+    body.dh-home-screen .home-quick-mobile .home-quickcard-pm { padding: 6px 8px; margin: 0 0 4px; font-size: .82rem; border-radius: 10px; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-due-title,
+    body.dh-home-screen .home-quick-mobile .home-quickcard-pm-title { font-size: .84rem; padding: 2px; }
+    /* الإتقان + تقارير الشهر: شارتان متجاورتان */
+    body.dh-home-screen .home-quick-mobile .home-quickcard-mastery,
+    body.dh-home-screen .home-quick-mobile .home-quickcard-reports {
+        display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: 12px;
+        background: rgba(255, 253, 246, .08);
+    }
+    body.dh-home-screen .home-quick-mobile .home-mastery-ring { width: 38px; height: 38px; flex: none; }
+    body.dh-home-screen .home-quick-mobile .home-mastery-ring-inner { width: 30px; height: 30px; font-size: .72rem; }
+    body.dh-home-screen .home-quick-mobile .home-mastery-label { font-size: .74rem; line-height: 1.35; }
+    body.dh-home-screen .home-quick-mobile .home-mastery-sub { display: none; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-reports { justify-content: space-between; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-reports-label { font-size: .74rem; line-height: 1.35; gap: 6px; min-width: 0; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-reports-label svg { flex: none; }
+    body.dh-home-screen .home-quick-mobile #home-reports-count { font-size: 1.15rem; flex: none; }
+    /* آية/دعاء اليوم: سطر واحد في أسفل الشريط */
+    body.dh-home-screen .home-quick-mobile .home-quickcard-quote { grid-column: 1 / -1; padding: 4px 4px 0; border: 0; text-align: center; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-quote p { font-size: .98rem; line-height: 1.6; margin: 0; }
+    body.dh-home-screen .home-quick-mobile .home-quickcard-quote > :not(p) { font-size: .68rem; margin-top: 0; }
 
     /* «لماذا حمٓ؟»: صف واحد من أربع شارات (العنوان فقط) بدل بطاقات كبيرة */
     body.dh-home-screen .home-why { padding: 18px var(--m-gutter) 16px; }
