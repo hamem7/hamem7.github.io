@@ -815,7 +815,7 @@ function buildArchiveCard(w) {
             <span style="background: var(--dh-emerald-700); color:white; padding:4px 12px; border-radius:20px; font-size:0.95rem; font-weight:bold;">${sectionBadge} ${typeLabel}</span>
             <span style="color:#94a3b8; font-size:0.9rem;">${locationText}</span>
         </div>
-        <div class="quran-text" style="font-size:1.8rem; color:#1e293b; margin-bottom:10px; line-height:1.6;">﴿ ${w.text || ''} ﴾</div>
+        <div class="quran-text" style="font-size:1.8rem; color:#1e293b; margin-bottom:10px; line-height:1.6;">﴿\u00A0${w.text || ''}\u00A0﴾</div>
         ${errorLine}
         <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:0.85rem; color:#64748b; border-top:1px dashed #e2e8f0; padding-top:8px;">
             <span>📌 ${t('error_recorded_on')} ${recordedDate}</span>
