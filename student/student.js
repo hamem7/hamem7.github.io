@@ -372,7 +372,7 @@ export async function loadMyStudentsScreen() {
 
 function setupMyStudentsListeners() {
     // 🌟 [جديد 2026-10-02] الجولة الإرشادية لقسم «طلابي» (مرة واحدة) — best-effort، لا تؤثر على الشاشة
-    import('../components/guidedTour.js').then(m => m.maybeStartTour('students')).catch(() => {});
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('my_students')).catch(() => {});
 
     document.getElementById('btn-back-my-students')?.addEventListener('click', loadSplashScreen);
     document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
