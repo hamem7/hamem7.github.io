@@ -998,6 +998,8 @@ export const translations = {
         hw_delete_confirm_body: "هل أنت متأكد من حذف هذا الواجب نهائياً؟",
         hw_delete_confirm_btn: "نعم، احذف",
         hw_delete_cancel_btn: "إلغاء",
+        hw_delete_q_title: "حذف السؤال",
+        hw_delete_q_body: "هل أنت متأكد من حذف هذا السؤال من الواجب؟",
         hw_overdue_not_solved: "الطالب {name} لم يحلّ الواجب بعد",
         // 🌟🌟 [جديد] زر ونافذة "النتائج النهائية للطلاب" — قائمة كل الواجبات المصحَّحة والمعتمدة
         // مع إمكانية إعادة فتح شهادة أي طالب منها
@@ -2922,6 +2924,8 @@ export const translations = {
         hw_delete_confirm_body: "Are you sure you want to permanently delete this homework?",
         hw_delete_confirm_btn: "Yes, delete",
         hw_delete_cancel_btn: "Cancel",
+        hw_delete_q_title: "Delete question",
+        hw_delete_q_body: "Are you sure you want to delete this question from the homework?",
         hw_overdue_not_solved: "{name} has not solved the homework yet",
         hw_final_results_btn: "🎓 Students' Final Results",
         hw_final_results_title: "🎓 Graded Tests & Final Results",
