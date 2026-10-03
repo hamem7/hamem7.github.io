@@ -86,7 +86,6 @@
     #app-root #btn-login-submit { font-size: 1.08rem !important; min-height: 50px; }
     /* زر صغير: أزرار داخل الجداول وأزرار الرجوع التي يغني عنها الشريط السفلي */
     #app-root td .btn,
-    body.dh-core-screen #app-root #btn-back-my-students,
     body.dh-core-screen #app-root #btn-back-splash,
     body.dh-core-screen #app-root #btn-back-login,
     #app-root .tjw-btn-exit,
@@ -97,7 +96,6 @@
         width: auto !important;
         margin-top: 10px !important;
     }
-    body.dh-core-screen #app-root #btn-back-my-students,
     body.dh-core-screen #app-root #btn-back-splash { margin-inline: auto; display: flex; }
 
     /* ===== 5) الحقول ===== */
@@ -424,8 +422,7 @@
     /* ======================================================================
        10) الشاشات الداخلية
        ====================================================================== */
-    /* «طلابي»: أزرار متقاربة بدل فراغات 15px */
-    #app-root .login-container > div:has(> #btn-all-students) { gap: 8px !important; }
+    /* «طلابي»: تصميمها (بطاقات + أرقام) صار في student/my-students.html نفسها منذ 2026-10-03 */
 
     /* السجل العام: أزرار الأعلى (إضافة بعرض كامل + تصدير/استيراد صغيران متجاوران) — البطاقات نفسها في آخر الملف (≤640px) */
     #app-root .btn-group:has(#btn-add-champion-shortcut) { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; margin-bottom: 12px !important; }

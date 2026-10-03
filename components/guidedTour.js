@@ -35,11 +35,12 @@ const TOURS = {
         ]
     },
     // طلابي (student/my-students.html)
-    // 🌟 [2026-10-03] كانت الجولة تعرّف بعنصرين فقط؛ الآن تمرّ على كل محتوى الشاشة بترتيب ظهوره.
+    // 🌟 [2026-10-03] كانت الجولة تعرّف بعنصرين فقط؛ الآن تمرّ على كل محتوى الشاشة (بتصميمها الجديد: أرقام + بطاقات).
     // المفتاح أصبح 'my_students' (بدل 'students') حتى تظهر الجولة الكاملة مرة أخرى لمن شاهد النسخة القديمة.
     my_students: {
         steps: [
-            { target: '.login-container .splash-title', textKey: 'tour_students_intro' },
+            { target: '#ms-screen .ms-head', textKey: 'tour_students_intro' },
+            { target: '#ms-stats', textKey: 'tour_students_stats' },
             { target: '#btn-all-students', textKey: 'tour_students_all' },
             { target: '#btn-add-student', textKey: 'tour_students_add' },
             { target: '#btn-monthly-memo-bulk', textKey: 'tour_students_monthly_memo' },

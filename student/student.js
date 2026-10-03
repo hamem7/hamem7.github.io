@@ -374,8 +374,18 @@ function setupMyStudentsListeners() {
     // 🌟 [جديد 2026-10-02] الجولة الإرشادية لقسم «طلابي» (مرة واحدة) — best-effort، لا تؤثر على الشاشة
     import('../components/guidedTour.js').then(m => m.maybeStartTour('my_students')).catch(() => {});
 
-    document.getElementById('btn-back-my-students')?.addEventListener('click', loadSplashScreen);
+    const backBtn = document.getElementById('btn-back-my-students');
+    backBtn?.setAttribute('aria-label', t('ms_back'));
+    backBtn?.setAttribute('title', t('ms_back'));
+    backBtn?.addEventListener('click', loadSplashScreen);
     document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
+
+    // 🌟 [جديد 2026-10-03] أرقام «طلابي» (عدد الطلاب / بانتظار الحفظ / تقارير الشهر) + سطر التذكير
+    refreshMyStudentsSummary();
+    watchMyStudentsOverlays();
+    document.getElementById('ms-reminder-btn')?.addEventListener('click', () => {
+        document.getElementById('btn-monthly-memo-bulk')?.click();
+    });
 
     document.getElementById('btn-add-student')?.addEventListener('click', () => {
         populateSurahOptions('stu-memo-from', 'stu-memo-to');
@@ -447,6 +457,7 @@ function setupMyStudentsListeners() {
                 data.avatar = await shrinkAvatarDataUrl(e.target.result);
                 const newId = await AppState.studentManager.addStudent(data);
                 closeModal('add-modal');
+                refreshMyStudentsSummary();
                 populateStudentsDropdown();
                 alert(t("stu_saved_ok"));
                 await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
@@ -456,12 +467,80 @@ function setupMyStudentsListeners() {
         } else {
             const newId = await AppState.studentManager.addStudent(data);
             closeModal('add-modal');
+            refreshMyStudentsSummary();
             populateStudentsDropdown();
             alert(t("stu_saved_ok"));
             await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
             offerNewStudentGames({ ...data, id: newId });
         }
     });
+}
+
+// 🌟 [جديد 2026-10-03] ملء أرقام وشارات شاشة «طلابي» (التصميم الجديد في student/my-students.html).
+// كل شيء best-effort: أي فشل يترك «—» ولا يمسّ الأزرار. الحسابات للقراءة فقط (لا كتابة في أي قاعدة):
+//   • عدد الطلاب = غير المخفيين (نفس فلترة شاشة الحفظ الشهري ومركز التقارير).
+//   • بانتظار الحفظ = countPendingMonthlyMemorization (نفس شروط قائمة الشاشة الجماعية).
+//   • التقارير = getReportsExportSummary (شهر التقارير + كم صُدِّر منها)؛ شارة «متبقية» في موسم التقارير فقط.
+let _msSummaryRun = 0;
+async function refreshMyStudentsSummary() {
+    const run = ++_msSummaryRun;
+    const $ = (id) => document.getElementById(id);
+    if (!$('ms-screen')) return;
+    const stale = () => run !== _msSummaryRun || !$('ms-screen');
+
+    if (AppState.studentManager) try {
+        const all = await AppState.studentManager.getAllStudents();
+        if (stale()) return;
+        $('ms-stat-students').textContent = all.filter(s => !s.isHidden).length;
+    } catch (e) { console.warn('تعذر حساب عدد الطلاب:', e); }
+
+    // المتابعة الشهرية: عنوان القسم باسم الشهر الحالي
+    try {
+        const loc = (AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US') + '-u-nu-latn';
+        const month = new Intl.DateTimeFormat(loc, { month: 'long' }).format(new Date());
+        $('ms-section-monthly').textContent = tf('ms_section_monthly', { month });
+    } catch (e) { /* يبقى العنوان العام */ }
+
+    try {
+        const m = await import('../components/monthlyMemorizationBulkScreen.js');
+        const n = await m.countPendingMonthlyMemorization();
+        if (stale() || n == null) return;
+        const num = $('ms-stat-memo');
+        num.textContent = n;
+        num.classList.toggle('is-alert', n > 0);
+        num.classList.toggle('is-ok', n === 0);
+        const badge = $('ms-badge-memo');
+        badge.textContent = tf('ms_badge_memo', { n });
+        badge.hidden = n === 0;
+        $('ms-reminder-text').textContent = tf('ms_reminder_memo', { n });
+        $('ms-reminder').hidden = n === 0;
+    } catch (e) { console.warn('تعذر حساب الحفظ الشهري المعلّق:', e); }
+
+    try {
+        const m = await import('../components/monthlyReportsHub.js');
+        const r = await m.getReportsExportSummary();
+        if (stale() || !r) return;
+        $('ms-stat-reports').textContent = r.done;
+        $('ms-stat-reports-of').textContent = ` / ${r.total}`;
+        $('ms-stat-reports-label').textContent = tf('ms_stat_reports', { month: r.monthLabel });
+        const left = r.total - r.done;
+        const badge = $('ms-badge-reports');
+        badge.textContent = tf('ms_badge_reports', { n: left });
+        badge.hidden = !(r.season && left > 0);
+    } catch (e) { console.warn('تعذر حساب ملخص التقارير الشهرية:', e); }
+}
+
+// عند إغلاق شاشة الحفظ الشهري (.mmb-overlay) أو مركز التقارير (.mrh-overlay) — وكلاهما يُزال من body —
+// تتحدّث الأرقام فوراً. المراقِب يفصل نفسه عند مغادرة شاشة «طلابي».
+let _msOverlayObserver = null;
+function watchMyStudentsOverlays() {
+    _msOverlayObserver?.disconnect();
+    _msOverlayObserver = new MutationObserver((mutations) => {
+        if (!document.getElementById('ms-screen')) { _msOverlayObserver.disconnect(); _msOverlayObserver = null; return; }
+        const closed = mutations.some(mu => [...mu.removedNodes].some(n => n.nodeType === 1 && n.classList && (n.classList.contains('mmb-overlay') || n.classList.contains('mrh-overlay'))));
+        if (closed) refreshMyStudentsSummary();
+    });
+    _msOverlayObserver.observe(document.body, { childList: true });
 }
 
 // 🌟 [جديد] بعد حفظ بطل جديد مباشرة — نطلب منه "نقطة البداية الأولى" في الحفظ
@@ -485,7 +564,7 @@ function promptInitialMemorizationPositionForNewStudent(student) {
 // ⚠️ [افتراض صريح] لو كانت شاشة "نقطة البداية الأولى" متاحة تظهر هي أولاً (كانت تظهر بعد الحفظ أصلاً) ثم هذه الشاشة.
 async function offerNewStudentGames(fallbackStudent) {
     let student = fallbackStudent;
-    try {
+    if (AppState.studentManager) try {
         const all = await AppState.studentManager.getAllStudents();
         student = all.find(x => x.id === fallbackStudent.id) || fallbackStudent;
     } catch (e) { /* نستخدم نسخة النموذج */ }

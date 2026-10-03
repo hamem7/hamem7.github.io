@@ -10,26 +10,119 @@
     #add-modal .dh-req-tag { color: #b45309 !important; font-weight: bold !important; }
     .avatar-opt { font-size: 2.8rem; cursor: pointer; padding: 5px; border-radius: 50%; border: 3px solid transparent; transition: 0.3s; user-select: none; }
     .avatar-opt.active { border-color: #10b981; background: #f1f5f9; transform: scale(1.1); }
+    /* 🌟 [2026-10-03] «طلابي» بالتصميم الجديد (المقترح ①). المحدِّدات تبدأ بـ #app-root #ms-screen عمداً: قواعد عامة
+       في kids.css/adults.css/mobile.css تفرض لون/ظل/حجم كل h1/h2 داخل .login-container بـ !important. */
+    #app-root #ms-screen { max-width: 560px; text-align: start; padding: 22px 20px !important; display: flex; flex-direction: column; gap: 20px; color: #10241c; }
+    #app-root #ms-screen .ms-head { display: flex; align-items: center; gap: 10px; }
+    #app-root #ms-screen .ms-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    #app-root #ms-screen .ms-back:hover { background: #eaf4ef; }
+    [dir="ltr"] #ms-screen .ms-back svg, html[lang="en"] #ms-screen .ms-back svg { transform: scaleX(-1); }
+    #app-root #ms-screen .ms-title { margin: 0 !important; font-size: 1.9rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; line-height: 1.3; }
+    #app-root #ms-screen .ms-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    #app-root #ms-screen .ms-stat { background: #fff; border: 1px solid #e4dfcc; border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    #app-root #ms-screen .ms-stat-primary { background: #0d5c46; border-color: #0d5c46; }
+    #app-root #ms-screen .ms-stat-num { font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: #10241c; }
+    #app-root #ms-screen .ms-stat-num.is-alert { color: #b45309; }
+    #app-root #ms-screen .ms-stat-num.is-ok { color: #166534; }
+    #app-root #ms-screen .ms-stat-of { font-size: .95rem; font-weight: 500; color: #4a6058; }
+    #app-root #ms-screen .ms-stat-label { font-size: .82rem; color: #4a6058; line-height: 1.4; }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-num { color: #fff; }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-label { color: #d7efe6; }
+    #app-root #ms-screen .ms-section { display: flex; flex-direction: column; gap: 10px; }
+    #app-root #ms-screen .ms-section-title { margin: 0 !important; font-size: .95rem !important; font-weight: 600 !important; color: #4a6058 !important; text-shadow: none !important; line-height: 1.5; }
+    #app-root #ms-screen .ms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    #app-root #ms-screen .ms-card { position: relative; text-align: start; font-family: inherit; cursor: pointer; background: #fff; color: #10241c; border: 1px solid #e4dfcc; border-radius: 20px; padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 150px; transition: transform .15s, box-shadow .15s; }
+    #app-root #ms-screen .ms-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6, 35, 28, .12); }
+    #app-root #ms-screen .ms-card:focus-visible, #app-root #ms-screen .ms-back:focus-visible, #app-root #ms-screen .ms-reminder-btn:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+    #app-root #ms-screen .ms-card-primary { background: #0d5c46; color: #fff; border-color: #0d5c46; }
+    #app-root #ms-screen .ms-card-icon { width: 44px; height: 44px; border-radius: 14px; background: #eaf4ef; color: #0d5c46; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
+    #app-root #ms-screen .ms-card-primary .ms-card-icon { background: rgba(255, 255, 255, .14); color: #fff; }
+    #app-root #ms-screen .ms-card-icon-gold { background: #fbf3dc; color: #8a6a10; }
+    #app-root #ms-screen .ms-card-title { font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
+    #app-root #ms-screen .ms-card-desc { font-size: .82rem; color: #4a6058; line-height: 1.5; }
+    #app-root #ms-screen .ms-card-primary .ms-card-desc { color: #d7efe6; }
+    #app-root #ms-screen .ms-badge { position: absolute; top: 14px; inset-inline-end: 12px; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+    #app-root #ms-screen .ms-badge[hidden], #app-root #ms-screen .ms-reminder[hidden] { display: none; }
+    #app-root #ms-screen .ms-badge-alert { background: #b45309; color: #fff; }
+    #app-root #ms-screen .ms-badge-soft { background: #fbf3dc; color: #6b5310; }
+    #app-root #ms-screen .ms-reminder { background: #f6f3e8; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+    #app-root #ms-screen .ms-reminder-dot { width: 10px; height: 10px; border-radius: 50%; background: #b45309; flex-shrink: 0; }
+    #app-root #ms-screen .ms-reminder-text { font-size: .9rem; line-height: 1.6; flex-grow: 1; }
+    #app-root #ms-screen .ms-reminder-btn { font-family: inherit; font-size: .9rem; font-weight: 700; color: #0d5c46; background: none; border: none; cursor: pointer; padding: 8px 4px; min-height: 40px; white-space: nowrap; }
+    @media (max-width: 380px) {
+        #app-root #ms-screen .ms-card { min-height: 136px; padding: 14px 12px; }
+        #app-root #ms-screen .ms-stat-num { font-size: 1.3rem; }
+    }
 </style>
 
+<!-- 🌟 [إعادة تصميم 2026-10-03 — «المقترح ①» الذي اختاره المعلم] بدل أربعة أزرار متساوية + زر عودة كبير:
+     شريط أرقام (عدد الطلاب / بانتظار الحفظ / تقارير الشهر)، ثم قسمان ببطاقات: «الطلاب» و«المتابعة الشهرية»،
+     مع شارات تنبيه وسطر تذكير. نفس معرّفات الأزرار القديمة بالضبط (btn-all-students، btn-add-student،
+     btn-monthly-memo-bulk، btn-monthly-reports-hub، btn-back-my-students) فلا يتغير أي مستمع أو اختصار يضغطها.
+     الأرقام تُملأ من setupMyStudentsListeners → refreshMyStudentsSummary في student/student.js. -->
 <div class="screen active">
-    <div class="login-container">
-        <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:20px;" data-i18n="my_students_title">طلابي</h1>
-        <h2 style="font-size: 1.6rem; margin-bottom: 25px;" data-i18n="my_students_subtitle">إدارة سجلات الطلاب</h2>
-
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <button class="btn" style="width: 100%; font-size: 1.3rem;" id="btn-all-students" data-i18n="btn_all_students">📊 سجل الطلاب العام</button>
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-add-student" data-i18n="btn_add_student">تسجيل طالب جديد ➕</button>
-            <!-- 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا في أي وقت —
-                 مفيد لمعالجة أي طالب تم تخطّيه في العرض التلقائي اليومي (راجع
-                 components/monthlyMemorizationBulkScreen.js وcore/app.js) -->
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-memo-bulk" data-i18n="btn_monthly_memo_bulk">📋 تسجيل الحفظ الشهري لكل الطلاب</button>
-            <!-- 🌟 [جديد] مركز التقارير الشهرية — اكتب اسم الطالب واختر الشهر ثم واتساب/PDF (راجع
-                 components/monthlyReportsHub.js). زر التقرير داخل ملف الطالب باقٍ كما هو. -->
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-reports-hub" data-i18n="btn_monthly_reports_hub">📅 تقارير الشهر</button>
+    <div class="login-container" id="ms-screen">
+        <div class="ms-head">
+            <button type="button" class="ms-back" id="btn-back-my-students">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <h1 class="ms-title" data-i18n="my_students_title">طلابي</h1>
         </div>
 
-        <button class="btn btn-outline" style="width: 100%; margin-top:20px; background:#64748b !important; border:none; color:white!important;" id="btn-back-my-students" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>
+        <div class="ms-stats" id="ms-stats">
+            <div class="ms-stat ms-stat-primary">
+                <span class="ms-stat-num" id="ms-stat-students">—</span>
+                <span class="ms-stat-label" data-i18n="ms_stat_students">عدد الطلاب</span>
+            </div>
+            <div class="ms-stat">
+                <span class="ms-stat-num" id="ms-stat-memo">—</span>
+                <span class="ms-stat-label" data-i18n="ms_stat_memo">بانتظار الحفظ</span>
+            </div>
+            <div class="ms-stat">
+                <span class="ms-stat-num"><span id="ms-stat-reports">—</span><span class="ms-stat-of" id="ms-stat-reports-of"></span></span>
+                <span class="ms-stat-label" id="ms-stat-reports-label" data-i18n="ms_stat_reports_generic">تقارير صُدِّرت</span>
+            </div>
+        </div>
+
+        <section class="ms-section">
+            <h2 class="ms-section-title" data-i18n="ms_section_students">الطلاب</h2>
+            <div class="ms-grid">
+                <button type="button" class="ms-card ms-card-primary" id="btn-all-students">
+                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_all_title">سجل الطلاب</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_all_desc">افتح ملف أي طالب أو عدّل بياناته</span>
+                </button>
+                <button type="button" class="ms-card" id="btn-add-student">
+                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><line x1="19" y1="7" x2="19" y2="13"/><line x1="22" y1="10" x2="16" y2="10"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_add_title">طالب جديد</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_add_desc">الاسم فقط مطلوب</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="ms-section">
+            <h2 class="ms-section-title" id="ms-section-monthly" data-i18n="ms_section_monthly_generic">المتابعة الشهرية</h2>
+            <div class="ms-grid">
+                <button type="button" class="ms-card" id="btn-monthly-memo-bulk">
+                    <span class="ms-badge ms-badge-alert" id="ms-badge-memo" hidden></span>
+                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_memo_title">الحفظ الشهري</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_memo_desc">أين توقف كل طالب هذا الشهر؟</span>
+                </button>
+                <button type="button" class="ms-card" id="btn-monthly-reports-hub">
+                    <span class="ms-badge ms-badge-soft" id="ms-badge-reports" hidden></span>
+                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_reports_title">تقارير الشهر</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_reports_desc">واتساب لولي الأمر أو PDF</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="ms-reminder" id="ms-reminder" hidden>
+            <span class="ms-reminder-dot" aria-hidden="true"></span>
+            <span class="ms-reminder-text" id="ms-reminder-text"></span>
+            <button type="button" class="ms-reminder-btn" id="ms-reminder-btn" data-i18n="ms_reminder_start">ابدأ الآن</button>
+        </div>
     </div>
 </div>
 

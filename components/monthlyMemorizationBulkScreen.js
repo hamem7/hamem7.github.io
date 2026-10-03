@@ -207,6 +207,28 @@ async function buildPendingQueue() {
   return queue;
 }
 
+/**
+ * 🌟 [جديد 2026-10-03] عدد الطلاب الذين ينتظرون إجراءً من المعلم في هذه الشاشة — للقراءة فقط
+ * (شارة «بانتظارك» في student/my-students.html). نفس شروط buildPendingQueue أعلاه بالضبط لكن
+ * بلا أي كتابة: الحالة التي تُحل بصمت هناك (saveBeginning من نهاية الشهر السابق) لا تُحتسب هنا
+ * لأنها لا تحتاج المعلم أصلاً.
+ */
+export async function countPendingMonthlyMemorization() {
+  const mgr = AppState.monthlyMemorizationManager;
+  if (!mgr || !AppState.studentManager) return null;   // القواعد لم تجهز: «غير معروف» لا «صفر»
+  const students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden);
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  let n = 0;
+  for (const student of students) {
+    const records = await mgr.getAllForStudent(student.id);
+    const pastUnfinished = records.some(r => (r.year < curYear || (r.year === curYear && r.month < curMonth)) && r.beginning && !r.ending);
+    if (pastUnfinished || !records.some(r => r.beginning || r.ending)) n++;
+  }
+  return n;
+}
+
 function closeOverlay(overlay) {
   if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
 }
