@@ -47,9 +47,6 @@ import { fetchHomeworkScope } from '../core/homeworkApi.js';
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
 // 🌟 [محدَّث] لم يعد الرابط يحمل الواجب مُرمَّزاً داخله (كان يحمل الإجابات الصحيحة للطالب!) — الرابط الآن معرّف فقط
 
-// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
-import { showSectionHintOnce } from '../components/sectionHint.js';
-
 let currentGeneratedQuestions = [];
 // 🌟 [جديد] نطاق الواجب الفعلي الذي وُلّدت منه الأسئلة الحالية (من إعدادات المعلم وقت التوليد) — يُحفظ مع الواجب
 // ويظهر في شهادة التقدير. null = أسئلة بلا نطاق مسجَّل (مثل واجب بُني يدوياً بالكامل).
@@ -89,13 +86,9 @@ let currentHwIdForGrading = null;
 let pendingGradingHwIds = new Set();
 
 export async function initHomeworkPrep() {
-    // 🌟 [جديد] تلميح ما قبل إعداد أول واجب — راجع مستند "تصميم نظام تلميحات الأقسام عند
-    // أول دخول المقترح"
-    showSectionHintOnce('homework_prep', {
-        type: 'tip',
-        titleKey: 'hint_homework_title',
-        bodyKey: 'hint_homework_body'
-    });
+    // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js) محل تلميح 'homework_prep' القديم.
+    // تنتظر ظهور عناصر الشاشة فعلياً قبل الإبراز، وbest-effort (أي فشل لا يمنع فتح الشاشة).
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('homework')).catch(() => {});
 
     if (AppState.quranEngine) {
         hwEngine = new HomeworkEngine(AppState.quranEngine);
@@ -746,6 +739,8 @@ function setHwFilter(f, toggle) {
 // تُرجع Promise<boolean>: true = المعلم أكّد الحذف، false = إلغاء/إغلاق/Esc/نقر على الخلفية. لا تحذف شيئاً بنفسها.
 function confirmHwDelete() {
     return new Promise((resolve) => {
+        // 🌟 [إصلاح 2026-10-02] منع تكرار النافذة: إن كانت نافذة تأكيد مفتوحة أصلاً لا نفتح ثانية (ولا نحذف شيئاً)
+        if (document.querySelector('.hwp3-confirm-overlay')) { resolve(false); return; }
         const prevFocus = document.activeElement;
         const overlay = document.createElement('div');
         overlay.className = 'hwp3-confirm-overlay';

@@ -34,8 +34,6 @@ import { initHomeQuickview } from '../components/homeQuickview.js';
 import { initHomeFast } from '../components/homeFast.js';
 // 🌟 توست التنويه أسفل الشاشة — يُستخدم في شاشة "الاختبارات الثنائية" (بدل alert())
 import { showToastEncouragement } from '../components/ui.js';
-// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js لتفاصيل الآلية
-import { showSectionHintOnce } from '../components/sectionHint.js';
 import { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage } from './i18n.js';
 // 🌟 رقم إصدار المنصة وسجل التحديثات — لشاشة "الجديد في هذا التحديث" 🌟
 import { APP_VERSION, getUnseenChangelog } from './version.js';
@@ -443,11 +441,9 @@ async function bootSystem() {
         // واحدة في نفس اللحظة، رغم أن الأولى فقط تظهر عملياً غالباً لأن whats-new تتطلب وجود
         // نسخة سابقة محفوظة أصلاً، بعكس هذا التلميح الذي يظهر تحديداً في أول مرة لا يوجد فيها
         // ذلك). راجع مستند "تصميم نظام تلميحات الأقسام عند أول دخول المقترح" 🌟
-        showSectionHintOnce('general', {
-            type: 'tip',
-            titleKey: 'hint_general_title',
-            bodyKey: 'hint_general_body'
-        });
+        // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js: ترحيب قصير ثم Spotlight) محل
+        // تلميح 'general' القديم. best-effort: أي فشل لا يمنع إقلاع المنصة.
+        import('../components/guidedTour.js').then(m => m.maybeStartTour('home')).catch(() => {});
     } catch (error) {
         console.error("خطأ قاتل أثناء إقلاع النظام:", error);
         // 🌟 [إصلاح تدقيق ما قبل الإطلاق] كان الخطأ يُسجَّل في الكونسول فقط فتبقى الشاشة فارغة بلا أي تفسير

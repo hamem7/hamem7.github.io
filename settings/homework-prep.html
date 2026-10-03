@@ -313,6 +313,38 @@
         .hwp2-header-row, .hwp2-tabs-row { flex-direction: column; align-items: stretch; }
         .hwp2-segmented { justify-content: center; }
     }
+
+    /* 🌟 [إصلاح 2026-10-02] نافذة تأكيد حذف الواجب (confirmHwDelete في homework-prep.js):
+       كانت تُنشأ بلا أي تنسيق فتظهر أسفل الصفحة كعناصر عادية؛ هذه القواعد تجعلها طبقة ثابتة في وسط الشاشة.
+       نطاق معزول بالبادئة "hwp3-confirm" ولا يلمس أي قاعدة موجودة. */
+    .hwp3-confirm-overlay {
+        position: fixed; inset: 0; z-index: 100000;
+        display: flex; align-items: center; justify-content: center;
+        padding: 16px; box-sizing: border-box;
+        background: rgba(6, 35, 28, .55);
+        -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+    }
+    .hwp3-confirm-box {
+        width: 100%; max-width: 400px; box-sizing: border-box;
+        background: #ffffff; color: #1f2937;
+        border-top: 5px solid var(--dh-gold-500, #c9a227);
+        border-radius: 18px; padding: 26px 22px 20px;
+        text-align: center; direction: rtl;
+        box-shadow: 0 24px 60px rgba(6, 35, 28, .45);
+    }
+    .hwp3-confirm-icon { font-size: 2.4rem; line-height: 1; margin-bottom: 8px; }
+    .hwp3-confirm-title { margin: 0 0 8px; font-size: 1.35rem; font-weight: 700; color: var(--dh-emerald-900, #06231c); text-shadow: none; }
+    .hwp3-confirm-body { margin: 0 0 20px; font-size: 1rem; line-height: 1.7; color: #374151; }
+    .hwp3-confirm-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .hwp3-confirm-btn {
+        flex: 1 1 120px; min-height: 46px; padding: 0 16px; border-radius: 12px;
+        font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+        border: 2px solid transparent;
+    }
+    .hwp3-confirm-btn:focus-visible { outline: 3px solid var(--dh-gold-300, #e6c75a); outline-offset: 2px; }
+    .hwp3-confirm-cancel { background: #f1f5f9; color: #1f2937; border-color: #cbd5e1; }
+    .hwp3-confirm-ok { background: #b91c1c; color: #ffffff; }
+    .hwp3-confirm-ok:hover { background: #991b1b; }
 </style>
 <div class="screen active dashboard-wrapper" style="background: #f8fafc;">
     <div class="control-panel hwp2-panel">

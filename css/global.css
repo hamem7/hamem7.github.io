@@ -183,7 +183,8 @@
 
 /* Responsive للموبايل */
 @media (max-width: 768px) {
-    .header-bar { flex-direction: column; text-align: center; gap: 10px; padding: 15px; }
+    /* 🌟 [2026-10-02 — تحسين الهاتف] حُذفت قاعدة .header-bar{flex-direction:column} من هنا: كانت تكدّس الشعار والأزرار في صفّين (~120px)
+       وتتعارض مع تصميم #main-header في css/home.css. الترويسة صارت صفاً واحداً نحيفاً (راجع css/mobile.css). */
     .game-layout { flex-direction: column; width: 100%; align-items: center; }
     .form-grid { grid-template-columns: 1fr; }
     /* 🌟 [إصلاح التوافق مع الشاشات] عناصر داخل .form-grid لها style="grid-column: span 2" مضمّن، فتُنشئ عمودًا ثانيًا ضمنيًا

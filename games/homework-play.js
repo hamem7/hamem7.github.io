@@ -440,6 +440,31 @@ async function submitHomework() {
     if (after && after.state === 'failed') startAutoRetry(hw.id, renderSubmissionStatus);
 }
 
+// 🌟 [جديد 2026-10-02] إعادة إرسال نفس الإجابات المحفوظة باسم جديد بعد رفض "الاسم مكرَّر".
+// startSubmission تُنشئ محاولة جديدة (بمعرّف جديد) لأن المحاولة السابقة بحالة rejected؛ الإجابات تُؤخذ من المحاولة المرفوضة نفسها.
+async function resubmitWithNewName(prev) {
+    const inp = document.getElementById('hp-dup-name');
+    const errEl = document.getElementById('hp-dup-err');
+    const sendBtn = document.getElementById('btn-hp-dup-send');
+    const name = ((inp && inp.value) || '').replace(/[<>"'`]/g, '').replace(/\s+/g, ' ').trim();
+    const showErr = (txt) => { if (errEl) { errEl.textContent = txt; errEl.style.display = 'block'; } if (inp) inp.focus(); };
+    if (name.length < 2) { showErr(t('hw_st_name_required')); return; }
+    if (name.toLowerCase() === String(prev.studentName || '').replace(/\s+/g, ' ').trim().toLowerCase()) { showErr(t('hw_st_dup_same')); return; }
+    if (sendBtn) sendBtn.disabled = true;
+    try {
+        student = { ...(student || {}), name };
+        AppState.currentStudent = student;
+        const attempt = startSubmission(hw.id, name, prev.answers || {});
+        renderSubmissionStatus(attempt);
+        watchAttempt(hw.id, renderSubmissionStatus);
+        await attemptSend(hw.id, renderSubmissionStatus);
+        const after = getAttempt(hw.id);
+        if (after && after.state === 'failed') startAutoRetry(hw.id, renderSubmissionStatus);
+    } finally {
+        if (sendBtn) sendBtn.disabled = false;
+    }
+}
+
 // شاشة الحالة الحقيقية للتسليم — الوحيدة التي يمكنها القول إن الواجب "وصل" (فقط عند state=confirmed)
 function renderSubmissionStatus(a) {
     const modal = document.getElementById('hp-result-modal');
@@ -452,6 +477,8 @@ function renderSubmissionStatus(a) {
     const finish = document.getElementById('btn-hp-finish');
     retry.style.display = 'none';
     finish.style.display = 'none';
+    const dupBox = document.getElementById('hp-dup-box');
+    if (dupBox) dupBox.style.display = 'none';
 
     const badgeStyles = {
         ok: 'background:#dcfce7; color:#166534;', info: 'background:#e0f2fe; color:#0369a1;',
@@ -487,6 +514,27 @@ function renderSubmissionStatus(a) {
         retry.style.display = 'block';
         retry.onclick = () => attemptSend(hw.id, renderSubmissionStatus);
         if (a.lastError) meta.push(t('hw_st_reason') + ' ' + friendlyErrorText(new ApiError('x', a.lastError.code, a.lastError.message)));
+    } else if (a.state === 'rejected' && a.rejectReason === 'ALREADY_SUBMITTED' && !(hw && hw.assignedStudentName)) {
+        // 🌟 [جديد 2026-10-02] الاسم مكرَّر في واجب عام (طالب آخر بنفس الاسم): لا نُلغي الإجابات، بل نطلب اسماً مختلفاً ونعيد الإرسال
+        // ملاحظة: الخادم لا يميّز بين "طالب آخر بنفس الاسم" و"نفس الطالب يعيد التسليم"؛ في الحالتين الحل هو اسم أوضح، والمعلم يراجع التسليمات.
+        icon.textContent = '✏️';
+        set('hp-result-title', t('hw_st_dup_title'));
+        set('hp-result-score', t('hw_st_dup_text'));
+        set('hp-result-note', '');
+        setBadge('warn', 'hw_st_badge_failed');
+        if (dupBox) {
+            dupBox.style.display = 'block';
+            const inp = document.getElementById('hp-dup-name');
+            const errEl = document.getElementById('hp-dup-err');
+            const sendBtn = document.getElementById('btn-hp-dup-send');
+            if (errEl) errEl.style.display = 'none';
+            if (inp && !inp.dataset.bound) {
+                inp.dataset.bound = '1';
+                inp.value = a.studentName || '';
+                inp.focus();
+            }
+            if (sendBtn) sendBtn.onclick = () => resubmitWithNewName(a);
+        }
     } else {
         icon.textContent = '❌';
         set('hp-result-title', t('hw_st_rejected_title'));

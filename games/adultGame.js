@@ -13,7 +13,7 @@ import { showSectionHintOnce } from '../components/sectionHint.js';
 import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFixWrongAnswer, summarizeFixSession } from '../components/fixErrorsPrompt.js';
 // 🌟 [جديد] تحديد موضع الخطأ (من آية ... إلى آية ...) في أسئلة التسميع — راجع components/reciteRangePicker.js
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
-import { buildLinkQuestionRecord, buildWeaknessQuestionHeader } from '../components/questionTextRecord.js';
+import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -590,7 +590,21 @@ async function playNextMission() {
             // الحقول الجديدة، نرجع تلقائياً لعرض نص الآية المجرد فقط كما كان يعمل من
             // قبل، حفاظاً على التوافق مع الأخطاء المسجّلة فعلياً عند المعلمين 🌟
             let originalBodyHTML;
-            if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
+            // 🌟 [جديد] "رتب الآيات" في علاج الخطأ صار يظهر بنفس طريقة ظهوره للطالب أول مرة:
+            // آيات مخلوطة (بخلط جديد) يرتّبها الطالب بالنقر، مع تصحيح تلقائي — بدل عرض الترتيب
+            // الصحيح جاهزًا (الذي كان يكشف الإجابة ولا يعيد التحدي فعليًا). الشرط يضمن أن كل آية
+            // محفوظة بنصها ورقمها (numberInSurah) لتعمل المقارنة؛ وإلا (سجل ناقص) نرجع للعرض
+            // الثابت القديم كما كان بلا كسر 🌟
+            const isInteractiveOrder = wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length > 1 &&
+                wItem.orderAyahs.every(a => a && a.text && a.numberInSurah != null) &&
+                new Set(wItem.orderAyahs.map(a => a.numberInSurah)).size === wItem.orderAyahs.length;
+            // 🌟 [جديد] أسئلة الربط ("أول الآية بآخرها"، "الكلمة بالسورة") تُعاد أيضًا كلعبة تفاعلية بنفس
+            // حاوية الجولة العادية؛ ولو تعذّرت إعادة بنائها (سجل قديم غير قابل للتحليل) يبقى العرض الثابت 🌟
+            const linkRebuilt = (wItem.questionType === 'link_ends' || wItem.questionType === 'link_word_surah' ||
+                wItem.questionType === 'kids_link_ends' || wItem.questionType === 'kids_link_word_surah') ? rebuildLinkFromRecord(wItem) : null;
+            if (isInteractiveOrder || linkRebuilt) {
+                originalBodyHTML = '';
+            } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
                 originalBodyHTML = `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
                     wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
             } else if (wItem.questionBody) {
@@ -609,6 +623,46 @@ async function playNextMission() {
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+
+            // 🌟 [جديد] تفعيل لعبة الترتيب التفاعلية نفسها (نفس الحاوية والدالة buildOrderGameUI
+            // المستخدمة في الجولة العادية بلا أي تعديل عليهما). original = الترتيب الصحيح المحفوظ،
+            // shuffled = خلط جديد يختلف عن الترتيب الصحيح. الإجابة الصحيحة (تظهر بزر "إظهار
+            // الإجابة للمطابقة" فقط) هي الآيات مرتبة. أزرار المعلم تبقى ظاهرة كما كانت لتسجيل
+            // الخطأ يدويًا عند الحاجة (recordAnswer يتجاهل التكرار بحارس __answered) 🌟
+            if (isInteractiveOrder) {
+                const orig = wItem.orderAyahs.map(a => ({ text: a.text, numberInSurah: a.numberInSurah, surahName: a.surahName }));
+                GameState.currentData.original = orig;
+                GameState.currentData.shuffled = shuffleDifferentFromOriginal(orig, a => a.numberInSurah);
+                GameState.currentData.studentAnswer = [];
+                document.getElementById('interactive-order-area').style.display = 'block';
+                let orderInstEl = document.querySelector('#interactive-order-area p[data-i18n="order_inst"]');
+                if (orderInstEl) orderInstEl.innerHTML = t('order_inst');
+                let orderShufTitleEl = document.querySelector('#interactive-order-area h3[data-i18n="shuffled_ayahs"]');
+                if (orderShufTitleEl) orderShufTitleEl.innerHTML = t('shuffled_ayahs');
+                buildOrderGameUI();
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="font-size:1.3rem; font-weight:bold; margin:10px 0;">${t('correct_order')}:</div>` +
+                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
+                return;
+            }
+
+            if (linkRebuilt) {
+                const isWS = wItem.questionType.includes('word_surah');
+                GameState.currentData.starts = linkRebuilt.starts;
+                GameState.currentData.ends = linkRebuilt.ends;
+                GameState.currentData.matchedPairs = [];
+                GameState.currentData.selectedStart = null;
+                GameState.currentData.locked = false;
+                document.getElementById('interactive-link-area').style.display = 'block';
+                let lInst = document.querySelector('#interactive-link-area p[data-i18n="link_inst"]');
+                if (lInst) lInst.innerHTML = t(isWS ? 'link_word_surah_inst' : 'link_inst');
+                let lStarts = document.querySelector('#interactive-link-area h3[data-i18n="link_starts_title"]');
+                if (lStarts) lStarts.innerHTML = t(isWS ? 'link_word_surah_starts_title' : 'link_starts_title');
+                let lEnds = document.querySelector('#interactive-link-area h3[data-i18n="link_ends_title"]');
+                if (lEnds) lEnds.innerHTML = t(isWS ? 'link_word_surah_ends_title' : 'link_ends_title');
+                buildLinkGameUI();
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div class="quran-text" style="font-size:2rem; margin-top:10px;">${linkRebuilt.answerHTML}</div>`;
+                return;
+            }
 
             // 🌟 سؤال "الذاكرة البصرية" إجابته صندوق منسّق جاهز بالكامل (فيه زر تكبير
             // المصحف)، وليس نص آية عادي — فنعرضه كما هو دون لفّه بأقواس ﴿ ﴾ حتى لا
@@ -890,6 +944,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 questionBody: reciteRec ? reciteRec.questionBody : (linkRec ? linkRec.questionBody : ((cd.type !== 'order' && cd.questionBody) ? cd.questionBody : null)),
                 fullAnswer: reciteRec ? reciteRec.fullAnswer : (linkRec ? linkRec.fullAnswer : (cd.fullAnswer || null)),
                 reciteRanges: reciteRec ? reciteRec.ranges : null,
+                linkPairs: linkRec ? linkRec.linkPairs : null,
                 correctAns: cd.correctAns || null,
                 hint: cd.hint || null,
                 orderAyahs: (cd.type === 'order' && Array.isArray(cd.original)) ? cd.original.map(a => ({ text: a.text, numberInSurah: a.numberInSurah, surahName: a.surahName })) : null,
@@ -974,6 +1029,22 @@ function getOrderTextSizeClass(text) {
     if (len > 140) return ' order-text-xlong';
     if (len > 70) return ' order-text-long';
     return '';
+}
+
+// 🌟 [جديد] خلط عشوائي (Fisher-Yates) لعناصر "رتب الآيات" في وضع علاج الخطأ، مع إعادة المحاولة
+// حتى يختلف الترتيب عن الصحيح (حتى لا يظهر السؤال محلولًا صدفة). لو العنصران فقط أو تعذّر
+// الاختلاف بعد عدة محاولات نعكس الترتيب كحل أخير مضمون 🌟
+function shuffleDifferentFromOriginal(arr, keyFn) {
+    const sameAsOrig = (s) => s.every((x, i) => keyFn(x) === keyFn(arr[i]));
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const s = arr.slice();
+        for (let i = s.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [s[i], s[j]] = [s[j], s[i]];
+        }
+        if (!sameAsOrig(s)) return s;
+    }
+    return arr.slice().reverse();
 }
 
 function buildOrderGameUI() {

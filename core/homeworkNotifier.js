@@ -28,7 +28,9 @@
 // لأول مرة بعد إقلاع المنصة (من شاشة إعداد الواجبات مثلاً)، سيبدأ الفحص الدوري تلقائياً من
 // أول محاولة فحص تالية بلا حاجة لإعادة تحميل الصفحة.
 
-import { getTeacherKey } from './api.js';
+// 🌟 [إصلاح 2026-10-02] كان الفحص يشترط getTeacherKey() (المفتاح القديم) فقط، فلا يبدأ أبداً مع المعلم المسجَّل بحساب جوجل
+// (جلسة userId+sessionKey بلا مفتاح قديم). isTeacherAuthed() تقبل الطريقتين.
+import { isTeacherAuthed } from './api.js';
 import { listAllSubmissionsForNotifications } from './homeworkApi.js';
 import { t } from './i18n.js';
 // 🌟 [جديد — إصلاح XSS] اسم الطالب في إشعار التسليم يأتي من الخادم، فيُنظَّف قبل الحقن في innerHTML
@@ -37,7 +39,8 @@ import { esc } from './escape.js';
 const SEEN_IDS_KEY = 'dh_hw_notif_seen_ids';
 const FIRST_RUN_DONE_KEY = 'dh_hw_notif_first_run_done';
 const MAX_SEEN_IDS = 500; // 🌟 نُبقي فقط آخر 500 معرّف حتى لا يتضخم localStorage للأبد
-const POLL_MS = 20000;    // فحص كل 20 ثانية — أقرب للوقت الحقيقي الممكن ضمن خادم بلا Push
+const FIRST_RUN_NOTIFY_WINDOW_MS = 48 * 60 * 60 * 1000; // 🌟 نافذة التنبيه على تسليمات حديثة عند أول فحص ناجح
+const POLL_MS = 20000;   // فحص كل 20 ثانية — أقرب للوقت الحقيقي الممكن ضمن خادم بلا Push
 
 let seenIds = null;
 let pollTimer = null;
@@ -70,6 +73,11 @@ function persistSeenIds() {
 // ------------------------------------------------------------
 function unlockAudioOnFirstGesture() {
     const unlock = () => {
+        // 🌟 [إصلاح 2026-10-02] طلب إذن الإشعارات عند أول نقرة حقيقية: الطلب وقت الإقلاع (بلا تفاعل) يتجاهله كثير من المتصفحات
+        // بصمت فلا يصل أي إشعار سطح مكتب. لا يُطلب إلا لو الحالة "default" (لا إزعاج لمن قرّر مسبقاً).
+        try {
+            if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+        } catch (e) { /* لا شيء */ }
         try {
             audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -210,7 +218,7 @@ function showDesktopNotifications(subs) {
 // ------------------------------------------------------------
 async function pollOnce() {
     if (pollInFlight) return; // 🌟 منع تراكب فحصين لو تأخر ردّ الخادم أكثر من POLL_MS
-    if (!getTeacherKey()) return; // لم يُفعَّل نظام الواجبات على هذا الجهاز بعد
+    if (!isTeacherAuthed()) return; // لم يُفعَّل نظام الواجبات على هذا الجهاز بعد (لا جلسة جوجل ولا مفتاح قديم)
     pollInFlight = true;
     try {
         const list = await listAllSubmissionsForNotifications();
@@ -224,7 +232,11 @@ async function pollOnce() {
             const id = sub.docId || sub.id;
             if (!id || seen.has(id)) return;
             seen.add(id);
-            if (!firstRun) freshOnes.push(sub);
+            if (!firstRun) { freshOnes.push(sub); return; }
+            // 🌟 [إصلاح 2026-10-02] أول فحص ناجح: كنا نُسكت كل التسليمات الموجودة، فيضيع تسليم وصل قبل نجاح أول فحص (وهذا ما حدث
+            // لأن الفحص لم يكن يعمل أصلاً). الآن ننبّه فقط على التسليمات الحديثة (آخر 48 ساعة) غير المصحَّحة؛ الأقدم تُسجَّل بصمت.
+            const ts = Number(sub.timestamp) || Date.parse(sub.submittedAt || '') || 0;
+            if (sub.status === 'submitted' && ts && (Date.now() - ts) <= FIRST_RUN_NOTIFY_WINDOW_MS) freshOnes.push(sub);
         });
 
         if (firstRun) { try { localStorage.setItem(FIRST_RUN_DONE_KEY, '1'); } catch (e) { /* تجاهل */ } }

@@ -1,0 +1,79 @@
+/* css/guidedTour.css
+   🌟 [جديد 2026-10-02] تصميم "الجولة الإرشادية" (components/guidedTour.js) — ملف معزول تماماً: كل القواعد
+   ببادئة dh-tour- ولا يمسّ أي قاعدة موجودة. الألوان من متغيرات الهوية المعرَّفة في css/home.css
+   (--dh-emerald-* / --dh-gold-*) مع قيم احتياطية. */
+
+.dh-tour-root { position: fixed; inset: 0; z-index: 9000; pointer-events: none; }
+
+/* يمنع أي تفاعل مع الشاشة تحت الجولة (التالي/السابق/تخطي فقط) */
+.dh-tour-shield { position: fixed; inset: 0; pointer-events: auto; background: transparent; }
+
+/* تعتيم كامل للخطوات بلا عنصر مستهدف (الترحيب/المعلومة/النجاح) */
+.dh-tour-dim { position: fixed; inset: 0; display: none; background: rgba(6, 35, 28, 0.74); }
+
+/* الإبراز: صندوق شفاف حول العنصر، والتعتيم من ظلّه الضخم حتى يبقى العنصر وحده مضيئاً */
+.dh-tour-spot {
+    position: fixed; pointer-events: none;
+    box-shadow: 0 0 0 3px var(--dh-gold-500, #d4af37), 0 0 0 100vmax rgba(6, 35, 28, 0.74);
+}
+/* 🌟 [2026-10-03] كان transition (0.25ث) على top/left/width/height دائماً، بينما يُحدِّث guidedTour.js الموضع كل إطار؛ فكان
+   الإبراز يتأخر عن العنصر أثناء أي حركة (تمرير ناعم/حركة دخول) ويظهر أسفله أو مزاحاً عنه. صار الانزلاق يُفعَّل بهذا
+   الصنف فقط لحظة الانتقال بين خطوتين (وبلا تمرير)، ويُزال بعدها فيلتصق الإبراز بالعنصر في كل إطار. */
+.dh-tour-spot.dh-tour-spot-glide {
+    transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease, border-radius .25s ease;
+}
+
+.dh-tour-card {
+    position: fixed; pointer-events: auto; box-sizing: border-box;
+    width: min(340px, calc(100vw - 24px));
+    background: var(--dh-surface, #fffdf6);
+    color: var(--dh-ink, #10241c);
+    border: 1px solid rgba(212, 175, 55, 0.55);
+    border-radius: 18px;
+    box-shadow: 0 18px 48px rgba(6, 35, 28, 0.35);
+    padding: 16px 18px 12px;
+    font-family: inherit; line-height: 1.7; text-align: start;
+    opacity: 0; visibility: hidden; transition: opacity .2s ease;
+}
+.dh-tour-card.dh-tour-visible { opacity: 1; visibility: visible; }
+.dh-tour-card-center { text-align: center; }
+
+.dh-tour-icon { font-size: 2rem; line-height: 1.2; }
+.dh-tour-icon:empty { display: none; }
+.dh-tour-title { font-size: 1.2rem; font-weight: 700; color: var(--dh-emerald-700, #0d5c46); margin-bottom: 4px; }
+.dh-tour-title:empty { display: none; }
+.dh-tour-text { margin: 0 0 12px; font-size: 1.02rem; color: var(--dh-ink, #10241c); }
+
+.dh-tour-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dh-tour-card-center .dh-tour-footer { justify-content: center; flex-direction: column-reverse; }
+.dh-tour-counter { font-size: .85rem; color: var(--dh-ink-soft, #4a6058); direction: ltr; unicode-bidi: isolate; } /* 🌟 [2026-10-02] isolate: بدونها ينعكس «٢ / ٧» داخل صفحة RTL */
+.dh-tour-actions { display: flex; gap: 8px; }
+
+.dh-tour-btn {
+    min-height: 44px; min-width: 84px; padding: 8px 18px; border-radius: 12px;
+    font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer;
+    border: 2px solid var(--dh-emerald-700, #0d5c46);
+}
+.dh-tour-btn-primary { background: var(--dh-emerald-700, #0d5c46); color: #fff; }
+.dh-tour-btn-primary:hover { background: var(--dh-emerald-800, #0b3d30); }
+.dh-tour-btn-ghost { background: transparent; color: var(--dh-emerald-700, #0d5c46); }
+.dh-tour-btn:focus-visible, .dh-tour-skip:focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
+
+.dh-tour-skip {
+    display: block; margin: 8px auto 0; background: none; border: none; cursor: pointer;
+    font-family: inherit; font-size: .9rem; color: var(--dh-ink-soft, #4a6058);
+    text-decoration: underline; min-height: 36px; padding: 4px 10px;
+}
+
+/* رسالة النجاح الأخيرة */
+.dh-tour-card-done .dh-tour-text { margin: 4px 0 6px; font-weight: 700; color: var(--dh-emerald-700, #0d5c46); }
+
+@media (max-width: 480px) {
+    .dh-tour-card { padding: 14px 14px 10px; }
+    .dh-tour-text { font-size: .98rem; }
+    .dh-tour-btn { min-width: 76px; padding: 8px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dh-tour-spot, .dh-tour-card { transition: none; }
+}

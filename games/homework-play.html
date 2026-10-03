@@ -57,7 +57,14 @@
         <p id="hp-result-note" style="color: #64748b; font-size: 1.15rem; margin: 15px 0;"></p>
         <p id="hp-result-meta" style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;"></p>
 
-        <button class="btn" id="btn-hp-retry" data-i18n="hw_st_retry_btn" style="display: none; width: 100%; font-size: 1.4rem; background: #0ea5e9; margin-bottom: 12px;">🔄 إعادة الإرسال الآن</button>
+        <!-- 🌟 [جديد 2026-10-02] يظهر فقط عند رفض الخادم بسبب اسم مكرَّر (ALREADY_SUBMITTED) في واجب عام: تغيير الاسم وإعادة الإرسال -->
+        <div id="hp-dup-box" style="display: none; margin: 10px 0 14px; text-align: start;">
+            <label for="hp-dup-name" data-i18n="hw_st_dup_label" style="display:block; font-weight:bold; color:#334155; margin-bottom:6px;">اسمك الكامل</label>
+            <input id="hp-dup-name" type="text" maxlength="80" autocomplete="name" style="width:100%; box-sizing:border-box; padding:12px 14px; font-size:1.2rem; font-family:inherit; border:2px solid #cbd5e1; border-radius:12px;">
+            <p id="hp-dup-err" style="display:none; color:#b91c1c; font-weight:bold; margin:8px 0 0;"></p>
+            <button class="btn" id="btn-hp-dup-send" data-i18n="hw_st_dup_btn" style="width:100%; font-size:1.3rem; background:#0f766e; margin-top:12px;">📨 إرسال بالاسم الجديد</button>
+        </div>
+        <button class="btn" id="btn-hp-retry"data-i18n="hw_st_retry_btn" style="display: none; width: 100%; font-size: 1.4rem; background: #0ea5e9; margin-bottom: 12px;">🔄 إعادة الإرسال الآن</button>
         <!-- زر الإغلاق يظهر فقط بعد تأكيد الخادم (أو رفضه) — لا نُشجّع الطالب على الإغلاق قبل ذلك -->
         <button class="btn" id="btn-hp-finish" data-i18n="hw_st_close_btn" style="display: none; width: 100%; font-size: 1.5rem; background: #ef4444;">✖️ إغلاق الصفحة</button>
     </div>

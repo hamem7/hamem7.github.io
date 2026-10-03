@@ -13,7 +13,7 @@ import { showSectionHintOnce } from '../components/sectionHint.js';
 import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFixWrongAnswer, summarizeFixSession } from '../components/fixErrorsPrompt.js';
 // 🌟 [جديد] تحديد موضع الخطأ (من آية ... إلى آية ...) في أسئلة التسميع — راجع components/reciteRangePicker.js
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
-import { buildLinkQuestionRecord, buildWeaknessQuestionHeader } from '../components/questionTextRecord.js';
+import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -437,7 +437,17 @@ async function playNextMission() {
             // قبل هذا التحديث (بلا هذه الحقول الجديدة) يرجع تلقائياً لعرض نص الآية
             // المجرد فقط كما كان يعمل سابقاً 🌟
             let originalBodyHTML;
-            if (wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) && wItem.originalWords.length) {
+            // 🌟 [جديد] "ترتيب كلمات الآية" في علاج الخطأ يظهر بنفس طريقة ظهوره للطفل أول مرة:
+            // كلمات مخلوطة (بخلط جديد) يرتّبها بالنقر مع تصحيح تلقائي، بدل عرض الآية مرتبة جاهزة
+            // (تكشف الإجابة). لو السجل بلا كلمات كافية نرجع للعرض الثابت القديم بلا كسر 🌟
+            const isInteractiveWordOrder = wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) &&
+                wItem.originalWords.length > 1 && wItem.originalWords.every(w => typeof w === 'string' && w);
+            // 🌟 [جديد] أسئلة الربط تُعاد كلعبة تفاعلية أيضًا (نفس منطق نسخة الكبار) 🌟
+            const linkRebuilt = (wItem.questionType === 'kids_link_ends' || wItem.questionType === 'kids_link_word_surah' ||
+                wItem.questionType === 'link_ends' || wItem.questionType === 'link_word_surah') ? rebuildLinkFromRecord(wItem) : null;
+            if (isInteractiveWordOrder || linkRebuilt) {
+                originalBodyHTML = '';
+            } else if (wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) && wItem.originalWords.length) {
                 originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.originalWords.join(' ')} ﴾</div>`;
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
@@ -455,6 +465,49 @@ async function playNextMission() {
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+
+            // 🌟 [جديد] تفعيل لعبة ترتيب الكلمات التفاعلية نفسها (نفس الحاوية والدالة buildWordOrderUI
+            // بلا تعديل عليهما). خلط جديد يختلف نصه عن الترتيب الصحيح قدر الإمكان (الكلمات المكررة
+            // أو الآية القصيرة جدًا قد تجعل كل الخلطات متطابقة النص، فنكتفي بآخر محاولة) 🌟
+            if (isInteractiveWordOrder) {
+                const words = wItem.originalWords.slice();
+                const orig = words.join(' ');
+                let shuffled = words.slice();
+                for (let attempt = 0; attempt < 20; attempt++) {
+                    shuffled = words.slice();
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    if (shuffled.join(' ') !== orig) break;
+                }
+                GameState.currentData.originalWords = words;
+                GameState.currentData.shuffledWords = shuffled;
+                GameState.currentData.studentAnswer = [];
+                GameState.currentData.studentAnswerIndices = [];
+                document.getElementById('kids-word-order-area').style.display = 'block';
+                buildWordOrderUI();
+            }
+
+            if (linkRebuilt) {
+                const isWS = wItem.questionType.includes('word_surah');
+                GameState.currentData.starts = linkRebuilt.starts;
+                GameState.currentData.ends = linkRebuilt.ends;
+                GameState.currentData.matchedPairs = [];
+                GameState.currentData.selectedStart = null;
+                GameState.currentData.locked = false;
+                document.getElementById('kids-link-area').style.display = 'block';
+                let lInst = document.querySelector('#kids-link-area p[data-i18n="link_inst"]');
+                if (lInst) lInst.innerHTML = t(isWS ? 'link_word_surah_inst' : 'link_inst');
+                let lStarts = document.querySelector('#kids-link-area h3[data-i18n="link_starts_title"]');
+                if (lStarts) lStarts.innerHTML = t(isWS ? 'link_word_surah_starts_title' : 'link_starts_title');
+                let lEnds = document.querySelector('#kids-link-area h3[data-i18n="link_ends_title"]');
+                if (lEnds) lEnds.innerHTML = t(isWS ? 'link_word_surah_ends_title' : 'link_ends_title');
+                buildLinkGameUI();
+                document.getElementById('show-ans-btn').style.display = 'inline-block';
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div class="quran-text" style="font-size:2rem; margin-top:10px;">${linkRebuilt.answerHTML}</div>`;
+                return;
+            }
 
             // 🌟 [جديد] كانت شاشة علاج الخطأ عند الأطفال لا تعرض الإجابة الصحيحة إطلاقاً
             // (خلافاً لنسخة الكبار) — أضفناها هنا مع زر "إظهار الإجابة للمطابقة" 🌟
@@ -756,6 +809,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 questionBody: reciteRec ? reciteRec.questionBody : (linkRec ? linkRec.questionBody : ((cd.type !== 'kids_word_order' && cd.questionBody) ? cd.questionBody : null)),
                 fullAnswer: reciteRec ? reciteRec.fullAnswer : (linkRec ? linkRec.fullAnswer : (cd.fullAnswer || null)),
                 reciteRanges: reciteRec ? reciteRec.ranges : null,
+                linkPairs: linkRec ? linkRec.linkPairs : null,
                 correctAns: cd.correctAns || null,
                 options: Array.isArray(cd.options) ? cd.options : null,
                 originalWords: (cd.type === 'kids_word_order' && Array.isArray(cd.originalWords)) ? cd.originalWords : null,

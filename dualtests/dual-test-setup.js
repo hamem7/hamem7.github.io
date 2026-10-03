@@ -25,8 +25,6 @@ import { createEmptyDualTest } from '../database/dualTestsDB.js';
 // 🌟 [جديد] computeSeriesResult — لعرض "عدد الجولات المكسوبة حتى الآن" لكل مواجهة معلّقة
 // داخل نافذة "⏸️ المواجهات المعلقة" (نفس الدالة المستخدَمة في شاشة اللعب والنتيجة النهائية)
 import { generateSwapCode, computeSeriesResult } from '../engine/dualTestEngine.js';
-// 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
-import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] شاشة "تقرير المواجهة" — تُستخدم هنا لفتح تقرير أي مباراة سابقة منتهية من نافذة
 // "📜 المباريات السابقة" أسفل، بنفس الطريقة التي يفتحه بها زر "عرض التقرير" في شاشة اللعب
 // نفسها مباشرة بعد انتهاء المباراة (راجع dual-test-play.js وreports/dual-test-report.js)
@@ -65,14 +63,9 @@ const ROUND_TITLE_KEYS = ['dts_round1_title', 'dts_round2_title', 'dts_round3_ti
 // ===================== نقطة الدخول =====================
 
 export async function initDualTestSetup() {
-    // 🌟 [جديد] تلميح ما قبل أول اختبار ثنائي — يشرح المعالج ثلاثي الخطوات وزرَّي "تبديل"
-    // و"مساعدة" وطريقة احتساب الخصم. بلا أي إشارة لكون الميزة "قيد التطوير" بطلب صريح من
-    // المعلم بعد اكتمال أساسياتها (راجع حذف الشارة المقابلة في components/splash.html)
-    showSectionHintOnce('dual_test_setup', {
-        type: 'tip',
-        titleKey: 'hint_dual_test_title',
-        bodyKey: 'hint_dual_test_body'
-    });
+    // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js) محل تلميح 'dual_test_setup' القديم.
+    // best-effort: أي فشل لا يمنع فتح الشاشة.
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('dual')).catch(() => {});
 
     currentTest = null;
     editingTestId = null;

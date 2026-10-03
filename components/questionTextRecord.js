@@ -18,8 +18,47 @@ export function buildLinkQuestionRecord(cd) {
     const aRows = rows.map(s => `${s.text}${sep}${endById.get(s.id)}`).join('<br>');
     return {
         questionBody: `<div style="margin-top:10px;">${qRows}</div>`,
-        fullAnswer: aRows
+        fullAnswer: aRows,
+        // 🌟 [جديد] الأزواج الخام (id/بداية/نهاية) لإعادة بناء لعبة الربط التفاعلية في "علاج الخطأ"
+        linkPairs: rows.map(s => ({ id: s.id, start: s.text, end: endById.get(s.id) }))
     };
+}
+
+// 🌟 [جديد] إعادة بناء لعبة الربط (starts/ends) من سجل خطأ محفوظ لعرضها في "علاج الخطأ السابق"
+// بنفس طريقة ظهورها للطالب (تفاعلية بدل نص ثابت). المصدر الأول: linkPairs (السجلات الجديدة).
+// احتياط للسجلات القديمة التي لا تملكه: تحليل fullAnswer (صفوف مفصولة بـ <br>، وكل صف
+// "بداية … نهاية" أو "كلمة ⟷ سورة" — أول فاصل في الصف). ⚠️ افتراض: لا يظهر الفاصل داخل نص
+// البداية نفسها؛ ولو تعذّر تحليل أي صف نرجع null فيبقى العرض الثابت القديم بلا كسر.
+// عمود النهايات يُخلط مستقلًا عن البدايات (يختلف عن الترتيب الأصلي قدر الإمكان).
+export function rebuildLinkFromRecord(wItem) {
+    if (!wItem) return null;
+    let pairs = null;
+    if (Array.isArray(wItem.linkPairs) && wItem.linkPairs.length > 1 &&
+        wItem.linkPairs.every(p => p && p.id != null && p.start && p.end)) {
+        pairs = wItem.linkPairs.map(p => ({ id: p.id, start: p.start, end: p.end }));
+    } else if (typeof wItem.fullAnswer === 'string' && wItem.fullAnswer.includes('<br>')) {
+        const isWS = wItem.questionType === 'link_word_surah' || wItem.questionType === 'kids_link_word_surah';
+        const sep = isWS ? ' ⟷ ' : ' … ';
+        const parsed = wItem.fullAnswer.split('<br>').map((row, i) => {
+            const k = row.indexOf(sep);
+            return k > 0 ? { id: 'p' + i, start: row.slice(0, k), end: row.slice(k + sep.length) } : null;
+        });
+        if (parsed.length > 1 && parsed.every(p => p && p.start && p.end)) pairs = parsed;
+    }
+    if (!pairs) return null;
+    const starts = pairs.map(p => ({ id: p.id, text: p.start }));
+    let ends = pairs.map(p => ({ id: p.id, text: p.end }));
+    const sameOrder = (a) => a.every((e, i) => e.id === starts[i].id);
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const s = ends.slice();
+        for (let i = s.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [s[i], s[j]] = [s[j], s[i]];
+        }
+        ends = s;
+        if (!sameOrder(ends)) break;
+    }
+    return { starts, ends, answerHTML: pairs.map(p => `${p.start} ${(wItem.questionType || '').includes('word_surah') ? '⟷' : '…'} ${p.end}`).join('<br>') };
 }
 
 // 🌟 [جديد] ترويسة "ما هو السؤال؟" في شاشة "علاج الخطأ السابق" — الطالب (والمعلم) أول ما يسأله: "كان إيه السؤال؟".

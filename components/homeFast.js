@@ -17,13 +17,15 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, loadSplashScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
 import { loadMyStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
 const HOME_SCREEN = 'components/splash.html';
 // الشاشات الأساسية: يظهر فيها الشريط السفلي (هاتف) وتنزلق ترويستها
-const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html'];
+// 🌟 [2026-10-02] أُضيفت student/login.html (شاشة اختيار الطالب لركني الكبار/الأطفال) ليبقى الشريط ظاهراً عند الدخول للأركان
+const LOGIN_SCREEN = 'student/login.html';
+const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN];
 
 export const LAST_EVAL_KEY = 'dh_last_evaluation';   // يكتبه enterStudentEvaluation
 const HW_NEW_KEY = 'dh_hw_new_count';
@@ -49,6 +51,9 @@ const NEW_KEYS = {
         bnav_home: 'الرئيسية',
         bnav_students: 'طلابي',
         bnav_evaluate: 'اختبار',
+        bnav_games: 'ألعاب',
+        bnav_adult: 'الكبار',
+        bnav_kids: 'الأطفال',
         bnav_homework: 'الواجبات',
         bnav_dual: 'ثنائي',
         footer_donate_note: 'منصة حمٓ خدمةٌ مجانية لتعليم القرآن. ومن أراد أن يكون له سهم في استمرارها وتطويرها فليتواصل مع مطوّر المنصة.',
@@ -73,6 +78,9 @@ const NEW_KEYS = {
         bnav_home: 'Home',
         bnav_students: 'Students',
         bnav_evaluate: 'Test',
+        bnav_games: 'Games',
+        bnav_adult: 'Adults',
+        bnav_kids: 'Kids',
         bnav_homework: 'Homework',
         bnav_dual: 'Dual',
         footer_donate_note: 'Hamm is a free service for teaching the Quran. If you would like to share in its continuity and development, please contact the platform developer.',
@@ -334,12 +342,19 @@ async function goEvaluate() {
     pendingFocus = true;
     await goHome();
 }
+// 🌟 [إعادة هيكلة 2026-10-02 — تحسين تجربة الهاتف] الشريط السفلي بحسب أولوية استخدام المعلم الفعلي:
+//   الرئيسية · طلابي · ألعاب (الزر المرتفع = البدء السريع: بحث عن طالب ثم اختبار كبار/أطفال) · الكبار · الأطفال.
+//   الواجبات المنزلية والاختبارات الثنائية خرجتا من الشريط (وصولهما من بطاقتيهما في الرئيسية بشاراتهما) حتى لا تزاحما الألعاب والأركان.
+//   ⚠️ افتراض صريح: "الألعاب" = مسار البدء السريع الموجود أصلاً (لا توجد شاشة ألعاب مستقلة؛ الألعاب تعمل داخل ركني الكبار والأطفال).
+//   when: شرط تمييز العنصر الحالي لشاشة مشتركة (login.html يخدم الركنين معاً، ويُميَّز الركن الحالي بحسب AppState.isKidsMode).
+function goAdult() { setEvaluationMode(false); return loadLoginScreen(); }
+function goKids() { setEvaluationMode(true); return loadLoginScreen(); }
 const ITEMS = [
     { id: 'home', key: 'bnav_home', screens: [HOME_SCREEN], run: goHome, icon: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/>' },
     { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: '<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/>' },
-    { id: 'evaluate', key: 'bnav_evaluate', screens: [], run: goEvaluate, icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>', center: true },
-    { id: 'homework', key: 'bnav_homework', screens: ['settings/homework-prep.html'], run: () => openHomeworkPrep(), badge: () => getHwNew(), icon: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>' },
-    { id: 'dual', key: 'bnav_dual', screens: ['dualtests/dual-test-setup.html'], run: () => openDualTestSetup(), icon: '<path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/>' }
+    { id: 'evaluate', key: 'bnav_games', screens: [], run: goEvaluate, icon: '<rect x="3" y="7.5" width="18" height="11" rx="5.5"/><path d="M8 10.5v5M5.5 13h5"/><circle cx="15.5" cy="12" r=".9" fill="currentColor"/><circle cx="18" cy="14.2" r=".9" fill="currentColor"/>', center: true },
+    { id: 'adult', key: 'bnav_adult', screens: [LOGIN_SCREEN], when: () => !AppState.isKidsMode, run: goAdult, icon: '<path d="M2 9l10-5 10 5-10 5-10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>' },
+    { id: 'kids', key: 'bnav_kids', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.4-4.4 4.4-6.5 8-6.5s6.6 2.1 8 6.5"/>' }
 ];
 function ensureBnav() {
     if (bnav && bnav.isConnected) return;
@@ -353,7 +368,7 @@ function ensureBnav() {
         b.className = 'dh-bnav-item' + (it.center ? ' is-center' : '');
         b.dataset.id = it.id;
         b.innerHTML = `<span class="dh-bnav-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span><span class="dh-bnav-lb" data-i18n="${it.key}">${t(it.key)}</span>`;
-        b.addEventListener('click', () => { if (it.id === 'homework') setHwNew(0); it.run(); });
+        b.addEventListener('click', () => { it.run(); });
         bnav.appendChild(b);
     });
     document.body.appendChild(bnav);
@@ -368,7 +383,7 @@ function updateChrome() {
     bnav.hidden = !core;
     bnav.querySelectorAll('.dh-bnav-item').forEach(b => {
         const it = ITEMS.find(x => x.id === b.dataset.id);
-        b.classList.toggle('is-active', !!it && it.screens.includes(scr));
+        b.classList.toggle('is-active', !!it && it.screens.includes(scr) && (!it.when || it.when()));
     });
 }
 // ترويسة تنزلق للأعلى عند التمرير للأسفل وتعود عند التمرير للأعلى (الشاشات الأساسية غير الرئيسية فقط)

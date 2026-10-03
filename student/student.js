@@ -21,6 +21,8 @@ import { showFixErrorsPrompt, shouldShowFixPromptToday, markFixPromptHandledToda
 import { getPausedEvaluation, clearPausedEvaluation, showPausedEvaluationPrompt } from '../components/pausedSession.js';
 // 🌟 [جديد] بطاقة الترحيب بالطالب عند اختيار اسمه — راجع components/welcomeBanner.js
 import { showStudentWelcome } from '../components/welcomeBanner.js';
+// 🌟 [جديد 2026-10-03] شاشة "ماذا تريد أن تبدأ معه؟" بعد تسجيل أي طالب جديد — راجع components/newStudentChoice.js
+import { showNewStudentChoice } from '../components/newStudentChoice.js';
 // 🌟 [إصلاح فحص الأزرار] لتوجيه ملف "النسخة الشاملة" المرفوع بالخطأ هنا إلى مسار استرجاعه الصحيح
 import { restoreFromBackupFile } from '../core/backupRestore.js';
 
@@ -231,6 +233,12 @@ export function setupLoginListeners() {
                     onClick: loadMyStudentsScreen
                 }
             });
+        } else {
+            // 🌟 [جديد 2026-10-02] الجولة الإرشادية لمدخل الكبار/الأطفال (مرة واحدة لكل مسار). تُبدأ فقط حين يوجد
+            // طلاب؛ أما مع عدم وجود أي طالب فتلميح "أضف طالباً أولاً" أعلاه هو المناسب (له زر انتقال فعلي)
+            import('../components/guidedTour.js')
+                .then(m => m.maybeStartTour(AppState.isKidsMode ? 'kids' : 'adults'))
+                .catch(() => {});
         }
     }).catch(() => { /* تجاهل بصمت — التلميح غير حرج لعمل الشاشة */ });
 
@@ -367,6 +375,9 @@ export async function loadMyStudentsScreen() {
 }
 
 function setupMyStudentsListeners() {
+    // 🌟 [جديد 2026-10-02] الجولة الإرشادية لقسم «طلابي» (مرة واحدة) — best-effort، لا تؤثر على الشاشة
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('students')).catch(() => {});
+
     document.getElementById('btn-back-my-students')?.addEventListener('click', loadSplashScreen);
     document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
 
@@ -442,7 +453,8 @@ function setupMyStudentsListeners() {
                 closeModal('add-modal');
                 populateStudentsDropdown();
                 alert(t("stu_saved_ok"));
-                promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
+                await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
+                offerNewStudentGames({ ...data, id: newId });
             };
             reader.readAsDataURL(fileInput.files[0]);
         } else {
@@ -450,7 +462,8 @@ function setupMyStudentsListeners() {
             closeModal('add-modal');
             populateStudentsDropdown();
             alert(t("stu_saved_ok"));
-            promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
+            await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
+            offerNewStudentGames({ ...data, id: newId });
         }
     });
 }
@@ -461,10 +474,28 @@ function setupMyStudentsListeners() {
 // قابلة للتخطي بزر "لاحقًا"، فلا تُجبر المعلم على إدخال بيانة اختيارية فورًا —
 // راجع openInitialPositionForNewStudent في components/monthlyMemorizationBulkScreen.js
 // لتفاصيل خط الرجوع لو تخطّاها المعلم الآن.
+// 🌟 [تعديل 2026-10-03] صارت ترجع الوعد (يكتمل بعد إغلاق شاشة نقطة البداية أو تخطّيها أو فشلها) كي تظهر شاشة
+// اختيار الألعاب بعدها مباشرة بدل أن تتراكب فوقها؛ لا تغيير في سلوكها نفسه.
 function promptInitialMemorizationPositionForNewStudent(student) {
-    import('../components/monthlyMemorizationBulkScreen.js')
+    return import('../components/monthlyMemorizationBulkScreen.js')
         .then(m => m.openInitialPositionForNewStudent(student))
         .catch(err => console.error('تعذر عرض شاشة نقطة البداية الأولى للطالب الجديد:', err));
+}
+
+// 🌟 [جديد 2026-10-03] بعد نجاح تسجيل أي طالب جديد (من «أبدأ من هنا» أو «طلابي»): شاشة تسأل المعلم
+// «ماذا تريد أن تبدأ معه؟» → ألعاب الصغار/الكبار لنفس الطالب عبر startEvaluationForStudent (نفس مسار
+// زر "ابدأ تقييم" الموجود)؛ و«العودة إلى طلابي» تغلقها فقط. لا تظهر إلا من هنا (لا عند فتح المنصة ولا عند
+// اختيار طالب موجود). نعيد قراءة سجل الطالب المحفوظ ليكون الطالب الحالي هو السجل الفعلي لا نسخة النموذج.
+// ⚠️ [افتراض صريح] لو كانت شاشة "نقطة البداية الأولى" متاحة تظهر هي أولاً (كانت تظهر بعد الحفظ أصلاً) ثم هذه الشاشة.
+async function offerNewStudentGames(fallbackStudent) {
+    let student = fallbackStudent;
+    try {
+        const all = await AppState.studentManager.getAllStudents();
+        student = all.find(x => x.id === fallbackStudent.id) || fallbackStudent;
+    } catch (e) { /* نستخدم نسخة النموذج */ }
+    showNewStudentChoice(student, {
+        onChoose: (kids) => startEvaluationForStudent(student, kids)
+    });
 }
 
 export async function loadAllStudentsScreen() {
