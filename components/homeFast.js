@@ -6,7 +6,8 @@
 //   2) بطاقة "تابع من حيث توقفت": آخر طالب بدأ المعلم تقييمه (تُسجَّل في enterStudentEvaluation بـ student/student.js)
 //      بنفس الوضع (كبار/أطفال) الذي استُخدم حينها. لا تظهر إن لم يوجد سجل أو حُذف الطالب.
 //   3) شارات على أزرار الواجبات والاختبارات الثنائية + شريط "قريباً" للميزات قيد التطوير + زر لغة (الترويسة مخفية بالرئيسية).
-//   4) على الهاتف: شريط تنقّل سفلي في الشاشات الأساسية فقط. والترويسة تختفي بالتمرير للأسفل في الشاشات الداخلية الأساسية.
+//   4) على الهاتف: شريط تنقّل سفلي (الرئيسية · الألعاب · الكبار · الصغار · طلابي · المزيد) مع لوحتين سفليتين للألعاب والمزيد، في الشاشات الأساسية فقط.
+//      والترويسة تختفي بالتمرير للأسفل في الشاشات الداخلية الأساسية.
 //   5) اختصارات PWA: ‎index.html?go=students|homework|dual|evaluate‎ (راجع manifest.json).
 // ⚠️ افتراضات صريحة:
 //   - شارة الواجبات = عدد التسليمات الجديدة التي وصلت (حدث dh:new-homework-submissions) منذ آخر دخول لشاشة الواجبات.
@@ -17,15 +18,18 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, loadSplashScreen, loadLoginScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
-import { loadMyStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
+import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
 const HOME_SCREEN = 'components/splash.html';
 // الشاشات الأساسية: يظهر فيها الشريط السفلي (هاتف) وتنزلق ترويستها
 // 🌟 [2026-10-02] أُضيفت student/login.html (شاشة اختيار الطالب لركني الكبار/الأطفال) ليبقى الشريط ظاهراً عند الدخول للأركان
 const LOGIN_SCREEN = 'student/login.html';
-const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN];
+// 🌟 [2026-10-03 — مراجعة تجربة الهاتف] أُضيفت شاشتا تصفّح المتشابهات والتجويد (ألعاب) ليبقى الشريط متاحاً فيهما؛ شاشات اللعب الفعلي تبقى بلا شريط
+const SIM_SCREEN = 'similarities/similarities-home.html';
+const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
+const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
 export const LAST_EVAL_KEY = 'dh_last_evaluation';   // يكتبه enterStudentEvaluation
 const HW_NEW_KEY = 'dh_hw_new_count';
@@ -56,6 +60,28 @@ const NEW_KEYS = {
         bnav_kids: 'الأطفال',
         bnav_homework: 'الواجبات',
         bnav_dual: 'ثنائي',
+        bnav_more: 'المزيد',
+        bnav_kids_short: 'الصغار',
+        sheet_games_title: 'الألعاب',
+        sheet_more_title: 'المزيد',
+        sheet_close: 'إغلاق',
+        sheet_adult_desc: 'ألعاب الحفظ والمراجعة للكبار',
+        sheet_kids_desc: 'ألعاب ممتعة للصغار',
+        sheet_search_title: 'ابدأ بطالب مباشرة',
+        sheet_search_desc: 'ابحث عن الاسم ثم اختر الركن',
+        sheet_sim_title: 'تحدي المتشابهات',
+        sheet_tajweed_title: 'أبطال التجويد',
+        sheet_soon_tag: 'قيد التطوير',
+        sheet_homework: 'الواجبات المنزلية',
+        sheet_dual: 'الاختبارات الثنائية',
+        sheet_reports: 'تقارير الشهر',
+        sheet_all_students: 'سجل الطلاب العام',
+        sheet_memo_bulk: 'الحفظ الشهري',
+        sheet_profile: 'بياناتي والنسخ الاحتياطي',
+        sheet_privacy: 'سياسة الخصوصية',
+        sheet_contact: 'تواصل معنا',
+        home_sec_games: 'الألعاب والأركان',
+        home_sec_tools: 'أدوات المعلم',
         footer_donate_note: 'منصة حمٓ خدمةٌ مجانية لتعليم القرآن. ومن أراد أن يكون له سهم في استمرارها وتطويرها فليتواصل مع مطوّر المنصة.',
         home_today_label: 'يحتاج منك اليوم',
         home_today_clear: 'لا شيء معلّق اليوم',
@@ -83,6 +109,28 @@ const NEW_KEYS = {
         bnav_kids: 'Kids',
         bnav_homework: 'Homework',
         bnav_dual: 'Dual',
+        bnav_more: 'More',
+        bnav_kids_short: 'Kids',
+        sheet_games_title: 'Games',
+        sheet_more_title: 'More',
+        sheet_close: 'Close',
+        sheet_adult_desc: 'Memorization & review games for adults',
+        sheet_kids_desc: 'Fun games for children',
+        sheet_search_title: 'Start with a student',
+        sheet_search_desc: 'Search the name, then pick the corner',
+        sheet_sim_title: 'Similar Verses Challenge',
+        sheet_tajweed_title: 'Tajweed Heroes',
+        sheet_soon_tag: 'In development',
+        sheet_homework: 'Homework',
+        sheet_dual: 'Dual Tests',
+        sheet_reports: 'Monthly reports',
+        sheet_all_students: 'All students record',
+        sheet_memo_bulk: 'Monthly memorization',
+        sheet_profile: 'My profile & backup',
+        sheet_privacy: 'Privacy policy',
+        sheet_contact: 'Contact us',
+        home_sec_games: 'Games & corners',
+        home_sec_tools: 'Teacher tools',
         footer_donate_note: 'Hamm is a free service for teaching the Quran. If you would like to share in its continuity and development, please contact the platform developer.',
         home_today_label: 'Needs you today',
         home_today_clear: 'Nothing pending today',
@@ -321,6 +369,18 @@ function buildLayout() {
         row.appendChild(b);
     }
 
+    // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] عنوانا قسمين قصيران (يظهران على الهاتف فقط — راجع css/mobile.css): "الألعاب والأركان"
+    // فوق الكبار/الصغار/طلابي و"أدوات المعلم" فوق الواجبات/الثنائية، حتى يُقرأ ترتيب الأولوية من أول نظرة بلا تمرير
+    const addSec = (before, id, key) => {
+        if (!before || document.getElementById(id)) return;
+        const h = document.createElement('h2');
+        h.id = id; h.className = 'dh-home-sec';
+        h.setAttribute('data-i18n', key); h.textContent = t(key);
+        before.before(h);
+    };
+    addSec(menu.querySelector('.home-menu-main'), 'dh-sec-games', 'home_sec_games');
+    addSec(menu.querySelector('.home-menu-two'), 'dh-sec-tools', 'home_sec_tools');
+
     const later = document.querySelector('.home-menu-later');
     if (later && !document.getElementById('dh-fast-soon')) {
         const lab = document.createElement('div');
@@ -342,20 +402,142 @@ async function goEvaluate() {
     pendingFocus = true;
     await goHome();
 }
-// 🌟 [إعادة هيكلة 2026-10-02 — تحسين تجربة الهاتف] الشريط السفلي بحسب أولوية استخدام المعلم الفعلي:
-//   الرئيسية · طلابي · ألعاب (الزر المرتفع = البدء السريع: بحث عن طالب ثم اختبار كبار/أطفال) · الكبار · الأطفال.
-//   الواجبات المنزلية والاختبارات الثنائية خرجتا من الشريط (وصولهما من بطاقتيهما في الرئيسية بشاراتهما) حتى لا تزاحما الألعاب والأركان.
-//   ⚠️ افتراض صريح: "الألعاب" = مسار البدء السريع الموجود أصلاً (لا توجد شاشة ألعاب مستقلة؛ الألعاب تعمل داخل ركني الكبار والأطفال).
+// 🌟 [إعادة هيكلة 2026-10-03 — مراجعة تجربة الهاتف بطلب المعلم] الشريط السفلي بحسب أولوية المعلم المعلنة:
+//   الرئيسية · الألعاب · الكبار · الصغار · طلابي · المزيد
+//   - "الألعاب" كان يكتفي بتركيز مربع البحث (لا يفتح أي لعبة)؛ صار يفتح "لوحة ألعاب" سفلية تجمع كل مداخل اللعب الموجودة فعلاً
+//     (ركن الكبار، ركن الصغار، البدء المباشر بطالب، تحدي المتشابهات، أبطال التجويد) — بلا أي شاشة أو منطق جديد.
+//   - "المزيد" لوحة سفلية للوظائف الثانوية (الواجبات، الاختبارات الثنائية، تقارير الشهر، السجل العام، الحفظ الشهري، بياناتي،
+//     اللغة، الخصوصية، التواصل) بدل حشرها في الشريط. كل عنصر يستدعي نفس الدالة التي يستدعيها زرّه الأصلي.
 //   when: شرط تمييز العنصر الحالي لشاشة مشتركة (login.html يخدم الركنين معاً، ويُميَّز الركن الحالي بحسب AppState.isKidsMode).
 function goAdult() { setEvaluationMode(false); return loadLoginScreen(); }
 function goKids() { setEvaluationMode(true); return loadLoginScreen(); }
+const IC = {
+    home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/>',
+    games: '<rect x="3" y="7.5" width="18" height="11" rx="5.5"/><path d="M8 10.5v5M5.5 13h5"/><circle cx="15.5" cy="12" r=".9" fill="currentColor"/><circle cx="18" cy="14.2" r=".9" fill="currentColor"/>',
+    adult: '<path d="M2 9l10-5 10 5-10 5-10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>',
+    kids: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.4-4.4 4.4-6.5 8-6.5s6.6 2.1 8 6.5"/>',
+    students: '<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/>',
+    more: '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
+    sim: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/><path d="M7 9h1M16 9h1"/>',
+    tajweed: '<path d="M12 3v18M5 8c2 0 3-1 3-3M19 8c-2 0-3-1-3-3M5 16c2 0 3 1 3 3M19 16c-2 0-3 1-3 3"/>',
+    homework: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+    dual: '<path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/>',
+    reports: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/>',
+    table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
+    memo: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
+    profile: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5"/><path d="M18.5 4.5l1 1"/>',
+    lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/>',
+    privacy: '<path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6Z"/>',
+    contact: '<path d="M4 5h16v11H8l-4 4Z"/>'
+};
 const ITEMS = [
-    { id: 'home', key: 'bnav_home', screens: [HOME_SCREEN], run: goHome, icon: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/>' },
-    { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: '<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/>' },
-    { id: 'evaluate', key: 'bnav_games', screens: [], run: goEvaluate, icon: '<rect x="3" y="7.5" width="18" height="11" rx="5.5"/><path d="M8 10.5v5M5.5 13h5"/><circle cx="15.5" cy="12" r=".9" fill="currentColor"/><circle cx="18" cy="14.2" r=".9" fill="currentColor"/>', center: true },
-    { id: 'adult', key: 'bnav_adult', screens: [LOGIN_SCREEN], when: () => !AppState.isKidsMode, run: goAdult, icon: '<path d="M2 9l10-5 10 5-10 5-10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>' },
-    { id: 'kids', key: 'bnav_kids', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.4-4.4 4.4-6.5 8-6.5s6.6 2.1 8 6.5"/>' }
+    { id: 'home', key: 'bnav_home', screens: [HOME_SCREEN], run: goHome, icon: IC.home },
+    { id: 'games', key: 'bnav_games', screens: [SIM_SCREEN, TAJWEED_SCREEN], run: () => openSheet('games'), icon: IC.games, accent: true },
+    { id: 'adult', key: 'bnav_adult', screens: [LOGIN_SCREEN], when: () => !AppState.isKidsMode, run: goAdult, icon: IC.adult },
+    { id: 'kids', key: 'bnav_kids_short', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: IC.kids },
+    { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: IC.students },
+    { id: 'more', key: 'bnav_more', screens: ['settings/homework-prep.html', 'dualtests/dual-test-setup.html'], run: () => openSheet('more'), icon: IC.more }
 ];
+
+// ---------------------------------------------------------------------------
+// 🌟 اللوحتان السفليتان (Bottom Sheets): عنصر واحد يُعاد ملؤه. لا تخزين ولا حالة؛ كل عنصر يستدعي دالة موجودة أصلاً.
+function openReportsHub() { return import('../components/monthlyReportsHub.js').then(m => m.openMonthlyReportsHub()).catch(err => console.error('تعذر فتح مركز التقارير الشهرية:', err)); }
+function openMemoBulk() { return import('../components/monthlyMemorizationBulkScreen.js').then(m => m.openMonthlyMemorizationBulkScreen()).catch(err => console.error('تعذر فتح شاشة الحفظ الشهري:', err)); }
+async function openProfile() {
+    if (document.body.dataset.dhScreen !== HOME_SCREEN) await goHome();
+    document.getElementById('teacher-profile-edit-btn')?.click();
+}
+function sheetItems(kind) {
+    if (kind === 'games') return [
+        { key: 'btn_adult', desc: 'sheet_adult_desc', icon: IC.adult, tone: 'adult', run: goAdult, big: true },
+        { key: 'btn_kids', desc: 'sheet_kids_desc', icon: IC.kids, tone: 'kids', run: goKids, big: true },
+        { key: 'sheet_search_title', desc: 'sheet_search_desc', icon: IC.search, run: goEvaluate, wide: true },
+        { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
+        { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection }
+    ];
+    return [
+        { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
+        { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
+        { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
+        { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
+        { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },
+        { key: 'sheet_profile', icon: IC.profile, run: openProfile },
+        { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
+        { key: 'sheet_privacy', icon: IC.privacy, href: 'privacy.html' },
+        { key: 'sheet_contact', icon: IC.contact, href: 'https://wa.me/201027814948' }
+    ];
+}
+let sheet = null;
+let sheetReturnFocus = null;
+function ensureSheet() {
+    if (sheet && sheet.isConnected) return sheet;
+    sheet = document.createElement('div');
+    sheet.className = 'dh-sheet';
+    sheet.id = 'dh-sheet';
+    sheet.hidden = true;
+    sheet.innerHTML = `
+        <div class="dh-sheet-backdrop" data-close="1"></div>
+        <div class="dh-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="dh-sheet-title">
+            <div class="dh-sheet-head">
+                <span class="dh-sheet-grip" aria-hidden="true"></span>
+                <h2 class="dh-sheet-title" id="dh-sheet-title"></h2>
+                <button type="button" class="dh-sheet-x" data-close="1" data-i18n-title="sheet_close" title="${t('sheet_close')}" aria-label="${t('sheet_close')}">✕</button>
+            </div>
+            <div class="dh-sheet-grid"></div>
+        </div>`;
+    sheet.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) closeSheet(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sheet && !sheet.hidden) closeSheet(); });
+    document.body.appendChild(sheet);
+    return sheet;
+}
+function closeSheet() {
+    if (!sheet || sheet.hidden) return;
+    sheet.hidden = true;
+    document.body.classList.remove('dh-sheet-open');
+    bnav?.querySelectorAll('.dh-bnav-item').forEach(b => b.classList.remove('is-open'));
+    if (sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus({ preventScroll: true });
+}
+function openSheet(kind) {
+    const el = ensureSheet();
+    if (!el.hidden && el.dataset.kind === kind) { closeSheet(); return; }
+    sheetReturnFocus = document.activeElement;
+    el.dataset.kind = kind;
+    const title = el.querySelector('.dh-sheet-title');
+    const titleKey = kind === 'games' ? 'sheet_games_title' : 'sheet_more_title';
+    title.setAttribute('data-i18n', titleKey);
+    title.textContent = t(titleKey);
+    const grid = el.querySelector('.dh-sheet-grid');
+    grid.className = 'dh-sheet-grid is-' + kind;
+    grid.innerHTML = '';
+    sheetItems(kind).forEach(it => {
+        const b = document.createElement(it.href ? 'a' : 'button');
+        if (it.href) { b.href = it.href; b.target = '_blank'; b.rel = 'noopener noreferrer'; } else { b.type = 'button'; }
+        b.className = 'dh-sheet-item' + (it.big ? ' is-big' : '') + (it.wide ? ' is-wide' : '') + (it.tone ? ' is-' + it.tone : '');
+        b.innerHTML = `<span class="dh-sheet-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span>`;
+        const txt = document.createElement('span');
+        txt.className = 'dh-sheet-txt';
+        const lb = document.createElement('span');
+        lb.className = 'dh-sheet-lb'; lb.setAttribute('data-i18n', it.key); lb.textContent = t(it.key);
+        txt.appendChild(lb);
+        if (it.desc) { const d = document.createElement('span'); d.className = 'dh-sheet-desc'; d.setAttribute('data-i18n', it.desc); d.textContent = t(it.desc); txt.appendChild(d); }
+        if (it.tag) { const g = document.createElement('span'); g.className = 'dh-sheet-tag'; g.setAttribute('data-i18n', it.tag); g.textContent = t(it.tag); txt.appendChild(g); }
+        b.appendChild(txt);
+        const n = it.badge ? it.badge() : 0;
+        if (n > 0) { const c = document.createElement('span'); c.className = 'dh-sheet-badge'; c.textContent = String(n); b.appendChild(c); }
+        b.addEventListener('click', () => {
+            if (it.keep) { it.run(); return; }     // تبديل اللغة: تبقى اللوحة مفتوحة بنصوصها الجديدة
+            closeSheet();
+            if (it.run) it.run();
+        });
+        grid.appendChild(b);
+    });
+    el.hidden = false;
+    document.body.classList.add('dh-sheet-open');
+    bnav?.querySelectorAll('.dh-bnav-item').forEach(b => b.classList.toggle('is-open', b.dataset.id === kind));
+    el.querySelector('.dh-sheet-x')?.focus({ preventScroll: true });
+}
+
 function ensureBnav() {
     if (bnav && bnav.isConnected) return;
     bnav = document.createElement('nav');
@@ -365,10 +547,13 @@ function ensureBnav() {
     ITEMS.forEach(it => {
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = 'dh-bnav-item' + (it.center ? ' is-center' : '');
+        b.className = 'dh-bnav-item' + (it.accent ? ' is-accent' : '');
         b.dataset.id = it.id;
         b.innerHTML = `<span class="dh-bnav-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span><span class="dh-bnav-lb" data-i18n="${it.key}">${t(it.key)}</span>`;
-        b.addEventListener('click', () => { it.run(); });
+        b.addEventListener('click', () => {
+            if (it.id !== 'games' && it.id !== 'more') closeSheet();
+            it.run();
+        });
         bnav.appendChild(b);
     });
     document.body.appendChild(bnav);
@@ -379,6 +564,7 @@ function updateChrome() {
     document.body.classList.toggle('dh-core-screen', core);
     document.body.classList.toggle('dh-home-screen', scr === HOME_SCREEN);
     document.body.classList.remove('dh-header-hidden');
+    closeSheet();
     if (!bnav) return;
     bnav.hidden = !core;
     bnav.querySelectorAll('.dh-bnav-item').forEach(b => {
@@ -386,7 +572,19 @@ function updateChrome() {
         b.classList.toggle('is-active', !!it && it.screens.includes(scr) && (!it.when || it.when()));
     });
 }
+
 // ترويسة تنزلق للأعلى عند التمرير للأسفل وتعود عند التمرير للأعلى (الشاشات الأساسية غير الرئيسية فقط)
+// 🌟 [2026-10-03] لوحة المفاتيح على الهاتف: عند التركيز على حقل داخل نافذة منبثقة أو لوحة سفلية نُبقيه في منتصف الجزء الظاهر
+// (المتصفح لا يمرّر محتوى النوافذ الثابتة position:fixed تلقائياً فيختفي الحقل خلف لوحة المفاتيح)
+function initKeyboardFocusFix() {
+    const mq = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    document.addEventListener('focusin', (e) => {
+        const el = e.target;
+        if (!mq || !mq.matches || !el || !/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+        if (!el.closest('.modal-content, .whats-new-modal-box, .teacher-profile-modal-box, .dh-sheet-panel, .mrh-card')) return;
+        setTimeout(() => { if (document.activeElement === el) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 320);
+    });
+}
 function initHeaderAutoHide() {
     let lastY = window.scrollY || 0;
     window.addEventListener('scroll', () => {
@@ -418,7 +616,7 @@ function consumeGoParam() {
 // ---------------------------------------------------------------------------
 let chromeReady = false;
 export function initHomeFast() {
-    if (!chromeReady) { chromeReady = true; ensureBnav(); initHeaderAutoHide(); }
+    if (!chromeReady) { chromeReady = true; ensureBnav(); initHeaderAutoHide(); initKeyboardFocusFix(); }
     updateChrome();
     buildLayout();
     const sec = buildPanel();

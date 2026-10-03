@@ -24,7 +24,8 @@ body.dh-core-screen.dh-header-hidden:not(.dh-home-screen) #main-header { transfo
 .dh-fast { margin: 14px 0 6px; max-width: 560px; position: relative; z-index: 5; }
 .dh-fast-row { display: flex; gap: 8px; align-items: stretch; }
 .dh-fast-box {
-    flex: 1; display: flex; align-items: center; gap: 10px;
+    flex: 1; min-width: 0;   /* 🌟 [2026-10-03] بدون min-width:0 لا ينكمش الصندوق تحت العرض الذاتي للحقل فيخرج عن الشاشة على الهاتف */
+    display: flex; align-items: center; gap: 10px;
     background: #fffdf6; color: var(--dh-emerald-800, #0b3d30);
     border: 1.5px solid var(--dh-gold-500, #d4af37); border-radius: 14px;
     padding: 0 14px; min-height: 48px; box-shadow: 0 6px 18px rgba(6, 35, 28, .18);
@@ -63,27 +64,76 @@ body.dh-core-screen.dh-header-hidden:not(.dh-home-screen) #main-header { transfo
 }
 #btn-homework-main, #btn-dual-main { position: relative; }
 
-/* ===== 7) الشريط السفلي (هاتف فقط) ===== */
+/* ===== 7) الشريط السفلي + اللوحتان السفليتان «الألعاب» و«المزيد» (هاتف فقط) =====
+   🌟 [2026-10-03 — مراجعة تجربة الهاتف] ستة عناصر متساوية بحسب أولوية المعلم (الرئيسية · الألعاب · الكبار · الصغار · طلابي · المزيد)
+   بدل زر مرتفع في الوسط كان يكتفي بتركيز البحث. الأحجام من رموز css/mobile.css (--m-*). */
 .dh-bnav { display: none; }
+.dh-sheet { display: none; }
+.dh-home-sec { display: none; }   /* عناوين أقسام الرئيسية: هاتف فقط (css/mobile.css) */
 @media (max-width: 768px) {
     .dh-bnav:not([hidden]) {
         display: flex; position: fixed; inset-inline: 0; bottom: 0; z-index: 900;
-        background: #fffdf6; border-top: 2px solid var(--dh-gold-500, #d4af37);
-        box-shadow: 0 -6px 18px rgba(6, 35, 28, .12); padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+        background: #fffdf6; border-top: 1px solid rgba(212, 175, 55, .7);
+        box-shadow: 0 -4px 16px rgba(6, 35, 28, .10);
+        padding: 4px 2px env(safe-area-inset-bottom, 0px);
     }
     .dh-bnav-item {
-        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: transparent;
-        color: #5b6f66; font: inherit; font-size: .68rem; padding: 4px 2px; cursor: pointer;
+        flex: 1 1 0; min-width: 0; height: var(--m-bnav-h); display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 3px; border: 0; background: transparent; color: #5b6f66; font: inherit; font-size: .7rem; line-height: 1.1;
+        padding: 0 1px; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
-    .dh-bnav-item.is-active { color: var(--dh-emerald-700, #0d5c46); font-weight: 700; }
-    .dh-bnav-item.is-center .dh-bnav-ic {
-        background: var(--dh-emerald-700, #0d5c46); color: #fff; border-radius: 50%; width: 42px; height: 42px;
-        display: flex; align-items: center; justify-content: center; margin-top: -18px; border: 3px solid #fffdf6;
-        box-shadow: 0 4px 10px rgba(6, 35, 28, .25);
-    }
-    body.dh-core-screen { padding-bottom: 72px; }
+    .dh-bnav-lb { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dh-bnav-ic { display: flex; align-items: center; justify-content: center; width: 44px; height: 28px; border-radius: 14px; transition: background .15s ease; }
+    .dh-bnav-item.is-active, .dh-bnav-item.is-open { color: var(--dh-emerald-700, #0d5c46); font-weight: 700; }
+    .dh-bnav-item.is-active .dh-bnav-ic, .dh-bnav-item.is-open .dh-bnav-ic { background: rgba(13, 92, 70, .12); }
+    /* «الألعاب» أولوية المعلم الأولى: أيقونة مملوءة مميّزة دون رفعها فوق الشريط */
+    .dh-bnav-item.is-accent { color: var(--dh-emerald-800, #0b3d30); font-weight: 700; }
+    .dh-bnav-item.is-accent .dh-bnav-ic { background: linear-gradient(135deg, var(--dh-gold-300, #f0d878), var(--dh-gold-500, #d4af37)); color: var(--dh-emerald-900, #06231c); }
     .dh-fast-kbd { display: none; }
+
+    .dh-sheet:not([hidden]) { display: block; position: fixed; inset: 0; z-index: 6500; }   /* فوق بطاقة التلميحات (6000)، تحت الترحيب (7000) والجولة (9000) */
+    body.dh-sheet-open .dh-bnav { z-index: 6600; }   /* يبقى الشريط ظاهراً وقابلاً للنقر فوق اللوحة المفتوحة */
+    .dh-sheet-backdrop { position: absolute; inset: 0; background: rgba(6, 35, 28, .45); animation: dhSheetFade .18s ease both; }
+    .dh-sheet-panel {
+        position: absolute; inset-inline: 0; bottom: 0; max-height: min(78dvh, 640px); overflow-y: auto; overscroll-behavior: contain;
+        background: #fffdf6; color: var(--dh-ink, #10241c); border-radius: 22px 22px 0 0;
+        padding: 6px var(--m-gutter) calc(var(--m-bnav-h) + 16px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -10px 30px rgba(6, 35, 28, .25); animation: dhSheetUp .22s cubic-bezier(.2, .8, .2, 1) both; text-align: start;
+    }
+    .dh-sheet-head { display: flex; align-items: center; gap: 8px; padding: 10px 0 10px; position: relative; }
+    .dh-sheet-grip { position: absolute; top: 0; inset-inline: 0; margin: 0 auto; width: 40px; height: 4px; border-radius: 4px; background: #d9d2b8; }
+    .dh-sheet-title { flex: 1; margin: 0; font-size: var(--m-h2); color: var(--dh-emerald-800, #0b3d30); font-weight: 700; }
+    .dh-sheet-x {
+        width: 36px; height: 36px; flex: none; border-radius: 50%; border: 1px solid #e3dcc3; background: #fff; color: #55605b;
+        font: inherit; font-size: .9rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .dh-sheet-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .dh-sheet-grid.is-games { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dh-sheet-item {
+        position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 84px;
+        padding: 10px 6px; border-radius: var(--m-radius); border: 1px solid #ece5cc; background: #fff; color: var(--dh-emerald-800, #0b3d30);
+        font: inherit; text-align: center; text-decoration: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .dh-sheet-item:active { transform: scale(.98); }
+    .dh-sheet-ic { width: var(--m-icon-tile); height: var(--m-icon-tile); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(13, 92, 70, .09); color: var(--dh-emerald-700, #0d5c46); flex: none; }
+    .dh-sheet-txt { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+    .dh-sheet-lb { font-size: .84rem; font-weight: 700; line-height: 1.3; }
+    .dh-sheet-desc { font-size: .74rem; color: #55605b; line-height: 1.35; }
+    .dh-sheet-tag { font-size: .68rem; font-weight: 700; color: #8c2f3d; }
+    .dh-sheet-badge { position: absolute; top: 6px; inset-inline-end: 6px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #6d28d9; color: #fff; font-size: .7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+    /* بطاقتا الركنين في لوحة الألعاب: الأكبر والأوضح (نفس ألوان بطاقتيهما في الرئيسية) */
+    .dh-sheet-item.is-big { min-height: 108px; border: 0; }
+    .dh-sheet-item.is-adult { background: linear-gradient(150deg, var(--dh-emerald-900, #06231c), var(--dh-emerald-600, #147c5e) 75%); color: #fffdf6; }
+    .dh-sheet-item.is-kids { background: linear-gradient(150deg, var(--dh-gold-500, #d4af37), var(--dh-gold-300, #f0d878) 75%); color: #4b3609; }
+    .dh-sheet-item.is-big .dh-sheet-ic { background: rgba(255, 253, 246, .22); color: inherit; }
+    .dh-sheet-item.is-big .dh-sheet-desc { color: inherit; opacity: .85; }
+    .dh-sheet-item.is-wide { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; min-height: 60px; padding: 10px 12px; text-align: start; }
+    .dh-sheet-item.is-wide .dh-sheet-txt { align-items: flex-start; }
+    body.dh-sheet-open { overflow: hidden; }
 }
+@keyframes dhSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes dhSheetFade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dh-sheet-panel, .dh-sheet-backdrop { animation: none; } }
 
 /* ===== 8) تعويض سطر كان ضاع من css/home.css بسبب كتابة متزامنة (سطر "عن حمٓ" الإضافي) ===== */
 .home-footer-about .home-footer-about-more { line-height: 1.7; }
@@ -198,37 +248,7 @@ body.dh-home-screen .home-menu-later .home-card-arrow { display: none; }
 body.dh-home-screen .home-menu-later .home-card-title { font-size: .95rem; color: inherit; margin: 0; }
 body.dh-home-screen .home-menu-later .home-card-badge { position: static; background: transparent; color: #8c2f3d; font-weight: 700; font-size: .75rem; padding: 0; box-shadow: none; }
 
-/* --- هاتف: عمود واحد، الهيرو مكدّس، نظرة سريعة تُنقل لأسفل بواسطة arrangeHomeForMobile --- */
-@media (max-width: 768px) {
-    body.dh-home-screen .home-hero { padding: 16px 16px 0; }
-    body.dh-home-screen .home-hero-text { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
-    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; justify-content: space-between; }
-    body.dh-home-screen .home-hero-text > h1.home-title { order: 2; flex: 0 0 100%; text-align: center; font-size: 2.3rem; }
-    body.dh-home-screen .home-hero-text > .home-subtitle { order: 3; flex: 0 0 100%; text-align: center; font-size: .9rem; }
-    body.dh-home-screen .home-hero-text > .home-hero-eyebrow { order: 4; margin: 2px 0 0; }
-    body.dh-home-screen .home-hero-text .home-chips-row { order: 5; flex: 0 0 100%; justify-content: center; }
-    body.dh-home-screen .home-hero-text .teacher-profile-badge { order: 6; }
-    body.dh-home-screen .home-hero-text .dh-fast { order: 7; flex: 0 0 100%; }
-    body.dh-home-screen .home-hero-text .home-date-bar { font-size: .75rem; background: transparent; border: 0; padding: 0; }
-    body.dh-home-screen .home-hero-text .home-date-bar svg { display: none; }
-    body.dh-home-screen .home-hero-text .dh-fast { margin-top: 6px; transform: translateY(26px); }
-    body.dh-home-screen .dh-fast-box { min-height: 52px; border-radius: 16px; padding: 0 14px; }
-    body.dh-home-screen .home-menu { display: block; padding: 44px 14px 14px; }
-    body.dh-home-screen .home-menu > * { margin-bottom: 12px; }
-    body.dh-home-screen .home-menu > #home-quickcard-slot { display: none; }
-    body.dh-home-screen .home-menu-primary.home-menu-main { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    body.dh-home-screen .home-menu-main .home-card-icon { width: 36px; height: 36px; }
-    body.dh-home-screen .home-menu-two .home-card-desc { display: none; }
-    body.dh-home-screen .home-menu-two .home-card { padding: 12px 14px; }
-    body.dh-home-screen .home-menu-two .home-card-title { font-size: 1rem; }
-    body.dh-home-screen .home-menu-main .home-card { min-height: 100px; padding: 12px; border-radius: 18px; }
-    body.dh-home-screen .home-menu-main .home-card-desc { display: none; }
-    body.dh-home-screen .home-menu-main .home-card-title { font-size: .95rem; }
-    body.dh-home-screen .home-menu-secondary.home-menu-two { grid-template-columns: 1fr; gap: 10px; }
-    body.dh-home-screen .dh-fast-continue { padding: 10px 12px; gap: 12px; }
-    body.dh-home-screen .dh-fast-continue-ic { width: 40px; height: 40px; }
-    body.dh-home-screen .dh-fast-continue-go { padding: 9px 16px; }
-}
+/* --- الهاتف: تخطيط الرئيسية كله في css/mobile.css (قسم «الشاشة الرئيسية») — مصدر واحد بدل طبقات متعارضة --- */
 
 
 /* ===== 10) 🌟 نص دعوة المساهمة تحت زر "تواصل معنا" في الفوتر ===== */
@@ -274,7 +294,4 @@ body.dh-home-screen #home-quickcard-slot .home-start-here-btn { width: 100%; jus
 body.dh-home-screen .home-hero-text > .home-start-here.dh-fast-start-hero {
     grid-column: 1 / -1; grid-row: 4; margin: 14px 0 0; transform: translateY(30px); position: relative; z-index: 5;
     max-width: none; width: 100%;
-}
-@media (max-width: 768px) {
-    body.dh-home-screen .home-hero-text > .home-start-here.dh-fast-start-hero { order: 7; flex: 0 0 100%; transform: translateY(26px); }
 }

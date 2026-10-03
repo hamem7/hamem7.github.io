@@ -10,7 +10,8 @@ import { trackPageview } from './analytics.js';
 export async function loadScreen(route) {
     const root = document.getElementById('app-root');
     // إضافة رسالة تحميل تدعم اللغتين مؤقتاً
-    root.innerHTML = '<div style="text-align:center; font-size:2rem; padding:50px;">Loading... ⏳ جاري التحميل...</div>';
+    // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] رسالة تحميل بحجم عادي (كانت 2rem بحشوة 50px فتقفز الصفحة لحظة التنقل)
+    root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
 
     try {
         // 🌟 cache: 'no-store' يمنع المتصفح من عرض نسخة قديمة مخزّنة من ملفات
@@ -21,6 +22,9 @@ export async function loadScreen(route) {
         
         // حقن الواجهة
         root.innerHTML = html;
+        // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] كل شاشة جديدة تبدأ من أعلاها: كان موضع التمرير يبقى من الشاشة السابقة فيصل المعلم
+        // لمنتصف الشاشة الجديدة (أو أسفلها) ويضطر للصعود يدوياً بعد كل تنقّل
+        window.scrollTo(0, 0);
 
         // 🌟 [جديد 2026-10-01 — الدخول السريع] نسجّل الشاشة الحالية على <body> (data-dh-screen — خاصية بيانات لا class حتى لا
         // تمسحها switchTheme التي تستبدل className كاملاً) ونبلّغ components/homeFast.js بحدث dh:screen لضبط الترويسة والشريط السفلي
