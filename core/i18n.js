@@ -1815,7 +1815,6 @@ export const translations = {
         priv_contact: "لأي استفسار، تواصل عبر:",
         priv_footer: "© حمٓ",
         // 🌟 [جديد] ملف الطالب
-        stu_bday_alert: "🎉 إشعار تربوي هام:\nاليوم يوافق يوم ميلاد الطالب ({names})! لا تنسَ تهنئته 🎂",
         stu_and: " و ",
         stu_age_paren: "(العمر: {n} سنة)",
         stu_age_years: "{n} سنة",
@@ -3716,7 +3715,6 @@ export const translations = {
         priv_contact: "For any inquiries, contact:",
         priv_footer: "© Ham",
         // 🌟 [جديد] ملف الطالب
-        stu_bday_alert: "🎉 Important notice:\nToday is the birthday of {names}! Don't forget to congratulate them 🎂",
         stu_and: " and ",
         stu_age_paren: "(Age: {n} years)",
         stu_age_years: "{n} years",

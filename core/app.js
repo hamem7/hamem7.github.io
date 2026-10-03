@@ -111,10 +111,15 @@ async function checkBirthdays() {
     if (!AppState.studentManager) return;
 
     try {
-        const students = await AppState.studentManager.getAllStudents();
+        // 🌟 [2026-10-03 — بطلب المعلم] إشعار الجهاز مرة واحدة فقط في اليوم، لا مع كل فتح للمنصة
         const today = new Date();
+        const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        if (localStorage.getItem('dh_bday_notified_day') === todayKey) return;
+
+        const students = await AppState.studentManager.getAllStudents();
         const currentMonth = today.getMonth() + 1;
         const currentDay = today.getDate();
+        let notified = false;
 
         students.forEach(student => {
             if (student.dob) {
@@ -128,10 +133,12 @@ async function checkBirthdays() {
                             body: `${t('bday_notification_msg')}${student.name} 🎂`,
                             icon: "icons/icon-192.png"
                         });
+                        notified = true;
                     }
                 }
             }
         });
+        if (notified) localStorage.setItem('dh_bday_notified_day', todayKey);
     } catch (e) {
         console.warn("تعذر التحقق من أيام الميلاد:", e);
     }
