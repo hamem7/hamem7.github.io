@@ -3,8 +3,8 @@
 // مستقل حتى لا يتضخم core/app.js:
 //   1) مربع بحث عن طالب → لكل نتيجة زرّان: "اختبار في الكبار" / "اختبار في الأطفال" (بلا أي تصنيف بجوار الاسم، لأن
 //      المعلم يختبر الطالب نفسه أحياناً في هذه الواجهة وأحياناً في تلك).
-//   2) بطاقة "تابع من حيث توقفت": آخر طالب بدأ المعلم تقييمه (تُسجَّل في enterStudentEvaluation بـ student/student.js)
-//      بنفس الوضع (كبار/أطفال) الذي استُخدم حينها. لا تظهر إن لم يوجد سجل أو حُذف الطالب.
+//   2) [حُذفت 2026-10-03 بطلب المعلم] بطاقة "تابع من حيث توقفت" — كانت تظهر حتى بعد إتمام الاختبار فلا فائدة منها؛
+//      استكمال الاختبار غير المكتمل تتولاه بطاقة "اختبار غير مكتمل" في enterStudentEvaluation (student/student.js).
 //   3) شارات على أزرار الواجبات والاختبارات الثنائية + شريط "قريباً" للميزات قيد التطوير + زر لغة (الترويسة مخفية بالرئيسية).
 //   4) على الهاتف: شريط تنقّل سفلي (الرئيسية · الألعاب · الكبار · الصغار · طلابي · المزيد) مع لوحتين سفليتين للألعاب والمزيد، في الشاشات الأساسية فقط.
 //      والترويسة تختفي بالتمرير للأسفل في الشاشات الداخلية الأساسية.
@@ -31,7 +31,6 @@ const SIM_SCREEN = 'similarities/similarities-home.html';
 const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
 const CORE_SCREENS = [HOME_SCREEN, 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
-export const LAST_EVAL_KEY = 'dh_last_evaluation';   // يكتبه enterStudentEvaluation
 const HW_NEW_KEY = 'dh_hw_new_count';
 
 // ---------------------------------------------------------------------------
@@ -44,12 +43,7 @@ const NEW_KEYS = {
         home_fast_in_adult: 'اختبار في الكبار',
         home_fast_in_kids: 'اختبار في الأطفال',
         home_fast_none: 'لا يوجد طالب بهذا الاسم',
-        home_fast_continue: 'تابع من حيث توقفت',
-        home_fast_continue_mode_adult: 'الكبار',
-        home_fast_continue_mode_kids: 'الأطفال',
         home_soon_label: 'قريبًا',
-        home_fast_continue_go: 'تابع التقييم',
-        home_fast_continue_close: 'إخفاء',
         home_badge_new: '{n} جديدة',
         home_badge_matches: '{n} معلّقة',
         bnav_home: 'الرئيسية',
@@ -93,12 +87,7 @@ const NEW_KEYS = {
         home_fast_in_adult: 'Test in Adults',
         home_fast_in_kids: 'Test in Kids',
         home_fast_none: 'No student with this name',
-        home_fast_continue: 'Continue where you left off',
-        home_fast_continue_mode_adult: 'Adults',
-        home_fast_continue_mode_kids: 'Kids',
         home_soon_label: 'Coming soon',
-        home_fast_continue_go: 'Continue',
-        home_fast_continue_close: 'Hide',
         home_badge_new: '{n} new',
         home_badge_matches: '{n} pending',
         bnav_home: 'Home',
@@ -154,23 +143,6 @@ const OVERRIDE_KEYS = {
 ['ar', 'en'].forEach(lang => Object.assign(translations[lang], OVERRIDE_KEYS[lang]));
 
 // ---------------------------------------------------------------------------
-// 🌟 سجل "آخر تقييم" (localStorage خفيف: اسم + معرّف + وضع + وقت — لا صور ولا بيانات كبيرة)
-export function recordLastEvaluation(student, kids) {
-    try {
-        if (!student || student.id == null) return;
-        localStorage.setItem(LAST_EVAL_KEY, JSON.stringify({ id: student.id, name: student.name || '', kids: !!kids, at: Date.now() }));
-    } catch (e) { /* التخزين غير متاح: الميزة اختيارية */ }
-}
-function readLastEvaluation() {
-    try { const r = JSON.parse(localStorage.getItem(LAST_EVAL_KEY) || 'null'); return (r && r.id != null) ? r : null; } catch (e) { return null; }
-}
-
-// 🌟 [جديد] إخفاء بطاقة "تابع من حيث توقفت" بعلامة ✕: نخزّن وقت التقييم المُغلَق فقط (localStorage خفيف).
-// ⚠️ افتراض صريح: الإغلاق خاص بهذا التقييم؛ أي تقييم جديد يبدأه المعلم يُظهر البطاقة من جديد.
-const DISMISS_KEY = 'dh_last_evaluation_dismissed';
-function readDismissedAt() { try { return localStorage.getItem(DISMISS_KEY); } catch (e) { return null; } }
-function writeDismissedAt(at) { try { localStorage.setItem(DISMISS_KEY, String(at)); } catch (e) { /* التخزين غير متاح: تعود البطاقة فقط */ } }
-
 function startEvaluation(student, kids) {
     setEvaluationMode(!!kids);
     enterStudentEvaluation(student);
@@ -239,7 +211,7 @@ function initSearch(sec) {
     const list = sec.querySelector('#dh-fast-results');
     let cache = [];
     AppState.studentManager?.getAllStudents()
-        .then(all => { cache = (all || []).filter(s => !s.isHidden); applyEmptyState(!all || all.length === 0); renderContinue(); if (input.value) render(); })
+        .then(all => { cache = (all || []).filter(s => !s.isHidden); applyEmptyState(!all || all.length === 0); if (input.value) render(); })
         .catch(() => { /* بلا بحث لو فشلت القراءة */ });
 
     // 🌟 [جديد — اقتراح المعلم] معلم بلا أي طالب: البحث بلا فائدة، فتحلّ بطاقة "ابدأ من هنا" محلّه في الهيرو؛ وبمجرد وجود طالب
@@ -292,39 +264,11 @@ function initSearch(sec) {
     };
     document.addEventListener('keydown', onKey);
 
-    function renderContinue() {
-        const btn = document.getElementById('dh-fast-continue');
-        if (!btn) return;
-        const last = readLastEvaluation();
-        const st = last && cache.find(s => s.id === last.id);
-        if (!st) { btn.hidden = true; return; }
-        // 🌟 [جديد] لو أغلق المعلم البطاقة (✕) لهذا التقييم بعينه فلا تظهر ثانيةً حتى يبدأ تقييماً جديداً (يتغيّر last.at)
-        const xBtn = document.getElementById('dh-fast-continue-x');
-        if (readDismissedAt() === String(last.at)) { btn.hidden = true; if (xBtn) xBtn.hidden = true; return; }
-        // 🌟 [إصلاح] النصوص صارت بسمة data-i18n بدل t() لمرة واحدة، فتتبدّل مع زر اللغة عبر applyLanguage (كانت تبقى عربية)
-        const modeKey = last.kids ? 'home_fast_continue_mode_kids' : 'home_fast_continue_mode_adult';
-        const k = btn.querySelector('.dh-fast-continue-k');
-        k.setAttribute('data-i18n', 'home_fast_continue');
-        k.textContent = t('home_fast_continue');
-        const v = btn.querySelector('.dh-fast-continue-v');
-        v.textContent = st.name + ' ';
-        const m = document.createElement('span'); m.className = 'dh-fast-continue-m'; m.append('· ');
-        const mi = document.createElement('span'); mi.setAttribute('data-i18n', modeKey); mi.textContent = t(modeKey);
-        m.appendChild(mi);
-        v.appendChild(m);
-        btn.onclick = () => startEvaluation(st, last.kids);
-        btn.hidden = false;
-        if (xBtn) {
-            xBtn.hidden = false;
-            xBtn.onclick = () => { writeDismissedAt(last.at); btn.hidden = true; xBtn.hidden = true; };
-        }
-    }
     return { focus: () => { input.focus(); input.scrollIntoView({ block: 'center', behavior: 'smooth' }); } };
 }
 
 // 🌟 [جديد — تنفيذ تصميم المعاينة] إعادة ترتيب بنية الشاشة الرئيسية بنقل العناصر القائمة (بنفس الـid والمستمعين، لا نسخ):
 //   - خانة #home-quickcard-slot داخل .home-menu تستقبل بطاقة "نظرة سريعة" على سطح المكتب (عمود جانبي) — راجع arrangeHomeForMobile
-//   - بطاقة "تابع من حيث توقفت" تُبنى هنا أعلى الأزرار
 //   - زر اللغة ينتقل إلى صف الترحيب (الترويسة العليا مخفية في الرئيسية)
 //   - عنوان "قريباً" داخل صف المتشابهات/التجويد ليصيرا شريطاً واحداً
 function buildLayout() {
@@ -347,18 +291,6 @@ function buildLayout() {
         place();
         if (mq.addEventListener) mq.addEventListener('change', place);
     }
-
-    const cont = document.createElement('div');
-    cont.className = 'dh-fast-continue-wrap';
-    cont.innerHTML = `
-        <button type="button" class="dh-fast-continue" id="dh-fast-continue" hidden>
-            <span class="dh-fast-continue-ic" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4l14 8-14 8Z"/></svg></span>
-            <span class="dh-fast-continue-txt"><span class="dh-fast-continue-k"></span><span class="dh-fast-continue-v"></span></span>
-            <span class="dh-fast-continue-go" data-i18n="home_fast_continue_go">${t('home_fast_continue_go')}</span>
-        </button>
-        <button type="button" class="dh-fast-continue-x" id="dh-fast-continue-x" hidden data-i18n-title="home_fast_continue_close" title="${t('home_fast_continue_close')}" aria-label="${t('home_fast_continue_close')}">✕</button>`;
-    const first = menu.querySelector('.home-menu-main');
-    if (first) first.before(cont); else menu.prepend(cont);
 
     const row = document.querySelector('.home-hero-text .home-greeting-row');
     if (row && !document.getElementById('dh-fast-lang')) {

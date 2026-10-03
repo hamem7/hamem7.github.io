@@ -7,7 +7,7 @@
    (4) لوحة المؤقت في شاشة اللعب ~520px تدفن السؤال. الحل: حُذفت قواعد الهاتف المتعارضة من home.css/homeFast.css، وصار هنا:
      أ) رموز (tokens) موحّدة للأحجام — عدّلها من مكان واحد فتتغيّر كل الشاشات معاً.
      ب) مكوّنات: زر أساسي/ثانوي/صغير، حقل، بطاقة، عنوان قسم، نافذة منبثقة، عنصر تنقّل (الشريط واللوحتان في homeFast.css بنفس الرموز).
-     ج) إعادة توزيع الرئيسية (لا تصغير أعمى): الأهم أولاً (بحث ← تابع ← الألعاب والأركان ← أدوات المعلم) والثانوي مضغوط في الأسفل.
+     ج) إعادة توزيع الرئيسية (لا تصغير أعمى): الأهم أولاً (بحث ← الألعاب والأركان ← أدوات المعلم) والثانوي مضغوط في الأسفل.
    كل القواعد داخل @media (max-width: 768px) فلا يتغيّر شيء على سطح المكتب. لا منطق ولا بيانات هنا، ونص الآيات (.quran-text) لم يُمسّ.
    ⚠️ !important مستخدمة عمداً فقط حيث تتعارض مع inline styles أو قواعد !important داخل قوالب html (لا يمكن التغلب عليها بغيرها). 🌟🌟 */
 
@@ -166,7 +166,7 @@
 
     /* ======================================================================
        9) الشاشة الرئيسية — إعادة توزيع للهاتف (كل شيء محصور بـ body.dh-home-screen)
-       الترتيب: [ترحيب + الآية + التاريخ + البحث] ← تابع ← الألعاب والأركان (الكبار/الصغار/طلابي/قريباً) ← أدوات المعلم
+       الترتيب: [ترحيب + الآية + التاريخ + البحث] ← الألعاب والأركان (الكبار/الصغار/طلابي/قريباً) ← أدوات المعلم
                 ← نظرة سريعة ← «لماذا حمٓ؟» مضغوطة ← فوتر مضغوط.  أول شاشة تعرض الركنين والطلاب والأدوات بلا تمرير.
        ====================================================================== */
     body.dh-home-screen .home-hero { padding: 10px var(--m-gutter) 14px; overflow: hidden; text-align: center; }
@@ -219,7 +219,6 @@
     body.dh-home-screen .home-menu { display: flex; flex-direction: column; gap: var(--m-gap); padding: 12px var(--m-gutter) 16px; }
     body.dh-home-screen .home-menu > * { margin: 0; }
     body.dh-home-screen .home-menu > #home-start-here { order: 0; }
-    body.dh-home-screen .home-menu > .dh-fast-continue-wrap { order: 1; }
     body.dh-home-screen .home-menu > #dh-sec-games { order: 2; }
     body.dh-home-screen .home-menu > .home-menu-main { order: 3; }
     body.dh-home-screen .home-menu > .home-menu-later { order: 4; }
@@ -227,12 +226,6 @@
     body.dh-home-screen .home-menu > .home-menu-two { order: 6; }
     body.dh-home-screen .home-menu > #home-quickcard-slot { display: none; }
     body.dh-home-screen .dh-home-sec { display: block; margin: 4px 2px -2px; font-size: .92rem; font-weight: 700; color: var(--dh-emerald-800, #0b3d30); text-align: start; }
-
-    /* بطاقة «تابع من حيث توقفت» */
-    body.dh-home-screen .dh-fast-continue { padding: 8px 10px; gap: 10px; border-radius: var(--m-radius); }
-    body.dh-home-screen .dh-fast-continue-ic { width: var(--m-icon-tile); height: var(--m-icon-tile); border-radius: 12px; }
-    body.dh-home-screen .dh-fast-continue-v { font-size: .95rem; }
-    body.dh-home-screen .dh-fast-continue-go { padding: 8px 14px; font-size: .88rem; border-radius: 10px; }
 
     /* الألعاب والأركان: الكبار + الصغار جنباً إلى جنب (الأهم)، ثم «طلابي» صف أفقي بعرض كامل */
     body.dh-home-screen .home-menu-primary.home-menu-main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--m-gap); }

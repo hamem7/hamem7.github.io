@@ -289,10 +289,6 @@ export function setupLoginListeners() {
 // زرّا "ابدأ تقييم" في سجل الطلاب وملف الطالب (راجع startEvaluationForStudent).
 export function enterStudentEvaluation(student) {
     AppState.currentStudent = student;
-    // 🌟 [جديد 2026-10-01 — الدخول السريع] تسجيل "آخر تقييم" (طالب + وضع كبار/أطفال) لبطاقة "تابع من حيث توقفت" في الرئيسية
-    // (components/homeFast.js). localStorage خفيف وbest-effort: أي فشل لا يؤثر على الدخول للتقييم إطلاقاً.
-    try { if (student && student.id != null) localStorage.setItem('dh_last_evaluation', JSON.stringify({ id: student.id, name: student.name || '', kids: !!AppState.isKidsMode, at: Date.now() })); } catch (e) { /* اختياري */ }
-
     // 🌟 [جديد] اختبار معلّق ("⏸️ حفظ والعودة لاحقًا") — أول ما يُختار الطالب، قبل بطاقتي "علاج الأخطاء" والترحيب:
     // لو له اختبار غير مكتمل في هذا القسم (كبار/أطفال) تظهر بطاقة "اختبار غير مكتمل" بزرّين:
     //   • ▶️ استكمال: يفتح الاختبار من أول سؤال لم يُجَب (راجع resumeSnapshot في games/adultGame.js وkidsGame.js).
