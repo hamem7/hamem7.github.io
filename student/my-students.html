@@ -28,16 +28,28 @@
     .avatar-opt.active { border-color: #d4af37; background: #fff8dc; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3); }
     .avatar-opt.avatar-upload { border-style: dashed; font-size: 1.3rem; }
     .avatar-opt img { width: 100%; height: 100%; object-fit: cover; }
-    #add-modal .as-add-more { border: 1px dashed #cbd5e1; border-radius: 14px; padding: 2px 14px; }
-    #add-modal .as-add-more summary { cursor: pointer; padding: 10px 0; color: #0d5c46; font-weight: bold; list-style: none; }
-    #add-modal .as-add-more summary::-webkit-details-marker { display: none; }
-    #add-modal .as-add-more summary::before { content: "＋ "; }
-    #add-modal .as-add-more[open] summary::before { content: "－ "; }
-    #add-modal .as-add-more-inner { display: flex; flex-direction: column; gap: 12px; padding-bottom: 14px; }
-    #app-root #add-modal .as-add-save, #add-modal .as-add-save { width: 100%; margin: 4px 0 0 !important; padding: 14px !important; font-size: 1.2rem !important; border: none !important; border-radius: 14px; background: linear-gradient(135deg, #f0d878, #d4af37) !important; color: #06231c !important; box-shadow: 0 8px 18px rgba(212, 175, 55, 0.3) !important; }
-    #app-root #add-modal .as-add-next, #add-modal .as-add-next { width: 100%; margin: 0 !important; padding: 12px !important; font-size: 1.05rem !important; border: 2px solid #0d5c46 !important; border-radius: 14px; background: #fff !important; color: #0d5c46 !important; box-shadow: none !important; }
-    #add-modal .as-add-cancel { background: none; border: none; color: #6b7f77; font-family: inherit; font-size: 1rem; padding: 6px; cursor: pointer; }
-    #add-modal .as-add-cancel:hover { color: #10261f; text-decoration: underline; }
+    #add-modal .as-steps { display: flex; justify-content: center; align-items: center; gap: 6px; }
+    #add-modal .as-dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: bold; font-size: 0.9rem; background: #f3f7f5; color: #6b7f77; border: 2px solid #dbe5e0; }
+    #add-modal .as-dot.on { background: #0d5c46; color: #fff; border-color: #0d5c46; }
+    #add-modal .as-dot.done { background: #e5f3ed; color: #0d5c46; border-color: #0d5c46; }
+    #add-modal .as-dot-bar { width: 34px; height: 2px; background: #dbe5e0; }
+    #add-modal .as-step-title { margin: -6px 0 0; text-align: center; color: #6b7f77; font-size: 0.95rem; }
+    #add-modal .as-step { display: none; flex-direction: column; gap: 14px; }
+    #add-modal .as-step.on { display: flex; }
+    #add-modal .as-add-warn { color: #b45309; font-size: 0.88rem; margin-top: 4px; }
+    #add-modal .as-add-preview { display: flex; align-items: center; gap: 12px; background: #f3f7f5; border-radius: 14px; padding: 12px; }
+    #add-modal .as-add-preview .avatar-opt { cursor: default; width: 50px; height: 50px; font-size: 1.7rem !important; }
+    #add-modal .as-add-preview b { display: block; color: #10261f; }
+    #add-modal .as-add-preview span { color: #6b7f77; font-size: 0.88rem; }
+    #add-modal .as-add-nav { display: flex; gap: 10px; }
+    #add-modal .as-add-nav > * { flex: 1; }
+    #add-modal .as-add-nav > .as-add-save { flex: 2; }
+    #app-root #add-modal .as-add-save, #add-modal .as-add-save { margin: 0 !important; padding: 13px !important; font-size: 1.15rem !important; border: none !important; border-radius: 14px; background: linear-gradient(135deg, #f0d878, #d4af37) !important; color: #06231c !important; box-shadow: 0 8px 18px rgba(212, 175, 55, 0.3) !important; min-width: unset !important; }
+    #app-root #add-modal .as-add-save:disabled, #add-modal .as-add-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    #app-root #add-modal .as-add-back, #add-modal .as-add-back { margin: 0 !important; padding: 11px !important; font-size: 1.05rem !important; border: 2px solid #0d5c46 !important; border-radius: 14px; background: #fff !important; color: #0d5c46 !important; box-shadow: none !important; min-width: unset !important; }
+    #add-modal .as-add-link { background: none; border: none; color: #6b7f77; font-family: inherit; font-size: 1rem; padding: 4px; cursor: pointer; align-self: center; }
+    #add-modal .as-add-link:hover { color: #10261f; text-decoration: underline; }
+    #add-modal #btn-save-add-another { color: #0d5c46; font-weight: bold; }
     @media (max-width: 480px) {
         #add-modal .as-add { padding: 18px 14px !important; }
         #add-modal .as-add-row { grid-template-columns: 1fr; }
@@ -161,36 +173,47 @@
     </div>
 </div>
 
-<!-- 🌟 [عدّل 2026-10-03] نافذة "إضافة طالب جديد" بالنموذج السريع الذي اختاره صاحب المنصة:
-     الاسم أولاً بخط كبير (الحقل المطلوب الوحيد)، ثم الصور الرمزية في سطر واحد مع 📷 لرفع صورة حقيقية،
-     ثم الصف وتاريخ الميلاد جنباً إلى جنب. تاريخ الميلاد صار 3 قوائم (يوم/شهر/سنة) لأن خانة type=date
-     كانت تُظهر «قنس/رهش/موي» على الأجهزة العربية؛ القوائم تكتب في #stu-dob المخفي بنفس صيغة YYYY-MM-DD
-     فلا يتغير الحفظ. رقم ولي الأمر والحفظ والبلد داخل "تفاصيل إضافية" المطوية، وزر "حفظ وإضافة آخر"
-     يحفظ ويُفرغ النموذج ويبقيه مفتوحاً. نفس معرّفات الحقول القديمة (stu-name/stu-grade/...) 🌟 -->
+<!-- 🌟 [عدّل 2026-10-03] نافذة "إضافة طالب جديد" بنموذج الخطوات الذي اختاره صاحب المنصة (بعد تجربة النموذج السريع):
+     3 خطوات قصيرة مع مؤشر أعلاها — ① الاسم والصورة ② الصف وتاريخ الميلاد ③ ولي الأمر والحفظ والبلد + بطاقة معاينة.
+     الاسم وحده مطلوب، و"تخطَّ واحفظ الآن" متاح من الخطوة الثانية. تاريخ الميلاد 3 قوائم (يوم/شهر/سنة) تكتب في
+     #stu-dob المخفي بصيغة YYYY-MM-DD (خانة type=date كانت تُظهر «قنس/رهش/موي» على الأجهزة العربية).
+     نفس معرّفات الحقول القديمة (stu-name/stu-grade/...) فلا يتغير الحفظ؛ التنقل بين الخطوات في student.js 🌟 -->
 <div id="add-modal" class="modal-overlay">
     <div class="modal-content as-add">
         <h2 class="as-add-title" data-i18n="add_new_champion">إضافة طالب جديد</h2>
-        <p class="as-add-hint" data-i18n="add_student_hint">الاسم وحده يكفي، ويمكنك إكمال الباقي لاحقاً</p>
+        <div class="as-steps" aria-hidden="true">
+            <span class="as-dot" data-dot="1">1</span><span class="as-dot-bar"></span>
+            <span class="as-dot" data-dot="2">2</span><span class="as-dot-bar"></span>
+            <span class="as-dot" data-dot="3">3</span>
+        </div>
+        <p class="as-step-title" id="add-step-title"></p>
         <div class="as-add-toast" id="add-saved-toast" style="display:none;"></div>
 
-        <div class="as-add-field as-add-name">
-            <label for="stu-name"><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label>
-            <input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..." autocomplete="off">
+        <!-- ① الاسم والصورة -->
+        <div class="as-step" data-step="1">
+            <div class="as-add-field as-add-name">
+                <label for="stu-name"><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label>
+                <input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..." autocomplete="off">
+                <span class="as-add-warn" id="add-name-warn" style="display:none;"></span>
+            </div>
+            <div class="as-add-field">
+                <label data-i18n="add_choose_photo">اختر صورة:</label>
+                <div class="as-add-avatars" id="avatar-gallery">
+                    <button type="button" class="avatar-opt active" data-av="👦🏻">👦🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👨🏻‍🦱">👨🏻‍🦱</button>
+                    <button type="button" class="avatar-opt" data-av="👲🏻">👲🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👧🏻">👧🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👩🏻">👩🏻</button>
+                    <button type="button" class="avatar-opt" data-av="🧕🏻">🧕🏻</button>
+                    <button type="button" class="avatar-opt avatar-upload" id="btn-avatar-upload" data-i18n-title="upload_photo_title" title="رفع صورة حقيقية">📷</button>
+                </div>
+            </div>
+            <input type="hidden" id="selected-avatar" value="👦🏻">
+            <input type="file" id="stu-avatar" accept="image/*" style="display:none;">
         </div>
 
-        <div class="as-add-avatars" id="avatar-gallery">
-            <button type="button" class="avatar-opt active" data-av="👦🏻">👦🏻</button>
-            <button type="button" class="avatar-opt" data-av="👨🏻‍🦱">👨🏻‍🦱</button>
-            <button type="button" class="avatar-opt" data-av="👲🏻">👲🏻</button>
-            <button type="button" class="avatar-opt" data-av="👧🏻">👧🏻</button>
-            <button type="button" class="avatar-opt" data-av="👩🏻">👩🏻</button>
-            <button type="button" class="avatar-opt" data-av="🧕🏻">🧕🏻</button>
-            <button type="button" class="avatar-opt avatar-upload" id="btn-avatar-upload" data-i18n-title="upload_photo_title" title="رفع صورة حقيقية">📷</button>
-        </div>
-        <input type="hidden" id="selected-avatar" value="👦🏻">
-        <input type="file" id="stu-avatar" accept="image/*" style="display:none;">
-
-        <div class="as-add-row">
+        <!-- ② الصف وتاريخ الميلاد -->
+        <div class="as-step" data-step="2">
             <div class="as-add-field">
                 <label for="stu-grade"><span data-i18n="grade">الصف الدراسي:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label>
                 <select id="stu-grade"><option value="" data-i18n="stu_not_set">غير محدد</option><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select>
@@ -206,17 +229,21 @@
             </div>
         </div>
 
-        <details class="as-add-more" id="add-more-details">
-            <summary data-i18n="add_more_details">تفاصيل إضافية (اختياري)</summary>
-            <div class="as-add-more-inner">
-                <div class="as-add-field"><label for="stu-phone" data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</label><input type="text" id="stu-phone" inputmode="tel" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
-                <div class="as-add-field"><label data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</label><div class="as-add-row"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
-                <div class="as-add-field"><label for="stu-country" data-i18n="country">البلد:</label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
-            </div>
-        </details>
+        <!-- ③ ولي الأمر والحفظ + معاينة -->
+        <div class="as-step" data-step="3">
+            <div class="as-add-field"><label for="stu-phone"><span data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</span></label><input type="text" id="stu-phone" inputmode="tel" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
+            <div class="as-add-field"><label><span data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><div class="as-add-row"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
+            <div class="as-add-field"><label for="stu-country"><span data-i18n="country">البلد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="as-add-preview" id="add-preview"></div>
+        </div>
 
-        <button class="btn as-add-save" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات الطالب ✔️</button>
-        <button class="btn as-add-next" id="btn-save-add-another" data-i18n="save_and_add_another">حفظ وإضافة آخر ➕</button>
-        <button class="as-add-cancel" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
+        <div class="as-add-nav">
+            <button class="btn as-add-back" id="btn-add-step-back" data-i18n="add_step_back">→ رجوع</button>
+            <button class="btn as-add-save" id="btn-add-step-next" data-i18n="add_step_next">التالي ←</button>
+            <button class="btn as-add-save" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات الطالب ✔️</button>
+        </div>
+        <button class="as-add-link" id="btn-save-add-another" data-i18n="save_and_add_another">حفظ وإضافة آخر ➕</button>
+        <button class="as-add-link" id="btn-add-skip-save" data-i18n="add_skip_save">تخطَّ واحفظ الآن</button>
+        <button class="as-add-link" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
     </div>
 </div>

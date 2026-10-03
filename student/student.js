@@ -373,6 +373,7 @@ function setupMyStudentsListeners() {
     document.getElementById('btn-add-student')?.addEventListener('click', () => {
         populateSurahOptions('stu-memo-from', 'stu-memo-to');
         resetAddStudentForm();
+        AppState.studentManager.getAllStudents().then(list => { _addExistingNames = list.map(x => normStudentName(x.name)); }).catch(() => { _addExistingNames = []; });
         openModal('add-modal');
         setTimeout(() => document.getElementById('stu-name')?.focus(), 50);
     });
@@ -426,6 +427,18 @@ function setupMyStudentsListeners() {
     // نقطة البداية لها خط رجوع موجود فعلاً في شاشة الحفظ الشهري الجماعية (راجع openInitialPositionForNewStudent).
     document.getElementById('btn-save-new-student')?.addEventListener('click', () => saveNewStudentAction(false));
     document.getElementById('btn-save-add-another')?.addEventListener('click', () => saveNewStudentAction(true));
+    document.getElementById('btn-add-skip-save')?.addEventListener('click', () => saveNewStudentAction(false));
+
+    // 🌟 [جديد 2026-10-03] التنقل بين خطوات نافذة الإضافة الثلاث
+    document.getElementById('btn-add-step-next')?.addEventListener('click', () => {
+        if (_addStep === 1 && !checkAddStudentName()) return;
+        setAddStep(_addStep + 1);
+    });
+    document.getElementById('btn-add-step-back')?.addEventListener('click', () => setAddStep(_addStep - 1));
+    document.getElementById('stu-name')?.addEventListener('input', () => { checkAddStudentName(true); refreshAddStepButtons(); });
+    document.getElementById('stu-name')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && _addStep === 1) { e.preventDefault(); document.getElementById('btn-add-step-next')?.click(); }
+    });
 
 }
 
@@ -451,9 +464,8 @@ async function saveNewStudentAction(addAnother) {
     // 🌟 [إصلاح تدقيق] منع تسجيل طالبين بنفس الاسم: تسجيل الدخول وربط الواجبات يعتمدان على الاسم فيختلط الطلاب.
     // ⚠️ [افتراض صريح]: المقارنة على الاسم بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف.
     {
-        const _norm = (x) => String(x || '').replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
         const _existing = await AppState.studentManager.getAllStudents();
-        if (_existing.some(x => _norm(x.name) === _norm(data.name))) return alert(t("stu_name_duplicate"));
+        if (_existing.some(x => normStudentName(x.name) === normStudentName(data.name))) { setAddStep(1); return alert(t("stu_name_duplicate")); }
     }
 
     const fileInput = document.getElementById('stu-avatar');
@@ -477,6 +489,7 @@ async function afterNewStudentSaved(data, newId, addAnother) {
     refreshMyStudentsSummary();
     populateStudentsDropdown();
     if (addAnother) {
+        _addExistingNames.push(normStudentName(data.name));
         resetAddStudentForm();
         const toast = document.getElementById('add-saved-toast');
         if (toast) { toast.textContent = tf('add_saved_next', { name: data.name }); toast.style.display = ''; }
@@ -504,6 +517,71 @@ function resetAddStudentForm() {
     const up = document.getElementById('btn-avatar-upload'); if (up) up.textContent = '📷';
     const first = document.querySelector('#avatar-gallery .avatar-opt[data-av]');
     if (first) { selectAddAvatarOption(first); document.getElementById('selected-avatar').value = first.dataset.av; }
+    const warn = document.getElementById('add-name-warn'); if (warn) warn.style.display = 'none';
+    setAddStep(1);
+}
+
+// 🌟 [جديد 2026-10-03] خطوات نافذة الإضافة: ① الاسم والصورة ② الصف والعمر ③ ولي الأمر والحفظ + معاينة
+let _addStep = 1;
+let _addExistingNames = [];
+const ADD_STEP_TITLES = ['add_step1_title', 'add_step2_title', 'add_step3_title'];
+
+// ⚠️ [افتراض صريح]: مقارنة الأسماء بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف (نفس قاعدة منع التكرار عند الحفظ)
+function normStudentName(x) {
+    return String(x || '').replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+// يتحقق من الاسم في الخطوة الأولى: فارغ أو مكرر → رسالة تحت الحقل. silent=true أثناء الكتابة (لا رسالة "مطلوب")
+function checkAddStudentName(silent) {
+    const name = document.getElementById('stu-name')?.value.trim() || '';
+    const warn = document.getElementById('add-name-warn');
+    let msg = '';
+    if (!name) msg = silent ? '' : t('stu_name_required');
+    else if (_addExistingNames.includes(normStudentName(name))) msg = t('stu_name_duplicate');
+    if (warn) { warn.textContent = msg; warn.style.display = msg ? '' : 'none'; }
+    return !!name && !msg;
+}
+
+function refreshAddStepButtons() {
+    const hasName = !!(document.getElementById('stu-name')?.value.trim());
+    const show = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+    show('btn-add-step-back', _addStep > 1);
+    show('btn-add-step-next', _addStep < 3);
+    show('btn-save-new-student', _addStep === 3);
+    show('btn-save-add-another', _addStep === 3);
+    show('btn-add-skip-save', _addStep === 2);
+    show('btn-close-add-modal', _addStep === 1);
+    const next = document.getElementById('btn-add-step-next');
+    if (next) next.disabled = _addStep === 1 && !hasName;
+}
+
+function setAddStep(n) {
+    _addStep = Math.min(3, Math.max(1, n));
+    document.querySelectorAll('#add-modal .as-step').forEach(el => el.classList.toggle('on', Number(el.dataset.step) === _addStep));
+    document.querySelectorAll('#add-modal .as-dot').forEach(el => {
+        const d = Number(el.dataset.dot);
+        el.classList.toggle('on', d === _addStep);
+        el.classList.toggle('done', d < _addStep);
+        el.textContent = d < _addStep ? '✓' : String(d);
+    });
+    const title = document.getElementById('add-step-title');
+    if (title) title.textContent = tf('add_step_of', { n: _addStep, title: t(ADD_STEP_TITLES[_addStep - 1]) });
+    if (_addStep === 3) renderAddStudentPreview();
+    refreshAddStepButtons();
+    if (_addStep === 1) setTimeout(() => document.getElementById('stu-name')?.focus(), 30);
+}
+
+// بطاقة المعاينة في الخطوة الثالثة: نفس الصورة المختارة + الاسم + الصف + العمر
+function renderAddStudentPreview() {
+    const box = document.getElementById('add-preview');
+    if (!box) return;
+    const active = document.querySelector('#avatar-gallery .avatar-opt.active');
+    const name = document.getElementById('stu-name')?.value.trim() || '—';
+    const grade = document.getElementById('stu-grade')?.value;
+    const age = document.getElementById('age-display')?.textContent || '';
+    const parts = [grade ? trStored(grade) : t('stu_not_set')];
+    if (age) parts.push(age.replace(/[()]/g, '').trim());
+    box.innerHTML = `<span class="avatar-opt active">${active ? active.innerHTML : '👦🏻'}</span><div><b>${esc(name)}</b><span>${esc(parts.join(' · '))}</span></div>`;
 }
 
 // 🌟 [جديد 2026-10-03] تاريخ الميلاد بثلاث قوائم (يوم/شهر/سنة) تكتب في #stu-dob المخفي بصيغة YYYY-MM-DD.
