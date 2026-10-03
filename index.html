@@ -12,7 +12,9 @@
          فشل الإقلاع، ومؤقّت احتياطي أسفل الصفحة يزيله بعد 15 ثانية مهما حدث حتى لا تبقى الترويسة مخفية أبداً. -->
     <style>
         html.dh-booting body { background: linear-gradient(165deg, #06231c 0%, #0b3d30 45%, #0d5c46 100%) !important; background-attachment: fixed !important; }
-        html.dh-booting #main-header { display: none !important; }
+        html.dh-booting:not(.dh-boot-slow) #main-header { display: none !important; }
+        .dh-boot-note { font-size: .9rem; opacity: 0; transition: opacity .4s; max-width: 280px; text-align: center; line-height: 1.7; }
+        html.dh-boot-note-on .dh-boot-note { opacity: .8; }
         .dh-boot-loader { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fffdf6; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; }
         .dh-boot-logo { width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0d878, #d4af37); box-shadow: 0 10px 30px rgba(0,0,0,.25); animation: dh-boot-pulse 1.4s ease-in-out infinite; }
         .dh-boot-name { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; opacity: .92; }
@@ -195,10 +197,15 @@
                 </svg>
             </div>
             <div class="dh-boot-name">منصة حمٓ</div>
+            <div class="dh-boot-note">جاري التجهيز… أول تشغيل على الجهاز يحتاج تنزيل المصحف مرة واحدة فقط</div>
         </div>
     </div>
-    <!-- 🌟 مؤقّت احتياطي: لا تبقى الترويسة مخفية أكثر من 15 ثانية مهما حدث أثناء الإقلاع -->
-    <script>setTimeout(function () { document.documentElement.classList.remove('dh-booting'); }, 15000);</script>
+    <!-- 🌟 مؤقّتات احتياطية: بعد 5 ثوانٍ تظهر عبارة توضيحية (غالباً أول تشغيل وتنزيل المصحف)، وبعد 15 ثانية تظهر الترويسة
+         مهما حدث (dh-boot-slow) — مع إبقاء خلفية الهوية الجديدة حتى أول شاشة، فلا يعود الشكل القديم أثناء تنزيل المصحف الطويل -->
+    <script>
+        setTimeout(function () { document.documentElement.classList.add('dh-boot-note-on'); }, 5000);
+        setTimeout(function () { document.documentElement.classList.add('dh-boot-slow'); }, 15000);
+    </script>
 
     <!-- ⚠️ [مؤقت للتجربة المحلية فقط] راجع دليل-تفعيل-App-Check.md قسم "للتجربة المحلية
          قبل النشر" — بما إن App Check (reCAPTCHA v3) بقى مفعّل فعليًا في core/firebase.js،
