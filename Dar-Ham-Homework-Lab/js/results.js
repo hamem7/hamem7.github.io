@@ -1,6 +1,6 @@
 // js/results.js — teacher inbox, grading room, approval, and writing the approved result into the student's record.
 import { call, callWithRetry, friendlyError, getApiUrl } from './api.js';
-import { ensureTeacherAuth, renderAuthStatus } from './teacherAuth.js';
+import { ensureHomeworkSignIn, renderAuthStatus } from './teacherAuth.js';
 import { listStudents, addStudent, findStudentByName, findStudentById, recordApprovedResult, readHistory } from './studentRecords.js';
 
 const $ = (id) => document.getElementById(id);
@@ -177,7 +177,7 @@ $('btn-reload').addEventListener('click', () => { loadHomeworks().then(loadSubs)
 // "results/grading"), so — unlike teacher.html, where generating questions works guest-only — this
 // page gates itself once, up front, instead of gating each button separately.
 (async () => {
-  if (!(await ensureTeacherAuth())) { $('list').textContent = 'سجّل الدخول لعرض النتائج والتصحيح.'; return; }
+  if (!(await ensureHomeworkSignIn())) { $('list').textContent = 'سجّل الدخول لعرض النتائج والتصحيح.'; return; }
   try { await loadHomeworks(); } catch (e) { $('list').textContent = '❌ ' + friendlyError(e); return; }
   await loadSubs(); await loadRecords();
 })();

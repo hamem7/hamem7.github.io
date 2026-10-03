@@ -98,7 +98,7 @@ export function createBackend(opts = {}) {
     console,
     Logger: { log: (m) => logs.push(String(m)) },
     SpreadsheetApp: { getActiveSpreadsheet: () => ss, openById: () => ss, flush: () => {} },
-    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; } }) },
+    PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = v; }, deleteProperty: (k) => { delete props[k]; } }) },
     CacheService: { getScriptCache: () => ({ get: k => cacheStore.get(k) ?? null, put: (k, v) => { cacheStore.set(k, v); } }) },
     LockService: { getScriptLock: () => ({
       waitLock: () => { if (hooks.lockBusy) throw new Error('Could not obtain lock'); },
@@ -132,4 +132,27 @@ export function createBackend(opts = {}) {
     post: (body) => unwrap(sandbox.doPost({ postData: { contents: typeof body === 'string' ? body : JSON.stringify(body) } })),
     skewClock: (ms) => { clockSkewMs = ms; }
   };
+}
+
+// 🌟 [2026-10-03] Google Sign-In is the only teacher auth (no Teacher Key). Fakes Google's tokeninfo endpoint:
+// each fake idToken string is registered up-front with the {sub,email} it should resolve to.
+export const TEST_CLIENT_ID = 'test-client';
+export function googleTokenMock(tokens) {
+  return (url) => {
+    const m = /id_token=([^&]+)/.exec(url);
+    const info = m && tokens[decodeURIComponent(m[1])];
+    if (!info) return { getResponseCode: () => 400, getContentText: () => JSON.stringify({ error_description: 'Invalid Value' }) };
+    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sub: info.sub, email: info.email || (info.sub + '@example.com'), email_verified: info.email_verified || 'true', name: info.name || '', iss: 'accounts.google.com', aud: info.aud || TEST_CLIENT_ID }) };
+  };
+}
+/** A set-up backend with one teacher already signed in with Google. `auth` = {userId, sessionKey}
+ *  — spread it into any teacher-only request body. */
+export function createTeacherBackend(opts = {}) {
+  const tokens = { 'dev-teacher-token': { sub: 'dev-teacher', email: 'dev-teacher@example.com' }, ...(opts.tokens || {}) };
+  const be = createBackend({ ...opts, urlFetch: googleTokenMock(tokens) });
+  be.props.GOOGLE_CLIENT_ID = TEST_CLIENT_ID;
+  be.setup();
+  const r = be.post({ action: 'googleSignIn', idToken: 'dev-teacher-token' });
+  if (!r.ok) throw new Error('emulator sign-in failed: ' + JSON.stringify(r));
+  return { be, auth: { userId: r.userId, sessionKey: r.sessionKey } };
 }

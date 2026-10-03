@@ -42,29 +42,7 @@
     line-height: 1.6;
 }
 
-.dh-teacher-auth-label {
-    display: block;
-    text-align: right;
-    font-weight: 600;
-    color: var(--dh-emerald-900);
-    margin: 10px 0 6px;
-    font-size: 0.9rem;
-}
-
-.dh-teacher-auth-input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 12px 14px;
-    border-radius: 10px;
-    border: 2px solid #e2e8f0;
-    font-size: 1rem;
-    text-align: right;
-    outline: none;
-}
-
-.dh-teacher-auth-input:focus {
-    border-color: var(--dh-emerald-600);
-}
+/* 🌟 [حُذفت 2026-10-03] .dh-teacher-auth-label / .dh-teacher-auth-input — كانتا لحقل مفتاح المعلم الملغى. */
 
 .dh-teacher-auth-error {
     margin-top: 12px;
@@ -103,8 +81,7 @@
 }
 
 /* ========================================================== */
-/* 🌟🌟 [جديد] تسجيل الدخول بجوجل — زر جوجل + الفاصل + رابط المفتاح القديم + حقل ربط الواجبات
-   القديمة. نفس فلسفة الملف: قواعد جديدة فقط، لا تعديل على أي قاعدة موجودة أعلاه. */
+/* 🌟🌟 تسجيل الدخول بجوجل لنظام الواجبات — زر جوجل فقط. */
 
 .dh-teacher-auth-google-btn {
     display: flex;
@@ -120,54 +97,6 @@
     line-height: 1.5;
 }
 
-.dh-teacher-auth-divider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 18px 0 10px;
-    color: var(--dh-ink-soft);
-    font-size: 0.85rem;
-}
-
-.dh-teacher-auth-divider::before,
-.dh-teacher-auth-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
-}
-
-/* رابط نصي بسيط (بلا خلفية) لطيّ/فرد أقسام اختيارية — مفتاح المعلم القديم وحقل ربط الواجبات القديمة */
-.dh-teacher-auth-linklike {
-    background: none;
-    border: none;
-    color: var(--dh-emerald-600);
-    font-size: 0.85rem;
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 10px 0; /* 🌟 [إصلاح فحص الأزرار] كان 4px (ارتفاع 24px) — مساحة لمس أكبر 🌟 */
-    display: block;
-    width: 100%;
-    text-align: center;
-}
-
-.dh-teacher-auth-linklike:hover {
-    color: var(--dh-emerald-700);
-}
-
-.dh-teacher-auth-migrate-wrap {
-    margin-bottom: 8px;
-    text-align: right;
-}
-
-.dh-teacher-auth-legacy-form {
-    text-align: right;
-}
-
-
-/* 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] "خيارات دخول أخرى": يطوي ربط الواجبات القديمة والمفتاح القديم خلف رابط
-   صغير حتى يظهر زر جوجل وحده. قواعد جديدة فقط (بادئة dh-teacher-auth-more) بلا تعديل أي قاعدة موجودة. */
-.dh-teacher-auth-more { margin: 16px 0 6px; text-align: center; }
-.dh-teacher-auth-more > summary { cursor: pointer; display: inline-block; list-style: none; padding: 6px 12px; font-size: 0.92rem; color: var(--dh-emerald-700, #0d5c46); text-decoration: underline; }
-.dh-teacher-auth-more > summary::-webkit-details-marker { display: none; }
-.dh-teacher-auth-more[open] > summary { margin-bottom: 10px; }
+/* 🌟 [حُذفت 2026-10-03] قواعد الفاصل ورابط المفتاح القديم وحقل ربط الواجبات القديمة و"خيارات دخول أخرى"
+   (.dh-teacher-auth-divider / -linklike / -migrate-wrap / -legacy-form / -more) — أُلغي مفتاح المعلم نهائياً
+   فلم يعد في بوابة نظام الواجبات إلا زر جوجل. */

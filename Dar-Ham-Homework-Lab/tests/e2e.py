@@ -27,7 +27,7 @@ def api(action, key=None, **kw):
     if action in ('ping', 'getHomework'):
         qs = '&'.join(f'{k}={v}' for k, v in {'action': action, **kw}.items())
         return json.loads(urllib.request.urlopen(API + '?' + qs).read().decode())
-    return http(API, json.dumps({'action': action, 'teacherKey': key, **kw}))
+    return http(API, json.dumps({'action': action, **(key or {}), **kw}))
 
 # ---------------------------------------------------------------- tiny harness
 results = []
@@ -66,7 +66,9 @@ def seed_quran(page):
 
 def teacher_setup(ctx):
     p = ctx.new_page(); seed_quran(p)
-    p.fill('#api-url', API); p.fill('#teacher-key', env.key); p.click('#btn-save')
+    # 🌟 [2026-10-03] no Teacher Key: the teacher "device" holds the emulator's Google session (as after a real sign-in)
+    p.evaluate("(a) => { localStorage.setItem('dhlab_teacher_userid', a.userId); localStorage.setItem('dhlab_teacher_sessionkey', a.sessionKey); }", env.key)
+    p.fill('#api-url', API); p.click('#btn-save')
     expect(p.locator('#conn')).to_contain_text('✅', timeout=15000)
     return p
 
@@ -358,8 +360,16 @@ def s09_xss_in_student_name_is_inert():
 
 def s10_teacher_auth_and_timeouts():
     tctx = new_ctx(env.browser); tp = tctx.new_page(); tp.goto(WEB + '/index.html')
-    tp.fill('#api-url', API); tp.fill('#teacher-key', 'WRONGKEY'); tp.click('#btn-save')
-    expect(tp.locator('#conn')).to_contain_text('غير صحيح', timeout=15000)
+    tp.fill('#api-url', API); tp.click('#btn-save'); expect(tp.locator('#conn')).to_contain_text('✅', timeout=15000)
+    # a bogus Google session and an old Teacher Key are both rejected by the server
+    r = tp.evaluate("""() => import('/js/api.js').then(async m => {
+      localStorage.setItem('dhlab_teacher_userid', 'T_bogus'); localStorage.setItem('dhlab_teacher_sessionkey', 'nope');
+      const out = [];
+      try { await m.call('authCheck', {}, {teacher: true}); out.push('ok'); } catch (e) { out.push(e.code); }
+      m.clearTeacherAuth();
+      try { await m.call('authCheck', {teacherKey: 'OLDKEY'}); out.push('ok'); } catch (e) { out.push(e.code); }
+      return out.join(','); })""")
+    assert r == 'UNAUTHORIZED,UNAUTHORIZED', r
     tp.fill('#api-url', 'https://evil.example/exec'); tp.click('#btn-save'); expect(tp.locator('#conn')).to_contain_text('غير صالح')
     # client-side timeout classification (server deliberately slow)
     tp.goto(WEB + '/index.html'); tp.evaluate(f"localStorage.setItem('dhlab_api_url', '{API}')")
@@ -375,8 +385,9 @@ def main():
         banner = ''
         for _ in range(3 * 20):
             line = server.stdout.readline(); banner += line
-            if 'Teacher key' in line: break
-        env.key = re.search(r'Teacher key: (\w+)', banner).group(1)
+            if 'Teacher session' in line: break
+        m = re.search(r'Teacher session: (\S+) (\S+)', banner)
+        env.key = {'userId': m.group(1), 'sessionKey': m.group(2)}
         with sync_playwright() as pw:
             env.browser = pw.chromium.launch(headless=True, args=['--no-sandbox'])
             only = sys.argv[1:]

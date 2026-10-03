@@ -15,7 +15,8 @@ export const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzynu0kl
 export const GOOGLE_CLIENT_ID = 'REPLACE_WITH_YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com';
 
 const LS_URL = 'dhlab_api_url';
-const LS_KEY = 'dhlab_teacher_key';
+// 🌟 [2026-10-03] Teacher Key removed for good (Google Sign-In only). Its old localStorage entry is wiped below, never read.
+const LS_OBSOLETE_TEACHER_KEY = 'dhlab_teacher_key';
 const LS_USERID = 'dhlab_teacher_userid';
 const LS_SESSIONKEY = 'dhlab_teacher_sessionkey';
 const EXEC_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]+\/exec$/;
@@ -38,10 +39,7 @@ export function getApiUrl() {
 }
 export function setApiUrl(u) { if (!isAllowedApiUrl(u)) throw new Error('رابط الـ API غير صالح (يجب أن يكون رابط /exec من Google Apps Script)'); lsSet(LS_URL, u); }
 
-// ---- legacy shared Teacher Key (kept working — see README "Old Teacher Key migration") ----
-export function getTeacherKey() { return lsGet(LS_KEY) || ''; }
-export function setTeacherKey(k) { lsSet(LS_KEY, k); }
-export function clearTeacherKey() { try { localStorage.removeItem(LS_KEY); } catch (e) {} }
+try { localStorage.removeItem(LS_OBSOLETE_TEACHER_KEY); } catch (e) {}
 
 // 🌟 multi-teacher: Google-authenticated teacher identity {userId, sessionKey} — set once by
 // googleSignIn() below and reused on every subsequent teacher-only call, so the teacher is not
@@ -52,8 +50,8 @@ export function getTeacherAuth() {
 }
 export function setTeacherAuth(userId, sessionKey) { lsSet(LS_USERID, userId); lsSet(LS_SESSIONKEY, sessionKey); }
 export function clearTeacherAuth() { try { localStorage.removeItem(LS_USERID); localStorage.removeItem(LS_SESSIONKEY); } catch (e) {} }
-/** True once the teacher has EITHER a Google session OR the legacy key — i.e. "no login prompt needed". */
-export function isTeacherAuthed() { return !!(getTeacherAuth() || getTeacherKey()); }
+/** True once the teacher has a Google session on this device — i.e. "no login prompt needed". */
+export function isTeacherAuthed() { return !!getTeacherAuth(); }
 
 /** Error thrown for anything that is NOT a confirmed success. `retryable` tells callers if trying again can help. */
 export class ApiError extends Error {
@@ -100,10 +98,9 @@ export async function call(action, params = {}, opts = {}) {
   const timeoutMs = opts.timeoutMs || 25000;
   const payload = method === 'GET' ? { action, ...params } : { action, ...params };
   if (opts.teacher) {
-    // 🌟 multi-teacher: prefer the Google session; fall back to the legacy shared key untouched.
+    // 🌟 Google session only (no Teacher Key, no fallback). Without it the server answers UNAUTHORIZED.
     const auth = getTeacherAuth();
     if (auth) { payload.userId = auth.userId; payload.sessionKey = auth.sessionKey; }
-    else payload.teacherKey = getTeacherKey();
   }
   const t0 = performance.now();
   const json = await transport(method, payload, timeoutMs);
@@ -135,7 +132,7 @@ export function friendlyError(e) {
     NO_API_URL: 'لم يتم ضبط رابط الخادم. افتح الصفحة الرئيسية للمعمل وأدخله.',
     NETWORK: 'لا يوجد اتصال بالإنترنت أو الخادم لا يستجيب.', TIMEOUT: 'الخادم تأخّر في الرد. حاول مرة أخرى.',
     BAD_RESPONSE: 'رد غير مفهوم من الخادم (ربما لم يُنشر الـ Web App بشكل صحيح).',
-    UNAUTHORIZED: 'الجلسة غير صحيحة أو مفتاح المعلم خاطئ. سجّل الدخول مرة أخرى.', LOCKED: 'محاولات كثيرة خاطئة. انتظر 10 دقائق.',
+    UNAUTHORIZED: 'جلسة تسجيل الدخول غير صالحة. سجّل الدخول بجوجل مرة أخرى.',
     NOT_FOUND: 'الواجب غير موجود (الرابط غير صحيح).', CLOSED: 'هذا الواجب مغلق من المعلم.',
     ALREADY_SUBMITTED: 'تم تسليم هذا الواجب مسبقاً بهذا الاسم.', BUSY: 'الخادم مشغول، سيُعاد المحاولة.',
     NOT_PERSISTED: 'لم يتأكد الخادم من حفظ البيانات.', PERSIST_VERIFY_FAILED: 'فشل التحقق من الحفظ في الخادم.',
@@ -150,13 +147,6 @@ export function friendlyError(e) {
  *  (getTeacherAuth() above) so every subsequent {teacher:true} call is authenticated automatically. */
 export async function googleSignIn(idToken) {
   const r = await call('googleSignIn', { idToken });
-  setTeacherAuth(r.userId, r.sessionKey);
-  return r;
-}
-/** One-time claim of pre-existing unowned ("legacy") homeworks for the signed-in Google account.
- *  Safe to call even if already claimed (idempotent) or claimed by someone else (returns claimed:false). */
-export async function migrateLegacyKey(idToken, teacherKey) {
-  const r = await call('migrateLegacyKey', { idToken, teacherKey });
   setTeacherAuth(r.userId, r.sessionKey);
   return r;
 }
