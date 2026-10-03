@@ -27,7 +27,7 @@
 // 5) "مين يلعب الرقم التالي" (دور بالتبادل) مؤشر إرشادي فقط للمعلم — لا قفل برمجي صارم
 //    يمنع النقر، لأن المعلم هو من يدير التسلسل فعلياً مع الطالبَين حضورياً.
 
-import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { AppState, loadSplashScreen, t, openDualTestSetup } from '../core/app.js';
 import { esc } from '../core/escape.js';
 // 🌟 [جديد] showToastEncouragement — لتنبيه المعلم بلطف عند استرجاع تقدّم جولة جارية بعد
 // تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
@@ -145,6 +145,30 @@ function retriggerAnimation(el, animClass) {
 
 // ===================== الترحيب / VS =====================
 
+// 🌟 [جديد] شاشة الترحيب في حالة "الجولة لم تُجهَّز بعد" — نفس عناصر الترحيب، مع تغيير نص
+// الشارة والزر فقط؛ الزر يفتح شاشة الإعداد مباشرة على أسئلة هذه الجولة (AppState.dualTestSetupOpenRound)
+async function renderRoundNotReady(roundIndex) {
+    document.getElementById('dtp-round-label').textContent = t('dtp_round_not_ready_label').replace('{n}', roundIndex + 1);
+    document.getElementById('dtp-name-a').textContent = match.studentNameA;
+    document.getElementById('dtp-name-b').textContent = match.studentNameB;
+    document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
+    document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+    const avatarA = await getStudentAvatar(match.studentIdA);
+    const avatarB = await getStudentAvatar(match.studentIdB);
+    document.getElementById('dtp-avatar-a').innerHTML = renderAvatarHTML(match.studentNameA, avatarA);
+    document.getElementById('dtp-avatar-b').innerHTML = renderAvatarHTML(match.studentNameB, avatarB);
+
+    const btn = document.getElementById('dtp-start-round-btn');
+    btn.innerHTML = '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
+        + `<span>${esc(t('dtp_round_not_ready_btn').replace('{n}', roundIndex + 1))}</span>`;
+    btn.disabled = false;
+    btn.onclick = () => {
+        AppState.dualTestSetupOpenRound = { testId: match.testId, roundIndex };
+        openDualTestSetup();
+    };
+    showView('dtp-welcome-view');
+}
+
 async function startRoundFlow() {
     const roundIndex = match.currentRoundIndex;
     const round = test.rounds[roundIndex];
@@ -193,6 +217,14 @@ async function startRoundFlow() {
 
         showToastEncouragement('toast-encouragement', t('dtp_round_restored_toast'));
         renderBoardView(); // نتجاوز شاشتي الترحيب والقرعة تماماً — القرعة سبق إجراؤها فعلاً
+        return;
+    }
+
+    // 🌟 [جديد] الجولات تُجهَّز تدريجياً (جولة بجولة) بطلب صريح من المعلم — لو وصلنا لجولة لم
+    // تُضَف لها أي أسئلة أساسية بعد، لا نفتح لوحة فارغة: نعرض شاشة الترحيب برسالة وزر يفتح
+    // تجهيز هذه الجولة مباشرة. المواجهة نفسها تبقى محفوظة كما هي (لا شيء يُكتب هنا)
+    if (!round || !Array.isArray(round.mainQuestions) || round.mainQuestions.length === 0) {
+        await renderRoundNotReady(roundIndex);
         return;
     }
 

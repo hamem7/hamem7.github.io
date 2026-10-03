@@ -343,6 +343,27 @@
     .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
     .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
 
+    /* --- 🌟 [جديد] الجولات المقفلة (تُجهَّز جولة بجولة): ظاهرة لكن باهتة، مع سبب القفل --- */
+    .dts-range-card.dts-round-locked {
+        border: 2px dashed #ddd6c2; background: #f8f6f0; box-shadow: none; opacity: 0.85;
+    }
+    .dts-range-card.dts-round-locked .dts-round-badge { background: #e6e0cf; color: #8a948e; box-shadow: none; }
+    .dts-range-card.dts-round-locked .dts-range-card-title { color: #6c7771; }
+    .dts-locked-note {
+        display: inline-flex; align-items: center; gap: 8px; margin-top: 4px;
+        font-size: 0.92rem; font-weight: 600; color: #6c7771;
+        background: #efebdf; padding: 8px 14px; border-radius: 999px;
+    }
+    .dts-roundpick-btn.dts-round-locked {
+        background: #f1ede1; color: #6c7771; box-shadow: none; cursor: not-allowed; border: 2px dashed #ddd6c2;
+    }
+    .dts-roundpick-btn.dts-round-locked:hover { transform: none; box-shadow: none; }
+    .dts-roundpick-btn.dts-round-locked .dts-roundpick-badge { background: #e6e0cf; color: #8a948e; box-shadow: none; }
+    .dts-roundpick-btn.dts-round-locked .dts-roundpick-progress { background: #e6e0cf; color: #6c7771; display: inline-flex; align-items: center; gap: 6px; }
+    /* شارة "الجولة N بانتظار التجهيز" على صف الاختبار */
+    .dts-test-row-actions button.dts-btn-prep { background: #eaf5ef; border-color: #b9dccb; color: var(--dh-emerald-700); border-radius: 999px; }
+    .dts-test-row-actions button.dts-btn-prep:hover { border-color: var(--dh-emerald-600); }
+
     @media (max-width: 520px) {
         .dts-step-item { width: 84px; }
         .dts-step-label { font-size: 0.75rem; }
