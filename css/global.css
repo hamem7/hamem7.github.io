@@ -160,6 +160,21 @@
 .link-item.matched.pair-3 { background: #0e7490; border-color: #164e63; }
 .link-item.matched.pair-4 { background: #b45309; border-color: #78350f; }
 .link-item.matched.pair-5 { background: #be185d; border-color: #831843; }
+/* 🌟 [جديد] تحديد واضح جدًا لحظة الضغط على العنصر في ألعاب التوصيل — كان التحديد خلفية ذهبية
+   باهتة جدًا (#fffbea) لا تكاد تُرى، فلا المعلم ولا الطالب يعرف أي عنصر اتضغط. الحل: خلفية برتقالية
+   مليئة، نص داكن عريض، حد أسمك، تكبير بسيط ونبض متكرر طوال مدة التحديد. البرتقالي بعيد عن ألوان
+   الأزواج المطابَقة (pair-0..5) وعن الأحمر (الخطأ). !important للتغلّب على خلفية .quran-text في
+   ثيم الأطفال (css/kids.css) وعلى :hover اللاصق في شاشات اللمس 🌟 */
+.link-item.selected:not(.matched) {
+    background: #f59e0b !important; border: 4px solid #92400e !important; color: #1f1300 !important;
+    font-weight: 700 !important; transform: scale(1.04); position: relative; z-index: 1;
+    box-shadow: 0 0 0 4px rgba(245,158,11,0.45), 0 6px 14px rgba(0,0,0,0.25);
+    animation: linkSelectedPulse 1.2s ease-in-out infinite;
+}
+@keyframes linkSelectedPulse {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(245,158,11,0.45), 0 6px 14px rgba(0,0,0,0.25); }
+    50% { box-shadow: 0 0 0 9px rgba(245,158,11,0.2), 0 6px 14px rgba(0,0,0,0.25); }
+}
 /* 🌟 [جديد] حركة "pop" خفيفة لحظة المطابقة الصحيحة - كانت التغذية الرجعية غير متماثلة
    (فيه وميضة حمراء للخطأ عبر linkWrongFlash فوق، ومفيش أي حركة مقابلة للصح) 🌟 */
 .link-item.correct-pop { animation: linkCorrectPop 0.4s ease; }
