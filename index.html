@@ -1,11 +1,24 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="dh-booting">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة حمٓ - أبطال القرآن</title>
 
     <meta name="theme-color" content="#064e3b">
+    <!-- 🌟 [2026-10-03 — سرعة الفتح] شاشة إقلاع بهوية المنصة الجديدة: أثناء تجهيز قواعد البيانات (قبل أول شاشة) كان يظهر
+         تدرّج adult-theme الأزرق القديم والترويسة القديمة فيبدو كأن المنصة القديمة فُتحت. الكلاس dh-booting على <html>
+         (لا على <body> لأن switchTheme تستبدل className الـ body كاملاً) يُزال في core/navigation.js بعد أول شاشة أو عند
+         فشل الإقلاع، ومؤقّت احتياطي أسفل الصفحة يزيله بعد 15 ثانية مهما حدث حتى لا تبقى الترويسة مخفية أبداً. -->
+    <style>
+        html.dh-booting body { background: linear-gradient(165deg, #06231c 0%, #0b3d30 45%, #0d5c46 100%) !important; background-attachment: fixed !important; }
+        html.dh-booting #main-header { display: none !important; }
+        .dh-boot-loader { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; color: #fffdf6; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; }
+        .dh-boot-logo { width: 64px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f0d878, #d4af37); box-shadow: 0 10px 30px rgba(0,0,0,.25); animation: dh-boot-pulse 1.4s ease-in-out infinite; }
+        .dh-boot-name { font-size: 1.15rem; font-weight: 700; letter-spacing: .5px; opacity: .92; }
+        @keyframes dh-boot-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.92); opacity: .75; } }
+        @media (prefers-reduced-motion: reduce) { .dh-boot-logo { animation: none; } }
+    </style>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <!-- 🌟 [2026-10-02] أيقونة التبويب (كان المتصفح يطلب favicon.ico فيحصل على 404) — نفس أيقونة التطبيق، بلا ملف جديد -->
@@ -172,7 +185,20 @@
         </div>
     </div>
 
-    <div id="app-root"></div>
+    <div id="app-root">
+        <!-- 🌟 [2026-10-03] شاشة الإقلاع (تُستبدل تلقائياً بأول شاشة عبر loadScreen) — راجع تعليق dh-booting في <head> -->
+        <div class="dh-boot-loader" role="status" aria-label="جاري التحميل">
+            <div class="dh-boot-logo" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6.5c-1.5-1-3.6-1.3-5.5-0.7v10c1.9-0.6 4-0.3 5.5 0.7 1.5-1 3.6-1.3 5.5-0.7v-10c-1.9-0.6-4-0.3-5.5 0.7Z" stroke="#06231c" stroke-width="1.3" stroke-linejoin="round" fill="none"/>
+                    <path d="M12 6.5v10.7" stroke="#06231c" stroke-width="1.3"/>
+                </svg>
+            </div>
+            <div class="dh-boot-name">منصة حمٓ</div>
+        </div>
+    </div>
+    <!-- 🌟 مؤقّت احتياطي: لا تبقى الترويسة مخفية أكثر من 15 ثانية مهما حدث أثناء الإقلاع -->
+    <script>setTimeout(function () { document.documentElement.classList.remove('dh-booting'); }, 15000);</script>
 
     <!-- ⚠️ [مؤقت للتجربة المحلية فقط] راجع دليل-تفعيل-App-Check.md قسم "للتجربة المحلية
          قبل النشر" — بما إن App Check (reCAPTCHA v3) بقى مفعّل فعليًا في core/firebase.js،

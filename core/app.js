@@ -92,6 +92,8 @@ export const AppState = {
     juzAmmaSurahs: [],
     // 🌟 [جديد] مدير قاعدة بيانات "ركن المتشابهات" — يُهيَّأ في bootSystem أسفل هذا الملف
     similaritiesManager: null,
+    // 🌟 [2026-10-03] Promise اكتمال تحميل Seed المتشابهات في الخلفية (راجع bootSystem)
+    similaritiesReady: null,
     // 🌟 [جديد — المرحلة 3] مدير قاعدة بيانات "أبطال التجويد" (إتقان/جلسات/أوسمة) — يُهيَّأ
     // في bootSystem أسفل هذا الملف بنفس نمط بقية المديرين أعلاه
     tajweedManager: null,
@@ -324,20 +326,31 @@ async function bootSystem() {
             Notification.requestPermission();
         }
 
-        const quranDB = await ensureQuranLoaded();
+        // 🌟 [2026-10-03 — سرعة الفتح] كانت قواعد البيانات العشر تُفتح واحدة تلو الأخرى (await بعد await) رغم استقلالها التام
+        // عن بعضها، فيتراكم زمن فتحها قبل ظهور الشاشة الرئيسية. الآن تُفتح كلها معاً؛ ترتيب إسناد الـ Managers ونتيجتها كما هي
+        // تماماً، وأي فشل في أي منها يصل لنفس catch أدناه (showBootFailure) كما كان.
+        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB] = await Promise.all([
+            ensureQuranLoaded(),
+            initKidsAudioDB(),
+            initStudentDB(),
+            initHomeworkDB(),
+            initTeacherDB(),
+            initReviewScheduleDB(),
+            initDualTestsDB(),
+            initSimilaritiesDB(),
+            initTajweedDB(),
+            initMonthlyMemorizationDB()
+        ]);
+
         AppState.quranEngine = new QuranEngine(quranDB);
         AppState.kidsEngine = new KidsEngine(AppState.quranEngine);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات تخزين أصوات آيات ركن الأطفال محليًا — نفس نمط تهيئة
-        // بقية قواعد البيانات هنا بالضبط (راجع database/kidsAudioDB.js للتفاصيل الكاملة)
-        const kidsAudioDB = await initKidsAudioDB();
+        // 🌟 [جديد] تهيئة قاعدة بيانات تخزين أصوات آيات ركن الأطفال محليًا (راجع database/kidsAudioDB.js للتفاصيل الكاملة)
         AppState.kidsAudioManager = new KidsAudioManager(kidsAudioDB);
 
-        const studentDB = await initStudentDB();
         AppState.studentManager = new StudentManager(studentDB);
 
-        // 📚 تهيئة قاعدة بيانات الواجبات المستقلة
-        const hwDB = await initHomeworkDB();
+        // 📚 قاعدة بيانات الواجبات المستقلة
         AppState.homeworkManager = new HomeworkManager(hwDB);
 
         // 🌟🌟 [محدَّث] استئناف أي تسليم واجب عالق على هذا الجهاز (طالب سلّم بلا إنترنت ثم أغلق الصفحة) — بدون انتظار
@@ -350,39 +363,30 @@ async function bootSystem() {
         // لا يفعل شيئاً فعلياً لو لم يسجّل المعلم الدخول بجوجل داخل نظام الواجبات على هذا الجهاز (ولا يطلب أي دخول).
         startHomeworkSubmissionWatcher();
 
-        // 🧑‍🏫 تهيئة ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
+        // 🧑‍🏫 ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
-        const teacherDB = await initTeacherDB();
         AppState.teacherManager = new TeacherManager(teacherDB);
         AppState.currentTeacher = await AppState.teacherManager.getProfile();
         // 🔗 توافق خلفي: reports/report.js يقرأ اسم المعلم من AppState.teacherName مباشرة
         AppState.teacherName = (AppState.currentTeacher && AppState.currentTeacher.name) || '';
 
-        // 🌟 تهيئة قاعدة بيانات جدول "المراجعة المتباعدة" (Anki/Duolingo) — نفس
-        // نمط تهيئة بقية قواعد البيانات أعلاه بالضبط
-        const reviewScheduleDB = await initReviewScheduleDB();
+        // 🌟 جدول "المراجعة المتباعدة" (Anki/Duolingo)
         AppState.reviewScheduleManager = new ReviewScheduleManager(reviewScheduleDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "الاختبارات الثنائية" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const dualTestsDB = await initDualTestsDB();
+        // 🌟 [جديد] "الاختبارات الثنائية"
         AppState.dualTestsManager = new DualTestsManager(dualTestsDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "ركن المتشابهات" + تحميل بيانات الـ Seed المُفرَّغة
-        // من الـ PDF عند أول تشغيل (أو عند رفع رقم إصدار الـ Seed مستقبلاً) — راجع
-        // database/similaritiesDB.js لتفاصيل ensureSimilaritiesLoaded
-        const similaritiesDB = await initSimilaritiesDB();
-        await ensureSimilaritiesLoaded(similaritiesDB);
+        // 🌟 [جديد] "ركن المتشابهات" — تحميل بيانات الـ Seed (أول تشغيل أو عند رفع رقم إصدار الـ Seed) لم يعد يؤخر ظهور الشاشة
+        // الرئيسية [2026-10-03]: يعمل في الخلفية، وشاشات المتشابهات تنتظر AppState.similaritiesReady قبل أي قراءة
+        // (راجع similarities/similarities.js وsimilarities-play.js). فشله لا يوقف الإقلاع (يُسجَّل في الكونسول فقط).
         AppState.similaritiesManager = new SimilaritiesManager(similaritiesDB);
+        AppState.similaritiesReady = ensureSimilaritiesLoaded(similaritiesDB)
+            .catch(err => console.error('تعذر تحميل بيانات المتشابهات:', err));
 
-        // 🌟 [جديد — المرحلة 3] تهيئة قاعدة بيانات "أبطال التجويد" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const tajweedDB = await initTajweedDB();
+        // 🌟 [جديد — المرحلة 3] "أبطال التجويد"
         AppState.tajweedManager = new TajweedManager(tajweedDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "سجل الحفظ الشهري" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const monthlyMemorizationDB = await initMonthlyMemorizationDB();
+        // 🌟 [جديد] "سجل الحفظ الشهري"
         AppState.monthlyMemorizationManager = new MonthlyMemorizationManager(monthlyMemorizationDB);
 
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
@@ -461,6 +465,8 @@ async function bootSystem() {
 
 // 🌟 [جديد] شاشة فشل الإقلاع — عناصر DOM عبر textContent (بلا innerHTML)، بألوان الهوية (--dh-emerald/--dh-gold)
 function showBootFailure(error) {
+    // 🌟 [2026-10-03] إنهاء وضع الإقلاع (index.html) حتى تظهر الترويسة مع رسالة الفشل
+    document.documentElement.classList.remove('dh-booting');
     try {
         const isQuran = !!(error && error.code === 'QURAN_LOAD_FAILED');
         const root = document.getElementById('app-root') || document.body;

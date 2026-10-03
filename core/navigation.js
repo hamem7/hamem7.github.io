@@ -11,7 +11,9 @@ export async function loadScreen(route) {
     const root = document.getElementById('app-root');
     // إضافة رسالة تحميل تدعم اللغتين مؤقتاً
     // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] رسالة تحميل بحجم عادي (كانت 2rem بحشوة 50px فتقفز الصفحة لحظة التنقل)
-    root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
+    // 🌟 [2026-10-03 — سرعة الفتح] أثناء الإقلاع نُبقي شاشة الإقلاع ذات الهوية الجديدة (index.html) بدل استبدالها برسالة التحميل
+    const booting = document.documentElement.classList.contains('dh-booting');
+    if (!booting) root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
 
     try {
         // 🌟 cache: 'no-store' يمنع المتصفح من عرض نسخة قديمة مخزّنة من ملفات
@@ -30,6 +32,8 @@ export async function loadScreen(route) {
         // تمسحها switchTheme التي تستبدل className كاملاً) ونبلّغ components/homeFast.js بحدث dh:screen لضبط الترويسة والشريط السفلي
         document.body.dataset.dhScreen = route.templateUrl;
         document.dispatchEvent(new CustomEvent('dh:screen', { detail: { screen: route.templateUrl } }));
+        // 🌟 [2026-10-03] أول شاشة جاهزة (وكلاسات الترويسة ضُبطت عبر dh:screen أعلاه): ننهي وضع الإقلاع فتظهر الترويسة والخلفية العادية
+        document.documentElement.classList.remove('dh-booting');
 
         // 🌟 السحر هنا: تطبيق لغة النظام فوراً على الشاشة الجديدة المجلوبة 🌟
         applyLanguage();
@@ -45,6 +49,7 @@ export async function loadScreen(route) {
         trackPageview(route.templateUrl);
     } catch (error) {
         console.error("فشل في تحميل الواجهة:", error);
+        document.documentElement.classList.remove('dh-booting');
         root.innerHTML = `<div style="color:red; text-align:center; font-size:2rem;">عفواً، حدث خطأ في تحميل الشاشة. ❌ Error loading screen.</div>`;
     }
 }

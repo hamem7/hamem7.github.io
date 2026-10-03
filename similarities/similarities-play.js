@@ -81,6 +81,8 @@ let PlayState = { groups: [], allGroupsPool: [], scopeTitle: '', round: null, cu
 // AppState.similarityGamePlayScope — راجع تعليق رأس الملف وتعليق الحقل في core/app.js.
 async function resolveScopeGroups(scope) {
     if (!scope || !AppState.similaritiesManager) return { groups: [], title: '' };
+    // 🌟 [2026-10-03] ننتظر تحميل الـ Seed الذي صار في الخلفية أثناء الإقلاع (core/app.js)
+    if (AppState.similaritiesReady) await AppState.similaritiesReady;
 
     if (scope.type === 'surah') {
         const groups = await AppState.similaritiesManager.getInternalBySurah(scope.surahNumber);
