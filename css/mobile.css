@@ -32,8 +32,6 @@
     --m-bnav-space: calc(var(--m-bnav-h) + 4px + env(safe-area-inset-bottom, 0px) + 12px);   /* ما يُترك أسفل المحتوى حتى لا يغطيه الشريط */
 }
 
-@keyframes dhMobileFade { from { opacity: 0; } to { opacity: 1; } }
-
 @media (max-width: 768px) {
 
     /* ===== 1) الترويسة العلوية: صف واحد نحيف ===== */
@@ -57,7 +55,9 @@
     #main-header .header-home-btn { padding: 6px 10px; }
 
     /* ===== 2) هيكل الشاشات ===== */
-    #app-root .screen { padding: 12px var(--m-gutter); animation: dhMobileFade .18s ease both; }   /* كان fadeIn بإزاحة 15px يُشعر بقفزة عند كل تنقّل */
+    /* ظهور الشاشة أسرع (0.5ث → 0.2ث) فلا تُشعر الإزاحة الصغيرة بقفزة عند كل تنقّل. ⚠️ نغيّر المدة فقط لا اسم الحركة: تغيير الاسم
+       يعيد تشغيلها من أول إطار عند عبور حد 768px (تدوير جهاز لوحي) فتبقى الشاشة باهتة لحظياً */
+    #app-root .screen { padding: 12px var(--m-gutter); animation-duration: .2s; }
     body.dh-core-screen { padding-bottom: var(--m-bnav-space); }
     body.dh-home-screen { padding-bottom: 0; }               /* الفوتر نفسه يترك مساحة الشريط (بدل شريط body الأزرق تحت الفوتر) */
     /* kids.css يفرض (بلا تقييد بثيم) margin: 8vh auto وحشوة 40px وحواف 30px على كل .login-container/.report-card بـ !important —
@@ -173,10 +173,13 @@
     body.dh-home-screen .home-hero-inner { padding-bottom: 0; }
     body.dh-home-screen .home-hero-text { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; padding: 0; }
 
-    /* صف الترحيب: صورة + تحية + تعديل بياناتي + اللغة في سطر واحد (التحية وحدها تنكمش بنقاط عند الضيق) */
-    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; min-width: 0; flex-wrap: nowrap; justify-content: space-between; gap: 6px; margin: 0 0 2px; }
+    /* صف الترحيب: صورة + تحية + تعديل بياناتي + اللغة في صف واحد.
+       سبب خروجه عن الشاشة في الإنجليزية: الصف عنصر flex بقيمة min-width:auto الافتراضية فلا ينكمش تحت مجموع عروض أبنائه (nowrap)،
+       والتحية بأساس flex-basis:auto = عرض نصها كاملاً. الحل: min-width:0 للصف + أساس 0 للتحية فتأخذ المساحة المتبقية فقط،
+       ويلتفّ نصها لسطر ثانٍ عند الحاجة (لا قصّ ولا إخفاء) */
+    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; min-width: 0; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 6px; margin: 0 0 2px; }
     body.dh-home-screen .teacher-avatar-btn { width: 34px; height: 34px; flex: none; }
-    body.dh-home-screen .home-hero-text .home-greeting { min-width: 0; flex: 1 1 0; font-size: .9rem; text-align: start; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    body.dh-home-screen .home-hero-text .home-greeting { min-width: 0; flex: 1 1 0; font-size: .9rem; line-height: 1.35; text-align: start; white-space: normal; overflow-wrap: anywhere; }
     body.dh-home-screen .teacher-profile-edit-btn { flex: none; padding: 5px 10px; font-size: .74rem; white-space: nowrap; min-height: 30px; }
     body.dh-home-screen .dh-fast-lang { padding: 4px 10px; min-height: 30px; font-size: .74rem; flex: none; }
 
@@ -233,17 +236,14 @@
 
     /* الألعاب والأركان: الكبار + الصغار جنباً إلى جنب (الأهم)، ثم «طلابي» صف أفقي بعرض كامل */
     body.dh-home-screen .home-menu-primary.home-menu-main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--m-gap); }
-    body.dh-home-screen .home-menu-main .home-card { min-height: 0; padding: 12px; border-radius: var(--m-radius-lg); gap: 2px; justify-content: flex-start; }
+    body.dh-home-screen .home-menu-main .home-card { min-height: 0; padding: 12px; border-radius: var(--m-radius-lg); gap: 2px; justify-content: flex-start; text-align: start; }   /* home.css يثبّت text-align:right فتنقلب المحاذاة في الإنجليزية */
     body.dh-home-screen .home-menu-main .home-card:hover { transform: none; }
     body.dh-home-screen .home-menu-main .home-card-adult { order: 1; }
     body.dh-home-screen .home-menu-main .home-card-kids { order: 2; }
     body.dh-home-screen .home-menu-main .home-card-icon { width: var(--m-icon-tile); height: var(--m-icon-tile); border-radius: 12px; margin-bottom: 6px; }
     body.dh-home-screen .home-menu-main .home-card-icon svg { width: 22px; height: 22px; }
     body.dh-home-screen .home-menu-main .home-card-title { font-size: 1.02rem; }
-    body.dh-home-screen .home-menu-main .home-card-desc {
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        font-size: .74rem; line-height: 1.45;
-    }
+    body.dh-home-screen .home-menu-main .home-card-desc { font-size: .74rem; line-height: 1.45; }
     body.dh-home-screen .home-menu-main .home-card-arrow { display: none; }
     body.dh-home-screen .home-menu-main .home-card-students {
         order: 3; grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px;
@@ -251,7 +251,7 @@
     }
     body.dh-home-screen .home-menu-main .home-card-students .home-card-icon { margin: 0; flex: none; }
     body.dh-home-screen .home-menu-main .home-card-students .home-card-title { flex: none; }
-    body.dh-home-screen .home-menu-main .home-card-students .home-card-desc { flex: 1 1 auto; -webkit-line-clamp: 1; }
+    body.dh-home-screen .home-menu-main .home-card-students .home-card-desc { flex: 1 1 0; min-width: 0; }
     body.dh-home-screen .home-menu-main .home-card-students .home-card-arrow { display: flex; position: static; margin-inline-start: auto; flex: none; }
 
     /* «قريباً»: المتشابهات والتجويد قرصان صغيران في سطر واحد */
@@ -263,7 +263,7 @@
 
     /* أدوات المعلم: الواجبات + الثنائية بطاقتان صغيرتان متجاورتان */
     body.dh-home-screen .home-menu-secondary.home-menu-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--m-gap); }
-    body.dh-home-screen .home-menu-two .home-card { min-height: 58px; padding: 8px 10px; gap: 8px; border-radius: var(--m-radius); }
+    body.dh-home-screen .home-menu-two .home-card { min-height: 58px; padding: 8px 10px; gap: 8px; border-radius: var(--m-radius); text-align: start; }
     body.dh-home-screen .home-menu-two .home-card:hover { transform: none; }
     body.dh-home-screen .home-menu-two .home-card-icon { width: 34px; height: 34px; border-radius: 10px; flex: none; margin: 0; }
     body.dh-home-screen .home-menu-two .home-card-title { font-size: .86rem; line-height: 1.35; white-space: normal; }
@@ -321,9 +321,10 @@
     #app-root .profile-wrapper #prof-name { font-size: 1.4rem !important; }
     #app-root .profile-wrapper #btn-back-from-prof { margin-bottom: 10px !important; }
     #app-root .profile-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
-    #app-root .stat-card { padding: 10px 6px; border-radius: var(--m-radius); }
-    #app-root .stat-card h3 { font-size: .72rem !important; line-height: 1.35; }
-    #app-root .stat-card p { font-size: 1.5rem !important; margin-top: 4px !important; }
+    #app-root .stat-card { padding: 8px 6px; border-radius: var(--m-radius); }
+    #app-root .stat-card { display: flex; flex-direction: column; justify-content: space-between; }
+    #app-root .stat-card h3 { font-size: .72rem !important; line-height: 1.3; }
+    #app-root .stat-card p { font-size: 1.4rem !important; line-height: 1.15; margin-top: 4px !important; }
     #app-root .profile-wrapper > h2 { font-size: var(--m-h2) !important; }
 
     /* لوحة التقييم (settings/dashboard.html) — بادئة body إضافية لأن القالب يعرّف نفس المحدِّدات بـ !important ويُحمَّل بعد هذا الملف */
