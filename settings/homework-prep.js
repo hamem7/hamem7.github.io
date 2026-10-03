@@ -19,8 +19,8 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
 import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
-// 🌟 [جديد] بوابة مفتاح المعلم (لو انتهت صلاحية المفتاح المحفوظ أثناء الجلسة)
-import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
+// 🌟 بوابة الدخول بجوجل لنظام الواجبات (لو انتهت صلاحية الجلسة المحفوظة أثناء العمل)
+import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
 // نفس المقارنة هنا وفي core/firebase.js — راجع core/submissionStatus.js للشرح الكامل.
 // 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
@@ -1722,8 +1722,8 @@ async function saveHomeworkToDB(statusType) {
     const saveBtn = document.getElementById('btn-save-hw-publish');
     const restorePublishBtn = () => { if (saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`; };
 
-    // النشر يحتاج مفتاح المعلم (المسودة لا تحتاجه)
-    if (statusType === 'published' && !(await ensureTeacherAuth())) return;
+    // النشر يحتاج جلسة جوجل لنظام الواجبات (المسودة المحلية لا تحتاجها)
+    if (statusType === 'published' && !(await ensureHomeworkSignIn())) return;
 
     if (saveBtn) saveBtn.innerHTML = `⏳ ${t('hw_submitting')}`;
 
@@ -1819,7 +1819,7 @@ async function publishDraftFromHistory(draftId) {
     const all = await AppState.homeworkManager.getAllHomeworks() || [];
     const draft = all.find(h => String(h.id) === String(draftId));
     if (!draft || !Array.isArray(draft.questions) || draft.questions.length === 0) return alert(t('hw_draft_publish_empty'));
-    if (!(await ensureTeacherAuth())) return;
+    if (!(await ensureHomeworkSignIn())) return;
 
     let studentId = null;
     if (draft.assignedStudentName) {

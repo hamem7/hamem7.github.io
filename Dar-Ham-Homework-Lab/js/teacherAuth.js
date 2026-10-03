@@ -1,10 +1,10 @@
 // js/teacherAuth.js — 🌟 multi-teacher: the ONLY place that talks to Google Identity Services.
 // Guest-first: nothing here runs automatically on page load. It only runs when a page calls
-// ensureTeacherAuth() right before a teacher-only action (createHomework, listHomeworks, ...),
+// ensureHomeworkSignIn() right before a teacher-only action (createHomework, listHomeworks, ...),
 // exactly like the brief asks ("show the prompt only when the teacher does something that needs
-// a teacher identity"). A teacher who is already signed in (Google session OR legacy key) never
-// sees the modal — ensureTeacherAuth() resolves immediately.
-import { GOOGLE_CLIENT_ID, googleSignIn, migrateLegacyKey, isTeacherAuthed, getTeacherAuth, getTeacherKey, clearTeacherAuth, friendlyError } from './api.js';
+// a teacher identity"). A teacher who is already signed in with Google never sees the modal —
+// ensureHomeworkSignIn() resolves immediately. (🌟 2026-10-03: the old Teacher Key path was removed.)
+import { GOOGLE_CLIENT_ID, googleSignIn, isTeacherAuthed, getTeacherAuth, clearTeacherAuth, friendlyError } from './api.js';
 
 let gsiPromise = null;
 function loadGsi() {
@@ -51,11 +51,6 @@ async function handleCredential(resp) {
   err.classList.add('hidden');
   try {
     await googleSignIn(resp.credential);
-    // Old Teacher Key → Sign in with Google → new userId/ownerId: if this browser still has the
-    // legacy key saved (from before this teacher migrated), claim their pre-existing homeworks now,
-    // in the same click — best-effort, never blocks sign-in if it fails or was already claimed.
-    const legacyKey = getTeacherKey();
-    if (legacyKey) { try { await migrateLegacyKey(resp.credential, legacyKey); } catch (e) { /* best-effort */ } }
     closeModal(true);
   } catch (e) {
     err.textContent = 'تعذّر تسجيل الدخول: ' + friendlyError(e);
@@ -64,11 +59,11 @@ async function handleCredential(resp) {
 }
 
 /**
- * Resolves `true` once a teacher identity exists (Google session or legacy key), `false` if the
+ * Resolves `true` once a Google teacher session exists, `false` if the
  * teacher cancels the prompt. Guests are NEVER forced through this — only call it right before an
  * action that needs a teacher identity (see README "GUEST-FIRST EXPERIENCE").
  */
-export async function ensureTeacherAuth() {
+export async function ensureHomeworkSignIn() {
   if (isTeacherAuthed()) return true;
   try { await loadGsi(); }
   catch (e) { alert(e.message); return false; }
@@ -99,9 +94,6 @@ export function renderAuthStatus(el, onSignedOut) {
       btn.style.marginInlineStart = '8px';
       btn.addEventListener('click', () => { signOutTeacher(); paint(); if (onSignedOut) onSignedOut(); });
       el.append(span, btn);
-      el.classList.remove('hidden');
-    } else if (getTeacherKey()) {
-      el.textContent = '🔑 وضع مفتاح المعلم القديم (مؤقت)';
       el.classList.remove('hidden');
     } else {
       el.classList.add('hidden');

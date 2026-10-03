@@ -29,13 +29,6 @@
       <p class="muted">يمكنك تصفح المعمل واستخدام أدواته مباشرة كضيف. سيُطلب منك تسجيل الدخول بحساب Google فقط عند إصدار واجب أو عرض واجباتك المحفوظة.</p>
       <p class="row"><span id="auth-status" class="dh-auth-status hidden"></span><button class="btn" id="btn-google-signin">تسجيل الدخول باستخدام Google</button></p>
       <div id="auth-msg" class="banner hidden"></div>
-
-      <details id="legacy-box">
-        <summary class="muted">مفتاح المعلم القديم (اختياري — لربط واجباتك السابقة فقط)</summary>
-        <label for="teacher-key">مفتاح المعلم (Teacher Key) — يُحفظ على جهازك فقط</label>
-        <input type="password" id="teacher-key" autocomplete="off" dir="ltr">
-        <p class="muted">أدخل مفتاحك القديم هنا ثم سجّل الدخول بـ Google أعلاه: سيتم ربط واجباتك السابقة بحسابك تلقائياً في نفس الخطوة.</p>
-      </details>
     </section>
 
     <section class="card">
@@ -50,10 +43,10 @@
     </section>
   </main>
   <script type="module">
-    import { getApiUrl, setApiUrl, getTeacherKey, setTeacherKey, call, friendlyError } from './js/api.js';
-    import { ensureTeacherAuth, renderAuthStatus } from './js/teacherAuth.js';
+    import { getApiUrl, setApiUrl, call, friendlyError } from './js/api.js';
+    import { ensureHomeworkSignIn, renderAuthStatus } from './js/teacherAuth.js';
     const $ = (i) => document.getElementById(i);
-    $('api-url').value = getApiUrl(); $('teacher-key').value = getTeacherKey();
+    $('api-url').value = getApiUrl();
     const repaint = renderAuthStatus($('auth-status'));
 
     // 🌟 guest-first: this only tests server reachability — it does NOT ask for a teacher identity.
@@ -68,13 +61,9 @@
       } catch (e) { c.className = 'banner bad'; c.textContent = '❌ ' + friendlyError(e); }
     });
 
-    // Saved as soon as it's typed so a Google sign-in right after can migrate it in the same click
-    // (see js/teacherAuth.js handleCredential) — this field itself never triggers a server call.
-    $('teacher-key').addEventListener('change', () => setTeacherKey($('teacher-key').value.trim()));
-
     $('btn-google-signin').addEventListener('click', async () => {
       const m = $('auth-msg'); m.classList.remove('hidden'); m.className = 'banner info'; m.textContent = '⏳ جاري تسجيل الدخول…';
-      const ok = await ensureTeacherAuth();
+      const ok = await ensureHomeworkSignIn();
       repaint();
       if (!ok) { m.classList.add('hidden'); return; }
       m.className = 'banner ok'; m.textContent = '✅ تم تسجيل الدخول. يمكنك الآن إنشاء الواجبات وعرض نتائجك.';

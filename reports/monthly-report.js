@@ -573,29 +573,34 @@ async function buildMonthlyReportData(year, monthIndex0) {
   try {
     // 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد ديناميكي من core/firebase.js (Firestore). الآن من
     // core/homeworkApi.js: نتائج الواجبات "المعتمدة" فقط من الخادم (درجات نهائية اعتمدها المعلم)، وتُطابَق مع الطالب
-    // بمعرّف الطالب المُخزَّن مع التسليم وقت الاعتماد. تتطلب مفتاح المعلم؛ لو لم يكن مُدخلاً على هذا الجهاز نطلبه هنا
-    // (أو تظهر رسالة "تعذّر الاتصال بالسحابة" في قسم الواجبات فقط لو ألغى المعلم، وباقي التقرير يعمل كالمعتاد).
-    const { ensureTeacherAuth } = await import('../components/teacherAuthGate.js');
-    if (!(await ensureTeacherAuth())) throw new Error('teacher key required');
-    const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
-    const allSubs = await getAllSubmissionsFromCloud();
-    const mineThisMonth = allSubs.filter(s =>
-      String(s.studentId) === String(student.id) &&
-      typeof s.timestamp === 'number' && s.timestamp >= monthStart && s.timestamp < monthEnd
-    );
-    let hwTitleById = {};
-    try {
-      const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
-      allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
-    } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
-    homeworkEntries = mineThisMonth
-      .map(s => ({
-        timestamp: s.timestamp,
-        date: s.date || '',
-        title: hwTitleById[s.hwId] || s.hwId || t('mr_hw_untitled'),
-        score: typeof s.score === 'number' ? s.score : 0
-      }))
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    // بمعرّف الطالب المُخزَّن مع التسليم وقت الاعتماد.
+    // 🌟🌟 [2026-10-03] التقرير الشهري جزء من المنصة الأساسية، فلا يطلب أي تسجيل دخول أبداً: كان يستدعي
+    // بوابة دخول المعلم القديمة فتظهر نافذة الدخول (جوجل/المفتاح) داخل التقرير على أي جهاز جديد. الآن لو لم تكن جلسة
+    // نظام الواجبات موجودة على هذا الجهاز يُتخطّى قسم الواجبات بملاحظة هادئة، وباقي التقرير يعمل كالمعتاد.
+    const { isTeacherAuthed } = await import('../core/api.js');
+    if (!isTeacherAuthed()) {
+      homeworkErrorMsg = t('mr_hw_not_signed_in');
+    } else {
+      const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
+      const allSubs = await getAllSubmissionsFromCloud();
+      const mineThisMonth = allSubs.filter(s =>
+        String(s.studentId) === String(student.id) &&
+        typeof s.timestamp === 'number' && s.timestamp >= monthStart && s.timestamp < monthEnd
+      );
+      let hwTitleById = {};
+      try {
+        const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
+        allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
+      } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
+      homeworkEntries = mineThisMonth
+        .map(s => ({
+          timestamp: s.timestamp,
+          date: s.date || '',
+          title: hwTitleById[s.hwId] || s.hwId || t('mr_hw_untitled'),
+          score: typeof s.score === 'number' ? s.score : 0
+        }))
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    }
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
     homeworkErrorMsg = t('mr_cloud_error');

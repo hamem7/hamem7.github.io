@@ -1,6 +1,6 @@
 // js/teacher.js — create homework, get a link ONLY after the server confirmed persistence + a student-view check.
 import { call, callWithRetry, friendlyError, getApiUrl, isTeacherAuthed, ApiError } from './api.js';
-import { ensureTeacherAuth, renderAuthStatus } from './teacherAuth.js';
+import { ensureHomeworkSignIn, renderAuthStatus } from './teacherAuth.js';
 import { listSurahs, generateQuestions, typeSummary, typeLabel, studentLink, whatsappUrl, saveLocalCopy } from './homework.js';
 import { listStudents } from './studentRecords.js';
 
@@ -62,7 +62,7 @@ $('btn-publish').addEventListener('click', async () => {
   const btn = $('btn-publish'); btn.disabled = true; $('publish-steps').innerHTML = ''; $('link-box').classList.add('hidden');
   // 🌟 multi-teacher: publishing is exactly the action that needs a teacher identity — this is the
   // ONLY place on this page that can pop the Google Sign-In prompt, and only when not already signed in.
-  const signedIn = await ensureTeacherAuth();
+  const signedIn = await ensureHomeworkSignIn();
   repaintAuthStatus();
   if (!signedIn) { btn.disabled = false; return; }
   const assignId = $('assign').value;
@@ -105,7 +105,7 @@ async function loadList() {
     host.textContent = '';
     const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'سجّل الدخول لعرض واجباتك المنشورة.';
     const b = document.createElement('button'); b.className = 'btn small'; b.textContent = '🔐 تسجيل الدخول';
-    b.addEventListener('click', async () => { if (await ensureTeacherAuth()) { repaintAuthStatus(); loadList(); } });
+    b.addEventListener('click', async () => { if (await ensureHomeworkSignIn()) { repaintAuthStatus(); loadList(); } });
     host.append(p, b);
     return;
   }

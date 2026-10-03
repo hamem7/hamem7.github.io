@@ -1,42 +1,24 @@
 // components/teacherAuthGate.js
 // ==========================================================
-// 🌟🌟 [أُعيدت كتابته] بوابة دخول المعلم — تسجيل الدخول بجوجل (بريد إلكتروني) بدل "مفتاح المعلم"
+// 🌟🌟 [أُعيدت كتابته 2026-10-03] بوابة دخول "نظام الواجبات المنزلية" — تسجيل الدخول بجوجل فقط
 // ==========================================================
-// تاريخ الملف: كان "مفتاح المعلم" (نص سري من 12 خانة يُنشأ مرة واحدة عند إعداد الخادم) هو طريقة
-// الدخول الوحيدة (راجع النسخة القديمة من هذا الملف في تاريخ Git لو احتجتها). بعد تفعيل نظام تعدّد
-// المعلمين على الخادم (Google Apps Script + Google Sign-In، مُختبَر ومنشور فعلياً) صار بإمكان
-// المعلم الدخول ببريده مباشرة بدل حفظ/تذكّر مفتاح.
+// 🔒 حدود هذا الملف (قاعدة ثابتة):
+//   - يُستدعى فقط من نقاط نظام الواجبات: فتح شاشة الواجبات (openHomeworkPrep في core/app.js) ونشر واجب
+//     (settings/homework-prep.js). لا تستدعِه أي شاشة من المنصة الأساسية (الطلاب، الحفظ، المراجعة، الألعاب،
+//     الاختبارات، التجويد، التقارير...) — المنصة الأساسية مفتوحة لأي معلم بلا جوجل ولا بريد ولا مفتاح.
+//   - الهدف من جوجل هنا ربط بيانات الواجبات بحساب المعلم حتى يصل إليها من الهاتف والكمبيوتر، لا "منع" الدخول.
 //
-// 🔒 قرار متعمَّد: مفتاح المعلم القديم **لم يُحذف** من core/api.js ولا من هذا الملف — يبقى خط رجوع
-// كامل خلف رابط "الدخول بمفتاح المعلم القديم" أسفل زر جوجل، حتى لا تنكسر المنصة لو تعطّل تحميل
-// سكربت جوجل (حجب إعلانات، عدم توفر الخدمة في شبكة معيّنة...). أي معلم يدخل بالمفتاح القديم يرى كل
-// البيانات كما كان يحصل دائماً (المسار isLegacy في الخادم).
+// تاريخ: كان هنا "مفتاح المعلم" ثم مسار احتياطي له أسفل زر جوجل، وكان الخادم يرفض أي بريد خارج قائمة
+// TEACHER_EMAILS برسالة "هذا البريد غير مسموح له بدخول شاشة المعلم...". حُذف الاثنان نهائياً (المفتاح هنا وفي
+// core/api.js والخادم، والقائمة البيضاء من backend/Code.gs).
 //
-// 🌟 ربط الواجبات القديمة بحساب جوجل: الواجبات المنشورة قبل تفعيل هذا النظام لا مالك محدَّد لها.
-// حقل "مفتاح المعلم القديم (اختياري)" فوق زر جوجل مباشرة — لو مُلئ، يُستخدم مع تسجيل الدخول بجوجل
-// لربط هذه الواجبات بالحساب دفعة واحدة (migrateLegacyKey في core/api.js)، ولو تُرك فارغاً يسجّل
-// الدخول بجوجل فقط بلا أي عملية ربط. هذا افتراض صريح مني (Claude) لحلّ غموض "هل الربط إجباري؟" —
-// اخترت جعله اختيارياً حتى لا يُطلب من المعلم أي بيانات إضافية إلا عند نقطة استخدام فعلية (نفس مبدأ
-// بيانات المعلم/الختم في المنصة).
-//
-// ⚠️ افتراض صريح آخر: لو كانت جلسة جوجل أو المفتاح القديم محفوظَين على هذا الجهاز نعتبرهما صالحين
-// فوراً بلا أي نداء شبكة (حتى يعمل فتح الشاشة بلا إنترنت). لو أصبحا خاطئَين، يرفضهما الخادم عند أول
-// نداء فتُمسح النسخة المحلية (راجع core/homeworkApi.js) ويُطلب الدخول من جديد في المرة التالية.
-import {
-    call, ApiError, googleSignIn, migrateLegacyKey, GOOGLE_CLIENT_ID,
-    setTeacherKey, clearTeacherKey, isTeacherAuthed
-} from '../core/api.js';
+// ⚠️ افتراض صريح: لو كانت جلسة جوجل محفوظة على هذا الجهاز نعتبرها صالحة فوراً بلا نداء شبكة. لو رفضها الخادم
+// عند أول نداء تُمسح النسخة المحلية (core/homeworkApi.js) ويُطلب الدخول بجوجل من جديد في المرة التالية.
+import { ApiError, googleSignIn, GOOGLE_CLIENT_ID, isTeacherAuthed } from '../core/api.js';
 import { t } from '../core/i18n.js';
 import { AppState } from '../core/app.js';
 
-// 🌟 [حُذفت] شريحة "خروج المعلم" العائمة (injectSignOutChip) — بطلب المستخدم صراحة، لأن
-// الاستخدام الفعلي للمنصة معلم واحد فقط على جهازه الخاص، فلا فائدة عملية من تسجيل خروج/مسح
-// جلسة جوجل من نفس الجهاز بشكل متكرر. الدالة clearAnyTeacherAuth() نفسها لم تُحذف من core/api.js
-// (تبقى متاحة لو احتجناها لاحقاً)، وكذلك مفاتيح i18n (teacher_auth_signout_btn/confirm) ومحتوى
-// CSS (.dh-teacher-auth-chip) — إبقاؤها بلا استخدام حالياً أأمن من حذفها وسط ملفات مشتركة.
-
-// 🌟 [جديد] ينتظر تحميل سكربت Google Identity Services (مُحمَّل من index.html بوسم async) — لا يُفترض
-// أنه جاهز فوراً لحظة فتح المودال، لكنه عملياً يكون جاهزاً دائماً تقريباً لأنه في <head>.
+// ينتظر تحميل سكربت Google Identity Services (مُحمَّل من index.html بوسم async).
 function waitForGoogleIdentity(timeoutMs = 4000) {
     return new Promise((resolve) => {
         const start = Date.now();
@@ -63,35 +45,6 @@ function buildModal() {
     sub.className = 'dh-teacher-auth-sub';
     sub.textContent = t('teacher_auth_subtitle_google');
 
-    // ---- 🌟 [جديد] حقل اختياري لربط الواجبات القديمة قبل الضغط على زر جوجل ----
-    const migrateToggle = document.createElement('button');
-    migrateToggle.type = 'button';
-    migrateToggle.className = 'dh-teacher-auth-linklike';
-    migrateToggle.textContent = t('teacher_auth_migrate_toggle');
-    const migrateWrap = document.createElement('div');
-    migrateWrap.className = 'dh-teacher-auth-migrate-wrap';
-    migrateWrap.style.display = 'none';
-    const migrateLabel = document.createElement('label');
-    migrateLabel.className = 'dh-teacher-auth-label';
-    migrateLabel.htmlFor = 'teacher-auth-migrate-key';
-    migrateLabel.textContent = t('teacher_auth_key_label');
-    const migrateInput = document.createElement('input');
-    migrateInput.type = 'password';
-    migrateInput.id = 'teacher-auth-migrate-key';
-    migrateInput.className = 'dh-teacher-auth-input';
-    migrateInput.autocomplete = 'off';
-    migrateInput.dir = 'ltr';
-    const migrateHint = document.createElement('p');
-    migrateHint.className = 'dh-teacher-auth-hint';
-    migrateHint.textContent = t('teacher_auth_migrate_hint');
-    migrateWrap.append(migrateLabel, migrateInput, migrateHint);
-    migrateToggle.addEventListener('click', () => {
-        const showing = migrateWrap.style.display !== 'none';
-        migrateWrap.style.display = showing ? 'none' : 'block';
-        if (!showing) migrateInput.focus();
-    });
-
-    // ---- زر جوجل ----
     const googleBtnHost = document.createElement('div');
     googleBtnHost.className = 'dh-teacher-auth-google-btn';
     googleBtnHost.id = 'teacher-auth-google-btn';
@@ -103,48 +56,6 @@ function buildModal() {
     googleLoading.style.display = 'none';
     googleLoading.textContent = t('teacher_auth_loading');
 
-    // ---- فاصل + رابط الدخول بالمفتاح القديم فقط ----
-    const divider = document.createElement('div');
-    divider.className = 'dh-teacher-auth-divider';
-    divider.textContent = t('teacher_auth_or');
-    const legacyToggle = document.createElement('button');
-    legacyToggle.type = 'button';
-    legacyToggle.className = 'dh-teacher-auth-linklike';
-    legacyToggle.textContent = t('teacher_auth_legacy_toggle');
-
-    // ---- نموذج المفتاح القديم (كما كان بالضبط، مسار احتياطي كامل) ----
-    const legacyForm = document.createElement('form');
-    legacyForm.noValidate = true;
-    legacyForm.className = 'dh-teacher-auth-legacy-form';
-    legacyForm.style.display = 'none';
-    const legacyLabel = document.createElement('label');
-    legacyLabel.className = 'dh-teacher-auth-label';
-    legacyLabel.htmlFor = 'teacher-auth-key';
-    legacyLabel.textContent = t('teacher_auth_key_label');
-    const legacyInput = document.createElement('input');
-    legacyInput.type = 'password';
-    legacyInput.id = 'teacher-auth-key';
-    legacyInput.className = 'dh-teacher-auth-input';
-    legacyInput.autocomplete = 'off';
-    legacyInput.dir = 'ltr';
-    const legacyErr = document.createElement('div');
-    legacyErr.className = 'dh-teacher-auth-error';
-    legacyErr.style.display = 'none';
-    const legacyActions = document.createElement('div');
-    legacyActions.className = 'dh-teacher-auth-actions';
-    const legacySubmit = document.createElement('button');
-    legacySubmit.type = 'submit';
-    legacySubmit.className = 'btn dh-teacher-auth-submit';
-    legacySubmit.textContent = t('teacher_auth_submit_btn');
-    legacyActions.append(legacySubmit);
-    legacyForm.append(legacyLabel, legacyInput, legacyErr, legacyActions);
-
-    legacyToggle.addEventListener('click', () => {
-        const showing = legacyForm.style.display !== 'none';
-        legacyForm.style.display = showing ? 'none' : 'block';
-        if (!showing) legacyInput.focus();
-    });
-
     const cancelWrap = document.createElement('div');
     cancelWrap.className = 'dh-teacher-auth-actions';
     const cancel = document.createElement('button');
@@ -153,96 +64,63 @@ function buildModal() {
     cancel.textContent = t('teacher_auth_cancel_btn');
     cancelWrap.append(cancel);
 
-    // 🌟 [عدّل 2026-10-01 — فحص سهولة الاستخدام] كان المعلم الجديد يرى 3 مسارات دخول معاً (ربط واجبات قديمة +
-    // زر جوجل + مفتاح قديم). الآن يظهر زر جوجل وحده، وبقية الخيارات (ربط الواجبات القديمة والمفتاح القديم) داخل
-    // رابط صغير "خيارات دخول أخرى" — لم يُحذف أي منها (خط رجوع كامل كما هو في التعليق أعلى الملف). لو تعذّر زر جوجل
-    // تُفتح الخيارات تلقائياً (more.open = true في ensureTeacherAuth).
-    const more = document.createElement('details');
-    more.className = 'dh-teacher-auth-more';
-    const moreSummary = document.createElement('summary');
-    moreSummary.textContent = t('teacher_auth_more_options');
-    more.append(moreSummary, migrateToggle, migrateWrap, divider, legacyToggle, legacyForm);
-
-    box.append(
-        title, sub,
-        googleBtnHost, googleLoading, googleErr,
-        more,
-        cancelWrap
-    );
+    box.append(title, sub, googleBtnHost, googleLoading, googleErr, cancelWrap);
     overlay.append(box);
-    return {
-        overlay, cancel, more,
-        googleBtnHost, googleErr, googleLoading, migrateInput,
-        legacyForm, legacyInput, legacyErr, legacySubmit
-    };
+    return { overlay, cancel, googleBtnHost, googleErr, googleLoading };
 }
 
-// 🌟 [جديد 2026-10-01] يحوّل خطأ تسجيل الدخول بجوجل إلى مفتاح i18n دقيق.
+// يحوّل خطأ تسجيل الدخول بجوجل إلى مفتاح i18n دقيق.
 // ⚠️ افتراض صريح: الخادم يردّ برسائل إنجليزية ثابتة (Code.gs → verifyGoogleIdToken_)، فنعتمد على الرمز code
 // أولاً ثم على نص الرسالة للتفريق بين أسباب UNAUTHORIZED المختلفة.
 function googleErrorKey(ex) {
     if (!(ex instanceof ApiError)) return 'teacher_auth_google_error';
     if (ex.kind === 'network' || ex.kind === 'timeout' || ex.kind === 'bad_response') return 'teacher_auth_error_network';
     const msg = String(ex.message || '');
-    if (ex.code === 'NOT_CONFIGURED') return 'teacher_auth_error_not_configured';
     if (ex.code === 'BUSY') return 'teacher_auth_error_busy';
     if (ex.code === 'UNAUTHORIZED') {
-        if (/not allowed/i.test(msg)) return 'teacher_auth_error_not_allowed';
+        // 🌟 [2026-10-03] الخادم الجديد لا يرفض أي بريد موثَّق. هذه الرسالة لا تأتي إلا من نسخة قديمة من الخادم ما زالت
+        // تطبّق قائمة TEACHER_EMAILS — فنقول ذلك صراحة بدل "اطلب إضافتك لقائمة المعلمين".
+        if (/not allowed/i.test(msg)) return 'teacher_auth_error_server_outdated';
+        if (/no verified email/i.test(msg)) return 'teacher_auth_error_unverified';
         if (/different app/i.test(msg)) return 'teacher_auth_error_wrong_app';
         if (/invalid or expired/i.test(msg)) return 'teacher_auth_error_expired';
-        if (/wrong teacher key/i.test(msg)) return 'teacher_auth_error';
         return 'teacher_auth_google_error';
     }
     return 'teacher_auth_error_server';
 }
 
-// تُرجع true لو المعلم مفوَّض (بجلسة جوجل أو المفتاح القديم)، و false لو ألغى.
-export async function ensureTeacherAuth() {
-    if (isTeacherAuthed()) {
-        return true;
-    }
+// تُرجع true لو المعلم مسجَّل بجوجل لنظام الواجبات، و false لو ألغى.
+export async function ensureHomeworkSignIn() {
+    if (isTeacherAuthed()) return true;
     return new Promise((resolve) => {
-        const {
-            overlay, cancel, more,
-            googleBtnHost, googleErr, googleLoading, migrateInput,
-            legacyForm, legacyInput, legacyErr, legacySubmit
-        } = buildModal();
+        const { overlay, cancel, googleBtnHost, googleErr, googleLoading } = buildModal();
         document.body.appendChild(overlay);
 
         let settled = false;
         const finish = (ok) => { if (settled) return; settled = true; overlay.remove(); resolve(ok); };
-
         cancel.addEventListener('click', () => finish(false));
 
-        // ---- مسار جوجل (الطريقة الأساسية الجديدة) ----
         async function handleGoogleCredential(response) {
             googleErr.style.display = 'none';
             googleLoading.style.display = 'block';
             try {
-                const legacyKey = migrateInput.value.trim();
-                if (legacyKey) await migrateLegacyKey(response.credential, legacyKey);
-                else await googleSignIn(response.credential);
+                await googleSignIn(response.credential);
                 finish(true);
             } catch (ex) {
                 googleLoading.style.display = 'none';
-                // 🌟 [إصلاح 2026-10-01] كان أي ApiError (حتى رفض الخادم الصريح) يظهر كـ"تعذّر الاتصال بالخادم" فيُخفي
-                // السبب الحقيقي (مثل بريد غير مسموح به). الآن تُعرض رسالة بحسب نوع الخطأ؛ والاتصال الفعلي وحده يبقى "تعذّر الاتصال".
                 googleErr.textContent = t(googleErrorKey(ex));
                 googleErr.style.display = 'block';
             }
         }
 
+        const showGoogleUnavailable = () => {
+            googleBtnHost.style.display = 'none';
+            googleErr.textContent = t('teacher_auth_google_error');
+            googleErr.style.display = 'block';
+        };
+
         waitForGoogleIdentity().then((ready) => {
-            if (!ready) {
-                // 🌟 تعذّر تحميل سكربت جوجل (حجب/إنترنت) — لا نكسر شيئاً، نُظهر المفتاح القديم مباشرة
-                googleBtnHost.style.display = 'none';
-                googleErr.textContent = t('teacher_auth_google_error');
-                googleErr.style.display = 'block';
-                legacyForm.style.display = 'block';
-                more.open = true;
-                legacyInput.focus();
-                return;
-            }
+            if (!ready) return showGoogleUnavailable();
             try {
                 window.google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
@@ -253,33 +131,7 @@ export async function ensureTeacherAuth() {
                     text: 'signin_with', locale: AppState.currentLang === 'en' ? 'en' : 'ar'
                 });
             } catch (ex) {
-                googleBtnHost.style.display = 'none';
-                googleErr.textContent = t('teacher_auth_google_error');
-                googleErr.style.display = 'block';
-                legacyForm.style.display = 'block';
-                more.open = true;
-            }
-        });
-
-        // ---- مسار المفتاح القديم (خط رجوع كامل — نفس منطق النسخة السابقة من هذا الملف) ----
-        legacyForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const key = legacyInput.value.trim();
-            if (!key) { legacyInput.focus(); return; }
-            legacySubmit.disabled = true;
-            legacySubmit.textContent = t('teacher_auth_loading');
-            legacyErr.style.display = 'none';
-            try {
-                setTeacherKey(key);
-                await call('authCheck', {}, { teacher: true });      // تحقق حقيقي من الخادم
-                finish(true);
-            } catch (ex) {
-                clearTeacherKey();
-                const wrongKey = (ex instanceof ApiError) && (ex.code === 'UNAUTHORIZED' || ex.code === 'LOCKED');
-                legacyErr.textContent = t(wrongKey ? 'teacher_auth_error' : 'teacher_auth_error_network');
-                legacyErr.style.display = 'block';
-                legacySubmit.disabled = false;
-                legacySubmit.textContent = t('teacher_auth_submit_btn');
+                showGoogleUnavailable();
             }
         });
     });

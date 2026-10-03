@@ -1,5 +1,6 @@
 // js/diagnostics.js — real-world backend checks. Run against the DEPLOYED /exec URL from a real device.
-import { call, ApiError, getApiUrl, getTeacherKey } from './api.js';
+import { call, ApiError, getApiUrl } from './api.js';
+import { ensureHomeworkSignIn } from './teacherAuth.js';
 
 const $ = (id) => document.getElementById(id);
 const results = [];
@@ -38,15 +39,21 @@ async function runAll() {
   results.length = 0; lat.length = 0; $('verdict').classList.add('hidden');
   const state = { hwId: null, subIds: [], names: [] };
   if (!getApiUrl()) { need(false, 'no api url'); }
+  // 🌟 [2026-10-03] teacher-only checks need a Google session (the Teacher Key no longer exists).
+  if (!(await ensureHomeworkSignIn())) return;
   $('btn-run').disabled = true;
 
   await run('1. GET ping عبر redirect (الرد مقروء من المتصفح)', async () => { const { v, ms } = await timed(() => call('ping', {})); need(v.configured, 'الخادم يعمل لكن setup() لم يُشغَّل'); return { ms, detail: 'server v' + v.version }; });
-  await run('2. POST بدون preflight (text/plain) + مفتاح المعلم', async () => { const { ms } = await timed(() => call('authCheck', {}, { teacher: true })); return { ms }; });
+  await run('2. POST بدون preflight (text/plain) + جلسة جوجل للمعلم', async () => { const { ms } = await timed(() => call('authCheck', {}, { teacher: true })); return { ms }; });
   await run('3. خطأ الخادم يصل مقروءاً (GET على أمر معلم → METHOD_NOT_ALLOWED)', async () => {
     try { await call('listSubmissions', {}, { method: 'GET' }); } catch (e) { need(e.code === 'METHOD_NOT_ALLOWED', 'code=' + e.code); return { detail: 'CORS/redirect يسمح بقراءة أخطاء الخادم' }; }
     need(false, 'كان يجب أن يفشل');
   });
-  await run('4. مفتاح خاطئ يُرفض (UNAUTHORIZED)', async () => { try { await call('authCheck', { teacherKey: 'WRONG-' + rnd() }); } catch (e) { need(e.code === 'UNAUTHORIZED', 'code=' + e.code); return; } need(false, 'قُبل مفتاح خاطئ!'); });
+  await run('4. جلسة خاطئة أو مفتاح معلم قديم يُرفضان (UNAUTHORIZED)', async () => {
+    for (const bad of [{ userId: 'T_wrong', sessionKey: 'WRONG-' + rnd() }, { teacherKey: 'WRONG-' + rnd() }]) {
+      try { await call('authCheck', bad); need(false, 'قُبل تفويض خاطئ!'); } catch (e) { need(e.code === 'UNAUTHORIZED', 'code=' + e.code); }
+    }
+  });
 
   const created = await run('5. إنشاء واجب: الخادم يحفظ ويعيد قراءته (persisted)', async () => {
     const { v, ms } = await timed(() => call('createHomework', { homework: { questions: FIX(), meta: { diagnostic: true, at: new Date().toISOString() } } }, { teacher: true, write: true, timeoutMs: 30000 }));

@@ -9,7 +9,7 @@
 //
 // ⚠️ افتراض صريح: تسليم الطالب الذي "ينتظر تصحيحاً" = حالته في الخادم submitted أو graded وبه سؤال يدوي بلا
 // درجة (نفس تعريف submissionNeedsGrading المستخدم سابقاً بلا أي تغيير).
-import { call, callWithRetry, ApiError, clearAnyTeacherAuth } from './api.js';
+import { call, callWithRetry, ApiError, clearTeacherAuth } from './api.js';
 import { submissionNeedsGrading } from './submissionStatus.js';
 import { t } from './i18n.js';
 
@@ -23,7 +23,7 @@ export function friendlyErrorText(e) {
     if (!(e instanceof ApiError)) return String((e && e.message) || e);
     const map = {
         NETWORK: 'hw_err_network', TIMEOUT: 'hw_err_timeout', BAD_RESPONSE: 'hw_err_bad_response',
-        UNAUTHORIZED: 'hw_err_unauthorized', LOCKED: 'hw_err_locked', NOT_FOUND: 'hw_err_not_found',
+        UNAUTHORIZED: 'hw_err_unauthorized', NOT_FOUND: 'hw_err_not_found',
         CLOSED: 'hw_err_closed', ALREADY_SUBMITTED: 'hw_err_already', BUSY: 'hw_err_busy',
         NOT_PERSISTED: 'hw_err_not_persisted', PERSIST_VERIFY_FAILED: 'hw_err_not_persisted',
         UNGRADED_QUESTIONS: 'hw_err_ungraded', VERSION_CONFLICT: 'hw_err_conflict'
@@ -31,13 +31,11 @@ export function friendlyErrorText(e) {
     return map[e.code] ? t(map[e.code]) : (t('hw_err_generic') + ' (' + (e.code || e.kind) + ')');
 }
 
-// نداء خاص بالمعلم: لو رفض الخادم التفويض (مفتاح قديم أو جلسة جوجل) نمسحه محلياً فيُطلب من المعلم
-// تسجيل الدخول من جديد في المرة التالية.
-// 🌟 [عدّل] كان يمسح مفتاح المعلم القديم فقط (clearTeacherKey) — الآن يمسح أي تفويض فعّال (جلسة
-// جوجل أو المفتاح القديم) عبر clearAnyTeacherAuth حتى لا تعلق شاشة معلم دخل بجوجل ثم رُفضت جلسته.
+// 🌟 لو رفض الخادم الجلسة (UNAUTHORIZED) نمسح جلسة جوجل المحلية حتى يُطلب تسجيل الدخول بجوجل من جديد
+// عند فتح شاشة الواجبات التالية بدل أن تعلق الشاشة على جلسة مرفوضة.
 async function teacherCall(action, params, opts = {}) {
     try { return await call(action, params, { teacher: true, ...opts }); }
-    catch (e) { if (e instanceof ApiError && e.code === 'UNAUTHORIZED') clearAnyTeacherAuth(); throw e; }
+    catch (e) { if (e instanceof ApiError && e.code === 'UNAUTHORIZED') clearTeacherAuth(); throw e; }
 }
 
 // ---------- المعلم: نشر واجب ----------
