@@ -146,7 +146,7 @@ export class QuranEngine {
 
         let qBody = `
         <div style="text-align: center;">
-            <div class="quran-text" style="font-size: 2.8rem; border: 2px dashed #10b981; border-radius: 15px; padding: 20px; color: var(--primary); line-height: 1.6; margin-bottom: 25px; background: #f0fdf4;">﴿ ${cleanText} ﴾</div>
+            <div class="quran-text" style="font-size: 2.8rem; border: 2px dashed #10b981; border-radius: 15px; padding: 20px; color: var(--primary); line-height: 1.6; margin-bottom: 25px; background: #f0fdf4;">﴿\u00A0${cleanText}\u00A0﴾</div>
             <h3 style="font-size: 1.6rem; color:#0f172a; font-weight:bold; margin-bottom:15px;">${tl('qe_visual_question', 'في أي صفحة تقع هذه الآية من المصحف الشريف؟ (اليمنى أم اليسرى؟)')}</h3>
             
             <div style="display: flex; justify-content: center; gap: 15px; align-items: flex-end; margin-top: 15px;">
@@ -205,7 +205,7 @@ export class QuranEngine {
 
     async generateGuessSurahGame(ayahsPool, chunkIndex, totalChunks) {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text);
-        return { type: 'guess_surah', questionTitle: "خمن السورة 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${cleanText} ﴾</div>`, fullAnswer: labelL(ayah.surahName), ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'guess_surah', questionTitle: "خمن السورة 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${cleanText}\u00A0﴾</div>`, fullAnswer: labelL(ayah.surahName), ayahObj: ayah, reportText: cleanText }; 
     }
     
     async generateNextAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
@@ -219,7 +219,7 @@ export class QuranEngine {
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
-        return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
+        return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
@@ -229,7 +229,7 @@ export class QuranEngine {
         else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
-        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
+        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
     async generateOrderGame(ayahsPool, isKids, chunkIndex, totalChunks) { 
@@ -249,7 +249,7 @@ export class QuranEngine {
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
         if(currentIndex > 0 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex - 1].surahNumber === targetAyah.surahNumber && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
-        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿ ${prevText} ﴾<br><span style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:bold; color:var(--primary);">( .................... )</span><br>﴿ ${nextText} ﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
+        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿\u00A0${prevText}\u00A0﴾<br><span style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:bold; color:var(--primary);">( .................... )</span><br>﴿\u00A0${nextText}\u00A0﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
     }
     
     async generateReciteGame(ayahsPool, isJuz, isKids, chunkIndex, totalChunks) { 
@@ -271,7 +271,7 @@ export class QuranEngine {
         // components/reciteRangePicker.js ليحدد المعلم "من آية ... إلى آية ..." موضع الخطأ بالتحديد
         let reciteAyahs = [];
         if (totalSurahAyahs <= 10 && surahFullyInPool) {
-            fullText = surah.ayahs.map(a => ` ﴿ ${cleanAyahText(a.text)} ﴾ `).join("");
+            fullText = surah.ayahs.map(a => ` ﴿\u00A0${cleanAyahText(a.text)}\u00A0﴾ `).join("");
             reciteAyahs = surah.ayahs.map(a => ({ num: a.numberInSurah, text: cleanAyahText(a.text) }));
             qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">${tl('qe_recite_surah_pre', 'سمّع سورة')} <span style="${isKids ? 'color:#db2777;' : 'color:var(--danger)'}">[ ${nameL(startAyah.surahName)} ]</span> ${tl('qe_recite_surah_post', 'كاملة')}</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
         } else {
@@ -279,12 +279,12 @@ export class QuranEngine {
             if (startIdx < reciteLo) startIdx = reciteLo;
             if (startIdx + jump > reciteHi) startIdx = Math.max(reciteLo, reciteHi - jump);
             let endIdx = Math.min(startIdx + jump, reciteHi); let actualCount = (endIdx - startIdx) + 1;
-            for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿ ${cleanAyahText(surah.ayahs[i].text)} ﴾ `; 
+            for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿\u00A0${cleanAyahText(surah.ayahs[i].text)}\u00A0﴾ `; 
             for(let i=startIdx; i<=endIdx; i++) reciteAyahs.push({ num: surah.ayahs[i].numberInSurah, text: cleanAyahText(surah.ayahs[i].text) });
             let startClean = cleanAyahText(surah.ayahs[startIdx].text); let endClean = cleanAyahText(surah.ayahs[endIdx].text);
             let startWords = startClean.split(/\s+/); let startHalf = startWords.length > 3 ? startWords.slice(0, Math.ceil(startWords.length / 2)).join(" ") + " ...." : startClean + " ....";
             let endWords = endClean.split(/\s+/); let endHalf = endWords.length > 3 ? ".... " + endWords.slice(Math.floor(endWords.length / 2)).join(" ") : ".... " + endClean;
-            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} <span style="${isKids ? 'color:#db2777;' : ''}">[ ${nameL(startAyah.surahName)} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${startHalf} ﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${endHalf} ﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
+            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} <span style="${isKids ? 'color:#db2777;' : ''}">[ ${nameL(startAyah.surahName)} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${startHalf}\u00A0﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${endHalf}\u00A0﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
         }
         return { type: isKids ? 'kids_recite' : 'recite', questionTitle: qTitle, questionBody: qBody, fullAnswer: fullText, ayahObj: startAyah, reportText: reportText, reciteAyahs: reciteAyahs, reciteSurahName: startAyah.surahName }; 
     }
@@ -303,7 +303,7 @@ export class QuranEngine {
         // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
         for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx]); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
         const wrongWords = [...words]; wrongWords[replaceIdx] = stolenWord; 
-        return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${wrongWords.join(" ")} ﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${wrongWords.join(" ")}\u00A0﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateCompleteAyahGame(ayahsPool, chunkIndex, totalChunks) {
@@ -312,7 +312,7 @@ export class QuranEngine {
         if (pos === 0) { hiddenPart = displayWords.splice(0, hideCount).join(' '); displayWords.unshift("....."); } 
         else if (pos === 2) { hiddenPart = displayWords.splice(words.length - hideCount, hideCount).join(' '); displayWords.push("....."); } 
         else { let mid = Math.floor(words.length / 2) - Math.floor(hideCount / 2); hiddenPart = displayWords.splice(mid, hideCount).join(' '); displayWords.splice(mid, 0, "....."); }
-        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${displayWords.join(' ')} ﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
+        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
     }
 
     // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تُستخدم في ركن الكبار وركن الأطفال معاً (نفس

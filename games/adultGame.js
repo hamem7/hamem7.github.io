@@ -606,11 +606,11 @@ async function playNextMission() {
                 originalBodyHTML = '';
             } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
                 originalBodyHTML = `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
-                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
+                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.text} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
@@ -641,7 +641,7 @@ async function playNextMission() {
                 if (orderShufTitleEl) orderShufTitleEl.innerHTML = t('shuffled_ayahs');
                 buildOrderGameUI();
                 document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="font-size:1.3rem; font-weight:bold; margin:10px 0;">${t('correct_order')}:</div>` +
-                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
+                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
                 return;
             }
 
@@ -671,7 +671,7 @@ async function playNextMission() {
                 document.getElementById('game-answer').innerHTML = wItem.fullAnswer;
             } else {
                 let extraCorrectAns = (wItem.correctAns && wItem.questionType === 'complete_ayah') ? `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${wItem.correctAns}</span>` : '';
-                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>${extraCorrectAns}`;
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>${extraCorrectAns}`;
             }
             return;
         }
@@ -725,7 +725,7 @@ async function playNextMission() {
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkWordSurahFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
                 if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkWordSurahFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
-                linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkWordSurahFallbackAnsHTML;
             }
         } else if (type === 'visual_memory') {
@@ -783,7 +783,7 @@ async function playNextMission() {
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
                 if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
-                linkFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                linkFallbackAnsHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkFallbackAnsHTML;
             }
         } else {
@@ -809,7 +809,7 @@ async function playNextMission() {
                 if(GameState.currentData.type === 'recite') ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( ${localizeGenerated(GameState.currentData.reportText).replace(/^(تسميع من |تسميع |Reciting from |Reciting )/, '')} )</div>`;
                 else ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
             }
-            ansHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+            ansHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             
             if(GameState.currentData.correctAns && GameState.currentData.type === 'complete_ayah') {
                 ansHTML += `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${GameState.currentData.correctAns}</span>`;
@@ -822,7 +822,7 @@ async function playNextMission() {
 
 function showHint() { 
     GameState.hintUsed = true; 
-    document.getElementById('hint-text').innerText = `﴿ ${GameState.currentData.hint} ﴾`; 
+    document.getElementById('hint-text').innerText = `﴿\u00A0${GameState.currentData.hint}\u00A0﴾`; 
     document.getElementById('hint-text').style.display = 'block'; 
     document.getElementById('hint-btn').style.display = 'none'; 
 }

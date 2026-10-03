@@ -448,11 +448,11 @@ async function playNextMission() {
             if (isInteractiveWordOrder || linkRebuilt) {
                 originalBodyHTML = '';
             } else if (wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) && wItem.originalWords.length) {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.originalWords.join(' ')} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.originalWords.join(' ')}\u00A0﴾</div>`;
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.text} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
@@ -512,7 +512,7 @@ async function playNextMission() {
             // 🌟 [جديد] كانت شاشة علاج الخطأ عند الأطفال لا تعرض الإجابة الصحيحة إطلاقاً
             // (خلافاً لنسخة الكبار) — أضفناها هنا مع زر "إظهار الإجابة للمطابقة" 🌟
             document.getElementById('show-ans-btn').style.display = 'inline-block';
-            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             return;
         }
 
@@ -588,7 +588,7 @@ async function playNextMission() {
                 document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
                 // 🌟 إظهار زر الإجابة في التسميع للأطفال 🌟
                 document.getElementById('show-ans-btn').style.display = 'inline-block';
-                document.getElementById('game-answer').innerHTML = `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                document.getElementById('game-answer').innerHTML = `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             } else {
                 document.getElementById('teacher-eval-area').style.display = 'block'; 
                 let optsContainer = document.getElementById('kids-options-container'); 
@@ -604,7 +604,7 @@ async function playNextMission() {
                     GameState.currentData.options.forEach(opt => {
                         let btn = document.createElement('button');
                         btn.className = 'kids-mcq-btn quran-text';
-                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿ ${opt} ﴾`;
+                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿\u00A0${opt}\u00A0﴾`;
                         let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
                         // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في
                         // بيانات السؤال (راجع generateKidsListenAyah في engine/kidsEngine.js)،
