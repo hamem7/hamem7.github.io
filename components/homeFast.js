@@ -49,20 +49,16 @@ const NEW_KEYS = {
         bnav_home: 'الرئيسية',
         bnav_students: 'طلابي',
         bnav_evaluate: 'اختبار',
-        bnav_games: 'ألعاب',
         bnav_adult: 'الكبار',
         bnav_kids: 'الأطفال',
         bnav_homework: 'الواجبات',
         bnav_dual: 'ثنائي',
         bnav_more: 'المزيد',
+        bnav_tasks: 'مهام',
+        sheet_tasks_title: 'مهام اليوم',
         bnav_kids_short: 'الصغار',
-        sheet_games_title: 'الألعاب',
         sheet_more_title: 'المزيد',
         sheet_close: 'إغلاق',
-        sheet_adult_desc: 'ألعاب الحفظ والمراجعة للكبار',
-        sheet_kids_desc: 'ألعاب ممتعة للصغار',
-        sheet_search_title: 'ابدأ بطالب مباشرة',
-        sheet_search_desc: 'ابحث عن الاسم ثم اختر الركن',
         sheet_sim_title: 'تحدي المتشابهات',
         sheet_tajweed_title: 'أبطال التجويد',
         sheet_soon_tag: 'قيد التطوير',
@@ -93,20 +89,16 @@ const NEW_KEYS = {
         bnav_home: 'Home',
         bnav_students: 'Students',
         bnav_evaluate: 'Test',
-        bnav_games: 'Games',
         bnav_adult: 'Adults',
         bnav_kids: 'Kids',
         bnav_homework: 'Homework',
         bnav_dual: 'Dual',
         bnav_more: 'More',
+        bnav_tasks: 'Tasks',
+        sheet_tasks_title: "Today's tasks",
         bnav_kids_short: 'Kids',
-        sheet_games_title: 'Games',
         sheet_more_title: 'More',
         sheet_close: 'Close',
-        sheet_adult_desc: 'Memorization & review games for adults',
-        sheet_kids_desc: 'Fun games for children',
-        sheet_search_title: 'Start with a student',
-        sheet_search_desc: 'Search the name, then pick the corner',
         sheet_sim_title: 'Similar Verses Challenge',
         sheet_tajweed_title: 'Tajweed Heroes',
         sheet_soon_tag: 'In development',
@@ -327,30 +319,24 @@ function buildLayout() {
 let bnav = null;
 function goHome() { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadSplashScreen(); }
 function goStudents() { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadMyStudentsScreen(); }
-let pendingFocus = false;
 let searchApi = null;
-async function goEvaluate() {
-    if (document.body.dataset.dhScreen === HOME_SCREEN && searchApi) { searchApi.focus(); return; }
-    pendingFocus = true;
-    await goHome();
-}
-// 🌟 [إعادة هيكلة 2026-10-03 — مراجعة تجربة الهاتف بطلب المعلم] الشريط السفلي بحسب أولوية المعلم المعلنة:
-//   الرئيسية · الألعاب · الكبار · الصغار · طلابي · المزيد
-//   - "الألعاب" كان يكتفي بتركيز مربع البحث (لا يفتح أي لعبة)؛ صار يفتح "لوحة ألعاب" سفلية تجمع كل مداخل اللعب الموجودة فعلاً
-//     (ركن الكبار، ركن الصغار، البدء المباشر بطالب، تحدي المتشابهات، أبطال التجويد) — بلا أي شاشة أو منطق جديد.
-//   - "المزيد" لوحة سفلية للوظائف الثانوية (الواجبات، الاختبارات الثنائية، تقارير الشهر، السجل العام، الحفظ الشهري، بياناتي،
-//     اللغة، الخصوصية، التواصل) بدل حشرها في الشريط. كل عنصر يستدعي نفس الدالة التي يستدعيها زرّه الأصلي.
+// 🌟 [إعادة هيكلة 2026-10-03 — مراجعة تجربة الهاتف بطلب المعلم] الشريط السفلي بحسب أولوية المعلم:
+//   الرئيسية · الكبار · الصغار · طلابي · مهام · المزيد
+//   - «مهام» (بطلب المعلم بدل «الألعاب» التي كانت تكرر زرّي الكبار/الصغار): لوحة سفلية تعرض بطاقة «نظرة سريعة» نفسها (نفس العنصر
+//     #home-quickcard ينتقل إليها ثم يعود، بنفس البيانات والمستمعين — components/homeQuickview.js بلا تغيير في الحساب)، وعلى الزر رقم
+//     المهام المعلّقة (عيد ميلاد طالب + مراجعات مستحقة + مواجهات معلّقة) من حدث dh:tasks-count. البطاقة تُبنى في الرئيسية، فلو ضُغط
+//     الزر من شاشة أخرى نفتح الرئيسية أولًا ثم اللوحة. الرقم يُحفظ (localStorage) ليظهر في كل الشاشات حتى تُفتح الرئيسية مجددًا.
+//   - «المزيد»: الوظائف الثانوية + تحدي المتشابهات وأبطال التجويد (كانا في لوحة الألعاب). كل عنصر يستدعي نفس دالة زرّه الأصلي.
 //   when: شرط تمييز العنصر الحالي لشاشة مشتركة (login.html يخدم الركنين معاً، ويُميَّز الركن الحالي بحسب AppState.isKidsMode).
 function goAdult() { setEvaluationMode(false); return loadLoginScreen(); }
 function goKids() { setEvaluationMode(true); return loadLoginScreen(); }
 const IC = {
     home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/>',
-    games: '<rect x="3" y="7.5" width="18" height="11" rx="5.5"/><path d="M8 10.5v5M5.5 13h5"/><circle cx="15.5" cy="12" r=".9" fill="currentColor"/><circle cx="18" cy="14.2" r=".9" fill="currentColor"/>',
+    tasks: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 9l1.6 1.6L12.5 7.7M8 15l1.6 1.6 2.9-2.9M14.5 9.5H17M14.5 15.5H17"/>',
     adult: '<path d="M2 9l10-5 10 5-10 5-10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>',
     kids: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.4-4.4 4.4-6.5 8-6.5s6.6 2.1 8 6.5"/>',
     students: '<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/>',
     more: '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
-    search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
     sim: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/><path d="M7 9h1M16 9h1"/>',
     tajweed: '<path d="M12 3v18M5 8c2 0 3-1 3-3M19 8c-2 0-3-1-3-3M5 16c2 0 3 1 3 3M19 16c-2 0-3 1-3 3"/>',
     homework: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
@@ -365,11 +351,11 @@ const IC = {
 };
 const ITEMS = [
     { id: 'home', key: 'bnav_home', screens: [HOME_SCREEN], run: goHome, icon: IC.home },
-    { id: 'games', key: 'bnav_games', screens: [SIM_SCREEN, TAJWEED_SCREEN], run: () => openSheet('games'), icon: IC.games, accent: true },
     { id: 'adult', key: 'bnav_adult', screens: [LOGIN_SCREEN], when: () => !AppState.isKidsMode, run: goAdult, icon: IC.adult },
     { id: 'kids', key: 'bnav_kids_short', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: IC.kids },
     { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: IC.students },
-    { id: 'more', key: 'bnav_more', screens: ['settings/homework-prep.html', 'dualtests/dual-test-setup.html'], run: () => openSheet('more'), icon: IC.more }
+    { id: 'tasks', key: 'bnav_tasks', screens: [], run: openTasks, icon: IC.tasks },
+    { id: 'more', key: 'bnav_more', screens: ['settings/homework-prep.html', 'dualtests/dual-test-setup.html', SIM_SCREEN, TAJWEED_SCREEN], run: () => openSheet('more'), icon: IC.more }
 ];
 
 // ---------------------------------------------------------------------------
@@ -381,19 +367,14 @@ async function openProfile() {
     document.getElementById('teacher-profile-edit-btn')?.click();
 }
 function sheetItems(kind) {
-    if (kind === 'games') return [
-        { key: 'btn_adult', desc: 'sheet_adult_desc', icon: IC.adult, tone: 'adult', run: goAdult, big: true },
-        { key: 'btn_kids', desc: 'sheet_kids_desc', icon: IC.kids, tone: 'kids', run: goKids, big: true },
-        { key: 'sheet_search_title', desc: 'sheet_search_desc', icon: IC.search, run: goEvaluate, wide: true },
-        { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
-        { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection }
-    ];
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
         { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
         { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
         { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },
+        { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
+        { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
         { key: 'sheet_profile', icon: IC.profile, run: openProfile },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
         { key: 'sheet_privacy', icon: IC.privacy, href: 'privacy.html' },
@@ -423,8 +404,17 @@ function ensureSheet() {
     document.body.appendChild(sheet);
     return sheet;
 }
+// «مهام»: بطاقة #home-quickcard نفسها تنتقل إلى اللوحة ثم تعود لمكانها في الرئيسية عند الإغلاق (هاتف: .home-quick-mobile، وإلا
+// خانة سطح المكتب). لو تغيّرت الشاشة واللوحة مفتوحة تُترك البطاقة القديمة لتُحذف مع اللوحة (الرئيسية الجديدة تبني بطاقتها).
+function returnTasksCard() {
+    const card = sheet && sheet.querySelector('#home-quickcard');
+    if (!card) return;
+    const home = document.querySelector('.home-quick-mobile') || document.getElementById('home-quickcard-slot');
+    if (home && document.body.dataset.dhScreen === HOME_SCREEN) home.appendChild(card); else card.remove();
+}
 function closeSheet() {
     if (!sheet || sheet.hidden) return;
+    returnTasksCard();
     sheet.hidden = true;
     document.body.classList.remove('dh-sheet-open');
     bnav?.querySelectorAll('.dh-bnav-item').forEach(b => b.classList.remove('is-open'));
@@ -436,16 +426,20 @@ function openSheet(kind) {
     sheetReturnFocus = document.activeElement;
     el.dataset.kind = kind;
     const title = el.querySelector('.dh-sheet-title');
-    const titleKey = kind === 'games' ? 'sheet_games_title' : 'sheet_more_title';
+    const titleKey = kind === 'tasks' ? 'sheet_tasks_title' : 'sheet_more_title';
     title.setAttribute('data-i18n', titleKey);
     title.textContent = t(titleKey);
     const grid = el.querySelector('.dh-sheet-grid');
     grid.className = 'dh-sheet-grid is-' + kind;
+    returnTasksCard();
     grid.innerHTML = '';
-    sheetItems(kind).forEach(it => {
+    if (kind === 'tasks') {
+        const card = document.getElementById('home-quickcard');
+        if (card) grid.appendChild(card);
+    } else sheetItems(kind).forEach(it => {
         const b = document.createElement(it.href ? 'a' : 'button');
         if (it.href) { b.href = it.href; b.target = '_blank'; b.rel = 'noopener noreferrer'; } else { b.type = 'button'; }
-        b.className = 'dh-sheet-item' + (it.big ? ' is-big' : '') + (it.wide ? ' is-wide' : '') + (it.tone ? ' is-' + it.tone : '');
+        b.className = 'dh-sheet-item';
         b.innerHTML = `<span class="dh-sheet-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span>`;
         const txt = document.createElement('span');
         txt.className = 'dh-sheet-txt';
@@ -470,6 +464,27 @@ function openSheet(kind) {
     el.querySelector('.dh-sheet-x')?.focus({ preventScroll: true });
 }
 
+async function openTasks() {
+    if (document.body.dataset.dhScreen !== HOME_SCREEN) await goHome();
+    openSheet('tasks');
+}
+// رقم المهام المعلّقة على زر «مهام» (يُحدَّث عند كل فتح للرئيسية؛ يُحفظ ليبقى ظاهرًا في الشاشات الأخرى)
+const TASKS_COUNT_KEY = 'dh_tasks_count';
+function readTasksCount() { try { return parseInt(localStorage.getItem(TASKS_COUNT_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
+function renderTasksBadge() {
+    const btn = bnav && bnav.querySelector('.dh-bnav-item[data-id="tasks"] .dh-bnav-ic');
+    if (!btn) return;
+    const n = readTasksCount();
+    let b = btn.querySelector('.dh-bnav-badge');
+    if (n <= 0) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement('span'); b.className = 'dh-bnav-badge'; btn.appendChild(b); }
+    b.textContent = n > 9 ? '9+' : String(n);
+}
+document.addEventListener('dh:tasks-count', (e) => {
+    try { localStorage.setItem(TASKS_COUNT_KEY, String((e.detail && e.detail.n) || 0)); } catch (err) { /* التخزين غير متاح: يبقى الرقم لهذه الجلسة فقط */ }
+    renderTasksBadge();
+});
+
 function ensureBnav() {
     if (bnav && bnav.isConnected) return;
     bnav = document.createElement('nav');
@@ -479,16 +494,17 @@ function ensureBnav() {
     ITEMS.forEach(it => {
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = 'dh-bnav-item' + (it.accent ? ' is-accent' : '');
+        b.className = 'dh-bnav-item';
         b.dataset.id = it.id;
         b.innerHTML = `<span class="dh-bnav-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${it.icon}</svg></span><span class="dh-bnav-lb" data-i18n="${it.key}">${t(it.key)}</span>`;
         b.addEventListener('click', () => {
-            if (it.id !== 'games' && it.id !== 'more') closeSheet();
+            if (it.id !== 'tasks' && it.id !== 'more') closeSheet();
             it.run();
         });
         bnav.appendChild(b);
     });
     document.body.appendChild(bnav);
+    renderTasksBadge();
 }
 function updateChrome() {
     const scr = document.body.dataset.dhScreen || '';
@@ -555,6 +571,5 @@ export function initHomeFast() {
     if (sec) searchApi = initSearch(sec);
     renderBadges();
     applyLanguage();
-    if (pendingFocus) { pendingFocus = false; setTimeout(() => searchApi && searchApi.focus(), 120); }
     consumeGoParam();
 }

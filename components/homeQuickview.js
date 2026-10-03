@@ -206,6 +206,7 @@ async function renderDueForReview() {
             dueRows.push({ student, overdueDays });
         });
 
+        wrap.dataset.count = String(dueRows.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي (القائمة تعرض 5 فقط)
         if (dueRows.length === 0) {
             wrap.style.display = 'none';
             return;
@@ -355,6 +356,7 @@ async function renderPendingDualMatchesReminder() {
             .filter(({ refTime }) => !isNaN(refTime) && (now - refTime) >= thresholdMs)
             .sort((a, b) => a.refTime - b.refTime); // الأقدم توقفاً أولاً = الأكثر إلحاحاً
 
+        wrap.dataset.count = String(overdue.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي
         if (overdue.length === 0) {
             wrap.style.display = 'none';
             return;
@@ -404,7 +406,20 @@ async function renderPendingDualMatchesReminder() {
 // 2) رسالة "لا شيء معلّق اليوم" تظهر فقط عند وجود طالب واحد مسجَّل على الأقل؛ قبل ذلك تبقى
 //    المجموعة مخفية بالكامل (حتى لا تُوحي بأن "كل شيء تمام" والمنصة فارغة أصلاً — الإرشاد لهذه
 //    الحالة هو بطاقة "ابدأ من هنا" الموجودة في الشاشة الرئيسية).
+// 🌟 [2026-10-03 — زر «مهام» في الشريط السفلي للهاتف] عدد المهام المعلّقة الظاهرة في «يحتاج منك اليوم»: عيد ميلاد طالب (1)
+// + الطلاب المستحقة مراجعتهم + المواجهات الثنائية المعلّقة. الإحصاءات والآية لا تُحسب. يُبثّ بحدث dh:tasks-count فيعرضه
+// components/homeFast.js رقمًا على الزر. لا يغيّر أي حساب: يقرأ ما رسمته الدوال أعلاه فقط.
+function announceTasksCount() {
+    const shown = (id) => { const el = document.getElementById(id); return !!el && el.style.display !== 'none'; };
+    const num = (id) => parseInt(document.getElementById(id)?.dataset.count || '0', 10) || 0;
+    const n = (shown('home-quickcard-bday') ? 1 : 0)
+        + (shown('home-quickcard-due') ? num('home-quickcard-due') : 0)
+        + (shown('home-quickcard-pm') ? num('home-quickcard-pm') : 0);
+    document.dispatchEvent(new CustomEvent('dh:tasks-count', { detail: { n } }));
+}
+
 async function updateTodayGroup() {
+    announceTasksCount();
     const wrap = document.getElementById('home-quickcard-today');
     const label = document.getElementById('home-quickcard-today-label');
     const clear = document.getElementById('home-quickcard-today-clear');
