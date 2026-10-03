@@ -531,7 +531,7 @@ async function loadHomeworkDashboard() {
     // الجدول أعلاه يظهر فوراً من البيانات المحلية (IndexedDB)، بينما هذه البطاقة تعتمد على
     // استعلام سحابي (Firestore) قد يستغرق ثانية أو أكثر — تشغيلها بدون انتظار يمنع تجميد
     // ظهور سجل الواجبات كله بسبب بطء الشبكة أو انقطاعها.
-    loadNeedsGradingStat();
+    loadNeedsGradingStat(allHWs);
 
     // 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — نفس فلسفة "يحتاج تصحيح" أعلاه بالضبط (استعلام
     // سحابي بلا await هنا حتى لا يُجمَّد ظهور الجدول). نمرّر allHWs (محلية بالفعل، بلا استعلام
@@ -543,13 +543,18 @@ async function loadHomeworkDashboard() {
 // تصحيح المعلم اليدوي عبر كل الواجبات دفعة واحدة، وتُحدّث بطاقة "يحتاج تصحيح" في الأعلى + تضع
 // علامة تنبيه ⚠️ بجانب كل واجب متأثر في سجل الواجبات (الصفوف مبنية مسبقاً بمعرّف hw-alert-<id>
 // مخفي افتراضياً في loadHomeworkDashboard أعلاه).
-async function loadNeedsGradingStat() {
+// 🌟 [إصلاح 2026-10-03] حذف الواجب من السجل يحذف نسخته المحلية فقط، وتسليماته تبقى في الخادم —
+// فكانت البطاقة تعدّ تسليمات واجبات محذوفة ("يحتاج تصحيح 1" والقائمة فارغة). نعدّ الآن فقط تسليمات
+// الواجبات الموجودة في سجلك (allHWs)، فتطابق البطاقة القائمة دائماً.
+async function loadNeedsGradingStat(allHWs) {
     const statEl = document.getElementById('stat-needs-grading');
     if (!statEl) return;
     statEl.innerText = '⏳';
 
     try {
-        const pending = await getSubmissionsNeedingGrading();
+        if (!allHWs) allHWs = await AppState.homeworkManager.getAllHomeworks() || [];   // نداء بلا معامل (بعد حفظ التصحيح)
+        const localIds = new Set(allHWs.map(hw => String(hw.id)));
+        const pending = (await getSubmissionsNeedingGrading()).filter(sub => localIds.has(String(sub.hwId)));
         pendingGradingHwIds = new Set(pending.map(sub => sub.hwId));
         statEl.innerText = pending.length;
 
