@@ -21,6 +21,13 @@
         @keyframes dh-boot-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.92); opacity: .75; } }
         @media (prefers-reduced-motion: reduce) { .dh-boot-logo { animation: none; } }
     </style>
+    <!-- 🌟 [جديد 2026-10-03] حفظ حدث beforeinstallprompt مبكراً (Chrome/Edge على الحاسوب): يُطلَق مرة واحدة غالباً قبل تحميل
+         components/guidedTour.js (يُستورد ديناميكياً)، فنحفظه هنا ليستعمله زر «تثبيت» في خطوة التثبيت بالجولة الإرشادية.
+         لا preventDefault عمداً: حتى لا يتغير سلوك المتصفح الافتراضي (شريط التثبيت المصغّر على أندرويد). -->
+    <script>
+        window.addEventListener('beforeinstallprompt', function (e) { window.__dhInstallPrompt = e; });
+        window.addEventListener('appinstalled', function () { window.__dhInstallPrompt = null; window.__dhAppInstalled = true; });
+    </script>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     <!-- 🌟 [2026-10-02] أيقونة التبويب (كان المتصفح يطلب favicon.ico فيحصل على 404) — نفس أيقونة التطبيق، بلا ملف جديد -->
