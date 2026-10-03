@@ -280,13 +280,84 @@
             animation: none !important;
         }
     }
+
+    /* ===================================================================================
+       🌟 [جديد — التصميم الاحترافي] طبقة تحسين بصري لشاشة الإعداد — شكل فقط، نفس الخطوات
+       ونفس الأزرار ونفس المعرّفات. محصورة ببادئة dts- كباقي هذا الملف.
+       =================================================================================== */
+    .dts-ico, .dt-back-ico {
+        width: 1.1em; height: 1.1em; flex-shrink: 0;
+        fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    [dir="ltr"] .dt-back-ico { transform: scaleX(-1); }
+    .dts-back-btn { display: inline-flex; align-items: center; gap: 6px; }
+    /* !important للتغلّب على .adult-theme h1 (adults.css) الذي كان يُظهر العنوان داكناً فوق البنّر الداكن */
+    .dts-header-banner h1.dts-editor-title { color: #fffdf6 !important; }
+    .dts-header-icon { font-size: 1.05rem; font-weight: 900; color: var(--dh-emerald-900); letter-spacing: 0.5px; }
+
+    /* --- مؤشر الخطوات: اسم تحت كل دائرة، والخط الواصل يمتلئ بالأخضر بعد اكتمال الخطوة --- */
+    .dts-step-indicator { align-items: flex-start; gap: 0; }
+    .dts-step-item { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 110px; flex-shrink: 0; }
+    .dts-step-label { font-size: 0.85rem; font-weight: 600; color: #8a948e; text-align: center; line-height: 1.35; transition: color 0.2s ease; }
+    .dts-step-item:has(.dts-step-dot-active) .dts-step-label { color: var(--dh-emerald-800); font-weight: 700; }
+    .dts-step-item:has(.dts-step-dot-done) .dts-step-label { color: var(--dh-emerald-600); }
+    .dts-step-connector { flex: 1; max-width: 90px; min-width: 20px; margin-top: 16px; background: #e6e0cf; transition: background 0.25s ease; }
+    .dts-step-item:has(.dts-step-dot-done) + .dts-step-connector { background: var(--dh-emerald-600); }
+    .dts-step-dot { border: 2px solid #e6e0cf; background: #fff; color: #8a948e; }
+    .dts-step-dot-active { border-color: var(--dh-gold-500); transform: none; box-shadow: 0 0 0 5px rgba(212,175,55,0.2); }
+    .dts-step-dot-done { border-color: var(--dh-emerald-600); }
+
+    /* --- صف الاختبار: زر رئيسي واحد واضح (ابدأ مواجهة)، والبقية أزرار هادئة --- */
+    .dts-test-row { background: #fff; border: 1px solid #e6e0cf; border-radius: 18px; padding: 16px 18px; }
+    .dts-test-row:hover { transform: none; border-color: var(--dh-gold-500); box-shadow: 0 10px 24px rgba(6,35,28,0.08); }
+    .dts-test-row-vs-icon { font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 14px; }
+    .dts-names-vs {
+        display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; vertical-align: middle;
+        color: var(--dh-gold-500); padding: 0 4px;
+    }
+    .dts-test-row-actions { align-items: center; }
+    .dts-test-row-actions button {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+        border: 1px solid #e6e0cf; border-radius: 12px; font-weight: 600; color: var(--dh-emerald-800);
+    }
+    .dts-test-row-actions button.dts-btn-quiet { background: #faf8f2; }
+    .dts-test-row-actions button.dts-btn-start {
+        background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: #fffdf6; font-weight: 700; padding-inline: 18px;
+    }
+    .dts-test-row-actions button.dts-btn-start:hover { background: var(--dh-emerald-800); border-color: var(--dh-emerald-800); }
+    .dts-test-row-actions button.dts-btn-danger { color: #b4321f !important; border-color: #f3d6cf !important; background: #fff; }
+    .dts-test-row-actions button.dts-btn-danger:hover { background: #fbe7e2; }
+    .dts-test-row-actions button.dts-btn-pending { border-radius: 999px; }
+
+    /* --- شريط الحفظ مثبّت فعلياً أسفل الشاشة أثناء التمرير داخل المحرر --- */
+    .dts-editor-actions {
+        position: sticky; bottom: 0; z-index: 5;
+        margin: 25px -20px -25px -20px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px;
+        background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        border-top: 1px solid #e6e0cf; border-radius: 0 0 20px 20px;
+    }
+    .dts-editor-actions button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        min-height: 50px; padding: 10px 14px; font-size: 1.05rem;
+    }
+    .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
+    .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
+
+    @media (max-width: 520px) {
+        .dts-step-item { width: 84px; }
+        .dts-step-label { font-size: 0.75rem; }
+        /* على الجوال: إلغاء + مسودة في سطر، و"حفظ كاختبار جاهز" بعرض كامل تحتهما */
+        .dts-editor-actions { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin-inline: -20px; }
+        .dts-editor-actions button { min-width: 0 !important; font-size: 0.95rem; min-height: 46px; }
+        .dts-editor-actions .dts-btn-ready { grid-column: 1 / -1; order: 3; }
+    }
 </style>
 
 <div class="screen active dts-wrapper">
-    <button class="btn btn-outline dts-back-btn" id="dts-back-btn">🔙 <span data-i18n="dts_back">العودة</span></button>
+    <button class="btn btn-outline dts-back-btn" id="dts-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_back">العودة</span></button>
     <div class="dts-header-banner">
-        <span class="dts-header-icon">🆚</span>
-        <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي 🆚</h1>
+        <span class="dts-header-icon">VS</span>
+        <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي</h1>
     </div>
 
     <!-- ===== طبقة القائمة (تظهر افتراضياً) ===== -->
@@ -294,7 +365,7 @@
         <div class="dts-panel">
             <div class="dts-list-header">
                 <h2 data-i18n="dts_list_title">الاختبارات المحفوظة</h2>
-                <button class="btn dts-add-q-btn" id="dts-new-test-btn" data-i18n="dts_new_test_btn">+ اختبار جديد</button>
+                <button class="btn dts-add-q-btn dts-new-test-btn" id="dts-new-test-btn" data-i18n="dts_new_test_btn">+ اختبار جديد</button>
             </div>
             <div id="dts-tests-container"></div>
         </div>
@@ -307,11 +378,11 @@
 
             <!-- 🌟 [جديد] مؤشر الخطوات الثلاث -->
             <div class="dts-step-indicator" id="dts-step-indicator">
-                <span class="dts-step-dot dts-step-dot-active" data-step="1"><span class="dts-step-dot-num">1</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot dts-step-dot-active" data-step="1"><span class="dts-step-dot-num">1</span></span><span class="dts-step-label" data-i18n="dts_step_label_1">المتسابقان والنطاق</span></span>
                 <span class="dts-step-connector"></span>
-                <span class="dts-step-dot" data-step="2"><span class="dts-step-dot-num">2</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot" data-step="2"><span class="dts-step-dot-num">2</span></span><span class="dts-step-label" data-i18n="dts_step_label_2">اختيار الجولة</span></span>
                 <span class="dts-step-connector"></span>
-                <span class="dts-step-dot" data-step="3"><span class="dts-step-dot-num">3</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot" data-step="3"><span class="dts-step-dot-num">3</span></span><span class="dts-step-label" data-i18n="dts_step_label_3">الأسئلة</span></span>
             </div>
 
             <!-- ===== الخطوة 1: المتسابقان + نطاق كل جولة (اسم سورة فقط) ===== -->
@@ -359,9 +430,9 @@
 
             <!-- 🌟 شريط الحفظ ثابت، ظاهر دائماً بصرف النظر عن الخطوة الحالية -->
             <div class="dts-editor-actions">
-                <button class="dts-btn-cancel-edit" id="dts-cancel-edit-btn">✖️ <span data-i18n="dts_start_match_cancel_btn">إلغاء</span></button>
-                <button class="dts-btn-draft" id="dts-save-draft-btn" data-i18n="dts_save_draft_btn">💾 حفظ كمسودة</button>
-                <button class="dts-btn-ready" id="dts-save-ready-btn" data-i18n="dts_save_ready_btn">✅ حفظ كاختبار جاهز</button>
+                <button class="dts-btn-cancel-edit" id="dts-cancel-edit-btn"><span data-i18n="dts_start_match_cancel_btn">إلغاء</span></button>
+                <button class="dts-btn-draft" id="dts-save-draft-btn"><svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span data-i18n="dts_save_draft_btn">حفظ كمسودة</span></button>
+                <button class="dts-btn-ready" id="dts-save-ready-btn"><svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="dts_save_ready_btn">حفظ كاختبار جاهز</span></button>
             </div>
         </div>
     </div>
