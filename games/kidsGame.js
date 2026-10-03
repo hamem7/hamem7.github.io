@@ -337,6 +337,8 @@ function persistEvaluationToHistory() {
 
 async function playNextMission() {
     try {
+        // 🌟 [جديد] نوع السؤال الحالي على <body> لضبط تخطيطه على الكمبيوتر (راجع css/gameFullscreen.css) — يُمسح مع كل سؤال
+        delete document.body.dataset.gameQ;
         if(GameState.currentIndex >= GameState.queue.length) {
             updateTrackerUI();
             playSuccessSound();
@@ -584,6 +586,7 @@ async function playNextMission() {
             buildLinkGameUI();
         } else {
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+            if (['kids_recite', 'kids_tf'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             
             if (GameState.currentData.type === 'kids_recite') {
                 document.getElementById('teacher-eval-area').style.display = 'block'; 
