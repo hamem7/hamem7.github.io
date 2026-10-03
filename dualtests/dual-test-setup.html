@@ -343,6 +343,23 @@
     .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
     .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
 
+    /* --- 🌟 [مُحدَّث] نطاق الجولة: "من سورة" و"إلى سورة" سطران مستقلان، العنوان بجانب القائمة
+       بعرض ثابت حتى تصطف القائمتان تحت بعض تماماً --- */
+    .dts-round-range-fields { display: flex; flex-direction: column; gap: 10px; }
+    .dts-range-field {
+        display: grid; grid-template-columns: 5.5em 1fr; align-items: center; gap: 10px; margin: 0;
+    }
+    .dts-range-field-label { font-weight: 700; font-size: 0.98rem; color: var(--dh-emerald-800); white-space: nowrap; }
+    .dts-range-field select {
+        width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; font-size: 1rem;
+        border: 2px solid #ddd6c2; border-radius: 12px; background: #fff;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dts-range-field select:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(22,101,52,0.12); }
+    .dts-roundpick-range { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+    .dts-roundpick-range-label { color: rgba(255,253,246,0.7); font-weight: 600; }
+    .dts-range-summary-sep { color: #94a3b8; }
+
     /* --- 🌟 [جديد] الجولات المقفلة (تُجهَّز جولة بجولة): ظاهرة لكن باهتة، مع سبب القفل --- */
     .dts-range-card.dts-round-locked {
         border: 2px dashed #ddd6c2; background: #f8f6f0; box-shadow: none; opacity: 0.85;
