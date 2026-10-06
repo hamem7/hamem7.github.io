@@ -1536,7 +1536,7 @@ const HQ_SCALE = 3; // جودة عالية جدًا للتصدير
 // تقارير صُدِّرت قبل ذلك لأنها لم تُسجَّل وقتها.
 const REPORTS_LOG_KEY = 'darham_reports_log';
 const REPORTS_LOG_MAX = 300; // حد أقصى لحجم السجل حتى لا ينمو بلا نهاية
-function logReportGenerated(){
+function logReportGenerated(canvas){
   try {
     const raw = localStorage.getItem(REPORTS_LOG_KEY);
     const list = raw ? JSON.parse(raw) : [];
@@ -1544,6 +1544,10 @@ function logReportGenerated(){
     arr.push(new Date().toISOString());
     localStorage.setItem(REPORTS_LOG_KEY, JSON.stringify(arr.slice(-REPORTS_LOG_MAX)));
   } catch (e) { /* تجاهل — لا نمنع التصدير بسبب فشل تسجيل العدّاد فقط */ }
+  // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
+  try {
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'individual', name: reportData && reportData.name, sub: [reportData && localizeGenerated(reportData.scope), reportData && reportData.date].filter(Boolean).join(' — '), canvas })).catch(() => {});
+  } catch (e) { /* تجاهل */ }
 }
 
 // 🌟 [جديد] الصورة صارت **مختصرة**: نفس الورقة تمامًا بعد إخفاء كتلة واحدة فقط هي
@@ -1603,7 +1607,7 @@ async function exportPngAtPageWidth(){
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // ---------------------------------------------------------------------------
@@ -1728,7 +1732,7 @@ async function exportPdfAtPageWidth(){
   });
 
   pdf.save(buildFileName('pdf'));
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // -----------------------------------------------------------------------------

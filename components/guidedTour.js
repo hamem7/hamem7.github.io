@@ -36,6 +36,7 @@ const TOURS = {
             { target: '#btn-adult-main', textKey: 'tour_home_adults' },
             { target: '#btn-homework-main', textKey: 'tour_home_homework' },
             { target: '#btn-dual-main', textKey: 'tour_home_dual' },
+            { target: '#btn-certs-main', textKey: 'tour_home_certs' },
             { target: '.home-footer-contact', textKey: 'tour_home_contact' },
             INSTALL_STEP
         ]
@@ -109,6 +110,24 @@ const TOURS = {
             },
             { target: '#stat-needs-grading-card', textKey: 'tour_hw_grading' },
             { target: '#btn-final-results', textKey: 'tour_hw_final' }
+        ]
+    },
+    // 🏅 [2026-10-06] الشهادات والتقارير (certificates/certificates.js): شاشة طبقة فوق الرئيسية (لا تغيّر الشاشة الجارية)،
+    // تبدأ جولتها من openCertificatesHub نفسها. before: يضغط تبويب الإصدار/التقارير حسب الخطوة.
+    certificates: {
+        onEnd: () => { clickIfPresent('.cc-tab[data-tab="issue"]'); },
+        steps: [
+            { target: '.cc-tabs', textKey: 'tour_cc_tabs' },
+            { target: '#cc-types', textKey: 'tour_cc_type' },
+            { target: '#cc-step-student', textKey: 'tour_cc_student' },
+            { target: '#cc-step-text', textKey: 'tour_cc_text' },
+            { target: '#cc-gallery', textKey: 'tour_cc_template' },
+            { target: '#cc-stage', textKey: 'tour_cc_preview' },
+            { target: '#cc-actionbar', textKey: 'tour_cc_save' },
+            {
+                target: '.cc-tab[data-tab="reports"]', textKey: 'tour_cc_reports',
+                before: () => { clickIfPresent('.cc-tab[data-tab="reports"]'); }
+            }
         ]
     },
     // الاختبارات الثنائية (dualtests/dual-test-setup.html) — قائمة الاختبارات فقط (لا نفتح المحرر)
@@ -614,7 +633,7 @@ async function runTour(key, def, { withWelcome }) {
 // ───────────────────────────── الواجهة العامة ─────────────────────────────
 /**
  * تبدأ جولة القسم تلقائياً إن لم تُشاهد من قبل على هذا الجهاز. آمنة: أي خطأ هنا لا يؤثر على الشاشة.
- * @param {string} key - home | students | kids | adults | homework | dual
+ * @param {string} key - home | students | kids | adults | homework | dual | certificates
  * @param {{force?: boolean}} [opts] - force: تجاهل علم "شوهدت" (لإعادة الجولة يدوياً)
  */
 export async function maybeStartTour(key, opts = {}) {

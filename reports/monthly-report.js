@@ -1593,7 +1593,7 @@ const WHATSAPP_TARGET_WIDTH_PX = 1080;
 const REPORTS_LOG_KEY = 'darham_reports_log';
 const REPORTS_LOG_MAX = 300;
 const REPORTS_DONE_KEY = 'darham_reports_done';
-function logReportGenerated() {
+function logReportGenerated(canvas) {
   try {
     const raw = localStorage.getItem(REPORTS_LOG_KEY);
     const list = raw ? JSON.parse(raw) : [];
@@ -1613,6 +1613,10 @@ function logReportGenerated() {
       localStorage.setItem(REPORTS_DONE_KEY, JSON.stringify(done));
     }
   } catch (e) { /* تجاهل */ }
+  // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
+  try {
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'monthly', name: reportData && reportData.name, sub: reportData && reportData.periodLabel, canvas })).catch(() => {});
+  } catch (e) { /* تجاهل */ }
 }
 
 async function exportPng() {
@@ -1628,7 +1632,7 @@ async function exportPng() {
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // 🌟 [جديد] "نسخة واتساب" — نفس فكرة exportPng بالحرف، لكن بعرض مضبوط على
@@ -1649,7 +1653,7 @@ async function exportWhatsAppRaw() {
   link.download = buildFileName('jpg', t('mr_export_whatsapp_suffix'));
   link.href = canvas.toDataURL('image/jpeg', 0.92);
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 function collectPdfBlocks(target) {
@@ -1750,7 +1754,7 @@ async function exportPdfRaw() {
   });
 
   pdf.save(buildFileName('pdf'));
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 
