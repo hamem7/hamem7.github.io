@@ -16,15 +16,25 @@ jobs:
       - name: تثبيت أداة التحويل
         run: sudo apt-get update && sudo apt-get install -y webp
 
+      - name: فحص الرابط (تشخيص)
+        run: |
+          curl -sSIL -A "Mozilla/5.0" "https://android.quran.com/data/width_1024/page001.png" | head -30 || true
+
       - name: تنزيل الصور وتحويلها
         run: |
           set -euo pipefail
           mkdir -p work/png assets/mushaf
           for i in $(seq 1 604); do
             n=$(printf "%03d" "$i")
-            curl -fsS --retry 5 --retry-delay 3 -o "work/png/page$n.png" \
+            f="work/png/page$n.png"
+            curl -fsSL --retry 5 --retry-delay 3 -A "Mozilla/5.0" -o "$f" \
               "https://android.quran.com/data/width_1024/page$n.png"
-            cwebp -q 80 -resize 800 0 "work/png/page$n.png" -o "assets/mushaf/page$n.webp" -quiet
+            if [ ! -s "$f" ]; then
+              echo "::error::الملف $n فارغ أو لم يُنزَّل"
+              file "$f" || true
+              exit 1
+            fi
+            cwebp -q 80 -resize 800 0 "$f" -o "assets/mushaf/page$n.webp" -quiet
           done
           count=$(ls assets/mushaf/*.webp | wc -l)
           echo "عدد الصور: $count"
