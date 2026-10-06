@@ -70,7 +70,7 @@
 
     /* الآية بين آيتين: حجم يتبع ارتفاع الشاشة + سطر فراغ مضغوط */
     body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text {
-        font-size: clamp(1.9rem, 4.4vh, 3rem) !important;
+        font-size: clamp(2.3rem, 5.6vh, 3.8rem) !important;
         line-height: 1.9 !important;
         margin-top: 0 !important;
         padding-top: 6px;
@@ -94,7 +94,7 @@
     body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question > div > div { margin-bottom: 4px !important; }
     body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question > div > div:first-child { margin-bottom: 10px !important; }
     body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question .quran-text {
-        font-size: clamp(1.8rem, 4.6vh, 3.2rem) !important;
+        font-size: clamp(2.2rem, 5.6vh, 3.8rem) !important;
         line-height: 1.8 !important;
         padding-top: 4px;
         padding-bottom: 4px;
@@ -114,12 +114,24 @@
         margin: 0 !important;
         max-width: 100%;
         box-sizing: border-box;
-        font-size: clamp(2.2rem, 5.6vh, 3.5rem) !important;
+        font-size: clamp(2.6rem, 6.6vh, 4.2rem) !important;
         padding: 10px 40px;
     }
     body[data-dh-screen$="Game.html"][data-game-q="kids_tf"] #game-question > div:not(.quran-text) {
         font-size: clamp(1.5rem, 3.4vh, 2.2rem) !important;
         padding: 12px 30px !important;
+    }
+
+    /* 🌟 [جديد] تكبير نص الآية في الأسئلة ذات الآية الواحدة (استدعِ/ماذا بعدها/ماذا قبلها/خمن السورة/اكتشف الخطأ/
+       أكمل) — كانت 3.5rem ثابتة وتترك مساحة فارغة تحتها؛ الآن الحجم يتبع ارتفاع النافذة فيبقى السؤال وأزراره بلا تمرير */
+    body[data-dh-screen$="Game.html"]:not([data-game-q]) #game-question > .quran-text {
+        font-size: clamp(3.2rem, 7.4vh, 4.9rem) !important;
+        line-height: 1.8 !important;
+    }
+    /* لعبة اربط الكلمة بسورتها / اربط أول الآية بآخرها: بطاقات أكبر */
+    body[data-dh-screen$="Game.html"] #interactive-link-area .link-item {
+        font-size: clamp(2.3rem, 5vh, 3.3rem);
+        line-height: 1.9;
     }
 
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
