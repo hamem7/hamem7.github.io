@@ -815,10 +815,22 @@ function buildReportData(){
   //   • لا يوجد أي بيان سابق حقيقي  → لا شارة فرق ولا سُلّم، ورسالة "أول تقييم" فقط.
   //   • بيان سابق حقيقي واحد        → شارة الفرق ومحطة واحدة سابقة، بتاريخها الحقيقي.
   //   • عدة بيانات سابقة حقيقية      → حتى ٣ محطات سابقة، كل واحدة بتاريخها ونتيجتها.
-  const rawHistory = getHistory(student.id);
+  const allHistory = getHistory(student.id);
+  // 🌟 جلسات "علاج الأخطاء" لا تدخل سُلّم التقدّم ولا مقارنة الفرق/السرعة: تعيد أسئلة أُخطئ فيها
+  // سابقًا فليست قياسًا حقيقيًا للمستوى. الحقل mode يكتبه المحرّكان؛ وللسجلات القديمة بلا mode
+  // نرجع إلى نص range (نصّ جلسة العلاج بالعربية أو بلغة الواجهة الحالية).
+  const WEAKNESS_RANGE = 'جلسة علاج وتصحيح الأخطاء السابقة';
+  const isWeaknessEntry = (h) => !!h && (h.mode === 'weakness'
+    || (typeof h.range === 'string' && (h.range === WEAKNESS_RANGE || h.range === t(WEAKNESS_RANGE))));
+  const isWeaknessReport = !!(activeGameState && activeGameState.isWeaknessMode);
+  const lastAll = allHistory.length ? allHistory[allHistory.length - 1] : null;
+  const lastRawIsThisAttempt = !!(lastAll && lastAll.date === dateLabel && lastAll.score === score);
+  const rawHistory = allHistory.filter(h => !isWeaknessEntry(h));
   const lastRaw = rawHistory.length ? rawHistory[rawHistory.length - 1] : null;
-  const lastRawIsThisAttempt = !!(lastRaw && lastRaw.date === dateLabel && lastRaw.score === score);
-  const previous = lastRawIsThisAttempt ? rawHistory.slice(0, -1) : rawHistory;
+  // في تقرير تقييم عادي: نستبعد آخر عنصر لو كان هذا الاختبار نفسه. في تقرير علاج الأخطاء لا يوجد
+  // في rawHistory تسجيل لهذا الاختبار أصلًا (مُفلتَر)، فكل ما فيه تقييمات عادية سابقة.
+  const previous = (!isWeaknessReport && lastRaw && lastRaw.date === dateLabel && lastRaw.score === score)
+    ? rawHistory.slice(0, -1) : rawHistory;
 
   const lastPrev = previous.length ? previous[previous.length - 1] : null;
   const scope = (activeGameState && activeGameState.range)
@@ -828,7 +840,7 @@ function buildReportData(){
 
   // فرق النتيجة عن المحاولة السابقة — null تمامًا لو لم توجد محاولة سابقة *حقيقية*
   // مسجَّلة (أول تقييم للطالب فعليًا)، فتختفي الشارة بدل أن تعرض "+0" أو رقمًا لا معنى له.
-  const delta = lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
+  const delta = !isWeaknessReport && lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
 
   // مقارنة السرعة بمتوسط المحاولات السابقة *الحقيقية* فقط (لا تشمل هذا الاختبار نفسه) —
   // تحتاج قياسًا زمنيًا في الطرفين معًا
@@ -850,14 +862,15 @@ function buildReportData(){
   // games/kidsGame.js سجّلاها بالفعل قبل فتح هذا التقرير (lastRawIsThisAttempt = true)،
   // فتسجيلها هنا مرة أخرى كان هو بالضبط سبب "قراءة الاختبار كمحاولة سابقة لنفسه"
   // أعلاه. لا نسجّلها هنا إلا لو وصلنا هذا التقرير من مسار لم يكتب في السجل مسبقًا.
-  if (!lastRawIsThisAttempt) {
+  if (!lastRawIsThisAttempt && !isWeaknessReport) {
     appendHistoryEntry(student.id, { date: dateLabel, score, range: scope, avgTimeSec: stats.avgTimeSec });
   }
 
   // محطات سُلّم التقدّم: هذه المحاولة أولاً (أقصى اليمين في RTL) ثم أحدث ثلاث محاولات
   // سابقة *حقيقية* (previous بعد استبعاد هذا الاختبار نفسه أعلاه). لون كل محطة = لون
   // مستواها الفعلي، لا تدرّج يعبّر عن ترتيبها الزمني.
-  const ladder = [{
+  // تقرير علاج الأخطاء: بلا محطة "هذا التقييم" — السُّلّم تقييمات عادية سابقة فقط.
+  const ladder = isWeaknessReport ? [] : [{
     isCurrent: true,
     whenLabel: t('rep_step_current'),
     dateShort: shortDateLabel(dateLabel),
@@ -967,6 +980,10 @@ function renderLadder(d){
 
   // أول محاولة مسجَّلة للطالب: محطة واحدة فقط. نوضّح ذلك صراحةً بدل ترك السُلّم
   // يبدو ناقصًا أو موحيًا بأن بقية المحطات اختفت لسبب ما.
+  if (d.ladder.length === 0) {
+    wrap.innerHTML = `<p class="ladder-empty">${escapeHtml(t('rep_ladder_no_regular'))}</p>`;
+    return;
+  }
   const firstNote = d.ladder.length < 2
     ? `<p class="ladder-empty">${escapeHtml(t('rep_ladder_first_attempt'))}</p>`
     : '';

@@ -1501,6 +1501,7 @@ export const translations = {
 
         rep_ladder_title: "مستوى التقدّم العام",
         rep_ladder_sub: "مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة",
+        rep_ladder_no_regular: "لا توجد تقييمات عادية سابقة في سجل الطالب بعد — جلسات علاج الأخطاء لا تدخل في هذا السُّلّم.",
         rep_ladder_first_attempt: "هذه أول محاولة مسجَّلة في سجل الطالب — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.",
         rep_step_current: "هذا التقييم",
         rep_step_prev1: "المحاولة السابقة",
@@ -3443,6 +3444,7 @@ export const translations = {
 
         rep_ladder_title: "Overall progress level",
         rep_ladder_sub: "This evaluation compared with the student's latest recorded attempts",
+        rep_ladder_no_regular: "No previous regular evaluations in the student's history yet — mistake-fixing sessions are not part of this ladder.",
         rep_ladder_first_attempt: "This is the first attempt recorded in the student's history — the comparison with previous attempts will appear from the next evaluation onwards.",
         rep_step_current: "This evaluation",
         rep_step_prev1: "Previous attempt",
