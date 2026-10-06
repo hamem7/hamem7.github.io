@@ -849,6 +849,9 @@ export const translations = {
         hw_memo_suggestion_recent_prefix: "🌟 آخر {n} سور من حفظ الطالب المسجَّل:",
         // 🌟 [جديد] رقاقة اقتراح خاصة لحالة "جزء عم كاملاً" (بدل سورة بسورة)
         hw_memo_suggestion_juz_amma: "جزء عم كاملاً (الجزء 30)",
+        // 🌟 [جديد] تنبيه تغطية السور لجزء عمّ (components/juzAmmaCoverageNote.js)
+        juz_amma_coverage_note: "النطاق فيه {total} سورة، وهذا الاختبار يغطي {n} منها. السور الباقية ستأتي في الاختبارات القادمة. للتغطية الكاملة في جلسة واحدة ارفع عدد الأسئلة.",
+        juz_amma_coverage_btn: "اجعلها {total} سؤالاً",
         hw_btn_generate: "⚙️ توليد الأسئلة آلياً",
         hw_review_q: "🔍 مراجعة الأسئلة",
         hw_add_manual_q: "➕ إضافة سؤال يدوي",
@@ -2821,6 +2824,9 @@ export const translations = {
         hw_memo_suggestion_recent_prefix: "🌟 Last {n} surahs from this student's registered memorization:",
         // 🌟 New: special suggestion chip for the "whole Juz Amma" case (instead of surah-by-surah)
         hw_memo_suggestion_juz_amma: "Whole Juz Amma (Part 30)",
+        // 🌟 New: Juz Amma surah-coverage note (components/juzAmmaCoverageNote.js)
+        juz_amma_coverage_note: "This range has {total} surahs and this test covers {n} of them. The remaining surahs will come in upcoming tests. Raise the number of questions to cover them all in one session.",
+        juz_amma_coverage_btn: "Make it {total} questions",
         hw_btn_generate: "⚙️ Auto-Generate Questions",
         hw_review_q: "🔍 Review Questions",
         hw_add_manual_q: "➕ Add Manual Question",

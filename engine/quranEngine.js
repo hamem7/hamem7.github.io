@@ -99,8 +99,50 @@ export function realWordIndexes(tokens) {
     return idxs;
 }
 
+// 🌟 [جديد] تغطية السور في جزء عمّ (الجزء 30، السور 78–114)
+// المشكلة: التقسيم إلى مقاطع متساوية بعدد الآيات يجعل السور الطويلة تبتلع الأسئلة وقد تغيب سور قصيرة كلياً.
+// الحل: خطة "سورة لكل سؤال" — كل سورة تُسأل مرة قبل أن تتكرر أي سورة.
+export const JUZ_AMMA_NUMBER = 30;
+
+/**
+ * خطة السور لاختبار من qCount سؤالاً: مصفوفة أرقام سور بطول qCount، بترتيب المصحف.
+ *  • qCount <= عدد السور: تُقسَّم السور (بترتيب المصحف) إلى qCount مجموعات متساوية، وتُختار سورة عشوائية من كل مجموعة
+ *    (فلا تتكرر سورة، ويتوزع الاختيار على الجزء كله بدل أخذ أوله).
+ *  • qCount > عدد السور: كل سورة مرة، والزيادة تُوزَّع على الأطول آياتاً أولاً.
+ */
+export function planSurahCoverage(pool, qCount) {
+    if (!pool || !pool.length || !(qCount > 0)) return [];
+    const counts = new Map();
+    for (const a of pool) counts.set(a.surahNumber, (counts.get(a.surahNumber) || 0) + 1);
+    const surahs = [...counts.keys()].sort((x, y) => x - y);
+    const n = surahs.length;
+    let plan;
+    if (qCount <= n) {
+        plan = [];
+        for (let i = 0; i < qCount; i++) {
+            const lo = Math.floor(i * n / qCount);
+            const hi = Math.max(lo + 1, Math.floor((i + 1) * n / qCount));
+            plan.push(surahs[lo + Math.floor(Math.random() * (hi - lo))]);
+        }
+    } else {
+        plan = [...surahs];
+        const byLength = [...surahs].sort((x, y) => counts.get(y) - counts.get(x) || x - y);
+        for (let i = 0; i < qCount - n; i++) plan.push(byLength[i % n]);
+    }
+    return plan.sort((x, y) => x - y);
+}
+
+// الخطة النشطة للاختبار الجاري: أرقام السور بحسب chunkIndex (null = السلوك القديم). تُحفظ مع طابور الاختبار
+// (queue[i].surahNum) لتُستعاد عند استكمال اختبار معلّق.
+let activeSurahPlan = null;
+export function setActiveSurahPlan(plan) { activeSurahPlan = Array.isArray(plan) && plan.length ? plan : null; }
+
 export function pickTargetAyah(pool, chunkIndex, totalChunks) {
     if (!pool || pool.length === 0) return null;
+    if (activeSurahPlan && chunkIndex >= 0 && activeSurahPlan[chunkIndex] !== undefined) {
+        const own = pool.filter(a => a.surahNumber === activeSurahPlan[chunkIndex]);
+        if (own.length) return own[Math.floor(Math.random() * own.length)];
+    }
     if (chunkIndex === undefined || chunkIndex === -1 || totalChunks === undefined || totalChunks === 0) {
         return pool[Math.floor(Math.random() * pool.length)];
     }
