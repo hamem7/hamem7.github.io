@@ -79,7 +79,7 @@ test-test/
 | Data/Database | 11 قاعدة IndexedDB (§15) + `localStorage` للسجل والإعدادات | `database/*Manager` |
 | Engines | منطق خالص: توليد أسئلة، حساب نتائج/إتقان | تُنشأ في `bootSystem` |
 | Storage الخارجي | Google Sheets (3 أوراق) خلف Apps Script | `core/api.js` فقط |
-| APIs خارجية | alquran.cloud (نص)، islamic.network (صوت)، android.quran.com (صور صفحات)، Google Identity/tokeninfo، GoatCounter، Google Fonts، cdnjs | §18 |
+| APIs خارجية | alquran.cloud (نص)، islamic.network (صوت)، Google Identity/tokeninfo، GoatCounter، Google Fonts، cdnjs | §18 |
 | لا يوجد Backend آخر | لا Firebase/Supabase فعّال | §20 |
 تدفق البيانات: الطالب/المعلم ⇄ IndexedDB محلي دائمًا؛ **الواجبات فقط** تُنشر وتُستلم عبر Apps Script، ثم يُنسخ المعتمَد محليًا إلى سجل الطالب (`core/homeworkRecords.js`).
 
@@ -115,7 +115,7 @@ test-test/
 - **المصدر الفعلي:** `https://api.alquran.cloud/v1/quran/quran-uthmani` — يُجلب مرة واحدة، يُتحقق أنه 114 سورة، ويُخزَّن في `DarHamDatabase.quran` (keyPath `number`). **لا يوجد نص قرآن مضمَّن في المشروع** (باستثناء بيانات المتشابهات والأمثلة).
 - **العرض:** `toQuranicSukun()` يحوّل السكون U+0652 إلى U+06E1؛ `cleanAyahText`, `normalizeForCompare`, `splitAyahWords/Tokens`, `isWaqfMark`, `realWordIndexes` (علامات الوقف ليست كلمات) في `quranEngine.js`.
 - **الوصول للآيات:** `getSurah`, `getAllSurahsList`, `getAyahsByJuz`, `getAyahsInRange(surah,start,end)`, `getAyahsBySurahRange(from,to)`, `getAllAyahsOnPage`. **«Range Engine»** = هذه الدوال + وضع `range` في `settings/dashboard.js` (من سورة إلى سورة) و`pickTargetAyah(pool, chunkIndex, totalChunks)`.
-- **صفحات المصحف:** لعبة `visual_memory` تعرض صورتي الصفحتين من `android.quran.com/data/width_1024/pageNNN.png` (604 صفحة؛ فردي=يمين).
+- **صفحات المصحف:** لعبة `visual_memory` تعرض صورتي الصفحتين من `assets/mushaf/pageNNN.webp` (604 صفحة WebP عرض 800 مرفوعة مع المنصة، مصدرها في `assets/mushaf/SOURCE.md`؛ فردي=يمين). `android.quran.com` احتياطي فقط عبر `onerror`، والـ service worker يخزّن ما يُعرض منها (`dar-ham-mushaf-v1`).
 - **الصوت:** `database/kidsAudioDB.js` + `engine/kidsEngine.js` — `cdn.islamic.network/quran/audio/<bitrate>/<reciter>/<ayahNumber>.mp3` (ترقيم alquran.cloud؛ `ar.abdulbasitmurattal` 64kbps في kidsEngine).
 - **قواعد خاصة:** ربط عمودين: لا تقف إجابة صحيحة أمام أختها في نفس الصف (`arrangeEndsNotFacing`)؛ ركن الأطفال: أجزاء حتى 26؛ `core/quranTextUtils.js` للمتشابهات والتجويد.
 - **لا يوجد ملف بيانات صفحات/مصحف محلي** — `غير محدد في المشروع` أي تخزين لصور الصفحات.
@@ -214,7 +214,7 @@ test-test/
 | Google Identity Services + tokeninfo | دخول المعلم | البوابة والخادم | `index.html`, `teacherAuthGate.js`, `Code.gs` | فعّال |
 | alquran.cloud | نص القرآن العثماني | أول إقلاع | `database/quranDB.js` | فعّال (حرج لأول تشغيل) |
 | cdn.islamic.network | صوت الآيات | الأطفال/التجويد | `kidsAudioDB.js`, `kidsEngine.js` | فعّال |
-| android.quran.com | صور صفحات المصحف | `visual_memory` | `quranEngine.js` | فعّال |
+| android.quran.com | صور صفحات المصحف (احتياطي فقط؛ الأساسي محلي) | `visual_memory` | `quranEngine.js` | احتياطي |
 | GoatCounter (`dar-ham.goatcounter.com`) | تحليلات زيارات بلا بيانات شخصية | كل شاشة | `index.html`, `core/analytics.js` | فعّال |
 | Google Fonts | الخطوط | CSS/تقارير | `index.html`, `home.css`, `monthly-report.identity.js` | فعّال |
 | cdnjs | html2canvas, jsPDF | التقارير | `reports/*.js` | فعّال عند التصدير |
