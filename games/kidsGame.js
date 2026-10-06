@@ -6,7 +6,7 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare } from '../engine/quranEngine.js';
+import { normalizeForCompare, setActiveSurahPlan } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -76,6 +76,7 @@ function getShuffledBag(gamesList) {
 // 🌟 [جديد] المعامل الثالث resumeSnapshot (اختياري) — نفس فكرة adultGame.js بالضبط: استكمال اختبار
 // معلّق من أول سؤال لم يُجَب. غيابه = السلوك القديم تماماً بلا أي تغيير.
 export async function openKidsGameScreen(config, isWeakness = false, resumeSnapshot = null) {
+    setActiveSurahPlan(null); // 🌟 خطة تغطية سور جزء عم خاصة بركن الكبار — لا تتسرب لهذا الركن
     if (resumeSnapshot) { config = resumeSnapshot.config || config; isWeakness = false; }
     // 🌟 [جديد] تنبيه ما قبل بدء اللعب — بلا أي ذكر لميزة "التلميح" عمداً (بطلب صريح من
     // المعلم)، لأنها غير موصولة فعلياً في ركن الأطفال بعد (راجع تعليق GameState.hintUsed

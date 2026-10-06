@@ -849,6 +849,9 @@ export const translations = {
         hw_memo_suggestion_recent_prefix: "🌟 آخر {n} سور من حفظ الطالب المسجَّل:",
         // 🌟 [جديد] رقاقة اقتراح خاصة لحالة "جزء عم كاملاً" (بدل سورة بسورة)
         hw_memo_suggestion_juz_amma: "جزء عم كاملاً (الجزء 30)",
+        // 🌟 [جديد] تنبيه تغطية السور لجزء عمّ (components/juzAmmaCoverageNote.js)
+        juz_amma_coverage_note: "النطاق فيه {total} سورة، وهذا الاختبار يغطي {n} منها. السور الباقية ستأتي في الاختبارات القادمة. للتغطية الكاملة في جلسة واحدة ارفع عدد الأسئلة.",
+        juz_amma_coverage_btn: "اجعلها {total} سؤالاً",
         hw_btn_generate: "⚙️ توليد الأسئلة آلياً",
         hw_review_q: "🔍 مراجعة الأسئلة",
         hw_add_manual_q: "➕ إضافة سؤال يدوي",
@@ -1508,6 +1511,7 @@ export const translations = {
 
         rep_ladder_title: "مستوى التقدّم العام",
         rep_ladder_sub: "مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة",
+        rep_ladder_no_regular: "لا توجد تقييمات عادية سابقة في سجل الطالب بعد — جلسات علاج الأخطاء لا تدخل في هذا السُّلّم.",
         rep_ladder_first_attempt: "هذه أول محاولة مسجَّلة في سجل الطالب — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.",
         rep_step_current: "هذا التقييم",
         rep_step_prev1: "المحاولة السابقة",
@@ -2831,6 +2835,9 @@ export const translations = {
         hw_memo_suggestion_recent_prefix: "🌟 Last {n} surahs from this student's registered memorization:",
         // 🌟 New: special suggestion chip for the "whole Juz Amma" case (instead of surah-by-surah)
         hw_memo_suggestion_juz_amma: "Whole Juz Amma (Part 30)",
+        // 🌟 New: Juz Amma surah-coverage note (components/juzAmmaCoverageNote.js)
+        juz_amma_coverage_note: "This range has {total} surahs and this test covers {n} of them. The remaining surahs will come in upcoming tests. Raise the number of questions to cover them all in one session.",
+        juz_amma_coverage_btn: "Make it {total} questions",
         hw_btn_generate: "⚙️ Auto-Generate Questions",
         hw_review_q: "🔍 Review Questions",
         hw_add_manual_q: "➕ Add Manual Question",
@@ -3457,6 +3464,7 @@ export const translations = {
 
         rep_ladder_title: "Overall progress level",
         rep_ladder_sub: "This evaluation compared with the student's latest recorded attempts",
+        rep_ladder_no_regular: "No previous regular evaluations in the student's history yet — mistake-fixing sessions are not part of this ladder.",
         rep_ladder_first_attempt: "This is the first attempt recorded in the student's history — the comparison with previous attempts will appear from the next evaluation onwards.",
         rep_step_current: "This evaluation",
         rep_step_prev1: "Previous attempt",

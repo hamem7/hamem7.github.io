@@ -1,5 +1,5 @@
 // engine/homeworkEngine.js
-import { cleanAyahText, isWaqfMark, splitAyahWords } from './quranEngine.js';
+import { cleanAyahText, isWaqfMark, splitAyahWords, planSurahCoverage, JUZ_AMMA_NUMBER } from './quranEngine.js';
 
 // ==========================================
 // 🌟🌟 فلترة علامات الوقف القرآنية من "كلمات" الآية — [نُقلت للمحرك المركزي]
@@ -64,15 +64,32 @@ export class HomeworkEngine {
         // 🌟 التغطية الشاملة والعادلة (Chunking)
         let qCount = Math.min(config.qCount, validPool.length);
         let selectedAyahs = [];
-        let chunkSize = Math.max(1, Math.floor(validPool.length / qCount));
 
-        for (let i = 0; i < qCount; i++) {
-            let start = i * chunkSize;
-            let end = (i === qCount - 1) ? validPool.length : (i + 1) * chunkSize;
-            let chunk = validPool.slice(start, end);
-            if (chunk.length > 0) {
-                let randomAyah = chunk[Math.floor(Math.random() * chunk.length)];
-                selectedAyahs.push(randomAyah);
+        if (config.mode === 'juz' && config.juzNum === JUZ_AMMA_NUMBER) {
+            // 🌟 جزء عمّ: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js)، بدل التقسيم بعدد الآيات
+            // الذي كانت السور الطويلة تبتلع فيه الأسئلة وتغيب سور قصيرة. الآية عشوائية داخل السورة وبلا تكرار ما أمكن.
+            // الخطة تُبنى من كل آيات الجزء (لا validPool) حتى لا تسقط سورة قصيرة كل آياتها ≤ 3 كلمات من الاختبار
+            const plan = planSurahCoverage(ayahsPool, Math.min(config.qCount, ayahsPool.length));
+            const usedAyahs = new Set();
+            for (const surahNum of plan) {
+                const ownValid = validPool.filter(a => a.surahNumber === surahNum);
+                const own = ownValid.length ? ownValid : ayahsPool.filter(a => a.surahNumber === surahNum);
+                const fresh = own.filter(a => !usedAyahs.has(a));
+                const from = fresh.length ? fresh : own;
+                const pick = from[Math.floor(Math.random() * from.length)];
+                usedAyahs.add(pick);
+                selectedAyahs.push(pick);
+            }
+        } else {
+            let chunkSize = Math.max(1, Math.floor(validPool.length / qCount));
+            for (let i = 0; i < qCount; i++) {
+                let start = i * chunkSize;
+                let end = (i === qCount - 1) ? validPool.length : (i + 1) * chunkSize;
+                let chunk = validPool.slice(start, end);
+                if (chunk.length > 0) {
+                    let randomAyah = chunk[Math.floor(Math.random() * chunk.length)];
+                    selectedAyahs.push(randomAyah);
+                }
             }
         }
 

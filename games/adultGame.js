@@ -6,7 +6,7 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare } from '../engine/quranEngine.js';
+import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -240,6 +240,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
     GameState.resumedFromPause = false; // 🌟 [جديد] يُضبط true فقط عند استكمال اختبار معلّق (أدناه)
     GameState.currentIndex = 0;
     GameState.consecutiveCorrect = 0;
+    setActiveSurahPlan(null); // 🌟 خطة تغطية السور (جزء عم) تُفعَّل أدناه فقط عند الحاجة
     
     try {
         if (isWeakness) {
@@ -315,8 +316,15 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 GameState.reportDetails = Array.isArray(resumeSnapshot.reportDetails) ? resumeSnapshot.reportDetails : [];
                 if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
                 GameState.resumedFromPause = true;
+                // 🌟 استعادة خطة السور المحفوظة داخل الطابور (اختبار جزء عم المعلّق)
+                if (GameState.queue.every(q => q.surahNum !== undefined)) setActiveSurahPlan(GameState.queue.map(q => q.surahNum));
             } else {
+                // 🌟 جزء عم: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js). تُفعَّل الخطة قبل بناء
+                // الطابور حتى يفحص probeGameType اللعبة على السورة المخصصة للسؤال فعلاً.
+                const plan = (config.isJuzMode && config.juzNum === JUZ_AMMA_NUMBER) ? planSurahCoverage(ayahsPool, qCount) : null;
+                setActiveSurahPlan(plan);
                 GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
+                if (plan) GameState.queue.forEach((q, i) => { q.surahNum = plan[i]; });
             }
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });

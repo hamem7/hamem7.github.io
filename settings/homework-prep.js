@@ -1,6 +1,7 @@
 // settings/homework-prep.js
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
+import { attachJuzAmmaCoverageNote } from '../components/juzAmmaCoverageNote.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
 // 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
@@ -309,7 +310,7 @@ async function suggestRangeFromStudentMemo() {
                 const juzRadio = document.querySelector('input[name="hwType"][value="juz"]');
                 if (juzRadio) { juzRadio.checked = true; toggleHwType(); }
                 const juzSelect = document.getElementById('hw-juz-select');
-                if (juzSelect) juzSelect.value = '30';
+                if (juzSelect) { juzSelect.value = '30'; juzSelect.dispatchEvent(new Event('change')); }
             }
         });
     } else {
@@ -1312,6 +1313,7 @@ function populateDropdowns() {
         for (let i = 30; i >= 1; i--) {
             juzSel.appendChild(new Option(`${t("الجزء")} ${i}`, i));
         }
+        attachJuzAmmaCoverageNote('hw-juz-select', 'hw-q-count-juz');
     }
 }
 
