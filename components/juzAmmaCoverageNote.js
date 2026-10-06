@@ -40,3 +40,48 @@ export function attachJuzAmmaCoverageNote(juzSelectId, countInputId) {
     countInput.addEventListener('input', refresh);
     refresh();
 }
+
+// 🌟 [جديد] نفس التنبيه لوضع الصغار: النطاق عندهم «من سورة … إلى سورة …» (لا خيار جزء كامل)، فعدد السور =
+// |إلى − من| + 1. الزر يرفع العدد لعدد السور بحد أقصى KIDS_MAX_QUESTIONS (37 = سور عمّ)، والقرار للمعلم.
+export const KIDS_MAX_QUESTIONS = JUZ_AMMA_SURAHS;
+
+export function attachKidsRangeCoverageNote(fromSelectId, toSelectId, countInputId) {
+    const fromSel = document.getElementById(fromSelectId);
+    const toSel = document.getElementById(toSelectId);
+    const countInput = document.getElementById(countInputId);
+    if (!fromSel || !toSel || !countInput || document.getElementById(countInputId + '-coverage-note')) return;
+
+    const note = document.createElement('div');
+    note.id = countInputId + '-coverage-note';
+    note.style.cssText = 'display:none; margin-top:8px; padding:10px 12px; border-radius:10px; background:#fef3c7; border:1px solid #fcd34d; color:#78350f; font-size:1rem; line-height:1.7; text-align:right;';
+    const text = document.createElement('span');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.style.cssText = 'margin-inline-start:8px; padding:4px 12px; border:none; border-radius:8px; background:#f59e0b; color:#fff; font-family:inherit; font-size:1rem; font-weight:700; cursor:pointer;';
+    note.append(text, btn);
+    countInput.parentNode.appendChild(note);
+
+    let target = 0;
+    btn.addEventListener('click', () => {
+        countInput.value = String(target);
+        refresh();
+    });
+
+    function refresh() {
+        const from = parseInt(fromSel.value);
+        const to = parseInt(toSel.value);
+        const n = parseInt(countInput.value);
+        const total = (from > 0 && to > 0) ? Math.abs(to - from) + 1 : 0;
+        target = Math.min(total, KIDS_MAX_QUESTIONS);
+        const show = total > 0 && n > 0 && n < target;
+        note.style.display = show ? 'block' : 'none';
+        if (!show) return;
+        text.textContent = tf('juz_amma_coverage_note', { total, n });
+        btn.textContent = tf('juz_amma_coverage_btn', { total: target });
+    }
+
+    fromSel.addEventListener('change', refresh);
+    toSel.addEventListener('change', refresh);
+    countInput.addEventListener('input', refresh);
+    refresh();
+}
