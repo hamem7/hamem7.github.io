@@ -67,21 +67,23 @@ function ensureStyles() {
     const style = document.createElement('style');
     style.id = 'cc-style';
     style.textContent = `
-    .cc-overlay { position: fixed; inset: 0; z-index: 10040; background: #f4f1e6; display: flex; flex-direction: column; font-family: inherit; color: #10241c; }
+    .cc-overlay { position: fixed; inset: var(--cc-top, 0px) 0 0 0; z-index: 10040; background: #f4f1e6; display: flex; flex-direction: column; font-family: inherit; color: #10241c; }
     /* الجولة الإرشادية (z-index:9000) يجب أن تعلو هذه الشاشة */
     body.cc-open .dh-tour-root { z-index: 10100; }
-    .cc-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: linear-gradient(135deg, #06352a, #0d5c46); color: #fdf6e3; flex: none; flex-wrap: wrap; }
+    /* ترويسة المنصة (الرئيسية + تغيير اللغة) تبقى ظاهرة فوق الشاشة كباقي شاشات المنصة */
+    body.cc-open #main-header { display: flex !important; position: fixed; top: 0; left: 0; right: 0; z-index: 10050; transform: none !important; }
+    .cc-head { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #fffdf6; border-bottom: 1px solid #e3dcc2; color: #0d5c46; flex: none; flex-wrap: wrap; }
     /* تنسيق h2/h3 العام في المنصة يضيف ظلاً/حدوداً للعناوين؛ نلغيها داخل هذه الشاشة */
     .cc-overlay h2, .cc-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0; filter: none; }
     /* .adult-theme يفرض لون العناوين والتسميات بـ !important؛ نعيد ألوان هذه الشاشة */
-    .cc-overlay .cc-head h2 { color: #fdf6e3 !important; }
+    .cc-overlay .cc-head h2 { color: #0d5c46 !important; }
     .cc-overlay .cc-step > h3 { color: #0d5c46 !important; }
     .cc-overlay .cc-field label { color: #4a6058 !important; }
     .cc-head h2 { margin: 0; font-size: 1.2rem; font-weight: 700; flex: none; }
     .cc-tabs { display: flex; gap: 6px; margin-inline-start: auto; flex-wrap: wrap; }
-    .cc-tab { border: 1px solid rgba(253,246,227,.35); background: transparent; color: #fdf6e3; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: .88rem; }
-    .cc-tab.is-on { background: #fdf6e3; color: #06352a; border-color: #fdf6e3; }
-    .cc-x { border: none; background: rgba(253,246,227,.16); color: #fdf6e3; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex: none; }
+    .cc-tab { border: 1px solid rgba(13,92,70,.35); background: transparent; color: #0d5c46; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: .88rem; }
+    .cc-tab.is-on { background: #0d5c46; color: #fffdf6; border-color: #0d5c46; }
+    .cc-x { border: none; background: rgba(13,92,70,.1); color: #0d5c46; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex: none; }
     .cc-pane { flex: 1; overflow-y: auto; padding: 16px; }
     .cc-pane[hidden] { display: none; }
     .cc-layout { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
@@ -168,7 +170,7 @@ function ensureStyles() {
     .cc-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     .cc-box { position: absolute; }
     .cc-inner { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; gap: calc(4px * var(--s)); }
-    .cc-logo { height: calc(58px * var(--s)); width: auto; display: block; flex: none; }
+    .cc-logo { position: absolute; transform: translateX(-50%); width: auto; display: block; pointer-events: none; }
     .cc-basmala { font-family: 'Aref Ruqaa', 'Amiri', serif; font-size: calc(25px * var(--s)); color: var(--title); line-height: 1.3; direction: rtl; }
     .cc-title { font-family: var(--hf); font-weight: 700; font-size: calc(46px * var(--s)); color: var(--title); line-height: 1.25; }
     .cc-rule { display: flex; align-items: center; gap: 10px; width: 62%; color: var(--acc); line-height: 1; }
@@ -291,7 +293,6 @@ function boxHtml(spec, teacher) {
     const extra = String(spec.extra || '').trim();
     const placeholder = (lang === 'en' ? "Student's name" : 'اسم الطالب');
     return `<div class="cc-box" style="left:${b.x}%;top:${b.y}%;width:${b.w}%;height:${b.h}%;"><div class="cc-inner">
-        ${tpl.logo ? `<img class="cc-logo" src="assets/brand/${tpl.logo === 'light' ? 'ham-logo-light' : 'ham-logo'}.svg" alt="">` : ''}
         ${spec.basmala && !tpl.noBasmala ? `<div class="cc-basmala">${BASMALA}</div>` : ''}
         ${tpl.noTitle ? '' : `<div class="cc-title">${esc(L(type.title, lang))}</div><div class="cc-rule"><i></i><b>✦</b><i></i></div>`}
         <div class="cc-name">${esc(spec.name || placeholder)}</div>
@@ -308,10 +309,16 @@ function boxHtml(spec, teacher) {
         <div class="cc-no">${lang === 'en' ? 'Certificate No.' : 'رقم الشهادة'}: <bdi>${esc(certNumber(spec))}</bdi></div>
     </div></div>`;
 }
+function logoHtml(tpl) {
+    const g = tpl.logo;
+    if (!g) return '';
+    const file = g.tone === 'light' ? 'ham-logo-light' : g.tone === 'mono' ? 'ham-logo-mono' : 'ham-logo';
+    return `<img class="cc-logo" src="assets/brand/${file}.svg" alt="" style="left:${g.x}%;top:${g.y}%;height:${g.h}%;">`;
+}
 function pageHtml(spec, teacher) {
     const tpl = getTemplate(spec.templateId);
     return `<div class="cc-page cc-f-${tpl.font} cc-lang-${certLang(spec)}" data-tpl="${tpl.id}" data-lang="${certLang(spec)}" style="${cssVars(tpl)}">
-        <img class="cc-bg" src="${templateImage(tpl.id)}" alt="">${boxHtml(spec, teacher)}</div>`;
+        <img class="cc-bg" src="${templateImage(tpl.id)}" alt="">${logoHtml(tpl)}${boxHtml(spec, teacher)}</div>`;
 }
 
 // تصغير الخط تدريجياً حتى يتّسع المحتوى داخل منطقة الكتابة الآمنة للقالب
@@ -496,6 +503,19 @@ export async function openCertificatesHub(opts = {}) {
         </div>`;
     document.body.appendChild(overlay);
     document.body.classList.add('cc-open');
+    // الشاشة تبدأ تحت ترويسة المنصة (تُحسب ارتفاعها لأنها تتغير بين الحاسوب والهاتف)
+    const mainHeader = document.getElementById('main-header');
+    const placeBelowHeader = () => overlay.style.setProperty('--cc-top', (mainHeader ? Math.ceil(mainHeader.getBoundingClientRect().height) : 0) + 'px');
+    placeBelowHeader();
+    window.addEventListener('resize', placeBelowHeader);
+    const headerRo = (mainHeader && window.ResizeObserver) ? new ResizeObserver(placeBelowHeader) : null;
+    if (headerRo) headerRo.observe(mainHeader);
+    // «الرئيسية» تغلق الشاشة، وتغيير اللغة يعيد فتحها بلغتها الجديدة (يعمل بعد معالج app.js الذي يبدّل اللغة)
+    const homeBtn = document.getElementById('header-home-btn');
+    const langBtn = document.getElementById('lang-toggle-btn');
+    const onLang = () => { close(); setTimeout(() => openCertificatesHub({ ...opts, noTour: true }), 0); };
+    if (homeBtn) homeBtn.addEventListener('click', close);
+    if (langBtn) langBtn.addEventListener('click', onLang);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
@@ -511,6 +531,10 @@ export async function openCertificatesHub(opts = {}) {
     function close() {
         document.removeEventListener('keydown', onKey);
         window.removeEventListener('resize', scalePreview);
+        window.removeEventListener('resize', placeBelowHeader);
+        if (headerRo) headerRo.disconnect();
+        if (homeBtn) homeBtn.removeEventListener('click', close);
+        if (langBtn) langBtn.removeEventListener('click', onLang);
         if (ro) ro.disconnect();
         closeViewer();
         releaseUrls();
@@ -946,5 +970,5 @@ export async function openCertificatesHub(opts = {}) {
     loadReports();
     if (opts.tab === 'reports' || opts.tab === 'history') switchTab(opts.tab);
     // الجولة الإرشادية (تظهر مرة واحدة فقط، ثم لا تتكرر إلا بإعادة الجولات من بيانات المعلم)
-    import('../components/guidedTour.js').then(m => m.maybeStartTour('certificates')).catch(() => {});
+    if (!opts.noTour) import('../components/guidedTour.js').then(m => m.maybeStartTour('certificates')).catch(() => {});
 }
