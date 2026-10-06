@@ -2,7 +2,7 @@
 // 🌟 splitAyahWords / splitAyahTokens / realWordIndexes: دوال مركزية في quranEngine.js تستبعد
 // علامات الوقف القرآنية (ۚ ۖ ۗ / ج / صلى / قلى...) من "كلمات" الآية، حتى لا تظهر كبطاقة اختيار
 // أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
-import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare } from './quranEngine.js';
+import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare, wordIsSurahName } from './quranEngine.js';
 import { t, tf, surahNameLocal } from '../core/i18n.js';
 
 
@@ -17,21 +17,9 @@ import { t, tf, surahNameLocal } from '../core/i18n.js';
 const bareAr = s => normalizeForCompare(s || '').replace(/ـ/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
 const shuffleArr = a => a.sort(() => Math.random() - 0.5);
 
-function surahStem(name) {
-    return bareAr(cleanName(name)).replace(/^سوره\s*/, '').replace(/\s+/g, '').replace(/^ال/, '');
-}
-
 // هل يظهر اسم السورة (أو جذره، بعد حذف ال وحروف العطف/الجر الملتصقة) ككلمة داخل النص؟
 function leaksSurahName(text, surahName) {
-    const stem = surahStem(surahName);
-    if (!stem || stem.length < 2) return false;
-    return bareAr(text).split(/\s+/).some(w => {
-        const forms = [w, w.replace(/^[وفبلك]/, ''), w.replace(/^[وف][بلك]/, '')];
-        return forms.some(f => {
-            const x = f.replace(/^ال/, '');
-            return x === stem || (stem.length >= 4 && x.startsWith(stem));
-        });
-    });
+    return bareAr(text).split(/\s+/).some(w => wordIsSurahName(w, surahName));
 }
 
 // يستبعد الآيات التي يكشف نصها اسم سورتها؛ لو لم يبقَ شيء يرجع القائمة الأصلية كما هي

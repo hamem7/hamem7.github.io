@@ -80,6 +80,19 @@ export function isWaqfMark(word) {
     return false;
 }
 
+// 🌟 [جديد] هل هذه الكلمة هي اسم السورة نفسه (أو جذره بعد حذف ال وحروف العطف/الجر الملتصقة
+// بها مثل: والعصر / فالعصر / بالناس)؟ تُستخدم لمنع الأسئلة التي تكشف إجابتها بذاتها.
+export function wordIsSurahName(word, surahName) {
+    const b = s => normalizeForCompare(s || '').replace(/ـ/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+    const stem = b(cleanName(surahName)).replace(/^سوره\s*/, '').replace(/\s+/g, '').replace(/^ال/, '');
+    if (!stem || stem.length < 2) return false;
+    const w = b(word);
+    return [w, w.replace(/^[وفبلك]/, ''), w.replace(/^[وف][بلك]/, '')].some(f => {
+        const x = f.replace(/^ال/, '');
+        return x === stem || (stem.length >= 4 && x.startsWith(stem));
+    });
+}
+
 // 🌟 تقطيع نص الآية إلى كلمات فعلية فقط (بعد استبعاد رموز الوقف تماماً) — تُستخدم في كل موضع
 // كانت النتيجة فيه ستظهر للطالب كاختيار أو كبطاقة كلمة أو كمشتت.
 export function splitAyahWords(text) {
@@ -618,7 +631,6 @@ export class QuranEngine {
         let usedWords = new Set();
         let pairs = [];
         for (let s of chosen) {
-            let surahNameBare = s.name.replace(/[^أ-ي]/g, "");
             // 🌟 نجمع كل الكلمات المرشَّحة من *كل* آيات السورة المتاحة بالنطاق (لا نتوقف عند أول
             // آية فيها مرشَّح واحد كما كان سابقاً) لنقدر نختار الأندر فعلياً من بينها كلها 🌟
             let candidates = [];
@@ -627,10 +639,10 @@ export class QuranEngine {
                 for (let w of words) {
                     let bare = w.replace(/[^أ-ي]/g, "");
                     if (bare.length < 4 || usedWords.has(bare)) continue;
-                    // نسمح باسم السورة نفسه ككلمة مميِّزة لها حتى لو كان ضمن القائمة الشائعة —
-                    // رابط تعليمي قوي ومقصود (راجع الافتراض الصريح 3 في تعليق الدالة أعلاه)
-                    let isSurahNameItself = bare === surahNameBare;
-                    if (COMMON_WORDS.has(bare) && !isSurahNameItself) continue;
+                    // 🌟 [تعديل بطلب المعلم] لا تكون الكلمة هي اسم السورة نفسه (والعصر ← العصر):
+                    // الإجابة تصبح بديهية بلا حفظ — كان مسموحاً سابقاً ككلمة مميِّزة، وأُلغي ذلك
+                    if (wordIsSurahName(w, s.name)) continue;
+                    if (COMMON_WORDS.has(bare)) continue;
                     candidates.push({ word: w, bare, freq: globalFreq.get(bare) || 1 });
                 }
             }
@@ -643,7 +655,7 @@ export class QuranEngine {
             if (!picked) {
                 // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
                 let ayahsShuffled = [...s.ayahs].sort(() => Math.random() - 0.5);
-                let fallbackWords = cleanAyahText(ayahsShuffled[0].text).split(/\s+/).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2);
+                let fallbackWords = ayahsShuffled.flatMap(a => cleanAyahText(a.text).split(/\s+/)).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2 && !wordIsSurahName(w, s.name));
                 picked = fallbackWords.length ? fallbackWords[Math.floor(Math.random() * fallbackWords.length)] : s.name;
             }
             usedWords.add(picked.replace(/[^أ-ي]/g, ""));
