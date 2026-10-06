@@ -97,6 +97,7 @@ export async function initHomeworkPrep() {
         console.error(t("محرك القرآن غير متوفر!"));
     }
 
+    setupAccountButton();
     populateDropdowns();
     await populateTargetStudents();
     setupListeners();
@@ -114,6 +115,24 @@ export async function initHomeworkPrep() {
     flushPendingHomeworkSync()
         .then(result => { if (result.sent > 0) loadHomeworkDashboard(); })
         .catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة عند فتح شاشة الواجبات:", err));
+}
+
+// 🌟 [جديد 2026-10-06] زر «تغيير الإيميل» الدائم في أعلى الشاشة + عرض الإيميل الحالي؛ بعد التغيير تُعاد قراءة السجل بحساب المعلم الجديد
+function setupAccountButton() {
+    const btn = document.getElementById('btn-change-account');
+    const emailEl = document.getElementById('hwp-account-email');
+    const render = async () => {
+        const { accountEmailText } = await import('../components/teacherAccount.js');
+        if (emailEl) emailEl.textContent = accountEmailText();
+    };
+    render();
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        const { changeTeacherAccount } = await import('../components/teacherAccount.js');
+        const changed = await changeTeacherAccount();
+        render();
+        if (changed) loadHomeworkDashboard();
+    });
 }
 
 // 🌟 [جديد] أسماء الطلاب الظاهرين (غير المخفيين) المتاحين لقائمة "تخصيص الواجب لطالب محدد"

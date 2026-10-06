@@ -335,11 +335,9 @@ export function initTeacherProfileUI() {
     }
     if (acctChangeBtn) {
         acctChangeBtn.addEventListener('click', async () => {
-            if (isTeacherAuthed() && !confirm(t('acct_change_confirm'))) return;
-            signOutTeacher();
+            const { changeTeacherAccount } = await import('./teacherAccount.js');
             renderAccount();
-            const { ensureHomeworkSignIn } = await import('./teacherAuthGate.js');
-            await ensureHomeworkSignIn();
+            await changeTeacherAccount();
             renderAccount();
         });
     }
