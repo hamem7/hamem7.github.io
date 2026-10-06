@@ -22,7 +22,7 @@
 - **مكتمل ويعمل (مثبت بالكود):** الرئيسية + «الدخول السريع» وشريط سفلي؛ إدارة الطلاب؛ ألعاب الكبار والأطفال؛ التقرير الفردي؛ التقرير الشهري + سجل الحفظ الشهري؛ نظام الواجبات الكامل (إنشاء/رابط/حل/تصحيح/شهادة/تنظيف)؛ «علاج الأخطاء»؛ «حفظ والعودة لاحقًا»؛ النسخ الاحتياطي والاستعادة؛ ركن المتشابهات (خريطة + لعبة)؛ الاختبارات الثنائية (إعداد + لعب مباشر + تقرير)؛ مسار التجويد (4 مراحل في الكتالوج + أنشطة + مراجعة).
 - **ما زال موسومًا «قيد التطوير» في الواجهة:** بطاقتا «المتشابهات» و«التجويد» (`components/splash.html`). بطاقة «الاختبارات الثنائية» أُزيلت منها الشارة بطلب المعلم.
 - **غير مفعّل / يتيم:** `recitation/` (قرار المعلم: ليست ميزة)؛ `core/firebase.js`، `core/supabase.js`، `firestore.rules`، `storage.rules` (Legacy بلا استيراد حي)؛ `dualtests/*-1.*`؛ `engine/masteryEngine.js` (لا يستورده أي ملف).
-- **مخطط/غير منفذ:** أفكار عالمية/مسابقات (README)؛ نقل العناصر إلى `_archive/` (لم يُنفَّذ)؛ مشغّل التنظيف اليومي في Apps Script (لم يُتفق على تفعيله).
+- **مخطط/غير منفذ:** أفكار عالمية/مسابقات (README)؛ نقل العناصر إلى `_archive/` (لم يُنفَّذ).
 - **تجريبي:** `Dar-Ham-Homework-Lab/` (Sandbox لخلفية الواجبات، ليس جزءًا من التشغيل)؛ Service Worker «تجربة» منذ 2026-09-14 (`index.html`).
 - **اختبارات (شُغّلت في هذا الفحص):** `tests/homeworkEngine.test.js` 14/14 ✅، `tests/memorizationEngine.test.js` 13/13 ✅، `Dar-Ham-Homework-Lab/tests/cleanup.test.mjs` 9/9 ✅. `backend.test.mjs` لم يُشغَّل (يحتاج `vendor/` ولم أنسخه). فحص صياغة `node --check` لكل ملفات JS خارج المعمل: بلا أخطاء. **لم يُشغَّل متصفح** (لا اختبار واجهة/PWA فعلي).
 
@@ -158,7 +158,7 @@ test-test/
 | حفظ النتيجة | `recordApprovedResult` ← `history_<id>` (ويُنشئ طالبًا محليًا عند عدم التطابق `createLocalStudent`) |
 | التنبيه | `homeworkNotifier.js` يفحص دوريًا التسليمات الجديدة (صوت + شارة) |
 | Backend | **Google Apps Script Web App + Google Sheets (تخزين فقط)**: `Dar-Ham-Homework-Lab/backend/Code.gs`. أوراق: `Homeworks`, `Submissions`, `Teachers`. سجل JSON مقسّم chunks (45000 حرف × 8). إجراءات: `ping`, `getHomework`, `submit` (عامة) · `googleSignIn` · `authCheck`, `createHomework`, `listHomeworks`, `getHomeworkFull`, `setHomeworkStatus`, `listSubmissions`, `gradeSubmission`, `voidSubmission` (معلم). الطلبات `POST text/plain` بلا preflight |
-| التنظيف | `computeCleanup_`: معتمَد بالكامل → حذف بعد **20 يومًا**؛ لا تسليمات → بعد 14 يومًا؛ غير مصحّح → لا يُحذف + تنبيه للمعلم بعد 14 يومًا (`hw_stale_notified`). الدوال `previewCleanup`, `dailyCleanup`, `installCleanupTrigger`, `removeCleanupTrigger` **موجودة في الكود**؛ هل المشغّل مفعّل فعليًا على الخادم: `غير محدد في المشروع` (القرار: لم يُتفق على آلية التشغيل اليومي، ولا يُفعَّل إلا بطلب صريح) |
+| التنظيف | `computeCleanup_`: معتمَد بالكامل → حذف بعد **20 يومًا**؛ لا تسليمات → بعد 14 يومًا؛ غير مصحّح → لا يُحذف + تنبيه للمعلم بعد 14 يومًا (`hw_stale_notified`). الدوال `previewCleanup`, `dailyCleanup`, `installCleanupTrigger`, `removeCleanupTrigger` **موجودة في الكود**؛ **المشغّل اليومي مفعَّل** (2026-10-06 بطلب المعلم، `installCleanupTrigger`، قرابة الساعة 3 صباحًا؛ إيقافه: `removeCleanupTrigger`). معاينة `previewCleanup` قبل التفعيل: 0 واجبات للحذف، 6 تنتظر التصحيح |
 | المصادقة | §14 |
 - الخدمة الفعلية = Sheets عبر Apps Script (Firebase كانت الفكرة الأولى ثم تُركت — قرار المعلم). `Dar-Ham-Homework-Lab/` معمل التجربة، ونتائجه مدموجة عبر `core/api.js`.
 
@@ -264,7 +264,7 @@ test-test/
 | `reciteRangePicker.js` ما زال مستوردًا في adult/kids رغم حذف الصندوق من الواجهة | `games/*.js` | كود ميت محتمل | لم أتتبّع الاستدعاءات؛ غير محسوم |
 | `Code.gs` ما زال يعالج `audio_record` (يدويًا) رغم حذفه من المولّد | `Code.gs:583,626,679` | توافق خلفي مقبول | غير محسوم |
 | تعليقات قديمة داخل `verifyGoogleIdToken_` تصف قيدًا ألغاه قرار 10-01 (والسلوك الفعلي: تسجيل مفتوح) | `Code.gs` | التباس عند القراءة | مفتوح |
-| مشغّل التنظيف اليومي لم يُتفق عليه، ومع ذلك الدوال جاهزة | `Code.gs` | الحذف التلقائي لا يعمل حتى يُفعَّل يدويًا (حالة الخادم الحي: غير محدد) | بانتظار قرار المعلم |
+| مشغّل التنظيف اليومي مفعَّل (2026-10-06) | `Code.gs` | الحذف نهائي من الشيت (حد 100 واجب لكل تشغيل)؛ نتائج الطلاب تبقى في `history_<id>` على جهاز المعلم فقط | يلزم نسخ احتياطي دوري من المنصة |
 | `index.html` ما زال يحوي سنيبت Firebase App Check debug-token (يعمل على localhost فقط) | `index.html` | بلا أثر؛ بقايا | مفتوح |
 | نقل الأرشيف و`Ham_GitHub_Clean` خارج المجلد لم يُنفَّذا | — | `git init` داخل `test-test` سيرفع كل شيء | بانتظار تنفيذ المعلم |
 | `core/app.js` يكرر معالجة `?hw=` (المسار المبكر يكفي ويعمل `return`) | `app.js:301,391` | الثاني لا يُنفَّذ أبدًا | كود ميت |
