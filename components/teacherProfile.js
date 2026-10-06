@@ -10,6 +10,8 @@ import { t } from '../core/i18n.js';
 // وشرح الافتراضات. الأزرار الفعلية أُضيفت داخل نافذة ملف المعلم (splash.html) لعدم وجود
 // شاشة "إعدادات" عامة مستقلة بعد في المشروع
 import { exportFullBackup, restoreFromBackupFile, getLastBackupAt } from '../core/backupRestore.js';
+// 🌟 [جديد 2026-10-06] حساب جوجل: عرض الإيميل الحالي + «تغيير الإيميل» دائماً + تسجيل الخروج
+import { getTeacherEmail, isTeacherAuthed, signOutTeacher } from '../core/api.js';
 
 // 🌟 [جديد] أيقونة شخص افتراضية (SVG لا إيموجي، اتساقًا مع الهوية البصرية الأهدأ
 // المعتمدة أصلاً في هذه الشاشة) — تظهر في دائرة الترحيب فقط قبل إدخال أي اسم ولا رفع
@@ -317,7 +319,40 @@ export function initTeacherProfileUI() {
         return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     }
 
+    // 🌟 [جديد 2026-10-06] قسم الحساب: «تغيير الإيميل» متاح دائماً (مسجَّل أو لا). التغيير = خروج من الحساب الحالي ثم فتح
+    // نافذة دخول جوجل ليختار المعلم حساباً آخر. كل حساب جوجل له واجباته المنفصلة على الخادم، فنوضّح ذلك قبل التنفيذ.
+    const acctEmailEl = document.getElementById('teacher-account-email');
+    const acctChangeBtn = document.getElementById('teacher-account-change-btn');
+    const acctSignoutBtn = document.getElementById('teacher-account-signout-btn');
+    function renderAccount() {
+        const authed = isTeacherAuthed();
+        if (acctEmailEl) {
+            const mail = getTeacherEmail();
+            acctEmailEl.textContent = authed ? (mail ? `${t('acct_current_prefix')}${mail}` : t('acct_signed_in_unknown')) : t('acct_not_signed_in');
+        }
+        if (acctChangeBtn) acctChangeBtn.textContent = authed ? t('acct_change_btn') : t('acct_signin_btn');
+        if (acctSignoutBtn) acctSignoutBtn.style.display = authed ? '' : 'none';
+    }
+    if (acctChangeBtn) {
+        acctChangeBtn.addEventListener('click', async () => {
+            if (isTeacherAuthed() && !confirm(t('acct_change_confirm'))) return;
+            signOutTeacher();
+            renderAccount();
+            const { ensureHomeworkSignIn } = await import('./teacherAuthGate.js');
+            await ensureHomeworkSignIn();
+            renderAccount();
+        });
+    }
+    if (acctSignoutBtn) {
+        acctSignoutBtn.addEventListener('click', () => {
+            if (!confirm(t('acct_signout_confirm'))) return;
+            signOutTeacher();
+            renderAccount();
+        });
+    }
+
     function openModal() {
+        renderAccount();
         const profile = AppState.currentTeacher || {};
         if (nameInput) nameInput.value = profile.name || '';
         if (dobInput) dobInput.value = profile.dob || '';

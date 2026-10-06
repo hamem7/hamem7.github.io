@@ -32,6 +32,7 @@ export const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzynu0kl
 const LS_URL = 'dh_hw_api_url';
 const LS_USERID = 'dh_hw_teacher_userid';       // 🌟 هوية المعلم بعد تسجيل الدخول بجوجل
 const LS_SESSIONKEY = 'dh_hw_teacher_sessionkey'; // 🌟 جلسة تُصدرها googleSignIn
+const LS_EMAIL = 'dh_hw_teacher_email';          // 🌟 [2026-10-06] للعرض فقط (يُظهر أي حساب جوجل مسجَّل الآن) — لا يُستخدم للتحقق أبداً
 // 🌟 [2026-10-03] اسم مفتاح المعلم الملغى — يُستخدم فقط لمسح نسخته القديمة من أجهزة المعلمين (أدناه)، ولا يُقرأ أبداً.
 const LS_OBSOLETE_TEACHER_KEY = 'dh_hw_teacher_key';
 const EXEC_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_\-]+\/exec$/;
@@ -69,7 +70,16 @@ export function getTeacherAuth() {
 }
 export function setTeacherAuth(userId, sessionKey) { lsSet(LS_USERID, userId); lsSet(LS_SESSIONKEY, sessionKey); }
 export function clearTeacherAuth() {
-    try { localStorage.removeItem(LS_USERID); localStorage.removeItem(LS_SESSIONKEY); } catch (e) { /* لا شيء */ }
+    try { localStorage.removeItem(LS_USERID); localStorage.removeItem(LS_SESSIONKEY); localStorage.removeItem(LS_EMAIL); } catch (e) { /* لا شيء */ }
+}
+/** 🌟 [2026-10-06] بريد حساب جوجل المسجَّل على هذا الجهاز (للعرض فقط) أو null. */
+export function getTeacherEmail() { return lsGet(LS_EMAIL) || null; }
+/** 🌟 [2026-10-06] تغيير الإيميل = الخروج من حساب جوجل الحالي ليظهر اختيار الحساب من جديد.
+ *  يمسح الجلسة المحلية فقط (واجبات الحساب القديم تبقى على الخادم وتعود بمجرد الدخول به ثانيةً)،
+ *  ويطلب من جوجل ألا يختار الحساب السابق تلقائياً. */
+export function signOutTeacher() {
+    clearTeacherAuth();
+    try { window.google?.accounts?.id?.disableAutoSelect(); } catch (e) { /* لا شيء */ }
 }
 /** true لو توجد جلسة جوجل محفوظة لنظام الواجبات على هذا الجهاز (بلا نداء شبكة) — تُستخدم لإخفاء بوابة دخول الواجبات. */
 export function isTeacherAuthed() { return !!getTeacherAuth(); }
@@ -162,6 +172,7 @@ export async function callWithRetry(action, params, opts = {}, tries = 3) {
 export async function googleSignIn(idToken) {
     const r = await call('googleSignIn', { idToken });
     setTeacherAuth(r.userId, r.sessionKey);
+    if (r.email) lsSet(LS_EMAIL, String(r.email));
     return r;
 }
 
