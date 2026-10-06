@@ -568,7 +568,10 @@ function setHomeworkStatus_(req, auth) {
 // =====================================================================================
 
 function isManualQ_(q) { return q.needsManualGrading === true || q.type === 'audio_record'; }
-function maxPoints_(q) { return (typeof q.points === 'number' && q.points > 0) ? q.points : 1; }
+function maxPoints_(q) {
+  // سؤال الفراغ الكتابي (كلمة واحدة) درجته 1 دائماً، حتى للواجبات المحفوظة سابقاً بدرجتين.
+  if (q.type === 'written_blank') return 1;
+  return (typeof q.points === 'number' && q.points > 0) ? q.points : 1; }
 
 /** Returns {earned, isCorrect} for an auto-graded question. Mirrors games/homework-play.js exactly. */
 function autoGradeQuestion_(q, ans) {

@@ -326,7 +326,7 @@ export class HomeworkEngine {
             title: "أكمل الفراغ بكتابة الكلمة الصحيحة (بدون اختيارات): ✍️", 
             text: `﴿\u00A0${textWithBlank}\u00A0﴾`, 
             correctAnswer: correctWord, 
-            points: 2,
+            points: 1,
             needsManualGrading: true 
         };
     }

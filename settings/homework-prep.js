@@ -1064,7 +1064,7 @@ function openGradingRoom(subIndex) {
         if (isManual) {
             // 🌟 نعتمد على d.points المحفوظة مباشرة مع كل سؤال إن وُجدت (تسليمات جديدة)،
             // ونستخدم الجدول القديم فقط كخطة بديلة للتسليمات القديمة السابقة لهذا التحديث.
-            let maxPoints = d.points || ((d.type === 'write_3_ayahs') ? 3 : 2);
+            let maxPoints = (d.type === 'written_blank' ? 1 : (d.points || ((d.type === 'write_3_ayahs') ? 3 : 2)));
             let currentScore = d.manualScore !== undefined ? d.manualScore : 0;
 
             // 🌟🌟 [عُدّل — منع تغيّر الدرجة بالخطأ أثناء Scroll] كان هنا حقل <input type="number">
@@ -1702,7 +1702,7 @@ function saveManualQuestion() {
         text: text,
         options: optionsRaw,
         correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctRaw,
-        points: (type === 'checkbox' || type === 'written_blank') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
+        points: (type === 'checkbox') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
 

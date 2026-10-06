@@ -265,7 +265,7 @@ await test('grading clamps manual scores to [0, max] and rejects stale versions'
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'نور', answers: { w1: 'x' } });
   const s0 = be.post({ action: 'listSubmissions', ...key }).submissions[0];
   let r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { w1: 99 }, finalize: true });
-  assert.equal(r.submission.details[0].manualScore, 2); assert.equal(r.submission.finalScore, 100);
+  assert.equal(r.submission.details[0].manualScore, 1); assert.equal(r.submission.finalScore, 100);
   r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { w1: -5 }, expectedVersion: s0.version });
   assert.equal(r.code, 'VERSION_CONFLICT');
 });

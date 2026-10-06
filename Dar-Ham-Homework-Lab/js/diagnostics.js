@@ -12,7 +12,7 @@ const LS = 'dhlab_diag_last';
 const FIX = () => [
   { id: 'd1', type: 'mcq', title: 'diag mcq', text: 'DIAG-1', options: ['A', 'B', 'C'], correctAnswer: 'B', points: 1 },
   { id: 'd2', type: 'checkbox', title: 'diag checkbox', text: 'DIAG-2', options: ['x', 'y', 'z', 'w'], correctAnswer: ['x', 'z'], points: 2 },
-  { id: 'd3', type: 'written_blank', title: 'diag manual', text: 'DIAG-3', correctAnswer: 'SECRET-ANSWER-DIAG', points: 2, needsManualGrading: true }
+  { id: 'd3', type: 'written_blank', title: 'diag manual', text: 'DIAG-3', correctAnswer: 'SECRET-ANSWER-DIAG', points: 1, needsManualGrading: true }
 ];
 const PERFECT = { d1: 'B', d2: ['z', 'x'], d3: 'anything' };
 
