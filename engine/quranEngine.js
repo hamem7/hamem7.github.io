@@ -212,11 +212,11 @@ export class QuranEngine {
             <div style="display: flex; justify-content: center; gap: 15px; align-items: flex-end; margin-top: 15px;">
                 <div style="width: 48%; position: relative;">
                     <div style="background:#94a3b8; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_right', 'الصفحة اليمنى')}</div>
-                    <img src="${imgRight}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/page'+this.src.match(/page(\d+)\.webp/)[1]+'.png';}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <img src="${imgRight}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
                 </div>
                 <div style="width: 48%; position: relative;">
                     <div style="background:#94a3b8; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_left', 'الصفحة اليسرى')}</div>
-                    <img src="${imgLeft}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/page'+this.src.match(/page(\d+)\.webp/)[1]+'.png';}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <img src="${imgLeft}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
                 </div>
             </div>
             <div style="font-size:1rem; color:#64748b; margin-top:10px;">${tl('qe_tap_unblur', '(اضغط على الصورة لرفع الضباب عنها)')}</div>
