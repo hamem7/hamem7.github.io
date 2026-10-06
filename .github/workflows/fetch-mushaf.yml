@@ -1,0 +1,50 @@
+name: Fetch Mushaf
+
+# تشغيل يدوي فقط: ينزّل صور صفحات المصحف (604) ويحوّلها WebP ويرفعها إلى assets/mushaf/
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تثبيت أداة التحويل
+        run: sudo apt-get update && sudo apt-get install -y webp
+
+      - name: تنزيل الصور وتحويلها
+        run: |
+          set -euo pipefail
+          mkdir -p work/png assets/mushaf
+          for i in $(seq 1 604); do
+            n=$(printf "%03d" "$i")
+            curl -fsS --retry 5 --retry-delay 3 -o "work/png/page$n.png" \
+              "https://android.quran.com/data/width_1024/page$n.png"
+            cwebp -q 80 -resize 800 0 "work/png/page$n.png" -o "assets/mushaf/page$n.webp" -quiet
+          done
+          count=$(ls assets/mushaf/*.webp | wc -l)
+          echo "عدد الصور: $count"
+          test "$count" -eq 604
+          du -sh assets/mushaf
+
+      - name: مصدر الصور
+        run: |
+          cat > assets/mushaf/SOURCE.md <<'MD'
+          # مصدر صور صفحات المصحف
+
+          - صفحات المصحف (604 صفحة) من https://android.quran.com/data/width_1024/ (مشروع quran_android).
+          - حُوّلت من PNG إلى WebP (جودة 80، عرض 800) بواسطة `.github/workflows/fetch-mushaf.yml`.
+          - تُستخدم في لعبة الذاكرة البصرية (`engine/quranEngine.js`) بدل الرابط الخارجي.
+          MD
+
+      - name: رفع الصور
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/mushaf
+          git commit -m "إضافة صور صفحات المصحف محلياً (604 صفحة WebP)"
+          git push
