@@ -7,6 +7,7 @@
 // ink: لون النص العام | title: لون العنوان | name: لون اسم الطالب | accent: لون الخطوط الفاصلة والإبراز
 // font: خط العنوان والاسم ('kufi' | 'ruqaa' | 'amiri') | labelEn: الاسم بالإنجليزية
 // noBasmala: البسملة مرسومة أصلاً في الصورة فلا نكررها | noTitle: عنوان الشهادة مرسوم أصلاً في الصورة (مثل «شهادة تقدير»)
+// logo: شعار المنصة أعلى منطقة الكتابة (true = النسخة الملوّنة للخلفيات الفاتحة | 'light' = النسخة الفاتحة للخلفيات الداكنة)
 // ==========================================================
 export const TEMPLATES = [
     { id: '01', label: 'بنفسجي ملكي', labelEn: 'Royal Purple',   box: { x: 14, y: 9,  w: 64, h: 82 }, ink: '#3b2330', title: '#6d0b57', name: '#6d0b57', accent: '#a87f1e', font: 'ruqaa' },
@@ -25,23 +26,23 @@ export const TEMPLATES = [
     { id: '14', label: 'نقش ومصحف', labelEn: 'Ornament & Mushaf',     box: { x: 36, y: 12, w: 56, h: 76 }, ink: '#3a2e1a', title: '#8a6420', name: '#7a5614', accent: '#b8893a', font: 'amiri' },
     { id: '15', label: 'قبة بنية', labelEn: 'Brown Dome',      box: { x: 18, y: 11, w: 64, h: 56 }, ink: '#3d2a1a', title: '#6b4326', name: '#6b4326', accent: '#b07f4a', font: 'ruqaa' },
     { id: '16', label: 'شريط زمردي', labelEn: 'Emerald Band',    box: { x: 44, y: 11, w: 50, h: 78 }, ink: '#1d3b40', title: '#1f5f6b', name: '#1f5f6b', accent: '#b0893a', font: 'kufi' },
-    { id: '17', label: 'بني مزخرف', labelEn: 'Brown Ornament', box: { x: 20, y: 14, w: 60, h: 72 }, ink: '#3d2a1a', title: '#5a3420', name: '#5a3420', accent: '#a8793a', font: 'ruqaa' },
-    { id: '18', label: 'مصحف مذهّب', labelEn: 'Golden Mushaf', box: { x: 36, y: 18, w: 58, h: 70 }, ink: '#3b2a22', title: '#7a5a28', name: '#6b4a1c', accent: '#b0894a', font: 'amiri', noBasmala: true },
-    { id: '19', label: 'أزرق ليلي', labelEn: 'Midnight Blue', box: { x: 42, y: 21, w: 39, h: 67 }, ink: '#f3ead2', title: '#f6e08a', name: '#ffe9a8', accent: '#d4af37', font: 'ruqaa' },
-    { id: '20', label: 'قوس أخضر', labelEn: 'Green Arch', box: { x: 22, y: 33, w: 56, h: 44 }, ink: '#1d3a30', title: '#0f4c3a', name: '#0f4c3a', accent: '#b89a14', font: 'ruqaa' },
-    { id: '21', label: 'ليل أخضر', labelEn: 'Emerald Night', box: { x: 12, y: 50, w: 76, h: 44 }, ink: '#f2e9d0', title: '#f3d27a', name: '#ffe7a0', accent: '#d9a441', font: 'ruqaa' },
-    { id: '22', label: 'شهادة تقدير', labelEn: 'Appreciation', box: { x: 8, y: 36, w: 84, h: 56 }, ink: '#2a3346', title: '#2a3b5a', name: '#2a3b5a', accent: '#b89a6a', font: 'kufi', noTitle: true, noBasmala: true },
-    { id: '23', label: 'مصحف وإطار', labelEn: 'Framed Mushaf', box: { x: 10, y: 50, w: 80, h: 43 }, ink: '#3a3320', title: '#2c4a3a', name: '#2c4a3a', accent: '#b8923a', font: 'ruqaa', noBasmala: true },
-    { id: '24', label: 'رحل خشبي', labelEn: 'Wooden Rehl', box: { x: 42, y: 12, w: 50, h: 76 }, ink: '#3a3226', title: '#6b4a28', name: '#5a3d1e', accent: '#b8893a', font: 'amiri' },
-    { id: '25', label: 'بطاقة كحلية', labelEn: 'Navy Card', box: { x: 34, y: 9, w: 60, h: 63 }, ink: '#2b2b3a', title: '#1b2a4e', name: '#1b2a4e', accent: '#b8923a', font: 'kufi' },
-    { id: '26', label: 'نصف قبة', labelEn: 'Half Dome', box: { x: 20, y: 14, w: 60, h: 50 }, ink: '#3d3a35', title: '#4a6a68', name: '#3f5f5e', accent: '#d0a070', font: 'ruqaa' },
-    { id: '27', label: 'شريط فيروزي', labelEn: 'Teal Ribbon', box: { x: 33, y: 10, w: 62, h: 78 }, ink: '#3a3a30', title: '#1d5f6a', name: '#1d5f6a', accent: '#c19a4a', font: 'kufi' },
-    { id: '28', label: 'مصحف أرجواني', labelEn: 'Purple Mushaf', box: { x: 36, y: 14, w: 54, h: 72 }, ink: '#3a3020', title: '#5a3d70', name: '#4b3262', accent: '#b8943a', font: 'amiri' },
-    { id: '29', label: 'دفء بني', labelEn: 'Warm Brown', box: { x: 46, y: 9, w: 48, h: 56 }, ink: '#3a2a1a', title: '#5a3a1a', name: '#4a2e12', accent: '#b08a50', font: 'amiri' },
-    { id: '30', label: 'جزاك الله خيراً', labelEn: 'Jazak Allahu Khayran', box: { x: 28, y: 16, w: 48, h: 60 }, ink: '#4a3a14', title: '#6b4a12', name: '#5a3d0a', accent: '#a8842a', font: 'ruqaa' },
-    { id: '31', label: 'شريط ومصحف', labelEn: 'Ribbon & Mushaf', box: { x: 28, y: 10, w: 66, h: 80 }, ink: '#3a3a30', title: '#1d5f6a', name: '#1d5f6a', accent: '#c19a4a', font: 'kufi' },
-    { id: '32', label: 'قوس ذهبي', labelEn: 'Golden Arch', box: { x: 18, y: 8, w: 64, h: 62 }, ink: '#3a3a3a', title: '#7a5a14', name: '#6b4c0e', accent: '#c9a43a', font: 'ruqaa' },
-    { id: '33', label: 'قراءة', labelEn: 'Reading', box: { x: 38, y: 14, w: 55, h: 72 }, ink: '#2f3a30', title: '#2c4a3e', name: '#2c4a3e', accent: '#b8923a', font: 'amiri' }
+    { id: '17', label: 'بني مزخرف', labelEn: 'Brown Ornament', box: { x: 20, y: 14, w: 60, h: 72 }, ink: '#3d2a1a', title: '#5a3420', name: '#5a3420', accent: '#a8793a', font: 'ruqaa', logo: true },
+    { id: '18', label: 'مصحف مذهّب', labelEn: 'Golden Mushaf', box: { x: 36, y: 18, w: 58, h: 70 }, ink: '#3b2a22', title: '#7a5a28', name: '#6b4a1c', accent: '#b0894a', font: 'amiri', noBasmala: true, logo: true },
+    { id: '19', label: 'أزرق ليلي', labelEn: 'Midnight Blue', box: { x: 42, y: 21, w: 39, h: 67 }, ink: '#f3ead2', title: '#f6e08a', name: '#ffe9a8', accent: '#d4af37', font: 'ruqaa', logo: 'light' },
+    { id: '20', label: 'قوس أخضر', labelEn: 'Green Arch', box: { x: 22, y: 33, w: 56, h: 44 }, ink: '#1d3a30', title: '#0f4c3a', name: '#0f4c3a', accent: '#b89a14', font: 'ruqaa', logo: true },
+    { id: '21', label: 'ليل أخضر', labelEn: 'Emerald Night', box: { x: 12, y: 50, w: 76, h: 44 }, ink: '#f2e9d0', title: '#f3d27a', name: '#ffe7a0', accent: '#d9a441', font: 'ruqaa', logo: 'light' },
+    { id: '22', label: 'شهادة تقدير', labelEn: 'Appreciation', box: { x: 8, y: 36, w: 84, h: 56 }, ink: '#2a3346', title: '#2a3b5a', name: '#2a3b5a', accent: '#b89a6a', font: 'kufi', noTitle: true, noBasmala: true, logo: true },
+    { id: '23', label: 'مصحف وإطار', labelEn: 'Framed Mushaf', box: { x: 10, y: 50, w: 80, h: 43 }, ink: '#3a3320', title: '#2c4a3a', name: '#2c4a3a', accent: '#b8923a', font: 'ruqaa', noBasmala: true, logo: true },
+    { id: '24', label: 'رحل خشبي', labelEn: 'Wooden Rehl', box: { x: 42, y: 12, w: 50, h: 76 }, ink: '#3a3226', title: '#6b4a28', name: '#5a3d1e', accent: '#b8893a', font: 'amiri', logo: true },
+    { id: '25', label: 'بطاقة كحلية', labelEn: 'Navy Card', box: { x: 34, y: 9, w: 60, h: 63 }, ink: '#2b2b3a', title: '#1b2a4e', name: '#1b2a4e', accent: '#b8923a', font: 'kufi', logo: true },
+    { id: '26', label: 'نصف قبة', labelEn: 'Half Dome', box: { x: 20, y: 14, w: 60, h: 50 }, ink: '#3d3a35', title: '#4a6a68', name: '#3f5f5e', accent: '#d0a070', font: 'ruqaa', logo: true },
+    { id: '27', label: 'شريط فيروزي', labelEn: 'Teal Ribbon', box: { x: 33, y: 10, w: 62, h: 78 }, ink: '#3a3a30', title: '#1d5f6a', name: '#1d5f6a', accent: '#c19a4a', font: 'kufi', logo: true },
+    { id: '28', label: 'مصحف أرجواني', labelEn: 'Purple Mushaf', box: { x: 36, y: 14, w: 54, h: 72 }, ink: '#3a3020', title: '#5a3d70', name: '#4b3262', accent: '#b8943a', font: 'amiri', logo: true },
+    { id: '29', label: 'دفء بني', labelEn: 'Warm Brown', box: { x: 46, y: 9, w: 48, h: 56 }, ink: '#3a2a1a', title: '#5a3a1a', name: '#4a2e12', accent: '#b08a50', font: 'amiri', logo: true },
+    { id: '30', label: 'جزاك الله خيراً', labelEn: 'Jazak Allahu Khayran', box: { x: 28, y: 16, w: 48, h: 60 }, ink: '#4a3a14', title: '#6b4a12', name: '#5a3d0a', accent: '#a8842a', font: 'ruqaa', logo: true },
+    { id: '31', label: 'شريط ومصحف', labelEn: 'Ribbon & Mushaf', box: { x: 28, y: 10, w: 66, h: 80 }, ink: '#3a3a30', title: '#1d5f6a', name: '#1d5f6a', accent: '#c19a4a', font: 'kufi', logo: true },
+    { id: '32', label: 'قوس ذهبي', labelEn: 'Golden Arch', box: { x: 18, y: 8, w: 64, h: 62 }, ink: '#3a3a3a', title: '#7a5a14', name: '#6b4c0e', accent: '#c9a43a', font: 'ruqaa', logo: true },
+    { id: '33', label: 'قراءة', labelEn: 'Reading', box: { x: 38, y: 14, w: 55, h: 72 }, ink: '#2f3a30', title: '#2c4a3e', name: '#2c4a3e', accent: '#b8923a', font: 'amiri', logo: true }
 ];
 
 export const templateImage = (id) => `assets/certificates/${id}.webp`;

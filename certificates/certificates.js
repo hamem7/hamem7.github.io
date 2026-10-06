@@ -168,6 +168,7 @@ function ensureStyles() {
     .cc-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     .cc-box { position: absolute; }
     .cc-inner { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; gap: calc(4px * var(--s)); }
+    .cc-logo { height: calc(58px * var(--s)); width: auto; display: block; flex: none; }
     .cc-basmala { font-family: 'Aref Ruqaa', 'Amiri', serif; font-size: calc(25px * var(--s)); color: var(--title); line-height: 1.3; direction: rtl; }
     .cc-title { font-family: var(--hf); font-weight: 700; font-size: calc(46px * var(--s)); color: var(--title); line-height: 1.25; }
     .cc-rule { display: flex; align-items: center; gap: 10px; width: 62%; color: var(--acc); line-height: 1; }
@@ -290,6 +291,7 @@ function boxHtml(spec, teacher) {
     const extra = String(spec.extra || '').trim();
     const placeholder = (lang === 'en' ? "Student's name" : 'اسم الطالب');
     return `<div class="cc-box" style="left:${b.x}%;top:${b.y}%;width:${b.w}%;height:${b.h}%;"><div class="cc-inner">
+        ${tpl.logo ? `<img class="cc-logo" src="assets/brand/${tpl.logo === 'light' ? 'ham-logo-light' : 'ham-logo'}.svg" alt="">` : ''}
         ${spec.basmala && !tpl.noBasmala ? `<div class="cc-basmala">${BASMALA}</div>` : ''}
         ${tpl.noTitle ? '' : `<div class="cc-title">${esc(L(type.title, lang))}</div><div class="cc-rule"><i></i><b>✦</b><i></i></div>`}
         <div class="cc-name">${esc(spec.name || placeholder)}</div>
