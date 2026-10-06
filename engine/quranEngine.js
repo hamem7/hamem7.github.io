@@ -405,7 +405,8 @@ export class QuranEngine {
         // ⚠️ [افتراض صريح]: منطق الخلط بقي كما هو بلا تغيير — الضمان الموجود يمنع فقط أن يخرج
         // عمود النهايات مطابقاً لعمود البدايات صفاً بصف بالكامل، ولا يمنع أن تصادف آية أو اثنتان
         // وقوفهما في نفس الصف مع نهايتهما الصحيحة (وهذا وارد مع أي عدد، فردياً كان أو زوجياً).
-        const targetCount = 5;
+        // 🌟 [2026-10-06] بطلب المعلم: صار العدد 6 أزواج (للصغار والكبار) — ألوان الأزواج في CSS تكفي 6 (pair-0..5)
+        const targetCount = 6;
         // 🌟 [جديد] حدود عدد الكلمات المعروضة في كل طرف عند الكبار (راجع الافتراض الصريح 2 أعلاه)
         const ADULT_SIDE_MAX_WORDS = 3;
         const ADULT_SIDE_MIN_WORDS = 2;
@@ -586,7 +587,8 @@ export class QuranEngine {
         if (surahsInRange.length < 2) return null;
 
         let shuffledSurahs = [...surahsInRange].sort(() => Math.random() - 0.5);
-        let targetCount = Math.min(4, shuffledSurahs.length);
+        // 🌟 [2026-10-06] بطلب المعلم: 5 كلمات و5 سور (للصغار والكبار)، وتقلّ تلقائياً لو النطاق أقل من 5 سور
+        let targetCount = Math.min(5, shuffledSurahs.length);
         let chosen = shuffledSurahs.slice(0, targetCount);
 
         // 🌟 [إصلاح جوهري] المشكلة اللي بلّغ عنها المعلم: الكلمات المُختارة كانت "عشوائية" فعلاً —
