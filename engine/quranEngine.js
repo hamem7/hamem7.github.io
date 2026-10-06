@@ -614,8 +614,8 @@ export class QuranEngine {
         let namesList = pairs.map(p => p.name).join('، ');
         return {
             type: isKids ? 'kids_link_word_surah' : 'link_word_surah',
-            // 🌟 [2026-10-03] بطلب المعلم: نفس العنوان في الركنين (الكبار والأطفال)
-            questionTitle: "اربط الكلمة بسورتها يا بطل 🔗📖",
+            // 🌟 [2026-10-06] بطلب المعلم: «يا بطل» للأطفال فقط، وعنوان الكبار بدونها
+            questionTitle: isKids ? "اربط الكلمة بسورتها يا بطل 🔗📖" : "اربط الكلمة بسورتها 🔗📖",
             starts: starts,
             ends: ends,
             // 🌟 نفس شكل original الذي كانت تُرجعه generateOrderSurahsGame (numberInSurah = رقم

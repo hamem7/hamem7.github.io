@@ -2677,6 +2677,7 @@ export const translations = {
         link_word_surah_ends_title: "Surah Names",
         "🔗📖 اربط الكلمة بالسورة": "🔗📖 Link the Word to Its Surah",
         "اربط الكلمة بسورتها يا بطل 🔗📖": "Link the word to its surah, champ! 🔗📖",
+        "اربط الكلمة بسورتها 🔗📖": "Link the word to its surah 🔗📖",
 
         // 🌟 [جديد] عناوين بقية أسئلة/ألعاب المنصة التي كانت لسه بلا ترجمة إنجليزية فعلية — نفس
         // أسلوب النصوص أعلاه تمامًا (النص العربي نفسه هو المفتاح)، والوضع العربي يعمل تلقائيًا
