@@ -576,29 +576,54 @@ async function buildMonthlyReportData(year, monthIndex0) {
     // بوابة دخول المعلم القديمة فتظهر نافذة الدخول (جوجل/المفتاح) داخل التقرير على أي جهاز جديد. الآن لو لم تكن جلسة
     // نظام الواجبات موجودة على هذا الجهاز يُتخطّى قسم الواجبات بملاحظة هادئة، وباقي التقرير يعمل كالمعتاد.
     const { isTeacherAuthed } = await import('../core/api.js');
+    let hwTitleById = {};
+    try {
+      const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
+      allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
+    } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
+    const inMonth = (ts) => typeof ts === 'number' && ts >= monthStart && ts < monthEnd;
+    const toEntry = (hwId, ts, date, score) => ({
+      timestamp: ts,
+      date: date || '',
+      title: hwTitleById[hwId] || hwId || t('mr_hw_untitled'),
+      score: typeof score === 'number' ? score : 0
+    });
+
+    // 🌟 [إصلاح] السجل المحلي (history_<id>) يحتفظ بنتيجة كل واجب معتمد (source: 'homework') حتى بعد حذف الواجب
+    // وتسليماته من الخادم بالتنظيف التلقائي (20 يوماً)، فنقرأه دائماً حتى لا تختفي درجات الواجبات من التقرير.
+    const seenSubmissionIds = new Set();
+    const localEntries = [];
+    try {
+      const rawHist = localStorage.getItem(`history_${student.id}`);
+      (JSON.parse(rawHist) || []).forEach(h => {
+        if (!h || h.source !== 'homework' || !h.approved) return;
+        // كل سجل محلي يُعدّ "مُغطّى" ولو كان في شهر آخر (يُحسب بتاريخ الاعتماد) كي لا يُحتسب من الخادم أيضاً بتاريخ التسليم
+        if (h.submissionId !== undefined && h.submissionId !== null) seenSubmissionIds.add(String(h.submissionId));
+        if (!inMonth(h.timestamp)) return;
+        localEntries.push(toEntry(h.hwId, h.timestamp, h.date, h.score));
+      });
+    } catch (e) { console.error('[monthly-report.js] تعذر قراءة سجل الواجبات المحلي:', e); }
+
+    // الخادم: تسليمات لم تُسجَّل محلياً (مثلاً اعتُمدت من جهاز آخر) — بلا تكرار لما قُرئ من السجل المحلي.
+    const cloudEntries = [];
     if (!isTeacherAuthed()) {
-      homeworkErrorMsg = t('mr_hw_not_signed_in');
+      // 🌟 [2026-10-03] لا نطلب تسجيل دخول داخل التقرير؛ يُتخطّى الخادم بملاحظة هادئة فقط لو لا توجد نتائج محلية.
+      if (!localEntries.length) homeworkErrorMsg = t('mr_hw_not_signed_in');
     } else {
-      const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
-      const allSubs = await getAllSubmissionsFromCloud();
-      const mineThisMonth = allSubs.filter(s =>
-        String(s.studentId) === String(student.id) &&
-        typeof s.timestamp === 'number' && s.timestamp >= monthStart && s.timestamp < monthEnd
-      );
-      let hwTitleById = {};
       try {
-        const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
-        allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
-      } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
-      homeworkEntries = mineThisMonth
-        .map(s => ({
-          timestamp: s.timestamp,
-          date: s.date || '',
-          title: hwTitleById[s.hwId] || s.hwId || t('mr_hw_untitled'),
-          score: typeof s.score === 'number' ? s.score : 0
-        }))
-        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
+        const allSubs = await getAllSubmissionsFromCloud();
+        allSubs.forEach(s => {
+          if (String(s.studentId) !== String(student.id) || !inMonth(s.timestamp)) return;
+          if (s.id !== undefined && s.id !== null && seenSubmissionIds.has(String(s.id))) return;
+          cloudEntries.push(toEntry(s.hwId, s.timestamp, s.date, typeof s.score === 'number' ? s.score : s.finalScore));
+        });
+      } catch (e) {
+        console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
+        if (!localEntries.length) homeworkErrorMsg = t('mr_cloud_error');
+      }
     }
+    homeworkEntries = localEntries.concat(cloudEntries).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
     homeworkErrorMsg = t('mr_cloud_error');
