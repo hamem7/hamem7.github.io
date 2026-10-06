@@ -103,10 +103,13 @@ function ensureStyles() {
             font-family: inherit; position: relative; }
         /* 🌟 [2026-10-03] ختم شعار المنصة أعلى الشهادة: <img> لملف SVG ثابت (لا SVG مضمَّن) لأن html2canvas يرسم الصور
            المحمَّلة بثبات عند حفظ الشهادة/مشاركتها. يقفز مرة عند فتح الشهادة مع شرارات ذهبية (تختفي قبل أي حفظ) */
-        .hwcert-seal { position: relative; width: 92px; height: 92px; margin: 0 auto 10px; border-radius: 50%; background: #fffdf6;
+        .hwcert-header { display: flex; align-items: center; direction: rtl; gap: 14px; margin-bottom: 18px;
+            padding-bottom: 14px; border-bottom: 1px solid rgba(212,175,55,0.45); }
+        .hwcert-header-text { flex: 1; min-width: 0; text-align: center; }
+        .hwcert-seal { position: relative; flex: 0 0 auto; width: 76px; height: 76px; border-radius: 50%; background: #fffdf6;
             border: 2px solid var(--dh-gold-500, #d4af37); box-shadow: 0 0 0 5px rgba(212,175,55,0.18);
             display: flex; align-items: center; justify-content: center; animation: hwcert-seal-pop .7s cubic-bezier(.3,1.5,.5,1) both; }
-        .hwcert-seal img { width: 56px; height: auto; display: block; }
+        .hwcert-seal img { width: 46px; height: auto; display: block; }
         .hwcert-seal i { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px; background: #f0d878;
             opacity: 0; transform: rotate(45deg); animation: hwcert-spark .9s ease-out .15s both; }
         @keyframes hwcert-seal-pop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: none; opacity: 1; } }
@@ -114,7 +117,7 @@ function ensureStyles() {
             100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(45deg) scale(1); } }
         @media (prefers-reduced-motion: reduce) { .hwcert-seal, .hwcert-seal i { animation: none; } .hwcert-seal i { display: none; } }
         .hwcert-title { font-size: 1.6rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); margin: 0 0 4px; }
-        .hwcert-subtitle { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin: 0 0 18px; }
+        .hwcert-subtitle { font-size: 0.85rem; color: var(--dh-ink-soft, #4a6058); margin: 0; }
         .hwcert-avatar { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px;
             border: 3px solid var(--dh-gold-500, #d4af37); display: block; background: #fff; }
         .hwcert-avatar-fallback { width: 96px; height: 96px; border-radius: 50%; margin: 0 auto 12px; display: flex;
@@ -206,12 +209,16 @@ export function showHomeworkCertificate(submission, student, scope) {
     overlay.innerHTML = `
         <div class="hwcert-card-wrap">
             <div class="hwcert-card" id="hwcert-card">
-                <div class="hwcert-seal">
-                    <img src="assets/brand/ham-logo.svg" alt="${t('hwcert_logo_alt')}">
-                    ${SEAL_SPARKS}
+                <div class="hwcert-header">
+                    <div class="hwcert-seal">
+                        <img src="assets/brand/ham-logo.svg" alt="${t('hwcert_logo_alt')}">
+                        ${SEAL_SPARKS}
+                    </div>
+                    <div class="hwcert-header-text">
+                        <h2 class="hwcert-title">${t('hwcert_title')}</h2>
+                        <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
+                    </div>
                 </div>
-                <h2 class="hwcert-title">${t('hwcert_title')}</h2>
-                <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
                 ${avatarUrl
                     ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
                     : `<div class="hwcert-avatar-fallback">🎓</div>`}
