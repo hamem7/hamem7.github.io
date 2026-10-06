@@ -97,16 +97,13 @@ export function renderTeacherGreeting() {
     el.textContent = text;
 }
 
-// النص الافتراضي المترجم (المُدرج مسبقاً في splash.html) يبقى كما هو ما لم يُكمل
-// المعلم اسمه في ملفه الشخصي — عندها فقط نستبدله باسمه الحقيقي.
+// 🔒 اسم منشئ المنصة في الفوتر ثابت أبداً — لا يتغير باسم المعلم المسجَّل في ملفه
+// الشخصي. النص مُدرج في splash.html عبر مفتاح الترجمة teacher_name (يتبدّل فقط مع اللغة).
+// أُبقيت الدالة لأن مستدعيها ما زالوا يستوردونها، لكنها لا تستبدل الاسم إطلاقاً.
 export function renderFooterCredit() {
     const nameEl = document.getElementById('footer-teacher-name');
     if (!nameEl) return;
-    const profile = AppState.currentTeacher;
-    if (profile && profile.name) {
-        nameEl.textContent = profile.name;
-        nameEl.removeAttribute('data-i18n');
-    }
+    nameEl.setAttribute('data-i18n', 'teacher_name');
 }
 
 export function renderProfileBadge() {

@@ -272,3 +272,7 @@ body.dh-home-screen .home-hero-text > .home-start-here.dh-fast-start-hero {
     grid-column: 1 / -1; grid-row: 4; margin: 14px 0 0; transform: translateY(30px); position: relative; z-index: 5;
     max-width: none; width: 100%;
 }
+
+/* السطر الثاني تحت عنوان "لماذا حمٓ؟" (منقول من فوتر "عن حمٓ") */
+body.dh-home-screen .home-why-subtitle:not(.home-why-subtitle-more) { margin-bottom: 6px; }
+body.dh-home-screen .home-why-subtitle.home-why-subtitle-more { margin-top: 0; }
