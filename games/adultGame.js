@@ -317,7 +317,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
                 GameState.resumedFromPause = true;
                 // 🌟 استعادة خطة السور المحفوظة داخل الطابور (اختبار جزء عم المعلّق)
-                if (GameState.queue.every(q => q.surahNum !== undefined)) setActiveSurahPlan(GameState.queue.map(q => q.surahNum));
+                if (GameState.queue.every(q => q.surahNum !== undefined)) setActiveSurahPlan(GameState.queue.reduce((pl, q) => { pl[q.chunkIndex] = q.surahNum; return pl; }, []));
             } else {
                 // 🌟 جزء عم: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js). تُفعَّل الخطة قبل بناء
                 // الطابور حتى يفحص probeGameType اللعبة على السورة المخصصة للسؤال فعلاً.
@@ -325,10 +325,21 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 setActiveSurahPlan(plan);
                 GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
                 if (plan) GameState.queue.forEach((q, i) => { q.surahNum = plan[i]; });
+                // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور. نخلط عناصر الطابور كاملة (النوع +
+                // chunkIndex + surahNum معاً) فيبقى توزيع النطاق وتغطية السور كما هي لكن بترتيب العرض عشوائياً.
+                shuffleInPlace(GameState.queue);
             }
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
     } catch (err) { alert("حدث خطأ: " + err.message); }
+}
+
+function shuffleInPlace(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
 function initGameUI() {

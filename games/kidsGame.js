@@ -161,6 +161,11 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                     let selectedType = currentBag.pop();
                     GameState.queue.push({ type: selectedType, chunkIndex: i });
                 }
+                // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور (كل عنصر يحتفظ بنوعه ونطاقه chunkIndex)
+                for (let i = GameState.queue.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [GameState.queue[i], GameState.queue[j]] = [GameState.queue[j], GameState.queue[i]];
+                }
             }
         }
         await loadScreen({ templateUrl: 'games/kidsGame.html', initFunction: initGameUI });
