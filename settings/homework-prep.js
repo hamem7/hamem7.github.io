@@ -1222,7 +1222,7 @@ async function saveManualGrades(subIndex) {
     let recordNote = '';
     if (localStudent) {
         try {
-            const w = await recordApprovedResult(localStudent, updated);
+            const w = await recordApprovedResult(localStudent, updated, await resolveHomeworkScope(updated.hwId).catch(() => null));
             if (!w.verified) throw new Error('read-back mismatch');
             recordNote = t('hw_grade_record_saved').replace('{name}', localStudent.name);
         } catch (err) {

@@ -48,16 +48,33 @@ export async function createLocalStudent(name) {
     return student;
 }
 
-// يُرجع { verified, delta }. verified = تمت قراءة السطر من التخزين بعد كتابته للتأكد.
-export async function recordApprovedResult(student, submission) {
+// 🌟 نص نطاق الواجب (اسم السورة/الآيات/الجزء) ليُحفظ في حقل range بسجل الطالب فيظهر كاملاً في السجل
+// حتى بعد حذف الواجب من الخادم. scope = الكائن المخزَّن مع الواجب (surah | range | juz)؛ غير صالح → null (بلا تخمين).
+export function scopeToText(scope) {
+    if (!scope || typeof scope !== 'object') return null;
+    if (scope.mode === 'surah' && scope.surahName) {
+        return scope.startAyah === scope.endAyah
+            ? `سورة ${scope.surahName} (آية ${scope.startAyah})`
+            : `سورة ${scope.surahName} (${scope.startAyah}-${scope.endAyah})`;
+    }
+    if (scope.mode === 'range' && scope.fromName && scope.toName) {
+        return scope.fromName === scope.toName ? `سورة ${scope.fromName}` : `من سورة ${scope.fromName} إلى سورة ${scope.toName}`;
+    }
+    if (scope.mode === 'juz' && scope.juzNum !== undefined && scope.juzNum !== null) return `الجزء ${scope.juzNum}`;
+    return null;
+}
+
+// يُرجع { verified, delta }. scope (اختياري) = نطاق الواجب لكتابته في range. verified = تمت قراءة السطر من التخزين بعد كتابته للتأكد.
+export async function recordApprovedResult(student, submission, scope) {
     const key = 'history_' + student.id;
     const list = readStudentHistory(student.id);
     const idx = list.findIndex(h => h.submissionId === submission.id);
     const prev = idx >= 0 ? list[idx] : null;
+    const scopeText = scopeToText(scope);
     const approvedMs = Date.parse(submission.approvedAt) || Date.now();
     const entry = {
         date: new Date(approvedMs).toLocaleDateString('ar-EG'),
-        range: `واجب منزلي (${(submission.details || []).length} أسئلة)`,
+        range: scopeText ? `واجب منزلي: ${scopeText}` : ((prev && prev.range) || `واجب منزلي (${(submission.details || []).length} أسئلة)`),
         score: submission.finalScore,                     // نسبة مئوية 0-100 — نفس معنى الحقل الأصلي
         hwId: submission.hwId,
         details: submission.details,
