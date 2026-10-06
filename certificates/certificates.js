@@ -82,6 +82,7 @@ function ensureStyles() {
     .cc-type.is-on { border-color: #0d5c46; background: #e8f3ee; box-shadow: 0 0 0 2px rgba(13,92,70,.18); }
     .cc-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 9px; }
     .cc-field:last-child { margin-bottom: 0; }
+    .cc-field[hidden] { display: none; }
     .cc-field label { font-size: .84rem; color: #4a6058; font-weight: 600; }
     .cc-field input, .cc-field select, .cc-field textarea { font: inherit; padding: 9px 10px; border: 1.5px solid #d9d2b6; border-radius: 10px; background: #fff; color: #10241c; width: 100%; box-sizing: border-box; }
     .cc-field input:focus, .cc-field select:focus, .cc-field textarea:focus { outline: none; border-color: #0d5c46; box-shadow: 0 0 0 3px rgba(13,92,70,.15); }
