@@ -82,15 +82,34 @@ export function isWaqfMark(word) {
 
 // 🌟 [جديد] هل هذه الكلمة هي اسم السورة نفسه (أو جذره بعد حذف ال وحروف العطف/الجر الملتصقة
 // بها مثل: والعصر / فالعصر / بالناس)؟ تُستخدم لمنع الأسئلة التي تكشف إجابتها بذاتها.
+// صيغ فعلية/مشتقة لأسماء سور لا تشبه الاسم رسماً لكنها تكشفه (مثلاً "إذا الشمس كُوِّرت" ← التكوير)
+const SURAH_NAME_EXTRA_FORMS = {
+    'التكوير': ['كورت'], 'الانفطار': ['انفطرت'], 'الانشقاق': ['انشقت'], 'الزلزلة': ['زلزلت', 'زلزالها'],
+    'التحريم': ['تحرم', 'تحريم'], 'الشرح': ['نشرح'], 'المجادله': ['تجادلك', 'يجادل'],
+    'الممتحنه': ['فامتحنوهن'], 'الانسان': ['انسان'], 'المرسلات': ['مرسلات'], 'الحجرات': ['حجرات']
+};
+
+// 🌟 [جديد] هل هذه الكلمة هي اسم السورة نفسه (أو شكل منه)؟ تُستخدم لمنع الأسئلة التي تكشف إجابتها
+// بذاتها (والعصر ← العصر، ألهاكم التكاثر ← التكاثر). تعمل على أي سورة من الـ114 بالاسم نفسه:
+// - تتجاهل التشكيل والألف الخنجرية، وتوحّد الألف/الهمزة/التاء المربوطة/الألف المقصورة.
+// - تحذف "ال" وحروف العطف/الجر الملتصقة (و ف ب ل ك) من الكلمة.
+// - تقارن "هيكل" الحروف بدون ألفات (الرسم العثماني يحذف ألفاً كثيرة: الذاريات = ٱلذَّٰرِيَٰتِ)،
+//   وتعامل ون/ين كشيء واحد (الكافرون/الكافرين) وتقبل كلمة تبدأ باسم السورة (قدرنا ← القدر).
+// - الأسماء المركّبة (آل عمران) تُفحص بكل جزء مميّز منها (عمران).
 export function wordIsSurahName(word, surahName) {
-    const b = s => normalizeForCompare(s || '').replace(/ـ/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
-    const stem = b(cleanName(surahName)).replace(/^سوره\s*/, '').replace(/\s+/g, '').replace(/^ال/, '');
-    if (!stem || stem.length < 2) return false;
+    const b = s => normalizeForCompare(s || '').replace(/ـ/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[ؤئ]/g, m => (m === 'ؤ' ? 'و' : 'ي'));
+    const sk = s => s.replace(/ا/g, '').replace(/ين$/, 'ون');
+    const nameBare = b(cleanName(surahName)).replace(/^سوره\s*/, '');
+    // أسماء الحرف الواحد (ق، ص، ن): الاسم هو الحرف نفسه — مطابقة تامة فقط
+    if (nameBare.length === 1) return b(word) === nameBare;
+    const parts = nameBare.split(/\s+/).map(x => x.replace(/^ال/, '')).filter(x => sk(x).length >= 2);
+    if (!parts.length) return false;
+    const targets = new Set();
+    parts.forEach(x => { targets.add(sk(x)); targets.add(sk('ال' + x)); });
+    (SURAH_NAME_EXTRA_FORMS[nameBare.replace(/\s+/g, '')] || []).forEach(x => targets.add(sk(b(x))));
     const w = b(word);
-    return [w, w.replace(/^[وفبلك]/, ''), w.replace(/^[وف][بلك]/, '')].some(f => {
-        const x = f.replace(/^ال/, '');
-        return x === stem || (stem.length >= 4 && x.startsWith(stem));
-    });
+    const forms = [w, w.replace(/^[وفبلك]/, ''), w.replace(/^[وف][بلك]/, '')].map(sk);
+    return forms.some(f => [...targets].some(t => f === t || (t.length >= 3 && f.length > t.length && f.startsWith(t) && f.length - t.length <= 2)));
 }
 
 // 🌟 تقطيع نص الآية إلى كلمات فعلية فقط (بعد استبعاد رموز الوقف تماماً) — تُستخدم في كل موضع
