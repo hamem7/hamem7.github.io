@@ -8,13 +8,30 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.8';
+export const APP_VERSION = '1.0.9';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 🏅 [أُضيف 2026-10-06] الشهادات: قوالب جاهزة + نصوص ذكية + سجل
+    {
+        version: '1.0.9',
+        date: '2026-10-06',
+        items: [
+            {
+                type: 'new',
+                ar: 'زر "الشهادات" في الشاشة الرئيسية: 16 قالباً احترافياً، وأنواع شهادات جاهزة (إتمام سورة، إتمام جزء، نصف جزء، التميز في المراجعة، ختم القرآن، التجويد، طالب الشهر...) بصيغ جاهزة تراعي المذكر والمؤنث، ومعاينة حية، وحفظ كصورة أو PDF أو مشاركة واتساب.',
+                en: 'A new "Certificates" button on the home screen: 16 professional templates and ready-made certificate types (surah completion, juz completion, half-juz, review excellence, Quran completion, Tajweed, student of the month...) with ready wording, live preview, and saving as image/PDF or sharing on WhatsApp.'
+            },
+            {
+                type: 'new',
+                ar: 'سجل الشهادات: كل شهادة تصدرها تُحفظ في السجل، ويمكنك البحث فيها وإعادة فتحها وتعديلها في أي وقت.',
+                en: 'Certificates history: every certificate you issue is saved so you can search, reopen and edit it anytime.'
+            }
+        ]
+    },
     // 🌟🌟 [أُضيف 2026-10-01] ترتيب الرئيسية + توحيد المصطلحات + تحسينات سجل الواجبات
     {
         version: '1.0.8',

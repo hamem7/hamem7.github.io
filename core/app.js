@@ -646,6 +646,10 @@ function setupSplashListeners() {
 
     if (btnDual) btnDual.addEventListener('click', openDualTestSetup);
 
+    // 🏅 [جديد] بطاقة "الشهادات" — شاشة مستقلة تُحمَّل عند الطلب فقط (certificates/certificates.js)
+    const btnCerts = document.getElementById('btn-certs-main');
+    if (btnCerts) btnCerts.addEventListener('click', openCertificates);
+
     // 🌟 [عدّل] بعد بناء المرحلة 1 (كتالوج القلقلة والنون الساكنة + شاشات تصفّح فعلية في
     // مجلد tajweed/)، أصبحت البطاقة تفتح شاشات "أبطال التجويد" الحقيقية عبر
     // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
@@ -738,6 +742,17 @@ export function openDualTestSetup() {
     }).catch(err => {
         console.error("تعذر تحميل شاشة إعداد الاختبارات الثنائية:", err);
         alert(t("جاري تجهيز شاشة الاختبارات الثنائية 🛠️"));
+    });
+}
+
+// 🏅 [جديد] شاشة "الشهادات" (قوالب جاهزة + سجل ما صدر) — طبقة كاملة فوق الشاشة الحالية، تُحمَّل عند الطلب فقط
+// ولا تغيّر الشاشة الجارية (مثل نافذة)، فيعود المعلم إلى مكانه عند إغلاقها. راجع certificates/certificates.js
+export function openCertificates(opts) {
+    // تنبيه: addEventListener يمرّر الحدث كوسيط أول، فنتجاهل أي وسيط ليس كائن خيارات عادياً
+    const o = opts && opts.constructor === Object ? opts : {};
+    return import('../certificates/certificates.js').then(m => m.openCertificatesHub(o)).catch(err => {
+        console.error('تعذر تحميل شاشة الشهادات:', err);
+        alert(t('جاري تجهيز شاشة الشهادات 🛠️'));
     });
 }
 

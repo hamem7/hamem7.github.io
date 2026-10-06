@@ -1013,6 +1013,7 @@
 .home-card-students .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700)); }
 .home-card-homework .home-card-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 .home-card-dual .home-card-icon { background: linear-gradient(135deg, #64748b, #475569); }
+.home-card-certs .home-card-icon { background: linear-gradient(135deg, #d4af37, #a8841c); }
 
 /* 🌟 [جديد] تمييز بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) بألوان مختلفة —
    كانت الثلاثة تشترك في نفس خلفية .home-card البيضاء (--dh-surface) ولا يميّزها
@@ -1045,6 +1046,13 @@
     border-top: 3px solid #64748b;
 }
 .home-card-dual .home-card-title { color: #334155; }
+
+/* 🏅 بطاقة الشهادات: صبغة ذهبية خفيفة بنفس منطق بطاقتي الواجبات والثنائية */
+.home-card-certs {
+    background: rgba(212, 175, 55, 0.16);
+    border-top: 3px solid #d4af37;
+}
+.home-card-certs .home-card-title { color: #7a5a0e; }
 
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي

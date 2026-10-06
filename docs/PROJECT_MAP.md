@@ -31,6 +31,7 @@ test-test/
 | `student/` | دخول الطالب، «طلابي»، كل الطلاب، ملف الطالب، ترحيب الواجب، و`student.js` (منطق الإدارة). |
 | `settings/` | لوحة المعلم `dashboard.*` و**معمل إعداد الواجبات `homework-prep.*`** (أضخم ملف JS في المنصة). |
 | `reports/` | تقارير PDF/PNG: التقييم الفردي، الشهري، الاختبارات الثنائية، شهادة الواجب (`hwCertificate.js`). |
+| `certificates/` | شاشة الشهادات: `certificates.js` (الواجهة والمعاينة والتصدير)، `templates.js` (16 قالباً: مناطق الكتابة والألوان)، `texts.js` (أنواع الشهادات والصيغ والآيات)، `certificatesDB.js` (سجل ما صدر، IndexedDB). خلفياتها في `assets/certificates/`. |
 | `similarities/` · `tajweed/` · `dualtests/` | ركن المتشابهات؛ مسار التجويد (المرحلة الأولى فقط حسب README)؛ الاختبارات الثنائية (قيد التطوير). |
 | `tests/` | اختباران منطقيان يدويان بـ node: `homeworkEngine.test.js`، `memorizationEngine.test.js`. |
 | `assets/` `icons/` | صور خلفية الأطفال، زخارف التقرير، أيقونات PWA. |

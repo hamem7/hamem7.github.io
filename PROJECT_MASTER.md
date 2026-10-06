@@ -144,6 +144,7 @@ test-test/
 | إنجاز شهري | `monthly-report.{js,identity.js,styles.js}` + مكوّنات الحفظ الشهري | `history_<id>` + `monthly_memorization` + الواجبات المعتمدة | PNG/PDF |
 | مواجهة ثنائية | `dual-test-report.{js,styles.js}` | مباراة + اختبار | PNG/PDF |
 | شهادة واجب | `hwCertificate.js` | تسليم معتمد + ملاحظة المعلم الاختيارية | صورة؛ واتساب عبر `wa.me/?text=` **نص فقط — المرفق يدوي** |
+| شهادات التقدير (قوالب) | `certificates/certificates.js` | اختيار النوع/الطالب/الصيغة/القالب؛ سجل في `DarHamCertificates` | صورة 2000×1414 أو PDF A4؛ واتساب عبر Web Share (ملف مرفق) وإلا تنزيل + إرفاق يدوي |
 - المكتبات تُحمَّل عند الحاجة من cdnjs (`html2canvas 1.4.1`, `jspdf 2.5.1`). سجل التصدير `darham_reports_log`, `darham_reports_done`.
 - قيود: يحتاج إنترنت لأول تحميل المكتبات؛ إصلاح تشوّه العربية/الختم عند التصدير موثّق في مستندات المشروع (`claude/إصلاح-الختم…`) — لم أتحقق منه في المتصفح.
 

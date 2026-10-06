@@ -18,7 +18,7 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, loadSplashScreen, loadLoginScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
@@ -341,6 +341,7 @@ const IC = {
     tajweed: '<path d="M12 3v18M5 8c2 0 3-1 3-3M19 8c-2 0-3-1-3-3M5 16c2 0 3 1 3 3M19 16c-2 0-3 1-3 3"/>',
     homework: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
     dual: '<path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/>',
+    certs: '<circle cx="12" cy="9" r="5.5"/><path d="M9 14l-2 7 5-3 5 3-2-7"/>',
     reports: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/>',
     table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
     memo: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
@@ -371,6 +372,7 @@ function sheetItems(kind) {
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
         { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
         { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
+        { key: 'sheet_certs', icon: IC.certs, run: () => openCertificates() },
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
         { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },
         { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },

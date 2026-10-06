@@ -206,6 +206,8 @@ body.dh-home-screen .home-menu-two .home-card {
 }
 body.dh-home-screen .home-menu-two .home-card .home-card-arrow { display: none; }
 body.dh-home-screen .home-menu-two .home-card .dh-fast-badge { position: static; margin-inline-start: auto; white-space: nowrap; }
+/* 🏅 بطاقة الشهادات: صف كامل تحت الواجبات والثنائية (كانت ستبقى نصف عرض وحدها) */
+body.dh-home-screen .home-menu-two .home-card-certs { grid-column: 1 / -1; }
 body.dh-home-screen #btn-homework-main .dh-fast-badge { background: #6d28d9; color: #fff; }
 body.dh-home-screen #btn-dual-main .dh-fast-badge { background: #b45309; color: #fff; }
 
