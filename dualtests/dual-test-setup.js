@@ -57,6 +57,13 @@ let pendingPairNamesCache = null; // {a, b} — لعرضهما في عنوان �
 // 🌟 [جديد] حالة معالج خطوات محرر الاختبار (1/2/3) + الجولة المختارة حالياً في الخطوة 3
 let currentStep = 1;
 let activeRoundIndex = 0;
+// 🌟 [جديد] عدد الجولات المفتوحة للتجهيز في الاختبار قيد التحرير (1..3) — بطلب صريح من المعلم:
+// الاختبار الجديد يُجهَّز جولة بجولة؛ تظهر الجولة الأولى فقط مفتوحة، والجولتان الأخريان ظاهرتان
+// لكن مقفلتان، وتُفتح كل جولة تلقائياً بعد لعب الجولة التي قبلها. راجع computeUnlockedRoundCount
+let unlockedRoundCount = 3;
+// 🌟 [جديد] التبويب المعروض في شاشة الأسئلة (الخطوة 3): 'main' أو 'swap' — يرجع لـ'main' عند
+// كل دخول للخطوة 3، ويبقى كما هو أثناء الإضافة/الحذف داخل نفس الجولة
+let activeQuestionsTab = 'main';
 
 const ROUND_TITLE_KEYS = ['dts_round1_title', 'dts_round2_title', 'dts_round3_title'];
 
@@ -75,6 +82,15 @@ export async function initDualTestSetup() {
 
     await renderTestsList();
     wireStaticListeners();
+
+    // 🌟 [جديد] فتح مباشر لتجهيز جولة محددة — يُضبط من شاشة اللعب عند محاولة لعب جولة لم تُجهَّز
+    // أسئلتها بعد (راجع renderRoundNotReady في dual-test-play.js). يُقرأ مرة واحدة ثم يُفرَّغ
+    const deepLink = AppState.dualTestSetupOpenRound;
+    AppState.dualTestSetupOpenRound = null;
+    if (deepLink && deepLink.testId != null) {
+        const test = await AppState.dualTestsManager.getTestById(deepLink.testId);
+        if (test) await openEditor(test, deepLink.testId, deepLink.roundIndex);
+    }
 }
 
 // ===================== أدوات بناء قوائم السور المنسدلة =====================
@@ -127,8 +143,13 @@ async function renderTestsList() {
     // البدء من الصفر بالغلط" أسفل الملف)، فيظهر زر مستقل باسمَي الطالبَين الحقيقيَّين لكل زوج.
     // تُجلَب كل المواجهات مرة واحدة هنا ثم تُجمَّع بالذاكرة، بدل استعلام منفصل لكل صف اختبار.
     let pendingGroupsByTest = {};
+    let playedByTest = {}; // 🌟 [جديد] أقصى عدد جولات لُعبت لكل اختبار (لشارة "بانتظار التجهيز")
     try {
         const allMatches = await AppState.dualTestsManager.getAllMatches();
+        allMatches.forEach(m => {
+            const n = Array.isArray(m.rounds) ? m.rounds.length : 0;
+            playedByTest[m.testId] = Math.max(playedByTest[m.testId] || 0, n);
+        });
         allMatches.filter(m => m.status !== 'completed').forEach(m => {
             const pairKey = [String(m.studentIdA), String(m.studentIdB)].sort().join('|');
             if (!pendingGroupsByTest[m.testId]) pendingGroupsByTest[m.testId] = {};
@@ -143,12 +164,64 @@ async function renderTestsList() {
     tests.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
     container.innerHTML = tests.map(tst => {
         const groups = Object.values(pendingGroupsByTest[tst.id] || {});
-        return buildTestRowHTML(tst, groups);
+        return buildTestRowHTML(tst, groups, playedByTest[tst.id] || 0);
     }).join('');
 }
 
-function buildTestRowHTML(test, pendingGroups = []) {
-    const namesLabel = `${test.defaultStudentNameA || '—'} 🆚 ${test.defaultStudentNameB || '—'}`;
+// ===================== 🌟 [جديد] تجهيز الجولات تدريجياً (جولة بجولة) =====================
+// قاعدة الفتح: الجولة رقم (i+1) مفتوحة إذا كانت الأولى، أو لُعبت الجولة التي قبلها في أي مواجهة
+// على هذا الاختبار (أقصى match.rounds.length)، أو كان فيها محتوى محفوظ مسبقاً (نطاق أو أسئلة) —
+// الشرط الأخير يُبقي الاختبارات القديمة التي جُهّزت جولاتها الثلاث دفعة واحدة كما هي بلا قفل.
+
+function roundHasContent(round) {
+    if (!round) return false;
+    return (round.mainQuestions || []).length > 0
+        || (round.swapQuestions || []).length > 0
+        || !!(round.rangeFrom && round.rangeFrom.surah)
+        || !!(round.rangeTo && round.rangeTo.surah);
+}
+
+function maxRoundsPlayed(matches) {
+    return (matches || []).reduce((max, m) => Math.max(max, Array.isArray(m.rounds) ? m.rounds.length : 0), 0);
+}
+
+function unlockedCountFor(test, playedRounds) {
+    let count = Math.min(3, Math.max(1, playedRounds + 1));
+    (test.rounds || []).forEach((round, i) => { if (roundHasContent(round)) count = Math.max(count, i + 1); });
+    return Math.min(3, count);
+}
+
+async function computeUnlockedRoundCount(test, testId) {
+    let played = 0;
+    if (testId != null) {
+        try { played = maxRoundsPlayed(await AppState.dualTestsManager.getMatchesByTestId(testId)); }
+        catch (e) { played = 0; /* best-effort — أسوأ حالة: الجولة الأولى فقط + ما فيه محتوى */ }
+    }
+    return unlockedCountFor(test, played);
+}
+
+// أول جولة مفتوحة لم تُضَف لها أي أسئلة أساسية بعد (أو -1) — لشارة "بانتظار التجهيز" على صف الاختبار
+function nextRoundToPrepare(test, playedRounds) {
+    const unlocked = unlockedCountFor(test, playedRounds);
+    for (let i = 0; i < unlocked; i++) {
+        if (!((test.rounds[i] || {}).mainQuestions || []).length) return i;
+    }
+    return -1;
+}
+
+const DTS_LOCK_ICON = '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+// 🌟 [جديد — التصميم الاحترافي] أيقونات SVG خطّية موحّدة لأزرار صف الاختبار، بدل الإيموجي
+// (يختلف شكله بين الأجهزة). شكلية بحتة: كل زر يحتفظ بنفس data-action ونفس النص المترجم
+const DTS_ICONS = {
+    start: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg>',
+    edit: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    history: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 3"/></svg>',
+    delete: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'
+};
+
+function buildTestRowHTML(test, pendingGroups = [], playedRounds = 0) {
+    const namesLabel = `${test.defaultStudentNameA || '—'} <span class="dts-names-vs">VS</span> ${test.defaultStudentNameB || '—'}`;
     const isReady = test.status === 'ready';
     const badgeClass = isReady ? 'dts-badge-ready' : 'dts-badge-draft';
     const badgeText = isReady ? t('dts_status_ready') : t('dts_status_draft');
@@ -156,7 +229,7 @@ function buildTestRowHTML(test, pendingGroups = []) {
         ? new Date(test.updatedAt).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')
         : '';
     const startBtn = isReady
-        ? `<button type="button" data-action="start" data-id="${test.id}">${t('dts_start_match_btn')}</button>`
+        ? `<button type="button" class="dts-btn-start" data-action="start" data-id="${test.id}">${DTS_ICONS.start}${t('dts_start_match_btn')}</button>`
         : '';
     // 🌟 [مُحدَّث] زر مستقل لكل زوج طلاب له مواجهات معلقة على هذا الاختبار (بدل زر واحد
     // مجمّع) — كل زر يحمل اسمَي الطالبَين الفعليَّين وعدد مواجهاتهما المعلقة تحديداً، ويفتح
@@ -168,36 +241,46 @@ function buildTestRowHTML(test, pendingGroups = []) {
             ${t('dts_pending_pair_btn').replace('{a}', escapeHtml(g.nameA)).replace('{b}', escapeHtml(g.nameB)).replace('{n}', g.count)}
         </button>`).join('');
 
+    // 🌟 [جديد] شارة "الجولة N بانتظار التجهيز" — تفتح المحرر مباشرة على أسئلة تلك الجولة
+    const prepIndex = nextRoundToPrepare(test, playedRounds);
+    const prepBtn = prepIndex >= 0
+        ? `<button type="button" class="dts-btn-prep" data-action="prep" data-id="${test.id}" data-round="${prepIndex}">${DTS_ICONS.edit}${t('dts_round_needs_prep').replace('{n}', prepIndex + 1)}</button>`
+        : '';
+
     return `
     <div class="dts-test-row">
         <div class="dts-test-row-info">
-            <span class="dts-test-row-vs-icon">🆚</span>
+            <span class="dts-test-row-vs-icon">VS</span>
             <div class="dts-test-row-text">
                 <span class="dts-test-row-names">${namesLabel}</span>
                 <span class="dts-test-row-meta"><span class="dts-badge ${badgeClass}">${badgeText}</span> · ${dateLabel}</span>
             </div>
         </div>
         <div class="dts-test-row-actions">
-            ${pendingBtns}
             ${startBtn}
-            <button type="button" data-action="edit" data-id="${test.id}">${t('dts_edit_btn')}</button>
+            ${prepBtn}
+            ${pendingBtns}
+            <button type="button" class="dts-btn-quiet" data-action="edit" data-id="${test.id}">${DTS_ICONS.edit}${t('dts_edit_btn')}</button>
             <!-- 🌟 [جديد] "📜 المباريات السابقة" — يظهر دائماً بغض النظر عن حالة الاختبار
                  (مسودة/جاهز)، لأن المباريات المُلعَبة سابقاً محفوظة بشكل مستقل عن حالة بنك
                  الأسئلة نفسه وتبقى موجودة حتى لو عُدِّل الاختبار لاحقاً. لو لا توجد مباريات
                  منتهية بعد، النافذة نفسها تعرض رسالة "لا توجد مباريات" بدل إخفاء الزر شرطياً
                  (بيحتاج استعلام إضافي لكل صف بلا داعٍ حقيقي) -->
-            <button type="button" data-action="history" data-id="${test.id}">${t('dts_history_btn')}</button>
-            <button type="button" class="dts-btn-danger" data-action="delete" data-id="${test.id}">${t('dts_delete_btn')}</button>
+            <button type="button" class="dts-btn-quiet" data-action="history" data-id="${test.id}">${DTS_ICONS.history}${t('dts_history_btn')}</button>
+            <button type="button" class="dts-btn-danger dts-btn-quiet" data-action="delete" data-id="${test.id}">${DTS_ICONS.delete}${t('dts_delete_btn')}</button>
         </div>
     </div>`;
 }
 
 // ===================== طبقة المحرر (إنشاء/تعديل اختبار) — معالج 3 خطوات =====================
 
-function openEditor(test, id) {
+// 🌟 [مُحدَّث] openRoundIndex (اختياري): فتح المحرر مباشرة على أسئلة جولة محددة (الخطوة 3) —
+// من شارة "بانتظار التجهيز" أو من زر "جهّز الجولة الآن" في شاشة اللعب
+async function openEditor(test, id, openRoundIndex = null) {
     currentTest = test;
     editingTestId = id;
     activeRoundIndex = 0;
+    unlockedRoundCount = await computeUnlockedRoundCount(test, id);
 
     document.getElementById('dts-list-view').style.display = 'none';
     document.getElementById('dts-editor-view').style.display = 'block';
@@ -205,7 +288,12 @@ function openEditor(test, id) {
     populateCompetitorSelect(document.getElementById('dts-student-a'), currentTest.defaultStudentIdA);
     populateCompetitorSelect(document.getElementById('dts-student-b'), currentTest.defaultStudentIdB);
 
-    goToStep(1);
+    if (Number.isInteger(openRoundIndex) && openRoundIndex >= 0 && openRoundIndex < unlockedRoundCount) {
+        activeRoundIndex = openRoundIndex;
+        goToStep(3);
+    } else {
+        goToStep(1);
+    }
 }
 
 function closeEditor() {
@@ -233,23 +321,40 @@ function goToStep(n) {
 
     if (n === 1) renderRoundsRangeContainer();
     else if (n === 2) renderRoundPickGrid();
-    else if (n === 3) renderActiveRoundContainer();
+    else if (n === 3) { activeQuestionsTab = 'main'; renderActiveRoundContainer(); }
 }
 
 // ----- الخطوة 1: المتسابقان (مربوطة أصلاً بمستمعين ثابتين) + نطاق كل جولة -----
 
 function buildRoundRangeCardHTML(round, roundIndex) {
+    // 🌟 [جديد] جولة مقفلة: بطاقة باهتة بلا قوائم اختيار، مع سبب القفل
+    if (roundIndex >= unlockedRoundCount) {
+        return `
+    <div class="dts-range-card dts-round-locked">
+        <div class="dts-range-card-title">
+            <span class="dts-round-badge">${roundIndex + 1}</span>
+            <span>${t(ROUND_TITLE_KEYS[roundIndex])}</span>
+        </div>
+        <div class="dts-locked-note">${DTS_LOCK_ICON}${t('dts_round_locked_note').replace('{n}', roundIndex)}</div>
+    </div>`;
+    }
     return `
     <div class="dts-range-card">
         <div class="dts-range-card-title">
             <span class="dts-round-badge">${roundIndex + 1}</span>
             <span>${t(ROUND_TITLE_KEYS[roundIndex])}</span>
         </div>
-        <div class="dts-round-range-row">
-            <span>${t('from_surah')}</span>
-            <select data-round="${roundIndex}" data-round-range="from" data-field="surah">${surahOptionsHTML(round.rangeFrom.surah)}</select>
-            <span>${t('to_surah')}</span>
-            <select data-round="${roundIndex}" data-round-range="to" data-field="surah">${surahOptionsHTML(round.rangeTo.surah)}</select>
+        <!-- 🌟 [مُحدَّث] بطلب صريح من المعلم: "من سورة" و"إلى سورة" في سطرين واضحين تحت بعض
+             (عنوان + قائمة لكل سطر) بدل صف واحد ملتف بشكل غير مرتب -->
+        <div class="dts-round-range-fields">
+            <label class="dts-range-field" for="dts-range-${roundIndex}-from">
+                <span class="dts-range-field-label">${t('from_surah')}</span>
+                <select id="dts-range-${roundIndex}-from" data-round="${roundIndex}" data-round-range="from" data-field="surah">${surahOptionsHTML(round.rangeFrom.surah)}</select>
+            </label>
+            <label class="dts-range-field" for="dts-range-${roundIndex}-to">
+                <span class="dts-range-field-label">${t('to_surah')}</span>
+                <select id="dts-range-${roundIndex}-to" data-round="${roundIndex}" data-round-range="to" data-field="surah">${surahOptionsHTML(round.rangeTo.surah)}</select>
+            </label>
         </div>
     </div>`;
 }
@@ -257,14 +362,37 @@ function buildRoundRangeCardHTML(round, roundIndex) {
 function renderRoundsRangeContainer() {
     const container = document.getElementById('dts-rounds-range-container');
     if (!container || !currentTest) return;
-    container.innerHTML = currentTest.rounds.map((r, i) => buildRoundRangeCardHTML(r, i)).join('');
+    // 🌟 [مُحدَّث] بطلب المعلم: الخطوة الأولى = المتسابقان + نطاق الجولات المفتوحة فقط. الجولات
+    // المقفلة لا تظهر هنا (تظهر مقفلة في الخطوة 2 "اختيار الجولة" وحدها)
+    container.innerHTML = currentTest.rounds
+        .map((r, i) => (i < unlockedRoundCount ? buildRoundRangeCardHTML(r, i) : ''))
+        .join('');
 }
 
 // ----- الخطوة 2: اختيار الجولة المراد تجهيزها -----
 
+// 🌟 [جديد] الجولة المختارة افتراضياً عند دخول الخطوة 2: أول جولة مفتوحة بلا أسئلة أساسية بعد،
+// وإلا الجولة المختارة سابقاً (لو ما زالت مفتوحة)، وإلا آخر جولة مفتوحة
+function defaultPickedRoundIndex() {
+    for (let i = 0; i < unlockedRoundCount; i++) {
+        if (!(currentTest.rounds[i].mainQuestions || []).length) return i;
+    }
+    if (activeRoundIndex < unlockedRoundCount) return activeRoundIndex;
+    return unlockedRoundCount - 1;
+}
+
+function updateRoundPickSelection() {
+    document.querySelectorAll('#dts-roundpick-grid .dts-roundpick-btn:not(.dts-round-locked)').forEach(btn => {
+        const selected = parseInt(btn.dataset.roundIndex, 10) === activeRoundIndex;
+        btn.classList.toggle('dts-roundpick-selected', selected);
+        btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+}
+
 function renderRoundPickGrid() {
     const container = document.getElementById('dts-roundpick-grid');
     if (!container || !currentTest) return;
+    activeRoundIndex = defaultPickedRoundIndex();
 
     container.innerHTML = currentTest.rounds.map((round, i) => {
         const mains = round.mainQuestions.length;
@@ -272,21 +400,36 @@ function renderRoundPickGrid() {
         const progress = t('dts_round_progress_label').replace('{main}', mains).replace('{swap}', swaps);
         const fromName = surahNameByNumber(round.rangeFrom.surah) || t('dts_range_not_set');
         const toName = surahNameByNumber(round.rangeTo.surah) || t('dts_range_not_set');
-        return `
-        <button type="button" class="dts-roundpick-btn" data-round-index="${i}">
+        if (i >= unlockedRoundCount) {
+            return `
+        <button type="button" class="dts-roundpick-btn dts-round-locked" disabled aria-disabled="true">
             <span class="dts-roundpick-badge">${i + 1}</span>
             <span class="dts-roundpick-title">${t(ROUND_TITLE_KEYS[i])}</span>
-            <span class="dts-roundpick-range">${fromName} — ${toName}</span>
+            <span class="dts-roundpick-progress">${DTS_LOCK_ICON}${t('dts_round_locked_note').replace('{n}', i)}</span>
+        </button>`;
+        }
+        return `
+        <button type="button" class="dts-roundpick-btn" data-round-index="${i}" aria-pressed="false">
+            <span class="dts-roundpick-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="dts-roundpick-badge">${i + 1}</span>
+            <span class="dts-roundpick-title">${t(ROUND_TITLE_KEYS[i])}</span>
+            <span class="dts-roundpick-range">
+                <span class="dts-roundpick-range-line"><span class="dts-roundpick-range-label">${t('from_surah')}</span> ${fromName}</span>
+                <span class="dts-roundpick-range-line"><span class="dts-roundpick-range-label">${t('to_surah')}</span> ${toName}</span>
+            </span>
             <span class="dts-roundpick-progress">${progress}</span>
         </button>`;
     }).join('');
 
-    container.querySelectorAll('.dts-roundpick-btn').forEach(btn => {
+    // 🌟 [مُحدَّث] بطلب المعلم: الضغط على الجولة يختارها فقط (تتميّز بإطار ذهبي وعلامة ✓)،
+    // والانتقال للأسئلة بزر «التالي: وضع الأسئلة» — تقدّم طبيعي خطوة بخطوة
+    container.querySelectorAll('.dts-roundpick-btn:not(.dts-round-locked)').forEach(btn => {
         btn.addEventListener('click', () => {
             activeRoundIndex = parseInt(btn.dataset.roundIndex, 10);
-            goToStep(3);
+            updateRoundPickSelection();
         });
     });
+    updateRoundPickSelection();
 }
 
 // ----- الخطوة 3: محرر أسئلة الجولة المختارة فقط -----
@@ -311,77 +454,93 @@ function buildRoundHTML(round, roundIndex) {
 function buildRoundInnerHTML(round, roundIndex) {
     const mains = round.mainQuestions || [];
     const swaps = round.swapQuestions || [];
+    const isSwap = activeQuestionsTab === 'swap';
 
-    const mainRows = mains.map((q, i) =>
-        buildQuestionRowHTML(q, i, roundIndex, 'main', `${t('dts_question_number_prefix')} ${i + 1}`)
-    ).join('');
-
-    const swapRows = swaps.map((q, i) =>
-        buildQuestionRowHTML(q, i, roundIndex, 'swap', q.code)
-    ).join('');
-
-    // 🌟 [جديد] رأس الجولة: شارة رقم + عنوان + عدّاد "عدد الأسئلة المضافة الآن" — يعطي المعلم
-    // صورة واضحة لموضع كل جولة بلمحة، مفيد خصوصاً بعد إلغاء شرط إكمال كل الأسئلة دفعة واحدة
-    const progressLabel = t('dts_round_progress_label')
-        .replace('{main}', mains.length)
-        .replace('{swap}', swaps.length);
-
-    // 🌟 [مُحدَّث] نطاق الجولة أصبح يُحرَّر فقط في الخطوة 1 من المعالج (اسم سورة كاملة، بلا
-    // رقم آية) — هنا في الخطوة 3 يُعرَض ملخصه للقراءة فقط + رابط "✏️ تعديل" يرجع للخطوة 1،
-    // بدل تكرار قوائم منسدلة قابلة للتعديل في مكانين مختلفين من نفس الاختبار
+    // 🌟 [مُعاد تصميمه — الاقتراح ١ المعتمد من المعلم] رأس الجولة + النطاق، ثم تبويبان
+    // (الأسئلة الأساسية / أسئلة الاستبدال) بعدد كل منهما، ثم بطاقات الأسئلة المرقّمة، ثم نموذج
+    // الإضافة اليدوية أسفل القائمة. نفس البيانات ونفس أزرار الإضافة/الحذف (data-add-kind /
+    // .dts-q-remove) — التغيير في الترتيب والشكل فقط
     const fromName = surahNameByNumber(round.rangeFrom.surah) || t('dts_range_not_set');
     const toName = surahNameByNumber(round.rangeTo.surah) || t('dts_range_not_set');
 
+    const list = isSwap ? swaps : mains;
+    const kind = isSwap ? 'swap' : 'main';
+    const cards = list.length
+        ? `<div class="dts-qx-grid">${list.map((q, i) =>
+            buildQuestionRowHTML(q, i, roundIndex, kind, isSwap ? q.code : String(i + 1))).join('')}</div>`
+        : `<div class="dts-qx-empty">${t(isSwap ? 'dts_no_swap_questions' : 'dts_no_main_questions')}</div>`;
+
     return `
-        <div class="dts-round-header">
-            <span class="dts-round-badge">${roundIndex + 1}</span>
-            <h3 class="dts-round-title">${t(ROUND_TITLE_KEYS[roundIndex])}</h3>
-            <span class="dts-round-progress">${progressLabel}</span>
+        <div class="dts-qx-head">
+            <div class="dts-qx-title">
+                <span class="dts-qx-badge">${roundIndex + 1}</span>
+                <h3 class="dts-round-title">${t(ROUND_TITLE_KEYS[roundIndex])}</h3>
+            </div>
+            <div class="dts-qx-range">
+                <span class="dts-qx-range-label">${t('dts_round_range_summary_label')}</span>
+                <span class="dts-qx-chip">${t('from_surah')} <b>${escapeHtml(fromName)}</b></span>
+                <span class="dts-qx-chip">${t('to_surah')} <b>${escapeHtml(toName)}</b></span>
+                <button type="button" class="dts-edit-range-link" data-action="edit-range">${t('dts_edit_range_btn')}</button>
+            </div>
         </div>
 
-        <div class="dts-range-summary">
-            <span>${t('dts_round_range_summary_label')}</span>
-            <strong>${escapeHtml(fromName)}</strong> — <strong>${escapeHtml(toName)}</strong>
-            <button type="button" class="dts-edit-range-link" data-action="edit-range">${t('dts_edit_range_btn')}</button>
+        <div class="dts-qx-tabs" role="tablist">
+            <button type="button" role="tab" data-qtab="main" aria-selected="${!isSwap}">
+                ${DTS_Q_ICONS.list}${t('dts_main_questions_title')} <span class="dts-qx-count">${mains.length}</span>
+            </button>
+            <button type="button" role="tab" class="dts-qx-tab-swap" data-qtab="swap" aria-selected="${isSwap}">
+                ${DTS_Q_ICONS.swap}${t('dts_swap_tab_title')} <span class="dts-qx-count">${swaps.length}</span>
+            </button>
         </div>
+        <p class="dts-qx-desc">${t(isSwap ? 'dts_swap_questions_desc' : 'dts_main_tab_desc')}</p>
 
-        <h4 style="color:var(--dh-emerald-700); margin-bottom:8px;">${t('dts_main_questions_title')}</h4>
-        <div class="dts-q-list">${mainRows}</div>
-        ${buildEntryFormHTML(roundIndex, 'main')}
-
-        <div class="dts-swap-section">
-            <h4>${t('dts_swap_questions_title')}</h4>
-            <p>${t('dts_swap_questions_desc')}</p>
-            <div class="dts-q-list">${swapRows}</div>
-            ${buildEntryFormHTML(roundIndex, 'swap')}
-        </div>`;
+        ${cards}
+        ${buildEntryFormHTML(roundIndex, kind)}`;
 }
 
-// 🌟 [جديد] نموذج إضافة سؤال واحد بطلب صريح من المعلم: مربعا نص حر ("من" ثم "إلى" تحته
-// مباشرة) يكتب فيهما المعلم وصف السؤال بيده بالكامل (مش اختيار من قوائم سور/آيات منسدلة)،
-// وزر "إضافة سؤال" يضيفه لقائمة الأسئلة أسفله ويُفرّغ المربعين تلقائياً للسؤال التالي.
+// 🌟 [جديد] أيقونات خطّية لشاشة الأسئلة (تبويبات + حقول الإدخال + الحذف)
+const DTS_Q_ICONS = {
+    list: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+    swap: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    book: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h7a3 3 0 0 1 3 3v14a2 2 0 0 0-2-2H2zM22 4h-7a3 3 0 0 0-3 3v14a2 2 0 0 1 2-2h8z"/></svg>',
+    flag: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22V4M4 4h13l-2 4 2 4H4"/></svg>',
+    plus: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    trash: '<svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>'
+};
+
+// 🌟 نموذج إضافة سؤال يدوياً (بطلب صريح من المعلم: يكتب نص السؤال بيده بالكامل). خانتا "سمّع من"
+// و"إلى" بجانب بعض على الشاشات الواسعة وتحت بعض على الجوال، وزر الإضافة بجانبهما. Enter في
+// "سمّع من" ينقل لـ"إلى"، وEnter في "إلى" يضيف السؤال (Shift+Enter = سطر جديد)
 function buildEntryFormHTML(roundIndex, kind) {
-    const addBtnClass = kind === 'swap' ? 'dts-add-swap-btn' : 'dts-add-q-btn';
-    const addBtnLabel = kind === 'swap' ? t('dts_add_swap_btn') : t('dts_add_question_btn');
+    const isSwap = kind === 'swap';
+    const addBtnLabel = isSwap ? t('dts_add_swap_btn') : t('dts_add_question_btn');
     return `
-        <div class="dts-entry-form">
-            <label>📖 ${t('dts_from_label')}</label>
-            <textarea rows="2" id="dts-entry-from-${kind}-${roundIndex}" placeholder="${t('dts_from_placeholder')}"></textarea>
-            <label>🏁 ${t('dts_to_label')}</label>
-            <textarea rows="2" id="dts-entry-to-${kind}-${roundIndex}" placeholder="${t('dts_to_placeholder')}"></textarea>
-            <button type="button" class="${addBtnClass}" data-round="${roundIndex}" data-add-kind="${kind}">${addBtnLabel}</button>
+        <div class="dts-qx-composer ${isSwap ? 'dts-qx-composer-swap' : ''}">
+            <div class="dts-qx-field">
+                <label for="dts-entry-from-${kind}-${roundIndex}">${DTS_Q_ICONS.book}${t('dts_from_label')}</label>
+                <textarea rows="1" id="dts-entry-from-${kind}-${roundIndex}" data-entry="from" placeholder="${t('dts_from_placeholder')}"></textarea>
+            </div>
+            <div class="dts-qx-field dts-qx-field-to">
+                <label for="dts-entry-to-${kind}-${roundIndex}">${DTS_Q_ICONS.flag}${t('dts_to_label')}</label>
+                <textarea rows="1" id="dts-entry-to-${kind}-${roundIndex}" data-entry="to" placeholder="${t('dts_to_placeholder')}"></textarea>
+            </div>
+            <button type="button" class="dts-qx-add ${isSwap ? 'dts-qx-add-swap' : ''}" data-round="${roundIndex}" data-add-kind="${kind}">${DTS_Q_ICONS.plus}${addBtnLabel}</button>
+            <span class="dts-qx-hint">${t('dts_entry_enter_hint')}</span>
         </div>`;
 }
 
-// 🌟 [مُحدَّث] صف عرض سؤال مُضاف بالفعل — للعرض فقط (نص "من"/"إلى" كما كتبه المعلم بالضبط)،
-// بلا أي قوائم قابلة للتعديل — التعديل يكون بالحذف وإعادة الإضافة من نموذج الإدخال أعلاه
+// 🌟 [مُعاد تصميمه] بطاقة سؤال مُضاف: رقم السؤال (أو رمز الاستبدال) + "سمّع من" و"إلى" في سطرين
+// + زر حذف. للعرض فقط — التعديل يكون بالحذف وإعادة الإضافة كما كان
 function buildQuestionRowHTML(q, index, roundIndex, kind, labelText) {
-    const rowClass = kind === 'swap' ? 'dts-q-row dts-swap-row' : 'dts-q-row';
+    const isSwap = kind === 'swap';
     return `
-    <div class="${rowClass}">
-        <span class="dts-q-number">${labelText}</span>
-        <span class="dts-q-display">${t('dts_from_label')}: ${escapeHtml(q.fromText)} — ${t('dts_to_label')}: ${escapeHtml(q.toText)}</span>
-        <button type="button" class="dts-q-remove" data-round="${roundIndex}" data-kind="${kind}" data-index="${index}" aria-label="${t('dts_remove_btn')}" title="${t('dts_remove_btn')}">✖️</button>
+    <div class="dts-qx-card ${isSwap ? 'dts-qx-card-swap' : ''}">
+        <span class="dts-qx-num ${isSwap ? 'dts-qx-num-swap' : ''}">${escapeHtml(String(labelText))}</span>
+        <div class="dts-qx-lines">
+            <div class="dts-qx-line"><span>${t('dts_from_label')}</span><span>${escapeHtml(q.fromText)}</span></div>
+            <div class="dts-qx-line"><span>${t('dts_to_label')}</span><span>${escapeHtml(q.toText)}</span></div>
+        </div>
+        <button type="button" class="dts-q-remove" data-round="${roundIndex}" data-kind="${kind}" data-index="${index}" aria-label="${t('dts_remove_btn')}" title="${t('dts_remove_btn')}">${DTS_Q_ICONS.trash}</button>
     </div>`;
 }
 
@@ -624,6 +783,9 @@ function wireStaticListeners() {
                 await AppState.dualTestsManager.deleteTest(id);
                 await renderTestsList();
             }
+        } else if (action === 'prep') {
+            const test = await AppState.dualTestsManager.getTestById(id);
+            if (test) await openEditor(test, id, parseInt(btn.dataset.round, 10));
         } else if (action === 'start') {
             openStartMatchModal(id);
         } else if (action === 'history') {
@@ -687,6 +849,9 @@ function wireStaticListeners() {
     // ----- المعالج: التنقل بين الخطوات الثلاث -----
     document.getElementById('dts-step1-next-btn')?.addEventListener('click', () => goToStep(2));
     document.getElementById('dts-step2-back-btn')?.addEventListener('click', () => goToStep(1));
+    document.getElementById('dts-step2-next-btn')?.addEventListener('click', () => {
+        if (activeRoundIndex >= 0 && activeRoundIndex < unlockedRoundCount) goToStep(3);
+    });
     document.getElementById('dts-step3-back-btn')?.addEventListener('click', () => goToStep(2));
 
     // ----- الخطوة 1: قوائم نطاق كل جولة (اسم سورة فقط) -----
@@ -704,6 +869,17 @@ function wireStaticListeners() {
 
     // ----- الخطوة 3: محرر أسئلة الجولة المختارة (إضافة/حذف سؤال + رابط تعديل النطاق) -----
     const activeRoundContainer = document.getElementById('dts-active-round-container');
+
+    // 🌟 [جديد] إدخال أسرع: Enter في "سمّع من" ينتقل لـ"إلى"، وEnter في "إلى" يضيف السؤال
+    activeRoundContainer?.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.shiftKey || e.isComposing) return;
+        const field = e.target.closest('textarea[data-entry]');
+        if (!field) return;
+        e.preventDefault();
+        const composer = field.closest('.dts-qx-composer');
+        if (field.dataset.entry === 'from') composer?.querySelector('textarea[data-entry="to"]')?.focus();
+        else composer?.querySelector('button[data-add-kind]')?.click();
+    });
 
     activeRoundContainer?.addEventListener('click', (e) => {
         if (!currentTest) return;
@@ -738,6 +914,15 @@ function wireStaticListeners() {
                 round.swapQuestions.push({ fromText, toText, points: 1, code: generateSwapCode(round.swapQuestions) });
             }
             renderSingleRound(roundIdx);
+            document.getElementById(`dts-entry-from-${kind}-${roundIdx}`)?.focus();
+            return;
+        }
+
+        // 🌟 [جديد] التبديل بين تبويبَي الأسئلة الأساسية/أسئلة الاستبدال
+        const tabBtn = e.target.closest('[data-qtab]');
+        if (tabBtn) {
+            activeQuestionsTab = tabBtn.dataset.qtab === 'swap' ? 'swap' : 'main';
+            renderSingleRound(activeRoundIndex);
             return;
         }
 

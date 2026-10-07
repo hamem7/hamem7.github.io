@@ -1,5 +1,6 @@
 // settings/dashboard.js
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
+import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../components/juzAmmaCoverageNote.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
 import { openKidsGameScreen } from '../games/kidsGame.js';   
 
@@ -49,6 +50,7 @@ export function populateDashboardData() {
         for (let i = 30; i >= 1; i--) {
             juzSel.appendChild(new Option(tf('dash_juz_label', { n: i, name: juzNames[i-1] }), i));
         }
+        attachJuzAmmaCoverageNote('juz-select', 'q-count-juz');
     }
 
     const kFrom = document.getElementById('kids-from-surah'); 
@@ -68,8 +70,9 @@ export function populateDashboardData() {
             kTo.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
         });
         
-        kFrom.value = 114; 
-        kTo.value = 67; 
+        kFrom.value = 114;
+        kTo.value = 67;
+        attachKidsRangeCoverageNote('kids-from-surah', 'kids-to-surah', 'q-count-kids');
     }
 }
 

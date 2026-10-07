@@ -2,7 +2,7 @@
 // Exercises the REAL backend/Code.gs through dev/gas-emulator.mjs (in-memory Sheets mock).
 // These are logic tests of OUR code. They do not prove Google-platform behaviour.
 import assert from 'node:assert/strict';
-import { createBackend } from '../dev/gas-emulator.mjs';
+import { createBackend, createTeacherBackend, googleTokenMock, TEST_CLIENT_ID } from '../dev/gas-emulator.mjs';
 import { HomeworkEngine } from '../vendor/engine/homeworkEngine.js';
 import { buildFakeQuranEngine } from './fake-quran.mjs';
 
@@ -12,10 +12,10 @@ async function test(name, fn) {
   catch (e) { fail++; console.log('❌', name, '\n    ', e.message); }
 }
 
+// 🌟 [2026-10-03] لا مفتاح معلم بعد اليوم: `key` هنا هو جلسة جوجل {userId, sessionKey} لمعلم مسجَّل، تُفرد في الطلب (...key).
 function fresh() {
-  const be = createBackend();
-  const key = be.setup();
-  return { be, key };
+  const { be, auth } = createTeacherBackend();
+  return { be, key: auth };
 }
 async function makeQuestions(n = 10) {
   const engine = new HomeworkEngine(buildFakeQuranEngine());
@@ -34,15 +34,17 @@ function perfectAnswers(questions) {
 const cid = () => 'c_' + Math.random().toString(36).slice(2, 12) + Date.now();
 
 // ------------------------------------------------------------------ setup / auth
-await test('setup() creates both sheets, generates a teacher key, ping reports configured', () => {
-  const { be, key } = fresh();
-  assert.ok(key && key.length === 12);
-  assert.ok(be.ss.getSheetByName('Homeworks') && be.ss.getSheetByName('Submissions'));
+await test('setup() creates the sheets, generates NO teacher key, removes obsolete TEACHER_KEY/TEACHER_EMAILS, ping reports configured', () => {
+  const be = createBackend({ props: { TEACHER_KEY: 'OLDKEY123456', TEACHER_EMAILS: 'someone@example.com', LEGACY_OWNER_USERID: 'T_keep' } });
+  assert.equal(be.setup(), true);
+  assert.ok(!('TEACHER_KEY' in be.props) && !('TEACHER_EMAILS' in be.props));
+  assert.equal(be.props.LEGACY_OWNER_USERID, 'T_keep', 'legacy-owner mapping (data access) must survive');
+  assert.ok(be.ss.getSheetByName('Homeworks') && be.ss.getSheetByName('Submissions') && be.ss.getSheetByName('Teachers'));
   const p = be.get({ action: 'ping' });
   assert.equal(p.ok, true); assert.equal(p.configured, true);
 });
 
-await test('teacher actions reject missing/wrong key and never leak data', async () => {
+await test('teacher actions reject missing auth / any teacherKey and never leak data', async () => {
   const { be } = fresh();
   const qs = await makeQuestions(4);
   for (const body of [{ action: 'createHomework', homework: { questions: qs } }, { action: 'listHomeworks' }, { action: 'listSubmissions' }]) {
@@ -53,16 +55,20 @@ await test('teacher actions reject missing/wrong key and never leak data', async
 
 await test('teacher actions cannot be invoked via GET (keys must not travel in URLs)', () => {
   const { be, key } = fresh();
-  assert.equal(be.get({ action: 'listSubmissions', teacherKey: key }).code, 'METHOD_NOT_ALLOWED');
+  assert.equal(be.get({ action: 'listSubmissions', ...key }).code, 'METHOD_NOT_ALLOWED');
 });
 
-// 🌟 [تحديث تدقيق ما قبل الإطلاق] السلوك القديم (المفتاح الصحيح يُقفل أيضاً) كان يسمح لأي مجهول بقفل المعلم بـ20 طلباً خاطئاً.
-// الآن: التخمينات الخاطئة تُقفل (LOCKED)، لكن المفتاح الصحيح (60 بت عشوائي + تأخير 400ms لكل تخمين) يبقى مقبولاً.
-await test('brute force: after 20 wrong keys further wrong guesses are LOCKED, but the right key still works (no lockout DoS)', () => {
+// 🌟 [2026-10-03] مفتاح المعلم أُلغي نهائيًا: حتى المفتاح القديم "الصحيح" (لو بقي في Script Properties) لا يفتح أي شيء،
+// وإجراء migrateLegacyKey لم يعد موجودًا. جلسة جوجل وحدها تفتح نظام الواجبات.
+await test('TEACHER KEY REMOVED: the old real key opens nothing, migrateLegacyKey is gone, a Google session works', () => {
   const { be, key } = fresh();
-  for (let i = 0; i < 20; i++) be.post({ action: 'authCheck', teacherKey: 'nope' + i });
-  assert.equal(be.post({ action: 'authCheck', teacherKey: 'nope-again' }).code, 'LOCKED');
-  assert.equal(be.post({ action: 'authCheck', teacherKey: key }).ok, true);
+  be.props.TEACHER_KEY = 'OLDREALKEY12';
+  for (const action of ['authCheck', 'listHomeworks', 'listSubmissions']) {
+    assert.equal(be.post({ action, teacherKey: 'OLDREALKEY12' }).code, 'UNAUTHORIZED');
+  }
+  assert.equal(be.post({ action: 'migrateLegacyKey', idToken: 'dev-teacher-token', teacherKey: 'OLDREALKEY12' }).code, 'UNKNOWN_ACTION');
+  const ok = be.post({ action: 'authCheck', ...key });
+  assert.equal(ok.ok, true); assert.equal(ok.userId, key.userId); assert.ok(!('isLegacy' in ok));
 });
 
 await test('malformed JSON / unknown action / oversized body are rejected cleanly', () => {
@@ -75,21 +81,21 @@ await test('malformed JSON / unknown action / oversized body are rejected cleanl
 // ------------------------------------------------------------------ homework
 await test('createHomework: persists, verifies read-back, returns unguessable id (HW_ + 32 hex)', async () => {
   const { be, key } = fresh();
-  const r = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(8) } });
+  const r = be.post({ action: 'createHomework', ...key, homework: { questions: await makeQuestions(8) } });
   assert.equal(r.ok, true); assert.equal(r.persisted, true);
   assert.match(r.id, /^HW_[0-9a-f]{32}$/);
   const ids = new Set();
-  for (let i = 0; i < 20; i++) ids.add(be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(3) } }).id);
+  for (let i = 0; i < 20; i++) ids.add(be.post({ action: 'createHomework', ...key, homework: { questions: await makeQuestions(3) } }).id);
   assert.equal(ids.size, 20);
 });
 
 await test('createHomework validates questions (empty, duplicate ids, missing answer)', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(3);
-  assert.equal(be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [] } }).code, 'BAD_REQUEST');
-  assert.equal(be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [qs[0], qs[0]] } }).code, 'BAD_REQUEST');
+  assert.equal(be.post({ action: 'createHomework', ...key, homework: { questions: [] } }).code, 'BAD_REQUEST');
+  assert.equal(be.post({ action: 'createHomework', ...key, homework: { questions: [qs[0], qs[0]] } }).code, 'BAD_REQUEST');
   const noAns = { ...qs[0] }; delete noAns.correctAnswer;
-  assert.equal(be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [noAns] } }).code, 'BAD_REQUEST');
+  assert.equal(be.post({ action: 'createHomework', ...key, homework: { questions: [noAns] } }).code, 'BAD_REQUEST');
 });
 
 await test('SECURITY: getHomework (public) never contains correct answers for ANY question type', async () => {
@@ -97,7 +103,7 @@ await test('SECURITY: getHomework (public) never contains correct answers for AN
   // run several generations so every question type appears
   for (let run = 0; run < 6; run++) {
     const qs = await makeQuestions(12);
-    const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+    const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
     const pub = be.get({ action: 'getHomework', id: c.id });
     assert.equal(pub.ok, true);
     const wire = JSON.stringify(pub);
@@ -119,11 +125,11 @@ await test('getHomework: invalid / unknown / injection-style ids give NOT_FOUND'
 await test('closing a homework makes the public link answer CLOSED and blocks new submissions', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(4);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
-  assert.equal(be.post({ action: 'setHomeworkStatus', teacherKey: key, id: c.id, status: 'closed' }).ok, true);
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
+  assert.equal(be.post({ action: 'setHomeworkStatus', ...key, id: c.id, status: 'closed' }).ok, true);
   assert.equal(be.get({ action: 'getHomework', id: c.id }).code, 'CLOSED');
   assert.equal(be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'سارة', answers: {} }).code, 'CLOSED');
-  be.post({ action: 'setHomeworkStatus', teacherKey: key, id: c.id, status: 'published' });
+  be.post({ action: 'setHomeworkStatus', ...key, id: c.id, status: 'published' });
   assert.equal(be.get({ action: 'getHomework', id: c.id }).ok, true);
 });
 
@@ -131,10 +137,10 @@ await test('closing a homework makes the public link answer CLOSED and blocks ne
 await test('submit: server grades from stored definition; perfect answers => provisional 100 (auto types)', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(12);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const r = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'أحمد', answers: perfectAnswers(qs) });
   assert.equal(r.ok, true); assert.equal(r.persisted, true); assert.equal(r.status, 'submitted');
-  const list = be.post({ action: 'listSubmissions', teacherKey: key, hwId: c.id });
+  const list = be.post({ action: 'listSubmissions', ...key, hwId: c.id });
   assert.equal(list.submissions.length, 1);
   const s = list.submissions[0];
   assert.equal(s.provisionalScore, 100);
@@ -161,11 +167,11 @@ await test('submit: wrong answers score low; partial credit for matrix_order/dua
 await test('SECURITY: client-supplied score/status/details are ignored (server never trusts client scores)', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(6);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const r = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'خالد', answers: {},
     score: 77, status: 'approved', finalScore: 77, details: [{ isCorrect: true }], studentId: 'HACK' });
   assert.equal(r.status, 'submitted');
-  const s = be.post({ action: 'listSubmissions', teacherKey: key }).submissions[0];
+  const s = be.post({ action: 'listSubmissions', ...key }).submissions[0];
   assert.equal(s.status, 'submitted');
   assert.equal(s.score, s.provisionalScore); assert.notEqual(s.score, 77); assert.equal(s.finalScore, null);
   assert.notEqual(s.studentId, 'HACK');
@@ -175,43 +181,43 @@ await test('SECURITY: client-supplied score/status/details are ignored (server n
 await test('IDEMPOTENT: replaying the same clientSubmissionId never creates a duplicate', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(5);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const id = cid();
   const body = { action: 'submit', hwId: c.id, clientSubmissionId: id, studentName: 'ليلى', answers: perfectAnswers(qs) };
   const a = be.post(body), b = be.post(body), d = be.post(body);
   assert.equal(a.duplicate, undefined); assert.equal(b.duplicate, true); assert.equal(d.duplicate, true);
   assert.equal(a.submissionId, b.submissionId);
-  assert.equal(be.post({ action: 'listSubmissions', teacherKey: key }).submissions.length, 1);
+  assert.equal(be.post({ action: 'listSubmissions', ...key }).submissions.length, 1);
 });
 
 await test('one active submission per student per homework (name-normalised); void allows re-submit', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(4);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const first = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'يوسف  محمد', answers: {} });
   assert.equal(first.ok, true);
   const dup = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: ' يُوسف محمد ', answers: {} });
   assert.equal(dup.code, 'ALREADY_SUBMITTED'); assert.ok(dup.submittedAt);
-  assert.equal(be.post({ action: 'voidSubmission', teacherKey: key, submissionId: first.submissionId }).ok, true);
+  assert.equal(be.post({ action: 'voidSubmission', ...key, submissionId: first.submissionId }).ok, true);
   assert.equal(be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'يوسف محمد', answers: {} }).ok, true);
 });
 
 await test('assigned homework: server forces the assigned name/id (client cannot impersonate)', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(4);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs, assignedStudentName: 'مريم', assignedStudentId: 77 } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs, assignedStudentName: 'مريم', assignedStudentId: 77 } });
   const pub = be.get({ action: 'getHomework', id: c.id });
   assert.equal(pub.homework.assignedStudentName, 'مريم');
   const r = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'someone else', studentId: 999, answers: {} });
   assert.equal(r.ok, true);
-  const s = be.post({ action: 'listSubmissions', teacherKey: key }).submissions[0];
+  const s = be.post({ action: 'listSubmissions', ...key }).submissions[0];
   assert.equal(s.studentName, 'مريم'); assert.equal(s.studentId, 77);
 });
 
 await test('submit validation: bad ids, missing name, non-object answers', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(3);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   assert.equal(be.post({ action: 'submit', hwId: 'HW_bad', clientSubmissionId: cid(), studentName: 'x y', answers: {} }).code, 'NOT_FOUND');
   assert.equal(be.post({ action: 'submit', hwId: c.id, clientSubmissionId: 'short', studentName: 'x y', answers: {} }).code, 'BAD_REQUEST');
   assert.equal(be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: '', answers: {} }).code, 'BAD_REQUEST');
@@ -226,21 +232,21 @@ await test('grading flow: submitted -> graded (partial) -> approve blocked until
   const manualCount = () => qs.filter(q => q.needsManualGrading).length;
   for (let i = 0; i < 10 && manualCount() < 2; i++) qs = await makeQuestions(12);
   assert.ok(manualCount() >= 2, 'fixture needs manual questions');
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'هدى', answers: perfectAnswers(qs) });
   const manual = qs.filter(q => q.needsManualGrading);
 
   // approve immediately => refused (truthful: cannot approve ungraded work)
-  assert.equal(be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, finalize: true }).code, 'UNGRADED_QUESTIONS');
+  assert.equal(be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, finalize: true }).code, 'UNGRADED_QUESTIONS');
 
   // partial save
-  let r = be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, manualScores: { [manual[0].id]: manual[0].points } });
+  let r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { [manual[0].id]: manual[0].points } });
   assert.equal(r.submission.status, 'graded');
-  assert.equal(be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, finalize: true }).code, 'UNGRADED_QUESTIONS');
+  assert.equal(be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, finalize: true }).code, 'UNGRADED_QUESTIONS');
 
   // score the rest at half points (rounded), then approve
   const scores = {}; manual.slice(1).forEach(q => { scores[q.id] = Math.floor(q.points / 2); });
-  r = be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, manualScores: scores, finalize: true });
+  r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: scores, finalize: true });
   assert.equal(r.ok, true); assert.equal(r.submission.status, 'approved'); assert.ok(r.submission.approvedAt);
 
   const total = qs.reduce((s, q) => s + q.points, 0);
@@ -255,21 +261,21 @@ await test('grading flow: submitted -> graded (partial) -> approve blocked until
 await test('grading clamps manual scores to [0, max] and rejects stale versions', async () => {
   const { be, key } = fresh();
   const q = { id: 'w1', type: 'written_blank', text: 't', points: 2, correctAnswer: 'x', needsManualGrading: true };
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'نور', answers: { w1: 'x' } });
-  const s0 = be.post({ action: 'listSubmissions', teacherKey: key }).submissions[0];
-  let r = be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, manualScores: { w1: 99 }, finalize: true });
-  assert.equal(r.submission.details[0].manualScore, 2); assert.equal(r.submission.finalScore, 100);
-  r = be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, manualScores: { w1: -5 }, expectedVersion: s0.version });
+  const s0 = be.post({ action: 'listSubmissions', ...key }).submissions[0];
+  let r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { w1: 99 }, finalize: true });
+  assert.equal(r.submission.details[0].manualScore, 1); assert.equal(r.submission.finalScore, 100);
+  r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { w1: -5 }, expectedVersion: s0.version });
   assert.equal(r.code, 'VERSION_CONFLICT');
 });
 
 await test('teacher can map a free-name submission to a Dar Ham student id on approval', async () => {
   const { be, key } = fresh();
   const q = { id: 'w1', type: 'written_blank', text: 't', points: 2, correctAnswer: 'x', needsManualGrading: true };
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'Sara', answers: { w1: 'x' } });
-  const r = be.post({ action: 'gradeSubmission', teacherKey: key, submissionId: sub.submissionId, manualScores: { w1: 1 }, finalize: true, studentId: 12 });
+  const r = be.post({ action: 'gradeSubmission', ...key, submissionId: sub.submissionId, manualScores: { w1: 1 }, finalize: true, studentId: 12 });
   assert.equal(r.submission.studentId, 12);
 });
 
@@ -277,34 +283,32 @@ await test('teacher can map a free-name submission to a Dar Ham student id on ap
 await test('PERSISTENCE: a brand-new backend instance on the same spreadsheet sees everything (restart-safe)', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(6);
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'رنا', answers: perfectAnswers(qs) });
   const be2 = createBackend({ spreadsheet: be.ss, props: be.props });   // "new execution", same storage
   assert.equal(be2.get({ action: 'getHomework', id: c.id }).ok, true);
-  const list = be2.post({ action: 'listSubmissions', teacherKey: key, hwId: c.id });
+  const list = be2.post({ action: 'listSubmissions', ...key, hwId: c.id });
   assert.equal(list.submissions[0].id, sub.submissionId);
 });
 
 await test('SHEETS HAZARD: names like "=1+1", "12345", "-5" and numeric-looking JSON chunks survive byte-exact', async () => {
   const { be, key } = fresh();
   const q = { id: 'q1', type: 'mcq', text: 't', points: 1, correctAnswer: 'A', options: ['A', 'B'] };
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   for (const name of ['=1+1', '12345', '-5', '@SUM(A1)', '+99']) {
     const r = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: name, answers: { q1: 'A' } });
     assert.equal(r.ok, true, name);
   }
-  const list = be.post({ action: 'listSubmissions', teacherKey: key }).submissions;
+  const list = be.post({ action: 'listSubmissions', ...key }).submissions;
   assert.deepEqual(list.map(s => s.studentName).sort(), ['+99', '-5', '12345', '=1+1', '@SUM(A1)'].sort());
 });
 
 await test('SHEETS HAZARD: forgetting the text format WOULD corrupt data (proves setNumberFormat is load-bearing)', async () => {
-  const be = createBackend();
-  be.setup();
+  const { be, auth: key } = createTeacherBackend();
   // simulate the mistake: wipe the text-format bookkeeping
   Object.values(be.ss.sheets).forEach(sh => { sh.textCols.clear(); sh.textRows.clear(); });
-  const key = be.props.TEACHER_KEY;
   const q = { id: 'q1', type: 'mcq', text: 't', points: 1, correctAnswer: 'A', options: ['A', 'B'] };
-  const r = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const r = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   // with the format missing, the id column is fine (not numeric) but a numeric-looking student name is coerced
   const c = r.id;
   const s = be.post({ action: 'submit', hwId: c, clientSubmissionId: cid(), studentName: '12345', answers: { q1: 'A' } });
@@ -317,34 +321,34 @@ await test('SHEETS HAZARD: forgetting the text format WOULD corrupt data (proves
 await test('ROW CAP: >1000 rows do not throw (sheet grows) and text format is re-applied', async () => {
   const { be, key } = fresh();
   const q = { id: 'q1', type: 'mcq', text: 't', points: 1, correctAnswer: 'A', options: ['A', 'B'] };
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   // MAX_SUBMISSIONS_PER_HW = 500, so spread over 3 homeworks to exceed 1000 rows in Submissions
-  const hws = [c.id, be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } }).id, be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } }).id];
+  const hws = [c.id, be.post({ action: 'createHomework', ...key, homework: { questions: [q] } }).id, be.post({ action: 'createHomework', ...key, homework: { questions: [q] } }).id];
   let n = 0;
   for (const id of hws) for (let i = 0; i < 400; i++) { const r = be.post({ action: 'submit', hwId: id, clientSubmissionId: cid() + i, studentName: 'طالب ' + (++n) + ' 99', answers: { q1: 'A' } }); if (!r.ok) throw new Error('failed at ' + n + ': ' + r.code + ' ' + r.message); }
   assert.ok(be.ss.getSheetByName('Submissions').maxRows > 1000);
   const last = be.ss.getSheetByName('Submissions').data[n];
   assert.equal(typeof last[3], 'string');
-  assert.equal(be.post({ action: 'listSubmissions', teacherKey: key }).submissions.length, 1200);
+  assert.equal(be.post({ action: 'listSubmissions', ...key }).submissions.length, 1200);
 });
 
 await test('LARGE record spanning several 45k chunks round-trips exactly; oversize is refused (not silently truncated)', async () => {
   const { be, key } = fresh();
   const long = 'ب'.repeat(9000);
   const qs = Array.from({ length: 8 }, (_, i) => ({ id: 'q' + i, type: 'mcq', text: long, points: 1, correctAnswer: 'A', options: ['A', 'B'] }));
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: qs } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
   assert.equal(c.ok, true);
   const pub = be.get({ action: 'getHomework', id: c.id });
   assert.equal(pub.homework.questions[7].text, long);
   const huge = Array.from({ length: 30 }, (_, i) => ({ id: 'z' + i, type: 'mcq', text: 'ب'.repeat(14000), points: 1, correctAnswer: 'A', options: ['A'] }));
-  const r = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: huge } });
+  const r = be.post({ action: 'createHomework', ...key, homework: { questions: huge } });
   assert.equal(r.ok, false); assert.ok(['TOO_LARGE'].includes(r.code));
 });
 
 await test('PERSISTENCE PROOF: if the read-back does not match, the API says so instead of confirming', async () => {
   const { be, key } = fresh();
   const q = { id: 'q1', type: 'mcq', text: 't', points: 1, correctAnswer: 'A', options: ['A', 'B'] };
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: [q] } });
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: [q] } });
   // sabotage: make setValues silently drop writes for Submissions (simulates a write that "succeeded" but did not stick)
   const sh = be.ss.getSheetByName('Submissions');
   const origGetRange = sh.getRange.bind(sh);
@@ -361,23 +365,24 @@ await test('lock timeout surfaces as BUSY (client can retry) rather than a false
 });
 
 // ============================================================================ 🌟 multi-teacher (Google Sign-In)
-// Fakes Google's tokeninfo endpoint: each fake idToken string is registered up-front with the
-// {sub,email} it should resolve to, exactly like real Google would return for a real ID token.
-function googleMock(tokens) {
-  return (url) => {
-    const m = /id_token=([^&]+)/.exec(url);
-    const info = m && tokens[decodeURIComponent(m[1])];
-    if (!info) return { getResponseCode: () => 400, getContentText: () => JSON.stringify({ error_description: 'Invalid Value' }) };
-    return { getResponseCode: () => 200, getContentText: () => JSON.stringify({ sub: info.sub, email: info.email || (info.sub + '@example.com'), email_verified: info.email_verified || 'true', name: info.name || '', iss: 'accounts.google.com', aud: info.aud || 'test-client' }) };
-  };
-}
 function freshMulti(tokens) {
-  const be = createBackend({ urlFetch: googleMock(tokens) });
-  const key = be.setup();
-  // 🌟 [تحديث تدقيق ما قبل الإطلاق] الخادم صار يشترط GOOGLE_CLIENT_ID (يطابق aud) وقائمة TEACHER_EMAILS البيضاء
-  be.props.GOOGLE_CLIENT_ID = 'test-client';
-  be.props.TEACHER_EMAILS = Object.values(tokens).map(i => (i.email || (i.sub + '@example.com'))).join(',');
-  return { be, key };
+  const be = createBackend({ urlFetch: googleTokenMock(tokens) });
+  be.props.GOOGLE_CLIENT_ID = TEST_CLIENT_ID;
+  be.setup();
+  return { be };
+}
+const authOf = (r) => ({ userId: r.userId, sessionKey: r.sessionKey });
+// Simulates a homework stored before multi-teacher / by the old shared key: a record with no ownerId.
+async function makeUnownedHomework(be) {
+  const tmp = be.post({ action: 'googleSignIn', idToken: 'tokTmp' });
+  const c = be.post({ action: 'createHomework', ...authOf(tmp), homework: { questions: await makeQuestions(2) } });
+  const sh = be.ss.getSheetByName('Homeworks');
+  const row = sh.data.findIndex(r => r[0] === c.id);
+  const sandboxRow = be.sandbox.findHomework_(c.id).row;
+  const rec = sandboxRow.rec; delete rec.ownerId;
+  be.sandbox.writeRow_(sh, be.sandbox.HW_FIXED, sandboxRow.rowIndex, [rec.id, rec.createdAt, rec.status, rec.assignedStudentName || '', rec.assignedStudentId === null ? '' : rec.assignedStudentId, rec.questions.length], rec);
+  assert.ok(row > 0);
+  return c;
 }
 
 await test('googleSignIn: verifies the ID token, creates a permanent userId (not the email), returns a sessionKey', () => {
@@ -387,7 +392,7 @@ await test('googleSignIn: verifies the ID token, creates a permanent userId (not
   assert.match(r.userId, /^T_[0-9a-f]{32}$/);
   assert.notEqual(r.userId, 'a@example.com');
   assert.ok(r.sessionKey && r.sessionKey.length >= 20);
-  // signing in again with the SAME Google account returns the SAME userId (not a new one)
+  // signing in again with the SAME Google account (e.g. from a second device) returns the SAME userId
   const r2 = be.post({ action: 'googleSignIn', idToken: 'tokA' });
   assert.equal(r2.userId, r.userId); assert.equal(r2.isNewTeacher, false);
 });
@@ -403,6 +408,7 @@ await test('createHomework with a Google session stamps ownerId=userId; a plain 
   const login = be.post({ action: 'googleSignIn', idToken: 'tokA' });
   const c = be.post({ action: 'createHomework', userId: login.userId, sessionKey: login.sessionKey, homework: { questions: [{ id: 'q1', type: 'mcq', text: 't', correctAnswer: 'A', options: ['A', 'B'] }] } });
   assert.equal(c.ok, true); assert.equal(c.persisted, true);
+  assert.equal(be.sandbox.findHomework_(c.id).row.rec.ownerId, login.userId);
   assert.equal(be.post({ action: 'authCheck', userId: login.userId, sessionKey: 'wrong' }).code, 'UNAUTHORIZED');
 });
 
@@ -411,16 +417,13 @@ await test('ISOLATION: Teacher A never sees Teacher B homeworks/submissions/grad
   const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
   const b = be.post({ action: 'googleSignIn', idToken: 'tokB' });
   assert.notEqual(a.userId, b.userId);
-  const authA = { userId: a.userId, sessionKey: a.sessionKey };
-  const authB = { userId: b.userId, sessionKey: b.sessionKey };
+  const authA = authOf(a), authB = authOf(b);
   const qs = await makeQuestions(3);
   const hwA = be.post({ action: 'createHomework', ...authA, homework: { questions: qs } });
   const hwB = be.post({ action: 'createHomework', ...authB, homework: { questions: qs } });
 
-  const listA = be.post({ action: 'listHomeworks', ...authA });
-  assert.deepEqual(listA.homeworks.map(h => h.id), [hwA.id]);
-  const listB = be.post({ action: 'listHomeworks', ...authB });
-  assert.deepEqual(listB.homeworks.map(h => h.id), [hwB.id]);
+  assert.deepEqual(be.post({ action: 'listHomeworks', ...authA }).homeworks.map(h => h.id), [hwA.id]);
+  assert.deepEqual(be.post({ action: 'listHomeworks', ...authB }).homeworks.map(h => h.id), [hwB.id]);
 
   // A cannot read, close, or grade against B's homework — NOT_FOUND, never leaked
   assert.equal(be.post({ action: 'getHomeworkFull', ...authA, id: hwB.id }).code, 'NOT_FOUND');
@@ -433,91 +436,79 @@ await test('ISOLATION: Teacher A never sees Teacher B homeworks/submissions/grad
   assert.equal(be.post({ action: 'voidSubmission', ...authA, submissionId: sub.submissionId }).code, 'NOT_FOUND');
 });
 
-await test('the legacy shared teacherKey keeps working exactly as before, and still sees everything (admin bypass)', async () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
-  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
-  const hwA = be.post({ action: 'createHomework', userId: a.userId, sessionKey: a.sessionKey, homework: { questions: await makeQuestions(2) } });
-  const hwLegacy = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
-  const listViaKey = be.post({ action: 'listHomeworks', teacherKey: key });
-  assert.deepEqual(listViaKey.homeworks.map(h => h.id).sort(), [hwA.id, hwLegacy.id].sort());
-  // but Teacher A (Google-only) still cannot see the legacy/unowned homework before migrating
-  const listViaA = be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey });
-  assert.deepEqual(listViaA.homeworks.map(h => h.id), [hwA.id]);
+await test('NEW DEVICE: the same Google account signing in on a second device sees the same homeworks and results', async () => {
+  const { be } = freshMulti({ tokPhone: { sub: 'sub-T', email: 't@example.com' }, tokPC: { sub: 'sub-T', email: 't@example.com' } });
+  const phone = be.post({ action: 'googleSignIn', idToken: 'tokPhone' });
+  const hw = be.post({ action: 'createHomework', ...authOf(phone), homework: { questions: await makeQuestions(2) } });
+  be.post({ action: 'submit', hwId: hw.id, clientSubmissionId: cid(), studentName: 'طالب', answers: {} });
+  const pc = be.post({ action: 'googleSignIn', idToken: 'tokPC' });
+  assert.equal(pc.userId, phone.userId);
+  assert.deepEqual(be.post({ action: 'listHomeworks', ...authOf(pc) }).homeworks.map(h => h.id), [hw.id]);
+  assert.equal(be.post({ action: 'listSubmissions', ...authOf(pc) }).submissions.length, 1);
 });
 
-await test('MIGRATION: first Google account to present the correct legacy key claims all pre-existing unowned homeworks, once', async () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' }, tokB: { sub: 'sub-B' } });
-  const legacyHw = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
-
-  // wrong key never claims anything
-  const badClaim = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: 'WRONG' });
-  assert.equal(badClaim.code, 'UNAUTHORIZED');
-
-  const a = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: key });
-  assert.equal(a.ok, true); assert.equal(a.claimed, true);
-  const listA = be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey });
-  assert.deepEqual(listA.homeworks.map(h => h.id), [legacyHw.id]);
-
-  // a second, different Google account can never claim the same legacy data, even with the right key
-  const b = be.post({ action: 'migrateLegacyKey', idToken: 'tokB', teacherKey: key });
-  assert.equal(b.ok, true); assert.equal(b.claimed, false);
-  const listB = be.post({ action: 'listHomeworks', userId: b.userId, sessionKey: b.sessionKey });
-  assert.equal(listB.homeworks.length, 0);
-
-  // re-claiming with the SAME account that already migrated is a harmless no-op
-  const again = be.post({ action: 'migrateLegacyKey', idToken: 'tokA', teacherKey: key });
-  assert.equal(again.claimed, true); assert.equal(again.alreadyClaimed, true);
+await test('NO ALLOWLIST: any verified Google email signs in even if an old TEACHER_EMAILS property is still set', () => {
+  const { be } = freshMulti({ tokX: { sub: 'sub-X', email: 'stranger@example.com' } });
+  be.props.TEACHER_EMAILS = 'owner@example.com';   // left over on a deployment that was not re-run through setup()
+  const r = be.post({ action: 'googleSignIn', idToken: 'tokX' });
+  assert.equal(r.ok, true, JSON.stringify(r));
 });
 
-await test('NO DATA LOSS: existing student-facing links and submit flow are completely unaffected by the auth rewrite', async () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
-  const c = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(3) } });
-  const pub = be.get({ action: 'getHomework', id: c.id });
-  assert.equal(pub.ok, true);
-  const sub = be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'طالب قديم', answers: {} });
-  assert.equal(sub.ok, true); assert.equal(sub.persisted, true);
-});
-
-
-
-// ============================================================================ 🌟 تحصينات تدقيق ما قبل الإطلاق
-await test('googleSignIn: open registration — with no TEACHER_EMAILS any verified email signs in (🌟 2026-10-01)', () => {
-  const be = createBackend({ urlFetch: googleMock({ tokA: { sub: 'sub-A', aud: '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com' } }) }); be.setup();
-  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).ok, true);
-});
-
-await test('googleSignIn: an email outside the TEACHER_EMAILS allowlist, wrong audience, or unverified email are rejected', () => {
-  const { be } = freshMulti({ tokA: { sub: 'sub-A' }, tokX: { sub: 'sub-X', email: 'stranger@example.com' }, tokW: { sub: 'sub-W', aud: 'other-app' }, tokU: { sub: 'sub-U', email_verified: 'false' } });
-  be.props.TEACHER_EMAILS = 'sub-A@example.com,sub-W@example.com,sub-U@example.com';
-  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).ok, true);
-  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokX' }).code, 'UNAUTHORIZED');
+await test('googleSignIn: wrong audience or unverified email are still rejected (the only remaining checks)', () => {
+  const { be } = freshMulti({ tokW: { sub: 'sub-W', aud: 'other-app' }, tokU: { sub: 'sub-U', email_verified: 'false' } });
   assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokW' }).code, 'UNAUTHORIZED');
   assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokU' }).code, 'UNAUTHORIZED');
 });
 
-await test('lockout DoS: wrong legacy keys lock only legacy-key guessing; a valid Google session and the correct key keep working', () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
-  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
-  for (let i = 0; i < 25; i++) be.post({ action: 'listHomeworks', teacherKey: 'WRONG' + i });
-  assert.equal(be.post({ action: 'listHomeworks', teacherKey: 'WRONG-again' }).code, 'LOCKED');
-  assert.equal(be.post({ action: 'listHomeworks', userId: a.userId, sessionKey: a.sessionKey }).ok, true);
-  assert.equal(be.post({ action: 'listHomeworks', teacherKey: key }).ok, true);
+await test('googleSignIn: with no GOOGLE_CLIENT_ID property the built-in public client id is used', () => {
+  const be = createBackend({ urlFetch: googleTokenMock({ tokA: { sub: 'sub-A', aud: '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com' } }) }); be.setup();
+  assert.equal(be.post({ action: 'googleSignIn', idToken: 'tokA' }).ok, true);
 });
 
+await test('LEGACY DATA KEPT: unowned homeworks are hidden from other teachers, and the script owner can hand them to a teacher by email (no key)', async () => {
+  const { be } = freshMulti({ tokTmp: { sub: 'sub-tmp' }, tokA: { sub: 'sub-A', email: 'a@example.com' }, tokB: { sub: 'sub-B', email: 'b@example.com' } });
+  const legacyHw = await makeUnownedHomework(be);
+  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  const b = be.post({ action: 'googleSignIn', idToken: 'tokB' });
+  assert.equal(be.post({ action: 'listHomeworks', ...authOf(a) }).homeworks.length, 0);
+  // students keep using the old link the whole time
+  assert.equal(be.get({ action: 'getHomework', id: legacyHw.id }).ok, true);
+
+  assert.throws(() => be.sandbox.assignLegacyHomeworksToEmail('nobody@example.com'), /signed in/);
+  assert.equal(be.sandbox.assignLegacyHomeworksToEmail('A@Example.com'), a.userId);
+  assert.deepEqual(be.post({ action: 'listHomeworks', ...authOf(a) }).homeworks.map(h => h.id), [legacyHw.id]);
+  assert.equal(be.post({ action: 'listHomeworks', ...authOf(b) }).homeworks.length, 0);
+  // never silently re-assigned to someone else
+  assert.throws(() => be.sandbox.assignLegacyHomeworksToEmail('b@example.com'), /already belong/);
+  assert.equal(be.sandbox.assignLegacyHomeworksToEmail('b@example.com', true), b.userId);
+});
+
+await test('LEGACY DATA KEPT: an owner recorded earlier by the old migrateLegacyKey flow keeps their old homeworks', async () => {
+  const { be } = freshMulti({ tokTmp: { sub: 'sub-tmp' }, tokA: { sub: 'sub-A' } });
+  const legacyHw = await makeUnownedHomework(be);
+  const a = be.post({ action: 'googleSignIn', idToken: 'tokA' });
+  be.props.LEGACY_OWNER_USERID = a.userId;
+  assert.deepEqual(be.post({ action: 'listHomeworks', ...authOf(a) }).homeworks.map(h => h.id), [legacyHw.id]);
+  const sub = be.post({ action: 'submit', hwId: legacyHw.id, clientSubmissionId: cid(), studentName: 'طالب قديم', answers: {} });
+  assert.equal(sub.ok, true); assert.equal(sub.persisted, true);
+  assert.equal(be.post({ action: 'listSubmissions', ...authOf(a) }).submissions.length, 1);
+});
+
+// ============================================================================ 🌟 تحصينات تدقيق ما قبل الإطلاق
 await test('submit: a reused clientSubmissionId on a DIFFERENT homework is BAD_REQUEST (never returns another homework\'s submission)', async () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
-  const h1 = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
-  const h2 = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  const { be, key } = fresh();
+  const h1 = be.post({ action: 'createHomework', ...key, homework: { questions: await makeQuestions(2) } });
+  const h2 = be.post({ action: 'createHomework', ...key, homework: { questions: await makeQuestions(2) } });
   const id = cid();
   assert.equal(be.post({ action: 'submit', hwId: h1.id, clientSubmissionId: id, studentName: 'طالب أول', answers: {} }).ok, true);
   assert.equal(be.post({ action: 'submit', hwId: h2.id, clientSubmissionId: id, studentName: 'طالب أول', answers: {} }).code, 'BAD_REQUEST');
 });
 
 await test('submit: studentName is stripped of HTML-significant characters (stored-XSS defence in depth)', async () => {
-  const { be, key } = freshMulti({ tokA: { sub: 'sub-A' } });
-  const h = be.post({ action: 'createHomework', teacherKey: key, homework: { questions: await makeQuestions(2) } });
+  const { be, key } = fresh();
+  const h = be.post({ action: 'createHomework', ...key, homework: { questions: await makeQuestions(2) } });
   be.post({ action: 'submit', hwId: h.id, clientSubmissionId: cid(), studentName: 'ab<img src=x onerror=alert(1)>cd', answers: {} });
-  const list = be.post({ action: 'listSubmissions', teacherKey: key });
+  const list = be.post({ action: 'listSubmissions', ...key });
   assert.ok(!/[<>"'`]/.test(list.submissions[0].studentName));
 });
 

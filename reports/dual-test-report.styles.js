@@ -73,6 +73,8 @@ export const DUAL_TEST_REPORT_STYLES = `
     padding:26px 30px 22px; color:#fff; position:relative;
   }
   #dtr-screen .dtr-eyebrow-row{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:18px;}
+  #dtr-screen .dtr-brand{display:inline-flex; align-items:center; gap:10px;}
+  #dtr-screen .dtr-logo{width:38px; height:auto; display:block; flex-shrink:0;}
   #dtr-screen .dtr-eyebrow{font-size:12.5px; font-weight:700; color:#f0d878; letter-spacing:.3px;}
   #dtr-screen .dtr-meta{font-size:12px; font-weight:600; color:#cfe3da;}
 

@@ -1,10 +1,11 @@
 <!-- student/all-students.html -->
-<!-- 🌟 [جديد] توحيد بصري لأزرار هذه الشاشة مع الهوية الجديدة (--dh-emerald/--dh-gold
-     المعتمدة في css/home.css وsettings/dashboard.html) — كانت تستخدم ألوان .btn/.btn-outline
-     القديمة من adults.css (تركوازي) المختلفة تماماً عن باقي المنصة. نفس فلسفة بادئة "dash-"
-     في settings/dashboard.html بالحرف: قواعد معزولة ببادئة "as-" فقط تخص هذه الشاشة، وبادئة
-     #app-root ضرورية للتغلب على !important الموجودة فعلاً في .adult-theme .btn (adults.css)
-     بدون تعديل تلك القاعدة العامة إطلاقاً 🌟 -->
+<!-- 🌟 [عدّل 2026-10-03] تبسيط الشاشة بطلب صاحب المنصة ("كلهم حلوين بس زحمة، عايز السهولة"):
+     الجدول ذو التسعة أعمدة صار قائمة هادئة داخل لوحة بيضاء: لكل طالب صورته واسمه وصفه وعمره
+     ونقاطه، وزر واحد بارز "تقييم"، وزر ⋯ يجمع التعديل/الإخفاء/الحذف، وسطر "أخطاء للعلاج" يظهر
+     فقط عند وجود أخطاء. الطلاب المخفيون مجمّعون أسفل القائمة، وأزرار التصدير/الاستيراد/الرجوع
+     في أعلى الصفحة. نفس المعرّفات وأسماء الأصناف (btn-edit/btn-hide/...) التي يعتمد عليها
+     setupAllStudentsListeners في student.js. اللوحة بخلفية بيضاء ثابتة لتبقى مقروءة فوق خلفية
+     الكبار الداكنة وخلفية الأطفال الفاتحة معاً 🌟 -->
 <style>
     #app-root .as-btn-primary {
         background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
@@ -22,47 +23,79 @@
     }
     #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
 
-    /* 🌟 [إصلاح فحص الأزرار] على الهاتف كانت أعمدة الإدارة والأخطاء (✏️🙈🗑️🛠️) تقع خارج الشاشة بلا مؤشر.
-       الآن تتحول كل صف إلى بطاقة رأسية بنطاق #all-students-body فقط (بلا مساس بأي قاعدة عامة)،
-       وتظهر تسمية كل حقل من data-label، وتُكبَّر أزرار الإجراءات لحد لمس مريح 🌟 */
     /* 🌟 [جديد 2026-10-01] وسم الحقول: "مطلوب" للاسم فقط و"اختياري" لباقي الحقول في نافذة التعديل */
     #edit-modal .dh-opt-tag { font-size: 0.85rem; font-weight: normal; color: #94a3b8; }
     #edit-modal .dh-req-tag { color: #b45309; font-weight: bold; }
 
-    @media (max-width: 640px) {
-        #app-root .as-table-wrap { overflow-x: visible !important; padding: 0 !important; }
-        #app-root .as-table-wrap table, #app-root .as-table-wrap tbody { display: block; width: 100%; white-space: normal !important; }
-        #app-root .as-table-wrap thead { display: none; }
-        #all-students-body tr { display: block; margin-bottom: 14px; padding: 8px 12px; border-radius: 14px; background: rgba(255,255,255,0.12); border: 2px solid rgba(0,0,0,0.1); }
-        #all-students-body td { display: flex; justify-content: space-between; align-items: center; gap: 10px; border: none !important; padding: 6px 4px !important; text-align: right; }
-        #all-students-body td::before { content: attr(data-label); font-weight: 600; font-size: 1rem; opacity: 0.8; flex-shrink: 0; }
-        #all-students-body td .btn { min-width: 44px !important; min-height: 44px; }
-        #all-students-body td .btn-prof-link { min-height: 44px; }
+    #app-root .as-panel { max-width: 780px; margin: 0 auto; background: #fff; color: #10261f; border-radius: 20px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.18); text-align: right; display: grid; gap: 14px; }
+    #app-root .as-toplinks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+    #app-root .as-link { background: none; border: none; padding: 4px 2px; color: #5d7269; font-family: inherit; font-size: 0.95rem; cursor: pointer; margin: 0; min-width: unset; box-shadow: none; }
+    /* mobile.css يصغّر #btn-back-login كزر رجوع عام؛ هنا هو رابط ضمن صف الروابط العلوية فيأخذ نفس شكلها */
+    body #app-root .as-panel .as-toplinks #btn-back-login.as-link { margin: 0 !important; padding: 4px 2px !important; font-size: 0.95rem !important; min-height: unset; }
+    #app-root .as-link:hover { color: var(--dh-emerald-700); text-decoration: underline; }
+    #app-root .as-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+    #app-root .as-head h1 { margin: 0; font-size: 1.7rem; color: #10261f; text-align: right; }
+    #app-root .as-count { display: block; font-size: 0.95rem; font-weight: normal; color: #6b7f77; }
+    #app-root .as-head .as-btn-primary { padding: 10px 18px; font-size: 1.05rem; min-width: unset; margin: 0; }
+    #app-root .as-search { width: 100%; box-sizing: border-box; border: 1px solid #dbe5e0; background: #f7faf9; color: #10261f; border-radius: 12px; padding: 12px 14px; font-family: inherit; font-size: 1rem; }
+
+    #app-root .as-list { border: 1px solid #e1e9e5; border-radius: 16px; }
+    #app-root .as-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+    #app-root .as-row + .as-row { border-top: 1px solid #e1e9e5; }
+    #app-root .as-row.as-hidden-row { opacity: 0.6; }
+    #app-root .as-avatar { width: 46px; height: 46px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; overflow: hidden; color: #fff; font-size: 1.25rem; font-weight: bold; }
+    #app-root .as-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    #app-root .as-info { flex: 1; min-width: 0; display: grid; justify-items: start; }
+    #app-root .as-info .btn-prof-link { background: none; border: none; padding: 0; color: #10261f; font-family: inherit; font-weight: bold; font-size: 1.1rem; cursor: pointer; text-align: right; }
+    #app-root .as-info .btn-prof-link:hover { color: var(--dh-emerald-700); text-decoration: underline; }
+    #app-root .as-sub { color: #6b7f77; font-size: 0.88rem; }
+    #app-root .as-info .btn-weakness { background: none !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0; min-width: unset; color: #b45309 !important; font-family: inherit; font-size: 0.88rem; cursor: pointer; }
+    #app-root .as-info .btn-weakness:hover { text-decoration: underline; }
+    #app-root .as-pts { font-weight: bold; color: var(--dh-emerald-700); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    #app-root .as-pts small { font-weight: normal; color: #6b7f77; }
+    #app-root .as-go { background: var(--dh-emerald-700) !important; color: #fff !important; border: none !important; box-shadow: none !important; border-radius: 10px; padding: 9px 16px !important; font-size: 1rem !important; min-width: unset !important; margin: 0 !important; white-space: nowrap; }
+    #app-root .as-go.btn-show { background: #edf3f0 !important; color: #10261f !important; }
+
+    #app-root .as-menu-wrap { position: relative; }
+    #app-root .as-more { width: 40px; height: 40px; border-radius: 10px; border: none; background: transparent; color: #6b7f77; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+    #app-root .as-more:hover, #app-root .as-menu-wrap.open .as-more { background: #edf3f0; color: #10261f; }
+    #app-root .as-menu { display: none; position: absolute; top: 44px; left: 0; z-index: 20; background: #fff; border: 1px solid #e1e9e5; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.18); padding: 6px; min-width: 190px; }
+    #app-root .as-menu-wrap.open .as-menu { display: grid; }
+    #app-root .as-menu button { background: none !important; border: none !important; box-shadow: none !important; color: #10261f !important; text-align: right; padding: 10px 12px !important; margin: 0 !important; border-radius: 8px; font-family: inherit; font-size: 1rem !important; min-width: unset !important; cursor: pointer; }
+    #app-root .as-menu button:hover { background: #edf3f0 !important; }
+    #app-root .as-menu .btn-delete { color: #b91c1c !important; }
+
+    #app-root .as-hidden-box summary { cursor: pointer; color: #6b7f77; padding: 6px 2px; }
+    #app-root .as-hidden-box .as-list { margin-top: 8px; }
+    #app-root .as-empty { text-align: center; color: #6b7f77; padding: 24px; }
+
+    @media (max-width: 520px) {
+        #app-root .as-panel { padding: 14px; border-radius: 16px; }
+        #app-root .as-head h1 { font-size: 1.35rem; }
+        #app-root .as-row { flex-wrap: wrap; }
+        #app-root .as-info { flex-basis: calc(100% - 60px); }
+        #app-root .as-pts { flex: 1; margin-right: 58px; }
+        #app-root .as-go { min-height: 44px; }
+        #app-root .as-more { width: 44px; height: 44px; }
     }
 </style>
 
 <div class="screen active">
-    <h1 style="font-size: 2.5rem;" data-i18n="as_page_title">📊 السجل العام لبيانات وإنجازات الطلاب</h1>
-    <div class="btn-group" style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-        <!-- 🌟 [جديد] لم يكن بهذه الشاشة زر مباشر لإضافة طالب جديد رغم أنها الشاشة
-             الطبيعية لإدارة قائمة الطلاب — يفتح شاشة "طلابي" ثم يُطلق تلقائياً نافذة
-             "إضافة طالب جديد" الموجودة فعلاً هناك بدل تكرار نفس النافذة هنا (راجع
-             student.js: setupAllStudentsListeners) 🌟 -->
-        <button class="btn as-btn-primary" id="btn-add-champion-shortcut" data-i18n="btn_add_student">تسجيل طالب جديد ➕</button>
-        <button class="btn as-btn-secondary" id="btn-export-backup" data-i18n="backup_export_students_btn">📥 تصدير الطلاب فقط</button>
-        <button class="btn btn-outline as-btn-secondary" id="btn-import-backup-trigger" data-i18n="backup_import_students_btn">📤 استيراد الطلاب</button>
-        <input type="file" id="importFile" accept=".json" style="display:none;">
+    <div class="as-panel">
+        <div class="as-toplinks">
+            <button class="as-link" id="btn-back-login" data-i18n="btn_back_to_my_students">🔙 رجوع لطلابي</button>
+            <button class="as-link" id="btn-export-backup" data-i18n="backup_export_students_btn">📥 تصدير الطلاب فقط</button>
+            <button class="as-link" id="btn-import-backup-trigger" data-i18n="backup_import_students_btn">📤 استيراد الطلاب</button>
+            <input type="file" id="importFile" accept=".json" style="display:none;">
+        </div>
+        <div class="as-head">
+            <h1><span data-i18n="as_page_title">📊 السجل العام لبيانات وإنجازات الطلاب</span><span class="as-count" id="as-count"></span></h1>
+            <!-- يفتح شاشة "طلابي" ثم يُطلق نافذة "إضافة طالب جديد" الموجودة هناك (راجع setupAllStudentsListeners) -->
+            <button class="btn as-btn-primary" id="btn-add-champion-shortcut" data-i18n="btn_add_student">تسجيل طالب جديد ➕</button>
+        </div>
+        <input type="search" class="as-search" id="as-search" data-i18n-placeholder="as_search_ph" placeholder="🔎 ابحث عن طالب...">
+        <div id="all-students-body"></div>
     </div>
-    <div class="as-table-wrap" style="border-radius: 15px; padding: 20px; width: 100%; overflow-x: auto;">
-        <table class="history-table" style="width: 100%; white-space: nowrap;">
-            <thead><tr><th data-i18n="as_col_no">م</th><th data-i18n="as_col_name">اسم الطالب</th><th data-i18n="as_col_age">العمر</th><th data-i18n="as_col_grade">الصف</th><th data-i18n="as_col_points">النقاط</th><th data-i18n="as_col_start_eval">تقييم</th><th data-i18n="as_col_evals">التقييمات</th><th data-i18n="as_col_manage">إدارة وتعديل</th><th data-i18n="as_col_errors">علاج الأخطاء</th></tr></thead>
-            <tbody id="all-students-body"></tbody>
-        </table>
-    </div>
-    <!-- 🌟 [عدّل] كان النص "العودة" بلا مفتاح ترجمة وبلا توضيح للوجهة — الزر فعلياً يرجع
-         لشاشة "طلابي" (loadMyStudentsScreen في student.js)، وأصبح لونه متوافقاً مع باقي
-         أزرار هذه الشاشة (as-btn-secondary) بدل التركوازي القديم 🌟 -->
-    <button class="btn btn-outline as-btn-secondary" style="margin-top: 20px; font-size: 1.4rem;" id="btn-back-login" data-i18n="btn_back_to_my_students">🔙 رجوع لطلابي</button>
 </div>
 
 <!-- نافذة تعديل بيانات الطالب -->

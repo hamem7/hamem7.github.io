@@ -754,10 +754,437 @@
             animation: none !important;
         }
     }
+
+    /* ===================================================================================
+       🌟 [جديد — التصميم الاحترافي] طبقة توحيد بصري لشاشات الترحيب والسؤال والنتيجة النهائية
+       -----------------------------------------------------------------------------------
+       بطلب صريح من المعلم: "تطوير الشكل فقط أما الفكرة كما هي". هذه الشاشات الثلاث كانت
+       آخر شاشات بالأسلوب القديم (بطاقة بيضاء داخل الصفحة) بينما القرعة ولوحة الأسئلة وملخص
+       الجولة أصبحت طبقات ملء-شاشة بالهوية الزمردية/الذهبية. هنا نوحّدها بنفس الأسلوب:
+       - كل القواعد محصورة بمعرّفات الشاشات (#dtp-welcome-view / #dtp-question-view /
+         #dtp-final-view) فلا تمسّ أي شاشة أخرى ولا أي ملف CSS مشترك.
+       - أيقونات SVG خطّية (.dtp-ico) بدل الإيموجي في الأزرار.
+       - حركة أقل: لا نبض مستمر في شاشة السؤال (أكثر شاشة يحدّق فيها المعلم).
+       - لا تغيير في أي منطق: نفس العناصر ونفس المعرّفات، فقط إعادة ترتيب وتنسيق.
+       =================================================================================== */
+    .dtp-ico, .dt-back-ico {
+        width: 1.15em; height: 1.15em; flex-shrink: 0;
+        fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    [dir="ltr"] .dt-back-ico { transform: scaleX(-1); }
+    .dtp-back-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+    /* --- خلفية موحّدة لكل طبقات ملء-الشاشة الثلاث: زمردي متدرّج + بقعة ضوء ذهبية + نسيج
+       نجمة ثمانية هندسي خفيف جداً (SVG مضمَّن، بلا أي طلب شبكة) --- */
+    #dtp-welcome-view .dtp-vs-card,
+    #dtp-question-view,
+    #dtp-final-view {
+        position: fixed; inset: 0; z-index: 400;
+        overflow-y: auto; overflow-x: hidden;
+        background:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23f0d878' stroke-opacity='0.07' stroke-width='1'%3E%3Crect x='18' y='18' width='28' height='28'/%3E%3Crect x='18' y='18' width='28' height='28' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E"),
+            radial-gradient(circle at 50% 0%, rgba(240,216,120,0.18), rgba(240,216,120,0) 55%),
+            linear-gradient(170deg, var(--dh-emerald-900) 0%, var(--dh-emerald-800) 60%, var(--dh-emerald-700) 100%);
+        color: #fffdf6;
+    }
+
+    /* --- زر العودة يطفو فوق طبقتَي الترحيب والسؤال (كان ظاهراً فيهما قبل التوحيد، فنُبقيه
+       متاحاً بنفس وظيفته). :has مدعوم في كل المتصفحات الحديثة؛ في القديمة يبقى خلف الطبقة
+       تماماً كما هو الحال أصلاً في لوحة الأسئلة --- */
+    .dtp-wrapper:has(> #dtp-welcome-view:not([style*="none"])) > .dtp-back-btn,
+    .dtp-wrapper:has(> #dtp-question-view:not([style*="none"])) > .dtp-back-btn {
+        position: fixed; z-index: 410;
+        top: calc(14px + env(safe-area-inset-top, 0px)); inset-inline-start: 14px;
+        margin: 0 !important; min-height: 40px;
+        /* !important لازمة للتغلّب على .adult-theme .btn-outline (adults.css) */
+        background: rgba(255,253,246,0.1) !important; color: #fffdf6 !important; box-shadow: none !important;
+        border: 1px solid rgba(255,253,246,0.25); border-radius: 12px;
+        padding: 8px 14px !important; font-size: 0.95rem !important; font-weight: 600;
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+
+    /* =============== 1) الترحيب / VS =============== */
+    #dtp-welcome-view .dtp-vs-card {
+        border-radius: 0; box-shadow: none;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 72px 18px 40px 18px; gap: 6px;
+    }
+    #dtp-welcome-view .dtp-vs-round-label {
+        background: rgba(255,253,246,0.1); color: var(--dh-gold-300);
+        border: 1px solid rgba(240,216,120,0.45);
+        font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; padding: 7px 20px; margin-bottom: 34px;
+    }
+    #dtp-welcome-view .dtp-vs-row {
+        display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+        gap: clamp(10px, 4vw, 36px); width: 100%; max-width: 620px; flex-wrap: nowrap;
+    }
+    #dtp-welcome-view .dtp-vs-player { min-width: 0; gap: 12px; animation: dtp-pro-inStart 0.55s cubic-bezier(.2,.8,.2,1) both; }
+    #dtp-welcome-view .dtp-vs-player:nth-child(3) { animation-name: dtp-pro-inEnd; animation-delay: 0s; }
+    @keyframes dtp-pro-inStart { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+    @keyframes dtp-pro-inEnd { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+    #dtp-welcome-view .dtp-vs-avatar {
+        width: clamp(92px, 24vw, 136px); height: clamp(92px, 24vw, 136px);
+        font-size: clamp(2.4rem, 7vw, 3.6rem); overflow: hidden;
+        border: 4px solid var(--dh-gold-500);
+        box-shadow: 0 0 0 8px rgba(240,216,120,0.12), 0 16px 30px rgba(0,0,0,0.35);
+    }
+    #dtp-welcome-view .dtp-vs-player:nth-child(3) .dtp-vs-avatar {
+        border-color: #fffdf6;
+        box-shadow: 0 0 0 8px rgba(255,253,246,0.1), 0 16px 30px rgba(0,0,0,0.35);
+    }
+    #dtp-welcome-view .dtp-vs-name {
+        font-size: clamp(1.15rem, 3.6vw, 1.6rem); font-weight: 700;
+        max-width: 100%; overflow-wrap: anywhere; line-height: 1.3;
+    }
+    .dtp-vs-wins {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(0,0,0,0.22); border-radius: 999px; padding-block: 4px; padding-inline: 14px 4px;
+    }
+    .dtp-vs-wins-label { font-size: 0.78rem; font-weight: 600; color: rgba(255,253,246,0.7); }
+    #dtp-welcome-view .dtp-vs-score {
+        min-width: 30px; height: 30px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;
+        background: var(--dh-gold-500); color: var(--dh-emerald-900);
+        font-size: 1rem; font-weight: 800; font-variant-numeric: tabular-nums;
+    }
+    #dtp-welcome-view .dtp-vs-sep {
+        width: clamp(52px, 12vw, 70px); height: clamp(52px, 12vw, 70px); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(145deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 900; letter-spacing: 0.5px;
+        box-shadow: 0 0 0 6px rgba(6,35,28,0.55), 0 0 0 7px rgba(240,216,120,0.5), 0 12px 24px rgba(0,0,0,0.35);
+        animation: dtp-popIn 0.5s ease 0.35s both;
+    }
+    #dtp-welcome-view .dtp-vs-start-btn {
+        margin-top: 44px; width: 100%; max-width: 320px; min-height: 58px;
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+        font-size: 1.2rem; font-weight: 800; border-radius: 16px;
+        box-shadow: 0 14px 28px rgba(0,0,0,0.3);
+    }
+
+    /* =============== 2) شاشة السؤال =============== */
+    #dtp-question-view { padding: 70px 16px 24px 16px; }
+    #dtp-question-view .dtp-q-inner {
+        max-width: 640px; margin: 0 auto; min-height: 100%;
+        display: flex; flex-direction: column;
+    }
+    /* شريط نقاط مضغوط: صاحب الدور مُبرَز، والآخر باهت قليلاً — بلا نبض مستمر */
+    #dtp-question-scorebar.dtp-scorebar {
+        background: rgba(0,0,0,0.22); border: 1px solid rgba(255,253,246,0.12);
+        border-radius: 18px; padding: 6px; gap: 6px; margin-bottom: 18px;
+        flex-wrap: nowrap; box-shadow: none; animation: none;
+    }
+    #dtp-question-scorebar.dtp-scorebar.dtp-tension { border-color: rgba(240,216,120,0.6); animation: none; }
+    #dtp-question-scorebar .dtp-score-side {
+        flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap;
+        gap: 2px 10px; min-width: 0; padding: 8px 12px; border-radius: 13px;
+        opacity: 0.6; background: transparent; animation: none;
+        transition: opacity 0.2s ease, background 0.2s ease;
+    }
+    #dtp-question-scorebar .dtp-score-side.dtp-turn-active {
+        opacity: 1; background: rgba(255,253,246,0.1);
+        box-shadow: inset 0 0 0 1.5px rgba(240,216,120,0.7); animation: none; padding: 8px 12px;
+    }
+    #dtp-question-scorebar .dtp-score-name { color: #fffdf6; font-weight: 600; font-size: 0.95rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    #dtp-question-scorebar .dtp-score-points { color: var(--dh-gold-300); font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    #dtp-question-scorebar .dtp-score-icons { width: 100%; font-size: 0.75rem; gap: 8px; opacity: 0.85; }
+
+    #dtp-question-view .dtp-question-card {
+        background: transparent; border: none; box-shadow: none; padding: 0;
+        flex: 1; display: flex; flex-direction: column;
+    }
+    #dtp-question-view .dtp-question-turn {
+        color: var(--dh-gold-300); font-size: 1.05rem; font-weight: 700; margin-bottom: 12px;
+    }
+    /* لوح "من / إلى" بلون عاجي فوق الخلفية الزمردية — أكبر عنصر في الشاشة لأن الطفل يقرأ منه */
+    #dtp-question-view .dtp-question-range-box {
+        margin: 0 0 18px 0; gap: 0;
+        background: #fffdf6; color: var(--dh-emerald-900);
+        border-radius: 24px; padding: 8px 18px;
+        box-shadow: 0 20px 36px rgba(0,0,0,0.3);
+    }
+    #dtp-question-view .dtp-range-row {
+        background: transparent; border-radius: 0; padding: 16px 0;
+        flex-direction: column; gap: 4px;
+    }
+    #dtp-question-view .dtp-range-row.dtp-range-to { background: transparent; border-top: 1.5px dashed #e6dcbc; }
+    #dtp-question-view .dtp-range-icon { display: none; }
+    #dtp-question-view .dtp-range-label {
+        font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px;
+        color: var(--dh-emerald-600); background: #ecf6f0; padding: 3px 14px; border-radius: 999px;
+    }
+    #dtp-question-view .dtp-range-row.dtp-range-to .dtp-range-label { color: #8a6a12; background: #fbf3d9; }
+    #dtp-question-view .dtp-range-text { color: var(--dh-emerald-900); font-size: clamp(1.9rem, 6.5vw, 3.2rem); }
+    #dtp-question-view .dtp-range-row.dtp-range-to .dtp-range-text { color: #7a5c0f; }
+    #dtp-question-view .dtp-shake-anim { animation: dtp-shake 0.4s ease; }
+
+    /* سطر الحالة: نقاط الأخطاء + حلقة الدرجة */
+    .dtp-q-status { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 4px; }
+    .dtp-q-mistakes { flex: 1; min-width: 0; text-align: start; }
+    #dtp-question-view .dtp-mistakes-counter { margin: 0 0 8px 0; color: rgba(255,253,246,0.75); font-weight: 600; font-size: 0.9rem; }
+    .dtp-mistake-pips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .dtp-mistake-pips i {
+        width: 16px; height: 16px; border-radius: 50%;
+        border: 2px solid rgba(255,253,246,0.3); transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+    .dtp-mistake-pips i.on { background: #e8604a; border-color: #e8604a; transform: scale(1.05); }
+    .dtp-points-ring {
+        --dtp-ring-p: 100; --dtp-ring-c: var(--dh-gold-300);
+        width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+        display: grid; place-items: center;
+        background: conic-gradient(var(--dtp-ring-c) calc(var(--dtp-ring-p) * 1%), rgba(255,253,246,0.14) 0);
+    }
+    .dtp-points-ring.pts-mid { --dtp-ring-c: #f0a35a; }
+    .dtp-points-ring.pts-low { --dtp-ring-c: #e8604a; }
+    .dtp-points-ring-core {
+        width: 66px; height: 66px; border-radius: 50%; background: var(--dh-emerald-800);
+        display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05;
+    }
+    .dtp-points-ring-value { font-size: 1.45rem; font-weight: 800; font-variant-numeric: tabular-nums; color: #fffdf6; }
+    .dtp-points-ring-max { font-size: 0.7rem; font-weight: 600; color: rgba(255,253,246,0.6); }
+    /* النص الطويل للدرجة الحالية بديله الآن الحلقة أعلاه (العنصر باقٍ ويُحدَّث من نفس الكود) */
+    #dtp-question-view .dtp-current-points { display: none; }
+
+    /* الأزرار: الخطأ كبير بعرض كامل، المساعدة والتبديل ثانويّان، والاعتماد أساسي ذهبي */
+    #dtp-question-view .dtp-question-actions {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        margin-top: auto; padding-top: 22px;
+    }
+    #dtp-question-view .dtp-question-actions button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        min-height: 52px; border-radius: 16px; font-size: 1.05rem; font-weight: 700;
+    }
+    #dtp-question-view .dtp-btn-mistake { grid-column: 1 / -1; min-height: 64px; font-size: 1.2rem; background: #c8432e; color: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+    #dtp-question-view .dtp-btn-helper,
+    #dtp-question-view .dtp-btn-swap { background: rgba(255,253,246,0.1); color: #fffdf6; border: 1px solid rgba(255,253,246,0.28); font-weight: 600; }
+    #dtp-question-view .dtp-btn-finish { grid-column: 1 / -1; background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900); box-shadow: 0 10px 20px rgba(0,0,0,0.25); }
+    #dtp-question-view .dtp-question-actions button:disabled { opacity: 0.35; }
+
+    /* =============== 3) النتيجة النهائية =============== */
+    #dtp-final-view { padding: 34px 16px 40px 16px; }
+    #dtp-final-view .dtp-summary-card {
+        background: transparent; box-shadow: none; border-radius: 0;
+        max-width: 620px; margin: 0 auto; padding: 0;
+        display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
+    }
+    .dtp-fin-trophy {
+        width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center;
+        background: radial-gradient(circle, rgba(240,216,120,0.35), rgba(240,216,120,0) 70%);
+        color: var(--dh-gold-300); animation: dtp-popIn 0.5s ease both;
+    }
+    .dtp-fin-trophy-svg { width: 58px; height: 58px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    #dtp-final-view .dtp-summary-title, #dtp-board-round-title { text-shadow: none !important; } /* يلغي ظل kids.css الأبيض على h2 */
+    #dtp-board-round-title.dtp-round-title { color: #fffdf6 !important; } /* يتغلّب على .adult-theme h2 */
+    #dtp-final-view .dtp-summary-title { color: var(--dh-gold-300) !important; /* يتغلّب على .adult-theme h2 */ font-size: 0.95rem; font-weight: 700; letter-spacing: 1px; margin: -6px 0 0 0; }
+    #dtp-final-view .dtp-winner-badge {
+        background: none; color: #fffdf6; padding: 0; margin: 0; border-radius: 0;
+        font-size: clamp(1.8rem, 7vw, 2.8rem); font-weight: 800; line-height: 1.25;
+        text-shadow: 0 6px 22px rgba(0,0,0,0.35), 0 0 30px rgba(240,216,120,0.35);
+    }
+    #dtp-final-view .dtp-winner-badge.dtp-tie-badge { color: var(--dh-gold-300); }
+    #dtp-final-view .dtp-summary-row {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin: 6px 0 0 0;
+    }
+    #dtp-final-view .dtp-summary-side {
+        background: rgba(255,253,246,0.08); border: 1px solid rgba(255,253,246,0.18);
+        border-radius: 20px; padding: 16px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0;
+    }
+    #dtp-final-view .dtp-summary-side.dtp-fin-won {
+        background: linear-gradient(165deg, #fffdf6, #fff4d2); color: var(--dh-emerald-900);
+        border-color: var(--dh-gold-500); box-shadow: 0 16px 30px rgba(0,0,0,0.3), 0 0 0 4px rgba(240,216,120,0.22);
+    }
+    #dtp-final-view .dtp-summary-side .name { font-size: 1.15rem; font-weight: 800; overflow-wrap: anywhere; }
+    #dtp-final-view .dtp-summary-side .val { font-size: 1rem; font-weight: 700; color: var(--dh-gold-300); font-variant-numeric: tabular-nums; }
+    #dtp-final-view .dtp-summary-side.dtp-fin-won .val { color: var(--dh-emerald-700); }
+    #dtp-final-view .dtp-summary-side > div:last-child { font-size: 0.88rem; opacity: 0.8; font-variant-numeric: tabular-nums; }
+    #dtp-final-view .dtp-badges-reveal {
+        width: 100%; margin: 0; background: rgba(255,253,246,0.08); border: 1px solid rgba(240,216,120,0.4); border-radius: 18px;
+    }
+    #dtp-final-view .dtp-badges-reveal-title { color: var(--dh-gold-300); font-size: 1rem; }
+    #dtp-final-view .dtp-badge-chip { background: #fffdf6; color: var(--dh-emerald-900); border-color: var(--dh-gold-500); }
+    .dtp-fin-actions { display: grid; gap: 10px; width: 100%; max-width: 360px; margin-top: 8px; }
+    #dtp-final-view .dtp-next-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; width: 100%;
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-emerald-900);
+        border-radius: 16px; font-size: 1.1rem; font-weight: 800; box-shadow: 0 12px 24px rgba(0,0,0,0.28);
+    }
+    #dtp-final-view .dtp-next-btn.dtp-fin-home-btn {
+        background: rgba(255,253,246,0.1); color: #fffdf6; border: 1px solid rgba(255,253,246,0.28); box-shadow: none; font-weight: 600;
+    }
+
+    /* =============== 4) لمسات على النوافذ المنبثقة =============== */
+    #dtp-question-result-modal .dtp-result-points-box { border-radius: 20px; }
+    #dtp-question-result-modal .dtp-result-points-value { font-variant-numeric: tabular-nums; }
+    .dtp-result-continue-btn { min-height: 52px; border-radius: 14px; }
+
+    @media (max-width: 420px) {
+        #dtp-welcome-view .dtp-vs-round-label { margin-bottom: 24px; }
+        #dtp-welcome-view .dtp-vs-start-btn { margin-top: 32px; }
+        #dtp-question-view { padding-top: 64px; }
+        #dtp-question-view .dtp-question-range-box { padding: 4px 14px; border-radius: 20px; }
+        .dtp-points-ring { width: 70px; height: 70px; }
+        .dtp-points-ring-core { width: 58px; height: 58px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        #dtp-welcome-view .dtp-vs-player, #dtp-welcome-view .dtp-vs-sep, .dtp-fin-trophy,
+        #dtp-question-view .dtp-shake-anim { animation: none !important; }
+    }
+
+    /* ===================================================================================
+       🌟 [جديد — ترتيب شاشة اللعب بطلب المعلم] لوحة الأسئلة + شاشة السؤال
+       -----------------------------------------------------------------------------------
+       ملاحظات المعلم: (1) شكل صفحة الاختبار غير جميل (2) مربعات الأرقام غير جميلة (3) نص
+       السؤال يحتاج نزول وطلوع (4) أسماء المتسابقين صغيرة (5) خلفية مكان الأسئلة بيضاء.
+       المعالجة: نفس خلفية باقي الشاشات الزمردية الموحّدة بدل التدرّج القطري الأخضر/الذهبي،
+       بطاقتا لاعبين متطابقتان بأسماء كبيرة، لوح أسئلة داكن شفاف بدل الأبيض، بلاطات أرقام
+       عاجية بسيطة بلا علامة مائية ولا إزاحة، وشاشة سؤال أعرض يتصغّر خطها تلقائياً حتى تتسع
+       كاملة (راجع fitQuestionText في dual-test-play.js). شكل فقط — نفس المعرّفات والمنطق.
+       هذه الكتلة آخر الملف عمداً حتى تتقدّم على القواعد الأقدم بنفس الخصوصية.
+       =================================================================================== */
+    #dtp-board-view {
+        padding: 22px 18px 40px 18px;
+        background:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23f0d878' stroke-opacity='0.07' stroke-width='1'%3E%3Crect x='18' y='18' width='28' height='28'/%3E%3Crect x='18' y='18' width='28' height='28' transform='rotate(45 32 32)'/%3E%3C/g%3E%3C/svg%3E"),
+            radial-gradient(circle at 50% 0%, rgba(240,216,120,0.18), rgba(240,216,120,0) 55%),
+            linear-gradient(170deg, var(--dh-emerald-900) 0%, var(--dh-emerald-800) 60%, var(--dh-emerald-700) 100%);
+    }
+    #dtp-board-view::before { display: none; }
+    #dtp-board-view .dtp-board-inner { max-width: 1100px; }
+    .dtp-board-hero { margin-bottom: 10px; }
+    .dtp-board-hero-title { font-size: clamp(1.05rem, 2.2vw, 1.35rem); text-shadow: none; }
+    .dtp-board-hero-subtitle { font-size: 0.8rem; }
+    #dtp-board-round-title.dtp-round-title { display: flex; margin: 0 auto 10px auto; font-size: 0.95rem; padding: 6px 18px; }
+    .dtp-round-stepper { margin-bottom: 20px; }
+
+    /* --- بطاقتا اللاعبَين: متطابقتان، الاسم كبير وواضح، والنقاط بالذهبي، وصاحب الدور بإطار ذهبي --- */
+    #dtp-scorebar.dtp-scorebar {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; animation: none;
+    }
+    #dtp-scorebar .dtp-score-side,
+    #dtp-scorebar .dtp-score-side:nth-child(2) {
+        display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-areas: "av main pts" "av icons pts";
+        align-items: center; column-gap: 16px; row-gap: 8px;
+        min-width: 0; text-align: start;
+        background: rgba(255,253,246,0.07); color: #fffdf6;
+        border: 1.5px solid rgba(255,253,246,0.16); border-radius: 22px;
+        padding: 18px 20px; box-shadow: none; transform: none; animation: none;
+    }
+    #dtp-scorebar .dtp-score-side.dtp-turn-active {
+        background: rgba(255,253,246,0.13); border-color: var(--dh-gold-300);
+        box-shadow: 0 0 0 4px rgba(240,216,120,0.18), 0 16px 30px rgba(0,0,0,0.3);
+        transform: none; animation: none; padding: 18px 20px;
+    }
+    #dtp-scorebar .dtp-score-avatar {
+        grid-area: av; position: static; transform: none;
+        width: 64px; height: 64px; font-size: 1.6rem; border: 3px solid rgba(255,253,246,0.85);
+    }
+    #dtp-scorebar .dtp-score-side.dtp-turn-active .dtp-score-avatar { border-color: var(--dh-gold-300); }
+    #dtp-scorebar .dtp-score-side.dtp-turn-active .dtp-score-avatar::after { display: none; }
+    #dtp-scorebar .dtp-score-main { grid-area: main; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+    #dtp-scorebar .dtp-score-name {
+        margin: 0; color: #fffdf6; font-size: clamp(1.35rem, 2.8vw, 2rem); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere;
+    }
+    #dtp-scorebar .dtp-score-points {
+        grid-area: pts; color: var(--dh-gold-300); font-size: clamp(2.4rem, 5vw, 3.4rem); font-weight: 800; line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+    #dtp-scorebar .dtp-score-icons { grid-area: icons; justify-content: flex-start; flex-wrap: wrap; gap: 6px; margin: 0; opacity: 1; font-size: inherit; }
+
+    /* شارة "الدور الآن" + شارات الحالة (مشتركة بين لوحة الأسئلة وشاشة السؤال) */
+    .dtp-score-turn {
+        display: none; align-items: center; font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+        padding: 3px 10px; border-radius: 999px; background: var(--dh-gold-500); color: var(--dh-emerald-900);
+    }
+    .dtp-score-side.dtp-turn-active .dtp-score-turn { display: inline-flex; }
+    .dtp-score-pill {
+        display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600;
+        padding: 3px 10px; border-radius: 999px; background: rgba(255,253,246,0.1); color: rgba(255,253,246,0.85);
+    }
+    .dtp-score-pill .dtp-ico { width: 1em; height: 1em; }
+    .dtp-score-icons span.dtp-score-pill.used { opacity: 0.4; text-decoration: line-through; }
+    .dtp-score-pill.dtp-score-pill-x { color: #f4a394; font-variant-numeric: tabular-nums; }
+
+    @media (min-width: 701px) { #dtp-scorebar.dtp-scorebar { column-gap: 72px; } }
+    @media (max-width: 700px) {
+        #dtp-scorebar.dtp-scorebar { grid-template-columns: 1fr; gap: 12px; }
+        #dtp-scorebar.dtp-scorebar::before { display: none; }
+        #dtp-scorebar .dtp-score-side, #dtp-scorebar .dtp-score-side:nth-child(2),
+        #dtp-scorebar .dtp-score-side.dtp-turn-active { padding: 14px 16px; column-gap: 12px; }
+        #dtp-scorebar .dtp-score-avatar { width: 52px; height: 52px; font-size: 1.3rem; }
+        #dtp-scorebar .dtp-score-name { font-size: 1.4rem; }
+        #dtp-scorebar .dtp-score-points { font-size: 2.4rem; }
+        #dtp-question-scorebar .dtp-score-side { flex-direction: column; align-items: flex-start; }
+        #dtp-question-scorebar .dtp-score-name { font-size: 1.1rem; }
+    }
+    #dtp-scorebar.dtp-scorebar::before { width: 46px; height: 46px; font-size: 0.85rem; box-shadow: 0 0 0 5px var(--dh-emerald-900), 0 8px 16px rgba(0,0,0,0.3); }
+
+    /* --- لوح الأسئلة: داكن شفاف بدل الأبيض، مع عنوان صغير "اختر رقم السؤال" --- */
+    .dtp-board-panel {
+        background: rgba(0,0,0,0.22); border: 1px solid rgba(255,253,246,0.12);
+        border-radius: 26px; padding: 18px 18px 24px 18px;
+    }
+    .dtp-board-pick-label { text-align: center; color: var(--dh-gold-300); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.3px; margin-bottom: 16px; }
+    #dtp-board-view .dtp-board-grid { background: transparent; padding: 0; border-radius: 0; margin: 0; gap: clamp(12px, 2vw, 18px); }
+
+    /* --- بلاطات الأرقام: عاجية بسيطة بإطار ذهبي ورقم زمردي واضح، بلا علامة مائية ولا إزاحة --- */
+    #dtp-board-view .dtp-board-cell,
+    #dtp-board-view .dtp-board-cell:nth-child(odd),
+    #dtp-board-view .dtp-board-cell:nth-child(even) {
+        width: clamp(76px, 15vw, 112px); border-radius: 20px;
+        background: linear-gradient(170deg, #fffdf6 0%, #f4ead0 100%);
+        border: 2px solid rgba(240,216,120,0.9);
+        box-shadow: 0 10px 22px rgba(0,0,0,0.28);
+        color: var(--dh-emerald-900); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800;
+        font-variant-numeric: tabular-nums; text-shadow: none; transform: none;
+        animation: dtp-popIn 0.3s ease both;
+    }
+    #dtp-board-view .dtp-board-cell::before,
+    #dtp-board-view .dtp-board-cell::after { display: none; }
+    #dtp-board-view .dtp-board-cell:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0 0 4px rgba(240,216,120,0.35), 0 16px 28px rgba(0,0,0,0.35);
+    }
+    #dtp-board-view .dtp-board-cell:active { transform: scale(0.96); box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
+    #dtp-board-view .dtp-board-cell.dtp-cell-done:nth-child(n) {
+        background: rgba(255,253,246,0.05); border: 2px dashed rgba(255,253,246,0.22);
+        box-shadow: none; color: rgba(255,253,246,0.45); opacity: 1; transform: none; cursor: default;
+    }
+    .dtp-cell-ico { width: 40%; height: 40%; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+    #dtp-end-round-btn.dtp-end-round-btn {
+        margin-top: 22px; background: transparent; border: 1.5px solid rgba(255,253,246,0.25);
+        color: rgba(255,253,246,0.75); font-weight: 600; border-radius: 12px; padding: 9px 18px;
+    }
+    #dtp-end-round-btn.dtp-end-round-btn:hover { border-color: var(--dh-gold-300); color: #fffdf6; }
+
+    /* --- شاشة السؤال: أعرض، والأسماء أكبر، والخط يتصغّر تلقائياً عبر --dtp-q-scale --- */
+    /* min-height: 0 ضروري: الارتفاع الكامل القديم كان يجعل الشاشة "تفيض" دائماً فيتصغّر الخط لأقل حد */
+    #dtp-question-view .dtp-q-inner { max-width: 1180px; min-height: 0; }
+    #dtp-question-scorebar .dtp-score-name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+    #dtp-question-scorebar .dtp-score-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+    #dtp-question-scorebar .dtp-score-name { font-size: 1.25rem; font-weight: 700; flex: 0 1 auto; }
+    #dtp-question-scorebar .dtp-score-points { font-size: 1.6rem; }
+    #dtp-question-scorebar .dtp-score-icons { display: flex; flex-wrap: wrap; gap: 6px; }
+    #dtp-question-view .dtp-range-text {
+        font-size: calc(var(--dtp-q-scale, 1) * clamp(1.7rem, 3.4vw, 2.8rem)); line-height: 1.9;
+    }
+    #dtp-question-view .dtp-range-row { padding: 12px 0; }
+    @media (min-width: 980px) {
+        #dtp-question-view .dtp-question-card {
+            display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+            grid-template-rows: auto auto 1fr;
+            grid-template-areas: "turn turn" "range status" "range actions";
+            column-gap: 22px; align-items: start;
+        }
+        #dtp-question-view .dtp-question-turn { grid-area: turn; }
+        #dtp-question-view .dtp-question-range-box { grid-area: range; margin: 0; }
+        #dtp-question-view .dtp-q-status { grid-area: status; background: rgba(0,0,0,0.2); border-radius: 18px; padding: 14px; }
+        #dtp-question-view .dtp-question-actions { grid-area: actions; grid-template-columns: 1fr 1fr; margin-top: 12px; padding-top: 0; }
+    }
 </style>
 
 <div class="screen active dtp-wrapper">
-    <button class="btn btn-outline dtp-back-btn" id="dtp-back-btn">🔙 <span data-i18n="dts_back">العودة</span></button>
+    <button class="btn btn-outline dtp-back-btn" id="dtp-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_back">العودة</span></button>
 
     <!-- ===== الترحيب / VS ===== -->
     <div id="dtp-welcome-view">
@@ -767,16 +1194,16 @@
                 <div class="dtp-vs-player">
                     <div class="dtp-vs-avatar" id="dtp-avatar-a"></div>
                     <span class="dtp-vs-name" id="dtp-name-a"></span>
-                    <span class="dtp-vs-score" id="dtp-roundswon-a"></span>
+                    <span class="dtp-vs-wins"><span class="dtp-vs-wins-label" data-i18n="dtp_vs_wins_label">جولات</span><span class="dtp-vs-score" id="dtp-roundswon-a"></span></span>
                 </div>
-                <span class="dtp-vs-sep">🆚</span>
+                <span class="dtp-vs-sep">VS</span>
                 <div class="dtp-vs-player">
                     <div class="dtp-vs-avatar" id="dtp-avatar-b"></div>
                     <span class="dtp-vs-name" id="dtp-name-b"></span>
-                    <span class="dtp-vs-score" id="dtp-roundswon-b"></span>
+                    <span class="dtp-vs-wins"><span class="dtp-vs-wins-label" data-i18n="dtp_vs_wins_label">جولات</span><span class="dtp-vs-score" id="dtp-roundswon-b"></span></span>
                 </div>
             </div>
-            <button class="dtp-vs-start-btn" id="dtp-start-round-btn" data-i18n="dtp_start_round_btn">🚀 ابدأ الجولة</button>
+            <button class="dtp-vs-start-btn" id="dtp-start-round-btn"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4l12 8-12 8z"/></svg><span data-i18n="dtp_start_round_btn">ابدأ الجولة</span></button>
         </div>
     </div>
 
@@ -815,13 +1242,17 @@
                 <span class="dtp-round-dot" data-round="3"></span>
             </div>
             <div class="dtp-scorebar" id="dtp-scorebar"></div>
-            <div class="dtp-board-grid" id="dtp-board-grid"></div>
+            <div class="dtp-board-panel">
+                <div class="dtp-board-pick-label" data-i18n="dtp_board_pick_label">اختر رقم السؤال</div>
+                <div class="dtp-board-grid" id="dtp-board-grid"></div>
+            </div>
             <button class="dtp-end-round-btn" id="dtp-end-round-btn" data-i18n="dtp_end_round_manual_btn">⏹️ إنهاء الجولة الآن يدوياً</button>
         </div>
     </div>
 
     <!-- ===== شاشة السؤال ===== -->
     <div id="dtp-question-view" style="display:none;">
+        <div class="dtp-q-inner">
         <div class="dtp-scorebar" id="dtp-question-scorebar"></div>
         <div class="dtp-question-card">
             <div class="dtp-question-turn" id="dtp-question-turn"></div>
@@ -832,25 +1263,40 @@
                  يملأ جزءاً كبيراً من الشاشة — بطلب صريح لمناسبة قراءة الأطفال من موبايل/آيباد -->
             <div class="dtp-question-range-box quran-text">
                 <div class="dtp-range-row dtp-range-from">
-                    <span class="dtp-range-icon">📖</span>
+                    <span class="dtp-range-icon" aria-hidden="true"></span>
                     <span class="dtp-range-label" data-i18n="dts_from_label">سمّع من</span>
                     <span class="dtp-range-text" id="dtp-question-from"></span>
                 </div>
                 <div class="dtp-range-row dtp-range-to">
-                    <span class="dtp-range-icon">🏁</span>
+                    <span class="dtp-range-icon" aria-hidden="true"></span>
                     <span class="dtp-range-label" data-i18n="dts_to_label">إلى</span>
                     <span class="dtp-range-text" id="dtp-question-to"></span>
                 </div>
             </div>
-            <div class="dtp-mistakes-counter" id="dtp-mistakes-counter"></div>
+            <!-- 🌟 [مُحدَّث — التصميم الاحترافي] سطر الحالة: الأخطاء كنقاط تمتلئ + الدرجة الحالية
+                 داخل حلقة دائرية (راجع renderQuestionMeter في dual-test-play.js). النصّان الأصليّان
+                 (#dtp-mistakes-counter و #dtp-current-points) باقيان كما هما ويُحدَّثان من نفس الكود -->
+            <div class="dtp-q-status">
+                <div class="dtp-q-mistakes">
+                    <div class="dtp-mistakes-counter" id="dtp-mistakes-counter"></div>
+                    <div class="dtp-mistake-pips" id="dtp-mistake-pips" aria-hidden="true"></div>
+                </div>
+                <div class="dtp-points-ring pts-full" id="dtp-points-ring">
+                    <span class="dtp-points-ring-core">
+                        <span class="dtp-points-ring-value" id="dtp-points-ring-value">10</span>
+                        <span class="dtp-points-ring-max" id="dtp-points-ring-max">/ 10</span>
+                    </span>
+                </div>
+            </div>
             <!-- 🌟 [جديد] الدرجة الحالية المتوقعة لهذا السؤال (10 كاملة أو أقل حسب الأخطاء) -->
             <div class="dtp-current-points" id="dtp-current-points"></div>
             <div class="dtp-question-actions">
-                <button type="button" class="dtp-btn-mistake" id="dtp-btn-mistake" data-i18n="dtp_btn_mistake">❌ تسجيل خطأ</button>
-                <button type="button" class="dtp-btn-helper" id="dtp-btn-helper" data-i18n="dtp_btn_helper">💡 مساعدة</button>
-                <button type="button" class="dtp-btn-swap" id="dtp-btn-swap" data-i18n="dtp_btn_swap">🔄 تبديل</button>
-                <button type="button" class="dtp-btn-finish" id="dtp-btn-finish" data-i18n="dtp_btn_finish">✅ اعتماد الإجابة</button>
+                <button type="button" class="dtp-btn-mistake" id="dtp-btn-mistake"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg><span data-i18n="dtp_btn_mistake">تسجيل خطأ</span></button>
+                <button type="button" class="dtp-btn-helper" id="dtp-btn-helper"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg><span data-i18n="dtp_btn_helper">مساعدة</span></button>
+                <button type="button" class="dtp-btn-swap" id="dtp-btn-swap"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg><span data-i18n="dtp_btn_swap">تبديل</span></button>
+                <button type="button" class="dtp-btn-finish" id="dtp-btn-finish"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="dtp_btn_finish">اعتماد الإجابة</span></button>
             </div>
+        </div>
         </div>
     </div>
 
@@ -885,15 +1331,16 @@
     <!-- ===== النتيجة النهائية ===== -->
     <div id="dtp-final-view" style="display:none;">
         <div class="dtp-summary-card">
-            <h2 class="dtp-summary-title" data-i18n="dtp_final_title">🏆 النتيجة النهائية</h2>
+            <span class="dtp-fin-trophy"><svg class="dtp-fin-trophy-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg></span>
+            <h2 class="dtp-summary-title" data-i18n="dtp_final_title">النتيجة النهائية</h2>
             <div id="dtp-final-winner-badge"></div>
             <div class="dtp-summary-row">
-                <div class="dtp-summary-side">
+                <div class="dtp-summary-side" id="dtp-final-side-a">
                     <div class="name" id="dtp-final-name-a"></div>
                     <div class="val" id="dtp-final-rounds-a"></div>
                     <div id="dtp-final-points-a"></div>
                 </div>
-                <div class="dtp-summary-side">
+                <div class="dtp-summary-side" id="dtp-final-side-b">
                     <div class="name" id="dtp-final-name-b"></div>
                     <div class="val" id="dtp-final-rounds-b"></div>
                     <div id="dtp-final-points-b"></div>
@@ -905,8 +1352,10 @@
             <!-- 🌟 [جديد] فتح تقرير المواجهة الكامل (كل الأسئلة/الدرجات/الأخطاء/المساعدة/الاستبدال
                  لكل طالب) — راجع reports/dual-test-report.js. زر مستقل عن "العودة للرئيسية" حتى
                  يقدر المعلم يفتح التقرير أولاً قبل الخروج من شاشة النتيجة -->
-            <button class="dtp-next-btn" id="dtp-view-report-btn" data-i18n="dtp_view_report_btn">📄 عرض تقرير المواجهة</button>
-            <button class="dtp-next-btn" id="dtp-final-back-btn" data-i18n="dtp_final_back_btn">🏠 العودة للرئيسية</button>
+            <div class="dtp-fin-actions">
+                <button class="dtp-next-btn" id="dtp-view-report-btn"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg><span data-i18n="dtp_view_report_btn">عرض تقرير المواجهة</span></button>
+                <button class="dtp-next-btn dtp-fin-home-btn" id="dtp-final-back-btn"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span data-i18n="dtp_final_back_btn">العودة للرئيسية</span></button>
+            </div>
         </div>
     </div>
 </div>
@@ -927,7 +1376,7 @@
      وهل استخدم وسيلة المساعدة في هذا السؤال تحديداً أم لا — قبل الانتقال للسؤال التالي -->
 <div id="dtp-question-result-modal" class="modal-overlay">
     <div class="modal-content dtp-result-modal-content" style="max-width: 420px;">
-        <h2 class="dtp-result-title" data-i18n="dtp_result_title">✅ نتيجة السؤال</h2>
+        <h2 class="dtp-result-title" data-i18n="dtp_result_title">نتيجة السؤال</h2>
         <div class="dtp-result-student-name" id="dtp-result-student-name"></div>
         <div class="dtp-result-points-box">
             <span class="dtp-result-points-value" id="dtp-result-points"></span>
@@ -947,6 +1396,6 @@
                 <span class="dtp-result-detail-value" id="dtp-result-helper"></span>
             </div>
         </div>
-        <button class="btn dtp-result-continue-btn" style="width:100%;" id="dtp-result-continue-btn" data-i18n="dtp_result_continue_btn">متابعة ▶️</button>
+        <button class="btn dtp-result-continue-btn" style="width:100%;" id="dtp-result-continue-btn"><span data-i18n="dtp_result_continue_btn">متابعة</span></button>
     </div>
 </div>

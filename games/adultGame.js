@@ -6,7 +6,7 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare } from '../engine/quranEngine.js';
+import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -16,6 +16,7 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
+import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -239,6 +240,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
     GameState.resumedFromPause = false; // 🌟 [جديد] يُضبط true فقط عند استكمال اختبار معلّق (أدناه)
     GameState.currentIndex = 0;
     GameState.consecutiveCorrect = 0;
+    setActiveSurahPlan(null); // 🌟 خطة تغطية السور (جزء عم) تُفعَّل أدناه فقط عند الحاجة
     
     try {
         if (isWeakness) {
@@ -296,6 +298,11 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             let gamesList = config.isJuzMode
                 ? ['catch', 'next', 'previous', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
                 : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
+            // 🌟 [2026-10-03] بطلب المعلم: "اربط الكلمة بسورتها" تدخل أيضاً وضع "من سورة إلى سورة" إذا
+            // كان النطاق ثلاث سور فما فوق (تُعدّ السور المختلفة الموجودة فعلاً في آيات النطاق)
+            if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
+                gamesList.push('link_word_surah');
+            }
             
             // 🌟 [إصلاح] استبدلنا الحلقة القديمة (كانت تختار الأنواع بلا التأكد أنها ستُولَّد فعلاً،
             // فتتحول الألعاب الفاشلة صامتة إلى "صيد الآية") بـbuildGameQueue أعلاه
@@ -309,12 +316,30 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 GameState.reportDetails = Array.isArray(resumeSnapshot.reportDetails) ? resumeSnapshot.reportDetails : [];
                 if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
                 GameState.resumedFromPause = true;
+                // 🌟 استعادة خطة السور المحفوظة داخل الطابور (اختبار جزء عم المعلّق)
+                if (GameState.queue.every(q => q.surahNum !== undefined)) setActiveSurahPlan(GameState.queue.reduce((pl, q) => { pl[q.chunkIndex] = q.surahNum; return pl; }, []));
             } else {
+                // 🌟 جزء عم: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js). تُفعَّل الخطة قبل بناء
+                // الطابور حتى يفحص probeGameType اللعبة على السورة المخصصة للسؤال فعلاً.
+                const plan = (config.isJuzMode && config.juzNum === JUZ_AMMA_NUMBER) ? planSurahCoverage(ayahsPool, qCount) : null;
+                setActiveSurahPlan(plan);
                 GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
+                if (plan) GameState.queue.forEach((q, i) => { q.surahNum = plan[i]; });
+                // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور. نخلط عناصر الطابور كاملة (النوع +
+                // chunkIndex + surahNum معاً) فيبقى توزيع النطاق وتغطية السور كما هي لكن بترتيب العرض عشوائياً.
+                shuffleInPlace(GameState.queue);
             }
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
     } catch (err) { alert("حدث خطأ: " + err.message); }
+}
+
+function shuffleInPlace(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
 }
 
 function initGameUI() {
@@ -324,6 +349,7 @@ function initGameUI() {
         document.getElementById('zoomModal').style.display = 'flex';
     };
 
+    initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     startTimer(30); 
     
@@ -492,6 +518,8 @@ function persistEvaluationToHistory() {
 
 async function playNextMission() {
     try {
+        // 🌟 [جديد] data-game-q = نوع السؤال الحالي لضبط تخطيط ملء الشاشة لأسئلة بعينها (راجع css/gameFullscreen.css) — نمسح العلامة مع كل سؤال جديد
+        delete document.body.dataset.gameQ;
         if(GameState.currentIndex >= GameState.queue.length) {
             updateTrackerUI();
             clearInterval(GameState.timerInterval);
@@ -606,11 +634,11 @@ async function playNextMission() {
                 originalBodyHTML = '';
             } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
                 originalBodyHTML = `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
-                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
+                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.text} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
@@ -641,7 +669,7 @@ async function playNextMission() {
                 if (orderShufTitleEl) orderShufTitleEl.innerHTML = t('shuffled_ayahs');
                 buildOrderGameUI();
                 document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="font-size:1.3rem; font-weight:bold; margin:10px 0;">${t('correct_order')}:</div>` +
-                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿ ${a.text} ﴾</div>`).join('');
+                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
                 return;
             }
 
@@ -671,7 +699,7 @@ async function playNextMission() {
                 document.getElementById('game-answer').innerHTML = wItem.fullAnswer;
             } else {
                 let extraCorrectAns = (wItem.correctAns && wItem.questionType === 'complete_ayah') ? `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${wItem.correctAns}</span>` : '';
-                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>${extraCorrectAns}`;
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>${extraCorrectAns}`;
             }
             return;
         }
@@ -725,12 +753,13 @@ async function playNextMission() {
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkWordSurahFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
                 if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkWordSurahFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
-                linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                linkWordSurahFallbackAnsHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkWordSurahFallbackAnsHTML;
             }
         } else if (type === 'visual_memory') {
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            if(GameState.currentData && GameState.currentData.type === 'visual_memory') document.body.dataset.gameQ = 'visual_memory';
             
             document.getElementById('teacher-eval-area').style.display = 'block'; 
             document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
@@ -783,7 +812,7 @@ async function playNextMission() {
                 document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
                 let linkFallbackAnsHTML = `${t("الإجابة الصحيحة:")}<br>`;
                 if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) linkFallbackAnsHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
-                linkFallbackAnsHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                linkFallbackAnsHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
                 document.getElementById('game-answer').innerHTML = linkFallbackAnsHTML;
             }
         } else {
@@ -803,13 +832,14 @@ async function playNextMission() {
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
+            if(['between', 'recite'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             
             let ansHTML = `${t("الإجابة الصحيحة:")}<br>`;
             if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) {
                 if(GameState.currentData.type === 'recite') ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( ${localizeGenerated(GameState.currentData.reportText).replace(/^(تسميع من |تسميع |Reciting from |Reciting )/, '')} )</div>`;
                 else ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
             }
-            ansHTML += `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+            ansHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             
             if(GameState.currentData.correctAns && GameState.currentData.type === 'complete_ayah') {
                 ansHTML += `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${GameState.currentData.correctAns}</span>`;
@@ -822,7 +852,7 @@ async function playNextMission() {
 
 function showHint() { 
     GameState.hintUsed = true; 
-    document.getElementById('hint-text').innerText = `﴿ ${GameState.currentData.hint} ﴾`; 
+    document.getElementById('hint-text').innerText = `﴿\u00A0${GameState.currentData.hint}\u00A0﴾`; 
     document.getElementById('hint-text').style.display = 'block'; 
     document.getElementById('hint-btn').style.display = 'none'; 
 }

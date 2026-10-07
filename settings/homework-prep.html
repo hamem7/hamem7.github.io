@@ -12,6 +12,9 @@
 
     /* -------- حيلة "ملء الصفحة" -------- */
     .hwp2-bleed { width: 100vw; margin-inline-start: calc(50% - 50vw); margin-inline-end: calc(50% - 50vw); box-sizing: border-box; }
+    /* 🌟 [إصلاح] إلغاء padding وخلفية .screen العامة (global.css/mobile.css) لهذه الشاشة فقط —
+       كانا يُظهران مستطيلاً فاتحاً خلف التصميم (شريط بين الهيدر العام وشريط العنوان الأخضر) 🌟 */
+    #app-root .screen.hwp2-screen { max-width: 100% !important; padding-block: 0 !important; background: transparent !important; }
     .hwp2-pad { padding-inline: clamp(20px, 4vw, 56px); box-sizing: border-box; }
     #app-root .hwp2-panel {
         background: transparent !important; max-width: none !important; width: 100% !important;
@@ -50,6 +53,10 @@
         transition: background .15s ease;
     }
     #app-root .hwp2-btn-ghost:hover { background: rgba(255,255,255,.2) !important; }
+
+    .hwp2-account { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-width: 0; }
+    .hwp2-account-email { color: var(--dh-gold-300); font-size: .88rem; overflow-wrap: anywhere; min-width: 0; }
+    @media (max-width: 640px) { .hwp2-account { width: 100%; justify-content: space-between; } }
 
     /* -------- شريط بطاقات الإحصائيات -------- */
     .hwp2-stats-bar { background: var(--dh-surface-alt); }
@@ -346,7 +353,7 @@
     .hwp3-confirm-ok { background: #b91c1c; color: #ffffff; }
     .hwp3-confirm-ok:hover { background: #991b1b; }
 </style>
-<div class="screen active dashboard-wrapper" style="background: #f8fafc;">
+<div class="screen active dashboard-wrapper hwp2-screen">
     <div class="control-panel hwp2-panel">
 
         <!-- 🗂️ شريط العنوان بعرض الصفحة الكامل -->
@@ -364,6 +371,11 @@
                         <h1 class="hwp2-header-title" data-i18n="hw_management_title">نظام إدارة الواجبات</h1>
                         <div class="hwp2-header-sub" data-i18n="hw_header_subtitle">حمٓ — لوحة تحكم المعلم</div>
                     </div>
+                </div>
+                <!-- 🌟 [جديد 2026-10-06] حساب جوجل: الإيميل الحالي + «تغيير الإيميل» ظاهران دائماً في أعلى الشاشة -->
+                <div class="hwp2-account">
+                    <span class="hwp2-account-email" id="hwp-account-email"></span>
+                    <button type="button" class="btn hwp2-btn-ghost" id="btn-change-account" data-i18n="acct_change_btn">🔁 تغيير الإيميل</button>
                 </div>
             </div>
         </div>

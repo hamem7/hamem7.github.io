@@ -60,7 +60,9 @@ const KNOWN_DB_NAMES_FALLBACK = [
     'DarHamKidsAudio',
     // 🌟 [إصلاح تدقيق] قاعدتان فعليتان كانتا ناقصتين من القائمة اليدوية (تُستخدمان فقط لو indexedDB.databases() غير مدعومة)
     'DarHamTajweed',
-    'DarHamMonthlyMemorization'
+    'DarHamMonthlyMemorization',
+    // 🏅 سجل الشهادات الصادرة (certificates/certificatesDB.js)
+    'DarHamCertificates'
 ];
 
 // 🌟 سرد كل قواعد بيانات المنصة تلقائياً عبر indexedDB.databases() المدمجة في المتصفح

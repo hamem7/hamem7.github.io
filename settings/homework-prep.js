@@ -1,6 +1,7 @@
 // settings/homework-prep.js
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
+import { attachJuzAmmaCoverageNote } from '../components/juzAmmaCoverageNote.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
 // 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
@@ -19,8 +20,8 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
 import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
-// 🌟 [جديد] بوابة مفتاح المعلم (لو انتهت صلاحية المفتاح المحفوظ أثناء الجلسة)
-import { ensureTeacherAuth } from '../components/teacherAuthGate.js';
+// 🌟 بوابة الدخول بجوجل لنظام الواجبات (لو انتهت صلاحية الجلسة المحفوظة أثناء العمل)
+import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
 // نفس المقارنة هنا وفي core/firebase.js — راجع core/submissionStatus.js للشرح الكامل.
 // 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
@@ -96,6 +97,7 @@ export async function initHomeworkPrep() {
         console.error(t("محرك القرآن غير متوفر!"));
     }
 
+    setupAccountButton();
     populateDropdowns();
     await populateTargetStudents();
     setupListeners();
@@ -113,6 +115,24 @@ export async function initHomeworkPrep() {
     flushPendingHomeworkSync()
         .then(result => { if (result.sent > 0) loadHomeworkDashboard(); })
         .catch(err => console.error("خطأ أثناء إعادة محاولة رفع الواجبات المعلّقة عند فتح شاشة الواجبات:", err));
+}
+
+// 🌟 [جديد 2026-10-06] زر «تغيير الإيميل» الدائم في أعلى الشاشة + عرض الإيميل الحالي؛ بعد التغيير تُعاد قراءة السجل بحساب المعلم الجديد
+function setupAccountButton() {
+    const btn = document.getElementById('btn-change-account');
+    const emailEl = document.getElementById('hwp-account-email');
+    const render = async () => {
+        const { accountEmailText } = await import('../components/teacherAccount.js');
+        if (emailEl) emailEl.textContent = accountEmailText();
+    };
+    render();
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
+        const { changeTeacherAccount } = await import('../components/teacherAccount.js');
+        const changed = await changeTeacherAccount();
+        render();
+        if (changed) loadHomeworkDashboard();
+    });
 }
 
 // 🌟 [جديد] أسماء الطلاب الظاهرين (غير المخفيين) المتاحين لقائمة "تخصيص الواجب لطالب محدد"
@@ -309,7 +329,7 @@ async function suggestRangeFromStudentMemo() {
                 const juzRadio = document.querySelector('input[name="hwType"][value="juz"]');
                 if (juzRadio) { juzRadio.checked = true; toggleHwType(); }
                 const juzSelect = document.getElementById('hw-juz-select');
-                if (juzSelect) juzSelect.value = '30';
+                if (juzSelect) { juzSelect.value = '30'; juzSelect.dispatchEvent(new Event('change')); }
             }
         });
     } else {
@@ -531,7 +551,7 @@ async function loadHomeworkDashboard() {
     // الجدول أعلاه يظهر فوراً من البيانات المحلية (IndexedDB)، بينما هذه البطاقة تعتمد على
     // استعلام سحابي (Firestore) قد يستغرق ثانية أو أكثر — تشغيلها بدون انتظار يمنع تجميد
     // ظهور سجل الواجبات كله بسبب بطء الشبكة أو انقطاعها.
-    loadNeedsGradingStat();
+    loadNeedsGradingStat(allHWs);
 
     // 🌟🌟 [جديد] بطاقة "متأخر عن التسليم" — نفس فلسفة "يحتاج تصحيح" أعلاه بالضبط (استعلام
     // سحابي بلا await هنا حتى لا يُجمَّد ظهور الجدول). نمرّر allHWs (محلية بالفعل، بلا استعلام
@@ -543,13 +563,18 @@ async function loadHomeworkDashboard() {
 // تصحيح المعلم اليدوي عبر كل الواجبات دفعة واحدة، وتُحدّث بطاقة "يحتاج تصحيح" في الأعلى + تضع
 // علامة تنبيه ⚠️ بجانب كل واجب متأثر في سجل الواجبات (الصفوف مبنية مسبقاً بمعرّف hw-alert-<id>
 // مخفي افتراضياً في loadHomeworkDashboard أعلاه).
-async function loadNeedsGradingStat() {
+// 🌟 [إصلاح 2026-10-03] حذف الواجب من السجل يحذف نسخته المحلية فقط، وتسليماته تبقى في الخادم —
+// فكانت البطاقة تعدّ تسليمات واجبات محذوفة ("يحتاج تصحيح 1" والقائمة فارغة). نعدّ الآن فقط تسليمات
+// الواجبات الموجودة في سجلك (allHWs)، فتطابق البطاقة القائمة دائماً.
+async function loadNeedsGradingStat(allHWs) {
     const statEl = document.getElementById('stat-needs-grading');
     if (!statEl) return;
     statEl.innerText = '⏳';
 
     try {
-        const pending = await getSubmissionsNeedingGrading();
+        if (!allHWs) allHWs = await AppState.homeworkManager.getAllHomeworks() || [];   // نداء بلا معامل (بعد حفظ التصحيح)
+        const localIds = new Set(allHWs.map(hw => String(hw.id)));
+        const pending = (await getSubmissionsNeedingGrading()).filter(sub => localIds.has(String(sub.hwId)));
         pendingGradingHwIds = new Set(pending.map(sub => sub.hwId));
         statEl.innerText = pending.length;
 
@@ -737,7 +762,8 @@ function setHwFilter(f, toggle) {
 
 // 🌟 [جديد] نافذة تأكيد حذف الواجب في وسط الصفحة (بدل confirm() الذي يظهر من أعلى المتصفح).
 // تُرجع Promise<boolean>: true = المعلم أكّد الحذف، false = إلغاء/إغلاق/Esc/نقر على الخلفية. لا تحذف شيئاً بنفسها.
-function confirmHwDelete() {
+// 🌟 [2026-10-03] titleKey/bodyKey اختياريان لاستعمال نفس النافذة لحذف سؤال من المعاينة (بدل confirm() العلوي هناك أيضاً)
+function confirmHwDelete({ titleKey = 'hw_delete_confirm_title', bodyKey = 'hw_delete_confirm_body' } = {}) {
     return new Promise((resolve) => {
         // 🌟 [إصلاح 2026-10-02] منع تكرار النافذة: إن كانت نافذة تأكيد مفتوحة أصلاً لا نفتح ثانية (ولا نحذف شيئاً)
         if (document.querySelector('.hwp3-confirm-overlay')) { resolve(false); return; }
@@ -747,8 +773,8 @@ function confirmHwDelete() {
         overlay.innerHTML = `
             <div class="hwp3-confirm-box" role="alertdialog" aria-modal="true" aria-labelledby="hwp3-confirm-title" aria-describedby="hwp3-confirm-body">
                 <div class="hwp3-confirm-icon" aria-hidden="true">🗑️</div>
-                <h3 id="hwp3-confirm-title" class="hwp3-confirm-title">${t('hw_delete_confirm_title')}</h3>
-                <p id="hwp3-confirm-body" class="hwp3-confirm-body">${t('hw_delete_confirm_body')}</p>
+                <h3 id="hwp3-confirm-title" class="hwp3-confirm-title">${t(titleKey)}</h3>
+                <p id="hwp3-confirm-body" class="hwp3-confirm-body">${t(bodyKey)}</p>
                 <div class="hwp3-confirm-actions">
                     <button type="button" class="hwp3-confirm-btn hwp3-confirm-cancel">${t('hw_delete_cancel_btn')}</button>
                     <button type="button" class="hwp3-confirm-btn hwp3-confirm-ok">${t('hw_delete_confirm_btn')}</button>
@@ -1038,7 +1064,7 @@ function openGradingRoom(subIndex) {
         if (isManual) {
             // 🌟 نعتمد على d.points المحفوظة مباشرة مع كل سؤال إن وُجدت (تسليمات جديدة)،
             // ونستخدم الجدول القديم فقط كخطة بديلة للتسليمات القديمة السابقة لهذا التحديث.
-            let maxPoints = d.points || ((d.type === 'write_3_ayahs') ? 3 : 2);
+            let maxPoints = (d.type === 'written_blank' ? 1 : (d.points || ((d.type === 'write_3_ayahs') ? 3 : 2)));
             let currentScore = d.manualScore !== undefined ? d.manualScore : 0;
 
             // 🌟🌟 [عُدّل — منع تغيّر الدرجة بالخطأ أثناء Scroll] كان هنا حقل <input type="number">
@@ -1196,7 +1222,7 @@ async function saveManualGrades(subIndex) {
     let recordNote = '';
     if (localStudent) {
         try {
-            const w = await recordApprovedResult(localStudent, updated);
+            const w = await recordApprovedResult(localStudent, updated, await resolveHomeworkScope(updated.hwId).catch(() => null));
             if (!w.verified) throw new Error('read-back mismatch');
             recordNote = t('hw_grade_record_saved').replace('{name}', localStudent.name);
         } catch (err) {
@@ -1306,6 +1332,7 @@ function populateDropdowns() {
         for (let i = 30; i >= 1; i--) {
             juzSel.appendChild(new Option(`${t("الجزء")} ${i}`, i));
         }
+        attachJuzAmmaCoverageNote('hw-juz-select', 'hw-q-count-juz');
     }
 }
 
@@ -1609,9 +1636,10 @@ function renderPreview() {
     });
 
     document.querySelectorAll('.btn-edit-q').forEach(btn => btn.addEventListener('click', (e) => openQuestionBuilderModal(parseInt(e.target.dataset.idx))));
-    document.querySelectorAll('.btn-delete-q').forEach(btn => btn.addEventListener('click', (e) => {
-        if(confirm(t("هل أنت متأكد من حذف هذا السؤال؟"))) {
-            currentGeneratedQuestions.splice(parseInt(e.target.dataset.idx), 1);
+    document.querySelectorAll('.btn-delete-q').forEach(btn => btn.addEventListener('click', async (e) => {
+        const idx = parseInt(e.currentTarget.dataset.idx);
+        if (await confirmHwDelete({ titleKey: 'hw_delete_q_title', bodyKey: 'hw_delete_q_body' })) {   // 🌟 نافذة وسط الصفحة بدل confirm() العلوي
+            currentGeneratedQuestions.splice(idx, 1);
             renderPreview();
         }
     }));
@@ -1674,7 +1702,7 @@ function saveManualQuestion() {
         text: text,
         options: optionsRaw,
         correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctRaw,
-        points: (type === 'checkbox' || type === 'written_blank') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
+        points: (type === 'checkbox') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
 
@@ -1722,8 +1750,8 @@ async function saveHomeworkToDB(statusType) {
     const saveBtn = document.getElementById('btn-save-hw-publish');
     const restorePublishBtn = () => { if (saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`; };
 
-    // النشر يحتاج مفتاح المعلم (المسودة لا تحتاجه)
-    if (statusType === 'published' && !(await ensureTeacherAuth())) return;
+    // النشر يحتاج جلسة جوجل لنظام الواجبات (المسودة المحلية لا تحتاجها)
+    if (statusType === 'published' && !(await ensureHomeworkSignIn())) return;
 
     if (saveBtn) saveBtn.innerHTML = `⏳ ${t('hw_submitting')}`;
 
@@ -1819,7 +1847,7 @@ async function publishDraftFromHistory(draftId) {
     const all = await AppState.homeworkManager.getAllHomeworks() || [];
     const draft = all.find(h => String(h.id) === String(draftId));
     if (!draft || !Array.isArray(draft.questions) || draft.questions.length === 0) return alert(t('hw_draft_publish_empty'));
-    if (!(await ensureTeacherAuth())) return;
+    if (!(await ensureHomeworkSignIn())) return;
 
     let studentId = null;
     if (draft.assignedStudentName) {

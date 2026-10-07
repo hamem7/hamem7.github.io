@@ -744,9 +744,16 @@
     padding: 12px 10px;
 }
 
+/* تحديد واضح لحظة الضغط (كان إطارًا رفيعًا فقط لا يكاد يُرى) */
 .tjw-link-selected {
-    outline: 3px solid var(--tjw-secondary);
+    outline: 4px solid #92400e;
     outline-offset: 2px;
+    background: #f59e0b !important;
+    border-color: #92400e !important;
+    color: #1f1300 !important;
+    font-weight: 700;
+    transform: scale(1.04);
+    box-shadow: 0 0 0 6px rgba(245,158,11,0.35);
 }
 
 .tjw-link-matched {

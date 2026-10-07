@@ -280,13 +280,208 @@
             animation: none !important;
         }
     }
+
+    /* ===================================================================================
+       🌟 [جديد — التصميم الاحترافي] طبقة تحسين بصري لشاشة الإعداد — شكل فقط، نفس الخطوات
+       ونفس الأزرار ونفس المعرّفات. محصورة ببادئة dts- كباقي هذا الملف.
+       =================================================================================== */
+    .dts-ico, .dt-back-ico {
+        width: 1.1em; height: 1.1em; flex-shrink: 0;
+        fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+    }
+    [dir="ltr"] .dt-back-ico { transform: scaleX(-1); }
+    .dts-back-btn { display: inline-flex; align-items: center; gap: 6px; }
+    /* !important للتغلّب على .adult-theme h1 (adults.css) الذي كان يُظهر العنوان داكناً فوق البنّر الداكن */
+    /* text-shadow: none يلغي الظل الأبيض المتعدد الذي تفرضه kids.css على كل h1 (كان يجعل
+       العنوان الأبيض فوق البنّر الداكن يبدو مشوّهاً) */
+    .dts-header-banner h1.dts-editor-title { color: #fffdf6 !important; text-shadow: none !important; font-size: 1.5rem; }
+    .dts-header-icon { font-size: 1.05rem; font-weight: 900; color: var(--dh-emerald-900); letter-spacing: 0.5px; }
+
+    /* --- مؤشر الخطوات: اسم تحت كل دائرة، والخط الواصل يمتلئ بالأخضر بعد اكتمال الخطوة --- */
+    .dts-step-indicator { align-items: flex-start; gap: 0; }
+    .dts-step-item { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 110px; flex-shrink: 0; }
+    .dts-step-label { font-size: 0.85rem; font-weight: 600; color: #8a948e; text-align: center; line-height: 1.35; transition: color 0.2s ease; }
+    .dts-step-item:has(.dts-step-dot-active) .dts-step-label { color: var(--dh-emerald-800); font-weight: 700; }
+    .dts-step-item:has(.dts-step-dot-done) .dts-step-label { color: var(--dh-emerald-600); }
+    .dts-step-connector { flex: 1; max-width: 90px; min-width: 20px; margin-top: 16px; background: #e6e0cf; transition: background 0.25s ease; }
+    .dts-step-item:has(.dts-step-dot-done) + .dts-step-connector { background: var(--dh-emerald-600); }
+    .dts-step-dot { border: 2px solid #e6e0cf; background: #fff; color: #8a948e; }
+    .dts-step-dot-active { border-color: var(--dh-gold-500); transform: none; box-shadow: 0 0 0 5px rgba(212,175,55,0.2); }
+    .dts-step-dot-done { border-color: var(--dh-emerald-600); }
+
+    /* --- صف الاختبار: زر رئيسي واحد واضح (ابدأ مواجهة)، والبقية أزرار هادئة --- */
+    .dts-test-row { background: #fff; border: 1px solid #e6e0cf; border-radius: 18px; padding: 16px 18px; }
+    .dts-test-row:hover { transform: none; border-color: var(--dh-gold-500); box-shadow: 0 10px 24px rgba(6,35,28,0.08); }
+    .dts-test-row-vs-icon { font-size: 0.8rem; letter-spacing: 0.5px; border-radius: 14px; }
+    .dts-names-vs {
+        display: inline-block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.5px; vertical-align: middle;
+        color: var(--dh-gold-500); padding: 0 4px;
+    }
+    .dts-test-row-actions { align-items: center; }
+    .dts-test-row-actions button {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
+        border: 1px solid #e6e0cf; border-radius: 12px; font-weight: 600; color: var(--dh-emerald-800);
+    }
+    .dts-test-row-actions button.dts-btn-quiet { background: #faf8f2; }
+    .dts-test-row-actions button.dts-btn-start {
+        background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: #fffdf6; font-weight: 700; padding-inline: 18px;
+    }
+    .dts-test-row-actions button.dts-btn-start:hover { background: var(--dh-emerald-800); border-color: var(--dh-emerald-800); }
+    .dts-test-row-actions button.dts-btn-danger { color: #b4321f !important; border-color: #f3d6cf !important; background: #fff; }
+    .dts-test-row-actions button.dts-btn-danger:hover { background: #fbe7e2; }
+    .dts-test-row-actions button.dts-btn-pending { border-radius: 999px; }
+
+    /* --- شريط الحفظ مثبّت فعلياً أسفل الشاشة أثناء التمرير داخل المحرر --- */
+    .dts-editor-actions {
+        position: sticky; bottom: 0; z-index: 5;
+        margin: 25px -20px -25px -20px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px;
+        background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        border-top: 1px solid #e6e0cf; border-radius: 0 0 20px 20px;
+    }
+    .dts-editor-actions button {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        min-height: 50px; padding: 10px 14px; font-size: 1.05rem;
+    }
+    .dts-btn-cancel-edit { flex: 0 1 auto !important; min-width: 0 !important; padding-inline: 18px !important; }
+    .dts-btn-draft { background: #f1ede1; color: var(--dh-emerald-800); }
+
+    /* ===== 🌟 [جديد — الاقتراح ١ المعتمد] شاشة الأسئلة: تبويبان + بطاقات + نموذج إضافة ===== */
+    #dts-active-round-container .dts-round-block { border: none; background: none; box-shadow: none; padding: 0; animation: none; }
+    .dts-qx-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid #efeadc; }
+    .dts-qx-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .dts-qx-badge { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-weight: 700; font-size: 1.1rem; background: var(--dh-emerald-800); color: var(--dh-gold-300); flex-shrink: 0; }
+    .dts-qx-title .dts-round-title { margin: 0; font-size: 1.2rem; text-shadow: none !important; }
+    .dts-qx-range { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.92rem; }
+    .dts-qx-range-label { color: #66736c; font-weight: 600; }
+    .dts-qx-chip { display: inline-flex; gap: 6px; align-items: center; padding: 5px 12px; border-radius: 999px; background: #eef6f1; color: var(--dh-emerald-800); font-weight: 600; }
+    .dts-qx-chip b { font-weight: 700; }
+    .dts-qx-range .dts-edit-range-link { margin: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+    .dts-qx-tabs { display: flex; gap: 6px; margin: 16px 0 12px; background: #f6f4ee; padding: 5px; border-radius: 14px; width: fit-content; max-width: 100%; flex-wrap: wrap; }
+    .dts-qx-tabs button { font: inherit; font-weight: 600; font-size: 0.95rem; border: 0; background: transparent; color: #66736c; padding: 9px 16px; border-radius: 10px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+    .dts-qx-count { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.8rem; font-variant-numeric: tabular-nums; background: #e6e0cf; color: #12261f; }
+    .dts-qx-tabs button[aria-selected="true"] { background: #fff; color: var(--dh-emerald-800); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .dts-qx-tabs button[aria-selected="true"] .dts-qx-count { background: var(--dh-emerald-700); color: #fff; }
+    .dts-qx-tabs button.dts-qx-tab-swap[aria-selected="true"] { color: #b4630b; }
+    .dts-qx-tabs button.dts-qx-tab-swap[aria-selected="true"] .dts-qx-count { background: #b4630b; }
+    .dts-qx-desc { font-size: 0.88rem; color: #66736c; margin: 0 0 12px; }
+
+    .dts-qx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .dts-qx-card { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid #e6e0cf; border-radius: 14px; background: #fff; min-width: 0; animation: dts-fadeInUp 0.25s ease both; }
+    .dts-qx-card-swap { background: #fffaf2; border-color: #f1d3a4; }
+    .dts-qx-num { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; font-variant-numeric: tabular-nums; background: var(--dh-emerald-700); color: #fffdf6; flex-shrink: 0; }
+    .dts-qx-num-swap { background: #fdf3e2; color: #b4630b; border: 1.5px solid #f1d3a4; font-size: 0.8rem; letter-spacing: 0.5px; }
+    .dts-qx-lines { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .dts-qx-line { display: grid; grid-template-columns: 4.4em 1fr; gap: 6px; font-size: 0.95rem; line-height: 1.5; }
+    .dts-qx-line span:first-child { color: #66736c; font-weight: 600; font-size: 0.82rem; padding-top: 2px; }
+    .dts-qx-line span:last-child { overflow-wrap: anywhere; font-weight: 600; color: #12261f; }
+    .dts-qx-card .dts-q-remove { width: 36px; height: 36px; border-radius: 10px; border: 1px solid transparent; color: #a0a8a3; display: grid; place-items: center; padding: 0; font-size: 1rem; }
+    .dts-qx-card .dts-q-remove:hover { transform: none; color: #b4321f; border-color: #f3d6cf; background: #fdf1ee; }
+    .dts-qx-empty { text-align: center; color: #66736c; padding: 22px 12px; border: 1.5px dashed #e6e0cf; border-radius: 14px; font-size: 0.92rem; }
+
+    .dts-qx-composer { margin-top: 14px; padding: 14px; border-radius: 16px; background: #f6f4ee; border: 1.5px solid #e6e0cf; display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+    .dts-qx-composer-swap { background: #fffaf2; border-color: #f1d3a4; }
+    .dts-qx-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .dts-qx-field label { font-weight: 700; font-size: 0.88rem; color: var(--dh-emerald-800) !important; display: flex; align-items: center; gap: 6px; margin: 0; }
+    .dts-qx-field-to label { color: #8a6a12 !important; }
+    .dts-qx-field textarea { font: inherit; font-size: 1rem; width: 100%; min-height: 46px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid #e6e0cf; background: #fff; color: #12261f; resize: vertical; line-height: 1.5; }
+    .dts-qx-field textarea:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(20,124,94,0.14); }
+    .dts-qx-add { font: inherit; font-weight: 700; font-size: 1rem; min-height: 46px; padding: 0 18px; border-radius: 12px; border: 0; background: var(--dh-emerald-700); color: #fffdf6; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; white-space: nowrap; transition: background 0.15s ease, transform 0.12s ease; }
+    .dts-qx-add:hover { background: var(--dh-emerald-800); }
+    .dts-qx-add:active { transform: scale(0.97); }
+    .dts-qx-add-swap { background: #b4630b; }
+    .dts-qx-add-swap:hover { background: #8f4e08; }
+    .dts-qx-hint { grid-column: 1 / -1; font-size: 0.8rem; color: #66736c; margin-top: -4px; }
+    /* 🌟 [مُحدَّث] بطاقات الأسئلة بعرض كامل، و"سمّع من" و"إلى" عمودان متجاوران بخط المصحف —
+       حتى لا تصبح الآيات الطويلة أعمدة ضيقة طويلة تحتاج نزولاً وطلوعاً */
+    .dts-qx-grid { grid-template-columns: 1fr; }
+    .dts-qx-lines { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 22px; }
+    .dts-qx-line { grid-template-columns: 1fr; gap: 2px; }
+    .dts-qx-line span:last-child { font-family: 'Amiri Quran', 'Amiri', serif; font-weight: 400; font-size: 1.2rem; line-height: 2; }
+    .dts-qx-line + .dts-qx-line { border-inline-start: 1px dashed #e6e0cf; padding-inline-start: 22px; }
+    @media (max-width: 760px) {
+        .dts-qx-lines { grid-template-columns: 1fr; }
+        .dts-qx-line + .dts-qx-line { border-inline-start: none; padding-inline-start: 0; border-top: 1px dashed #e6e0cf; padding-top: 6px; }
+    }
+    @media (max-width: 760px) {
+        .dts-qx-tabs { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+        .dts-qx-tabs button { justify-content: center; padding: 9px 8px; font-size: 0.88rem; gap: 6px; }
+        .dts-qx-composer { grid-template-columns: 1fr; }
+        .dts-qx-grid { grid-template-columns: 1fr; }
+    }
+
+    /* --- 🌟 [جديد] أزرار التنقل بين الخطوات: أيقونة سهم + الخطوة 2 فيها رجوع وتالي --- */
+    .dts-btn-step-next, .dts-btn-step-back { display: inline-flex; align-items: center; gap: 8px; }
+    .dt-next-ico { width: 1.1em; height: 1.1em; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    [dir="ltr"] .dt-next-ico { transform: scaleX(-1); }
+    .dts-step-nav-split { justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .dts-btn-step-next:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; transform: none; }
+    /* الجولة المختارة في الخطوة 2 */
+    .dts-roundpick-btn.dts-roundpick-selected {
+        box-shadow: 0 0 0 4px var(--dh-gold-500), 0 18px 34px rgba(6,35,28,0.3);
+        transform: translateY(-4px);
+    }
+    .dts-roundpick-check {
+        position: absolute; top: 12px; inset-inline-start: 12px; width: 28px; height: 28px; border-radius: 50%;
+        background: var(--dh-gold-500); color: var(--dh-emerald-900); display: none; align-items: center; justify-content: center;
+    }
+    .dts-roundpick-check svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .dts-roundpick-btn { position: relative; }
+    .dts-roundpick-btn.dts-roundpick-selected .dts-roundpick-check { display: flex; }
+
+    /* --- 🌟 [مُحدَّث] نطاق الجولة: "من سورة" و"إلى سورة" سطران مستقلان، العنوان بجانب القائمة
+       بعرض ثابت حتى تصطف القائمتان تحت بعض تماماً --- */
+    .dts-round-range-fields { display: flex; flex-direction: column; gap: 10px; }
+    .dts-range-field {
+        display: grid; grid-template-columns: 5.5em 1fr; align-items: center; gap: 10px; margin: 0;
+    }
+    .dts-range-field-label { font-weight: 700; font-size: 0.98rem; color: var(--dh-emerald-800); white-space: nowrap; }
+    .dts-range-field select {
+        width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; font-size: 1rem;
+        border: 2px solid #ddd6c2; border-radius: 12px; background: #fff;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dts-range-field select:focus { outline: none; border-color: var(--dh-emerald-600); box-shadow: 0 0 0 3px rgba(22,101,52,0.12); }
+    .dts-roundpick-range { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+    .dts-roundpick-range-label { color: rgba(255,253,246,0.7); font-weight: 600; }
+    .dts-range-summary-sep { color: #94a3b8; }
+
+    /* --- 🌟 [جديد] الجولات المقفلة (تُجهَّز جولة بجولة): ظاهرة لكن باهتة، مع سبب القفل --- */
+    .dts-range-card.dts-round-locked {
+        border: 2px dashed #ddd6c2; background: #f8f6f0; box-shadow: none; opacity: 0.85;
+    }
+    .dts-range-card.dts-round-locked .dts-round-badge { background: #e6e0cf; color: #8a948e; box-shadow: none; }
+    .dts-range-card.dts-round-locked .dts-range-card-title { color: #6c7771; }
+    .dts-locked-note {
+        display: inline-flex; align-items: center; gap: 8px; margin-top: 4px;
+        font-size: 0.92rem; font-weight: 600; color: #6c7771;
+        background: #efebdf; padding: 8px 14px; border-radius: 999px;
+    }
+    .dts-roundpick-btn.dts-round-locked {
+        background: #f1ede1; color: #6c7771; box-shadow: none; cursor: not-allowed; border: 2px dashed #ddd6c2;
+    }
+    .dts-roundpick-btn.dts-round-locked:hover { transform: none; box-shadow: none; }
+    .dts-roundpick-btn.dts-round-locked .dts-roundpick-badge { background: #e6e0cf; color: #8a948e; box-shadow: none; }
+    .dts-roundpick-btn.dts-round-locked .dts-roundpick-progress { background: #e6e0cf; color: #6c7771; display: inline-flex; align-items: center; gap: 6px; }
+    /* شارة "الجولة N بانتظار التجهيز" على صف الاختبار */
+    .dts-test-row-actions button.dts-btn-prep { background: #eaf5ef; border-color: #b9dccb; color: var(--dh-emerald-700); border-radius: 999px; }
+    .dts-test-row-actions button.dts-btn-prep:hover { border-color: var(--dh-emerald-600); }
+
+    @media (max-width: 520px) {
+        .dts-step-item { width: 84px; }
+        .dts-step-label { font-size: 0.75rem; }
+        /* على الجوال: إلغاء + مسودة في سطر، و"حفظ كاختبار جاهز" بعرض كامل تحتهما */
+        .dts-editor-actions { display: grid; grid-template-columns: auto 1fr; gap: 8px; margin-inline: -20px; }
+        .dts-editor-actions button { min-width: 0 !important; font-size: 0.95rem; min-height: 46px; }
+        .dts-editor-actions .dts-btn-ready { grid-column: 1 / -1; order: 3; }
+    }
 </style>
 
 <div class="screen active dts-wrapper">
-    <button class="btn btn-outline dts-back-btn" id="dts-back-btn">🔙 <span data-i18n="dts_back">العودة</span></button>
+    <!-- 🌟 [مُحدَّث] زر "العودة" حُذف بطلب المعلم — التنقّل من الشريط السفلي/القائمة الرئيسية -->
     <div class="dts-header-banner">
-        <span class="dts-header-icon">🆚</span>
-        <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي 🆚</h1>
+        <span class="dts-header-icon">VS</span>
+        <h1 class="dts-editor-title" data-i18n="dts_title">إعداد اختبار ثنائي</h1>
     </div>
 
     <!-- ===== طبقة القائمة (تظهر افتراضياً) ===== -->
@@ -294,7 +489,7 @@
         <div class="dts-panel">
             <div class="dts-list-header">
                 <h2 data-i18n="dts_list_title">الاختبارات المحفوظة</h2>
-                <button class="btn dts-add-q-btn" id="dts-new-test-btn" data-i18n="dts_new_test_btn">+ اختبار جديد</button>
+                <button class="btn dts-add-q-btn dts-new-test-btn" id="dts-new-test-btn" data-i18n="dts_new_test_btn">+ اختبار جديد</button>
             </div>
             <div id="dts-tests-container"></div>
         </div>
@@ -307,11 +502,11 @@
 
             <!-- 🌟 [جديد] مؤشر الخطوات الثلاث -->
             <div class="dts-step-indicator" id="dts-step-indicator">
-                <span class="dts-step-dot dts-step-dot-active" data-step="1"><span class="dts-step-dot-num">1</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot dts-step-dot-active" data-step="1"><span class="dts-step-dot-num">1</span></span><span class="dts-step-label" data-i18n="dts_step_label_1">المتسابقان والنطاق</span></span>
                 <span class="dts-step-connector"></span>
-                <span class="dts-step-dot" data-step="2"><span class="dts-step-dot-num">2</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot" data-step="2"><span class="dts-step-dot-num">2</span></span><span class="dts-step-label" data-i18n="dts_step_label_2">اختيار الجولة</span></span>
                 <span class="dts-step-connector"></span>
-                <span class="dts-step-dot" data-step="3"><span class="dts-step-dot-num">3</span></span>
+                <span class="dts-step-item"><span class="dts-step-dot" data-step="3"><span class="dts-step-dot-num">3</span></span><span class="dts-step-label" data-i18n="dts_step_label_3">الأسئلة</span></span>
             </div>
 
             <!-- ===== الخطوة 1: المتسابقان + نطاق كل جولة (اسم سورة فقط) ===== -->
@@ -333,7 +528,7 @@
                 <div id="dts-rounds-range-container" class="dts-range-cards-grid"></div>
 
                 <div class="dts-step-nav">
-                    <button class="dts-btn-step-next" id="dts-step1-next-btn" data-i18n="dts_step1_next_btn">التالي: اختيار الجولة ▶️</button>
+                    <button class="dts-btn-step-next" id="dts-step1-next-btn"><span data-i18n="dts_step1_next_btn">التالي: اختيار الجولة</span><svg class="dt-next-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
                 </div>
             </div>
 
@@ -344,24 +539,26 @@
 
                 <div class="dts-roundpick-grid" id="dts-roundpick-grid"></div>
 
-                <div class="dts-step-nav">
-                    <button class="dts-btn-step-back" id="dts-step2-back-btn" data-i18n="dts_step2_back_btn">⬅️ رجوع لتعديل النطاق</button>
+                <!-- 🌟 [مُحدَّث] بطلب المعلم: اختيار الجولة ثم «التالي» للأسئلة (تقدّم طبيعي خطوة بخطوة) -->
+                <div class="dts-step-nav dts-step-nav-split">
+                    <button class="dts-btn-step-back" id="dts-step2-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_step2_back_btn">رجوع لتعديل النطاق</span></button>
+                    <button class="dts-btn-step-next" id="dts-step2-next-btn"><span data-i18n="dts_step2_next_btn">التالي: وضع الأسئلة</span><svg class="dt-next-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
                 </div>
             </div>
 
             <!-- ===== الخطوة 3: أسئلة الجولة المختارة فقط ===== -->
             <div id="dts-step-3" style="display:none;">
                 <div class="dts-step-nav dts-step-nav-top">
-                    <button class="dts-btn-step-back" id="dts-step3-back-btn" data-i18n="dts_step3_back_btn">⬅️ رجوع لاختيار الجولة</button>
+                    <button class="dts-btn-step-back" id="dts-step3-back-btn"><svg class="dt-back-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg><span data-i18n="dts_step3_back_btn">رجوع لاختيار الجولة</span></button>
                 </div>
                 <div id="dts-active-round-container"></div>
             </div>
 
             <!-- 🌟 شريط الحفظ ثابت، ظاهر دائماً بصرف النظر عن الخطوة الحالية -->
             <div class="dts-editor-actions">
-                <button class="dts-btn-cancel-edit" id="dts-cancel-edit-btn">✖️ <span data-i18n="dts_start_match_cancel_btn">إلغاء</span></button>
-                <button class="dts-btn-draft" id="dts-save-draft-btn" data-i18n="dts_save_draft_btn">💾 حفظ كمسودة</button>
-                <button class="dts-btn-ready" id="dts-save-ready-btn" data-i18n="dts_save_ready_btn">✅ حفظ كاختبار جاهز</button>
+                <button class="dts-btn-cancel-edit" id="dts-cancel-edit-btn"><span data-i18n="dts_start_match_cancel_btn">إلغاء</span></button>
+                <button class="dts-btn-draft" id="dts-save-draft-btn"><svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span data-i18n="dts_save_draft_btn">حفظ كمسودة</span></button>
+                <button class="dts-btn-ready" id="dts-save-ready-btn"><svg class="dts-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span data-i18n="dts_save_ready_btn">حفظ كاختبار جاهز</span></button>
             </div>
         </div>
     </div>

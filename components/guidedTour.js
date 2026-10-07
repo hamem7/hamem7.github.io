@@ -20,6 +20,11 @@ const SEEN_TOURS_STORAGE_KEY = 'dh_seen_tours';
 // ───────────────────────────── تعريف الجولات ─────────────────────────────
 // step: { target: محدِّد CSS أو null (بطاقة وسط الشاشة بلا إبراز), textKey, titleKey?, before?: async fn }
 // ⚠️ كل العناصر المذكورة موجودة فعلاً في القوالب الحالية؛ أي عنصر غير موجود/مخفي يُتخطّى تلقائياً.
+// 🌟 [جديد 2026-10-03] خطوة «ثبّت المنصة على جهازك» — للحاسوب فقط وما لم تكن المنصة مثبّتة/مفتوحة كتطبيق.
+// زر التثبيت الحقيقي في شريط عنوان المتصفح خارج الصفحة فلا يمكن إبرازه؛ لذلك تظهر البطاقة أعلى الشاشة بسهم يشير
+// إلى جهة الأيقونة، ومعها زر «تثبيت الآن» يفتح نافذة التثبيت الرسمية مباشرة إن حفظ index.html حدث beforeinstallprompt.
+const INSTALL_STEP = { target: null, install: true, when: () => installStepKind() !== null, textKey: 'tour_install_addressbar', titleKey: 'tour_install_title' };
+
 const TOURS = {
     // الشاشة الرئيسية (components/splash.html)
     home: {
@@ -31,14 +36,25 @@ const TOURS = {
             { target: '#btn-adult-main', textKey: 'tour_home_adults' },
             { target: '#btn-homework-main', textKey: 'tour_home_homework' },
             { target: '#btn-dual-main', textKey: 'tour_home_dual' },
-            { target: '.home-footer-contact', textKey: 'tour_home_contact' }
+            { target: '#btn-certs-main', textKey: 'tour_home_certs' },
+            { target: '.home-footer-contact', textKey: 'tour_home_contact' },
+            INSTALL_STEP
         ]
     },
+    // 🌟 [2026-10-03] نفس خطوة التثبيت كجولة مستقلة قصيرة لمن شاهد جولة الرئيسية قبل إضافتها (تبدأ من maybeStartTour('home'))
+    install: { quiet: true, steps: [INSTALL_STEP] },
     // طلابي (student/my-students.html)
-    students: {
+    // 🌟 [2026-10-03] كانت الجولة تعرّف بعنصرين فقط؛ الآن تمرّ على كل محتوى الشاشة (بتصميمها الجديد: أرقام + بطاقات).
+    // المفتاح أصبح 'my_students' (بدل 'students') حتى تظهر الجولة الكاملة مرة أخرى لمن شاهد النسخة القديمة.
+    my_students: {
         steps: [
+            { target: '#ms-screen .ms-head', textKey: 'tour_students_intro' },
+            { target: '#ms-stats', textKey: 'tour_students_stats' },
+            { target: '#btn-all-students', textKey: 'tour_students_all' },
             { target: '#btn-add-student', textKey: 'tour_students_add' },
-            { target: '#btn-all-students', textKey: 'tour_students_all' }
+            { target: '#btn-monthly-memo-bulk', textKey: 'tour_students_monthly_memo' },
+            { target: '#btn-monthly-reports-hub', textKey: 'tour_students_reports' },
+            { target: '#btn-back-my-students', textKey: 'tour_students_back' }
         ]
     },
     // مدخل ركن الأطفال / واجهة الكبار = شاشة اختيار الطالب (student/login.html)
@@ -94,6 +110,24 @@ const TOURS = {
             },
             { target: '#stat-needs-grading-card', textKey: 'tour_hw_grading' },
             { target: '#btn-final-results', textKey: 'tour_hw_final' }
+        ]
+    },
+    // 🏅 [2026-10-06] الشهادات والتقارير (certificates/certificates.js): شاشة طبقة فوق الرئيسية (لا تغيّر الشاشة الجارية)،
+    // تبدأ جولتها من openCertificatesHub نفسها. before: يضغط تبويب الإصدار/التقارير حسب الخطوة.
+    certificates: {
+        onEnd: () => { clickIfPresent('.cc-tab[data-tab="issue"]'); },
+        steps: [
+            { target: '.cc-tabs', textKey: 'tour_cc_tabs' },
+            { target: '#cc-types', textKey: 'tour_cc_type' },
+            { target: '#cc-step-student', textKey: 'tour_cc_student' },
+            { target: '#cc-step-text', textKey: 'tour_cc_text' },
+            { target: '#cc-gallery', textKey: 'tour_cc_template' },
+            { target: '#cc-stage', textKey: 'tour_cc_preview' },
+            { target: '#cc-actionbar', textKey: 'tour_cc_save' },
+            {
+                target: '.cc-tab[data-tab="reports"]', textKey: 'tour_cc_reports',
+                before: () => { clickIfPresent('.cc-tab[data-tab="reports"]'); }
+            }
         ]
     },
     // الاختبارات الثنائية (dualtests/dual-test-setup.html) — قائمة الاختبارات فقط (لا نفتح المحرر)
@@ -189,6 +223,31 @@ async function waitForStableRect(getEl, timeout, isStale) {
     }
 }
 
+// 🌟 [2026-10-03] نوع خطوة التثبيت المناسب لهذا المتصفح، أو null لإخفائها:
+// 'addressbar' = Chrome/Edge على الحاسوب (أيقونة التثبيت في شريط العنوان) · 'safari' = Safari على ماك (ملف ← إضافة إلى Dock)
+function installStepKind() {
+    try {
+        if (window.__dhAppInstalled) return null;
+        const mm = (q) => !!(window.matchMedia && matchMedia(q).matches);
+        if (mm('(display-mode: standalone)') || mm('(display-mode: window-controls-overlay)') || mm('(display-mode: minimal-ui)')
+            || window.navigator.standalone === true) return null;   // مفتوحة كتطبيق مثبّت أصلاً
+        const ua = navigator.userAgent || '';
+        // الحاسوب فقط: مؤشر فأرة دقيق وشاشة عريضة وليس هاتفاً/لوحياً (آيباد الحديث يُبلّغ عن نفسه كماك لكنه يعمل باللمس)
+        if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua) || navigator.maxTouchPoints > 1) return null;
+        if (!mm('(hover: hover) and (pointer: fine)') || window.innerWidth < 768) return null;
+        if (window.__dhInstallPrompt || 'onbeforeinstallprompt' in window) return 'addressbar';   // Chromium (Chrome/Edge/...)
+        if (/Macintosh/.test(ua) && /Version\/\d+.*Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|FxiOS/.test(ua)) return 'safari';
+        return null;   // فايرفوكس على الحاسوب لا يدعم تثبيت المواقع كتطبيقات
+    } catch (e) {
+        return null;
+    }
+}
+
+// جهة أيقونة التثبيت: شريط المتصفح يتبع لغة المتصفح نفسه (لا لغة الصفحة) — في واجهة عربية ينعكس فتصير الأيقونة يساراً
+function browserUiIsRtl() {
+    return /^(ar|he|fa|ur)\b/i.test(navigator.language || '');
+}
+
 // نوافذ/بطاقات حاجبة قد تكون ظاهرة على الشاشة الرئيسية (الجديد في التحديث، تذكير النسخة الاحتياطية...)
 const BLOCKER_IDS = ['whats-new-modal', 'backup-reminder-modal', 'teacher-profile-modal', 'section-hint-card'];
 function blockerVisible() {
@@ -209,9 +268,11 @@ function buildRoot() {
         <div class="dh-tour-dim"></div>
         <div class="dh-tour-spot" style="display:none;"></div>
         <div class="dh-tour-card" role="dialog" aria-modal="true" aria-live="polite">
+            <div class="dh-tour-install-arrow" aria-hidden="true">⬆</div>
             <div class="dh-tour-icon" aria-hidden="true"></div>
             <div class="dh-tour-title"></div>
             <p class="dh-tour-text"></p>
+            <button type="button" class="dh-tour-btn dh-tour-btn-primary dh-tour-install-btn" style="display:none;"></button>
             <div class="dh-tour-footer">
                 <span class="dh-tour-counter"></span>
                 <div class="dh-tour-actions">
@@ -241,7 +302,10 @@ function endSession({ complete, silent }) {
     clearTimeout(s.glideTimer);
     s.target = null; s.targetSel = null;
     // إكمال أو تخطي = لا تظهر تلقائياً مرة أخرى. (إلغاء صامت بسبب تغيير الشاشة لا يُسجَّل)
-    if (!silent) markSeen(s.key);
+    if (!silent) {
+        markSeen(s.key);
+        if (s.steps.includes(INSTALL_STEP)) markSeen('install');   // 🌟 [2026-10-03] رآها ضمن جولة الرئيسية: لا تتكرر منفردة
+    }
     let finished = false;
     const finish = () => {
         if (finished) return;   // قد تُستدعى من النقر ومن المؤقّت معاً
@@ -249,7 +313,7 @@ function endSession({ complete, silent }) {
         s.root.remove();
         try { s.def.onEnd && s.def.onEnd(); } catch (e) { /* تجاهل */ }
     };
-    if (complete) {
+    if (complete && !s.def.quiet) {
         // رسالة نجاح قصيرة ثم عودة للاستخدام الطبيعي
         s.card.classList.add('dh-tour-card-center', 'dh-tour-card-done');
         s.spot.style.display = 'none';
@@ -428,10 +492,13 @@ async function showStep(s, index, dir) {
     s.skipBtn.textContent = t('tour_btn_skip');
     s.prevBtn.textContent = t('tour_btn_prev');
     s.card.classList.remove('dh-tour-card-center');
+    resetInstallUi(s);
 
     s.nextBtn.focus({ preventScroll: true });
 
-    if (el) {
+    if (step.install) {
+        showInstallStep(s, index);
+    } else if (el) {
         // 🌟 [2026-10-03] التمرير + انتظار الاستقرار + وضع الإبراز صارت كلها في presentTarget (كان هنا: مرّر ثم layout فوراً
         // بمستطيل ما قبل التمرير، فيبدأ الإبراز في غير موضعه ويلحق بالعنصر المتحرك بتأخّر).
         await presentTarget(s, el, true);
@@ -445,15 +512,63 @@ async function showStep(s, index, dir) {
     }
 }
 
+// ───────────────────────────── خطوة التثبيت ─────────────────────────────
+function resetInstallUi(s) {
+    s.card.classList.remove('dh-tour-card-install', 'dh-tour-install-left', 'dh-tour-install-right');
+    s.installBtn.style.display = 'none';
+    s.installBtn.onclick = null;
+    s.card.style.right = '';
+}
+
+function showInstallStep(s, index) {
+    const kind = installStepKind();
+    s.spot.classList.remove('dh-tour-spot-glide');
+    s.spot.style.display = 'none';
+    s.dim.style.display = 'block';
+    if (kind === 'safari') {
+        // Safari على ماك: لا أيقونة في شريط العنوان — التثبيت من قائمة «ملف» أعلى الشاشة؛ البطاقة في الوسط بلا سهم
+        s.card.querySelector('.dh-tour-text').textContent = t('tour_install_safari');
+        s.card.classList.add('dh-tour-card-center');
+        placeCardCenter(s);
+        return;
+    }
+    // البطاقة أعلى الشاشة في جهة أيقونة التثبيت (نهاية شريط العنوان)، والسهم يشير إليها
+    const left = browserUiIsRtl();
+    s.card.classList.add('dh-tour-card-install', left ? 'dh-tour-install-left' : 'dh-tour-install-right');
+    s.card.style.transform = 'none';
+    s.card.style.top = '12px';
+    s.card.style.left = left ? '16px' : '';
+    s.card.style.right = left ? '' : '16px';
+    s.card.classList.add('dh-tour-visible');
+
+    const bip = window.__dhInstallPrompt;
+    if (!bip) return;   // لا نافذة تثبيت متاحة الآن (رُفضت سابقاً مثلاً): الشرح النصي يكفي
+    s.installBtn.textContent = t('tour_install_btn');
+    s.installBtn.style.display = '';
+    s.installBtn.onclick = async () => {
+        s.installBtn.disabled = true;
+        try {
+            window.__dhInstallPrompt = null;   // الحدث يُستعمل مرة واحدة فقط
+            await bip.prompt();
+            const choice = await bip.userChoice;
+            if (choice && choice.outcome === 'accepted') window.__dhAppInstalled = true;
+        } catch (e) { /* تجاهل */ }
+        s.installBtn.disabled = false;
+        if (s.alive && s.index === index) showStep(s, index + 1, 1);
+    };
+}
+
 async function runTour(key, def, { withWelcome }) {
     if (session) return;
+    if (!def.steps.some(st => !st.when || st.when())) return;   // لا خطوة مناسبة لهذا الجهاز
     const screen = currentScreen();
     const root = buildRoot();
     const s = session = {
         key, def, root, screen, alive: true, index: 0, target: null, lastKey: '', raf: 0,
         // 🌟 [2026-10-03] targetSel: محدِّد الهدف الحالي · holding: انتظار استقرار العنصر · presentToken: إبطال العروض القديمة
         targetSel: null, holding: false, presentToken: 0, glideTimer: 0, reflowTimer: 0,
-        steps: def.steps,
+        steps: def.steps.filter(st => !st.when || st.when()),   // 🌟 [2026-10-03] خطوات مشروطة (مثل التثبيت للحاسوب فقط)
+        installBtn: root.querySelector('.dh-tour-install-btn'),
         shield: root.querySelector('.dh-tour-shield'),
         dim: root.querySelector('.dh-tour-dim'),
         spot: root.querySelector('.dh-tour-spot'),
@@ -518,13 +633,15 @@ async function runTour(key, def, { withWelcome }) {
 // ───────────────────────────── الواجهة العامة ─────────────────────────────
 /**
  * تبدأ جولة القسم تلقائياً إن لم تُشاهد من قبل على هذا الجهاز. آمنة: أي خطأ هنا لا يؤثر على الشاشة.
- * @param {string} key - home | students | kids | adults | homework | dual
+ * @param {string} key - home | students | kids | adults | homework | dual | certificates
  * @param {{force?: boolean}} [opts] - force: تجاهل علم "شوهدت" (لإعادة الجولة يدوياً)
  */
 export async function maybeStartTour(key, opts = {}) {
     try {
         const def = TOURS[key];
         if (!def || session) return;
+        // 🌟 [2026-10-03] من شاهد جولة الرئيسية قبل إضافة خطوة التثبيت: تظهر له خطوة التثبيت وحدها مرة واحدة
+        if (key === 'home' && !opts.force && hasSeenTour('home')) { if (!hasSeenTour('install')) maybeStartTour('install'); return; }
         if (!opts.force && hasSeenTour(key)) return;
 
         const screen = currentScreen();

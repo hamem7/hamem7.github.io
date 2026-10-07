@@ -8,62 +8,242 @@
     /* 🌟 [جديد 2026-10-01] وسم الحقول: "مطلوب" للاسم فقط و"اختياري" لباقي الحقول (الاسم وحده إلزامي فعلاً) */
     #add-modal .dh-opt-tag { font-size: 0.85rem !important; font-weight: normal !important; color: #94a3b8 !important; }
     #add-modal .dh-req-tag { color: #b45309 !important; font-weight: bold !important; }
-    .avatar-opt { font-size: 2.8rem; cursor: pointer; padding: 5px; border-radius: 50%; border: 3px solid transparent; transition: 0.3s; user-select: none; }
-    .avatar-opt.active { border-color: #10b981; background: #f1f5f9; transform: scale(1.1); }
+    /* 🌟 [2026-10-03] نافذة الإضافة السريعة (راجع تعليق #add-modal أسفل الملف) */
+    #add-modal .as-add { max-width: 560px; padding: 24px !important; display: flex; flex-direction: column; gap: 14px; text-align: right; }
+    [dir="ltr"] #add-modal .as-add { text-align: left; }
+    #add-modal .as-add > * { flex-shrink: 0; }
+    #app-root #add-modal .as-add-title, #add-modal .as-add-title { margin: 0 !important; font-size: 1.8rem !important; text-align: center; color: #10261f !important; text-shadow: none !important; }
+    #add-modal .as-add-hint { margin: -8px 0 0; text-align: center; color: #6b7f77; font-size: 0.95rem; }
+    #add-modal .as-add-toast { background: #e5f3ed; color: #0d5c46; border-radius: 12px; padding: 10px 14px; text-align: center; font-weight: bold; }
+    #add-modal .as-add-field { display: flex; flex-direction: column; min-width: 0; }
+    #add-modal .as-add-field label { font-size: 0.95rem; }
+    #add-modal .as-add-name input { font-size: 1.2rem !important; padding: 14px 16px !important; }
+    #add-modal input:focus, #add-modal select:focus { border-color: #0d5c46 !important; background: #fff !important; outline: none; }
+    #add-modal .as-add-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #add-modal .as-add-dob { display: grid; grid-template-columns: 0.8fr 1.3fr 1fr; gap: 6px; }
+    #add-modal .as-add-dob select { padding: 12px 6px !important; }
+    #add-modal .as-add-age { color: #0d5c46; font-weight: normal; font-size: 0.85rem; }
+    #add-modal .as-add-avatars { display: flex; justify-content: center; gap: 8px; overflow-x: auto; padding: 6px 2px; }
+    .avatar-opt { flex-shrink: 0; width: 52px; height: 52px; padding: 0; font-size: 1.7rem; line-height: 1; cursor: pointer; border-radius: 50%; border: 2px solid #dbe5e0; background: #f3f7f5; display: grid; place-items: center; overflow: hidden; transition: 0.2s; user-select: none; }
+    .avatar-opt.active { border-color: #d4af37; background: #fff8dc; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3); }
+    .avatar-opt.avatar-upload { border-style: dashed; font-size: 1.3rem; }
+    .avatar-opt img { width: 100%; height: 100%; object-fit: cover; }
+    #add-modal .as-steps { display: flex; justify-content: center; align-items: center; gap: 6px; }
+    #add-modal .as-dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: bold; font-size: 0.9rem; background: #f3f7f5; color: #6b7f77; border: 2px solid #dbe5e0; }
+    #add-modal .as-dot.on { background: #0d5c46; color: #fff; border-color: #0d5c46; }
+    #add-modal .as-dot.done { background: #e5f3ed; color: #0d5c46; border-color: #0d5c46; }
+    #add-modal .as-dot-bar { width: 34px; height: 2px; background: #dbe5e0; }
+    #add-modal .as-step-title { margin: -6px 0 0; text-align: center; color: #6b7f77; font-size: 0.95rem; }
+    #add-modal .as-step { display: none; flex-direction: column; gap: 14px; }
+    #add-modal .as-step.on { display: flex; }
+    #add-modal .as-add-warn { color: #b45309; font-size: 0.88rem; margin-top: 4px; }
+    #add-modal .as-add-preview { display: flex; align-items: center; gap: 12px; background: #f3f7f5; border-radius: 14px; padding: 12px; }
+    #add-modal .as-add-preview .avatar-opt { cursor: default; width: 50px; height: 50px; font-size: 1.7rem !important; }
+    #add-modal .as-add-preview b { display: block; color: #10261f; }
+    #add-modal .as-add-preview span { color: #6b7f77; font-size: 0.88rem; }
+    #add-modal .as-add-nav { display: flex; gap: 10px; }
+    #add-modal .as-add-nav > * { flex: 1; }
+    #add-modal .as-add-nav > .as-add-save { flex: 2; }
+    #app-root #add-modal .as-add-save, #add-modal .as-add-save { margin: 0 !important; padding: 13px !important; font-size: 1.15rem !important; border: none !important; border-radius: 14px; background: linear-gradient(135deg, #f0d878, #d4af37) !important; color: #06231c !important; box-shadow: 0 8px 18px rgba(212, 175, 55, 0.3) !important; min-width: unset !important; }
+    #app-root #add-modal .as-add-save:disabled, #add-modal .as-add-save:disabled { opacity: 0.5; cursor: not-allowed; }
+    #app-root #add-modal .as-add-back, #add-modal .as-add-back { margin: 0 !important; padding: 11px !important; font-size: 1.05rem !important; border: 2px solid #0d5c46 !important; border-radius: 14px; background: #fff !important; color: #0d5c46 !important; box-shadow: none !important; min-width: unset !important; }
+    #add-modal .as-add-link { background: none; border: none; color: #6b7f77; font-family: inherit; font-size: 1rem; padding: 4px; cursor: pointer; align-self: center; }
+    #add-modal .as-add-link:hover { color: #10261f; text-decoration: underline; }
+    #add-modal #btn-save-add-another { color: #0d5c46; font-weight: bold; }
+    @media (max-width: 480px) {
+        #add-modal .as-add { padding: 18px 14px !important; }
+        #add-modal .as-add-row { grid-template-columns: 1fr; }
+        #app-root #add-modal .as-add-title, #add-modal .as-add-title { font-size: 1.5rem !important; }
+        .avatar-opt { width: 42px; height: 42px; font-size: 1.4rem; }
+        #add-modal .as-add-avatars { gap: 5px; }
+    }
+    /* 🌟 [2026-10-03] «طلابي» بالتصميم الجديد (المقترح ①). المحدِّدات تبدأ بـ #app-root #ms-screen عمداً: قواعد عامة
+       في kids.css/adults.css/mobile.css تفرض لون/ظل/حجم كل h1/h2 داخل .login-container بـ !important. */
+    #app-root #ms-screen { max-width: 560px; text-align: start; padding: 22px 20px !important; display: flex; flex-direction: column; gap: 20px; color: #10241c; }
+    #app-root #ms-screen .ms-head { display: flex; align-items: center; gap: 10px; }
+    #app-root #ms-screen .ms-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    #app-root #ms-screen .ms-back:hover { background: #eaf4ef; }
+    [dir="ltr"] #ms-screen .ms-back svg, html[lang="en"] #ms-screen .ms-back svg { transform: scaleX(-1); }
+    #app-root #ms-screen .ms-title { margin: 0 !important; font-size: 1.9rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; line-height: 1.3; }
+    #app-root #ms-screen .ms-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    #app-root #ms-screen .ms-stat { background: #fff; border: 1px solid #e4dfcc; border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    #app-root #ms-screen .ms-stat-primary { background: #0d5c46; border-color: #0d5c46; }
+    #app-root #ms-screen .ms-stat-num { font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: #10241c; }
+    #app-root #ms-screen .ms-stat-num.is-alert { color: #b45309; }
+    #app-root #ms-screen .ms-stat-num.is-ok { color: #166534; }
+    #app-root #ms-screen .ms-stat-of { font-size: .95rem; font-weight: 500; color: #4a6058; }
+    #app-root #ms-screen .ms-stat-label { font-size: .82rem; color: #4a6058; line-height: 1.4; }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-num { color: #fff; }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-label { color: #d7efe6; }
+    #app-root #ms-screen .ms-section { display: flex; flex-direction: column; gap: 10px; }
+    #app-root #ms-screen .ms-section-title { margin: 0 !important; font-size: .95rem !important; font-weight: 600 !important; color: #4a6058 !important; text-shadow: none !important; line-height: 1.5; }
+    #app-root #ms-screen .ms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    #app-root #ms-screen .ms-card { position: relative; text-align: start; font-family: inherit; cursor: pointer; background: #fff; color: #10241c; border: 1px solid #e4dfcc; border-radius: 20px; padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 150px; transition: transform .15s, box-shadow .15s; }
+    #app-root #ms-screen .ms-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6, 35, 28, .12); }
+    #app-root #ms-screen .ms-card:focus-visible, #app-root #ms-screen .ms-back:focus-visible, #app-root #ms-screen .ms-reminder-btn:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+    #app-root #ms-screen .ms-card-primary { background: #0d5c46; color: #fff; border-color: #0d5c46; }
+    #app-root #ms-screen .ms-card-icon { width: 44px; height: 44px; border-radius: 14px; background: #eaf4ef; color: #0d5c46; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
+    #app-root #ms-screen .ms-card-primary .ms-card-icon { background: rgba(255, 255, 255, .14); color: #fff; }
+    #app-root #ms-screen .ms-card-icon-gold { background: #fbf3dc; color: #8a6a10; }
+    #app-root #ms-screen .ms-card-title { font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
+    #app-root #ms-screen .ms-card-desc { font-size: .82rem; color: #4a6058; line-height: 1.5; }
+    #app-root #ms-screen .ms-card-primary .ms-card-desc { color: #d7efe6; }
+    #app-root #ms-screen .ms-badge { position: absolute; top: 14px; inset-inline-end: 12px; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+    #app-root #ms-screen .ms-badge[hidden], #app-root #ms-screen .ms-reminder[hidden] { display: none; }
+    #app-root #ms-screen .ms-badge-alert { background: #b45309; color: #fff; }
+    #app-root #ms-screen .ms-badge-soft { background: #fbf3dc; color: #6b5310; }
+    #app-root #ms-screen .ms-reminder { background: #f6f3e8; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+    #app-root #ms-screen .ms-reminder-dot { width: 10px; height: 10px; border-radius: 50%; background: #b45309; flex-shrink: 0; }
+    #app-root #ms-screen .ms-reminder-text { font-size: .9rem; line-height: 1.6; flex-grow: 1; }
+    #app-root #ms-screen .ms-reminder-btn { font-family: inherit; font-size: .9rem; font-weight: 700; color: #0d5c46; background: none; border: none; cursor: pointer; padding: 8px 4px; min-height: 40px; white-space: nowrap; }
+    @media (max-width: 380px) {
+        #app-root #ms-screen .ms-card { min-height: 136px; padding: 14px 12px; }
+        #app-root #ms-screen .ms-stat-num { font-size: 1.3rem; }
+    }
 </style>
 
+<!-- 🌟 [إعادة تصميم 2026-10-03 — «المقترح ①» الذي اختاره المعلم] بدل أربعة أزرار متساوية + زر عودة كبير:
+     شريط أرقام (عدد الطلاب / بانتظار الحفظ / تقارير الشهر)، ثم قسمان ببطاقات: «الطلاب» و«المتابعة الشهرية»،
+     مع شارات تنبيه وسطر تذكير. نفس معرّفات الأزرار القديمة بالضبط (btn-all-students، btn-add-student،
+     btn-monthly-memo-bulk، btn-monthly-reports-hub، btn-back-my-students) فلا يتغير أي مستمع أو اختصار يضغطها.
+     الأرقام تُملأ من setupMyStudentsListeners → refreshMyStudentsSummary في student/student.js. -->
 <div class="screen active">
-    <div class="login-container">
-        <h1 class="splash-title" style="font-size:2.5rem; margin-bottom:20px;" data-i18n="my_students_title">طلابي</h1>
-        <h2 style="font-size: 1.6rem; margin-bottom: 25px;" data-i18n="my_students_subtitle">إدارة سجلات الطلاب</h2>
-
-        <div style="display: flex; flex-direction: column; gap: 15px;">
-            <button class="btn" style="width: 100%; font-size: 1.3rem;" id="btn-all-students" data-i18n="btn_all_students">📊 سجل الطلاب العام</button>
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-add-student" data-i18n="btn_add_student">تسجيل طالب جديد ➕</button>
-            <!-- 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا في أي وقت —
-                 مفيد لمعالجة أي طالب تم تخطّيه في العرض التلقائي اليومي (راجع
-                 components/monthlyMemorizationBulkScreen.js وcore/app.js) -->
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-memo-bulk" data-i18n="btn_monthly_memo_bulk">📋 تسجيل الحفظ الشهري لكل الطلاب</button>
-            <!-- 🌟 [جديد] مركز التقارير الشهرية — اكتب اسم الطالب واختر الشهر ثم واتساب/PDF (راجع
-                 components/monthlyReportsHub.js). زر التقرير داخل ملف الطالب باقٍ كما هو. -->
-            <button class="btn btn-outline" style="width: 100%; font-size: 1.3rem;" id="btn-monthly-reports-hub" data-i18n="btn_monthly_reports_hub">📅 تقارير الشهر</button>
+    <div class="login-container" id="ms-screen">
+        <div class="ms-head">
+            <button type="button" class="ms-back" id="btn-back-my-students">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <h1 class="ms-title" data-i18n="my_students_title">طلابي</h1>
         </div>
 
-        <button class="btn btn-outline" style="width: 100%; margin-top:20px; background:#64748b !important; border:none; color:white!important;" id="btn-back-my-students" data-i18n="btn_back">🔙 العودة للقائمة الرئيسية</button>
+        <div class="ms-stats" id="ms-stats">
+            <div class="ms-stat ms-stat-primary">
+                <span class="ms-stat-num" id="ms-stat-students">—</span>
+                <span class="ms-stat-label" data-i18n="ms_stat_students">عدد الطلاب</span>
+            </div>
+            <div class="ms-stat">
+                <span class="ms-stat-num" id="ms-stat-memo">—</span>
+                <span class="ms-stat-label" data-i18n="ms_stat_memo">بانتظار الحفظ</span>
+            </div>
+            <div class="ms-stat">
+                <span class="ms-stat-num"><span id="ms-stat-reports">—</span><span class="ms-stat-of" id="ms-stat-reports-of"></span></span>
+                <span class="ms-stat-label" id="ms-stat-reports-label" data-i18n="ms_stat_reports_generic">تقارير صُدِّرت</span>
+            </div>
+        </div>
+
+        <section class="ms-section">
+            <h2 class="ms-section-title" data-i18n="ms_section_students">الطلاب</h2>
+            <div class="ms-grid">
+                <button type="button" class="ms-card ms-card-primary" id="btn-all-students">
+                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_all_title">سجل الطلاب</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_all_desc">افتح ملف أي طالب أو عدّل بياناته</span>
+                </button>
+                <button type="button" class="ms-card" id="btn-add-student">
+                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><line x1="19" y1="7" x2="19" y2="13"/><line x1="22" y1="10" x2="16" y2="10"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_add_title">طالب جديد</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_add_desc">الاسم فقط مطلوب</span>
+                </button>
+            </div>
+        </section>
+
+        <section class="ms-section">
+            <h2 class="ms-section-title" id="ms-section-monthly" data-i18n="ms_section_monthly_generic">المتابعة الشهرية</h2>
+            <div class="ms-grid">
+                <button type="button" class="ms-card" id="btn-monthly-memo-bulk">
+                    <span class="ms-badge ms-badge-alert" id="ms-badge-memo" hidden></span>
+                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_memo_title">الحفظ الشهري</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_memo_desc">أين توقف كل طالب هذا الشهر؟</span>
+                </button>
+                <button type="button" class="ms-card" id="btn-monthly-reports-hub">
+                    <span class="ms-badge ms-badge-soft" id="ms-badge-reports" hidden></span>
+                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/></svg></span>
+                    <span class="ms-card-title" data-i18n="ms_card_reports_title">تقارير الشهر</span>
+                    <span class="ms-card-desc" data-i18n="ms_card_reports_desc">واتساب لولي الأمر أو PDF</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="ms-reminder" id="ms-reminder" hidden>
+            <span class="ms-reminder-dot" aria-hidden="true"></span>
+            <span class="ms-reminder-text" id="ms-reminder-text"></span>
+            <button type="button" class="ms-reminder-btn" id="ms-reminder-btn" data-i18n="ms_reminder_start">ابدأ الآن</button>
+        </div>
     </div>
 </div>
 
+<!-- 🌟 [عدّل 2026-10-03] نافذة "إضافة طالب جديد" بنموذج الخطوات الذي اختاره صاحب المنصة (بعد تجربة النموذج السريع):
+     3 خطوات قصيرة مع مؤشر أعلاها — ① الاسم والصورة ② الصف وتاريخ الميلاد ③ ولي الأمر والحفظ والبلد + بطاقة معاينة.
+     الاسم وحده مطلوب، و"تخطَّ واحفظ الآن" متاح من الخطوة الثانية. تاريخ الميلاد 3 قوائم (يوم/شهر/سنة) تكتب في
+     #stu-dob المخفي بصيغة YYYY-MM-DD (خانة type=date كانت تُظهر «قنس/رهش/موي» على الأجهزة العربية).
+     نفس معرّفات الحقول القديمة (stu-name/stu-grade/...) فلا يتغير الحفظ؛ التنقل بين الخطوات في student.js 🌟 -->
 <div id="add-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h2 style="margin-top:0; font-size: 2.2rem; text-align:center; color:#1e3a5f!important;" data-i18n="add_new_champion">إضافة طالب جديد</h2>
-        <div class="form-grid" style="text-align: right;">
-            <div class="input-group"><label><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label><input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
-            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="age-display" style="font-size:0.9rem; color:#10b981;"></span></label><input type="date" id="stu-dob"></div>
-            <!-- 🌟 [عدّل] كانت المرحلتان الإعدادية والثانوية خيارًا واحدًا مجمَّعًا لكل منهما،
-            فصرنا الآن نفصّلهما لصفوف فردية (الأول/الثاني/الثالث) بنفس أسلوب تسمية صفوف
-            الابتدائي أعلاه بالحرف، حتى يغطي الصف صفوف 1 إلى 12 دراسيًا كاملة. المرحلة
-            الجامعية بقيت كما هي، و"خريج" أصبحت "خريج جامعي" (نفس الطلب صراحة) 🌟 -->
-            <div class="input-group"><label><span data-i18n="grade">الصف الدراسي:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><select id="stu-grade"><option value="" data-i18n="stu_not_set">غير محدد</option><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select></div>
-            <div class="input-group"><label><span data-i18n="country">البلد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
-            <div class="input-group" style="grid-column: span 2;"><label data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</label><input type="text" id="stu-phone" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
-            <div class="input-group" style="grid-column: span 2;"><label><span data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><div style="display:flex; gap:10px;"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
+    <div class="modal-content as-add">
+        <h2 class="as-add-title" data-i18n="add_new_champion">إضافة طالب جديد</h2>
+        <div class="as-steps" aria-hidden="true">
+            <span class="as-dot" data-dot="1">1</span><span class="as-dot-bar"></span>
+            <span class="as-dot" data-dot="2">2</span><span class="as-dot-bar"></span>
+            <span class="as-dot" data-dot="3">3</span>
+        </div>
+        <p class="as-step-title" id="add-step-title"></p>
+        <div class="as-add-toast" id="add-saved-toast" style="display:none;"></div>
 
-            <div class="input-group" style="grid-column: span 2; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 10px; border: 1px dashed #cbd5e1;">
-                <label style="text-align:center;" data-i18n="choose_avatar">اختر أفاتار للبطل:</label>
-                <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; margin-bottom: 15px;" id="avatar-gallery">
-                    <div class="avatar-opt active" data-av="👦🏻">👦🏻</div>
-                    <div class="avatar-opt" data-av="👨🏻‍🦱">👨🏻‍🦱</div>
-                    <div class="avatar-opt" data-av="👲🏻">👲🏻</div>
-                    <div class="avatar-opt" data-av="👧🏻">👧🏻</div>
-                    <div class="avatar-opt" data-av="👩🏻">👩🏻</div>
-                    <div class="avatar-opt" data-av="🧕🏻">🧕🏻</div>
+        <!-- ① الاسم والصورة -->
+        <div class="as-step" data-step="1">
+            <div class="as-add-field as-add-name">
+                <label for="stu-name"><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label>
+                <input type="text" id="stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..." autocomplete="off">
+                <span class="as-add-warn" id="add-name-warn" style="display:none;"></span>
+            </div>
+            <div class="as-add-field">
+                <label data-i18n="add_choose_photo">اختر صورة:</label>
+                <div class="as-add-avatars" id="avatar-gallery">
+                    <button type="button" class="avatar-opt active" data-av="👦🏻">👦🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👨🏻‍🦱">👨🏻‍🦱</button>
+                    <button type="button" class="avatar-opt" data-av="👲🏻">👲🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👧🏻">👧🏻</button>
+                    <button type="button" class="avatar-opt" data-av="👩🏻">👩🏻</button>
+                    <button type="button" class="avatar-opt" data-av="🧕🏻">🧕🏻</button>
+                    <button type="button" class="avatar-opt avatar-upload" id="btn-avatar-upload" data-i18n-title="upload_photo_title" title="رفع صورة حقيقية">📷</button>
                 </div>
-                <input type="hidden" id="selected-avatar" value="👦🏻">
-                <label style="text-align:center;" data-i18n="upload_photo">أو ارفع صورة شخصية حقيقية:</label>
-                <input type="file" id="stu-avatar" accept="image/*" style="width: 100%;">
+            </div>
+            <input type="hidden" id="selected-avatar" value="👦🏻">
+            <input type="file" id="stu-avatar" accept="image/*" style="display:none;">
+        </div>
+
+        <!-- ② الصف وتاريخ الميلاد -->
+        <div class="as-step" data-step="2">
+            <div class="as-add-field">
+                <label for="stu-grade"><span data-i18n="grade">الصف الدراسي:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label>
+                <select id="stu-grade"><option value="" data-i18n="stu_not_set">غير محدد</option><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select>
+            </div>
+            <div class="as-add-field">
+                <label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="age-display" class="as-add-age"></span></label>
+                <div class="as-add-dob">
+                    <select id="stu-dob-d" data-i18n-title="dob_day"></select>
+                    <select id="stu-dob-m" data-i18n-title="dob_month"></select>
+                    <select id="stu-dob-y" data-i18n-title="dob_year"></select>
+                </div>
+                <input type="hidden" id="stu-dob">
             </div>
         </div>
-        <button class="btn" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem; background:#10b981; border:none;" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات الطالب ✔️</button>
-        <button class="btn btn-outline" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
+
+        <!-- ③ ولي الأمر والحفظ + معاينة -->
+        <div class="as-step" data-step="3">
+            <div class="as-add-field"><label for="stu-phone"><span data-i18n="parent_phone">رقم ولي الأمر (اختياري للواتساب):</span></label><input type="text" id="stu-phone" inputmode="tel" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
+            <div class="as-add-field"><label><span data-i18n="memo_amount">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><div class="as-add-row"><select id="stu-memo-from"></select><select id="stu-memo-to"></select></div></div>
+            <div class="as-add-field"><label for="stu-country"><span data-i18n="country">البلد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><input type="text" id="stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="as-add-preview" id="add-preview"></div>
+        </div>
+
+        <div class="as-add-nav">
+            <button class="btn as-add-back" id="btn-add-step-back" data-i18n="add_step_back">→ رجوع</button>
+            <button class="btn as-add-save" id="btn-add-step-next" data-i18n="add_step_next">التالي ←</button>
+            <button class="btn as-add-save" id="btn-save-new-student" data-i18n="save_champ">حفظ بيانات الطالب ✔️</button>
+        </div>
+        <button class="as-add-link" id="btn-save-add-another" data-i18n="save_and_add_another">حفظ وإضافة آخر ➕</button>
+        <button class="as-add-link" id="btn-add-skip-save" data-i18n="add_skip_save">تخطَّ واحفظ الآن</button>
+        <button class="as-add-link" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
     </div>
 </div>

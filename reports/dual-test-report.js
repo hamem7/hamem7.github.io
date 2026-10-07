@@ -27,7 +27,7 @@
 // الحقيقة الوحيد لتعريف الأوسمة، لا معنى لتكراره).
 // =============================================================================
 
-import { AppState, applyLanguage, loadSplashScreen, t } from '../core/app.js';
+import { AppState, applyLanguage, loadSplashScreen, t, surahNameLocal } from '../core/app.js';
 import { DUAL_TEST_REPORT_STYLES } from './dual-test-report.styles.js';
 import { BADGE_CATALOG } from '../engine/dualTestEngine.js';
 
@@ -87,7 +87,8 @@ const DUAL_TEST_REPORT_TEMPLATE = `
 
       <div class="dtr-header">
         <div class="dtr-eyebrow-row">
-          <span class="dtr-eyebrow" data-i18n="dtr_eyebrow">🆚 تقرير مواجهة — الاختبارات الثنائية</span>
+          <!-- 🌟 [2026-10-03] رمز شعار المنصة قبل عنوان التقرير (ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة) -->
+          <span class="dtr-brand"><img class="dtr-logo" src="assets/brand/ham-mark-light.svg" alt=""><span class="dtr-eyebrow" data-i18n="dtr_eyebrow">🆚 تقرير مواجهة — الاختبارات الثنائية</span></span>
           <span class="dtr-meta" id="dtr-title-date">--</span>
         </div>
 
@@ -215,13 +216,13 @@ function avatarHtml(name, avatarVal) {
 function surahNameByNumber(num) {
   if (!num) return '';
   const surah = (AppState.surahsData || []).find(s => s.number === num);
-  return surah ? `${surah.number}. ${surah.name}` : '';
+  return surah ? `${surah.number}. ${surahNameLocal(surah.name)}` : '';
 }
 function roundRangeLabel(round) {
   const fromName = surahNameByNumber(round && round.rangeFrom && round.rangeFrom.surah);
   const toName = surahNameByNumber(round && round.rangeTo && round.rangeTo.surah);
   if (!fromName && !toName) return t('dts_range_not_set');
-  return `${fromName || '—'} ← ${toName || '—'}`;
+  return `${fromName || '—'} ${AppState.currentLang === 'en' ? '→' : '←'} ${toName || '—'}`;
 }
 
 // -----------------------------------------------------------------------------
@@ -332,13 +333,17 @@ const HQ_SCALE = 3;
 // معقول (العدّاد اسمه عام أصلاً "تقارير")، لكنه يستحق توضيحاً صريحاً لو رغب المعلم في عدّاد منفصل.
 const REPORTS_LOG_KEY = 'darham_reports_log';
 const REPORTS_LOG_MAX = 300;
-function logReportGenerated() {
+function logReportGenerated(canvas) {
   try {
     const raw = localStorage.getItem(REPORTS_LOG_KEY);
     const list = raw ? JSON.parse(raw) : [];
     const arr = Array.isArray(list) ? list : [];
     arr.push(new Date().toISOString());
     localStorage.setItem(REPORTS_LOG_KEY, JSON.stringify(arr.slice(-REPORTS_LOG_MAX)));
+  } catch (e) { /* تجاهل */ }
+  // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
+  try {
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'dual', name: reportData && (reportData.nameA + ' × ' + reportData.nameB), sub: reportData && reportData.date, canvas })).catch(() => {});
   } catch (e) { /* تجاهل */ }
 }
 
@@ -390,7 +395,7 @@ async function exportPng() {
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 async function exportPdf() {
@@ -448,7 +453,7 @@ async function exportPdf() {
   });
 
   pdf.save(buildFileName('pdf'));
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // -----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 // components/teacherProfile.js
 // 🌟 كل منطق واجهة "ملف المعلم" في الشاشة الرئيسية: الترحيب الديناميكي (وقت + اسم)،
 // شارة "أكمل بياناتك" التدريجية غير الإجبارية، نافذة تعديل البيانات، ملخص الواجبات
-// السريع، وتنبيه عيد ميلاد المعلم نفسه (بانر داخل التطبيق + إشعار جهاز).
+// السريع، وتنبيه يوم ميلاد المعلم نفسه (بانر داخل التطبيق + إشعار جهاز).
 // لا يوجد أي إجبار هنا على إدخال أي بيانات — كل شيء اختياري ويعمل التطبيق بدونه بالكامل.
 
 import { AppState } from '../core/app.js';
@@ -10,6 +10,8 @@ import { t } from '../core/i18n.js';
 // وشرح الافتراضات. الأزرار الفعلية أُضيفت داخل نافذة ملف المعلم (splash.html) لعدم وجود
 // شاشة "إعدادات" عامة مستقلة بعد في المشروع
 import { exportFullBackup, restoreFromBackupFile, getLastBackupAt } from '../core/backupRestore.js';
+// 🌟 [جديد 2026-10-06] حساب جوجل: عرض الإيميل الحالي + «تغيير الإيميل» دائماً + تسجيل الخروج
+import { getTeacherEmail, isTeacherAuthed, signOutTeacher } from '../core/api.js';
 
 // 🌟 [جديد] أيقونة شخص افتراضية (SVG لا إيموجي، اتساقًا مع الهوية البصرية الأهدأ
 // المعتمدة أصلاً في هذه الشاشة) — تظهر في دائرة الترحيب فقط قبل إدخال أي اسم ولا رفع
@@ -97,16 +99,13 @@ export function renderTeacherGreeting() {
     el.textContent = text;
 }
 
-// النص الافتراضي المترجم (المُدرج مسبقاً في splash.html) يبقى كما هو ما لم يُكمل
-// المعلم اسمه في ملفه الشخصي — عندها فقط نستبدله باسمه الحقيقي.
+// 🔒 اسم منشئ المنصة في الفوتر ثابت أبداً — لا يتغير باسم المعلم المسجَّل في ملفه
+// الشخصي. النص مُدرج في splash.html عبر مفتاح الترجمة teacher_name (يتبدّل فقط مع اللغة).
+// أُبقيت الدالة لأن مستدعيها ما زالوا يستوردونها، لكنها لا تستبدل الاسم إطلاقاً.
 export function renderFooterCredit() {
     const nameEl = document.getElementById('footer-teacher-name');
     if (!nameEl) return;
-    const profile = AppState.currentTeacher;
-    if (profile && profile.name) {
-        nameEl.textContent = profile.name;
-        nameEl.removeAttribute('data-i18n');
-    }
+    nameEl.setAttribute('data-i18n', 'teacher_name');
 }
 
 export function renderProfileBadge() {
@@ -320,7 +319,38 @@ export function initTeacherProfileUI() {
         return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     }
 
+    // 🌟 [جديد 2026-10-06] قسم الحساب: «تغيير الإيميل» متاح دائماً (مسجَّل أو لا). التغيير = خروج من الحساب الحالي ثم فتح
+    // نافذة دخول جوجل ليختار المعلم حساباً آخر. كل حساب جوجل له واجباته المنفصلة على الخادم، فنوضّح ذلك قبل التنفيذ.
+    const acctEmailEl = document.getElementById('teacher-account-email');
+    const acctChangeBtn = document.getElementById('teacher-account-change-btn');
+    const acctSignoutBtn = document.getElementById('teacher-account-signout-btn');
+    function renderAccount() {
+        const authed = isTeacherAuthed();
+        if (acctEmailEl) {
+            const mail = getTeacherEmail();
+            acctEmailEl.textContent = authed ? (mail ? `${t('acct_current_prefix')}${mail}` : t('acct_signed_in_unknown')) : t('acct_not_signed_in');
+        }
+        if (acctChangeBtn) acctChangeBtn.textContent = authed ? t('acct_change_btn') : t('acct_signin_btn');
+        if (acctSignoutBtn) acctSignoutBtn.style.display = authed ? '' : 'none';
+    }
+    if (acctChangeBtn) {
+        acctChangeBtn.addEventListener('click', async () => {
+            const { changeTeacherAccount } = await import('./teacherAccount.js');
+            renderAccount();
+            await changeTeacherAccount();
+            renderAccount();
+        });
+    }
+    if (acctSignoutBtn) {
+        acctSignoutBtn.addEventListener('click', () => {
+            if (!confirm(t('acct_signout_confirm'))) return;
+            signOutTeacher();
+            renderAccount();
+        });
+    }
+
     function openModal() {
+        renderAccount();
         const profile = AppState.currentTeacher || {};
         if (nameInput) nameInput.value = profile.name || '';
         if (dobInput) dobInput.value = profile.dob || '';

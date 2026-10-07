@@ -56,6 +56,14 @@ function markSeen(sectionKey) {
  * @param {boolean} [opts.force=false] - تجاهل علم "شافه من قبل" وعرضه بأي حال (لأغراض
  *        الاختبار أثناء التطوير فقط)
  */
+// 🌟 [2026-10-03 — مراجعة تجربة الهاتف] التلميح يخص شاشته فقط: كان يبقى ظاهراً بعد الانتقال لشاشة أخرى (مثلاً تلميح المتشابهات فوق
+// شاشة التجويد) فيغطي محتواها وأزرارها على الهاتف. loadScreen (core/navigation.js) يطلق dh:screen قبل initFunction، فالشاشة الجديدة
+// تعيد إظهار تلميحها إن كان لها تلميح. الإخفاء هنا لا يسجّله "شوهد"، فيظهر مرة أخرى عند العودة لشاشته.
+document.addEventListener('dh:screen', () => {
+    const card = document.getElementById('section-hint-card');
+    if (card) card.style.display = 'none';
+});
+
 export function showSectionHintOnce(sectionKey, opts) {
     if (!opts || !opts.titleKey || !opts.bodyKey) return;
 

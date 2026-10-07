@@ -51,17 +51,23 @@
     gap: 14px;
 }
 
-/* 🌟 الشعار أصبح SVG مرسوم بدل الإيموجي 📖 — نفس الحاوية والحجم، الأيقونة فقط تغيّرت */
+/* 🌟 [2026-10-03] شعار المنصة بألوان فاتحة مباشرة على الترويسة (بدل أيقونة الكتاب داخل المربع الذهبي) —
+   يُرسم من core/brandLogo.js. النسبة 253/352 هي نسبة الشعار الكامل */
 #main-header .home-header-logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
-    box-shadow: 0 6px 14px rgba(212, 175, 55, 0.35);
+    display: block;
+    height: 52px;
+    aspect-ratio: 253 / 352;
     flex-shrink: 0;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+/* 🌟 [2026-10-03] شعار المنصة بجوار الآية في الرئيسية — الحجم والموضع في css/homeFast.css (وcss/mobile.css للهاتف) */
+.home-hero-logo {
+    display: block;
+    height: 120px;
+    aspect-ratio: 253 / 352;
+    flex-shrink: 0;
+    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3));
 }
 
 #main-header .home-header-text {
@@ -366,7 +372,7 @@
     flex-shrink: 0;
 }
 
-/* 🌟 تذكير عيد ميلاد طالب — يظهر فقط إن كان اليوم عيد ميلاد أحد الطلاب فعلاً
+/* 🌟 تذكير يوم ميلاد طالب — يظهر فقط إن كان اليوم يوم ميلاد أحد الطلاب فعلاً
    (يتحكم في display من components/homeQuickview.js) */
 .home-quickcard-bday {
     display: flex;
@@ -501,7 +507,7 @@
 .home-quickcard-publish-btn:hover { transform: translateY(-2px); }
 
 /* ==========================================================================
-   🌟 شارة إكمال البيانات + بانر عيد ميلاد المعلم + نافذة تعديل البيانات — كل هذه
+   🌟 شارة إكمال البيانات + بانر يوم ميلاد المعلم + نافذة تعديل البيانات — كل هذه
    العناصر اختيارية بالكامل ولا تُجبر المعلم على شيء 🌟
    ========================================================================== */
 .teacher-profile-badge {
@@ -1007,6 +1013,7 @@
 .home-card-students .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700)); }
 .home-card-homework .home-card-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
 .home-card-dual .home-card-icon { background: linear-gradient(135deg, #64748b, #475569); }
+.home-card-certs .home-card-icon { background: linear-gradient(135deg, #d4af37, #a8841c); }
 
 /* 🌟 [جديد] تمييز بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) بألوان مختلفة —
    كانت الثلاثة تشترك في نفس خلفية .home-card البيضاء (--dh-surface) ولا يميّزها
@@ -1039,6 +1046,13 @@
     border-top: 3px solid #64748b;
 }
 .home-card-dual .home-card-title { color: #334155; }
+
+/* 🏅 بطاقة الشهادات: صبغة ذهبية خفيفة بنفس منطق بطاقتي الواجبات والثنائية */
+.home-card-certs {
+    background: rgba(212, 175, 55, 0.16);
+    border-top: 3px solid #d4af37;
+}
+.home-card-certs .home-card-title { color: #7a5a0e; }
 
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
@@ -1145,30 +1159,9 @@
     .home-menu-primary { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 768px) {
-    #main-header { padding: 12px 18px; }
-    #main-header #header-title { font-size: 0.95rem; }
-    #main-header #top-student-name { font-size: 0.75rem; }
-
-    .home-hero { padding: 44px 16px 0; text-align: center; }
-    .home-hero-eyebrow { font-size: 0.75rem; }
-    .home-title { font-size: 2.1rem; }
-    .home-subtitle { font-size: 1.02rem; max-width: 100%; margin-left: auto; margin-right: auto; }
-    .home-chips-row { justify-content: center; }
-
-    .home-why-grid { grid-template-columns: repeat(2, 1fr); }
-
-    .home-menu-primary { grid-template-columns: 1fr; }
-    .home-menu-secondary { grid-template-columns: 1fr; }
-
-    .home-footer-inner { flex-direction: column; text-align: center; }
-    .home-footer-about { text-align: center; }
-    .home-footer-about p { max-width: 100%; }
-}
-
-@media (max-width: 480px) {
-    .home-why-grid { grid-template-columns: 1fr; }
-}
+/* 🌟 [2026-10-03 — مراجعة تجربة الهاتف] حُذفت من هنا قواعد الهاتف (≤768px/≤480px) للترويسة والهيرو والأزرار و«لماذا حمٓ؟» والفوتر:
+   كانت تتعارض مع طبقتين لاحقتين (css/homeFast.css ثم css/mobile.css) تعيدان ضبط نفس الخصائص بقيم مختلفة. تخطيط الهاتف كله الآن
+   في css/mobile.css وحده. */
 
 /* ==========================================================================
    🌟 [جديد] شاشة "الجديد في هذا التحديث" — عنصر ثابت مستقل تماماً خارج #app-root
@@ -1310,9 +1303,6 @@ h1.home-title {
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35), 0 0 34px rgba(231, 194, 106, 0.22) !important;
 }
 
-@media (max-width: 768px) {
-    h1.home-title { font-size: 2.7rem; text-align: center; }
-}
 
 /* ==========================================================================
    🌟 [جديد] إضافات تجميلية لعنوان الواجهة: أقواس قرآنية، "حمٓ" ذهبية، فاصل زخرفي،
@@ -1501,13 +1491,6 @@ h1.home-title .home-title-ha {
     box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
 }
 .home-start-here-btn:hover { box-shadow: 0 14px 26px rgba(212, 175, 55, 0.4); }
-@media (max-width: 768px) {
-    .home-menu-primary.home-menu-main,
-    .home-menu-primary.home-menu-later,
-    .home-menu-secondary.home-menu-two { grid-template-columns: 1fr; }
-    .home-start-here { flex-direction: column; align-items: stretch; text-align: center; }
-    .home-start-here-btn { width: 100%; }
-}
 
 /* ==========================================================================
    🌟🌟 [جديد 2026-10-01 — بطلب المعلم] تصغير قسم "لماذا حمٓ؟" إلى 4 بطاقات، وبطاقة "خصوصية" صارت رابطاً

@@ -1,5 +1,5 @@
 // engine/homeworkEngine.js
-import { cleanAyahText, isWaqfMark, splitAyahWords } from './quranEngine.js';
+import { cleanAyahText, isWaqfMark, splitAyahWords, planSurahCoverage, JUZ_AMMA_NUMBER } from './quranEngine.js';
 
 // ==========================================
 // 🌟🌟 فلترة علامات الوقف القرآنية من "كلمات" الآية — [نُقلت للمحرك المركزي]
@@ -64,15 +64,32 @@ export class HomeworkEngine {
         // 🌟 التغطية الشاملة والعادلة (Chunking)
         let qCount = Math.min(config.qCount, validPool.length);
         let selectedAyahs = [];
-        let chunkSize = Math.max(1, Math.floor(validPool.length / qCount));
 
-        for (let i = 0; i < qCount; i++) {
-            let start = i * chunkSize;
-            let end = (i === qCount - 1) ? validPool.length : (i + 1) * chunkSize;
-            let chunk = validPool.slice(start, end);
-            if (chunk.length > 0) {
-                let randomAyah = chunk[Math.floor(Math.random() * chunk.length)];
-                selectedAyahs.push(randomAyah);
+        if (config.mode === 'juz' && config.juzNum === JUZ_AMMA_NUMBER) {
+            // 🌟 جزء عمّ: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js)، بدل التقسيم بعدد الآيات
+            // الذي كانت السور الطويلة تبتلع فيه الأسئلة وتغيب سور قصيرة. الآية عشوائية داخل السورة وبلا تكرار ما أمكن.
+            // الخطة تُبنى من كل آيات الجزء (لا validPool) حتى لا تسقط سورة قصيرة كل آياتها ≤ 3 كلمات من الاختبار
+            const plan = planSurahCoverage(ayahsPool, Math.min(config.qCount, ayahsPool.length));
+            const usedAyahs = new Set();
+            for (const surahNum of plan) {
+                const ownValid = validPool.filter(a => a.surahNumber === surahNum);
+                const own = ownValid.length ? ownValid : ayahsPool.filter(a => a.surahNumber === surahNum);
+                const fresh = own.filter(a => !usedAyahs.has(a));
+                const from = fresh.length ? fresh : own;
+                const pick = from[Math.floor(Math.random() * from.length)];
+                usedAyahs.add(pick);
+                selectedAyahs.push(pick);
+            }
+        } else {
+            let chunkSize = Math.max(1, Math.floor(validPool.length / qCount));
+            for (let i = 0; i < qCount; i++) {
+                let start = i * chunkSize;
+                let end = (i === qCount - 1) ? validPool.length : (i + 1) * chunkSize;
+                let chunk = validPool.slice(start, end);
+                if (chunk.length > 0) {
+                    let randomAyah = chunk[Math.floor(Math.random() * chunk.length)];
+                    selectedAyahs.push(randomAyah);
+                }
             }
         }
 
@@ -150,7 +167,7 @@ export class HomeworkEngine {
         let wrongOptions = similarSurahs.sort(() => 0.5 - Math.random()).slice(0, 3).map(s => `سورة ${s.name}`);
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
 
-        return { type: 'mcq', title: "في أي سورة تقع هذه الآية؟", text: `﴿ ${cleanText} ﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
+        return { type: 'mcq', title: "في أي سورة تقع هذه الآية؟", text: `﴿\u00A0${cleanText}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
     }
 
     // 🌟 نمط 2: ما الآية التالية؟ 
@@ -189,7 +206,7 @@ export class HomeworkEngine {
 
         let options = [correctAnswer, ...wrongOptions].slice(0, 4).sort(() => 0.5 - Math.random());
 
-        return { type: 'mcq', title: "ما هي الآية التي تلي هذه الآية مباشرة؟", text: `﴿ ${cleanText} ﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
+        return { type: 'mcq', title: "ما هي الآية التي تلي هذه الآية مباشرة؟", text: `﴿\u00A0${cleanText}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
     }
 
     // 🌟 نمط 3: الآية السابقة (الاسترجاع العكسي)
@@ -219,7 +236,7 @@ export class HomeworkEngine {
 
         let options = [correctAnswer, ...wrongOptions].slice(0, 4).sort(() => 0.5 - Math.random());
 
-        return { type: 'mcq', title: "ما هي الآية التي تَسبِق هذه الآية مباشرة؟ (استرجاع عكسي)", text: `﴿ ${cleanText} ﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
+        return { type: 'mcq', title: "ما هي الآية التي تَسبِق هذه الآية مباشرة؟ (استرجاع عكسي)", text: `﴿\u00A0${cleanText}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
     }
 
     // 🌟 نمط 4: خواتيم الآيات
@@ -246,7 +263,7 @@ export class HomeworkEngine {
         if (wrongOptions.length < 3) wrongOptions.push("وَاللَّهُ غَفُورٌ رَّحِيمٌ", "وَاللَّهُ سَمِيعٌ عَلِيمٌ", "وَهُوَ الْعَزِيزُ الْحَكِيمُ");
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
 
-        return { type: 'mcq', title: "اختر الخاتمة الصحيحة والدقيقة لهذه الآية:", text: `﴿ ${textWithBlank} ﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
+        return { type: 'mcq', title: "اختر الخاتمة الصحيحة والدقيقة لهذه الآية:", text: `﴿\u00A0${textWithBlank}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
     }
 
     // 🌟 نمط 5: الكلمة الدخيلة
@@ -265,7 +282,7 @@ export class HomeworkEngine {
         let validOptions = words.filter(w => w.length > 2).sort(() => 0.5 - Math.random()).slice(0, 3);
         let options = [intruderWord, ...validOptions].sort(() => 0.5 - Math.random());
 
-        return { type: 'mcq', title: "استخرج (الكلمة الدخيلة) التي تم إضافتها خطأً إلى هذه الآية:", text: `﴿ ${displayedText} ﴾`, options: options, correctAnswer: intruderWord, points: 1 };
+        return { type: 'mcq', title: "استخرج (الكلمة الدخيلة) التي تم إضافتها خطأً إلى هذه الآية:", text: `﴿\u00A0${displayedText}\u00A0﴾`, options: options, correctAnswer: intruderWord, points: 1 };
     }
 
     // 🌟 نمط 6 المطور: القائمة المنسدلة (عشوائية 20% - 80%)
@@ -287,7 +304,7 @@ export class HomeworkEngine {
         if(wrongWords.length < 3) wrongWords.push(...["الله", "الذي", "فيها"].filter(w => w !== correctWord && !wrongWords.includes(w)));
         let options = [correctWord, ...wrongWords].sort(() => 0.5 - Math.random());
 
-        return { type: 'dropdown', title: "اختر الكلمة الصحيحة لإكمال الفراغ 🔽:", text: `﴿ ${textWithBlank} ﴾`, options: options, correctAnswer: correctWord, points: 1 };
+        return { type: 'dropdown', title: "اختر الكلمة الصحيحة لإكمال الفراغ 🔽:", text: `﴿\u00A0${textWithBlank}\u00A0﴾`, options: options, correctAnswer: correctWord, points: 1 };
     }
 
     // 🌟 نمط 7 الجديد: الفراغ الكتابي اليدوي (تقييم المعلم)
@@ -307,9 +324,9 @@ export class HomeworkEngine {
         return { 
             type: 'written_blank', 
             title: "أكمل الفراغ بكتابة الكلمة الصحيحة (بدون اختيارات): ✍️", 
-            text: `﴿ ${textWithBlank} ﴾`, 
+            text: `﴿\u00A0${textWithBlank}\u00A0﴾`, 
             correctAnswer: correctWord, 
-            points: 2,
+            points: 1,
             needsManualGrading: true 
         };
     }
@@ -351,7 +368,7 @@ export class HomeworkEngine {
         let options2 = [correctWord2, ...wrongWords2].sort(() => 0.5 - Math.random());
 
         return {
-            type: 'dual_dropdown', title: "اختر الكلمتين الصحيحتين لإكمال الفراغين (1) و (2) 🔽:", text: `﴿ ${textWithBlanks} ﴾`,
+            type: 'dual_dropdown', title: "اختر الكلمتين الصحيحتين لإكمال الفراغين (1) و (2) 🔽:", text: `﴿\u00A0${textWithBlanks}\u00A0﴾`,
             options1: options1, options2: options2, correctAnswer: [correctWord1, correctWord2], points: 2
         };
     }
@@ -407,7 +424,7 @@ export class HomeworkEngine {
         return {
             type: 'write_3_ayahs',
             title: "تسميع كتابي للمقاطع: ✍️",
-            text: `اكتب الآيات الثلاث المتتالية ابتداءً من قوله تعالى:<br>﴿ ${firstAyahPart} ... ﴾`,
+            text: `اكتب الآيات الثلاث المتتالية ابتداءً من قوله تعالى:<br>﴿\u00A0${firstAyahPart} ...\u00A0﴾`,
             correctAnswer: fullText,
             points: 3, 
             needsManualGrading: true

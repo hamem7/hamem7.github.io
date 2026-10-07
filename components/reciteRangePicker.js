@@ -110,17 +110,17 @@ export function buildReciteRangeRecord(cd, ranges) {
         let inner;
         if (nums.length === 1) {
             inner = `<div style="font-size:1.4rem; margin-bottom:10px;">${t('recite_range_start_from')}</div>` +
-                `<div class="quran-text" style="font-size:3.2rem; color:${accent};">﴿ ${firstHalf(startText)} ﴾</div>`;
+                `<div class="quran-text" style="font-size:3.2rem; color:${accent};">﴿\u00A0${firstHalf(startText)}\u00A0﴾</div>`;
         } else {
             inner = `<div style="font-size:1.4rem; margin-bottom:10px;">${t('recite_range_start_from')}</div>` +
-                `<div class="quran-text" style="font-size:3.2rem; margin-bottom:25px; color:${accent};">﴿ ${firstHalf(startText)} ﴾</div>` +
+                `<div class="quran-text" style="font-size:3.2rem; margin-bottom:25px; color:${accent};">﴿\u00A0${firstHalf(startText)}\u00A0﴾</div>` +
                 `<div style="font-size:1.4rem; margin-bottom:10px;">${t('recite_range_end_at')}</div>` +
-                `<div class="quran-text" style="font-size:3.2rem; color:${accent};">﴿ ${lastHalf(endText)} ﴾</div>`;
+                `<div class="quran-text" style="font-size:3.2rem; color:${accent};">﴿\u00A0${lastHalf(endText)}\u00A0﴾</div>`;
         }
         boxes.push(`<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;">` +
             `<div style="font-size:1.6rem; font-weight:bold; margin-bottom:20px;">${t('recite_range_q_prefix')} ${label} — ${surahName ? `${t('recite_range_surah')} [ ${surahName} ]` : ''}</div>` +
             inner + `</div>`);
-        answers.push(nums.map(n => ` ﴿ ${byNum.get(n)} ﴾ `).join(''));
+        answers.push(nums.map(n => ` ﴿\u00A0${byNum.get(n)}\u00A0﴾ `).join(''));
         stored.push({ from: r.from, to: r.to, label });
     });
 

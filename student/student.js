@@ -35,30 +35,13 @@ export async function populateStudentsDropdown() {
 
     dataList.innerHTML = '';
 
-    const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentDay = today.getDate();
-    let bdayBoys = [];
-
     students.filter(s => !s.isHidden).forEach(s => {
         let option = document.createElement('option');
         option.value = s.name;
         dataList.appendChild(option);
-
-        if (s.dob) {
-            const parts = s.dob.split('-');
-            if (parts.length === 3) {
-                if (parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay) {
-                    bdayBoys.push(s.name);
-                }
-            }
-        }
     });
-
-    if (bdayBoys.length > 0 && !window.bdayShown) {
-        window.bdayShown = true;
-        setTimeout(() => alert(tf('stu_bday_alert', { names: bdayBoys.join(t('stu_and')) })), 800);
-    }
+    // 🌟 [2026-10-03 — بطلب المعلم] حُذفت نافذة alert ليوم ميلاد الطالب التي كانت تظهر عند
+    // دخول شاشة الكبار/الصغار: التذكير يكفيه بطاقة «نظرة سريعة» + إشعار الجهاز (مرة يوميًا)
 }
 
 function calcAgeDynamic(inputId, displayId) {
@@ -289,10 +272,6 @@ export function setupLoginListeners() {
 // زرّا "ابدأ تقييم" في سجل الطلاب وملف الطالب (راجع startEvaluationForStudent).
 export function enterStudentEvaluation(student) {
     AppState.currentStudent = student;
-    // 🌟 [جديد 2026-10-01 — الدخول السريع] تسجيل "آخر تقييم" (طالب + وضع كبار/أطفال) لبطاقة "تابع من حيث توقفت" في الرئيسية
-    // (components/homeFast.js). localStorage خفيف وbest-effort: أي فشل لا يؤثر على الدخول للتقييم إطلاقاً.
-    try { if (student && student.id != null) localStorage.setItem('dh_last_evaluation', JSON.stringify({ id: student.id, name: student.name || '', kids: !!AppState.isKidsMode, at: Date.now() })); } catch (e) { /* اختياري */ }
-
     // 🌟 [جديد] اختبار معلّق ("⏸️ حفظ والعودة لاحقًا") — أول ما يُختار الطالب، قبل بطاقتي "علاج الأخطاء" والترحيب:
     // لو له اختبار غير مكتمل في هذا القسم (كبار/أطفال) تظهر بطاقة "اختبار غير مكتمل" بزرّين:
     //   • ▶️ استكمال: يفتح الاختبار من أول سؤال لم يُجَب (راجع resumeSnapshot في games/adultGame.js وkidsGame.js).
@@ -376,14 +355,27 @@ export async function loadMyStudentsScreen() {
 
 function setupMyStudentsListeners() {
     // 🌟 [جديد 2026-10-02] الجولة الإرشادية لقسم «طلابي» (مرة واحدة) — best-effort، لا تؤثر على الشاشة
-    import('../components/guidedTour.js').then(m => m.maybeStartTour('students')).catch(() => {});
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('my_students')).catch(() => {});
 
-    document.getElementById('btn-back-my-students')?.addEventListener('click', loadSplashScreen);
+    const backBtn = document.getElementById('btn-back-my-students');
+    backBtn?.setAttribute('aria-label', t('ms_back'));
+    backBtn?.setAttribute('title', t('ms_back'));
+    backBtn?.addEventListener('click', loadSplashScreen);
     document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
+
+    // 🌟 [جديد 2026-10-03] أرقام «طلابي» (عدد الطلاب / بانتظار الحفظ / تقارير الشهر) + سطر التذكير
+    refreshMyStudentsSummary();
+    watchMyStudentsOverlays();
+    document.getElementById('ms-reminder-btn')?.addEventListener('click', () => {
+        document.getElementById('btn-monthly-memo-bulk')?.click();
+    });
 
     document.getElementById('btn-add-student')?.addEventListener('click', () => {
         populateSurahOptions('stu-memo-from', 'stu-memo-to');
+        resetAddStudentForm();
+        AppState.studentManager.getAllStudents().then(list => { _addExistingNames = list.map(x => normStudentName(x.name)); }).catch(() => { _addExistingNames = []; });
         openModal('add-modal');
+        setTimeout(() => document.getElementById('stu-name')?.focus(), 50);
     });
 
     // 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا — استيراد ديناميكي
@@ -404,68 +396,282 @@ function setupMyStudentsListeners() {
             });
     });
 
-    document.querySelectorAll('.avatar-opt').forEach(opt => {
-        opt.addEventListener('click', (e) => {
-            document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('active'));
-            e.target.classList.add('active');
-            document.getElementById('selected-avatar').value = e.target.dataset.av;
+    // 🌟 [عدّل 2026-10-03] الصور الرمزية أزرار في سطر واحد، و📷 يفتح اختيار صورة حقيقية ويعرضها داخل الدائرة
+    document.querySelectorAll('#avatar-gallery .avatar-opt[data-av]').forEach(opt => {
+        opt.addEventListener('click', () => {
+            selectAddAvatarOption(opt);
+            document.getElementById('selected-avatar').value = opt.dataset.av;
+            const fileInput = document.getElementById('stu-avatar');
+            if (fileInput) fileInput.value = '';
+            const up = document.getElementById('btn-avatar-upload');
+            if (up) up.textContent = '📷';
         });
     });
+    document.getElementById('btn-avatar-upload')?.addEventListener('click', () => document.getElementById('stu-avatar')?.click());
+    document.getElementById('stu-avatar')?.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        const up = document.getElementById('btn-avatar-upload');
+        if (!file || !up) return;
+        const url = URL.createObjectURL(file);
+        up.innerHTML = `<img src="${url}" alt="">`;
+        selectAddAvatarOption(up);
+    });
+
+    setupAddStudentDobSelects();
 
     document.getElementById('btn-close-add-modal')?.addEventListener('click', () => closeModal('add-modal'));
-    document.getElementById('stu-dob')?.addEventListener('change', () => calcAgeDynamic('stu-dob', 'age-display'));
 
-    document.getElementById('btn-save-new-student')?.addEventListener('click', async () => {
-        const data = {
-            name: document.getElementById('stu-name').value.trim(),
-            dob: document.getElementById('stu-dob').value,
-            grade: document.getElementById('stu-grade').value,
-            country: document.getElementById('stu-country').value,
-            phone: document.getElementById('stu-phone').value,
-            gender: 'boy',
-            memoFrom: document.getElementById('stu-memo-from').value,
-            memoTo: document.getElementById('stu-memo-to').value,
-            avatar: document.getElementById('selected-avatar').value,
-            isHidden: false,
-            weaknesses: [],
-            // 🌟 أرشيف الأخطاء المصححة — يحتفظ بتفاصيل كل خطأ بعد حله بدل حذفه نهائياً،
-            // ليبقى سجل تاريخي كامل لأخطاء الطالب حتى يوم الاختبار (راجع adultGame.js/
-            // kidsGame.js في recordAnswer) 🌟
-            resolvedWeaknesses: []
-        };
-        if (!data.name) return alert(t("stu_name_required"));
-        // 🌟 [إصلاح تدقيق] منع تسجيل طالبين بنفس الاسم: تسجيل الدخول وربط الواجبات يعتمدان على الاسم فيختلط الطلاب.
-        // ⚠️ [افتراض صريح]: المقارنة على الاسم بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف.
-        {
-            const _norm = (x) => String(x || '').replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
-            const _existing = await AppState.studentManager.getAllStudents();
-            if (_existing.some(x => _norm(x.name) === _norm(data.name))) return alert(t("stu_name_duplicate"));
-        }
+    // 🌟 [جديد 2026-10-03] "حفظ" يُغلق النافذة ويعرض الخطوات المعتادة بعد التسجيل (نقطة البداية ثم اختيار الألعاب)،
+    // و"حفظ وإضافة آخر" يحفظ ويُفرغ النموذج ويُبقيه مفتوحاً لتسجيل حلقة كاملة متتابعة.
+    // ⚠️ [افتراض صريح] في "حفظ وإضافة آخر" لا تظهر شاشة نقطة البداية ولا اختيار الألعاب حتى لا تقطع التسجيل المتتابع؛
+    // نقطة البداية لها خط رجوع موجود فعلاً في شاشة الحفظ الشهري الجماعية (راجع openInitialPositionForNewStudent).
+    document.getElementById('btn-save-new-student')?.addEventListener('click', () => saveNewStudentAction(false));
+    document.getElementById('btn-save-add-another')?.addEventListener('click', () => saveNewStudentAction(true));
+    document.getElementById('btn-add-skip-save')?.addEventListener('click', () => saveNewStudentAction(false));
 
-        const fileInput = document.getElementById('stu-avatar');
-        if (fileInput && fileInput.files.length > 0) {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                // 🌟 [إصلاح تدقيق] كانت الصورة تُخزَّن بحجمها الأصلي كاملاً (قد تبلغ عدة ميجابايت لكل طالب فتتضخم القاعدة والنسخ
-                // الاحتياطي). الآن تُصغَّر إلى 256px كحد أقصى (JPEG) عبر canvas المدمج في المتصفح؛ لو فشل التصغير نستخدم الأصل.
-                data.avatar = await shrinkAvatarDataUrl(e.target.result);
-                const newId = await AppState.studentManager.addStudent(data);
-                closeModal('add-modal');
-                populateStudentsDropdown();
-                alert(t("stu_saved_ok"));
-                await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
-                offerNewStudentGames({ ...data, id: newId });
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        } else {
-            const newId = await AppState.studentManager.addStudent(data);
-            closeModal('add-modal');
-            populateStudentsDropdown();
-            alert(t("stu_saved_ok"));
-            await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
-            offerNewStudentGames({ ...data, id: newId });
-        }
+    // 🌟 [جديد 2026-10-03] التنقل بين خطوات نافذة الإضافة الثلاث
+    document.getElementById('btn-add-step-next')?.addEventListener('click', () => {
+        if (_addStep === 1 && !checkAddStudentName()) return;
+        setAddStep(_addStep + 1);
     });
+    document.getElementById('btn-add-step-back')?.addEventListener('click', () => setAddStep(_addStep - 1));
+    document.getElementById('stu-name')?.addEventListener('input', () => { checkAddStudentName(true); refreshAddStepButtons(); });
+    document.getElementById('stu-name')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && _addStep === 1) { e.preventDefault(); document.getElementById('btn-add-step-next')?.click(); }
+    });
+
+}
+
+async function saveNewStudentAction(addAnother) {
+    const data = {
+        name: document.getElementById('stu-name').value.trim(),
+        dob: document.getElementById('stu-dob').value,
+        grade: document.getElementById('stu-grade').value,
+        country: document.getElementById('stu-country').value,
+        phone: document.getElementById('stu-phone').value,
+        gender: 'boy',
+        memoFrom: document.getElementById('stu-memo-from').value,
+        memoTo: document.getElementById('stu-memo-to').value,
+        avatar: document.getElementById('selected-avatar').value,
+        isHidden: false,
+        weaknesses: [],
+        // 🌟 أرشيف الأخطاء المصححة — يحتفظ بتفاصيل كل خطأ بعد حله بدل حذفه نهائياً،
+        // ليبقى سجل تاريخي كامل لأخطاء الطالب حتى يوم الاختبار (راجع adultGame.js/
+        // kidsGame.js في recordAnswer) 🌟
+        resolvedWeaknesses: []
+    };
+    if (!data.name) return alert(t("stu_name_required"));
+    // 🌟 [إصلاح تدقيق] منع تسجيل طالبين بنفس الاسم: تسجيل الدخول وربط الواجبات يعتمدان على الاسم فيختلط الطلاب.
+    // ⚠️ [افتراض صريح]: المقارنة على الاسم بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف.
+    {
+        const _existing = await AppState.studentManager.getAllStudents();
+        if (_existing.some(x => normStudentName(x.name) === normStudentName(data.name))) { setAddStep(1); return alert(t("stu_name_duplicate")); }
+    }
+
+    const fileInput = document.getElementById('stu-avatar');
+    if (fileInput && fileInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            // 🌟 [إصلاح تدقيق] كانت الصورة تُخزَّن بحجمها الأصلي كاملاً (قد تبلغ عدة ميجابايت لكل طالب فتتضخم القاعدة والنسخ
+            // الاحتياطي). الآن تُصغَّر إلى 256px كحد أقصى (JPEG) عبر canvas المدمج في المتصفح؛ لو فشل التصغير نستخدم الأصل.
+            data.avatar = await shrinkAvatarDataUrl(e.target.result);
+            const newId = await AppState.studentManager.addStudent(data);
+            await afterNewStudentSaved(data, newId, addAnother);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        const newId = await AppState.studentManager.addStudent(data);
+        await afterNewStudentSaved(data, newId, addAnother);
+    }
+}
+
+async function afterNewStudentSaved(data, newId, addAnother) {
+    refreshMyStudentsSummary();
+    populateStudentsDropdown();
+    if (addAnother) {
+        _addExistingNames.push(normStudentName(data.name));
+        resetAddStudentForm();
+        const toast = document.getElementById('add-saved-toast');
+        if (toast) { toast.textContent = tf('add_saved_next', { name: data.name }); toast.style.display = ''; }
+        document.getElementById('stu-name')?.focus();
+        return;
+    }
+    closeModal('add-modal');
+    alert(t("stu_saved_ok"));
+    await promptInitialMemorizationPositionForNewStudent({ ...data, id: newId });
+    offerNewStudentGames({ ...data, id: newId });
+}
+
+function selectAddAvatarOption(el) {
+    document.querySelectorAll('#avatar-gallery .avatar-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+}
+
+// يُفرغ نافذة الإضافة (يُستدعى عند فتحها وبعد "حفظ وإضافة آخر")؛ يُبقي اختيار "تفاصيل إضافية" مفتوحاً/مغلقاً كما هو
+function resetAddStudentForm() {
+    ['stu-name', 'stu-country', 'stu-phone', 'stu-dob'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    ['stu-grade', 'stu-dob-d', 'stu-dob-m', 'stu-dob-y', 'stu-memo-from', 'stu-memo-to'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+    const age = document.getElementById('age-display'); if (age) age.textContent = '';
+    const toast = document.getElementById('add-saved-toast'); if (toast) toast.style.display = 'none';
+    const fileInput = document.getElementById('stu-avatar'); if (fileInput) fileInput.value = '';
+    const up = document.getElementById('btn-avatar-upload'); if (up) up.textContent = '📷';
+    const first = document.querySelector('#avatar-gallery .avatar-opt[data-av]');
+    if (first) { selectAddAvatarOption(first); document.getElementById('selected-avatar').value = first.dataset.av; }
+    const warn = document.getElementById('add-name-warn'); if (warn) warn.style.display = 'none';
+    setAddStep(1);
+}
+
+// 🌟 [جديد 2026-10-03] خطوات نافذة الإضافة: ① الاسم والصورة ② الصف والعمر ③ ولي الأمر والحفظ + معاينة
+let _addStep = 1;
+let _addExistingNames = [];
+const ADD_STEP_TITLES = ['add_step1_title', 'add_step2_title', 'add_step3_title'];
+
+// ⚠️ [افتراض صريح]: مقارنة الأسماء بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف (نفس قاعدة منع التكرار عند الحفظ)
+function normStudentName(x) {
+    return String(x || '').replace(/[ً-ٰٟـ]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+// يتحقق من الاسم في الخطوة الأولى: فارغ أو مكرر → رسالة تحت الحقل. silent=true أثناء الكتابة (لا رسالة "مطلوب")
+function checkAddStudentName(silent) {
+    const name = document.getElementById('stu-name')?.value.trim() || '';
+    const warn = document.getElementById('add-name-warn');
+    let msg = '';
+    if (!name) msg = silent ? '' : t('stu_name_required');
+    else if (_addExistingNames.includes(normStudentName(name))) msg = t('stu_name_duplicate');
+    if (warn) { warn.textContent = msg; warn.style.display = msg ? '' : 'none'; }
+    return !!name && !msg;
+}
+
+function refreshAddStepButtons() {
+    const hasName = !!(document.getElementById('stu-name')?.value.trim());
+    const show = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+    show('btn-add-step-back', _addStep > 1);
+    show('btn-add-step-next', _addStep < 3);
+    show('btn-save-new-student', _addStep === 3);
+    show('btn-save-add-another', _addStep === 3);
+    show('btn-add-skip-save', _addStep === 2);
+    show('btn-close-add-modal', _addStep === 1);
+    const next = document.getElementById('btn-add-step-next');
+    if (next) next.disabled = _addStep === 1 && !hasName;
+}
+
+function setAddStep(n) {
+    _addStep = Math.min(3, Math.max(1, n));
+    document.querySelectorAll('#add-modal .as-step').forEach(el => el.classList.toggle('on', Number(el.dataset.step) === _addStep));
+    document.querySelectorAll('#add-modal .as-dot').forEach(el => {
+        const d = Number(el.dataset.dot);
+        el.classList.toggle('on', d === _addStep);
+        el.classList.toggle('done', d < _addStep);
+        el.textContent = d < _addStep ? '✓' : String(d);
+    });
+    const title = document.getElementById('add-step-title');
+    if (title) title.textContent = tf('add_step_of', { n: _addStep, title: t(ADD_STEP_TITLES[_addStep - 1]) });
+    if (_addStep === 3) renderAddStudentPreview();
+    refreshAddStepButtons();
+    if (_addStep === 1) setTimeout(() => document.getElementById('stu-name')?.focus(), 30);
+}
+
+// بطاقة المعاينة في الخطوة الثالثة: نفس الصورة المختارة + الاسم + الصف + العمر
+function renderAddStudentPreview() {
+    const box = document.getElementById('add-preview');
+    if (!box) return;
+    const active = document.querySelector('#avatar-gallery .avatar-opt.active');
+    const name = document.getElementById('stu-name')?.value.trim() || '—';
+    const grade = document.getElementById('stu-grade')?.value;
+    const age = document.getElementById('age-display')?.textContent || '';
+    const parts = [grade ? trStored(grade) : t('stu_not_set')];
+    if (age) parts.push(age.replace(/[()]/g, '').trim());
+    box.innerHTML = `<span class="avatar-opt active">${active ? active.innerHTML : '👦🏻'}</span><div><b>${esc(name)}</b><span>${esc(parts.join(' · '))}</span></div>`;
+}
+
+// 🌟 [جديد 2026-10-03] تاريخ الميلاد بثلاث قوائم (يوم/شهر/سنة) تكتب في #stu-dob المخفي بصيغة YYYY-MM-DD.
+// ⚠️ [افتراض صريح] السنة وحدها تكفي لحساب العمر: لو لم يُختر اليوم/الشهر نعتبرهما 1 (أول يناير).
+function setupAddStudentDobSelects() {
+    const d = document.getElementById('stu-dob-d'), m = document.getElementById('stu-dob-m'), y = document.getElementById('stu-dob-y');
+    if (!d || !m || !y) return;
+    const pad = n => String(n).padStart(2, '0');
+    const locale = (AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US') + '-u-nu-latn';
+    let monthName = i => String(i);
+    try { const f = new Intl.DateTimeFormat(locale, { month: 'long' }); monthName = i => f.format(new Date(2000, i - 1, 1)); } catch (e) { /* أرقام */ }
+    d.innerHTML = `<option value="">${t('dob_day')}</option>` + Array.from({ length: 31 }, (_, i) => `<option value="${pad(i + 1)}">${i + 1}</option>`).join('');
+    m.innerHTML = `<option value="">${t('dob_month')}</option>` + Array.from({ length: 12 }, (_, i) => `<option value="${pad(i + 1)}">${esc(monthName(i + 1))}</option>`).join('');
+    const thisYear = new Date().getFullYear();
+    y.innerHTML = `<option value="">${t('dob_year')}</option>` + Array.from({ length: 70 }, (_, i) => thisYear - 2 - i).map(v => `<option value="${v}">${v}</option>`).join('');
+    const sync = () => {
+        const hidden = document.getElementById('stu-dob');
+        const age = document.getElementById('age-display');
+        if (!y.value) { hidden.value = ''; if (age) age.textContent = ''; return; }
+        hidden.value = `${y.value}-${m.value || '01'}-${d.value || '01'}`;
+        calcAgeDynamic('stu-dob', 'age-display');
+    };
+    [d, m, y].forEach(el => el.addEventListener('change', sync));
+}
+
+// 🌟 [جديد 2026-10-03] ملء أرقام وشارات شاشة «طلابي» (التصميم الجديد في student/my-students.html).
+// كل شيء best-effort: أي فشل يترك «—» ولا يمسّ الأزرار. الحسابات للقراءة فقط (لا كتابة في أي قاعدة):
+//   • عدد الطلاب = غير المخفيين (نفس فلترة شاشة الحفظ الشهري ومركز التقارير).
+//   • بانتظار الحفظ = countPendingMonthlyMemorization (نفس شروط قائمة الشاشة الجماعية).
+//   • التقارير = getReportsExportSummary (شهر التقارير + كم صُدِّر منها)؛ شارة «متبقية» في موسم التقارير فقط.
+let _msSummaryRun = 0;
+async function refreshMyStudentsSummary() {
+    const run = ++_msSummaryRun;
+    const $ = (id) => document.getElementById(id);
+    if (!$('ms-screen')) return;
+    const stale = () => run !== _msSummaryRun || !$('ms-screen');
+
+    if (AppState.studentManager) try {
+        const all = await AppState.studentManager.getAllStudents();
+        if (stale()) return;
+        $('ms-stat-students').textContent = all.filter(s => !s.isHidden).length;
+    } catch (e) { console.warn('تعذر حساب عدد الطلاب:', e); }
+
+    // المتابعة الشهرية: عنوان القسم باسم الشهر الحالي
+    try {
+        const loc = (AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US') + '-u-nu-latn';
+        const month = new Intl.DateTimeFormat(loc, { month: 'long' }).format(new Date());
+        $('ms-section-monthly').textContent = tf('ms_section_monthly', { month });
+    } catch (e) { /* يبقى العنوان العام */ }
+
+    try {
+        const m = await import('../components/monthlyMemorizationBulkScreen.js');
+        const n = await m.countPendingMonthlyMemorization();
+        if (stale() || n == null) return;
+        const num = $('ms-stat-memo');
+        num.textContent = n;
+        num.classList.toggle('is-alert', n > 0);
+        num.classList.toggle('is-ok', n === 0);
+        const badge = $('ms-badge-memo');
+        badge.textContent = tf('ms_badge_memo', { n });
+        badge.hidden = n === 0;
+        $('ms-reminder-text').textContent = tf('ms_reminder_memo', { n });
+        $('ms-reminder').hidden = n === 0;
+    } catch (e) { console.warn('تعذر حساب الحفظ الشهري المعلّق:', e); }
+
+    try {
+        const m = await import('../components/monthlyReportsHub.js');
+        const r = await m.getReportsExportSummary();
+        if (stale() || !r) return;
+        $('ms-stat-reports').textContent = r.done;
+        $('ms-stat-reports-of').textContent = ` / ${r.total}`;
+        $('ms-stat-reports-label').textContent = tf('ms_stat_reports', { month: r.monthLabel });
+        const left = r.total - r.done;
+        const badge = $('ms-badge-reports');
+        badge.textContent = tf('ms_badge_reports', { n: left });
+        badge.hidden = !(r.season && left > 0);
+    } catch (e) { console.warn('تعذر حساب ملخص التقارير الشهرية:', e); }
+}
+
+// عند إغلاق شاشة الحفظ الشهري (.mmb-overlay) أو مركز التقارير (.mrh-overlay) — وكلاهما يُزال من body —
+// تتحدّث الأرقام فوراً. المراقِب يفصل نفسه عند مغادرة شاشة «طلابي».
+let _msOverlayObserver = null;
+function watchMyStudentsOverlays() {
+    _msOverlayObserver?.disconnect();
+    _msOverlayObserver = new MutationObserver((mutations) => {
+        if (!document.getElementById('ms-screen')) { _msOverlayObserver.disconnect(); _msOverlayObserver = null; return; }
+        const closed = mutations.some(mu => [...mu.removedNodes].some(n => n.nodeType === 1 && n.classList && (n.classList.contains('mmb-overlay') || n.classList.contains('mrh-overlay'))));
+        if (closed) refreshMyStudentsSummary();
+    });
+    _msOverlayObserver.observe(document.body, { childList: true });
 }
 
 // 🌟 [جديد] بعد حفظ بطل جديد مباشرة — نطلب منه "نقطة البداية الأولى" في الحفظ
@@ -489,7 +695,7 @@ function promptInitialMemorizationPositionForNewStudent(student) {
 // ⚠️ [افتراض صريح] لو كانت شاشة "نقطة البداية الأولى" متاحة تظهر هي أولاً (كانت تظهر بعد الحفظ أصلاً) ثم هذه الشاشة.
 async function offerNewStudentGames(fallbackStudent) {
     let student = fallbackStudent;
-    try {
+    if (AppState.studentManager) try {
         const all = await AppState.studentManager.getAllStudents();
         student = all.find(x => x.id === fallbackStudent.id) || fallbackStudent;
     } catch (e) { /* نستخدم نسخة النموذج */ }
@@ -515,30 +721,97 @@ function parseStudentId(raw) {
     return /^\d+$/.test(str) ? Number(str) : str;
 }
 
+// 🌟 [عدّل 2026-10-03] السجل العام صار قائمة مبسّطة بدل جدول التسعة أعمدة (راجع تعليق all-students.html):
+// صف لكل طالب (صورة + اسم + صف/عمر + نقاط + زر تقييم + قائمة ⋯)، والمخفيون في مجموعة قابلة للطي أسفل القائمة.
+// أسماء الأصناف (btn-prof-link/btn-start-eval/btn-edit/btn-hide/btn-show/btn-delete/btn-weakness) كما هي ليعمل مستمع النقر بلا تغيير.
+const AS_AVATAR_COLORS = ['#0d5c46', '#147c5e', '#8a6a12', '#1e5a7a', '#6b3f8a', '#9a3b3b', '#3d6b2f', '#8a5a1e'];
+
+function allStudentsAvatarHtml(s) {
+    const a = s.avatar || '';
+    if (a && a.length >= 10) return `<div class="as-avatar"><img src="${esc(a)}" alt=""></div>`;
+    const key = String(s.id);
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+    const bg = AS_AVATAR_COLORS[h % AS_AVATAR_COLORS.length];
+    const inner = a ? esc(a) : esc((s.name || '؟').trim().charAt(0) || '★');
+    return `<div class="as-avatar" style="background:${bg}">${inner}</div>`;
+}
+
+function allStudentsRowHtml(s) {
+    const id = esc(s.id);
+    const details = [s.grade ? trStored(s.grade) : t('stu_not_set')];
+    if (s.dob) {
+        const d = new Date(s.dob);
+        details.push(tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) }));
+    }
+    const weakness = (s.weaknesses && s.weaknesses.length > 0)
+        ? `<button class="btn-weakness" data-id="${id}">${tf('as_fix_errors', { n: s.weaknesses.length })}</button>` : '';
+    const mainBtn = s.isHidden
+        ? `<button class="btn as-go btn-show" data-id="${id}">${t('as_show_btn')}</button>`
+        : `<button class="btn as-go btn-start-eval" data-id="${id}">${t('stu_start_eval_row')}</button>`;
+    const hideItem = s.isHidden
+        ? `<button class="btn-show" data-id="${id}">👁️ ${t('stu_restore')}</button>`
+        : `<button class="btn-hide" data-id="${id}">🙈 ${t('stu_hide')}</button>`;
+    return `<div class="as-row${s.isHidden ? ' as-hidden-row' : ''}" data-name="${esc((s.name || '').toLowerCase())}">
+        ${allStudentsAvatarHtml(s)}
+        <div class="as-info">
+            <button class="btn-prof-link" data-id="${id}">${esc(s.name)}</button>
+            <span class="as-sub">${esc(details.join(' · '))}</span>
+            ${weakness}
+        </div>
+        <div class="as-pts">${s.totalScore || 0} <small>${t('as_points_unit')}</small></div>
+        ${mainBtn}
+        <div class="as-menu-wrap">
+            <button class="as-more" aria-label="${t('as_more_options')}" title="${t('as_more_options')}">⋯</button>
+            <div class="as-menu">
+                <button class="btn-edit" data-id="${id}">✏️ ${t('stu_edit_data')}</button>
+                ${hideItem}
+                <button class="btn-delete" data-id="${id}">🗑️ ${t('stu_delete_final')}</button>
+            </div>
+        </div>
+    </div>`;
+}
+
 async function renderAllStudentsTable() {
     const students = await AppState.studentManager.getAllStudents();
-    const tbody = document.getElementById('all-students-body');
-    if(!tbody) return;
-    tbody.innerHTML = "";
-    students.forEach((s, index) => {
-        let ageStr = t("stu_not_set");
-        if(s.dob) {
-            let d = new Date(s.dob);
-            ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
-        }
-        let evalsCount = JSON.parse(localStorage.getItem(`history_${s.id}`))?.length || 0;
-        let hideBtn = s.isHidden ? `<button class="btn btn-show" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_restore')}">👁️</button>` : `<button class="btn btn-outline btn-hide" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_hide')}">🙈</button>`;
-        let manageBtns = `<button class="btn btn-edit" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_edit_data')}">✏️</button>${hideBtn}<button class="btn btn-wrong btn-delete" data-id="${esc(s.id)}" style="padding:5px; font-size:1rem; min-width:unset;" title="${t('stu_delete_final')}">🗑️</button>`;
-        let weaknessBtn = (s.weaknesses && s.weaknesses.length > 0) ? `<button class="btn btn-weakness" data-id="${esc(s.id)}" style="padding:5px 10px; font-size:1rem;">${tf('stu_errors_btn', { n: s.weaknesses.length })}</button>` : `<span style="color:#aaa;">${t('stu_no_errors')}</span>`;
+    const box = document.getElementById('all-students-body');
+    if(!box) return;
+    const visible = students.filter(s => !s.isHidden);
+    const hidden = students.filter(s => s.isHidden);
+    const countEl = document.getElementById('as-count');
+    if (countEl) countEl.textContent = tf('as_count', { n: visible.length });
 
-        let nameButton = `<button class="btn-prof-link" data-id="${esc(s.id)}" style="background:none; border:none; color:#10b981; font-weight:bold; font-size:1.2rem; cursor:pointer; text-decoration:underline; font-family:inherit; padding:0;">${esc(s.name)}</button>`;
+    if (!students.length) { box.innerHTML = `<div class="as-empty">${t('as_empty')}</div>`; return; }
+    let html = visible.length ? `<div class="as-list">${visible.map(allStudentsRowHtml).join('')}</div>` : '';
+    if (hidden.length) {
+        html += `<details class="as-hidden-box"${visible.length ? '' : ' open'}><summary>${tf('as_hidden_group', { n: hidden.length })}</summary><div class="as-list">${hidden.map(allStudentsRowHtml).join('')}</div></details>`;
+    }
+    html += `<div class="as-empty" id="as-no-match" style="display:none;">${t('as_no_match')}</div>`;
+    box.innerHTML = html;
+    filterAllStudentsList();
+}
 
-        // 🌟 [جديد 2026-10-01] زر "ابدأ تقييم" في صف الطالب (مخفي للطالب المخفي) — يبدأ التقييم مباشرة بلا المرور بالرئيسية
-        let startEvalBtn = s.isHidden ? '<span style="color:#aaa;">—</span>' : `<button class="btn as-btn-primary btn-start-eval" data-id="${esc(s.id)}" style="padding:6px 12px; font-size:1rem; min-width:unset;">${t('stu_start_eval_row')}</button>`;
-
-        // 🌟 [إصلاح فحص الأزرار] data-label على كل خلية ليعرض CSS الهاتف (بطاقات) اسم الحقل بجانب قيمته 🌟
-        tbody.innerHTML += `<tr style="${s.isHidden ? 'opacity:0.5; background:rgba(0,0,0,0.05);' : ''}"><td data-label="${t('as_col_no')}">${index+1}</td><td data-label="${t('as_col_name')}">${nameButton}</td><td data-label="${t('as_col_age')}">${ageStr}</td><td data-label="${t('as_col_grade')}">${esc(s.grade ? trStored(s.grade) : t('stu_not_set'))}</td><td data-label="${t('as_col_points')}" style="font-weight:bold;">${s.totalScore || 0}</td><td data-label="${t('as_col_start_eval')}">${startEvalBtn}</td><td data-label="${t('as_col_evals')}">${evalsCount}</td><td data-label="${t('as_col_manage')}">${manageBtns}</td><td data-label="${t('as_col_errors')}">${weaknessBtn}</td></tr>`;
+// بحث فوري بالاسم: يخفي الصفوف غير المطابقة بلا إعادة رسم
+function filterAllStudentsList() {
+    const q = (document.getElementById('as-search')?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('#all-students-body .as-row');
+    let shown = 0;
+    rows.forEach(r => { const ok = !q || r.dataset.name.includes(q); r.style.display = ok ? '' : 'none'; if (ok) shown++; });
+    const hiddenBox = document.querySelector('#all-students-body .as-hidden-box');
+    if (hiddenBox) {
+        const anyHidden = [...hiddenBox.querySelectorAll('.as-row')].some(r => r.style.display !== 'none');
+        hiddenBox.style.display = anyHidden ? '' : 'none';
+        if (q && anyHidden) hiddenBox.open = true;
+    }
+    document.querySelectorAll('#all-students-body > .as-list').forEach(l => {
+        l.style.display = [...l.querySelectorAll('.as-row')].some(r => r.style.display !== 'none') ? '' : 'none';
     });
+    const none = document.getElementById('as-no-match');
+    if (none) none.style.display = (q && rows.length && !shown) ? '' : 'none';
+}
+
+function closeAllStudentsMenus(except) {
+    document.querySelectorAll('#all-students-body .as-menu-wrap.open').forEach(w => { if (w !== except) w.classList.remove('open'); });
 }
 
 function setupAllStudentsListeners() {
@@ -552,9 +825,21 @@ function setupAllStudentsListeners() {
         await loadMyStudentsScreen();
         document.getElementById('btn-add-student')?.click();
     });
+    document.getElementById('as-search')?.addEventListener('input', filterAllStudentsList);
+    // إغلاق قائمة ⋯ المفتوحة عند النقر في أي مكان آخر من الشاشة
+    document.querySelector('#app-root .as-panel')?.addEventListener('click', (e) => {
+        if (!e.target.closest('.as-menu-wrap')) closeAllStudentsMenus(null);
+    });
     document.getElementById('all-students-body')?.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if(!target) return;
+        if (target.classList.contains('as-more')) {
+            const wrap = target.closest('.as-menu-wrap');
+            closeAllStudentsMenus(wrap);
+            wrap.classList.toggle('open');
+            return;
+        }
+        closeAllStudentsMenus(null);
         const id = parseStudentId(target.dataset.id);
 
         if(target.classList.contains('btn-prof-link')) {
@@ -740,7 +1025,7 @@ function buildArchiveCard(w) {
             <span style="background: var(--dh-emerald-700); color:white; padding:4px 12px; border-radius:20px; font-size:0.95rem; font-weight:bold;">${sectionBadge} ${typeLabel}</span>
             <span style="color:#94a3b8; font-size:0.9rem;">${locationText}</span>
         </div>
-        <div class="quran-text" style="font-size:1.8rem; color:#1e293b; margin-bottom:10px; line-height:1.6;">﴿ ${w.text || ''} ﴾</div>
+        <div class="quran-text" style="font-size:1.8rem; color:#1e293b; margin-bottom:10px; line-height:1.6;">﴿\u00A0${w.text || ''}\u00A0﴾</div>
         ${errorLine}
         <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:0.85rem; color:#64748b; border-top:1px dashed #e2e8f0; padding-top:8px;">
             <span>📌 ${t('error_recorded_on')} ${recordedDate}</span>

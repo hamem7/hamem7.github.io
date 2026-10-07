@@ -27,7 +27,7 @@
 // 5) "مين يلعب الرقم التالي" (دور بالتبادل) مؤشر إرشادي فقط للمعلم — لا قفل برمجي صارم
 //    يمنع النقر، لأن المعلم هو من يدير التسلسل فعلياً مع الطالبَين حضورياً.
 
-import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { AppState, loadSplashScreen, t, openDualTestSetup } from '../core/app.js';
 import { esc } from '../core/escape.js';
 // 🌟 [جديد] showToastEncouragement — لتنبيه المعلم بلطف عند استرجاع تقدّم جولة جارية بعد
 // تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
@@ -145,6 +145,30 @@ function retriggerAnimation(el, animClass) {
 
 // ===================== الترحيب / VS =====================
 
+// 🌟 [جديد] شاشة الترحيب في حالة "الجولة لم تُجهَّز بعد" — نفس عناصر الترحيب، مع تغيير نص
+// الشارة والزر فقط؛ الزر يفتح شاشة الإعداد مباشرة على أسئلة هذه الجولة (AppState.dualTestSetupOpenRound)
+async function renderRoundNotReady(roundIndex) {
+    document.getElementById('dtp-round-label').textContent = t('dtp_round_not_ready_label').replace('{n}', roundIndex + 1);
+    document.getElementById('dtp-name-a').textContent = match.studentNameA;
+    document.getElementById('dtp-name-b').textContent = match.studentNameB;
+    document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
+    document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+    const avatarA = await getStudentAvatar(match.studentIdA);
+    const avatarB = await getStudentAvatar(match.studentIdB);
+    document.getElementById('dtp-avatar-a').innerHTML = renderAvatarHTML(match.studentNameA, avatarA);
+    document.getElementById('dtp-avatar-b').innerHTML = renderAvatarHTML(match.studentNameB, avatarB);
+
+    const btn = document.getElementById('dtp-start-round-btn');
+    btn.innerHTML = '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
+        + `<span>${esc(t('dtp_round_not_ready_btn').replace('{n}', roundIndex + 1))}</span>`;
+    btn.disabled = false;
+    btn.onclick = () => {
+        AppState.dualTestSetupOpenRound = { testId: match.testId, roundIndex };
+        openDualTestSetup();
+    };
+    showView('dtp-welcome-view');
+}
+
 async function startRoundFlow() {
     const roundIndex = match.currentRoundIndex;
     const round = test.rounds[roundIndex];
@@ -193,6 +217,14 @@ async function startRoundFlow() {
 
         showToastEncouragement('toast-encouragement', t('dtp_round_restored_toast'));
         renderBoardView(); // نتجاوز شاشتي الترحيب والقرعة تماماً — القرعة سبق إجراؤها فعلاً
+        return;
+    }
+
+    // 🌟 [جديد] الجولات تُجهَّز تدريجياً (جولة بجولة) بطلب صريح من المعلم — لو وصلنا لجولة لم
+    // تُضَف لها أي أسئلة أساسية بعد، لا نفتح لوحة فارغة: نعرض شاشة الترحيب برسالة وزر يفتح
+    // تجهيز هذه الجولة مباشرة. المواجهة نفسها تبقى محفوظة كما هي (لا شيء يُكتب هنا)
+    if (!round || !Array.isArray(round.mainQuestions) || round.mainQuestions.length === 0) {
+        await renderRoundNotReady(roundIndex);
         return;
     }
 
@@ -392,7 +424,7 @@ function renderBoardView() {
             const topClass = (BOARD_TOP_STAR_ENABLED && i === topIndex) ? ' dtp-cell-top' : '';
             return `<div class="dtp-board-cell${topClass}" data-index="${i}">${q.number}</div>`;
         }
-        const icon = status === 'swapped' ? '🔄' : '✅';
+        const icon = status === 'swapped' ? DTP_PILL_ICONS.swapCell : DTP_PILL_ICONS.check;
         return `<div class="dtp-board-cell dtp-cell-done">${icon}</div>`;
     }).join('');
 
@@ -412,6 +444,15 @@ function renderBoardView() {
     showView('dtp-board-view');
 }
 
+// 🌟 [جديد — ترتيب شاشة اللعب] أيقونات خطّية لشارات حالة الطالب في شريط النقاط
+const DTP_PILL_ICONS = {
+    helper: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>',
+    swap: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+    x: '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+    check: '<svg class="dtp-cell-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>',
+    swapCell: '<svg class="dtp-cell-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>'
+};
+
 function renderScorebar(containerId, variant) {
     const el = document.getElementById(containerId);
     if (!el) return;
@@ -430,15 +471,21 @@ function renderScorebar(containerId, variant) {
         const avatarHTML = variant === 'arena'
             ? `<span class="dtp-score-avatar">${esc(studentName(key).trim().charAt(0))}</span>`
             : '';
+        // 🌟 [مُحدَّث — ترتيب شاشة اللعب] الاسم في سطر مستقل بخط أكبر، وشارة "الدور الآن" (تظهر
+        // بالـCSS لصاحب الدور فقط)، وحالة المساعدة/التبديل/الأخطاء كشارات صغيرة بأيقونات خطّية
+        // ونص بدل الإيموجي. نفس البيانات ونفس أصناف الحالة (used / dtp-turn-active) بلا تغيير
         return `
         <div class="dtp-score-side ${active}">
             ${avatarHTML}
-            <span class="dtp-score-name">${esc(studentName(key))}</span>
+            <span class="dtp-score-main">
+                <span class="dtp-score-name">${esc(studentName(key))}</span>
+                <span class="dtp-score-turn">${t('dtp_turn_now_label')}</span>
+            </span>
             <span class="dtp-score-points" data-score-side="${key}">${displayScore}</span>
             <span class="dtp-score-icons">
-                <span class="${helperUsed}" title="${t('dtp_btn_helper')}">💡</span>
-                <span class="${swapUsed}" title="${t('dtp_btn_swap')}">🔄</span>
-                <span title="${t('dtp_mistakes_count_label').replace('{n}', mistakes)}">❌${mistakes}</span>
+                <span class="dtp-score-pill ${helperUsed}" title="${t('dtp_btn_helper')}">${DTP_PILL_ICONS.helper}${t('dtp_btn_helper')}</span>
+                <span class="dtp-score-pill ${swapUsed}" title="${t('dtp_btn_swap')}">${DTP_PILL_ICONS.swap}${t('dtp_btn_swap')}</span>
+                <span class="dtp-score-pill dtp-score-pill-x" title="${t('dtp_mistakes_count_label').replace('{n}', mistakes)}">${DTP_PILL_ICONS.x}${mistakes}</span>
             </span>
         </div>`;
     };
@@ -518,6 +565,7 @@ function renderQuestionView() {
     const currentPointsEl = document.getElementById('dtp-current-points');
     currentPointsEl.textContent = t('dtp_current_points_label').replace('{score}', liveScore).replace('{max}', QUESTION_POINTS);
     currentPointsEl.className = 'dtp-current-points ' + pointsRatingClass(liveScore);
+    renderQuestionMeter(activeQuestion.mistakesThisQuestion, liveScore);
 
     const studentKey = activeQuestion.forStudent;
     document.getElementById('dtp-btn-helper').disabled = roundState.helperUsed[studentKey];
@@ -526,11 +574,65 @@ function renderQuestionView() {
 
     if (TIMER_ENABLED) startTimer(); // 🌟 المؤقت مُعطَّل حالياً — راجع تعريف TIMER_ENABLED أعلاه
     showView('dtp-question-view');
+    bindFitOnResize();
+    fitQuestionText();
 
     document.getElementById('dtp-btn-mistake').onclick = onMistakeClick;
     document.getElementById('dtp-btn-helper').onclick = onHelperClick;
     document.getElementById('dtp-btn-swap').onclick = onSwapClick;
     document.getElementById('dtp-btn-finish').onclick = onFinishQuestionClick;
+}
+
+// 🌟 [جديد — التصميم الاحترافي] عرض بصري فقط للأخطاء والدرجة الحالية في شاشة السؤال: نقاط
+// تمتلئ بعدد الأخطاء + حلقة دائرية تمتلئ بنسبة الدرجة من QUESTION_POINTS. لا يغيّر أي حساب —
+// يقرأ نفس القيم التي حسبها renderQuestionView أعلاه (عدد الأخطاء وناتج computeQuestionScore)
+function renderQuestionMeter(mistakes, liveScore) {
+    const pips = document.getElementById('dtp-mistake-pips');
+    if (pips) {
+        const shown = Math.min(Math.max(6, mistakes), 20);
+        let html = '';
+        for (let i = 0; i < shown; i++) html += `<i class="${i < mistakes ? 'on' : ''}"></i>`;
+        pips.innerHTML = html;
+    }
+    const ring = document.getElementById('dtp-points-ring');
+    if (ring) {
+        ring.style.setProperty('--dtp-ring-p', Math.max(0, Math.min(100, (liveScore / QUESTION_POINTS) * 100)));
+        ring.className = 'dtp-points-ring ' + pointsRatingClass(liveScore);
+    }
+    const val = document.getElementById('dtp-points-ring-value');
+    if (val) val.textContent = liveScore;
+    const max = document.getElementById('dtp-points-ring-max');
+    if (max) max.textContent = '/ ' + QUESTION_POINTS;
+}
+
+// 🌟 [جديد — ترتيب شاشة اللعب] بطلب المعلم: نص السؤال يظهر كاملاً بلا نزول وطلوع. نبدأ بالحجم
+// الكامل ثم نصغّر خط "من/إلى" تدريجياً (حتى 45% كحد أدنى) إلى أن تتسع شاشة السؤال كلها بلا
+// تمرير. عرض فقط — لا يمس أي بيانات. يُعاد عند كل رسم للسؤال وعند تغيير حجم النافذة
+function fitQuestionText() {
+    const view = document.getElementById('dtp-question-view');
+    if (!view || view.style.display === 'none') return;
+    const inner = view.querySelector('.dtp-q-inner');
+    if (!inner) return;
+    // القياس مقابل ارتفاع النافذة نفسها (وليس ارتفاع الطبقة): أي أب عليه transform يغيّر
+    // مرجع position:fixed فلا يمكن الاعتماد على scrollHeight/clientHeight للطبقة
+    view.scrollTop = 0;
+    const limit = window.innerHeight - 16;
+    let scale = 1;
+    view.style.setProperty('--dtp-q-scale', scale);
+    while (inner.getBoundingClientRect().bottom > limit && scale > 0.45) {
+        scale = Math.round((scale - 0.05) * 100) / 100;
+        view.style.setProperty('--dtp-q-scale', scale);
+    }
+}
+let fitResizeBound = false;
+function bindFitOnResize() {
+    if (fitResizeBound) return;
+    fitResizeBound = true;
+    let raf = 0;
+    window.addEventListener('resize', () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(fitQuestionText);
+    });
 }
 
 function startTimer() {
@@ -941,6 +1043,10 @@ async function finishMatch() {
     document.getElementById('dtp-final-rounds-b').textContent = t('dtp_final_rounds_label').replace('{n}', series.roundsWonB);
     document.getElementById('dtp-final-points-a').textContent = t('dtp_final_points_label').replace('{n}', series.totalPointsA);
     document.getElementById('dtp-final-points-b').textContent = t('dtp_final_points_label').replace('{n}', series.totalPointsB);
+
+    // 🌟 [جديد — التصميم الاحترافي] تمييز بطاقة الفائز بصرياً في شاشة النتيجة النهائية (صنف CSS فقط)
+    document.getElementById('dtp-final-side-a')?.classList.toggle('dtp-fin-won', series.result === 'A_win');
+    document.getElementById('dtp-final-side-b')?.classList.toggle('dtp-fin-won', series.result === 'B_win');
 
     const badgeEl = document.getElementById('dtp-final-winner-badge');
     if (series.result === 'tie') {

@@ -28,7 +28,8 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   /* ============== إطار الصفحة (ورق كريمي بلا حشو — الهيرو بعرض كامل) ============== */
   #report-screen .page.mr2{
     width:794px; max-width:100%; padding:0; overflow:hidden;
-    background:#fffdf6; color:#10241c;
+    /* 🌟 [2026-10-03] علامة مائية باهتة جداً لشعار المنصة تحت الهيرو (الشفافية مدمجة في ملف SVG نفسه) */
+    background:#fffdf6 url("assets/brand/ham-logo-watermark.svg") no-repeat center 62% / 46% auto; color:#10241c;
     font-family:'IBM Plex Sans Arabic','Cairo',sans-serif;
   }
   /* الأقسام (غير الهيرو والفوتر) تأخذ هوامشها الجانبية بنفسها حتى يبقى الهيرو بعرض كامل */
@@ -54,6 +55,7 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   }
 
   #report-screen .page.mr2 .mr2-topbar{display:flex; align-items:center; gap:14px;}
+  #report-screen .page.mr2 .mr2-logo{width:54px; height:auto; flex-shrink:0; display:block;}
   #report-screen .page.mr2 .mr2-brand-name{font-family:'Reem Kufi','Amiri',serif; font-size:26px; line-height:1; color:#fffdf6; font-weight:600;}
   #report-screen .page.mr2 .mr2-brand-sub{font-size:12.5px; color:#d4af37; margin-top:3px; font-weight:500;}
   #report-screen .page.mr2 .mr2-period{margin-inline-start:auto; display:flex; flex-direction:column; gap:3px;}

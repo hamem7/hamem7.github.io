@@ -88,7 +88,8 @@ export const REPORT_STYLES = `
   /* ============== إطار الصفحة ============== */
   #report-screen .page{
     width:720px; max-width:100%;
-    color:#2b2620; background:#f9f4ea;
+    /* 🌟 [2026-10-03] علامة مائية باهتة جداً لشعار المنصة في وسط الورقة (الشفافية مدمجة في ملف SVG نفسه) */
+    color:#2b2620; background:#f9f4ea url("assets/brand/ham-logo-watermark.svg") no-repeat center 55% / 46% auto;
     padding:44px 46px 34px; position:relative;
     box-shadow:0 10px 40px rgba(0,0,0,0.12);
   }
@@ -118,7 +119,9 @@ export const REPORT_STYLES = `
     padding-block:8px 20px; padding-inline:104px; min-height:118px;
   }
   #report-screen .head-art{position:absolute; top:-6px; left:-24px; width:158px; height:auto;}
-  #report-screen .head-star{position:absolute; top:8px; right:-10px; width:76px; height:auto;}
+  /* 🌟 [2026-10-03] شعار المنصة أعلى يمين الترويسة (بدل عنقود النجوم) — نفس المساحة المحجوزة بـ padding-inline أدناه */
+  #report-screen .head-logo{position:absolute; top:-8px; right:-4px; width:70px; height:auto;}
+  #report-screen .footer-logo{width:20px; height:auto; vertical-align:middle; margin-inline-end:6px;}
   /* ⚠️ بلا letter-spacing إطلاقًا على أي نص عربي هنا.
      السبب حقيقي لا تجميلي: html2canvas (المستخدَم في تصدير الصورة والـ PDF) يرسم النص
      حرفًا حرفًا حين يجد letter-spacing غير صفري، وتقطيع النص العربي إلى حروف منفصلة
@@ -366,12 +369,18 @@ export const REPORT_STYLES = `
   #report-screen .page.dh-brief .pdf-only{display:none !important;}
 
   @media (max-width:760px){
+    /* 🌟 [2026-10-03 — مراجعة تجربة الهاتف] الورقة بعرض الشاشة على الهاتف: كانت #report-stage-inner بـ flex:none فتبقى الورقة 720px
+       مقصوصة داخل إطار يُمرَّر أفقيًا (يرى المعلم جزءًا من التقرير فقط)، فلا تعمل قواعد الهاتف أدناه أصلًا. أثناء التصدير يضيف
+       report.js الكلاس dh-export-width فتعود الورقة 720px كما كانت تمامًا، فلا يتغير ناتج الصورة/PDF. */
+    #report-screen .report-stage:has(#report-stage-inner){padding:12px 8px 24px;}
+    #report-screen .report-stage:has(#report-stage-inner) > #report-stage-inner{flex:1 1 auto; width:100%; min-width:0;}
+    #report-screen .report-stage.dh-export-width:has(#report-stage-inner) > #report-stage-inner{flex:none; width:auto;}
     #report-screen .page{padding:30px 18px 26px;}
     #report-screen .r-title{font-size:28px;}
     #report-screen .r-subtitle{font-size:18px;}
     #report-screen .dh-head{padding-inline:0; min-height:0;}
     #report-screen .head-art{position:static; display:block; width:140px; margin-inline:0 auto; margin-bottom:4px;}
-    #report-screen .head-star{display:none;}
+    #report-screen .head-logo{display:none;}
     #report-screen .gauge-card{flex:1 1 100%;}
     #report-screen .ladder{flex-wrap:wrap; gap:16px 0;}
     #report-screen .step{flex:1 1 50%;}
@@ -379,6 +388,14 @@ export const REPORT_STYLES = `
     /* الجدول أضيق من أن يُعرض بخمسة أعمدة على الجوال — يُمرَّر أفقيًا داخل حاويته وحده */
     #report-screen .qlist{overflow-x:auto;}
     #report-screen .qgrid-head, #report-screen .qrow{min-width:560px;}
+    /* 🌟 [2026-10-03] على شاشة الهاتف (لا أثناء التصدير): كل سؤال صف بعرض الشاشة بلا تمرير أفقي — م | الحالة | السؤال | الدرجة،
+       والملاحظة في سطر تحته بدل عمود مخفي خارج الشاشة. التصدير (dh-export-width) يبقى بالجدول كما كان تمامًا. */
+    #report-screen .report-stage:not(.dh-export-width) .qlist{overflow-x:visible;}
+    #report-screen .report-stage:not(.dh-export-width) .qgrid-head,
+    #report-screen .report-stage:not(.dh-export-width) .qrow{min-width:0; grid-template-columns:22px 22px minmax(0,1fr) auto; gap:4px 8px;}
+    #report-screen .report-stage:not(.dh-export-width) .qgrid-head > :nth-child(5){display:none;}
+    #report-screen .report-stage:not(.dh-export-width) .qrow{padding:9px 6px;}
+    #report-screen .report-stage:not(.dh-export-width) .qnote{grid-column:3 / -1;}
     #report-screen .closing{flex-direction:column; align-items:center; text-align:center;}
     /* 🌟 [إصلاح التوافق مع الشاشات] شريط الملاحظة وشريط الأدوات كانا لا يلتفّان (label/hint بـ flex:none + textarea بعرض ~26px)
        فيتّسع عرض الصفحة كلها على الهاتف. الآن يلتفّان ويأخذ مربع الملاحظة سطرًا كاملًا. تؤثر فقط في شاشة التقرير (#report-screen). 🌟 */

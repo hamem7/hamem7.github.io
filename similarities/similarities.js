@@ -169,6 +169,8 @@ export async function initSimilaritiesHome() {
         }
     }
 
+    // 🌟 [2026-10-03] تحميل الـ Seed صار في الخلفية أثناء الإقلاع (core/app.js) — ننتظر اكتماله قبل أول قراءة
+    if (AppState.similaritiesReady) await AppState.similaritiesReady;
     allSimilarities = AppState.similaritiesManager ? await AppState.similaritiesManager.getAllSimilarities() : [];
     navStack = [];
     currentView = { view: 'home', params: null };
@@ -639,7 +641,7 @@ function renderWordsListHTML() {
 
     const cards = groups.map(g => `
         <button class="sim-card sim-word-card" data-action="open-word" data-group="${g.groupId}">
-            <span class="sim-word-anchor quran-text">﴿ ${g.anchorPhrase} ﴾</span>
+            <span class="sim-word-anchor quran-text">﴿\u00A0${g.anchorPhrase}\u00A0﴾</span>
             <span class="sim-word-meta">${categoryLabel(g.category)} · ${(g.surahs || []).length} ${t('sim_surahs_count_suffix')}</span>
         </button>`).join('');
     return `<div class="sim-grid sim-grid-words">${cards}</div>`;

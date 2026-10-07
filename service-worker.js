@@ -1,3 +1,4 @@
+const MUSHAF_CACHE = 'dar-ham-mushaf-v1'; // صور صفحات المصحف (تُخزَّن عند أول عرض فقط، لا تحميل مسبق للـ604)
 const CACHE_NAME = 'dar-ham-quran-v4'; // 🌟 رُفع من v3 إلى v4 مع دمج نظام الواجبات الجديد (2026-09-25) — أي تعديل جوهري لاحق في الملفات المخزّنة يستوجب رفعه مرة أخرى
 
 // عند تثبيت التطبيق لأول مرة
@@ -22,6 +23,18 @@ self.addEventListener('fetch', (event) => {
     let sameOrigin = false;
     try { sameOrigin = new URL(req.url).origin === self.location.origin; } catch (e) { /* رابط غير صالح: لا نتدخل */ }
     if (!sameOrigin) return;
+    // صور المصحف: الكاش أولاً (لا تتغير)، وإن لم تكن مخزّنة تُجلب وتُخزَّن لتعمل لاحقاً بلا إنترنت
+    if (req.url.includes('/assets/mushaf/') && req.url.endsWith('.webp')) {
+        event.respondWith((async () => {
+            const cache = await caches.open(MUSHAF_CACHE);
+            const hit = await cache.match(req);
+            if (hit) return hit;
+            const res = await fetch(req);
+            if (res && res.ok) cache.put(req, res.clone()).catch(() => {});
+            return res;
+        })());
+        return;
+    }
     event.respondWith(
         fetch(req).catch(async () => {
             const cached = await caches.match(req);

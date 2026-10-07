@@ -160,7 +160,7 @@
     }
 
     /* 🌟🌟 [جديد] بانر التذكير الشهري بتحديث بيانات حفظ الطلاب — قواعد معزولة
-         تماماً هنا أيضاً (نفس فلسفة العزل أعلاه)، بنفس لغة بانر عيد ميلاد
+         تماماً هنا أيضاً (نفس فلسفة العزل أعلاه)، بنفس لغة بانر يوم ميلاد
          المعلم الموجود فعلاً في css/home.css (.teacher-bday-banner) لكن دون
          الاعتماد على تلك القاعدة نفسها لتفادي أي تداخل غير مقصود بينهما */
     .dh-monthly-memo-banner {
@@ -261,6 +261,9 @@
                         <span data-i18n="hero_eyebrow">منصة تعليمية متكاملة</span>
                     </span>
 
+                    <!-- 🌟 [2026-10-03] شعار المنصة يمين الآية (بطلب المعلم) بألوان فاتحة مباشرة على الأخضر، والافتتاحية المتحركة
+                         مرة واحدة في الجلسة — يُرسم من core/brandLogo.js. عنصر شقيق للآية (لا داخلها) لأن نص الآية يُستبدل بالترجمة -->
+                    <span class="home-hero-logo" data-ham-logo="full" data-ham-tone="light" data-ham-play="intro" data-ham-title="منصة حمٓ"></span>
                     <h1 class="home-title" id="main-title" data-i18n="splash_title"><span class="home-title-ha">حمٓ</span> وَٱلۡكِتَٰبِ ٱلۡمُبِينِ</h1>
 
                     <!-- 🌟 [جديد] فاصل زخرفي (خط ذهبي يتلاشى من الطرفين + نجمة ثمانية) بين الآية والعنوان الفرعي — للزينة فقط ولا نص فيه -->
@@ -325,7 +328,7 @@
                     </div>
 
                     <!-- 🌟🌟 [جديد 2026-10-01] مجموعة "يحتاج منك اليوم" — تجمع كل العناصر التي تنتظر
-                         إجراءً فعلياً من المعلم اليوم (عيد ميلاد طالب، مستحق المراجعة، مواجهات معلّقة)
+                         إجراءً فعلياً من المعلم اليوم (يوم ميلاد طالب، مستحق المراجعة، مواجهات معلّقة)
                          وتُوضَع أولاً في البطاقة، قبل الإحصاءات والآية. مخفية افتراضياً، وfunction
                          updateTodayGroup في components/homeQuickview.js هي المتحكم الوحيد في إظهارها:
                          تظهر العنوان لو في عنصر واحد على الأقل، أو رسالة "لا شيء معلّق اليوم" لو لا
@@ -333,7 +336,7 @@
                          الـids القديمة لكل عنصر بالداخل لم تتغير إطلاقاً (لا تأثير على أي منطق سابق). -->
                     <div class="home-quickcard-today" id="home-quickcard-today" style="display:none;">
                         <div class="home-quickcard-today-label" id="home-quickcard-today-label" style="display:none;" data-i18n="home_today_label">يحتاج منك اليوم</div>
-                        <!-- 🌟 تذكير عيد ميلاد طالب — يظهر فقط إن كان اليوم عيد ميلاد أحد الطلاب الفعليين -->
+                        <!-- 🌟 تذكير يوم ميلاد طالب — يظهر فقط إن كان اليوم يوم ميلاد أحد الطلاب الفعليين -->
                         <div class="home-quickcard-bday" id="home-quickcard-bday" style="display:none;">
                             <span class="home-quickcard-bday-icon" aria-hidden="true">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06231c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6"/><path d="M2 21h20"/><path d="M4 13c1-1 2-1 3 0s2 1 3 0 2-1 3 0 2 1 3 0 2-1 3 0"/><path d="M12 9V5"/></svg>
@@ -434,7 +437,7 @@
         <button type="button" class="dh-monthly-memo-banner-close" id="monthly-memo-banner-close" aria-label="close">✖️</button>
     </div>
 
-    <!-- 🌟 بانر عيد ميلاد المعلم — يظهر فقط في يوم ميلاده الحقيقي -->
+    <!-- 🌟 بانر يوم ميلاد المعلم — يظهر فقط في يوم ميلاده الحقيقي -->
     <div class="teacher-bday-banner" id="teacher-bday-banner" style="display:none;">
         <span class="bday-banner-text"></span>
         <button type="button" class="bday-banner-close" id="teacher-bday-banner-close" aria-label="close">✖️</button>
@@ -518,6 +521,16 @@
                 <!-- 🌟 [جديد 2026-10-02] إعادة الجولات الإرشادية — زر صغير بلا واجهة جديدة؛ المعالج في components/guidedTour.js -->
                 <div class="dh-backup-actions" style="margin-top:8px;">
                     <button type="button" class="btn btn-outline" id="teacher-profile-tour-reset-btn" data-i18n="tour_restart_btn">🧭 إعادة الجولات الإرشادية</button>
+                </div>
+            </div>
+
+            <!-- 🌟 [جديد 2026-10-06] حساب جوجل (نظام الواجبات): يعرض الإيميل الحالي، وزر «تغيير الإيميل» متاح دائماً -->
+            <div class="dh-backup-section" id="teacher-account-section">
+                <div class="dh-backup-section-title" data-i18n="acct_section_title">🔐 حساب جوجل (للواجبات)</div>
+                <div class="dh-backup-last-info" id="teacher-account-email"></div>
+                <div class="dh-backup-actions">
+                    <button type="button" class="btn btn-outline" id="teacher-account-change-btn" data-i18n="acct_change_btn">🔁 تغيير الإيميل</button>
+                    <button type="button" class="btn btn-outline" id="teacher-account-signout-btn" data-i18n="acct_signout_btn">🚪 تسجيل الخروج</button>
                 </div>
             </div>
 
@@ -608,6 +621,17 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
                 </span>
             </button>
+
+            <!-- 🏅 [جديد] بطاقة "الشهادات": شهادات تقدير جاهزة بقوالب متعددة (إتمام سورة/جزء، التميز في المراجعة...) + سجل بما صدر —
+                 راجع certificates/certificates.js. تُفتح الشاشة بـ import ديناميكي من core/app.js (setupSplashListeners) -->
+            <button class="home-card home-card-certs" id="btn-certs-main">
+                <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="M9 14l-2 7 5-3 5 3-2-7"/><path d="M12 6.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.6l2-.3Z"/></svg></span>
+                <span class="home-card-title" data-i18n="btn_certs">الشهادات</span>
+                <span class="home-card-desc" data-i18n="card_certs_desc">شهادات تقدير جاهزة لطلابك</span>
+                <span class="home-card-arrow" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                </span>
+            </button>
         </div>
 
         <div class="home-menu-primary home-menu-later">
@@ -665,12 +689,13 @@
          خصوصية، لجميع الأعمار) لأن بقية البطاقات (تقييم دقيق، تقارير احترافية، واجبات منزلية،
          بإعداد متخصصين) كانت تكرّر أزرار الأقسام الموجودة فوقها مباشرة؛ ودُمج معناها في سطر
          "عن حمٓ" بالفوتر (مفتاح footer_about_more). بطاقة "خصوصية" أصبحت رابطاً يفتح
-         privacy.html في تبويب جديد. مفاتيح الترجمة المحذوفة بطاقاتها (why_eval_* وwhy_reports_*
+         privacy.html (في نفس التبويب منذ 2026-10-03 ليبقى داخل التطبيق، وفيها زر «الرئيسية»). مفاتيح الترجمة المحذوفة بطاقاتها (why_eval_* وwhy_reports_*
          وwhy_homework_* وwhy_experts_*) أُبقي عليها في core/i18n.js بلا حذف، تحسباً لأي رجوع 🌟🌟 -->
     <!-- ========================================== -->
     <section class="home-why">
         <h2 class="home-why-title" data-i18n="why_darham_title">لماذا حمٓ؟</h2>
         <p class="home-why-subtitle" data-i18n="why_darham_subtitle">منصة متكاملة لحفظ القرآن ومراجعته وتقييمه</p>
+        <p class="home-why-subtitle home-why-subtitle-more" data-i18n="footer_about_more">تقييم دقيق وتقارير احترافية وواجبات منزلية، بأدوات أُعدّت لخدمة تعليم القرآن.</p>
 
         <div class="home-why-grid">
             <div class="home-why-card">
@@ -688,7 +713,7 @@
                 <h3 data-i18n="why_ages_title">لجميع الأعمار</h3>
                 <p data-i18n="why_ages_desc">تجربة للصغار والناشئة والكبار</p>
             </div>
-            <a class="home-why-card home-why-card-link" href="privacy.html" target="_blank" rel="noopener noreferrer">
+            <a class="home-why-card home-why-card-link" href="privacy.html">
                 <span class="home-why-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.6-3 8.4-7 9.5C8 20.4 5 16.6 5 12V6Z"/><path d="M9.5 12l1.8 1.8L15 9.8"/></svg></span>
                 <h3 data-i18n="why_privacy_title">خصوصية</h3>
                 <p data-i18n="why_privacy_desc">نهتم بخصوصية المستخدمين</p>
@@ -705,7 +730,6 @@
             <div class="home-footer-about">
                 <strong data-i18n="footer_about_title">عن حمٓ</strong>
                 <p data-i18n="footer_about_text">فكرة قديمة حديثة لتثبيت الحفظ والمراجعة</p>
-                <p class="home-footer-about-more" data-i18n="footer_about_more">تقييم دقيق وتقارير احترافية وواجبات منزلية، بأدوات أُعدّت لخدمة تعليم القرآن.</p>
             </div>
 
             <!-- 🌟 [جديد 2026-10-01 — بطلب المعلم] نص دعوة هادئة لمن يريد المساهمة في دعم المنصة، تحت زر "تواصل معنا" مباشرة (الغلاف

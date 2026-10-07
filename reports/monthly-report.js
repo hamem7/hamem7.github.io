@@ -39,7 +39,7 @@
 //      هذا الشهر تحديدًا" — يُعرض النطاق الحالي فقط مع ملاحظة توضيحية داخل التقرير.
 // =============================================================================
 
-import { AppState, applyLanguage, t, localizeGenerated, trStored } from '../core/app.js';
+import { AppState, applyLanguage, t, localizeGenerated, trStored, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // 🌟 [جديد] هوية "منازل القمر" الخاصة بالتقرير الشهري (ملف مستقل معزول تحت .mr2 —
@@ -66,11 +66,8 @@ import { summarizeReview, juzLabel } from '../engine/reviewParts.js';
 const CORNER_ORN_INNER = `<path d="M2 20C2 9 9 2 20 2" stroke="#c9932f" stroke-width="1.3" opacity=".55"/><circle cx="2" cy="20" r="2" fill="#c9932f" opacity=".55"/><circle cx="20" cy="2" r="2" fill="#c9932f" opacity=".55"/>`;
 const cornerOrnSvg = (cls) => `<svg class="corner-orn ${cls}" width="34" height="34" viewBox="0 0 40 40" fill="none">${CORNER_ORN_INNER}</svg>`;
 
-// 🌟 [جديد] رموز هوية "منازل القمر" (SVG مضمَّنة، بلا أي ملف صورة خارجي): علامة الخاتم
-// (مربعان متراكبان + هلال) ونجمة الفاصل. الهلال مرسوم كمسار (لا mask) حتى يلتقطه
-// html2canvas بثبات في التصدير.
-const MR2_MARK_PATHS = `<rect x="12" y="12" width="40" height="40" fill="none" stroke="#d4af37" stroke-width="2"/><rect x="12" y="12" width="40" height="40" fill="none" stroke="#d4af37" stroke-width="2" transform="rotate(45 32 32)"/><path transform="translate(4 0)" d="M38 20 A13.4 13.4 0 1 0 38 44 A12 12 0 0 1 38 20Z" fill="#f0d878"/>`;
-const mr2MarkSvg = (size) => `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">${MR2_MARK_PATHS}</svg>`;
+// 🌟 [جديد] رموز هوية "منازل القمر" (SVG مضمَّنة، بلا أي ملف صورة خارجي): نجمة الفاصل وأيقونة الخطة.
+// (علامة الخاتم والهلال في الشريط العلوي استُبدلت في 2026-10-03 بشعار المنصة assets/brand/ham-mark-light.svg)
 const MR2_HERO_STAR_SVG = `<svg class="mr2-hero-star" viewBox="0 0 52 52" aria-hidden="true"><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5"/><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5" transform="rotate(45 26 26)"/><circle cx="26" cy="26" r="6" fill="#d4af37"/></svg>`;
 const MR2_PLAN_CHIP_ICON = `<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="8" width="32" height="32" fill="none" stroke="#d4af37" stroke-width="3.5"/><rect x="8" y="8" width="32" height="32" fill="none" stroke="#d4af37" stroke-width="3.5" transform="rotate(45 24 24)"/></svg>`;
 // حلقة الهيرو: 8 علامات ذهبية زخرفية فقط (لا تمثّل أي بيان — المنصة لا تتتبّع الحضور/الغياب
@@ -163,7 +160,8 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div class="mr2-hero-inner">
 
             <div class="mr2-topbar">
-              ${mr2MarkSvg(54)}
+              <!-- 🌟 [2026-10-03] رمز شعار المنصة (بألوان فاتحة للهيرو الأخضر) بدل علامة النجمة والهلال — ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة -->
+              <img class="mr2-logo" src="assets/brand/ham-mark-light.svg" alt="">
               <div>
                 <div class="mr2-brand-name">حمٓ</div>
                 <div class="mr2-brand-sub" data-i18n="mr2_brand_sub">أبطال القرآن</div>
@@ -573,29 +571,59 @@ async function buildMonthlyReportData(year, monthIndex0) {
   try {
     // 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد ديناميكي من core/firebase.js (Firestore). الآن من
     // core/homeworkApi.js: نتائج الواجبات "المعتمدة" فقط من الخادم (درجات نهائية اعتمدها المعلم)، وتُطابَق مع الطالب
-    // بمعرّف الطالب المُخزَّن مع التسليم وقت الاعتماد. تتطلب مفتاح المعلم؛ لو لم يكن مُدخلاً على هذا الجهاز نطلبه هنا
-    // (أو تظهر رسالة "تعذّر الاتصال بالسحابة" في قسم الواجبات فقط لو ألغى المعلم، وباقي التقرير يعمل كالمعتاد).
-    const { ensureTeacherAuth } = await import('../components/teacherAuthGate.js');
-    if (!(await ensureTeacherAuth())) throw new Error('teacher key required');
-    const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
-    const allSubs = await getAllSubmissionsFromCloud();
-    const mineThisMonth = allSubs.filter(s =>
-      String(s.studentId) === String(student.id) &&
-      typeof s.timestamp === 'number' && s.timestamp >= monthStart && s.timestamp < monthEnd
-    );
+    // بمعرّف الطالب المُخزَّن مع التسليم وقت الاعتماد.
+    // 🌟🌟 [2026-10-03] التقرير الشهري جزء من المنصة الأساسية، فلا يطلب أي تسجيل دخول أبداً: كان يستدعي
+    // بوابة دخول المعلم القديمة فتظهر نافذة الدخول (جوجل/المفتاح) داخل التقرير على أي جهاز جديد. الآن لو لم تكن جلسة
+    // نظام الواجبات موجودة على هذا الجهاز يُتخطّى قسم الواجبات بملاحظة هادئة، وباقي التقرير يعمل كالمعتاد.
+    const { isTeacherAuthed } = await import('../core/api.js');
     let hwTitleById = {};
     try {
       const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
       allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
     } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
-    homeworkEntries = mineThisMonth
-      .map(s => ({
-        timestamp: s.timestamp,
-        date: s.date || '',
-        title: hwTitleById[s.hwId] || s.hwId || t('mr_hw_untitled'),
-        score: typeof s.score === 'number' ? s.score : 0
-      }))
-      .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    const inMonth = (ts) => typeof ts === 'number' && ts >= monthStart && ts < monthEnd;
+    const toEntry = (hwId, ts, date, score) => ({
+      timestamp: ts,
+      date: date || '',
+      title: hwTitleById[hwId] || hwId || t('mr_hw_untitled'),
+      score: typeof score === 'number' ? score : 0
+    });
+
+    // 🌟 [إصلاح] السجل المحلي (history_<id>) يحتفظ بنتيجة كل واجب معتمد (source: 'homework') حتى بعد حذف الواجب
+    // وتسليماته من الخادم بالتنظيف التلقائي (20 يوماً)، فنقرأه دائماً حتى لا تختفي درجات الواجبات من التقرير.
+    const seenSubmissionIds = new Set();
+    const localEntries = [];
+    try {
+      const rawHist = localStorage.getItem(`history_${student.id}`);
+      (JSON.parse(rawHist) || []).forEach(h => {
+        if (!h || h.source !== 'homework' || !h.approved) return;
+        // كل سجل محلي يُعدّ "مُغطّى" ولو كان في شهر آخر (يُحسب بتاريخ الاعتماد) كي لا يُحتسب من الخادم أيضاً بتاريخ التسليم
+        if (h.submissionId !== undefined && h.submissionId !== null) seenSubmissionIds.add(String(h.submissionId));
+        if (!inMonth(h.timestamp)) return;
+        localEntries.push(toEntry(h.hwId, h.timestamp, h.date, h.score));
+      });
+    } catch (e) { console.error('[monthly-report.js] تعذر قراءة سجل الواجبات المحلي:', e); }
+
+    // الخادم: تسليمات لم تُسجَّل محلياً (مثلاً اعتُمدت من جهاز آخر) — بلا تكرار لما قُرئ من السجل المحلي.
+    const cloudEntries = [];
+    if (!isTeacherAuthed()) {
+      // 🌟 [2026-10-03] لا نطلب تسجيل دخول داخل التقرير؛ يُتخطّى الخادم بملاحظة هادئة فقط لو لا توجد نتائج محلية.
+      if (!localEntries.length) homeworkErrorMsg = t('mr_hw_not_signed_in');
+    } else {
+      try {
+        const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
+        const allSubs = await getAllSubmissionsFromCloud();
+        allSubs.forEach(s => {
+          if (String(s.studentId) !== String(student.id) || !inMonth(s.timestamp)) return;
+          if (s.id !== undefined && s.id !== null && seenSubmissionIds.has(String(s.id))) return;
+          cloudEntries.push(toEntry(s.hwId, s.timestamp, s.date, typeof s.score === 'number' ? s.score : s.finalScore));
+        });
+      } catch (e) {
+        console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
+        if (!localEntries.length) homeworkErrorMsg = t('mr_cloud_error');
+      }
+    }
+    homeworkEntries = localEntries.concat(cloudEntries).sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
     homeworkErrorMsg = t('mr_cloud_error');
@@ -679,14 +707,14 @@ async function buildMonthlyReportData(year, monthIndex0) {
       if (record && record.beginning) {
         const beginInfo = getSurahInfo(AppState.surahsData, record.beginning.surahNumber);
         journey = {
-          beginLabel: `${beginInfo ? beginInfo.name : '؟'} — ${record.beginning.ayahNumber}`,
+          beginLabel: `${beginInfo ? surahNameLocal(beginInfo.name) : '؟'} — ${record.beginning.ayahNumber}`,
           hasEnding: !!record.ending,
           endLabel: null,
           newAyahs: typeof record.newAyahs === 'number' ? record.newAyahs : null
         };
         if (record.ending) {
           const endInfo = getSurahInfo(AppState.surahsData, record.ending.surahNumber);
-          journey.endLabel = `${endInfo ? endInfo.name : '؟'} — ${record.ending.ayahNumber}`;
+          journey.endLabel = `${endInfo ? surahNameLocal(endInfo.name) : '؟'} — ${record.ending.ayahNumber}`;
         }
       }
     }
@@ -758,7 +786,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // اختيارية لا تُطلب إجباريًا).
   const hasMemoRange = !!(student.memoFrom && student.memoTo);
   const memoScope = hasMemoRange
-    ? t('mr2_memo_scope_fmt').replace('{from}', student.memoFrom).replace('{to}', student.memoTo)
+    ? t('mr2_memo_scope_fmt').replace('{from}', surahNameLocal(student.memoFrom)).replace('{to}', surahNameLocal(student.memoTo))
     : t('mr_no_memo_range');
 
   // 🌟 [جديد] ملخص مراجعة الأجزاء الخمسة لهذا الشهر (null لو لم تُسجَّل)
@@ -783,7 +811,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
     name: student.name || t('mr_default_student_label'),
     // الصف من ملف الطالب (student.grade) — اختياري، يُخفى لو فارغ
-    grade: student.grade || '',
+    grade: student.grade ? trStored(student.grade) : '',
     memoScope, hasMemoRange,
     avatar: getAvatarHtml(student),
     teacher,
@@ -1000,7 +1028,7 @@ function renderReviewPartsBlock(d) {
   const rows = rs.entries.map(p => `
     <div class="mr-rev-row">
       <div class="mr-rev-name">${juzLabel(p.juz, t)}</div>
-      <div class="mr-rev-range">${p.fromName} ${p.fromAyah} <span class="mr-rev-arrow">${arrow}</span> ${p.toName} ${p.toAyah}</div>
+      <div class="mr-rev-range">${surahNameLocal(p.fromName)} ${p.fromAyah} <span class="mr-rev-arrow">${arrow}</span> ${surahNameLocal(p.toName)} ${p.toAyah}</div>
       <div class="mr-rev-count">${t('mr_revparts_count_fmt').replace('{n}', p.count)}</div>
       <div class="mr-rev-bar"><div class="mr-rev-fill" style="width:${Math.min(100, p.pct)}%;"></div></div>
     </div>`).join('');
@@ -1213,7 +1241,7 @@ function renderErrorsBlock(d) {
         ${d.resolvedThisMonth.map(w => `
           <tr>
             <td>${new Date(w.dateResolved).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
-            <td>${w.surahName ? `${t('mr_surah_prefix')} ${w.surahName}${w.num ? ' - ' + w.num : ''}` : (w.text || '—')}</td>
+            <td>${w.surahName ? `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}` : (localizeGenerated(w.text) || '—')}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -1565,7 +1593,7 @@ const WHATSAPP_TARGET_WIDTH_PX = 1080;
 const REPORTS_LOG_KEY = 'darham_reports_log';
 const REPORTS_LOG_MAX = 300;
 const REPORTS_DONE_KEY = 'darham_reports_done';
-function logReportGenerated() {
+function logReportGenerated(canvas) {
   try {
     const raw = localStorage.getItem(REPORTS_LOG_KEY);
     const list = raw ? JSON.parse(raw) : [];
@@ -1585,6 +1613,10 @@ function logReportGenerated() {
       localStorage.setItem(REPORTS_DONE_KEY, JSON.stringify(done));
     }
   } catch (e) { /* تجاهل */ }
+  // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
+  try {
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'monthly', name: reportData && reportData.name, sub: reportData && reportData.periodLabel, canvas })).catch(() => {});
+  } catch (e) { /* تجاهل */ }
 }
 
 async function exportPng() {
@@ -1600,7 +1632,7 @@ async function exportPng() {
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // 🌟 [جديد] "نسخة واتساب" — نفس فكرة exportPng بالحرف، لكن بعرض مضبوط على
@@ -1621,7 +1653,7 @@ async function exportWhatsAppRaw() {
   link.download = buildFileName('jpg', t('mr_export_whatsapp_suffix'));
   link.href = canvas.toDataURL('image/jpeg', 0.92);
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 function collectPdfBlocks(target) {
@@ -1722,7 +1754,7 @@ async function exportPdfRaw() {
   });
 
   pdf.save(buildFileName('pdf'));
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 

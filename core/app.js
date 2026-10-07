@@ -92,6 +92,8 @@ export const AppState = {
     juzAmmaSurahs: [],
     // 🌟 [جديد] مدير قاعدة بيانات "ركن المتشابهات" — يُهيَّأ في bootSystem أسفل هذا الملف
     similaritiesManager: null,
+    // 🌟 [2026-10-03] Promise اكتمال تحميل Seed المتشابهات في الخلفية (راجع bootSystem)
+    similaritiesReady: null,
     // 🌟 [جديد — المرحلة 3] مدير قاعدة بيانات "أبطال التجويد" (إتقان/جلسات/أوسمة) — يُهيَّأ
     // في bootSystem أسفل هذا الملف بنفس نمط بقية المديرين أعلاه
     tajweedManager: null,
@@ -105,16 +107,21 @@ export const AppState = {
     currentLang: localStorage.getItem('app_lang') || 'ar'
 };
 
-// 🎂 دالة التحقق من أعياد الميلاد وإرسال إشعار فوري لسطح المكتب
+// 🎂 دالة التحقق من أيام الميلاد وإرسال إشعار فوري لسطح المكتب
 async function checkBirthdays() {
     if (!("Notification" in window) || Notification.permission !== "granted") return;
     if (!AppState.studentManager) return;
 
     try {
-        const students = await AppState.studentManager.getAllStudents();
+        // 🌟 [2026-10-03 — بطلب المعلم] إشعار الجهاز مرة واحدة فقط في اليوم، لا مع كل فتح للمنصة
         const today = new Date();
+        const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+        if (localStorage.getItem('dh_bday_notified_day') === todayKey) return;
+
+        const students = await AppState.studentManager.getAllStudents();
         const currentMonth = today.getMonth() + 1;
         const currentDay = today.getDate();
+        let notified = false;
 
         students.forEach(student => {
             if (student.dob) {
@@ -128,12 +135,14 @@ async function checkBirthdays() {
                             body: `${t('bday_notification_msg')}${student.name} 🎂`,
                             icon: "icons/icon-192.png"
                         });
+                        notified = true;
                     }
                 }
             }
         });
+        if (notified) localStorage.setItem('dh_bday_notified_day', todayKey);
     } catch (e) {
-        console.warn("تعذر التحقق من أعياد الميلاد:", e);
+        console.warn("تعذر التحقق من أيام الميلاد:", e);
     }
 }
 
@@ -317,20 +326,31 @@ async function bootSystem() {
             Notification.requestPermission();
         }
 
-        const quranDB = await ensureQuranLoaded();
+        // 🌟 [2026-10-03 — سرعة الفتح] كانت قواعد البيانات العشر تُفتح واحدة تلو الأخرى (await بعد await) رغم استقلالها التام
+        // عن بعضها، فيتراكم زمن فتحها قبل ظهور الشاشة الرئيسية. الآن تُفتح كلها معاً؛ ترتيب إسناد الـ Managers ونتيجتها كما هي
+        // تماماً، وأي فشل في أي منها يصل لنفس catch أدناه (showBootFailure) كما كان.
+        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB] = await Promise.all([
+            ensureQuranLoaded(),
+            initKidsAudioDB(),
+            initStudentDB(),
+            initHomeworkDB(),
+            initTeacherDB(),
+            initReviewScheduleDB(),
+            initDualTestsDB(),
+            initSimilaritiesDB(),
+            initTajweedDB(),
+            initMonthlyMemorizationDB()
+        ]);
+
         AppState.quranEngine = new QuranEngine(quranDB);
         AppState.kidsEngine = new KidsEngine(AppState.quranEngine);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات تخزين أصوات آيات ركن الأطفال محليًا — نفس نمط تهيئة
-        // بقية قواعد البيانات هنا بالضبط (راجع database/kidsAudioDB.js للتفاصيل الكاملة)
-        const kidsAudioDB = await initKidsAudioDB();
+        // 🌟 [جديد] تهيئة قاعدة بيانات تخزين أصوات آيات ركن الأطفال محليًا (راجع database/kidsAudioDB.js للتفاصيل الكاملة)
         AppState.kidsAudioManager = new KidsAudioManager(kidsAudioDB);
 
-        const studentDB = await initStudentDB();
         AppState.studentManager = new StudentManager(studentDB);
 
-        // 📚 تهيئة قاعدة بيانات الواجبات المستقلة
-        const hwDB = await initHomeworkDB();
+        // 📚 قاعدة بيانات الواجبات المستقلة
         AppState.homeworkManager = new HomeworkManager(hwDB);
 
         // 🌟🌟 [محدَّث] استئناف أي تسليم واجب عالق على هذا الجهاز (طالب سلّم بلا إنترنت ثم أغلق الصفحة) — بدون انتظار
@@ -340,42 +360,33 @@ async function bootSystem() {
 
         // 🌟🌟 [جديد] بدء الفحص الدوري لإشعار المعلم بأي تسليم واجب جديد (صوت + تنبيه بصري) —
         // يعمل طوال جلسة المعلم بغض النظر عن الشاشة الحالية المفتوحة (راجع core/homeworkNotifier.js).
-        // لا يفعل شيئاً فعلياً لو لم يكن مفتاح المعلم محفوظاً على هذا الجهاز بعد.
+        // لا يفعل شيئاً فعلياً لو لم يسجّل المعلم الدخول بجوجل داخل نظام الواجبات على هذا الجهاز (ولا يطلب أي دخول).
         startHomeworkSubmissionWatcher();
 
-        // 🧑‍🏫 تهيئة ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
+        // 🧑‍🏫 ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
-        const teacherDB = await initTeacherDB();
         AppState.teacherManager = new TeacherManager(teacherDB);
         AppState.currentTeacher = await AppState.teacherManager.getProfile();
         // 🔗 توافق خلفي: reports/report.js يقرأ اسم المعلم من AppState.teacherName مباشرة
         AppState.teacherName = (AppState.currentTeacher && AppState.currentTeacher.name) || '';
 
-        // 🌟 تهيئة قاعدة بيانات جدول "المراجعة المتباعدة" (Anki/Duolingo) — نفس
-        // نمط تهيئة بقية قواعد البيانات أعلاه بالضبط
-        const reviewScheduleDB = await initReviewScheduleDB();
+        // 🌟 جدول "المراجعة المتباعدة" (Anki/Duolingo)
         AppState.reviewScheduleManager = new ReviewScheduleManager(reviewScheduleDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "الاختبارات الثنائية" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const dualTestsDB = await initDualTestsDB();
+        // 🌟 [جديد] "الاختبارات الثنائية"
         AppState.dualTestsManager = new DualTestsManager(dualTestsDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "ركن المتشابهات" + تحميل بيانات الـ Seed المُفرَّغة
-        // من الـ PDF عند أول تشغيل (أو عند رفع رقم إصدار الـ Seed مستقبلاً) — راجع
-        // database/similaritiesDB.js لتفاصيل ensureSimilaritiesLoaded
-        const similaritiesDB = await initSimilaritiesDB();
-        await ensureSimilaritiesLoaded(similaritiesDB);
+        // 🌟 [جديد] "ركن المتشابهات" — تحميل بيانات الـ Seed (أول تشغيل أو عند رفع رقم إصدار الـ Seed) لم يعد يؤخر ظهور الشاشة
+        // الرئيسية [2026-10-03]: يعمل في الخلفية، وشاشات المتشابهات تنتظر AppState.similaritiesReady قبل أي قراءة
+        // (راجع similarities/similarities.js وsimilarities-play.js). فشله لا يوقف الإقلاع (يُسجَّل في الكونسول فقط).
         AppState.similaritiesManager = new SimilaritiesManager(similaritiesDB);
+        AppState.similaritiesReady = ensureSimilaritiesLoaded(similaritiesDB)
+            .catch(err => console.error('تعذر تحميل بيانات المتشابهات:', err));
 
-        // 🌟 [جديد — المرحلة 3] تهيئة قاعدة بيانات "أبطال التجويد" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const tajweedDB = await initTajweedDB();
+        // 🌟 [جديد — المرحلة 3] "أبطال التجويد"
         AppState.tajweedManager = new TajweedManager(tajweedDB);
 
-        // 🌟 [جديد] تهيئة قاعدة بيانات "سجل الحفظ الشهري" — نفس نمط تهيئة بقية
-        // قواعد البيانات أعلاه بالضبط
-        const monthlyMemorizationDB = await initMonthlyMemorizationDB();
+        // 🌟 [جديد] "سجل الحفظ الشهري"
         AppState.monthlyMemorizationManager = new MonthlyMemorizationManager(monthlyMemorizationDB);
 
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
@@ -454,6 +465,8 @@ async function bootSystem() {
 
 // 🌟 [جديد] شاشة فشل الإقلاع — عناصر DOM عبر textContent (بلا innerHTML)، بألوان الهوية (--dh-emerald/--dh-gold)
 function showBootFailure(error) {
+    // 🌟 [2026-10-03] إنهاء وضع الإقلاع (index.html) حتى تظهر الترويسة مع رسالة الفشل
+    document.documentElement.classList.remove('dh-booting');
     try {
         const isQuran = !!(error && error.code === 'QURAN_LOAD_FAILED');
         const root = document.getElementById('app-root') || document.body;
@@ -573,7 +586,7 @@ function updateHomeDateBar() {
 
 function setupSplashListeners() {
     updateHomeDateBar();
-    // 🧑‍🏫 الترحيب الشخصي، شارة إكمال البيانات، ملخص الواجبات، وتنبيه عيد ميلاد المعلم
+    // 🧑‍🏫 الترحيب الشخصي، شارة إكمال البيانات، ملخص الواجبات، وتنبيه يوم ميلاد المعلم
     initTeacherProfileUI();
 
     const btnAdult = document.getElementById('btn-adult-main');
@@ -633,14 +646,25 @@ function setupSplashListeners() {
 
     if (btnDual) btnDual.addEventListener('click', openDualTestSetup);
 
+    // 🏅 [جديد] بطاقة "الشهادات" — شاشة مستقلة تُحمَّل عند الطلب فقط (certificates/certificates.js)
+    const btnCerts = document.getElementById('btn-certs-main');
+    if (btnCerts) btnCerts.addEventListener('click', openCertificates);
+
     // 🌟 [عدّل] بعد بناء المرحلة 1 (كتالوج القلقلة والنون الساكنة + شاشات تصفّح فعلية في
     // مجلد tajweed/)، أصبحت البطاقة تفتح شاشات "أبطال التجويد" الحقيقية عبر
     // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
     // بالضبط. كانت تعرض توست "قيد التطوير" فقط (لا شاشة فعلية بعد) قبل هذه المرحلة.
     if (btnTajweed) btnTajweed.addEventListener('click', openTajweedSection);
+    // 🌟 [2026-10-03] بطاقة «خصوصية» تفتح شاشة الخصوصية داخل المنصة (href="privacy.html" يبقى رجوعاً لو تعذّر الجافاسكريبت
+    // أو فُتح الرابط في تبويب جديد بزر الفأرة الأوسط/Ctrl)
+    document.querySelectorAll('#app-root a[href="privacy.html"]').forEach(a => a.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        openPrivacyScreen();
+    }));
 
     // 🌟 منطق البيانات الحية لبطاقة "نظرة سريعة" الجديدة (متوسط الإتقان، عدد
-    // التقارير، تذكير عيد ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
+    // التقارير، تذكير يوم ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
     // كل شيء في components/homeQuickview.js حتى لا يتضخم هذا الملف
     initHomeQuickview();
 
@@ -680,14 +704,15 @@ async function initStartHereCard() {
 // 🌟 استُخرجت من داخل مستمع زر "نظام الواجبات المنزلية" لتكون قابلة لإعادة
 // الاستخدام من زر "نشر واجب جديد الآن" الجديد في بطاقة "نظرة سريعة" أيضاً —
 // نفس السلوك بالضبط، بدون أي تغيير في المنطق.
-// 🌟 [محدَّث] صارت async: تتأكد أولاً من وجود مفتاح المعلم (شاشة الواجبات تتعامل مع بيانات الطلاب الحقيقية على
-// الخادم). لو كان المفتاح محفوظاً على الجهاز لا يظهر أي شيء ويُفتح الشاشة فوراً كالمعتاد.
+// 🌟 [محدَّث 2026-10-03] صارت async: هذا هو باب "نظام الواجبات المنزلية" — المكان الوحيد (مع نشر واجب) الذي يُطلب فيه
+// تسجيل الدخول بجوجل، حتى تُربط بيانات الواجبات بحساب المعلم على كل أجهزته. لو كانت الجلسة محفوظة على الجهاز تُفتح
+// الشاشة فوراً. لا شيء آخر في المنصة الأساسية يستدعي هذه البوابة.
 export async function openHomeworkPrep() {
     try {
-        const { ensureTeacherAuth } = await import('../components/teacherAuthGate.js');
-        if (!(await ensureTeacherAuth())) return;
+        const { ensureHomeworkSignIn } = await import('../components/teacherAuthGate.js');
+        if (!(await ensureHomeworkSignIn())) return;
     } catch (err) {
-        console.error("تعذر تحميل بوابة مفتاح المعلم — سيُفتح شاشة الواجبات بدونها:", err);
+        console.error("تعذر تحميل بوابة دخول نظام الواجبات — ستُفتح شاشة الواجبات بدونها:", err);
     }
     switchTheme('adult');
     document.body.style.backgroundImage = '';
@@ -717,6 +742,33 @@ export function openDualTestSetup() {
     }).catch(err => {
         console.error("تعذر تحميل شاشة إعداد الاختبارات الثنائية:", err);
         alert(t("جاري تجهيز شاشة الاختبارات الثنائية 🛠️"));
+    });
+}
+
+// 🏅 [جديد] شاشة "الشهادات" (قوالب جاهزة + سجل ما صدر) — طبقة كاملة فوق الشاشة الحالية، تُحمَّل عند الطلب فقط
+// ولا تغيّر الشاشة الجارية (مثل نافذة)، فيعود المعلم إلى مكانه عند إغلاقها. راجع certificates/certificates.js
+export function openCertificates(opts) {
+    // تنبيه: addEventListener يمرّر الحدث كوسيط أول، فنتجاهل أي وسيط ليس كائن خيارات عادياً
+    const o = opts && opts.constructor === Object ? opts : {};
+    return import('../certificates/certificates.js').then(m => m.openCertificatesHub(o)).catch(err => {
+        console.error('تعذر تحميل شاشة الشهادات:', err);
+        alert(t('جاري تجهيز شاشة الشهادات 🛠️'));
+    });
+}
+
+// 🌟 [2026-10-03 — بطلب صاحب المنصة] سياسة الخصوصية كشاشة داخل المنصة (components/privacy-screen.html) بنفس الترويسة
+// والشريط السفلي ونمط رأس الشاشات الداخلية، بدل الانتقال لصفحة privacy.html المستقلة ذات الشكل المختلف.
+export function openPrivacyScreen() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return loadScreen({
+        templateUrl: 'components/privacy-screen.html',
+        initFunction: () => {
+            const backBtn = document.getElementById('btn-back-privacy');
+            backBtn?.setAttribute('aria-label', t('ms_back'));
+            backBtn?.setAttribute('title', t('ms_back'));
+            backBtn?.addEventListener('click', loadSplashScreen);
+        }
     });
 }
 

@@ -22,7 +22,7 @@
 - **مكتمل ويعمل (مثبت بالكود):** الرئيسية + «الدخول السريع» وشريط سفلي؛ إدارة الطلاب؛ ألعاب الكبار والأطفال؛ التقرير الفردي؛ التقرير الشهري + سجل الحفظ الشهري؛ نظام الواجبات الكامل (إنشاء/رابط/حل/تصحيح/شهادة/تنظيف)؛ «علاج الأخطاء»؛ «حفظ والعودة لاحقًا»؛ النسخ الاحتياطي والاستعادة؛ ركن المتشابهات (خريطة + لعبة)؛ الاختبارات الثنائية (إعداد + لعب مباشر + تقرير)؛ مسار التجويد (4 مراحل في الكتالوج + أنشطة + مراجعة).
 - **ما زال موسومًا «قيد التطوير» في الواجهة:** بطاقتا «المتشابهات» و«التجويد» (`components/splash.html`). بطاقة «الاختبارات الثنائية» أُزيلت منها الشارة بطلب المعلم.
 - **غير مفعّل / يتيم:** `recitation/` (قرار المعلم: ليست ميزة)؛ `core/firebase.js`، `core/supabase.js`، `firestore.rules`، `storage.rules` (Legacy بلا استيراد حي)؛ `dualtests/*-1.*`؛ `engine/masteryEngine.js` (لا يستورده أي ملف).
-- **مخطط/غير منفذ:** أفكار عالمية/مسابقات (README)؛ نقل العناصر إلى `_archive/` (لم يُنفَّذ)؛ مشغّل التنظيف اليومي في Apps Script (لم يُتفق على تفعيله).
+- **مخطط/غير منفذ:** أفكار عالمية/مسابقات (README)؛ نقل العناصر إلى `_archive/` (لم يُنفَّذ).
 - **تجريبي:** `Dar-Ham-Homework-Lab/` (Sandbox لخلفية الواجبات، ليس جزءًا من التشغيل)؛ Service Worker «تجربة» منذ 2026-09-14 (`index.html`).
 - **اختبارات (شُغّلت في هذا الفحص):** `tests/homeworkEngine.test.js` 14/14 ✅، `tests/memorizationEngine.test.js` 13/13 ✅، `Dar-Ham-Homework-Lab/tests/cleanup.test.mjs` 9/9 ✅. `backend.test.mjs` لم يُشغَّل (يحتاج `vendor/` ولم أنسخه). فحص صياغة `node --check` لكل ملفات JS خارج المعمل: بلا أخطاء. **لم يُشغَّل متصفح** (لا اختبار واجهة/PWA فعلي).
 
@@ -57,7 +57,7 @@ test-test/
 | app.js | `core/` | `AppState`، فتح 10 قواعد IndexedDB، الإقلاع `bootSystem`، مسار `?hw=` السريع، شاشة فشل الإقلاع، تذكير النسخ الاحتياطي | يستورد كل DBs/المحركات/المكونات | 53KB — نقطة الدخول |
 | i18n.js | `core/` | `translations.ar/.en` + `t()/tf()/applyLanguage()/toggleLanguage()` + توطين الأسماء | الجميع يستورده | 318KB. كل نص واجهة جديد هنا |
 | navigation.js | `core/` | `loadScreen({templateUrl,initFunction})` يجلب html ويحقنه في `#app-root` | app.js، analytics | `cache:'no-store'` |
-| api.js | `core/` | **طبقة الاتصال الوحيدة بخادم الواجبات** + جلسة جوجل + مفتاح المعلم القديم | homeworkApi، teacherAuthGate | يحوي `DEFAULT_API_URL` و`GOOGLE_CLIENT_ID` |
+| api.js | `core/` | **طبقة الاتصال الوحيدة بخادم الواجبات** + جلسة جوجل (لا مفتاح معلم منذ 2026-10-03) | homeworkApi، teacherAuthGate | يحوي `DEFAULT_API_URL` و`GOOGLE_CLIENT_ID` |
 | homeworkApi.js | `core/` | واجهات عالية المستوى (نشر، تسليمات، تصحيح) | api.js | بعض الدوال stubs فارغة للتوافق |
 | submitQueue.js | `core/` | طابور إرسال تسليم الطالب بإعادة محاولة ومعرّف ثابت | homework-play | نسخة أخرى مستقلة في المعمل |
 | backupRestore.js | `core/` | تصدير/استيراد كل IndexedDB + مفاتيح localStorage الخاصة بالطلاب | — | صيغة `format: darham_backup` |
@@ -79,7 +79,7 @@ test-test/
 | Data/Database | 11 قاعدة IndexedDB (§15) + `localStorage` للسجل والإعدادات | `database/*Manager` |
 | Engines | منطق خالص: توليد أسئلة، حساب نتائج/إتقان | تُنشأ في `bootSystem` |
 | Storage الخارجي | Google Sheets (3 أوراق) خلف Apps Script | `core/api.js` فقط |
-| APIs خارجية | alquran.cloud (نص)، islamic.network (صوت)، android.quran.com (صور صفحات)، Google Identity/tokeninfo، GoatCounter، Google Fonts، cdnjs | §18 |
+| APIs خارجية | alquran.cloud (نص)، islamic.network (صوت)، Google Identity/tokeninfo، GoatCounter، Google Fonts، cdnjs | §18 |
 | لا يوجد Backend آخر | لا Firebase/Supabase فعّال | §20 |
 تدفق البيانات: الطالب/المعلم ⇄ IndexedDB محلي دائمًا؛ **الواجبات فقط** تُنشر وتُستلم عبر Apps Script، ثم يُنسخ المعتمَد محليًا إلى سجل الطالب (`core/homeworkRecords.js`).
 
@@ -97,7 +97,7 @@ test-test/
 - **بطاقات الرئيسية (الترتيب المعتمد):** طلابي – الكبار – الأطفال | الواجبات المنزلية – الاختبارات الثنائية | المتشابهات – التجويد. «ابدأ هنا ➕ أضف أول طالب» عند صفر طلاب. «لماذا حمٓ؟» 4 بطاقات.
 - **الشريط السفلي** (`homeFast.js`): الرئيسية · طلابي · اختبار (الوسط، يركّز البحث) · الواجبات (شارة جديد) · ثنائي.
 - **روابط خاصة:** `?hw=<HW_id>` (واجب الطالب)؛ `?go=students|homework|dual|evaluate` (اختصارات PWA في `manifest.json`، تُستهلك مرة واحدة)؛ `?api=` مقبول على الإنتاج فقط إن طابق `DEFAULT_API_URL`.
-- **صلاحيات المسارات:** لا يوجد حجب مسارات. شاشة الواجبات تستدعي `ensureTeacherAuth()` (بوابة جوجل). شاشات الطالب عبر `?hw=` لا تحتاج دخولًا. بقية الشاشات مفتوحة لمن يفتح المنصة على هذا الجهاز.
+- **صلاحيات المسارات:** لا يوجد حجب مسارات. شاشة الواجبات تستدعي `ensureHomeworkSignIn()` (بوابة جوجل). شاشات الطالب عبر `?hw=` لا تحتاج دخولًا. بقية الشاشات مفتوحة لمن يفتح المنصة على هذا الجهاز.
 
 ## 8. نظام الطلاب
 | الجانب | الواقع في الكود |
@@ -115,7 +115,7 @@ test-test/
 - **المصدر الفعلي:** `https://api.alquran.cloud/v1/quran/quran-uthmani` — يُجلب مرة واحدة، يُتحقق أنه 114 سورة، ويُخزَّن في `DarHamDatabase.quran` (keyPath `number`). **لا يوجد نص قرآن مضمَّن في المشروع** (باستثناء بيانات المتشابهات والأمثلة).
 - **العرض:** `toQuranicSukun()` يحوّل السكون U+0652 إلى U+06E1؛ `cleanAyahText`, `normalizeForCompare`, `splitAyahWords/Tokens`, `isWaqfMark`, `realWordIndexes` (علامات الوقف ليست كلمات) في `quranEngine.js`.
 - **الوصول للآيات:** `getSurah`, `getAllSurahsList`, `getAyahsByJuz`, `getAyahsInRange(surah,start,end)`, `getAyahsBySurahRange(from,to)`, `getAllAyahsOnPage`. **«Range Engine»** = هذه الدوال + وضع `range` في `settings/dashboard.js` (من سورة إلى سورة) و`pickTargetAyah(pool, chunkIndex, totalChunks)`.
-- **صفحات المصحف:** لعبة `visual_memory` تعرض صورتي الصفحتين من `android.quran.com/data/width_1024/pageNNN.png` (604 صفحة؛ فردي=يمين).
+- **صفحات المصحف:** لعبة `visual_memory` تعرض صورتي الصفحتين من `assets/mushaf/pageNNN.webp` (604 صفحة WebP عرض 800 مرفوعة مع المنصة، مصدرها في `assets/mushaf/SOURCE.md`؛ فردي=يمين). `android.quran.com` احتياطي فقط عبر `onerror`، والـ service worker يخزّن ما يُعرض منها (`dar-ham-mushaf-v1`).
 - **الصوت:** `database/kidsAudioDB.js` + `engine/kidsEngine.js` — `cdn.islamic.network/quran/audio/<bitrate>/<reciter>/<ayahNumber>.mp3` (ترقيم alquran.cloud؛ `ar.abdulbasitmurattal` 64kbps في kidsEngine).
 - **قواعد خاصة:** ربط عمودين: لا تقف إجابة صحيحة أمام أختها في نفس الصف (`arrangeEndsNotFacing`)؛ ركن الأطفال: أجزاء حتى 26؛ `core/quranTextUtils.js` للمتشابهات والتجويد.
 - **لا يوجد ملف بيانات صفحات/مصحف محلي** — `غير محدد في المشروع` أي تخزين لصور الصفحات.
@@ -144,6 +144,7 @@ test-test/
 | إنجاز شهري | `monthly-report.{js,identity.js,styles.js}` + مكوّنات الحفظ الشهري | `history_<id>` + `monthly_memorization` + الواجبات المعتمدة | PNG/PDF |
 | مواجهة ثنائية | `dual-test-report.{js,styles.js}` | مباراة + اختبار | PNG/PDF |
 | شهادة واجب | `hwCertificate.js` | تسليم معتمد + ملاحظة المعلم الاختيارية | صورة؛ واتساب عبر `wa.me/?text=` **نص فقط — المرفق يدوي** |
+| شهادات التقدير (قوالب) + أرشيف التقارير | `certificates/certificates.js`، `reports/reportArchive.js` | اختيار النوع/الطالب/الصيغة/اللغة/القالب؛ سجل في `DarHamCertificates`؛ نسخة صورة من كل تقرير مُصدَّر في `DarHamReportsArchive` | صورة 2000×1414 أو PDF A4؛ واتساب عبر Web Share (ملف مرفق) وإلا تنزيل + إرفاق يدوي |
 - المكتبات تُحمَّل عند الحاجة من cdnjs (`html2canvas 1.4.1`, `jspdf 2.5.1`). سجل التصدير `darham_reports_log`, `darham_reports_done`.
 - قيود: يحتاج إنترنت لأول تحميل المكتبات؛ إصلاح تشوّه العربية/الختم عند التصدير موثّق في مستندات المشروع (`claude/إصلاح-الختم…`) — لم أتحقق منه في المتصفح.
 
@@ -157,8 +158,8 @@ test-test/
 | التصحيح | إلكتروني تلقائي لما عدا النص الحر؛ **أي نص يكتبه الطالب = تصحيح يدوي** (قرار المعلم) في «غرفة التصحيح» (`openGradingRoom`) ثم `gradeSubmission` (مع `expectedVersion` وملاحظة معلم اختيارية تظهر في الشهادة) |
 | حفظ النتيجة | `recordApprovedResult` ← `history_<id>` (ويُنشئ طالبًا محليًا عند عدم التطابق `createLocalStudent`) |
 | التنبيه | `homeworkNotifier.js` يفحص دوريًا التسليمات الجديدة (صوت + شارة) |
-| Backend | **Google Apps Script Web App + Google Sheets (تخزين فقط)**: `Dar-Ham-Homework-Lab/backend/Code.gs`. أوراق: `Homeworks`, `Submissions`, `Teachers`. سجل JSON مقسّم chunks (45000 حرف × 8). إجراءات: `ping`, `getHomework`, `submit` (عامة) · `googleSignIn`, `migrateLegacyKey` · `authCheck`, `createHomework`, `listHomeworks`, `getHomeworkFull`, `setHomeworkStatus`, `listSubmissions`, `gradeSubmission`, `voidSubmission` (معلم). الطلبات `POST text/plain` بلا preflight |
-| التنظيف | `computeCleanup_`: معتمَد بالكامل → حذف بعد **20 يومًا**؛ لا تسليمات → بعد 14 يومًا؛ غير مصحّح → لا يُحذف + تنبيه للمعلم بعد 14 يومًا (`hw_stale_notified`). الدوال `previewCleanup`, `dailyCleanup`, `installCleanupTrigger`, `removeCleanupTrigger` **موجودة في الكود**؛ هل المشغّل مفعّل فعليًا على الخادم: `غير محدد في المشروع` (القرار: لم يُتفق على آلية التشغيل اليومي، ولا يُفعَّل إلا بطلب صريح) |
+| Backend | **Google Apps Script Web App + Google Sheets (تخزين فقط)**: `Dar-Ham-Homework-Lab/backend/Code.gs`. أوراق: `Homeworks`, `Submissions`, `Teachers`. سجل JSON مقسّم chunks (45000 حرف × 8). إجراءات: `ping`, `getHomework`, `submit` (عامة) · `googleSignIn` · `authCheck`, `createHomework`, `listHomeworks`, `getHomeworkFull`, `setHomeworkStatus`, `listSubmissions`, `gradeSubmission`, `voidSubmission` (معلم). الطلبات `POST text/plain` بلا preflight |
+| التنظيف | `computeCleanup_`: معتمَد بالكامل → حذف بعد **20 يومًا**؛ لا تسليمات → بعد 14 يومًا؛ غير مصحّح → لا يُحذف + تنبيه للمعلم بعد 14 يومًا (`hw_stale_notified`). الدوال `previewCleanup`, `dailyCleanup`, `installCleanupTrigger`, `removeCleanupTrigger` **موجودة في الكود**؛ **المشغّل اليومي مفعَّل** (2026-10-06 بطلب المعلم، `installCleanupTrigger`، قرابة الساعة 3 صباحًا؛ إيقافه: `removeCleanupTrigger`). معاينة `previewCleanup` قبل التفعيل: 0 واجبات للحذف، 6 تنتظر التصحيح |
 | المصادقة | §14 |
 - الخدمة الفعلية = Sheets عبر Apps Script (Firebase كانت الفكرة الأولى ثم تُركت — قرار المعلم). `Dar-Ham-Homework-Lab/` معمل التجربة، ونتائجه مدموجة عبر `core/api.js`.
 
@@ -166,8 +167,9 @@ test-test/
 | الجهة | الطريقة |
 |---|---|
 | المعلم (أساسية) | **Google Sign-In** (GSI من `index.html`) عبر `components/teacherAuthGate.js` ← `googleSignIn` ← الخادم يتحقق من `id_token` عبر `oauth2.googleapis.com/tokeninfo` (iss، aud = Client ID، `email_verified`) ← يُصدر `{userId, sessionKey}` (عشوائي 24 خانة) يُحفظ في localStorage (`dh_hw_teacher_userid`, `dh_hw_teacher_sessionkey`) |
-| قرار التسجيل | **مفتوح**: أي حساب جوجل بريده موثَّق يُسجَّل معلمًا تلقائيًا (قرار 2026-10-01). `TEACHER_EMAILS` (Script Property) اختياري لإرجاع قائمة بيضاء. كل معلم يرى واجباته فقط (`ownerId` داخل JSON السجل) |
-| المعلم (خط الرجوع) | **مفتاح المعلم القديم** `TEACHER_KEY` (Script Property) محفوظ في `dh_hw_teacher_key`؛ يعمل كمفتاح مدير يرى كل شيء؛ قفل بعد 20 محاولة خاطئة/10 دقائق (المفتاح الصحيح مقبول دائمًا)؛ `migrateLegacyKey` ينسب الواجبات القديمة لأول حساب يثبت المفتاحين |
+| النطاق | **جوجل لنظام الواجبات فقط** (قرار 2026-10-03): البوابة تُستدعى من `openHomeworkPrep` ونشر واجب في `settings/homework-prep.js` فقط. المنصة الأساسية (الطلاب، الحفظ، المراجعة، الألعاب، الاختبارات، التجويد، التقارير ومنها التقرير الشهري) لا تطلب أي دخول؛ التقرير الشهري يعرض نتائج الواجبات فقط لو وُجدت جلسة، وإلا يتخطاها بملاحظة |
+| قرار التسجيل | **مفتوح**: أي حساب جوجل بريده موثَّق يُسجَّل معلمًا تلقائيًا. **لا قائمة بيضاء** — حُذفت `TEACHER_EMAILS` من الكود (2026-10-03، كانت مصدر رسالة «هذا البريد غير مسموح له بدخول شاشة المعلم») و`setup()` يمسح الخاصية لو بقيت. كل معلم يرى واجباته فقط (`ownerId` داخل JSON السجل) |
+| مفتاح المعلم | **أُلغي نهائيًا (2026-10-03)**: لا `TEACHER_KEY` ولا `teacherKey` ولا `migrateLegacyKey` ولا قفل محاولات؛ الواجهة تمسح `dh_hw_teacher_key` القديم من localStorage. الواجبات القديمة بلا `ownerId` **لم تُحذف**: تبقى لمالك `LEGACY_OWNER_USERID` (لو ضُبط سابقًا)، أو يضبطه مالك السكربت من المحرّر بـ`assignLegacyHomeworksToEmail('email')` |
 | الطالب | **بلا حساب**؛ يكفي الرابط. الاسم يُدخله بنفسه |
 | الإعدادات الأخرى | `dh_hw_api_url`؛ `?api=` مرفوض إلا لـ`DEFAULT_API_URL` (على localhost يُسمح بأي Apps Script/محاكٍ) |
 | الحماية المحلية | لا قفل على المنصة نفسها (لا PIN)؛ البيانات على جهاز المعلم |
@@ -187,7 +189,7 @@ test-test/
 | IDB `DarHamTajweed` v1 | إتقان/جلسات/أوسمة | `tajweed_rule_mastery`, `tajweed_sessions`, `tajweed_achievements` | `id` auto | `TajweedManager` |
 | IDB `DarHamMonthlyMemorization` v1 | سجل الحفظ الشهري (طالب×شهر 1–12، `locked`) | `monthly_memorization` | `id` auto | `MonthlyMemorizationManager` |
 | IDB `DarHamRecitation` v1 | جلسات تسميع (**غير مفعّلة**) | `recitation_sessions` | `id` auto | `recitationDB.js` (لا يستورده app.js) |
-| localStorage | `history_<studentId>`، `darham_avatar_<id>`، `darham_teacher_name/_signature` (قديم)، `app_lang`، `dh_last_seen_version`، `dh_last_backup_at`، `dh_last_backup_reminder_month`، `dh_hw_teacher_key/_userid/_sessionkey`، `dh_hw_api_url`، `dh_hw_notif_seen_ids`، `dh_hw_new_count`، `hw_stale_notified`، `dh_last_evaluation(_dismissed)`، `dh_fixp_last_handled`، `dh_seen_section_hints`، `darham_reports_log/_done`، `darham_mr_note_tone`، `darham_memo_reminder_last_month`، `darham_monthly_memo_bulk_last_auto_shown`، `dh_pwa_install_event_sent`، `dh_hw_probe` + مسودات/طوابير الإرسال | المتصفح | مفاتيح نصية | مباشر |
+| localStorage | `history_<studentId>`، `darham_avatar_<id>`، `darham_teacher_name/_signature` (قديم)، `app_lang`، `dh_last_seen_version`، `dh_last_backup_at`، `dh_last_backup_reminder_month`، `dh_hw_teacher_userid/_sessionkey` (و`dh_hw_teacher_key` يُمسح تلقائيًا)، `dh_hw_api_url`، `dh_hw_notif_seen_ids`، `dh_hw_new_count`، `hw_stale_notified`، `dh_last_evaluation(_dismissed)`، `dh_fixp_last_handled`، `dh_seen_section_hints`، `darham_reports_log/_done`، `darham_mr_note_tone`، `darham_memo_reminder_last_month`، `darham_monthly_memo_bulk_last_auto_shown`، `dh_pwa_install_event_sent`، `dh_hw_probe` + مسودات/طوابير الإرسال | المتصفح | مفاتيح نصية | مباشر |
 | Google Sheets | `Homeworks`, `Submissions`, `Teachers` | حساب المعلم (Apps Script) | `HW_…`, `clientSubmissionId`, `userId/googleSub` | `core/api.js` |
 - النسخ الاحتياطي (`backupRestore.js`) يشمل كل IDB + مفاتيح localStorage الخاصة بالطلاب فقط (لا اللغة ولا التلميحات).
 
@@ -213,7 +215,7 @@ test-test/
 | Google Identity Services + tokeninfo | دخول المعلم | البوابة والخادم | `index.html`, `teacherAuthGate.js`, `Code.gs` | فعّال |
 | alquran.cloud | نص القرآن العثماني | أول إقلاع | `database/quranDB.js` | فعّال (حرج لأول تشغيل) |
 | cdn.islamic.network | صوت الآيات | الأطفال/التجويد | `kidsAudioDB.js`, `kidsEngine.js` | فعّال |
-| android.quran.com | صور صفحات المصحف | `visual_memory` | `quranEngine.js` | فعّال |
+| android.quran.com | صور صفحات المصحف (احتياطي فقط؛ الأساسي محلي) | `visual_memory` | `quranEngine.js` | احتياطي |
 | GoatCounter (`dar-ham.goatcounter.com`) | تحليلات زيارات بلا بيانات شخصية | كل شاشة | `index.html`, `core/analytics.js` | فعّال |
 | Google Fonts | الخطوط | CSS/تقارير | `index.html`, `home.css`, `monthly-report.identity.js` | فعّال |
 | cdnjs | html2canvas, jsPDF | التقارير | `reports/*.js` | فعّال عند التصدير |
@@ -227,7 +229,7 @@ test-test/
 ## 20. القرارات الهندسية (لا تُغيَّر دون الرجوع للمعلم)
 1. HTML/CSS/JS خام + ES Modules، بلا فريمورك ولا مكتبة جديدة؛ حلول المتصفح المدمجة أولًا (مثل `Intl` للتقويم الهجري).
 2. Local-first: IndexedDB لكل كيان؛ البيانات الكبيرة (صور) في IDB لا localStorage؛ **localStorage القديم يبقى خط رجوع** عند استبدال نظام أحدث.
-3. الواجبات: Apps Script + Sheets بدل Firebase (Firestore مغلقة). كل طلب `text/plain`. لا نجاح بلا `persisted:true`. مفتاح المعلم القديم **لا يُحذف**.
+3. الواجبات: Apps Script + Sheets بدل Firebase (Firestore مغلقة). كل طلب `text/plain`. لا نجاح بلا `persisted:true`. مفتاح المعلم **أُلغي نهائيًا** (2026-10-03) — الدخول لنظام الواجبات بجوجل فقط، والمنصة الأساسية بلا أي دخول.
 4. تسجيل المعلمين مفتوح ببريد جوجل موثّق؛ الطالب بلا حساب.
 5. تصحيح الواجب: نص يكتبه الطالب = يدوي، غيره إلكتروني. `audio_record` محذوف من التوليد.
 6. «علاج الأخطاء»: بطاقة مرة يوميًا لكل طالب؛ التثبيت بإجابتين صحيحتين في زيارتين مختلفتين؛ خطأ الترتيب/التلميح يُعالَج.
@@ -263,14 +265,14 @@ test-test/
 | `reciteRangePicker.js` ما زال مستوردًا في adult/kids رغم حذف الصندوق من الواجهة | `games/*.js` | كود ميت محتمل | لم أتتبّع الاستدعاءات؛ غير محسوم |
 | `Code.gs` ما زال يعالج `audio_record` (يدويًا) رغم حذفه من المولّد | `Code.gs:583,626,679` | توافق خلفي مقبول | غير محسوم |
 | تعليقات قديمة داخل `verifyGoogleIdToken_` تصف قيدًا ألغاه قرار 10-01 (والسلوك الفعلي: تسجيل مفتوح) | `Code.gs` | التباس عند القراءة | مفتوح |
-| مشغّل التنظيف اليومي لم يُتفق عليه، ومع ذلك الدوال جاهزة | `Code.gs` | الحذف التلقائي لا يعمل حتى يُفعَّل يدويًا (حالة الخادم الحي: غير محدد) | بانتظار قرار المعلم |
+| مشغّل التنظيف اليومي مفعَّل (2026-10-06) | `Code.gs` | الحذف نهائي من الشيت (حد 100 واجب لكل تشغيل)؛ نتائج الطلاب تبقى في `history_<id>` على جهاز المعلم فقط | يلزم نسخ احتياطي دوري من المنصة |
 | `index.html` ما زال يحوي سنيبت Firebase App Check debug-token (يعمل على localhost فقط) | `index.html` | بلا أثر؛ بقايا | مفتوح |
 | نقل الأرشيف و`Ham_GitHub_Clean` خارج المجلد لم يُنفَّذا | — | `git init` داخل `test-test` سيرفع كل شيء | بانتظار تنفيذ المعلم |
 | `core/app.js` يكرر معالجة `?hw=` (المسار المبكر يكفي ويعمل `return`) | `app.js:301,391` | الثاني لا يُنفَّذ أبدًا | كود ميت |
 ### تعارضات بين ملفات/مصادر (لم أختر أحد الطرفين)
 | # | الطرف أ | الطرف ب |
 |---|---|---|
-| 1 | `README.md`: «معلم واحد فقط، لا حسابات، الحماية الوحيدة مفتاح المعلم» | `core/api.js` + `Code.gs` + قرار 10-01: Google Sign-In وتسجيل مفتوح لأي معلم (جدول `Teachers`) |
+| 1 | ~~`README.md`: «الحماية الوحيدة مفتاح المعلم»~~ (حُلّ 2026-10-03: README يقول الآن إن جوجل لنظام الواجبات فقط) | `core/api.js` + `Code.gs`: Google Sign-In وتسجيل مفتوح لأي معلم (جدول `Teachers`) |
 | 2 | `README.md` يذكر `supabase-migration.sql` | الملف غير موجود في المجلد |
 | 3 | `README.md`: `engine/masteryEngine.js` جزء من محرك التقييم | لا ملف يستورده |
 | 4 | الاسم: `index.html <title>` «منصة حمٓ - أبطال القرآن»، README «أبطال القرآن»، `header_title` «🏆 رحلة إتقان القرآن» | `manifest.json` «منصة حمٓ - ألعاب القرآن»؛ القرار: «منصة حمٓ» |

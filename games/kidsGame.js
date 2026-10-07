@@ -6,7 +6,7 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare } from '../engine/quranEngine.js';
+import { normalizeForCompare, setActiveSurahPlan } from '../engine/quranEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -16,6 +16,7 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
+import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -75,6 +76,7 @@ function getShuffledBag(gamesList) {
 // 🌟 [جديد] المعامل الثالث resumeSnapshot (اختياري) — نفس فكرة adultGame.js بالضبط: استكمال اختبار
 // معلّق من أول سؤال لم يُجَب. غيابه = السلوك القديم تماماً بلا أي تغيير.
 export async function openKidsGameScreen(config, isWeakness = false, resumeSnapshot = null) {
+    setActiveSurahPlan(null); // 🌟 خطة تغطية سور جزء عم خاصة بركن الكبار — لا تتسرب لهذا الركن
     if (resumeSnapshot) { config = resumeSnapshot.config || config; isWeakness = false; }
     // 🌟 [جديد] تنبيه ما قبل بدء اللعب — بلا أي ذكر لميزة "التلميح" عمداً (بطلب صريح من
     // المعلم)، لأنها غير موصولة فعلياً في ركن الأطفال بعد (راجع تعليق GameState.hintUsed
@@ -159,6 +161,11 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                     let selectedType = currentBag.pop();
                     GameState.queue.push({ type: selectedType, chunkIndex: i });
                 }
+                // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور (كل عنصر يحتفظ بنوعه ونطاقه chunkIndex)
+                for (let i = GameState.queue.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [GameState.queue[i], GameState.queue[j]] = [GameState.queue[j], GameState.queue[i]];
+                }
             }
         }
         await loadScreen({ templateUrl: 'games/kidsGame.html', initFunction: initGameUI });
@@ -167,6 +174,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
 
 function initGameUI() {
     // 🌟 [إصلاح فحص الأزرار] أُزيل سطر الإسناد الذاتي هنا (كان يشير لمعرّف مجرد)؛ التعريف الفعلي لـ window.recordKidsAnswer أدناه على مستوى الملف 🌟
+    initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     
     GameState.sessionStartTime = new Date(); 
@@ -335,6 +343,8 @@ function persistEvaluationToHistory() {
 
 async function playNextMission() {
     try {
+        // 🌟 [جديد] نوع السؤال الحالي على <body> لضبط تخطيطه على الكمبيوتر (راجع css/gameFullscreen.css) — يُمسح مع كل سؤال
+        delete document.body.dataset.gameQ;
         if(GameState.currentIndex >= GameState.queue.length) {
             updateTrackerUI();
             playSuccessSound();
@@ -448,11 +458,11 @@ async function playNextMission() {
             if (isInteractiveWordOrder || linkRebuilt) {
                 originalBodyHTML = '';
             } else if (wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) && wItem.originalWords.length) {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.originalWords.join(' ')} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.originalWords.join(' ')}\u00A0﴾</div>`;
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿ ${wItem.text} ﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
@@ -512,7 +522,7 @@ async function playNextMission() {
             // 🌟 [جديد] كانت شاشة علاج الخطأ عند الأطفال لا تعرض الإجابة الصحيحة إطلاقاً
             // (خلافاً لنسخة الكبار) — أضفناها هنا مع زر "إظهار الإجابة للمطابقة" 🌟
             document.getElementById('show-ans-btn').style.display = 'inline-block';
-            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             return;
         }
 
@@ -582,13 +592,14 @@ async function playNextMission() {
             buildLinkGameUI();
         } else {
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
+            if (['kids_recite', 'kids_tf'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             
             if (GameState.currentData.type === 'kids_recite') {
                 document.getElementById('teacher-eval-area').style.display = 'block'; 
                 document.getElementById('teacher-eval-buttons').style.display = 'flex'; 
                 // 🌟 إظهار زر الإجابة في التسميع للأطفال 🌟
                 document.getElementById('show-ans-btn').style.display = 'inline-block';
-                document.getElementById('game-answer').innerHTML = `<span class="quran-text">﴿ ${GameState.currentData.fullAnswer} ﴾</span>`;
+                document.getElementById('game-answer').innerHTML = `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             } else {
                 document.getElementById('teacher-eval-area').style.display = 'block'; 
                 let optsContainer = document.getElementById('kids-options-container'); 
@@ -604,7 +615,7 @@ async function playNextMission() {
                     GameState.currentData.options.forEach(opt => {
                         let btn = document.createElement('button');
                         btn.className = 'kids-mcq-btn quran-text';
-                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿ ${opt} ﴾`;
+                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿\u00A0${opt}\u00A0﴾`;
                         let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
                         // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في
                         // بيانات السؤال (راجع generateKidsListenAyah في engine/kidsEngine.js)،

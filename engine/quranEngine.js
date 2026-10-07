@@ -2,6 +2,9 @@
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
 
+// 🌟 [2026-10-03] مفتاح فهرس السور الخفيف (راجع getAllSurahsList)
+const SURAH_INDEX_KEY = 'dh_surah_index_v1';
+
 export const cleanName = (name) => { 
     if(!name) return ""; 
     return name.replace(/سُورَةُ\s*/g, '').replace(/سورة\s*/g, '').trim(); 
@@ -77,6 +80,38 @@ export function isWaqfMark(word) {
     return false;
 }
 
+// 🌟 [جديد] هل هذه الكلمة هي اسم السورة نفسه (أو جذره بعد حذف ال وحروف العطف/الجر الملتصقة
+// بها مثل: والعصر / فالعصر / بالناس)؟ تُستخدم لمنع الأسئلة التي تكشف إجابتها بذاتها.
+// صيغ فعلية/مشتقة لأسماء سور لا تشبه الاسم رسماً لكنها تكشفه (مثلاً "إذا الشمس كُوِّرت" ← التكوير)
+const SURAH_NAME_EXTRA_FORMS = {
+    'التكوير': ['كورت'], 'الانفطار': ['انفطرت'], 'الانشقاق': ['انشقت'], 'الزلزلة': ['زلزلت', 'زلزالها'],
+    'التحريم': ['تحرم', 'تحريم'], 'الشرح': ['نشرح'], 'المجادله': ['تجادلك', 'يجادل'],
+    'الممتحنه': ['فامتحنوهن'], 'الانسان': ['انسان'], 'المرسلات': ['مرسلات'], 'الحجرات': ['حجرات']
+};
+
+// 🌟 [جديد] هل هذه الكلمة هي اسم السورة نفسه (أو شكل منه)؟ تُستخدم لمنع الأسئلة التي تكشف إجابتها
+// بذاتها (والعصر ← العصر، ألهاكم التكاثر ← التكاثر). تعمل على أي سورة من الـ114 بالاسم نفسه:
+// - تتجاهل التشكيل والألف الخنجرية، وتوحّد الألف/الهمزة/التاء المربوطة/الألف المقصورة.
+// - تحذف "ال" وحروف العطف/الجر الملتصقة (و ف ب ل ك) من الكلمة.
+// - تقارن "هيكل" الحروف بدون ألفات (الرسم العثماني يحذف ألفاً كثيرة: الذاريات = ٱلذَّٰرِيَٰتِ)،
+//   وتعامل ون/ين كشيء واحد (الكافرون/الكافرين) وتقبل كلمة تبدأ باسم السورة (قدرنا ← القدر).
+// - الأسماء المركّبة (آل عمران) تُفحص بكل جزء مميّز منها (عمران).
+export function wordIsSurahName(word, surahName) {
+    const b = s => normalizeForCompare(s || '').replace(/ـ/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي').replace(/[ؤئ]/g, m => (m === 'ؤ' ? 'و' : 'ي'));
+    const sk = s => s.replace(/ا/g, '').replace(/ين$/, 'ون');
+    const nameBare = b(cleanName(surahName)).replace(/^سوره\s*/, '');
+    // أسماء الحرف الواحد (ق، ص، ن): الاسم هو الحرف نفسه — مطابقة تامة فقط
+    if (nameBare.length === 1) return b(word) === nameBare;
+    const parts = nameBare.split(/\s+/).map(x => x.replace(/^ال/, '')).filter(x => sk(x).length >= 2);
+    if (!parts.length) return false;
+    const targets = new Set();
+    parts.forEach(x => { targets.add(sk(x)); targets.add(sk('ال' + x)); });
+    (SURAH_NAME_EXTRA_FORMS[nameBare.replace(/\s+/g, '')] || []).forEach(x => targets.add(sk(b(x))));
+    const w = b(word);
+    const forms = [w, w.replace(/^[وفبلك]/, ''), w.replace(/^[وف][بلك]/, '')].map(sk);
+    return forms.some(f => [...targets].some(t => f === t || (t.length >= 3 && f.length > t.length && f.startsWith(t) && f.length - t.length <= 2)));
+}
+
 // 🌟 تقطيع نص الآية إلى كلمات فعلية فقط (بعد استبعاد رموز الوقف تماماً) — تُستخدم في كل موضع
 // كانت النتيجة فيه ستظهر للطالب كاختيار أو كبطاقة كلمة أو كمشتت.
 export function splitAyahWords(text) {
@@ -96,8 +131,50 @@ export function realWordIndexes(tokens) {
     return idxs;
 }
 
+// 🌟 [جديد] تغطية السور في جزء عمّ (الجزء 30، السور 78–114)
+// المشكلة: التقسيم إلى مقاطع متساوية بعدد الآيات يجعل السور الطويلة تبتلع الأسئلة وقد تغيب سور قصيرة كلياً.
+// الحل: خطة "سورة لكل سؤال" — كل سورة تُسأل مرة قبل أن تتكرر أي سورة.
+export const JUZ_AMMA_NUMBER = 30;
+
+/**
+ * خطة السور لاختبار من qCount سؤالاً: مصفوفة أرقام سور بطول qCount، بترتيب المصحف.
+ *  • qCount <= عدد السور: تُقسَّم السور (بترتيب المصحف) إلى qCount مجموعات متساوية، وتُختار سورة عشوائية من كل مجموعة
+ *    (فلا تتكرر سورة، ويتوزع الاختيار على الجزء كله بدل أخذ أوله).
+ *  • qCount > عدد السور: كل سورة مرة، والزيادة تُوزَّع على الأطول آياتاً أولاً.
+ */
+export function planSurahCoverage(pool, qCount) {
+    if (!pool || !pool.length || !(qCount > 0)) return [];
+    const counts = new Map();
+    for (const a of pool) counts.set(a.surahNumber, (counts.get(a.surahNumber) || 0) + 1);
+    const surahs = [...counts.keys()].sort((x, y) => x - y);
+    const n = surahs.length;
+    let plan;
+    if (qCount <= n) {
+        plan = [];
+        for (let i = 0; i < qCount; i++) {
+            const lo = Math.floor(i * n / qCount);
+            const hi = Math.max(lo + 1, Math.floor((i + 1) * n / qCount));
+            plan.push(surahs[lo + Math.floor(Math.random() * (hi - lo))]);
+        }
+    } else {
+        plan = [...surahs];
+        const byLength = [...surahs].sort((x, y) => counts.get(y) - counts.get(x) || x - y);
+        for (let i = 0; i < qCount - n; i++) plan.push(byLength[i % n]);
+    }
+    return plan.sort((x, y) => x - y);
+}
+
+// الخطة النشطة للاختبار الجاري: أرقام السور بحسب chunkIndex (null = السلوك القديم). تُحفظ مع طابور الاختبار
+// (queue[i].surahNum) لتُستعاد عند استكمال اختبار معلّق.
+let activeSurahPlan = null;
+export function setActiveSurahPlan(plan) { activeSurahPlan = Array.isArray(plan) && plan.length ? plan : null; }
+
 export function pickTargetAyah(pool, chunkIndex, totalChunks) {
     if (!pool || pool.length === 0) return null;
+    if (activeSurahPlan && chunkIndex >= 0 && activeSurahPlan[chunkIndex] !== undefined) {
+        const own = pool.filter(a => a.surahNumber === activeSurahPlan[chunkIndex]);
+        if (own.length) return own[Math.floor(Math.random() * own.length)];
+    }
     if (chunkIndex === undefined || chunkIndex === -1 || totalChunks === undefined || totalChunks === 0) {
         return pool[Math.floor(Math.random() * pool.length)];
     }
@@ -121,7 +198,21 @@ export class QuranEngine {
     constructor(db) { this.db = db; }
     
     async getSurah(surahNumber) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).get(surahNumber); req.onsuccess = () => resolve(req.result); }); }
-    async getAllSurahsList() { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => resolve(req.result.map(s => ({ number: s.number, name: cleanName(s.name), ayahsCount: s.ayahs.length }))); }); }
+    // 🌟 [2026-10-03 — سرعة الفتح] كانت تقرأ المصحف كاملاً (6236 آية) من IndexedDB في كل فتح للمنصة لأجل الأسماء وعدد الآيات فقط.
+    // الآن تُحفظ هذه القائمة الصغيرة (الاسم الخام كما في القاعدة) في localStorage بعد أول قراءة، وcleanName يُطبَّق عند كل قراءة كما كان،
+    // فالناتج مطابق حرفياً. أي خلل في النسخة المحفوظة (ليست 114 سورة/تالفة/التخزين غير متاح) → الرجوع للقراءة الكاملة كالسابق.
+    async getAllSurahsList() {
+        const toList = (rows) => rows.map(s => ({ number: s.number, name: cleanName(s.name), ayahsCount: s.ayahsCount }));
+        try {
+            const cached = JSON.parse(localStorage.getItem(SURAH_INDEX_KEY) || 'null');
+            if (Array.isArray(cached) && cached.length === 114 && cached.every(s => s && typeof s.number === 'number' && typeof s.name === 'string' && typeof s.ayahsCount === 'number')) {
+                return toList(cached);
+            }
+        } catch (e) { /* نسخة تالفة أو تخزين غير متاح: نكمل بالقراءة الكاملة */ }
+        const rows = await new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => resolve(req.result.map(s => ({ number: s.number, name: s.name, ayahsCount: s.ayahs.length }))); });
+        if (rows.length === 114) { try { localStorage.setItem(SURAH_INDEX_KEY, JSON.stringify(rows)); } catch (e) { /* التخزين ممتلئ: لا مشكلة */ } }
+        return toList(rows);
+    }
     async getAllAyahsOnPage(pageNum) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let pageAyahs = []; req.result.forEach(surah => { surah.ayahs.forEach(a => { if (a.page === pageNum) { a.surahName = cleanName(surah.name); a.surahNumber = surah.number; pageAyahs.push(a); } }); }); resolve(pageAyahs); }; }); }
     async getAyahsByJuz(juzNumber) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let allSurahs = req.result; let juzAyahs = []; allSurahs.forEach(surah => { let filtered = surah.ayahs.filter(a => a.juz === juzNumber); if(filtered.length > 0) { let cName = cleanName(surah.name); filtered.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); juzAyahs = juzAyahs.concat(filtered); } }); resolve(juzAyahs); }; }); }
     getAyahsInRange(surah, start, end) { let cName = cleanName(surah.name); let ayahs = surah.ayahs.filter(a => a.numberInSurah >= start && a.numberInSurah <= end); ayahs.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); return ayahs; }
@@ -141,22 +232,23 @@ export class QuranEngine {
 
         let correctSide = (ayah.page % 2 !== 0) ? "اليمنى" : "اليسرى";
         
-        let imgRight = `https://android.quran.com/data/width_1024/page${String(pageRight).padStart(3, '0')}.png`;
-        let imgLeft = `https://android.quran.com/data/width_1024/page${String(pageLeft).padStart(3, '0')}.png`;
+        // 🌟 صور الصفحات محلية (assets/mushaf/ — راجع SOURCE.md فيه)؛ الرابط الخارجي احتياطي فقط عبر onerror
+        let imgRight = `assets/mushaf/page${String(pageRight).padStart(3, '0')}.webp`;
+        let imgLeft = `assets/mushaf/page${String(pageLeft).padStart(3, '0')}.webp`;
 
         let qBody = `
         <div style="text-align: center;">
-            <div class="quran-text" style="font-size: 2.8rem; border: 2px dashed #10b981; border-radius: 15px; padding: 20px; color: var(--primary); line-height: 1.6; margin-bottom: 25px; background: #f0fdf4;">﴿ ${cleanText} ﴾</div>
+            <div class="quran-text" style="font-size: 2.8rem; border: 2px dashed #10b981; border-radius: 15px; padding: 20px; color: var(--primary); line-height: 1.6; margin-bottom: 25px; background: #f0fdf4;">﴿\u00A0${cleanText}\u00A0﴾</div>
             <h3 style="font-size: 1.6rem; color:#0f172a; font-weight:bold; margin-bottom:15px;">${tl('qe_visual_question', 'في أي صفحة تقع هذه الآية من المصحف الشريف؟ (اليمنى أم اليسرى؟)')}</h3>
             
             <div style="display: flex; justify-content: center; gap: 15px; align-items: flex-end; margin-top: 15px;">
                 <div style="width: 48%; position: relative;">
                     <div style="background:#94a3b8; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_right', 'الصفحة اليمنى')}</div>
-                    <img src="${imgRight}" class="visual-blur-img" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <img src="${imgRight}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
                 </div>
                 <div style="width: 48%; position: relative;">
                     <div style="background:#94a3b8; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_left', 'الصفحة اليسرى')}</div>
-                    <img src="${imgLeft}" class="visual-blur-img" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <img src="${imgLeft}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
                 </div>
             </div>
             <div style="font-size:1rem; color:#64748b; margin-top:10px;">${tl('qe_tap_unblur', '(اضغط على الصورة لرفع الضباب عنها)')}</div>
@@ -205,7 +297,7 @@ export class QuranEngine {
 
     async generateGuessSurahGame(ayahsPool, chunkIndex, totalChunks) {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text);
-        return { type: 'guess_surah', questionTitle: "خمن السورة 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${cleanText} ﴾</div>`, fullAnswer: labelL(ayah.surahName), ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'guess_surah', questionTitle: "خمن السورة 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${cleanText}\u00A0﴾</div>`, fullAnswer: labelL(ayah.surahName), ayahObj: ayah, reportText: cleanText }; 
     }
     
     async generateNextAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
@@ -219,7 +311,7 @@ export class QuranEngine {
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
-        return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
+        return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
@@ -229,7 +321,7 @@ export class QuranEngine {
         else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
-        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${targetText} ﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
+        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
     async generateOrderGame(ayahsPool, isKids, chunkIndex, totalChunks) { 
@@ -249,7 +341,7 @@ export class QuranEngine {
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
         if(currentIndex > 0 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex - 1].surahNumber === targetAyah.surahNumber && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
-        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿ ${prevText} ﴾<br><span style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:bold; color:var(--primary);">( .................... )</span><br>﴿ ${nextText} ﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
+        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿\u00A0${prevText}\u00A0﴾<br><span style="font-family:'Tajawal',sans-serif; font-size:1.8rem; font-weight:bold; color:var(--primary);">( .................... )</span><br>﴿\u00A0${nextText}\u00A0﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
     }
     
     async generateReciteGame(ayahsPool, isJuz, isKids, chunkIndex, totalChunks) { 
@@ -271,7 +363,7 @@ export class QuranEngine {
         // components/reciteRangePicker.js ليحدد المعلم "من آية ... إلى آية ..." موضع الخطأ بالتحديد
         let reciteAyahs = [];
         if (totalSurahAyahs <= 10 && surahFullyInPool) {
-            fullText = surah.ayahs.map(a => ` ﴿ ${cleanAyahText(a.text)} ﴾ `).join("");
+            fullText = surah.ayahs.map(a => ` ﴿\u00A0${cleanAyahText(a.text)}\u00A0﴾ `).join("");
             reciteAyahs = surah.ayahs.map(a => ({ num: a.numberInSurah, text: cleanAyahText(a.text) }));
             qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">${tl('qe_recite_surah_pre', 'سمّع سورة')} <span style="${isKids ? 'color:#db2777;' : 'color:var(--danger)'}">[ ${nameL(startAyah.surahName)} ]</span> ${tl('qe_recite_surah_post', 'كاملة')}</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
         } else {
@@ -279,12 +371,12 @@ export class QuranEngine {
             if (startIdx < reciteLo) startIdx = reciteLo;
             if (startIdx + jump > reciteHi) startIdx = Math.max(reciteLo, reciteHi - jump);
             let endIdx = Math.min(startIdx + jump, reciteHi); let actualCount = (endIdx - startIdx) + 1;
-            for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿ ${cleanAyahText(surah.ayahs[i].text)} ﴾ `; 
+            for(let i=startIdx; i<=endIdx; i++) fullText += ` ﴿\u00A0${cleanAyahText(surah.ayahs[i].text)}\u00A0﴾ `; 
             for(let i=startIdx; i<=endIdx; i++) reciteAyahs.push({ num: surah.ayahs[i].numberInSurah, text: cleanAyahText(surah.ayahs[i].text) });
             let startClean = cleanAyahText(surah.ayahs[startIdx].text); let endClean = cleanAyahText(surah.ayahs[endIdx].text);
             let startWords = startClean.split(/\s+/); let startHalf = startWords.length > 3 ? startWords.slice(0, Math.ceil(startWords.length / 2)).join(" ") + " ...." : startClean + " ....";
             let endWords = endClean.split(/\s+/); let endHalf = endWords.length > 3 ? ".... " + endWords.slice(Math.floor(endWords.length / 2)).join(" ") : ".... " + endClean;
-            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} <span style="${isKids ? 'color:#db2777;' : ''}">[ ${nameL(startAyah.surahName)} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${startHalf} ﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿ ${endHalf} ﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
+            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} <span style="${isKids ? 'color:#db2777;' : ''}">[ ${nameL(startAyah.surahName)} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${startHalf}\u00A0﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${endHalf}\u00A0﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
         }
         return { type: isKids ? 'kids_recite' : 'recite', questionTitle: qTitle, questionBody: qBody, fullAnswer: fullText, ayahObj: startAyah, reportText: reportText, reciteAyahs: reciteAyahs, reciteSurahName: startAyah.surahName }; 
     }
@@ -303,7 +395,7 @@ export class QuranEngine {
         // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
         for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx]); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
         const wrongWords = [...words]; wrongWords[replaceIdx] = stolenWord; 
-        return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${wrongWords.join(" ")} ﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
+        return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${wrongWords.join(" ")}\u00A0﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateCompleteAyahGame(ayahsPool, chunkIndex, totalChunks) {
@@ -312,7 +404,7 @@ export class QuranEngine {
         if (pos === 0) { hiddenPart = displayWords.splice(0, hideCount).join(' '); displayWords.unshift("....."); } 
         else if (pos === 2) { hiddenPart = displayWords.splice(words.length - hideCount, hideCount).join(' '); displayWords.push("....."); } 
         else { let mid = Math.floor(words.length / 2) - Math.floor(hideCount / 2); hiddenPart = displayWords.splice(mid, hideCount).join(' '); displayWords.splice(mid, 0, "....."); }
-        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿ ${displayWords.join(' ')} ﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
+        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
     }
 
     // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تُستخدم في ركن الكبار وركن الأطفال معاً (نفس
@@ -346,7 +438,8 @@ export class QuranEngine {
         // ⚠️ [افتراض صريح]: منطق الخلط بقي كما هو بلا تغيير — الضمان الموجود يمنع فقط أن يخرج
         // عمود النهايات مطابقاً لعمود البدايات صفاً بصف بالكامل، ولا يمنع أن تصادف آية أو اثنتان
         // وقوفهما في نفس الصف مع نهايتهما الصحيحة (وهذا وارد مع أي عدد، فردياً كان أو زوجياً).
-        const targetCount = 5;
+        // 🌟 [2026-10-06] بطلب المعلم: صار العدد 6 أزواج (للصغار والكبار) — ألوان الأزواج في CSS تكفي 6 (pair-0..5)
+        const targetCount = 6;
         // 🌟 [جديد] حدود عدد الكلمات المعروضة في كل طرف عند الكبار (راجع الافتراض الصريح 2 أعلاه)
         const ADULT_SIDE_MAX_WORDS = 3;
         const ADULT_SIDE_MIN_WORDS = 2;
@@ -527,7 +620,8 @@ export class QuranEngine {
         if (surahsInRange.length < 2) return null;
 
         let shuffledSurahs = [...surahsInRange].sort(() => Math.random() - 0.5);
-        let targetCount = Math.min(4, shuffledSurahs.length);
+        // 🌟 [2026-10-06] بطلب المعلم: 5 كلمات و5 سور (للصغار والكبار)، وتقلّ تلقائياً لو النطاق أقل من 5 سور
+        let targetCount = Math.min(5, shuffledSurahs.length);
         let chosen = shuffledSurahs.slice(0, targetCount);
 
         // 🌟 [إصلاح جوهري] المشكلة اللي بلّغ عنها المعلم: الكلمات المُختارة كانت "عشوائية" فعلاً —
@@ -556,7 +650,6 @@ export class QuranEngine {
         let usedWords = new Set();
         let pairs = [];
         for (let s of chosen) {
-            let surahNameBare = s.name.replace(/[^أ-ي]/g, "");
             // 🌟 نجمع كل الكلمات المرشَّحة من *كل* آيات السورة المتاحة بالنطاق (لا نتوقف عند أول
             // آية فيها مرشَّح واحد كما كان سابقاً) لنقدر نختار الأندر فعلياً من بينها كلها 🌟
             let candidates = [];
@@ -565,10 +658,10 @@ export class QuranEngine {
                 for (let w of words) {
                     let bare = w.replace(/[^أ-ي]/g, "");
                     if (bare.length < 4 || usedWords.has(bare)) continue;
-                    // نسمح باسم السورة نفسه ككلمة مميِّزة لها حتى لو كان ضمن القائمة الشائعة —
-                    // رابط تعليمي قوي ومقصود (راجع الافتراض الصريح 3 في تعليق الدالة أعلاه)
-                    let isSurahNameItself = bare === surahNameBare;
-                    if (COMMON_WORDS.has(bare) && !isSurahNameItself) continue;
+                    // 🌟 [تعديل بطلب المعلم] لا تكون الكلمة هي اسم السورة نفسه (والعصر ← العصر):
+                    // الإجابة تصبح بديهية بلا حفظ — كان مسموحاً سابقاً ككلمة مميِّزة، وأُلغي ذلك
+                    if (wordIsSurahName(w, s.name)) continue;
+                    if (COMMON_WORDS.has(bare)) continue;
                     candidates.push({ word: w, bare, freq: globalFreq.get(bare) || 1 });
                 }
             }
@@ -581,7 +674,7 @@ export class QuranEngine {
             if (!picked) {
                 // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
                 let ayahsShuffled = [...s.ayahs].sort(() => Math.random() - 0.5);
-                let fallbackWords = cleanAyahText(ayahsShuffled[0].text).split(/\s+/).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2);
+                let fallbackWords = ayahsShuffled.flatMap(a => cleanAyahText(a.text).split(/\s+/)).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2 && !wordIsSurahName(w, s.name));
                 picked = fallbackWords.length ? fallbackWords[Math.floor(Math.random() * fallbackWords.length)] : s.name;
             }
             usedWords.add(picked.replace(/[^أ-ي]/g, ""));
@@ -597,7 +690,8 @@ export class QuranEngine {
         let namesList = pairs.map(p => p.name).join('، ');
         return {
             type: isKids ? 'kids_link_word_surah' : 'link_word_surah',
-            questionTitle: isKids ? "اربط الكلمة بسورتها يا بطل 🔗📖" : "🔗📖 اربط الكلمة بالسورة",
+            // 🌟 [2026-10-06] بطلب المعلم: «يا بطل» للأطفال فقط، وعنوان الكبار بدونها
+            questionTitle: isKids ? "اربط الكلمة بسورتها يا بطل 🔗📖" : "اربط الكلمة بسورتها 🔗📖",
             starts: starts,
             ends: ends,
             // 🌟 نفس شكل original الذي كانت تُرجعه generateOrderSurahsGame (numberInSurah = رقم

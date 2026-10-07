@@ -19,11 +19,11 @@
 //   1) "جاهز" = للشهر سجل نهاية حفظ (آخر سورة وآية). غيابه لا يمنع التصدير، فقط ينبّه.
 //   2) "نطاق الأشهر" آخر 6 أشهر (الحالي + 5 سابقة).
 //   3) ملخص الشهر هنا محلي فقط (الحفظ + جلسات غرفة اللعب)؛ الواجبات والاختبارات
-//      الثنائية تُجلب عند فتح التقرير نفسه (بعضها يحتاج السحابة ومفتاح المعلم).
+//      الثنائية تُجلب عند فتح التقرير نفسه (الواجبات تظهر فقط لو سجّل المعلم الدخول بجوجل داخل نظام الواجبات على هذا الجهاز — التقرير نفسه لا يطلب أي دخول).
 //   4) الطلاب المخفيون (isHidden) لا يظهرون في البحث.
 // =============================================================================
 
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 import { summarizeReview } from '../engine/reviewParts.js';
 
@@ -136,8 +136,8 @@ async function getMonthInfo(student, year, month1) {
         const sd = AppState.surahsData || [];
         const b = rec.beginning ? getSurahInfo(sd, rec.beginning.surahNumber) : null;
         const e = getSurahInfo(sd, rec.ending.surahNumber);
-        info.beginLabel = rec.beginning ? `${b ? b.name : '؟'} ${rec.beginning.ayahNumber}` : '';
-        info.endLabel = `${e ? e.name : '؟'} ${rec.ending.ayahNumber}`;
+        info.beginLabel = rec.beginning ? `${b ? surahNameLocal(b.name) : '؟'} ${rec.beginning.ayahNumber}` : '';
+        info.endLabel = `${e ? surahNameLocal(e.name) : '؟'} ${rec.ending.ayahNumber}`;
         info.newAyahs = typeof rec.newAyahs === 'number' ? rec.newAyahs : null;
       } else if (!rec && all.length) {
         const earliest = all.reduce((m, r) => Math.min(m, r.year * 12 + r.month), Infinity);
@@ -163,6 +163,27 @@ async function loadActiveStudents() {
   if (!AppState.studentManager) return [];
   const all = await AppState.studentManager.getAllStudents();
   return all.filter(s => !s.isHidden).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar'));
+}
+
+/**
+ * 🌟 [جديد 2026-10-03] ملخص تصدير تقارير الشهر لبطاقة «تقارير الشهر» في student/my-students.html —
+ * للقراءة فقط. «شهر التقارير» = الشهر الماضي في أول REMINDER_DAYS أيام (نفس نافذة شريط التذكير أعلاه)،
+ * وإلا الشهر الحالي. season = هل نحن في موسم التقارير (آخر 7 أيام من الشهر أو أول REMINDER_DAYS أيام)
+ * — خارجه لا تظهر شارة «متبقية» حتى لا تزعج المعلم في منتصف الشهر.
+ * @returns {Promise<{year:number, month1:number, monthLabel:string, done:number, total:number, season:boolean}|null>}
+ */
+export async function getReportsExportSummary() {
+  if (!AppState.studentManager) return null;   // القاعدة لم تجهز: «غير معروف» لا «0 من 0»
+  const now = new Date();
+  const inPrevWindow = now.getDate() <= REMINDER_DAYS;
+  const ref = inPrevWindow ? new Date(now.getFullYear(), now.getMonth() - 1, 1) : now;
+  const year = ref.getFullYear(), month1 = ref.getMonth() + 1;
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const season = inPrevWindow || now.getDate() > daysInMonth - 7;
+  const students = await loadActiveStudents();
+  const doneMap = readDone();
+  const done = students.filter(s => doneMap[doneKey(s.id, year, month1)]).length;
+  return { year, month1, monthLabel: monthName(year, month1, false), done, total: students.length, season };
 }
 
 // -----------------------------------------------------------------------------

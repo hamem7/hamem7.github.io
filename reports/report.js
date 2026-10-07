@@ -26,7 +26,7 @@ import { REPORT_STYLES } from './report.styles.js';
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
-import { t, tf, localizeGenerated, surahNamesLocal } from '../core/i18n.js';
+import { t, tf, localizeGenerated, surahNamesLocal, trStored } from '../core/i18n.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -132,7 +132,8 @@ const REPORT_TEMPLATE = `
 
           <div class="dh-head">
             <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
-            <img class="head-star" src="${ART_DIR}report-star-cluster.png" alt="">
+            <!-- 🌟 [2026-10-03] شعار المنصة مكان عنقود النجوم أعلى يمين الترويسة (ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة) -->
+            <img class="head-logo" src="assets/brand/ham-logo.svg" alt="">
             <div class="eyebrow" data-i18n="rep_eyebrow">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
             <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
             <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
@@ -290,6 +291,7 @@ const REPORT_TEMPLATE = `
 
         <div class="closing pdf-block">
           <div class="footer-meta">
+            <img class="footer-logo" src="assets/brand/ham-mark.svg" alt="">
             <span data-i18n="rep_report_no">رقم التقرير</span>: <b id="report-footer-id" dir="ltr">--</b><br>
             <span data-i18n="rep_date">التاريخ</span>: <b id="report-footer-date">--</b><span id="report-footer-hijri"></span>
           </div>
@@ -601,7 +603,7 @@ function getSkillHighlights(student, questionResults, speedCompare){
     // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض
     // نصه الخام كما كان يُعرض تمامًا قبل هذا التعديل، فلا يختفي أي بند مسجَّل.
     const label = head
-      || w.text
+      || localizeGenerated(w.text)
       || (Array.isArray(w.errorTypes) ? w.errorTypes.map(localizeGenerated).join(AppState.currentLang === 'en' ? ', ' : '، ') : localizeGenerated(w.errorTypes))
       || '';
     if (!label) return null;
@@ -813,10 +815,22 @@ function buildReportData(){
   //   • لا يوجد أي بيان سابق حقيقي  → لا شارة فرق ولا سُلّم، ورسالة "أول تقييم" فقط.
   //   • بيان سابق حقيقي واحد        → شارة الفرق ومحطة واحدة سابقة، بتاريخها الحقيقي.
   //   • عدة بيانات سابقة حقيقية      → حتى ٣ محطات سابقة، كل واحدة بتاريخها ونتيجتها.
-  const rawHistory = getHistory(student.id);
+  const allHistory = getHistory(student.id);
+  // 🌟 جلسات "علاج الأخطاء" لا تدخل سُلّم التقدّم ولا مقارنة الفرق/السرعة: تعيد أسئلة أُخطئ فيها
+  // سابقًا فليست قياسًا حقيقيًا للمستوى. الحقل mode يكتبه المحرّكان؛ وللسجلات القديمة بلا mode
+  // نرجع إلى نص range (نصّ جلسة العلاج بالعربية أو بلغة الواجهة الحالية).
+  const WEAKNESS_RANGE = 'جلسة علاج وتصحيح الأخطاء السابقة';
+  const isWeaknessEntry = (h) => !!h && (h.mode === 'weakness'
+    || (typeof h.range === 'string' && (h.range === WEAKNESS_RANGE || h.range === t(WEAKNESS_RANGE))));
+  const isWeaknessReport = !!(activeGameState && activeGameState.isWeaknessMode);
+  const lastAll = allHistory.length ? allHistory[allHistory.length - 1] : null;
+  const lastRawIsThisAttempt = !!(lastAll && lastAll.date === dateLabel && lastAll.score === score);
+  const rawHistory = allHistory.filter(h => !isWeaknessEntry(h));
   const lastRaw = rawHistory.length ? rawHistory[rawHistory.length - 1] : null;
-  const lastRawIsThisAttempt = !!(lastRaw && lastRaw.date === dateLabel && lastRaw.score === score);
-  const previous = lastRawIsThisAttempt ? rawHistory.slice(0, -1) : rawHistory;
+  // في تقرير تقييم عادي: نستبعد آخر عنصر لو كان هذا الاختبار نفسه. في تقرير علاج الأخطاء لا يوجد
+  // في rawHistory تسجيل لهذا الاختبار أصلًا (مُفلتَر)، فكل ما فيه تقييمات عادية سابقة.
+  const previous = (!isWeaknessReport && lastRaw && lastRaw.date === dateLabel && lastRaw.score === score)
+    ? rawHistory.slice(0, -1) : rawHistory;
 
   const lastPrev = previous.length ? previous[previous.length - 1] : null;
   const scope = (activeGameState && activeGameState.range)
@@ -826,7 +840,7 @@ function buildReportData(){
 
   // فرق النتيجة عن المحاولة السابقة — null تمامًا لو لم توجد محاولة سابقة *حقيقية*
   // مسجَّلة (أول تقييم للطالب فعليًا)، فتختفي الشارة بدل أن تعرض "+0" أو رقمًا لا معنى له.
-  const delta = lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
+  const delta = !isWeaknessReport && lastPrev && typeof lastPrev.score === 'number' ? (score - lastPrev.score) : null;
 
   // مقارنة السرعة بمتوسط المحاولات السابقة *الحقيقية* فقط (لا تشمل هذا الاختبار نفسه) —
   // تحتاج قياسًا زمنيًا في الطرفين معًا
@@ -848,14 +862,15 @@ function buildReportData(){
   // games/kidsGame.js سجّلاها بالفعل قبل فتح هذا التقرير (lastRawIsThisAttempt = true)،
   // فتسجيلها هنا مرة أخرى كان هو بالضبط سبب "قراءة الاختبار كمحاولة سابقة لنفسه"
   // أعلاه. لا نسجّلها هنا إلا لو وصلنا هذا التقرير من مسار لم يكتب في السجل مسبقًا.
-  if (!lastRawIsThisAttempt) {
+  if (!lastRawIsThisAttempt && !isWeaknessReport) {
     appendHistoryEntry(student.id, { date: dateLabel, score, range: scope, avgTimeSec: stats.avgTimeSec });
   }
 
   // محطات سُلّم التقدّم: هذه المحاولة أولاً (أقصى اليمين في RTL) ثم أحدث ثلاث محاولات
   // سابقة *حقيقية* (previous بعد استبعاد هذا الاختبار نفسه أعلاه). لون كل محطة = لون
   // مستواها الفعلي، لا تدرّج يعبّر عن ترتيبها الزمني.
-  const ladder = [{
+  // تقرير علاج الأخطاء: بلا محطة "هذا التقييم" — السُّلّم تقييمات عادية سابقة فقط.
+  const ladder = isWeaknessReport ? [] : [{
     isCurrent: true,
     whenLabel: t('rep_step_current'),
     dateShort: shortDateLabel(dateLabel),
@@ -882,7 +897,7 @@ function buildReportData(){
     name: student.name || t('rp_default_student'),
     // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
     // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
-    grade: student.grade || '',
+    grade: student.grade ? trStored(student.grade) : '',
     scope: scope || '',
     date: dateLabel,
     dateHijri: formatDateHijri(now),
@@ -965,6 +980,10 @@ function renderLadder(d){
 
   // أول محاولة مسجَّلة للطالب: محطة واحدة فقط. نوضّح ذلك صراحةً بدل ترك السُلّم
   // يبدو ناقصًا أو موحيًا بأن بقية المحطات اختفت لسبب ما.
+  if (d.ladder.length === 0) {
+    wrap.innerHTML = `<p class="ladder-empty">${escapeHtml(t('rep_ladder_no_regular'))}</p>`;
+    return;
+  }
   const firstNote = d.ladder.length < 2
     ? `<p class="ladder-empty">${escapeHtml(t('rep_ladder_first_attempt'))}</p>`
     : '';
@@ -1517,7 +1536,7 @@ const HQ_SCALE = 3; // جودة عالية جدًا للتصدير
 // تقارير صُدِّرت قبل ذلك لأنها لم تُسجَّل وقتها.
 const REPORTS_LOG_KEY = 'darham_reports_log';
 const REPORTS_LOG_MAX = 300; // حد أقصى لحجم السجل حتى لا ينمو بلا نهاية
-function logReportGenerated(){
+function logReportGenerated(canvas){
   try {
     const raw = localStorage.getItem(REPORTS_LOG_KEY);
     const list = raw ? JSON.parse(raw) : [];
@@ -1525,6 +1544,10 @@ function logReportGenerated(){
     arr.push(new Date().toISOString());
     localStorage.setItem(REPORTS_LOG_KEY, JSON.stringify(arr.slice(-REPORTS_LOG_MAX)));
   } catch (e) { /* تجاهل — لا نمنع التصدير بسبب فشل تسجيل العدّاد فقط */ }
+  // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
+  try {
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'individual', name: reportData && reportData.name, sub: [reportData && localizeGenerated(reportData.scope), reportData && reportData.date].filter(Boolean).join(' — '), canvas })).catch(() => {});
+  } catch (e) { /* تجاهل */ }
 }
 
 // 🌟 [جديد] الصورة صارت **مختصرة**: نفس الورقة تمامًا بعد إخفاء كتلة واحدة فقط هي
@@ -1544,7 +1567,24 @@ function logReportGenerated(){
 // فشل الالتقاط لأي سبب.
 const BRIEF_CLASS = 'dh-brief';
 
-async function exportPng(){
+// 🌟 [2026-10-03 — مراجعة تجربة الهاتف] على الهاتف تُعرض الورقة بعرض الشاشة (راجع قاعدة ≤760px في report.styles.js)
+// بدل 720px مقصوصة داخل إطار يُمرَّر أفقيًا. لكن ملفات التصدير يجب أن تبقى كما كانت تمامًا، فنعيد الورقة إلى عرضها
+// الأصلي 720px أثناء الالتقاط فقط (كلاس على إطار المعاينة)، ثم نعيدها لعرض الشاشة في finally مهما حدث.
+// على سطح المكتب لا أثر لهذا الكلاس (الورقة 720px أصلًا).
+const EXPORT_WIDTH_CLASS = 'dh-export-width';
+async function withExportWidth(fn){
+  const stage = currentTarget()?.closest('.report-stage');
+  if (stage) stage.classList.add(EXPORT_WIDTH_CLASS);
+  try {
+    await nextFrames();
+    return await fn();
+  } finally {
+    if (stage) stage.classList.remove(EXPORT_WIDTH_CLASS);
+  }
+}
+
+async function exportPng(){ return withExportWidth(exportPngAtPageWidth); }
+async function exportPngAtPageWidth(){
   await ensureHtml2Canvas();
   await ensureFontsReady();
   await ensureStampCleaned();
@@ -1567,7 +1607,7 @@ async function exportPng(){
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // ---------------------------------------------------------------------------
@@ -1621,7 +1661,8 @@ function packBlocksIntoPages(blocks, maxPageHeight){
 
 // 🌟 ملف الـ PDF يبقى **شاملاً** كل أقسام التقرير بما فيها جدول الأسئلة — لا يُضاف
 // هنا كلاس dh-brief إطلاقًا. هذا هو الفرق الوحيد بينه وبين تصدير الصورة أعلاه.
-async function exportPdf(){
+async function exportPdf(){ return withExportWidth(exportPdfAtPageWidth); }
+async function exportPdfAtPageWidth(){
   await ensureHtml2Canvas();
   await ensureJsPdf();
   await ensureFontsReady();
@@ -1691,7 +1732,7 @@ async function exportPdf(){
   });
 
   pdf.save(buildFileName('pdf'));
-  logReportGenerated();
+  logReportGenerated(canvas);
 }
 
 // -----------------------------------------------------------------------------
@@ -1824,6 +1865,9 @@ export function openReportScreen(gameState){
     return;
   }
   root.innerHTML = REPORT_TEMPLATE;
+  // 🌟 [إصلاح] اتجاه صفحة التقرير يتبع لغة الواجهة (كان rtl ثابتًا فتنقلب علامات الترقيم في الإنجليزية)
+  const reportPage = document.getElementById('report-page');
+  if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
   try { applyLanguage(); } catch (e) { /* غير حرِج — نكمل حتى لو لم تتوفر */ }
   initReportScreen();
 }

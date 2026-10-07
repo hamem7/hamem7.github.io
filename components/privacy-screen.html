@@ -1,0 +1,57 @@
+<!-- components/privacy-screen.html -->
+<!-- 🌟 [2026-10-03 — بطلب صاحب المنصة] سياسة الخصوصية كشاشة داخل المنصة (loadScreen) بدل صفحة privacy.html المستقلة:
+     نفس الترويسة العليا (الشعار يميناً، «الرئيسية» واللغة يساراً) ونفس الشريط السفلي ونفس نمط رأس الشاشات الداخلية
+     (زر رجوع + عنوان، مثل «طلابي»)، فلا تبدو غريبة عن باقي المنصة. النصوص من نفس مفاتيح priv_* في core/i18n.js.
+     privacy.html باقية كنسخة عامة للرابط المباشر (مثل رابط سياسة الخصوصية في إعدادات تسجيل الدخول بجوجل). -->
+<style>
+    #app-root #priv-screen { max-width: 720px; text-align: start; padding: 22px 20px !important; display: flex; flex-direction: column; gap: 18px; color: #10241c; }
+    #app-root #priv-screen .priv-head { display: flex; align-items: center; gap: 10px; }
+    #app-root #priv-screen .priv-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    #app-root #priv-screen .priv-back:hover { background: #eaf4ef; }
+    #app-root #priv-screen .priv-back:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+    [dir="ltr"] #priv-screen .priv-back svg, html[lang="en"] #priv-screen .priv-back svg { transform: scaleX(-1); }
+    #app-root #priv-screen .priv-title { margin: 0 !important; font-size: 1.9rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; line-height: 1.3; }
+    #app-root #priv-screen .priv-sub { margin: 2px 0 0; font-size: .95rem; color: #4a6058; }
+    #app-root #priv-screen .priv-card { background: #fff; border: 1px solid #e4dfcc; border-radius: 20px; padding: 20px 18px; line-height: 1.9; }
+    #app-root #priv-screen .priv-updated { font-size: .88rem; color: #4a6058; margin-bottom: 14px; }
+    #app-root #priv-screen p { margin: 0 0 10px; color: #10241c; }
+    #app-root #priv-screen h2 { margin: 20px 0 8px !important; font-size: 1.1rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; border-inline-start: 4px solid #d4af37; padding-inline-start: 10px; }
+    #app-root #priv-screen ul { margin: 6px 0 10px; padding-inline-start: 22px; }
+    #app-root #priv-screen li { margin-bottom: 6px; color: #10241c; }
+    #app-root #priv-screen .priv-contact { margin-top: 18px; padding-top: 14px; border-top: 1px dashed #e4dfcc; font-size: .95rem; }
+    #app-root #priv-screen .priv-contact a { color: #0d5c46; font-weight: 700; text-decoration: none; }
+    #app-root #priv-screen .priv-contact a:hover { text-decoration: underline; }
+</style>
+<div class="screen active">
+    <div class="login-container" id="priv-screen">
+        <div class="priv-head">
+            <button type="button" class="priv-back" id="btn-back-privacy">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <div>
+                <h1 class="priv-title" data-i18n="priv_title">سياسة الخصوصية</h1>
+                <p class="priv-sub" data-i18n="priv_sub">منصة حمٓ لتثبيت الحفظ و المراجعة</p>
+            </div>
+        </div>
+
+        <div class="priv-card">
+            <div class="priv-updated" data-i18n="priv_updated">آخر تحديث: 27 سبتمبر 2026</div>
+
+            <p data-i18n="priv_intro">منصة "حمٓ" لا تجمع أي بيانات شخصية من الطلاب أو المعلمين بشكل افتراضي.</p>
+
+            <h2 data-i18n="priv_h_email">استخدام البريد الإلكتروني</h2>
+            <p data-i18n="priv_email_p">يُستخدم البريد الإلكتروني فقط عند تسجيل دخول المعلم، لغرضين اثنين لا غير:</p>
+            <ul>
+                <li data-i18n="priv_li1">حفظ بيانات كل معلم بشكل مستقل وآمن، دون اختلاطها ببيانات معلم آخر.</li>
+                <li data-i18n="priv_li2">ضمان وصول إجابات الطلاب وتسليماتهم إلى المعلم الصحيح المسؤول عنهم.</li>
+            </ul>
+
+            <h2 data-i18n="priv_h_share">مشاركة البيانات</h2>
+            <p data-i18n="priv_share_p">لا تتم مشاركة هذا البريد أو أي بيانات مرتبطة به مع أي طرف ثالث، ولا يُستخدم لأي غرض تسويقي أو إعلاني.</p>
+
+            <div class="priv-contact">
+                <span data-i18n="priv_contact">لأي استفسار، تواصل عبر:</span> <a href="tel:+201027814948" dir="ltr">00201027814948</a>
+            </div>
+        </div>
+    </div>
+</div>

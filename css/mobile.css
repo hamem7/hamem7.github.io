@@ -1,20 +1,40 @@
 /* css/mobile.css
-   🌟🌟 [جديد 2026-10-02 — تحسين تجربة الهاتف بطلب المعلم] "لغة التصميم الموحّدة" للهاتف فقط.
-   المشكلة التي يعالجها: كل شاشة كانت تحمل أحجام أزرار وعناوين وحشوات خاصة بها (inline styles داخل ملفات html) مع
-   قواعد سطح مكتب كبيرة (أزرار 1.3–1.6rem، حشوة حاوية 3rem + حشوة شاشة 2rem...) فتنتفخ العناصر وتنكسر نصوصها على الهاتف.
-   المبدأ: ملف واحد، يُحمَّل أخيراً (راجع index.html)، وكل قواعده داخل @media (max-width: 768px) فلا يتغيّر شيء إطلاقاً على
-   سطح المكتب. لا يغيّر أي منطق أو DOM أو ألوان الهوية (--dh-emerald-* / --dh-gold-*)، ويحافظ على الفروق الضرورية بين
-   الكبار (حواف 14px) والأطفال (أزرار بيضاوية pill) كما هي في adults.css/kids.css.
-   الرموز (tokens) المستخدمة هنا — عدّلها من مكان واحد لتتغيّر كل الشاشات معاً:
-     أزرار: خط 1.05rem · ارتفاع أدنى 46px · حشوة 11px 18px
-     عناوين: H1 1.8rem · H2 1.2rem
-     حاويات: حشوة 1.25rem 1rem · حشوة الشاشة 14px 12px
-     حقول: خط 1rem · حشوة 10px 14px
-   ⚠️ استخدمنا !important عمداً فقط حيث تتعارض مع inline styles داخل html (لا يمكن التغلب عليها بغير ذلك). 🌟🌟 */
+   🌟🌟 [أُعيدت كتابته 2026-10-03 — مراجعة تجربة الهاتف بطلب المعلم] المصدر الوحيد لتخطيط الهاتف (≤768px).
+   السبب الحقيقي للمشكلة كان: (1) الرئيسية مبنية كصفحة تعريفية لسطح المكتب (هيرو كبير + «لماذا حمٓ؟» + فوتر كبير) ثم تُصغَّر على
+   الهاتف عبر ثلاث طبقات متعارضة (home.css ثم homeFast.css ثم هذا الملف) تعيد ضبط نفس الخصائص بقيم مختلفة؛ ومربع البحث كان يخرج
+   عن عرض الشاشة (صندوق flex بلا min-width:0) ومُزاحاً بـ translateY فيغطي ما تحته. (2) أحجام inline داخل قوالب الشاشات (1.3–2.5rem
+   وحشوات 15px+) وقاعدة غير مقيّدة في kids.css تضع margin: 8vh فوق كل .login-container. (3) السجل العام يحوّل كل صف إلى بطاقة ~430px.
+   (4) لوحة المؤقت في شاشة اللعب ~520px تدفن السؤال. الحل: حُذفت قواعد الهاتف المتعارضة من home.css/homeFast.css، وصار هنا:
+     أ) رموز (tokens) موحّدة للأحجام — عدّلها من مكان واحد فتتغيّر كل الشاشات معاً.
+     ب) مكوّنات: زر أساسي/ثانوي/صغير، حقل، بطاقة، عنوان قسم، نافذة منبثقة، عنصر تنقّل (الشريط واللوحتان في homeFast.css بنفس الرموز).
+     ج) إعادة توزيع الرئيسية (لا تصغير أعمى): الأهم أولاً (بحث ← الألعاب والأركان ← أدوات المعلم) والثانوي مضغوط في الأسفل.
+   كل القواعد داخل @media (max-width: 768px) فلا يتغيّر شيء على سطح المكتب. لا منطق ولا بيانات هنا، ونص الآيات (.quran-text) لم يُمسّ.
+   ⚠️ !important مستخدمة عمداً فقط حيث تتعارض مع inline styles أو قواعد !important داخل قوالب html (لا يمكن التغلب عليها بغيرها). 🌟🌟 */
+
+/* ===== 0) الرموز (Tokens) ===== */
+:root {
+    --m-gutter: 14px;            /* الهامش الجانبي لكل الشاشات */
+    --m-gap: 10px;               /* المسافة بين البطاقات/الأزرار المتجاورة */
+    --m-radius: 14px;            /* زر، حقل، بطاقة صغيرة */
+    --m-radius-lg: 18px;         /* حاوية، نافذة، بطاقة كبيرة */
+    --m-btn-h: 46px;             /* زر أساسي/ثانوي (≥44px لسهولة اللمس) */
+    --m-btn-fs: 1rem;
+    --m-btn-pad: 10px 16px;
+    --m-btn-sm-h: 38px;          /* زر صغير (إجراءات ثانوية، أزرار داخل البطاقات) */
+    --m-btn-sm-fs: .88rem;
+    --m-btn-sm-pad: 6px 12px;
+    --m-input-h: 46px;
+    --m-input-fs: 1rem;          /* 16px: يمنع تكبير iOS التلقائي عند التركيز */
+    --m-h1: 1.45rem;             /* عنوان الشاشة */
+    --m-h2: 1.08rem;             /* عنوان قسم / عنوان نافذة */
+    --m-icon-tile: 38px;         /* مربع الأيقونة داخل البطاقات */
+    --m-bnav-h: 56px;            /* ارتفاع عنصر الشريط السفلي */
+    --m-bnav-space: calc(var(--m-bnav-h) + 4px + env(safe-area-inset-bottom, 0px) + 12px);   /* ما يُترك أسفل المحتوى حتى لا يغطيه الشريط */
+}
 
 @media (max-width: 768px) {
 
-    /* ===== 1) الترويسة العلوية: صف واحد نحيف (كانت صفّين ~120px بسبب قاعدة global.css القديمة المحذوفة) ===== */
+    /* ===== 1) الترويسة العلوية: صف واحد نحيف ===== */
     #main-header {
         flex-direction: row;
         flex-wrap: nowrap;
@@ -24,109 +44,465 @@
         border-bottom-width: 3px;
     }
     #main-header .home-header-brand { gap: 8px; min-width: 0; flex: 1 1 auto; }
-    #main-header .home-header-logo { width: 36px; height: 36px; border-radius: 11px; }
-    #main-header .home-header-logo svg { width: 20px; height: 20px; }
+    #main-header .home-header-logo { height: 40px; }
     #main-header .home-header-text { min-width: 0; }
-    #main-header #header-title {
-        font-size: 0.9rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    #main-header #top-student-name { font-size: 0.72rem; }
+    #main-header #header-title { font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #main-header #top-student-name { font-size: .72rem; }
     #main-header .header-actions { gap: 6px; flex: 0 0 auto; }
     #main-header #lang-toggle-btn,
-    #main-header .header-home-btn {
-        padding: 6px 12px;
-        font-size: 0.82rem;
-        min-height: 34px;
-        line-height: 1.2;
-    }
+    #main-header .header-home-btn { padding: 6px 12px; font-size: .82rem; min-height: 36px; line-height: 1.2; }
     #main-header .header-home-btn { padding: 6px 10px; }
 
-    /* ===== 2) هيكل الشاشات: حشوة أقل (كانت 2rem للشاشة + 3rem للحاوية = هوامش ضخمة) ===== */
-    #app-root .screen { padding: 14px 12px; }
-    #app-root .login-container { padding: 1.25rem 1rem !important; border-radius: 22px; }
-    #app-root .modal-content { padding: 1.25rem 1rem; border-radius: 18px; }
+    /* ===== 2) هيكل الشاشات ===== */
+    /* ظهور الشاشة أسرع (0.5ث → 0.2ث) فلا تُشعر الإزاحة الصغيرة بقفزة عند كل تنقّل. ⚠️ نغيّر المدة فقط لا اسم الحركة: تغيير الاسم
+       يعيد تشغيلها من أول إطار عند عبور حد 768px (تدوير جهاز لوحي) فتبقى الشاشة باهتة لحظياً */
+    #app-root .screen { padding: 12px var(--m-gutter); animation-duration: .2s; }
+    body.dh-core-screen { padding-bottom: var(--m-bnav-space); }
+    body.dh-home-screen { padding-bottom: 0; }               /* الفوتر نفسه يترك مساحة الشريط (بدل شريط body الأزرق تحت الفوتر) */
+    /* kids.css يفرض (بلا تقييد بثيم) margin: 8vh auto وحشوة 40px وحواف 30px على كل .login-container/.report-card بـ !important —
+       على الهاتف كان ذلك فراغاً ~65px فوق كل شاشة دخول/طلابي */
+    #app-root .login-container,
+    #app-root .report-card { margin: 4px auto 12px !important; padding: 16px 14px !important; border-radius: var(--m-radius-lg) !important; }
+    #app-root .login-container { box-shadow: 0 12px 30px rgba(0, 0, 0, .18) !important; }
 
     /* ===== 3) العناوين ===== */
-    #app-root .splash-title {
-        font-size: 1.8rem !important;
-        line-height: 1.35;
-        margin-bottom: 12px !important;
-    }
+    #app-root .splash-title,
+    #app-root .screen > h1 { font-size: var(--m-h1) !important; line-height: 1.4; margin-bottom: 8px !important; }
     #app-root .login-container h2,
-    #app-root .modal-content h2 {
-        font-size: 1.2rem !important;
-        line-height: 1.5;
-        margin-bottom: 16px !important;
-    }
+    #app-root .modal-content h2 { font-size: var(--m-h2) !important; line-height: 1.5; margin-bottom: 12px !important; }
 
-    /* ===== 4) الأزرار: حجم موحّد (الكبار حواف 14px، الأطفال يبقون بيضاويين من kids.css) ===== */
+    /* ===== 4) الأزرار: أساسي/ثانوي بحجم واحد + صغير (الكبار حواف 14px، الأطفال يبقون بيضاويين من kids.css) ===== */
     #app-root .btn {
-        font-size: 1.05rem !important;
-        min-height: 46px;
+        font-size: var(--m-btn-fs) !important;
+        min-height: var(--m-btn-h);
+        padding: var(--m-btn-pad) !important;
         gap: 8px;
-        line-height: 1.35;
+        line-height: 1.3;
     }
-    #app-root .btn:not([style*="padding"]) { padding: 11px 18px; }
-    .adult-theme #app-root .btn { border-radius: 14px; }
-    /* زرا الإجراء الرئيسيان (بدء التقييم / الدخول السريع) أبرز قليلاً من بقية الأزرار */
+    .adult-theme #app-root .btn { border-radius: var(--m-radius); }
+    /* الإجراء الرئيسي في الشاشة (بدء التقييم / الدخول السريع) أبرز قليلاً */
     #app-root #btn-start-mission,
-    #app-root #btn-login-submit { font-size: 1.15rem !important; min-height: 52px; }
+    #app-root #btn-login-submit { font-size: 1.08rem !important; min-height: 50px; }
+    /* زر صغير: أزرار داخل الجداول وأزرار الرجوع التي يغني عنها الشريط السفلي */
+    #app-root td .btn,
+    body.dh-core-screen #app-root #btn-back-splash,
+    body.dh-core-screen #app-root #btn-back-login,
+    #app-root .tjw-btn-exit,
+    #app-root .dts-back-btn {
+        font-size: var(--m-btn-sm-fs) !important;
+        min-height: var(--m-btn-sm-h);
+        padding: var(--m-btn-sm-pad) !important;
+        width: auto !important;
+        margin-top: 10px !important;
+    }
+    body.dh-core-screen #app-root #btn-back-splash { margin-inline: auto; display: flex; }
 
     /* ===== 5) الحقول ===== */
     .adult-theme #app-root select,
     .adult-theme #app-root input[type="text"],
     .adult-theme #app-root input[type="date"],
-    .adult-theme #app-root input[type="number"] {
-        font-size: 1rem;
-        padding: 10px 14px;
-        min-height: 46px;
+    .adult-theme #app-root input[type="number"] { font-size: var(--m-input-fs); padding: 10px 14px; min-height: var(--m-input-h); }
+    #app-root #student-search-input { font-size: 1.05rem !important; padding: 10px 16px !important; border-width: 2px !important; min-height: var(--m-input-h); }
+    #app-root .dhs-wrap { width: 100%; margin-bottom: 14px; }
+    #app-root .dhs-item { font-size: 1.02rem; padding: 11px 16px; min-height: 44px; }
+    #app-root #btn-login-submit { margin-bottom: 4px !important; }
+    #app-root .input-group { margin-bottom: 10px; }
+    #app-root .input-group label { font-size: .9rem; }
+
+    /* ===== 6) النوافذ المنبثقة: لا تتجاوز الجزء الظاهر (dvh يراعي شريط المتصفح ولوحة المفاتيح) ===== */
+    .modal-overlay { padding: 10px; }
+    .modal-content {
+        width: 100%;
+        max-height: calc(100dvh - 20px);
+        padding: 16px 14px;
+        border-radius: var(--m-radius-lg);
+        overscroll-behavior: contain;
     }
-    #app-root #student-search-input {
-        font-size: 1.05rem !important;
-        padding: 11px 16px !important;
-        border-width: 2px !important;
+    #app-root .modal-content { padding: 16px 14px; }
+    #app-root .modal-content .btn { margin-top: 8px !important; }
+    .whats-new-modal { padding: 12px; }
+    .whats-new-modal-box,
+    .teacher-profile-modal-box { max-height: calc(100dvh - 24px); padding: 18px 16px; border-radius: var(--m-radius-lg); }
+    .whats-new-modal-box h3,
+    .teacher-profile-modal-box h3 { font-size: var(--m-h2); }
+    #toast-encouragement { font-size: 1.02rem; min-width: 0; max-width: calc(100vw - 32px); padding: 12px 18px; }
+
+    /* ===== 7) بطاقة التلميحات العائمة: لا تغطي الشريط السفلي ===== */
+    body.dh-core-screen .dh-hint-card { bottom: var(--m-bnav-space); max-height: 34dvh; }
+
+    /* ===== 8) شاشة اللعب (الكبار/الصغار): السؤال في أول الشاشة =====
+       كانت لوحة المؤقت + المسار + زرّي الحفظ/الخروج تأخذ ~520px فيُدفن السؤال تحتها. الآن لوحة مضغوطة والزرّان في صف واحد.
+       تخطيط وأحجام فقط: نص الآيات (.quran-text) ومنطق اللعبة كما هما تماماً. */
+    #app-root .game-layout { margin: 0 auto !important; gap: 10px !important; padding: 0 !important; }
+    #app-root .game-sidebar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 10px 12px !important; border-radius: var(--m-radius-lg) !important; }
+    #app-root .game-sidebar > * { flex: 0 0 100%; }
+    /* المؤقت وعنوان المسار في سطر واحد، ودوائر الأسئلة في صف واحد (كانت سطرين) */
+    #app-root .game-sidebar .timer-text { flex: 0 0 auto; font-size: 1.45rem; margin: 0; padding: 0; border-bottom: 0; line-height: 1.2; }
+    #app-root .game-sidebar > h3 { flex: 0 1 auto; font-size: .85rem !important; margin: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
+    #app-root .tracker-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+    #app-root .q-circle { width: 28px; height: 28px; font-size: .8rem; border-width: 1.5px; }
+    #app-root .q-circle.active { transform: scale(1.08); }
+    #app-root .game-sidebar #btn-pause-game,
+    #app-root .game-sidebar #btn-exit-game {
+        flex: 1 1 0; width: auto !important; margin: 2px 0 0 !important; min-width: 0;
+        font-size: var(--m-btn-sm-fs) !important; min-height: var(--m-btn-sm-h); padding: var(--m-btn-sm-pad) !important;
     }
-    #app-root .input-group label { font-size: 0.95rem; }
+    #app-root .game-main-area { padding: 14px 12px !important; border-radius: var(--m-radius-lg) !important; }
+    #app-root .in-game-student { padding: 2px 10px !important; margin-bottom: 8px !important; gap: 10px !important; }
+    #app-root .in-game-student img { width: 38px !important; height: 38px !important; border-width: 2px !important; }
+    #app-root .in-game-student h3 { font-size: 1.05rem !important; }
+    #app-root #game-title { margin-bottom: 8px !important; }
+    #app-root #game-title > span { font-size: 1.1rem !important; padding: 6px 16px !important; line-height: 1.5; }
+    #app-root #game-question { margin-bottom: 12px !important; }
+    /* ===== 8-ب) «رتب الآيات» و«اربط أول الآية بآخرها» (الكبار والصغار): العمودان متجاوران =====
+       السبب: global.css يكدّس العمودين رأسياً على الهاتف (.order-grid/.link-grid → column) ويكبّر نص الآية إلى ~36px، فيصير العمود
+       الثاني بعد ~900px من الأول: يضغط المعلم في الأعلى ثم ينزل ليكمل ثم يصعد. الآن: العمود الأول يميناً والثاني يساراً في نفس الشاشة
+       (كما على سطح المكتب)، بخط آيات مقروء يناسب نصف العرض. تخطيط وأحجام فقط — النص ومنطق الربط/الترتيب كما هما. */
+    #app-root .order-grid,
+    #app-root .link-grid { flex-direction: row !important; align-items: flex-start; gap: 8px; }
+    #app-root .order-col,
+    #app-root .link-col { flex: 1 1 0; min-width: 0; padding: 8px 6px; border-radius: 12px; }
+    #app-root .order-col h3,
+    #app-root .link-col h3 { font-size: .85rem; line-height: 1.4; margin: 0 0 6px; padding-bottom: 0; }
+    #app-root #interactive-order-area > p,
+    #app-root #interactive-link-area > p,
+    #app-root #kids-word-order-area > p,
+    #app-root #kids-link-area > p { font-size: .9rem !important; line-height: 1.6; margin-bottom: 8px !important; }
+    #app-root #kids-link-area { margin-top: 8px !important; }
+    /* عناصر الآيات: كتلة بعرض العمود، خط ~19–22px بدل 36px */
+    #app-root .link-item.quran-text,
+    #app-root #order-shuffled .order-item.quran-text,
+    #app-root #order-slots .order-slot.filled.quran-text {
+        display: block; width: 100%; margin: 0 0 6px; padding: 6px 8px;
+        font-size: clamp(1.15rem, 5.2vw, 1.4rem) !important; line-height: 1.85 !important; border-radius: 10px;
+    }
+    #app-root #order-shuffled .order-item.order-text-long,
+    #app-root #order-slots .order-slot.filled.order-text-long { font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; }
+    #app-root #order-shuffled .order-item.order-text-xlong,
+    #app-root #order-slots .order-slot.filled.order-text-xlong { font-size: clamp(.98rem, 4.2vw, 1.12rem) !important; line-height: 1.75 !important; }
+    #app-root #order-shuffled .order-item:hover { transform: none; }
+    #app-root #order-slots .order-slot:not(.filled) { min-height: 44px; margin: 0 0 6px; padding: 6px 8px; font-size: .85rem; }
+    /* «رتب كلمات الآية» (الصغار): كلمات قصيرة تبقى أقراصاً متجاورة، بحجم يناسب نصف العرض */
+    #app-root #word-order-slots,
+    #app-root #word-order-shuffled { gap: 6px !important; margin-top: 6px !important; }
+    #app-root #word-order-slots .quran-text,
+    #app-root #word-order-shuffled .quran-text { font-size: clamp(1.15rem, 5.2vw, 1.4rem) !important; line-height: 1.8 !important; padding: 4px 10px; margin: 0; }
+    #app-root #word-order-slots .order-slot:not(.filled) { min-height: 40px; padding: 4px 8px; margin: 0; }
+    /* القائمة الطويلة تتمرّر داخل عمودها؛ العمودان معاً لا يتجاوزان الجزء الظاهر */
+    #app-root .order-list-scroll { max-height: 62dvh; }
 
-    /* ===== 6) بطاقة التلميحات العائمة: لا تغطي الشريط السفلي في الشاشات التي يظهر فيها ===== */
-    body.dh-core-screen .dh-hint-card {
-        bottom: calc(76px + env(safe-area-inset-bottom, 0px));
-        max-height: 30dvh;
+    /* ===== 8-ج) «سمّع من … إلى …» (كبار) و«أسمعنا صوتك العذب» (صغار) و«الآية بين آيتين» + صندوق الإجابة =====
+       السبب: قوالب هذه الأسئلة في المحرّك (engine/quranEngine.js) تحمل أنماطاً مضمَّنة لسطح المكتب — صندوق بحشوة 25px 40px (80px فراغاً
+       جانبياً على الهاتف) وعنوان 1.6–1.8rem ونص الآيات 3–3.2rem — وkids.css يضيف لكل .quran-text إطاراً متقطعاً بحشوة 15px 25px.
+       فصار السؤال الواحد ~1150–1450px والإجابة ~1700px. نصلحها من هنا دون لمس المحرّك (المحدِّدات تطابق شكل هذين القالبين فقط). */
+    #app-root #game-question > div[style*="25px 40px"] { padding: 10px !important; margin-top: 4px !important; border-radius: 12px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > div:not(.quran-text) { font-size: 1.02rem !important; line-height: 1.6; margin-bottom: 4px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > div:first-child { font-size: 1.12rem !important; margin-bottom: 8px !important; }
+    #app-root #game-question > div[style*="25px 40px"] > .quran-text {
+        display: block; font-size: clamp(1.35rem, 6vw, 1.7rem) !important; line-height: 2 !important;
+        padding: 6px 10px !important; margin: 0 0 10px !important; border-radius: 12px !important;
+    }
+    #app-root #game-question > .quran-text[style*="3rem"] {
+        display: block; font-size: clamp(1.35rem, 6vw, 1.7rem) !important; line-height: 2 !important;
+        padding: 8px 10px !important; margin-top: 4px !important; border-radius: 12px !important;
+    }
+    #app-root #game-question > .quran-text[style*="3rem"] > span { font-size: 1.05rem !important; }
+    /* الإجابة للمطابقة: نفس حجم الآيات المقروء بدل 2–3.2rem (تسميع 7 آيات كان ~1700px) */
+    #app-root #game-answer { font-size: .95rem; }
+    #app-root #game-answer > div[style*="font-size"] { font-size: 1rem !important; margin: 6px 0 !important; }
+    #app-root #game-answer .quran-text {
+        display: block; font-size: clamp(1.25rem, 5.6vw, 1.55rem) !important; line-height: 2 !important;
+        padding: 8px 10px !important; border-radius: 12px !important; max-width: 100%;
     }
 
-    /* ===== 7) الشريط السفلي ===== */
-    .dh-bnav:not([hidden]) { padding-top: 4px; }
-    .dh-bnav-item { font-size: 0.72rem; min-height: 50px; justify-content: center; }
-    .dh-bnav-item.is-center { font-weight: 700; color: var(--dh-emerald-700, #0d5c46); }
-    body.dh-core-screen { padding-bottom: 76px; }
+    /* ===== 8-د) أسئلة ركن الصغار متعددة الخيارات: «اختر الكلمة الناقصة»، «بأي آية تبدأ السورة»، «ماذا بعد/قبل هذه الآية»،
+       «استمع وخمّن الآية»، «استخرج الكلمة الزائدة»، «خمن السورة»، «صح أم خطأ» =====
+       السبب: قوالبها في engine/kidsEngine.js بأنماط مضمَّنة لسطح المكتب (الآية 3.5rem، العناوين 1.8–2.5rem)، وزر كل خيار
+       (.kids-mcq-btn) آيةٌ كاملة بخط 2rem وإطار .quran-text، فكان الخيار الواحد 190–350px والسؤال 1000–1730px — يقرأ الطفل
+       السؤال ثم ينزل للخيارات ثم يصعد. نصلحها من هنا دون لمس المحرّك (المحدِّدات تطابق أنماط قوالب الصغار فقط). */
+    #app-root #game-question > .quran-text[style*="3.5rem"] {
+        display: block; font-size: clamp(1.45rem, 6.6vw, 1.85rem) !important; line-height: 1.9 !important;
+        padding: 8px 10px !important; margin: 0 0 8px !important; border-radius: 14px !important;
+    }
+    #app-root #game-question > div[style*="1.8rem"] { font-size: 1.08rem !important; }
+    #app-root #game-question > div[style*="2.5rem"] { font-size: 1.3rem !important; margin-bottom: 6px !important; }
+    #app-root #game-question > div[style*="2.2rem"] { font-size: 1.05rem !important; padding: 8px 12px !important; border-width: 3px !important; border-radius: 12px !important; }
+    #app-root #game-question div[style*="1.5rem"] { font-size: 1.05rem !important; margin-bottom: 10px !important; }
+    #app-root #kids-mcq-area { margin-top: 10px !important; }
+    #app-root #kids-options-container { display: flex; flex-direction: column; gap: 8px; }
+    #app-root #kids-options-container .kids-mcq-btn,
+    #app-root #kids-listen-surah-options .kids-mcq-btn {
+        display: block; width: 100%; margin: 0 !important; padding: 6px 12px !important;
+        font-size: clamp(1.3rem, 5.8vw, 1.6rem) !important; line-height: 1.85 !important;
+        border-width: 3px; border-radius: 16px !important;
+    }
+    #app-root #kids-options-container .kids-mcq-btn:hover { transform: none; }
+    #app-root #kids-options-container > div { gap: 10px !important; margin-top: 6px !important; }
+    #app-root .kids-tf-btn { padding: 10px 22px !important; font-size: 1.3rem !important; min-width: 120px !important; margin: 0 !important; border-width: 3px !important; }
+    #app-root #kids-listen-surah-area { margin-top: 12px !important; }
+    #app-root #kids-listen-surah-area > div[style*="1.4rem"] { font-size: 1.1rem !important; margin-bottom: 8px !important; }
+    #app-root #kids-listen-surah-options { display: flex; flex-direction: column; gap: 8px; }
+    #app-root .kids-listen-play-btn { padding: 10px 20px; font-size: 1.05rem; }
 
-    /* ===== 8) الشاشة الرئيسية: تقليص الطول (كانت ~2850px، نصفها «لماذا حمٓ؟» والفوتر) ===== */
-    body.dh-home-screen .home-why { padding: 26px 14px 22px; }
-    body.dh-home-screen .home-why-title { font-size: 1.5rem; margin-bottom: 4px; }
-    body.dh-home-screen .home-why-subtitle { font-size: 0.92rem; margin-bottom: 16px; }
-    body.dh-home-screen .home-why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    body.dh-home-screen .home-why-card { padding: 12px 10px; border-radius: 14px; }
-    body.dh-home-screen .home-why-icon { width: 34px; height: 34px; border-radius: 10px; margin-bottom: 8px; }
-    body.dh-home-screen .home-why-icon svg { width: 18px; height: 18px; }
-    body.dh-home-screen .home-why-card h3 { font-size: 1rem; margin-bottom: 2px; }
-    body.dh-home-screen .home-why-card p { font-size: 0.8rem; line-height: 1.45; }
-    body.dh-home-screen .home-why-more { font-size: 0.78rem; }
-    body.dh-home-screen .home-footer { padding: 22px 16px 14px; }
-    body.dh-home-screen .home-footer-inner { gap: 12px; padding-bottom: 12px; }
-
-    /* ===== 9) أزرار الإجراء داخل شاشة اللعب: عرض كامل موحّد (كانت بعروض inline متفاوتة) ===== */
+    /* أزرار الإجراء داخل شاشة اللعب: عرض كامل موحّد (كانت بعروض وأحجام inline متفاوتة 1.4rem) */
+    #app-root #teacher-eval-buttons { gap: 8px !important; }
     #app-root #show-ans-btn,
     #app-root #btn-record-correct,
     #app-root #btn-record-wrong,
     #app-root .btn-note,
     #app-root .btn-confirm-next { width: 100%; max-width: none; }
 
-    /* ===== 10) هيرو الرئيسية: صف الترحيب في سطر واحد (كان زر English ينزل لسطر ثانٍ بمفرده) ===== */
-    body.dh-home-screen .home-hero-text .home-greeting-row { flex-wrap: nowrap; gap: 6px; }
-    body.dh-home-screen .home-hero-text .home-greeting { min-width: 0; flex: 1 1 auto; font-size: 0.95rem; }
-    body.dh-home-screen .teacher-profile-edit-btn { padding: 5px 10px; font-size: 0.76rem; white-space: nowrap; }
-    body.dh-home-screen .dh-fast-lang { padding: 4px 10px; min-height: 28px; font-size: 0.75rem; flex: 0 0 auto; }
+
+    /* ======================================================================
+       9) الشاشة الرئيسية — إعادة توزيع للهاتف (كل شيء محصور بـ body.dh-home-screen)
+       الترتيب: [ترحيب + الآية + التاريخ + البحث] ← الألعاب والأركان (الكبار/الصغار/طلابي/قريباً) ← أدوات المعلم
+                ← «لماذا حمٓ؟» مضغوطة ← فوتر مضغوط. («نظرة سريعة» صارت لوحة «مهام» في الشريط السفلي.)  أول شاشة تعرض الركنين والطلاب والأدوات بلا تمرير.
+       ====================================================================== */
+    body.dh-home-screen .home-hero { padding: 10px var(--m-gutter) 14px; overflow: hidden; text-align: center; }
+    body.dh-home-screen .home-hero-inner { padding-bottom: 0; }
+    body.dh-home-screen .home-hero-text { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 8px; padding: 0; }
+
+    /* صف الترحيب: صورة + تحية + تعديل بياناتي + اللغة في صف واحد.
+       سبب خروجه عن الشاشة في الإنجليزية: الصف عنصر flex بقيمة min-width:auto الافتراضية فلا ينكمش تحت مجموع عروض أبنائه (nowrap)،
+       والتحية بأساس flex-basis:auto = عرض نصها كاملاً. الحل: min-width:0 للصف + أساس 0 للتحية فتأخذ المساحة المتبقية فقط،
+       ويلتفّ نصها لسطر ثانٍ عند الحاجة (لا قصّ ولا إخفاء) */
+    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; min-width: 0; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 6px; margin: 0 0 2px; }
+    body.dh-home-screen .teacher-avatar-btn { width: 34px; height: 34px; flex: none; }
+    body.dh-home-screen .home-hero-text .home-greeting { min-width: 0; flex: 1 1 0; font-size: .9rem; line-height: 1.35; text-align: start; white-space: normal; overflow-wrap: anywhere; }
+    body.dh-home-screen .teacher-profile-edit-btn { flex: none; padding: 5px 10px; font-size: .74rem; white-space: nowrap; min-height: 30px; }
+    body.dh-home-screen .dh-fast-lang { padding: 4px 10px; min-height: 30px; font-size: .74rem; flex: none; }
+
+    /* الآية (هوية حمٓ) تبقى، بحجم يناسب سطراً واحداً؛ الشعار الفرعي سطر صغير؛ شارة «منصة تعليمية متكاملة» التسويقية تُخفى على الهاتف */
+    /* 🌟 [2026-10-03] الشعار والآية في سطر واحد (الشعار يمين الآية) بدل أن تأخذ الآية السطر كاملاً */
+    body.dh-home-screen .home-hero-text > .home-hero-logo { order: 2; flex: none; height: 58px; }
+    body.dh-home-screen .home-hero-text > h1.home-title { order: 2; flex: 0 1 auto; min-width: 0; margin: 0; font-size: 1.6rem; line-height: 1.55; text-align: center; }
+    body.dh-home-screen .home-hero-text > .home-subtitle { order: 3; flex: 0 0 100%; margin: 0; font-size: .8rem; line-height: 1.5; text-align: center; opacity: .85; }
+    body.dh-home-screen .home-hero-text > .home-hero-eyebrow { display: none; }
+    /* التاريخ + «أكمل بياناتك» في سطر واحد */
+    body.dh-home-screen .home-hero-text .home-chips-row { order: 4; flex: 0 1 auto; margin: 2px 0 0; justify-content: center; }
+    body.dh-home-screen .home-hero-text .home-date-bar { font-size: .72rem; background: transparent; border: 0; padding: 0; }
+    body.dh-home-screen .home-hero-text .home-date-bar svg { display: none; }
+    body.dh-home-screen .home-hero-text .teacher-profile-badge { order: 5; margin: 2px 0 0; padding: 3px 10px; font-size: .74rem; min-height: 26px; }
+    body.dh-home-screen .home-hero-text .teacher-profile-badge * { font-size: inherit; }
+
+    /* البحث السريع: داخل الهيرو بعرضه الكامل بلا إزاحة (كانت translateY تجعله يغطي ما تحته) */
+    body.dh-home-screen .home-hero-text .dh-fast,
+    body.dh-home-screen .home-hero-text > .home-start-here.dh-fast-start-hero { order: 9; flex: 0 0 100%; width: 100%; max-width: none; margin: 10px 0 0; transform: none; }
+    body.dh-home-screen .dh-fast-box { min-height: var(--m-input-h); border-radius: var(--m-radius); padding: 0 12px; }
+    body.dh-home-screen .dh-fast-box input { font-size: var(--m-input-fs); padding: 10px 0; }
+    body.dh-home-screen .dh-fast-results { top: calc(var(--m-input-h) + 6px); max-height: 52dvh; overflow-y: auto; }
+    body.dh-home-screen .dh-fast-item { padding: 8px 10px; gap: 6px; }
+    body.dh-home-screen .dh-fast-go { padding: 7px 10px; min-height: 36px; font-size: .8rem; }
+    body.dh-home-screen .home-start-here { flex-direction: column; align-items: stretch; text-align: center; padding: 12px; gap: 10px; }
+    body.dh-home-screen .home-start-here-text { min-width: 0; }
+    body.dh-home-screen .home-start-here-text strong { font-size: 1rem; }
+    body.dh-home-screen .home-start-here-text span { font-size: .85rem; }
+    body.dh-home-screen .home-start-here-btn { width: 100%; padding: 10px 16px; min-height: var(--m-btn-h); font-size: var(--m-btn-fs); }
+
+    /* تذكير الحفظ الشهري: شريط نحيف، زر الإغلاق في الطرف */
+    body.dh-home-screen .dh-monthly-memo-banner { position: relative; flex-wrap: nowrap; gap: 8px; padding: 8px var(--m-gutter); padding-inline-end: 42px; font-size: .8rem; line-height: 1.5; text-align: start; justify-content: flex-start; }
+    body.dh-home-screen .dh-monthly-memo-banner-icon { display: none; }
+    body.dh-home-screen #monthly-memo-banner-text { flex: 1 1 auto; min-width: 0; }
+    body.dh-home-screen .dh-monthly-memo-banner-btn { flex: none; padding: 6px 12px; min-height: 34px; font-size: .8rem; }
+    body.dh-home-screen .dh-monthly-memo-banner-close { position: absolute; top: 50%; inset-inline-end: 8px; transform: translateY(-50%); width: 28px; height: 28px; }
+
+    /* قسم الأزرار: عمود واحد مرتّب بحسب الأولوية (order) */
+    body.dh-home-screen .home-menu { display: flex; flex-direction: column; gap: var(--m-gap); padding: 12px var(--m-gutter) 16px; }
+    body.dh-home-screen .home-menu > * { margin: 0; }
+    body.dh-home-screen .home-menu > #home-start-here { order: 0; }
+    body.dh-home-screen .home-menu > #dh-sec-games { order: 2; }
+    body.dh-home-screen .home-menu > .home-menu-main { order: 3; }
+    body.dh-home-screen .home-menu > .home-menu-later { order: 4; }
+    body.dh-home-screen .home-menu > #dh-sec-tools { order: 5; }
+    body.dh-home-screen .home-menu > .home-menu-two { order: 6; }
+    body.dh-home-screen .home-menu > #home-quickcard-slot { display: none; }
+    body.dh-home-screen .dh-home-sec { display: block; margin: 4px 2px -2px; font-size: .92rem; font-weight: 700; color: var(--dh-emerald-800, #0b3d30); text-align: start; }
+
+    /* الألعاب والأركان: الكبار + الصغار جنباً إلى جنب (الأهم)، ثم «طلابي» صف أفقي بعرض كامل */
+    body.dh-home-screen .home-menu-primary.home-menu-main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--m-gap); }
+    body.dh-home-screen .home-menu-main .home-card { min-height: 0; padding: 12px; border-radius: var(--m-radius-lg); gap: 2px; justify-content: flex-start; text-align: start; }   /* home.css يثبّت text-align:right فتنقلب المحاذاة في الإنجليزية */
+    body.dh-home-screen .home-menu-main .home-card:hover { transform: none; }
+    body.dh-home-screen .home-menu-main .home-card-adult { order: 1; }
+    body.dh-home-screen .home-menu-main .home-card-kids { order: 2; }
+    body.dh-home-screen .home-menu-main .home-card-icon { width: var(--m-icon-tile); height: var(--m-icon-tile); border-radius: 12px; margin-bottom: 6px; }
+    body.dh-home-screen .home-menu-main .home-card-icon svg { width: 22px; height: 22px; }
+    body.dh-home-screen .home-menu-main .home-card-title { font-size: 1.02rem; }
+    body.dh-home-screen .home-menu-main .home-card-desc { font-size: .74rem; line-height: 1.45; }
+    body.dh-home-screen .home-menu-main .home-card-arrow { display: none; }
+    body.dh-home-screen .home-menu-main .home-card-students {
+        order: 3; grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px;
+        border-top-width: 0; border-inline-start: 4px solid var(--dh-emerald-600);
+    }
+    body.dh-home-screen .home-menu-main .home-card-students .home-card-icon { margin: 0; flex: none; }
+    body.dh-home-screen .home-menu-main .home-card-students .home-card-title { flex: none; }
+    body.dh-home-screen .home-menu-main .home-card-students .home-card-desc { flex: 1 1 0; min-width: 0; }
+    body.dh-home-screen .home-menu-main .home-card-students .home-card-arrow { display: flex; position: static; margin-inline-start: auto; flex: none; }
+
+    /* «قريباً»: المتشابهات والتجويد قرصان صغيران في سطر واحد */
+    body.dh-home-screen .home-menu-primary.home-menu-later { flex-wrap: nowrap; gap: 6px 8px; padding: 0 2px; }
+    body.dh-home-screen .dh-fast-soon { font-size: .8rem; flex: none; }
+    body.dh-home-screen .home-menu-later .home-card { flex: 1 1 0; min-width: 0; justify-content: center; padding: 6px 12px; min-height: 36px; gap: 6px; }
+    body.dh-home-screen .home-menu-later .home-card-title { font-size: .8rem; line-height: 1.3; text-align: center; }
+    body.dh-home-screen .home-menu-later .home-card-badge { display: none; }   /* «قريباً» قبلهما يغني عن وسم «قيد التطوير» في كل قرص */
+
+    /* أدوات المعلم: الواجبات + الثنائية بطاقتان صغيرتان متجاورتان */
+    body.dh-home-screen .home-menu-secondary.home-menu-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--m-gap); }
+    body.dh-home-screen .home-menu-two .home-card { min-height: 58px; padding: 8px 10px; gap: 8px; border-radius: var(--m-radius); text-align: start; }
+    body.dh-home-screen .home-menu-two .home-card:hover { transform: none; }
+    body.dh-home-screen .home-menu-two .home-card-icon { width: 34px; height: 34px; border-radius: 10px; flex: none; margin: 0; }
+    body.dh-home-screen .home-menu-two .home-card-title { font-size: .86rem; line-height: 1.35; white-space: normal; }
+    body.dh-home-screen .home-menu-two .home-card .dh-fast-badge { position: absolute; top: -7px; inset-inline-end: 6px; margin: 0; font-size: .66rem; padding: 2px 7px; }
+
+    /* «نظرة سريعة» على الهاتف: لا تُعرض في الرئيسية (بطلب المعلم: كانت ~470px)، بل في لوحة «مهام» من الشريط السفلي —
+       components/homeFast.js ينقل البطاقة نفسها إلى اللوحة ويعيدها. نفس العناصر والبيانات (homeQuickview.js بلا تغيير في الحساب). */
+    body.dh-home-screen .home-quick-mobile { display: none; }
+    .dh-sheet-panel .home-quickcard {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: none; margin: 0; padding: 12px;
+        border-radius: 16px; color: #fffdf6; border: 0;
+        background: linear-gradient(165deg, var(--dh-emerald-900, #06231c), var(--dh-emerald-800, #0b3d30) 70%);
+        box-shadow: 0 8px 20px rgba(6, 35, 28, .2);
+    }
+    .dh-sheet-panel .home-quickcard > * { margin: 0 !important; min-width: 0; grid-column: 1 / -1; }
+    .dh-sheet-panel .home-quickcard-head { display: none; }   /* عنوان اللوحة «مهام اليوم» يغني عنه */
+    /* المهام المعلّقة أولًا */
+    .dh-sheet-panel .home-quickcard-today { order: 1; padding: 8px 10px; border-radius: 12px; background: rgba(255, 253, 246, .08); border: 1px solid rgba(240, 216, 120, .35); }
+    .dh-sheet-panel .home-quickcard-today > * { margin-bottom: 6px; }
+    .dh-sheet-panel .home-quickcard-today > :last-child { margin-bottom: 0; }
+    .dh-sheet-panel .home-quickcard-today-label { font-size: .84rem; }
+    .dh-sheet-panel .home-quickcard-today-clear { font-size: .88rem; }
+    .dh-sheet-panel .home-quickcard-bday,
+    .dh-sheet-panel .home-quickcard-due,
+    .dh-sheet-panel .home-quickcard-pm { padding: 8px 10px; font-size: .86rem; border-radius: 10px; }
+    .dh-sheet-panel .home-quickcard-due-title,
+    .dh-sheet-panel .home-quickcard-pm-title { min-height: 36px; font-size: .88rem; }
+    .dh-sheet-panel .home-quickcard-due-row,
+    .dh-sheet-panel .home-quickcard-pm-row { min-height: 40px; }
+    /* ثم نشر واجب */
+    .dh-sheet-panel .home-quickcard-publish-btn { order: 2; min-height: 44px; padding: 10px 14px; font-size: .95rem; }
+    /* ثم الإحصاءات شارتين متجاورتين */
+    .dh-sheet-panel .home-quickcard-mastery,
+    .dh-sheet-panel .home-quickcard-reports {
+        order: 3; grid-column: auto; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: 12px;
+        background: rgba(255, 253, 246, .08);
+    }
+    .dh-sheet-panel .home-mastery-ring { width: 38px; height: 38px; flex: none; }
+    .dh-sheet-panel .home-mastery-ring-inner { width: 30px; height: 30px; font-size: .72rem; }
+    .dh-sheet-panel .home-mastery-label { font-size: .76rem; line-height: 1.35; }
+    .dh-sheet-panel .home-mastery-sub { display: none; }
+    .dh-sheet-panel .home-quickcard-reports { justify-content: space-between; }
+    .dh-sheet-panel .home-quickcard-reports-label { font-size: .76rem; line-height: 1.35; gap: 6px; min-width: 0; }
+    .dh-sheet-panel .home-quickcard-reports-label svg { flex: none; }
+    .dh-sheet-panel #home-reports-count { font-size: 1.15rem; flex: none; }
+    /* وأخيرًا آية/دعاء اليوم سطرًا صغيرًا */
+    .dh-sheet-panel .home-quickcard-quote { order: 4; padding: 2px 4px 0; border: 0; text-align: center; }
+    .dh-sheet-panel .home-quickcard-quote p { font-size: 1rem; line-height: 1.6; margin: 0; }
+    .dh-sheet-panel .home-quickcard-quote > :not(p) { font-size: .7rem; }
+
+    /* «لماذا حمٓ؟»: صف واحد من أربع شارات (العنوان فقط) بدل بطاقات كبيرة */
+    body.dh-home-screen .home-why { padding: 18px var(--m-gutter) 16px; }
+    body.dh-home-screen .home-why-title { font-size: 1.15rem; margin-bottom: 2px; }
+    body.dh-home-screen .home-why-subtitle { font-size: .8rem; margin-bottom: 10px; }
+    body.dh-home-screen .home-why-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    body.dh-home-screen .home-why-card { padding: 8px 4px; border-radius: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    body.dh-home-screen .home-why-icon { width: 30px; height: 30px; border-radius: 9px; margin: 0 auto 4px; }
+    body.dh-home-screen .home-why-icon svg { width: 16px; height: 16px; }
+    body.dh-home-screen .home-why-card h3 { font-size: .78rem; margin: 0; line-height: 1.35; }
+    body.dh-home-screen .home-why-card p { display: none; }
+    body.dh-home-screen .home-why-more { display: none; }   /* البطاقة نفسها رابط الخصوصية (وموجود أيضاً في «المزيد») */
+
+    /* الفوتر: مضغوط ويترك مساحة الشريط السفلي في أسفله */
+    body.dh-home-screen .home-footer { padding: 16px var(--m-gutter) calc(var(--m-bnav-space) + 4px); }
+    body.dh-home-screen .home-footer-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 10px; padding-bottom: 10px; }
+    body.dh-home-screen .home-footer-about { text-align: center; }
+    body.dh-home-screen .home-footer-about p { margin: 0 auto 2px; font-size: .82rem; line-height: 1.6; }
+    body.dh-home-screen .home-footer-contact { padding: 8px 18px; min-height: 40px; font-size: .9rem; }
+    body.dh-home-screen .home-footer-donate { font-size: .74rem; line-height: 1.6; }
+    body.dh-home-screen .home-footer-copy { justify-self: center; text-align: center; padding-top: 0; font-size: .74rem; }
+
+
+    /* ======================================================================
+       10) الشاشات الداخلية
+       ====================================================================== */
+    /* «طلابي»: تصميمها (بطاقات + أرقام) صار في student/my-students.html نفسها منذ 2026-10-03 */
+
+    /* السجل العام: أزرار الأعلى (إضافة بعرض كامل + تصدير/استيراد صغيران متجاوران) — البطاقات نفسها في آخر الملف (≤640px) */
+    #app-root .btn-group:has(#btn-add-champion-shortcut) { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; margin-bottom: 12px !important; }
+    #app-root .btn-group #btn-add-champion-shortcut { grid-column: 1 / -1; }
+    #app-root .btn-group #btn-export-backup,
+    #app-root .btn-group #btn-import-backup-trigger { font-size: var(--m-btn-sm-fs) !important; min-height: var(--m-btn-sm-h); padding: var(--m-btn-sm-pad) !important; }
+
+    /* ملف الطالب: الإحصاءات الثلاث في صف واحد بدل ثلاث بطاقات ~160px، والترويسة أخف */
+    #app-root .profile-wrapper .profile-header { padding: 14px; gap: 12px; margin-bottom: 12px; border-radius: var(--m-radius-lg); }
+    #app-root .profile-wrapper .profile-avatar { width: 72px; height: 72px; }
+    #app-root .profile-wrapper #prof-name { font-size: 1.4rem !important; }
+    #app-root .profile-wrapper #btn-back-from-prof { margin-bottom: 10px !important; }
+    #app-root .profile-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+    #app-root .stat-card { padding: 8px 6px; border-radius: var(--m-radius); }
+    #app-root .stat-card { display: flex; flex-direction: column; justify-content: space-between; }
+    #app-root .stat-card h3 { font-size: .72rem !important; line-height: 1.3; }
+    #app-root .stat-card p { font-size: 1.4rem !important; line-height: 1.15; margin-top: 4px !important; }
+    #app-root .profile-wrapper > h2 { font-size: var(--m-h2) !important; }
+
+    /* لوحة التقييم (settings/dashboard.html) — بادئة body إضافية لأن القالب يعرّف نفس المحدِّدات بـ !important ويُحمَّل بعد هذا الملف */
+    body #app-root .dash-panel { margin: 4px auto !important; padding: 16px 14px !important; border-radius: var(--m-radius-lg) !important; }
+    body #app-root .dash-panel .splash-title { font-size: var(--m-h1) !important; }
+    #app-root .dash-title-underline { margin-bottom: 12px; }
+    #app-root .dash-student-chip { font-size: .95rem !important; padding: 6px 14px; margin-bottom: 12px; }
+    #app-root .dash-eval-pill { padding: 8px 14px; font-size: .9rem; }
+
+    /* الاختبارات الثنائية (إعداد) */
+    #app-root .dts-header-banner { padding: 12px 14px; margin-bottom: 12px; gap: 10px; border-radius: var(--m-radius-lg); }
+    #app-root .dts-header-icon { width: 40px; height: 40px; font-size: 1.4rem; }
+    #app-root .dts-editor-title { font-size: 1.2rem; }
+
+    /* ركن المتشابهات: الأجزاء والسور بطاقتان في الصف بدل بطاقة ضخمة لكل سطر */
+    #app-root .sim-title { font-size: var(--m-h1); }
+    #app-root .sim-subtitle { font-size: .85rem; margin-bottom: 10px; }
+    #app-root .sim-grid { gap: var(--m-gap); }
+    #app-root .sim-grid-juz,
+    #app-root .sim-grid-surahs,
+    #app-root .sim-grid-words { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #app-root .sim-card { padding: 14px 10px; gap: 4px; border-radius: var(--m-radius); }
+    #app-root .sim-juz-icon { font-size: 1.5rem; }
+    #app-root .sim-juz-title { font-size: 1rem; }
+
+    /* أبطال التجويد: العنوان وزر الرجوع في سطر واحد */
+    #app-root .tjw-topbar { flex-wrap: nowrap; gap: 8px; justify-content: space-between; align-items: center; }
+    #app-root .tjw-title { font-size: var(--m-h1); margin: 0; flex: 1 1 0; min-width: 0; text-align: start; }
+    #app-root .tjw-btn-exit, #app-root .tjw-btn-level-back { flex: none; white-space: nowrap; }
+    #app-root .tjw-btn-exit { margin-top: 0 !important; }
+    #app-root .tjw-subtitle { font-size: .85rem; margin: 6px 0 12px; }
+    #app-root .tjw-pick-card { padding: 16px 14px; }
+}
+
+/* السجل العام (تابع للقسم 10): بطاقة مضغوطة لكل طالب (~120px بدل ~430px) — رأس: الرقم + الاسم + النقاط، ثم العمر/الصف/التقييمات،
+   ثم الإجراءات. يبدأ من 640px كما في قالب student/all-students.html نفسه، وبادئة #app-root لأن قواعد القالب (نفس المحدِّد + !important)
+   تُحمَّل بعد هذا الملف. */
+@media (max-width: 640px) {
+    #app-root #all-students-body tr {
+        display: grid !important; grid-template-columns: 26px repeat(3, minmax(0, 1fr)) auto; gap: 4px 8px; align-items: center;
+        margin-bottom: 8px !important; padding: 10px 12px !important; border-radius: var(--m-radius) !important;
+    }
+    #app-root #all-students-body td { padding: 0 !important; min-width: 0; justify-content: flex-start !important; gap: 4px !important; font-size: .82rem; line-height: 1.35; }
+    #app-root #all-students-body td::before { font-size: .7rem !important; font-weight: 500 !important; }
+    #app-root #all-students-body td:nth-child(1) { grid-column: 1; grid-row: 1; font-weight: 700; opacity: .7; }
+    #app-root #all-students-body td:nth-child(2) { grid-column: 2 / 5; grid-row: 1; }
+    #app-root #all-students-body td:nth-child(5) { grid-column: 5; grid-row: 1; justify-content: flex-end !important; }
+    #app-root #all-students-body td:nth-child(3) { grid-column: 2; grid-row: 2; }
+    #app-root #all-students-body td:nth-child(4) { grid-column: 3; grid-row: 2; }
+    #app-root #all-students-body td:nth-child(7) { grid-column: 4 / 6; grid-row: 2; }
+    #app-root #all-students-body td:nth-child(6) { grid-column: 1 / 3; grid-row: 3; }
+    #app-root #all-students-body td:nth-child(9) { grid-column: 3 / 4; grid-row: 3; }
+    #app-root #all-students-body td:nth-child(8) { grid-column: 4 / 6; grid-row: 3; justify-content: flex-end !important; gap: 6px !important; }
+    #app-root #all-students-body td:nth-child(1)::before,
+    #app-root #all-students-body td:nth-child(2)::before,
+    #app-root #all-students-body td:nth-child(6)::before,
+    #app-root #all-students-body td:nth-child(8)::before,
+    #app-root #all-students-body td:nth-child(9)::before { display: none; }
+    #app-root #all-students-body td:nth-child(3),
+    #app-root #all-students-body td:nth-child(4),
+    #app-root #all-students-body td:nth-child(7) { flex-wrap: wrap; align-items: baseline !important; column-gap: 4px !important; }
+    #app-root #all-students-body td .btn-prof-link { font-size: 1rem !important; min-height: 32px !important; line-height: 1.3; text-align: start; overflow-wrap: anywhere; }
+    #app-root #all-students-body td .btn { min-width: 38px !important; min-height: 38px !important; height: 38px; padding: 0 8px !important; margin: 0 !important; font-size: .85rem !important; line-height: 1 !important; }
+    #app-root #all-students-body td:nth-child(6) .btn { width: 100% !important; }
 }
