@@ -348,9 +348,18 @@ function formatDateHijri(d){
   } catch (e) { return ''; }
 }
 // صيغة مختصرة (يوم / شهر) لمحطات سُلّم التقدّم حتى لا يتزاحم النص تحت كل نجمة
+// تواريخ السجل تأتي بصيغ مختلفة (yyyy / mm / dd من ملفات الألعاب، أو dd / mm / yyyy
+// بأرقام عربية من formatDateArabic)، فنوحّدها دائمًا إلى dd/mm/yyyy بأرقام لاتينية واضحة.
 function shortDateLabel(dateStr){
-  const parts = String(dateStr || '').split('/').map(s => s.trim());
-  return parts.length >= 3 ? `${parts[2]} / ${parts[1]}` : String(dateStr || '');
+  const raw = String(dateStr || '');
+  const nums = raw
+    .replace(/[٠-٩]/g, c => String(c.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, c => String(c.charCodeAt(0) - 0x06F0))
+    .match(/\d+/g);
+  if (!nums || nums.length < 3) return raw.trim();
+  let [a, b, c] = nums;
+  const [y, m, d] = a.length === 4 ? [a, b, c] : [c, b, a];
+  return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
 }
 
 const HISTORY_MAX = 7; // نقرأ ونحفظ آخر 7 محاولات فقط — نفس السقف الذي كان معمولاً به

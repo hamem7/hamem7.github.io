@@ -235,7 +235,7 @@ export const REPORT_STYLES = `
   #report-screen .step.is-current .step-dot{box-shadow:0 0 0 2px currentColor, 0 0 0 6px rgba(212,175,55,.35);}
   #report-screen .step.is-current .step-when{font-weight:800; color:#2b2620;}
   #report-screen .step-when{font-size:12.5px; font-weight:700; color:#6b6252; line-height:1.45;}
-  #report-screen .step-when span{display:block; font-size:11.5px; color:#a79a83; font-weight:600;}
+  #report-screen .step-when span{display:block; font-size:12.5px; color:#4a4234; font-weight:700; margin-top:2px;}
   #report-screen .step-tier{font-size:12px; font-weight:800;}
   #report-screen .conn-cell{flex:0 1 46px; display:flex; align-items:center; justify-content:center; margin-top:19px;}
   #report-screen .conn-cell i{display:block; width:100%; height:2px; background:#e4d9c4; border-radius:2px;}
