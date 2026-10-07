@@ -6,6 +6,25 @@ import { applyLanguage } from './app.js';
 // trackPageview هنا يدوي لأن المنصة SPA بالكامل (fetch + إحقان innerHTML بلا تحميل صفحة فعلي)
 import { trackPageview } from './analytics.js';
 
+// 🌟 [2026-10-07 — سرعة فتح الواجبات/الشهادات/الاختبارات] تسخين مسبق لقوالب الشاشات الثقيلة في وقت خمول الشاشة الرئيسية.
+// القالب المسخَّن يُستهلك مرة واحدة فقط (أول فتح) ثم يعود الجلب الطازج بـ no-store كالمعتاد فلا نعرض نسخة قديمة لاحقاً.
+const prefetchedTemplates = new Map();
+export function prefetchTemplate(url) {
+    if (prefetchedTemplates.has(url)) return;
+    prefetchedTemplates.set(url, fetch(url, { cache: 'no-store' }).then(r => r.ok ? r.text() : null).catch(() => null));
+}
+async function fetchTemplate(url) {
+    const warm = prefetchedTemplates.get(url);
+    if (warm) {
+        prefetchedTemplates.delete(url);
+        const html = await warm;
+        if (html !== null) return html;
+    }
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return response.text();
+}
+
 // دالة لجلب كود الـ HTML من المجلدات الأخرى وحقنه في الـ Root
 export async function loadScreen(route) {
     const root = document.getElementById('app-root');
@@ -22,9 +41,7 @@ export async function loadScreen(route) {
     try {
         // 🌟 cache: 'no-store' يمنع المتصفح من عرض نسخة قديمة مخزّنة من ملفات
         // الشاشات (زي report.html) بعد تعديلها على السيرفر 🌟
-        let response = await fetch(route.templateUrl, { cache: 'no-store' });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        let html = await response.text();
+        let html = await fetchTemplate(route.templateUrl);
         
         // الثيم المؤجَّل (راجع switchTheme) يُطبَّق الآن لحظة استبدال المحتوى لا قبلها
         flushPendingTheme();
