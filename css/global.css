@@ -242,3 +242,12 @@
     direction: rtl;
     unicode-bidi: isolate;
 }
+
+/* 🌟 [إصلاح] الآية لم تكن في منتصف المستطيل رأسياً: خط Amiri Quran يترك فراغاً علوياً أكبر من السفلي داخل سطر
+   line-height:2.2 فيبدو النص منخفضاً. نعوّض بحشوة رأسية غير متماثلة (بوحدة em لتتناسب مع حجم الخط).
+   تخصّ صناديق الآيات (div/span) فقط، لا أزرار الاختيار ولا عناصر الترتيب/الربط. */
+div.quran-text:not(.order-item):not(.order-slot):not(.link-item),
+span.quran-text:not(.order-item):not(.order-slot):not(.link-item) {
+    padding-top: 0.12em !important;
+    padding-bottom: 0.42em !important;
+}

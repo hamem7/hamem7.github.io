@@ -4,6 +4,10 @@ import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../compo
 import { openAdultGameScreen } from '../games/adultGame.js'; 
 import { openKidsGameScreen } from '../games/kidsGame.js';   
 
+// نطاق ركن الأطفال: من أول الأحقاف (الجزء 26) إلى الناس
+const KIDS_MIN_SURAH = 46;
+const KIDS_MIN_JUZ = 26;
+
 export function populateDashboardData() {
     // 🌟 [إصلاح فحص الأزرار] عرض اسم الطالب في شريحة اللوحة (كانت فارغة بمعرّف مكرر) 🌟
     const _chip = document.getElementById('dash-student-chip');
@@ -13,12 +17,11 @@ export function populateDashboardData() {
     
     if (AppState.isKidsMode) { 
         if (headerTitle) headerTitle.innerText = t('header_title_kids'); 
-        document.getElementById('eval-radios').style.display = 'none';
-        document.getElementById('surah-settings').style.display = 'none';
-        document.getElementById('range-settings').style.display = 'none';
-        document.getElementById('juz-settings').style.display = 'none';
-        document.getElementById('kids-settings').style.display = 'grid';
+        // 🌟 [جديد] الصغار لهم نفس أنواع النطاق عند الكبار (سورة محددة / عدة سور / بالأجزاء) لكن ضمن
+        // نطاق ركن الأطفال فقط (السور 46–114 والأجزاء 26–30)؛ «عدة سور» تعرض لوحة kids-settings القديمة
+        document.getElementById('eval-radios').style.display = 'flex';
         document.getElementById('dash-title').innerText = t('dash_kids_play_title');
+        toggleEvalType();
     } else { 
         document.getElementById('eval-radios').style.display = 'flex';
         document.getElementById('kids-settings').style.display = 'none';
@@ -36,6 +39,7 @@ export function populateDashboardData() {
         rangeTo.innerHTML = '';
         
         AppState.surahsData.forEach(s => {
+            if (AppState.isKidsMode && (s.number < KIDS_MIN_SURAH || s.number > 114)) return;
             let optStr = tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) });
             selSurah.appendChild(new Option(optStr, s.number));
             rangeFrom.appendChild(new Option(optStr, s.number));
@@ -47,7 +51,7 @@ export function populateDashboardData() {
     if (juzSel) {
         juzSel.innerHTML = '';
         const juzNames = (AppState.currentLang === 'en' ? ["(Alif Lam Mim)","(Sayaqul)","(Tilka ar-Rusul)","(Lan Tanalu)","(Wal-Muhsanat)","(La Yuhibbullah)","(Wa Idha Sami'u)","(Wa Law Annana)","(Qalal-Mala')","(Wa'lamu)","(Ya'tadhirun)","(Wa Ma Min Dabbah)","(Wa Ma Ubarri'u)","(Rubama)","(Subhan)","(Qal Alam)","(Iqtaraba lin-Nas)","(Qad Aflaha)","(Wa Qalalladhina)","(A'man Khalaq)","(Utlu Ma Uhiya)","(Wa Man Yaqnut)","(Wa Ma Anzalna)","(Fa Man Azlam)","(Ilayhi Yuraddu)","(Ha Mim)","(Qala Fa Ma Khatbukum)","(Qad Sami'a)","(Tabarak)","(Amma)"] : ["(الم)", "(سيقول)", "(تلك الرسل)", "(لن تنالوا)", "(والمحصنات)", "(لا يحب الله)", "(وإذا سمعوا)", "(ولو أننا)", "(قال الملأ)", "(واعلموا)", "(يعتذرون)", "(وما من دابة)", "(وما أبرئ)", "(ربما)", "(سبحان)", "(قال ألم)", "(اقترب للناس)", "(قد أفلح)", "(وقال الذين)", "(أمن خلق)", "(اتل ما أوحي)", "(ومن يقنت)", "(وما أنزلنا)", "(فمن أظلم)", "(إليه يرد)", "(حم)", "(قال فما خطبكم)", "(قد سمع)", "(تبارك)", "(عم)"]); // 🌟 أسماء الأجزاء بنطق إنجليزي في الوضع الإنجليزي (تسمية الجزء ليست نص آية)
-        for (let i = 30; i >= 1; i--) {
+        for (let i = 30; i >= (AppState.isKidsMode ? KIDS_MIN_JUZ : 1); i--) {
             juzSel.appendChild(new Option(tf('dash_juz_label', { n: i, name: juzNames[i-1] }), i));
         }
         attachJuzAmmaCoverageNote('juz-select', 'q-count-juz');
@@ -64,7 +68,7 @@ export function populateDashboardData() {
         // بعد أن كان محصورًا في جزأي تبارك وعمّ فقط (من 67). الأجزاء: 26 الأحقاف، 27 الذاريات، 28 المجادلة،
         // 29 تبارك، 30 عمّ. الافتراضي أدناه (114 → 67) لم يتغيّر حتى لا يختلف سلوك المعلم المعتاد.
         // ملاحظة: سورة الأحقاف (46) هي أول سورة في الجزء 26 حسب JUZ_STARTS في engine/reviewParts.js.
-        const kidsSurahs = AppState.surahsData.filter(s => s.number >= 46 && s.number <= 114);
+        const kidsSurahs = AppState.surahsData.filter(s => s.number >= KIDS_MIN_SURAH && s.number <= 114);
         kidsSurahs.forEach(s => { 
             kFrom.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
             kTo.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
@@ -86,11 +90,12 @@ export function setupDashboardListeners() {
     
     const getTeacherConfig = () => {
         const evalType = document.querySelector('input[name="evalType"]:checked')?.value || 'surah';
-        const isJuzMode = !AppState.isKidsMode && evalType === 'juz';
+        const isJuzMode = evalType === 'juz';
         const isRangeMode = !AppState.isKidsMode && evalType === 'range';
+        const isKidsRange = AppState.isKidsMode && evalType === 'range';
         
         let qCountVal = 10;
-        if (AppState.isKidsMode) qCountVal = document.getElementById('q-count-kids').value;
+        if (isKidsRange) qCountVal = document.getElementById('q-count-kids').value;
         else if (isJuzMode) qCountVal = document.getElementById('q-count-juz').value;
         else if (isRangeMode) qCountVal = document.getElementById('q-count-range').value;
         else qCountVal = document.getElementById('q-count-surah').value;
@@ -100,6 +105,7 @@ export function setupDashboardListeners() {
             isKidsMode: AppState.isKidsMode,
             isJuzMode: isJuzMode,
             isRangeMode: isRangeMode,
+            isKidsRange: isKidsRange,
             qCount: parseInt(qCountVal),
             surahNum: parseInt(document.getElementById('surah-select')?.value),
             startAyah: parseInt(document.getElementById('ayah-from')?.value),
@@ -115,8 +121,9 @@ export function setupDashboardListeners() {
     document.getElementById('btn-start-mission')?.addEventListener('click', () => {
         const config = getTeacherConfig();
 
-        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && isNaN(config.surahNum)) return alert(t('dash_alert_choose_surah'));
-        if (!AppState.isKidsMode && !config.isJuzMode && !config.isRangeMode && config.startAyah > config.endAyah) return alert(t('dash_alert_bad_range'));
+        const isSingleSurah = !config.isJuzMode && !config.isRangeMode && !config.isKidsRange;
+        if (isSingleSurah && isNaN(config.surahNum)) return alert(t('dash_alert_choose_surah'));
+        if (isSingleSurah && config.startAyah > config.endAyah) return alert(t('dash_alert_bad_range'));
 
         if (config.isKidsMode) {
             openKidsGameScreen(config, false);
@@ -132,7 +139,9 @@ function toggleEvalType() {
     const mode = checkedRadio.value;
     
     document.getElementById('surah-settings').style.display = (mode === 'surah') ? 'grid' : 'none';
-    document.getElementById('range-settings').style.display = (mode === 'range') ? 'grid' : 'none';
+    const kids = AppState.isKidsMode;
+    document.getElementById('range-settings').style.display = (mode === 'range' && !kids) ? 'grid' : 'none';
+    document.getElementById('kids-settings').style.display = (mode === 'range' && kids) ? 'grid' : 'none';
     document.getElementById('juz-settings').style.display = (mode === 'juz') ? 'grid' : 'none';
     
     updateHeaderSurahName();

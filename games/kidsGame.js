@@ -111,10 +111,21 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
             GameState.evalRangeText = t("جلسة علاج وتصحيح الأخطاء السابقة");
         } else {
             let qCount = config.qCount; 
-            let ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.kidsFrom, config.kidsTo);
-            let sNameF = AppState.surahsData.find(s => s.number === config.kidsFrom).name; 
-            let sNameT = AppState.surahsData.find(s => s.number === config.kidsTo).name; 
-            GameState.evalRangeText = tfAr('kids_range_text', { sfrom: sNameF, sto: sNameT });
+            let ayahsPool = [];
+            if (config.isJuzMode) {
+                ayahsPool = await AppState.quranEngine.getAyahsByJuz(config.juzNum);
+                GameState.evalRangeText = tfAr('adult_juz_text', { n: config.juzNum });
+            } else if (config.isKidsRange || !(config.surahNum > 0)) {
+                ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.kidsFrom, config.kidsTo);
+                let sNameF = AppState.surahsData.find(s => s.number === config.kidsFrom).name; 
+                let sNameT = AppState.surahsData.find(s => s.number === config.kidsTo).name; 
+                GameState.evalRangeText = tfAr('kids_range_text', { sfrom: sNameF, sto: sNameT });
+            } else {
+                let surah = await AppState.quranEngine.getSurah(config.surahNum);
+                ayahsPool = AppState.quranEngine.getAyahsInRange(surah, config.startAyah, config.endAyah);
+                let cleanName = surah.name.replace(/سُورَةُ\s*/g, '').replace(/سورة\s*/g, '').trim();
+                GameState.evalRangeText = tfAr('adult_surah_text', { name: cleanName, a: config.startAyah, b: config.endAyah });
+            }
             
             if(ayahsPool.length === 0) return alert(t("عفواً، لا توجد آيات في النطاق المحدد!"));
 
@@ -146,6 +157,10 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
             // generateKidsListenAyah في engine/kidsEngine.js لتفاصيل الفكرة والافتراضات
             // الكاملة). تعتمد على نفس ayahsPool بالضبط كباقي ألعاب هذه القائمة (بلا نطاق مستقل)
             let gamesList = ['kids_catch', 'kids_next', 'kids_word_order', 'kids_tf', 'kids_guess_surah', 'kids_recite', 'kids_start_surah', 'kids_extra_word', 'kids_previous', 'kids_link_ends', 'kids_link_word_surah', 'kids_listen_ayah'];
+            // ألعاب تحتاج أكثر من سورة لا معنى لها لو النطاق سورة واحدة
+            if (new Set(ayahsPool.map(a => a.surahNumber)).size < 2) {
+                gamesList = gamesList.filter(g => g !== 'kids_guess_surah' && g !== 'kids_link_word_surah');
+            }
             if (resumeSnapshot && Array.isArray(resumeSnapshot.queue) && resumeSnapshot.queue.length) {
                 // 🌟 [جديد] استكمال اختبار معلّق: نفس الطابور ونتائج الأسئلة السابقة (راجع التعليق
                 // المقابل في adultGame.js). الأسئلة الباقية تُولَّد من نفس نطاق السور عند دورها.
