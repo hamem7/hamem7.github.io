@@ -15,15 +15,15 @@ export const APP_VERSION = '1.0.10';
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
-    // 🏅 [أُضيف 2026-10-06] الشهادات والتقارير: 33 قالباً + نصوص ثنائية اللغة + أرشيف التقارير + جولة إرشادية
+    // 🏅 [أُضيف 2026-10-06] الشهادات والتقارير: 40 قالباً + نصوص ثنائية اللغة + أرشيف التقارير + جولة إرشادية
     {
         version: '1.0.10',
         date: '2026-10-06',
         items: [
             {
                 type: 'new',
-                ar: 'زر «الشهادات والتقارير» في الشاشة الرئيسية: 33 قالباً احترافياً و9 أنواع شهادات جاهزة (إتمام سورة/جزء/نصف جزء، التميز في المراجعة، ختم القرآن، التجويد، طالب الشهر...) بصيغ تراعي المذكر والمؤنث، ومعاينة حية، وحفظ كصورة أو PDF أو مشاركة واتساب.',
-                en: 'A new "Certificates & Reports" button on the home screen: 33 professional templates and 9 ready-made certificate types (surah/juz/half-juz completion, review excellence, Qur\'an completion, Tajweed, student of the month...) with gender-aware wording, live preview, and saving as image/PDF or sharing on WhatsApp.'
+                ar: 'زر «الشهادات والتقارير» في الشاشة الرئيسية: 40 قالباً احترافياً و9 أنواع شهادات جاهزة (إتمام سورة/جزء/نصف جزء، التميز في المراجعة، ختم القرآن، التجويد، طالب الشهر...) بصيغ تراعي المذكر والمؤنث، ومعاينة حية، وحفظ كصورة أو PDF أو مشاركة واتساب.',
+                en: 'A new "Certificates & Reports" button on the home screen: 40 professional templates and 9 ready-made certificate types (surah/juz/half-juz completion, review excellence, Qur\'an completion, Tajweed, student of the month...) with gender-aware wording, live preview, and saving as image/PDF or sharing on WhatsApp.'
             },
             {
                 type: 'new',
