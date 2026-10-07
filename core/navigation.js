@@ -65,7 +65,7 @@ export async function loadScreen(route) {
 
 // التحكم في الأنماط (تغيير الخلفية والألوان حسب القسم)
 // 🌟 [2026-10-07] التطبيق مؤجَّل: كل من يستدعي switchTheme يتبعه loadScreen عادةً بعد انتظار غير متزامن، وتطبيق الثيم فوراً كان
-// يُظهر الشاشة القديمة بألوان الثيم الجديد (الأزرق القديم) لثوانٍ. نحفظ الطلب ونطبّقه عند حقن الشاشة؛ ومؤقّت أمان 4 ثوانٍ
+// يُظهر الشاشة القديمة بألوان الثيم الجديد (الأزرق القديم) لثوانٍ. نحفظ الطلب ونطبّقه عند حقن الشاشة؛ ومؤقّت أمان 15 ثانية
 // يطبّقه إن لم يتبعه loadScreen (لا تتعطل أي حالة).
 let pendingTheme = null;
 let pendingTimer = null;
@@ -77,13 +77,18 @@ function flushPendingTheme() {
     pendingTheme = null;
     applyThemeNow(theme);
 }
+// مؤقّت الأمان لا يطبّق الثيم ما دام loadScreen يجلب الشاشة فعلاً (شبكة بطيئة): يعيد الانتظار بدل كشف الشكل القديم
+function safetyFlush() {
+    if (document.body.classList.contains('dh-nav-pending')) { pendingTimer = setTimeout(safetyFlush, 15000); return; }
+    flushPendingTheme();
+}
 export function switchTheme(theme) {
     // الشاشة الفارغة/الإقلاع لا شيء يُحافظ عليه: نطبّق فوراً
     const root = document.getElementById('app-root');
     if (document.documentElement.classList.contains('dh-booting') || !root || !root.firstElementChild) { applyThemeNow(theme); return; }
     pendingTheme = theme;
     clearTimeout(pendingTimer);
-    pendingTimer = setTimeout(flushPendingTheme, 4000);
+    pendingTimer = setTimeout(safetyFlush, 15000);
 }
 function applyThemeNow(theme) {
     const body = document.getElementById('main-body');
