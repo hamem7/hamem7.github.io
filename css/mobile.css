@@ -372,11 +372,14 @@
     .dh-sheet-panel .home-quickcard-today-clear { font-size: .88rem; }
     .dh-sheet-panel .home-quickcard-bday,
     .dh-sheet-panel .home-quickcard-due,
-    .dh-sheet-panel .home-quickcard-pm { padding: 8px 10px; font-size: .86rem; border-radius: 10px; }
+    .dh-sheet-panel .home-quickcard-pm,
+    .dh-sheet-panel .home-quickcard-grade { padding: 8px 10px; font-size: .86rem; border-radius: 10px; }
     .dh-sheet-panel .home-quickcard-due-title,
-    .dh-sheet-panel .home-quickcard-pm-title { min-height: 36px; font-size: .88rem; }
+    .dh-sheet-panel .home-quickcard-pm-title,
+    .dh-sheet-panel .home-quickcard-grade-title { min-height: 36px; font-size: .88rem; }
     .dh-sheet-panel .home-quickcard-due-row,
-    .dh-sheet-panel .home-quickcard-pm-row { min-height: 40px; }
+    .dh-sheet-panel .home-quickcard-pm-row,
+    .dh-sheet-panel .home-quickcard-grade-row { min-height: 40px; }
     /* ثم نشر واجب */
     .dh-sheet-panel .home-quickcard-publish-btn { order: 2; min-height: 44px; padding: 10px 14px; font-size: .95rem; }
     /* ثم الإحصاءات شارتين متجاورتين */

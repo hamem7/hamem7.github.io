@@ -86,6 +86,11 @@ const NEW_KEYS = {
         home_act_resume: 'استكمل',
         home_tag_late: 'متأخر',
         home_tag_today: 'اليوم',
+        home_filter_grade: 'واجبات',
+        home_grade_badge: '✍️ {n} واجبات تنتظر التصحيح',
+        home_act_grade: 'صحّح',
+        home_grade_waiting: 'ينتظر منذ',
+        home_grade_today: 'وصل اليوم',
         why_privacy_link: 'سياسة الخصوصية ←',
         footer_about_more: 'تقييم دقيق وتقارير احترافية وواجبات منزلية، بأدوات أُعدّت لخدمة تعليم القرآن.'
     },
@@ -136,6 +141,11 @@ const NEW_KEYS = {
         home_act_resume: 'Resume',
         home_tag_late: 'Overdue',
         home_tag_today: 'Today',
+        home_filter_grade: 'Homework',
+        home_grade_badge: '✍️ {n} homework awaiting grading',
+        home_act_grade: 'Grade',
+        home_grade_waiting: 'Waiting',
+        home_grade_today: 'Arrived today',
         why_privacy_link: 'Privacy policy →',
         footer_about_more: 'Accurate evaluation, professional reports and homework, with tools built to serve Quran teaching.'
     }

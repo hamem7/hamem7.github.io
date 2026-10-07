@@ -52,7 +52,8 @@
     }
     /* 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + (الاسم + شارة + تفصيل) + زر إجراء */
     .home-quickcard-due-row,
-    .home-quickcard-pm-row {
+    .home-quickcard-pm-row,
+    .home-quickcard-grade-row {
         display: grid;
         grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
@@ -63,7 +64,8 @@
         transition: background 0.2s;
     }
     .home-quickcard-due-row:hover,
-    .home-quickcard-pm-row:hover {
+    .home-quickcard-pm-row:hover,
+    .home-quickcard-grade-row:hover {
         background: rgba(255, 253, 246, 0.12);
     }
     .qc-dot { width: 9px; height: 9px; border-radius: 50%; background: #f0d878; box-shadow: 0 0 0 3px rgba(240, 216, 120, 0.16); }
@@ -127,6 +129,53 @@
         margin-top: 8px;
     }
     .home-quickcard-pm.is-expanded .home-quickcard-pm-list {
+        display: flex;
+    }
+    /* 🌟🌟 [2026-10-07 — «مهام اليوم»] «واجبات تنتظر التصحيح» — مجموعة معزولة بأصناف خاصة (.home-quickcard-grade-*)
+         بنفس شكل مجموعتي المراجعة والمواجهات؛ بياناتها من سجل الواجبات (راجع renderHomeworkAwaitingGrading) */
+    .home-quickcard-grade {
+        background: rgba(255, 253, 246, 0.08);
+        border: 1px solid rgba(240, 216, 120, 0.35);
+        border-radius: 12px;
+        padding: 10px 14px;
+        margin-bottom: 14px;
+    }
+    .home-quickcard-grade-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-weight: bold;
+        font-size: 0.95rem;
+        color: var(--dh-gold-500, #f0d878);
+        /* 🌟🌟 [جديد] أصبح سطر ملخّص قابل للنقر (فتح/طي التفاصيل) بدل عنوان ثابت —
+             نفس فلسفة .home-quickcard-due-title أعلاه، بأصناف معزولة خاصة بهذه
+             البطاقة (راجع تعليق العزل الأصلي أعلى هذا الملف) */
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 8px;
+        transition: background 0.2s;
+    }
+    .home-quickcard-grade-title:hover {
+        background: rgba(255, 253, 246, 0.12);
+    }
+    /* 🌟🌟 [جديد] سهم صغير يدور 180° عند فتح التفاصيل */
+    .home-quickcard-grade-chevron {
+        font-size: 0.75rem;
+        transition: transform 0.2s;
+    }
+    .home-quickcard-grade.is-expanded .home-quickcard-grade-chevron {
+        transform: rotate(180deg);
+    }
+    .home-quickcard-grade-list {
+        /* 🌟🌟 [جديد] مطوي افتراضياً الآن — يظهر فقط عند إضافة is-expanded على
+             .home-quickcard-grade (بالنقر على سطر الملخص أعلاه) */
+        display: none;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 8px;
+    }
+    .home-quickcard-grade.is-expanded .home-quickcard-grade-list {
         display: flex;
     }
     /* 🌟🌟 [جديد] بانر التذكير الشهري بتحديث بيانات حفظ الطلاب — قواعد معزولة
@@ -196,10 +245,9 @@
     .qts-chip[aria-pressed="true"] b { background: rgba(6, 35, 28, 0.18); }
     .qts-chip:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
     /* التصفية بالشرائح بالـCSS فقط حتى لا تُمَسّ حالة display التي يقرؤها announceTasksCount */
-    .home-quickcard-today[data-filter="due"] > .home-quickcard-pm,
-    .home-quickcard-today[data-filter="due"] > .home-quickcard-bday,
-    .home-quickcard-today[data-filter="pm"] > .home-quickcard-due,
-    .home-quickcard-today[data-filter="pm"] > .home-quickcard-bday { display: none !important; }
+    .home-quickcard-today[data-filter="due"] > :is(.home-quickcard-pm, .home-quickcard-grade, .home-quickcard-bday),
+    .home-quickcard-today[data-filter="pm"] > :is(.home-quickcard-due, .home-quickcard-grade, .home-quickcard-bday),
+    .home-quickcard-today[data-filter="grade"] > :is(.home-quickcard-due, .home-quickcard-pm, .home-quickcard-bday) { display: none !important; }
     .home-quickcard-today-clear {
         display: flex;
         align-items: center;
@@ -325,6 +373,7 @@
                                 <button type="button" class="qts-chip" data-f="all" aria-pressed="true"><span data-i18n="home_filter_all">الكل</span><b id="qts-n-all">0</b></button>
                                 <button type="button" class="qts-chip" data-f="due" aria-pressed="false"><span data-i18n="home_filter_due">مراجعة</span><b id="qts-n-due">0</b></button>
                                 <button type="button" class="qts-chip" data-f="pm" aria-pressed="false"><span data-i18n="home_filter_pm">مواجهات</span><b id="qts-n-pm">0</b></button>
+                                <button type="button" class="qts-chip" data-f="grade" aria-pressed="false"><span data-i18n="home_filter_grade">واجبات</span><b id="qts-n-grade">0</b></button>
                             </div>
                         </div>
                         <!-- 🌟 تذكير يوم ميلاد طالب — يظهر فقط إن كان اليوم يوم ميلاد أحد الطلاب الفعليين -->
@@ -364,6 +413,17 @@
                                 <span class="home-quickcard-pm-chevron" aria-hidden="true">▾</span>
                             </div>
                             <div class="home-quickcard-pm-list" id="home-quickcard-pm-list"></div>
+                        </div>
+
+                        <!-- 🌟🌟 [2026-10-07] «واجبات تنتظر التصحيح» — تسليمات الطلاب التي تحتاج تصحيحاً يدوياً من المعلم، من سجل
+                             الواجبات (خادم الواجبات، لواجبات سجلّك المحلي فقط). تظهر فقط لمعلم مسجَّل الدخول بجوجل (انظر
+                             renderHomeworkAwaitingGrading في components/homeQuickview.js) -->
+                        <div class="home-quickcard-grade" id="home-quickcard-grade" style="display:none;">
+                            <div class="home-quickcard-grade-title" id="home-quickcard-grade-summary">
+                                <span id="home-quickcard-grade-summary-text"></span>
+                                <span class="home-quickcard-grade-chevron" aria-hidden="true">▾</span>
+                            </div>
+                            <div class="home-quickcard-grade-list" id="home-quickcard-grade-list"></div>
                         </div>
 
                         <div class="home-quickcard-today-clear" id="home-quickcard-today-clear" style="display:none;">

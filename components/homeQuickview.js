@@ -9,6 +9,9 @@
 import { AppState, openHomeworkPrep } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { t } from '../core/i18n.js';
+// 🌟 [2026-10-07] «واجبات تنتظر التصحيح»: نفس مصدر بطاقة «يحتاج تصحيح» في شاشة الواجبات (خادم الواجبات)
+import { getSubmissionsNeedingGrading } from '../core/homeworkApi.js';
+import { isTeacherAuthed } from '../core/api.js';
 // 🌟 [جديد] لفتح شاشة "طلابي" من زر بانر التذكير الشهري بتحديث بيانات الحفظ
 import { loadMyStudentsScreen } from '../student/student.js';
 
@@ -405,6 +408,82 @@ async function renderPendingDualMatchesReminder() {
     }
 }
 
+// 🌟🌟 [2026-10-07 — «مهام اليوم»] «واجبات تنتظر التصحيح» — مربوطة بسجل الواجبات: تستعمل نفس استعلام بطاقة
+// «يحتاج تصحيح» في شاشة الواجبات (getSubmissionsNeedingGrading: تسليم حالته submitted/graded وبه سؤال يدوي
+// بلا درجة) وتُصفّيه بنفس القاعدة (تسليمات الواجبات الموجودة في سجلّك المحلي فقط، لأن حذف واجب محلياً يُبقي
+// تسليماته في الخادم). افتراضات صريحة:
+// 1) لا تظهر المجموعة إلا لمعلم مسجَّل الدخول بجوجل على هذا الجهاز (بلا جلسة لا يوجد استعلام ولا نافذة دخول).
+// 2) أي فشل (شبكة/خادم/جلسة مرفوضة) يُخفي المجموعة بصمت ولا يعرض صفراً مضللاً؛ شاشة الواجبات تبقى المرجع.
+// 3) العمر = من submittedAt (أو timestamp)، ويُعدّ التسليم «عاجلاً» إذا مضى عليه يوم كامل فأكثر.
+// 4) نتيجة الاستعلام تُحفظ 30 ثانية في الذاكرة فقط حتى لا يُعاد النداء عند كل تنقل للرئيسية.
+// 5) النقر يفتح شاشة الواجبات (فيها غرفة التصحيح)، لا غرفة تصحيح تسليم بعينه.
+const GRADING_CACHE_MS = 30000;
+let gradingCache = null;
+
+async function renderHomeworkAwaitingGrading() {
+    const wrap = document.getElementById('home-quickcard-grade');
+    const summaryBtn = document.getElementById('home-quickcard-grade-summary');
+    const summaryTextEl = document.getElementById('home-quickcard-grade-summary-text');
+    const listEl = document.getElementById('home-quickcard-grade-list');
+    if (!wrap || !summaryBtn || !summaryTextEl || !listEl) return;
+
+    const hide = () => { wrap.dataset.count = '0'; wrap.dataset.urgent = '0'; wrap.style.display = 'none'; };
+    if (!AppState.homeworkManager || !isTeacherAuthed()) { hide(); return; }
+
+    try {
+        let pending;
+        if (gradingCache && (Date.now() - gradingCache.at) < GRADING_CACHE_MS) {
+            pending = gradingCache.pending;
+        } else {
+            const [subs, localHws] = await Promise.all([
+                getSubmissionsNeedingGrading(),
+                AppState.homeworkManager.getAllHomeworks()
+            ]);
+            const localIds = new Set((localHws || []).map(hw => String(hw.id)));
+            pending = (subs || []).filter(sub => localIds.has(String(sub.hwId)));
+            gradingCache = { at: Date.now(), pending };
+        }
+        if (!wrap.isConnected) return; // الشاشة الرئيسية استُبدلت أثناء الانتظار
+
+        const now = Date.now();
+        const rows = pending.map(sub => {
+            const ms = Date.parse(sub.submittedAt) || Number(sub.timestamp) || NaN;
+            const days = isNaN(ms) ? 0 : Math.max(0, Math.floor((now - ms) / 86400000));
+            return { sub, days };
+        }).sort((a, b) => b.days - a.days); // الأقدم انتظاراً أولاً
+
+        wrap.dataset.count = String(rows.length);
+        wrap.dataset.urgent = String(rows.filter(r => r.days > 0).length);
+        if (rows.length === 0) { wrap.style.display = 'none'; return; }
+
+        summaryTextEl.textContent = t('home_grade_badge').replace('{n}', rows.length);
+        wrap.classList.remove('is-expanded');
+        summaryBtn.onclick = () => wrap.classList.toggle('is-expanded');
+
+        listEl.innerHTML = '';
+        rows.slice(0, 5).forEach(({ sub, days }) => {
+            const isLate = days > 0;
+            const tagText = isLate ? `${t('home_grade_waiting')} ${days} ${t('home_due_days_unit')}` : t('home_grade_today');
+            const row = document.createElement('div');
+            row.className = 'home-quickcard-grade-row';
+            row.innerHTML = `
+                <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
+                <span class="qc-row-main">
+                    <span class="qc-row-name">${esc(sub.studentName || '')}</span>
+                    <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${tagText}</span></span>
+                </span>
+                <button type="button" class="qc-row-act">${t('home_act_grade')}</button>
+            `;
+            row.addEventListener('click', () => openHomeworkPrep());
+            listEl.appendChild(row);
+        });
+        wrap.style.display = 'block';
+    } catch (e) {
+        console.warn('تعذر جلب «واجبات تنتظر التصحيح» للشاشة الرئيسية:', e);
+        hide();
+    }
+}
+
 // 🌟🌟 [جديد 2026-10-01] مجموعة "يحتاج منك اليوم" — تُرتِّب بطاقة "نظرة سريعة" بحسب ما ينتظر
 // إجراءً فعلياً من المعلم اليوم، لا بحسب نوع المعلومة. لا تحسب شيئاً بنفسها: تقرأ فقط حالة
 // الظهور التي ضبطتها الدوال الثلاث أعلاه (renderStudentBirthdayReminder / renderDueForReview /
@@ -413,7 +492,7 @@ async function renderPendingDualMatchesReminder() {
 // 🌟 افتراضات صريحة:
 // 1) "يحتاج منك اليوم" = يوم ميلاد طالب اليوم + طلاب حان موعد مراجعتهم + مواجهات ثنائية معلّقة
 //    أسبوعاً فأكثر. لا يدخل فيه بانر "التذكير الشهري بتحديث الحفظ" (يبقى بانراً مستقلاً خارج
-//    البطاقة)، ولا الواجبات المنتظِرة للتصحيح (لا يوجد لها مصدر بيانات سريع داخل هذه البطاقة).
+//    البطاقة). [2026-10-07] الواجبات المنتظِرة للتصحيح صارت جزءاً منها (renderHomeworkAwaitingGrading).
 // 2) رسالة "لا شيء معلّق اليوم" تظهر فقط عند وجود طالب واحد مسجَّل على الأقل؛ قبل ذلك تبقى
 //    المجموعة مخفية بالكامل (حتى لا تُوحي بأن "كل شيء تمام" والمنصة فارغة أصلاً — الإرشاد لهذه
 //    الحالة هو بطاقة "ابدأ من هنا" الموجودة في الشاشة الرئيسية).
@@ -427,9 +506,11 @@ function getTaskCounts() {
     const bday = shown('home-quickcard-bday') ? 1 : 0;
     const due = shown('home-quickcard-due') ? num('home-quickcard-due', 'count') : 0;
     const pm = shown('home-quickcard-pm') ? num('home-quickcard-pm', 'count') : 0;
+    const grade = shown('home-quickcard-grade') ? num('home-quickcard-grade', 'count') : 0;
     const urgent = (shown('home-quickcard-due') ? num('home-quickcard-due', 'urgent') : 0)
-        + (shown('home-quickcard-pm') ? num('home-quickcard-pm', 'urgent') : 0);
-    return { bday, due, pm, urgent, total: bday + due + pm };
+        + (shown('home-quickcard-pm') ? num('home-quickcard-pm', 'urgent') : 0)
+        + (shown('home-quickcard-grade') ? num('home-quickcard-grade', 'urgent') : 0);
+    return { bday, due, pm, grade, urgent, total: bday + due + pm + grade };
 }
 
 function announceTasksCount() {
@@ -457,7 +538,7 @@ function trackTodayProgress(total) {
     return { peak, done: Math.max(0, peak - total) };
 }
 
-// الشريحة المحدّدة حالياً في رأس «مهام اليوم» (all | due | pm). لا تُحفَظ بين الزيارات.
+// الشريحة المحدّدة حالياً في رأس «مهام اليوم» (all | due | pm | grade). لا تُحفَظ بين الزيارات.
 let todayFilter = 'all';
 
 function applyTodayFilter(expand) {
@@ -468,7 +549,7 @@ function applyTodayFilter(expand) {
     if (chips) chips.querySelectorAll('[data-f]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === todayFilter)));
     // اختيار فئة يعني أن المعلم يريد تفاصيلها: نفتح قائمتها مباشرة
     if (expand && todayFilter !== 'all') {
-        document.getElementById(todayFilter === 'due' ? 'home-quickcard-due' : 'home-quickcard-pm')?.classList.add('is-expanded');
+        document.getElementById({ due: 'home-quickcard-due', pm: 'home-quickcard-pm', grade: 'home-quickcard-grade' }[todayFilter])?.classList.add('is-expanded');
     }
 }
 
@@ -494,10 +575,12 @@ function renderTodaySummary(c) {
         document.getElementById('qts-n-all').textContent = String(c.total);
         document.getElementById('qts-n-due').textContent = String(c.due);
         document.getElementById('qts-n-pm').textContent = String(c.pm);
+        document.getElementById('qts-n-grade').textContent = String(c.grade);
         chips.querySelector('[data-f="due"]').style.display = c.due > 0 ? '' : 'none';
         chips.querySelector('[data-f="pm"]').style.display = c.pm > 0 ? '' : 'none';
-        chips.style.display = ((c.due > 0 ? 1 : 0) + (c.pm > 0 ? 1 : 0)) >= 2 ? 'flex' : 'none';
-        if ((todayFilter === 'due' && c.due === 0) || (todayFilter === 'pm' && c.pm === 0) || chips.style.display === 'none') todayFilter = 'all';
+        chips.querySelector('[data-f="grade"]').style.display = c.grade > 0 ? '' : 'none';
+        chips.style.display = ((c.due > 0 ? 1 : 0) + (c.pm > 0 ? 1 : 0) + (c.grade > 0 ? 1 : 0)) >= 2 ? 'flex' : 'none';
+        if (chips.style.display === 'none' || c[todayFilter] === 0) todayFilter = 'all';
         chips.onclick = (e) => {
             const btn = e.target.closest('[data-f]');
             if (!btn) return;
@@ -516,7 +599,7 @@ async function updateTodayGroup() {
     const clear = document.getElementById('home-quickcard-today-clear');
     if (!wrap || !sum || !clear) return;
 
-    const ids = ['home-quickcard-bday', 'home-quickcard-due', 'home-quickcard-pm'];
+    const ids = ['home-quickcard-bday', 'home-quickcard-due', 'home-quickcard-pm', 'home-quickcard-grade'];
     const anyVisible = ids.some(id => {
         const el = document.getElementById(id);
         return el && el.style.display !== 'none';
@@ -554,6 +637,9 @@ export function initHomeQuickview() {
         renderDueForReview(),
         renderPendingDualMatchesReminder()
     ]).then(updateTodayGroup);
+    // 🌟 [2026-10-07] نداء الخادم أبطأ من القراءات المحلية: يُرسم مستقلاً ثم تُحدَّث المجموعة مرة ثانية
+    // (لا يؤخّر ظهور باقي المهام، وأي فشل فيه لا يمنع تحديث المجموعة)
+    renderHomeworkAwaitingGrading().then(updateTodayGroup, updateTodayGroup);
     wireQuickPublishButton();
     wireMonthlyMemoBanner();
     checkMonthlyMemoReminder();
