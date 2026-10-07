@@ -380,8 +380,6 @@
     .dh-sheet-panel .home-quickcard-due-row,
     .dh-sheet-panel .home-quickcard-pm-row,
     .dh-sheet-panel .home-quickcard-grade-row { min-height: 40px; }
-    /* ثم نشر واجب */
-    .dh-sheet-panel .home-quickcard-publish-btn { order: 2; min-height: 44px; padding: 10px 14px; font-size: .95rem; }
     /* ثم الإحصاءات شارتين متجاورتين */
     .dh-sheet-panel .home-quickcard-mastery,
     .dh-sheet-panel .home-quickcard-reports {

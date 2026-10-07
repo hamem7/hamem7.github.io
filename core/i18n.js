@@ -737,7 +737,6 @@ export const translations = {
         home_mastery_avg_sub: "بناءً على آخر التقييمات",
         home_mastery_no_data: "لا توجد بيانات كافية بعد",
         home_reports_count_label: "تقييمات وتقارير صادرة هذا الشهر",
-        home_quick_publish_btn: "نشر واجب جديد الآن",
         // 🌟 [جديد] نظام "المراجعة المتباعدة" (Anki/Duolingo) — قائمة "مستحق اليوم"
         home_due_title: "مستحق المراجعة اليوم",
         // 🌟🌟 [جديد] سطر الملخص المطوي فوق القائمة التفصيلية (بطلب المعلم لتقليل
@@ -2772,7 +2771,6 @@ export const translations = {
         home_mastery_avg_sub: "Based on the latest evaluations",
         home_mastery_no_data: "Not enough data yet",
         home_reports_count_label: "Evaluations & reports issued this month",
-        home_quick_publish_btn: "Publish New Homework Now",
         // 🌟 New: spaced-repetition system (Anki/Duolingo) — "due today" list
         home_due_title: "Due for review today",
         // 🌟🌟 [New] Collapsed summary line shown above the detailed list (requested

@@ -486,26 +486,6 @@
     color: var(--dh-gold-300);
 }
 
-.home-quickcard-publish-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500));
-    color: var(--dh-emerald-900);
-    border: none;
-    border-radius: 14px;
-    padding: 12px;
-    font-weight: 700;
-    font-size: 0.92rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.home-quickcard-publish-btn:hover { transform: translateY(-2px); }
-
 /* ==========================================================================
    🌟 شارة إكمال البيانات + بانر يوم ميلاد المعلم + نافذة تعديل البيانات — كل هذه
    العناصر اختيارية بالكامل ولا تُجبر المعلم على شيء 🌟

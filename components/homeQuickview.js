@@ -3,7 +3,7 @@
 // طالب (اليوم فقط)، آية/حديث/دعاء يومي من مجموعة مختارة يدوياً، متوسط نسبة
 // الإتقان العام (من بيانات الطلاب الفعلية إن وُجدت)، عدد التقييمات/التقارير
 // الصادرة هذا الشهر (سجل بسيط في localStorage يكتبه reports/report.js عند كل
-// تصدير ناجح)، وربط زر "نشر واجب جديد الآن" بنفس مسار زر الواجبات الرئيسي.
+// تصدير ناجح). (أُزيل زر "نشر واجب جديد الآن" من البطاقة — الواجبات من الزر الرئيسي والشريط السفلي.)
 // كل عنصر هنا اختياري بالكامل ويختفي بأدب لو لم تتوفر بياناته، بدل اختلاق أرقام.
 
 import { AppState, openHomeworkPrep } from '../core/app.js';
@@ -216,12 +216,6 @@ function renderReportsCount() {
     } catch (e) {
         countEl.textContent = '0';
     }
-}
-
-function wireQuickPublishButton() {
-    const btn = document.getElementById('home-quick-publish-btn');
-    if (!btn) return;
-    btn.addEventListener('click', openHomeworkPrep);
 }
 
 // 🌟🌟 [جديد] "مستحق اليوم" — نظام المراجعة المتباعدة على نمط Anki/Duolingo:
@@ -713,7 +707,6 @@ export function initHomeQuickview() {
     // 🌟 [2026-10-07] نداء الخادم أبطأ من القراءات المحلية: يُرسم مستقلاً ثم تُحدَّث المجموعة مرة ثانية
     // (لا يؤخّر ظهور باقي المهام، وأي فشل فيه لا يمنع تحديث المجموعة)
     renderHomeworkAwaitingGrading().then(updateTodayGroup, updateTodayGroup);
-    wireQuickPublishButton();
     wireMonthlyMemoBanner();
     checkMonthlyMemoReminder();
 }
