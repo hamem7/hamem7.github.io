@@ -13,7 +13,11 @@ export async function loadScreen(route) {
     // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] رسالة تحميل بحجم عادي (كانت 2rem بحشوة 50px فتقفز الصفحة لحظة التنقل)
     // 🌟 [2026-10-03 — سرعة الفتح] أثناء الإقلاع نُبقي شاشة الإقلاع ذات الهوية الجديدة (index.html) بدل استبدالها برسالة التحميل
     const booting = document.documentElement.classList.contains('dh-booting');
-    if (!booting) root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
+    // 🌟 [2026-10-07 — إصلاح وميض الشكل القديم] لا نمسح الشاشة الحالية ولا نغيّر ثيمها أثناء جلب الشاشة الجديدة: كان
+    // الانتظار (تحميل الوحدة + الملف + بوابة الدخول) يعرض لثوانٍ رسالة "جاري التحميل" على ثيم الكبار الأزرق القديم.
+    // الآن تبقى الشاشة السابقة كما هي حتى تجهز الجديدة فتُستبدل دفعة واحدة؛ والرسالة تظهر فقط إن كان الجذر فارغاً.
+    if (!booting && !root.firstElementChild) root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
+    document.body.classList.add('dh-nav-pending');
 
     try {
         // 🌟 cache: 'no-store' يمنع المتصفح من عرض نسخة قديمة مخزّنة من ملفات
@@ -22,6 +26,8 @@ export async function loadScreen(route) {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         let html = await response.text();
         
+        // الثيم المؤجَّل (راجع switchTheme) يُطبَّق الآن لحظة استبدال المحتوى لا قبلها
+        flushPendingTheme();
         // حقن الواجهة
         root.innerHTML = html;
         // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] كل شاشة جديدة تبدأ من أعلاها: كان موضع التمرير يبقى من الشاشة السابقة فيصل المعلم
@@ -48,27 +54,49 @@ export async function loadScreen(route) {
         // أول تحميل لـ index.html) حتى تظهر "الصفحات الأكثر زيارة" بشكل صحيح في لوحته
         trackPageview(route.templateUrl);
     } catch (error) {
+        flushPendingTheme();
         console.error("فشل في تحميل الواجهة:", error);
         document.documentElement.classList.remove('dh-booting');
         root.innerHTML = `<div style="color:red; text-align:center; font-size:2rem;">عفواً، حدث خطأ في تحميل الشاشة. ❌ Error loading screen.</div>`;
+    } finally {
+        document.body.classList.remove('dh-nav-pending');
     }
 }
 
 // التحكم في الأنماط (تغيير الخلفية والألوان حسب القسم)
+// 🌟 [2026-10-07] التطبيق مؤجَّل: كل من يستدعي switchTheme يتبعه loadScreen عادةً بعد انتظار غير متزامن، وتطبيق الثيم فوراً كان
+// يُظهر الشاشة القديمة بألوان الثيم الجديد (الأزرق القديم) لثوانٍ. نحفظ الطلب ونطبّقه عند حقن الشاشة؛ ومؤقّت أمان 4 ثوانٍ
+// يطبّقه إن لم يتبعه loadScreen (لا تتعطل أي حالة).
+let pendingTheme = null;
+let pendingTimer = null;
+function flushPendingTheme() {
+    clearTimeout(pendingTimer);
+    pendingTimer = null;
+    if (pendingTheme === null) return;
+    const theme = pendingTheme;
+    pendingTheme = null;
+    applyThemeNow(theme);
+}
 export function switchTheme(theme) {
+    // الشاشة الفارغة/الإقلاع لا شيء يُحافظ عليه: نطبّق فوراً
+    const root = document.getElementById('app-root');
+    if (document.documentElement.classList.contains('dh-booting') || !root || !root.firstElementChild) { applyThemeNow(theme); return; }
+    pendingTheme = theme;
+    clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(flushPendingTheme, 4000);
+}
+function applyThemeNow(theme) {
     const body = document.getElementById('main-body');
     const headerTitle = document.getElementById('header-title');
-    
+    const keep = body.classList.contains('dh-nav-pending');
+
     if(theme === 'kids') {
         body.className = 'kids-theme';
-        // 🌟 نغير مفتاح الترجمة بدلاً من النص الثابت 🌟
         headerTitle.setAttribute('data-i18n', 'header_title_kids');
     } else {
         body.className = 'adult-theme';
-        // 🌟 نعود لمفتاح الترجمة الأصلي 🌟
         headerTitle.setAttribute('data-i18n', 'header_title');
     }
-    
-    // 🌟 تحديث الترجمة فور تغيير الثيم 🌟
+    if (keep) body.classList.add('dh-nav-pending');
     applyLanguage();
 }
