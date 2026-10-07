@@ -81,6 +81,14 @@
         background: var(--dh-gold-500, #d4af37); color: var(--dh-emerald-900, #06231c);
     }
     .qc-row-act:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
+    .qc-row-btns { display: inline-flex; align-items: center; gap: 6px; }
+    .qc-row-done {
+        flex: none; width: 34px; height: 34px; padding: 0; border-radius: 10px; cursor: pointer; font: inherit; font-size: 1rem; line-height: 1;
+        background: transparent; color: rgba(255, 253, 246, 0.82); border: 1px solid rgba(255, 253, 246, 0.28);
+    }
+    .qc-row-done:hover { color: #6fe0b0; border-color: #6fe0b0; background: rgba(111, 224, 176, 0.12); }
+    .qc-row-done:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
+    .home-quickcard-bday .qc-row-done { margin-inline-start: auto; }
 
     /* 🌟🌟 [جديد] تنسيق بطاقة "مواجهات ثنائية تنتظر الاستكمال" — قواعد معزولة تماماً بأسماء
          أصناف خاصة بها (.home-quickcard-pm-*)، ولو متطابقة بصرياً مع بطاقة "مستحق اليوم"
@@ -382,6 +390,7 @@
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#06231c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6"/><path d="M2 21h20"/><path d="M4 13c1-1 2-1 3 0s2 1 3 0 2-1 3 0 2 1 3 0 2-1 3 0"/><path d="M12 9V5"/></svg>
                             </span>
                             <span id="home-quickcard-bday-text"></span>
+                            <button type="button" class="qc-row-done" id="home-quickcard-bday-done" data-i18n-title="home_task_done" aria-label="تمّت" title="تمّت">✓</button>
                         </div>
 
                         <!-- 🌟🌟 [جديد] "مستحق اليوم" — نظام المراجعة المتباعدة (Anki/Duolingo):

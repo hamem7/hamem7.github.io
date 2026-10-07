@@ -54,6 +54,64 @@ const DAILY_QUOTES = [
     }
 ];
 
+// 🌟🌟 [2026-10-07 — «مهام اليوم»] علامة ✓ «تمّت»: تُخفي المهمة لبقية اليوم الحالي فقط (وتُحتسب منجزة في شريط
+// التقدّم). افتراضات صريحة: (1) لا تغيّر أي بيانات — مراجعة الطالب تبقى مستحقة في جدولها، والتسليم يبقى في
+// غرفة التصحيح، والمواجهة تبقى معلّقة؛ غداً تعود المهمة إن بقيت قائمة. (2) المفتاح لكل مهمة: نوعها + معرّفها
+// (due:<طالب>، pm:<مواجهة>، grade:<تسليم>، bday:<طالب>). (3) المخزَّن في localStorage ويُصفَّر عند تغيّر اليوم؛
+// لو تعذّر التخزين تُخفى المهمة حتى إعادة تحميل الشاشة فقط.
+const TODAY_DONE_KEY = 'darham_today_tasks_done';
+let todayDoneMemory = new Set();
+
+function todayStamp() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+
+function loadTodayDone() {
+    try {
+        const rec = JSON.parse(localStorage.getItem(TODAY_DONE_KEY) || 'null');
+        if (rec && rec.day === todayStamp() && Array.isArray(rec.keys)) return new Set(rec.keys);
+    } catch (e) { /* تجاهل */ }
+    return new Set();
+}
+
+function isTaskDone(key) {
+    return todayDoneMemory.has(key) || loadTodayDone().has(key);
+}
+
+function markTaskDone(key) {
+    todayDoneMemory.add(key);
+    const keys = loadTodayDone();
+    keys.add(key);
+    try { localStorage.setItem(TODAY_DONE_KEY, JSON.stringify({ day: todayStamp(), keys: Array.from(keys) })); } catch (e) { /* تجاهل */ }
+}
+
+function wireDoneButton(row, key, groupId) {
+    row.dataset.taskKey = key;
+    const btn = row.querySelector('.qc-row-done');
+    if (!btn) return;
+    btn.addEventListener('click', (e) => {
+        e.stopPropagation(); // لا تُفعّل نقرة الصف (فتح الشاشة)
+        markTaskDone(key);
+        afterTaskDone(groupId);
+    });
+}
+
+// إعادة رسم المجموعة المتأثرة وحدها (حتى يظهر الصف التالي مكان المنجَز لو كان أكثر من 5) مع إبقاء قائمتها مفتوحة
+async function afterTaskDone(groupId) {
+    const wrap = document.getElementById(groupId);
+    const keepOpen = !!wrap && wrap.classList.contains('is-expanded');
+    const renderers = {
+        'home-quickcard-due': renderDueForReview,
+        'home-quickcard-pm': renderPendingDualMatchesReminder,
+        'home-quickcard-grade': renderHomeworkAwaitingGrading,
+        'home-quickcard-bday': renderStudentBirthdayReminder
+    };
+    try { if (renderers[groupId]) await renderers[groupId](); } catch (e) { /* كل دالة تعالج أخطاءها */ }
+    if (keepOpen && wrap && wrap.style.display !== 'none') wrap.classList.add('is-expanded');
+    updateTodayGroup();
+}
+
 function renderDailyQuote() {
     const textEl = document.getElementById('home-quote-text');
     const refEl = document.getElementById('home-quote-ref');
@@ -86,7 +144,9 @@ async function renderStudentBirthdayReminder() {
             return parseInt(parts[1], 10) === month && parseInt(parts[2], 10) === day;
         });
 
-        if (birthdayStudent) {
+        if (birthdayStudent && !isTaskDone(`bday:${birthdayStudent.id}`)) {
+            const doneBtn = document.getElementById('home-quickcard-bday-done');
+            if (doneBtn) doneBtn.onclick = () => { markTaskDone(`bday:${birthdayStudent.id}`); afterTaskDone('home-quickcard-bday'); };
             const template = t('home_bday_today') || '';
             textEl.textContent = template.replace('{name}', birthdayStudent.name || '');
             row.style.display = 'flex';
@@ -204,6 +264,7 @@ async function renderDueForReview() {
 
             const student = (students || []).find(s => s.id === sched.studentId);
             if (!student || student.isHidden) return;
+            if (isTaskDone(`due:${student.id}`)) return; // 🌟 [2026-10-07] عُلِّمت «تمّت» اليوم
 
             const overdueDays = Math.floor((now - nextDue) / 86400000);
             dueRows.push({ student, overdueDays });
@@ -247,8 +308,12 @@ async function renderDueForReview() {
                     <span class="qc-row-name">${esc(student.name)}</span>
                     <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${whenText}</span><span>${esc(rangeText)}</span></span>
                 </span>
-                <button type="button" class="qc-row-act">${t('home_act_review')}</button>
+                <span class="qc-row-btns">
+                    <button type="button" class="qc-row-act">${t('home_act_review')}</button>
+                    <button type="button" class="qc-row-done" aria-label="${t('home_task_done')}" title="${t('home_task_done')}">✓</button>
+                </span>
             `;
+            wireDoneButton(row, `due:${student.id}`, 'home-quickcard-due');
             // 🌟 نقرة على أي صف تفتح شاشة إعداد الواجبات مع تجهيل الطالب مسبقاً
             // كـ"طالب مستهدف" مباشرة، توفيراً لخطوة اختياره يدوياً من القائمة
             row.addEventListener('click', () => {
@@ -356,7 +421,7 @@ async function renderPendingDualMatchesReminder() {
         const thresholdMs = PENDING_MATCH_REMINDER_DAYS * 86400000;
 
         const overdue = (allMatches || [])
-            .filter(m => m.status !== 'completed')
+            .filter(m => m.status !== 'completed' && !isTaskDone(`pm:${m.id}`)) // 🌟 [2026-10-07] «تمّت» اليوم تُخفي المواجهة
             .map(m => {
                 const refIso = m.pausedAt || m.startedAt; // راجع الافتراض (2) أعلاه
                 const refTime = refIso ? new Date(refIso).getTime() : NaN;
@@ -387,8 +452,12 @@ async function renderPendingDualMatchesReminder() {
                     <span class="qc-row-name">${esc(match.studentNameA)} 🆚 ${esc(match.studentNameB)}</span>
                     <span class="qc-row-sub"><span class="qc-tag late">${t('home_pm_paused_since')} ${overdueDays} ${t('home_due_days_unit')}</span></span>
                 </span>
-                <button type="button" class="qc-row-act">${t('home_act_resume')}</button>
+                <span class="qc-row-btns">
+                    <button type="button" class="qc-row-act">${t('home_act_resume')}</button>
+                    <button type="button" class="qc-row-done" aria-label="${t('home_task_done')}" title="${t('home_task_done')}">✓</button>
+                </span>
             `;
+            wireDoneButton(row, `pm:${match.id}`, 'home-quickcard-pm');
             // 🌟 نقرة على أي صف تفتح شاشة اللعب مباشرة لاستكمال هذه المواجهة بعينها — نفس
             // مبدأ نقرة صف "مستحق اليوم" أعلاه، لكن هنا نستورد dual-test-setup.js ديناميكياً
             // (بدل استيراد ثابت أعلى الملف) حتى لا تُحمَّل شاشة الاختبارات الثنائية كاملة إلا
@@ -446,7 +515,7 @@ async function renderHomeworkAwaitingGrading() {
         if (!wrap.isConnected) return; // الشاشة الرئيسية استُبدلت أثناء الانتظار
 
         const now = Date.now();
-        const rows = pending.map(sub => {
+        const rows = pending.filter(sub => !isTaskDone(`grade:${sub.docId || sub.id}`)).map(sub => {
             const ms = Date.parse(sub.submittedAt) || Number(sub.timestamp) || NaN;
             const days = isNaN(ms) ? 0 : Math.max(0, Math.floor((now - ms) / 86400000));
             return { sub, days };
@@ -472,8 +541,12 @@ async function renderHomeworkAwaitingGrading() {
                     <span class="qc-row-name">${esc(sub.studentName || '')}</span>
                     <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${tagText}</span></span>
                 </span>
-                <button type="button" class="qc-row-act">${t('home_act_grade')}</button>
+                <span class="qc-row-btns">
+                    <button type="button" class="qc-row-act">${t('home_act_grade')}</button>
+                    <button type="button" class="qc-row-done" aria-label="${t('home_task_done')}" title="${t('home_task_done')}">✓</button>
+                </span>
             `;
+            wireDoneButton(row, `grade:${sub.docId || sub.id}`, 'home-quickcard-grade');
             row.addEventListener('click', () => openHomeworkPrep());
             listEl.appendChild(row);
         });

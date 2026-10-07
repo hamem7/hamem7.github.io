@@ -91,6 +91,7 @@ const NEW_KEYS = {
         home_act_grade: 'صحّح',
         home_grade_waiting: 'ينتظر منذ',
         home_grade_today: 'وصل اليوم',
+        home_task_done: 'تمّت',
         why_privacy_link: 'سياسة الخصوصية ←',
         footer_about_more: 'تقييم دقيق وتقارير احترافية وواجبات منزلية، بأدوات أُعدّت لخدمة تعليم القرآن.'
     },
@@ -146,6 +147,7 @@ const NEW_KEYS = {
         home_act_grade: 'Grade',
         home_grade_waiting: 'Waiting',
         home_grade_today: 'Arrived today',
+        home_task_done: 'Done',
         why_privacy_link: 'Privacy policy →',
         footer_about_more: 'Accurate evaluation, professional reports and homework, with tools built to serve Quran teaching.'
     }
