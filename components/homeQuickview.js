@@ -207,6 +207,7 @@ async function renderDueForReview() {
         });
 
         wrap.dataset.count = String(dueRows.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي (القائمة تعرض 5 فقط)
+        wrap.dataset.urgent = String(dueRows.filter(r => r.overdueDays > 0).length);   // 🌟 [2026-10-07] المتأخر فعلاً (يوم فأكثر) لشارة «عاجلة»
         if (dueRows.length === 0) {
             wrap.style.display = 'none';
             return;
@@ -229,16 +230,21 @@ async function renderDueForReview() {
             const rangeText = (student.memoFrom && student.memoTo)
                 ? `${student.memoFrom} ← ${student.memoTo}`
                 : t('home_due_no_range');
-            const whenText = overdueDays <= 0
-                ? t('home_due_today')
-                : `${t('home_due_overdue_by')} ${overdueDays} ${t('home_due_days_unit')}`;
+            const isLate = overdueDays > 0;
+            const whenText = isLate
+                ? `${t('home_due_overdue_by')} ${overdueDays} ${t('home_due_days_unit')}`
+                : t('home_due_today');
 
+            // 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + اسم + شارة + نطاق + زر إجراء
             const row = document.createElement('div');
             row.className = 'home-quickcard-due-row';
             row.innerHTML = `
-                <span class="home-quickcard-due-name">${esc(student.name)}</span>
-                <span class="home-quickcard-due-range">${rangeText}</span>
-                <span class="home-quickcard-due-when">${whenText}</span>
+                <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
+                <span class="qc-row-main">
+                    <span class="qc-row-name">${esc(student.name)}</span>
+                    <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${whenText}</span><span>${esc(rangeText)}</span></span>
+                </span>
+                <button type="button" class="qc-row-act">${t('home_act_review')}</button>
             `;
             // 🌟 نقرة على أي صف تفتح شاشة إعداد الواجبات مع تجهيل الطالب مسبقاً
             // كـ"طالب مستهدف" مباشرة، توفيراً لخطوة اختياره يدوياً من القائمة
@@ -357,6 +363,7 @@ async function renderPendingDualMatchesReminder() {
             .sort((a, b) => a.refTime - b.refTime); // الأقدم توقفاً أولاً = الأكثر إلحاحاً
 
         wrap.dataset.count = String(overdue.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي
+        wrap.dataset.urgent = String(overdue.length);  // 🌟 [2026-10-07] كل مواجهة معلّقة أسبوعاً فأكثر تُعدّ عاجلة
         if (overdue.length === 0) {
             wrap.style.display = 'none';
             return;
@@ -372,8 +379,12 @@ async function renderPendingDualMatchesReminder() {
             const row = document.createElement('div');
             row.className = 'home-quickcard-pm-row';
             row.innerHTML = `
-                <span class="home-quickcard-pm-names">${esc(match.studentNameA)} 🆚 ${esc(match.studentNameB)}</span>
-                <span class="home-quickcard-pm-when">${t('home_pm_paused_since')} ${overdueDays} ${t('home_due_days_unit')}</span>
+                <span class="qc-dot late" aria-hidden="true"></span>
+                <span class="qc-row-main">
+                    <span class="qc-row-name">${esc(match.studentNameA)} 🆚 ${esc(match.studentNameB)}</span>
+                    <span class="qc-row-sub"><span class="qc-tag late">${t('home_pm_paused_since')} ${overdueDays} ${t('home_due_days_unit')}</span></span>
+                </span>
+                <button type="button" class="qc-row-act">${t('home_act_resume')}</button>
             `;
             // 🌟 نقرة على أي صف تفتح شاشة اللعب مباشرة لاستكمال هذه المواجهة بعينها — نفس
             // مبدأ نقرة صف "مستحق اليوم" أعلاه، لكن هنا نستورد dual-test-setup.js ديناميكياً
@@ -409,21 +420,101 @@ async function renderPendingDualMatchesReminder() {
 // 🌟 [2026-10-03 — زر «مهام» في الشريط السفلي للهاتف] عدد المهام المعلّقة الظاهرة في «يحتاج منك اليوم»: يوم ميلاد طالب (1)
 // + الطلاب المستحقة مراجعتهم + المواجهات الثنائية المعلّقة. الإحصاءات والآية لا تُحسب. يُبثّ بحدث dh:tasks-count فيعرضه
 // components/homeFast.js رقمًا على الزر. لا يغيّر أي حساب: يقرأ ما رسمته الدوال أعلاه فقط.
-function announceTasksCount() {
+// 🌟 [2026-10-07] قراءة موحّدة لأعداد المهام الظاهرة (يستعملها العدّاد وزر «مهام» والرأس الملخّص)
+function getTaskCounts() {
     const shown = (id) => { const el = document.getElementById(id); return !!el && el.style.display !== 'none'; };
-    const num = (id) => parseInt(document.getElementById(id)?.dataset.count || '0', 10) || 0;
-    const n = (shown('home-quickcard-bday') ? 1 : 0)
-        + (shown('home-quickcard-due') ? num('home-quickcard-due') : 0)
-        + (shown('home-quickcard-pm') ? num('home-quickcard-pm') : 0);
-    document.dispatchEvent(new CustomEvent('dh:tasks-count', { detail: { n } }));
+    const num = (id, key) => parseInt(document.getElementById(id)?.dataset[key] || '0', 10) || 0;
+    const bday = shown('home-quickcard-bday') ? 1 : 0;
+    const due = shown('home-quickcard-due') ? num('home-quickcard-due', 'count') : 0;
+    const pm = shown('home-quickcard-pm') ? num('home-quickcard-pm', 'count') : 0;
+    const urgent = (shown('home-quickcard-due') ? num('home-quickcard-due', 'urgent') : 0)
+        + (shown('home-quickcard-pm') ? num('home-quickcard-pm', 'urgent') : 0);
+    return { bday, due, pm, urgent, total: bday + due + pm };
+}
+
+function announceTasksCount() {
+    const { total } = getTaskCounts();
+    document.dispatchEvent(new CustomEvent('dh:tasks-count', { detail: { n: total } }));
+}
+
+// 🌟🌟 [2026-10-07 — «مهام اليوم» الشكل أ] شريط التقدّم: لا يوجد في المنصة سجل لمهمة «أُنجزت» (تختفي المهمة
+// من القائمة حين يعالجها المعلم). فنحتفظ في localStorage بأعلى عدد مهام رُئي اليوم (الذروة)، والمُنجَز =
+// الذروة − المتبقي الآن. افتراضات صريحة: (1) يبدأ يوم جديد عند منتصف الليل بتوقيت الجهاز. (2) لو ظهرت
+// مهمة جديدة بعد معالجة أخرى في اليوم نفسه، فالمُنجَز قد يظهر أقل من الواقع. (3) لو تعذّر localStorage
+// فالذروة هي العدد الحالي (المُنجَز صفر) ولا يتعطّل شيء.
+const TODAY_PEAK_KEY = 'darham_today_tasks_peak';
+
+function trackTodayProgress(total) {
+    const d = new Date();
+    const day = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    let peak = 0;
+    try {
+        const rec = JSON.parse(localStorage.getItem(TODAY_PEAK_KEY) || 'null');
+        if (rec && rec.day === day && typeof rec.peak === 'number') peak = rec.peak;
+    } catch (e) { /* تجاهل: نكمل بلا ذاكرة */ }
+    if (total > peak) peak = total;
+    try { localStorage.setItem(TODAY_PEAK_KEY, JSON.stringify({ day, peak })); } catch (e) { /* تجاهل */ }
+    return { peak, done: Math.max(0, peak - total) };
+}
+
+// الشريحة المحدّدة حالياً في رأس «مهام اليوم» (all | due | pm). لا تُحفَظ بين الزيارات.
+let todayFilter = 'all';
+
+function applyTodayFilter(expand) {
+    const wrap = document.getElementById('home-quickcard-today');
+    const chips = document.getElementById('home-quickcard-today-chips');
+    if (!wrap) return;
+    wrap.dataset.filter = todayFilter;
+    if (chips) chips.querySelectorAll('[data-f]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === todayFilter)));
+    // اختيار فئة يعني أن المعلم يريد تفاصيلها: نفتح قائمتها مباشرة
+    if (expand && todayFilter !== 'all') {
+        document.getElementById(todayFilter === 'due' ? 'home-quickcard-due' : 'home-quickcard-pm')?.classList.add('is-expanded');
+    }
+}
+
+function renderTodaySummary(c) {
+    const sum = document.getElementById('home-quickcard-today-sum');
+    if (!sum) return;
+    const { peak, done } = trackTodayProgress(c.total);
+    const pct = peak > 0 ? Math.round((done / peak) * 100) : 0;
+
+    document.getElementById('qts-count').textContent = String(c.total);
+    const urgentEl = document.getElementById('qts-urgent');
+    urgentEl.textContent = t('home_sum_urgent').replace('{n}', c.urgent);
+    urgentEl.style.display = c.urgent > 0 ? '' : 'none';
+
+    document.getElementById('qts-bar').setAttribute('aria-valuenow', String(pct));
+    document.getElementById('qts-bar-fill').style.width = `${pct}%`;
+    document.getElementById('qts-cap-text').textContent = t('home_progress_text').replace('{d}', done).replace('{t}', peak);
+    document.getElementById('qts-cap-pct').textContent = `${pct}%`;
+
+    // الشرائح لا تفيد إلا مع فئتين فأكثر؛ وفئة فارغة لا تُعرض
+    const chips = document.getElementById('home-quickcard-today-chips');
+    if (chips) {
+        document.getElementById('qts-n-all').textContent = String(c.total);
+        document.getElementById('qts-n-due').textContent = String(c.due);
+        document.getElementById('qts-n-pm').textContent = String(c.pm);
+        chips.querySelector('[data-f="due"]').style.display = c.due > 0 ? '' : 'none';
+        chips.querySelector('[data-f="pm"]').style.display = c.pm > 0 ? '' : 'none';
+        chips.style.display = ((c.due > 0 ? 1 : 0) + (c.pm > 0 ? 1 : 0)) >= 2 ? 'flex' : 'none';
+        if ((todayFilter === 'due' && c.due === 0) || (todayFilter === 'pm' && c.pm === 0) || chips.style.display === 'none') todayFilter = 'all';
+        chips.onclick = (e) => {
+            const btn = e.target.closest('[data-f]');
+            if (!btn) return;
+            todayFilter = btn.dataset.f;
+            applyTodayFilter(true);
+        };
+    }
+    applyTodayFilter(false);
+    sum.style.display = 'block';
 }
 
 async function updateTodayGroup() {
     announceTasksCount();
     const wrap = document.getElementById('home-quickcard-today');
-    const label = document.getElementById('home-quickcard-today-label');
+    const sum = document.getElementById('home-quickcard-today-sum');
     const clear = document.getElementById('home-quickcard-today-clear');
-    if (!wrap || !label || !clear) return;
+    if (!wrap || !sum || !clear) return;
 
     const ids = ['home-quickcard-bday', 'home-quickcard-due', 'home-quickcard-pm'];
     const anyVisible = ids.some(id => {
@@ -432,13 +523,13 @@ async function updateTodayGroup() {
     });
 
     if (anyVisible) {
-        label.style.display = 'flex';
+        renderTodaySummary(getTaskCounts());
         clear.style.display = 'none';
         wrap.style.display = 'block';
         return;
     }
 
-    label.style.display = 'none';
+    sum.style.display = 'none';
     try {
         const students = AppState.studentManager ? await AppState.studentManager.getAllStudents() : [];
         const hasStudents = !!(students && students.length > 0);

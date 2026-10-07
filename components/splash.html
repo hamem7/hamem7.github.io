@@ -50,37 +50,35 @@
     .home-quickcard-due.is-expanded .home-quickcard-due-list {
         display: flex;
     }
-    .home-quickcard-due-row {
-        display: flex;
-        flex-wrap: wrap;
+    /* 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + (الاسم + شارة + تفصيل) + زر إجراء */
+    .home-quickcard-due-row,
+    .home-quickcard-pm-row {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
         align-items: center;
-        justify-content: space-between;
-        gap: 6px;
-        padding: 6px 4px;
-        border-radius: 8px;
+        gap: 10px;
+        padding: 8px 6px;
+        border-radius: 10px;
         cursor: pointer;
         transition: background 0.2s;
     }
-    .home-quickcard-due-row:hover {
+    .home-quickcard-due-row:hover,
+    .home-quickcard-pm-row:hover {
         background: rgba(255, 253, 246, 0.12);
     }
-    .home-quickcard-due-name {
-        font-weight: bold;
-        color: #fffdf6;
+    .qc-dot { width: 9px; height: 9px; border-radius: 50%; background: #f0d878; box-shadow: 0 0 0 3px rgba(240, 216, 120, 0.16); }
+    .qc-dot.late { background: #ff8b7a; box-shadow: 0 0 0 3px rgba(255, 139, 122, 0.18); }
+    .qc-row-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .qc-row-name { font-weight: 700; font-size: 0.92rem; color: #fffdf6; overflow-wrap: anywhere; }
+    .qc-row-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.78rem; color: rgba(255, 253, 246, 0.75); }
+    .qc-tag { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; color: #f0d878; background: rgba(240, 216, 120, 0.16); }
+    .qc-tag.late { color: #ff8b7a; background: rgba(255, 139, 122, 0.16); }
+    .qc-row-act {
+        font: inherit; font-size: 0.78rem; font-weight: 700; white-space: nowrap;
+        min-height: 34px; padding: 6px 12px; border: 0; border-radius: 10px; cursor: pointer;
+        background: var(--dh-gold-500, #d4af37); color: var(--dh-emerald-900, #06231c);
     }
-    .home-quickcard-due-range {
-        font-size: 0.85rem;
-        color: rgba(255, 253, 246, 0.75);
-    }
-    .home-quickcard-due-when {
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: var(--dh-gold-500, #f0d878);
-        background: rgba(6, 35, 28, 0.35);
-        padding: 2px 8px;
-        border-radius: 10px;
-        white-space: nowrap;
-    }
+    .qc-row-act:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
 
     /* 🌟🌟 [جديد] تنسيق بطاقة "مواجهات ثنائية تنتظر الاستكمال" — قواعد معزولة تماماً بأسماء
          أصناف خاصة بها (.home-quickcard-pm-*)، ولو متطابقة بصرياً مع بطاقة "مستحق اليوم"
@@ -131,34 +129,6 @@
     .home-quickcard-pm.is-expanded .home-quickcard-pm-list {
         display: flex;
     }
-    .home-quickcard-pm-row {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 6px;
-        padding: 6px 4px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-    .home-quickcard-pm-row:hover {
-        background: rgba(255, 253, 246, 0.12);
-    }
-    .home-quickcard-pm-names {
-        font-weight: bold;
-        color: #fffdf6;
-    }
-    .home-quickcard-pm-when {
-        font-size: 0.8rem;
-        font-weight: bold;
-        color: var(--dh-gold-500, #f0d878);
-        background: rgba(6, 35, 28, 0.35);
-        padding: 2px 8px;
-        border-radius: 10px;
-        white-space: nowrap;
-    }
-
     /* 🌟🌟 [جديد] بانر التذكير الشهري بتحديث بيانات حفظ الطلاب — قواعد معزولة
          تماماً هنا أيضاً (نفس فلسفة العزل أعلاه)، بنفس لغة بانر يوم ميلاد
          المعلم الموجود فعلاً في css/home.css (.teacher-bday-banner) لكن دون
@@ -206,22 +176,30 @@
          لتعديل هوامش/حدود العناصر الموجودة في مكانها الجديد دون المساس بقواعدها الأصلية في
          css/home.css. الترتيب الجديد: [اليوم] ← زر النشر ← الإتقان ← التقارير ← آية اليوم */
     .home-quickcard-today { margin-bottom: 4px; }
-    .home-quickcard-today-label {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: rgba(255, 253, 246, 0.72);
-        margin-bottom: 8px;
+    /* 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] الرأس الملخّص: عدد المتبقي + عاجلة + شريط تقدّم + شرائح تصفية */
+    .qts { margin-bottom: 12px; }
+    .qts-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .qts-big { display: flex; align-items: baseline; gap: 6px; font-weight: 600; font-size: 0.88rem; color: rgba(255, 253, 246, 0.74); }
+    .qts-big b { font-size: 2rem; line-height: 1; font-weight: 800; color: #fffdf6; font-variant-numeric: tabular-nums; }
+    .qts-urgent { font-size: 0.74rem; font-weight: 700; color: #ff8b7a; background: rgba(255, 139, 122, 0.16); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+    .qts-bar { height: 7px; border-radius: 99px; background: rgba(255, 253, 246, 0.14); overflow: hidden; }
+    .qts-bar > i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--dh-gold-500, #d4af37), var(--dh-gold-300, #f0d878)); transition: width 0.5s; }
+    .qts-cap { display: flex; justify-content: space-between; gap: 8px; margin: 6px 0 12px; font-size: 0.74rem; color: rgba(255, 253, 246, 0.74); font-variant-numeric: tabular-nums; }
+    .qts-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .qts-chip {
+        display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 0.78rem; font-weight: 600;
+        color: rgba(255, 253, 246, 0.74); background: transparent; border: 1px solid rgba(255, 253, 246, 0.2);
+        border-radius: 999px; padding: 5px 11px; min-height: 30px; cursor: pointer;
     }
-    .home-quickcard-today-label::before {
-        content: '';
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--dh-gold-500, #d4af37);
-    }
+    .qts-chip b { min-width: 18px; padding: 0 5px; text-align: center; font-size: 0.7rem; border-radius: 99px; background: rgba(255, 253, 246, 0.14); font-variant-numeric: tabular-nums; }
+    .qts-chip[aria-pressed="true"] { background: var(--dh-gold-500, #d4af37); border-color: var(--dh-gold-500, #d4af37); color: var(--dh-emerald-900, #06231c); }
+    .qts-chip[aria-pressed="true"] b { background: rgba(6, 35, 28, 0.18); }
+    .qts-chip:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
+    /* التصفية بالشرائح بالـCSS فقط حتى لا تُمَسّ حالة display التي يقرؤها announceTasksCount */
+    .home-quickcard-today[data-filter="due"] > .home-quickcard-pm,
+    .home-quickcard-today[data-filter="due"] > .home-quickcard-bday,
+    .home-quickcard-today[data-filter="pm"] > .home-quickcard-due,
+    .home-quickcard-today[data-filter="pm"] > .home-quickcard-bday { display: none !important; }
     .home-quickcard-today-clear {
         display: flex;
         align-items: center;
@@ -321,7 +299,7 @@
                 <!-- ---------- عمود بطاقة "نظرة سريعة" ---------- -->
                 <div class="home-quickcard" id="home-quickcard">
                     <div class="home-quickcard-head">
-                        <span data-i18n="home_quickview_title">نظرة سريعة</span>
+                        <span data-i18n="home_quickview_title">مهام اليوم</span>
                         <span class="home-quickcard-head-icon" aria-hidden="true">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#06231c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
                         </span>
@@ -335,7 +313,20 @@
                          شيء وكان عند المعلم طالب واحد على الأقل، وتبقى مخفية تماماً لو لا طلاب بعد.
                          الـids القديمة لكل عنصر بالداخل لم تتغير إطلاقاً (لا تأثير على أي منطق سابق). -->
                     <div class="home-quickcard-today" id="home-quickcard-today" style="display:none;">
-                        <div class="home-quickcard-today-label" id="home-quickcard-today-label" style="display:none;" data-i18n="home_today_label">يحتاج منك اليوم</div>
+                        <!-- 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] رأس ملخّص يحلّ محل عنوان «يحتاج منك اليوم»: يُملأ من updateTodayGroup -->
+                        <div class="qts" id="home-quickcard-today-sum" style="display:none;">
+                            <div class="qts-top">
+                                <div class="qts-big"><b id="qts-count">0</b><span data-i18n="home_sum_left">متبقية</span></div>
+                                <span class="qts-urgent" id="qts-urgent" style="display:none;"></span>
+                            </div>
+                            <div class="qts-bar" id="qts-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="qts-bar-fill"></i></div>
+                            <div class="qts-cap"><span id="qts-cap-text"></span><span id="qts-cap-pct"></span></div>
+                            <div class="qts-chips" id="home-quickcard-today-chips" role="group" style="display:none;">
+                                <button type="button" class="qts-chip" data-f="all" aria-pressed="true"><span data-i18n="home_filter_all">الكل</span><b id="qts-n-all">0</b></button>
+                                <button type="button" class="qts-chip" data-f="due" aria-pressed="false"><span data-i18n="home_filter_due">مراجعة</span><b id="qts-n-due">0</b></button>
+                                <button type="button" class="qts-chip" data-f="pm" aria-pressed="false"><span data-i18n="home_filter_pm">مواجهات</span><b id="qts-n-pm">0</b></button>
+                            </div>
+                        </div>
                         <!-- 🌟 تذكير يوم ميلاد طالب — يظهر فقط إن كان اليوم يوم ميلاد أحد الطلاب الفعليين -->
                         <div class="home-quickcard-bday" id="home-quickcard-bday" style="display:none;">
                             <span class="home-quickcard-bday-icon" aria-hidden="true">
