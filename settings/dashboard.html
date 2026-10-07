@@ -119,7 +119,7 @@
         <div id="surah-settings" class="form-grid" style="text-align:right;">
             <div class="input-group">
                 <label data-i18n="surah_label">السورة:</label>
-                <select id="surah-select"></select>
+                <select id="surah-select" class="kids-styled-select"></select>
             </div>
             <div class="input-group">
                 <label data-i18n="q_count">عدد الأسئلة:</label>
@@ -128,8 +128,8 @@
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="range_label">النطاق (من - إلى):</label>
                 <div style="display:flex; gap:10px;">
-                    <select id="ayah-from"></select>
-                    <select id="ayah-to"></select>
+                    <select id="ayah-from" class="kids-styled-select"></select>
+                    <select id="ayah-to" class="kids-styled-select"></select>
                 </div>
             </div>
         </div>
@@ -137,11 +137,11 @@
         <div id="range-settings" class="form-grid" style="display:none; text-align:right;">
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="from_surah">من سورة:</label>
-                <select id="range-from-surah"></select>
+                <select id="range-from-surah" class="kids-styled-select"></select>
             </div>
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="to_surah">إلى سورة:</label>
-                <select id="range-to-surah"></select>
+                <select id="range-to-surah" class="kids-styled-select"></select>
             </div>
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="q_count">عدد الأسئلة:</label>
@@ -152,7 +152,7 @@
         <div id="juz-settings" class="form-grid" style="display:none; text-align:right;">
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="select_juz">اختر الجزء:</label>
-                <select id="juz-select"></select>
+                <select id="juz-select" class="kids-styled-select"></select>
             </div>
             <div class="input-group" style="grid-column: span 2;">
                 <label data-i18n="q_count">عدد الأسئلة:</label>
@@ -162,7 +162,7 @@
 
         <div id="kids-settings" style="display:none; text-align:center; width: 100%;">
             <div style="color:#db2777; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
-                نطاق الأسئلة (جزئي تبارك وعم):
+                نطاق الأسئلة (من الأحقاف إلى الناس):
             </div>
 
             <div class="kids-range-row">
