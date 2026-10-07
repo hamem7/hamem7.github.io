@@ -12,9 +12,14 @@ export const JUZ_ORD = ['الأول', 'الثاني', 'الثالث', 'الرا�
     'الحادي والعشرون', 'الثاني والعشرون', 'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون', 'السابع والعشرون',
     'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
 
+// أسماء الأجزاء المعروفة (جزء عمّ، جزء تبارك...) — تُكتب هكذا في الشهادة بدل الترتيب العددي
+export const JUZ_NAMES_AR = ['الم', 'سيقول', 'تلك الرسل', 'لن تنالوا', 'والمحصنات', 'لا يحب الله', 'وإذا سمعوا', 'ولو أننا', 'قال الملأ', 'واعلموا',
+    'يعتذرون', 'وما من دابة', 'وما أبرئ', 'ربما', 'سبحان', 'قال ألم', 'اقترب', 'قد أفلح', 'وقال الذين', 'أمّن خلق',
+    'اتل ما أوحي', 'ومن يقنت', 'وما لي', 'فمن أظلم', 'إليه يردّ', 'حم', 'قال فما خطبكم', 'قد سمع', 'تبارك', 'عمّ'];
+
 export const juzName = (n, lang) => (lang === 'en'
     ? `Juz' ${n}` + (n === 30 ? " (Juz' Amma)" : '')
-    : 'الجزء ' + JUZ_ORD[n - 1] + (n === 30 ? ' (جزء عمّ)' : ''));
+    : 'جزء ' + JUZ_NAMES_AR[n - 1]);
 
 // ---------- أدوات الصياغة العربية حسب الجنس ----------
 const stu = (s) => (s.f ? 'الطالبة' : 'الطالب');
@@ -38,7 +43,14 @@ const HIFZ_AR = [
     (s) => `بارك الله ${s.f ? 'فيكِ' : 'فيكَ'} يا <b>${s.name}</b>! لقد أتمم${you(s)} حفظ <b>${s.what}</b> بإتقان، فهنيئاً ${s.f ? 'لكِ' : 'لكَ'} هذا الإنجاز، وزادك الله حرصاً وتوفيقاً وجعل القرآن رفيقك دائماً.`,
     (s) => `تقديراً لحرص ${stu(s)} <b>${s.name}</b> على كتاب الله، وبمناسبة إتمام${h(s)} حفظ <b>${s.what}</b>، تُمنح هذه الشهادة، سائلين الله ${lh(s)} الثبات والإتقان والبركة في العلم والعمر.`,
     (s) => `أتمّ${t(s)} ${stu(s)} <b>${s.name}</b> حفظ <b>${s.what}</b> مع العناية بالتجويد وحسن الأداء، فجزاه${ya(s)} الله خيراً، ونسأله سبحانه أن يثبّت${h(s)} على حفظ كتابه ويرفع قدر${h(s)} به في الدنيا والآخرة.`,
-    (s) => `مبارك ${s.f ? 'لكِ' : 'لكَ'} يا <b>${s.name}</b> إتمام حفظ <b>${s.what}</b>. نفع الله ${s.f ? 'بكِ' : 'بكَ'} وبحفظك، وجعل${ka(s)} من أهل القرآن العاملين به.`
+    (s) => `مبارك ${s.f ? 'لكِ' : 'لكَ'} يا <b>${s.name}</b> إتمام حفظ <b>${s.what}</b>. نفع الله ${s.f ? 'بكِ' : 'بكَ'} وبحفظك، وجعل${ka(s)} من أهل القرآن العاملين به.`,
+    // ----- صيغ أدفأ بلسان المعلم -----
+    (s) => `يفخر المعلم ب${s.f ? 'طالبته الغالية' : 'طالبه الغالي'} <b>${s.name}</b> وقد أتمّ${t(s)} حفظ <b>${s.what}</b>، فقد رأيتُ في${h(s)} صدق الحرص وجميل الاجتهاد. بارك الله في${h(s)}، وجعل القرآن أنيس قلب${h(s)} ونور درب${h(s)}.`,
+    (s) => `ما أجمل أن ${s.f ? 'تُتمّ طالبةٌ' : 'يُتمّ طالبٌ'} حفظ كتاب الله! أبارك ${s.f ? 'لكِ' : 'لكَ'} يا <b>${s.name}</b> إتمام حفظ <b>${s.what}</b>، وأسأل الله أن يفتح علي${ka(s)}، ويثبّت${ka(s)}، ويجعل${ka(s)} قرّة عين لوالدي${ka(s)}.`,
+    (s) => `بقلب فرِح يشهد المعلم أنّ ${stu(s)} <b>${s.name}</b> أتمّ${t(s)} حفظ <b>${s.what}</b> بجدّ وأدب، فجزاه${ya(s)} الله خير الجزاء، ورزق${h(s)} حلاوة القرآن وبركة الحفظ ودوام المراجعة.`,
+    (s) => `يا <b>${s.name}</b>، لقد ${s.f ? 'كنتِ' : 'كنتَ'} مثالاً في الصبر والمثابرة حتى أتمم${you(s)} حفظ <b>${s.what}</b>. أنا فخورٌ ب${ka(s)}، ودعائي أن يجعل${ka(s)} الله من أهل القرآن وأن يرفع قدر${ka(s)} به.`,
+    (s) => `ثمرة صبرٍ وجدٍّ وحبٍّ لكتاب الله، يتوّجها اليوم إتمام ${stu(s)} <b>${s.name}</b> لحفظ <b>${s.what}</b>. هنيئاً ${lh(s)} هذا الفضل، وجعل الله القرآن شفيعاً ${lh(s)} وربيعاً لقلب${h(s)}.`,
+    (s) => `من قلب معلمك المحب: بارك الله ${s.f ? 'فيكِ' : 'فيكَ'} يا <b>${s.name}</b>. إتمام${ka(s)} <b>${s.what}</b> بإتقان فرحةٌ لنا جميعاً، فاستمر${s.f ? 'ي' : ''}، فالطريق جميل والله مع${ka(s)}.`
 ];
 const REVIEW_AR = [
     (s) => `تقديراً لالتزام ${stu(s)} <b>${s.name}</b> بمراجعة محفوظ${h(s)} وتميّز${h(s)} في إتقان <b>${s.what}</b>. جزاه${ya(s)} الله خيراً، وزاد${h(s)} حرصاً وثباتاً على كتابه الكريم.`,
@@ -78,7 +90,14 @@ const HIFZ_EN = [
     (s) => `Barakallahu ${feek(s)}, <b>${s.name}</b>! You have completed the memorization of <b>${s.what}</b> with excellence. Congratulations on this achievement. May Allah increase you in dedication and success, and keep the Qur'an your constant companion.`,
     (s) => `In appreciation of the student <b>${s.name}</b>'s devotion to the Book of Allah, and on the occasion of completing the memorization of <b>${s.what}</b>, this certificate is awarded. We ask Allah to grant ${him(s)} steadfastness, mastery, and blessing in knowledge and in life.`,
     (s) => `The student <b>${s.name}</b> has completed the memorization of <b>${s.what}</b> with attention to Tajweed and beautiful recitation. May Allah reward ${him(s)} with goodness, keep ${him(s)} firm upon memorizing His Book, and raise ${his(s)} rank by it in this life and the Hereafter.`,
-    (s) => `Congratulations, <b>${s.name}</b>, on completing the memorization of <b>${s.what}</b>. May Allah benefit others through you and your memorization, and make you among the people of the Qur'an who act upon it.`
+    (s) => `Congratulations, <b>${s.name}</b>, on completing the memorization of <b>${s.what}</b>. May Allah benefit others through you and your memorization, and make you among the people of the Qur'an who act upon it.`,
+    // ----- warmer teacher-voice wordings -----
+    (s) => `The teacher is proud of the dear student <b>${s.name}</b>, who has completed the memorization of <b>${s.what}</b>. I have seen in ${him(s)} sincere eagerness and beautiful diligence. May Allah bless ${him(s)} and make the Qur'an the companion of ${his(s)} heart and the light of ${his(s)} path.`,
+    (s) => `How wonderful it is to complete the memorization of the Book of Allah! Congratulations, <b>${s.name}</b>, on completing <b>${s.what}</b>. I ask Allah to open every door for you, keep you steadfast, and make you a joy to your parents.`,
+    (s) => `With a joyful heart, the teacher certifies that the student <b>${s.name}</b> has completed the memorization of <b>${s.what}</b> with dedication and good manners. May Allah reward ${him(s)} abundantly and grant ${him(s)} the sweetness of the Qur'an, the blessing of memorization, and constant review.`,
+    (s) => `Dear <b>${s.name}</b>, you have been a model of patience and perseverance until you completed <b>${s.what}</b>. I am proud of you, and my prayer is that Allah makes you among the people of the Qur'an and raises your rank by it.`,
+    (s) => `The fruit of patience, hard work, and love for the Book of Allah is crowned today by the student <b>${s.name}</b> completing the memorization of <b>${s.what}</b>. Congratulations on this blessing. May Allah make the Qur'an an intercessor for ${him(s)} and the delight of ${his(s)} heart.`,
+    (s) => `From your loving teacher's heart: Barakallahu ${feek(s)}, <b>${s.name}</b>. Completing <b>${s.what}</b> with such mastery is a joy to us all. Keep going, for the path is beautiful and Allah is with you.`
 ];
 const REVIEW_EN = [
     (s) => `In appreciation of the student <b>${s.name}</b>'s commitment to reviewing ${his(s)} memorization and ${his(s)} excellence in <b>${s.what}</b>. May Allah reward ${him(s)} and increase ${him(s)} in dedication and steadfastness upon His noble Book.`,

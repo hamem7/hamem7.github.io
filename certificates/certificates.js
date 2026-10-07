@@ -23,6 +23,24 @@ const PAGE_W = 1000, PAGE_H = 707;               // مقاس التصميم ال
 const GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];     // نفس قائمة student/student.js لتحديد الجنس تلقائياً من الصورة الرمزية
 const PREFS_KEY = 'darham_cert_prefs';
 const EXTRA_MAX = 140;
+// خطوط الشهادة العربية التي يختار منها المعلم ('' = خط القالب الافتراضي). css: اسم العائلة في Google Fonts
+const CERT_FONTS = [
+    { id: '', ar: 'خط القالب', en: 'Template font' },
+    { id: 'amiri', css: 'Amiri', ar: 'أميري' },
+    { id: 'kufi', css: 'Reem Kufi', ar: 'ريم كوفي' },
+    { id: 'ruqaa', css: 'Aref Ruqaa', ar: 'عارف رقعة' },
+    { id: 'cairo', css: 'Cairo', ar: 'القاهرة' },
+    { id: 'tajawal', css: 'Tajawal', ar: 'تجوال' },
+    { id: 'naskh', css: 'Noto Naskh Arabic', ar: 'نسخ' },
+    { id: 'scheherazade', css: 'Scheherazade New', ar: 'شهرزاد' },
+    { id: 'elmessiri', css: 'El Messiri', ar: 'المسيري' },
+    { id: 'lateef', css: 'Lateef', ar: 'لطيف' },
+    { id: 'katibeh', css: 'Katibeh', ar: 'كاتبة' },
+    { id: 'markazi', css: 'Markazi Text', ar: 'مركزي' },
+    { id: 'lemonada', css: 'Lemonada', ar: 'ليمونادا' }
+];
+const getFont = (id) => CERT_FONTS.find(f => f.id === id && id) || null;
+const loadCertFont = (id) => { const f = getFont(id); return f && document.fonts ? document.fonts.load(`700 24px "${f.css}"`, 'بسم الله').catch(() => {}) : Promise.resolve(); };
 const BASMALA = 'بسم الله الرحمن الرحيم';
 const uiLang = () => (AppState && AppState.currentLang === 'en' ? 'en' : 'ar');
 
@@ -49,7 +67,9 @@ function ensureFonts() {
         const link = document.createElement('link');
         link.id = 'cc-fonts'; link.rel = 'stylesheet';
         link.href = 'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&family=Aref+Ruqaa:wght@400;700'
-            + '&family=Playfair+Display:wght@600;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&display=swap';
+            + '&family=Playfair+Display:wght@600;700&family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500'
+            + '&family=Cairo:wght@400;700&family=Tajawal:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Scheherazade+New:wght@400;700'
+            + '&family=El+Messiri:wght@400;700&family=Lateef:wght@400;700&family=Katibeh&family=Markazi+Text:wght@400;700&family=Lemonada:wght@400;700&display=swap';
         document.head.appendChild(link);
     }
     const load = Promise.all(['700 40px "Reem Kufi"', '700 40px "Aref Ruqaa"', '400 20px "Amiri"', '700 20px "Amiri"', '700 40px "Playfair Display"', '500 20px "Cormorant Garamond"']
@@ -159,6 +179,25 @@ function ensureStyles() {
     .cc-f-ruqaa { --hf: 'Aref Ruqaa', 'Amiri', serif; }
     .cc-f-amiri { --hf: 'Amiri', serif; }
     /* الإنجليزية: نص من اليسار لليمين بخطوط لاتينية أنيقة، وآية/حديث بالعربية أصغر ثم ترجمتها */
+    .cc-ff-amiri { --hf: 'Amiri', serif; --bf: 'Amiri', serif; }
+    .cc-ff-kufi { --hf: 'Reem Kufi', 'Cairo', sans-serif; --bf: 'Reem Kufi', 'Cairo', sans-serif; }
+    .cc-ff-ruqaa { --hf: 'Aref Ruqaa', 'Amiri', serif; --bf: 'Aref Ruqaa', 'Amiri', serif; }
+    .cc-ff-cairo { --hf: 'Cairo', sans-serif; --bf: 'Cairo', sans-serif; }
+    .cc-ff-tajawal { --hf: 'Tajawal', sans-serif; --bf: 'Tajawal', sans-serif; }
+    .cc-ff-naskh { --hf: 'Noto Naskh Arabic', 'Amiri', serif; --bf: 'Noto Naskh Arabic', 'Amiri', serif; }
+    .cc-ff-scheherazade { --hf: 'Scheherazade New', 'Amiri', serif; --bf: 'Scheherazade New', 'Amiri', serif; }
+    .cc-ff-elmessiri { --hf: 'El Messiri', 'Amiri', serif; --bf: 'El Messiri', 'Amiri', serif; }
+    .cc-ff-lateef { --hf: 'Lateef', 'Amiri', serif; --bf: 'Lateef', 'Amiri', serif; }
+    .cc-ff-katibeh { --hf: 'Katibeh', 'Amiri', serif; --bf: 'Katibeh', 'Amiri', serif; }
+    .cc-ff-markazi { --hf: 'Markazi Text', 'Amiri', serif; --bf: 'Markazi Text', 'Amiri', serif; }
+    .cc-ff-lemonada { --hf: 'Lemonada', 'Cairo', sans-serif; --bf: 'Lemonada', 'Cairo', sans-serif; }
+    /* الخط المختار يشمل النص والتوقيع أيضاً (العربية فقط) */
+    .cc-page[class*="cc-ff-"].cc-lang-ar .cc-text, .cc-page[class*="cc-ff-"].cc-lang-ar .cc-extra, .cc-page[class*="cc-ff-"].cc-lang-ar .cc-sig, .cc-page[class*="cc-ff-"].cc-lang-ar .cc-no { font-family: var(--bf); }
+    .cc-fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px; }
+    .cc-fonts button { border: 1.5px solid #d9d2b6; background: #fff; border-radius: 10px; padding: 7px 4px; font: inherit; cursor: pointer; font-size: 1.05rem; color: #10241c; }
+    .cc-fonts button.is-on { border-color: #0d5c46; background: #e8f3ee; color: #0d5c46; box-shadow: 0 0 0 2px rgba(13,92,70,.18); }
+    .cc-tab-reports { background: #8a6612; border-color: #8a6612; color: #fff; box-shadow: 0 2px 8px rgba(138,102,18,.35); }
+    .cc-tab-reports.is-on { background: #6b4e0b; border-color: #6b4e0b; color: #fff; box-shadow: 0 0 0 3px rgba(138,102,18,.3); }
     .cc-lang-en { direction: ltr; --hf: 'Playfair Display', 'Amiri', serif; font-family: 'Cormorant Garamond', 'Amiri', serif; }
     .cc-lang-en .cc-title { font-size: calc(38px * var(--s)); }
     .cc-lang-en .cc-name { font-size: calc(38px * var(--s)); }
@@ -186,7 +225,7 @@ function ensureStyles() {
     .cc-lang-en .cc-verse .cc-ar { font-size: calc(17px * var(--s)); line-height: 1.7; }
     .cc-verse .cc-tr { display: block; font-style: italic; font-size: calc(17px * var(--s)); line-height: 1.4; }
     .cc-verse small { display: block; font-size: calc(13px * var(--s)); opacity: .75; }
-    .cc-foot { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: calc(10px * var(--s)); }
+    .cc-foot { width: 100%; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: calc(10px * var(--s)); }
     .cc-sig { font-size: calc(14px * var(--s)); line-height: 1.5; color: var(--ink); }
     .cc-sig .cc-sigline { height: calc(20px * var(--s)); border-bottom: 1.5px solid currentColor; margin-bottom: 2px; opacity: .55; }
     .cc-sig b { display: block; font-size: calc(16px * var(--s)); color: var(--title); line-height: 1.45; }
@@ -254,7 +293,7 @@ function buildWhat(type, v, dateISO, lang) {
         case 'juz': return juzName(v.juz || 1, lang);
         case 'half': return lang === 'en'
             ? (v.half === 'second' ? 'the second half of ' : 'the first half of ') + juzName(v.juz || 1, lang)
-            : (v.half === 'second' ? 'النصف الثاني' : 'النصف الأول') + ' من ' + juzName(v.juz || 1, lang);
+            : 'نصف ' + juzName(v.juz || 1, lang) + (v.half === 'second' ? ' (النصف الثاني)' : ' (النصف الأول)');
         case 'month': return monthLabel(parseISO(dateISO), lang);
         case 'khatm': return '';
         default: return String(v.text || '').trim() || L(type.whatDefault, lang) || '';
@@ -317,7 +356,8 @@ function logoHtml(tpl) {
 }
 function pageHtml(spec, teacher) {
     const tpl = getTemplate(spec.templateId);
-    return `<div class="cc-page cc-f-${tpl.font} cc-lang-${certLang(spec)}" data-tpl="${tpl.id}" data-lang="${certLang(spec)}" style="${cssVars(tpl)}">
+    const ff = certLang(spec) === 'ar' && getFont(spec.font) ? ` cc-ff-${spec.font}` : '';
+    return `<div class="cc-page cc-f-${tpl.font}${ff} cc-lang-${certLang(spec)}" data-tpl="${tpl.id}" data-lang="${certLang(spec)}" data-font="${ff ? spec.font : ''}" style="${cssVars(tpl)}">
         <img class="cc-bg" src="${templateImage(tpl.id)}" alt="">${logoHtml(tpl)}${boxHtml(spec, teacher)}</div>`;
 }
 
@@ -337,7 +377,7 @@ function fitPage(page) {
 // التصدير: صورة / PDF / مشاركة
 // ------------------------------------------------------------
 async function renderCanvas(spec) {
-    await Promise.all([ensureHtml2Canvas(), ensureFonts()]);
+    await Promise.all([ensureHtml2Canvas(), ensureFonts(), loadCertFont(spec.font)]);
     const holder = document.createElement('div');
     holder.className = 'cc-offscreen';
     holder.innerHTML = pageHtml(spec, getTeacher());
@@ -397,6 +437,7 @@ export async function openCertificatesHub(opts = {}) {
         female: false,
         lang: prefs.lang === 'en' || prefs.lang === 'ar' ? prefs.lang : uiLang(),   // لغة نص الشهادة (الافتراضي: آخر اختيار ثم لغة المنصة)
         values: { surah: 1, juz: 1, half: 'first', text: '' },
+        font: getFont(prefs.font) ? prefs.font : '',
         bodyIdx: 0,
         extra: '',
         verseId: firstType.verse,
@@ -419,10 +460,10 @@ export async function openCertificatesHub(opts = {}) {
         return {
             typeId: S.typeId, name: currentName(), female: S.female, lang: S.lang, what: buildWhat(type, S.values, S.dateISO, S.lang),
             values: { ...S.values }, bodyIdx: S.bodyIdx, extra: S.extra, verseId: S.verseId, basmala: S.basmala,
-            templateId: S.templateId, dateISO: S.dateISO, studentId: S.studentId, manualName: S.manualName
+            templateId: S.templateId, dateISO: S.dateISO, studentId: S.studentId, manualName: S.manualName, font: S.font
         };
     };
-    const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify({ templateId: S.templateId, basmala: S.basmala, lang: S.lang })); } catch (e) { /* تجاهل */ } };
+    const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify({ templateId: S.templateId, basmala: S.basmala, lang: S.lang, font: S.font })); } catch (e) { /* تجاهل */ } };
 
     // ----- الهيكل -----
     const overlay = document.createElement('div');
@@ -437,7 +478,7 @@ export async function openCertificatesHub(opts = {}) {
             <nav class="cc-tabs">
                 <button type="button" class="cc-tab is-on" data-tab="issue">${esc(t('cc_tab_issue'))}</button>
                 <button type="button" class="cc-tab" data-tab="history">${esc(t('cc_tab_history'))} <span id="cc-count"></span></button>
-                <button type="button" class="cc-tab" data-tab="reports">${esc(t('cc_tab_reports'))} <span id="cc-rep-count"></span></button>
+                <button type="button" class="cc-tab cc-tab-reports" data-tab="reports">🗂️ ${esc(t('cc_tab_reports'))} <span id="cc-rep-count"></span></button>
             </nav>
             <button type="button" class="cc-x" id="cc-close" aria-label="${esc(t('cc_close'))}">✕</button>
         </header>
@@ -463,7 +504,7 @@ export async function openCertificatesHub(opts = {}) {
                         <label class="cc-check"><input type="checkbox" id="cc-basmala"> ${esc(t('cc_basmala'))}</label>
                         <div class="cc-hint" id="cc-baked-note" hidden>${esc(t('cc_baked_note'))}</div>
                     </div>
-                    <div class="cc-step" id="cc-step-template"><h3><span>6</span>${esc(t('cc_step_template'))}</h3><div class="cc-gallery" id="cc-gallery"></div></div>
+                    <div class="cc-step" id="cc-step-template"><h3><span>6</span>${esc(t('cc_step_template'))}</h3><div class="cc-field"><label>${esc(t('cc_font'))}</label><div class="cc-fonts" id="cc-fonts"></div><small id="cc-font-hint">${esc(t('cc_font_hint'))}</small></div><div class="cc-gallery" id="cc-gallery"></div></div>
                     <div class="cc-step"><h3><span>7</span>${esc(t('cc_step_date'))}</h3>
                         <div class="cc-field"><input id="cc-date" type="date"><small id="cc-date-hint"></small></div>
                     </div>
@@ -561,7 +602,7 @@ export async function openCertificatesHub(opts = {}) {
         const spec = buildSpec();
         const teacher = getTeacher();
         let page = stage.querySelector('.cc-page');
-        if (!page || page.dataset.tpl !== spec.templateId || page.dataset.lang !== spec.lang) {
+        if (!page || page.dataset.tpl !== spec.templateId || page.dataset.lang !== spec.lang || page.dataset.font !== (getFont(spec.font) && spec.lang === 'ar' ? spec.font : '')) {
             stage.innerHTML = pageHtml(spec, teacher);
             page = stage.querySelector('.cc-page');
         } else {
@@ -680,6 +721,23 @@ export async function openCertificatesHub(opts = {}) {
     verseSel.addEventListener('change', () => { S.verseId = verseSel.value; renderPreview(); });
     $('#cc-basmala').addEventListener('change', (e) => { S.basmala = e.target.checked; savePrefs(); renderPreview(); });
 
+    const fontsEl = $('#cc-fonts');
+    fontsEl.innerHTML = CERT_FONTS.map(f => `<button type="button" data-f="${f.id}" style="${f.css ? `font-family:'${f.css}',serif;` : ''}">${esc(f.id === '' ? t('cc_font_default') : f.ar)}</button>`).join('');
+    function markFonts() {
+        fontsEl.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.f === S.font));
+        $('#cc-font-hint').hidden = S.lang !== 'en' ? true : false;
+    }
+    fontsEl.addEventListener('click', async (e) => {
+        const b = e.target.closest('button[data-f]');
+        if (!b) return;
+        S.font = b.dataset.f;
+        savePrefs();
+        markFonts();
+        renderPreview();
+        await Promise.all([ensureFonts(), loadCertFont(S.font)]);
+        if (overlay.isConnected) renderPreview();
+    });
+
     const galleryEl = $('#cc-gallery');
     galleryEl.innerHTML = TEMPLATES.map(x => `<button type="button" class="cc-thumb" data-t="${x.id}" aria-label="${esc(tplLabel(x))}"><img src="${templateThumb(x.id)}" alt="" loading="lazy"><span>${esc(tplLabel(x))}</span></button>`).join('');
     function markGallery() { galleryEl.querySelectorAll('.cc-thumb').forEach(b => b.classList.toggle('is-on', b.dataset.t === S.templateId)); }
@@ -712,6 +770,7 @@ export async function openCertificatesHub(opts = {}) {
         $('#cc-basmala').disabled = !!tpl.noBasmala;
         $('#cc-baked-note').hidden = !baked;
         markGallery();
+        markFonts();
         const d = formatDates(parseISO(S.dateISO), S.lang);
         $('#cc-date-hint').textContent = [d.hijri, d.greg].filter(Boolean).join(' — ');
         if (document.activeElement !== dateEl) dateEl.value = S.dateISO;
@@ -724,7 +783,7 @@ export async function openCertificatesHub(opts = {}) {
     }
 
     // ----- الحفظ في السجل + التصدير -----
-    const specKey = (spec) => JSON.stringify([spec.typeId, spec.name, spec.female, spec.lang, spec.what, spec.bodyIdx, spec.extra, spec.verseId, spec.basmala, spec.templateId, spec.dateISO]);
+    const specKey = (spec) => JSON.stringify([spec.typeId, spec.name, spec.female, spec.lang, spec.what, spec.bodyIdx, spec.extra, spec.verseId, spec.basmala, spec.templateId, spec.dateISO, spec.font || '']);
     async function saveToHistory(spec) {
         const key = specKey(spec);
         if (key === lastSavedKey) return false;
@@ -829,6 +888,7 @@ export async function openCertificatesHub(opts = {}) {
         S.verseId = rec.verseId || type.verse;
         S.basmala = rec.basmala !== false;
         S.templateId = getTemplate(rec.templateId).id;
+        S.font = getFont(rec.font) ? rec.font : '';
         S.dateISO = rec.dateISO || todayISO();
         S.female = !!rec.female;
         S.lang = rec.lang === 'en' ? 'en' : 'ar';      // الشهادات القديمة المحفوظة قبل دعم الإنجليزية عربية دائماً

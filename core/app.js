@@ -25,7 +25,7 @@ import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
 import { initMonthlyMemorizationDB, MonthlyMemorizationManager } from '../database/monthlyMemorizationDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
 import { KidsEngine } from '../engine/kidsEngine.js';
-import { loadScreen, switchTheme } from './navigation.js';
+import { loadScreen, switchTheme, prefetchTemplate } from './navigation.js';
 import { setupLoginListeners, populateStudentsDropdown, loadMyStudentsScreen } from '../student/student.js';
 import { setupDashboardListeners, populateDashboardData } from '../settings/dashboard.js';
 import { initTeacherProfileUI, renderTeacherGreeting } from '../components/teacherProfile.js';
@@ -677,6 +677,27 @@ function setupSplashListeners() {
 
     // 🌟 [جديد] ترتيب الشاشة الرئيسية للهاتف (البطاقات أولاً)
     arrangeHomeForMobile();
+
+    // 🌟 [2026-10-07 — سرعة فتح الواجبات/الشهادات/الاختبارات] نسخّن وحدات وقوالب الأقسام الثقيلة وقت خمول الشاشة الرئيسية
+    // (استيراد الوحدة يخزّنها في سجل الوحدات، فيصبح import() عند الضغط فورياً). best-effort: أي فشل يُتجاهل.
+    warmHeavyScreens();
+}
+
+let heavyScreensWarmed = false;
+function warmHeavyScreens() {
+    if (heavyScreensWarmed) return;
+    heavyScreensWarmed = true;
+    const run = () => {
+        try {
+            prefetchTemplate('settings/homework-prep.html');
+            prefetchTemplate('dualtests/dual-test-setup.html');
+            import('../settings/homework-prep.js').catch(() => {});
+            import('../certificates/certificates.js').catch(() => {});
+            import('../dualtests/dual-test-setup.js').catch(() => {});
+        } catch (e) { /* تسخين اختياري */ }
+    };
+    if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 4000 });
+    else setTimeout(run, 1500);
 }
 
 // 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] بطاقة "ابدأ من هنا": تظهر فقط لو لا يوجد أي طالب مسجَّل
