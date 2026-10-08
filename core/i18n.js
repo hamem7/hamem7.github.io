@@ -1461,6 +1461,7 @@ export const translations = {
         // راجع setupInlineProfileEditing في student/student.js
         prof_edit_hint: "💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر \"تقرير الإنجاز الشهري\" للطباعة بعد الانتهاء",
         prof_avatar_change_title: "تغيير الصورة",
+        prof_edit_all_btn: "✏️ تعديل كل بيانات الطالب",
 
         // 🌟 [جديد] "بطاقة الترحيب بالطالب" — تحية قصيرة في وسط الشاشة مع صورة الطالب، تظهر
         // فور اختيار اسمه وقبل لوحة التقييم مباشرة ثم تختفي وحدها بعد ثوانٍ قليلة.
@@ -3521,6 +3522,7 @@ export const translations = {
         // see setupInlineProfileEditing in student/student.js
         prof_edit_hint: "💡 Click any info to edit it directly, then use the \"Monthly Achievement Report\" button to print once you're done",
         prof_avatar_change_title: "Change photo",
+        prof_edit_all_btn: "✏️ Edit all student data",
 
         // 🌟 [New] "Student welcome card" — see the matching Arabic block above for the full
         // rationale comment (components/welcomeBanner.js)

@@ -1145,6 +1145,11 @@ export async function loadStudentProfileScreen() {
                 btnArchive.innerHTML = `📂 ${t('archive_empty')}`;
                 btnArchive.disabled = true;
             }
+            document.getElementById('btn-prof-edit-all')?.addEventListener('click', async () => {
+                const id = student.id;
+                await loadAllStudentsScreen();
+                await openEditStudentModal(id);
+            });
             document.getElementById('btn-close-archive')?.addEventListener('click', () => closeModal('archive-modal'));
 
             // 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يستورد reports/monthly-report.js
