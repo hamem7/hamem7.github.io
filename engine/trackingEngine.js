@@ -123,7 +123,7 @@ export function buildPath(surahsData, range) {
     const step = range.direction === 'backward' ? -1 : 1;
     for (let n = range.fromSurah; step < 0 ? n >= range.toSurah : n <= range.toSurah; n += step) {
         const surah = surahsData.find(s => s.number === n);
-        if (!surah) continue;
+        if (!surah || n === 1) continue;   // الفاتحة لا تدخل أي نطاق
         const limit = (n === range.toSurah) ? Math.min(range.frontierAyah, surah.ayahsCount) : surah.ayahsCount;
         segmentsOfSurah(n, surah.ayahsCount).forEach(seg => {
             if (seg.from > limit) return;
