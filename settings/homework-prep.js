@@ -1480,7 +1480,7 @@ async function refreshSmartInfo() {
     }
     // عدد مرات الواجب الأسبوعية لهذا الطالب: مرتان (الافتراضي) أو مرة واحدة فقط — يغيّر أيام تذكيره في جدول الأسبوع
     const pw = perWeekOf(student);
-    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? '' : 'background:#e2e8f0; color:#334155;'}">${esc(label)}</button>`;
+    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? 'outline:3px solid #047857; outline-offset:2px;' : 'background:#e2e8f0 !important; color:#334155 !important; box-shadow:none !important;'}">${pw === n ? '✓ ' : ''}${esc(label)}</button>`;
     html += card('#f8fafc', '#e2e8f0', `🔔 <b>${esc(L('تفعيل التذكير:', 'Reminder frequency:'))}</b><br>
         ${pwBtn(2, L('مرتين في الأسبوع', 'Twice a week'))}${pwBtn(1, L('مرة واحدة في الأسبوع', 'Once a week'))}
         <div id="hw-perweek-msg" style="color:#64748b; font-size:0.9rem; margin-top:4px;">${esc(L('يحدّد كم مرة أسبوعياً يستحق الطالب واجباً ذكياً في «مهام اليوم» وجدول الأسبوع.', 'Sets how many times a week this student is due a smart homework in "Today\'s tasks" and the weekly schedule.'))}</div>`);

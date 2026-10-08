@@ -17,7 +17,7 @@ import {
     eventsFromHomeworkSubmission, eventsFromGameDetails, eventsFromWeaknesses, buildAyahTextIndex
 } from '../engine/trackingAdapters.js';
 import { HW_FORMATS } from '../engine/skillMap.js';
-import { splitAyahWords } from '../engine/quranEngine.js';
+import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
 import { readStudentHistory } from './homeworkRecords.js';
 import { fetchHomeworkFull } from './homeworkApi.js';
 
@@ -261,7 +261,7 @@ async function getQuranMeta() {
         const q = a.hizbQuarter;
         if (!q) return;
         // اسم الربع/الحزب = أول كلمات أول آية فيه (كما يُسمّى الحزب في المصحف: «سيقول السفهاء»...)
-        if (!quarterName.has(q) && a.text) quarterName.set(q, a.text.trim().split(/\s+/).slice(0, 3).join(' '));
+        if (!quarterName.has(q) && a.text) quarterName.set(q, cleanAyahText(a.text).split(/\s+/).slice(0, 3).join(' '));   // بلا البسملة الملصقة بأول آية السورة
         quarterByAyah.set(`${a.surahNumber}:${a.numberInSurah}`, q);
         const h = hizbOfQuarter(q);
         hizbTotal.set(h, (hizbTotal.get(h) || 0) + 1);
