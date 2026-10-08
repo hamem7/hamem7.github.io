@@ -1147,8 +1147,17 @@ export async function loadStudentProfileScreen() {
             }
             document.getElementById('btn-prof-edit-all')?.addEventListener('click', async () => {
                 const id = student.id;
-                await loadAllStudentsScreen();
-                await openEditStudentModal(id);
+                try {
+                    await loadAllStudentsScreen();
+                    // initFunction في loadScreen لا يُنتظر، فننتظر ظهور نافذة التعديل وربط أزرارها قبل فتحها
+                    for (let i = 0; i < 50 && !(document.getElementById('edit-stu-id') && document.getElementById('all-students-body')?.children.length); i++) {
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                    await openEditStudentModal(id);
+                } catch (err) {
+                    console.error('تعذّر فتح نافذة تعديل الطالب:', err);
+                    alert('تعذّر فتح نافذة التعديل: ' + (err && err.message ? err.message : err));
+                }
             });
             document.getElementById('btn-close-archive')?.addEventListener('click', () => closeModal('archive-modal'));
 
