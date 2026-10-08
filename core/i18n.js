@@ -2895,6 +2895,7 @@ export const translations = {
         "🎙️ أسمعنا صوتك العذب!": "🎙️ Let us hear your beautiful voice!",
         "تسميع مقطع 🎙️": "Recite a Passage 🎙️",
         "اكتشف الخطأ 🔍": "Spot the Mistake 🔍",
+        "اكتشف الخطأين 🔍": "Spot the Two Mistakes 🔍",
         "أكمل الجزء الناقص من الآية الكريمة 🧩": "Complete the Missing Part of the Noble Ayah 🧩",
 
         // عناوين ألعاب ركن الأطفال (engine/kidsEngine.js)

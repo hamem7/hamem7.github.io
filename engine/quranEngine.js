@@ -391,14 +391,25 @@ export class QuranEngine {
         // 🌟 خط الرجوع نفسه يتجنب رموز الوقف: نأخذ مواضع الكلمات الفعلية، وفقط لو لم توجد إطلاقاً
         // نرجع للسلوك القديم (منتصف الآية) 🌟
         if(candidates.length === 0) { let realIdxs = realWordIndexes(words); candidates = realIdxs.length ? realIdxs : [Math.floor(words.length / 2)]; }
-        const replaceIdx = candidates[Math.floor(Math.random() * candidates.length)]; let targetLen = words[replaceIdx].length; 
+        // 🌟 الآية الطويلة (12 كلمة فأكثر) يُدسّ فيها خطآن بدل خطأ واحد، في موضعين غير متجاورين
+        // (فجوة كلمتين على الأقل) — وإن لم يتوفر موضعان صالحان نرجع لخطأ واحد 🌟
+        const replaceIdxs = [candidates[Math.floor(Math.random() * candidates.length)]];
+        if(words.length >= 12) {
+            const second = candidates.filter(i => Math.abs(i - replaceIdxs[0]) > 2);
+            if(second.length > 0) replaceIdxs.push(second[Math.floor(Math.random() * second.length)]);
+        }
         let otherAyahs = ayahsPool.filter(a => a.numberInSurah !== ayah.numberInSurah || a.number !== ayah.number); if(otherAyahs.length === 0) otherAyahs = ayahsPool; 
-        let stolenWord = "بَلْ"; 
-        // 🌟 الكلمة "المدسوسة" تُسحب من كلمات فعلية فقط (splitAyahWords) — قبل ذلك كان ممكن أن
-        // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
-        for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx]); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
-        const wrongWords = [...words]; wrongWords[replaceIdx] = stolenWord; 
-        return { type: 'mistake', questionTitle: "اكتشف الخطأ 🔍", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${wrongWords.join(" ")}\u00A0﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
+        const wrongWords = [...words];
+        const used = new Set();
+        replaceIdxs.forEach(replaceIdx => {
+            let targetLen = words[replaceIdx].length; let stolenWord = "بَلْ";
+            // 🌟 الكلمة "المدسوسة" تُسحب من كلمات فعلية فقط (splitAyahWords) — قبل ذلك كان ممكن أن
+            // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
+            for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx] && !used.has(w)); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
+            used.add(stolenWord); wrongWords[replaceIdx] = stolenWord;
+        });
+        const mistakeTitle = replaceIdxs.length > 1 ? "اكتشف الخطأين 🔍" : "اكتشف الخطأ 🔍";
+        return { type: 'mistake', questionTitle: mistakeTitle, questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${wrongWords.join(" ")}\u00A0﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
     }
 
     async generateCompleteAyahGame(ayahsPool, chunkIndex, totalChunks) {
