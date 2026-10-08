@@ -3,7 +3,7 @@ import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
 import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
-import { perWeekOf } from '../core/hwScheduleService.js';
+import { perWeekOf, setStudentPerWeek } from '../core/hwScheduleService.js';
 import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
@@ -1434,7 +1434,19 @@ async function refreshSmartInfo() {
             html += card('#fffbeb', '#fde68a', `⚠️ ${esc(why)}<br>${btn('hw-btn-update-pos', '📅 ' + esc(L('حدّث موضعه الآن', 'Update the position now')), 'background:#d97706;')}`);
         }
     }
+    // عدد مرات الواجب الأسبوعية لهذا الطالب: مرتان (الافتراضي) أو مرة واحدة فقط — يغيّر أيام تذكيره في جدول الأسبوع
+    const pw = perWeekOf(student);
+    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? '' : 'background:#e2e8f0; color:#334155;'}">${esc(label)}</button>`;
+    html += card('#f8fafc', '#e2e8f0', `🔔 <b>${esc(L('تفعيل التذكير:', 'Reminder frequency:'))}</b><br>
+        ${pwBtn(2, L('مرتين في الأسبوع', 'Twice a week'))}${pwBtn(1, L('مرة واحدة في الأسبوع', 'Once a week'))}
+        <div id="hw-perweek-msg" style="color:#64748b; font-size:0.9rem; margin-top:4px;">${esc(L('يحدّد كم مرة أسبوعياً يستحق الطالب واجباً ذكياً في «مهام اليوم» وجدول الأسبوع.', 'Sets how many times a week this student is due a smart homework in "Today\'s tasks" and the weekly schedule.'))}</div>`);
     box.innerHTML = html;
+    box.querySelectorAll('.hw-perweek-btn').forEach(b => b.addEventListener('click', async () => {
+        try {
+            await setStudentPerWeek(student, parseInt(b.dataset.pw));
+            await refreshSmartInfo();
+        } catch (err) { console.error('تعذر تغيير عدد مرات الواجب الأسبوعية:', err); alert(L('تعذر حفظ التغيير.', 'Could not save the change.')); }
+    }));
     $id('hw-btn-skill-profile')?.addEventListener('click', () => openSkillProfileModal(student));
     $id('hw-btn-update-pos')?.addEventListener('click', async () => {
         const now = new Date();

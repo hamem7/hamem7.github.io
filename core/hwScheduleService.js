@@ -11,7 +11,7 @@
 
 import { AppState } from './app.js';
 import {
-    DEFAULT_WORKDAYS, DEFAULT_PER_WEEK, assignSchedules, rebalanceAll, weekSummary, dueInfo, nextWorkdayKey
+    DEFAULT_WORKDAYS, DEFAULT_PER_WEEK, chooseDays, assignSchedules, rebalanceAll, weekSummary, dueInfo, nextWorkdayKey
 } from '../engine/hwSchedule.js';
 
 const WORKDAYS_KEY = 'dh_hw_workdays';
@@ -82,6 +82,21 @@ export async function setStudentDays(student, days) {
     const clean = [...new Set((days || []).filter(d => Number.isInteger(d) && d >= 0 && d <= 6))];
     student.hwSchedule = { ...(student.hwSchedule || {}), days: clean, startTs: Date.now(), auto: false, snoozeUntil: null };
     await AppState.studentManager.updateStudent(student);
+}
+
+// يضبط عدد مرات الواجب الأسبوعية لطالب (1 أو 2): يختار له أيامًا جديدة بحسب ازدحام باقي الطلاب. لا يغيّر شيئاً إن كان العدد نفسه
+export async function setStudentPerWeek(student, perWeek) {
+    const n = perWeek === 1 ? 1 : 2;
+    if (daysOf(student) && daysOf(student).length === n) return false;
+    const workDays = getWorkDays();
+    const load = {};
+    workDays.forEach(d => { load[d] = 0; });
+    (await visibleStudents()).forEach(s => {
+        if (s.id === student.id) return;
+        (daysOf(s) || []).forEach(d => { if (d in load) load[d]++; });
+    });
+    await setStudentDays(student, orderWorkdays(chooseDays({ perWeek: n, workDays, load })));
+    return true;
 }
 
 // إعادة توزيع الجميع (عدا الموقوفين) توزيعاً متوازناً جديداً
