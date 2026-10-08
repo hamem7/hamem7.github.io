@@ -284,7 +284,16 @@ async function renderDueForReview() {
         summaryBtn.onclick = () => wrap.classList.toggle('is-expanded');
 
         listEl.innerHTML = '';
-        dueRows.slice(0, 5).forEach(({ student, overdueDays }) => {
+        // 🌟 [جديد — الواجب الذكي] الواجب الذكي يبني على موضع حفظ الطالب الشهري: نُنبّه في الصف نفسه لمن مضى على تحديث موضعه أكثر
+        // من 30 يوماً (أو لا سجل شهري له)، فينتبه المعلم قبل أن يفتح شاشة الواجب. أي فشل هنا يُتجاهل بصمت.
+        let staleList = [];
+        try {
+            const svc = await import('../core/trackingService.js');
+            staleList = await Promise.all(dueRows.slice(0, 5).map(r => svc.getMonthlyStaleness(r.student).catch(() => null)));
+        } catch (e) { /* التنبيه إضافي فقط */ }
+        const staleTag = (AppState.currentLang === 'en') ? 'Position outdated' : 'موضع الحفظ قديم';
+        dueRows.slice(0, 5).forEach(({ student, overdueDays }, rowIdx) => {
+            const stale = staleList[rowIdx] && staleList[rowIdx].stale && student.memoFrom && student.memoTo;
             const rangeText = (student.memoFrom && student.memoTo)
                 ? `${student.memoFrom} ← ${student.memoTo}`
                 : t('home_due_no_range');
@@ -300,7 +309,7 @@ async function renderDueForReview() {
                 <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
                 <span class="qc-row-main">
                     <span class="qc-row-name">${esc(student.name)}</span>
-                    <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${whenText}</span><span>${esc(rangeText)}</span></span>
+                    <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${whenText}</span>${stale ? `<span class="qc-tag late">${staleTag}</span>` : ''}<span>${esc(rangeText)}</span></span>
                 </span>
                 <span class="qc-row-btns">
                     <button type="button" class="qc-row-act">${t('home_act_review')}</button>

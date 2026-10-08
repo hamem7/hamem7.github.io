@@ -37,8 +37,13 @@
 //      [فجوة بيانات معروفة، مذكورة صراحة في مستند التصميم]: لا يوجد سجل تاريخي
 //      لتغيّر هذا النطاق بمرور الوقت في الكود الحالي، فلا يمكن حساب "زاد كم سورة
 //      هذا الشهر تحديدًا" — يُعرض النطاق الحالي فقط مع ملاحظة توضيحية داخل التقرير.
+//   7) ملخص المهارات: دقة كل مهارة هذا الشهر (قسم mr-skills-block) من سجل أداء الطالب (core/trackingService.js → getMonthSkillSummary):
+//      الواجبات المعتمدة + الاختبارات الفردية + ملاحظات المعلم. يُخفى القسم لو لا أحداث مسجَّلة في الشهر (لا رجعية قبل بدء التتبّع).
 // =============================================================================
 
+import { SKILLS } from '../engine/skillMap.js';
+import { esc } from '../core/escape.js';
+import { skillLabel, monthlySummaryLines } from '../components/skillProfile.js';
 import { AppState, applyLanguage, t, localizeGenerated, trStored, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
@@ -256,6 +261,14 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div class="section-title" data-i18n="mr_homework_section_title">الواجبات المنزلية هذا الشهر</div>
           <div class="section-sub" data-i18n="mr_homework_section_sub">كل واجب سلَّمه الطالب هذا الشهر مع درجته النهائية المعتمدة</div>
           <div id="mr-homework-content"></div>
+        </div>
+
+        <!-- 🌟 [جديد — الواجب الذكي] ملخص مهارات الطالب هذا الشهر (من سجل أدائه: واجبات + اختبارات فردية + ملاحظات المعلم).
+             يُخفى كلياً لو لا أحداث مسجَّلة في الشهر. النصوص تُضبط من renderSkillsBlock بلغة الواجهة -->
+        <div class="mr-block pdf-block" id="mr-skills-block" style="display:none;">
+          <div class="section-title" id="mr-skills-title"></div>
+          <div class="section-sub" id="mr-skills-sub"></div>
+          <div id="mr-skills-content"></div>
         </div>
 
         <div class="mr-block pdf-block" id="mr-dual-block">
@@ -800,6 +813,15 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب مراجعة الشهر:', e);
   }
 
+  // 🌟 [جديد — الواجب الذكي] ملخص المهارات لهذا الشهر من سجل أداء الطالب (null لو لا أحداث)
+  let skillSummary = null;
+  try {
+    const svc = await import('../core/trackingService.js');
+    skillSummary = await svc.getMonthSkillSummary(student, year, monthIndex0);
+  } catch (e) {
+    console.error('[monthly-report.js] تعذر جلب ملخص المهارات:', e);
+  }
+
   return {
     student, year, monthIndex0,
     periodLabel: monthYearLabel(year, monthIndex0),
@@ -821,7 +843,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     achievementsThisMonth,
     resolvedThisMonth,
     reviewSchedule, reviewedWithinThisMonth,
-    journey, reviewSummary, comparison, trend
+    journey, reviewSummary, comparison, trend, skillSummary
   };
 }
 
@@ -1179,6 +1201,25 @@ function setBlockVisible(blockId, visible) {
   if (el) el.style.display = visible ? '' : 'none';
 }
 
+// 🌟 [جديد — الواجب الذكي] ملخص مهارات الشهر: شريط دقة لكل مهارة قُيِّست + سطور (الأقوى، ما يحتاج تعزيزاً، أكثر ملاحظات المعلم)
+function renderSkillsBlock(d) {
+  const sum = d.skillSummary;
+  setBlockVisible('mr-skills-block', !!sum);
+  if (!sum) return;
+  const en = AppState.currentLang === 'en';
+  setText('mr-skills-title', en ? 'Skills this month' : 'مهارات الطالب هذا الشهر');
+  setText('mr-skills-sub', en ? 'Accuracy per skill from this month\'s homework, individual tests and teacher notes' : 'دقة كل مهارة من واجبات الشهر واختباراته الفردية وملاحظات المعلم');
+  const rows = SKILLS.map(sk => ({ sk, st: sum.stats[sk] })).filter(x => x.st && x.st.count > 0 && x.st.acc !== null);
+  const bars = rows.map(({ sk, st }) => {
+    const pct = Math.round(st.acc * 100);
+    const color = st.rawN < 3 ? '#94a3b8' : (pct < 60 ? '#dc2626' : (pct >= 90 ? '#047857' : '#f59e0b'));
+    return `<div style="margin-top:8px;"><div style="display:flex;justify-content:space-between;font-size:0.95rem;"><span>${esc(skillLabel(sk))}</span><b>${pct}%</b></div>
+      <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:3px;"><i style="display:block;height:100%;width:${pct}%;background:${color};border-radius:5px;"></i></div></div>`;
+  }).join('');
+  const lines = monthlySummaryLines(sum).map(x => `<li>${esc(x)}</li>`).join('');
+  $('mr-skills-content').innerHTML = `${bars}<ul style="margin:12px 0 0;padding-inline-start:20px;font-size:0.95rem;line-height:1.8;">${lines}</ul>`;
+}
+
 function renderDualBlock(d) {
   const el = $('mr-dual-content');
   if (!el) return;
@@ -1474,6 +1515,7 @@ function renderAll(d) {
   renderReviewPartsBlock(d);
   renderGameEvalBlock(d);
   renderHomeworkBlock(d);
+  renderSkillsBlock(d);
   renderDualBlock(d);
   renderAchievementsBlock(d);
   renderErrorsBlock(d);

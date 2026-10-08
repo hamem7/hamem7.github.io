@@ -1158,6 +1158,18 @@ export async function loadStudentProfileScreen() {
                 });
             });
 
+            // 🌟 [جديد — الواجب الذكي] زر «ملف المهارات» (استيراد ديناميكي كالزر السابق تفادياً لأي حلقة استيراد)
+            const skillsBtn = document.getElementById('btn-prof-skills');
+            if (skillsBtn) {
+                if (AppState.currentLang === 'en') skillsBtn.textContent = '📊 Skills profile';
+                skillsBtn.addEventListener('click', () => {
+                    import('../components/skillProfile.js').then(m => m.openSkillProfileModal(student)).catch(err => {
+                        console.error('تعذر فتح ملف المهارات:', err);
+                        alert(t('stu_screen_preparing'));
+                    });
+                });
+            }
+
             // 🌟 [مُعدَّل — بطلب صريح من المعلم بعد أول تجربة] كان هنا فحص "تسجيل الحفظ
             // الشهري" يظهر عند فتح كل ملف طالب على حدة — أُزيل نهائيًا من هنا لأنه كان
             // يظهر بشكل مزعج (نفس النافذة تتكرر عند كل دخول لنفس الطالب طالما لم تُكمَّل
