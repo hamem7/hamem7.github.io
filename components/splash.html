@@ -89,6 +89,14 @@
     .qc-row-done:hover { color: #6fe0b0; border-color: #6fe0b0; background: rgba(111, 224, 176, 0.12); }
     .qc-row-done:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
     .home-quickcard-bday .qc-row-done { margin-inline-start: auto; }
+    /* 🌟 [جديد — تذكير الواجب الأسبوعي] تذييل بطاقة «مستحق اليوم»: تنبيه الازدحام + زر «جدول الأسبوع» + زر «رحّل لغد» */
+    .qc-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 6px 2px; margin-top: 4px; border-top: 1px dashed rgba(255, 253, 246, 0.2); }
+    .qc-foot-warn { font-size: 0.78rem; color: #ff8b7a; flex: 1 1 100%; line-height: 1.6; }
+    .qc-foot-btn { font: inherit; font-size: 0.8rem; font-weight: 700; min-height: 34px; padding: 6px 14px; border-radius: 99px; cursor: pointer; background: transparent; color: #f0d878; border: 1px solid rgba(240, 216, 120, 0.5); }
+    .qc-foot-btn:hover { background: rgba(240, 216, 120, 0.14); }
+    .qc-foot-btn:focus-visible { outline: 2px solid #f0d878; outline-offset: 2px; }
+    .qc-row-snooze { font-size: 0.95rem; }
+
 
     /* 🌟🌟 [جديد] تنسيق بطاقة "مواجهات ثنائية تنتظر الاستكمال" — قواعد معزولة تماماً بأسماء
          أصناف خاصة بها (.home-quickcard-pm-*)، ولو متطابقة بصرياً مع بطاقة "مستحق اليوم"

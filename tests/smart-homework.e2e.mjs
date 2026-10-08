@@ -544,7 +544,7 @@ try {
     const res = await svc.planSmartHomework(student, 20, { selection: sel, hwEngine: eng });
     const t3 = performance.now();
     const all = await svc.planSmartHomework(student, 20, { selection: { mode: 'all' }, hwEngine: eng });
-    const adv = svc.coverageAdvice({ total: model.allSegIds.length, uncoveredCount: model.allSegIds.length, n: 10, hwPerWeek: svc.HW_PER_WEEK, cycleWeeks: 6 });
+    const adv = svc.coverageAdvice({ total: model.allSegIds.length, uncoveredCount: model.allSegIds.length, n: 10, hwPerWeek: 2, cycleWeeks: 6 });
     return { total: ctx.path.total, segs: ctx.path.segments.length, unit: model.unit, groups: model.groups.length, firstHizb: model.groups[0].hizb, lastHizb: model.groups[model.groups.length - 1].hizb,
       ms: { ctx: Math.round(t1 - t0), model: Math.round(t2 - t1), plan: Math.round(t3 - t2) }, planOk: res.ok, planN: res.questions.length, distinct: res.distinctSegments,
       allOk: all.ok, allN: all.questions.length, perHw: adv.perHwForCycle, weeks: adv.weeksNeeded, selSegs: sel.ids.length };

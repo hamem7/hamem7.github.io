@@ -2,7 +2,8 @@
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
-import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks, HW_PER_WEEK } from '../core/trackingService.js';
+import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
+import { perWeekOf } from '../core/hwScheduleService.js';
 import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
@@ -1298,6 +1299,10 @@ function setupListeners() {
 
     document.getElementById('btn-generate-hw')?.addEventListener('click', generateSmartQuestions);
     bindScopePanel();
+    document.getElementById('hw-btn-week')?.addEventListener('click', async () => {
+        const m = await import('../components/weekSchedule.js');
+        m.openWeekSchedule({ onClose: () => refreshSmartInfo() });
+    });
 
     document.getElementById('btn-save-hw-publish')?.addEventListener('click', () => saveHomeworkToDB('published'));
     document.getElementById('btn-save-hw-draft')?.addEventListener('click', () => saveHomeworkToDB('draft'));
@@ -1353,6 +1358,7 @@ function setupSmartPanelStatic() {
     set('btn-generate-hw', L('⚙️ توليد الواجب الذكي', '⚙️ Generate smart homework'));
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
     set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
+    set('hw-btn-week', L('📅 جدول الأسبوع', '📅 Weekly schedule'));
     set('hw-scope-lbl-all', L('كل النطاق', 'Whole range'));
     set('hw-scope-lbl-hizb', L('أحزاب محددة', 'Chosen hizbs'));
     set('hw-scope-lbl-surah', L('سور محددة', 'Chosen surahs'));
@@ -1506,7 +1512,7 @@ function updateCoverageLine() {
     }
     const segIds = allowed ? [...allowed] : m.allSegIds;
     const cov = m.cov(segIds);
-    const adv = coverageAdvice({ total: cov.total, uncoveredCount: cov.uncoveredCount, n, hwPerWeek: HW_PER_WEEK, cycleWeeks: m.cycleWeeks });
+    const adv = coverageAdvice({ total: cov.total, uncoveredCount: cov.uncoveredCount, n, hwPerWeek: perWeekOf(smartStudent), cycleWeeks: m.cycleWeeks });
     const btn = (q) => `<button type="button" data-setn="${q}">${esc(L(`اكتب ${q}`, `Set ${q}`))}</button>`;
     const lines = [];
     lines.push(`📊 ${esc(L(`المختار: ${segCount(cov.total)} — لم يُفحص خلال دورة ${m.cycleWeeks} أسابيع: ${cov.uncoveredCount}`, `Selected: ${segCount(cov.total)} — unchecked within the ${m.cycleWeeks}-week cycle: ${cov.uncoveredCount}`))}${cov.pending ? esc(L(` (و${cov.pending} أُسندت ولم تُسلَّم)`, ` (+${cov.pending} assigned, not yet submitted)`)) : ''}`);

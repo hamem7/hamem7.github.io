@@ -8,13 +8,35 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.12';
+export const APP_VERSION = '1.0.13';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-08] تذكير الواجب الأسبوعي وجدول الأسبوع
+    {
+        version: '1.0.13',
+        date: '2026-10-08',
+        items: [
+            {
+                type: 'new',
+                ar: 'تذكير الواجب الأسبوعي في «مهام اليوم»: لكل طالب يومان في الأسبوع يوزّعهما النظام تلقائياً (السبت إلى الخميس) بفاصل يومين على الأقل وبلا ازدحام على المعلم. يظهر الطالب يوم موعده ثم متأخراً يوماً بيوم حتى تنشر له واجباً فيختفي تلقائياً، وزر «⏭ رحّل لغد» لتأجيله.',
+                en: 'Weekly homework reminders in "Today\'s tasks": each student gets two days a week assigned automatically (Saturday to Thursday), at least two days apart and without crowding your days. A student shows up on their day, then late day by day until you publish their homework, and it disappears by itself; "⏭ Postpone" delays it.'
+            },
+            {
+                type: 'new',
+                ar: 'شاشة «📅 جدول الأسبوع»: أيام العمل في أعمدة وطلابها في صفوف، وفوق كل يوم عدد واجباته مقابل الطاقة المتوازنة (إجمالي الخانات ÷ أيام العمل)؛ عدّل يوم أي طالب بنقرة، أو أوقف تذكيره، أو اضغط «وزّع تلقائياً». وعند أول تشغيل يُوزَّع طلابك الحاليون تلقائياً، والطالب الجديد يُضاف لأقل الأيام ازدحاماً.',
+                en: 'A "📅 Weekly schedule" screen: work days as columns and students as rows, with each day\'s load against the balanced capacity (total slots ÷ work days). Change any student\'s day with a tap, pause their reminders, or press "Auto-distribute". Your current students are distributed automatically on first run and a new student is placed on the least busy days.'
+            },
+            {
+                type: 'improved',
+                ar: 'تنبيه الازدحام: إذا زاد عدد الواجبات المنتظرة اليوم عن طاقتك الموزَّعة يظهر تنبيه لترحّل ما تشاء لغد. وحساب دورة المراجعة صار يعتمد على عدد مرات كل طالب الفعلي بدل رقم ثابت.',
+                en: 'Crowding warning: if more homeworks are waiting today than your balanced capacity, a warning lets you postpone some. The review-cycle maths now uses each student\'s actual weekly count instead of a fixed number.'
+            }
+        ]
+    },
     // 🗺️ [أُضيف 2026-10-08] خريطة الحفظ بالأحزاب وتغطية النطاق في الواجب الذكي
     {
         version: '1.0.12',
