@@ -76,19 +76,11 @@ function buildHomeworkShareLink(baseUrl, hwData) {
 // واحدة للمشاركة عبر واتساب: نسخ هذه الرسالة الجاهزة ولصقها يدوياً.
 // 🌟 [محدَّث] اسم الطالب اختياري: إن كان الواجب مخصَّصاً لطالب (assignedStudentName) يُضاف سطر
 // "👤 الطالب: ..." أسفل العنوان؛ وللرابط العام (بلا طالب) تبقى الرسالة كما هي.
-// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: الاختيار (حزب/سورة/كل النطاق) + «من ... إلى ...» إن وُجدت.
+// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: ما حدّده المعلم عند إنشاء الواجب فقط (أحزاب/سور/كل النطاق)،
+// بدون «من ... إلى ...» لأنها تمثّل نطاق حفظ الطالب الكلي لا نطاق هذا الاختبار.
 // scope = الكائن المخزَّن مع الواجب (buildSmartScope + label)؛ غير موجود (واجب قديم) → بلا سطر.
 function buildScopeShareText(scope) {
-    if (!scope || typeof scope !== 'object') return '';
-    const label = scope.label ? String(scope.label) : '';
-    let span = '';
-    if (scope.mode === 'range' && scope.fromName && scope.toName) {
-        span = scope.fromName === scope.toName
-            ? `${surahLabel(scope.fromName)}`
-            : `${t('hw_copy_msg_from')} ${surahLabel(scope.fromName)} ${t('hw_copy_msg_to')} ${surahLabel(scope.toName)}`;
-    }
-    if (label && span) return `${label} (${span})`;
-    return label || span;
+    return (scope && typeof scope === 'object' && scope.label) ? String(scope.label) : '';
 }
 function buildHomeworkShareMessage(link, studentName, scope) {
     const studentLine = studentName ? `${t('hw_copy_msg_student_label')} ${studentName}\n` : '';
