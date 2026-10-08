@@ -285,6 +285,67 @@ await test('createMissingWordDropdown: الكلمة الصحيحة دائماً 
 });
 
 // ==========================================
+// 🌟 [جديد — الواجب الذكي] صيغ تُولَّد لآية وصيغة محدّدتين مسبقاً من خطة التتبّع
+// ==========================================
+
+function surahWithPages(pages) {
+    const base = buildFakeAyahs();
+    const ayahs = base.map((a, i) => ({ ...a, page: pages[i] }));
+    return { surah: { number: 999, name: 'سورة الاختبار', ayahs }, ayahs };
+}
+
+function engineWithPages(pages) {
+    const { surah, ayahs } = surahWithPages(pages);
+    const qe = buildFakeQuranEngine();
+    qe.getSurah = async (num) => (num === 999 ? surah : null);
+    return { engine: new HomeworkEngine(qe), ayahs };
+}
+
+await test('createVisualPageQuestion: صفحة فردية = اليمنى، زوجية = اليسرى، مع تنبيه عدم فتح المصحف', async () => {
+    const n = buildFakeAyahs().length;
+    const { engine, ayahs } = engineWithPages(Array(n).fill(3));
+    const q = await engine.createVisualPageQuestion(ayahs[0], ayahs);
+    assert.equal(q.type, 'mcq');
+    assert.equal(q.correctAnswer, 'الصفحة اليمنى');
+    assert.deepEqual([...q.options].sort(), ['الصفحة اليسرى', 'الصفحة اليمنى']);
+    assert.ok(q.title.includes('لا تفتح المصحف'));
+    const even = engineWithPages(Array(n).fill(4));
+    const q2 = await even.engine.createVisualPageQuestion(even.ayahs[0], even.ayahs);
+    assert.equal(q2.correctAnswer, 'الصفحة اليسرى');
+});
+
+await test('createVisualPageQuestion: آية تمتد على صفحتين (التالية في صفحة أخرى) أو بلا رقم صفحة = null', async () => {
+    const n = buildFakeAyahs().length;
+    const pages = Array(n).fill(3); pages[1] = 4;
+    const { engine, ayahs } = engineWithPages(pages);
+    assert.equal(await engine.createVisualPageQuestion(ayahs[0], ayahs), null);
+    const { engine: e2, ayahs: a2 } = engineWithPages(Array(n).fill(undefined));
+    assert.equal(await e2.createVisualPageQuestion(a2[0], a2), null);
+    const { engine: e3, ayahs: a3 } = engineWithPages(Array(n).fill(700));
+    assert.equal(await e3.createVisualPageQuestion(a3[0], a3), null);
+});
+
+await test('buildQuestionForPlan: يرجع الصيغة الفعلية، وبديل "أكمل الفراغ" عند عدم الملاءمة', async () => {
+    const n = buildFakeAyahs().length;
+    const { engine, ayahs } = engineWithPages(Array(n).fill(3));
+    const ok = await engine.buildQuestionForPlan('dropdown', ayahs[2], ayahs);
+    assert.equal(ok.fmt, 'dropdown');
+    assert.ok(ok.question.id && ok.question.points >= 1);
+    const fallback = await engine.buildQuestionForPlan('mcq_next', ayahs[ayahs.length - 1], ayahs);   // آخر آية: لا تالية
+    assert.equal(fallback.fmt, 'dropdown');
+    const unknown = await engine.buildQuestionForPlan('غير_موجود', ayahs[2], ayahs);
+    assert.equal(unknown.fmt, 'dropdown');
+});
+
+await test('buildQuestionForPlan: معرّفات الأسئلة فريدة حتى في نفس اللحظة', async () => {
+    const n = buildFakeAyahs().length;
+    const { engine, ayahs } = engineWithPages(Array(n).fill(3));
+    const ids = new Set();
+    for (let i = 0; i < 20; i++) ids.add((await engine.buildQuestionForPlan('dropdown', ayahs[2], ayahs)).question.id);
+    assert.equal(ids.size, 20);
+});
+
+// ==========================================
 // الملخص النهائي
 // ==========================================
 console.log('');

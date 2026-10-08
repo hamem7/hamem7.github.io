@@ -123,22 +123,7 @@ export class HomeworkEngine {
                 qTypeKey = cycle.pop(); 
             }
 
-            let questionObj = null;
-
-            switch(qTypeKey) {
-                case 'mcq_surah': questionObj = await this.createMCQSurahGuess(ayah, validPool); break;
-                case 'mcq_next': questionObj = await this.createMCQNextAyah(ayah, validPool); break;
-                case 'mcq_prev': questionObj = await this.createMCQPrevAyah(ayah, validPool); break;
-                case 'ayah_ending': questionObj = await this.createAyahEndingMatch(ayah, validPool); break;
-                case 'intruder_word': questionObj = await this.createIntruderWordQuestion(ayah, validPool); break;
-                case 'dropdown': questionObj = await this.createMissingWordDropdown(ayah, validPool); break;
-                case 'written_blank': questionObj = await this.createWrittenBlankQuestion(ayah, validPool); break;
-                case 'dual_dropdown': questionObj = await this.createDualMissingWordDropdown(ayah, validPool); break;
-                case 'checkbox': questionObj = await this.createCheckboxQuestion(ayah, validPool); break;
-                case 'matrix_order': questionObj = await this.createMatrixOrderQuestion(ayah, validPool); break;
-                case 'write_3_ayahs': questionObj = await this.createWrite3AyahsQuestion(ayah, validPool); break;
-                case 'matching': questionObj = await this.createMatchingQuestion(ayah, validPool); break;
-            }
+            let questionObj = await this.createQuestionByKey(qTypeKey, ayah, validPool);
 
             // بديل آمن في حال عدم ملائمة الآية للسؤال
             if (!questionObj) {
@@ -153,6 +138,61 @@ export class HomeworkEngine {
         }
 
         return questionsList;
+    }
+
+    // 🌟 [جديد — الواجب الذكي] إنشاء سؤال لمفتاح صيغة معيّن (نفس المفاتيح التي تستعملها generateAutoQuestions).
+    // فُصل هنا بدل تكرار الـswitch في موضعين. يرجع null لو الآية لا تلائم الصيغة.
+    async createQuestionByKey(typeKey, ayah, pool) {
+        switch (typeKey) {
+            case 'mcq_surah': return this.createMCQSurahGuess(ayah, pool);
+            case 'mcq_next': return this.createMCQNextAyah(ayah, pool);
+            case 'mcq_prev': return this.createMCQPrevAyah(ayah, pool);
+            case 'ayah_ending': return this.createAyahEndingMatch(ayah, pool);
+            case 'intruder_word': return this.createIntruderWordQuestion(ayah, pool);
+            case 'dropdown': return this.createMissingWordDropdown(ayah, pool);
+            case 'written_blank': return this.createWrittenBlankQuestion(ayah, pool);
+            case 'dual_dropdown': return this.createDualMissingWordDropdown(ayah, pool);
+            case 'checkbox': return this.createCheckboxQuestion(ayah, pool);
+            case 'matrix_order': return this.createMatrixOrderQuestion(ayah, pool);
+            case 'write_3_ayahs': return this.createWrite3AyahsQuestion(ayah, pool);
+            case 'matching': return this.createMatchingQuestion(ayah, pool);
+            case 'visual_page': return this.createVisualPageQuestion(ayah, pool);
+            default: return null;
+        }
+    }
+
+    // 🌟 [جديد — الواجب الذكي] سؤال لصيغة وآية محدّدتين مسبقاً من خطة التتبّع. يرجع { question, fmt } حيث fmt هي الصيغة
+    // التي أُنتجت فعلاً (قد تختلف عن المطلوبة إن لم تلائم الآية، فنقع على سؤال "أكمل الفراغ" كما في التوليد العشوائي).
+    // التتبّع يسجّل الصيغة الفعلية دائماً، لا المطلوبة. allowFallback=false: يرجع null بدل البديل (تتولّى الخطة اختيار بديل أنسب).
+    async buildQuestionForPlan(typeKey, ayah, pool, { allowFallback = true } = {}) {
+        let question = await this.createQuestionByKey(typeKey, ayah, pool);
+        let fmt = typeKey;
+        if (!question && allowFallback) { question = await this.createMissingWordDropdown(ayah, pool); fmt = 'dropdown'; }
+        if (!question) return null;
+        question.id = 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+        if (!question.points) question.points = (question.type === 'checkbox' || question.type === 'dual_dropdown') ? 2 : 1;
+        return { question, fmt };
+    }
+
+    // 🌟 [جديد — الواجب الذكي] الذاكرة البصرية: "هذه الآية في الصفحة اليمنى أم اليسرى؟" (بدون فتح المصحف).
+    // ⚠️ افتراض صريح: ترقيم مصحف المدينة (604 صفحة)؛ الصفحة الفردية = اليمنى (صفحة 1 الفاتحة يميناً). ولا نسأل إلا عن آية
+    // تقع كلها في صفحة واحدة (الآية التالية في نفس الصفحة) كي لا يلتبس الجواب بآية تمتد على صفحتين. نوعه mcq فيُصحَّح آلياً
+    // في الخادم والواجهة بلا أي تعديل عليهما.
+    async createVisualPageQuestion(targetAyah, pool) {
+        const page = Number(targetAyah.page);
+        if (!(page >= 1 && page <= 604)) return null;
+        const surah = await this.quranEngine.getSurah(targetAyah.surahNumber);
+        const next = surah && surah.ayahs ? surah.ayahs[targetAyah.numberInSurah] : null;
+        if (!next || Number(next.page) !== page) return null;
+        const right = 'الصفحة اليمنى', left = 'الصفحة اليسرى';
+        return {
+            type: 'mcq',
+            title: 'تنبيه: لا تفتح المصحف ✋ — هذه الآية تقع في الصفحة اليمنى أم اليسرى من المصحف؟',
+            text: `﴿\u00A0${cleanAyahText(targetAyah.text)}\u00A0﴾`,
+            options: [right, left],
+            correctAnswer: (page % 2 === 1) ? right : left,
+            points: 1
+        };
     }
 
     // 🌟 نمط 1: تخمين السورة (يتم التحكم بظهوره من الدالة الرئيسية)

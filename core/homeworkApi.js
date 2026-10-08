@@ -55,6 +55,16 @@ export async function fetchHomeworkScope(id) {
     } catch (e) { return null; }
 }
 
+// 🌟 [جديد — الواجب الذكي] قراءة المعلم الكاملة للواجب (أسئلة + meta) — تُستخدم لاسترجاع خريطة التتبّع (meta.tracking) وأسئلة
+// واجب غير موجود محلياً على هذا الجهاز عند تسجيل أداء الطالب. null عند أي فشل (لا تخمين ولا أخطاء تُكسر الاعتماد).
+export async function fetchHomeworkFull(id) {
+    if (!isServerHomeworkId(id)) return null;
+    try {
+        const r = await teacherCall('getHomeworkFull', { id });
+        return (r && r.homework) || null;
+    } catch (e) { return null; }
+}
+
 // ---------- الطالب/المعلم: قراءة الواجب العام (بلا إجابات صحيحة أبداً) ----------
 export async function fetchPublicHomework(id) {
     const r = await callWithRetry('getHomework', { id }, {}, 3);
