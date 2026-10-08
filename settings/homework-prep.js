@@ -76,8 +76,8 @@ function buildHomeworkShareLink(baseUrl, hwData) {
 // واحدة للمشاركة عبر واتساب: نسخ هذه الرسالة الجاهزة ولصقها يدوياً.
 // 🌟 [محدَّث] اسم الطالب اختياري: إن كان الواجب مخصَّصاً لطالب (assignedStudentName) يُضاف سطر
 // "👤 الطالب: ..." أسفل العنوان؛ وللرابط العام (بلا طالب) تبقى الرسالة كما هي.
-// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: ما حدّده المعلم عند إنشاء الواجب فقط (أحزاب/سور/كل النطاق)،
-// بدون «من ... إلى ...» لأنها تمثّل نطاق حفظ الطالب الكلي لا نطاق هذا الاختبار.
+// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: ما حدّده المعلم عند إنشاء الواجب فقط
+// (نص scope.label المحسوب في shareRangeText)، وليس نطاق حفظ الطالب الكلي.
 // scope = الكائن المخزَّن مع الواجب (buildSmartScope + label)؛ غير موجود (واجب قديم) → بلا سطر.
 function buildScopeShareText(scope) {
     return (scope && typeof scope === 'object' && scope.label) ? String(scope.label) : '';
@@ -1419,6 +1419,26 @@ function groupRangeText(g) {
     return `${L('من', 'From')} ${a} ${L('إلى', 'to')} ${b}`;
 }
 
+// نص نطاق الاختبار لرسالة ولي الأمر: ما اختاره المعلم فقط (لا نطاق حفظ الطالب الكلي).
+// اختيار متصل → «من سورة X إلى سورة Y» / «من الحزب X إلى الحزب Y» (بترتيب المصحف)، وإلا تُسرد العناصر.
+function shareRangeText() {
+    const rangeOrList = (items, one, from, to) => {
+        if (!items.length) return selectionLabel();
+        if (items.length === 1) return one(items[0]);
+        return `${L('من', 'From')} ${from(items[0])} ${L('إلى', 'to')} ${to(items[items.length - 1])}`;
+    };
+    if (scopeMode === 'hizb' && smartModel) {
+        const sel = smartModel.groups.filter(g => scopeIds.has(g.id)).sort((x, y) => (x.hizb - y.hizb) || ((x.quarter || 0) - (y.quarter || 0)));
+        return rangeOrList(sel, tileTitle, tileTitle, tileTitle);
+    }
+    if (scopeMode === 'surah' && smartModel) {
+        const sel = smartModel.surahs.filter(x => scopeIds.has(x.number)).sort((x, y) => x.number - y.number);
+        const name = (x) => `${L('سورة', 'Surah')} ${x.name}`;
+        return rangeOrList(sel, name, name, name);
+    }
+    return selectionLabel();
+}
+
 function selectionLabel() {
     if (scopeMode === 'resume') return L('تكملة الواجب السابق', 'Continuation of the last homework');
     if (scopeMode === 'hizb' && smartModel) return smartModel.groups.filter(g => scopeIds.has(g.id)).map(g => g.name ? `${tileTitle(g)} (${g.name})` : tileTitle(g)).join(L('، ', ', '));
@@ -1666,7 +1686,7 @@ async function generateSmartQuestions() {
         currentGeneratedQuestions = res.questions;
         currentTracking = res.tracking;
         currentHwScope = buildSmartScope(res.ctx);
-        if (currentHwScope) currentHwScope.label = selectionLabel();   // نص الاختيار (حزب/سورة/كل النطاق) لرسالة ولي الأمر
+        if (currentHwScope) currentHwScope.label = shareRangeText();   // «من ... إلى ...» لما حدّده المعلم فقط، لرسالة ولي الأمر
         const uncovered = new Set(res.model.cov(res.scopeSegIds).uncovered);
         const newly = new Set(res.why.map(m => m.segment).filter(id => uncovered.has(id))).size;
         lastGen = { mode: scopeMode, ids: [...scopeIds], unit: res.model.unit, label: selectionLabel(), segIds: res.scopeSegIds,
