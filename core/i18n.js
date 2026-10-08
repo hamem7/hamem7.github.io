@@ -1115,6 +1115,9 @@ export const translations = {
         // مراسلة، لا مجرد الرابط وحده — راجع buildHomeworkShareMessage في settings/homework-prep.js
         hw_copy_msg_title: "📚 واجب منزلي",
         hw_copy_msg_student_label: "👤 الطالب:",
+        hw_copy_msg_scope_label: "📖 النطاق:",
+        hw_copy_msg_from: "من",
+        hw_copy_msg_to: "إلى",
         hw_copy_msg_link_label: "🔗 الرابط:",
         hw_copy_msg_footer: "يرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟",
         // 🌟🌟 [جديد] نص التنبيه العائم (Toast) لإشعار المعلم بتسليم واجب جديد — راجع
@@ -3181,6 +3184,9 @@ export const translations = {
         hw_final_results_close_btn: "Close Window ✖️",
         hw_copy_msg_title: "📚 Homework",
         hw_copy_msg_student_label: "👤 Student:",
+        hw_copy_msg_scope_label: "📖 Scope:",
+        hw_copy_msg_from: "From",
+        hw_copy_msg_to: "to",
         hw_copy_msg_link_label: "🔗 Link:",
         hw_copy_msg_footer: "Please open the link and solve the homework, then press \"Submit\" when you finish ... wishing you the best of luck 🌟",
         hw_notif_new_submission_title: "🔔 New homework submission",

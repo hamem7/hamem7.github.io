@@ -76,9 +76,25 @@ function buildHomeworkShareLink(baseUrl, hwData) {
 // واحدة للمشاركة عبر واتساب: نسخ هذه الرسالة الجاهزة ولصقها يدوياً.
 // 🌟 [محدَّث] اسم الطالب اختياري: إن كان الواجب مخصَّصاً لطالب (assignedStudentName) يُضاف سطر
 // "👤 الطالب: ..." أسفل العنوان؛ وللرابط العام (بلا طالب) تبقى الرسالة كما هي.
-function buildHomeworkShareMessage(link, studentName) {
+// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: الاختيار (حزب/سورة/كل النطاق) + «من ... إلى ...» إن وُجدت.
+// scope = الكائن المخزَّن مع الواجب (buildSmartScope + label)؛ غير موجود (واجب قديم) → بلا سطر.
+function buildScopeShareText(scope) {
+    if (!scope || typeof scope !== 'object') return '';
+    const label = scope.label ? String(scope.label) : '';
+    let span = '';
+    if (scope.mode === 'range' && scope.fromName && scope.toName) {
+        span = scope.fromName === scope.toName
+            ? `${surahLabel(scope.fromName)}`
+            : `${t('hw_copy_msg_from')} ${surahLabel(scope.fromName)} ${t('hw_copy_msg_to')} ${surahLabel(scope.toName)}`;
+    }
+    if (label && span) return `${label} (${span})`;
+    return label || span;
+}
+function buildHomeworkShareMessage(link, studentName, scope) {
     const studentLine = studentName ? `${t('hw_copy_msg_student_label')} ${studentName}\n` : '';
-    return `${t('hw_copy_msg_title')}\n${studentLine}${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
+    const scopeText = buildScopeShareText(scope);
+    const scopeLine = scopeText ? `${t('hw_copy_msg_scope_label')} ${scopeText}\n` : '';
+    return `${t('hw_copy_msg_title')}\n${studentLine}${scopeLine}${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
 }
 
 let currentSubmissionsList = [];
@@ -350,7 +366,7 @@ async function loadHomeworkDashboard() {
                         <button type="button" class="hwp3-btn hwp3-btn-results btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}"><span class="hwp3-ic" aria-hidden="true">📊</span> <span class="hwp3-lbl">${t('hw_act_results')}</span></button>
                         ${isLegacyPublished
                             ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                            : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" data-hw-student="${encodeURIComponent(hw.assignedStudentName || '')}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
+                            : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" data-hw-student="${encodeURIComponent(hw.assignedStudentName || '')}" data-hw-scope="${encodeURIComponent(hw.scope ? JSON.stringify(hw.scope) : '')}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
                         <!-- 🌟 [تعديل] "حذف" زر ظاهر مباشرة في الصف (بدل قائمة ⋯ المنسدلة)، وتأكيده في نافذة بوسط الشاشة -->
                         <button type="button" class="hwp3-btn hwp3-btn-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('hw_act_delete')}"><span aria-hidden="true">🗑️</span> ${t('hw_act_delete')}</button>
                     </div>
@@ -405,7 +421,9 @@ async function loadHomeworkDashboard() {
             btn.addEventListener('click', (e) => {
                 const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
                 const studentName = decodeURIComponent(e.currentTarget.getAttribute('data-hw-student') || '');
-                navigator.clipboard.writeText(buildHomeworkShareMessage(link, studentName))
+                let scope = null;
+                try { const raw = decodeURIComponent(e.currentTarget.getAttribute('data-hw-scope') || ''); scope = raw ? JSON.parse(raw) : null; } catch (err) { scope = null; }
+                navigator.clipboard.writeText(buildHomeworkShareMessage(link, studentName, scope))
                     .then(() => alert(t('hw_link_copied')))
                     .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
             });
@@ -1644,6 +1662,7 @@ async function generateSmartQuestions() {
         currentGeneratedQuestions = res.questions;
         currentTracking = res.tracking;
         currentHwScope = buildSmartScope(res.ctx);
+        if (currentHwScope) currentHwScope.label = selectionLabel();   // نص الاختيار (حزب/سورة/كل النطاق) لرسالة ولي الأمر
         const uncovered = new Set(res.model.cov(res.scopeSegIds).uncovered);
         const newly = new Set(res.why.map(m => m.segment).filter(id => uncovered.has(id))).size;
         lastGen = { mode: scopeMode, ids: [...scopeIds], unit: res.model.unit, label: selectionLabel(), segIds: res.scopeSegIds,
@@ -2006,6 +2025,7 @@ async function saveHomeworkToDB(statusType) {
         const link = buildHomeworkShareLink(baseUrl, homeworkObj);
         document.getElementById('hw-link-input').value = link;
         document.getElementById('hw-link-input').dataset.studentName = homeworkObj.assignedStudentName || '';
+        document.getElementById('hw-link-input').dataset.scope = homeworkObj.scope ? JSON.stringify(homeworkObj.scope) : '';
         // لا يوجد تحذير "لم يُرفع للسحابة" بعد الآن: الرابط لا يظهر أصلاً إلا بعد تأكيد الخادم
         const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
         const retryBtn = document.getElementById('btn-retry-hw-sync');
@@ -2073,6 +2093,7 @@ async function publishDraftFromHistory(draftId) {
     const baseUrl = window.location.origin + window.location.pathname;
     document.getElementById('hw-link-input').value = buildHomeworkShareLink(baseUrl, homeworkObj);
     document.getElementById('hw-link-input').dataset.studentName = homeworkObj.assignedStudentName || '';
+    document.getElementById('hw-link-input').dataset.scope = homeworkObj.scope ? JSON.stringify(homeworkObj.scope) : '';
     const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
     const retryBtn = document.getElementById('btn-retry-hw-sync');
     if (syncWarningEl) syncWarningEl.style.display = 'none';
@@ -2130,7 +2151,7 @@ function copyHomeworkLink() {
     linkInput.select();
     linkInput.setSelectionRange(0, 99999);
 
-    navigator.clipboard.writeText(buildHomeworkShareMessage(linkInput.value, linkInput.dataset.studentName)).then(() => {
+    navigator.clipboard.writeText(buildHomeworkShareMessage(linkInput.value, linkInput.dataset.studentName, (() => { try { return linkInput.dataset.scope ? JSON.parse(linkInput.dataset.scope) : null; } catch (e) { return null; } })())).then(() => {
         const originalText = copyBtn.innerHTML;
         const originalBg = copyBtn.style.background;
         copyBtn.innerHTML = `✔️ ${t('hw_copy_btn')}`;
