@@ -69,6 +69,9 @@ function populateSurahOptions(fromId, toId) {
         selFrom.appendChild(new Option(surahNameLocal(s.name), s.name));
         selTo.appendChild(new Option(surahNameLocal(s.name), s.name));
     });
+    // 🌟 [بطلب المعلم] «من سورة» تفتح افتراضيًا على الناس (آخر سورة، بداية مسار الحفظ المعتاد نحو البقرة) بدل «غير محدد» 🌟
+    const nas = AppState.surahsData.find(s => s.number === 114);
+    if (nas) selFrom.value = nas.name;
 }
 
 // 🌟🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] اقتراحات أسماء الطلاب أثناء الكتابة في شاشة اختيار الطالب.
@@ -511,6 +514,7 @@ function selectAddAvatarOption(el) {
 function resetAddStudentForm() {
     ['stu-name', 'stu-country', 'stu-phone', 'stu-dob'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     ['stu-grade', 'stu-dob-d', 'stu-dob-m', 'stu-dob-y', 'stu-memo-from', 'stu-memo-to'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+    { const nas = AppState.surahsData.find(x => x.number === 114), f = document.getElementById('stu-memo-from'); if (nas && f) f.value = nas.name; }
     const age = document.getElementById('age-display'); if (age) age.textContent = '';
     const toast = document.getElementById('add-saved-toast'); if (toast) toast.style.display = 'none';
     const fileInput = document.getElementById('stu-avatar'); if (fileInput) fileInput.value = '';
@@ -1506,7 +1510,7 @@ async function openEditStudentModal(id) {
     setGradeSelectValuePreservingLegacy('edit-stu-grade', s.grade || '');
     document.getElementById('edit-stu-country').value = s.country || '';
     document.getElementById('edit-stu-phone').value = s.phone || '';
-    document.getElementById('edit-stu-memo-from').value = s.memoFrom || '';
+    if (s.memoFrom) document.getElementById('edit-stu-memo-from').value = s.memoFrom;  // وإلا يبقى الافتراضي (الناس) من populateSurahOptions
     document.getElementById('edit-stu-memo-to').value = s.memoTo || '';
     // 🌟 [إصلاح فحص الأزرار] كان حقل "الجنس (للصورة الرمزية)" يظهر بلا أي ربط بالحفظ. الآن يعكس نوع
     // الصورة الرمزية الحالية (لو كانت رمزًا تعبيريًا) ويُطبَّق عند الحفظ؛ ولا أثر له إن كان للطالب صورة مرفوعة 🌟
