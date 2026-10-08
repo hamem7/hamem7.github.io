@@ -10,7 +10,8 @@
 
 import { AppState } from './app.js';
 import {
-    buildContext, planHomework, skillSummaryForWindow, monthlyStaleness, segmentIdFor
+    buildContext, planHomework, skillSummaryForWindow, monthlyStaleness, segmentIdFor,
+    hizbOfQuarter, groupSegments, coverageOf, coverageAdvice, suggestGroups, selectionSegIds, DAY_MS
 } from '../engine/trackingEngine.js';
 import {
     eventsFromHomeworkSubmission, eventsFromGameDetails, eventsFromWeaknesses, buildAyahTextIndex
@@ -90,7 +91,7 @@ let _textIndexPromise = null;
 function getTextIndex() {
     if (!_textIndexPromise) {
         _textIndexPromise = (async () => {
-            const all = await AppState.quranEngine.getAyahsBySurahRange(1, 114);
+            const all = await getAllAyahs();
             const bySurah = new Map();
             all.forEach(a => {
                 if (!bySurah.has(a.surahNumber)) bySurah.set(a.surahNumber, { number: a.surahNumber, ayahs: [] });
@@ -211,21 +212,6 @@ export async function getMonthSkillSummary(student, year, monthIndex) {
 
 function wordsCount(ayah) { return splitAyahWords(ayah.text).length; }
 
-// focus: null | { type: 'surah', value: رقم } | { type: 'juz', value: رقم }
-function makeFocusFilter(focus, pool, path) {
-    if (!focus) return { filter: null, multiSurah: new Set(path.segments.map(s => s.surah)).size > 1 };
-    let filter;
-    if (focus.type === 'surah') {
-        filter = (seg) => seg.surah === focus.value;
-    } else {
-        const ids = new Set();
-        pool.forEach(a => { if (a.juz === focus.value) { const id = segmentIdFor(AppState.surahsData, a.surahNumber, a.numberInSurah); if (id) ids.add(id); } });
-        filter = (seg) => ids.has(seg.id);
-    }
-    const surahs = new Set(path.segments.filter(filter).map(s => s.surah));
-    return { filter, multiSurah: surahs.size > 1 };
-}
-
 function pickAyahFor(item, cands, ctx, poolIndex, rng) {
     const recent = ctx.events.filter(e => e.segment === item.seg.id && e.ayah).sort((a, b) => b.ts - a.ts)
         .slice(0, RECENT_AYAHS_PER_SEGMENT).map(e => e.ayah);
@@ -255,32 +241,142 @@ function pickAyahFor(item, cands, ctx, poolIndex, rng) {
     return pick(fresh.length ? fresh : pool);
 }
 
-// آيات الطالب المحفوظة فعلاً (ضمن مقاطع مساره وحتى موضع توقّفه)
+// ------------------------------------------
+// بيانات المصحف المشتركة (كل الآيات مرة واحدة): فهرس النصوص، خريطة الأرباع/الأحزاب، وآيات الطالب المحفوظة
+// ------------------------------------------
+let _allAyahsPromise = null;
+function getAllAyahs() {
+    if (!_allAyahsPromise) {
+        _allAyahsPromise = AppState.quranEngine.getAyahsBySurahRange(1, 114).catch(e => { _allAyahsPromise = null; throw e; });
+    }
+    return _allAyahsPromise;
+}
+
+let _quranMeta = null;
+async function getQuranMeta() {
+    if (_quranMeta) return _quranMeta;
+    const all = await getAllAyahs();
+    const quarterByAyah = new Map(), hizbTotal = new Map(), quarterTotal = new Map();
+    all.forEach(a => {
+        const q = a.hizbQuarter;
+        if (!q) return;
+        quarterByAyah.set(`${a.surahNumber}:${a.numberInSurah}`, q);
+        const h = hizbOfQuarter(q);
+        hizbTotal.set(h, (hizbTotal.get(h) || 0) + 1);
+        quarterTotal.set(q, (quarterTotal.get(q) || 0) + 1);
+    });
+    _quranMeta = { quarterByAyah, hizbTotal, quarterTotal };
+    return _quranMeta;
+}
+
+// آيات الطالب المحفوظة فعلاً (ضمن مقاطع مساره وحتى موضع توقّفه). نسخ سطحية: صيغ الأسئلة تعدّل نص الآية في مكانها
 async function loadMemorizedPool(ctx) {
-    const surahNums = ctx.path.segments.map(s => s.surah);
-    const all = await AppState.quranEngine.getAyahsBySurahRange(Math.min(...surahNums), Math.max(...surahNums));
+    const all = await getAllAyahs();
     return all.filter(a => {
         const id = segmentIdFor(AppState.surahsData, a.surahNumber, a.numberInSurah);
         const seg = id && ctx.path.byId.get(id);
         return seg && a.numberInSurah <= seg.limit;
+    }).map(a => ({ ...a }));
+}
+
+// ------------------------------------------
+// خريطة الحفظ في شاشة الإعداد: الأحزاب (أو الأرباع لحفظ صغير)، التغطية، «اقترح لي»، «أكمل»
+// ------------------------------------------
+export const HW_PER_WEEK = 2;                 // واجبان أسبوعياً لكل طالب (قرار المعلم)
+const PENDING_DAYS = 14;                       // واجب أُسند ولم يُسلَّم خلال هذه المدة يُعدّ «مُسنَداً» لا «غير مغطّى»
+const DEFAULT_CYCLE_WEEKS = 6;                 // دورة المراجعة: كل مقطع يُفحص مرة كل هذه المدة تقريباً
+
+export function getCycleWeeks() {
+    try { const v = Number(localStorage.getItem('dh_hw_cycle_weeks')); if (v >= 1 && v <= 26) return Math.round(v); } catch (e) { /* لا شيء */ }
+    return DEFAULT_CYCLE_WEEKS;
+}
+export function setCycleWeeks(v) {
+    try { localStorage.setItem('dh_hw_cycle_weeks', String(Math.max(1, Math.min(26, Math.round(Number(v) || DEFAULT_CYCLE_WEEKS))))); } catch (e) { /* لا شيء */ }
+}
+
+// مقاطع أُسندت للطالب في واجبات منشورة حديثة قد لا تكون سُلّمت بعد (فلا تظهر بعد في أحداث الأداء)
+export async function getPendingSegIds(student, now = Date.now()) {
+    const out = new Set();
+    try {
+        const all = (await AppState.homeworkManager.getAllHomeworks()) || [];
+        const since = now - PENDING_DAYS * DAY_MS;
+        all.forEach(h => {
+            if (h.status !== 'published' || h.assignedStudentName !== student.name || !h.tracking) return;
+            if ((Date.parse(h.createdAt) || 0) < since) return;
+            Object.values(h.tracking).forEach(m => { if (m && m.segment) out.add(m.segment); });
+        });
+    } catch (e) { /* التنبيه إضافي */ }
+    return out;
+}
+
+const LASTSCOPE_KEY = (studentId) => `dh_hw_lastscope_${studentId}`;
+// نطاق آخر واجب أُنشئ لطالب: { mode, ids, unit, label, segIds[], ts } — يُبنى منه اقتراح «أكمل»
+export function saveLastScope(student, scope) {
+    try { localStorage.setItem(LASTSCOPE_KEY(student.id), JSON.stringify({ ...scope, ts: Date.now() })); } catch (e) { /* لا شيء */ }
+}
+export function getLastScope(student) {
+    try {
+        const v = JSON.parse(localStorage.getItem(LASTSCOPE_KEY(student.id)));
+        return v && Array.isArray(v.segIds) && v.segIds.length ? v : null;
+    } catch (e) { return null; }
+}
+
+// نموذج الاختيار: المجموعات (أحزاب/أرباع) بتغطيتها، والسور، والتغطية الكلية
+export async function buildSelectionModel(student, ctx, { unit = null, cycleWeeks = getCycleWeeks() } = {}) {
+    const now = Date.now();
+    const meta = await getQuranMeta();
+    const useUnit = unit || (ctx.path.total <= 700 ? 'quarter' : 'hizb');   // حفظ حتى ~3 أجزاء: أرباع، وأكبر: أحزاب
+    const groups = groupSegments(ctx.path, (s, a) => meta.quarterByAyah.get(`${s}:${a}`) || null, useUnit);
+    const pendingSegIds = await getPendingSegIds(student, now);
+    const cycleDays = cycleWeeks * 7;
+    const cov = (segIds) => coverageOf(segIds, ctx.events, now, { cycleDays, pendingSegIds });
+    const lastTsBySeg = new Map();
+    ctx.events.forEach(e => { if (e.segment) lastTsBySeg.set(e.segment, Math.max(lastTsBySeg.get(e.segment) || 0, e.ts)); });
+    groups.forEach(g => {
+        g.cov = cov(g.segIds);
+        g.lastTs = g.segIds.reduce((m, id) => Math.max(m, lastTsBySeg.get(id) || 0), 0);
+        g.fixCount = g.segIds.filter(id => (ctx.states.get(id) || {}).level === 'needs_fix').length;
+        const total = useUnit === 'quarter' ? meta.quarterTotal.get(g.key) : meta.hizbTotal.get(g.key);
+        g.pctMemorized = total ? Math.min(100, Math.round(g.ayahs / total * 100)) : 100;
+    });
+    // الجزئية ذات معنى للمجموعة الأخيرة فقط (آخر ما بلغه الطالب)؛ غيرها مكتمل، وفرقها الظاهري سببه نسب المقطع لمجموعة أول آية فيه
+    groups.forEach((g, i) => { if (i < groups.length - 1) g.pctMemorized = 100; });
+    const bySurah = new Map();
+    ctx.path.segments.forEach(seg => {
+        if (!bySurah.has(seg.surah)) bySurah.set(seg.surah, { number: seg.surah, name: (AppState.surahsData.find(x => x.number === seg.surah) || {}).name || String(seg.surah), segIds: [] });
+        bySurah.get(seg.surah).segIds.push(seg.id);
+    });
+    const surahs = [...bySurah.values()].map(x => ({ ...x, cov: cov(x.segIds) }));
+    return { unit: useUnit, groups, surahs, cov, pendingSegIds, cycleWeeks, cycleDays, now, allSegIds: ctx.path.segments.map(s => s.id) };
+}
+
+// «أكمل»: ما لم يُغطَّ بعد من نطاق آخر واجب (إن كان ضمن الدورة)، أو null
+export function getResumeInfo(student, ctx, model) {
+    const last = getLastScope(student);
+    if (!last || Date.now() - last.ts > model.cycleDays * DAY_MS) return null;
+    const valid = last.segIds.filter(id => ctx.path.byId.has(id));
+    if (!valid.length) return null;
+    const c = model.cov(valid);
+    return { label: last.label || '', total: valid.length, uncoveredCount: c.uncoveredCount, uncovered: c.uncovered, pendingCount: c.pending,
+             pct: Math.round((valid.length - c.uncoveredCount) / valid.length * 100) };
+}
+
+// «اقترح لي»: معرّفات المجموعات الأحوج للفحص بحيث يغطيها n سؤال تقريباً
+export function suggestSelection(model, ctx, n) {
+    return suggestGroups(model.groups, ctx.states, (g) => g.cov, model.now, { targetSegs: n, maxGroups: 3 });
+}
+
+// المقاطع المسموحة لاختيار (null = كل النطاق)
+export function resolveAllowedSegIds(student, ctx, model, selection) {
+    const last = getLastScope(student);
+    const resume = selection && selection.mode === 'resume' ? getResumeInfo(student, ctx, model) : null;
+    return selectionSegIds({
+        path: ctx.path, groups: model.groups, selection,
+        lastScopeSegIds: last ? last.segIds : [], uncoveredSet: new Set(resume ? resume.uncovered : [])
     });
 }
 
-// خيارات «ركّز على»: الأجزاء والسور التي يشملها حفظ الطالب فقط (الأحدث حفظاً أولاً)
-export async function listFocusOptions(ctx) {
-    const pool = await loadMemorizedPool(ctx);
-    const juz = [...new Set(pool.map(a => a.juz).filter(Boolean))].sort((a, b) => b - a);
-    const seen = new Set();
-    const surahs = [];
-    for (let i = ctx.path.segments.length - 1; i >= 0; i--) {
-        const n = ctx.path.segments[i].surah;
-        if (seen.has(n)) continue;
-        seen.add(n);
-        const s = AppState.surahsData.find(x => x.number === n);
-        if (s) surahs.push({ number: n, name: s.name });
-    }
-    return { juz, surahs };
-}
+export { coverageAdvice };
 
 // صيغ بديلة بترتيب الأنسب حين لا تلائم الآيةُ الصيغةَ المخطَّطة (آيات قصيرة جداً، آخر آية في السورة...). اليدوية التصحيح لا تُستعمل بديلاً
 const FALLBACK_FORMATS = ['dropdown', 'mcq_next', 'mcq_prev', 'intruder_word', 'mcq_surah', 'ayah_ending', 'visual_page', 'dual_dropdown', 'checkbox'];
@@ -307,14 +403,17 @@ async function buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, mu
     return null;
 }
 
-export async function planSmartHomework(student, n, { focus = null, hwEngine, rng = Math.random } = {}) {
+export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random } = {}) {
     const ctx = await loadContext(student);
     if (!ctx) return { ok: false, reason: 'unavailable' };
     if (!ctx.range.ok) return { ok: false, reason: 'no_range', ctx };
 
+    const model = await buildSelectionModel(student, ctx, { unit: selection.unit || null });
+    const allowed = resolveAllowedSegIds(student, ctx, model, selection);
+    if (allowed && allowed.size === 0) return { ok: false, reason: 'empty_selection', ctx };
+
     const pool = await loadMemorizedPool(ctx);
     if (!pool.length) return { ok: false, reason: 'empty', ctx };
-
     const poolIndex = new Map(pool.map(a => [`${a.surahNumber}:${a.numberInSurah}`, a]));
     const bySeg = new Map();
     pool.forEach(a => {
@@ -323,10 +422,12 @@ export async function planSmartHomework(student, n, { focus = null, hwEngine, rn
         bySeg.get(id).push(a);
     });
 
-    const { filter, multiSurah } = makeFocusFilter(focus, pool, ctx.path);
+    const focusFilter = allowed ? (seg) => allowed.has(seg.id) : null;
+    const scopeSegs = ctx.path.segments.filter(s => !allowed || allowed.has(s.id));
+    const multiSurah = new Set(scopeSegs.map(s => s.surah)).size > 1;
     const plan = planHomework({
         n, path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
-        now: Date.now(), rng, focusFilter: filter, multiSurah
+        now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds
     });
     if (!plan.items.length) return { ok: false, reason: 'empty', ctx };
 
@@ -349,6 +450,9 @@ export async function planSmartHomework(student, n, { focus = null, hwEngine, rn
         questions.push(built.question);
         why.push(meta);
     }
-    return { ok: !!questions.length, reason: questions.length ? null : 'empty', questions, tracking, why, plan, ctx };
+    const scopeSegIds = scopeSegs.map(s => s.id);
+    return {
+        ok: !!questions.length, reason: questions.length ? null : 'empty', questions, tracking, why, plan, ctx, model,
+        scopeSegIds, distinctSegments: new Set(why.map(m => m.segment)).size
+    };
 }
-

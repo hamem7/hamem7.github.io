@@ -167,6 +167,28 @@
     }
     #app-root .hwp2-gen-btn:hover { transform: translateY(-2px); }
 
+    /* 🌟 [الواجب الذكي] لوحة نطاق الواجب: شريط الأحزاب/الأرباع + السور + سطر التغطية */
+    .hw-scope-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
+    .hw-scope-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 10px; font-size: 0.95rem; }
+    .hw-scope-head label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+    .hw-mini-btn { border: 0; border-radius: 999px; padding: 6px 14px; font-size: 0.9rem; font-weight: 700; font-family: inherit; cursor: pointer; background: #047857; color: #fff; }
+    .hw-mini-btn.alt { background: #e2e8f0; color: #334155; }
+    .hw-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; max-height: 280px; overflow-y: auto; padding: 2px; }
+    .hw-tile { border: 2px solid #e2e8f0; border-radius: 10px; background: #fff; padding: 6px 4px 7px; text-align: center; cursor: pointer; font-family: inherit; font-size: 0.76rem; line-height: 1.4; position: relative; color: #334155; }
+    .hw-tile b { display: block; font-size: 1.02rem; color: #0f172a; }
+    .hw-tile.sel { border-color: #047857; background: #ecfdf5; box-shadow: 0 0 0 2px #a7f3d0 inset; }
+    .hw-tile .bar { height: 5px; border-radius: 3px; margin-top: 5px; background: #e2e8f0; overflow: hidden; }
+    .hw-tile .bar i { display: block; height: 100%; background: #10b981; }
+    .hw-tile .fix { position: absolute; top: 2px; inset-inline-start: 4px; color: #dc2626; font-size: 0.72rem; font-weight: 800; }
+    .hw-tile.partial { border-style: dashed; }
+    .hw-sur-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow-y: auto; }
+    .hw-sur-chip { border: 2px solid #e2e8f0; border-radius: 999px; background: #fff; padding: 4px 12px; font-size: 0.88rem; cursor: pointer; font-family: inherit; color: #334155; }
+    .hw-sur-chip.sel { border-color: #047857; background: #ecfdf5; font-weight: 700; }
+    .hw-resume { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.95rem; line-height: 1.7; }
+    .hw-coverage { margin-top: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 9px 12px; font-size: 0.95rem; line-height: 1.8; }
+    .hw-coverage .warn { color: #b45309; }
+    .hw-coverage button { border: 0; background: #047857; color: #fff; border-radius: 999px; padding: 2px 12px; font-family: inherit; font-size: 0.85rem; cursor: pointer; margin-inline-start: 6px; }
+
     /* 🌟🌟 [جديد] أزرار "إجراءات" دائرية أكبر وأوضح بدل الأزرار المستطيلة الصغيرة السابقة في
        عمود "إجراءات" بجدول "سجل الواجبات" — بنفس الهوية البصرية (ذهبي/زمرّدي) مع الاحتفاظ
        بلون مختلف لكل إجراء (عرض/نسخ/حذف) حتى يبقى الفرق بينها واضحاً بصرياً. مستخدَمة من
@@ -471,9 +493,28 @@
                 <!-- 🌟 [الواجب الذكي] بطاقة معلومات الطالب (النطاق، تنبيه تقادم الحفظ الشهري، حالة تعلّم النظام) تُملأ برمجياً -->
                 <div id="hw-smart-info" style="display:none; text-align:right; margin-bottom:12px;"></div>
 
-                <div id="hw-smart-settings" class="form-grid" style="text-align:right;">
-                    <div class="input-group"><label id="hw-qcount-label">عدد الأسئلة:</label><input type="number" id="hw-q-count-smart" value="10" min="3" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
-                    <div class="input-group"><label id="hw-focus-label">ركّز على (اختياري):</label><select id="hw-focus-select"></select></div>
+                <div id="hw-smart-settings" style="text-align:right;">
+                    <!-- 🌟 [الواجب الذكي] نطاق الواجب: كل النطاق / أحزاب محددة / سور محددة / أكمل السابق + «اقترح لي» — تُملأ برمجياً بعد اختيار الطالب -->
+                    <div id="hw-scope-box" class="hw-scope-box" style="display:none;">
+                        <div class="hw-scope-head">
+                            <b id="hw-scope-title"></b>
+                            <label><input type="radio" name="hwScope" value="all" checked> <span id="hw-scope-lbl-all"></span></label>
+                            <label><input type="radio" name="hwScope" value="hizb"> <span id="hw-scope-lbl-hizb"></span></label>
+                            <label><input type="radio" name="hwScope" value="surah"> <span id="hw-scope-lbl-surah"></span></label>
+                            <label id="hw-scope-resume-wrap" style="display:none;"><input type="radio" name="hwScope" value="resume"> <span id="hw-scope-lbl-resume"></span></label>
+                            <button type="button" id="hw-btn-suggest" class="hw-mini-btn"></button>
+                            <button type="button" id="hw-btn-unit" class="hw-mini-btn alt"></button>
+                        </div>
+                        <div id="hw-resume-banner"></div>
+                        <div id="hw-hizb-strip" class="hw-strip"></div>
+                        <div id="hw-surah-list" class="hw-sur-grid" style="display:none;"></div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="input-group"><label id="hw-qcount-label">عدد الأسئلة:</label><input type="number" id="hw-q-count-smart" value="10" min="3" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
+                        <div class="input-group"><label id="hw-cycle-label">دورة المراجعة (أسابيع):</label><input type="number" id="hw-cycle-weeks" value="6" min="1" max="26" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
+                    </div>
+                    <div id="hw-coverage-line" class="hw-coverage"></div>
                 </div>
 
                 <button class="btn hwp2-gen-btn" id="btn-generate-hw">

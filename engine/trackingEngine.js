@@ -344,6 +344,119 @@ export function buildContext({ surahsData, student, records, events, now = Date.
 }
 
 // ------------------------------------------
+// ٣ب) الأحزاب والتغطية والاقتراح (خريطة الحفظ في شاشة الإعداد)
+// ------------------------------------------
+
+// المصحف 240 ربعاً (ربع الحزب)؛ الحزب = نصف جزء = 4 أرباع؛ الجزء = حزبان (جزء عمّ = الحزبان 59 و60)
+export const hizbOfQuarter = (q) => Math.ceil(q / 4);
+export const juzOfHizb = (h) => Math.ceil(h / 2);
+export const quarterInHizb = (q) => ((q - 1) % 4) + 1;
+
+// يجمّع مقاطع المسار في مجموعات (حزب أو ربع) بترتيب المسار نفسه (الناس أولاً ثم صعوداً). المقطع يُنسب إلى المجموعة
+// التي تقع فيها أول آية منه. quarterOf(surah, ayah) ← رقم الربع أو null.
+export function groupSegments(path, quarterOf, unit = 'hizb') {
+    const groups = [];
+    const idx = new Map();
+    path.segments.forEach(seg => {
+        const q = quarterOf(seg.surah, seg.from);
+        if (!q) return;
+        const key = unit === 'quarter' ? q : hizbOfQuarter(q);
+        let g = idx.get(key);
+        if (!g) {
+            g = { id: `${unit}:${key}`, key, unit, hizb: hizbOfQuarter(q), juz: juzOfHizb(hizbOfQuarter(q)),
+                  quarter: unit === 'quarter' ? quarterInHizb(q) : null, segIds: [], ayahs: 0, first: { surah: seg.surah, ayah: seg.from } };
+            idx.set(key, g); groups.push(g);
+        }
+        g.segIds.push(seg.id);
+        g.ayahs += seg.count;
+    });
+    return groups;
+}
+
+// التغطية: ما فُحص خلال الدورة (أحداث أداء) + ما أُسند في واجب لم يُسلَّم بعد (pending) + ما لم يُغطَّ
+export function coverageOf(segIds, events, now, { cycleDays = 42, pendingSegIds = null } = {}) {
+    const since = now - cycleDays * DAY_MS;
+    const examined = new Set();
+    (events || []).forEach(e => { if (e.segment && e.ts >= since) examined.add(e.segment); });
+    let ex = 0, pend = 0;
+    const uncovered = [];
+    (segIds || []).forEach(id => {
+        if (examined.has(id)) ex++;
+        else if (pendingSegIds && pendingSegIds.has(id)) pend++;
+        else uncovered.push(id);
+    });
+    return { total: (segIds || []).length, examined: ex, pending: pend, uncovered, uncoveredCount: uncovered.length };
+}
+
+// نصيحة التغطية لاختيار (عدد مقاطعه total، لم يُغطَّ منه uncoveredCount) وعدد أسئلة n:
+//   willCover: كم مقطعاً جديداً يغطيه هذا الواجب (سؤال لكل مقطع)
+//   needForAll: عدد الأسئلة لتغطية الباقي كله دفعة واحدة (بحدّ أقصى maxQ)، ومعه tooMany إن لم يكفِ الحد
+//   homeworksNeeded/weeksNeeded: كم واجباً/أسبوعاً بهذا العدد حتى تكتمل التغطية
+//   perHwForCycle: عدد أسئلة كل واجب ليُفحص الاختيار كله مرة كل cycleWeeks بواجبين أسبوعياً (الحالة المستقرة)
+export function coverageAdvice({ total, uncoveredCount, n, hwPerWeek = 2, cycleWeeks = 6, maxQ = 50, minQ = 3 }) {
+    const willCover = Math.min(n, uncoveredCount);
+    const homeworksNeeded = uncoveredCount > 0 ? Math.ceil(uncoveredCount / Math.max(1, n)) : 0;
+    return {
+        total, uncoveredCount, n, willCover,
+        pctOfUncovered: uncoveredCount > 0 ? Math.round(willCover / uncoveredCount * 100) : 100,
+        pctAfter: total > 0 ? Math.round(((total - uncoveredCount) + willCover) / total * 100) : 100,
+        needForAll: Math.max(minQ, Math.min(maxQ, uncoveredCount)),
+        tooMany: uncoveredCount > maxQ,
+        homeworksNeeded, weeksNeeded: Math.ceil(homeworksNeeded / Math.max(1, hwPerWeek)),
+        perHwForCycle: Math.max(minQ, Math.min(maxQ, Math.ceil(total / (Math.max(1, hwPerWeek) * Math.max(1, cycleWeeks))))),
+        cycleTooMany: Math.ceil(total / (Math.max(1, hwPerWeek) * Math.max(1, cycleWeeks))) > maxQ
+    };
+}
+
+// «اقترح لي»: المجموعات الأحوج للفحص (الأقل تغطية، الأقدم فحصاً، الأكثر أخطاءً) حتى يبلغ مجموع غير المغطّى targetSegs
+// (أو maxGroups مجموعات). مفاتيح المجموعات بترتيب المسار. coverage(g) ← نتيجة coverageOf للمجموعة.
+export function suggestGroups(groups, states, coverage, now, { targetSegs = 10, maxGroups = 3 } = {}) {
+    const scored = groups.map((g, i) => {
+        const cov = coverage(g);
+        let stale = 0, fix = 0;
+        g.segIds.forEach(id => {
+            const st = states.get(id);
+            stale += st ? Math.min(1, (now - st.lastTs) / (60 * DAY_MS)) : 1;
+            if (st && st.level === 'needs_fix') fix++;
+        });
+        const n = Math.max(1, g.segIds.length);
+        return { g, i, cov, score: 1.5 * (cov.uncoveredCount / n) + 0.5 * (stale / n) + 0.1 * fix };
+    }).filter(x => x.cov.uncoveredCount > 0 || x.score > 0.5)
+      .sort((a, b) => (b.score - a.score) || (a.i - b.i));
+    const out = [];
+    let sum = 0;
+    for (const x of scored) {
+        if (out.length >= maxGroups || sum >= targetSegs) break;
+        out.push(x);
+        sum += Math.max(1, x.cov.uncoveredCount);
+    }
+    return out.sort((a, b) => a.i - b.i).map(x => x.g.id);
+}
+
+// يحوّل اختيار المعلم إلى مجموعة معرّفات مقاطع مسموحة (null = كل النطاق):
+//   selection = { mode: 'all' | 'hizb' | 'surah' | 'resume', ids: [...] }
+//   hizb  : ids = معرّفات مجموعات (groups[].id)       surah : ids = أرقام سور
+//   resume: «أكمل» — ما لم يُغطَّ بعد من نطاق الواجب السابق (lastScopeSegIds ∩ uncoveredSet)
+export function selectionSegIds({ path, groups = [], selection, lastScopeSegIds = [], uncoveredSet = new Set() }) {
+    const mode = selection && selection.mode;
+    const ids = (selection && selection.ids) || [];
+    if (mode === 'hizb') {
+        const want = new Set(ids);
+        const out = new Set();
+        groups.forEach(g => { if (want.has(g.id)) g.segIds.forEach(id => out.add(id)); });
+        return out;
+    }
+    if (mode === 'surah') {
+        const want = new Set(ids.map(Number));
+        return new Set(path.segments.filter(s => want.has(s.surah)).map(s => s.id));
+    }
+    if (mode === 'resume') {
+        return new Set(lastScopeSegIds.filter(id => uncoveredSet.has(id) && path.byId.has(id)));
+    }
+    return null;
+}
+
+// ------------------------------------------
 // ٤) تخطيط الواجب الذكي
 // ------------------------------------------
 
@@ -369,8 +482,9 @@ function shuffled(arr, rng) {
     return a;
 }
 
-function scoreSegment(seg, state, now, rng) {
+function scoreSegment(seg, state, now, rng, avoid) {
     let sc = rng() * 0.3;
+    if (avoid && avoid.has(seg.id)) sc -= 2;          // أُسند في واجب لم يُسلَّم بعد: نؤخّره ما دام غيره متاحاً
     if (state.level === 'unseen') return sc + 1.0;
     const interval = Math.max(1, LEVEL_INTERVAL_DAYS[state.level]) * DAY_MS;
     sc += Math.max(-1, Math.min(3, (now - state.dueTs) / interval));
@@ -378,12 +492,12 @@ function scoreSegment(seg, state, now, rng) {
     return sc;
 }
 
-function takeSegments(pool, k, states, now, rng) {
+function takeSegments(pool, k, states, now, rng, avoid) {
     const picks = [];
     if (!pool.length || k <= 0) return picks;
     while (picks.length < k) {
         const ranked = pool
-            .map(s => ({ s, sc: scoreSegment(s, states.get(s.id) || UNSEEN_STATE, now, rng) }))
+            .map(s => ({ s, sc: scoreSegment(s, states.get(s.id) || UNSEEN_STATE, now, rng, avoid) }))
             .sort((a, b) => b.sc - a.sc);
         for (const r of ranked) { picks.push(r.s); if (picks.length >= k) break; }
     }
@@ -392,7 +506,7 @@ function takeSegments(pool, k, states, now, rng) {
 
 // يرجع: { items:[{seg, cat, fmt, skill, reason}], quotas, weakSkills, skillSlots }
 export function planHomework({ n, path, classes, states, skillStats, now = Date.now(), rng = Math.random,
-                               focusFilter = null, multiSurah = true, opts = {} }) {
+                               focusFilter = null, multiSurah = true, avoidSegIds = null, opts = {} }) {
     const o = { errCap: THRESHOLDS.errCap, skillCap: THRESHOLDS.skillCap, manualCap: THRESHOLDS.manualCap, ...opts };
     const segs = (path.segments || []).filter(s => !focusFilter || focusFilter(s));
     if (!segs.length || !(n > 0)) return { items: [], quotas: {}, weakSkills: [], skillSlots: 0 };
@@ -412,19 +526,20 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
     const pools = { new: [], near: [], far: [] };
     segs.forEach(s => { if (!errSet.has(s.id)) pools[classes.get(s.id) || 'far'].push(s); });
 
+    // سقف كل فئة = حجم مجمّعها، والفائض يذهب لفئات فيها متّسع (قريب ثم بعيد ثم جديد) فتتسع التغطية بدل تكرار المقطع نفسه؛
+    // وما زاد عن مجموع المتاح كلّه يُكرَّر بصيغ مختلفة (نطاق صغير)
     let spill = 0;
-    ['new', 'near', 'far'].forEach(c => {
-        if (!pools[c].length && quota[c] > 0) {
-            const target = ['near', 'far', 'new'].find(x => pools[x].length && x !== c);
-            if (target) quota[target] += quota[c]; else spill += quota[c];
-            quota[c] = 0;
-        }
+    ['new', 'near', 'far'].forEach(c => { if (quota[c] > pools[c].length) { spill += quota[c] - pools[c].length; quota[c] = pools[c].length; } });
+    ['near', 'far', 'new'].forEach(c => {
+        if (spill <= 0) return;
+        const add = Math.min(pools[c].length - quota[c], spill);
+        quota[c] += add; spill -= add;
     });
 
     const picked = [];
     errSegs.forEach(s => picked.push({ seg: s, cat: 'err' }));
-    ['new', 'near', 'far'].forEach(c => takeSegments(pools[c], quota[c], states, now, rng).forEach(s => picked.push({ seg: s, cat: c })));
-    if (spill > 0) takeSegments(segs, spill, states, now, rng).forEach(s => picked.push({ seg: s, cat: classes.get(s.id) || 'far' }));
+    ['new', 'near', 'far'].forEach(c => takeSegments(pools[c], quota[c], states, now, rng, avoidSegIds).forEach(s => picked.push({ seg: s, cat: c })));
+    if (spill > 0) takeSegments(segs, spill, states, now, rng, avoidSegIds).forEach(s => picked.push({ seg: s, cat: classes.get(s.id) || 'far' }));
 
     // ٣) المهارات الضعيفة تأخذ حصة موزونة (لا كل الواجب)
     const weakSkills = SKILLS

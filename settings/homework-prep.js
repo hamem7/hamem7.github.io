@@ -2,8 +2,8 @@
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
-import { loadContext as loadTrackingContext, planSmartHomework, listFocusOptions } from '../core/trackingService.js';
-import { segLabel, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
+import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks, HW_PER_WEEK } from '../core/trackingService.js';
+import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
 // 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
@@ -1297,6 +1297,7 @@ function setupListeners() {
     setupTargetStudentSearch();
 
     document.getElementById('btn-generate-hw')?.addEventListener('click', generateSmartQuestions);
+    bindScopePanel();
 
     document.getElementById('btn-save-hw-publish')?.addEventListener('click', () => saveHomeworkToDB('published'));
     document.getElementById('btn-save-hw-draft')?.addEventListener('click', () => saveHomeworkToDB('draft'));
@@ -1348,22 +1349,53 @@ function setupSmartPanelStatic() {
     set('hw-smart-desc', L('اختر الطالب، وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه ومواضع ضعفه.', 'Pick the student; the homework is built automatically from their memorization range, mistakes and weak spots.'));
     set('hw-assign-label', L('👤 الطالب (مطلوب):', '👤 Student (required):'));
     set('hw-qcount-label', L('عدد الأسئلة:', 'Number of questions:'));
-    set('hw-focus-label', L('ركّز على (اختياري، من داخل حفظه):', 'Focus on (optional, within their range):'));
+    set('hw-cycle-label', L('دورة المراجعة (أسابيع):', 'Review cycle (weeks):'));
     set('btn-generate-hw', L('⚙️ توليد الواجب الذكي', '⚙️ Generate smart homework'));
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
-    const focus = document.getElementById('hw-focus-select');
-    if (focus) focus.innerHTML = `<option value="">${esc(L('كل نطاق حفظه', 'All of their range'))}</option>`;
+    set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
+    set('hw-scope-lbl-all', L('كل النطاق', 'Whole range'));
+    set('hw-scope-lbl-hizb', L('أحزاب محددة', 'Chosen hizbs'));
+    set('hw-scope-lbl-surah', L('سور محددة', 'Chosen surahs'));
+    set('hw-scope-lbl-resume', L('▶ أكمل السابق', '▶ Continue the last one'));
+    set('hw-btn-suggest', L('✨ اقترح لي', '✨ Suggest'));
+    const cycle = document.getElementById('hw-cycle-weeks');
+    if (cycle) cycle.value = String(getCycleWeeks());
 }
 
-// بطاقة معلومات الطالب: النطاق، تنبيه تقادم موضع الحفظ الشهري، حالة تعلّم النظام، وخيارات التركيز
+// ---- حالة لوحة النطاق ----
+let scopeMode = 'all';          // all | hizb | surah | resume
+let scopeIds = new Set();       // hizb: معرّفات المجموعات (hizb:60 / quarter:237)، surah: أرقام السور
+let scopeUnit = null;           // null = تلقائي (أرباع لحفظ صغير، أحزاب لأكبر)
+let smartStudent = null, smartCtx = null, smartModel = null, smartResume = null;
+let lastGen = null;             // معلومات آخر توليد: لحفظ «آخر نطاق» عند النشر ولسطر التغطية في المعاينة
+
+const $id = (id) => document.getElementById(id);
+const clampQ = (v) => Math.max(3, Math.min(50, Math.round(v)));
+const currentCount = () => { const v = parseInt($id('hw-q-count-smart').value); return isNaN(v) ? 10 : v; };
+const setCount = (v) => { $id('hw-q-count-smart').value = String(clampQ(v)); updateCoverageLine(); };
+const readCycleWeeks = () => { const v = parseInt($id('hw-cycle-weeks').value); return (v >= 1 && v <= 26) ? v : getCycleWeeks(); };
+
+function currentSelection() {
+    return { mode: scopeMode, ids: [...scopeIds], unit: smartModel ? smartModel.unit : scopeUnit };
+}
+
+function tileLabel(g) { return g.unit === 'quarter' ? `${L('ح', 'H')}${g.hizb}·${g.quarter}` : `${L('ح', 'H')}${g.hizb}`; }
+
+function selectionLabel() {
+    if (scopeMode === 'resume') return L('تكملة الواجب السابق', 'Continuation of the last homework');
+    if (scopeMode === 'hizb' && smartModel) return smartModel.groups.filter(g => scopeIds.has(g.id)).map(tileLabel).join(L('، ', ', '));
+    if (scopeMode === 'surah' && smartModel) return smartModel.surahs.filter(s => scopeIds.has(s.number)).map(s => s.name).join(L('، ', ', '));
+    return L('كل النطاق', 'Whole range');
+}
+
+// بطاقة معلومات الطالب: النطاق، تنبيه تقادم موضع الحفظ الشهري، حالة تعلّم النظام + لوحة النطاق
 async function refreshSmartInfo() {
     const box = document.getElementById('hw-smart-info');
-    const focusSel = document.getElementById('hw-focus-select');
     if (!box) return;
-    const resetFocus = () => { if (focusSel) focusSel.innerHTML = `<option value="">${esc(L('كل نطاق حفظه', 'All of their range'))}</option>`; };
-    resetFocus();
     const student = await selectedStudent();
-    if (!student) { box.style.display = 'none'; box.innerHTML = ''; return; }
+    if (!student) { smartStudent = smartCtx = smartModel = smartResume = null; box.style.display = 'none'; box.innerHTML = ''; $id('hw-scope-box').style.display = 'none'; updateCoverageLine(); return; }
+    if (!smartStudent || smartStudent.id !== student.id) { scopeMode = 'all'; scopeIds = new Set(); scopeUnit = null; lastGen = null; }
+    smartStudent = student;
 
     box.style.display = 'block';
     box.innerHTML = `<div style="color:#64748b;">${esc(L('جارٍ تحميل ملف الطالب…', 'Loading the student file…'))}</div>`;
@@ -1372,6 +1404,7 @@ async function refreshSmartInfo() {
     catch (err) { console.error('تعذر تحميل ملف التتبّع:', err); box.style.display = 'none'; return; }
     if (selectedStudentName() !== student.name) return;   // تغيّر الطالب أثناء التحميل
     if (!ctx) { box.style.display = 'none'; return; }
+    smartCtx = ctx;
 
     const card = (bg, border, html) => `<div style="background:${bg}; border:1px solid ${border}; border-radius:12px; padding:12px 14px; margin-bottom:8px; line-height:1.7; font-size:1rem;">${html}</div>`;
     const btn = (id, label, extra = '') => `<button type="button" id="${id}" class="btn" style="padding:7px 14px; font-size:0.95rem; min-width:unset; margin-top:8px; margin-inline-end:6px; ${extra}">${label}</button>`;
@@ -1385,7 +1418,7 @@ async function refreshSmartInfo() {
         const first = segLabel(ctx.path.segments[0].id), last = segLabel(ctx.path.segments[ctx.path.segments.length - 1].id);
         const status = learningStatus(ctx);
         html += card('#ecfdf5', '#a7f3d0', `📖 <b>${esc(L('نطاق الحفظ المعتمد', 'Memorization range used'))}:</b> ${esc(first)} ← ${esc(last)}
-            <span style="color:#64748b;">(${ctx.path.total} ${esc(L('آية', 'ayahs'))} · ${ctx.path.segments.length} ${esc(L('مقطعاً', 'segments'))})</span><br>
+            <span style="color:#64748b;">(${ctx.path.total} ${esc(L('آية', 'ayahs'))} · ${esc(segCount(ctx.path.segments.length))})</span><br>
             <span style="color:${status.ready ? '#047857' : '#92400e'};">🧠 ${esc(status.text)}</span><br>
             ${btn('hw-btn-skill-profile', '📊 ' + esc(L('ملف المهارات', 'Skills profile')), 'background:#0ea5e9;')}`);
         if (ctx.stale.stale) {
@@ -1396,34 +1429,165 @@ async function refreshSmartInfo() {
         }
     }
     box.innerHTML = html;
-    document.getElementById('hw-btn-skill-profile')?.addEventListener('click', () => openSkillProfileModal(student));
-    document.getElementById('hw-btn-update-pos')?.addEventListener('click', async () => {
+    $id('hw-btn-skill-profile')?.addEventListener('click', () => openSkillProfileModal(student));
+    $id('hw-btn-update-pos')?.addEventListener('click', async () => {
         const now = new Date();
         const { openMonthEndingForStudent } = await import('../components/monthlyMemorizationBulkScreen.js');
         const saved = await openMonthEndingForStudent(student, now.getFullYear(), now.getMonth() + 1);
         if (saved) await refreshSmartInfo();
     });
+    await refreshScopePanel();
+}
 
-    // خيارات التركيز: الأجزاء والسور التي يشملها حفظه فقط
-    if (ctx.range.ok && focusSel) {
-        try {
-            const opts = await listFocusOptions(ctx);
-            if (selectedStudentName() !== student.name) return;
-            const juz = opts.juz.map(j => `<option value="juz:${j}">${esc(L(`الجزء ${j}`, `Juz ${j}`))}</option>`).join('');
-            const surahs = opts.surahs.map(s => `<option value="surah:${s.number}">${esc(`${s.number}. ${surahLabelLocal(s)}`)}</option>`).join('');
-            focusSel.innerHTML = `<option value="">${esc(L('كل نطاق حفظه', 'All of their range'))}</option>
-                <optgroup label="${esc(L('الأجزاء', 'Juz'))}">${juz}</optgroup><optgroup label="${esc(L('السور', 'Surahs'))}">${surahs}</optgroup>`;
-        } catch (err) { console.warn('تعذر بناء خيارات التركيز:', err); }
+// يبني نموذج الاختيار (أحزاب/سور/تغطية) ويرسم اللوحة
+async function refreshScopePanel() {
+    const box = $id('hw-scope-box');
+    if (!smartStudent || !smartCtx || !smartCtx.range.ok) { box.style.display = 'none'; smartModel = smartResume = null; updateCoverageLine(); return; }
+    try {
+        smartModel = await buildSelectionModel(smartStudent, smartCtx, { unit: scopeUnit, cycleWeeks: readCycleWeeks() });
+    } catch (err) { console.warn('تعذر بناء لوحة النطاق:', err); box.style.display = 'none'; smartModel = null; updateCoverageLine(); return; }
+    smartResume = getResumeInfo(smartStudent, smartCtx, smartModel);
+    if (scopeMode === 'resume' && !(smartResume && smartResume.uncoveredCount > 0)) scopeMode = 'all';
+    box.style.display = 'block';
+    renderScopePanel();
+}
+
+function renderScopePanel() {
+    if (!smartModel) return;
+    const m = smartModel;
+    document.querySelectorAll('input[name="hwScope"]').forEach(r => { r.checked = (r.value === scopeMode); });
+    const hasResume = !!(smartResume && smartResume.uncoveredCount > 0);
+    $id('hw-scope-resume-wrap').style.display = hasResume ? '' : 'none';
+    $id('hw-btn-unit').textContent = m.unit === 'hizb' ? L('⇄ عرض بالأرباع', '⇄ Show quarters') : L('⇄ عرض بالأحزاب', '⇄ Show hizbs');
+
+    // «أكمل»: نقترحه مرة أخرى من الواجب السابق بما تبقى فيه
+    const banner = $id('hw-resume-banner');
+    if (smartResume && smartResume.uncoveredCount > 0) {
+        banner.innerHTML = `<div class="hw-resume">▶ ${esc(L(`في واجبك السابق (${smartResume.label}) غُطّي ${smartResume.pct}٪؛ تبقّى ${smartResume.uncoveredCount} من ${segCount(smartResume.total)} لم يُفحص.`,
+            `In your last homework (${smartResume.label}) ${smartResume.pct}% was covered; ${smartResume.uncoveredCount} of ${segCount(smartResume.total)} are still unchecked.`))}
+            <button type="button" id="hw-btn-resume" class="hw-mini-btn" style="margin-inline-start:8px;">${esc(L('أكمل', 'Continue'))}</button></div>`;
+    } else if (smartResume) {
+        banner.innerHTML = `<div class="hw-resume" style="background:#f0fdf4;border-color:#bbf7d0;">✓ ${esc(L('اكتملت تغطية نطاق الواجب السابق — جرّب «اقترح لي» لنطاق جديد.', 'The last homework\'s range is fully covered — try "Suggest" for a new range.'))}</div>`;
+    } else banner.innerHTML = '';
+
+    const strip = $id('hw-hizb-strip'), list = $id('hw-surah-list');
+    strip.style.display = (scopeMode === 'surah') ? 'none' : '';
+    list.style.display = (scopeMode === 'surah') ? 'flex' : 'none';
+
+    strip.innerHTML = m.groups.map(g => {
+        const total = g.cov.total, unc = g.cov.uncoveredCount;
+        const covPct = total ? Math.round((total - unc) / total * 100) : 100;
+        const days = g.lastTs ? Math.max(0, Math.round((m.now - g.lastTs) / 86400000)) : null;
+        const status = unc === 0 ? `✓ ${L('غُطّي', 'covered')}` : (days === null ? L('لم يُفحص', 'unchecked') : L(`قبل ${days} يوم`, `${days}d ago`));
+        const sel = scopeMode === 'hizb' && scopeIds.has(g.id);
+        const where = `${segLabel(g.segIds[0])}`;
+        const title = `${L('الحزب', 'Hizb')} ${g.hizb} (${L('الجزء', 'Juz')} ${g.juz}) — ${L('يبدأ من', 'starts at')} ${where} · ${segCount(total)} · ${L('لم يُغطَّ', 'uncovered')}: ${unc}${g.fixCount ? ` · ${L('أخطاء مفتوحة', 'open mistakes')}: ${g.fixCount}` : ''}${g.pctMemorized < 100 ? ` · ${L('محفوظ منه', 'memorized')} ${g.pctMemorized}%` : ''}`;
+        return `<button type="button" class="hw-tile${sel ? ' sel' : ''}${g.pctMemorized < 100 ? ' partial' : ''}" data-id="${esc(g.id)}" title="${esc(title)}">
+            ${g.fixCount ? `<span class="fix">⚠${g.fixCount}</span>` : ''}<b>${esc(tileLabel(g))}</b>${total} ${esc(L('مقطع', 'seg'))}<br>${esc(status)}${g.pctMemorized < 100 ? `<br>(${g.pctMemorized}%)` : ''}
+            <div class="bar"><i style="width:${covPct}%"></i></div></button>`;
+    }).join('');
+
+    list.innerHTML = m.surahs.map(s => `<button type="button" class="hw-sur-chip${scopeMode === 'surah' && scopeIds.has(s.number) ? ' sel' : ''}" data-n="${s.number}">${esc(surahLabelLocal(s))}${s.cov.uncoveredCount ? ` <small style="color:#b45309;">·${s.cov.uncoveredCount}</small>` : ' ✓'}</button>`).join('');
+    updateCoverageLine();
+}
+
+// سطر التغطية تحت عدد الأسئلة: كم يغطي الواجب، وكم سؤالاً يلزم لتغطية المختار كله
+function updateCoverageLine() {
+    const el = $id('hw-coverage-line');
+    if (!el) return;
+    if (!smartModel || !smartCtx || !smartCtx.range.ok) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const m = smartModel, n = currentCount();
+    const allowed = resolveAllowedSegIds(smartStudent, smartCtx, m, currentSelection());
+    el.style.display = '';
+    if (allowed && allowed.size === 0) {
+        el.innerHTML = scopeMode === 'hizb' ? esc(L('اختر حزباً واحداً على الأقل من الشريط أعلاه.', 'Pick at least one hizb from the strip above.'))
+            : scopeMode === 'surah' ? esc(L('اختر سورة واحدة على الأقل.', 'Pick at least one surah.')) : esc(L('لا شيء متبقٍّ من الواجب السابق.', 'Nothing left from the last homework.'));
+        return;
     }
+    const segIds = allowed ? [...allowed] : m.allSegIds;
+    const cov = m.cov(segIds);
+    const adv = coverageAdvice({ total: cov.total, uncoveredCount: cov.uncoveredCount, n, hwPerWeek: HW_PER_WEEK, cycleWeeks: m.cycleWeeks });
+    const btn = (q) => `<button type="button" data-setn="${q}">${esc(L(`اكتب ${q}`, `Set ${q}`))}</button>`;
+    const lines = [];
+    lines.push(`📊 ${esc(L(`المختار: ${segCount(cov.total)} — لم يُفحص خلال دورة ${m.cycleWeeks} أسابيع: ${cov.uncoveredCount}`, `Selected: ${segCount(cov.total)} — unchecked within the ${m.cycleWeeks}-week cycle: ${cov.uncoveredCount}`))}${cov.pending ? esc(L(` (و${cov.pending} أُسندت ولم تُسلَّم)`, ` (+${cov.pending} assigned, not yet submitted)`)) : ''}`);
+    if (cov.uncoveredCount === 0) {
+        lines.push(`✓ ${esc(L('غُطّي المختار كله خلال الدورة — اختر نطاقاً آخر أو «اقترح لي».', 'Everything selected is covered within the cycle — pick another range or "Suggest".'))}`);
+    } else {
+        lines.push(esc(L(`هذا الواجب (${qCount(n)}) يغطي ≈ ${adv.pctOfUncovered}٪ مما لم يُفحص${adv.pctAfter < 100 ? `، فتصير التغطية ${adv.pctAfter}٪` : ''}.`,
+            `This homework (${qCount(n)}) covers ≈ ${adv.pctOfUncovered}% of what is unchecked${adv.pctAfter < 100 ? `, bringing coverage to ${adv.pctAfter}%` : ''}.`)));
+        if (n < cov.uncoveredCount) {
+            lines.push(adv.tooMany
+                ? `<span class="warn">${esc(L(`لتغطيته كله تحتاج ≈ ${adv.homeworksNeeded} واجبات بهذا العدد (≈ ${adv.weeksNeeded} أسبوعاً). يمكنك اختيار أحزاب أقل، وسأقترح «أكمل» في المرة القادمة.`,
+                    `To cover it all you need ≈ ${adv.homeworksNeeded} homeworks of this size (≈ ${adv.weeksNeeded} weeks). Choose fewer hizbs; "Continue" will be suggested next time.`))}</span>${btn(adv.needForAll)}`
+                : `${esc(L(`لتغطيته كله اكتب ${qCount(adv.needForAll)}، أو أبقِ العدد والباقي يكمله «أكمل» في الواجب القادم.`, `To cover it all write ${qCount(adv.needForAll)}, or keep this number and "Continue" will finish the rest next time.`))}${btn(adv.needForAll)}`);
+        } else if (n > cov.uncoveredCount) {
+            lines.push(`<span class="warn">${esc(L('عدد الأسئلة أكبر من المقاطع غير المفحوصة: سيُكرَّر بعضها بصيغ مختلفة.', 'More questions than unchecked segments: some segments repeat in different formats.'))}</span>`);
+        }
+    }
+    if (scopeMode === 'all' && cov.total > 0) {
+        lines.push(esc(L(`لدورة كاملة كل ${m.cycleWeeks} أسابيع بواجبين أسبوعياً يلزم ≈ ${qCount(adv.perHwForCycle)} لكل واجب${adv.cycleTooMany ? ' (كثير على واجب واحد — اختر أحزاباً بالتناوب أو أطل مدة الدورة)' : ''}.`,
+            `For a full pass every ${m.cycleWeeks} weeks with two homeworks a week you need ≈ ${qCount(adv.perHwForCycle)} per homework${adv.cycleTooMany ? ' (too many for one homework — alternate hizbs or lengthen the cycle)' : ''}.`)) + (adv.cycleTooMany ? '' : btn(adv.perHwForCycle)));
+    }
+    if (scopeMode === 'hizb' && scopeIds.size > n) {
+        lines.push(`<span class="warn">${esc(L(`اخترت ${scopeIds.size} مجموعات و${qCount(n)}: أقل من سؤال لكل واحدة، فلن تُغطَّى كلها.`, `You chose ${scopeIds.size} groups and ${qCount(n)}: fewer than one each, so not all will be covered.`))}</span>`);
+    }
+    el.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
+}
+
+function bindScopePanel() {
+    const q = (id) => $id(id);
+    document.querySelectorAll('input[name="hwScope"]').forEach(r => r.addEventListener('change', () => {
+        scopeMode = r.value;
+        scopeIds = new Set();
+        if (scopeMode === 'resume' && smartResume) setCount(smartResume.uncoveredCount);
+        renderScopePanel();
+    }));
+    q('hw-hizb-strip')?.addEventListener('click', (e) => {
+        const tile = e.target.closest('.hw-tile');
+        if (!tile) return;
+        if (scopeMode !== 'hizb') { scopeMode = 'hizb'; scopeIds = new Set(); }
+        const id = tile.dataset.id;
+        if (scopeIds.has(id)) scopeIds.delete(id); else scopeIds.add(id);
+        renderScopePanel();
+    });
+    q('hw-surah-list')?.addEventListener('click', (e) => {
+        const chip = e.target.closest('.hw-sur-chip');
+        if (!chip) return;
+        const n = Number(chip.dataset.n);
+        if (scopeIds.has(n)) scopeIds.delete(n); else scopeIds.add(n);
+        renderScopePanel();
+    });
+    q('hw-resume-banner')?.addEventListener('click', (e) => {
+        if (!e.target.closest('#hw-btn-resume')) return;
+        scopeMode = 'resume'; scopeIds = new Set();
+        if (smartResume) setCount(smartResume.uncoveredCount);
+        renderScopePanel();
+    });
+    q('hw-btn-suggest')?.addEventListener('click', () => {
+        if (!smartModel) return;
+        const ids = suggestSelection(smartModel, smartCtx, currentCount());
+        if (!ids.length) return alert(L('كل نطاقه مغطّى حديثاً — لا شيء يُقترح الآن.', 'Their whole range is covered recently — nothing to suggest now.'));
+        scopeMode = 'hizb'; scopeIds = new Set(ids);
+        const unc = smartModel.groups.filter(g => scopeIds.has(g.id)).reduce((a, g) => a + g.cov.uncoveredCount, 0);
+        setCount(Math.max(unc, 3));
+        renderScopePanel();
+    });
+    q('hw-btn-unit')?.addEventListener('click', async () => {
+        if (!smartModel) return;
+        scopeUnit = smartModel.unit === 'hizb' ? 'quarter' : 'hizb';
+        if (scopeMode === 'hizb') scopeIds = new Set();
+        await refreshScopePanel();
+    });
+    q('hw-q-count-smart')?.addEventListener('input', updateCoverageLine);
+    q('hw-cycle-weeks')?.addEventListener('change', async () => { setCycleWeeks(readCycleWeeks()); await refreshScopePanel(); });
+    q('hw-coverage-line')?.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-setn]');
+        if (b) setCount(Number(b.dataset.setn));
+    });
 }
 
 function surahLabelLocal(s) {
     return AppState.currentLang === 'en' ? surahLabel(s.number) : `${t('سورة')} ${s.name}`;
-}
-
-function parseFocusValue(v) {
-    const m = /^(juz|surah):(\d+)$/.exec(v || '');
-    return m ? { type: m[1], value: Number(m[2]) } : null;
 }
 
 async function generateSmartQuestions() {
@@ -1432,19 +1596,26 @@ async function generateSmartQuestions() {
     if (!student) return alert(L('اختر الطالب أولاً — كل واجب يُبنى على نطاق حفظ طالب محدد.', 'Pick a student first — every homework is built on a specific student\'s range.'));
     const n = parseInt(document.getElementById('hw-q-count-smart').value);
     if (isNaN(n) || n < 3 || n > 50) return alert(L('اختر عدد أسئلة بين 3 و50.', 'Choose a number of questions between 3 and 50.'));
+    const selection = currentSelection();
+    if ((scopeMode === 'hizb' || scopeMode === 'surah') && scopeIds.size === 0) return alert(L('اختر حزباً أو سورة واحدة على الأقل، أو اختر «كل النطاق».', 'Pick at least one hizb or surah, or choose "Whole range".'));
 
     const btn = document.getElementById('btn-generate-hw');
     const original = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + L('جارٍ بناء الواجب…', 'Building…'); }
     try {
-        const res = await planSmartHomework(student, n, { focus: parseFocusValue(document.getElementById('hw-focus-select').value), hwEngine });
+        const res = await planSmartHomework(student, n, { selection, hwEngine });
         if (!res.ok) {
             if (res.reason === 'no_range') { await refreshSmartInfo(); return alert(L(`حدّد نطاق حفظ ${student.name} أولاً (في ملفه أو بتسجيل موضعه الشهري).`, `Set ${student.name}'s memorization range first (in their file or by recording a monthly position).`)); }
+            if (res.reason === 'empty_selection') return alert(L('لا مقاطع في هذا الاختيار (ربما غُطّي كله). اختر نطاقاً آخر.', 'No segments in this selection (maybe all covered). Pick another range.'));
             return alert(t("لم يتم العثور على آيات كافية."));
         }
         currentGeneratedQuestions = res.questions;
         currentTracking = res.tracking;
         currentHwScope = buildSmartScope(res.ctx);
+        const uncovered = new Set(res.model.cov(res.scopeSegIds).uncovered);
+        const newly = new Set(res.why.map(m => m.segment).filter(id => uncovered.has(id))).size;
+        lastGen = { mode: scopeMode, ids: [...scopeIds], unit: res.model.unit, label: selectionLabel(), segIds: res.scopeSegIds,
+            distinct: res.distinctSegments, scopeTotal: res.scopeSegIds.length, newly, uncoveredBefore: uncovered.size };
         renderPreview();
     } catch (err) {
         console.error('خطأ في بناء الواجب الذكي:', err);
@@ -1452,6 +1623,16 @@ async function generateSmartQuestions() {
     } finally {
         if (btn) { btn.disabled = false; btn.textContent = original; }
     }
+}
+
+// بعد حفظ الواجب (نشر/مسودة) نتذكر نطاقه لاقتراح «أكمل» في المرة القادمة (ما عدا «أكمل» نفسه: يبقى النطاق الأصلي)
+async function rememberLastScope(studentName) {
+    if (!lastGen || lastGen.mode === 'resume') return;
+    try {
+        const students = await AppState.studentManager.getAllStudents();
+        const st = students.find(s => s.name === studentName);
+        if (st) saveLastScope(st, { mode: lastGen.mode, ids: lastGen.ids, unit: lastGen.unit, label: lastGen.label, segIds: lastGen.segIds });
+    } catch (e) { console.warn('تعذر حفظ نطاق الواجب:', e); }
 }
 
 // النطاق المخزَّن مع الواجب (للشهادة وسجل الطالب): من أول سورة في مسار حفظه إلى موضع توقّفه. صيغة range المعتادة + علامة smart
@@ -1513,7 +1694,9 @@ function renderSmartSummary() {
     const total = metas.length;
     const order = ['new', 'near', 'far', 'err'].filter(c => counts[c]);
     bar.innerHTML = `<div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:#e2e8f0;">${order.map(c => `<i style="width:${counts[c] / total * 100}%; background:${colors[c]};"></i>`).join('')}</div>
-        <div style="display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-size:0.9rem;">${order.map(c => `<span><span class="sk-p ${catClass(c)}">${esc(catLabel(c))}</span>${counts[c]}</span>`).join('')}</div>`;
+        <div style="display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-size:0.9rem;">${order.map(c => `<span><span class="sk-p ${catClass(c)}">${esc(catLabel(c))}</span>${counts[c]}</span>`).join('')}</div>
+        ${lastGen ? `<div style="margin-top:8px; font-size:0.9rem; color:#047857;">📊 ${esc(L(`يغطي هذا الواجب ${lastGen.distinct} من ${segCount(lastGen.scopeTotal)} في «${lastGen.label}» — منها ${lastGen.newly} لم تُفحص خلال الدورة (تبقّى ${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)}).`,
+            `This homework covers ${lastGen.distinct} of ${segCount(lastGen.scopeTotal)} in "${lastGen.label}" — ${lastGen.newly} of them not checked within the cycle (${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)} left).`))}</div>` : ''}`;
 }
 
 function renderPreview() {
@@ -1739,6 +1922,7 @@ async function saveHomeworkToDB(statusType) {
                 tracking: trackingToSave         // 🌟 [الواجب الذكي] خريطة المهارة/الموضع لكل سؤال
             };
             await AppState.homeworkManager.createHomework(draftObj);
+            await rememberLastScope(targetStudentName);
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));
             document.getElementById('btn-tab-history').click();
@@ -1782,6 +1966,7 @@ async function saveHomeworkToDB(statusType) {
         };
         try { await AppState.homeworkManager.createHomework(homeworkObj); }
         catch (err) { console.error("تعذر حفظ النسخة المحلية (لا يؤثر على الواجب المنشور):", err); }
+        await rememberLastScope(targetStudentName);   // 🌟 لاقتراح «أكمل» في الواجب القادم
 
         restorePublishBtn();
         document.getElementById('share-modal-title').innerText = t('hw_share_success');
@@ -1797,6 +1982,7 @@ async function saveHomeworkToDB(statusType) {
         document.getElementById('hw-share-modal').style.display = 'flex';
         verifyPublicLinkInBackground(created.id);   // 🌟 فحص متأخر غير حاجز (راجع التعليق أعلاه)
         await loadHomeworkDashboard();
+        refreshSmartInfo();                         // 🌟 تحديث بطاقة الطالب ولوحة النطاق (التغطية و«أكمل») بعد الإسناد
     } catch (error) {
         console.error("خطأ عام في حفظ الواجب:", error);
         alert(t("حدث خطأ أثناء الحفظ. يرجى تحديث الصفحة."));

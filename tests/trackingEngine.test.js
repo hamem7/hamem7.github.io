@@ -8,7 +8,8 @@
 import assert from 'node:assert/strict';
 import {
   SEGMENT_SIZE, DAY_MS, segmentsOfSurah, segmentIdFor, buildPath, pathPosition, resolveRange,
-  classifyPath, monthlyStaleness, computeSegmentStates, computeSkillStats, qualityCounts, diagnose, planHomework
+  classifyPath, monthlyStaleness, computeSegmentStates, computeSkillStats, qualityCounts, diagnose, planHomework,
+  hizbOfQuarter, juzOfHizb, quarterInHizb, groupSegments, selectionSegIds, coverageOf, coverageAdvice, suggestGroups, buildContext, skillSummaryForWindow
 } from '../engine/trackingEngine.js';
 import { HW_FORMATS, inferHwFormat, skillOfGameType, parseQualityCodes } from '../engine/skillMap.js';
 import {
@@ -305,6 +306,128 @@ await test('planHomework: ترتيب الأسئلة ليس بترتيب المص
   const sortedAsc = [...ids].sort((a, b) => a - b), sortedDesc = [...ids].sort((a, b) => b - a);
   assert.notDeepEqual(ids, sortedAsc);
   assert.notDeepEqual(ids, sortedDesc);
+});
+
+
+// ============ الأحزاب والتغطية والاقتراح ============
+// ربع وهمي رتيب: كلما نزل رقم السورة زاد الحزب نزولاً (يحاكي أن الناس في الحزب 60 وما قبلها أحزاب أدنى)
+const fakeQuarter = (surah) => 240 - (114 - surah);
+await test('hizb helpers: 240 ربعاً = 60 حزباً = 30 جزءاً، وجزء عمّ = الحزبان 59 و60', () => {
+  assert.equal(hizbOfQuarter(240), 60); assert.equal(hizbOfQuarter(233), 59); assert.equal(hizbOfQuarter(1), 1); assert.equal(hizbOfQuarter(4), 1); assert.equal(hizbOfQuarter(5), 2);
+  assert.equal(juzOfHizb(60), 30); assert.equal(juzOfHizb(59), 30); assert.equal(juzOfHizb(58), 29); assert.equal(juzOfHizb(1), 1);
+  assert.equal(quarterInHizb(240), 4); assert.equal(quarterInHizb(237), 1);
+});
+await test('groupSegments: كل مقطع في مجموعة واحدة بترتيب المسار (الناس أولاً) والحزب يحوي ربعيه', () => {
+  const groups = groupSegments(bigPath, fakeQuarter, 'hizb');
+  const all = groups.flatMap(g => g.segIds);
+  assert.equal(all.length, bigPath.segments.length);
+  assert.equal(new Set(all).size, all.length);
+  assert.equal(groups[0].hizb, 60);
+  assert.ok(groups.every((g, i) => i === 0 || g.hizb <= groups[i - 1].hizb));
+  assert.ok(groups.every(g => g.unit === 'hizb' && g.id === 'hizb:' + g.key && g.juz === Math.ceil(g.hizb / 2)));
+  assert.equal(groups.reduce((a, g) => a + g.ayahs, 0), bigPath.total);
+  const quarters = groupSegments(bigPath, fakeQuarter, 'quarter');
+  assert.ok(quarters.length > groups.length && quarters[0].quarter >= 1 && quarters[0].quarter <= 4);
+});
+await test('groupSegments: ربع غير معروف يُتجاوز بأمان', () => {
+  assert.equal(groupSegments(bigPath, () => null).length, 0);
+});
+
+const segIds15 = bigPath.segments.slice(0, 15).map(s => s.id);
+await test('coverageOf: المفحوص خلال الدورة / المُسنَد المعلّق / غير المغطّى', () => {
+  const events = [
+    ev({ segment: segIds15[0], ts: NOW - 5 * DAY_MS }),
+    ev({ segment: segIds15[1], ts: NOW - 50 * DAY_MS }),       // أقدم من الدورة (42 يوماً) فلا يُحسب
+    ev({ segment: 'غريب', ts: NOW })
+  ];
+  const c = coverageOf(segIds15, events, NOW, { cycleDays: 42, pendingSegIds: new Set([segIds15[2], segIds15[0]]) });
+  assert.deepEqual([c.total, c.examined, c.pending, c.uncoveredCount], [15, 1, 1, 13]);
+  assert.ok(!c.uncovered.includes(segIds15[0]) && !c.uncovered.includes(segIds15[2]) && c.uncovered.includes(segIds15[1]));
+  assert.equal(coverageOf(segIds15, events, NOW, { cycleDays: 60 }).examined, 2);
+});
+await test('coverageAdvice: حزب من 15 مقطعاً و10 أسئلة يغطي 67% ولتغطيته كله 15 سؤالاً', () => {
+  const a = coverageAdvice({ total: 15, uncoveredCount: 15, n: 10 });
+  assert.deepEqual([a.willCover, a.pctOfUncovered, a.pctAfter, a.needForAll, a.homeworksNeeded, a.tooMany], [10, 67, 67, 15, 2, false]);
+});
+await test('coverageAdvice: النطاق كله 300 مقطع: دورة 6 أسابيع بواجبين = 25 سؤالاً، و10 أسئلة = 15 أسبوعاً', () => {
+  const a = coverageAdvice({ total: 300, uncoveredCount: 300, n: 10, hwPerWeek: 2, cycleWeeks: 6 });
+  assert.equal(a.perHwForCycle, 25);
+  assert.equal(a.homeworksNeeded, 30); assert.equal(a.weeksNeeded, 15);
+  assert.equal(a.needForAll, 50); assert.equal(a.tooMany, true);
+  assert.equal(coverageAdvice({ total: 700, uncoveredCount: 700, n: 10 }).cycleTooMany, true);
+  assert.equal(coverageAdvice({ total: 600, uncoveredCount: 600, n: 10 }).cycleTooMany, false);   // 50 بالضبط يكفي
+});
+await test('coverageAdvice: ما غُطّي سابقاً يُحسب في التغطية بعد الواجب، وبلا متبقٍّ = 100%', () => {
+  const a = coverageAdvice({ total: 20, uncoveredCount: 5, n: 10 });
+  assert.deepEqual([a.willCover, a.pctOfUncovered, a.pctAfter, a.needForAll], [5, 100, 100, 5]);
+  const done = coverageAdvice({ total: 20, uncoveredCount: 0, n: 10 });
+  assert.deepEqual([done.willCover, done.homeworksNeeded, done.pctOfUncovered], [0, 0, 100]);
+  assert.equal(coverageAdvice({ total: 3, uncoveredCount: 1, n: 10 }).needForAll, 3);   // حدّ أدنى 3
+});
+await test('suggestGroups: يقترح الأحوج (غير المغطّى/الأقدم/الأخطاء) بترتيب المسار وبحدّ أقصى', () => {
+  const groups = groupSegments(bigPath, fakeQuarter, 'hizb');
+  // نغطّي كل المجموعات حديثاً عدا الثالثة والخامسة، وفي الخامسة أخطاء
+  const events = [];
+  groups.forEach((g, i) => { if (i !== 2 && i !== 4) g.segIds.forEach(id => events.push(ev({ segment: id, ts: NOW - DAY_MS, score: 1 }))); });
+  groups[4].segIds.slice(0, 2).forEach(id => events.push(ev({ segment: id, ts: NOW - 10 * DAY_MS, score: 0 })));
+  const states = computeSegmentStates(events, NOW);
+  const sug = suggestGroups(groups, states, (g) => coverageOf(g.segIds, events, NOW), NOW, { targetSegs: 100, maxGroups: 2 });
+  assert.deepEqual(sug, [groups[2].id, groups[4].id]);
+  const one = suggestGroups(groups, states, (g) => coverageOf(g.segIds, events, NOW), NOW, { targetSegs: 1, maxGroups: 3 });
+  assert.equal(one.length, 1);
+});
+await test('suggestGroups: نطاق مغطّى كله حديثاً لا يقترح شيئاً', () => {
+  const groups = groupSegments(bigPath, fakeQuarter, 'hizb');
+  const events = bigPath.segments.map(s => ev({ segment: s.id, ts: NOW - DAY_MS, score: 1 }));
+  const sug = suggestGroups(groups, computeSegmentStates(events, NOW), (g) => coverageOf(g.segIds, events, NOW), NOW);
+  assert.deepEqual(sug, []);
+});
+
+await test('selectionSegIds: كل النطاق = null، وأحزاب/سور محددة اتحادها، و«أكمل» = المتبقي من النطاق السابق ضمن المسار', () => {
+  const groups = groupSegments(bigPath, fakeQuarter, 'hizb');
+  assert.equal(selectionSegIds({ path: bigPath, groups, selection: { mode: 'all' } }), null);
+  const two = selectionSegIds({ path: bigPath, groups, selection: { mode: 'hizb', ids: [groups[0].id, groups[2].id] } });
+  assert.equal(two.size, groups[0].segIds.length + groups[2].segIds.length);
+  assert.ok(groups[0].segIds.every(id => two.has(id)) && !groups[1].segIds.some(id => two.has(id)));
+  const surahs = selectionSegIds({ path: bigPath, groups, selection: { mode: 'surah', ids: [80, 79] } });
+  assert.ok(surahs.size > 0 && [...surahs].every(id => id.startsWith('80:') || id.startsWith('79:')));
+  const last = groups[0].segIds;
+  const unc = new Set([last[1], last[3], 'غير-في-المسار']);
+  const resume = selectionSegIds({ path: bigPath, groups, selection: { mode: 'resume' }, lastScopeSegIds: last, uncoveredSet: unc });
+  assert.deepEqual([...resume].sort(), [last[1], last[3]].sort());
+  assert.equal(selectionSegIds({ path: bigPath, groups, selection: { mode: 'hizb', ids: ['hizb:999'] } }).size, 0);
+});
+await test('planHomework: اختيار من 15 مقطعاً و15 سؤالاً يغطي كل المقاطع (بلا تكرار) مهما كانت فئاتها', () => {
+  const set = new Set(segIds15);
+  for (let seed = 1; seed <= 15; seed++) {
+    const p = planHomework({ n: 15, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(seed), focusFilter: s => set.has(s.id) });
+    assert.equal(p.items.length, 15);
+    assert.equal(new Set(p.items.map(i => i.seg.id)).size, 15, 'seed ' + seed);
+  }
+  const p10 = planHomework({ n: 10, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(4), focusFilter: s => set.has(s.id) });
+  assert.equal(new Set(p10.items.map(i => i.seg.id)).size, 10);
+});
+await test('planHomework: أكثر من عدد المقاطع المتاحة = تكرار بصيغ مختلفة (لا فقدان أسئلة)', () => {
+  const set = new Set(segIds15.slice(0, 4));
+  const p = planHomework({ n: 10, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(2), focusFilter: s => set.has(s.id) });
+  assert.equal(p.items.length, 10);
+  assert.equal(new Set(p.items.map(i => i.seg.id)).size, 4);
+});
+await test('planHomework: المقاطع المُسندة في واجب لم يُسلَّم تتأخر ما دام غيرها متاحاً', () => {
+  const avoid = new Set(bigPath.segments.slice(0, 30).map(s => s.id));
+  for (let seed = 1; seed <= 8; seed++) {
+    const p = planHomework({ n: 10, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(seed), avoidSegIds: avoid });
+    assert.ok(p.items.every(i => !avoid.has(i.seg.id)), 'seed ' + seed);
+  }
+});
+
+await test('buildContext وskillSummaryForWindow: السياق الكامل وملخص نافذة زمنية', () => {
+  const evs = [ev({ segment: segIds15[0], skill: 'recall', score: 1, ts: NOW - 2 * DAY_MS }), ev({ segment: segIds15[1], skill: 'recall', score: 0, ts: NOW - 40 * DAY_MS })];
+  const ctx = buildContext({ surahsData, student: { memoFrom: 'الناس', memoTo: 'النازعات' }, records: [], events: evs, now: NOW });
+  assert.ok(ctx.range.ok && ctx.path && ctx.levels.needs_fix === 1 && ctx.levels.shaky === 1);
+  const sum = skillSummaryForWindow(evs, NOW - 10 * DAY_MS, NOW + 1);
+  assert.equal(sum.eventCount, 1); assert.equal(sum.stats.recall.acc, 1);
+  assert.equal(buildContext({ surahsData, student: {}, records: [], events: [], now: NOW }).range.ok, false);
 });
 
 // ============ خريطة المهارات ============

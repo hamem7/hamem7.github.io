@@ -56,6 +56,22 @@ export function segLabel(segId) {
     return p.from === p.to ? `${name} ${p.from}` : `${name} ${p.from}–${p.to}`;
 }
 
+// «مقطع» بحسب العدد: مقطع واحد / مقطعان / 3–10 مقاطع / 11 فأكثر مقطعاً
+export function segCount(n) {
+    if (isEnglish()) return `${n} segment${n === 1 ? '' : 's'}`;
+    if (n === 1) return 'مقطع واحد';
+    if (n === 2) return 'مقطعان';
+    return n <= 10 ? `${n} مقاطع` : `${n} مقطعاً`;
+}
+
+// «سؤال» بحسب العدد: سؤال واحد / سؤالان / 3–10 أسئلة / 11 فأكثر سؤالاً
+export function qCount(n) {
+    if (isEnglish()) return `${n} question${n === 1 ? '' : 's'}`;
+    if (n === 1) return 'سؤال واحد';
+    if (n === 2) return 'سؤالان';
+    return n <= 10 ? `${n} أسئلة` : `${n} سؤالاً`;
+}
+
 const daysAgo = (ts) => Math.max(0, Math.round((Date.now() - ts) / 86400000));
 
 // سبب اختيار السؤال (يُعرض للمعلم فقط تحت كل سؤال في المعاينة)
@@ -224,7 +240,7 @@ export function renderSkillProfileHTML(ctx, student) {
     const q = ctx.quality || {};
     const qHtml = Object.keys(QUALITY).map(k => `<div class="sk-kv"><span>${esc(qualityLabel(k))}${k === 'haraka' ? ` <span class="sk-note">${L('— ضبط تلاوة/تجويد، لا يُعالَج بالواجب', '— recitation/tajweed, not fixed by homework')}</span>` : ''}</span><b>${q[k] || 0}</b></div>`).join('');
     const rangeNote = ctx.range && ctx.range.ok
-        ? `<div class="sk-note">${L('نطاق الحفظ المعتمد', 'Memorization range used')}: ${esc(segLabel(ctx.path.segments[0].id))} → ${esc(segLabel(ctx.path.segments[ctx.path.segments.length - 1].id))} (${ctx.path.total} ${L('آية', 'ayahs')}, ${ctx.path.segments.length} ${L('مقطعاً', 'segments')})</div>`
+        ? `<div class="sk-note">${L('نطاق الحفظ المعتمد', 'Memorization range used')}: ${esc(segLabel(ctx.path.segments[0].id))} → ${esc(segLabel(ctx.path.segments[ctx.path.segments.length - 1].id))} (${ctx.path.total} ${L('آية', 'ayahs')}, ${segCount(ctx.path.segments.length)})</div>`
         : `<div class="sk-note" style="color:#dc2626">${L('لا يوجد نطاق حفظ مسجَّل لهذا الطالب.', 'No memorization range is recorded for this student.')}</div>`;
     return `
     <div class="sk-note">${esc(status.text)}</div>${rangeNote}

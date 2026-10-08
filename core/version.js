@@ -8,13 +8,35 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.11';
+export const APP_VERSION = '1.0.12';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 🗺️ [أُضيف 2026-10-08] خريطة الحفظ بالأحزاب وتغطية النطاق في الواجب الذكي
+    {
+        version: '1.0.12',
+        date: '2026-10-08',
+        items: [
+            {
+                type: 'new',
+                ar: 'خريطة حفظ الطالب عند إعداد الواجب: أحزاب (أو أرباع لحفظ صغير) من الناس صعوداً بلون وآخر فحص وأخطاء كل منها. اختر «كل النطاق» أو أحزاباً محددة أو عدة سور، أو اضغط «اقترح لي» ليختار الأحوج للفحص.',
+                en: 'A memorization map when preparing homework: hizbs (or quarters for a small range) from An-Nas upward, each with its status, last check and mistakes. Choose the whole range, chosen hizbs or several surahs, or press "Suggest" to pick what needs checking most.'
+            },
+            {
+                type: 'new',
+                ar: 'سطر تغطية ذكي تحت عدد الأسئلة: كم يغطي الواجب من المختار، وكم سؤالاً يلزم لتغطيته كله، وفي المرة القادمة يقترح «أكمل» لما تبقّى من الواجب السابق. مدة دورة المراجعة قابلة للتعديل (افتراضياً 6 أسابيع).',
+                en: 'A smart coverage line under the question count: how much of the selection the homework covers and how many questions would cover it all; next time it suggests "Continue" for what is left of the last homework. The review cycle length is editable (6 weeks by default).'
+            },
+            {
+                type: 'improved',
+                ar: 'الاختيار المحدد يغطي مقاطع مختلفة بدل تكرار المقطع نفسه، وما أُسند في واجب لم يُسلَّم بعد يتأخر في الواجب التالي.',
+                en: 'A chosen range now spreads over different segments instead of repeating the same one, and what was assigned in a not-yet-submitted homework is postponed in the next one.'
+            }
+        ]
+    },
     // 🧠 [أُضيف 2026-10-08] الواجب الذكي: واجب لكل طالب يُبنى على نطاق حفظه وأخطائه + ملف مهارات متتبَّع
     {
         version: '1.0.11',
