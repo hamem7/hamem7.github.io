@@ -341,7 +341,7 @@ export const translations = {
         kids_q_count: "عدد الألعاب (الأسئلة):",
         btn_start_eval: "🚀 ابدأ التقييم الآن",
         btn_change_student: "🔙 تغيير الطالب / العودة",
-        btn_homework_module: "📝 نظام الواجبات المنزلية",
+        btn_homework_module: "📝 إعداد الواجب الذكي",
         bday_notification_title: "🎉 تنبيه يوم ميلاد!",
         bday_notification_msg: "اليوم يوافق يوم ميلاد الطالب: ",
 
@@ -411,7 +411,7 @@ export const translations = {
         // 🌟 الشاشة الرئيسية الجديدة: الهيرو وبطاقة "نظرة سريعة" 🌟
         // 🌟 [عدّل] الشارة العلوية تصف وظيفة المنصة بدل العبارة العامة
         hero_eyebrow: "منصة تعليمية متكاملة",
-        home_card_homework_title: "نظام الواجبات المنزلية",
+        home_card_homework_title: "إعداد الواجب الذكي",
         dual_in_progress_badge: "قيد التطوير",
         // 🌟 [قديم، لم يعد مستخدماً بعد بناء شاشات التصفح الفعلية أسفل] أُبقي عليه بلا حذف
         // تفادياً لكسر أي مرجع قديم، لكن البطاقة تستخدم الآن similarities_browse_badge
@@ -1161,7 +1161,7 @@ export const translations = {
         hw_st_receipt: "رقم الاستلام:",
         hw_st_confirmed_at: "وقت التأكيد:",
         hw_st_attempts: "عدد المحاولات:",
-        teacher_auth_title: "دخول نظام الواجبات المنزلية",
+        teacher_auth_title: "دخول إعداد الواجب الذكي",
         // 🌟 [جديد] تسجيل الدخول بجوجل — يظهر أولاً في بوابة الدخول، والمفتاح القديم أصبح خياراً احتياطياً
         teacher_auth_subtitle_google: "نظام الواجبات وحده يحتاج تسجيل الدخول بجوجل، حتى تُحفظ واجباتك وطلابك ونتائجهم في حسابك وتصل إليها من الهاتف أو الكمبيوتر. باقي المنصة لا يحتاج أي تسجيل دخول.",
         teacher_auth_google_error: "تعذّر تحميل تسجيل الدخول بجوجل. تحقق من الإنترنت ثم أعد فتح نظام الواجبات. (باقي المنصة يعمل كالمعتاد)",
@@ -2387,7 +2387,7 @@ export const translations = {
         kids_q_count: "Number of Games (Questions):",
         btn_start_eval: "🚀 Start Evaluation Now",
         btn_change_student: "🔙 Change Student / Back",
-        btn_homework_module: "📝 Homework System",
+        btn_homework_module: "📝 Smart Homework Setup",
         bday_notification_title: "🎉 Birthday Alert!",
         bday_notification_msg: "Today is the birthday of student: ",
 
@@ -2458,7 +2458,7 @@ export const translations = {
 
         // 🌟 New home screen: hero & "Quick Overview" card 🌟
         hero_eyebrow: "A Complete Learning Platform",
-        home_card_homework_title: "Homework System",
+        home_card_homework_title: "Smart Homework Setup",
         dual_in_progress_badge: "In Progress",
         // 🌟 [Old, no longer used now that the real browsing screens below exist] Kept
         // without deleting to avoid breaking any old reference — the card now uses
@@ -3225,7 +3225,7 @@ export const translations = {
         hw_st_receipt: "Receipt no.:",
         hw_st_confirmed_at: "Confirmed at:",
         hw_st_attempts: "Attempts:",
-        teacher_auth_title: "Homework system sign-in",
+        teacher_auth_title: "Smart Homework Setup sign-in",
         teacher_auth_subtitle_google: "Only the homework system needs Google sign-in, so your homework, students and results are saved to your account and reachable from your phone or computer. The rest of the platform needs no sign-in.",
         teacher_auth_google_error: "Couldn't load Google sign-in. Check your internet, then reopen the homework system. (The rest of the platform works as usual.)",
         teacher_auth_cancel_btn: "Cancel",
