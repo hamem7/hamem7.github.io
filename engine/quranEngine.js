@@ -1,6 +1,9 @@
 // engine/quranEngine.js
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
+// اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
+// ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
+const kidsSurahNameHtml = (name) => `<span style="font-family:'Tajawal','Cairo',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
 
 // 🌟 [2026-10-03] مفتاح فهرس السور الخفيف (راجع getAllSurahsList)
 const SURAH_INDEX_KEY = 'dh_surah_index_v1';
@@ -365,7 +368,7 @@ export class QuranEngine {
         if (totalSurahAyahs <= 10 && surahFullyInPool) {
             fullText = surah.ayahs.map(a => ` ﴿\u00A0${cleanAyahText(a.text)}\u00A0﴾ `).join("");
             reciteAyahs = surah.ayahs.map(a => ({ num: a.numberInSurah, text: cleanAyahText(a.text) }));
-            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">${tl('qe_recite_surah_pre', 'سمّع سورة')} <span style="${isKids ? 'color:#db2777;' : 'color:var(--danger)'}">[ ${nameL(startAyah.surahName)} ]</span> ${tl('qe_recite_surah_post', 'كاملة')}</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
+            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 5px;">${tl('qe_recite_surah_pre', 'سمّع سورة')} ${isKids ? kidsSurahNameHtml(nameL(startAyah.surahName)) : `<span style="color:var(--danger)">[ ${nameL(startAyah.surahName)} ]</span>`} ${tl('qe_recite_surah_post', 'كاملة')}</div><div style="font-size:1.4rem; margin-bottom:10px;">( بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ )</div></div>`; reportText = `تسميع سورة ${startAyah.surahName} كاملة`;
         } else {
             let startIdx = surah.ayahs.findIndex(a => a.numberInSurah === startAyah.numberInSurah); let jump = Math.floor(Math.random() * 4) + 6; 
             if (startIdx < reciteLo) startIdx = reciteLo;
@@ -376,7 +379,7 @@ export class QuranEngine {
             let startClean = cleanAyahText(surah.ayahs[startIdx].text); let endClean = cleanAyahText(surah.ayahs[endIdx].text);
             let startWords = startClean.split(/\s+/); let startHalf = startWords.length > 3 ? startWords.slice(0, Math.ceil(startWords.length / 2)).join(" ") + " ...." : startClean + " ....";
             let endWords = endClean.split(/\s+/); let endHalf = endWords.length > 3 ? ".... " + endWords.slice(Math.floor(endWords.length / 2)).join(" ") : ".... " + endClean;
-            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} <span style="${isKids ? 'color:#db2777;' : ''}">[ ${nameL(startAyah.surahName)} ]</span></div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${startHalf}\u00A0﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${endHalf}\u00A0﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
+            qBody = `<div style="background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 25px 40px; text-align: center; max-width: 800px; margin: 15px auto 0;"><div style="font-size: 1.6rem; font-weight: bold; margin-bottom: 20px;">${tl('qe_recite_n_pre', 'سمّع {n} آيات من سورة', { n: actualCount })} ${isKids ? kidsSurahNameHtml(nameL(startAyah.surahName)) : `<span>[ ${nameL(startAyah.surahName)} ]</span>`}</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_from_verse', 'من قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; margin-bottom: 25px; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${startHalf}\u00A0﴾</div><div style="font-size:1.4rem; margin-bottom:10px;">${tl('qe_to_verse', 'إلى قوله تعالى:')}</div><div class="quran-text" style="font-size: 3.2rem; ${isKids ? 'color:#0d5c46;' : 'color:#156643;'}">﴿\u00A0${endHalf}\u00A0﴾</div></div>`; reportText = `تسميع من سورة ${startAyah.surahName} (${actualCount} آيات)`;
         }
         return { type: isKids ? 'kids_recite' : 'recite', questionTitle: qTitle, questionBody: qBody, fullAnswer: fullText, ayahObj: startAyah, reportText: reportText, reciteAyahs: reciteAyahs, reciteSurahName: startAyah.surahName }; 
     }
