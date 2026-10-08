@@ -256,16 +256,18 @@ let _quranMeta = null;
 async function getQuranMeta() {
     if (_quranMeta) return _quranMeta;
     const all = await getAllAyahs();
-    const quarterByAyah = new Map(), hizbTotal = new Map(), quarterTotal = new Map();
+    const quarterByAyah = new Map(), hizbTotal = new Map(), quarterTotal = new Map(), quarterName = new Map();
     all.forEach(a => {
         const q = a.hizbQuarter;
         if (!q) return;
+        // اسم الربع/الحزب = أول كلمات أول آية فيه (كما يُسمّى الحزب في المصحف: «سيقول السفهاء»...)
+        if (!quarterName.has(q) && a.text) quarterName.set(q, a.text.trim().split(/\s+/).slice(0, 3).join(' '));
         quarterByAyah.set(`${a.surahNumber}:${a.numberInSurah}`, q);
         const h = hizbOfQuarter(q);
         hizbTotal.set(h, (hizbTotal.get(h) || 0) + 1);
         quarterTotal.set(q, (quarterTotal.get(q) || 0) + 1);
     });
-    _quranMeta = { quarterByAyah, hizbTotal, quarterTotal };
+    _quranMeta = { quarterByAyah, hizbTotal, quarterTotal, quarterName };
     return _quranMeta;
 }
 
@@ -332,6 +334,7 @@ export async function buildSelectionModel(student, ctx, { unit = null, cycleWeek
     const lastTsBySeg = new Map();
     ctx.events.forEach(e => { if (e.segment) lastTsBySeg.set(e.segment, Math.max(lastTsBySeg.get(e.segment) || 0, e.ts)); });
     groups.forEach(g => {
+        g.name = meta.quarterName.get(useUnit === 'quarter' ? g.key : (g.hizb - 1) * 4 + 1) || '';
         g.cov = cov(g.segIds);
         g.lastTs = g.segIds.reduce((m, id) => Math.max(m, lastTsBySeg.get(id) || 0), 0);
         g.fixCount = g.segIds.filter(id => (ctx.states.get(id) || {}).level === 'needs_fix').length;

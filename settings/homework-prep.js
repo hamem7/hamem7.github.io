@@ -1386,10 +1386,20 @@ function currentSelection() {
 }
 
 function tileLabel(g) { return g.unit === 'quarter' ? `${L('ح', 'H')}${g.hizb}·${g.quarter}` : `${L('ح', 'H')}${g.hizb}`; }
+// تسمية مفهومة: «الحزب 3» / «الحزب 3 · ربع 2»، واسمه من أول آية («سيقول السفهاء»)
+function tileTitle(g) { return g.unit === 'quarter' ? `${L('الحزب', 'Hizb')} ${g.hizb} · ${L('ربع', 'Q')} ${g.quarter}` : `${L('الحزب', 'Hizb')} ${g.hizb}`; }
+function surNameOf(n) { const s = AppState.surahsData.find(x => x.number === n); return s ? s.name : String(n); }
+// «من البقرة 142 إلى البقرة 252»
+function groupRangeText(g) {
+    if (!g.first || !g.last) return '';
+    const a = `${surNameOf(g.first.surah)} ${g.first.ayah}`;
+    const b = g.first.surah === g.last.surah ? `${g.last.ayah}` : `${surNameOf(g.last.surah)} ${g.last.ayah}`;
+    return `${L('من', 'From')} ${a} ${L('إلى', 'to')} ${b}`;
+}
 
 function selectionLabel() {
     if (scopeMode === 'resume') return L('تكملة الواجب السابق', 'Continuation of the last homework');
-    if (scopeMode === 'hizb' && smartModel) return smartModel.groups.filter(g => scopeIds.has(g.id)).map(tileLabel).join(L('، ', ', '));
+    if (scopeMode === 'hizb' && smartModel) return smartModel.groups.filter(g => scopeIds.has(g.id)).map(g => g.name ? `${tileTitle(g)} (${g.name})` : tileTitle(g)).join(L('، ', ', '));
     if (scopeMode === 'surah' && smartModel) return smartModel.surahs.filter(s => scopeIds.has(s.number)).map(s => s.name).join(L('، ', ', '));
     return L('كل النطاق', 'Whole range');
 }
@@ -1427,6 +1437,10 @@ async function refreshSmartInfo() {
             <span style="color:#64748b;">(${ctx.path.total} ${esc(L('آية', 'ayahs'))} · ${esc(segCount(ctx.path.segments.length))})</span><br>
             <span style="color:${status.ready ? '#047857' : '#92400e'};">🧠 ${esc(status.text)}</span><br>
             ${btn('hw-btn-skill-profile', '📊 ' + esc(L('ملف المهارات', 'Skills profile')), 'background:#0ea5e9;')}`);
+        // مسار تصاعدي يبدأ من الفاتحة: غالباً قيمة افتراضية قديمة في «حفظ من» (كانت الفاتحة تُحفظ تلقائياً قبل الخيار «غير محدد»)
+        if (ctx.range.direction === 'forward' && ctx.range.fromSurah === 1 && ctx.range.toSurah > 1) {
+            html += card('#fef2f2', '#fecaca', `⚠️ ${esc(L(`نطاق ${student.name} المسجَّل يبدأ من الفاتحة حتى ${student.memoTo}، فتُعرض كل السور والأحزاب بينهما. إن كان يحفظ من الناس صعوداً فصحّح «حفظ من» في ملفه ليظهر نطاقه الفعلي فقط.`, `${student.name}'s recorded range runs from Al-Fatiha to ${student.memoTo}, so every surah/hizb in between is listed. If they memorize from An-Nas upward, fix "Memorized from" in their file so only their real range appears.`))}`);
+        }
         if (ctx.stale.stale) {
             const why = ctx.stale.hasRecords
                 ? L(`موضع حفظ ${student.name} لم يُحدَّث منذ ${ctx.stale.days} يوماً. الواجب سيُبنى على موضع قديم وقد يشمل ما لم يحفظه بعد.`, `${student.name}'s position was last updated ${ctx.stale.days} days ago. The homework will be built on an old position and may include what they have not memorized yet.`)
@@ -1499,9 +1513,9 @@ function renderScopePanel() {
         const status = unc === 0 ? `✓ ${L('غُطّي', 'covered')}` : (days === null ? L('لم يُفحص', 'unchecked') : L(`قبل ${days} يوم`, `${days}d ago`));
         const sel = scopeMode === 'hizb' && scopeIds.has(g.id);
         const where = `${segLabel(g.segIds[0])}`;
-        const title = `${L('الحزب', 'Hizb')} ${g.hizb} (${L('الجزء', 'Juz')} ${g.juz}) — ${L('يبدأ من', 'starts at')} ${where} · ${segCount(total)} · ${L('لم يُغطَّ', 'uncovered')}: ${unc}${g.fixCount ? ` · ${L('أخطاء مفتوحة', 'open mistakes')}: ${g.fixCount}` : ''}${g.pctMemorized < 100 ? ` · ${L('محفوظ منه', 'memorized')} ${g.pctMemorized}%` : ''}`;
+        const title = `${tileTitle(g)}${g.name ? ` «${g.name}»` : ''} (${L('الجزء', 'Juz')} ${g.juz}) — ${groupRangeText(g) || `${L('يبدأ من', 'starts at')} ${where}`} ·${segCount(total)} · ${L('لم يُغطَّ', 'uncovered')}: ${unc}${g.fixCount ? ` · ${L('أخطاء مفتوحة', 'open mistakes')}: ${g.fixCount}` : ''}${g.pctMemorized < 100 ? ` · ${L('محفوظ منه', 'memorized')} ${g.pctMemorized}%` : ''}`;
         return `<button type="button" class="hw-tile${sel ? ' sel' : ''}${g.pctMemorized < 100 ? ' partial' : ''}" data-id="${esc(g.id)}" title="${esc(title)}">
-            ${g.fixCount ? `<span class="fix">⚠${g.fixCount}</span>` : ''}<b>${esc(tileLabel(g))}</b>${total} ${esc(L('مقطع', 'seg'))}<br>${esc(status)}${g.pctMemorized < 100 ? `<br>(${g.pctMemorized}%)` : ''}
+            ${g.fixCount ? `<span class="fix">⚠${g.fixCount}</span>` : ''}<b>${esc(g.name || tileLabel(g))}</b><span style="color:#64748b;">${esc(tileTitle(g))}</span><br><span style="font-size:0.68rem;color:#64748b;">${esc(groupRangeText(g))}</span><br>${total} ${esc(L('مقطع', 'seg'))}<br>${esc(status)}${g.pctMemorized < 100 ? `<br>(${g.pctMemorized}%)` : ''}
             <div class="bar"><i style="width:${covPct}%"></i></div></button>`;
     }).join('');
 

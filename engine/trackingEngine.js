@@ -369,6 +369,7 @@ export function groupSegments(path, quarterOf, unit = 'hizb') {
         }
         g.segIds.push(seg.id);
         g.ayahs += seg.count;
+        g.last = { surah: seg.surah, ayah: seg.limit };
     });
     return groups;
 }
