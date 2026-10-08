@@ -1325,6 +1325,18 @@ function setupListeners() {
     document.getElementById('btn-save-hw-publish')?.addEventListener('click', () => saveHomeworkToDB('published'));
     document.getElementById('btn-save-hw-draft')?.addEventListener('click', () => saveHomeworkToDB('draft'));
 
+    // إلغاء تنفيذ الواجب: تجاهل الأسئلة المولّدة وإخفاء قسم المراجعة دون حفظ
+    document.getElementById('btn-cancel-hw')?.addEventListener('click', () => {
+        if (!confirm(t('hw_cancel_confirm'))) return;
+        currentGeneratedQuestions = [];
+        currentTracking = {};
+        currentHwScope = null;
+        const list = document.getElementById('hw-questions-list');
+        if (list) list.innerHTML = '';
+        document.getElementById('hw-preview-section').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
     document.getElementById('btn-add-manual-q')?.addEventListener('click', () => openQuestionBuilderModal(-1));
     document.getElementById('btn-close-qb')?.addEventListener('click', () => document.getElementById('hw-question-builder-modal').style.display = 'none');
     document.getElementById('btn-save-qb')?.addEventListener('click', saveManualQuestion);
