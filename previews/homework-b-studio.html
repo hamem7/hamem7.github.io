@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ب) — استوديو الواجبات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{
+  --side:#06231c; --side2:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g5:#25a07a; --g1:#e3f3ec;
+  --gold:#d4af37; --gold2:#f1dd8f; --bg:#eef3f0; --card:#fff; --ink:#10241c; --ink2:#5a6f66; --line:#e1e9e4;
+  --red:#e0463c; --amber:#e8a317; --blue:#2f80ed; --r:20px; --sh:0 1px 2px rgba(6,35,28,.05),0 8px 24px rgba(6,35,28,.06);
+}
+@media (prefers-color-scheme:dark){:root{--bg:#08130f;--card:#101f19;--ink:#e8f4ee;--ink2:#97b1a5;--line:#1d3329;--g1:#15322736}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6;overflow-x:hidden}
+.content{min-width:0}
+button{cursor:pointer;border:0;background:none;color:inherit}
+.q{font-family:'Amiri Quran',serif;line-height:2.1}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+aside.side{background:linear-gradient(180deg,var(--side),var(--side2));color:#e8f4ee;padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 10px 20px}
+.brand .lg{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#f1dd8f);display:grid;place-items:center;font-size:1.4rem;color:#3a2d00;font-weight:700}
+.brand b{display:block;font-size:1.05rem}.brand small{color:var(--gold2);font-size:.75rem}
+.nv{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;font-weight:600;color:#bcd6ca;transition:.15s;text-align:start;width:100%}
+.nv:hover{background:rgba(255,255,255,.07);color:#fff}
+.nv.on{background:rgba(212,175,55,.16);color:var(--gold2);box-shadow:inset 3px 0 0 var(--gold)}
+.nv .b{margin-inline-start:auto;background:var(--red);color:#fff;font-size:.7rem;border-radius:99px;padding:1px 8px}
+.sp{flex:1}
+.me{background:rgba(255,255,255,.07);border-radius:14px;padding:12px;font-size:.8rem;color:#bcd6ca}
+.me b{display:block;color:#fff;font-size:.88rem}
+
+.main{min-width:0}
+.topbar{display:flex;align-items:center;gap:14px;padding:16px 28px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.topbar h1{font-size:1.3rem;white-space:nowrap}
+.gs{flex:1;max-width:420px;margin-inline-start:auto;position:relative}
+.gs input{width:100%;padding:11px 42px 11px 14px;border-radius:14px;border:2px solid transparent;background:var(--bg);color:var(--ink);font-size:.95rem;outline:none}
+.gs input:focus{border-color:var(--g6);background:var(--card)}
+.gs span{position:absolute;inset-inline-start:auto;right:14px;top:9px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:14px;font-weight:700;transition:.15s;white-space:nowrap}
+.btn.pri{background:linear-gradient(135deg,var(--g6),var(--g7));color:#fff;box-shadow:0 6px 16px rgba(13,92,70,.28)}
+.btn.pri:hover{transform:translateY(-2px)}
+.btn.gold{background:var(--gold);color:#3a2d00}
+.btn.out{border:2px solid var(--line);background:var(--card)}.btn.out:hover{border-color:var(--g6)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.menu{display:none;width:42px;height:42px;border-radius:12px;background:var(--bg);font-size:1.2rem}
+.content{padding:26px 28px 60px;max-width:1280px}
+.view{display:none;animation:up .3s ease}.view.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- dashboard ---------- */
+.greet{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.greet h2{font-size:1.6rem}.greet p{color:var(--ink2)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--sh);text-align:start;position:relative;overflow:hidden;transition:.15s}
+button.kpi:hover{transform:translateY(-3px)}
+.kpi small{color:var(--ink2);font-weight:600}
+.kpi b{display:block;font-size:2.2rem;line-height:1.2;margin:2px 0}
+.kpi .d{font-size:.78rem;font-weight:700}
+.kpi svg{position:absolute;inset-inline-end:10px;bottom:10px;opacity:.9}
+.up{color:var(--g6)}.dn{color:var(--red)}
+
+.grid2>*{min-width:0}
+.grid2{display:grid;grid-template-columns:1.7fr 1fr;gap:18px;margin-top:20px}
+.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.card h3{font-size:1.05rem;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.card h3 a{margin-inline-start:auto;font-size:.82rem;color:var(--g6);cursor:pointer;font-weight:600}
+.board{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:12px;overflow-x:auto;padding-bottom:4px}
+.col{background:var(--bg);border-radius:16px;padding:10px;min-height:260px}
+.col h4{font-size:.82rem;color:var(--ink2);display:flex;justify-content:space-between;margin:2px 4px 10px}
+.col h4 i{font-style:normal;background:var(--card);border-radius:99px;padding:0 8px;font-weight:700;color:var(--ink)}
+.ticket{background:var(--card);border-radius:14px;padding:11px 12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.05);border-inline-start:4px solid var(--tc);cursor:pointer;transition:.15s}
+.ticket:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.ticket b{font-size:.92rem;display:block}.ticket small{color:var(--ink2);font-size:.75rem;display:block}
+.ticket .f{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.72rem;color:var(--ink2)}
+.av{width:28px;height:28px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;font-size:.78rem;flex-shrink:0}
+.due{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.due:last-child{border:0}.due .m{flex:1;min-width:0}.due b{display:block;font-size:.93rem}.due small{color:var(--ink2);font-size:.77rem}
+.pill{font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:99px}
+.pill.o{background:#fff3d6;color:#8a6a00}.pill.r{background:#fde4e2;color:var(--red)}
+.go{width:36px;height:36px;border-radius:11px;background:var(--g1);color:var(--g7);font-weight:700}.go:hover{background:var(--g6);color:#fff}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px}
+.heat div{aspect-ratio:1;border-radius:8px;background:var(--g5);opacity:var(--o);display:grid;place-items:center;font-size:.7rem;color:#fff;font-weight:700}
+.heat span{text-align:center;font-size:.7rem;color:var(--ink2)}
+
+/* ---------- list view ---------- */
+.seg{display:inline-flex;background:var(--card);padding:4px;border-radius:14px;gap:2px;box-shadow:var(--sh);margin-bottom:16px;flex-wrap:wrap}
+.seg button{padding:9px 16px;border-radius:11px;font-weight:600;font-size:.9rem;color:var(--ink2)}
+.seg button.on{background:var(--g7);color:#fff}
+table{width:100%;border-collapse:separate;border-spacing:0 8px}
+th{font-size:.78rem;color:var(--ink2);text-align:start;padding:0 14px;font-weight:600}
+td{background:var(--card);padding:13px 14px;font-size:.92rem}
+td:first-child{border-radius:0 14px 14px 0}td:last-child{border-radius:14px 0 0 14px}
+tr.hr:hover td{background:var(--g1)}
+.who{display:flex;gap:10px;align-items:center}
+.stt{display:inline-flex;gap:6px;align-items:center;font-weight:600;font-size:.82rem}
+.stt::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.pb{height:7px;background:var(--line);border-radius:9px;overflow:hidden;width:100px}.pb i{display:block;height:100%;background:var(--g5)}
+.ic{width:34px;height:34px;border-radius:10px;background:var(--bg);margin-inline-start:4px}.ic:hover{background:var(--g1)}
+
+/* ---------- drawer ---------- */
+.scrim{position:fixed;inset:0;background:rgba(6,35,28,.5);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;bottom:0;inset-inline-start:0;width:min(640px,100vw);background:var(--card);z-index:61;transform:translateX(-105%);transition:.32s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:var(--sh)}
+html[dir=rtl] .drawer{inset-inline-start:auto;inset-inline-end:auto;left:0;right:auto}
+.drawer.on{transform:none}
+.dh{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:1.2rem;flex:1}.x{width:38px;height:38px;border-radius:50%;background:var(--bg);font-size:1.1rem}
+.db{flex:1;overflow:auto;padding:22px}
+.dfoot{padding:14px 22px;border-top:1px solid var(--line);background:var(--card);display:flex;gap:10px;align-items:center}
+.sum{flex:1;font-size:.82rem;color:var(--ink2);line-height:1.5}.sum b{color:var(--ink)}
+.blk{margin-bottom:26px}
+.blk>label{display:flex;align-items:center;gap:8px;font-weight:700;margin-bottom:10px}
+.blk>label i{width:24px;height:24px;border-radius:50%;background:var(--g7);color:#fff;font-style:normal;display:grid;place-items:center;font-size:.78rem}
+.blk>label i.ok{background:var(--gold);color:#3a2d00}
+.tpls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tpl{border:2px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;transition:.15s}
+.tpl:hover{border-color:var(--g5)}.tpl.on{border-color:var(--g7);background:var(--g1)}
+.tpl span{font-size:1.5rem;display:block}.tpl b{font-size:.85rem;display:block}.tpl small{font-size:.7rem;color:var(--ink2)}
+.sstu{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.sp1{flex:0 0 auto;border:2px solid var(--line);border-radius:99px;padding:6px 14px 6px 8px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:.88rem;transition:.15s}
+.sp1.on{border-color:var(--g7);background:var(--g7);color:#fff}.sp1.on .av{background:#fff3}
+.sp1 .av{width:26px;height:26px}
+.hint{font-size:.82rem;color:var(--ink2);margin-top:8px;display:flex;gap:6px}
+.hz{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.hz button{aspect-ratio:1;border-radius:8px;background:var(--hc);color:#fff;font-size:.7rem;font-weight:700;border:2px solid transparent;transition:.1s}
+.hz button.off{background:var(--line);color:var(--ink2);opacity:.5;pointer-events:none}
+.hz button.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold)}
+.hz button:hover{transform:scale(1.1)}
+.rng{width:100%;accent-color:var(--g7);height:30px}
+.qv{display:flex;align-items:baseline;gap:8px}.qv b{font-size:2rem;color:var(--g7)}.qv span{color:var(--ink2)}
+.tg{display:flex;flex-wrap:wrap;gap:8px}
+.tgl{padding:8px 14px;border-radius:99px;border:2px solid var(--line);font-size:.85rem;font-weight:600}.tgl.on{background:var(--g1);border-color:var(--g6);color:var(--g7)}
+.rv{background:var(--bg);border-radius:16px;padding:6px 14px}
+.rq{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}.rq:last-child{border:0}
+.rq .n{width:26px;height:26px;border-radius:8px;background:var(--g1);color:var(--g7);font-size:.78rem;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.rq .t{flex:1;font-size:.9rem}.rq .t small{display:block;color:var(--ink2);font-size:.74rem}
+.rq .q{font-size:1.05rem}
+
+/* ---------- share sheet ---------- */
+.sheet{position:fixed;inset-inline:0;bottom:0;margin:auto;width:min(560px,100%);background:var(--card);border-radius:28px 28px 0 0;z-index:71;transform:translateY(105%);transition:.38s cubic-bezier(.2,.8,.2,1);padding:12px 24px 26px;max-height:92vh;overflow:auto}
+.sheet.on{transform:none}
+.grab{width:46px;height:5px;background:var(--line);border-radius:9px;margin:0 auto 14px}
+.sheet .ok{text-align:center}.sheet .ok .c{width:70px;height:70px;border-radius:50%;background:var(--g1);display:grid;place-items:center;font-size:2rem;margin:0 auto 8px;animation:pop .5s ease both}
+@keyframes pop{0%{transform:scale(.3)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+.sheet h2{font-size:1.3rem;text-align:center}.sheet .sub{color:var(--ink2);text-align:center;margin-bottom:16px;font-size:.92rem}
+.wa-big{width:100%;justify-content:center;background:#25d366;color:#04361a;font-size:1.1rem;padding:15px;box-shadow:0 8px 20px rgba(37,211,102,.35)}
+.wa-big:hover{transform:translateY(-2px)}
+.lk{display:flex;gap:6px;margin:14px 0;background:var(--bg);border-radius:14px;padding:6px}
+.lk input{flex:1;direction:ltr;border:0;background:transparent;padding:8px 10px;color:var(--ink);font-size:.85rem;min-width:0;outline:none}
+.opt4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.opt4 button{background:var(--bg);border-radius:14px;padding:12px 4px;font-size:.78rem;font-weight:600;display:flex;flex-direction:column;gap:4px;align-items:center}
+.opt4 button span{font-size:1.3rem}.opt4 button:hover{background:var(--g1)}
+.pv{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center;margin-top:16px;padding:14px;background:var(--bg);border-radius:18px}
+.bub{background:#dcf8c6;color:#111;border-radius:12px 12px 3px 12px;padding:10px 12px;font-size:.78rem;white-space:pre-wrap;line-height:1.7}
+canvas.qr{width:130px;height:130px;background:#fff;border-radius:12px;padding:6px}
+.batch{margin-top:14px;font-size:.85rem;color:var(--ink2);text-align:center}.batch a{color:var(--g6);font-weight:700;cursor:pointer}
+
+/* ---------- student view ---------- */
+.stwrap{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:start}
+.phone{width:320px;background:#0f1412;border-radius:44px;padding:12px;box-shadow:0 30px 60px rgba(0,0,0,.28)}
+.ps{background:#f0f9ff;color:#1e293b;border-radius:34px;height:620px;overflow:hidden;display:flex;flex-direction:column}
+.psh{background:linear-gradient(120deg,var(--side),var(--g7));color:#fff;padding:30px 16px 12px;text-align:center;font-weight:700;border-bottom:3px solid var(--gold)}
+.psb{padding:16px;flex:1;overflow:auto;text-align:center}
+.psb h3{color:#0369a1;font-size:1.35rem;margin:6px 0}
+.pc{background:#fff;border-radius:16px;padding:14px;margin:12px 0;box-shadow:0 3px 10px rgba(0,0,0,.06)}
+.pbtn{width:100%;margin-top:12px;background:linear-gradient(45deg,#10b981,#059669);color:#fff;padding:14px;border-radius:14px;font-weight:700;font-size:1.05rem}
+.pbtn.alt{background:#0d5c46}.pbtn[disabled]{opacity:.4}
+.po{display:block;width:100%;border:2px solid #e2e8f0;background:#fff;border-radius:12px;padding:12px;margin-top:8px;font-weight:600;font-size:1rem;transition:.12s}
+.po.on{border-color:#10b981;background:#ecfdf5}
+.ppr{height:8px;background:#dbeafe;border-radius:9px;margin:4px 0 8px}.ppr i{display:block;height:100%;background:linear-gradient(90deg,#10b981,var(--gold));border-radius:9px;transition:.3s}
+.pin{width:100%;padding:12px;border:2px solid #93c5fd;border-radius:12px;text-align:center;font-size:1.1rem;font-weight:700;color:#1e3a5f}
+.stinfo h3{font-size:1.25rem;margin-bottom:10px}
+.stinfo li{margin:0 20px 10px 0;color:var(--ink2)}
+
+.toast{position:fixed;bottom:26px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--side);color:#fff;padding:12px 22px;border-radius:14px;box-shadow:0 14px 30px rgba(0,0,0,.3);transform:translateY(100px);opacity:0;transition:.3s;z-index:99;font-weight:600}
+.toast.on{transform:none;opacity:1}
+
+@media(max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.stwrap{grid-template-columns:1fr;justify-items:center}}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  aside.side{position:fixed;inset-block:0;right:0;width:260px;z-index:80;transform:translateX(105%);transition:.3s}
+  aside.side.on{transform:none}.menu{display:block}
+  .content{padding:18px 14px 80px}.topbar{padding:12px 14px}.topbar h1{font-size:1.05rem}.gs{display:none}
+  .topbar .btn span{display:none}
+  .tpls{grid-template-columns:1fr}.pv{grid-template-columns:1fr;justify-items:center}
+  th:nth-child(3),td:nth-child(3),th:nth-child(5),td:nth-child(5){display:none}
+}
+@media(max-width:520px){.kpis{gap:10px}.kpi b{font-size:1.7rem}.opt4{grid-template-columns:repeat(2,1fr)}.phone{width:290px}.hz{grid-template-columns:repeat(8,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<aside class="side" id="side">
+  <div class="brand"><div class="lg">حمٓ</div><div><b>منصة حمٓ</b><small>استوديو الواجبات</small></div></div>
+  <button class="nv on" data-v="dash">🏠 اليوم</button>
+  <button class="nv" data-v="hw">📚 الواجبات</button>
+  <button class="nv" data-v="res">🎓 النتائج <span class="b">3</span></button>
+  <button class="nv" data-v="stu">📱 معاينة الطالب</button>
+  <div class="sp"></div>
+  <div class="me"><b>أ. المعلم</b>teacher@gmail.com<br><a style="color:var(--gold2);cursor:pointer" id="swap">🔁 تغيير الحساب</a></div>
+  <button class="nv" id="back">← الرئيسية</button>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <button class="menu" id="menu">☰</button>
+    <h1 id="ttl">اليوم</h1>
+    <div class="gs"><span>🔍</span><input placeholder="ابحث عن طالب أو واجب…" id="gs"></div>
+    <button class="btn pri" id="newBtn">➕ <span>واجب جديد</span></button>
+  </div>
+
+  <div class="content">
+
+  <!-- DASH -->
+  <section class="view on" id="v-dash">
+    <div class="greet"><div><h2>السلام عليكم يا أستاذ 👋</h2><p>لديك <b>4</b> طلاب مستحقون اليوم و<b>3</b> تسليمات تنتظر تصحيحك.</p></div>
+      <button class="btn out" id="wk">📅 جدول الأسبوع</button></div>
+    <div class="kpis">
+      <button class="kpi" data-go="hw"><small>منشور</small><b>12</b><span class="d up">▲ 3 هذا الأسبوع</span>
+        <svg width="70" height="30"><polyline fill="none" stroke="#25a07a" stroke-width="3" stroke-linecap="round" points="0,24 12,20 24,22 36,12 48,14 60,5 70,8"/></svg></button>
+      <button class="kpi" data-go="hw"><small>مسودات</small><b>2</b><span class="d" style="color:var(--amber)">أكملها وانشرها</span></button>
+      <button class="kpi" data-go="res"><small>يحتاج تصحيح</small><b style="color:var(--red)">3</b><span class="d dn">أقدمها منذ يومين</span></button>
+      <button class="kpi" data-go="hw"><small>متوسط الدرجات</small><b>86%</b><span class="d up">▲ 4%</span>
+        <svg width="70" height="30"><polyline fill="none" stroke="#d4af37" stroke-width="3" stroke-linecap="round" points="0,20 12,22 24,15 36,16 48,9 60,11 70,4"/></svg></button>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>🗂️ لوحة الواجبات <a data-go="hw">عرض الكل ←</a></h3><div class="board" id="board"></div></div>
+      <div style="display:grid;gap:18px;align-content:start">
+        <div class="card"><h3>⏰ مستحق اليوم</h3><div id="dueList"></div></div>
+        <div class="card"><h3>📈 نشاط الأسبوع</h3><div class="heat" id="heat"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HW -->
+  <section class="view" id="v-hw">
+    <div class="seg" id="seg"></div>
+    <table><thead><tr><th>الطالب</th><th>الحالة</th><th>النطاق</th><th>التقدّم</th><th>التاريخ</th><th></th></tr></thead><tbody id="tb"></tbody></table>
+  </section>
+
+  <!-- RES -->
+  <section class="view" id="v-res"><div class="card"><h3>🎓 ينتظر تصحيحك</h3><div id="resList"></div></div></section>
+
+  <!-- STUDENT -->
+  <section class="view" id="v-stu">
+    <div class="stwrap">
+      <div class="phone"><div class="ps" id="ps"></div></div>
+      <div class="stinfo card" style="max-width:420px"><h3>👀 كما يراه الطالب فعلاً</h3>
+        <ul><li>جرّب الحل بنفسك: اضغط «ابدأ» وأجب.</li><li>تُحفظ الإجابات تلقائياً على الجهاز ولا تضيع عند انقطاع الإنترنت.</li><li>التصحيح تلقائي للاختيارات، ويدوي لما يكتبه الطالب.</li></ul>
+        <button class="btn out" id="psReset" style="margin-top:14px">🔄 إعادة التجربة</button></div>
+    </div>
+  </section>
+
+  </div>
+</div>
+</div>
+
+<!-- ========== DRAWER: create ========== -->
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer">
+  <div class="dh"><h2 id="dTitle">➕ واجب جديد</h2><button class="x" id="dx">✕</button></div>
+  <div class="db" id="dbody">
+
+    <div id="pForm">
+      <div class="blk"><label><i>1</i> قالب سريع</label>
+        <div class="tpls" id="tpls"></div></div>
+
+      <div class="blk"><label><i id="i2">2</i> الطالب</label>
+        <div class="sstu" id="sstu"></div>
+        <div class="hint" id="shint">💡 اختر طالباً ليُبنى الواجب على نطاق حفظه وأخطائه.</div></div>
+
+      <div class="blk"><label><i>3</i> النطاق <span style="margin-inline-start:auto;font-weight:500;font-size:.8rem;color:var(--ink2)">اضغط الأحزاب لتحديدها</span></label>
+        <div class="tg" style="margin-bottom:12px" id="scopeTg"></div>
+        <div class="hz" id="hz"></div>
+        <div class="hint">🟢 مغطّى &nbsp; 🟡 قديم &nbsp; 🟠 أخطاء مفتوحة &nbsp; ⚪ لم يُفحص</div></div>
+
+      <div class="blk"><label><i>4</i> عدد الأسئلة</label>
+        <div class="qv"><b id="qv">10</b><span>سؤال · ≈ <span id="mins">6</span> دقائق</span></div>
+        <input type="range" class="rng" id="rng" min="3" max="30" value="10">
+        <div class="hint" id="covh"></div></div>
+
+      <div class="blk"><label><i>5</i> خيارات</label>
+        <div class="tg" id="optTg"></div></div>
+    </div>
+
+    <div id="pReview" style="display:none">
+      <div class="blk"><div class="hint" style="margin:0 0 12px">🔍 راجع الأسئلة قبل النشر — اضغط 🗑️ لحذف سؤال.</div>
+        <div class="rv" id="rv"></div>
+        <div style="margin-top:10px;display:flex;gap:8px"><button class="btn out" id="addm">➕ سؤال يدوي</button><button class="btn out" id="remix">🔀 إعادة خلط</button></div></div>
+    </div>
+  </div>
+  <div class="dfoot">
+    <div class="sum" id="sum">اختر الطالب للمتابعة</div>
+    <button class="btn out" id="dBack" style="display:none">→ تعديل</button>
+    <button class="btn out" id="dDraft" style="display:none">📝 مسودة</button>
+    <button class="btn pri" id="dNext" disabled>معاينة الأسئلة ←</button>
+  </div>
+</div>
+
+<!-- ========== SHARE SHEET ========== -->
+<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <div class="ok"><div class="c">🎉</div></div>
+  <h2>الواجب جاهز للإرسال</h2>
+  <p class="sub">مخصّص لـ <b id="shStu"></b> · <span id="shN"></span> سؤال</p>
+  <button class="btn wa-big" id="waBig">💬 أرسل عبر واتساب</button>
+  <div class="lk"><input id="shLink" readonly><button class="btn pri" id="shCopy" style="padding:8px 16px">📋 نسخ</button></div>
+  <div class="opt4"><button id="oTg"><span>✈️</span>تيليجرام</button><button id="oSms"><span>✉️</span>SMS</button><button id="oNat"><span>↗️</span>مشاركة</button><button id="oMail"><span>📧</span>بريد</button></div>
+  <div class="pv"><canvas class="qr" id="qr" width="118" height="118"></canvas><div><small style="color:var(--ink2)">معاينة الرسالة</small><div class="bub" id="shMsg"></div></div></div>
+  <div class="batch">أرسل نفس الواجب لطالب آخر؟ <a id="again">أنشئ نسخة لطالب آخر</a> · <a id="closeSheet">إغلاق</a></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2300)};
+const students=[{n:'أحمد محمد',h:8,r:'الناس → الملك'},{n:'عبدالله خالد',h:14,r:'الناس → النبأ'},{n:'يوسف إبراهيم',h:10,r:'الناس → الأعلى'},{n:'سارة أحمد',h:6,r:'جزء عمّ'},{n:'مريم علي',h:12,r:'الناس → النازعات'},{n:'عمر حسن',h:11,r:'الناس → الغاشية'},{n:'نورة سعد',h:13,r:'الناس → المطففين'}];
+const rows=[
+ {s:'أحمد محمد',sc:'الناس → الإخلاص',st:'pub',p:60,d:'منذ يومين'},{s:'عبدالله خالد',sc:'الملك → القلم',st:'grade',p:100,d:'أمس'},
+ {s:'مريم علي',sc:'النبأ → النازعات',st:'late',p:0,d:'منذ 5 أيام'},{s:'يوسف إبراهيم',sc:'الأعلى → الغاشية',st:'draft',p:0,d:'اليوم'},
+ {s:'سارة أحمد',sc:'جزء عمّ',st:'done',p:100,d:'الأسبوع الماضي'},{s:'نورة سعد',sc:'المطففين → الانشقاق',st:'grade',p:100,d:'أمس'},{s:'عمر حسن',sc:'الغاشية → الفجر',st:'pub',p:30,d:'اليوم'}];
+const ST={pub:['منشور','#25a07a'],draft:['مسودة','#e8a317'],grade:['يحتاج تصحيح','#e0463c'],late:['متأخر','#c2410c'],done:['مكتمل','#2f80ed']};
+
+/* nav */
+const TT={dash:'اليوم',hw:'الواجبات',res:'النتائج',stu:'معاينة الطالب'};
+function go(v){$$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));$$('.nv[data-v]').forEach(n=>n.classList.toggle('on',n.dataset.v===v));$('#ttl').textContent=TT[v];$('#side').classList.remove('on');scrollTo({top:0});if(v==='stu')stuReset()}
+$$('.nv[data-v]').forEach(n=>n.onclick=()=>go(n.dataset.v));
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+$('#menu').onclick=()=>$('#side').classList.toggle('on');
+$('#back').onclick=()=>toast('← يعود للرئيسية (غير مفعّل في المعاينة)');$('#swap').onclick=()=>toast('🔁 تغيير حساب جوجل');$('#wk').onclick=()=>toast('📅 يفتح شاشة جدول الأسبوع');
+$('#gs').oninput=e=>{if(e.target.value){go('hw');drawTb(e.target.value)}};
+
+/* dashboard */
+const cols=[['draft','مسودة','#e8a317'],['pub','منشور','#25a07a'],['grade','يحتاج تصحيح','#e0463c'],['done','مكتمل','#2f80ed']];
+$('#board').innerHTML=cols.map(([k,l,c])=>{const it=rows.filter(r=>r.st===k||(k==='pub'&&r.st==='late'));return `<div class="col"><h4>${l}<i>${it.length}</i></h4>${it.map(r=>`<div class="ticket" style="--tc:${r.st==='late'?'#c2410c':c}"><b>${r.s}</b><small>${r.sc}</small><div class="f"><span>${r.st==='late'?'⚠️ متأخر':r.d}</span><div class="av">${r.s[0]}</div></div></div>`).join('')}</div>`}).join('');
+const due=[['أحمد محمد','اليوم'],['يوسف إبراهيم','اليوم'],['عبدالله خالد','متأخر يوم'],['مريم علي','اليوم']];
+$('#dueList').innerHTML=due.map(([n,t])=>`<div class="due"><div class="av" style="width:38px;height:38px">${n[0]}</div><div class="m"><b>${n}</b><small>${students.find(s=>s.n===n).r}</small></div><span class="pill ${t.includes('متأخر')?'r':'o'}">${t}</span><button class="go" data-new="${n}" title="أنشئ واجباً">+</button></div>`).join('');
+$('#dueList').onclick=e=>{const b=e.target.closest('[data-new]');if(b)openDrawer(b.dataset.new)};
+$('#heat').innerHTML=['س','ح','ن','ث','ر','خ','ج'].map(d=>`<span>${d}</span>`).join('')+[3,5,2,6,4,1,0].map(n=>`<div style="--o:${.25+n/8}">${n||''}</div>`).join('');
+
+/* history */
+let flt='all';
+$('#seg').innerHTML=[['all','الكل'],['pub','منشور'],['draft','مسودة'],['grade','يحتاج تصحيح'],['late','متأخر'],['done','مكتمل']].map(([k,l])=>`<button data-f="${k}" class="${k==='all'?'on':''}">${l}</button>`).join('');
+$('#seg').onclick=e=>{const b=e.target.closest('button');if(!b)return;flt=b.dataset.f;$$('#seg button').forEach(x=>x.classList.toggle('on',x===b));drawTb()};
+function drawTb(q=''){$('#tb').innerHTML=rows.filter(r=>(flt==='all'||r.st===flt)&&(r.s+r.sc).includes(q)).map(r=>`<tr class="hr"><td><div class="who"><div class="av">${r.s[0]}</div><b>${r.s}</b></div></td><td><span class="stt" style="--c:${ST[r.st][1]}">${ST[r.st][0]}</span></td><td>${r.sc}</td><td><div class="pb"><i style="width:${r.p}%"></i></div></td><td style="color:var(--ink2)">${r.d}</td><td style="text-align:end;white-space:nowrap">${r.st==='draft'?'<button class="ic" title="نشر">🚀</button>':'<button class="ic" data-cp title="نسخ الرابط">🔗</button>'}<button class="ic" title="نتائج">📊</button><button class="ic" title="حذف">🗑️</button></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--ink2)">لا نتائج</td></tr>'}
+drawTb();document.addEventListener('click',e=>{if(e.target.closest('[data-cp]'))toast('✔️ تم نسخ الرابط')});
+$('#resList').innerHTML=rows.filter(r=>r.st==='grade').concat([{s:'يوسف إبراهيم',sc:'الأعلى → الغاشية'}]).map(r=>`<div class="due"><div class="av" style="width:38px;height:38px">${r.s[0]}</div><div class="m"><b>${r.s}</b><small>${r.sc} · 3 أسئلة بتصحيح يدوي</small></div><button class="btn pri" style="padding:8px 16px" onclick="toast('يفتح شاشة التصحيح')">صحّح</button></div>`).join('');
+
+/* ---------- drawer ---------- */
+const TPL=[['⚡','مراجعة سريعة','8 أسئلة · قريب',8,'all'],['🩹','علاجي','12 · الأخطاء',12,'fix'],['🏆','اختبار شامل','20 · كل النطاق',20,'all']];
+let tpl=0,stu=null,scope='all',sel=new Set(),n=10,opts=new Set(['rem','show']),stage=1;
+$('#tpls').innerHTML=TPL.map((t,i)=>`<button class="tpl ${i===0?'on':''}" data-i="${i}"><span>${t[0]}</span><b>${t[1]}</b><small>${t[2]}</small></button>`).join('');
+$('#tpls').onclick=e=>{const b=e.target.closest('.tpl');if(!b)return;tpl=+b.dataset.i;n=TPL[tpl][3];$('#rng').value=n;scope=TPL[tpl][4];$$('.tpl').forEach(x=>x.classList.toggle('on',x===b));upd()};
+function drawStu(){$('#sstu').innerHTML=students.map(s=>`<button class="sp1 ${stu&&stu.n===s.n?'on':''}" data-n="${s.n}"><div class="av">${s.n[0]}</div>${s.n}</button>`).join('')}
+$('#sstu').onclick=e=>{const b=e.target.closest('.sp1');if(!b)return;stu=students.find(s=>s.n===b.dataset.n);sel=new Set();upd()};
+const SC=[['all','كل النطاق'],['fix','أخطاء مفتوحة فقط'],['old','الأقدم فحصاً'],['resume','أكمل السابق'],['auto','✨ اقترح لي']];
+function drawScope(){$('#scopeTg').innerHTML=SC.map(([k,l])=>`<button class="tgl ${scope===k?'on':''}" data-k="${k}">${l}</button>`).join('')}
+$('#scopeTg').onclick=e=>{const b=e.target.closest('.tgl');if(!b)return;scope=b.dataset.k;if(scope==='auto'){sel=new Set([0,1,4,5]);toast('✨ اقترحنا 4 أحزاب: الأقل تغطية والأحدث أخطاءً')}else if(scope!=='all')sel=new Set();upd()};
+const hc=i=>['#0d5c46','#d4af37','#e8873a','#9fb3aa'][[0,1,2,3,0,2,1,0,3,0][(i*7)%10]];
+function drawHz(){const max=stu?stu.h*2:0;$('#hz').innerHTML=Array.from({length:30},(_,i)=>`<button class="${i<max?'':'off'} ${sel.has(i)?'sel':''}" style="--hc:${hc(i)}" data-i="${i}">${i+1}</button>`).join('')}
+$('#hz').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);scope='hizb';upd()};
+$('#rng').oninput=e=>{n=+e.target.value;upd()};
+const OPT=[['rem','⏰ تذكير تلقائي'],['show','👁️ إظهار النتيجة للطالب'],['retry','🔁 إعادة محاولة'],['due3','📅 موعد بعد 3 أيام']];
+function drawOpt(){$('#optTg').innerHTML=OPT.map(([k,l])=>`<button class="tgl ${opts.has(k)?'on':''}" data-k="${k}">${l}</button>`).join('')}
+$('#optTg').onclick=e=>{const b=e.target.closest('.tgl');if(!b)return;opts.has(b.dataset.k)?opts.delete(b.dataset.k):opts.add(b.dataset.k);drawOpt()};
+function upd(){drawStu();drawScope();drawHz();drawOpt();$('#qv').textContent=n;$('#mins').textContent=Math.ceil(n*.6);
+  const segs=scope==='hizb'?sel.size*3:(stu?stu.h*6:0);const pct=segs?Math.min(100,Math.round(n/segs*100)):0;
+  $('#covh').innerHTML=stu?`📊 يغطي هذا الواجب <b>${pct}%</b> من النطاق المختار — لتغطيته كله تحتاج <b>${segs}</b> سؤالاً.`:'اختر الطالب لحساب التغطية.';
+  $('#shint').innerHTML=stu?`💡 <span><b>${stu.n}</b> · ${stu.r} · آخر واجب قبل 5 أيام</span>`:'💡 اختر طالباً ليُبنى الواجب على نطاق حفظه وأخطائه.';
+  const ok=stu&&!(scope==='hizb'&&!sel.size);$('#dNext').disabled=!ok;
+  $('#sum').innerHTML=stu?`<b>${stu.n}</b> · ${n} سؤال · ${scope==='hizb'?sel.size+' أحزاب':SC.find(s=>s[0]===scope)[1]}`:'اختر الطالب للمتابعة'}
+function openDrawer(name){stage=1;$('#pForm').style.display='block';$('#pReview').style.display='none';$('#dBack').style.display=$('#dDraft').style.display='none';$('#dNext').textContent='معاينة الأسئلة ←';$('#dTitle').textContent='➕ واجب جديد';
+  stu=name?students.find(s=>s.n===name):null;sel=new Set();scope='all';n=10;tpl=0;$('#rng').value=10;$$('.tpl').forEach((x,i)=>x.classList.toggle('on',i===0));upd();$('#dbody').scrollTop=0;$('#scrim').classList.add('on');$('#drawer').classList.add('on')}
+function closeAll(){$('#drawer').classList.remove('on');$('#sheet').classList.remove('on');$('#scrim').classList.remove('on')}
+$('#newBtn').onclick=()=>openDrawer();$('#dx').onclick=$('#scrim').onclick=closeAll;$('#closeSheet').onclick=closeAll;
+
+/* review */
+const BK=[['أكمل الآية','﴿ قُلْ أَعُوذُ بِرَبِّ ... ﴾','قريب'],['رتّب الآيات','سورة الإخلاص','جديد'],['في أي صفحة؟','﴿ إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ ﴾','بعيد'],['حكم التجويد','﴿ مِن شَرِّ مَا خَلَقَ ﴾','علاجي'],['اكتب من الذاكرة ✍️','سورة العصر — الآية 2','بعيد'],['أكمل الآية','﴿ وَالضُّحَىٰ ﴿١﴾ وَاللَّيْلِ ... ﴾','قريب'],['من أي سورة؟','﴿ تَبَّتْ يَدَا أَبِي لَهَبٍ ﴾','قريب'],['رتّب الكلمات','﴿ لَمْ يَلِدْ وَلَمْ يُولَدْ ﴾','جديد']];
+const WHY={'جديد':'🆕 حفظ هذا الشهر','قريب':'🟢 حفظ الشهر الماضي','بعيد':'🕰️ لم يُفحص منذ 5 أسابيع','علاجي':'🩹 أخطأ فيه سابقاً — بصيغة مختلفة'};
+let seed=0,qn=0;
+function drawRv(){$('#rv').innerHTML=Array.from({length:Math.min(qn,8)},(_,i)=>{const b=BK[(i+seed)%BK.length];return `<div class="rq"><div class="n">${i+1}</div><div class="t"><b>${b[0]}</b><div class="q">${b[1]}</div><small>${WHY[b[2]]}</small></div><button class="ic" data-d title="حذف" style="width:30px;height:30px;border-radius:9px;background:var(--card)">🗑️</button></div>`}).join('')+(qn>8?`<div class="rq" style="color:var(--ink2);justify-content:center">… و ${qn-8} أسئلة أخرى</div>`:'')}
+$('#rv').onclick=e=>{if(e.target.closest('[data-d]')){qn=Math.max(3,qn-1);drawRv();$('#sum').innerHTML=`<b>${stu.n}</b> · ${qn} سؤال`}};
+$('#remix').onclick=()=>{seed+=3;drawRv();toast('🔀 أُعيد الخلط')};$('#addm').onclick=()=>toast('➕ يفتح نافذة بناء سؤال يدوي');
+$('#dNext').onclick=()=>{if(stage===1){stage=2;qn=n;seed=0;$('#pForm').style.display='none';$('#pReview').style.display='block';$('#dBack').style.display=$('#dDraft').style.display='inline-flex';$('#dNext').textContent='🚀 اعتماد ونشر';$('#dTitle').textContent='🔍 مراجعة الأسئلة';drawRv();$('#sum').innerHTML=`<b>${stu.n}</b> · ${qn} سؤال`;$('#dbody').scrollTop=0}else publish()};
+$('#dBack').onclick=()=>{stage=1;$('#pForm').style.display='block';$('#pReview').style.display='none';$('#dBack').style.display=$('#dDraft').style.display='none';$('#dNext').textContent='معاينة الأسئلة ←';upd()};
+$('#dDraft').onclick=()=>{closeAll();toast('📝 حُفظ كمسودة')};
+
+/* publish */
+const LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
+function publish(){$('#drawer').classList.remove('on');$('#shStu').textContent=stu.n;$('#shN').textContent=qn;$('#shLink').value=LINK;
+  const sc=scope==='hizb'?'أحزاب '+[...sel].map(i=>i+1).join('، '):stu.r;
+  $('#shMsg').textContent=`📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» ... مع تمنياتي لك بالتوفيق 🌟`;
+  drawQR();$('#sheet').classList.add('on');rows.unshift({s:stu.n,sc:sc,st:'pub',p:0,d:'الآن'});drawTb()}
+function drawQR(){const c=$('#qr'),x=c.getContext('2d'),m=25,s=c.width/m;x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#06231c';let sd=11;const r=()=>(sd=(sd*9301+49297)%233280)/233280;
+  for(let i=0;i<m;i++)for(let j=0;j<m;j++){const fi=(i<7&&j<7)||(i<7&&j>=m-7)||(i>=m-7&&j<7);if(fi){const li=i<7?i:i-(m-7),lj=j<7?j:j-(m-7);if(li===0||li===6||lj===0||lj===6||(li>=2&&li<=4&&lj>=2&&lj<=4))x.fillRect(j*s,i*s,s,s)}else if(r()>.5)x.fillRect(j*s,i*s,s,s)}}
+$('#shCopy').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});$('#shCopy').textContent='✔️ تم';setTimeout(()=>$('#shCopy').textContent='📋 نسخ',1500);toast('✔️ تم نسخ الرابط')};
+$('#waBig').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent($('#shMsg').textContent),'_blank');
+$('#oTg').onclick=()=>window.open('https://t.me/share/url?url='+encodeURIComponent(LINK),'_blank');
+$('#oSms').onclick=()=>location.href='sms:?body='+encodeURIComponent($('#shMsg').textContent);
+$('#oMail').onclick=()=>location.href='mailto:?subject='+encodeURIComponent('واجب منزلي')+'&body='+encodeURIComponent($('#shMsg').textContent);
+$('#oNat').onclick=()=>navigator.share?navigator.share({title:'واجب حمٓ',text:$('#shMsg').textContent,url:LINK}):toast('المشاركة الأصلية متاحة على الهاتف');
+$('#again').onclick=()=>{$('#sheet').classList.remove('on');openDrawer()};
+
+/* ---------- interactive student view ---------- */
+const SQ=[{t:'أكمل الآية',q:'﴿ قُلْ أَعُوذُ بِرَبِّ ﴾',o:['الْفَلَقِ','النَّاسِ','الْعَالَمِينَ'],a:1},{t:'ما الآية التالية؟',q:'﴿ قُلْ هُوَ اللَّهُ أَحَدٌ ﴾',o:['لَمْ يَلِدْ وَلَمْ يُولَدْ','اللَّهُ الصَّمَدُ','وَلَمْ يَكُن لَّهُ كُفُوًا'],a:1},{t:'اكتب الآية الثانية من سورة العصر',q:'',o:null}];
+let si=0,ss=0,ans=[];
+function stuReset(){si=0;ss=0;ans=[];psRender()}
+function psRender(){const p=$('#ps');
+ if(ss===0)p.innerHTML=`<div class="psh">📖 حمٓ — الواجب المنزلي</div><div class="psb"><div style="font-size:3rem">👑</div><h3>مرحباً بك يا بطل</h3><div class="pc">واجب من <b>${SQ.length}</b> أسئلة<br><small style="color:#64748b">هذا الواجب مخصّص لـ</small><br><b style="color:#047857;font-size:1.15rem">أحمد محمد</b></div><button class="pbtn" id="go1">ابدأ الحل ▶</button></div>`;
+ else if(ss===1){const q=SQ[si];p.innerHTML=`<div class="psh">السؤال ${si+1} من ${SQ.length}</div><div class="psb"><div class="ppr"><i style="width:${(si+1)/SQ.length*100}%"></i></div><div class="pc"><small style="color:#64748b">${q.t}</small>${q.q?`<div class="q" style="font-size:1.4rem">${q.q}</div>`:''}</div>${q.o?q.o.map((o,i)=>`<button class="po ${ans[si]===i?'on':''}" data-i="${i}">${o}</button>`).join(''):`<input class="pin" id="txt" placeholder="اكتب إجابتك" value="${ans[si]||''}">`}<button class="pbtn ${si<SQ.length-1?'alt':''}" id="nx">${si<SQ.length-1?'التالي ▶':'📨 تسليم الواجب'}</button></div>`;
+  $$('.po').forEach(b=>b.onclick=()=>{ans[si]=+b.dataset.i;psRender()});const t=$('#txt');if(t)t.oninput=()=>ans[si]=t.value;
+  $('#nx').onclick=()=>{if(si<SQ.length-1)si++;else ss=2;psRender()}}
+ else p.innerHTML=`<div class="psh">📨 تم التسليم</div><div class="psb"><div style="font-size:3.4rem">✅</div><h3>أحسنت يا بطل!</h3><div class="pc">تم إرسال إجاباتك لمعلمك<br><small style="color:#64748b">الأسئلة الاختيارية صُحّحت تلقائياً</small><div style="font-size:2rem;font-weight:700;color:#047857;margin-top:6px">${ans.slice(0,2).filter((a,i)=>a===SQ[i].a).length}/2</div></div><span class="pill o" style="display:inline-block">بانتظار تصحيح سؤال الكتابة</span></div>`;
+ const g=$('#go1');if(g)g.onclick=()=>{ss=1;psRender()}}
+$('#psReset').onclick=stuReset;
+
+upd();stuReset();
+</script>
+</body>
+</html>

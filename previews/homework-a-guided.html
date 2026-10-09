@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — المسار الموجَّه للواجبات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --card:#fff; --red:#dc2626; --amber:#d97706; --blue:#0284c7;
+  --r:18px; --sh:0 6px 24px rgba(6,35,28,.08); --sh2:0 18px 40px rgba(6,35,28,.16);
+}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1713;--card:#12241d;--ink:#eaf5ef;--ink2:#9db8ac;--line:#21392f;--g1:#16342a;--g0:#10261e;--gold-soft:#3a3317}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+button{cursor:pointer;border:0;background:none;color:inherit}
+.q{font-family:'Amiri Quran',serif;font-size:1.45rem;line-height:2.1}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- header ---------- */
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7));border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{display:flex;align-items:center;gap:14px;padding-block:16px;flex-wrap:wrap}
+.logo{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:1.5rem}
+.top h1{font-size:1.25rem;font-weight:700}
+.top small{color:#f1dd8f;display:block;font-size:.82rem}
+.top .sp{flex:1}
+.acct{font-size:.82rem;color:#f1dd8f;display:flex;align-items:center;gap:8px}
+.ghost{border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:rgba(255,255,255,.1)}
+.ghost:hover{background:rgba(255,255,255,.2)}
+
+nav.tabs{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tab{padding:15px 18px;font-weight:600;color:var(--ink2);border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tab.on{color:var(--g7);border-color:var(--gold)}
+.tab .n{background:var(--red);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 8px}
+
+main{padding:26px 0 90px}
+.view{display:none;animation:up .35s ease}.view.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- home ---------- */
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.cta{background:linear-gradient(135deg,var(--g7),var(--g9));color:#fffdf6;border-radius:var(--r);padding:28px;box-shadow:var(--sh2);position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(212,175,55,.18)}
+.cta h2{font-size:1.5rem;margin-bottom:6px}.cta p{color:#cfe6dc;margin-bottom:18px;max-width:34ch}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:14px;font-weight:700;font-size:1rem;transition:.15s}
+.btn.gold{background:var(--gold);color:#3a2d00}.btn.gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn.pri{background:var(--g7);color:#fff}.btn.pri:hover{background:var(--g6)}
+.btn.out{border:2px solid var(--line);background:var(--card)}.btn.out:hover{border-color:var(--g6)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--sh);border-inline-start:5px solid var(--c,var(--g6));text-align:start;transition:.15s}
+button.stat:hover{transform:translateY(-3px)}
+.stat b{font-size:1.8rem;display:block;line-height:1.1}.stat span{font-size:.88rem;color:var(--ink2);font-weight:600}
+
+.sec{display:flex;justify-content:space-between;align-items:center;margin:28px 0 12px}
+.sec h3{font-size:1.15rem}.sec a{color:var(--g6);font-weight:600;font-size:.9rem;cursor:pointer}
+.today{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tcard{background:var(--card);border-radius:16px;padding:14px 16px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex-shrink:0}
+.tcard .m{flex:1;min-width:0}.tcard b{display:block}.tcard small{color:var(--ink2);font-size:.8rem}
+.tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--gold-soft);color:#8a6a00}
+.tag.red{background:#fde8e8;color:var(--red)}.tag.green{background:var(--g1);color:var(--g7)}.tag.blue{background:#e0f2fe;color:var(--blue)}.tag.gray{background:var(--line);color:var(--ink2)}
+.mini{padding:7px 13px;border-radius:10px;background:var(--g7);color:#fff;font-weight:600;font-size:.85rem}.mini:hover{background:var(--g6)}
+
+/* ---------- history ---------- */
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:200px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:1rem;outline:none}
+.search:focus{border-color:var(--g6)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:9px 15px;border-radius:99px;background:var(--card);border:2px solid var(--line);font-weight:600;font-size:.88rem}
+.chip.on{background:var(--g7);border-color:var(--g7);color:#fff}
+.list{display:grid;gap:10px}
+.row{background:var(--card);border-radius:16px;padding:14px 18px;box-shadow:var(--sh);display:grid;grid-template-columns:auto 1.4fr 1.6fr auto auto;gap:14px;align-items:center}
+.row .sc{font-size:.85rem;color:var(--ink2)}
+.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden;min-width:90px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--gold));border-radius:9px}
+.acts{display:flex;gap:6px}
+.ic{width:36px;height:36px;border-radius:10px;background:var(--g0);display:grid;place-items:center;font-size:1rem}.ic:hover{background:var(--g1)}
+
+/* ---------- wizard ---------- */
+.wiz{display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start}
+.stepper{display:flex;gap:6px;margin-bottom:20px;background:var(--card);padding:10px;border-radius:var(--r);box-shadow:var(--sh)}
+.st{flex:1;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;color:var(--ink2);font-weight:600;font-size:.92rem;min-width:0}
+.st i{width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-style:normal;font-weight:700;flex-shrink:0;font-size:.9rem}
+.st.on{background:var(--g1);color:var(--g7)}.st.on i{background:var(--g7);color:#fff}
+.st.done i{background:var(--gold);color:#3a2d00}
+.st span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:26px}
+.panel h2{font-size:1.3rem;margin-bottom:4px}.panel .sub{color:var(--ink2);margin-bottom:20px}
+.step{display:none}.step.on{display:block;animation:up .3s ease}
+.foot{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+
+.stu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px;max-height:340px;overflow:auto;padding:2px}
+.stu{border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;text-align:start;transition:.15s}
+.stu:hover{border-color:var(--g6)}.stu.on{border-color:var(--g7);background:var(--g1);box-shadow:0 0 0 3px rgba(20,124,94,.15)}
+.stu small{display:block;color:var(--ink2);font-size:.75rem}
+.info{display:flex;gap:12px;padding:14px 16px;border-radius:14px;background:var(--gold-soft);color:#6b5400;margin-top:16px;font-size:.92rem}
+
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.mode{padding:9px 16px;border-radius:12px;border:2px solid var(--line);font-weight:600;font-size:.9rem}
+.mode.on{border-color:var(--g7);background:var(--g1);color:var(--g7)}
+.hizb{display:grid;grid-template-columns:repeat(15,1fr);gap:5px;direction:rtl}
+.hz{aspect-ratio:1;border-radius:8px;font-size:.72rem;font-weight:700;display:grid;place-items:center;background:var(--hc);color:var(--hf,#fff);position:relative;transition:.12s;border:2px solid transparent}
+.hz:hover{transform:scale(1.12);z-index:2}
+.hz.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold)}
+.hz.off{background:var(--line);color:var(--ink2);opacity:.5;pointer-events:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--ink2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-inline-end:5px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.fld label{display:block;font-weight:600;margin-bottom:6px;font-size:.92rem}
+.num{display:flex;align-items:center;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.num button{width:46px;height:46px;font-size:1.3rem;font-weight:700;color:var(--g7)}.num button:hover{background:var(--g1)}
+.num input{flex:1;text-align:center;border:0;font-size:1.2rem;font-weight:700;background:transparent;color:var(--ink);outline:none;width:60px}
+.cov{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--g0);border:1px dashed var(--g6);font-size:.92rem}
+.cov b{color:var(--g7)}
+.sugg{margin-inline-start:auto}
+
+.qlist{display:grid;gap:10px;max-height:520px;overflow:auto;padding:2px}
+.qi{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;transition:.15s;background:var(--card)}
+.qi:hover{border-color:var(--g6)}
+.qn{width:32px;height:32px;border-radius:10px;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.qi .why{font-size:.78rem;color:var(--ink2);margin-top:4px}
+.qi .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.qi .txt{font-size:.98rem}
+.qtools{display:flex;gap:4px}
+.qtools .ic{width:32px;height:32px;font-size:.85rem}
+.mix{display:flex;height:12px;border-radius:9px;overflow:hidden;margin:6px 0 10px;gap:2px}
+.mix i{display:block;height:100%}
+.mixl{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--ink2)}.mixl i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px}
+
+.pub-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.linkbox{display:flex;gap:8px;margin:10px 0}
+.linkbox input{flex:1;direction:ltr;text-align:left;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--g0);color:var(--ink);font-size:.9rem;min-width:0}
+.share{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.share .btn{justify-content:center;padding:13px 10px}
+.wa{background:#25d366;color:#04361a}.tg{background:#229ed9;color:#fff}
+.bubble{background:#dcf8c6;color:#111;border-radius:14px 14px 4px 14px;padding:12px 14px;font-size:.88rem;white-space:pre-wrap;line-height:1.8;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.waback{background:#e5ddd5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='%23d6cdc2'/%3E%3C/svg%3E");border-radius:16px;padding:16px;margin-top:8px}
+.qr{width:150px;height:150px;border-radius:14px;background:#fff;padding:10px;border:1px solid var(--line);margin-inline:auto;display:block}
+.opts label{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.95rem;cursor:pointer}
+.opts input{accent-color:var(--g7);width:18px;height:18px}
+.success{text-align:center;padding:10px 0 4px}.success .big{font-size:3.2rem}
+.success h2{color:var(--g7)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .5s ease both;display:inline-block}
+
+/* ---------- phone preview ---------- */
+.side{position:sticky;top:70px}
+.side h4{font-size:.9rem;color:var(--ink2);margin-bottom:10px;text-align:center}
+.phone{width:290px;margin:0 auto;background:#111;border-radius:38px;padding:11px;box-shadow:var(--sh2)}
+.screen{background:#f0f9ff;border-radius:28px;height:540px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.ph-head{background:linear-gradient(120deg,var(--g9),var(--g7));color:#fff;padding:26px 14px 12px;font-weight:700;font-size:.95rem;text-align:center;border-bottom:3px solid var(--gold)}
+.ph-body{padding:14px;flex:1;overflow:hidden;font-size:.85rem;color:#1e293b}
+.ph-body h5{font-size:1.1rem;color:#0369a1;text-align:center;margin-bottom:6px}
+.ph-card{background:#fff;border-radius:14px;padding:12px;margin-top:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
+.ph-prog{height:6px;background:#dbeafe;border-radius:9px;margin:8px 0}.ph-prog i{display:block;height:100%;width:30%;background:var(--g6);border-radius:9px}
+.ph-opt{border:2px solid #e2e8f0;border-radius:10px;padding:8px;margin-top:6px;font-weight:600;background:#fff}
+.ph-opt.ok{border-color:var(--g6);background:var(--g1)}
+.ph-btn{margin-top:12px;background:linear-gradient(45deg,#10b981,#059669);color:#fff;padding:11px;border-radius:12px;font-weight:700;text-align:center}
+.mock-note{font-size:.72rem;color:var(--ink2);text-align:center;margin-top:10px}
+
+.toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g9);color:#fff;padding:12px 22px;border-radius:14px;box-shadow:var(--sh2);transform:translateY(100px);opacity:0;transition:.3s;z-index:99;font-weight:600}
+.toast.on{transform:none;opacity:1}
+
+@media(max-width:980px){.wiz{grid-template-columns:1fr}.side{display:none}.hero{grid-template-columns:1fr}.row{grid-template-columns:auto 1fr auto}.row .sc,.row .prog{display:none}}
+@media(max-width:640px){.wrap{padding:0 14px}.hizb{grid-template-columns:repeat(10,1fr)}.fields,.pub-grid{grid-template-columns:1fr}.st span{display:none}.st.on span{display:block}.panel{padding:18px}.top h1{font-size:1.05rem}.acct span{display:none}.cta{padding:22px}.stat b{font-size:1.5rem}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="logo">📖</div>
+    <div><h1>نظام إدارة الواجبات</h1><small>معاينة (أ) · المسار الموجَّه</small></div>
+    <div class="sp"></div>
+    <div class="acct"><span>teacher@gmail.com</span><button class="ghost">🔁 تغيير الإيميل</button><button class="ghost" id="back">← الرئيسية</button></div>
+  </div>
+</header>
+
+<nav class="tabs"><div class="wrap">
+  <button class="tab on" data-v="home">🏠 الرئيسية</button>
+  <button class="tab" data-v="new">➕ واجب جديد</button>
+  <button class="tab" data-v="hist">📊 السجل</button>
+  <button class="tab" data-v="res">🎓 النتائج <span class="n">3</span></button>
+</div></nav>
+
+<main><div class="wrap">
+
+<!-- ================= HOME ================= -->
+<section class="view on" id="v-home">
+  <div class="hero">
+    <div class="cta">
+      <h2>جاهز لواجب جديد؟</h2>
+      <p>اختر الطالب وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه في أقل من دقيقة.</p>
+      <button class="btn gold" data-go="new">➕ ابدأ واجبًا جديدًا</button>
+    </div>
+    <div class="stats">
+      <button class="stat" style="--c:var(--g6)" data-go="hist"><b>12</b><span>منشور</span></button>
+      <button class="stat" style="--c:var(--gold)" data-go="hist"><b>2</b><span>مسودة</span></button>
+      <button class="stat" style="--c:var(--red)" data-go="res"><b>3</b><span>يحتاج تصحيح</span></button>
+      <button class="stat" style="--c:#c2410c" data-go="hist"><b>1</b><span>متأخر عن التسليم</span></button>
+    </div>
+  </div>
+
+  <div class="sec"><h3>📅 مستحق اليوم <span class="tag">4 طلاب</span></h3><a data-go="hist">جدول الأسبوع ←</a></div>
+  <div class="today" id="today"></div>
+
+  <div class="sec"><h3>🕘 آخر النشاطات</h3></div>
+  <div class="list" id="recent"></div>
+</section>
+
+<!-- ================= NEW (WIZARD) ================= -->
+<section class="view" id="v-new">
+  <div class="wiz">
+    <div>
+      <div class="stepper" id="stepper"></div>
+      <div class="panel">
+
+        <div class="step on" data-s="1">
+          <h2>👤 لمن هذا الواجب؟</h2>
+          <p class="sub">يُبنى الواجب على نطاق حفظ الطالب ونقاط ضعفه المسجَّلة.</p>
+          <input class="search" id="stuSearch" placeholder="🔍 ابحث عن طالب..." style="width:100%">
+          <div class="stu-grid" id="stuGrid"></div>
+          <div class="info" id="stuInfo" style="display:none"></div>
+        </div>
+
+        <div class="step" data-s="2">
+          <h2>📖 النطاق وعدد الأسئلة</h2>
+          <p class="sub">اللون يدل على تغطية المقطع خلال دورة المراجعة الأخيرة.</p>
+          <div class="modes" id="modes">
+            <button class="mode on" data-m="all">كل النطاق</button>
+            <button class="mode" data-m="hizb">أحزاب محددة</button>
+            <button class="mode" data-m="resume">أكمل السابق</button>
+            <button class="mode sugg" data-m="auto">✨ اقترح لي</button>
+          </div>
+          <div class="hizb" id="hizb"></div>
+          <div class="legend">
+            <span><i style="background:#0d5c46"></i>مغطّى</span><span><i style="background:#d4af37"></i>قديم الفحص</span>
+            <span><i style="background:#dc6b4a"></i>أخطاء مفتوحة</span><span><i style="background:#9fb3aa"></i>لم يُفحص</span><span><i style="background:var(--line)"></i>خارج حفظه</span>
+          </div>
+          <div class="fields">
+            <div class="fld"><label>عدد الأسئلة</label><div class="num"><button id="qm">−</button><input id="qc" value="10" readonly><button id="qp">+</button></div></div>
+            <div class="fld"><label>دورة المراجعة (أسابيع)</label><div class="num"><button id="wm">−</button><input id="wc" value="6" readonly><button id="wp">+</button></div></div>
+          </div>
+          <div class="cov" id="cov"></div>
+        </div>
+
+        <div class="step" data-s="3">
+          <h2>🔍 راجع الأسئلة</h2>
+          <p class="sub">كل سؤال معه سبب اختياره. عدّل أو احذف أو أضف سؤالاً يدوياً.</p>
+          <div class="mix" id="mix"></div>
+          <div class="mixl" id="mixl"></div>
+          <div class="qlist" id="qlist" style="margin-top:14px"></div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn out" id="addQ">➕ سؤال يدوي</button><button class="btn out" id="shuffle">🔀 أعد الخلط</button>
+          </div>
+        </div>
+
+        <div class="step" data-s="4">
+          <div id="pubForm">
+            <h2>🚀 النشر والإرسال</h2>
+            <p class="sub">آخر لمسة قبل الإرسال.</p>
+            <div class="opts">
+              <label><input type="checkbox" checked> تذكير الطالب تلقائياً قبل الموعد بيوم</label>
+              <label><input type="checkbox" checked> إظهار النتيجة للطالب بعد التصحيح</label>
+              <label><input type="checkbox"> السماح بإعادة المحاولة مرة واحدة</label>
+            </div>
+            <div class="fields"><div class="fld"><label>آخر موعد للتسليم</label>
+              <select class="search" id="due" style="width:100%"><option>بعد 3 أيام (الأحد)</option><option>بعد 5 أيام</option><option>بعد أسبوع</option><option>بدون موعد</option></select></div>
+              <div class="fld"><label>ملاحظة للطالب (اختياري)</label><input class="search" style="width:100%" placeholder="مثال: ركّز على التجويد 🌟"></div></div>
+          </div>
+          <div id="pubDone" style="display:none">
+            <div class="success"><div class="big pop">🎉</div><h2>تم النشر! أرسل الرابط الآن</h2><p class="sub">الواجب جاهز لـ <b id="dStu"></b></p></div>
+            <div class="pub-grid">
+              <div>
+                <b>🔗 رابط الواجب</b>
+                <div class="linkbox"><input id="lnk" readonly><button class="btn pri" id="cp">📋 نسخ</button></div>
+                <div class="share">
+                  <button class="btn wa" id="wa">💬 واتساب</button><button class="btn tg" id="tg">✈️ تيليجرام</button>
+                  <button class="btn out" id="sms">✉️ رسالة SMS</button><button class="btn out" id="nat">↗️ مشاركة</button>
+                </div>
+                <canvas class="qr" id="qr" width="130" height="130" style="margin-top:16px"></canvas>
+                <div class="mock-note">رمز توضيحي — يُولَّد الحقيقي من الرابط</div>
+              </div>
+              <div><b>معاينة الرسالة</b><div class="waback"><div class="bubble" id="msg"></div></div>
+                <div class="info" style="background:var(--g1);color:var(--g7)">✅ الواجب محفوظ في السحابة ويظهر في سجلك.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot" id="foot">
+          <button class="btn out" id="prev">→ السابق</button>
+          <button class="btn pri" id="next">التالي ←</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <h4>📱 كما سيراه الطالب</h4>
+      <div class="phone"><div class="screen" id="phone"></div></div>
+      <p class="mock-note">معاينة حيّة تتغيّر مع اختياراتك</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= HISTORY ================= -->
+<section class="view" id="v-hist">
+  <div class="tools"><input class="search" placeholder="🔍 ابحث باسم الطالب أو النطاق..." id="hs">
+    <div class="chips" id="hchips"></div></div>
+  <div class="list" id="hlist"></div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section class="view" id="v-res">
+  <div class="sec" style="margin-top:0"><h3>🎓 ينتظر تصحيحك</h3></div>
+  <div class="list" id="rlist"></div>
+</section>
+
+</div></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)};
+const students=[
+  {n:'أحمد محمد',r:'من الناس إلى الملك',h:8,due:'اليوم'},{n:'عبدالله خالد',r:'من الناس إلى النبأ',h:14,due:'متأخر يوم'},
+  {n:'يوسف إبراهيم',r:'من الناس إلى الأعلى',h:10,due:'اليوم'},{n:'سارة أحمد',r:'جزء عمّ كاملاً',h:6,due:''},
+  {n:'مريم علي',r:'من الناس إلى النازعات',h:12,due:'اليوم'},{n:'عمر حسن',r:'من الناس إلى الغاشية',h:11,due:''},
+  {n:'نورة سعد',r:'من الناس إلى المطففين',h:13,due:'اليوم'},{n:'خالد وليد',r:'من الناس إلى الضحى',h:7,due:''}];
+const hist=[
+  {s:'أحمد محمد',sc:'من الناس إلى الإخلاص',st:'pub',p:80,d:'منذ يومين'},{s:'عبدالله خالد',sc:'الملك – القلم',st:'grade',p:100,d:'أمس'},
+  {s:'مريم علي',sc:'النبأ – النازعات',st:'late',p:0,d:'منذ 5 أيام'},{s:'يوسف إبراهيم',sc:'الأعلى – الغاشية',st:'draft',p:0,d:'اليوم'},
+  {s:'سارة أحمد',sc:'جزء عمّ',st:'done',p:100,d:'الأسبوع الماضي'},{s:'نورة سعد',sc:'المطففين – الانشقاق',st:'grade',p:100,d:'أمس'}];
+const ST={pub:['منشور','green'],draft:['مسودة',''],grade:['يحتاج تصحيح','red'],late:['متأخر','red'],done:['مكتمل','blue']};
+
+/* ---------- navigation ---------- */
+function go(v){$$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));$$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));scrollTo({top:0,behavior:'smooth'});if(v==='new')reset()}
+$$('.tab').forEach(t=>t.onclick=()=>go(t.dataset.v));document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+
+/* ---------- home ---------- */
+$('#today').innerHTML=students.filter(s=>s.due).map(s=>`<div class="tcard"><div class="av">${s.n[0]}</div><div class="m"><b>${s.n}</b><small>${s.r}</small></div>${s.due.includes('متأخر')?'<span class="tag red">'+s.due+'</span>':'<span class="tag">'+s.due+'</span>'}<button class="mini" data-pick="${s.n}">أنشئ</button></div>`).join('');
+$('#today').onclick=e=>{const b=e.target.closest('[data-pick]');if(b){go('new');pickStudent(b.dataset.pick)}};
+const rowHTML=h=>`<div class="row"><div class="av">${h.s[0]}</div><div><b>${h.s}</b><div class="sc">${h.sc}</div></div><div class="prog"><div class="bar"><i style="width:${h.p}%"></i></div><small style="color:var(--ink2)">${h.d}</small></div><span class="tag ${ST[h.st][1]}">${ST[h.st][0]}</span><div class="acts">${h.st==='draft'?'<button class="ic" title="نشر">🚀</button>':'<button class="ic" title="نسخ الرابط" data-copy>🔗</button>'}<button class="ic" title="نتائج">📊</button><button class="ic" title="حذف">🗑️</button></div></div>`;
+$('#recent').innerHTML=hist.slice(0,3).map(rowHTML).join('');
+let filt='all';
+function drawHist(){const q=$('#hs').value.trim();$('#hlist').innerHTML=hist.filter(h=>(filt==='all'||h.st===filt)&&(h.s+h.sc).includes(q)).map(rowHTML).join('')||'<div class="panel" style="text-align:center;color:var(--ink2)">لا نتائج</div>'}
+$('#hchips').innerHTML=[['all','الكل'],['pub','منشور'],['draft','مسودة'],['grade','يحتاج تصحيح'],['late','متأخر']].map(([k,l])=>`<button class="chip ${k==='all'?'on':''}" data-f="${k}">${l}</button>`).join('');
+$('#hchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;filt=c.dataset.f;$$('#hchips .chip').forEach(x=>x.classList.toggle('on',x===c));drawHist()};
+$('#hs').oninput=drawHist;drawHist();
+document.addEventListener('click',e=>{if(e.target.closest('[data-copy]'))toast('✔️ تم نسخ الرابط')});
+$('#rlist').innerHTML=hist.filter(h=>h.st==='grade').concat([{s:'يوسف إبراهيم',sc:'الأعلى – الغاشية',st:'grade',p:100,d:'منذ ساعة'}]).map(h=>`<div class="row"><div class="av">${h.s[0]}</div><div><b>${h.s}</b><div class="sc">${h.sc}</div></div><div class="prog sc">3 أسئلة تحتاج تصحيحاً يدوياً</div><span class="tag red">يحتاج تصحيح</span><button class="mini">صحّح الآن</button></div>`).join('');
+$('#back').onclick=()=>toast('← يعود للشاشة الرئيسية للمنصة (غير مفعّل في المعاينة)');
+
+/* ---------- wizard state ---------- */
+const steps=['الطالب','النطاق','الأسئلة','النشر'];
+let step=1,stu=null,mode='all',qc=10,wc=6,sel=new Set(),qs=[],published=false;
+function reset(){step=1;stu=null;mode='all';qc=10;wc=6;sel=new Set();qs=[];published=false;$('#stuSearch').value='';$('#qc').value=10;$('#wc').value=6;$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='all'));drawStu();render()}
+function drawStepper(){$('#stepper').innerHTML=steps.map((s,i)=>`<div class="st ${i+1===step?'on':''} ${i+1<step?'done':''}"><i>${i+1<step?'✓':i+1}</i><span>${s}</span></div>`).join('')}
+function drawStu(){const q=$('#stuSearch').value.trim();$('#stuGrid').innerHTML=students.filter(s=>s.n.includes(q)).map(s=>`<button class="stu ${stu&&stu.n===s.n?'on':''}" data-n="${s.n}"><div class="av">${s.n[0]}</div><div><b>${s.n}</b><small>${s.r}</small></div></button>`).join('')||'<p style="color:var(--ink2)">لا يوجد طالب بهذا الاسم</p>'}
+$('#stuSearch').oninput=drawStu;$('#stuGrid').onclick=e=>{const b=e.target.closest('.stu');if(b)pickStudent(b.dataset.n)};
+function pickStudent(n){stu=students.find(s=>s.n===n);sel=new Set();drawStu();$('#stuInfo').style.display='flex';$('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. موضع الحفظ الشهري محدَّث ✅</div>`;render()}
+function hcolor(i){const r=(i*37+7)%10;return r<4?'#0d5c46':r<6?'#d4af37':r<8?'#dc6b4a':'#9fb3aa'}
+function drawHizb(){const max=stu?stu.h*2:0;$('#hizb').innerHTML=Array.from({length:30},(_,i)=>{const on=i<max;return `<button class="hz ${on?'':'off'} ${sel.has(i)?'sel':''}" style="--hc:${hcolor(i)};${hcolor(i)==='#d4af37'?'--hf:#3a2d00':''}" data-i="${i}" title="الحزب ${i+1}">${i+1}</button>`}).join('')}
+$('#hizb').onclick=e=>{const b=e.target.closest('.hz');if(!b)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);setMode('hizb');drawHizb();drawCov()};
+function setMode(m){mode=m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m===m))}
+$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(!b)return;setMode(b.dataset.m);if(b.dataset.m==='auto'){sel=new Set([0,1,3]);setMode('hizb');toast('✨ اقترحنا 3 أحزاب: الأقل تغطية والأقدم فحصاً')}else if(b.dataset.m!=='hizb')sel=new Set();drawHizb();drawCov()};
+function bump(id,d,min,max,set){const v=Math.min(max,Math.max(min,(id==='qc'?qc:wc)+d));set(v);$('#'+id).value=v;drawCov()}
+$('#qm').onclick=()=>bump('qc',-1,3,50,v=>qc=v);$('#qp').onclick=()=>bump('qc',1,3,50,v=>qc=v);$('#wm').onclick=()=>bump('wc',-1,1,26,v=>wc=v);$('#wp').onclick=()=>bump('wc',1,1,26,v=>wc=v);
+function drawCov(){const n=mode==='all'?(stu?stu.h*2:0)*3:sel.size*3||3;const pct=Math.min(100,Math.round(qc/n*100));$('#cov').innerHTML=`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً، ولدورة كاملة خلال ${wc} أسابيع بواجبين أسبوعياً: <b>${Math.ceil(n/(wc*2))}</b> أسئلة لكل واجب.`}
+
+/* ---------- questions ---------- */
+const bank=[
+ ['mcq','أكمل الآية','﴿ قُلْ أَعُوذُ بِرَبِّ ﴿١﴾ ... ﴾','قريب','tag green'],['order','رتّب الآيات','سورة الإخلاص — 4 آيات','جديد','tag blue'],
+ ['visual_page','في أي صفحة؟ (يمين/يسار)','﴿ إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ ﴾','بعيد','tag'],['mcq','ما الآية التالية؟','﴿ وَالضُّحَىٰ ﴿١﴾ وَاللَّيْلِ إِذَا سَجَىٰ ﴾','قريب','tag green'],
+ ['tajweed','حدّد حكم التجويد','﴿ مِن شَرِّ مَا خَلَقَ ﴾','علاجي','tag red'],['text','اكتب الآية من الذاكرة (تصحيح يدوي)','سورة العصر — الآية 2','بعيد','tag'],
+ ['mcq','أين موضع الخطأ؟','﴿ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ﴾','علاجي','tag red'],['order','رتّب الكلمات','﴿ لَمْ يَلِدْ وَلَمْ يُولَدْ ﴾','جديد','tag blue'],
+ ['mcq','من أي سورة؟','﴿ تَبَّتْ يَدَا أَبِي لَهَبٍ ﴾','قريب','tag green'],['mcq','أكمل الآية','﴿ فَصَلِّ لِرَبِّكَ ... ﴾','قريب','tag green']];
+const why={'جديد':'من حفظ الشهر الحالي','قريب':'من حفظ الشهر الماضي','بعيد':'مراجعة بعيدة لم تُفحص منذ 5 أسابيع','علاجي':'أخطأ فيه سابقاً — بصيغة مختلفة'};
+function buildQs(){qs=Array.from({length:Math.min(qc,10)},(_,i)=>({...Object.fromEntries(['t','title','text','k','cls'].map((k,j)=>[k,bank[(i+(qs.shuffle||0))%bank.length][j]]))}))}
+function drawQs(){buildQs();const c={جديد:0,قريب:0,بعيد:0,علاجي:0};qs.forEach(q=>c[q.k]++);const col={جديد:'#0284c7',قريب:'#147c5e',بعيد:'#d4af37',علاجي:'#dc2626'};
+  $('#mix').innerHTML=Object.keys(c).map(k=>`<i style="flex:${c[k]||.01};background:${col[k]}"></i>`).join('');
+  $('#mixl').innerHTML=Object.keys(c).map(k=>`<span><i style="background:${col[k]}"></i>${k} ${c[k]}</span>`).join('');
+  $('#qlist').innerHTML=qs.map((q,i)=>`<div class="qi" data-i="${i}"><div class="qn">${i+1}</div><div><div class="meta"><span class="tag ${q.cls.split(' ')[1]||''}">${q.k}</span><span class="tag gray">${q.t==='text'?'تصحيح يدوي':q.t}</span></div><div class="txt"><b>${q.title}</b></div><div class="q" style="font-size:1.15rem;line-height:1.9">${q.text}</div><div class="why">💬 ${why[q.k]}</div></div><div class="qtools"><button class="ic" title="تعديل">✏️</button><button class="ic" data-del title="حذف">🗑️</button></div></div>`).join('')}
+$('#qlist').onclick=e=>{const d=e.target.closest('[data-del]');if(d){qc=Math.max(3,qc-1);$('#qc').value=qc;drawQs();toast('🗑️ حُذف السؤال')}};
+$('#shuffle').onclick=()=>{qs.shuffle=(qs.shuffle||0)+3;drawQs();toast('🔀 أُعيد الخلط')};
+$('#addQ').onclick=()=>toast('➕ يفتح نافذة بناء سؤال يدوي (نفس نافذة النظام الحالية)');
+
+/* ---------- publish ---------- */
+const LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
+function publish(){published=true;$('#pubForm').style.display='none';$('#pubDone').style.display='block';$('#foot').style.display='none';$('#dStu').textContent=stu.n;$('#lnk').value=LINK;
+  const sc=mode==='all'?stu.r:'أحزاب '+[...sel].map(i=>i+1).join('، ');
+  $('#msg').textContent=`📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`;
+  drawQR();render();toast('🎉 نُشر الواجب بنجاح')}
+function drawQR(){const c=$('#qr'),x=c.getContext('2d'),n=25,s=c.width/n;x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#06231c';let seed=7;const r=()=>(seed=(seed*9301+49297)%233280)/233280;
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){const f=(a,b)=>(i<7&&j<7)||(i<7&&j>=n-7)||(i>=n-7&&j<7);if(f()){const ii=i%(n-7>i?99:1)>=0?i:i;const li=i<7?i:i-(n-7),lj=j<7?j:j-(n-7);if(li===0||li===6||lj===0||lj===6||(li>=2&&li<=4&&lj>=2&&lj<=4))x.fillRect(j*s,i*s,s,s)}else if(r()>.52)x.fillRect(j*s,i*s,s,s)}}
+$('#cp').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});$('#cp').textContent='✔️ تم';setTimeout(()=>$('#cp').textContent='📋 نسخ',1600);toast('✔️ تم نسخ الرابط')};
+$('#wa').onclick=()=>{window.open('https://wa.me/?text='+encodeURIComponent($('#msg').textContent),'_blank')};
+$('#tg').onclick=()=>window.open('https://t.me/share/url?url='+encodeURIComponent(LINK)+'&text='+encodeURIComponent('واجب منزلي'),'_blank');
+$('#sms').onclick=()=>location.href='sms:?body='+encodeURIComponent($('#msg').textContent);
+$('#nat').onclick=()=>navigator.share?navigator.share({title:'واجب حمٓ',text:$('#msg').textContent,url:LINK}):toast('المشاركة الأصلية متاحة على الهاتف');
+
+/* ---------- phone preview ---------- */
+function drawPhone(){const p=$('#phone');
+  if(step<=2||!stu)p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card">${stu?`هذا الواجب مخصّص لـ<br><b style="font-size:1.1rem;color:#047857">${stu.n}</b>`:'<span style="color:#94a3b8">اختر طالباً لتظهر المعاينة</span>'}</div><div class="ph-card">واجب من <b>${qc}</b> سؤال<br><small style="color:#64748b">إجاباتك تُحفظ تلقائياً على جهازك</small></div><div class="ph-btn">ابدأ الحل ▶</div></div>`;
+  else if(step===3||!published)p.innerHTML=`<div class="ph-head">السؤال 1 من ${qc}</div><div class="ph-body"><div class="ph-prog"><i></i></div><div class="ph-card"><small style="color:#64748b">${qs[0]?.title||''}</small><div class="q" style="font-size:1.1rem;line-height:2">${qs[0]?.text||''}</div></div><div class="ph-opt">رَبِّ الْفَلَقِ</div><div class="ph-opt ok">رَبِّ النَّاسِ</div><div class="ph-opt">رَبِّ الْعَالَمِينَ</div><div class="ph-btn" style="background:#0d5c46">التالي ▶</div></div>`;
+  else p.innerHTML=`<div class="ph-head">📨 تم الاستلام</div><div class="ph-body" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:3rem">✅</div><b style="font-size:1.1rem">رابط الواجب جاهز</b><p style="color:#64748b;margin-top:6px">سيصل الطالب مباشرة عبر الواتساب</p></div></div>`}
+
+/* ---------- step controls ---------- */
+function render(){drawStepper();$$('.step').forEach(s=>s.classList.toggle('on',+s.dataset.s===step));
+  if(step===2){drawHizb();drawCov()}if(step===3)drawQs();
+  $('#prev').style.visibility=step===1?'hidden':'visible';
+  const n=$('#next');n.textContent=step===4?'🚀 اعتماد ونشر':'التالي ←';n.disabled=(step===1&&!stu)||(step===2&&mode==='hizb'&&!sel.size);
+  $('#foot').style.display=published?'none':'flex';drawPhone()}
+$('#next').onclick=()=>{if(step===4)return publish();step++;render();scrollTo({top:0,behavior:'smooth'})};
+$('#prev').onclick=()=>{step--;render()};
+reset();
+</script>
+</body>
+</html>
