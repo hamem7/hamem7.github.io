@@ -670,3 +670,266 @@
         padding-inline: 10px;
     }
 }
+
+/* ==========================================================================
+   🌟 [تحسين الهيئة — 2026-10-09] تحديث بصري لركن المتشابهات: لوحة كريمية تحمل المحتوى بدل
+   تعويمه فوق تدرّج الخلفية، تباين أوضح للعناوين، بطاقات أجزاء/سور بأرقام وعدّادات، شارات
+   تصنيف ملوّنة، وإزالة الإطار المتقطّع الموروث من kids.css عن نص الآيات داخل المواضع.
+   CSS فقط (مع إضافات صغيرة في similarities.js) — لا تغيير في البيانات ولا في نص القرآن. 🌟
+   ========================================================================== */
+.sim-wrap {
+    max-width: 1040px;
+    margin: 18px auto 40px;
+    padding: 28px 28px 32px;
+    background: rgba(255, 253, 246, 0.97);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    border-radius: 28px;
+    box-shadow: 0 22px 50px rgba(6, 35, 28, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.sim-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--dh-emerald-800), var(--dh-gold-500), var(--dh-emerald-800));
+}
+
+.sim-title {
+    color: var(--dh-emerald-800);
+    font-size: 2.1rem;
+    padding-top: 6px;
+}
+
+.sim-title::after {
+    content: "";
+    display: block;
+    width: 90px;
+    height: 4px;
+    margin: 10px auto 0;
+    border-radius: 4px;
+    background: linear-gradient(90deg, transparent, var(--dh-gold-500), transparent);
+}
+
+.sim-subtitle {
+    color: #475569;
+    font-size: 1.05rem;
+    margin: 6px 0 22px;
+}
+
+/* ---- شريط الإحصاء (الرئيسية) ---- */
+.sim-stats {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.sim-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    background: rgba(11, 61, 48, 0.06);
+    border: 1px solid rgba(11, 61, 48, 0.12);
+}
+
+.sim-stat-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--dh-emerald-700);
+}
+
+.sim-stat-label {
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+/* ---- بطاقات الأجزاء ---- */
+.sim-grid-juz {
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+}
+
+.sim-juz-card {
+    position: relative;
+    overflow: hidden;
+    padding: 26px 16px 22px;
+}
+
+.sim-juz-card::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    inset-inline-start: -40px;
+    bottom: -50px;
+    background: radial-gradient(circle, rgba(240, 216, 120, 0.28), transparent 70%);
+    pointer-events: none;
+}
+
+.sim-juz-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    border: 2px solid rgba(240, 216, 120, 0.7);
+    font-size: 1.8rem;
+}
+
+.sim-juz-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.4;
+    font-size: 0.82rem;
+    opacity: 0.9;
+    background: rgba(0, 0, 0, 0.18);
+    padding: 3px 12px;
+    border-radius: 999px;
+}
+
+/* ---- بطاقات السور ---- */
+.sim-surah-card {
+    position: relative;
+    padding: 20px 14px 16px;
+    border: 2px solid rgba(11, 61, 48, 0.1);
+}
+
+.sim-surah-card:hover {
+    border-color: var(--dh-gold-500);
+    background: #fffdf3;
+}
+
+.sim-surah-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-800));
+    color: #fffdf6;
+    font-size: 0.95rem;
+    font-weight: bold;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.55);
+}
+
+.sim-surah-name {
+    font-size: 1.35rem;
+}
+
+.sim-surah-count {
+    background: rgba(11, 61, 48, 0.07);
+    color: var(--dh-emerald-700);
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+/* ---- بطاقة المجموعة ---- */
+.sim-group-card {
+    border: 1px solid rgba(11, 61, 48, 0.12);
+    border-inline-start: 6px solid var(--dh-gold-500);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: 0 8px 22px rgba(6, 35, 28, 0.08);
+}
+
+.sim-group-header {
+    border-bottom: 1px solid rgba(11, 61, 48, 0.12);
+}
+
+.sim-cat-badge {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid rgba(22, 101, 52, 0.25);
+    font-size: 0.85rem;
+}
+
+.sim-cat-badge[data-cat="اختلاف_الخاتمة"] { background: #fef3c7; color: #92400e; border-color: rgba(146, 64, 14, 0.25); }
+.sim-cat-badge[data-cat="تكرار_لازمة"]     { background: #e0e7ff; color: #3730a3; border-color: rgba(55, 48, 163, 0.25); }
+.sim-cat-badge[data-cat="اختلاف_صيغة"]     { background: #ffe4e6; color: #9f1239; border-color: rgba(159, 18, 57, 0.25); }
+
+/* ---- المواضع: بطاقة نظيفة بدل الإطار المتقطّع الموروث + شارة موضع واضحة ---- */
+.sim-occ {
+    background: #fbfaf4;
+    border: 1px solid rgba(11, 61, 48, 0.1);
+    border-radius: 14px;
+    padding: 12px 16px 8px;
+}
+
+.sim-occ-single .sim-occ-meta {
+    text-align: right;
+    margin: 0 0 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: inherit;
+}
+
+.sim-occ-loc {
+    display: inline-block;
+    background: rgba(11, 61, 48, 0.08);
+    color: var(--dh-emerald-800);
+    padding: 3px 12px;
+    border-radius: 999px;
+}
+
+.sim-occ .sim-occ-text.quran-text {
+    display: block;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding-inline: 4px;
+    text-align: right;
+    text-justify: none;
+    color: var(--dh-emerald-900);
+}
+
+.sim-ayah-badge {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.55);
+}
+
+.sim-highlight {
+    box-shadow: 0 1px 4px rgba(212, 175, 55, 0.4);
+}
+
+/* ---- أزرار علوية ---- */
+.sim-game-scope-wrap { margin-bottom: 20px; }
+
+.sim-add-group-btn { margin-top: 22px; }
+
+@media (max-width: 768px) {
+    .sim-wrap {
+        margin: 10px 10px 24px;
+        padding: 20px 14px 24px;
+        border-radius: 22px;
+    }
+    .sim-title { font-size: 1.6rem; }
+    .sim-group-card { padding: 14px 12px; }
+    .sim-occ { padding: 10px 10px 6px; }
+    .sim-grid-juz { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .sim-grid-surahs { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .sim-juz-icon { width: 48px; height: 48px; font-size: 1.5rem; }
+}
+
+.sim-grid-surahs { grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); }
+@media (max-width: 768px) { .sim-grid-surahs { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 768px) {
+    .sim-stats { flex-wrap: nowrap; gap: 8px; }
+    .sim-stat { padding: 6px 12px; gap: 5px; }
+    .sim-stat-num { font-size: 1.2rem; }
+    .sim-stat-label { font-size: 0.8rem; }
+    .sim-juz-meta { font-size: 0.74rem; padding: 3px 8px; border-radius: 12px; }
+    .sim-juz-amma-card { grid-column: 1 / -1; }
+}

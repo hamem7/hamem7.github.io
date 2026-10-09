@@ -566,16 +566,27 @@ async function render() {
 // شاشات الرسم الفرعية
 // ============================================================
 function renderHomeHTML() {
-    let html = `<div class="sim-grid sim-grid-juz">`;
+    // 🌟 [تحسين الهيئة — 2026-10-09] شريط إحصاء سريع + بطاقات الأجزاء تعرض نطاق السور وعدد المجموعات
+    const internal = allSimilarities.filter(r => r.scope === 'internal');
+    const totalPositions = allSimilarities.reduce((n, r) => n + (r.occurrences || []).length, 0);
+    let html = `<div class="sim-stats">
+        <div class="sim-stat"><span class="sim-stat-num">${allSimilarities.length}</span><span class="sim-stat-label">${t('sim_stat_groups')}</span></div>
+        <div class="sim-stat"><span class="sim-stat-num">${totalPositions}</span><span class="sim-stat-label">${t('sim_stat_positions')}</span></div>
+    </div>`;
+    html += `<div class="sim-grid sim-grid-juz">`;
     JUZ_BUCKETS.forEach(b => {
+        const n = internal.filter(r => (r.surahs || []).some(sn => sn >= b.from && sn <= b.to)).length;
         html += `<button class="sim-card sim-juz-card" data-action="open-juz" data-juz="${b.id}">
             <span class="sim-juz-icon" aria-hidden="true">📖</span>
             <span class="sim-juz-title">${t(b.titleKey)}</span>
+            <span class="sim-juz-meta"><span>${b.from} – ${b.to}</span><span>${n} ${t('sim_groups_count_suffix')}</span></span>
         </button>`;
     });
+    const ammaN = allSimilarities.filter(r => r.scope === 'juzAmma').length;
     html += `<button class="sim-card sim-juz-card sim-juz-amma-card" data-action="open-amma">
         <span class="sim-juz-icon" aria-hidden="true">✨</span>
         <span class="sim-juz-title">${t('sim_juz_amma')}</span>
+        <span class="sim-juz-meta"><span>78 – 114</span><span>${ammaN} ${t('sim_groups_count_suffix')}</span></span>
     </button>`;
     html += `</div>`;
     // 🌟 [جديد — 2026-09-16، الجولة الثانية] زر "➕ إضافة متشابهة يدويًا" انتقل هنا من شاشة
@@ -625,6 +636,7 @@ function renderSurahListHTML(surahList, scope) {
     const cards = surahList.map(s => {
         const count = allSimilarities.filter(r => r.scope === scope && (r.surahs || []).includes(s.number)).length;
         return `<button class="sim-card sim-surah-card" data-action="open-surah" data-surah="${s.number}" data-scope="${scope}">
+            <span class="sim-surah-num">${s.number}</span>
             <span class="sim-surah-name">${s.name}</span>
             <span class="sim-surah-count">${count} ${t('sim_groups_count_suffix')}</span>
         </button>`;
@@ -748,7 +760,7 @@ async function renderGroupCardHTML(group, highlightSurah) {
         ${manualControlsHTML}
         <div class="sim-group-header">
             <span class="sim-anchor-box quran-text">« ${group.anchorPhrase} »</span>
-            <span class="sim-cat-badge">${categoryLabel(group.category)}</span>
+            <span class="sim-cat-badge" data-cat="${group.category}">${categoryLabel(group.category)}</span>
         </div>
         ${noteHTML}
         <div class="sim-occ-list">${occHTML}</div>
@@ -858,8 +870,8 @@ async function renderOccurrenceHTML(o, scope, anchorPhrase) {
     if (o.ayahNumber) {
         const highlightedText = highlightAnchorInText(text, anchorPhrase);
         return `<div class="sim-occ sim-occ-single">
+            <div class="sim-occ-meta"><span class="sim-occ-loc">📍 ${o.surahName || ''}</span></div>
             <div class="sim-occ-text quran-text"><span class="sim-ayah-badge">${o.ayahNumber}</span>${highlightedText}</div>
-            <div class="sim-occ-meta">${o.surahName || ''}</div>
             ${tailHTML}
         </div>`;
     }
@@ -872,8 +884,8 @@ async function renderOccurrenceHTML(o, scope, anchorPhrase) {
     }).join('');
 
     return `<div class="sim-occ sim-occ-single sim-occ-multi">
+        <div class="sim-occ-meta"><span class="sim-occ-loc">📍 ${o.surahName || ''} — ${o.ayahRange || ''}</span></div>
         <div class="sim-occ-ayah-group">${ayahsHTML}</div>
-        <div class="sim-occ-meta">${o.surahName || ''} — ${o.ayahRange || ''}</div>
         ${tailHTML}
     </div>`;
 }
