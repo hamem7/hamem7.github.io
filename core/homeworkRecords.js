@@ -91,5 +91,9 @@ export async function recordApprovedResult(student, submission, scope) {
         await AppState.studentManager.updateStudent(student);
     }
     const back = readStudentHistory(student.id).find(h => h.submissionId === submission.id);
+    // 🌟 [جديد — الواجب الذكي] تغذية سجل أداء الطالب (المهارة/الموضع/الجودة) من هذا التسليم المعتمد. غير حاجزة وبصمت عند أي فشل:
+    // اعتماد الدرجة لا يتوقف أبداً على التتبّع. إعادة الاعتماد تستبدل أحداث نفس التسليم فلا تتكرر.
+    import('./trackingService.js').then(m => m.recordHomeworkApproval(student, submission))
+        .catch(err => console.warn('تعذر تسجيل أداء الواجب في ملف التتبّع:', err));
     return { verified: !!back && back.score === submission.finalScore, delta };
 }

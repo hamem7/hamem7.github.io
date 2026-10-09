@@ -341,7 +341,7 @@ export const translations = {
         kids_q_count: "عدد الألعاب (الأسئلة):",
         btn_start_eval: "🚀 ابدأ التقييم الآن",
         btn_change_student: "🔙 تغيير الطالب / العودة",
-        btn_homework_module: "📝 نظام الواجبات المنزلية",
+        btn_homework_module: "📝 إعداد الواجب الذكي",
         bday_notification_title: "🎉 تنبيه يوم ميلاد!",
         bday_notification_msg: "اليوم يوافق يوم ميلاد الطالب: ",
 
@@ -411,7 +411,7 @@ export const translations = {
         // 🌟 الشاشة الرئيسية الجديدة: الهيرو وبطاقة "نظرة سريعة" 🌟
         // 🌟 [عدّل] الشارة العلوية تصف وظيفة المنصة بدل العبارة العامة
         hero_eyebrow: "منصة تعليمية متكاملة",
-        home_card_homework_title: "نظام الواجبات المنزلية",
+        home_card_homework_title: "إعداد الواجب الذكي",
         dual_in_progress_badge: "قيد التطوير",
         // 🌟 [قديم، لم يعد مستخدماً بعد بناء شاشات التصفح الفعلية أسفل] أُبقي عليه بلا حذف
         // تفادياً لكسر أي مرجع قديم، لكن البطاقة تستخدم الآن similarities_browse_badge
@@ -945,6 +945,8 @@ export const translations = {
         hw_add_manual_q: "➕ إضافة سؤال يدوي",
         hw_publish_btn: "🚀 اعتماد ونشر الواجب",
         hw_draft_btn: "📝 حفظ كمسودة",
+        hw_cancel_btn: "✖ إلغاء",
+        hw_cancel_confirm: "هل تريد إلغاء هذا الواجب؟ ستُفقد الأسئلة غير المحفوظة.",
         hw_history_title: "سجل الواجبات المُنْشأة",
         hw_created_date: "تاريخ الإنشاء",
         hw_q_type: "الأسئلة والنوع",
@@ -1117,6 +1119,9 @@ export const translations = {
         // مراسلة، لا مجرد الرابط وحده — راجع buildHomeworkShareMessage في settings/homework-prep.js
         hw_copy_msg_title: "📚 واجب منزلي",
         hw_copy_msg_student_label: "👤 الطالب:",
+        hw_copy_msg_scope_label: "📖 الأسئلة:",
+        hw_copy_msg_from: "من",
+        hw_copy_msg_to: "إلى",
         hw_copy_msg_link_label: "🔗 الرابط:",
         hw_copy_msg_footer: "يرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟",
         // 🌟🌟 [جديد] نص التنبيه العائم (Toast) لإشعار المعلم بتسليم واجب جديد — راجع
@@ -1163,7 +1168,7 @@ export const translations = {
         hw_st_receipt: "رقم الاستلام:",
         hw_st_confirmed_at: "وقت التأكيد:",
         hw_st_attempts: "عدد المحاولات:",
-        teacher_auth_title: "دخول نظام الواجبات المنزلية",
+        teacher_auth_title: "دخول إعداد الواجب الذكي",
         // 🌟 [جديد] تسجيل الدخول بجوجل — يظهر أولاً في بوابة الدخول، والمفتاح القديم أصبح خياراً احتياطياً
         teacher_auth_subtitle_google: "نظام الواجبات وحده يحتاج تسجيل الدخول بجوجل، حتى تُحفظ واجباتك وطلابك ونتائجهم في حسابك وتصل إليها من الهاتف أو الكمبيوتر. باقي المنصة لا يحتاج أي تسجيل دخول.",
         teacher_auth_google_error: "تعذّر تحميل تسجيل الدخول بجوجل. تحقق من الإنترنت ثم أعد فتح نظام الواجبات. (باقي المنصة يعمل كالمعتاد)",
@@ -1458,6 +1463,7 @@ export const translations = {
         // راجع setupInlineProfileEditing في student/student.js
         prof_edit_hint: "💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر \"تقرير الإنجاز الشهري\" للطباعة بعد الانتهاء",
         prof_avatar_change_title: "تغيير الصورة",
+        prof_edit_all_btn: "✏️ تعديل كل بيانات الطالب",
 
         // 🌟 [جديد] "بطاقة الترحيب بالطالب" — تحية قصيرة في وسط الشاشة مع صورة الطالب، تظهر
         // فور اختيار اسمه وقبل لوحة التقييم مباشرة ثم تختفي وحدها بعد ثوانٍ قليلة.
@@ -1523,9 +1529,9 @@ export const translations = {
         tour_dash_start: "اضغط هنا ليبدأ التقييم.",
         tour_kdash_scope: "اختر السور التي تُبنى منها الألعاب، وعدد الألعاب.",
         tour_hw_new: "من هنا تبدأ بإعداد واجب جديد.",
-        tour_hw_assign: "اتركه «رابطًا عامًا لكل الطلاب»، أو خصّصه لطالب محدد.",
-        tour_hw_config: "اختر السورة والآيات (أو عدة سور أو جزءًا)، وعدد الأسئلة.",
-        tour_hw_generate: "اضغط «توليد الأسئلة آلياً» وراجعها، ثم «اعتماد ونشر الواجب».",
+        tour_hw_assign: "اختر الطالب: كل واجب يُبنى تلقائيًا على نطاق حفظه وأخطائه.",
+        tour_hw_config: "تظهر هنا بطاقة الطالب وخريطة حفظه بالأحزاب. اختر كل النطاق أو أحزابًا/سورًا محددة (أو «اقترح لي»)، وحدّد عدد الأسئلة وسيُوضَّح كم يغطي من النطاق.",
+        tour_hw_generate: "اضغط «توليد الواجب الذكي» وراجع الأسئلة (تحت كل سؤال سبب اختياره)، ثم «اعتماد ونشر الواجب».",
         tour_hw_share: "بعد النشر يظهر الواجب في «سجل الواجبات»؛ اضغط «نسخ الرابط» وأرسله للطالب.",
         tour_hw_history: "هنا سجل واجباتك وحالة كل واحد منها.",
         tour_hw_grading: "هنا يظهر ما وصلته إجابات الطلاب وينتظر تصحيحك؛ افتح «النتائج» أو «يحتاج تصحيح» أمام الواجب لتراجع الإجابات وتصحح وتعرض النتيجة.",
@@ -1943,7 +1949,7 @@ export const translations = {
         priv_h_share: "مشاركة البيانات",
         priv_share_p: "لا تتم مشاركة هذا البريد أو أي بيانات مرتبطة به مع أي طرف ثالث، ولا يُستخدم لأي غرض تسويقي أو إعلاني.",
         priv_contact: "لأي استفسار، تواصل عبر:",
-        priv_footer: "© حمٓ",
+        priv_footer: "© 2026 عبدالله بن المياح الأزهري — حمٓ · مجاني للاستخدام غير التجاري",
         // 🌟 [جديد] ملف الطالب
         stu_and: " و ",
         stu_age_paren: "(العمر: {n} سنة)",
@@ -2389,7 +2395,7 @@ export const translations = {
         kids_q_count: "Number of Games (Questions):",
         btn_start_eval: "🚀 Start Evaluation Now",
         btn_change_student: "🔙 Change Student / Back",
-        btn_homework_module: "📝 Homework System",
+        btn_homework_module: "📝 Smart Homework Setup",
         bday_notification_title: "🎉 Birthday Alert!",
         bday_notification_msg: "Today is the birthday of student: ",
 
@@ -2460,7 +2466,7 @@ export const translations = {
 
         // 🌟 New home screen: hero & "Quick Overview" card 🌟
         hero_eyebrow: "A Complete Learning Platform",
-        home_card_homework_title: "Homework System",
+        home_card_homework_title: "Smart Homework Setup",
         dual_in_progress_badge: "In Progress",
         // 🌟 [Old, no longer used now that the real browsing screens below exist] Kept
         // without deleting to avoid breaking any old reference — the card now uses
@@ -3021,6 +3027,8 @@ export const translations = {
         hw_add_manual_q: "➕ Add Manual Question",
         hw_publish_btn: "🚀 Approve & Publish",
         hw_draft_btn: "📝 Save as Draft",
+        hw_cancel_btn: "✖ Cancel",
+        hw_cancel_confirm: "Cancel this homework? Unsaved questions will be lost.",
         hw_history_title: "Created Homeworks History",
         hw_created_date: "Creation Date",
         hw_q_type: "Questions & Type",
@@ -3185,6 +3193,9 @@ export const translations = {
         hw_final_results_close_btn: "Close Window ✖️",
         hw_copy_msg_title: "📚 Homework",
         hw_copy_msg_student_label: "👤 Student:",
+        hw_copy_msg_scope_label: "📖 Scope:",
+        hw_copy_msg_from: "From",
+        hw_copy_msg_to: "to",
         hw_copy_msg_link_label: "🔗 Link:",
         hw_copy_msg_footer: "Please open the link and solve the homework, then press \"Submit\" when you finish ... wishing you the best of luck 🌟",
         hw_notif_new_submission_title: "🔔 New homework submission",
@@ -3229,7 +3240,7 @@ export const translations = {
         hw_st_receipt: "Receipt no.:",
         hw_st_confirmed_at: "Confirmed at:",
         hw_st_attempts: "Attempts:",
-        teacher_auth_title: "Homework system sign-in",
+        teacher_auth_title: "Smart Homework Setup sign-in",
         teacher_auth_subtitle_google: "Only the homework system needs Google sign-in, so your homework, students and results are saved to your account and reachable from your phone or computer. The rest of the platform needs no sign-in.",
         teacher_auth_google_error: "Couldn't load Google sign-in. Check your internet, then reopen the homework system. (The rest of the platform works as usual.)",
         teacher_auth_cancel_btn: "Cancel",
@@ -3515,6 +3526,7 @@ export const translations = {
         // see setupInlineProfileEditing in student/student.js
         prof_edit_hint: "💡 Click any info to edit it directly, then use the \"Monthly Achievement Report\" button to print once you're done",
         prof_avatar_change_title: "Change photo",
+        prof_edit_all_btn: "✏️ Edit all student data",
 
         // 🌟 [New] "Student welcome card" — see the matching Arabic block above for the full
         // rationale comment (components/welcomeBanner.js)
@@ -3574,9 +3586,9 @@ export const translations = {
         tour_dash_start: "Press here to start the evaluation.",
         tour_kdash_scope: "Choose the surahs the games are built from, and the number of games.",
         tour_hw_new: "Start preparing a new homework from here.",
-        tour_hw_assign: "Keep it a \"general link for all students\", or assign it to a specific student.",
-        tour_hw_config: "Pick the surah and verses (or several surahs, or a juz), and the number of questions.",
-        tour_hw_generate: "Press \"Auto-Generate Questions\", review them, then \"Approve & Publish\".",
+        tour_hw_assign: "Pick the student: every homework is built automatically from their range and mistakes.",
+        tour_hw_config: "The student card and a hizb map of their memorization show here. Choose the whole range or chosen hizbs/surahs (or \"Suggest\"), set the number of questions and you will see how much of the range it covers.",
+        tour_hw_generate: "Press \"Generate smart homework\", review the questions (each shows why it was chosen), then \"Approve & Publish\".",
         tour_hw_share: "Once published, the homework appears in the history; press \"Copy link\" and send it to the student.",
         tour_hw_history: "Here is your homework history and the status of each one.",
         tour_hw_grading: "Homework with new student answers waiting for you shows up here; open \"Results\" or \"Needs grading\" next to it to review answers, grade, and show the result.",
@@ -4000,7 +4012,7 @@ export const translations = {
         priv_h_share: "Data Sharing",
         priv_share_p: "This email or any data linked to it is never shared with any third party, and is never used for marketing or advertising.",
         priv_contact: "For any inquiries, contact:",
-        priv_footer: "© Ham",
+        priv_footer: "© 2026 Abdullah bin Al-Mayah Al-Azhari — Ham · Free for non-commercial use",
         // 🌟 [جديد] ملف الطالب
         stu_and: " and ",
         stu_age_paren: "(Age: {n} years)",

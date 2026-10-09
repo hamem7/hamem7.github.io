@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — الواجب في صفحة واحدة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --card:#fff; --red:#dc2626; --amber:#d97706; --blue:#0284c7;
+  --r:18px; --sh:0 6px 24px rgba(6,35,28,.08); --sh2:0 18px 40px rgba(6,35,28,.16);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
+button{cursor:pointer;border:0;background:none;color:inherit}
+.q{font-family:'Amiri Quran',serif;font-size:1.45rem;line-height:2.1}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+/* ---------- header ---------- */
+header.top{background:#fff;border-bottom:3px solid var(--gold);color:var(--ink)}
+.top .wrap{display:flex;align-items:center;gap:14px;padding-block:16px;flex-wrap:wrap}
+.logo{width:46px;height:46px;border-radius:14px;background:var(--g1);display:grid;place-items:center;font-size:1.5rem}
+.top h1{font-size:1.25rem;font-weight:700}
+.top small{color:var(--ink2);display:block;font-size:.82rem}
+.top .sp{flex:1}
+.acct{flex-wrap:wrap;font-size:.82rem;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.ghost{border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:var(--bg)}
+.ghost:hover{background:var(--g1)}
+
+nav.tabs{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.tab{padding:15px 18px;font-weight:600;color:var(--ink2);border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.tab.on{color:var(--g7);border-color:var(--gold)}
+.tab .n{background:var(--red);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 8px}
+
+main{padding:26px 0 90px}
+.view{display:none;animation:up .35s ease}.view.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ---------- home ---------- */
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.cta{background:linear-gradient(135deg,#e7f4ee,#fbf3d5);color:var(--ink);border-radius:var(--r);padding:28px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(212,175,55,.22)}
+.cta h2{font-size:1.5rem;margin-bottom:6px}.cta p{color:var(--ink2);margin-bottom:18px;max-width:34ch}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:14px;font-weight:700;font-size:1rem;transition:.15s}
+.btn.gold{background:var(--gold);color:#3a2d00}.btn.gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.btn.pri{background:var(--g7);color:#fff}.btn.pri:hover{background:var(--g6)}
+.btn.out{border:2px solid var(--line);background:var(--card)}.btn.out:hover{border-color:var(--g6)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:var(--card);border-radius:16px;padding:16px;box-shadow:var(--sh);border-inline-start:5px solid var(--c,var(--g6));text-align:start;transition:.15s}
+button.stat:hover{transform:translateY(-3px)}
+.stat b{font-size:1.8rem;display:block;line-height:1.1}.stat span{font-size:.88rem;color:var(--ink2);font-weight:600}
+
+.sec{display:flex;justify-content:space-between;align-items:center;margin:28px 0 12px}
+.sec h3{font-size:1.15rem}.sec a{color:var(--g6);font-weight:600;font-size:.9rem;cursor:pointer}
+.today{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tcard{background:var(--card);border-radius:16px;padding:14px 16px;box-shadow:var(--sh);display:flex;align-items:center;gap:12px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex-shrink:0}
+.tcard .m{flex:1;min-width:0}.tcard b{display:block}.tcard small{color:var(--ink2);font-size:.8rem}
+.tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--gold-soft);color:#8a6a00}
+.tag.red{background:#fde8e8;color:var(--red)}.tag.green{background:var(--g1);color:var(--g7)}.tag.blue{background:#e0f2fe;color:var(--blue)}.tag.gray{background:var(--line);color:var(--ink2)}
+.mini{padding:7px 13px;border-radius:10px;background:var(--g7);color:#fff;font-weight:600;font-size:.85rem}.mini:hover{background:var(--g6)}
+
+/* ---------- history ---------- */
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:200px;padding:12px 16px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:1rem;outline:none}
+.search:focus{border-color:var(--g6)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:9px 15px;border-radius:99px;background:var(--card);border:2px solid var(--line);font-weight:600;font-size:.88rem}
+.chip.on{background:var(--g7);border-color:var(--g7);color:#fff}
+.list{display:grid;gap:10px}
+.row{background:var(--card);border-radius:16px;padding:14px 18px;box-shadow:var(--sh);display:grid;grid-template-columns:auto 1.4fr 1.6fr auto auto;gap:14px;align-items:center}
+.row .sc{font-size:.85rem;color:var(--ink2)}
+.bar{height:8px;background:var(--line);border-radius:9px;overflow:hidden;min-width:90px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--gold));border-radius:9px}
+.acts{display:flex;gap:6px}
+.ic{width:36px;height:36px;border-radius:10px;background:var(--g0);display:grid;place-items:center;font-size:1rem}.ic:hover{background:var(--g1)}
+
+/* ---------- wizard ---------- */
+.wiz{display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start}
+.peek summary{cursor:pointer;font-weight:600;padding:12px 0;color:var(--g7)}.peek{margin-top:16px;border-top:1px solid var(--line)}
+.stepper{display:flex;gap:6px;margin-bottom:20px;background:var(--card);padding:10px;border-radius:var(--r);box-shadow:var(--sh)}
+.st{flex:1;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;color:var(--ink2);font-weight:600;font-size:.92rem;min-width:0}
+.st i{width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-style:normal;font-weight:700;flex-shrink:0;font-size:.9rem}
+.st.on{background:var(--g1);color:var(--g7)}.st.on i{background:var(--g7);color:#fff}
+.st.done i{background:var(--gold);color:#3a2d00}
+.st span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:26px}
+.panel h2{font-size:1.3rem;margin-bottom:4px}.panel .sub{color:var(--ink2);margin-bottom:20px}
+.step{display:none}.step.on{display:block;animation:up .3s ease}
+.foot{display:flex;justify-content:space-between;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}
+
+.stu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px;max-height:340px;overflow:auto;padding:2px}
+.stu{border:2px solid var(--line);border-radius:14px;padding:12px;display:flex;gap:10px;align-items:center;text-align:start;transition:.15s}
+.stu:hover{border-color:var(--g6)}.stu.on{border-color:var(--g7);background:var(--g1);box-shadow:0 0 0 3px rgba(20,124,94,.15)}
+.stu small{display:block;color:var(--ink2);font-size:.75rem}
+.info{display:flex;gap:12px;padding:14px 16px;border-radius:14px;background:var(--gold-soft);color:#6b5400;margin-top:16px;font-size:.92rem}
+
+.modes{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.mode{padding:9px 16px;border-radius:12px;border:2px solid var(--line);font-weight:600;font-size:.9rem}
+.mode.on{border-color:var(--g7);background:var(--g1);color:var(--g7)}
+.hizb{display:grid;grid-template-columns:repeat(15,1fr);gap:5px;direction:rtl}
+.hz{aspect-ratio:1;border-radius:8px;font-size:.72rem;font-weight:700;display:grid;place-items:center;background:var(--hc);color:var(--hf,#fff);position:relative;transition:.12s;border:2px solid transparent}
+.hz:hover{transform:scale(1.12);z-index:2}
+.hz.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold)}
+.hz.off{background:var(--line);color:var(--ink2);opacity:.5;pointer-events:none}
+#freq .mode.on::after{content:" ✓"}
+.remind{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--g0)}
+.scopebox{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:14px;background:var(--g0)}
+.scophead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;max-height:380px;overflow:auto;padding:3px;margin-top:6px}
+.tile{position:relative;border:2px solid var(--line);border-radius:14px;background:var(--card);padding:10px 6px 9px;text-align:center;line-height:1.45;font-size:.74rem;color:var(--ink2);transition:.12s;min-width:0}
+.tile:hover{border-color:var(--g6);transform:translateY(-2px)}
+.tile.sel{border-color:var(--g7);background:var(--g1);box-shadow:inset 0 0 0 2px rgba(20,124,94,.25)}
+.tile.partial{border-style:dashed}.tile.lock{cursor:default}.tile.lock:hover{transform:none;border-color:var(--g7)}
+.tile .nm{display:block;font-family:'Amiri Quran',serif;font-size:1.12rem;font-weight:700;color:var(--ink);line-height:2.3;padding-top:4px}
+.tile .h{display:block;font-weight:600;color:var(--ink2)}
+.tile .rg{display:block;font-size:.68rem;margin:2px 0}
+.tile .sg{display:block;font-weight:700;color:var(--ink)}
+.tile .stt{display:block;font-size:.72rem}.tile .stt.ok{color:var(--g7);font-weight:700}
+.tile .fix{position:absolute;top:4px;inset-inline-start:7px;color:var(--red);font-weight:800;font-size:.72rem}
+.tile .bar{margin-top:6px;min-width:0;height:5px}
+.surs{display:flex;flex-wrap:wrap;gap:6px;max-height:300px;overflow:auto;padding:3px;margin-top:6px}
+.chipS{border:2px solid var(--line);border-radius:999px;background:var(--card);padding:6px 14px;font-size:.9rem;font-weight:600}
+.chipS:hover{border-color:var(--g6)}.chipS.sel{border-color:var(--g7);background:var(--g1);color:var(--g7)}.chipS.lock{cursor:default}
+.chipS small{color:#b45309;font-weight:700}
+.hzhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 10px;font-weight:600}
+.hzhead small{color:var(--ink2);font-weight:500}.hzhead .lnk{color:var(--g6);font-weight:700;cursor:pointer;font-size:.88rem}
+.hzl{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:420px;overflow:auto;padding:2px}
+.hzc{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:start;background:var(--card);transition:.12s;min-width:0}
+.hzc:hover{border-color:var(--g6)}.hzc.on{border-color:var(--g7);background:var(--g1)}.hzc.lock{cursor:default}
+.hzc .bx{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:#fff;flex-shrink:0;background:var(--card)}
+.hzc.on .bx{background:var(--g7);border-color:var(--g7)}
+.hzc .no{min-width:40px;height:40px;border-radius:11px;background:var(--hc);color:var(--hf,#fff);display:grid;place-items:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+.hzc .nm{flex:1;min-width:0}.hzc .nm b{display:block;font-size:.88rem}.hzc .nm .q{font-size:1rem;line-height:1.7;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hzc .nm small{color:var(--ink2);font-size:.74rem}
+@media(max-width:640px){.hzl{grid-template-columns:1fr}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--ink2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-inline-end:5px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.fld label{display:block;font-weight:600;margin-bottom:6px;font-size:.92rem}
+.num{display:flex;align-items:center;border:2px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.num button{width:46px;height:46px;font-size:1.3rem;font-weight:700;color:var(--g7)}.num button:hover{background:var(--g1)}
+.num input{flex:1;text-align:center;border:0;font-size:1.2rem;font-weight:700;background:transparent;color:var(--ink);outline:none;width:60px}
+.cov{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--g0);border:1px dashed var(--g6);font-size:.92rem}
+.cov b{color:var(--g7)}
+.sugg{margin-inline-start:auto}
+
+.qlist{display:grid;gap:10px;max-height:520px;overflow:auto;padding:2px}
+.qi{border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;transition:.15s;background:var(--card)}
+.qi:hover{border-color:var(--g6)}
+.qn{width:32px;height:32px;border-radius:10px;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.qi .why{font-size:.78rem;color:var(--ink2);margin-top:4px}
+.qi .meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.qi .txt{font-size:.98rem}
+.qtools{display:flex;gap:4px}
+.qtools .ic{width:32px;height:32px;font-size:.85rem}
+.mix{display:flex;height:12px;border-radius:9px;overflow:hidden;margin:6px 0 10px;gap:2px}
+.mix i{display:block;height:100%}
+.mixl{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--ink2)}.mixl i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:5px}
+
+.pub-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.linkbox{display:flex;gap:8px;margin:10px 0}
+.linkbox input{flex:1;direction:ltr;text-align:left;padding:12px;border:2px solid var(--line);border-radius:12px;background:var(--g0);color:var(--ink);font-size:.9rem;min-width:0}
+.share{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.share .btn{justify-content:center;padding:13px 10px}
+.wa{background:#25d366;color:#04361a}.tg{background:#229ed9;color:#fff}
+.bubble{background:#dcf8c6;color:#111;border-radius:14px 14px 4px 14px;padding:12px 14px;font-size:.88rem;white-space:pre-wrap;line-height:1.8;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.waback{background:#e5ddd5 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='4' cy='4' r='1.5' fill='%23d6cdc2'/%3E%3C/svg%3E");border-radius:16px;padding:16px;margin-top:8px}
+.qr{width:150px;height:150px;border-radius:14px;background:#fff;padding:10px;border:1px solid var(--line);margin-inline:auto;display:block}
+.opts label{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.95rem;cursor:pointer}
+.opts input{accent-color:var(--g7);width:18px;height:18px}
+.success{text-align:center;padding:10px 0 4px}.success .big{font-size:3.2rem}
+.success h2{color:var(--g7)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .5s ease both;display:inline-block}
+
+/* ---------- phone preview ---------- */
+.side{position:sticky;top:70px}
+.side h4{font-size:.9rem;color:var(--ink2);margin-bottom:10px;text-align:center}
+.phone{width:290px;margin:0 auto;background:#dbe6e0;border-radius:38px;padding:11px;box-shadow:var(--sh2)}
+.screen{background:#f0f9ff;border-radius:28px;height:540px;overflow:hidden;position:relative;display:flex;flex-direction:column}
+.ph-head{background:var(--g1);color:var(--g7);padding:26px 14px 12px;font-weight:700;font-size:.95rem;text-align:center;border-bottom:3px solid var(--gold)}
+.ph-body{padding:14px;flex:1;overflow:hidden;font-size:.85rem;color:#1e293b}
+.ph-body h5{font-size:1.1rem;color:#0369a1;text-align:center;margin-bottom:6px}
+.ph-card{background:#fff;border-radius:14px;padding:12px;margin-top:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
+.ph-prog{height:6px;background:#dbeafe;border-radius:9px;margin:8px 0}.ph-prog i{display:block;height:100%;width:30%;background:var(--g6);border-radius:9px}
+.ph-opt{border:2px solid #e2e8f0;border-radius:10px;padding:8px;margin-top:6px;font-weight:600;background:#fff}
+.ph-opt.ok{border-color:var(--g6);background:var(--g1)}
+.ph-btn{margin-top:12px;background:#10b981;color:#fff;padding:11px;border-radius:12px;font-weight:700;text-align:center}
+.mock-note{font-size:.72rem;color:var(--ink2);text-align:center;margin-top:10px}
+
+.toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g7);color:#fff;padding:12px 22px;border-radius:14px;box-shadow:var(--sh2);transform:translateY(100px);opacity:0;transition:.3s;z-index:99;font-weight:600}
+.toast.on{transform:none;opacity:1}
+
+.wiz>*,.hero>*{min-width:0}
+@media(max-width:980px){.wiz{grid-template-columns:minmax(0,1fr)}.side{display:none}.hero{grid-template-columns:1fr}.row{grid-template-columns:auto 1fr auto}.row .sc,.row .prog{display:none}}
+@media(max-width:640px){.wrap{padding:0 14px}.hizb{grid-template-columns:repeat(10,1fr)}.fields,.pub-grid{grid-template-columns:1fr}.st span{display:none}.st.on span{display:block}.panel{padding:18px}.top h1{font-size:1.05rem}.acct span{display:none}.cta{padding:22px}.stat b{font-size:1.5rem}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="logo">📖</div>
+    <div><h1>نظام إدارة الواجبات</h1><small>معاينة (أ) · صفحة واحدة</small></div>
+    <div class="sp"></div>
+    <div class="acct"><span>teacher@gmail.com</span><button class="ghost">🔁 تغيير الإيميل</button><button class="ghost" id="back">← الرئيسية</button></div>
+  </div>
+</header>
+
+<nav class="tabs"><div class="wrap">
+  <button class="tab on" data-v="home">🏠 الرئيسية</button>
+  <button class="tab" data-v="new">➕ واجب جديد</button>
+  <button class="tab" data-v="hist">📊 السجل</button>
+  <button class="tab" data-v="res">🎓 النتائج <span class="n">3</span></button>
+</div></nav>
+
+<main><div class="wrap">
+
+<!-- ================= HOME ================= -->
+<section class="view on" id="v-home">
+  <div class="hero">
+    <div class="cta">
+      <h2>جاهز لواجب جديد؟</h2>
+      <p>اختر الطالب وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه في أقل من دقيقة.</p>
+      <button class="btn gold" data-go="new">➕ ابدأ واجبًا جديدًا</button>
+    </div>
+    <div class="stats">
+      <button class="stat" style="--c:var(--g6)" data-go="hist"><b>12</b><span>منشور</span></button>
+      <button class="stat" style="--c:var(--gold)" data-go="hist"><b>2</b><span>مسودة</span></button>
+      <button class="stat" style="--c:var(--red)" data-go="res"><b>3</b><span>يحتاج تصحيح</span></button>
+      <button class="stat" style="--c:#c2410c" data-go="hist"><b>1</b><span>متأخر عن التسليم</span></button>
+    </div>
+  </div>
+
+  <div class="sec"><h3>📅 مستحق اليوم <span class="tag">4 طلاب</span></h3><a data-go="hist">جدول الأسبوع ←</a></div>
+  <div class="today" id="today"></div>
+
+  <div class="sec"><h3>🕘 آخر النشاطات</h3></div>
+  <div class="list" id="recent"></div>
+</section>
+
+<!-- ================= NEW (صفحة واحدة) ================= -->
+<section class="view" id="v-new">
+  <div class="wiz">
+    <div>
+      <div class="panel" id="formPanel">
+        <h2>👤 لمن هذا الواجب؟</h2>
+        <p class="sub">اختر الطالب فقط — الباقي يُجهَّز تلقائياً على نطاق حفظه وأخطائه.</p>
+        <input class="search" id="stuSearch" placeholder="🔍 ابحث عن طالب..." style="width:100%">
+        <div class="stu-grid" id="stuGrid"></div>
+
+        <div id="rest" style="display:none">
+          <div class="info" id="stuInfo"></div>
+          <div class="remind"><b>🔔 تفعيل التذكير:</b>
+            <div class="modes" id="freq" style="margin:0"><button class="mode" data-f="1">مرة واحدة في الأسبوع</button><button class="mode on" data-f="2">مرتين في الأسبوع</button></div></div>
+          <div class="scopebox">
+            <div class="scophead"><b>نطاق الواجب:</b>
+              <div class="modes" id="modes" style="margin:0">
+                <button class="mode on" data-m="all">كل النطاق</button>
+                <button class="mode" data-m="hizb">أحزاب محددة</button>
+                <button class="mode" data-m="surah">سور محددة</button>
+              </div>
+              <button class="mode sugg" id="suggest">✨ اقترح لي</button>
+              <button class="mode" id="unit" style="display:none"></button></div>
+            <div class="hzhead" id="hzHead"></div>
+            <div class="strip" id="strip"></div>
+            <div class="surs" id="surs" style="display:none"></div>
+          </div>
+          <div class="fld" style="margin-top:18px;max-width:260px"><label>عدد الأسئلة</label><div class="num"><button id="qm">−</button><input id="qc" value="10" readonly><button id="qp">+</button></div></div>
+          <div class="cov" id="cov"></div>
+          <details class="peek"><summary>👀 عرض الأسئلة قبل النشر (اختياري)</summary>
+            <div class="qlist" id="qlist" style="margin-top:12px"></div></details>
+          <div class="foot" style="justify-content:flex-end"><button class="btn pri" id="next" style="font-size:1.1rem;padding:14px 32px">🚀 نشر وإرسال</button></div>
+        </div>
+      </div>
+
+      <div class="panel" id="donePanel" style="display:none">
+        <div class="success"><div class="big pop">🎉</div><h2>تم النشر! أرسل الرابط الآن</h2><p class="sub">الواجب جاهز لـ <b id="dStu"></b></p></div>
+        <div class="linkbox"><input id="lnk" readonly><button class="btn pri" id="cp">📋 نسخ</button></div>
+        <div class="share"><button class="btn wa" id="wa">💬 واتساب</button><button class="btn tg" id="tg">✈️ تيليجرام</button></div>
+        <div class="foot" style="justify-content:center;border:0"><button class="btn out" id="again">➕ واجب لطالب آخر</button></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <h4>📱 كما سيراه الطالب</h4>
+      <div class="phone"><div class="screen" id="phone"></div></div>
+      <p class="mock-note">معاينة حيّة تتغيّر مع اختياراتك</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= HISTORY ================= -->
+<section class="view" id="v-hist">
+  <div class="tools"><input class="search" placeholder="🔍 ابحث باسم الطالب أو النطاق..." id="hs">
+    <div class="chips" id="hchips"></div></div>
+  <div class="list" id="hlist"></div>
+</section>
+
+<!-- ================= RESULTS ================= -->
+<section class="view" id="v-res">
+  <div class="sec" style="margin-top:0"><h3>🎓 ينتظر تصحيحك</h3></div>
+  <div class="list" id="rlist"></div>
+</section>
+
+</div></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)};
+const students=[
+  {n:'أحمد محمد',r:'من الناس إلى الملك',h:8,due:'اليوم'},{n:'عبدالله خالد',r:'من الناس إلى النبأ',h:14,due:'متأخر يوم'},
+  {n:'يوسف إبراهيم',r:'من الناس إلى الأعلى',h:10,due:'اليوم'},{n:'سارة أحمد',r:'جزء عمّ كاملاً',h:6,due:''},
+  {n:'مريم علي',r:'من الناس إلى النازعات',h:12,due:'اليوم'},{n:'عمر حسن',r:'من الناس إلى الغاشية',h:11,due:''},
+  {n:'نورة سعد',r:'من الناس إلى المطففين',h:13,due:'اليوم'},{n:'خالد وليد',r:'من الناس إلى الضحى',h:7,due:''}];
+const hist=[
+  {s:'أحمد محمد',sc:'من الناس إلى الإخلاص',st:'pub',p:80,d:'منذ يومين'},{s:'عبدالله خالد',sc:'الملك – القلم',st:'grade',p:100,d:'أمس'},
+  {s:'مريم علي',sc:'النبأ – النازعات',st:'late',p:0,d:'منذ 5 أيام'},{s:'يوسف إبراهيم',sc:'الأعلى – الغاشية',st:'draft',p:0,d:'اليوم'},
+  {s:'سارة أحمد',sc:'جزء عمّ',st:'done',p:100,d:'الأسبوع الماضي'},{s:'نورة سعد',sc:'المطففين – الانشقاق',st:'grade',p:100,d:'أمس'}];
+const ST={pub:['منشور','green'],draft:['مسودة',''],grade:['يحتاج تصحيح','red'],late:['متأخر','red'],done:['مكتمل','blue']};
+
+/* ---------- navigation ---------- */
+function go(v){$$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));$$('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));scrollTo({top:0,behavior:'smooth'});if(v==='new')reset()}
+$$('.tab').forEach(t=>t.onclick=()=>go(t.dataset.v));document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+
+/* ---------- home ---------- */
+$('#today').innerHTML=students.filter(s=>s.due).map(s=>`<div class="tcard"><div class="av">${s.n[0]}</div><div class="m"><b>${s.n}</b><small>${s.r}</small></div>${s.due.includes('متأخر')?'<span class="tag red">'+s.due+'</span>':'<span class="tag">'+s.due+'</span>'}<button class="mini" data-pick="${s.n}">أنشئ</button></div>`).join('');
+$('#today').onclick=e=>{const b=e.target.closest('[data-pick]');if(b){go('new');pickStudent(b.dataset.pick)}};
+const rowHTML=h=>`<div class="row"><div class="av">${h.s[0]}</div><div><b>${h.s}</b><div class="sc">${h.sc}</div></div><div class="prog"><div class="bar"><i style="width:${h.p}%"></i></div><small style="color:var(--ink2)">${h.d}</small></div><span class="tag ${ST[h.st][1]}">${ST[h.st][0]}</span><div class="acts">${h.st==='draft'?'<button class="ic" title="نشر">🚀</button>':'<button class="ic" title="نسخ الرابط" data-copy>🔗</button>'}<button class="ic" title="نتائج">📊</button><button class="ic" title="حذف">🗑️</button></div></div>`;
+$('#recent').innerHTML=hist.slice(0,3).map(rowHTML).join('');
+let filt='all';
+function drawHist(){const q=$('#hs').value.trim();$('#hlist').innerHTML=hist.filter(h=>(filt==='all'||h.st===filt)&&(h.s+h.sc).includes(q)).map(rowHTML).join('')||'<div class="panel" style="text-align:center;color:var(--ink2)">لا نتائج</div>'}
+$('#hchips').innerHTML=[['all','الكل'],['pub','منشور'],['draft','مسودة'],['grade','يحتاج تصحيح'],['late','متأخر']].map(([k,l])=>`<button class="chip ${k==='all'?'on':''}" data-f="${k}">${l}</button>`).join('');
+$('#hchips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;filt=c.dataset.f;$$('#hchips .chip').forEach(x=>x.classList.toggle('on',x===c));drawHist()};
+$('#hs').oninput=drawHist;drawHist();
+document.addEventListener('click',e=>{if(e.target.closest('[data-copy]'))toast('✔️ تم نسخ الرابط')});
+$('#rlist').innerHTML=hist.filter(h=>h.st==='grade').concat([{s:'يوسف إبراهيم',sc:'الأعلى – الغاشية',st:'grade',p:100,d:'منذ ساعة'}]).map(h=>`<div class="row"><div class="av">${h.s[0]}</div><div><b>${h.s}</b><div class="sc">${h.sc}</div></div><div class="prog sc">3 أسئلة تحتاج تصحيحاً يدوياً</div><span class="tag red">يحتاج تصحيح</span><button class="mini">صحّح الآن</button></div>`).join('');
+$('#back').onclick=()=>toast('← يعود للشاشة الرئيسية للمنصة (غير مفعّل في المعاينة)');
+
+const HZ=[["بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ", "البقرة 74", "الفاتحة 1", 9], ["أَفَتَطْمَعُونَ أَن يُؤْمِنُوا۟", "البقرة 141", "البقرة 75", 7], ["سَيَقُولُ ٱلسُّفَهَآءُ مِنَ", "البقرة 202", "البقرة 142", 7], ["وَٱذْكُرُوا۟ ٱللَّهَ فِىٓ", "البقرة 252", "البقرة 203", 5], ["تِلْكَ ٱلرُّسُلُ فَضَّلْنَا", "ال عمران 14", "البقرة 253", 6], ["قُلْ أَؤُنَبِّئُكُم بِخَيْرٍۢ", "ال عمران 92", "ال عمران 15", 8], ["كُلُّ ٱلطَّعَامِ كَانَ", "ال عمران 170", "ال عمران 93", 8], ["يَسْتَبْشِرُونَ بِنِعْمَةٍۢ مِّنَ", "النساء 23", "ال عمران 171", 6], ["وَٱلْمُحْصَنَٰتُ مِنَ ٱلنِّسَآءِ", "النساء 87", "النساء 24", 7], ["فَمَا لَكُمْ فِى", "النساء 147", "النساء 88", 6], ["لَّا يُحِبُّ ٱللَّهُ", "المائـدة 26", "النساء 148", 6], ["وَٱتْلُ عَلَيْهِمْ نَبَأَ", "المائـدة 81", "المائـدة 27", 6], ["لَتَجِدَنَّ أَشَدَّ ٱلنَّاسِ", "الأنعام 35", "المائـدة 82", 8], ["إِنَّمَا يَسْتَجِيبُ ٱلَّذِينَ", "الأنعام 110", "الأنعام 36", 8], ["وَلَوْ أَنَّنَا نَزَّلْنَآ", "الأنعام 165", "الأنعام 111", 6], ["الٓمٓصٓ", "الأعراف 87", "الأعراف 1", 9], ["قَالَ ٱلْمَلَأُ ٱلَّذِينَ", "الأعراف 170", "الأعراف 88", 9], ["وَإِذْ نَتَقْنَا ٱلْجَبَلَ", "الأنفال 40", "الأعراف 171", 8], ["وَٱعْلَمُوٓا۟ أَنَّمَا غَنِمْتُم", "التوبة 33", "الأنفال 41", 8], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟", "التوبة 92", "التوبة 34", 6], ["إِنَّمَا ٱلسَّبِيلُ عَلَى", "يونس 25", "التوبة 93", 7], ["لِّلَّذِينَ أَحْسَنُوا۟ ٱلْحُسْنَىٰ", "هود 5", "يونس 26", 10], ["وَمَا مِن دَآبَّةٍۢ", "هود 83", "هود 6", 8], ["وَإِلَىٰ مَدْيَنَ أَخَاهُمْ", "يوسف 52", "هود 84", 10], ["وَمَآ أُبَرِّئُ نَفْسِىٓ", "الرعد 18", "يوسف 53", 8], ["أَفَمَن يَعْلَمُ أَنَّمَآ", "إبراهيم 52", "الرعد 19", 9], ["الٓر ۚ تِلْكَ", "النحل 50", "الحجر 1", 15], ["وَقَالَ ٱللَّهُ لَا", "النحل 128", "النحل 51", 8], ["سُبْحَٰنَ ٱلَّذِىٓ أَسْرَىٰ", "الإسراء 98", "الإسراء 1", 10], ["أَوَلَمْ يَرَوْا۟ أَنَّ", "الكهف 74", "الإسراء 99", 10], ["قَالَ أَلَمْ أَقُل", "مريم 98", "الكهف 75", 14], ["طه", "طه 135", "طه 1", 14], ["ٱقْتَرَبَ لِلنَّاسِ حِسَابُهُمْ", "الأنبياء 112", "الأنبياء 1", 12], ["يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟", "الحج 78", "الحج 1", 8], ["قَدْ أَفْلَحَ ٱلْمُؤْمِنُونَ", "النور 20", "المؤمنون 1", 14], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "الفرقان 20", "النور 21", 7], ["وَقَالَ ٱلَّذِينَ لَا", "الشعراء 110", "الفرقان 21", 17], ["قَالُوٓا۟ أَنُؤْمِنُ لَكَ", "النمل 55", "الشعراء 111", 18], ["فَمَا كَانَ جَوَابَ", "القصص 50", "النمل 56", 9], ["وَلَقَدْ وَصَّلْنَا لَهُمُ", "العنكبوت 45", "القصص 51", 9], ["وَلَا تُجَٰدِلُوٓا۟ أَهْلَ", "لقمان 21", "العنكبوت 46", 12], ["وَمَن يُسْلِمْ وَجْهَهُۥٓ", "الأحزاب 30", "لقمان 22", 8], ["وَمَن يَقْنُتْ مِنكُنَّ", "سبإ 23", "الأحزاب 31", 8], ["قُلْ مَن يَرْزُقُكُم", "يس 27", "سبإ 24", 12], ["وَمَآ أَنزَلْنَا عَلَىٰ", "الصافات 144", "يس 28", 21], ["فَنَبَذْنَٰهُ بِٱلْعَرَآءِ وَهُوَ", "الزمر 31", "الصافات 145", 17], ["فَمَنْ أَظْلَمُ مِمَّن", "غافر 40", "الزمر 32", 9], ["وَيَٰقَوْمِ مَا لِىٓ", "فصلت 46", "غافر 41", 10], ["إِلَيْهِ يُرَدُّ عِلْمُ", "الزخرف 23", "فصلت 47", 10], ["قَٰلَ أَوَلَوْ جِئْتُكُم", "الجاثية 37", "الزخرف 24", 17], ["حمٓ", "الفتح 17", "الأحقاف 1", 10], ["لَّقَدْ رَضِىَ ٱللَّهُ", "الذاريات 30", "الفتح 18", 12], ["قَالَ فَمَا خَطْبُكُمْ", "القمر 55", "الذاريات 31", 21], ["ٱلرَّحْمَٰنُ", "الحديد 29", "الرحمن 1", 21], ["قَدْ سَمِعَ ٱللَّهُ", "الصف 14", "المجادلة 1", 10], ["يُسَبِّحُ لِلَّهِ مَا", "التحريم 12", "الجمعة 1", 10], ["تَبَٰرَكَ ٱلَّذِى بِيَدِهِ", "نوح 28", "الملك 1", 23], ["قُلْ أُوحِىَ إِلَىَّ", "المرسلات 50", "الجن 1", 24], ["عَمَّ يَتَسَآءَلُونَ", "الطارق 17", "النبإ 1", 31], ["سَبِّحِ ٱسْمَ رَبِّكَ", "الناس 6", "الأعلى 1", 41]];
+const QT=[["بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ", "البقرة 25", "الفاتحة 1", 4], ["إِنَّ ٱللَّهَ لَا", "البقرة 43", "البقرة 26", 2], ["أَتَأْمُرُونَ ٱلنَّاسَ بِٱلْبِرِّ", "البقرة 59", "البقرة 44", 2], ["وَإِذِ ٱسْتَسْقَىٰ مُوسَىٰ", "البقرة 74", "البقرة 60", 2], ["أَفَتَطْمَعُونَ أَن يُؤْمِنُوا۟", "البقرة 91", "البقرة 75", 2], ["وَلَقَدْ جَآءَكُم مُّوسَىٰ", "البقرة 105", "البقرة 92", 2], ["مَا نَنسَخْ مِنْ", "البقرة 123", "البقرة 106", 2], ["وَإِذِ ٱبْتَلَىٰٓ إِبْرَٰهِۦمَ", "البقرة 141", "البقرة 124", 2], ["سَيَقُولُ ٱلسُّفَهَآءُ مِنَ", "البقرة 157", "البقرة 142", 2], ["إِنَّ ٱلصَّفَا وَٱلْمَرْوَةَ", "البقرة 176", "البقرة 158", 2], ["لَّيْسَ ٱلْبِرَّ أَن", "البقرة 188", "البقرة 177", 2], ["يَسْـَٔلُونَكَ عَنِ ٱلْأَهِلَّةِ", "البقرة 202", "البقرة 189", 2], ["وَٱذْكُرُوا۟ ٱللَّهَ فِىٓ", "البقرة 218", "البقرة 203", 2], ["يَسْـَٔلُونَكَ عَنِ ٱلْخَمْرِ", "البقرة 232", "البقرة 219", 2], ["وَٱلْوَٰلِدَٰتُ يُرْضِعْنَ أَوْلَٰدَهُنَّ", "البقرة 242", "البقرة 233", 1], ["أَلَمْ تَرَ إِلَى", "البقرة 252", "البقرة 243", 1], ["تِلْكَ ٱلرُّسُلُ فَضَّلْنَا", "البقرة 262", "البقرة 253", 1], ["قَوْلٌۭ مَّعْرُوفٌۭ وَمَغْفِرَةٌ", "البقرة 271", "البقرة 263", 1], ["لَّيْسَ عَلَيْكَ هُدَىٰهُمْ", "البقرة 282", "البقرة 272", 2], ["وَإِن كُنتُمْ عَلَىٰ", "ال عمران 14", "البقرة 283", 3], ["قُلْ أَؤُنَبِّئُكُم بِخَيْرٍۢ", "ال عمران 32", "ال عمران 15", 2], ["إِنَّ ٱللَّهَ ٱصْطَفَىٰٓ", "ال عمران 51", "ال عمران 33", 2], ["فَلَمَّآ أَحَسَّ عِيسَىٰ", "ال عمران 74", "ال عمران 52", 3], ["وَمِنْ أَهْلِ ٱلْكِتَٰبِ", "ال عمران 92", "ال عمران 75", 2], ["كُلُّ ٱلطَّعَامِ كَانَ", "ال عمران 112", "ال عمران 93", 2], ["لَيْسُوا۟ سَوَآءًۭ ۗ", "ال عمران 132", "ال عمران 113", 2], ["وَسَارِعُوٓا۟ إِلَىٰ مَغْفِرَةٍۢ", "ال عمران 152", "ال عمران 133", 2], ["إِذْ تُصْعِدُونَ وَلَا", "ال عمران 170", "ال عمران 153", 2], ["يَسْتَبْشِرُونَ بِنِعْمَةٍۢ مِّنَ", "ال عمران 185", "ال عمران 171", 2], ["لَتُبْلَوُنَّ فِىٓ أَمْوَٰلِكُمْ", "ال عمران 200", "ال عمران 186", 2], ["يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟", "النساء 11", "النساء 1", 2], ["وَلَكُمْ نِصْفُ مَا", "النساء 23", "النساء 12", 2], ["وَٱلْمُحْصَنَٰتُ مِنَ ٱلنِّسَآءِ", "النساء 35", "النساء 24", 2], ["وَٱعْبُدُوا۟ ٱللَّهَ وَلَا", "النساء 57", "النساء 36", 3], ["إِنَّ ٱللَّهَ يَأْمُرُكُمْ", "النساء 73", "النساء 58", 2], ["فَلْيُقَٰتِلْ فِى سَبِيلِ", "النساء 87", "النساء 74", 2], ["فَمَا لَكُمْ فِى", "النساء 99", "النساء 88", 2], ["وَمَن يُهَاجِرْ فِى", "النساء 113", "النساء 100", 2], ["لَّا خَيْرَ فِى", "النساء 134", "النساء 114", 3], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "النساء 147", "النساء 135", 2], ["لَّا يُحِبُّ ٱللَّهُ", "النساء 162", "النساء 148", 2], ["إِنَّآ أَوْحَيْنَآ إِلَيْكَ", "النساء 176", "النساء 163", 2], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟", "المائـدة 11", "المائـدة 1", 2], ["وَلَقَدْ أَخَذَ ٱللَّهُ", "المائـدة 26", "المائـدة 12", 2], ["وَٱتْلُ عَلَيْهِمْ نَبَأَ", "المائـدة 40", "المائـدة 27", 2], ["يَٰٓأَيُّهَا ٱلرَّسُولُ لَا", "المائـدة 50", "المائـدة 41", 1], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "المائـدة 66", "المائـدة 51", 2], ["يَٰٓأَيُّهَا ٱلرَّسُولُ بَلِّغْ", "المائـدة 81", "المائـدة 67", 2], ["لَتَجِدَنَّ أَشَدَّ ٱلنَّاسِ", "المائـدة 96", "المائـدة 82", 2], ["جَعَلَ ٱللَّهُ ٱلْكَعْبَةَ", "المائـدة 108", "المائـدة 97", 2], ["يَوْمَ يَجْمَعُ ٱللَّهُ", "الأنعام 12", "المائـدة 109", 4], ["وَلَهُۥ مَا سَكَنَ", "الأنعام 35", "الأنعام 13", 3], ["إِنَّمَا يَسْتَجِيبُ ٱلَّذِينَ", "الأنعام 58", "الأنعام 36", 3], ["وَعِندَهُۥ مَفَاتِحُ ٱلْغَيْبِ", "الأنعام 73", "الأنعام 59", 2], ["وَإِذْ قَالَ إِبْرَٰهِيمُ", "الأنعام 94", "الأنعام 74", 3], ["إِنَّ ٱللَّهَ فَالِقُ", "الأنعام 110", "الأنعام 95", 2], ["وَلَوْ أَنَّنَا نَزَّلْنَآ", "الأنعام 126", "الأنعام 111", 2], ["لَهُمْ دَارُ ٱلسَّلَٰمِ", "الأنعام 140", "الأنعام 127", 2], ["وَهُوَ ٱلَّذِىٓ أَنشَأَ", "الأنعام 150", "الأنعام 141", 1], ["قُلْ تَعَالَوْا۟ أَتْلُ", "الأنعام 165", "الأنعام 151", 2], ["الٓمٓصٓ", "الأعراف 30", "الأعراف 1", 3], ["يَٰبَنِىٓ ءَادَمَ خُذُوا۟", "الأعراف 46", "الأعراف 31", 2], ["وَإِذَا صُرِفَتْ أَبْصَٰرُهُمْ", "الأعراف 64", "الأعراف 47", 2], ["وَإِلَىٰ عَادٍ أَخَاهُمْ", "الأعراف 87", "الأعراف 65", 3], ["قَالَ ٱلْمَلَأُ ٱلَّذِينَ", "الأعراف 116", "الأعراف 88", 3], ["وَأَوْحَيْنَآ إِلَىٰ مُوسَىٰٓ", "الأعراف 141", "الأعراف 117", 3], ["وَوَٰعَدْنَا مُوسَىٰ ثَلَٰثِينَ", "الأعراف 155", "الأعراف 142", 2], ["وَٱكْتُبْ لَنَا فِى", "الأعراف 170", "الأعراف 156", 2], ["وَإِذْ نَتَقْنَا ٱلْجَبَلَ", "الأعراف 188", "الأعراف 171", 2], ["هُوَ ٱلَّذِى خَلَقَكُم", "الأعراف 206", "الأعراف 189", 2], ["يَسْـَٔلُونَكَ عَنِ ٱلْأَنفَالِ", "الأنفال 21", "الأنفال 1", 3], ["إِنَّ شَرَّ ٱلدَّوَآبِّ", "الأنفال 40", "الأنفال 22", 2], ["وَٱعْلَمُوٓا۟ أَنَّمَا غَنِمْتُم", "الأنفال 60", "الأنفال 41", 2], ["وَإِن جَنَحُوا۟ لِلسَّلْمِ", "الأنفال 75", "الأنفال 61", 2], ["بَرَآءَةٌۭ مِّنَ ٱللَّهِ", "التوبة 18", "التوبة 1", 2], ["أَجَعَلْتُمْ سِقَايَةَ ٱلْحَآجِّ", "التوبة 33", "التوبة 19", 2], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟", "التوبة 45", "التوبة 34", 2], ["وَلَوْ أَرَادُوا۟ ٱلْخُرُوجَ", "التوبة 59", "التوبة 46", 2], ["إِنَّمَا ٱلصَّدَقَٰتُ لِلْفُقَرَآءِ", "التوبة 74", "التوبة 60", 2], ["وَمِنْهُم مَّنْ عَٰهَدَ", "التوبة 92", "التوبة 75", 2], ["إِنَّمَا ٱلسَّبِيلُ عَلَى", "التوبة 110", "التوبة 93", 2], ["إِنَّ ٱللَّهَ ٱشْتَرَىٰ", "التوبة 121", "التوبة 111", 2], ["وَمَا كَانَ ٱلْمُؤْمِنُونَ", "يونس 10", "التوبة 122", 2], ["وَلَوْ يُعَجِّلُ ٱللَّهُ", "يونس 25", "يونس 11", 2], ["لِّلَّذِينَ أَحْسَنُوا۟ ٱلْحُسْنَىٰ", "يونس 52", "يونس 26", 3], ["وَيَسْتَنۢبِـُٔونَكَ أَحَقٌّ هُوَ", "يونس 70", "يونس 53", 2], ["وَٱتْلُ عَلَيْهِمْ نَبَأَ", "يونس 89", "يونس 71", 2], ["وَجَٰوَزْنَا بِبَنِىٓ إِسْرَٰٓءِيلَ", "هود 5", "يونس 90", 3], ["وَمَا مِن دَآبَّةٍۢ", "هود 23", "هود 6", 2], ["مَثَلُ ٱلْفَرِيقَيْنِ كَٱلْأَعْمَىٰ", "هود 40", "هود 24", 2], ["وَقَالَ ٱرْكَبُوا۟ فِيهَا", "هود 60", "هود 41", 2], ["وَإِلَىٰ ثَمُودَ أَخَاهُمْ", "هود 83", "هود 61", 3], ["وَإِلَىٰ مَدْيَنَ أَخَاهُمْ", "هود 107", "هود 84", 3], ["وَأَمَّا ٱلَّذِينَ سُعِدُوا۟", "يوسف 6", "هود 108", 3], ["لَّقَدْ كَانَ فِى", "يوسف 29", "يوسف 7", 3], ["وَقَالَ نِسْوَةٌۭ فِى", "يوسف 52", "يوسف 30", 3], ["وَمَآ أُبَرِّئُ نَفْسِىٓ", "يوسف 76", "يوسف 53", 3], ["قَالُوٓا۟ إِن يَسْرِقْ", "يوسف 100", "يوسف 77", 3], ["رَبِّ قَدْ ءَاتَيْتَنِى", "الرعد 4", "يوسف 101", 3], ["وَإِن تَعْجَبْ فَعَجَبٌۭ", "الرعد 18", "الرعد 5", 2], ["أَفَمَن يَعْلَمُ أَنَّمَآ", "الرعد 34", "الرعد 19", 2], ["مَّثَلُ ٱلْجَنَّةِ ٱلَّتِى", "إبراهيم 9", "الرعد 35", 2], ["قَالَتْ رُسُلُهُمْ أَفِى", "إبراهيم 27", "إبراهيم 10", 2], ["أَلَمْ تَرَ إِلَى", "إبراهيم 52", "إبراهيم 28", 3], ["الٓر ۚ تِلْكَ", "الحجر 49", "الحجر 1", 5], ["وَأَنَّ عَذَابِى هُوَ", "الحجر 99", "الحجر 50", 5], ["أَتَىٰٓ أَمْرُ ٱللَّهِ", "النحل 29", "النحل 1", 3], ["وَقِيلَ لِلَّذِينَ ٱتَّقَوْا۟", "النحل 50", "النحل 30", 3], ["وَقَالَ ٱللَّهُ لَا", "النحل 74", "النحل 51", 3], ["ضَرَبَ ٱللَّهُ مَثَلًا", "النحل 89", "النحل 75", 2], ["إِنَّ ٱللَّهَ يَأْمُرُ", "النحل 110", "النحل 90", 3], ["يَوْمَ تَأْتِى كُلُّ", "النحل 128", "النحل 111", 2], ["سُبْحَٰنَ ٱلَّذِىٓ أَسْرَىٰ", "الإسراء 22", "الإسراء 1", 3], ["وَقَضَىٰ رَبُّكَ أَلَّا", "الإسراء 49", "الإسراء 23", 3], ["قُلْ كُونُوا۟ حِجَارَةً", "الإسراء 69", "الإسراء 50", 2], ["وَلَقَدْ كَرَّمْنَا بَنِىٓ", "الإسراء 98", "الإسراء 70", 3], ["أَوَلَمْ يَرَوْا۟ أَنَّ", "الكهف 16", "الإسراء 99", 4], ["وَتَرَى ٱلشَّمْسَ إِذَا", "الكهف 31", "الكهف 17", 2], ["وَٱضْرِبْ لَهُم مَّثَلًۭا", "الكهف 50", "الكهف 32", 2], ["مَّآ أَشْهَدتُّهُمْ خَلْقَ", "الكهف 74", "الكهف 51", 3], ["قَالَ أَلَمْ أَقُل", "الكهف 98", "الكهف 75", 3], ["وَتَرَكْنَا بَعْضَهُمْ يَوْمَئِذٍۢ", "مريم 21", "الكهف 99", 5], ["فَحَمَلَتْهُ فَٱنتَبَذَتْ بِهِۦ", "مريم 58", "مريم 22", 4], ["فَخَلَفَ مِنۢ بَعْدِهِمْ", "مريم 98", "مريم 59", 4], ["طه", "طه 54", "طه 1", 6], ["مِنْهَا خَلَقْنَٰكُمْ وَفِيهَا", "طه 82", "طه 55", 3], ["وَمَآ أَعْجَلَكَ عَن", "طه 110", "طه 83", 3], ["وَعَنَتِ ٱلْوُجُوهُ لِلْحَىِّ", "طه 135", "طه 111", 3], ["ٱقْتَرَبَ لِلنَّاسِ حِسَابُهُمْ", "الأنبياء 28", "الأنبياء 1", 3], ["وَمَن يَقُلْ مِنْهُمْ", "الأنبياء 50", "الأنبياء 29", 3], ["وَلَقَدْ ءَاتَيْنَآ إِبْرَٰهِيمَ", "الأنبياء 82", "الأنبياء 51", 4], ["وَأَيُّوبَ إِذْ نَادَىٰ", "الأنبياء 112", "الأنبياء 83", 3], ["يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُوا۟", "الحج 18", "الحج 1", 2], ["هَٰذَانِ خَصْمَانِ ٱخْتَصَمُوا۟", "الحج 37", "الحج 19", 2], ["إِنَّ ٱللَّهَ يُدَٰفِعُ", "الحج 59", "الحج 38", 3], ["ذَٰلِكَ وَمَنْ عَاقَبَ", "الحج 78", "الحج 60", 2], ["قَدْ أَفْلَحَ ٱلْمُؤْمِنُونَ", "المؤمنون 35", "المؤمنون 1", 4], ["هَيْهَاتَ هَيْهَاتَ لِمَا", "المؤمنون 74", "المؤمنون 36", 4], ["وَلَوْ رَحِمْنَٰهُمْ وَكَشَفْنَا", "المؤمنون 118", "المؤمنون 75", 5], ["سُورَةٌ أَنزَلْنَٰهَا وَفَرَضْنَٰهَا", "النور 20", "النور 1", 2], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "النور 34", "النور 21", 2], ["ٱللَّهُ نُورُ ٱلسَّمَٰوَٰتِ", "النور 52", "النور 35", 2], ["وَأَقْسَمُوا۟ بِٱللَّهِ جَهْدَ", "النور 64", "النور 53", 2], ["تَبَارَكَ ٱلَّذِى نَزَّلَ", "الفرقان 20", "الفرقان 1", 2], ["وَقَالَ ٱلَّذِينَ لَا", "الفرقان 52", "الفرقان 21", 4], ["وَهُوَ ٱلَّذِى مَرَجَ", "الفرقان 77", "الفرقان 53", 3], ["طسٓمٓ", "الشعراء 51", "الشعراء 1", 6], ["وَأَوْحَيْنَآ إِلَىٰ مُوسَىٰٓ", "الشعراء 110", "الشعراء 52", 6], ["قَالُوٓا۟ أَنُؤْمِنُ لَكَ", "الشعراء 180", "الشعراء 111", 7], ["أَوْفُوا۟ ٱلْكَيْلَ وَلَا", "الشعراء 227", "الشعراء 181", 5], ["طسٓ ۚ تِلْكَ", "النمل 26", "النمل 1", 3], ["قَالَ سَنَنظُرُ أَصَدَقْتَ", "النمل 55", "النمل 27", 3], ["فَمَا كَانَ جَوَابَ", "النمل 81", "النمل 56", 3], ["وَإِذَا وَقَعَ ٱلْقَوْلُ", "القصص 11", "النمل 82", 4], ["وَحَرَّمْنَا عَلَيْهِ ٱلْمَرَاضِعَ", "القصص 28", "القصص 12", 2], ["فَلَمَّا قَضَىٰ مُوسَى", "القصص 50", "القصص 29", 3], ["وَلَقَدْ وَصَّلْنَا لَهُمُ", "القصص 75", "القصص 51", 3], ["إِنَّ قَٰرُونَ كَانَ", "القصص 88", "القصص 76", 2], ["الٓمٓ", "العنكبوت 25", "العنكبوت 1", 3], ["فَـَٔامَنَ لَهُۥ لُوطٌۭ", "العنكبوت 45", "العنكبوت 26", 2], ["وَلَا تُجَٰدِلُوٓا۟ أَهْلَ", "العنكبوت 69", "العنكبوت 46", 3], ["الٓمٓ", "الروم 30", "الروم 1", 3], ["مُنِيبِينَ إِلَيْهِ وَٱتَّقُوهُ", "الروم 53", "الروم 31", 3], ["ٱللَّهُ ٱلَّذِى خَلَقَكُم", "لقمان 21", "الروم 54", 4], ["وَمَن يُسْلِمْ وَجْهَهُۥٓ", "السجدة 10", "لقمان 22", 3], ["قُلْ يَتَوَفَّىٰكُم مَّلَكُ", "السجدة 30", "السجدة 11", 2], ["يَٰٓأَيُّهَا ٱلنَّبِىُّ ٱتَّقِ", "الأحزاب 17", "الأحزاب 1", 2], ["قَدْ يَعْلَمُ ٱللَّهُ", "الأحزاب 30", "الأحزاب 18", 2], ["وَمَن يَقْنُتْ مِنكُنَّ", "الأحزاب 50", "الأحزاب 31", 2], ["تُرْجِى مَن تَشَآءُ", "الأحزاب 59", "الأحزاب 51", 1], ["لَّئِن لَّمْ يَنتَهِ", "سبإ 9", "الأحزاب 60", 3], ["وَلَقَدْ ءَاتَيْنَا دَاوُۥدَ", "سبإ 23", "سبإ 10", 2], ["قُلْ مَن يَرْزُقُكُم", "سبإ 45", "سبإ 24", 3], ["قُلْ إِنَّمَآ أَعِظُكُم", "فاطر 14", "سبإ 46", 3], ["يَٰٓأَيُّهَا ٱلنَّاسُ أَنتُمُ", "فاطر 40", "فاطر 15", 3], ["إِنَّ ٱللَّهَ يُمْسِكُ", "يس 27", "فاطر 41", 4], ["وَمَآ أَنزَلْنَا عَلَىٰ", "يس 59", "يس 28", 4], ["أَلَمْ أَعْهَدْ إِلَيْكُمْ", "الصافات 21", "يس 60", 6], ["ٱحْشُرُوا۟ ٱلَّذِينَ ظَلَمُوا۟", "الصافات 82", "الصافات 22", 7], ["وَإِنَّ مِن شِيعَتِهِۦ", "الصافات 144", "الصافات 83", 7], ["فَنَبَذْنَٰهُ بِٱلْعَرَآءِ وَهُوَ", "ص 20", "الصافات 145", 6], ["وَهَلْ أَتَىٰكَ نَبَؤُا۟", "ص 51", "ص 21", 4], ["وَعِندَهُمْ قَٰصِرَٰتُ ٱلطَّرْفِ", "الزمر 7", "ص 52", 5], ["وَإِذَا مَسَّ ٱلْإِنسَٰنَ", "الزمر 31", "الزمر 8", 3], ["فَمَنْ أَظْلَمُ مِمَّن", "الزمر 52", "الزمر 32", 3], ["قُلْ يَٰعِبَادِىَ ٱلَّذِينَ", "الزمر 75", "الزمر 53", 3], ["حمٓ", "غافر 20", "غافر 1", 2], ["أَوَلَمْ يَسِيرُوا۟ فِى", "غافر 40", "غافر 21", 2], ["وَيَٰقَوْمِ مَا لِىٓ", "غافر 65", "غافر 41", 3], ["قُلْ إِنِّى نُهِيتُ", "فصلت 8", "غافر 66", 3], ["قُلْ أَئِنَّكُمْ لَتَكْفُرُونَ", "فصلت 24", "فصلت 9", 2], ["وَقَيَّضْنَا لَهُمْ قُرَنَآءَ", "فصلت 46", "فصلت 25", 3], ["إِلَيْهِ يُرَدُّ عِلْمُ", "الشورى 12", "فصلت 47", 3], ["شَرَعَ لَكُم مِّنَ", "الشورى 26", "الشورى 13", 2], ["وَلَوْ بَسَطَ ٱللَّهُ", "الشورى 50", "الشورى 27", 3], ["وَمَا كَانَ لِبَشَرٍ", "الزخرف 23", "الشورى 51", 4], ["قَٰلَ أَوَلَوْ جِئْتُكُم", "الزخرف 56", "الزخرف 24", 4], ["وَلَمَّا ضُرِبَ ٱبْنُ", "الدخان 16", "الزخرف 57", 6], ["وَلَقَدْ فَتَنَّا قَبْلَهُمْ", "الجاثية 11", "الدخان 17", 7], ["ٱللَّهُ ٱلَّذِى سَخَّرَ", "الجاثية 37", "الجاثية 12", 3], ["حمٓ", "الأحقاف 20", "الأحقاف 1", 2], ["وَٱذْكُرْ أَخَا عَادٍ", "محمد 9", "الأحقاف 21", 3], ["أَفَلَمْ يَسِيرُوا۟ فِى", "محمد 32", "محمد 10", 3], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟", "الفتح 17", "محمد 33", 3], ["لَّقَدْ رَضِىَ ٱللَّهُ", "الفتح 29", "الفتح 18", 2], ["يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟", "الحجرات 13", "الحجرات 1", 2], ["قَالَتِ ٱلْأَعْرَابُ ءَامَنَّا", "ق 26", "الحجرات 14", 4], ["قَالَ قَرِينُهُۥ رَبَّنَا", "الذاريات 30", "ق 27", 5], ["قَالَ فَمَا خَطْبُكُمْ", "الطور 23", "الذاريات 31", 6], ["وَيَطُوفُ عَلَيْهِمْ غِلْمَانٌۭ", "النجم 25", "الطور 24", 6], ["وَكَم مِّن مَّلَكٍۢ", "القمر 8", "النجم 26", 5], ["كَذَّبَتْ قَبْلَهُمْ قَوْمُ", "القمر 55", "القمر 9", 5], ["ٱلرَّحْمَٰنُ", "الرحمن 78", "الرحمن 1", 8], ["إِذَا وَقَعَتِ ٱلْوَاقِعَةُ", "الواقعة 74", "الواقعة 1", 8], ["فَلَآ أُقْسِمُ بِمَوَٰقِعِ", "الحديد 15", "الواقعة 75", 5], ["أَلَمْ يَأْنِ لِلَّذِينَ", "الحديد 29", "الحديد 16", 2], ["قَدْ سَمِعَ ٱللَّهُ", "المجادلة 13", "المجادلة 1", 2], ["أَلَمْ تَرَ إِلَى", "الحشر 10", "المجادلة 14", 2], ["أَلَمْ تَرَ إِلَى", "الممتحنة 6", "الحشر 11", 3], ["عَسَى ٱللَّهُ أَن", "الصف 14", "الممتحنة 7", 3], ["يُسَبِّحُ لِلَّهِ مَا", "المنافقون 3", "الجمعة 1", 3], ["وَإِذَا رَأَيْتَهُمْ تُعْجِبُكَ", "التغابن 18", "المنافقون 4", 3], ["يَٰٓأَيُّهَا ٱلنَّبِىُّ إِذَا", "الطلاق 12", "الطلاق 1", 2], ["يَٰٓأَيُّهَا ٱلنَّبِىُّ لِمَ", "التحريم 12", "التحريم 1", 2], ["تَبَٰرَكَ ٱلَّذِى بِيَدِهِ", "الملك 30", "الملك 1", 3], ["نٓ ۚ وَٱلْقَلَمِ", "القلم 52", "القلم 1", 6], ["ٱلْحَآقَّةُ", "المعارج 18", "الحاقة 1", 8], ["إِنَّ ٱلْإِنسَٰنَ خُلِقَ", "نوح 28", "المعارج 19", 6], ["قُلْ أُوحِىَ إِلَىَّ", "المزمل 19", "الجن 1", 5], ["إِنَّ رَبَّكَ يَعْلَمُ", "المدثر 56", "المزمل 20", 7], ["لَآ أُقْسِمُ بِيَوْمِ", "الإنسان 18", "القيامة 1", 6], ["وَيَطُوفُ عَلَيْهِمْ وِلْدَٰنٌۭ", "المرسلات 50", "الإنسان 19", 7], ["عَمَّ يَتَسَآءَلُونَ", "النازعات 46", "النبإ 1", 9], ["عَبَسَ وَتَوَلَّىٰٓ", "التكوير 29", "عبس 1", 8], ["إِذَا ٱلسَّمَآءُ ٱنفَطَرَتْ", "المطففين 36", "الانفطار 1", 6], ["إِذَا ٱلسَّمَآءُ ٱنشَقَّتْ", "الطارق 17", "الانشقاق 1", 8], ["سَبِّحِ ٱسْمَ رَبِّكَ", "الفجر 30", "الأعلى 1", 8], ["لَآ أُقْسِمُ بِهَٰذَا", "الضحى 11", "البلد 1", 9], ["أَلَمْ نَشْرَحْ لَكَ", "العاديات 8", "الشرح 1", 8], ["أَفَلَا يَعْلَمُ إِذَا", "الناس 6", "العاديات 9", 16]];
+const SU=[[1, "الفاتحة", 7, 1], [2, "البقرة", 286, 29], [3, "ال عمران", 200, 20], [4, "النساء", 176, 18], [5, "المائـدة", 120, 12], [6, "الأنعام", 165, 17], [7, "الأعراف", 206, 21], [8, "الأنفال", 75, 8], [9, "التوبة", 129, 13], [10, "يونس", 109, 11], [11, "هود", 123, 13], [12, "يوسف", 111, 12], [13, "الرعد", 43, 5], [14, "إبراهيم", 52, 6], [15, "الحجر", 99, 10], [16, "النحل", 128, 13], [17, "الإسراء", 111, 12], [18, "الكهف", 110, 11], [19, "مريم", 98, 10], [20, "طه", 135, 14], [21, "الأنبياء", 112, 12], [22, "الحج", 78, 8], [23, "المؤمنون", 118, 12], [24, "النور", 64, 7], [25, "الفرقان", 77, 8], [26, "الشعراء", 227, 23], [27, "النمل", 93, 10], [28, "القصص", 88, 9], [29, "العنكبوت", 69, 7], [30, "الروم", 60, 6], [31, "لقمان", 34, 4], [32, "السجدة", 30, 3], [33, "الأحزاب", 73, 8], [34, "سبإ", 54, 6], [35, "فاطر", 45, 5], [36, "يس", 83, 9], [37, "الصافات", 182, 19], [38, "ص", 88, 9], [39, "الزمر", 75, 8], [40, "غافر", 85, 9], [41, "فصلت", 54, 6], [42, "الشورى", 53, 6], [43, "الزخرف", 89, 9], [44, "الدخان", 59, 6], [45, "الجاثية", 37, 4], [46, "الأحقاف", 35, 4], [47, "محمد", 38, 4], [48, "الفتح", 29, 3], [49, "الحجرات", 18, 2], [50, "ق", 45, 5], [51, "الذاريات", 60, 6], [52, "الطور", 49, 5], [53, "النجم", 62, 7], [54, "القمر", 55, 6], [55, "الرحمن", 78, 8], [56, "الواقعة", 96, 10], [57, "الحديد", 29, 3], [58, "المجادلة", 22, 3], [59, "الحشر", 24, 3], [60, "الممتحنة", 13, 2], [61, "الصف", 14, 2], [62, "الجمعة", 11, 2], [63, "المنافقون", 11, 2], [64, "التغابن", 18, 2], [65, "الطلاق", 12, 2], [66, "التحريم", 12, 2], [67, "الملك", 30, 3], [68, "القلم", 52, 6], [69, "الحاقة", 52, 6], [70, "المعارج", 44, 5], [71, "نوح", 28, 3], [72, "الجن", 28, 3], [73, "المزمل", 20, 2], [74, "المدثر", 56, 6], [75, "القيامة", 40, 4], [76, "الإنسان", 31, 4], [77, "المرسلات", 50, 5], [78, "النبإ", 40, 4], [79, "النازعات", 46, 5], [80, "عبس", 42, 5], [81, "التكوير", 29, 3], [82, "الانفطار", 19, 2], [83, "المطففين", 36, 4], [84, "الانشقاق", 25, 3], [85, "البروج", 22, 3], [86, "الطارق", 17, 2], [87, "الأعلى", 19, 2], [88, "الغاشية", 26, 3], [89, "الفجر", 30, 3], [90, "البلد", 20, 2], [91, "الشمس", 15, 2], [92, "الليل", 21, 3], [93, "الضحى", 11, 2], [94, "الشرح", 8, 1], [95, "التين", 8, 1], [96, "العلق", 19, 2], [97, "القدر", 5, 1], [98, "البينة", 8, 1], [99, "الزلزلة", 8, 1], [100, "العاديات", 11, 2], [101, "القارعة", 11, 2], [102, "التكاثر", 8, 1], [103, "العصر", 3, 1], [104, "الهمزة", 9, 1], [105, "الفيل", 5, 1], [106, "قريش", 4, 1], [107, "الماعون", 7, 1], [108, "الكوثر", 3, 1], [109, "الكافرون", 6, 1], [110, "النصر", 3, 1], [111, "المسد", 5, 1], [112, "الإخلاص", 4, 1], [113, "الفلق", 5, 1], [114, "الناس", 6, 1]];
+
+/* ---------- new homework (صفحة واحدة) ---------- */
+let stu=null,mode='all',unit='hizb',qc=10,sel=new Set(),selS=new Set(),qs=[],published=false;
+const fa=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function reset(){stu=null;mode='all';unit='hizb';qc=10;sel=new Set();selS=new Set();published=false;$('#stuSearch').value='';$('#qc').value=10;
+  $('#formPanel').style.display='block';$('#donePanel').style.display='none';$('#rest').style.display='none';drawStu();render()}
+function drawStu(){const q=$('#stuSearch').value.trim();$('#stuGrid').innerHTML=students.filter(s=>s.n.includes(q)).map(s=>`<button class="stu ${stu&&stu.n===s.n?'on':''}" data-n="${s.n}"><div class="av">${s.n[0]}</div><div><b>${s.n}</b><small>${s.r}</small></div></button>`).join('')||'<p style="color:var(--ink2)">لا يوجد طالب بهذا الاسم</p>'}
+$('#stuSearch').oninput=drawStu;$('#stuGrid').onclick=e=>{const b=e.target.closest('.stu');if(b)pickStudent(b.dataset.n)};
+function pickStudent(n){stu=students.find(s=>s.n===n);sel=new Set();selS=new Set();unit='hizb';
+  $('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. موضع الحفظ الشهري محدَّث ✅</div>`;
+  $('#rest').style.display='block';setMode('all');setTimeout(()=>$('#rest').scrollIntoView({behavior:'smooth',block:'nearest'}),50)}
+
+/* بيانات المجموعات: الحزب/الربع بأسمائهما الحقيقية من المصحف، وحالة التغطية تجريبية */
+const nHz=()=>stu?Math.min(60,stu.h*2):0;
+function groups(){const out=[];const hs=Array.from({length:nHz()},(_,i)=>60-i);
+  if(unit==='hizb')hs.forEach(h=>out.push({id:h,hizb:h,d:HZ[h-1],label:'الحزب '+h}));
+  else hs.forEach(h=>{for(let q=4;q>=1;q--){const k=(h-1)*4+q;out.push({id:k,hizb:h,d:QT[k-1],label:`الحزب ${h} · ربع ${q}`})}});
+  out.forEach((g,i)=>{const r=(g.id*37+7)%10;g.cov=r<3?100:r<5?55:0;g.days=r<3?3:r<5?12:null;g.fix=r>=5&&r<7?2:0;g.partial=i===0&&unit==='hizb'&&stu&&stu.h<=8});return out}
+const surahs=()=>{if(!stu)return[];const lowH=60-nHz()+1,lowStart=HZ[lowH-1][2].split(' ')[0];const idx=SU.findIndex(x=>x[1]===lowStart);return SU.slice(idx<0?0:idx).reverse().map(x=>({n:x[0],name:x[1],segs:x[3],unc:((x[0]*7)%5===0)?0:(x[0]*3)%4+1}))};
+const suggest=()=>groups().slice().sort((a,b)=>(b.fix>0)-(a.fix>0)||(a.days===null?-1:0)-(b.days===null?-1:0)||a.cov-b.cov).slice(0,3).map(g=>g.id);
+function tile(g,lock){const on=sel.has(g.id)||mode==='all';const st=g.cov===100?'<span class="stt ok">✓ غُطّي</span>':g.days===null?'<span class="stt">لم يُفحص</span>':`<span class="stt">قبل ${g.days} يوم</span>`;
+  return `<button class="tile ${on?'sel':''} ${g.partial?'partial':''} ${lock?'lock':''}" data-id="${g.id}">${g.fix?`<span class="fix">⚠${g.fix}</span>`:''}<span class="nm">${g.d[0]}</span><span class="h">${g.label}</span><span class="rg">من ${g.d[1]}<br>إلى ${g.d[2]}</span><span class="sg">${g.d[3]} مقطع</span>${st}<div class="bar"><i style="width:${g.cov}%"></i></div></button>`}
+function setMode(m){mode=m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m===m));sel=m==='hizb'?sel:new Set();if(m!=='surah')selS=new Set();render()}
+$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(b)setMode(b.dataset.m)};
+$('#freq').onclick=e=>{const b=e.target.closest('.mode');if(b)$$('#freq .mode').forEach(x=>x.classList.toggle('on',x===b))};
+$('#suggest').onclick=()=>{mode='hizb';$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m==='hizb'));sel=new Set(suggest());render();toast('✨ اقترحنا '+sel.size+' مجموعات: الأخطاء المفتوحة ثم الأقل تغطية')};
+$('#unit').onclick=()=>{unit=unit==='hizb'?'quarter':'hizb';sel=new Set();render()};
+$('#strip').onclick=e=>{const b=e.target.closest('.tile');if(!b||mode==='all')return;const id=+b.dataset.id;sel.has(id)?sel.delete(id):sel.add(id);render()};
+$('#surs').onclick=e=>{const b=e.target.closest('.chipS');if(!b||mode==='all')return;const n=+b.dataset.n;selS.has(n)?selS.delete(n):selS.add(n);render()};
+$('#hzHead').onclick=e=>{const t=e.target;if(t.dataset.selall!==undefined){if(mode==='surah')selS=new Set(surahs().map(x=>x.n));else sel=new Set(groups().map(g=>g.id))}else if(t.dataset.clear!==undefined){sel=new Set();selS=new Set()}else return;render()};
+const clampQ=d=>{qc=Math.min(50,Math.max(3,qc+d));$('#qc').value=qc;render()};$('#qm').onclick=()=>clampQ(-1);$('#qp').onclick=()=>clampQ(1);
+function nSeg(){if(mode==='surah')return surahs().filter(x=>selS.has(x.n)).reduce((a,x)=>a+x.segs,0);const g=groups();return(mode==='all'?g:g.filter(x=>sel.has(x.id))).reduce((a,x)=>a+x.d[3],0)}
+const picked=()=>mode==='surah'?selS.size:mode==='all'?1:sel.size;
+function drawScope(){const g=groups();$('#unit').style.display=mode==='surah'?'none':'inline-flex';$('#unit').textContent=unit==='hizb'?'⇄ عرض بالأرباع':'⇄ عرض بالأحزاب';
+  $('#strip').style.display=mode==='surah'?'none':'grid';$('#surs').style.display=mode==='surah'?'flex':'none';
+  const word=unit==='hizb'?'حزباً':'ربعاً';
+  $('#hzHead').innerHTML=mode==='all'?`<span>📖 سيُسأل الطالب من كل نطاقه <small>(${g.length} ${unit==='hizb'?'حزباً':'ربعاً'})</small></span>`
+   :mode==='surah'?`<span>اضغط السور التي تريدها <small>(${selS.size} مختارة)</small></span><span><span class="lnk" data-selall>تحديد الكل</span> · <span class="lnk" data-clear>مسح</span></span>`
+   :`<span>اضغط ما تريده من الـ${unit==='hizb'?'أحزاب':'أرباع'} <small>(${sel.size} من ${g.length})</small></span><span><span class="lnk" data-selall>تحديد الكل</span> · <span class="lnk" data-clear>مسح</span></span>`;
+  if(mode==='surah')$('#surs').innerHTML=surahs().map(x=>`<button class="chipS ${selS.has(x.n)?'sel':''}" data-n="${x.n}">${x.n}. ${x.name}${x.unc?` <small>·${x.unc}</small>`:' ✓'}</button>`).join('');
+  else $('#strip').innerHTML=g.map(x=>tile(x,mode==='all')).join('')}
+function drawCov(){const n=nSeg(),empty=mode!=='all'&&!picked();const pct=n?Math.min(100,Math.round(qc/n*100)):0;
+  $('#cov').innerHTML=empty?(mode==='surah'?'👆 اختر سورة واحدة على الأقل.':`👆 اختر ${unit==='hizb'?'حزباً':'ربعاً'} واحداً على الأقل.`):`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً.`}
+
+/* ---------- questions ---------- */
+const bank=[
+ ['mcq','أكمل الآية','﴿ قُلْ أَعُوذُ بِرَبِّ ﴿١﴾ ... ﴾','قريب','tag green'],['order','رتّب الآيات','سورة الإخلاص — 4 آيات','جديد','tag blue'],
+ ['visual_page','في أي صفحة؟ (يمين/يسار)','﴿ إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ ﴾','بعيد','tag'],['mcq','ما الآية التالية؟','﴿ وَالضُّحَىٰ ﴿١﴾ وَاللَّيْلِ إِذَا سَجَىٰ ﴾','قريب','tag green'],
+ ['tajweed','حدّد حكم التجويد','﴿ مِن شَرِّ مَا خَلَقَ ﴾','علاجي','tag red'],['text','اكتب الآية من الذاكرة (تصحيح يدوي)','سورة العصر — الآية 2','بعيد','tag'],
+ ['mcq','أين موضع الخطأ؟','﴿ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ﴾','علاجي','tag red'],['order','رتّب الكلمات','﴿ لَمْ يَلِدْ وَلَمْ يُولَدْ ﴾','جديد','tag blue'],
+ ['mcq','من أي سورة؟','﴿ تَبَّتْ يَدَا أَبِي لَهَبٍ ﴾','قريب','tag green'],['mcq','أكمل الآية','﴿ فَصَلِّ لِرَبِّكَ ... ﴾','قريب','tag green']];
+const why={'جديد':'من حفظ الشهر الحالي','قريب':'من حفظ الشهر الماضي','بعيد':'مراجعة بعيدة لم تُفحص منذ 5 أسابيع','علاجي':'أخطأ فيه سابقاً — بصيغة مختلفة'};
+function buildQs(){qs=Array.from({length:Math.min(qc,10)},(_,i)=>Object.fromEntries(['t','title','text','k','cls'].map((k,j)=>[k,bank[i%bank.length][j]])))}
+function drawQs(){buildQs();
+  $('#qlist').innerHTML=qs.map((q,i)=>`<div class="qi"><div class="qn">${i+1}</div><div><div class="meta"><span class="tag ${q.cls.split(' ')[1]||''}">${q.k}</span></div><div class="txt"><b>${q.title}</b></div><div class="q" style="font-size:1.15rem;line-height:1.9">${q.text}</div><div class="why">💬 ${why[q.k]}</div></div><div class="qtools"><button class="ic" data-del title="حذف">🗑️</button></div></div>`).join('')}
+$('#qlist').onclick=e=>{if(e.target.closest('[data-del]')){clampQ(-1);toast('🗑️ حُذف السؤال')}};
+
+/* ---------- publish ---------- */
+const LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
+const MSG=()=>{const sc=mode==='all'?stu.r:mode==='surah'?'سور: '+surahs().filter(x=>selS.has(x.n)).map(x=>x.name).join('، '):groups().filter(x=>sel.has(x.id)).map(x=>x.label).join('، ');return `📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`};
+function publish(){published=true;$('#formPanel').style.display='none';$('#donePanel').style.display='block';$('#dStu').textContent=stu.n;$('#lnk').value=LINK;render();scrollTo({top:0,behavior:'smooth'});toast('🎉 نُشر الواجب بنجاح')}
+$('#cp').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});$('#cp').textContent='✔️ تم';setTimeout(()=>$('#cp').textContent='📋 نسخ',1600);toast('✔️ تم نسخ الرابط')};
+$('#wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(MSG()),'_blank');
+$('#tg').onclick=()=>window.open('https://t.me/share/url?url='+encodeURIComponent(LINK)+'&text='+encodeURIComponent('واجب منزلي'),'_blank');
+$('#again').onclick=reset;
+
+/* ---------- phone preview ---------- */
+function drawPhone(){const p=$('#phone');
+  if(published)p.innerHTML=`<div class="ph-head">📨 تم الاستلام</div><div class="ph-body" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:3rem">✅</div><b style="font-size:1.1rem">رابط الواجب جاهز</b><p style="color:#64748b;margin-top:6px">سيصل الطالب مباشرة عبر الواتساب</p></div></div>`;
+  else if(!stu)p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card"><span style="color:#94a3b8">اختر طالباً لتظهر المعاينة</span></div></div>`;
+  else p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card">هذا الواجب مخصّص لـ<br><b style="font-size:1.1rem;color:#047857">${stu.n}</b></div><div class="ph-card">واجب من <b>${qc}</b> سؤال<br><small style="color:#64748b">إجاباتك تُحفظ تلقائياً على جهازك</small></div><div class="ph-btn">ابدأ الحل ▶</div></div>`}
+
+function render(){if(stu){drawScope();drawCov();drawQs();$('#next').disabled=mode!=='all'&&!picked()}drawPhone()}
+$('#next').onclick=publish;
+reset();
+</script>
+</body>
+</html>

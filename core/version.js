@@ -8,13 +8,84 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.10';
+export const APP_VERSION = '1.0.13';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-08] تذكير الواجب الأسبوعي وجدول الأسبوع
+    {
+        version: '1.0.13',
+        date: '2026-10-08',
+        items: [
+            {
+                type: 'new',
+                ar: 'تذكير الواجب الأسبوعي في «مهام اليوم»: لكل طالب يومان في الأسبوع يوزّعهما النظام تلقائياً (السبت إلى الخميس) بفاصل يومين على الأقل وبلا ازدحام على المعلم. يظهر الطالب يوم موعده ثم متأخراً يوماً بيوم حتى تنشر له واجباً فيختفي تلقائياً، وزر «⏭ رحّل لغد» لتأجيله.',
+                en: 'Weekly homework reminders in "Today\'s tasks": each student gets two days a week assigned automatically (Saturday to Thursday), at least two days apart and without crowding your days. A student shows up on their day, then late day by day until you publish their homework, and it disappears by itself; "⏭ Postpone" delays it.'
+            },
+            {
+                type: 'new',
+                ar: 'شاشة «📅 جدول الأسبوع»: أيام العمل في أعمدة وطلابها في صفوف، وفوق كل يوم عدد واجباته مقابل الطاقة المتوازنة (إجمالي الخانات ÷ أيام العمل)؛ عدّل يوم أي طالب بنقرة، أو أوقف تذكيره، أو اضغط «وزّع تلقائياً». وعند أول تشغيل يُوزَّع طلابك الحاليون تلقائياً، والطالب الجديد يُضاف لأقل الأيام ازدحاماً.',
+                en: 'A "📅 Weekly schedule" screen: work days as columns and students as rows, with each day\'s load against the balanced capacity (total slots ÷ work days). Change any student\'s day with a tap, pause their reminders, or press "Auto-distribute". Your current students are distributed automatically on first run and a new student is placed on the least busy days.'
+            },
+            {
+                type: 'improved',
+                ar: 'تنبيه الازدحام: إذا زاد عدد الواجبات المنتظرة اليوم عن طاقتك الموزَّعة يظهر تنبيه لترحّل ما تشاء لغد. وحساب دورة المراجعة صار يعتمد على عدد مرات كل طالب الفعلي بدل رقم ثابت.',
+                en: 'Crowding warning: if more homeworks are waiting today than your balanced capacity, a warning lets you postpone some. The review-cycle maths now uses each student\'s actual weekly count instead of a fixed number.'
+            }
+        ]
+    },
+    // 🗺️ [أُضيف 2026-10-08] خريطة الحفظ بالأحزاب وتغطية النطاق في الواجب الذكي
+    {
+        version: '1.0.12',
+        date: '2026-10-08',
+        items: [
+            {
+                type: 'new',
+                ar: 'خريطة حفظ الطالب عند إعداد الواجب: أحزاب (أو أرباع لحفظ صغير) من الناس صعوداً بلون وآخر فحص وأخطاء كل منها. اختر «كل النطاق» أو أحزاباً محددة أو عدة سور، أو اضغط «اقترح لي» ليختار الأحوج للفحص.',
+                en: 'A memorization map when preparing homework: hizbs (or quarters for a small range) from An-Nas upward, each with its status, last check and mistakes. Choose the whole range, chosen hizbs or several surahs, or press "Suggest" to pick what needs checking most.'
+            },
+            {
+                type: 'new',
+                ar: 'سطر تغطية ذكي تحت عدد الأسئلة: كم يغطي الواجب من المختار، وكم سؤالاً يلزم لتغطيته كله، وفي المرة القادمة يقترح «أكمل» لما تبقّى من الواجب السابق. مدة دورة المراجعة قابلة للتعديل (افتراضياً 6 أسابيع).',
+                en: 'A smart coverage line under the question count: how much of the selection the homework covers and how many questions would cover it all; next time it suggests "Continue" for what is left of the last homework. The review cycle length is editable (6 weeks by default).'
+            },
+            {
+                type: 'improved',
+                ar: 'الاختيار المحدد يغطي مقاطع مختلفة بدل تكرار المقطع نفسه، وما أُسند في واجب لم يُسلَّم بعد يتأخر في الواجب التالي.',
+                en: 'A chosen range now spreads over different segments instead of repeating the same one, and what was assigned in a not-yet-submitted homework is postponed in the next one.'
+            }
+        ]
+    },
+    // 🧠 [أُضيف 2026-10-08] الواجب الذكي: واجب لكل طالب يُبنى على نطاق حفظه وأخطائه + ملف مهارات متتبَّع
+    {
+        version: '1.0.11',
+        date: '2026-10-08',
+        items: [
+            {
+                type: 'new',
+                ar: 'الواجب الذكي: كل واجب يُبنى لطالب محدد على نطاق حفظه (من الناس إلى موضع توقّفه): حفظ جديد، مراجعة قريبة وبعيدة، وأسئلة علاجية من أخطائه السابقة بصيغة مختلفة — والأسئلة مخلوطة وليست بترتيب المصحف. لم يعد هناك اختيار سورة/جزء عام ولا رابط عام.',
+                en: 'Smart homework: every homework is built for one student on their memorization range (from An-Nas to where they stopped): new memorization, recent and older review, and remedial questions from past mistakes in a different format — shuffled, not in Mushaf order. The generic surah/juz choice and the public link are gone.'
+            },
+            {
+                type: 'new',
+                ar: 'ملف مهارات الطالب (من ملفه الشخصي أو شاشة الواجب): دقة 7 مهارات، تشخيص تلقائي (ضعف مهارة أم ضعف موضع)، جودة الأداء من تسجيلاتك، خريطة إتقان المقاطع. ويظهر ملخصه في التقرير الشهري.',
+                en: 'Student skills profile (from their profile or the homework screen): accuracy in 7 skills, automatic diagnosis (a weak skill or a weak spot), performance quality from your notes, and a segment mastery map. A summary also appears in the monthly report.'
+            },
+            {
+                type: 'new',
+                ar: 'سؤال جديد: «هذه الآية في الصفحة اليمنى أم اليسرى؟» (الذاكرة البصرية) مع تنبيه الطالب بعدم فتح المصحف.',
+                en: 'New question: "Is this ayah on the right or left page?" (visual memory) with a reminder not to open the Mushaf.'
+            },
+            {
+                type: 'improved',
+                ar: 'تنبيه تحديث موضع الحفظ الشهري عند إنشاء الواجب وفي «مهام اليوم» لمن مضى على موضعه أكثر من 30 يوماً. ويُبنى ملف التتبّع تلقائياً من بيانات كل طالب الحالية (الواجبات المعتمدة وقائمة الأخطاء وأرشيفها).',
+                en: 'A reminder to update the monthly memorization position when creating homework and in "Today\'s tasks" when it is over 30 days old. The tracking file is built automatically from each student\'s existing data (approved homework, mistakes list and archive).'
+            }
+        ]
+    },
     // 🏅 [أُضيف 2026-10-06] الشهادات والتقارير: 40 قالباً + نصوص ثنائية اللغة + أرشيف التقارير + جولة إرشادية
     {
         version: '1.0.10',

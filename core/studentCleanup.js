@@ -11,6 +11,7 @@ const STUDENT_LINKED_STORES = [
     ['DarHamReviewSchedule', 'review_schedule'],
     ['DarHamReviewSchedule', 'tajweed_rule_review'],
     ['DarHamMonthlyMemorization', 'monthly_memorization'],
+    ['DarHamTracking', 'performance_events'],
     ['DarHamDualTests', 'dual_test_achievements'],
     ['DarHamTajweed', 'tajweed_rule_mastery'],
     ['DarHamTajweed', 'tajweed_sessions'],

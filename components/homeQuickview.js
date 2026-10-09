@@ -241,16 +241,36 @@ async function renderDueForReview() {
     const summaryBtn = document.getElementById('home-quickcard-due-summary');
     const summaryTextEl = document.getElementById('home-quickcard-due-summary-text');
     const listEl = document.getElementById('home-quickcard-due-list');
-    if (!wrap || !summaryBtn || !summaryTextEl || !listEl || !AppState.studentManager || !AppState.reviewScheduleManager) return;
+    if (!wrap || !summaryBtn || !summaryTextEl || !listEl || !AppState.studentManager) return;
+    const en = AppState.currentLang === 'en';
+    const L = (ar, enText) => (en ? enText : ar);
 
     try {
+        // 🌟 [جديد — تذكير الواجب الأسبوعي] لكل طالب جدول أيام أسبوعي يوزّعه النظام تلقائياً (core/hwScheduleService.js): يظهر الطالب يوم
+        // موعده ثم متأخراً يوماً بيوم حتى يُنشر له واجب. يُدمج مع «مستحق المراجعة» القديم في صف واحد لكل طالب. أي فشل في جانب الجدول
+        // يُتجاهل فتبقى القائمة القديمة كما كانت.
+        let schedRows = [], capacity = 0;
+        const svc = await import('../core/hwScheduleService.js').catch(() => null);
+        if (svc) {
+            try {
+                const ens = await svc.ensureSchedules();
+                if (ens.firstRun) {
+                    alert(L(`وُزّع ${ens.assigned} طالباً تلقائياً على أيام الأسبوع (السبت إلى الخميس) بحيث لا تزدحم واجباتك، ولكل طالب يومان بينهما فاصل.\nراجع التوزيع وعدّله من زر «📅 جدول الأسبوع» في بطاقة مهام اليوم أو من شاشة الواجبات.`,
+                        `${ens.assigned} students were distributed automatically over the week (Saturday to Thursday) so your homework load stays balanced, with two spaced days each.\nReview and adjust it from the "📅 Weekly schedule" button in Today's tasks or in the homework screen.`));
+                }
+                const due = await svc.listDueToday();
+                schedRows = due.rows; capacity = due.capacity;
+            } catch (e) { console.warn('تعذر حساب مواعيد الواجبات الأسبوعية:', e); }
+        }
+
         const [students, schedules] = await Promise.all([
             AppState.studentManager.getAllStudents(),
-            AppState.reviewScheduleManager.getAllSchedules()
+            AppState.reviewScheduleManager ? AppState.reviewScheduleManager.getAllSchedules() : []
         ]);
 
         const now = Date.now();
-        const dueRows = [];
+        const byId = new Map();                       // صف واحد لكل طالب، تتّحد فيه الجهتان
+        const rowOf = (student) => { if (!byId.has(student.id)) byId.set(student.id, { student, overdueDays: null, sched: null }); return byId.get(student.id); };
 
         (schedules || []).forEach(sched => {
             const nextDue = new Date(sched.nextDueAt).getTime();
@@ -260,38 +280,54 @@ async function renderDueForReview() {
             if (!student || student.isHidden) return;
             if (isTaskDone(`due:${student.id}`)) return; // 🌟 [2026-10-07] عُلِّمت «تمّت» اليوم
 
-            const overdueDays = Math.floor((now - nextDue) / 86400000);
-            dueRows.push({ student, overdueDays });
+            rowOf(student).overdueDays = Math.floor((now - nextDue) / 86400000);
         });
+        schedRows.forEach(r => { rowOf(r.student).sched = r; });
+        const dueRows = [...byId.values()];
 
-        wrap.dataset.count = String(dueRows.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي (القائمة تعرض 5 فقط)
-        wrap.dataset.urgent = String(dueRows.filter(r => r.overdueDays > 0).length);   // 🌟 [2026-10-07] المتأخر فعلاً (يوم فأكثر) لشارة «عاجلة»
+        wrap.dataset.count = String(dueRows.length);   // 🌟 [2026-10-03] العدد الكامل لزر «مهام» في الشريط السفلي
+        wrap.dataset.urgent = String(dueRows.filter(r => (r.sched && r.sched.lateDays > 0) || (r.overdueDays || 0) > 0).length);   // 🌟 [2026-10-07] المتأخر فعلاً لشارة «عاجلة»
         if (dueRows.length === 0) {
             wrap.style.display = 'none';
             return;
         }
 
-        // 🌟 الأولوية للأكثر تأخراً في المراجعة أولاً (نظام أولوية/إلحاح، وليس
-        // ترتيباً زمنياً لتسلسل الحفظ) — هذا هو الفرق الجوهري عن الفرز الزمني البسيط
-        dueRows.sort((a, b) => b.overdueDays - a.overdueDays);
+        // الأولوية: موعد الواجب الأسبوعي (الأكثر تأخراً أولاً) ثم المراجعة المتباعدة الأكثر تأخراً
+        const prio = (r) => (r.sched ? 1000 + r.sched.lateDays : (r.overdueDays || 0));
+        dueRows.sort((a, b) => prio(b) - prio(a) || String(a.student.name).localeCompare(String(b.student.name), 'ar'));
 
-        // 🌟🌟 [جديد] سطر الملخص المطوي — يُعاد ضبطه لحالة "مطوي" في كل رسم (راجع
-        // الافتراض 1 أعلاه). .onclick بدل addEventListener عمداً: هذا العنصر ثابت
-        // ولا يُعاد إنشاؤه بين الرسمات المتكررة، فالتعيين المباشر يستبدل أي معالج
-        // سابق بدل تكديس معالجات مكرَّرة في كل استدعاء لـ initHomeQuickview
-        summaryTextEl.textContent = t('home_due_badge').replace('{n}', dueRows.length);
+        // 🌟🌟 [جديد] سطر الملخص المطوي — يُعاد ضبطه لحالة "مطوي" في كل رسم. .onclick بدل addEventListener عمداً:
+        // هذا العنصر ثابت ولا يُعاد إنشاؤه بين الرسمات المتكررة، فالتعيين المباشر يستبدل أي معالج سابق
+        summaryTextEl.textContent = schedRows.length
+            ? L(`📚 ${dueRows.length} ينتظرون واجباً أو مراجعة اليوم`, `📚 ${dueRows.length} waiting for homework or review today`)
+            : t('home_due_badge').replace('{n}', dueRows.length);
         wrap.classList.remove('is-expanded');
         summaryBtn.onclick = () => wrap.classList.toggle('is-expanded');
 
+        // 🌟 [جديد — الواجب الذكي] الواجب الذكي يبني على موضع حفظ الطالب الشهري: نُنبّه في الصف نفسه لمن مضى على تحديث موضعه أكثر
+        // من 30 يوماً (أو لا سجل شهري له). أي فشل هنا يُتجاهل بصمت.
+        const shown = dueRows.slice(0, 12);
+        let staleList = [];
+        try {
+            const tsvc = await import('../core/trackingService.js');
+            staleList = await Promise.all(shown.map(r => tsvc.getMonthlyStaleness(r.student).catch(() => null)));
+        } catch (e) { /* التنبيه إضافي فقط */ }
+        const staleTag = L('موضع الحفظ قديم', 'Position outdated');
+
         listEl.innerHTML = '';
-        dueRows.slice(0, 5).forEach(({ student, overdueDays }) => {
+        shown.forEach(({ student, overdueDays, sched }, rowIdx) => {
+            const stale = staleList[rowIdx] && staleList[rowIdx].stale && student.memoFrom && student.memoTo;
             const rangeText = (student.memoFrom && student.memoTo)
                 ? `${student.memoFrom} ← ${student.memoTo}`
                 : t('home_due_no_range');
-            const isLate = overdueDays > 0;
-            const whenText = isLate
-                ? `${t('home_due_overdue_by')} ${overdueDays} ${t('home_due_days_unit')}`
-                : t('home_due_today');
+            const isLate = (sched && sched.lateDays > 0) || (overdueDays || 0) > 0;
+            const schedTag = sched
+                ? (sched.lateDays === 0 ? L('موعد واجب اليوم', 'Homework due today')
+                    : L(`متأخر ${sched.capped ? sched.lateDays + '+' : sched.lateDays} يوم عن موعد الواجب`, `${sched.lateDays}${sched.capped ? '+' : ''} day(s) late for homework`))
+                : '';
+            const reviewTag = overdueDays !== null
+                ? `${L('مراجعة', 'Review')}: ${overdueDays > 0 ? `${t('home_due_overdue_by')} ${overdueDays} ${t('home_due_days_unit')}` : t('home_due_today')}`
+                : '';
 
             // 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + اسم + شارة + نطاق + زر إجراء
             const row = document.createElement('div');
@@ -300,14 +336,25 @@ async function renderDueForReview() {
                 <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
                 <span class="qc-row-main">
                     <span class="qc-row-name">${esc(student.name)}</span>
-                    <span class="qc-row-sub"><span class="qc-tag ${isLate ? 'late' : ''}">${whenText}</span><span>${esc(rangeText)}</span></span>
+                    <span class="qc-row-sub">${schedTag ? `<span class="qc-tag ${sched.lateDays > 0 ? 'late' : ''}">${esc(schedTag)}</span>` : ''}${reviewTag ? `<span class="qc-tag ${overdueDays > 0 ? 'late' : ''}">${esc(reviewTag)}</span>` : ''}${stale ? `<span class="qc-tag late">${staleTag}</span>` : ''}<span>${esc(rangeText)}</span></span>
                 </span>
                 <span class="qc-row-btns">
                     <button type="button" class="qc-row-act">${t('home_act_review')}</button>
-                    <button type="button" class="qc-row-done" aria-label="${t('home_task_done')}" title="${t('home_task_done')}">✓</button>
+                    ${sched
+                        ? `<button type="button" class="qc-row-done qc-row-snooze" aria-label="${esc(L('رحّل لغد', 'Postpone'))}" title="${esc(L('رحّل لغد (يعود متأخراً إن لم يُعدّ)', 'Postpone to the next work day'))}">⏭</button>`
+                        : `<button type="button" class="qc-row-done" aria-label="${t('home_task_done')}" title="${t('home_task_done')}">✓</button>`}
                 </span>
             `;
-            wireDoneButton(row, `due:${student.id}`, 'home-quickcard-due');
+            if (sched) {
+                // التذكير الأسبوعي ينتهي تلقائياً بنشر واجب للطالب؛ والزر الثانوي «رحّل لغد» فقط
+                row.querySelector('.qc-row-snooze').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try { await svc.snoozeStudent(student); } catch (err) { console.warn(err); }
+                    afterTaskDone('home-quickcard-due');
+                });
+            } else {
+                wireDoneButton(row, `due:${student.id}`, 'home-quickcard-due');
+            }
             // 🌟 نقرة على أي صف تفتح شاشة إعداد الواجبات مع تجهيل الطالب مسبقاً
             // كـ"طالب مستهدف" مباشرة، توفيراً لخطوة اختياره يدوياً من القائمة
             row.addEventListener('click', () => {
@@ -316,6 +363,21 @@ async function renderDueForReview() {
             });
             listEl.appendChild(row);
         });
+
+        // تذييل: تنبيه الازدحام (فوق الطاقة الموزَّعة) + زر «جدول الأسبوع»
+        if (svc) {
+            const foot = document.createElement('div');
+            foot.className = 'qc-foot';
+            const over = schedRows.length > capacity && capacity > 0;
+            foot.innerHTML = `${over ? `<span class="qc-foot-warn">${esc(L(`اليوم ${schedRows.length} واجبات تنتظر الإعداد وطاقتك الموزَّعة ${capacity} — رحّل ما تشاء لغد (⏭).`, `${schedRows.length} homeworks are waiting today and your balanced capacity is ${capacity} — postpone some (⏭).`))}</span>` : ''}
+                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>`;
+            foot.querySelector('.qc-foot-btn').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const m = await import('./weekSchedule.js');
+                m.openWeekSchedule({ onClose: () => afterTaskDone('home-quickcard-due') });
+            });
+            listEl.appendChild(foot);
+        }
 
         wrap.style.display = 'block';
     } catch (e) {

@@ -1,7 +1,10 @@
 // settings/homework-prep.js
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
-import { attachJuzAmmaCoverageNote } from '../components/juzAmmaCoverageNote.js';
+// 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
+import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
+import { perWeekOf, setStudentPerWeek } from '../core/hwScheduleService.js';
+import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
 // 🌟 [إصلاح] أضفنا queuePendingHomeworkSync لحفظ أي واجب يفشل رفعه للسحابة في طابور
@@ -73,14 +76,18 @@ function buildHomeworkShareLink(baseUrl, hwData) {
 // واحدة للمشاركة عبر واتساب: نسخ هذه الرسالة الجاهزة ولصقها يدوياً.
 // 🌟 [محدَّث] اسم الطالب اختياري: إن كان الواجب مخصَّصاً لطالب (assignedStudentName) يُضاف سطر
 // "👤 الطالب: ..." أسفل العنوان؛ وللرابط العام (بلا طالب) تبقى الرسالة كما هي.
-function buildHomeworkShareMessage(link, studentName) {
-    const studentLine = studentName ? `${t('hw_copy_msg_student_label')} ${studentName}\n` : '';
-    return `${t('hw_copy_msg_title')}\n${studentLine}${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
+// 🌟 [جديد] سطر نطاق الاختبار تحت اسم الطالب: ما حدّده المعلم عند إنشاء الواجب فقط
+// (نص scope.label المحسوب في shareRangeText)، وليس نطاق حفظ الطالب الكلي.
+// scope = الكائن المخزَّن مع الواجب (buildSmartScope + label)؛ غير موجود (واجب قديم) → بلا سطر.
+function buildScopeShareText(scope) {
+    return (scope && typeof scope === 'object' && scope.label) ? String(scope.label) : '';
 }
-
-// 🌟🌟 [جديد] الحد الأقصى لعدد رقاقات "اقتراحات سريعة بناءً على حفظ الطالب" المعروضة دفعة
-// واحدة — راجع suggestRangeFromStudentMemo أدناه. سهل التعديل لاحقاً من هنا فقط.
-const MEMO_SUGGESTION_MAX_SURAHS = 5;
+function buildHomeworkShareMessage(link, studentName, scope) {
+    const studentLine = studentName ? `${t('hw_copy_msg_student_label')} ${studentName}\n` : '';
+    const scopeText = buildScopeShareText(scope);
+    const scopeLine = scopeText ? `${t('hw_copy_msg_scope_label')} ${scopeText}\n` : '';
+    return `${t('hw_copy_msg_title')}\n${studentLine}${scopeLine}${t('hw_copy_msg_link_label')}\n${link}\n${t('hw_copy_msg_footer')}`;
+}
 
 let currentSubmissionsList = [];
 let currentHwIdForGrading = null;
@@ -101,10 +108,9 @@ export async function initHomeworkPrep() {
     }
 
     setupAccountButton();
-    populateDropdowns();
+    setupSmartPanelStatic();
     await populateTargetStudents();
     setupListeners();
-    toggleHwType();
 
     await loadHomeworkDashboard();
 
@@ -173,7 +179,6 @@ function setTargetStudent(name) {
 // يعكس القيمة الحالية على الواجهة: حالة زر "رابط عام"، شريط الطالب المختار، وسطر التوضيح
 function syncTargetStudentUI() {
     const select = document.getElementById('hw-target-student');
-    const generalBtn = document.getElementById('hw-general-btn');
     const chip = document.getElementById('hw-target-student-chip');
     const chipName = document.getElementById('hw-target-student-chip-name');
     const hint = document.getElementById('hw-target-mode-hint');
@@ -183,13 +188,9 @@ function syncTargetStudentUI() {
     if (!select) return;
 
     const name = select.value;
-    if (generalBtn) {
-        generalBtn.classList.toggle('is-active', !name);
-        generalBtn.setAttribute('aria-pressed', String(!name));
-    }
     if (chip) chip.style.display = name ? 'flex' : 'none';
     if (chipName) chipName.textContent = name;
-    if (hint) hint.textContent = name ? t('hw_hint_student') : t('hw_hint_general');
+    if (hint) hint.textContent = name ? '' : L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.');
     if (searchInput) searchInput.value = '';
     if (results) { results.innerHTML = ''; results.style.display = 'none'; }
     if (noResult) noResult.style.display = 'none';
@@ -225,7 +226,6 @@ function renderTargetStudentResults(query) {
 function setupTargetStudentSearch() {
     const searchInput = document.getElementById('hw-target-student-search');
     const results = document.getElementById('hw-target-student-results');
-    const generalBtn = document.getElementById('hw-general-btn');
     const clearBtn = document.getElementById('hw-target-student-clear');
     if (!searchInput || !results) return;
 
@@ -242,7 +242,6 @@ function setupTargetStudentSearch() {
         if (btn) setTargetStudent(btn.dataset.name);
     });
     // زر "رابط عام لكل الطلاب": يمسح أي طالب مختار ويوقف البحث الجاري
-    generalBtn?.addEventListener('click', () => setTargetStudent(''));
     clearBtn?.addEventListener('click', () => setTargetStudent(''));
 }
 
@@ -256,7 +255,7 @@ async function populateTargetStudents() {
     targetStudentNames = students.filter(s => !s.isHidden).map(s => s.name);
 
     // القائمة المخفية تحمل كل الطلاب الظاهرين ليعمل select.value (التجهيل المسبق والحفظ) كما كان
-    select.innerHTML = `<option value="">${t('hw_general_link')}</option>`;
+    select.innerHTML = '<option value=""></option>';
     targetStudentNames.forEach(name => select.appendChild(new Option(name, name)));
 
     // 🌟 [جديد] تجهيل مسبق للطالب المستهدف عند القدوم من نقرة "مستحق اليوم" في
@@ -268,128 +267,8 @@ async function populateTargetStudents() {
     }
     syncTargetStudentUI(); // 🌟 عكس القيمة الحالية على الأزرار وسطر التوضيح
 
-    // 🌟 [جديد] تطبيق اقتراح النطاق تلقائياً إن كان هناك طالب مختار بالفعل الآن
-    // (سواء من التجهيل المسبق أعلاه، أو لو أُعيد تحميل هذه القائمة وطالب ما
-    // كان مختاراً بالفعل من قبل) — انظر suggestRangeFromStudentMemo أدناه
-    await suggestRangeFromStudentMemo();
-}
-
-// 🌟🌟 [محدَّث] اقتراحات سريعة للاختبارات بناءً على نطاق حفظ الطالب المسجَّل
-// مسبقاً (student.memoFrom/memoTo) عند اختيار "طالب محدد". بناءً على توضيح
-// صريح من المعلم: الاقتراح **سورة بسورة** (رقاقة/chip مستقلة لكل سورة ضمن
-// النطاق) وليس نطاقاً واحداً يجمع عدة سور معاً — إلا في حالة خاصة واحدة: لو
-// كان نطاق حفظ الطالب بالكامل داخل جزء عم (الجزء الثلاثون، من سورة النبأ 78
-// إلى سورة الناس 114)، فالمعتاد اعتبار الجزء كاملاً كوحدة اختبار واحدة، فتظهر
-// رقاقة واحدة فقط لـ"جزء عم كاملاً". النقر على أي رقاقة يملأ إعدادات الاختبار
-// المناسبة (سورة محددة، أو بالأجزاء لحالة جزء عم) — مجرد اقتراح قابل للتعديل
-// اليدوي الكامل دائماً، وليس فرضاً. لو كان الاقتراح المتاح رقاقة واحدة فقط
-// (سورة واحدة في النطاق، أو حالة جزء عم)، تُطبَّق تلقائياً فور ظهورها توفيراً
-// لخطوة الاختيار؛ أما الاقتراحات المتعددة فتبقى بانتظار اختيار المعلم لواحدة
-// منها (قد يستخدمها لإنشاء عدة واجبات منفصلة، واجب لكل سورة، عبر أكثر من زيارة
-// لهذه الشاشة). تُستدعى عند تحميل الشاشة (تغطي حالة التجهيل المسبق من "مستحق
-// اليوم") وعند تغيير القائمة يدوياً.
-async function suggestRangeFromStudentMemo() {
-    const select = document.getElementById('hw-target-student');
-    const box = document.getElementById('hw-memo-suggestion-box');
-    const labelEl = document.getElementById('hw-memo-suggestion-label');
-    const chipsEl = document.getElementById('hw-memo-suggestion-chips');
-    if (!select) return;
-
-    const studentName = select.value;
-    if (box) box.style.display = 'none';
-    if (chipsEl) chipsEl.innerHTML = '';
-    if (!studentName) return; // رابط عام — لا يوجد طالب محدد لاقتراح شيء بناءً عليه
-
-    const students = await AppState.studentManager.getAllStudents();
-    const student = students.find(s => s.name === studentName);
-    if (!student || !student.memoFrom || !student.memoTo) return;
-
-    const fromSurah = AppState.surahsData.find(s => s.name === student.memoFrom);
-    const toSurah = AppState.surahsData.find(s => s.name === student.memoTo);
-    if (!fromSurah || !toSurah) return;
-
-    const minNum = Math.min(fromSurah.number, toSurah.number);
-    const maxNum = Math.max(fromSurah.number, toSurah.number);
-
-    // 🌟 حدود جزء عم (الجزء الثلاثون): من سورة النبأ (78) إلى سورة الناس (114)
-    const JUZ_AMMA_START = 78, JUZ_AMMA_END = 114;
-    const isFullyJuzAmma = (minNum >= JUZ_AMMA_START && maxNum <= JUZ_AMMA_END);
-
-    let suggestions = [];
-    let wasTruncatedToRecent = false; // 🌟 يُستخدَم أدناه لتعديل نص التسمية فوق الرقاقات
-    // 🌟🌟 [محدَّث — بطلب صريح من المعلم بعد التجربة الفعلية] كانت تُعرض رقاقة لكل سورة ضمن
-    // نطاق حفظ الطالب بالكامل دفعة واحدة — لطالب حافظ نطاقاً واسعاً (مثلاً من الفاتحة إلى
-    // النبأ = 78 سورة) كانت تتحول لكتلة رقاقات مزدحمة غير عملية إطلاقاً (هذا بالضبط ما رفضه
-    // المعلم). الآن تُعرض فقط آخر MEMO_SUGGESTION_MAX_SURAHS سورة من النطاق.
-    // ⚠️ افتراض صريح غير محسوم بتوضيح إضافي من المعلم: اعتبرنا memoTo هو آخر نقطة وصل إليها
-    // حفظ الطالب فعلياً (لا مجرد الحد الأعلى رقمياً للنطاق)، فـ"آخر ما حفظ" = السور الأقرب
-    // رقمياً من memoTo، سواء كان رقمها أكبر أو أصغر من memoFrom. لو كان المقصود عكس هذا
-    // الاتجاه، التعديل سطر واحد فقط (قلب الشرط towardsTo أدناه).
-    if (isFullyJuzAmma) {
-        suggestions.push({
-            label: `📖 ${t('hw_memo_suggestion_juz_amma')}`,
-            apply: () => {
-                const juzRadio = document.querySelector('input[name="hwType"][value="juz"]');
-                if (juzRadio) { juzRadio.checked = true; toggleHwType(); }
-                const juzSelect = document.getElementById('hw-juz-select');
-                if (juzSelect) { juzSelect.value = '30'; juzSelect.dispatchEvent(new Event('change')); }
-            }
-        });
-    } else {
-        const fullRangeNums = [];
-        for (let num = minNum; num <= maxNum; num++) fullRangeNums.push(num);
-
-        wasTruncatedToRecent = fullRangeNums.length > MEMO_SUGGESTION_MAX_SURAHS;
-        const towardsTo = toSurah.number >= fromSurah.number; // النطاق يتجه تصاعديًا نحو toSurah
-        const recentNums = wasTruncatedToRecent
-            ? (towardsTo
-                ? fullRangeNums.slice(-MEMO_SUGGESTION_MAX_SURAHS)   // الأقرب لـ toSurah = الأعلى رقماً
-                : fullRangeNums.slice(0, MEMO_SUGGESTION_MAX_SURAHS)) // الأقرب لـ toSurah = الأدنى رقماً
-            : fullRangeNums;
-
-        recentNums.forEach(num => {
-            const surah = AppState.surahsData.find(s => s.number === num);
-            if (!surah) return;
-            suggestions.push({
-                label: `${num}. ${surah.name}`,
-                apply: () => {
-                    const surahRadio = document.querySelector('input[name="hwType"][value="surah"]');
-                    if (surahRadio) { surahRadio.checked = true; toggleHwType(); }
-                    const surahSelect = document.getElementById('hw-surah-select');
-                    if (surahSelect) { surahSelect.value = String(num); updateAyahRange(); }
-                }
-            });
-        });
-    }
-
-    if (suggestions.length === 0) return;
-
-    if (labelEl) {
-        labelEl.textContent = wasTruncatedToRecent
-            ? `${t('hw_memo_suggestion_recent_prefix').replace('{n}', MEMO_SUGGESTION_MAX_SURAHS)} (${student.memoFrom} ← ${student.memoTo})`
-            : `${t('hw_memo_suggestion_prefix')} ${student.memoFrom} ← ${student.memoTo}`;
-    }
-
-    suggestions.forEach((sug) => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'hw-memo-suggestion-chip';
-        chip.textContent = sug.label;
-        chip.addEventListener('click', () => {
-            sug.apply();
-            document.querySelectorAll('.hw-memo-suggestion-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-        });
-        if (chipsEl) chipsEl.appendChild(chip);
-
-        // اقتراح وحيد فقط (سورة واحدة في النطاق، أو حالة جزء عم) → يُطبَّق تلقائياً
-        if (suggestions.length === 1) {
-            sug.apply();
-            chip.classList.add('active');
-        }
-    });
-
-    if (box) box.style.display = 'block';
+    // 🌟 [الواجب الذكي] تحميل بطاقة معلومات الطالب المختار مسبقاً (نطاقه، تقادم موضعه، حالة تعلّم النظام) — راجع refreshSmartInfo
+    await refreshSmartInfo();
 }
 
 // ==========================================
@@ -479,7 +358,7 @@ async function loadHomeworkDashboard() {
                         <button type="button" class="hwp3-btn hwp3-btn-results btn-view-results" data-id="${hw.id}" title="${t('hw_subs_modal_title')}"><span class="hwp3-ic" aria-hidden="true">📊</span> <span class="hwp3-lbl">${t('hw_act_results')}</span></button>
                         ${isLegacyPublished
                             ? `<span style="background:#e5e7eb; color:#374151; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">${t('hw_legacy_row_badge')}</span>`
-                            : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" data-hw-student="${encodeURIComponent(hw.assignedStudentName || '')}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
+                            : `<button type="button" class="hwp3-btn hwp3-btn-link btn-copy-hw-row-link" data-hw-link="${encodeURIComponent(hwLink)}" data-hw-student="${encodeURIComponent(hw.assignedStudentName || '')}" data-hw-scope="${encodeURIComponent(hw.scope ? JSON.stringify(hw.scope) : '')}" title="${t('hw_act_link')}"><span aria-hidden="true">🔗</span> ${t('hw_act_link')}</button>`}`}
                         <!-- 🌟 [تعديل] "حذف" زر ظاهر مباشرة في الصف (بدل قائمة ⋯ المنسدلة)، وتأكيده في نافذة بوسط الشاشة -->
                         <button type="button" class="hwp3-btn hwp3-btn-delete btn-delete-hw-record" data-id="${hw.id}" title="${t('hw_act_delete')}"><span aria-hidden="true">🗑️</span> ${t('hw_act_delete')}</button>
                     </div>
@@ -534,7 +413,9 @@ async function loadHomeworkDashboard() {
             btn.addEventListener('click', (e) => {
                 const link = decodeURIComponent(e.currentTarget.getAttribute('data-hw-link'));
                 const studentName = decodeURIComponent(e.currentTarget.getAttribute('data-hw-student') || '');
-                navigator.clipboard.writeText(buildHomeworkShareMessage(link, studentName))
+                let scope = null;
+                try { const raw = decodeURIComponent(e.currentTarget.getAttribute('data-hw-scope') || ''); scope = raw ? JSON.parse(raw) : null; } catch (err) { scope = null; }
+                navigator.clipboard.writeText(buildHomeworkShareMessage(link, studentName, scope))
                     .then(() => alert(t('hw_link_copied')))
                     .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
             });
@@ -1312,34 +1193,6 @@ async function openFinalResultsModal() {
 // ==========================================
 // ⚙️ دوال الإعداد والتنقل
 // ==========================================
-function populateDropdowns() {
-    const selSurah = document.getElementById('hw-surah-select');
-    const rangeFrom = document.getElementById('hw-range-from');
-    const rangeTo = document.getElementById('hw-range-to');
-
-    if (selSurah && rangeFrom && rangeTo) {
-        selSurah.innerHTML = `<option value="" disabled selected>-- ${t('surah_label')} --</option>`;
-        rangeFrom.innerHTML = '';
-        rangeTo.innerHTML = '';
-
-        AppState.surahsData.forEach(s => {
-            let optStr = AppState.currentLang === 'en' ? `${s.number}. ${surahLabel(s.number)}` : `${s.number}. ${t("سورة")} ${s.name}`; // 🌟 الاسم الإنجليزي للعرض فقط
-            selSurah.appendChild(new Option(optStr, s.number));
-            rangeFrom.appendChild(new Option(optStr, s.number));
-            rangeTo.appendChild(new Option(optStr, s.number));
-        });
-    }
-
-    const juzSel = document.getElementById('hw-juz-select');
-    if (juzSel) {
-        juzSel.innerHTML = '';
-        for (let i = 30; i >= 1; i--) {
-            juzSel.appendChild(new Option(`${t("الجزء")} ${i}`, i));
-        }
-        attachJuzAmmaCoverageNote('hw-juz-select', 'hw-q-count-juz');
-    }
-}
-
 function setupListeners() {
     // 🌟 [2026-10-01] حُذف زر btn-tab-new الصغير؛ الدخول لتبويب الإعداد صار من الزر الكبير #btn-hero-new فقط
     const btnHistory = document.getElementById('btn-tab-history');
@@ -1444,114 +1297,473 @@ function setupListeners() {
     btnHistory?.addEventListener('click', () => switchHwTab('history'));
     btnFinalResults?.addEventListener('click', () => switchHwTab('final'));
 
-    document.querySelectorAll('input[name="hwType"]').forEach(r => r.addEventListener('change', toggleHwType));
-    document.getElementById('hw-surah-select')?.addEventListener('change', updateAyahRange);
     // 🌟 [إصلاح] زر "العودة للرئيسية" الخاص بهذه الشاشة اتحذف من settings/homework-prep.html
     // (كان مكرِّراً لزر "الرئيسية" الثابت في الهيدر العلوي العام) — المستمع هنا يبقى بأمان بفضل
     // ?. رغم عدم وجود العنصر، لكن نتركه معلَّقاً هنا فقط لو رجع id="btn-back-home" مستقبلاً
     document.getElementById('btn-back-home')?.addEventListener('click', loadSplashScreen);
 
-    // 🌟 [جديد] إعادة تطبيق اقتراح النطاق كل مرة يغيّر فيها المعلم الطالب المستهدف يدوياً
-    document.getElementById('hw-target-student')?.addEventListener('change', suggestRangeFromStudentMemo);
+    // 🌟 [الواجب الذكي] إعادة تحميل بطاقة معلومات الطالب كل مرة يتغيّر فيها الطالب المختار
+    document.getElementById('hw-target-student')?.addEventListener('change', refreshSmartInfo);
     // 🌟 [جديد] البحث بالاسم داخل قائمة الطلاب المستهدفين
     setupTargetStudentSearch();
 
-    document.getElementById('btn-generate-hw')?.addEventListener('click', generateQuestions);
-    document.getElementById('btn-re-generate')?.addEventListener('click', generateQuestions);
+    document.getElementById('btn-generate-hw')?.addEventListener('click', generateSmartQuestions);
+    // 🌟 [2026-10-09] «توليد ونشر مباشرة»: نفس خطوتي التوليد ثم النشر الحاليتين بنقرة واحدة (لا منطق جديد)
+    document.getElementById('btn-generate-publish')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget; const before = currentGeneratedQuestions;
+        btn.disabled = true;
+        try {
+            await generateSmartQuestions();
+            if (currentGeneratedQuestions !== before && currentGeneratedQuestions.length) await saveHomeworkToDB('published');
+        } finally { btn.disabled = false; }
+    });
+    bindScopePanel();
+    document.getElementById('hw-btn-week')?.addEventListener('click', async () => {
+        const m = await import('../components/weekSchedule.js');
+        m.openWeekSchedule({ onClose: () => refreshSmartInfo() });
+    });
 
     document.getElementById('btn-save-hw-publish')?.addEventListener('click', () => saveHomeworkToDB('published'));
     document.getElementById('btn-save-hw-draft')?.addEventListener('click', () => saveHomeworkToDB('draft'));
+
+    // إلغاء تنفيذ الواجب: تجاهل الأسئلة المولّدة وإخفاء قسم المراجعة دون حفظ
+    document.getElementById('btn-cancel-hw')?.addEventListener('click', () => {
+        if (!confirm(t('hw_cancel_confirm'))) return;
+        currentGeneratedQuestions = [];
+        currentTracking = {};
+        currentHwScope = null;
+        const list = document.getElementById('hw-questions-list');
+        if (list) list.innerHTML = '';
+        document.getElementById('hw-preview-section').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 
     document.getElementById('btn-add-manual-q')?.addEventListener('click', () => openQuestionBuilderModal(-1));
     document.getElementById('btn-close-qb')?.addEventListener('click', () => document.getElementById('hw-question-builder-modal').style.display = 'none');
     document.getElementById('btn-save-qb')?.addEventListener('click', saveManualQuestion);
 
     document.getElementById('btn-copy-hw-link')?.addEventListener('click', copyHomeworkLink);
+    // 🌟 [2026-10-09] إرسال الرابط مباشرة عبر واتساب/تيليجرام بنفس نص الرسالة المنسوخ
+    const shareMsg = () => {
+        const i = document.getElementById('hw-link-input');
+        let sc = null; try { sc = i.dataset.scope ? JSON.parse(i.dataset.scope) : null; } catch (e) { sc = null; }
+        return { link: i.value, msg: buildHomeworkShareMessage(i.value, i.dataset.studentName, sc) };
+    };
+    document.getElementById('btn-share-wa')?.addEventListener('click', () => window.open('https://wa.me/?text=' + encodeURIComponent(shareMsg().msg), '_blank', 'noopener'));
+    document.getElementById('btn-share-tg')?.addEventListener('click', () => { const { link, msg } = shareMsg(); window.open('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(msg.replace(link, '').replace(/\n{2,}/g, '\n')), '_blank', 'noopener'); });
     // 🌟🌟 [جديد] زر "إعادة المحاولة الآن" — راجع retryHomeworkCloudSync أسفل هذا الملف
     document.getElementById('btn-retry-hw-sync')?.addEventListener('click', retryHomeworkCloudSync);
     document.getElementById('btn-close-hw-modal')?.addEventListener('click', () => {
         document.getElementById('hw-share-modal').style.display = 'none';
         currentGeneratedQuestions = [];
+        currentTracking = {};
         currentHwScope = null;
         document.getElementById('hw-preview-section').style.display = 'none';
         btnHistory.click();
     });
 }
 
-function toggleHwType() {
-    const mode = document.querySelector('input[name="hwType"]:checked')?.value;
-    document.getElementById('hw-surah-settings').style.display = (mode === 'surah') ? 'grid' : 'none';
-    document.getElementById('hw-range-settings').style.display = (mode === 'range') ? 'grid' : 'none';
-    document.getElementById('hw-juz-settings').style.display = (mode === 'juz') ? 'grid' : 'none';
-    document.getElementById('hw-preview-section').style.display = 'none';
+// ==========================================
+// 🧠 الواجب الذكي: توليد الأسئلة من نطاق حفظ الطالب وسجل أدائه
+// ==========================================
+// كل واجب يُبنى لطالب محدد: النطاق = من سورة الناس إلى موضع توقّفه (السجل الشهري ثم ملف الطالب)، والأسئلة تُوزَّع بين
+// حفظ جديد/مراجعة قريبة/بعيدة/أخطاء سابقة، وتُخلط، وتُحدَّد صيغها بحسب مستوى كل مقطع ومهارات الطالب الضعيفة
+// (راجع engine/trackingEngine.js وcore/trackingService.js). لا خيار «سورة/عدة سور/جزء» عام بعد الآن.
+const L = (ar, en) => (AppState.currentLang === 'en' ? en : ar);
+
+// خريطة التتبّع للأسئلة الحالية: معرّف السؤال ← {surah, ayah, segment, skill, fmt, cat, level, skillFocus}. تُحفظ مع الواجب
+// (محلياً وفي meta الخادم) ولا تُرسَل للطالب؛ التصحيح المعتمد يحوّلها إلى أحداث أداء.
+let currentTracking = {};
+
+function selectedStudentName() {
+    return document.getElementById('hw-target-student')?.value || '';
 }
 
-function updateAyahRange() {
-    const surahNum = parseInt(document.getElementById('hw-surah-select').value);
-    if (isNaN(surahNum)) return;
-    const surah = AppState.surahsData.find(s => s.number === surahNum);
-    const fromSelect = document.getElementById('hw-ayah-from');
-    const toSelect = document.getElementById('hw-ayah-to');
-
-    fromSelect.innerHTML = ""; toSelect.innerHTML = "";
-    for (let i = 1; i <= surah.ayahsCount; i++) {
-        fromSelect.appendChild(new Option(`${t("آية")} ${i}`, i));
-        toSelect.appendChild(new Option(`${t("آية")} ${i}`, i));
-    }
-    toSelect.value = surah.ayahsCount;
+async function selectedStudent() {
+    const name = selectedStudentName();
+    if (!name) return null;
+    const students = await AppState.studentManager.getAllStudents();
+    return students.find(s => s.name === name) || null;
 }
 
-// ==========================================
-// 🧠 توليد وعرض الأسئلة
-// ==========================================
-async function generateQuestions() {
-    if (!hwEngine) return alert(t("خطأ في تحميل المحرك!"));
+// نصوص الواجهة الثابتة للتبويب (ثنائية اللغة) — تُضبط مرة عند فتح الشاشة
+function setupSmartPanelStatic() {
+    ensureSkillStyles();
+    const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    set('hw-smart-desc', L('اختر الطالب، وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه ومواضع ضعفه.', 'Pick the student; the homework is built automatically from their memorization range, mistakes and weak spots.'));
+    set('hw-assign-label', L('👤 الطالب (مطلوب):', '👤 Student (required):'));
+    set('hw-qcount-label', L('عدد الأسئلة:', 'Number of questions:'));
+    set('hw-cycle-label', L('دورة المراجعة (أسابيع):', 'Review cycle (weeks):'));
+    set('btn-generate-hw', L('⚙️ توليد ومراجعة الأسئلة أولاً', '⚙️ Generate & review questions first'));
+    set('btn-generate-publish', L('🚀 توليد ونشر الواجب مباشرة', '🚀 Generate & publish now'));
+    set('btn-share-wa', L('💬 واتساب', '💬 WhatsApp'));
+    set('btn-share-tg', L('✈️ تيليجرام', '✈️ Telegram'));
+    set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
+    set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
+    set('hw-btn-week', L('📅 جدول الأسبوع', '📅 Weekly schedule'));
+    set('hw-scope-lbl-all', L('كل النطاق', 'Whole range'));
+    set('hw-scope-lbl-hizb', L('أحزاب محددة', 'Chosen hizbs'));
+    set('hw-scope-lbl-surah', L('سور محددة', 'Chosen surahs'));
+    set('hw-scope-lbl-resume', L('▶ أكمل السابق', '▶ Continue the last one'));
+    set('hw-btn-suggest', L('✨ اقترح لي', '✨ Suggest'));
+    const cycle = document.getElementById('hw-cycle-weeks');
+    if (cycle) cycle.value = String(getCycleWeeks());
+}
 
-    const mode = document.querySelector('input[name="hwType"]:checked').value;
-    let qCountVal = 10;
-    if (mode === 'juz') qCountVal = document.getElementById('hw-q-count-juz').value;
-    else if (mode === 'range') qCountVal = document.getElementById('hw-q-count-range').value;
-    else qCountVal = document.getElementById('hw-q-count-surah').value;
+// ---- حالة لوحة النطاق ----
+let scopeMode = 'all';          // all | hizb | surah | resume
+let scopeIds = new Set();       // hizb: معرّفات المجموعات (hizb:60 / quarter:237)، surah: أرقام السور
+let scopeUnit = null;           // null = تلقائي (أرباع لحفظ صغير، أحزاب لأكبر)
+let smartStudent = null, smartCtx = null, smartModel = null, smartResume = null;
+let lastGen = null;             // معلومات آخر توليد: لحفظ «آخر نطاق» عند النشر ولسطر التغطية في المعاينة
 
-    const config = {
-        mode: mode, qCount: parseInt(qCountVal),
-        surahNum: parseInt(document.getElementById('hw-surah-select')?.value),
-        startAyah: parseInt(document.getElementById('hw-ayah-from')?.value), endAyah: parseInt(document.getElementById('hw-ayah-to')?.value),
-        rangeFrom: parseInt(document.getElementById('hw-range-from')?.value), rangeTo: parseInt(document.getElementById('hw-range-to')?.value),
-        juzNum: parseInt(document.getElementById('hw-juz-select')?.value)
+const $id = (id) => document.getElementById(id);
+const clampQ = (v) => Math.max(3, Math.min(50, Math.round(v)));
+const currentCount = () => { const v = parseInt($id('hw-q-count-smart').value); return isNaN(v) ? 10 : v; };
+const setCount = (v) => { $id('hw-q-count-smart').value = String(clampQ(v)); updateCoverageLine(); };
+const readCycleWeeks = () => { const v = parseInt($id('hw-cycle-weeks').value); return (v >= 1 && v <= 26) ? v : getCycleWeeks(); };
+
+function currentSelection() {
+    return { mode: scopeMode, ids: [...scopeIds], unit: smartModel ? smartModel.unit : scopeUnit };
+}
+
+function tileLabel(g) { return g.unit === 'quarter' ? `${L('ح', 'H')}${g.hizb}·${g.quarter}` : `${L('ح', 'H')}${g.hizb}`; }
+// تسمية مفهومة: «الحزب 3» / «الحزب 3 · ربع 2»، واسمه من أول آية («سيقول السفهاء»)
+function tileTitle(g) { return g.unit === 'quarter' ? `${L('الحزب', 'Hizb')} ${g.hizb} · ${L('ربع', 'Q')} ${g.quarter}` : `${L('الحزب', 'Hizb')} ${g.hizb}`; }
+function surNameOf(n) { const s = AppState.surahsData.find(x => x.number === n); return s ? s.name : String(n); }
+// «من البقرة 142 إلى البقرة 252»
+function groupRangeText(g) {
+    if (!g.first || !g.last) return '';
+    const a = `${surNameOf(g.first.surah)} ${g.first.ayah}`;
+    const b = g.first.surah === g.last.surah ? `${g.last.ayah}` : `${surNameOf(g.last.surah)} ${g.last.ayah}`;
+    return `${L('من', 'From')} ${a} ${L('إلى', 'to')} ${b}`;
+}
+
+// نص نطاق الاختبار لرسالة ولي الأمر: ما اختاره المعلم فقط (لا نطاق حفظ الطالب الكلي).
+// اختيار متصل → «من سورة X إلى سورة Y» / «من الحزب X إلى الحزب Y» (بترتيب المصحف)، وإلا تُسرد العناصر.
+function shareRangeText() {
+    const rangeOrList = (items, one, from, to) => {
+        if (!items.length) return selectionLabel();
+        if (items.length === 1) return one(items[0]);
+        return `${L('من', 'From')} ${from(items[0])} ${L('إلى', 'to')} ${to(items[items.length - 1])}`;
     };
-
-    if (mode === 'surah' && isNaN(config.surahNum)) return alert(t("الرجاء اختيار السورة أولاً!"));
-    // 🌟 تحقق بسيط إضافي: عدد الأسئلة المطلوب يجب أن يكون رقماً موجباً، وإلا فالمحرك
-    // كان يتوقف بصمت بدون توليد أي سؤال ويظهر رسالة مضللة ("لم يتم العثور على آيات كافية")
-    if (isNaN(config.qCount) || config.qCount <= 0) return alert(t("الرجاء اختيار عدد صحيح وموجب للأسئلة!"));
-
-    currentGeneratedQuestions = await hwEngine.generateAutoQuestions(config);
-    if (!currentGeneratedQuestions || currentGeneratedQuestions.length === 0) return alert(t("لم يتم العثور على آيات كافية."));
-
-    currentHwScope = buildHwScope(config);   // 🌟 النطاق الحقيقي كما اختاره المعلم (لا نص ثابت)
-    renderPreview();
+    if (scopeMode === 'hizb' && smartModel) {
+        const sel = smartModel.groups.filter(g => scopeIds.has(g.id)).sort((x, y) => (x.hizb - y.hizb) || ((x.quarter || 0) - (y.quarter || 0)));
+        return rangeOrList(sel, tileTitle, tileTitle, tileTitle);
+    }
+    if (scopeMode === 'surah' && smartModel) {
+        const sel = smartModel.surahs.filter(x => scopeIds.has(x.number)).sort((x, y) => x.number - y.number);
+        const name = (x) => `${L('سورة', 'Surah')} ${x.name}`;
+        return rangeOrList(sel, name, name, name);
+    }
+    return selectionLabel();
 }
 
-// 🌟 [جديد] يحوّل إعدادات التوليد إلى نطاق مُخزَّن بأسماء السور (نص عربي صريح) ليُعرض في شهادة التقدير كما هو.
-// surah: سورة + من آية إلى آية | range: من سورة إلى سورة | juz: الجزء. أي بيانات ناقصة/غير صالحة → null (لا تخمين).
-function buildHwScope(config) {
+function selectionLabel() {
+    if (scopeMode === 'resume') return L('تكملة الواجب السابق', 'Continuation of the last homework');
+    if (scopeMode === 'hizb' && smartModel) return smartModel.groups.filter(g => scopeIds.has(g.id)).map(g => g.name ? `${tileTitle(g)} (${g.name})` : tileTitle(g)).join(L('، ', ', '));
+    if (scopeMode === 'surah' && smartModel) return smartModel.surahs.filter(s => scopeIds.has(s.number)).map(s => s.name).join(L('، ', ', '));
+    return L('كل النطاق', 'Whole range');
+}
+
+// بطاقة معلومات الطالب: النطاق، تنبيه تقادم موضع الحفظ الشهري، حالة تعلّم النظام + لوحة النطاق
+async function refreshSmartInfo() {
+    const box = document.getElementById('hw-smart-info');
+    if (!box) return;
+    const student = await selectedStudent();
+    if (!student) { smartStudent = smartCtx = smartModel = smartResume = null; box.style.display = 'none'; box.innerHTML = ''; $id('hw-scope-box').style.display = 'none'; updateCoverageLine(); return; }
+    if (!smartStudent || smartStudent.id !== student.id) { scopeMode = 'all'; scopeIds = new Set(); scopeUnit = null; lastGen = null; }
+    smartStudent = student;
+
+    box.style.display = 'block';
+    box.innerHTML = `<div style="color:#64748b;">${esc(L('جارٍ تحميل ملف الطالب…', 'Loading the student file…'))}</div>`;
+    let ctx;
+    try { ctx = await loadTrackingContext(student); }
+    catch (err) { console.error('تعذر تحميل ملف التتبّع:', err); box.style.display = 'none'; return; }
+    if (selectedStudentName() !== student.name) return;   // تغيّر الطالب أثناء التحميل
+    if (!ctx) { box.style.display = 'none'; return; }
+    smartCtx = ctx;
+
+    const card = (bg, border, html) => `<div style="background:${bg}; border:1px solid ${border}; border-radius:12px; padding:12px 14px; margin-bottom:8px; line-height:1.7; font-size:1rem;">${html}</div>`;
+    const btn = (id, label, extra = '') => `<button type="button" id="${id}" class="btn" style="padding:7px 14px; font-size:0.95rem; min-width:unset; margin-top:8px; margin-inline-end:6px; ${extra}">${label}</button>`;
+    let html = '';
+
+    if (!ctx.range.ok) {
+        html += card('#fef2f2', '#fecaca', `⚠️ <b>${esc(L(`لا يوجد نطاق حفظ مسجَّل لـ ${student.name}.`, `No memorization range is recorded for ${student.name}.`))}</b><br>
+            ${esc(L('لا يُنشأ الواجب قبل تحديد نطاق حفظه (من سورة … إلى سورة …) في ملفه، أو تسجيل موضعه الشهري.', 'Homework cannot be created before a range is set in their file or a monthly position is recorded.'))}<br>
+            ${btn('hw-btn-update-pos', '📅 ' + esc(L('تسجيل موضع حفظه الآن', 'Record their position now')), 'background:#d97706;')}`);
+    } else {
+        const first = segLabel(ctx.path.segments[0].id), last = segLabel(ctx.path.segments[ctx.path.segments.length - 1].id);
+        const status = learningStatus(ctx);
+        html += card('#ecfdf5', '#a7f3d0', `📖 <b>${esc(L('نطاق الحفظ المعتمد', 'Memorization range used'))}:</b> ${esc(first)} ← ${esc(last)}
+            <span style="color:#64748b;">(${ctx.path.total} ${esc(L('آية', 'ayahs'))} · ${esc(segCount(ctx.path.segments.length))})</span><br>
+            <span style="color:${status.ready ? '#047857' : '#92400e'};">🧠 ${esc(status.text)}</span><br>
+            ${btn('hw-btn-skill-profile', '📊 ' + esc(L('ملف المهارات', 'Skills profile')), 'background:#0ea5e9;')}`);
+        // مسار تصاعدي يبدأ من الفاتحة: غالباً قيمة افتراضية قديمة في «حفظ من» (كانت الفاتحة تُحفظ تلقائياً قبل الخيار «غير محدد»)
+        if (ctx.range.direction === 'forward' && ctx.range.fromSurah === 1 && ctx.range.toSurah > 1) {
+            html += card('#fef2f2', '#fecaca', `⚠️ ${esc(L(`نطاق ${student.name} المسجَّل يبدأ من الفاتحة حتى ${student.memoTo}، فتُعرض كل السور والأحزاب بينهما. إن كان يحفظ من الناس صعوداً فصحّح «حفظ من» في ملفه ليظهر نطاقه الفعلي فقط.`, `${student.name}'s recorded range runs from Al-Fatiha to ${student.memoTo}, so every surah/hizb in between is listed. If they memorize from An-Nas upward, fix "Memorized from" in their file so only their real range appears.`))}`);
+        }
+        if (ctx.stale.stale) {
+            const why = ctx.stale.hasRecords
+                ? L(`موضع حفظ ${student.name} لم يُحدَّث منذ ${ctx.stale.days} يوماً. الواجب سيُبنى على موضع قديم وقد يشمل ما لم يحفظه بعد.`, `${student.name}'s position was last updated ${ctx.stale.days} days ago. The homework will be built on an old position and may include what they have not memorized yet.`)
+                : L(`لا يوجد سجل حفظ شهري لـ ${student.name}، فاعتُمد نطاقه المسجَّل في ملفه (نهاية سورة ${student.memoTo}). سجّل موضعه الدقيق ليكون الواجب أدق.`, `There is no monthly record for ${student.name}, so the range in their file was used (end of ${student.memoTo}). Record the exact position to make the homework more accurate.`);
+            html += card('#fffbeb', '#fde68a', `⚠️ ${esc(why)}<br>${btn('hw-btn-update-pos', '📅 ' + esc(L('حدّث موضعه الآن', 'Update the position now')), 'background:#d97706;')}`);
+        }
+    }
+    // عدد مرات الواجب الأسبوعية لهذا الطالب: مرتان (الافتراضي) أو مرة واحدة فقط — يغيّر أيام تذكيره في جدول الأسبوع
+    const pw = perWeekOf(student);
+    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? 'outline:3px solid #047857; outline-offset:2px;' : 'background:#e2e8f0 !important; color:#334155 !important; box-shadow:none !important;'}">${pw === n ? '✓ ' : ''}${esc(label)}</button>`;
+    html += card('#f8fafc', '#e2e8f0', `🔔 <b>${esc(L('تفعيل التذكير:', 'Reminder frequency:'))}</b><br>
+        ${pwBtn(2, L('مرتين في الأسبوع', 'Twice a week'))}${pwBtn(1, L('مرة واحدة في الأسبوع', 'Once a week'))}
+        <div id="hw-perweek-msg" style="color:#64748b; font-size:0.9rem; margin-top:4px;">${esc(L('يحدّد كم مرة أسبوعياً يستحق الطالب واجباً ذكياً في «مهام اليوم» وجدول الأسبوع.', 'Sets how many times a week this student is due a smart homework in "Today\'s tasks" and the weekly schedule.'))}</div>`);
+    box.innerHTML = html;
+    box.querySelectorAll('.hw-perweek-btn').forEach(b => b.addEventListener('click', async () => {
+        try {
+            await setStudentPerWeek(student, parseInt(b.dataset.pw));
+            await refreshSmartInfo();
+        } catch (err) { console.error('تعذر تغيير عدد مرات الواجب الأسبوعية:', err); alert(L('تعذر حفظ التغيير.', 'Could not save the change.')); }
+    }));
+    $id('hw-btn-skill-profile')?.addEventListener('click', () => openSkillProfileModal(student));
+    $id('hw-btn-update-pos')?.addEventListener('click', async () => {
+        const now = new Date();
+        const { openMonthEndingForStudent } = await import('../components/monthlyMemorizationBulkScreen.js');
+        const saved = await openMonthEndingForStudent(student, now.getFullYear(), now.getMonth() + 1);
+        if (saved) await refreshSmartInfo();
+    });
+    await refreshScopePanel();
+}
+
+// يبني نموذج الاختيار (أحزاب/سور/تغطية) ويرسم اللوحة
+async function refreshScopePanel() {
+    const box = $id('hw-scope-box');
+    if (!smartStudent || !smartCtx || !smartCtx.range.ok) { box.style.display = 'none'; smartModel = smartResume = null; updateCoverageLine(); return; }
+    try {
+        smartModel = await buildSelectionModel(smartStudent, smartCtx, { unit: scopeUnit, cycleWeeks: readCycleWeeks() });
+    } catch (err) { console.warn('تعذر بناء لوحة النطاق:', err); box.style.display = 'none'; smartModel = null; updateCoverageLine(); return; }
+    smartResume = getResumeInfo(smartStudent, smartCtx, smartModel);
+    if (scopeMode === 'resume' && !(smartResume && smartResume.uncoveredCount > 0)) scopeMode = 'all';
+    box.style.display = 'block';
+    renderScopePanel();
+}
+
+function renderScopePanel() {
+    if (!smartModel) return;
+    const m = smartModel;
+    document.querySelectorAll('input[name="hwScope"]').forEach(r => { r.checked = (r.value === scopeMode); r.closest('label')?.classList.toggle('on', r.checked); });
+    // 🌟 [2026-10-09] سطر يوضّح ما تحت الزر المختار + «تحديد الكل/مسح» (يغيّران الاختيار فقط)
+    const help = $id('hw-scope-help');
+    if (help) {
+        const unitW = m.unit === 'hizb' ? L('الأحزاب', 'hizbs') : L('الأرباع', 'quarters');
+        const selN = scopeIds.size;
+        help.innerHTML = scopeMode === 'all'
+            ? `<span>📖 ${esc(L('سيُسأل الطالب من كل نطاقه', 'The student is asked from their whole range'))} <small>(${m.groups.length})</small></span>`
+            : scopeMode === 'surah'
+                ? `<span>${esc(L('اضغط السور التي تريدها', 'Tap the surahs you want'))} <small>(${selN})</small></span><span><a data-act="clear">${esc(L('مسح', 'Clear'))}</a></span>`
+                : `<span>${esc(L('اضغط ما تريده من ', 'Tap the ') + unitW)} <small>(${selN} / ${m.groups.length})</small></span><span><a data-act="all">${esc(L('تحديد الكل', 'Select all'))}</a> · <a data-act="clear">${esc(L('مسح', 'Clear'))}</a></span>`;
+    }
+    const hasResume = !!(smartResume && smartResume.uncoveredCount > 0);
+    $id('hw-scope-resume-wrap').style.display = hasResume ? '' : 'none';
+    $id('hw-btn-unit').textContent = m.unit === 'hizb' ? L('⇄ عرض بالأرباع', '⇄ Show quarters') : L('⇄ عرض بالأحزاب', '⇄ Show hizbs');
+
+    // «أكمل»: نقترحه مرة أخرى من الواجب السابق بما تبقى فيه
+    const banner = $id('hw-resume-banner');
+    if (smartResume && smartResume.uncoveredCount > 0) {
+        banner.innerHTML = `<div class="hw-resume">▶ ${esc(L(`في واجبك السابق (${smartResume.label}) غُطّي ${smartResume.pct}٪؛ تبقّى ${smartResume.uncoveredCount} من ${segCount(smartResume.total)} لم يُفحص.`,
+            `In your last homework (${smartResume.label}) ${smartResume.pct}% was covered; ${smartResume.uncoveredCount} of ${segCount(smartResume.total)} are still unchecked.`))}
+            <button type="button" id="hw-btn-resume" class="hw-mini-btn" style="margin-inline-start:8px;">${esc(L('أكمل', 'Continue'))}</button></div>`;
+    } else if (smartResume) {
+        banner.innerHTML = `<div class="hw-resume" style="background:#f0fdf4;border-color:#bbf7d0;">✓ ${esc(L('اكتملت تغطية نطاق الواجب السابق — جرّب «اقترح لي» لنطاق جديد.', 'The last homework\'s range is fully covered — try "Suggest" for a new range.'))}</div>`;
+    } else banner.innerHTML = '';
+
+    const strip = $id('hw-hizb-strip'), list = $id('hw-surah-list');
+    strip.style.display = (scopeMode === 'surah') ? 'none' : '';
+    list.style.display = (scopeMode === 'surah') ? 'flex' : 'none';
+
+    strip.innerHTML = m.groups.map(g => {
+        const total = g.cov.total, unc = g.cov.uncoveredCount;
+        const covPct = total ? Math.round((total - unc) / total * 100) : 100;
+        const days = g.lastTs ? Math.max(0, Math.round((m.now - g.lastTs) / 86400000)) : null;
+        const status = unc === 0 ? `✓ ${L('غُطّي', 'covered')}` : (days === null ? L('لم يُفحص', 'unchecked') : L(`قبل ${days} يوم`, `${days}d ago`));
+        const sel = scopeMode === 'all' || (scopeMode === 'hizb' && scopeIds.has(g.id));
+        const where = `${segLabel(g.segIds[0])}`;
+        const title = `${tileTitle(g)}${g.name ? ` «${g.name}»` : ''} (${L('الجزء', 'Juz')} ${g.juz}) — ${groupRangeText(g) || `${L('يبدأ من', 'starts at')} ${where}`} ·${segCount(total)} · ${L('لم يُغطَّ', 'uncovered')}: ${unc}${g.fixCount ? ` · ${L('أخطاء مفتوحة', 'open mistakes')}: ${g.fixCount}` : ''}${g.pctMemorized < 100 ? ` · ${L('محفوظ منه', 'memorized')} ${g.pctMemorized}%` : ''}`;
+        return `<button type="button" class="hw-tile${sel ? ' sel' : ''}${g.pctMemorized < 100 ? ' partial' : ''}" data-id="${esc(g.id)}" title="${esc(title)}">
+            ${g.fixCount ? `<span class="fix">⚠${g.fixCount}</span>` : ''}<b>${esc(g.name || tileLabel(g))}</b><span style="color:#64748b;">${esc(tileTitle(g))}</span><br><span style="font-size:0.68rem;color:#64748b;">${esc(groupRangeText(g))}</span><br>${total} ${esc(L('مقطع', 'seg'))}<br>${esc(status)}${g.pctMemorized < 100 ? `<br>(${g.pctMemorized}%)` : ''}
+            <div class="bar"><i style="width:${covPct}%"></i></div></button>`;
+    }).join('');
+
+    list.innerHTML = m.surahs.map(s => `<button type="button" class="hw-sur-chip${scopeMode === 'surah' && scopeIds.has(s.number) ? ' sel' : ''}" data-n="${s.number}">${esc(surahLabelLocal(s))}${s.cov.uncoveredCount ? ` <small style="color:#b45309;">·${s.cov.uncoveredCount}</small>` : ' ✓'}</button>`).join('');
+    updateCoverageLine();
+}
+
+// سطر التغطية تحت عدد الأسئلة: كم يغطي الواجب، وكم سؤالاً يلزم لتغطية المختار كله
+function updateCoverageLine() {
+    const el = $id('hw-coverage-line');
+    if (!el) return;
+    if (!smartModel || !smartCtx || !smartCtx.range.ok) { el.style.display = 'none'; el.innerHTML = ''; return; }
+    const m = smartModel, n = currentCount();
+    const allowed = resolveAllowedSegIds(smartStudent, smartCtx, m, currentSelection());
+    el.style.display = '';
+    if (allowed && allowed.size === 0) {
+        el.innerHTML = scopeMode === 'hizb' ? esc(L('اختر حزباً واحداً على الأقل من الشريط أعلاه.', 'Pick at least one hizb from the strip above.'))
+            : scopeMode === 'surah' ? esc(L('اختر سورة واحدة على الأقل.', 'Pick at least one surah.')) : esc(L('لا شيء متبقٍّ من الواجب السابق.', 'Nothing left from the last homework.'));
+        return;
+    }
+    const segIds = allowed ? [...allowed] : m.allSegIds;
+    const cov = m.cov(segIds);
+    const adv = coverageAdvice({ total: cov.total, uncoveredCount: cov.uncoveredCount, n, hwPerWeek: perWeekOf(smartStudent), cycleWeeks: m.cycleWeeks });
+    const btn = (q) => `<button type="button" data-setn="${q}">${esc(L(`اكتب ${q}`, `Set ${q}`))}</button>`;
+    const lines = [];
+    lines.push(`📊 ${esc(L(`المختار: ${segCount(cov.total)} — لم يُفحص خلال دورة ${m.cycleWeeks} أسابيع: ${cov.uncoveredCount}`, `Selected: ${segCount(cov.total)} — unchecked within the ${m.cycleWeeks}-week cycle: ${cov.uncoveredCount}`))}${cov.pending ? esc(L(` (و${cov.pending} أُسندت ولم تُسلَّم)`, ` (+${cov.pending} assigned, not yet submitted)`)) : ''}`);
+    if (cov.uncoveredCount === 0) {
+        lines.push(`✓ ${esc(L('غُطّي المختار كله خلال الدورة — اختر نطاقاً آخر أو «اقترح لي».', 'Everything selected is covered within the cycle — pick another range or "Suggest".'))}`);
+    } else {
+        lines.push(esc(L(`هذا الواجب (${qCount(n)}) يغطي ≈ ${adv.pctOfUncovered}٪ مما لم يُفحص${adv.pctAfter < 100 ? `، فتصير التغطية ${adv.pctAfter}٪` : ''}.`,
+            `This homework (${qCount(n)}) covers ≈ ${adv.pctOfUncovered}% of what is unchecked${adv.pctAfter < 100 ? `, bringing coverage to ${adv.pctAfter}%` : ''}.`)));
+        if (n < cov.uncoveredCount) {
+            lines.push(adv.tooMany
+                ? `<span class="warn">${esc(L(`لتغطيته كله تحتاج ≈ ${adv.homeworksNeeded} واجبات بهذا العدد (≈ ${adv.weeksNeeded} أسبوعاً). يمكنك اختيار أحزاب أقل، وسأقترح «أكمل» في المرة القادمة.`,
+                    `To cover it all you need ≈ ${adv.homeworksNeeded} homeworks of this size (≈ ${adv.weeksNeeded} weeks). Choose fewer hizbs; "Continue" will be suggested next time.`))}</span>${btn(adv.needForAll)}`
+                : `${esc(L(`لتغطيته كله اكتب ${qCount(adv.needForAll)}، أو أبقِ العدد والباقي يكمله «أكمل» في الواجب القادم.`, `To cover it all write ${qCount(adv.needForAll)}, or keep this number and "Continue" will finish the rest next time.`))}${btn(adv.needForAll)}`);
+        } else if (n > cov.uncoveredCount) {
+            lines.push(`<span class="warn">${esc(L('عدد الأسئلة أكبر من المقاطع غير المفحوصة: سيُكرَّر بعضها بصيغ مختلفة.', 'More questions than unchecked segments: some segments repeat in different formats.'))}</span>`);
+        }
+    }
+    if (scopeMode === 'all' && cov.total > 0) {
+        lines.push(esc(L(`لدورة كاملة كل ${m.cycleWeeks} أسابيع بواجبين أسبوعياً يلزم ≈ ${qCount(adv.perHwForCycle)} لكل واجب${adv.cycleTooMany ? ' (كثير على واجب واحد — اختر أحزاباً بالتناوب أو أطل مدة الدورة)' : ''}.`,
+            `For a full pass every ${m.cycleWeeks} weeks with two homeworks a week you need ≈ ${qCount(adv.perHwForCycle)} per homework${adv.cycleTooMany ? ' (too many for one homework — alternate hizbs or lengthen the cycle)' : ''}.`)) + (adv.cycleTooMany ? '' : btn(adv.perHwForCycle)));
+    }
+    if (scopeMode === 'hizb' && scopeIds.size > n) {
+        lines.push(`<span class="warn">${esc(L(`اخترت ${scopeIds.size} مجموعات و${qCount(n)}: أقل من سؤال لكل واحدة، فلن تُغطَّى كلها.`, `You chose ${scopeIds.size} groups and ${qCount(n)}: fewer than one each, so not all will be covered.`))}</span>`);
+    }
+    el.innerHTML = lines.map(x => `<div>${x}</div>`).join('');
+}
+
+function bindScopePanel() {
+    const q = (id) => $id(id);
+    document.querySelectorAll('input[name="hwScope"]').forEach(r => r.addEventListener('change', () => {
+        scopeMode = r.value;
+        scopeIds = new Set();
+        if (scopeMode === 'resume' && smartResume) setCount(smartResume.uncoveredCount);
+        renderScopePanel();
+    }));
+    q('hw-scope-help')?.addEventListener('click', (e) => {
+        const a = e.target.closest('a[data-act]');
+        if (!a || !smartModel) return;
+        if (a.dataset.act === 'all' && scopeMode === 'hizb') scopeIds = new Set(smartModel.groups.map(g => g.id));
+        else scopeIds = new Set();
+        renderScopePanel();
+    });
+    q('hw-hizb-strip')?.addEventListener('click', (e) => {
+        const tile = e.target.closest('.hw-tile');
+        if (!tile) return;
+        if (scopeMode !== 'hizb') { scopeMode = 'hizb'; scopeIds = new Set(); }
+        const id = tile.dataset.id;
+        if (scopeIds.has(id)) scopeIds.delete(id); else scopeIds.add(id);
+        renderScopePanel();
+    });
+    q('hw-surah-list')?.addEventListener('click', (e) => {
+        const chip = e.target.closest('.hw-sur-chip');
+        if (!chip) return;
+        const n = Number(chip.dataset.n);
+        if (scopeIds.has(n)) scopeIds.delete(n); else scopeIds.add(n);
+        renderScopePanel();
+    });
+    q('hw-resume-banner')?.addEventListener('click', (e) => {
+        if (!e.target.closest('#hw-btn-resume')) return;
+        scopeMode = 'resume'; scopeIds = new Set();
+        if (smartResume) setCount(smartResume.uncoveredCount);
+        renderScopePanel();
+    });
+    q('hw-btn-suggest')?.addEventListener('click', () => {
+        if (!smartModel) return;
+        const ids = suggestSelection(smartModel, smartCtx, currentCount());
+        if (!ids.length) return alert(L('كل نطاقه مغطّى حديثاً — لا شيء يُقترح الآن.', 'Their whole range is covered recently — nothing to suggest now.'));
+        scopeMode = 'hizb'; scopeIds = new Set(ids);
+        const unc = smartModel.groups.filter(g => scopeIds.has(g.id)).reduce((a, g) => a + g.cov.uncoveredCount, 0);
+        setCount(Math.max(unc, 3));
+        renderScopePanel();
+    });
+    q('hw-btn-unit')?.addEventListener('click', async () => {
+        if (!smartModel) return;
+        scopeUnit = smartModel.unit === 'hizb' ? 'quarter' : 'hizb';
+        if (scopeMode === 'hizb') scopeIds = new Set();
+        await refreshScopePanel();
+    });
+    q('hw-q-count-smart')?.addEventListener('input', updateCoverageLine);
+    q('hw-cycle-weeks')?.addEventListener('change', async () => { setCycleWeeks(readCycleWeeks()); await refreshScopePanel(); });
+    q('hw-coverage-line')?.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-setn]');
+        if (b) setCount(Number(b.dataset.setn));
+    });
+}
+
+function surahLabelLocal(s) {
+    return AppState.currentLang === 'en' ? surahLabel(s.number) : `${t('سورة')} ${s.name}`;
+}
+
+async function generateSmartQuestions() {
+    if (!hwEngine) return alert(t("خطأ في تحميل المحرك!"));
+    const student = await selectedStudent();
+    if (!student) return alert(L('اختر الطالب أولاً — كل واجب يُبنى على نطاق حفظ طالب محدد.', 'Pick a student first — every homework is built on a specific student\'s range.'));
+    const n = parseInt(document.getElementById('hw-q-count-smart').value);
+    if (isNaN(n) || n < 3 || n > 50) return alert(L('اختر عدد أسئلة بين 3 و50.', 'Choose a number of questions between 3 and 50.'));
+    const selection = currentSelection();
+    if ((scopeMode === 'hizb' || scopeMode === 'surah') && scopeIds.size === 0) return alert(L('اختر حزباً أو سورة واحدة على الأقل، أو اختر «كل النطاق».', 'Pick at least one hizb or surah, or choose "Whole range".'));
+
+    const btn = document.getElementById('btn-generate-hw');
+    const original = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + L('جارٍ بناء الواجب…', 'Building…'); }
+    try {
+        const res = await planSmartHomework(student, n, { selection, hwEngine });
+        if (!res.ok) {
+            if (res.reason === 'no_range') { await refreshSmartInfo(); return alert(L(`حدّد نطاق حفظ ${student.name} أولاً (في ملفه أو بتسجيل موضعه الشهري).`, `Set ${student.name}'s memorization range first (in their file or by recording a monthly position).`)); }
+            if (res.reason === 'empty_selection') return alert(L('لا مقاطع في هذا الاختيار (ربما غُطّي كله). اختر نطاقاً آخر.', 'No segments in this selection (maybe all covered). Pick another range.'));
+            return alert(t("لم يتم العثور على آيات كافية."));
+        }
+        currentGeneratedQuestions = res.questions;
+        currentTracking = res.tracking;
+        currentHwScope = buildSmartScope(res.ctx);
+        if (currentHwScope) currentHwScope.label = shareRangeText();   // «من ... إلى ...» لما حدّده المعلم فقط، لرسالة ولي الأمر
+        const uncovered = new Set(res.model.cov(res.scopeSegIds).uncovered);
+        const newly = new Set(res.why.map(m => m.segment).filter(id => uncovered.has(id))).size;
+        lastGen = { mode: scopeMode, ids: [...scopeIds], unit: res.model.unit, label: selectionLabel(), segIds: res.scopeSegIds,
+            distinct: res.distinctSegments, scopeTotal: res.scopeSegIds.length, newly, uncoveredBefore: uncovered.size };
+        renderPreview();
+    } catch (err) {
+        console.error('خطأ في بناء الواجب الذكي:', err);
+        alert(L('تعذر بناء الواجب. حاول مرة أخرى.', 'Could not build the homework. Please try again.'));
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = original; }
+    }
+}
+
+// بعد حفظ الواجب (نشر/مسودة) نتذكر نطاقه لاقتراح «أكمل» في المرة القادمة (ما عدا «أكمل» نفسه: يبقى النطاق الأصلي)
+async function rememberLastScope(studentName) {
+    if (!lastGen || lastGen.mode === 'resume') return;
+    try {
+        const students = await AppState.studentManager.getAllStudents();
+        const st = students.find(s => s.name === studentName);
+        if (st) saveLastScope(st, { mode: lastGen.mode, ids: lastGen.ids, unit: lastGen.unit, label: lastGen.label, segIds: lastGen.segIds });
+    } catch (e) { console.warn('تعذر حفظ نطاق الواجب:', e); }
+}
+
+// النطاق المخزَّن مع الواجب (للشهادة وسجل الطالب): من أول سورة في مسار حفظه إلى موضع توقّفه. صيغة range المعتادة + علامة smart
+function buildSmartScope(ctx) {
+    if (!ctx || !ctx.path || !ctx.path.segments.length) return null;
     const nameOf = (num) => { const s = AppState.surahsData.find(x => x.number === num); return s ? s.name : null; };
-    if (config.mode === 'surah') {
-        const name = nameOf(config.surahNum);
-        if (!name || isNaN(config.startAyah) || isNaN(config.endAyah)) return null;
-        return { mode: 'surah', surahNum: config.surahNum, surahName: name, startAyah: config.startAyah, endAyah: config.endAyah };
-    }
-    if (config.mode === 'range') {
-        const fromName = nameOf(config.rangeFrom), toName = nameOf(config.rangeTo);
-        if (!fromName || !toName) return null;
-        return { mode: 'range', fromNum: config.rangeFrom, fromName, toNum: config.rangeTo, toName };
-    }
-    if (config.mode === 'juz') {
-        if (isNaN(config.juzNum)) return null;
-        return { mode: 'juz', juzNum: config.juzNum };
-    }
-    return null;
+    const segs = ctx.path.segments;
+    const fromNum = segs[0].surah, toNum = segs[segs.length - 1].surah;
+    const fromName = nameOf(fromNum), toName = nameOf(toNum);
+    if (!fromName || !toName) return null;
+    return { mode: 'range', fromNum, fromName, toNum, toName, smart: true };
+}
+
+// خريطة التتبّع للأسئلة الموجودة فعلاً فقط (حُذف سؤال في المعاينة → تسقط خريطته)
+function trackingForQuestions() {
+    const out = {};
+    currentGeneratedQuestions.forEach(q => { if (currentTracking[q.id]) out[q.id] = currentTracking[q.id]; });
+    return out;
 }
 
 // 🌟 [جديد] نطاق واجب معيّن للشهادة: النسخة المحلية أولاً (سجّلناها وقت النشر)، ثم الخادم (meta.scope) إن لم توجد محلياً.
@@ -1566,9 +1778,44 @@ async function resolveHomeworkScope(hwId) {
     return await fetchHomeworkScope(hwId);
 }
 
+// 🌟 [الواجب الذكي] سطر «لماذا هذا السؤال؟» + شارات (الفئة، المهارة) تحت كل سؤال — للمعلم فقط، لا يراها الطالب
+function whyHtmlFor(q) {
+    const meta = currentTracking[q.id];
+    if (!meta) return `<div style="margin-top:8px; font-size:0.85rem; color:#94a3b8;">${esc(L('سؤال يدوي — يُسجَّل أداؤه في المهارة بحسب نوعه.', 'Manual question — logged under its skill by type.'))}</div>`;
+    const pill = (cls, txt) => `<span class="sk-p ${cls}">${esc(txt)}</span>`;
+    return `<div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0;">
+        <div style="font-size:0.9rem; color:#475569;">${esc(L('لماذا؟', 'Why?'))} ${esc(reasonText(meta))}</div>
+        <div style="margin-top:6px;">${pill(catClass(meta.cat), catLabel(meta.cat))}${pill('sk-p-skill', skillLabel(meta.skill))}<span style="font-size:0.8rem; color:#64748b;">${esc(segLabel(meta.segment))}</span></div>
+    </div>`;
+}
+
+// شريط توزيع الأسئلة (جديد/قريب/بعيد/أخطاء) أعلى المعاينة
+function renderSmartSummary() {
+    const host = document.getElementById('hw-questions-list');
+    let bar = document.getElementById('hw-smart-summary');
+    if (!bar) {
+        bar = document.createElement('div');
+        bar.id = 'hw-smart-summary';
+        bar.style.cssText = 'margin-bottom:12px; text-align:right;';
+        host.parentNode.insertBefore(bar, host);
+    }
+    const metas = currentGeneratedQuestions.map(q => currentTracking[q.id]).filter(Boolean);
+    if (!metas.length) { bar.innerHTML = ''; return; }
+    const colors = { new: '#2563eb', near: '#0d9488', far: '#7c3aed', err: '#ea580c' };
+    const counts = {};
+    metas.forEach(m => { counts[m.cat] = (counts[m.cat] || 0) + 1; });
+    const total = metas.length;
+    const order = ['new', 'near', 'far', 'err'].filter(c => counts[c]);
+    bar.innerHTML = `<div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:#e2e8f0;">${order.map(c => `<i style="width:${counts[c] / total * 100}%; background:${colors[c]};"></i>`).join('')}</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-size:0.9rem;">${order.map(c => `<span><span class="sk-p ${catClass(c)}">${esc(catLabel(c))}</span>${counts[c]}</span>`).join('')}</div>
+        ${lastGen ? `<div style="margin-top:8px; font-size:0.9rem; color:#047857;">📊 ${esc(L(`يغطي هذا الواجب ${lastGen.distinct} من ${segCount(lastGen.scopeTotal)} في «${lastGen.label}» — منها ${lastGen.newly} لم تُفحص خلال الدورة (تبقّى ${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)}).`,
+            `This homework covers ${lastGen.distinct} of ${segCount(lastGen.scopeTotal)} in "${lastGen.label}" — ${lastGen.newly} of them not checked within the cycle (${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)} left).`))}</div>` : ''}`;
+}
+
 function renderPreview() {
     const listDiv = document.getElementById('hw-questions-list');
     listDiv.innerHTML = '';
+    renderSmartSummary();
 
     currentGeneratedQuestions.forEach((q, index) => {
         const qCard = document.createElement('div');
@@ -1635,6 +1882,7 @@ function renderPreview() {
             <div style="font-weight: bold; color: #0f172a; font-size: 1.2rem; width: 70%;">${t("السؤال")} ${index + 1}: ${hl(q.title)} <span style="font-size:0.9rem; color:#64748b; font-weight:normal;">(${q.points || 1} ${t('نقاط')})</span> ${manualBadge}</div>
             <div class="quran-text" style="font-size: 1.6rem; color: #047857; margin-top: 10px;">${hl(q.text)}</div>
             ${optionsHTML}
+            ${whyHtmlFor(q)}
         `;
         listDiv.appendChild(qCard);
     });
@@ -1751,6 +1999,9 @@ async function saveHomeworkToDB(statusType) {
     if (currentGeneratedQuestions.length === 0) return alert(t("لا يوجد أسئلة لحفظها!"));
 
     const targetStudentName = document.getElementById('hw-target-student').value;
+    // 🌟 [الواجب الذكي] كل واجب لطالب محدد (أساس التتبّع)
+    if (!targetStudentName) return alert(L('اختر الطالب أولاً — كل واجب يُبنى لطالب محدد.', 'Pick a student first — every homework is for a specific student.'));
+    const trackingToSave = trackingForQuestions();
     const saveBtn = document.getElementById('btn-save-hw-publish');
     const restorePublishBtn = () => { if (saveBtn) saveBtn.innerHTML = `🚀 ${t('hw_publish_btn')}`; };
 
@@ -1780,13 +2031,16 @@ async function saveHomeworkToDB(statusType) {
                 status: statusType,
                 assignedStudentName: targetStudentName || null,
                 assignedStudentAvatar: targetStudentAvatar || null,
-                scope: currentHwScope || null   // 🌟 نطاق الواجب الحقيقي (للشهادة)
+                scope: currentHwScope || null,   // 🌟 نطاق الواجب الحقيقي (للشهادة)
+                tracking: trackingToSave         // 🌟 [الواجب الذكي] خريطة المهارة/الموضع لكل سؤال
             };
             await AppState.homeworkManager.createHomework(draftObj);
+            await rememberLastScope(targetStudentName);
             if(saveBtn) saveBtn.innerHTML = `📝 ${t('hw_draft_btn')}`;
             alert(t("✅ تم حفظ الواجب كمسودة محلياً بنجاح."));
             document.getElementById('btn-tab-history').click();
             currentGeneratedQuestions = [];
+            currentTracking = {};
             currentHwScope = null;
             document.getElementById('hw-preview-section').style.display = 'none';
             return;
@@ -1799,7 +2053,8 @@ async function saveHomeworkToDB(statusType) {
                 questions: currentGeneratedQuestions,
                 assignedStudentName: targetStudentName || null,
                 assignedStudentId: targetStudentId,
-                meta: { app: 'darham', createdFrom: 'homework-prep', scope: currentHwScope || null }   // 🌟 النطاق يُخزَّن في الخادم مع الواجب
+                // 🌟 النطاق يُخزَّن في الخادم مع الواجب، وكذلك خريطة التتبّع (meta لا يُرسَل للطالب أبداً: getHomeworkPublic_ لا يعيده)
+                meta: { app: 'darham', createdFrom: 'homework-prep', scope: currentHwScope || null, tracking: trackingToSave }
             });
         } catch (err) {
             console.error("فشل نشر الواجب في الخادم:", err);
@@ -1819,10 +2074,12 @@ async function saveHomeworkToDB(statusType) {
             assignedStudentName: targetStudentName || null,
             assignedStudentAvatar: targetStudentAvatar || null,
             scope: currentHwScope || null,   // 🌟 نطاق الواجب الحقيقي (للشهادة)
+            tracking: trackingToSave,        // 🌟 [الواجب الذكي] خريطة المهارة/الموضع لكل سؤال
             cloudConfirmed: true
         };
         try { await AppState.homeworkManager.createHomework(homeworkObj); }
         catch (err) { console.error("تعذر حفظ النسخة المحلية (لا يؤثر على الواجب المنشور):", err); }
+        await rememberLastScope(targetStudentName);   // 🌟 لاقتراح «أكمل» في الواجب القادم
 
         restorePublishBtn();
         document.getElementById('share-modal-title').innerText = t('hw_share_success');
@@ -1830,6 +2087,7 @@ async function saveHomeworkToDB(statusType) {
         const link = buildHomeworkShareLink(baseUrl, homeworkObj);
         document.getElementById('hw-link-input').value = link;
         document.getElementById('hw-link-input').dataset.studentName = homeworkObj.assignedStudentName || '';
+        document.getElementById('hw-link-input').dataset.scope = homeworkObj.scope ? JSON.stringify(homeworkObj.scope) : '';
         // لا يوجد تحذير "لم يُرفع للسحابة" بعد الآن: الرابط لا يظهر أصلاً إلا بعد تأكيد الخادم
         const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
         const retryBtn = document.getElementById('btn-retry-hw-sync');
@@ -1838,6 +2096,7 @@ async function saveHomeworkToDB(statusType) {
         document.getElementById('hw-share-modal').style.display = 'flex';
         verifyPublicLinkInBackground(created.id);   // 🌟 فحص متأخر غير حاجز (راجع التعليق أعلاه)
         await loadHomeworkDashboard();
+        refreshSmartInfo();                         // 🌟 تحديث بطاقة الطالب ولوحة النطاق (التغطية و«أكمل») بعد الإسناد
     } catch (error) {
         console.error("خطأ عام في حفظ الواجب:", error);
         alert(t("حدث خطأ أثناء الحفظ. يرجى تحديث الصفحة."));
@@ -1867,7 +2126,7 @@ async function publishDraftFromHistory(draftId) {
             questions: draft.questions,
             assignedStudentName: draft.assignedStudentName || null,
             assignedStudentId: studentId,
-            meta: { app: 'darham', createdFrom: 'homework-prep-draft', scope: draft.scope || null }   // 🌟 نطاق المسودة المحفوظ
+            meta: { app: 'darham', createdFrom: 'homework-prep-draft', scope: draft.scope || null, tracking: draft.tracking || null }   // 🌟 نطاق المسودة وخريطة تتبّعها المحفوظان
         });
     } catch (err) {
         console.error("فشل نشر المسودة في الخادم:", err);
@@ -1884,6 +2143,7 @@ async function publishDraftFromHistory(draftId) {
         assignedStudentName: draft.assignedStudentName || null,
         assignedStudentAvatar: draft.assignedStudentAvatar || null,
         scope: draft.scope || null,
+        tracking: draft.tracking || null,
         cloudConfirmed: true
     };
     try {
@@ -1895,6 +2155,7 @@ async function publishDraftFromHistory(draftId) {
     const baseUrl = window.location.origin + window.location.pathname;
     document.getElementById('hw-link-input').value = buildHomeworkShareLink(baseUrl, homeworkObj);
     document.getElementById('hw-link-input').dataset.studentName = homeworkObj.assignedStudentName || '';
+    document.getElementById('hw-link-input').dataset.scope = homeworkObj.scope ? JSON.stringify(homeworkObj.scope) : '';
     const syncWarningEl = document.getElementById('hw-cloud-sync-warning');
     const retryBtn = document.getElementById('btn-retry-hw-sync');
     if (syncWarningEl) syncWarningEl.style.display = 'none';
@@ -1952,7 +2213,7 @@ function copyHomeworkLink() {
     linkInput.select();
     linkInput.setSelectionRange(0, 99999);
 
-    navigator.clipboard.writeText(buildHomeworkShareMessage(linkInput.value, linkInput.dataset.studentName)).then(() => {
+    navigator.clipboard.writeText(buildHomeworkShareMessage(linkInput.value, linkInput.dataset.studentName, (() => { try { return linkInput.dataset.scope ? JSON.parse(linkInput.dataset.scope) : null; } catch (e) { return null; } })())).then(() => {
         const originalText = copyBtn.innerHTML;
         const originalBg = copyBtn.style.background;
         copyBtn.innerHTML = `✔️ ${t('hw_copy_btn')}`;

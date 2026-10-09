@@ -36,8 +36,8 @@
       "url": "./index.html?go=students"
     },
     {
-      "name": "الواجبات المنزلية",
-      "short_name": "الواجبات",
+      "name": "إعداد الواجب الذكي",
+      "short_name": "الواجب الذكي",
       "url": "./index.html?go=homework"
     },
     {

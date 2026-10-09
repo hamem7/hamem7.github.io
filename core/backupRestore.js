@@ -61,6 +61,8 @@ const KNOWN_DB_NAMES_FALLBACK = [
     // 🌟 [إصلاح تدقيق] قاعدتان فعليتان كانتا ناقصتين من القائمة اليدوية (تُستخدمان فقط لو indexedDB.databases() غير مدعومة)
     'DarHamTajweed',
     'DarHamMonthlyMemorization',
+    // 🌟 [جديد — الواجب الذكي] سجل أداء الطالب (database/trackingDB.js)
+    'DarHamTracking',
     // 🏅 سجل الشهادات الصادرة (certificates/certificatesDB.js)
     'DarHamCertificates'
 ];

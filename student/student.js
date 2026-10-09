@@ -69,6 +69,9 @@ function populateSurahOptions(fromId, toId) {
         selFrom.appendChild(new Option(surahNameLocal(s.name), s.name));
         selTo.appendChild(new Option(surahNameLocal(s.name), s.name));
     });
+    // 🌟 [بطلب المعلم] «من سورة» تفتح افتراضيًا على الناس (آخر سورة، بداية مسار الحفظ المعتاد نحو البقرة) بدل «غير محدد» 🌟
+    const nas = AppState.surahsData.find(s => s.number === 114);
+    if (nas) selFrom.value = nas.name;
 }
 
 // 🌟🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] اقتراحات أسماء الطلاب أثناء الكتابة في شاشة اختيار الطالب.
@@ -511,6 +514,7 @@ function selectAddAvatarOption(el) {
 function resetAddStudentForm() {
     ['stu-name', 'stu-country', 'stu-phone', 'stu-dob'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     ['stu-grade', 'stu-dob-d', 'stu-dob-m', 'stu-dob-y', 'stu-memo-from', 'stu-memo-to'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+    { const nas = AppState.surahsData.find(x => x.number === 114), f = document.getElementById('stu-memo-from'); if (nas && f) f.value = nas.name; }
     const age = document.getElementById('age-display'); if (age) age.textContent = '';
     const toast = document.getElementById('add-saved-toast'); if (toast) toast.style.display = 'none';
     const fileInput = document.getElementById('stu-avatar'); if (fileInput) fileInput.value = '';
@@ -1145,6 +1149,20 @@ export async function loadStudentProfileScreen() {
                 btnArchive.innerHTML = `📂 ${t('archive_empty')}`;
                 btnArchive.disabled = true;
             }
+            document.getElementById('btn-prof-edit-all')?.addEventListener('click', async () => {
+                const id = student.id;
+                try {
+                    await loadAllStudentsScreen();
+                    // initFunction في loadScreen لا يُنتظر، فننتظر ظهور نافذة التعديل وربط أزرارها قبل فتحها
+                    for (let i = 0; i < 50 && !(document.getElementById('edit-stu-id') && document.getElementById('all-students-body')?.children.length); i++) {
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                    await openEditStudentModal(id);
+                } catch (err) {
+                    console.error('تعذّر فتح نافذة تعديل الطالب:', err);
+                    alert('تعذّر فتح نافذة التعديل: ' + (err && err.message ? err.message : err));
+                }
+            });
             document.getElementById('btn-close-archive')?.addEventListener('click', () => closeModal('archive-modal'));
 
             // 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يستورد reports/monthly-report.js
@@ -1157,6 +1175,18 @@ export async function loadStudentProfileScreen() {
                     alert(t('stu_screen_preparing'));
                 });
             });
+
+            // 🌟 [جديد — الواجب الذكي] زر «ملف المهارات» (استيراد ديناميكي كالزر السابق تفادياً لأي حلقة استيراد)
+            const skillsBtn = document.getElementById('btn-prof-skills');
+            if (skillsBtn) {
+                if (AppState.currentLang === 'en') skillsBtn.textContent = '📊 Skills profile';
+                skillsBtn.addEventListener('click', () => {
+                    import('../components/skillProfile.js').then(m => m.openSkillProfileModal(student)).catch(err => {
+                        console.error('تعذر فتح ملف المهارات:', err);
+                        alert(t('stu_screen_preparing'));
+                    });
+                });
+            }
 
             // 🌟 [مُعدَّل — بطلب صريح من المعلم بعد أول تجربة] كان هنا فحص "تسجيل الحفظ
             // الشهري" يظهر عند فتح كل ملف طالب على حدة — أُزيل نهائيًا من هنا لأنه كان
@@ -1480,7 +1510,7 @@ async function openEditStudentModal(id) {
     setGradeSelectValuePreservingLegacy('edit-stu-grade', s.grade || '');
     document.getElementById('edit-stu-country').value = s.country || '';
     document.getElementById('edit-stu-phone').value = s.phone || '';
-    document.getElementById('edit-stu-memo-from').value = s.memoFrom || '';
+    if (s.memoFrom) document.getElementById('edit-stu-memo-from').value = s.memoFrom;  // وإلا يبقى الافتراضي (الناس) من populateSurahOptions
     document.getElementById('edit-stu-memo-to').value = s.memoTo || '';
     // 🌟 [إصلاح فحص الأزرار] كان حقل "الجنس (للصورة الرمزية)" يظهر بلا أي ربط بالحفظ. الآن يعكس نوع
     // الصورة الرمزية الحالية (لو كانت رمزًا تعبيريًا) ويُطبَّق عند الحفظ؛ ولا أثر له إن كان للطالب صورة مرفوعة 🌟

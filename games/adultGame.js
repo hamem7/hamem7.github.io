@@ -510,6 +510,9 @@ function persistEvaluationToHistory() {
             timestamp: Date.now()
         });
         localStorage.setItem(historyKey, JSON.stringify(historyArray));
+        // 🌟 [جديد — الواجب الذكي] تغذية سجل أداء الطالب (مهارة/موضع/جودة الخطأ) من هذه الجلسة. غير حاجزة وبصمت عند أي فشل
+        import('../core/trackingService.js').then(m => m.recordGameSession(student, GameState.reportDetails.slice()))
+            .catch(err => console.warn('تعذر تسجيل أداء الجلسة في ملف التتبّع:', err));
     } catch (e) {
         // best-effort بالكامل: فشل تسجيل التاريخ لا يجب أن يمنع عرض التقرير نفسه إطلاقاً
         console.error('تعذر تسجيل تقييم غرفة الكبار في السجل التاريخي:', e);
@@ -946,7 +949,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if (reciteRec) { reportText = reciteRec.reportText; ayahNum = reciteRec.num; }
     }
 
-    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts });
+    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null });
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة
     // الإتقان الحقيقية (0-100%) في بطاقة "نظرة سريعة" بالشاشة الرئيسية. نحسب كل سؤال

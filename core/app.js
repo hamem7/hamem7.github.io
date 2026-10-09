@@ -1,4 +1,5 @@
 // core/app.js
+// © 2026 عبدالله بن المياح الأزهري — منصة حمٓ. PolyForm Noncommercial 1.0.0 (انظر LICENSE): للاستخدام غير التجاري فقط.
 import { ensureQuranLoaded } from '../database/quranDB.js';
 import { initStudentDB, StudentManager } from '../database/studentDB.js';
 import { initHomeworkDB, HomeworkManager } from '../database/homeworkDB.js';
@@ -23,6 +24,8 @@ import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
 // + عدد الآيات الجديدة المحسوب آليًا. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط.
 // راجع database/monthlyMemorizationDB.js وcomponents/monthlyMemorizationPrompt.js
 import { initMonthlyMemorizationDB, MonthlyMemorizationManager } from '../database/monthlyMemorizationDB.js';
+// 🌟 [جديد — الواجب الذكي] سجل أداء الطالب (أحداث المهارة/الموضع/الجودة) — راجع database/trackingDB.js وcore/trackingService.js
+import { initTrackingDB, TrackingManager } from '../database/trackingDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
 import { KidsEngine } from '../engine/kidsEngine.js';
 import { loadScreen, switchTheme, prefetchTemplate } from './navigation.js';
@@ -100,6 +103,8 @@ export const AppState = {
     // 🌟 [جديد] مدير "سجل الحفظ الشهري" — يُهيَّأ في bootSystem أسفل هذا الملف بنفس
     // نمط بقية المديرين أعلاه
     monthlyMemorizationManager: null,
+    // 🌟 [جديد — الواجب الذكي] مدير سجل أداء الطالب — يُهيَّأ في bootSystem بنفس نمط بقية المديرين
+    trackingManager: null,
     // 🌟 [جديد — المرحلة 2] معاملات فتح شاشة نشاط "أبطال التجويد" (تدرّب/تحدي مرحلة/مراجعة) —
     // نفس فكرة dualTestPlayMatchId أعلاه بالضبط: تُملأ لحظة الانتقال من tajweed-map.js، ثم
     // تُقرأ مرة واحدة وتُفرَّغ فوراً في initTajweedActivity() حتى لا تؤثر على أي فتح لاحق
@@ -329,7 +334,7 @@ async function bootSystem() {
         // 🌟 [2026-10-03 — سرعة الفتح] كانت قواعد البيانات العشر تُفتح واحدة تلو الأخرى (await بعد await) رغم استقلالها التام
         // عن بعضها، فيتراكم زمن فتحها قبل ظهور الشاشة الرئيسية. الآن تُفتح كلها معاً؛ ترتيب إسناد الـ Managers ونتيجتها كما هي
         // تماماً، وأي فشل في أي منها يصل لنفس catch أدناه (showBootFailure) كما كان.
-        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB] = await Promise.all([
+        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB, trackingDB] = await Promise.all([
             ensureQuranLoaded(),
             initKidsAudioDB(),
             initStudentDB(),
@@ -339,7 +344,8 @@ async function bootSystem() {
             initDualTestsDB(),
             initSimilaritiesDB(),
             initTajweedDB(),
-            initMonthlyMemorizationDB()
+            initMonthlyMemorizationDB(),
+            initTrackingDB()
         ]);
 
         AppState.quranEngine = new QuranEngine(quranDB);
@@ -388,6 +394,9 @@ async function bootSystem() {
 
         // 🌟 [جديد] "سجل الحفظ الشهري"
         AppState.monthlyMemorizationManager = new MonthlyMemorizationManager(monthlyMemorizationDB);
+
+        // 🌟 [جديد — الواجب الذكي] "سجل أداء الطالب"
+        AppState.trackingManager = new TrackingManager(trackingDB);
 
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
         AppState.juzAmmaSurahs = AppState.surahsData.filter(s => s.number >= 78 && s.number <= 114);
