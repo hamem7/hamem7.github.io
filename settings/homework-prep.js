@@ -2029,7 +2029,13 @@ function verifyPublicLinkInBackground(hwId) {
 //   (persisted)، ثم نتحقق أن الرابط يفتح فعلاً كما سيراه الطالب (وأنه لا يحتوي الإجابات الصحيحة). كان النظام
 //   القديم يعرض الرابط فوراً حتى لو لم يصل الواجب للسحابة، فيفشل عند أي طالب بـ"الواجب غير موجود".
 //   معرّف الواجب يولّده الخادم (عشوائي غير قابل للتخمين) وتُحفظ نسخة محلية بنفس المعرّف بنفس بنية السجل القديمة.
+let hwSaveInFlight = false;   // 🌟 يمنع تنفيذ الحفظ/النشر مرتين معاً (نقر مزدوج أو زرّان) فيتكرّر الواجب
 async function saveHomeworkToDB(statusType) {
+    if (hwSaveInFlight) return;
+    hwSaveInFlight = true;
+    try { await saveHomeworkToDBImpl(statusType); } finally { hwSaveInFlight = false; }
+}
+async function saveHomeworkToDBImpl(statusType) {
     if (currentGeneratedQuestions.length === 0) return alert(t("لا يوجد أسئلة لحفظها!"));
 
     const targetStudentName = document.getElementById('hw-target-student').value;
@@ -2116,6 +2122,11 @@ async function saveHomeworkToDB(statusType) {
         await rememberLastScope(targetStudentName);   // 🌟 لاقتراح «أكمل» في الواجب القادم
 
         restorePublishBtn();
+        // 🌟 بعد النشر الناجح تُفرَّغ الأسئلة المولّدة وتُخفى المعاينة، حتى لا يُنشَر نفس الواجب مرة ثانية بنقرة أخرى على «نشر»
+        currentGeneratedQuestions = [];
+        currentTracking = {};
+        currentHwScope = null;
+        document.getElementById('hw-preview-section').style.display = 'none';
         document.getElementById('share-modal-title').innerText = t('hw_share_success');
         const baseUrl = window.location.origin + window.location.pathname;
         const link = buildHomeworkShareLink(baseUrl, homeworkObj);
