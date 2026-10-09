@@ -1947,7 +1947,7 @@ export const translations = {
         priv_h_share: "مشاركة البيانات",
         priv_share_p: "لا تتم مشاركة هذا البريد أو أي بيانات مرتبطة به مع أي طرف ثالث، ولا يُستخدم لأي غرض تسويقي أو إعلاني.",
         priv_contact: "لأي استفسار، تواصل عبر:",
-        priv_footer: "© حمٓ",
+        priv_footer: "© 2026 عبدالله بن المياح الأزهري — حمٓ · مجاني للاستخدام غير التجاري",
         // 🌟 [جديد] ملف الطالب
         stu_and: " و ",
         stu_age_paren: "(العمر: {n} سنة)",
@@ -4008,7 +4008,7 @@ export const translations = {
         priv_h_share: "Data Sharing",
         priv_share_p: "This email or any data linked to it is never shared with any third party, and is never used for marketing or advertising.",
         priv_contact: "For any inquiries, contact:",
-        priv_footer: "© Ham",
+        priv_footer: "© 2026 Abdullah bin Al-Mayah Al-Azhari — Ham · Free for non-commercial use",
         // 🌟 [جديد] ملف الطالب
         stu_and: " and ",
         stu_age_paren: "(Age: {n} years)",

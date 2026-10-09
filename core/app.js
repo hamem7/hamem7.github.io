@@ -1,4 +1,5 @@
 // core/app.js
+// © 2026 عبدالله بن المياح الأزهري — منصة حمٓ. PolyForm Noncommercial 1.0.0 (انظر LICENSE): للاستخدام غير التجاري فقط.
 import { ensureQuranLoaded } from '../database/quranDB.js';
 import { initStudentDB, StudentManager } from '../database/studentDB.js';
 import { initHomeworkDB, HomeworkManager } from '../database/homeworkDB.js';
