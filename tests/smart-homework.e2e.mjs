@@ -121,7 +121,8 @@ try {
   check('A7 تنبيه: لا سجل شهري فاعتُمد نطاق الملف + زر التحديث', info.includes('لا يوجد سجل حفظ شهري') && info.includes('سجّل موضعه'));
   await shot(page, '1-create-info');
   const tilesInfo = await page.evaluate(() => [...document.querySelectorAll('#hw-hizb-strip .hw-tile')].map(t => ({ id: t.dataset.id, label: t.querySelector('b').textContent })));
-  const hizbNums = tilesInfo.map(t => Number((/ح(\d+)/.exec(t.label) || [])[1]));
+  // رقم الحزب من معرّف البطاقة (البطاقة تعرض اسم الحزب من أول آية لا «ح60»): quarter:K ← ceil(K/4)
+  const hizbNums = tilesInfo.map(t => Math.ceil(Number((/quarter:(\d+)/.exec(t.id) || [])[1]) / 4));
   check('A8 لوحة النطاق: شريط يبدأ من الناس (ح60) صعوداً بترتيب الحفظ وكل مربع حزب/ربع', tilesInfo.length >= 8 && hizbNums[0] === 60 && hizbNums.every((h, i) => i === 0 || h <= hizbNums[i - 1]) && tilesInfo.every(t => /^quarter:\d+$/.test(t.id)), tilesInfo.slice(0, 4).map(t => t.label).join(' '));
 
   console.log('\n=== التوليد والمعاينة ===');
@@ -450,7 +451,7 @@ try {
   const quarterCount = tiles.length;
   await page.evaluate(() => document.getElementById('hw-btn-unit').click()); await sleep(1500);
   tiles = await tileLabels();
-  const hz = tiles.map(t => Number((/ح(\d+)/.exec(t.label) || [])[1]));
+  const hz = tiles.map(t => Number((/hizb:(\d+)/.exec(t.id) || [])[1]));   // من المعرّف لا من نص الاسم
   check('M1 تبديل العرض إلى الأحزاب: عدد أقل، يبدأ بـ ح60، ولا ربع داخل التسمية', tiles.length < quarterCount && hz[0] === 60 && tiles.every(t => /^hizb:\d+$/.test(t.id) && !t.label.includes('·')) && hz.every((h, i) => i === 0 || h <= hz[i - 1]), `${quarterCount}→${tiles.length}`);
 
   // اختيار حزبين بالنقر: يتحول الوضع إلى «أحزاب محددة»، ويظهر سطر التغطية
