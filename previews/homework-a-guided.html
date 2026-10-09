@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>معاينة (أ) — المسار الموجَّه للواجبات</title>
+<title>معاينة (أ) — الواجب في صفحة واحدة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
 <style>
@@ -13,7 +13,6 @@
   --bg:#f6f8f6; --card:#fff; --red:#dc2626; --amber:#d97706; --blue:#0284c7;
   --r:18px; --sh:0 6px 24px rgba(6,35,28,.08); --sh2:0 18px 40px rgba(6,35,28,.16);
 }
-@media (prefers-color-scheme:dark){:root{--bg:#0b1713;--card:#12241d;--ink:#eaf5ef;--ink2:#9db8ac;--line:#21392f;--g1:#16342a;--g0:#10261e;--gold-soft:#3a3317}}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
 body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh}
 button{cursor:pointer;border:0;background:none;color:inherit}
@@ -21,15 +20,15 @@ button{cursor:pointer;border:0;background:none;color:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
 
 /* ---------- header ---------- */
-header.top{background:linear-gradient(120deg,var(--g9),var(--g7));border-bottom:3px solid var(--gold);color:#fffdf6}
+header.top{background:#fff;border-bottom:3px solid var(--gold);color:var(--ink)}
 .top .wrap{display:flex;align-items:center;gap:14px;padding-block:16px;flex-wrap:wrap}
-.logo{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:1.5rem}
+.logo{width:46px;height:46px;border-radius:14px;background:var(--g1);display:grid;place-items:center;font-size:1.5rem}
 .top h1{font-size:1.25rem;font-weight:700}
-.top small{color:#f1dd8f;display:block;font-size:.82rem}
+.top small{color:var(--ink2);display:block;font-size:.82rem}
 .top .sp{flex:1}
-.acct{font-size:.82rem;color:#f1dd8f;display:flex;align-items:center;gap:8px}
-.ghost{border:1px solid rgba(255,255,255,.35);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:rgba(255,255,255,.1)}
-.ghost:hover{background:rgba(255,255,255,.2)}
+.acct{flex-wrap:wrap;font-size:.82rem;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.ghost{border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:var(--bg)}
+.ghost:hover{background:var(--g1)}
 
 nav.tabs{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
 nav.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
@@ -43,9 +42,9 @@ main{padding:26px 0 90px}
 
 /* ---------- home ---------- */
 .hero{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
-.cta{background:linear-gradient(135deg,var(--g7),var(--g9));color:#fffdf6;border-radius:var(--r);padding:28px;box-shadow:var(--sh2);position:relative;overflow:hidden}
-.cta::after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(212,175,55,.18)}
-.cta h2{font-size:1.5rem;margin-bottom:6px}.cta p{color:#cfe6dc;margin-bottom:18px;max-width:34ch}
+.cta{background:linear-gradient(135deg,#e7f4ee,#fbf3d5);color:var(--ink);border-radius:var(--r);padding:28px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;inset-inline-end:-40px;top:-40px;width:170px;height:170px;border-radius:50%;background:rgba(212,175,55,.22)}
+.cta h2{font-size:1.5rem;margin-bottom:6px}.cta p{color:var(--ink2);margin-bottom:18px;max-width:34ch}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:14px;font-weight:700;font-size:1rem;transition:.15s}
 .btn.gold{background:var(--gold);color:#3a2d00}.btn.gold:hover{filter:brightness(1.06);transform:translateY(-1px)}
 .btn.pri{background:var(--g7);color:#fff}.btn.pri:hover{background:var(--g6)}
@@ -82,6 +81,7 @@ button.stat:hover{transform:translateY(-3px)}
 
 /* ---------- wizard ---------- */
 .wiz{display:grid;grid-template-columns:1fr 330px;gap:24px;align-items:start}
+.peek summary{cursor:pointer;font-weight:600;padding:12px 0;color:var(--g7)}.peek{margin-top:16px;border-top:1px solid var(--line)}
 .stepper{display:flex;gap:6px;margin-bottom:20px;background:var(--card);padding:10px;border-radius:var(--r);box-shadow:var(--sh)}
 .st{flex:1;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;color:var(--ink2);font-weight:600;font-size:.92rem;min-width:0}
 .st i{width:30px;height:30px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-style:normal;font-weight:700;flex-shrink:0;font-size:.9rem}
@@ -150,22 +150,23 @@ button.stat:hover{transform:translateY(-3px)}
 /* ---------- phone preview ---------- */
 .side{position:sticky;top:70px}
 .side h4{font-size:.9rem;color:var(--ink2);margin-bottom:10px;text-align:center}
-.phone{width:290px;margin:0 auto;background:#111;border-radius:38px;padding:11px;box-shadow:var(--sh2)}
+.phone{width:290px;margin:0 auto;background:#dbe6e0;border-radius:38px;padding:11px;box-shadow:var(--sh2)}
 .screen{background:#f0f9ff;border-radius:28px;height:540px;overflow:hidden;position:relative;display:flex;flex-direction:column}
-.ph-head{background:linear-gradient(120deg,var(--g9),var(--g7));color:#fff;padding:26px 14px 12px;font-weight:700;font-size:.95rem;text-align:center;border-bottom:3px solid var(--gold)}
+.ph-head{background:var(--g1);color:var(--g7);padding:26px 14px 12px;font-weight:700;font-size:.95rem;text-align:center;border-bottom:3px solid var(--gold)}
 .ph-body{padding:14px;flex:1;overflow:hidden;font-size:.85rem;color:#1e293b}
 .ph-body h5{font-size:1.1rem;color:#0369a1;text-align:center;margin-bottom:6px}
 .ph-card{background:#fff;border-radius:14px;padding:12px;margin-top:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
 .ph-prog{height:6px;background:#dbeafe;border-radius:9px;margin:8px 0}.ph-prog i{display:block;height:100%;width:30%;background:var(--g6);border-radius:9px}
 .ph-opt{border:2px solid #e2e8f0;border-radius:10px;padding:8px;margin-top:6px;font-weight:600;background:#fff}
 .ph-opt.ok{border-color:var(--g6);background:var(--g1)}
-.ph-btn{margin-top:12px;background:linear-gradient(45deg,#10b981,#059669);color:#fff;padding:11px;border-radius:12px;font-weight:700;text-align:center}
+.ph-btn{margin-top:12px;background:#10b981;color:#fff;padding:11px;border-radius:12px;font-weight:700;text-align:center}
 .mock-note{font-size:.72rem;color:var(--ink2);text-align:center;margin-top:10px}
 
-.toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g9);color:#fff;padding:12px 22px;border-radius:14px;box-shadow:var(--sh2);transform:translateY(100px);opacity:0;transition:.3s;z-index:99;font-weight:600}
+.toast{position:fixed;bottom:24px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g7);color:#fff;padding:12px 22px;border-radius:14px;box-shadow:var(--sh2);transform:translateY(100px);opacity:0;transition:.3s;z-index:99;font-weight:600}
 .toast.on{transform:none;opacity:1}
 
-@media(max-width:980px){.wiz{grid-template-columns:1fr}.side{display:none}.hero{grid-template-columns:1fr}.row{grid-template-columns:auto 1fr auto}.row .sc,.row .prog{display:none}}
+.wiz>*,.hero>*{min-width:0}
+@media(max-width:980px){.wiz{grid-template-columns:minmax(0,1fr)}.side{display:none}.hero{grid-template-columns:1fr}.row{grid-template-columns:auto 1fr auto}.row .sc,.row .prog{display:none}}
 @media(max-width:640px){.wrap{padding:0 14px}.hizb{grid-template-columns:repeat(10,1fr)}.fields,.pub-grid{grid-template-columns:1fr}.st span{display:none}.st.on span{display:block}.panel{padding:18px}.top h1{font-size:1.05rem}.acct span{display:none}.cta{padding:22px}.stat b{font-size:1.5rem}}
 </style>
 </head>
@@ -174,7 +175,7 @@ button.stat:hover{transform:translateY(-3px)}
 <header class="top">
   <div class="wrap">
     <div class="logo">📖</div>
-    <div><h1>نظام إدارة الواجبات</h1><small>معاينة (أ) · المسار الموجَّه</small></div>
+    <div><h1>نظام إدارة الواجبات</h1><small>معاينة (أ) · صفحة واحدة</small></div>
     <div class="sp"></div>
     <div class="acct"><span>teacher@gmail.com</span><button class="ghost">🔁 تغيير الإيميل</button><button class="ghost" id="back">← الرئيسية</button></div>
   </div>
@@ -212,89 +213,43 @@ button.stat:hover{transform:translateY(-3px)}
   <div class="list" id="recent"></div>
 </section>
 
-<!-- ================= NEW (WIZARD) ================= -->
+<!-- ================= NEW (صفحة واحدة) ================= -->
 <section class="view" id="v-new">
   <div class="wiz">
     <div>
-      <div class="stepper" id="stepper"></div>
-      <div class="panel">
+      <div class="panel" id="formPanel">
+        <h2>👤 لمن هذا الواجب؟</h2>
+        <p class="sub">اختر الطالب فقط — الباقي يُجهَّز تلقائياً على نطاق حفظه وأخطائه.</p>
+        <input class="search" id="stuSearch" placeholder="🔍 ابحث عن طالب..." style="width:100%">
+        <div class="stu-grid" id="stuGrid"></div>
 
-        <div class="step on" data-s="1">
-          <h2>👤 لمن هذا الواجب؟</h2>
-          <p class="sub">يُبنى الواجب على نطاق حفظ الطالب ونقاط ضعفه المسجَّلة.</p>
-          <input class="search" id="stuSearch" placeholder="🔍 ابحث عن طالب..." style="width:100%">
-          <div class="stu-grid" id="stuGrid"></div>
-          <div class="info" id="stuInfo" style="display:none"></div>
-        </div>
-
-        <div class="step" data-s="2">
-          <h2>📖 النطاق وعدد الأسئلة</h2>
-          <p class="sub">اللون يدل على تغطية المقطع خلال دورة المراجعة الأخيرة.</p>
-          <div class="modes" id="modes">
-            <button class="mode on" data-m="all">كل النطاق</button>
+        <div id="rest" style="display:none">
+          <div class="info" id="stuInfo"></div>
+          <div class="modes" id="modes" style="margin-top:20px">
+            <button class="mode on" data-m="auto">✨ تلقائي (مقترح)</button>
+            <button class="mode" data-m="all">كل النطاق</button>
             <button class="mode" data-m="hizb">أحزاب محددة</button>
-            <button class="mode" data-m="resume">أكمل السابق</button>
-            <button class="mode sugg" data-m="auto">✨ اقترح لي</button>
           </div>
-          <div class="hizb" id="hizb"></div>
-          <div class="legend">
-            <span><i style="background:#0d5c46"></i>مغطّى</span><span><i style="background:#d4af37"></i>قديم الفحص</span>
-            <span><i style="background:#dc6b4a"></i>أخطاء مفتوحة</span><span><i style="background:#9fb3aa"></i>لم يُفحص</span><span><i style="background:var(--line)"></i>خارج حفظه</span>
+          <div id="hizbWrap" style="display:none">
+            <div class="hizb" id="hizb"></div>
+            <div class="legend">
+              <span><i style="background:#0d5c46"></i>مغطّى</span><span><i style="background:#d4af37"></i>قديم الفحص</span>
+              <span><i style="background:#dc6b4a"></i>أخطاء مفتوحة</span><span><i style="background:#9fb3aa"></i>لم يُفحص</span>
+            </div>
           </div>
-          <div class="fields">
-            <div class="fld"><label>عدد الأسئلة</label><div class="num"><button id="qm">−</button><input id="qc" value="10" readonly><button id="qp">+</button></div></div>
-            <div class="fld"><label>دورة المراجعة (أسابيع)</label><div class="num"><button id="wm">−</button><input id="wc" value="6" readonly><button id="wp">+</button></div></div>
-          </div>
+          <div class="fld" style="margin-top:18px;max-width:260px"><label>عدد الأسئلة</label><div class="num"><button id="qm">−</button><input id="qc" value="10" readonly><button id="qp">+</button></div></div>
           <div class="cov" id="cov"></div>
+          <details class="peek"><summary>👀 عرض الأسئلة قبل النشر (اختياري)</summary>
+            <div class="qlist" id="qlist" style="margin-top:12px"></div></details>
+          <div class="foot" style="justify-content:flex-end"><button class="btn pri" id="next" style="font-size:1.1rem;padding:14px 32px">🚀 نشر وإرسال</button></div>
         </div>
+      </div>
 
-        <div class="step" data-s="3">
-          <h2>🔍 راجع الأسئلة</h2>
-          <p class="sub">كل سؤال معه سبب اختياره. عدّل أو احذف أو أضف سؤالاً يدوياً.</p>
-          <div class="mix" id="mix"></div>
-          <div class="mixl" id="mixl"></div>
-          <div class="qlist" id="qlist" style="margin-top:14px"></div>
-          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn out" id="addQ">➕ سؤال يدوي</button><button class="btn out" id="shuffle">🔀 أعد الخلط</button>
-          </div>
-        </div>
-
-        <div class="step" data-s="4">
-          <div id="pubForm">
-            <h2>🚀 النشر والإرسال</h2>
-            <p class="sub">آخر لمسة قبل الإرسال.</p>
-            <div class="opts">
-              <label><input type="checkbox" checked> تذكير الطالب تلقائياً قبل الموعد بيوم</label>
-              <label><input type="checkbox" checked> إظهار النتيجة للطالب بعد التصحيح</label>
-              <label><input type="checkbox"> السماح بإعادة المحاولة مرة واحدة</label>
-            </div>
-            <div class="fields"><div class="fld"><label>آخر موعد للتسليم</label>
-              <select class="search" id="due" style="width:100%"><option>بعد 3 أيام (الأحد)</option><option>بعد 5 أيام</option><option>بعد أسبوع</option><option>بدون موعد</option></select></div>
-              <div class="fld"><label>ملاحظة للطالب (اختياري)</label><input class="search" style="width:100%" placeholder="مثال: ركّز على التجويد 🌟"></div></div>
-          </div>
-          <div id="pubDone" style="display:none">
-            <div class="success"><div class="big pop">🎉</div><h2>تم النشر! أرسل الرابط الآن</h2><p class="sub">الواجب جاهز لـ <b id="dStu"></b></p></div>
-            <div class="pub-grid">
-              <div>
-                <b>🔗 رابط الواجب</b>
-                <div class="linkbox"><input id="lnk" readonly><button class="btn pri" id="cp">📋 نسخ</button></div>
-                <div class="share">
-                  <button class="btn wa" id="wa">💬 واتساب</button><button class="btn tg" id="tg">✈️ تيليجرام</button>
-                  <button class="btn out" id="sms">✉️ رسالة SMS</button><button class="btn out" id="nat">↗️ مشاركة</button>
-                </div>
-                <canvas class="qr" id="qr" width="130" height="130" style="margin-top:16px"></canvas>
-                <div class="mock-note">رمز توضيحي — يُولَّد الحقيقي من الرابط</div>
-              </div>
-              <div><b>معاينة الرسالة</b><div class="waback"><div class="bubble" id="msg"></div></div>
-                <div class="info" style="background:var(--g1);color:var(--g7)">✅ الواجب محفوظ في السحابة ويظهر في سجلك.</div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="foot" id="foot">
-          <button class="btn out" id="prev">→ السابق</button>
-          <button class="btn pri" id="next">التالي ←</button>
-        </div>
+      <div class="panel" id="donePanel" style="display:none">
+        <div class="success"><div class="big pop">🎉</div><h2>تم النشر! أرسل الرابط الآن</h2><p class="sub">الواجب جاهز لـ <b id="dStu"></b></p></div>
+        <div class="linkbox"><input id="lnk" readonly><button class="btn pri" id="cp">📋 نسخ</button></div>
+        <div class="share"><button class="btn wa" id="wa">💬 واتساب</button><button class="btn tg" id="tg">✈️ تيليجرام</button></div>
+        <div class="foot" style="justify-content:center;border:0"><button class="btn out" id="again">➕ واجب لطالب آخر</button></div>
       </div>
     </div>
 
@@ -354,22 +309,21 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-copy]'))toast('
 $('#rlist').innerHTML=hist.filter(h=>h.st==='grade').concat([{s:'يوسف إبراهيم',sc:'الأعلى – الغاشية',st:'grade',p:100,d:'منذ ساعة'}]).map(h=>`<div class="row"><div class="av">${h.s[0]}</div><div><b>${h.s}</b><div class="sc">${h.sc}</div></div><div class="prog sc">3 أسئلة تحتاج تصحيحاً يدوياً</div><span class="tag red">يحتاج تصحيح</span><button class="mini">صحّح الآن</button></div>`).join('');
 $('#back').onclick=()=>toast('← يعود للشاشة الرئيسية للمنصة (غير مفعّل في المعاينة)');
 
-/* ---------- wizard state ---------- */
-const steps=['الطالب','النطاق','الأسئلة','النشر'];
-let step=1,stu=null,mode='all',qc=10,wc=6,sel=new Set(),qs=[],published=false;
-function reset(){step=1;stu=null;mode='all';qc=10;wc=6;sel=new Set();qs=[];published=false;$('#stuSearch').value='';$('#qc').value=10;$('#wc').value=6;$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='all'));drawStu();render()}
-function drawStepper(){$('#stepper').innerHTML=steps.map((s,i)=>`<div class="st ${i+1===step?'on':''} ${i+1<step?'done':''}"><i>${i+1<step?'✓':i+1}</i><span>${s}</span></div>`).join('')}
+/* ---------- new homework (صفحة واحدة) ---------- */
+let stu=null,mode='auto',qc=10,sel=new Set(),qs=[],published=false;
+function reset(){stu=null;mode='auto';qc=10;sel=new Set();published=false;$('#stuSearch').value='';$('#qc').value=10;
+  $('#formPanel').style.display='block';$('#donePanel').style.display='none';$('#rest').style.display='none';$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='auto'));drawStu();render()}
 function drawStu(){const q=$('#stuSearch').value.trim();$('#stuGrid').innerHTML=students.filter(s=>s.n.includes(q)).map(s=>`<button class="stu ${stu&&stu.n===s.n?'on':''}" data-n="${s.n}"><div class="av">${s.n[0]}</div><div><b>${s.n}</b><small>${s.r}</small></div></button>`).join('')||'<p style="color:var(--ink2)">لا يوجد طالب بهذا الاسم</p>'}
 $('#stuSearch').oninput=drawStu;$('#stuGrid').onclick=e=>{const b=e.target.closest('.stu');if(b)pickStudent(b.dataset.n)};
-function pickStudent(n){stu=students.find(s=>s.n===n);sel=new Set();drawStu();$('#stuInfo').style.display='flex';$('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. موضع الحفظ الشهري محدَّث ✅</div>`;render()}
+function pickStudent(n){stu=students.find(s=>s.n===n);sel=new Set();mode='auto';$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='auto'));
+  $('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. اختير النطاق تلقائياً: الأقل تغطية والأقدم فحصاً + الأخطاء السابقة بصيغة جديدة.</div>`;
+  $('#rest').style.display='block';drawStu();render();setTimeout(()=>$('#rest').scrollIntoView({behavior:'smooth',block:'nearest'}),50)}
 function hcolor(i){const r=(i*37+7)%10;return r<4?'#0d5c46':r<6?'#d4af37':r<8?'#dc6b4a':'#9fb3aa'}
 function drawHizb(){const max=stu?stu.h*2:0;$('#hizb').innerHTML=Array.from({length:30},(_,i)=>{const on=i<max;return `<button class="hz ${on?'':'off'} ${sel.has(i)?'sel':''}" style="--hc:${hcolor(i)};${hcolor(i)==='#d4af37'?'--hf:#3a2d00':''}" data-i="${i}" title="الحزب ${i+1}">${i+1}</button>`}).join('')}
-$('#hizb').onclick=e=>{const b=e.target.closest('.hz');if(!b)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);setMode('hizb');drawHizb();drawCov()};
-function setMode(m){mode=m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m===m))}
-$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(!b)return;setMode(b.dataset.m);if(b.dataset.m==='auto'){sel=new Set([0,1,3]);setMode('hizb');toast('✨ اقترحنا 3 أحزاب: الأقل تغطية والأقدم فحصاً')}else if(b.dataset.m!=='hizb')sel=new Set();drawHizb();drawCov()};
-function bump(id,d,min,max,set){const v=Math.min(max,Math.max(min,(id==='qc'?qc:wc)+d));set(v);$('#'+id).value=v;drawCov()}
-$('#qm').onclick=()=>bump('qc',-1,3,50,v=>qc=v);$('#qp').onclick=()=>bump('qc',1,3,50,v=>qc=v);$('#wm').onclick=()=>bump('wc',-1,1,26,v=>wc=v);$('#wp').onclick=()=>bump('wc',1,1,26,v=>wc=v);
-function drawCov(){const n=mode==='all'?(stu?stu.h*2:0)*3:sel.size*3||3;const pct=Math.min(100,Math.round(qc/n*100));$('#cov').innerHTML=`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً، ولدورة كاملة خلال ${wc} أسابيع بواجبين أسبوعياً: <b>${Math.ceil(n/(wc*2))}</b> أسئلة لكل واجب.`}
+$('#hizb').onclick=e=>{const b=e.target.closest('.hz');if(!b)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);render()};
+$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(!b)return;mode=b.dataset.m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x===b));if(mode!=='hizb')sel=new Set();render()};
+const clampQ=d=>{qc=Math.min(50,Math.max(3,qc+d));$('#qc').value=qc;render()};$('#qm').onclick=()=>clampQ(-1);$('#qp').onclick=()=>clampQ(1);
+function drawCov(){const n=mode==='hizb'?sel.size*3:(stu?stu.h*2:0)*3;const pct=n?Math.min(100,Math.round(qc/n*100)):0;$('#cov').innerHTML=mode==='hizb'&&!sel.size?'👆 اضغط الأحزاب التي تريدها من الخريطة.':`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً.`}
 
 /* ---------- questions ---------- */
 const bank=[
@@ -379,43 +333,28 @@ const bank=[
  ['mcq','أين موضع الخطأ؟','﴿ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ﴾','علاجي','tag red'],['order','رتّب الكلمات','﴿ لَمْ يَلِدْ وَلَمْ يُولَدْ ﴾','جديد','tag blue'],
  ['mcq','من أي سورة؟','﴿ تَبَّتْ يَدَا أَبِي لَهَبٍ ﴾','قريب','tag green'],['mcq','أكمل الآية','﴿ فَصَلِّ لِرَبِّكَ ... ﴾','قريب','tag green']];
 const why={'جديد':'من حفظ الشهر الحالي','قريب':'من حفظ الشهر الماضي','بعيد':'مراجعة بعيدة لم تُفحص منذ 5 أسابيع','علاجي':'أخطأ فيه سابقاً — بصيغة مختلفة'};
-function buildQs(){qs=Array.from({length:Math.min(qc,10)},(_,i)=>({...Object.fromEntries(['t','title','text','k','cls'].map((k,j)=>[k,bank[(i+(qs.shuffle||0))%bank.length][j]]))}))}
-function drawQs(){buildQs();const c={جديد:0,قريب:0,بعيد:0,علاجي:0};qs.forEach(q=>c[q.k]++);const col={جديد:'#0284c7',قريب:'#147c5e',بعيد:'#d4af37',علاجي:'#dc2626'};
-  $('#mix').innerHTML=Object.keys(c).map(k=>`<i style="flex:${c[k]||.01};background:${col[k]}"></i>`).join('');
-  $('#mixl').innerHTML=Object.keys(c).map(k=>`<span><i style="background:${col[k]}"></i>${k} ${c[k]}</span>`).join('');
-  $('#qlist').innerHTML=qs.map((q,i)=>`<div class="qi" data-i="${i}"><div class="qn">${i+1}</div><div><div class="meta"><span class="tag ${q.cls.split(' ')[1]||''}">${q.k}</span><span class="tag gray">${q.t==='text'?'تصحيح يدوي':q.t}</span></div><div class="txt"><b>${q.title}</b></div><div class="q" style="font-size:1.15rem;line-height:1.9">${q.text}</div><div class="why">💬 ${why[q.k]}</div></div><div class="qtools"><button class="ic" title="تعديل">✏️</button><button class="ic" data-del title="حذف">🗑️</button></div></div>`).join('')}
-$('#qlist').onclick=e=>{const d=e.target.closest('[data-del]');if(d){qc=Math.max(3,qc-1);$('#qc').value=qc;drawQs();toast('🗑️ حُذف السؤال')}};
-$('#shuffle').onclick=()=>{qs.shuffle=(qs.shuffle||0)+3;drawQs();toast('🔀 أُعيد الخلط')};
-$('#addQ').onclick=()=>toast('➕ يفتح نافذة بناء سؤال يدوي (نفس نافذة النظام الحالية)');
+function buildQs(){qs=Array.from({length:Math.min(qc,10)},(_,i)=>Object.fromEntries(['t','title','text','k','cls'].map((k,j)=>[k,bank[i%bank.length][j]])))}
+function drawQs(){buildQs();
+  $('#qlist').innerHTML=qs.map((q,i)=>`<div class="qi"><div class="qn">${i+1}</div><div><div class="meta"><span class="tag ${q.cls.split(' ')[1]||''}">${q.k}</span></div><div class="txt"><b>${q.title}</b></div><div class="q" style="font-size:1.15rem;line-height:1.9">${q.text}</div><div class="why">💬 ${why[q.k]}</div></div><div class="qtools"><button class="ic" data-del title="حذف">🗑️</button></div></div>`).join('')}
+$('#qlist').onclick=e=>{if(e.target.closest('[data-del]')){clampQ(-1);toast('🗑️ حُذف السؤال')}};
 
 /* ---------- publish ---------- */
 const LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
-function publish(){published=true;$('#pubForm').style.display='none';$('#pubDone').style.display='block';$('#foot').style.display='none';$('#dStu').textContent=stu.n;$('#lnk').value=LINK;
-  const sc=mode==='all'?stu.r:'أحزاب '+[...sel].map(i=>i+1).join('، ');
-  $('#msg').textContent=`📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`;
-  drawQR();render();toast('🎉 نُشر الواجب بنجاح')}
-function drawQR(){const c=$('#qr'),x=c.getContext('2d'),n=25,s=c.width/n;x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.fillStyle='#06231c';let seed=7;const r=()=>(seed=(seed*9301+49297)%233280)/233280;
-  for(let i=0;i<n;i++)for(let j=0;j<n;j++){const f=(a,b)=>(i<7&&j<7)||(i<7&&j>=n-7)||(i>=n-7&&j<7);if(f()){const ii=i%(n-7>i?99:1)>=0?i:i;const li=i<7?i:i-(n-7),lj=j<7?j:j-(n-7);if(li===0||li===6||lj===0||lj===6||(li>=2&&li<=4&&lj>=2&&lj<=4))x.fillRect(j*s,i*s,s,s)}else if(r()>.52)x.fillRect(j*s,i*s,s,s)}}
+const MSG=()=>{const sc=mode==='hizb'?'أحزاب '+[...sel].map(i=>i+1).join('، '):stu.r;return `📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`};
+function publish(){published=true;$('#formPanel').style.display='none';$('#donePanel').style.display='block';$('#dStu').textContent=stu.n;$('#lnk').value=LINK;render();scrollTo({top:0,behavior:'smooth'});toast('🎉 نُشر الواجب بنجاح')}
 $('#cp').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});$('#cp').textContent='✔️ تم';setTimeout(()=>$('#cp').textContent='📋 نسخ',1600);toast('✔️ تم نسخ الرابط')};
-$('#wa').onclick=()=>{window.open('https://wa.me/?text='+encodeURIComponent($('#msg').textContent),'_blank')};
+$('#wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(MSG()),'_blank');
 $('#tg').onclick=()=>window.open('https://t.me/share/url?url='+encodeURIComponent(LINK)+'&text='+encodeURIComponent('واجب منزلي'),'_blank');
-$('#sms').onclick=()=>location.href='sms:?body='+encodeURIComponent($('#msg').textContent);
-$('#nat').onclick=()=>navigator.share?navigator.share({title:'واجب حمٓ',text:$('#msg').textContent,url:LINK}):toast('المشاركة الأصلية متاحة على الهاتف');
+$('#again').onclick=reset;
 
 /* ---------- phone preview ---------- */
 function drawPhone(){const p=$('#phone');
-  if(step<=2||!stu)p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card">${stu?`هذا الواجب مخصّص لـ<br><b style="font-size:1.1rem;color:#047857">${stu.n}</b>`:'<span style="color:#94a3b8">اختر طالباً لتظهر المعاينة</span>'}</div><div class="ph-card">واجب من <b>${qc}</b> سؤال<br><small style="color:#64748b">إجاباتك تُحفظ تلقائياً على جهازك</small></div><div class="ph-btn">ابدأ الحل ▶</div></div>`;
-  else if(step===3||!published)p.innerHTML=`<div class="ph-head">السؤال 1 من ${qc}</div><div class="ph-body"><div class="ph-prog"><i></i></div><div class="ph-card"><small style="color:#64748b">${qs[0]?.title||''}</small><div class="q" style="font-size:1.1rem;line-height:2">${qs[0]?.text||''}</div></div><div class="ph-opt">رَبِّ الْفَلَقِ</div><div class="ph-opt ok">رَبِّ النَّاسِ</div><div class="ph-opt">رَبِّ الْعَالَمِينَ</div><div class="ph-btn" style="background:#0d5c46">التالي ▶</div></div>`;
-  else p.innerHTML=`<div class="ph-head">📨 تم الاستلام</div><div class="ph-body" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:3rem">✅</div><b style="font-size:1.1rem">رابط الواجب جاهز</b><p style="color:#64748b;margin-top:6px">سيصل الطالب مباشرة عبر الواتساب</p></div></div>`}
+  if(published)p.innerHTML=`<div class="ph-head">📨 تم الاستلام</div><div class="ph-body" style="display:grid;place-items:center;text-align:center"><div><div style="font-size:3rem">✅</div><b style="font-size:1.1rem">رابط الواجب جاهز</b><p style="color:#64748b;margin-top:6px">سيصل الطالب مباشرة عبر الواتساب</p></div></div>`;
+  else if(!stu)p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card"><span style="color:#94a3b8">اختر طالباً لتظهر المعاينة</span></div></div>`;
+  else p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card">هذا الواجب مخصّص لـ<br><b style="font-size:1.1rem;color:#047857">${stu.n}</b></div><div class="ph-card">واجب من <b>${qc}</b> سؤال<br><small style="color:#64748b">إجاباتك تُحفظ تلقائياً على جهازك</small></div><div class="ph-btn">ابدأ الحل ▶</div></div>`}
 
-/* ---------- step controls ---------- */
-function render(){drawStepper();$$('.step').forEach(s=>s.classList.toggle('on',+s.dataset.s===step));
-  if(step===2){drawHizb();drawCov()}if(step===3)drawQs();
-  $('#prev').style.visibility=step===1?'hidden':'visible';
-  const n=$('#next');n.textContent=step===4?'🚀 اعتماد ونشر':'التالي ←';n.disabled=(step===1&&!stu)||(step===2&&mode==='hizb'&&!sel.size);
-  $('#foot').style.display=published?'none':'flex';drawPhone()}
-$('#next').onclick=()=>{if(step===4)return publish();step++;render();scrollTo({top:0,behavior:'smooth'})};
-$('#prev').onclick=()=>{step--;render()};
+function render(){if(stu){$('#hizbWrap').style.display=mode==='hizb'?'block':'none';if(mode==='hizb')drawHizb();drawCov();drawQs();$('#next').disabled=mode==='hizb'&&!sel.size}drawPhone()}
+$('#next').onclick=publish;
 reset();
 </script>
 </body>
