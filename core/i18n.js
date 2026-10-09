@@ -1117,7 +1117,7 @@ export const translations = {
         // مراسلة، لا مجرد الرابط وحده — راجع buildHomeworkShareMessage في settings/homework-prep.js
         hw_copy_msg_title: "📚 واجب منزلي",
         hw_copy_msg_student_label: "👤 الطالب:",
-        hw_copy_msg_scope_label: "📖 الأسئلة في:",
+        hw_copy_msg_scope_label: "📖 الأسئلة:",
         hw_copy_msg_from: "من",
         hw_copy_msg_to: "إلى",
         hw_copy_msg_link_label: "🔗 الرابط:",
