@@ -40,8 +40,32 @@ async function teacherCall(action, params, opts = {}) {
 
 // ---------- المعلم: نشر واجب ----------
 // homework = {questions, assignedStudentName, assignedStudentId, meta}. لا يوجد "نجاح" إلا بعد persisted:true.
-export function publishHomeworkToServer(homework) {
-    return teacherCall('createHomework', { homework }, { write: true, timeoutMs: 30000 });
+// 🌟 [إصلاح 2026-10-09] المهلة 30 ث كانت أقصر من أسوأ زمن للخادم (انتظار القفل حتى 25 ث + الكتابة والتحقق)، فتظهر رسالة
+// «لم يتم نشر الواجب… استغرق الاتصال وقتاً طويلاً» رغم أن الخادم قد يكمل الحفظ بعدها. الآن: مهلة 60 ث، وعند انتهائها (أو انقطاع
+// الاتصال بعد الإرسال) نسأل الخادم هل حُفظ الواجب فعلاً (نفس الأسئلة/الطالب وأُنشئ بعد لحظة الإرسال) فنعتمده بدل إعلان فشل كاذب
+// قد يدفع المعلم لإعادة النشر فيتكرر الواجب. لا نعتبره منشوراً إلا بوجود صفّه في الخادم (listHomeworks)، فلا تخمين.
+export async function publishHomeworkToServer(homework) {
+    const sentAt = Date.now();
+    try {
+        return await teacherCall('createHomework', { homework }, { write: true, timeoutMs: 60000 });
+    } catch (e) {
+        if (!(e instanceof ApiError) || (e.code !== 'TIMEOUT' && e.code !== 'NETWORK')) throw e;
+        const found = await findJustPublished(homework, sentAt);
+        if (found) return found;
+        throw e;
+    }
+}
+
+async function findJustPublished(homework, sentAt) {
+    try {
+        const r = await teacherCall('listHomeworks', {}, { timeoutMs: 40000 });
+        const name = homework.assignedStudentName || null;
+        const qn = (homework.questions || []).length;
+        const hit = (r.homeworks || []).find(h =>
+            h.questionCount === qn && (h.assignedStudentName || null) === name &&
+            Date.parse(h.createdAt) >= sentAt - 120000);   // هامش لفرق ساعة الجهاز عن الخادم
+        return hit ? { ok: true, persisted: true, id: hit.id, createdAt: hit.createdAt, status: hit.status, questionCount: qn, recovered: true } : null;
+    } catch (e) { return null; }
 }
 
 // 🌟 [جديد] نطاق الواجب المسجَّل وقت النشر (meta.scope) — للشهادة. قراءة المعلم الكاملة (فيها meta)،

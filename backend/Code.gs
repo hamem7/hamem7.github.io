@@ -467,10 +467,24 @@ function createHomework_(req, auth) {
   var hw = req.homework || {};
   validateQuestions_(hw.questions);
   // 🌟 [جديد — تدقيق 2026-09-29] حدّ الحصة: لا يستطيع حساب واحد ولا الإجمالي ملء الشيت
-  var existing = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
-  if (existing.length >= MAX_HOMEWORKS_TOTAL) throw err_('LIMIT', 'Homework storage is full');
-  var mine = 0;
-  existing.forEach(function (r) { if (r.rec && r.rec.ownerId === auth.userId) mine++; });
+  // 🌟 [إصلاح 2026-10-09 — «استغرق الاتصال وقتاً طويلاً» عند النشر] كان فحص الحصة يقرأ كل أعمدة كل الصفوف (حتى 3000 واجب × 8 قطع JSON)
+  // ويحلّل JSON كل واجب فقط ليعدّ واجبات المعلم، فيتجاوز النشر مهلة العميل (30 ث) كلما كبر الشيت. ownerId يقع في أول
+  // السجل (قبل questions) أي داخل القطعة الأولى json1 وحدها، فنقرأ عمود الـ id والقطعة الأولى فقط ونعدّ بتعبير نمطي بلا JSON.parse.
+  var shQ = getSheet_(SHEET_HW);
+  var lastQ = shQ.getLastRow();
+  var total = 0, mine = 0;
+  if (lastQ >= 2) {
+    var firstChunkCol = HW_FIXED.length + 1;
+    var ids = shQ.getRange(2, 1, lastQ - 1, 1).getValues();
+    var firsts = shQ.getRange(2, firstChunkCol, lastQ - 1, 1).getValues();
+    var ownerNeedle = '"ownerId":' + JSON.stringify(String(auth.userId));
+    for (var qi = 0; qi < ids.length; qi++) {
+      if (!ids[qi][0]) continue;
+      total++;
+      if (String(firsts[qi][0] || '').indexOf(ownerNeedle) !== -1) mine++;
+    }
+  }
+  if (total >= MAX_HOMEWORKS_TOTAL) throw err_('LIMIT', 'Homework storage is full');
   if (mine >= MAX_HOMEWORKS_PER_TEACHER) throw err_('LIMIT', 'Homework limit reached for this account');
   var id = newId_('HW_');
   var record = {
