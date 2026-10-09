@@ -1308,6 +1308,15 @@ function setupListeners() {
     setupTargetStudentSearch();
 
     document.getElementById('btn-generate-hw')?.addEventListener('click', generateSmartQuestions);
+    // 🌟 [2026-10-09] «توليد ونشر مباشرة»: نفس خطوتي التوليد ثم النشر الحاليتين بنقرة واحدة (لا منطق جديد)
+    document.getElementById('btn-generate-publish')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget; const before = currentGeneratedQuestions;
+        btn.disabled = true;
+        try {
+            await generateSmartQuestions();
+            if (currentGeneratedQuestions !== before && currentGeneratedQuestions.length) await saveHomeworkToDB('published');
+        } finally { btn.disabled = false; }
+    });
     bindScopePanel();
     document.getElementById('hw-btn-week')?.addEventListener('click', async () => {
         const m = await import('../components/weekSchedule.js');
@@ -1334,6 +1343,14 @@ function setupListeners() {
     document.getElementById('btn-save-qb')?.addEventListener('click', saveManualQuestion);
 
     document.getElementById('btn-copy-hw-link')?.addEventListener('click', copyHomeworkLink);
+    // 🌟 [2026-10-09] إرسال الرابط مباشرة عبر واتساب/تيليجرام بنفس نص الرسالة المنسوخ
+    const shareMsg = () => {
+        const i = document.getElementById('hw-link-input');
+        let sc = null; try { sc = i.dataset.scope ? JSON.parse(i.dataset.scope) : null; } catch (e) { sc = null; }
+        return { link: i.value, msg: buildHomeworkShareMessage(i.value, i.dataset.studentName, sc) };
+    };
+    document.getElementById('btn-share-wa')?.addEventListener('click', () => window.open('https://wa.me/?text=' + encodeURIComponent(shareMsg().msg), '_blank', 'noopener'));
+    document.getElementById('btn-share-tg')?.addEventListener('click', () => { const { link, msg } = shareMsg(); window.open('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(msg.replace(link, '').replace(/\n{2,}/g, '\n')), '_blank', 'noopener'); });
     // 🌟🌟 [جديد] زر "إعادة المحاولة الآن" — راجع retryHomeworkCloudSync أسفل هذا الملف
     document.getElementById('btn-retry-hw-sync')?.addEventListener('click', retryHomeworkCloudSync);
     document.getElementById('btn-close-hw-modal')?.addEventListener('click', () => {
@@ -1377,7 +1394,10 @@ function setupSmartPanelStatic() {
     set('hw-assign-label', L('👤 الطالب (مطلوب):', '👤 Student (required):'));
     set('hw-qcount-label', L('عدد الأسئلة:', 'Number of questions:'));
     set('hw-cycle-label', L('دورة المراجعة (أسابيع):', 'Review cycle (weeks):'));
-    set('btn-generate-hw', L('⚙️ توليد الواجب الذكي', '⚙️ Generate smart homework'));
+    set('btn-generate-hw', L('⚙️ توليد ومراجعة الأسئلة أولاً', '⚙️ Generate & review questions first'));
+    set('btn-generate-publish', L('🚀 توليد ونشر الواجب مباشرة', '🚀 Generate & publish now'));
+    set('btn-share-wa', L('💬 واتساب', '💬 WhatsApp'));
+    set('btn-share-tg', L('✈️ تيليجرام', '✈️ Telegram'));
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
     set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
     set('hw-btn-week', L('📅 جدول الأسبوع', '📅 Weekly schedule'));
@@ -1529,7 +1549,18 @@ async function refreshScopePanel() {
 function renderScopePanel() {
     if (!smartModel) return;
     const m = smartModel;
-    document.querySelectorAll('input[name="hwScope"]').forEach(r => { r.checked = (r.value === scopeMode); });
+    document.querySelectorAll('input[name="hwScope"]').forEach(r => { r.checked = (r.value === scopeMode); r.closest('label')?.classList.toggle('on', r.checked); });
+    // 🌟 [2026-10-09] سطر يوضّح ما تحت الزر المختار + «تحديد الكل/مسح» (يغيّران الاختيار فقط)
+    const help = $id('hw-scope-help');
+    if (help) {
+        const unitW = m.unit === 'hizb' ? L('الأحزاب', 'hizbs') : L('الأرباع', 'quarters');
+        const selN = scopeIds.size;
+        help.innerHTML = scopeMode === 'all'
+            ? `<span>📖 ${esc(L('سيُسأل الطالب من كل نطاقه', 'The student is asked from their whole range'))} <small>(${m.groups.length})</small></span>`
+            : scopeMode === 'surah'
+                ? `<span>${esc(L('اضغط السور التي تريدها', 'Tap the surahs you want'))} <small>(${selN})</small></span><span><a data-act="clear">${esc(L('مسح', 'Clear'))}</a></span>`
+                : `<span>${esc(L('اضغط ما تريده من ', 'Tap the ') + unitW)} <small>(${selN} / ${m.groups.length})</small></span><span><a data-act="all">${esc(L('تحديد الكل', 'Select all'))}</a> · <a data-act="clear">${esc(L('مسح', 'Clear'))}</a></span>`;
+    }
     const hasResume = !!(smartResume && smartResume.uncoveredCount > 0);
     $id('hw-scope-resume-wrap').style.display = hasResume ? '' : 'none';
     $id('hw-btn-unit').textContent = m.unit === 'hizb' ? L('⇄ عرض بالأرباع', '⇄ Show quarters') : L('⇄ عرض بالأحزاب', '⇄ Show hizbs');
@@ -1553,7 +1584,7 @@ function renderScopePanel() {
         const covPct = total ? Math.round((total - unc) / total * 100) : 100;
         const days = g.lastTs ? Math.max(0, Math.round((m.now - g.lastTs) / 86400000)) : null;
         const status = unc === 0 ? `✓ ${L('غُطّي', 'covered')}` : (days === null ? L('لم يُفحص', 'unchecked') : L(`قبل ${days} يوم`, `${days}d ago`));
-        const sel = scopeMode === 'hizb' && scopeIds.has(g.id);
+        const sel = scopeMode === 'all' || (scopeMode === 'hizb' && scopeIds.has(g.id));
         const where = `${segLabel(g.segIds[0])}`;
         const title = `${tileTitle(g)}${g.name ? ` «${g.name}»` : ''} (${L('الجزء', 'Juz')} ${g.juz}) — ${groupRangeText(g) || `${L('يبدأ من', 'starts at')} ${where}`} ·${segCount(total)} · ${L('لم يُغطَّ', 'uncovered')}: ${unc}${g.fixCount ? ` · ${L('أخطاء مفتوحة', 'open mistakes')}: ${g.fixCount}` : ''}${g.pctMemorized < 100 ? ` · ${L('محفوظ منه', 'memorized')} ${g.pctMemorized}%` : ''}`;
         return `<button type="button" class="hw-tile${sel ? ' sel' : ''}${g.pctMemorized < 100 ? ' partial' : ''}" data-id="${esc(g.id)}" title="${esc(title)}">
@@ -1616,6 +1647,13 @@ function bindScopePanel() {
         if (scopeMode === 'resume' && smartResume) setCount(smartResume.uncoveredCount);
         renderScopePanel();
     }));
+    q('hw-scope-help')?.addEventListener('click', (e) => {
+        const a = e.target.closest('a[data-act]');
+        if (!a || !smartModel) return;
+        if (a.dataset.act === 'all' && scopeMode === 'hizb') scopeIds = new Set(smartModel.groups.map(g => g.id));
+        else scopeIds = new Set();
+        renderScopePanel();
+    });
     q('hw-hizb-strip')?.addEventListener('click', (e) => {
         const tile = e.target.closest('.hw-tile');
         if (!tile) return;
