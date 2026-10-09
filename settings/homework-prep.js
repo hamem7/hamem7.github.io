@@ -288,9 +288,9 @@ async function renderDueToday() {
         box.innerHTML = rows.slice(0, 12).map(r => {
             const name = String(r.student.name || '');
             const late = r.lateDays > 0;
-            return `<div class="hwp5-tcard"><div class="av">${esc(name.trim().charAt(0))}</div><div class="m"><b>${esc(name)}</b></div>`
-                + `<span class="hwp5-tag${late ? ' r' : ''}">${esc(late ? L(`متأخر ${r.lateDays} يوم`, `${r.lateDays}d late`) : L('اليوم', 'Today'))}</span>`
-                + `<button type="button" class="hwp5-go" data-name="${esc(name)}">${esc(L('أنشئ', 'Create'))}</button></div>`;
+            return `<div class="hwp5-tcard${late ? ' late' : ''}"><div class="av">${esc(name.trim().charAt(0))}</div><div class="m"><b>${esc(name)}</b></div>`
+                + `<div class="row2"><span class="hwp5-tag${late ? ' r' : ''}">${esc(late ? L(`متأخر ${r.lateDays} يوم`, `${r.lateDays}d late`) : L('اليوم', 'Today'))}</span>`
+                + `<button type="button" class="hwp5-go" data-name="${esc(name)}">${esc(L('أنشئ', 'Create'))}</button></div></div>`;
         }).join('');
     } catch (e) { console.warn('تعذر عرض «مستحق اليوم»:', e); sec.style.display = 'none'; }
 }
