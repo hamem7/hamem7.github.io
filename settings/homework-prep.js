@@ -277,22 +277,30 @@ async function populateTargetStudents() {
 // 🌟 [2026-10-09] «مستحق اليوم» في أعلى الشاشة: قراءة فقط من جدول الواجبات الأسبوعي الموجود (listDueToday)، وأي فشل يخفي القسم بصمت
 async function renderDueToday() {
     const sec = document.getElementById('hwp5-due-sec'), box = document.getElementById('hwp5-due');
+    const layout = document.getElementById('hwp6-layout');
     if (!sec || !box) return;
+    const hide = () => { sec.style.display = 'none'; box.innerHTML = ''; layout?.classList.remove('has-due'); };
     try {
         const { rows } = await listDueToday();
-        if (!rows.length) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+        if (!rows.length) return hide();
+        // المتأخرون أولاً (الأكثر تأخراً في الأعلى) ثم المستحقون اليوم
+        const sorted = [...rows].sort((x, y) => (y.lateDays || 0) - (x.lateDays || 0));
+        const lateN = sorted.filter(r => r.lateDays > 0).length;
         sec.style.display = '';
+        layout?.classList.add('has-due');
         document.getElementById('hwp5-due-title').textContent = L('مستحق اليوم', 'Due today');
         document.getElementById('hwp5-due-n').textContent = L(`${rows.length} طلاب`, `${rows.length} students`);
-        document.getElementById('hwp5-week').textContent = L('📅 جدول الأسبوع ←', '📅 Weekly schedule →');
-        box.innerHTML = rows.slice(0, 12).map(r => {
+        const lateEl = document.getElementById('hwp5-late-n');
+        if (lateEl) { lateEl.style.display = lateN ? '' : 'none'; lateEl.textContent = L(`${lateN} متأخر`, `${lateN} late`); }
+        document.getElementById('hwp5-week').textContent = L('📅 جدول الأسبوع', '📅 Weekly schedule');
+        box.innerHTML = sorted.map(r => {
             const name = String(r.student.name || '');
             const late = r.lateDays > 0;
-            return `<div class="hwp5-tcard${late ? ' late' : ''}"><div class="av">${esc(name.trim().charAt(0))}</div><div class="m"><b>${esc(name)}</b></div>`
+            return `<div class="hwp5-tcard${late ? ' late' : ''}" data-name="${esc(name)}"><div class="av">${esc(name.trim().charAt(0))}</div><div class="m"><b>${esc(name)}</b></div>`
                 + `<div class="row2"><span class="hwp5-tag${late ? ' r' : ''}">${esc(late ? L(`متأخر ${r.lateDays} يوم`, `${r.lateDays}d late`) : L('اليوم', 'Today'))}</span>`
                 + `<button type="button" class="hwp5-go" data-name="${esc(name)}">${esc(L('أنشئ', 'Create'))}</button></div></div>`;
         }).join('');
-    } catch (e) { console.warn('تعذر عرض «مستحق اليوم»:', e); sec.style.display = 'none'; }
+    } catch (e) { console.warn('تعذر عرض «مستحق اليوم»:', e); hide(); }
 }
 
 async function loadHomeworkDashboard() {
@@ -1317,7 +1325,11 @@ function setupListeners() {
         if (!b) return;
         switchHwTab('new');
         setTargetStudent(b.dataset.name);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // العمود الجانبي ثابت أمام المعلم، فلا نقفز لأعلى الصفحة: نمرّر لنموذج الإعداد فقط إن كان خارج مجال الرؤية
+        const form = document.getElementById('tab-new-hw');
+        const top = form ? form.getBoundingClientRect().top : 0;
+        if (form && (top < 0 || top > window.innerHeight * 0.6)) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('#hwp5-due .hwp5-tcard').forEach(c => c.classList.toggle('sel', c.dataset.name === b.dataset.name));
     });
     document.getElementById('hwp5-week')?.addEventListener('click', async () => {
         const m = await import('../components/weekSchedule.js');
