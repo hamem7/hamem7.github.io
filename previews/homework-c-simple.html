@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ج) — الواجب بنقرتين</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--g1:#e7f4ee;--gold:#d4af37;--bg:#f4f7f5;--card:#fff;--ink:#10241c;--ink2:#5a6f66;--line:#e2eae5;--red:#dc2626}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1713;--card:#12241d;--ink:#eaf5ef;--ink2:#9db8ac;--line:#21392f;--g1:#16342a}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6}
+button{cursor:pointer;border:0;background:none;color:inherit}
+.app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header{background:linear-gradient(120deg,var(--g9),var(--g7));color:#fffdf6;padding:20px 20px 26px;border-bottom:3px solid var(--gold);border-radius:0 0 28px 28px}
+header .r{display:flex;align-items:center;gap:10px}
+header h1{font-size:1.2rem;flex:1}header small{color:#f1dd8f}
+.back{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);font-size:1.1rem;display:none}
+.scr{display:none;padding:20px;flex:1;animation:up .3s ease}.scr.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+h2{font-size:1.25rem;margin-bottom:4px}.sub{color:var(--ink2);margin-bottom:16px;font-size:.95rem}
+
+.big{width:100%;display:flex;align-items:center;gap:14px;padding:20px;border-radius:22px;background:linear-gradient(135deg,var(--g6),var(--g7));color:#fff;font-size:1.25rem;font-weight:700;box-shadow:0 12px 26px rgba(13,92,70,.3);margin-top:-6px;transition:.15s}
+.big:active{transform:scale(.98)}.big span{font-size:2rem}.big small{display:block;font-weight:500;font-size:.85rem;color:#cfe6dc}
+.sec{margin:26px 0 10px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.sec small{color:var(--ink2);font-weight:500}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:13px 14px;margin-bottom:10px;box-shadow:0 2px 10px rgba(6,35,28,.06);width:100%;text-align:start;transition:.15s}
+.item:active{transform:scale(.98)}
+.av{width:44px;height:44px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex-shrink:0}
+.item .m{flex:1;min-width:0}.item b{display:block}.item small{color:var(--ink2);font-size:.8rem}
+.tag{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:99px;background:#fbf3d5;color:#8a6a00;white-space:nowrap}
+.tag.r{background:#fde4e2;color:var(--red)}.tag.g{background:var(--g1);color:var(--g7)}
+.go{background:var(--g7);color:#fff;border-radius:12px;padding:8px 14px;font-weight:700;font-size:.88rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stats div{background:var(--card);border-radius:16px;padding:12px;text-align:center;box-shadow:0 2px 10px rgba(6,35,28,.06)}
+.stats b{font-size:1.6rem;display:block;line-height:1.2}.stats small{color:var(--ink2);font-size:.78rem}
+
+.search{width:100%;padding:14px 18px;border-radius:16px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:1rem;outline:none;margin-bottom:12px}
+.search:focus{border-color:var(--g6)}
+
+.sumcard{background:var(--card);border-radius:22px;padding:20px;box-shadow:0 6px 22px rgba(6,35,28,.1);text-align:center}
+.sumcard .av{width:64px;height:64px;font-size:1.5rem;margin:0 auto 8px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.facts div{background:var(--bg);border-radius:14px;padding:12px}
+.facts b{display:block;font-size:1.3rem;color:var(--g7)}.facts small{color:var(--ink2);font-size:.8rem}
+.auto{background:var(--g1);color:var(--g7);border-radius:14px;padding:11px 14px;font-size:.88rem;text-align:start;display:flex;gap:8px}
+.adv{margin-top:14px;width:100%;padding:12px;border-radius:14px;border:2px dashed var(--line);color:var(--ink2);font-weight:600}
+.advbox{display:none;margin-top:12px;text-align:start}.advbox.on{display:block}
+.row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+.stp{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:12px}
+.stp button{width:42px;height:42px;font-size:1.3rem;font-weight:700;color:var(--g7)}.stp b{min-width:34px;text-align:center}
+.sw{width:50px;height:28px;border-radius:99px;background:var(--line);position:relative;transition:.2s}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw.on{background:var(--g6)}.sw.on::after{inset-inline-start:25px}
+.sc{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.sc button{padding:9px 14px;border-radius:99px;border:2px solid var(--line);font-weight:600;font-size:.88rem}
+.sc button.on{border-color:var(--g7);background:var(--g1);color:var(--g7)}
+.peek{margin-top:14px;background:var(--bg);border-radius:14px;padding:4px 14px}
+.peek div{padding:9px 0;border-bottom:1px solid var(--line);font-size:.88rem;display:flex;gap:8px}.peek div:last-child{border:0}
+.peek .q{font-family:'Amiri Quran',serif;font-size:1.05rem}
+
+.dock{position:sticky;bottom:0;padding:14px 20px 20px;background:linear-gradient(transparent,var(--bg) 30%);display:none}
+.dock.on{display:block}
+.cta{width:100%;padding:18px;border-radius:20px;font-size:1.2rem;font-weight:700;display:flex;justify-content:center;gap:10px;align-items:center}
+.cta.pub{background:linear-gradient(135deg,var(--g6),var(--g7));color:#fff;box-shadow:0 10px 24px rgba(13,92,70,.35)}
+.cta.wa{background:#25d366;color:#04361a;box-shadow:0 10px 24px rgba(37,211,102,.4)}
+.cta.o{background:var(--card);border:2px solid var(--line);margin-top:10px;font-size:1rem;padding:14px}
+
+.done{text-align:center;padding-top:10px}
+.done .c{font-size:4rem;animation:pop .5s ease both}@keyframes pop{0%{transform:scale(.2)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.bub{background:#dcf8c6;color:#111;border-radius:16px 16px 4px 16px;padding:14px;font-size:.88rem;white-space:pre-wrap;text-align:start;line-height:1.8;margin:16px 0;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.lk{display:flex;gap:6px;background:var(--card);border-radius:14px;padding:6px;box-shadow:0 2px 10px rgba(6,35,28,.06)}
+.lk input{flex:1;direction:ltr;border:0;background:transparent;padding:8px;color:var(--ink);font-size:.82rem;min-width:0;outline:none}
+.toast{position:fixed;bottom:100px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--g9);color:#fff;padding:11px 20px;border-radius:14px;opacity:0;transform:translateY(20px);transition:.3s;z-index:9;font-weight:600}
+.toast.on{opacity:1;transform:none}
+@media(min-width:700px){body{background:radial-gradient(circle at 50% 0,var(--g1),var(--bg) 60%)}.app{box-shadow:0 0 60px rgba(6,35,28,.12);background:var(--bg)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="r"><button class="back" id="back">→</button><div style="flex:1"><h1 id="ttl">الواجبات</h1><small id="sub">معاينة (ج) · الأبسط</small></div><span style="font-size:1.6rem">📖</span></div></header>
+
+<section class="scr on" id="s1">
+  <button class="big" id="newBtn"><span>➕</span><div>واجب جديد<small>اختر الطالب ونحن نجهّز الباقي</small></div></button>
+  <div class="stats" style="margin-top:18px"><div><b>12</b><small>منشور</small></div><div><b style="color:var(--red)">3</b><small>يحتاج تصحيح</small></div><div><b>2</b><small>مسودة</small></div></div>
+  <div class="sec">📅 مستحق اليوم <small>اضغط للإرسال السريع</small></div>
+  <div id="due"></div>
+  <div class="sec">📝 تنتظر تصحيحك <small>3</small></div>
+  <button class="item" onclick="toast('يفتح شاشة التصحيح')"><div class="av">ع</div><div class="m"><b>عبدالله خالد</b><small>الملك → القلم · 3 أسئلة يدوية</small></div><span class="tag r">صحّح</span></button>
+  <button class="item" onclick="toast('يفتح شاشة التصحيح')"><div class="av">ن</div><div class="m"><b>نورة سعد</b><small>المطففين → الانشقاق</small></div><span class="tag r">صحّح</span></button>
+  <button class="item" style="justify-content:center;color:var(--g6);font-weight:700" onclick="toast('يفتح سجل الواجبات الكامل')">📊 سجل الواجبات والنتائج</button>
+</section>
+
+<section class="scr" id="s2">
+  <h2>لمن الواجب؟</h2><p class="sub">اختر الطالب فقط.</p>
+  <input class="search" id="q" placeholder="🔍 ابحث بالاسم">
+  <div id="list"></div>
+</section>
+
+<section class="scr" id="s3">
+  <div class="sumcard">
+    <div class="av" id="sAv"></div><h2 id="sName"></h2><div class="sub" id="sRange" style="margin:0"></div>
+    <div class="facts"><div><b id="fN">10</b><small>سؤال</small></div><div><b id="fT">6 د</b><small>الوقت المتوقع</small></div><div><b id="fC">—</b><small>تغطية النطاق</small></div><div><b>3 أيام</b><small>مهلة التسليم</small></div></div>
+    <div class="auto">✨ <span>اختير النطاق تلقائياً: مقاطع لم تُراجع مؤخراً + أخطاء سابقة بصيغة جديدة.</span></div>
+  </div>
+  <button class="adv" id="advBtn">⚙️ تخصيص (اختياري)</button>
+  <div class="advbox" id="adv">
+    <div class="row"><b>عدد الأسئلة</b><div class="stp"><button id="m">−</button><b id="nv">10</b><button id="p">+</button></div></div>
+    <div style="padding:12px 0"><b>النطاق</b><div class="sc" id="sc"></div></div>
+    <div class="row"><span>⏰ تذكير تلقائي للطالب</span><button class="sw on" data-sw></button></div>
+    <div class="row"><span>👁️ إظهار النتيجة للطالب</span><button class="sw on" data-sw></button></div>
+    <div class="row" style="border:0"><span>🔁 السماح بإعادة المحاولة</span><button class="sw" data-sw></button></div>
+    <button class="adv" id="peekBtn" style="margin-top:6px">👀 اطّلع على الأسئلة</button>
+    <div class="peek" id="peek" style="display:none"></div>
+  </div>
+</section>
+
+<section class="scr" id="s4">
+  <div class="done"><div class="c">🎉</div><h2>الواجب جاهز!</h2><p class="sub">أرسله لـ <b id="dName"></b> بضغطة واحدة</p></div>
+  <div class="bub" id="msg"></div>
+  <div class="lk"><input id="lnk" readonly><button class="go" id="cp">📋 نسخ</button></div>
+</section>
+
+<div class="dock" id="dock"><button class="cta pub" id="main">🚀 اعتماد الواجب</button><button class="cta o" id="sec" style="display:none">↗️ طرق إرسال أخرى</button></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2000)};
+const S=[{n:'أحمد محمد',r:'الناس → الملك',due:'اليوم'},{n:'يوسف إبراهيم',r:'الناس → الأعلى',due:'اليوم'},{n:'عبدالله خالد',r:'الناس → النبأ',due:'متأخر يوم'},{n:'مريم علي',r:'الناس → النازعات',due:'اليوم'},{n:'سارة أحمد',r:'جزء عمّ',due:''},{n:'عمر حسن',r:'الناس → الغاشية',due:''},{n:'نورة سعد',r:'الناس → المطففين',due:''}];
+const item=s=>`<button class="item" data-n="${s.n}"><div class="av">${s.n[0]}</div><div class="m"><b>${s.n}</b><small>${s.r}</small></div>${s.due?`<span class="tag ${s.due.includes('متأخر')?'r':''}">${s.due}</span>`:''}</button>`;
+$('#due').innerHTML=S.filter(s=>s.due).map(item).join('');
+let stu=null,n=10,scope='auto',screen=1,LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
+function drawList(){const q=$('#q').value.trim();$('#list').innerHTML=S.filter(s=>s.n.includes(q)).map(item).join('')||'<p class="sub">لا يوجد طالب بهذا الاسم</p>'}
+$('#q').oninput=drawList;
+document.addEventListener('click',e=>{const b=e.target.closest('.item[data-n]');if(b){stu=S.find(s=>s.n===b.dataset.n);n=10;scope='auto';show(3)}});
+$('#newBtn').onclick=()=>{$('#q').value='';drawList();show(2)};
+const T={1:['الواجبات','معاينة (ج) · الأبسط'],2:['واجب جديد','الخطوة 1 من 2'],3:['راجع وانشر','الخطوة 2 من 2'],4:['تم النشر','أرسل الرابط للطالب']};
+function show(i){screen=i;$$('.scr').forEach((x,k)=>x.classList.toggle('on',k+1===i));$('#ttl').textContent=T[i][0];$('#sub').textContent=T[i][1];$('#back').style.display=i>1&&i<4?'block':'none';
+  const d=$('#dock');d.classList.toggle('on',i>=3);const m=$('#main'),s=$('#sec');
+  if(i===3){m.className='cta pub';m.textContent='🚀 اعتماد الواجب';s.style.display='none';fill()}
+  if(i===4){m.className='cta wa';m.textContent='💬 أرسل عبر واتساب';s.style.display='flex';s.textContent='↗️ طرق إرسال أخرى';fillDone()}
+  scrollTo({top:0})}
+$('#back').onclick=()=>show(screen-1);
+const SC=[['auto','✨ تلقائي'],['fix','الأخطاء فقط'],['old','الأقدم فحصاً'],['all','كل النطاق']];
+function fill(){$('#sAv').textContent=stu.n[0];$('#sName').textContent=stu.n;$('#sRange').textContent='نطاق الحفظ: '+stu.r;$('#nv').textContent=n;$('#fN').textContent=n;$('#fT').textContent=Math.ceil(n*.6)+' د';$('#fC').textContent=Math.min(100,n*4)+'%';
+  $('#sc').innerHTML=SC.map(([k,l])=>`<button class="${scope===k?'on':''}" data-k="${k}">${l}</button>`).join('')}
+$('#sc').onclick=e=>{const b=e.target.closest('button');if(b){scope=b.dataset.k;fill()}};
+$('#m').onclick=()=>{n=Math.max(3,n-1);fill()};$('#p').onclick=()=>{n=Math.min(30,n+1);fill()};
+$('#advBtn').onclick=()=>$('#adv').classList.toggle('on');
+$$('[data-sw]').forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+const PK=[['🆕','أكمل الآية','﴿ قُلْ أَعُوذُ بِرَبِّ النَّاسِ ﴾'],['🩹','رتّب الآيات','سورة الإخلاص'],['🕰️','في أي صفحة؟','﴿ إِنَّا أَعْطَيْنَاكَ الْكَوْثَرَ ﴾']];
+$('#peekBtn').onclick=()=>{const p=$('#peek');p.style.display='block';p.innerHTML=PK.map(x=>`<div><span>${x[0]}</span><div><b>${x[1]}</b><div class="q">${x[2]}</div></div></div>`).join('')+`<div style="color:var(--ink2)">… و ${Math.max(0,n-3)} أسئلة أخرى</div>`};
+function fillDone(){$('#dName').textContent=stu.n;$('#lnk').value=LINK;$('#msg').textContent=`📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${stu.r}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`}
+$('#main').onclick=()=>{if(screen===3)show(4);else window.open('https://wa.me/?text='+encodeURIComponent($('#msg').textContent),'_blank')};
+$('#sec').onclick=()=>navigator.share?navigator.share({title:'واجب حمٓ',text:$('#msg').textContent,url:LINK}):toast('خيارات المشاركة تظهر على الهاتف');
+$('#cp').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});toast('✔️ تم نسخ الرابط')};
+</script>
+</body>
+</html>
