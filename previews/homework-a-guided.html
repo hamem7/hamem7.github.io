@@ -107,6 +107,17 @@ button.stat:hover{transform:translateY(-3px)}
 .hz:hover{transform:scale(1.12);z-index:2}
 .hz.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--gold)}
 .hz.off{background:var(--line);color:var(--ink2);opacity:.5;pointer-events:none}
+.hzhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 10px;font-weight:600}
+.hzhead small{color:var(--ink2);font-weight:500}.hzhead .lnk{color:var(--g6);font-weight:700;cursor:pointer;font-size:.88rem}
+.hzl{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:420px;overflow:auto;padding:2px}
+.hzc{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:14px;padding:10px 12px;text-align:start;background:var(--card);transition:.12s;min-width:0}
+.hzc:hover{border-color:var(--g6)}.hzc.on{border-color:var(--g7);background:var(--g1)}.hzc.lock{cursor:default}
+.hzc .bx{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:#fff;flex-shrink:0;background:var(--card)}
+.hzc.on .bx{background:var(--g7);border-color:var(--g7)}
+.hzc .no{min-width:40px;height:40px;border-radius:11px;background:var(--hc);color:var(--hf,#fff);display:grid;place-items:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+.hzc .nm{flex:1;min-width:0}.hzc .nm b{display:block;font-size:.88rem}.hzc .nm .q{font-size:1rem;line-height:1.7;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hzc .nm small{color:var(--ink2);font-size:.74rem}
+@media(max-width:640px){.hzl{grid-template-columns:1fr}}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.8rem;color:var(--ink2)}
 .legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-inline-end:5px}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
@@ -230,13 +241,8 @@ button.stat:hover{transform:translateY(-3px)}
             <button class="mode" data-m="all">كل النطاق</button>
             <button class="mode" data-m="hizb">أحزاب محددة</button>
           </div>
-          <div id="hizbWrap" style="display:none">
-            <div class="hizb" id="hizb"></div>
-            <div class="legend">
-              <span><i style="background:#0d5c46"></i>مغطّى</span><span><i style="background:#d4af37"></i>قديم الفحص</span>
-              <span><i style="background:#dc6b4a"></i>أخطاء مفتوحة</span><span><i style="background:#9fb3aa"></i>لم يُفحص</span>
-            </div>
-          </div>
+          <div class="hzhead" id="hzHead"></div>
+          <div class="hzl" id="hzList"></div>
           <div class="fld" style="margin-top:18px;max-width:260px"><label>عدد الأسئلة</label><div class="num"><button id="qm">−</button><input id="qc" value="10" readonly><button id="qp">+</button></div></div>
           <div class="cov" id="cov"></div>
           <details class="peek"><summary>👀 عرض الأسئلة قبل النشر (اختياري)</summary>
@@ -315,15 +321,29 @@ function reset(){stu=null;mode='auto';qc=10;sel=new Set();published=false;$('#st
   $('#formPanel').style.display='block';$('#donePanel').style.display='none';$('#rest').style.display='none';$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='auto'));drawStu();render()}
 function drawStu(){const q=$('#stuSearch').value.trim();$('#stuGrid').innerHTML=students.filter(s=>s.n.includes(q)).map(s=>`<button class="stu ${stu&&stu.n===s.n?'on':''}" data-n="${s.n}"><div class="av">${s.n[0]}</div><div><b>${s.n}</b><small>${s.r}</small></div></button>`).join('')||'<p style="color:var(--ink2)">لا يوجد طالب بهذا الاسم</p>'}
 $('#stuSearch').oninput=drawStu;$('#stuGrid').onclick=e=>{const b=e.target.closest('.stu');if(b)pickStudent(b.dataset.n)};
-function pickStudent(n){stu=students.find(s=>s.n===n);sel=new Set();mode='auto';$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='auto'));
-  $('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. اختير النطاق تلقائياً: الأقل تغطية والأقدم فحصاً + الأخطاء السابقة بصيغة جديدة.</div>`;
+function pickStudent(n){stu=students.find(s=>s.n===n);mode='auto';sel=new Set(suggest());$$('#modes .mode').forEach(m=>m.classList.toggle('on',m.dataset.m==='auto'));
+  $('#stuInfo').innerHTML=`<span>💡</span><div><b>${stu.n}</b> — نطاق الحفظ: ${stu.r}. آخر واجب قبل 5 أيام. </div>`;
   $('#rest').style.display='block';drawStu();render();setTimeout(()=>$('#rest').scrollIntoView({behavior:'smooth',block:'nearest'}),50)}
-function hcolor(i){const r=(i*37+7)%10;return r<4?'#0d5c46':r<6?'#d4af37':r<8?'#dc6b4a':'#9fb3aa'}
-function drawHizb(){const max=stu?stu.h*2:0;$('#hizb').innerHTML=Array.from({length:30},(_,i)=>{const on=i<max;return `<button class="hz ${on?'':'off'} ${sel.has(i)?'sel':''}" style="--hc:${hcolor(i)};${hcolor(i)==='#d4af37'?'--hf:#3a2d00':''}" data-i="${i}" title="الحزب ${i+1}">${i+1}</button>`}).join('')}
-$('#hizb').onclick=e=>{const b=e.target.closest('.hz');if(!b)return;const i=+b.dataset.i;sel.has(i)?sel.delete(i):sel.add(i);render()};
-$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(!b)return;mode=b.dataset.m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x===b));if(mode!=='hizb')sel=new Set();render()};
+const HN=["سورة الفاتحة", "أَفَتَطْمَعُونَ أَن يُؤْمِنُوا۟ (البقرة 75)", "سَيَقُولُ ٱلسُّفَهَآءُ مِنَ (البقرة 142)", "وَٱذْكُرُوا۟ ٱللَّهَ فِىٓ (البقرة 203)", "تِلْكَ ٱلرُّسُلُ فَضَّلْنَا (البقرة 253)", "قُلْ أَؤُنَبِّئُكُم بِخَيْرٍۢ (ال عمران 15)", "كُلُّ ٱلطَّعَامِ كَانَ (ال عمران 93)", "يَسْتَبْشِرُونَ بِنِعْمَةٍۢ مِّنَ (ال عمران 171)", "وَٱلْمُحْصَنَٰتُ مِنَ ٱلنِّسَآءِ (النساء 24)", "فَمَا لَكُمْ فِى (النساء 88)", "لَّا يُحِبُّ ٱللَّهُ (النساء 148)", "وَٱتْلُ عَلَيْهِمْ نَبَأَ (المائـدة 27)", "لَتَجِدَنَّ أَشَدَّ ٱلنَّاسِ (المائـدة 82)", "إِنَّمَا يَسْتَجِيبُ ٱلَّذِينَ (الأنعام 36)", "وَلَوْ أَنَّنَا نَزَّلْنَآ (الأنعام 111)", "سورة الأعراف", "قَالَ ٱلْمَلَأُ ٱلَّذِينَ (الأعراف 88)", "وَإِذْ نَتَقْنَا ٱلْجَبَلَ (الأعراف 171)", "وَٱعْلَمُوٓا۟ أَنَّمَا غَنِمْتُم (الأنفال 41)", "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوٓا۟ (التوبة 34)", "إِنَّمَا ٱلسَّبِيلُ عَلَى (التوبة 93)", "لِّلَّذِينَ أَحْسَنُوا۟ ٱلْحُسْنَىٰ (يونس 26)", "وَمَا مِن دَآبَّةٍۢ (هود 6)", "وَإِلَىٰ مَدْيَنَ أَخَاهُمْ (هود 84)", "وَمَآ أُبَرِّئُ نَفْسِىٓ (يوسف 53)", "أَفَمَن يَعْلَمُ أَنَّمَآ (الرعد 19)", "سورة الحجر", "وَقَالَ ٱللَّهُ لَا (النحل 51)", "سورة الإسراء", "أَوَلَمْ يَرَوْا۟ أَنَّ (الإسراء 99)", "قَالَ أَلَمْ أَقُل (الكهف 75)", "سورة طه", "سورة الأنبياء", "سورة الحج", "سورة المؤمنون", "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ (النور 21)", "وَقَالَ ٱلَّذِينَ لَا (الفرقان 21)", "قَالُوٓا۟ أَنُؤْمِنُ لَكَ (الشعراء 111)", "فَمَا كَانَ جَوَابَ (النمل 56)", "وَلَقَدْ وَصَّلْنَا لَهُمُ (القصص 51)", "وَلَا تُجَٰدِلُوٓا۟ أَهْلَ (العنكبوت 46)", "وَمَن يُسْلِمْ وَجْهَهُۥٓ (لقمان 22)", "وَمَن يَقْنُتْ مِنكُنَّ (الأحزاب 31)", "قُلْ مَن يَرْزُقُكُم (سبإ 24)", "وَمَآ أَنزَلْنَا عَلَىٰ (يس 28)", "فَنَبَذْنَٰهُ بِٱلْعَرَآءِ وَهُوَ (الصافات 145)", "فَمَنْ أَظْلَمُ مِمَّن (الزمر 32)", "وَيَٰقَوْمِ مَا لِىٓ (غافر 41)", "إِلَيْهِ يُرَدُّ عِلْمُ (فصلت 47)", "قَٰلَ أَوَلَوْ جِئْتُكُم (الزخرف 24)", "سورة الأحقاف", "لَّقَدْ رَضِىَ ٱللَّهُ (الفتح 18)", "قَالَ فَمَا خَطْبُكُمْ (الذاريات 31)", "سورة الرحمن", "سورة المجادلة", "سورة الجمعة", "سورة الملك", "سورة الجن", "سورة النبإ", "سورة الأعلى"];
+const ST4=[['مغطّى','#0d5c46'],['قديم الفحص','#d4af37'],['أخطاء مفتوحة','#dc6b4a'],['لم يُفحص','#9fb3aa']];
+const stOf=h=>{const r=(h*37+7)%10;return r<4?0:r<6?1:r<8?2:3};
+const rangeOf=()=>stu?Array.from({length:Math.min(60,stu.h*2)},(_,i)=>60-i):[];
+const suggest=()=>{const rk={2:0,1:1,3:2,0:3};return rangeOf().slice().sort((x,y)=>rk[stOf(x)]-rk[stOf(y)]||y-x).slice(0,4)};
+const REASON=['مراجعته حديثة','لم يُفحص منذ 5 أسابيع','أخطاء مفتوحة تحتاج علاجاً','لم يُفحص بعد'];
+function hzCard(h,lock){const st=stOf(h),c=ST4[st][1],on=sel.has(h);
+  return `<button class="hzc ${on?'on':''} ${lock?'lock':''}" data-h="${h}" style="--hc:${c};${st===1?'--hf:#3a2d00':''}"><span class="bx">${on?'✓':''}</span><span class="no">${h}</span><span class="nm"><b>الحزب ${h}</b><span class="q">${HN[h-1]}</span><small>${ST4[st][0]} · ${REASON[st]}</small></span></button>`}
+function drawHizb(){const r=rangeOf();let head='',list='';
+  if(mode==='auto'){head=`<span>✨ اخترنا لك ${sel.size} أحزاب <small>— ألغِ أي حزب لا تريده</small></span><span class="lnk" data-more>＋ أضف أحزاباً أخرى</span>`;list=[...new Set([...suggest(),...sel])].sort((a,b)=>b-a).map(h=>hzCard(h,false)).join('')}
+  else if(mode==='all'){head=`<span>📖 سيُسأل الطالب من كل نطاقه <small>(${r.length} حزباً)</small></span>`;list=r.map(h=>hzCard(h,true)).join('')}
+  else{head=`<span>👆 اضغط الأحزاب التي تريدها <small>(${sel.size} مختار من ${r.length})</small></span><span><span class="lnk" data-selall>تحديد الكل</span> · <span class="lnk" data-clear>مسح</span></span>`;list=r.map(h=>hzCard(h,false)).join('')}
+  $('#hzHead').innerHTML=head;$('#hzList').innerHTML=list}
+$('#hzHead').onclick=e=>{const t=e.target;if(t.dataset.more!==undefined){mode='hizb';$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m==='hizb'))}
+  else if(t.dataset.selall!==undefined)sel=new Set(rangeOf());else if(t.dataset.clear!==undefined)sel=new Set();else return;render()};
+$('#hzList').onclick=e=>{const b=e.target.closest('.hzc');if(!b||mode==='all')return;const h=+b.dataset.h;sel.has(h)?sel.delete(h):sel.add(h);render()};
+function setMode(m){const was=mode;mode=m;$$('#modes .mode').forEach(x=>x.classList.toggle('on',x.dataset.m===m));if(m==='auto')sel=new Set(suggest());else if(m==='all')sel=new Set(rangeOf());else if(was==='all')sel=new Set();render()}
+$('#modes').onclick=e=>{const b=e.target.closest('.mode');if(b)setMode(b.dataset.m)};
 const clampQ=d=>{qc=Math.min(50,Math.max(3,qc+d));$('#qc').value=qc;render()};$('#qm').onclick=()=>clampQ(-1);$('#qp').onclick=()=>clampQ(1);
-function drawCov(){const n=mode==='hizb'?sel.size*3:(stu?stu.h*2:0)*3;const pct=n?Math.min(100,Math.round(qc/n*100)):0;$('#cov').innerHTML=mode==='hizb'&&!sel.size?'👆 اضغط الأحزاب التي تريدها من الخريطة.':`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً.`}
+function drawCov(){const n=sel.size*3;const pct=n?Math.min(100,Math.round(qc/n*100)):0;$('#cov').innerHTML=!sel.size?'👆 اختر حزباً واحداً على الأقل.':`📊 هذا الواجب يغطي <b>${pct}%</b> من النطاق المختار (${sel.size} أحزاب · ${n} مقطعاً). لتغطيته كله اكتب <b>${n}</b> سؤالاً.`}
 
 /* ---------- questions ---------- */
 const bank=[
@@ -340,7 +360,7 @@ $('#qlist').onclick=e=>{if(e.target.closest('[data-del]')){clampQ(-1);toast('�
 
 /* ---------- publish ---------- */
 const LINK='https://hamem7.github.io/Dar-Ham-Homework-Lab/student.html?hw=K7p2xQ9m';
-const MSG=()=>{const sc=mode==='hizb'?'أحزاب '+[...sel].map(i=>i+1).join('، '):stu.r;return `📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`};
+const MSG=()=>{const sc=mode==='all'?stu.r:'الأحزاب '+[...sel].sort((a,b)=>b-a).join('، ');return `📚 واجب منزلي\n👤 الطالب: ${stu.n}\n📖 الأسئلة في: ${sc}\n🔗 الرابط:\n${LINK}\nيرجى الدخول إلى الرابط وحل الواجب، ثم الضغط على «تسليم» بعد الانتهاء ... مع تمنياتي لك بالتوفيق 🌟`};
 function publish(){published=true;$('#formPanel').style.display='none';$('#donePanel').style.display='block';$('#dStu').textContent=stu.n;$('#lnk').value=LINK;render();scrollTo({top:0,behavior:'smooth'});toast('🎉 نُشر الواجب بنجاح')}
 $('#cp').onclick=()=>{navigator.clipboard?.writeText(LINK).catch(()=>{});$('#cp').textContent='✔️ تم';setTimeout(()=>$('#cp').textContent='📋 نسخ',1600);toast('✔️ تم نسخ الرابط')};
 $('#wa').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent(MSG()),'_blank');
@@ -353,7 +373,7 @@ function drawPhone(){const p=$('#phone');
   else if(!stu)p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card"><span style="color:#94a3b8">اختر طالباً لتظهر المعاينة</span></div></div>`;
   else p.innerHTML=`<div class="ph-head">📖 حمٓ — الواجب المنزلي</div><div class="ph-body"><h5>مرحباً بك يا بطل 👑</h5><div class="ph-card">هذا الواجب مخصّص لـ<br><b style="font-size:1.1rem;color:#047857">${stu.n}</b></div><div class="ph-card">واجب من <b>${qc}</b> سؤال<br><small style="color:#64748b">إجاباتك تُحفظ تلقائياً على جهازك</small></div><div class="ph-btn">ابدأ الحل ▶</div></div>`}
 
-function render(){if(stu){$('#hizbWrap').style.display=mode==='hizb'?'block':'none';if(mode==='hizb')drawHizb();drawCov();drawQs();$('#next').disabled=mode==='hizb'&&!sel.size}drawPhone()}
+function render(){if(stu){drawHizb();drawCov();drawQs();$('#next').disabled=!sel.size}drawPhone()}
 $('#next').onclick=publish;
 reset();
 </script>
