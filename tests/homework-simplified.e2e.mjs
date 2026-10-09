@@ -82,6 +82,22 @@ try {
   await sleep(300);
   await page.evaluate(() => document.getElementById('btn-hero-new').click());
   await sleep(800);
+  // ---- الرئيسية: بطاقة البدء + الإحصائيات + «مستحق اليوم» (نفرض جدولاً يستحق اليوم لطالب موجود)
+  await page.evaluate(() => document.getElementById('btn-tab-history')?.click()); await sleep(600);
+  await page.evaluate(async () => {
+    const { AppState } = await import('/core/app.js');
+    const st = (await AppState.studentManager.getAllStudents()).find(x => x.name === 'محمد التجريبي');
+    st.hwSchedule = { days: [new Date().getDay()], startTs: Date.now() - 86400000 * 3, auto: false };
+    await AppState.studentManager.updateStudent(st);
+  });
+  await page.evaluate(() => document.getElementById('btn-tab-history').click()); await sleep(1200);
+  const topInfo = await page.evaluate(() => ({ cta: document.getElementById('hwp5-cta')?.innerText, stats: document.querySelectorAll('.hwp5-stats .hwp2-stat-card').length,
+    dueVisible: getComputedStyle(document.getElementById('hwp5-due-sec')).display !== 'none', cards: document.querySelectorAll('#hwp5-due .hwp5-tcard').length }));
+  check('H1 الرئيسية: زر البدء + 4 إحصائيات + قسم «مستحق اليوم» بالطالب', /ابدأ واجباً/.test(topInfo.cta) && topInfo.stats === 4 && topInfo.dueVisible && topInfo.cards >= 1, JSON.stringify(topInfo));
+  await shot(page, 'simple-0-home');
+  await page.click('#hwp5-due .hwp5-go'); await sleep(1500);
+  check('H2 زر «أنشئ» يفتح الإعداد ويختار الطالب', (await page.inputValue('#hw-target-student')) === 'محمد التجريبي' && await page.isVisible('#tab-new-hw'));
+  await page.evaluate(() => document.getElementById('hw-target-student-clear')?.click()); await sleep(300);
   await page.fill('#hw-target-student-search', 'محمد'); await sleep(300);
   await page.click('.hwp2-student-result'); await sleep(1800);
 

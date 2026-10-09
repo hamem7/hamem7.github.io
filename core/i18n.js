@@ -1188,7 +1188,7 @@ export const translations = {
         // 🌟 [جديد 2026-10-01] نصوص أزرار سجل الواجبات + رسالة نسخ الرابط + بطاقة "ابدأ من هنا" (الرئيسية)
         hw_act_results: "النتائج", hw_act_link: "نسخ الرابط", hw_act_delete: "حذف", hw_act_publish: "نشر",
         // 🌟 [جديد 2026-10-01 — إعادة تصميم سجل الواجبات]
-        hw_hero_title: "إعداد واجب جديد", hw_hero_sub: "اختر السورة والآيات، وتُولَّد الأسئلة تلقائياً، ثم شارك الرابط مع الطالب",
+        hw_hero_title: "جاهز لواجب جديد؟", hw_hero_sub: "اختر الطالب وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه في أقل من دقيقة.",
         hw_act_grade_now: "يحتاج تصحيح", hw_act_remind: "تذكير الطالب", hw_act_more: "المزيد من الإجراءات",
         hw_filter_all: "الكل", hw_filter_published: "منشور", hw_filter_draft: "مسودة", hw_filter_grading: "يحتاج تصحيح", hw_filter_overdue: "متأخر",
         hw_search_ph: "ابحث باسم الطالب", hw_filter_empty: "لا توجد واجبات مطابقة.",
@@ -3258,7 +3258,7 @@ export const translations = {
         // 🌟 [New 2026-10-01] Homework history action labels + copy-link message + "Start here" home card
         hw_act_results: "Results", hw_act_link: "Copy link", hw_act_delete: "Delete", hw_act_publish: "Publish",
         // 🌟 [New 2026-10-01 — homework history redesign]
-        hw_hero_title: "Create new homework", hw_hero_sub: "Pick the surah and verses, questions are generated automatically, then share the link with the student",
+        hw_hero_title: "Ready for new homework?", hw_hero_sub: "Pick the student and the homework is built automatically from their range and mistakes in under a minute.",
         hw_act_grade_now: "Needs grading", hw_act_remind: "Remind student", hw_act_more: "More actions",
         hw_filter_all: "All", hw_filter_published: "Published", hw_filter_draft: "Draft", hw_filter_grading: "Needs grading", hw_filter_overdue: "Overdue",
         hw_search_ph: "Search by student name", hw_filter_empty: "No matching homework.",

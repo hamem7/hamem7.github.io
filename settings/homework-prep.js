@@ -3,7 +3,7 @@ import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
 import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
-import { perWeekOf, setStudentPerWeek } from '../core/hwScheduleService.js';
+import { perWeekOf, setStudentPerWeek, listDueToday } from '../core/hwScheduleService.js';
 import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
@@ -274,7 +274,29 @@ async function populateTargetStudents() {
 // ==========================================
 // 📊 دوال الإحصائيات وسجل الواجبات
 // ==========================================
+// 🌟 [2026-10-09] «مستحق اليوم» في أعلى الشاشة: قراءة فقط من جدول الواجبات الأسبوعي الموجود (listDueToday)، وأي فشل يخفي القسم بصمت
+async function renderDueToday() {
+    const sec = document.getElementById('hwp5-due-sec'), box = document.getElementById('hwp5-due');
+    if (!sec || !box) return;
+    try {
+        const { rows } = await listDueToday();
+        if (!rows.length) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+        sec.style.display = '';
+        document.getElementById('hwp5-due-title').textContent = L('مستحق اليوم', 'Due today');
+        document.getElementById('hwp5-due-n').textContent = L(`${rows.length} طلاب`, `${rows.length} students`);
+        document.getElementById('hwp5-week').textContent = L('📅 جدول الأسبوع ←', '📅 Weekly schedule →');
+        box.innerHTML = rows.slice(0, 12).map(r => {
+            const name = String(r.student.name || '');
+            const late = r.lateDays > 0;
+            return `<div class="hwp5-tcard"><div class="av">${esc(name.trim().charAt(0))}</div><div class="m"><b>${esc(name)}</b></div>`
+                + `<span class="hwp5-tag${late ? ' r' : ''}">${esc(late ? L(`متأخر ${r.lateDays} يوم`, `${r.lateDays}d late`) : L('اليوم', 'Today'))}</span>`
+                + `<button type="button" class="hwp5-go" data-name="${esc(name)}">${esc(L('أنشئ', 'Create'))}</button></div>`;
+        }).join('');
+    } catch (e) { console.warn('تعذر عرض «مستحق اليوم»:', e); sec.style.display = 'none'; }
+}
+
 async function loadHomeworkDashboard() {
+    renderDueToday();
     const allHWs = await AppState.homeworkManager.getAllHomeworks() || [];
 
     let publishedCount = 0;
@@ -1290,6 +1312,17 @@ function setupListeners() {
         if (tab === 'final') openFinalResultsModal();
     }
 
+    document.getElementById('hwp5-due')?.addEventListener('click', (e) => {
+        const b = e.target.closest('.hwp5-go');
+        if (!b) return;
+        switchHwTab('new');
+        setTargetStudent(b.dataset.name);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.getElementById('hwp5-week')?.addEventListener('click', async () => {
+        const m = await import('../components/weekSchedule.js');
+        m.openWeekSchedule({ onClose: () => renderDueToday() });
+    });
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {
         switchHwTab('new');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1396,6 +1429,7 @@ function setupSmartPanelStatic() {
     set('hw-cycle-label', L('دورة المراجعة (أسابيع):', 'Review cycle (weeks):'));
     set('btn-generate-hw', L('⚙️ توليد ومراجعة الأسئلة أولاً', '⚙️ Generate & review questions first'));
     set('btn-generate-publish', L('🚀 توليد ونشر الواجب مباشرة', '🚀 Generate & publish now'));
+    set('hwp5-cta', L('＋ ابدأ واجباً جديداً', '＋ Start new homework'));
     set('btn-share-wa', L('💬 واتساب', '💬 WhatsApp'));
     set('btn-share-tg', L('✈️ تيليجرام', '✈️ Telegram'));
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
