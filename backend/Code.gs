@@ -400,6 +400,53 @@ function readAllRows_(sh, fixedCols) {
   return rows;
 }
 
+/**
+ * 🌟 [إصلاح 2026-10-09 — بطء الخادم / «استغرق الاتصال وقتاً طويلاً»] قراءات خفيفة بدل readAllRows_ الذي يقرأ كل القطع ويحلّل
+ * JSON كل صف. readLightRows_ يقرأ الأعمدة الثابتة (+ القطعة الأولى اختيارياً) فقط، وreadRecsAt_ يحلّل JSON الصفوف المطلوبة وحدها.
+ * النتيجة المعادة لكل صف مطابقة لشكل readAllRows_ ({rowIndex, fixed, rec}) مع rec=null حتى يُحمَّل عند الحاجة، فلا يتغير أي سلوك.
+ */
+function readLightRows_(sh, fixedCols, withFirstChunk) {
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var width = fixedCols.length + (withFirstChunk ? 1 : 0);
+  var values = sh.getRange(2, 1, last - 1, width).getValues();
+  var rows = [];
+  for (var i = 0; i < values.length; i++) {
+    var v = values[i];
+    if (!v[0]) continue;
+    var row = { rowIndex: i + 2, fixed: v.slice(0, fixedCols.length), rec: null };
+    if (withFirstChunk) row.first = String(v[fixedCols.length] || '');
+    rows.push(row);
+  }
+  return rows;
+}
+
+/** Fills row.rec (parsed JSON) for just the given rows. Few rows: one tiny read each; many rows: one block read. */
+function readRecsAt_(sh, fixedCols, rows) {
+  if (!rows.length) return;
+  var width = fixedCols.length + MAX_CHUNKS;
+  var block = null, firstIdx = 0;
+  if (rows.length > 20) {
+    var lo = rows[0].rowIndex, hi = rows[0].rowIndex;
+    rows.forEach(function (r) { if (r.rowIndex < lo) lo = r.rowIndex; if (r.rowIndex > hi) hi = r.rowIndex; });
+    block = sh.getRange(lo, 1, hi - lo + 1, width).getValues();
+    firstIdx = lo;
+  }
+  rows.forEach(function (r) {
+    var v = block ? block[r.rowIndex - firstIdx] : sh.getRange(r.rowIndex, 1, 1, width).getValues()[0];
+    var json = '';
+    for (var c = fixedCols.length; c < width; c++) json += (v[c] || '');
+    try { r.rec = JSON.parse(json); } catch (e) { r.rec = null; }
+  });
+}
+
+/** Same access rule as canAccessHw_, decided from the first JSON chunk only (ownerId is written right after id/createdAt/status). */
+function canAccessHwFirstChunk_(first, auth) {
+  var m = /"ownerId":"([^"]*)"/.exec(first || '');
+  if (m && m[1]) return m[1] === auth.userId;
+  return isLegacyOwnerUserId_(auth.userId);
+}
+
 function writeRow_(sh, fixedCols, rowIndex, fixedValues, rec) {
   var json = JSON.stringify(rec);
   var chunks = splitChunks_(json);
@@ -443,8 +490,10 @@ function nextRow_(sh, fixedCols) {
 
 function findHomework_(id) {
   var sh = getSheet_(SHEET_HW);
-  var rows = readAllRows_(sh, HW_FIXED);
-  for (var i = 0; i < rows.length; i++) if (String(rows[i].fixed[0]) === String(id)) return { sh: sh, row: rows[i] };
+  var rows = readLightRows_(sh, HW_FIXED, false);   // أعمدة ثابتة فقط، ثم نحلّل JSON الواجب المطلوب وحده
+  for (var i = 0; i < rows.length; i++) {
+    if (String(rows[i].fixed[0]) === String(id)) { readRecsAt_(sh, HW_FIXED, [rows[i]]); return { sh: sh, row: rows[i] }; }
+  }
   return null;
 }
 
@@ -536,10 +585,12 @@ function getHomeworkFull_(req, auth) {
 }
 
 function listHomeworks_(auth) {
-  var hwRows = readAllRows_(getSheet_(SHEET_HW), HW_FIXED).filter(function (r) { return r.rec && canAccessHw_(r.rec, auth); });
-  var subRows = readAllRows_(getSheet_(SHEET_SUB), SUB_FIXED);
+  // 🌟 [إصلاح 2026-10-09] بلا تحليل JSON لأي واجب: الملكية من القطعة الأولى، والحقول المعروضة من الأعمدة الثابتة
+  // (id/createdAt/status/الطالب/عدد الأسئلة تُكتب دائماً مع كل صف)، وعدّادات التسليمات من أعمدتها الثابتة فقط.
+  var hwRows = readLightRows_(getSheet_(SHEET_HW), HW_FIXED, true).filter(function (r) { return canAccessHwFirstChunk_(r.first, auth); });
+  var subRows = readLightRows_(getSheet_(SHEET_SUB), SUB_FIXED, false);
   var allowedIds = {};
-  hwRows.forEach(function (r) { allowedIds[r.rec.id] = true; });
+  hwRows.forEach(function (r) { allowedIds[String(r.fixed[0])] = true; });
   var counts = {};
   subRows.forEach(function (r) {
     var hwId = String(r.fixed[1]);
@@ -551,13 +602,17 @@ function listHomeworks_(auth) {
     if (counts[hwId][st] !== undefined) counts[hwId][st]++;
   });
   var list = hwRows.map(function (r) {
-    var rec = r.rec;
+    var f = r.fixed, id = String(f[0]);
+    var sid = null;
+    var m = /"assignedStudentId":(null|"[^"]*"|-?\d+(?:\.\d+)?)/.exec(r.first || '');
+    if (m) { try { sid = JSON.parse(m[1]); } catch (e) { sid = null; } }
+    var name = String(f[3] || '').replace(/^ (?=[=+\-@])/, '');
     return {
-      id: rec.id, createdAt: rec.createdAt, status: rec.status,
-      assignedStudentName: rec.assignedStudentName || null,
-      assignedStudentId: rec.assignedStudentId === undefined ? null : rec.assignedStudentId,
-      questionCount: rec.questions.length,
-      counts: counts[rec.id] || { total: 0, submitted: 0, graded: 0, approved: 0 }
+      id: id, createdAt: String(f[1]), status: String(f[2]),
+      assignedStudentName: name || null,
+      assignedStudentId: sid,
+      questionCount: Number(f[5]) || 0,
+      counts: counts[id] || { total: 0, submitted: 0, graded: 0, approved: 0 }
     };
   });
   list.sort(function (a, b) { return a.createdAt < b.createdAt ? 1 : -1; });
@@ -724,7 +779,7 @@ function gradeSubmissionData_(questions, answers, manualScores) {
 
 function loadSubmissionRows_() {
   var sh = getSheet_(SHEET_SUB);
-  return { sh: sh, rows: readAllRows_(sh, SUB_FIXED) };
+  return { sh: sh, rows: readLightRows_(sh, SUB_FIXED, false) };   // rec=null حتى readRecsAt_ (لا تحليل JSON لكل التسليمات)
 }
 
 function fixedForSub_(rec) {
@@ -756,7 +811,9 @@ function submit_(req) {
   var i;
   // 1) Idempotency: same clientSubmissionId => return the stored one, never create a duplicate.
   for (i = 0; i < loaded.rows.length; i++) {
-    if (String(loaded.rows[i].fixed[2]) === clientId && loaded.rows[i].rec) {
+    if (String(loaded.rows[i].fixed[2]) === clientId) {
+      readRecsAt_(loaded.sh, SUB_FIXED, [loaded.rows[i]]);
+      if (!loaded.rows[i].rec) continue;
       // 🌟 [إصلاح] المعرّف يجب أن يخص نفس الواجب؛ كان يعيد إيصال تسليم واجب آخر
       if (String(loaded.rows[i].fixed[1]) !== hwId) throw err_('BAD_REQUEST', 'clientSubmissionId already used for another homework');
       return publicReceipt_(loaded.rows[i].rec, { duplicate: true });
@@ -816,15 +873,27 @@ function submit_(req) {
 }
 
 function listSubmissions_(req, auth) {
-  var hwRows = readAllRows_(getSheet_(SHEET_HW), HW_FIXED);
+  // 🌟 [إصلاح 2026-10-09] نحدّد الواجبات المسموحة من أعمدتها الثابتة + القطعة الأولى، ونفلتر التسليمات بأعمدتها الثابتة
+  // (hwId/status)، ثم نحلّل JSON المطابقة وحدها بدل تحليل كل واجب وكل تسليم في الشيت.
+  var hwRows = readLightRows_(getSheet_(SHEET_HW), HW_FIXED, true);
   var allowedIds = {};
-  hwRows.forEach(function (r) { if (r.rec && canAccessHw_(r.rec, auth)) allowedIds[r.rec.id] = true; });
+  hwRows.forEach(function (r) { if (canAccessHwFirstChunk_(r.first, auth)) allowedIds[String(r.fixed[0])] = true; });
   var loaded = loadSubmissionRows_();
   var hwId = req.hwId ? String(req.hwId) : null;
   var statuses = Array.isArray(req.statuses) ? req.statuses : null;
+  var matched = loaded.rows.filter(function (r) {
+    var rowHw = String(r.fixed[1]), st = String(r.fixed[6]);
+    if (!allowedIds[rowHw]) return false;
+    if (hwId && rowHw !== hwId) return false;
+    if (st === 'void') return false;
+    if (statuses && statuses.indexOf(st) === -1) return false;
+    return true;
+  });
+  readRecsAt_(loaded.sh, SUB_FIXED, matched);
   var list = [];
-  loaded.rows.forEach(function (r) {
+  matched.forEach(function (r) {
     if (!r.rec) return;
+    // نفس الشروط الأصلية على السجل نفسه (احتياطاً لو اختلف عمود ثابت عن JSON)
     if (!allowedIds[r.rec.hwId]) return;
     if (hwId && r.rec.hwId !== hwId) return;
     if (r.rec.status === 'void') return;
@@ -839,6 +908,7 @@ function gradeSubmission_(req, auth) {
   var loaded = loadSubmissionRows_();
   var target = null, i;
   for (i = 0; i < loaded.rows.length; i++) if (String(loaded.rows[i].fixed[0]) === String(req.submissionId)) target = loaded.rows[i];
+  if (target) readRecsAt_(loaded.sh, SUB_FIXED, [target]);
   if (!target || !target.rec) throw err_('NOT_FOUND', 'Submission not found');
   var rec = target.rec;
   if (rec.status === 'void') throw err_('NOT_FOUND', 'Submission was voided');
@@ -884,6 +954,7 @@ function voidSubmission_(req, auth) {
   var loaded = loadSubmissionRows_();
   var target = null, i;
   for (i = 0; i < loaded.rows.length; i++) if (String(loaded.rows[i].fixed[0]) === String(req.submissionId)) target = loaded.rows[i];
+  if (target) readRecsAt_(loaded.sh, SUB_FIXED, [target]);
   if (!target || !target.rec) throw err_('NOT_FOUND', 'Submission not found');
   var hwFound = findHomework_(target.rec.hwId);
   if (!hwFound || !hwFound.row.rec || !canAccessHw_(hwFound.row.rec, auth)) throw err_('NOT_FOUND', 'Submission not found');
