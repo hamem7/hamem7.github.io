@@ -18,6 +18,7 @@ import {
 } from '../engine/trackingAdapters.js';
 import { HW_FORMATS } from '../engine/skillMap.js';
 import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
+import { buildHomeworkSimilarityQuestion } from '../engine/similarityEngine.js';
 import { readStudentHistory } from './homeworkRecords.js';
 import { fetchHomeworkFull } from './homeworkApi.js';
 
@@ -405,7 +406,42 @@ async function buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, mu
     return null;
 }
 
-export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random } = {}) {
+
+// 🌟 [جديد — 2026-10-10] أسئلة المتشابهات داخل الواجب الذكي (بطلب المعلم: سؤالان). نختار مجموعات متشابهات محفوظة كلها
+// عند الطالب (كل مواضعها داخل مجمّع آياته المحفوظة) ومن السور الواقعة في نطاق الواجب المختار، ثم نحوّل كل واحدة لسؤال mcq.
+// أي فشل (لا مدير متشابهات، لا مجموعات صالحة...) يرجع مصفوفة فارغة فيستمر الواجب بدونها كما كان.
+export const SIMILARITY_QUESTIONS_PER_HW = 2;
+
+async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) {
+    if (k <= 0) return [];
+    try {
+        manager = manager || AppState.similaritiesManager;
+        if (!manager) return [];
+        if (AppState.similaritiesReady) await AppState.similaritiesReady;
+        const all = await manager.getAllSimilarities();
+        const memorized = (o) => {
+            const ayah = o.ayahNumber != null ? o.ayahNumber : parseInt(o.ayahRange, 10);
+            return Number.isFinite(ayah) && scopeSurahs.has(o.surahNumber) && poolIndex.has(`${o.surahNumber}:${ayah}`);
+        };
+        const eligible = all.filter(g => g && (g.occurrences || []).length >= 2 && g.occurrences.every(memorized));
+        const out = [], usedGroups = new Set();
+        for (const g of eligible.sort(() => rng() - 0.5)) {
+            if (out.length >= k) break;
+            if (usedGroups.has(g.groupId)) continue;
+            const q = buildHomeworkSimilarityQuestion(g, all);
+            if (!q) continue;
+            q.id = 'q_' + Date.now() + '_sim' + out.length + Math.random().toString(36).slice(2, 6);
+            usedGroups.add(g.groupId);
+            out.push(q);
+        }
+        return out;
+    } catch (err) {
+        console.warn('تعذر بناء أسئلة المتشابهات للواجب الذكي:', err);
+        return [];
+    }
+}
+
+export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random, similaritiesManager = null, similarityCount = SIMILARITY_QUESTIONS_PER_HW } = {}) {
     const ctx = await loadContext(student);
     if (!ctx) return { ok: false, reason: 'unavailable' };
     if (!ctx.range.ok) return { ok: false, reason: 'no_range', ctx };
@@ -427,6 +463,8 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
     const focusFilter = allowed ? (seg) => allowed.has(seg.id) : null;
     const scopeSegs = ctx.path.segments.filter(s => !allowed || allowed.has(s.id));
     const multiSurah = new Set(scopeSegs.map(s => s.surah)).size > 1;
+    // أسئلة المتشابهات تُضاف فوق العدد المطلوب (لا تزاحم أسئلة التتبّع) كي لا تتأثر حسابات التغطية ومقترح «أكمل»
+    const simQs = await pickSimilarityQuestions(similarityCount, poolIndex, new Set(scopeSegs.map(s => s.surah)), rng, similaritiesManager);
     const plan = planHomework({
         n, path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
         now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds
@@ -453,6 +491,7 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
         why.push(meta);
     }
     const scopeSegIds = scopeSegs.map(s => s.id);
+    if (questions.length) questions.push(...simQs);
     return {
         ok: !!questions.length, reason: questions.length ? null : 'empty', questions, tracking, why, plan, ctx, model,
         scopeSegIds, distinctSegments: new Set(why.map(m => m.segment)).size

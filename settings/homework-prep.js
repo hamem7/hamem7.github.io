@@ -1827,6 +1827,7 @@ async function resolveHomeworkScope(hwId) {
 // 🌟 [الواجب الذكي] سطر «لماذا هذا السؤال؟» + شارات (الفئة، المهارة) تحت كل سؤال — للمعلم فقط، لا يراها الطالب
 function whyHtmlFor(q) {
     const meta = currentTracking[q.id];
+    if (!meta && q.simGroupId) return `<div style="margin-top:8px; font-size:0.85rem; color:#7c3aed;">${esc(L('🔀 من المتشابهات المرفوعة على المنصة — يُسجَّل أداؤه كسؤال عادي.', 'From the platform similar-verses (mutashabihat) — logged as a regular question.'))}</div>`;
     if (!meta) return `<div style="margin-top:8px; font-size:0.85rem; color:#94a3b8;">${esc(L('سؤال يدوي — يُسجَّل أداؤه في المهارة بحسب نوعه.', 'Manual question — logged under its skill by type.'))}</div>`;
     const pill = (cls, txt) => `<span class="sk-p ${cls}">${esc(txt)}</span>`;
     return `<div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0;">

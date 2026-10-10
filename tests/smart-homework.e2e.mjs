@@ -133,11 +133,13 @@ try {
   const preview = await page.evaluate(() => ({
     cards: document.querySelectorAll('#hw-questions-list > div').length,
     why: [...document.querySelectorAll('#hw-questions-list > div')].filter(d => d.innerText.includes('لماذا؟')).length,
+    sims: [...document.querySelectorAll('#hw-questions-list > div')].filter(d => d.innerText.includes('من المتشابهات')).length,
     summary: document.getElementById('hw-smart-summary')?.innerText || '',
     text: document.getElementById('hw-questions-list').innerText
   }));
-  check('B1 12 سؤالاً في المعاينة', preview.cards === 12, String(preview.cards));
-  check('B2 كل سؤال تحته «لماذا؟» وشارة الفئة والمهارة', preview.why === 12);
+  check('B1 12 سؤالاً + سؤالا متشابهات في المعاينة', preview.cards === 14, String(preview.cards));
+  check('B2 كل سؤال تتبّع تحته «لماذا؟» وشارة الفئة والمهارة (12 + سؤالا متشابهات)', preview.why === 12);
+  check('B2b سؤالان من المتشابهات فوق الـ12 (mcq، من نطاق حفظه)', preview.sims === 2, String(preview.sims));
   check('B3 شريط التوزيع يعرض الفئات (جديد/قريب/بعيد)', /حفظ جديد/.test(preview.summary) && /مراجعة/.test(preview.summary), preview.summary.replace(/\s+/g, ' '));
   check('B4 لا أسئلة علاجية لطالب بلا أخطاء', !/من أخطائه السابقة/.test(preview.summary));
 
@@ -153,17 +155,17 @@ try {
     return { id: h.id, studentName: h.assignedStudentName, nq: h.questions.length, tracking: h.tracking, scope: h.scope, qids: h.questions.map(q => q.id),
       questions: h.questions };
   });
-  check('C1 الواجب مخصَّص للطالب ومحفوظ محلياً مع خريطة تتبّع لكل سؤال', hw1.studentName === 'محمد التجريبي' && Object.keys(hw1.tracking || {}).length === 12 && hw1.qids.every(q => hw1.tracking[q]));
+  check('C1 الواجب مخصَّص للطالب ومحفوظ محلياً مع خريطة تتبّع لكل سؤال', hw1.studentName === 'محمد التجريبي' && Object.keys(hw1.tracking || {}).length === 12 && hw1.questions.filter(q => !q.simGroupId).every(q => hw1.tracking[q.id]) && hw1.questions.filter(q => q.simGroupId && q.type === 'mcq').length === 2);
   check('C2 النطاق المخزَّن: من الناس إلى النازعات (للشهادة)', hw1.scope && hw1.scope.mode === 'range' && hw1.scope.smart === true && hw1.scope.toNum === 79 && hw1.scope.fromNum === 114, JSON.stringify(hw1.scope));
   const metas = Object.values(hw1.tracking);
   check('C3 كل الأسئلة داخل نطاق حفظه (السور 79..114 فقط)', metas.every(m => m.surah >= 79 && m.surah <= 114));
   check('C4 كل سؤال له مهارة وصيغة ومقطع صالح', metas.every(m => m.skill && m.fmt && /^\d+:\d+-\d+$/.test(m.segment)));
-  check('C5 الأسئلة مخلوطة وليست بترتيب المصحف أو الحفظ', (() => { const s = hw1.qids.map(q => hw1.tracking[q].surah); const a = [...s].sort((x, y) => x - y), d = [...s].sort((x, y) => y - x); return JSON.stringify(s) !== JSON.stringify(a) && JSON.stringify(s) !== JSON.stringify(d); })());
+  check('C5 الأسئلة مخلوطة وليست بترتيب المصحف أو الحفظ', (() => { const s = hw1.qids.filter(q => hw1.tracking[q]).map(q => hw1.tracking[q].surah); const a = [...s].sort((x, y) => x - y), d = [...s].sort((x, y) => y - x); return JSON.stringify(s) !== JSON.stringify(a) && JSON.stringify(s) !== JSON.stringify(d); })());
 
   // الخادم: meta.tracking محفوظ، والرابط العام لا يكشفه ولا يكشف الإجابات
   const auth = await page.evaluate(() => ({ userId: localStorage.getItem('dh_hw_teacher_userid'), sessionKey: localStorage.getItem('dh_hw_teacher_sessionkey') }));
   const full = be.post({ action: 'getHomeworkFull', userId: auth.userId, sessionKey: auth.sessionKey, id: hw1.id });
-  check('C6 الخادم يحفظ meta.tracking (12 سؤالاً) مع الواجب', full.ok && full.homework.meta && Object.keys(full.homework.meta.tracking || {}).length === 12);
+  check('C6 الخادم يحفظ meta.tracking (12 سؤال تتبّع) مع الواجب', full.ok && full.homework.meta && Object.keys(full.homework.meta.tracking || {}).length === 12);
   const pub = JSON.stringify(be.get({ action: 'getHomework', id: hw1.id }));
   check('C7 الرابط العام لا يكشف الإجابات الصحيحة ولا خريطة التتبّع', !pub.includes('correctAnswer') && !pub.includes('tracking') && !pub.includes('"segment"'));
 
@@ -195,9 +197,9 @@ try {
       if (i < hw1.nq - 1) { await sp.evaluate(() => document.getElementById('btn-hp-next').click()); await sleep(250); }
     }
     const html = await sp.evaluate(() => document.documentElement.outerHTML);
-    check('C9 الطالب يرى الواجب كاملاً (12 سؤالاً) بلا أخطاء جافاسكربت', seen.length === 12 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
+    check('C9 الطالب يرى الواجب كاملاً (12 + سؤالا متشابهات) بلا أخطاء جافاسكربت', seen.length === 14 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
     check('C10 صفحة الطالب لا تحوي خريطة التتبّع ولا مقاطع الأسئلة', !html.includes('"segment"') && !html.includes('lastWrongTs') && !html.includes('skillFocus'));
-    const hasVisual = hw1.questions.some(q => hw1.tracking[q.id].fmt === 'visual_page');
+    const hasVisual = hw1.questions.some(q => (hw1.tracking[q.id] || {}).fmt === 'visual_page');
     check('C11 سؤال الذاكرة البصرية (إن وُجد) يظهر للطالب بتنبيه «لا تفتح المصحف» وخيارين', !hasVisual || seen.some(x => x.includes('لا تفتح المصحف') && x.includes('الصفحة اليمنى') && x.includes('الصفحة اليسرى')));
     await sctx.close();
   }
@@ -207,7 +209,7 @@ try {
     const { AppState } = await import('/core/app.js');
     const out = [];
     for (const q of hw.questions) {
-      const m = hw.tracking[q.id];
+      const m = hw.tracking[q.id]; if (!m) continue;
       if (m.fmt !== 'visual_page') continue;
       const surah = await AppState.quranEngine.getSurah(m.surah);
       const ay = surah.ayahs[m.ayah - 1], next = surah.ayahs[m.ayah];
@@ -227,7 +229,7 @@ try {
   const sub = be.post({ action: 'submit', hwId: hw1.id, clientSubmissionId: 'c_' + 'a1b2c3d4e5f60718293a4b5c6d7e8f90', studentName: 'محمد التجريبي', answers });
   check('D1 الخادم قبل تسليم الطالب', sub.ok === true, JSON.stringify(sub).slice(0, 100));
 
-  const approved = await page.evaluate(async ({ hwId, studentName }) => {
+  const approved = await page.evaluate(async ({ hwId, studentName, hw1q }) => {
     const { AppState } = await import('/core/app.js');
     const api = await import('/core/homeworkApi.js');
     const rec = await import('/core/homeworkRecords.js');
@@ -239,9 +241,9 @@ try {
     (s.details || []).filter(d => d.needsManualGrading).forEach(d => { manual[d.qid] = 0; });   // المعلم يصحّح اليدوي: خطأ
     const updated = await api.gradeSubmissionOnServer(s.id, manual, student.id, s.version, '');
     const res = await rec.recordApprovedResult(student, updated, null);
-    return { subId: updated.id, status: updated.status, score: updated.finalScore, nDetails: updated.details.length, wrong: updated.details.filter(d => !d.isCorrect && !d.needsManualGrading).length,
+    return { subId: updated.id, status: updated.status, score: updated.finalScore, nDetails: updated.details.length, wrong: updated.details.filter(d => !d.isCorrect && !d.needsManualGrading && !(hw1q.find(q => q.id === d.qid) || {}).simGroupId).length,
       manualWrong: updated.details.filter(d => d.needsManualGrading).length, verified: res.verified, studentId: student.id };
-  }, { hwId: hw1.id, studentName: 'محمد التجريبي' });
+  }, { hwId: hw1.id, studentName: 'محمد التجريبي', hw1q: hw1.questions.map(q => ({ id: q.id, simGroupId: q.simGroupId })) });
   await sleep(1500);
   check('D2 المعلم اعتمد التسليم (approved)', approved.status === 'approved', JSON.stringify({ s: approved.status, score: approved.score }));
 
@@ -258,7 +260,7 @@ try {
     const student = (await AppState.studentManager.getAllStudents()).find(s => s.name === studentName);
     const subs = await api.getSubmissionsFromCloud(hwId);
     await rec.recordApprovedResult(student, subs[0], null);
-  }, { hwId: hw1.id, studentName: 'محمد التجريبي' });
+  }, { hwId: hw1.id, studentName: 'محمد التجريبي', hw1q: hw1.questions.map(q => ({ id: q.id, simGroupId: q.simGroupId })) });
   await sleep(1200);
   events = await readEvents();
   check('D6 إعادة الاعتماد لا تكرّر الأحداث', events.filter(e => e.source === 'homework').length === hwEvents.length);
@@ -270,7 +272,7 @@ try {
     const { HomeworkEngine } = await import('/engine/homeworkEngine.js');
     const student = (await AppState.studentManager.getAllStudents()).find(s => s.id === sid);
     const eng = new HomeworkEngine(AppState.quranEngine);
-    const res = await svc.planSmartHomework(student, 12, { hwEngine: eng });
+    const res = await svc.planSmartHomework(student, 12, { hwEngine: eng, similarityCount: 0 });
     const ctx = res.ctx;
     const wrongSegs = {};
     (await AppState.trackingManager.getEventsForStudent(sid)).filter(e => e.score < 0.5).forEach(e => { wrongSegs[e.segment] = (wrongSegs[e.segment] || []).concat(e.fmt); });
@@ -473,7 +475,7 @@ try {
   await page.click('#btn-generate-hw');
   await page.waitForSelector('#hw-questions-list .quran-text', { timeout: 30000 }); await sleep(500);
   const prev1 = await page.evaluate(() => ({ cards: document.querySelectorAll('#hw-questions-list > div').length, sum: document.getElementById('hw-smart-summary').innerText }));
-  check('M5 المعاينة تعرض سطر تغطية الواجب (كم مقطعاً جديداً من المتبقي)', prev1.cards === half && prev1.sum.includes('يغطي هذا الواجب') && prev1.sum.includes('لم تُفحص خلال الدورة'), prev1.sum.replace(/\s+/g, ' ').slice(-120));
+  check('M5 المعاينة تعرض سطر تغطية الواجب (كم مقطعاً جديداً من المتبقي)', prev1.cards === half + 2 && prev1.sum.includes('يغطي هذا الواجب') && prev1.sum.includes('لم تُفحص خلال الدورة'), prev1.sum.replace(/\s+/g, ' ').slice(-120));
   const hwsBefore = (await hwSegments()).length;
   await publishCurrent();
   const hwsA = await hwSegments();
@@ -499,7 +501,7 @@ try {
   await publishCurrent();
   const hwsB = await hwSegments();
   const hz2 = hwsB[hwsB.length - 1];
-  check('M9 واجب «أكمل» لا يكرر مقاطع الواجب السابق ويبقى داخل الحزبين', hz2.segs.every(sg => !hz1.segs.includes(sg) && groupSegs.includes(sg)) && (remaining < 3 || hz2.n === Math.max(3, remaining)), `${hz2.segs.length} مقطعاً`);
+  check('M9 واجب «أكمل» لا يكرر مقاطع الواجب السابق ويبقى داخل الحزبين', hz2.segs.every(sg => !hz1.segs.includes(sg) && groupSegs.includes(sg)) && (remaining < 3 || hz2.n === Math.max(3, remaining) + 2), `${hz2.segs.length} مقطعاً`);
   const banner2 = await page.evaluate(() => document.getElementById('hw-resume-banner').innerText);
   check('M10 بعد الإكمال تظهر رسالة اكتمال التغطية', banner2.includes('اكتملت تغطية'), banner2.replace(/\s+/g, ' ').slice(0, 90));
 
@@ -542,9 +544,9 @@ try {
     const t2 = performance.now();
     const eng = new HomeworkEngine(AppState.quranEngine);
     const sel = { mode: 'hizb', ids: model.groups.slice(0, 2).map(g => g.id), unit: model.unit };
-    const res = await svc.planSmartHomework(student, 20, { selection: sel, hwEngine: eng });
+    const res = await svc.planSmartHomework(student, 20, { selection: sel, hwEngine: eng, similarityCount: 0 });
     const t3 = performance.now();
-    const all = await svc.planSmartHomework(student, 20, { selection: { mode: 'all' }, hwEngine: eng });
+    const all = await svc.planSmartHomework(student, 20, { selection: { mode: 'all' }, hwEngine: eng, similarityCount: 0 });
     const adv = svc.coverageAdvice({ total: model.allSegIds.length, uncoveredCount: model.allSegIds.length, n: 10, hwPerWeek: 2, cycleWeeks: 6 });
     return { total: ctx.path.total, segs: ctx.path.segments.length, unit: model.unit, groups: model.groups.length, firstHizb: model.groups[0].hizb, lastHizb: model.groups[model.groups.length - 1].hizb,
       ms: { ctx: Math.round(t1 - t0), model: Math.round(t2 - t1), plan: Math.round(t3 - t2) }, planOk: res.ok, planN: res.questions.length, distinct: res.distinctSegments,
