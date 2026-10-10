@@ -48,7 +48,7 @@
 // بشكل صحيح من أول مرة — راجع تعليق ensureSimilaritiesLoaded لتفاصيل الآلية الكاملة.
 // 🌟 [إصلاح تدقيق] رُفع من 3 إلى 4 لتصل المستخدمين الحاليين تصحيحات سورة الهمزة (amma-24) دون مسح المتشابهات اليدوية
 // 🌟 [2026-10-10] رُفع من 4 إلى 6 (5 ثم 6 بعد تنقية الشريحة الآمنة) لتصل المستخدمين الحاليين متشابهات السور 2–45 الجديدة (mutashabihatSeedPart1.js)
-export const MUTASHABIHAT_SEED_VERSION = 7;
+export const MUTASHABIHAT_SEED_VERSION = 8;
 
 export const MUTASHABIHAT_SEED = [
   {

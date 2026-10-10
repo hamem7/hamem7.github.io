@@ -48,7 +48,10 @@ def anchor_phrase(s,anc,ays):
     return ' '.join(vs[0].split()[b2[0]:b2[2]]) if b2 else None
 final=[];perpage=collections.defaultdict(list)
 # المجموعات الآلية: الشريحة A فقط خارج الصفحات المقروءة
-keep=[x for x in auto if tierA(x) and x['_page'] not in pages]
+def _ov(x):
+    a={o['ayahNumber'] for o in x['occurrences']};s=x['surahs'][0]
+    return any(m['surah']==s and m['anchor']!='+' and len(a&set(m['ayahs']))>=2 for m in manual)
+keep=[x for x in auto if tierA(x) and not _ov(x)]
 # المجموعات المقروءة
 conts=[]
 for m in manual:
