@@ -1,7 +1,8 @@
-# يبني database/data/mutashabihatSeedPart1.js من work/groups.json (المجموعات المكتملة فقط، بعنوان من الكتاب أو أطول مقطع مشترك)
+# يبني database/data/mutashabihatSeedPart1.js من work/groups.json (الشريحة الآمنة فقط)
 import json
 g=json.load(open('work/groups.json',encoding='utf8'))
-keep=[x for x in g if x['_unres']==0 and x['_anchorHow'] in ('heading','lcw')]
+# الشريحة الآمنة (A): كل المواضع محسومة بمطابقة نصية قوية فقط (دقتها ~97٪ على السور 46–77) وبعنوان من الكتاب أو مقطع مشترك
+keep=[x for x in g if all(q in ('strong','digit') for q in x['_qs']) and x['_anchorHow'] in ('heading','lcw')]
 per={};out=[]
 for x in keep:
     s=x['surahs'][0];per[s]=per.get(s,0)+1

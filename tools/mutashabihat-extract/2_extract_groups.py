@@ -34,16 +34,25 @@ def lcw(verses):
             if best and len(seq)<=len(best[1]): break
             if all(any(x[k:k+len(seq)]==seq for k in range(len(x)-len(seq)+1)) for x in ws[1:]): best=(i,seq,j);break
     return ' '.join(verses[0].split()[best[0]:best[2]]) if best else None
+class _W(dict):
+    def __missing__(self,sn):
+        v=[(n,[''.join(norm(w) for w in t.split()[i:i+k]) for i in range(len(t.split())) for k in range(1,6)]) for n,t in QURAN[sn]]
+        self[sn]=v;return v
+WIN=_W()
 MAXS=int(sys.argv[1]);out=[];review=[];st=collections.Counter()
 for k,(a,b) in enumerate(A['sections']):
     surah=A['assign'][k][0]
     if surah>MAXS: continue
-    L=len(QN[surah]);text=clean('\n'.join(raw[a-2:b-1]));pos=0;groups=[];cur=None
-    for m in re.finditer(r'(\*+)|(\d{1,3}|[٠-٩]{1,3})(?:\s*-\s*(\d{1,3}))?\s*[.،]?\s*[\)\}]{2}',text):
+    L=len(QN[surah]);pgs=[clean(p) for p in raw[a-2:b-1]];text='\n'.join(pgs);offs=[];acc_=0
+    for pg in pgs: offs.append(acc_);acc_+=len(pg)+1
+    def page_of(p): 
+        import bisect;return a+bisect.bisect_right(offs,p)-1
+    pos=0;groups=[];cur=None
+    for m in re.finditer(r'(\*+)|(\d{1,3}|[٠-٩]{1,3})(?:\s*-\s*(\d{1,3}))?\s*[.،]?\s*[\)\}]\s*[\)\}]',text):
         seg=text[pos:m.start()];pos=m.end()
         if m.group(1):
             if len(m.group(1))>=4: continue
-            cur={'heading':decode_heading(seg),'raw':[]};groups.append(cur);continue
+            cur={'heading':decode_heading(seg),'raw':[],'page':page_of(m.start())};groups.append(cur);continue
         if cur is None: continue
         dg=''.join(str(IND.index(c)) if c in IND else c for c in m.group(2))
         cur['raw'].append((norm(seg),dg))
@@ -52,14 +61,19 @@ for k,(a,b) in enumerate(A['sections']):
         h=re.sub(r'[\(\):\*ً-ٰٟ]','',g['heading']).strip()
         hn=norm(h.split(' - ')[0].split('-')[0]) if h else ''
         allowed=[n for n,t in QN[surah] if hn and hn in t] if hn else []
-        occ=[];info=[]
+        if len(allowed)<2 and hn and len(hn)>=3:
+            allowed=[]
+            cb=collections.Counter(hn)
+            for n,wl in WIN[surah]:
+                if any(abs(len(w)-len(hn))<=2 and 2*sum((collections.Counter(w)&cb).values())/(len(w)+len(hn))>=0.85 for w in wl): allowed.append(n)
+        entries=[]
         for u,dg in g['raw']:
             C={c for c in cands(dg) if 1<=c<=L} if dg else set()
             pool=allowed if len(allowed)>=2 else [n for n,_ in QN[surah]]
             ranked=sorted(((sc3(u,*G3[surah][n-1][1:]),n) for n in pool),reverse=True) if len(u)>=6 else []
-            ch=None
+            ch=None;q=None;sco=0
             if ranked:
-                top=ranked[0];sec=ranked[1] if len(ranked)>1 else (0,0)
+                top=ranked[0];sec=ranked[1] if len(ranked)>1 else (0,0);sco=top[0]
                 inC=[r for r in ranked[:4] if r[1] in C]
                 if top[0]>=0.5 and top[0]-sec[0]>=0.1: ch=top[1];q='strong'
                 elif inC and inC[0][0]>=0.35 and inC[0][0]>=top[0]-0.2: ch=inC[0][1];q='digit'
@@ -68,12 +82,26 @@ for k,(a,b) in enumerate(A['sections']):
                 cc=[n for n in allowed if n in C]
                 if len(cc)==1: ch=cc[0];q='anchor_digit'
                 elif len(cc)>1 and ranked: ch=max(cc,key=lambda n:sc3(u,*G3[surah][n-1][1:]));q='anchor_digit'
-            if ch is None:
-                st['unres']+=1;review.append(dict(surah=surah,heading=h[:30],digits=dg,why='unresolved'));continue
-            st[q]+=1
-            info.append((q,ch in C,top[0]))
-            if ch not in occ: occ.append(ch)
-        if len(occ)<2: st['drop_small']+=1;continue
+            entries.append(dict(u=u,dg=dg,C=C,ch=ch,q=q,sco=sco))
+        # pass 2: ترتيب الآيات تصاعدي داخل المجموعة → نحصر المرشحين بين أقرب موضعين محسومين
+        for i,e in enumerate(entries):
+            if e['ch'] is not None: continue
+            lo=max((x['ch'] for x in entries[:i] if x['ch'] is not None),default=0)
+            hi=min((x['ch'] for x in entries[i+1:] if x['ch'] is not None),default=L+1)
+            P=[n for n in (allowed if len(allowed)>=2 else range(1,L+1)) if lo<n<hi]
+            if not P or (len(allowed)<2 and len(P)>25): continue
+            Cn=[n for n in P if n in e['C']]
+            sc_=sorted(((sc3(e['u'],*G3[surah][n-1][1:]) if len(e['u'])>=6 else 0,n) for n in P),reverse=True)
+            if len(Cn)==1: e['ch']=Cn[0];e['q']='bounded_digit'
+            elif len(Cn)>1: e['ch']=max(Cn,key=lambda n:sc3(e['u'],*G3[surah][n-1][1:]));e['q']='bounded_digit'
+            elif len(P)==1 and allowed: e['ch']=P[0];e['q']='bounded_only'
+            elif sc_[0][0]>=0.3 and (len(sc_)==1 or sc_[0][0]-sc_[1][0]>=0.08): e['ch']=sc_[0][1];e['q']='bounded_text'
+        occ=[];info=[]
+        for e in entries:
+            if e['ch'] is None: st['unres']+=1;review.append(dict(kind='unres',surah=surah,page=g['page'],heading=h[:30],digits=e['dg']));continue
+            st[e['q']]+=1;info.append((e['q'],e['ch'] in e['C'],e['sco']))
+            if e['ch'] not in occ: occ.append(e['ch'])
+        if len(occ)<2: st['drop_small']+=1;review.append(dict(kind='dropped',surah=surah,page=g['page'],heading=h[:40],n=len(g['raw'])));continue
         gi+=1;st['groups']+=1
         vs=[QURAN[surah][c-1][1] for c in occ]
         ph=None
@@ -97,7 +125,7 @@ for k,(a,b) in enumerate(A['sections']):
         if not ph: ph=lcw(vs);how='lcw'
         if not ph: ph=vs[0].split()[0];how='first'
         st['anchor_'+how]+=1
-        out.append({'groupId':f'{surah}-{gi}','scope':'internal','surahs':[surah],'anchorPhrase':ph,'category':'لفظ_مشترك','_anchorHow':how,'_unres':len(g['raw'])-len(info),'_allStrong':all(i[0]=='strong' for i in info),'_digitAgree':sum(1 for i in info if i[1])/max(1,len(info)),'_minScore':round(min(i[2] for i in info),2),'_heading':h,
+        out.append({'groupId':f'{surah}-{gi}','scope':'internal','surahs':[surah],'anchorPhrase':ph,'category':'لفظ_مشترك','_anchorHow':how,'_unres':len(g['raw'])-len(info),'_page':g['page'],'_qs':sorted({i[0] for i in info}),'_allStrong':all(i[0]=='strong' for i in info),'_digitAgree':sum(1 for i in info if i[1])/max(1,len(info)),'_minScore':round(min(i[2] for i in info),2),'_heading':h,
           'occurrences':[{'surahNumber':surah,'surahName':NAMES[surah].replace('سُورَةُ ','').strip(),'ayahNumber':c,'fullText':QURAN[surah][c-1][1].strip()} for c in occ]})
 print(dict(st),len(out),sum(len(g['occurrences']) for g in out))
 json.dump(out,open('work/groups.json','w'),ensure_ascii=False);json.dump(review,open('work/review.json','w'),ensure_ascii=False)
