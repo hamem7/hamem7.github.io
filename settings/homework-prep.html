@@ -257,7 +257,10 @@
     .hwp3-empty-row td { padding: 28px; color: var(--dh-ink-soft); }
 
     /* أزرار الإجراءات داخل صف السجل — الزر الأساسي يتغير حسب الحالة (نشر / يحتاج تصحيح / النتائج / تذكير) */
-    .hwp3-actions { display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .hwp3-actions { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: nowrap; }
+    /* على الشاشات الضيقة فقط نسمح بالالتفاف؛ وإلا تبقى الأزرار الثلاثة في سطر واحد */
+    @media (max-width: 640px) { .hwp3-actions { flex-wrap: wrap; } }
+    .hwp3-actions .hwp3-btn { padding: 0 12px; }
     .hwp3-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 0 16px; border-radius: 12px;
         border: 1.5px solid transparent; font-family: inherit; font-size: .95rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
     .hwp3-btn:focus-visible, .hwp3-more-btn:focus-visible, .hwp3-menu-item:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
