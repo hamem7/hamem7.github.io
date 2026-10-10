@@ -1991,6 +1991,25 @@ function saveManualQuestion() {
     if (!title || !text) return alert(t("الرجاء كتابة عنوان ونص السؤال!"));
 
     const editIndex = parseInt(document.getElementById('qb-edit-index').value);
+    const oldQ = editIndex >= 0 ? currentGeneratedQuestions[editIndex] : null;
+
+    // 🛡️ التصحيح الآلي في الخادم مطابقة حرفية (ans === correctAnswer). فلو عدّل المعلم نص الخيارات ولم يعدّل خانة الإجابة الصحيحة
+    // معها لن يطابقها أي خيار فيُحسب كل جواب خطأ. نعالجه هنا: إن كانت الإجابة القديمة لا توجد بين الخيارات الجديدة وبقي عدد الخيارات
+    // كما هو، نعتمد الخيار الذي في نفس ترتيب الإجابة القديمة (حالة تقصير نص الخيارات في أماكنها)، وإلا نمنع الحفظ بدل واجب يُصحَّح خطأً.
+    let correctFixed = correctRaw;
+    if (type === 'mcq') {
+        if (!optionsRaw.includes(correctRaw)) {
+            const oldIdx = oldQ && Array.isArray(oldQ.options) && !Array.isArray(oldQ.correctAnswer) ? oldQ.options.indexOf(oldQ.correctAnswer) : -1;
+            if (oldIdx >= 0 && oldQ.options.length === optionsRaw.length && optionsRaw[oldIdx] && correctRaw === oldQ.correctAnswer) {
+                correctFixed = optionsRaw[oldIdx];
+            } else {
+                return alert(L('الإجابة الصحيحة يجب أن تطابق أحد الخيارات حرفياً. انسخ نص الخيار الصحيح إلى خانة «الإجابة الصحيحة» ثم احفظ.', 'The correct answer must exactly match one of the options. Copy the correct option\'s text into the "Correct answer" box, then save.'));
+            }
+        }
+    } else if (type === 'checkbox') {
+        const parts = correctRaw.split(',').map(x => x.trim());
+        if (!parts.length || parts.some(x => !optionsRaw.includes(x))) return alert(L('كل إجابة صحيحة يجب أن تطابق أحد الخيارات حرفياً (مفصولة بفواصل).', 'Every correct answer must exactly match one of the options (comma-separated).'));
+    }
 
     let needsManual = (type === 'written_blank' || type === 'write_3_ayahs');
 
@@ -2000,10 +2019,12 @@ function saveManualQuestion() {
         title: title,
         text: text,
         options: optionsRaw,
-        correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctRaw,
+        correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctFixed,
         points: (type === 'checkbox') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
+    // بعد تعديل المعلم يبقى السؤال معلَّماً أنه من المتشابهات (لسطر المعاينة فقط؛ لا أثر له على الطالب أو التصحيح)
+    if (oldQ && oldQ.simGroupId) { newQ.simGroupId = oldQ.simGroupId; newQ.simKind = oldQ.simKind; }
 
     if (editIndex >= 0) {
         currentGeneratedQuestions[editIndex] = newQ;

@@ -429,7 +429,7 @@ export function buildGameRound(groups, allGroupsPool) {
 // 🌟 [جديد — 2026-10-10] بطلب المعلم: الواجب الذكي يضم سؤالين من المتشابهات المرفوعة على المنصة. أسئلة اللعبة
 // (sim_position/sim_recognition/sim_recall) أنواعها خاصة بشاشة اللعب، أما الواجب فيُصحَّح آلياً في الخادم والواجهة
 // بنوع 'mcq' (title/text/options/correctAnswer كلها نصوص) — فنحوّل السؤال إلى هذا الشكل بلا أي تعديل على التصحيح.
-// الأنواع المستخدمة: الربط بالموضع، والتعرّف، والاستدعاء الموجّه (التمييز/منع الخلط تحتاج واجهة تسميع خاصة باللعبة).
+// الأنواع المستخدمة: الربط بالموضع، والتمييز (خاتمة الآية التي فيها العبارة المشتركة)، والاستدعاء الموجّه. أُسقط «التعرّف» لأن العبارة المعروضة تظهر حرفياً في الخيار الصحيح وحده فيُجاب بالمطابقة البصرية لا بالاستحضار.
 const quoted = (txt) => `﴿ ${txt} ﴾`;
 
 export function toHomeworkQuestion(simQ) {
@@ -445,11 +445,17 @@ export function toHomeworkQuestion(simQ) {
         text = quoted(occ.fullText);
         options = simQ.options.map(label);
         correctAnswer = label(simQ.correctAnswer);
-    } else if (simQ.type === 'sim_recognition') {
-        title = 'من المتشابهات: أي هذه الآيات وردت فيها هذه العبارة فعلاً؟';
+    } else if (simQ.type === 'sim_discrimination') {
+        // العبارة المشتركة تُعرض في السؤال، والخيارات هي ما بعدها فقط (بلا العبارة): فلا يمكن الاهتداء للإجابة بمطابقة نص،
+        // ويضطر الطالب لاستحضار أي خاتمة تخص هذا الموضع بالذات من بين خواتيم المواضع المتشابهة.
+        title = internal
+            ? `من المتشابهات: ما خاتمة الآية ${occ.ayahNumber} من سورة ${occ.surahName} التي فيها هذه العبارة؟`
+            : `من المتشابهات: ما خاتمة الآية التي فيها هذه العبارة في سورة ${occ.surahName}؟`;
         text = quoted(simQ.anchorPhrase);
         options = simQ.options;
         correctAnswer = simQ.correctAnswer;
+        // احتياط: لو ظهرت العبارة المشتركة في خيار واحد فقط (عند رجوع الاشتقاق لنص الآية كاملاً) لكشفت الإجابة بالمطابقة
+        if (options.filter(o => o.includes(simQ.anchorPhrase)).length === 1) return null;
     } else if (simQ.type === 'sim_recall') {
         title = internal
             ? `من المتشابهات: اختر نص الآية ${occ.ayahNumber} من سورة ${occ.surahName}`
@@ -471,7 +477,7 @@ export function toHomeworkQuestion(simQ) {
 export function buildHomeworkSimilarityQuestion(group, allGroupsPool) {
     const candidates = shuffle([
         ...generatePositionQuestions(group),
-        ...generateRecognitionQuestions(group, allGroupsPool),
+        ...generateDiscriminationQuestions(group),
         ...generateGuidedRecallQuestions(group)
     ]);
     for (const c of candidates) {
