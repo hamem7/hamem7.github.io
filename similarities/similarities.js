@@ -95,11 +95,39 @@ let formState = null;
 // (راجع تعليق طلب المعلم 2026-09-16 الثاني أعلى الملف)
 // 🌟 تقسيم الأجزاء الأربعة (بخلاف جزء عمّ الذي له مسار خاص) — راجع تعليق الافتراض أعلى الملف
 export const JUZ_BUCKETS = [
+    // 🌟 [2026-10-10] أقسام السور 2–45 (من كتاب «متشابهات السورة مع نفسها») — العنوان يُركَّب من أسماء السور (bucketTitle)
+    { id: 's2', from: 2, to: 2 },
+    { id: 's3', from: 3, to: 3 },
+    { id: 's4', from: 4, to: 4 },
+    { id: 's5', from: 5, to: 5 },
+    { id: 's6', from: 6, to: 6 },
+    { id: 's7', from: 7, to: 7 },
+    { id: 's8', from: 8, to: 9 },
+    { id: 's10', from: 10, to: 12 },
+    { id: 's13', from: 13, to: 16 },
+    { id: 's17', from: 17, to: 19 },
+    { id: 's20', from: 20, to: 22 },
+    { id: 's23', from: 23, to: 25 },
+    { id: 's26', from: 26, to: 28 },
+    { id: 's29', from: 29, to: 33 },
+    { id: 's34', from: 34, to: 41 },
+    { id: 's42', from: 42, to: 45 },
     { id: 'ahqaf', titleKey: 'sim_juz_46', from: 46, to: 50 },
     { id: 'dhariyat', titleKey: 'sim_juz_51', from: 51, to: 57 },
     { id: 'mujadila', titleKey: 'sim_juz_58', from: 58, to: 66 },
     { id: 'tabarak', titleKey: 'sim_juz_67', from: 67, to: 77 }
 ];
+
+// عنوان القسم: من الترجمة إن وُجد titleKey، وإلا من اسم السورة (أو «أولى – أخيرة» لقسم متعدد السور)
+export function bucketTitle(b) {
+    if (!b) return '';
+    if (b.titleKey) return t(b.titleKey);
+    const nameOf = n => {
+        const s = (AppState.surahsData || []).find(x => x.number === n);
+        return s ? s.name : String(n);
+    };
+    return b.from === b.to ? nameOf(b.from) : `${nameOf(b.from)} – ${nameOf(b.to)}`;
+}
 
 // 🌟 ربط قيم حقل category الخام (كما فُرِّغت من الـ PDF) بمفاتيح ترجمة ثنائية اللغة
 const CATEGORY_I18N_MAP = {
@@ -499,7 +527,7 @@ async function render() {
         html = renderHomeHTML();
     } else if (view === 'juzSurahList') {
         const bucket = JUZ_BUCKETS.find(b => b.id === params.juzId);
-        titleText = bucket ? t(bucket.titleKey) : '';
+        titleText = bucketTitle(bucket);
         subtitleText = t('sim_choose_surah_hint');
         const list = bucket ? AppState.surahsData.filter(s => s.number >= bucket.from && s.number <= bucket.to) : [];
         // 🌟 [جديد — 2026-09-16، الجولة الثانية] "🎮 العب لعبة هذا الجزء" — يظهر فوق قائمة
@@ -578,8 +606,8 @@ function renderHomeHTML() {
         const n = internal.filter(r => (r.surahs || []).some(sn => sn >= b.from && sn <= b.to)).length;
         html += `<button class="sim-card sim-juz-card" data-action="open-juz" data-juz="${b.id}">
             <span class="sim-juz-icon" aria-hidden="true">📖</span>
-            <span class="sim-juz-title">${t(b.titleKey)}</span>
-            <span class="sim-juz-meta"><span>${b.from} – ${b.to}</span><span>${n} ${t('sim_groups_count_suffix')}</span></span>
+            <span class="sim-juz-title">${bucketTitle(b)}</span>
+            <span class="sim-juz-meta"><span>${b.from === b.to ? b.from : `${b.from} – ${b.to}`}</span><span>${n} ${t('sim_groups_count_suffix')}</span></span>
         </button>`;
     });
     const ammaN = allSimilarities.filter(r => r.scope === 'juzAmma').length;

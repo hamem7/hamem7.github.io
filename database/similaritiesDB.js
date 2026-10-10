@@ -21,7 +21,10 @@
 //   occurrences: كل موضع يحمل surahNumber/surahName الخاصين به مباشرة (حتى مواضع "الداخلية")
 // راجع التوثيق الكامل لبنية الحقول في رأس ملف database/data/mutashabihatSeed.js 🌟
 
-import { MUTASHABIHAT_SEED, MUTASHABIHAT_SEED_VERSION } from "./data/mutashabihatSeed.js";
+import { MUTASHABIHAT_SEED as MUTASHABIHAT_SEED_LATE, MUTASHABIHAT_SEED_VERSION } from "./data/mutashabihatSeed.js";
+// 🌟 [2026-10-10] متشابهات السور 2–45 (مولَّدة من الكتاب) تُضم لبيانات 46–114 في بذرة واحدة
+import { MUTASHABIHAT_SEED_PART1 } from "./data/mutashabihatSeedPart1.js";
+const MUTASHABIHAT_SEED = [...MUTASHABIHAT_SEED_PART1, ...MUTASHABIHAT_SEED_LATE];
 
 export const SIMILARITIES_DB_NAME = "DarHamSimilarities";
 // 🌟 رُفع رقم الإصدار من 1 إلى 2 عند إعادة تصميم شكل البيانات (لا حاجة لتغيير هيكلي فعلي في

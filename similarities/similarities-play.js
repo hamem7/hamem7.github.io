@@ -20,7 +20,7 @@
 // renderQuestion أدناه).
 import { AppState, loadSplashScreen, t } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
-import { getOfficialAyahText, JUZ_BUCKETS } from './similarities.js';
+import { getOfficialAyahText, JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { highlightAnchorInText, blankPhraseInText, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
 
@@ -98,7 +98,7 @@ async function resolveScopeGroups(scope) {
         const bucket = JUZ_BUCKETS.find(b => b.id === scope.juzId);
         if (!bucket) return { groups: [], title: '' };
         const groups = all.filter(r => r.scope === 'internal' && (r.surahs || []).some(sn => sn >= bucket.from && sn <= bucket.to));
-        return { groups, title: t(bucket.titleKey) };
+        return { groups, title: bucketTitle(bucket) };
     }
 
     return { groups: [], title: '' };
