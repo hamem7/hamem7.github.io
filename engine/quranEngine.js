@@ -339,11 +339,13 @@ export class QuranEngine {
         const prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text);
         const nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text);
         const targetText = cleanAyahText(targetAyah.text);
+        // نقاط قبل الآية وبعدها توضّح للطالب أن المطلوب آيتان ناقصتان (نفس شكل فراغ «الآية بين آيتين»)
+        const gap = (label) => `<span class="between-gap" aria-label="${label}" style="display:block; margin:6px auto; font-family:Arial,sans-serif; font-size:1.6rem; line-height:1; letter-spacing:0.3em; color:var(--gold, #c9a227); direction:ltr; white-space:nowrap; overflow:hidden; text-align:center;">${'•&nbsp;'.repeat(16)}</span>`;
         const ansBox = (label, txt) => `<div style="margin:8px 0;"><div style="color:var(--secondary); font-size:1.2rem; font-weight:bold;">${label}</div><span class="quran-text">﴿\u00A0${txt}\u00A0﴾</span></div>`;
         return {
             type: 'around', special: true,
             questionTitle: "اذكر الآية قبلها والآية بعدها ↔️",
-            questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`,
+            questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">${gap('الآية التي قبلها')}﴿\u00A0${targetText}\u00A0﴾${gap('الآية التي بعدها')}</div>`,
             fullAnswer: `${prevText}\u00A0﴾ ﴿\u00A0${nextText}`,
             answerHTML: ansBox('➡️ الآية التي قبلها', prevText) + ansBox('⬅️ الآية التي بعدها', nextText),
             ayahObj: targetAyah, reportText: targetText
