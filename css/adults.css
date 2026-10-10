@@ -218,3 +218,11 @@ body.adult-theme {
     .adult-theme .game-sidebar { width: 100%; box-sizing: border-box; }
     .adult-theme .game-main-area { flex: none; width: 100%; min-width: 0; box-sizing: border-box; padding: 20px 14px; }
 }
+
+/* ⭐ السؤال المميز: شارة فوق عنوان السؤال + لوحة مكافأة الإجابة الصحيحة */
+.special-q-badge { display:inline-block; margin-bottom:10px; padding:4px 18px; border-radius:50px; font-weight:bold; font-size:1.1rem; color:#7a4a00; background:linear-gradient(135deg,#ffe27a,#f5b301); box-shadow:0 2px 8px rgba(245,179,1,.45); }
+.special-reward { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999; text-align:center; padding:26px 34px; border-radius:24px; color:#5a3a00; background:linear-gradient(135deg,#fff3b0,#ffd54a); border:3px solid #f5b301; box-shadow:0 10px 40px rgba(0,0,0,.35); animation:specialRewardPop .5s ease-out; max-width:90vw; }
+.special-reward-medal { font-size:4rem; line-height:1; }
+.special-reward-title { font-size:1.8rem; font-weight:bold; margin-top:8px; }
+.special-reward-sub { font-size:1.1rem; margin-top:6px; }
+@keyframes specialRewardPop { from { transform:translate(-50%,-50%) scale(.3); opacity:0; } to { transform:translate(-50%,-50%) scale(1); opacity:1; } }

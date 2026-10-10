@@ -152,6 +152,7 @@ async function probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz) {
             case 'catch': d = await eng.generateCatchGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'next': d = await eng.generateNextAyahGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'previous': d = await eng.generatePreviousAyahGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'around': d = await eng.generateAroundAyahGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'between': d = await eng.generateBetweenGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'guess_surah': d = await eng.generateGuessSurahGame(p, chunkIndex, totalChunks); break;
             case 'recite': d = await eng.generateReciteGame(p, isJuz, false, chunkIndex, totalChunks); break;
@@ -296,8 +297,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             // تربوي من المعلم يمكن إرجاعها بحذفها من هذه القائمة فقط، بلا أي تعديل آخر.
             // وضع الجزء الآن 12 لعبة (كل الألعاب)، وضع السورة/النطاق 10 ألعاب.
             let gamesList = config.isJuzMode
-                ? ['catch', 'next', 'previous', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
-                : ['catch', 'next', 'previous', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
+                ? ['catch', 'next', 'previous', 'around', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
+                : ['catch', 'next', 'previous', 'around', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
             // 🌟 [2026-10-03] بطلب المعلم: "اربط الكلمة بسورتها" تدخل أيضاً وضع "من سورة إلى سورة" إذا
             // كان النطاق ثلاث سور فما فوق (تُعدّ السور المختلفة الموجودة فعلاً في آيات النطاق)
             if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
@@ -652,7 +653,8 @@ async function playNextMission() {
             GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${headLine}${originalBodyHTML}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
             document.getElementById('teacher-eval-area').style.display = 'block';
             document.getElementById('teacher-eval-buttons').style.display = 'flex';
-            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
+            const specialBadge = GameState.currentData.special ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
+            document.getElementById('game-title').innerHTML = specialBadge + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
 
             // 🌟 [جديد] تفعيل لعبة الترتيب التفاعلية نفسها (نفس الحاوية والدالة buildOrderGameUI
@@ -825,6 +827,7 @@ async function playNextMission() {
             if(type === 'catch') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'next') GameState.currentData = await retryGen(() => AppState.quranEngine.generateNextAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'previous') { GameState.currentData = await retryGen(() => AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint !== t('qe_none')) document.getElementById('hint-btn').style.display = 'inline-block'; }
+            else if(type === 'around') GameState.currentData = await retryGen(() => AppState.quranEngine.generateAroundAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'between') GameState.currentData = await retryGen(() => AppState.quranEngine.generateBetweenGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'guess_surah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks));
             else if(type === 'recite') GameState.currentData = await retryGen(() => AppState.quranEngine.generateReciteGame(activePool, GameState.config.isJuzMode, false, chunkIndex, totalChunks));
@@ -842,7 +845,8 @@ async function playNextMission() {
                 if(GameState.currentData.type === 'recite') ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">( ${localizeGenerated(GameState.currentData.reportText).replace(/^(تسميع من |تسميع |Reciting from |Reciting )/, '')} )</div>`;
                 else ansHTML += `<div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(GameState.currentData.ayahObj.surahName), n: GameState.currentData.ayahObj.numberInSurah })}</div>`;
             }
-            ansHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
+            if(GameState.currentData.answerHTML) ansHTML += GameState.currentData.answerHTML;
+            else ansHTML += `<span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             
             if(GameState.currentData.correctAns && GameState.currentData.type === 'complete_ayah') {
                 ansHTML += `<br><br><span style="color:var(--danger)">${t("الكلمات المفقودة:")} ${GameState.currentData.correctAns}</span>`;
@@ -903,6 +907,20 @@ function submitAllErrors() {
     recordAnswer(false, GameState.tempErrors);
 }
 
+// ⭐ مكافأة «السؤال المميز»: لوحة ذهبية قصيرة فوق الشاشة + احتفال، وتختفي تلقائياً قبل السؤال التالي
+function showSpecialReward() {
+    try {
+        triggerConfetti();
+        const old = document.getElementById('special-reward'); if (old) old.remove();
+        const box = document.createElement('div');
+        box.id = 'special-reward';
+        box.className = 'special-reward';
+        box.innerHTML = `<div class="special-reward-medal">🏅</div><div class="special-reward-title">${t("ما شاء الله! حافظ مميز")}</div><div class="special-reward-sub">${t("وسام النجمة الذهبية ⭐ + 5 نقاط إضافية")}</div>`;
+        document.body.appendChild(box);
+        setTimeout(() => box.remove(), 2400);
+    } catch (e) { console.warn(e); }
+}
+
 async function recordAnswer(isCorrect, errorTypes = []) {
     // 🌟 [إصلاح فحص الأزرار] حارس ضد الضغط المزدوج/السريع (خصوصًا على اللمس): كل سؤال
     // يُنشأ له كائن currentData جديد، فنعلّم الكائن الحالي بأنه أُجيب عليه، وأي استدعاء ثانٍ
@@ -923,6 +941,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 [قديم] تصنيف لعبة "رتب السور" السابقة — لم تعد هذه اللعبة تُستخدم في أي جولة جديدة
         // (استُبدلت بـ'link_word_surah' أدناه)، لكن أبقينا هذا السطر بلا حذف احترازًا 🌟
         else if(tType==='order_surahs') typeLabel= t("📚 رتب السور");
+        else if(tType==='around') typeLabel= t("⭐ سؤال مميز: قبلها وبعدها");
         else if(tType==='between') typeLabel= t("↔️ الآية بين آيتين");
         else if(tType==='guess_surah') typeLabel= t("🔍 خمن السورة");
         else if(tType==='recite') typeLabel= t("🎙️ تسميع مقطع");
@@ -1018,13 +1037,17 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if (GameState.orderAttempts === 1) earnedScore = 8;
         else if (GameState.orderAttempts >= 2) earnedScore = 6;
         else if (GameState.hintUsed) earnedScore = 8;
+        // ⭐ السؤال المميز: مكافأة خاصة (وسام ذهبي + احتفال + 5 نقاط إضافية) عند الإجابة الصحيحة فقط
+        const isSpecialWin = !!(GameState.currentData && GameState.currentData.special) && !GameState.isWeaknessMode;
+        if (isSpecialWin) earnedScore += 5;
         
         AppState.currentStudent.totalScore += earnedScore; 
         GameState.consecutiveCorrect++;
         if(GameState.consecutiveCorrect === 2) { setTimeout(() => { showToastEncouragement(); }, 500); GameState.consecutiveCorrect = 0; }
         await AppState.studentManager.updateStudent(AppState.currentStudent); 
         GameState.currentIndex++; 
-        setTimeout(playNextMission, 1000); 
+        if (isSpecialWin) { showSpecialReward(); setTimeout(playNextMission, 2600); }
+        else setTimeout(playNextMission, 1000); 
     } else { 
         GameState.tempErrors = []; 
         GameState.tempRanges = [];

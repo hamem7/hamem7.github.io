@@ -327,6 +327,29 @@ export class QuranEngine {
         return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
+    // 🌟 [جديد 2026-10-10] «سؤال مميز»: تُعرض آية واحدة ويطلب من الطالب ذكر الآية التي قبلها والتي بعدها
+    // معاً. يُعلَّم السؤال بـspecial:true فتعرض الشاشة شارة «سؤال مميز» فوقه، وعند الإجابة الصحيحة
+    // تظهر مكافأة خاصة (راجع showSpecialReward في adultGame.js). الآيتان المحيطتان من نفس سورة الآية
+    // دائماً (تُرفض أول آية وآخر آية في السورة بإرجاع null فيُعاد التوليد). 🌟
+    async generateAroundAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) {
+        const validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null;
+        const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null;
+        const surah = await this.getSurah(targetAyah.surahNumber);
+        if(!surah || targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null;
+        const prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text);
+        const nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text);
+        const targetText = cleanAyahText(targetAyah.text);
+        const ansBox = (label, txt) => `<div style="margin:8px 0;"><div style="color:var(--secondary); font-size:1.2rem; font-weight:bold;">${label}</div><span class="quran-text">﴿\u00A0${txt}\u00A0﴾</span></div>`;
+        return {
+            type: 'around', special: true,
+            questionTitle: "اذكر الآية قبلها والآية بعدها ↔️",
+            questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`,
+            fullAnswer: `${prevText}\u00A0﴾ ﴿\u00A0${nextText}`,
+            answerHTML: ansBox('➡️ الآية التي قبلها', prevText) + ansBox('⬅️ الآية التي بعدها', nextText),
+            ayahObj: targetAyah, reportText: targetText
+        };
+    }
+
     async generateOrderGame(ayahsPool, isKids, chunkIndex, totalChunks) { 
         let count = isKids ? 3 : 4; if(ayahsPool.length < count) return null; 
         let ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); let startIdx = ayahsPool.findIndex(a => a.numberInSurah === ayah.numberInSurah && a.surahNumber === ayah.surahNumber);
