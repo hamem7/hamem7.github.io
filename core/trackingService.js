@@ -410,7 +410,8 @@ async function buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, mu
 // 🌟 [جديد — 2026-10-10] أسئلة المتشابهات داخل الواجب الذكي (بطلب المعلم: سؤالان). نختار مجموعات متشابهات محفوظة كلها
 // عند الطالب (كل مواضعها داخل مجمّع آياته المحفوظة) ومن السور الواقعة في نطاق الواجب المختار، ثم نحوّل كل واحدة لسؤال mcq.
 // أي فشل (لا مدير متشابهات، لا مجموعات صالحة...) يرجع مصفوفة فارغة فيستمر الواجب بدونها كما كان.
-export const SIMILARITY_QUESTIONS_PER_HW = 2;
+// العدد يتناسب مع طول الواجب: سؤال لكل 10 أسئلة (10 → 1، 20 → 2، 30 → 3...) وبحدٍّ أدنى سؤال واحد
+export const similarityCountFor = (n) => Math.max(1, Math.round(n / 10));
 
 async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) {
     if (k <= 0) return [];
@@ -441,7 +442,7 @@ async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) 
     }
 }
 
-export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random, similaritiesManager = null, similarityCount = SIMILARITY_QUESTIONS_PER_HW } = {}) {
+export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random, similaritiesManager = null, similarityCount = null } = {}) {
     const ctx = await loadContext(student);
     if (!ctx) return { ok: false, reason: 'unavailable' };
     if (!ctx.range.ok) return { ok: false, reason: 'no_range', ctx };
@@ -464,7 +465,7 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
     const scopeSegs = ctx.path.segments.filter(s => !allowed || allowed.has(s.id));
     const multiSurah = new Set(scopeSegs.map(s => s.surah)).size > 1;
     // أسئلة المتشابهات تُضاف فوق العدد المطلوب (لا تزاحم أسئلة التتبّع) كي لا تتأثر حسابات التغطية ومقترح «أكمل»
-    const simQs = await pickSimilarityQuestions(similarityCount, poolIndex, new Set(scopeSegs.map(s => s.surah)), rng, similaritiesManager);
+    const simQs = await pickSimilarityQuestions(similarityCount == null ? similarityCountFor(n) : similarityCount, poolIndex, new Set(scopeSegs.map(s => s.surah)), rng, similaritiesManager);
     const plan = planHomework({
         n, path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
         now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds

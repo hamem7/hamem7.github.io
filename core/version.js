@@ -22,8 +22,8 @@ export const CHANGELOG = [
         items: [
             {
                 type: 'new',
-                ar: 'الواجب الذكي يضم الآن سؤالين من «المتشابهات» المرفوعة على المنصة (تُضافان فوق عدد الأسئلة المطلوب): يُختاران من مجموعات متشابهات محفوظة بالكامل عند الطالب وداخل النطاق المحدد للواجب، بصيغة اختيار من متعدد تُصحَّح آلياً.',
-                en: 'Smart homework now includes two questions from the platform\'s similar-verses (mutashabihat) data, added on top of the requested count: they come from groups the student has fully memorized within the homework scope, as auto-graded multiple choice.'
+                ar: 'الواجب الذكي يضم الآن أسئلة من «المتشابهات» المرفوعة على المنصة بواقع سؤال لكل 10 أسئلة (10 → 1، 20 → 2...) وتُضاف فوق عدد الأسئلة المطلوب: يُختاران من مجموعات متشابهات محفوظة بالكامل عند الطالب وداخل النطاق المحدد للواجب، بصيغة اختيار من متعدد تُصحَّح آلياً.',
+                en: 'Smart homework now includes questions from the platform\'s similar-verses (mutashabihat) data, one per 10 questions (10 → 1, 20 → 2...), added on top of the requested count: they come from groups the student has fully memorized within the homework scope, as auto-graded multiple choice.'
             }
         ]
     },

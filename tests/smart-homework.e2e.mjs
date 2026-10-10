@@ -137,9 +137,9 @@ try {
     summary: document.getElementById('hw-smart-summary')?.innerText || '',
     text: document.getElementById('hw-questions-list').innerText
   }));
-  check('B1 12 سؤالاً + سؤالا متشابهات في المعاينة', preview.cards === 14, String(preview.cards));
-  check('B2 كل سؤال تتبّع تحته «لماذا؟» وشارة الفئة والمهارة (12 + سؤالا متشابهات)', preview.why === 12);
-  check('B2b سؤالان من المتشابهات فوق الـ12 (mcq، من نطاق حفظه)', preview.sims === 2, String(preview.sims));
+  check('B1 12 سؤالاً + سؤال متشابهات واحد في المعاينة', preview.cards === 13, String(preview.cards));
+  check('B2 كل سؤال تتبّع تحته «لماذا؟» وشارة الفئة والمهارة (12 + سؤال متشابهات)', preview.why === 12);
+  check('B2b سؤال واحد من المتشابهات فوق الـ12 (سؤال لكل 10)', preview.sims === 1, String(preview.sims));
   check('B3 شريط التوزيع يعرض الفئات (جديد/قريب/بعيد)', /حفظ جديد/.test(preview.summary) && /مراجعة/.test(preview.summary), preview.summary.replace(/\s+/g, ' '));
   check('B4 لا أسئلة علاجية لطالب بلا أخطاء', !/من أخطائه السابقة/.test(preview.summary));
 
@@ -155,7 +155,7 @@ try {
     return { id: h.id, studentName: h.assignedStudentName, nq: h.questions.length, tracking: h.tracking, scope: h.scope, qids: h.questions.map(q => q.id),
       questions: h.questions };
   });
-  check('C1 الواجب مخصَّص للطالب ومحفوظ محلياً مع خريطة تتبّع لكل سؤال', hw1.studentName === 'محمد التجريبي' && Object.keys(hw1.tracking || {}).length === 12 && hw1.questions.filter(q => !q.simGroupId).every(q => hw1.tracking[q.id]) && hw1.questions.filter(q => q.simGroupId && q.type === 'mcq').length === 2);
+  check('C1 الواجب مخصَّص للطالب ومحفوظ محلياً مع خريطة تتبّع لكل سؤال', hw1.studentName === 'محمد التجريبي' && Object.keys(hw1.tracking || {}).length === 12 && hw1.questions.filter(q => !q.simGroupId).every(q => hw1.tracking[q.id]) && hw1.questions.filter(q => q.simGroupId && q.type === 'mcq').length === 1);
   check('C2 النطاق المخزَّن: من الناس إلى النازعات (للشهادة)', hw1.scope && hw1.scope.mode === 'range' && hw1.scope.smart === true && hw1.scope.toNum === 79 && hw1.scope.fromNum === 114, JSON.stringify(hw1.scope));
   const metas = Object.values(hw1.tracking);
   check('C3 كل الأسئلة داخل نطاق حفظه (السور 79..114 فقط)', metas.every(m => m.surah >= 79 && m.surah <= 114));
@@ -197,7 +197,7 @@ try {
       if (i < hw1.nq - 1) { await sp.evaluate(() => document.getElementById('btn-hp-next').click()); await sleep(250); }
     }
     const html = await sp.evaluate(() => document.documentElement.outerHTML);
-    check('C9 الطالب يرى الواجب كاملاً (12 + سؤالا متشابهات) بلا أخطاء جافاسكربت', seen.length === 14 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
+    check('C9 الطالب يرى الواجب كاملاً (12 + سؤال متشابهات) بلا أخطاء جافاسكربت', seen.length === 13 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
     check('C10 صفحة الطالب لا تحوي خريطة التتبّع ولا مقاطع الأسئلة', !html.includes('"segment"') && !html.includes('lastWrongTs') && !html.includes('skillFocus'));
     const hasVisual = hw1.questions.some(q => (hw1.tracking[q.id] || {}).fmt === 'visual_page');
     check('C11 سؤال الذاكرة البصرية (إن وُجد) يظهر للطالب بتنبيه «لا تفتح المصحف» وخيارين', !hasVisual || seen.some(x => x.includes('لا تفتح المصحف') && x.includes('الصفحة اليمنى') && x.includes('الصفحة اليسرى')));
@@ -475,7 +475,7 @@ try {
   await page.click('#btn-generate-hw');
   await page.waitForSelector('#hw-questions-list .quran-text', { timeout: 30000 }); await sleep(500);
   const prev1 = await page.evaluate(() => ({ cards: document.querySelectorAll('#hw-questions-list > div').length, sum: document.getElementById('hw-smart-summary').innerText }));
-  check('M5 المعاينة تعرض سطر تغطية الواجب (كم مقطعاً جديداً من المتبقي)', prev1.cards === half + 2 && prev1.sum.includes('يغطي هذا الواجب') && prev1.sum.includes('لم تُفحص خلال الدورة'), prev1.sum.replace(/\s+/g, ' ').slice(-120));
+  check('M5 المعاينة تعرض سطر تغطية الواجب (كم مقطعاً جديداً من المتبقي)', prev1.cards === half + Math.max(1, Math.round(half / 10)) && prev1.sum.includes('يغطي هذا الواجب') && prev1.sum.includes('لم تُفحص خلال الدورة'), prev1.sum.replace(/\s+/g, ' ').slice(-120));
   const hwsBefore = (await hwSegments()).length;
   await publishCurrent();
   const hwsA = await hwSegments();
@@ -501,7 +501,7 @@ try {
   await publishCurrent();
   const hwsB = await hwSegments();
   const hz2 = hwsB[hwsB.length - 1];
-  check('M9 واجب «أكمل» لا يكرر مقاطع الواجب السابق ويبقى داخل الحزبين', hz2.segs.every(sg => !hz1.segs.includes(sg) && groupSegs.includes(sg)) && (remaining < 3 || hz2.n === Math.max(3, remaining) + 2), `${hz2.segs.length} مقطعاً`);
+  check('M9 واجب «أكمل» لا يكرر مقاطع الواجب السابق ويبقى داخل الحزبين', hz2.segs.every(sg => !hz1.segs.includes(sg) && groupSegs.includes(sg)) && (remaining < 3 || hz2.n === Math.max(3, remaining) + Math.max(1, Math.round(Math.max(3, remaining) / 10))), `${hz2.segs.length} مقطعاً`);
   const banner2 = await page.evaluate(() => document.getElementById('hw-resume-banner').innerText);
   check('M10 بعد الإكمال تظهر رسالة اكتمال التغطية', banner2.includes('اكتملت تغطية'), banner2.replace(/\s+/g, ' ').slice(0, 90));
 
