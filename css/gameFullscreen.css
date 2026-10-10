@@ -79,8 +79,7 @@
     body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span {
         display: block;
         line-height: 1.2;
-        font-family: Arial, sans-serif !important;
-        font-size: 1.6rem !important;
+        font-size: inherit !important;
         margin: 14px 0 !important;
     }
     body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span + br { display: none; }
