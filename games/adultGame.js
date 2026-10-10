@@ -2,6 +2,7 @@
 // 🌟 استيراد دالة الترجمة t 🌟
 import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
+import { addGoldStar, starsSuffix } from '../core/goldStars.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
@@ -572,7 +573,7 @@ async function playNextMission() {
         document.getElementById('btn-submit-all-errors').style.display = 'none';
         
         document.getElementById('in-game-student-info').style.display = 'flex'; 
-        document.getElementById('in-game-name').innerText = AppState.currentStudent.name; 
+        document.getElementById('in-game-name').innerText = AppState.currentStudent.name + starsSuffix(AppState.currentStudent); 
         
         let avatarImg = document.getElementById('in-game-avatar');
         if (avatarImg) {
@@ -910,16 +911,16 @@ function submitAllErrors() {
 }
 
 // ⭐ مكافأة «السؤال المميز»: لوحة ذهبية قصيرة فوق الشاشة + احتفال، وتختفي تلقائياً قبل السؤال التالي
-function showSpecialReward() {
+function showSpecialReward(starRes, certIssued) {
     try {
         triggerConfetti();
         const old = document.getElementById('special-reward'); if (old) old.remove();
         const box = document.createElement('div');
         box.id = 'special-reward';
         box.className = 'special-reward';
-        box.innerHTML = `<div class="special-reward-medal">🏅</div><div class="special-reward-title">${t("ما شاء الله! حافظ مميز")}</div><div class="special-reward-sub">${t("وسام النجمة الذهبية ⭐ + 5 نقاط إضافية")}</div>`;
+        box.innerHTML = `<div class="special-reward-medal">🏅</div><div class="special-reward-title">${t("ما شاء الله! حافظ مميز")}</div><div class="special-reward-sub">${t("وسام النجمة الذهبية ⭐ + 5 نقاط إضافية")}</div>${starRes ? `<div class="special-reward-sub">⭐ ${t("مجموع نجومك:")} ${starRes.count}</div>` : ''}${certIssued ? `<div class="special-reward-cert">🎓 ${t("حصلتَ على شهادة النجوم الذهبية! ستجدها في «الشهادات والتقارير»")}</div>` : ''}`;
         document.body.appendChild(box);
-        setTimeout(() => box.remove(), 2400);
+        setTimeout(() => box.remove(), certIssued ? 4000 : 2400);
     } catch (e) { console.warn(e); }
 }
 
@@ -1041,14 +1042,23 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         else if (GameState.hintUsed) earnedScore = 8;
         // ⭐ السؤال المميز: مكافأة خاصة (وسام ذهبي + احتفال + 5 نقاط إضافية) عند الإجابة الصحيحة فقط
         const isSpecialWin = !!(GameState.currentData && GameState.currentData.special) && !GameState.isWeaknessMode;
-        if (isSpecialWin) earnedScore += 5;
+        let starRes = null;
+        if (isSpecialWin) { earnedScore += 5; starRes = addGoldStar(AppState.currentStudent); }
         
         AppState.currentStudent.totalScore += earnedScore; 
         GameState.consecutiveCorrect++;
         if(GameState.consecutiveCorrect === 2) { setTimeout(() => { showToastEncouragement(); }, 500); GameState.consecutiveCorrect = 0; }
         await AppState.studentManager.updateStudent(AppState.currentStudent); 
         GameState.currentIndex++; 
-        if (isSpecialWin) { showSpecialReward(); setTimeout(playNextMission, 2600); }
+        if (isSpecialWin) {
+            let certIssued = false;
+            if (starRes && starRes.milestone) {
+                try { certIssued = await (await import('../certificates/certificates.js')).autoIssueStarCertificate(AppState.currentStudent, starRes.milestone); } catch (e) { console.warn(e); }
+            }
+            document.getElementById('in-game-name').innerText = AppState.currentStudent.name + starsSuffix(AppState.currentStudent);
+            showSpecialReward(starRes, certIssued);
+            setTimeout(playNextMission, certIssued ? 4200 : 2600);
+        }
         else setTimeout(playNextMission, 1000); 
     } else { 
         GameState.tempErrors = []; 

@@ -6,6 +6,7 @@
 // تصدير ناجح). (أُزيل زر "نشر واجب جديد الآن" من البطاقة — الواجبات من الزر الرئيسي والشريط السفلي.)
 // كل عنصر هنا اختياري بالكامل ويختفي بأدب لو لم تتوفر بياناته، بدل اختلاق أرقام.
 
+import { starsSuffix } from '../core/goldStars.js';
 import { AppState, openHomeworkPrep } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { t } from '../core/i18n.js';
@@ -335,7 +336,7 @@ async function renderDueForReview() {
             row.innerHTML = `
                 <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
                 <span class="qc-row-main">
-                    <span class="qc-row-name">${esc(student.name)}</span>
+                    <span class="qc-row-name">${esc(student.name)}${starsSuffix(student)}</span>
                     <span class="qc-row-sub">${schedTag ? `<span class="qc-tag ${sched.lateDays > 0 ? 'late' : ''}">${esc(schedTag)}</span>` : ''}${reviewTag ? `<span class="qc-tag ${overdueDays > 0 ? 'late' : ''}">${esc(reviewTag)}</span>` : ''}${stale ? `<span class="qc-tag late">${staleTag}</span>` : ''}<span>${esc(rangeText)}</span></span>
                 </span>
                 <span class="qc-row-btns">

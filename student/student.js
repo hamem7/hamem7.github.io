@@ -1,4 +1,5 @@
 // student/student.js
+import { starsSuffix } from '../core/goldStars.js';
 import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
@@ -304,7 +305,7 @@ export function enterStudentEvaluation(student) {
 // عدم وجود اختبار معلّق: بطاقة علاج الأخطاء (إن لزمت) ثم بطاقة الترحيب ثم لوحة التقييم.
 function continueStudentEvaluationEntry() {
     {
-        document.getElementById('top-student-name').innerText = tf('stu_hero_name', { name: AppState.currentStudent.name });
+        document.getElementById('top-student-name').innerText = tf('stu_hero_name', { name: AppState.currentStudent.name + starsSuffix(AppState.currentStudent) });
 
         // 🌟 [جديد] بطاقة الترحيب بالطالب — تُعرض هنا تحديداً: بعد التأكد من أن الاسم
         // مسجَّل فعلاً وقبل الدخول إلى لوحة التقييم مباشرة. مقصود ألا ننتظرها (بلا await
@@ -759,7 +760,7 @@ function allStudentsRowHtml(s) {
     return `<div class="as-row${s.isHidden ? ' as-hidden-row' : ''}" data-name="${esc((s.name || '').toLowerCase())}">
         ${allStudentsAvatarHtml(s)}
         <div class="as-info">
-            <button class="btn-prof-link" data-id="${id}">${esc(s.name)}</button>
+            <button class="btn-prof-link" data-id="${id}">${esc(s.name)}${starsSuffix(s)}</button>
             <span class="as-sub">${esc(details.join(' · '))}</span>
             ${weakness}
         </div>

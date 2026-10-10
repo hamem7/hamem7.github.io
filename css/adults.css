@@ -226,3 +226,4 @@ body.adult-theme {
 .special-reward-title { font-size:1.8rem; font-weight:bold; margin-top:8px; }
 .special-reward-sub { font-size:1.1rem; margin-top:6px; }
 @keyframes specialRewardPop { from { transform:translate(-50%,-50%) scale(.3); opacity:0; } to { transform:translate(-50%,-50%) scale(1); opacity:1; } }
+.special-reward-cert { margin-top:12px; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.7); font-size:1.05rem; font-weight:bold; }

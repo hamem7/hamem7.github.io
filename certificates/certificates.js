@@ -421,6 +421,30 @@ async function shareOrDownload(blob, filename, title, text) {
 // ------------------------------------------------------------
 // الشاشة الرئيسية للميزة
 // ------------------------------------------------------------
+// ⭐ إصدار شهادة «النجوم الذهبية» تلقائياً عند بلوغ طالب عتبة نجوم (يستدعيها games/adultGame.js). تُسجَّل في سجل الشهادات
+// الصادرة فتظهر في تبويب «السجل» ويفتحها المعلم لتعديلها/حفظها/مشاركتها. القالب والخط من آخر اختيارات المعلم.
+// best-effort: أي فشل يُسجَّل في الـconsole ولا يعطّل اللعبة. تُرجع true عند النجاح.
+export async function autoIssueStarCertificate(student, stars) {
+    try {
+        let prefs = {};
+        try { prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch (e) { prefs = {}; }
+        const type = getType('star');
+        const lang = prefs.lang === 'en' ? 'en' : 'ar';
+        const values = { surah: 1, juz: 1, half: 'first', text: lang === 'en' ? `${stars} golden stars` : `${stars} نجوم ذهبية` };
+        const spec = {
+            typeId: 'star', name: String(student.name || '').trim(),
+            female: GIRL_AVATARS.includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',
+            lang, what: buildWhat(type, values, todayISO(), lang), values, bodyIdx: 0, extra: '', verseId: type.verse,
+            basmala: prefs.basmala !== false,
+            templateId: TEMPLATES.some(x => x.id === prefs.templateId) ? prefs.templateId : TEMPLATES[0].id,
+            dateISO: todayISO(), studentId: String(student.id == null ? '' : student.id), manualName: '',
+            font: getFont(prefs.font) ? prefs.font : '', auto: true
+        };
+        await addCertificate(spec);
+        return true;
+    } catch (e) { console.warn('تعذّر إصدار شهادة النجوم تلقائياً:', e); return false; }
+}
+
 export async function openCertificatesHub(opts = {}) {
     if (document.querySelector('.cc-overlay')) return;
     ensureStyles();
