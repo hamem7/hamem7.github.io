@@ -1357,7 +1357,7 @@ function setupListeners() {
     document.getElementById('hw-btn-bulk')?.addEventListener('click', async () => {
         try {
             const m = await import('../components/bulkSend.js');
-            m.openBulkSend({ onClose: () => { renderDueToday(); loadHomeworkDashboard(); } });
+            m.openBulkSend({ asPage: true, onClose: async () => { const app = await import('../core/app.js'); app.openHomeworkPrep(); } });
         } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
     });
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {

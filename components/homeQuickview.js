@@ -384,7 +384,7 @@ async function renderDueForReview() {
                 e.stopPropagation();
                 try {
                     const m = await import('./bulkSend.js');
-                    m.openBulkSend({ onClose: () => afterTaskDone('home-quickcard-due') });
+                    m.openBulkSend({ asPage: true, onClose: async () => { const app = await import('../core/app.js'); app.loadSplashScreen(); } });
                 } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
             });
             listEl.appendChild(foot);

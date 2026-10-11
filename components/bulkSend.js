@@ -17,6 +17,7 @@ import { HomeworkEngine } from '../engine/homeworkEngine.js';
 import { loadContext, buildSelectionModel, planSmartHomework, suggestSelection, saveLastScope, getMonthlyStaleness } from '../core/trackingService.js';
 import { listDueToday } from '../core/hwScheduleService.js';
 import { publishHomeworkToServer, friendlyErrorText } from '../core/homeworkApi.js';
+import { loadScreen, switchTheme } from '../core/navigation.js';
 import { ensureHomeworkSignIn } from './teacherAuthGate.js';
 import { catLabel } from './skillProfile.js';
 
@@ -126,6 +127,11 @@ function injectStyle() {
     .bs-sp{flex:1}
     .bs-toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%);background:#0a3d2f;color:#fff;padding:9px 18px;border-radius:99px;font-size:.88rem;z-index:100002;pointer-events:none;max-width:90vw;text-align:center}
     .bs-empty{padding:26px;text-align:center;color:#4a6058}
+    /* وضع «الصفحة المستقلة»: يملأ منطقة المحتوى داخل المنصة بدل التراكب العائم؛ وشريط الإجراءات لاصق أسفل الصفحة */
+    .bs-ov.bs-pg{position:static;background:none;padding:12px;overflow:visible;display:block;z-index:auto}
+    .bs-pg .bs-box{margin:0 auto;box-shadow:0 4px 18px rgba(6,35,28,.1)}
+    .bs-pg .bs-bar{position:sticky;margin-top:10px;border-radius:14px 14px 0 0;z-index:5}
+    .bs-pg .bs-toast{position:fixed}
     @media(max-width:760px){
       .bs-hd{display:none}
       .bs-row{grid-template-columns:34px 1fr auto;grid-template-areas:"c n q" "s s s" "t t t";row-gap:8px}
@@ -190,13 +196,24 @@ async function copyText(text) {
 }
 
 // ==========================================================
-export async function openBulkSend({ onClose } = {}) {
+// asPage=true: يُفتح كصفحة مستقلة داخل المنصة (تستبدل الشاشة الحالية في #app-root) بدل نافذة عائمة؛ وonClose يتولّى العودة للشاشة السابقة.
+export async function openBulkSend({ onClose, asPage = false } = {}) {
     injectStyle();
-    const ov = document.createElement('div');
-    ov.className = 'bs-ov';
+    let ov;
+    if (asPage) {
+        switchTheme('adult');
+        document.body.style.backgroundImage = '';
+        await loadScreen({ templateUrl: 'settings/bulk-send.html' });
+        ov = document.getElementById('bs-page');
+        if (!ov) return;
+        ov.className = 'bs-ov bs-pg';
+    } else {
+        ov = document.createElement('div');
+        ov.className = 'bs-ov';
+    }
     ov.innerHTML = `<div class="bs-box" role="dialog" aria-modal="true">
         <div class="bs-head"><div class="ic">📤</div><div><h2>${esc(L('الإرسال الجماعي', 'Bulk send'))}</h2><small>${esc(L('جهّز واجبات عدة طلاب دفعة واحدة — اختياري، والشاشة العادية كما هي', 'Prepare several students\' homework at once — optional; the normal screen is unchanged'))}</small></div><div class="sp"></div>
-            <button type="button" class="bs-x" data-act="close">✕ ${esc(L('إغلاق', 'Close'))}</button></div>
+            <button type="button" class="bs-x" data-act="close">${asPage ? '→' : '✕'} ${esc(asPage ? L('رجوع', 'Back') : L('إغلاق', 'Close'))}</button></div>
         <div class="bs-body" id="bs-body"><div class="bs-empty">${esc(L('جارٍ التحميل…', 'Loading…'))}</div></div></div>
         <div class="bs-bar"><div>
             <div class="bs-cnt" id="bs-cnt"></div>
@@ -205,7 +222,7 @@ export async function openBulkSend({ onClose } = {}) {
             <button type="button" class="bs-btn sec" id="bs-prep" disabled>⚙️ ${esc(L('جهّز المحدَّدين', 'Prepare selected'))}</button>
             <button type="button" class="bs-btn" id="bs-pub" disabled>🚀 ${esc(L('انشر المجهَّزين', 'Publish prepared'))}</button>
         </div></div>`;
-    document.body.appendChild(ov);
+    if (!asPage) document.body.appendChild(ov);
 
     let closed = false, busy = false;
     const $ = (s) => ov.querySelector(s);
@@ -221,7 +238,7 @@ export async function openBulkSend({ onClose } = {}) {
         if (busy) return toast(L('انتظر حتى تنتهي العملية الجارية.', 'Please wait for the current operation to finish.'));
         const pending = rows.filter(r => r.state === 'ready').length;
         if (pending && !confirm(L(`هناك ${pending} واجباً مجهَّزاً لم يُنشر بعد، وسيضيع عند الإغلاق. إغلاق؟`, `${pending} prepared homework(s) are not published and will be lost. Close anyway?`))) return;
-        closed = true; document.removeEventListener('keydown', onKey); ov.remove(); if (onClose) onClose();
+        closed = true; document.removeEventListener('keydown', onKey); if (!asPage) ov.remove(); if (onClose) onClose();
     };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
@@ -500,7 +517,7 @@ export async function openBulkSend({ onClose } = {}) {
 
     // ---------- التفاعل ----------
     ov.addEventListener('click', async (e) => {
-        if (e.target === ov) return close();
+        if (e.target === ov && !asPage) return close();
         const act = e.target.closest('[data-act]')?.dataset.act;
         if (act === 'close') return close();
         if (act === 'apply') {
