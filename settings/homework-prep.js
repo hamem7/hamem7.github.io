@@ -3,7 +3,7 @@ import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
 import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
-import { perWeekOf, setStudentPerWeek, listDueToday } from '../core/hwScheduleService.js';
+import { perWeekOf, setStudentPerWeek, listDueToday, markStudentPublished } from '../core/hwScheduleService.js';
 import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
 // 🌟 استدعاء getSubmissionsNeedingGrading لتفعيل بطاقة "يحتاج تصحيح" الجديدة 🌟
@@ -2167,6 +2167,8 @@ async function saveHomeworkToDBImpl(statusType) {
         }
 
         // 🌟 [عدّل 2026-10-01] فحص الرابط العام انتقل للخلفية (verifyPublicLinkInBackground) ويبدأ بعد عرض الرابط أدناه.
+
+        try { await markStudentPublished((await AppState.studentManager.getAllStudents()).find(s => s.name === targetStudentName)); } catch (e) { /* لا يمسّ النشر */ }
 
         // نسخة محلية في سجل الواجبات (نفس البنية القديمة) بنفس معرّف الخادم
         const homeworkObj = {

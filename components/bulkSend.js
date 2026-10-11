@@ -15,7 +15,7 @@ import { esc } from '../core/escape.js';
 import { isEnglish, t } from '../core/i18n.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 import { loadContext, buildSelectionModel, planSmartHomework, suggestSelection, saveLastScope, getMonthlyStaleness } from '../core/trackingService.js';
-import { listDueToday } from '../core/hwScheduleService.js';
+import { listDueToday, markStudentPublished } from '../core/hwScheduleService.js';
 import { publishHomeworkToServer, friendlyErrorText } from '../core/homeworkApi.js';
 import { loadScreen, switchTheme } from '../core/navigation.js';
 import { ensureHomeworkSignIn } from './teacherAuthGate.js';
@@ -688,6 +688,7 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
                     questions: res.questions, assignedStudentName: std.name, assignedStudentId: std.id,
                     meta: { app: 'darham', createdFrom: 'bulk-send', scope: res.scopeObj || null, tracking }
                 });
+                await markStudentPublished(std);
                 const baseUrl = window.location.origin + window.location.pathname;
                 r.hwId = created.id; r.link = `${baseUrl}?hw=${created.id}`;
                 try {

@@ -24,6 +24,11 @@ export const CHANGELOG = [
                 type: 'improved',
                 ar: 'الإرسال الجماعي صار صفحة مستقلة داخل المنصة (بدل النافذة العائمة)، وزر «رجوع» يعيدك للشاشة التي جئت منها.',
                 en: 'Bulk send is now a standalone page inside the platform (instead of a floating window); the "Back" button returns you to where you came from.'
+            },
+            {
+                type: 'fixed',
+                ar: 'من نُشر له واجب لا يبقى اسمه في «مهام اليوم» حتى لو تعذّر حفظ النسخة المحلية أو اختلف اسمه: يُسجَّل وقت النشر على الطالب نفسه.',
+                en: 'A student you published homework for no longer stays in "Today\'s tasks" even if the local copy failed to save or the name differs: the publish time is now recorded on the student.'
             }
         ]
     },

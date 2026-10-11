@@ -131,6 +131,18 @@ async function lastPublishedByName() {
     return m;
 }
 
+// يسجّل على الطالب نفسه وقت آخر نشر ناجح (مستقلاً عن سجل الواجبات المحلي): لو تعذّر حفظ النسخة المحلية أو اختلف اسم الطالب
+// أو نُشر الواجب من جهاز آخر، يبقى الموعد مُسقَطاً بدل أن يظل اسمه في «مهام اليوم». أي فشل هنا لا يمسّ النشر.
+export async function markStudentPublished(student, ts = Date.now()) {
+    try {
+        if (!student) return;
+        student.hwSchedule = { ...(student.hwSchedule || {}), lastPubTs: ts };
+        await AppState.studentManager.updateStudent(student);
+        // نفس حدث حفظ الواجب: ليختفي الاسم فوراً من «مهام اليوم» حتى لو فشل حفظ النسخة المحلية
+        if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dh:homework-created', { detail: { homework: { status: 'published', assignedStudentName: student.name } } }));
+    } catch (e) { console.warn('تعذر تسجيل وقت النشر على الطالب:', e); }
+}
+
 // الطلاب الذين حان موعد واجبهم (اليوم أو متأخراً) ولم يُعدّ لهم واجب بعد، مع طاقة اليوم المتوازنة
 export async function listDueToday(now = Date.now()) {
     const students = await visibleStudents();
@@ -138,7 +150,7 @@ export async function listDueToday(now = Date.now()) {
     const rows = [];
     students.forEach(s => {
         const info = dueInfo({
-            days: daysOf(s), today: now, lastHomeworkTs: last.get(s.name) || 0,
+            days: daysOf(s), today: now, lastHomeworkTs: Math.max(last.get(s.name) || 0, (s.hwSchedule && s.hwSchedule.lastPubTs) || 0),
             startTs: (s.hwSchedule && s.hwSchedule.startTs) || 0, snoozeUntil: (s.hwSchedule && s.hwSchedule.snoozeUntil) || null
         });
         if (info && !info.snoozed) rows.push({ student: s, ...info });
