@@ -39,8 +39,8 @@ export const CHANGELOG = [
             },
             {
                 type: 'improved',
-                ar: 'في «الإرسال الجماعي» صار فوق الجدول مربع بحث عن طالب بالاسم (يتجاهل التشكيل والهمزات: «احمد» تجد «أحمد»): تُصفّى الصفوف فوراً، وزر «تحديد نتائج البحث»، وEnter يضيف أول نتيجة ويفرّغ الحقل لاسم التالي، وزر ✕ للمسح. ومن حدّدتَهم يبقون محدَّدين ولو أخفاهم البحث (ويُجهَّزون ويُنشرون معك) مع تنبيه بعددهم.',
-                en: 'In "Bulk send" there is now a student search box above the table (ignores diacritics and hamza variants: typing "احمد" finds "أحمد"): rows filter instantly, a "Select search results" button, Enter adds the first result and clears the box for the next name, and ✕ clears. Students you selected stay selected even if the search hides them (they are still prepared and published) with a note of how many.'
+                ar: 'الإرسال الجماعي صار «قائمة عمل» قصيرة: تظهر دفعة من الطلاب المستحقين (الأكثر تأخراً أولاً، والدفعة 5 أو 10 أو 15 أو 20 من خيار «حجم الدفعة»)، ومن نُشر لهم واجب يغادرون الجدول (وتبقى روابطهم في القائمة أسفله) ويحلّ مكانهم تلقائياً مستحقون آخرون، فتنتهي من الجميع دفعة بعد دفعة. وللمزيد: مربع بحث بالاسم (يتجاهل التشكيل والهمزات) تظهر نتائجه وبجوار كل اسم زر «＋ إضافة» يضيفه إلى القائمة، وزر «إضافة الكل» وEnter لإضافة أول نتيجة. والمستحق بلا نطاق حفظ لا يُدرج تلقائياً، ولا يُعاد توليد الواجب المجهَّز عند الضغط على «جهّز» مرة أخرى.',
+                en: 'Bulk send is now a short work list: a batch of due students is shown (most late first; batch size 5, 10, 15 or 20 from "Batch size"), students you published for leave the table (their links stay in the list below) and other due students take their place automatically, so you finish everyone batch by batch. Also: a name search box (ignores diacritics and hamza variants) whose results show a "＋ Add" button next to each name to add them to the list, an "Add all" button, and Enter to add the first result. A due student with no memorization range is not listed automatically, and a prepared homework is not regenerated if you press "Prepare" again.'
             },
             {
                 type: 'improved',

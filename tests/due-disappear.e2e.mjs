@@ -143,6 +143,8 @@ try {
   await dismissMonthly();
   await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 });
   await page.waitForFunction(() => !document.querySelector('.bs-pill.wait'), null, { timeout: 40000 });
+  // القائمة الآن تعرض المستحقين تلقائياً محدَّدين (الثاني ب والرابع د والخامس هـ): نستبعد الثاني ب لنُبقيه غير منشور
+  await page.locator('.bs-rw', { hasText: 'الثاني ب' }).locator('input[type=checkbox]').uncheck();
   await page.locator('.bs-rw', { hasText: 'الرابع د' }).locator('input[type=checkbox]').check();
   await page.locator('.bs-rw', { hasText: 'الخامس هـ' }).locator('input[type=checkbox]').check();
   for (const n of ['الرابع د', 'الخامس هـ']) for (let i = 0; i < 5; i++) await page.locator('.bs-rw', { hasText: n }).locator('[data-q="-1"]').click();
@@ -153,8 +155,8 @@ try {
   await sleep(900);
   names = await sideNames();
   check('B1 أثناء بقاء شاشة الإرسال الجماعي مفتوحة اختفى المنشور لهم من العمود خلفها', !names.includes('الرابع د') && !names.includes('الخامس هـ'), JSON.stringify(names));
-  const dueTag = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].filter(r => /الرابع|الخامس/.test(r.innerText)).map(r => r.querySelectorAll('.bs-tag.late, .bs-tag.today').length));
-  check('B2 في شاشة الإرسال الجماعي نفسها زالت شارة «متأخر» عمّن نُشر له', dueTag.every(n => n === 0), JSON.stringify(dueTag));
+  const tableNames = await page.evaluate(() => [...document.querySelectorAll('.bs-rw .bs-nm')].map(n => n.innerText));
+  check('B2 في شاشة الإرسال الجماعي نفسها غادر المنشور لهم الجدول (وبقي الثاني ب غير المنشور له)', !tableNames.includes('الرابع د') && !tableNames.includes('الخامس هـ') && tableNames.includes('الثاني ب'), JSON.stringify(tableNames));
   await page.click('.bs-ov [data-act="close"]'); await sleep(1200);
   names = await sideNames();
   check('B3 بعد الإغلاق لا يبقى إلا «الثاني ب» (المسودة فقط، لم يُنشر له)', names.length === 1 && names[0] === 'الثاني ب', JSON.stringify(names));
