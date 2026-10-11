@@ -1335,6 +1335,13 @@ function setupListeners() {
         const m = await import('../components/weekSchedule.js');
         m.openWeekSchedule({ onClose: () => renderDueToday() });
     });
+    // 📤 [جديد — الإرسال الجماعي] شاشة اختيارية مستقلة (components/bulkSend.js)؛ بعد إغلاقها نحدّث «مستحق اليوم» والسجل
+    document.getElementById('hw-btn-bulk')?.addEventListener('click', async () => {
+        try {
+            const m = await import('../components/bulkSend.js');
+            m.openBulkSend({ onClose: () => { renderDueToday(); loadHomeworkDashboard(); } });
+        } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
+    });
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {
         switchHwTab('new');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1447,6 +1454,7 @@ function setupSmartPanelStatic() {
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
     set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
     set('hw-btn-week', L('📅 جدول الأسبوع', '📅 Weekly schedule'));
+    set('hw-btn-bulk', L('📤 الإرسال الجماعي', '📤 Bulk send'));
     set('hw-scope-lbl-all', L('كل النطاق', 'Whole range'));
     set('hw-scope-lbl-hizb', L('أحزاب محددة', 'Chosen hizbs'));
     set('hw-scope-lbl-surah', L('سور محددة', 'Chosen surahs'));

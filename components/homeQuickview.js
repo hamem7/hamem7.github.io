@@ -371,11 +371,20 @@ async function renderDueForReview() {
             foot.className = 'qc-foot';
             const over = schedRows.length > capacity && capacity > 0;
             foot.innerHTML = `${over ? `<span class="qc-foot-warn">${esc(L(`اليوم ${schedRows.length} واجبات تنتظر الإعداد وطاقتك الموزَّعة ${capacity} — رحّل ما تشاء لغد (⏭).`, `${schedRows.length} homeworks are waiting today and your balanced capacity is ${capacity} — postpone some (⏭).`))}</span>` : ''}
-                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>`;
+                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>
+                <button type="button" class="qc-foot-btn qc-foot-bulk">📤 ${esc(L('الإرسال الجماعي', 'Bulk send'))}</button>`;
             foot.querySelector('.qc-foot-btn').addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const m = await import('./weekSchedule.js');
                 m.openWeekSchedule({ onClose: () => afterTaskDone('home-quickcard-due') });
+            });
+            // 📤 [جديد — الإرسال الجماعي] اختياري؛ أي فشل في فتحه لا يمسّ باقي البطاقة
+            foot.querySelector('.qc-foot-bulk').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    const m = await import('./bulkSend.js');
+                    m.openBulkSend({ onClose: () => afterTaskDone('home-quickcard-due') });
+                } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
             });
             listEl.appendChild(foot);
         }

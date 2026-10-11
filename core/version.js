@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.14';
+export const APP_VERSION = '1.0.15';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-11] الإرسال الجماعي
+    {
+        version: '1.0.15',
+        date: '2026-10-11',
+        items: [
+            {
+                type: 'new',
+                ar: 'زر «📤 الإرسال الجماعي» (اختياري) في شاشة الواجبات وفي بطاقة «مهام اليوم»: شاشة واحدة بصف لكل طالب، تحدّد من تريد (الكل / المستحقون اليوم / المتأخرون)، وتختار لكل طالب نطاقه من قائمة منسدلة (كل النطاق · ✨ اقترح لي · سور محددة · أحزاب محددة) وعدد أسئلته، ثم «جهّز» لتوليد الواجبات دون نشر، وتراجعها، ثم «انشر» دفعة واحدة بدخول جوجل مرة واحدة. بعد النشر تظهر قائمة روابط برسالة جاهزة لكل طالب (نسخ · واتساب · تيليجرام) و«نسخ الكل». الواجب نفسه هو الواجب الذكي المعتاد، ويختفي الطالب من «مهام اليوم» تلقائياً، والشاشة العادية كما هي.',
+                en: 'An optional "📤 Bulk send" button on the homework screen and in the "Today\'s tasks" card: one screen with a row per student. Pick who you want (All / Due today / Late), choose each student\'s range from a dropdown (Whole range · ✨ Suggest · Chosen surahs · Chosen hizbs) and number of questions, press "Prepare" to generate the homework without publishing, review it, then "Publish" in one go with a single Google sign-in. Afterwards you get a list of links with a ready message per student (Copy · WhatsApp · Telegram) and "Copy all". It is the same smart homework as usual, the student leaves "Today\'s tasks" automatically, and the normal screen is unchanged.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-10] أسئلة المتشابهات في الواجب الذكي
     {
         version: '1.0.14',
