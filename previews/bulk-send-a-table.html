@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — الإرسال الجماعي: جدول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --card:#fff; --red:#dc2626; --red-soft:#fef2f2; --amber:#d97706; --amber-soft:#fffbeb; --blue:#0284c7;
+  --r:16px; --sh:0 6px 24px rgba(6,35,28,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:110px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+header.top{background:#fff;border-bottom:3px solid var(--gold)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:14px}
+.logo{width:44px;height:44px;border-radius:13px;background:var(--g1);display:grid;place-items:center;font-size:1.4rem}
+.top h1{font-size:1.2rem}.top small{color:var(--ink2);display:block;font-size:.82rem}
+.sp{flex:1}
+.ghost{white-space:nowrap;border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:var(--bg)}
+
+/* مراحل */
+.steps{display:flex;gap:6px;margin:18px 0 14px;overflow-x:auto;scrollbar-width:none}
+.st{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:.88rem;font-weight:600;color:var(--ink2);display:flex;gap:8px;align-items:center}
+.st b{width:24px;height:24px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:.8rem}
+.st.on{border-color:var(--g6);color:var(--g7);background:var(--g0)}.st.on b{background:var(--g7);color:#fff}
+.st.done b{background:var(--g6);color:#fff}
+
+/* شريط الأدوات */
+.tools{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;box-shadow:var(--sh)}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:6px 14px;font-size:.86rem;font-weight:600}
+.chip:hover{background:var(--g1)}
+.tools .lbl{font-size:.85rem;color:var(--ink2);font-weight:600}
+.tools select,.tools input[type=number]{border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:#fff;font-size:.88rem}
+.tools input[type=number]{width:64px;text-align:center}
+.btn{background:var(--g7);color:#fff;border-radius:12px;padding:8px 16px;font-weight:700;font-size:.9rem}
+.btn:hover{background:var(--g8)}
+.btn.sec{background:var(--g1);color:var(--g7)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.vr{width:1px;align-self:stretch;background:var(--line)}
+
+/* الجدول */
+.tbl{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.hd,.row{display:grid;grid-template-columns:44px minmax(150px,1.3fr) minmax(210px,1.5fr) 84px minmax(150px,1fr);gap:10px;align-items:center;padding:10px 14px}
+.hd{background:var(--g0);font-size:.8rem;font-weight:700;color:var(--ink2);border-bottom:1px solid var(--line)}
+.rw{border-bottom:1px solid var(--line)}.rw:last-child{border:0}
+.rw.off{opacity:.55;background:#fafafa}
+.rw.ready{background:linear-gradient(90deg,transparent,rgba(20,124,94,.04))}
+.nm{font-weight:700}
+.rg{font-size:.78rem;color:var(--ink2)}
+.tag{display:inline-block;border-radius:99px;font-size:.72rem;font-weight:700;padding:1px 9px;margin-inline-start:6px}
+.tag.late{background:var(--red-soft);color:var(--red)}.tag.today{background:var(--g1);color:var(--g7)}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--g7)}
+.scope{width:100%;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;font-weight:600;font-size:.9rem}
+.scope:focus{outline:2px solid var(--g6)}
+.qn{display:flex;align-items:center;justify-content:center;gap:4px}
+.qn button{width:26px;height:26px;border-radius:8px;background:var(--g1);font-weight:700;color:var(--g7)}
+.qn span{min-width:22px;text-align:center;font-weight:700}
+.pill{display:inline-flex;gap:6px;align-items:center;border-radius:99px;padding:3px 11px;font-size:.8rem;font-weight:700}
+.pill.wait{background:#f1f5f9;color:#64748b}.pill.warn{background:var(--amber-soft);color:var(--amber)}
+.pill.err{background:var(--red-soft);color:var(--red)}.pill.ok{background:var(--g1);color:var(--g7)}.pill.pub{background:#e0f2fe;color:var(--blue)}
+.sum{font-size:.74rem;color:var(--ink2);margin-top:3px}
+
+/* لوحة النطاق المضمّنة (تظهر لسور/أحزاب محددة) */
+.sub{grid-column:1/-1;background:var(--g0);border:1px dashed #b8d8c8;border-radius:12px;padding:10px 12px;margin:2px 0 4px}
+.sub .t{font-size:.82rem;color:var(--ink2);margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.sub .t a{color:var(--g7);font-weight:700;cursor:pointer;text-decoration:underline}
+.tiles{display:flex;flex-wrap:wrap;gap:6px}
+.tile{border:1px solid var(--line);background:#fff;border-radius:10px;padding:5px 11px;font-weight:700;font-size:.85rem}
+.tile small{display:block;font-weight:500;font-size:.68rem;color:var(--ink2)}
+.tile.on{background:var(--g7);color:#fff;border-color:var(--g7)}.tile.on small{color:#cfe8dc}
+.tile.cov{border-color:#9bd3b8}
+.sugg{font-size:.85rem;color:var(--g7);font-weight:600}
+
+/* الروابط */
+.links{display:none;margin-top:14px}
+.links.on{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.lk{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.lk:last-child{border:0}
+.lk .u{font-size:.74rem;color:var(--blue);direction:ltr;text-align:right;word-break:break-all}
+.wa{background:#25d366;color:#fff;border-radius:10px;padding:7px 12px;font-weight:700;font-size:.85rem}
+.cp{background:var(--g1);color:var(--g7);border-radius:10px;padding:7px 12px;font-weight:700;font-size:.85rem}
+
+/* شريط سفلي */
+.bar{position:fixed;inset-inline:0;bottom:0;background:#fff;border-top:3px solid var(--gold);box-shadow:0 -8px 24px rgba(6,35,28,.1);z-index:30}
+.bar .wrap{display:flex;gap:10px;align-items:center;padding-block:12px;flex-wrap:wrap}
+.bar .cnt{font-weight:700}.bar .cnt small{color:var(--ink2);font-weight:500;display:block;font-size:.76rem}
+.prog{display:none;flex:1;min-width:140px}.prog.on{display:block}
+.prog div{height:10px;background:var(--line);border-radius:99px;overflow:hidden}.prog i{display:block;height:100%;width:0;background:var(--g6);transition:width .25s}
+.prog small{font-size:.75rem;color:var(--ink2)}
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--g8);color:#fff;padding:9px 18px;border-radius:99px;font-size:.88rem;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* جوال: الصف يصير بطاقة */
+@media(max-width:760px){
+  .hd{display:none}
+  .row{grid-template-columns:34px 1fr auto;grid-template-areas:"c n q" "s s s" "t t t";row-gap:8px}
+  .row>.c{grid-area:c}.row>.n{grid-area:n}.row>.q{grid-area:q}.row>.s{grid-area:s}.row>.t{grid-area:t}
+  .tools .vr{display:none}
+  .lk{grid-template-columns:1fr 1fr}.lk>div:first-child{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<div class="note">🧪 معاينة تصميم فقط — بيانات تجريبية، لا تتصل بالمنصة ولا تنشر شيئاً</div>
+<header class="top"><div class="wrap">
+  <div class="logo">📤</div>
+  <div><h1>الإرسال الجماعي</h1><small>جهّز واجبات عدة طلاب دفعة واحدة — اختياري</small></div>
+  <div class="sp"></div><button class="ghost">✕ إغلاق</button>
+</div></header>
+
+<div class="wrap">
+  <div class="steps" id="steps">
+    <div class="st on"><b>1</b>اختيار الطلاب والنطاق</div>
+    <div class="st"><b>2</b>التجهيز والمراجعة</div>
+    <div class="st"><b>3</b>النشر</div>
+    <div class="st"><b>4</b>الروابط والإرسال</div>
+  </div>
+
+  <div class="tools">
+    <span class="lbl">تحديد:</span>
+    <button class="chip" data-sel="all">الكل</button>
+    <button class="chip" data-sel="due">المستحقون اليوم</button>
+    <button class="chip" data-sel="late">المتأخرون فقط</button>
+    <button class="chip" data-sel="none">مسح</button>
+    <span class="vr"></span>
+    <span class="lbl">للمحدَّدين:</span>
+    <select id="bulkScope">
+      <option value="all">كل النطاق</option>
+      <option value="suggest">✨ اقترح لي (الأحوج للمراجعة)</option>
+    </select>
+    <input type="number" id="bulkQ" value="10" min="3" max="50" aria-label="عدد الأسئلة">
+    <button class="btn sec" id="applyBulk">تطبيق</button>
+  </div>
+
+  <div class="tbl">
+    <div class="hd"><span></span><span>الطالب</span><span>نطاق الواجب</span><span style="text-align:center">الأسئلة</span><span>الحالة</span></div>
+    <div id="rows"></div>
+  </div>
+
+  <div class="links" id="links">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+        <b>🔗 الروابط جاهزة — أرسلها لأولياء الأمور</b>
+        <button class="btn" id="copyAll">📋 نسخ الكل</button>
+      </div>
+      <div id="lkList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="bar"><div class="wrap">
+  <div class="cnt" id="cnt">٠ محدَّد<small>لم يُجهَّز شيء بعد</small></div>
+  <div class="prog" id="prog"><div><i id="progI"></i></div><small id="progT"></small></div>
+  <div class="sp"></div>
+  <button class="btn sec" id="btnPrep">⚙️ جهّز المحدَّدين</button>
+  <button class="btn" id="btnPub" disabled>🚀 انشر المجهَّزين</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SURAHS=['البقرة','آل عمران','النساء','المائدة','الأنعام','الأعراف','الأنفال','التوبة'];
+const HIZBS=[['ح1','الم'],['ح2','سيقول السفهاء'],['ح3','تلك الرسل'],['ح4','لن تنالوا'],['ح5','والمحصنات'],['ح6','لا يحب الله'],['ح7','وإذا سمعوا'],['ح8','ولو أننا']];
+const S=[
+ {n:'أحمد بن علي',rg:'البقرة ← النساء',st:'late',d:3},
+ {n:'محمد الحربي',rg:'الفاتحة ← آل عمران',st:'late',d:2},
+ {n:'يوسف القحطاني',rg:'—',st:'norange'},
+ {n:'عبدالله السالم',rg:'الناس ← المرسلات',st:'today',d:0},
+ {n:'خالد العتيبي',rg:'البقرة ← المائدة',st:'late',d:1,stale:1},
+ {n:'سلمان الدوسري',rg:'النبأ ← الناس',st:'today',d:0},
+ {n:'إبراهيم الشهري',rg:'البقرة ← الأعراف',st:'late',d:4},
+ {n:'عمر الزهراني',rg:'الملك ← الناس',st:'today',d:0}
+].map((x,i)=>({...x,i,sel:false,scope:'all',pick:new Set(),q:10,state:'wait'}));
+
+let busy=false;
+const $=s=>document.querySelector(s), rows=$('#rows');
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)};
+
+function tag(s){return s.st==='late'?`<span class="tag late">متأخر ${ar(s.d)} يوم</span>`:s.st==='today'?'<span class="tag today">موعده اليوم</span>':''}
+function statusHtml(s){
+  if(s.st==='norange')return '<span class="pill err">❌ بلا نطاق حفظ</span>';
+  if(s.state==='pub')return '<span class="pill pub">✓ نُشر</span>';
+  if(s.state==='ready')return `<span class="pill ok">✓ جُهّز</span><div class="sum">${ar(s.q)} أسئلة: ${ar(Math.round(s.q*.4))} جديد · ${ar(Math.round(s.q*.3))} قريب · ${ar(s.q-Math.round(s.q*.4)-Math.round(s.q*.3))} بعيد</div>`;
+  if(s.stale)return '<span class="pill warn">⚠️ موضع الحفظ قديم</span>';
+  return '<span class="pill wait">⏳ ينتظر</span>';
+}
+function subHtml(s){
+  if(s.scope==='surah')return `<div class="sub"><div class="t"><span>اختر سورة أو أكثر <small>(${ar(s.pick.size)} / ${SURAHS.length})</small></span><span><a data-a="all">تحديد الكل</a> · <a data-a="clear">مسح</a></span></div><div class="tiles">${SURAHS.map((x,k)=>`<button class="tile ${s.pick.has(k)?'on':''}" data-k="${k}">${x}</button>`).join('')}</div></div>`;
+  if(s.scope==='hizb')return `<div class="sub"><div class="t"><span>اضغط ما تريده من الأحزاب <small>(${ar(s.pick.size)} / ${HIZBS.length})</small></span><span><a data-a="all">تحديد الكل</a> · <a data-a="clear">مسح</a></span></div><div class="tiles">${HIZBS.map((x,k)=>`<button class="tile ${s.pick.has(k)?'on':''} ${k<3?'cov':''}" data-k="${k}">${x[0]}<small>${x[1]}</small></button>`).join('')}</div></div>`;
+  if(s.scope==='suggest')return `<div class="sub"><div class="sugg">✨ يقترح النظام: ${HIZBS[(s.i*2+1)%8][0]}·٢ و${HIZBS[(s.i*2+2)%8][0]} — الأحوج للمراجعة وغير المغطّى في آخر ٦ أسابيع</div></div>`;
+  return '';
+}
+function render(){
+  rows.innerHTML=S.map(s=>{
+    const dis=s.st==='norange';
+    return `<div class="rw ${dis?'off':''} ${s.state==='ready'?'ready':''}" data-i="${s.i}">
+      <div class="row">
+        <span class="c"><input type="checkbox" ${s.sel?'checked':''} ${dis?'disabled':''}></span>
+        <span class="n"><span class="nm">${s.n}</span>${tag(s)}<div class="rg">${s.rg}</div></span>
+        <span class="s"><select class="scope" ${dis?'disabled':''}>
+          <option value="all" ${s.scope==='all'?'selected':''}>كل النطاق</option>
+          <option value="suggest" ${s.scope==='suggest'?'selected':''}>✨ اقترح لي (الأحوج للمراجعة)</option>
+          <option value="surah" ${s.scope==='surah'?'selected':''}>سور محددة</option>
+          <option value="hizb" ${s.scope==='hizb'?'selected':''}>أحزاب محددة</option>
+        </select></span>
+        <span class="q qn"><button data-q="-1">−</button><span>${ar(s.q)}</span><button data-q="1">+</button></span>
+        <span class="t">${statusHtml(s)}</span>
+        ${subHtml(s)}
+      </div></div>`}).join('');
+  const n=S.filter(s=>s.sel).length, r=S.filter(s=>s.state==='ready').length, p=S.filter(s=>s.state==='pub').length;
+  $('#cnt').innerHTML=`${ar(n)} محدَّد<small>${p?`نُشر ${ar(p)}`:r?`جُهّز ${ar(r)} — راجعهم ثم انشر`:'لم يُجهَّز شيء بعد'}</small>`;
+  $('#btnPrep').disabled=!n||busy; $('#btnPub').disabled=!r||busy;
+}
+rows.addEventListener('change',e=>{
+  const s=S[e.target.closest('.rw').dataset.i];
+  if(e.target.type==='checkbox')s.sel=e.target.checked;
+  if(e.target.classList.contains('scope')){s.scope=e.target.value;s.pick=new Set();s.sel=true;s.state='wait'}
+  render();
+});
+rows.addEventListener('click',e=>{
+  const s=S[e.target.closest('.rw')?.dataset.i]; if(!s)return;
+  const b=e.target.closest('[data-q]'); if(b){s.q=Math.max(3,Math.min(50,s.q+ +b.dataset.q));s.state=s.state==='pub'?'pub':'wait';render();return}
+  const t=e.target.closest('.tile'); if(t){const k=+t.dataset.k;s.pick.has(k)?s.pick.delete(k):s.pick.add(k);s.sel=true;render();return}
+  const a=e.target.closest('[data-a]'); if(a){const L=s.scope==='surah'?SURAHS.length:HIZBS.length;s.pick=a.dataset.a==='all'?new Set([...Array(L).keys()]):new Set();render()}
+});
+document.querySelectorAll('[data-sel]').forEach(b=>b.onclick=()=>{
+  S.forEach(s=>{if(s.st==='norange')return;const m=b.dataset.sel;s.sel=m==='all'||(m==='due'&&(s.st==='today'||s.st==='late'))||(m==='late'&&s.st==='late')});render();
+});
+$('#applyBulk').onclick=()=>{S.filter(s=>s.sel).forEach(s=>{s.scope=$('#bulkScope').value;s.q=+$('#bulkQ').value||10;s.pick=new Set();s.state='wait'});render();toast('طُبّق على المحدَّدين')};
+
+function setStep(n){document.querySelectorAll('.st').forEach((e,i)=>{e.classList.toggle('on',i===n-1);e.classList.toggle('done',i<n-1)})}
+function runProgress(list,label,done){
+  const p=$('#prog');p.classList.add('on');busy=true;render();let k=0;
+  const tick=()=>{ $('#progI').style.width=(k/list.length*100)+'%'; $('#progT').textContent=`${label} ${ar(k)} / ${ar(list.length)}`;
+    if(k>=list.length){setTimeout(()=>{p.classList.remove('on');busy=false;render();done()},350);return}
+    const s=list[k++]; $('#progT').textContent=`${label} ${ar(k)} / ${ar(list.length)} — ${s.n}`; setTimeout(()=>{s.state=label==='جارٍ التجهيز'?'ready':'pub';render();tick()},420)};
+  tick();
+}
+$('#btnPrep').onclick=()=>{
+  const l=S.filter(s=>s.sel&&s.st!=='norange'&&s.state!=='pub'); if(!l.length)return;
+  if(l.some(s=>(s.scope==='surah'||s.scope==='hizb')&&!s.pick.size))return toast('اختر سورة أو حزباً لكل من حدّدت له «محددة»');
+  setStep(2);
+  runProgress(l,'جارٍ التجهيز',()=>{toast('جُهّز الجميع — راجع الصفوف ثم انشر')});
+};
+$('#btnPub').onclick=()=>{
+  const l=S.filter(s=>s.state==='ready'); if(!l.length)return; setStep(3);
+  runProgress(l,'جارٍ النشر',()=>{
+    setStep(4); $('#links').classList.add('on');
+    $('#lkList').innerHTML=l.map((s,k)=>{const u=`hamem7.github.io/?hw=Hx${(k*7919+4231).toString(36)}`;
+      return `<div class="lk"><div><b>${s.n}</b><div class="u">${u}</div></div><button class="cp" data-m="${s.n}|${u}">📋 نسخ الرسالة</button><button class="wa" data-m="${s.n}|${u}">💬 واتساب</button></div>`}).join('');
+    $('#links').scrollIntoView({behavior:'smooth'});
+  });
+};
+$('#links').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;const[n,u]=b.dataset.m.split('|');
+  const msg=`📖 واجب جديد من منصة حمٓ\n👤 الطالب: ${n}\n🔗 الرابط:\n${u}`;
+  try{navigator.clipboard.writeText(msg)}catch(_){} toast(b.classList.contains('wa')?'سيفتح واتساب برسالة جاهزة (معاينة)':'نُسخت الرسالة')});
+$('#copyAll').onclick=()=>{try{navigator.clipboard.writeText([...document.querySelectorAll('.lk .cp')].map(b=>b.dataset.m.replace('|',' — ')).join('\n'))}catch(_){} toast('نُسخت كل الرسائل')};
+render();
+</script>
+</body>
+</html>
