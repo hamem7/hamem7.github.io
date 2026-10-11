@@ -30,7 +30,7 @@ import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
-import { submissionNeedsGrading } from '../core/submissionStatus.js';
+import { submissionNeedsGrading, submissionHasPendingManual } from '../core/submissionStatus.js';
 import { t, applyLanguage, localizeHomeworkText, surahLabel } from '../core/i18n.js';
 const hl = localizeHomeworkText; // 🌟 ترجمة نص السؤال المخزَّن بالعربية وقت العرض فقط
 // 🌟 [جديد — إصلاح XSS] تنظيف أي نص قادم من الخادم (اسم الطالب/إجاباته) قبل حقنه في innerHTML
@@ -873,7 +873,7 @@ async function loadSubmissionsInline(hwId) {
                 // تماماً من البسط والمقام معاً — عرضه كأنه "الدرجة" يضلّل المعلم (قد تبدو 93% ثم تصبح 83%
                 // فعلياً بعد التصحيح رغم عدم وجود أي خطأ حسابي). فالنسبة تُعرض فقط بعد اكتمال كل الأسئلة
                 // اليدوية (حينها sub.score = finalScore الحقيقي = كل نقاط الواجب مجتمعة، حساب عادل بلا استثناء أي سؤال).
-                let scoreCellHtml = needsGrading
+                let scoreCellHtml = submissionHasPendingManual(sub)
                     ? `<span style="color:#b45309; font-size:0.95rem; font-weight:bold;">${t('⏳ بانتظار التصحيح')}</span>`
                     : `<span style="color:${sub.score >= 90 ? '#10b981' : (sub.score >= 70 ? '#f59e0b' : '#ef4444')};">${sub.score}%</span>`;
 
