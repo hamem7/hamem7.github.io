@@ -20,47 +20,50 @@ let ok = 0, bad = 0; const check = (n, c, d = '') => { c ? ok++ : bad++; console
 await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(2500);
 await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 
-for (const kids of [true, false]) {
-  const tag = kids ? 'الصغار' : 'الكبار';
-  console.log(`\n=== ${tag} (جزء 26 + 30، 20 سؤالاً) ===`);
-  const info = await page.evaluate(async ({ kids }) => {
+const SCEN = [
+  { kids: true, name: 'الصغار — البقرة وآل عمران (الجزء الأول من البيانات)', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 2, kidsTo: 3, isJuzMode: false, surahNum: 0 } },
+  { kids: false, name: 'الكبار — الجزء 1', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
+  { kids: true, name: 'الصغار — الأحقاف..النازعات', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 46, kidsTo: 79, isJuzMode: false, surahNum: 0 } },
+  { kids: false, name: 'الكبار — الجزء 26', cfg: { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 } }
+];
+for (const { kids, name, cfg: scenCfg } of SCEN) {
+  const tag = (kids ? 'الصغار' : 'الكبار') + ' | ' + name;
+  console.log(`\n=== ${tag} ===`);
+  const info = await page.evaluate(async ({ kids, scenCfg }) => {
     const { AppState } = await import('/core/app.js');
     const id = await AppState.studentManager.addStudent({ name: 'تجربة ' + (kids ? 'صغير' : 'كبير'), type: kids ? 'kids' : 'adult' });
     AppState.currentStudent = (await AppState.studentManager.getAllStudents()).find(x => x.id === id);
     if (kids) { AppState.currentStudent.type = 'kids'; }
     const m = await import(kids ? '/games/kidsGame.js' : '/games/adultGame.js');
-    const cfg = kids ? { qCount: 20, isKidsRange: true, kidsFrom: 46, kidsTo: 79, isJuzMode: false, surahNum: 0 } : { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 };
+    const cfg = scenCfg;
     await (kids ? m.openKidsGameScreen(cfg) : m.openAdultGameScreen(cfg));
     window.__GS = m.GameState;
     return { n: m.GameState.queue.length, sims: m.GameState.queue.filter(q => q.type === 'similar').length };
-  }, { kids });
+  }, { kids, scenCfg });
   await sleep(1500);
   await page.evaluate(() => document.getElementById('mmt-close')?.click());
   check(`${tag}: طول الطابور 20 وفيه سؤالان من المتشابهات`, info.n === 20 && info.sims === 2, JSON.stringify(info));
-  const seen = [];
-  for (let i = 0; i < 20; i++) {
-    await sleep(700);
+  const seen = []; let lastIdx = -1, idle = 0;
+  for (let step = 0; step < 120 && idle < 12; step++) {
+    await sleep(500);
     await page.evaluate(() => document.getElementById('mmt-close')?.click());
-    const cd = await page.evaluate(() => { const g = window.__GS; const d = g.currentData; return d ? { type: d.type, simKind: d.simKind, title: d.questionTitle, idx: g.currentIndex } : null; });
-    if (cd && cd.simKind) {
+    const cd = await page.evaluate(() => { const g = window.__GS; const d = g.currentData; return d ? { type: d.type, simKind: d.simKind, title: d.questionTitle, idx: g.currentIndex, done: !!d.__answered } : null; });
+    if (!cd || cd.done || cd.idx === lastIdx) { idle++; continue; }
+    idle = 0; lastIdx = cd.idx;
+    if (cd.simKind) {
       const q = await page.evaluate(() => document.getElementById('game-question').innerText);
       const btns = kids ? await page.$$eval('.kids-mcq-btn', b => b.map(x => x.innerText.trim())) : [];
       seen.push({ ...cd, q, btns });
       if (outDir) await page.screenshot({ path: path.join(outDir, `${kids ? 'kids' : 'adult'}-${seen.length}.png`) });
-      if (!kids) { await page.evaluate(() => document.getElementById('show-ans-btn').click()); await sleep(200); seen[seen.length - 1].ans = await page.evaluate(() => document.getElementById('game-answer').innerText); if (outDir) await page.screenshot({ path: path.join(outDir, `adult-${seen.length}-ans.png`) }); }
+      if (!kids) { await page.evaluate(() => document.getElementById('show-ans-btn').click()); await sleep(200); seen[seen.length - 1].ans = await page.evaluate(() => document.getElementById('game-answer').innerText); }
     }
-    // أجب صحيحاً لنتقدم
     if (kids) {
-      const done = await page.evaluate(() => { const d = window.__GS.currentData; if (!d) return false; const b = [...document.querySelectorAll('.kids-mcq-btn')]; if (d.type === 'kids_mcq' && b.length && d.correctAns && !d.surahOptions) return 'mcq'; return 'rec'; });
-      if (done === 'mcq') { await page.evaluate(() => { const d = window.__GS.currentData; const lab = d.optionsKind && d.optionsKind.startsWith('sim_') ? null : d.correctAns; const idx = d.options.findIndex(o => o.trim() === d.correctAns.trim()); [...document.querySelectorAll('.kids-mcq-btn')][idx].click(); }); }
-      else await page.evaluate(() => window.recordKidsAnswer && window.recordKidsAnswer(true));
-    } else {
-      await page.evaluate(() => document.getElementById('btn-record-correct')?.click());
-    }
-    await sleep(500);
-    await page.evaluate(() => { const n = document.querySelector('#btn-next-q, .btn-confirm-next'); });
+      await page.evaluate(() => { const d = window.__GS.currentData; const b = [...document.querySelectorAll('.kids-mcq-btn')];
+        if (d.type === 'kids_mcq' && b.length && d.correctAns && !d.surahOptions) b[d.options.findIndex(o => o.trim() === d.correctAns.trim())].click(); else window.recordKidsAnswer && window.recordKidsAnswer(true); });
+    } else await page.evaluate(() => document.getElementById('btn-record-correct')?.click());
   }
   check(`${tag}: ظهر سؤالا متشابهات أثناء اللعب`, seen.length === 2, `ظهر ${seen.length}`);
+  seen.forEach(s => check(`${tag}: النص بالسكون القرآني (لا سكون دائري U+0652)`, !(s.q + (s.ans || '')).includes('\u0652')));
   seen.forEach((s, i) => console.log(`   [${i + 1}] ${s.simKind} | ${s.title}\n       سؤال: ${s.q.replace(/\n+/g, ' ⏎ ').slice(0, 220)}\n       ${kids ? 'أزرار: ' + s.btns.join(' | ') : 'إجابة: ' + (s.ans || '').replace(/\n+/g, ' ⏎ ').slice(0, 140)}`));
   if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل بلا أقواس قرآنية على الأرقام/السور`, s.btns.length >= 3 && s.btns.every(b => !b.includes('﴿')), s.btns.join('|')));
   await page.evaluate(() => { const b = document.querySelector('#btn-home, .btn-home'); });

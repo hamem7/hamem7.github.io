@@ -6,6 +6,11 @@
 // أي فشل (لا مدير متشابهات، نطاق بلا مجموعات...) يترك الطابور كما هو تماماً فتستمر اللعبة بلا هذه الأسئلة.
 import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { similarCountFor, buildSimilarQuestions, injectIntoQueue, cleanOccurrenceText } from '../engine/similarityInject.js';
+import { toQuranicSukun } from '../engine/quranEngine.js';
+
+// 🌟 كل نص قرآني معروض هنا يمر على السكون القرآني (U+06E1) كباقي المنصة (راجع cleanAyahText في quranEngine.js)،
+// فتظهر آيات المتشابهات بنفس رسم بقية الألعاب والواجبات والتقارير.
+const qtext = (s) => toQuranicSukun(cleanOccurrenceText(s));
 
 export async function injectSimilarQuestions(queue, pool, qCount, kids) {
     try {
@@ -40,7 +45,7 @@ export function formatKidsSimilar(sim, pool) {
     if (!sim || sim.kind !== 'sim_position') return null;
     const internal = sim.scope === 'internal';
     const o = sim.occurrence;
-    const text = cleanOccurrenceText(o.fullText);
+    const text = qtext(o.fullText);
     const inSurah = internal ? `<div style="font-size:1.8rem; font-weight:bold; margin-top:14px;">${tf('sim_inj_in_surah', { surah: surahLabel(o.surahName) })}</div>` : '';
     const options = internal ? [...sim.options].sort((a, b) => Number(a) - Number(b)) : sim.options;
     return {
@@ -69,7 +74,7 @@ export function formatAdultSimilar(sim, pool) {
     const internal = sim.scope === 'internal';
     const letters = AppState.currentLang === 'en' ? LETTERS_EN : LETTERS_AR;
     const surah = surahLabel(o.surahName);
-    const clean = cleanOccurrenceText;
+    const clean = qtext;
     let question, shown, optionLabel, correctLabel;
     if (sim.kind === 'sim_position') {
         question = internal ? tf('sim_inj_q_ayah', { surah }) : t('sim_inj_q_surah');
@@ -77,11 +82,11 @@ export function formatAdultSimilar(sim, pool) {
         optionLabel = (v) => internal ? tf('sim_inj_ayah_label', { n: v }) : tf('sim_inj_surah_label', { name: surahLabel(v) });
     } else if (sim.kind === 'sim_discrimination') {
         question = internal ? tf('sim_inj_q_disc_ayah', { n: o.ayahNumber, surah }) : tf('sim_inj_q_disc_surah', { surah });
-        shown = sim.anchorPhrase;
-        optionLabel = (v) => v;
+        shown = qtext(sim.anchorPhrase);
+        optionLabel = (v) => qtext(v);
     } else if (sim.kind === 'sim_recall') {
         question = internal ? tf('sim_inj_q_recall_ayah', { n: o.ayahNumber, surah }) : tf('sim_inj_q_recall_surah', { surah });
-        shown = sim.anchorPhrase;
+        shown = qtext(sim.anchorPhrase);
         optionLabel = (v) => clean(v);
     } else return null;
 
