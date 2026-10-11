@@ -933,3 +933,50 @@
     .sim-juz-meta { font-size: 0.74rem; padding: 3px 8px; border-radius: 12px; }
     .sim-juz-amma-card { grid-column: 1 / -1; }
 }
+
+/* ==========================================================================
+   🌟 [2026-10-11] اختيار الطالب قبل اللعب + شاشة نتيجة تعرض تغيّر الإتقان + بطاقة ملف الطالب
+   ========================================================================== */
+.sim-pick-student { text-align: center; }
+.sim-pick-hint { color: #475569; margin: 0 0 16px; }
+.sim-pick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.sim-pick-student-btn { padding: 12px 14px !important; font-size: 1.05rem !important; }
+.sim-pick-student-btn.sim-pick-last { box-shadow: 0 0 0 3px var(--dh-gold-500); }
+
+.sim-res-saved { color: #475569; margin: 0 0 14px; font-size: 1rem; }
+.sim-res-failed { color: #b91c1c; font-weight: bold; }
+.sim-res-h { margin: 14px 0 8px; font-size: 1.05rem; text-align: right; }
+.sim-res-weak { color: #b45309; }
+.sim-res-up { color: #166534; }
+.sim-res-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.sim-res-list li {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    background: #fbfaf4; border: 1px solid rgba(11, 61, 48, 0.1); border-radius: 12px; padding: 6px 12px;
+}
+.sim-res-anchor.quran-text { display: inline-block; background: transparent; border: none; padding: 0 !important; font-size: 1.4rem; color: var(--dh-emerald-900); }
+
+.sim-level-chip { font-size: 0.82rem; font-weight: bold; padding: 3px 12px; border-radius: 999px; white-space: nowrap; background: #fef3c7; color: #92400e; }
+.sim-level-chip.sim-level-improving { background: #e0e7ff; color: #3730a3; }
+.sim-level-chip.sim-level-mastered { background: #dcfce7; color: #166534; }
+.sim-level-chip.sim-level-review { background: #ffe4e6; color: #9f1239; }
+
+/* بطاقة «إتقان المتشابهات» في ملف الطالب */
+.simp-section { margin: 20px 0; }
+.simp-title { color: #064e3b; border-bottom: 2px solid #d4af37; padding-bottom: 8px; display: inline-block; margin: 0 0 12px; }
+.simp-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.simp-summary-item { flex: 1 1 110px; background: #fff; border: 1px solid rgba(11, 61, 48, 0.12); border-radius: 14px; padding: 10px 12px; text-align: center; }
+.simp-summary-item strong { display: block; font-size: 1.6rem; color: var(--dh-emerald-700); }
+.simp-summary-item span { font-size: 0.85rem; color: #64748b; }
+.simp-bar { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin: 6px 0 14px; }
+.simp-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--dh-emerald-600), var(--dh-gold-500)); }
+.simp-empty { color: #94a3b8; margin: 0; }
+.simp-hard { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.simp-hard li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: #fbfaf4; border: 1px solid rgba(11, 61, 48, 0.1); border-radius: 12px; padding: 6px 12px; }
+.simp-hard .simp-acc { font-weight: bold; color: #b45309; }
+.sim-res-more { margin: 0 0 8px; color: #64748b; font-size: 0.9rem; text-align: right; }
+.sim-play-anchor:empty { display: none; }

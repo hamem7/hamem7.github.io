@@ -21,6 +21,7 @@
 //   occurrences: كل موضع يحمل surahNumber/surahName الخاصين به مباشرة (حتى مواضع "الداخلية")
 // راجع التوثيق الكامل لبنية الحقول في رأس ملف database/data/mutashabihatSeed.js 🌟
 
+import { applyRoundToProgress, createEmptyProgress } from "../engine/similarityMastery.js";
 import { MUTASHABIHAT_SEED as MUTASHABIHAT_SEED_LATE, MUTASHABIHAT_SEED_VERSION } from "./data/mutashabihatSeed.js";
 // 🌟 [2026-10-10] متشابهات السور 2–45 (مولَّدة من الكتاب) تُضم لبيانات 46–114 في بذرة واحدة
 import { MUTASHABIHAT_SEED_PART1 } from "./data/mutashabihatSeedPart1.js";
@@ -30,7 +31,10 @@ export const SIMILARITIES_DB_NAME = "DarHamSimilarities";
 // 🌟 رُفع رقم الإصدار من 1 إلى 2 عند إعادة تصميم شكل البيانات (لا حاجة لتغيير هيكلي فعلي في
 // المخزن نفسه — نفس الاسم keyPath "id" autoIncrement كما كان — لكن رفعناه للتوثيق وتحسباً
 // لأي فحص مستقبلي يعتمد على رقم الإصدار.
-export const SIMILARITIES_DB_VERSION = 2;
+// 🌟 [2026-10-11] 3: مخزنان جديدان لتقدّم الطلاب (similarity_progress) وسجل الجلسات (similarity_sessions)
+export const SIMILARITIES_DB_VERSION = 3;
+export const SIMILARITY_PROGRESS_STORE = "similarity_progress";
+export const SIMILARITY_SESSIONS_STORE = "similarity_sessions";
 export const SIMILARITIES_STORE = "similarities";
 
 // 🌟 معرّف ثابت لسجل "بيانات التحميل" (نفس فكرة PROFILE_ID الثابت في teacherDB.js) — نخزّنه
@@ -45,6 +49,12 @@ export function initSimilaritiesDB() {
             let db = e.target.result;
             if (!db.objectStoreNames.contains(SIMILARITIES_STORE)) {
                 db.createObjectStore(SIMILARITIES_STORE, { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains(SIMILARITY_PROGRESS_STORE)) {
+                db.createObjectStore(SIMILARITY_PROGRESS_STORE, { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains(SIMILARITY_SESSIONS_STORE)) {
+                db.createObjectStore(SIMILARITY_SESSIONS_STORE, { keyPath: "id", autoIncrement: true });
             }
         };
         request.onsuccess = (e) => {
@@ -157,6 +167,52 @@ export class SimilaritiesManager {
     async getByGroupId(groupId) {
         const all = await this.getAllSimilarities();
         return all.find(r => r.groupId === groupId) || null;
+    }
+
+
+    // ============================================================
+    // 🌟 [جديد — 2026-10-11] تقدّم الطالب في المتشابهات (راجع engine/similarityMastery.js)
+    // ============================================================
+    _getAll(storeName) {
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction(storeName, "readonly");
+            const req = tx.objectStore(storeName).getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    async getProgressByStudent(studentId) {
+        return (await this._getAll(SIMILARITY_PROGRESS_STORE)).filter(r => r.studentId === studentId);
+    }
+
+    async getSessionsByStudent(studentId) {
+        return (await this._getAll(SIMILARITY_SESSIONS_STORE))
+            .filter(r => r.studentId === studentId)
+            .sort((a, b) => (b.at || 0) - (a.at || 0));
+    }
+
+    // يحفظ جولة كاملة في معاملة واحدة: يحدّث سجل كل مجموعة (حسب التوقيع) ويضيف سجل جلسة.
+    // groupedResults = [{ sig, groupId, anchorPhrase, surahs, scope, results:[{isCorrect,type}] }]
+    // يعيد قائمة { before, after } لكل مجموعة (لعرض التحسّن في شاشة النتائج).
+    async recordRound(studentId, groupedResults, sessionMeta, now = Date.now()) {
+        const existing = (await this._getAll(SIMILARITY_PROGRESS_STORE)).filter(r => r.studentId === studentId);
+        const bySig = new Map(existing.map(r => [r.sig, r]));
+        const changes = [];
+        return new Promise((resolve, reject) => {
+            const tx = this.db.transaction([SIMILARITY_PROGRESS_STORE, SIMILARITY_SESSIONS_STORE], "readwrite");
+            const progStore = tx.objectStore(SIMILARITY_PROGRESS_STORE);
+            groupedResults.forEach(g => {
+                const before = bySig.get(g.sig) || createEmptyProgress(studentId, g.sig, g);
+                const after = applyRoundToProgress({ ...before, groupId: g.groupId, anchorPhrase: g.anchorPhrase, surahs: g.surahs, scope: g.scope }, g.results, now);
+                progStore.put(after);
+                changes.push({ sig: g.sig, before, after });
+            });
+            tx.objectStore(SIMILARITY_SESSIONS_STORE).add({ studentId, at: now, ...sessionMeta });
+            tx.oncomplete = () => resolve(changes);
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error);
+        });
     }
 
     saveSimilarity(data) {

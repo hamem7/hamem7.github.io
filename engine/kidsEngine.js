@@ -73,6 +73,28 @@ export class KidsEngine {
         this.quranEngine = quranEngine; // لكي نتمكن من الوصول لقاعدة بيانات القرآن
     }
 
+    // 🌟 [إصلاح] تكميل اختيارات الآية حتى 3 دائماً: السور القصيرة (مثل العصر: 3 آيات) لا تحوي آيات
+    // بديلة كافية في نفسها، فكان الطالب يرى خياراً واحداً فقط (هو الإجابة). نكمّل أولاً من باقي
+    // نطاق الطالب (سور أخرى، الأشبه فاصلةً وطولاً)، ثم من سور مجاورة في المصحف لو النطاق نفسه ضيق.
+    async fillAyahOptions(options, correctText, ayahsPool, surahNumber, count = 3) {
+        if (options.length >= count) return options;
+        const used = new Set(options.map(bareAr));
+        const take = txt => { const k = bareAr(txt); if (!k || used.has(k) || options.length >= count) return; used.add(k); options.push(txt); };
+        const external = ayahsPool.filter(a => a.surahNumber !== surahNumber).map(a => cleanAyahText(a.text)).filter(x => x.length > 5);
+        for (const txt of pickSimilar(correctText, external, count, ayahShapeScore)) take(txt);
+        if (options.length < count) {
+            const allList = await this.quranEngine.getAllSurahsList();
+            const near = allList.filter(s => s.number !== surahNumber).map(s => ({ n: s.number, d: Math.abs(s.number - surahNumber) + Math.random() * 6 })).sort((a, b) => a.d - b.d).slice(0, 6);
+            for (const { n } of near) {
+                if (options.length >= count) break;
+                const sd = await this.quranEngine.getSurah(n);
+                if (!sd || !sd.ayahs.length) continue;
+                for (const txt of pickSimilar(correctText, sd.ayahs.map(a => cleanAyahText(a.text)).filter(x => x.length > 5), 1, ayahShapeScore)) take(txt);
+            }
+        }
+        return options;
+    }
+
     async generateKidsCatchGame(ayahsPool, chunkIndex, totalChunks) { 
         // 🌟🌟 [إصلاح] الكلمة المخفية لا يجوز أن تكون علامة وقف (زي ۚ "الجيم الصغيرة") — كانت
         // القسمة بالمسافات تعتبر رمز الوقف كلمةً مستقلة، فلو صادف وقوعه في منتصف الآية بالضبط
@@ -100,7 +122,7 @@ export class KidsEngine {
         let options = [nextAyahText]; let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1 && cleanAyahText(a.text).length > 5);
         // 🌟 [ذكاء] المشتتات: آيات من نفس السورة الأشبه بالآية الصحيحة (فاصلة/طول) لا عشوائية
         for(let txt of pickSimilar(nextAyahText, otherAyahs.map(a => cleanAyahText(a.text)), 2, ayahShapeScore)) { if(options.length >= 3) break; if(txt !== nextAyahText) options.push(txt); }
-        if(options.length < 3) { let externalAyahs = ayahsPool.filter(a => a.surahNumber !== targetAyah.surahNumber); externalAyahs.sort(() => Math.random() - 0.5); for(let a of externalAyahs) { if(options.length >= 3) break; let txt = cleanAyahText(a.text); if(!options.includes(txt)) options.push(txt); } } options.sort(() => Math.random() - 0.5); 
+        await this.fillAyahOptions(options, nextAyahText, ayahsPool, targetAyah.surahNumber); options.sort(() => Math.random() - 0.5); 
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
         return { type: 'kids_mcq', questionTitle: t("ماذا بعد هذه الآية يا بطل؟ ⬅️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div><div style="font-size:1.8rem; font-weight:bold;">${t('kids_choose_next_ayah')}</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
     }
@@ -219,6 +241,7 @@ export class KidsEngine {
         let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1);
         // 🌟 [ذكاء] نفس فكرة "ماذا بعد": المشتتات الأشبه بالآية الصحيحة فاصلةً وطولاً
         for(let txt of pickSimilar(prevAyahText, otherAyahs.map(a => cleanAyahText(a.text)), 2, ayahShapeScore)) { if(options.length >= 3) break; options.push(txt); }
+        await this.fillAyahOptions(options, prevAyahText, ayahsPool, targetAyah.surahNumber);
         options.sort(() => Math.random() - 0.5);
         
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟

@@ -1223,6 +1223,7 @@ export async function loadStudentProfileScreen() {
 
             // 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" — راجع الدالة أدناه
             renderTajweedProfileSection(student);
+            renderSimilaritiesProfileSection(student);
 
             // 🌟 [جديد] تفعيل التعديل المباشر لكل بيانات ملف الطالب المعروضة هنا (الصورة،
             // الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف) — راجع الدالة أدناه لتفاصيل الفكرة
@@ -1340,6 +1341,40 @@ async function renderTajweedProfileSection(student) {
     } catch (e) {
         console.warn('تعذرت قراءة تقدّم أبطال التجويد لهذا الطالب:', e);
         contentEl.innerHTML = `<p class="tjp-empty">${t('tjw_profile_no_progress')}</p>`;
+    }
+}
+
+// 🌟 [جديد — 2026-10-11] قسم «إتقان المتشابهات» في ملف الطالب — best-effort بنفس فلسفة الأقسام المجاورة:
+// أي فشل في القراءة يعرض «لم يلعب بعد» ولا يعطّل باقي الشاشة.
+async function renderSimilaritiesProfileSection(student) {
+    const contentEl = document.getElementById('simp-content');
+    if (!contentEl) return;
+    const empty = () => { contentEl.innerHTML = `<p class="simp-empty">${t('sim_profile_no_progress')}</p>`; };
+    if (!AppState.similaritiesManager) { empty(); return; }
+    try {
+        const { summarizeProgress, levelOf, accuracyOf } = await import('../engine/similarityMastery.js');
+        const records = await AppState.similaritiesManager.getProgressByStudent(student.id);
+        if (records.length === 0) { empty(); return; }
+        const sum = summarizeProgress(records);
+        const hardest = records
+            .filter(r => r.attempts >= 2 && accuracyOf(r) < 80)
+            .sort((a, b) => accuracyOf(a) - accuracyOf(b))
+            .slice(0, 5);
+        const esc = (x) => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const masteredPct = Math.round((sum.mastered / sum.total) * 100);
+        contentEl.innerHTML = `
+            <div class="simp-summary">
+                <div class="simp-summary-item"><strong>${sum.mastered}/${sum.total}</strong><span>${t('sim_profile_mastered')}</span></div>
+                <div class="simp-summary-item"><strong>${sum.learning + sum.improving}</strong><span>${t('sim_profile_learning')}</span></div>
+                <div class="simp-summary-item"><strong>${sum.review}</strong><span>${t('sim_profile_due')}</span></div>
+                <div class="simp-summary-item"><strong>${sum.accuracy == null ? '—' : sum.accuracy + '%'}</strong><span>${t('sim_profile_accuracy')}</span></div>
+            </div>
+            <div class="simp-bar" title="${masteredPct}%"><i style="width:${masteredPct}%"></i></div>
+            ${hardest.length ? `<h4 style="margin:0 0 8px;color:#b45309;">${t('sim_profile_hardest')}</h4>
+            <ul class="simp-hard">${hardest.map(r => `<li><span class="quran-text sim-res-anchor">« ${esc(r.anchorPhrase)} »</span><span><span class="simp-acc">${accuracyOf(r)}%</span> <span class="sim-level-chip sim-level-${levelOf(r)}">${t('sim_level_' + levelOf(r))}</span></span></li>`).join('')}</ul>` : ''}`;
+    } catch (e) {
+        console.warn('تعذرت قراءة إتقان المتشابهات لهذا الطالب:', e);
+        empty();
     }
 }
 
