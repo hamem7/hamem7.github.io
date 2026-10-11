@@ -203,6 +203,8 @@ function renderQuestion() {
         html += `<input type="text" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="${t('اكتب الكلمة الناقصة هنا...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
     } else if (q.type === 'write_3_ayahs') {
         html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الآيات الثلاث هنا بتركيز...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
+    } else if (q.type === 'tajweed_extract') {
+        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الحكمين مع الكلمة التي ظهر فيها كل حكم...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
     } else if (q.type === 'dual_dropdown') {
         const savedArr = Array.isArray(savedAns) ? savedAns : ["", ""];
         html += `<div style="display: flex; gap: 15px; flex-wrap: wrap;">`;
@@ -394,7 +396,7 @@ function saveCurrentAnswer() {
     } else if (q.type === 'written_blank') {
         const textIn = document.getElementById(`hp_q_${q.id}_text`);
         if (textIn && textIn.value.trim()) answers[q.id] = textIn.value.trim();
-    } else if (q.type === 'write_3_ayahs') {
+    } else if (q.type === 'write_3_ayahs' || q.type === 'tajweed_extract') {
         const textareaIn = document.getElementById(`hp_q_${q.id}_textarea`);
         if (textareaIn && textareaIn.value.trim()) answers[q.id] = textareaIn.value.trim();
     } else if (q.type === 'dual_dropdown') {

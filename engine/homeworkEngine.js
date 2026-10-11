@@ -102,7 +102,7 @@ export class HomeworkEngine {
         // 🌟 [جديد] أضفنا 'matching' (مطابقة بدايات الآيات بنهاياتها) لدورة التوليد التلقائي، بنفس
         // معاملة 'written_blank' و'write_3_ayahs' الموجودين أصلاً رغم كونهما تصحيحاً يدوياً — دخول
         // نوع ضمن هذه القائمة لا يعني تصحيحاً آلياً بالضرورة، فقط أنه مؤهل للظهور تلقائياً.
-        let availableTypes = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word', 'checkbox', 'matrix_order', 'write_3_ayahs', 'matching'];
+        let availableTypes = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word', 'checkbox', 'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract'];
         let cycle = [];
         let mcqSurahUsed = false; 
 
@@ -156,6 +156,7 @@ export class HomeworkEngine {
             case 'matrix_order': return this.createMatrixOrderQuestion(ayah, pool);
             case 'write_3_ayahs': return this.createWrite3AyahsQuestion(ayah, pool);
             case 'matching': return this.createMatchingQuestion(ayah, pool);
+            case 'tajweed_extract': return this.createTajweedExtractQuestion(ayah, pool);
             case 'visual_page': return this.createVisualPageQuestion(ayah, pool);
             default: return null;
         }
@@ -467,6 +468,44 @@ export class HomeworkEngine {
             text: `اكتب الآيات الثلاث المتتالية ابتداءً من قوله تعالى:<br>﴿\u00A0${firstAyahPart} ...\u00A0﴾`,
             correctAnswer: fullText,
             points: 3, 
+            needsManualGrading: true
+        };
+    }
+
+    // ==========================================
+    // 🌟 [جديد — بطلب المعلم] استخراج حكمين تجويديين من مقطع (تصحيح يدوي كامل، نقطتان)
+    // ==========================================
+    // - المقطع من آيات نطاق الواجب نفسه (pool = آيات نطاق حفظ الطالب) فقط: نأخذ حتى 3 آيات متتالية
+    //   من نفس السورة تبدأ بالآية المختارة، ونكمل للخلف داخل النطاق إن قصر المقطع؛ لا نخرج عن النطاق أبداً.
+    // - بلا مفتاح إجابة بقرار المعلم: correctAnswer نص فارغ (الخادم يشترط وجود الحقل فقط) والمعلم يصحّح بنفسه.
+    // - نشترط 8 كلمات على الأقل في المقطع كي يحوي حكمين غالباً؛ وإلا يرجع null فيقع التوليد على البديل المعتاد.
+    async createTajweedExtractQuestion(targetAyah, pool) {
+        const sameSurah = (pool || [])
+            .filter(a => a.surahNumber === targetAyah.surahNumber)
+            .sort((a, b) => a.numberInSurah - b.numberInSurah);
+        let idx = sameSurah.findIndex(a => a.numberInSurah === targetAyah.numberInSurah);
+        if (idx < 0) return null;
+
+        let passage = [sameSurah[idx]];
+        let hi = idx, lo = idx;
+        while (passage.length < 3) {
+            const next = sameSurah[hi + 1];
+            const prev = sameSurah[lo - 1];
+            if (next && next.numberInSurah === sameSurah[hi].numberInSurah + 1) { passage.push(next); hi++; }
+            else if (prev && prev.numberInSurah === sameSurah[lo].numberInSurah - 1) { passage.unshift(prev); lo--; }
+            else break;
+        }
+
+        const wordsCount = passage.reduce((n, a) => n + getCleanWords(a.text).length, 0);
+        if (wordsCount < 8) return null;
+
+        const fullText = passage.map(a => cleanAyahText(a.text)).join(" ۞ ");
+        return {
+            type: 'tajweed_extract',
+            title: "استخرج حكمين من أحكام التجويد من الآيات التالية: 📖",
+            text: `﴿\u00A0${fullText}\u00A0﴾`,
+            correctAnswer: '',
+            points: 2,
             needsManualGrading: true
         };
     }
