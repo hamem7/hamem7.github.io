@@ -23,6 +23,7 @@ import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { getOfficialAyahText, JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { highlightAnchorInText, blankPhraseInText, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
+import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
 // 🌟 نفس آلية الصوت المستخدمة في games/kidsGame.js بالضبط (Web Audio API المدمجة في
 // المتصفح، بلا أي ملف صوتي خارجي) — نسخة مستقلة هنا (وليست استيراداً من kidsGame.js) حتى
@@ -75,7 +76,16 @@ function playErrorSound() {
 // أخرى" بلا إعادة استعلام IndexedDB. يلزم لسؤال "التعرّف" (sim_recognition) الذي يحتاج مشتتات
 // دخيلة من مجموعات أخرى تماماً — راجع تعليق generateRecognitionQuestions في
 // engine/similarityEngine.js.
-let PlayState = { groups: [], allGroupsPool: [], scopeTitle: '', round: null, currentIndex: 0, correctCount: 0 };
+let PlayState = { groups: [], allGroupsPool: [], scopeTitle: '', round: null, currentIndex: 0, correctCount: 0, student: null, answers: [], sigById: new Map() };
+
+// 🌟 [2026-10-11] آخر طالب لعب (تذكّر بسيط لتسهيل الاختيار) — كل قراءة/كتابة محمية بـtry/catch
+const LAST_STUDENT_KEY = 'dh_sim_last_student';
+function readLastStudentId() { try { return localStorage.getItem(LAST_STUDENT_KEY); } catch (e) { return null; } }
+function writeLastStudentId(id) { try { localStorage.setItem(LAST_STUDENT_KEY, String(id)); } catch (e) { /* لا شيء */ } }
+
+function escapeHtmlText(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 
 // 🌟 [جديد] يحل مجموعات اللعب الفعلية + عنوان النطاق من كائن scope الممرَّر عبر
 // AppState.similarityGamePlayScope — راجع تعليق رأس الملف وتعليق الحقل في core/app.js.
@@ -146,9 +156,41 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    PlayState = { groups, allGroupsPool, scopeTitle: title, round, currentIndex: 0, correctCount: 0 };
-    initAudio();
-    renderQuestion();
+    PlayState = { groups, allGroupsPool, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [],
+        sigById: new Map(groups.map(g => [g.groupId, groupSignature(g)])) };
+    await showStudentPicker();
+}
+
+// 🌟 [2026-10-11] اختيار الطالب قبل الجولة: لتُحفظ نتيجته ويُقاس إتقانه لكل مجموعة. «بدون حفظ» يبقي
+// السلوك القديم (لعب تدريبي حر بلا تسجيل).
+async function showStudentPicker() {
+    const container = document.getElementById('simplay-container');
+    if (!container) return;
+    let students = [];
+    try { students = AppState.studentManager ? await AppState.studentManager.getAllStudents() : []; } catch (e) { students = []; }
+    const lastId = readLastStudentId();
+    const btns = students.map(st => `<button class="btn sim-pick-student-btn${String(st.id) === lastId ? ' sim-pick-last' : ''}" data-student="${escapeHtmlText(st.id)}">${escapeHtmlText(st.name)}</button>`).join('');
+    container.innerHTML = `
+        <div class="sim-group-card sim-pick-student">
+            <div class="sim-play-prompt">${t('sim_pick_student_title')}</div>
+            <p class="sim-pick-hint">${students.length ? t('sim_pick_student_hint') : t('sim_pick_no_students')}</p>
+            <div class="sim-pick-grid">${btns}</div>
+            <button class="btn btn-outline sim-pick-guest" id="simplay-guest">${t('sim_pick_guest_btn')}</button>
+        </div>`;
+    const anchorEl = document.getElementById('simplay-anchor');
+    if (anchorEl) anchorEl.textContent = '';
+    const progEl = document.getElementById('simplay-progress');
+    if (progEl) progEl.textContent = '';
+    const begin = (student) => {
+        PlayState.student = student;
+        if (student) writeLastStudentId(student.id);
+        initAudio();
+        renderQuestion();
+    };
+    container.querySelectorAll('.sim-pick-student-btn').forEach(b => {
+        b.addEventListener('click', () => begin(students.find(st => String(st.id) === b.dataset.student) || null));
+    });
+    document.getElementById('simplay-guest')?.addEventListener('click', () => begin(null));
 }
 
 function updateProgressUI() {
@@ -321,6 +363,11 @@ function handleAnswer(btn, q) {
     const chosen = decodeURIComponent(btn.dataset.opt);
     const isCorrect = String(chosen) === String(q.correctAnswer);
     const feedbackEl = document.getElementById('simplay-feedback');
+    PlayState.answers.push({
+        sig: PlayState.sigById.get(q.groupId) || q.groupId, groupId: q.groupId, anchorPhrase: q.anchorPhrase,
+        surahs: (PlayState.groups.find(g => g.groupId === q.groupId) || {}).surahs || [],
+        scope: q.scope, type: q.type, isCorrect
+    });
 
     if (isCorrect) {
         // 🌟 نفس فئات .btn-correct/.btn-wrong المستخدمة فعلياً في شاشات التقييم الأخرى تحت
@@ -354,16 +401,51 @@ function nextQuestion() {
     }
 }
 
-function renderResultsScreen() {
+async function renderResultsScreen() {
     const container = document.getElementById('simplay-container');
     if (!container) return;
     triggerConfetti();
     playSuccessSound();
     const total = PlayState.round.questions.length;
+    const staleAnchor = document.getElementById('simplay-anchor');
+    if (staleAnchor) staleAnchor.textContent = ''; // صندوق عنوان آخر سؤال لا معنى له في شاشة النتيجة
+
+    // 🌟 [2026-10-11] حفظ الجولة لملف الطالب وحساب تغيّر إتقان كل مجموعة. أي فشل في الحفظ لا يُسقط شاشة
+    // النتيجة: تظهر النتيجة مع تنبيه أن الحفظ تعذّر.
+    let changes = null, saveFailed = false;
+    if (PlayState.student && AppState.similaritiesManager) {
+        try {
+            changes = await AppState.similaritiesManager.recordRound(
+                PlayState.student.id,
+                groupAnswersBySignature(PlayState.answers),
+                { scopeTitle: PlayState.scopeTitle, total, correct: PlayState.correctCount, byType: summarizeByType(PlayState.answers), groupsCount: new Set(PlayState.answers.map(a => a.sig)).size }
+            );
+        } catch (e) { console.warn('تعذّر حفظ نتيجة المتشابهات:', e); saveFailed = true; }
+    }
+
+    const levelLabel = (rec) => t('sim_level_' + levelOf(rec));
+    let detailsHTML = '';
+    if (changes) {
+        const weak = changes.filter(c => PlayState.answers.some(a => a.sig === c.sig && !a.isCorrect));
+        const up = changes.filter(c => levelOf(c.after) !== levelOf(c.before) && !weak.includes(c) && c.after.box > c.before.box);
+        const row = (c) => `<li><span class="quran-text sim-res-anchor">« ${escapeHtmlText(c.after.anchorPhrase)} »</span><span class="sim-level-chip sim-level-${levelOf(c.after)}">${levelLabel(c.after)}</span></li>`;
+        // الجولة الواحدة قد تمسّ 17 مجموعة: نعرض أول 5 من كل قائمة ثم عدد الباقي
+        const list = (arr) => `<ul class="sim-res-list">${arr.slice(0, 5).map(row).join('')}</ul>${arr.length > 5 ? `<p class="sim-res-more">+${arr.length - 5}</p>` : ''}`;
+        detailsHTML = `
+            <p class="sim-res-saved">${t('sim_results_saved_for')} <strong>${escapeHtmlText(PlayState.student.name)}</strong></p>
+            ${weak.length ? `<h4 class="sim-res-h sim-res-weak">${t('sim_results_weak_title')}</h4>${list(weak)}` : ''}
+            ${up.length ? `<h4 class="sim-res-h sim-res-up">${t('sim_results_improved_title')}</h4>${list(up)}` : ''}`;
+    } else if (saveFailed) {
+        detailsHTML = `<p class="sim-res-saved sim-res-failed">${t('sim_results_save_failed')}</p>`;
+    } else {
+        detailsHTML = `<p class="sim-res-saved">${t('sim_results_not_saved')}</p>`;
+    }
+
     container.innerHTML = `
         <div class="sim-group-card sim-play-results">
             <div class="sim-play-results-title">${t('sim_game_results_title')}</div>
             <div class="sim-play-results-score">${PlayState.correctCount} / ${total}</div>
+            ${detailsHTML}
             <button class="btn btn-outline" id="simplay-btn-again">${t('sim_game_play_again_btn')}</button>
         </div>`;
     document.getElementById('simplay-btn-again')?.addEventListener('click', () => {
@@ -371,9 +453,11 @@ function renderResultsScreen() {
         // المشتتات عشوائياً أيضاً في كل محاولة — ولأن buildGameRound تختار عشوائياً من كل
         // الأسئلة المتاحة (سقف MAX_ROUND_QUESTIONS)، هذا يعني أيضاً مجموعة فرعية مختلفة من
         // الأسئلة نفسها في كل محاولة لو النطاق أكبر من السقف، بدل تكرار نفس الخيارات بالضبط
+        // (نفس الطالب يستمر في الجولة التالية بلا إعادة اختيار)
         PlayState.round = buildGameRound(PlayState.groups, PlayState.allGroupsPool);
         PlayState.currentIndex = 0;
         PlayState.correctCount = 0;
+        PlayState.answers = [];
         renderQuestion();
     });
 }

@@ -15,7 +15,10 @@ const STUDENT_LINKED_STORES = [
     ['DarHamDualTests', 'dual_test_achievements'],
     ['DarHamTajweed', 'tajweed_rule_mastery'],
     ['DarHamTajweed', 'tajweed_sessions'],
-    ['DarHamTajweed', 'tajweed_achievements']
+    ['DarHamTajweed', 'tajweed_achievements'],
+    // 🌟 [2026-10-11] تقدّم الطالب وجلساته في ركن المتشابهات
+    ['DarHamSimilarities', 'similarity_progress'],
+    ['DarHamSimilarities', 'similarity_sessions']
 ];
 
 function purgeStore(dbName, storeName, studentId) {
