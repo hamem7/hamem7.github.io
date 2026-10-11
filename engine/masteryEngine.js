@@ -14,6 +14,7 @@ export class MasteryEngine {
             'mistake': 1.4,        // اكتشاف الخطأ (إتقان عالي)
             'complete_ayah': 1.1,  // أكمل الآية
             'similarity': 1.5,     // المتشابهات (أعلى درجات التمكين)
+            'similar': 1.5,        // سؤال المتشابهات داخل لعبة الكبار
             'kids_catch': 1.0,
             'kids_next': 1.0,
             'kids_tf': 0.9,

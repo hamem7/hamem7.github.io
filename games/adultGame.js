@@ -18,6 +18,8 @@ import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRe
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+// 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
+import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -330,6 +332,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور. نخلط عناصر الطابور كاملة (النوع +
                 // chunkIndex + surahNum معاً) فيبقى توزيع النطاق وتغطية السور كما هي لكن بترتيب العرض عشوائياً.
                 shuffleInPlace(GameState.queue);
+                // 🌟 سؤال متشابهات لكل 10 أسئلة (يستبدل خانات عشوائية بعد الخلط؛ بلا مجموعات في النطاق = لا يتغير شيء)
+                await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, false);
             }
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
@@ -833,6 +837,7 @@ async function playNextMission() {
             else if(type === 'guess_surah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks));
             else if(type === 'recite') GameState.currentData = await retryGen(() => AppState.quranEngine.generateReciteGame(activePool, GameState.config.isJuzMode, false, chunkIndex, totalChunks));
             else if(type === 'mistake') GameState.currentData = await retryGen(() => AppState.quranEngine.generateMistakeGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
+            else if(type === 'similar') GameState.currentData = formatAdultSimilar(queueItem.sim, GameState.pool);
             else if(type === 'complete_ayah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCompleteAyahGame(activePool, chunkIndex, totalChunks)); 
 
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
