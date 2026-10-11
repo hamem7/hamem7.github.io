@@ -39,6 +39,11 @@ export const CHANGELOG = [
             },
             {
                 type: 'improved',
+                ar: 'في «الإرسال الجماعي» صار فوق الجدول مربع بحث عن طالب بالاسم (يتجاهل التشكيل والهمزات: «احمد» تجد «أحمد»): تُصفّى الصفوف فوراً، وزر «تحديد نتائج البحث»، وEnter يضيف أول نتيجة ويفرّغ الحقل لاسم التالي، وزر ✕ للمسح. ومن حدّدتَهم يبقون محدَّدين ولو أخفاهم البحث (ويُجهَّزون ويُنشرون معك) مع تنبيه بعددهم.',
+                en: 'In "Bulk send" there is now a student search box above the table (ignores diacritics and hamza variants: typing "احمد" finds "أحمد"): rows filter instantly, a "Select search results" button, Enter adds the first result and clears the box for the next name, and ✕ clears. Students you selected stay selected even if the search hides them (they are still prepared and published) with a note of how many.'
+            },
+            {
+                type: 'improved',
                 ar: 'عند نشر واجب لطالب يختفي اسمه فوراً من «مهام اليوم» (بطاقة الرئيسية وعمود «مستحق اليوم» في شاشة الواجبات) دون إعادة فتح الشاشة، سواء نُشر من الشاشة العادية أو من الإرسال الجماعي. وحفظ «مسودة» لا يُخفيه لأنه لم يُنشر له شيء بعد.',
                 en: 'When you publish a homework for a student, their name disappears from "Today\'s tasks" immediately (the Home card and the "Due today" column in the homework screen) without reopening the screen, whether published from the normal screen or from Bulk send. Saving a draft does not hide them since nothing was published yet.'
             }

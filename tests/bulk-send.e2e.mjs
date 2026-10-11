@@ -141,6 +141,34 @@ try {
   check('C4 «المتأخرون فقط» يحدّد الثلاثة المتأخرين دون من لا موعد له', (await page.evaluate(() => document.querySelectorAll('.bs-row input[type=checkbox]:checked').length)) === 3);
   await page.click('[data-sel="due"]');   // نعود للثلاثة المستحقين لباقي الاختبار
 
+  console.log('\n=== البحث عن طالب ===');
+  const vis = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw:not(.bs-hid) .bs-nm')].map(n => n.innerText));
+  const checked = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw')].filter(r => r.querySelector('input[type=checkbox]').checked).map(r => r.querySelector('.bs-nm').innerText));
+  await page.click('[data-sel="none"]');
+  check('SE0 مربع البحث ظاهر وفارغ والصفوف الخمسة كلها ظاهرة', (await page.locator('#bs-q').count()) === 1 && (await vis()).length === 5);
+  await page.fill('#bs-q', 'احمد');
+  let v = await vis();
+  check('SE1 البحث يتجاهل الهمزة: «احمد» تجد «أحمد الأول» وحده', v.length === 1 && v[0] === 'أحمد الأول', JSON.stringify(v));
+  check('SE2 يعرض «1 من 5» وزر المسح ظاهر', /1 من 5/.test(await page.locator('#bs-qinfo').innerText()) && await page.locator('#bs-qx').isVisible());
+  await page.press('#bs-q', 'Enter'); await sleep(200);
+  check('SE3 Enter يحدّد أول نتيجة ويفرّغ الحقل ويُظهر الجميع من جديد', JSON.stringify(await checked()) === JSON.stringify(['أحمد الأول']) && (await page.inputValue('#bs-q')) === '' && (await vis()).length === 5);
+  await page.fill('#bs-q', 'الث');
+  v = await vis();
+  check('SE4 بحث جزئي «الث» يجد بلال الثاني وجابر الثالث', v.length === 2 && v.includes('بلال الثاني') && v.includes('جابر الثالث'), JSON.stringify(v));
+  await shot(page, 'bulk-6-search');
+  await page.click('#bs-qsel'); await sleep(200);
+  check('SE5 «تحديد نتائج البحث» يحدّد النتيجتين ويُبقي أحمد محدَّداً', (await checked()).length === 3);
+  await page.fill('#bs-q', 'zzz');
+  check('SE6 بحث بلا نتيجة: رسالة «لا يوجد طالب» وصفر صفوف', (await vis()).length === 0 && await page.locator('#bs-noresult').isVisible());
+  await page.fill('#bs-q', 'هيثم'); await page.click('#bs-qsel').catch(() => {});
+  check('SE7 الطالب بلا نطاق لا يُحدَّد ولو ظهر في البحث (لا زر تحديد له)', !(await page.locator('#bs-qsel').isVisible()) && !(await checked()).includes('هيثم بلا نطاق'));
+  await page.fill('#bs-q', 'جابر');
+  const cntTxt = await page.locator('#bs-cnt').innerText();
+  check('SE8 المحدَّدون الذين أخفاهم البحث يبقون محدَّدين ويظهر تنبيه بعددهم', /مخفي بالبحث/.test(cntTxt) && (await checked()).length === 3, cntTxt.replace(/\s+/g, ' '));
+  await page.click('#bs-qx'); await sleep(200);
+  check('SE9 زر ✕ يمسح البحث ويُظهر الكل مع بقاء التحديد', (await vis()).length === 5 && (await checked()).length === 3 && (await page.inputValue('#bs-q')) === '');
+  await page.click('[data-sel="none"]'); await page.click('[data-sel="due"]');   // نعود لحالة الاختبار المعتادة
+
   console.log('\n=== القائمة المنسدلة للنطاق ===');
   // أحمد: أحزاب محددة
   await bulkRow('أحمد الأول').locator('select.bs-scope').selectOption('hizb');
@@ -289,8 +317,13 @@ try {
   await page.click('.bs-ov [data-act="close"]'); await sleep(500);
   await dismissMonthly(); await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 }); await waitStatuses();
   await bulkRow('جابر الثالث').locator('input[type=checkbox]').check();
+  await bulkRow('بلال الثاني').locator('input[type=checkbox]').check();
+  for (const n of ['جابر الثالث', 'بلال الثاني']) for (let i = 0; i < 7; i++) await bulkRow(n).locator('[data-q="-1"]').click();
+  await page.fill('#bs-q', 'جابر');   // بلال محدَّد لكن مخفي بالبحث: يجب أن يُجهَّز معه
   await page.click('#bs-prep');
-  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 1, null, { timeout: 90000 });
+  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 2, null, { timeout: 90000 });
+  check('SE10 المحدَّد المخفي بالبحث يُجهَّز مع الظاهر (التجهيز على كل المحدَّدين)', (await page.locator('.bs-rw', { hasText: 'بلال الثاني' }).locator('.bs-pill.ok').count()) === 1 && (await page.locator('.bs-rw.bs-hid', { hasText: 'بلال الثاني' }).count()) === 1);
+  await page.click('#bs-qx');
   dialogMode = 'dismiss';
   await page.click('.bs-ov [data-act="close"]'); await sleep(400);
   check('Q1 الإغلاق مع مجهَّز يطلب تأكيداً، والرفض يُبقي الشاشة', (await page.locator('.bs-ov').count()) === 1);

@@ -57,6 +57,15 @@ function injectStyle() {
     .bs-btn{background:#0d5c46;color:#fff;border:0;border-radius:12px;padding:9px 16px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit}
     .bs-btn:hover{background:#0a3d2f}.bs-btn.sec{background:#e7f4ee;color:#0d5c46}
     .bs-btn:disabled{opacity:.45;cursor:not-allowed}
+    /* شريط البحث عن طالب (تصفية الصفوف فقط؛ المحدَّدون يبقون محدَّدين ولو أخفاهم البحث) */
+    .bs-search{background:#fff;border:1px solid #e3ebe6;border-radius:14px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+    .bs-search .ic{font-size:1.05rem}
+    .bs-ov input[type=search]{box-sizing:border-box!important;flex:1 1 220px;min-width:0;height:auto!important;margin:0!important;border:1px solid #cfdcd5!important;border-radius:10px!important;padding:8px 12px!important;font-size:.92rem!important;font-family:inherit!important;color:#10241c!important;background:#fff!important;box-shadow:none!important;line-height:1.4!important}
+    .bs-ov input[type=search]:focus{outline:2px solid #147c5e;outline-offset:0}
+    .bs-qinfo{font-size:.8rem;color:#4a6058;font-weight:700;white-space:nowrap}
+    .bs-hid{display:none!important}
+    .bs-noresult{display:none;padding:20px;text-align:center;color:#4a6058;font-size:.92rem}
+    .bs-noresult.on{display:block}
     .bs-tbl{margin-top:12px;background:#fff;border:1px solid #e3ebe6;border-radius:14px;overflow:hidden}
     .bs-hd,.bs-row{display:grid;grid-template-columns:40px minmax(140px,1.2fr) minmax(200px,1.4fr) 92px minmax(150px,1fr);gap:10px;align-items:center;padding:9px 14px}
     .bs-hd{background:#f3faf6;font-size:.78rem;font-weight:700;color:#4a6058;border-bottom:1px solid #e3ebe6}
@@ -240,6 +249,13 @@ export async function openBulkSend({ onClose } = {}) {
             <div class="bs-st"><b>3</b>${esc(L('النشر', 'Publish'))}</div>
             <div class="bs-st"><b>4</b>${esc(L('الروابط والإرسال', 'Links & sending'))}</div>
         </div>
+        <div class="bs-search">
+            <span class="ic" aria-hidden="true">🔍</span>
+            <input type="search" id="bs-q" autocomplete="off" placeholder="${esc(L('ابحث عن طالب بالاسم لإضافته… (Enter يضيف أول نتيجة)', 'Search a student by name to add… (Enter adds the first result)'))}" aria-label="${esc(L('بحث عن طالب', 'Search a student'))}">
+            <button type="button" class="bs-chip" id="bs-qx" style="display:none" aria-label="${esc(L('مسح البحث', 'Clear search'))}">✕</button>
+            <span class="bs-qinfo" id="bs-qinfo"></span>
+            <button type="button" class="bs-chip" id="bs-qsel" style="display:none">☑ ${esc(L('تحديد نتائج البحث', 'Select search results'))}</button>
+        </div>
         <div class="bs-tools">
             <span class="lbl">${esc(L('تحديد:', 'Select:'))}</span>
             <button type="button" class="bs-chip" data-sel="all">${esc(L('الكل', 'All'))}</button>
@@ -255,6 +271,7 @@ export async function openBulkSend({ onClose } = {}) {
         <div class="bs-tbl">
             <div class="bs-hd"><span></span><span>${esc(L('الطالب', 'Student'))}</span><span>${esc(L('نطاق الواجب', 'Homework range'))}</span><span style="text-align:center">${esc(L('الأسئلة', 'Questions'))}</span><span>${esc(L('الحالة', 'Status'))}</span></div>
             <div id="bs-rows"></div>
+            <div class="bs-noresult" id="bs-noresult">${esc(L('لا يوجد طالب بهذا الاسم.', 'No student with that name.'))}</div>
         </div>
         <div class="bs-links" id="bs-links"></div>`;
     const rowsEl = $('#bs-rows');
@@ -317,23 +334,62 @@ export async function openBulkSend({ onClose } = {}) {
             ${lock ? '' : subHtml(r)}
         </div>`;
     };
-    const rowWrap = (r) => `<div class="bs-rw${r.status === 'norange' ? ' off' : ''}${r.state === 'ready' ? ' ready' : ''}" data-id="${esc(String(r.student.id))}">${rowInner(r)}</div>`;
+    // ---- البحث عن طالب: تصفية الصفوف بالاسم (نفس تطبيع بحث شاشة الإعداد: يتجاهل التشكيل والفروق بين أ إ آ ا / ى ي / ة ه) ----
+    // الصفوف تُخفى بصنف CSS فقط (لا تُحذف): فيبقى التحديد والنطاق وحالة التجهيز كما هي، ويعمل «جهّز/انشر» على كل المحدَّدين ولو أخفاهم البحث.
+    let query = '';
+    const normQ = (str) => String(str || '').toLowerCase().replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+    const matches = (r) => { if (!query) return true; const n = normQ(r.student.name); return query.split(/\s+/).every(w => n.includes(w)); };
+    const rowCls = (r) => `bs-rw${r.status === 'norange' ? ' off' : ''}${r.state === 'ready' ? ' ready' : ''}${matches(r) ? '' : ' bs-hid'}`;
+    const rowWrap = (r) => `<div class="${rowCls(r)}" data-id="${esc(String(r.student.id))}">${rowInner(r)}</div>`;
     const renderRow = (r) => {
         const el = rowsEl.querySelector(`.bs-rw[data-id="${CSS.escape(String(r.student.id))}"]`);
         if (!el) return;
-        el.className = `bs-rw${r.status === 'norange' ? ' off' : ''}${r.state === 'ready' ? ' ready' : ''}`;
+        el.className = rowCls(r);
         el.innerHTML = rowInner(r);
+    };
+    const selectable = (r) => r.status !== 'norange' && r.state !== 'pub' && r.state !== 'publishing' && r.state !== 'planning';
+    const applySearch = () => {
+        const vis = rows.filter(matches);
+        rowsEl.querySelectorAll('.bs-rw').forEach(el => { const r = byId(el.dataset.id); if (r) el.classList.toggle('bs-hid', !matches(r)); });
+        $('#bs-qx').style.display = query ? '' : 'none';
+        $('#bs-qsel').style.display = query && vis.some(selectable) ? '' : 'none';
+        $('#bs-qinfo').textContent = query ? L(`${vis.length} من ${rows.length}`, `${vis.length} of ${rows.length}`) : '';
+        $('#bs-noresult').classList.toggle('on', !!query && !vis.length);
+        renderFoot();
     };
     const renderFoot = () => {
         const n = rows.filter(r => r.sel).length, ready = rows.filter(r => r.state === 'ready').length, pub = rows.filter(r => r.state === 'pub').length;
         const fail = rows.filter(r => r.state === 'fail').length;
         $('#bs-cnt').innerHTML = `${esc(L(`${n} محدَّد`, `${n} selected`))}<small>${esc(pub ? L(`نُشر ${pub}${ready ? ` · جُهّز ${ready}` : ''}${fail ? ` · تعذّر ${fail}` : ''}`, `Published ${pub}${ready ? ` · prepared ${ready}` : ''}${fail ? ` · failed ${fail}` : ''}`) : ready ? L(`جُهّز ${ready} — راجعهم ثم انشر`, `${ready} prepared — review then publish`) : L('لم يُجهَّز شيء بعد', 'Nothing prepared yet'))}</small>`;
+        const hiddenSel = rows.filter(r => r.sel && !matches(r)).length;
+        if (hiddenSel) $('#bs-cnt').querySelector('small').textContent += ' · ' + L(`${hiddenSel} محدَّد مخفي بالبحث`, `${hiddenSel} selected hidden by search`);
         $('#bs-prep').disabled = busy || !n;
         $('#bs-pub').disabled = busy || !ready;
     };
     const renderAll = () => { rowsEl.innerHTML = rows.map(rowWrap).join(''); renderFoot(); };
     const setStep = (n) => ov.querySelectorAll('.bs-st').forEach((e, i) => { e.classList.toggle('on', i === n - 1); e.classList.toggle('done', i < n - 1); });
     renderAll();
+
+    // ---------- البحث عن طالب ----------
+    const qInput = $('#bs-q');
+    qInput.addEventListener('input', () => { query = normQ(qInput.value); applySearch(); });
+    qInput.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const first = rows.find(r => matches(r) && selectable(r));
+        if (!first) return toast(L('لا نتيجة قابلة للتحديد.', 'No selectable result.'));
+        first.sel = true; renderRow(first);
+        toast(L(`أُضيف: ${first.student.name}`, `Added: ${first.student.name}`));
+        qInput.value = ''; query = ''; applySearch(); qInput.focus();   // جاهز لاسم التالي
+    });
+    $('#bs-qx').addEventListener('click', () => { qInput.value = ''; query = ''; applySearch(); qInput.focus(); });
+    $('#bs-qsel').addEventListener('click', () => {
+        if (busy) return;
+        const hit = rows.filter(r => matches(r) && selectable(r));
+        hit.forEach(r => { r.sel = true; renderRow(r); });
+        renderFoot();
+        toast(L(`حُدّد ${hit.length} من نتائج البحث`, `${hit.length} search result(s) selected`));
+    });
 
     // ---------- فحص جاهزية الطلاب في الخلفية (نطاق الحفظ + قِدم الموضع) ----------
     const ensureModel = async (r) => {
