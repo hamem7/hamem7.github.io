@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.15';
+export const APP_VERSION = '1.0.16';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-11] أسئلة المتشابهات داخل ألعاب الصغار والكبار
+    {
+        version: '1.0.16',
+        date: '2026-10-11',
+        items: [
+            {
+                type: 'new',
+                ar: 'أسئلة المتشابهات داخل ألعاب الصغار والكبار: سؤال لكل 10 أسئلة، من مجموعات المتشابهات الواقعة في نطاق الطالب (الأجزاء 26-30 حالياً). الصغار: «في أي سورة/آية؟» بأزرار اختيار. الكبار: «في أي سورة/آية؟» و«ما خاتمة الآية؟» و«اختر نص الآية» بخيارات مكتوبة يكشف المعلم إجابتها ويقيّمها كباقي أسئلة الكبار.',
+                en: 'Similar-verse questions inside the kids and adults games: one per 10 questions, from similar-verse groups that fall in the student\'s range (juz 26-30 for now). Kids: "Which surah/ayah?" with answer buttons. Adults: "Which surah/ayah?", "What is the ending?" and "Choose the ayah text" with written options that the teacher reveals and grades like other adult questions.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-11] الإرسال الجماعي
     {
         version: '1.0.15',

@@ -86,7 +86,8 @@ const GAME_TYPE_SKILL = {
     mistake: 'precision', extra_word: 'precision', tf: 'precision',
     link_ends: 'context', link_word_surah: 'context', guess_surah: 'context', start_surah: 'context',
     visual_memory: 'visual',
-    recite: 'fluency'
+    recite: 'fluency',
+    similar: 'precision'
 };
 
 // kids_mcq سؤال متعدد الأشكال يميّزه العنوان
@@ -96,7 +97,8 @@ const KIDS_MCQ_TITLE_HINTS = [
     ['ماذا قبل', 'sequence'],
     ['خمن السورة', 'context'],
     ['بأي آية تبدأ', 'context'],
-    ['الكلمة الزائدة', 'precision']
+    ['الكلمة الزائدة', 'precision'],
+    ['من المتشابهات', 'precision']
 ];
 
 export function skillOfGameType(type, title) {

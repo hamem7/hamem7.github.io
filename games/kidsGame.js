@@ -17,6 +17,8 @@ import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRe
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+// 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
+import { injectSimilarQuestions, formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -181,6 +183,8 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                     const j = Math.floor(Math.random() * (i + 1));
                     [GameState.queue[i], GameState.queue[j]] = [GameState.queue[j], GameState.queue[i]];
                 }
+                // 🌟 سؤال متشابهات لكل 10 أسئلة (يستبدل خانات عشوائية؛ بلا مجموعات في النطاق = لا يتغير شيء)
+                await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, true);
             }
         }
         await loadScreen({ templateUrl: 'games/kidsGame.html', initFunction: initGameUI });
@@ -552,6 +556,7 @@ async function playNextMission() {
         else if(type === 'kids_word_order') GameState.currentData = await AppState.kidsEngine.generateKidsWordOrderGame(activePool, chunkIndex, totalChunks);
         else if(type === 'kids_start_surah') GameState.currentData = await AppState.kidsEngine.generateKidsStartSurah(activePool, chunkIndex, totalChunks);
         else if(type === 'kids_extra_word') GameState.currentData = await AppState.kidsEngine.generateKidsExtraWord(activePool, chunkIndex, totalChunks);
+        else if(type === 'similar') GameState.currentData = formatKidsSimilar(queueItem.sim, GameState.pool);
         else if(type === 'kids_previous') GameState.currentData = await AppState.kidsEngine.generateKidsPrevious(activePool, chunkIndex, totalChunks);
         // 🌟 [جديد] لعبة "اربط بداية الآية بنهايتها" — تستخدم نفس دالة محرك الكبار
         // (quranEngine.generateLinkGame) بمعامل isKids=true لصياغة عنوان مناسبة للأطفال 🌟
@@ -633,7 +638,8 @@ async function playNextMission() {
                     GameState.currentData.options.forEach(opt => {
                         let btn = document.createElement('button');
                         btn.className = 'kids-mcq-btn quran-text';
-                        btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿\u00A0${opt}\u00A0﴾`;
+                        if (GameState.currentData.optionsKind === 'sim_ayah' || GameState.currentData.optionsKind === 'sim_surah') btn.innerHTML = kidsSimilarOptionLabel(opt, GameState.currentData.optionsKind);
+                        else btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿\u00A0${opt}\u00A0﴾`;
                         let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
                         // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في
                         // بيانات السؤال (راجع generateKidsListenAyah في engine/kidsEngine.js)،
