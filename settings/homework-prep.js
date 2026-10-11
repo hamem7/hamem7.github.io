@@ -987,10 +987,10 @@ function openGradingRoom(subIndex) {
                     <span style="color: #64748b;">${t('إجابة الطالب:')}</span>
                     <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${esc(d.studentAnswer)}</strong>
                 </div>
-                <div style="margin: 10px 0; font-size: 1.2rem;">
+                ${d.type === 'tajweed_extract' ? '' : `<div style="margin: 10px 0; font-size: 1.2rem;">
                     <span style="color: #64748b;">${t('الإجابة النموذجية:')}</span>
                     <strong style="color: #10b981;">${esc(d.correctAnswer)}</strong>
-                </div>
+                </div>`}
             `;
         }
 
@@ -1924,6 +1924,8 @@ function renderPreview() {
             </div>`;
         } else if (q.type === 'written_blank') {
             optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981;">✍️ <strong style="color:#0369a1;">${t('الكلمة المطلوبة:')}</strong> ${q.correctAnswer}</div>`;
+        } else if (q.type === 'tajweed_extract') {
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.1rem; color: #0369a1;">✍️ ${t('سؤال تجويد — يصحّحه المعلم يدوياً (نقطتان)')}</div>`;
         } else if (q.type === 'write_3_ayahs') {
             optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">${t('الآيات الثلاث المطلوبة:')}</strong><br>${q.correctAnswer}</div>`;
         } else if (q.type === 'matching') {
@@ -1977,13 +1979,14 @@ function openQuestionBuilderModal(index = -1) {
     document.getElementById('qb-edit-index').value = index;
 
     const selectEl = document.getElementById('qb-type');
-    if (!selectEl.querySelector('option[value="written_blank"]')) {
+    if (!selectEl.querySelector('option[value="tajweed_extract"]')) {
         selectEl.innerHTML = `
             <option value="mcq">${t('اختيار من متعدد (إجابة واحدة)')}</option>
             <option value="checkbox">${t('مربعات اختيار (عدة إجابات)')}</option>
             <option value="dropdown">${t('قائمة منسدلة (فراغات)')}</option>
             <option value="written_blank">${t('أكمل الفراغ (كتابة يدوية)')}</option>
             <option value="write_3_ayahs">${t('تسميع مقطع (كتابة يدوية)')}</option>
+            <option value="tajweed_extract">${t('استخراج أحكام التجويد (كتابة يدوية)')}</option>
         `;
     }
 
@@ -2037,7 +2040,7 @@ function saveManualQuestion() {
         if (!parts.length || parts.some(x => !optionsRaw.includes(x))) return alert(L('كل إجابة صحيحة يجب أن تطابق أحد الخيارات حرفياً (مفصولة بفواصل).', 'Every correct answer must exactly match one of the options (comma-separated).'));
     }
 
-    let needsManual = (type === 'written_blank' || type === 'write_3_ayahs');
+    let needsManual = (type === 'written_blank' || type === 'write_3_ayahs' || type === 'tajweed_extract');
 
     const newQ = {
         id: editIndex >= 0 ? currentGeneratedQuestions[editIndex].id : 'q_manual_' + Date.now(),
@@ -2046,7 +2049,7 @@ function saveManualQuestion() {
         text: text,
         options: optionsRaw,
         correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctFixed,
-        points: (type === 'checkbox') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
+        points: (type === 'checkbox' || type === 'tajweed_extract') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
     // بعد تعديل المعلم يبقى السؤال معلَّماً أنه من المتشابهات (لسطر المعاينة فقط؛ لا أثر له على الطالب أو التصحيح)

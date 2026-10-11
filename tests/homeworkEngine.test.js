@@ -138,7 +138,7 @@ function buildFakeQuranEngine() {
 
 const KNOWN_TYPES = new Set([
     'mcq', 'dropdown', 'written_blank', 'dual_dropdown', 'checkbox',
-    'matrix_order', 'write_3_ayahs', 'matching'
+    'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract'
 ]);
 
 await test('generateAutoQuestions: يرجع العدد المطلوب من الأسئلة (عبر 15 تكرار عشوائي)', async () => {
@@ -258,6 +258,23 @@ await test('generateAutoQuestions: الأنواع اليدوية (written_blank 
             }
         }
     }
+});
+
+await test('tajweed_extract: يدوي، نقطتان، بلا مفتاح، والآيات من نطاق الواجب فقط', async () => {
+    let seen = 0;
+    for (let run = 0; run < 30; run++) {
+        const engine = new HomeworkEngine(buildFakeQuranEngine());
+        const questions = await engine.generateAutoQuestions({
+            mode: 'surah', surahNum: 999, startAyah: 2, endAyah: 6, qCount: 5
+        });
+        for (const q of questions.filter(x => x.type === 'tajweed_extract')) {
+            seen++;
+            assert.equal(q.needsManualGrading, true);
+            assert.equal(q.points, 2);
+            assert.equal(q.correctAnswer, '');
+        }
+    }
+    assert.ok(seen > 0, 'لم يظهر السؤال في أي جولة');
 });
 
 // ==========================================
