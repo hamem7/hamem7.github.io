@@ -24,6 +24,9 @@ const L = (ar, en) => (isEnglish() ? en : ar);
 const nf = (n) => String(n);
 const MIN_Q = 3, MAX_Q = 50, DEFAULT_Q = 10;
 const clampQ = (v) => Math.max(MIN_Q, Math.min(MAX_Q, Math.round(Number(v)) || DEFAULT_Q));
+const BATCH_OPTIONS = [5, 10, 15, 20];   // كم طالباً يظهرون في القائمة دفعة واحدة (الباقون المستحقون ينتظرون ويحلّون مكان من نُشر لهم)
+const BATCH_KEY = 'dh_bulk_batch';
+const readBatch = () => { try { const v = Number(localStorage.getItem(BATCH_KEY)); if (BATCH_OPTIONS.includes(v)) return v; } catch (e) { /* الافتراضي */ } return 10; };
 const RECENT_MS = 12 * 3600 * 1000;   // واجب منشور لنفس الطالب خلال هذه المدة يُنبَّه عليه (منعاً للنشر المكرر بالخطأ)
 
 function injectStyle() {
@@ -63,10 +66,26 @@ function injectStyle() {
     .bs-ov input[type=search]{box-sizing:border-box!important;flex:1 1 220px;min-width:0;height:auto!important;margin:0!important;border:1px solid #cfdcd5!important;border-radius:10px!important;padding:8px 12px!important;font-size:.92rem!important;font-family:inherit!important;color:#10241c!important;background:#fff!important;box-shadow:none!important;line-height:1.4!important}
     .bs-ov input[type=search]:focus{outline:2px solid #147c5e;outline-offset:0}
     .bs-qinfo{font-size:.8rem;color:#4a6058;font-weight:700;white-space:nowrap}
-    .bs-hid{display:none!important}
-    .bs-noresult{display:none;padding:20px;text-align:center;color:#4a6058;font-size:.92rem}
+    .bs-noresult{display:none;padding:22px;text-align:center;color:#4a6058;font-size:.92rem;line-height:1.8}
     .bs-noresult.on{display:block}
-    .bs-tbl{margin-top:12px;background:#fff;border:1px solid #e3ebe6;border-radius:14px;overflow:hidden}
+    /* نتائج البحث: بجوار كل اسم زر «＋ إضافة» يضيفه إلى القائمة */
+    .bs-res{display:none;background:#fff;border:1px solid #cfdcd5;border-radius:14px;margin-bottom:8px;max-height:280px;overflow:auto;box-shadow:0 6px 18px rgba(6,35,28,.08)}
+    .bs-res.on{display:block}
+    .bs-res-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 12px;background:#f3faf6;border-bottom:1px solid #e3ebe6;font-size:.8rem;color:#4a6058;font-weight:700;position:sticky;top:0}
+    .bs-res-i{display:flex;align-items:center;justify-content:flex-start;gap:14px;padding:8px 12px;border-bottom:1px solid #eef3f0}
+    .bs-res-i:last-child{border:0}
+    .bs-res-i .n{flex:0 1 auto;min-width:0;font-weight:700;overflow-wrap:anywhere}.bs-res-i .n small{display:block;font-weight:400;font-size:.74rem;color:#4a6058}
+    .bs-res-empty{padding:16px;text-align:center;color:#4a6058;font-size:.9rem}
+    .bs-add{background:#0d5c46;color:#fff;border:0;border-radius:10px;padding:7px 14px;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit;white-space:nowrap}
+    .bs-add:hover{background:#0a3d2f}
+    .bs-add.no{background:#f1f5f9;color:#64748b;cursor:default}.bs-add.no.bad{background:#fef2f2;color:#dc2626}
+    .bs-meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between;margin-top:12px;font-size:.84rem;color:#4a6058;font-weight:700}
+    .bs-meta .w{color:#b45309}
+    .bs-meta label{display:inline-flex;gap:6px;align-items:center;font-weight:700}
+    .bs-meta select{width:auto!important;min-width:0!important;padding:4px 8px!important;font-size:.82rem!important;border:1px solid #cfdcd5!important;border-radius:8px!important}
+    @keyframes bs-flash{from{background:#fff3bf}to{background:transparent}}
+    .bs-rw.flash{animation:bs-flash 1.6s ease-out}
+    .bs-tbl{margin-top:8px;background:#fff;border:1px solid #e3ebe6;border-radius:14px;overflow:hidden}
     .bs-hd,.bs-row{display:grid;grid-template-columns:40px minmax(140px,1.2fr) minmax(200px,1.4fr) 92px minmax(150px,1fr);gap:10px;align-items:center;padding:9px 14px}
     .bs-hd{background:#f3faf6;font-size:.78rem;font-weight:700;color:#4a6058;border-bottom:1px solid #e3ebe6}
     .bs-rw{border-bottom:1px solid #e3ebe6}.bs-rw:last-child{border:0}
@@ -224,7 +243,7 @@ export async function openBulkSend({ onClose } = {}) {
         } catch (e) { /* بلا سجل محلي: لا تنبيه */ }
         rows = all.map(s => ({
             student: s, due: dueBy.get(s.id) || null, recent: (Date.now() - (lastPub.get(s.name) || 0)) < RECENT_MS,
-            sel: false, scope: 'all', pick: new Set(), q: DEFAULT_Q, status: 'checking', ctx: null, model: null, sugg: null,
+            listed: false, auto: false, sel: false, scope: 'all', pick: new Set(), q: DEFAULT_Q, status: 'checking', ctx: null, model: null, sugg: null,
             state: 'idle', res: null, selection: null, scopeLabel: '', err: '', hwId: null, link: '', sent: false
         }));
         rows.sort((a, b) => ((b.due ? 1000 + (b.due.lateDays || 0) : 0) - (a.due ? 1000 + (a.due.lateDays || 0) : 0)) || String(a.student.name).localeCompare(String(b.student.name), 'ar'));
@@ -251,11 +270,10 @@ export async function openBulkSend({ onClose } = {}) {
         </div>
         <div class="bs-search">
             <span class="ic" aria-hidden="true">🔍</span>
-            <input type="search" id="bs-q" autocomplete="off" placeholder="${esc(L('ابحث عن طالب بالاسم لإضافته… (Enter يضيف أول نتيجة)', 'Search a student by name to add… (Enter adds the first result)'))}" aria-label="${esc(L('بحث عن طالب', 'Search a student'))}">
+            <input type="search" id="bs-q" autocomplete="off" placeholder="${esc(L('ابحث عن طالب بالاسم ثم اضغط «＋ إضافة» بجواره… (Enter يضيف أول نتيجة)', 'Search a student by name then press "＋ Add" next to them… (Enter adds the first result)'))}" aria-label="${esc(L('بحث عن طالب', 'Search a student'))}">
             <button type="button" class="bs-chip" id="bs-qx" style="display:none" aria-label="${esc(L('مسح البحث', 'Clear search'))}">✕</button>
-            <span class="bs-qinfo" id="bs-qinfo"></span>
-            <button type="button" class="bs-chip" id="bs-qsel" style="display:none">☑ ${esc(L('تحديد نتائج البحث', 'Select search results'))}</button>
         </div>
+        <div class="bs-res" id="bs-res"></div>
         <div class="bs-tools">
             <span class="lbl">${esc(L('تحديد:', 'Select:'))}</span>
             <button type="button" class="bs-chip" data-sel="all">${esc(L('الكل', 'All'))}</button>
@@ -268,10 +286,12 @@ export async function openBulkSend({ onClose } = {}) {
             <input type="number" id="bs-bulk-q" value="${DEFAULT_Q}" min="${MIN_Q}" max="${MAX_Q}" aria-label="${esc(L('عدد الأسئلة', 'Number of questions'))}">
             <button type="button" class="bs-btn sec" data-act="apply">${esc(L('تطبيق', 'Apply'))}</button>
         </div>
+        <div class="bs-meta"><span id="bs-meta-t"></span>
+            <label>${esc(L('حجم الدفعة:', 'Batch size:'))} <select id="bs-batch">${BATCH_OPTIONS.map(n => `<option value="${n}"${n === readBatch() ? ' selected' : ''}>${n}</option>`).join('')}</select></label></div>
         <div class="bs-tbl">
             <div class="bs-hd"><span></span><span>${esc(L('الطالب', 'Student'))}</span><span>${esc(L('نطاق الواجب', 'Homework range'))}</span><span style="text-align:center">${esc(L('الأسئلة', 'Questions'))}</span><span>${esc(L('الحالة', 'Status'))}</span></div>
             <div id="bs-rows"></div>
-            <div class="bs-noresult" id="bs-noresult">${esc(L('لا يوجد طالب بهذا الاسم.', 'No student with that name.'))}</div>
+            <div class="bs-noresult" id="bs-noresult"></div>
         </div>
         <div class="bs-links" id="bs-links"></div>`;
     const rowsEl = $('#bs-rows');
@@ -334,61 +354,120 @@ export async function openBulkSend({ onClose } = {}) {
             ${lock ? '' : subHtml(r)}
         </div>`;
     };
-    // ---- البحث عن طالب: تصفية الصفوف بالاسم (نفس تطبيع بحث شاشة الإعداد: يتجاهل التشكيل والفروق بين أ إ آ ا / ى ي / ة ه) ----
-    // الصفوف تُخفى بصنف CSS فقط (لا تُحذف): فيبقى التحديد والنطاق وحالة التجهيز كما هي، ويعمل «جهّز/انشر» على كل المحدَّدين ولو أخفاهم البحث.
-    let query = '';
-    const normQ = (str) => String(str || '').toLowerCase().replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
-    const matches = (r) => { if (!query) return true; const n = normQ(r.student.name); return query.split(/\s+/).every(w => n.includes(w)); };
-    const rowCls = (r) => `bs-rw${r.status === 'norange' ? ' off' : ''}${r.state === 'ready' ? ' ready' : ''}${matches(r) ? '' : ' bs-hid'}`;
+    // ---- قائمة العمل ----
+    // لا يُعرض في الجدول إلا «دفعة» قصيرة من الطلاب المستحقين (الأكثر تأخراً أولاً) + من تضيفهم بالبحث. من يُنشر لهم يغادرون الجدول
+    // (يبقون في قائمة الروابط) ويحلّ مكانهم تلقائياً مستحقون آخرون. الطالب بلا نطاق حفظ لا يُدرج تلقائياً في القائمة.
+    let batch = readBatch(), skippedNoRange = 0;
+    const visible = () => rows.filter(r => r.listed && r.state !== 'pub');
+    const pool = () => rows.filter(r => !r.listed && r.state !== 'pub' && r.due && r.status !== 'norange');
+    const rowCls = (r) => `bs-rw${r.status === 'norange' ? ' off' : ''}${r.state === 'ready' ? ' ready' : ''}`;
     const rowWrap = (r) => `<div class="${rowCls(r)}" data-id="${esc(String(r.student.id))}">${rowInner(r)}</div>`;
+    const rowEl = (r) => rowsEl.querySelector(`.bs-rw[data-id="${CSS.escape(String(r.student.id))}"]`);
     const renderRow = (r) => {
-        const el = rowsEl.querySelector(`.bs-rw[data-id="${CSS.escape(String(r.student.id))}"]`);
+        const el = rowEl(r);
         if (!el) return;
         el.className = rowCls(r);
         el.innerHTML = rowInner(r);
     };
     const selectable = (r) => r.status !== 'norange' && r.state !== 'pub' && r.state !== 'publishing' && r.state !== 'planning';
-    const applySearch = () => {
-        const vis = rows.filter(matches);
-        rowsEl.querySelectorAll('.bs-rw').forEach(el => { const r = byId(el.dataset.id); if (r) el.classList.toggle('bs-hid', !matches(r)); });
-        $('#bs-qx').style.display = query ? '' : 'none';
-        $('#bs-qsel').style.display = query && vis.some(selectable) ? '' : 'none';
-        $('#bs-qinfo').textContent = query ? L(`${vis.length} من ${rows.length}`, `${vis.length} of ${rows.length}`) : '';
-        $('#bs-noresult').classList.toggle('on', !!query && !vis.length);
-        renderFoot();
+    const renderMeta = () => {
+        const n = visible().length, waiting = pool().length;
+        $('#bs-meta-t').innerHTML = `📋 ${esc(L(`${n} طالب في القائمة`, `${n} in the list`))}`
+            + (waiting ? ` · <span class="w">${esc(L(`${waiting} مستحقاً آخرين ينتظرون — يظهرون تلقائياً بعد النشر`, `${waiting} more due students waiting — they appear automatically after publishing`))}</span>` : '')
+            + (skippedNoRange ? ` · <span class="w">${esc(L(`تخطّينا ${skippedNoRange} مستحقاً بلا نطاق حفظ`, `skipped ${skippedNoRange} due student(s) with no memorization range`))}</span>` : '');
+        const empty = $('#bs-noresult');
+        const donePub = rows.some(r => r.state === 'pub');
+        empty.textContent = n ? '' : (donePub && !waiting ? L('🎉 انتهيت من كل المستحقين اليوم. ابحث بالاسم لإضافة طلاب آخرين.', '🎉 You are done with everyone due today. Search by name to add other students.')
+            : L('لا طلاب مستحقون الآن. ابحث بالاسم لإضافة من تريد.', 'No students are due right now. Search by name to add the ones you want.'));
+        empty.classList.toggle('on', !n);
     };
     const renderFoot = () => {
-        const n = rows.filter(r => r.sel).length, ready = rows.filter(r => r.state === 'ready').length, pub = rows.filter(r => r.state === 'pub').length;
-        const fail = rows.filter(r => r.state === 'fail').length;
+        const vis = visible();
+        const n = vis.filter(r => r.sel).length, ready = vis.filter(r => r.state === 'ready').length, pub = rows.filter(r => r.state === 'pub').length;
+        const fail = vis.filter(r => r.state === 'fail').length;
         $('#bs-cnt').innerHTML = `${esc(L(`${n} محدَّد`, `${n} selected`))}<small>${esc(pub ? L(`نُشر ${pub}${ready ? ` · جُهّز ${ready}` : ''}${fail ? ` · تعذّر ${fail}` : ''}`, `Published ${pub}${ready ? ` · prepared ${ready}` : ''}${fail ? ` · failed ${fail}` : ''}`) : ready ? L(`جُهّز ${ready} — راجعهم ثم انشر`, `${ready} prepared — review then publish`) : L('لم يُجهَّز شيء بعد', 'Nothing prepared yet'))}</small>`;
-        const hiddenSel = rows.filter(r => r.sel && !matches(r)).length;
-        if (hiddenSel) $('#bs-cnt').querySelector('small').textContent += ' · ' + L(`${hiddenSel} محدَّد مخفي بالبحث`, `${hiddenSel} selected hidden by search`);
         $('#bs-prep').disabled = busy || !n;
         $('#bs-pub').disabled = busy || !ready;
     };
-    const renderAll = () => { rowsEl.innerHTML = rows.map(rowWrap).join(''); renderFoot(); };
+    const renderAll = () => { rowsEl.innerHTML = visible().map(rowWrap).join(''); renderMeta(); renderFoot(); };
+    const listRow = (r, { top = false, flash = false } = {}) => {
+        rowsEl.insertAdjacentHTML(top ? 'afterbegin' : 'beforeend', rowWrap(r));
+        if (flash) { const el = rowEl(r); if (el) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1800); } }
+    };
+    const unlistRow = (r) => { r.listed = false; r.sel = false; rowEl(r)?.remove(); };
+    // يملأ القائمة من المستحقين المنتظرين حتى حجم الدفعة؛ يرجع عدد من أُضيفوا
+    const refill = () => {
+        let added = 0;
+        for (const r of pool()) {
+            if (visible().length >= batch) break;
+            r.listed = true; r.auto = true; r.sel = true;
+            listRow(r); added++;
+        }
+        renderMeta(); renderFoot();
+        return added;
+    };
     const setStep = (n) => ov.querySelectorAll('.bs-st').forEach((e, i) => { e.classList.toggle('on', i === n - 1); e.classList.toggle('done', i < n - 1); });
+    refill();   // أول عرض: دفعة المستحقين الأكثر تأخراً (محدَّدة افتراضياً، ولا يُنشر شيء قبل أن تضغط «جهّز» ثم «انشر»)
     renderAll();
 
-    // ---------- البحث عن طالب ----------
+    $('#bs-batch').addEventListener('change', (e) => {
+        batch = Number(e.target.value) || 10;
+        try { localStorage.setItem(BATCH_KEY, String(batch)); } catch (err) { /* لا شيء */ }
+        refill();
+    });
+
+    // ---- البحث عن طالب وإضافته: نفس تطبيع بحث شاشة الإعداد (يتجاهل التشكيل والفروق بين أ إ آ ا / ى ي / ة ه) ----
+    let query = '';
+    const normQ = (str) => String(str || '').toLowerCase().replace(/[ً-ْٰـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').trim();
+    const nameMatches = (r) => { const n = normQ(r.student.name); return query.split(/\s+/).every(w => n.includes(w)); };
+    const canAdd = (r) => !r.listed && r.state !== 'pub' && r.status !== 'norange';
+    const addStudent = (r) => {
+        if (!canAdd(r)) return false;
+        r.listed = true; r.auto = false; r.sel = true;
+        listRow(r, { top: true, flash: true });
+        return true;
+    };
+    const renderResults = () => {
+        const box = $('#bs-res');
+        $('#bs-qx').style.display = query ? '' : 'none';
+        if (!query) { box.classList.remove('on'); box.innerHTML = ''; return; }
+        const hit = rows.filter(nameMatches);
+        box.classList.add('on');
+        if (!hit.length) { box.innerHTML = `<div class="bs-res-empty">${esc(L('لا يوجد طالب بهذا الاسم.', 'No student with that name.'))}</div>`; return; }
+        const addable = hit.filter(canAdd).length;
+        const btn = (r) => {
+            if (r.state === 'pub') return `<button type="button" class="bs-add no" disabled>✓ ${esc(L('نُشر له الآن', 'Published now'))}</button>`;
+            if (r.listed) return `<button type="button" class="bs-add no" disabled>✓ ${esc(L('في القائمة', 'In the list'))}</button>`;
+            if (r.status === 'norange') return `<button type="button" class="bs-add no bad" disabled>❌ ${esc(L('بلا نطاق حفظ', 'No range'))}</button>`;
+            return `<button type="button" class="bs-add" data-add="${esc(String(r.student.id))}">＋ ${esc(L('إضافة', 'Add'))}</button>`;
+        };
+        box.innerHTML = `<div class="bs-res-h"><span>${esc(L(`${hit.length} نتيجة`, `${hit.length} result(s)`))}</span>${addable >= 2 ? `<button type="button" class="bs-chip" id="bs-addall">＋ ${esc(L(`إضافة الكل (${addable})`, `Add all (${addable})`))}</button>` : ''}</div>`
+            + hit.slice(0, 12).map(r => `<div class="bs-res-i"><span class="n">${esc(r.student.name)}${tag(r)}<small>${esc(rangeText(r))}</small></span>${btn(r)}</div>`).join('');
+    };
+    const afterAdd = (names) => {
+        renderMeta(); renderFoot(); renderResults();
+        toast(L(`أُضيف: ${names.join('، ')}`, `Added: ${names.join(', ')}`));
+    };
     const qInput = $('#bs-q');
-    qInput.addEventListener('input', () => { query = normQ(qInput.value); applySearch(); });
+    qInput.addEventListener('input', () => { query = normQ(qInput.value); renderResults(); });
     qInput.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter') return;
         e.preventDefault();
-        const first = rows.find(r => matches(r) && selectable(r));
-        if (!first) return toast(L('لا نتيجة قابلة للتحديد.', 'No selectable result.'));
-        first.sel = true; renderRow(first);
-        toast(L(`أُضيف: ${first.student.name}`, `Added: ${first.student.name}`));
-        qInput.value = ''; query = ''; applySearch(); qInput.focus();   // جاهز لاسم التالي
+        const first = query && rows.find(r => nameMatches(r) && canAdd(r));
+        if (!first) return toast(L('لا نتيجة يمكن إضافتها.', 'No result can be added.'));
+        addStudent(first);
+        qInput.value = ''; query = '';
+        afterAdd([first.student.name]); qInput.focus();   // جاهز لاسم التالي
     });
-    $('#bs-qx').addEventListener('click', () => { qInput.value = ''; query = ''; applySearch(); qInput.focus(); });
-    $('#bs-qsel').addEventListener('click', () => {
+    $('#bs-qx').addEventListener('click', () => { qInput.value = ''; query = ''; renderResults(); qInput.focus(); });
+    $('#bs-res').addEventListener('click', (e) => {
         if (busy) return;
-        const hit = rows.filter(r => matches(r) && selectable(r));
-        hit.forEach(r => { r.sel = true; renderRow(r); });
-        renderFoot();
-        toast(L(`حُدّد ${hit.length} من نتائج البحث`, `${hit.length} search result(s) selected`));
+        const one = e.target.closest('[data-add]');
+        if (one) { const r = byId(one.dataset.add); if (r && addStudent(r)) afterAdd([r.student.name]); return; }
+        if (e.target.closest('#bs-addall')) {
+            const added = rows.filter(r => nameMatches(r) && canAdd(r)).filter(addStudent);
+            if (added.length) afterAdd(added.map(r => r.student.name));
+        }
     });
 
     // ---------- فحص جاهزية الطلاب في الخلفية (نطاق الحفظ + قِدم الموضع) ----------
@@ -412,8 +491,11 @@ export async function openBulkSend({ onClose } = {}) {
                 }
             } catch (e) { console.warn('تعذر فحص الطالب:', r.student.name, e); r.status = 'ok'; }
             if (closed) return;
-            if (r.state === 'idle') { renderRow(r); renderFoot(); }
+            if (r.status === 'norange' && r.auto && r.listed && r.state === 'idle') { skippedNoRange++; unlistRow(r); refill(); }
+            else if (r.state === 'idle') { renderRow(r); renderFoot(); }
+            if (query) renderResults();   // تحديث أزرار النتائج (مثلاً «بلا نطاق حفظ»)
         }
+        if (!closed) ov.dataset.checked = '1';   // انتهى فحص كل الطلاب (للاختبارات ولمن يحتاج إشارة جاهزية)
     })();
 
     // ---------- التفاعل ----------
@@ -435,8 +517,8 @@ export async function openBulkSend({ onClose } = {}) {
         if (chip) {
             if (busy) return;
             const m = chip.dataset.sel;
-            rows.forEach(r => {
-                if (r.status === 'norange' || r.state === 'pub') return;
+            visible().forEach(r => {
+                if (r.status === 'norange') return;
                 r.sel = m === 'all' || (m === 'due' && !!r.due) || (m === 'late' && !!r.due && r.due.lateDays > 0);
             });
             return renderAll();
@@ -515,8 +597,10 @@ export async function openBulkSend({ onClose } = {}) {
     $('#bs-prep').addEventListener('click', async () => {
         if (busy) return;
         if (!hwEngine) return toast(L('محرك القرآن غير متوفر.', 'Quran engine unavailable.'));
-        const list = rows.filter(r => r.sel && r.status !== 'norange' && r.state !== 'pub');
-        if (!list.length) return toast(L('حدّد طلاباً أولاً.', 'Select students first.'));
+        const sel = visible().filter(r => r.sel && r.status !== 'norange');
+        const list = sel.filter(r => r.state !== 'ready');   // المجهَّز لا يُعاد توليده (يتغيّر نطاقه/عدده فيعود «ينتظر» تلقائياً)
+        if (!sel.length) return toast(L('حدّد طلاباً أولاً.', 'Select students first.'));
+        if (!list.length) return toast(L('كل المحدَّدين مجهَّزون — اضغط «انشر».', 'Everyone selected is already prepared — press Publish.'));
         const bad = list.find(r => (r.scope === 'surah' || r.scope === 'hizb') && !r.pick.size);
         if (bad) return toast(L(`اختر ${bad.scope === 'surah' ? 'سورة' : 'حزباً'} واحداً على الأقل لـ ${bad.student.name}، أو غيّر نطاقه إلى «كل النطاق».`, `Pick at least one ${bad.scope === 'surah' ? 'surah' : 'hizb'} for ${bad.student.name}, or switch to "Whole range".`));
         busy = true; setStep(2); renderFoot();
@@ -565,7 +649,7 @@ export async function openBulkSend({ onClose } = {}) {
     // ---------- ٣) النشر ----------
     $('#bs-pub').addEventListener('click', async () => {
         if (busy) return;
-        const list = rows.filter(r => r.state === 'ready' && r.res);
+        const list = visible().filter(r => r.state === 'ready' && r.res);
         if (!list.length) return;
         busy = true; renderFoot();
         let signed = false;
@@ -610,11 +694,14 @@ export async function openBulkSend({ onClose } = {}) {
         progress(k, list.length, L('انتهى النشر', 'Publishing finished'));
         setTimeout(progressDone, 700);
         busy = false;
-        renderFoot();
+        // من نُشر لهم يغادرون الجدول (روابطهم في القائمة أدناه) ويحلّ مكانهم مستحقون آخرون
+        rows.filter(r => r.state === 'pub' && r.listed).forEach(unlistRow);
+        const added = refill();
         renderLinks();
-        if (okN) setStep(4);
-        const failedN = rows.filter(r => r.state === 'ready' && r.err).length;
-        toast(okN ? L(`نُشر ${okN} واجباً${failedN ? ` — وتعذّر ${failedN} (ما زالت مجهَّزة)` : ''}`, `${okN} published${failedN ? ` — ${failedN} failed (still prepared)` : ''}`) : L('لم يُنشر شيء — راجع الاتصال وحاول مجدداً', 'Nothing was published — check the connection and try again'));
+        if (query) renderResults();
+        if (okN) setStep(added ? 1 : 4);
+        const failedN = visible().filter(r => r.state === 'ready' && r.err).length;
+        toast(okN ? L(`نُشر ${okN} واجباً${failedN ? ` — وتعذّر ${failedN} (ما زالت مجهَّزة)` : ''}${added ? ` — وأُضيف ${added} مستحقاً جديداً للقائمة` : ''}`, `${okN} published${failedN ? ` — ${failedN} failed (still prepared)` : ''}${added ? ` — ${added} new due student(s) added to the list` : ''}`) : L('لم يُنشر شيء — راجع الاتصال وحاول مجدداً', 'Nothing was published — check the connection and try again'));
     });
 
     // ---------- ٤) الروابط ----------

@@ -67,16 +67,20 @@ const norm = (x) => String(x || '').replace(/[\u064B-\u0652\u0670\u06D6-\u06ED]/
 const shot = async (pg, name) => { if (process.env.SHOTS) await pg.screenshot({ path: path.join(process.env.SHOTS, name + '.png'), fullPage: true }); };
 const createdCount = () => apiLog.filter(a => a.action === 'createHomework' && a.ok).length;
 const bulkRow = (name) => page.locator('.bs-rw', { hasText: name });
+// يضيف طالباً إلى قائمة العمل بالبحث ثم زر «＋ إضافة» بجواره (كما يفعل المعلم)
+const addByName = async (nm) => { await page.fill('#bs-q', nm); await page.locator('.bs-res-i', { hasText: nm }).locator('[data-add]').click(); await page.fill('#bs-q', ''); await sleep(150); };
+const openBulk = async () => { await dismissMonthly(); await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov #bs-q', { timeout: 15000 }); await waitStatuses(); };
 // نافذة المنصة الأصلية «تحديث موضع الحفظ الشهري» تغطي الشاشة للطلاب الجدد: نغلقها كما يفعل المعلم
 const dismissMonthly = async () => { for (let i = 0; i < 3; i++) { const had = await page.evaluate(() => { const b = document.getElementById('mmt-close'); if (b) { b.click(); return true; } return false; }); if (!had) break; await sleep(500); } };
-const waitStatuses = () => page.waitForFunction(() => document.querySelectorAll('.bs-pill:not(.wait), .bs-rw.off').length >= 4 && !document.querySelector('.bs-pill.wait'), null, { timeout: 40000 });
+const waitStatuses = () => page.waitForSelector('.bs-ov[data-checked="1"]', { state: 'attached', timeout: 60000 });
+const _oldWaitStatuses = () => page.waitForFunction(() => document.querySelectorAll('.bs-pill:not(.wait), .bs-rw.off').length >= 4 && !document.querySelector('.bs-pill.wait'), null, { timeout: 40000 });
 
 try {
   await page.goto(WEB + '/index.html');
   await page.waitForSelector('#btn-my-students-main', { timeout: 30000 });
   await sleep(800);
 
-  // ---- بيانات: خمسة طلاب (٣ بنطاق حفظ ومستحقون، ١ بنطاق لكنه غير مستحق، ١ بلا نطاق)
+  // ---- بيانات: ثمانية طلاب (٣ مستحقون بنطاق حفظ، ٤ بنطاق لكنهم غير مستحقين، ١ بلا نطاق)
   await page.evaluate(async () => {
     const { AppState } = await import('/core/app.js');
     const by = (n) => AppState.surahsData.find(s => s.number === n).name;
@@ -86,11 +90,16 @@ try {
     await mgr.addStudent({ name: 'جابر الثالث', type: 'adult', memoFrom: by(114), memoTo: by(86) });
     await mgr.addStudent({ name: 'دعاء الرابعة', type: 'adult', memoFrom: by(114), memoTo: by(88) });
     await mgr.addStudent({ name: 'هيثم بلا نطاق', type: 'adult' });
+    await mgr.addStudent({ name: 'وليد السادس', type: 'adult', memoFrom: by(114), memoTo: by(82) });
+    await mgr.addStudent({ name: 'يعقوب السابع', type: 'adult', memoFrom: by(114), memoTo: by(84) });
+    await mgr.addStudent({ name: 'سعيد الثامن', type: 'adult', memoFrom: by(114), memoTo: by(86) });
     const all = await mgr.getAllStudents();
     const ago = { 'أحمد الأول': 4, 'بلال الثاني': 2, 'جابر الثالث': 0 };   // جابر موعده اليوم، والآخران متأخران
     const dayAgo = (n) => { let m = n; while (n > 0 && (new Date().getDay() - m + 7) % 7 === 5) m++; return (new Date().getDay() - m + 7) % 7; };
     for (const s of all) {
       if (s.name in ago) { s.hwSchedule = { days: [dayAgo(ago[s.name])], startTs: Date.now() - 86400000 * (ago[s.name] + 9), auto: false }; await mgr.updateStudent(s); }
+      // غير المستحقين: جدول صريح في يوم آخر (وإلا وزّعت المنصة تلقائياً لبعضهم يوم اليوم فيصير مستحقاً عشوائياً)
+      else { s.hwSchedule = { days: [(new Date().getDay() + 3) % 7], startTs: Date.now(), auto: false }; await mgr.updateStudent(s); }
     }
   });
   await page.reload();
@@ -103,7 +112,7 @@ try {
   await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
   await page.evaluate(() => document.querySelector('.qc-foot-bulk').click());
   await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 });
-  check('H2 الضغط عليه يفتح شاشة الإرسال الجماعي بصفوف الطلاب', (await page.locator('.bs-ov .bs-rw').count()) === 5);
+  check('H2 الضغط عليه يفتح الشاشة وفيها قائمة المستحقين الثلاثة فقط (لا كل الطلاب)', (await page.locator('.bs-ov .bs-rw').count()) === 3);
   await page.click('.bs-ov [data-act="close"]'); await sleep(400);
   check('H3 الإغلاق يزيل الشاشة', (await page.locator('.bs-ov').count()) === 0);
 
@@ -121,10 +130,13 @@ try {
   await dismissMonthly(); await page.click('#hw-btn-bulk');
   await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 });
   await waitStatuses();
-  const initial = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].map(r => ({ name: r.querySelector('.bs-nm').innerText, off: r.classList.contains('off'), dis: r.querySelector('input[type=checkbox]').disabled, tags: [...r.querySelectorAll('.bs-tag')].map(t => t.innerText), pill: r.querySelector('.bs-pill')?.innerText })));
-  check('B1 خمسة صفوف، والمستحقون الثلاثة في الأعلى بشارة التأخر', initial.length === 5 && initial.slice(0, 3).every(r => /متأخر/.test(r.tags.join())) && !initial[3].tags.length && !initial[4].tags.length, JSON.stringify(initial.map(r => r.name + ':' + r.tags.join('/'))));
-  const noRange = initial.find(r => r.name.includes('بلا نطاق'));
-  check('B2 الطالب بلا نطاق حفظ: معطَّل وبحالة «بلا نطاق حفظ»', noRange && noRange.off && noRange.dis && /بلا نطاق حفظ/.test(noRange.pill), JSON.stringify(noRange));
+  const initial = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].map(r => ({ name: r.querySelector('.bs-nm').innerText, sel: r.querySelector('input[type=checkbox]').checked, tags: [...r.querySelectorAll('.bs-tag')].map(t => t.innerText) })));
+  check('B1 القائمة تعرض المستحقين الثلاثة فقط (متأخرين) محدَّدين افتراضياً، دون باقي الطلاب', initial.length === 3 && initial.every(r => r.sel && /متأخر/.test(r.tags.join())), JSON.stringify(initial.map(r => r.name)));
+  check('B1b السطر التعريفي يذكر «3 طالب في القائمة» ولا منتظرين', /3 طالب في القائمة/.test(await page.locator('#bs-meta-t').innerText()) && !/ينتظرون/.test(await page.locator('#bs-meta-t').innerText()), await page.locator('#bs-meta-t').innerText());
+  await page.fill('#bs-q', 'هيثم');
+  const noRangeBtn = await page.locator('.bs-res-i', { hasText: 'هيثم' }).locator('button').first();
+  check('B2 الطالب بلا نطاق حفظ يظهر في البحث بزر معطَّل «بلا نطاق حفظ» (لا يمكن إضافته)', (await noRangeBtn.isDisabled()) && /بلا نطاق حفظ/.test(await noRangeBtn.innerText()) && (await page.locator('.bs-rw').count()) === 3);
+  await page.fill('#bs-q', '');
   check('B3 عناصر القائمة المنسدلة الأربعة موجودة', await page.evaluate(() => [...document.querySelector('.bs-scope').options].map(o => o.value).join() === 'all,suggest,surah,hizb'));
   await shot(page, 'bulk-1-open');
 
@@ -134,40 +146,43 @@ try {
   check('C1 «المستحقون اليوم» يحدّد الثلاثة المستحقين فقط', selected === 3, String(selected));
   await page.click('[data-sel="all"]');
   selected = await page.evaluate(() => [...document.querySelectorAll('.bs-row input[type=checkbox]:checked')].length);
-  check('C2 «الكل» يحدّد أصحاب النطاق فقط (4) ويتجاوز من بلا نطاق', selected === 4, String(selected));
+  check('C2 «الكل» يحدّد كل ما في القائمة (3)', selected === 3, String(selected));
   await page.click('[data-sel="none"]');
   check('C3 «مسح» يلغي التحديد', (await page.evaluate(() => document.querySelectorAll('.bs-row input[type=checkbox]:checked').length)) === 0);
   await page.click('[data-sel="late"]');
   check('C4 «المتأخرون فقط» يحدّد الثلاثة المتأخرين دون من لا موعد له', (await page.evaluate(() => document.querySelectorAll('.bs-row input[type=checkbox]:checked').length)) === 3);
   await page.click('[data-sel="due"]');   // نعود للثلاثة المستحقين لباقي الاختبار
 
-  console.log('\n=== البحث عن طالب ===');
-  const vis = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw:not(.bs-hid) .bs-nm')].map(n => n.innerText));
-  const checked = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw')].filter(r => r.querySelector('input[type=checkbox]').checked).map(r => r.querySelector('.bs-nm').innerText));
+  console.log('\n=== البحث وزر «＋ إضافة» ===');
+  const names = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw .bs-nm')].map(n => n.innerText));
+  const checkedNames = () => page.evaluate(() => [...document.querySelectorAll('.bs-rw')].filter(r => r.querySelector('input[type=checkbox]').checked).map(r => r.querySelector('.bs-nm').innerText));
   await page.click('[data-sel="none"]');
-  check('SE0 مربع البحث ظاهر وفارغ والصفوف الخمسة كلها ظاهرة', (await page.locator('#bs-q').count()) === 1 && (await vis()).length === 5);
+  check('SE0 مربع البحث موجود والنتائج مخفية قبل الكتابة', (await page.locator('#bs-q').count()) === 1 && !(await page.locator('#bs-res').isVisible()));
   await page.fill('#bs-q', 'احمد');
-  let v = await vis();
-  check('SE1 البحث يتجاهل الهمزة: «احمد» تجد «أحمد الأول» وحده', v.length === 1 && v[0] === 'أحمد الأول', JSON.stringify(v));
-  check('SE2 يعرض «1 من 5» وزر المسح ظاهر', /1 من 5/.test(await page.locator('#bs-qinfo').innerText()) && await page.locator('#bs-qx').isVisible());
-  await page.press('#bs-q', 'Enter'); await sleep(200);
-  check('SE3 Enter يحدّد أول نتيجة ويفرّغ الحقل ويُظهر الجميع من جديد', JSON.stringify(await checked()) === JSON.stringify(['أحمد الأول']) && (await page.inputValue('#bs-q')) === '' && (await vis()).length === 5);
-  await page.fill('#bs-q', 'الث');
-  v = await vis();
-  check('SE4 بحث جزئي «الث» يجد بلال الثاني وجابر الثالث', v.length === 2 && v.includes('بلال الثاني') && v.includes('جابر الثالث'), JSON.stringify(v));
-  await shot(page, 'bulk-6-search');
-  await page.click('#bs-qsel'); await sleep(200);
-  check('SE5 «تحديد نتائج البحث» يحدّد النتيجتين ويُبقي أحمد محدَّداً', (await checked()).length === 3);
+  let items = await page.locator('.bs-res-i').allInnerTexts();
+  const ahmadBtn = page.locator('.bs-res-i', { hasText: 'أحمد' }).locator('button');
+  check('SE1 البحث يتجاهل الهمزة («احمد» تجد «أحمد الأول») وهو أصلاً في القائمة: زر «في القائمة» معطَّل', items.length === 1 && (await ahmadBtn.isDisabled()) && /في القائمة/.test(await ahmadBtn.innerText()), JSON.stringify(items));
+  await page.fill('#bs-q', 'دعاء');
+  const addBtn = page.locator('.bs-res-i', { hasText: 'دعاء' }).locator('[data-add]');
+  check('SE2 نتيجة طالب غير مضاف: بجوار اسمه زر «＋ إضافة»، ولا صف له في الجدول بعد', (await addBtn.count()) === 1 && /إضافة/.test(await addBtn.innerText()) && (await names()).length === 3);
+  await addBtn.click(); await sleep(250);
+  check('SE3 الضغط على «＋ إضافة» يضيفه إلى القائمة محدَّداً ويصير زر النتيجة «في القائمة»', (await names()).includes('دعاء الرابعة') && (await checkedNames()).includes('دعاء الرابعة') && /في القائمة/.test(await page.locator('.bs-res-i', { hasText: 'دعاء' }).locator('button').innerText()));
+  check('SE4 السطر التعريفي يتحدّث إلى 4 طلاب وتظهر رسالة «أُضيف»', /4 طالب في القائمة/.test(await page.locator('#bs-meta-t').innerText()) && /أُضيف: دعاء/.test(await page.locator('.bs-toast').innerText().catch(() => '')));
+  await page.fill('#bs-q', 'السا');
+  await shot(page, 'bulk-8-results');
+  const allBtn = page.locator('#bs-addall');
+  check('SE5 بحث يطابق اثنين قابلين للإضافة يُظهر زر «إضافة الكل (2)»', (await allBtn.count()) === 1 && /\(2\)/.test(await allBtn.innerText()), await page.locator('.bs-res-h').innerText());
+  await allBtn.click(); await sleep(250);
+  check('SE6 «إضافة الكل» يضيف وليد ويعقوب معاً', (await names()).includes('وليد السادس') && (await names()).includes('يعقوب السابع') && (await names()).length === 6, JSON.stringify(await names()));
+  await page.fill('#bs-q', 'سعيد'); await page.press('#bs-q', 'Enter'); await sleep(250);
+  check('SE7 Enter يضيف أول نتيجة قابلة للإضافة ويفرّغ الحقل ويُخفي النتائج', (await names()).includes('سعيد الثامن') && (await page.inputValue('#bs-q')) === '' && !(await page.locator('#bs-res').isVisible()));
   await page.fill('#bs-q', 'zzz');
-  check('SE6 بحث بلا نتيجة: رسالة «لا يوجد طالب» وصفر صفوف', (await vis()).length === 0 && await page.locator('#bs-noresult').isVisible());
-  await page.fill('#bs-q', 'هيثم'); await page.click('#bs-qsel').catch(() => {});
-  check('SE7 الطالب بلا نطاق لا يُحدَّد ولو ظهر في البحث (لا زر تحديد له)', !(await page.locator('#bs-qsel').isVisible()) && !(await checked()).includes('هيثم بلا نطاق'));
-  await page.fill('#bs-q', 'جابر');
-  const cntTxt = await page.locator('#bs-cnt').innerText();
-  check('SE8 المحدَّدون الذين أخفاهم البحث يبقون محدَّدين ويظهر تنبيه بعددهم', /مخفي بالبحث/.test(cntTxt) && (await checked()).length === 3, cntTxt.replace(/\s+/g, ' '));
-  await page.click('#bs-qx'); await sleep(200);
-  check('SE9 زر ✕ يمسح البحث ويُظهر الكل مع بقاء التحديد', (await vis()).length === 5 && (await checked()).length === 3 && (await page.inputValue('#bs-q')) === '');
-  await page.click('[data-sel="none"]'); await page.click('[data-sel="due"]');   // نعود لحالة الاختبار المعتادة
+  check('SE8 بحث بلا نتيجة: رسالة «لا يوجد طالب بهذا الاسم»', /لا يوجد طالب بهذا الاسم/.test(await page.locator('#bs-res').innerText()));
+  await page.click('#bs-qx'); await sleep(150);
+  check('SE9 زر ✕ يمسح البحث ويُخفي النتائج', (await page.inputValue('#bs-q')) === '' && !(await page.locator('#bs-res').isVisible()));
+  await shot(page, 'bulk-6-search');
+  await page.click('[data-sel="none"]'); await page.click('[data-sel="due"]');   // نعود لتحديد المستحقين الثلاثة فقط لباقي الاختبار
+  check('SE10 «المستحقون اليوم» يحدّد المستحقين الثلاثة دون المضافين بالبحث (7 في القائمة)', (await checkedNames()).length === 3 && (await names()).length === 7);
 
   console.log('\n=== القائمة المنسدلة للنطاق ===');
   // أحمد: أحزاب محددة
@@ -278,21 +293,23 @@ try {
   await shot(page, 'bulk-4-links');
 
   console.log('\n=== بعد النشر: الصفوف والمستحقون ===');
-  const afterRows = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].map(r => ({ name: r.querySelector('.bs-nm').innerText, pub: !!r.querySelector('.bs-pill.pub'), dis: r.querySelector('input[type=checkbox]').disabled })));
-  check('P1 الثلاثة صاروا «نُشر» ومقفلين (لا نشر مكرر)', afterRows.filter(r => r.pub && r.dis).length === 3);
+  const afterNames = await names();
+  check('P1 المنشور لهم الثلاثة غادروا الجدول (روابطهم في القائمة أسفله) وبقي المضافون بالبحث غير المحدَّدين', !afterNames.some(n => ['أحمد الأول', 'بلال الثاني', 'جابر الثالث'].includes(n)) && afterNames.length === 4, JSON.stringify(afterNames));
   const reqs = createdCount();
-  await page.click('#bs-pub').catch(() => {}); await page.click('#bs-prep').catch(() => {}); await sleep(500);
-  check('P2 الضغط على «انشر/جهّز» بعد النشر لا ينشر شيئاً مرة ثانية', createdCount() === reqs);
+  await page.click('#bs-pub', { timeout: 1500 }).catch(() => {}); await page.click('#bs-prep', { timeout: 1500 }).catch(() => {}); await sleep(500);
+  check('P2 زرّا «جهّز/انشر» بعد النشر لا ينشران شيئاً مرة ثانية (لا محدَّد ولا مجهَّز)', createdCount() === reqs);
   await page.click('.bs-ov [data-act="close"]'); await sleep(1500);
   const dueNow = await page.evaluate(async () => { const m = await import('/core/hwScheduleService.js'); return (await m.listDueToday()).rows.map(r => r.student.name); });
   check('P3 الطلاب الثلاثة اختفوا من «مستحق اليوم» تلقائياً', !dueNow.some(n => ['أحمد الأول', 'بلال الثاني', 'جابر الثالث'].includes(n)), JSON.stringify(dueNow));
 
   console.log('\n=== فشل نشر واحد لا يُسقط الباقي ===');
-  await dismissMonthly(); await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 }); await waitStatuses();
-  const recentTag = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].find(r => r.innerText.includes('أحمد الأول')).querySelector('.bs-tag.recent')?.innerText);
-  check('R0 من نُشر له قبل قليل يُنبَّه عليه («نُشر له حديثاً»)', /نُشر له حديثاً/.test(recentTag || ''), recentTag);
-  await bulkRow('دعاء الرابعة').locator('input[type=checkbox]').check();
-  await bulkRow('أحمد الأول').locator('input[type=checkbox]').check();
+  await openBulk();
+  check('R-1 فتح الشاشة بعد نشر كل المستحقين: القائمة فارغة وفيها رسالة «لا طلاب مستحقون» وتدعو للبحث', (await page.locator('.bs-rw').count()) === 0 && /لا طلاب مستحقون الآن/.test(await page.locator('#bs-noresult').innerText()));
+  await page.fill('#bs-q', 'احمد');
+  const recentTxt = await page.locator('.bs-res-i', { hasText: 'أحمد' }).innerText();
+  check('R0 من نُشر له قبل قليل يُنبَّه عليه في نتيجة البحث («نُشر له حديثاً»)', /نُشر له حديثاً/.test(recentTxt), recentTxt.replace(/\s+/g, ' '));
+  await page.fill('#bs-q', '');
+  await addByName('دعاء'); await addByName('أحمد');
   for (let i = 0; i < 2; i++) await bulkRow('دعاء الرابعة').locator('[data-q="-1"]').click();
   await page.click('#bs-prep');
   await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 2, null, { timeout: 90000 });
@@ -300,30 +317,28 @@ try {
   const created0 = createdCount();
   failNextCreate = 1;
   await page.click('#bs-pub');
-  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.pub').length >= 1 + 3 - 3 && (document.querySelectorAll('.bs-pill.err').length >= 1) && !document.querySelector('.bs-pill.wait'), null, { timeout: 120000 });
-  await sleep(1000);
-  const st2 = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].filter(r => r.innerText.match(/دعاء|أحمد الأول/)).map(r => ({ name: r.querySelector('.bs-nm').innerText, pub: !!r.querySelector('.bs-pill.pub'), err: r.querySelector('.bs-pill.err')?.innerText || '', note: r.querySelector('.bs-sum')?.innerText || '' })));
-  check('X1 نُشر واحد وفشل واحد (الفاشل بقي مجهَّزاً برسالة سبب)', st2.filter(r => r.pub).length === 1 && st2.filter(r => /تعذّر النشر/.test(r.err)).length === 1 && createdCount() === created0 + 1, JSON.stringify(st2));
+  await page.waitForFunction(() => document.querySelectorAll('#bs-links .bs-lk').length >= 1 && document.querySelectorAll('.bs-pill.err').length >= 1 && !document.querySelector('.bs-pill.wait'), null, { timeout: 120000 });
+  await sleep(800);
+  const st2 = await page.evaluate(() => ({ rows: [...document.querySelectorAll('.bs-rw')].map(r => ({ name: r.querySelector('.bs-nm').innerText, err: r.querySelector('.bs-pill.err')?.innerText || '', note: r.querySelector('.bs-sum')?.innerText || '' })), links: [...document.querySelectorAll('#bs-links .bs-lk b')].map(b => b.innerText) }));
+  check('X1 نُشر واحد (غادر الجدول إلى الروابط) وفشل واحد (بقي مجهَّزاً برسالة سبب)', st2.rows.length === 1 && /تعذّر النشر/.test(st2.rows[0].err) && st2.links.length === 1 && createdCount() === created0 + 1, JSON.stringify(st2));
   check('X2 زر «انشر» يبقى مفعَّلاً لإعادة المحاولة', !(await page.locator('#bs-pub').isDisabled()));
   await page.click('#bs-pub');
-  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.pub').length >= 2 && !document.querySelector('.bs-rw:not(.off) .bs-pill.err'), null, { timeout: 120000 });
-  await sleep(800);
-  check('X3 إعادة المحاولة تنشر الفاشل فقط (لا تكرار للناجح)', createdCount() === created0 + 2, `${createdCount() - created0}`);
+  await page.waitForFunction(() => document.querySelectorAll('#bs-links .bs-lk').length >= 2 && document.querySelectorAll('.bs-rw').length === 0, null, { timeout: 120000 });
+  await sleep(500);
+  check('X3 إعادة المحاولة تنشر الفاشل فقط (لا تكرار للناجح) وتخلو القائمة', createdCount() === created0 + 2, `${createdCount() - created0}`);
   const dupes = await page.evaluate(async () => { const { AppState } = await import('/core/app.js'); const all = (await AppState.homeworkManager.getAllHomeworks()).filter(h => h.status === 'published'); const c = {}; all.forEach(h => { c[h.assignedStudentName] = (c[h.assignedStudentName] || 0) + 1; }); return c; });
-  check('X4 لا واجب مكرر لأي طالب في هذه الجلسة (دعاء=1، أحمد=2: واحد أمس-الدفعة الأولى وواحد الآن)', dupes['دعاء الرابعة'] === 1 && dupes['أحمد الأول'] === 2 && dupes['بلال الثاني'] === 1, JSON.stringify(dupes));
-  check('X5 صف الروابط الجديد يضم الاثنين', (await page.locator('#bs-links .bs-lk').count()) >= 2);
+  check('X4 لا واجب مكرر لأي طالب (دعاء=1، أحمد=2: واحد في الدفعة الأولى وواحد الآن)', dupes['دعاء الرابعة'] === 1 && dupes['أحمد الأول'] === 2 && dupes['بلال الثاني'] === 1, JSON.stringify(dupes));
+  check('X5 قائمة الروابط تراكمية: تضم الاثنين المنشورين في هذه الجلسة', (await page.locator('#bs-links .bs-lk').count()) === 2);
 
   console.log('\n=== إغلاق مع واجب مجهَّز لم يُنشر ===');
   await page.click('.bs-ov [data-act="close"]'); await sleep(500);
-  await dismissMonthly(); await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 }); await waitStatuses();
-  await bulkRow('جابر الثالث').locator('input[type=checkbox]').check();
-  await bulkRow('بلال الثاني').locator('input[type=checkbox]').check();
+  await openBulk();
+  await addByName('جابر'); await addByName('بلال');
   for (const n of ['جابر الثالث', 'بلال الثاني']) for (let i = 0; i < 7; i++) await bulkRow(n).locator('[data-q="-1"]').click();
-  await page.fill('#bs-q', 'جابر');   // بلال محدَّد لكن مخفي بالبحث: يجب أن يُجهَّز معه
   await page.click('#bs-prep');
   await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 2, null, { timeout: 90000 });
-  check('SE10 المحدَّد المخفي بالبحث يُجهَّز مع الظاهر (التجهيز على كل المحدَّدين)', (await page.locator('.bs-rw', { hasText: 'بلال الثاني' }).locator('.bs-pill.ok').count()) === 1 && (await page.locator('.bs-rw.bs-hid', { hasText: 'بلال الثاني' }).count()) === 1);
-  await page.click('#bs-qx');
+  await page.click('#bs-prep').catch(() => {}); await sleep(400);
+  check('Q0 «جهّز» مرة ثانية لا يعيد توليد المجهَّز (يخبرك أنه جاهز)', /مجهَّزون/.test(await page.locator('.bs-toast').innerText().catch(() => '')) && (await page.locator('.bs-pill.ok').count()) === 2);
   dialogMode = 'dismiss';
   await page.click('.bs-ov [data-act="close"]'); await sleep(400);
   check('Q1 الإغلاق مع مجهَّز يطلب تأكيداً، والرفض يُبقي الشاشة', (await page.locator('.bs-ov').count()) === 1);
@@ -334,7 +349,8 @@ try {
 
   console.log('\n=== الجوال ===');
   await page.setViewportSize({ width: 390, height: 844 });
-  await dismissMonthly(); await page.click('#hw-btn-bulk'); await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 }); await sleep(800);
+  await openBulk();
+  await addByName('جابر');
   await bulkRow('جابر الثالث').locator('select.bs-scope').selectOption('hizb'); await sleep(1200);
   const mob = await page.evaluate(() => ({ hscroll: document.documentElement.scrollWidth > innerWidth || document.querySelector('.bs-ov').scrollWidth > document.querySelector('.bs-ov').clientWidth + 2, hdHidden: getComputedStyle(document.querySelector('.bs-hd')).display === 'none', barVisible: !!document.querySelector('.bs-bar').offsetParent || getComputedStyle(document.querySelector('.bs-bar')).position === 'fixed' }));
   check('M1 على الجوال: لا تمرير أفقي، الصفوف بطاقات، والشريط السفلي ظاهر', !mob.hscroll && mob.hdHidden && mob.barVisible, JSON.stringify(mob));
@@ -355,6 +371,41 @@ try {
   check('N1 «توليد ونشر مباشرة» العادي ما زال ينشر لطالب واحد وتظهر نافذة المشاركة', createdCount() === beforeN + 1 && /hw=/.test(await page.inputValue('#hw-link-input')));
   await page.click('#btn-close-hw-modal'); await sleep(500);
   check('N2 لا يوجد أي أثر متبقٍّ لشاشة الإرسال الجماعي بعد الإغلاق', (await page.locator('.bs-ov, .bs-bar, .bs-toast').count()) === 0);
+
+  console.log('\n=== الدفعات: من يُنشر لهم يغادرون ويحلّ مكانهم مستحقون آخرون ===');
+  await page.evaluate(async () => {
+    const { AppState } = await import('/core/app.js');
+    const by = (n) => AppState.surahsData.find(s => s.number === n).name;
+    const mgr = AppState.studentManager;
+    for (const nm of ['الدفعة أ', 'الدفعة ب', 'الدفعة ج', 'الدفعة د', 'الدفعة هـ', 'الدفعة و', 'الدفعة ز']) await mgr.addStudent({ name: nm, type: 'adult', memoFrom: by(114), memoTo: by(80) });
+    for (const s of await mgr.getAllStudents()) if (s.name.startsWith('الدفعة')) { s.hwSchedule = { days: [new Date().getDay()], startTs: Date.now() - 86400000 * 3, auto: false }; await mgr.updateStudent(s); }
+    try { localStorage.setItem('dh_bulk_batch', '5'); } catch (e) { /* لا شيء */ }
+  });
+  await openBulk();
+  let bn = await names();
+  const first5 = bn.slice();
+  const metaTxt = await page.locator('#bs-meta-t').innerText();
+  check('D1 سبعة مستحقين والدفعة 5: يظهر خمسة محدَّدين، ويذكر السطر أن مستحقَّين آخرَين ينتظران', bn.length === 5 && bn.every(n => n.startsWith('الدفعة')) && /2 مستحقاً آخرين ينتظرون/.test(metaTxt) && (await checkedNames()).length === 5, `${bn.length} | ${metaTxt}`);
+  await page.fill('#bs-bulk-q', '3'); await page.click('[data-act="apply"]');
+  await page.click('#bs-prep');
+  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 5, null, { timeout: 120000 });
+  await page.click('#bs-pub');
+  await page.waitForFunction(() => document.querySelectorAll('#bs-links .bs-lk').length >= 5 && document.querySelectorAll('.bs-rw').length === 2, null, { timeout: 120000 });
+  await sleep(500);
+  bn = await names();
+  const metaAfter = await page.locator('#bs-meta-t').innerText();
+  check('D2 بعد نشر الخمسة غادروا الجدول وحلّ مكانهم المستحقان الباقيان، ولا منتظرين بعدهما', bn.length === 2 && bn.every(n => n.startsWith('الدفعة') && !first5.includes(n)) && !/ينتظرون/.test(metaAfter), `${JSON.stringify(bn)} | ${metaAfter}`);
+  check('D3 الداخلان تلقائياً محدَّدان وغير مجهَّزين (لا ينشر شيء قبل «جهّز» و«انشر»)', (await checkedNames()).length === 2 && (await page.locator('.bs-pill.ok').count()) === 0 && (await page.locator('#bs-links .bs-lk').count()) === 5);
+  const pubBefore = createdCount();
+  await page.fill('#bs-bulk-q', '3'); await page.click('[data-act="apply"]');
+  await page.click('#bs-prep');
+  await page.waitForFunction(() => document.querySelectorAll('.bs-pill.ok').length >= 2, null, { timeout: 90000 });
+  await page.click('#bs-pub');
+  await page.waitForFunction(() => document.querySelectorAll('#bs-links .bs-lk').length >= 7 && document.querySelectorAll('.bs-rw').length === 0, null, { timeout: 120000 });
+  await sleep(400);
+  check('D4 بعد نشر آخر دفعة تخلو القائمة وتظهر رسالة «🎉 انتهيت من كل المستحقين» وقائمة الروابط فيها السبعة', /انتهيت من كل المستحقين/.test(await page.locator('#bs-noresult').innerText()) && (await page.locator('#bs-links .bs-lk').count()) === 7 && createdCount() === pubBefore + 2);
+  await shot(page, 'bulk-7-done');
+  await page.evaluate(() => { try { localStorage.removeItem('dh_bulk_batch'); } catch (e) { /* لا شيء */ } });
 
   check('Z لا أخطاء جافاسكربت غير ملتقطة', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 } catch (e) {
