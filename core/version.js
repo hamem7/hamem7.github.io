@@ -24,6 +24,11 @@ export const CHANGELOG = [
                 type: 'new',
                 ar: 'زر «📤 الإرسال الجماعي» (اختياري) في شاشة الواجبات وفي بطاقة «مهام اليوم»: شاشة واحدة بصف لكل طالب، تحدّد من تريد (الكل / المستحقون اليوم / المتأخرون)، وتختار لكل طالب نطاقه من قائمة منسدلة (كل النطاق · ✨ اقترح لي · سور محددة · أحزاب محددة) وعدد أسئلته، ثم «جهّز» لتوليد الواجبات دون نشر، وتراجعها، ثم «انشر» دفعة واحدة بدخول جوجل مرة واحدة. بعد النشر تظهر قائمة روابط برسالة جاهزة لكل طالب (نسخ · واتساب · تيليجرام) و«نسخ الكل». الواجب نفسه هو الواجب الذكي المعتاد، ويختفي الطالب من «مهام اليوم» تلقائياً، والشاشة العادية كما هي.',
                 en: 'An optional "📤 Bulk send" button on the homework screen and in the "Today\'s tasks" card: one screen with a row per student. Pick who you want (All / Due today / Late), choose each student\'s range from a dropdown (Whole range · ✨ Suggest · Chosen surahs · Chosen hizbs) and number of questions, press "Prepare" to generate the homework without publishing, review it, then "Publish" in one go with a single Google sign-in. Afterwards you get a list of links with a ready message per student (Copy · WhatsApp · Telegram) and "Copy all". It is the same smart homework as usual, the student leaves "Today\'s tasks" automatically, and the normal screen is unchanged.'
+            },
+            {
+                type: 'improved',
+                ar: 'عند نشر واجب لطالب يختفي اسمه فوراً من «مهام اليوم» (بطاقة الرئيسية وعمود «مستحق اليوم» في شاشة الواجبات) دون إعادة فتح الشاشة، سواء نُشر من الشاشة العادية أو من الإرسال الجماعي. وحفظ «مسودة» لا يُخفيه لأنه لم يُنشر له شيء بعد.',
+                en: 'When you publish a homework for a student, their name disappears from "Today\'s tasks" immediately (the Home card and the "Due today" column in the homework screen) without reopening the screen, whether published from the normal screen or from Bulk send. Saving a draft does not hide them since nothing was published yet.'
             }
         ]
     },

@@ -262,7 +262,7 @@ export async function openBulkSend({ onClose } = {}) {
     // ---------- الرسم ----------
     const tag = (r) => {
         let h = '';
-        if (r.due) h += r.due.lateDays > 0 ? `<span class="bs-tag late">${esc(L(`متأخر ${r.due.lateDays}${r.due.capped ? '+' : ''} يوم`, `${r.due.lateDays}d late`))}</span>` : `<span class="bs-tag today">${esc(L('موعده اليوم', 'Due today'))}</span>`;
+        if (r.due && r.state !== 'pub') h += r.due.lateDays > 0 ? `<span class="bs-tag late">${esc(L(`متأخر ${r.due.lateDays}${r.due.capped ? '+' : ''} يوم`, `${r.due.lateDays}d late`))}</span>` : `<span class="bs-tag today">${esc(L('موعده اليوم', 'Due today'))}</span>`;
         if (r.recent && r.state !== 'pub') h += `<span class="bs-tag recent" title="${esc(L('نُشر له واجب خلال آخر 12 ساعة', 'Homework was published for them in the last 12 hours'))}">${esc(L('نُشر له حديثاً', 'Published recently'))}</span>`;
         return h;
     };

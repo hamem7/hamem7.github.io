@@ -96,7 +96,25 @@ let currentHwIdForGrading = null;
 // loadNeedsGradingStat وتُستخدم لوضع علامة تنبيه ⚠️ بجانب الواجب المتأثر في سجل الواجبات
 let pendingGradingHwIds = new Set();
 
+// 🌟 [جديد] عند حفظ أي واجب (حدث dh:homework-created من database/homeworkDB.js) يختفي الطالب فوراً من عمود «مستحق اليوم» هنا:
+// نحذف بطاقته في الحال (إن كان الواجب منشوراً له) ثم نعيد الرسم من المصدر. يُربط مرة واحدة فقط مهما تكرّر فتح الشاشة.
+let hwCreatedBound = false, dueRefreshTimer = null;
+function bindDueAutoRefresh() {
+    if (hwCreatedBound) return;
+    hwCreatedBound = true;
+    document.addEventListener('dh:homework-created', (e) => {
+        if (!document.getElementById('hwp5-due')) return;   // الشاشة غير مفتوحة الآن
+        const hw = e.detail && e.detail.homework;
+        if (hw && hw.status === 'published' && hw.assignedStudentName) {
+            document.querySelectorAll('#hwp5-due .hwp5-tcard').forEach(c => { if (c.dataset.name === hw.assignedStudentName) c.remove(); });
+        }
+        clearTimeout(dueRefreshTimer);
+        dueRefreshTimer = setTimeout(() => { if (document.getElementById('hwp5-due')) renderDueToday(); }, 150);   // دفعة واحدة عند النشر الجماعي
+    });
+}
+
 export async function initHomeworkPrep() {
+    bindDueAutoRefresh();
     // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js) محل تلميح 'homework_prep' القديم.
     // تنتظر ظهور عناصر الشاشة فعلياً قبل الإبراز، وbest-effort (أي فشل لا يمنع فتح الشاشة).
     import('../components/guidedTour.js').then(m => m.maybeStartTour('homework')).catch(() => {});

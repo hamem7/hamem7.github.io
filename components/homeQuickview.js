@@ -333,6 +333,7 @@ async function renderDueForReview() {
             // 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + اسم + شارة + نطاق + زر إجراء
             const row = document.createElement('div');
             row.className = 'home-quickcard-due-row';
+            row.dataset.studentName = String(student.name || '');   // لحذفه فوراً عند نشر واجب له (dh:homework-created)
             row.innerHTML = `
                 <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
                 <span class="qc-row-main">
@@ -764,7 +765,25 @@ async function updateTodayGroup() {
 }
 
 // يُستدعى مرة واحدة من setupSplashListeners() في core/app.js عند تحميل الشاشة الرئيسية
+// 🌟 [جديد] عند حفظ أي واجب (حدث dh:homework-created من database/homeworkDB.js) يختفي الطالب فوراً من «مهام اليوم»: نحذف صفه في الحال
+// (إن كان الواجب منشوراً له) ثم نعيد رسم المجموعة من المصدر. يُربط مرة واحدة فقط.
+let hwCreatedBound = false, dueRefreshTimer = null;
+function bindDueAutoRefresh() {
+    if (hwCreatedBound) return;
+    hwCreatedBound = true;
+    document.addEventListener('dh:homework-created', (e) => {
+        if (!document.getElementById('home-quickcard-due')) return;   // الرئيسية غير معروضة الآن
+        const hw = e.detail && e.detail.homework;
+        if (hw && hw.status === 'published' && hw.assignedStudentName) {
+            document.querySelectorAll('#home-quickcard-due-list .home-quickcard-due-row').forEach(r => { if (r.dataset.studentName === hw.assignedStudentName) r.remove(); });
+        }
+        clearTimeout(dueRefreshTimer);
+        dueRefreshTimer = setTimeout(() => { if (document.getElementById('home-quickcard-due')) afterTaskDone('home-quickcard-due'); }, 150);
+    });
+}
+
 export function initHomeQuickview() {
+    bindDueAutoRefresh();
     renderDailyQuote();
     renderMasteryAverage();
     renderReportsCount();
