@@ -96,7 +96,25 @@ let currentHwIdForGrading = null;
 // loadNeedsGradingStat وتُستخدم لوضع علامة تنبيه ⚠️ بجانب الواجب المتأثر في سجل الواجبات
 let pendingGradingHwIds = new Set();
 
+// 🌟 [جديد] عند حفظ أي واجب (حدث dh:homework-created من database/homeworkDB.js) يختفي الطالب فوراً من عمود «مستحق اليوم» هنا:
+// نحذف بطاقته في الحال (إن كان الواجب منشوراً له) ثم نعيد الرسم من المصدر. يُربط مرة واحدة فقط مهما تكرّر فتح الشاشة.
+let hwCreatedBound = false, dueRefreshTimer = null;
+function bindDueAutoRefresh() {
+    if (hwCreatedBound) return;
+    hwCreatedBound = true;
+    document.addEventListener('dh:homework-created', (e) => {
+        if (!document.getElementById('hwp5-due')) return;   // الشاشة غير مفتوحة الآن
+        const hw = e.detail && e.detail.homework;
+        if (hw && hw.status === 'published' && hw.assignedStudentName) {
+            document.querySelectorAll('#hwp5-due .hwp5-tcard').forEach(c => { if (c.dataset.name === hw.assignedStudentName) c.remove(); });
+        }
+        clearTimeout(dueRefreshTimer);
+        dueRefreshTimer = setTimeout(() => { if (document.getElementById('hwp5-due')) renderDueToday(); }, 150);   // دفعة واحدة عند النشر الجماعي
+    });
+}
+
 export async function initHomeworkPrep() {
+    bindDueAutoRefresh();
     // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js) محل تلميح 'homework_prep' القديم.
     // تنتظر ظهور عناصر الشاشة فعلياً قبل الإبراز، وbest-effort (أي فشل لا يمنع فتح الشاشة).
     import('../components/guidedTour.js').then(m => m.maybeStartTour('homework')).catch(() => {});
@@ -1335,6 +1353,13 @@ function setupListeners() {
         const m = await import('../components/weekSchedule.js');
         m.openWeekSchedule({ onClose: () => renderDueToday() });
     });
+    // 📤 [جديد — الإرسال الجماعي] شاشة اختيارية مستقلة (components/bulkSend.js)؛ بعد إغلاقها نحدّث «مستحق اليوم» والسجل
+    document.getElementById('hw-btn-bulk')?.addEventListener('click', async () => {
+        try {
+            const m = await import('../components/bulkSend.js');
+            m.openBulkSend({ onClose: () => { renderDueToday(); loadHomeworkDashboard(); } });
+        } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
+    });
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {
         switchHwTab('new');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1447,6 +1472,7 @@ function setupSmartPanelStatic() {
     set('hw-target-mode-hint', L('اختر الطالب ليُبنى الواجب على حفظه وأخطائه.', 'Pick a student so the homework is built on their memorization and mistakes.'));
     set('hw-scope-title', L('نطاق الواجب:', 'Homework range:'));
     set('hw-btn-week', L('📅 جدول الأسبوع', '📅 Weekly schedule'));
+    set('hw-btn-bulk', L('📤 الإرسال الجماعي', '📤 Bulk send'));
     set('hw-scope-lbl-all', L('كل النطاق', 'Whole range'));
     set('hw-scope-lbl-hizb', L('أحزاب محددة', 'Chosen hizbs'));
     set('hw-scope-lbl-surah', L('سور محددة', 'Chosen surahs'));
@@ -1827,6 +1853,7 @@ async function resolveHomeworkScope(hwId) {
 // 🌟 [الواجب الذكي] سطر «لماذا هذا السؤال؟» + شارات (الفئة، المهارة) تحت كل سؤال — للمعلم فقط، لا يراها الطالب
 function whyHtmlFor(q) {
     const meta = currentTracking[q.id];
+    if (!meta && q.simGroupId) return `<div style="margin-top:8px; font-size:0.85rem; color:#7c3aed;">${esc(L('🔀 من المتشابهات المرفوعة على المنصة — يُسجَّل أداؤه كسؤال عادي.', 'From the platform similar-verses (mutashabihat) — logged as a regular question.'))}</div>`;
     if (!meta) return `<div style="margin-top:8px; font-size:0.85rem; color:#94a3b8;">${esc(L('سؤال يدوي — يُسجَّل أداؤه في المهارة بحسب نوعه.', 'Manual question — logged under its skill by type.'))}</div>`;
     const pill = (cls, txt) => `<span class="sk-p ${cls}">${esc(txt)}</span>`;
     return `<div style="margin-top:10px; padding-top:8px; border-top:1px dashed #e2e8f0;">
@@ -1990,6 +2017,25 @@ function saveManualQuestion() {
     if (!title || !text) return alert(t("الرجاء كتابة عنوان ونص السؤال!"));
 
     const editIndex = parseInt(document.getElementById('qb-edit-index').value);
+    const oldQ = editIndex >= 0 ? currentGeneratedQuestions[editIndex] : null;
+
+    // 🛡️ التصحيح الآلي في الخادم مطابقة حرفية (ans === correctAnswer). فلو عدّل المعلم نص الخيارات ولم يعدّل خانة الإجابة الصحيحة
+    // معها لن يطابقها أي خيار فيُحسب كل جواب خطأ. نعالجه هنا: إن كانت الإجابة القديمة لا توجد بين الخيارات الجديدة وبقي عدد الخيارات
+    // كما هو، نعتمد الخيار الذي في نفس ترتيب الإجابة القديمة (حالة تقصير نص الخيارات في أماكنها)، وإلا نمنع الحفظ بدل واجب يُصحَّح خطأً.
+    let correctFixed = correctRaw;
+    if (type === 'mcq') {
+        if (!optionsRaw.includes(correctRaw)) {
+            const oldIdx = oldQ && Array.isArray(oldQ.options) && !Array.isArray(oldQ.correctAnswer) ? oldQ.options.indexOf(oldQ.correctAnswer) : -1;
+            if (oldIdx >= 0 && oldQ.options.length === optionsRaw.length && optionsRaw[oldIdx] && correctRaw === oldQ.correctAnswer) {
+                correctFixed = optionsRaw[oldIdx];
+            } else {
+                return alert(L('الإجابة الصحيحة يجب أن تطابق أحد الخيارات حرفياً. انسخ نص الخيار الصحيح إلى خانة «الإجابة الصحيحة» ثم احفظ.', 'The correct answer must exactly match one of the options. Copy the correct option\'s text into the "Correct answer" box, then save.'));
+            }
+        }
+    } else if (type === 'checkbox') {
+        const parts = correctRaw.split(',').map(x => x.trim());
+        if (!parts.length || parts.some(x => !optionsRaw.includes(x))) return alert(L('كل إجابة صحيحة يجب أن تطابق أحد الخيارات حرفياً (مفصولة بفواصل).', 'Every correct answer must exactly match one of the options (comma-separated).'));
+    }
 
     let needsManual = (type === 'written_blank' || type === 'write_3_ayahs');
 
@@ -1999,10 +2045,12 @@ function saveManualQuestion() {
         title: title,
         text: text,
         options: optionsRaw,
-        correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctRaw,
+        correctAnswer: type === 'checkbox' ? correctRaw.split(',').map(s=>s.trim()) : correctFixed,
         points: (type === 'checkbox') ? 2 : (type === 'write_3_ayahs' ? 3 : 1),
         needsManualGrading: needsManual
     };
+    // بعد تعديل المعلم يبقى السؤال معلَّماً أنه من المتشابهات (لسطر المعاينة فقط؛ لا أثر له على الطالب أو التصحيح)
+    if (oldQ && oldQ.simGroupId) { newQ.simGroupId = oldQ.simGroupId; newQ.simKind = oldQ.simKind; }
 
     if (editIndex >= 0) {
         currentGeneratedQuestions[editIndex] = newQ;

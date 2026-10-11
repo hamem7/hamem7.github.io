@@ -5,7 +5,7 @@
 // ملف خالص: لا DOM ولا IndexedDB ولا استيراد من بقية المنصة، فيُختبر بـNode مباشرة.
 //
 // المهارات السبع (تجميع المعلم):
-//   sequence  : التسلسل والترابط بين الآيات     (next / previous / between)
+//   sequence  : التسلسل والترابط بين الآيات     (next / previous / between / around)
 //   recall    : الاستدعاء الحر                 (catch / complete_ayah)
 //   structure : بنية الآية وترتيبها            (order / kids_word_order)
 //   precision : الدقة والتمييز بين المتشابه     (mistake / kids_extra_word / kids_tf)
@@ -80,7 +80,7 @@ export function skillOfHwFormat(fmt) {
 // أنواع أسئلة الألعاب والاختبارات الفردية ← المهارة
 // ------------------------------------------
 const GAME_TYPE_SKILL = {
-    next: 'sequence', previous: 'sequence', between: 'sequence',
+    next: 'sequence', previous: 'sequence', between: 'sequence', around: 'sequence',
     catch: 'recall', complete_ayah: 'recall',
     order: 'structure', word_order: 'structure',
     mistake: 'precision', extra_word: 'precision', tf: 'precision',

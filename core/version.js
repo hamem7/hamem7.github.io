@@ -8,13 +8,47 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.13';
+export const APP_VERSION = '1.0.15';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-11] الإرسال الجماعي
+    {
+        version: '1.0.15',
+        date: '2026-10-11',
+        items: [
+            {
+                type: 'new',
+                ar: 'زر «📤 الإرسال الجماعي» (اختياري) في شاشة الواجبات وفي بطاقة «مهام اليوم»: شاشة واحدة بصف لكل طالب، تحدّد من تريد (الكل / المستحقون اليوم / المتأخرون)، وتختار لكل طالب نطاقه من قائمة منسدلة (كل النطاق · ✨ اقترح لي · سور محددة · أحزاب محددة) وعدد أسئلته، ثم «جهّز» لتوليد الواجبات دون نشر، وتراجعها، ثم «انشر» دفعة واحدة بدخول جوجل مرة واحدة. بعد النشر تظهر قائمة روابط برسالة جاهزة لكل طالب (نسخ · واتساب · تيليجرام) و«نسخ الكل». الواجب نفسه هو الواجب الذكي المعتاد، ويختفي الطالب من «مهام اليوم» تلقائياً، والشاشة العادية كما هي.',
+                en: 'An optional "📤 Bulk send" button on the homework screen and in the "Today\'s tasks" card: one screen with a row per student. Pick who you want (All / Due today / Late), choose each student\'s range from a dropdown (Whole range · ✨ Suggest · Chosen surahs · Chosen hizbs) and number of questions, press "Prepare" to generate the homework without publishing, review it, then "Publish" in one go with a single Google sign-in. Afterwards you get a list of links with a ready message per student (Copy · WhatsApp · Telegram) and "Copy all". It is the same smart homework as usual, the student leaves "Today\'s tasks" automatically, and the normal screen is unchanged.'
+            },
+            {
+                type: 'improved',
+                ar: 'عند نشر واجب لطالب يختفي اسمه فوراً من «مهام اليوم» (بطاقة الرئيسية وعمود «مستحق اليوم» في شاشة الواجبات) دون إعادة فتح الشاشة، سواء نُشر من الشاشة العادية أو من الإرسال الجماعي. وحفظ «مسودة» لا يُخفيه لأنه لم يُنشر له شيء بعد.',
+                en: 'When you publish a homework for a student, their name disappears from "Today\'s tasks" immediately (the Home card and the "Due today" column in the homework screen) without reopening the screen, whether published from the normal screen or from Bulk send. Saving a draft does not hide them since nothing was published yet.'
+            }
+        ]
+    },
+    // 📅 [أُضيف 2026-10-10] أسئلة المتشابهات في الواجب الذكي
+    {
+        version: '1.0.14',
+        date: '2026-10-10',
+        items: [
+            {
+                type: 'fixed',
+                ar: 'تعديل سؤال «اختيار من متعدد» في معاينة الواجب: لو عدّلتَ نص الخيارات ولم تطابق «الإجابة الصحيحة» أحدها حرفياً لم يعد يُحفظ بصمت (كان يُحتسب كل جواب خطأً)؛ يُعتمد الخيار المقابل تلقائياً إن لم تلمس خانة الإجابة، وإلا تظهر رسالة. وأسئلة المتشابهات صارت تسأل عن «خاتمة الآية» بدل مطابقة العبارة التي كانت تكشف الإجابة.',
+                en: 'Editing a multiple-choice question in the homework preview: if you changed the options and the "Correct answer" no longer matches one exactly, it is no longer saved silently (every answer was being marked wrong); the matching option is picked automatically if you did not touch the answer box, otherwise you get a message. Similar-verse questions now ask for the ayah ending instead of a phrase match that gave the answer away.'
+            },
+            {
+                type: 'new',
+                ar: 'الواجب الذكي يضم الآن أسئلة من «المتشابهات» المرفوعة على المنصة بواقع سؤال لكل 10 أسئلة (10 → 1، 20 → 2...) وتُضاف فوق عدد الأسئلة المطلوب: يُختاران من مجموعات متشابهات محفوظة بالكامل عند الطالب وداخل النطاق المحدد للواجب، بصيغة اختيار من متعدد تُصحَّح آلياً.',
+                en: 'Smart homework now includes questions from the platform\'s similar-verses (mutashabihat) data, one per 10 questions (10 → 1, 20 → 2...), added on top of the requested count: they come from groups the student has fully memorized within the homework scope, as auto-graded multiple choice.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-08] تذكير الواجب الأسبوعي وجدول الأسبوع
     {
         version: '1.0.13',

@@ -6,6 +6,7 @@
 // تصدير ناجح). (أُزيل زر "نشر واجب جديد الآن" من البطاقة — الواجبات من الزر الرئيسي والشريط السفلي.)
 // كل عنصر هنا اختياري بالكامل ويختفي بأدب لو لم تتوفر بياناته، بدل اختلاق أرقام.
 
+import { starsSuffix } from '../core/goldStars.js';
 import { AppState, openHomeworkPrep } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { t } from '../core/i18n.js';
@@ -332,10 +333,11 @@ async function renderDueForReview() {
             // 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] صف موحّد: نقطة حالة + اسم + شارة + نطاق + زر إجراء
             const row = document.createElement('div');
             row.className = 'home-quickcard-due-row';
+            row.dataset.studentName = String(student.name || '');   // لحذفه فوراً عند نشر واجب له (dh:homework-created)
             row.innerHTML = `
                 <span class="qc-dot ${isLate ? 'late' : ''}" aria-hidden="true"></span>
                 <span class="qc-row-main">
-                    <span class="qc-row-name">${esc(student.name)}</span>
+                    <span class="qc-row-name">${esc(student.name)}${starsSuffix(student)}</span>
                     <span class="qc-row-sub">${schedTag ? `<span class="qc-tag ${sched.lateDays > 0 ? 'late' : ''}">${esc(schedTag)}</span>` : ''}${reviewTag ? `<span class="qc-tag ${overdueDays > 0 ? 'late' : ''}">${esc(reviewTag)}</span>` : ''}${stale ? `<span class="qc-tag late">${staleTag}</span>` : ''}<span>${esc(rangeText)}</span></span>
                 </span>
                 <span class="qc-row-btns">
@@ -370,11 +372,20 @@ async function renderDueForReview() {
             foot.className = 'qc-foot';
             const over = schedRows.length > capacity && capacity > 0;
             foot.innerHTML = `${over ? `<span class="qc-foot-warn">${esc(L(`اليوم ${schedRows.length} واجبات تنتظر الإعداد وطاقتك الموزَّعة ${capacity} — رحّل ما تشاء لغد (⏭).`, `${schedRows.length} homeworks are waiting today and your balanced capacity is ${capacity} — postpone some (⏭).`))}</span>` : ''}
-                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>`;
+                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>
+                <button type="button" class="qc-foot-btn qc-foot-bulk">📤 ${esc(L('الإرسال الجماعي', 'Bulk send'))}</button>`;
             foot.querySelector('.qc-foot-btn').addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const m = await import('./weekSchedule.js');
                 m.openWeekSchedule({ onClose: () => afterTaskDone('home-quickcard-due') });
+            });
+            // 📤 [جديد — الإرسال الجماعي] اختياري؛ أي فشل في فتحه لا يمسّ باقي البطاقة
+            foot.querySelector('.qc-foot-bulk').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                try {
+                    const m = await import('./bulkSend.js');
+                    m.openBulkSend({ onClose: () => afterTaskDone('home-quickcard-due') });
+                } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
             });
             listEl.appendChild(foot);
         }
@@ -754,7 +765,25 @@ async function updateTodayGroup() {
 }
 
 // يُستدعى مرة واحدة من setupSplashListeners() في core/app.js عند تحميل الشاشة الرئيسية
+// 🌟 [جديد] عند حفظ أي واجب (حدث dh:homework-created من database/homeworkDB.js) يختفي الطالب فوراً من «مهام اليوم»: نحذف صفه في الحال
+// (إن كان الواجب منشوراً له) ثم نعيد رسم المجموعة من المصدر. يُربط مرة واحدة فقط.
+let hwCreatedBound = false, dueRefreshTimer = null;
+function bindDueAutoRefresh() {
+    if (hwCreatedBound) return;
+    hwCreatedBound = true;
+    document.addEventListener('dh:homework-created', (e) => {
+        if (!document.getElementById('home-quickcard-due')) return;   // الرئيسية غير معروضة الآن
+        const hw = e.detail && e.detail.homework;
+        if (hw && hw.status === 'published' && hw.assignedStudentName) {
+            document.querySelectorAll('#home-quickcard-due-list .home-quickcard-due-row').forEach(r => { if (r.dataset.studentName === hw.assignedStudentName) r.remove(); });
+        }
+        clearTimeout(dueRefreshTimer);
+        dueRefreshTimer = setTimeout(() => { if (document.getElementById('home-quickcard-due')) afterTaskDone('home-quickcard-due'); }, 150);
+    });
+}
+
 export function initHomeQuickview() {
+    bindDueAutoRefresh();
     renderDailyQuote();
     renderMasteryAverage();
     renderReportsCount();

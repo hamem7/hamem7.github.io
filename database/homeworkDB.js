@@ -52,6 +52,11 @@ export class HomeworkManager {
             // 🌟 [إصلاح] قبل كده مفيش onerror هنا إطلاقاً — لو فشلت الكتابة (مثلاً تعارض
             // مفتاح ID مكرر) كان الـ Promise يفضل معلّق للأبد بصمت بدل ما يرفض بخطأ واضح
             request.onerror = () => reject(request.error);
+            // 🌟 [جديد] بعد اكتمال الحفظ فعلاً نُعلِن «أُنشئ واجب» ليحدّث «مهام اليوم» (الرئيسية وعمود شاشة الواجبات) نفسه فوراً:
+            // يختفي اسم الطالب عند نشر واجب له بلا انتظار إعادة فتح الشاشة. الحدث للإعلام فقط وأي فشل فيه لا يمسّ الحفظ.
+            tx.oncomplete = () => {
+                try { if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dh:homework-created', { detail: { homework: hwData } })); } catch (e) { /* لا شيء */ }
+            };
         });
     }
 

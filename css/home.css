@@ -1034,6 +1034,16 @@
 }
 .home-card-certs .home-card-title { color: #7a5a0e; }
 
+/* بطاقة المتشابهات في الصف الثانوي بجوار الشهادات: صبغة زمرّدية خفيفة بنفس منطق بقية البطاقات */
+.home-menu-secondary .home-card-similarities {
+    background: rgba(13, 92, 70, 0.14);
+    border-top: 3px solid var(--dh-emerald-600);
+    color: inherit;
+    box-shadow: none;
+}
+.home-menu-secondary .home-card-similarities .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-gold-500)); }
+.home-menu-secondary .home-card-similarities .home-card-title { color: var(--dh-emerald-800); }
+
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
    الطويلة (min-height:190px مع justify-content:flex-end تحجز مكاناً له تحت النص دائماً).

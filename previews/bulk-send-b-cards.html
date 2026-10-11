@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ب) — الإرسال الجماعي: معالج خطوات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --red:#dc2626; --red-soft:#fef2f2; --amber:#d97706; --amber-soft:#fffbeb; --blue:#0284c7;
+  --r:18px; --sh:0 6px 24px rgba(6,35,28,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:96px}
+button,input{font:inherit;color:inherit}button{cursor:pointer;border:0;background:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+
+header{background:#fff;border-bottom:3px solid var(--gold)}
+header .wrap{display:flex;align-items:center;gap:12px;padding-block:14px}
+.logo{width:44px;height:44px;border-radius:13px;background:var(--g1);display:grid;place-items:center;font-size:1.4rem}
+header h1{font-size:1.2rem}header small{display:block;color:var(--ink2);font-size:.82rem}.sp{flex:1}
+.ghost{white-space:nowrap;border:1px solid var(--line);border-radius:12px;padding:8px 14px;font-weight:600;font-size:.88rem;background:var(--bg)}
+
+/* شريط تقدّم المعالج */
+.wiz{display:flex;align-items:center;margin:20px 0 6px}
+.dot{width:30px;height:30px;border-radius:50%;background:var(--line);color:var(--ink2);display:grid;place-items:center;font-weight:700;font-size:.85rem;flex:none}
+.dot.on{background:var(--g7);color:#fff;box-shadow:0 0 0 5px var(--g1)}.dot.done{background:var(--g6);color:#fff}
+.ln{flex:1;height:3px;background:var(--line);margin-inline:4px}.ln.done{background:var(--g6)}
+.wl{display:flex;justify-content:space-between;font-size:.74rem;color:var(--ink2);font-weight:600;margin-bottom:14px}
+.wl span{flex:1;text-align:center}.wl span:first-child{text-align:right}.wl span:last-child{text-align:left}
+h2{font-size:1.1rem;margin-bottom:4px}.sub{color:var(--ink2);font-size:.88rem;margin-bottom:14px}
+.pane{display:none}.pane.on{display:block;animation:up .3s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}}
+
+/* خطوة 1: بطاقات الطلاب */
+.qk{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px;font-size:.85rem;font-weight:600}
+.chip:hover{background:var(--g1)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.pc{background:#fff;border:2px solid var(--line);border-radius:var(--r);padding:12px;display:flex;gap:10px;align-items:center;text-align:right;position:relative;transition:.15s}
+.pc.on{border-color:var(--g6);background:var(--g0)}
+.pc.off{opacity:.5;cursor:not-allowed}
+.av{width:42px;height:42px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex:none}
+.pc.on .av{background:var(--g7);color:#fff}
+.pc b{display:block;font-size:.95rem}.pc small{color:var(--ink2);font-size:.74rem}
+.ck{position:absolute;top:8px;left:10px;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:#fff}
+.pc.on .ck{background:var(--g7);border-color:var(--g7)}
+.tg{display:inline-block;border-radius:99px;font-size:.68rem;font-weight:700;padding:0 8px}
+.tg.late{background:var(--red-soft);color:var(--red)}.tg.today{background:var(--g1);color:var(--g7)}.tg.err{background:var(--red-soft);color:var(--red)}
+
+/* خطوة 2: بطاقات النطاق */
+.same{background:#fff;border:1px dashed var(--g6);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.same b{font-size:.9rem}
+.sc{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;box-shadow:var(--sh)}
+.sc-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sc-h .av{width:36px;height:36px;font-size:.85rem}
+.sc-h .nm{flex:1;min-width:120px}.sc-h .nm b{display:block;font-size:.95rem}.sc-h .nm small{color:var(--ink2);font-size:.74rem}
+.dd{position:relative}
+.ddb{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1.5px solid var(--g6);background:var(--g0);color:var(--g7);border-radius:12px;padding:8px 14px;font-weight:700;font-size:.9rem;min-width:190px}
+.ddb::after{content:'▾'}
+.ddb.open{background:var(--g7);color:#fff}
+.menu{display:none;position:absolute;top:calc(100% + 6px);inset-inline-start:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 40px rgba(6,35,28,.18);min-width:270px;z-index:20;padding:6px}
+.menu.on{display:block}
+.mi{display:flex;gap:10px;align-items:center;width:100%;text-align:right;padding:10px 12px;border-radius:10px;font-weight:600;font-size:.92rem}
+.mi:hover{background:var(--g1)}.mi.cur{background:var(--g1);color:var(--g7)}
+.mi small{display:block;color:var(--ink2);font-weight:400;font-size:.72rem}
+.qn{display:flex;align-items:center;gap:4px}
+.qn button{width:28px;height:28px;border-radius:8px;background:var(--g1);color:var(--g7);font-weight:700}
+.qn span{min-width:24px;text-align:center;font-weight:700}
+.det{margin-top:10px;background:var(--g0);border:1px dashed #b8d8c8;border-radius:12px;padding:10px 12px}
+.det .t{display:flex;justify-content:space-between;font-size:.8rem;color:var(--ink2);margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.det .t a{color:var(--g7);font-weight:700;text-decoration:underline;cursor:pointer}
+.tiles{display:flex;flex-wrap:wrap;gap:6px}
+.tile{border:1px solid var(--line);background:#fff;border-radius:10px;padding:5px 11px;font-weight:700;font-size:.85rem}
+.tile small{display:block;font-weight:500;font-size:.66rem;color:var(--ink2)}
+.tile.on{background:var(--g7);color:#fff;border-color:var(--g7)}.tile.on small{color:#cfe8dc}
+.sg{color:var(--g7);font-weight:600;font-size:.85rem}
+
+/* خطوة 3: مراجعة */
+.rv{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.rv .m{flex:1}.rv b{font-size:.93rem}.rv small{display:block;color:var(--ink2);font-size:.76rem}
+.bar5{display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:6px;background:var(--line)}
+.bar5 i{display:block}
+.warn{background:var(--amber-soft);border:1px solid #fde68a;color:#92400e;border-radius:12px;padding:8px 12px;font-size:.84rem;margin-bottom:10px}
+.rm{color:var(--red);font-size:.8rem;font-weight:700}
+
+/* خطوة 4: إرسال */
+.snd{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.snd-h{display:flex;align-items:center;gap:10px}
+.snd-h b{flex:1}
+.snd .u{direction:ltr;text-align:right;color:var(--blue);font-size:.74rem;margin:4px 0 8px;word-break:break-all}
+.snd .a{display:flex;gap:8px}
+.cp,.wa,.tgm{flex:1;border-radius:11px;padding:8px;font-weight:700;font-size:.86rem}
+.cp{background:var(--g1);color:var(--g7)}.wa{background:#25d366;color:#fff}.tgm{background:#229ed9;color:#fff}
+.sent{opacity:.55}.sent .snd-h b::after{content:' ✓ أُرسل';color:var(--g6);font-size:.78rem}
+.prog{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:14px 0 6px}.prog i{display:block;height:100%;width:0;background:var(--g6);transition:width .3s}
+.pt{font-size:.82rem;color:var(--ink2);text-align:center}
+
+/* شريط سفلي */
+.bar{position:fixed;inset-inline:0;bottom:0;background:#fff;border-top:3px solid var(--gold);box-shadow:0 -8px 24px rgba(6,35,28,.1);z-index:30}
+.bar .wrap{display:flex;gap:10px;align-items:center;padding-block:12px}
+.btn{background:var(--g7);color:#fff;border-radius:12px;padding:10px 20px;font-weight:700}
+.btn.sec{background:var(--g1);color:var(--g7)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.cnt{flex:1;font-weight:700;font-size:.92rem}.cnt small{display:block;color:var(--ink2);font-weight:500;font-size:.74rem}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--g8);color:#fff;padding:9px 18px;border-radius:99px;font-size:.88rem;opacity:0;pointer-events:none;transition:.25s;z-index:50}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* جوال: القائمة المنسدلة تصير ورقة سفلية */
+@media(max-width:560px){
+  .menu{position:fixed;inset-inline:0;bottom:0;top:auto;border-radius:20px 20px 0 0;min-width:0;padding:12px 12px 20px;box-shadow:0 -20px 50px rgba(6,35,28,.3);z-index:60;max-height:80vh;overflow:auto}
+  body:has(.menu.on)::before{content:'';position:fixed;inset:0;background:rgba(6,35,28,.35);z-index:55}
+  .ddb{min-width:0;width:100%}.dd{width:100%}
+  .sc-h .qn{margin-inline-start:auto}
+}
+</style>
+</head>
+<body>
+<div class="note">🧪 معاينة تصميم فقط — بيانات تجريبية، لا تتصل بالمنصة ولا تنشر شيئاً</div>
+<header><div class="wrap">
+  <div class="logo">📤</div>
+  <div><h1>الإرسال الجماعي</h1><small>معالج بسيط من أربع خطوات — اختياري</small></div>
+  <div class="sp"></div><button class="ghost">✕ إغلاق</button>
+</div></header>
+
+<div class="wrap">
+  <div class="wiz" id="wiz"></div>
+  <div class="wl"><span>الطلاب</span><span>النطاق</span><span>المراجعة</span><span>الإرسال</span></div>
+
+  <!-- 1 -->
+  <section class="pane on" id="p1">
+    <h2>مَن تريد تجهيز واجب له؟</h2>
+    <div class="sub">اضغط على الطالب لتحديده. الطلاب بلا نطاق حفظ لا يمكن تحديدهم.</div>
+    <div class="qk">
+      <button class="chip" data-sel="all">تحديد الكل</button>
+      <button class="chip" data-sel="due">المستحقون اليوم</button>
+      <button class="chip" data-sel="late">المتأخرون فقط</button>
+      <button class="chip" data-sel="none">مسح</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="pane" id="p2">
+    <h2>حدّد نطاق كل واجب</h2>
+    <div class="sub">افتراضياً «كل النطاق». غيّره لأي طالب من القائمة المنسدلة.</div>
+    <div class="same">
+      <b>نفس النطاق للجميع:</b>
+      <button class="chip" data-all="all">كل النطاق</button>
+      <button class="chip" data-all="suggest">✨ اقترح لي</button>
+      <span style="flex:1"></span>
+      <span class="qn">الأسئلة: <button data-allq="-1">−</button><span id="allq">١٠</span><button data-allq="1">+</button></span>
+    </div>
+    <div id="cards"></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="pane" id="p3">
+    <h2>مراجعة سريعة قبل النشر</h2>
+    <div class="sub">ما تحتاج مراجعته فقط مُعلَّم بتنبيه. اضغط ✕ لاستبعاد أي طالب.</div>
+    <div id="rvList"></div>
+    <div class="prog" id="prog" style="display:none"><i id="progI"></i></div>
+    <div class="pt" id="progT"></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="pane" id="p4">
+    <h2>🎉 نُشرت الواجبات — أرسل الروابط</h2>
+    <div class="sub">الرسالة جاهزة لكل طالب بنفس صيغة رسالتك الحالية.</div>
+    <button class="btn" id="copyAll" style="width:100%;margin-bottom:10px">📋 نسخ كل الرسائل</button>
+    <div id="snd"></div>
+  </section>
+</div>
+
+<div class="bar"><div class="wrap">
+  <button class="btn sec" id="back" style="display:none">→ السابق</button>
+  <div class="cnt" id="cnt"></div>
+  <button class="btn" id="next">التالي ←</button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SURAHS=['البقرة','آل عمران','النساء','المائدة','الأنعام','الأعراف','الأنفال','التوبة'];
+const HIZBS=[['ح1','الم'],['ح2','سيقول السفهاء'],['ح3','تلك الرسل'],['ح4','لن تنالوا'],['ح5','والمحصنات'],['ح6','لا يحب الله'],['ح7','وإذا سمعوا'],['ح8','ولو أننا']];
+const OPTS={all:['كل النطاق','الواجب على كل ما يحفظه الطالب'],suggest:['✨ اقترح لي','الأحوج للمراجعة وغير المغطّى'],surah:['سور محددة','اختر سورة أو أكثر'],hizb:['أحزاب محددة','اختر أحزاباً أو أرباعاً']};
+const S=[
+ {n:'أحمد بن علي',rg:'البقرة ← النساء',st:'late',d:3},
+ {n:'محمد الحربي',rg:'الفاتحة ← آل عمران',st:'late',d:2},
+ {n:'يوسف القحطاني',rg:'لا نطاق مسجَّل',st:'norange'},
+ {n:'عبدالله السالم',rg:'الناس ← المرسلات',st:'today',d:0},
+ {n:'خالد العتيبي',rg:'البقرة ← المائدة',st:'late',d:1,stale:1},
+ {n:'سلمان الدوسري',rg:'النبأ ← الناس',st:'today',d:0},
+ {n:'إبراهيم الشهري',rg:'البقرة ← الأعراف',st:'late',d:4},
+ {n:'عمر الزهراني',rg:'الملك ← الناس',st:'today',d:0}
+].map((x,i)=>({...x,i,sel:false,scope:'all',pick:new Set(),q:10,out:false,sent:false}));
+const $=s=>document.querySelector(s), ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)};
+let step=1, openMenu=null, published=false;
+const chosen=()=>S.filter(s=>s.sel&&!s.out);
+const tg=s=>s.st==='late'?`<span class="tg late">متأخر ${ar(s.d)} يوم</span>`:s.st==='today'?'<span class="tg today">اليوم</span>':'<span class="tg err">بلا نطاق</span>';
+
+function wiz(){ $('#wiz').innerHTML=[1,2,3,4].map(n=>`<span class="dot ${n===step?'on':n<step?'done':''}">${n<step?'✓':ar(n)}</span>${n<4?`<span class="ln ${n<step?'done':''}"></span>`:''}`).join('') }
+function grid(){
+  $('#grid').innerHTML=S.map(s=>`<button class="pc ${s.sel?'on':''} ${s.st==='norange'?'off':''}" data-i="${s.i}">
+    <span class="ck">${s.sel?'✓':''}</span><span class="av">${s.n[0]}</span><span><b>${s.n}</b><small>${s.rg}</small><br>${tg(s)}${s.stale?' <span class="tg late">موضع قديم</span>':''}</span></button>`).join('');
+}
+function detHtml(s){
+  if(s.scope==='suggest')return `<div class="det"><div class="sg">✨ يقترح النظام: ${HIZBS[(s.i*2+1)%8][0]}·٢ و${HIZBS[(s.i*2+2)%8][0]} — الأحوج للمراجعة</div></div>`;
+  if(s.scope!=='surah'&&s.scope!=='hizb')return '';
+  const L=s.scope==='surah'?SURAHS:HIZBS;
+  return `<div class="det"><div class="t"><span>${s.scope==='surah'?'اضغط ما تريده من السور':'اضغط ما تريده من الأحزاب'} <small>(${ar(s.pick.size)} / ${ar(L.length)})</small></span><span><a data-a="all">تحديد الكل</a> · <a data-a="clear">مسح</a></span></div>
+    <div class="tiles">${L.map((x,k)=>`<button class="tile ${s.pick.has(k)?'on':''}" data-k="${k}">${s.scope==='surah'?x:x[0]+`<small>${x[1]}</small>`}</button>`).join('')}</div></div>`;
+}
+function cards(){
+  $('#cards').innerHTML=chosen().map(s=>`<div class="sc" data-i="${s.i}">
+    <div class="sc-h"><span class="av">${s.n[0]}</span><span class="nm"><b>${s.n}</b><small>${s.rg}</small></span>
+      <span class="qn"><button data-q="-1">−</button><span>${ar(s.q)}</span><button data-q="1">+</button></span>
+      <span class="dd"><button class="ddb ${openMenu===s.i?'open':''}">${OPTS[s.scope][0]}</button>
+        <div class="menu ${openMenu===s.i?'on':''}">${Object.entries(OPTS).map(([k,v])=>`<button class="mi ${s.scope===k?'cur':''}" data-sc="${k}"><span>${s.scope===k?'●':'○'}</span><span>${v[0]}<small>${v[1]}</small></span></button>`).join('')}</div></span>
+    </div>${detHtml(s)}</div>`).join('');
+}
+function review(){
+  $('#rvList').innerHTML=(chosen().some(s=>s.stale)?'<div class="warn">⚠️ موضع حفظ بعض الطلاب لم يُحدَّث منذ أكثر من ٣٠ يوماً — قد يشمل الواجب ما لم يحفظوه بعد.</div>':'')+
+  chosen().map(s=>{const a=Math.round(s.q*.4),b=Math.round(s.q*.3),c=s.q-a-b;const w=x=>x/s.q*100;
+    return `<div class="rv" data-i="${s.i}"><span class="av">${s.n[0]}</span><span class="m"><b>${s.n}</b> ${s.stale?'<span class="tg late">موضع قديم</span>':''}
+      <small>${OPTS[s.scope][0]} · ${ar(s.q)} أسئلة — ${ar(a)} جديد · ${ar(b)} قريب · ${ar(c)} بعيد</small>
+      <div class="bar5"><i style="width:${w(a)}%;background:#147c5e"></i><i style="width:${w(b)}%;background:#d4af37"></i><i style="width:${w(c)}%;background:#0284c7"></i></div></span>
+      <button class="rm" data-rm="1">✕ استبعاد</button></div>`}).join('');
+}
+function send(){
+  $('#snd').innerHTML=chosen().map((s,k)=>{const u=`hamem7.github.io/?hw=Hx${(k*7919+4231).toString(36)}`;
+    return `<div class="snd ${s.sent?'sent':''}" data-i="${s.i}" data-u="${u}"><div class="snd-h"><span class="av" style="width:34px;height:34px">${s.n[0]}</span><b>${s.n}</b></div>
+      <div class="u">${u}</div><div class="a"><button class="cp">📋 نسخ</button><button class="wa">💬 واتساب</button><button class="tgm">✈️ تيليجرام</button></div></div>`}).join('');
+}
+function foot(){
+  const n=chosen().length;
+  $('#back').style.display=(step>1&&step<4&&!published)?'':'none';
+  const nx=$('#next'); nx.disabled=false;
+  if(step===1){$('#cnt').innerHTML=`${ar(n)} طالب محدَّد<small>اختر طالباً واحداً على الأقل</small>`;nx.textContent='التالي: النطاق ←';nx.disabled=!n}
+  if(step===2){const bad=chosen().some(s=>(s.scope==='surah'||s.scope==='hizb')&&!s.pick.size);$('#cnt').innerHTML=`${ar(n)} واجب<small>${bad?'اختر سورة/حزباً حيث طلبت «محددة»':'جاهز للتجهيز'}</small>`;nx.textContent='⚙️ جهّز الواجبات ←';nx.disabled=bad||!n}
+  if(step===3){$('#cnt').innerHTML=`${ar(n)} واجب مجهَّز<small>لم يُنشر شيء بعد</small>`;nx.textContent='🚀 انشر الكل';nx.disabled=!n}
+  if(step===4){const d=S.filter(s=>s.sent).length;$('#cnt').innerHTML=`أُرسل ${ar(d)} من ${ar(n)}<small>اضغط واتساب أو نسخ لكل طالب</small>`;nx.textContent='✓ تم';nx.disabled=d<n}
+}
+function go(n){step=n;document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('on',i===n-1));wiz();
+  if(n===1)grid();if(n===2)cards();if(n===3)review();if(n===4)send();foot();scrollTo({top:0,behavior:'smooth'})}
+
+document.addEventListener('click',e=>{
+  const pc=e.target.closest('.pc'); if(pc&&!pc.classList.contains('off')){const s=S[pc.dataset.i];s.sel=!s.sel;grid();foot();return}
+  const q=e.target.closest('[data-sel]'); if(q){S.forEach(s=>{if(s.st==='norange')return;const m=q.dataset.sel;s.sel=m==='all'||(m==='due'&&(s.st==='today'||s.st==='late'))||(m==='late'&&s.st==='late')});grid();foot();return}
+  const al=e.target.closest('[data-all]'); if(al){chosen().forEach(s=>{s.scope=al.dataset.all;s.pick=new Set()});cards();foot();toast('طُبّق على الجميع');return}
+  const aq=e.target.closest('[data-allq]'); if(aq){const v=Math.max(3,Math.min(50,+$('#allq').dataset.v+ +aq.dataset.allq||10));$('#allq').dataset.v=v;$('#allq').textContent=ar(v);chosen().forEach(s=>s.q=v);cards();return}
+  const sc=e.target.closest('.sc');
+  if(sc){const s=S[sc.dataset.i];
+    if(e.target.closest('.ddb')){openMenu=openMenu===s.i?null:s.i;cards();return}
+    const m=e.target.closest('[data-sc]'); if(m){s.scope=m.dataset.sc;s.pick=new Set();openMenu=null;cards();foot();return}
+    const b=e.target.closest('[data-q]'); if(b){s.q=Math.max(3,Math.min(50,s.q+ +b.dataset.q));cards();return}
+    const t=e.target.closest('.tile'); if(t){const k=+t.dataset.k;s.pick.has(k)?s.pick.delete(k):s.pick.add(k);cards();foot();return}
+    const a=e.target.closest('[data-a]'); if(a){const L=s.scope==='surah'?SURAHS.length:HIZBS.length;s.pick=a.dataset.a==='all'?new Set([...Array(L).keys()]):new Set();cards();foot();return}
+  }
+  if(openMenu!==null&&!e.target.closest('.dd')){openMenu=null;cards()}
+  const rm=e.target.closest('[data-rm]'); if(rm){S[rm.closest('.rv').dataset.i].out=true;review();foot();return}
+  const sn=e.target.closest('.snd'); if(sn){const s=S[sn.dataset.i],u=sn.dataset.u,btn=e.target.closest('button'); if(!btn)return;
+    try{navigator.clipboard.writeText(`📖 واجب جديد من منصة حمٓ\n👤 الطالب: ${s.n}\n🔗 الرابط:\n${u}`)}catch(_){}
+    s.sent=true;toast(btn.classList.contains('cp')?'نُسخت الرسالة':'سيفتح التطبيق برسالة جاهزة (معاينة)');send();foot()}
+});
+$('#back').onclick=()=>go(step-1);
+$('#next').onclick=()=>{
+  if(step===1||step===2)return go(step+1);
+  if(step===3){const l=chosen();$('#prog').style.display='block';$('#next').disabled=true;let k=0;
+    const t=()=>{ $('#progI').style.width=(k/l.length*100)+'%'; if(k>=l.length){$('#progT').textContent='✓ تم النشر';published=true;setTimeout(()=>go(4),500);return}
+      $('#progT').textContent=`جارٍ نشر ${ar(k+1)} من ${ar(l.length)} — ${l[k].n}`;k++;setTimeout(t,420)};t()}
+};
+$('#copyAll').onclick=()=>{try{navigator.clipboard.writeText(chosen().map(s=>s.n).join('\n'))}catch(_){}toast('نُسخت كل الرسائل')};
+$('#allq').dataset.v=10; go(1);
+</script>
+</body>
+</html>

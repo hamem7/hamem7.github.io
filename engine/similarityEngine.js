@@ -422,3 +422,67 @@ export function buildGameRound(groups, allGroupsPool) {
         totalAvailable
     };
 }
+
+// ============================================================
+// تحويل سؤال متشابهات إلى سؤال واجب (mcq) — للواجب الذكي
+// ============================================================
+// 🌟 [جديد — 2026-10-10] بطلب المعلم: الواجب الذكي يضم سؤالين من المتشابهات المرفوعة على المنصة. أسئلة اللعبة
+// (sim_position/sim_recognition/sim_recall) أنواعها خاصة بشاشة اللعب، أما الواجب فيُصحَّح آلياً في الخادم والواجهة
+// بنوع 'mcq' (title/text/options/correctAnswer كلها نصوص) — فنحوّل السؤال إلى هذا الشكل بلا أي تعديل على التصحيح.
+// الأنواع المستخدمة: الربط بالموضع، والتمييز (خاتمة الآية التي فيها العبارة المشتركة)، والاستدعاء الموجّه. أُسقط «التعرّف» لأن العبارة المعروضة تظهر حرفياً في الخيار الصحيح وحده فيُجاب بالمطابقة البصرية لا بالاستحضار.
+const quoted = (txt) => `﴿ ${txt} ﴾`;
+
+export function toHomeworkQuestion(simQ) {
+    if (!simQ || !Array.isArray(simQ.options) || simQ.options.length < 2) return null;
+    const occ = simQ.occurrence || {};
+    const internal = simQ.scope === 'internal';
+    let title, text, options, correctAnswer;
+    if (simQ.type === 'sim_position') {
+        const label = (v) => internal ? `الآية ${v}` : `سورة ${v}`;
+        title = internal
+            ? `من المتشابهات: في أي آية من سورة ${occ.surahName} وردت هذه الآية؟`
+            : 'من المتشابهات: أي سورة وردت فيها هذه الآية؟';
+        text = quoted(occ.fullText);
+        options = simQ.options.map(label);
+        correctAnswer = label(simQ.correctAnswer);
+    } else if (simQ.type === 'sim_discrimination') {
+        // العبارة المشتركة تُعرض في السؤال، والخيارات هي ما بعدها فقط (بلا العبارة): فلا يمكن الاهتداء للإجابة بمطابقة نص،
+        // ويضطر الطالب لاستحضار أي خاتمة تخص هذا الموضع بالذات من بين خواتيم المواضع المتشابهة.
+        title = internal
+            ? `من المتشابهات: ما خاتمة الآية ${occ.ayahNumber} من سورة ${occ.surahName} التي فيها هذه العبارة؟`
+            : `من المتشابهات: ما خاتمة الآية التي فيها هذه العبارة في سورة ${occ.surahName}؟`;
+        text = quoted(simQ.anchorPhrase);
+        options = simQ.options;
+        correctAnswer = simQ.correctAnswer;
+        // احتياط: لو ظهرت العبارة المشتركة في خيار واحد فقط (عند رجوع الاشتقاق لنص الآية كاملاً) لكشفت الإجابة بالمطابقة
+        if (options.filter(o => o.includes(simQ.anchorPhrase)).length === 1) return null;
+    } else if (simQ.type === 'sim_recall') {
+        title = internal
+            ? `من المتشابهات: اختر نص الآية ${occ.ayahNumber} من سورة ${occ.surahName}`
+            : `من المتشابهات: اختر نص الآية الصحيحة التي وردت في سورة ${occ.surahName}`;
+        text = quoted(simQ.anchorPhrase);
+        options = simQ.options;
+        correctAnswer = simQ.correctAnswer;
+    } else {
+        return null;
+    }
+    if (new Set(options).size !== options.length || !options.includes(correctAnswer)) return null;
+    return {
+        type: 'mcq', title, text, options, correctAnswer, points: 1,
+        simGroupId: simQ.groupId, simKind: simQ.type
+    };
+}
+
+// سؤال واجب واحد من مجموعة متشابهات (نوعه عشوائي من الأنواع الممكنة لها)، أو null لو بياناتها لا تكفي.
+export function buildHomeworkSimilarityQuestion(group, allGroupsPool) {
+    const candidates = shuffle([
+        ...generatePositionQuestions(group),
+        ...generateDiscriminationQuestions(group),
+        ...generateGuidedRecallQuestions(group)
+    ]);
+    for (const c of candidates) {
+        const q = toHomeworkQuestion(c);
+        if (q) return q;
+    }
+    return null;
+}

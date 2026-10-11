@@ -1,4 +1,5 @@
 // settings/dashboard.js
+import { starsSuffix } from '../core/goldStars.js';
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
 import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../components/juzAmmaCoverageNote.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
@@ -11,7 +12,7 @@ const KIDS_MIN_JUZ = 26;
 export function populateDashboardData() {
     // 🌟 [إصلاح فحص الأزرار] عرض اسم الطالب في شريحة اللوحة (كانت فارغة بمعرّف مكرر) 🌟
     const _chip = document.getElementById('dash-student-chip');
-    if (_chip) _chip.textContent = AppState.currentStudent ? `🏅 ${AppState.currentStudent.name}` : '';
+    if (_chip) _chip.textContent = AppState.currentStudent ? `🏅 ${AppState.currentStudent.name}${starsSuffix(AppState.currentStudent)}` : '';
 
     const headerTitle = document.getElementById('header-title');
     

@@ -131,6 +131,16 @@ const THANKS_EN = [
     (s) => `In recognition of the favor and in appreciation of effort, this certificate is presented to the student <b>${s.name}</b>${s.what ? ' <b>' + s.what + '</b>' : ''}. We ask Allah to write the reward of what ${he(s)} has given and to bless ${his(s)} work.`
 ];
 
+const STAR_AR = [
+    (s) => `تقديراً لتميّز ${stu(s)} <b>${s.name}</b> وإجاباته${s.f ? 'ا' : ''} الصحيحة على الأسئلة المميزة في الحفظ، فقد نال${t(s)} <b>${s.what}</b>. بارك الله فيه${s.f ? 'ا' : ''} وزاد${h(s)} حرصاً على كتاب الله.`,
+    (s) => `ما شاء الله يا <b>${s.name}</b>! جمع${you(s)} <b>${s.what}</b> بإتقان${ka(s)} لتسلسل الآيات وحفظ${ka(s)} المتين. نسأل الله أن يرزق${ka(s)} الثبات وأن يجعل${ka(s)} من أهل القرآن.`,
+    (s) => `يشهد المعلم بأنّ ${stu(s)} <b>${s.name}</b> حصل${t(s)} على <b>${s.what}</b> لإتقان${h(s)} ذكر الآية قبل آية معروضة وبعدها، وهو دليل حفظ راسخ. جزاه${ya(s)} الله خيراً.`
+];
+const STAR_EN = [
+    (s) => `In appreciation of the student <b>${s.name}</b>'s excellence in the special memorization questions, ${he(s)} has earned <b>${s.what}</b>. May Allah bless ${him(s)} and increase ${him(s)} in devotion to His Book.`,
+    (s) => `Masha'Allah, <b>${s.name}</b>! You have collected <b>${s.what}</b> through your mastery of the sequence of the verses. May Allah grant you steadfastness and make you among the people of the Qur'an.`,
+    (s) => `The teacher certifies that the student <b>${s.name}</b> has earned <b>${s.what}</b> for naming the verses before and after a given verse, a sign of firm memorization. May Allah reward ${him(s)} with goodness.`
+];
 // ----- أنواع الشهادات -----
 // label/title/...: {ar, en} | fields: ما يختاره المعلم | whatDefault: النص لو لم يُدخل شيئاً | verse: الآية/الحديث الافتراضي
 export const TYPES = [
@@ -165,6 +175,12 @@ export const TYPES = [
       textLabel: { ar: 'على ماذا؟ (اختياري)', en: 'For what? (optional)' },
       textPlaceholder: { ar: 'مثال: على الحضور طوال الفصل', en: 'e.g. for attending throughout the term' },
       bodies: { ar: COMMIT_AR, en: COMMIT_EN } },
+    { id: 'star', icon: '⭐', fields: ['text'], verse: 'maher',
+      label: { ar: 'نجوم التميّز الذهبية', en: 'Golden stars' }, title: { ar: 'شهادة النجوم الذهبية', en: 'Golden Stars Certificate' },
+      textLabel: { ar: 'ما الذي نالَه؟ (اختياري)', en: 'What did they earn? (optional)' },
+      textPlaceholder: { ar: 'مثال: ٥ نجوم ذهبية', en: 'e.g. 5 golden stars' },
+      whatDefault: { ar: 'نجوم التميّز الذهبية', en: 'golden stars' },
+      bodies: { ar: STAR_AR, en: STAR_EN } },
     { id: 'thanks', icon: '🤝', fields: ['text'], verse: 'shukr',
       label: { ar: 'شكر وتقدير', en: 'Thanks & appreciation' }, title: { ar: 'شهادة شكر وتقدير', en: 'Certificate of Appreciation' },
       textLabel: { ar: 'سبب الشكر (اختياري)', en: 'Reason for thanks (optional)' },
