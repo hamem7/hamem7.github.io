@@ -10,10 +10,18 @@
 // تعديل مستقبلي على تعريف "بحاجة تصحيح" (مثلاً لو أُضيف نوع سؤال جديد له قواعد مختلفة) كان لازم
 // يُطبَّق في المكانين معاً يدوياً، وأي نسيان لأحدهما يعني أن شاشة تعرض حالة مختلفة عن الأخرى لنفس
 // التسليم بالضبط. الآن: دالة واحدة فقط، يستوردها الاثنان.
-export function submissionNeedsGrading(submission) {
+// سؤال يدوي لم يُعطَ درجة بعد (الدرجة المعروضة قبل ذلك مؤقتة وتتجاهل هذه الأسئلة)
+export function submissionHasPendingManual(submission) {
     return !!(submission && Array.isArray(submission.details) && submission.details.some(
         d => d.needsManualGrading && d.manualScore === undefined
     ));
+}
+
+// 🌟 [إصلاح 2026-10-11] التسليم "يحتاج تصحيح/اعتماد" إن كان به سؤال يدوي معلّق، أو لم يعتمده المعلم بعد
+// (status === 'submitted'). كانت البطاقة تعدّ الأسئلة اليدوية فقط، فالواجب ذو الأسئلة الآلية بالكامل
+// (مثلاً 100%) يصل ولا يظهر في العدّاد رغم أنه غير معتمد ولا يدخل التقرير الشهري حتى يعتمده المعلم.
+export function submissionNeedsGrading(submission) {
+    return !!submission && (submission.status === 'submitted' || submissionHasPendingManual(submission));
 }
 
 // ==========================================
