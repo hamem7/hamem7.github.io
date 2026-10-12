@@ -532,5 +532,16 @@ await test('eventsFromWeaknesses: beforeTs يستبعد الأخطاء المس�
   assert.equal(evs[0].ayah, 15);
 });
 
+await test('الواجب الذكي يختار «معاني الكلمات» و«استخراج أحكام التجويد» ضمن خطته، وكل صيغة معروفة', () => {
+  const seen = new Set();
+  for (let seed = 1; seed <= 60; seed++) {
+    plan(15, [], { rng: rngSeed(seed) }).items.forEach(it => { assert.ok(HW_FORMATS[it.fmt], it.fmt); seen.add(it.fmt); });
+  }
+  assert.ok(seen.has('word_meaning'), 'لم يظهر word_meaning في 60 خطة');
+  assert.ok(seen.has('tajweed_extract'), 'لم يظهر tajweed_extract في 60 خطة');
+  assert.equal(HW_FORMATS.tajweed_extract.skill, 'tajweed');
+  assert.equal(inferHwFormat({ type: 'mcq', title: 'ما معنى «كلمة» في هذه الآية؟' }), 'word_meaning');
+});
+
 console.log(`\nالنتيجة: ${pass} ناجح، ${fail} فاشل، من إجمالي ${pass + fail} اختبار.`);
 if (fail) { console.log('الفاشلة:', failures.join(' | ')); process.exit(1); }
