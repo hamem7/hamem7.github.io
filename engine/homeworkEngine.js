@@ -469,7 +469,19 @@ export class HomeworkEngine {
         let correctAyahs = pool.filter(a => a.surahName === targetSurah).sort(() => 0.5 - Math.random()).slice(0, 2);
         if (correctAyahs.length < 2) return null; 
 
-        let wrongAyahs = pool.filter(a => a.surahName !== targetSurah).sort(() => 0.5 - Math.random()).slice(0, 2);
+        // 🌟 [عدّل — 2026-10-12] المشتتات كانت عشوائية من أي سورة فتظهر غريبة وواضحة. الآن: من أقرب السور عدداً (ثم الأبعد)،
+        // والأقرب طولاً للآيتين الصحيحتين أولاً، فلا يُكشف الجواب بالطول ولا بالانتماء لسورة بعيدة.
+        const avgLen = correctAyahs.reduce((n, a) => n + cleanAyahText(a.text).length, 0) / correctAyahs.length;
+        const targetNum = correctAyahs[0].surahNumber;
+        const others = pool.filter(a => a.surahName !== targetSurah);
+        const score = (a) => Math.abs(a.surahNumber - targetNum) * 40 + Math.abs(cleanAyahText(a.text).length - avgLen) + Math.random() * 25;
+        let wrongAyahs = [];
+        const seenSurah = new Set();
+        for (const a of others.sort((x, y) => score(x) - score(y))) {
+            if (seenSurah.has(a.surahName) && others.some(o => !seenSurah.has(o.surahName) && o.surahName !== a.surahName)) continue;
+            wrongAyahs.push(a); seenSurah.add(a.surahName);
+            if (wrongAyahs.length === 2) break;
+        }
         if (wrongAyahs.length < 2) return null; 
 
         let allOptions = [...correctAyahs, ...wrongAyahs].map(a => cleanAyahText(a.text)).sort(() => 0.5 - Math.random());

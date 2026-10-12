@@ -49,7 +49,9 @@ export const HW_FORMATS = {
     ayah_ending:   { skill: 'context',   level: 'recognition', manual: false, weight: 1 },
     checkbox:      { skill: 'context',   level: 'recognition', manual: false, weight: 1 },
     matching:      { skill: 'context',   level: 'recall',      manual: false, weight: 1 },
-    visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5 }
+    visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5 },
+    // معاني الكلمات (كتاب كلمات القرآن لحسنين مخلوف): فهم لا حفظ، فوزنه نصف دليل الإتقان
+    word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5 }
 };
 
 export function formatsOfSkill(skill) {
@@ -63,6 +65,7 @@ export function inferHwFormat(q) {
     const title = String(q.title || q.question || '');
     if (type === 'mcq') {
         if (title.includes('اليمنى أم اليسرى')) return 'visual_page';
+        if (title.includes('ما معنى')) return 'word_meaning';
         if (title.includes('في أي سورة')) return 'mcq_surah';
         if (title.includes('تلي هذه')) return 'mcq_next';
         if (title.includes('تَسبِق') || title.includes('تسبق')) return 'mcq_prev';

@@ -8,13 +8,35 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.18';
+export const APP_VERSION = '1.0.19';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-12] إصلاحات الواجبات: المتشابهات والمشتتات ومعاني الكلمات
+    {
+        version: '1.0.19',
+        date: '2026-10-12',
+        items: [
+            {
+                type: 'fixed',
+                ar: 'سؤال المتشابهات «اختر نص الآية»: لم يعد يعرض العبارة المشتركة في نص السؤال (كانت موجودة في كل الخيارات فلا تفيد)، بل يسأل عن الموضع فقط ليكون استحضاراً حقيقياً.',
+                en: 'Similar-verses "choose the verse text" question no longer shows the shared phrase in the prompt (it appeared in every option and added nothing); it now asks by position only, making it true recall.'
+            },
+            {
+                type: 'improved',
+                ar: 'سؤال «حدد كل الآيات التي تنتمي إلى سورة…»: الخيارات الخاطئة صارت من سور قريبة وبأطوال مقاربة بدل اختيارها عشوائياً من أي سورة.',
+                en: '"Select all verses from surah…" question: wrong options now come from nearby surahs with similar lengths instead of random ones.'
+            },
+            {
+                type: 'fixed',
+                ar: 'سؤال معاني الكلمات صار يظهر أيضاً في الواجب الذكي (كان يظهر في الواجب التلقائي فقط).',
+                en: 'The word-meaning question now also appears in smart homework (previously only in auto homework).'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-12] سؤال معاني الكلمات
     {
         version: '1.0.18',

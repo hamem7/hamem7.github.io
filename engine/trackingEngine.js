@@ -553,7 +553,8 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
     const maxManual = Math.floor(n * o.manualCap);
     const maxVisual = n >= 6 ? Math.max(1, Math.floor(n / 8)) : 0;
     const maxSurahQ = Math.max(1, Math.round(n / 6));
-    let manualUsed = 0, visualUsed = 0, surahQUsed = 0, rr = 0;
+    const maxMeaning = n >= 5 ? Math.max(1, Math.round(n / 6)) : 0;
+    let manualUsed = 0, visualUsed = 0, surahQUsed = 0, meaningUsed = 0, rr = 0;
 
     order.forEach((item, idx) => {
         const state = stOf(item.seg.id);
@@ -564,6 +565,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
             const def = HW_FORMATS[fmt];
             if (fmt === 'mcq_surah' && (!multiSurah || surahQUsed >= maxSurahQ)) return false;
             if (fmt === 'visual_page' && visualUsed >= maxVisual) return false;
+            if (fmt === 'word_meaning' && meaningUsed >= maxMeaning) return false;
             if (def.manual && manualUsed >= maxManual) return false;
             return true;
         };
@@ -585,12 +587,14 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
             const d = HW_FORMATS[f];
             let w = pref[d.level] || 0.1;
             if (d.skill === 'visual') w *= 0.5;
+            if (f === 'word_meaning') w *= 2.5;   // يظهر في كل واجب (حتى سقفه) بدل أن يضيع بين الصيغ الأخرى
             return w;
         }, rng);
 
         const def = HW_FORMATS[fmt];
         if (def.manual) manualUsed++;
         if (fmt === 'visual_page') visualUsed++;
+        if (fmt === 'word_meaning') meaningUsed++;
         if (fmt === 'mcq_surah') surahQUsed++;
         item.fmt = fmt;
         item.skill = def.skill;

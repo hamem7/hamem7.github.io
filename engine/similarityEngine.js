@@ -457,10 +457,12 @@ export function toHomeworkQuestion(simQ) {
         // احتياط: لو ظهرت العبارة المشتركة في خيار واحد فقط (عند رجوع الاشتقاق لنص الآية كاملاً) لكشفت الإجابة بالمطابقة
         if (options.filter(o => o.includes(simQ.anchorPhrase)).length === 1) return null;
     } else if (simQ.type === 'sim_recall') {
+        // 🌟 [عدّل — 2026-10-12] كان نص السؤال يعرض العبارة المشتركة (مثل ﴿العزيز﴾) وهي موجودة حرفياً في كل الخيارات، فلا تفيد
+        // الطالب بشيء ويبدو الجواب «داخل السؤال». الآن يُسأل عن الموضع فقط (استحضار حقيقي) بلا أي نص من الآية.
         title = internal
             ? `من المتشابهات: اختر نص الآية ${occ.ayahNumber} من سورة ${occ.surahName}`
             : `من المتشابهات: اختر نص الآية الصحيحة التي وردت في سورة ${occ.surahName}`;
-        text = quoted(simQ.anchorPhrase);
+        text = 'استحضر الآية من حفظك أولاً، ثم اختر ما يطابقها:';
         options = simQ.options;
         correctAnswer = simQ.correctAnswer;
     } else {
