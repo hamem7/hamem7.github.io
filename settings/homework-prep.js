@@ -1490,8 +1490,8 @@ let smartStudent = null, smartCtx = null, smartModel = null, smartResume = null;
 let lastGen = null;             // معلومات آخر توليد: لحفظ «آخر نطاق» عند النشر ولسطر التغطية في المعاينة
 
 const $id = (id) => document.getElementById(id);
-const clampQ = (v) => Math.max(3, Math.min(50, Math.round(v)));
-const currentCount = () => { const v = parseInt($id('hw-q-count-smart').value); return isNaN(v) ? 10 : v; };
+const clampQ = (v) => Math.max(15, Math.min(50, Math.round(v)));
+const currentCount = () => { const v = parseInt($id('hw-q-count-smart').value); return isNaN(v) ? 15 : v; };
 const setCount = (v) => { $id('hw-q-count-smart').value = String(clampQ(v)); updateCoverageLine(); };
 const readCycleWeeks = () => { const v = parseInt($id('hw-cycle-weeks').value); return (v >= 1 && v <= 26) ? v : getCycleWeeks(); };
 
@@ -1779,7 +1779,7 @@ async function generateSmartQuestions() {
     const student = await selectedStudent();
     if (!student) return alert(L('اختر الطالب أولاً — كل واجب يُبنى على نطاق حفظ طالب محدد.', 'Pick a student first — every homework is built on a specific student\'s range.'));
     const n = parseInt(document.getElementById('hw-q-count-smart').value);
-    if (isNaN(n) || n < 3 || n > 50) return alert(L('اختر عدد أسئلة بين 3 و50.', 'Choose a number of questions between 3 and 50.'));
+    if (isNaN(n) || n < 15 || n > 50) return alert(L('اختر عدد أسئلة بين 15 و50.', 'Choose a number of questions between 15 and 50.'));
     const selection = currentSelection();
     if ((scopeMode === 'hizb' || scopeMode === 'surah') && scopeIds.size === 0) return alert(L('اختر حزباً أو سورة واحدة على الأقل، أو اختر «كل النطاق».', 'Pick at least one hizb or surah, or choose "Whole range".'));
 

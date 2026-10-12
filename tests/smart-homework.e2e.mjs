@@ -137,9 +137,9 @@ try {
     summary: document.getElementById('hw-smart-summary')?.innerText || '',
     text: document.getElementById('hw-questions-list').innerText
   }));
-  check('B1 12 سؤالاً + سؤال متشابهات واحد في المعاينة', preview.cards === 13, String(preview.cards));
-  check('B2 كل سؤال تتبّع تحته «لماذا؟» وشارة الفئة والمهارة (12 + سؤال متشابهات)', preview.why === 12);
-  check('B2b سؤال واحد من المتشابهات فوق الـ12 (سؤال لكل 10)', preview.sims === 1, String(preview.sims));
+  check('B1 12 سؤالاً منها سؤال متشابهات واحد في المعاينة', preview.cards === 12, String(preview.cards));
+  check('B2 كل سؤال تتبّع تحته «لماذا؟» وشارة الفئة والمهارة (11 + سؤال متشابهات = 12)', preview.why === 11);
+  check('B2b سؤال واحد من المتشابهات ضمن الـ12 (سؤال لكل 10)', preview.sims === 1, String(preview.sims));
   check('B3 شريط التوزيع يعرض الفئات (جديد/قريب/بعيد)', /حفظ جديد/.test(preview.summary) && /مراجعة/.test(preview.summary), preview.summary.replace(/\s+/g, ' '));
   check('B4 لا أسئلة علاجية لطالب بلا أخطاء', !/من أخطائه السابقة/.test(preview.summary));
 
@@ -197,7 +197,7 @@ try {
       if (i < hw1.nq - 1) { await sp.evaluate(() => document.getElementById('btn-hp-next').click()); await sleep(250); }
     }
     const html = await sp.evaluate(() => document.documentElement.outerHTML);
-    check('C9 الطالب يرى الواجب كاملاً (12 + سؤال متشابهات) بلا أخطاء جافاسكربت', seen.length === 13 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
+    check('C9 الطالب يرى الواجب كاملاً (12 منها سؤال متشابهات) بلا أخطاء جافاسكربت', seen.length === 12 && seen.every(x => x.trim().length > 10) && stuErrors.length === 0, stuErrors.join('|'));
     check('C10 صفحة الطالب لا تحوي خريطة التتبّع ولا مقاطع الأسئلة', !html.includes('"segment"') && !html.includes('lastWrongTs') && !html.includes('skillFocus'));
     const hasVisual = hw1.questions.some(q => (hw1.tracking[q.id] || {}).fmt === 'visual_page');
     check('C11 سؤال الذاكرة البصرية (إن وُجد) يظهر للطالب بتنبيه «لا تفتح المصحف» وخيارين', !hasVisual || seen.some(x => x.includes('لا تفتح المصحف') && x.includes('الصفحة اليمنى') && x.includes('الصفحة اليسرى')));

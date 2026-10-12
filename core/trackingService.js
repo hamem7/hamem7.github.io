@@ -464,10 +464,11 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
     const focusFilter = allowed ? (seg) => allowed.has(seg.id) : null;
     const scopeSegs = ctx.path.segments.filter(s => !allowed || allowed.has(s.id));
     const multiSurah = new Set(scopeSegs.map(s => s.surah)).size > 1;
-    // أسئلة المتشابهات تُضاف فوق العدد المطلوب (لا تزاحم أسئلة التتبّع) كي لا تتأثر حسابات التغطية ومقترح «أكمل»
+    // أسئلة المتشابهات تُحسب ضمن العدد المطلوب (بطلب المعلم): الواجب n سؤالاً بالضبط = أسئلة التتبّع + المتشابهات.
+    // فنخطّط أسئلة التتبّع بعدد (n − المتشابهات المتاحة فعلاً)؛ وإن لم تتوفر متشابهات تبقى كلها أسئلة تتبّع.
     const simQs = await pickSimilarityQuestions(similarityCount == null ? similarityCountFor(n) : similarityCount, poolIndex, new Set(scopeSegs.map(s => s.surah)), rng, similaritiesManager);
     const plan = planHomework({
-        n, path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
+        n: Math.max(1, n - simQs.length), path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
         now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds
     });
     if (!plan.items.length) return { ok: false, reason: 'empty', ctx };

@@ -23,7 +23,7 @@ import { catLabel } from './skillProfile.js';
 
 const L = (ar, en) => (isEnglish() ? en : ar);
 const nf = (n) => String(n);
-const MIN_Q = 3, MAX_Q = 50, DEFAULT_Q = 10;
+const MIN_Q = 15, MAX_Q = 50, DEFAULT_Q = 15;
 const clampQ = (v) => Math.max(MIN_Q, Math.min(MAX_Q, Math.round(Number(v)) || DEFAULT_Q));
 const BATCH_OPTIONS = [5, 10, 15, 20];   // كم طالباً يظهرون في القائمة دفعة واحدة (الباقون المستحقون ينتظرون ويحلّون مكان من نُشر لهم)
 const BATCH_KEY = 'dh_bulk_batch';
