@@ -22,21 +22,73 @@ const getCleanWords = (text) => splitAyahWords(text);
 // يجعلها سهلة الاستبعاد بالتخمين (طول مختلف جداً، شكل مختلف تماماً عن الإجابة الصحيحة).
 // الحل: نرتب المرشحين حسب مدى تقارب طول الكلمة مع الكلمة الصحيحة (الأقرب طولاً أولاً)، وهو ما
 // يجعل الاختيارات الخاطئة أقرب شكلاً للإجابة الصحيحة وأصعب في التمييز بالتخمين البصري السريع.
-function pickDistractorWords(correctWord, wordsPool, count = 3) {
-    const scored = wordsPool
-        .filter(w => w && w !== correctWord && !isWaqfMark(w))
-        .map(w => ({ w, diff: Math.abs(w.length - correctWord.length) }))
-        .sort((a, b) => a.diff - b.diff || (0.5 - Math.random()));
+// 🌟 [عدّل — 2026-10-12] «التشتيت» الحقيقي: لا يكفي تقارب الطول؛ الخيار الخاطئ يجب أن يُشبه الصحيح في الرسم
+// (نفس الحروف تقريباً/نفس البداية والنهاية) ليحتاج الطالب لاستحضار الصحيح فعلاً. نقيس التقارب على هيكل الكلمة بلا تشكيل.
+const skeleton = (w) => String(w || '')
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه');
 
-    const result = [];
-    const used = new Set();
-    for (const item of scored) {
-        if (used.has(item.w)) continue; // تجنّب تكرار نفس الكلمة كاختيارين مختلفين
-        used.add(item.w);
-        result.push(item.w);
-        if (result.length >= count) break;
+function editDistance(a, b) {
+    const m = a.length, n = b.length;
+    if (!m) return n; if (!n) return m;
+    let prev = Array.from({ length: n + 1 }, (_, j) => j);
+    for (let i = 1; i <= m; i++) {
+        const cur = [i];
+        for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        prev = cur;
     }
-    return result;
+    return prev[n];
+}
+
+const commonSuffix = (a, b) => { let k = 0; while (k < a.length && k < b.length && a[a.length - 1 - k] === b[b.length - 1 - k]) k++; return k; };
+const commonPrefix = (a, b) => { let k = 0; while (k < a.length && k < b.length && a[k] === b[k]) k++; return k; };
+
+// مسافة كلمة لكلمة (الأصغر = أشدّ تشتيتاً)
+function wordDistance(correct, w) {
+    const a = skeleton(correct), b = skeleton(w);
+    return editDistance(a, b) * 2 + Math.abs(a.length - b.length) - Math.min(2, commonSuffix(a, b)) - Math.min(2, commonPrefix(a, b));
+}
+
+// يختار من أقرب المرشحين (أول 8 بعد الترتيب) عشوائياً حتى لا يتكرر نفس الشكل في كل مرة
+function pickFromClosest(sortedCandidates, count, window = 8) {
+    const top = sortedCandidates.slice(0, Math.max(count, window));
+    return top.sort(() => 0.5 - Math.random()).slice(0, count);
+}
+
+function pickDistractorWords(correctWord, wordsPool, count = 3) {
+    const cs = skeleton(correctWord);
+    const seen = new Set();
+    const scored = [];
+    for (const w of wordsPool) {
+        if (!w || w === correctWord || isWaqfMark(w)) continue;
+        const sk = skeleton(w);
+        if (sk === cs || sk.length < 2 || seen.has(sk)) continue;   // نفس الكلمة بتشكيل مختلف = التباس غير عادل
+        seen.add(sk);
+        scored.push({ w, d: wordDistance(correctWord, w) });
+    }
+    scored.sort((x, y) => x.d - y.d);
+    return pickFromClosest(scored.map(x => x.w), count);
+}
+
+// مشتتات نصية (آيات/خواتيم): الأقرب في الطول وفي الكلمات المشتركة والحرف الأخير (القافية) أولاً
+function pickDistractorTexts(correctText, candidateTexts, count = 3, exclude = []) {
+    const words = (t) => new Set(skeleton(t).split(/\s+/).filter(Boolean));
+    const cw = words(correctText), cs = skeleton(correctText);
+    const banned = new Set([correctText, ...exclude]);
+    const seen = new Set();
+    const scored = [];
+    for (const t of candidateTexts) {
+        if (!t || banned.has(t) || seen.has(t)) continue;
+        seen.add(t);
+        const tw = words(t);
+        let shared = 0; tw.forEach(x => { if (cw.has(x)) shared++; });
+        const jacc = shared / (cw.size + tw.size - shared || 1);
+        const ts = skeleton(t);
+        const rhyme = ts.slice(-1) === cs.slice(-1) ? 1 : 0;
+        scored.push({ t, score: Math.abs(ts.length - cs.length) / Math.max(cs.length, 1) - jacc * 1.5 - rhyme * 0.3 });
+    }
+    scored.sort((x, y) => x.score - y.score);
+    return pickFromClosest(scored.map(x => x.t), count, 8);
 }
 
 export class HomeworkEngine {
@@ -251,8 +303,10 @@ export class HomeworkEngine {
         let correctAnswer = `سورة ${targetAyah.surahName}`;
         
         let allSurahs = await this.quranEngine.getAllSurahsList();
-        let similarSurahs = allSurahs.filter(s => Math.abs(s.number - targetAyah.surahNumber) <= 5 && s.name !== targetAyah.surahName);
-        if(similarSurahs.length < 3) similarSurahs = allSurahs.filter(s => s.name !== targetAyah.surahName);
+        // 🌟 [عدّل — 2026-10-12] المشتتات: سور قريبة في الترتيب وفي عدد الآيات (تتشابه في الطول والطابع) بدل أي سورة من ±5 عشوائياً
+        const me = allSurahs.find(s => s.number === targetAyah.surahNumber);
+        const rank = (s) => Math.abs(s.number - targetAyah.surahNumber) * 3 + (me && s.ayahsCount && me.ayahsCount ? Math.abs(s.ayahsCount - me.ayahsCount) / Math.max(me.ayahsCount, 1) * 10 : 0);
+        let similarSurahs = allSurahs.filter(s => s.name !== targetAyah.surahName).sort((x, y) => rank(x) - rank(y)).slice(0, 8);
 
         let wrongOptions = similarSurahs.sort(() => 0.5 - Math.random()).slice(0, 3).map(s => `سورة ${s.name}`);
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
@@ -285,12 +339,10 @@ export class HomeworkEngine {
         // إحداهما (ممكن فعلياً مع آيات القرآن المتكررة حرفياً، مثل "فبأي آلاء ربكما تكذبان" في سورة
         // الرحمن)، يظهر نفس النص مرتين كاختيارين منفصلين في نفس السؤال. الحل: نتحقق من عدم التكرار
         // النصي (وليس فقط رقم الآية) قبل إضافة أي اختيار جديد.
-        let extraWrongs = pool.filter(a => a.number !== nextAyah.number && a.number !== targetAyah.number).sort(() => 0.5 - Math.random());
-        while (wrongOptions.length < 3 && extraWrongs.length > 0) {
-            let candidateText = cleanAyahText(extraWrongs.pop().text);
-            if (candidateText !== correctAnswer && !wrongOptions.includes(candidateText)) {
-                wrongOptions.push(candidateText);
-            }
+        // 🌟 [عدّل — 2026-10-12] تكملة المشتتات من آيات النطاق الأشبه بالجواب (طولاً وكلمات وقافية) لا عشوائياً
+        if (wrongOptions.length < 3) {
+            const cands = pool.filter(a => a.number !== nextAyah.number && a.number !== targetAyah.number).map(a => cleanAyahText(a.text));
+            wrongOptions.push(...pickDistractorTexts(correctAnswer, cands, 3 - wrongOptions.length, wrongOptions));
         }
         wrongOptions = [...new Set(wrongOptions)].filter(w => w !== correctAnswer);
 
@@ -315,12 +367,10 @@ export class HomeworkEngine {
 
         // 🌟🌟 [إصلاح — المرحلة 5] نفس إصلاح تكرار الاختيارات المطبَّق في createMCQNextAyah أعلاه
         // (راجع تعليقه للشرح الكامل) — اكتُشف بنفس اختبارات tests/homeworkEngine.test.js الجديدة.
-        let extraWrongs = pool.filter(a => a.number !== prevAyah.number && a.number !== targetAyah.number).sort(() => 0.5 - Math.random());
-        while (wrongOptions.length < 3 && extraWrongs.length > 0) {
-            let candidateText = cleanAyahText(extraWrongs.pop().text);
-            if (candidateText !== correctAnswer && !wrongOptions.includes(candidateText)) {
-                wrongOptions.push(candidateText);
-            }
+        // 🌟 [عدّل — 2026-10-12] تكملة المشتتات من آيات النطاق الأشبه بالجواب (طولاً وكلمات وقافية) لا عشوائياً
+        if (wrongOptions.length < 3) {
+            const cands = pool.filter(a => a.number !== prevAyah.number && a.number !== targetAyah.number).map(a => cleanAyahText(a.text));
+            wrongOptions.push(...pickDistractorTexts(correctAnswer, cands, 3 - wrongOptions.length, wrongOptions));
         }
         wrongOptions = [...new Set(wrongOptions)].filter(w => w !== correctAnswer);
 
@@ -343,12 +393,12 @@ export class HomeworkEngine {
         // 🌟🌟 [إصلاح — المرحلة 5] نفس مشكلة تكرار الاختيارات: آيتان مختلفتان تماماً قد تنتهيان
         // بنفس آخر 2-3 كلمات (شائع في القرآن، مثل "وَاللَّهُ غَفُورٌ رَّحِيمٌ" في آيات متعددة)، وكان
         // ذلك يُنتج نفس نص الخاتمة كاختيارين منفصلين. أضفنا new Set لضمان تفرّد كل خاتمة قبل الأخذ.
-        let wrongOptions = [...new Set(
+        // 🌟 [عدّل — 2026-10-12] الخواتيم الخاطئة الأقرب للصحيحة في الطول والكلمات المشتركة والقافية (لا عشوائية)
+        let wrongOptions = pickDistractorTexts(correctAnswer, [...new Set(
             pool.map(a => getCleanWords(a.text))
                 .filter(w => w.length >= endingCount)
                 .map(w => w.slice(-endingCount).join(" "))
-                .filter(e => e !== correctAnswer)
-        )].sort(() => 0.5 - Math.random()).slice(0, 3);
+        )], 3);
 
         if (wrongOptions.length < 3) wrongOptions.push("وَاللَّهُ غَفُورٌ رَّحِيمٌ", "وَاللَّهُ سَمِيعٌ عَلِيمٌ", "وَهُوَ الْعَزِيزُ الْحَكِيمُ");
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
@@ -369,7 +419,8 @@ export class HomeworkEngine {
         injectedWords.splice(insertIdx, 0, intruderWord); 
         let displayedText = injectedWords.join(" ");
 
-        let validOptions = words.filter(w => w.length > 2).sort(() => 0.5 - Math.random()).slice(0, 3);
+        // 🌟 [عدّل — 2026-10-12] كلمات الآية المعروضة كخيارات: الأقرب شكلاً للدخيلة ليصعب كشفها بالطول/الشكل
+        let validOptions = [...new Set(words)].filter(w => w.length > 2 && !isWaqfMark(w) && w !== intruderWord).sort((x, y) => wordDistance(intruderWord, x) - wordDistance(intruderWord, y) || (0.5 - Math.random())).slice(0, 5).sort(() => 0.5 - Math.random()).slice(0, 3);
         let options = [intruderWord, ...validOptions].sort(() => 0.5 - Math.random());
 
         return { type: 'mcq', title: "استخرج (الكلمة الدخيلة) التي تم إضافتها خطأً إلى هذه الآية:", text: `﴿\u00A0${displayedText}\u00A0﴾`, options: options, correctAnswer: intruderWord, points: 1 };

@@ -31,6 +31,11 @@ export const CHANGELOG = [
                 en: '"Select all verses from surah…" question: wrong options now come from nearby surahs with similar lengths instead of random ones.'
             },
             {
+                type: 'improved',
+                ar: 'كل أسئلة الاختيارات في الواجبات (إكمال الفراغ، الفراغين، الخاتمة، الكلمة الدخيلة، الآية التالية/السابقة، في أي سورة): الخيارات الخاطئة صارت مشتتة فعلاً — قريبة من الصحيحة في الرسم والطول والقافية بدل اختيارها عشوائياً. وأُصلح تكرار نفس الخيار في سؤال الكلمة الدخيلة.',
+                en: 'All multiple-choice homework questions (fill-in, double fill-in, ending, intruder word, next/previous verse, which surah): wrong options are now genuinely distracting — close to the right answer in spelling, length and rhyme instead of random. Also fixed duplicate options in the intruder-word question.'
+            },
+            {
                 type: 'fixed',
                 ar: 'سؤال معاني الكلمات صار يظهر أيضاً في الواجب الذكي (كان يظهر في الواجب التلقائي فقط).',
                 en: 'The word-meaning question now also appears in smart homework (previously only in auto homework).'
