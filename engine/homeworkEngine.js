@@ -102,7 +102,7 @@ export class HomeworkEngine {
         // 🌟 [جديد] أضفنا 'matching' (مطابقة بدايات الآيات بنهاياتها) لدورة التوليد التلقائي، بنفس
         // معاملة 'written_blank' و'write_3_ayahs' الموجودين أصلاً رغم كونهما تصحيحاً يدوياً — دخول
         // نوع ضمن هذه القائمة لا يعني تصحيحاً آلياً بالضرورة، فقط أنه مؤهل للظهور تلقائياً.
-        let availableTypes = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word', 'checkbox', 'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract'];
+        let availableTypes = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word', 'checkbox', 'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract', 'word_meaning'];
         let cycle = [];
         let mcqSurahUsed = false; 
 
@@ -158,6 +158,7 @@ export class HomeworkEngine {
             case 'matching': return this.createMatchingQuestion(ayah, pool);
             case 'tajweed_extract': return this.createTajweedExtractQuestion(ayah, pool);
             case 'visual_page': return this.createVisualPageQuestion(ayah, pool);
+            case 'word_meaning': return this.createWordMeaningQuestion(ayah, pool);
             default: return null;
         }
     }
@@ -192,6 +193,54 @@ export class HomeworkEngine {
             text: `﴿\u00A0${cleanAyahText(targetAyah.text)}\u00A0﴾`,
             options: [right, left],
             correctAnswer: (page % 2 === 1) ? right : left,
+            points: 1
+        };
+    }
+
+    // 🌟 [جديد] معاني الكلمات: "ما معنى (كلمة) في هذه الآية؟" — اختيار من متعدد يُصحَّح آلياً (type: 'mcq').
+    // المصدر: database/data/wordMeanings.json (من كتاب «كلمات القرآن: تفسير وبيان» للشيخ حسنين محمد مخلوف؛ طريقة بنائه في
+    // tools/build_word_meanings.py). يُحمَّل مرة واحدة عند أول طلب؛ لو تعذّر التحميل نرجع null فيقع التوليد على سؤال بديل.
+    // ليست كل آية فيها كلمات مشروحة، فلو آية السؤال بلا شرح نبحث عن آية أخرى من نفس السورة (ثم من النطاق) لها شرح.
+    async loadWordMeanings() {
+        if (HomeworkEngine._wordMeanings !== undefined) return HomeworkEngine._wordMeanings;
+        try {
+            const res = await fetch(new URL('../database/data/wordMeanings.json', import.meta.url));
+            HomeworkEngine._wordMeanings = res.ok ? await res.json() : null;
+        } catch (e) { HomeworkEngine._wordMeanings = null; }
+        return HomeworkEngine._wordMeanings;
+    }
+
+    async createWordMeaningQuestion(targetAyah, pool) {
+        const data = await this.loadWordMeanings();
+        if (!data) return null;
+        const entriesOf = (a) => ((data[String(a.surahNumber)] || []).filter(e => e[0] === a.numberInSurah && e[1].length <= 40 && e[2].length <= 90));
+        let ayah = targetAyah, entries = entriesOf(ayah);
+        if (!entries.length) {
+            const withMeaning = (pool || []).filter(a => entriesOf(a).length);
+            const sameSurah = withMeaning.filter(a => a.surahNumber === targetAyah.surahNumber);
+            const from = sameSurah.length ? sameSurah : withMeaning;
+            if (!from.length) return null;
+            ayah = from[Math.floor(Math.random() * from.length)];
+            entries = entriesOf(ayah);
+        }
+        const entry = entries[Math.floor(Math.random() * entries.length)];
+        const correctAnswer = entry[2];
+
+        // اختيارات خاطئة: معاني كلمات أخرى (من نفس السورة أولاً ثم السور القريبة)، الأقرب طولاً أولاً حتى لا يُكشف الجواب بالطول
+        const others = [];
+        for (const sn of [ayah.surahNumber, ayah.surahNumber - 1, ayah.surahNumber + 1, ayah.surahNumber - 2, ayah.surahNumber + 2]) {
+            for (const e of (data[String(sn)] || [])) if (e[2] !== correctAnswer && e[2].length <= 90 && e[1] !== entry[1]) others.push(e[2]);
+        }
+        const unique = [...new Set(others)].sort((a, b) => Math.abs(a.length - correctAnswer.length) - Math.abs(b.length - correctAnswer.length) || (0.5 - Math.random()));
+        const wrong = unique.slice(0, 12).sort(() => 0.5 - Math.random()).slice(0, 3);
+        if (wrong.length < 3) return null;
+
+        return {
+            type: 'mcq',
+            title: `ما معنى «${entry[1]}» في هذه الآية؟`,
+            text: `﴿\u00A0${cleanAyahText(ayah.text)}\u00A0﴾`,
+            options: [correctAnswer, ...wrong].sort(() => 0.5 - Math.random()),
+            correctAnswer,
             points: 1
         };
     }

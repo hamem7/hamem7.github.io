@@ -363,6 +363,38 @@ await test('buildQuestionForPlan: معرّفات الأسئلة فريدة حت�
 });
 
 // ==========================================
+// القسم: سؤال معاني الكلمات (word_meaning) — بيانات حقيقية من database/data/wordMeanings.json
+// ==========================================
+import { readFileSync } from 'node:fs';
+const WM = JSON.parse(readFileSync(new URL('../database/data/wordMeanings.json', import.meta.url), 'utf8'));
+const QURAN = JSON.parse(readFileSync(new URL('../database/quran-uthmani.json', import.meta.url), 'utf8')).data.surahs;
+
+await test('word_meaning: سؤال mcq صالح بإجابة صحيحة بين 4 اختيارات فريدة، والكلمة موجودة في الآية', async () => {
+    HomeworkEngine._wordMeanings = WM;
+    const engine = new HomeworkEngine({});
+    for (const sn of [2, 78, 99, 110]) {
+        const surah = QURAN.find(x => x.number === sn);
+        const ayahs = surah.ayahs.map(a => ({ ...a, surahNumber: sn, surahName: 'x' }));
+        for (let i = 0; i < 15; i++) {
+            const q = await engine.createWordMeaningQuestion(ayahs[Math.floor(Math.random() * ayahs.length)], ayahs);
+            assert.ok(q, `سورة ${sn}: يجب توليد سؤال`);
+            assert.equal(q.type, 'mcq');
+            assert.equal(q.options.length, 4);
+            assert.equal(new Set(q.options).size, 4, 'الاختيارات فريدة');
+            assert.ok(q.options.includes(q.correctAnswer));
+            assert.ok(WM[String(sn)].some(e => e[2] === q.correctAnswer && q.title.includes(e[1])), 'الإجابة تخص الكلمة المسؤول عنها');
+        }
+    }
+});
+
+await test('word_meaning: يرجع null (فيقع التوليد على بديل) لو تعذّر تحميل البيانات', async () => {
+    HomeworkEngine._wordMeanings = null;
+    const q = await new HomeworkEngine({}).createWordMeaningQuestion({ surahNumber: 2, numberInSurah: 2, text: 'x' }, []);
+    assert.equal(q, null);
+    HomeworkEngine._wordMeanings = undefined;
+});
+
+// ==========================================
 // الملخص النهائي
 // ==========================================
 console.log('');
