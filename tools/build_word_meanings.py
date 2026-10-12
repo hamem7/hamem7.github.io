@@ -32,6 +32,22 @@ class P(HTMLParser):
     def handle_data(s, d):
         if s.cell is not None: s.para += d
 
+# جدولان في المصدر عدد فقرات التفسير فيهما لا يساوي عدد الكلمات (فقرة تفسير واحدة لكلمتين في النجم، وفقرة مجزّأة في التكوير).
+# المفتاح: أول كلمة في الجدول بعد norm. dup: كرّر فقرة التفسير ذات الترتيب i في الموضع i+1. merge: ادمج الفقرتين i وi+1.
+# حُدّدت الإزاحة بقراءة الجدولين كاملين يدوياً (راجع التفاصيل في رسالة الإيداع).
+FIXES = {norm('و النّجم إذا هوَى'): ('dup', 18), norm('الشّمس كوّرت'): ('merge', 15)}
+
+def apply_fix(cols, vi):
+    others = [i for i in range(3) if i != vi]
+    for key, (op, i) in FIXES.items():
+        for wi in others:
+            if cols[wi] and norm(cols[wi][0]) == key:
+                mi = [x for x in others if x != wi][0]; t = cols[mi]
+                if op == 'dup': t.insert(i + 1, t[i])
+                else: t[i:i + 2] = [t[i] + ' ' + t[i + 1]]
+                return True
+    return False
+
 def main(src):
     q = json.load(open(os.path.join(ROOT, 'database/quran-uthmani.json'), encoding='utf-8'))
     ayat = {}
@@ -43,10 +59,13 @@ def main(src):
         for r in t:
             if len(r) != 3: continue
             cols = [[x for x in c if x] for c in r]
-            if not (len(cols[0]) == len(cols[1]) == len(cols[2])): skipped += len(cols[0]); continue
             vi = [i for i, c in enumerate(cols) if c and all(re.match(r'^\d+', x) for x in c)]
             if len(vi) != 1: continue
-            vi = vi[0]; a, b = [i for i in range(3) if i != vi]
+            vi = vi[0]
+            if not (len(cols[0]) == len(cols[1]) == len(cols[2])):
+                apply_fix(cols, vi)
+                if not (len(cols[0]) == len(cols[1]) == len(cols[2])): skipped += len(cols[0]); continue
+            a, b = [i for i in range(3) if i != vi]
             n = len(cols[vi])
             if n < 1: continue
             verses = [int(re.match(r'\d+', x).group()) for x in cols[vi]]
