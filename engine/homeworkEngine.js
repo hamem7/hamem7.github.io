@@ -1,5 +1,5 @@
 // engine/homeworkEngine.js
-import { cleanAyahText, isWaqfMark, splitAyahWords, planSurahCoverage, JUZ_AMMA_NUMBER } from './quranEngine.js';
+import { cleanAyahText, isWaqfMark, splitAyahWords } from './quranEngine.js';
 
 // ==========================================
 // 🌟🌟 فلترة علامات الوقف القرآنية من "كلمات" الآية — [نُقلت للمحرك المركزي]
@@ -96,103 +96,7 @@ export class HomeworkEngine {
         this.quranEngine = quranEngine;
     }
 
-    async generateAutoQuestions(config) {
-        let ayahsPool = [];
-        
-        if (config.mode === 'surah') {
-            let surah = await this.quranEngine.getSurah(config.surahNum);
-            if (surah) ayahsPool = this.quranEngine.getAyahsInRange(surah, config.startAyah, config.endAyah);
-        } else if (config.mode === 'range') {
-            ayahsPool = await this.quranEngine.getAyahsBySurahRange(config.rangeFrom, config.rangeTo);
-        } else if (config.mode === 'juz') {
-            ayahsPool = await this.quranEngine.getAyahsByJuz(config.juzNum);
-        }
-
-        if (!ayahsPool || ayahsPool.length === 0) return [];
-
-        let validPool = ayahsPool.filter(a => getCleanWords(a.text).length > 3);
-        if (validPool.length === 0) validPool = ayahsPool; 
-
-        // 🌟 التغطية الشاملة والعادلة (Chunking)
-        let qCount = Math.min(config.qCount, validPool.length);
-        let selectedAyahs = [];
-
-        if (config.mode === 'juz' && config.juzNum === JUZ_AMMA_NUMBER) {
-            // 🌟 جزء عمّ: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js)، بدل التقسيم بعدد الآيات
-            // الذي كانت السور الطويلة تبتلع فيه الأسئلة وتغيب سور قصيرة. الآية عشوائية داخل السورة وبلا تكرار ما أمكن.
-            // الخطة تُبنى من كل آيات الجزء (لا validPool) حتى لا تسقط سورة قصيرة كل آياتها ≤ 3 كلمات من الاختبار
-            const plan = planSurahCoverage(ayahsPool, Math.min(config.qCount, ayahsPool.length));
-            const usedAyahs = new Set();
-            for (const surahNum of plan) {
-                const ownValid = validPool.filter(a => a.surahNumber === surahNum);
-                const own = ownValid.length ? ownValid : ayahsPool.filter(a => a.surahNumber === surahNum);
-                const fresh = own.filter(a => !usedAyahs.has(a));
-                const from = fresh.length ? fresh : own;
-                const pick = from[Math.floor(Math.random() * from.length)];
-                usedAyahs.add(pick);
-                selectedAyahs.push(pick);
-            }
-        } else {
-            let chunkSize = Math.max(1, Math.floor(validPool.length / qCount));
-            for (let i = 0; i < qCount; i++) {
-                let start = i * chunkSize;
-                let end = (i === qCount - 1) ? validPool.length : (i + 1) * chunkSize;
-                let chunk = validPool.slice(start, end);
-                if (chunk.length > 0) {
-                    let randomAyah = chunk[Math.floor(Math.random() * chunk.length)];
-                    selectedAyahs.push(randomAyah);
-                }
-            }
-        }
-
-        selectedAyahs = selectedAyahs.sort(() => 0.5 - Math.random());
-        let questionsList = [];
-
-        let isSingleSurah = (config.mode === 'surah');
-        // 🌟 الأنواع الجديدة بعد التحديث وحذف الصح والخطأ
-        // 🌟 [حُذف 2026-09-30 بطلب المعلم] نوع 'audio_record' (التسميع الصوتي) أُزيل من المنصة بالكامل لأنه لم يُفعَّل أصلاً.
-        // 🌟 [جديد] أضفنا 'matching' (مطابقة بدايات الآيات بنهاياتها) لدورة التوليد التلقائي، بنفس
-        // معاملة 'written_blank' و'write_3_ayahs' الموجودين أصلاً رغم كونهما تصحيحاً يدوياً — دخول
-        // نوع ضمن هذه القائمة لا يعني تصحيحاً آلياً بالضرورة، فقط أنه مؤهل للظهور تلقائياً.
-        let availableTypes = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word', 'checkbox', 'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract', 'word_meaning'];
-        let cycle = [];
-        let mcqSurahUsed = false; 
-
-        for (let i = 0; i < selectedAyahs.length; i++) {
-            let ayah = selectedAyahs[i];
-            let qTypeKey = '';
-
-            // 🌟 ذكاء سؤال السورة: لا يظهر أبداً إذا كان النطاق سورة واحدة
-            if (!isSingleSurah && !mcqSurahUsed) {
-                qTypeKey = 'mcq_surah';
-                mcqSurahUsed = true;
-            } else {
-                if (cycle.length === 0) {
-                    cycle = [...availableTypes].sort(() => 0.5 - Math.random());
-                    if (!isSingleSurah) cycle.push('mcq_surah');
-                    cycle = cycle.sort(() => 0.5 - Math.random());
-                }
-                qTypeKey = cycle.pop(); 
-            }
-
-            let questionObj = await this.createQuestionByKey(qTypeKey, ayah, validPool);
-
-            // بديل آمن في حال عدم ملائمة الآية للسؤال
-            if (!questionObj) {
-                questionObj = await this.createMissingWordDropdown(ayah, validPool);
-            }
-
-            if (questionObj) {
-                questionObj.id = 'q_' + Date.now() + '_' + i;
-                if(!questionObj.points) questionObj.points = (questionObj.type === 'checkbox' || questionObj.type === 'dual_dropdown') ? 2 : 1; 
-                questionsList.push(questionObj);
-            }
-        }
-
-        return questionsList;
-    }
-
-    // 🌟 [جديد — الواجب الذكي] إنشاء سؤال لمفتاح صيغة معيّن (نفس المفاتيح التي تستعملها generateAutoQuestions).
+    // 🌟 [جديد — الواجب الذكي] إنشاء سؤال لمفتاح صيغة معيّن (المفاتيح نفسها المعرّفة في HW_FORMATS بـ engine/skillMap.js).
     // فُصل هنا بدل تكرار الـswitch في موضعين. يرجع null لو الآية لا تلائم الصيغة.
     async createQuestionByKey(typeKey, ayah, pool) {
         switch (typeKey) {

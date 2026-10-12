@@ -84,7 +84,7 @@ await test('normalizeForCompare: يحذف التشكيل ويوحّد أشكال
 });
 
 // ==========================================
-// القسم 2: HomeworkEngine.generateAutoQuestions مع quranEngine مزيّف (Dependency Injection)
+// القسم 2: HomeworkEngine (مسار الواجب الذكي) مع quranEngine مزيّف (Dependency Injection)
 // ==========================================
 // نستخدم بيانات وهمية بالكامل (ليست آيات حقيقية) — الهدف اختبار منطق التوليد نفسه فقط، وليس
 // صحة نص القرآن (ده مصدره alquran.cloud خارج نطاق هذا الاختبار تماماً).
@@ -136,24 +136,41 @@ function buildFakeQuranEngine() {
     };
 }
 
+
+// بعد حذف المحرك القديم (generateAutoQuestions) صار التوليد عبر مسار الواجب الذكي: buildQuestionForPlan لكل صيغة.
+// هذا المساعد يحاكي دورة صيغ عشوائية فوق آيات النطاق ليبقى اختبار مولّدات الأسئلة نفسها كما كان.
+const PLAN_KEYS = ['dropdown', 'written_blank', 'dual_dropdown', 'mcq_next', 'mcq_prev', 'ayah_ending', 'intruder_word',
+    'checkbox', 'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract', 'word_meaning'];
+async function generateViaPlan(engine, cfg) {
+    const surah = await engine.quranEngine.getSurah(cfg.surahNum);
+    const pool = engine.quranEngine.getAyahsInRange(surah, cfg.startAyah, cfg.endAyah);
+    const keys = [...PLAN_KEYS].sort(() => 0.5 - Math.random());
+    const out = [];
+    for (let i = 0; i < cfg.qCount; i++) {
+        const built = await engine.buildQuestionForPlan(keys[i % keys.length], pool[i % pool.length], pool);
+        if (built) out.push(built.question);
+    }
+    return out;
+}
+
 const KNOWN_TYPES = new Set([
     'mcq', 'dropdown', 'written_blank', 'dual_dropdown', 'checkbox',
     'matrix_order', 'write_3_ayahs', 'matching', 'tajweed_extract'
 ]);
 
-await test('generateAutoQuestions: يرجع العدد المطلوب من الأسئلة (عبر 15 تكرار عشوائي)', async () => {
+await test('مسار الخطة: يرجع العدد المطلوب من الأسئلة (عبر 15 تكرار عشوائي)', async () => {
     for (let run = 0; run < 15; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         assert.equal(questions.length, 8, `الجولة ${run}: توقعنا 8 أسئلة، حصلنا على ${questions.length}`);
     }
 });
 
-await test('generateAutoQuestions: كل سؤال له id ونوع معروف ونقاط أكبر من صفر', async () => {
+await test('مسار الخطة: كل سؤال له id ونوع معروف ونقاط أكبر من صفر', async () => {
     const engine = new HomeworkEngine(buildFakeQuranEngine());
-    const questions = await engine.generateAutoQuestions({
+    const questions = await generateViaPlan(engine, {
         mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
     });
     for (const q of questions) {
@@ -163,10 +180,10 @@ await test('generateAutoQuestions: كل سؤال له id ونوع معروف و�
     }
 });
 
-await test('generateAutoQuestions: الإجابة الصحيحة دائماً ضمن الاختيارات المعروضة (mcq/dropdown)', async () => {
+await test('مسار الخطة: الإجابة الصحيحة دائماً ضمن الاختيارات المعروضة (mcq/dropdown)', async () => {
     for (let run = 0; run < 15; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         for (const q of questions) {
@@ -182,11 +199,11 @@ await test('generateAutoQuestions: الإجابة الصحيحة دائماً ض
     }
 });
 
-await test('generateAutoQuestions: dual_dropdown يحتوي إجابتين صحيحتين كل واحدة ضمن قائمتها', async () => {
+await test('مسار الخطة: dual_dropdown يحتوي إجابتين صحيحتين كل واحدة ضمن قائمتها', async () => {
     let foundAtLeastOne = false;
     for (let run = 0; run < 20 && !foundAtLeastOne; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         const dual = questions.find(q => q.type === 'dual_dropdown');
@@ -200,11 +217,11 @@ await test('generateAutoQuestions: dual_dropdown يحتوي إجابتين صح�
     assert.ok(foundAtLeastOne, 'لم يظهر أي سؤال dual_dropdown خلال 20 محاولة — تحقق من دورة التوليد');
 });
 
-await test('generateAutoQuestions: matching يبني أزواج متسقة (كل left/right له مرجع فعلي) ويتطلب تصحيحاً يدوياً', async () => {
+await test('مسار الخطة: matching يبني أزواج متسقة (كل left/right له مرجع فعلي) ويتطلب تصحيحاً يدوياً', async () => {
     let foundAtLeastOne = false;
     for (let run = 0; run < 20 && !foundAtLeastOne; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         const matching = questions.find(q => q.type === 'matching');
@@ -223,10 +240,10 @@ await test('generateAutoQuestions: matching يبني أزواج متسقة (كل
     assert.ok(foundAtLeastOne, 'لم يظهر أي سؤال matching خلال 20 محاولة — تحقق من دورة التوليد');
 });
 
-await test('generateAutoQuestions: checkbox و matrix_order — الإجابات الصحيحة كمجموعة فرعية من الاختيارات', async () => {
+await test('مسار الخطة: checkbox و matrix_order — الإجابات الصحيحة كمجموعة فرعية من الاختيارات', async () => {
     for (let run = 0; run < 15; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         for (const q of questions) {
@@ -245,10 +262,10 @@ await test('generateAutoQuestions: checkbox و matrix_order — الإجابات
     }
 });
 
-await test('generateAutoQuestions: الأنواع اليدوية (written_blank / write_3_ayahs) تحمل needsManualGrading=true وإجابة نصية غير فارغة', async () => {
+await test('مسار الخطة: الأنواع اليدوية (written_blank / write_3_ayahs) تحمل needsManualGrading=true وإجابة نصية غير فارغة', async () => {
     for (let run = 0; run < 15; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 1, endAyah: 8, qCount: 8
         });
         for (const q of questions) {
@@ -264,7 +281,7 @@ await test('tajweed_extract: يدوي، نقطتان، بلا مفتاح، وا�
     let seen = 0;
     for (let run = 0; run < 30; run++) {
         const engine = new HomeworkEngine(buildFakeQuranEngine());
-        const questions = await engine.generateAutoQuestions({
+        const questions = await generateViaPlan(engine, {
             mode: 'surah', surahNum: 999, startAyah: 2, endAyah: 6, qCount: 5
         });
         for (const q of questions.filter(x => x.type === 'tajweed_extract')) {

@@ -16,11 +16,13 @@ const L = (ar, en) => (isEnglish() ? en : ar);
 
 const SKILL_EN = {
     sequence: 'Sequence & linking', recall: 'Free recall', structure: 'Verse structure & order',
-    precision: 'Precision & discrimination', context: 'Surah & context linking', visual: 'Visual memory', fluency: 'Mastery & fluency'
+    precision: 'Precision & discrimination', context: 'Surah & context linking', visual: 'Visual memory', fluency: 'Mastery & fluency',
+    tajweed: 'Tajweed rules'
 };
 const SKILL_AR = {
     sequence: 'التسلسل والترابط', recall: 'الاستدعاء الحر', structure: 'بنية الآية وترتيبها',
-    precision: 'الدقة والتمييز بين المتشابه', context: 'الربط بالسورة والسياق', visual: 'الذاكرة البصرية', fluency: 'الإتقان والطلاقة'
+    precision: 'الدقة والتمييز بين المتشابه', context: 'الربط بالسورة والسياق', visual: 'الذاكرة البصرية', fluency: 'الإتقان والطلاقة',
+    tajweed: 'أحكام التجويد'
 };
 export const skillLabel = (sk) => (isEnglish() ? SKILL_EN[sk] : SKILL_AR[sk]) || sk;
 

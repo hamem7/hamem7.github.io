@@ -12,9 +12,10 @@
 //   context   : الربط بالسورة والسياق          (link_ends / link_word_surah / guess_surah)
 //   visual    : الذاكرة البصرية                (visual_memory)
 //   fluency   : الإتقان الكلي والطلاقة         (recite)
+//   tajweed   : أحكام التجويد                  (tajweed_extract)
 // ==========================================
 
-export const SKILLS = ['sequence', 'recall', 'structure', 'precision', 'context', 'visual', 'fluency'];
+export const SKILLS = ['sequence', 'recall', 'structure', 'precision', 'context', 'visual', 'fluency', 'tajweed'];
 
 export const SKILL_LABELS = {
     sequence: 'التسلسل والترابط',
@@ -23,7 +24,8 @@ export const SKILL_LABELS = {
     precision: 'الدقة والتمييز بين المتشابه',
     context: 'الربط بالسورة والسياق',
     visual: 'الذاكرة البصرية',
-    fluency: 'الإتقان والطلاقة'
+    fluency: 'الإتقان والطلاقة',
+    tajweed: 'أحكام التجويد'
 };
 
 // المهارتان اللتان لا يستطيع الواجب الإلكتروني تدريبهما بكثافة: الطلاقة تُقاس في الحصة فقط،
@@ -51,7 +53,8 @@ export const HW_FORMATS = {
     matching:      { skill: 'context',   level: 'recall',      manual: false, weight: 1 },
     visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5 },
     // معاني الكلمات (كتاب كلمات القرآن لحسنين مخلوف): فهم لا حفظ، فوزنه نصف دليل الإتقان
-    word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5 }
+    word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5 },
+    tajweed_extract: { skill: 'tajweed', level: 'production',  manual: true,  weight: 1 }
 };
 
 export function formatsOfSkill(skill) {
