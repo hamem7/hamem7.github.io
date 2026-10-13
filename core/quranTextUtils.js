@@ -78,6 +78,12 @@ export function findPhraseRanges(text, phrase) {
             const origStart = map[idx];
             let origEnd = map[idx + strippedVariant.length - 1] + 1;
             while (origEnd < text.length && isTrailingMarkCode(text.codePointAt(origEnd))) origEnd++;
+            // 🛡️ الهمزة المنفردة ء (U+0621) مستبعدة من النسخة المجرّدة عمداً، فلو انتهت العبارة بها («والسماء») وقفت المطابقة
+            // قبلها وبقيت «ءِ» عالقة في أول ما بعد العبارة (تظهر في خيارات المتشابهات). نمدّد النهاية لتشملها مع حركتها.
+            if (/ء[\u064B-\u065F\u06D6-\u06ED]*$/.test(variant) && text.codePointAt(origEnd) === 0x0621) {
+                origEnd++;
+                while (origEnd < text.length && isTrailingMarkCode(text.codePointAt(origEnd))) origEnd++;
+            }
             // تفادي تظليل/إخفاء نفس الجزء مرتين لو صيغة قصيرة وقعت داخل صيغة أطول طُوبقت فعلاً
             const overlaps = ranges.some(r => origStart < r[1] && origEnd > r[0]);
             if (!overlaps) ranges.push([origStart, origEnd]);
