@@ -439,10 +439,19 @@ export class QuranEngine {
 
     async generateCompleteAyahGame(ayahsPool, chunkIndex, totalChunks) {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text); let words = cleanText.split(/\s+/); if (words.length < 4) return null; 
-        let hideCount = Math.max(1, Math.floor(words.length * 0.3)); let pos = Math.floor(Math.random() * 3); let hiddenPart = ""; let displayWords = [...words];
-        if (pos === 0) { hiddenPart = displayWords.splice(0, hideCount).join(' '); displayWords.unshift("....."); } 
-        else if (pos === 2) { hiddenPart = displayWords.splice(words.length - hideCount, hideCount).join(' '); displayWords.push("....."); } 
-        else { let mid = Math.floor(words.length / 2) - Math.floor(hideCount / 2); hiddenPart = displayWords.splice(mid, hideCount).join(' '); displayWords.splice(mid, 0, "....."); }
+        // 🌟 [2026-10-13] بطلب المعلم (ركن الكبار فقط): يُخفى دائماً "بداية" الآية ويظهر آخرها فقط
+        // (كلمتان أو ثلاث) بدل الجزء الأكبر منها — فيضطر الطالب لاستحضار البداية من حفظه. الصعوبة
+        // تتدرج مع تقدّم الطالب في الاختبار: النصف الأول من الأسئلة 3 كلمات ظاهرة، والنصف الثاني كلمتان.
+        // عند غياب موضع السؤال (chunkIndex غير صالح) نعرض 3 كلمات. رموز الوقف لا تُحتسب كلمات ظاهرة.
+        // الإجابة (fullAnswer) تعرض اسم السورة ورقم الآية كما هي في adultGame.js بعد إظهار الإجابة.
+        const progress = (Number.isFinite(chunkIndex) && chunkIndex >= 0 && Number.isFinite(totalChunks) && totalChunks > 0) ? chunkIndex / totalChunks : 0;
+        const realIdxs = realWordIndexes(words);
+        if (realIdxs.length < 2) return null;
+        const visibleCount = Math.min(progress >= 0.5 ? 2 : 3, realIdxs.length - 1);
+        const cutAt = realIdxs[realIdxs.length - visibleCount];
+        const hiddenPart = words.slice(0, cutAt).join(' ');
+        const displayWords = ["....."].concat(words.slice(cutAt));
+        if (!hiddenPart) return null;
         return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
     }
 
