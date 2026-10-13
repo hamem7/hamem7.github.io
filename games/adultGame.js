@@ -429,6 +429,16 @@ function initGameUI() {
         recordAnswer(true);
     });
 
+    // 🟡 «نصف إجابة» (سؤال «قبلها وبعدها» فقط): يفتح خيار تحديد النصف الذي نُسي/أُخطئ فيه، ثم يُسجَّل
+    // السؤال كخطأ بملاحظة تحدد النصف (قبل/بعد) فيظهر في التقرير وشاشة علاج الأخطاء
+    document.getElementById('btn-record-partial')?.addEventListener('click', () => {
+        const box = document.getElementById('partial-choice');
+        if (box) box.style.display = (box.style.display === 'flex') ? 'none' : 'flex';
+    });
+    [['btn-partial-before', 'نصف إجابة: نسي/أخطأ في الآية التي قبلها'], ['btn-partial-after', 'نصف إجابة: نسي/أخطأ في الآية التي بعدها']].forEach(([id, label]) => {
+        document.getElementById(id)?.addEventListener('click', () => recordAnswer(false, [t(label)]));
+    });
+
     document.getElementById('btn-save-error-temp')?.addEventListener('click', saveTempError);
     document.getElementById('btn-submit-all-errors')?.addEventListener('click', submitAllErrors);
     document.getElementById('btn-close-error')?.addEventListener('click', () => closeModal('error-modal'));
@@ -592,6 +602,7 @@ async function playNextMission() {
         }
         
         document.getElementById('teacher-eval-buttons').style.display = 'none';
+        { const pb = document.getElementById('btn-record-partial'), pc = document.getElementById('partial-choice'); if (pb) pb.style.display = 'none'; if (pc) pc.style.display = 'none'; }
         document.getElementById('teacher-eval-area').style.display = 'none';
         document.getElementById('interactive-order-area').style.display = 'none';
         // 🌟 [جديد] إخفاء منطقة لعبة "اربط أول الآية بآخرها" عند بداية كل سؤال جديد 🌟
@@ -847,6 +858,8 @@ async function playNextMission() {
             if(['between', 'recite'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             // «قبلها وبعدها» له نفس تخطيط «الآية بين آيتين» (نقاط + آية + نقاط)
             else if(GameState.currentData.type === 'around') document.body.dataset.gameQ = 'between';
+            // زر «نصف إجابة» لسؤال «قبلها وبعدها» فقط
+            { const pb = document.getElementById('btn-record-partial'); if (pb) pb.style.display = (GameState.currentData.type === 'around') ? '' : 'none'; }
             
             let ansHTML = `${t("الإجابة الصحيحة:")}<br>`;
             if(GameState.currentData.ayahObj && GameState.currentData.ayahObj.surahName) {
