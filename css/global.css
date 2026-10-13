@@ -178,6 +178,10 @@
 /* 🌟 [جديد] حركة "pop" خفيفة لحظة المطابقة الصحيحة - كانت التغذية الرجعية غير متماثلة
    (فيه وميضة حمراء للخطأ عبر linkWrongFlash فوق، ومفيش أي حركة مقابلة للصح) 🌟 */
 .link-item.correct-pop { animation: linkCorrectPop 0.4s ease; }
+/* 🌟 [جديد] زوج «لا أعرف هذه» في ألعاب الربط: برتقالي مميز عن ألوان الأزواج الصحيحة */
+.link-item.matched.unknown { opacity: 1; background: #f59e0b; border-color: #92400e; border-width: 3px; color: #fff; font-weight: 700 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.25); cursor: default; }
+.link-unknown-btn { display: block; margin: 8px auto 0; padding: 6px 14px; border: 2px solid #b45309; background: #fff7ed; color: #92400e; border-radius: 999px; font-family: inherit; font-size: 0.95rem; font-weight: 700; line-height: 1.4; cursor: pointer; }
+.link-unknown-btn:hover { background: #ffedd5; }
 @keyframes linkCorrectPop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
 /* النوافذ المنبثقة والتوست */

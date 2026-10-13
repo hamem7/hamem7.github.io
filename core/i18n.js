@@ -1693,6 +1693,9 @@ export const translations = {
         // 🌟 [جديد] سبب تسجيل الإجابة الصحيحة ضمن الأخطاء التي تُعالَج (ترتيب خاطئ سابق / تلميح) 🌟
         weak_origin_reorder: "ترتيب خاطئ قبل الإجابة الصحيحة",
         weak_origin_hint: "استخدم تلميحًا للوصول إلى الإجابة",
+        // 🌟 [جديد] زر «لا أعرف هذه» في ألعاب الربط (الكبار) 🌟
+        link_unknown_btn: "🤷 لا أعرف هذه",
+        link_unknown_err: "لا يعرف نهاية:",
         report_focus_not_resolved: "لم يُعالَج بعد",
         report_note_focus_past_prefix: "بند سابق:",
         report_focus_more_one: "بند آخر",
@@ -3793,6 +3796,9 @@ export const translations = {
         // 🌟 [New] Why a correct answer was logged as a mistake to fix (wrong ordering attempt / hint used) 🌟
         weak_origin_reorder: "Wrong ordering attempt before the correct answer",
         weak_origin_hint: "Used a hint to reach the answer",
+        // 🌟 [New] "I don't know this one" button in linking games (adults) 🌟
+        link_unknown_btn: "🤷 I don't know this",
+        link_unknown_err: "Doesn't know the ending of:",
         report_focus_not_resolved: "not resolved yet",
         report_note_focus_past_prefix: "an earlier item:",
         report_focus_more_one: "more item",

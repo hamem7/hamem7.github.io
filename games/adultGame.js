@@ -1196,6 +1196,39 @@ function buildOrderGameUI() {
     }
 }
 
+// 🌟 [جديد] «لا أعرف هذه» في ألعاب الربط (الكبار): هل هذا الزوج معلَّم بأن الطالب لا يعرفه؟ 🌟
+function isUnknownPair(data, id) {
+    return Array.isArray(data.unknownIds) && data.unknownIds.includes(id);
+}
+
+// يعلّم الزوج «غير معروف»: يُعدّ مطابَقاً (فتظهر نهايته الصحيحة) وتُسجَّل هويته في unknownIds.
+function markLinkPairUnknown(id) {
+    const data = GameState.currentData;
+    if (!data || data.locked || data.matchedPairs.includes(id)) return;
+    if (!Array.isArray(data.unknownIds)) data.unknownIds = [];
+    data.unknownIds.push(id);
+    data.matchedPairs.push(id);
+    data.selectedStart = null;
+    data.justMatchedId = id;
+    buildLinkGameUI();
+    data.justMatchedId = null;
+    if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
+}
+
+// نهاية سؤال الربط: لو فيه آيات «لا أعرفها» يُسجَّل السؤال خطأً (يدخل سجل الضعف كاملاً ليُعالَج)
+// مع ذكر أوائل الآيات غير المعروفة في نوع الخطأ؛ وإلا إجابة صحيحة كما كان.
+function finishLinkQuestion() {
+    const data = GameState.currentData;
+    const unk = (data && data.unknownIds) || [];
+    if (!unk.length) { recordAnswer(true); return; }
+    const names = unk.map(id => {
+        const s = data.starts.find(x => x.id === id);
+        return s ? s.text.split(/\s+/).slice(0, 5).join(' ') + '…' : '';
+    }).filter(Boolean).join(' ، ');
+    playErrorSound();
+    recordAnswer(false, [t('link_unknown_err') + ' ' + names]);
+}
+
 // 🌟 [جديد] بناء واجهة لعبة "اربط أول الآية بآخرها" — تعتمد على النقر فقط (بلا سحب) بنفس فلسفة
 // buildOrderGameUI أعلاه: يضغط المعلم/الطالب على بداية آية من العمود الأول (تُحدَّد بإطار ذهبي)،
 // ثم على النهاية المتوقّعة من العمود الثاني. لو الربط صحيح تتحوّل الآيتان لحالة "مطابَقة" دائمة
@@ -1222,7 +1255,9 @@ function buildLinkGameUI() {
         // كل ربط لوحده. correct-pop بتُضاف مرة واحدة فقط لحظة المطابقة (راجع data.justMatchedId
         // تحت) مش في كل إعادة رسم، حتى ما تتكرر حركة الـpop لكل الأزواج القديمة كل مرة 🌟
         if (isMatched) {
-            cls += ' matched pair-' + (idx % PAIR_COLORS_COUNT);
+            // 🌟 [جديد] زوج «لا أعرف هذه»: لون برتقالي مميز بدل لون الأزواج الصحيحة 🌟
+            if (isUnknownPair(data, item.id)) cls += ' matched unknown';
+            else cls += ' matched pair-' + (idx % PAIR_COLORS_COUNT);
             if (data.justMatchedId === item.id) cls += ' correct-pop';
         }
         if (data.selectedStart === idx) cls += ' selected';
@@ -1233,6 +1268,17 @@ function buildLinkGameUI() {
                 data.selectedStart = (data.selectedStart === idx) ? null : idx;
                 buildLinkGameUI();
             };
+            // 🌟 [جديد] زر «لا أعرف هذه» يظهر داخل بطاقة البداية المحدَّدة فقط. يكشف النهاية
+            // الصحيحة ويسجّل أن الطالب لا يعرف هذه الآية؛ يُسجَّل السؤال كاملاً (بكل أزواجه) في
+            // سجل الأخطاء عند اكتماله، فيُعالَج كاملاً (لا زوجان فقط حتى لا يُحَلّ بالاستبعاد) 🌟
+            if (data.selectedStart === idx) {
+                const unkBtn = document.createElement('button');
+                unkBtn.type = 'button';
+                unkBtn.className = 'link-unknown-btn';
+                unkBtn.innerText = t('link_unknown_btn');
+                unkBtn.onclick = (e) => { e.stopPropagation(); markLinkPairUnknown(item.id); };
+                el.appendChild(unkBtn);
+            }
         }
         startsDiv.appendChild(el);
     });
@@ -1247,7 +1293,8 @@ function buildLinkGameUI() {
             // باستقلال عن الآخر (راجع generateLinkGame في quranEngine.js)، فترتيب العنصر هنا
             // مش بالضرورة نفس ترتيب زوجه في العمود الأول 🌟
             let pairIdx = data.starts.findIndex(s => s.id === item.id);
-            cls += ' matched pair-' + (pairIdx % PAIR_COLORS_COUNT);
+            if (isUnknownPair(data, item.id)) cls += ' matched unknown';
+            else cls += ' matched pair-' + (pairIdx % PAIR_COLORS_COUNT);
             if (data.justMatchedId === item.id) cls += ' correct-pop';
         }
         el.className = cls;
@@ -1269,7 +1316,7 @@ function buildLinkGameUI() {
                     if (data.matchedPairs.length < data.starts.length) playSuccessSound();
                     buildLinkGameUI();
                     data.justMatchedId = null;
-                    if (data.matchedPairs.length === data.starts.length) setTimeout(() => recordAnswer(true), 400);
+                    if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
                 } else {
                     playErrorSound();
                     GameState.orderAttempts++;
