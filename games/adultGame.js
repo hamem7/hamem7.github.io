@@ -861,6 +861,23 @@ async function playNextMission() {
             }
             
             document.getElementById('game-answer').innerHTML = ansHTML;
+
+            // 🌟 [جديد] سؤال المتشابهات: الخيارات أزرار — الضغط يحدّد إجابة الطالب ويُسجَّلها صحيحة أو خاطئة تلقائياً (بلا تقييم المعلم)
+            if (type === 'similar' && GameState.currentData && GameState.currentData.correctIndex >= 0) {
+                const cd = GameState.currentData;
+                document.getElementById('teacher-eval-area').style.display = 'none';
+                const btns = [...document.querySelectorAll('#game-question .sim-opt-btn')];
+                btns.forEach(b => b.addEventListener('click', () => {
+                    if (cd.__answered) return;
+                    const idx = Number(b.dataset.idx);
+                    const ok = idx === cd.correctIndex;
+                    btns.forEach(x => { x.disabled = true; x.style.cursor = 'default'; });
+                    b.style.background = ok ? '#bbf7d0' : '#fecaca';
+                    b.style.borderColor = ok ? '#16a34a' : '#dc2626';
+                    if (!ok && btns[cd.correctIndex]) { btns[cd.correctIndex].style.background = '#bbf7d0'; btns[cd.correctIndex].style.borderColor = '#16a34a'; }
+                    recordAnswer(ok, ok ? [] : [tfAr('gen_note_prefix', { text: `اختار: ${cd.optionTexts[idx]}` })]);
+                }));
+            }
         }
     } catch (err) { console.error(err); GameState.currentIndex++; playNextMission(); }
 }

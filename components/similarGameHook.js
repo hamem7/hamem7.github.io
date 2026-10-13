@@ -64,7 +64,7 @@ export function kidsSimilarOptionLabel(opt, kind) {
 }
 
 // ---------------- الكبار ----------------
-// لعبة الكبار تسميع شفهي يقيّمه المعلم (لا أزرار اختيار): نعرض السؤال وخياراته مكتوبة، ويكشف المعلم الإجابة ويقيّم.
+// سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
 const LETTERS_AR = ['أ', 'ب', 'ج', 'د'];
 const LETTERS_EN = ['A', 'B', 'C', 'D'];
 
@@ -92,20 +92,21 @@ export function formatAdultSimilar(sim, pool) {
 
     const options = internal && sim.kind === 'sim_position' ? [...sim.options].sort((a, b) => Number(a) - Number(b)) : sim.options;
     const isQuran = sim.kind !== 'sim_position';
+    // 🌟 [تعديل] كل خيار صار زراً يضغطه الطالب فتُسجَّل إجابته (صحيحة أو خاطئة) تلقائياً — يربطها adultGame.js عبر .sim-opt-btn
     const lines = options.map((opt, i) => {
         const lbl = optionLabel(opt);
-        const cls = isQuran ? ' class="quran-text"' : '';
+        const cls = isQuran ? 'sim-opt-btn quran-text' : 'sim-opt-btn';
         const size = sim.kind === 'sim_recall' ? '1.7rem' : '2rem';
-        return `<div${cls} style="font-size:${size}; margin:8px 0; text-align:center;"><b>${letters[i]})</b> ${isQuran ? '﴿ ' + lbl + ' ﴾' : lbl}</div>`;
+        return `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:10px 0; padding:12px 16px; text-align:center; cursor:pointer; background:#fff; color:inherit; border:2px solid var(--primary, #0f766e); border-radius:14px; font-family:inherit;"><b>${letters[i]})</b> ${isQuran ? '﴿ ' + lbl + ' ﴾' : lbl}</button>`;
     }).join('');
-    const ci = options.findIndex(opt => String(opt) === String(sim.correctAnswer));
-    correctLabel = ci >= 0 ? `<b>${letters[ci]})</b> ${isQuran ? '﴿ ' + optionLabel(sim.correctAnswer) + ' ﴾' : optionLabel(sim.correctAnswer)}` : optionLabel(sim.correctAnswer);
-
+    const correctIndex = options.findIndex(opt => String(opt) === String(sim.correctAnswer));
+    const ci = correctIndex;
     const body = `<div style="font-size:1.6rem; font-weight:bold; margin-bottom:12px;">${question}</div>` +
         `<div class="quran-text" style="font-size:3rem; margin:10px 0 16px;">﴿ ${shown} ﴾</div>` +
         `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
     return {
         type: 'similar', questionTitle: 'من المتشابهات 🔀', questionBody: body,
+        correctIndex, optionTexts: options.map(o => String(optionLabel(o)).replace(/<[^>]*>/g, '')),
         fullAnswer: optionLabel(sim.correctAnswer),
         answerHTML: `<span class="quran-text" style="font-size:1.8rem;">${correctLabel}</span>`,
         ayahObj: ayahObjFor(sim, pool), reportText: clean(o.fullText), simKind: sim.kind, simGroupId: sim.groupId
