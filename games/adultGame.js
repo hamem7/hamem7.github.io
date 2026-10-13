@@ -1068,9 +1068,10 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 [جديد] الإجابة الصحيحة بعد ترتيب خاطئ سابق أو باستخدام تلميح تُسجَّل ضمن الأخطاء التي تُعالَج
         // (بقرار المعلم). ⚠️ افتراض: أي محاولة ترتيب خاطئة واحدة تكفي (orderAttempts >= 1)، وهي نفس
         // عتبة حالة 'reorder' في التقرير. التسجيل لا يجري في وضع العلاج نفسه، ولا يتكرر لو الخطأ مسجَّل أصلًا 🌟
-        if (!GameState.isWeaknessMode && (GameState.orderAttempts >= 1 || GameState.hintUsed)) {
-            const origin = (GameState.orderAttempts >= 1 ? 'reorder' : 'hint');
-            const errs = [t(origin === 'reorder' ? 'weak_origin_reorder' : 'weak_origin_hint')];
+        const unkInfo = GameState.currentData && GameState.currentData.unknownInfo;
+        if (!GameState.isWeaknessMode && (unkInfo || GameState.orderAttempts >= 1 || GameState.hintUsed)) {
+            const origin = unkInfo ? 'unknown' : (GameState.orderAttempts >= 1 ? 'reorder' : 'hint');
+            const errs = [unkInfo ? unkInfo.label : t(origin === 'reorder' ? 'weak_origin_reorder' : 'weak_origin_hint')];
             if(!AppState.currentStudent.weaknesses) AppState.currentStudent.weaknesses = [];
             if(!AppState.currentStudent.weaknesses.some(w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) AppState.currentStudent.weaknesses.push(buildErrorObj(errs, origin));
         }
@@ -1079,6 +1080,9 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if (GameState.orderAttempts === 1) earnedScore = 8;
         else if (GameState.orderAttempts >= 2) earnedScore = 6;
         else if (GameState.hintUsed) earnedScore = 8;
+        // 🌟 [جديد] «لا أعرف هذه» في الربط: يُخصم من درجة السؤال بنسبة الأزواج غير المعروفة فقط
+        // (مثلاً 1 من 4 ⇒ ×0.75) مع التقريب لأقرب عدد صحيح 🌟
+        if (unkInfo) earnedScore = Math.round(earnedScore * (unkInfo.total - unkInfo.unknown) / unkInfo.total);
         // ⭐ السؤال المميز: مكافأة خاصة (وسام ذهبي + احتفال + 5 نقاط إضافية) عند الإجابة الصحيحة فقط
         const isSpecialWin = !!(GameState.currentData && GameState.currentData.special) && !GameState.isWeaknessMode;
         let starRes = null;
@@ -1215,8 +1219,10 @@ function markLinkPairUnknown(id) {
     if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
 }
 
-// نهاية سؤال الربط: لو فيه آيات «لا أعرفها» يُسجَّل السؤال خطأً (يدخل سجل الضعف كاملاً ليُعالَج)
-// مع ذكر أوائل الآيات غير المعروفة في نوع الخطأ؛ وإلا إجابة صحيحة كما كان.
+// نهاية سؤال الربط: لو فيه آيات «لا أعرفها» يُسجَّل السؤال كاملاً في سجل الضعف (ليُعالَج بكل أزواجه)
+// مع ذكر أوائل الآيات غير المعروفة، وتُخصم من درجته نسبة غير المعروف فقط (راجع recordAnswer):
+// السؤال يُحسب «صحيحاً» بدرجة جزئية. الاستثناءان: كل الأزواج غير معروفة، أو وضع علاج الخطأ
+// (لا يُثبَّت الخطأ كمعالَج وهو لا يعرف) — فيُسجَّل إجابة خاطئة.
 function finishLinkQuestion() {
     const data = GameState.currentData;
     const unk = (data && data.unknownIds) || [];
@@ -1225,8 +1231,14 @@ function finishLinkQuestion() {
         const s = data.starts.find(x => x.id === id);
         return s ? s.text.split(/\s+/).slice(0, 5).join(' ') + '…' : '';
     }).filter(Boolean).join(' ، ');
-    playErrorSound();
-    recordAnswer(false, [t('link_unknown_err') + ' ' + names]);
+    const label = t('link_unknown_err') + ' ' + names;
+    if (unk.length >= data.starts.length || GameState.isWeaknessMode) {
+        playErrorSound();
+        recordAnswer(false, [label]);
+        return;
+    }
+    data.unknownInfo = { unknown: unk.length, total: data.starts.length, label };
+    recordAnswer(true, [label]);
 }
 
 // 🌟 [جديد] بناء واجهة لعبة "اربط أول الآية بآخرها" — تعتمد على النقر فقط (بلا سحب) بنفس فلسفة
