@@ -95,9 +95,9 @@ export function formatAdultSimilar(sim, pool) {
     // 🌟 [تعديل] كل خيار صار زراً يضغطه الطالب فتُسجَّل إجابته (صحيحة أو خاطئة) تلقائياً — يربطها adultGame.js عبر .sim-opt-btn
     const lines = options.map((opt, i) => {
         const lbl = optionLabel(opt);
-        const cls = isQuran ? 'sim-opt-btn quran-text' : 'sim-opt-btn';
+        const cls = isQuran ? 'btn btn-outline sim-opt-btn quran-text' : 'btn btn-outline sim-opt-btn';
         const size = sim.kind === 'sim_recall' ? '1.7rem' : '2rem';
-        return `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:10px 0; padding:12px 16px; text-align:center; cursor:pointer; background:#fff; color:inherit; border:2px solid var(--primary, #0f766e); border-radius:14px; font-family:inherit;"><b>${letters[i]})</b> ${isQuran ? '﴿ ' + lbl + ' ﴾' : lbl}</button>`;
+        return `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:12px 0; padding:12px 16px; text-align:center;"><b>${letters[i]})</b> ${isQuran ? '﴿ ' + lbl + ' ﴾' : lbl}</button>`;
     }).join('');
     const correctIndex = options.findIndex(opt => String(opt) === String(sim.correctAnswer));
     correctLabel = isQuran ? '﴿ ' + optionLabel(sim.correctAnswer) + ' ﴾' : optionLabel(sim.correctAnswer);

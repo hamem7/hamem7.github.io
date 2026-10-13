@@ -875,9 +875,10 @@ async function playNextMission() {
                     const idx = Number(b.dataset.idx);
                     const ok = idx === cd.correctIndex;
                     btns.forEach(x => { x.disabled = true; x.style.cursor = 'default'; });
-                    b.style.background = ok ? '#bbf7d0' : '#fecaca';
-                    b.style.borderColor = ok ? '#16a34a' : '#dc2626';
-                    if (!ok && btns[cd.correctIndex]) { btns[cd.correctIndex].style.background = '#bbf7d0'; btns[cd.correctIndex].style.borderColor = '#16a34a'; }
+                    // الأزرار بكلاسات المنصة (btn-correct/btn-wrong بـ !important)، فنبدّل الكلاس لا اللون المباشر
+                    const mark = (el, good) => { el.classList.remove('btn-outline'); el.classList.add(good ? 'btn-correct' : 'btn-wrong'); };
+                    mark(b, ok);
+                    if (!ok && btns[cd.correctIndex]) mark(btns[cd.correctIndex], true);
                     recordAnswer(ok, ok ? [] : [tfAr('gen_note_prefix', { text: `اختار: ${cd.optionTexts[idx]}` })]);
                 }));
             }
