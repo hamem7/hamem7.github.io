@@ -296,6 +296,16 @@ export function setCycleWeeks(v) {
     try { localStorage.setItem('dh_hw_cycle_weeks', String(Math.max(1, Math.min(26, Math.round(Number(v) || DEFAULT_CYCLE_WEEKS))))); } catch (e) { /* لا شيء */ }
 }
 
+// آخر مستوى صعوبة اختاره المعلم (يشترك فيه الإعداد والإرسال الجماعي). الافتراضي: صعب
+const DIFFICULTY_KEY = 'dh_hw_difficulty';
+export function getHwDifficulty() {
+    try { const v = localStorage.getItem(DIFFICULTY_KEY); if (v === 'medium' || v === 'hard') return v; } catch (e) { /* لا شيء */ }
+    return 'hard';
+}
+export function setHwDifficulty(v) {
+    try { localStorage.setItem(DIFFICULTY_KEY, v === 'medium' ? 'medium' : 'hard'); } catch (e) { /* لا شيء */ }
+}
+
 // مقاطع أُسندت للطالب في واجبات منشورة حديثة قد لا تكون سُلّمت بعد (فلا تظهر بعد في أحداث الأداء)
 export async function getPendingSegIds(student, now = Date.now()) {
     const out = new Set();
@@ -386,19 +396,19 @@ const FALLBACK_FORMATS = ['dropdown', 'mcq_next', 'mcq_prev', 'intruder_word', '
 
 // يبني سؤال البند: الصيغة المخطَّطة أولاً على الآية المختارة، ثم آيات أخرى من نفس المقطع، ثم صيغ بديلة. للبند العلاجي نتجنّب
 // صيغة الخطأ السابق في أول جولة (نفس الموضع بشكل مختلف) ثم نسمح بها كحل أخير. يرجع {question, fmt, ayah} أو null.
-async function buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, multiSurah, rng) {
+async function buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, multiSurah, rng, difficulty = 'medium') {
     const first = pickAyahFor(item, cands, ctx, poolIndex, rng);
     const others = cands.filter(a => a !== first).sort(() => rng() - 0.5).slice(0, 3);
     const ayahs = [first, ...others];
     const state = ctx.states.get(item.seg.id);
     const avoid = new Set(item.cat === 'err' && state && state.lastWrong && state.lastWrong.fmt ? [state.lastWrong.fmt] : []);
-    const baseFmts = [item.fmt, ...FALLBACK_FORMATS.filter(f => f !== item.fmt && (multiSurah || f !== 'mcq_surah'))];
+    const baseFmts = [item.fmt, ...FALLBACK_FORMATS.filter(f => f !== item.fmt && (multiSurah || f !== 'mcq_surah') && !(difficulty === 'hard' && f === 'visual_page'))];
     for (const pass of [true, false]) {
         const fmts = pass ? baseFmts.filter(f => !avoid.has(f)) : baseFmts;
         if (pass && !avoid.size) continue;           // لا شيء نتجنّبه: الجولة الثانية تكفي
         for (const ayah of ayahs) {
             for (const fmt of fmts) {
-                const built = await hwEngine.buildQuestionForPlan(fmt, ayah, pool, { allowFallback: false });
+                const built = await hwEngine.buildQuestionForPlan(fmt, ayah, pool, { allowFallback: false, difficulty });
                 if (built) return { ...built, ayah };
             }
         }
@@ -442,7 +452,11 @@ async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) 
     }
 }
 
-export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random, similaritiesManager = null, similarityCount = null } = {}) {
+// المستويات المتاحة للمعلم: 'medium' (السلوك الأصلي) و'hard' (أسئلة أقل كشفاً وخيارات أكثر إيهاماً وكتابة أكثر). الافتراضي في الواجهة: صعب
+export const HW_DIFFICULTIES = ['medium', 'hard'];
+
+export async function planSmartHomework(student, n, { selection = { mode: 'all' }, hwEngine, rng = Math.random, similaritiesManager = null, similarityCount = null, difficulty = 'medium' } = {}) {
+    if (!HW_DIFFICULTIES.includes(difficulty)) difficulty = 'medium';
     const ctx = await loadContext(student);
     if (!ctx) return { ok: false, reason: 'unavailable' };
     if (!ctx.range.ok) return { ok: false, reason: 'no_range', ctx };
@@ -469,7 +483,7 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
     const simQs = await pickSimilarityQuestions(similarityCount == null ? similarityCountFor(n) : similarityCount, poolIndex, new Set(scopeSegs.map(s => s.surah)), rng, similaritiesManager);
     const plan = planHomework({
         n: Math.max(1, n - simQs.length), path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats,
-        now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds
+        now: Date.now(), rng, focusFilter, multiSurah, avoidSegIds: model.pendingSegIds, difficulty
     });
     if (!plan.items.length) return { ok: false, reason: 'empty', ctx };
 
@@ -479,7 +493,7 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
         const long = all.filter(a => wordsCount(a) > 3);
         const cands = long.length ? long : all;
         if (!cands.length) continue;
-        const built = await buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, multiSurah, rng);
+        const built = await buildWithFallback(item, cands, ctx, poolIndex, pool, hwEngine, multiSurah, rng, difficulty);
         if (!built) continue;
         const { ayah } = built;
         const meta = {
