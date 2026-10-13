@@ -619,8 +619,16 @@
                     </div>
 
                     <div class="form-grid">
-                        <div class="input-group"><label id="hw-qcount-label">عدد الأسئلة:</label><input type="number" id="hw-q-count-smart" value="15" min="15" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
+                        <div class="input-group"><label id="hw-qcount-label">عدد الأسئلة:</label><input type="number" id="hw-q-count-smart" value="20" min="20" max="50" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
                         <div class="input-group"><label id="hw-cycle-label">دورة المراجعة (أسابيع):</label><input type="number" id="hw-cycle-weeks" value="6" min="1" max="26" style="width: 100%; padding: 10px; font-size: 1.4rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box;"></div>
+                    </div>
+                    <div class="input-group" style="margin-top: 12px;">
+                        <label id="hw-difficulty-label" for="hw-difficulty">مستوى الصعوبة:</label>
+                        <select id="hw-difficulty" style="width: 100%; padding: 10px; font-size: 1.2rem; text-align: center; border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-family: inherit;">
+                            <option value="medium" id="hw-diff-medium">متوسط</option>
+                            <option value="hard" id="hw-diff-hard" selected>صعب</option>
+                        </select>
+                        <div id="hw-difficulty-hint" style="margin-top: 6px; font-size: 0.88rem; color: #64748b;"></div>
                     </div>
                     <div id="hw-coverage-line" class="hw-coverage"></div>
                 </div>

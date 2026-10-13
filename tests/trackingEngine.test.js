@@ -268,6 +268,20 @@ await test('planHomework: سقف الأسئلة اليدوية والبصرية 
     assert.ok(p.items.filter(i => i.fmt === 'mcq_surah').length <= 3);
   }
 });
+await test('planHomework: الصعب بلا أسئلة صفحة يمنى/يسرى، وسقف اليدوي 30%، وأكثر استحضاراً وإنتاجاً من المتوسط', () => {
+  let hardHeavy = 0, medHeavy = 0;
+  for (let seed = 1; seed <= 20; seed++) {
+    const args = { n: 20, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW };
+    const hard = planHomework({ ...args, rng: rngSeed(seed), difficulty: 'hard' });
+    const med = planHomework({ ...args, rng: rngSeed(seed) });
+    assert.equal(hard.items.length, 20);
+    assert.equal(hard.items.filter(i => i.fmt === 'visual_page').length, 0, 'seed ' + seed);
+    assert.ok(hard.items.filter(i => HW_FORMATS[i.fmt].manual).length <= 6, 'seed ' + seed);
+    hardHeavy += hard.items.filter(i => HW_FORMATS[i.fmt].level !== 'recognition').length;
+    medHeavy += med.items.filter(i => HW_FORMATS[i.fmt].level !== 'recognition').length;
+  }
+  assert.ok(hardHeavy > medHeavy, `hard=${hardHeavy} medium=${medHeavy}`);
+});
 await test('planHomework: لا سؤال سورة عند نطاق سورة واحدة (multiSurah=false)', () => {
   const p = plan(20, [], { multiSurah: false });
   assert.equal(p.items.filter(i => i.fmt === 'mcq_surah').length, 0);

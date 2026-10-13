@@ -14,7 +14,7 @@ import { AppState } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { isEnglish, t } from '../core/i18n.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
-import { loadContext, buildSelectionModel, planSmartHomework, suggestSelection, saveLastScope, getMonthlyStaleness } from '../core/trackingService.js';
+import { loadContext, buildSelectionModel, planSmartHomework, suggestSelection, saveLastScope, getMonthlyStaleness, getHwDifficulty, setHwDifficulty } from '../core/trackingService.js';
 import { listDueToday, markStudentPublished } from '../core/hwScheduleService.js';
 import { publishHomeworkToServer, friendlyErrorText } from '../core/homeworkApi.js';
 import { loadScreen, switchTheme } from '../core/navigation.js';
@@ -23,7 +23,7 @@ import { catLabel } from './skillProfile.js';
 
 const L = (ar, en) => (isEnglish() ? en : ar);
 const nf = (n) => String(n);
-const MIN_Q = 15, MAX_Q = 50, DEFAULT_Q = 15;
+const MIN_Q = 20, MAX_Q = 50, DEFAULT_Q = 20;
 const clampQ = (v) => Math.max(MIN_Q, Math.min(MAX_Q, Math.round(Number(v)) || DEFAULT_Q));
 const BATCH_OPTIONS = [5, 10, 15, 20];   // كم طالباً يظهرون في القائمة دفعة واحدة (الباقون المستحقون ينتظرون ويحلّون مكان من نُشر لهم)
 const BATCH_KEY = 'dh_bulk_batch';
@@ -301,6 +301,7 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
             <span class="lbl">${esc(L('للمحدَّدين:', 'For selected:'))}</span>
             <select id="bs-bulk-scope"><option value="all">${esc(L('كل النطاق', 'Whole range'))}</option><option value="suggest">✨ ${esc(L('اقترح لي (الأحوج للمراجعة)', 'Suggest (needs review most)'))}</option></select>
             <input type="number" id="bs-bulk-q" value="${DEFAULT_Q}" min="${MIN_Q}" max="${MAX_Q}" aria-label="${esc(L('عدد الأسئلة', 'Number of questions'))}">
+            <select id="bs-diff" aria-label="${esc(L('مستوى الصعوبة', 'Difficulty'))}"><option value="medium"${getHwDifficulty() === 'medium' ? ' selected' : ''}>${esc(L('متوسط', 'Medium'))}</option><option value="hard"${getHwDifficulty() === 'hard' ? ' selected' : ''}>${esc(L('صعب', 'Hard'))}</option></select>
             <button type="button" class="bs-btn sec" data-act="apply">${esc(L('تطبيق', 'Apply'))}</button>
         </div>
         <div class="bs-meta"><span id="bs-meta-t"></span>
@@ -578,6 +579,12 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
         }
     });
     ov.addEventListener('change', async (e) => {
+        if (e.target.id === 'bs-diff') {
+            // تغيير المستوى يُبطل الواجبات المجهَّزة بالمستوى السابق ليُعاد تجهيزها بالجديد
+            setHwDifficulty(e.target.value);
+            if (!busy) { rows.forEach(r => { if (r.state === 'ready' || r.state === 'fail') { r.state = 'idle'; r.res = null; } }); renderAll(); }
+            return;
+        }
         const rw = e.target.closest('.bs-rw'); if (!rw || busy) return;
         const r = byId(rw.dataset.id); if (!r) return;
         if (e.target.dataset.f === 'sel') { r.sel = e.target.checked; renderFoot(); return; }
@@ -636,7 +643,7 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
                     r.sugg = ids;
                     if (ids.length) selection = { mode: 'hizb', ids, unit: r.model.unit };
                 }
-                const res = await planSmartHomework(r.student, r.q, { selection, hwEngine });
+                const res = await planSmartHomework(r.student, r.q, { selection, hwEngine, difficulty: $('#bs-diff') && $('#bs-diff').value === 'medium' ? 'medium' : 'hard' });
                 if (!res.ok) {
                     r.state = 'fail'; fails++;
                     r.err = res.reason === 'no_range' ? L('لا نطاق حفظ مسجَّل', 'No memorization range')

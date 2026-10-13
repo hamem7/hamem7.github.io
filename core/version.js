@@ -8,13 +8,30 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.20';
+export const APP_VERSION = '1.0.21';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-13] مستوى صعوبة الواجب (متوسط / صعب) والحد الأدنى 20 سؤالاً
+    {
+        version: '1.0.21',
+        date: '2026-10-13',
+        items: [
+            {
+                type: 'new',
+                ar: 'مستوى صعوبة الواجب: اختر «متوسط» أو «صعب» من شاشة الإعداد وفي الإرسال الجماعي (الصعب هو الافتراضي). في الصعب يُعرض من الآية أقل (نصفها فقط في التالية/السابقة، وربما يُسأل عن الآية الثانية بعدها)، والخيارات خمسة شديدة التشابه، وتُخفى كلمتان بدل كلمة، وترتيب ست آيات، وخواتيم بنصف الآية مع خيارات «شبه صحيحة»، وكلمة مستبدَلة بدل المضافة، وأسئلة كتابة أكثر، ولا تظهر أسئلة الصفحة اليمنى/اليسرى (التخمين 50%).',
+                en: 'Homework difficulty: pick "Medium" or "Hard" on the prep screen and in bulk send (Hard is the default). Hard shows less of the ayah (only half in next/previous, sometimes asking for the second one after), uses five near-identical choices, hides two words instead of one, orders six ayahs, hides half of the ending with near-correct decoys, swaps a word instead of adding one, includes more written questions, and drops right/left-page questions (50% guessable).'
+            },
+            {
+                type: 'improved',
+                ar: 'الحد الأدنى لعدد أسئلة الواجب صار 20 بدل 15.',
+                en: 'The minimum number of homework questions is now 20 instead of 15.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-13] مزامنة سجل الطلاب بين أجهزة المعلم + مراقبة أخطاء الطلاب
     {
         version: '1.0.20',
