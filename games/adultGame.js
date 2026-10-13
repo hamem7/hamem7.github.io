@@ -865,7 +865,10 @@ async function playNextMission() {
             // 🌟 [جديد] سؤال المتشابهات: الخيارات أزرار — الضغط يحدّد إجابة الطالب ويُسجَّلها صحيحة أو خاطئة تلقائياً (بلا تقييم المعلم)
             if (type === 'similar' && GameState.currentData && GameState.currentData.correctIndex >= 0) {
                 const cd = GameState.currentData;
-                document.getElementById('teacher-eval-area').style.display = 'none';
+                // ⚠️ لا نُخفي #teacher-eval-area نفسها: فيها #game-question (نص السؤال والخيارات)، وإخفاؤها يترك العنوان فقط وشاشة فارغة.
+                // نُخفي فقط ما لا يلزم: أزرار تقييم المعلم وزر إظهار الإجابة (الإجابة تُلوَّن تلقائياً بعد الضغط).
+                document.getElementById('teacher-eval-buttons').style.display = 'none';
+                document.getElementById('show-ans-btn').style.display = 'none';
                 const btns = [...document.querySelectorAll('#game-question .sim-opt-btn')];
                 btns.forEach(b => b.addEventListener('click', () => {
                     if (cd.__answered) return;

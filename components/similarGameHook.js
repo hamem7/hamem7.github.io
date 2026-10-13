@@ -100,7 +100,7 @@ export function formatAdultSimilar(sim, pool) {
         return `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:10px 0; padding:12px 16px; text-align:center; cursor:pointer; background:#fff; color:inherit; border:2px solid var(--primary, #0f766e); border-radius:14px; font-family:inherit;"><b>${letters[i]})</b> ${isQuran ? '﴿ ' + lbl + ' ﴾' : lbl}</button>`;
     }).join('');
     const correctIndex = options.findIndex(opt => String(opt) === String(sim.correctAnswer));
-    const ci = correctIndex;
+    correctLabel = isQuran ? '﴿ ' + optionLabel(sim.correctAnswer) + ' ﴾' : optionLabel(sim.correctAnswer);
     const body = `<div style="font-size:1.6rem; font-weight:bold; margin-bottom:12px;">${question}</div>` +
         `<div class="quran-text" style="font-size:3rem; margin:10px 0 16px;">﴿ ${shown} ﴾</div>` +
         `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
