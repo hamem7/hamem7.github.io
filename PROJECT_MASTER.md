@@ -161,6 +161,7 @@ test-test/
 | Backend | **Google Apps Script Web App + Google Sheets (تخزين فقط)**: `Dar-Ham-Homework-Lab/backend/Code.gs`. أوراق: `Homeworks`, `Submissions`, `Teachers`. سجل JSON مقسّم chunks (45000 حرف × 8). إجراءات: `ping`, `getHomework`, `submit` (عامة) · `googleSignIn` · `authCheck`, `createHomework`, `listHomeworks`, `getHomeworkFull`, `setHomeworkStatus`, `listSubmissions`, `gradeSubmission`, `voidSubmission` (معلم). الطلبات `POST text/plain` بلا preflight |
 | التنظيف | `computeCleanup_`: معتمَد بالكامل → حذف بعد **20 يومًا**؛ لا تسليمات → بعد 14 يومًا؛ غير مصحّح → لا يُحذف + تنبيه للمعلم بعد 14 يومًا (`hw_stale_notified`). الدوال `previewCleanup`, `dailyCleanup`, `installCleanupTrigger`, `removeCleanupTrigger` **موجودة في الكود**؛ **المشغّل اليومي مفعَّل** (2026-10-06 بطلب المعلم، `installCleanupTrigger`، قرابة الساعة 3 صباحًا؛ إيقافه: `removeCleanupTrigger`). معاينة `previewCleanup` قبل التفعيل: 0 واجبات للحذف، 6 تنتظر التصحيح |
 | المصادقة | §14 |
+- **(2026-10-13) مزامنة الأجهزة ومراقبة الأخطاء:** أوراق `SyncData` و`ClientLogs`؛ إجراءات معلم `syncManifest/syncPull/syncPush/listClientErrors` وعامة `logClientError` (راجع PROJECT_STATE). الدمج اتحادي بلا حذف؛ ربط الطالب بين الأجهزة بـ`syncUid`؛ تفاصيل الحدود في `engine/syncMerge.js` و`core/cloudSync.js`.
 - الخدمة الفعلية = Sheets عبر Apps Script (Firebase كانت الفكرة الأولى ثم تُركت — قرار المعلم). `Dar-Ham-Homework-Lab/` معمل التجربة، ونتائجه مدموجة عبر `core/api.js`.
 
 ## 14. المصادقة والصلاحيات

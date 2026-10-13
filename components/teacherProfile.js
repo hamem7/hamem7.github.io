@@ -239,6 +239,9 @@ export function initTeacherProfileUI() {
     const backupBtn = document.getElementById('teacher-profile-backup-btn');
     const restoreBtn = document.getElementById('teacher-profile-restore-btn');
     const restoreInput = document.getElementById('teacher-profile-restore-input');
+    // 🌟 [جديد 2026-10-13] مزامنة سجل الطلاب بين الأجهزة — راجع core/cloudSync.js (تُحمَّل عند الحاجة فقط)
+    const syncInfoEl = document.getElementById('teacher-sync-info');
+    const syncBtn = document.getElementById('teacher-sync-btn');
 
     if (!badge || !modal) return; // شاشة أخرى غير الرئيسية، لا شيء لعمله هنا
 
@@ -261,6 +264,19 @@ export function initTeacherProfileUI() {
         } catch (e) {
             backupLastInfoEl.textContent = `${t('profile_backup_last_prefix')}${lastAt}`;
         }
+    }
+
+    async function renderSyncInfo() {
+        if (!syncInfoEl) return;
+        try {
+            const { getSyncStatus } = await import('../core/cloudSync.js');
+            const st = getSyncStatus();
+            if (!st.lastAt) { syncInfoEl.textContent = t('sync_never'); return; }
+            const formatted = new Intl.DateTimeFormat(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US', {
+                day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit'
+            }).format(new Date(st.lastAt));
+            syncInfoEl.textContent = `${t('sync_last_prefix')}${formatted}`;
+        } catch (e) { syncInfoEl.textContent = t('sync_never'); }
     }
 
     // 🌟 إظهار/إخفاء أيقونة الختم الافتراضية مقابل معاينة الختم المرفوع فعلياً
@@ -361,6 +377,7 @@ export function initTeacherProfileUI() {
         pendingStamp = profile.stamp || null;
         renderStampPreview();
         renderBackupLastInfo();
+        renderSyncInfo();
         modal.style.display = 'flex';
     }
     function closeModal() { modal.style.display = 'none'; }
@@ -436,6 +453,34 @@ export function initTeacherProfileUI() {
                 alert(t('backup_export_error'));
             } finally {
                 backupBtn.disabled = false;
+            }
+        });
+    }
+
+    // 🌟 [جديد 2026-10-13] زر «زامن الآن»: يفتح بوابة جوجل إن لزم، ثم يدمج سجل الطلاب مع الخادم (اتحاد فقط، بلا حذف)
+    if (syncBtn) {
+        syncBtn.addEventListener('click', async () => {
+            syncBtn.disabled = true;
+            if (syncInfoEl) syncInfoEl.textContent = t('sync_syncing');
+            try {
+                const { syncNow } = await import('../core/cloudSync.js');
+                const r = await syncNow({ signIn: true });
+                let msg;
+                if (r.skipped === 'cancelled') msg = t('sync_cancelled');
+                else if (r.conflicts) msg = t('sync_conflict');
+                else if (r.errors && r.errors.length && !r.code) msg = t('sync_partial').replace('{errors}', r.errors.slice(0, 3).join(' | '));
+                else if (!r.ok) msg = t('sync_error');
+                else msg = t('sync_done') + '\n' + t('sync_done_detail')
+                    .replace('{students}', r.newStudents).replace('{history}', r.historyAdded)
+                    .replace('{events}', r.eventsAdded).replace('{pushed}', r.partsPushed);
+                alert(msg);
+                if (r.newStudents || r.historyAdded || r.eventsAdded) setTimeout(() => location.reload(), 300);   // لتظهر الشاشات بالبيانات الجديدة
+            } catch (e) {
+                console.error('تعذرت المزامنة:', e);
+                alert(t('sync_error'));
+            } finally {
+                syncBtn.disabled = false;
+                renderSyncInfo();
             }
         });
     }

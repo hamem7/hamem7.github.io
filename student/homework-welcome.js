@@ -16,6 +16,7 @@ import { t } from '../core/i18n.js';
 import { ApiError } from '../core/api.js';
 import { fetchPublicHomework, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 import { getAttempt, loadDraft } from '../core/submitQueue.js';
+import { initErrorReporter, reportLoadFailure } from '../core/errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء
 
 let currentHwId = null;
 
@@ -81,9 +82,11 @@ async function loadHomework(hwId) {
     showMsg(t('hw_st_loading'), 'info');
 
     let homework;
+    initErrorReporter({ getHwId: () => currentHwId || hwId });
     try {
         homework = await fetchPublicHomework(hwId);
     } catch (e) {
+        reportLoadFailure(hwId, e && e.code, e && e.message);
         enterBtn.disabled = false;
         const final = (e instanceof ApiError) && (e.code === 'NOT_FOUND' || e.code === 'CLOSED');
         showMsg(friendlyErrorText(e) + (final ? '' : ' — ' + t('hw_st_nothing_submitted')), 'error');

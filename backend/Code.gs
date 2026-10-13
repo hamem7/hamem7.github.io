@@ -21,6 +21,9 @@
  *         'setHomeworkStatus'|'listSubmissions'|'gradeSubmission'|'voidSubmission',
  *         userId:'...', sessionKey:'...', ...}     (teacher only — issued by googleSignIn)
  *   POST {action:'googleSignIn', idToken:'...'}    (public — the Google ID token is the proof)
+ *   POST {action:'logClientError', hwId, kind, message, ...}   (public, rate-limited; student-page error report)
+ *   POST {action:'syncManifest'|'syncPull'|'syncPush'|'listClientErrors', userId, sessionKey, ...}  (teacher only;
+ *         syncPush uses optimistic concurrency via expectedRev; see "SyncData" below)
  *
  * The client MUST send POST bodies as Content-Type: text/plain (a "simple request", so the
  * browser does not send a CORS preflight, which Apps Script cannot answer).
@@ -36,7 +39,7 @@ function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.3.0';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
+var VERSION = '1.4.0';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
 // 🌟 [جديد 2026-10-01] Client ID العلني للواجهة (نفس GOOGLE_CLIENT_ID في core/api.js) — احتياطي لو لم تُضبط الخاصية في Script Properties
 var DEFAULT_GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 var SHEET_HW = 'Homeworks';
@@ -62,6 +65,26 @@ var SUB_FIXED = ['id', 'hwId', 'clientSubmissionId', 'studentName', 'studentName
 // existing JSON blob, exactly like `meta`/`assignedStudentId` already do. That means zero changes
 // to the Homeworks/Submissions sheet schema, so no migration of already-deployed rows is needed.
 var TEACHERS_FIXED = ['userId', 'googleSub'];
+
+// 🌟 [جديد 2026-10-13 — مزامنة سجل الطالب بين أجهزة المعلم] ورقة SyncData: مفتاح/قيمة لكل معلم. الخادم لا يفهم محتوى
+// القيمة (JSON يبنيه العميل: ملف الطالب + سجل التقييمات + أحداث التتبّع)؛ هو يخزّن ويتحقق ويمنع الكتابة فوق نسخة أحدث.
+// rowKey = ownerId + ':' + key (يمنع أي معلم من قراءة/كتابة مفاتيح معلم آخر)، وupdatedAt = رقم نسخة يخصصه الخادم (rev).
+var SHEET_SYNC = 'SyncData';
+var SYNC_FIXED = ['rowKey', 'ownerId', 'key', 'updatedAt'];
+var MAX_SYNC_ITEMS_PER_CALL = 20;
+var MAX_SYNC_PULL_KEYS = 8;
+var MAX_SYNC_ROWS_PER_TEACHER = 3000;
+var MAX_SYNC_ITEM_CHARS = 330000;          // أقل من MAX_CHUNKS * CHUNK_SIZE مع هامش لغلاف {key,rev,data}
+
+// 🌟 [جديد 2026-10-13 — مراقبة الأخطاء] ورقة ClientLogs: أخطاء صفحة الطالب (فشل إرسال/تحميل/خطأ جافاسكربت) مرتبطة
+// بالواجب ومالكه ليراها المعلم وحده. مكتوبة بحذر: حدود معدّل، ولا تُوقف أبداً مسار الطالب إن فشلت.
+var SHEET_LOGS = 'ClientLogs';
+var LOGS_FIXED = ['id', 'at', 'hwId', 'ownerId', 'kind'];
+var LOG_KINDS = ['js_error', 'unhandled_rejection', 'submit_failed', 'load_failed', 'other'];
+var MAX_LOG_ROWS = 1500;                   // عند تجاوزه تُحذف أقدم LOG_TRIM_ROWS صفاً
+var LOG_TRIM_ROWS = 500;
+var LOG_PER_HW_PER_MIN = 10;               // حد التقارير لكل واجب في الدقيقة
+var LOG_GLOBAL_PER_MIN = 60;               // وحد عام في الدقيقة
 
 // =====================================================================================
 // Entry points
@@ -89,6 +112,8 @@ function handle_(req, method) {
       case 'ping':             return out_(ok_({ version: VERSION, serverTime: nowIso_(), configured: true }));
       case 'getHomework':      return out_(getHomeworkPublic_(req));
       case 'submit':           return out_(withLock_(function () { return submit_(req); }));
+      // 🌟 [2026-10-13] عام: تقرير خطأ من صفحة الطالب (محدود المعدل، لا يفشل أبداً بوجه الطالب)
+      case 'logClientError':   return out_(logClientError_(req));
 
       // 🌟 multi-teacher: public (no prior auth needed) — the Google ID token IS the proof of identity.
       // 🌟🌟 [2026-10-03] حُذف إجراء migrateLegacyKey مع حذف مفتاح المعلم — ربط الواجبات القديمة صار من محرّر
@@ -127,6 +152,23 @@ function handle_(req, method) {
         var authV = authenticateTeacher_(req);
         return out_(withLock_(function () { return voidSubmission_(req, authV); }));
       }
+      // 🌟 [2026-10-13] مزامنة سجل الطالب بين أجهزة المعلم + قراءة أخطاء الطلاب (للمعلم فقط)
+      case 'syncManifest': {
+        var authSM = authenticateTeacher_(req);
+        return out_(syncManifest_(authSM));
+      }
+      case 'syncPull': {
+        var authSP = authenticateTeacher_(req);
+        return out_(syncPull_(req, authSP));
+      }
+      case 'syncPush': {
+        var authSU = authenticateTeacher_(req);
+        return out_(withLock_(function () { return syncPush_(req, authSU); }));
+      }
+      case 'listClientErrors': {
+        var authLE = authenticateTeacher_(req);
+        return out_(listClientErrors_(req, authLE));
+      }
       default: throw err_('UNKNOWN_ACTION', 'Unknown action: ' + action);
     }
   } catch (e) {
@@ -148,6 +190,8 @@ function setup() {
   ensureSheet_(ss, SHEET_HW, HW_FIXED, MAX_CHUNKS);
   ensureSheet_(ss, SHEET_SUB, SUB_FIXED, MAX_CHUNKS);
   ensureSheet_(ss, SHEET_TEACHERS, TEACHERS_FIXED, MAX_CHUNKS);
+  ensureSheet_(ss, SHEET_SYNC, SYNC_FIXED, MAX_CHUNKS);
+  ensureSheet_(ss, SHEET_LOGS, LOGS_FIXED, MAX_CHUNKS);
   var removed = removeObsoleteAuthProperties_();
   Logger.log('DarHam Homework is ready (Google Sign-In only).' + (removed.length ? ' Removed obsolete properties: ' + removed.join(', ') : ''));
   return true;
@@ -325,6 +369,162 @@ function safeEqual_(a, b) {
   var diff = 0;
   for (var i = 0; i < a.length; i++) diff |= (a.charCodeAt(i) ^ b.charCodeAt(i));
   return diff === 0;
+}
+
+
+// =====================================================================================
+// 🌟 [جديد 2026-10-13] مزامنة سجل الطالب بين أجهزة المعلم (SyncData)
+// =====================================================================================
+// الأمان: كل صف مفتاحه ownerId:key فلا يصل معلم لبيانات غيره. الكتابة بتفاؤل (expectedRev): لو تغيّر الصف على الخادم منذ
+// آخر قراءة للعميل يُرفض ذلك المفتاح (conflicts) ليسحب العميل ويدمج ثم يعيد المحاولة — فلا يُكتب فوق عمل جهاز آخر.
+// persisted:true لا يُرسل إلا بعد إعادة قراءة كل صف مكتوب والتحقق منه (verifyRow_).
+
+function syncKeyOk_(k) { return typeof k === 'string' && /^[A-Za-z0-9_:.#\-]{3,120}$/.test(k); }
+
+function syncRows_(auth) {
+  var sh = getSheet_(SHEET_SYNC);
+  var rows = readLightRows_(sh, SYNC_FIXED, false);
+  var mine = rows.filter(function (r) { return String(r.fixed[1]) === auth.userId; });
+  return { sh: sh, all: rows, mine: mine };
+}
+
+function syncManifest_(auth) {
+  var r = syncRows_(auth);
+  return ok_({ items: r.mine.map(function (x) { return { key: String(x.fixed[2]), rev: Number(x.fixed[3]) || 0 }; }), serverTime: nowIso_() });
+}
+
+function syncPull_(req, auth) {
+  var keys = req.keys;
+  if (!Array.isArray(keys) || !keys.length || keys.length > MAX_SYNC_PULL_KEYS) throw err_('BAD_REQUEST', 'keys must be 1-' + MAX_SYNC_PULL_KEYS + ' items');
+  var r = syncRows_(auth);
+  var byKey = {};
+  r.mine.forEach(function (x) { byKey[String(x.fixed[2])] = x; });
+  var rows = [];
+  keys.forEach(function (k) { if (byKey[String(k)]) rows.push(byKey[String(k)]); });
+  readRecsAt_(r.sh, SYNC_FIXED, rows);
+  return ok_({ items: rows.filter(function (x) { return x.rec; }).map(function (x) { return { key: String(x.fixed[2]), rev: Number(x.fixed[3]) || 0, data: x.rec.data }; }) });
+}
+
+/** req.items = [{key, expectedRev (رقم النسخة التي رآها العميل آخر مرة، أو 0 لمفتاح جديد), data}] */
+function syncPush_(req, auth) {
+  var items = req.items;
+  if (!Array.isArray(items) || !items.length || items.length > MAX_SYNC_ITEMS_PER_CALL) throw err_('BAD_REQUEST', 'items must be 1-' + MAX_SYNC_ITEMS_PER_CALL);
+  var r = syncRows_(auth);
+  var byKey = {};
+  r.mine.forEach(function (x) { byKey[String(x.fixed[2])] = x; });
+  var written = [], conflicts = [], seen = {};
+  var rowsCount = r.mine.length;
+  var now = Date.now();
+  for (var i = 0; i < items.length; i++) {
+    var it = items[i] || {};
+    if (!syncKeyOk_(it.key)) throw err_('BAD_REQUEST', 'invalid key');
+    if (seen[it.key]) throw err_('BAD_REQUEST', 'duplicate key in one call');
+    seen[it.key] = true;
+    if (it.data === undefined || it.data === null || typeof it.data !== 'object') throw err_('BAD_REQUEST', 'data must be an object or array');
+    var expected = Number(it.expectedRev) || 0;
+    var cur = byKey[it.key] || null;
+    var curRev = cur ? (Number(cur.fixed[3]) || 0) : 0;
+    if (curRev !== expected) { conflicts.push({ key: it.key, rev: curRev }); continue; }
+    var rec = { key: it.key, data: it.data };
+    if (JSON.stringify(rec).length > MAX_SYNC_ITEM_CHARS) throw err_('TOO_LARGE', 'Sync item too large: ' + it.key);
+    var rev = Math.max(now, curRev + 1);
+    var rowIndex;
+    if (cur) { rowIndex = cur.rowIndex; }
+    else {
+      if (rowsCount >= MAX_SYNC_ROWS_PER_TEACHER) throw err_('LIMIT_REACHED', 'Sync storage limit reached for this teacher');
+      rowIndex = nextRow_(r.sh, SYNC_FIXED);
+      rowsCount++;
+    }
+    var hash = writeRow_(r.sh, SYNC_FIXED, rowIndex, [auth.userId + ':' + it.key, auth.userId, it.key, rev], rec);
+    verifyRow_(r.sh, SYNC_FIXED, rowIndex, auth.userId + ':' + it.key, hash);
+    written.push({ key: it.key, rev: rev });
+    if (!cur) byKey[it.key] = { rowIndex: rowIndex, fixed: [auth.userId + ':' + it.key, auth.userId, it.key, rev] };
+  }
+  return ok_({ persisted: true, written: written, conflicts: conflicts });
+}
+
+// =====================================================================================
+// 🌟 [جديد 2026-10-13] مراقبة أخطاء صفحة الطالب (ClientLogs)
+// =====================================================================================
+// الهدف: يعرف المعلم أن طالباً فشل إرساله أو انهارت صفحته دون أن يشتكي. أمان وأداء:
+//  - لا مصادقة (الطالب بلا حساب) لذا: صيغة صارمة، قائمة بيضاء للأنواع، تقصير النصوص، تنظيف الرموز، حد معدّل لكل واجب وعام،
+//    وحذف التكرار المتطابق خلال 10 دقائق. لا نخزّن إجابات الطالب ولا أي بيانات شخصية.
+//  - فشلها لا يظهر للطالب: تُرجع ok دائماً حتى عند الإسقاط (dropped) ولا تُعطّل مساره.
+//  - المعدّل يُعدّ في CacheService (بلا قفل)، والكتابة بقفل قصير لا يزاحم تسليمات الطلاب (تُسقط التقرير إن لم يتوفر).
+
+function logClean_(v, max) {
+  return String(v === undefined || v === null ? '' : v).replace(/[<>"'`\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().substr(0, max);
+}
+
+function logRateAllow_(cache, key, limit, ttl) {
+  var n = Number(cache.get(key)) || 0;
+  if (n >= limit) return false;
+  cache.put(key, String(n + 1), ttl);
+  return true;
+}
+
+function logClientError_(req) {
+  try {
+    var kind = String(req.kind || 'other');
+    if (LOG_KINDS.indexOf(kind) < 0) kind = 'other';
+    var hwId = String(req.hwId || '');
+    if (hwId && !/^HW_[0-9a-f]{32}$/.test(hwId)) hwId = '';
+    var message = logClean_(req.message, 240);
+    if (!message) return ok_({ logged: false, dropped: 'empty' });
+    var cache = CacheService.getScriptCache();
+    var minute = String(Math.floor(Date.now() / 60000));
+    // التكرار المتطابق يُسقط أولاً (لا يستهلك حصة المعدل)، ثم المعدل، ثم نسجّل بصمة التكرار
+    var dupKey = 'lg:d:' + md5hex_(hwId + '|' + kind + '|' + message);
+    if (cache.get(dupKey)) return ok_({ logged: false, dropped: 'duplicate' });
+    if (!logRateAllow_(cache, 'lg:g:' + minute, LOG_GLOBAL_PER_MIN, 90)) return ok_({ logged: false, dropped: 'rate' });
+    if (!logRateAllow_(cache, 'lg:h:' + (hwId || 'x') + ':' + minute, LOG_PER_HW_PER_MIN, 90)) return ok_({ logged: false, dropped: 'rate' });
+    cache.put(dupKey, '1', 600);
+
+    var lock = LockService.getScriptLock();
+    try { lock.waitLock(3000); } catch (e) { return ok_({ logged: false, dropped: 'busy' }); }
+    try {
+      var sh = getSheet_(SHEET_LOGS);
+      var ownerId = '';
+      if (hwId) {
+        var found = findHomework_(hwId);
+        if (found && found.row.rec && found.row.rec.ownerId) ownerId = String(found.row.rec.ownerId);
+      }
+      var last = sh.getLastRow();
+      if (last - 1 >= MAX_LOG_ROWS) {
+        var idx = []; for (var i = 2; i < 2 + LOG_TRIM_ROWS; i++) idx.push(i);
+        deleteRowsDesc_(sh, idx);
+      }
+      var rec = {
+        message: message, code: logClean_(req.code, 40), page: logClean_(req.page, 20), app: logClean_(req.app, 20),
+        ua: logClean_(req.ua, 120), online: req.online === false ? false : true, where: logClean_(req.where, 80)
+      };
+      writeRow_(sh, LOGS_FIXED, nextRow_(sh, LOGS_FIXED), [newId_('LG_'), nowIso_(), hwId, ownerId, kind], rec);
+    } finally { lock.releaseLock(); }
+    return ok_({ logged: true });
+  } catch (e) {
+    // لا نكسر الطالب أبداً بسبب تسجيل الأخطاء
+    return ok_({ logged: false, dropped: 'error' });
+  }
+}
+
+/** للمعلم: آخر أخطاء واجباته (req.sinceIso اختياري، req.limit ≤ 100). لا يرى أخطاء غير واجباته. */
+function listClientErrors_(req, auth) {
+  var sh = getSheet_(SHEET_LOGS);
+  var rows = readLightRows_(sh, LOGS_FIXED, false).filter(function (r) { return String(r.fixed[3]) === auth.userId; });
+  var since = req.sinceIso ? Date.parse(String(req.sinceIso)) : 0;
+  if (since) rows = rows.filter(function (r) { return Date.parse(String(r.fixed[1])) >= since; });
+  rows.sort(function (a, b) { return String(b.fixed[1]) < String(a.fixed[1]) ? -1 : 1; });
+  var limit = Math.min(Math.max(Number(req.limit) || 50, 1), 100);
+  var total = rows.length;
+  rows = rows.slice(0, limit);
+  readRecsAt_(sh, LOGS_FIXED, rows);
+  return ok_({
+    total: total,
+    items: rows.map(function (r) {
+      var rec = r.rec || {};
+      return { id: String(r.fixed[0]), at: String(r.fixed[1]), hwId: String(r.fixed[2]), kind: String(r.fixed[4]), message: rec.message || '', code: rec.code || '', page: rec.page || '', app: rec.app || '', ua: rec.ua || '', online: rec.online !== false };
+    })
+  });
 }
 
 // =====================================================================================

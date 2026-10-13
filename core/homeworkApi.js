@@ -113,6 +113,12 @@ export async function listServerHomeworkIds() {
     return (r.homeworks || []).map(h => h.id);
 }
 
+// ---------- 🌟 [جديد 2026-10-13] مراقبة الأخطاء: مشاكل واجهها طلاب واجباتي (المعلم صاحب الواجب فقط) ----------
+export async function listClientErrors({ sinceIso, limit = 100 } = {}) {
+    const r = await teacherCall('listClientErrors', { sinceIso, limit });
+    return { total: r.total || 0, items: r.items || [] };
+}
+
 // ---------- المعلم: تسليمات الطلاب ----------
 const withDocId = (s) => ({ ...s, docId: s.id });   // docId اسم قديم يستخدمه homework-prep.js
 

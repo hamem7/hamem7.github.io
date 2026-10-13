@@ -9,6 +9,7 @@ const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤ�
 import { esc } from '../core/escape.js';
 import { friendlyErrorText } from '../core/homeworkApi.js';
 import { ApiError } from '../core/api.js';
+import { initErrorReporter } from '../core/errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء
 import { saveDraft, loadDraft, getAttempt, startSubmission, attemptSend, startAutoRetry, watchAttempt, isLocalStorageWorking } from '../core/submitQueue.js';
 
 let hw = null;
@@ -28,6 +29,7 @@ export function initHomeworkPlay() {
         return;
     }
 
+    initErrorReporter({ getHwId: () => (hw && hw.id) || null });
     document.getElementById('hp-student-name').innerText = `${t('hw_st_hero_prefix')} ${student.name}`;
     currentIndex = 0;
     answers = {};

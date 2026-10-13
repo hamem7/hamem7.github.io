@@ -8,13 +8,30 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.19';
+export const APP_VERSION = '1.0.20';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-13] مزامنة سجل الطلاب بين أجهزة المعلم + مراقبة أخطاء الطلاب
+    {
+        version: '1.0.20',
+        date: '2026-10-13',
+        items: [
+            {
+                type: 'new',
+                ar: 'مزامنة سجل الطلاب بين أجهزتك: من «ملف المعلم» اضغط «زامن الآن» بعد الدخول بجوجل، فيظهر سجل التقييمات وأداء كل طالب على أي هاتف أو حاسوب تدخل منه بنفس الحساب (دمج فقط، لا يحذف شيئاً من أي جهاز). تتطلب تحديث خادم الواجبات.',
+                en: 'Sync student records across your devices: from "Teacher profile" tap "Sync now" after Google sign-in, and every student\'s assessment history and performance appears on any phone or computer you use with the same account (merge only, never deletes anything from any device). Requires updating the homework server.'
+            },
+            {
+                type: 'new',
+                ar: 'مراقبة الأخطاء: لو فشل إرسال طالب أو تعطلت صفحته يظهر لك تنبيه في شاشة الواجبات بدل أن تعرف من شكواه. لا يُرسل اسم الطالب ولا إجاباته.',
+                en: 'Error monitoring: if a student\'s submission fails or their page breaks, an alert appears on the homework screen so you no longer depend on their complaint. Student names and answers are never sent.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-12] إصلاحات الواجبات: المتشابهات والمشتتات ومعاني الكلمات
     {
         version: '1.0.19',

@@ -1595,6 +1595,12 @@ async function saveEditedStudentAction() {
 
 async function deleteStudentAction(id) {
     if(confirm(t("stu_delete_confirm"))) {
+        // 🌟 [2026-10-13] مزامنة الأجهزة: لا نُرجع الطالب المحذوف من الخادم إلى هذا الجهاز (لا يحذفه من الأجهزة الأخرى)
+        try {
+            const all = await AppState.studentManager.getAllStudents();
+            const doomed = all.find(x => String(x.id) === String(id));
+            if (doomed && doomed.syncUid) (await import('../core/cloudSync.js')).recordStudentDeletion(doomed);
+        } catch (e) { /* لا يمنع الحذف */ }
         await AppState.studentManager.deleteStudent(id);
         // 🌟 [إصلاح تدقيق] تنظيف كل بقايا الطالب (history_ + الصورة + جلسات/مراجعات/أوسمة/حفظ شهري) لا history_ فقط
         await purgeStudentRelatedData(id);

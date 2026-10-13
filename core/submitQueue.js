@@ -12,6 +12,7 @@
 //                                        └← failed (فشل، الإجابات محفوظة، إعادة المحاولة ممكنة) ← pending ...
 //                                        └← rejected (الخادم رفض: واجب مغلق / تسليم سابق / رابط غير صحيح)
 import { call, ApiError } from './api.js';
+import { reportSubmitFailure } from './errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء (لا ترمي أبداً)
 
 const mem = new Map();          // احتياطي لو منع المتصفح localStorage (وضع خاص / امتلاء)
 let storageOk = true;
@@ -98,6 +99,7 @@ export async function attemptSend(hwId, onChange) {
         } else {
             attempt.state = 'failed';
         }
+        reportSubmitFailure(hwId, code, e && e.message, attempt.attempts, !retryable);
         return save(attempt, onChange);
     } finally {
         inFlight.delete(hwId);

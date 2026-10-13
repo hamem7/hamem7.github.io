@@ -70,6 +70,7 @@ history_<id> + أحداث التتبّع (محلي على جهاز المعلم)
 - إجراءات عامة: `ping`, `getHomework` (بلا الإجابات الصحيحة عبر `safeQuestion_`), `submit` (حد 500 تسليم/واجب و300000 حرف/طلب).
 - إجراءات المعلم (بعد `googleSignIn`): `createHomework`, `listHomeworks`, `getHomeworkFull`, `setHomeworkStatus`, `listSubmissions`, `gradeSubmission` (مع `expectedVersion`), `voidSubmission`.
 - حدود: 60 سؤالًا للواجب، 300 واجب للمعلم، 3000 إجمالًا.
+- **(أُضيف 2026-10-13)** مزامنة سجل الطالب بين أجهزة المعلم: `syncManifest/syncPull/syncPush` على ورقة `SyncData` (دمج اتحادي في `engine/syncMerge.js`، تنسيق في `core/cloudSync.js`، زر «زامن الآن» في ملف المعلم). مراقبة الأخطاء: `logClientError` (عام ومحدود المعدل) و`listClientErrors` على ورقة `ClientLogs`، ومُبلِّغ الطالب `core/errorReporter.js`، وتنبيه في شاشة الواجبات.
 - التنظيف اليومي (`dailyCleanup`، مفعَّل منذ 2026-10-06): معتمَد بالكامل → حذف بعد 20 يومًا؛ بلا تسليمات → 14 يومًا؛ غير مصحّح → لا يُحذف ويُنبَّه المعلم بعد 14 يومًا.
 
 ## 3) دورة حياة الواجب

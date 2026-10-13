@@ -20,7 +20,7 @@ import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catCl
 // الآن من core/homeworkApi.js (خادم Google Apps Script) — أبقينا نفس أسماء دوال القراءة لتقليل التغيير هنا،
 // وأضفنا publishHomeworkToServer/fetchPublicHomework/gradeSubmissionOnServer. الدوال القديمة الخاصة بطوابير
 // إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
-import { getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
+import { listClientErrors, getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
 import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
 // 🌟 بوابة الدخول بجوجل لنظام الواجبات (لو انتهت صلاحية الجلسة المحفوظة أثناء العمل)
@@ -518,6 +518,7 @@ async function loadNeedsGradingStat(allHWs) {
         applyHwRowStates();   // 🌟 زر الصف يتحول إلى "يحتاج تصحيح" أو يعود "النتائج" بعد التصحيح
         applyHwFilter();
         showStaleGradingAlert(pending);
+        showClientErrorsAlert();   // 🌟 [2026-10-13] لا تنتظر ولا تعطّل (best-effort)
     } catch (e) {
         // 🌟 نعرض ⚠️ بدل رقم (وليس "0") حتى لا نوهم المعلم بعدم وجود أي تسليم محتاج تصحيح بينما
         // السبب الحقيقي هو تعذّر الاتصال بالسحابة — نفس فلسفة معالجة الخطأ في loadSubmissionsInline
@@ -815,6 +816,44 @@ async function showStaleGradingAlert(pending) {
         writeStaleNotified(n);
         box.style.display = 'none';
     });
+}
+
+
+// 🌟 [جديد 2026-10-13] تنبيه المعلم بمشاكل واجهها طلابه خلال آخر 7 أيام (فشل إرسال، فشل فتح الواجب، عطل في صفحة الطالب) —
+// يظهر فقط ما استجد منذ آخر «تم الاطلاع». أي فشل في جلبها يُتجاهل بصمت (لا يمس الشاشة).
+const HW_CLIENTERR_SEEN_KEY = 'hw_clienterr_seen_at';
+async function showClientErrorsAlert() {
+    const box = document.getElementById('hw-clienterr-alert');
+    if (!box) return;
+    try {
+        let seenAt = 0;
+        try { seenAt = Number(localStorage.getItem(HW_CLIENTERR_SEEN_KEY)) || 0; } catch (e) { /* لا شيء */ }
+        const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+        const since = Math.max(seenAt, weekAgo);
+        const r = await listClientErrors({ sinceIso: new Date(since).toISOString(), limit: 100 });
+        if (!r.total) { box.style.display = 'none'; box.innerHTML = ''; return; }
+        let all = [];
+        try { all = await AppState.homeworkManager.getAllHomeworks() || []; } catch (e) { /* نعرض بلا اسم الهدف */ }
+        const groups = new Map();
+        r.items.forEach(it => {
+            const k = `${it.hwId}|${it.kind}`;
+            const g = groups.get(k) || { hwId: it.hwId, kind: it.kind, n: 0, code: it.code, online: it.online };
+            g.n++; groups.set(k, g);
+        });
+        const label = (kind) => t('hw_clienterr_' + kind) || t('hw_clienterr_other');
+        const lines = [...groups.values()].slice(0, 6).map(g => {
+            const hw = all.find(h => String(h.id) === String(g.hwId));
+            const target = hw ? (hw.assignedStudentName || '') : '';
+            return `<div class="hwp3-stale-line">⚠️ ${esc(label(g.kind))}${g.code ? ` (${esc(g.code)})` : ''} × ${g.n}${target ? ` — ${esc(target)}` : ''}</div>`;
+        });
+        box.innerHTML = `<div class="hwp3-stale-line">${t('hw_clienterr_title').replace('{n}', r.total)}</div>` + lines.join('') +
+            `<div style="font-weight:400;margin-top:4px;">${t('hw_clienterr_hint')}</div><button type="button" id="btn-clienterr-ok">${t('hw_clienterr_ok')}</button>`;
+        box.style.display = 'block';
+        box.querySelector('#btn-clienterr-ok')?.addEventListener('click', () => {
+            try { localStorage.setItem(HW_CLIENTERR_SEEN_KEY, String(Date.now())); } catch (e) { /* لا شيء */ }
+            box.style.display = 'none';
+        });
+    } catch (e) { box.style.display = 'none'; }
 }
 
 // 🌟 تبديل عرض صف التسليمات المضمّن أسفل الواجب مباشرة (بدل النافذة المنبثقة سابقاً)،
