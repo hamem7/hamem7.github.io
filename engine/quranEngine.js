@@ -440,14 +440,13 @@ export class QuranEngine {
     async generateCompleteAyahGame(ayahsPool, chunkIndex, totalChunks) {
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text); let words = cleanText.split(/\s+/); if (words.length < 4) return null; 
         // 🌟 [2026-10-13] بطلب المعلم (ركن الكبار فقط): يُخفى دائماً "بداية" الآية ويظهر آخرها فقط
-        // (كلمتان أو ثلاث) بدل الجزء الأكبر منها — فيضطر الطالب لاستحضار البداية من حفظه. الصعوبة
-        // تتدرج مع تقدّم الطالب في الاختبار: النصف الأول من الأسئلة 3 كلمات ظاهرة، والنصف الثاني كلمتان.
-        // عند غياب موضع السؤال (chunkIndex غير صالح) نعرض 3 كلمات. رموز الوقف لا تُحتسب كلمات ظاهرة.
-        // الإجابة (fullAnswer) تعرض اسم السورة ورقم الآية كما هي في adultGame.js بعد إظهار الإجابة.
-        const progress = (Number.isFinite(chunkIndex) && chunkIndex >= 0 && Number.isFinite(totalChunks) && totalChunks > 0) ? chunkIndex / totalChunks : 0;
+        // بدل الجزء الأكبر منها — فيضطر الطالب لاستحضار البداية من حفظه. عدد الكلمات الظاهرة (آخر
+        // ثلاث كلمات أو أربع) يتبع طول الآية: الآية القصيرة 3 كلمات، والآية الطويلة (12 كلمة فأكثر) 4.
+        // رموز الوقف لا تُحتسب كلمات ظاهرة. الإجابة (fullAnswer) تعرض اسم السورة ورقم الآية كما هي
+        // في adultGame.js بعد إظهار الإجابة.
         const realIdxs = realWordIndexes(words);
         if (realIdxs.length < 2) return null;
-        const visibleCount = Math.min(progress >= 0.5 ? 2 : 3, realIdxs.length - 1);
+        const visibleCount = Math.min(realIdxs.length >= 12 ? 4 : 3, realIdxs.length - 1);
         const cutAt = realIdxs[realIdxs.length - visibleCount];
         const hiddenPart = words.slice(0, cutAt).join(' ');
         const displayWords = ["....."].concat(words.slice(cutAt));
