@@ -454,6 +454,62 @@ export class QuranEngine {
         return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
     }
 
+    // 🌟 [جديد — 2026-10-14] معاني الكلمات (ركن الكبار فقط، بطلب المعلم): "ما معنى «كلمة» في هذه الآية؟"
+    // بثلاثة اختيارات (المعنى الصحيح + معنيان خاطئان) تُصحَّح آلياً عند الضغط. المصدر نفسه المستخدم في الواجب
+    // (database/data/wordMeanings.json: [رقم الآية، الكلمة، المعنى] لكل سورة، من كتاب «كلمات القرآن»)، لكن بمولِّد
+    // مستقل هنا بدل استدعاء HomeworkEngine (الألعاب لا تستورد منه). ليست كل آية لها شرح: لو آية السؤال بلا شرح نبحث
+    // عن آية أخرى لها شرح من نفس السورة داخل نطاق الاختبار (ثم من بقية النطاق)، ولو لم نجد نرجع null فيُتخطّى
+    // هذا النوع (probeGameType) ولا يظهر سؤال ناقص. المشتتات: معاني كلمات أخرى من نفس السورة ثم السور المجاورة،
+    // الأقرب طولاً أولاً حتى لا يُكشف الجواب بالطول. لا نعرض إلا المعاني ≤ 90 حرفاً والكلمات ≤ 40 حرفاً.
+    async generateWordMeaningGame(ayahsPool, chunkIndex, totalChunks) {
+        if (!QuranEngine._wordMeanings) {
+            try {
+                const res = await fetch(new URL('../database/data/wordMeanings.json', import.meta.url));
+                QuranEngine._wordMeanings = res.ok ? await res.json() : null;
+            } catch (e) { QuranEngine._wordMeanings = null; }
+        }
+        const data = QuranEngine._wordMeanings;
+        if (!data || !ayahsPool || !ayahsPool.length) return null;
+        const entriesOf = (a) => (data[String(a.surahNumber)] || []).filter(e => e[0] === a.numberInSurah && e[1].length <= 40 && e[2].length <= 90);
+
+        let ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks);
+        if (!ayah) return null;
+        let entries = entriesOf(ayah);
+        if (!entries.length) {
+            const withMeaning = ayahsPool.filter(a => entriesOf(a).length);
+            const sameSurah = withMeaning.filter(a => a.surahNumber === ayah.surahNumber);
+            const from = sameSurah.length ? sameSurah : withMeaning;
+            if (!from.length) return null;
+            ayah = from[Math.floor(Math.random() * from.length)];
+            entries = entriesOf(ayah);
+        }
+        const entry = entries[Math.floor(Math.random() * entries.length)];
+        const correct = entry[2];
+
+        const others = [];
+        for (const sn of [ayah.surahNumber, ayah.surahNumber - 1, ayah.surahNumber + 1, ayah.surahNumber - 2, ayah.surahNumber + 2]) {
+            for (const e of (data[String(sn)] || [])) if (e[2] !== correct && e[2].length <= 90 && e[1] !== entry[1]) others.push(e[2]);
+        }
+        const unique = [...new Set(others)].sort((a, b) => Math.abs(a.length - correct.length) - Math.abs(b.length - correct.length) || (0.5 - Math.random()));
+        const wrong = unique.slice(0, 10).sort(() => 0.5 - Math.random()).slice(0, 2);
+        if (wrong.length < 2) return null;
+
+        const options = [correct, ...wrong].sort(() => 0.5 - Math.random());
+        const ayahText = cleanAyahText(ayah.text);
+        const title = `ما معنى «${entry[1]}» في هذه الآية؟`;
+        return {
+            type: 'word_meaning',
+            questionTitle: title,
+            questionBody: `<div style="font-size:1.8rem; font-weight:bold; margin-bottom:12px;">${title}</div><div class="quran-text" style="font-size:3rem; margin:10px 0 16px;">﴿ ${ayahText} ﴾</div>`,
+            options,
+            correctIndex: options.indexOf(correct),
+            fullAnswer: correct,
+            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${entry[1]}»: ${correct}</span>`,
+            ayahObj: ayah,
+            reportText: ayahText
+        };
+    }
+
     // 🌟 [جديد] لعبة "اربط أول الآية بآخرها" — تُستخدم في ركن الكبار وركن الأطفال معاً (نفس
     // الدالة بالضبط، بمعامل isKids فقط لاختيار صياغة العنوان المناسبة). تختار حتى 5 آيات (أو
     // أقل لو النطاق صغيراً) وتقسّم كل واحدة لنصفين (بدايتها ونهايتها)، ثم تخلط عمود البدايات

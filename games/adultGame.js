@@ -161,6 +161,7 @@ async function probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz) {
             case 'recite': d = await eng.generateReciteGame(p, isJuz, false, chunkIndex, totalChunks); break;
             case 'mistake': d = await eng.generateMistakeGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'complete_ayah': d = await eng.generateCompleteAyahGame(p, chunkIndex, totalChunks); break;
+            case 'word_meaning': d = await eng.generateWordMeaningGame(p, chunkIndex, totalChunks); break;
             case 'order': d = await eng.generateOrderGame(p, false, chunkIndex, totalChunks); break;
             case 'visual_memory': d = await eng.generateVisualMemoryGame(p, chunkIndex, totalChunks); break;
             case 'link_ends': d = await eng.generateLinkGame(p, false, chunkIndex, totalChunks); return !!d && d.type === 'link_ends';
@@ -300,8 +301,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             // تربوي من المعلم يمكن إرجاعها بحذفها من هذه القائمة فقط، بلا أي تعديل آخر.
             // وضع الجزء الآن 12 لعبة (كل الألعاب)، وضع السورة/النطاق 10 ألعاب.
             let gamesList = config.isJuzMode
-                ? ['catch', 'next', 'previous', 'around', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends', 'link_word_surah']
-                : ['catch', 'next', 'previous', 'around', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'visual_memory', 'link_ends'];
+                ? ['catch', 'next', 'previous', 'around', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends', 'link_word_surah']
+                : ['catch', 'next', 'previous', 'around', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends'];
             // 🌟 [2026-10-03] بطلب المعلم: "اربط الكلمة بسورتها" تدخل أيضاً وضع "من سورة إلى سورة" إذا
             // كان النطاق ثلاث سور فما فوق (تُعدّ السور المختلفة الموجودة فعلاً في آيات النطاق)
             if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
@@ -338,6 +339,10 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });
     } catch (err) { alert("حدث خطأ: " + err.message); }
+}
+
+function escapeOptHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function shuffleInPlace(arr) {
@@ -850,6 +855,7 @@ async function playNextMission() {
             else if(type === 'mistake') GameState.currentData = await retryGen(() => AppState.quranEngine.generateMistakeGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'similar') GameState.currentData = formatAdultSimilar(queueItem.sim, GameState.pool);
             else if(type === 'complete_ayah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCompleteAyahGame(activePool, chunkIndex, totalChunks)); 
+            else if(type === 'word_meaning') GameState.currentData = await retryGen(() => AppState.quranEngine.generateWordMeaningGame(activePool, chunkIndex, totalChunks));
 
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             
@@ -875,8 +881,18 @@ async function playNextMission() {
             
             document.getElementById('game-answer').innerHTML = ansHTML;
 
+            // 🌟 [جديد — 2026-10-14] «معنى الكلمة»: ثلاثة أزرار تُصحَّح آلياً بنفس آلية المتشابهات أدناه (نفس كلاس
+            // .sim-opt-btn وحقول correctIndex/optionTexts). الأزرار تُضاف هنا لا داخل questionBody حتى لا تُحفظ
+            // معه في سجل الأخطاء (يُعاد عرضه في «علاج الخطأ» بلا أزرار فيقيّمه المعلم يدوياً كبقية الأسئلة).
+            if (type === 'word_meaning' && GameState.currentData && GameState.currentData.type === 'word_meaning') {
+                const cd = GameState.currentData;
+                const letters = AppState.currentLang === 'en' ? ['A', 'B', 'C'] : ['أ', 'ب', 'ج'];
+                cd.optionTexts = cd.options;
+                document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
+                    `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;"><b>${letters[i]})</b> ${escapeOptHtml(opt)}</button>`).join('') + `</div>`);
+            }
             // 🌟 [جديد] سؤال المتشابهات: الخيارات أزرار — الضغط يحدّد إجابة الطالب ويُسجَّلها صحيحة أو خاطئة تلقائياً (بلا تقييم المعلم)
-            if (type === 'similar' && GameState.currentData && GameState.currentData.correctIndex >= 0) {
+            if ((type === 'similar' || type === 'word_meaning') && GameState.currentData && GameState.currentData.correctIndex >= 0) {
                 const cd = GameState.currentData;
                 // ⚠️ لا نُخفي #teacher-eval-area نفسها: فيها #game-question (نص السؤال والخيارات)، وإخفاؤها يترك العنوان فقط وشاشة فارغة.
                 // نُخفي فقط ما لا يلزم: أزرار تقييم المعلم وزر إظهار الإجابة (الإجابة تُلوَّن تلقائياً بعد الضغط).
@@ -989,6 +1005,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         else if(tType==='recite') typeLabel= t("🎙️ تسميع مقطع");
         else if(tType==='mistake') typeLabel= t("🔍 اكتشف الخطأ");
         else if(tType==='complete_ayah') typeLabel= t("🧩 أكمل الآية");
+        else if(tType==='word_meaning') typeLabel= t("📘 معنى الكلمة");
         else if(tType==='visual_memory') typeLabel= t("📖 الذاكرة البصرية");
         // 🌟 [جديد] تصنيف لعبة "اربط أول الآية بآخرها" في التقرير وسجل التاريخ 🌟
         else if(tType==='link_ends') typeLabel= t("🔗 ربط الآيات");

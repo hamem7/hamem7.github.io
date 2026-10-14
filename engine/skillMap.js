@@ -88,6 +88,7 @@ export function skillOfHwFormat(fmt) {
 const GAME_TYPE_SKILL = {
     next: 'sequence', previous: 'sequence', between: 'sequence', around: 'sequence',
     catch: 'recall', complete_ayah: 'recall',
+    word_meaning: 'context',
     order: 'structure', word_order: 'structure',
     mistake: 'precision', extra_word: 'precision', tf: 'precision',
     link_ends: 'context', link_word_surah: 'context', guess_surah: 'context', start_surah: 'context',
