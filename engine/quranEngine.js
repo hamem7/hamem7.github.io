@@ -770,9 +770,16 @@ export class QuranEngine {
             }
             let picked = null;
             if (candidates.length > 0) {
-                let minFreq = Math.min(...candidates.map(c => c.freq));
-                let rarest = candidates.filter(c => c.freq === minFreq);
-                picked = rarest[Math.floor(Math.random() * rarest.length)].word;
+                // 🌟 [2026-10-14] بطلب المعلم: تنويع الكلمة لكل سورة بين الطلاب. كان الاختيار محصوراً بالأقل
+                // تكراراً فقط (غالباً كلمة واحدة بالسور القصيرة فتثبت). الآن نجمع مجموعة "كلمات مميِّزة" أوسع:
+                // كل ما تكراره ≤ 2 ضمن النطاق، وإن قلّت عن 4 كلمات مختلفة نكمّلها بأقل الكلمات تكراراً
+                // التالية (بترتيب التكرار)، ثم نختار عشوائياً منها — تبقى الكلمة مميِّزة لكن غير ثابتة.
+                let byBare = new Map();
+                for (let c of candidates) if (!byBare.has(c.bare)) byBare.set(c.bare, c);
+                let sorted = [...byBare.values()].sort((a, b) => a.freq - b.freq);
+                let pool = sorted.filter(c => c.freq <= Math.max(2, sorted[0].freq));
+                if (pool.length < 4) pool = sorted.slice(0, 4);
+                picked = pool[Math.floor(Math.random() * pool.length)].word;
             }
             if (!picked) {
                 // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
