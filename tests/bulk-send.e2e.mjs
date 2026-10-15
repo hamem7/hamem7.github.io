@@ -110,6 +110,7 @@ try {
   const homeBtn = await page.evaluate(() => { const b = document.querySelector('.qc-foot-bulk'); return { exists: !!b, text: b && b.innerText.trim() }; });
   check('H1 زر «الإرسال الجماعي» ظاهر في تذييل «مهام اليوم»', homeBtn.exists && /الإرسال الجماعي/.test(homeBtn.text), JSON.stringify(homeBtn));
   await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
+  await page.evaluate(() => document.querySelector('.mmt-overlay')?.remove()); // جدول الحفظ الشهري يفتح تلقائياً مرة كل يوم ويحجب النقر (فشل قائم قبل هذا الدمج أيضاً)
   await page.evaluate(() => document.querySelector('.qc-foot-bulk').click());
   await page.waitForSelector('.bs-ov .bs-rw', { timeout: 15000 });
   check('H2 الضغط عليه يفتح الشاشة وفيها قائمة المستحقين الثلاثة فقط (لا كل الطلاب)', (await page.locator('.bs-ov .bs-rw').count()) === 3);
@@ -221,11 +222,11 @@ try {
   await bulkRow('بلال الثاني').locator('[data-a="clear"]').click();
   await bulkRow('بلال الثاني').locator('.bs-tile[data-k="114"]').click();
   await bulkRow('بلال الثاني').locator('.bs-tile[data-k="113"]').click();
-  // عدد الأسئلة: أحمد 6، جابر 12
+  // عدد الأسئلة: الحد الأدنى 20 (أحمد ينزل فيقف عند 20)، جابر يزيد درجتين فيصير 22
   for (let i = 0; i < 4; i++) await bulkRow('أحمد الأول').locator('[data-q="-1"]').click();
   for (let i = 0; i < 2; i++) await bulkRow('جابر الثالث').locator('[data-q="1"]').click();
   const qs = { a: await bulkRow('أحمد الأول').locator('.bs-qn span').innerText(), g: await bulkRow('جابر الثالث').locator('.bs-qn span').innerText() };
-  check('E6 أزرار +/− تغيّر عدد أسئلة كل طالب على حدة', qs.a === '6' && qs.g === '12', JSON.stringify(qs));
+  check('E6 أزرار +/− تغيّر عدد أسئلة كل طالب على حدة', qs.a === '20' && qs.g === '22', JSON.stringify(qs));
   await shot(page, 'bulk-2-scopes');
 
   console.log('\n=== التجهيز (دون نشر) ===');
@@ -236,7 +237,7 @@ try {
   const prepared = await page.evaluate(() => [...document.querySelectorAll('.bs-rw')].map(r => ({ name: r.querySelector('.bs-nm').innerText, ok: !!r.querySelector('.bs-pill.ok'), sum: r.querySelector('.bs-sum')?.innerText || '' })));
   check('F1 جُهّز الطلاب الثلاثة المحدَّدون', prepared.filter(p => p.ok).length === 3, JSON.stringify(prepared.filter(p => p.ok).map(p => p.name)));
   const nOf = (nm) => parseInt((prepared.find(p => p.name.includes(nm)).sum.match(/^(\d+)/) || [])[1] || '0');
-  check('F2 عدد أسئلة كل واحد ≥ المطلوب له (6 / ≥2 / 12) وفيه توزيع الفئات', nOf('أحمد') >= 6 && nOf('أحمد') <= 8 && nOf('بلال') >= 2 && nOf('جابر') >= 12, JSON.stringify(prepared.map(p => p.name + ':' + p.sum)));
+  check('F2 عدد أسئلة كل واحد ≥ المطلوب له (20 / ≥20 / 22؛ الحد الأدنى 20) وفيه توزيع الفئات', nOf('أحمد') >= 20 && nOf('أحمد') <= 22 && nOf('بلال') >= 20 && nOf('جابر') >= 22, JSON.stringify(prepared.map(p => p.name + ':' + p.sum)));
   check('F3 التجهيز لا ينشر شيئاً على الخادم', apiLog.filter(a => a.action === 'createHomework').length === reqsBefore, String(apiLog.filter(a => a.action === 'createHomework').length));
   check('F4 زر «انشر» مفعَّل الآن', !(await page.locator('#bs-pub').isDisabled()));
   await shot(page, 'bulk-3-prepared');
