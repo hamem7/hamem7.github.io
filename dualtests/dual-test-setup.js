@@ -24,7 +24,12 @@ import { showToastEncouragement, openModal, closeModal } from '../components/ui.
 import { createEmptyDualTest } from '../database/dualTestsDB.js';
 // 🌟 [جديد] computeSeriesResult — لعرض "عدد الجولات المكسوبة حتى الآن" لكل مواجهة معلّقة
 // داخل نافذة "⏸️ المواجهات المعلقة" (نفس الدالة المستخدَمة في شاشة اللعب والنتيجة النهائية)
-import { generateSwapCode, computeSeriesResult } from '../engine/dualTestEngine.js';
+import {
+    generateSwapCode, computeSeriesResult,
+    SIZE_PRESETS, MIN_TARGET_WORDS, MAX_TARGET_WORDS,
+    balanceBounds, isBalancedWords, windowWordCount, windowsOverlap,
+    findCandidateWindows, pickWindows, generateBalancedWindows, ayahExcerpt
+} from '../engine/dualTestEngine.js';
 // 🌟 [جديد] شاشة "تقرير المواجهة" — تُستخدم هنا لفتح تقرير أي مباراة سابقة منتهية من نافذة
 // "📜 المباريات السابقة" أسفل، بنفس الطريقة التي يفتحه بها زر "عرض التقرير" في شاشة اللعب
 // نفسها مباشرة بعد انتهاء المباراة (راجع dual-test-play.js وreports/dual-test-report.js)
@@ -64,6 +69,16 @@ let unlockedRoundCount = 3;
 // 🌟 [جديد] التبويب المعروض في شاشة الأسئلة (الخطوة 3): 'main' أو 'swap' — يرجع لـ'main' عند
 // كل دخول للخطوة 3، ويبقى كما هو أثناء الإضافة/الحذف داخل نفس الجولة
 let activeQuestionsTab = 'main';
+
+// 🌟 [جديد] توليد الأسئلة تلقائياً بميزان واحد (عدد كلمات موحّد لكل الأسئلة) — راجع
+// engine/dualTestEngine.js (generateBalancedWindows). المعلم يراجع ويعتمد أو يعدّل كل سؤال مولَّد.
+// وضع الإدخال في الخطوة 3: 'manual' (الوضع القديم) أو 'auto' (توليد). يبقى كما هو أثناء التنقل.
+let activeEntryMode = 'manual';
+// قيم نموذج التوليد (مشتركة بين الجولات؛ الحجم نفسه يُقفَل على مستوى الاختبار بعد أول توليد)
+const genForm = { main: 3, swap: 2, size: 'medium', custom: 60, avoidPrev: true };
+let genNotice = '';   // رسالة آخر عملية توليد (نجاح/نقص) تُعرَض في لوحة التوليد
+let genBusy = false;
+const surahCache = new Map(); // رقم السورة → {number, name, ayahs} (من محرك المصحف)
 
 const ROUND_TITLE_KEYS = ['dts_round1_title', 'dts_round2_title', 'dts_round3_title'];
 
@@ -281,6 +296,8 @@ async function openEditor(test, id, openRoundIndex = null) {
     editingTestId = id;
     activeRoundIndex = 0;
     unlockedRoundCount = await computeUnlockedRoundCount(test, id);
+    syncGenFormFromTest();
+    genNotice = '';
 
     document.getElementById('dts-list-view').style.display = 'none';
     document.getElementById('dts-editor-view').style.display = 'block';
@@ -484,6 +501,12 @@ function buildRoundInnerHTML(round, roundIndex) {
             </div>
         </div>
 
+        <div class="dts-gen-mode" role="group" aria-label="${t('dts_mode_label')}">
+            <button type="button" data-entry-mode="manual" aria-pressed="${activeEntryMode === 'manual'}">${t('dts_mode_manual')}</button>
+            <button type="button" data-entry-mode="auto" aria-pressed="${activeEntryMode === 'auto'}">${t('dts_mode_auto')}</button>
+        </div>
+        ${activeEntryMode === 'auto' ? buildGeneratorPanelHTML(roundIndex) : ''}
+
         <div class="dts-qx-tabs" role="tablist">
             <button type="button" role="tab" data-qtab="main" aria-selected="${!isSwap}">
                 ${DTS_Q_ICONS.list}${t('dts_main_questions_title')} <span class="dts-qx-count">${mains.length}</span>
@@ -495,7 +518,7 @@ function buildRoundInnerHTML(round, roundIndex) {
         <p class="dts-qx-desc">${t(isSwap ? 'dts_swap_questions_desc' : 'dts_main_tab_desc')}</p>
 
         ${cards}
-        ${buildEntryFormHTML(roundIndex, kind)}`;
+        ${activeEntryMode === 'manual' ? buildEntryFormHTML(roundIndex, kind) : ''}`;
 }
 
 // 🌟 [جديد] أيقونات خطّية لشاشة الأسئلة (تبويبات + حقول الإدخال + الحذف)
@@ -533,14 +556,16 @@ function buildEntryFormHTML(roundIndex, kind) {
 // + زر حذف. للعرض فقط — التعديل يكون بالحذف وإعادة الإضافة كما كان
 function buildQuestionRowHTML(q, index, roundIndex, kind, labelText) {
     const isSwap = kind === 'swap';
+    const auto = isAutoQ(q);
     return `
-    <div class="dts-qx-card ${isSwap ? 'dts-qx-card-swap' : ''}">
+    <div class="dts-qx-card ${isSwap ? 'dts-qx-card-swap' : ''} ${auto ? 'dts-gen-auto' : ''}">
         <span class="dts-qx-num ${isSwap ? 'dts-qx-num-swap' : ''}">${escapeHtml(String(labelText))}</span>
         <div class="dts-qx-lines">
             <div class="dts-qx-line"><span>${t('dts_from_label')}</span><span>${escapeHtml(q.fromText)}</span></div>
             <div class="dts-qx-line"><span>${t('dts_to_label')}</span><span>${escapeHtml(q.toText)}</span></div>
         </div>
         <button type="button" class="dts-q-remove" data-round="${roundIndex}" data-kind="${kind}" data-index="${index}" aria-label="${t('dts_remove_btn')}" title="${t('dts_remove_btn')}">${DTS_Q_ICONS.trash}</button>
+        ${auto ? buildAutoMetaHTML(q, roundIndex, kind, index) : ''}
     </div>`;
 }
 
@@ -549,6 +574,233 @@ function renderSingleRound(roundIndex) {
     const block = document.getElementById(`dts-round-block-${roundIndex}`);
     if (!block || !currentTest) return;
     block.innerHTML = buildRoundInnerHTML(currentTest.rounds[roundIndex], roundIndex);
+}
+
+// ===================== توليد الأسئلة المتوازنة =====================
+
+async function getSurahData(num) {
+    if (!surahCache.has(num)) {
+        const s = await AppState.quranEngine.getSurah(num);
+        surahCache.set(num, s ? { number: s.number, name: s.name, ayahs: s.ayahs } : null);
+    }
+    return surahCache.get(num);
+}
+
+const isAutoQ = (q) => q && q.meta && q.meta.source === 'auto';
+const allQuestionsOf = (test) => (test.rounds || []).flatMap(r => [...(r.mainQuestions || []), ...(r.swapQuestions || [])]);
+const windowOfQ = (q) => ({ surah: q.meta.surah, from: q.meta.fromAyah, to: q.meta.toAyah });
+
+// الحجم المستهدف: مقفل على مستوى الاختبار ما دام فيه أسئلة مولَّدة، وإلا من النموذج
+function sizeIsLocked() {
+    return !!(currentTest && currentTest.genTargetWords && allQuestionsOf(currentTest).some(isAutoQ));
+}
+function formTargetWords() {
+    const raw = genForm.size === 'custom' ? genForm.custom : SIZE_PRESETS[genForm.size];
+    return Math.min(MAX_TARGET_WORDS, Math.max(MIN_TARGET_WORDS, parseInt(raw, 10) || SIZE_PRESETS.medium));
+}
+function currentTargetWords() {
+    return sizeIsLocked() ? currentTest.genTargetWords : formTargetWords();
+}
+function syncGenFormFromTest() {
+    const tw = currentTest && currentTest.genTargetWords;
+    if (!tw) return;
+    const key = Object.keys(SIZE_PRESETS).find(k => SIZE_PRESETS[k] === tw);
+    genForm.size = key || 'custom';
+    if (!key) genForm.custom = tw;
+}
+
+// نص السؤال = نص الآية نفسه لا رقمها (الطلاب لا يعرفون أرقام الآيات): «سمّع من» بداية آية البدء،
+// و«إلى» نهاية آية الختم. المرجع (السورة والأرقام) يُعرَض للمعلم فقط في بطاقة المراجعة من meta
+function questionTexts(surah, from, to) {
+    const text = (n) => (surah.ayahs.find(a => a.numberInSurah === n) || {}).text || '';
+    return { fromText: ayahExcerpt(text(from), 'start'), toText: ayahExcerpt(text(to), 'end') };
+}
+
+// اسم السورة بتشكيل عادي (علامات المصحف الخاصة تُكسر الحروف في الخط المعروض) — للمعلم فقط
+function plainSurahName(surah) {
+    return String(surahNameLocal(surah.name)).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '');
+}
+
+function applyWindowToQuestion(q, surah, win, target) {
+    const words = windowWordCount(surah, win.from, win.to);
+    Object.assign(q, questionTexts(surah, win.from, win.to));
+    q.meta = { ...(q.meta || {}), source: 'auto', surah: surah.number, fromAyah: win.from, toAyah: win.to, words, target };
+    return q;
+}
+
+function renumberRound(round) {
+    // رموز الاستبدال لا تُعاد ترقيمها أبداً (قد تكون مسجّلة في مواجهات سابقة)؛ الجديد يأخذ أكبر رمز + 1
+    round.mainQuestions.forEach((q, i) => { q.number = i + 1; });
+}
+
+function nextSwapCode(round) {
+    const max = round.swapQuestions.reduce((m, q) => Math.max(m, parseInt(String(q.code || '').replace(/\D/g, ''), 10) || 0), 0);
+    return `⭐${max + 1}`;
+}
+
+// نوافذ الأسئلة المولَّدة الموجودة في الاختبار الحالي (+ اختبارات سابقة اختيارياً) لتجنّب التكرار
+async function collectOccupied(includePrevTests, skipQuestion = null) {
+    const occ = allQuestionsOf(currentTest).filter(q => q !== skipQuestion && isAutoQ(q)).map(windowOfQ);
+    if (includePrevTests) {
+        try {
+            const tests = await AppState.dualTestsManager.getAllTests();
+            tests.filter(x => x.id !== editingTestId).forEach(x => {
+                allQuestionsOf(x).filter(isAutoQ).forEach(q => occ.push(windowOfQ(q)));
+            });
+        } catch (e) { /* best-effort */ }
+    }
+    return occ;
+}
+
+async function runGeneration(roundIndex) {
+    const round = currentTest.rounds[roundIndex];
+    const a = round.rangeFrom.surah, b = round.rangeTo.surah;
+    if (!a || !b) { alert(t('dts_gen_need_range')); return; }
+
+    const target = currentTargetWords();
+    const nums = [];
+    for (let n = Math.min(a, b); n <= Math.max(a, b); n++) nums.push(n);
+    const surahs = (await Promise.all(nums.map(getSurahData))).filter(Boolean);
+
+    // تُستبدل المولَّدة غير المعتمدة؛ اليدوية والمعتمدة تبقى، ويُكمَل حتى العدد المطلوب
+    const keep = (q) => !isAutoQ(q) || q.meta.approved;
+    round.mainQuestions = round.mainQuestions.filter(keep);
+    round.swapQuestions = round.swapQuestions.filter(keep);
+    renumberRound(round);
+
+    const needMain = Math.max(0, genForm.main - round.mainQuestions.length);
+    const needSwap = Math.max(0, genForm.swap - round.swapQuestions.length);
+    if (needMain + needSwap === 0) { genNotice = t('dts_gen_nothing'); return; }
+
+    let occupied = await collectOccupied(genForm.avoidPrev);
+    let res = generateBalancedWindows(surahs, { mainCount: needMain, swapCount: needSwap, targetWords: target, occupied });
+    let fellBack = false;
+    if (res.shortage > 0 && genForm.avoidPrev) {
+        occupied = await collectOccupied(false);
+        res = generateBalancedWindows(surahs, { mainCount: needMain, swapCount: needSwap, targetWords: target, occupied });
+        fellBack = true;
+    }
+
+    const byNum = new Map(surahs.map(s => [s.number, s]));
+    res.main.forEach(w => {
+        round.mainQuestions.push(applyWindowToQuestion({ points: 1, number: 0 }, byNum.get(w.surah), w, target));
+    });
+    res.swap.forEach(w => {
+        round.swapQuestions.push(applyWindowToQuestion({ points: 1, code: nextSwapCode(round) }, byNum.get(w.surah), w, target));
+    });
+    renumberRound(round);
+    currentTest.genTargetWords = target;
+
+    const made = res.main.length + res.swap.length;
+    const msgs = [];
+    if (made) msgs.push(t('dts_gen_done').replace('{n}', made));
+    if (res.shortage > 0) msgs.push(t('dts_gen_shortage').replace('{n}', made).replace('{m}', res.shortage));
+    else if (fellBack) msgs.push(t('dts_gen_prev_fallback'));
+    genNotice = msgs.join(' ');
+}
+
+function findQuestion(roundIdx, kind, idx) {
+    const round = currentTest.rounds[roundIdx];
+    return round ? (kind === 'main' ? round.mainQuestions : round.swapQuestions)[idx] : null;
+}
+
+// تعديل حدّ سؤال مولَّد بآية واحدة (edge: 'start'|'end'، delta: ±1) مع إعادة حساب الميزان
+async function adjustQuestionEdge(roundIdx, kind, idx, edge, delta) {
+    const q = findQuestion(roundIdx, kind, idx);
+    if (!isAutoQ(q)) return;
+    const surah = await getSurahData(q.meta.surah);
+    if (!surah) return;
+    const win = { surah: q.meta.surah, from: q.meta.fromAyah, to: q.meta.toAyah };
+    if (edge === 'start') win.from += delta; else win.to += delta;
+    if (win.from < 1 || win.to > surah.ayahs.length || win.from > win.to) return;
+    const clash = allQuestionsOf(currentTest).some(o => o !== q && isAutoQ(o) && windowsOverlap(windowOfQ(o), win));
+    if (clash) { alert(t('dts_gen_edit_overlap')); return; }
+    applyWindowToQuestion(q, surah, win, q.meta.target);
+    renderSingleRound(roundIdx);
+}
+
+// استبدال سؤال مولَّد واحد بآخر متوازن مختلف (يحتفظ برقمه/رمزه)
+async function regenerateOne(roundIdx, kind, idx) {
+    const q = findQuestion(roundIdx, kind, idx);
+    if (!isAutoQ(q)) return;
+    const round = currentTest.rounds[roundIdx];
+    const nums = [];
+    for (let n = Math.min(round.rangeFrom.surah, round.rangeTo.surah); n <= Math.max(round.rangeFrom.surah, round.rangeTo.surah); n++) nums.push(n);
+    const surahs = (await Promise.all(nums.map(getSurahData))).filter(Boolean);
+    const cands = findCandidateWindows(surahs, q.meta.target);
+    let occupied = await collectOccupied(genForm.avoidPrev, q);
+    occupied.push(windowOfQ(q));
+    let { picked } = pickWindows(cands, 1, occupied);
+    if (!picked.length) {
+        occupied = (await collectOccupied(false, q)).concat([windowOfQ(q)]);
+        picked = pickWindows(cands, 1, occupied).picked;
+    }
+    if (!picked.length) { genNotice = t('dts_gen_no_alternative'); renderSingleRound(roundIdx); return; }
+    genNotice = '';
+    const byNum = new Map(surahs.map(s => [s.number, s]));
+    applyWindowToQuestion(q, byNum.get(picked[0].surah), picked[0], q.meta.target);
+    q.meta.approved = false;
+    renderSingleRound(roundIdx);
+}
+
+function buildGeneratorPanelHTML(roundIndex) {
+    const locked = sizeIsLocked();
+    const target = currentTargetWords();
+    const { lo, hi } = balanceBounds(target);
+    const sizeOpts = ['short', 'medium', 'long', 'custom'].map(k =>
+        `<option value="${k}" ${genForm.size === k ? 'selected' : ''}>${t('dts_gen_size_' + k)}</option>`).join('');
+    const sizeBlock = locked
+        ? `<div class="dts-gen-locked">🔒 ${t('dts_gen_size_locked').replace('{t}', target)}</div>`
+        : `<div class="dts-gen-field"><label for="dts-gen-size">${t('dts_gen_size_label')}</label>
+               <select id="dts-gen-size" data-gen="size">${sizeOpts}</select></div>
+           ${genForm.size === 'custom' ? `<div class="dts-gen-field"><label for="dts-gen-custom">${t('dts_gen_custom_words')}</label>
+               <input id="dts-gen-custom" type="number" inputmode="numeric" min="${MIN_TARGET_WORDS}" max="${MAX_TARGET_WORDS}" value="${genForm.custom}" data-gen="custom"></div>` : ''}`;
+    const round = currentTest.rounds[roundIndex];
+    const pending = [...round.mainQuestions, ...round.swapQuestions].filter(q => isAutoQ(q) && !q.meta.approved).length;
+    return `
+        <div class="dts-gen-panel">
+            <div class="dts-gen-grid">
+                <div class="dts-gen-field"><label for="dts-gen-main">${t('dts_gen_main_count')}</label>
+                    <input id="dts-gen-main" type="number" inputmode="numeric" min="0" max="30" value="${genForm.main}" data-gen="main"></div>
+                <div class="dts-gen-field"><label for="dts-gen-swap">${t('dts_gen_swap_count')}</label>
+                    <input id="dts-gen-swap" type="number" inputmode="numeric" min="0" max="30" value="${genForm.swap}" data-gen="swap"></div>
+                ${sizeBlock}
+            </div>
+            <div class="dts-gen-target">${t('dts_gen_target_line').replace('{t}', target).replace('{lo}', lo).replace('{hi}', hi)}</div>
+            <label class="dts-gen-check"><input type="checkbox" data-gen="avoidPrev" ${genForm.avoidPrev ? 'checked' : ''}> ${t('dts_gen_avoid_prev')}</label>
+            <div class="dts-gen-actions">
+                <button type="button" class="dts-gen-btn" data-gen-action="generate" ${genBusy ? 'disabled' : ''}>${t('dts_gen_btn')}</button>
+                ${pending ? `<button type="button" class="dts-gen-btn dts-gen-btn-ok" data-gen-action="approve-all">${t('dts_gen_approve_all')} (${pending})</button>` : ''}
+            </div>
+            <p class="dts-gen-help">${t('dts_gen_help')}</p>
+            ${genNotice ? `<div class="dts-gen-notice" role="status">${esc(genNotice)}</div>` : ''}
+        </div>`;
+}
+
+// شريط الميزان/المراجعة + أدوات التعديل لسؤال مولَّد (يُضاف أسفل بطاقة السؤال)
+function refLabel(m) {
+    const s = (AppState.surahsData || []).find(x => x.number === m.surah);
+    const name = s ? plainSurahName(s) : '';
+    const range = m.fromAyah === m.toAyah ? `${m.fromAyah}` : `${m.fromAyah}–${m.toAyah}`;
+    return `${name} · ${t('dts_gen_ayah')} ${range}`;
+}
+
+function buildAutoMetaHTML(q, roundIndex, kind, index) {
+    const m = q.meta;
+    const ok = isBalancedWords(m.words, m.target);
+    const d = `data-round="${roundIndex}" data-kind="${kind}" data-index="${index}"`;
+    const edge = (name, e) => `<span class="dts-gen-edge"><span>${t(name)}</span>
+        <button type="button" class="dts-gen-mini" data-gen-action="edge" data-edge="${e}" data-delta="${e === 'start' ? 1 : -1}" ${d} title="${t(e === 'start' ? 'dts_gen_start_minus' : 'dts_gen_end_minus')}">−</button>
+        <button type="button" class="dts-gen-mini" data-gen-action="edge" data-edge="${e}" data-delta="${e === 'start' ? -1 : 1}" ${d} title="${t(e === 'start' ? 'dts_gen_start_plus' : 'dts_gen_end_plus')}">+</button></span>`;
+    return `
+        <div class="dts-gen-row">
+            <span class="dts-gen-ref">${esc(refLabel(m))}</span>
+            <span class="dts-gen-chip ${ok ? 'dts-gen-chip-ok' : 'dts-gen-chip-warn'}">${t('dts_gen_words').replace('{n}', m.words)} · ${t(ok ? 'dts_gen_balanced' : 'dts_gen_unbalanced')}</span>
+            <span class="dts-gen-chip ${m.approved ? 'dts-gen-chip-ok' : 'dts-gen-chip-pending'}">${t(m.approved ? 'dts_gen_approved' : 'dts_gen_pending')}</span>
+            ${edge('dts_gen_edge_start', 'start')}${edge('dts_gen_edge_end', 'end')}
+            <button type="button" class="dts-gen-mini" data-gen-action="regen" ${d} title="${t('dts_gen_regen_title')}">🔄</button>
+            <button type="button" class="dts-gen-mini ${m.approved ? '' : 'dts-gen-mini-ok'}" data-gen-action="toggle-approve" ${d} title="${t('dts_gen_approve_btn')}">${m.approved ? '↩' : '✓'}</button>
+        </div>`;
 }
 
 // ===================== حفظ الاختبار =====================
@@ -560,6 +812,12 @@ async function saveCurrentTest(status) {
     // أسئلة الجولات على دفعات متباعدة (أسبوع أو شهر بين كل إضافة)، فالحفظ كـ"جاهز" متاح في
     // أي وقت بغض النظر عن عدد الأسئلة المكتملة حالياً في كل جولة، وبغض النظر عن الخطوة
     // الحالية في المعالج (أزرار الحفظ ظاهرة دائماً بصرف النظر عن الخطوة 1/2/3)
+    // 🌟 [جديد] تنبيه (غير مانع) عند الحفظ كـ"جاهز" وفي الاختبار أسئلة مولَّدة لم تُراجَع/تُعتمد
+    // أو خارجة عن الميزان — المعلم هو من يقرر
+    if (status === 'ready') {
+        const flagged = allQuestionsOf(currentTest).filter(q => isAutoQ(q) && (!q.meta.approved || !isBalancedWords(q.meta.words, q.meta.target))).length;
+        if (flagged && !confirm(t('dts_gen_unapproved_confirm').replace('{n}', flagged))) return;
+    }
     currentTest.status = status;
     if (editingTestId) currentTest.id = editingTestId;
 
@@ -881,8 +1139,58 @@ function wireStaticListeners() {
         else composer?.querySelector('button[data-add-kind]')?.click();
     });
 
-    activeRoundContainer?.addEventListener('click', (e) => {
+    // 🌟 [جديد] حقول نموذج التوليد (تحدّث genForm فقط؛ إعادة الرسم عند تغيير الحجم لإظهار «مخصص»)
+    activeRoundContainer?.addEventListener('change', (e) => {
+        const el = e.target.closest('[data-gen]');
+        if (!el || !currentTest) return;
+        const key = el.dataset.gen;
+        if (key === 'avoidPrev') genForm.avoidPrev = el.checked;
+        else if (key === 'size') { genForm.size = el.value; renderSingleRound(activeRoundIndex); }
+        else {
+            const v = Math.max(0, parseInt(el.value, 10) || 0);
+            genForm[key] = key === 'custom' ? Math.min(MAX_TARGET_WORDS, Math.max(MIN_TARGET_WORDS, v || SIZE_PRESETS.medium)) : Math.min(30, v);
+            renderSingleRound(activeRoundIndex);
+        }
+    });
+
+    activeRoundContainer?.addEventListener('click', async (e) => {
         if (!currentTest) return;
+
+        // 🌟 [جديد] التبديل بين الإدخال اليدوي والتوليد التلقائي
+        const modeBtn = e.target.closest('[data-entry-mode]');
+        if (modeBtn) {
+            activeEntryMode = modeBtn.dataset.entryMode === 'auto' ? 'auto' : 'manual';
+            renderSingleRound(activeRoundIndex);
+            return;
+        }
+
+        // 🌟 [جديد] أزرار التوليد والمراجعة (توليد / اعتماد الكل / تعديل حد / إعادة توليد / اعتماد سؤال)
+        const genBtn = e.target.closest('[data-gen-action]');
+        if (genBtn) {
+            const action = genBtn.dataset.genAction;
+            const ri = genBtn.dataset.round !== undefined ? parseInt(genBtn.dataset.round, 10) : activeRoundIndex;
+            const kind = genBtn.dataset.kind;
+            const idx = parseInt(genBtn.dataset.index, 10);
+            if (action === 'generate') {
+                if (genBusy) return;
+                genBusy = true; genNotice = '';
+                try { await runGeneration(activeRoundIndex); } catch (err) { console.error(err); genNotice = t('dts_gen_error'); }
+                genBusy = false;
+                renderSingleRound(activeRoundIndex);
+            } else if (action === 'approve-all') {
+                const r = currentTest.rounds[activeRoundIndex];
+                [...r.mainQuestions, ...r.swapQuestions].filter(isAutoQ).forEach(q => { q.meta.approved = true; });
+                renderSingleRound(activeRoundIndex);
+            } else if (action === 'toggle-approve') {
+                const q = findQuestion(ri, kind, idx);
+                if (isAutoQ(q)) { q.meta.approved = !q.meta.approved; renderSingleRound(ri); }
+            } else if (action === 'edge') {
+                await adjustQuestionEdge(ri, kind, idx, genBtn.dataset.edge, parseInt(genBtn.dataset.delta, 10));
+            } else if (action === 'regen') {
+                await regenerateOne(ri, kind, idx);
+            }
+            return;
+        }
 
         // 🌟 [جديد] رابط "✏️ تعديل" بجانب ملخص نطاق الجولة يرجع مباشرة للخطوة 1 (مصدر
         // التعديل الوحيد للنطاق الآن)، مع الحفاظ على أي أسئلة أُضيفت بالفعل في هذه الجولة

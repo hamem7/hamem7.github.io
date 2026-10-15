@@ -15,6 +15,8 @@
 //   الفائز = صاحب الجولات الأكثر؛ تعادل عدد الجولات (نادر) = تعادل رسمي للمواجهة كلها.
 
 // خصم الخطأ الثابت — نصف نقطة دائماً (وليس نصف قيمة السؤال، حسب قرار المعلم الصريح)
+import { splitAyahWords, splitAyahTokens, isWaqfMark } from './quranEngine.js';
+
 export const MISTAKE_DEDUCTION = 0.5;
 
 // 🌟 [جديد] قيمة كل سؤال ثابتة = 10 درجات، بتوضيح صريح من المعلم. عند اعتماد إجابة الطالب
@@ -242,4 +244,135 @@ export function evaluateMatchAchievements(studentId, currentMatch, allMatches) {
     }
 
     return earned;
+}
+
+
+// ============================================================================
+// 🌟 [جديد] توليد أسئلة متوازنة تلقائياً — "ميزان واحد" لكل الأسئلة
+// ============================================================================
+// الفكرة: عدد الآيات لا يصلح معياراً عادلاً (آية قد تكون كلمتين وأخرى 120 كلمة)، فالمعيار هو
+// عدد الكلمات الفعلية (بلا رموز الوقف). كل سؤال = نافذة آيات متصلة داخل سورة واحدة تبدأ عند
+// أول آية وتنتهي عند آية كاملة (لا قطع في منتصف آية)، ومجموع كلماتها داخل هامش ضيق حول الهدف.
+// الأساسية والاستبدال من نفس النطاق والهامش، فيستبدل الطالب سؤالاً بسؤال مكافئ.
+// الدوال هنا نقية (بلا DOM ولا قاعدة بيانات): المدخل سور {number, name, ayahs:[{numberInSurah,text}]}.
+
+export const BALANCE_TOLERANCE = 0.10;       // ±10% حول الهدف
+export const BALANCE_MIN_SLACK_WORDS = 3;    // حد أدنى للهامش المطلق (للأحجام الصغيرة)
+export const SIZE_PRESETS = { short: 30, medium: 60, long: 100 };
+export const MIN_TARGET_WORDS = 15;
+export const MAX_TARGET_WORDS = 300;
+
+/** عدد الكلمات الفعلية لنص آية (بلا رموز الوقف وبلا البسملة المدمجة في أول آية). */
+export function ayahWordCount(text) {
+    return splitAyahWords(text).length;
+}
+
+/** حدّا الهامش [أدنى، أعلى] لهدف معيّن. */
+export function balanceBounds(targetWords) {
+    const slack = Math.max(Math.round(targetWords * BALANCE_TOLERANCE), BALANCE_MIN_SLACK_WORDS);
+    return { lo: targetWords - slack, hi: targetWords + slack };
+}
+
+export function isBalancedWords(words, targetWords) {
+    const { lo, hi } = balanceBounds(targetWords);
+    return words >= lo && words <= hi;
+}
+
+/** مجموع كلمات الآيات [fromAyah..toAyah] (أرقامها داخل السورة، شاملة الطرفين). */
+export function windowWordCount(surah, fromAyah, toAyah) {
+    let sum = 0;
+    for (const a of surah.ayahs || []) {
+        if (a.numberInSurah >= fromAyah && a.numberInSurah <= toAyah) sum += ayahWordCount(a.text);
+    }
+    return sum;
+}
+
+/** هل نافذتان (سورة + من + إلى) متداخلتان؟ */
+export function windowsOverlap(a, b) {
+    return a.surah === b.surah && a.from <= b.to && b.from <= a.to;
+}
+
+/**
+ * كل النوافذ الصالحة (داخل الهامش) في السور المعطاة. لكل آية بداية تُؤخذ أقرب نهاية إلى الهدف
+ * ضمن الهامش (النهاية الأولى التي تبلغ الحد الأدنى، وقد تُفضَّل التالية لها إن كانت أقرب).
+ */
+export function findCandidateWindows(surahs, targetWords) {
+    const { lo, hi } = balanceBounds(targetWords);
+    const out = [];
+    for (const surah of surahs || []) {
+        const ayahs = surah.ayahs || [];
+        const wc = ayahs.map(a => ayahWordCount(a.text));
+        for (let i = 0; i < ayahs.length; i++) {
+            let sum = 0, best = null;
+            for (let j = i; j < ayahs.length; j++) {
+                sum += wc[j];
+                if (sum > hi) break;
+                if (sum >= lo && (!best || Math.abs(sum - targetWords) < Math.abs(best.words - targetWords))) {
+                    best = { surah: surah.number, from: ayahs[i].numberInSurah, to: ayahs[j].numberInSurah, words: sum };
+                }
+            }
+            if (best) out.push(best);
+        }
+    }
+    return out;
+}
+
+function pickRandom(arr, rng) { return arr[Math.floor(rng() * arr.length)]; }
+
+/**
+ * اختيار `count` نوافذ غير متداخلة (مع بعضها ومع `occupied`) موزّعة على النطاق: تُقسَّم
+ * المرشَّحات إلى `count` شرائح متساوية بالترتيب ويُؤخذ من كل شريحة اختيار عشوائي، ثم يُكمَل
+ * أي نقص من بقية المرشَّحات. يُرجِع {picked, shortage}.
+ */
+export function pickWindows(candidates, count, occupied = [], rng = Math.random) {
+    const picked = [];
+    const free = (w) => !occupied.some(o => windowsOverlap(o, w)) && !picked.some(p => windowsOverlap(p, w));
+    if (count <= 0) return { picked, shortage: 0 };
+    const n = candidates.length;
+    for (let s = 0; s < count && n > 0; s++) {
+        const slice = candidates.slice(Math.floor(s * n / count), Math.floor((s + 1) * n / count)).filter(free);
+        if (slice.length) picked.push(pickRandom(slice, rng));
+    }
+    while (picked.length < count) {
+        const rest = candidates.filter(free);
+        if (!rest.length) break;
+        picked.push(pickRandom(rest, rng));
+    }
+    return { picked, shortage: count - picked.length };
+}
+
+/**
+ * توليد أسئلة أساسية واستبدال بميزان واحد.
+ * @returns {{main: object[], swap: object[], shortage: number}} النوافذ {surah, from, to, words}؛
+ *   الأساسية مرتّبة بموضعها في النطاق، والاستبدال بترتيب عشوائي.
+ */
+export function generateBalancedWindows(surahs, { mainCount, swapCount, targetWords, occupied = [], rng = Math.random }) {
+    const total = Math.max(0, mainCount) + Math.max(0, swapCount);
+    const { picked, shortage } = pickWindows(findCandidateWindows(surahs, targetWords), total, occupied, rng);
+    const shuffled = shuffleArray(picked);
+    const swap = shuffled.slice(0, Math.min(swapCount, shuffled.length));
+    const main = shuffled.slice(swap.length)
+        .sort((a, b) => a.surah - b.surah || a.from - b.from);
+    return { main, swap, shortage };
+}
+
+/**
+ * مقتطف من نص آية يُعرَض للطالب بدل رقمها (الأطفال يعرفون نص الآية لا رقمها): بداية الآية للسؤال
+ * «سمّع من»، ونهايتها لـ«إلى». الآية القصيرة (≤ maxWords) تُعرَض كاملة، وإلا أول/آخر maxWords كلمات
+ * مع «…». رموز الوقف تبقى في مواضعها لكن لا تُحسب كلمات ولا تُترك معلّقة في طرف المقتطف.
+ */
+export function ayahExcerpt(text, edge = 'start', maxWords = 6) {
+    const tokens = splitAyahTokens(text);
+    const realCount = tokens.filter(w => !isWaqfMark(w)).length;
+    if (realCount <= maxWords + 2) return tokens.join(' ');
+    let taken = 0, out = [];
+    const seq = edge === 'start' ? tokens : tokens.slice().reverse();
+    for (const w of seq) {
+        if (isWaqfMark(w)) { if (out.length) out.push(w); continue; }
+        if (taken === maxWords) break;
+        out.push(w); taken++;
+    }
+    while (out.length && isWaqfMark(out[out.length - 1])) out.pop();
+    if (edge === 'end') out.reverse();
+    return edge === 'start' ? `${out.join(' ')} …` : `… ${out.join(' ')}`;
 }
