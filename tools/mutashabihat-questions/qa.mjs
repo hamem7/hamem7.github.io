@@ -36,6 +36,9 @@ export function buildRaw() {
     return { bySurah, nameToNum, allText, surahs, prefixes, suffixes, full, names };
 }
 
+// آية مقتطعة للعرض: «… نهايتها» (tail) أو «بدايتها …» (head). يُرجع { core, mode } أو null للآية الكاملة
+const clip = (p) => p.startsWith('… ') ? { core: p.slice(2), mode: 'tail' } : (p.endsWith(' …') && !/ \.{6}$/.test(p) ? { core: p.slice(0, -2), mode: 'head' } : null);
+const matchShown = (v, s, c) => !c ? v.l === s : (c.mode === 'tail' ? (v.l === s || v.l.endsWith(' ' + s)) : (v.l === s || v.l.startsWith(s + ' ')));
 const pieces = (text) => [...text.matchAll(/﴿([^﴾]*)﴾/g)].map(m => m[1]);
 
 export function checkQuestion(q, R) {
@@ -52,6 +55,10 @@ export function checkQuestion(q, R) {
             const stem = p.replace(/ \.{6}$/, '');
             const ok = R.prefixes.has(stem);
             if (!ok) fail('مطلع ليس بداية آية في المصحف: ' + p);
+        } else if (clip(p)) {
+            const c = clip(p), l = letters(c.core);
+            const ok = c.mode === 'head' ? R.prefixes.has(c.core) : R.suffixes.has(l);
+            if (!ok) fail('نص مقتطع ليس بداية/نهاية آية حرفية في المصحف: ' + p);
         } else if (!R.allText.has(p)) fail('نص بين ﴿﴾ ليس آية حرفية في المصحف: ' + p);
     }
     // 3) الخيارات
@@ -98,11 +105,13 @@ export function checkQuestion(q, R) {
         const sn = R.nameToNum.get(letters(sname || ''));
         const arr = R.bySurah.get(sn);
         if (!arr) { fail('اسم السورة في السؤال غير معروف: ' + sname); return errs; }
-        const shownVerses = ps.filter(p => !/ \.{6}$/.test(p)).map(letters);
+        const shownRaw = ps.filter(p => !/ \.{6}$/.test(p));
+        const shownClips = shownRaw.map(clip);
+        const shownVerses = shownRaw.map((p, i) => letters(shownClips[i] ? shownClips[i].core : p));
         if (q.type === 'sim_next' || q.type === 'sim_prev') {
             const L = shownVerses.length, valid = new Set();
             for (let i = 0; i + L <= arr.length; i++) {
-                if (shownVerses.every((s, k) => arr[i + k].l === s)) {
+                if (shownVerses.every((s, k) => matchShown(arr[i + k], s, shownClips[k]))) {
                     const t = arr[q.type === 'sim_next' ? i + L : i - 1];
                     if (t) valid.add(t.l);
                 }
@@ -113,7 +122,7 @@ export function checkQuestion(q, R) {
         } else if (q.type === 'sim_complete') {
             const stemP = ps.find(p => / \.{6}$/.test(p)), stem = letters(stemP.replace(/ \.{6}$/, ''));
             let base;
-            if (shownVerses.length) { base = []; arr.forEach((v, i) => { if (v.l === shownVerses[0] && arr[i + 1]) base.push(arr[i + 1]); }); }
+            if (shownVerses.length) { base = []; arr.forEach((v, i) => { if (matchShown(v, shownVerses[0], shownClips[0]) && arr[i + 1]) base.push(arr[i + 1]); }); }
             else base = [arr[0]];
             const valid = new Set(base.filter(v => v.l.startsWith(stem + ' ')).map(v => v.l));
             const corrFull = letters(stemP.replace(/ \.{6}$/, '') + ' ' + q.correctAnswer);

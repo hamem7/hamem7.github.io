@@ -161,6 +161,23 @@ function shuffled(arr, rng) {
     return a;
 }
 const verse = (t) => '﴿' + t + '﴾';
+// عرض الآية الطويلة في نص السؤال: إن زادت عن SHOW_WORDS كلمة (+2 هامش) تُقتطع بـ «…».
+// side='tail': تبقى النهاية («ماذا بعدها؟» والمهم ما قبل الجواب مباشرة)، side='head': تبقى البداية («ما قبلها؟»).
+// العرض فقط: يُوسَّع المقطع حتى يكون وحيداً داخل السورة (فلا تتشابه آيتان في الجزء المعروض)، والتحقق يبقى على النص الكامل.
+export const SHOW_WORDS = 12;
+function shownVerse(Q, s, text, side) {
+    const w = wordsOf(text);
+    if (w.length <= SHOW_WORDS + 2) return verse(text);
+    const sd = Q.surahs.get(s);
+    for (let K = SHOW_WORDS; K + 2 < w.length; K++) {
+        const part = side === 'head' ? w.slice(0, K) : w.slice(-K);
+        const n = norm(part.join(' '));
+        let c = 0;
+        for (const v of sd.verses.values()) if (side === 'head' ? (v.norm === n || v.norm.startsWith(n + ' ')) : (v.norm === n || v.norm.endsWith(' ' + n))) c++;
+        if (c === 1) return side === 'head' ? '﴿' + part.join(' ') + ' …﴾' : '﴿… ' + part.join(' ') + '﴾';
+    }
+    return verse(text);
+}
 const setHas = (a, b) => { for (const x of a) if (b.has(x)) return true; return false; };
 
 // ثلاثة خيارات فقط (بطلب المعلم): تُزال التكرارات بعد التطبيع، ويُقتصر على الصحيح + 2 إن زادت. null إن قلّت عن 3
@@ -315,10 +332,10 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null) {
         const pool = [...cn.map(x => x.next.text), ...locs.filter(x => x.prev).map(x => x.prev.text)];
         let text, shown, seq;
         if (anchored && l.prev) {
-            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + verse(l.prev.text) + ' ثم ' + verse(l.text) + '\nفما الآية التي تليها مباشرة؟';
+            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + shownVerse(Q, l.s, l.prev.text, 'tail') + ' ثم ' + shownVerse(Q, l.s, l.text, 'tail') + '\nفما الآية التي تليها مباشرة؟';
             shown = [tid(l.v), tid(l.prev)]; seq = [l.prev.norm, l.norm];
         } else {
-            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + verse(l.text) + '\nفما الآية التي تليها مباشرة؟';
+            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + shownVerse(Q, l.s, l.text, 'tail') + '\nفما الآية التي تليها مباشرة؟';
             shown = [tid(l.v)]; seq = [l.norm];
         }
         const f = finalize(pool.filter(t => !seq.includes(norm(t))), l.next.text, rng);
@@ -335,10 +352,10 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null) {
         const pool = [...cp.map(x => x.prev.text), ...locs.filter(x => x.next).map(x => x.next.text)];
         let text, shown, seq;
         if (anchored && l.next) {
-            text = `في سورة ${l.surahName} جاءت الآيتان:\n` + verse(l.text) + ' ثم ' + verse(l.next.text) + '\nفما الآية التي تسبق الآية الأولى منهما مباشرة؟';
+            text = `في سورة ${l.surahName} جاءت الآيتان:\n` + shownVerse(Q, l.s, l.text, 'head') + ' ثم ' + shownVerse(Q, l.s, l.next.text, 'head') + '\nفما الآية التي تسبق الآية الأولى منهما مباشرة؟';
             shown = [tid(l.v), tid(l.next)]; seq = [l.norm, l.next.norm];
         } else {
-            text = `في سورة ${l.surahName} جاءت الآية:\n` + verse(l.text) + '\nفما الآية التي تسبقها مباشرة؟';
+            text = `في سورة ${l.surahName} جاءت الآية:\n` + shownVerse(Q, l.s, l.text, 'head') + '\nفما الآية التي تسبقها مباشرة؟';
             shown = [tid(l.v)]; seq = [l.norm];
         }
         const f = finalize(pool.filter(t => !seq.includes(norm(t))), l.prev.text, rng);
