@@ -150,6 +150,9 @@ function renderQuestion() {
         document.getElementById('btn-hp-submit').style.display = 'none';
     }
 
+    // السؤال الجديد يبدأ من أعلى الصفحة (كان الطالب يبقى أسفلها فيضطر للصعود لقراءة السؤال)
+    try { window.scrollTo(0, 0); } catch (e) {}
+
     let html = `
         <h3 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 15px;">${hl(q.title)}</h3>
         <!-- 🌟 [جديد] class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية.

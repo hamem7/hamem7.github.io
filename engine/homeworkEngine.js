@@ -228,7 +228,7 @@ export class HomeworkEngine {
         }
         const unique = [...new Set(others)].sort((a, b) => Math.abs(a.length - correctAnswer.length) - Math.abs(b.length - correctAnswer.length) || (0.5 - Math.random()));
         // الصعب: خمسة خيارات من أقرب المعاني طولاً فقط (نافذة 6) بدل أربعة من نافذة 12
-        const wrongCount = hard && unique.length >= 4 ? 4 : 3;
+        const wrongCount = 3;   // أربعة خيارات كحد أقصى حتى لا يضطر الطفل للتمرير
         const wrong = unique.slice(0, hard ? 6 : 12).sort(() => 0.5 - Math.random()).slice(0, wrongCount);
         if (wrong.length < 3) return null;
 
@@ -255,7 +255,7 @@ export class HomeworkEngine {
         let similarSurahs = allSurahs.filter(s => s.name !== targetAyah.surahName).sort((x, y) => rank(x) - rank(y)).slice(0, hard ? 6 : 8);
 
         // الصعب: خمسة خيارات من أقرب ست سور في الترتيب والطول
-        let wrongOptions = similarSurahs.sort(() => 0.5 - Math.random()).slice(0, hard ? 4 : 3).map(s => `سورة ${s.name}`);
+        let wrongOptions = similarSurahs.sort(() => 0.5 - Math.random()).slice(0, 3).map(s => `سورة ${s.name}`);
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
 
         return { type: 'mcq', title: "في أي سورة تقع هذه الآية؟", text: `﴿\u00A0${cleanText}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
@@ -276,25 +276,25 @@ export class HomeworkEngine {
         const correct = cleanAyahText(list[ci].text);
         const stemFull = cleanAyahText(targetAyah.text);
         let wrong = [];
-        for (let d = 1; d <= 6 && wrong.length < 4; d++) {
+        for (let d = 1; d <= 6 && wrong.length < 3; d++) {
             for (const i of [t + sign * d, t - sign * d]) {
-                if (wrong.length >= 4 || i === ci || !exists(i)) continue;
+                if (wrong.length >= 3 || i === ci || !exists(i)) continue;
                 const txt = cleanAyahText(list[i].text);
                 if (txt !== correct && !wrong.includes(txt)) wrong.push(txt);
             }
         }
-        if (wrong.length < 4) {
+        if (wrong.length < 3) {
             const cands = (pool || []).filter(a => a.number !== targetAyah.number).map(a => cleanAyahText(a.text));
-            wrong.push(...pickDistractorTexts(correct, cands, 4 - wrong.length, [...wrong, stemFull], 4));
+            wrong.push(...pickDistractorTexts(correct, cands, 3 - wrong.length, [...wrong, stemFull], 4));
         }
-        wrong = [...new Set(wrong)].filter(w => w !== correct).slice(0, 4);
+        wrong = [...new Set(wrong)].filter(w => w !== correct).slice(0, 3);
         if (wrong.length < 3) return null;
 
         const stem = partialStem(targetAyah.text, dir === 'next' ? 'tail' : 'head');
-        const partialNote = stem !== stemFull ? ' — عُرض جزء من الآية فقط' : '';
+        const partialNote = stem !== stemFull ? ' (ترى جزءاً من الآية فقط)' : '';
         const title = dir === 'next'
-            ? (skip ? 'ما هي الآية الثانية التي تلي هذه الآية؟ (تخطَّ الآية التي تليها مباشرة)' : 'ما هي الآية التي تلي هذه الآية مباشرة؟')
-            : (skip ? 'ما هي الآية الثانية التي تَسبِق هذه الآية؟ (تخطَّ الآية التي تسبقها مباشرة)' : 'ما هي الآية التي تَسبِق هذه الآية مباشرة؟ (استرجاع عكسي)');
+            ? (skip ? 'اختر الآية التي تأتي بعد هذه الآية بآيتين (بينهما آية واحدة).' : 'ما هي الآية التي تلي هذه الآية مباشرة؟')
+            : (skip ? 'اختر الآية التي تأتي قبل هذه الآية بآيتين (بينهما آية واحدة).' : 'ما هي الآية التي تَسبِق هذه الآية مباشرة؟ (استرجاع عكسي)');
         return {
             type: 'mcq', title: title + partialNote, text: `﴿ ${stem} ﴾`,
             options: [correct, ...wrong].sort(() => 0.5 - Math.random()), correctAnswer: correct, points: 1
@@ -448,11 +448,11 @@ export class HomeworkEngine {
                 const shown = [...words]; shown[i] = substitute;
                 const others = [...new Set(shown.filter((w, k) => k !== i && skeleton(w) !== skeleton(substitute) && skeleton(w).length >= 3))]
                     .sort((x, y) => wordDistance(substitute, x) - wordDistance(substitute, y) || (0.5 - Math.random())).slice(0, 6)
-                    .sort(() => 0.5 - Math.random()).slice(0, 4);
+                    .sort(() => 0.5 - Math.random()).slice(0, 3);
                 if (others.length < 3) continue;
                 return {
                     type: 'mcq',
-                    title: "استخرج (الكلمة الدخيلة): كلمة واحدة في الآية استُبدلت بكلمة قريبة منها في الشكل، فما هي؟",
+                    title: "في هذه الآية كلمة واحدة غلط (وُضعت مكان الكلمة الصحيحة). اختر الكلمة الغلط:",
                     text: `﴿ ${shown.join(" ")} ﴾`,
                     options: [substitute, ...others].sort(() => 0.5 - Math.random()), correctAnswer: substitute, points: 1
                 };
@@ -491,7 +491,7 @@ export class HomeworkEngine {
         words[hideIdx] = " [ ....... ] ";
         let textWithBlank = words.join(" ");
 
-        const wrongCount = hard ? 4 : 3;
+        const wrongCount = 3;
         let wrongWords = pickDistractorWords(correctWord, pool.map(a => getCleanWords(a.text)).flat(), wrongCount, hard ? wrongCount + 1 : 8);
 
         if(wrongWords.length < wrongCount) wrongWords.push(...["الله", "الذي", "فيها", "بما"].filter(w => w !== correctWord && !wrongWords.includes(w)));
@@ -580,7 +580,7 @@ export class HomeworkEngine {
         let dualPoolWords = pool.map(a => getCleanWords(a.text)).flat();
 
         // الصعب: خمسة خيارات لكل فراغ من أقرب الكلمات شكلاً
-        const wrongCount = hard ? 4 : 3, window = hard ? wrongCount + 1 : 8;
+        const wrongCount = 3, window = hard ? wrongCount + 1 : 8;
         let wrongWords1 = pickDistractorWords(correctWord1, dualPoolWords, wrongCount, window);
         if(wrongWords1.length < wrongCount) wrongWords1.push(...["الله", "الذي", "بما", "فيها"].filter(w => w !== correctWord1 && !wrongWords1.includes(w)));
         let options1 = [correctWord1, ...wrongWords1.slice(0, Math.max(wrongCount, 3))].sort(() => 0.5 - Math.random());

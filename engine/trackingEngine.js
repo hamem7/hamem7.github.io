@@ -565,6 +565,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
     const maxVisual = !hard && n >= 6 ? Math.max(1, Math.floor(n / 8)) : 0;   // الصعب: لا صفحة يمنى/يسرى (التخمين 50%)
     const maxSurahQ = Math.max(1, Math.round(n / 6));
     const maxMeaning = n >= 5 ? Math.max(1, Math.round(n / 6)) : 0;
+    const fmtUsed = {};   // مرات استخدام كل صيغة في هذا الواجب (لتنويع الأنواع)
     let manualUsed = 0, visualUsed = 0, surahQUsed = 0, meaningUsed = 0, rr = 0;
 
     order.forEach((item, idx) => {
@@ -599,6 +600,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
             const d = HW_FORMATS[f];
             let w = pref[d.level] || 0.1;
             if (d.skill === 'visual') w *= 0.5;
+            w /= (1 + 1.5 * (fmtUsed[f] || 0));   // كلما تكررت الصيغة في هذا الواجب قلّ احتمال اختيارها ثانية
             if (f === 'word_meaning') w *= 2.5;   // يظهر في كل واجب (حتى سقفه) بدل أن يضيع بين الصيغ الأخرى
             return w;
         }, rng);
@@ -608,6 +610,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
         if (fmt === 'visual_page') visualUsed++;
         if (fmt === 'word_meaning') meaningUsed++;
         if (fmt === 'mcq_surah') surahQUsed++;
+        fmtUsed[fmt] = (fmtUsed[fmt] || 0) + 1;
         item.fmt = fmt;
         item.skill = def.skill;
         item.reason = { cat: item.cat, level: state.level, skillFocus, lastWrongTs: state.lastWrongTs || null };

@@ -55,9 +55,9 @@ await test('mcq_next/mcq_prev صعب: ٤–٥ خيارات فريدة كلها �
             assert.ok(q.options.length >= 4 && q.options.length <= 5, `${key}: ${q.options.length} خيارات`);
             const sameSurah = new Set(POOL.filter(p => p.surahNumber === a.surahNumber).map(p => cleanAyahText(p.text)));
             assert.ok(q.options.every(o => sameSurah.has(o)), `${key}: خيار من خارج السورة`);
-            assert.ok(key === 'mcq_next' ? q.title.includes('تلي هذه') : q.title.includes('تَسبِق هذه'), q.title);
+            assert.ok(key === 'mcq_next' ? /(تلي|بعد) هذه/.test(q.title) : /(تَسبِق|قبل) هذه/.test(q.title), q.title);
             if (words(a).length >= 7) { assert.ok(q.text.includes('…'), 'الآية الطويلة يجب أن تُعرض جزئياً'); partial++; }
-            if (q.title.includes('تخطَّ')) skip++;
+            if (q.title.includes('بآيتين')) skip++;
         }
     }
     assert.ok(total > 60 && partial > 10 && skip > 10, `total=${total} partial=${partial} skip=${skip}`);
@@ -68,7 +68,7 @@ await test('mcq_next صعب بسؤال التخطي: الآية التالية �
     const base = POOL.filter(p => p.numberInSurah > 2 && p.numberInSurah < 20 && p.surahNumber === 67);
     for (const a of Array.from({ length: 12 }, () => base).flat()) {   // كل آية 12 مرة: التخطي عشوائي بنسبة 50%
         const q = await engine.createQuestionByKey('mcq_next', a, POOL, HARD);
-        if (!q || !q.title.includes('تخطَّ')) continue;
+        if (!q || !q.title.includes('بآيتين')) continue;
         const surah = POOL.filter(p => p.surahNumber === 67);
         const immediate = cleanAyahText(surah[a.numberInSurah].text);
         const second = cleanAyahText(surah[a.numberInSurah + 1].text);
@@ -79,34 +79,34 @@ await test('mcq_next صعب بسؤال التخطي: الآية التالية �
     assert.ok(seen > 20, 'seen=' + seen);
 });
 
-await test('dropdown صعب: خمسة خيارات والكلمة المخفية طويلة وغير وظيفية', async () => {
+await test('dropdown صعب: أربعة خيارات والكلمة المخفية طويلة وغير وظيفية', async () => {
     let n = 0;
     for (const a of sample(80)) {
         const q = await engine.createQuestionByKey('dropdown', a, POOL, HARD);
         if (!q) continue;
         n++;
         assertValidMcq(q, 'dropdown');
-        assert.equal(q.options.length, 5);
+        assert.equal(q.options.length, 4);
         assert.ok(q.correctAnswer.replace(/[ً-ٰٟۖ-ۭـ]/g, '').length >= 4 || words(a).length < 8, 'كلمة قصيرة مخفية: ' + q.correctAnswer);
     }
     assert.ok(n > 40);
 });
 
-await test('dual_dropdown صعب: خمسة خيارات لكل فراغ والمفتاحان ضمنها', async () => {
+await test('dual_dropdown صعب: أربعة خيارات لكل فراغ والمفتاحان ضمنها', async () => {
     let n = 0;
     for (const a of sample(120, p => words(p).length >= 7)) {
         const q = await engine.createQuestionByKey('dual_dropdown', a, POOL, HARD);
         if (!q) continue;
         n++;
-        assert.equal(q.options1.length, 5); assert.equal(q.options2.length, 5);
+        assert.equal(q.options1.length, 4); assert.equal(q.options2.length, 4);
         assert.ok(q.options1.includes(q.correctAnswer[0]) && q.options2.includes(q.correctAnswer[1]));
-        assert.equal(new Set(q.options1).size, 5); assert.equal(new Set(q.options2).size, 5);
+        assert.equal(new Set(q.options1).size, 4); assert.equal(new Set(q.options2).size, 4);
         assert.equal(q.points, 2);
     }
     assert.ok(n > 20);
 });
 
-await test('ayah_ending صعب: نصف الآية مخفي (٤+ كلمات) وخمسة خيارات فريدة والمفتاح ضمنها', async () => {
+await test('ayah_ending صعب: نصف الآية مخفي (٤+ كلمات) وأربعة خيارات فريدة والمفتاح ضمنها', async () => {
     let n = 0;
     for (const a of sample(150, p => words(p).length >= 7)) {
         const q = await engine.createQuestionByKey('ayah_ending', a, POOL, HARD);
@@ -135,11 +135,11 @@ await test('intruder_word صعب: كلمة مستبدَلة (عدد كلمات �
     assert.ok(n > 30);
 });
 
-await test('mcq_surah صعب: خمسة خيارات فريدة', async () => {
+await test('mcq_surah صعب: أربعة خيارات فريدة', async () => {
     for (const a of sample(30)) {
         const q = await engine.createQuestionByKey('mcq_surah', a, POOL, HARD);
         assertValidMcq(q, 'mcq_surah');
-        assert.equal(q.options.length, 5);
+        assert.equal(q.options.length, 4);
     }
 });
 
@@ -191,7 +191,7 @@ await test('written_blank صعب: كلمتان متجاورتان بتصحيح �
 await test('المتوسط لم يتغيّر: mcq_next بأربعة خيارات وبالآية كاملة، dropdown بأربعة', async () => {
     for (const a of sample(40, p => p.numberInSurah < 25)) {
         const q = await engine.createQuestionByKey('mcq_next', a, POOL, {});
-        if (q) { assert.ok(q.options.length <= 4); assert.ok(!q.text.includes('…')); assert.ok(!q.title.includes('تخطَّ')); }
+        if (q) { assert.ok(q.options.length <= 4); assert.ok(!q.text.includes('…')); assert.ok(!q.title.includes('بآيتين')); }
         const d = await engine.createQuestionByKey('dropdown', a, POOL, {});
         if (d) assert.equal(d.options.length, 4);
     }
@@ -201,7 +201,7 @@ await test('buildQuestionForPlan: يمرّر الصعوبة ويبدّل visual_
     const a = sample(1, p => p.numberInSurah > 2 && words(p).length >= 6)[0];
     const hard = await engine.buildQuestionForPlan('visual_page', a, POOL, { difficulty: 'hard' });
     assert.ok(hard && hard.fmt === 'dropdown', 'البديل في الصعب هو أكمل الفراغ');
-    assert.equal(hard.question.options.length, 5);
+    assert.equal(hard.question.options.length, 4);
 });
 
 console.log(`\nالنتيجة: ${pass} ناجح، ${fail} فاشل، من إجمالي ${pass + fail} اختبار.`);
