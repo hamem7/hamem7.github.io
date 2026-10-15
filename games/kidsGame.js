@@ -17,6 +17,7 @@ import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRe
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -35,7 +36,8 @@ function initAudio() {
     if(audioCtx.state === 'suspended') audioCtx.resume(); 
 }
 
-function playSuccessSound() { 
+function playSuccessSound() {
+    if (isSfxMuted()) return; 
     initAudio(); 
     const osc = audioCtx.createOscillator(); 
     const gain = audioCtx.createGain(); 
@@ -53,6 +55,7 @@ function playSuccessSound() {
 // استبدلناه بنغمة "sine" ناعمة وهادئة بحجم صوت منخفض (0.15 بدل 1.0) — إشارة محايدة
 // بس مش مخيفة. صوت النجاح (playSuccessSound) والاستخدام في باقي الملف لم يتغيّرا 🌟
 function playErrorSound() {
+    if (isSfxMuted()) return;
     initAudio();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -193,6 +196,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
 
 function initGameUI() {
     // 🌟 [إصلاح فحص الأزرار] أُزيل سطر الإسناد الذاتي هنا (كان يشير لمعرّف مجرد)؛ التعريف الفعلي لـ window.recordKidsAnswer أدناه على مستوى الملف 🌟
+    initGameSoundToggle();
     initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     

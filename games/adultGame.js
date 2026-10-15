@@ -18,6 +18,7 @@ import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRe
 import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -39,7 +40,8 @@ function initAudio() {
     if(audioCtx.state === 'suspended') audioCtx.resume(); 
 }
 
-function playSuccessSound() { 
+function playSuccessSound() {
+    if (isSfxMuted()) return; 
     initAudio(); 
     const osc = audioCtx.createOscillator(); 
     const gain = audioCtx.createGain(); 
@@ -57,6 +59,7 @@ function playSuccessSound() {
 // الكبار "تكّتين" قصيرتين (triangle) بحجم صوت متوسط. شكل مختلف كليةً عن نغمة الأطفال
 // الجديدة الهادئة المنزلقة (sine)، بدل ما يكونا نفس الصوت تقريباً بفرق تردد بسيط 🌟
 function playErrorSound() {
+    if (isSfxMuted()) return;
     initAudio();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
@@ -360,6 +363,7 @@ function initGameUI() {
         document.getElementById('zoomModal').style.display = 'flex';
     };
 
+    initGameSoundToggle();
     initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
     initAudio(); 
     startTimer(30); 

@@ -837,6 +837,8 @@ export const translations = {
         eval_path: "مسار التقييم الشامل",
         exit_game: "🚪 خروج وإنهاء",
         game_fs_enter: "⛶ ملء الشاشة",
+        sfx_mute_btn: "🔊 المؤثرات الصوتية: تعمل",
+        sfx_unmute_btn: "🔇 المؤثرات الصوتية: صامتة",
         game_fs_exit: "🗗 الخروج من ملء الشاشة",
         // 🌟 [جديد] رسالة تأكيد قبل الخروج من جلسة تقييم بها إجابات مسجَّلة بالفعل — نفس فكرة
         // التأكيد الموجودة في dualtests/dual-test-play.js عند الخروج من مواجهة جارية، لمنع فقد
@@ -2983,6 +2985,8 @@ export const translations = {
         eval_path: "Comprehensive Evaluation Path",
         exit_game: "🚪 Exit and End",
         game_fs_enter: "⛶ Full screen",
+        sfx_mute_btn: "🔊 Sound effects: on",
+        sfx_unmute_btn: "🔇 Sound effects: muted",
         game_fs_exit: "🗗 Exit full screen",
         // 🌟 [New] Confirmation message before exiting an evaluation session that already has
         // recorded answers — mirrors the confirm() used in dualtests/dual-test-play.js when
