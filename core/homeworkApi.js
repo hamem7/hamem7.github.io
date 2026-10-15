@@ -46,25 +46,36 @@ async function teacherCall(action, params, opts = {}) {
 // قد يدفع المعلم لإعادة النشر فيتكرر الواجب. لا نعتبره منشوراً إلا بوجود صفّه في الخادم (listHomeworks)، فلا تخمين.
 export async function publishHomeworkToServer(homework) {
     const sentAt = Date.now();
+    // بصمة فريدة لهذه المحاولة تُحفظ في meta الواجب، فيميّز الاسترداد بعد انقطاع الاتصال واجبَنا الذي ربما حُفظ عن واجب سابق
+    // لنفس الطالب بنفس عدد الأسئلة (كان يُعدّ منشوراً خطأً فلا يظهر خطأ النشر ويُرجَع رابط الواجب القديم).
+    const nonce = 'n' + sentAt.toString(36) + Math.random().toString(36).slice(2, 10);
+    const payload = { ...homework, meta: { ...(homework.meta || {}), clientNonce: nonce } };
     try {
-        return await teacherCall('createHomework', { homework }, { write: true, timeoutMs: 60000 });
+        return await teacherCall('createHomework', { homework: payload }, { write: true, timeoutMs: 60000 });
     } catch (e) {
         if (!(e instanceof ApiError) || (e.code !== 'TIMEOUT' && e.code !== 'NETWORK')) throw e;
-        const found = await findJustPublished(homework, sentAt);
+        const found = await findJustPublished(homework, sentAt, nonce);
         if (found) return found;
         throw e;
     }
 }
 
-async function findJustPublished(homework, sentAt) {
+async function findJustPublished(homework, sentAt, nonce) {
     try {
         const r = await teacherCall('listHomeworks', {}, { timeoutMs: 40000 });
         const name = homework.assignedStudentName || null;
         const qn = (homework.questions || []).length;
-        const hit = (r.homeworks || []).find(h =>
+        const cands = (r.homeworks || []).filter(h =>
             h.questionCount === qn && (h.assignedStudentName || null) === name &&
             Date.parse(h.createdAt) >= sentAt - 120000);   // هامش لفرق ساعة الجهاز عن الخادم
-        return hit ? { ok: true, persisted: true, id: hit.id, createdAt: hit.createdAt, status: hit.status, questionCount: qn, recovered: true } : null;
+        // لا نعتمد المطابقة بالاسم والعدد وحدهما: نتحقق من بصمة المحاولة داخل meta الواجب نفسه
+        for (const hit of cands) {
+            const full = await fetchHomeworkFull(hit.id);
+            if (full && full.meta && full.meta.clientNonce === nonce) {
+                return { ok: true, persisted: true, id: hit.id, createdAt: hit.createdAt, status: hit.status, questionCount: qn, recovered: true };
+            }
+        }
+        return null;
     } catch (e) { return null; }
 }
 

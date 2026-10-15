@@ -365,7 +365,7 @@ try {
   await page.fill('#hw-target-student-search', 'دعاء'); await sleep(300);
   await page.click('.hwp2-student-result'); await sleep(1800);
   const beforeN = createdCount();
-  await page.fill('#hw-q-count-smart', '10');
+  await page.fill('#hw-q-count-smart', '20');
   await page.click('#btn-generate-publish');
   await page.waitForSelector('#hw-share-modal', { state: 'visible', timeout: 60000 });
   await sleep(800);

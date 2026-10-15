@@ -126,12 +126,12 @@ try {
 
   console.log('\n=== نشر مباشر ===');
   const before = await page.evaluate(async () => { const { AppState } = await import('/core/app.js'); return (await AppState.homeworkManager.getAllHomeworks()).length; });
-  await page.fill('#hw-q-count-smart', '10');
+  await page.fill('#hw-q-count-smart', '20');
   await page.click('#btn-generate-publish');
   await page.waitForSelector('#hw-share-modal', { state: 'visible', timeout: 40000 });
   await sleep(1200);
   const after = await page.evaluate(async () => { const { AppState } = await import('/core/app.js'); const all = await AppState.homeworkManager.getAllHomeworks(); return { n: all.length, last: all[all.length - 1] }; });
-  check('P1 نقرة واحدة: وُلِّد الواجب ونُشر وظهرت نافذة المشاركة', after.n === before + 1 && after.last.status === 'published' && after.last.questions.length === 10 && after.last.assignedStudentName === 'محمد التجريبي');
+  check('P1 نقرة واحدة: وُلِّد الواجب ونُشر وظهرت نافذة المشاركة', after.n === before + 1 && after.last.status === 'published' && after.last.questions.length === 20 && after.last.assignedStudentName === 'محمد التجريبي');
   const link = await page.inputValue('#hw-link-input');
   check('P2 الرابط جاهز', /student\.html\?hw=/.test(link) || /hw=/.test(link), link);
   const sharedBtns = await page.evaluate(() => ({ wa: !!document.getElementById('btn-share-wa')?.offsetParent, tg: !!document.getElementById('btn-share-tg')?.offsetParent, copy: !!document.getElementById('btn-copy-hw-link')?.offsetParent }));

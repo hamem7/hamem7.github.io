@@ -162,7 +162,8 @@ await test('المتوسط لم يتغيّر: mcq_next بأربعة خيارات
 });
 
 await test('buildQuestionForPlan: مستوى الصعوبة من الصيغة نفسها (التالية متوسطة بآية كاملة، السابقة صعبة بنصف آية)', async () => {
-    const a = sample(1, p => p.numberInSurah > 2 && words(p).length >= 8)[0];
+    // ليست آخر آية في سورتها (لا آية «تالية» لها فيرجع المولّد null عمداً)، وإلا يفشل الاختبار عشوائياً
+    const a = sample(1, p => p.numberInSurah > 2 && words(p).length >= 8 && POOL.some(x => x.surahNumber === p.surahNumber && x.numberInSurah === p.numberInSurah + 1))[0];
     const next = await engine.buildQuestionForPlan('mcq_next', a, POOL, { allowFallback: false });
     const prev = await engine.buildQuestionForPlan('mcq_prev', a, POOL, { allowFallback: false });
     assert.ok(next && !next.question.text.includes('…'), 'التالية متوسطة: الآية كاملة');

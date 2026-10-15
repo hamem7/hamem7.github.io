@@ -119,7 +119,7 @@ try {
   // نشر عادي لـ«الثالث ج» بنقرة «أنشئ» ثم «توليد ونشر مباشرة»
   await page.locator('#hwp5-due .hwp5-go[data-name="الثالث ج"]').click(); await sleep(1800);
   await dismissMonthly();
-  await page.fill('#hw-q-count-smart', '5');
+  await page.fill('#hw-q-count-smart', '20');
   await page.click('#btn-generate-publish');
   await page.waitForSelector('#hw-share-modal', { state: 'visible', timeout: 60000 });
   await sleep(500);
@@ -132,7 +132,7 @@ try {
   await page.evaluate(() => document.getElementById('btn-hero-new').click()); await sleep(500);
   await page.fill('#hw-target-student-search', 'الرابع'); await sleep(300);
   await page.click('.hwp2-student-result'); await sleep(1500);
-  await page.fill('#hw-q-count-smart', '5');
+  await page.fill('#hw-q-count-smart', '20');
   await page.click('#btn-generate-hw');
   await page.waitForSelector('#hw-questions-list .quran-text', { timeout: 40000 });
   await page.click('#btn-save-hw-draft'); await sleep(1200);
