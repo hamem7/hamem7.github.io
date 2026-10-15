@@ -39,7 +39,7 @@ function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.4.0';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
+var VERSION = '1.4.1';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
 // 🌟 [جديد 2026-10-01] Client ID العلني للواجهة (نفس GOOGLE_CLIENT_ID في core/api.js) — احتياطي لو لم تُضبط الخاصية في Script Properties
 var DEFAULT_GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 var SHEET_HW = 'Homeworks';
@@ -989,6 +989,25 @@ function fixedForSub_(rec) {
     rec.submittedAt, rec.gradedAt || '', rec.approvedAt || '', rec.version];
 }
 
+/**
+ * 🌟 [جديد 2026-10-15] مراجعة فورية للطالب بعد التسليم: حالة كل سؤال مُصحَّح آلياً فقط (correct/partial/wrong) والإجابة الصحيحة
+ * للخاطئ منها، و'manual' لما ينتظر المعلم (بلا أي نتيجة). لا درجة ولا نقاط ولا نسبة أبداً — الدرجة للمعلم بعد انتهاء تصحيحه اليدوي.
+ * تُبنى من التفاصيل المخزّنة (details) فتعمل أيضاً عند إعادة إرسال نفس المعرّف (duplicate).
+ */
+function studentFeedback_(questions, details) {
+  var byQ = {}, out = [];
+  (details || []).forEach(function (d) { if (d && d.qid !== undefined) byQ[d.qid] = d; });
+  (questions || []).forEach(function (q) {
+    var d = byQ[q.id];
+    if (!d) return;
+    var st = d.needsManualGrading ? 'manual' : (d.isCorrect ? 'correct' : ((d.earnedPoints || 0) > 0 ? 'partial' : 'wrong'));
+    var f = { qid: q.id, state: st };
+    if (st === 'partial' || st === 'wrong') f.correct = (q.type === 'matching') ? displayCorrect_(q) : q.correctAnswer;
+    out.push(f);
+  });
+  return out;
+}
+
 function publicReceipt_(rec, extra) {
   var r = { ok: true, persisted: true, submissionId: rec.id, clientSubmissionId: rec.clientSubmissionId,
     status: rec.status, submittedAt: rec.submittedAt, needsGrading: rec.status === 'submitted' };
@@ -1016,7 +1035,7 @@ function submit_(req) {
       if (!loaded.rows[i].rec) continue;
       // 🌟 [إصلاح] المعرّف يجب أن يخص نفس الواجب؛ كان يعيد إيصال تسليم واجب آخر
       if (String(loaded.rows[i].fixed[1]) !== hwId) throw err_('BAD_REQUEST', 'clientSubmissionId already used for another homework');
-      return publicReceipt_(loaded.rows[i].rec, { duplicate: true });
+      return publicReceipt_(loaded.rows[i].rec, { duplicate: true, feedback: studentFeedback_(hw.questions, loaded.rows[i].rec.details) });
     }
   }
   if (hw.status === 'closed') throw err_('CLOSED', 'This homework is closed');
@@ -1069,7 +1088,7 @@ function submit_(req) {
   var rowIndex = nextRow_(loaded.sh, SUB_FIXED);
   var hash = writeRow_(loaded.sh, SUB_FIXED, rowIndex, fixedForSub_(rec), rec);
   verifyRow_(loaded.sh, SUB_FIXED, rowIndex, rec.id, hash);
-  return publicReceipt_(rec, { receipt: { row: rowIndex, hash: hash } });
+  return publicReceipt_(rec, { receipt: { row: rowIndex, hash: hash }, feedback: studentFeedback_(hw.questions, g.details) });
 }
 
 function listSubmissions_(req, auth) {

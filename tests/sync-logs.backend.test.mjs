@@ -149,9 +149,9 @@ await test('تقليم السجل: عند 1500 صف تُحذف أقدم 500', ()
   assert.ok(rows.getLastRow() - 1 >= 15);
 });
 
-await test('الإجراءات القديمة سليمة: ping/createHomework/getHomework + نسخة الخادم 1.4.0', () => {
+await test('الإجراءات القديمة سليمة: ping/createHomework/getHomework + نسخة الخادم 1.4.1', () => {
   const { be, a } = mk();
-  assert.equal(be.get({ action: 'ping' }).version, '1.4.0');
+  assert.equal(be.get({ action: 'ping' }).version, '1.4.1');
   const hw = be.post({ action: 'createHomework', ...a, homework: hwBody() });
   assert.equal(hw.persisted, true);
   assert.equal(be.get({ action: 'getHomework', id: hw.id }).ok, true);

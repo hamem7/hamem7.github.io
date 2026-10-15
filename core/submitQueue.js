@@ -85,7 +85,7 @@ export async function attemptSend(hwId, onChange) {
             clientMeta: { ua: navigator.userAgent.slice(0, 120), attempts: attempt.attempts, tz: Intl.DateTimeFormat().resolvedOptions().timeZone }
         }, { method: 'POST', write: true, timeoutMs: 30000 });
         attempt.state = 'confirmed'; attempt.confirmedAt = Date.now(); attempt.lastError = null;
-        attempt.receipt = { submissionId: r.submissionId, submittedAt: r.submittedAt, duplicate: !!r.duplicate };
+        attempt.receipt = { submissionId: r.submissionId, submittedAt: r.submittedAt, duplicate: !!r.duplicate, feedback: Array.isArray(r.feedback) ? r.feedback : null };
         clearDraft(hwId);
         stopAutoRetry(hwId);
         return save(attempt, onChange);

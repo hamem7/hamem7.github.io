@@ -469,6 +469,63 @@ async function resubmitWithNewName(prev) {
     }
 }
 
+// 🌟 [جديد 2026-10-15] مراجعة فورية بعد التسليم: حالة كل سؤال مُصحَّح آلياً والإجابة الصحيحة للخاطئ، بلا أي درجة أو نسبة أو عدّاد
+// (الدرجة تظهر بعد أن يُنهي المعلم التصحيح اليدوي). الأسئلة اليدوية تُعرض «بانتظار المعلم» دون أي حكم.
+function renderFeedback(items) {
+    const box = document.getElementById('hp-feedback');
+    if (!box) return;
+    box.style.display = 'none';
+    box.textContent = '';
+    if (!Array.isArray(items) || !items.length || !hw || !Array.isArray(hw.questions)) return;
+    const meta = {
+        correct: { icon: '✅', key: 'hw_fb_correct', color: '#166534', bg: '#f0fdf4' },
+        partial: { icon: '🟡', key: 'hw_fb_partial', color: '#92400e', bg: '#fffbeb' },
+        wrong:   { icon: '❌', key: 'hw_fb_wrong',   color: '#b91c1c', bg: '#fef2f2' },
+        manual:  { icon: '⏳', key: 'hw_fb_manual',  color: '#475569', bg: '#f1f5f9' }
+    };
+    const answerEl = (c) => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'margin-top:6px; font-family:"Amiri Quran","Amiri",serif; font-size:1.15rem; line-height:1.9; color:#334155;';
+        if (Array.isArray(c)) {
+            const ol = document.createElement('ol');
+            ol.style.cssText = 'margin:0; padding-inline-start:22px;';
+            c.forEach(x => { const li = document.createElement('li'); li.textContent = String(x); ol.appendChild(li); });
+            wrap.appendChild(ol);
+        } else {
+            wrap.textContent = String(c);
+        }
+        return wrap;
+    };
+    const head = document.createElement('div');
+    head.style.cssText = 'font-weight:bold; color:#0f766e; font-size:1.2rem; margin-bottom:6px;';
+    head.textContent = t('hw_fb_title');
+    box.appendChild(head);
+    const note = document.createElement('div');
+    note.style.cssText = 'color:#64748b; font-size:1rem; margin-bottom:10px; line-height:1.6;';
+    note.textContent = t('hw_fb_nograde');
+    box.appendChild(note);
+    items.forEach(f => {
+        const idx = hw.questions.findIndex(q => q.id === f.qid);
+        const m = meta[f.state];
+        if (idx < 0 || !m) return;
+        const row = document.createElement('div');
+        row.style.cssText = `background:${m.bg}; border-radius:12px; padding:8px 12px; margin-bottom:6px;`;
+        const line = document.createElement('div');
+        line.style.cssText = `font-weight:bold; color:${m.color};`;
+        line.textContent = `${m.icon} ${t('hw_fb_q')} ${idx + 1} — ${t(m.key)}`;
+        row.appendChild(line);
+        if ((f.state === 'wrong' || f.state === 'partial') && f.correct !== undefined && f.correct !== null && f.correct !== '') {
+            const lab = document.createElement('div');
+            lab.style.cssText = 'margin-top:4px; color:#64748b; font-size:0.95rem;';
+            lab.textContent = t('hw_fb_right_answer');
+            row.appendChild(lab);
+            row.appendChild(answerEl(f.correct));
+        }
+        box.appendChild(row);
+    });
+    box.style.display = 'block';
+}
+
 // شاشة الحالة الحقيقية للتسليم — الوحيدة التي يمكنها القول إن الواجب "وصل" (فقط عند state=confirmed)
 function renderSubmissionStatus(a) {
     const modal = document.getElementById('hp-result-modal');
@@ -483,6 +540,7 @@ function renderSubmissionStatus(a) {
     finish.style.display = 'none';
     const dupBox = document.getElementById('hp-dup-box');
     if (dupBox) dupBox.style.display = 'none';
+    renderFeedback(a.state === 'confirmed' && a.receipt ? a.receipt.feedback : null);
 
     const badgeStyles = {
         ok: 'background:#dcfce7; color:#166534;', info: 'background:#e0f2fe; color:#0369a1;',
