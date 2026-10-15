@@ -45,7 +45,7 @@ await test('visual_page: لا يُولَّد في الصعب أبداً (الت�
 });
 
 await test('mcq_next/mcq_prev صعب: ٤–٥ خيارات فريدة كلها من السورة نفسها، والآية الطويلة تُعرض جزئياً', async () => {
-    let partial = 0, skip = 0, total = 0;
+    let partial = 0, total = 0;
     for (const key of ['mcq_next', 'mcq_prev']) {
         for (const a of sample(60)) {
             const q = await engine.createQuestionByKey(key, a, POOL, HARD);
@@ -57,26 +57,10 @@ await test('mcq_next/mcq_prev صعب: ٤–٥ خيارات فريدة كلها �
             assert.ok(q.options.every(o => sameSurah.has(o)), `${key}: خيار من خارج السورة`);
             assert.ok(key === 'mcq_next' ? /(تلي|بعد) هذه/.test(q.title) : /(تَسبِق|قبل) هذه/.test(q.title), q.title);
             if (words(a).length >= 7) { assert.ok(q.text.includes('…'), 'الآية الطويلة يجب أن تُعرض جزئياً'); partial++; }
-            if (q.title.includes('بآيتين')) skip++;
+            assert.ok(!q.title.includes('بآيتين'), 'سؤال التخطي أُلغي');
         }
     }
-    assert.ok(total > 60 && partial > 10 && skip > 10, `total=${total} partial=${partial} skip=${skip}`);
-});
-
-await test('mcq_next صعب بسؤال التخطي: الآية التالية مباشرة موجودة فخّاً ضمن الخيارات وليست المفتاح', async () => {
-    let seen = 0;
-    const base = POOL.filter(p => p.numberInSurah > 2 && p.numberInSurah < 20 && p.surahNumber === 67);
-    for (const a of Array.from({ length: 12 }, () => base).flat()) {   // كل آية 12 مرة: التخطي عشوائي بنسبة 50%
-        const q = await engine.createQuestionByKey('mcq_next', a, POOL, HARD);
-        if (!q || !q.title.includes('بآيتين')) continue;
-        const surah = POOL.filter(p => p.surahNumber === 67);
-        const immediate = cleanAyahText(surah[a.numberInSurah].text);
-        const second = cleanAyahText(surah[a.numberInSurah + 1].text);
-        assert.equal(q.correctAnswer, second);
-        if (immediate !== second) assert.ok(q.options.includes(immediate), 'الفخّ غائب');
-        seen++;
-    }
-    assert.ok(seen > 20, 'seen=' + seen);
+    assert.ok(total > 60 && partial > 10, `total=${total} partial=${partial}`);
 });
 
 await test('dropdown صعب: أربعة خيارات والكلمة المخفية طويلة وغير وظيفية', async () => {

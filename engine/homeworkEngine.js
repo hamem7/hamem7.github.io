@@ -269,7 +269,7 @@ export class HomeworkEngine {
         const list = surah.ayahs, t = targetAyah.numberInSurah - 1;
         const sign = dir === 'next' ? 1 : -1;
         const exists = (i) => i >= 0 && i < list.length;
-        const skip = exists(t + sign * 2) && Math.random() < 0.5;
+        const skip = false;   // بقرار المعلم: أُلغي سؤال «بعد/قبل هذه بآيتين» (كان معقّداً على الطفل)
         const ci = t + sign * (skip ? 2 : 1);
         if (!exists(ci)) return null;
 

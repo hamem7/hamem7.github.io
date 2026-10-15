@@ -22,7 +22,7 @@ export const CHANGELOG = [
         items: [
             {
                 type: 'improved',
-                ar: 'صياغة أبسط لأسئلة «الآية بعد/قبل هذه بآيتين» و«الكلمة الغلط»، والسؤال الجديد يبدأ من أعلى الصفحة بلا حاجة للتمرير للأعلى.',
+                ar: 'صياغة أبسط لسؤال «الكلمة الغلط» وإلغاء سؤال «الآية بعد/قبل هذه بآيتين»، والسؤال الجديد يبدأ من أعلى الصفحة بلا حاجة للتمرير للأعلى.',
                 en: 'Simpler wording for the "two verses before/after" and "wrong word" questions, and each new question now opens scrolled to the top.'
             },
             {
