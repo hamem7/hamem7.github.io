@@ -39,22 +39,22 @@ export const SKILLS_NOT_TRAINABLE_BY_HOMEWORK = ['fluency'];
 //   weight: وزن الدليل في حساب الإتقان (البصري 0.5 لأن التخمين يعطي 50%)
 // ------------------------------------------
 export const HW_FORMATS = {
-    mcq_next:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1 },
-    mcq_prev:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1 },
-    dropdown:      { skill: 'recall',    level: 'recognition', manual: false, weight: 1 },
-    dual_dropdown: { skill: 'recall',    level: 'recall',      manual: false, weight: 1 },
-    written_blank: { skill: 'recall',    level: 'recall',      manual: true,  weight: 1 },
-    write_3_ayahs: { skill: 'recall',    level: 'production',  manual: true,  weight: 1 },
-    matrix_order:  { skill: 'structure', level: 'recall',      manual: false, weight: 1 },
-    intruder_word: { skill: 'precision', level: 'recognition', manual: false, weight: 1 },
-    mcq_surah:     { skill: 'context',   level: 'recognition', manual: false, weight: 1 },
-    ayah_ending:   { skill: 'context',   level: 'recognition', manual: false, weight: 1 },
-    checkbox:      { skill: 'context',   level: 'recognition', manual: false, weight: 1 },
-    matching:      { skill: 'context',   level: 'recall',      manual: false, weight: 1 },
-    visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5 },
+    mcq_next:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1, diff: 'medium' },
+    mcq_prev:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1, diff: 'hard' },
+    dropdown:      { skill: 'recall',    level: 'recognition', manual: false, weight: 1, diff: 'medium' },
+    dual_dropdown: { skill: 'recall',    level: 'recall',      manual: false, weight: 1, diff: 'hard' },
+    written_blank: { skill: 'recall',    level: 'recall',      manual: true,  weight: 1, diff: 'hard' },
+    write_3_ayahs: { skill: 'recall',    level: 'production',  manual: true,  weight: 1, diff: 'hard' },
+    matrix_order:  { skill: 'structure', level: 'recall',      manual: false, weight: 1, diff: 'hard' },
+    intruder_word: { skill: 'precision', level: 'recognition', manual: false, weight: 1, diff: 'medium', retired: true },   // أُلغي من التوليد (سهل جداً)؛ يبقى للتاريخ القديم فقط
+    mcq_surah:     { skill: 'context',   level: 'recognition', manual: false, weight: 1, diff: 'medium' },
+    ayah_ending:   { skill: 'context',   level: 'recognition', manual: false, weight: 1, diff: 'hard' },
+    checkbox:      { skill: 'context',   level: 'recognition', manual: false, weight: 1, diff: 'hard' },
+    matching:      { skill: 'context',   level: 'recall',      manual: false, weight: 1, diff: 'medium' },
+    visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5, diff: 'medium', retired: true },   // أُلغي من التوليد (تخمين 50%)؛ يبقى للتاريخ القديم فقط
     // معاني الكلمات (كتاب كلمات القرآن لحسنين مخلوف): فهم لا حفظ، فوزنه نصف دليل الإتقان
-    word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5 },
-    tajweed_extract: { skill: 'tajweed', level: 'production',  manual: true,  weight: 1 }
+    word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5, diff: 'medium' },
+    tajweed_extract: { skill: 'tajweed', level: 'production',  manual: true,  weight: 1, diff: 'medium' }
 };
 
 export function formatsOfSkill(skill) {

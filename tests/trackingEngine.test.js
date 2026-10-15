@@ -263,24 +263,22 @@ await test('planHomework: المهارة الضعيفة تأخذ حصة موزو
 await test('planHomework: سقف الأسئلة اليدوية والبصرية وسؤال السورة', () => {
   for (let seed = 1; seed <= 12; seed++) {
     const p = planHomework({ n: 20, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(seed) });
-    assert.ok(p.items.filter(i => HW_FORMATS[i.fmt].manual).length <= 4);
-    assert.ok(p.items.filter(i => i.fmt === 'visual_page').length <= 2);
+    assert.ok(p.items.filter(i => HW_FORMATS[i.fmt].manual).length <= 6);
     assert.ok(p.items.filter(i => i.fmt === 'mcq_surah').length <= 3);
   }
 });
-await test('planHomework: الصعب بلا أسئلة صفحة يمنى/يسرى، وسقف اليدوي 30%، وأكثر استحضاراً وإنتاجاً من المتوسط', () => {
-  let hardHeavy = 0, medHeavy = 0;
+await test('planHomework: لا صيغ ملغاة، ونصف الأسئلة صعب ونصفها متوسط تقريباً، وسقف اليدوي 30%', () => {
+  let hard = 0, total = 0;
   for (let seed = 1; seed <= 20; seed++) {
-    const args = { n: 20, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW };
-    const hard = planHomework({ ...args, rng: rngSeed(seed), difficulty: 'hard' });
-    const med = planHomework({ ...args, rng: rngSeed(seed) });
-    assert.equal(hard.items.length, 20);
-    assert.equal(hard.items.filter(i => i.fmt === 'visual_page').length, 0, 'seed ' + seed);
-    assert.ok(hard.items.filter(i => HW_FORMATS[i.fmt].manual).length <= 6, 'seed ' + seed);
-    hardHeavy += hard.items.filter(i => HW_FORMATS[i.fmt].level !== 'recognition').length;
-    medHeavy += med.items.filter(i => HW_FORMATS[i.fmt].level !== 'recognition').length;
+    const p = planHomework({ n: 20, path: bigPath, classes: bigClasses, states: new Map(), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(seed) });
+    assert.equal(p.items.length, 20);
+    assert.ok(p.items.every(i => !HW_FORMATS[i.fmt].retired), 'seed ' + seed);
+    assert.ok(p.items.filter(i => HW_FORMATS[i.fmt].manual).length <= 6, 'seed ' + seed);
+    const h = p.items.filter(i => HW_FORMATS[i.fmt].diff === 'hard').length;
+    assert.ok(h >= 7 && h <= 13, `seed ${seed}: hard=${h}`);
+    hard += h; total += 20;
   }
-  assert.ok(hardHeavy > medHeavy, `hard=${hardHeavy} medium=${medHeavy}`);
+  assert.ok(Math.abs(hard / total - 0.5) < 0.08, `hard share=${hard / total}`);
 });
 await test('planHomework: لا سؤال سورة عند نطاق سورة واحدة (multiSurah=false)', () => {
   const p = plan(20, [], { multiSurah: false });

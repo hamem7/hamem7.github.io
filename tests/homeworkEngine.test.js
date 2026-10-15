@@ -335,30 +335,6 @@ function engineWithPages(pages) {
     return { engine: new HomeworkEngine(qe), ayahs };
 }
 
-await test('createVisualPageQuestion: صفحة فردية = اليمنى، زوجية = اليسرى، مع تنبيه عدم فتح المصحف', async () => {
-    const n = buildFakeAyahs().length;
-    const { engine, ayahs } = engineWithPages(Array(n).fill(3));
-    const q = await engine.createVisualPageQuestion(ayahs[0], ayahs);
-    assert.equal(q.type, 'mcq');
-    assert.equal(q.correctAnswer, 'الصفحة اليمنى');
-    assert.deepEqual([...q.options].sort(), ['الصفحة اليسرى', 'الصفحة اليمنى']);
-    assert.ok(q.title.includes('لا تفتح المصحف'));
-    const even = engineWithPages(Array(n).fill(4));
-    const q2 = await even.engine.createVisualPageQuestion(even.ayahs[0], even.ayahs);
-    assert.equal(q2.correctAnswer, 'الصفحة اليسرى');
-});
-
-await test('createVisualPageQuestion: آية تمتد على صفحتين (التالية في صفحة أخرى) أو بلا رقم صفحة = null', async () => {
-    const n = buildFakeAyahs().length;
-    const pages = Array(n).fill(3); pages[1] = 4;
-    const { engine, ayahs } = engineWithPages(pages);
-    assert.equal(await engine.createVisualPageQuestion(ayahs[0], ayahs), null);
-    const { engine: e2, ayahs: a2 } = engineWithPages(Array(n).fill(undefined));
-    assert.equal(await e2.createVisualPageQuestion(a2[0], a2), null);
-    const { engine: e3, ayahs: a3 } = engineWithPages(Array(n).fill(700));
-    assert.equal(await e3.createVisualPageQuestion(a3[0], a3), null);
-});
-
 await test('buildQuestionForPlan: يرجع الصيغة الفعلية، وبديل "أكمل الفراغ" عند عدم الملاءمة', async () => {
     const n = buildFakeAyahs().length;
     const { engine, ayahs } = engineWithPages(Array(n).fill(3));

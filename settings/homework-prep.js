@@ -2,7 +2,7 @@
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 // 🌟 [الواجب الذكي] التخطيط من سجل أداء الطالب (راجع core/trackingService.js) وعرض ملف المهارات وسبب اختيار كل سؤال
-import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks, getHwDifficulty, setHwDifficulty } from '../core/trackingService.js';
+import { loadContext as loadTrackingContext, planSmartHomework, buildSelectionModel, getResumeInfo, suggestSelection, resolveAllowedSegIds, coverageAdvice, saveLastScope, getCycleWeeks, setCycleWeeks } from '../core/trackingService.js';
 import { perWeekOf, setStudentPerWeek, listDueToday, markStudentPublished } from '../core/hwScheduleService.js';
 import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catClass, skillLabel, openSkillProfileModal, ensureSkillStyles } from '../components/skillProfile.js';
 // 🌟 استدعاء دالة التحديث الجديدة 🌟
@@ -1519,22 +1519,6 @@ function setupSmartPanelStatic() {
     set('hw-btn-suggest', L('✨ اقترح لي', '✨ Suggest'));
     const cycle = document.getElementById('hw-cycle-weeks');
     if (cycle) cycle.value = String(getCycleWeeks());
-    set('hw-difficulty-label', L('مستوى الصعوبة:', 'Difficulty:'));
-    set('hw-diff-medium', L('متوسط', 'Medium'));
-    set('hw-diff-hard', L('صعب', 'Hard'));
-    const diff = document.getElementById('hw-difficulty');
-    if (diff) diff.value = getHwDifficulty();
-    updateDifficultyHint();
-}
-
-// شرح قصير لما يتغيّر في كل مستوى (يظهر تحت القائمة)
-function updateDifficultyHint() {
-    const el = document.getElementById('hw-difficulty-hint');
-    if (!el) return;
-    el.textContent = readDifficulty() === 'hard'
-        ? L('صعب: يُعرض من الآية أقل، والخيارات أكثر وأشدّ تشابهاً، وأسئلة الكتابة أكثر، ولا تظهر أسئلة الصفحة اليمنى/اليسرى.',
-            'Hard: less of the ayah is shown, more and closer-looking choices, more written questions, and no right/left-page questions.')
-        : L('متوسط: أسئلة اختيار من متعدد بأربعة خيارات وعرض كامل للآية.', 'Medium: four-choice questions with the full ayah shown.');
 }
 
 // ---- حالة لوحة النطاق ----
@@ -1548,7 +1532,6 @@ const $id = (id) => document.getElementById(id);
 const MIN_Q = 20, MAX_Q = 50;
 const clampQ = (v) => Math.max(MIN_Q, Math.min(MAX_Q, Math.round(v)));
 const currentCount = () => { const v = parseInt($id('hw-q-count-smart').value); return isNaN(v) ? MIN_Q : v; };
-const readDifficulty = () => { const v = $id('hw-difficulty') ? $id('hw-difficulty').value : ''; return v === 'medium' ? 'medium' : 'hard'; };
 const setCount = (v) => { $id('hw-q-count-smart').value = String(clampQ(v)); updateCoverageLine(); };
 const readCycleWeeks = () => { const v = parseInt($id('hw-cycle-weeks').value); return (v >= 1 && v <= 26) ? v : getCycleWeeks(); };
 
@@ -1821,7 +1804,6 @@ function bindScopePanel() {
     });
     q('hw-q-count-smart')?.addEventListener('input', updateCoverageLine);
     q('hw-cycle-weeks')?.addEventListener('change', async () => { setCycleWeeks(readCycleWeeks()); await refreshScopePanel(); });
-    q('hw-difficulty')?.addEventListener('change', () => { setHwDifficulty(readDifficulty()); updateDifficultyHint(); });
     q('hw-coverage-line')?.addEventListener('click', (e) => {
         const b = e.target.closest('button[data-setn]');
         if (b) setCount(Number(b.dataset.setn));
@@ -1845,7 +1827,7 @@ async function generateSmartQuestions() {
     const original = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = '⏳ ' + L('جارٍ بناء الواجب…', 'Building…'); }
     try {
-        const res = await planSmartHomework(student, n, { selection, hwEngine, difficulty: readDifficulty() });
+        const res = await planSmartHomework(student, n, { selection, hwEngine });
         if (!res.ok) {
             if (res.reason === 'no_range') { await refreshSmartInfo(); return alert(L(`حدّد نطاق حفظ ${student.name} أولاً (في ملفه أو بتسجيل موضعه الشهري).`, `Set ${student.name}'s memorization range first (in their file or by recording a monthly position).`)); }
             if (res.reason === 'empty_selection') return alert(L('لا مقاطع في هذا الاختيار (ربما غُطّي كله). اختر نطاقاً آخر.', 'No segments in this selection (maybe all covered). Pick another range.'));

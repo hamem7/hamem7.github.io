@@ -389,7 +389,7 @@ try {
     const surah = await AppState.quranEngine.getSurah(100);
     let i = surah.ayahs.findIndex((a, k) => k < surah.ayahs.length - 1 && a.page === surah.ayahs[k + 1].page);
     const ayah = { ...surah.ayahs[i], surahNumber: 100, surahName: surah.name };
-    const built = await eng.buildQuestionForPlan('visual_page', ayah, [ayah], { allowFallback: false });
+    const built = await eng.buildQuestionForPlan('mcq_next', ayah, [ayah], { allowFallback: false });
     const created = await api.publishHomeworkToServer({ questions: [built.question], assignedStudentName: 'محمد التجريبي', assignedStudentId: sid,
       meta: { app: 'darham', tracking: { [built.question.id]: { surah: 100, ayah: ayah.numberInSurah, segment: '100:1-11', skill: 'visual', fmt: 'visual_page', cat: 'near' } } } });
     return { id: created.id, qid: built.question.id, correct: built.question.correctAnswer, page: ayah.page };

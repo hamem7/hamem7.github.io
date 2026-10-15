@@ -1,5 +1,6 @@
 // engine/homeworkEngine.js
 import { cleanAyahText, isWaqfMark, splitAyahWords } from './quranEngine.js';
+import { HW_FORMATS } from './skillMap.js';
 
 // ==========================================
 // 🌟🌟 فلترة علامات الوقف القرآنية من "كلمات" الآية — [نُقلت للمحرك المركزي]
@@ -140,7 +141,6 @@ export class HomeworkEngine {
             case 'mcq_next': return this.createMCQNextAyah(ayah, pool, opts);
             case 'mcq_prev': return this.createMCQPrevAyah(ayah, pool, opts);
             case 'ayah_ending': return this.createAyahEndingMatch(ayah, pool, opts);
-            case 'intruder_word': return this.createIntruderWordQuestion(ayah, pool, opts);
             case 'dropdown': return this.createMissingWordDropdown(ayah, pool, opts);
             case 'written_blank': return this.createWrittenBlankQuestion(ayah, pool, opts);
             case 'dual_dropdown': return this.createDualMissingWordDropdown(ayah, pool, opts);
@@ -149,8 +149,6 @@ export class HomeworkEngine {
             case 'write_3_ayahs': return this.createWrite3AyahsQuestion(ayah, pool, opts);
             case 'matching': return this.createMatchingQuestion(ayah, pool, opts);
             case 'tajweed_extract': return this.createTajweedExtractQuestion(ayah, pool, opts);
-            // الصفحة اليمنى/اليسرى: التخمين يعطي 50% فلا تصلح في الواجب الصعب أبداً
-            case 'visual_page': return isHard(opts) ? null : this.createVisualPageQuestion(ayah, pool);
             case 'word_meaning': return this.createWordMeaningQuestion(ayah, pool, opts);
             default: return null;
         }
@@ -159,36 +157,16 @@ export class HomeworkEngine {
     // 🌟 [جديد — الواجب الذكي] سؤال لصيغة وآية محدّدتين مسبقاً من خطة التتبّع. يرجع { question, fmt } حيث fmt هي الصيغة
     // التي أُنتجت فعلاً (قد تختلف عن المطلوبة إن لم تلائم الآية، فنقع على سؤال "أكمل الفراغ" كما في التوليد العشوائي).
     // التتبّع يسجّل الصيغة الفعلية دائماً، لا المطلوبة. allowFallback=false: يرجع null بدل البديل (تتولّى الخطة اختيار بديل أنسب).
-    async buildQuestionForPlan(typeKey, ayah, pool, { allowFallback = true, difficulty = 'medium' } = {}) {
-        const opts = { difficulty };
+    async buildQuestionForPlan(typeKey, ayah, pool, { allowFallback = true } = {}) {
+        // مستوى الصعوبة تحدده الصيغة نفسها (HW_FORMATS[..].diff): لا خيار صعب/متوسط للمعلم
+        const opts = { difficulty: (HW_FORMATS[typeKey] && HW_FORMATS[typeKey].diff) || 'medium' };
         let question = await this.createQuestionByKey(typeKey, ayah, pool, opts);
         let fmt = typeKey;
-        if (!question && allowFallback) { question = await this.createMissingWordDropdown(ayah, pool, opts); fmt = 'dropdown'; }
+        if (!question && allowFallback) { question = await this.createMissingWordDropdown(ayah, pool, { difficulty: HW_FORMATS.dropdown.diff }); fmt = 'dropdown'; }
         if (!question) return null;
         question.id = 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
         if (!question.points) question.points = (question.type === 'checkbox' || question.type === 'dual_dropdown') ? 2 : 1;
         return { question, fmt };
-    }
-
-    // 🌟 [جديد — الواجب الذكي] الذاكرة البصرية: "هذه الآية في الصفحة اليمنى أم اليسرى؟" (بدون فتح المصحف).
-    // ⚠️ افتراض صريح: ترقيم مصحف المدينة (604 صفحة)؛ الصفحة الفردية = اليمنى (صفحة 1 الفاتحة يميناً). ولا نسأل إلا عن آية
-    // تقع كلها في صفحة واحدة (الآية التالية في نفس الصفحة) كي لا يلتبس الجواب بآية تمتد على صفحتين. نوعه mcq فيُصحَّح آلياً
-    // في الخادم والواجهة بلا أي تعديل عليهما.
-    async createVisualPageQuestion(targetAyah, pool) {
-        const page = Number(targetAyah.page);
-        if (!(page >= 1 && page <= 604)) return null;
-        const surah = await this.quranEngine.getSurah(targetAyah.surahNumber);
-        const next = surah && surah.ayahs ? surah.ayahs[targetAyah.numberInSurah] : null;
-        if (!next || Number(next.page) !== page) return null;
-        const right = 'الصفحة اليمنى', left = 'الصفحة اليسرى';
-        return {
-            type: 'mcq',
-            title: 'تنبيه: لا تفتح المصحف ✋ — هذه الآية تقع في الصفحة اليمنى أم اليسرى من المصحف؟',
-            text: `﴿\u00A0${cleanAyahText(targetAyah.text)}\u00A0﴾`,
-            options: [right, left],
-            correctAnswer: (page % 2 === 1) ? right : left,
-            points: 1
-        };
     }
 
     // 🌟 [جديد] معاني الكلمات: "ما معنى (كلمة) في هذه الآية؟" — اختيار من متعدد يُصحَّح آلياً (type: 'mcq').
@@ -428,50 +406,6 @@ export class HomeworkEngine {
         let options = [correctAnswer, ...wrongOptions].sort(() => 0.5 - Math.random());
 
         return { type: 'mcq', title: "اختر الخاتمة الصحيحة والدقيقة لهذه الآية:", text: `﴿\u00A0${textWithBlank}\u00A0﴾`, options: options, correctAnswer: correctAnswer, points: 1 };
-    }
-
-    // 🌟 نمط 5: الكلمة الدخيلة
-    async createIntruderWordQuestion(targetAyah, pool, opts = {}) {
-        let words = getCleanWords(targetAyah.text);
-        if (words.length < 4) return null;
-
-        // الصعب: لا تُضاف كلمة غريبة (تُكشف بالمعنى) بل تُستبدل كلمة من الآية بأقرب كلمة شكلاً من المخزون، والخيارات خمس كلمات
-        // متقاربة الشكل من المعروضة؛ فلا يجدها إلا من يحفظ الآية حرفياً
-        if (isHard(opts) && words.length >= 5) {
-            const have = new Set(words.map(skeleton));
-            const poolWords = pool.map(a => getCleanWords(a.text)).flat().filter(w => !have.has(skeleton(w)));
-            const idxs = words.map((w, i) => i).filter(i => skeleton(words[i]).length >= 3).sort(() => 0.5 - Math.random());
-            for (const i of idxs) {
-                const subs = pickDistractorWords(words[i], poolWords, 1, 3);
-                if (!subs.length) continue;
-                const substitute = subs[0];
-                const shown = [...words]; shown[i] = substitute;
-                const others = [...new Set(shown.filter((w, k) => k !== i && skeleton(w) !== skeleton(substitute) && skeleton(w).length >= 3))]
-                    .sort((x, y) => wordDistance(substitute, x) - wordDistance(substitute, y) || (0.5 - Math.random())).slice(0, 6)
-                    .sort(() => 0.5 - Math.random()).slice(0, 3);
-                if (others.length < 3) continue;
-                return {
-                    type: 'mcq',
-                    title: "في هذه الآية كلمة واحدة غلط (وُضعت مكان الكلمة الصحيحة). اختر الكلمة الغلط:",
-                    text: `﴿ ${shown.join(" ")} ﴾`,
-                    options: [substitute, ...others].sort(() => 0.5 - Math.random()), correctAnswer: substitute, points: 1
-                };
-            }
-        }
-
-        let poolWords = pool.map(a => getCleanWords(a.text)).flat().filter(w => w.length > 3 && !words.includes(w));
-        let intruderWord = poolWords.length > 0 ? poolWords[Math.floor(Math.random() * poolWords.length)] : "القرآن";
-        
-        let insertIdx = Math.floor(Math.random() * (words.length - 1)) + 1;
-        let injectedWords = [...words];
-        injectedWords.splice(insertIdx, 0, intruderWord); 
-        let displayedText = injectedWords.join(" ");
-
-        // 🌟 [عدّل — 2026-10-12] كلمات الآية المعروضة كخيارات: الأقرب شكلاً للدخيلة ليصعب كشفها بالطول/الشكل
-        let validOptions = [...new Set(words)].filter(w => w.length > 2 && !isWaqfMark(w) && w !== intruderWord).sort((x, y) => wordDistance(intruderWord, x) - wordDistance(intruderWord, y) || (0.5 - Math.random())).slice(0, 5).sort(() => 0.5 - Math.random()).slice(0, 3);
-        let options = [intruderWord, ...validOptions].sort(() => 0.5 - Math.random());
-
-        return { type: 'mcq', title: "استخرج (الكلمة الدخيلة) التي تم إضافتها خطأً إلى هذه الآية:", text: `﴿\u00A0${displayedText}\u00A0﴾`, options: options, correctAnswer: intruderWord, points: 1 };
     }
 
     // 🌟 نمط 6 المطور: القائمة المنسدلة (عشوائية 20% - 80%)

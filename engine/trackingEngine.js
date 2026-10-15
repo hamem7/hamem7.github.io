@@ -470,14 +470,6 @@ const LEVEL_PREF = {
     mastered:  { recognition: 0.5, recall: 2, production: 2 }
 };
 
-// الواجب الصعب: التعرّف (اختيار من متعدد) يخف وزنه، والاستحضار والإنتاج (كتابة من الذاكرة) يثقلان حتى للمقاطع الجديدة
-const HARD_LEVEL_PREF = {
-    unseen:    { recognition: 2,   recall: 2,   production: 0.6 },
-    needs_fix: { recognition: 1.5, recall: 2.5, production: 0.8 },
-    shaky:     { recognition: 1.5, recall: 2.5, production: 0.8 },
-    solid:     { recognition: 0.6, recall: 3,   production: 1.5 },
-    mastered:  { recognition: 0.3, recall: 2,   production: 3 }
-};
 
 function weightedPick(candidates, weightOf, rng) {
     const total = candidates.reduce((s, c) => s + weightOf(c), 0);
@@ -517,9 +509,8 @@ function takeSegments(pool, k, states, now, rng, avoid) {
 
 // يرجع: { items:[{seg, cat, fmt, skill, reason}], quotas, weakSkills, skillSlots }
 export function planHomework({ n, path, classes, states, skillStats, now = Date.now(), rng = Math.random,
-                               focusFilter = null, multiSurah = true, avoidSegIds = null, difficulty = 'medium', opts = {} }) {
-    const hard = difficulty === 'hard';
-    const o = { errCap: THRESHOLDS.errCap, skillCap: THRESHOLDS.skillCap, manualCap: hard ? THRESHOLDS.hardManualCap : THRESHOLDS.manualCap, ...opts };
+                               focusFilter = null, multiSurah = true, avoidSegIds = null, opts = {} }) {
+    const o = { errCap: THRESHOLDS.errCap, skillCap: THRESHOLDS.skillCap, manualCap: THRESHOLDS.hardManualCap, ...opts };
     const segs = (path.segments || []).filter(s => !focusFilter || focusFilter(s));
     if (!segs.length || !(n > 0)) return { items: [], quotas: {}, weakSkills: [], skillSlots: 0 };
     const stOf = (id) => states.get(id) || UNSEEN_STATE;
@@ -562,11 +553,11 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
     // ٤) اختيار الصيغة لكل بند
     const order = shuffled(picked, rng);
     const maxManual = Math.floor(n * o.manualCap);
-    const maxVisual = !hard && n >= 6 ? Math.max(1, Math.floor(n / 8)) : 0;   // الصعب: لا صفحة يمنى/يسرى (التخمين 50%)
     const maxSurahQ = Math.max(1, Math.round(n / 6));
     const maxMeaning = n >= 5 ? Math.max(1, Math.round(n / 6)) : 0;
     const fmtUsed = {};   // مرات استخدام كل صيغة في هذا الواجب (لتنويع الأنواع)
-    let manualUsed = 0, visualUsed = 0, surahQUsed = 0, meaningUsed = 0, rr = 0;
+    let manualUsed = 0, surahQUsed = 0, meaningUsed = 0, rr = 0;
+    const diffUsed = { hard: 0, medium: 0 };   // نصف الأسئلة صعب ونصفها متوسط (الصعوبة بحسب الصيغة)
 
     order.forEach((item, idx) => {
         const state = stOf(item.seg.id);
@@ -576,7 +567,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
         const baseFilter = (fmt) => {
             const def = HW_FORMATS[fmt];
             if (fmt === 'mcq_surah' && (!multiSurah || surahQUsed >= maxSurahQ)) return false;
-            if (fmt === 'visual_page' && visualUsed >= maxVisual) return false;
+            if (def.retired) return false;
             if (fmt === 'word_meaning' && meaningUsed >= maxMeaning) return false;
             if (def.manual && manualUsed >= maxManual) return false;
             return true;
@@ -594,12 +585,14 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
             const same = fmts.filter(f => HW_FORMATS[f].skill === state.lastWrong.skill);
             if (same.length && rng() < 0.6) fmts = same;
         }
-        const prefTable = hard ? HARD_LEVEL_PREF : LEVEL_PREF;
+        const prefTable = LEVEL_PREF;
         const pref = prefTable[state.level] || prefTable.unseen;
         const fmt = weightedPick(fmts, f => {
             const d = HW_FORMATS[f];
             let w = pref[d.level] || 0.1;
-            if (d.skill === 'visual') w *= 0.5;
+            // موازنة المستويين: المستوى الأقل استخداماً حتى الآن يُفضَّل، فيخرج الواجب نصفه صعباً ونصفه متوسطاً
+            const dd = d.diff || 'medium', other = dd === 'hard' ? 'medium' : 'hard';
+            if (diffUsed[dd] > diffUsed[other]) w *= 0.15;
             w /= (1 + 1.5 * (fmtUsed[f] || 0));   // كلما تكررت الصيغة في هذا الواجب قلّ احتمال اختيارها ثانية
             if (f === 'word_meaning') w *= 2.5;   // يظهر في كل واجب (حتى سقفه) بدل أن يضيع بين الصيغ الأخرى
             return w;
@@ -607,7 +600,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
 
         const def = HW_FORMATS[fmt];
         if (def.manual) manualUsed++;
-        if (fmt === 'visual_page') visualUsed++;
+        diffUsed[def.diff || 'medium']++;
         if (fmt === 'word_meaning') meaningUsed++;
         if (fmt === 'mcq_surah') surahQUsed++;
         fmtUsed[fmt] = (fmtUsed[fmt] || 0) + 1;
