@@ -45,7 +45,7 @@ export function formatKidsSimilar(sim, pool) {
     return {
         type: 'kids_mcq',
         questionTitle: isSurah ? 'في أي سورة من المتشابهات؟ 🌟' : 'ماذا بعدها؟ من المتشابهات 🔀',
-        questionBody: `<div style="font-size:2.2rem; line-height:1.9; color:#0284c7;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>`,
+        questionBody: `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; color:#0284c7;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>`,
         correctAns: sim.correctAnswer, options: sim.options, simDisplay: sim.optionsDisplay, optionsKind: isSurah ? 'sim_surah' : 'sim_text',
         ayahObj: ayahObjFor(sim, pool), reportText: qtext(sim.occurrence.fullText), simKind: sim.kind, simGroupId: sim.groupId
     };
@@ -76,7 +76,7 @@ export function formatAdultSimilar(sim, pool) {
     const lines = sim.options.map((opt, i) =>
         `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size};${font} margin:12px 0; padding:12px 16px; text-align:center;">${label(opt, i)}</button>`
     ).join('');
-    const body = `<div style="font-size:2rem; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
+    const body = `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
         `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
     const correctIndex = sim.options.findIndex(o => String(o) === String(sim.correctAnswer));
     return {
