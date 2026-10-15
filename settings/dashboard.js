@@ -107,7 +107,7 @@ export function setupDashboardListeners() {
             isJuzMode: isJuzMode,
             isRangeMode: isRangeMode,
             isKidsRange: isKidsRange,
-            qCount: parseInt(qCountVal),
+            qCount: Math.max(1, parseInt(qCountVal) || 15),
             surahNum: parseInt(document.getElementById('surah-select')?.value),
             startAyah: parseInt(document.getElementById('ayah-from')?.value),
             endAyah: parseInt(document.getElementById('ayah-to')?.value),
