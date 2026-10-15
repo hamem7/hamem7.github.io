@@ -500,7 +500,7 @@ export class QuranEngine {
         return {
             type: 'word_meaning',
             questionTitle: title,
-            questionBody: `<div style="font-size:1.8rem; font-weight:bold; margin-bottom:12px;">${title}</div><div class="quran-text" style="font-size:3rem; margin:10px 0 16px;">﴿ ${ayahText} ﴾</div>`,
+            questionBody: `<div class="quran-text" style="font-size:3rem; margin:10px 0 16px;">﴿ ${ayahText} ﴾</div>`,
             options,
             correctIndex: options.indexOf(correct),
             fullAnswer: correct,
