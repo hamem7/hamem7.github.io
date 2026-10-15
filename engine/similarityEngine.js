@@ -391,13 +391,20 @@ export function generateGuidedRecallQuestions(group) {
 // الصفر ويُعيد الاختيار العشوائي أيضاً — راجع similarities-play.js).
 const MAX_ROUND_QUESTIONS = 18;
 
+// 🌟 [جديد] إيقاف مؤقت لأسئلة «المتشابهات داخل السورة» (scope === 'internal') في كل المنصة (ألعاب الصغار والكبار،
+// الواجب الذكي، لعبة ركن المتشابهات) بطلب المعلم، لحين مراجعة الأسئلة وإصلاحها. أعِد التفعيل بتغيير القيمة إلى true.
+// متشابهات «جزء عمّ» (juzAmma) لا تتأثر، والبيانات والتصفح لا يتأثران.
+export const INTERNAL_SIM_QUESTIONS_ENABLED = false;
+const isDisabledScope = (g) => !INTERNAL_SIM_QUESTIONS_ENABLED && g && g.scope === 'internal';
+export { isDisabledScope as isSimScopeDisabled };
+
 // 🌟 [عدّل — 2026-09-23] معامل ثانٍ جديد allGroupsPool: كل مجموعات المتشابهات المتاحة (وليس
 // فقط مجموعات نطاق الجولة الحالية) — تحتاجه generateRecognitionQuestions لبناء مشتتات دخيلة
 // حقيقية من مجموعات خارج النطاق (راجع تعليقها أعلاه). اختياري وبتوافق رجعي كامل: لو لم يُمرَّر
 // (استدعاء قديم بمعامل واحد فقط)، نستخدم list نفسها كبديل — يبقى كل شيء يعمل كالسابق تماماً،
 // فقط قد لا تظهر أسئلة "تعرّف" لو كان النطاق نفسه ضيقاً جداً (أقل من مجموعة واحدة أخرى).
 export function buildGameRound(groups, allGroupsPool) {
-    const list = Array.isArray(groups) ? groups : (groups ? [groups] : []);
+    const list = (Array.isArray(groups) ? groups : (groups ? [groups] : [])).filter(g => !isDisabledScope(g));
     const pool = Array.isArray(allGroupsPool) && allGroupsPool.length > 0 ? allGroupsPool : list;
     let allQuestions = [];
     list.forEach(group => {
@@ -477,6 +484,7 @@ export function toHomeworkQuestion(simQ) {
 
 // سؤال واجب واحد من مجموعة متشابهات (نوعه عشوائي من الأنواع الممكنة لها)، أو null لو بياناتها لا تكفي.
 export function buildHomeworkSimilarityQuestion(group, allGroupsPool) {
+    if (isDisabledScope(group)) return null;
     const candidates = shuffle([
         ...generatePositionQuestions(group),
         ...generateDiscriminationQuestions(group),

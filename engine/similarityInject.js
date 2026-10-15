@@ -8,7 +8,7 @@
 //
 // الأنواع: الصغار = «الربط بالموضع» فقط (أبسط وأنسب). الكبار = الموضع + التمييز + الاستدعاء الموجّه.
 import {
-    generatePositionQuestions, generateDiscriminationQuestions, generateGuidedRecallQuestions
+    generatePositionQuestions, generateDiscriminationQuestions, generateGuidedRecallQuestions, isSimScopeDisabled
 } from './similarityEngine.js';
 
 const TARGET_OPTIONS = 3;
@@ -42,7 +42,7 @@ export function cleanOccurrenceText(txt) {
 // المجموعات التي فيها موضعان على الأقل وموضع واحد على الأقل داخل نطاق الطالب (pool = آياته بحقول surahNumber/numberInSurah)
 export function eligibleGroups(allGroups, pool) {
     const index = new Set((pool || []).map(a => keyOf(a.surahNumber, a.numberInSurah)));
-    return (allGroups || []).filter(g => g && (g.occurrences || []).length >= 2 &&
+    return (allGroups || []).filter(g => g && !isSimScopeDisabled(g) && (g.occurrences || []).length >= 2 &&
         g.occurrences.some(o => index.has(keyOf(o.surahNumber, occurrenceFirstAyah(o)))));
 }
 
