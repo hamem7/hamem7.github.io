@@ -188,7 +188,7 @@ function parseRange(r) {
     return [Math.min(a, b), Math.max(a, b)];
 }
 
-function resolveLocations(Q, group, notes, midVerse = false) {
+function resolveLocations(Q, group, notes, midVerse = true) {
     const phrase = cleanPhrase(group.anchorPhrase);
     const sphrase = skel(phrase);
     const hasPhrase = (v) => sphrase.length >= 2 && skel(v.text).includes(sphrase);
@@ -213,7 +213,9 @@ function resolveLocations(Q, group, notes, midVerse = false) {
     return { locs: out, phrase };
 }
 
-function makeLoc(Q, v, phrase, midVerse = false) {
+// أقصى طول للمطلع حين تقع العبارة في وسط الآية (كل ما قبلها ومعها): الأطول يُهمَل حتى لا يكشف أغلب الآية (بقرار المعلم: 15 كلمة)
+export const MAX_MID_STEM_WORDS = 15;
+function makeLoc(Q, v, phrase, midVerse = true) {
     const loc = { v, s: v.s, n: v.n, text: v.text, norm: v.norm, surahName: Q.surahName(v.s),
         prev: Q.verse(v.s, v.n - 1), next: Q.verse(v.s, v.n + 1), stem: null, tail: null, stemMid: false };
     loc.ref = `سورة ${loc.surahName}، الآية ${v.n}`;
@@ -224,8 +226,8 @@ function makeLoc(Q, v, phrase, midVerse = false) {
     if (k > 0 && sp) for (let i = 0; i + k <= w.length; i++) if (skel(w.slice(i, i + k).join(' ')) === sp) { idx = i; break; }
     loc.phraseAt = idx < 0 ? 'none' : idx === 0 ? (w.length > k ? 'start' : 'whole') : (idx + k < w.length ? 'mid' : 'end');
     if (loc.phraseAt === 'start') [loc.stem, loc.tail] = cutWords(v.text, k);
-    // دعم اختياري (معطّل افتراضياً): العبارة في وسط الآية ← المطلع = كل ما قبلها مع العبارة، والمطلوب إكمال الباقي
-    else if (midVerse && loc.phraseAt === 'mid') { [loc.stem, loc.tail] = cutWords(v.text, idx + k); loc.stemMid = true; }
+    // العبارة في وسط الآية ← المطلع = كل ما قبلها مع العبارة (حتى MAX_MID_STEM_WORDS كلمة)، والمطلوب إكمال الباقي
+    else if (midVerse && loc.phraseAt === 'mid' && idx + k <= MAX_MID_STEM_WORDS) { [loc.stem, loc.tail] = cutWords(v.text, idx + k); loc.stemMid = true; }
     return loc;
 }
 
@@ -386,9 +388,9 @@ export function shortenOptions(opts, max = OPTION_WORDS) {
     return opts.map(String);
 }
 
-// stats: كائن اختياري لتجميع قمع «أكمل الآية» (للتقارير فقط). midVerse: دعم عبارة وسط الآية (معطّل افتراضياً)
+// stats: كائن اختياري لتجميع قمع «أكمل الآية» (للتقارير فقط). midVerse: دعم عبارة وسط الآية (مفعّل افتراضياً بسقف 15 كلمة للمطلع)
 export function newCompleteStats() { return { locs: 0, at: {}, identicalBlocked: 0, stemLocs: 0, fewOptions: 0, notUnique: 0, built: 0, groupsWithCand: 0, groupsChosen: 0, completeChosen: 0 }; }
-export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = false, stats = null } = {}) {
+export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = true, stats = null } = {}) {
     const notes = [];
     const { locs, phrase } = resolveLocations(Q, group, notes, midVerse);
     const res = { groupId: group.groupId, questions: [], locations: locs.length, notes, reason: '' };

@@ -166,7 +166,7 @@ export function checkGroup(qs) {
     return errs;
 }
 
-export async function runAll({ seed = 7, midVerse = false, stats = null } = {}) {
+export async function runAll({ seed = 7, midVerse = undefined, stats = null } = {}) {
     const Q = loadQuran(), R = buildRaw(), G = await loadGroups();
     const rng = mulberry32(seed), posRef = { n: 0 };
     const out = { groups: [], failures: [], groupFailures: [], total: 0 };

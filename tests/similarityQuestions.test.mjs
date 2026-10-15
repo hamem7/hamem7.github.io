@@ -91,13 +91,17 @@ test('لا رمز ۞ في أي سؤال ولا خيار', () => {
     assert.ok(!res.groups.flatMap(g => g.questions).some(q => [q.text, ...q.options, ...q.optionsDisplay].join('').includes('\u06DE')));
     assert.equal(stripHizbMark('۞ قُل'), 'قُل');
 });
-// دعم العبارة في وسط الآية (اختياري، معطّل افتراضياً): يجب أن تبقى كل فحوص الجودة بلا إخفاق
-const resMid = await runAll({ seed: 7, midVerse: true });
-test('midVerse: صفر إخفاق في فحوص الجودة وعدد أسئلة «أكمل الآية» أكبر', () => {
-    const n = (r) => r.groups.reduce((a, g) => a + g.questions.filter(q => q.type === 'sim_complete').length, 0);
-    assert.equal(resMid.failures.length, 0, JSON.stringify(resMid.failures.slice(0, 2)));
-    assert.equal(resMid.groupFailures.length, 0);
-    assert.ok(n(resMid) > n(res) * 1.3, `${n(resMid)} مقابل ${n(res)}`);
+// دعم العبارة في وسط الآية (مفعّل افتراضياً بسقف 15 كلمة): مقارنة بتعطيله صراحةً
+const resNoMid = await runAll({ seed: 7, midVerse: false });
+const nComplete = (r) => r.groups.reduce((a, g) => a + g.questions.filter(q => q.type === 'sim_complete').length, 0);
+test('midVerse الافتراضي: عدد أسئلة «أكمل الآية» أكبر من تعطيله، وصفر إخفاق في الفحوص', () => {
+    assert.equal(resNoMid.failures.length, 0, JSON.stringify(resNoMid.failures.slice(0, 2)));
+    assert.ok(nComplete(res) > nComplete(resNoMid) * 1.2, `${nComplete(res)} مقابل ${nComplete(resNoMid)}`);
+});
+test('سقف المطلع: لا مطلع «أكمل الآية» يتجاوز 15 كلمة', () => {
+    const lens = res.groups.flatMap(g => g.questions).filter(q => q.type === 'sim_complete')
+        .map(q => { const m = q.text.match(/﴿([^﴾]*) \.{6}﴾/); return m[1].split(/\s+/).length; });
+    assert.ok(lens.length > 0 && Math.max(...lens) <= 15, 'أطول مطلع ' + Math.max(...lens));
 });
 // المصحف
 test('QuranIndex: البسملة والـBOM لا يدخلان نص الآية الأولى', () => {

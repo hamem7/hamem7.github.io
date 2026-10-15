@@ -1,5 +1,6 @@
 // student/student.js
 import { starsSuffix } from '../core/goldStars.js';
+import { stripHizbMark } from '../engine/similarityQuestions.js';
 import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
@@ -1371,7 +1372,7 @@ async function renderSimilaritiesProfileSection(student) {
             </div>
             <div class="simp-bar" title="${masteredPct}%"><i style="width:${masteredPct}%"></i></div>
             ${hardest.length ? `<h4 style="margin:0 0 8px;color:#b45309;">${t('sim_profile_hardest')}</h4>
-            <ul class="simp-hard">${hardest.map(r => `<li><span class="quran-text sim-res-anchor">« ${esc(r.anchorPhrase)} »</span><span><span class="simp-acc">${accuracyOf(r)}%</span> <span class="sim-level-chip sim-level-${levelOf(r)}">${t('sim_level_' + levelOf(r))}</span></span></li>`).join('')}</ul>` : ''}`;
+            <ul class="simp-hard">${hardest.map(r => `<li><span class="quran-text sim-res-anchor">« ${esc(stripHizbMark(r.anchorPhrase))} »</span><span><span class="simp-acc">${accuracyOf(r)}%</span> <span class="sim-level-chip sim-level-${levelOf(r)}">${t('sim_level_' + levelOf(r))}</span></span></li>`).join('')}</ul>` : ''}`;
     } catch (e) {
         console.warn('تعذرت قراءة إتقان المتشابهات لهذا الطالب:', e);
         empty();

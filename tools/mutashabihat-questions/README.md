@@ -8,3 +8,6 @@
 - الاختبارات: `node tests/similarityQuestions.test.mjs` · `node tests/similarityInject.test.mjs` · e2e: `tests/similarity-play.e2e.mjs` و`tests/similar-in-games.e2e.mjs`.
 
 تفعيل متشابهات «داخل السورة» في المنصة: `INTERNAL_SIM_QUESTIONS_ENABLED = true` في `engine/similarityEngine.js` (معطّل حتى اعتماد العيّنة).
+
+## النسخة التجريبية الخاصة
+`node tools/preview/build_preview.mjs <مجلد>` يبني نسخة من المنصة (INTERNAL مفعّل، الخادم الحقيقي مفصول، طالبان تجريبيان، وصفحة تصفّح كل الأسئلة) دون لمس المستودع ولا الموقع المنشور. تُنشر كـ Artifact خاص.
