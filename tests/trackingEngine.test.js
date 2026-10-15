@@ -239,6 +239,15 @@ await test('planHomework: العدد المطلوب بالضبط وكل بند �
     p.items.forEach(it => { assert.ok(HW_FORMATS[it.fmt]); assert.equal(it.skill, HW_FORMATS[it.fmt].skill); assert.ok(bigPath.byId.has(it.seg.id)); });
   });
 });
+await test('planHomework: «الآية قبلها وبعدها» لا تظهر أكثر من مرة في الواجب الواحد', () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    [10, 20, 30].forEach(n => {
+      const p = planHomework({ n, path: bigPath, classes: bigClasses, states: computeSegmentStates([], NOW), skillStats: computeSkillStats([], NOW), now: NOW, rng: rngSeed(seed) });
+      assert.ok(p.items.filter(it => it.fmt === 'around_ayah').length <= 1);
+    });
+  }
+});
+
 await test('planHomework: طالب بلا أخطاء = لا أسئلة علاجية', () => {
   assert.equal(plan(10).items.filter(i => i.cat === 'err').length, 0);
 });

@@ -144,6 +144,7 @@ export class HomeworkEngine {
             case 'dropdown': return this.createMissingWordDropdown(ayah, pool, opts);
             case 'written_blank': return this.createWrittenBlankQuestion(ayah, pool, opts);
             case 'dual_dropdown': return this.createDualMissingWordDropdown(ayah, pool, opts);
+            case 'around_ayah': return this.createAroundAyahQuestion(ayah, pool, opts);
             case 'checkbox': return this.createCheckboxQuestion(ayah, pool, opts);
             case 'matrix_order': return this.createMatrixOrderQuestion(ayah, pool, opts);
             case 'write_3_ayahs': return this.createWrite3AyahsQuestion(ayah, pool, opts);
@@ -526,6 +527,21 @@ export class HomeworkEngine {
         return {
             type: 'dual_dropdown', title: "اختر الكلمتين الصحيحتين لإكمال الفراغين (1) و (2) 🔽:", text: `﴿\u00A0${textWithBlanks}\u00A0﴾`,
             options1: options1, options2: options2, correctAnswer: [correctWord1, correctWord2], points: 2
+        };
+    }
+
+    // 🌟 [جديد] «الآية قبلها وبعدها»: تُعرض آية ويكتب الطالب بيده الآية التي قبلها والتي بعدها (تصحيح المعلم يدوياً، نقطتان:
+    // نقطة لكل جزء). يرجع null إن لم يكن للآية سابقة وتالية في سورتها.
+    async createAroundAyahQuestion(targetAyah, pool, opts = {}) {
+        const surah = await this.quranEngine.getSurah(targetAyah.surahNumber);
+        const list = surah.ayahs, t = targetAyah.numberInSurah - 1;
+        if (t < 1 || t >= list.length - 1) return null;
+        const prevText = cleanAyahText(list[t - 1].text), nextText = cleanAyahText(list[t + 1].text);
+        return {
+            type: 'around_ayah', title: 'اكتب الآية التي قبلها والآية التي بعدها ✍️',
+            text: `﴿\u00A0${cleanAyahText(targetAyah.text)}\u00A0﴾`,
+            correctAnswer: `الآية التي قبلها: ${prevText}\nالآية التي بعدها: ${nextText}`,
+            points: 2, needsManualGrading: true
         };
     }
 

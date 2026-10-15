@@ -41,6 +41,8 @@ export const SKILLS_NOT_TRAINABLE_BY_HOMEWORK = ['fluency'];
 export const HW_FORMATS = {
     mcq_next:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1, diff: 'medium' },
     mcq_prev:      { skill: 'sequence',  level: 'recognition', manual: false, weight: 1, diff: 'hard' },
+    // «الآية قبلها وبعدها»: تُعرض آية ويكتب الطالب بيده السابقة والتالية (تصحيح المعلم يدوياً، مرة واحدة فقط في الواجب)
+    around_ayah:   { skill: 'sequence',  level: 'production',  manual: true,  weight: 1, diff: 'hard' },
     dropdown:      { skill: 'recall',    level: 'recognition', manual: false, weight: 1, diff: 'medium' },
     dual_dropdown: { skill: 'recall',    level: 'recall',      manual: false, weight: 1, diff: 'hard' },
     written_blank: { skill: 'recall',    level: 'recall',      manual: true,  weight: 1, diff: 'hard' },
