@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.25';
+export const APP_VERSION = '1.0.26';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-15] إعادة بناء أسئلة المتشابهات (أربعة أنواع بنص المصحف)
+    {
+        version: '1.0.26',
+        date: '2026-10-15',
+        items: [
+            {
+                type: 'improved',
+                ar: 'أسئلة المتشابهات أُعيد بناؤها: أربعة أنواع (من أي سورة؟ · أكمل الآية · ماذا بعدها؟ · ما الآية التي قبلها؟) بلا أرقام آيات، ونصوصها من المصحف نفسه، وجوابها واحد في السياق المعروض، والخيارات الطويلة تُعرض أول 12 كلمة تقريباً. وعادت متشابهات «داخل السورة» للعمل في كل المنصة (الألعاب، الواجب الذكي، ركن المتشابهات) بعد مراجعتها على القرآن كله.',
+                en: 'Similar-verse questions were rebuilt: four types (Which surah? · Complete the verse · What comes next? · What comes before?) with no verse numbers, text taken from the Quran itself, a single correct answer in the shown context, and long options shortened to about 12 words. In-surah similar verses are back across the platform (games, smart homework, the Similar Verses corner) after review against the whole Quran.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-15] توليد أسئلة الاختبارات الثنائية تلقائياً بميزان واحد
     {
         version: '1.0.25',

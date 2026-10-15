@@ -42,9 +42,9 @@ export function generateQuestionsForGroup(group) {
 // عشوائياً من كل ما يُولَّد، فتتغيّر العينة في «العب مرة أخرى». (المعامل الثاني قديم ومتروك للتوافق.)
 const MAX_ROUND_QUESTIONS = 18;
 
-// 🌟 إيقاف أسئلة «المتشابهات داخل السورة» (scope === 'internal') في كل المنصة بطلب المعلم لحين مراجعة الأسئلة المُعاد
-// توليدها واعتماد العيّنة. أعِد التفعيل بتغيير القيمة إلى true. متشابهات «جزء عمّ» لا تتأثر، والبيانات والتصفح كذلك.
-export const INTERNAL_SIM_QUESTIONS_ENABLED = false;
+// 🌟 مفتاح تشغيل أسئلة «المتشابهات داخل السورة» (scope === 'internal') في كل المنصة. عُطّل سابقاً بطلب المعلم لحين إصلاح
+// الأسئلة؛ وفُعّل (2026-10-15) بعد إعادة توليدها ومراجعتها على القرآن كله. غيّره إلى false لإيقافها مؤقتاً.
+export const INTERNAL_SIM_QUESTIONS_ENABLED = true;
 const isDisabledScope = (g) => !INTERNAL_SIM_QUESTIONS_ENABLED && g && g.scope === 'internal';
 export { isDisabledScope as isSimScopeDisabled };
 

@@ -22,8 +22,10 @@ await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 
 const SCEN = [
   { kids: true, name: 'الصغار — الأحقاف..النازعات', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 46, kidsTo: 79, isJuzMode: false, surahNum: 0 } },
+  { kids: true, name: 'الصغار — البقرة وآل عمران (متشابهات داخلية)', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 2, kidsTo: 3, isJuzMode: false, surahNum: 0 } },
+  { kids: false, name: 'الكبار — الجزء 1 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
+  { kids: false, name: 'الكبار — الجزء 26 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 } },
   { kids: false, name: 'الكبار — الجزء 30 (جزء عمّ)', cfg: { qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 } },
-// متشابهات «داخل السورة» معطّلة حالياً (INTERNAL_SIM_QUESTIONS_ENABLED في engine/similarityEngine.js) فلا سيناريو لها هنا؛ أضِف سيناريوهات الأجزاء 1-26 عند إعادة تفعيلها.
 ];
 for (const { kids, name, cfg: scenCfg } of SCEN) {
   const tag = (kids ? 'الصغار' : 'الكبار') + ' | ' + name;
