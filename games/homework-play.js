@@ -159,7 +159,7 @@ function renderQuestion() {
              🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
              الآية الفعلي (نفس خط class="quran-text" المستخدم بباقي المنصة) حتى يظهر برسم عثماني
              دقيق يشمل كل علامات الضبط الخاصة بالقرآن 🌟 -->
-        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: #047857; margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;">
+        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: #047857; margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;${q.simKind ? ' white-space: pre-line;' : ''}">
             ${hl(q.text)}
         </div>
         <div id="hp-options-container" style="display: flex; flex-direction: column; gap: 10px;">

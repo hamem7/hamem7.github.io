@@ -980,3 +980,7 @@
 .simp-hard .simp-acc { font-weight: bold; color: #b45309; }
 .sim-res-more { margin: 0 0 8px; color: #64748b; font-size: 0.9rem; text-align: right; }
 .sim-play-anchor:empty { display: none; }
+
+/* أسئلة المتشابهات الأربعة: نص السؤال كاملاً (آيات بين ﴿ ﴾ + سياق) بأسطر مستقلة وخط المصحف للآيات */
+.sim-q-text { line-height: 2.2; text-align: center; }
+.sim-q-text .sim-q-verse { display: inline-block; font-size: 1.35em; color: var(--primary, #047857); line-height: 1.9; }

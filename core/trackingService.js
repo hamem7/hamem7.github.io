@@ -19,6 +19,7 @@ import {
 import { HW_FORMATS } from '../engine/skillMap.js';
 import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
 import { buildHomeworkSimilarityQuestion } from '../engine/similarityEngine.js';
+import { ensureSimilarityQuran } from '../engine/similarityQuestions.js';
 import { readStudentHistory } from './homeworkRecords.js';
 import { fetchHomeworkFull } from './homeworkApi.js';
 
@@ -416,6 +417,7 @@ async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) 
         manager = manager || AppState.similaritiesManager;
         if (!manager) return [];
         if (AppState.similaritiesReady) await AppState.similaritiesReady;
+        await ensureSimilarityQuran(AppState.quranEngine); // نص الآيات من مصحف المنصة (لا من fullText)
         const all = await manager.getAllSimilarities();
         const memorized = (o) => {
             const ayah = o.ayahNumber != null ? o.ayahNumber : parseInt(o.ayahRange, 10);
@@ -426,7 +428,7 @@ async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) 
         for (const g of eligible.sort(() => rng() - 0.5)) {
             if (out.length >= k) break;
             if (usedGroups.has(g.groupId)) continue;
-            const q = buildHomeworkSimilarityQuestion(g, all);
+            const q = buildHomeworkSimilarityQuestion(g);
             if (!q) continue;
             q.id = 'q_' + Date.now() + '_sim' + out.length + Math.random().toString(36).slice(2, 6);
             usedGroups.add(g.groupId);

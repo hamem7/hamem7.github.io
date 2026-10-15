@@ -21,10 +21,9 @@ await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-studen
 await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 
 const SCEN = [
-  { kids: true, name: 'الصغار — البقرة وآل عمران (الجزء الأول من البيانات)', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 2, kidsTo: 3, isJuzMode: false, surahNum: 0 } },
-  { kids: false, name: 'الكبار — الجزء 1', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
   { kids: true, name: 'الصغار — الأحقاف..النازعات', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 46, kidsTo: 79, isJuzMode: false, surahNum: 0 } },
-  { kids: false, name: 'الكبار — الجزء 26', cfg: { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 } }
+  { kids: false, name: 'الكبار — الجزء 30 (جزء عمّ)', cfg: { qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 } },
+// متشابهات «داخل السورة» معطّلة حالياً (INTERNAL_SIM_QUESTIONS_ENABLED في engine/similarityEngine.js) فلا سيناريو لها هنا؛ أضِف سيناريوهات الأجزاء 1-26 عند إعادة تفعيلها.
 ];
 for (const { kids, name, cfg: scenCfg } of SCEN) {
   const tag = (kids ? 'الصغار' : 'الكبار') + ' | ' + name;
@@ -65,7 +64,7 @@ for (const { kids, name, cfg: scenCfg } of SCEN) {
   check(`${tag}: ظهر سؤالا متشابهات أثناء اللعب`, seen.length === 2, `ظهر ${seen.length}`);
   seen.forEach(s => check(`${tag}: النص بالسكون القرآني (لا سكون دائري U+0652)`, !(s.q + (s.ans || '')).includes('\u0652')));
   seen.forEach((s, i) => console.log(`   [${i + 1}] ${s.simKind} | ${s.title}\n       سؤال: ${s.q.replace(/\n+/g, ' ⏎ ').slice(0, 220)}\n       ${kids ? 'أزرار: ' + s.btns.join(' | ') : 'إجابة: ' + (s.ans || '').replace(/\n+/g, ' ⏎ ').slice(0, 140)}`));
-  if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل بلا أقواس قرآنية على الأرقام/السور`, s.btns.length >= 3 && s.btns.every(b => !b.includes('﴿')), s.btns.join('|')));
+  if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل (أسماء السور بلا ﴿﴾، والآيات بداخلها)`, s.btns.length >= 3 && (s.simKind === 'sim_surah' ? s.btns.every(b => !b.includes('﴿')) : s.btns.every(b => b.includes('﴿'))), s.btns.join('|')));
   await page.evaluate(() => { const b = document.querySelector('#btn-home, .btn-home'); });
   await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500);
   await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
