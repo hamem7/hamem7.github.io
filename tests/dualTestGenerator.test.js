@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
     SIZE_PRESETS, balanceBounds, isBalancedWords, windowWordCount, windowsOverlap,
-    findCandidateWindows, pickWindows, generateBalancedWindows
+    findCandidateWindows, pickWindows, generateBalancedWindows, ayahExcerpt
 } from '../engine/dualTestEngine.js';
 
 const SURAHS = JSON.parse(readFileSync(new URL('../database/quran-uthmani.json', import.meta.url), 'utf8')).data.surahs
@@ -63,4 +63,16 @@ test('نطاق ضيق جداً يُبلِغ عن النقص بدل أن يخال
     assert.equal(g.shortage, 4);
 });
 
+test('مقتطف الآية: كاملة إن قصرت، وإلا 6 كلمات من الطرف مع «…» ولا رقم', () => {
+    const ayahs = SURAHS[1].ayahs; // البقرة
+    const long = ayahs.find(a => a.numberInSurah === 282).text;
+    const st = ayahExcerpt(long, 'start'), en = ayahExcerpt(long, 'end');
+    assert.ok(st.endsWith('…') && en.startsWith('…'));
+    assert.ok(!/\d/.test(st + en));
+    assert.ok(long.includes(st.replace(' …', '').split(' ')[0]));
+    assert.ok(long.trim().endsWith(en.replace('… ', '').split(' ').slice(-1)[0]));
+    assert.equal(st.replace(' …', '').split(' ').length >= 6, true);
+    const short = SURAHS[0].ayahs[1].text; // الحمد لله رب العالمين
+    assert.ok(!ayahExcerpt(short, 'start').includes('…'));
+});
 console.log(`\n${pass} passed, ${fail} failed`);

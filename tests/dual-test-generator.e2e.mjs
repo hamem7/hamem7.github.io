@@ -76,6 +76,7 @@ for (const vp of [{ name: 'desktop', width: 1180, height: 900 }, { name: 'mobile
   const saved = await page.evaluate(async () => { const { AppState } = await import('/core/app.js'); const ts = await AppState.dualTestsManager.getAllTests(); const r = ts[0].rounds[0];
     return { n: r.mainQuestions.length, s: r.swapQuestions.length, gt: ts[0].genTargetWords, q: r.mainQuestions[0], codes: r.swapQuestions.map(x => x.code) }; });
   check('حُفظ الاختبار بـ4 أساسية و2 استبدال وهدف 60', saved.n === 4 && saved.s === 2 && saved.gt === 60, JSON.stringify(saved).slice(0, 300));
+  check('نص السؤال نص آية لا رقمها', !/\d/.test(saved.q.fromText + saved.q.toText) && saved.q.fromText.length > 8, saved.q.fromText + ' | ' + saved.q.toText);
   check('السؤال المخزَّن يحتوي fromText/toText وmeta', !!(saved.q.fromText && saved.q.toText && saved.q.meta && saved.q.meta.source === 'auto' && saved.q.meta.approved));
   check('رموز الاستبدال فريدة', new Set(saved.codes).size === saved.codes.length, saved.codes.join(','));
   check(`${vp.name}: لا أخطاء JS`, errs.length === 0, errs.join(' | '));

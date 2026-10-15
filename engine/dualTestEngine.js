@@ -15,7 +15,7 @@
 //   الفائز = صاحب الجولات الأكثر؛ تعادل عدد الجولات (نادر) = تعادل رسمي للمواجهة كلها.
 
 // خصم الخطأ الثابت — نصف نقطة دائماً (وليس نصف قيمة السؤال، حسب قرار المعلم الصريح)
-import { splitAyahWords } from './quranEngine.js';
+import { splitAyahWords, splitAyahTokens, isWaqfMark } from './quranEngine.js';
 
 export const MISTAKE_DEDUCTION = 0.5;
 
@@ -354,4 +354,25 @@ export function generateBalancedWindows(surahs, { mainCount, swapCount, targetWo
     const main = shuffled.slice(swap.length)
         .sort((a, b) => a.surah - b.surah || a.from - b.from);
     return { main, swap, shortage };
+}
+
+/**
+ * مقتطف من نص آية يُعرَض للطالب بدل رقمها (الأطفال يعرفون نص الآية لا رقمها): بداية الآية للسؤال
+ * «سمّع من»، ونهايتها لـ«إلى». الآية القصيرة (≤ maxWords) تُعرَض كاملة، وإلا أول/آخر maxWords كلمات
+ * مع «…». رموز الوقف تبقى في مواضعها لكن لا تُحسب كلمات ولا تُترك معلّقة في طرف المقتطف.
+ */
+export function ayahExcerpt(text, edge = 'start', maxWords = 6) {
+    const tokens = splitAyahTokens(text);
+    const realCount = tokens.filter(w => !isWaqfMark(w)).length;
+    if (realCount <= maxWords + 2) return tokens.join(' ');
+    let taken = 0, out = [];
+    const seq = edge === 'start' ? tokens : tokens.slice().reverse();
+    for (const w of seq) {
+        if (isWaqfMark(w)) { if (out.length) out.push(w); continue; }
+        if (taken === maxWords) break;
+        out.push(w); taken++;
+    }
+    while (out.length && isWaqfMark(out[out.length - 1])) out.pop();
+    if (edge === 'end') out.reverse();
+    return edge === 'start' ? `${out.join(' ')} …` : `… ${out.join(' ')}`;
 }

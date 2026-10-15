@@ -28,7 +28,7 @@ import {
     generateSwapCode, computeSeriesResult,
     SIZE_PRESETS, MIN_TARGET_WORDS, MAX_TARGET_WORDS,
     balanceBounds, isBalancedWords, windowWordCount, windowsOverlap,
-    findCandidateWindows, pickWindows, generateBalancedWindows
+    findCandidateWindows, pickWindows, generateBalancedWindows, ayahExcerpt
 } from '../engine/dualTestEngine.js';
 // 🌟 [جديد] شاشة "تقرير المواجهة" — تُستخدم هنا لفتح تقرير أي مباراة سابقة منتهية من نافذة
 // "📜 المباريات السابقة" أسفل، بنفس الطريقة التي يفتحه بها زر "عرض التقرير" في شاشة اللعب
@@ -609,11 +609,16 @@ function syncGenFormFromTest() {
     if (!key) genForm.custom = tw;
 }
 
+// نص السؤال = نص الآية نفسه لا رقمها (الطلاب لا يعرفون أرقام الآيات): «سمّع من» بداية آية البدء،
+// و«إلى» نهاية آية الختم. المرجع (السورة والأرقام) يُعرَض للمعلم فقط في بطاقة المراجعة من meta
 function questionTexts(surah, from, to) {
-    // اسم السورة بتشكيل عادي (علامات المصحف الخاصة تُكسر الحروف في الخط المعروض)
-    const name = String(surahNameLocal(surah.name)).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '');
-    const ayahWord = t('dts_gen_ayah');
-    return { fromText: `${name} — ${ayahWord} ${from}`, toText: `${name} — ${ayahWord} ${to}` };
+    const text = (n) => (surah.ayahs.find(a => a.numberInSurah === n) || {}).text || '';
+    return { fromText: ayahExcerpt(text(from), 'start'), toText: ayahExcerpt(text(to), 'end') };
+}
+
+// اسم السورة بتشكيل عادي (علامات المصحف الخاصة تُكسر الحروف في الخط المعروض) — للمعلم فقط
+function plainSurahName(surah) {
+    return String(surahNameLocal(surah.name)).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '');
 }
 
 function applyWindowToQuestion(q, surah, win, target) {
@@ -773,6 +778,13 @@ function buildGeneratorPanelHTML(roundIndex) {
 }
 
 // شريط الميزان/المراجعة + أدوات التعديل لسؤال مولَّد (يُضاف أسفل بطاقة السؤال)
+function refLabel(m) {
+    const s = (AppState.surahsData || []).find(x => x.number === m.surah);
+    const name = s ? plainSurahName(s) : '';
+    const range = m.fromAyah === m.toAyah ? `${m.fromAyah}` : `${m.fromAyah}–${m.toAyah}`;
+    return `${name} · ${t('dts_gen_ayah')} ${range}`;
+}
+
 function buildAutoMetaHTML(q, roundIndex, kind, index) {
     const m = q.meta;
     const ok = isBalancedWords(m.words, m.target);
@@ -782,6 +794,7 @@ function buildAutoMetaHTML(q, roundIndex, kind, index) {
         <button type="button" class="dts-gen-mini" data-gen-action="edge" data-edge="${e}" data-delta="${e === 'start' ? -1 : 1}" ${d} title="${t(e === 'start' ? 'dts_gen_start_plus' : 'dts_gen_end_plus')}">+</button></span>`;
     return `
         <div class="dts-gen-row">
+            <span class="dts-gen-ref">${esc(refLabel(m))}</span>
             <span class="dts-gen-chip ${ok ? 'dts-gen-chip-ok' : 'dts-gen-chip-warn'}">${t('dts_gen_words').replace('{n}', m.words)} · ${t(ok ? 'dts_gen_balanced' : 'dts_gen_unbalanced')}</span>
             <span class="dts-gen-chip ${m.approved ? 'dts-gen-chip-ok' : 'dts-gen-chip-pending'}">${t(m.approved ? 'dts_gen_approved' : 'dts_gen_pending')}</span>
             ${edge('dts_gen_edge_start', 'start')}${edge('dts_gen_edge_end', 'end')}
