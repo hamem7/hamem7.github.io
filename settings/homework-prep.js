@@ -1968,6 +1968,8 @@ function renderPreview() {
             optionsHTML = `<div style="margin-top: 10px; font-size: 1.1rem; color: #0369a1;">✍️ ${t('سؤال تجويد — يصحّحه المعلم يدوياً (نقطتان)')}</div>`;
         } else if (q.type === 'write_3_ayahs') {
             optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">${t('الآيات الثلاث المطلوبة:')}</strong><br>${q.correctAnswer}</div>`;
+        } else if (q.type === 'around_ayah') {
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px; white-space: pre-line;">✍️ <strong style="color:#0369a1;">${t('الإجابة المطلوبة (تصحيح يدوي، نقطتان):')}</strong><br>${q.correctAnswer}</div>`;
         } else if (q.type === 'matching') {
             // 🌟 [جديد] معاينة أزواج المطابقة الصحيحة للمعلم قبل النشر (بدايات ↔ نهايات)
             optionsHTML = `<div style="margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">`;

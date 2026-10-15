@@ -556,7 +556,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
     const maxSurahQ = Math.max(1, Math.round(n / 6));
     const maxMeaning = n >= 5 ? Math.max(1, Math.round(n / 6)) : 0;
     const fmtUsed = {};   // مرات استخدام كل صيغة في هذا الواجب (لتنويع الأنواع)
-    let manualUsed = 0, surahQUsed = 0, meaningUsed = 0, rr = 0;
+    let manualUsed = 0, surahQUsed = 0, meaningUsed = 0, aroundUsed = 0, rr = 0;
     const diffUsed = { hard: 0, medium: 0 };   // نصف الأسئلة صعب ونصفها متوسط (الصعوبة بحسب الصيغة)
 
     order.forEach((item, idx) => {
@@ -568,6 +568,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
             const def = HW_FORMATS[fmt];
             if (fmt === 'mcq_surah' && (!multiSurah || surahQUsed >= maxSurahQ)) return false;
             if (def.retired) return false;
+            if (fmt === 'around_ayah' && aroundUsed >= 1) return false;   // مرة واحدة فقط في الواجب
             if (fmt === 'word_meaning' && meaningUsed >= maxMeaning) return false;
             if (def.manual && manualUsed >= maxManual) return false;
             return true;
@@ -603,6 +604,7 @@ export function planHomework({ n, path, classes, states, skillStats, now = Date.
         diffUsed[def.diff || 'medium']++;
         if (fmt === 'word_meaning') meaningUsed++;
         if (fmt === 'mcq_surah') surahQUsed++;
+        if (fmt === 'around_ayah') aroundUsed++;
         fmtUsed[fmt] = (fmtUsed[fmt] || 0) + 1;
         item.fmt = fmt;
         item.skill = def.skill;

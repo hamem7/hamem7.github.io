@@ -172,4 +172,20 @@ await test('buildQuestionForPlan: مستوى الصعوبة من الصيغة ن
     assert.equal(await engine.buildQuestionForPlan('intruder_word', a, POOL, { allowFallback: false }), null);
 });
 
+await test('around_ayah: آية ويكتب الطالب السابقة والتالية (تصحيح يدوي، نقطتان)', async () => {
+    for (const a of sample(40, p => p.numberInSurah > 1)) {
+        const r = await engine.buildQuestionForPlan('around_ayah', a, POOL, { allowFallback: false });
+        const surah = await surahsFake.getSurah(a.surahNumber);
+        if (a.numberInSurah >= surah.ayahs.length) { assert.equal(r, null); continue; }
+        assert.ok(r && r.fmt === 'around_ayah', 'الصيغة الفعلية around_ayah');
+        const q = r.question;
+        assert.equal(q.type, 'around_ayah');
+        assert.equal(q.points, 2);
+        assert.equal(q.needsManualGrading, true);
+        assert.ok(q.text.includes(cleanAyahText(a.text)));
+        assert.ok(q.correctAnswer.includes(cleanAyahText(surah.ayahs[a.numberInSurah - 2].text)));
+        assert.ok(q.correctAnswer.includes(cleanAyahText(surah.ayahs[a.numberInSurah].text)));
+    }
+});
+
 console.log(`\nالنتيجة: ${pass} ناجح، ${fail} فاشل، من إجمالي ${pass + fail} اختبار.`);
