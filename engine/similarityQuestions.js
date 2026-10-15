@@ -163,7 +163,7 @@ function shuffled(arr, rng) {
 const verse = (t) => '﴿' + t + '﴾';
 const setHas = (a, b) => { for (const x of a) if (b.has(x)) return true; return false; };
 
-// خيارات 3–4: تُزال التكرارات بعد التطبيع، ويُقتصر على الصحيح + 3 إن زادت. null إن قلّت عن 3
+// ثلاثة خيارات فقط (بطلب المعلم): تُزال التكرارات بعد التطبيع، ويُقتصر على الصحيح + 2 إن زادت. null إن قلّت عن 3
 function finalize(opts, correct, rng) {
     const seen = new Set(), u = [];
     for (const o of opts) { const k = norm(o); if (!seen.has(k)) { seen.add(k); u.push(o); } }
@@ -171,9 +171,9 @@ function finalize(opts, correct, rng) {
     let ci = u.findIndex(o => norm(o) === nc);
     if (ci < 0) return null;
     let res = u;
-    if (u.length > 4) {
+    if (u.length > 3) {
         const others = shuffled(u.filter((_, i) => i !== ci), rng);
-        res = [u[ci], ...others.slice(0, 3)]; ci = 0;
+        res = [u[ci], ...others.slice(0, 2)]; ci = 0;
     }
     return res.length >= 3 ? { opts: res, ci } : null;
 }
@@ -265,7 +265,7 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null) {
             const holders = seq.length === 2 ? Q.surahsContainingPair(seq[0], seq[1]) : Q.surahsContaining(seq[0]);
             const groupOpts = surahs.filter(s => s === l.s || !holders.has(s));
             const decoys = shuffled(juzSurahs.filter(s => !surahs.includes(s) && !holders.has(s)), rng)
-                .slice(0, Math.max(0, 4 - groupOpts.length));
+                .slice(0, Math.max(0, 3 - groupOpts.length));
             const f = finalize([...groupOpts, ...decoys].map(s => Q.surahName(s)), Q.surahName(l.s), rng);
             if (f && holders.has(l.s)) {
                 const optSurahs = f.opts.map(n => [...Q.surahs.values()].find(x => x.plainName === n).number);

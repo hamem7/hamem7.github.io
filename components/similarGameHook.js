@@ -62,20 +62,19 @@ export function kidsSimilarOptionLabel(opt, kind, cd) {
 
 // ---------------- الكبار ----------------
 // سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
-const LETTERS_AR = ['أ', 'ب', 'ج', 'د'];
-const LETTERS_EN = ['A', 'B', 'C', 'D'];
 const ADULT_TITLES = { sim_surah: 'من أي سورة؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
 
 export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;
-    const letters = AppState.currentLang === 'en' ? LETTERS_EN : LETTERS_AR;
     const isSurah = sim.kind === 'sim_surah';
     const label = (v, i) => isSurah ? tf('sim_inj_surah_label', { name: surahLabel(v) }) : '﴿ ' + toQuranicSukun((sim.optionsDisplay && i != null && sim.optionsDisplay[i]) || v) + ' ﴾';
     const cls = isSurah ? 'btn btn-outline sim-opt-btn' : 'btn btn-outline sim-opt-btn quran-text';
     const size = isSurah ? '2rem' : '1.7rem';
+    // نفس خط ووزن آيات بقية المنصة (Amiri Quran بوزن عادي) — كان وزن زر .btn الغامق يطغى على الخيارات
+    const font = isSurah ? '' : " font-family:'Amiri Quran', serif !important; font-weight:400 !important; line-height:2;";
     // 🌟 كل خيار زرٌّ يضغطه الطالب فتُسجَّل إجابته (صحيحة أو خاطئة) تلقائياً — يربطها adultGame.js عبر .sim-opt-btn
     const lines = sim.options.map((opt, i) =>
-        `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:12px 0; padding:12px 16px; text-align:center;"><b>${letters[i]})</b> ${label(opt, i)}</button>`
+        `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size};${font} margin:12px 0; padding:12px 16px; text-align:center;">${label(opt, i)}</button>`
     ).join('');
     const body = `<div style="font-size:2rem; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
         `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
