@@ -32,12 +32,15 @@ export function skel(s) {
     return norm(s).replace(/[ايوءئؤ]/g, '');
 }
 
+// ۞ (علامة بداية الحزب) ليست من نص الآية: تُحذف من كل ما يُعرض (العبارات والآيات والخيارات)
+export const stripHizbMark = (s) => String(s == null ? '' : s).replace(/\u06DE\s*/g, '').replace(/\s+/g, ' ').trim();
+
 const wordsOf = (s) => String(s).split(/\s+/).filter(Boolean);
 const cutWords = (text, k) => { const w = wordsOf(text); return [w.slice(0, k).join(' '), w.slice(k).join(' ')]; };
 
 // عبارة المجموعة قد تحمل رموز تلخيص يدوية («يَوْمَ ...»، «إِذَا ... / وَإِذَا ...»): نأخذ ما قبلها فقط
 export function cleanPhrase(p) {
-    return String(p || '').split('/')[0].replace(/\.{2,}|…|…/g, ' ').replace(/[ـ]/g, '').replace(/\s+/g, ' ').trim();
+    return stripHizbMark(p).split('/')[0].replace(/\.{2,}|…|…/g, ' ').replace(/[ـ]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 // ---------------- فهرس المصحف ----------------
@@ -52,7 +55,7 @@ export class QuranIndex {
         for (const s of surahs) {
             const verses = new Map();
             for (const a of s.ayahs) {
-                let text = String(a.text).replace(/﻿/g, '').trim();
+                let text = stripHizbMark(String(a.text).replace(/\uFEFF/g, ''));
                 if (a.numberInSurah === 1 && s.number !== 1 && s.number !== 9) text = stripBasmala(text);
                 const v = { s: s.number, n: a.numberInSurah, text, norm: norm(text), juz: a.juz };
                 verses.set(a.numberInSurah, v);
@@ -106,6 +109,21 @@ export class QuranIndex {
             const t = sd.verses.get(dir > 0 ? n + L : n - 1);
             if (t) out.add(t.norm);
         }
+        return out;
+    }
+    // ذيول كل آية في القرآن ترد فيها العبارة (في أي موضع منها): ما يلي العبارة مباشرة
+    tailsAfterPhrase(phrase) {
+        const sp = skel(phrase), k = wordsOf(phrase).length, out = [];
+        if (!sp || !k) return out;
+        this._pc = this._pc || new Map();
+        if (this._pc.has(sp)) return this._pc.get(sp);
+        for (const v of this.flat) {
+            const w = wordsOf(v.text);
+            for (let i = 0; i + k < w.length; i++) {
+                if (skel(w.slice(i, i + k).join(' ')) === sp) { out.push(w.slice(i + k).join(' ')); break; }
+            }
+        }
+        this._pc.set(sp, out);
         return out;
     }
     // ذيول كل آية في القرآن تبدأ بالمطلع نفسه (متشابهات حقيقية تصلح مشتّتات)
@@ -170,7 +188,7 @@ function parseRange(r) {
     return [Math.min(a, b), Math.max(a, b)];
 }
 
-function resolveLocations(Q, group, notes) {
+function resolveLocations(Q, group, notes, midVerse = false) {
     const phrase = cleanPhrase(group.anchorPhrase);
     const sphrase = skel(phrase);
     const hasPhrase = (v) => sphrase.length >= 2 && skel(v.text).includes(sphrase);
@@ -190,20 +208,24 @@ function resolveLocations(Q, group, notes) {
         const key = v.s + ':' + v.n;
         if (seen.has(key)) continue;
         seen.add(key);
-        out.push(makeLoc(Q, v, phrase));
+        out.push(makeLoc(Q, v, phrase, midVerse));
     }
     return { locs: out, phrase };
 }
 
-function makeLoc(Q, v, phrase) {
+function makeLoc(Q, v, phrase, midVerse = false) {
     const loc = { v, s: v.s, n: v.n, text: v.text, norm: v.norm, surahName: Q.surahName(v.s),
-        prev: Q.verse(v.s, v.n - 1), next: Q.verse(v.s, v.n + 1), stem: null, tail: null };
+        prev: Q.verse(v.s, v.n - 1), next: Q.verse(v.s, v.n + 1), stem: null, tail: null, stemMid: false };
     loc.ref = `سورة ${loc.surahName}، الآية ${v.n}`;
     loc.vid = v.s + ':' + v.n;
-    const k = wordsOf(phrase).length;
-    if (k > 0 && skel(wordsOf(v.text).slice(0, k).join(' ')) === skel(phrase) && wordsOf(v.text).length > k) {
-        [loc.stem, loc.tail] = cutWords(v.text, k);
-    }
+    // موضع العبارة في الآية: start (في أولها) | mid (في وسطها) | end (في آخرها فلا ما يُكمَل) | whole (هي الآية كلها) | none (لم تُطابَق)
+    const w = wordsOf(v.text), k = wordsOf(phrase).length, sp = skel(phrase);
+    let idx = -1;
+    if (k > 0 && sp) for (let i = 0; i + k <= w.length; i++) if (skel(w.slice(i, i + k).join(' ')) === sp) { idx = i; break; }
+    loc.phraseAt = idx < 0 ? 'none' : idx === 0 ? (w.length > k ? 'start' : 'whole') : (idx + k < w.length ? 'mid' : 'end');
+    if (loc.phraseAt === 'start') [loc.stem, loc.tail] = cutWords(v.text, k);
+    // دعم اختياري (معطّل افتراضياً): العبارة في وسط الآية ← المطلع = كل ما قبلها مع العبارة، والمطلوب إكمال الباقي
+    else if (midVerse && loc.phraseAt === 'mid') { [loc.stem, loc.tail] = cutWords(v.text, idx + k); loc.stemMid = true; }
     return loc;
 }
 
@@ -214,7 +236,8 @@ const tid = (v) => v.s + '|' + v.norm;
 // «حقيقة» السؤال: الآية الفلانية تتبع الآية الفلانية (أو الموضع الفلاني في سورة كذا). سؤالان بحقيقة واحدة مكرران ولو اختلف نوعهما
 const fact = (a, b) => (a ? tid(a) : 'START') + '>' + (b ? tid(b) : 'END');
 
-function buildCandidates(Q, group, locs, juz, rng) {
+function buildCandidates(Q, group, locs, juz, rng, stats = null) {
+    const cphrase = cleanPhrase(group.anchorPhrase);
     const surahs = [...new Set(locs.map(l => l.s))];
     const sameSurah = surahs.length === 1;
     const identical = new Set(locs.map(l => l.norm)).size < locs.length;
@@ -252,9 +275,13 @@ function buildCandidates(Q, group, locs, juz, rng) {
         }
 
         // ---- أكمل الآية ----
-        if (l.stem && !identical) {
+        if (stats) { stats.locs++; stats.at[l.phraseAt] = (stats.at[l.phraseAt] || 0) + 1; }
+        if (l.stem && identical) { if (stats) stats.identicalBlocked++; }
+        else if (l.stem) {
+            if (stats) stats.stemLocs++;
             const tails = locs.filter(x => x.stem).map(x => x.tail);
-            const extra = shuffled(Q.tailsAfterStem(l.stem).filter(t => norm(t) !== norm(l.tail)), rng);
+            const base = l.stemMid ? Q.tailsAfterPhrase(cphrase) : Q.tailsAfterStem(l.stem);
+            const extra = shuffled(base.filter(t => norm(t) !== norm(l.tail)), rng);
             let text, shown, seq = null;
             if (l.prev) {
                 text = `في سورة ${l.surahName}، جاء قوله تعالى: ` + verse(l.prev.text) + '\nثم جاءت بعدها الآية:\n' + verse(l.stem + ' ......') + '\nما الذي يُكمل الآية؟';
@@ -264,16 +291,18 @@ function buildCandidates(Q, group, locs, juz, rng) {
                 shown = [];
             }
             const f = finalize([...tails, ...extra], l.tail, rng);
-            if (f) {
+            if (!f) { if (stats) stats.fewOptions++; }
+            else {
                 // الجواب الصحيح وحده يُكمل المطلع في هذا السياق (بعد الآية المعروضة، أو أول السورة)
                 const ns = norm(l.stem);
                 const sd = Q.surahs.get(l.s);
-                const base = seq ? Q.followersIn(l.s, seq) : new Set(sd.verses.get(1) ? [sd.verses.get(1).norm] : []);
-                const valid = new Set([...base].filter(vn => vn.startsWith(ns + ' ')));
+                const baseV = seq ? Q.followersIn(l.s, seq) : new Set(sd.verses.get(1) ? [sd.verses.get(1).norm] : []);
+                const valid = new Set([...baseV].filter(vn => vn.startsWith(ns + ' ')));
                 const wrongValid = f.opts.some((o, i) => i !== f.ci && valid.has(norm(l.stem + ' ' + o)));
                 if (valid.size === 1 && valid.has(l.norm) && !wrongValid) {
+                    if (stats) stats.built++;
                     cand.push({ type: 'sim_complete', text, opts: f.opts, ci: f.ci, loc: l, shown: new Set(shown), answer: new Set([tid(l.v)]), key: 'end|' + l.vid, facts: new Set([fact(l.prev, l.v)]) });
-                }
+                } else if (stats) stats.notUnique++;
             }
         }
     }
@@ -343,24 +372,43 @@ function chooseBest(cands, max = 4) {
 
 // ---------------- الواجهة العامة ----------------
 // يعيد { questions, locations, notes, reason } — reason يوضّح سبب قلة الأسئلة عن 4 (للتقرير)
-export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 } } = {}) {
+// عرض الخيارات الطويلة: أول ~12 كلمة ثم «…» بشرط ألا يتطابق خياران بعد القص (يُوسَّع القص إن تطابقا).
+// العرض فقط: التحقق من الجواب وحدانيته يبقى على النص الكامل (options)، ويُرجع هذا مصفوفة موازية للعرض.
+export const OPTION_WORDS = 12;
+export function shortenOptions(opts, max = OPTION_WORDS) {
+    const ws = opts.map(wordsOf);
+    const longest = Math.max(...ws.map(w => w.length));
+    for (let K = max; K <= longest; K++) {
+        // لا قصّ لخيار لا يزيد إلا كلمة أو كلمتين على الحد (لا فائدة من «…» لحذف كلمة)
+        const disp = ws.map(w => (w.length <= K + 2 ? w.join(' ') : w.slice(0, K).join(' ') + ' …'));
+        if (new Set(disp.map(norm)).size === disp.length) return disp;
+    }
+    return opts.map(String);
+}
+
+// stats: كائن اختياري لتجميع قمع «أكمل الآية» (للتقارير فقط). midVerse: دعم عبارة وسط الآية (معطّل افتراضياً)
+export function newCompleteStats() { return { locs: 0, at: {}, identicalBlocked: 0, stemLocs: 0, fewOptions: 0, notUnique: 0, built: 0, groupsWithCand: 0, groupsChosen: 0, completeChosen: 0 }; }
+export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = false, stats = null } = {}) {
     const notes = [];
-    const { locs, phrase } = resolveLocations(Q, group, notes);
+    const { locs, phrase } = resolveLocations(Q, group, notes, midVerse);
     const res = { groupId: group.groupId, questions: [], locations: locs.length, notes, reason: '' };
     if (locs.length < 2) { res.reason = 'أقل من موضعين صالحين بعد مطابقة المصحف'; return res; }
     const juz = locs[0].v.juz;
-    const cand = shuffled(buildCandidates(Q, group, locs, juz, rng), rng)
+    const cand = shuffled(buildCandidates(Q, group, locs, juz, rng, stats), rng)
         .sort((a, b) => ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'].indexOf(a.type) - ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'].indexOf(b.type));
     const chosen = chooseBest(cand, 4);
+    if (stats) { const nc = cand.filter(c => c.type === 'sim_complete').length; if (nc) stats.groupsWithCand++; const cc = chosen.filter(c => c.type === 'sim_complete').length; if (cc) stats.groupsChosen++; stats.completeChosen += cc; }
     for (const c of chosen) {
         const correct = c.opts[c.ci];
         const others = shuffled(c.opts.filter((_, i) => i !== c.ci), rng);
         const at = posRef.n % c.opts.length; posRef.n++;
         others.splice(at, 0, correct);
         const l = c.loc;
+        // السور قصيرة دائماً؛ الخيارات القرآنية تُقصّ للعرض فقط
+        const optionsDisplay = c.type === 'sim_surah' ? [...others] : shortenOptions(others);
         res.questions.push({
-            type: c.type, text: c.text, options: others, correctIndex: at, correctAnswer: correct, ref: l.ref,
-            groupId: group.groupId, anchorPhrase: group.anchorPhrase, scope: group.scope, category: group.category,
+            type: c.type, text: c.text, options: others, optionsDisplay, correctIndex: at, correctAnswer: correct, ref: l.ref,
+            groupId: group.groupId, anchorPhrase: stripHizbMark(group.anchorPhrase), scope: group.scope, category: group.category,
             occurrence: { surahNumber: l.s, surahName: l.surahName, ayahNumber: l.n, fullText: l.text },
             juz
         });

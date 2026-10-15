@@ -22,7 +22,7 @@ import { AppState, loadSplashScreen, t } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
-import { ensureSimilarityQuran, questionTextToHTML } from '../engine/similarityQuestions.js';
+import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
 // 🌟 نفس آلية الصوت المستخدمة في games/kidsGame.js بالضبط (Web Audio API المدمجة في
@@ -205,10 +205,10 @@ const SURAH_OPTION_TYPES = new Set(['sim_surah']);
 
 function buildOptionsHTML(q) {
     const isSurah = SURAH_OPTION_TYPES.has(q.type);
-    return q.options.map(opt => {
+    return q.options.map((opt, i) => {
         const classes = ['btn', 'btn-outline', 'sim-play-option-btn'];
         if (!isSurah) classes.push('quran-text', 'sim-play-option-fulltext');
-        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(opt)}</button>`;
+        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText((q.optionsDisplay && q.optionsDisplay[i]) || opt)}</button>`;
     }).join('');
 }
 
@@ -221,7 +221,7 @@ async function renderQuestion() {
 
     // صندوق العنوان الذهبي (#simplay-anchor) يعرض عبارة مجموعة هذا السؤال تحديداً (الجولة تخلط مجموعات مختلفة)
     const anchorEl = document.getElementById('simplay-anchor');
-    if (anchorEl) anchorEl.textContent = `« ${q.anchorPhrase} »`;
+    if (anchorEl) anchorEl.textContent = `« ${stripHizbMark(q.anchorPhrase)} »`;
 
     const optionsExtraClass = SURAH_OPTION_TYPES.has(q.type) ? '' : ' sim-play-options-fulltext';
     container.innerHTML = `
@@ -308,7 +308,7 @@ async function renderResultsScreen() {
     if (changes) {
         const weak = changes.filter(c => PlayState.answers.some(a => a.sig === c.sig && !a.isCorrect));
         const up = changes.filter(c => levelOf(c.after) !== levelOf(c.before) && !weak.includes(c) && c.after.box > c.before.box);
-        const row = (c) => `<li><span class="quran-text sim-res-anchor">« ${escapeHtmlText(c.after.anchorPhrase)} »</span><span class="sim-level-chip sim-level-${levelOf(c.after)}">${levelLabel(c.after)}</span></li>`;
+        const row = (c) => `<li><span class="quran-text sim-res-anchor">« ${escapeHtmlText(stripHizbMark(c.after.anchorPhrase))} »</span><span class="sim-level-chip sim-level-${levelOf(c.after)}">${levelLabel(c.after)}</span></li>`;
         // الجولة الواحدة قد تمسّ 17 مجموعة: نعرض أول 5 من كل قائمة ثم عدد الباقي
         const list = (arr) => `<ul class="sim-res-list">${arr.slice(0, 5).map(row).join('')}</ul>${arr.length > 5 ? `<p class="sim-res-more">+${arr.length - 5}</p>` : ''}`;
         detailsHTML = `

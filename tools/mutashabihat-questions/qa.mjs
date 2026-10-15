@@ -15,7 +15,7 @@ export function buildRaw() {
     for (const s of surahs) {
         const arr = [];
         for (const a of s.ayahs) {
-            let t = a.text.replace(/﻿/g, '');
+            let t = a.text.replace(/\uFEFF/g, '').replace(/\u06DE\s*/g, '').trim(); // ۞ تُحذف من العرض
             if (a.numberInSurah === 1 && s.number !== 1 && s.number !== 9) {
                 const w = t.split(/\s+/);
                 if (letters(w.slice(0, 4).join(' ')) === BASMALA) t = w.slice(4).join(' ');
@@ -58,6 +58,23 @@ export function checkQuestion(q, R) {
     if (q.options.length < 3 || q.options.length > 4) fail('عدد الخيارات ' + q.options.length);
     if (new Set(q.options.map(letters)).size !== q.options.length) fail('خيارات مكررة');
     if (q.options[q.correctIndex] !== q.correctAnswer) fail('correctIndex لا يطابق correctAnswer');
+    // 3ب) عرض الخيارات المقصوصة: موازٍ للكاملة، بادئة حرفية منها (+ «…») بعد 12 كلمة على الأقل، ولا يتطابق خياران بعد القص
+    const D = q.optionsDisplay;
+    if (!Array.isArray(D) || D.length !== q.options.length) fail('optionsDisplay غير موازٍ للخيارات');
+    else {
+        D.forEach((d, i) => {
+            const full = q.options[i];
+            if (d === full) return;
+            if (q.type === 'sim_surah') return fail('خيار سورة مقصوص');
+            if (!d.endsWith(' …')) return fail('خيار مقصوص بلا «…»: ' + d);
+            const head = d.slice(0, -2), hw = head.split(/\s+/).length, fw = full.split(/\s+/).length;
+            if (!(full === head || full.startsWith(head + ' '))) fail('العرض ليس بادئة حرفية من الخيار الكامل');
+            if (hw < 12) fail('قُصّ قبل 12 كلمة: ' + hw);
+            if (fw <= hw + 2) fail('قصّ بلا فائدة (يحذف كلمتين فأقل)');
+        });
+        if (new Set(D.map(letters)).size !== D.length) fail('خياران متطابقان بعد القص');
+        if (D.some((d, i) => i !== q.correctIndex && letters(d) === letters(D[q.correctIndex]))) fail('خيار خاطئ يتطابق مع الصحيح بعد القص');
+    }
     // 4) خيار صحيح واحد في السياق المذكور (بحث في المصحف كله)
     const afterSurah = letters((q.text.match(/سورة ([^﴿\n:]*)/) || [])[1] || '').replace(/ (وبلغت|جاءت|بقوله|جاء)$/, '');
     const sname = R.names.find(n => afterSurah === n || afterSurah.startsWith(n + ' ')) || afterSurah;
@@ -149,12 +166,12 @@ export function checkGroup(qs) {
     return errs;
 }
 
-export async function runAll({ seed = 7 } = {}) {
+export async function runAll({ seed = 7, midVerse = false, stats = null } = {}) {
     const Q = loadQuran(), R = buildRaw(), G = await loadGroups();
     const rng = mulberry32(seed), posRef = { n: 0 };
     const out = { groups: [], failures: [], groupFailures: [], total: 0 };
     for (const g of G) {
-        const r = generateGroupQuestions(Q, g, { rng, posRef });
+        const r = generateGroupQuestions(Q, g, { rng, posRef, midVerse, stats });
         out.groups.push({ groupId: g.groupId, scope: g.scope, anchorPhrase: g.anchorPhrase, count: r.questions.length, reason: r.reason, notes: r.notes, juz: r.questions[0] ? r.questions[0].juz : null, questions: r.questions });
         out.total += r.questions.length;
         r.questions.forEach(q => { const e = checkQuestion(q, R); if (e.length) out.failures.push({ groupId: g.groupId, type: q.type, ref: q.ref, errors: e }); });

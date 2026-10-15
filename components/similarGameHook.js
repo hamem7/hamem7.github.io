@@ -46,13 +46,17 @@ export function formatKidsSimilar(sim, pool) {
         type: 'kids_mcq',
         questionTitle: isSurah ? 'في أي سورة من المتشابهات؟ 🌟' : 'ماذا بعدها؟ من المتشابهات 🔀',
         questionBody: `<div style="font-size:2.2rem; line-height:1.9; color:#0284c7;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>`,
-        correctAns: sim.correctAnswer, options: sim.options, optionsKind: isSurah ? 'sim_surah' : undefined,
+        correctAns: sim.correctAnswer, options: sim.options, simDisplay: sim.optionsDisplay, optionsKind: isSurah ? 'sim_surah' : 'sim_text',
         ayahObj: ayahObjFor(sim, pool), reportText: qtext(sim.occurrence.fullText), simKind: sim.kind, simGroupId: sim.groupId
     };
 }
 
 // تسمية خيار للصغار (يستعملها kidsGame.js عند رسم الأزرار)
-export function kidsSimilarOptionLabel(opt, kind) {
+export function kidsSimilarOptionLabel(opt, kind, cd) {
+    if (kind === 'sim_text') {   // آية/نهاية آية: النص المقصوص للعرض (الأصل للمقارنة)
+        const shown = cd && cd.simDisplay ? cd.simDisplay[cd.options.indexOf(opt)] : null;
+        return `﴿\u00A0${toQuranicSukun(shown || opt)}\u00A0﴾`;
+    }
     return tf('sim_inj_surah_label', { name: surahLabel(opt) });
 }
 
@@ -66,19 +70,19 @@ export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;
     const letters = AppState.currentLang === 'en' ? LETTERS_EN : LETTERS_AR;
     const isSurah = sim.kind === 'sim_surah';
-    const label = (v) => isSurah ? tf('sim_inj_surah_label', { name: surahLabel(v) }) : '﴿ ' + toQuranicSukun(v) + ' ﴾';
+    const label = (v, i) => isSurah ? tf('sim_inj_surah_label', { name: surahLabel(v) }) : '﴿ ' + toQuranicSukun((sim.optionsDisplay && i != null && sim.optionsDisplay[i]) || v) + ' ﴾';
     const cls = isSurah ? 'btn btn-outline sim-opt-btn' : 'btn btn-outline sim-opt-btn quran-text';
     const size = isSurah ? '2rem' : '1.7rem';
     // 🌟 كل خيار زرٌّ يضغطه الطالب فتُسجَّل إجابته (صحيحة أو خاطئة) تلقائياً — يربطها adultGame.js عبر .sim-opt-btn
     const lines = sim.options.map((opt, i) =>
-        `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:12px 0; padding:12px 16px; text-align:center;"><b>${letters[i]})</b> ${label(opt)}</button>`
+        `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size}; margin:12px 0; padding:12px 16px; text-align:center;"><b>${letters[i]})</b> ${label(opt, i)}</button>`
     ).join('');
     const body = `<div style="font-size:2rem; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
         `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
     const correctIndex = sim.options.findIndex(o => String(o) === String(sim.correctAnswer));
     return {
         type: 'similar', questionTitle: ADULT_TITLES[sim.kind], questionBody: body,
-        correctIndex, optionTexts: sim.options.map(o => String(label(o)).replace(/<[^>]*>/g, '')),
+        correctIndex, optionTexts: sim.options.map((o, i) => String(label(o, i)).replace(/<[^>]*>/g, '')),
         fullAnswer: label(sim.correctAnswer),
         answerHTML: `<span class="${isSurah ? '' : 'quran-text'}" style="font-size:1.8rem;">${label(sim.correctAnswer)}</span>`,
         ayahObj: ayahObjFor(sim, pool), reportText: qtext(sim.occurrence.fullText), simKind: sim.kind, simGroupId: sim.groupId

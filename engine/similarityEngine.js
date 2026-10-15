@@ -68,10 +68,12 @@ export function buildGameRound(groups) {
 // الواجب يُصحَّح آلياً بنوع 'mcq' (title/text/options/correctAnswer نصوص)، فنحوّل السؤال إلى هذا الشكل بلا تعديل على التصحيح.
 export function toHomeworkQuestion(simQ) {
     if (!simQ || !Array.isArray(simQ.options) || simQ.options.length < 3 || !SIM_TYPES.includes(simQ.type)) return null;
-    const options = simQ.options.map(String), correctAnswer = String(simQ.correctAnswer);
-    if (new Set(options).size !== options.length || !options.includes(correctAnswer)) return null;
+    // الطالب يرى الخيارات المقصوصة (أول ~12 كلمة)، ولا يتطابق منها خياران (مضمون في المولّد)، والتصحيح بمطابقة النص المعروض
+    const shown = (simQ.optionsDisplay && simQ.optionsDisplay.length === simQ.options.length ? simQ.optionsDisplay : simQ.options).map(String);
+    const idx = simQ.options.map(String).indexOf(String(simQ.correctAnswer));
+    if (idx < 0 || new Set(shown).size !== shown.length) return null;
     return {
-        type: 'mcq', title: 'من المتشابهات: ' + SIM_TYPE_LABELS[simQ.type], text: simQ.text, options, correctAnswer, points: 1,
+        type: 'mcq', title: 'من المتشابهات: ' + SIM_TYPE_LABELS[simQ.type], text: simQ.text, options: shown, correctAnswer: shown[idx], points: 1,
         simGroupId: simQ.groupId, simKind: simQ.type
     };
 }

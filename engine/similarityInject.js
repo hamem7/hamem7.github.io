@@ -45,7 +45,7 @@ export function eligibleGroups(allGroups, pool) {
 const KIDS_TYPES = new Set(['sim_surah', 'sim_next']);
 
 // يبني حتى `count` سؤالاً، كل واحد من مجموعة مختلفة، والموضع المسؤول عنه داخل النطاق.
-// يرجع كائنات JSON: { kind:'sim_*', groupId, anchorPhrase, scope, text, options, correctAnswer, correctIndex, ref, occurrence:{...} }
+// يرجع كائنات JSON: { kind:'sim_*', groupId, anchorPhrase, scope, text, options, optionsDisplay (للعرض، مقصوصة)، correctAnswer, correctIndex, ref, occurrence:{...} }
 export function buildSimilarQuestions({ allGroups, pool, count, kids }) {
     if (!count || count <= 0) return [];
     const index = new Set((pool || []).map(a => keyOf(a.surahNumber, a.numberInSurah)));
@@ -58,7 +58,7 @@ export function buildSimilarQuestions({ allGroups, pool, count, kids }) {
         const q = cands[0];
         out.push({
             kind: q.type, groupId: q.groupId, anchorPhrase: q.anchorPhrase, scope: q.scope,
-            text: q.text, options: q.options.map(String), correctAnswer: String(q.correctAnswer), correctIndex: q.correctIndex, ref: q.ref,
+            text: q.text, options: q.options.map(String), optionsDisplay: (q.optionsDisplay || q.options).map(String), correctAnswer: String(q.correctAnswer), correctIndex: q.correctIndex, ref: q.ref,
             occurrence: { ...q.occurrence }
         });
     }

@@ -228,7 +228,7 @@
   "anchorPhrase": "۞ لَّقَدْ كَانَ",
   "juz": 12,
   "count": 3,
-  "reason": "المرشّحات 3 (sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
+  "reason": "المرشّحات 5 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
   "notes": []
  },
  {
@@ -276,7 +276,7 @@
   "anchorPhrase": "۞ إِنَّ ٱللَّهَ",
   "juz": 14,
   "count": 3,
-  "reason": "المرشّحات 4 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
+  "reason": "المرشّحات 5 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
   "notes": []
  },
  {
@@ -644,7 +644,7 @@
   "anchorPhrase": "۞ وَمَن",
   "juz": 21,
   "count": 3,
-  "reason": "المرشّحات 5 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
+  "reason": "المرشّحات 6 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
   "notes": []
  },
  {
@@ -1205,14 +1205,6 @@
   "juz": null,
   "count": 0,
   "reason": "أقل من موضعين صالحين بعد مطابقة المصحف",
-  "notes": []
- },
- {
-  "groupId": "63-2",
-  "anchorPhrase": "إِذَا / وَإِذَا",
-  "juz": 28,
-  "count": 3,
-  "reason": "المرشّحات 7 (sim_complete،sim_next،sim_prev) لكن الباقي يكرر حقيقة أو يكشف جواباً",
   "notes": []
  },
  {

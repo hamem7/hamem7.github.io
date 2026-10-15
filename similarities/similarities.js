@@ -65,6 +65,7 @@ import { AppState, loadSplashScreen, openSimilarityGame, t } from '../core/app.j
 // من engine/similarityEngine.js وsimilarities-play.js بلا ازدواجية — بلا أي تغيير في السلوك
 // (نفس الدوال المُختبَرة فعلياً على الـ 800 موضع الحقيقية، فقط استيراد بدل تعريف محلي) 🌟
 import { highlightAnchorInText, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
+import { stripHizbMark } from '../engine/similarityQuestions.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 
@@ -681,7 +682,7 @@ function renderWordsListHTML() {
 
     const cards = groups.map(g => `
         <button class="sim-card sim-word-card" data-action="open-word" data-group="${g.groupId}">
-            <span class="sim-word-anchor quran-text">﴿\u00A0${g.anchorPhrase}\u00A0﴾</span>
+            <span class="sim-word-anchor quran-text">﴿\u00A0${stripHizbMark(g.anchorPhrase)}\u00A0﴾</span>
             <span class="sim-word-meta">${categoryLabel(g.category)} · ${(g.surahs || []).length} ${t('sim_surahs_count_suffix')}</span>
         </button>`).join('');
     return `<div class="sim-grid sim-grid-words">${cards}</div>`;
@@ -787,7 +788,7 @@ async function renderGroupCardHTML(group, highlightSurah) {
     return `<div class="sim-group-card">
         ${manualControlsHTML}
         <div class="sim-group-header">
-            <span class="sim-anchor-box quran-text">« ${group.anchorPhrase} »</span>
+            <span class="sim-anchor-box quran-text">« ${stripHizbMark(group.anchorPhrase)} »</span>
             <span class="sim-cat-badge" data-cat="${group.category}">${categoryLabel(group.category)}</span>
         </div>
         ${noteHTML}

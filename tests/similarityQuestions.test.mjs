@@ -2,7 +2,7 @@
 // فحوص جودة أسئلة المتشابهات على القرآن كله (كل المجموعات الـ1659). التنفيذ في tools/mutashabihat-questions/qa.mjs
 import assert from 'node:assert/strict';
 import { runAll, summarize, checkQuestion, buildRaw } from '../tools/mutashabihat-questions/qa.mjs';
-import { QuranIndex, norm, skel } from '../engine/similarityQuestions.js';
+import { QuranIndex, norm, skel, shortenOptions, stripHizbMark } from '../engine/similarityQuestions.js';
 import { loadQuranSurahs } from '../tools/mutashabihat-questions/load.mjs';
 
 let pass = 0, fail = 0;
@@ -63,6 +63,42 @@ test('ضابط سلبي: خيار «سورة» ليس اسم سورة يُكتش
     assert.ok(checkQuestion(q, R).some(e => e.includes('ليس اسم سورة')));
 });
 
+// قصّ الخيارات الطويلة للعرض
+test('shortenOptions: خيار ≤14 كلمة يبقى كاملاً، والأطول يُقصّ إلى 12 كلمة + «…»', () => {
+    const w = (n, p) => Array.from({ length: n }, (_, i) => p + i).join(' ');
+    const d = shortenOptions([w(10, 'أ'), w(30, 'ب'), w(14, 'ج')]);
+    assert.equal(d[0], w(10, 'أ')); assert.equal(d[2], w(14, 'ج'));
+    assert.equal(d[1], w(12, 'ب') + ' …');
+});
+test('shortenOptions: خياران متطابقان في أول 12 كلمة يُوسَّع القص حتى يختلفا', () => {
+    const common = Array.from({ length: 14 }, (_, i) => 'ك' + i).join(' ');
+    const d = shortenOptions([common + ' س1 س2 س3 س4', common + ' ص1 ص2 ص3 ص4']);
+    assert.notEqual(norm(d[0]), norm(d[1]));
+    assert.ok(d[0].includes('س1') && d[1].includes('ص1'));
+});
+test('كل الأسئلة: خيار مقصوص واحد على الأقل موجود، وبلا تطابق بعد القص (فحص عبر checkQuestion)', () => {
+    const qs = res.groups.flatMap(g => g.questions);
+    assert.ok(qs.some(q => q.optionsDisplay.some((d, i) => d !== q.options[i])), 'لا خيار مقصوص في أي سؤال');
+    assert.equal(res.failures.filter(f => f.errors.some(e => /قص|عرض|«…»/.test(e))).length, 0);
+});
+test('ضابط سلبي: تطابق خيارين بعد القص يُكتشف', () => {
+    const q = structuredClone(res.groups.flatMap(g => g.questions).find(q => q.type === 'sim_next' && q.optionsDisplay.some((d, i) => d !== q.options[i])));
+    q.optionsDisplay[0] = q.optionsDisplay[1];
+    assert.ok(checkQuestion(q, R).some(e => e.includes('متطابقان')));
+});
+// ۞
+test('لا رمز ۞ في أي سؤال ولا خيار', () => {
+    assert.ok(!res.groups.flatMap(g => g.questions).some(q => [q.text, ...q.options, ...q.optionsDisplay].join('').includes('\u06DE')));
+    assert.equal(stripHizbMark('۞ قُل'), 'قُل');
+});
+// دعم العبارة في وسط الآية (اختياري، معطّل افتراضياً): يجب أن تبقى كل فحوص الجودة بلا إخفاق
+const resMid = await runAll({ seed: 7, midVerse: true });
+test('midVerse: صفر إخفاق في فحوص الجودة وعدد أسئلة «أكمل الآية» أكبر', () => {
+    const n = (r) => r.groups.reduce((a, g) => a + g.questions.filter(q => q.type === 'sim_complete').length, 0);
+    assert.equal(resMid.failures.length, 0, JSON.stringify(resMid.failures.slice(0, 2)));
+    assert.equal(resMid.groupFailures.length, 0);
+    assert.ok(n(resMid) > n(res) * 1.3, `${n(resMid)} مقابل ${n(res)}`);
+});
 // المصحف
 test('QuranIndex: البسملة والـBOM لا يدخلان نص الآية الأولى', () => {
     const Q = new QuranIndex(loadQuranSurahs());

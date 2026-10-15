@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { runAll, summarize } from './qa.mjs';
-import { mulberry32, SIM_TYPE_LABELS } from '../../engine/similarityQuestions.js';
+import { mulberry32, SIM_TYPE_LABELS, stripHizbMark } from '../../engine/similarityQuestions.js';
 
 const require = createRequire(import.meta.url);
 let docx;
@@ -46,7 +46,7 @@ const qParas = (text) => text.split('\n').map(line => {
 const LET = ['أ', 'ب', 'ج', 'د'];
 const kids = [];
 kids.push(new Paragraph({ bidirectional: true, alignment: AlignmentType.CENTER, spacing: { after: 120 }, children: [run('عيّنة مراجعة أسئلة المتشابهات', { bold: true, size: 44 })] }));
-kids.push(para([run('خمس مجموعات من كل جزء (150 مجموعة). الجواب الصحيح مُعلَّم بـ ✓ وباللون الأخضر، وسطر «المرجع» للمعلم فقط ولا يظهر للطالب. كل نص بين ﴿ ﴾ منقول حرفياً من مصحف المنصة.', { size: 24 })]));
+kids.push(para([run('خمس مجموعات من كل جزء (150 مجموعة). الجواب الصحيح مُعلَّم بـ ✓ وباللون الأخضر، وسطر «المرجع» للمعلم فقط ولا يظهر للطالب. الآيات منقولة حرفياً من مصحف المنصة (بلا رمز ۞)، والخيارات الطويلة تُعرض أول 12 كلمة تقريباً ثم «…».', { size: 24 })]));
 kids.push(para([run(`إجمالي ما تُنتجه الصيغة الجديدة على القرآن كله: ${sum.total} سؤالاً من ${sum.groups} مجموعة (${Object.entries(sum.byType).map(([t, n]) => `${SIM_TYPE_LABELS[t]}: ${n}`).join('، ')}).`, { size: 24 })]));
 let first = true;
 for (const s of sample) {
@@ -55,13 +55,13 @@ for (const s of sample) {
     if (!s.groups.length) kids.push(para([run('لا توجد مجموعات متشابهات في هذا الجزء في بيانات المنصة الحالية.', { size: 24 })]));
     for (const g of s.groups) {
         kids.push(new Paragraph({ bidirectional: true, heading: HeadingLevel.HEADING_2, alignment: AlignmentType.RIGHT, spacing: { before: 240, after: 100 }, border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: 'BBBBBB', space: 2 } },
-            children: [run(`المجموعة ${g.groupId} — «${g.anchorPhrase}» — ${g.questions.length} أسئلة`, { bold: true, size: 28, color: '7A4B00' })] }));
+            children: [run(`المجموعة ${g.groupId} — «${stripHizbMark(g.anchorPhrase)}» — ${g.questions.length} أسئلة`, { bold: true, size: 28, color: '7A4B00' })] }));
         g.questions.forEach((q, qi) => {
             kids.push(para([run(`${qi + 1}) ${SIM_TYPE_LABELS[q.type]}`, { bold: true, size: 24, color: '555555' })], { after: 40, extra: { keepNext: true } }));
             kids.push(...qParas(q.text));
             q.options.forEach((o, i) => {
                 const ok = i === q.correctIndex;
-                kids.push(para([run(`${LET[i]}) `, { bold: true, size: 26, color: ok ? '0B7A3B' : undefined }), run(q.type === 'sim_surah' ? o : '﴿ ' + o + ' ﴾', { quran: q.type !== 'sim_surah', size: 28, bold: ok, color: ok ? '0B7A3B' : undefined }), ...(ok ? [run('  ✓', { bold: true, color: '0B7A3B' })] : [])], { indent: 720, after: 40 }));
+                kids.push(para([run(`${LET[i]}) `, { bold: true, size: 26, color: ok ? '0B7A3B' : undefined }), run(q.type === 'sim_surah' ? o : '﴿ ' + q.optionsDisplay[i] + ' ﴾', { quran: q.type !== 'sim_surah', size: 28, bold: ok, color: ok ? '0B7A3B' : undefined }), ...(ok ? [run('  ✓', { bold: true, color: '0B7A3B' })] : [])], { indent: 720, after: 40 }));
             });
             kids.push(para([run('المرجع (للمعلم): ' + q.ref, { size: 20, color: '888888' })], { indent: 360, after: 160 }));
         });
@@ -93,13 +93,15 @@ md.push('## الفحوص المنفَّذة (كلها مستقلة عن المو
     '4. «من أي سورة؟»: لا تحوي أي سورة خاطئة الآية (أو الآيتين المتتاليتين) المعروضة.',
     '5. داخل المجموعة: لا نص مكرر، ولا سؤالان بالحقيقة نفسها (الآية س تلي الآية ص)، ولا جواب ظاهر في نص سؤال آخر.',
     '6. عدد الخيارات 3–4، وتوزيع موضع الصحيح متوازن.',
-    '7. ضوابط سلبية: يُدخَل خطأ متعمَّد (حرف مغيَّر، رقم، خيار خاطئ صحيح) ويُتأكَّد أن الفحص يكشفه.', '');
+    '7. عرض الخيارات الطويلة: أول 12 كلمة + «…» (لا قصّ لما يزيد كلمتين فأقل)، بادئة حرفية من الخيار الكامل، ولا يتطابق خياران بعد القص (يُوسَّع القص عند التطابق)؛ والتحقق من الجواب الوحيد يبقى على النص الكامل.',
+    '8. لا رمز ۞ في أي سؤال أو خيار أو عنوان.',
+    '9. ضوابط سلبية: يُدخَل خطأ متعمَّد (حرف مغيَّر، رقم، خيار خاطئ صحيح) ويُتأكَّد أن الفحص يكشفه.', '');
 md.push('## عدد الأسئلة لكل جزء (الجزء = جزء أول موضع في المجموعة)', '', '| الجزء | مجموعات | أسئلة | مجموعات بأقل من 4 |', '|---|---|---|---|');
 Object.keys(perJuz).sort((a, b) => (+a || 99) - (+b || 99)).forEach(j => md.push(`| ${j} | ${perJuz[j].groups} | ${perJuz[j].q} | ${perJuz[j].lt4} |`));
 md.push('', `## المجموعات التي قلّت أسئلتها عن أربعة (${lt4.length} مجموعة)`, '');
 for (const [k, arr] of Object.entries(reasonGroups)) {
     md.push(`### ${k} — ${arr.length} مجموعة`, '');
-    if (arr.length <= 60) { md.push('| المجموعة | العبارة | الأسئلة |', '|---|---|---|'); arr.forEach(g => md.push(`| ${g.groupId} | ${g.anchorPhrase} | ${g.count} |`)); }
+    if (arr.length <= 60) { md.push('| المجموعة | العبارة | الأسئلة |', '|---|---|---|'); arr.forEach(g => md.push(`| ${g.groupId} | ${stripHizbMark(g.anchorPhrase)} | ${g.count} |`)); }
     else md.push(`أمثلة: ${arr.slice(0, 12).map(g => g.groupId + '(' + g.count + ')').join('، ')} … والقائمة الكاملة في \`low_count_groups.json\`.`);
     md.push('');
 }
