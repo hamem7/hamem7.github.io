@@ -19,7 +19,7 @@ const DEFAULT_AVATAR_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fil
 // الشفافية تمامًا لأن JPEG لا يدعمها، فتظهر الخلفية الشفافة كمربع أسود كامل حول التوقيع
 // بدل أن تختفي — وهذا هو سبب المربع الأسود الذي يظهر في التقارير. الحل: نحفظ الختم
 // بصيغة PNG (تحافظ على الشفافية) بدل JPEG، فيظهر خط التوقيع فقط بلا أي خلفية.
-function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85, format = 'image/jpeg') {
+export function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85, format = 'image/jpeg') {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(reader.error);

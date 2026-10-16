@@ -52,6 +52,20 @@
     #app-root #acct-screen details.ac-fold summary::after { content: "▾"; color: #4a6058; }
     #app-root #acct-screen details.ac-fold[open] summary::after { content: "▴"; }
     #app-root #acct-screen details.ac-fold .ac-in { padding: 0 18px 16px; border-top: 1px solid #e3ebe6; }
+    #app-root #acct-screen .ac-edit[hidden] { display: none; }
+    #app-root #acct-screen .ac-edit-media { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+    #app-root #acct-screen .ac-zone { width: 96px; height: 96px; border-radius: 16px; border: 2px dashed #d4af37; background: #fffdf6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; overflow: hidden; padding: 0; font: inherit; color: #4a6058; }
+    #app-root #acct-screen .ac-zone:hover { background: #fbf3d5; }
+    #app-root #acct-screen .ac-zone img { width: 100%; height: 60px; object-fit: contain; }
+    #app-root #acct-screen .ac-zone.round { border-radius: 50%; }
+    #app-root #acct-screen .ac-zone.round img { height: 100%; object-fit: cover; }
+    #app-root #acct-screen .ac-zone span { font-size: .72rem; font-weight: 600; text-align: center; padding: 0 4px; }
+    #app-root #acct-screen .ac-zone.round span { display: none; }
+    #app-root #acct-screen .ac-field { display: block; margin-bottom: 10px; }
+    #app-root #acct-screen .ac-field > span { display: block; font-weight: 600; font-size: .88rem; margin-bottom: 4px; }
+    #app-root #acct-screen .ac-field input, #app-root #acct-screen .ac-field select { width: 100%; padding: 9px 10px; border-radius: 10px; border: 1px solid #e3ebe6; font: inherit; background: #fff; }
+    #app-root #acct-screen .ac-dob { display: flex; gap: 8px; }
+    #app-root #acct-screen .ac-dob select { flex: 1 1 0; min-width: 0; }
     @media (max-width: 560px) {
         #app-root #acct-screen .ac-acts .ac-btn { flex: 1 1 100%; text-align: center; }
         #app-root #acct-screen .ac-kv { flex-direction: column; align-items: flex-start; gap: 4px; }
@@ -79,6 +93,28 @@
                     <div class="ac-muted" id="acct-email"></div>
                 </div>
                 <button type="button" class="ac-btn ghost" id="acct-edit-btn" data-i18n="acct_page_edit_btn">✏️ تعديل بياناتي</button>
+            </div>
+        </section>
+
+        <!-- ✏️ [2026-10-16] تعديل البيانات داخل نفس الشاشة (بدل فتح نافذة الرئيسية) — يُدار من components/accountScreen.js -->
+        <section class="ac-card ac-edit" id="acct-edit-card" hidden>
+            <h3 data-i18n="profile_modal_title">بياناتك الشخصية</h3>
+            <div class="ac-edit-media">
+                <button type="button" class="ac-zone round" id="acct-edit-photo-zone" aria-label="الصورة الشخصية"><img id="acct-edit-photo" src="icons/icon-192.png" alt=""></button>
+                <button type="button" class="ac-zone" id="acct-edit-stamp-zone"><img id="acct-edit-stamp" src="" alt="" hidden><span data-i18n="profile_stamp_label">الختم (اختياري)</span></button>
+            </div>
+            <input type="file" id="acct-edit-photo-input" accept="image/*" hidden>
+            <input type="file" id="acct-edit-stamp-input" accept="image/*" hidden>
+            <label class="ac-field"><span data-i18n="profile_name_label">الاسم:</span><input type="text" id="acct-edit-name"></label>
+            <label class="ac-field"><span data-i18n="profile_gender_label">الجنس:</span>
+                <select id="acct-edit-gender"><option value="male" data-i18n="profile_gender_male">ذكر</option><option value="female" data-i18n="profile_gender_female">أنثى</option></select>
+            </label>
+            <div class="ac-field"><span data-i18n="profile_dob_label">تاريخ الميلاد:</span>
+                <div class="ac-dob"><select id="acct-edit-dob-day"></select><select id="acct-edit-dob-month"></select><select id="acct-edit-dob-year"></select></div>
+            </div>
+            <div class="ac-acts">
+                <button type="button" class="ac-btn" id="acct-edit-save" data-i18n="profile_save_btn">حفظ</button>
+                <button type="button" class="ac-btn ghost" id="acct-edit-cancel" data-i18n="profile_close_btn">إغلاق</button>
             </div>
         </section>
 
