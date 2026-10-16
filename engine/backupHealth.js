@@ -12,12 +12,12 @@ const toMs = (v) => {
 };
 const ageDays = (ms, now) => (ms === null ? null : Math.max(0, Math.floor((now - ms) / DAY)));
 
-export function backupHealth({ driveAt = null, localAt = null, now = Date.now() } = {}) {
+export function backupHealth({ driveAt = null, localAt = null, now = Date.now(), warnAfterDays = WARN_AFTER_DAYS } = {}) {
     const d = toMs(driveAt), l = toMs(localAt);
     const newest = Math.max(d === null ? -Infinity : d, l === null ? -Infinity : l);
     const out = { driveAgeDays: ageDays(d, now), localAgeDays: ageDays(l, now), newestMs: null, ageDays: null };
     if (newest === -Infinity) return { level: 'bad', ...out };
     out.newestMs = newest;
     out.ageDays = ageDays(newest, now);
-    return { level: out.ageDays > WARN_AFTER_DAYS ? 'warn' : 'ok', ...out };
+    return { level: out.ageDays > warnAfterDays ? 'warn' : 'ok', ...out };
 }

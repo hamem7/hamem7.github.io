@@ -28,7 +28,7 @@ export async function refreshAccountEntry() {
     try {
         const drive = await import('../core/driveBackup.js');
         const { getLastBackupAt } = await import('../core/backupRestore.js');
-        level = backupHealth({ driveAt: drive.isDriveEnabled() ? drive.getDriveLastOk() : null, localAt: getLastBackupAt() }).level;
+        level = backupHealth({ driveAt: drive.isDriveEnabled() ? drive.getDriveLastOk() : null, localAt: getLastBackupAt(), warnAfterDays: drive.getDriveWarnAfterDays() }).level;
     } catch (e) { /* نُبقي بلا نقطة */ }
     const show = level !== 'ok' && (await studentsCount()) > 0;
     ['header-account-dot', 'home-account-dot'].forEach(id => {

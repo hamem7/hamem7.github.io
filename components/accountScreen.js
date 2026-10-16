@@ -61,7 +61,7 @@ export async function initAccountScreen() {
         const enabled = drive.isDriveEnabled();
         const driveAt = enabled ? drive.getDriveLastOk() : null;
         const localAt = getLastBackupAt();
-        const h = backupHealth({ driveAt, localAt });
+        const h = backupHealth({ driveAt, localAt, warnAfterDays: drive.getDriveWarnAfterDays() });
         const box = $('acct-status');
         box.dataset.level = h.level;
         $('acct-status-ic').textContent = { ok: '✅', warn: '⚠️', bad: '🚨' }[h.level];
@@ -91,6 +91,8 @@ export async function initAccountScreen() {
         $('acct-drive-auto-row').style.display = enabled ? 'flex' : 'none';
         $('acct-drive-disconnect').style.display = enabled ? '' : 'none';
         $('acct-drive-auto').checked = drive.isDriveAuto();
+        $('acct-drive-freq-row').style.display = enabled && drive.isDriveAuto() ? 'flex' : 'none';
+        $('acct-drive-freq').value = drive.getDriveAutoFreq();
         let info = t('drive_info_off');
         if (enabled) {
             const last = drive.getDriveLastOk();
@@ -137,7 +139,8 @@ export async function initAccountScreen() {
         if (!r.ok) alert(t(driveErrKey(r)));
         refresh();
     });
-    $('acct-drive-auto').addEventListener('change', () => drive.setDriveAuto($('acct-drive-auto').checked));
+    $('acct-drive-auto').addEventListener('change', () => { drive.setDriveAuto($('acct-drive-auto').checked); renderDrive(); });
+    $('acct-drive-freq').addEventListener('change', () => drive.setDriveAutoFreq($('acct-drive-freq').value));
     $('acct-drive-disconnect').addEventListener('click', async () => {
         if (!await hamConfirm(t('drive_disconnect_confirm'))) return;
         drive.disconnectDrive();

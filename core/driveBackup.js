@@ -37,7 +37,8 @@ const LS_EMAIL = 'dh_drive_email';          // بريد حساب Drive المر�
 const LS_CUSTOM = 'dh_drive_custom';        // '1' = المعلم اختار حساباً لـDrive غير حساب الواجبات عمداً
 const LS_STUDENTS = 'dh_drive_last_students'; // عدد طلاب آخر نسخة ناجحة (للعرض)
 const LS_COUNT = 'dh_drive_count';          // آخر عدد معروف للنسخ على Drive (للعرض بلا اتصال)
-const AUTO_EVERY_MS = 24 * 3600 * 1000;
+const LS_FREQ = 'dh_drive_freq';            // تكرار النسخ التلقائي: daily | weekly | monthly
+const FREQ_MS = { daily: 24 * 3600 * 1000, weekly: 7 * 24 * 3600 * 1000, monthly: 30 * 24 * 3600 * 1000 };
 const NAME_PREFIX = 'dh-backup-';
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
@@ -52,6 +53,13 @@ export class DriveError extends Error {
 export function isDriveEnabled() { return lsGet(LS_ENABLED) === '1'; }
 export function isDriveAuto() { return lsGet(LS_AUTO) === '1'; }
 export function setDriveAuto(on) { lsSet(LS_AUTO, on ? '1' : '0'); }
+export function getDriveAutoFreq() { const v = lsGet(LS_FREQ); return FREQ_MS[v] ? v : 'daily'; }
+export function setDriveAutoFreq(v) { lsSet(LS_FREQ, FREQ_MS[v] ? v : 'daily'); }
+/** أيام التأخر قبل التنبيه: 7 افتراضياً، وأوسع مع الأسبوعي/الشهري كي لا يُنبَّه المعلم خطأً. */
+export function getDriveWarnAfterDays() {
+    if (!isDriveEnabled() || !isDriveAuto()) return 7;
+    return Math.max(7, Math.round(FREQ_MS[getDriveAutoFreq()] / 86400000) + 3);
+}
 export function getDriveLastOk() { return lsGet(LS_LAST_OK); }
 export function driveNeedsReconnect() { return lsGet(LS_NEEDS_RECONNECT) === '1'; }
 export function getDriveAccountEmail() { return lsGet(LS_EMAIL) || null; }
@@ -304,12 +312,12 @@ export function disconnectDrive() {
     try { if (token && window.google && window.google.accounts && window.google.accounts.oauth2) window.google.accounts.oauth2.revoke(token, () => {}); } catch (e) { /* لا شيء */ }
 }
 
-/** تلقائي: مرة كل 24 ساعة عند فتح المنصة لمن فعّله. صامت ولا يُزعج؛ فشل الإذن الصامت يُسجَّل «يحتاج إعادة ربط». */
+/** تلقائي: بالتكرار المختار (يومي افتراضياً) عند فتح المنصة لمن فعّله. صامت ولا يُزعج؛ فشل الإذن الصامت يُسجَّل «يحتاج إعادة ربط». */
 export function maybeAutoDriveBackup() {
     try {
         if (!isDriveEnabled() || !isDriveAuto() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
         const last = Date.parse(getDriveLastOk() || '') || 0;
-        if (Date.now() - last < AUTO_EVERY_MS) return;
+        if (Date.now() - last < FREQ_MS[getDriveAutoFreq()]) return;
         setTimeout(() => { runDriveBackup({ interactive: false }).catch(() => {}); }, 20000);
     } catch (e) { /* لا شيء */ }
 }

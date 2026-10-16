@@ -112,7 +112,15 @@
             </div>
             <label class="ac-switch" id="acct-drive-auto-row" style="display:none;">
                 <input type="checkbox" id="acct-drive-auto">
-                <span data-i18n="drive_auto_label">نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span>
+                <span data-i18n="drive_auto_label">نسخ تلقائي عند فتح المنصة</span>
+            </label>
+            <label class="ac-switch" id="acct-drive-freq-row" style="display:none;">
+                <span data-i18n="drive_freq_label">تكرار النسخ التلقائي</span>
+                <select id="acct-drive-freq">
+                    <option value="daily" data-i18n="drive_freq_daily">كل يوم</option>
+                    <option value="weekly" data-i18n="drive_freq_weekly">كل أسبوع</option>
+                    <option value="monthly" data-i18n="drive_freq_monthly">كل شهر</option>
+                </select>
             </label>
             <div class="ac-acts">
                 <button type="button" class="ac-btn" id="acct-drive-backup-btn" data-i18n="drive_connect_btn">☁️ ربط Google Drive وأخذ نسخة</button>
