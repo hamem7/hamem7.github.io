@@ -1,7 +1,7 @@
 // components/accountScreen.js
 // ☁️ [جديد 2026-10-16] منطق شاشة «حسابي والنسخ الاحتياطي» (components/account-screen.html، المعاينة «أ»):
 // سلامة البيانات (engine/backupHealth.js) + Google Drive (core/driveBackup.js) + نسخة الجهاز (core/backupRestore.js)
-// + مزامنة الأجهزة وحساب الواجبات. لا شيء هنا يلمس بيانات الطلاب مباشرة؛ كل الاستعادات تمرّ بـrestoreFromBackupFile (لقطة أمان قبلها).
+// + حساب الواجبات (مزامنة الأجهزة أُخفيت من الواجهة 2026-10-16 — راجع core/cloudSync.js). لا شيء هنا يلمس بيانات الطلاب مباشرة؛ كل الاستعادات تمرّ بـrestoreFromBackupFile (لقطة أمان قبلها).
 
 import { AppState, loadSplashScreen } from '../core/app.js';
 import { t } from '../core/i18n.js';
@@ -257,14 +257,6 @@ export async function initAccountScreen() {
         $('acct-hw-change-btn').textContent = authed ? t('acct_change_btn') : t('acct_signin_btn');
         $('acct-hw-signout-btn').style.display = authed ? '' : 'none';
     }
-    async function renderSync() {
-        const el = $('acct-sync-info');
-        try {
-            const { getSyncStatus } = await import('../core/cloudSync.js');
-            const st = getSyncStatus();
-            el.textContent = st.lastAt ? `${t('sync_last_prefix')}${fmtDateTime(st.lastAt)}` : t('sync_never');
-        } catch (e) { el.textContent = t('sync_never'); }
-    }
     $('acct-hw-change-btn').addEventListener('click', async () => {
         const { changeTeacherAccount } = await import('./teacherAccount.js');
         await changeTeacherAccount();
@@ -275,32 +267,9 @@ export async function initAccountScreen() {
         signOutTeacher();
         refresh();
     });
-    $('acct-sync-btn').addEventListener('click', async () => {
-        const btn = $('acct-sync-btn');
-        btn.disabled = true;
-        $('acct-sync-info').textContent = t('sync_syncing');
-        try {
-            const { syncNow } = await import('../core/cloudSync.js');
-            const r = await syncNow({ signIn: true });
-            let msg;
-            if (r.skipped === 'cancelled') msg = t('sync_cancelled');
-            else if (r.conflicts) msg = t('sync_conflict');
-            else if (r.errors && r.errors.length && !r.code) msg = t('sync_partial').replace('{errors}', r.errors.slice(0, 3).join(' | '));
-            else if (!r.ok) msg = t('sync_error');
-            else msg = t('sync_done') + '\n' + t('sync_done_detail')
-                .replace('{students}', r.newStudents).replace('{history}', r.historyAdded)
-                .replace('{events}', r.eventsAdded).replace('{pushed}', r.partsPushed);
-            alert(msg);
-            if (r.newStudents || r.historyAdded || r.eventsAdded) setTimeout(() => location.reload(), 300);
-        } catch (e) {
-            console.error('تعذرت المزامنة:', e);
-            alert(t('sync_error'));
-        } finally { btn.disabled = false; refresh(); }
-    });
-
     function refresh() {
         if (!$('acct-screen')) return;   // خرج المعلم من الشاشة أثناء عملية طويلة
-        renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw(); renderSync();
+        renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw();
     }
     refresh();
 }

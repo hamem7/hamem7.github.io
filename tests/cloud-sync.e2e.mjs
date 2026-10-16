@@ -88,10 +88,10 @@ const T0 = Date.UTC(2026, 9, 5);
 try {
   console.log('=== جهاز A: بيانات أولية ثم أول مزامنة ===');
   const A = await newDevice('A');
-  // بعد 2026-10-16 زر المزامنة في شاشة «حسابي والنسخ الاحتياطي» (قسم مطوي) لا في نافذة الملف الشخصي
+  // بعد 2026-10-16 المزامنة مخفية من الواجهة (الشيفرة باقية وتُختبر مباشرة أدناه عبر core/cloudSync.js)
   await A.evaluate(async () => { const m = await import('/core/app.js'); m.openAccountScreen(); });
-  await A.waitForSelector('#acct-sync-btn', { state: 'attached', timeout: 15000 });
-  check('0 زر المزامنة موجود في شاشة حسابي برسالة «لم تُجرَ مزامنة»', await A.evaluate(() => !!document.getElementById('acct-sync-btn') && !!document.getElementById('acct-sync-info')));
+  await A.waitForSelector('#acct-screen', { state: 'attached', timeout: 15000 });
+  check('0 لا زر مزامنة في شاشة حسابي (أُخفيت من الواجهة)', await A.evaluate(() => !document.getElementById('acct-sync-btn') && !document.getElementById('acct-sync-info')));
   await signIn(A);
   const ahmadA = await addStudent(A, 'أحمد', [H('S1', T0), H('S2', T0 + 1000)], [E('S1', 'q1', T0), E('S1', 'q2', T0), E('S2', 'q1', T0 + 1000)]);
   await addStudent(A, 'سارة', [H('S3', T0 + 2000)], [E('S3', 'q1', T0 + 2000)]);

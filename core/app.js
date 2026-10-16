@@ -445,7 +445,9 @@ async function bootSystem() {
         checkForUpdates();
 
         // 🌟 [جديد 2026-10-13] مزامنة سجل الطلاب بين الأجهزة: صامتة، مرة كل 12 ساعة، ولمن فعّلها بنفسه فقط (بعد أول مزامنة ناجحة)
-        import('./cloudSync.js').then(m => m.maybeAutoSync()).catch(() => {});
+        // ⏸️ [2026-10-16] المزامنة التلقائية موقوفة (بقرار صاحب المنصة: النسخ على Google Drive يغني عنها). الشيفرة باقية بلا استدعاء —
+        // لإعادتها: أعد السطر التالي وقسم المزامنة في components/account-screen.html. راجع تعليق رأس core/cloudSync.js.
+        // import('./cloudSync.js').then(m => m.maybeAutoSync()).catch(() => {});
 
         // ☁️ [جديد 2026-10-16] نسخ احتياطي تلقائي على Google Drive لمن فعّله (مرة كل 24 ساعة، صامت)
         import('./driveBackup.js').then(m => m.maybeAutoDriveBackup()).catch(() => {});
