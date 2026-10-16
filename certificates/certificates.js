@@ -245,6 +245,20 @@ function ensureStyles() {
         .cc-btn { max-width: none; }
         .cc-head h2 { font-size: 1.05rem; }
     }
+    /* الهاتف: كانت الترويسة (~230px) + المعاينة (~270px) + شريط الأزرار (~110px) تأكل ~600 من 740px فلا يبقى للحقول إلا شريط ضيق.
+       نضغطها: العنوان وزر الإغلاق في صف واحد، التبويبات صف أنحف، المعاينة بنصف العرض تقريباً، والأزرار أصغر */
+    @media (max-width: 600px) {
+        .cc-head { gap: 6px 8px; padding: 6px 12px; }
+        .cc-head h2 { flex: 1 1 auto; min-width: 0; }
+        .cc-x { order: 2; width: 32px; height: 32px; font-size: 1rem; }
+        .cc-tabs { order: 3; flex: 1 0 100%; margin-inline-start: 0; flex-wrap: nowrap; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+        .cc-tabs::-webkit-scrollbar { display: none; }
+        .cc-tab { flex: none; padding: 5px 11px; font-size: .8rem; white-space: nowrap; }
+        .cc-preview { padding-bottom: 4px; }
+        .cc-stage { width: 62%; margin: 0 auto; }
+        .cc-actionbar { padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px)); gap: 6px; }
+        .cc-btn { flex: 1 1 calc(50% - 6px); padding: 8px 6px; font-size: .86rem; border-radius: 10px; }
+    }
     @media (prefers-reduced-motion: reduce) { .cc-overlay * { transition: none !important; } }
     `;
     document.head.appendChild(style);
