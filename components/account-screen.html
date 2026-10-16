@@ -1,0 +1,162 @@
+<!-- components/account-screen.html -->
+<!-- ☁️ [جديد 2026-10-16 — بطلب صاحب المنصة، المعاينة «أ» المعتمدة: previews/account-a-status-first.html] شاشة «حسابي والنسخ الاحتياطي»:
+     ملخص المعلم ← بطاقة «سلامة البيانات» (محمية / تحتاج نسخة / لا توجد نسخة) ← Google Drive ← على جهازي ← مطوي: مزامنة الأجهزة وحساب الواجبات.
+     المنطق كله في components/accountScreen.js (تُحمَّل عند الفتح)، والنصوص من مفاتيح acct_*/drive_*/profile_backup_* في core/i18n.js. -->
+<style>
+    #app-root #acct-screen { max-width: 760px; text-align: start; padding: 22px 16px 40px !important; display: flex; flex-direction: column; gap: 14px; color: #10241c; }
+    #app-root #acct-screen .ac-head { display: flex; align-items: center; gap: 10px; }
+    #app-root #acct-screen .ac-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    #app-root #acct-screen .ac-back:hover { background: #eaf4ef; }
+    #app-root #acct-screen .ac-back:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
+    [dir="ltr"] #acct-screen .ac-back svg, html[lang="en"] #acct-screen .ac-back svg { transform: scaleX(-1); }
+    #app-root #acct-screen .ac-title { margin: 0 !important; font-size: 1.7rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; line-height: 1.3; }
+    #app-root #acct-screen .ac-sub { margin: 2px 0 0; font-size: .92rem; color: #4a6058; }
+    #app-root #acct-screen .ac-card { background: #fff; border: 1px solid #e3ebe6; border-radius: 16px; padding: 18px; box-shadow: 0 6px 24px rgba(6,35,28,.08); }
+    #app-root #acct-screen .ac-card h3 { margin: 0 0 10px !important; font-size: 1.05rem !important; font-weight: 700 !important; color: #10241c !important; text-shadow: none !important; }
+    #app-root #acct-screen .ac-muted { color: #4a6058; font-size: .88rem; margin: 0; white-space: pre-line; }
+    #app-root #acct-screen .ac-prof { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    #app-root #acct-screen .ac-photo { width: 60px; height: 60px; border-radius: 50%; background: #e7f4ee; display: grid; place-items: center; font-size: 1.6rem; border: 2px solid #d4af37; overflow: hidden; flex-shrink: 0; }
+    #app-root #acct-screen .ac-photo img { width: 100%; height: 100%; object-fit: cover; }
+    #app-root #acct-screen .ac-prof-text { flex: 1; min-width: 160px; }
+    #app-root #acct-screen .ac-prof-text b { font-size: 1.1rem; display: block; }
+    /* بطاقة الحالة */
+    #app-root #acct-screen .ac-status { border-radius: 16px; padding: 16px 18px; border: 1px solid; display: flex; gap: 14px; align-items: flex-start; }
+    #app-root #acct-screen .ac-status-ic { font-size: 1.8rem; line-height: 1; }
+    #app-root #acct-screen .ac-status-body { flex: 1; }
+    #app-root #acct-screen .ac-status h3 { margin: 0 0 2px !important; font-size: 1.1rem !important; color: inherit !important; }
+    #app-root #acct-screen .ac-status ul { list-style: none; margin: 6px 0 0; padding: 0; font-size: .88rem; }
+    #app-root #acct-screen .ac-status li { padding: 1px 0; color: inherit; }
+    #app-root #acct-screen .ac-status[data-level="ok"] { background: #f3faf6; border-color: #b8dfcd; color: #0a3d2f; }
+    #app-root #acct-screen .ac-status[data-level="warn"] { background: #fffbeb; border-color: #f3d28a; color: #b45309; }
+    #app-root #acct-screen .ac-status[data-level="bad"] { background: #fef2f2; border-color: #f5b4b4; color: #991b1b; }
+    #app-root #acct-screen .ac-btn { background: #0d5c46; color: #fff; border: 0; border-radius: 12px; padding: 9px 18px; font: inherit; font-weight: 700; font-size: .92rem; cursor: pointer; }
+    #app-root #acct-screen .ac-btn:hover { background: #0a3d2f; }
+    #app-root #acct-screen .ac-btn:disabled { opacity: .55; cursor: wait; }
+    #app-root #acct-screen .ac-btn.sec { background: #e7f4ee; color: #0d5c46; }
+    #app-root #acct-screen .ac-btn.ghost { background: #fff; color: #10241c; border: 1px solid #e3ebe6; }
+    #app-root #acct-screen .ac-btn.link { background: none; color: #4a6058; text-decoration: underline; font-weight: 600; padding: 6px 4px; }
+    #app-root #acct-screen .ac-acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    #app-root #acct-screen .ac-kv { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 1px dashed #e3ebe6; font-size: .92rem; }
+    #app-root #acct-screen .ac-kv:last-of-type { border-bottom: 0; }
+    #app-root #acct-screen .ac-kv .ac-v { font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    #app-root #acct-screen .ac-chip { border-radius: 99px; padding: 1px 10px; font-size: .76rem; font-weight: 700; background: #e7f4ee; color: #0d5c46; }
+    #app-root #acct-screen .ac-chip.off { background: #eef0ef; color: #4a6058; }
+    #app-root #acct-screen .ac-warnbox { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #fffbeb; border: 1px solid #f3d28a; color: #b45309; font-size: .88rem; }
+    #app-root #acct-screen .ac-warnbox .ac-acts { margin-top: 8px; }
+    #app-root #acct-screen .ac-switch { display: flex; gap: 10px; align-items: center; padding: 10px 0; cursor: pointer; }
+    #app-root #acct-screen .ac-switch input { width: 20px; height: 20px; accent-color: #0d5c46; }
+    #app-root #acct-screen .ac-picker select { width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #e3ebe6; font: inherit; }
+    #app-root #acct-screen details.ac-fold { background: #fff; border: 1px solid #e3ebe6; border-radius: 16px; box-shadow: 0 6px 24px rgba(6,35,28,.08); }
+    #app-root #acct-screen details.ac-fold summary { padding: 14px 18px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    #app-root #acct-screen details.ac-fold summary::-webkit-details-marker { display: none; }
+    #app-root #acct-screen details.ac-fold summary::after { content: "▾"; color: #4a6058; }
+    #app-root #acct-screen details.ac-fold[open] summary::after { content: "▴"; }
+    #app-root #acct-screen details.ac-fold .ac-in { padding: 0 18px 16px; border-top: 1px solid #e3ebe6; }
+    @media (max-width: 560px) {
+        #app-root #acct-screen .ac-acts .ac-btn { flex: 1 1 100%; text-align: center; }
+        #app-root #acct-screen .ac-kv { flex-direction: column; align-items: flex-start; gap: 4px; }
+        #app-root #acct-screen .ac-title { font-size: 1.4rem !important; }
+    }
+</style>
+<div class="screen active">
+    <div class="login-container" id="acct-screen">
+        <div class="ac-head">
+            <button type="button" class="ac-back" id="btn-back-account">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <div>
+                <h1 class="ac-title" data-i18n="acct_page_title">حسابي</h1>
+                <p class="ac-sub" data-i18n="acct_page_sub">بياناتك ونسخك الاحتياطية في مكان واحد</p>
+            </div>
+        </div>
+
+        <!-- الملخص -->
+        <section class="ac-card">
+            <div class="ac-prof">
+                <div class="ac-photo" id="acct-photo">👤</div>
+                <div class="ac-prof-text">
+                    <b id="acct-name"></b>
+                    <div class="ac-muted" id="acct-email"></div>
+                </div>
+                <button type="button" class="ac-btn ghost" id="acct-edit-btn" data-i18n="acct_page_edit_btn">✏️ تعديل بياناتي</button>
+            </div>
+        </section>
+
+        <!-- سلامة البيانات (نصها ديناميكي بلا data-i18n: يُحدَّث من accountScreen.js) -->
+        <section class="ac-status" id="acct-status" data-level="bad">
+            <div class="ac-status-ic" id="acct-status-ic">🚨</div>
+            <div class="ac-status-body">
+                <h3 id="acct-status-title"></h3>
+                <ul id="acct-status-lines"></ul>
+                <div class="ac-acts" id="acct-status-cta-row" style="display:none;">
+                    <button type="button" class="ac-btn" id="acct-status-cta"></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Google Drive -->
+        <section class="ac-card" id="acct-drive-card">
+            <h3 data-i18n="drive_section_title">☁️ نسخة احتياطية على Google Drive</h3>
+            <p class="ac-muted" id="acct-drive-info"></p>
+            <div id="acct-drive-rows" style="display:none;">
+                <div class="ac-kv"><span data-i18n="acct_drive_account">الحساب المرتبط</span><span class="ac-v"><span id="acct-drive-email"></span> <button type="button" class="ac-btn link" id="acct-drive-change" data-i18n="acct_drive_change_btn">تغيير الحساب</button></span></div>
+                <div class="ac-kv"><span data-i18n="acct_drive_last">آخر نسخة</span><span class="ac-v" id="acct-drive-last"></span></div>
+                <div class="ac-kv"><span data-i18n="acct_drive_count">عدد النسخ المحفوظة</span><span class="ac-v" id="acct-drive-count"></span></div>
+            </div>
+            <div class="ac-warnbox" id="acct-drive-mismatch" style="display:none;">
+                <span id="acct-drive-mismatch-text"></span>
+                <div class="ac-acts">
+                    <button type="button" class="ac-btn sec" id="acct-drive-mismatch-keep" data-i18n="acct_mismatch_keep">اعتمد هذا الحساب لـDrive</button>
+                    <button type="button" class="ac-btn ghost" id="acct-drive-mismatch-retry" data-i18n="acct_mismatch_retry">استخدم حساب الواجبات</button>
+                </div>
+            </div>
+            <label class="ac-switch" id="acct-drive-auto-row" style="display:none;">
+                <input type="checkbox" id="acct-drive-auto">
+                <span data-i18n="drive_auto_label">نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span>
+            </label>
+            <div class="ac-acts">
+                <button type="button" class="ac-btn" id="acct-drive-backup-btn" data-i18n="drive_connect_btn">☁️ ربط Google Drive وأخذ نسخة</button>
+                <button type="button" class="ac-btn sec" id="acct-drive-restore-btn" data-i18n="drive_restore_btn">⬇️ استرجاع من Drive</button>
+                <button type="button" class="ac-btn link" id="acct-drive-disconnect" style="display:none;" data-i18n="drive_disconnect_btn">فصل Google Drive</button>
+            </div>
+            <div class="ac-picker" id="acct-drive-picker" style="display:none; margin-top:10px;">
+                <select id="acct-drive-select"></select>
+                <div class="ac-acts">
+                    <button type="button" class="ac-btn" id="acct-drive-pick-go" data-i18n="drive_pick_go">استرجع هذه النسخة</button>
+                    <button type="button" class="ac-btn ghost" id="acct-drive-pick-cancel" data-i18n="drive_pick_cancel">إلغاء</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- على جهازي -->
+        <section class="ac-card" id="acct-local-card">
+            <h3 data-i18n="acct_local_title">💾 على جهازي</h3>
+            <p class="ac-muted" data-i18n="acct_local_desc">ملف تحفظه أنت في أي مكان تريده (غير قرص C مثلاً).</p>
+            <p class="ac-muted" id="acct-local-last" style="margin-top:6px;"></p>
+            <div class="ac-acts">
+                <button type="button" class="ac-btn" id="acct-local-backup-btn" data-i18n="profile_backup_download_btn">⬇️ نسخة احتياطية الآن</button>
+                <button type="button" class="ac-btn sec" id="acct-local-restore-btn" data-i18n="profile_backup_restore_btn">⬆️ استرجاع نسخة احتياطية</button>
+            </div>
+            <input type="file" id="acct-local-restore-input" accept="application/json,.json" hidden>
+            <div class="ac-acts">
+                <button type="button" class="ac-btn ghost" id="acct-local-undo-btn" style="display:none;"></button>
+            </div>
+        </section>
+
+        <!-- مطوي: المزامنة وحساب الواجبات -->
+        <details class="ac-fold">
+            <summary data-i18n="acct_more_title">🔄 مزامنة الأجهزة وحساب الواجبات</summary>
+            <div class="ac-in">
+                <div class="ac-kv"><span data-i18n="acct_hw_account">حساب Google للواجبات</span><span class="ac-v" id="acct-hw-email"></span></div>
+                <div class="ac-acts">
+                    <button type="button" class="ac-btn ghost" id="acct-hw-change-btn" data-i18n="acct_change_btn">🔁 تغيير الإيميل</button>
+                    <button type="button" class="ac-btn ghost" id="acct-hw-signout-btn" data-i18n="acct_signout_btn">🚪 تسجيل الخروج</button>
+                </div>
+                <div class="ac-kv" style="margin-top:8px;"><span data-i18n="sync_section_title">☁️ مزامنة سجل الطلاب بين أجهزتك</span><span class="ac-v" id="acct-sync-info"></span></div>
+                <div class="ac-acts">
+                    <button type="button" class="ac-btn sec" id="acct-sync-btn" data-i18n="sync_btn">🔄 زامن الآن</button>
+                </div>
+            </div>
+        </details>
+    </div>
+</div>

@@ -8,13 +8,30 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.30';
+export const APP_VERSION = '1.0.31';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-16] شاشة «حسابي والنسخ الاحتياطي»
+    {
+        version: '1.0.31',
+        date: '2026-10-16',
+        items: [
+            {
+                type: 'new',
+                ar: 'شاشة جديدة «حسابي والنسخ الاحتياطي» تجمع كل شيء في مكان واحد: بطاقة «سلامة بياناتك» (محمية / تحتاج نسخة / لا توجد نسخة)، ونسخ Google Drive، ونسخة الجهاز والاستعادة الآمنة والتراجع، ومزامنة الأجهزة وحساب الواجبات. تفتحها من زر «حسابي والنسخ» في الرئيسية أو أيقونة الحساب في الترويسة أو لوحة «المزيد»، وتظهر نقطة تنبيه حين تحتاج بياناتك نسخة جديدة.',
+                en: 'New "My account & backup" screen with everything in one place: a data-safety card (protected / needs a backup / no backup), Google Drive backup, device backup with safe restore and undo, and device sync & homework account. Open it from the "Account & backup" button on the home screen, the account icon in the header, or the "More" panel; a dot appears when your data needs a fresh backup.'
+            },
+            {
+                type: 'improved',
+                ar: 'حساب Google واحد: عند ربط Drive تُقترح عليك Google حساب الواجبات نفسه، ويمكنك تغيير حساب Drive عند الحاجة (نسخك القديمة تبقى في الحساب السابق).',
+                en: 'One Google account: when you connect Drive, Google is asked to use your homework account; you can change the Drive account if needed (your old backups stay in the previous account).'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-16] النسخ الاحتياطي على Google Drive (تجريبي)
     {
         version: '1.0.30',

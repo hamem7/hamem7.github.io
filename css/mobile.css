@@ -52,6 +52,7 @@
     #main-header #lang-toggle-btn,
     #main-header .header-home-btn { padding: 6px 12px; font-size: .82rem; min-height: 36px; line-height: 1.2; }
     #main-header .header-home-btn { padding: 6px 10px; }
+    #main-header .header-account-btn { width: 36px; height: 36px; font-size: .9rem; }
 
     /* ===== 2) هيكل الشاشات ===== */
     /* ظهور الشاشة أسرع (0.5ث → 0.2ث) فلا تُشعر الإزاحة الصغيرة بقفزة عند كل تنقّل. ⚠️ نغيّر المدة فقط لا اسم الحركة: تغيير الاسم

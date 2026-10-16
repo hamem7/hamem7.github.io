@@ -144,6 +144,7 @@
             <p style="text-align:right; color:var(--dh-ink); line-height:1.6; margin-bottom:6px;" data-i18n="backup_reminder_body">مرّ شهر منذ آخر مرة أخذت فيها نسخة احتياطية من بيانات طلابك. يُفضَّل تنزيل نسخة جديدة الآن والاحتفاظ بها على جهازك للطوارئ.</p>
             <div class="whats-new-modal-actions dh-backup-reminder-actions">
                 <button type="button" class="btn" id="backup-reminder-download-btn" data-i18n="backup_reminder_download_btn">⬇️ نزّل النسخة الآن</button>
+                <button type="button" class="btn btn-outline" id="backup-reminder-open-btn" data-i18n="backup_reminder_open_btn">☁️ افتح حسابي والنسخ</button>
                 <button type="button" class="btn btn-outline" id="backup-reminder-later-btn" data-i18n="backup_reminder_later_btn">لاحقاً</button>
             </div>
         </div>
@@ -174,6 +175,10 @@
                     <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span data-i18n="header_home_btn">الرئيسية</span>
+            </button>
+            <!-- ☁️ [جديد 2026-10-16] «حسابي والنسخ الاحتياطي»: components/accountEntry.js يملأ الصورة/الحرف ونقطة التنبيه ويفتح الشاشة. بلا data-i18n على الأبناء (يُرسم من JS) -->
+            <button id="header-account-btn" class="header-account-btn" type="button" data-i18n-title="acct_entry_title" title="حسابي والنسخ الاحتياطي" aria-label="حسابي والنسخ الاحتياطي" style="display:none;">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" hidden></span>
             </button>
             <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
         </div>

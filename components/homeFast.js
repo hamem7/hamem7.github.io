@@ -18,7 +18,7 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, openAccountScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
@@ -29,7 +29,7 @@ const LOGIN_SCREEN = 'student/login.html';
 // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] أُضيفت شاشتا تصفّح المتشابهات والتجويد (ألعاب) ليبقى الشريط متاحاً فيهما؛ شاشات اللعب الفعلي تبقى بلا شريط
 const SIM_SCREEN = 'similarities/similarities-home.html';
 const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
-const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
+const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'components/account-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
 const HW_NEW_KEY = 'dh_hw_new_count';
 
@@ -67,7 +67,7 @@ const NEW_KEYS = {
         sheet_reports: 'تقارير الشهر',
         sheet_all_students: 'سجل الطلاب العام',
         sheet_memo_bulk: 'الحفظ الشهري',
-        sheet_profile: 'بياناتي والنسخ الاحتياطي',
+        sheet_profile: 'حسابي والنسخ الاحتياطي',
         sheet_privacy: 'سياسة الخصوصية',
         sheet_contact: 'تواصل معنا',
         home_sec_games: 'الألعاب والأركان',
@@ -124,7 +124,7 @@ const NEW_KEYS = {
         sheet_reports: 'Monthly reports',
         sheet_all_students: 'All students record',
         sheet_memo_bulk: 'Monthly memorization',
-        sheet_profile: 'My profile & backup',
+        sheet_profile: 'My account & backup',
         sheet_privacy: 'Privacy policy',
         sheet_contact: 'Contact us',
         home_sec_games: 'Games & corners',
@@ -396,10 +396,6 @@ const ITEMS = [
 // 🌟 اللوحتان السفليتان (Bottom Sheets): عنصر واحد يُعاد ملؤه. لا تخزين ولا حالة؛ كل عنصر يستدعي دالة موجودة أصلاً.
 function openReportsHub() { return import('../components/monthlyReportsHub.js').then(m => m.openMonthlyReportsHub()).catch(err => console.error('تعذر فتح مركز التقارير الشهرية:', err)); }
 function openMemoBulk() { return import('../components/monthlyMemorizationBulkScreen.js').then(m => m.openMonthlyMemorizationBulkScreen()).catch(err => console.error('تعذر فتح شاشة الحفظ الشهري:', err)); }
-async function openProfile() {
-    if (document.body.dataset.dhScreen !== HOME_SCREEN) await goHome();
-    document.getElementById('teacher-profile-edit-btn')?.click();
-}
 function sheetItems(kind) {
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
@@ -410,7 +406,7 @@ function sheetItems(kind) {
         { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },
         { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
         { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
-        { key: 'sheet_profile', icon: IC.profile, run: openProfile },
+        { key: 'sheet_profile', icon: IC.profile, run: () => openAccountScreen() },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
         { key: 'sheet_privacy', icon: IC.privacy, run: openPrivacyScreen },
         { key: 'sheet_contact', icon: IC.contact, href: 'https://wa.me/201027814948' }

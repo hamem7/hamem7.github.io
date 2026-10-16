@@ -17,6 +17,7 @@
 
 import { buildBackupPayload } from './backupRestore.js';
 import { selectBackupsToDelete } from '../engine/backupRetention.js';
+import { getTeacherEmail } from './api.js';
 
 // ⚠️ مشروع تجريبي (ham-backup-test): شاشة الموافقة بوضع Testing فلا يعمل الربط إلا لمستخدمي التجربة المضافين.
 // لا يُنشر للمعلمين قبل نشر شاشة الموافقة (Production) وتبديل هذا المعرّف إن لزم. ليس سرّاً (علني بطبيعته).
@@ -32,6 +33,10 @@ const LS_ENABLED = 'dh_drive_enabled';
 const LS_AUTO = 'dh_drive_auto';
 const LS_LAST_OK = 'dh_drive_last_ok';
 const LS_NEEDS_RECONNECT = 'dh_drive_needs_reconnect';
+const LS_EMAIL = 'dh_drive_email';          // بريد حساب Drive المرتبط (للعرض ولاقتراح الحساب عند إعادة الربط)
+const LS_CUSTOM = 'dh_drive_custom';        // '1' = المعلم اختار حساباً لـDrive غير حساب الواجبات عمداً
+const LS_STUDENTS = 'dh_drive_last_students'; // عدد طلاب آخر نسخة ناجحة (للعرض)
+const LS_COUNT = 'dh_drive_count';          // آخر عدد معروف للنسخ على Drive (للعرض بلا اتصال)
 const AUTO_EVERY_MS = 24 * 3600 * 1000;
 const NAME_PREFIX = 'dh-backup-';
 
@@ -49,6 +54,24 @@ export function isDriveAuto() { return lsGet(LS_AUTO) === '1'; }
 export function setDriveAuto(on) { lsSet(LS_AUTO, on ? '1' : '0'); }
 export function getDriveLastOk() { return lsGet(LS_LAST_OK); }
 export function driveNeedsReconnect() { return lsGet(LS_NEEDS_RECONNECT) === '1'; }
+export function getDriveAccountEmail() { return lsGet(LS_EMAIL) || null; }
+export function getDriveLastStudents() { const n = parseInt(lsGet(LS_STUDENTS) || '', 10); return Number.isFinite(n) ? n : null; }
+export function getDriveBackupCount() { const n = parseInt(lsGet(LS_COUNT) || '', 10); return Number.isFinite(n) ? n : null; }
+export function isDriveCustomAccount() { return lsGet(LS_CUSTOM) === '1'; }
+export function setDriveCustomAccount(on) { if (on) lsSet(LS_CUSTOM, '1'); else lsDel(LS_CUSTOM); }
+
+const sameMail = (a, b) => !!a && !!b && String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+/** البريد المقترح لنافذة Google: حساب الواجبات افتراضياً (حساب واحد)، أو حساب Drive المختار عمداً. */
+function preferredHint() {
+    if (isDriveCustomAccount()) return getDriveAccountEmail() || undefined;
+    return getTeacherEmail() || getDriveAccountEmail() || undefined;
+}
+/** true لو حساب Drive غير حساب الواجبات والمعلم لم يختر ذلك عمداً (لتحذيره في الصفحة). */
+export function driveAccountMismatch() {
+    if (isDriveCustomAccount()) return false;
+    const hw = getTeacherEmail(), dr = getDriveAccountEmail();
+    return !!hw && !!dr && !sameMail(hw, dr);
+}
 
 // ---------- رمز الدخول (ذاكرة فقط) ----------
 let tokenState = null;   // { token, exp }
@@ -66,14 +89,16 @@ function waitForGis(timeoutMs = 8000) {
 }
 
 /** يطلب رمزاً. interactive=false: بلا نافذة اختيار حساب (تنجح فقط إن سبق للمعلم الموافقة وجوجل تسمح بنافذة صامتة). */
-async function getToken({ interactive }) {
-    if (tokenState && tokenState.exp > Date.now() + 60000) return tokenState.token;
+async function getToken({ interactive, selectAccount = false, loginHint }) {
+    if (!selectAccount && tokenState && tokenState.exp > Date.now() + 60000) return tokenState.token;
     const oauth2 = await waitForGis();
-    return new Promise((resolve, reject) => {
+    const hint = loginHint || (selectAccount ? undefined : preferredHint());
+    const token = await new Promise((resolve, reject) => {
         tokenClient = oauth2.initTokenClient({
             client_id: DRIVE_CLIENT_ID,
             scope: SCOPE,
-            prompt: interactive ? '' : 'none',
+            prompt: interactive ? (selectAccount ? 'select_account' : '') : 'none',
+            ...(hint ? { login_hint: hint } : {}),
             callback: (resp) => {
                 if (!resp || resp.error) return reject(new DriveError(resp && resp.error === 'access_denied' ? 'ACCESS_DENIED' : 'AUTH_REQUIRED', resp && resp.error));
                 if (!oauth2.hasGrantedAllScopes(resp, SCOPE)) return reject(new DriveError('SCOPE_NOT_GRANTED'));
@@ -86,6 +111,21 @@ async function getToken({ interactive }) {
         });
         tokenClient.requestAccessToken();
     });
+    await refreshAccountEmail(token);
+    return token;
+}
+
+/** يقرأ بريد الحساب الذي حصلنا على رمزه (من Drive نفسه، بلا صلاحيات إضافية). فشله لا يوقف شيئاً. */
+async function refreshAccountEmail(token) {
+    try {
+        const res = await fetch(`${FILES_URL.replace('/files', '/about')}?fields=user(emailAddress)`, { headers: { Authorization: 'Bearer ' + token } });
+        if (!res.ok) return;
+        const mail = ((await res.json()).user || {}).emailAddress;
+        if (!mail) return;
+        const prev = getDriveAccountEmail();
+        if (prev && !sameMail(prev, mail)) { lsDel(LS_LAST_OK); lsDel(LS_COUNT); lsDel(LS_STUDENTS); }   // حساب جديد: آخر نسخة وعددها يخصان الحساب السابق
+        lsSet(LS_EMAIL, mail);
+    } catch (e) { /* نكمل بلا بريد */ }
 }
 
 // ---------- طبقة Drive REST ----------
@@ -198,6 +238,7 @@ export function runDriveBackup({ interactive = true } = {}) {
 
             lsSet(LS_ENABLED, '1');
             lsSet(LS_LAST_OK, new Date().toISOString());
+            lsSet(LS_STUDENTS, String(students));
             lsDel(LS_NEEDS_RECONNECT);
 
             let deleted = 0;
@@ -206,6 +247,7 @@ export function runDriveBackup({ interactive = true } = {}) {
                 for (const id of selectBackupsToDelete(all.map(f => ({ id: f.id, createdTime: f.createdTime })))) {
                     try { await deleteFile(token, id); deleted++; } catch (e) { console.warn('تعذر حذف نسخة قديمة:', e); }
                 }
+                lsSet(LS_COUNT, String(Math.max(0, all.length - deleted)));
             } catch (e) { console.warn('تعذر تطبيق سياسة الاحتفاظ (النسخة الجديدة سليمة):', e); }
 
             try { document.dispatchEvent(new CustomEvent('dh:drive-backup-done')); } catch (e) { /* لا شيء */ }
@@ -223,7 +265,27 @@ export function runDriveBackup({ interactive = true } = {}) {
 /** قائمة نسخ Drive للاستعادة (تفتح نافذة الإذن إن لزم لأنها بنقرة من المعلم). */
 export async function listBackupsForRestore() {
     const token = await getToken({ interactive: true });
-    return listDriveBackups(token);
+    const list = await listDriveBackups(token);
+    lsSet(LS_COUNT, String(list.length));
+    return list;
+}
+
+/**
+ * تغيير حساب Drive: يعرض Google قائمة الحسابات دائماً. النسخ القديمة تبقى في الحساب السابق، والجديدة تذهب للحساب المختار.
+ * بعد الاختيار: لو اختلف عن حساب الواجبات يُعدّ ذلك اختياراً مقصوداً (custom)، ولو طابقه يعود الوضع «حساب واحد».
+ * يرجع { ok, email? } أو { ok:false, code }.
+ */
+export async function changeDriveAccount({ useHomeworkAccount = false } = {}) {
+    try {
+        tokenState = null;
+        await getToken({ interactive: true, selectAccount: true, loginHint: useHomeworkAccount ? (getTeacherEmail() || undefined) : undefined });
+        const email = getDriveAccountEmail();
+        const hw = getTeacherEmail();
+        setDriveCustomAccount(!!email && !!hw && !sameMail(email, hw));
+        return { ok: true, email };
+    } catch (e) {
+        return { ok: false, code: e instanceof DriveError ? e.code : 'ERROR' };
+    }
 }
 
 /** تنزيل نسخة من Drive كملف File جاهز لـrestoreFromBackupFile / inspectBackupFile (JSON نصي بعد فك الضغط). */
@@ -237,7 +299,8 @@ export async function downloadBackupAsFile(id, name = 'drive-backup.json') {
 export function disconnectDrive() {
     const token = tokenState && tokenState.token;
     tokenState = null;
-    [LS_ENABLED, LS_AUTO, LS_NEEDS_RECONNECT].forEach(lsDel);
+    [LS_ENABLED, LS_AUTO, LS_NEEDS_RECONNECT, LS_CUSTOM, LS_COUNT, LS_STUDENTS].forEach(lsDel);   // البريد يبقى اقتراحاً لإعادة الربط
+    lsDel(LS_LAST_OK);
     try { if (token && window.google && window.google.accounts && window.google.accounts.oauth2) window.google.accounts.oauth2.revoke(token, () => {}); } catch (e) { /* لا شيء */ }
 }
 

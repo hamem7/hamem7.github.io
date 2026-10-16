@@ -143,6 +143,32 @@
     transform: translateY(-2px) scale(1.05);
 }
 
+/* ☁️ [جديد 2026-10-16] زر «حسابي والنسخ الاحتياطي» في الترويسة: دائرة صورة/حرف المعلم + نقطة تنبيه (برتقالية: تحتاج نسخة، حمراء: لا توجد) */
+.header-account-btn {
+    position: relative;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-grid; place-items: center;
+    background: #fffdf6;
+    color: var(--dh-emerald-900);
+    border: 2px solid var(--dh-gold-500);
+    cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 1rem;
+    overflow: visible;
+    transition: 0.25s ease;
+}
+.header-account-btn:hover { transform: translateY(-2px) scale(1.05); }
+.header-account-btn:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+.header-account-btn .ha-ic { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; overflow: hidden; }
+.header-account-btn .ha-ic img { width: 100%; height: 100%; object-fit: cover; }
+.header-account-btn .ha-dot { position: absolute; top: -3px; inset-inline-start: -3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--dh-emerald-900, #06231c); background: #f59e0b; }
+.header-account-btn .ha-dot[data-level="bad"] { background: #dc2626; }
+/* نقطة التنبيه داخل زر الرئيسية «حسابي والنسخ» (بجوار النص بدل الزاوية) */
+.ha-dot-inline { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; margin-inline-start: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
+.ha-dot-inline[data-level="bad"] { background: #dc2626; }
+.ha-dot-inline[hidden] { display: none; }
+
 @media (max-width: 768px) {
     /* 🌟 على الجوال: إخفاء نص "الرئيسية" والإبقاء على الأيقونة فقط لتوفير مساحة —
        نفس فكرة تصغير باقي عناصر الهيدر في نفس نطاق الاستجابة أسفل هذا الملف 🌟 */

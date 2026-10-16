@@ -226,6 +226,7 @@ export async function exportFullBackup() {
     URL.revokeObjectURL(url);
 
     localStorage.setItem(LAST_BACKUP_STORAGE_KEY, new Date().toISOString());
+    try { document.dispatchEvent(new CustomEvent('dh:local-backup-done')); } catch (e) { /* لا شيء */ }
 }
 
 // يُستخدم من نافذة ملف المعلم لعرض "آخر نسخة احتياطية: ..." — يرجع null لو لم تُؤخَذ أي

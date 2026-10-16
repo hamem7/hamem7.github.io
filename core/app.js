@@ -253,6 +253,7 @@ function renderBackupReminderModal(thisMonth) {
     const modal = document.getElementById('backup-reminder-modal');
     const downloadBtn = document.getElementById('backup-reminder-download-btn');
     const laterBtn = document.getElementById('backup-reminder-later-btn');
+    const openBtn = document.getElementById('backup-reminder-open-btn');
     if (!modal || !downloadBtn || !laterBtn) return;
 
     modal.style.display = 'flex';
@@ -274,6 +275,8 @@ function renderBackupReminderModal(thisMonth) {
         dismiss();
     }, { once: true });
 
+    // ☁️ يفتح شاشة «حسابي والنسخ الاحتياطي» (Drive + الجهاز + الاستعادة) بدل الاكتفاء بتنزيل ملف
+    openBtn?.addEventListener('click', () => { dismiss(); openAccountScreen(); }, { once: true });
     laterBtn.addEventListener('click', dismiss, { once: true });
     modal.addEventListener('click', (e) => { if (e.target === modal) dismiss(); }, { once: true });
 }
@@ -446,6 +449,9 @@ async function bootSystem() {
 
         // ☁️ [جديد 2026-10-16] نسخ احتياطي تلقائي على Google Drive لمن فعّله (مرة كل 24 ساعة، صامت)
         import('./driveBackup.js').then(m => m.maybeAutoDriveBackup()).catch(() => {});
+
+        // ☁️ أيقونة «حسابي» في الترويسة (صورة/حرف + نقطة تنبيه عند الحاجة لنسخة)
+        import('../components/accountEntry.js').then(m => m.initAccountEntry()).catch(() => {});
 
         // 🌟 [جديد] تذكير النسخة الاحتياطية الشهري — مؤجَّل لحين إغلاق شاشة "الجديد في هذا
         // التحديث" أعلاه إن ظهرت في نفس اللحظة (كلتاهما نافذة حاجبة كاملة الشاشة)، حتى لا
@@ -805,6 +811,20 @@ export function openPrivacyScreen() {
             backBtn?.setAttribute('title', t('ms_back'));
             backBtn?.addEventListener('click', loadSplashScreen);
         }
+    });
+}
+
+// ☁️ [جديد 2026-10-16] شاشة «حسابي والنسخ الاحتياطي» (components/account-screen.html + components/accountScreen.js): سلامة البيانات،
+// Google Drive، نسخة الجهاز، الاستعادة الآمنة، ومزامنة الأجهزة وحساب الواجبات. تُفتح من أيقونة الحساب في الترويسة ولوحة «المزيد» وتذكير النسخ.
+export function openAccountScreen() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return import('../components/accountScreen.js').then(module => loadScreen({
+        templateUrl: 'components/account-screen.html',
+        initFunction: () => module.initAccountScreen()
+    })).catch(err => {
+        console.error('تعذر تحميل شاشة حسابي:', err);
+        alert(t('جاري تجهيز شاشة حسابي 🛠️'));
     });
 }
 

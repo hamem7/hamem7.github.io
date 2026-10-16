@@ -336,6 +336,13 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
                             <span data-i18n="profile_edit_btn">تعديل بياناتي</span>
                         </button>
+                        <!-- ☁️ [جديد 2026-10-16] «حسابي والنسخ» — يفتح components/account-screen.html؛ النقطة تظهر حين تحتاج البيانات نسخة (components/accountEntry.js).
+                             الترويسة العليا مخفية في الرئيسية، فهذا هو مدخل الرئيسية (وفي بقية الشاشات أيقونة الحساب في الترويسة) -->
+                        <button type="button" class="teacher-profile-edit-btn" id="home-account-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.6 1.5A4 4 0 007 19h10.5z"/></svg>
+                            <span data-i18n="acct_home_btn">حسابي والنسخ</span>
+                            <span class="ha-dot ha-dot-inline" id="home-account-dot" hidden></span>
+                        </button>
                     </div>
 
                     <div class="home-chips-row">
@@ -561,74 +568,14 @@
                 </div>
             </div>
 
-            <!-- 🌟 [جديد] قسم "نسخة احتياطية للبيانات" — بناءً على طلب صريح من المعلم بعد
-                 سؤاله عن مصير بيانات الطلاب عند تحديث الكود. يصدّر/يسترجع كل قواعد بيانات
-                 المنصة المحلية (IndexedDB) من/إلى ملف واحد على جهاز المعلم فقط، بلا أي رفع
-                 على الإنترنت. راجع core/backupRestore.js للآلية الكاملة، وcomponents/teacherProfile.js
-                 لمنطق الأزرار أدناه. أُضيف هنا (لا في شاشة منفصلة) لعدم وجود شاشة "إعدادات"
-                 عامة مستقلة بعد في المشروع، وهذه أقرب نقطة موجودة فعلاً 🌟 -->
+            <!-- ☁️ [2026-10-16] أقسام النسخ الاحتياطي (Drive + الجهاز + الاستعادة) والمزامنة وحساب الواجبات انتقلت إلى شاشة «حسابي والنسخ الاحتياطي»
+                 (components/account-screen.html)؛ هنا رابط واحد إليها + زر إعادة الجولات الإرشادية (المعالج في components/guidedTour.js) -->
             <div class="dh-backup-section">
-                <div class="dh-backup-section-title" data-i18n="profile_backup_section_title">🗄️ نسخة احتياطية للبيانات</div>
-                <!-- 🌟 بلا data-i18n عمداً (بعكس بقية عناصر هذه النافذة) — النص هنا ديناميكي
-                     بالكامل ويُحدَّث دائمًا عبر renderBackupLastInfo() في teacherProfile.js
-                     (باستخدام t() هي نفسها)، فوجود data-i18n هنا كان سيجعل applyLanguage()
-                     يستبدله بالنص الافتراضي الثابت عند أي تبديل لغة ويمحو تاريخ آخر نسخة
-                     احتياطية المعروض فعلاً — نفس نمط .bday-banner-text المجاور تماماً -->
-                <div class="dh-backup-last-info" id="teacher-profile-backup-last-info">لم تُؤخَذ أي نسخة احتياطية بعد على هذا الجهاز</div>
                 <div class="dh-backup-actions">
-                    <button type="button" class="btn" id="teacher-profile-backup-btn" data-i18n="profile_backup_download_btn">⬇️ نسخة احتياطية الآن</button>
-                    <button type="button" class="btn btn-outline" id="teacher-profile-restore-btn" data-i18n="profile_backup_restore_btn">⬆️ استرجاع نسخة احتياطية</button>
+                    <button type="button" class="btn" id="teacher-profile-open-account-btn" data-i18n="profile_open_account_btn">☁️ حسابي والنسخ الاحتياطي</button>
                 </div>
-                <div class="dh-backup-actions" style="margin-top:8px;">
-                    <button type="button" class="btn btn-outline" id="teacher-profile-undo-restore-btn" style="display:none;" data-i18n="profile_backup_undo_btn">↩️ التراجع عن آخر استعادة</button>
-                </div>
-                <input type="file" id="teacher-profile-restore-input" accept="application/json,.json" hidden>
-                <!-- 🌟 [جديد 2026-10-02] إعادة الجولات الإرشادية — زر صغير بلا واجهة جديدة؛ المعالج في components/guidedTour.js -->
                 <div class="dh-backup-actions" style="margin-top:8px;">
                     <button type="button" class="btn btn-outline" id="teacher-profile-tour-reset-btn" data-i18n="tour_restart_btn">🧭 إعادة الجولات الإرشادية</button>
-                </div>
-            </div>
-
-            <!-- ☁️ [جديد 2026-10-16] نسخة احتياطية على Google Drive الخاص بالمعلم (core/driveBackup.js). النص ديناميكي بلا data-i18n (نفس نمط الأقسام المجاورة) -->
-            <div class="dh-backup-section" id="teacher-drive-section">
-                <div class="dh-backup-section-title" data-i18n="drive_section_title">☁️ نسخة احتياطية على Google Drive</div>
-                <div class="dh-backup-last-info" id="teacher-drive-info"></div>
-                <div class="dh-backup-actions">
-                    <button type="button" class="btn" id="teacher-drive-backup-btn" data-i18n="drive_connect_btn">☁️ ربط Google Drive وأخذ نسخة</button>
-                    <button type="button" class="btn btn-outline" id="teacher-drive-restore-btn" data-i18n="drive_restore_btn">⬇️ استرجاع من Drive</button>
-                </div>
-                <div id="teacher-drive-picker" style="display:none; margin-top:8px;">
-                    <select id="teacher-drive-select" style="width:100%; padding:8px; border-radius:10px;"></select>
-                    <div class="dh-backup-actions" style="margin-top:8px;">
-                        <button type="button" class="btn" id="teacher-drive-pick-go" data-i18n="drive_pick_go">استرجع هذه النسخة</button>
-                        <button type="button" class="btn btn-outline" id="teacher-drive-pick-cancel" data-i18n="drive_pick_cancel">إلغاء</button>
-                    </div>
-                </div>
-                <label id="teacher-drive-auto-row" style="display:none; margin-top:8px; align-items:center; gap:8px; cursor:pointer;">
-                    <input type="checkbox" id="teacher-drive-auto">
-                    <span data-i18n="drive_auto_label">نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span>
-                </label>
-                <div class="dh-backup-actions" style="margin-top:8px;">
-                    <button type="button" class="btn btn-outline" id="teacher-drive-disconnect-btn" style="display:none;" data-i18n="drive_disconnect_btn">فصل Google Drive</button>
-                </div>
-            </div>
-
-            <!-- 🌟 [جديد 2026-10-13] مزامنة سجل الطالب بين أجهزة المعلم (core/cloudSync.js). النص ديناميكي بلا data-i18n (نفس نمط قسم النسخ الاحتياطي) -->
-            <div class="dh-backup-section" id="teacher-sync-section">
-                <div class="dh-backup-section-title" data-i18n="sync_section_title">☁️ مزامنة سجل الطلاب بين أجهزتك</div>
-                <div class="dh-backup-last-info" id="teacher-sync-info"></div>
-                <div class="dh-backup-actions">
-                    <button type="button" class="btn" id="teacher-sync-btn" data-i18n="sync_btn">🔄 زامن الآن</button>
-                </div>
-            </div>
-
-            <!-- 🌟 [جديد 2026-10-06] حساب جوجل (نظام الواجبات): يعرض الإيميل الحالي، وزر «تغيير الإيميل» متاح دائماً -->
-            <div class="dh-backup-section" id="teacher-account-section">
-                <div class="dh-backup-section-title" data-i18n="acct_section_title">🔐 حساب جوجل (للواجبات)</div>
-                <div class="dh-backup-last-info" id="teacher-account-email"></div>
-                <div class="dh-backup-actions">
-                    <button type="button" class="btn btn-outline" id="teacher-account-change-btn" data-i18n="acct_change_btn">🔁 تغيير الإيميل</button>
-                    <button type="button" class="btn btn-outline" id="teacher-account-signout-btn" data-i18n="acct_signout_btn">🚪 تسجيل الخروج</button>
                 </div>
             </div>
 
