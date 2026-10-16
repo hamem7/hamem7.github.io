@@ -1,5 +1,5 @@
 const MUSHAF_CACHE = 'dar-ham-mushaf-v1'; // صور صفحات المصحف (تُخزَّن عند أول عرض فقط، لا تحميل مسبق للـ604)
-const CACHE_NAME = 'dar-ham-quran-v15'; // 🌟 رُفع من v3 إلى v4 مع دمج نظام الواجبات الجديد (2026-09-25) — أي تعديل جوهري لاحق في الملفات المخزّنة يستوجب رفعه مرة أخرى
+const CACHE_NAME = 'dar-ham-quran-v17'; // 🌟 رُفع من v3 إلى v4 مع دمج نظام الواجبات الجديد (2026-09-25) — أي تعديل جوهري لاحق في الملفات المخزّنة يستوجب رفعه مرة أخرى
 
 // عند تثبيت التطبيق لأول مرة
 self.addEventListener('install', (event) => {
@@ -23,6 +23,16 @@ self.addEventListener('fetch', (event) => {
     let sameOrigin = false;
     try { sameOrigin = new URL(req.url).origin === self.location.origin; } catch (e) { /* رابط غير صالح: لا نتدخل */ }
     if (!sameOrigin) return;
+    // 🩹 [2026-10-16] إنقاذ الأجهزة التي خزّنت index.html يطلب core/app.js?v=... (نسخة قصيرة العمر أُزيلت): تحميل app.js بمسارين مختلفين
+    // كان ينتج نسختين من الوحدة ويعلّق الإقلاع («Cannot access 'translations' before initialization»). نُجيب هذا الطلب بوحدة صغيرة
+    // تستورد المسار الأصلي فتبقى نسخة واحدة، فتفتح المنصة دون انتظار انتهاء كاش المتصفح لـindex.html.
+    try {
+        const u = new URL(req.url);
+        if (u.pathname.endsWith('/core/app.js') && u.searchParams.has('v')) {
+            event.respondWith(new Response("import './app.js';", { headers: { 'Content-Type': 'text/javascript; charset=utf-8', 'Cache-Control': 'no-store' } }));
+            return;
+        }
+    } catch (e) { /* لا نتدخل */ }
     // صور المصحف: الكاش أولاً (لا تتغير)، وإن لم تكن مخزّنة تُجلب وتُخزَّن لتعمل لاحقاً بلا إنترنت
     if (req.url.includes('/assets/mushaf/') && req.url.endsWith('.webp')) {
         event.respondWith((async () => {

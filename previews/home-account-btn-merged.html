@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — زر حسابي المدمج تحت الترحيب</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g8:#0a3d2f;--g7:#0d5c46;--g6:#147c5e;--gold:#d4af37;--gold3:#f0d878;--bg:#f6f8f6;--ink:#10241c;--ink2:#4a6058;--red:#dc2626}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);padding-bottom:50px}
+.note{background:#fbf3d5;border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px;text-align:center}
+.cols{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;padding:24px 16px}
+.col{width:100%;max-width:380px}
+.col h2{font-size:1rem;margin-bottom:4px}
+.col p.d{font-size:.85rem;color:var(--ink2);margin-bottom:10px}
+
+.hero{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);border-radius:18px;color:#fffdf6;padding:18px 16px 16px}
+.row{display:flex;align-items:center;gap:10px}
+.av{width:44px;height:44px;border-radius:50%;background:#fff;color:var(--g7);display:grid;place-items:center;font-weight:700;border:2px solid var(--gold);flex:none}
+.greet{flex:1;font-weight:700;font-size:1.05rem;line-height:1.4}
+.lang{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:3px 10px;font-size:.78rem;font-weight:600;flex:none}
+.sub{font-size:.8rem;opacity:.85;margin:6px 0 12px}
+
+.acct{position:relative;display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:30px;border:1.5px solid var(--gold);background:rgba(255,253,246,.14);color:var(--gold3);font-size:.84rem;font-weight:700;cursor:pointer}
+.acct svg{flex:none}
+.acct .dot{width:9px;height:9px;border-radius:50%;background:var(--red);border:1.5px solid var(--g7)}
+.acct.full{display:flex;justify-content:center;width:100%}
+.chips{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.chip{background:rgba(255,255,255,.12);border-radius:30px;padding:4px 12px;font-size:.78rem}
+</style>
+</head>
+<body>
+<div class="note">🎨 معاينة تصميم فقط — لا ترتبط بالمنصة</div>
+<div class="cols">
+
+  <div class="col">
+    <h2>الخيار 1: زر واحد تحت الترحيب</h2>
+    <p class="d">الزران مدمجان في «حسابي والنسخ»، وزر «تعديل بياناتي» يصبح داخل شاشة الحساب.</p>
+    <div class="hero">
+      <div class="row"><div class="av">م</div><div class="greet">صباح الخير يا شيخ محمد 🌿</div><span class="lang">EN</span></div>
+      <div class="sub">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
+      <button class="acct">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.6 1.5A4 4 0 007 19h10.5z"/></svg>
+        حسابي والنسخ <span class="dot"></span>
+      </button>
+      <div class="chips"><span class="chip">📅 ١٦ أكتوبر</span><span class="chip">٣ واجبات منشورة</span></div>
+    </div>
+  </div>
+
+  <div class="col">
+    <h2>الخيار 2: زر بعرض كامل تحت الترحيب</h2>
+    <p class="d">نفس الدمج، لكن الزر بعرض البطاقة فيسهل لمسه على الجوال.</p>
+    <div class="hero">
+      <div class="row"><div class="av">م</div><div class="greet">صباح الخير يا شيخ محمد 🌿</div><span class="lang">EN</span></div>
+      <div class="sub">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
+      <button class="acct full">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.6 1.5A4 4 0 007 19h10.5z"/></svg>
+        حسابي والنسخ · بياناتي <span class="dot"></span>
+      </button>
+      <div class="chips"><span class="chip">📅 ١٦ أكتوبر</span><span class="chip">٣ واجبات منشورة</span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

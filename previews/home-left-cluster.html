@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — تنظيم تجميعة الترويسة اليسرى</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g8:#0a3d2f;--g7:#0d5c46;--g6:#147c5e;--gold:#d4af37;--gold3:#f0d878;--bg:#f2f5f3;--ink:#10241c;--ink2:#4a6058;--red:#ef4444;--cream:#fffdf6}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);padding-bottom:60px}
+.note{background:#fbf3d5;border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px;text-align:center}
+.wrap{max-width:1100px;margin:0 auto;padding:22px 14px}
+h2{font-size:1.05rem;margin:26px 0 4px}
+p.d{font-size:.88rem;color:var(--ink2);margin-bottom:10px;line-height:1.7}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:20px;margin-inline-start:8px;vertical-align:middle}
+.tag.bad{background:#fde2e2;color:#b42318}.tag.ok{background:#d9f2e6;color:#0b6b46}
+
+/* ===== الهيرو (محاكاة لسطح المكتب) ===== */
+.hero{position:relative;border-radius:18px;color:var(--cream);
+  background:radial-gradient(900px 300px at 80% 0,rgba(255,255,255,.07),transparent 60%),linear-gradient(120deg,var(--g9),var(--g7) 70%,var(--g6));
+  border-bottom:3px solid var(--gold);padding:26px 28px;display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;min-height:210px}
+.hero.tall{min-height:340px}
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.brand .t{font-size:2rem;font-weight:700;color:var(--gold3)}
+.brand .s{font-size:1.05rem;opacity:.92}
+.brand .e{border:1px solid var(--gold);color:var(--gold3);border-radius:30px;padding:5px 16px;font-size:.82rem}
+.side{display:flex;flex-direction:column;align-items:flex-start;gap:10px} /* يسار الصفحة في RTL */
+
+/* ---------- الوضع الحالي ---------- */
+.cur .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cur .av{width:50px;height:50px;border-radius:50%;background:#fff;border:2px solid var(--gold);color:var(--g7);display:grid;place-items:center;font-weight:700}
+.cur .greet{font-weight:700}
+.cur .lang{border:1px solid rgba(255,253,246,.4);border-radius:30px;padding:5px 16px;font-size:.85rem}
+.cur .pill{display:inline-flex;gap:7px;align-items:center;border:1.5px solid var(--gold);border-radius:30px;padding:6px 14px;color:var(--gold3);font-size:.85rem;font-weight:700;background:rgba(255,253,246,.08)}
+.cur .pill.date{border-color:rgba(255,253,246,.25);color:var(--gold3);font-weight:500}
+
+/* ---------- الاقتراح 1: بطاقة زجاجية موحّدة ---------- */
+.card{width:390px;max-width:100%;border-radius:18px;background:rgba(255,253,246,.09);border:1px solid rgba(240,216,120,.35);
+  backdrop-filter:blur(6px);box-shadow:0 10px 30px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.12);overflow:hidden}
+.card .top{display:flex;align-items:center;gap:12px;padding:14px 14px 12px}
+.av2{position:relative;width:54px;height:54px;border-radius:50%;flex:none;background:#fff;color:var(--g7);display:grid;place-items:center;font-weight:700;font-size:1.2rem;
+  box-shadow:0 0 0 2px var(--g8),0 0 0 4px var(--gold)}
+.av2 img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.card .who{min-width:0}
+.card .greet{font-weight:700;font-size:1.02rem;line-height:1.35}
+.card .date{margin-top:3px;font-size:.78rem;color:var(--gold3);opacity:.92;display:flex;gap:6px;align-items:center}
+.card .acts{display:flex;border-top:1px solid rgba(240,216,120,.22)}
+.card .acts button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 8px;background:transparent;border:0;color:var(--cream);font-size:.84rem;font-weight:600;cursor:pointer;transition:background .15s}
+.card .acts button:hover{background:rgba(255,253,246,.1)}
+.card .acts button+button{border-inline-start:1px solid rgba(240,216,120,.22);flex:0 0 38%}
+.card .acts svg{flex:none;color:var(--gold3)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--g7);flex:none}
+
+/* ---------- الاقتراح 2: قائمة الصورة (Avatar Menu) ---------- */
+.menu{position:relative;width:390px;max-width:100%}
+.trig{width:100%;display:flex;align-items:center;gap:11px;padding:7px 8px 7px 14px;border-radius:40px;background:rgba(255,253,246,.1);border:1px solid rgba(240,216,120,.4);color:var(--cream);cursor:pointer;text-align:start}
+.trig:hover{background:rgba(255,253,246,.16)}
+.trig .av2{width:44px;height:44px;font-size:1rem;box-shadow:0 0 0 2px var(--g8),0 0 0 3.5px var(--gold)}
+.trig .badge{position:absolute;top:-2px;inset-inline-end:-2px}
+.trig .greet{flex:1;font-weight:700;font-size:.98rem;line-height:1.3}
+.trig .chev{transition:transform .2s;color:var(--gold3)}
+.menu.open .chev{transform:rotate(180deg)}
+.dd{position:absolute;top:calc(100% + 8px);inset-inline:0;background:#fffdf6;color:var(--ink);border-radius:16px;padding:6px;box-shadow:0 18px 40px rgba(0,0,0,.35);
+  opacity:0;transform:translateY(-6px);pointer-events:none;transition:.18s;z-index:5}
+.menu.open .dd{opacity:1;transform:none;pointer-events:auto}
+.dd button{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;background:transparent;border-radius:10px;font-size:.9rem;font-weight:600;color:var(--ink);cursor:pointer;text-align:start}
+.dd button:hover{background:#eef5f1}
+.dd button svg{color:var(--g7);flex:none}
+.dd .sp{flex:1}
+.dd .hint{font-size:.72rem;color:var(--ink2);font-weight:500}
+.dd hr{border:0;border-top:1px solid #e3ebe6;margin:4px 6px}
+.dd .dot{box-shadow:none}
+.menu .date2{margin-top:9px;padding-inline:14px;font-size:.8rem;color:var(--gold3);display:flex;gap:7px;align-items:center;opacity:.95}
+.lang-mini{margin-inline-start:auto;border:1px solid rgba(240,216,120,.5);color:var(--gold3);border-radius:20px;padding:1px 9px;font-size:.72rem}
+
+@media(max-width:760px){.hero{grid-template-columns:1fr;padding:20px 16px}.side{align-items:center}}
+.cmp{display:grid;gap:14px}
+</style>
+</head>
+<body>
+<div class="note">🎨 معاينة تصميم فقط — لا ترتبط بالمنصة (الاقتراح 2 تفاعلي: اضغط على الشريط)</div>
+<div class="wrap">
+
+  <h2>الوضع الحالي <span class="tag bad">مشتّت</span></h2>
+  <p class="d">أربعة عناصر بأشكال وأحجام مختلفة (دائرة، نص، زر محاط، زر مصمت) موزّعة على ثلاثة أسطر بلا محور واحد.</p>
+  <div class="hero">
+    <div class="brand"><div class="t">حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ</div><div class="s">منصة حمٓ لتثبيت الحفظ و المراجعة</div><div class="e">✦ منصة تعليمية متكاملة</div></div>
+    <div class="side cur">
+      <div class="row"><div class="av">ع</div><div class="greet">جمعة مباركة يا شيخ عبدالله المياح الأزهري</div><span class="lang">English</span></div>
+      <span class="pill">☁ حسابي والنسخ</span>
+      <span class="pill date">📅 الجمعة • ٥ جمادى الأولى ١٤٤٨ هـ • ١٦ أكتوبر ٢٠٢٦ م</span>
+    </div>
+  </div>
+
+  <h2>الاقتراح 1 — بطاقة الحساب الزجاجية <span class="tag ok">الأنسب لو تريد كل شيء ظاهراً</span></h2>
+  <p class="d">كل ما يخص المعلم في بطاقة واحدة بعرض ثابت: الصورة والترحيب والتاريخ (سطر هادئ بدل شريحة منفصلة)، وتحتها شريط إجراءات من خانتين («حسابي والنسخ» + اللغة) بفاصل رفيع. محور واحد، حواف واحدة، وتتوسّط تلقائياً على الجوال.</p>
+  <div class="hero">
+    <div class="brand"><div class="t">حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ</div><div class="s">منصة حمٓ لتثبيت الحفظ و المراجعة</div><div class="e">✦ منصة تعليمية متكاملة</div></div>
+    <div class="side">
+      <div class="card">
+        <div class="top">
+          <div class="av2">ع</div>
+          <div class="who">
+            <div class="greet">جمعة مباركة يا شيخ عبدالله المياح الأزهري</div>
+            <div class="date"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>الجمعة • ٥ جمادى الأولى ١٤٤٨ هـ • ١٦ أكتوبر ٢٠٢٦ م</div>
+          </div>
+        </div>
+        <div class="acts">
+          <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.6 1.5A4 4 0 007 19h10.5z"/></svg>حسابي والنسخ<span class="dot"></span></button>
+          <button><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>English</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>الاقتراح 2 — قائمة الصورة (الأنظف) <span class="tag ok">الأكثر احترافية</span></h2>
+  <p class="d">شريط واحد بشكل كبسولة: الصورة + الترحيب + سهم. كل الإجراءات (حسابي والنسخ، تعديل بياناتي، اللغة) داخل قائمة تنسدل عند الضغط — مثل تطبيقات Google وNotion. التاريخ سطر نصي هادئ تحته، والنقطة الحمراء تظهر على الصورة وعلى بند «حسابي والنسخ» حين تحتاج البيانات نسخة. أقل عناصر ظاهرة = أنظف مظهر.</p>
+  <div class="hero tall">
+    <div class="brand"><div class="t">حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ</div><div class="s">منصة حمٓ لتثبيت الحفظ و المراجعة</div><div class="e">✦ منصة تعليمية متكاملة</div></div>
+    <div class="side">
+      <div class="menu" id="m">
+        <button class="trig" id="trig" aria-haspopup="true" aria-expanded="false">
+          <div class="av2" style="position:relative">ع<span class="dot badge"></span></div>
+          <span class="greet">جمعة مباركة يا شيخ عبدالله المياح الأزهري</span>
+          <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="dd" role="menu">
+          <button role="menuitem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 100-9 6 6 0 00-11.6 1.5A4 4 0 007 19h10.5z"/></svg>حسابي والنسخ<span class="sp"></span><span class="dot"></span></button>
+          <button role="menuitem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>تعديل بياناتي</button>
+          <hr>
+          <button role="menuitem"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>اللغة<span class="sp"></span><span class="hint">English</span></button>
+        </div>
+        <div class="date2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>الجمعة • ٥ جمادى الأولى ١٤٤٨ هـ • ١٦ أكتوبر ٢٠٢٦ م</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+(function(){
+  var m=document.getElementById('m'),t=document.getElementById('trig');
+  t.addEventListener('click',function(e){e.stopPropagation();var o=m.classList.toggle('open');t.setAttribute('aria-expanded',o)});
+  document.addEventListener('click',function(){m.classList.remove('open');t.setAttribute('aria-expanded','false')});
+  m.querySelector('.dd').addEventListener('click',function(e){e.stopPropagation()});
+})();
+</script>
+</body>
+</html>

@@ -277,3 +277,38 @@ body.dh-home-screen .home-hero-text > .home-start-here.dh-fast-start-hero {
 /* السطر الثاني تحت عنوان "لماذا حمٓ؟" (منقول من فوتر "عن حمٓ") */
 body.dh-home-screen .home-why-subtitle:not(.home-why-subtitle-more) { margin-bottom: 6px; }
 body.dh-home-screen .home-why-subtitle.home-why-subtitle-more { margin-top: 0; }
+
+/* ==========================================================================
+   [2026-10-16] بطاقة الحساب الزجاجية (سطح المكتب فقط) — بطلب المعلم: الصورة + الترحيب + التاريخ في الأعلى،
+   وتحتها شريط من خانتين («حسابي والنسخ» + اللغة). تُزاح نحو أقصى اليسار (justify-self:end). الجوال لم يتغيّر (mobile.css).
+   ========================================================================== */
+.home-date-card { display: none; }
+@media (min-width: 769px) {
+    body.dh-home-screen .home-hero-text .home-greeting-row {
+        grid-column: 3; grid-row: 1 / span 2; justify-self: end; align-self: center;
+        display: grid; grid-template-columns: auto minmax(0, 1fr) 38%; width: 390px; max-width: 100%; gap: 0; margin: 0;
+        border-radius: 18px; overflow: hidden;
+        background: rgba(255, 253, 246, .09); border: 1px solid rgba(240, 216, 120, .35);
+        backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .12);
+    }
+    body.dh-home-screen .home-hero-text .home-chips-row { grid-row: 3; }
+    body.dh-home-screen .home-hero-text .teacher-profile-badge { grid-row: 3; }
+    body.dh-home-screen .home-greeting-row .teacher-avatar-btn { grid-column: 1; grid-row: 1 / span 2; width: 54px; height: 54px; margin: 14px; margin-inline-end: 12px; align-self: center; box-shadow: 0 0 0 2px var(--dh-emerald-800, #0a3d2f), 0 0 0 4px var(--dh-gold-500, #d4af37); }
+    body.dh-home-screen .home-greeting-row .home-greeting { grid-column: 2 / 4; grid-row: 1; align-self: end; padding: 14px 0 0; padding-inline-end: 14px; font-size: 1.02rem; font-weight: 700; line-height: 1.35; min-height: 0; }
+    body.dh-home-screen .home-greeting-row .home-date-card { grid-column: 2 / 4; grid-row: 2; align-self: start; display: flex; align-items: center; gap: 6px; padding: 3px 0 12px; padding-inline-end: 14px; font-size: .78rem; color: var(--dh-gold-300, #f0d878); }
+    body.dh-home-screen .home-greeting-row .home-date-card svg { flex: none; }
+    body.dh-home-screen .home-hero-text .home-date-bar { display: none; }
+    body.dh-home-screen .home-greeting-row .home-greeting-break { display: none; }
+    body.dh-home-screen .home-greeting-row .home-account-btn,
+    body.dh-home-screen .home-greeting-row .dh-fast-lang {
+        grid-row: 3; order: 0; margin: 0; border: 0; border-top: 1px solid rgba(240, 216, 120, .22); border-radius: 0; background: transparent;
+        color: #fffdf6; min-height: 42px; padding: 10px 8px; font-size: .84rem; font-weight: 600;
+        display: flex; align-items: center; justify-content: center; gap: 7px; transform: none; cursor: pointer;
+    }
+    body.dh-home-screen .home-greeting-row .home-account-btn { grid-column: 1 / 3; }
+    body.dh-home-screen .home-greeting-row .home-account-btn svg { color: var(--dh-gold-300, #f0d878); }
+    body.dh-home-screen .home-greeting-row .dh-fast-lang { grid-column: 3; border-inline-start: 1px solid rgba(240, 216, 120, .22); }
+    body.dh-home-screen .home-greeting-row .home-account-btn:hover,
+    body.dh-home-screen .home-greeting-row .dh-fast-lang:hover { background: rgba(255, 253, 246, .1); transform: none; }
+}

@@ -19,7 +19,7 @@ const DEFAULT_AVATAR_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fil
 // الشفافية تمامًا لأن JPEG لا يدعمها، فتظهر الخلفية الشفافة كمربع أسود كامل حول التوقيع
 // بدل أن تختفي — وهذا هو سبب المربع الأسود الذي يظهر في التقارير. الحل: نحفظ الختم
 // بصيغة PNG (تحافظ على الشفافية) بدل JPEG، فيظهر خط التوقيع فقط بلا أي خلفية.
-function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85, format = 'image/jpeg') {
+export function resizeImageToDataUrl(file, maxSize = 300, quality = 0.85, format = 'image/jpeg') {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onerror = () => reject(reader.error);
@@ -304,10 +304,16 @@ export function initTeacherProfileUI() {
     }
     function closeModal() { modal.style.display = 'none'; }
 
-    badge.addEventListener('click', openModal);
+    // ☁️ [2026-10-16] الصورة وشارة «أكمل بياناتك» تفتحان شاشة «حسابي» (مكان واحد للبيانات والنسخ) بدل هذه النافذة؛ الشارة تفتحها والتعديل مفتوح
+    const goAccount = async (openEdit) => {
+        const { openAccountScreen } = await import('../core/app.js');
+        AppState.acctOpenEdit = !!openEdit;
+        openAccountScreen();
+    };
+    badge.addEventListener('click', () => goAccount(true));
     // 🌟 [جديد] دائرة الصورة بجانب الترحيب تفتح نفس نافذة التعديل — وتبقى موجودة حتى
     // بعد اختفاء شارة "أكمل بياناتك" عند اكتمال البيانات
-    if (avatarBtn) avatarBtn.addEventListener('click', openModal);
+    if (avatarBtn) avatarBtn.addEventListener('click', () => goAccount(false));
     // 🌟 [جديد] زر "تعديل بياناتي" الواضح — يفتح نفس النافذة بالبيانات المسجّلة، والحفظ يحدّث سجل 'main' نفسه
     if (editBtn) editBtn.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);

@@ -48,9 +48,73 @@ export async function initAccountScreen() {
         if (p.photo) { const img = document.createElement('img'); img.src = p.photo; img.alt = ''; ph.appendChild(img); }
         else ph.textContent = '👤';
     }
-    $('acct-edit-btn').addEventListener('click', async () => {
-        await loadSplashScreen();
-        document.getElementById('teacher-profile-edit-btn')?.click();
+    // ---------- تعديل البيانات داخل نفس الشاشة (بدل نافذة الرئيسية) ----------
+    const card = $('acct-edit-card');
+    const dayEl = $('acct-edit-dob-day'), monEl = $('acct-edit-dob-month'), yearEl = $('acct-edit-dob-year');
+    let pendingPhoto = null, pendingStamp = null;
+    const fillSel = (sel, key, from, to, desc) => {
+        sel.innerHTML = '';
+        const ph = document.createElement('option'); ph.value = ''; ph.textContent = t(key); sel.appendChild(ph);
+        const add = (n) => { const o = document.createElement('option'); o.value = String(n); o.textContent = String(n); sel.appendChild(o); };
+        if (desc) { for (let n = to; n >= from; n--) add(n); } else { for (let n = from; n <= to; n++) add(n); }
+        sel.setAttribute('aria-label', t(key));
+    };
+    const renderStamp = () => {
+        const img = $('acct-edit-stamp'), lbl = $('acct-edit-stamp-zone').querySelector('span');
+        img.hidden = !pendingStamp; if (pendingStamp) img.src = pendingStamp;
+        lbl.textContent = pendingStamp ? '' : t('acct_edit_stamp_empty');
+    };
+    const readDob = () => {
+        const y = parseInt(yearEl.value, 10), mo = parseInt(monEl.value, 10), d = parseInt(dayEl.value, 10);
+        if (!y || !mo || !d) return null;
+        const c = new Date(y, mo - 1, d);
+        if (c.getFullYear() !== y || c.getMonth() !== mo - 1 || c.getDate() !== d) return null;
+        return `${y}-${String(mo).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    };
+    function openEdit() {
+        const p = AppState.currentTeacher || {};
+        $('acct-edit-name').value = p.name || '';
+        $('acct-edit-gender').value = p.gender === 'female' ? 'female' : 'male';
+        fillSel(dayEl, 'profile_dob_day', 1, 31); fillSel(monEl, 'profile_dob_month', 1, 12); fillSel(yearEl, 'profile_dob_year', 1900, new Date().getFullYear(), true);
+        const m = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(p.dob || '');
+        if (m) { yearEl.value = String(+m[1]); monEl.value = String(+m[2]); dayEl.value = String(+m[3]); }
+        pendingPhoto = p.photo || null; $('acct-edit-photo').src = p.photo || 'icons/icon-192.png';
+        pendingStamp = p.stamp || null; renderStamp();
+        card.hidden = false;
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        $('acct-edit-name').focus({ preventScroll: true });
+    }
+    const closeEdit = () => { card.hidden = true; };
+    $('acct-edit-btn').addEventListener('click', () => { if (card.hidden) openEdit(); else closeEdit(); });
+    $('acct-edit-cancel').addEventListener('click', closeEdit);
+    const pickImage = (zoneId, inputId, apply) => {
+        $(zoneId).addEventListener('click', () => $(inputId).click());
+        $(inputId).addEventListener('change', async () => {
+            const f = $(inputId).files && $(inputId).files[0]; $(inputId).value = '';
+            if (!f || !f.type || !f.type.startsWith('image/')) return;
+            try { await apply(f); } catch (e) { console.error('تعذر معالجة الصورة:', e); }
+        });
+    };
+    const { resizeImageToDataUrl } = await import('./teacherProfile.js');
+    pickImage('acct-edit-photo-zone', 'acct-edit-photo-input', async (f) => { pendingPhoto = await resizeImageToDataUrl(f, 300, 0.85); $('acct-edit-photo').src = pendingPhoto; });
+    pickImage('acct-edit-stamp-zone', 'acct-edit-stamp-input', async (f) => { pendingStamp = await resizeImageToDataUrl(f, 420, 0.9, 'image/png'); renderStamp(); });
+    $('acct-edit-save').addEventListener('click', async () => {
+        const btn = $('acct-edit-save'); btn.disabled = true;
+        try {
+            const saved = await AppState.teacherManager.saveProfile({
+                name: $('acct-edit-name').value.trim(),
+                dob: readDob(),
+                gender: $('acct-edit-gender').value === 'female' ? 'female' : 'male',
+                photo: pendingPhoto || null,
+                stamp: pendingStamp || null
+            });
+            AppState.currentTeacher = saved;
+            AppState.teacherName = saved.name || '';
+            renderProfile();
+            closeEdit();
+            document.dispatchEvent(new CustomEvent('dh:backup-health'));   // يحدّث أيقونة الحساب في الترويسة (الصورة/الحرف الأول)
+        } catch (e) { console.error('تعذر حفظ بيانات المعلم:', e); alert(t('profile_backup_restore_error')); }
+        finally { btn.disabled = false; }
     });
     $('btn-back-account').setAttribute('aria-label', t('ms_back'));
     $('btn-back-account').setAttribute('title', t('ms_back'));
@@ -275,4 +339,5 @@ export async function initAccountScreen() {
         renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw();
     }
     refresh();
+    if (AppState.acctOpenEdit) { AppState.acctOpenEdit = false; openEdit(); }   // جاء من شارة «أكمل بياناتك»
 }
