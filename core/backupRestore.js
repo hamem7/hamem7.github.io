@@ -22,6 +22,7 @@
 // وليست "بيانات" يخشى المعلم ضياعها، وإعادة ضبطها تلقائياً بعد أي استرجاع غير ضارة إطلاقاً.
 
 import { APP_VERSION } from './version.js';
+import { getTeacherEmail } from './api.js';
 
 // 🌟🌟 [إصلاح تدقيق ما قبل الإطلاق] سجل التقييمات (history_<id>) وصور الطلاب (darham_avatar_<id>) وعدّاد التقارير
 // وبيانات المعلم القديمة تعيش في localStorage وليست في IndexedDB، وكانت النسخة الشاملة تتجاهلها فتضيع عند الاسترجاع
@@ -43,6 +44,7 @@ function collectBackupLocalStorage() {
 }
 
 const LAST_BACKUP_STORAGE_KEY = 'dh_last_backup_at';
+const LAST_BACKUP_STUDENTS_KEY = 'dh_last_backup_students';   // عدد طلاب آخر ملف نسخة على الجهاز (للتذكير الذكي)
 
 // 🛟 [جديد — الاستعادة الآمنة] لقطة أمان تُحفظ تلقائياً قبل أي استعادة (والتراجع عنها)، في قاعدة مستقلة لا تدخل
 // أبداً في النسخ الاحتياطي ولا تُمسح بالاستعادة. نحتفظ بآخر 3 لقطات فقط. اللقطة تستثني القاعدتين القابلتين لإعادة التحميل
@@ -199,7 +201,8 @@ export async function buildBackupPayload({ skipDbs = [] } = {}) {
         meta: {
             app: 'dar-ham',
             appVersion: APP_VERSION,
-            exportedAt: new Date().toISOString()
+            exportedAt: new Date().toISOString(),
+            email: getTeacherEmail() || null   // لمقارنته بإيميل الحساب الحالي قبل الاسترجاع (inspectBackupFile)
         },
         databases,
         // 🌟 [إصلاح تدقيق] بيانات الطلاب المخزنة في localStorage (سجل التقييمات، الصور...)
@@ -226,6 +229,7 @@ export async function exportFullBackup() {
     URL.revokeObjectURL(url);
 
     localStorage.setItem(LAST_BACKUP_STORAGE_KEY, new Date().toISOString());
+    try { localStorage.setItem(LAST_BACKUP_STUDENTS_KEY, String(countStudentsIn(payload))); } catch (e) { /* لا شيء */ }
     try { document.dispatchEvent(new CustomEvent('dh:local-backup-done')); } catch (e) { /* لا شيء */ }
 }
 
@@ -233,6 +237,12 @@ export async function exportFullBackup() {
 // نسخة بعد على هذا الجهاز (حالة طبيعية تماماً، لا تختلف عن أي بيانات اختيارية أخرى بالمنصة)
 export function getLastBackupAt() {
     return localStorage.getItem(LAST_BACKUP_STORAGE_KEY);
+}
+
+/** عدد طلاب آخر نسخة ملف على الجهاز، أو null إن لم يُسجَّل (نسخ قديمة قبل هذه الميزة). */
+export function getLastBackupStudents() {
+    const n = parseInt(localStorage.getItem(LAST_BACKUP_STUDENTS_KEY) || '', 10);
+    return Number.isFinite(n) ? n : null;
 }
 
 // ---------- لقطة الأمان ----------
@@ -335,6 +345,7 @@ export async function inspectBackupFile(file) {
     const payload = await parseBackupFile(file);
     return {
         exportedAt: (payload.meta && payload.meta.exportedAt) || null,
+        email: (payload.meta && payload.meta.email) || null,
         studentsInBackup: countStudentsIn(payload),
         studentsNow: await countCurrentStudents()
     };

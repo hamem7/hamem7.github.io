@@ -5,11 +5,29 @@
 import { AppState, openAccountScreen } from '../core/app.js';
 import { t } from '../core/i18n.js';
 import { backupHealth } from '../engine/backupHealth.js';
+import { backupReminder } from '../engine/backupReminder.js';
 
 let inited = false;
 
 async function studentsCount() {
     try { return AppState.studentManager ? (await AppState.studentManager.getAllStudents()).length : 0; } catch (e) { return 0; }
+}
+
+/** حالة النسخ الاحتياطي: الزمن (backupHealth) + التغيّر منذ آخر نسخة (backupReminder). مع تذكير ينتقل ok ← warn. */
+export async function computeBackupState() {
+    const drive = await import('../core/driveBackup.js');
+    const { getLastBackupAt, getLastBackupStudents } = await import('../core/backupRestore.js');
+    const driveAt = drive.isDriveEnabled() ? drive.getDriveLastOk() : null;
+    const localAt = getLastBackupAt();
+    const health = backupHealth({ driveAt, localAt, warnAfterDays: drive.getDriveWarnAfterDays() });
+    // عدد طلاب أحدث نسخة (Drive أو ملف الجهاز، أيهما أحدث)
+    const dMs = Date.parse(driveAt || ''), lMs = Date.parse(localAt || '');
+    const driveNewer = Number.isFinite(dMs) && (!Number.isFinite(lMs) || dMs >= lMs);
+    const backedStudents = driveNewer ? drive.getDriveLastStudents() : getLastBackupStudents();
+    const students = await studentsCount();
+    const reminder = backupReminder({ students, backedStudents, ageDays: health.ageDays });
+    const level = health.level === 'ok' && reminder.remind ? 'warn' : health.level;
+    return { level, health, reminder, students };
 }
 
 export async function refreshAccountEntry() {
@@ -25,11 +43,7 @@ export async function refreshAccountEntry() {
     if (btn) { const label = t('acct_entry_title'); btn.title = label; btn.setAttribute('aria-label', label); }
 
     let level = 'ok';
-    try {
-        const drive = await import('../core/driveBackup.js');
-        const { getLastBackupAt } = await import('../core/backupRestore.js');
-        level = backupHealth({ driveAt: drive.isDriveEnabled() ? drive.getDriveLastOk() : null, localAt: getLastBackupAt(), warnAfterDays: drive.getDriveWarnAfterDays() }).level;
-    } catch (e) { /* نُبقي بلا نقطة */ }
+    try { level = (await computeBackupState()).level; } catch (e) { /* نُبقي بلا نقطة */ }
     const show = level !== 'ok' && (await studentsCount()) > 0;
     ['header-account-dot', 'home-account-dot'].forEach(id => {
         const dot = document.getElementById(id);

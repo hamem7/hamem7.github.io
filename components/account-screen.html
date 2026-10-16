@@ -132,6 +132,14 @@
             </div>
         </section>
 
+        <!-- ✅ اكتمال الحساب: يظهر ما دام الإعداد ناقصاً، والزر يكمل من أول خطوة ناقصة -->
+        <section class="ac-card" id="acct-progress-card" hidden>
+            <h3><span data-i18n="acct_progress_title">اكتمال حسابك</span> <span id="acct-progress-pct"></span></h3>
+            <div style="height:8px;border-radius:99px;background:#e3ebe6;overflow:hidden;"><div id="acct-progress-bar" style="height:100%;width:0;background:#d4af37;transition:width .3s;"></div></div>
+            <ul id="acct-progress-items" style="list-style:none;padding:0;margin:10px 0 0;line-height:2;"></ul>
+            <div class="ac-acts"><button type="button" class="ac-btn" id="acct-progress-next" data-i18n="acct_progress_continue">أكمل الإعداد</button></div>
+        </section>
+
         <!-- 🧭 معالج الإعداد بعد أول حفظ للبيانات: الإيميل ← Drive ← استرجاع بيانات سابقة (يُدار من accountScreen.js) -->
         <section class="ac-card" id="acct-setup-card" hidden>
             <h3 id="acct-setup-title"></h3>

@@ -207,6 +207,15 @@ await page.waitForSelector('#btn-my-students-main', { timeout: 30000 });
 await page.evaluate(async () => { const D = await import('/core/driveBackup.js'); await D.runDriveBackup({ interactive: true }); });
 ok((await page.evaluate(() => window.__gis.requests.at(-1).hint)) === 'hw@school.edu', '12) نافذة Google تُقترح عليها حساب الواجبات (login_hint)');
 
+// 13) أول دخول: «إضافة بياناتي» + بطاقة اكتمال الحساب؛ وبعد حفظ اسم يصير «تعديل بياناتي»
+await page.evaluate(async () => { const m = await import('/core/app.js'); m.AppState.currentTeacher = {}; m.openAccountScreen(); });
+await page.waitForSelector('#acct-screen', { timeout: 10000 });
+ok((await page.textContent('#acct-edit-btn')).includes('إضافة'), '13) ملف فارغ: الزر «إضافة بياناتي»');
+ok(await page.evaluate(() => !document.getElementById('acct-progress-card').hidden), '13) بطاقة اكتمال الحساب ظاهرة');
+await page.evaluate(async () => { const m = await import('/core/app.js'); m.AppState.currentTeacher = { name: 'أحمد' }; m.openAccountScreen(); });
+await page.waitForSelector('#acct-screen', { timeout: 10000 });
+ok((await page.textContent('#acct-edit-btn')).includes('تعديل'), '13) بعد وجود بيانات: الزر «تعديل بياناتي»');
+
 ok(errors.length === 0, 'لا أخطاء صفحة: ' + errors.join(' | '));
 console.log(`\n${pass} passed, ${fail} failed`);
 await browser.close(); srv.close();

@@ -6,6 +6,8 @@
 
 import { AppState } from '../core/app.js';
 import { t } from '../core/i18n.js';
+import { getTeacherEmail } from '../core/api.js';
+import { accountProgress } from '../engine/accountProgress.js';
 // 🌟 [جديد] أيقونة شخص افتراضية (SVG لا إيموجي، اتساقًا مع الهوية البصرية الأهدأ
 // المعتمدة أصلاً في هذه الشاشة) — تظهر في دائرة الترحيب فقط قبل إدخال أي اسم ولا رفع
 // أي صورة بعد، أي حالة "بداية تمامًا" فقط
@@ -105,16 +107,20 @@ export function renderProfileBadge() {
     const badge = document.getElementById('teacher-profile-badge');
     if (!badge) return;
     const profile = AppState.currentTeacher || {};
-    const fields = [profile.name, profile.photo, profile.dob];
-    const filled = fields.filter(Boolean).length;
-    if (filled >= fields.length) {
+    // 🌟 [2026-10-16] النسبة صارت «اكتمال الحساب» الكامل (البيانات + الإيميل + Drive + أول نسخة) وليس البيانات الشخصية فقط
+    const ls = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const pr = accountProgress({
+        name: profile.name, photo: profile.photo, dob: profile.dob,
+        email: getTeacherEmail(), driveOn: ls('dh_drive_enabled') === '1',
+        hasBackup: !!(ls('dh_drive_last_ok') || ls('dh_last_backup_at'))
+    });
+    if (pr.pct >= 100) {
         badge.style.display = 'none';
         return;
     }
-    const pct = Math.round((filled / fields.length) * 100);
     badge.style.display = 'inline-flex';
     const pctEl = badge.querySelector('.badge-pct');
-    if (pctEl) pctEl.textContent = `${pct}%`;
+    if (pctEl) pctEl.textContent = `${pr.pct}%`;
 }
 
 // 🌟 [جديد] دائرة صورة المعلم/ـة الدائمة بجانب الترحيب — بعكس renderProfileBadge أعلاه

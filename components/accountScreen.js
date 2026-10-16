@@ -9,7 +9,8 @@ import { getTeacherEmail, isTeacherAuthed, signOutTeacher } from '../core/api.js
 import {
     exportFullBackup, restoreFromBackupFile, getLastBackupAt, inspectBackupFile, getSafetySnapshotInfo, restoreFromSafetySnapshot
 } from '../core/backupRestore.js';
-import { backupHealth } from '../engine/backupHealth.js';
+import { accountProgress } from '../engine/accountProgress.js';
+import { computeBackupState } from './accountEntry.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -128,7 +129,7 @@ export async function initAccountScreen() {
             });
             AppState.currentTeacher = saved;
             AppState.teacherName = saved.name || '';
-            renderProfile();
+            renderProfile(); renderProgress();
             closeEdit();
             document.dispatchEvent(new CustomEvent('dh:backup-health'));   // يحدّث أيقونة الحساب في الترويسة (الصورة/الحرف الأول)
             if (wasFirstTime) startSetup();   // أول مرة: الإيميل ← Drive ← استرجاع بيانات سابقة
@@ -140,29 +141,37 @@ export async function initAccountScreen() {
     $('btn-back-account').addEventListener('click', loadSplashScreen);
 
     // ---------- سلامة البيانات ----------
-    function renderHealth() {
+    let lastHealthLevel = 'bad';
+    async function renderHealth() {
         const enabled = drive.isDriveEnabled();
         const driveAt = enabled ? drive.getDriveLastOk() : null;
         const localAt = getLastBackupAt();
-        const h = backupHealth({ driveAt, localAt, warnAfterDays: drive.getDriveWarnAfterDays() });
+        let st;
+        try { st = await computeBackupState(); } catch (e) { return; }
+        if (!$('acct-screen')) return;   // خرج المعلم من الشاشة أثناء الحساب
+        const h = st.health;
+        lastHealthLevel = h.level;
         const box = $('acct-status');
-        box.dataset.level = h.level;
-        $('acct-status-ic').textContent = { ok: '✅', warn: '⚠️', bad: '🚨' }[h.level];
-        $('acct-status-title').textContent = t('acct_status_' + h.level);
+        box.dataset.level = st.level;
+        $('acct-status-ic').textContent = { ok: '✅', warn: '⚠️', bad: '🚨' }[st.level];
+        $('acct-status-title').textContent = t('acct_status_' + st.level);
         const ul = $('acct-status-lines');
         ul.textContent = '';
         const add = (txt) => { const li = document.createElement('li'); li.textContent = txt; ul.appendChild(li); };
         if (h.level === 'bad') add(t('acct_status_bad_hint'));
         else {
+            // 🔔 تذكير ذكي: طلاب جدد منذ آخر نسخة (حتى لو النسخة حديثة زمنياً)
+            if (st.reminder.remind) add(t('acct_remind_growth').replace('{n}', st.reminder.added));
             if (driveAt) {
                 const n = drive.getDriveLastStudents();
                 add(t('acct_status_line_drive').replace('{when}', relDays(driveAt)).replace('{students}', n ? ' — ' + t('drive_students_n').replace('{n}', n) : ''));
             }
             if (localAt) add(t('acct_status_line_local').replace('{when}', relDays(localAt)));
         }
-        $('acct-status-cta-row').style.display = h.level === 'ok' ? 'none' : '';
+        $('acct-status-cta-row').style.display = st.level === 'ok' ? 'none' : '';
         $('acct-status-cta').textContent = t(enabled ? 'drive_backup_now_btn' : 'drive_connect_btn');
-        document.dispatchEvent(new CustomEvent('dh:backup-health', { detail: { level: h.level } }));
+        renderProgress();
+        document.dispatchEvent(new CustomEvent('dh:backup-health', { detail: { level: st.level } }));
     }
     $('acct-status-cta').addEventListener('click', () => $('acct-drive-backup-btn').click());
 
@@ -314,6 +323,14 @@ export async function initAccountScreen() {
             alert(t(restoreErrKey(e, true)));
             return false;
         }
+        // 🔐 النسخة لحساب مختلف عن الحساب الحالي؟ تنبيه إضافي قبل التأكيد
+        try {
+            const cur = getTeacherEmail() || drive.getDriveAccountEmail();
+            const bk = (await inspectBackupFile(file)).email;
+            if (cur && bk && cur.trim().toLowerCase() !== bk.trim().toLowerCase()) {
+                msg = t('acct_restore_other_account').replace('{backup}', bk).replace('{current}', cur) + '\n\n' + msg;
+            }
+        } catch (e) { /* inspect نجح أعلاه؛ نتجاهل أي خلل ثانوي */ }
         if (!await hamConfirm(msg)) return false;
         try {
             await restoreFromBackupFile(file);
@@ -353,6 +370,38 @@ export async function initAccountScreen() {
         signOutTeacher();
         refresh();
     });
+    // ---------- اكتمال الحساب + استئناف الإعداد ----------
+    function renderProgress() {
+        const p = AppState.currentTeacher || {};
+        const pr = accountProgress({
+            name: p.name, photo: p.photo, dob: p.dob,
+            email: getTeacherEmail(), driveOn: drive.isDriveEnabled(),
+            hasBackup: lastHealthLevel !== 'bad'
+        });
+        const box = $('acct-progress-card');
+        box.hidden = pr.pct >= 100;
+        if (box.hidden) return;
+        $('acct-progress-pct').textContent = pr.pct + '%';
+        $('acct-progress-bar').style.width = pr.pct + '%';
+        const ul = $('acct-progress-items');
+        ul.textContent = '';
+        pr.items.forEach(i => {
+            const li = document.createElement('li');
+            li.textContent = (i.done ? '✅ ' : '⬜ ') + t('acct_progress_' + i.key);
+            if (i.done) li.className = 'done';
+            ul.appendChild(li);
+        });
+        $('acct-progress-next').dataset.next = pr.next || '';
+    }
+    // يكمل من أول خطوة ناقصة (البيانات ← الإيميل ← Drive ← أول نسخة)
+    $('acct-progress-next').addEventListener('click', () => {
+        const next = $('acct-progress-next').dataset.next;
+        if (next === 'profile') return openEdit();
+        if (next === 'email') return setupEmail();
+        if (next === 'drive') return setupDrive();
+        if (next === 'backup') return $('acct-drive-backup-btn').click();
+    });
+
     // ---------- معالج الإعداد بعد أول حفظ: الإيميل ← Drive ← استرجاع بيانات سابقة ----------
     // كل خطوة اختيارية ويمكن تخطيها، وتُستأنف لاحقًا من أقسام الصفحة نفسها.
     const setupCard = $('acct-setup-card');
@@ -413,7 +462,7 @@ export async function initAccountScreen() {
 
     function refresh() {
         if (!$('acct-screen')) return;   // خرج المعلم من الشاشة أثناء عملية طويلة
-        renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw();
+        renderProfile(); renderHealth(); renderProgress(); renderDrive(); renderLocal(); renderUndo(); renderHw();
     }
     refresh();
     if (AppState.acctOpenEdit) { AppState.acctOpenEdit = false; openEdit(); }   // جاء من شارة «أكمل بياناتك»
