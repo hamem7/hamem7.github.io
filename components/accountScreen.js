@@ -339,4 +339,5 @@ export async function initAccountScreen() {
         renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw();
     }
     refresh();
+    if (AppState.acctOpenEdit) { AppState.acctOpenEdit = false; openEdit(); }   // جاء من شارة «أكمل بياناتك»
 }

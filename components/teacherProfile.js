@@ -304,10 +304,16 @@ export function initTeacherProfileUI() {
     }
     function closeModal() { modal.style.display = 'none'; }
 
-    badge.addEventListener('click', openModal);
+    // ☁️ [2026-10-16] الصورة وشارة «أكمل بياناتك» تفتحان شاشة «حسابي» (مكان واحد للبيانات والنسخ) بدل هذه النافذة؛ الشارة تفتحها والتعديل مفتوح
+    const goAccount = async (openEdit) => {
+        const { openAccountScreen } = await import('../core/app.js');
+        AppState.acctOpenEdit = !!openEdit;
+        openAccountScreen();
+    };
+    badge.addEventListener('click', () => goAccount(true));
     // 🌟 [جديد] دائرة الصورة بجانب الترحيب تفتح نفس نافذة التعديل — وتبقى موجودة حتى
     // بعد اختفاء شارة "أكمل بياناتك" عند اكتمال البيانات
-    if (avatarBtn) avatarBtn.addEventListener('click', openModal);
+    if (avatarBtn) avatarBtn.addEventListener('click', () => goAccount(false));
     // 🌟 [جديد] زر "تعديل بياناتي" الواضح — يفتح نفس النافذة بالبيانات المسجّلة، والحفظ يحدّث سجل 'main' نفسه
     if (editBtn) editBtn.addEventListener('click', openModal);
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
