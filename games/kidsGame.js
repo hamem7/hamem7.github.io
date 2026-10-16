@@ -212,8 +212,8 @@ function initGameUI() {
     
     // 🌟 [جديد] نفس تأكيد الخروج المضاف في adultGame.js — تجنّب فقد تقييم الطفل كاملاً بضغطة
     // واحدة بالخطأ لو فيه إجابات مسجَّلة بالفعل. لو الجلسة لسه في أولها نخرج مباشرة بلا إزعاج
-    document.getElementById('btn-exit-game')?.addEventListener('click', () => {
-        if (GameState.reportDetails.length > 0 && !confirm(t('exit_game_confirm_msg'))) return;
+    document.getElementById('btn-exit-game')?.addEventListener('click', async () => {
+        if (GameState.reportDetails.length > 0 && !await hamConfirm(t('exit_game_confirm_msg'))) return;
         loadDashboardScreen();
     });
 
@@ -231,7 +231,7 @@ function initGameUI() {
             // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (نفس منطق adultGame.js): رسالة الاستبدال وحدها
             // لو سيُستبدل اختبار معلّق آخر، وإلا تأكيد الحفظ العادي
             const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
-            if (!confirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
+            if (!await hamConfirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
                 student.pausedEvaluation = buildPausedSnapshot(GameState, true);
@@ -261,9 +261,9 @@ function initGameUI() {
         openModal('error-modal'); 
     });
     
-    document.getElementById('btn-record-correct')?.addEventListener('click', () => {
+    document.getElementById('btn-record-correct')?.addEventListener('click', async () => {
         if(GameState.tempErrors.length > 0) {
-            let confirmClear = confirm(t("لقد سجّلت ملاحظات مسبقاً. هل تريد إلغاءها واعتبار الإجابة صحيحة؟"));
+            let confirmClear = await hamConfirm(t("لقد سجّلت ملاحظات مسبقاً. هل تريد إلغاءها واعتبار الإجابة صحيحة؟"));
             if(!confirmClear) return;
         }
         recordAnswer(true);

@@ -501,8 +501,8 @@ function openMemorizationTable(initialQueue) {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       resolve();
     }
-    function tryClose() {
-      if (!saving && rows.some(isDirty) && !confirm(t('mmt_unsaved_confirm'))) return;
+    async function tryClose() {
+      if (!saving && rows.some(isDirty) && !await hamConfirm(t('mmt_unsaved_confirm'))) return;
       close();
     }
     function onKey(e) { if (e.key === 'Escape') tryClose(); }

@@ -13,7 +13,7 @@ export function accountEmailText() {
 
 /** يُرجع true لو انتهى بجلسة جوجل صالحة بعد العملية، و false لو أُلغيت أو لم يكتمل الدخول. */
 export async function changeTeacherAccount() {
-    if (isTeacherAuthed() && !confirm(t('acct_change_confirm'))) return false;
+    if (isTeacherAuthed() && !await hamConfirm(t('acct_change_confirm'))) return false;
     signOutTeacher();
     const { ensureHomeworkSignIn } = await import('./teacherAuthGate.js');
     return await ensureHomeworkSignIn();

@@ -163,10 +163,10 @@ export function showPausedEvaluationPrompt(student, snapshot, opts = {}) {
         close();
         if (typeof opts.onResume === 'function') opts.onResume();
     });
-    overlay.querySelector('[data-act="discard"]').addEventListener('click', () => {
+    overlay.querySelector('[data-act="discard"]').addEventListener('click', async () => {
         // تأكيد قبل الحذف النهائي — الإلغاء يفقد إجابات الطالب في هذا الاختبار (تقرير هذه الجلسة فقط؛
         // أخطاؤه ونقاطه محفوظة أصلاً في سجله)
-        if (!confirm(t('paused_discard_confirm'))) return;
+        if (!await hamConfirm(t('paused_discard_confirm'))) return;
         close();
         if (typeof opts.onDiscard === 'function') opts.onDiscard();
     });

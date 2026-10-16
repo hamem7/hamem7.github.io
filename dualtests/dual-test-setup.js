@@ -816,7 +816,7 @@ async function saveCurrentTest(status) {
     // أو خارجة عن الميزان — المعلم هو من يقرر
     if (status === 'ready') {
         const flagged = allQuestionsOf(currentTest).filter(q => isAutoQ(q) && (!q.meta.approved || !isBalancedWords(q.meta.words, q.meta.target))).length;
-        if (flagged && !confirm(t('dts_gen_unapproved_confirm').replace('{n}', flagged))) return;
+        if (flagged && !await hamConfirm(t('dts_gen_unapproved_confirm').replace('{n}', flagged))) return;
     }
     currentTest.status = status;
     if (editingTestId) currentTest.id = editingTestId;
@@ -1037,7 +1037,7 @@ function wireStaticListeners() {
             const test = await AppState.dualTestsManager.getTestById(id);
             if (test) openEditor(test, id);
         } else if (action === 'delete') {
-            if (confirm(t('dts_delete_confirm'))) {
+            if (await hamConfirm(t('dts_delete_confirm'))) {
                 await AppState.dualTestsManager.deleteTest(id);
                 await renderTestsList();
             }
@@ -1080,7 +1080,7 @@ function wireStaticListeners() {
         const deleteBtn = e.target.closest('button[data-pending-delete-id]');
         if (deleteBtn) {
             const matchId = parseInt(deleteBtn.dataset.pendingDeleteId, 10);
-            if (!confirm(t('dts_pending_delete_confirm'))) return;
+            if (!await hamConfirm(t('dts_pending_delete_confirm'))) return;
             await AppState.dualTestsManager.deleteMatch(matchId);
             await renderPendingMatchesList(); // إعادة رسم النافذة بلا إغلاقها
             await renderTestsList();          // تحديث عدّاد "مواجهات معلقة" على صف الاختبار
@@ -1286,7 +1286,7 @@ function wireStaticListeners() {
                 const nextRound = Math.min(3, (Number.isInteger(existing.currentRoundIndex) ? existing.currentRoundIndex : roundsDone) + 1);
                 // موافق = استكمال المعلّقة، إلغاء = بدء مواجهة جديدة من الصفر (المعلّقة تبقى
                 // كما هي بلا حذف). النص نفسه يشرح الخيارين حرفياً حتى لا يلتبس معنى "إلغاء"
-                if (confirm(t('dts_pending_conflict_confirm').replace('{n}', nextRound))) {
+                if (await hamConfirm(t('dts_pending_conflict_confirm').replace('{n}', nextRound))) {
                     closeModal('dts-start-match-modal');
                     openDualTestPlayScreen(existing.id);
                     return;

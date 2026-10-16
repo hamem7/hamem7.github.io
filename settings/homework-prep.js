@@ -1161,11 +1161,11 @@ async function saveManualGrades(subIndex) {
         if (!localStudent) {
             const dupes = await findAmbiguousNameMatches(sub);
             if (dupes.length > 1) {
-                if (confirm(t('hw_ambiguous_student_confirm').replace('{name}', sub.studentName).replace('{n}', dupes.length))) localStudent = dupes[0];
+                if (await hamConfirm(t('hw_ambiguous_student_confirm').replace('{name}', sub.studentName).replace('{n}', dupes.length))) localStudent = dupes[0];
                 ambiguousHandled = true;
             }
         }
-        if (!localStudent && !ambiguousHandled && confirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
+        if (!localStudent && !ambiguousHandled && await hamConfirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
             localStudent = await createLocalStudent(sub.studentName);
         }
     } catch (err) {
@@ -1436,8 +1436,8 @@ function setupListeners() {
     document.getElementById('btn-save-hw-draft')?.addEventListener('click', () => saveHomeworkToDB('draft'));
 
     // إلغاء تنفيذ الواجب: تجاهل الأسئلة المولّدة وإخفاء قسم المراجعة دون حفظ
-    document.getElementById('btn-cancel-hw')?.addEventListener('click', () => {
-        if (!confirm(t('hw_cancel_confirm'))) return;
+    document.getElementById('btn-cancel-hw')?.addEventListener('click', async () => {
+        if (!await hamConfirm(t('hw_cancel_confirm'))) return;
         currentGeneratedQuestions = [];
         currentTracking = {};
         currentHwScope = null;

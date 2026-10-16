@@ -918,7 +918,7 @@ function setupAllStudentsListeners() {
                 // بـ"ملف غير صالح". الآن نوجّهه تلقائيًا لدالة الاسترجاع الشاملة نفسها بعد تأكيد صريح
                 // (لأنها تستبدل بيانات المنصة كلها لا تدمجها كما يفعل هذا الزر مع ملف السجل) 🌟
                 if (imported && !Array.isArray(imported) && imported.databases && typeof imported.databases === 'object') {
-                    if (confirm(t('profile_backup_restore_confirm'))) {
+                    if (await hamConfirm(t('profile_backup_restore_confirm'))) {
                         try {
                             await restoreFromBackupFile(file);
                             alert(t('profile_backup_restore_success'));
@@ -1595,7 +1595,7 @@ async function saveEditedStudentAction() {
 }
 
 async function deleteStudentAction(id) {
-    if(confirm(t("stu_delete_confirm"))) {
+    if(await hamConfirm(t("stu_delete_confirm"))) {
         // 🌟 [2026-10-13] مزامنة الأجهزة: لا نُرجع الطالب المحذوف من الخادم إلى هذا الجهاز (لا يحذفه من الأجهزة الأخرى)
         try {
             const all = await AppState.studentManager.getAllStudents();

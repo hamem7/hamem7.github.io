@@ -99,7 +99,7 @@ export async function openWeekSchedule({ onClose } = {}) {
             await render();
         }));
         body.querySelector('#ws-rebalance')?.addEventListener('click', async () => {
-            if (!confirm(L('سيُعاد توزيع كل الطلاب (عدا الموقوفين) توزيعاً متوازناً جديداً وتتغيّر أيامهم الحالية. متابعة؟', 'All students (except paused ones) will be redistributed in a new balanced way and their current days will change. Continue?'))) return;
+            if (!await hamConfirm(L('سيُعاد توزيع كل الطلاب (عدا الموقوفين) توزيعاً متوازناً جديداً وتتغيّر أيامهم الحالية. متابعة؟', 'All students (except paused ones) will be redistributed in a new balanced way and their current days will change. Continue?'))) return;
             await rebalanceAllStudents();
             await render();
         });

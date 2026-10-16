@@ -382,8 +382,8 @@ function initGameUI() {
     // الواحدة على "خروج وإنهاء" تُلغي كل التقييم الجاري فوراً بلا أي تحذير (بعكس الاختبار
     // الثنائي dual-test-play.js اللي عنده confirm() مشابه). لو الجلسة لسه في أولها (مفيش أي
     // سؤال اتسجّل له إجابة) نخرج مباشرة زي السابق تماماً بدون إزعاج المعلم بتأكيد لا داعي له
-    document.getElementById('btn-exit-game')?.addEventListener('click', () => {
-        if (GameState.reportDetails.length > 0 && !confirm(t('exit_game_confirm_msg'))) return;
+    document.getElementById('btn-exit-game')?.addEventListener('click', async () => {
+        if (GameState.reportDetails.length > 0 && !await hamConfirm(t('exit_game_confirm_msg'))) return;
         clearInterval(GameState.timerInterval);
         loadDashboardScreen();
     });
@@ -404,7 +404,7 @@ function initGameUI() {
             // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (تجنّباً للضغط بالخطأ). لو فيه اختبار معلّق آخر
             // سيُستبدل نعرض رسالة الاستبدال وحدها (هي أصلاً تأكيد) بدل نافذتين متتاليتين؛ وإلا نعرض تأكيد الحفظ
             const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
-            if (!confirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
+            if (!await hamConfirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
                 student.pausedEvaluation = buildPausedSnapshot(GameState, false);
@@ -430,9 +430,9 @@ function initGameUI() {
         openModal('error-modal'); 
     });
     
-    document.getElementById('btn-record-correct')?.addEventListener('click', () => {
+    document.getElementById('btn-record-correct')?.addEventListener('click', async () => {
         if(GameState.tempErrors.length > 0) {
-            let confirmClear = confirm(t("لقد سجّلت ملاحظات على هذا السؤال مسبقاً. هل أنت متأكد أنك تريد إلغاءها واعتبار الإجابة صحيحة تامة؟"));
+            let confirmClear = await hamConfirm(t("لقد سجّلت ملاحظات على هذا السؤال مسبقاً. هل أنت متأكد أنك تريد إلغاءها واعتبار الإجابة صحيحة تامة؟"));
             if(!confirmClear) return;
         }
         recordAnswer(true);
