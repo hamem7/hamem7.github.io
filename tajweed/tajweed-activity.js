@@ -131,8 +131,12 @@ async function buildQuestions() {
 function renderProgress() {
     const el = document.getElementById('tjwa-progress');
     if (!el) return;
-    if (questions.length === 0) { el.textContent = ''; return; }
-    el.textContent = `${t('tjw_question_label')} ${Math.min(qIndex + 1, questions.length)} / ${questions.length}`;
+    if (questions.length === 0) { el.innerHTML = ''; return; }
+    // 🌟 [إعادة تصميم] شريط تقدّم مرئي بدل نص فقط: يمتلئ بعدد الأسئلة المنجزة
+    const current = Math.min(qIndex + 1, questions.length);
+    const pct = Math.round((qIndex / questions.length) * 100);
+    el.innerHTML = `<div class="tjw-progress-bar"><span style="width:${pct}%;"></span></div>
+        <span class="tjw-progress-label">${t('tjw_question_label')} ${current} / ${questions.length}</span>`;
 }
 
 // ============================================================
@@ -345,6 +349,7 @@ async function handleActivityClick(e) {
         answerLocked = true;
         markChoiceButtons('[data-choose-rule]', 'data-choose-rule', q.correctRuleId, chooseBtn);
         await recordQuestionResult(q.ruleId, isCorrect);
+        showFeedback(q.ruleId, isCorrect);
         showNextButton();
         return;
     }
@@ -356,6 +361,7 @@ async function handleActivityClick(e) {
         answerLocked = true;
         markChoiceButtons('[data-discover-option]', 'data-discover-option', String(q.correctIndex), discoverBtn);
         await recordQuestionResult(q.ruleId, isCorrect);
+        showFeedback(q.ruleId, isCorrect);
         showNextButton();
         return;
     }
@@ -421,6 +427,21 @@ function markChoiceButtons(selector, attr, correctValue, clickedBtn) {
         if (val === correctValue) btn.classList.add('tjw-answer-correct');
         else if (btn === clickedBtn) btn.classList.add('tjw-answer-wrong');
     });
+}
+
+// 🌟 [إعادة تصميم] لوحة تفسير بعد كل إجابة: كانت الإجابة الخاطئة تتلوّن بالأحمر دون أي شرح،
+// فصار الطالب يرى اسم الحكم وتعريفه في الحالتين فيتعلّم من الخطأ لا يكتفي بمعرفته
+function showFeedback(ruleId, isCorrect) {
+    const flat = getAllRulesFlat().find(x => x.rule.id === ruleId);
+    if (!flat) return;
+    const container = document.getElementById('tjwa-container');
+    const card = container.querySelector('.tjw-activity-card') || container;
+    const box = document.createElement('div');
+    box.className = `tjw-feedback ${isCorrect ? 'is-good' : 'is-bad'}`;
+    box.innerHTML = `
+        <div class="tjw-feedback-title">${t(isCorrect ? 'tjw_feedback_correct' : 'tjw_feedback_wrong')}</div>
+        <div><span class="tjw-feedback-rule">${t('tjw_feedback_rule_label')} ${t(flat.rule.nameKey)}</span> — ${t(flat.rule.defKey)}</div>`;
+    card.appendChild(box);
 }
 
 function showNextButton() {
@@ -587,7 +608,7 @@ async function finishSession() {
 function renderResultScreen({ scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter }) {
     const container = document.getElementById('tjwa-container');
     const progressEl = document.getElementById('tjwa-progress');
-    if (progressEl) progressEl.textContent = '';
+    if (progressEl) progressEl.innerHTML = '';
 
     const badgesHTML = earnedBadges.length > 0 ? `
         <div class="tjw-earned-badges">
@@ -615,9 +636,13 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
         }
     }
 
+    const headlineKey = scorePercent >= 80 ? 'tjw_result_great' : scorePercent >= 50 ? 'tjw_result_good' : 'tjw_result_retry';
+    const ringColor = scorePercent >= 80 ? 'var(--tjw-good)' : scorePercent >= 50 ? 'var(--tjw-gold-deep)' : 'var(--tjw-accent)';
+
     container.innerHTML = `
         <div class="tjw-result-card">
-            <div class="tjw-result-score">${scorePercent}%</div>
+            <div class="tjw-result-ring" style="--p:${scorePercent}; --c:${ringColor};"><span class="tjw-result-score">${scorePercent}%</span></div>
+            <h2 class="tjw-result-headline">${t(headlineKey)}</h2>
             <p class="tjw-result-sub">${correctCount} / ${totalQuestions} ${t('tjw_correct_answers_unit')}</p>
             ${masteredNoteHTML}
             ${stageNoteHTML}

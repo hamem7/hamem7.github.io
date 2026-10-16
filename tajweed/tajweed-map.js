@@ -8,7 +8,7 @@
 // حاوية واحدة (#tjw-container) يُعاد رسم محتواها بالكامل حسب "الحالة" الحالية.
 import { AppState, loadSplashScreen, openTajweedActivityScreen, t } from '../core/app.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
-import { TAJWEED_STAGES, getTajweedStage, getTajweedRule } from '../engine/tajweedRulesCatalog.js';
+import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { computeAllStageProgress, isStageUnlocked, ruleOverallPercent, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
 import { getAyahForExample, highlightForTajweed } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
@@ -59,6 +59,9 @@ async function render() {
     const container = document.getElementById('tjw-container');
     const backBtn = document.getElementById('tjw-btn-level-back');
     if (backBtn) backBtn.style.display = navStack.length > 0 ? '' : 'none';
+    // 🌟 عبارة «اختر اسم الطالب…» تخصّ شاشة الاختيار فقط — تُخفى بعد اختيار الطالب حتى لا تضلّل
+    const subtitleEl = document.getElementById('tjw-subtitle');
+    if (subtitleEl) subtitleEl.style.display = currentView.view === 'pickStudent' ? '' : 'none';
     if (!container) return;
 
     container.innerHTML = `<div class="tjw-loading">${t('sim_loading')}</div>`;
@@ -297,6 +300,39 @@ async function renderBrowseHTML() {
             <button class="tjw-pill-btn" data-action="start-review">${t('tjw_start_review_btn')}</button>
         </div>` : '';
 
+    // 🌟 [إعادة تصميم] البطاقة الترحيبية: حلقة تقدّم كلية + زر «أكمل رحلتك» يفتح أول حكم غير متقن
+    // في أول مرحلة مفتوحة (نفس منطق syncStudentTajweedProgress)، فلا يضيع الطالب بين المراحل
+    const flat = getAllRulesFlat();
+    const totalRules = flat.length;
+    const masteredCount = flat.filter(({ rule }) => masteryByRule[rule.id] && masteryByRule[rule.id].status === 'mastered').length;
+    const overallPct = totalRules
+        ? Math.round(flat.reduce((sum, { rule }) => sum + (masteryByRule[rule.id] ? ruleOverallPercent(masteryByRule[rule.id].dimensions) : 0), 0) / totalRules)
+        : 0;
+    let continueTarget = null;
+    for (const { stageId, rule } of flat) {
+        if (!isStageUnlocked(stageId, stageProgress)) continue;
+        const m = masteryByRule[rule.id];
+        if (!m || m.status !== 'mastered') { continueTarget = { stageId, ruleId: rule.id }; break; }
+    }
+    const continueBtnHTML = continueTarget
+        ? `<div class="tjw-hero-cta"><button class="tjw-cta-btn" data-action="open-rule" data-stage="${continueTarget.stageId}" data-rule="${continueTarget.ruleId}">${t('tjw_continue_btn')}</button></div>`
+        : '';
+
+    const heroHTML = `
+        <div class="tjw-hero">
+            <div class="tjw-ring" style="--p:${overallPct};"><span class="tjw-ring-value">${overallPct}%</span></div>
+            <div class="tjw-hero-text">
+                <h2 class="tjw-hero-name">${escapeText(student ? student.name : '')}</h2>
+                <p class="tjw-hero-sub">${t('tjw_hero_progress').replace('{done}', masteredCount).replace('{total}', totalRules)}</p>
+                <div class="tjw-hero-actions">
+                    <button class="tjw-link-btn" data-action="open-leaderboard">🏆 ${t('tjw_leaderboard_title')}</button>
+                    <button class="tjw-link-btn" data-action="change-student">${t('tjw_change_student')}</button>
+                </div>
+            </div>
+            ${continueBtnHTML}
+        </div>`;
+
+    let activeMarked = false;
     const stagesHTML = TAJWEED_STAGES.map(stage => {
         const unlocked = isStageUnlocked(stage.id, stageProgress);
         const progress = stageProgress[stage.id] || { status: 'locked', percentComplete: 0 };
@@ -304,11 +340,11 @@ async function renderBrowseHTML() {
         if (!unlocked) {
             return `
                 <section class="tjw-stage-section tjw-stage-locked" style="--tjw-stage-color: var(${stage.colorVar});">
-                    <h2 class="tjw-stage-title">
-                        <span class="tjw-stage-icon">🔒</span>
-                        <span>${t(stage.nameKey)}</span>
-                    </h2>
-                    <p class="tjw-stage-locked-note">${t('tjw_stage_locked_note')}</p>
+                    <div class="tjw-stage-node is-locked">🔒</div>
+                    <div class="tjw-stage-card">
+                        <h2 class="tjw-stage-title"><span>${t(stage.nameKey)}</span></h2>
+                        <p class="tjw-stage-locked-note">${t('tjw_stage_locked_note')}</p>
+                    </div>
                 </section>`;
         }
 
@@ -335,34 +371,40 @@ async function renderBrowseHTML() {
             ? `<button class="tjw-outline-btn" data-action="start-link" data-stage="${stage.id}">🔗 ${t('tjw_link_activity_btn')}</button>`
             : '';
 
+        const done = progress.status === 'completed';
+        const isActive = !done && !activeMarked;
+        if (isActive) activeMarked = true;
+        const nodeClass = done ? 'is-done' : (isActive ? 'is-active' : '');
+
         return `
             <section class="tjw-stage-section" style="--tjw-stage-color: var(${stage.colorVar});">
-                <h2 class="tjw-stage-title">
-                    <span class="tjw-stage-icon">${stage.icon}</span>
-                    <span>${t(stage.nameKey)}</span>
-                    <span class="tjw-stage-percent">${progress.percentComplete}%</span>
-                </h2>
-                <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${progress.percentComplete}%; background: var(${stage.colorVar});"></div></div>
-                <div class="tjw-rule-tiles">${tilesHTML}</div>
-                <div class="tjw-stage-actions">
-                    ${linkBtnHTML}
-                    <button class="tjw-outline-btn" data-action="start-challenge" data-stage="${stage.id}" ${canChallenge ? '' : 'disabled'}>🏆 ${t('tjw_challenge_btn')}</button>
+                <div class="tjw-stage-node ${nodeClass}">${done ? '✓' : stage.icon}</div>
+                <div class="tjw-stage-card">
+                    <h2 class="tjw-stage-title">
+                        <span>${t(stage.nameKey)}</span>
+                        <span class="tjw-stage-percent">${progress.percentComplete}%</span>
+                    </h2>
+                    <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${progress.percentComplete}%; background: var(${stage.colorVar});"></div></div>
+                    <div class="tjw-rule-tiles">${tilesHTML}</div>
+                    <div class="tjw-stage-actions">
+                        ${linkBtnHTML}
+                        <button class="tjw-outline-btn" data-action="start-challenge" data-stage="${stage.id}" ${canChallenge ? '' : 'disabled'}>🏆 ${t('tjw_challenge_btn')}</button>
+                    </div>
                 </div>
             </section>`;
     }).join('');
 
     return `
         <div class="tjw-browse">
-            <div class="tjw-browse-header">
-                <span>${t('tjw_browsing_intro').replace('{name}', student ? student.name : '')}</span>
-                <div class="tjw-browse-header-actions">
-                    <button class="tjw-link-btn" data-action="open-leaderboard">🏆 ${t('tjw_leaderboard_title')}</button>
-                    <button class="tjw-link-btn" data-action="change-student">${t('tjw_change_student')}</button>
-                </div>
-            </div>
+            ${heroHTML}
             ${reviewBannerHTML}
             ${stagesHTML}
         </div>`;
+}
+
+// 🌟 تهريب نص يدخل من المستخدم (اسم الطالب) قبل حقنه في innerHTML
+function escapeText(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ============================================================
@@ -400,43 +442,74 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const pronouncesPct = mastery ? (mastery.dimensions.pronounces || 0) : 0;
     const awaitingCheckpoint = mastery && mastery.status !== 'mastered' && cognitivePct >= 80 && pronouncesPct < 80;
 
+    // 🌟 [إعادة تصميم] حروف الحكم كرقائق منفصلة؛ وإن كان النص وصفاً (مثل «كل الحروف عدا…») يُعرض رقاقة نصية واحدة
+    const letterTokens = rule.letters.split(/\s+/).filter(Boolean);
+    const lettersAreSingle = letterTokens.every(tok => tok.length <= 2);
+    const lettersHTML = lettersAreSingle
+        ? letterTokens.map(tok => `<span class="tjw-letter-chip">${tok}</span>`).join('')
+        : `<span class="tjw-letter-chip is-text">${rule.letters}</span>`;
+
+    // 🌟 حقلا النطق والخطأ الشائع كانا في الكتالوج بلا أي عرض للطالب — يُعرضان الآن في الدرس
+    const howtoHTML = rule.makhrajNote
+        ? `<div class="tjw-howto"><h3 class="tjw-section-title">${t('tjw_howto_title')}</h3><p>${t(rule.makhrajNote)}</p></div>` : '';
+    const cautionHTML = rule.commonMistakes
+        ? `<div class="tjw-caution"><h3 class="tjw-section-title">${t('tjw_caution_title')}</h3><p>${t(rule.commonMistakes)}</p></div>` : '';
+    const howtoGridHTML = (howtoHTML || cautionHTML) ? `<div class="tjw-howto-grid">${howtoHTML}${cautionHTML}</div>` : '';
+
+    const dimsHTML = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'].map(k => {
+        const v = mastery ? (mastery.dimensions[k] || 0) : 0;
+        return `<div class="tjw-dim"><span>${t('tjw_dim_' + k)}</span><span class="tjw-dim-track"><span class="tjw-dim-fill" style="width:${v}%;"></span></span><span class="tjw-dim-val">${v}%</span></div>`;
+    }).join('');
+
     return `
-        <div class="tjw-rule-card" style="--tjw-card-color: var(${stage.colorVar});">
-            <div class="tjw-rule-card-frame" aria-hidden="true"></div>
-            <div class="tjw-rule-card-eyebrow">${t(stage.nameKey)}</div>
-
-            <div class="tjw-rule-symbol">${renderRuleSymbol(stage, rule)}</div>
-
-            <h2 class="tjw-rule-card-name">${t(rule.nameKey)}</h2>
-            <p class="tjw-rule-card-def">${t(rule.defKey)}</p>
-            <div class="tjw-rule-letters">
-                <span class="tjw-rule-letters-label">${t('tjw_letters_label')}</span>
-                <span class="tjw-rule-letters-value">${rule.letters}</span>
-            </div>
-
-            <div class="tjw-example-box">
-                <div class="tjw-example-text">${ayahHTML}</div>
-                ${surahRefHTML}
-                <div class="tjw-example-note">${t('tjw_example_source_note')}</div>
-                ${audioBtnHTML}
-            </div>
-
-            <div class="tjw-notice-box">
-                <div class="tjw-notice-question">${t(rule.noticeKey)}</div>
-                <button class="tjw-pill-btn" data-tjw-reveal="1">${t('tjw_reveal_btn')}</button>
-                <div class="tjw-notice-answer">${t(rule.defKey)}</div>
-            </div>
-
-            <div class="tjw-mastery-box">
-                <div class="tjw-mastery-row">
-                    <span>${statusLabel}</span>
-                    <span>${pct}%</span>
+        <div class="tjw-lesson">
+          <article class="tjw-rule-card" style="--tjw-card-color: var(${stage.colorVar});">
+            <header class="tjw-lesson-hero">
+                <div class="tjw-rule-symbol">${renderRuleSymbol(stage, rule)}</div>
+                <div class="tjw-lesson-hero-text">
+                    <div class="tjw-rule-card-eyebrow">${t(stage.nameKey)}</div>
+                    <h2 class="tjw-rule-card-name">${t(rule.nameKey)}</h2>
+                    <p class="tjw-rule-card-def">${t(rule.defKey)}</p>
                 </div>
-                <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${pct}%; background: var(${stage.colorVar});"></div></div>
-                ${awaitingCheckpoint ? `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_checkpoint_note')}</p>` : ''}
-                <button class="tjw-cta-btn" data-action="start-practice" data-stage="${stageId}" data-rule="${ruleId}">🎯 ${t('tjw_start_practice_btn')}</button>
-                <button class="tjw-outline-btn" data-action="start-checkpoint" data-stage="${stageId}" data-rule="${ruleId}">🎤 ${t('tjw_start_checkpoint_btn')}</button>
+            </header>
+
+            <div class="tjw-lesson-body">
+                <section>
+                    <h3 class="tjw-section-title">${t('tjw_letters_label')}</h3>
+                    <div class="tjw-letter-chips">${lettersHTML}</div>
+                </section>
+
+                <section class="tjw-example-box">
+                    <div class="tjw-example-text">${ayahHTML}</div>
+                    ${surahRefHTML}
+                    <div class="tjw-example-note">${t('tjw_example_source_note')}</div>
+                    ${audioBtnHTML}
+                </section>
+
+                <section class="tjw-notice-box">
+                    <div class="tjw-notice-question">${t(rule.noticeKey)}</div>
+                    <button class="tjw-pill-btn" data-tjw-reveal="1">${t('tjw_reveal_btn')}</button>
+                    <div class="tjw-notice-answer">${t(rule.defKey)}</div>
+                </section>
+
+                ${howtoGridHTML}
+
+                <section class="tjw-mastery-box">
+                    <div class="tjw-mastery-row">
+                        <span>${statusLabel}</span>
+                        <span>${pct}%</span>
+                    </div>
+                    <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${pct}%; background: var(${stage.colorVar});"></div></div>
+                    <h3 class="tjw-section-title">${t('tjw_dims_title')}</h3>
+                    <div class="tjw-dims">${dimsHTML}</div>
+                    ${awaitingCheckpoint ? `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_checkpoint_note')}</p>` : ''}
+                    <div class="tjw-lesson-actions">
+                        <button class="tjw-cta-btn" data-action="start-practice" data-stage="${stageId}" data-rule="${ruleId}">🎯 ${t('tjw_start_practice_btn')}</button>
+                        <button class="tjw-outline-btn" data-action="start-checkpoint" data-stage="${stageId}" data-rule="${ruleId}">🎤 ${t('tjw_start_checkpoint_btn')}</button>
+                    </div>
+                </section>
             </div>
+          </article>
         </div>`;
 }
 
