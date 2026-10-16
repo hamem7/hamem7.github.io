@@ -138,8 +138,8 @@ export async function initAccountScreen() {
         refresh();
     });
     $('acct-drive-auto').addEventListener('change', () => drive.setDriveAuto($('acct-drive-auto').checked));
-    $('acct-drive-disconnect').addEventListener('click', () => {
-        if (!confirm(t('drive_disconnect_confirm'))) return;
+    $('acct-drive-disconnect').addEventListener('click', async () => {
+        if (!await hamConfirm(t('drive_disconnect_confirm'))) return;
         drive.disconnectDrive();
         $('acct-drive-picker').style.display = 'none';
         refresh();
@@ -209,7 +209,7 @@ export async function initAccountScreen() {
     });
     $('acct-local-undo-btn').addEventListener('click', async () => {
         const btn = $('acct-local-undo-btn');
-        if (!confirm(t('profile_backup_undo_confirm').replace('{date}', btn.dataset.when || ''))) return;
+        if (!await hamConfirm(t('profile_backup_undo_confirm').replace('{date}', btn.dataset.when || ''))) return;
         btn.disabled = true;
         try { await restoreFromSafetySnapshot(); alert(t('profile_backup_undo_success')); location.reload(); }
         catch (e) { console.error('تعذر التراجع عن الاستعادة:', e); alert(t('profile_backup_restore_error')); btn.disabled = false; }
@@ -228,7 +228,7 @@ export async function initAccountScreen() {
             alert(t(restoreErrKey(e, true)));
             return false;
         }
-        if (!confirm(msg)) return false;
+        if (!await hamConfirm(msg)) return false;
         try {
             await restoreFromBackupFile(file);
             alert(t('profile_backup_restore_success'));
@@ -270,8 +270,8 @@ export async function initAccountScreen() {
         await changeTeacherAccount();
         refresh();
     });
-    $('acct-hw-signout-btn').addEventListener('click', () => {
-        if (!confirm(t('acct_signout_confirm'))) return;
+    $('acct-hw-signout-btn').addEventListener('click', async () => {
+        if (!await hamConfirm(t('acct_signout_confirm'))) return;
         signOutTeacher();
         refresh();
     });

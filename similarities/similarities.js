@@ -316,7 +316,7 @@ async function handleContainerClick(e) {
     else if (action === 'delete-group') {
         const group = allSimilarities.find(r => r.groupId === btn.dataset.group);
         if (!group || group.source !== 'manual') return;
-        if (!window.confirm(t('sim_form_delete_confirm'))) return;
+        if (!await hamConfirm(t('sim_form_delete_confirm'))) return;
         await AppState.similaritiesManager.deleteGroup(group.id);
         allSimilarities = await AppState.similaritiesManager.getAllSimilarities();
         render();
@@ -337,7 +337,7 @@ async function handleContainerClick(e) {
         goBackLevel();
     } else if (action === 'form-delete') {
         if (!formState || !formState.editDbId) return;
-        if (!window.confirm(t('sim_form_delete_confirm'))) return;
+        if (!await hamConfirm(t('sim_form_delete_confirm'))) return;
         await AppState.similaritiesManager.deleteGroup(formState.editDbId);
         allSimilarities = await AppState.similaritiesManager.getAllSimilarities();
         formState = null;

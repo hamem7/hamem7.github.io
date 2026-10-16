@@ -234,10 +234,10 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
     };
     const hwEngine = AppState.quranEngine ? new HomeworkEngine(AppState.quranEngine) : null;
 
-    const close = () => {
+    const close = async () => {
         if (busy) return toast(L('انتظر حتى تنتهي العملية الجارية.', 'Please wait for the current operation to finish.'));
         const pending = rows.filter(r => r.state === 'ready').length;
-        if (pending && !confirm(L(`هناك ${pending} واجباً مجهَّزاً لم يُنشر بعد، وسيضيع عند الإغلاق. إغلاق؟`, `${pending} prepared homework(s) are not published and will be lost. Close anyway?`))) return;
+        if (pending && !await hamConfirm(L(`هناك ${pending} واجباً مجهَّزاً لم يُنشر بعد، وسيضيع عند الإغلاق. إغلاق؟`, `${pending} prepared homework(s) are not published and will be lost. Close anyway?`))) return;
         closed = true; document.removeEventListener('keydown', onKey); if (!asPage) ov.remove(); if (onClose) onClose();
     };
     const onKey = (e) => { if (e.key === 'Escape') close(); };

@@ -84,14 +84,14 @@ export async function initDualTestPlay() {
     test = await AppState.dualTestsManager.getTestById(match.testId);
     if (!test) { alert(t('تعذر العثور على الاختبار المرتبط بهذه المواجهة.')); loadSplashScreen(); return; }
 
-    document.getElementById('dtp-back-btn')?.addEventListener('click', () => {
+    document.getElementById('dtp-back-btn')?.addEventListener('click', async () => {
         // 🌟 [عدّل] النص القديم كان يقول إن العودة "تُنهي الجلسة دون حفظ الجولة الجارية" —
         // كان صحيحاً وقت كتابته، لكنه أصبح غير دقيق بعد إضافة الحفظ التلقائي الدوري
         // (persistInProgressRound أعلى الملف): تقدّم الجولة حتى آخر سؤال مُعتمَد محفوظ فعلاً،
         // فقط السؤال المفتوح حالياً (لو لم يُعتمد بعد) هو ما قد يُفقَد. عدّلنا النص ليعكس هذا
         // بدقة بدل تخويف المعلم من فقد جولة كاملة لم تعد تُفقَد. (نص هذا التأكيد تحديداً كان
         // أصلاً بلا مفتاح i18n قبل هذا التعديل — أبقيناه بنفس النمط الحالي دون توسيع النطاق)
-        if (confirm(t('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟'))) {
+        if (await hamConfirm(t('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟'))) {
             loadSplashScreen();
         }
     });
@@ -435,8 +435,8 @@ function renderBoardView() {
         });
     });
 
-    document.getElementById('dtp-end-round-btn').onclick = () => {
-        if (confirm(t('إنهاء الجولة الآن يدوياً؟ الأسئلة المتبقية على اللوحة تبقى بلا إجابة.'))) {
+    document.getElementById('dtp-end-round-btn').onclick = async () => {
+        if (await hamConfirm(t('إنهاء الجولة الآن يدوياً؟ الأسئلة المتبقية على اللوحة تبقى بلا إجابة.'))) {
             finishRound();
         }
     };

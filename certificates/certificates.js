@@ -898,7 +898,7 @@ export async function openCertificatesHub(opts = {}) {
         const rec = history.find(r => String(r.id) === row.dataset.id);
         if (!rec) return;
         if (btn.dataset.act === 'del') {
-            if (!confirm(t('cc_confirm_delete'))) return;
+            if (!await hamConfirm(t('cc_confirm_delete'))) return;
             try { await deleteCertificate(rec.id); } catch (err) { console.error(err); }
             await loadHistory();
             return;
@@ -1004,7 +1004,7 @@ export async function openCertificatesHub(opts = {}) {
         const rec = reports.find(r => String(r.id) === row.dataset.id);
         if (!rec) return;
         if (btn.dataset.act === 'del') {
-            if (!confirm(t('cc_rep_confirm_delete'))) return;
+            if (!await hamConfirm(t('cc_rep_confirm_delete'))) return;
             try { await deleteArchivedReport(rec.id); } catch (err) { console.error(err); }
             await loadReports();
             return;
