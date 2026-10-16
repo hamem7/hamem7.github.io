@@ -330,6 +330,11 @@
                         <!-- 🌟 ترحيب شخصي متغيّر حسب الوقت + اسم المعلم (إن وُجد) — يُملأ ديناميكياً
                              من components/teacherProfile.js -->
                         <div class="home-greeting" id="home-greeting" aria-live="polite"></div>
+                        <!-- 🗓️ [2026-10-16] نسخة التاريخ داخل بطاقة الحساب (سطح المكتب فقط — تُخفى على الجوال، ويُحدّثها updateHomeDateBar في core/app.js مع شريط التاريخ الأصلي) -->
+                        <div class="home-date-card" aria-hidden="true">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                            <span id="home-date-card-text"></span>
+                        </div>
                         <!-- 🌟 [مخفي 2026-10-16] زر تعديل بيانات المعلم — دُمج في «حسابي والنسخ»؛ يبقى في الـDOM لأن accountScreen.js وteacherProfile.js يفتحان به نافذة البيانات — يفتح نفس نافذة البيانات الشخصية (تحديث السجل
                              الموجود 'main' لا إنشاء سجل جديد) -->
                         <button type="button" class="teacher-profile-edit-btn" id="teacher-profile-edit-btn" hidden>

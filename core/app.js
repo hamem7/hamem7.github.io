@@ -600,7 +600,10 @@ function updateHomeDateBar() {
         const hijriText = /(هـ|AH)\s*$/.test(hijriDate) ? hijriDate : `${hijriDate} ${hijriSuffix}`;
 
         // 🌟 [2026-10-01 — بطلب المعلم] الهجري أولاً ثم الميلادي (كان الترتيب معكوساً)
-        textEl.textContent = `${weekday} • ${hijriText} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''}`;
+        const full = `${weekday} • ${hijriText} • ${gregDate}${gregSuffix ? ' ' + gregSuffix : ''}`;
+        textEl.textContent = full;
+        const cardEl = document.getElementById('home-date-card-text');
+        if (cardEl) cardEl.textContent = full;
     } catch (e) {
         console.warn("تعذر حساب التاريخ الهجري في هذا المتصفح:", e);
         bar.style.display = 'none';
