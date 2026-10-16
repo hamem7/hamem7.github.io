@@ -44,6 +44,14 @@ function collectBackupLocalStorage() {
 
 const LAST_BACKUP_STORAGE_KEY = 'dh_last_backup_at';
 
+// 🛟 [جديد — الاستعادة الآمنة] لقطة أمان تُحفظ تلقائياً قبل أي استعادة (والتراجع عنها)، في قاعدة مستقلة لا تدخل
+// أبداً في النسخ الاحتياطي ولا تُمسح بالاستعادة. نحتفظ بآخر 3 لقطات فقط. اللقطة تستثني القاعدتين القابلتين لإعادة التحميل
+// (نص القرآن وصوت الأطفال) لتبقى صغيرة؛ والاستعادة منها لا تلمسهما لأنهما غائبتان عن حمولتها.
+const SAFETY_DB_NAME = 'DarHamSafety';
+const SAFETY_STORE = 'snapshots';
+const SAFETY_KEEP = 3;
+const SAFETY_SKIP_DBS = ['DarHamDatabase', 'DarHamKidsAudio'];
+
 // 🌟 خط رجوع لو تعذّر سرد قواعد البيانات تلقائياً (راجع listAllDatabaseNames أدناه) —
 // قائمة يدوية بكل أسماء قواعد بيانات المنصة الحالية (راجع كل ملف database/*.js). أي قاعدة
 // بيانات جديدة تُضاف للمشروع مستقبلاً يجب إضافة اسمها هنا أيضاً حتى تبقى مشمولة في هذا
@@ -75,7 +83,7 @@ async function listAllDatabaseNames() {
     if (typeof indexedDB.databases === 'function') {
         try {
             const list = await indexedDB.databases();
-            const names = (list || []).map(d => d.name).filter(Boolean);
+            const names = (list || []).map(d => d.name).filter(Boolean).filter(n => n !== SAFETY_DB_NAME);
             if (names.length > 0) return names;
         } catch (e) {
             console.warn('تعذر سرد قواعد بيانات المنصة تلقائياً، سيُستخدم الخط الاحتياطي الثابت:', e);
@@ -159,8 +167,8 @@ function deserializeRecordFromBackup(record) {
 // 🌟 يبني كائن النسخة الاحتياطية الكامل (كل قاعدة بيانات ← كل مخزن ← كل سجلاتها) بلا كتابته
 // كملف بعد — مفصولة عن exportFullBackup() أدناه حتى يسهل اختبارها/استخدامها مستقبلاً
 // (مثلاً لعرض حجم تقديري قبل التنزيل) دون تكرار منطق القراءة نفسه.
-export async function buildBackupPayload() {
-    const dbNames = await listAllDatabaseNames();
+export async function buildBackupPayload({ skipDbs = [] } = {}) {
+    const dbNames = (await listAllDatabaseNames()).filter(n => !skipDbs.includes(n));
     const databases = {};
 
     for (const dbName of dbNames) {
@@ -226,13 +234,67 @@ export function getLastBackupAt() {
     return localStorage.getItem(LAST_BACKUP_STORAGE_KEY);
 }
 
-// 🌟 استرجاع نسخة احتياطية من ملف اختاره المعلم — يرمي استثناءً بنص واضح (INVALID_JSON أو
-// INVALID_FORMAT) لو الملف تالف أو ليس نسخة احتياطية من دار حمٓ أصلاً، تتولى الواجهة ترجمته
-// لرسالة مناسبة للمعلم. كل مخزن يُفرَّغ بالكامل (store.clear()) قبل إعادة إدراج سجلات
-// النسخة الاحتياطية فيه — استرجاع مطابق تماماً للحظة أخذ النسخة، بلا سجلات "يتيمة" قديمة
-// متبقية من قبل الاسترجاع. مخزن موجود في ملف النسخة الاحتياطية لكن غير موجود في هذا الإصدار
-// من الكود الحالي يُتخطّى بأمان (توافق خلفي/أمامي، بنفس فلسفة المشروع في عدم كسر أي شيء).
-export async function restoreFromBackupFile(file) {
+// ---------- لقطة الأمان ----------
+function openSafetyDb() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(SAFETY_DB_NAME, 1);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(SAFETY_STORE)) db.createObjectStore(SAFETY_STORE, { keyPath: 'id', autoIncrement: true });
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+}
+function idbTx(db, mode, fn) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(SAFETY_STORE, mode);
+        let out;
+        try { out = fn(tx.objectStore(SAFETY_STORE)); } catch (e) { reject(e); return; }
+        tx.oncomplete = () => resolve(out && 'result' in out ? out.result : out);
+        tx.onerror = (e) => reject(e.target.error);
+        tx.onabort = (e) => reject(e.target.error || new Error('tx aborted'));
+    });
+}
+
+/** يحفظ لقطة من الوضع الحالي ويُبقي آخر SAFETY_KEEP فقط. يرمي خطأ لو تعذّر الحفظ (فتُلغى الاستعادة). */
+export async function saveSafetySnapshot(reason = 'restore') {
+    const payload = await buildBackupPayload({ skipDbs: SAFETY_SKIP_DBS });
+    payload.meta.kind = 'safety';
+    const db = await openSafetyDb();
+    try {
+        await idbTx(db, 'readwrite', (store) => {
+            store.add({ createdAt: new Date().toISOString(), reason, payload: JSON.stringify(payload) });
+        });
+        const keys = await idbTx(db, 'readonly', (store) => store.getAllKeys());
+        const extra = (keys || []).sort((a, b) => a - b).slice(0, Math.max(0, keys.length - SAFETY_KEEP));
+        if (extra.length) await idbTx(db, 'readwrite', (store) => { extra.forEach(k => store.delete(k)); });
+    } finally { db.close(); }
+}
+
+async function readLatestSafety() {
+    if (typeof indexedDB.databases === 'function') {
+        try {
+            const list = await indexedDB.databases();
+            if (!(list || []).some(d => d.name === SAFETY_DB_NAME)) return null;   // لا ننشئ القاعدة فارغة بلا داعٍ
+        } catch (e) { /* نكمل بالمحاولة العادية */ }
+    }
+    const db = await openSafetyDb();
+    try {
+        const all = await idbTx(db, 'readonly', (store) => store.getAll());
+        const rows = (all || []).sort((a, b) => a.id - b.id);
+        return rows.length ? rows[rows.length - 1] : null;
+    } finally { db.close(); }
+}
+
+/** { createdAt } لآخر لقطة أمان، أو null لو لا توجد (لإظهار زر «التراجع عن آخر استعادة»). */
+export async function getSafetySnapshotInfo() {
+    try { const r = await readLatestSafety(); return r ? { createdAt: r.createdAt } : null; }
+    catch (e) { return null; }
+}
+
+// ---------- قراءة النسخة والتحقق منها (بلا أي تعديل للبيانات) ----------
+async function parseBackupFile(file) {
     const text = await file.text();
     let payload;
     try {
@@ -248,12 +310,46 @@ export async function restoreFromBackupFile(file) {
     if (!payload || typeof payload !== 'object' || !payload.databases || typeof payload.databases !== 'object') {
         throw new Error('INVALID_FORMAT');
     }
+    return payload;
+}
 
+function countStudentsIn(payload) {
+    const st = payload && payload.databases && payload.databases.DarHamStudents &&
+        payload.databases.DarHamStudents.stores && payload.databases.DarHamStudents.stores.students;
+    return Array.isArray(st) ? st.length : 0;
+}
+
+async function countCurrentStudents() {
+    try {
+        const db = await openDbByName('DarHamStudents');
+        try {
+            if (!db.objectStoreNames.contains('students')) return 0;
+            return (await getAllFromStore(db, 'students')).length;
+        } finally { db.close(); }
+    } catch (e) { return 0; }
+}
+
+/** معلومات للعرض قبل التأكيد: تاريخ النسخة وعدد الطلاب فيها مقابل الحاليين. يرمي نفس أخطاء الاسترجاع للملف غير الصالح. */
+export async function inspectBackupFile(file) {
+    const payload = await parseBackupFile(file);
+    return {
+        exportedAt: (payload.meta && payload.meta.exportedAt) || null,
+        studentsInBackup: countStudentsIn(payload),
+        studentsNow: await countCurrentStudents()
+    };
+}
+
+// ---------- تطبيق حمولة على الجهاز ----------
+// كل مخزن موجود في الحمولة يُفرَّغ ثم تُدرَج سجلاتها (استرجاع مطابق للحمولة)؛ لذلك لا يُستدعى إلا بعد لقطة أمان.
+// مخزن موجود في الحمولة لكن غير موجود في هذا الإصدار من الكود يُتخطّى بأمان (توافق خلفي/أمامي).
+async function applyPayload(payload) {
     let restoredStores = 0;
     let restoredRecords = 0;
     let skippedStores = 0;
+    let failedStores = 0;
 
     for (const [dbName, dbPayload] of Object.entries(payload.databases)) {
+        if (dbName === SAFETY_DB_NAME) continue;   // لقطات الأمان لا تُستبدل أبداً بمحتوى ملف
         let db;
         try {
             db = await openDbByName(dbName);
@@ -292,10 +388,12 @@ export async function restoreFromBackupFile(file) {
                     });
                     tx.oncomplete = () => resolve();
                     tx.onerror = (e) => reject(e.target.error);
+                    tx.onabort = (e) => reject(e.target.error || new Error('tx aborted'));   // مثلاً امتلاء التخزين: يُعدّ فشلاً فيُرجَع الوضع السابق
                 });
                 restoredStores++;
                 restoredRecords += (records || []).length;
             } catch (e) {
+                failedStores++;
                 console.warn(`تعذر استرجاع المخزن "${storeName}" من "${dbName}":`, e);
             }
         }
@@ -313,5 +411,37 @@ export async function restoreFromBackupFile(file) {
         }
     }
 
-    return { restoredStores, restoredRecords, skippedStores, restoredLocalKeys };
+    return { restoredStores, restoredRecords, skippedStores, failedStores, restoredLocalKeys };
+}
+
+/**
+ * استرجاع نسخة احتياطية من ملف اختاره المعلم — آمن: (1) يتحقق من الملف قبل أي تعديل، (2) يحفظ لقطة أمان من الوضع الحالي
+ * (وإن تعذّر حفظها تُلغى الاستعادة ولا يُمسّ شيء: SAFETY_SNAPSHOT_FAILED)، (3) يطبّق، وإن فشل أي مخزن يُرجع الوضع السابق
+ * تلقائياً من اللقطة (RESTORE_FAILED_ROLLED_BACK). يمكن للمعلم لاحقاً التراجع يدوياً عبر restoreFromSafetySnapshot().
+ * أخطاء ملف غير صالح: INVALID_JSON / INVALID_FORMAT / STUDENTS_ONLY_BACKUP.
+ */
+export async function restoreFromBackupFile(file) {
+    const payload = await parseBackupFile(file);
+    try { await saveSafetySnapshot('before-restore'); }
+    catch (e) { console.error('تعذر حفظ لقطة الأمان، أُلغيت الاستعادة:', e); throw new Error('SAFETY_SNAPSHOT_FAILED'); }
+
+    const result = await applyPayload(payload);
+    if (result.failedStores > 0) {
+        try {
+            const snap = await readLatestSafety();
+            if (snap) await applyPayload(JSON.parse(snap.payload));
+        } catch (e) { console.error('تعذر الرجوع للوضع السابق بعد فشل الاستعادة:', e); }
+        throw new Error('RESTORE_FAILED_ROLLED_BACK');
+    }
+    return result;
+}
+
+/** التراجع عن آخر استعادة: يعيد الوضع الذي كان قبلها. يحفظ قبل ذلك لقطة جديدة من الوضع الحالي (فيمكن التراجع عن التراجع). */
+export async function restoreFromSafetySnapshot() {
+    const snap = await readLatestSafety();
+    if (!snap) throw new Error('NO_SAFETY_SNAPSHOT');
+    const payload = JSON.parse(snap.payload);
+    try { await saveSafetySnapshot('before-undo'); }
+    catch (e) { throw new Error('SAFETY_SNAPSHOT_FAILED'); }
+    return applyPayload(payload);
 }

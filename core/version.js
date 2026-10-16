@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.28';
+export const APP_VERSION = '1.0.29';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-16] الاستعادة الآمنة للنسخة الاحتياطية
+    {
+        version: '1.0.29',
+        date: '2026-10-16',
+        items: [
+            {
+                type: 'improved',
+                ar: 'استرجاع النسخة الاحتياطية صار آمناً: تُحفظ تلقائياً لقطة من بياناتك الحالية قبل الاستعادة، ويظهر لك تاريخ النسخة وعدد طلابها مقابل الحاليين قبل التأكيد، وإن فشلت الاستعادة تعود بياناتك لوضعها السابق. وزر جديد «التراجع عن آخر استعادة» في نافذة ملف المعلم.',
+                en: 'Restoring a backup is now safe: a snapshot of your current data is saved automatically first, you see the backup date and student count versus your current ones before confirming, and a failed restore returns your data to its previous state. New "Undo last restore" button in the teacher profile window.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-15] زر كتم المؤثرات الصوتية في شاشتي الألعاب
     {
         version: '1.0.28',

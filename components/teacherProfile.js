@@ -9,7 +9,7 @@ import { t } from '../core/i18n.js';
 // 🌟 [جديد] نظام "النسخة الاحتياطية المحلية" — راجع core/backupRestore.js للآلية الكاملة
 // وشرح الافتراضات. الأزرار الفعلية أُضيفت داخل نافذة ملف المعلم (splash.html) لعدم وجود
 // شاشة "إعدادات" عامة مستقلة بعد في المشروع
-import { exportFullBackup, restoreFromBackupFile, getLastBackupAt } from '../core/backupRestore.js';
+import { exportFullBackup, restoreFromBackupFile, getLastBackupAt, inspectBackupFile, getSafetySnapshotInfo, restoreFromSafetySnapshot } from '../core/backupRestore.js';
 // 🌟 [جديد 2026-10-06] حساب جوجل: عرض الإيميل الحالي + «تغيير الإيميل» دائماً + تسجيل الخروج
 import { getTeacherEmail, isTeacherAuthed, signOutTeacher } from '../core/api.js';
 
@@ -239,6 +239,7 @@ export function initTeacherProfileUI() {
     const backupBtn = document.getElementById('teacher-profile-backup-btn');
     const restoreBtn = document.getElementById('teacher-profile-restore-btn');
     const restoreInput = document.getElementById('teacher-profile-restore-input');
+    const undoRestoreBtn = document.getElementById('teacher-profile-undo-restore-btn');
     // 🌟 [جديد 2026-10-13] مزامنة سجل الطلاب بين الأجهزة — راجع core/cloudSync.js (تُحمَّل عند الحاجة فقط)
     const syncInfoEl = document.getElementById('teacher-sync-info');
     const syncBtn = document.getElementById('teacher-sync-btn');
@@ -247,6 +248,12 @@ export function initTeacherProfileUI() {
 
     let pendingPhoto = null;
     let pendingStamp = null;
+
+    function fmtDateTime(iso) {
+        return new Intl.DateTimeFormat(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US', {
+            day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit'
+        }).format(new Date(iso));
+    }
 
     // 🌟 [جديد] تحديث نص "آخر نسخة احتياطية" — يُستدعى عند فتح النافذة وبعد كل تنزيل ناجح
     function renderBackupLastInfo() {
@@ -263,6 +270,18 @@ export function initTeacherProfileUI() {
             backupLastInfoEl.textContent = `${t('profile_backup_last_prefix')}${formatted}`;
         } catch (e) {
             backupLastInfoEl.textContent = `${t('profile_backup_last_prefix')}${lastAt}`;
+        }
+    }
+
+    // 🛟 زر «التراجع عن آخر استعادة» يظهر فقط لو توجد لقطة أمان (تُحفظ تلقائياً قبل كل استعادة)
+    async function renderUndoRestore() {
+        if (!undoRestoreBtn) return;
+        const info = await getSafetySnapshotInfo();
+        undoRestoreBtn.style.display = info ? '' : 'none';
+        if (info) {
+            let when = info.createdAt;
+            try { when = fmtDateTime(info.createdAt); } catch (e) { /* نعرض الخام */ }
+            undoRestoreBtn.dataset.when = when;
         }
     }
 
@@ -377,6 +396,7 @@ export function initTeacherProfileUI() {
         pendingStamp = profile.stamp || null;
         renderStampPreview();
         renderBackupLastInfo();
+        renderUndoRestore();
         renderSyncInfo();
         modal.style.display = 'flex';
     }
@@ -497,9 +517,25 @@ export function initTeacherProfileUI() {
             restoreInput.value = '';
             if (!file) return;
 
-            // ⚠️ إجراء غير قابل للتراجع (يستبدل كل بيانات المنصة الحالية على هذا الجهاز) —
-            // تأكيد صريح إجباري قبل المتابعة، بنفس فلسفة أي إجراء حذف خطير آخر بالمنصة
-            if (!confirm(t('profile_backup_restore_confirm'))) return;
+            // 🛟 نقرأ الملف أولاً (بلا أي تعديل) لنعرض للمعلم تاريخ النسخة وعدد الطلاب فيها مقابل الحاليين،
+            // ثم نطلب التأكيد. الاستعادة نفسها تحفظ لقطة أمان تلقائياً قبل أي تغيير (يمكن التراجع عنها).
+            let confirmMsg = t('profile_backup_restore_confirm');
+            try {
+                const info = await inspectBackupFile(file);
+                let when = info.exportedAt || '—';
+                try { if (info.exportedAt) when = fmtDateTime(info.exportedAt); } catch (e2) { /* نعرض الخام */ }
+                confirmMsg = t('profile_backup_restore_confirm_detail')
+                    .replace('{date}', when)
+                    .replace('{backupStudents}', info.studentsInBackup)
+                    .replace('{nowStudents}', info.studentsNow);
+            } catch (e) {
+                const k = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
+                    : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
+                    : 'profile_backup_restore_error';
+                alert(t(k));
+                return;
+            }
+            if (!confirm(confirmMsg)) return;
 
             try {
                 await restoreFromBackupFile(file);
@@ -510,10 +546,29 @@ export function initTeacherProfileUI() {
                 location.reload();
             } catch (e) {
                 console.error('تعذر استرجاع النسخة الاحتياطية:', e);
-                const msgKey = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only' : (e && e.message === 'INVALID_JSON') || (e && e.message === 'INVALID_FORMAT')
-                    ? 'profile_backup_restore_invalid_file'
+                const msgKey = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
+                    : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
+                    : (e && e.message === 'SAFETY_SNAPSHOT_FAILED') ? 'profile_backup_restore_no_safety'
+                    : (e && e.message === 'RESTORE_FAILED_ROLLED_BACK') ? 'profile_backup_restore_rolled_back'
                     : 'profile_backup_restore_error';
                 alert(t(msgKey));
+            }
+        });
+    }
+
+    // 🛟 «التراجع عن آخر استعادة»: يعيد الوضع الذي كان قبلها (اللقطة التلقائية)
+    if (undoRestoreBtn) {
+        undoRestoreBtn.addEventListener('click', async () => {
+            if (!confirm(t('profile_backup_undo_confirm').replace('{date}', undoRestoreBtn.dataset.when || ''))) return;
+            undoRestoreBtn.disabled = true;
+            try {
+                await restoreFromSafetySnapshot();
+                alert(t('profile_backup_undo_success'));
+                location.reload();
+            } catch (e) {
+                console.error('تعذر التراجع عن الاستعادة:', e);
+                alert(t('profile_backup_restore_error'));
+                undoRestoreBtn.disabled = false;
             }
         });
     }
