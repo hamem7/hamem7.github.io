@@ -122,9 +122,24 @@
             <div class="ac-field"><span data-i18n="profile_dob_label">تاريخ الميلاد:</span>
                 <div class="ac-dob"><select id="acct-edit-dob-day"></select><select id="acct-edit-dob-month"></select><select id="acct-edit-dob-year"></select></div>
             </div>
+            <div class="ac-field"><span data-i18n="acct_edit_email_label">الإيميل (حساب Google):</span>
+                <div class="ac-kv" style="margin:0;"><span class="ac-v" id="acct-edit-email"></span><button type="button" class="ac-btn ghost" id="acct-edit-email-btn"></button></div>
+                <p class="ac-muted" style="margin-top:6px;" data-i18n="acct_edit_email_why">نربط إيميلك بالواجبات (لتصل إليها من أي جهاز) وبنسخ Google Drive الاحتياطية (لتسترجع بيانات طلابك لو تغيّر جهازك). لا نرسل إليك شيئًا ولا نقرأ أي ملفات أخرى.</p>
+            </div>
             <div class="ac-acts">
                 <button type="button" class="ac-btn" id="acct-edit-save" data-i18n="profile_save_btn">حفظ</button>
                 <button type="button" class="ac-btn ghost" id="acct-edit-cancel" data-i18n="profile_close_btn">إغلاق</button>
+            </div>
+        </section>
+
+        <!-- 🧭 معالج الإعداد بعد أول حفظ للبيانات: الإيميل ← Drive ← استرجاع بيانات سابقة (يُدار من accountScreen.js) -->
+        <section class="ac-card" id="acct-setup-card" hidden>
+            <h3 id="acct-setup-title"></h3>
+            <p class="ac-muted" id="acct-setup-text" style="white-space:pre-line;"></p>
+            <div class="ac-acts">
+                <button type="button" class="ac-btn" id="acct-setup-primary"></button>
+                <button type="button" class="ac-btn ghost" id="acct-setup-alt" hidden></button>
+                <button type="button" class="ac-btn link" id="acct-setup-skip"></button>
             </div>
         </section>
 

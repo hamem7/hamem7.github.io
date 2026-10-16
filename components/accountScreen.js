@@ -37,6 +37,8 @@ export async function initAccountScreen() {
     if (!$('acct-screen')) return;
     const drive = await import('../core/driveBackup.js');
 
+    const card = $('acct-edit-card');
+    const profileEmpty = () => { const p = AppState.currentTeacher || {}; return !(p.name || p.photo || p.dob || p.stamp); };
     // ---------- الملخص ----------
     function renderProfile() {
         const p = AppState.currentTeacher || {};
@@ -47,9 +49,18 @@ export async function initAccountScreen() {
         ph.textContent = '';
         if (p.photo) { const img = document.createElement('img'); img.src = p.photo; img.alt = ''; ph.appendChild(img); }
         else ph.textContent = '👤';
+        // أول دخول (لا اسم ولا صورة ولا ميلاد ولا ختم): «إضافة بياناتي» بدل «تعديل بياناتي»
+        const key = profileEmpty() ? 'acct_page_add_btn' : 'acct_page_edit_btn';
+        const eb = $('acct-edit-btn'); eb.dataset.i18n = key; eb.textContent = t(key);
+        const tk = profileEmpty() ? 'acct_edit_add_title' : 'profile_modal_title';
+        const th = card.querySelector('h3'); th.dataset.i18n = tk; th.textContent = t(tk);
+    }
+    function renderEditEmail() {
+        const mail = getTeacherEmail();
+        $('acct-edit-email').textContent = mail || t('acct_edit_email_none');
+        $('acct-edit-email-btn').textContent = t(mail ? 'acct_edit_email_change_btn' : 'acct_edit_email_link_btn');
     }
     // ---------- تعديل البيانات داخل نفس الشاشة (بدل نافذة الرئيسية) ----------
-    const card = $('acct-edit-card');
     const dayEl = $('acct-edit-dob-day'), monEl = $('acct-edit-dob-month'), yearEl = $('acct-edit-dob-year');
     let pendingPhoto = null, pendingStamp = null;
     const fillSel = (sel, key, from, to, desc) => {
@@ -80,6 +91,7 @@ export async function initAccountScreen() {
         if (m) { yearEl.value = String(+m[1]); monEl.value = String(+m[2]); dayEl.value = String(+m[3]); }
         pendingPhoto = p.photo || null; $('acct-edit-photo').src = p.photo || 'icons/icon-192.png';
         pendingStamp = p.stamp || null; renderStamp();
+        renderEditEmail();
         card.hidden = false;
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         $('acct-edit-name').focus({ preventScroll: true });
@@ -87,6 +99,11 @@ export async function initAccountScreen() {
     const closeEdit = () => { card.hidden = true; };
     $('acct-edit-btn').addEventListener('click', () => { if (card.hidden) openEdit(); else closeEdit(); });
     $('acct-edit-cancel').addEventListener('click', closeEdit);
+    $('acct-edit-email-btn').addEventListener('click', async () => {
+        const { changeTeacherAccount } = await import('./teacherAccount.js');
+        await changeTeacherAccount();
+        renderEditEmail(); refresh();
+    });
     const pickImage = (zoneId, inputId, apply) => {
         $(zoneId).addEventListener('click', () => $(inputId).click());
         $(inputId).addEventListener('change', async () => {
@@ -100,6 +117,7 @@ export async function initAccountScreen() {
     pickImage('acct-edit-stamp-zone', 'acct-edit-stamp-input', async (f) => { pendingStamp = await resizeImageToDataUrl(f, 420, 0.9, 'image/png'); renderStamp(); });
     $('acct-edit-save').addEventListener('click', async () => {
         const btn = $('acct-edit-save'); btn.disabled = true;
+        const wasFirstTime = profileEmpty();
         try {
             const saved = await AppState.teacherManager.saveProfile({
                 name: $('acct-edit-name').value.trim(),
@@ -113,6 +131,7 @@ export async function initAccountScreen() {
             renderProfile();
             closeEdit();
             document.dispatchEvent(new CustomEvent('dh:backup-health'));   // يحدّث أيقونة الحساب في الترويسة (الصورة/الحرف الأول)
+            if (wasFirstTime) startSetup();   // أول مرة: الإيميل ← Drive ← استرجاع بيانات سابقة
         } catch (e) { console.error('تعذر حفظ بيانات المعلم:', e); alert(t('profile_backup_restore_error')); }
         finally { btn.disabled = false; }
     });
@@ -334,6 +353,64 @@ export async function initAccountScreen() {
         signOutTeacher();
         refresh();
     });
+    // ---------- معالج الإعداد بعد أول حفظ: الإيميل ← Drive ← استرجاع بيانات سابقة ----------
+    // كل خطوة اختيارية ويمكن تخطيها، وتُستأنف لاحقًا من أقسام الصفحة نفسها.
+    const setupCard = $('acct-setup-card');
+    let setupList = [];
+    function setupShow(title, text, primary, onPrimary, alt, onAlt, skipLabel, onSkip) {
+        $('acct-setup-title').textContent = title;
+        $('acct-setup-text').textContent = text;
+        const set = (id, label, fn) => { const b = $(id); b.hidden = !label; b.textContent = label || ''; b.onclick = fn || null; };
+        set('acct-setup-primary', primary, async () => { const b = $('acct-setup-primary'); b.disabled = true; try { await onPrimary(); } finally { b.disabled = false; } });
+        set('acct-setup-alt', alt, onAlt);
+        set('acct-setup-skip', skipLabel, onSkip);
+        setupCard.hidden = false;
+        setupCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    const setupEnd = () => { setupCard.hidden = true; refresh(); };
+    function setupDone() {
+        setupShow(t('acct_setup_done_title'), t('acct_setup_done_text'), t('acct_setup_done_btn'), setupEnd, null, null, null, null);
+    }
+    function startSetup() {
+        if (!isTeacherAuthed()) return setupEmail();
+        if (!drive.isDriveEnabled()) return setupDrive();
+        return setupRestore(false);
+    }
+    function setupEmail() {
+        setupShow(t('acct_setup_email_title'), t('acct_setup_email_text'), t('acct_setup_email_btn'), async () => {
+            const { ensureHomeworkSignIn } = await import('./teacherAuthGate.js');
+            if (await ensureHomeworkSignIn()) { refresh(); setupDrive(); }
+        }, null, null, t('acct_setup_skip'), setupEnd);
+    }
+    function setupDrive() {
+        const text = t('acct_setup_drive_text').replace('{email}', getTeacherEmail() || drive.getDriveAccountEmail() || '');
+        setupShow(t('acct_setup_drive_title'), text, t('acct_setup_drive_btn'), async () => {
+            try { setupList = await drive.listBackupsForRestore(); }
+            catch (e) { alert(t(driveErrKey(e))); return; }
+            refresh();
+            setupRestore(true);
+        }, null, null, t('acct_setup_skip'), setupEnd);
+    }
+    // list جاهزة (من خطوة Drive) أو تُجلب الآن لو Drive كان مفعّلاً مسبقًا
+    async function setupRestore(haveList) {
+        if (!haveList) { try { setupList = await drive.listBackupsForRestore(); } catch (e) { setupList = []; } }
+        const pickFile = () => { setupEnd(); $('acct-local-restore-input').click(); };
+        if (!setupList.length) {
+            return setupShow(t('acct_setup_restore_title'), t('acct_setup_restore_none'), t('acct_setup_restore_file_btn'), pickFile, null, null, t('acct_setup_restore_skip'), setupDone);
+        }
+        const newest = setupList[0];
+        let when = newest.createdTime; try { when = fmtDateTime(newest.createdTime); } catch (e) { /* خام */ }
+        const n = newest.appProperties && newest.appProperties.students;
+        const text = t('acct_setup_restore_found').replace('{n}', setupList.length).replace('{when}', when)
+            .replace('{students}', n ? ' — ' + t('drive_students_n').replace('{n}', n) : '');
+        setupShow(t('acct_setup_restore_title'), text, t('acct_setup_restore_btn'), async () => {
+            try {
+                const file = await drive.downloadBackupAsFile(newest.id, newest.name);
+                if (await confirmAndRestore(file)) return;   // نجح الاسترجاع → إعادة تحميل
+            } catch (e) { console.error('تعذر تنزيل نسخة Drive:', e); alert(t(driveErrKey(e))); }
+        }, t('acct_setup_restore_file_btn'), pickFile, t('acct_setup_restore_skip'), setupDone);
+    }
+
     function refresh() {
         if (!$('acct-screen')) return;   // خرج المعلم من الشاشة أثناء عملية طويلة
         renderProfile(); renderHealth(); renderDrive(); renderLocal(); renderUndo(); renderHw();
