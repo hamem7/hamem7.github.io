@@ -30,7 +30,7 @@ function relDays(iso) {
 const driveErrKey = (r) => ({
     ACCESS_DENIED: 'drive_err_denied', SCOPE_NOT_GRANTED: 'drive_err_scope', QUOTA: 'drive_err_quota',
     NETWORK: 'drive_err_network', GIS_UNAVAILABLE: 'drive_err_network', AUTH_REQUIRED: 'drive_err_auth',
-    VERIFY_FAILED: 'drive_err_verify'
+    VERIFY_FAILED: 'drive_err_verify', POPUP_STALLED: 'drive_err_popup', POPUP_BLOCKED: 'drive_err_popup'
 })[r && r.code] || 'drive_err_generic';
 
 export async function initAccountScreen() {

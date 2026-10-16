@@ -102,20 +102,32 @@ async function getToken({ interactive, selectAccount = false, loginHint }) {
     const oauth2 = await waitForGis();
     const hint = loginHint || (selectAccount ? undefined : preferredHint());
     const token = await new Promise((resolve, reject) => {
+        // على الجوال قد تُفتح نافذة جوجل بيضاء أو تُغلق دون أن يستدعي GIS أي رد، فيبقى الزر معلّقاً «جارٍ النسخ…» للأبد.
+        // نحمي ذلك: مهلة عامة للنافذة التفاعلية + مهلة قصيرة بعد عودة المعلم إلى الصفحة دون رد.
+        let settled = false, timers = [];
+        const cleanup = () => { settled = true; timers.forEach(clearTimeout); document.removeEventListener('visibilitychange', onBack); window.removeEventListener('focus', onBack); };
+        const done = (fn, v) => { if (settled) return; cleanup(); fn(v); };
+        const fail = (code, msg) => done(reject, new DriveError(code, msg));
+        function onBack() { if (document.visibilityState === 'hidden') return; timers.push(setTimeout(() => fail('POPUP_STALLED', 'no response after returning to page'), 7000)); }
+        if (interactive) {
+            timers.push(setTimeout(() => fail('POPUP_STALLED', 'sign-in timed out'), 120000));
+            document.addEventListener('visibilitychange', onBack);
+            window.addEventListener('focus', onBack);
+        }
         tokenClient = oauth2.initTokenClient({
             client_id: DRIVE_CLIENT_ID,
             scope: SCOPE,
             prompt: interactive ? (selectAccount ? 'select_account' : '') : 'none',
             ...(hint ? { login_hint: hint } : {}),
             callback: (resp) => {
-                if (!resp || resp.error) return reject(new DriveError(resp && resp.error === 'access_denied' ? 'ACCESS_DENIED' : 'AUTH_REQUIRED', resp && resp.error));
-                if (!oauth2.hasGrantedAllScopes(resp, SCOPE)) return reject(new DriveError('SCOPE_NOT_GRANTED'));
+                if (!resp || resp.error) return fail(resp && resp.error === 'access_denied' ? 'ACCESS_DENIED' : 'AUTH_REQUIRED', resp && resp.error);
+                if (!oauth2.hasGrantedAllScopes(resp, SCOPE)) return fail('SCOPE_NOT_GRANTED');
                 tokenState = { token: resp.access_token, exp: Date.now() + (Number(resp.expires_in) || 3000) * 1000 };
                 lsDel(LS_NEEDS_RECONNECT);
                 lsSet(LS_ENABLED, '1');   // موافقة المعلم = ربط Drive (يشمل جهازاً جديداً فارغاً يريد الاسترجاع فقط)
-                resolve(tokenState.token);
+                done(resolve, tokenState.token);
             },
-            error_callback: (err) => reject(new DriveError(err && err.type === 'popup_closed' ? 'ACCESS_DENIED' : 'AUTH_REQUIRED', err && err.type))
+            error_callback: (err) => fail(err && err.type === 'popup_closed' ? 'ACCESS_DENIED' : (err && err.type === 'popup_failed_to_open' ? 'POPUP_BLOCKED' : 'AUTH_REQUIRED'), err && err.type)
         });
         tokenClient.requestAccessToken();
     });
