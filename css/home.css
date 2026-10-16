@@ -1576,3 +1576,12 @@ h1.home-title .home-title-ha {
     flex: 1 1 0;
     min-width: 0;
 }
+
+/* ==========================================================================
+   [2026-10-16] دمج «تعديل بياناتي» في «حسابي والنسخ»: زر واحد في سطر تحت الصورة والترحيب.
+   زر التعديل القديم يبقى مخفياً في الـDOM (يُنقر برمجياً من شاشة الحساب).
+   ========================================================================== */
+.home-greeting-row { flex-wrap: wrap; }
+.home-greeting-row #teacher-profile-edit-btn { display: none; }
+.home-greeting-row .home-greeting-break { order: 4; flex: 0 0 100%; height: 0; }
+.home-greeting-row .home-account-btn { order: 5; }

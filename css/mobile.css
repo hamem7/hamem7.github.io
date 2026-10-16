@@ -267,7 +267,8 @@
        سبب خروجه عن الشاشة في الإنجليزية: الصف عنصر flex بقيمة min-width:auto الافتراضية فلا ينكمش تحت مجموع عروض أبنائه (nowrap)،
        والتحية بأساس flex-basis:auto = عرض نصها كاملاً. الحل: min-width:0 للصف + أساس 0 للتحية فتأخذ المساحة المتبقية فقط،
        ويلتفّ نصها لسطر ثانٍ عند الحاجة (لا قصّ ولا إخفاء) */
-    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; min-width: 0; flex-wrap: nowrap; justify-content: space-between; align-items: center; gap: 6px; margin: 0 0 2px; }
+    body.dh-home-screen .home-hero-text .home-greeting-row { order: 1; flex: 0 0 100%; min-width: 0; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; margin: 0 0 2px; }
+    body.dh-home-screen .home-greeting-row .home-account-btn { margin-inline-end: auto; }
     body.dh-home-screen .teacher-avatar-btn { width: 34px; height: 34px; flex: none; }
     body.dh-home-screen .home-hero-text .home-greeting { min-width: 0; flex: 1 1 0; font-size: .9rem; line-height: 1.35; text-align: start; white-space: normal; overflow-wrap: anywhere; }
     body.dh-home-screen .teacher-profile-edit-btn { flex: none; padding: 5px 10px; font-size: .74rem; white-space: nowrap; min-height: 30px; }
