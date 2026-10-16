@@ -62,7 +62,7 @@ export async function initAccountScreen() {
     const renderStamp = () => {
         const img = $('acct-edit-stamp'), lbl = $('acct-edit-stamp-zone').querySelector('span');
         img.hidden = !pendingStamp; if (pendingStamp) img.src = pendingStamp;
-        lbl.textContent = pendingStamp ? '' : t('profile_stamp_label');
+        lbl.textContent = pendingStamp ? '' : t('acct_edit_stamp_empty');
     };
     const readDob = () => {
         const y = parseInt(yearEl.value, 10), mo = parseInt(monEl.value, 10), d = parseInt(dayEl.value, 10);

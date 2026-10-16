@@ -53,8 +53,12 @@
     #app-root #acct-screen details.ac-fold[open] summary::after { content: "▴"; }
     #app-root #acct-screen details.ac-fold .ac-in { padding: 0 18px 16px; border-top: 1px solid #e3ebe6; }
     #app-root #acct-screen .ac-edit[hidden] { display: none; }
-    #app-root #acct-screen .ac-edit-media { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
-    #app-root #acct-screen .ac-zone { width: 96px; height: 96px; border-radius: 16px; border: 2px dashed #d4af37; background: #fffdf6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; overflow: hidden; padding: 0; font: inherit; color: #4a6058; }
+    #app-root #acct-screen .ac-edit-media { display: flex; flex-direction: column; gap: 14px; margin-bottom: 14px; }
+    #app-root #acct-screen .ac-media-item { display: flex; gap: 14px; align-items: center; }
+    #app-root #acct-screen .ac-media-cap { flex: 1; min-width: 0; }
+    #app-root #acct-screen .ac-media-cap b { display: block; font-size: .95rem; color: #10241c; }
+    #app-root #acct-screen .ac-media-cap span { display: block; font-size: .82rem; color: #4a6058; margin-top: 2px; line-height: 1.6; }
+    #app-root #acct-screen .ac-zone { width: 96px; height: 96px; flex: none; border-radius: 16px; border: 2px dashed #d4af37; background: #fffdf6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; overflow: hidden; padding: 0; font: inherit; color: #4a6058; }
     #app-root #acct-screen .ac-zone:hover { background: #fbf3d5; }
     #app-root #acct-screen .ac-zone img { width: 100%; height: 60px; object-fit: contain; }
     #app-root #acct-screen .ac-zone.round { border-radius: 50%; }
@@ -100,8 +104,14 @@
         <section class="ac-card ac-edit" id="acct-edit-card" hidden>
             <h3 data-i18n="profile_modal_title">بياناتك الشخصية</h3>
             <div class="ac-edit-media">
-                <button type="button" class="ac-zone round" id="acct-edit-photo-zone" aria-label="الصورة الشخصية"><img id="acct-edit-photo" src="icons/icon-192.png" alt=""></button>
-                <button type="button" class="ac-zone" id="acct-edit-stamp-zone"><img id="acct-edit-stamp" src="" alt="" hidden><span data-i18n="profile_stamp_label">الختم (اختياري)</span></button>
+                <div class="ac-media-item">
+                    <button type="button" class="ac-zone round" id="acct-edit-photo-zone" aria-label="الصورة الشخصية"><img id="acct-edit-photo" src="icons/icon-192.png" alt=""></button>
+                    <div class="ac-media-cap"><b data-i18n="acct_edit_photo_title">الصورة الشخصية</b><span data-i18n="acct_edit_photo_hint">تظهر بجانب الترحيب في الرئيسية وفي أيقونة حسابك. اضغط لاختيار صورة.</span></div>
+                </div>
+                <div class="ac-media-item">
+                    <button type="button" class="ac-zone" id="acct-edit-stamp-zone" aria-label="الختم"><img id="acct-edit-stamp" src="" alt="" hidden><span data-i18n="acct_edit_stamp_empty">+ أضف الختم</span></button>
+                    <div class="ac-media-cap"><b data-i18n="acct_edit_stamp_title">صورة ختمك الشخصي (اختياري)</b><span data-i18n="acct_edit_stamp_hint">تُوضع في أسفل التقارير التي تُصدرها كختم/توقيع للمعلم. يُفضَّل صورة شفافة الخلفية (PNG).</span></div>
+                </div>
             </div>
             <input type="file" id="acct-edit-photo-input" accept="image/*" hidden>
             <input type="file" id="acct-edit-stamp-input" accept="image/*" hidden>
