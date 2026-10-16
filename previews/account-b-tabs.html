@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ب) — حسابي: تبويبات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --card:#fff; --red:#dc2626; --red-soft:#fef2f2; --amber:#b45309; --amber-soft:#fffbeb;
+  --r:16px; --sh:0 6px 24px rgba(6,35,28,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.65;min-height:100vh;padding-bottom:60px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+.demo{background:#fff;border-bottom:1px dashed var(--line);padding:8px 0;font-size:.82rem;color:var(--ink2)}
+.demo .wrap{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.demo b{color:var(--ink)}
+.demo button{border:1px solid var(--line);border-radius:99px;padding:3px 12px;background:var(--bg);font-size:.8rem;font-weight:600}
+.demo button.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{max-width:1100px;display:flex;align-items:center;gap:12px;padding-block:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
+.top h1{font-size:1.05rem}.top small{display:block;font-size:.78rem;opacity:.85}
+.sp{flex:1}
+.home{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:6px 16px;font-weight:600;font-size:.9rem;background:rgba(255,255,255,.12)}
+.avatar{position:relative;width:42px;height:42px;border-radius:50%;background:#fff;color:var(--g7);display:grid;place-items:center;font-weight:700;border:2px solid var(--gold)}
+.avatar .dot{position:absolute;top:-2px;inset-inline-start:-2px;width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid var(--g7);display:none}
+body[data-health="warn"] .avatar .dot,body[data-health="bad"] .avatar .dot{display:block}
+body[data-health="warn"] .avatar .dot{background:#f59e0b}
+
+h2.page{font-size:1.4rem;margin:22px 0 12px}
+
+/* رأس مدمج: بيانات + شريط حالة */
+.head{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.prof{display:flex;gap:14px;align-items:center;padding:16px 18px}
+.photo{width:56px;height:56px;border-radius:50%;background:var(--g1);display:grid;place-items:center;font-size:1.5rem;border:2px solid var(--gold)}
+.prof b{font-size:1.08rem}.muted{color:var(--ink2);font-size:.88rem}
+.strip{padding:10px 18px;font-size:.9rem;font-weight:600;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid}
+.strip .sp{flex:1}
+body[data-health="ok"] .strip{background:var(--g0);border-color:#b8dfcd;color:var(--g8)}
+body[data-health="warn"] .strip{background:var(--amber-soft);border-color:#f3d28a;color:var(--amber)}
+body[data-health="bad"] .strip{background:var(--red-soft);border-color:#f5b4b4;color:#991b1b}
+.only-ok,.only-warn,.only-bad{display:none}
+body[data-health="ok"] .only-ok,body[data-health="warn"] .only-warn,body[data-health="bad"] .only-bad{display:inline}
+.cta-show{display:none}
+body[data-health="warn"] .cta-show,body[data-health="bad"] .cta-show{display:inline-block}
+
+/* تبويبات */
+.tabs{display:flex;gap:4px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:14px;box-shadow:var(--sh)}
+.tab{flex:1;padding:10px 8px;border-radius:10px;font-weight:700;font-size:.92rem;color:var(--ink2);text-align:center}
+.tab.on{background:var(--g7);color:#fff}
+.pane{display:none}.pane.on{display:block}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);margin-bottom:14px}
+.card h3{font-size:1.05rem;margin-bottom:8px}
+.btn{background:var(--g7);color:#fff;border-radius:12px;padding:9px 18px;font-weight:700;font-size:.92rem}
+.btn:hover{background:var(--g8)}
+.btn.sec{background:var(--g1);color:var(--g7)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.link{background:none;color:var(--ink2);text-decoration:underline;font-weight:600;padding:6px 4px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.kv{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.kv:last-of-type{border:0}
+.kv .v{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{border-radius:99px;padding:1px 10px;font-size:.76rem;font-weight:700;background:var(--g1);color:var(--g7)}
+.chip.off{background:#eef0ef;color:var(--ink2)}
+.switch{display:flex;gap:10px;align-items:center;padding:10px 0}
+.switch input{width:20px;height:20px;accent-color:var(--g7)}
+.drive-off,.drive-on{display:none}
+body[data-drive="on"] .drive-on{display:block}
+body[data-drive="off"] .drive-off{display:block}
+
+/* قائمة النسخ */
+.list{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;font-size:.88rem;border-bottom:1px solid var(--line)}
+.li:last-child{border:0}
+.li:nth-child(odd){background:var(--g0)}
+.li .btn{padding:4px 12px;font-size:.8rem}
+
+@media(max-width:560px){
+  .home{display:none}
+  .acts .btn{flex:1 1 100%;text-align:center}
+  .kv{flex-direction:column;align-items:flex-start;gap:4px}
+  .tab{font-size:.82rem;padding:9px 4px}
+}
+</style>
+</head>
+<body data-health="ok" data-drive="on">
+<div class="note">🎨 معاينة تصميم فقط (ب — تبويبات) — بيانات تجريبية، لا ترتبط بالمنصة ولا بحسابك</div>
+<div class="demo"><div class="wrap">
+  <span><b>للمعاينة فقط — الحالة:</b></span>
+  <button class="on" data-h="ok">محمية</button><button data-h="warn">تحتاج نسخة</button><button data-h="bad">لا توجد نسخة</button>
+  <span><b>Drive:</b></span>
+  <button class="on" data-d="on">مربوط</button><button data-d="off">غير مربوط</button>
+</div></div>
+
+<header class="top"><div class="wrap">
+  <div class="logo">حمٓ</div>
+  <div><h1>رحلة إتقان القرآن</h1><small>منصة حمٓ</small></div>
+  <div class="sp"></div>
+  <button class="home">الرئيسية</button>
+  <div class="avatar" title="حسابي">م<span class="dot"></span></div>
+</div></header>
+
+<main class="wrap">
+  <h2 class="page">حسابي</h2>
+
+  <section class="head">
+    <div class="prof"><div class="photo">👤</div>
+      <div style="flex:1"><b>الشيخ محمد</b><div class="muted">elmayah.27@gmail.com</div></div>
+      <button class="btn ghost">✏️ تعديل</button></div>
+    <div class="strip">
+      <span class="only-ok">✅ بياناتك محمية — آخر نسخة اليوم 9:30 ص</span>
+      <span class="only-warn">⚠️ آخر نسخة قبل 12 يوماً</span>
+      <span class="only-bad">🚨 لا توجد أي نسخة احتياطية بعد</span>
+      <span class="sp"></span>
+      <button class="btn cta-show">☁️ انسخ الآن</button>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-t="drive">☁️ Google Drive</button>
+    <button class="tab" data-t="local">💾 على جهازي</button>
+    <button class="tab" data-t="acct">🔄 الحساب والأجهزة</button>
+  </nav>
+
+  <section class="pane on" id="p-drive">
+    <div class="card drive-off">
+      <h3>ربط Google Drive</h3>
+      <p class="muted">تُحفظ النسخة في مساحة مخفية خاصة بالمنصة داخل حسابك على Google، ولا يراها أحد غيرك. تعمل على الهاتف والحاسوب، وتحميك من الفورمات وضياع الجهاز.</p>
+      <div class="acts"><button class="btn">☁️ ربط Google Drive وأخذ نسخة</button><button class="btn sec">⬇️ استرجاع من Drive</button></div>
+    </div>
+    <div class="drive-on">
+      <div class="card">
+        <h3>الحساب والنسخ</h3>
+        <div class="kv"><span>الحساب المرتبط</span><span class="v">elmayah.27@gmail.com <button class="btn link">تغيير الحساب</button></span></div>
+        <div class="kv"><span>آخر نسخة</span><span class="v">اليوم 9:30 ص <span class="chip">تم التحقق ✓</span></span></div>
+        <label class="switch"><input type="checkbox" checked> <span>نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span></label>
+        <div class="acts"><button class="btn">☁️ انسخ الآن</button><button class="btn link">فصل Drive</button></div>
+      </div>
+      <div class="card">
+        <h3>النسخ المحفوظة على Drive <span class="chip off">9 نسخ</span></h3>
+        <div class="list">
+          <div class="li"><span>اليوم 9:30 ص — 24 طالباً</span><button class="btn sec">استرجاع</button></div>
+          <div class="li"><span>أمس 9:12 ص — 24 طالباً</span><button class="btn sec">استرجاع</button></div>
+          <div class="li"><span>13 أكتوبر — 23 طالباً</span><button class="btn sec">استرجاع</button></div>
+          <div class="li"><span>12 أكتوبر — 23 طالباً</span><button class="btn sec">استرجاع</button></div>
+        </div>
+        <p class="muted" style="margin-top:8px">تُحذف النسخ القديمة تلقائياً وفق سياسة واضحة، ولا يُحذف شيء قبل نجاح النسخة الجديدة.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-local">
+    <div class="card">
+      <h3>نسخة على جهازي</h3>
+      <p class="muted">ملف تحفظه أنت في أي مكان تريده (غير قرص C مثلاً). آخر ملف: قبل 3 أيام.</p>
+      <div class="acts"><button class="btn">⬇️ تنزيل نسخة احتياطية</button><button class="btn sec">⬆️ استرجاع من ملف</button></div>
+    </div>
+    <div class="card">
+      <h3>الاستعادة الآمنة</h3>
+      <p class="muted">قبل أي استعادة تُحفظ لقطة من وضعك الحالي تلقائياً، فتستطيع الرجوع.</p>
+      <div class="acts"><button class="btn ghost">↩️ التراجع عن آخر استعادة <span class="muted">(لقطة 12 أكتوبر 3:10 م)</span></button></div>
+    </div>
+  </section>
+
+  <section class="pane" id="p-acct">
+    <div class="card">
+      <h3>حساب Google للواجبات</h3>
+      <div class="kv"><span>الحساب</span><span class="v">elmayah.27@gmail.com <button class="btn link">تغيير</button></span></div>
+    </div>
+    <div class="card">
+      <h3>مزامنة سجل الطلاب بين أجهزتك</h3>
+      <div class="kv"><span>الحالة</span><span class="v"><span class="chip">مفعّلة</span> آخر مزامنة: قبل ساعتين</span></div>
+      <div class="acts"><button class="btn sec">🔄 زامن الآن</button></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const b=document.body;
+document.querySelectorAll('[data-h]').forEach(x=>x.onclick=()=>{b.dataset.health=x.dataset.h;document.querySelectorAll('[data-h]').forEach(y=>y.classList.toggle('on',y===x))});
+document.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{b.dataset.drive=x.dataset.d;document.querySelectorAll('[data-d]').forEach(y=>y.classList.toggle('on',y===x))});
+document.querySelectorAll('.tab').forEach(x=>x.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(y=>y.classList.toggle('on',y===x));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+x.dataset.t));
+});
+</script>
+</body>
+</html>

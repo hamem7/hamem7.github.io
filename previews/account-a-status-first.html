@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — حسابي: الحالة أولاً</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a3d2f; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#4a6058; --line:#e3ebe6;
+  --bg:#f6f8f6; --card:#fff; --red:#dc2626; --red-soft:#fef2f2; --amber:#b45309; --amber-soft:#fffbeb;
+  --r:16px; --sh:0 6px 24px rgba(6,35,28,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.65;min-height:100vh;padding-bottom:60px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+.demo{background:#fff;border-bottom:1px dashed var(--line);padding:8px 0;font-size:.82rem;color:var(--ink2)}
+.demo .wrap{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.demo b{color:var(--ink)}
+.demo button{border:1px solid var(--line);border-radius:99px;padding:3px 12px;background:var(--bg);font-size:.8rem;font-weight:600}
+.demo button.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+
+/* ترويسة المنصة */
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{max-width:1100px;display:flex;align-items:center;gap:12px;padding-block:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
+.top h1{font-size:1.05rem}.top small{display:block;font-size:.78rem;opacity:.85}
+.sp{flex:1}
+.home{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:6px 16px;font-weight:600;font-size:.9rem;background:rgba(255,255,255,.12)}
+.avatar{position:relative;width:42px;height:42px;border-radius:50%;background:#fff;color:var(--g7);display:grid;place-items:center;font-weight:700;border:2px solid var(--gold);cursor:pointer}
+.avatar .dot{position:absolute;top:-2px;inset-inline-start:-2px;width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid var(--g7);display:none}
+body[data-health="warn"] .avatar .dot,body[data-health="bad"] .avatar .dot{display:block}
+body[data-health="warn"] .avatar .dot{background:#f59e0b}
+
+h2.page{font-size:1.4rem;margin:22px 0 4px}
+.sub{color:var(--ink2);font-size:.9rem;margin-bottom:16px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);margin-bottom:14px}
+.card h3{font-size:1.05rem;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.88rem}
+
+/* بطاقة الحالة */
+.hero{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.prof{display:flex;gap:14px;align-items:center}
+.photo{width:60px;height:60px;border-radius:50%;background:var(--g1);display:grid;place-items:center;font-size:1.6rem;border:2px solid var(--gold)}
+.prof b{font-size:1.1rem}
+.status{border-radius:var(--r);padding:16px 18px;margin-bottom:14px;border:1px solid;display:flex;gap:14px;align-items:flex-start}
+.status .ic{font-size:1.8rem;line-height:1}
+.status h3{font-size:1.1rem;margin-bottom:2px}
+.status ul{list-style:none;margin-top:6px;font-size:.88rem}
+.status li{padding:1px 0}
+.status .cta{margin-top:10px}
+body[data-health="ok"] .status{background:var(--g0);border-color:#b8dfcd;color:var(--g8)}
+body[data-health="warn"] .status{background:var(--amber-soft);border-color:#f3d28a;color:var(--amber)}
+body[data-health="bad"] .status{background:var(--red-soft);border-color:#f5b4b4;color:#991b1b}
+.only-ok,.only-warn,.only-bad{display:none}
+body[data-health="ok"] .only-ok,body[data-health="warn"] .only-warn,body[data-health="bad"] .only-bad{display:block}
+body[data-health="warn"] .cta-show,body[data-health="bad"] .cta-show{display:inline-block}
+.cta-show{display:none}
+
+.btn{background:var(--g7);color:#fff;border-radius:12px;padding:9px 18px;font-weight:700;font-size:.92rem}
+.btn:hover{background:var(--g8)}
+.btn.sec{background:var(--g1);color:var(--g7)}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.link{background:none;color:var(--ink2);text-decoration:underline;font-weight:600;padding:6px 4px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.kv{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--line);font-size:.92rem}
+.kv:last-of-type{border:0}
+.kv .v{font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{border-radius:99px;padding:1px 10px;font-size:.76rem;font-weight:700;background:var(--g1);color:var(--g7)}
+.chip.off{background:#eef0ef;color:var(--ink2)}
+.switch{display:flex;gap:10px;align-items:center;padding:10px 0}
+.switch input{width:20px;height:20px;accent-color:var(--g7)}
+.drive-off,.drive-on{display:none}
+body[data-drive="on"] .drive-on{display:block}
+body[data-drive="off"] .drive-off{display:block}
+body[data-drive="on"] .drive-on.flex{display:flex}
+
+details.fold{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:14px}
+details.fold summary{padding:14px 18px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.fold summary::-webkit-details-marker{display:none}
+details.fold summary::after{content:"▾";color:var(--ink2)}
+details.fold[open] summary::after{content:"▴"}
+details.fold .in{padding:0 18px 16px;border-top:1px solid var(--line)}
+
+@media(max-width:560px){
+  .top h1{font-size:.95rem}.home{display:none}
+  .acts .btn{flex:1 1 100%;text-align:center}
+  .kv{flex-direction:column;align-items:flex-start;gap:4px}
+}
+</style>
+</head>
+<body data-health="ok" data-drive="on">
+<div class="note">🎨 معاينة تصميم فقط (أ — الحالة أولاً) — بيانات تجريبية، لا ترتبط بالمنصة ولا بحسابك</div>
+<div class="demo"><div class="wrap">
+  <span><b>للمعاينة فقط — الحالة:</b></span>
+  <button class="on" data-h="ok">محمية</button><button data-h="warn">تحتاج نسخة</button><button data-h="bad">لا توجد نسخة</button>
+  <span><b>Drive:</b></span>
+  <button class="on" data-d="on">مربوط</button><button data-d="off">غير مربوط</button>
+</div></div>
+
+<header class="top"><div class="wrap">
+  <div class="logo">حمٓ</div>
+  <div><h1>رحلة إتقان القرآن</h1><small>منصة حمٓ</small></div>
+  <div class="sp"></div>
+  <button class="home">الرئيسية</button>
+  <div class="avatar" title="حسابي">م<span class="dot"></span></div>
+</div></header>
+
+<main class="wrap">
+  <h2 class="page">حسابي</h2>
+  <p class="sub">بياناتك ونسخك الاحتياطية في مكان واحد</p>
+
+  <section class="card"><div class="hero">
+    <div class="prof"><div class="photo">👤</div>
+      <div><b>الشيخ محمد</b><div class="muted">elmayah.27@gmail.com</div></div></div>
+    <div class="sp" style="flex:1"></div>
+    <button class="btn ghost">✏️ تعديل بياناتي</button>
+  </div></section>
+
+  <!-- الحالة أولاً -->
+  <section class="status">
+    <div class="ic only-ok">✅</div><div class="ic only-warn">⚠️</div><div class="ic only-bad">🚨</div>
+    <div style="flex:1">
+      <h3 class="only-ok">بياناتك محمية</h3>
+      <h3 class="only-warn">تحتاج نسخة جديدة</h3>
+      <h3 class="only-bad">لا توجد أي نسخة احتياطية بعد</h3>
+      <ul>
+        <li class="only-ok">☁️ آخر نسخة على Drive: اليوم 9:30 ص — 24 طالباً</li>
+        <li class="only-ok">💾 آخر نسخة على جهازك: قبل 3 أيام</li>
+        <li class="only-warn">☁️ آخر نسخة على Drive: قبل 12 يوماً</li>
+        <li class="only-warn">💾 آخر نسخة على جهازك: قبل 40 يوماً</li>
+        <li class="only-bad">إن حدث فورمات أو ضاع الجهاز ستضيع بيانات طلابك.</li>
+      </ul>
+      <button class="btn cta cta-show">☁️ انسخ الآن</button>
+    </div>
+  </section>
+
+  <!-- Google Drive -->
+  <section class="card">
+    <h3>☁️ Google Drive</h3>
+    <div class="drive-off">
+      <p class="muted">تُحفظ النسخة في مساحة مخفية خاصة بالمنصة داخل حسابك على Google، ولا يراها أحد غيرك.</p>
+      <div class="acts"><button class="btn">☁️ ربط Google Drive وأخذ نسخة</button>
+        <button class="btn sec">⬇️ استرجاع من Drive</button></div>
+    </div>
+    <div class="drive-on">
+      <div class="kv"><span>الحساب المرتبط</span><span class="v">elmayah.27@gmail.com <button class="btn link">تغيير الحساب</button></span></div>
+      <div class="kv"><span>آخر نسخة</span><span class="v">اليوم 9:30 ص <span class="chip">تم التحقق ✓</span></span></div>
+      <div class="kv"><span>عدد النسخ المحفوظة</span><span class="v">9 نسخ <span class="chip off">تُنظَّف تلقائياً</span></span></div>
+      <label class="switch"><input type="checkbox" checked> <span>نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span></label>
+      <div class="acts"><button class="btn">☁️ انسخ الآن</button><button class="btn sec">⬇️ استرجاع من Drive</button><button class="btn link">فصل Drive</button></div>
+    </div>
+  </section>
+
+  <!-- على جهازي -->
+  <section class="card">
+    <h3>💾 على جهازي</h3>
+    <p class="muted">ملف تحفظه أنت في أي مكان تريده (غير قرص C مثلاً).</p>
+    <div class="acts"><button class="btn">⬇️ تنزيل نسخة احتياطية</button><button class="btn sec">⬆️ استرجاع من ملف</button></div>
+    <div class="acts"><button class="btn ghost">↩️ التراجع عن آخر استعادة <span class="muted">(لقطة 12 أكتوبر 3:10 م)</span></button></div>
+  </section>
+
+  <!-- مطويّ -->
+  <details class="fold"><summary>🔄 مزامنة الأجهزة وحساب الواجبات</summary><div class="in">
+    <div class="kv"><span>حساب Google للواجبات</span><span class="v">elmayah.27@gmail.com <button class="btn link">تغيير</button></span></div>
+    <div class="kv"><span>مزامنة سجل الطلاب بين أجهزتك</span><span class="v"><span class="chip">مفعّلة</span> آخر مزامنة: قبل ساعتين</span></div>
+    <div class="acts"><button class="btn sec">🔄 زامن الآن</button></div>
+  </div></details>
+</main>
+
+<script>
+const b=document.body;
+document.querySelectorAll('[data-h]').forEach(x=>x.onclick=()=>{b.dataset.health=x.dataset.h;document.querySelectorAll('[data-h]').forEach(y=>y.classList.toggle('on',y===x))});
+document.querySelectorAll('[data-d]').forEach(x=>x.onclick=()=>{b.dataset.drive=x.dataset.d;document.querySelectorAll('[data-d]').forEach(y=>y.classList.toggle('on',y===x))});
+</script>
+</body>
+</html>
