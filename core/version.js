@@ -8,13 +8,25 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.29';
+export const APP_VERSION = '1.0.30';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    // 📅 [أُضيف 2026-10-16] النسخ الاحتياطي على Google Drive (تجريبي)
+    {
+        version: '1.0.30',
+        date: '2026-10-16',
+        items: [
+            {
+                type: 'new',
+                ar: 'نسخة احتياطية على Google Drive الخاص بك (من نافذة ملف المعلم): تُحفظ مضغوطة في مساحة مخفية خاصة بالمنصة داخل حسابك، ويُتحقق منها قبل حذف أي نسخة قديمة، مع الاحتفاظ بآخر النسخ تلقائياً، واختيار نسخ تلقائي مرة كل يوم، واسترجاع من أي نسخة (حتى على جهاز جديد). ما زالت تجريبية لحسابات التجربة فقط.',
+                en: 'Backup to your own Google Drive (from the teacher profile window): saved compressed in a hidden space reserved for the platform inside your account, verified before any old backup is removed, with recent backups kept automatically, an optional once-a-day automatic backup, and restore from any backup (even on a new device). Still experimental, for test accounts only.'
+            }
+        ]
+    },
     // 📅 [أُضيف 2026-10-16] الاستعادة الآمنة للنسخة الاحتياطية
     {
         version: '1.0.29',

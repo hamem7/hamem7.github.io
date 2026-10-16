@@ -240,6 +240,17 @@ export function initTeacherProfileUI() {
     const restoreBtn = document.getElementById('teacher-profile-restore-btn');
     const restoreInput = document.getElementById('teacher-profile-restore-input');
     const undoRestoreBtn = document.getElementById('teacher-profile-undo-restore-btn');
+    // ☁️ [جديد] عناصر قسم Google Drive — راجع core/driveBackup.js (تُحمَّل عند الحاجة فقط)
+    const driveInfoEl = document.getElementById('teacher-drive-info');
+    const driveBackupBtn = document.getElementById('teacher-drive-backup-btn');
+    const driveRestoreBtn = document.getElementById('teacher-drive-restore-btn');
+    const drivePickerEl = document.getElementById('teacher-drive-picker');
+    const driveSelectEl = document.getElementById('teacher-drive-select');
+    const drivePickGo = document.getElementById('teacher-drive-pick-go');
+    const drivePickCancel = document.getElementById('teacher-drive-pick-cancel');
+    const driveAutoRow = document.getElementById('teacher-drive-auto-row');
+    const driveAutoInput = document.getElementById('teacher-drive-auto');
+    const driveDisconnectBtn = document.getElementById('teacher-drive-disconnect-btn');
     // 🌟 [جديد 2026-10-13] مزامنة سجل الطلاب بين الأجهزة — راجع core/cloudSync.js (تُحمَّل عند الحاجة فقط)
     const syncInfoEl = document.getElementById('teacher-sync-info');
     const syncBtn = document.getElementById('teacher-sync-btn');
@@ -397,6 +408,7 @@ export function initTeacherProfileUI() {
         renderStampPreview();
         renderBackupLastInfo();
         renderUndoRestore();
+        renderDrive();
         renderSyncInfo();
         modal.style.display = 'flex';
     }
@@ -511,48 +523,157 @@ export function initTeacherProfileUI() {
         restoreBtn.addEventListener('click', () => restoreInput.click());
     }
 
+    // معاينة + تأكيد + استعادة آمنة لملف نسخة (يُستخدم لملف الجهاز ولنسخة Drive معاً)
+    async function confirmAndRestore(file) {
+        // 🛟 نقرأ الملف أولاً (بلا أي تعديل) لنعرض للمعلم تاريخ النسخة وعدد الطلاب فيها مقابل الحاليين،
+        // ثم نطلب التأكيد. الاستعادة نفسها تحفظ لقطة أمان تلقائياً قبل أي تغيير (يمكن التراجع عنها).
+        let confirmMsg = t('profile_backup_restore_confirm');
+        try {
+            const info = await inspectBackupFile(file);
+            let when = info.exportedAt || '—';
+            try { if (info.exportedAt) when = fmtDateTime(info.exportedAt); } catch (e2) { /* نعرض الخام */ }
+            confirmMsg = t('profile_backup_restore_confirm_detail')
+                .replace('{date}', when)
+                .replace('{backupStudents}', info.studentsInBackup)
+                .replace('{nowStudents}', info.studentsNow);
+        } catch (e) {
+            const k = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
+                : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
+                : 'profile_backup_restore_error';
+            alert(t(k));
+            return false;
+        }
+        if (!confirm(confirmMsg)) return false;
+
+        try {
+            await restoreFromBackupFile(file);
+            alert(t('profile_backup_restore_success'));
+            // 🌟 إعادة تحميل كاملة للصفحة بدل محاولة تحديث AppState/الشاشة الحالية
+            // يدوياً — أبسط وأضمن طريقة لضمان أن كل مدير قاعدة بيانات وكل شاشة مفتوحة
+            // تعكس البيانات المُسترجَعة فعلياً بلا أي حالة قديمة عالقة في الذاكرة
+            location.reload();
+            return true;
+        } catch (e) {
+            console.error('تعذر استرجاع النسخة الاحتياطية:', e);
+            const msgKey = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
+                : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
+                : (e && e.message === 'SAFETY_SNAPSHOT_FAILED') ? 'profile_backup_restore_no_safety'
+                : (e && e.message === 'RESTORE_FAILED_ROLLED_BACK') ? 'profile_backup_restore_rolled_back'
+                : 'profile_backup_restore_error';
+            alert(t(msgKey));
+            return false;
+        }
+    }
+
     if (restoreInput) {
         restoreInput.addEventListener('change', async () => {
             const file = restoreInput.files && restoreInput.files[0];
             restoreInput.value = '';
             if (!file) return;
+            await confirmAndRestore(file);
+        });
+    }
 
-            // 🛟 نقرأ الملف أولاً (بلا أي تعديل) لنعرض للمعلم تاريخ النسخة وعدد الطلاب فيها مقابل الحاليين،
-            // ثم نطلب التأكيد. الاستعادة نفسها تحفظ لقطة أمان تلقائياً قبل أي تغيير (يمكن التراجع عنها).
-            let confirmMsg = t('profile_backup_restore_confirm');
-            try {
-                const info = await inspectBackupFile(file);
-                let when = info.exportedAt || '—';
-                try { if (info.exportedAt) when = fmtDateTime(info.exportedAt); } catch (e2) { /* نعرض الخام */ }
-                confirmMsg = t('profile_backup_restore_confirm_detail')
-                    .replace('{date}', when)
-                    .replace('{backupStudents}', info.studentsInBackup)
-                    .replace('{nowStudents}', info.studentsNow);
-            } catch (e) {
-                const k = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
-                    : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
-                    : 'profile_backup_restore_error';
-                alert(t(k));
-                return;
-            }
-            if (!confirm(confirmMsg)) return;
+    // ☁️ ===== Google Drive =====
+    let driveMod = null;
+    const loadDrive = async () => driveMod || (driveMod = await import('../core/driveBackup.js'));
+    const driveErrKey = (r) => ({
+        ACCESS_DENIED: 'drive_err_denied', SCOPE_NOT_GRANTED: 'drive_err_scope', QUOTA: 'drive_err_quota',
+        NETWORK: 'drive_err_network', GIS_UNAVAILABLE: 'drive_err_network', AUTH_REQUIRED: 'drive_err_auth',
+        VERIFY_FAILED: 'drive_err_verify'
+    })[r && r.code] || 'drive_err_generic';
 
+    async function renderDrive() {
+        if (!driveInfoEl) return;
+        let m;
+        try { m = await loadDrive(); } catch (e) { return; }
+        const enabled = m.isDriveEnabled();
+        driveBackupBtn.textContent = t(enabled ? 'drive_backup_now_btn' : 'drive_connect_btn');
+        driveRestoreBtn.style.display = '';   // دائماً ظاهر: جهاز جديد فارغ يحتاجه قبل أي نسخة
+        driveAutoRow.style.display = enabled ? 'flex' : 'none';
+        driveDisconnectBtn.style.display = enabled ? '' : 'none';
+        driveAutoInput.checked = m.isDriveAuto();
+        const last = m.getDriveLastOk();
+        let txt = t('drive_info_off');
+        if (enabled) {
+            let when = last || '';
+            try { if (last) when = fmtDateTime(last); } catch (e) { /* نعرض الخام */ }
+            txt = last ? t('drive_info_last').replace('{date}', when) : t('drive_info_none_yet');
+            if (m.driveNeedsReconnect()) txt += '\n' + t('drive_info_reconnect');
+        }
+        driveInfoEl.textContent = txt;
+        driveInfoEl.style.whiteSpace = 'pre-line';
+    }
+
+    if (driveBackupBtn) {
+        driveBackupBtn.addEventListener('click', async () => {
+            driveBackupBtn.disabled = true;
+            driveInfoEl.textContent = t('drive_working');
             try {
-                await restoreFromBackupFile(file);
-                alert(t('profile_backup_restore_success'));
-                // 🌟 إعادة تحميل كاملة للصفحة بدل محاولة تحديث AppState/الشاشة الحالية
-                // يدوياً — أبسط وأضمن طريقة لضمان أن كل مدير قاعدة بيانات وكل شاشة مفتوحة
-                // تعكس البيانات المُسترجَعة فعلياً بلا أي حالة قديمة عالقة في الذاكرة
-                location.reload();
+                const m = await loadDrive();
+                const r = await m.runDriveBackup({ interactive: true });
+                if (r.ok && r.skipped === 'no_students') alert(t('drive_skip_no_students'));
+                else if (r.ok) alert(t('drive_done').replace('{students}', r.students).replace('{kb}', Math.max(1, Math.round(r.size / 1024))));
+                else alert(t(driveErrKey(r)));
             } catch (e) {
-                console.error('تعذر استرجاع النسخة الاحتياطية:', e);
-                const msgKey = (e && e.message === 'STUDENTS_ONLY_BACKUP') ? 'profile_backup_restore_students_only'
-                    : (e && (e.message === 'INVALID_JSON' || e.message === 'INVALID_FORMAT')) ? 'profile_backup_restore_invalid_file'
-                    : (e && e.message === 'SAFETY_SNAPSHOT_FAILED') ? 'profile_backup_restore_no_safety'
-                    : (e && e.message === 'RESTORE_FAILED_ROLLED_BACK') ? 'profile_backup_restore_rolled_back'
-                    : 'profile_backup_restore_error';
-                alert(t(msgKey));
+                console.error('تعذرت النسخة على Drive:', e);
+                alert(t('drive_err_generic'));
+            } finally {
+                driveBackupBtn.disabled = false;
+                renderDrive();
             }
+        });
+    }
+
+    if (driveRestoreBtn) {
+        driveRestoreBtn.addEventListener('click', async () => {
+            driveRestoreBtn.disabled = true;
+            try {
+                const m = await loadDrive();
+                const list = await m.listBackupsForRestore();
+                if (!list.length) { alert(t('drive_restore_none')); return; }
+                driveSelectEl.innerHTML = '';
+                list.forEach(f => {
+                    const o = document.createElement('option');
+                    o.value = f.id; o.dataset.name = f.name;
+                    let when = f.createdTime;
+                    try { when = fmtDateTime(f.createdTime); } catch (e) { /* نعرض الخام */ }
+                    const n = f.appProperties && f.appProperties.students;
+                    o.textContent = `${when}${n ? ' — ' + t('drive_students_n').replace('{n}', n) : ''}`;
+                    driveSelectEl.appendChild(o);
+                });
+                drivePickerEl.style.display = '';
+            } catch (e) {
+                console.error('تعذر جلب نسخ Drive:', e);
+                alert(t(driveErrKey(e)));
+            } finally { driveRestoreBtn.disabled = false; }
+        });
+    }
+    if (drivePickCancel) drivePickCancel.addEventListener('click', () => { drivePickerEl.style.display = 'none'; });
+    if (drivePickGo) {
+        drivePickGo.addEventListener('click', async () => {
+            const opt = driveSelectEl.selectedOptions && driveSelectEl.selectedOptions[0];
+            if (!opt) return;
+            drivePickGo.disabled = true;
+            try {
+                const m = await loadDrive();
+                const file = await m.downloadBackupAsFile(opt.value, opt.dataset.name);
+                await confirmAndRestore(file);
+            } catch (e) {
+                console.error('تعذر تنزيل نسخة Drive:', e);
+                alert(t(driveErrKey(e)));
+            } finally { drivePickGo.disabled = false; }
+        });
+    }
+    if (driveAutoInput) {
+        driveAutoInput.addEventListener('change', async () => { (await loadDrive()).setDriveAuto(driveAutoInput.checked); });
+    }
+    if (driveDisconnectBtn) {
+        driveDisconnectBtn.addEventListener('click', async () => {
+            if (!confirm(t('drive_disconnect_confirm'))) return;
+            (await loadDrive()).disconnectDrive();
+            drivePickerEl.style.display = 'none';
+            renderDrive();
         });
     }
 

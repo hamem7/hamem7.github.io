@@ -589,6 +589,30 @@
                 </div>
             </div>
 
+            <!-- ☁️ [جديد 2026-10-16] نسخة احتياطية على Google Drive الخاص بالمعلم (core/driveBackup.js). النص ديناميكي بلا data-i18n (نفس نمط الأقسام المجاورة) -->
+            <div class="dh-backup-section" id="teacher-drive-section">
+                <div class="dh-backup-section-title" data-i18n="drive_section_title">☁️ نسخة احتياطية على Google Drive</div>
+                <div class="dh-backup-last-info" id="teacher-drive-info"></div>
+                <div class="dh-backup-actions">
+                    <button type="button" class="btn" id="teacher-drive-backup-btn" data-i18n="drive_connect_btn">☁️ ربط Google Drive وأخذ نسخة</button>
+                    <button type="button" class="btn btn-outline" id="teacher-drive-restore-btn" data-i18n="drive_restore_btn">⬇️ استرجاع من Drive</button>
+                </div>
+                <div id="teacher-drive-picker" style="display:none; margin-top:8px;">
+                    <select id="teacher-drive-select" style="width:100%; padding:8px; border-radius:10px;"></select>
+                    <div class="dh-backup-actions" style="margin-top:8px;">
+                        <button type="button" class="btn" id="teacher-drive-pick-go" data-i18n="drive_pick_go">استرجع هذه النسخة</button>
+                        <button type="button" class="btn btn-outline" id="teacher-drive-pick-cancel" data-i18n="drive_pick_cancel">إلغاء</button>
+                    </div>
+                </div>
+                <label id="teacher-drive-auto-row" style="display:none; margin-top:8px; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="teacher-drive-auto">
+                    <span data-i18n="drive_auto_label">نسخ تلقائي عند فتح المنصة (مرة كل يوم)</span>
+                </label>
+                <div class="dh-backup-actions" style="margin-top:8px;">
+                    <button type="button" class="btn btn-outline" id="teacher-drive-disconnect-btn" style="display:none;" data-i18n="drive_disconnect_btn">فصل Google Drive</button>
+                </div>
+            </div>
+
             <!-- 🌟 [جديد 2026-10-13] مزامنة سجل الطالب بين أجهزة المعلم (core/cloudSync.js). النص ديناميكي بلا data-i18n (نفس نمط قسم النسخ الاحتياطي) -->
             <div class="dh-backup-section" id="teacher-sync-section">
                 <div class="dh-backup-section-title" data-i18n="sync_section_title">☁️ مزامنة سجل الطلاب بين أجهزتك</div>
