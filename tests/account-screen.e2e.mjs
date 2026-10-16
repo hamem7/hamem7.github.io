@@ -55,6 +55,14 @@ await ctx.addInitScript(() => {
   try { const seen = {}; ['home', 'install', 'kids', 'adults', 'homework', 'certificates', 'dual'].forEach(k => { seen[k] = true; }); localStorage.setItem('dh_seen_tours', JSON.stringify(seen)); } catch (e) { /* لا شيء */ }
   // نافذة «الحفظ الشهري» التلقائية تغطي الشاشة بعد كل إعادة تحميل (مرة يومياً): نعلّمها «ظهرت اليوم»
   try { localStorage.setItem('darham_monthly_memo_bulk_last_auto_shown', new Date().toISOString().slice(0, 10)); } catch (e) { /* لا شيء */ }
+  // alert/confirm صارا نافذتين مخصصتين (core/dialog.js: .ham-dialog-overlay): نسجّل نصها ونضغط «موافق» تلقائياً كما يفعل المعلم
+  new MutationObserver(() => {
+    const ov = document.querySelector('.ham-dialog-overlay');
+    if (!ov || ov.dataset.seen) return;
+    ov.dataset.seen = '1';
+    try { window.__recordDialog(ov.querySelector('.ham-dialog-msg').textContent); } catch (e) { /* لا شيء */ }
+    setTimeout(() => ov.querySelector('.ham-dialog-btn:not(.ham-dialog-btn-cancel)')?.click(), 60);
+  }).observe(document, { childList: true, subtree: true });
   window.__gis = { requests: [] };
   window.google = { accounts: {
     id: { initialize() {}, renderButton() {}, prompt() {}, disableAutoSelect() {} },
@@ -75,6 +83,7 @@ await ctx.route('**/*', async (route) => {
 });
 const page = await ctx.newPage();
 const dialogs = [];
+await page.exposeFunction('__recordDialog', (m) => { dialogs.push(m); });
 page.on('dialog', d => { dialogs.push(d.message()); d.accept().catch(() => {}); });
 const errors = []; page.on('pageerror', e => { errors.push(e.message); console.log('   [pageerror]', e.message); });
 
