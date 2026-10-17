@@ -171,7 +171,8 @@ await page.evaluate(() => { window.__APP.AppState.currentLang = 'en'; });
 await page.click('.tjw-result-card [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
 const en = await txt('#tjw-sum-text');
 check('الإنجليزية: النص بالإنجليزية (عدا الاسم)', /^Peace be upon you/.test(en) && /lesson summary/i.test(en) && !/[\u0600-\u06FF]/.test(en.replace(/«[^»]*»/g, '').replace(/أحمد/g, '').replace(/مخارج الحروف ممتازة/g, '')), en.slice(0, 160));
-check('الإنجليزية: زر النسخ مترجم', /Copy the message/.test(await txt('#tjw-sum-copy')));
+check('الإنجليزية: زر النسخ مترجم', /Copy the message/.test(await page.textContent('#tjw-sum-copy')));
+check('الإنجليزية: لا «&amp;» ظاهرة في النص الملصوق (أسماء الأحكام تُفكّ ترميزها)', !/&amp;|&lt;|&gt;|&quot;/.test(en) && /Noon Sakinah & Tanween/.test(en), en.slice(0, 220));
 await page.keyboard.press('Escape'); await page.evaluate(() => { window.__APP.AppState.currentLang = 'ar'; });
 
 // ١٤) الجوال

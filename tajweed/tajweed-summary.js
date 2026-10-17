@@ -11,7 +11,9 @@ import { ensureJourney } from '../engine/tajweedJourney.js';
 import { buildSessionSummary, buildRuleSummary, formatSummaryText, cleanForCopy } from '../engine/tajweedSummary.js';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const tr = (key, vars = {}) => Object.entries(vars).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), t(key));
+const tr = (key, vars = {}) => plain(Object.entries(vars).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), t(key)));
+// أسماء الأحكام في الترجمة تُخزَّن بترميز HTML (&amp;) لأنها تُحقن في صفحات؛ والملخص نصٌّ عاديّ يُلصق في واتساب فيجب فكّ الترميز
+const plain = (s) => String(s == null ? '' : s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&amp;/g, '&');
 const flat = getAllRulesFlat();
 const ruleOf = (id) => (flat.find(x => x.rule.id === id) || {}).rule;
 
@@ -61,13 +63,16 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     const data = await loadStudentData(studentId);
     if (!data) return;
     const opts = ruleOptions(data, ruleId);
-    const st = { kind: kind || (ruleId ? 'rule' : 'session'), ruleId: ruleId || (opts[0] && opts[0].id) || null, note: '', home: true, dirty: false };
+    // الحكم الافتراضي لتبويب «ملخص الحكم»: المطلوب صراحةً، وإلا صاحب آخر نشاط مسجَّل (وهو ما يهم المعلم عادةً)، وإلا أول حكم له نشاط
+    const lastActive = data.sessions.filter(s => s.ruleId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+    const defaultRule = lastActive && opts.some(r => r.id === lastActive.ruleId) ? lastActive.ruleId : (opts[0] && opts[0].id) || null;
+    const st = { kind: kind || (ruleId ? 'rule' : 'session'), ruleId: ruleId || defaultRule, note: '', home: true, dirty: false };
     if (st.kind === 'rule' && !st.ruleId) st.kind = 'session';
     const returnFocus = document.activeElement;
 
     const ctx = () => ({
-        tr, ruleName: id => t(ruleOf(id).nameKey), stageName: id => t(TAJWEED_STAGES.find(s => s.id === id).nameKey),
-        badgeName: k => (TAJWEED_BADGE_CATALOG[k] ? t(TAJWEED_BADGE_CATALOG[k].nameKey) : k), formatDate, note: st.note, includeHome: st.home
+        tr, ruleName: id => plain(t(ruleOf(id).nameKey)), stageName: id => plain(t(TAJWEED_STAGES.find(s => s.id === id).nameKey)),
+        badgeName: k => (TAJWEED_BADGE_CATALOG[k] ? plain(t(TAJWEED_BADGE_CATALOG[k].nameKey)) : k), formatDate, note: st.note, includeHome: st.home
     });
     const build = () => {
         const base = { student: data.student, sessions: data.sessions, mastery: data.mastery, dueRuleIds: data.dueRuleIds };
