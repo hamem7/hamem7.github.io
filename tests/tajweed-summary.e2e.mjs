@@ -1,4 +1,4 @@
-// tests/tajweed-summary.e2e.mjs — «ملخص جاهز للولي» في المتصفح ببيانات حقيقية في قاعدة التطبيق: نص الملخص (حصة/حكم)، النسخ الفعلي إلى الحافظة
+// tests/tajweed-summary.e2e.mjs — «ملخص اليوم» في المتصفح ببيانات حقيقية في قاعدة التطبيق: نص الملخص (حصة/حكم)، النسخ الفعلي إلى الحافظة
 // (بما فيه احتياطي execCommand وحالة تعذّر النسخ)، حماية تعديل المعلم، المواضع الأربعة للزر، الإنجليزية، الجوال.
 // الاستعمال: PLAYWRIGHT_MODULE_DIR=/opt/node-tools/node_modules [PW_CHROMIUM=/path/chrome] node tests/tajweed-summary.e2e.mjs [outDir]
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module'; import { fileURLToPath } from 'node:url';
@@ -59,7 +59,7 @@ const clean = (s) => page.evaluate((x) => window.__S.cleanForCopy(x), s);
 // ١) من شاشة الدخول: أحمد محدَّد مسبقاً، وزر «ملخص الحصة» يفتح النافذة
 await toEntry();
 const hasBtn = await page.evaluate(() => ({ ahmad: !!document.querySelector('[data-action="entry-summary"]') }));
-check('بطاقة «أكمل رحلتك» فيها زر «ملخص الحصة للولي» لمن له نشاط', hasBtn.ahmad);
+check('بطاقة «أكمل رحلتك» فيها زر «ملخص اليوم» لمن له نشاط', hasBtn.ahmad);
 await page.click('[data-action="entry-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
 const ui = await page.evaluate(() => ({ dialog: document.getElementById('tjw-sum-overlay').getAttribute('role'), tabOn: document.querySelector('[data-sum="tab"].is-on')?.dataset.kind,
   wa: !!document.querySelector('.tjw-sum-wa, [data-sum="wa"]'), phone: !!document.querySelector('.tjw-sum-phone'), copyW: document.querySelector('#tjw-sum-copy').getBoundingClientRect().width, cardW: document.querySelector('.tjw-sum-card').getBoundingClientRect().width,
@@ -144,7 +144,7 @@ await page.keyboard.press('Escape');
 
 // ١٠) طالب لم يبدأ: لا زر في الدخول، لكن من الخريطة تظهر رسالة فارغة مهذّبة
 await page.click('.tjw-st[data-name="خالد"]').catch(async () => { await page.click('[data-action="entry-all"]'); await page.click('.tjw-st[data-name="خالد"]'); }); await sleep(150);
-check('لا زر «ملخص الحصة» لطالب لم يبدأ', !(await page.$('[data-action="entry-summary"]')));
+check('لا زر «ملخص اليوم» لطالب لم يبدأ', !(await page.$('[data-action="entry-summary"]')));
 await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-hero');
 await page.click('.tjw-hero [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
 check('من هيرو الخريطة: لطالب بلا نشاط تظهر رسالة «لا توجد أنشطة» وتبويب الحكم معطّل منطقياً', (await txt('#tjw-sum-text')).includes('لا توجد أنشطة تجويد مسجَّلة') && await page.evaluate(() => document.getElementById('tjw-sum-rule').options.length === 1 && !document.getElementById('tjw-sum-rule').value));
@@ -153,7 +153,7 @@ await page.keyboard.press('Escape');
 // ١١) شاشة الحكم: زر «ملخص هذا الحكم» يفتح تبويب الحكم على ذلك الحكم
 await toEntry(); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile');
 await page.click('[data-rule="izhar"].tjw-rule-tile'); await page.waitForSelector('.tjw-stepper');
-check('شاشة الحكم فيها زر «ملخص هذا الحكم للولي»', !!(await page.$('[data-action="parent-summary"][data-rule="izhar"]')));
+check('شاشة الحكم فيها زر «ملخص هذا الحكم»', !!(await page.$('[data-action="parent-summary"][data-rule="izhar"]')));
 await page.click('[data-action="parent-summary"][data-rule="izhar"]'); await page.waitForSelector('#tjw-sum-overlay');
 check('يفتح على تبويب الحكم والإظهار الحلقي', await page.evaluate(() => document.querySelector('[data-sum="tab"].is-on').dataset.kind === 'rule' && document.getElementById('tjw-sum-rule').value === 'izhar') && (await txt('#tjw-sum-text')).includes('ملخص حكم «الإظهار الحلقي»'));
 await page.keyboard.press('Escape');
@@ -162,7 +162,7 @@ await page.keyboard.press('Escape');
 await page.click('[data-action="start-practice"]'); await page.waitForSelector('.tjw-activity-card');
 for (let i = 0; i < 6; i++) { if (await page.$('.tjw-result-card')) break; await page.waitForSelector('.tjw-answer-btn:not([disabled]), .tjw-result-card'); const b = await page.$('.tjw-answer-btn:not([disabled])'); if (!b) continue; await b.click(); await page.waitForSelector('[data-action="next-question"]'); await page.click('[data-action="next-question"]'); await sleep(250); }
 await page.waitForSelector('.tjw-result-card');
-check('شاشة نتيجة التطبيق فيها زر «ملخص للولي»', !!(await page.$('.tjw-result-card [data-action="parent-summary"]')));
+check('شاشة نتيجة التطبيق فيها زر «ملخص اليوم»', !!(await page.$('.tjw-result-card [data-action="parent-summary"]')));
 await page.click('.tjw-result-card [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
 const afterPractice = await txt('#tjw-sum-text');
 check('ملخص الحصة بعد التطبيق يشمل التطبيق الجديد (×3 للإظهار الحلقي) ويبقى اعتماد اليوم', /التطبيق \d+% ×3/.test(afterPractice) && afterPractice.includes('أتقن حكم «الإظهار الحلقي»'), afterPractice.split('\n').filter(l => l.includes('🔹')).join(' | '));
