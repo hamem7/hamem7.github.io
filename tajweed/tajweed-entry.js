@@ -10,7 +10,6 @@ import {
     summarizeStudent, sortByRecency, pickPreselected, classOverview, sortForTeacher, topStudents, timeAgo
 } from '../engine/tajweedEntry.js';
 
-const MAX_VISIBLE = 6;      // عدد البطاقات الظاهرة قبل «عرض كل الطلاب»
 const SEARCH_FROM = 9;      // يظهر حقل البحث لمن عدد طلابهم أكثر من ثمانية
 const STEP_KEYS = ['learn', 'practice', 'exam', 'teacher'];
 const STEP_INDEX = { learn: 0, practice: 1, exam: 2, awaiting_teacher: 3, mastered: 4 };
@@ -130,16 +129,15 @@ function studentsPanel(list) {
     const many = list.length >= SEARCH_FROM;
     const q = normName(entryState.q);
     let shown = sortByRecency(list).filter(s => !q || normName(s.student.name).includes(q));
-    const hidden = many && !q && !entryState.all ? Math.max(0, shown.length - MAX_VISIBLE) : 0;
-    if (hidden > 0) shown = shown.slice(0, MAX_VISIBLE);
+    // مع كثرة الطلاب: لا تُعرض الأسماء إلا عند البحث (أو بطاقة الطالب المختار فقط)
+    if (many && !q) shown = shown.filter(s => s.studentId === entryState.sel);
     return `
         <section class="tjw-e-card tjw-e-plain" aria-label="${t('tjw_e_who_title')}">
             <h2>${t('tjw_e_who_title')}</h2>
             <p class="tjw-e-sub">${t(many ? 'tjw_e_who_sub_search' : 'tjw_e_who_sub_tap')}</p>
             ${many ? `<label class="tjw-e-search"><span aria-hidden="true">🔍</span><input id="tjw-student-search-input" type="search" autocomplete="off" placeholder="${esc(t('tjw_e_search_ph'))}" value="${esc(entryState.q)}" aria-label="${esc(t('tjw_e_search_ph'))}"></label>` : ''}
-            <div class="tjw-e-lbl">${t(q ? 'tjw_e_results' : 'tjw_e_recent')}</div>
-            <div class="tjw-e-students">${shown.map(studentCard).join('') || `<p class="tjw-e-empty-note">${t('tjw_e_no_match')}</p>`}</div>
-            ${hidden > 0 ? `<div class="tjw-e-row tjw-e-center"><button type="button" class="tjw-e-ghost" data-action="entry-all">${tpl('tjw_e_show_all', { n: list.length })}</button></div>` : ''}
+            ${many && !q && !shown.length ? '' : `<div class="tjw-e-lbl">${t(q ? 'tjw_e_results' : 'tjw_e_recent')}</div>
+            <div class="tjw-e-students">${shown.map(studentCard).join('') || `<p class="tjw-e-empty-note">${t('tjw_e_no_match')}</p>`}</div>`}
         </section>`;
 }
 
