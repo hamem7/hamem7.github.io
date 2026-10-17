@@ -29,6 +29,7 @@ import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 // 🌟 [جديد] تدريبات الحروف والأزواج المستوحاة من كتاب «فتوحات الرحمن» (اجمع الحروف، الدخيل، صنّف، اربط، صِل المثال)
 import { buildRuleLetterGameQuestions, buildStageTreeQuestions } from '../engine/tajweedLetterGames.js';
 import { buildExamplesLinkQuestion } from './tajweed-letters-ui.js';
+import { openParentSummary } from './tajweed-summary.js';
 
 let params = null;
 let questions = [];
@@ -441,6 +442,12 @@ async function handleActivityClick(e) {
         touchedRuleIds = new Set();
         renderProgress();
         renderCurrentQuestion();
+        return;
+    }
+
+    // 🌟 [جديد] «ملخص جاهز للولي» من شاشة النتيجة: بعد «سمّع لي» يُفتح ملخص الحكم، وغير ذلك ملخص الحصة
+    if (e.target.closest('[data-action="parent-summary"]')) {
+        openParentSummary({ studentId: AppState.currentStudent.id, ruleId: params.ruleId || null, kind: params.mode === 'teacher_checkpoint' && params.ruleId ? 'rule' : 'session' });
         return;
     }
 
@@ -899,6 +906,7 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             <div class="tjw-result-actions">
                 ${journeyHTML}
                 <button class="tjw-outline-btn" data-action="retry-activity">🔁 ${t('tjw_retry_activity_btn')}</button>
+                <button class="tjw-outline-btn" data-action="parent-summary">${t('tjw_sum_btn')}</button>
                 <button class="tjw-cta-btn" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>
             </div>
         </div>`;
@@ -928,6 +936,7 @@ function renderExamResultScreen({ scorePercent, correctCount, totalQuestions, pa
             ${reviewHTML}
             <div class="tjw-result-actions">
                 ${passed ? '' : `<button class="tjw-cta-btn" data-action="go-practice">🎯 ${t('tjw_exam_go_practice')}</button>`}
+                <button class="tjw-outline-btn" data-action="parent-summary">${t('tjw_sum_btn')}</button>
                 <button class="${passed ? 'tjw-cta-btn' : 'tjw-outline-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>
             </div>
         </div>`;
