@@ -255,6 +255,18 @@ const tid = (v) => v.s + '|' + v.norm;
 // «حقيقة» السؤال: الآية الفلانية تتبع الآية الفلانية (أو الموضع الفلاني في سورة كذا). سؤالان بحقيقة واحدة مكرران ولو اختلف نوعهما
 const fact = (a, b) => (a ? tid(a) : 'START') + '>' + (b ? tid(b) : 'END');
 
+// أدنى نسبة تشابه كلمات (مع أقرب موضع آخر في المجموعة) ليكون «من أي سورة؟» اشتباهاً حقيقياً لا سؤالاً بديهياً
+export const MIN_SURAH_TWIN_SIMILARITY = 0.5;
+function hasCloseTwin(l, locs) {
+    const mine = new Set(wordsOf(l.norm));
+    return locs.some(o => {
+        if (o === l || o.s === l.s) return false;
+        const theirs = new Set(wordsOf(o.norm));
+        const common = [...mine].filter(w => theirs.has(w)).length;
+        return common / (mine.size + theirs.size - common) >= MIN_SURAH_TWIN_SIMILARITY;
+    });
+}
+
 function buildCandidates(Q, group, locs, juz, rng, stats = null) {
     const cphrase = cleanPhrase(group.anchorPhrase);
     const surahs = [...new Set(locs.map(l => l.s))];
@@ -275,6 +287,8 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null) {
                 text = 'قال تعالى: ' + verse(a.text) + ' ثم تليها: ' + verse(b.text) + '\nفي أي سورة من سور الجزء وردت هاتان الآيتان؟';
                 shown = [tid(a), tid(b)]; seq = [a.text, b.text];
             } else {
+                // الآية التي لا تشبه أي موضع آخر في المجموعة (يجمعها بغيرها لفظ واحد فقط مثل «ويل») جوابها بديهي لمن يحفظها: لا يُسأل عنها
+                if (!hasCloseTwin(l, locs)) continue;
                 text = 'في أي سورة من سور الجزء وردت هذه الآية؟\n' + verse(l.text);
                 shown = [tid(l.v)]; seq = [l.text];
             }
