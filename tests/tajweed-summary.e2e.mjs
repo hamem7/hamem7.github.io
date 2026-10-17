@@ -29,7 +29,7 @@ await page.evaluate(async () => { window.__APP = await import('/core/app.js'); w
 await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await sleep(500);
 
 const DAY = 86400000;
-await page.evaluate(async () => {
+await page.evaluate(async (DAY) => {
   const m = window.__APP, J = window.__J, C = window.__C, now = Date.now(), flat = C.getAllRulesFlat();
   const add = (name) => m.AppState.studentManager.addStudent({ name, avatar: '👦🏻', isHidden: false, phone: '', dob: '', grade: '', country: '', gender: 'boy', memoFrom: '', memoTo: '', weaknesses: [], resolvedWeaknesses: [] });
   const master = async (id, ruleId, daysAgo) => { const r0 = flat.find(x => x.rule.id === ruleId); const d = new Date(now - daysAgo * DAY);
@@ -50,7 +50,7 @@ await page.evaluate(async () => {
   const s = await add('سارة'); await master(s, 'qalqalah', 2); await sess(s, 'qalqalah', 'practice', 70, now - 2 * DAY);
   // خالد: لم يبدأ (لا جلسات)
   await add('خالد');
-});
+}, DAY);
 const txt = (sel) => page.evaluate((s) => document.querySelector(s)?.value ?? document.querySelector(s)?.textContent ?? '', sel);
 const toEntry = async () => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await sleep(300); };
 const clip = () => page.evaluate(() => navigator.clipboard.readText());
@@ -89,12 +89,13 @@ const c2 = await clip();
 check('بعد التعديل اليدوي: يُنسخ النص المعدَّل منظَّفاً (بلا أسطر فارغة متتالية ولا مسافات زائدة ولا فراغ في الطرفين)', c2.includes('سطر إضافي من المعلم') && !/\n\n\n/.test(c2) && !/[ \t]+$/m.test(c2) && c2 === c2.trim() && c2 === await clean(edited), JSON.stringify(c2.slice(-60)));
 
 // ٤) حماية تعديل المعلم: تغيير خيار بعد التعديل يسأل أولاً
-let dlg = null; page.on('dialog', async d => { dlg = d.message(); await (dlg_mode === 'accept' ? d.accept() : d.dismiss()); });
-var dlg_mode = 'dismiss';
+let dlg = null, dlgMode = 'dismiss';
+page.removeAllListeners('dialog');   // مستمع الترويسة يرفض كل حوار؛ هنا نتحكّم بالقبول والرفض
+page.on('dialog', async d => { dlg = d.message(); await (dlgMode === 'accept' ? d.accept() : d.dismiss()); });
 await page.click('#tjw-sum-home'); await sleep(200);
 const keep = await page.evaluate(() => ({ text: document.getElementById('tjw-sum-text').value.includes('سطر إضافي من المعلم'), checked: document.getElementById('tjw-sum-home').checked }));
 check('الرفض يُبقي نص المعلم المعدَّل ويُرجع خيار «في البيت» كما كان', !!dlg && /سيُستبدل نصّك المعدَّل/.test(dlg) && keep.text && keep.checked === true, JSON.stringify({ dlg, keep }));
-dlg_mode = 'accept'; await page.click('#tjw-sum-home'); await sleep(200);
+dlgMode = 'accept'; await page.click('#tjw-sum-home'); await sleep(200);
 const regen = await txt('#tjw-sum-text');
 check('القبول يستبدل بنص جديد بلا سطر «في البيت» وبلا إضافة المعلم', !regen.includes('سطر إضافي') && !regen.includes('في البيت:') && regen.includes('ملاحظة المعلم: مخارج الحروف ممتازة'));
 await page.click('#tjw-sum-home'); await sleep(200);   // نعيده (النص غير معدَّل الآن فلا سؤال)
