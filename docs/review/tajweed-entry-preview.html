@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>معاينة: شاشة الدخول إلى أبطال التجويد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1e3a5f;--primary-l:#2d5a8c;--secondary:#a8571e;--accent:#8c2f3d;--lam:#17796c;--mithlain:#5d4691;--madd:#2f7d32;--lazim:#a23b72;
+--ink:#0b1a2e;--ink2:#13294a;--gold:#e0b04f;--gold-d:#b98a2c;--card:#fffdf7;--text:#3a2c1f;--muted:#6f6150;--line:rgba(58,44,31,.13);--good:#1f9d55;--bad:#c0392b;--warn:#d98a1f}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:#f4ecd8;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.65;
+background:radial-gradient(circle at 15% 0%,rgba(45,90,140,.55),transparent 45%),radial-gradient(circle at 90% 100%,rgba(140,47,61,.35),transparent 40%),linear-gradient(180deg,var(--ink2),var(--ink));background-attachment:fixed}
+button{font:inherit;cursor:pointer;color:inherit}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* شريط المعاينة (ليس جزءاً من الشاشة) */
+.pv{position:sticky;top:0;z-index:20;background:rgba(6,14,26,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(224,176,79,.35);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:.85rem}
+.pv b{color:var(--gold)}.pv .grp{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pv button{background:transparent;border:1.5px solid rgba(224,176,79,.5);border-radius:999px;padding:3px 12px;color:#f4ecd8}.pv button.on{background:var(--gold);color:#3a2a08;font-weight:700}
+.pv .tag{margin-inline-start:auto;color:#ffd9a0;font-size:.8rem}
+.frame{container-type:inline-size;max-width:1100px;margin:0 auto;padding:16px 14px 60px;transition:max-width .25s}.frame.mob{max-width:390px}
+/* الشاشة */
+.crumbs{font-size:.85rem;color:#b9c4d6;margin:2px 0 8px}.crumbs a{color:#d7e3f5;text-decoration:none}.crumbs span{opacity:.6;margin:0 6px}
+.hero{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:end;justify-content:space-between;margin-bottom:14px}
+.hero h1{margin:0;font-size:1.9rem;line-height:1.3;color:#fff}.hero h1::after{content:"";display:block;width:64px;height:3px;border-radius:3px;background:var(--gold);margin-top:6px}
+.hero p{margin:6px 0 0;color:#c9d3e3;max-width:46ch}
+.seg{display:inline-flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px}.seg button{border:0;background:none;padding:6px 16px;border-radius:999px;font-weight:700;color:#d7e3f5}.seg button.on{background:var(--gold);color:#3a2a08}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 2px}.stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:4px 12px;font-size:.88rem}.stat b{color:var(--gold);font-size:1.05rem;margin-inline-end:4px}
+.layout{display:grid;gap:16px;grid-template-columns:1fr}
+@container (min-width:760px){.layout{grid-template-columns:1.15fr .85fr;align-items:start}}
+.card{background:var(--card);color:var(--text);border-radius:20px;padding:16px;box-shadow:0 10px 30px rgba(3,12,26,.35);border-top:5px solid var(--gold)}
+.card h2{margin:0 0 4px;font-size:1.15rem;color:var(--primary)}.card .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+.card.plain{border-top-color:var(--primary-l)}.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+/* أكمل من حيث توقفت */
+.cont{display:grid;gap:10px;background:linear-gradient(135deg,#fff6df,#fbe9c0);border:1.5px solid rgba(185,138,44,.55);border-radius:20px;padding:14px 16px;color:var(--text);box-shadow:0 10px 30px rgba(3,12,26,.3)}
+.cont .who{display:flex;align-items:center;gap:12px}.cont h2{margin:0;font-size:1.1rem;color:var(--accent)}
+.rulechip{display:inline-flex;gap:6px;align-items:center;background:#fff;border:2px solid var(--c,var(--primary));border-radius:12px;padding:3px 10px;font-weight:700;color:var(--c,var(--primary))}
+.stepper{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.82rem}.stepper i{font-style:normal;display:inline-flex;align-items:center;gap:4px;padding:1px 9px;border-radius:999px;background:rgba(58,44,31,.08);color:var(--muted)}
+.stepper i.done{background:rgba(31,157,85,.16);color:var(--good)}.stepper i.cur{background:var(--accent);color:#fff;font-weight:700}
+.cta{border:0;border-radius:14px;padding:11px 20px;font-weight:700;color:#fff;background:linear-gradient(180deg,var(--primary-l),var(--primary));box-shadow:0 4px 0 #14294a;transition:transform .12s}.cta:active{transform:translateY(3px);box-shadow:none}
+.cta.gold{background:linear-gradient(180deg,#f0c35f,var(--gold-d));color:#3a2a08;box-shadow:0 4px 0 #8a6414}
+.ghost{border:2px solid var(--primary-l);background:transparent;color:var(--primary-l);border-radius:12px;padding:7px 14px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* الطلاب */
+.search{display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:14px;padding:6px 12px;background:#fff;margin-bottom:10px}.search input{border:0;outline:0;flex:1;font:inherit;background:none;min-width:0}
+.lbl{font-size:.82rem;color:var(--muted);margin:2px 0 6px;font-weight:700}
+.students{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.st{position:relative;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;text-align:start;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px;color:var(--text);transition:transform .12s,border-color .12s,box-shadow .12s}
+.st:hover{transform:translateY(-2px);border-color:var(--primary-l)}.st[aria-pressed=true]{border-color:var(--gold-d);box-shadow:0 0 0 3px rgba(224,176,79,.55)}
+.av{--p:0;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--col,var(--good)) calc(var(--p)*1%),rgba(58,44,31,.1) 0)}
+.av span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--bg,var(--primary));color:#fff;font-weight:700;font-size:1.2rem}
+.st b{display:block;line-height:1.3}.st small{color:var(--muted);display:block;line-height:1.4}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}.bd{font-size:.74rem;border-radius:999px;padding:0 8px;background:rgba(58,44,31,.08);color:var(--muted);font-weight:700}
+.bd.due{background:rgba(217,138,31,.18);color:#9a5d00}.bd.fire{background:rgba(192,57,43,.14);color:var(--bad)}.bd.kid{background:rgba(31,157,85,.14);color:var(--good)}
+.empty{text-align:center;padding:24px 10px;color:var(--muted)}.empty .big{font-size:2.6rem}
+/* مسار الرحلة */
+.path{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));counter-reset:s}
+.sg{position:relative;border:2px solid var(--line);background:#fff;border-radius:16px;padding:10px 6px 8px;text-align:center;display:flex;flex-direction:column;gap:3px;align-items:center}
+.sg .ic{--p:0;width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;background:conic-gradient(var(--c) calc(var(--p)*1%),rgba(58,44,31,.1) 0)}
+.sg .ic span{width:42px;height:42px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.sg .nm{font-weight:700;font-size:.82rem;line-height:1.35;color:var(--text)}.sg .ct{font-size:.76rem;color:var(--muted)}
+.sg.locked{opacity:.5;filter:grayscale(.7)}.sg.locked::after{content:"🔒";position:absolute;top:4px;inset-inline-start:6px;font-size:.85rem}
+.sg.active{border-color:var(--c);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 28%,transparent)}.sg.done{border-color:var(--good)}
+.sg.done .ct{color:var(--good);font-weight:700}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.76rem;color:var(--muted);margin-top:10px}
+/* تنبيه المراجعة */
+.alert{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#fff1dc,#ffe0b0);border:1.5px solid rgba(217,138,31,.6);color:#6b3d00;border-radius:16px;padding:10px 14px}
+.alert .em{font-size:1.8rem}.alert b{display:block}
+.streak{display:inline-flex;gap:6px;align-items:center;background:rgba(192,57,43,.1);color:var(--bad);font-weight:700;border-radius:999px;padding:2px 12px}
+/* لوحة الأبطال */
+.lb{display:grid;gap:8px}.lbrow{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;padding:6px 8px;border-radius:12px;background:rgba(30,58,95,.05)}
+.lbrow .t{font-size:.85rem;font-weight:700;color:var(--primary)}.chips{display:flex;gap:6px;flex-wrap:wrap}
+.pill{display:inline-flex;gap:5px;align-items:center;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:1px 10px 1px 4px;font-size:.84rem}.pill i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:.72rem;font-weight:700}
+/* خطوات البداية */
+.onb{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));margin:8px 0 12px;counter-reset:o}
+.ob{background:#fff;border:2px dashed rgba(30,58,95,.3);border-radius:14px;padding:10px;text-align:center}.ob .n{width:30px;height:30px;border-radius:50%;margin:0 auto 4px;display:grid;place-items:center;background:var(--primary);color:#fff;font-weight:700}
+.ob b{display:block;color:var(--primary)}.ob small{color:var(--muted)}
+/* وضع المعلم */
+.tsum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}.tsum .stat{background:#fff;color:var(--text);border-color:var(--line)}
+.tbl{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:.88rem}.tbl th{font-weight:700;color:var(--muted);font-size:.78rem;padding:2px 4px;text-align:center}
+.tbl td{background:#fff;padding:6px 4px;text-align:center;border-block:1px solid var(--line)}.tbl td:first-child{border-inline-start:1px solid var(--line);border-radius:0 12px 12px 0;text-align:start;padding-inline-start:10px}.tbl td:last-child{border-inline-end:1px solid var(--line);border-radius:12px 0 0 12px}
+.tbl tr.clk{cursor:pointer}.tbl tr.clk:hover td{background:#fff7e0}
+.cell{display:inline-block;min-width:34px;border-radius:8px;padding:1px 6px;font-weight:700;font-size:.8rem}
+.c0{background:rgba(58,44,31,.07);color:var(--muted)}.c1{background:rgba(45,90,140,.16);color:var(--primary-l)}.c2{background:rgba(31,157,85,.18);color:var(--good)}.c3{background:rgba(217,138,31,.2);color:#9a5d00}
+.scroll{overflow-x:auto}.toast{position:fixed;inset-inline:0;bottom:18px;margin:auto;width:max-content;max-width:92vw;background:#0b1a2e;border:2px solid var(--gold);color:#fff;padding:10px 18px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@container (max-width:520px){.hero h1{font-size:1.6rem}.students{grid-template-columns:1fr}.tbl th:nth-child(n+6),.tbl td:nth-child(n+6){display:none}}
+</style></head><body>
+<div class="pv"><b>معاينة</b>
+<div class="grp" id="scn"><span>الحالة:</span></div>
+<div class="grp" id="wid"><span>العرض:</span></div>
+<span class="tag">⚠️ كل الأسماء والأرقام بيانات تجريبية للمعاينة فقط</span></div>
+<div class="frame" id="frame"><div id="app"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const STAGES=[{"id":"qalqalah","name":"القلقلة","icon":"💥","colorVar":"--tjw-accent","rules":[{"id":"qalqalah","name":"القلقلة"}]},{"id":"meem_noon_mushaddadah","name":"غنة الميم والنون المشدَّدتين","icon":"🎵","colorVar":"--tjw-primary-light","rules":[{"id":"ghunna_wajiba","name":"غنة الميم والنون المشدَّدتين"}]},{"id":"meem_sakinah","name":"الميم الساكنة","icon":"🟠","colorVar":"--tjw-secondary","rules":[{"id":"ikhfa_shafawi","name":"الإخفاء الشفوي"},{"id":"idgham_shafawi","name":"الإدغام الشفوي (المثلين)"},{"id":"izhar_shafawi","name":"الإظهار الشفوي"}]},{"id":"noon_sakinah","name":"النون الساكنة والتنوين","icon":"🔵","colorVar":"--tjw-primary","rules":[{"id":"izhar","name":"الإظهار الحلقي"},{"id":"idgham_bighunnah","name":"الإدغام بغنة"},{"id":"idgham_bila_ghunnah","name":"الإدغام بغير غنة"},{"id":"iqlab","name":"الإقلاب"},{"id":"ikhfa","name":"الإخفاء"}]},{"id":"lam_al","name":"لام «ال» ولام الفعل","icon":"🌙","colorVar":"--tjw-lam","rules":[{"id":"izhar_qamari","name":"الإظهار القمري"},{"id":"idgham_shamsi","name":"الإدغام الشمسي"},{"id":"izhar_lam_fil","name":"إظهار لام الفعل"}]},{"id":"mithlain","name":"المثلان والمتقاربان والمتجانسان","icon":"🔗","colorVar":"--tjw-mithlain","rules":[{"id":"mithlain","name":"المثلان"},{"id":"mutaqaribain","name":"المتقاربان"},{"id":"mutajanisain","name":"المتجانسان"}]},{"id":"madd","name":"أقسام المد وأحكامه","icon":"🌊","colorVar":"--tjw-madd","rules":[{"id":"madd_tabii","name":"المد الطبيعي (الأصلي)"},{"id":"madd_wajib_muttasil","name":"المد الواجب المتصل"},{"id":"madd_jaiz_munfasil","name":"المد الجائز المنفصل"},{"id":"madd_arid_sukun","name":"المد العارض للسكون"},{"id":"madd_leen","name":"مد اللين"},{"id":"madd_badal","name":"مد البدل"},{"id":"madd_lazim","name":"المد اللازم"}]},{"id":"madd_lazim","name":"أقسام المد اللازم","icon":"📏","colorVar":"--tjw-lazim","rules":[{"id":"lazim_kalami_muthaqqal","name":"اللازم الكلمي المثقل"},{"id":"lazim_kalami_mukhaffaf","name":"اللازم الكلمي المخفف"},{"id":"lazim_harfi_muthaqqal","name":"اللازم الحرفي المثقل"},{"id":"lazim_harfi_mukhaffaf","name":"اللازم الحرفي المخفف"}]}];
+const COLOR={'--tjw-accent':'#8c2f3d','--tjw-primary-light':'#2d5a8c','--tjw-secondary':'#a8571e','--tjw-primary':'#1e3a5f','--tjw-lam':'#17796c','--tjw-mithlain':'#5d4691','--tjw-madd':'#2f7d32','--tjw-lazim':'#a23b72'};
+STAGES.forEach(s=>s.c=COLOR[s.colorVar]);
+const TOTAL=STAGES.reduce((a,s)=>a+s.rules.length,0), STEPS=['الشرح','التطبيق','الاختبار','المعلم'], STEP_KEYS=['learn','practice','exam','teacher'], STEP_FRAC={learn:.1,practice:.35,exam:.6,teacher:.85};
+const AVBG=['#1e3a5f','#8c2f3d','#17796c','#5d4691','#a8571e','#2f7d32','#a23b72','#2d5a8c'];
+// بيانات تجريبية: m = عدد الأحكام المتقنة في كل مرحلة، step = خطوة الحكم الحالي، last = منذ كم دقيقة آخر دخول
+const RAW=[
+ ['أحمد','adults',[1,1,3,2,0,0,0,0],'practice',2,4,5],['سارة','kids',[1,1,2,0,0,0,0,0],'exam',0,9,2],['يوسف','kids',[1,0,0,0,0,0,0,0],'learn',1,1,40],
+ ['مريم','adults',[1,1,3,5,3,1,0,0],'teacher',0,12,300],['عمر','kids',[1,1,1,0,0,0,0,0],'practice',0,3,1500],['ليلى','adults',[1,1,3,5,3,3,7,2],'exam',3,20,90],
+ ['خالد','kids',[0,0,0,0,0,0,0,0],'learn',0,0,2880],['نورة','adults',[1,1,3,3,0,0,0,0],'practice',1,6,600],['حمزة','kids',[1,1,0,0,0,0,0,0],'learn',2,2,4000],
+ ['آية','kids',[1,1,3,1,0,0,0,0],'teacher',0,7,20],['زياد','adults',[1,0,0,0,0,0,0,0],'practice',0,2,7000],['رهف','kids',[1,1,3,5,2,0,0,0],'exam',2,15,150]];
+const ALL=RAW.map((r,i)=>({id:i,name:r[0],kind:r[1],m:r[2],step:r[3],due:r[4],streak:r[5],last:r[6],bg:AVBG[i%AVBG.length]}));
+const NEWBIE={id:99,name:'جود',kind:'kids',m:[0,0,0,0,0,0,0,0],step:'learn',due:0,streak:0,last:99999,bg:AVBG[2],fresh:true};
+const SCN={many:{label:'12 طالباً',list:()=>ALL},few:{label:'5 طلاب',list:()=>ALL.slice(0,5)},fresh:{label:'طالب جديد',list:()=>[NEWBIE,ALL[0],ALL[1]]},none:{label:'لا طلاب',list:()=>[]}};
+const S={scn:'many',mode:'student',sel:null,all:false,q:'',kind:'all',sort:'progress'};
+const cur=(s)=>{const si=s.m.findIndex((m,i)=>m<STAGES[i].rules.length);return si<0?null:{stage:STAGES[si],si,rule:STAGES[si].rules[s.m[si]],ri:s.m[si]}};
+const pct=(s)=>{const c=cur(s),done=s.m.reduce((a,b)=>a+b,0);return Math.min(100,Math.round((done+(c?STEP_FRAC[s.step]:0))/TOTAL*100))};
+const ago=(m)=>m<2?'الآن':m<60?`منذ ${m} د`:m<1440?`منذ ${Math.round(m/60)} س`:`منذ ${Math.round(m/1440)} يوم`;
+const stepper=(step)=>{const i=STEP_KEYS.indexOf(step);return `<div class="stepper" aria-label="خطوات الحكم">${STEPS.map((n,k)=>`<i class="${k<i?'done':k===i?'cur':''}">${k<i?'✓':k+1} ${n}</i>`).join('')}</div>`};
+const list=()=>SCN[S.scn].list().slice().sort((a,b)=>a.last-b.last);
+const $=(s)=>document.querySelector(s);
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>e.classList.remove('show'),2600)}
+
+function studentCard(s){
+ const c=cur(s),p=pct(s);
+ return `<button class="st" data-id="${s.id}" aria-pressed="${S.sel&&S.sel.id===s.id}" aria-label="${s.name}، تقدّم ${p}%">
+  <span class="av" style="--p:${p};--col:${c?c.stage.c:'#1f9d55'}"><span style="--bg:${s.bg}">${s.name[0]}</span></span>
+  <span><b>${s.name}</b><small>${s.fresh?'جاهز لأول حكم 🌱':c?`${c.rule.name}`:'أتمّ كل الأحكام 🎉'}</small>
+  <span class="badges"><span class="bd ${s.kind==='kids'?'kid':''}">${s.kind==='kids'?'صغير':'كبير'}</span><span class="bd">${p}%</span>${s.due?`<span class="bd due">🔁 ${s.due}</span>`:''}${s.streak>1?`<span class="bd fire">🔥 ${s.streak}</span>`:''}</span></span></button>`}
+
+function contBanner(s){
+ if(!s)return '';
+ const c=cur(s);
+ if(s.fresh||(!c))return '';
+ return `<section class="cont" aria-label="أكمل من حيث توقفت">
+  <div class="who"><span class="av" style="--p:${pct(s)};--col:${c.stage.c}"><span style="--bg:${s.bg}">${s.name[0]}</span></span>
+   <div><h2>أكمل رحلتك يا ${s.name} 👋</h2><small style="color:var(--muted)">آخر دخول ${ago(s.last)}</small></div></div>
+  <div class="row"><span class="rulechip" style="--c:${c.stage.c}">${c.stage.icon} ${c.rule.name}</span><small style="color:var(--muted)">${c.stage.name} · الحكم ${c.ri+1} من ${c.stage.rules.length}</small></div>
+  ${stepper(s.step)}
+  <div class="row"><button class="cta gold" data-act="go">أكمل ▶</button><button class="ghost" data-act="other">طالب آخر</button></div></section>`}
+
+function onboarding(s){
+ return `<section class="card" aria-label="بداية الرحلة"><h2>أهلاً ${s.name}! هذه رحلتك 🌱</h2><p class="sub">لكل حكم أربع خطوات، لا تُقفز واحدة منها:</p>
+  <div class="onb">${[['📖','الشرح','اقرأ الحكم واستمع للآية'],['🎯','التطبيق','أسئلة وألعاب قصيرة'],['📝','الاختبار','8 أسئلة بلا تلميحات'],['🎤','المعلم','تسمّع له فيعتمد الحكم']].map((o,i)=>`<div class="ob"><div class="n">${i+1}</div><b>${o[0]} ${o[1]}</b><small>${o[2]}</small></div>`).join('')}</div>
+  <div class="row"><button class="cta gold" data-act="go">ابدأ أول حكم: القلقلة 💥</button></div></section>`}
+
+function studentsPanel(){
+ const L=list(),many=L.length>8;
+ let shown=L.filter(s=>!S.q||s.name.includes(S.q));
+ const hidden=many&&!S.q&&!S.all?shown.length-6:0;if(hidden>0)shown=shown.slice(0,6);
+ if(!L.length)return `<section class="card"><div class="empty"><div class="big">🌟</div><b>لا يوجد طلاب بعد</b><p>أضف الطلاب أولاً من قسم «طلابي» ليبدؤوا رحلتهم.</p><button class="cta" data-act="add">➕ أضف طالباً</button></div></section>`;
+ return `<section class="card plain" aria-label="اختيار الطالب"><h2>مَن سيتعلّم الآن؟</h2><p class="sub">${many?'ابحث بالاسم أو اضغط على بطاقة الطالب':'اضغط على بطاقة الطالب للدخول'}</p>
+  ${many?`<label class="search"><span aria-hidden="true">🔍</span><input id="q" type="search" placeholder="اكتب اسم الطالب…" value="${S.q}" aria-label="بحث عن طالب" autocomplete="off"></label>`:''}
+  <div class="lbl">${S.q?'نتائج البحث':'الأحدث دخولاً أولاً'}</div>
+  <div class="students" id="studs">${shown.map(studentCard).join('')||'<p class="empty">لا يوجد طالب بهذا الاسم</p>'}</div>
+  ${hidden>0?`<div class="row" style="margin-top:10px;justify-content:center"><button class="ghost" data-act="all">عرض كل الطلاب (${L.length})</button></div>`:''}</section>`}
+
+function reviewAlert(){
+ const s=S.sel;
+ if(s&&s.fresh)return '';
+ if(s&&s.due)return `<div class="alert"><span class="em">🔁</span><div><b>${s.due} ${s.due>2?'أحكام':'حكمان'} تحتاج مراجعة</b>ثلاث دقائق الآن تحفظ ما أتقنتَه</div><button class="cta" data-act="review" style="margin-inline-start:auto">راجع</button></div>`;
+ if(s)return `<div class="alert" style="background:linear-gradient(135deg,#e6f7ec,#cdeedb);border-color:rgba(31,157,85,.5);color:#14653a"><span class="em">✅</span><div><b>لا مراجعات مستحقة</b>أحسنت، ما أتقنتَه محفوظ</div>${s.streak>1?`<span class="streak" style="margin-inline-start:auto">🔥 ${s.streak} أيام</span>`:''}</div>`;
+ const due=list().reduce((a,x)=>a+x.due,0);
+ return due?`<div class="alert"><span class="em">🔁</span><div><b>${due} مراجعة مستحقة في الصف</b>اختر طالباً لتبدأ مراجعته</div></div>`:'';
+}
+function journey(){
+ const s=S.sel,c=s&&cur(s);
+ return `<section class="card plain" aria-label="رحلة الأحكام"><h2>رحلة الأحكام</h2><p class="sub">${s?`تقدّم ${s.name} عبر المراحل`:`${STAGES.length} مراحل و${TOTAL} حكماً، تُفتح مرحلة بعد إتقان التي قبلها`}</p>
+  <div class="path">${STAGES.map((st,i)=>{
+   const n=st.rules.length,m=s?s.m[i]:0,done=s&&m>=n,active=s&&c&&c.si===i,locked=s&&!done&&!active&&c&&i>c.si;
+   const p=s?Math.round((m+(active?STEP_FRAC[s.step]:0))/n*100):0;
+   return `<div class="sg ${done?'done':''} ${active?'active':''} ${locked?'locked':''}" style="--c:${st.c}"><div class="ic" style="--p:${p}"><span>${done?'✅':st.icon}</span></div><div class="nm">${st.name}</div><div class="ct">${s?`${m} من ${n} متقن`:`${n} ${n===1?'حكم':n<11?'أحكام':'حكماً'}`}</div></div>`}).join('')}</div>
+  ${s?`<div class="legend"><span>✅ مرحلة مكتملة</span><span>🔒 تُفتح لاحقاً</span><span>الحلقة = التقدّم</span></div>`:''}</section>`}
+function leaderboard(){
+ const L=SCN[S.scn].list();if(L.length<3)return '';
+ const top=(f)=>L.slice().sort((a,b)=>f(b)-f(a)).slice(0,3);
+ const pill=(s)=>`<span class="pill"><i style="background:${s.bg}">${s.name[0]}</i>${s.name}</span>`;
+ const rows=[['🔥 الأكثر مواظبة',top(s=>s.streak)],['🏅 الأكثر أحكاماً متقنة',top(s=>s.m.reduce((a,b)=>a+b,0))],['🕒 الأحدث نشاطاً',top(s=>-s.last)]];
+ return `<section class="card plain" aria-label="لوحة الأبطال"><h2>🏆 لوحة الأبطال</h2><p class="sub">فئات متعددة، وكل طالب بطل في شيء</p>
+  <div class="lb">${rows.map(r=>`<div class="lbrow"><div class="t">${r[0]}</div><div class="chips">${r[1].map(pill).join('')}</div></div>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><button class="ghost" data-act="lb">عرض اللوحة كاملة</button></div></section>`}
+
+function studentView(){
+ const s=S.sel,L=list(),hasL=L.length>0;
+ const top=s?(s.fresh?onboarding(s):contBanner(s)):(hasL?`<section class="cont" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:#e8edf6"><b>👋 اختر الطالب لنكمل من حيث توقف</b><small style="color:#c9d3e3">سنعرض له حكمه الحالي وخطوته التالية مباشرة</small></section>`:'');
+ return `<div class="layout"><div class="col">${top}${studentsPanel()}</div><div class="col">${hasL?reviewAlert():''}${journey()}${hasL?leaderboard():''}</div></div>`}
+
+function cellOf(s,i){const n=STAGES[i].rules.length,m=s.m[i],c=cur(s);const k=m>=n?'c2':(c&&c.si===i)?(s.due&&m>0?'c3':'c1'):'c0';return `<span class="cell ${k}">${m}/${n}</span>`}
+function teacherView(){
+ const L=list().filter(s=>S.kind==='all'||s.kind===S.kind).sort((a,b)=>S.sort==='progress'?pct(b)-pct(a):a.name.localeCompare(b.name,'ar'));
+ const all=SCN[S.scn].list();
+ if(!all.length)return `<section class="card"><div class="empty"><div class="big">📋</div><b>لا طلاب في الصف بعد</b></div></section>`;
+ const mast=all.filter(s=>!cur(s)).length,rev=all.filter(s=>s.due>0).length,idle=all.filter(s=>s.last>2880).length,nb=all.filter(s=>pct(s)===0).length;
+ return `<section class="card"><h2>نظرة على الصف</h2><p class="sub">اضغط على صف الطالب لفتح رحلته</p>
+  <div class="tsum"><span class="stat"><b>${all.length}</b>طلاب</span><span class="stat"><b>${rev}</b>عندهم مراجعات 🔁</span><span class="stat"><b>${idle}</b>لم يدخلوا منذ يومين 💤</span><span class="stat"><b>${nb}</b>لم يبدؤوا 🌱</span><span class="stat"><b>${mast}</b>أتمّوا كل الأحكام 🎉</span></div>
+  <div class="row" style="margin-bottom:8px"><span class="lbl" style="margin:0">عرض:</span>${[['all','الكل'],['kids','الصغار'],['adults','الكبار']].map(k=>`<button class="ghost" data-kind="${k[0]}" style="${S.kind===k[0]?'background:var(--primary-l);color:#fff':''}">${k[1]}</button>`).join('')}
+   <span class="lbl" style="margin:0 10px 0 0">ترتيب:</span>${[['progress','التقدّم'],['name','الاسم']].map(k=>`<button class="ghost" data-sort="${k[0]}" style="${S.sort===k[0]?'background:var(--primary-l);color:#fff':''}">${k[1]}</button>`).join('')}</div>
+  <div class="scroll"><table class="tbl"><thead><tr><th style="text-align:start">الطالب</th>${STAGES.map(s=>`<th title="${s.name}">${s.icon}</th>`).join('')}<th>%</th></tr></thead>
+  <tbody>${L.map(s=>`<tr class="clk" data-id="${s.id}" tabindex="0"><td><b>${s.name}</b> <small style="color:var(--muted)">${s.kind==='kids'?'صغير':'كبير'}${s.due?` · 🔁${s.due}`:''}</small></td>${STAGES.map((_,i)=>`<td>${cellOf(s,i)}</td>`).join('')}<td><b>${pct(s)}%</b></td></tr>`).join('')}</tbody></table></div>
+  <div class="legend"><span><span class="cell c2">✓</span> مكتملة</span><span><span class="cell c1">·</span> جارية</span><span><span class="cell c3">·</span> فيها مراجعة</span><span><span class="cell c0">·</span> لم تبدأ</span></div></section>`}
+
+function render(){
+ const L=SCN[S.scn].list();
+ $('#app').innerHTML=`<nav class="crumbs" aria-label="مسار التنقل"><a href="#">الرئيسية</a><span>›</span><b>أبطال التجويد</b></nav>
+ <header class="hero"><div><h1>أبطال التجويد</h1><p>رحلة من ${STAGES.length} مراحل و${TOTAL} حكماً: شرح، ثم تطبيق، ثم اختبار، ثم اعتماد المعلم.</p>
+ <div class="stats"><span class="stat"><b>${STAGES.length}</b>مراحل</span><span class="stat"><b>${TOTAL}</b>حكماً</span><span class="stat"><b>4</b>خطوات لكل حكم</span><span class="stat"><b>🎮</b>ألعاب وبطاقات</span></div></div>
+ <div class="seg" role="tablist" aria-label="نوع المستخدم"><button role="tab" aria-selected="${S.mode==='student'}" class="${S.mode==='student'?'on':''}" data-mode="student">🧒 الطالب</button><button role="tab" aria-selected="${S.mode==='teacher'}" class="${S.mode==='teacher'?'on':''}" data-mode="teacher">👩‍🏫 المعلم</button></div></header>
+ ${S.mode==='teacher'?teacherView():studentView()}`;
+ const q=$('#q');if(q){q.addEventListener('input',e=>{S.q=e.target.value;const pos=e.target.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(pos,pos)})}
+}
+document.addEventListener('click',e=>{
+ const sc=e.target.closest('[data-scn]');if(sc){S.all=false;S.scn=sc.dataset.scn;S.sel=S.scn==='fresh'?NEWBIE:null;S.q='';S.mode='student';chips();render();return}
+ const wd=e.target.closest('[data-w]');if(wd){$('#frame').classList.toggle('mob',wd.dataset.w==='m');chips();return}
+ const md=e.target.closest('[data-mode]');if(md){S.mode=md.dataset.mode;render();return}
+ const kd=e.target.closest('[data-kind]');if(kd){S.kind=kd.dataset.kind;render();return}
+ const so=e.target.closest('[data-sort]');if(so){S.sort=so.dataset.sort;render();return}
+ const tr=e.target.closest('tr.clk');if(tr){S.sel=SCN[S.scn].list().find(s=>s.id==tr.dataset.id);S.mode='student';render();window.scrollTo({top:0,behavior:'smooth'});return}
+ const st=e.target.closest('.st');if(st){const s=SCN[S.scn].list().find(x=>x.id==st.dataset.id);S.sel=(S.sel&&S.sel.id===s.id)?null:s;render();if(S.sel)toast(`اخترتَ ${s.name}`);return}
+ const a=e.target.closest('[data-act]');if(a){const s=S.sel,c=s&&cur(s);
+  ({go:()=>toast(s?(c?`سيفتح: ${c.rule.name} — خطوة ${STEPS[STEP_KEYS.indexOf(s.step)]}`:'سيفتح الخريطة'):'اختر طالباً'),other:()=>{S.sel=null;render();document.getElementById('studs')?.scrollIntoView({behavior:'smooth'})},review:()=>toast('ستبدأ جولة المراجعة'),all:()=>{S.all=true;render()},lb:()=>toast('ستفتح لوحة الأبطال كاملة'),add:()=>toast('سيفتح قسم «طلابي»')})[a.dataset.act]?.()}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const tr=e.target.closest&&e.target.closest('tr.clk');if(tr)tr.click()}});
+function chips(){
+ $('#scn').innerHTML='<span>الحالة:</span>'+Object.entries(SCN).map(([k,v])=>`<button data-scn="${k}" class="${S.scn===k?'on':''}">${v.label}</button>`).join('');
+ const mob=$('#frame').classList.contains('mob');
+ $('#wid').innerHTML=`<span>العرض:</span><button data-w="d" class="${mob?'':'on'}">حاسوب</button><button data-w="m" class="${mob?'on':''}">جوال</button>`}
+chips();render();
+</script></body></html>
