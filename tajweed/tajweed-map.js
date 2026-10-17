@@ -10,7 +10,7 @@ import { AppState, loadSplashScreen, openTajweedActivityScreen, t } from '../cor
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { computeAllStageProgress, isStageUnlocked, ruleOverallPercent, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
-import { getAyahForExample, highlightForTajweed } from './tajweed-shared.js';
+import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
 // الدخول الأساسية (شاشة التقييم) بعد اختيار اسم الطالب مباشرة، راجع student/student.js
 // (setupLoginListeners) للاستخدام الأصلي. نستوردها هنا لعرضها بنفس الطريقة تماماً بعد اختيار
@@ -420,15 +420,19 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const rule = getTajweedRule(stageId, ruleId);
     if (!stage || !rule) return `<div class="tjw-empty-state">${t('tjw_rule_not_found')}</div>`;
 
-    const ayahInfo = await getAyahForExample(rule.example.surah, rule.example.ayah);
+    // 🌟 مثال الدرس من حفظ الطالب نفسه إن وُجد الحكم في نطاق حفظه (جدول التوسيم)، وإلا مثال الكتالوج
+    const mine = AppState.currentStudent ? (await pickStudentExamples(rule, AppState.currentStudent, 1))[0] : null;
+    const ayahInfo = mine ? mine.ayahInfo : await getAyahForExample(rule.example.surah, rule.example.ayah);
+    const exAyahNumber = mine ? mine.ayah : rule.example.ayah;
     const ayahHTML = ayahInfo
-        ? highlightForTajweed(ayahInfo.text, rule.example.highlight, rule.example.firstOnly)
+        ? (mine ? highlightWordsHTML(ayahInfo.text, mine.occurrences)
+                : highlightForTajweed(ayahInfo.text, rule.example.highlight, rule.example.firstOnly))
         : t('tjw_example_unavailable');
     const audioBtnHTML = ayahInfo
         ? `<button class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(ayahInfo.number)}">🔊 ${t('tjw_listen_btn')}</button>`
         : '';
     const surahRefHTML = ayahInfo
-        ? `<div class="tjw-example-ref">${ayahInfo.surahName} — ${t('tjw_ayah_word')} ${rule.example.ayah}</div>`
+        ? `<div class="tjw-example-ref">${ayahInfo.surahName} — ${t('tjw_ayah_word')} ${exAyahNumber}</div>`
         : '';
 
     const mastery = AppState.currentStudent
@@ -485,9 +489,10 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                 </section>
 
                 <section class="tjw-example-box">
+                    ${mine ? `<div class="tjw-hifz-tag">📖 ${t('tjw_from_hifz')}</div>` : ''}
                     <div class="tjw-example-text">${ayahHTML}</div>
                     ${surahRefHTML}
-                    <div class="tjw-example-note">${t('tjw_example_source_note')}</div>
+                    <div class="tjw-example-note">${t(mine ? 'tjw_example_hifz_note' : 'tjw_example_source_note')}</div>
                     ${audioBtnHTML}
                 </section>
 

@@ -247,6 +247,39 @@ function buildDiscoverStyleQuestion(type, rule, ayahInfo, exampleMeta) {
     };
 }
 
+// 🌟 [جديد] سؤال «اكتشف/طبّق» مبني من جدول التوسيم (tajweedAnnotations.json) على آية من حفظ الطالب:
+// occurrences = كل مواضع الحكم في الآية [{w1, w2}] (فهارس كلمات). الجواب أول كلمة من موضع يُختار عشوائياً،
+// والمشتِّتات لا تشمل أي كلمة من أي موضع للحكم نفسه في الآية — فلا يظهر خيار «خاطئ» وهو صحيح فعلاً.
+export function generateAnnotatedQuestion(type, rule, ayahInfo, occurrences) {
+    if (!ayahInfo || !occurrences || occurrences.length === 0) return null;
+    const words = ayahInfo.text.split(/\s+/).filter(w => w && !isWaqfMark(w));
+    const covered = new Set();
+    occurrences.forEach(o => { for (let w = o.w1; w <= o.w2; w++) covered.add(w); });
+    const occ = pickRandom(occurrences, 1)[0];
+    const correctIndex = occ.w1;
+    if (correctIndex >= words.length) return null;
+    const others = words.map((_, i) => i).filter(i => !covered.has(i));
+    if (others.length < 2) return null;
+    const optionIndices = shuffleArray([correctIndex, ...pickRandom(others, Math.min(3, others.length))]);
+    return {
+        type,
+        ruleId: rule.id,
+        ayahText: words.join(' '),
+        surahName: ayahInfo.surahName,
+        audioNumber: ayahInfo.number,
+        options: optionIndices.map(i => ({ index: i, word: words[i] })),
+        correctIndex,
+        fromHifz: true
+    };
+}
+
+// مدخل ayahInfoByRuleId قد يكون آية مثال من الكتالوج (ayahInfo مباشرة) أو آية من حفظ الطالب
+// ({ ayahInfo, occurrences }) — يُختار المُولِّد المناسب لكلٍّ
+function discoverFromEntry(rule, entry) {
+    if (entry && entry.occurrences) return generateAnnotatedQuestion('discover_in_ayah', rule, entry.ayahInfo, entry.occurrences);
+    return generateDiscoverQuestion(rule, entry);
+}
+
 // 3) اكتشف الحكم داخل الآية — يستخدم مثال التصفّح الأساسي (example) نفسه الذي شاهده الطالب
 export function generateDiscoverQuestion(rule, ayahInfo) {
     return buildDiscoverStyleQuestion('discover_in_ayah', rule, ayahInfo, rule.example);
@@ -267,8 +300,7 @@ export function buildStageChallengeQuestions(stageId, ayahInfoByRuleId) {
     const questions = [];
     stage.rules.forEach(rule => {
         questions.push(generateChooseRuleQuestion(rule));
-        const ayahInfo = ayahInfoByRuleId[rule.id];
-        const discoverQ = generateDiscoverQuestion(rule, ayahInfo);
+        const discoverQ = discoverFromEntry(rule, ayahInfoByRuleId[rule.id]);
         if (discoverQ) questions.push(discoverQ);
     });
     // سقف 5 أسئلة كحد أقصى (§15 من المستند: "سقف أقصى 3-5 أسئلة")
@@ -282,8 +314,7 @@ export function buildReviewQuestions(dueRules, ayahInfoByRuleId) {
     const pool = [];
     dueRules.forEach(rule => {
         pool.push(generateChooseRuleQuestion(rule));
-        const ayahInfo = ayahInfoByRuleId[rule.id];
-        const discoverQ = generateDiscoverQuestion(rule, ayahInfo);
+        const discoverQ = discoverFromEntry(rule, ayahInfoByRuleId[rule.id]);
         if (discoverQ) pool.push(discoverQ);
     });
     return shuffleArray(pool).slice(0, 5);

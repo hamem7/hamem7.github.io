@@ -715,3 +715,16 @@ body.adult-theme:has(.tjw-wrap) {
 .adult-theme .tjw-wrap .tjw-howto .tjw-section-title { color: #167a42 !important; }
 .adult-theme .tjw-wrap .tjw-caution .tjw-section-title { color: var(--tjw-bad) !important; }
 .adult-theme .tjw-wrap .tjw-pick-label { color: var(--tjw-text) !important; }
+
+/* وسم «من حفظك» فوق الآية المأخوذة من محفوظات الطالب نفسه */
+.tjw-hifz-tag {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #14532d;
+    background: rgba(31, 157, 85, 0.14);
+    border: 1.5px solid rgba(31, 157, 85, 0.5);
+    border-radius: 999px;
+}

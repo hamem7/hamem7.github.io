@@ -12,11 +12,12 @@ import { getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds } fro
 import {
     generateChooseRuleQuestion, generateLinkQuestion, generateDiscoverQuestion, generateApplyQuestion,
     buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress,
+    generateAnnotatedQuestion,
     evaluateSessionAchievements, TAJWEED_BADGE_CATALOG, isStageUnlocked,
     // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — راجع تعليق الاستيراد أدناه عند استخدامهما
     buildTeacherCheckpointCriteria, computeCheckpointScore
 } from '../engine/tajweedEngine.js';
-import { getAyahForExample, syncStudentTajweedProgress } from './tajweed-shared.js';
+import { getAyahForExample, syncStudentTajweedProgress, pickStudentExamples } from './tajweed-shared.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 
 let params = null;
@@ -77,15 +78,19 @@ async function buildQuestions() {
     if (params.mode === 'practice') {
         const rule = getTajweedRule(params.stageId, params.ruleId);
         if (!rule) return;
-        const [exAyah, practiceAyah] = await Promise.all([
-            getAyahForExample(rule.example.surah, rule.example.ayah),
-            getAyahForExample(rule.practiceExample.surah, rule.practiceExample.ayah)
-        ]);
-        questions = [
-            generateChooseRuleQuestion(rule),
-            generateDiscoverQuestion(rule, exAyah),
-            generateApplyQuestion(rule, practiceAyah)
-        ].filter(Boolean);
+        // 🌟 آيتان من حفظ الطالب نفسه إن وُجد الحكم في نطاق حفظه (جدول التوسيم)، وإلا مثال الكتالوج
+        const mine = await pickStudentExamples(rule, AppState.currentStudent, 2);
+        let discoverQ = mine[0] ? generateAnnotatedQuestion('discover_in_ayah', rule, mine[0].ayahInfo, mine[0].occurrences) : null;
+        let applyQ = mine[1] ? generateAnnotatedQuestion('apply_new_ayah', rule, mine[1].ayahInfo, mine[1].occurrences) : null;
+        if (!discoverQ || !applyQ) {
+            const [exAyah, practiceAyah] = await Promise.all([
+                getAyahForExample(rule.example.surah, rule.example.ayah),
+                getAyahForExample(rule.practiceExample.surah, rule.practiceExample.ayah)
+            ]);
+            discoverQ = discoverQ || generateDiscoverQuestion(rule, exAyah);
+            applyQ = applyQ || generateApplyQuestion(rule, practiceAyah);
+        }
+        questions = [generateChooseRuleQuestion(rule), discoverQ, applyQ].filter(Boolean);
     } else if (params.mode === 'link') {
         const q = generateLinkQuestion(params.stageId);
         questions = q ? [q] : [];
@@ -94,7 +99,7 @@ async function buildQuestions() {
         if (!stage) return;
         const ayahInfoByRuleId = {};
         for (const rule of stage.rules) {
-            ayahInfoByRuleId[rule.id] = await getAyahForExample(rule.example.surah, rule.example.ayah);
+            ayahInfoByRuleId[rule.id] = await entryForRule(rule);
         }
         questions = buildStageChallengeQuestions(params.stageId, ayahInfoByRuleId);
     } else if (params.mode === 'review') {
@@ -104,7 +109,7 @@ async function buildQuestions() {
             .map(x => x.rule);
         const ayahInfoByRuleId = {};
         for (const rule of dueRules) {
-            ayahInfoByRuleId[rule.id] = await getAyahForExample(rule.example.surah, rule.example.ayah);
+            ayahInfoByRuleId[rule.id] = await entryForRule(rule);
         }
         questions = buildReviewQuestions(dueRules, ayahInfoByRuleId);
     } else if (params.mode === 'teacher_checkpoint') {
@@ -114,10 +119,10 @@ async function buildQuestions() {
         if (!rule) return;
         checkpointRatings = {};
         checkpointNote = '';
-        const [exAyah, practiceAyah] = await Promise.all([
-            getAyahForExample(rule.example.surah, rule.example.ayah),
-            getAyahForExample(rule.practiceExample.surah, rule.practiceExample.ayah)
-        ]);
+        // 🌟 المعلم يسمّع الطالب على آيات من حفظه إن وُجد الحكم فيها، وإلا آيتا الكتالوج
+        const mine = await pickStudentExamples(rule, AppState.currentStudent, 2);
+        let exAyah = mine[0] ? mine[0].ayahInfo : await getAyahForExample(rule.example.surah, rule.example.ayah);
+        let practiceAyah = mine[1] ? mine[1].ayahInfo : await getAyahForExample(rule.practiceExample.surah, rule.practiceExample.ayah);
         questions = [{
             type: 'teacher_checkpoint',
             ruleId: rule.id,
@@ -126,6 +131,14 @@ async function buildQuestions() {
             practiceAyah
         }];
     }
+}
+
+// 🌟 مدخل آية لحكم واحد في التحدي والمراجعة: آية من حفظ الطالب ({ayahInfo, occurrences}) إن وُجدت، وإلا
+// آية مثال الكتالوج (ayahInfo مباشرة) — buildStageChallengeQuestions/buildReviewQuestions تتعامل مع الاثنين
+async function entryForRule(rule) {
+    const mine = await pickStudentExamples(rule, AppState.currentStudent, 1);
+    if (mine[0]) return { ayahInfo: mine[0].ayahInfo, occurrences: mine[0].occurrences };
+    return getAyahForExample(rule.example.surah, rule.example.ayah);
 }
 
 function renderProgress() {
@@ -188,6 +201,7 @@ function renderDiscoverHTML(q) {
         <div class="tjw-activity-card">
             <p class="tjw-activity-prompt">${t(promptKey)}</p>
             <div class="tjw-activity-ayah-box">
+                ${q.fromHifz ? `<div class="tjw-hifz-tag">📖 ${t('tjw_from_hifz')}</div>` : ''}
                 <div class="tjw-example-text">${q.ayahText}</div>
                 <div class="tjw-example-ref">${q.surahName || ''}</div>
                 ${audioBtnHTML}
