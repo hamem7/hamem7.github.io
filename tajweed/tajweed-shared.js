@@ -11,6 +11,7 @@ import { getFirstStageId, getAllRulesFlat } from '../engine/tajweedRulesCatalog.
 import { computeAllStageProgress, isStageUnlocked } from '../engine/tajweedEngine.js';
 import { isWaqfMark } from '../engine/quranEngine.js';
 import { resolveRange, buildPath } from '../engine/trackingEngine.js';
+import { letterExampleFromOccurrence, hasInRangeLetterExamples } from '../engine/tajweedLetterExamples.js';
 import { createAnnotationIndex, memorizedAyahsFromPath, findCandidateAyahs } from '../engine/tajweedAnnotations.js';
 
 // 🌟 تخزين مؤقت لكل سورة تُجلَب من QuranEngine — نفس فكرة surahCache في similarities.js
@@ -141,6 +142,30 @@ export async function pickStudentExamples(rule, student, n = 1) {
         out.push({ ...c, ayahInfo });
     }
     return out;
+}
+
+// 🌟 مثال لكل حرف من حروف الحكم من آيات حفظ الطالب نفسه (الأقدم حفظاً أولاً)، حتى لا تظهر خلف البطاقات آيات لم يحفظها.
+// يرجع Map: الحرف ← {before, mark, after, surahName, ayah}؛ الحرف الذي لا موضع له في حفظه لا يُدرَج (يُستعمل مثاله الثابت).
+export async function pickStudentLetterExamples(rule, letters, student) {
+    const found = new Map();
+    if (!student || !hasInRangeLetterExamples(rule.id)) return found;
+    const index = await loadAnnotationIndex();
+    const pool = await getStudentAyahPool(student);
+    if (!index || !pool.length) return found;
+    const wanted = new Set(letters);
+    for (const { surah, ayah } of pool) {
+        if (found.size >= wanted.size) break;
+        const occs = index.occurrences(surah, ayah, rule.id);
+        if (!occs.length) continue;
+        let info = null;
+        for (const occ of occs) {
+            if (!info) { info = await getAyahForExample(surah, ayah); if (!info) break; }
+            const words = info.text.split(/\s+/).filter(w => w && !isWaqfMark(w));
+            const ex = letterExampleFromOccurrence(rule.id, words, occ);
+            if (ex && wanted.has(ex.letter) && !found.has(ex.letter)) found.set(ex.letter, { ...ex, surahName: info.surahName, ayah });
+        }
+    }
+    return found;
 }
 
 // تظليل كلمات محدَّدة (فهارس كلمات بعد حذف رموز الوقف) داخل نص الآية

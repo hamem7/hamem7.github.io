@@ -5,13 +5,13 @@
 //   • بطاقات الحروف القابلة للقلب: وجه الحرف، وظهر بكلمة قرآنية مقتطعة من مصحف المنصة (لا نصّ مكتوباً يدوياً)
 //   • سؤال «صِل المثال بحكمه» لنشاط ربط المرحلة
 // كل منطق البيانات في engine/tajweedLetterGames.js وملفَّي الأزواج والأمثلة؛ هذا الملف يبني HTML فقط.
-import { t } from '../core/app.js';
+import { t, AppState } from '../core/app.js';
 import { getTajweedStage } from '../engine/tajweedRulesCatalog.js';
 import { buildStageTree, getRuleLetters, getRulePairs } from '../engine/tajweedLetterGames.js';
 import { LETTER_EXAMPLES, splitLetterExample, withoutWaqf } from '../engine/tajweedLetterExamples.js';
 import { pairPhrase } from '../engine/tajweedLetterPairs.js';
 import { findPhraseRanges } from '../core/quranTextUtils.js';
-import { getAyahForExample } from './tajweed-shared.js';
+import { getAyahForExample, pickStudentLetterExamples } from './tajweed-shared.js';
 
 const strip = (s) => s.replace(/[ً-ٰٟۖ-ۭ]/g, '');
 const TREE_COLORS = 6; // عدد ألوان --tjw-tree-c0..5 في tajweed.css
@@ -50,7 +50,12 @@ export function renderStageTreeHTML(stageId, activeRuleId) {
 // بطاقات الحروف القابلة للقلب (نص قرآني من المنصة)
 // ============================================================
 // ظهر بطاقة حرف: كلمة المثال بحرفها المظلَّل (من LETTER_EXAMPLES)، وإلا مثال الحكم نفسه من الكتالوج
-function letterBackHTML(rule, letter, ayahByKey) {
+function letterBackHTML(rule, letter, ayahByKey, mine) {
+    const own = mine && mine.get(letter);
+    if (own) {
+        return `<span class="tjw-flip-word">${own.before}<mark class="tjw-flip-mark">${own.mark}</mark>${own.after}</span>
+                <small>${own.surahName} ${own.ayah}</small>`;
+    }
     const ex = (LETTER_EXAMPLES[rule.id] || {})[letter];
     if (ex) {
         const ayah = ayahByKey.get(`${ex.s}:${ex.a}`);
@@ -86,9 +91,11 @@ export async function renderLetterCardsHTML(rule) {
         const info = await getAyahForExample(s, a);
         if (info) ayahByKey.set(k, info);
     }));
+    // 🌟 مثال كل حرف من حفظ الطالب نفسه إن وُجد (الأمثلة الثابتة قد تقع في سور لم يحفظها بعد)
+    const mine = letters && !pairs ? await pickStudentLetterExamples(rule, letters, AppState.currentStudent) : null;
     const cards = pairs
         ? pairs.map((p, i) => ({ front: `${p.a}<i>+</i>${p.b}`, back: pairBackHTML(rule, p, ayahByKey), pair: true, i }))
-        : letters.map((l, i) => ({ front: l, back: letterBackHTML(rule, l, ayahByKey), pair: false, i }));
+        : letters.map((l, i) => ({ front: l, back: letterBackHTML(rule, l, ayahByKey, mine), pair: false, i }));
     return `
         <div class="tjw-flip-grid">${cards.map(c => `
             <button type="button" class="tjw-flip ${c.pair ? 'is-pair' : ''}" data-tjw-flip style="--tjw-fc: var(--tjw-tree-c${c.i % TREE_COLORS});">
@@ -115,6 +122,12 @@ export async function buildExamplesLinkQuestion(stageId) {
             const p = pickOne(pairs), ayah = await getAyahForExample(p.s, p.v), phrase = ayah && pairPhrase(ayah.text, p);
             if (phrase) items.push({ ruleId: rule.id, html: `<span class="tjw-link-example">${phrase}</span>` });
         } else if (byLetter) {
+            const own = await pickStudentLetterExamples(rule, Object.keys(byLetter), AppState.currentStudent);
+            if (own.size) {
+                const o = pickOne([...own.values()]);
+                items.push({ ruleId: rule.id, html: `<span class="tjw-link-example">${o.before}<mark class="tjw-flip-mark">${o.mark}</mark>${o.after}</span>` });
+                continue;
+            }
             const e = byLetter[pickOne(Object.keys(byLetter))], ayah = await getAyahForExample(e.s, e.a), parts = ayah && splitLetterExample(ayah.text, e);
             if (parts) items.push({ ruleId: rule.id, html: `<span class="tjw-link-example">${parts.before}<mark class="tjw-flip-mark">${parts.mark}</mark>${parts.after}</span>` });
         }

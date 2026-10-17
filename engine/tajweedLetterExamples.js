@@ -108,3 +108,38 @@ export function splitLetterExample(rawAyahText, entry) {
     const after = target.slice(inner.length + m[1].length) + (entry.w + 1 < words.length ? ' ' + words.slice(entry.w + 1).join(' ') : '');
     return { before: (before ? before + ' ' : '') + inner, mark: m[1], after };
 }
+
+// ============================================================
+// أمثلة الحروف من آيات حفظ الطالب (بدل المراجع الثابتة أعلاه حين تقع خارج نطاق حفظه)
+// ============================================================
+// تأخذ موضعاً من جدول التوسيم ({w1, w2} فهرسا كلمتين بعد حذف رموز الوقف) وتقول أي حرف من حروف الحكم يمثّله
+// وكيف يُظلَّل: { letter, before, mark, after } أو null إن لم يصلح الموضع مثالاً لحرف.
+const SUKUN_RE = /[ْۡ]/;
+const SHADDA_RE = /ّ/;
+const QALQALA_LETTERS = 'قطبجد';
+const HAMZA_FORMS = { 'أ': 'ء', 'إ': 'ء', 'ؤ': 'ء', 'ئ': 'ء' };
+const PAIR_RULES = new Set(['izhar', 'idgham_bighunnah', 'idgham_bila_ghunnah', 'iqlab', 'ikhfa', 'ikhfa_shafawi', 'idgham_shafawi']);
+export const hasInRangeLetterExamples = (ruleId) => ruleId === 'qalqalah' || ruleId === 'ghunna_wajiba' || PAIR_RULES.has(ruleId);
+
+const stripMarks = (s) => s.replace(new RegExp(`[${MARKS}]`, 'g'), '');
+
+export function letterExampleFromOccurrence(ruleId, words, occ) {
+    const w1 = words[occ.w1];
+    if (!w1) return null;
+    const clusters = w1.match(CLUSTER_RE) || [];
+    if (ruleId === 'qalqalah') {
+        const i = clusters.findIndex(c => QALQALA_LETTERS.includes(c[0]) && SUKUN_RE.test(c));
+        if (i < 1) return null;
+        return { letter: clusters[i][0], before: clusters.slice(0, i).join(''), mark: clusters[i], after: clusters.slice(i + 1).join('') };
+    }
+    if (ruleId === 'ghunna_wajiba') {
+        const c = clusters.find(x => (x[0] === 'ن' || x[0] === 'م') && SHADDA_RE.test(x));
+        return c ? { letter: c[0], before: '', mark: w1, after: '' } : null;
+    }
+    if (!PAIR_RULES.has(ruleId) || occ.w2 <= occ.w1) return null;
+    const w2 = words[occ.w2];
+    const first = w2 && w2.match(FIRST_LETTER_RE);
+    if (!first) return null;
+    const base = stripMarks(first[1])[0];
+    return { letter: HAMZA_FORMS[base] || base, before: words.slice(occ.w1, occ.w2).join(' ') + ' ', mark: first[1], after: w2.slice(first[1].length) };
+}

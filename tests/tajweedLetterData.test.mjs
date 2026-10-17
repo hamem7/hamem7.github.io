@@ -3,10 +3,11 @@
 // فعلاً في مصحف المنصة المحلي، والحرف المقصود هو أول حرف من الكلمة المحدَّدة، والحرفان متجاوران في الأزواج.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { LETTER_EXAMPLES, splitLetterExample } from '../engine/tajweedLetterExamples.js';
+import { LETTER_EXAMPLES, splitLetterExample, letterExampleFromOccurrence, hasInRangeLetterExamples } from '../engine/tajweedLetterExamples.js';
 import { LETTER_PAIRS, pairPhrase } from '../engine/tajweedLetterPairs.js';
 import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
-import { cleanAyahText } from '../engine/quranEngine.js';
+import { createAnnotationIndex } from '../engine/tajweedAnnotations.js';
+import { cleanAyahText, isWaqfMark } from '../engine/quranEngine.js';
 
 let pass = 0, fail = 0;
 const test = (name, fn) => { try { fn(); pass++; console.log('✅ ' + name); } catch (e) { fail++; console.log('❌ ' + name + '\n   ' + e.message); } };
@@ -62,6 +63,25 @@ test('الأزواج: لا تكرار داخل الحكم الواحد، وال�
         const keys = pairs.map(p => p.a + p.b);
         assert.equal(new Set(keys).size, keys.length, ruleId);
         pairs.forEach(p => assert.equal(p.a === p.b, ruleId === 'mithlain', `${ruleId}: ${p.a}${p.b}`));
+    }
+});
+
+test('أمثلة من حفظ الطالب (الناس ← المجادلة): كل مثال حرفه من حروف الحكم وفي سورة ضمن النطاق، وتغطي الحروف', () => {
+    const idx = createAnnotationIndex(JSON.parse(fs.readFileSync(new URL('../database/data/tajweedAnnotations.json', import.meta.url), 'utf8')));
+    for (const { rule } of getAllRulesFlat()) {
+        if (!hasInRangeLetterExamples(rule.id) || !LETTER_EXAMPLES[rule.id]) continue;
+        const want = new Set(Object.keys(LETTER_EXAMPLES[rule.id]));
+        const found = new Set();
+        for (let s = 114; s >= 58; s--) for (const a of quran[s - 1].ayahs) {
+            const words = cleanAyahText(a.text).split(/\s+/).filter(w => w && !isWaqfMark(w));
+            for (const o of idx.occurrences(s, a.numberInSurah, rule.id)) {
+                const e = letterExampleFromOccurrence(rule.id, words, o);
+                if (e && want.has(e.letter)) found.add(e.letter);
+            }
+        }
+        // ظ (الإخفاء) لا موضع لها في هذا النطاق فيُستعمل مثالها الثابت
+        const missing = [...want].filter(l => !found.has(l));
+        assert.deepEqual(missing, rule.id === 'ikhfa' ? ['ظ'] : [], rule.id);
     }
 });
 
