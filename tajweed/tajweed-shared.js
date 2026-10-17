@@ -113,9 +113,9 @@ export async function getStudentAyahPool(student) {
     if (!student || !AppState.surahsData || !AppState.surahsData.length) return [];
     const key = `${student.id}|${student.memoFrom}|${student.memoTo}`;
     if (poolCache.has(key)) return poolCache.get(key);
-    let records = [];
-    try { records = await AppState.monthlyMemorizationManager.getAllForStudent(student.id); } catch (e) { records = []; }
-    const range = resolveRange(AppState.surahsData, student, records);
+    // 🌟 نطاق الحفظ المعلَن في ملف الطالب (memoFrom ← memoTo) فقط، بلا السجل الشهري: السجل قد يمتد أبعد من النطاق
+    // فتظهر للطالب في التجويد آيات لم يحفظها بعد (وسُمّيت «من حفظك»)
+    const range = resolveRange(AppState.surahsData, student, []);
     const pool = range.ok ? memorizedAyahsFromPath(buildPath(AppState.surahsData, range)) : [];
     poolCache.set(key, pool);
     return pool;

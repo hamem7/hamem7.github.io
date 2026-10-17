@@ -10,6 +10,7 @@
 // والرسم ما يراه الطالب في بقية المنصة. اختبار tests/tajweedLetterData.test.mjs يتحقق أن كل مرجع
 // يحتوي عبارته فعلاً في المصحف المحلي وأن الحرف المقصود صحيح.
 //
+// n (اختياري): الحرف المقصود في وسط الكلمة، ترتيبه من صفر بين حروف الكلمة (بحركاتها) بدل أول حرف فيها.
 // whole:true ← الحرف المقصود مشدَّد (غنة المشدَّدتين) فتُظلَّل الكلمة كلها لا حرفها الأول فقط.
 //
 // المفتاح الأول: معرِّف الحكم في الكتالوج. المفتاح الثاني: الحرف (بلا تشكيل).
@@ -18,6 +19,14 @@ import { findPhraseRanges } from '../core/quranTextUtils.js';
 import { isWaqfMark } from './quranEngine.js';
 
 export const LETTER_EXAMPLES = {
+    // القلقلة: الحرف ساكن في وسط الكلمة (قلقلة صغرى) فيُظلَّل الحرف نفسه بترتيبه n (من صفر) داخل الكلمة لا أولها
+    qalqalah: {
+        'ق': { s: 2, a: 27, h: 'ويقطعون', w: 0, n: 2 },
+        'ط': { s: 2, a: 75, h: 'أفتطمعون', w: 0, n: 3 },
+        'ب': { s: 4, a: 37, h: 'يبخلون', w: 0, n: 1 },
+        'ج': { s: 2, a: 19, h: 'يجعلون', w: 0, n: 1 },
+        'د': { s: 110, a: 2, h: 'يدخلون', w: 0, n: 1 }
+    },
     izhar: {
         'ء': { s: 80, a: 34, h: 'من أخيه', w: 1 },
         'ه': { s: 6, a: 90, h: 'إن هو', w: 1 },
@@ -72,6 +81,7 @@ export const LETTER_EXAMPLES = {
 export const withoutWaqf = (text) => text.split(' ').filter(w => w && !isWaqfMark(w)).join(' ');
 
 const MARKS = 'ً-ٰٟۖ-ۭ';
+const CLUSTER_RE = new RegExp(`.[${MARKS}]*`, 'g');
 const FIRST_LETTER_RE = new RegExp(`^(.[${MARKS}]*)`);
 
 // 🌟 تقتطع العبارة من نص الآية (نص المنصة) وتقسمها: { before, mark, after } — mark هو الجزء المظلَّل
@@ -84,9 +94,17 @@ export function splitLetterExample(rawAyahText, entry) {
     const words = ayahText.slice(from, to).split(' ');
     if (entry.w < 0 || entry.w >= words.length) return null;
     const target = words[entry.w];
-    const m = entry.whole ? [target, target] : target.match(FIRST_LETTER_RE);
+    let m, inner = '';
+    if (entry.n) {
+        const clusters = target.match(CLUSTER_RE) || [];
+        if (entry.n >= clusters.length) return null;
+        m = [clusters[entry.n], clusters[entry.n]];
+        inner = clusters.slice(0, entry.n).join('');
+    } else {
+        m = entry.whole ? [target, target] : target.match(FIRST_LETTER_RE);
+    }
     if (!m) return null;
     const before = words.slice(0, entry.w).join(' ');
-    const after = target.slice(m[1].length) + (entry.w + 1 < words.length ? ' ' + words.slice(entry.w + 1).join(' ') : '');
-    return { before: before ? before + ' ' : '', mark: m[1], after };
+    const after = target.slice(inner.length + m[1].length) + (entry.w + 1 < words.length ? ' ' + words.slice(entry.w + 1).join(' ') : '');
+    return { before: (before ? before + ' ' : '') + inner, mark: m[1], after };
 }

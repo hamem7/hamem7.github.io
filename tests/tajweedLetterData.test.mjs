@@ -21,7 +21,7 @@ test('كل حكم في ملفَّي البيانات موجود في الكتا�
     [...Object.keys(LETTER_EXAMPLES), ...Object.keys(LETTER_PAIRS)].forEach(id => assert.ok(ruleIds.has(id), id));
 });
 
-test('أمثلة الحروف: العبارة موجودة في الآية، والحرف المقصود أول حرف الكلمة المحدَّدة', () => {
+test('أمثلة الحروف: العبارة موجودة في الآية، والحرف المقصود أول حرف الكلمة المحدَّدة (أو الحرف رقم n)', () => {
     for (const [ruleId, byLetter] of Object.entries(LETTER_EXAMPLES)) {
         for (const [letter, e] of Object.entries(byLetter)) {
             const text = ayahText(e.s, e.a);
@@ -30,6 +30,7 @@ test('أمثلة الحروف: العبارة موجودة في الآية، و�
             assert.ok(parts, `${ruleId}/${letter}: العبارة «${e.h}» غير موجودة في ${e.s}:${e.a}`);
             if (e.whole) assert.ok(new RegExp(letter + '[\\u064B-\\u065F]*\\u0651').test(parts.mark), `${ruleId}/${letter}: الكلمة «${parts.mark}» ليس فيها ${letter} مشدَّدة`);
             else assert.equal(base(strip(parts.mark)[0]), letter, `${ruleId}/${letter}: الحرف المظلَّل «${parts.mark}»`);
+            if (e.n) assert.ok(/[\u0652\u06E1]/.test(parts.mark), `${ruleId}/${letter}: الحرف المظلَّل ليس ساكناً`);
         }
     }
 });
