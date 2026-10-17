@@ -101,11 +101,43 @@ body.adult-theme:has(.tjw-wrap) {
     transition: background 0.15s ease, transform 0.15s ease;
 }
 
+/* 🌟 زر «العودة»: كبسولة زجاجية بسهم رجوع مرسوم (SVG) بدل إيموجي 🔙 الذي كان يظهر كصورة «BACK» غير متناسقة */
+.tjw-btn-exit {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 8px 22px 8px 16px !important;
+    letter-spacing: 0.2px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(6px);
+}
+.tjw-btn-exit::before {
+    content: "";
+    flex: none;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--tjw-gold, #e0b04f);
+    /* سهم يشير لجهة «الرجوع» في الاتجاه من اليمين لليسار (→) */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d3b63' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='M8 12h9M13 7l5 5-5 5'/></svg>");
+    background-size: 17px 17px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--tjw-gold, #e0b04f);
+    transition: transform 0.15s ease;
+}
+html[dir="ltr"] .tjw-btn-exit::before { transform: scaleX(-1); }
+.tjw-btn-exit:focus-visible,
+.tjw-btn-level-back:focus-visible { outline: 3px solid var(--tjw-gold, #e0b04f); outline-offset: 3px; }
+
 .tjw-btn-exit:hover,
 .tjw-btn-level-back:hover {
     background: rgba(224, 176, 79, 0.22) !important;
     transform: translateY(-1px);
 }
+.tjw-btn-exit:hover::before { transform: translateX(3px); }
+html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3px); }
 
 .tjw-container { width: 100%; }
 

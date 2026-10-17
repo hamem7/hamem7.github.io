@@ -2290,6 +2290,7 @@ export const translations = {
         tjw_correct_answers_unit: "إجابة صحيحة",
         tjw_retry_activity_btn: "حاول مرة أخرى",
         tjw_back_to_map_btn: "العودة للخريطة",
+        tjw_exit_main_btn: "العودة للقائمة الرئيسية",
 
         // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم "سمّع لي" — بُعد pronounces، راجع §2 من
         // مستند "تعميق-مادة-وتقييم-أبطال-التجويد-المقترح.md"
@@ -4845,6 +4846,7 @@ export const translations = {
         tjw_correct_answers_unit: "correct",
         tjw_retry_activity_btn: "Try again",
         tjw_back_to_map_btn: "Back to map",
+        tjw_exit_main_btn: "Back to main menu",
 
         // 🌟🌟 [New Sept 28] teacher checkpoint gate "Listen to me" — pronounces dimension
         tjw_start_checkpoint_btn: "Listen to me",
