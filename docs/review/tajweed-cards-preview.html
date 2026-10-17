@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>معاينة: صور القلقلة وبطاقات الحروف</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e6;--card:#fffdf8;--ink:#2b2118;--muted:#6f6150;--line:#e2d8c3;--ok:#1f7a45;--bad:#b3261e;--accent:#8c2f3d;--c1:#ef8a3c;--c2:#5aa9e6;--c3:#f2b83a;--c4:#6cbf6a;--c5:#d65db1}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b2b;--card:#16263b;--ink:#f2ead8;--muted:#a9b4c4;--line:#2a3d57;--accent:#e58a98}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 60px}h1{font-size:1.5rem;margin:.4rem 0}h2{font-size:1.2rem;margin:0 0 .6rem;color:var(--accent)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:16px 0}
+.muted{color:var(--muted);font-size:.92rem;margin:.2rem 0 .8rem}
+button{font:inherit;font-weight:700;background:var(--accent);color:#fff;border:0;border-radius:12px;padding:9px 18px;cursor:pointer}
+button.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}button:disabled{opacity:.4;cursor:default}
+/* معرض الصور */
+.gal img{width:100%;border-radius:12px;display:block;border:1px solid var(--line);aspect-ratio:16/9;object-fit:cover;background:var(--line)}
+.gnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line);cursor:pointer}.dots i.on{background:var(--accent)}
+/* البطاقات */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.fc{perspective:700px;height:190px;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit}
+.fc .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.fc.flip .in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px;text-align:center}
+.front{background:var(--col);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18)}.front b{font-size:4.2rem;line-height:1.5;margin-top:-14px;font-family:'Amiri Quran',serif}
+.front small{opacity:.9;margin-top:8px}
+.back{background:var(--card);border:2.5px solid var(--col);transform:rotateY(180deg)}
+.back .w{font-family:'Amiri Quran',serif;font-size:1.9rem;line-height:1.6}.back .w u{text-decoration:none;color:var(--col);font-weight:700}.back small{color:var(--muted)}
+/* اللعبة */
+.tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}.tabs button{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}.tabs button.on{background:var(--accent);color:#fff}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-weight:700}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.target{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:12px;padding:8px 12px;margin-bottom:12px}
+.slots{display:flex;gap:8px;margin-inline-start:auto}.slot{width:38px;height:38px;border-radius:10px;border:2px dashed var(--line);display:grid;place-items:center;font-family:'Amiri Quran',serif;font-size:1.5rem;font-weight:700;color:#fff}
+.slot.got{border:0}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}@media(min-width:560px){.board{grid-template-columns:repeat(6,1fr)}}
+.tile{aspect-ratio:1;border-radius:16px;border:2px solid var(--line);background:var(--card);font-family:'Amiri Quran',serif;font-size:2.3rem;font-weight:700;color:var(--ink);cursor:pointer;display:grid;place-items:center;padding:0;transition:transform .15s,background .2s}
+.tile:active{transform:scale(.94)}.tile.right{color:#fff;border-color:transparent;background:var(--col);animation:pop .35s}.tile.wrong{animation:shake .4s;border-color:var(--bad);background:#b3261e22}
+.tile.hint{outline:4px solid var(--c3);animation:pulse 1s infinite}.tile.done{pointer-events:none}
+@keyframes pop{50%{transform:scale(1.18)}}@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}@keyframes pulse{50%{outline-color:transparent}}
+.msg{min-height:1.8em;text-align:center;font-weight:700;margin:10px 0 0}.msg.ok{color:var(--ok)}.msg.bad{color:var(--bad)}
+.end{text-align:center;padding:18px 8px}.end .stars{font-size:2.4rem}
+.note{background:#f3d27a33;border:1px dashed #c9a23a;border-radius:12px;padding:10px 14px;font-size:.92rem;margin-top:14px}
+</style></head><body><div class="wrap">
+<h1>معاينة: صور القلقلة وبطاقات الحروف</h1>
+<p class="muted">هذه صفحة تجريبية مستقلة، لا تمسّ التطبيق. تعرض ثلاثة أشياء: ① صور الشرح الحقيقية بدل النص وحده، ② بطاقات الحروف القابلة للقلب، ③ لعبة بعثرة الحروف.</p>
+
+<section class="sec"><h2>① شاشة التعريف بالصور</h2>
+<p class="muted">اسحب بالأزرار بين الصور العشر، ترتيبها هو ترتيب الشرح: السر، المعنى، الحروف، السبب، المستويات، الصغرى، الكبرى، المشدَّدة، الخريطة، التطبيق.</p>
+<div class="gal"><img id="gimg" alt="" src=""><div class="gnav"><button id="gnext">التالي ›</button><div class="dots" id="gdots"></div><button id="gprev" class="ghost">‹ السابق</button></div></div></section>
+
+<section class="sec"><h2>② بطاقات حروف القلقلة</h2>
+<p class="muted">اضغط على البطاقة لتنقلب، فتظهر كلمة قرآنية فيها الحرف ساكناً (صغرى). حفظ الجمع: «قُطْبُ جَدٍّ».</p>
+<div class="cards" id="cards"></div></section>
+
+<section class="sec"><h2>③ لعبة البعثرة</h2>
+<div class="tabs"><button id="m1" class="on">اجمع حروف الحكم</button><button id="m2">الحرف الدخيل</button></div>
+<div id="game"></div></section>
+
+<div class="note"><b>للمراجعة:</b> كلمات الأمثلة على البطاقات (يَقْطَعُونَ، مَطْلَعِ، أَبْصَارِهِمْ، يَجْعَلُونَ، يَدْعُونَ) أحدها «مَطْلَعِ» من عندي فقط، وبقيتها من صور ملفك. المطلوب تأكيدها منك قبل إدخالها في التطبيق.</div>
+</div>
+<script>
+const L=[
+ {ch:'ق',col:'var(--c1)',w:['يَ','قْ','طَعُونَ'],ex:'يَقْطَعُونَ'},
+ {ch:'ط',col:'var(--c2)',w:['مَ','طْ','لَعِ'],ex:'مَطْلَعِ'},
+ {ch:'ب',col:'var(--c3)',w:['أَ','بْ','صَارِهِمْ'],ex:'أَبْصَارِهِمْ'},
+ {ch:'ج',col:'var(--c4)',w:['يَ','جْ','عَلُونَ'],ex:'يَجْعَلُونَ'},
+ {ch:'د',col:'var(--c5)',w:['يَ','دْ','عُونَ'],ex:'يَدْعُونَ'}];
+const OTHER='ف ن ث ت ك ذ ز ص ض ظ ع غ س ش خ ح ر ل م و ه ي'.split(' ');
+const $=s=>document.querySelector(s);
+/* معرض */
+const names=['intro','meaning','letters','why','levels','minor','major','shaddah','map','practice'];
+let gi=0;const gd=$('#gdots');
+names.forEach((_,i)=>{const d=document.createElement('i');d.onclick=()=>show(i);gd.appendChild(d)});
+function show(i){gi=(i+names.length)%names.length;$('#gimg').src=`../../assets/tajweed/qalqalah/${String(gi+1).padStart(2,'0')}-${names[gi]}.webp`;[...gd.children].forEach((d,k)=>d.classList.toggle('on',k===gi))}
+$('#gnext').onclick=()=>show(gi+1);$('#gprev').onclick=()=>show(gi-1);show(0);
+/* بطاقات */
+$('#cards').innerHTML=L.map(x=>`<button class="fc" style="--col:${x.col}" aria-label="بطاقة حرف ${x.ch}"><div class="in"><div class="face front"><b>${x.ch}</b><small>اضغط للقلب</small></div><div class="face back"><div class="w">${x.w[0]}<u>${x.w[1]}</u>${x.w[2]}</div><small>الحرف ساكن في وسط الكلمة</small></div></div></button>`).join('');
+document.querySelectorAll('.fc').forEach(b=>b.onclick=()=>b.classList.toggle('flip'));
+/* صوت */
+let ac;function beep(f,d=.12){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+/* لعبة */
+let mode=1;const G=$('#game');
+$('#m1').onclick=()=>{mode=1;tab();start()};$('#m2').onclick=()=>{mode=2;tab();start()};
+function tab(){$('#m1').classList.toggle('on',mode==1);$('#m2').classList.toggle('on',mode==2)}
+function start(){mode==1?mode1():mode2()}
+function mode1(){
+ const tiles=shuffle([...L.map(x=>x.ch),...shuffle(OTHER).slice(0,7)]);let found=0,errs=0,streak=0,t0=Date.now();
+ G.innerHTML=`<div class="hud"><span>اضغط على كل حروف القلقلة</span><span id="sc" dir="ltr">0 / 5</span></div><div class="bar"><i id="pb"></i></div>
+ <div class="target"><span>هذه هي حروف الحكم، ابحث عنها بين الحروف:</span><div class="slots">${L.map(()=>'<span class="slot"></span>').join('')}</div></div>
+ <div class="board">${tiles.map(c=>`<button class="tile" data-c="${c}">${c}</button>`).join('')}</div><p class="msg" id="msg"></p>`;
+ G.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
+  const c=b.dataset.c,x=L.find(y=>y.ch==c);G.querySelectorAll('.hint').forEach(h=>h.classList.remove('hint'));
+  if(x){found++;streak=0;b.style.setProperty('--col',x.col);b.classList.add('right','done');beep(660+found*90);
+   const s=G.querySelectorAll('.slot')[found-1];s.textContent=c;s.style.background=x.col;s.classList.add('got');
+   $('#sc').textContent=found+' / 5';$('#pb').style.width=found*20+'%';$('#msg').textContent='أحسنت! ✨';$('#msg').className='msg ok';
+   if(found==5)setTimeout(()=>end(errs,Math.round((Date.now()-t0)/1000)),600)}
+  else{errs++;streak++;beep(180,.25);b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');
+   $('#msg').textContent='هذا ليس من حروف القلقلة، حاول مرة أخرى';$('#msg').className='msg bad';
+   if(streak>=2){const left=[...G.querySelectorAll('.tile:not(.done)')].filter(t=>L.some(y=>y.ch==t.dataset.c));left[0]&&left[0].classList.add('hint');$('#msg').textContent='تلميح: الحرف الذي يومض من حروف «قُطْبُ جَدٍّ»'}}
+ })}
+function end(errs,sec){const st=errs==0?3:errs<=2?2:1;G.innerHTML=`<div class="end"><div class="stars">${'⭐'.repeat(st)}${'☆'.repeat(3-st)}</div><h3>جمعتَ حروف «قُطْبُ جَدٍّ» كلها!</h3><p class="muted">الأخطاء: ${errs} · الوقت: ${sec} ثانية</p><button id="again">العب مرة أخرى</button></div>`;beep(880,.3);$('#again').onclick=start}
+function mode2(){
+ let round=0,score=0;const R=5;
+ function next(){
+  if(round>=R){G.innerHTML=`<div class="end"><div class="stars">${score>=5?'🏆':score>=3?'⭐':'💪'}</div><h3>${score} من ${R}</h3><p class="muted">${score>=5?'ممتاز، عرفتَ حروف القلقلة جيداً':'جرّب مرة أخرى لتحفظ «قُطْبُ جَدٍّ»'}</p><button id="again">العب مرة أخرى</button></div>`;$('#again').onclick=start;return}
+  const four=shuffle(L).slice(0,3),odd=shuffle(OTHER)[0],set=shuffle([...four.map(x=>x.ch),odd]);
+  G.innerHTML=`<div class="hud"><span>أي حرف ليس من حروف القلقلة؟</span><span dir="ltr">${round+1} / ${R}</span></div><div class="bar"><i style="width:${round/R*100}%"></i></div>
+  <div class="board" style="grid-template-columns:repeat(4,1fr)">${set.map(c=>`<button class="tile" data-c="${c}">${c}</button>`).join('')}</div><p class="msg" id="msg"></p>`;
+  G.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
+   const ok=b.dataset.c==odd;G.querySelectorAll('.tile').forEach(t=>t.classList.add('done'));
+   if(ok){score++;b.style.setProperty('--col','var(--ok)');b.classList.add('right');beep(740);$('#msg').textContent='صحيح! 🎉';$('#msg').className='msg ok'}
+   else{b.classList.add('wrong');beep(180,.25);const r=[...G.querySelectorAll('.tile')].find(t=>t.dataset.c==odd);r.style.setProperty('--col','var(--ok)');r.classList.add('right');$('#msg').textContent='الحرف الدخيل هو «'+odd+'»';$('#msg').className='msg bad'}
+   round++;setTimeout(next,1300)})}
+ next()}
+start();
+</script></body></html>
