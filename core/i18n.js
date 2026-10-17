@@ -5580,6 +5580,8 @@ export function toggleLanguage() {
     AppState.currentLang = AppState.currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('app_lang', AppState.currentLang);
     applyLanguage();
+    // 🌟 [إصلاح] الشاشات التي تبني نصوصها ديناميكيًا (مثل التقرير) تعيد بناء نفسها بعد تبديل اللغة
+    try { document.dispatchEvent(new CustomEvent('app-lang-changed')); } catch (e) { /* غير حرِج */ }
 
     const title = document.getElementById('login-title');
     if (title) {

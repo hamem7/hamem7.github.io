@@ -1881,4 +1881,16 @@ export function openReportScreen(gameState){
   initReportScreen();
 }
 
+// 🌟 [إصلاح] نصوص التقرير (نقاط القوة / بحاجة إلى تركيز / ملاحظة المعلم) تُبنى وقت فتح
+// التقرير بلغته، فإذا بُدّلت اللغة والتقرير مفتوح بقيت بلغتها القديمة بينما تتبدّل
+// العناوين الثابتة. نعيد البناء هنا مع الحفاظ على ما كتبه المعلم في خانتَي الملاحظة.
+document.addEventListener('app-lang-changed', () => {
+  const page = document.getElementById('report-page');
+  if (!page || !reportData) return;
+  page.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
+  renderAll();
+  renderNoteBox();
+  renderExtraNote();
+});
+
 window.openReportScreen = openReportScreen;
