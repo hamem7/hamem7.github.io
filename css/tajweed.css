@@ -53,11 +53,18 @@ body.adult-theme:has(.tjw-wrap) {
 
 /* ---------- الشريط العلوي ---------- */
 .tjw-topbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 12px;
     margin-bottom: 6px;
 }
+/* 🌟 زر العودة عند بداية السطر (يمين في العربية) والعنوان في المنتصف تماماً، وزر «رجوع خطوة» عند النهاية */
+.tjw-topbar .tjw-btn-exit { grid-column: 1; grid-row: 1; justify-self: start; }
+.tjw-topbar .tjw-title { grid-column: 2; grid-row: 1; }
+.tjw-topbar .tjw-btn-level-back { grid-column: 3; grid-row: 1; justify-self: end; }
+/* شاشة النشاط: الشريط بنفس عرض بطاقة السؤال حتى يصطف الزر مع حافتها */
+.tjw-topbar-narrow { max-width: 900px; margin-inline: auto; }
 
 .tjw-title {
     flex: 1;
@@ -551,6 +558,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     color: var(--tjw-text);
     border-radius: 26px;
     padding: 28px 26px;
+    box-sizing: border-box;
     max-width: 900px;
     margin: 0 auto;
     box-shadow: var(--tjw-shadow);

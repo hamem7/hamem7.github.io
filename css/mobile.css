@@ -470,10 +470,10 @@
     #app-root .sim-juz-title { font-size: 1rem; }
 
     /* أبطال التجويد: العنوان وزر الرجوع في سطر واحد */
-    #app-root .tjw-topbar { flex-wrap: nowrap; gap: 8px; justify-content: space-between; align-items: center; }
+    #app-root .tjw-topbar { display: flex; flex-wrap: nowrap; gap: 8px; justify-content: space-between; align-items: center; }
     #app-root .tjw-title { font-size: var(--m-h1); margin: 0; flex: 1 1 0; min-width: 0; text-align: start; }
     #app-root .tjw-btn-exit, #app-root .tjw-btn-level-back { flex: none; white-space: nowrap; }
-    #app-root .tjw-btn-exit { margin-top: 0 !important; }
+    #app-root .tjw-btn-exit { margin-top: 0 !important; order: -1; }
     #app-root .tjw-subtitle { font-size: .85rem; margin: 6px 0 12px; }
     #app-root .tjw-pick-card { padding: 16px 14px; }
 }
