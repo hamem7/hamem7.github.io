@@ -21,7 +21,7 @@ button.ghost{background:transparent;color:var(--accent);border:1.5px solid var(-
 .fc{perspective:700px;height:170px;cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit}
 .fc .in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}.fc.flip .in{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px;text-align:center}
-.front{background:var(--col);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18)}.front{justify-content:flex-start;padding-top:10px}.front b{font-size:3.6rem;line-height:1.7;font-family:'Amiri Quran',serif}.front small{opacity:.9;position:absolute;bottom:10px}
+.front{background:var(--col);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.18)}.front{justify-content:flex-start;padding-top:10px}.front b{font-size:3.6rem;line-height:1.7;font-family:'Amiri Quran',serif}.front small{opacity:.9;position:absolute;bottom:10px}.pair .front b{font-size:2.6rem;display:flex;align-items:center;gap:6px}.pl{font-size:1.4rem;opacity:.8;font-family:'IBM Plex Sans Arabic',sans-serif}.back .w{word-break:keep-all}
 .back{background:var(--card);border:2.5px solid var(--col);transform:rotateY(180deg)}
 .back .w{font-family:'Amiri Quran',serif;font-size:1.6rem;line-height:1.6}.back .w u{text-decoration:none;color:var(--col);font-weight:700}.back small{color:var(--muted);font-size:.8rem}
 .tabs{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}.tabs button{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}.tabs button.on{background:var(--accent);color:#fff}
@@ -47,9 +47,10 @@ button.ghost{background:transparent;color:var(--accent);border:1.5px solid var(-
 <section class="sec" id="s1"><h2>① شاشة التعريف بالصور</h2><div id="gal"></div></section>
 <section class="sec" id="s2"><h2>② بطاقات الحروف</h2><p class="muted" id="cardsHint"></p><div class="cards" id="cards"></div></section>
 <section class="sec" id="s3"><h2>③ لعبة البعثرة</h2><div class="tabs" id="tabs"></div><div id="game"></div></section>
-<div class="note"><b>للمراجعة:</b> ظهر البطاقات في غير القلقلة يعرض مثال الآية من الكتالوج، لا كلمة لكل حرف. الكلمة لكل حرف تحتاج جدول أمثلة يراجعه المعلم، وهو خطوة لاحقة. الأحكام القائمة على مواقف لا على حروف (المد، والمثلان…) تحتاج نوعًا آخر من البطاقات.</div>
+<div class="note"><b>للمراجعة:</b> ظهر البطاقات في غير القلقلة يعرض مثال الآية من الكتالوج، لا كلمة لكل حرف. الكلمة لكل حرف تحتاج جدول أمثلة يراجعه المعلم، وهو خطوة لاحقة. أحكام المثلين والمتقاربين والمتجانسين تعمل ببطاقات الأزواج، وهي مأخوذة من ملف بيانات جديد `engine/tajweedLetterPairs.js` يحتاج مراجعتك. أحكام المد وبقية أحكام المواقف تحتاج نوعًا آخر من البطاقات.</div>
 </div>
-<script>
+<script type="module">
+import {LETTER_PAIRS} from '../../engine/tajweedLetterPairs.js';
 const DATA=[{"id":"qalqalah","name":"القلقلة","icon":"💥","rules":[{"id":"qalqalah","name":"القلقلة","letters":["ق","ط","ب","ج","د"],"raw":"ق ط ب ج د","ex":{"h":"يَلِدْ","s":112,"a":3}}]},{"id":"meem_noon_mushaddadah","name":"غنة الميم والنون المشدَّدتين","icon":"🎵","rules":[{"id":"ghunna_wajiba","name":"غنة الميم والنون المشدَّدتين","letters":["مّ","نّ"],"raw":"مّ نّ","ex":{"h":"عَمَّ","s":78,"a":1}}]},{"id":"meem_sakinah","name":"الميم الساكنة","icon":"🟠","rules":[{"id":"ikhfa_shafawi","name":"الإخفاء الشفوي","letters":["ب"],"raw":"ب","ex":{"h":"تَرْمِيهِم بِحِجَارَةٍ","s":105,"a":4}},{"id":"idgham_shafawi","name":"الإدغام الشفوي (المثلين)","letters":["م"],"raw":"م","ex":{"h":"لَهُم مَّغْفِرَةٌ","s":67,"a":12}},{"id":"izhar_shafawi","name":"الإظهار الشفوي","letters":null,"raw":"كل الحروف عدا الباء والميم","ex":{"h":"أَلَمۡ تَرَ","s":105,"a":1}}]},{"id":"noon_sakinah","name":"النون الساكنة والتنوين","icon":"🔵","rules":[{"id":"izhar","name":"الإظهار الحلقي","letters":["ء","ه","ع","ح","غ","خ"],"raw":"ء ه ع ح غ خ","ex":{"h":"مِّنْ خَوْفٍ","s":106,"a":4}},{"id":"idgham_bighunnah","name":"الإدغام بغنة","letters":["ي","ن","م","و"],"raw":"ي ن م و","ex":{"h":"مَن يَعْمَلْ","s":99,"a":7}},{"id":"idgham_bila_ghunnah","name":"الإدغام بغير غنة","letters":["ل","ر"],"raw":"ل ر","ex":{"h":"هُدًى لِّلْمُتَّقِينَ","s":2,"a":2}},{"id":"iqlab","name":"الإقلاب","letters":["ب"],"raw":"ب","ex":{"h":"عَلِيمٌۢ بِذَاتِ","s":67,"a":13}},{"id":"ikhfa","name":"الإخفاء","letters":["ت","ث","ج","د","ذ","ز","س","ش","ص","ض","ط","ظ","ف","ق","ك"],"raw":"ت ث ج د ذ ز س ش ص ض ط ظ ف ق ك","ex":{"h":"مِّن سِجِّيلٍ","s":105,"a":4}}]},{"id":"lam_al","name":"لام «ال» ولام الفعل","icon":"🌙","rules":[{"id":"izhar_qamari","name":"الإظهار القمري","letters":["ا","ب","غ","ح","ج","ك","و","خ","ف","ع","ق","ي","م","ه"],"raw":"ا ب غ ح ج ك و خ ف ع ق ي م ه","ex":{"h":"ٱلۡكَوۡثَرَ","s":108,"a":1}},{"id":"idgham_shamsi","name":"الإدغام الشمسي","letters":["ط","ث","ص","ر","ت","ض","ذ","ن","د","س","ظ","ز","ش","ل"],"raw":"ط ث ص ر ت ض ذ ن د س ظ ز ش ل","ex":{"h":"وَٱلشَّمۡسِ","s":91,"a":1}},{"id":"izhar_lam_fil","name":"إظهار لام الفعل","letters":null,"raw":"لام في الفعل","ex":{"h":"قُلۡ","s":112,"a":1}}]},{"id":"mithlain","name":"المثلان والمتقاربان والمتجانسان","icon":"🔗","rules":[{"id":"mithlain","name":"المثلان","letters":null,"raw":"حرفان متفقان في المخرج والصفة","ex":{"h":"ٱضۡرِب بِّعَصَاكَ","s":2,"a":60}},{"id":"mutaqaribain","name":"المتقاربان","letters":null,"raw":"حرفان متقاربان في المخرج مختلفان في الصفة","ex":{"h":"قُل رَّبِّ","s":23,"a":93}},{"id":"mutajanisain","name":"المتجانسان","letters":null,"raw":"حرفان متفقان في المخرج مختلفان في الصفة","ex":{"h":"قَد تَّبَيَّنَ","s":2,"a":256}}]},{"id":"madd","name":"أقسام المد وأحكامه","icon":"🌊","rules":[{"id":"madd_tabii","name":"المد الطبيعي (الأصلي)","letters":["ا","و","ي"],"raw":"ا و ي","ex":{"h":"ٱلنَّاسِ","s":114,"a":2}},{"id":"madd_wajib_muttasil","name":"المد الواجب المتصل","letters":null,"raw":"مد + همزة في كلمة واحدة","ex":{"h":"جَآءَ","s":110,"a":1}},{"id":"madd_jaiz_munfasil","name":"المد الجائز المنفصل","letters":null,"raw":"مد في آخر كلمة + همزة في أول التي بعدها","ex":{"h":"إِنَّآ أَعۡطَيۡنَٰكَ","s":108,"a":1}},{"id":"madd_arid_sukun","name":"المد العارض للسكون","letters":null,"raw":"مد + سكون عارض للوقف","ex":{"h":"نَسۡتَعِينُ","s":1,"a":5}},{"id":"madd_leen","name":"مد اللين","letters":null,"raw":"واو أو ياء ساكنة بعد فتح (عند الوقف)","ex":{"h":"ٱلۡبَيۡتِ","s":106,"a":3}},{"id":"madd_badal","name":"مد البدل","letters":null,"raw":"همزة قبل حرف مد","ex":{"h":"ءَامَنُوا۟","s":103,"a":3}},{"id":"madd_lazim","name":"المد اللازم","letters":null,"raw":"مد + سكون أصلي لازم","ex":{"h":"ٱلضَّآلِّينَ","s":1,"a":7}}]},{"id":"madd_lazim","name":"أقسام المد اللازم","icon":"📏","rules":[{"id":"lazim_kalami_muthaqqal","name":"اللازم الكلمي المثقل","letters":null,"raw":"مد + حرف مشدد في كلمة","ex":{"h":"ٱلطَّآمَّةُ","s":79,"a":34}},{"id":"lazim_kalami_mukhaffaf","name":"اللازم الكلمي المخفف","letters":null,"raw":"مد + سكون بلا تشديد في كلمة","ex":{"h":"ءَآلۡـَٰٔنَ","s":10,"a":51}},{"id":"lazim_harfi_muthaqqal","name":"اللازم الحرفي المثقل","letters":null,"raw":"حرف في فاتحة سورة مدغم فيما بعده","ex":{"h":"الٓمٓ","s":2,"a":1}},{"id":"lazim_harfi_mukhaffaf","name":"اللازم الحرفي المخفف","letters":null,"raw":"حرف في فاتحة سورة غير مدغم فيما بعده","ex":{"h":"نٓ","s":68,"a":1}}]}];
 const ALL='ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن ه و ي'.split(' ');
 const strip=s=>s.replace(/[ً-ٰٟ]/g,'');
@@ -57,16 +58,17 @@ const QW={'ق':['يَ','قْ','طَعُونَ'],'ط':['مَ','طْ','لَعِ'],
 const IMGS=['intro','meaning','letters','why','levels','minor','major','shaddah','map','practice'];
 const COLS=['--c0','--c1','--c2','--c3','--c4','--c5'];
 const $=s=>document.querySelector(s),shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
-DATA.forEach(st=>st.rules.forEach(r=>{if(r.id==='izhar_shafawi')r.letters=ALL.filter(c=>c!=='ب'&&c!=='م')}));
-let ST=DATA[0],R=ST.rules[0],mode=1;
+DATA.forEach(st=>st.rules.forEach(r=>{if(r.id==='izhar_shafawi')r.letters=ALL.filter(c=>c!=='ب'&&c!=='م');if(LETTER_PAIRS[r.id])r.pairs=LETTER_PAIRS[r.id]}));
+const usable=r=>!!(r.letters||r.pairs);
+let ST=DATA[0],R=ST.rules[0],mode=0;
 const col=i=>`var(${COLS[i%COLS.length]})`;
 function setup(){
  $('#stages').innerHTML=DATA.map(s=>`<button data-s="${s.id}" class="${s.id===ST.id?'on':''}">${s.icon||''} ${s.name}</button>`).join('');
- $('#rules').innerHTML=ST.rules.map(r=>`<button data-r="${r.id}" class="${r.id===R.id?'on':''} ${r.letters?'':'soon'}">${r.name}${r.letters?'':' ⏳'}</button>`).join('');
- $('#stages').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST=DATA.find(s=>s.id===b.dataset.s);R=ST.rules.find(r=>r.letters)||ST.rules[0];mode=1;setup()};
- $('#rules').onclick=e=>{const b=e.target.closest('button');if(!b)return;R=ST.rules.find(r=>r.id===b.dataset.r);mode=1;setup()};
- const lb=!!R.letters;['#s2','#s3'].forEach(s=>$(s).hidden=!lb);$('#soon').hidden=lb;
- if(!lb)$('#soon').innerHTML=`<h2>${R.name}</h2><p>هذا الحكم قائم على <b>مواقف</b> وليس على حروف محددة (${R.raw}). لذلك لا تناسبه بطاقات الحروف، والنوع المقترح له: <b>بطاقات مواقف</b> فيها سؤال «متى يحدث؟» وكلمات مصوّرة تُصنَّف بين أقسام هذا الحكم.</p>`;
+ $('#rules').innerHTML=ST.rules.map(r=>`<button data-r="${r.id}" class="${r.id===R.id?'on':''} ${usable(r)?'':'soon'}">${r.name}${usable(r)?'':' ⏳'}</button>`).join('');
+ $('#stages').onclick=e=>{const b=e.target.closest('button');if(!b)return;ST=DATA.find(s=>s.id===b.dataset.s);R=ST.rules.find(usable)||ST.rules[0];mode=0;setup()};
+ $('#rules').onclick=e=>{const b=e.target.closest('button');if(!b)return;R=ST.rules.find(r=>r.id===b.dataset.r);mode=0;setup()};
+ const lb=usable(R);['#s2','#s3'].forEach(s=>$(s).hidden=!lb);$('#soon').hidden=lb;
+ if(!lb)$('#soon').innerHTML=`<h2>${R.name}</h2><p>هذا الحكم قائم على <b>مواقف</b> وليس على حروف أو أزواج حروف محددة (${R.raw}). النوع المقترح له: <b>بطاقات مواقف</b> فيها سؤال «متى يحدث؟» وكلمات تُصنَّف بين أقسام هذا الحكم.</p>`;
  gallery();if(lb){cards();tabs();start()}
 }
 function gallery(){
@@ -75,7 +77,12 @@ function gallery(){
   const sh=i=>{gi=(i+IMGS.length)%IMGS.length;$('#gimg').src=`../../assets/tajweed/qalqalah/${String(gi+1).padStart(2,'0')}-${IMGS[gi]}.webp`;[...$('#gd').children].forEach((d,k)=>d.classList.toggle('on',k===gi))};
   $('#gn').onclick=()=>sh(gi+1);$('#gp').onclick=()=>sh(gi-1);sh(0)}
  else $('#gal').innerHTML=`<div class="noimg"><b>صور هذا الحكم لم تُجهَّز بعد.</b><br>القلقلة وحدها لها مجموعة صور (10 صور). كل حكم آخر يحتاج مجموعة مماثلة: السر، المعنى، الحروف، متى يحدث، الأقسام، الأمثلة، الخريطة.</div>`}
+function pairCards(){
+ $('#cardsHint').textContent='كل بطاقة زوج حروف: الأول ساكن والثاني متحرك. اضغط لتنقلب فيظهر المثال من القرآن.';
+ $('#cards').innerHTML=R.pairs.map((p,i)=>`<button class="fc pair" style="--col:${col(i)}" aria-label="زوج ${p.a} ${p.b}"><div class="in"><div class="face front"><b>${p.a}<span class="pl">+</span>${p.b}</b><small>اضغط للقلب</small></div><div class="face back"><small>${R.name}</small><div class="w"><u>${p.ex}</u></div><small>(${p.s}:${p.v}) · ${p.g?'يُدغم':'يُظهر'}</small>${p.note?`<small style="color:var(--bad)">${p.note}</small>`:''}</div></div></button>`).join('');
+ document.querySelectorAll('.fc').forEach(b=>b.onclick=()=>b.classList.toggle('flip'))}
 function cards(){
+ if(R.pairs)return pairCards();
  $('#cardsHint').textContent=R.letters.length>6?`${R.letters.length} حرفًا. اضغط على البطاقة لتنقلب.`:'اضغط على البطاقة لتنقلب.';
  $('#cards').innerHTML=R.letters.map((c,i)=>{const b=strip(c),w=QW[b];
   const back=R.id==='qalqalah'&&w?`<div class="w">${w[0]}<u>${w[1]}</u>${w[2]}</div><small>الحرف ساكن في وسط الكلمة</small>`:`<small>${R.name}</small>${R.ex?`<div class="w"><u>${R.ex.h}</u></div><small>(${R.ex.s}:${R.ex.a})</small>`:''}`;
@@ -84,13 +91,13 @@ function cards(){
 const bases=r=>r.letters.map(strip);
 const comp=()=>ALL.filter(c=>!bases(R).includes(c));
 const binRules=()=>ST.rules.filter(r=>r.letters);
-function avail(){const m={};m[1]=m[2]=comp().length>=3;m[3]=binRules().length>=2;return m}
-function tabs(){const a=avail(),names={1:'اجمع حروف الحكم',2:'الحرف الدخيل',3:'صنّف الحرف'};
- if(!a[mode])mode=a[1]?1:3;
- $('#tabs').innerHTML=[1,2,3].filter(m=>a[m]).map(m=>`<button data-m="${m}" class="${m===mode?'on':''}">${names[m]}</button>`).join('');
+function avail(){const m={};if(R.pairs){m[4]=m[5]=true;return m}if(!R.letters)return m;m[1]=m[2]=comp().length>=3;m[3]=binRules().length>=2;return m}
+function tabs(){const a=avail(),names={1:'اجمع حروف الحكم',2:'الحرف الدخيل',3:'صنّف الحرف',4:'صنّف الزوج',5:'اربط الحرفين'};
+ if(!a[mode])mode=[1,4,3].find(k=>a[k])||1;
+ $('#tabs').innerHTML=[1,2,3,4,5].filter(m=>a[m]).map(m=>`<button data-m="${m}" class="${m===mode?'on':''}">${names[m]}</button>`).join('');
  $('#tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;mode=+b.dataset.m;tabs();start()}}
 let ac;function beep(f,d=.12){try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
-let gen=0;const G=$('#game'),start=()=>{gen++;({1:m1,2:m2,3:m3}[mode])()},later=(f,ms)=>{const g=gen;setTimeout(()=>{if(g===gen)f()},ms)};
+let gen=0;const G=$('#game'),start=()=>{gen++;({1:m1,2:m2,3:m3,4:m4,5:m5}[mode])()},later=(f,ms)=>{const g=gen;setTimeout(()=>{if(g===gen)f()},ms)};
 function endScreen(h,sub){G.innerHTML=`<div class="end"><div class="stars">${h}</div><p class="muted">${sub}</p><button id="again">العب مرة أخرى</button></div>`;$('#again').onclick=start}
 function m1(){
  const T=shuffle(R.letters).slice(0,6),n=T.length,D=shuffle(comp()).slice(0,12-n);
@@ -132,5 +139,33 @@ function m3(){
    const ok=b.dataset.r===q.r.id;G.querySelectorAll('.bins button').forEach(x=>{x.disabled=true;if(x.dataset.r===q.r.id)x.classList.add('ok');else x.classList.add('no')});
    if(ok){score++;beep(740);$('#msg').textContent='صحيح! 🎉';$('#msg').className='msg ok'}else{beep(180,.25);$('#msg').textContent='الصحيح: '+q.r.name;$('#msg').className='msg bad'}
    i++;later(next,1500)})})()}
+const pairRules=()=>ST.rules.filter(r=>r.pairs);
+const pairLabel=p=>`<span class="big" style="display:flex;justify-content:center;gap:14px"><span>${p.a}</span><span style="opacity:.5">+</span><span>${p.b}</span></span>`;
+function m4(){
+ const bins=pairRules(),pool=bins.map(r=>shuffle(r.pairs).map(p=>({p,r})));const items=[];
+ while(items.length<8&&pool.some(x=>x.length))for(const x of pool){if(x.length&&items.length<8)items.push(x.pop())}
+ const Q=shuffle(items);let i=0,score=0;
+ (function next(){
+  if(i>=Q.length){endScreen(score>=7?'🏆':score>=5?'⭐':'💪',`${score} من ${Q.length}`);return}
+  const q=Q[i];
+  G.innerHTML=`<div class="hud"><span>أي نوع هذا الزوج؟ (الأول ساكن والثاني متحرك)</span><span dir="ltr">${i+1} / ${Q.length}</span></div><div class="bar"><i style="width:${i/Q.length*100}%"></i></div>
+  ${pairLabel(q.p)}<div class="bins">${bins.map((r,k)=>`<button data-r="${r.id}" style="--col:${col(k)}">${r.name}</button>`).join('')}</div><p class="msg" id="msg"></p>`;
+  G.querySelectorAll('.bins button').forEach(b=>b.onclick=()=>{
+   const ok=b.dataset.r===q.r.id;G.querySelectorAll('.bins button').forEach(x=>{x.disabled=true;if(x.dataset.r===q.r.id)x.classList.add('ok');else x.classList.add('no')});
+   if(ok){score++;beep(740);$('#msg').textContent='صحيح! مثاله: '+q.p.ex;$('#msg').className='msg ok'}else{beep(180,.25);$('#msg').textContent='الصحيح: '+q.r.name+' — مثاله: '+q.p.ex;$('#msg').className='msg bad'}
+   i++;later(next,2000)})})()}
+function m5(){
+ const all=pairRules().flatMap(r=>r.pairs),Q=shuffle(R.pairs).slice(0,5);let i=0,score=0;
+ (function next(){
+  if(i>=Q.length){endScreen(score>=Q.length?'🏆':score>=Math.ceil(Q.length/2)?'⭐':'💪',`${score} من ${Q.length}`);return}
+  const p=Q[i],bad=new Set(all.filter(x=>x.a===p.a).map(x=>x.b));
+  const opts=shuffle([p.b,...shuffle(ALL.filter(c=>!bad.has(c)&&c!==p.a)).slice(0,3)]);
+  G.innerHTML=`<div class="hud"><span>أي حرف يكوّن مع «${p.a}» زوجًا من «${R.name}»؟</span><span dir="ltr">${i+1} / ${Q.length}</span></div><div class="bar"><i style="width:${i/Q.length*100}%"></i></div>
+  <div class="big">${p.a}</div><div class="board" style="grid-template-columns:repeat(4,1fr)">${opts.map(c=>`<button class="tile" data-c="${c}">${c}</button>`).join('')}</div><p class="msg" id="msg"></p>`;
+  G.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
+   const ok=b.dataset.c===p.b;G.querySelectorAll('.tile').forEach(t=>t.classList.add('done'));
+   if(ok){score++;b.style.setProperty('--col','var(--ok)');b.classList.add('right');beep(740);$('#msg').textContent='صحيح! '+p.ex;$('#msg').className='msg ok'}
+   else{b.classList.add('wrong');beep(180,.25);const r=[...G.querySelectorAll('.tile')].find(t=>t.dataset.c===p.b);r.style.setProperty('--col','var(--ok)');r.classList.add('right');$('#msg').textContent='الجواب «'+p.b+'» كما في: '+p.ex;$('#msg').className='msg bad'}
+   i++;later(next,1800)})})()}
 setup();
 </script></body></html>
