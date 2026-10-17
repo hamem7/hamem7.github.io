@@ -108,12 +108,10 @@ export function resolveRange(surahsData, student, records) {
     }
     let frontier = { surah: toS.number, ayah: toS.ayahsCount };
     let source = 'student';
+    // 🌟 [إصلاح — 2026-10-17] نهاية النطاق المعلَن (memoTo) سقف لا يتجاوزه السجل الشهري: السجل قد يحمل موضعاً
+    // خاطئاً أو أبعد (مثل البقرة) فيدخل الواجب كل السور بين المجادلة والبقرة. السجل يضبط الآية داخل سورة memoTo فقط.
     const monthly = furthestMonthlyPosition(surahsData, records);
-    if (monthly && monthly.surah <= fromS.number) {
-        const studentIdx = memorizationIndex(surahsData, toS.number, toS.ayahsCount);
-        if (monthly.idx > studentIdx) { frontier = { surah: monthly.surah, ayah: monthly.ayah }; source = 'monthly'; }
-        else if (monthly.surah === toS.number) { frontier = { surah: monthly.surah, ayah: monthly.ayah }; source = 'monthly'; }
-    }
+    if (monthly && monthly.surah === toS.number) { frontier = { surah: monthly.surah, ayah: monthly.ayah }; source = 'monthly'; }
     return { ok: true, direction: 'backward', fromSurah: fromS.number, toSurah: frontier.surah, frontierAyah: frontier.ayah, source };
 }
 

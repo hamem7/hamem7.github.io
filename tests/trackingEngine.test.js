@@ -86,10 +86,10 @@ await test('resolveRange: ملف الطالب فقط → نهاية سورة mem
   const r = resolveRange(surahsData, { memoFrom: 'الناس', memoTo: 'النازعات' }, []);
   assert.deepEqual([r.ok, r.direction, r.fromSurah, r.toSurah, r.frontierAyah, r.source], [true, 'backward', 114, 79, 46, 'student']);
 });
-await test('resolveRange: سجل شهري أبعد تقدّماً يحدّد الآية بدقة', () => {
+await test('resolveRange: سجل شهري أبعد من memoTo لا يوسّع النطاق', () => {
   const rec = [{ year: 2026, month: 10, beginning: { surahNumber: 79, ayahNumber: 40 }, ending: { surahNumber: 78, ayahNumber: 12 } }];
   const r = resolveRange(surahsData, { memoFrom: 'الناس', memoTo: 'النازعات' }, rec);
-  assert.deepEqual([r.toSurah, r.frontierAyah, r.source], [78, 12, 'monthly']);
+  assert.deepEqual([r.toSurah, r.frontierAyah, r.source], [79, 46, 'student']);
 });
 await test('resolveRange: سجل شهري أقدم من ملف الطالب لا يُنقص النطاق', () => {
   const rec = [{ year: 2026, month: 9, beginning: { surahNumber: 80, ayahNumber: 3 } }];
