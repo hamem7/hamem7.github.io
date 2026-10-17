@@ -15,12 +15,13 @@ import {
     EXAM_PASS_SCORE, EXAM_SIZE
 } from '../engine/tajweedJourney.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
+import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
 import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
 import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
 // الدخول الأساسية (شاشة التقييم) بعد اختيار اسم الطالب مباشرة، راجع student/student.js
 // (setupLoginListeners) للاستخدام الأصلي. نستوردها هنا لعرضها بنفس الطريقة تماماً بعد اختيار
-// الطالب في شاشة "أبطال التجويد" (renderPickStudentHTML/submitPickedStudent أسفل هذا الملف)
+// الطالب في شاشة "أبطال التجويد" (enterStudent أسفل هذا الملف، بعد ضغط «أكمل» في شاشة الدخول الجديدة)
 import { showStudentWelcome } from '../components/welcomeBanner.js';
 
 // 🌟 مكدّس تنقل بسيط بين حالات العرض داخل #tjw-container فقط (بلا أي علاقة بـ
@@ -41,11 +42,13 @@ export function initTajweedMap() {
 
     const container = document.getElementById('tjw-container');
     if (container) container.addEventListener('click', handleContainerClick);
+    if (container) container.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest && e.target.closest('tr[data-action="entry-row"]')) e.target.closest('tr').click(); });
 
     // 🌟 [قرار مُعتمَد — القسم 17 نقطة 3 من المستند المعماري]: الدخول لقسم "أبطال التجويد"
     // يبدأ دائماً باختيار اسم الطالب من جديد، بلا اعتماد صامت على AppState.currentStudent
     navStack = [];
     currentView = { view: 'pickStudent', params: null };
+    resetEntryState();
     // 🌟 حذف بيانات التجويد القديمة مرة واحدة على الجهاز قبل أي عرض (النظام الجديد يحلّ محلها)
     resetLegacyTajweedDataOnce().catch(() => {}).then(() => render());
 }
@@ -67,25 +70,65 @@ async function render() {
     const backBtn = document.getElementById('tjw-btn-level-back');
     if (backBtn) backBtn.style.display = navStack.length > 0 ? '' : 'none';
     // 🌟 عبارة «اختر اسم الطالب…» تخصّ شاشة الاختيار فقط — تُخفى بعد اختيار الطالب حتى لا تضلّل
+    // 🌟 [جديد] شاشة الدخول لها ترويستها الخاصة (عنوان + مسار تنقّل + نبذة + زر الطالب/المعلم)، فيُخفى الشريط العلوي
+    // وعبارة «اختر اسم الطالب» المكرَّران فيها؛ وعبارة الاختيار القديمة لا تُعرض في أي شاشة بعدها
     const subtitleEl = document.getElementById('tjw-subtitle');
-    if (subtitleEl) subtitleEl.style.display = currentView.view === 'pickStudent' ? '' : 'none';
+    if (subtitleEl) subtitleEl.style.display = 'none';
+    const topbarEl = document.querySelector('.tjw-topbar');
+    if (topbarEl) topbarEl.style.display = currentView.view === 'pickStudent' ? 'none' : '';
     if (!container) return;
 
     container.innerHTML = `<div class="tjw-loading">${t('sim_loading')}</div>`;
 
     let html = '';
-    if (currentView.view === 'pickStudent') html = await renderPickStudentHTML();
+    if (currentView.view === 'pickStudent') {
+        await loadEntrySummaries();
+        html = renderEntryHTML();
+    }
     else if (currentView.view === 'browse') html = await renderBrowseHTML();
     else if (currentView.view === 'ruleDetail') html = await renderRuleDetailHTML(currentView.params);
     else if (currentView.view === 'leaderboard') html = await renderLeaderboardHTML();
 
     container.innerHTML = html;
 
-    // 🌟 [جديد] بعد حقن شاشة اختيار الطالب (حقل بحث + قائمة منسدلة)، نملأ الـ datalist ونربط
-    // أحداث حقل البحث — بنفس أسلوب populateStudentsDropdown/setupLoginListeners في
-    // student/student.js بالضبط، لكن بمعرّفات tjw- منعزلة تماماً حتى لا تتعارض مع قائمة شاشة
-    // تسجيل الدخول الأساسية إن كانت مفتوحة في تبويب آخر
-    if (currentView.view === 'pickStudent') await setupPickStudentScreen();
+    if (currentView.view === 'pickStudent') bindEntryInputs();
+}
+
+// 🌟 إعادة رسم شاشة الدخول من البيانات المحمَّلة (بلا قراءة جديدة من قاعدة البيانات): اختيار طالب، تبديل الوضع، الترتيب...
+function repaintEntry() {
+    const container = document.getElementById('tjw-container');
+    if (!container) return;
+    container.innerHTML = renderEntryHTML();
+    bindEntryInputs();
+}
+
+// حقل البحث (يظهر لمن لديهم أكثر من ثمانية طلاب): يصفّي البطاقات أثناء الكتابة ويحافظ على موضع المؤشر
+function bindEntryInputs() {
+    const input = document.getElementById('tjw-student-search-input');
+    if (!input) return;
+    input.addEventListener('input', () => {
+        entryState.q = input.value;
+        const pos = input.selectionStart;
+        repaintEntry();
+        const again = document.getElementById('tjw-student-search-input');
+        if (again) { again.focus(); try { again.setSelectionRange(pos, pos); } catch (e) { /* نوع الحقل لا يدعم المؤشر */ } }
+    });
+}
+
+// 🌟 دخول طالب من شاشة الدخول إلى رحلته. after: 'continue' يفتح حكمه الحالي، 'review' يبدأ مراجعته، وغير ذلك يعرض الخريطة.
+// نمرّ بشاشة الخريطة أولاً (فتحسب المراجعات المستحقة ويُطبَّق قيد «لا حكم جديد قبل المراجعة») ثم نضغط الزر المقصود.
+async function enterStudent(studentId, after) {
+    const student = (await AppState.studentManager.getAllStudents()).find(s => String(s.id) === String(studentId));
+    if (!student) return;
+    AppState.currentStudent = student;
+    // ثيم الكبار دائماً في هذا القسم (openTajweedSection)، فبطاقة الترحيب بلا kids (راجع التعليق الأصلي)
+    showStudentWelcome(student, { kids: false });
+    navStack = [];
+    currentView = { view: 'browse', params: null };
+    await render();
+    const sel = after === 'continue' ? '.tjw-hero [data-action="open-rule"]' : after === 'review' ? '[data-action="start-review"]' : null;
+    const btn = sel && document.querySelector(sel);
+    if (btn) btn.click();
 }
 
 async function handleContainerClick(e) {
@@ -115,24 +158,35 @@ async function handleContainerClick(e) {
     if (!btn) return;
     const action = btn.dataset.action;
 
-    if (action === 'pick-student') {
-        const studentId = btn.dataset.id;
-        const students = await AppState.studentManager.getAllStudents();
-        // 🌟 [افتراض صريح]: معرّف الطالب قد يكون رقمياً — نقارن كنص للتوافق مع أي شكل تخزين
-        const student = students.find(s => String(s.id) === String(studentId));
-        if (!student) return;
-        AppState.currentStudent = student;
-        navStack = [];
-        currentView = { view: 'browse', params: null };
-        render();
-    } else if (action === 'change-student') {
+    if (action.startsWith('entry-')) {
+        // 🌟 [جديد] أحداث شاشة الدخول
+        if (action === 'entry-select') {
+            const id = btn.dataset.id;
+            const s = getEntrySummaries().find(x => String(x.studentId) === String(id));
+            entryState.sel = s && entryState.sel !== s.studentId ? s.studentId : null;
+            repaintEntry();
+        } else if (action === 'entry-row') {
+            const s = getEntrySummaries().find(x => String(x.studentId) === String(btn.dataset.id));
+            if (s) { entryState.sel = s.studentId; entryState.mode = 'student'; repaintEntry(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        } else if (action === 'entry-mode') { entryState.mode = btn.dataset.mode; repaintEntry();
+        } else if (action === 'entry-sort') { entryState.sort = btn.dataset.sort; repaintEntry();
+        } else if (action === 'entry-all') { entryState.all = true; repaintEntry();
+        } else if (action === 'entry-other') { entryState.sel = null; repaintEntry();
+        } else if (action === 'entry-home') { loadSplashScreen();
+        } else if (entryState.sel !== null) {
+            if (action === 'entry-go') enterStudent(entryState.sel, 'continue');
+            else if (action === 'entry-map') enterStudent(entryState.sel, 'map');
+            else if (action === 'entry-review') enterStudent(entryState.sel, 'review');
+        }
+        return;
+    }
+    if (action === 'change-student') {
+        // «طالب آخر» من الخريطة: نعود لشاشة الدخول دون تحديد مسبق
         navStack = [];
         currentView = { view: 'pickStudent', params: null };
+        resetEntryState();
+        entryState.initialized = true;
         render();
-    } else if (action === 'pick-student-submit') {
-        // 🌟 [جديد] زر "ابدأ الرحلة" في شاشة اختيار الطالب (حقل بحث + قائمة منسدلة) —
-        // راجع submitPickedStudent أسفل هذا الملف
-        submitPickedStudent();
     } else if (action === 'open-rule') {
         const stageId = btn.dataset.stage, ruleId = btn.dataset.rule;
         // 🌟 [المرحلة 4 — بوّابة المراجعة] لو فيه مراجعة مستحقة ولسه ما اتعملتش هذه الجلسة،
@@ -198,111 +252,11 @@ function playRuleAudio(btn) {
 }
 
 // ============================================================
-// شاشة اختيار الطالب
+// شاشة اختيار الطالب → صارت «شاشة الدخول» (tajweed/tajweed-entry.js)
 // ============================================================
-// 🌟 [عدّل بالكامل] استبدلنا شبكة أزرار الطلاب القديمة (تصلح لعدد قليل جداً من الطلاب فقط
-// وتُظهر كل اسم داخل مربع منفصل) بحقل بحث + قائمة منسدلة (datalist) + زر واحد، بنفس نمط
-// شاشة "تسجيل الدخول" الأساسية بالضبط في student/login.html (راجع populateStudentsDropdown/
-// setupLoginListeners في student/student.js) — بطلب صريح من المعلم ليكون اختيار الطالب هنا
-// مطابقاً لباقي أقسام المنصة. القائمة تُملأ فعلياً من setupPickStudentScreen أسفل هذا الملف
-// (بعد حقن هذا الـ HTML في الحاوية مباشرة، نفس ترتيب loadLoginScreen)، وليس هنا، تفادياً لأي
-// مشكلة تهريب HTML من اسم طالب يحتوي على علامات اقتباس (نفس أسلوب DOM API الآمن المستخدَم في
-// populateStudentsDropdown الأصلية بدل بناء نص <option> يدوياً) 🌟
-async function renderPickStudentHTML() {
-    const students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden);
-
-    if (students.length === 0) {
-        return `
-            <div class="tjw-empty-state">
-                <div class="tjw-empty-icon">🌟</div>
-                <p>${t('tjw_no_students')}</p>
-            </div>`;
-    }
-
-    return `
-        <div class="tjw-pick-student">
-            <div class="tjw-pick-card">
-                <label class="tjw-pick-label" for="tjw-student-search-input">${t('tjw_pick_label')}</label>
-                <input type="text" id="tjw-student-search-input" autocomplete="off"
-                       class="tjw-pick-input" placeholder="${t('search_student_ph')}">
-                <datalist id="tjw-student-datalist"></datalist>
-                <button type="button" class="tjw-pick-submit-btn" data-action="pick-student-submit">${t('tjw_start_journey_btn')}</button>
-            </div>
-            <button class="tjw-link-btn tjw-leaderboard-entry" data-action="open-leaderboard">🏆 ${t('tjw_leaderboard_title')}</button>
-        </div>`;
-}
-
-// 🌟 [جديد] يملأ الـ datalist ويربط أحداث حقل البحث — يُستدعى من render() فور حقن شاشة
-// الاختيار في الحاوية (لأن العناصر يجب أن تكون في الـ DOM فعلاً قبل ربط أي مستمع عليها).
-// نفس منطق إظهار/إخفاء القائمة المنسدلة حسب وجود نص في الحقل (لا تظهر إلا بعد كتابة حرف واحد
-// على الأقل) من setupLoginListeners في student/student.js بالضبط، لكن بمعرّفات tjw- منعزلة
-async function setupPickStudentScreen() {
-    const input = document.getElementById('tjw-student-search-input');
-    const dataList = document.getElementById('tjw-student-datalist');
-    if (!input || !dataList) return; // لا يوجد طلاب — شاشة الحالة الفارغة معروضة بدلاً من هذا
-
-    const students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden);
-    dataList.innerHTML = '';
-    students.forEach(s => {
-        const option = document.createElement('option');
-        option.value = s.name;
-        dataList.appendChild(option);
-    });
-
-    input.removeAttribute('list');
-    input.addEventListener('input', function () {
-        if (this.value.trim().length > 0) {
-            this.setAttribute('list', 'tjw-student-datalist');
-        } else {
-            this.removeAttribute('list');
-        }
-    });
-    input.addEventListener('focus', function () {
-        if (this.value.trim().length === 0) {
-            this.removeAttribute('list');
-        }
-    });
-    // 🌟 [جديد] زر Enter من لوحة المفاتيح يبدأ الرحلة مباشرة، بلا حاجة للوصول بالفأرة لزر
-    // "ابدأ الرحلة" — تسهيلاً على المعلم الذي اعتاد نفس السلوك في شاشة تسجيل الدخول
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            submitPickedStudent();
-        }
-    });
-}
-
-// 🌟 [جديد] يتحقق من الاسم المكتوب/المختار في حقل البحث، ثم يبدأ رحلة الطالب — بنفس تسلسل
-// معالج زر "دخول سريع للتقييم" في setupLoginListeners (student/student.js) بالضبط: تحقّق من
-// وجود نص، بحث عن الطالب بالاسم الحرفي الكامل، ثم AppState.currentStudent + بطاقة الترحيب
-// المشتركة showStudentWelcome قبل الانتقال مباشرة (بلا await عليها عمداً — نفس فلسفة عدم
-// حجب الانتقال الموثَّقة في التعليق الأصلي بجانب استدعائها في student/student.js)
-async function submitPickedStudent() {
-    const input = document.getElementById('tjw-student-search-input');
-    const typedName = input ? input.value.trim() : '';
-    if (!typedName) {
-        alert(t('tjw_pick_name_required_alert'));
-        return;
-    }
-
-    const students = await AppState.studentManager.getAllStudents();
-    const student = students.find(s => s.name === typedName);
-    if (!student) {
-        alert(t('login_name_not_found_alert'));
-        return;
-    }
-
-    AppState.currentStudent = student;
-    // 🌟 [افتراض صريح]: قسم "أبطال التجويد" يُفعِّل دائماً ثيم الكبار (switchTheme('adult') في
-    // openTajweedSection بـ core/app.js) بصرف النظر عن AppState.isKidsMode القادم من تنقّل
-    // سابق، فمرّرنا kids:false صراحة هنا حتى تطابق بطاقة الترحيب نفس مظهر الشاشة الفعلي أمام
-    // المعلم بدل الاعتماد على قيمة isKidsMode القديمة المحتمَلة من قسم آخر
-    showStudentWelcome(student, { kids: false });
-
-    navStack = [];
-    currentView = { view: 'browse', params: null };
-    render();
-}
+// 🌟 [استُبدلت بطلب المعلم] كانت حقل بحث + قائمة منسدلة (datalist) مطابقةً لشاشة تسجيل الدخول الأساسية، وصارت بطاقات طلاب
+// مع «أكمل من حيث توقفتَ» ولمحة الرحلة ونظرة المعلم على الصف (راجع docs/TAJWEED_JOURNEY.md). الرسم والحالة في
+// tajweed-entry.js، والتنقل (enterStudent) هنا. «طالب آخر» من الخريطة تعود إلى هذه الشاشة بلا تحديد مسبق.
 
 // ============================================================
 // شاشة خريطة التقدّم: المراحل والأحكام (§3) + بوّابة المراجعة (§5)
