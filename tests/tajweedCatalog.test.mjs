@@ -58,14 +58,14 @@ test('نص «اختر الحكم» لا يتطابق بين حكمين (لا س�
 test('كل مثال: الآية موجودة، والعبارة تُطابَق، ويولَّد سؤال بكلمة صحيحة ومشتِّتات سليمة', () => {
     const problems = [];
     flat.forEach(({ rule }) => {
-        [['example', generateDiscoverQuestion], ['practiceExample', generateApplyQuestion]].forEach(([field, gen]) => {
-            const ex = rule[field];
+        [['example', rule.example, generateDiscoverQuestion], ['practiceExample', rule.practiceExample, generateApplyQuestion],
+            ...(rule.extraExamples || []).map((e, i) => ['extra' + i, e, generateApplyQuestion])].forEach(([field, ex, gen]) => {
             const info = ayahInfo(ex.surah, ex.ayah);
             if (!info) { problems.push(`${rule.id}.${field}: الآية غير موجودة`); return; }
             if (findPhraseRanges(info.text, ex.highlight).length === 0) { problems.push(`${rule.id}.${field}: العبارة لا تُطابَق`); return; }
             if (ex.skipQuestion) return;
             for (let n = 0; n < 20; n++) {   // عشوائية المشتِّتات: نكرّر
-                const q = gen(rule, info);
+                const q = gen(field.startsWith('extra') ? { ...rule, practiceExample: ex } : rule, info);   // المثال الإضافي يُمرَّر كمثال تطبيق
                 if (!q) { problems.push(`${rule.id}.${field}: لم يُولَّد سؤال`); return; }
                 const joined = q.ayahText;
                 const ranges = findPhraseRanges(joined, ex.highlight).slice(0, ex.firstOnly ? 1 : undefined);

@@ -9,6 +9,7 @@
 import { TAJWEED_STAGES, getTajweedStage, getStageRuleIds, getAllRulesFlat } from './tajweedRulesCatalog.js';
 import { findPhraseRanges } from '../core/quranTextUtils.js';
 import { isWaqfMark } from './quranEngine.js';
+import { statusFromJourney, journeyPercent, ensureJourney, EXAM_SIZE } from './tajweedJourney.js';
 
 // ============================================================
 // أدوات عامة
@@ -38,6 +39,9 @@ export const ACTIVITY_DIMENSION_MAP = {
     discover_in_ayah: 'discovers',
     apply_new_ayah: 'applies',
     review: 'recalls',
+    // 🌟 [رحلة الحكم] سؤال «ما حكم الكلمة المظلَّلة؟» يقيس التمييز؛ والاختبار الرسمي يقيس التطبيق
+    identify_rule: 'distinguishes',
+    exam: 'applies',
     stage_challenge: 'recalls',
     // 🌟🌟 [جديد ٢٨ سبتمبر] بُعد سادس "pronounces" — لا يُحدَّثه إلا نشاط "سمّع لي" (تقييم معلم
     // مباشر عبر شاشة teacher-checkpoint)، وليس أي لعبة تلقائية. راجع §2 من مستند التعميق
@@ -47,7 +51,6 @@ export const ACTIVITY_DIMENSION_MAP = {
 };
 
 const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'];
-const MASTERY_THRESHOLD = 80;
 // 🌟 [افتراض صريح]: الحد الأدنى لاعتبار فجوة زمنية "حقيقية" بين آخر تدرّب وجلسة الاستدعاء —
 // لم يحدّد المستند رقماً دقيقاً (فقط "بعد فجوة زمنية حقيقية")، فاخترت يوماً كاملاً كحد أدنى
 // معقول (نفس وحدة القياس المستخدمة أصلاً في خوارزمية reviewScheduleDB.js: intervalDays)
@@ -88,7 +91,8 @@ export function applySessionToMastery(masteryRecord, activityType, scorePercent)
 
     record.attemptsCount = (record.attemptsCount || 0) + 1;
     record.lastPracticedAt = now.toISOString();
-    record.status = computeMasteryStatus(record.dimensions, record.status);
+    // 🌟 [رحلة الحكم] «متقن» لا يأتي من متوسط الأبعاد بل من اعتماد المعلم بعد اجتياز الاختبار (tajweedJourney.js)
+    record.status = statusFromJourney(record, record.status);
     if (record.status === 'mastered' && !record.masteredAt) {
         record.masteredAt = now.toISOString();
     }
@@ -96,23 +100,6 @@ export function applySessionToMastery(masteryRecord, activityType, scorePercent)
         record.masteredAt = null;
     }
     return record;
-}
-
-// 🌟 حالة الإتقان: 'mastered' كل الأبعاد ≥80 (ويشمل ذلك recalls، أي استدعاء ناجح حقيقي فعلاً
-// وقع) · 'needs_review' كانت متقنة سابقاً وتراجع بُعد recalls عن الحد · 'in_progress' كل بُعد
-// ≥60 لكن لم تكتمل بعد · 'available' لم يبدأ الطالب أو أي بُعد ما زال دون 60 بلا محاولات كافية
-export function computeMasteryStatus(dimensions, previousStatus) {
-    const values = MASTERY_DIMENSION_KEYS.map(k => dimensions[k] || 0);
-    const allMastered = values.every(v => v >= MASTERY_THRESHOLD);
-    if (allMastered) return 'mastered';
-
-    if (previousStatus === 'mastered' && dimensions.recalls < MASTERY_THRESHOLD) {
-        return 'needs_review';
-    }
-
-    const anyProgress = values.some(v => v > 0);
-    if (!anyProgress) return 'available';
-    return 'in_progress';
 }
 
 // 🌟 نسبة إتقان الحكم الواحد كرقم واحد مبسّط (متوسط الأبعاد الخمسة) — تُستخدَم لعرض شريط تقدّم
@@ -143,10 +130,11 @@ export function computeStageProgress(stageId, masteryRecordsForStudent) {
 
     ruleIds.forEach(ruleId => {
         const rec = byRule[ruleId];
-        const pct = rec ? ruleOverallPercent(rec.dimensions) : 0;
+        const pct = rec ? journeyPercent(rec) : 0;
         totalPercent += pct;
         if (rec && rec.status === 'mastered') masteredCount++;
-        if (rec && (rec.attemptsCount || 0) > 0) anyTouched = true;
+        // «بدأ» = أجاب على أسئلة أو ضغط «فهمت» في درس الحكم (رحلة الحكم)
+        if (rec && ((rec.attemptsCount || 0) > 0 || ensureJourney(rec).learnedAt)) anyTouched = true;
     });
 
     const percentComplete = Math.round(totalPercent / ruleIds.length);
@@ -318,6 +306,85 @@ export function buildReviewQuestions(dueRules, ayahInfoByRuleId) {
         if (discoverQ) pool.push(discoverQ);
     });
     return shuffleArray(pool).slice(0, 5);
+}
+
+// ============================================================
+// 🌟 [رحلة الحكم] سؤال «ما حكم الكلمة المظلَّلة؟» + منشئ اختبار الحكم
+// ============================================================
+// أحكام قد تنطبق معاً على الكلمة نفسها: لا يصح أن يُعرض أحدها مشتِّتاً للآخر في سؤال التمييز
+const RULE_CONFLICTS = [
+    ['madd_lazim', 'lazim_kalami_muthaqqal', 'lazim_kalami_mukhaffaf', 'lazim_harfi_muthaqqal', 'lazim_harfi_mukhaffaf'],
+    ['ghunna_wajiba', 'idgham_shafawi', 'idgham_bighunnah', 'mithlain']
+];
+export function rulesConflict(a, b) {
+    return a !== b && (RULE_CONFLICTS.some(g => g.includes(a) && g.includes(b)) ||
+        (a === 'idgham_shafawi' && b === 'mithlain') || (a === 'mithlain' && b === 'idgham_shafawi'));
+}
+
+// فهارس الكلمات التي يغطيها موضع الحكم في مصدر (آية من الحفظ بمواضع، أو مثال كتالوج بعبارة)
+function sourceCoveredWords(source, words) {
+    const covered = new Set();
+    if (source.occurrences) {
+        source.occurrences.forEach(o => { for (let w = o.w1; w <= o.w2; w++) covered.add(w); });
+        return covered;
+    }
+    let ranges = findPhraseRanges(words.join(' '), source.highlight);
+    if (source.firstOnly) ranges = ranges.slice(0, 1);
+    let pos = 0;
+    words.forEach((w, i) => { if (ranges.some(([a, b]) => pos < b && pos + w.length > a)) covered.add(i); pos += w.length + 1; });
+    return covered;
+}
+
+// source = { ayahInfo, surah?, ayah?, occurrences? | highlight (+ firstOnly) }
+// conflicts(ruleId, source, coveredWordSet) ← true إن كان لحكم آخر موضع على الكلمة نفسها (يُمرَّر من فهرس التوسيم)
+export function generateIdentifyQuestion(rule, source, { conflicts = null } = {}) {
+    if (!source || !source.ayahInfo) return null;
+    const words = source.ayahInfo.text.split(/\s+/).filter(w => w && !isWaqfMark(w));
+    const covered = sourceCoveredWords(source, words);
+    if (covered.size === 0) return null;
+    const flat = getAllRulesFlat();
+    const myStage = (flat.find(x => x.rule.id === rule.id) || {}).stageId;
+    const eligible = flat.filter(x => x.rule.id !== rule.id && !rulesConflict(rule.id, x.rule.id) && !(conflicts && conflicts(x.rule.id, source, covered)));
+    const sameStage = eligible.filter(x => x.stageId === myStage).map(x => x.rule);
+    const others = eligible.filter(x => x.stageId !== myStage).map(x => x.rule);
+    const picked = pickRandom(sameStage, Math.min(2, sameStage.length));
+    const distractors = [...picked, ...pickRandom(others, 3 - picked.length)].slice(0, 3);
+    if (distractors.length < 2) return null;
+    return {
+        type: 'identify_rule',
+        ruleId: rule.id,
+        ayahText: words.join(' '),
+        surahName: source.ayahInfo.surahName,
+        audioNumber: source.ayahInfo.number,
+        ...(source.occurrences ? { occurrences: source.occurrences, fromHifz: true } : { highlight: source.highlight, firstOnly: !!source.firstOnly }),
+        correctRuleId: rule.id,
+        options: shuffleArray([rule, ...distractors]).map(r => ({ ruleId: r.id, nameKey: r.nameKey }))
+    };
+}
+
+function examDiscoverFromSource(rule, src) {
+    if (src.occurrences) return generateAnnotatedQuestion('apply_new_ayah', rule, src.ayahInfo, src.occurrences);
+    return buildDiscoverStyleQuestion('apply_new_ayah', rule, src.ayahInfo, src);
+}
+
+// اختبار الحكم: سؤال «اختر الحكم» + حتى 7 أسئلة (تمييز كلمة مظلَّلة / اكتشاف كلمة في آية) من مصادر:
+// آيات الحفظ أولاً ثم أمثلة الكتالوج. المصدر الواحد يخدم سؤالين مختلفي النوع كحدٍّ أقصى. النتيجة مخلوطة الترتيب.
+export function buildExamQuestions(rule, sources, { conflicts = null, size = EXAM_SIZE } = {}) {
+    const qs = [generateChooseRuleQuestion(rule)];
+    const plan = ['identify', 'discover', 'identify', 'discover', 'identify', 'discover', 'discover', 'identify'];
+    const used = new Set();
+    const n = (sources || []).length;
+    for (let slot = 0; slot < plan.length && qs.length < size && n > 0; slot++) {
+        const kind = plan[slot];
+        for (let k = 0; k < n; k++) {
+            const idx = (slot + k) % n;
+            const key = `${idx}:${kind}`;
+            if (used.has(key)) continue;
+            const q = kind === 'identify' ? generateIdentifyQuestion(rule, sources[idx], { conflicts }) : examDiscoverFromSource(rule, sources[idx]);
+            if (q) { used.add(key); qs.push(q); break; }
+        }
+    }
+    return shuffleArray(qs);
 }
 
 // ============================================================

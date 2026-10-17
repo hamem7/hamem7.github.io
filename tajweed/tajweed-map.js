@@ -9,8 +9,12 @@
 import { AppState, loadSplashScreen, openTajweedActivityScreen, t } from '../core/app.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
-import { computeAllStageProgress, isStageUnlocked, ruleOverallPercent, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
-import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML } from './tajweed-shared.js';
+import { computeAllStageProgress, isStageUnlocked, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
+import {
+    ensureJourney, journeyStep, journeyPercent, applyLearned, statusFromJourney,
+    EXAM_PASS_SCORE, EXAM_SIZE
+} from '../engine/tajweedJourney.js';
+import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
 // الدخول الأساسية (شاشة التقييم) بعد اختيار اسم الطالب مباشرة، راجع student/student.js
 // (setupLoginListeners) للاستخدام الأصلي. نستوردها هنا لعرضها بنفس الطريقة تماماً بعد اختيار
@@ -40,7 +44,8 @@ export function initTajweedMap() {
     // يبدأ دائماً باختيار اسم الطالب من جديد، بلا اعتماد صامت على AppState.currentStudent
     navStack = [];
     currentView = { view: 'pickStudent', params: null };
-    render();
+    // 🌟 حذف بيانات التجويد القديمة مرة واحدة على الجهاز قبل أي عرض (النظام الجديد يحلّ محلها)
+    resetLegacyTajweedDataOnce().catch(() => {}).then(() => render());
 }
 
 function pushView(view, params) {
@@ -138,6 +143,15 @@ async function handleContainerClick(e) {
         pushView('leaderboard', null);
     } else if (action === 'start-review') {
         startActivity('review', { stageId: null, ruleId: null, dueRuleIds: dueRuleIdsCache });
+    } else if (action === 'mark-learned') {
+        // 🌟 [رحلة الحكم] الخطوة ١: «فهمت» تسجّل أن الطالب تعلّم الحكم ثم ينتقل للتطبيق مباشرة
+        const rec = await AppState.tajweedManager.getOrCreateMasteryRecord(AppState.currentStudent.id, btn.dataset.stage, btn.dataset.rule);
+        const updated = applyLearned(rec);
+        updated.status = statusFromJourney(updated, updated.status);
+        await AppState.tajweedManager.saveMastery(updated);
+        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
+    } else if (action === 'start-exam') {
+        startActivity('exam', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
     } else if (action === 'start-practice') {
         startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
     } else if (action === 'start-link') {
@@ -306,7 +320,7 @@ async function renderBrowseHTML() {
     const totalRules = flat.length;
     const masteredCount = flat.filter(({ rule }) => masteryByRule[rule.id] && masteryByRule[rule.id].status === 'mastered').length;
     const overallPct = totalRules
-        ? Math.round(flat.reduce((sum, { rule }) => sum + (masteryByRule[rule.id] ? ruleOverallPercent(masteryByRule[rule.id].dimensions) : 0), 0) / totalRules)
+        ? Math.round(flat.reduce((sum, { rule }) => sum + (masteryByRule[rule.id] ? journeyPercent(masteryByRule[rule.id]) : 0), 0) / totalRules)
         : 0;
     let continueTarget = null;
     for (const { stageId, rule } of flat) {
@@ -350,9 +364,10 @@ async function renderBrowseHTML() {
 
         const tilesHTML = stage.rules.map(rule => {
             const mastery = masteryByRule[rule.id];
-            const pct = mastery ? ruleOverallPercent(mastery.dimensions) : 0;
-            const status = mastery ? mastery.status : 'available';
-            const statusIcon = { available: '', in_progress: '⏳', mastered: '✅', needs_review: '🔁' }[status] || '';
+            const pct = mastery ? journeyPercent(mastery) : 0;
+            // 🌟 أيقونة الخطوة الحالية من رحلة الحكم (جديد، تعلّم، اجتاز التطبيق، اجتاز الاختبار، متقن)
+            const stepIcon = { learn: '', practice: '📖', exam: '📝', awaiting_teacher: '🎤', mastered: '✅' }[journeyStep(ensureJourney(mastery))];
+            const statusIcon = (mastery && mastery.status === 'needs_review') ? '🔁' : stepIcon;
             const isDue = dueRuleIdsCache.includes(rule.id);
             return `
             <button class="tjw-rule-tile ${isDue ? 'tjw-rule-tile-due' : ''}" data-action="open-rule" data-stage="${stage.id}" data-rule="${rule.id}" style="--tjw-tile-color: var(${stage.colorVar});">
@@ -438,18 +453,40 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const mastery = AppState.currentStudent
         ? await AppState.tajweedManager.getMasteryRecord(AppState.currentStudent.id, ruleId)
         : null;
-    const pct = mastery ? ruleOverallPercent(mastery.dimensions) : 0;
-    const statusLabel = mastery && mastery.status === 'mastered' ? t('tjw_status_mastered')
-        : mastery && mastery.status === 'needs_review' ? t('tjw_status_needs_review')
-        : mastery && mastery.status === 'in_progress' ? t('tjw_status_in_progress')
-        : t('tjw_status_available');
-    // 🌟🌟 [جديد ٢٨ سبتمبر] تفرقة بصرية بين "أتقن معرفياً" و"متقَن فعلاً" (راجع §2 من مستند
-    // التعميق) — pct أعلاه أصبح متوسط الأبعاد الستة كلها (بما فيها pronounces)، فنحسب هنا
-    // متوسط الأبعاد المعرفية الخمسة فقط (بلا pronounces) لمعرفة هل الطالب جاهز للتسميع
-    const cognitiveDims = mastery ? ['knows', 'distinguishes', 'discovers', 'applies', 'recalls'].map(k => mastery.dimensions[k] || 0) : [];
-    const cognitivePct = cognitiveDims.length ? Math.round(cognitiveDims.reduce((a, b) => a + b, 0) / cognitiveDims.length) : 0;
-    const pronouncesPct = mastery ? (mastery.dimensions.pronounces || 0) : 0;
-    const awaitingCheckpoint = mastery && mastery.status !== 'mastered' && cognitivePct >= 80 && pronouncesPct < 80;
+    const journey = ensureJourney(mastery);
+    const step = journeyStep(journey);
+    const pct = journeyPercent(mastery);
+    const statusLabel = mastery && mastery.status === 'needs_review' ? t('tjw_status_needs_review')
+        : step === 'mastered' ? t('tjw_status_mastered')
+        : step === 'learn' ? t('tjw_status_available') : t('tjw_status_in_progress');
+
+    // 🌟 [رحلة الحكم] شريط الخطوات الأربع: شرح ← تطبيق ← اختبار ← المعلم، والخطوة الحالية بارزة
+    const stepIdx = { learn: 0, practice: 1, exam: 2, awaiting_teacher: 3, mastered: 4 }[step];
+    const stepDone = [!!journey.learnedAt, !!journey.practicePassedAt, !!journey.examPassedAt, !!journey.teacherApprovedAt];
+    const stepperHTML = `<ol class="tjw-stepper">${['learn', 'practice', 'exam', 'teacher'].map((k, i) =>
+        `<li class="${stepDone[i] ? 'is-done' : ''} ${i === stepIdx ? 'is-current' : ''}"><span class="tjw-step-dot">${stepDone[i] ? '✓' : i + 1}</span><span class="tjw-step-name">${t('tjw_step_' + k)}</span></li>`).join('')}</ol>`;
+    const lastExam = (journey.examAttempts || []).slice(-1)[0];
+    const lastExamHTML = lastExam ? `<p class="tjw-last-exam">${t('tjw_last_exam').replace('{n}', lastExam.score)}</p>` : '';
+    const dp = { stage: stageId, rule: ruleId };
+    const attrs = `data-stage="${dp.stage}" data-rule="${dp.rule}"`;
+    let ctaHTML;
+    if (step === 'learn') {
+        ctaHTML = `<button class="tjw-cta-btn" data-action="mark-learned" ${attrs}>✅ ${t('tjw_step_learn_cta')}</button>`;
+    } else if (step === 'practice') {
+        ctaHTML = `${!journey.practiceSinceFail ? `<p class="tjw-checkpoint-banner">${t('tjw_retake_hint')}</p>` : ''}
+            <button class="tjw-cta-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_step_practice_cta')}</button>`;
+    } else if (step === 'exam') {
+        ctaHTML = `<button class="tjw-cta-btn" data-action="start-exam" ${attrs}>📝 ${t('tjw_step_exam_cta')}</button>
+            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>
+            <p class="tjw-exam-info">${t('tjw_exam_info').replace('{n}', EXAM_SIZE).replace('{p}', EXAM_PASS_SCORE)}</p>`;
+    } else if (step === 'awaiting_teacher') {
+        ctaHTML = `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_teacher_note')}</p>
+            <button class="tjw-cta-btn" data-action="start-checkpoint" ${attrs}>🎤 ${t('tjw_start_checkpoint_btn')}</button>
+            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>`;
+    } else {
+        ctaHTML = `<p class="tjw-mastered-banner">✅ ${t('tjw_mastered_step_note')}</p>
+            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>`;
+    }
 
     // 🌟 [إعادة تصميم] حروف الحكم كرقائق منفصلة؛ وإن كان النص وصفاً (مثل «كل الحروف عدا…») يُعرض رقاقة نصية واحدة
     const letterTokens = rule.letters.split(/\s+/).filter(Boolean);
@@ -505,18 +542,15 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                 ${howtoGridHTML}
 
                 <section class="tjw-mastery-box">
+                    ${stepperHTML}
                     <div class="tjw-mastery-row">
                         <span>${statusLabel}</span>
                         <span>${pct}%</span>
                     </div>
                     <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${pct}%; background: var(${stage.colorVar});"></div></div>
-                    <h3 class="tjw-section-title">${t('tjw_dims_title')}</h3>
-                    <div class="tjw-dims">${dimsHTML}</div>
-                    ${awaitingCheckpoint ? `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_checkpoint_note')}</p>` : ''}
-                    <div class="tjw-lesson-actions">
-                        <button class="tjw-cta-btn" data-action="start-practice" data-stage="${stageId}" data-rule="${ruleId}">🎯 ${t('tjw_start_practice_btn')}</button>
-                        <button class="tjw-outline-btn" data-action="start-checkpoint" data-stage="${stageId}" data-rule="${ruleId}">🎤 ${t('tjw_start_checkpoint_btn')}</button>
-                    </div>
+                    ${lastExamHTML}
+                    <div class="tjw-lesson-actions">${ctaHTML}</div>
+                    <details class="tjw-dims-details"><summary>${t('tjw_dims_title')}</summary><div class="tjw-dims">${dimsHTML}</div></details>
                 </section>
             </div>
           </article>

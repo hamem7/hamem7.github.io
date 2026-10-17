@@ -44,8 +44,8 @@ test('أمثلة الكتالوج كلها تؤكدها مواضع الجدول 
     const problems = [];
     getAllRulesFlat().forEach(({ rule }) => {
         if (!index.has(rule.id)) return;                       // لام الفعل والمد الطبيعي غير موسومين
-        ['example', 'practiceExample'].forEach(f => {
-            const ex = rule[f]; const words = wordsOf(ex.surah, ex.ayah); const joined = words.join(' ');
+        [['example', rule.example], ['practiceExample', rule.practiceExample], ...(rule.extraExamples || []).map((e, i) => ['extra' + i, e])].forEach(([f, ex]) => {
+            const words = wordsOf(ex.surah, ex.ayah); const joined = words.join(' ');
             let ranges = findPhraseRanges(joined, ex.highlight); if (ex.firstOnly) ranges = ranges.slice(0, 1);
             let pos = 0; const hw = new Set();
             words.forEach((w, i) => { if (ranges.some(([x, y]) => pos < y && pos + w.length > x)) hw.add(i); pos += w.length + 1; });

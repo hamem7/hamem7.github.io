@@ -728,3 +728,28 @@ body.adult-theme:has(.tjw-wrap) {
     border: 1.5px solid rgba(31, 157, 85, 0.5);
     border-radius: 999px;
 }
+
+/* ---------- رحلة الحكم: شريط الخطوات الأربع والاختبار ---------- */
+.tjw-stepper { list-style: none; margin: 0 0 14px; padding: 0; display: flex; gap: 6px; }
+.tjw-stepper li { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; font-size: 0.82rem; font-weight: 700; color: var(--tjw-muted); }
+.tjw-stepper li:not(:last-child)::after { content: ""; position: absolute; top: 15px; inset-inline-start: calc(50% + 18px); width: calc(100% - 36px); height: 3px; border-radius: 3px; background: rgba(58, 44, 31, 0.15); }
+.tjw-stepper li.is-done:not(:last-child)::after { background: var(--tjw-good); }
+.tjw-step-dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: rgba(58, 44, 31, 0.1); color: var(--tjw-muted); border: 2px solid transparent; position: relative; z-index: 1; }
+.tjw-stepper li.is-done .tjw-step-dot { background: var(--tjw-good); color: #fff; }
+.tjw-stepper li.is-current .tjw-step-dot { background: var(--tjw-gold); color: #2a1a05; border-color: var(--tjw-gold-deep); box-shadow: 0 0 0 4px rgba(224, 176, 79, 0.3); }
+.tjw-stepper li.is-current { color: var(--tjw-primary); }
+.tjw-last-exam { margin: 8px 0 0; font-size: 0.9rem; font-weight: 700; color: var(--tjw-muted); }
+.tjw-exam-info { flex-basis: 100%; margin: 4px 0 0; font-size: 0.88rem; color: var(--tjw-muted); }
+.tjw-mastered-banner { flex-basis: 100%; margin: 0; padding: 9px 12px; border-radius: 12px; font-weight: 800; color: #167a42; background: rgba(31, 157, 85, 0.12); border: 1.5px solid rgba(31, 157, 85, 0.45); }
+.tjw-lesson-actions .tjw-checkpoint-banner { flex-basis: 100%; margin: 0; }
+.tjw-dims-details { margin-top: 12px; }
+.tjw-dims-details summary { cursor: pointer; font-weight: 800; color: var(--tjw-primary); }
+.tjw-answer-picked { background: #eef4fb !important; border-color: var(--tjw-gold-deep) !important; box-shadow: 0 0 0 4px rgba(224, 176, 79, 0.35) !important; }
+.tjw-result-note-warn { color: #8a4b00; background: rgba(224, 176, 79, 0.18); }
+.tjw-exam-review { text-align: start; margin: 14px 0 4px; }
+.tjw-exam-review h3 { margin: 0 0 8px; font-size: 1rem; }
+.tjw-exam-review ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.tjw-exam-review li { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; padding: 8px 12px; border-radius: 12px; background: rgba(58, 44, 31, 0.05); font-size: 0.92rem; }
+.tjw-exam-review-n { font-weight: 800; color: var(--tjw-primary); }
+.tjw-ok { color: #167a42; }
+.tjw-bad { color: var(--tjw-bad); }

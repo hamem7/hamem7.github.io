@@ -155,3 +155,69 @@ export function highlightWordsHTML(text, occurrences) {
         return html;
     }).join('');
 }
+
+// يفحص هل لحكم آخر موضع على الكلمة نفسها (من فهرس التوسيم)، لاستبعاده من مشتِّتات «ما حكم الكلمة المظلَّلة؟»
+export function makeConflictChecker(index) {
+    return (ruleId, source, covered) => {
+        if (!index || !source || !source.surah || !index.has(ruleId)) return false;
+        return index.occurrences(source.surah, source.ayah, ruleId).some(o => { for (let w = o.w1; w <= o.w2; w++) if (covered.has(w)) return true; return false; });
+    };
+}
+
+// مصادر أسئلة اختبار الحكم: آيات من حفظ الطالب أولاً، وتُكمَّل بأمثلة الكتالوج (مثال، تطبيق، إضافية) إن قلّت
+export async function buildExamSources(rule, student) {
+    const sources = [];
+    const mine = await pickStudentExamples(rule, student, 7);
+    mine.forEach(m => sources.push({ ayahInfo: m.ayahInfo, occurrences: m.occurrences, surah: m.surah, ayah: m.ayah }));
+    if (sources.length < 6) {
+        const refs = [rule.example, rule.practiceExample, ...(rule.extraExamples || [])];
+        for (const ex of refs) {
+            if (sources.some(x => x.surah === ex.surah && x.ayah === ex.ayah)) continue;
+            const info = await getAyahForExample(ex.surah, ex.ayah);
+            if (!info) continue;
+            sources.push({ ayahInfo: info, surah: ex.surah, ayah: ex.ayah, highlight: ex.highlight, firstOnly: ex.firstOnly, skipQuestion: ex.skipQuestion });
+        }
+    }
+    return sources;
+}
+
+// ============================================================
+// 🌟 [حذف بيانات النظام القديم — قرار المعلم 2026-10-17] النظام الجديد (رحلة الحكم) يحلّ محل القديم، والمعلم لم يبدأ
+// العمل مع أي طالب بعد، فتُحذف مرة واحدة على كل جهاز كل بيانات التجويد القديمة لأي طالب: سجلات الإتقان والجلسات
+// والأوسمة وجدول مراجعة الأحكام، وحقل tajweedProgress من سجل الطالب. لا يُمسّ الطلاب أنفسهم ولا حفظهم ولا واجباتهم.
+// تعمل عند أول فتح لركن التجويد (قبل أي عرض)، والعلامة في localStorage تمنع التكرار فلا تُحذف بيانات النظام الجديد.
+// ============================================================
+const LEGACY_RESET_KEY = 'dh_tajweed_journey_reset_v1';
+
+function clearStore(db, storeName) {
+    return new Promise((resolve, reject) => {
+        if (!db || !db.objectStoreNames.contains(storeName)) return resolve(0);
+        const tx = db.transaction(storeName, 'readwrite');
+        const req = tx.objectStore(storeName).clear();
+        tx.oncomplete = () => resolve(1);
+        tx.onerror = tx.onabort = () => reject(tx.error || req.error);
+    });
+}
+
+export async function resetLegacyTajweedDataOnce() {
+    try { if (localStorage.getItem(LEGACY_RESET_KEY)) return false; } catch (e) { /* التخزين غير متاح: نكمل ونحاول */ }
+    if (!AppState.tajweedManager) return false;
+    try {
+        const tdb = AppState.tajweedManager.db;
+        await clearStore(tdb, 'tajweed_rule_mastery');
+        await clearStore(tdb, 'tajweed_sessions');
+        await clearStore(tdb, 'tajweed_achievements');
+        if (AppState.reviewScheduleManager) await clearStore(AppState.reviewScheduleManager.db, 'tajweed_rule_review');
+        if (AppState.studentManager) {
+            const students = await AppState.studentManager.getAllStudents();
+            for (const st of students) {
+                if (st.tajweedProgress !== undefined) { delete st.tajweedProgress; await AppState.studentManager.updateStudent(st); }
+            }
+        }
+        try { localStorage.setItem(LEGACY_RESET_KEY, new Date().toISOString()); } catch (e) { /* لا شيء */ }
+        return true;
+    } catch (e) {
+        console.warn('تعذر حذف بيانات التجويد القديمة (ستُعاد المحاولة عند الفتح التالي):', e);
+        return false;
+    }
+}

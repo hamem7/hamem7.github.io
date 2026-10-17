@@ -302,7 +302,13 @@ export const TAJWEED_STAGES = [
                 makhrajNote: 'اللام الأصلية في الفعل تُنطق واضحة دائماً مهما جاء بعدها، حتى عند التقائها بحرف من حروف الإدغام كالنون في «قُلْ نَعَمْ» والتاء في «الْتَقَى».',
                 commonMistakes: 'أشيع خطأ: إدغام اللام فيما بعدها كأنها لام «ال» الشمسية.',
                 example: { surah: 112, ayah: 1, highlight: 'قُلۡ' },
-                practiceExample: { surah: 54, ayah: 12, highlight: 'فَٱلۡتَقَى' }
+                practiceExample: { surah: 54, ayah: 12, highlight: 'فَٱلۡتَقَى' },
+                // أمثلة إضافية لاختبار الحكم (آياتها قليلة فلا تكفي مثالان لـ5 أسئلة) — مفحوصة آلياً
+                extraExamples: [
+                    { surah: 114, ayah: 1, highlight: 'قُلۡ' },
+                    { surah: 113, ayah: 1, highlight: 'قُلۡ' },
+                    { surah: 109, ayah: 1, highlight: 'قُلۡ' }
+                ]
             }
         ]
     },
@@ -366,7 +372,13 @@ export const TAJWEED_STAGES = [
                 makhrajNote: 'يُمدّ الصوت بمقدار حركتين فقط (قدر قبض إصبعين أو بسطهما) ثم يُتوقّف.',
                 commonMistakes: 'أشيع خطأ: قصر المد أقل من حركتين، أو مدّه أكثر من اللازم فيشبه المدود الفرعية.',
                 example: { surah: 114, ayah: 2, highlight: 'ٱلنَّاسِ' },
-                practiceExample: { surah: 1, ayah: 4, highlight: 'مَٰلِكِ', skipQuestion: true }
+                practiceExample: { surah: 1, ayah: 4, highlight: 'مَٰلِكِ', skipQuestion: true },
+                // أمثلة إضافية لاختبار الحكم (آياتها قليلة فلا تكفي مثالان لـ5 أسئلة) — مفحوصة آلياً
+                extraExamples: [
+                    { surah: 110, ayah: 1, highlight: 'إِذَا', skipQuestion: true },
+                    { surah: 103, ayah: 2, highlight: 'ٱلۡإِنسَٰنَ', skipQuestion: true },
+                    { surah: 114, ayah: 3, highlight: 'إِلَٰهِ', skipQuestion: true }
+                ]
             },
             {
                 id: 'madd_wajib_muttasil',
@@ -482,7 +494,13 @@ export const TAJWEED_STAGES = [
                 makhrajNote: 'يُمدّ وسط اسم الحرف ست حركات ثم يُدغم آخره في الحرف الذي بعده فيصير مشدَّداً (اللام مع الميم في «الم»).',
                 commonMistakes: 'أشيع خطأ: تقصير المد، أو إظهار آخر الحرف بدل إدغامه.',
                 example: { surah: 2, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true },
-                practiceExample: { surah: 3, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true }
+                practiceExample: { surah: 3, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true },
+                // أمثلة إضافية لاختبار الحكم (آياتها قليلة فلا تكفي مثالان لـ5 أسئلة) — مفحوصة آلياً
+                extraExamples: [
+                    { surah: 29, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true },
+                    { surah: 30, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true },
+                    { surah: 31, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true }
+                ]
             },
             {
                 id: 'lazim_harfi_mukhaffaf',
@@ -494,7 +512,12 @@ export const TAJWEED_STAGES = [
                 makhrajNote: 'يُمدّ وسط اسم الحرف ست حركات ثم يُنطق آخره واضحاً بلا إدغام؛ وحروفه ثمانية يجمعها «كَمْ عَسَلْ نَقَصْ».',
                 commonMistakes: 'أشيع خطأ: تقصير المد، أو إدغام آخر الحرف فيما بعده.',
                 example: { surah: 68, ayah: 1, highlight: 'نٓ', firstOnly: true },
-                practiceExample: { surah: 50, ayah: 1, highlight: 'قٓ', firstOnly: true }
+                practiceExample: { surah: 50, ayah: 1, highlight: 'قٓ', firstOnly: true },
+                // أمثلة إضافية لاختبار الحكم (آياتها قليلة فلا تكفي مثالان لـ5 أسئلة) — مفحوصة آلياً
+                extraExamples: [
+                    { surah: 38, ayah: 1, highlight: 'صٓ', firstOnly: true },
+                    { surah: 42, ayah: 2, highlight: 'عٓسٓقٓ', skipQuestion: true }
+                ]
             }
         ]
     }
