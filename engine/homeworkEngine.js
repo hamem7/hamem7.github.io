@@ -119,11 +119,12 @@ function partialStem(text, part) {
 }
 
 // يستبدل كلمة واحدة من الكلمات بأقرب كلمة شكلاً من المخزون (خيار «شبه صحيح» لا يُكشف إلا بحفظ دقيق). null إن تعذّر
-function mutateWords(words, poolWords) {
-    const idxs = words.map((w, i) => i).filter(i => skeleton(words[i]).length >= 3).sort(() => 0.5 - Math.random());
+// usedIdx: مواضع سبق تبديلها في خيار آخر — لا يتكرر نفس الموضع حتى لا تظهر عدة خيارات تختلف في الكلمة نفسها فقط (إلى/إلا/على)
+function mutateWords(words, poolWords, usedIdx = new Set()) {
+    const idxs = words.map((w, i) => i).filter(i => skeleton(words[i]).length >= 3 && !usedIdx.has(i)).sort(() => 0.5 - Math.random());
     for (const i of idxs) {
         const subs = pickDistractorWords(words[i], poolWords.filter(w => !words.includes(w)), 1, 3);
-        if (subs.length) { const out = [...words]; out[i] = subs[0]; return out.join(' '); }
+        if (subs.length) { const out = [...words]; out[i] = subs[0]; usedIdx.add(i); return out.join(' '); }
     }
     return null;
 }
@@ -374,12 +375,19 @@ export class HomeworkEngine {
             const endings = [...new Set(poolWordLists.filter(w => w.length >= endingCount).map(w => w.slice(-endingCount).join(" ")))];
             const known = new Set([correctAnswer, ...endings]);
             const flatWords = poolWordLists.flat();
+            // [إصلاح 2026-10-17] خياران «مُعدَّلان» على الأكثر وبمواضع مختلفة، والتفرّد يُقاس على الهيكل بلا تشكيل
+            // فلا يظهر خياران متطابقان تقريباً (كان يتكرر تبديل الكلمة نفسها فتظهر ٣ خيارات متشابهة)
             const hardWrong = pickDistractorTexts(correctAnswer, endings, 2, [], 4);
-            for (let tries = 0; tries < 8 && hardWrong.length < 4; tries++) {
-                const mutated = mutateWords(words.slice(-endingCount), flatWords);
-                if (mutated && !known.has(mutated) && !hardWrong.includes(mutated)) hardWrong.push(mutated);
+            const seenSk = new Set([skeleton(correctAnswer), ...hardWrong.map(skeleton)]);
+            const usedIdx = new Set();
+            for (let tries = 0; tries < 8 && hardWrong.length < 4 && usedIdx.size < 2; tries++) {
+                const mutated = mutateWords(words.slice(-endingCount), flatWords, usedIdx);
+                if (mutated && !known.has(mutated) && !seenSk.has(skeleton(mutated))) { hardWrong.push(mutated); seenSk.add(skeleton(mutated)); }
             }
-            if (hardWrong.length < 4) hardWrong.push(...pickDistractorTexts(correctAnswer, endings, 4 - hardWrong.length, hardWrong, 6));
+            if (hardWrong.length < 4) {
+                const extra = pickDistractorTexts(correctAnswer, endings, 6, hardWrong, 8).filter(t => !seenSk.has(skeleton(t)));
+                for (const t of extra) { if (hardWrong.length >= 4) break; hardWrong.push(t); seenSk.add(skeleton(t)); }
+            }
             const uniqueWrong = [...new Set(hardWrong)].filter(w => w !== correctAnswer).slice(0, 4);
             if (uniqueWrong.length >= 3) {
                 return { type: 'mcq', title: "اختر الخاتمة الصحيحة والدقيقة لهذه الآية:", text: `﴿ ${textWithBlank} ﴾`,

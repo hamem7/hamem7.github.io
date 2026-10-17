@@ -40,6 +40,16 @@ export async function findAmbiguousNameMatches(sub) {
     return matches.length > 1 ? matches : [];
 }
 
+// [2026-10-17] هل نتيجة هذا التسليم المعتمد مكتوبة فعلاً في سجل الطالب على هذا الجهاز؟ (الاعتماد في الخادم قد ينجح
+// ويفشل/يُتخطى كتابة السجل، فيختفي التسليم من «يحتاج تصحيح» بينما السجل ناقص). يرجع { recorded, student }.
+export async function isResultRecorded(sub) {
+    if (!sub || sub.status !== 'approved') return { recorded: true, student: null };
+    let student = null;
+    try { student = await findLocalStudentForSubmission(sub); } catch (e) { /* يُعامل كغير مسجّل */ }
+    if (!student) return { recorded: false, student: null };
+    return { recorded: readStudentHistory(student.id).some(h => h.submissionId === sub.id), student };
+}
+
 export async function createLocalStudent(name) {
     // 🌟 [إصلاح تدقيق] بلا id يدوي: مخزن الطلاب autoIncrement فيُعطي رقماً مثل باقي الطلاب (كان 'std_...' النصي يعطّل أزرار شاشة "كل الطلاب")
     const student = { name: String(name).trim(), isHidden: false };

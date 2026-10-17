@@ -22,7 +22,7 @@ import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catCl
 // إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
 import { listClientErrors, getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
-import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, normalizeName } from '../core/homeworkRecords.js';
+import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, isResultRecorded, normalizeName } from '../core/homeworkRecords.js';
 // 🌟 بوابة الدخول بجوجل لنظام الواجبات (لو انتهت صلاحية الجلسة المحفوظة أثناء العمل)
 import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 2] دالة واحدة مشتركة لتحديد "هل هذا التسليم بحاجة تصحيح يدوي؟" بدل تكرار
@@ -918,7 +918,7 @@ async function loadSubmissionsInline(hwId) {
 
                 tableHtml += `
                     <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 15px; font-weight: bold; color: #1e293b; text-align: right;">
+                        <td style="padding: 15px; font-weight: bold; color: #1e293b; text-align: right;" id="sub-name-cell-${hwId}-${index}">
                             ${esc(sub.studentName)} ${badge}
                             <button class="btn btn-open-grading" data-idx="${index}" style="background: #8b5cf6; padding: 4px 12px; font-size: 0.95rem; margin-right: 10px;">🔍 ${t('مراجعة وتصحيح')}</button>
                         </td>
@@ -930,6 +930,7 @@ async function loadSubmissionsInline(hwId) {
             tableHtml += `</tbody></table>`;
             container.innerHTML = pendingBanner + tableHtml;
 
+            markUnrecordedApproved(currentSubmissionsList, i => document.getElementById(`sub-name-cell-${hwId}-${i}`)).catch(() => {});
             document.querySelectorAll('.btn-open-grading').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const idx = e.currentTarget.getAttribute('data-idx');
@@ -1225,6 +1226,50 @@ async function saveManualGrades(subIndex) {
 // الواجبات دفعة واحدة، عبر getAllSubmissionsFromCloud التي تجلب statuses:['approved'] فقط —
 // راجع core/homeworkApi.js) مع الدرجة النهائية لكل طالب، وزر لإعادة فتح شهادة تقديره من هنا
 // في أي وقت لاحق (بلا الحاجة لتصحيح جديد لإظهارها مرة أخرى).
+// [2026-10-17] تسجيل نتيجة تسليم «معتمد في الخادم» في سجل الطالب على هذا الجهاز بعد أن فات ذلك (أُغلقت النافذة، رُفض ربط
+// الطالب، تعذّرت الكتابة...). نفس خطوات saveManualGrades بلا إعادة اعتماد؛ recordApprovedResult يستبدل السطر ولا يكرر النقاط.
+async function recordApprovedSubmissionLater(sub) {
+    let student = null;
+    try {
+        student = await findLocalStudentForSubmission(sub);
+        if (!student) {
+            const dupes = await findAmbiguousNameMatches(sub);
+            if (dupes.length > 1) {
+                if (await hamConfirm(t('hw_ambiguous_student_confirm').replace('{name}', sub.studentName).replace('{n}', dupes.length))) student = dupes[0];
+            } else if (await hamConfirm(t('hw_create_student_confirm').replace('{name}', sub.studentName))) {
+                student = await createLocalStudent(sub.studentName);
+            }
+        }
+        if (!student) return false;
+        const w = await recordApprovedResult(student, sub, await resolveHomeworkScope(sub.hwId).catch(() => null));
+        if (!w.verified) throw new Error('read-back mismatch');
+        alert(t('hw_grade_record_saved').replace('{name}', student.name));
+        return true;
+    } catch (err) {
+        console.error("تعذر تسجيل النتيجة المعتمدة في سجل الطالب:", err);
+        alert(t('hw_grade_record_failed'));
+        return false;
+    }
+}
+
+// يضيف لكل صف معتمد غير مسجّل في سجل الطالب علامة ⚠️ وزر «تسجيل في السجل». rowsHost = عنصر يحوي أزرار .btn-record-later لاحقاً
+async function markUnrecordedApproved(subs, getHost, rerender) {
+    for (let i = 0; i < subs.length; i++) {
+        const sub = subs[i];
+        if (!sub || sub.status !== 'approved') continue;
+        const { recorded } = await isResultRecorded(sub);
+        if (recorded) continue;
+        const host = getHost(i);
+        if (!host || host.querySelector('.btn-record-later')) continue;
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'btn btn-record-later';
+        b.style.cssText = 'background:#f59e0b; padding:4px 12px; font-size:0.9rem; margin-right:8px; min-width:unset;';
+        b.textContent = '⚠️ ' + t('غير مسجّل في سجل الطالب — سجّل الآن');
+        b.addEventListener('click', async () => { b.disabled = true; if (await recordApprovedSubmissionLater(sub)) b.remove(); else b.disabled = false; });
+        host.appendChild(b);
+    }
+}
+
 async function openFinalResultsModal() {
     // 🌟🌟 [إعادة تصميم] كانت هذه الدالة تبني طبقة overlay مستقلة فوق الصفحة كاملة (document.body).
     // المعلم فضّل ظهور النتائج بنفس طريقة تبويبَي "إعداد واجب جديد" و"سجل الواجبات" تماماً —
@@ -1251,7 +1296,7 @@ async function openFinalResultsModal() {
                 const dateStr = sub.approvedAt ? new Date(sub.approvedAt).toLocaleDateString('ar-EG') : '';
                 return `
                     <tr style="border-bottom:1px solid #e2e8f0;">
-                        <td style="padding:12px; font-weight:bold; color:#1e293b; text-align:right;">${esc(sub.studentName)}</td>
+                        <td style="padding:12px; font-weight:bold; color:#1e293b; text-align:right;" id="final-name-cell-${idx}">${esc(sub.studentName)}</td>
                         <td style="padding:12px; color:#64748b; font-size:0.9rem;">${dateStr}</td>
                         <td style="padding:12px; font-weight:bold; font-size:1.2rem; color:${scoreColor};">${sub.finalScore}%</td>
                         <td style="padding:12px;"><button type="button" class="btn btn-view-final-cert" data-idx="${idx}" data-i18n="hw_final_results_view_cert_btn" style="padding:6px 14px; background:#8b5cf6; font-size:0.95rem; min-width:unset;">🏅 عرض الشهادة</button></td>
@@ -1259,6 +1304,7 @@ async function openFinalResultsModal() {
                 `;
             }).join('') + `</tbody></table>`;
 
+        markUnrecordedApproved(approved, i => document.getElementById(`final-name-cell-${i}`)).catch(() => {});
         body.querySelectorAll('.btn-view-final-cert').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const idx = parseInt(e.currentTarget.getAttribute('data-idx'), 10);

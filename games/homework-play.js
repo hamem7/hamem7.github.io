@@ -237,6 +237,7 @@ function renderQuestion() {
     } else if (q.type === 'matrix_order') {
         const savedArr = Array.isArray(savedAns) ? savedAns : [];
         const colsCount = q.options.length;
+        html += `<div id="hp-matrix-status-${q.id}" style="margin-bottom: 10px; padding: 10px 14px; border-radius: 10px; font-weight: bold; text-align: center;"></div>`;
         html += `<div style="overflow-x: auto; background: white; border-radius: 10px; border: 1px solid #cbd5e1; direction: rtl;">
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 1.2rem;">
                 <tr style="background: #f1f5f9; color: #334155;">
@@ -244,7 +245,7 @@ function renderQuestion() {
         for (let c = 1; c <= colsCount; c++) { html += `<th style="padding: 15px;">${c}</th>`; }
         html += `</tr>`;
         q.options.forEach((opt, rIdx) => {
-            html += `<tr><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: #047857; line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
+            html += `<tr id="hp-matrix-row-${q.id}-${rIdx}"><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: #047857; line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
             let selectedCol = savedArr.indexOf(opt) + 1;
             for (let c = 1; c <= colsCount; c++) {
                 const isChecked = (selectedCol === c) ? 'checked' : '';
@@ -295,15 +296,39 @@ function renderQuestion() {
                 container.querySelectorAll(`input[type="radio"][value="${val}"]`).forEach(r => {
                     if (r.name !== name) r.checked = false;
                 });
+                updateMatrixStatus(q, container);
             }
         });
     });
+
+    if (q.type === 'matrix_order') updateMatrixStatus(q, container);
 
     // 🌟 تفعيل تفاعل المطابقة (نقر-للربط) بعد حقن أعمدتها الفارغة في الـ HTML أعلاه 🌟
     if (q.type === 'matching') {
         const initialPairs = (answers[q.id] && typeof answers[q.id] === 'object') ? answers[q.id] : {};
         renderMatchingColumns(q, initialPairs);
     }
+}
+
+// [2026-10-17] سؤال الترتيب: يبيّن للطالب كم آية اختار لها ترتيباً (ويلوّن الصفوف المكتملة) ويحذّره من الصفوف الناقصة،
+// فيعرف أنه أتمّ كل المطلوب حتى لو كان الترتيب خاطئاً.
+function updateMatrixStatus(q, container) {
+    const total = q.options.length;
+    let done = 0;
+    q.options.forEach((opt, rIdx) => {
+        const answered = !!container.querySelector(`input[name="hp_q_${q.id}_r${rIdx}"]:checked`);
+        if (answered) done++;
+        const row = container.querySelector(`#hp-matrix-row-${q.id}-${rIdx}`);
+        if (row) row.style.background = answered ? '#ecfdf5' : '#fffbeb';
+    });
+    const el = container.querySelector(`#hp-matrix-status-${q.id}`);
+    if (!el) return;
+    const ok = done === total;
+    el.style.background = ok ? '#d1fae5' : '#fef3c7';
+    el.style.color = ok ? '#065f46' : '#92400e';
+    el.textContent = ok
+        ? `✅ ${t('أتممت ترتيب كل الآيات')} (${done}/${total})`
+        : `⚠️ ${t('رتّبت')} ${done} ${t('من')} ${total} — ${t('بقي')} ${total - done} ${t('آيات بلا ترتيب (الصفوف الملونة بالأصفر)')}`;
 }
 
 // 🌟🌟 [جديد] بناء وتفعيل عمودي المطابقة (بدايات/نهايات) بالكامل عبر الـ DOM مباشرة (لا نص HTML خام)

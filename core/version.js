@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.32';
+export const APP_VERSION = '1.0.33';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.33',
+        date: '2026-10-17',
+        items: [
+            { type: 'fixed', text: { ar: 'الواجب الصعب: لم تعد خيارات «الخاتمة الدقيقة» تتكرر بتبديل الكلمة نفسها (إلى/إلا/على) — خياران معدّلان كحدّ أقصى بمواضع مختلفة.', en: 'Hard homework: ending options no longer repeat by swapping the same word; at most two altered options at different positions.' } },
+            { type: 'improved', text: { ar: 'سؤال الترتيب: عدّاد وتلوين يبيّنان للطالب كم آية رتّبها وهل أتمّ الكل.', en: 'Ordering question: a counter and row highlights show the student how many ayahs are ordered.' } },
+            { type: 'fixed', text: { ar: 'التسليمات المعتمدة التي لم تُكتب في سجل الطالب تظهر بعلامة ⚠️ وزر «سجّل الآن».', en: 'Approved submissions missing from the student record now show a warning and a "record now" button.' } }
+        ]
+    },
     // 📅 [أُضيف 2026-10-16] إيقاف مزامنة الأجهزة
     {
         version: '1.0.32',
