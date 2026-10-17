@@ -138,7 +138,6 @@ await page.click('tr[data-action="entry-row"][data-id]:nth-of-type(1)'); await s
 check('الضغط على صف طالب يفتح رحلته في وضع الطالب مع تحديده', !!(await page.$('.tjw-e-cont')) && (await count('.tjw-st[aria-pressed="true"]')) === 1);
 
 // ١٠) «طالب آخر» من الخريطة: عودة بلا تحديد مسبق
-await page.click('.tjw-st[aria-pressed="true"]'); await sleep(100);
 await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-stage-section');
 await page.click('[data-action="change-student"]'); await page.waitForSelector('.tjw-entry'); await sleep(200);
 check('«طالب آخر» من الخريطة يعيد الشاشة بلا تحديد مسبق', (await count('.tjw-st[aria-pressed="true"]')) === 0 && !!(await page.$('.tjw-e-cont.is-hint')));
