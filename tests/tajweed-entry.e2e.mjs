@@ -25,6 +25,8 @@ const BOOT = async (pg) => { await pg.goto(WEB + '/index.html'); await pg.waitFo
   await pg.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
   await pg.evaluate(async () => { window.__APP = await import('/core/app.js'); window.__J = await import('/engine/tajweedJourney.js'); window.__C = await import('/engine/tajweedRulesCatalog.js'); }); };
 await BOOT(page);
+// أول فتح لركن التجويد على الجهاز يحذف بيانات التجويد القديمة مرة واحدة (قرار موثَّق)، فنفتحه قبل زرع البيانات حتى لا تُمسح
+await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await sleep(500);
 
 // بيانات تجريبية حقيقية: m = عدد الأحكام المتقنة في كل مرحلة (من القلقلة)، step = خطوة الحكم الحالي، days = أيام نشاطه (قبل كم يوم)، due = عدد أحكامه المستحقة
 const SEED = [
@@ -76,9 +78,9 @@ const firstSorted = await page.evaluate(() => document.querySelector('.tjw-st').
 check('الأحدث دخولاً أولاً (الطالب المحدَّد مسبقاً هو أول بطاقة)', firstSorted === pre.pressed[0], firstSorted);
 
 // ٣) البحث يصفّي ويحافظ على التركيز
-await page.fill('#tjw-student-search-input', 'مر'); await sleep(200);
+await page.fill('#tjw-student-search-input', 'مري'); await sleep(200);
 const srch = await page.evaluate(() => ({ names: [...document.querySelectorAll('.tjw-st')].map(b => b.dataset.name), focused: document.activeElement?.id, showAll: !!document.querySelector('[data-action="entry-all"]') }));
-check('البحث «مر» يظهر مريم فقط، يبقى التركيز في الحقل، ولا زر «عرض الكل»', srch.names.length === 1 && srch.names[0] === 'مريم' && srch.focused === 'tjw-student-search-input' && !srch.showAll, JSON.stringify(srch));
+check('البحث «مري» يظهر مريم فقط، يبقى التركيز في الحقل، ولا زر «عرض الكل»', srch.names.length === 1 && srch.names[0] === 'مريم' && srch.focused === 'tjw-student-search-input' && !srch.showAll, JSON.stringify(srch));
 await page.fill('#tjw-student-search-input', 'ؤؤؤ'); await sleep(150);
 check('بحث بلا نتيجة: رسالة واضحة', /لا يوجد طالب/.test(await txt('.tjw-e-students')));
 await page.fill('#tjw-student-search-input', ''); await sleep(150);

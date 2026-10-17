@@ -27,15 +27,15 @@ await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 await page.evaluate(async () => { const m = await import('/core/app.js'); window.__APP = m;
   window.__CAT = await import('/engine/tajweedRulesCatalog.js'); window.__G = await import('/engine/tajweedLetterGames.js'); window.__P = await import('/engine/tajweedLetterPairs.js'); window.__J = await import('/engine/tajweedJourney.js');
   await m.AppState.studentManager.addStudent({ name: 'أحمد', type: 'adult', memoFrom: m.AppState.surahsData.find(x => x.number === 114).name, memoTo: m.AppState.surahsData.find(x => x.number === 105).name }); });
-await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('#tjw-student-search-input');
-await page.fill('#tjw-student-search-input', 'أحمد'); await page.click('[data-action="pick-student-submit"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
+await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry');
+await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
 // نُتقن كل المراحل السابقة للمد الطبيعي (تقريباً كلها) مباشرة في قاعدة البيانات حتى تُفتح المراحل التي نختبرها
 await page.evaluate(async () => { const m = window.__APP, J = window.__J, st = m.AppState.currentStudent;
   for (const { stageId, rule } of window.__CAT.getAllRulesFlat()) {
     let rec = await m.AppState.tajweedManager.getOrCreateMasteryRecord(st.id, stageId, rule.id);
     rec = J.applyLearned(rec); rec = J.applyPracticeResult(rec, 95); rec = J.applyExamResult(rec, 100).record; rec = J.applyTeacherResult(rec, 100).record; rec.status = J.statusFromJourney(rec, rec.status);
     await m.AppState.tajweedManager.saveMastery(rec); } });
-const toMap = async () => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('#tjw-student-search-input'); await page.fill('#tjw-student-search-input', 'أحمد'); await page.click('[data-action="pick-student-submit"]'); await page.waitForSelector('.tjw-rule-tile'); };
+const toMap = async () => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile'); };
 const openRule = async (rid) => { await page.click(`[data-rule="${rid}"].tjw-rule-tile`); await page.waitForSelector('.tjw-stepper'); };
 
 // يحلّ سؤالاً واحداً حلاً صحيحاً اعتماداً على الكتالوج (نقرأ نوع السؤال من شكل الواجهة)

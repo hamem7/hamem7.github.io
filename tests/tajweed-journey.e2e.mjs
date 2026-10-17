@@ -32,16 +32,16 @@ const legacy = await page.evaluate(async () => { const m = window.__APP; const s
   st.tajweedProgress = { currentStageId: 'qalqalah', stageProgress: {} }; await m.AppState.studentManager.updateStudent(st);
   return { mastery: (await m.AppState.tajweedManager.getAllMastery()).length }; });
 check('بذرة بيانات قديمة لطالب موجودة قبل الفتح', legacy.mastery === 1);
-await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('#tjw-student-search-input');
+await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry');
 const after = await page.evaluate(async () => { const m = window.__APP; const st = (await m.AppState.studentManager.getAllStudents())[0];
   return { mastery: (await m.AppState.tajweedManager.getAllMastery()).length, sessions: (await m.AppState.tajweedManager.getAllSessions()).length,
     ach: (await m.AppState.tajweedManager.getAchievementsByStudent(st.id)).length, review: (await m.AppState.reviewScheduleManager.getAllRuleSchedules()).length,
     progress: st.tajweedProgress, studentStillThere: !!st && st.name === 'أحمد' }; });
 check('أول فتح لركن التجويد يحذف كل بيانات التجويد القديمة (إتقان، جلسات، أوسمة، مراجعة، تقدّم الطالب) ويُبقي الطالب', after.mastery === 0 && after.sessions === 0 && after.ach === 0 && after.review === 0 && after.progress === undefined && after.studentStillThere, JSON.stringify(after));
-await page.fill('#tjw-student-search-input', 'أحمد'); await page.click('[data-action="pick-student-submit"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
+await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
 const stepText = async () => page.evaluate(() => [...document.querySelectorAll('.tjw-stepper li')].map(li => (li.classList.contains('is-current') ? 'C' : li.classList.contains('is-done') ? 'D' : '-')).join(''));
 const openRule = async (rid) => { await page.click(`[data-rule="${rid}"].tjw-rule-tile`); await page.waitForSelector('.tjw-stepper'); };
-const backToRule = async (rid) => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('#tjw-student-search-input'); await page.fill('#tjw-student-search-input', 'أحمد'); await page.click('[data-action="pick-student-submit"]'); await page.waitForSelector('.tjw-rule-tile'); await openRule(rid); };
+const backToRule = async (rid) => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile'); await openRule(rid); };
 // يجيب أسئلة النشاط الحالي بأول خيار؛ في الاختبار تتقدّم الأسئلة آلياً، وفي التطبيق بزر «التالي»
 async function answerAll(mode) {
   for (let i = 0; i < 12; i++) {
@@ -117,8 +117,8 @@ check('إتقان حكم القلقلة الوحيد يُكمل مرحلته و�
 await shot('8-map-unlocked');
 // ٧) مسار النجاح الحقيقي عبر الواجهة: نثبّت العشوائية (Math.random ≈ 1) فيبقى الخيار الصحيح أول خيار دائماً
 await page.evaluate(() => { Math.random = () => 0.9999; });
-await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('#tjw-student-search-input');
-await page.fill('#tjw-student-search-input', 'أحمد'); await page.click('[data-action="pick-student-submit"]'); await page.waitForSelector('.tjw-rule-tile');
+await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry');
+await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile');
 await openRule('ghunna_wajiba');
 await page.click('[data-action="mark-learned"]'); await page.waitForSelector('.tjw-activity-card');
 await answerAll('practice'); await page.waitForSelector('.tjw-result-card');
