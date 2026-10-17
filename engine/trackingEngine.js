@@ -103,9 +103,9 @@ export function resolveRange(surahsData, student, records) {
     if (!fromS || !toS) return { ok: false, reason: 'no_range' };
 
     const backward = fromS.number >= toS.number;
-    if (!backward) {
-        return { ok: true, direction: 'forward', fromSurah: fromS.number, toSurah: toS.number, frontierAyah: toS.ayahsCount, source: 'student' };
-    }
+    // 🌟 [2026-10-17] نظام المنصة: كل حفظ يبدأ من الناس صعوداً (الناس ← النبأ ← الملك ← المجادلة ...) أي «من» رقمها أكبر أو تساوي «إلى».
+    // نطاق معكوس (مثل الفاتحة ← المجادلة، قيمة قديمة افتراضية) كان يُفسَّر تصاعدياً فيشمل البقرة والكهف؛ نرفضه بدل تخمينه.
+    if (!backward) return { ok: false, reason: 'bad_direction', fromSurah: fromS.number, toSurah: toS.number };
     let frontier = { surah: toS.number, ayah: toS.ayahsCount };
     let source = 'student';
     // 🌟 [إصلاح — 2026-10-17] نهاية النطاق المعلَن (memoTo) سقف لا يتجاوزه السجل الشهري: السجل قد يحمل موضعاً

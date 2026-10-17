@@ -447,6 +447,13 @@ function setupMyStudentsListeners() {
 
 }
 
+// الحفظ يبدأ من الناس صعوداً: رقم سورة «من» يجب ألا يقل عن رقم سورة «إلى»
+function memoDirectionOk(fromName, toName) {
+    const n = (name) => { const x = AppState.surahsData.find(s => s.name === name); return x ? x.number : null; };
+    const a = n(fromName), b = n(toName);
+    return a != null && b != null && a >= b;
+}
+
 async function saveNewStudentAction(addAnother) {
     const data = {
         name: document.getElementById('stu-name').value.trim(),
@@ -468,6 +475,7 @@ async function saveNewStudentAction(addAnother) {
     if (!data.name) return alert(t("stu_name_required"));
     // 🌟 [إلزامي — 2026-10-17] نطاق الحفظ يحدد آيات الواجب والأسئلة، فلا يُسجَّل طالب بدونه
     if (!data.memoFrom || !data.memoTo) { setAddStep(3); return alert(t("stu_memo_required_alert")); }
+    if (!memoDirectionOk(data.memoFrom, data.memoTo)) { setAddStep(3); return alert(t("stu_memo_direction_alert")); }
     // 🌟 [إصلاح تدقيق] منع تسجيل طالبين بنفس الاسم: تسجيل الدخول وربط الواجبات يعتمدان على الاسم فيختلط الطلاب.
     // ⚠️ [افتراض صريح]: المقارنة على الاسم بعد إزالة التشكيل والمسافات الزائدة وبلا حساسية لحالة الأحرف.
     {
@@ -1574,6 +1582,7 @@ async function saveEditedStudentAction() {
     s.memoFrom = document.getElementById('edit-stu-memo-from').value;
     s.memoTo = document.getElementById('edit-stu-memo-to').value;
     if (!s.memoFrom || !s.memoTo) return alert(t("stu_memo_required_alert"));
+    if (!memoDirectionOk(s.memoFrom, s.memoTo)) return alert(t("stu_memo_direction_alert"));
     // 🌟 [إصلاح فحص الأزرار] تطبيق اختيار الجنس على الصورة الرمزية (رمز تعبيري فقط، لا الصور المرفوعة) 🌟
     const _g = document.getElementById('edit-stu-gender')?.value;
     if (_g && (!s.avatar || s.avatar.length < 10)) {

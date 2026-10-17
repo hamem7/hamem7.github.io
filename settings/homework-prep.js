@@ -1600,7 +1600,10 @@ async function refreshSmartInfo() {
     const btn = (id, label, extra = '') => `<button type="button" id="${id}" class="btn" style="padding:7px 14px; font-size:0.95rem; min-width:unset; margin-top:8px; margin-inline-end:6px; ${extra}">${label}</button>`;
     let html = '';
 
-    if (!ctx.range.ok) {
+    if (!ctx.range.ok && ctx.range.reason === 'bad_direction') {
+        html += card('#fef2f2', '#fecaca', `⚠️ <b>${esc(L(`نطاق ${student.name} باتجاه خاطئ (${student.memoFrom} ← ${student.memoTo}).`, `${student.name}'s range has the wrong direction (${student.memoFrom} → ${student.memoTo}).`))}</b><br>
+            ${esc(L('الحفظ يبدأ من الناس صعوداً (الناس ← النبأ ← الملك ← المجادلة ...). صحّح «حفظ من» و«حفظ إلى» في ملفه، مثل: من الناس إلى المجادلة.', 'Memorization starts from An-Nas upward. Fix "Memorized from/to" in their file, e.g. from An-Nas to Al-Mujadila.'))}`);
+    } else if (!ctx.range.ok) {
         html += card('#fef2f2', '#fecaca', `⚠️ <b>${esc(L(`لا يوجد نطاق حفظ مسجَّل لـ ${student.name}.`, `No memorization range is recorded for ${student.name}.`))}</b><br>
             ${esc(L('لا يُنشأ الواجب قبل تحديد نطاق حفظه (من سورة … إلى سورة …) في ملفه، أو تسجيل موضعه الشهري.', 'Homework cannot be created before a range is set in their file or a monthly position is recorded.'))}<br>
             ${btn('hw-btn-update-pos', '📅 ' + esc(L('تسجيل موضع حفظه الآن', 'Record their position now')), 'background:#d97706;')}`);

@@ -101,10 +101,10 @@ await test('resolveRange: سجل شهري داخل سورة memoTo نفسها ي
   const r = resolveRange(surahsData, { memoFrom: 'الناس', memoTo: 'النازعات' }, rec);
   assert.deepEqual([r.toSurah, r.frontierAyah, r.source], [79, 20, 'monthly']);
 });
-await test('resolveRange: مسار عكسي (من الأصغر للأكبر) يعتمد ملف الطالب', () => {
+await test('resolveRange: نطاق معكوس (من رقمها أصغر) مرفوض — الحفظ يبدأ من الناس صعوداً', () => {
   const r = resolveRange(surahsData, { memoFrom: 'النبأ', memoTo: 'النازعات' }, []);
-  assert.equal(r.direction, 'forward');
-  assert.ok(r.ok);
+  assert.equal(r.ok, false);
+  assert.equal(r.reason, 'bad_direction');
 });
 
 // ============ التصنيف والتقادم ============
