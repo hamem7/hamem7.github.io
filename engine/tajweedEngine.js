@@ -47,7 +47,14 @@ export const ACTIVITY_DIMENSION_MAP = {
     // مباشر عبر شاشة teacher-checkpoint)، وليس أي لعبة تلقائية. راجع §2 من مستند التعميق
     // للسبب المعماري: بلا هذا البُعد كان ممكن يظهر حكم "متقن" اعتماداً على MCQ فقط بلا أي
     // تسميع فعلي من المعلم — تناقض مباشر مع طبيعة التجويد كمهارة نطقية أولاً وأخيراً
-    teacher_checkpoint: 'pronounces'
+    teacher_checkpoint: 'pronounces',
+    // 🌟 [جديد] أنواع ألعاب الحروف والأزواج المستوحاة من كتاب «فتوحات الرحمن» (engine/tajweedLetterGames.js) — إضافة
+    // مستقلة لا تدخل في جلسة التطبيق ولا الاختبار: معرفة حروف الحكم تقيس «يعرف»، وتصنيف الحرف/الزوج بين أحكام المرحلة يقيس «يميّز»
+    letter_collect: 'knows',
+    odd_letter: 'knows',
+    classify_letter: 'distinguishes',
+    classify_pair: 'distinguishes',
+    pair_link: 'distinguishes'
 };
 
 const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'];

@@ -753,3 +753,80 @@ body.adult-theme:has(.tjw-wrap) {
 .tjw-exam-review-n { font-weight: 800; color: var(--tjw-primary); }
 .tjw-ok { color: #167a42; }
 .tjw-bad { color: var(--tjw-bad); }
+
+/* ---------- [جديد] شجرة الحكم + بطاقات الحروف القابلة للقلب + أنشطة الحروف والأزواج ----------
+   مستوحاة من صفحات كتاب «فتوحات الرحمن» (بطاقات حروف ملوّنة، شجرة تلخيص، دوائر الحروف). نصوصها قرآنية من المنصة. */
+:root {
+    --tjw-tree-c0: #d9701f; --tjw-tree-c1: #2b7fc4; --tjw-tree-c2: #c99a12;
+    --tjw-tree-c3: #2f9a4a; --tjw-tree-c4: #c0479b; --tjw-tree-c5: #6b4fc4;
+}
+.tjw-tree { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.tjw-tree-root {
+    background: var(--tjw-tree-root, var(--tjw-primary)); color: #fff; font-weight: 800;
+    padding: 8px 24px; border-radius: 999px; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.22); text-align: center;
+}
+.tjw-tree-branches { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; width: 100%; }
+.tjw-tree-node {
+    flex: 1 1 150px; max-width: 320px; background: #fff; border: 3px solid var(--tjw-tree-c);
+    border-radius: 16px; padding: 8px 10px 10px; text-align: center; box-sizing: border-box;
+}
+.tjw-tree-node.is-active { box-shadow: 0 0 0 4px rgba(224, 176, 79, 0.65); }
+.tjw-tree-node-name { font-weight: 800; color: var(--tjw-tree-c); margin-bottom: 6px; line-height: 1.5; }
+.tjw-tree-leaves { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.tjw-tree-leaf {
+    min-width: 34px; height: 34px; padding: 0 6px; display: grid; place-items: center; border-radius: 10px;
+    background: color-mix(in srgb, var(--tjw-tree-c) 14%, #fff); color: var(--tjw-tree-c);
+    font-family: 'Amiri Quran', serif; font-weight: 700; font-size: 1.3rem; line-height: 1;
+}
+.tjw-tree-leaf.is-pair { display: inline-flex; align-items: center; justify-content: center; }
+.tjw-tree-leaf i { font-style: normal; opacity: 0.6; margin: 0 3px; font-size: 0.9em; }
+.tjw-tree-leaves.is-dense .tjw-tree-leaf { min-width: 28px; height: 28px; font-size: 1.05rem; }
+.tjw-tree-text { font-size: 0.9rem; color: var(--tjw-muted); line-height: 1.6; }
+.tjw-tree-group {
+    flex: 2 1 320px; border: 3px dashed var(--tjw-line); border-radius: 18px; padding: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px; box-sizing: border-box;
+}
+.tjw-tree-group-name { font-weight: 800; color: var(--tjw-primary); }
+.tjw-tree-group-children { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; justify-content: center; }
+
+.tjw-flip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.tjw-flip { perspective: 700px; height: 150px; border: 0; background: none; padding: 0; cursor: pointer; font-family: inherit; }
+.tjw-flip-inner { position: relative; display: block; width: 100%; height: 100%; transition: transform 0.5s; transform-style: preserve-3d; }
+.tjw-flip.is-flipped .tjw-flip-inner { transform: rotateY(180deg); }
+.tjw-flip-face {
+    position: absolute; inset: 0; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 8px; text-align: center; box-sizing: border-box;
+}
+.tjw-flip-front { justify-content: flex-start; padding-top: 6px; background: var(--tjw-fc); color: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2); }
+.tjw-flip-front b { font-family: 'Amiri Quran', serif; font-size: 3.2rem; line-height: 1.7; }
+.tjw-flip.is-pair .tjw-flip-front b { font-size: 2.3rem; }
+.tjw-flip-front i { font-style: normal; opacity: 0.75; font-size: 1.2rem; margin: 0 4px; }
+.tjw-flip-front small { position: absolute; bottom: 8px; opacity: 0.9; font-size: 0.78rem; }
+.tjw-flip-back { transform: rotateY(180deg); background: #fff; border: 3px solid var(--tjw-fc); color: var(--tjw-text); gap: 4px; }
+.tjw-flip-word { font-family: 'Amiri Quran', serif; font-size: 1.35rem; line-height: 1.7; }
+.tjw-flip-mark { background: none; color: var(--tjw-fc, var(--tjw-accent)); font-weight: 700; }
+.tjw-flip-back small { color: var(--tjw-muted); font-size: 0.78rem; }
+.tjw-flip-badge { font-weight: 800; border-radius: 999px; padding: 0 10px; }
+.tjw-flip-badge.is-idgham { background: rgba(31, 157, 85, 0.14); color: var(--tjw-good); }
+.tjw-flip-badge.is-izhar { background: rgba(192, 57, 43, 0.14); color: var(--tjw-bad); }
+
+.tjw-big-letter { font-family: 'Amiri Quran', serif; font-size: 4.4rem; line-height: 1.4; letter-spacing: 0; }
+.tjw-pair-plus { opacity: 0.5; font-size: 2rem; }
+.tjw-answer-grid.tjw-letter-grid { grid-template-columns: repeat(4, 1fr); }
+.tjw-letter-opt { font-family: 'Amiri Quran', serif; font-size: 2.2rem; padding: 8px; }
+.tjw-collect-count { text-align: center; font-weight: 800; color: var(--tjw-muted); margin-bottom: 10px; direction: ltr; }
+.tjw-letter-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (min-width: 520px) { .tjw-letter-board { grid-template-columns: repeat(6, 1fr); } }
+.tjw-letter-tile {
+    aspect-ratio: 1; cursor: pointer; font-family: 'Amiri Quran', serif; font-weight: 700; font-size: 2.2rem; color: var(--tjw-primary);
+    background: #fff; border: 2.5px solid var(--tjw-primary-light); border-radius: 16px; box-shadow: 0 4px 0 rgba(45, 90, 140, 0.35); padding: 0;
+    transition: transform 0.12s ease;
+}
+.tjw-letter-tile:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.tjw-letter-tile.is-right { background: var(--tjw-good); border-color: #167a42; color: #fff; box-shadow: 0 4px 0 #0f5a2f; }
+.tjw-letter-tile.is-wrong { background: var(--tjw-bad); border-color: #96281b; color: #fff; box-shadow: 0 4px 0 #6f1d13; }
+.tjw-letter-tile:disabled { cursor: default; }
+.tjw-link-example { font-family: 'Amiri Quran', serif; font-size: 1.25rem; line-height: 1.7; }
+.tjw-link-example .tjw-flip-mark { color: var(--tjw-accent); }
+
+@media (prefers-reduced-motion: reduce) { .tjw-flip-inner, .tjw-letter-tile { transition: none; } }

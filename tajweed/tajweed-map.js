@@ -14,6 +14,8 @@ import {
     ensureJourney, journeyStep, journeyPercent, applyLearned, statusFromJourney,
     EXAM_PASS_SCORE, EXAM_SIZE
 } from '../engine/tajweedJourney.js';
+import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
+import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
 import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
 // الدخول الأساسية (شاشة التقييم) بعد اختيار اسم الطالب مباشرة، راجع student/student.js
@@ -102,6 +104,13 @@ async function handleContainerClick(e) {
         return;
     }
 
+    // 🌟 [جديد] بطاقة حرف/زوج تنقلب عند الضغط (وجه الحرف ← كلمة قرآنية من المنصة)
+    const flipBtn = e.target.closest('[data-tjw-flip]');
+    if (flipBtn) {
+        flipBtn.classList.toggle('is-flipped');
+        return;
+    }
+
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
@@ -156,6 +165,10 @@ async function handleContainerClick(e) {
         startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
     } else if (action === 'start-link') {
         startActivity('link', { stageId: btn.dataset.stage, ruleId: null });
+    } else if (action === 'start-letters') {
+        startActivity('letters', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
+    } else if (action === 'start-tree') {
+        startActivity('tree', { stageId: btn.dataset.stage, ruleId: null });
     } else if (action === 'start-challenge') {
         startActivity('challenge', { stageId: btn.dataset.stage, ruleId: null });
     } else if (action === 'start-checkpoint') {
@@ -386,6 +399,11 @@ async function renderBrowseHTML() {
             ? `<button class="tjw-outline-btn" data-action="start-link" data-stage="${stage.id}">🔗 ${t('tjw_link_activity_btn')}</button>`
             : '';
 
+        // 🌟 [جديد] «شجرة الحكم»: تصنيف حروف المرحلة (أو أزواجها) بين أحكامها، لكل مرحلة قائمة على حروف أو أزواج
+        const treeBtnHTML = hasStageTreeActivity(stage.id)
+            ? `<button class="tjw-outline-btn" data-action="start-tree" data-stage="${stage.id}">🌳 ${t('tjw_tree_activity_btn')}</button>`
+            : '';
+
         const done = progress.status === 'completed';
         const isActive = !done && !activeMarked;
         if (isActive) activeMarked = true;
@@ -403,6 +421,7 @@ async function renderBrowseHTML() {
                     <div class="tjw-rule-tiles">${tilesHTML}</div>
                     <div class="tjw-stage-actions">
                         ${linkBtnHTML}
+                        ${treeBtnHTML}
                         <button class="tjw-outline-btn" data-action="start-challenge" data-stage="${stage.id}" ${canChallenge ? '' : 'disabled'}>🏆 ${t('tjw_challenge_btn')}</button>
                     </div>
                 </div>
@@ -502,6 +521,15 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
         ? `<div class="tjw-caution"><h3 class="tjw-section-title">${t('tjw_caution_title')}</h3><p>${t(rule.commonMistakes)}</p></div>` : '';
     const howtoGridHTML = (howtoHTML || cautionHTML) ? `<div class="tjw-howto-grid">${howtoHTML}${cautionHTML}</div>` : '';
 
+    // 🌟 [جديد] بطاقات الحروف القابلة للقلب (كلمات قرآنية من المنصة) + شجرة الحكم على غرار كتاب «فتوحات الرحمن»
+    const cardsInnerHTML = await renderLetterCardsHTML(rule);
+    const cardsHTML = cardsInnerHTML
+        ? `<section><h3 class="tjw-section-title">${t('tjw_letter_cards_title')}</h3>${cardsInnerHTML}</section>` : '';
+    // 🌟 «ألعاب الحروف»: لعبة إضافية مستقلة لكل حكم قائم على حروف أو أزواج، متاحة في كل خطوات الرحلة
+    const lettersGameHTML = isLetterGameRule(rule)
+        ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="start-letters" ${attrs}>🎮 ${t('tjw_letters_play_btn')}</button></div>` : '';
+    const treeHTML = `<section><h3 class="tjw-section-title">${t('tjw_tree_title')}</h3>${renderStageTreeHTML(stageId, ruleId)}</section>`;
+
     const dimsHTML = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'].map(k => {
         const v = mastery ? (mastery.dimensions[k] || 0) : 0;
         return `<div class="tjw-dim"><span>${t('tjw_dim_' + k)}</span><span class="tjw-dim-track"><span class="tjw-dim-fill" style="width:${v}%;"></span></span><span class="tjw-dim-val">${v}%</span></div>`;
@@ -525,6 +553,8 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     <div class="tjw-letter-chips">${lettersHTML}</div>
                 </section>
 
+                ${cardsHTML}
+
                 <section class="tjw-example-box">
                     ${mine ? `<div class="tjw-hifz-tag">📖 ${t('tjw_from_hifz')}</div>` : ''}
                     <div class="tjw-example-text">${ayahHTML}</div>
@@ -539,6 +569,8 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     <div class="tjw-notice-answer">${t(rule.defKey)}</div>
                 </section>
 
+                ${treeHTML}
+
                 ${howtoGridHTML}
 
                 <section class="tjw-mastery-box">
@@ -550,6 +582,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${pct}%; background: var(${stage.colorVar});"></div></div>
                     ${lastExamHTML}
                     <div class="tjw-lesson-actions">${ctaHTML}</div>
+                    ${lettersGameHTML}
                     <details class="tjw-dims-details"><summary>${t('tjw_dims_title')}</summary><div class="tjw-dims">${dimsHTML}</div></details>
                 </section>
             </div>

@@ -26,6 +26,9 @@ import {
     statusFromJourney, journeyStep, EXAM_PASS_SCORE, EXAM_MIN_SIZE, TEACHER_PASS_SCORE, PRACTICE_PASS_SCORE
 } from '../engine/tajweedJourney.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
+// 🌟 [جديد] تدريبات الحروف والأزواج المستوحاة من كتاب «فتوحات الرحمن» (اجمع الحروف، الدخيل، صنّف، اربط، صِل المثال)
+import { buildRuleLetterGameQuestions, buildStageTreeQuestions } from '../engine/tajweedLetterGames.js';
+import { buildExamplesLinkQuestion } from './tajweed-letters-ui.js';
 
 let params = null;
 let questions = [];
@@ -45,6 +48,11 @@ let checkpointRatings = {};
 let checkpointNote = '';
 let checkpointOutcome = null; // {score, approved} بعد إرسال «سمّع لي»
 let examReview = [];           // تفاصيل أسئلة الاختبار لشاشة المراجعة بعد النتيجة
+// 🌟 حالة لوح «اجمع حروف الحكم» (سؤال متعدد النقرات): تُصفَّر عند ظهور السؤال لأول مرة فقط
+let collectIndex = -1;
+let collectFound = new Set();   // فهارس اللوحات الصحيحة المضغوطة
+let collectWrong = new Set();   // فهارس اللوحات الخاطئة المضغوطة
+let collectErrors = 0;
 
 export async function initTajweedActivity() {
     params = AppState.tajweedActivityParams;
@@ -52,6 +60,8 @@ export async function initTajweedActivity() {
 
     const titleEl = document.getElementById('tjwa-title');
     if (titleEl && params && params.mode === 'exam') titleEl.textContent = t('tjw_exam_title');
+    if (titleEl && params && params.mode === 'tree') titleEl.textContent = t('tjw_tree_activity_title');
+    if (titleEl && params && params.mode === 'letters') titleEl.textContent = t('tjw_letters_activity_title');
     const exitBtn = document.getElementById('tjwa-btn-exit');
     if (exitBtn) exitBtn.addEventListener('click', () => openTajweedSection());
 
@@ -85,6 +95,7 @@ async function buildQuestions() {
     questions = [];
     linkMatchedRuleIds = new Set();
     linkWrongAttempts = 0;
+    collectIndex = -1; // 🌟 يُعاد تصفير لوح «اجمع الحروف» مع كل بناء جديد للأسئلة (إعادة المحاولة)
 
     if (params.mode === 'practice') {
         const rule = getTajweedRule(params.stageId, params.ruleId);
@@ -109,7 +120,15 @@ async function buildQuestions() {
         questions = [generateChooseRuleQuestion(rule), identifyQ, discoverQ, applyQ].filter(Boolean);
     } else if (params.mode === 'link') {
         const q = generateLinkQuestion(params.stageId);
-        questions = q ? [q] : [];
+        const examplesQ = await buildExamplesLinkQuestion(params.stageId); // «صِل المثال بحكمه» بنص من المنصة
+        questions = [q, examplesQ].filter(Boolean);
+    } else if (params.mode === 'letters') {
+        // 🌟 [جديد] «ألعاب الحروف» لحكم واحد: لعبة إضافية مستقلة عن رحلة الحكم (لا تغيّر خطوات الشرح/التطبيق/الاختبار)
+        const rule = getTajweedRule(params.stageId, params.ruleId);
+        questions = rule ? buildRuleLetterGameQuestions(rule) : [];
+    } else if (params.mode === 'tree') {
+        // 🌟 [جديد] «شجرة الحكم»: تصنيف حروف (أو أزواج) المرحلة بين أحكامها
+        questions = buildStageTreeQuestions(params.stageId);
     } else if (params.mode === 'challenge') {
         const stage = getTajweedStage(params.stageId);
         if (!stage) return;
@@ -206,6 +225,12 @@ function renderCurrentQuestion() {
     else if (q.type === 'identify_rule') container.innerHTML = renderIdentifyHTML(q);
     else if (q.type === 'link_rule_letters') container.innerHTML = renderLinkHTML(q);
     else if (q.type === 'teacher_checkpoint') container.innerHTML = renderTeacherCheckpointHTML(q);
+    else if (q.type === 'classify_letter' || q.type === 'classify_pair') container.innerHTML = renderClassifyHTML(q);
+    else if (q.type === 'odd_letter' || q.type === 'pair_link') container.innerHTML = renderLetterChoiceHTML(q);
+    else if (q.type === 'letter_collect') {
+        if (collectIndex !== qIndex) { collectIndex = qIndex; collectFound = new Set(); collectWrong = new Set(); collectErrors = 0; }
+        container.innerHTML = renderLetterCollectHTML(q);
+    }
     else container.innerHTML = `<div class="tjw-empty-state">${t('tjw_activity_error')}</div>`;
 }
 
@@ -261,6 +286,51 @@ function renderIdentifyHTML(q) {
         </div>`;
 }
 
+const ruleNameOf = (ruleId) => { const f = getAllRulesFlat().find(x => x.rule.id === ruleId); return f ? t(f.rule.nameKey) : ''; };
+
+// 🌟 «إلى أي حكم ينتمي هذا الحرف/الزوج؟»: يعيد استعمال معالج data-choose-rule (الخيارات أسماء أحكام)
+function renderClassifyHTML(q) {
+    const isPair = q.type === 'classify_pair';
+    const stem = isPair ? `${q.pair.a} <span class="tjw-pair-plus">+</span> ${q.pair.b}` : q.letter;
+    const optionsHTML = q.options.map(opt => `<button class="tjw-answer-btn" data-choose-rule="${opt.ruleId}">${t(opt.nameKey)}</button>`).join('');
+    return `
+        <div class="tjw-activity-card">
+            <p class="tjw-activity-prompt">${t(isPair ? 'tjw_act_classify_pair_prompt' : 'tjw_act_classify_letter_prompt')}</p>
+            <div class="tjw-letters-display tjw-big-letter">${stem}</div>
+            <div class="tjw-answer-grid">${optionsHTML}</div>
+        </div>`;
+}
+
+// 🌟 الحرف الدخيل / اربط الحرفين: خيارات حروف بمعالج data-letter-option
+function renderLetterChoiceHTML(q) {
+    const name = ruleNameOf(q.ruleId);
+    const prompt = q.type === 'pair_link'
+        ? t('tjw_act_pair_link_prompt').replace('{a}', q.first).replace('{rule}', name)
+        : t(q.askNot ? 'tjw_act_odd_not_prompt' : 'tjw_act_odd_is_prompt').replace('{rule}', name);
+    const stem = q.type === 'pair_link' ? `<div class="tjw-letters-display tjw-big-letter">${q.first}</div>` : '';
+    const optionsHTML = q.options.map(l => `<button class="tjw-answer-btn tjw-letter-opt" data-letter-option="${l}">${l}</button>`).join('');
+    return `
+        <div class="tjw-activity-card">
+            <p class="tjw-activity-prompt">${prompt}</p>
+            ${stem}
+            <div class="tjw-answer-grid tjw-letter-grid">${optionsHTML}</div>
+        </div>`;
+}
+
+// 🌟 «اجمع حروف الحكم» (دوائر الحروف في الكتاب): لوح مبعثر، يضغط الطالب كل حروف الحكم
+function renderLetterCollectHTML(q) {
+    const name = ruleNameOf(q.ruleId);
+    const doneAll = collectFound.size >= q.targets.length;
+    const tilesHTML = q.tiles.map((x, i) => `<button class="tjw-letter-tile ${collectFound.has(i) ? 'is-right' : ''} ${collectWrong.has(i) ? 'is-wrong' : ''}"
+        data-collect-tile="${i}" ${(collectFound.has(i) || collectWrong.has(i) || doneAll) ? 'disabled' : ''}>${x.letter}</button>`).join('');
+    return `
+        <div class="tjw-activity-card">
+            <p class="tjw-activity-prompt">${t('tjw_act_collect_prompt').replace('{rule}', name).replace('{n}', q.targets.length)}</p>
+            <div class="tjw-collect-count">${collectFound.size} / ${q.targets.length}</div>
+            <div class="tjw-letter-board">${tilesHTML}</div>
+        </div>`;
+}
+
 function renderLinkHTML(q) {
     const namesHTML = q.namesCol.map(item => `
         <button class="tjw-answer-btn tjw-link-item ${linkMatchedRuleIds.has(item.ruleId) ? 'tjw-link-matched' : ''}"
@@ -268,11 +338,11 @@ function renderLinkHTML(q) {
     `).join('');
     const lettersHTML = q.lettersCol.map(item => `
         <button class="tjw-answer-btn tjw-link-item ${linkMatchedRuleIds.has(item.ruleId) ? 'tjw-link-matched' : ''}"
-            data-link-letter="${item.ruleId}" ${linkMatchedRuleIds.has(item.ruleId) ? 'disabled' : ''}>${item.letters}</button>
+            data-link-letter="${item.ruleId}" ${linkMatchedRuleIds.has(item.ruleId) ? 'disabled' : ''}>${item.html || item.letters}</button>
     `).join('');
     return `
         <div class="tjw-activity-card">
-            <p class="tjw-activity-prompt">${t('tjw_act_link_prompt')}</p>
+            <p class="tjw-activity-prompt">${t(q.kind === 'examples' ? 'tjw_act_link_examples_prompt' : 'tjw_act_link_prompt')}</p>
             <div class="tjw-link-columns">
                 <div class="tjw-link-col">${namesHTML}</div>
                 <div class="tjw-link-col">${lettersHTML}</div>
@@ -340,6 +410,7 @@ async function handleActivityClick(e) {
 
     const nextBtn = e.target.closest('[data-action="next-question"]');
     if (nextBtn) {
+        linkMatchedRuleIds = new Set(); linkWrongAttempts = 0; linkSelectedName = null; linkSelectedLetter = null;
         qIndex++;
         renderProgress();
         renderCurrentQuestion();
@@ -411,6 +482,26 @@ async function handleActivityClick(e) {
         return;
     }
 
+    // 🌟 لوح «اجمع حروف الحكم»: متعدد النقرات فلا يدخل في قفل الإجابة الواحدة
+    const collectBtn = e.target.closest('[data-collect-tile]');
+    if (collectBtn && !answerLocked) {
+        const q = questions[qIndex];
+        const i = Number(collectBtn.dataset.collectTile);
+        if (collectFound.has(i) || collectWrong.has(i)) return;
+        if (q.tiles[i].isTarget) collectFound.add(i); else { collectWrong.add(i); collectErrors++; }
+        const finished = collectFound.size >= q.targets.length;
+        if (finished) answerLocked = true;
+        document.getElementById('tjwa-container').innerHTML = renderLetterCollectHTML(q);
+        if (finished) {
+            const scorePercent = Math.max(0, 100 - collectErrors * 15);
+            await updateRuleMastery(q.ruleId, 'letter_collect', scorePercent);
+            questionResults.push({ ruleId: q.ruleId, correct: scorePercent >= 70 });
+            showFeedback(q.ruleId, scorePercent >= 70);
+            showNextButton();
+        }
+        return;
+    }
+
     if (answerLocked) return;
 
     const chooseBtn = e.target.closest('[data-choose-rule]');
@@ -447,6 +538,25 @@ async function handleActivityClick(e) {
             return;
         }
         markChoiceButtons('[data-discover-option]', 'data-discover-option', String(q.correctIndex), discoverBtn);
+        await recordQuestionResult(q.ruleId, isCorrect);
+        showFeedback(q.ruleId, isCorrect);
+        showNextButton();
+        return;
+    }
+
+    const letterOptBtn = e.target.closest('[data-letter-option]');
+    if (letterOptBtn) {
+        const q = questions[qIndex];
+        const picked = letterOptBtn.dataset.letterOption;
+        const isCorrect = picked === q.correctLetter;
+        answerLocked = true;
+        if (params.mode === 'exam') {
+            letterOptBtn.classList.add('tjw-answer-picked');
+            await recordQuestionResult(q.ruleId, isCorrect, { correctLabel: q.correctLetter, yourLabel: picked });
+            advanceAfterExamAnswer();
+            return;
+        }
+        markChoiceButtons('[data-letter-option]', 'data-letter-option', q.correctLetter, letterOptBtn);
         await recordQuestionResult(q.ruleId, isCorrect);
         showFeedback(q.ruleId, isCorrect);
         showNextButton();
@@ -491,7 +601,7 @@ async function tryResolveLinkPair() {
     if (linkMatchedRuleIds.size >= q.namesCol.length) {
         answerLocked = true;
         const scorePercent = Math.max(0, 100 - linkWrongAttempts * 15);
-        const stageRuleIds = getStageRuleIds(params.stageId);
+        const stageRuleIds = q.namesCol.map(n => n.ruleId); // 🌟 أحكام هذا السؤال (سؤال «صِل المثال» قد يضمّ بعض أحكام المرحلة فقط)
         // 🌟 نشاط "اربط الحكم بحروفه" يحدّث كل أحكام المرحلة معاً بنفس الدرجة الموحّدة (نتيجة
         // واحدة لكل المرحلة، وليس سؤالاً منفصلاً لكل حكم) — لذا نحدّث الإتقان لكل حكم بدون
         // تكرار تسجيله في questionResults (الذي يُستخدَم لحساب "عدد الأسئلة/الإجابات الصحيحة"
@@ -593,6 +703,7 @@ async function recordQuestionResult(ruleId, isCorrect, detail) {
     else if (params.mode === 'practice') effectiveActivityType = questions[qIndex].type;
     else if (params.mode === 'challenge') effectiveActivityType = 'stage_challenge';
     else if (params.mode === 'review') effectiveActivityType = 'review';
+    else if (params.mode === 'tree' || params.mode === 'letters') effectiveActivityType = questions[qIndex].type;
     const scorePercent = isCorrect ? 100 : 0;
 
     await updateRuleMastery(ruleId, effectiveActivityType, scorePercent);
