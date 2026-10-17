@@ -14,7 +14,7 @@ console.log(sum);
 
 test('تُولَّد أسئلة لمعظم المجموعات وبكل الأنواع', () => {
     assert.ok(sum.total > 1500);
-    ['sim_surah', 'sim_complete'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
+    ['sim_surah', 'sim_complete', 'sim_which', 'sim_match'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
 });
 test('لا رقم (عربي أو لاتيني) داخل نص أي سؤال أو خياراته', () => {
     const bad = res.groups.flatMap(g => g.questions).filter(q => /[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n')));
@@ -31,7 +31,7 @@ test('لا سؤالان في المجموعة نفسها يتكرران أو ي�
     assert.equal(res.groupFailures.length, 0, JSON.stringify(res.groupFailures.slice(0, 3)));
 });
 test('عدد الخيارات 3 أو 4 وموضع الجواب الصحيح موزّع بالتساوي', () => {
-    const qs = res.groups.flatMap(g => g.questions);
+    const qs = res.groups.flatMap(g => g.questions).filter(q => q.type === 'sim_surah' || q.type === 'sim_complete');
     assert.ok(qs.every(q => q.options.length >= 3 && q.options.length <= 4));
     const four = qs.filter(q => q.options.length === 4), cnt = [0, 0, 0, 0];
     four.forEach(q => cnt[q.correctIndex]++);
@@ -117,4 +117,25 @@ test('skel يطابق «أتاك» الإملائية بـ«أتىٰك» الع�
     assert.ok(skel('هَلْ أَتَىٰكَ حَدِيثُ').startsWith(skel('هَلْ أَتَاكَ')));
 });
 
+
+// ---- النوعان الجديدان ----
+import { toHomeworkQuestion } from '../engine/similarityEngine.js';
+const allQs = res.groups.flatMap(g => g.questions);
+test('sim_which: خياران، الصحيح يرد في السورة المذكورة والخاطئ لا يرد فيها (فحص QA مستقل)', () => {
+    const ws = allQs.filter(q => q.type === 'sim_which');
+    assert.ok(ws.length > 0);
+    ws.forEach(q => assert.equal(q.options.length, 2));
+    assert.equal(res.failures.filter(f => f.type === 'sim_which').length, 0);
+});
+test('sim_match: ثلاث سور فأكثر، كل آية في سورتها وحدها، وتتحول لسؤال matching للواجب', () => {
+    const ms = allQs.filter(q => q.type === 'sim_match');
+    assert.ok(ms.length > 0);
+    assert.equal(res.failures.filter(f => f.type === 'sim_match').length, 0);
+    const h = toHomeworkQuestion(ms[0]);
+    assert.equal(h.type, 'matching');
+    assert.equal(h.points, h.correctAnswer.length);
+    assert.ok(h.leftItems.length >= 3 && h.rightItems.length === h.leftItems.length);
+    const w = toHomeworkQuestion(allQs.find(q => q.type === 'sim_which'));
+    assert.equal(w.type, 'mcq'); assert.equal(w.options.length, 2);
+});
 console.log(`\n${pass} ✅ / ${fail} ❌`); process.exit(fail ? 1 : 0);

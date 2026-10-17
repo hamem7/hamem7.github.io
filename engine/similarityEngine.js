@@ -27,10 +27,11 @@ function shuffle(arr) {
 const posRef = { n: Math.floor(Math.random() * 4) };
 
 // أسئلة مجموعة واحدة (حتى 4)؛ مصفوفة فارغة إن لم يُحمَّل المصحف أو لم تكفِ بيانات المجموعة
-export function generateQuestionsForGroup(group) {
+// match=false (الافتراضي): بلا «صِل الآية بسورتها» لأنه لا يصلح لأزرار الاختيار في الألعاب؛ الواجب وحده يطلبه
+export function generateQuestionsForGroup(group, { match = false, types = null } = {}) {
     const Q = getSimilarityQuran();
     if (!Q || !group) return [];
-    try { return generateGroupQuestions(Q, group, { rng: Math.random, posRef }).questions; }
+    try { return generateGroupQuestions(Q, group, { rng: Math.random, posRef, match, types }).questions; }
     catch (err) { console.warn('تعذّر توليد أسئلة المجموعة', group && group.groupId, err); return []; }
 }
 
@@ -66,7 +67,17 @@ export function buildGameRound(groups) {
 // ============================================================
 // الواجب يُصحَّح آلياً بنوع 'mcq' (title/text/options/correctAnswer نصوص)، فنحوّل السؤال إلى هذا الشكل بلا تعديل على التصحيح.
 export function toHomeworkQuestion(simQ) {
-    if (!simQ || !Array.isArray(simQ.options) || simQ.options.length < 3 || !SIM_TYPES.includes(simQ.type)) return null;
+    if (simQ && simQ.type === 'sim_match' && simQ.match) {
+        const m = simQ.match;
+        if (!m.left || m.left.length < 3 || m.right.length !== m.left.length) return null;
+        return {
+            type: 'matching', title: 'من المتشابهات: ' + SIM_TYPE_LABELS.sim_match, text: simQ.text,
+            leftItems: m.left, rightItems: m.right, correctAnswer: m.pairs, points: m.pairs.length, needsManualGrading: false,
+            leftTitle: 'الآيات', rightTitle: 'السور', matchHint: 'اضغط على آية، ثم على السورة التي وردت فيها. اضغط على أي بطاقة مربوطة لفك ربطها.',
+            simGroupId: simQ.groupId, simKind: simQ.type
+        };
+    }
+    if (!simQ || !Array.isArray(simQ.options) || simQ.options.length < (simQ.type === 'sim_which' ? 2 : 3) || !SIM_TYPES.includes(simQ.type)) return null;
     // الطالب يرى الخيارات المقصوصة (أول ~12 كلمة)، ولا يتطابق منها خياران (مضمون في المولّد)، والتصحيح بمطابقة النص المعروض
     const shown = (simQ.optionsDisplay && simQ.optionsDisplay.length === simQ.options.length ? simQ.optionsDisplay : simQ.options).map(String);
     const idx = simQ.options.map(String).indexOf(String(simQ.correctAnswer));
@@ -80,7 +91,12 @@ export function toHomeworkQuestion(simQ) {
 // سؤال واجب واحد من مجموعة متشابهات (نوعه عشوائي من الأنواع الممكنة لها)، أو null لو بياناتها لا تكفي.
 export function buildHomeworkSimilarityQuestion(group) {
     if (isDisabledScope(group)) return null;
-    for (const c of shuffle(generateQuestionsForGroup(group))) {
+    // «صِل الآية بسورتها» يحتاج مجموعة من ثلاث سور فأكثر، وهو يزاحم بقية الأنواع في الاختيار، فنجرّبه أولاً بنسبة معقولة
+    if (Math.random() < 0.4) {
+        const m = generateQuestionsForGroup(group, { match: true, types: ['sim_match'] }).map(toHomeworkQuestion).find(Boolean);
+        if (m) return m;
+    }
+    for (const c of shuffle(generateQuestionsForGroup(group, { match: true }))) {
         const q = toHomeworkQuestion(c);
         if (q) return q;
     }

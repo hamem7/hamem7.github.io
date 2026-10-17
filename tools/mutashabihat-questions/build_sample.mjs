@@ -59,7 +59,8 @@ for (const s of sample) {
         g.questions.forEach((q, qi) => {
             kids.push(para([run(`${qi + 1}) ${SIM_TYPE_LABELS[q.type]}`, { bold: true, size: 24, color: '555555' })], { after: 40, extra: { keepNext: true } }));
             kids.push(...qParas(q.text));
-            q.options.forEach((o, i) => {
+            if (q.type === 'sim_match') q.match.pairs.forEach(p => kids.push(para([run((q.match.left.find(x => x.id === p.left).text) + '  ⇄  ' + q.match.right.find(x => x.id === p.right).text, { quran: true, size: 26 })], { indent: 720, after: 40 })));
+            else q.options.forEach((o, i) => {
                 const ok = i === q.correctIndex;
                 kids.push(para([run(`${LET[i]}) `, { bold: true, size: 26, color: ok ? '0B7A3B' : undefined }), run(q.type === 'sim_surah' ? o : '﴿ ' + q.optionsDisplay[i] + ' ﴾', { quran: q.type !== 'sim_surah', size: 28, bold: ok, color: ok ? '0B7A3B' : undefined }), ...(ok ? [run('  ✓', { bold: true, color: '0B7A3B' })] : [])], { indent: 720, after: 40 }));
             });

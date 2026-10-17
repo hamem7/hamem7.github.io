@@ -41,7 +41,44 @@ const clip = (p) => p.startsWith('… ') ? { core: p.slice(2), mode: 'tail' } : 
 const matchShown = (v, s, c) => !c ? v.l === s : (c.mode === 'tail' ? (v.l === s || v.l.endsWith(' ' + s)) : (v.l === s || v.l.startsWith(s + ' ')));
 const pieces = (text) => [...text.matchAll(/﴿([^﴾]*)﴾/g)].map(m => m[1]);
 
+// «أيُّ الآيتين من سورة كذا؟»: الصحيحة ترد في السورة المذكورة، والخاطئة لا ترد فيها (بحث مستقل في المصحف الخام)
+function checkWhich(q, R) {
+    const errs = [], fail = (m) => errs.push(m);
+    if (/[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n'))) fail('رقم داخل السؤال أو الخيارات');
+    if (q.options.length !== 2) fail('عدد الخيارات ' + q.options.length);
+    if (q.options[q.correctIndex] !== q.correctAnswer) fail('correctIndex لا يطابق correctAnswer');
+    q.options.forEach(o => { if (!R.allText.has(o)) fail('خيار ليس آية حرفية: ' + o); });
+    const sn = R.nameToNum.get(letters(((q.text.match(/سورة ([^؟\n]*)/) || [])[1] || '')));
+    const arr = R.bySurah.get(sn);
+    if (!arr) return [...errs, 'اسم السورة غير معروف'];
+    const inS = (o) => arr.some(v => v.l.includes(letters(o)));
+    q.options.forEach((o, i) => { if (inS(o) !== (i === q.correctIndex)) fail(i === q.correctIndex ? 'الصحيحة ليست في السورة' : 'الخاطئة ترد في السورة'); });
+    if (new Set(q.options.map(letters)).size !== 2) fail('خياران متطابقان');
+    if (new Set(q.optionsDisplay.map(letters)).size !== 2) fail('خياران متطابقان بعد القص');
+    return errs;
+}
+// «صِل الآية بسورتها»: كل آية ترد في سورتها المقصودة وحدها بين السور المعروضة
+function checkMatch(q, R) {
+    const errs = [], fail = (m) => errs.push(m), m = q.match;
+    if (!m || m.left.length < 3 || m.left.length > 5 || m.right.length !== m.left.length) return ['شكل التوصيل غير صالح'];
+    if (/[0-9٠-٩۰-۹]/.test(m.left.map(x => x.text).join('\n'))) fail('رقم داخل الآيات');
+    const nums = m.pairs.map(p => R.nameToNum.get(letters(m.right.find(r => r.id === p.right).text)));
+    if (nums.some(n => n == null) || new Set(nums).size !== nums.length) fail('سور غير معروفة أو مكررة');
+    if (new Set(m.left.map(x => letters(x.text))).size !== m.left.length) fail('آيات متطابقة بعد القص');
+    if (m.right.every((r, k) => r.id === 'R' + k)) fail('عمود السور بنفس ترتيب الآيات');
+    m.pairs.forEach((p, k) => {
+        const txt = m.left.find(x => x.id === p.left).text.replace(/ …$/, ''), l = letters(txt);
+        nums.forEach((n, j) => {
+            const has = R.bySurah.get(n).some(v => v.l === l || v.l.startsWith(l + ' '));
+            if (j === k && !has) fail('الآية ليست في سورتها'); if (j !== k && has) fail('الآية ترد في سورة أخرى معروضة');
+        });
+    });
+    return errs;
+}
+
 export function checkQuestion(q, R) {
+    if (q.type === 'sim_which') return checkWhich(q, R);
+    if (q.type === 'sim_match') return checkMatch(q, R);
     const errs = [];
     const fail = (m) => errs.push(m);
     const all = [q.text, ...q.options].join('\n');
@@ -141,6 +178,8 @@ export function checkQuestion(q, R) {
 // تكرار/كشف داخل المجموعة: لا نص مكرر، ولا جواب سؤال ظاهر (كآية كاملة) في نص سؤال آخر
 // «حقيقة» السؤال مستخرجة من نصه (مستقلة عن المولّد): سؤالان بحقيقة واحدة مكرران ولو اختلف نوعهما
 export function factOf(q) {
+    if (q.type === 'sim_which') return 'which|' + q.options.map(letters).sort().join('+');
+    if (q.type === 'sim_match') return 'match|' + q.match.left.map(x => letters(x.text)).sort().join('+');
     const ps = pieces(q.text), full = ps.filter(p => !/ \.{6}$/.test(p)).map(letters);
     const sn = q.occurrence.surahNumber, a = letters(q.correctAnswer);
     if (q.type === 'sim_next') return `${sn}|${full[full.length - 1]}>${a}`;

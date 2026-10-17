@@ -264,13 +264,13 @@ function renderQuestion() {
         html += `
             <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 <div id="hp-match-left-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t('البدايات')}</div>
+                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t(q.leftTitle || 'البدايات')}</div>
                 </div>
                 <div id="hp-match-right-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t('النهايات')}</div>
+                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t(q.rightTitle || 'النهايات')}</div>
                 </div>
             </div>
-            <div style="margin-top: 15px; text-align: center; color: #64748b; font-size: 1rem;">${t('اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.')}</div>
+            <div style="margin-top: 15px; text-align: center; color: #64748b; font-size: 1rem;">${t(q.matchHint || 'اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.')}</div>
         `;
     }
 

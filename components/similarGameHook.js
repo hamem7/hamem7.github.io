@@ -62,7 +62,7 @@ export function kidsSimilarOptionLabel(opt, kind, cd) {
 
 // ---------------- الكبار ----------------
 // سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
-const ADULT_TITLES = { sim_surah: 'من أي سورة؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
+const ADULT_TITLES = { sim_surah: 'من أي سورة؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
 
 export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;

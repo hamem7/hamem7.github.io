@@ -55,10 +55,10 @@ test('الكبار: أنواع متعددة من الأربعة وخيارات �
     for (let r = 0; r < 200; r++) {
         for (const q of buildSimilarQuestions({ allGroups: ALL, pool, count: 3, kids: false })) {
             kinds.add(q.kind);
-            assert.equal(q.options[q.correctIndex], q.correctAnswer); assert.ok(q.options.length >= 3);
+            assert.equal(q.options[q.correctIndex], q.correctAnswer); assert.ok(q.options.length >= (q.kind === 'sim_which' ? 2 : 3));
         }
     }
-    assert.ok(kinds.size >= 2 && [...kinds].every(k => ['sim_surah', 'sim_complete'].includes(k)), [...kinds].join());
+    assert.ok(kinds.size >= 2 && [...kinds].every(k => ['sim_surah', 'sim_complete', 'sim_which'].includes(k)), [...kinds].join());
 });
 test('injectIntoQueue يستبدل خانات دون تغيير الطول ويحتفظ بـ chunkIndex', () => {
     const queue = Array.from({ length: 20 }, (_, i) => ({ type: 'catch', chunkIndex: i }));

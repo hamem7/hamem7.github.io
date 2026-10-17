@@ -36,7 +36,7 @@
   <h1>تصفّح أسئلة المتشابهات (القرآن كله)</h1>
   <div class="bar">
     <label>الجزء <select id="juz"><option value="">الكل</option></select></label>
-    <label>النوع <select id="type"><option value="">الكل</option><option value="sim_surah">من أي سورة؟</option><option value="sim_complete">أكمل الآية</option></select></label>
+    <label>النوع <select id="type"><option value="">الكل</option><option value="sim_surah">من أي سورة؟</option><option value="sim_complete">أكمل الآية</option><option value="sim_which">أيُّ الآيتين من السورة؟</option><option value="sim_match">صِل الآية بسورتها</option></select></label>
     <label>بحث في العبارة <input id="q" type="search" placeholder="مثال: ٱلَّذِينَ"></label>
     <label><input id="ans" type="checkbox" checked> إظهار الجواب الصحيح</label>
   </div>
@@ -73,7 +73,7 @@ function render() {
     return `<section class="group"><h2>${esc(g.groupId)} <span>«${esc(stripHizbMark(g.anchorPhrase))}»</span> <span class="tag">${r.questions.length} أسئلة${r.reason ? '' : ''}</span></h2>
       ${r.questions.length < 4 && r.reason ? `<div class="warn">${esc(r.reason)}</div>` : ''}
       ${qs.map(z => `<div class="q"><div class="kind">${SIM_TYPE_LABELS[z.type]}</div><div class="qt">${esc(z.text).replace(/﴿([^﴾]*)﴾/g, '﴿$1﴾')}</div>
-        <ol>${z.optionsDisplay.map((o, i) => `<li class="${i === z.correctIndex ? 'ok' : ''} ${show ? 'show' : ''}">${esc(o)}</li>`).join('')}</ol>
+        <ol>${z.type === 'sim_match' ? z.match.pairs.map(p => `<li class="${show ? 'ok show' : ''}">${esc(z.match.left.find(x => x.id === p.left).text)} ⇄ ${esc(z.match.right.find(x => x.id === p.right).text)}</li>`).join('') : z.optionsDisplay.map((o, i) => `<li class="${i === z.correctIndex ? 'ok' : ''} ${show ? 'show' : ''}">${esc(o)}</li>`).join('')}</ol>
         <div class="ref">المرجع (للمعلم): ${esc(z.ref)}</div></div>`).join('') || '<div class="warn">لا أسئلة لهذه المجموعة.</div>'}
     </section>`;
   }).join('') || '<p>لا نتائج.</p>';
