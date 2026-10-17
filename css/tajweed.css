@@ -939,7 +939,7 @@ body.adult-theme:has(.tjw-wrap) {
 .tjw-sum-dayold { margin: 0 0 8px; padding: 6px 12px; border-radius: 10px; background: rgba(217, 138, 31, 0.16); color: #7a4a00; font-size: 0.86rem; font-weight: 700; }
 .tjw-sum-dayold[hidden] { display: none; }
 /* المربع بهيئة فقاعة رسالة واتساب فيتوقّع المعلم شكل ما سيلصقه */
-.tjw-sum-text { width: 100%; box-sizing: border-box; min-height: 280px; resize: vertical; font: inherit; font-size: 1rem; line-height: 1.85; color: #1c1c1c; background: #e7f8d8; border: 2px solid #b6e2a1; border-radius: 16px; padding: 14px 16px; white-space: pre-wrap; }
+.tjw-sum-text { width: 100%; box-sizing: border-box; min-height: 140px; resize: vertical; overflow-y: auto; font: inherit; font-size: 1rem; line-height: 1.85; color: #1c1c1c; background: #e7f8d8; border: 2px solid #b6e2a1; border-radius: 16px; padding: 14px 16px; white-space: pre-wrap; }
 .tjw-sum-hint { margin: 8px 2px 10px; font-size: 0.84rem; color: #6f6150; }
 .tjw-sum-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .tjw-sum-copy { flex: 1 1 100%; cursor: pointer; border: 0; border-radius: 16px; padding: 15px 20px; font: inherit; font-size: 1.15rem; font-weight: 800; color: #fff; background: linear-gradient(180deg, #2d5a8c, #1e3a5f); box-shadow: 0 5px 0 #11263f; transition: transform 0.12s; }

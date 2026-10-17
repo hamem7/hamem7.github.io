@@ -100,7 +100,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
             <p class="tjw-sum-dayold" id="tjw-sum-dayold" hidden></p>
             <label class="tjw-sum-field"><span>${t('tjw_sum_note_label')}</span><input type="text" id="tjw-sum-note" maxlength="300" placeholder="${esc(t('tjw_sum_note_ph'))}"></label>
             <label class="tjw-sum-check"><input type="checkbox" id="tjw-sum-home" checked> <span>${t('tjw_sum_home_check')}</span></label>
-            <textarea id="tjw-sum-text" class="tjw-sum-text" rows="14" dir="auto" aria-label="${esc(t('tjw_sum_title'))}"></textarea>
+            <textarea id="tjw-sum-text" class="tjw-sum-text" rows="6" dir="auto" aria-label="${esc(t('tjw_sum_title'))}"></textarea>
             <p class="tjw-sum-hint">${t('tjw_sum_hint')}</p>
             <div class="tjw-sum-actions">
                 <button type="button" class="tjw-sum-copy" id="tjw-sum-copy" data-sum="copy">${t('tjw_sum_copy')}</button>
@@ -117,6 +117,8 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
 
+    // المربع يتّسع ليُظهر الرسالة كلها (حتى نصف ارتفاع الشاشة ثم يمرَّر داخلياً) فيراها المعلم من أولها دون تمرير
+    const autosize = () => { textEl.style.height = 'auto'; textEl.style.height = Math.min(textEl.scrollHeight + 4, Math.round(window.innerHeight * 0.5)) + 'px'; };
     const sync = () => {
         ov.querySelectorAll('[data-sum="tab"]').forEach(b => { const on = b.dataset.kind === st.kind; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', String(on)); });
         $('#tjw-sum-rulepick').hidden = st.kind !== 'rule';
@@ -124,6 +126,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
         const model = build();
         textEl.value = formatSummaryText(model, ctx());
         st.dirty = false;
+        autosize(); textEl.scrollTop = 0;
         const old = $('#tjw-sum-dayold');
         old.hidden = !(st.kind === 'session' && !model.empty && !model.isToday);
         if (!old.hidden) old.textContent = tr('tjw_sum_day_old', { date: formatDate(model.day) });
@@ -151,8 +154,9 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     $('#tjw-sum-rule').addEventListener('change', (e) => { const prev = st.ruleId; st.ruleId = e.target.value; if (!regenerate()) { st.ruleId = prev; e.target.value = prev; } });
     $('#tjw-sum-home').addEventListener('change', (e) => { st.home = e.target.checked; if (!regenerate()) { st.home = !st.home; e.target.checked = st.home; } });
     $('#tjw-sum-note').addEventListener('input', (e) => { st.note = e.target.value; if (!st.dirty) sync(); });   // الملاحظة تُدرج حيّةً ما لم يعدّل المعلم النص بيده
-    textEl.addEventListener('input', () => { st.dirty = true; });
+    textEl.addEventListener('input', () => { st.dirty = true; autosize(); });
 
     sync();
-    textEl.focus();
+    textEl.focus({ preventScroll: true });   // التركيز لا يمرّر المربع إلى نهاية النص
+    textEl.setSelectionRange(0, 0);
 }

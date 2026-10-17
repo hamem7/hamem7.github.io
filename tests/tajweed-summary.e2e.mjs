@@ -71,6 +71,8 @@ console.log(text1.split('\n').map(l => '      │ ' + l).join('\n'));
   '✅ تعلّم شرح الحكم', 'اعتمد المعلم الحكم', 'أتقن حكم «الإظهار الحلقي»', 'وسام «', '📊 5 أنشطة', 'القادم:', 'في البيت:', 'ملاحظة المعلم: مخارج الحروف ممتازة', 'جزاكم الله خيراً']
   .forEach(s => check('نص الحصة يحوي: ' + s.slice(0, 40), text1.includes(s)));
 check('لا بقايا قالب ولا نشاط قبل 10 أيام (القلقلة) في ملخص اليوم', !/undefined|NaN|\{[a-z]+\}/.test(text1) && !text1.includes('القلقلة'));
+const ta = await page.evaluate(() => { const e = document.getElementById('tjw-sum-text'); return { top: e.scrollTop, fits: e.clientHeight >= e.scrollHeight - 2, h: e.clientHeight, max: Math.round(innerHeight * 0.5), first: e.value.split('\\n')[0] }; });
+check('المربع يبدأ من أول النص ويتّسع ليُظهر الرسالة كاملة (حتى نصف الشاشة)', ta.top === 0 && (ta.fits || ta.h >= ta.max - 6) && /السلام عليكم/.test(ta.first), JSON.stringify(ta));
 await shot('1-summary-session');
 
 // ٢) النسخ الفعلي إلى الحافظة
