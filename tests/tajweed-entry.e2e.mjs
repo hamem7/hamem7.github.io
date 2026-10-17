@@ -59,6 +59,8 @@ await page.evaluate(async (SEED) => {
   }
 }, SEED);
 const toEntry = async () => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await sleep(300); };
+// يضغط بطاقة الطالب؛ ومن كانت بطاقته خلف «عرض كل الطلاب» (الأقدم نشاطاً) نفتح القائمة كاملة أولاً
+const pickCard = async (name) => { if (!(await page.$(`.tjw-st[data-name="${name}"]`))) { await page.click('[data-action="entry-all"]'); await sleep(150); } await page.click(`.tjw-st[data-name="${name}"]`); await sleep(150); };
 const txt = (sel) => page.evaluate((s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || '', sel);
 const count = (sel) => page.evaluate((s) => document.querySelectorAll(s).length, sel);
 
@@ -96,7 +98,7 @@ await page.click('[data-action="entry-review"]'); await page.waitForSelector('.t
 check('«راجع» يدخل الطالب ويبدأ جولة المراجعة مباشرة', !!(await page.$('.tjw-progress-label')) && (await page.evaluate(() => window.__APP.AppState.currentStudent?.name)) === 'مريم');
 
 // ٥) «أكمل ▶»: يفتح الحكم الحالي نفسه المعروض في البطاقة (بشرط ألا تكون عليه مراجعة معلّقة لحكم جديد)
-await toEntry(); await page.click('.tjw-st[data-name="ليلى"]'); await sleep(150);
+await toEntry(); await pickCard('ليلى');
 const lay = await page.evaluate(() => ({ chip: document.querySelector('.tjw-e-rulechip')?.textContent.replace(/\s+/g, ' ').trim(), cur: document.querySelector('.tjw-e-stepper i.is-cur')?.textContent.trim() }));
 await page.click('[data-action="entry-go"]'); await page.waitForSelector('.tjw-stepper', { timeout: 15000 });
 const opened = await page.evaluate(() => ({ name: document.querySelector('.tjw-rule-card-name')?.textContent.trim(), cur: document.querySelector('.tjw-stepper li.is-current .tjw-step-name')?.textContent.trim() }));
@@ -104,7 +106,7 @@ check('«أكمل» عند ليلى يفتح حكمها الحالي نفسه و
 await shot('3-opened-current-rule');
 
 // ٦) الطالب الجديد: خطوات الرحلة وزر أول حكم يفتح القلقلة بخطوة الشرح
-await toEntry(); await page.click('.tjw-st[data-name="خالد"]'); await sleep(150);
+await toEntry(); await pickCard('خالد');
 const onb = await page.evaluate(() => ({ title: document.querySelector('.tjw-e-onb h2')?.textContent, steps: document.querySelectorAll('.tjw-e-ob').length, btn: document.querySelector('[data-action="entry-go"]')?.textContent.trim(), alert: !!document.querySelector('.tjw-e-alert') }));
 check('الطالب الجديد: ترحيب بالخطوات الأربع وزر «ابدأ أول حكم: القلقلة» ولا تنبيه مراجعة', /أهلاً خالد/.test(onb.title) && onb.steps === 4 && /القلقلة/.test(onb.btn) && !onb.alert, JSON.stringify(onb));
 await shot('4-entry-new-student');
@@ -112,7 +114,7 @@ await page.click('[data-action="entry-go"]'); await page.waitForSelector('.tjw-s
 check('زر أول حكم يفتح القلقلة بخطوة الشرح', (await txt('.tjw-rule-card-name')) === 'القلقلة' && !!(await page.$('[data-action="mark-learned"]')));
 
 // ٧) لمحة الرحلة للطالب المحدَّد: مراحل 8، مكتملة ومغلقة ونشطة
-await toEntry(); await page.click('.tjw-st[data-name="نورة"]'); await sleep(150);
+await toEntry(); await pickCard('نورة');
 const jr = await page.evaluate(() => ({ nodes: document.querySelectorAll('.tjw-e-sg').length, done: document.querySelectorAll('.tjw-e-sg.is-done').length, active: document.querySelectorAll('.tjw-e-sg.is-active').length, locked: document.querySelectorAll('.tjw-e-sg.is-locked').length,
   activeName: document.querySelector('.tjw-e-sg.is-active .tjw-e-nm')?.textContent.trim(), activeCt: document.querySelector('.tjw-e-sg.is-active .tjw-e-ct')?.textContent.trim() }));
 check('نورة: 8 مراحل (3 مكتملة، 1 نشطة هي «النون الساكنة والتنوين» بـ3 من 5، و4 مغلقة)', jr.nodes === 8 && jr.done === 3 && jr.active === 1 && jr.locked === 4 && /النون الساكنة/.test(jr.activeName) && /3 من 5/.test(jr.activeCt), JSON.stringify(jr));
