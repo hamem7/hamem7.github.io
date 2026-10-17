@@ -16,6 +16,7 @@ import {
 } from '../engine/tajweedJourney.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
 import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
+import { openParentSummary } from './tajweed-summary.js';
 import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
 import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
@@ -174,10 +175,16 @@ async function handleContainerClick(e) {
         } else if (action === 'entry-other') { entryState.sel = null; repaintEntry();
         } else if (action === 'entry-home') { loadSplashScreen();
         } else if (entryState.sel !== null) {
-            if (action === 'entry-go') enterStudent(entryState.sel, 'continue');
+            if (action === 'entry-summary') openParentSummary({ studentId: entryState.sel, kind: 'session' });
+            else if (action === 'entry-go') enterStudent(entryState.sel, 'continue');
             else if (action === 'entry-map') enterStudent(entryState.sel, 'map');
             else if (action === 'entry-review') enterStudent(entryState.sel, 'review');
         }
+        return;
+    }
+    if (action === 'parent-summary') {
+        // 🌟 [جديد] «ملخص جاهز للولي»: من بطاقة حكم (ملخص الحكم) أو من الخريطة (ملخص الحصة)
+        if (AppState.currentStudent) openParentSummary({ studentId: AppState.currentStudent.id, ruleId: btn.dataset.rule || null, kind: btn.dataset.rule ? 'rule' : 'session' });
         return;
     }
     if (action === 'change-student') {
@@ -307,6 +314,7 @@ async function renderBrowseHTML() {
                 <p class="tjw-hero-sub">${t('tjw_hero_progress').replace('{done}', masteredCount).replace('{total}', totalRules)}</p>
                 <div class="tjw-hero-actions">
                     <button class="tjw-link-btn" data-action="open-leaderboard">🏆 ${t('tjw_leaderboard_title')}</button>
+                    <button class="tjw-link-btn" data-action="parent-summary">${t('tjw_sum_btn_session')}</button>
                     <button class="tjw-link-btn" data-action="change-student">${t('tjw_change_student')}</button>
                 </div>
             </div>
@@ -482,6 +490,9 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     // 🌟 «ألعاب الحروف»: لعبة إضافية مستقلة لكل حكم قائم على حروف أو أزواج، متاحة في كل خطوات الرحلة
     const lettersGameHTML = isLetterGameRule(rule)
         ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="start-letters" ${attrs}>🎮 ${t('tjw_letters_play_btn')}</button></div>` : '';
+    // 🌟 «ملخص هذا الحكم للولي»: متاح في كل خطوات الرحلة (يلخّص ما تمّ حتى الآن)
+    const summaryBtnHTML = AppState.currentStudent
+        ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="parent-summary" ${attrs}>${t('tjw_sum_btn_rule')}</button></div>` : '';
     const treeHTML = `<section><h3 class="tjw-section-title">${t('tjw_tree_title')}</h3>${renderStageTreeHTML(stageId, ruleId)}</section>`;
 
     const dimsHTML = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'].map(k => {
@@ -537,6 +548,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     ${lastExamHTML}
                     <div class="tjw-lesson-actions">${ctaHTML}</div>
                     ${lettersGameHTML}
+                    ${summaryBtnHTML}
                     <details class="tjw-dims-details"><summary>${t('tjw_dims_title')}</summary><div class="tjw-dims">${dimsHTML}</div></details>
                 </section>
             </div>

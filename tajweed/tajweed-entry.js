@@ -104,9 +104,11 @@ function continueBanner(s) {
     if (!s) return `<section class="tjw-e-cont is-hint"><b>${t('tjw_e_pick_hint_title')}</b><small>${t('tjw_e_pick_hint_sub')}</small></section>`;
     const name = esc(s.student.name);
     const mapBtn = `<button type="button" class="tjw-e-ghost" data-action="entry-map">${t('tjw_e_btn_map')}</button>`;
+    // «ملخص الحصة للولي» لمن له نشاط مسجَّل (لا ملخص لطالب لم يبدأ)
+    const summaryBtn = s.lastTs !== null ? `<button type="button" class="tjw-e-ghost" data-action="entry-summary">${t('tjw_sum_btn_session')}</button>` : '';
     if (!s.current) {
         return `<section class="tjw-e-cont"><div class="tjw-e-who">${ringAvatar(s, 'var(--tjw-good)')}<div><h2>${tpl('tjw_e_done_title', { name })}</h2><small>${t('tjw_e_all_done')}</small></div></div>
-            <div class="tjw-e-row"><button type="button" class="tjw-e-cta" data-action="entry-map">${t('tjw_e_btn_map')}</button><button type="button" class="tjw-e-ghost" data-action="entry-other">${t('tjw_e_btn_other')}</button></div></section>`;
+            <div class="tjw-e-row"><button type="button" class="tjw-e-cta" data-action="entry-map">${t('tjw_e_btn_map')}</button>${summaryBtn}<button type="button" class="tjw-e-ghost" data-action="entry-other">${t('tjw_e_btn_other')}</button></div></section>`;
     }
     const stage = stageById(s.current.stageId), rule = ruleById(s.current.ruleId);
     if (!s.started) {
@@ -121,7 +123,7 @@ function continueBanner(s) {
         <div class="tjw-e-row"><span class="tjw-e-rulechip" style="--c:${stageColor(stage)};">${stage.icon} ${t(rule.nameKey)}</span>
             <small>${tpl('tjw_e_rule_pos', { stage: t(stage.nameKey), i: s.current.ruleIndex + 1, n: s.current.ruleCount })}</small></div>
         ${stepperHTML(s.current.step)}
-        <div class="tjw-e-row"><button type="button" class="tjw-e-cta" data-action="entry-go">${t('tjw_e_btn_continue')}</button>${mapBtn}<button type="button" class="tjw-e-ghost" data-action="entry-other">${t('tjw_e_btn_other')}</button></div></section>`;
+        <div class="tjw-e-row"><button type="button" class="tjw-e-cta" data-action="entry-go">${t('tjw_e_btn_continue')}</button>${mapBtn}${summaryBtn}<button type="button" class="tjw-e-ghost" data-action="entry-other">${t('tjw_e_btn_other')}</button></div></section>`;
 }
 
 function studentsPanel(list) {
