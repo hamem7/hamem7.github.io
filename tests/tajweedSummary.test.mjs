@@ -77,7 +77,7 @@ test('نص ملخص الحصة بالعربية: كل العناصر موجود�
     console.log('\n' + text.split('\n').map(l => '      │ ' + l).join('\n') + '\n');
     noBad(text);
     const order = ['السلام عليكم', 'ملخص حصة التجويد — أحمد', 'DATE(', 'ما تعلّمناه', '*الإظهار الحلقي*', 'التطبيق 80% ×2', 'ألعاب الحروف 100%', 'الاختبار 90%', 'التسميع 85%',
-        'تعلّم شرح الحكم', 'اجتاز اختبار الحكم (90%)', 'اعتمد المعلم الحكم', 'إنجازات الحصة', 'أتقن حكم «الإظهار الحلقي»', 'وسام «', 'متوسط', 'القادم:', 'في البيت:', 'ملاحظة المعلم: مخارج الحروف ممتازة', 'جزاكم الله خيراً'];
+        '✅ أنجز: الشرح · التطبيق · الاختبار (90%) · اعتماد المعلم', 'إنجازات الحصة', 'أتقن حكم «الإظهار الحلقي»', 'وسام «', 'متوسط', 'القادم:', 'في البيت:', 'ملاحظة المعلم: مخارج الحروف ممتازة', 'جزاكم الله خيراً'];
     let pos = -1; order.forEach(s => { const i = text.indexOf(s, pos + 1); assert.ok(i > pos, `«${s}» غير موجود أو في غير ترتيبه`); pos = i; });
     assert.ok(!text.includes('الإقلاب'), 'حكم جلسته قبل يومين لا يدخل');
 });
@@ -118,7 +118,7 @@ test('تسميع لم يُعتمد: لا «اعتمد المعلم» ولا إن
     const m = session({ sessions: s, mastery: [rec('izhar', { learn: 0, practice: 0, exam: 0 })] });
     assert.deepEqual(m.masteredRuleIds, []);
     const text = formatSummaryText(m, ctx);
-    assert.ok(!text.includes('اعتمد المعلم') && !text.includes('إنجازات الحصة') && text.includes('يحتاج تدريباً على الغنة'));
+    assert.ok(!text.includes('اعتماد المعلم') && !text.includes('إنجازات الحصة') && text.includes('يحتاج تدريباً على الغنة'));
 });
 
 test('كل الأحكام متقنة: «أتمّ كل أحكام المتن» ولا «القادم»', () => {
@@ -229,7 +229,7 @@ test('تنظيف النص قبل النسخ: أسطر موحّدة، بلا مس
     assert.equal(cleanForCopy('x\u202Ey\u2066z\uFEFF'), 'xyz');
     assert.equal(cleanForCopy('\u200Fسطر'), '\u200Fسطر', 'علامة الاتجاه العادية RLM تبقى');
     assert.equal(cleanForCopy(null), ''); assert.equal(cleanForCopy(undefined), '');
-    const t1 = 'سطر 1\n\nسطر 2\n▫️ التطبيق 80%';
+    const t1 = 'سطر 1\n\nسطر 2\n🔹 التطبيق 80%';
     assert.equal(cleanForCopy(t1), t1, 'نص نظيف لا يتغيّر');
 });
 
@@ -244,7 +244,7 @@ test('النص الناتج جاهز للصق أصلاً: لا مسافات با
         assert.ok(!/^[ \t]+\S/m.test(x), 'مسافة بادئة في سطر:\n' + x);
         assert.ok(!/\n\n\n/.test(x));
     });
-    assert.ok(texts[0].includes('▫️ التطبيق 80% ×2 · ألعاب الحروف 100%'));
+    assert.ok(texts[0].includes('🔹 التطبيق 80% ×2 · ألعاب الحروف 100%'));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

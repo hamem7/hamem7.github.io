@@ -67,8 +67,8 @@ const ui = await page.evaluate(() => ({ dialog: document.getElementById('tjw-sum
 check('النافذة: تبويب الحصة نشط، لا زر واتساب ولا رقم ولي أمر (النسخ فقط)، وزر النسخ عريض', ui.dialog === 'dialog' && ui.tabOn === 'session' && !ui.wa && !ui.phone && ui.copyW > ui.cardW * 0.8 && ui.rulePickHidden, JSON.stringify(ui));
 const text1 = await txt('#tjw-sum-text');
 console.log(text1.split('\n').map(l => '      │ ' + l).join('\n'));
-['السلام عليكم ورحمة الله وبركاته', 'ملخص حصة التجويد — أحمد', 'ما تعلّمناه', '*الإظهار الحلقي* (النون الساكنة والتنوين)', '▫️ التطبيق 80% ×2 · ألعاب الحروف 100% · الاختبار 90% · التسميع 85%',
-  '✅ تعلّم شرح الحكم', 'اعتمد المعلم الحكم', 'أتقن حكم «الإظهار الحلقي»', 'وسام «', '📊 5 أنشطة', 'القادم:', 'في البيت:', 'ملاحظة المعلم: مخارج الحروف ممتازة', 'جزاكم الله خيراً']
+['السلام عليكم ورحمة الله وبركاته', 'ملخص حصة التجويد — أحمد', 'ما تعلّمناه', '*الإظهار الحلقي* (النون الساكنة والتنوين)', '🔹 التطبيق 80% ×2 · ألعاب الحروف 100% · الاختبار 90% · التسميع 85%',
+  '✅ أنجز: الشرح · التطبيق · الاختبار (90%) · اعتماد المعلم', 'أتقن حكم «الإظهار الحلقي»', 'وسام «', '📊 5 أنشطة', 'القادم:', 'في البيت:', 'ملاحظة المعلم: مخارج الحروف ممتازة', 'جزاكم الله خيراً']
   .forEach(s => check('نص الحصة يحوي: ' + s.slice(0, 40), text1.includes(s)));
 check('لا بقايا قالب ولا نشاط قبل 10 أيام (القلقلة) في ملخص اليوم', !/undefined|NaN|\{[a-z]+\}/.test(text1) && !text1.includes('القلقلة'));
 const ta = await page.evaluate(() => { const e = document.getElementById('tjw-sum-text'); return { top: e.scrollTop, fits: e.clientHeight >= e.scrollHeight - 2, h: e.clientHeight, max: Math.round(innerHeight * 0.5), first: e.value.split('\\n')[0] }; });
@@ -165,7 +165,7 @@ await page.waitForSelector('.tjw-result-card');
 check('شاشة نتيجة التطبيق فيها زر «ملخص للولي»', !!(await page.$('.tjw-result-card [data-action="parent-summary"]')));
 await page.click('.tjw-result-card [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
 const afterPractice = await txt('#tjw-sum-text');
-check('ملخص الحصة بعد التطبيق يشمل التطبيق الجديد (×3 للإظهار الحلقي) ويبقى اعتماد اليوم', /التطبيق \d+% ×3/.test(afterPractice) && afterPractice.includes('أتقن حكم «الإظهار الحلقي»'), afterPractice.split('\n').filter(l => l.includes('▫️')).join(' | '));
+check('ملخص الحصة بعد التطبيق يشمل التطبيق الجديد (×3 للإظهار الحلقي) ويبقى اعتماد اليوم', /التطبيق \d+% ×3/.test(afterPractice) && afterPractice.includes('أتقن حكم «الإظهار الحلقي»'), afterPractice.split('\n').filter(l => l.includes('🔹')).join(' | '));
 await page.keyboard.press('Escape');
 
 // ١٣) الإنجليزية

@@ -160,8 +160,8 @@ export function formatSummaryText(model, ctx) {
             if (r.milestones.approved) ms.push(tr('tjw_sm_ms_approved'));
             L.push(r.stageId ? fill(tr, 'tjw_sm_rule_bullet', { rule: ruleName(r.ruleId), stage: stageName(r.stageId) }) : fill(tr, 'tjw_sm_rule_bullet_plain', { rule: ruleName(r.ruleId) }));
             const acts = r.activities.map(g => actText(tr, g));
-            if (acts.length) L.push('▫️ ' + acts.join(' · '));
-            if (ms.length) L.push(ms.map(x => '✅ ' + x).join(' · '));
+            if (acts.length) L.push('🔹 ' + acts.join(' · '));
+            if (ms.length) L.push(fill(tr, 'tjw_sm_ms_line', { items: ms.join(' · ') }));
         });
         model.stages.forEach(s => L.push(fill(tr, 'tjw_sm_stage_bullet', { stage: stageName(s.stageId), acts: s.activities.map(g => actText(tr, g)).join(' · ') })));
         const wins = [
