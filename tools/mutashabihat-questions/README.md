@@ -1,6 +1,6 @@
 # أسئلة المتشابهات — الأدوات والاختبارات
 
-المولّد نفسه في `engine/similarityQuestions.js` (منطق بحت). الأنواع: `sim_surah` · `sim_complete` · `sim_next` · `sim_prev`.
+المولّد نفسه في `engine/similarityQuestions.js` (منطق بحت). الأنواع: `sim_surah` · `sim_complete` (حُذف «ماذا بعدها؟/ما قبلها؟» لأنه ترتيب مكرر لأسئلة السابقة واللاحقة، والهدف تمييز الآية عن شبيهتها في سورة أخرى).
 نص الآيات يُقرأ من مصحف المنصة (`database/quran-uthmani.json` ← IndexedDB) ولا يُؤخذ من حقل `fullText` في بيانات المجموعات.
 
 - `qa.mjs` — فحوص الجودة على القرآن كله (مستقلة عن المولّد).

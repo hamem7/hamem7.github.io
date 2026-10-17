@@ -10,7 +10,8 @@
 // القواعد (من PROMPT_FOR_CODE.md):
 //  1) لا رقم آية في نص السؤال ولا في الخيارات. الموضع يُعرَّف باسم السورة + الآية السابقة/اللاحقة.
 //     الرقم يبقى في حقل ref للمعلم فقط.
-//  2) أربعة أنواع: sim_surah | sim_complete | sim_next | sim_prev
+//  2) نوعان فقط: sim_surah | sim_complete — غرضهما تمييز الآية/الكلمة عن شبيهتها في سورة أخرى.
+//     أسئلة «ماذا بعدها؟/ما قبلها؟» محذوفة: هي ترتيب عادي موجود أصلاً في أسئلة السابقة واللاحقة وليست من التمييز بين المتشابهات
 //  3) تطابق لفظ الآيتين في موضعين: يُعرض معهما السياق حتى يكون الجواب واحداً.
 //  4) منع التكرار داخل المجموعة: لا سؤالان يسألان الحقيقة نفسها ولا يكشف أحدهما جواب الآخر.
 //  5) كل الخيارات الخاطئة من نص القرآن نفسه، ويُتحقق آلياً أنها ليست جواباً صحيحاً في السياق المذكور.
@@ -33,7 +34,7 @@ export function skel(s) {
 }
 
 // ۞ (علامة بداية الحزب) ليست من نص الآية: تُحذف من كل ما يُعرض (العبارات والآيات والخيارات)
-export const stripHizbMark = (s) => String(s == null ? '' : s).replace(/\u06DE\s*/g, '').replace(/\s+/g, ' ').trim();
+export const stripHizbMark = (s) => String(s == null ? '' : s).replace(/[\u06DE\u06E9]\s*/g, '').replace(/\s+/g, ' ').trim();
 
 const wordsOf = (s) => String(s).split(/\s+/).filter(Boolean);
 const cutWords = (text, k) => { const w = wordsOf(text); return [w.slice(0, k).join(' '), w.slice(k).join(' ')]; };
@@ -328,45 +329,6 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null) {
         }
     }
 
-    // ---- ماذا بعدها؟ ----
-    const cn = locs.filter(l => l.next);
-    for (const l of cn) {
-        const pool = [...cn.map(x => x.next.text), ...locs.filter(x => x.prev).map(x => x.prev.text)];
-        let text, shown, seq;
-        if (anchored && l.prev) {
-            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + shownVerse(Q, l.s, l.prev.text, 'tail') + ' ثم ' + shownVerse(Q, l.s, l.text, 'tail') + '\nفما الآية التي تليها مباشرة؟';
-            shown = [tid(l.v), tid(l.prev)]; seq = [l.prev.norm, l.norm];
-        } else {
-            text = `أنت تقرأ سورة ${l.surahName} وبلغت قوله تعالى:\n` + shownVerse(Q, l.s, l.text, 'tail') + '\nفما الآية التي تليها مباشرة؟';
-            shown = [tid(l.v)]; seq = [l.norm];
-        }
-        const f = finalize(pool.filter(t => !seq.includes(norm(t))), l.next.text, rng);
-        if (!f) continue;
-        const valid = Q.followersIn(l.s, seq);
-        if (valid.size !== 1 || !valid.has(l.next.norm)) continue; // الجواب غير وحيد في السياق المعروض
-        if (f.opts.some((o, i) => i !== f.ci && valid.has(norm(o)))) continue;
-        cand.push({ type: 'sim_next', text, opts: f.opts, ci: f.ci, loc: l, shown: new Set(shown), answer: new Set([tid(l.next)]), key: 'adj|' + l.vid + '|' + vidOf(l, 1), facts: new Set([fact(l.v, l.next)]) });
-    }
-
-    // ---- ما الآية التي قبلها؟ ----
-    const cp = locs.filter(l => l.prev);
-    for (const l of cp) {
-        const pool = [...cp.map(x => x.prev.text), ...locs.filter(x => x.next).map(x => x.next.text)];
-        let text, shown, seq;
-        if (anchored && l.next) {
-            text = `في سورة ${l.surahName} جاءت الآيتان:\n` + shownVerse(Q, l.s, l.text, 'head') + ' ثم ' + shownVerse(Q, l.s, l.next.text, 'head') + '\nفما الآية التي تسبق الآية الأولى منهما مباشرة؟';
-            shown = [tid(l.v), tid(l.next)]; seq = [l.norm, l.next.norm];
-        } else {
-            text = `في سورة ${l.surahName} جاءت الآية:\n` + shownVerse(Q, l.s, l.text, 'head') + '\nفما الآية التي تسبقها مباشرة؟';
-            shown = [tid(l.v)]; seq = [l.norm];
-        }
-        const f = finalize(pool.filter(t => !seq.includes(norm(t))), l.prev.text, rng);
-        if (!f) continue;
-        const valid = Q.precedersIn(l.s, seq);
-        if (valid.size !== 1 || !valid.has(l.prev.norm)) continue;
-        if (f.opts.some((o, i) => i !== f.ci && valid.has(norm(o)))) continue;
-        cand.push({ type: 'sim_prev', text, opts: f.opts, ci: f.ci, loc: l, shown: new Set(shown), answer: new Set([tid(l.prev)]), key: 'adj|' + vidOf(l, -1) + '|' + l.vid, facts: new Set([fact(l.prev, l.v)]) });
-    }
     return cand;
 }
 
@@ -416,7 +378,7 @@ export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = {
     if (locs.length < 2) { res.reason = 'أقل من موضعين صالحين بعد مطابقة المصحف'; return res; }
     const juz = locs[0].v.juz;
     const cand = shuffled(buildCandidates(Q, group, locs, juz, rng, stats), rng)
-        .sort((a, b) => ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'].indexOf(a.type) - ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'].indexOf(b.type));
+        .sort((a, b) => SIM_TYPES.indexOf(a.type) - SIM_TYPES.indexOf(b.type));
     const chosen = chooseBest(cand, 4);
     if (stats) { const nc = cand.filter(c => c.type === 'sim_complete').length; if (nc) stats.groupsWithCand++; const cc = chosen.filter(c => c.type === 'sim_complete').length; if (cc) stats.groupsChosen++; stats.completeChosen += cc; }
     for (const c of chosen) {
@@ -442,7 +404,7 @@ export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = {
     return res;
 }
 
-export const SIM_TYPES = ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'];
+export const SIM_TYPES = ['sim_surah', 'sim_complete'];
 export const SIM_TYPE_LABELS = { sim_surah: 'من أي سورة؟', sim_complete: 'أكمل الآية', sim_next: 'ماذا بعدها؟', sim_prev: 'ما الآية التي قبلها؟' };
 
 // ---------------- مصحف المنصة في المتصفح ----------------

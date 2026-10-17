@@ -40,7 +40,7 @@ const surahLabel = (name) => surahNameLocal ? surahNameLocal(name) : name;
 // ---------------- الصغار ----------------
 // أزرار الاختيار: أسماء السور تُعرض «سورة X» (optionsKind: 'sim_surah')، وبقية الأنواع آيات داخل ﴿ ﴾ (الافتراضي)
 export function formatKidsSimilar(sim, pool) {
-    if (!sim || (sim.kind !== 'sim_surah' && sim.kind !== 'sim_next')) return null;
+    if (!sim || sim.kind !== 'sim_surah') return null;
     const isSurah = sim.kind === 'sim_surah';
     return {
         type: 'kids_mcq',

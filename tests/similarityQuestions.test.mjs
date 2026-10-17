@@ -12,9 +12,9 @@ const res = await runAll({ seed: 7 });
 const sum = summarize(res);
 console.log(sum);
 
-test('تُولَّد أسئلة لمعظم المجموعات وبكل الأنواع الأربعة', () => {
-    assert.ok(sum.total > 5000);
-    ['sim_surah', 'sim_complete', 'sim_next', 'sim_prev'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
+test('تُولَّد أسئلة لمعظم المجموعات وبكل الأنواع', () => {
+    assert.ok(sum.total > 1500);
+    ['sim_surah', 'sim_complete'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
 });
 test('لا رقم (عربي أو لاتيني) داخل نص أي سؤال أو خياراته', () => {
     const bad = res.groups.flatMap(g => g.questions).filter(q => /[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n')));
@@ -46,7 +46,7 @@ test('لا مجموعة بأكثر من 4 أسئلة، ولا نوعان متط�
 const R = buildRaw();
 const sample = (type) => res.groups.flatMap(g => g.questions).find(q => q.type === type);
 test('ضابط سلبي: تعديل حرف في آية معروضة يُكتشف', () => {
-    const q = structuredClone(sample('sim_next')); q.text = q.text.replace('﴿', '﴿ز');
+    const q = structuredClone(sample('sim_complete')); q.text = q.text.replace('﴿', '﴿ز');
     assert.ok(checkQuestion(q, R).some(e => e.includes('حرفية')));
 });
 test('ضابط سلبي: إدخال رقم آية يُكتشف', () => {
@@ -54,7 +54,7 @@ test('ضابط سلبي: إدخال رقم آية يُكتشف', () => {
     assert.ok(checkQuestion(q, R).some(e => e.includes('رقم')));
 });
 test('ضابط سلبي: خيار خاطئ يساوي الصحيح في السياق يُكتشف', () => {
-    const q = structuredClone(sample('sim_next')); const i = (q.correctIndex + 1) % q.options.length; q.options[i] = q.correctAnswer;
+    const q = structuredClone(sample('sim_complete')); const i = (q.correctIndex + 1) % q.options.length; q.options[i] = q.correctAnswer;
     assert.ok(checkQuestion(q, R).length > 0);
 });
 test('ضابط سلبي: خيار «سورة» ليس اسم سورة يُكتشف', () => {
@@ -82,7 +82,7 @@ test('كل الأسئلة: خيار مقصوص واحد على الأقل موج
     assert.equal(res.failures.filter(f => f.errors.some(e => /قص|عرض|«…»/.test(e))).length, 0);
 });
 test('ضابط سلبي: تطابق خيارين بعد القص يُكتشف', () => {
-    const q = structuredClone(res.groups.flatMap(g => g.questions).find(q => q.type === 'sim_next' && q.optionsDisplay.some((d, i) => d !== q.options[i])));
+    const q = structuredClone(res.groups.flatMap(g => g.questions).find(q => q.type === 'sim_complete' && q.optionsDisplay.some((d, i) => d !== q.options[i])));
     q.optionsDisplay[0] = q.optionsDisplay[1];
     assert.ok(checkQuestion(q, R).some(e => e.includes('متطابقان')));
 });

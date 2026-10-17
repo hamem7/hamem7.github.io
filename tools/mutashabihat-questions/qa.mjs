@@ -15,7 +15,7 @@ export function buildRaw() {
     for (const s of surahs) {
         const arr = [];
         for (const a of s.ayahs) {
-            let t = a.text.replace(/\uFEFF/g, '').replace(/\u06DE\s*/g, '').trim(); // ۞ تُحذف من العرض
+            let t = a.text.replace(/\uFEFF/g, '').replace(/[\u06DE\u06E9]\s*/g, '').trim(); // ۞ تُحذف من العرض
             if (a.numberInSurah === 1 && s.number !== 1 && s.number !== 9) {
                 const w = t.split(/\s+/);
                 if (letters(w.slice(0, 4).join(' ')) === BASMALA) t = w.slice(4).join(' ');
