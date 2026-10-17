@@ -509,7 +509,7 @@ body.adult-theme:has(.tjw-wrap) {
 }
 
 /* ---------- الأنشطة ---------- */
-.tjw-activity-progress { display: flex; align-items: center; gap: 12px; max-width: 640px; margin: 4px auto 18px; color: #fff8e6; font-weight: 800; }
+.tjw-activity-progress { display: flex; align-items: center; gap: 12px; max-width: 900px; margin: 4px auto 18px; color: #fff8e6; font-weight: 800; }
 .tjw-progress-bar { flex: 1; height: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.16); overflow: hidden; }
 .tjw-progress-bar > span { display: block; height: 100%; border-radius: 12px; background: linear-gradient(90deg, var(--tjw-gold), #f6d98a); transition: width 0.4s ease; }
 .tjw-progress-label { white-space: nowrap; font-size: 0.95rem; }
@@ -519,7 +519,7 @@ body.adult-theme:has(.tjw-wrap) {
     color: var(--tjw-text);
     border-radius: 26px;
     padding: 28px 26px;
-    max-width: 640px;
+    max-width: 900px;
     margin: 0 auto;
     box-shadow: var(--tjw-shadow);
     border-top: 6px solid var(--tjw-gold);
@@ -537,7 +537,11 @@ body.adult-theme:has(.tjw-wrap) {
     margin-bottom: 18px;
 }
 .tjw-activity-ayah-box { background: linear-gradient(180deg, #fbf3df, #f6ead0); border: 1.5px solid rgba(185, 138, 44, 0.45); border-radius: 18px; padding: 16px; margin-bottom: 18px; text-align: center; }
-.tjw-activity-ayah-box .tjw-example-text { font-size: 1.6rem; }
+.tjw-activity-ayah-box { padding: 28px 24px 22px; }
+/* 🌟 الآية كبيرة وواضحة للأطفال: تملأ عرض الصندوق وتتسع بحسب الشاشة */
+.tjw-activity-ayah-box .tjw-example-text { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 2.2; }
+.tjw-activity-ayah-box .tjw-example-ref { font-size: 1.2rem; margin-top: 8px; }
+.tjw-activity-ayah-box .tjw-hifz-tag { margin-bottom: 10px; }
 
 .tjw-answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .tjw-answer-btn {
@@ -558,7 +562,7 @@ body.adult-theme:has(.tjw-wrap) {
 .tjw-answer-btn:disabled { cursor: default; opacity: 0.7; }
 .tjw-answer-correct { background: var(--tjw-good) !important; border-color: #167a42 !important; color: #fff !important; opacity: 1 !important; box-shadow: 0 4px 0 #0f5a2f !important; }
 .tjw-answer-wrong { background: var(--tjw-bad) !important; border-color: #96281b !important; color: #fff !important; opacity: 1 !important; box-shadow: 0 4px 0 #6f1d13 !important; }
-.tjw-word-btn { font-family: 'Amiri Quran', serif; font-size: 1.5rem; }
+.tjw-word-btn { font-family: 'Amiri Quran', serif; font-size: clamp(1.8rem, 3.6vw, 2.4rem); padding: 20px 12px; }
 
 .tjw-link-columns { display: flex; gap: 16px; }
 .tjw-link-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
@@ -632,6 +636,7 @@ body.adult-theme:has(.tjw-wrap) {
     .tjw-rule-card-name { font-size: 1.6rem; }
     .tjw-lesson-body { padding: 16px; }
     .tjw-example-text { font-size: 1.5rem; }
+    .tjw-activity-ayah-box { padding: 20px 12px 16px; }
     .tjw-howto-grid { grid-template-columns: 1fr; }
     .tjw-dim { grid-template-columns: 90px 1fr 36px; }
     .tjw-activity-card, .tjw-result-card { padding: 20px 16px; }
