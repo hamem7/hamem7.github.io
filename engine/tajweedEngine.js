@@ -7,6 +7,8 @@
 // تستدعي هذه الدوال ثم تحفظ النتيجة عبر database/tajweedDB.js.
 
 import { TAJWEED_STAGES, getTajweedStage, getStageRuleIds, getAllRulesFlat } from './tajweedRulesCatalog.js';
+import { findPhraseRanges } from '../core/quranTextUtils.js';
+import { isWaqfMark } from './quranEngine.js';
 
 // ============================================================
 // أدوات عامة
@@ -46,7 +48,6 @@ export const ACTIVITY_DIMENSION_MAP = {
 
 const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'];
 const MASTERY_THRESHOLD = 80;
-const WEAK_DIMENSION_THRESHOLD = 60;
 // 🌟 [افتراض صريح]: الحد الأدنى لاعتبار فجوة زمنية "حقيقية" بين آخر تدرّب وجلسة الاستدعاء —
 // لم يحدّد المستند رقماً دقيقاً (فقط "بعد فجوة زمنية حقيقية")، فاخترت يوماً كاملاً كحد أدنى
 // معقول (نفس وحدة القياس المستخدمة أصلاً في خوارزمية reviewScheduleDB.js: intervalDays)
@@ -109,10 +110,9 @@ export function computeMasteryStatus(dimensions, previousStatus) {
         return 'needs_review';
     }
 
-    const anyWeak = values.some(v => v < WEAK_DIMENSION_THRESHOLD);
     const anyProgress = values.some(v => v > 0);
     if (!anyProgress) return 'available';
-    return anyWeak ? 'in_progress' : 'in_progress';
+    return 'in_progress';
 }
 
 // 🌟 نسبة إتقان الحكم الواحد كرقم واحد مبسّط (متوسط الأبعاد الخمسة) — تُستخدَم لعرض شريط تقدّم
@@ -192,7 +192,7 @@ export function generateChooseRuleQuestion(rule) {
     return {
         type: 'choose_rule',
         ruleId: rule.id,
-        letters: rule.letters,
+        letters: rule.promptLetters || rule.letters,
         correctRuleId: rule.id,
         options
     };
@@ -210,22 +210,36 @@ export function generateLinkQuestion(stageId) {
 // 🌟 دالة مشتركة تبني سؤال "اكتشف الحكم" من أي مثال آية (تُستخدَم في اكتشف الحكم داخل الآية
 // وتطبيق على آية جديدة معاً — الفرق فقط أي حقل من الحكم يُمرَّر لها: example أو practiceExample)
 function buildDiscoverStyleQuestion(type, rule, ayahInfo, exampleMeta) {
-    if (!ayahInfo) return null;
-    const words = ayahInfo.text.split(/\s+/).filter(Boolean);
-    // 🌟 نبحث عن الكلمة (أو أول كلمة من عبارة متعددة الكلمات) المطابقة للتظليل المحدَّد في
-    // الكتالوج لتحديد "الإجابة الصحيحة" ضمن كلمات الآية الفعلية المجلوبة من المحرك
-    const highlightFirstWord = exampleMeta.highlight.split(/\s+/)[0];
-    const correctIndex = words.findIndex(w => w.includes(highlightFirstWord) || highlightFirstWord.includes(w));
+    if (!ayahInfo || exampleMeta.skipQuestion) return null;
+    // 🌟 رموز الوقف (ۛ ۖ ...) ليست كلمات — كانت تظهر أحياناً كخيار خاطئ، فتُستبعد هنا
+    const words = ayahInfo.text.split(/\s+/).filter(w => w && !isWaqfMark(w));
+    const joined = words.join(' ');
+    // 🌟 [إصلاح] المطابقة كانت بـ includes الحرفية بين كتابتنا المُشكَّلة ونص تنزيل (سكون قرآني،
+    // «ءَامَنُوا»...) فتفشل في 13 من 20 مثالاً ويُحذف السؤال بصمت. نستخدم الآن نفس مطابقة التظليل
+    // (findPhraseRanges: تتجاهل التشكيل وفروق الرسم) ثم نحوّل موضع البداية إلى فهرس الكلمة.
+    let ranges = findPhraseRanges(joined, exampleMeta.highlight);
+    // firstOnly: حروف الفواتح المفردة (نٓ، قٓ) تتكرر في الآية نفسها، فنكتفي بأول مطابقة
+    if (exampleMeta.firstOnly) ranges = ranges.slice(0, 1);
+    if (ranges.length === 0) return null;
+
+    // فهرس كل كلمة ضمن النص المضموم، لتحديد الكلمات التي تغطيها العبارة الموسومة كلها
+    const spans = [];
+    let pos = 0;
+    words.forEach(w => { spans.push([pos, pos + w.length]); pos += w.length + 1; });
+    const covered = new Set();
+    ranges.forEach(([a, b]) => spans.forEach((sp, i) => { if (sp[0] < b && sp[1] > a) covered.add(i); }));
+    const correctIndex = spans.findIndex(sp => ranges[0][0] >= sp[0] && ranges[0][0] < sp[1]);
     if (correctIndex === -1) return null;
 
-    const otherIndices = words.map((_, i) => i).filter(i => i !== correctIndex);
+    // 🌟 المشتِّتات لا تشمل أي كلمة من العبارة الموسومة (كانت عشوائية وقد تكون صحيحة فعلاً)
+    const otherIndices = words.map((_, i) => i).filter(i => !covered.has(i));
     const distractorIndices = pickRandom(otherIndices, Math.min(3, otherIndices.length));
     const optionIndices = shuffleArray([correctIndex, ...distractorIndices]);
 
     return {
         type,
         ruleId: rule.id,
-        ayahText: words.join(' '),
+        ayahText: joined,
         surahName: ayahInfo.surahName,
         audioNumber: ayahInfo.number,
         options: optionIndices.map(i => ({ index: i, word: words[i] })),
@@ -321,6 +335,11 @@ export const TAJWEED_BADGE_CATALOG = {
     stage_master_meem_noon_mushaddadah: { icon: '🎵', nameKey: 'tjw_badge_stage_master_meem_noon_mushaddadah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'meem_noon_mushaddadah' },
     stage_master_meem_sakinah: { icon: '🟠', nameKey: 'tjw_badge_stage_master_meem_sakinah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'meem_sakinah' },
     stage_master_noon_sakinah: { icon: '🔵', nameKey: 'tjw_badge_stage_master_noon_sakinah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'noon_sakinah' },
+    // 🌟 [توسيع أكتوبر ٢٠٢٦] أوسمة المراحل الأربع المضافة من متن تحفة الأطفال
+    stage_master_lam_al: { icon: '🌙', nameKey: 'tjw_badge_stage_master_lam_al_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'lam_al' },
+    stage_master_mithlain: { icon: '🔗', nameKey: 'tjw_badge_stage_master_mithlain_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'mithlain' },
+    stage_master_madd: { icon: '🌊', nameKey: 'tjw_badge_stage_master_madd_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'madd' },
+    stage_master_madd_lazim: { icon: '📏', nameKey: 'tjw_badge_stage_master_madd_lazim_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'madd_lazim' },
     perfect_challenge: { icon: '🌟', nameKey: 'tjw_badge_perfect_challenge_name', descKey: 'tjw_badge_perfect_challenge_desc', repeatable: true },
     review_streak_3: { icon: '🔥', nameKey: 'tjw_badge_review_streak_name', descKey: 'tjw_badge_review_streak_desc', repeatable: true },
     five_rules_mastered: { icon: '🏅', nameKey: 'tjw_badge_five_rules_name', descKey: 'tjw_badge_five_rules_desc', repeatable: false },

@@ -47,6 +47,19 @@
 // tajweed-map.js يقرآنهما حالياً)، فتأجيل ترجمتهما لحين ربطهما فعلياً بشاشة تستخدمهما أوفر
 // من ترجمة نص قد يتغيّر شكله عند الربط الفعلي — يُرجى مراجعة المعلم لهذا الافتراض تحديداً.
 
+// 🌟🌟 [توسيع أكتوبر ٢٠٢٦ — أحكام متن تحفة الأطفال كاملة] أُضيفت أربع مراحل بعد مراحل الكتاب الأول
+// لتغطّي كل أبواب المتن (docs/تحفة الاطفال.pdf، فهرسه: النون الساكنة والتنوين، الميم والنون المشددتان،
+// الميم الساكنة، لام «ال» ولام الفعل، المثلان والمتقاربان والمتجانسان، أقسام المد، أحكام المد، أقسام
+// المد اللازم): «لام ال ولام الفعل» ← «المثلان والمتقاربان والمتجانسان» ← «أقسام المد وأحكامه»
+// ← «أقسام المد اللازم». القلقلة ليست من المتن وتبقى مرحلة إضافية بقرار المعلم. الأبواب الأربعة الأولى
+// من الكتاب المرجعي (فتوحات الرحمن)، والأربعة الجديدة من المتن نفسه + معرفة تجويد عامة — فنصوص
+// تعريفاتها ومقادير المد (خصوصاً المنفصل والعارض) تستحق مراجعة المعلم قبل الاعتماد.
+// أمثلة المراحل الجديدة نُسخت كلماتها من مصحف تنزيل المحلي (database/quran-uthmani.json) ويفحصها
+// tests/tajweedCatalog.test.mjs آلياً (وجود الكلمة، وتوليد سؤال «اكتشف» لكل مثال).
+// حقول اختيارية جديدة: glyph (رمز بطاقة الحكم بدل أول حرف)، promptLetters (نص بديل في سؤال «اختر
+// الحكم» لفكّ التباس حكمين لهما الحروف نفسها)، وفي المثال: firstOnly (تظليل أول مطابقة فقط، لحروف
+// الفواتح المفردة) وskipQuestion (للعرض فقط، حين تحوي الآية كلمات أخرى تصلح جواباً).
+
 // 🌟 [جديد — المرحلة 2] كل حكم أضفنا له practiceExample: مثال قرآني ثانٍ (غير مثال التصفّح
 // الأساسي "example") يُستخدَم حصرياً في نشاط "تطبيق على آية جديدة" حتى لا يتكرر نفس مثال
 // التصفّح الذي حفظه الطالب بالفعل.
@@ -136,6 +149,7 @@ export const TAJWEED_STAGES = [
                 nameKey: 'tjw_rule_ikhfa_shafawi_name',
                 defKey: 'tjw_rule_ikhfa_shafawi_def',
                 letters: 'ب',
+                promptLetters: 'م ساكنة + ب',
                 noticeKey: 'tjw_rule_ikhfa_shafawi_notice',
                 makhrajNote: 'الشفتان تُخفيان انطباقهما التام (لا إظهار كامل ولا إدغام كامل) مع غنة بمقدار حركتين — حالة وسط تماماً بين الإظهار والإدغام.',
                 commonMistakes: 'أشيع خطأ: تحويلها لإدغام كامل (دمج الميم في الباء تماماً)، أو العكس: إظهار الميم بوضوح تام بلا أي غنة مخفاة.',
@@ -166,9 +180,9 @@ export const TAJWEED_STAGES = [
                 makhrajNote: 'إطباق الشفتين على الميم الساكنة بوضوح تام من مخرجها من غير أي غنة زائدة — أوضح أحكام الميم الساكنة الثلاثة نطقاً.',
                 commonMistakes: 'أشيع خطأ عند الأطفال تحديداً قبل حرفي الفاء والواو (قريبَي مخرج من الباء): إضافة غنة خفيفة بالخطأ وكأنها إخفاء شفوي رغم أن الحكم إظهار تام.',
                 // مثال أساسي: عالي الثقة جداً — سورة الفاتحة (أشهر آية في القرآن على الإطلاق)
-                example: { surah: 1, ayah: 7, highlight: 'عَلَيْهِمْ غَيْرِ' },
+                example: { surah: 105, ayah: 1, highlight: 'أَلَمۡ تَرَ' },
                 // مثال تطبيقي: عالي الثقة جداً — سورة الفيل، نفس السورة المستخدمة أعلاه بموضع مختلف
-                practiceExample: { surah: 105, ayah: 1, highlight: 'أَلَمْ تَرَ' }
+                practiceExample: { surah: 106, ayah: 2, highlight: 'إِۦلَٰفِهِمۡ رِحۡلَةَ' }
             }
         ]
     },
@@ -226,6 +240,7 @@ export const TAJWEED_STAGES = [
                 nameKey: 'tjw_rule_iqlab_name',
                 defKey: 'tjw_rule_iqlab_def',
                 letters: 'ب',
+                promptLetters: 'ن ساكنة أو تنوين + ب',
                 noticeKey: 'tjw_rule_iqlab_notice',
                 makhrajNote: 'النون الساكنة أو التنوين يتحوّلان فعلياً لصوت ميم مخفاة (بغنة) قبل نطق الباء — تحوّل حقيقي في الصوت وليس مجرد إخفاء.',
                 commonMistakes: 'أشيع خطأ: نطق النون الأصلية دون تحويلها لميم، أو نسيان علامة الميم الصغيرة فوق النون عند الكتابة بخط اليد.',
@@ -244,6 +259,242 @@ export const TAJWEED_STAGES = [
                 noticeKey: 'tjw_rule_ikhfa_notice',
                 example: { surah: 105, ayah: 4, highlight: 'مِّن سِجِّيلٍ' },
                 practiceExample: { surah: 114, ayah: 4, highlight: 'مِن شَرِّ' }
+            }
+        ]
+    },
+    {
+        id: 'lam_al',
+        nameKey: 'tjw_stage_lam_al_name',
+        icon: '🌙',
+        colorVar: '--tjw-lam',
+        rules: [
+            {
+                id: 'izhar_qamari',
+                nameKey: 'tjw_rule_izhar_qamari_name',
+                defKey: 'tjw_rule_izhar_qamari_def',
+                letters: 'ا ب غ ح ج ك و خ ف ع ق ي م ه',
+                glyph: 'ق',
+                noticeKey: 'tjw_rule_izhar_qamari_notice',
+                makhrajNote: 'اللام الساكنة تخرج من طرف اللسان مع ما يحاذيه من اللثة العليا، وتُنطق واضحة كاملة قبل الحروف الأربعة عشر.',
+                commonMistakes: 'أشيع خطأ: إدغام اللام في الحرف التالي كأنها شمسية، أو إسقاطها عند الوصل.',
+                example: { surah: 108, ayah: 1, highlight: 'ٱلۡكَوۡثَرَ' },
+                practiceExample: { surah: 101, ayah: 3, highlight: 'ٱلۡقَارِعَةُ' }
+            },
+            {
+                id: 'idgham_shamsi',
+                nameKey: 'tjw_rule_idgham_shamsi_name',
+                defKey: 'tjw_rule_idgham_shamsi_def',
+                letters: 'ط ث ص ر ت ض ذ ن د س ظ ز ش ل',
+                glyph: 'ش',
+                noticeKey: 'tjw_rule_idgham_shamsi_notice',
+                makhrajNote: 'لا تُنطق اللام، ويُنطق الحرف بعدها مشدَّداً كأنه حرف واحد (الشين المشددة في «الشَّمْس»).',
+                commonMistakes: 'أشيع خطأ: نطق اللام واضحة قبل الحرف الشمسي كأنها قمرية (مثل «ألشمس» بدل «الشَّمس»).',
+                example: { surah: 91, ayah: 1, highlight: 'وَٱلشَّمۡسِ' },
+                practiceExample: { surah: 114, ayah: 1, highlight: 'ٱلنَّاسِ' }
+            },
+            {
+                id: 'izhar_lam_fil',
+                nameKey: 'tjw_rule_izhar_lam_fil_name',
+                defKey: 'tjw_rule_izhar_lam_fil_def',
+                letters: 'لام في الفعل',
+                glyph: 'لف',
+                noticeKey: 'tjw_rule_izhar_lam_fil_notice',
+                makhrajNote: 'اللام الأصلية في الفعل تُنطق واضحة دائماً مهما جاء بعدها، حتى عند التقائها بحرف من حروف الإدغام كالنون في «قُلْ نَعَمْ» والتاء في «الْتَقَى».',
+                commonMistakes: 'أشيع خطأ: إدغام اللام فيما بعدها كأنها لام «ال» الشمسية.',
+                example: { surah: 112, ayah: 1, highlight: 'قُلۡ' },
+                practiceExample: { surah: 54, ayah: 12, highlight: 'فَٱلۡتَقَى' }
+            }
+        ]
+    },
+    {
+        id: 'mithlain',
+        nameKey: 'tjw_stage_mithlain_name',
+        icon: '🔗',
+        colorVar: '--tjw-mithlain',
+        rules: [
+            {
+                id: 'mithlain',
+                nameKey: 'tjw_rule_mithlain_name',
+                defKey: 'tjw_rule_mithlain_def',
+                letters: 'حرفان متفقان في المخرج والصفة',
+                glyph: 'مث',
+                noticeKey: 'tjw_rule_mithlain_notice',
+                makhrajNote: 'يُنطق الحرفان حرفاً واحداً مشدَّداً، فتلتقي الشفتان (أو اللسان) التقاءً واحداً بدل التقاءين.',
+                commonMistakes: 'أشيع خطأ: نطق الحرفين منفصلين (باء ثم باء) بدل إدغام الأول في الثاني.',
+                example: { surah: 2, ayah: 60, highlight: 'ٱضۡرِب بِّعَصَاكَ' },
+                practiceExample: { surah: 2, ayah: 16, highlight: 'رَبِحَت تِّجَٰرَتُهُمۡ' }
+            },
+            {
+                id: 'mutaqaribain',
+                nameKey: 'tjw_rule_mutaqaribain_name',
+                defKey: 'tjw_rule_mutaqaribain_def',
+                letters: 'حرفان متقاربان في المخرج مختلفان في الصفة',
+                glyph: 'مق',
+                noticeKey: 'tjw_rule_mutaqaribain_notice',
+                makhrajNote: 'يُدغم الحرف الأول الساكن في الثاني المتحرك فيصيران حرفاً مشدَّداً من جنس الثاني (اللام تنقلب راءً في «قُل رَّبِّ»).',
+                commonMistakes: 'أشيع خطأ: إظهار الحرف الأول وعدم إدغامه في الثاني.',
+                example: { surah: 23, ayah: 93, highlight: 'قُل رَّبِّ' },
+                practiceExample: { surah: 77, ayah: 20, highlight: 'نَخۡلُقكُّم' }
+            },
+            {
+                id: 'mutajanisain',
+                nameKey: 'tjw_rule_mutajanisain_name',
+                defKey: 'tjw_rule_mutajanisain_def',
+                letters: 'حرفان متفقان في المخرج مختلفان في الصفة',
+                glyph: 'مج',
+                noticeKey: 'tjw_rule_mutajanisain_notice',
+                makhrajNote: 'يُدغم الحرف الأول الساكن في الثاني المتحرك (الدال في التاء من «قَد تَّبَيَّنَ») فيصيران حرفاً مشدَّداً.',
+                commonMistakes: 'أشيع خطأ: إظهار الحرف الأول، أو الخلط بينه وبين المتقاربين لاختلاف الصفة فقط.',
+                example: { surah: 2, ayah: 256, highlight: 'قَد تَّبَيَّنَ' },
+                practiceExample: { surah: 3, ayah: 69, highlight: 'وَدَّت طَّآئِفَةٌۭ' }
+            }
+        ]
+    },
+    {
+        id: 'madd',
+        nameKey: 'tjw_stage_madd_name',
+        icon: '🌊',
+        colorVar: '--tjw-madd',
+        rules: [
+            {
+                id: 'madd_tabii',
+                nameKey: 'tjw_rule_madd_tabii_name',
+                defKey: 'tjw_rule_madd_tabii_def',
+                letters: 'ا و ي',
+                glyph: 'طب',
+                noticeKey: 'tjw_rule_madd_tabii_notice',
+                makhrajNote: 'يُمدّ الصوت بمقدار حركتين فقط (قدر قبض إصبعين أو بسطهما) ثم يُتوقّف.',
+                commonMistakes: 'أشيع خطأ: قصر المد أقل من حركتين، أو مدّه أكثر من اللازم فيشبه المدود الفرعية.',
+                example: { surah: 114, ayah: 2, highlight: 'ٱلنَّاسِ' },
+                practiceExample: { surah: 1, ayah: 4, highlight: 'مَٰلِكِ', skipQuestion: true }
+            },
+            {
+                id: 'madd_wajib_muttasil',
+                nameKey: 'tjw_rule_madd_wajib_muttasil_name',
+                defKey: 'tjw_rule_madd_wajib_muttasil_def',
+                letters: 'مد + همزة في كلمة واحدة',
+                glyph: 'مت',
+                noticeKey: 'tjw_rule_madd_wajib_muttasil_notice',
+                makhrajNote: 'يُمدّ الصوت أكثر من الطبيعي (٤ أو ٥ حركات) وجوباً لا يجوز قصره، مع الثبات على مقدار واحد في التلاوة.',
+                commonMistakes: 'أشيع خطأ: قصره كالمد الطبيعي، أو الاختلاف في مقداره بين المواضع في التلاوة الواحدة.',
+                example: { surah: 110, ayah: 1, highlight: 'جَآءَ' },
+                practiceExample: { surah: 89, ayah: 23, highlight: 'وَجِا۟ىٓءَ' }
+            },
+            {
+                id: 'madd_jaiz_munfasil',
+                nameKey: 'tjw_rule_madd_jaiz_munfasil_name',
+                defKey: 'tjw_rule_madd_jaiz_munfasil_def',
+                letters: 'مد في آخر كلمة + همزة في أول التي بعدها',
+                glyph: 'من',
+                noticeKey: 'tjw_rule_madd_jaiz_munfasil_notice',
+                makhrajNote: 'يجوز مدّه (٤ أو ٥ حركات) أو قصره (حركتان) وفق ما يُقرئ به معلمك، مع الالتزام بمقدار واحد في الموضع الواحد.',
+                commonMistakes: 'أشيع خطأ: الخلط بينه وبين المتصل (الهمزة هنا في كلمة مستقلة بعد المد) فيُظن أنه واجب.',
+                example: { surah: 108, ayah: 1, highlight: 'إِنَّآ أَعۡطَيۡنَٰكَ' },
+                practiceExample: { surah: 101, ayah: 3, highlight: 'وَمَآ أَدۡرَىٰكَ' }
+            },
+            {
+                id: 'madd_arid_sukun',
+                nameKey: 'tjw_rule_madd_arid_sukun_name',
+                defKey: 'tjw_rule_madd_arid_sukun_def',
+                letters: 'مد + سكون عارض للوقف',
+                glyph: 'عا',
+                noticeKey: 'tjw_rule_madd_arid_sukun_notice',
+                makhrajNote: 'عند الوقف على آخر الكلمة يجوز مدّ حرف المد ٢ أو ٤ أو ٦ حركات، ويزول المد عند الوصل.',
+                commonMistakes: 'أشيع خطأ: مدّه عند الوصل بلا وقف، أو الخلط بينه وبين اللازم (السكون هنا عارض للوقف فقط).',
+                example: { surah: 1, ayah: 5, highlight: 'نَسۡتَعِينُ' },
+                practiceExample: { surah: 1, ayah: 2, highlight: 'ٱلۡعَٰلَمِينَ' }
+            },
+            {
+                id: 'madd_leen',
+                nameKey: 'tjw_rule_madd_leen_name',
+                defKey: 'tjw_rule_madd_leen_def',
+                letters: 'واو أو ياء ساكنة بعد فتح (عند الوقف)',
+                glyph: 'لي',
+                noticeKey: 'tjw_rule_madd_leen_notice',
+                makhrajNote: 'عند الوقف على كلمة آخرها حرف متحرك قبله واو أو ياء ساكنة مفتوح ما قبلها، يجوز مدّ الصوت بلين ٢ أو ٤ أو ٦ حركات.',
+                commonMistakes: 'أشيع خطأ: مدّه عند الوصل، أو الخلط بين الواو والياء الساكنتين بعد فتح وبين حرفي المد بعد ضمة أو كسرة.',
+                example: { surah: 106, ayah: 3, highlight: 'ٱلۡبَيۡتِ' },
+                practiceExample: { surah: 106, ayah: 1, highlight: 'قُرَيۡشٍ' }
+            },
+            {
+                id: 'madd_badal',
+                nameKey: 'tjw_rule_madd_badal_name',
+                defKey: 'tjw_rule_madd_badal_def',
+                letters: 'همزة قبل حرف مد',
+                glyph: 'بد',
+                noticeKey: 'tjw_rule_madd_badal_notice',
+                makhrajNote: 'يُمدّ بمقدار حركتين فقط، وقد تقدّمت الهمزة على حرف المد (عكس المتصل).',
+                commonMistakes: 'أشيع خطأ: مدّه كالمتصل لمجرد وجود الهمزة، مع أنها قبل حرف المد لا بعده.',
+                example: { surah: 103, ayah: 3, highlight: 'ءَامَنُوا۟' },
+                practiceExample: { surah: 106, ayah: 4, highlight: 'وَءَامَنَهُم' }
+            },
+            {
+                id: 'madd_lazim',
+                nameKey: 'tjw_rule_madd_lazim_name',
+                defKey: 'tjw_rule_madd_lazim_def',
+                letters: 'مد + سكون أصلي لازم',
+                glyph: 'لز',
+                noticeKey: 'tjw_rule_madd_lazim_notice',
+                makhrajNote: 'يُمدّ الصوت ست حركات وجوباً، وصلاً ووقفاً، لأن السكون بعد حرف المد أصلي ثابت لا يزول.',
+                commonMistakes: 'أشيع خطأ: تقصيره عند الوصل، أو الخلط بينه وبين العارض للسكون.',
+                example: { surah: 1, ayah: 7, highlight: 'ٱلضَّآلِّينَ' },
+                practiceExample: { surah: 80, ayah: 33, highlight: 'ٱلصَّآخَّةُ' }
+            }
+        ]
+    },
+    {
+        id: 'madd_lazim',
+        nameKey: 'tjw_stage_madd_lazim_name',
+        icon: '📏',
+        colorVar: '--tjw-lazim',
+        rules: [
+            {
+                id: 'lazim_kalami_muthaqqal',
+                nameKey: 'tjw_rule_lazim_kalami_muthaqqal_name',
+                defKey: 'tjw_rule_lazim_kalami_muthaqqal_def',
+                letters: 'مد + حرف مشدد في كلمة',
+                glyph: 'كث',
+                noticeKey: 'tjw_rule_lazim_kalami_muthaqqal_notice',
+                makhrajNote: 'يُمدّ ست حركات ثم يُنطق الحرف المشدَّد بتشديد واضح.',
+                commonMistakes: 'أشيع خطأ: تقصير المد، أو إهمال التشديد بعده.',
+                example: { surah: 79, ayah: 34, highlight: 'ٱلطَّآمَّةُ' },
+                practiceExample: { surah: 69, ayah: 3, highlight: 'ٱلۡحَآقَّةُ' }
+            },
+            {
+                id: 'lazim_kalami_mukhaffaf',
+                nameKey: 'tjw_rule_lazim_kalami_mukhaffaf_name',
+                defKey: 'tjw_rule_lazim_kalami_mukhaffaf_def',
+                letters: 'مد + سكون بلا تشديد في كلمة',
+                glyph: 'كخ',
+                noticeKey: 'tjw_rule_lazim_kalami_mukhaffaf_notice',
+                makhrajNote: 'يُمدّ ست حركات ثم يُنطق اللام ساكنة بلا تشديد؛ ولا يأتي إلا في كلمة «آلْآنَ» (موضعان في سورة يونس).',
+                commonMistakes: 'أشيع خطأ: تقصير المد، أو تشديد اللام فيُخلط بينه وبين المثقل.',
+                example: { surah: 10, ayah: 51, highlight: 'ءَآلۡـَٰٔنَ' },
+                practiceExample: { surah: 10, ayah: 91, highlight: 'ءَآلۡـَٰٔنَ' }
+            },
+            {
+                id: 'lazim_harfi_muthaqqal',
+                nameKey: 'tjw_rule_lazim_harfi_muthaqqal_name',
+                defKey: 'tjw_rule_lazim_harfi_muthaqqal_def',
+                letters: 'حرف في فاتحة سورة مدغم فيما بعده',
+                glyph: 'حث',
+                noticeKey: 'tjw_rule_lazim_harfi_muthaqqal_notice',
+                makhrajNote: 'يُمدّ وسط اسم الحرف ست حركات ثم يُدغم آخره في الحرف الذي بعده فيصير مشدَّداً (اللام مع الميم في «الم»).',
+                commonMistakes: 'أشيع خطأ: تقصير المد، أو إظهار آخر الحرف بدل إدغامه.',
+                example: { surah: 2, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true },
+                practiceExample: { surah: 3, ayah: 1, highlight: 'الٓمٓ', skipQuestion: true }
+            },
+            {
+                id: 'lazim_harfi_mukhaffaf',
+                nameKey: 'tjw_rule_lazim_harfi_mukhaffaf_name',
+                defKey: 'tjw_rule_lazim_harfi_mukhaffaf_def',
+                letters: 'حرف في فاتحة سورة غير مدغم فيما بعده',
+                glyph: 'حخ',
+                noticeKey: 'tjw_rule_lazim_harfi_mukhaffaf_notice',
+                makhrajNote: 'يُمدّ وسط اسم الحرف ست حركات ثم يُنطق آخره واضحاً بلا إدغام؛ وحروفه ثمانية يجمعها «كَمْ عَسَلْ نَقَصْ».',
+                commonMistakes: 'أشيع خطأ: تقصير المد، أو إدغام آخر الحرف فيما بعده.',
+                example: { surah: 68, ayah: 1, highlight: 'نٓ', firstOnly: true },
+                practiceExample: { surah: 50, ayah: 1, highlight: 'قٓ', firstOnly: true }
             }
         ]
     }

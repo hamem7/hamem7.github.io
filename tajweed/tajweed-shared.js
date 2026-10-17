@@ -35,9 +35,10 @@ export async function getAyahForExample(surahNumber, ayahNumber) {
 
 // 🌟 نسخة مخصّصة من التظليل تلتزم ببادئة tjw- المعزولة (راجع الملاحظة الأصلية في
 // tajweed-map.js) — مبنية فوق findPhraseRanges المشتركة النقية من core/quranTextUtils.js
-export function highlightForTajweed(text, phrase) {
+export function highlightForTajweed(text, phrase, firstOnly = false) {
     if (!text || !phrase) return text || '';
-    const ranges = findPhraseRanges(text, phrase);
+    let ranges = findPhraseRanges(text, phrase);
+    if (firstOnly) ranges = ranges.slice(0, 1);
     if (ranges.length === 0) return text;
 
     let html = '';

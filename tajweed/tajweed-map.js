@@ -357,7 +357,7 @@ async function renderBrowseHTML() {
             return `
             <button class="tjw-rule-tile ${isDue ? 'tjw-rule-tile-due' : ''}" data-action="open-rule" data-stage="${stage.id}" data-rule="${rule.id}" style="--tjw-tile-color: var(${stage.colorVar});">
                 <span class="tjw-rule-tile-status">${statusIcon}</span>
-                <span class="tjw-rule-tile-letters">${rule.letters.split(' ')[0]}</span>
+                <span class="tjw-rule-tile-letters ${glyphOf(rule).length > 1 ? 'is-long' : ''}">${glyphOf(rule)}</span>
                 <span class="tjw-rule-tile-name">${t(rule.nameKey)}</span>
                 <span class="tjw-rule-tile-bar"><span class="tjw-rule-tile-bar-fill" style="width:${pct}%;"></span></span>
             </button>`;
@@ -402,6 +402,11 @@ async function renderBrowseHTML() {
         </div>`;
 }
 
+// 🌟 رمز الحكم على البطاقة: حقل glyph إن وُجد (الأحكام الوصفية كالمدود)، وإلا أول حرف من حروفه
+function glyphOf(rule) {
+    return rule.glyph || rule.letters.split(' ')[0];
+}
+
 // 🌟 تهريب نص يدخل من المستخدم (اسم الطالب) قبل حقنه في innerHTML
 function escapeText(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -417,7 +422,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
 
     const ayahInfo = await getAyahForExample(rule.example.surah, rule.example.ayah);
     const ayahHTML = ayahInfo
-        ? highlightForTajweed(ayahInfo.text, rule.example.highlight)
+        ? highlightForTajweed(ayahInfo.text, rule.example.highlight, rule.example.firstOnly)
         : t('tjw_example_unavailable');
     const audioBtnHTML = ayahInfo
         ? `<button class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(ayahInfo.number)}">🔊 ${t('tjw_listen_btn')}</button>`
@@ -526,7 +531,7 @@ function renderRuleSymbol(stage, rule) {
     }
     return `
         <div class="tjw-letter-badge" style="border-color: var(${stage.colorVar}); color: var(${stage.colorVar});">
-            ${rule.letters.split(' ')[0]}
+            ${glyphOf(rule)}
         </div>`;
 }
 
