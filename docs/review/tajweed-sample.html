@@ -1,0 +1,933 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>مراجعة عيّنة جدول التجويد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e6;--card:#fffdf8;--ink:#2b2118;--muted:#6f6150;--line:#e2d8c3;--mark:#f3d27a;--ok:#1f7a45;--bad:#b3261e;--accent:#1e3a5f}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b2b;--card:#16263b;--ink:#f2ead8;--muted:#a9b4c4;--line:#2a3d57;--mark:#7a5d12;--accent:#9cc3f0}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 90px}h1{font-size:1.5rem;margin:.4rem 0}
+.intro{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--muted)}
+.intro b{color:var(--ink)}.legend mark{padding:0 6px;border-radius:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:14px 0}
+.card header{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.num{background:var(--accent);color:var(--bg);border-radius:999px;min-width:30px;height:30px;display:grid;place-items:center;font-weight:700}
+.rule{font-weight:700;color:var(--accent)}.tag{font-size:.8rem;background:#b3261e22;color:var(--bad);border:1px solid var(--bad);border-radius:999px;padding:1px 10px}
+.ayah{font-family:'Amiri Quran',serif;font-size:1.7rem;line-height:2.3;margin:.6rem 0 .2rem;text-align:center}mark{background:var(--mark);color:inherit;border-radius:8px;padding:0 5px}
+.ref{text-align:center;color:var(--muted);margin:0}details{margin:.4rem 0;color:var(--muted)}summary{cursor:pointer}.note-src{color:var(--bad);font-size:.9rem;margin:.3rem 0}
+.choices{display:flex;flex-wrap:wrap;gap:8px;margin:.6rem 0}.choices label{border:1.5px solid var(--line);border-radius:12px;padding:6px 12px;cursor:pointer;user-select:none}
+.choices input{margin-inline-end:6px}.choices label:has(input:checked){border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:700}
+.note{width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit}
+.bar{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+button{font:inherit;font-weight:700;background:var(--accent);color:var(--bg);border:0;border-radius:12px;padding:9px 18px;cursor:pointer}
+#out{display:none;width:100%;max-width:860px;margin:8px auto;min-height:160px;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit;direction:rtl}
+</style></head><body><div class="wrap">
+<h1>مراجعة عيّنة جدول توسيم التجويد</h1>
+<div class="intro"><p><b>ما المطلوب؟</b> كل بطاقة آية أخذناها من الجدول، والكلمة <mark>المظلَّلة</mark> هي التي يقول الجدول إن فيها الحكم المكتوب أعلى البطاقة. أجب بنظرك أنت:</p>
+<ul><li><b>✅ صحيح</b>: المظلَّل فيه الحكم فعلاً ولم يفتك موضع آخر.</li><li><b>❌ المظلَّل خطأ</b>: الكلمة المظلَّلة ليس فيها هذا الحكم.</li><li><b>➕ فات موضع آخر</b>: في الآية موضع للحكم غير مظلَّل.</li><li><b>❓</b>: لست متأكداً.</li></ul>
+<p>اختياراتك تُحفظ تلقائياً في متصفحك. عند الانتهاء (أو في أي وقت) اضغط <b>«تلخيص الملاحظات»</b> وانسخ الناتج وأرسله لي — يكفي أن ترسل غير الصحيح.</p>
+<p>البطاقات 63: آيتان لكل حكم (واحدة من جزء عمّ إن وُجدت) + آيات اختلف فيها مصدران مختلفان.</p></div>
+<article class="card" data-id="1" data-ref="89:5" data-rule="القلقلة الصغرى">
+  <header><span class="num">1</span><span class="rule">القلقلة الصغرى</span></header>
+  <p class="ayah">هَلۡ فِى ذَٰلِكَ قَسَمٌۭ لِّذِى <mark>حِجۡرٍ</mark></p>
+  <p class="ref">الفَجۡرِ — آية 5 <small>(89:5)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لحرف القلقلة (ق ط ب ج د) حالتان: صغرى (ساكن في وسط الكلمة، صوته يرتدّ برفق) وكبرى (آخر الكلمة عند الوقف عليه، صوته يرتدّ ويهتزّ بقوة أوضح)</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r1" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r1" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r1" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r1" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="2" data-ref="67:3" data-rule="القلقلة الصغرى">
+  <header><span class="num">2</span><span class="rule">القلقلة الصغرى</span></header>
+  <p class="ayah">ٱلَّذِى خَلَقَ <mark>سَبۡعَ</mark> سَمَٰوَٰتٍۢ طِبَاقًۭا مَّا تَرَىٰ فِى خَلۡقِ ٱلرَّحۡمَٰنِ مِن تَفَٰوُتٍۢ فَٱرۡجِعِ ٱلۡبَصَرَ هَلۡ تَرَىٰ مِن فُطُورٍۢ</p>
+  <p class="ref">المُلۡكِ — آية 3 <small>(67:3)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لحرف القلقلة (ق ط ب ج د) حالتان: صغرى (ساكن في وسط الكلمة، صوته يرتدّ برفق) وكبرى (آخر الكلمة عند الوقف عليه، صوته يرتدّ ويهتزّ بقوة أوضح)</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r2" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r2" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r2" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r2" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="3" data-ref="86:5" data-rule="غنة النون/الميم المشددة">
+  <header><span class="num">3</span><span class="rule">غنة النون/الميم المشددة</span></header>
+  <p class="ayah">فَلۡيَنظُرِ ٱلۡإِنسَٰنُ <mark>مِمَّ</mark> خُلِقَ</p>
+  <p class="ref">الطَّارِقِ — آية 5 <small>(86:5)</small></p>
+  <details><summary>تعريف الحكم</summary><p>أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r3" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r3" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r3" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r3" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="4" data-ref="18:87" data-rule="غنة النون/الميم المشددة">
+  <header><span class="num">4</span><span class="rule">غنة النون/الميم المشددة</span></header>
+  <p class="ayah">قَالَ <mark>أَمَّا</mark> مَن ظَلَمَ فَسَوۡفَ نُعَذِّبُهُۥ <mark>ثُمَّ</mark> يُرَدُّ إِلَىٰ رَبِّهِۦ فَيُعَذِّبُهُۥ عَذَابًۭا نُّكۡرًۭا</p>
+  <p class="ref">الكَهۡفِ — آية 87 <small>(18:87)</small></p>
+  <details><summary>تعريف الحكم</summary><p>أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r4" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r4" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r4" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r4" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="5" data-ref="102:8" data-rule="الإظهار الحلقي">
+  <header><span class="num">5</span><span class="rule">الإظهار الحلقي</span></header>
+  <p class="ayah">ثُمَّ لَتُسۡـَٔلُنَّ <mark>يَوۡمَئِذٍ</mark> <mark>عَنِ</mark> ٱلنَّعِيمِ</p>
+  <p class="ref">التَّكَاثُرِ — آية 8 <small>(102:8)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف الحلق الستة، تُنطق النون واضحة تماماً بلا أي تغيير</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r5" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r5" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r5" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r5" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="6" data-ref="33:72" data-rule="الإظهار الحلقي">
+  <header><span class="num">6</span><span class="rule">الإظهار الحلقي</span></header>
+  <p class="ayah">إِنَّا عَرَضۡنَا ٱلۡأَمَانَةَ عَلَى ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضِ وَٱلۡجِبَالِ فَأَبَيۡنَ أَن يَحۡمِلۡنَهَا وَأَشۡفَقۡنَ <mark>مِنۡهَا</mark> وَحَمَلَهَا ٱلۡإِنسَٰنُ إِنَّهُۥ كَانَ ظَلُومًۭا جَهُولًۭا</p>
+  <p class="ref">الأَحۡزَابِ — آية 72 <small>(33:72)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف الحلق الستة، تُنطق النون واضحة تماماً بلا أي تغيير</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r6" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r6" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r6" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r6" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="7" data-ref="99:7" data-rule="الإدغام بغنة">
+  <header><span class="num">7</span><span class="rule">الإدغام بغنة</span></header>
+  <p class="ayah"><mark>فَمَن</mark> <mark>يَعۡمَلۡ</mark> مِثۡقَالَ ذَرَّةٍ <mark>خَيۡرًۭا</mark> <mark>يَرَهُۥ</mark></p>
+  <p class="ref">الزَّلۡزَلَةِ — آية 7 <small>(99:7)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها تماماً مع بقاء غنة كاملة بمقدار حركتين</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r7" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r7" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r7" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r7" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="8" data-ref="4:5" data-rule="الإدغام بغنة">
+  <header><span class="num">8</span><span class="rule">الإدغام بغنة</span></header>
+  <p class="ayah">وَلَا تُؤۡتُوا۟ ٱلسُّفَهَآءَ أَمۡوَٰلَكُمُ ٱلَّتِى جَعَلَ ٱللَّهُ لَكُمۡ <mark>قِيَٰمًۭا</mark> <mark>وَٱرۡزُقُوهُمۡ</mark> فِيهَا وَٱكۡسُوهُمۡ وَقُولُوا۟ لَهُمۡ <mark>قَوۡلًۭا</mark> <mark>مَّعۡرُوفًۭا</mark></p>
+  <p class="ref">النِّسَاءِ — آية 5 <small>(4:5)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها تماماً مع بقاء غنة كاملة بمقدار حركتين</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r8" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r8" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r8" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r8" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="9" data-ref="93:4" data-rule="الإدغام بغير غنة">
+  <header><span class="num">9</span><span class="rule">الإدغام بغير غنة</span></header>
+  <p class="ayah">وَلَلۡءَاخِرَةُ <mark>خَيۡرٌۭ</mark> <mark>لَّكَ</mark> مِنَ ٱلۡأُولَىٰ</p>
+  <p class="ref">الضُّحَىٰ — آية 4 <small>(93:4)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل حرفَي (ل ر)، تندمج النون فيهما تماماً وبسرعة بلا أي غنة إطلاقاً</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r9" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r9" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r9" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r9" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="10" data-ref="7:104" data-rule="الإدغام بغير غنة">
+  <header><span class="num">10</span><span class="rule">الإدغام بغير غنة</span></header>
+  <p class="ayah">وَقَالَ مُوسَىٰ يَٰفِرۡعَوۡنُ إِنِّى رَسُولٌۭ <mark>مِّن</mark> <mark>رَّبِّ</mark> ٱلۡعَٰلَمِينَ</p>
+  <p class="ref">الأَعۡرَافِ — آية 104 <small>(7:104)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل حرفَي (ل ر)، تندمج النون فيهما تماماً وبسرعة بلا أي غنة إطلاقاً</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r10" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r10" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r10" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r10" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="11" data-ref="92:8" data-rule="الإقلاب">
+  <header><span class="num">11</span><span class="rule">الإقلاب</span></header>
+  <p class="ayah">وَأَمَّا <mark>مَنۢ</mark> <mark>بَخِلَ</mark> وَٱسۡتَغۡنَىٰ</p>
+  <p class="ref">اللَّيۡلِ — آية 8 <small>(92:8)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل حرف الباء، تتحوّل النون لصوت ميم مخفاة مع غنّة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r11" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r11" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r11" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r11" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="12" data-ref="3:105" data-rule="الإقلاب">
+  <header><span class="num">12</span><span class="rule">الإقلاب</span></header>
+  <p class="ayah">وَلَا تَكُونُوا۟ كَٱلَّذِينَ تَفَرَّقُوا۟ وَٱخۡتَلَفُوا۟ <mark>مِنۢ</mark> <mark>بَعۡدِ</mark> مَا جَآءَهُمُ ٱلۡبَيِّنَٰتُ وَأُو۟لَٰٓئِكَ لَهُمۡ عَذَابٌ عَظِيمٌۭ</p>
+  <p class="ref">آلِ عِمۡرَانَ — آية 105 <small>(3:105)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل حرف الباء، تتحوّل النون لصوت ميم مخفاة مع غنّة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r12" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r12" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r12" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r12" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="13" data-ref="88:21" data-rule="الإخفاء الحقيقي">
+  <header><span class="num">13</span><span class="rule">الإخفاء الحقيقي</span></header>
+  <p class="ayah">فَذَكِّرۡ إِنَّمَآ <mark>أَنتَ</mark> مُذَكِّرٌۭ</p>
+  <p class="ref">الغَاشِيَةِ — آية 21 <small>(88:21)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r13" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r13" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r13" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r13" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="14" data-ref="4:103" data-rule="الإخفاء الحقيقي">
+  <header><span class="num">14</span><span class="rule">الإخفاء الحقيقي</span></header>
+  <p class="ayah">فَإِذَا قَضَيۡتُمُ ٱلصَّلَوٰةَ فَٱذۡكُرُوا۟ ٱللَّهَ قِيَٰمًۭا وَقُعُودًۭا وَعَلَىٰ جُنُوبِكُمۡ فَإِذَا <mark>ٱطۡمَأۡنَنتُمۡ</mark> فَأَقِيمُوا۟ ٱلصَّلَوٰةَ إِنَّ ٱلصَّلَوٰةَ كَانَتۡ عَلَى ٱلۡمُؤۡمِنِينَ كِتَٰبًۭا مَّوۡقُوتًۭا</p>
+  <p class="ref">النِّسَاءِ — آية 103 <small>(4:103)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r14" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r14" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r14" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r14" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="15" data-ref="110:3" data-rule="الإظهار الشفوي">
+  <header><span class="num">15</span><span class="rule">الإظهار الشفوي</span></header>
+  <p class="ayah">فَسَبِّحۡ <mark>بِحَمۡدِ</mark> رَبِّكَ وَٱسۡتَغۡفِرۡهُ إِنَّهُۥ كَانَ تَوَّابًۢا</p>
+  <p class="ref">النَّصۡرِ — آية 3 <small>(110:3)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل أي حرف عدا الباء والميم، تُنطق واضحة تماماً من مخرجها بلا أي غنة زائدة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r15" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r15" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r15" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r15" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="16" data-ref="33:18" data-rule="الإظهار الشفوي">
+  <header><span class="num">16</span><span class="rule">الإظهار الشفوي</span></header>
+  <p class="ayah">قَدۡ يَعۡلَمُ ٱللَّهُ ٱلۡمُعَوِّقِينَ <mark>مِنكُمۡ</mark> <mark>وَٱلۡقَآئِلِينَ</mark> <mark>لِإِخۡوَٰنِهِمۡ</mark> <mark>هَلُمَّ</mark> إِلَيۡنَا وَلَا يَأۡتُونَ ٱلۡبَأۡسَ إِلَّا قَلِيلًا</p>
+  <p class="ref">الأَحۡزَابِ — آية 18 <small>(33:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل أي حرف عدا الباء والميم، تُنطق واضحة تماماً من مخرجها بلا أي غنة زائدة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r16" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r16" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r16" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r16" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="17" data-ref="100:11" data-rule="الإخفاء الشفوي">
+  <header><span class="num">17</span><span class="rule">الإخفاء الشفوي</span></header>
+  <p class="ayah">إِنَّ <mark>رَبَّهُم</mark> <mark>بِهِمۡ</mark> يَوۡمَئِذٍۢ لَّخَبِيرٌۢ</p>
+  <p class="ref">العَادِيَاتِ — آية 11 <small>(100:11)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل حرف الباء، تُخفى بغنة بمقدار حركتين — حالة وسط بين الإظهار والإدغام</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r17" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r17" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r17" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r17" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="18" data-ref="7:80" data-rule="الإخفاء الشفوي">
+  <header><span class="num">18</span><span class="rule">الإخفاء الشفوي</span></header>
+  <p class="ayah">وَلُوطًا إِذۡ قَالَ لِقَوۡمِهِۦٓ أَتَأۡتُونَ ٱلۡفَٰحِشَةَ مَا <mark>سَبَقَكُم</mark> <mark>بِهَا</mark> مِنۡ أَحَدٍۢ مِّنَ ٱلۡعَٰلَمِينَ</p>
+  <p class="ref">الأَعۡرَافِ — آية 80 <small>(7:80)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل حرف الباء، تُخفى بغنة بمقدار حركتين — حالة وسط بين الإظهار والإدغام</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r18" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r18" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r18" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r18" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="19" data-ref="85:20" data-rule="الإدغام الشفوي (مثلين صغير)">
+  <header><span class="num">19</span><span class="rule">الإدغام الشفوي (مثلين صغير)</span></header>
+  <p class="ayah">وَٱللَّهُ مِن <mark>وَرَآئِهِم</mark> <mark>مُّحِيطٌۢ</mark></p>
+  <p class="ref">البُرُوجِ — آية 20 <small>(85:20)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل ميم متحرّكة، تندمجان في ميم واحدة مشدَّدة بغنة كاملة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r19" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r19" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r19" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r19" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="20" data-ref="26:24" data-rule="الإدغام الشفوي (مثلين صغير)">
+  <header><span class="num">20</span><span class="rule">الإدغام الشفوي (مثلين صغير)</span></header>
+  <p class="ayah">قَالَ رَبُّ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضِ وَمَا بَيۡنَهُمَآ إِن <mark>كُنتُم</mark> <mark>مُّوقِنِينَ</mark></p>
+  <p class="ref">الشُّعَرَاءِ — آية 24 <small>(26:24)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي الميم الساكنة قبل ميم متحرّكة، تندمجان في ميم واحدة مشدَّدة بغنة كاملة</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r20" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r20" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r20" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r20" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="21" data-ref="90:17" data-rule="اللام القمرية (إظهار)">
+  <header><span class="num">21</span><span class="rule">اللام القمرية (إظهار)</span></header>
+  <p class="ayah">ثُمَّ كَانَ مِنَ ٱلَّذِينَ ءَامَنُوا۟ وَتَوَاصَوۡا۟ بِٱلصَّبۡرِ وَتَوَاصَوۡا۟ <mark>بِٱلۡمَرۡحَمَةِ</mark></p>
+  <p class="ref">البَلَدِ — آية 17 <small>(90:17)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ا ب غ ح ج ك و خ ف ع ق ي م ه) تُنطق اللام واضحة، وتُسمّى لاماً قمرية كلام «القمر». يجمع حروفها قول الناظم: «ابغِ حَجَّكَ وخَفْ عقيمَه».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r21" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r21" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r21" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r21" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="22" data-ref="36:65" data-rule="اللام القمرية (إظهار)">
+  <header><span class="num">22</span><span class="rule">اللام القمرية (إظهار)</span></header>
+  <p class="ayah"><mark>ٱلۡيَوۡمَ</mark> نَخۡتِمُ عَلَىٰٓ أَفۡوَٰهِهِمۡ وَتُكَلِّمُنَآ أَيۡدِيهِمۡ وَتَشۡهَدُ أَرۡجُلُهُم بِمَا كَانُوا۟ يَكۡسِبُونَ</p>
+  <p class="ref">يسٓ — آية 65 <small>(36:65)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ا ب غ ح ج ك و خ ف ع ق ي م ه) تُنطق اللام واضحة، وتُسمّى لاماً قمرية كلام «القمر». يجمع حروفها قول الناظم: «ابغِ حَجَّكَ وخَفْ عقيمَه».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r22" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r22" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r22" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r22" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="23" data-ref="86:7" data-rule="اللام الشمسية (إدغام)">
+  <header><span class="num">23</span><span class="rule">اللام الشمسية (إدغام)</span></header>
+  <p class="ayah">يَخۡرُجُ مِنۢ بَيۡنِ <mark>ٱلصُّلۡبِ</mark> <mark>وَٱلتَّرَآئِبِ</mark></p>
+  <p class="ref">الطَّارِقِ — آية 7 <small>(86:7)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ط ث ص ر ت ض ذ ن د س ظ ز ش ل) لا تُنطق اللام، وتُدغم في الحرف بعدها فيصير مشدَّداً، وتُسمّى لاماً شمسية كلام «الشمس».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r23" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r23" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r23" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r23" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="24" data-ref="25:11" data-rule="اللام الشمسية (إدغام)">
+  <header><span class="num">24</span><span class="rule">اللام الشمسية (إدغام)</span></header>
+  <p class="ayah">بَلۡ كَذَّبُوا۟ <mark>بِٱلسَّاعَةِ</mark> وَأَعۡتَدۡنَا لِمَن كَذَّبَ <mark>بِٱلسَّاعَةِ</mark> سَعِيرًا</p>
+  <p class="ref">الفُرۡقَانِ — آية 11 <small>(25:11)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ط ث ص ر ت ض ذ ن د س ظ ز ش ل) لا تُنطق اللام، وتُدغم في الحرف بعدها فيصير مشدَّداً، وتُسمّى لاماً شمسية كلام «الشمس».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r24" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r24" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r24" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r24" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="25" data-ref="79:18" data-rule="المثلان">
+  <header><span class="num">25</span><span class="rule">المثلان</span></header>
+  <p class="ayah">فَقُلۡ <mark>هَل</mark> <mark>لَّكَ</mark> إِلَىٰٓ أَن تَزَكَّىٰ</p>
+  <p class="ref">النَّازِعَاتِ — آية 18 <small>(79:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المثلان حرفان اتفقا في المخرج والصفة، مثل الباء مع الباء في «اضْرِب بِّعَصَاكَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» وأُدغم الأول في الثاني، وإن تحرّك الحرفان سُمّي «كبيراً».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r25" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r25" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r25" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r25" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="26" data-ref="17:42" data-rule="المثلان">
+  <header><span class="num">26</span><span class="rule">المثلان</span></header>
+  <p class="ayah"><mark>قُل</mark> <mark>لَّوۡ</mark> كَانَ مَعَهُۥٓ ءَالِهَةٌۭ كَمَا يَقُولُونَ إِذًۭا لَّٱبۡتَغَوۡا۟ إِلَىٰ ذِى ٱلۡعَرۡشِ سَبِيلًۭا</p>
+  <p class="ref">الإِسۡرَاءِ — آية 42 <small>(17:42)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المثلان حرفان اتفقا في المخرج والصفة، مثل الباء مع الباء في «اضْرِب بِّعَصَاكَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» وأُدغم الأول في الثاني، وإن تحرّك الحرفان سُمّي «كبيراً».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r26" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r26" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r26" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r26" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="27" data-ref="109:4" data-rule="المتجانسان">
+  <header><span class="num">27</span><span class="rule">المتجانسان</span></header>
+  <p class="ayah">وَلَآ أَنَا۠ عَابِدٌۭ مَّا <mark>عَبَدتُّمۡ</mark></p>
+  <p class="ref">الكَافِرُونَ — آية 4 <small>(109:4)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتجانسان حرفان اتفقا في المخرج واختلفا في الصفة، مثل الدال مع التاء في «قَد تَّبَيَّنَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r27" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r27" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r27" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r27" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="28" data-ref="40:8" data-rule="المتجانسان">
+  <header><span class="num">28</span><span class="rule">المتجانسان</span></header>
+  <p class="ayah">رَبَّنَا وَأَدۡخِلۡهُمۡ جَنَّٰتِ عَدۡنٍ ٱلَّتِى <mark>وَعَدتَّهُمۡ</mark> وَمَن صَلَحَ مِنۡ ءَابَآئِهِمۡ وَأَزۡوَٰجِهِمۡ وَذُرِّيَّٰتِهِمۡ إِنَّكَ أَنتَ ٱلۡعَزِيزُ ٱلۡحَكِيمُ</p>
+  <p class="ref">غَافِرٍ — آية 8 <small>(40:8)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتجانسان حرفان اتفقا في المخرج واختلفا في الصفة، مثل الدال مع التاء في «قَد تَّبَيَّنَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r28" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r28" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r28" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r28" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="29" data-ref="23:97" data-rule="المتقاربان">
+  <header><span class="num">29</span><span class="rule">المتقاربان</span></header>
+  <p class="ayah"><mark>وَقُل</mark> <mark>رَّبِّ</mark> أَعُوذُ بِكَ مِنۡ هَمَزَٰتِ ٱلشَّيَٰطِينِ</p>
+  <p class="ref">المُؤۡمِنُونَ — آية 97 <small>(23:97)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتقاربان حرفان تقاربا في المخرج واختلفا في الصفة، مثل اللام مع الراء في «قُل رَّبِّ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r29" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r29" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r29" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r29" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="30" data-ref="21:56" data-rule="المتقاربان">
+  <header><span class="num">30</span><span class="rule">المتقاربان</span></header>
+  <p class="ayah">قَالَ <mark>بَل</mark> <mark>رَّبُّكُمۡ</mark> رَبُّ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضِ ٱلَّذِى فَطَرَهُنَّ وَأَنَا۠ عَلَىٰ ذَٰلِكُم مِّنَ ٱلشَّٰهِدِينَ</p>
+  <p class="ref">الأَنبِيَاءِ — آية 56 <small>(21:56)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتقاربان حرفان تقاربا في المخرج واختلفا في الصفة، مثل اللام مع الراء في «قُل رَّبِّ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r30" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r30" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r30" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r30" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="31" data-ref="82:8" data-rule="المد الواجب المتصل">
+  <header><span class="num">31</span><span class="rule">المد الواجب المتصل</span></header>
+  <p class="ayah">فِىٓ أَىِّ صُورَةٍۢ مَّا <mark>شَآءَ</mark> رَكَّبَكَ</p>
+  <p class="ref">الانفِطَارِ — آية 8 <small>(82:8)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت همزة بعد حرف المد في الكلمة نفسها وجب مدّه أكثر من الطبيعي (٤ أو ٥ حركات)، مثل «جَاءَ» و«السَّمَاءِ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r31" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r31" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r31" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r31" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="32" data-ref="11:77" data-rule="المد الواجب المتصل">
+  <header><span class="num">32</span><span class="rule">المد الواجب المتصل</span></header>
+  <p class="ayah">وَلَمَّا <mark>جَآءَتۡ</mark> رُسُلُنَا لُوطًۭا <mark>سِىٓءَ</mark> بِهِمۡ وَضَاقَ بِهِمۡ ذَرۡعًۭا وَقَالَ هَٰذَا يَوۡمٌ عَصِيبٌۭ</p>
+  <p class="ref">هُودٍ — آية 77 <small>(11:77)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت همزة بعد حرف المد في الكلمة نفسها وجب مدّه أكثر من الطبيعي (٤ أو ٥ حركات)، مثل «جَاءَ» و«السَّمَاءِ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r32" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r32" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r32" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r32" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="33" data-ref="81:14" data-rule="المد الجائز المنفصل">
+  <header><span class="num">33</span><span class="rule">المد الجائز المنفصل</span></header>
+  <p class="ayah">عَلِمَتۡ نَفۡسٌۭ <mark>مَّآ</mark> <mark>أَحۡضَرَتۡ</mark></p>
+  <p class="ref">التَّكۡوِيرِ — آية 14 <small>(81:14)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء حرف المد في آخر كلمة وجاءت همزة في أول الكلمة التي بعدها جاز مدّه (٤ أو ٥ حركات) أو قصره (حركتان)، مثل «إِنَّا أَعْطَيْنَاكَ» و«بِمَا أُنزِلَ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r33" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r33" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r33" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r33" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="34" data-ref="9:104" data-rule="المد الجائز المنفصل">
+  <header><span class="num">34</span><span class="rule">المد الجائز المنفصل</span></header>
+  <p class="ayah">أَلَمۡ <mark>يَعۡلَمُوٓا۟</mark> <mark>أَنَّ</mark> ٱللَّهَ هُوَ يَقۡبَلُ ٱلتَّوۡبَةَ عَنۡ عِبَادِهِۦ وَيَأۡخُذُ ٱلصَّدَقَٰتِ وَأَنَّ ٱللَّهَ هُوَ ٱلتَّوَّابُ ٱلرَّحِيمُ</p>
+  <p class="ref">التَّوۡبَةِ — آية 104 <small>(9:104)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء حرف المد في آخر كلمة وجاءت همزة في أول الكلمة التي بعدها جاز مدّه (٤ أو ٥ حركات) أو قصره (حركتان)، مثل «إِنَّا أَعْطَيْنَاكَ» و«بِمَا أُنزِلَ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r34" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r34" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r34" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r34" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="35" data-ref="90:17" data-rule="مد البدل">
+  <header><span class="num">35</span><span class="rule">مد البدل</span></header>
+  <p class="ayah">ثُمَّ كَانَ مِنَ ٱلَّذِينَ <mark>ءَامَنُوا۟</mark> وَتَوَاصَوۡا۟ بِٱلصَّبۡرِ وَتَوَاصَوۡا۟ بِٱلۡمَرۡحَمَةِ</p>
+  <p class="ref">البَلَدِ — آية 17 <small>(90:17)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت الهمزة قبل حرف المد في الكلمة نفسها مُدّ حركتين فقط، مثل «آمَنُوا» و«إِيمَانًا». سُمّي بدلاً لأن أصل حرف المد همزة أُبدلت.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r35" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r35" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r35" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r35" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="36" data-ref="12:18" data-rule="مد البدل">
+  <header><span class="num">36</span><span class="rule">مد البدل</span></header>
+  <p class="ayah"><mark>وَجَآءُو</mark> عَلَىٰ قَمِيصِهِۦ بِدَمٍۢ كَذِبٍۢ قَالَ بَلۡ سَوَّلَتۡ لَكُمۡ أَنفُسُكُمۡ أَمۡرًۭا فَصَبۡرٌۭ جَمِيلٌۭ وَٱللَّهُ ٱلۡمُسۡتَعَانُ عَلَىٰ مَا تَصِفُونَ</p>
+  <p class="ref">يُوسُفَ — آية 18 <small>(12:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت الهمزة قبل حرف المد في الكلمة نفسها مُدّ حركتين فقط، مثل «آمَنُوا» و«إِيمَانًا». سُمّي بدلاً لأن أصل حرف المد همزة أُبدلت.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r36" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r36" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r36" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r36" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="37" data-ref="89:18" data-rule="اللازم الكلمي المثقل">
+  <header><span class="num">37</span><span class="rule">اللازم الكلمي المثقل</span></header>
+  <p class="ayah">وَلَا <mark>تَحَٰٓضُّونَ</mark> عَلَىٰ طَعَامِ ٱلۡمِسۡكِينِ</p>
+  <p class="ref">الفَجۡرِ — آية 18 <small>(89:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد في الكلمة نفسها حرف مشدَّد (والتشديد إدغام) مُدّ ست حركات، مثل «الطَّامَّةُ» و«الْحَاقَّةُ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r37" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r37" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r37" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r37" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="38" data-ref="58:20" data-rule="اللازم الكلمي المثقل">
+  <header><span class="num">38</span><span class="rule">اللازم الكلمي المثقل</span></header>
+  <p class="ayah">إِنَّ ٱلَّذِينَ <mark>يُحَآدُّونَ</mark> ٱللَّهَ وَرَسُولَهُۥٓ أُو۟لَٰٓئِكَ فِى ٱلۡأَذَلِّينَ</p>
+  <p class="ref">المُجَادلَةِ — آية 20 <small>(58:20)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد في الكلمة نفسها حرف مشدَّد (والتشديد إدغام) مُدّ ست حركات، مثل «الطَّامَّةُ» و«الْحَاقَّةُ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r38" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r38" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r38" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r38" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="39" data-ref="10:91" data-rule="اللازم الكلمي المخفف">
+  <header><span class="num">39</span><span class="rule">اللازم الكلمي المخفف</span></header>
+  <p class="ayah"><mark>ءَآلۡـَٰٔنَ</mark> وَقَدۡ عَصَيۡتَ قَبۡلُ وَكُنتَ مِنَ ٱلۡمُفۡسِدِينَ</p>
+  <p class="ref">يُونُسَ — آية 91 <small>(10:91)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد في الكلمة نفسها حرف ساكن بلا تشديد مُدّ ست حركات. ولا يأتي إلا في كلمة «آلْآنَ» في موضعين من سورة يونس.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r39" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r39" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r39" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r39" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="40" data-ref="10:59" data-rule="اللازم الكلمي المخفف">
+  <header><span class="num">40</span><span class="rule">اللازم الكلمي المخفف</span></header>
+  <p class="ayah">قُلۡ أَرَءَيۡتُم مَّآ أَنزَلَ ٱللَّهُ لَكُم مِّن رِّزۡقٍۢ فَجَعَلۡتُم مِّنۡهُ حَرَامًۭا وَحَلَٰلًۭا قُلۡ <mark>ءَآللَّهُ</mark> أَذِنَ لَكُمۡ أَمۡ عَلَى ٱللَّهِ تَفۡتَرُونَ</p>
+  <p class="ref">يُونُسَ — آية 59 <small>(10:59)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد في الكلمة نفسها حرف ساكن بلا تشديد مُدّ ست حركات. ولا يأتي إلا في كلمة «آلْآنَ» في موضعين من سورة يونس.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r40" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r40" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r40" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r40" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="41" data-ref="13:1" data-rule="اللازم الحرفي المثقل">
+  <header><span class="num">41</span><span class="rule">اللازم الحرفي المثقل</span></header>
+  <p class="ayah"><mark>الٓمٓر</mark> تِلۡكَ ءَايَٰتُ ٱلۡكِتَٰبِ وَٱلَّذِىٓ أُنزِلَ إِلَيۡكَ مِن رَّبِّكَ ٱلۡحَقُّ وَلَٰكِنَّ أَكۡثَرَ ٱلنَّاسِ لَا يُؤۡمِنُونَ</p>
+  <p class="ref">الرَّعۡدِ — آية 1 <small>(13:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>في فواتح السور: حرف هجاؤه ثلاثة أحرف وسطها حرف مد، ثم يُدغم آخره في الحرف الذي بعده فيُشدَّد، مثل «الم» (اللام مع الميم). حروفه الثمانية يجمعها «كَمْ عَسَلْ نَقَصْ».</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r41" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r41" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r41" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r41" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="42" data-ref="10:1" data-rule="اللازم الحرفي المخفف">
+  <header><span class="num">42</span><span class="rule">اللازم الحرفي المخفف</span></header>
+  <p class="ayah"><mark>الٓر</mark> تِلۡكَ ءَايَٰتُ ٱلۡكِتَٰبِ ٱلۡحَكِيمِ</p>
+  <p class="ref">يُونُسَ — آية 1 <small>(10:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>في فواتح السور: حرف هجاؤه ثلاثة أحرف وسطها حرف مد، ولا يُدغم آخره فيما بعده، مثل «ن» و«ق» و«ص». يُمدّ ست حركات ثم يُنطق آخره واضحاً.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r42" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r42" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r42" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r42" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="43" data-ref="14:1" data-rule="اللازم الحرفي المخفف">
+  <header><span class="num">43</span><span class="rule">اللازم الحرفي المخفف</span></header>
+  <p class="ayah"><mark>الٓر</mark> كِتَٰبٌ أَنزَلۡنَٰهُ إِلَيۡكَ لِتُخۡرِجَ ٱلنَّاسَ مِنَ ٱلظُّلُمَٰتِ إِلَى ٱلنُّورِ بِإِذۡنِ رَبِّهِمۡ إِلَىٰ صِرَٰطِ ٱلۡعَزِيزِ ٱلۡحَمِيدِ</p>
+  <p class="ref">إِبۡرَاهِيمَ — آية 1 <small>(14:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>في فواتح السور: حرف هجاؤه ثلاثة أحرف وسطها حرف مد، ولا يُدغم آخره فيما بعده، مثل «ن» و«ق» و«ص». يُمدّ ست حركات ثم يُنطق آخره واضحاً.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r43" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r43" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r43" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r43" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="44" data-ref="82:18" data-rule="المد العارض للسكون (عند الوقف)">
+  <header><span class="num">44</span><span class="rule">المد العارض للسكون (عند الوقف)</span></header>
+  <p class="ayah">ثُمَّ مَآ أَدۡرَىٰكَ مَا يَوۡمُ <mark>ٱلدِّينِ</mark></p>
+  <p class="ref">الانفِطَارِ — آية 18 <small>(82:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد حرف متحرك في آخر الكلمة وسكّنّاه للوقف جاز مدّه ٢ أو ٤ أو ٦ حركات، مثل «نَسْتَعِينُ» و«الْعَالَمِينَ» عند الوقف عليها.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r44" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r44" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r44" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r44" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="45" data-ref="29:66" data-rule="المد العارض للسكون (عند الوقف)">
+  <header><span class="num">45</span><span class="rule">المد العارض للسكون (عند الوقف)</span></header>
+  <p class="ayah">لِيَكۡفُرُوا۟ بِمَآ ءَاتَيۡنَٰهُمۡ وَلِيَتَمَتَّعُوا۟ فَسَوۡفَ <mark>يَعۡلَمُونَ</mark></p>
+  <p class="ref">العَنكَبُوتِ — آية 66 <small>(29:66)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء بعد حرف المد حرف متحرك في آخر الكلمة وسكّنّاه للوقف جاز مدّه ٢ أو ٤ أو ٦ حركات، مثل «نَسْتَعِينُ» و«الْعَالَمِينَ» عند الوقف عليها.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r45" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r45" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r45" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r45" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="46" data-ref="106:3" data-rule="مد اللين (عند الوقف)">
+  <header><span class="num">46</span><span class="rule">مد اللين (عند الوقف)</span></header>
+  <p class="ayah">فَلۡيَعۡبُدُوا۟ رَبَّ هَٰذَا <mark>ٱلۡبَيۡتِ</mark></p>
+  <p class="ref">قُرَيۡشٍ — آية 3 <small>(106:3)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا وقفتَ على كلمة آخرها حرف متحرك قبله واو أو ياء ساكنة مفتوح ما قبلها (مثل «خَوْفٍ» و«الْبَيْتِ») جاز مدّها بلين ٢ أو ٤ أو ٦ حركات.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r46" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r46" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r46" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r46" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="47" data-ref="55:17" data-rule="مد اللين (عند الوقف)">
+  <header><span class="num">47</span><span class="rule">مد اللين (عند الوقف)</span></header>
+  <p class="ayah">رَبُّ ٱلۡمَشۡرِقَيۡنِ وَرَبُّ <mark>ٱلۡمَغۡرِبَيۡنِ</mark></p>
+  <p class="ref">الرَّحۡمَٰن — آية 17 <small>(55:17)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا وقفتَ على كلمة آخرها حرف متحرك قبله واو أو ياء ساكنة مفتوح ما قبلها (مثل «خَوْفٍ» و«الْبَيْتِ») جاز مدّها بلين ٢ أو ٤ أو ٦ حركات.</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r47" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r47" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r47" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r47" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="48" data-ref="85:17" data-rule="القلقلة الكبرى (عند الوقف)">
+  <header><span class="num">48</span><span class="rule">القلقلة الكبرى (عند الوقف)</span></header>
+  <p class="ayah">هَلۡ أَتَىٰكَ حَدِيثُ <mark>ٱلۡجُنُودِ</mark></p>
+  <p class="ref">البُرُوجِ — آية 17 <small>(85:17)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لحرف القلقلة (ق ط ب ج د) حالتان: صغرى (ساكن في وسط الكلمة، صوته يرتدّ برفق) وكبرى (آخر الكلمة عند الوقف عليه، صوته يرتدّ ويهتزّ بقوة أوضح)</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r48" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r48" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r48" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r48" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="49" data-ref="34:53" data-rule="القلقلة الكبرى (عند الوقف)">
+  <header><span class="num">49</span><span class="rule">القلقلة الكبرى (عند الوقف)</span></header>
+  <p class="ayah">وَقَدۡ كَفَرُوا۟ بِهِۦ مِن قَبۡلُ وَيَقۡذِفُونَ بِٱلۡغَيۡبِ مِن مَّكَانٍۭ <mark>بَعِيدٍۢ</mark></p>
+  <p class="ref">سَبَإٍ — آية 53 <small>(34:53)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لحرف القلقلة (ق ط ب ج د) حالتان: صغرى (ساكن في وسط الكلمة، صوته يرتدّ برفق) وكبرى (آخر الكلمة عند الوقف عليه، صوته يرتدّ ويهتزّ بقوة أوضح)</p></details>
+  
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r49" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r49" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r49" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r49" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="50" data-ref="42:2" data-rule="الإخفاء الحقيقي">
+  <header><span class="num">50</span><span class="rule">الإخفاء الحقيقي</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>عٓسٓقٓ</mark></p>
+  <p class="ref">الشُّورَىٰ — آية 2 <small>(42:2)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 2</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r50" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r50" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r50" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r50" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="51" data-ref="19:1" data-rule="الإخفاء الحقيقي">
+  <header><span class="num">51</span><span class="rule">الإخفاء الحقيقي</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>كٓهيعٓصٓ</mark></p>
+  <p class="ref">مَرۡيَمَ — آية 1 <small>(19:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r51" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r51" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r51" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r51" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="52" data-ref="26:1" data-rule="الإدغام بغنة">
+  <header><span class="num">52</span><span class="rule">الإدغام بغنة</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>طسٓمٓ</mark></p>
+  <p class="ref">الشُّعَرَاءِ — آية 1 <small>(26:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها تماماً مع بقاء غنة كاملة بمقدار حركتين</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r52" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r52" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r52" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r52" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="53" data-ref="28:1" data-rule="الإدغام بغنة">
+  <header><span class="num">53</span><span class="rule">الإدغام بغنة</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>طسٓمٓ</mark></p>
+  <p class="ref">القَصَصِ — آية 1 <small>(28:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها تماماً مع بقاء غنة كاملة بمقدار حركتين</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r53" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r53" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r53" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r53" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="54" data-ref="12:80" data-rule="المتجانسان">
+  <header><span class="num">54</span><span class="rule">المتجانسان</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">فَلَمَّا ٱسۡتَيۡـَٔسُوا۟ مِنۡهُ خَلَصُوا۟ نَجِيًّۭا قَالَ كَبِيرُهُمۡ أَلَمۡ تَعۡلَمُوٓا۟ أَنَّ أَبَاكُمۡ قَدۡ أَخَذَ عَلَيۡكُم مَّوۡثِقًۭا مِّنَ ٱللَّهِ وَمِن قَبۡلُ مَا <mark>فَرَّطتُمۡ</mark> فِى يُوسُفَ فَلَنۡ أَبۡرَحَ ٱلۡأَرۡضَ حَتَّىٰ يَأۡذَنَ لِىٓ أَبِىٓ أَوۡ يَحۡكُمَ ٱللَّهُ لِى وَهُوَ خَيۡرُ ٱلۡحَٰكِمِينَ</p>
+  <p class="ref">يُوسُفَ — آية 80 <small>(12:80)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتجانسان حرفان اتفقا في المخرج واختلفا في الصفة، مثل الدال مع التاء في «قَد تَّبَيَّنَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r54" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r54" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r54" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r54" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="55" data-ref="27:22" data-rule="المتجانسان">
+  <header><span class="num">55</span><span class="rule">المتجانسان</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">فَمَكَثَ غَيۡرَ بَعِيدٍۢ فَقَالَ <mark>أَحَطتُ</mark> بِمَا لَمۡ تُحِطۡ بِهِۦ وَجِئۡتُكَ مِن سَبَإٍۭ بِنَبَإٍۢ يَقِينٍ</p>
+  <p class="ref">النَّمۡلِ — آية 22 <small>(27:22)</small></p>
+  <details><summary>تعريف الحكم</summary><p>المتجانسان حرفان اتفقا في المخرج واختلفا في الصفة، مثل الدال مع التاء في «قَد تَّبَيَّنَ». إن كان الأول ساكناً والثاني متحركاً سُمّي «صغيراً» فيُدغم الأول في الثاني.</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r55" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r55" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r55" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r55" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="56" data-ref="16:86" data-rule="المد الواجب المتصل">
+  <header><span class="num">56</span><span class="rule">المد الواجب المتصل</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">وَإِذَا رَءَا ٱلَّذِينَ أَشۡرَكُوا۟ <mark>شُرَكَآءَهُمۡ</mark> قَالُوا۟ رَبَّنَا <mark>هَٰٓؤُلَآءِ</mark> <mark>شُرَكَآؤُنَا</mark> ٱلَّذِينَ كُنَّا نَدۡعُوا۟ مِن دُونِكَ فَأَلۡقَوۡا۟ إِلَيۡهِمُ ٱلۡقَوۡلَ إِنَّكُمۡ لَكَٰذِبُونَ</p>
+  <p class="ref">النَّحۡلِ — آية 86 <small>(16:86)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت همزة بعد حرف المد في الكلمة نفسها وجب مدّه أكثر من الطبيعي (٤ أو ٥ حركات)، مثل «جَاءَ» و«السَّمَاءِ».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 4 والثاني 3</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r56" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r56" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r56" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r56" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="57" data-ref="10:18" data-rule="المد الواجب المتصل">
+  <header><span class="num">57</span><span class="rule">المد الواجب المتصل</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">وَيَعۡبُدُونَ مِن دُونِ ٱللَّهِ مَا لَا يَضُرُّهُمۡ وَلَا يَنفَعُهُمۡ وَيَقُولُونَ <mark>هَٰٓؤُلَآءِ</mark> <mark>شُفَعَٰٓؤُنَا</mark> عِندَ ٱللَّهِ قُلۡ أَتُنَبِّـُٔونَ ٱللَّهَ بِمَا لَا يَعۡلَمُ فِى ٱلسَّمَٰوَٰتِ وَلَا فِى ٱلۡأَرۡضِ سُبۡحَٰنَهُۥ وَتَعَٰلَىٰ عَمَّا يُشۡرِكُونَ</p>
+  <p class="ref">يُونُسَ — آية 18 <small>(10:18)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت همزة بعد حرف المد في الكلمة نفسها وجب مدّه أكثر من الطبيعي (٤ أو ٥ حركات)، مثل «جَاءَ» و«السَّمَاءِ».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 3 والثاني 2</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r57" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r57" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r57" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r57" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="58" data-ref="4:109" data-rule="المد الجائز المنفصل">
+  <header><span class="num">58</span><span class="rule">المد الجائز المنفصل</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>هَٰٓأَنتُمۡ</mark> <mark>هَٰٓؤُلَآءِ</mark> جَٰدَلۡتُمۡ عَنۡهُمۡ فِى ٱلۡحَيَوٰةِ ٱلدُّنۡيَا فَمَن يُجَٰدِلُ ٱللَّهَ عَنۡهُمۡ يَوۡمَ ٱلۡقِيَٰمَةِ أَم مَّن يَكُونُ عَلَيۡهِمۡ وَكِيلًۭا</p>
+  <p class="ref">النِّسَاءِ — آية 109 <small>(4:109)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء حرف المد في آخر كلمة وجاءت همزة في أول الكلمة التي بعدها جاز مدّه (٤ أو ٥ حركات) أو قصره (حركتان)، مثل «إِنَّا أَعْطَيْنَاكَ» و«بِمَا أُنزِلَ».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 1 والثاني 2</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r58" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r58" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r58" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r58" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="59" data-ref="20:120" data-rule="المد الجائز المنفصل">
+  <header><span class="num">59</span><span class="rule">المد الجائز المنفصل</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">فَوَسۡوَسَ إِلَيۡهِ ٱلشَّيۡطَٰنُ قَالَ <mark>يَٰٓـَٔادَمُ</mark> هَلۡ أَدُلُّكَ عَلَىٰ شَجَرَةِ ٱلۡخُلۡدِ وَمُلۡكٍۢ لَّا يَبۡلَىٰ</p>
+  <p class="ref">طه — آية 120 <small>(20:120)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاء حرف المد في آخر كلمة وجاءت همزة في أول الكلمة التي بعدها جاز مدّه (٤ أو ٥ حركات) أو قصره (حركتان)، مثل «إِنَّا أَعْطَيْنَاكَ» و«بِمَا أُنزِلَ».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r59" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r59" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r59" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r59" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="60" data-ref="18:51" data-rule="غنة النون/الميم المشددة">
+  <header><span class="num">60</span><span class="rule">غنة النون/الميم المشددة</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>مَّآ</mark> أَشۡهَدتُّهُمۡ خَلۡقَ ٱلسَّمَٰوَٰتِ وَٱلۡأَرۡضِ وَلَا خَلۡقَ أَنفُسِهِمۡ وَمَا كُنتُ مُتَّخِذَ ٱلۡمُضِلِّينَ عَضُدًۭا</p>
+  <p class="ref">الكَهۡفِ — آية 51 <small>(18:51)</small></p>
+  <details><summary>تعريف الحكم</summary><p>أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r60" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r60" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r60" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r60" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="61" data-ref="17:47" data-rule="غنة النون/الميم المشددة">
+  <header><span class="num">61</span><span class="rule">غنة النون/الميم المشددة</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah"><mark>نَّحۡنُ</mark> أَعۡلَمُ بِمَا يَسۡتَمِعُونَ بِهِۦٓ إِذۡ يَسۡتَمِعُونَ إِلَيۡكَ وَإِذۡ هُمۡ نَجۡوَىٰٓ إِذۡ يَقُولُ ٱلظَّٰلِمُونَ إِن تَتَّبِعُونَ إِلَّا رَجُلًۭا مَّسۡحُورًا</p>
+  <p class="ref">الإِسۡرَاءِ — آية 47 <small>(17:47)</small></p>
+  <details><summary>تعريف الحكم</summary><p>أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 0 والثاني 1</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r61" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r61" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r61" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r61" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="62" data-ref="64:1" data-rule="اللام الشمسية (إدغام)">
+  <header><span class="num">62</span><span class="rule">اللام الشمسية (إدغام)</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">يُسَبِّحُ لِلَّهِ مَا فِى <mark>ٱلسَّمَٰوَٰتِ</mark> وَمَا فِى ٱلۡأَرۡضِ لَهُ ٱلۡمُلۡكُ وَلَهُ ٱلۡحَمۡدُ وَهُوَ عَلَىٰ كُلِّ شَىۡءٍۢ قَدِيرٌ</p>
+  <p class="ref">التَّغَابُنِ — آية 1 <small>(64:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ط ث ص ر ت ض ذ ن د س ظ ز ش ل) لا تُنطق اللام، وتُدغم في الحرف بعدها فيصير مشدَّداً، وتُسمّى لاماً شمسية كلام «الشمس».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 1 والثاني 3</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r62" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r62" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r62" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r62" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<article class="card" data-id="63" data-ref="8:1" data-rule="اللام الشمسية (إدغام)">
+  <header><span class="num">63</span><span class="rule">اللام الشمسية (إدغام)</span><span class="tag">اختلف فيه المصدران</span></header>
+  <p class="ayah">يَسۡـَٔلُونَكَ عَنِ ٱلۡأَنفَالِ قُلِ ٱلۡأَنفَالُ لِلَّهِ <mark>وَٱلرَّسُولِ</mark> فَٱتَّقُوا۟ ٱللَّهَ وَأَصۡلِحُوا۟ ذَاتَ بَيۡنِكُمۡ وَأَطِيعُوا۟ ٱللَّهَ وَرَسُولَهُۥٓ إِن كُنتُم مُّؤۡمِنِينَ</p>
+  <p class="ref">الأَنفَالِ — آية 1 <small>(8:1)</small></p>
+  <details><summary>تعريف الحكم</summary><p>إذا جاءت لام «ال» قبل أحد الحروف الأربعة عشر (ط ث ص ر ت ض ذ ن د س ظ ز ش ل) لا تُنطق اللام، وتُدغم في الحرف بعدها فيصير مشدَّداً، وتُسمّى لاماً شمسية كلام «الشمس».</p></details>
+  <p class="note-src">⚠️ اختلف المصدران في عدد هذا الحكم في الآية: المصدر الأول 1 والثاني 3</p>
+  <div class="choices" role="group" aria-label="رأيك في الموضع المظلَّل">
+    <label><input type="radio" name="r63" value="ok"> ✅ صحيح</label>
+    <label><input type="radio" name="r63" value="wrong"> ❌ المظلَّل خطأ</label>
+    <label><input type="radio" name="r63" value="missed"> ➕ فات موضع آخر</label>
+    <label><input type="radio" name="r63" value="unsure"> ❓ لست متأكداً</label>
+  </div>
+  <input class="note" type="text" placeholder="ملاحظة (اختياري)">
+</article>
+<textarea id="out" readonly></textarea>
+</div>
+<div class="bar"><span id="count">0 / 63</span><button id="sum">تلخيص الملاحظات</button><button id="clr" style="background:transparent;color:var(--accent);border:1.5px solid var(--accent)">مسح اختياراتي</button></div>
+<script>
+const KEY='tajweedReview_v1', cards=[...document.querySelectorAll('.card')];
+let st={}; try{st=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const upd=()=>{document.getElementById('count').textContent=Object.values(st).filter(x=>x.v).length+' / '+cards.length};
+cards.forEach(c=>{const id=c.dataset.id,s=st[id]||{};
+ if(s.v){const r=c.querySelector('input[value="'+s.v+'"]');if(r)r.checked=true} if(s.n)c.querySelector('.note').value=s.n;
+ c.querySelectorAll('input[type=radio]').forEach(r=>r.addEventListener('change',()=>{st[id]={...st[id],v:r.value};save();upd()}));
+ c.querySelector('.note').addEventListener('input',e=>{st[id]={...st[id],n:e.target.value};save()});});
+upd();
+const LBL={ok:'صحيح',wrong:'المظلَّل خطأ',missed:'فات موضع آخر',unsure:'غير متأكد'};
+document.getElementById('sum').onclick=()=>{
+ const done=Object.values(st).filter(x=>x.v).length, lines=[];
+ cards.forEach(c=>{const s=st[c.dataset.id]||{}; if((s.v&&s.v!=='ok')||s.n) lines.push('#'+c.dataset.id+' | '+c.dataset.ref+' | '+c.dataset.rule+' | '+(LBL[s.v]||'—')+(s.n?' | '+s.n:''));});
+ const ok=cards.filter(c=>(st[c.dataset.id]||{}).v==='ok').length;
+ const o=document.getElementById('out'); o.style.display='block';
+ o.value='راجعت '+done+' من '+cards.length+' — صحيح '+ok+'\n'+(lines.length?lines.join('\n'):'لا ملاحظات.'); o.select();
+ try{navigator.clipboard.writeText(o.value)}catch(e){} o.scrollIntoView({behavior:'smooth'});};
+document.getElementById('clr').onclick=()=>{if(confirm('مسح كل اختياراتك؟')){st={};save();location.reload()}};
+</script></body></html>
