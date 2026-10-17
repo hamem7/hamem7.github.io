@@ -118,17 +118,6 @@ function partialStem(text, part) {
     return part === 'tail' ? '… ' + words.slice(-k).join(' ') : words.slice(0, k).join(' ') + ' …';
 }
 
-// يستبدل كلمة واحدة من الكلمات بأقرب كلمة شكلاً من المخزون (خيار «شبه صحيح» لا يُكشف إلا بحفظ دقيق). null إن تعذّر
-// usedIdx: مواضع سبق تبديلها في خيار آخر — لا يتكرر نفس الموضع حتى لا تظهر عدة خيارات تختلف في الكلمة نفسها فقط (إلى/إلا/على)
-function mutateWords(words, poolWords, usedIdx = new Set()) {
-    const idxs = words.map((w, i) => i).filter(i => skeleton(words[i]).length >= 3 && !usedIdx.has(i)).sort(() => 0.5 - Math.random());
-    for (const i of idxs) {
-        const subs = pickDistractorWords(words[i], poolWords.filter(w => !words.includes(w)), 1, 3);
-        if (subs.length) { const out = [...words]; out[i] = subs[0]; usedIdx.add(i); return out.join(' '); }
-    }
-    return null;
-}
-
 export class HomeworkEngine {
     constructor(quranEngine) {
         this.quranEngine = quranEngine;
@@ -361,8 +350,8 @@ export class HomeworkEngine {
         let words = getCleanWords(targetAyah.text);
         if (words.length < 5) return null;
 
-        // الصعب (آية من 7 كلمات فأكثر): تُخفى نصف الآية الأخير (4–7 كلمات) بدل 3، وخمسة خيارات منها خياران «مُعدَّلان»
-        // بكلمة واحدة مبدَّلة بأقرب كلمة شكلاً، فلا يُميَّز الصحيح إلا بحفظ دقيق
+        // الصعب (آية من 7 كلمات فأكثر): تُخفى نصف الآية الأخير (4–7 كلمات) بدل 3، وخمسة خيارات كلها خواتيم آيات حقيقية
+        // غير معدَّلة (الأقرب شكلاً للصحيح)
         const hard = isHard(opts) && words.length >= 7;
         let endingCount = hard ? Math.min(7, Math.max(4, Math.ceil(words.length * 0.5))) : Math.min(3, Math.floor(words.length / 2));
         let endingWords = words.slice(-endingCount).join(" ");
@@ -373,20 +362,14 @@ export class HomeworkEngine {
         if (hard) {
             const poolWordLists = pool.map(a => getCleanWords(a.text));
             const endings = [...new Set(poolWordLists.filter(w => w.length >= endingCount).map(w => w.slice(-endingCount).join(" ")))];
-            const known = new Set([correctAnswer, ...endings]);
-            const flatWords = poolWordLists.flat();
-            // [إصلاح 2026-10-17] خياران «مُعدَّلان» على الأكثر وبمواضع مختلفة، والتفرّد يُقاس على الهيكل بلا تشكيل
-            // فلا يظهر خياران متطابقان تقريباً (كان يتكرر تبديل الكلمة نفسها فتظهر ٣ خيارات متشابهة)
-            const hardWrong = pickDistractorTexts(correctAnswer, endings, 2, [], 4);
-            const seenSk = new Set([skeleton(correctAnswer), ...hardWrong.map(skeleton)]);
-            const usedIdx = new Set();
-            for (let tries = 0; tries < 8 && hardWrong.length < 4 && usedIdx.size < 2; tries++) {
-                const mutated = mutateWords(words.slice(-endingCount), flatWords, usedIdx);
-                if (mutated && !known.has(mutated) && !seenSk.has(skeleton(mutated))) { hardWrong.push(mutated); seenSk.add(skeleton(mutated)); }
-            }
-            if (hardWrong.length < 4) {
-                const extra = pickDistractorTexts(correctAnswer, endings, 6, hardWrong, 8).filter(t => !seenSk.has(skeleton(t)));
-                for (const t of extra) { if (hardWrong.length >= 4) break; hardWrong.push(t); seenSk.add(skeleton(t)); }
+            // [2026-10-17] كل الخيارات الخاطئة خواتيم آيات حقيقية من النطاق بلا أي تعديل في نصها (لا كلمات مبدَّلة)؛
+            // التفرّد يُقاس على الهيكل بلا تشكيل فلا يظهر خياران متطابقان تقريباً
+            const hardWrong = [];
+            const seenSk = new Set([skeleton(correctAnswer)]);
+            for (const t of pickDistractorTexts(correctAnswer, endings, 12, [], 12)) {
+                if (hardWrong.length >= 4) break;
+                if (seenSk.has(skeleton(t))) continue;
+                hardWrong.push(t); seenSk.add(skeleton(t));
             }
             const uniqueWrong = [...new Set(hardWrong)].filter(w => w !== correctAnswer).slice(0, 4);
             if (uniqueWrong.length >= 3) {

@@ -19,7 +19,7 @@ export const CHANGELOG = [
         version: '1.0.33',
         date: '2026-10-17',
         items: [
-            { type: 'fixed', text: { ar: 'الواجب الصعب: لم تعد خيارات «الخاتمة الدقيقة» تتكرر بتبديل الكلمة نفسها (إلى/إلا/على) — خياران معدّلان كحدّ أقصى بمواضع مختلفة.', en: 'Hard homework: ending options no longer repeat by swapping the same word; at most two altered options at different positions.' } },
+            { type: 'fixed', text: { ar: 'الواجب الصعب: خيارات «الخاتمة الدقيقة» صارت كلها خواتيم آيات حقيقية بلا أي تعديل في نصها، ولا تتكرر.', en: 'Hard homework: ending options are now all real, unmodified ayah endings, with no near-duplicates.' } },
             { type: 'improved', text: { ar: 'سؤال الترتيب: عدّاد وتلوين يبيّنان للطالب كم آية رتّبها وهل أتمّ الكل.', en: 'Ordering question: a counter and row highlights show the student how many ayahs are ordered.' } },
             { type: 'fixed', text: { ar: 'التسليمات المعتمدة التي لم تُكتب في سجل الطالب تظهر بعلامة ⚠️ وزر «سجّل الآن».', en: 'Approved submissions missing from the student record now show a warning and a "record now" button.' } }
         ]
