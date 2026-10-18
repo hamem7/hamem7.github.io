@@ -86,6 +86,12 @@ function formatScope(scope) {
     return '';
 }
 
+// 🌟 [2026-10-18] تصميم «قالب المصحف» (assets/certificates/template-quran.jpg) — معاينة معتمدة: previews/hwcert-f-quran.html.
+// كل المقاسات بوحدة u = 1% من عرض البطاقة (المتغير --u بالبكسل يضبطه fitCertificate)، لا cqw لأن html2canvas لا يدعمها.
+// نصوص العمود الرئيسي تتكبّر/تتصغّر بالمعامل --f ليتّسع أي عدد من الأخطاء فوق ذيل المعلم دون تداخل.
+const U = (n) => `calc(var(--u) * ${n})`;
+const S = (n) => `calc(var(--u) * ${n} * var(--f))`;
+
 function ensureStyles() {
     if (document.getElementById('hwcert-style')) return;
     const style = document.createElement('style');
@@ -93,74 +99,93 @@ function ensureStyles() {
     style.textContent = `
         .hwcert-overlay { position: fixed; inset: 0; background: rgba(6,35,28,0.82); z-index: 10050;
             display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
-        .hwcert-card-wrap { max-width: 560px; width: 100%; }
-        /* 🌟 [2026-10-06] تصميم "عصري بشريط زمردي": إطار ذهبي مزدوج + شريط علوي أخضر بالشعار يميناً والعنوان في المنتصف،
-           ميدالية للدرجة، وذيل رسمي (المعلم/الختم/التاريخ). خطوط Reem Kufi للعناوين والأسماء وAmiri للآية. */
-        .hwcert-card { background: var(--dh-paper, #fdf6e3); border: 3px solid var(--dh-gold-500, #d4af37); border-radius: 18px;
-            padding: 6px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.35); font-family: inherit; position: relative; }
-        .hwcert-frame { border: 1px solid #a8841c; border-radius: 13px; overflow: hidden; background: #fdf6e3; }
-        .hwcert-band { position: relative; background: linear-gradient(135deg, #06352a, #0d5c46); color: #fdf6e3;
-            padding: 10px 76px 9px; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .hwcert-band::after { content: ""; position: absolute; inset: 0; opacity: .07; pointer-events: none;
-            background: repeating-linear-gradient(45deg,#fff 0 2px,transparent 2px 14px), repeating-linear-gradient(-45deg,#fff 0 2px,transparent 2px 14px); }
-        .hwcert-band > * { position: relative; z-index: 1; }
-        .hwcert-logo { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); width: 40px; height: auto; display: block; z-index: 1; }
-        .hwcert-body { padding: 12px 18px 8px; }
-        .hwcert-tail { border-top: 1px solid rgba(212,175,55,.6); padding: 8px 18px 10px; background: rgba(212,175,55,.08); }
-        .hwcert-title { font-family: 'Reem Kufi', 'Cairo', inherit; font-size: 1.5rem; font-weight: 700; color: #fdf6e3; margin: 0; line-height: 1.25; }
-        .hwcert-subtitle { font-size: 0.78rem; color: #fdf6e3; opacity: .88; margin: 0; }
-        .hwcert-number { font-size: 0.68rem; color: #e3c35a; margin-top: 3px; letter-spacing: .3px; direction: ltr; font-variant-numeric: tabular-nums; }
-        .hwcert-person { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 8px; }
-        .hwcert-who { text-align: right; min-width: 0; }
-        .hwcert-grant { font-size: 0.8rem; color: var(--dh-ink-soft, #4a6058); }
-        .hwcert-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; flex: none;
-            border: 3px solid var(--dh-gold-500, #d4af37); display: block; background: #fff; }
-        .hwcert-avatar-fallback { width: 60px; height: 60px; border-radius: 50%; flex: none; display: flex;
-            align-items: center; justify-content: center; font-size: 1.6rem; background: var(--dh-emerald-700, #0d5c46);
-            color: #fdf6e3; border: 3px solid var(--dh-gold-500, #d4af37); }
-        .hwcert-name { font-family: 'Reem Kufi', 'Cairo', inherit; font-size: 1.35rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); margin: 0; line-height: 1.25; word-break: break-word; }
-        .hwcert-medal { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 3px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: #06352a; border: 3px double rgba(255,255,255,.55);
-            box-shadow: 0 6px 14px rgba(0,0,0,.25); }
-        .hwcert-medal b { font-family: 'Reem Kufi', 'Cairo', inherit; font-size: 1.3rem; line-height: 1; }
-        .hwcert-medal span { font-size: .62rem; font-weight: 700; }
-        .hwcert-verse { font-family: 'Amiri', serif; font-size: 1.05rem; line-height: 1.7; color: #06352a; margin: 2px 0 4px; }
-        .hwcert-verse small { display: block; font-size: .72rem; opacity: .7; font-family: inherit; }
-        .hwcert-foot { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 10px; }
-        .hwcert-foot.has-stamp { grid-template-columns: 1fr 60px 1fr; }
-        .hwcert-sig { font-size: .75rem; color: var(--dh-ink-soft, #4a6058); }
-        .hwcert-sig-line { border-bottom: 1.5px solid currentColor; height: 16px; margin-bottom: 3px; }
-        .hwcert-sig b { display: block; color: var(--dh-ink, #10241c); font-size: .8rem; line-height: 1.4; word-break: break-word; }
-        .hwcert-stamp { width: 60px; height: 60px; align-self: center; display: flex; align-items: center; justify-content: center; }
+        .hwcert-card-wrap { max-width: 600px; width: 100%; margin: auto; }
+        .hwcert-card { --u: 6px; --f: 1; position: relative; width: 100%; overflow: hidden; text-align: center;
+            background: #fdf6e3 url(assets/certificates/template-quran.jpg) center/100% 100% no-repeat;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.35); font-family: 'Reem Kufi', 'Cairo', sans-serif; color: #2a1e10; }
+        .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
+        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; letter-spacing: ${S(.2)}; }
+        .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
+        .hwcert-title { font-size: ${S(6.6)}; color: #6b4a1e; line-height: 1.2; font-weight: 700; margin: ${S(.3)} 0 0; }
+        .hwcert-orn { display: flex; align-items: center; gap: ${S(2)}; color: #a8841c; font-size: ${S(2.4)}; margin-top: ${S(.2)}; }
+        .hwcert-orn i { height: 1px; width: ${S(15)}; background: linear-gradient(90deg, transparent, #a8841c); }
+        .hwcert-orn i:last-child { transform: scaleX(-1); }
+        .hwcert-person { display: flex; align-items: center; justify-content: center; gap: ${S(2.6)}; margin-top: ${S(1.2)}; max-width: 100%; }
+        .hwcert-avatar { width: ${S(10)}; height: ${S(10)}; border-radius: 50%; object-fit: cover; flex: none; display: block; background: #fff;
+            border: ${S(.7)} solid #d4af37; box-shadow: 0 ${S(.8)} ${S(1.8)} rgba(0,0,0,.2); }
+        .hwcert-avatar-fallback { width: ${S(10)}; height: ${S(10)}; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+            font-size: ${S(5)}; background: #2f7f6a; color: #fdf6e3; border: ${S(.7)} solid #d4af37; box-shadow: 0 ${S(.8)} ${S(1.8)} rgba(0,0,0,.2); }
+        .hwcert-who { text-align: start; min-width: 0; }
+        .hwcert-grant { font-family: 'Amiri', serif; color: #6a5a44; font-size: ${S(2.8)}; }
+        .hwcert-name { font-family: 'Amiri', serif; font-size: ${S(7.2)}; font-weight: 700; color: #6b4a1e; line-height: 1.2; word-break: break-word; }
+        .hwcert-result { display: grid; grid-template-columns: ${S(17)} 1fr; gap: ${S(3)}; align-items: center; width: 100%; margin-top: ${S(1.4)}; }
+        .hwcert-medalcol { text-align: center; }
+        .hwcert-medalwrap { position: relative; width: ${S(13)}; height: ${S(15.8)}; margin: 0 auto; }
+        .hwcert-tails { position: absolute; bottom: 0; left: 50%; margin-left: ${S(-4)}; width: ${S(8)}; height: ${S(5.4)}; display: block; }
+        .hwcert-medal { position: absolute; top: 0; left: 0; width: ${S(13)}; height: ${S(13)}; border-radius: 50%; box-sizing: border-box;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; color: #4a3408;
+            border: ${S(1)} solid #a8841c; box-shadow: 0 ${S(1.2)} ${S(2.4)} rgba(0,0,0,.28); }
+        .hwcert-medal b { font-size: ${S(4)}; line-height: 1; }
+        .hwcert-medal span { font-size: ${S(1.9)}; font-weight: 700; margin-top: ${S(.4)}; }
+        .hwcert-cap { font-size: ${S(2.1)}; color: #6a5a44; margin-top: ${S(.8)}; }
+        .hwcert-side { display: flex; flex-direction: column; gap: ${S(1.3)}; text-align: start; min-width: 0; }
+        .hwcert-scope { background: rgba(44,111,115,.08); border: 1px solid rgba(44,111,115,.3); border-radius: ${S(2.2)}; padding: ${S(1)} ${S(2.4)}; }
+        .hwcert-scope small { display: block; font-size: ${S(2)}; color: #6a5a44; }
+        .hwcert-scope b { font-family: 'Amiri', serif; font-size: ${S(2.8)}; color: #2c6f73; line-height: 1.45; }
+        .hwcert-enc { font-family: 'Amiri', serif; font-size: ${S(2.7)}; line-height: 1.5; background: rgba(212,175,55,.16); border-radius: ${S(2.2)}; padding: ${S(1)} ${S(2.4)}; }
+        .hwcert-mist { width: 100%; margin-top: ${S(1.6)}; text-align: start; background: rgba(255,255,255,.82); border: 1px solid #e0cd98;
+            border-radius: ${S(2.4)}; padding: ${S(1.3)} ${S(2.4)} ${S(1)}; box-sizing: border-box; }
+        .hwcert-mist h3 { font-size: ${S(2.5)}; color: #a15230; font-weight: 700; margin: 0 0 ${S(.4)}; text-align: center; }
+        .hwcert-mlist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 ${S(2.4)}; }
+        .hwcert-mi { font-family: 'Amiri', serif; font-size: ${S(2.3)}; line-height: 1.45; padding: ${S(.7)} 0; border-top: 1px dashed #d9c58c; word-break: break-word; }
+        .hwcert-mi:nth-child(-n+2) { border-top: none; }
+        .hwcert-mi em { display: block; font-style: normal; font-weight: 700; color: #147c5e; }
+        .hwcert-mmore { font-size: ${S(2.1)}; color: #a15230; text-align: center; padding-top: ${S(.4)}; }
+        .hwcert-nomist { text-align: center; color: #147c5e; font-weight: 700; font-size: ${S(2.6)}; padding: ${S(.8)} 0; }
+        .hwcert-note { width: 100%; margin-top: ${S(1.3)}; text-align: start; background: rgba(47,127,106,.08); border: 1px dashed #2f7f6a;
+            border-radius: ${S(2.4)}; padding: ${S(.9)} ${S(2.4)}; box-sizing: border-box; }
+        .hwcert-note b { font-size: ${S(2.3)}; color: #2f7f6a; margin-inline-end: ${S(1)}; }
+        .hwcert-note span { font-family: 'Amiri', serif; font-size: ${S(2.5)}; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
+        .hwcert-close { position: absolute; left: ${U(13)}; width: ${U(42)}; top: ${U(102.8)}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
+        .hwcert-row { display: flex; justify-content: center; align-items: flex-end; gap: ${U(2.5)}; margin-bottom: ${U(1)}; }
+        .hwcert-sig { width: ${U(20)}; font-size: ${U(2.6)}; }
+        .hwcert-sig-line { border-bottom: ${U(.35)} solid #6a5a44; height: ${U(3.4)}; margin-bottom: ${U(.7)}; }
+        .hwcert-sig b { display: block; color: #2a1e10; font-size: ${U(2.9)}; line-height: 1.5; word-break: break-word; }
+        .hwcert-stamp { width: ${U(10)}; height: ${U(10)}; display: flex; align-items: center; justify-content: center; }
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-        .hwcert-score-caption { font-size: 0.85rem; text-align: center; color: var(--dh-ink-soft, #4a6058); margin-bottom: 8px; }
-        .hwcert-scope { background: rgba(13,92,70,0.08); border: 1px solid rgba(13,92,70,0.28); border-radius: 14px;
-            padding: 6px 14px; margin-bottom: 8px; }
-        .hwcert-scope-title { font-size: 0.8rem; color: var(--dh-ink-soft, #4a6058); margin-bottom: 2px; }
-        .hwcert-scope-text { font-size: 1rem; font-weight: bold; color: var(--dh-emerald-700, #0d5c46); line-height: 1.5; }
-        .hwcert-encourage { font-size: .92rem; line-height: 1.55; color: var(--dh-ink, #10241c); background: rgba(212,175,55,0.14);
-            border-radius: 12px; padding: 8px 14px; margin-bottom: 8px; }
-        .hwcert-mistakes { text-align: right; background: #fff; border: 1px solid #e7d9ad; border-radius: 14px;
-            padding: 8px 14px; margin-bottom: 6px; }
-        .hwcert-mistakes-title { font-weight: bold; color: #a15230; margin: 0 0 4px; font-size: 0.9rem; }
-        .hwcert-mistake-item { font-size: 0.85rem; line-height: 1.5; color: var(--dh-ink, #10241c); padding: 4px 0; border-top: 1px dashed #e7d9ad; }
-        .hwcert-mistake-item:first-child { border-top: none; }
-        .hwcert-mistake-correct { color: #147c5e; font-weight: bold; }
-        .hwcert-no-mistakes { text-align: center; color: #147c5e; font-weight: bold; padding: 4px; font-size: .9rem; }
-        .hwcert-teacher-note { background: rgba(13,92,70,0.07); border: 1px dashed var(--dh-emerald-700, #0d5c46);
-            border-radius: 14px; padding: 8px 14px; margin: 8px 0 6px; text-align: right; }
-        .hwcert-teacher-note-title { font-weight: bold; color: var(--dh-emerald-700, #0d5c46); font-size: 0.9rem; margin-bottom: 4px; }
-        .hwcert-teacher-note-text { color: var(--dh-ink, #10241c); line-height: 1.6; font-size: .92rem; white-space: pre-wrap; word-break: break-word; }
+        .hwcert-when { font-size: ${U(2.3)}; line-height: 1.5; white-space: nowrap; }
+        .hwcert-when b { color: #2a1e10; }
+        .hwcert-number { font-family: 'Reem Kufi', sans-serif; font-size: ${U(1.9)}; color: #a8841c; letter-spacing: ${U(.2)}; margin-top: ${U(.5)}; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
         .hwcert-btn-save { background: var(--dh-emerald-700, #0d5c46); color: #fdf6e3; }
         .hwcert-btn-share { background: #25D366; color: #fff; }
         .hwcert-btn-close { background: transparent; color: #a15230; border: 2px solid #a15230 !important; }
-        .hwcert-note { font-size: 0.8rem; color: var(--dh-ink-soft, #4a6058); margin-top: 10px; }
+        .hwcert-note-msg { font-size: 0.8rem; color: #fdf6e3; margin-top: 10px; }
     `;
     document.head.appendChild(style);
 }
+
+// يضبط وحدة القياس --u من عرض البطاقة الفعلي وارتفاعها بنسبة القالب، ثم يُصغّر نصوص العمود الرئيسي (--f)
+// بالقدر اللازم حتى لا يتجاوز آخر عنصر فيه موضع ذيل المعلم (يسار المصحف).
+const CERT_RATIO = 1608 / 1200;
+function fitCertificate(card) {
+    const w = card.clientWidth;
+    if (!w) return;
+    card.style.setProperty('--u', (w / 100) + 'px');
+    card.style.height = (w * CERT_RATIO) + 'px';
+    card.style.setProperty('--f', '1');
+    const main = card.querySelector('.hwcert-main');
+    const limit = 102 * w / 100;
+    let f = 1;
+    while (f > 0.5 && main.offsetTop + main.offsetHeight > limit) {
+        f = Math.round((f - 0.03) * 100) / 100;
+        card.style.setProperty('--f', String(f));
+    }
+}
+
+const MAX_MISTAKES = 10;
 
 // 🌟 [2026-10-06] خطوط الشهادة (Reem Kufi للعناوين/الاسم، Amiri للآية) من Google Fonts — تُحمَّل مرة واحدة،
 // وينتظر حفظ الصورة اكتمالها حتى لا يرسم html2canvas خط احتياطياً.
@@ -247,16 +272,17 @@ export function showHomeworkCertificate(submission, student, scope) {
 
     const overlay = document.createElement('div');
     overlay.className = 'hwcert-overlay';
+    const shownMistakes = mistakes.slice(0, MAX_MISTAKES);
+    const moreMistakes = mistakes.length - shownMistakes.length;
+    const dir = (AppState && AppState.currentLang === 'en') ? 'ltr' : 'rtl';
+    const titleText = t('hwcert_title').replace(/\s*🏅/, '');
     overlay.innerHTML = `
         <div class="hwcert-card-wrap">
-            <div class="hwcert-card" id="hwcert-card"><div class="hwcert-frame">
-                <div class="hwcert-band">
-                    <img class="hwcert-logo" src="assets/brand/ham-logo-light.svg" alt="${t('hwcert_logo_alt')}">
-                    <h2 class="hwcert-title">${t('hwcert_title')}</h2>
-                    <p class="hwcert-subtitle">${t('hwcert_subtitle')}</p>
-                    <div class="hwcert-number">${t('hwcert_number_label')} ${esc(certNo)}</div>
-                </div>
-                <div class="hwcert-body">
+            <div class="hwcert-card" id="hwcert-card" dir="${dir}">
+                <div class="hwcert-main">
+                    <div class="hwcert-brand"><img src="assets/brand/ham-mark.svg" alt="${t('hwcert_logo_alt')}">${t('hwcert_subtitle')}</div>
+                    <h2 class="hwcert-title">${titleText}</h2>
+                    <div class="hwcert-orn"><i></i>✦<i></i></div>
                     <div class="hwcert-person">
                         ${avatarUrl
                             ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
@@ -266,53 +292,52 @@ export function showHomeworkCertificate(submission, student, scope) {
                             <div class="hwcert-name">${esc(studentName)}</div>
                         </div>
                     </div>
-                    <div class="hwcert-medal" style="background:${MEDAL_BG[tier]};"><b>${score}%</b><span>${t('hwcert_tier_name_' + tier)}</span></div>
-                    <div class="hwcert-score-caption">${t('hwcert_score_label')}</div>
-                    ${scopeText ? `
-                        <div class="hwcert-scope">
-                            <div class="hwcert-scope-title">${t('hwcert_scope_title')}</div>
-                            <div class="hwcert-scope-text">${esc(scopeText)}</div>
+                    <div class="hwcert-result">
+                        <div class="hwcert-medalcol">
+                            <div class="hwcert-medalwrap">
+                                <svg class="hwcert-tails" viewBox="0 0 80 54"><polygon points="0,0 35,0 35,54 17.5,42 0,54" fill="#2a7f84"/><polygon points="45,0 80,0 80,54 62.5,42 45,54" fill="#1f6468"/></svg>
+                                <div class="hwcert-medal" style="background:${MEDAL_BG[tier]};"><b>${score}%</b><span>${t('hwcert_tier_name_' + tier)}</span></div>
+                            </div>
+                            <div class="hwcert-cap">${t('hwcert_score_label')}</div>
                         </div>
-                    ` : ''}
-                    <div class="hwcert-encourage">${t('hwcert_tier_' + tier)}</div>
-                    ${mistakes.length ? `
-                        <div class="hwcert-mistakes">
-                            <div class="hwcert-mistakes-title">${t('hwcert_mistakes_title')}</div>
-                            ${mistakes.map(m => `
-                                <div class="hwcert-mistake-item">
-                                    ${esc(m.question)}
-                                    ${m.correctAnswer ? `<br><span class="hwcert-mistake-correct">${t('hwcert_correct_answer_label')} ${esc(m.correctAnswer)}</span>` : ''}
-                                </div>
-                            `).join('')}
+                        <div class="hwcert-side">
+                            ${scopeText ? `<div class="hwcert-scope"><small>${t('hwcert_scope_title')}</small><b>${esc(scopeText)}</b></div>` : ''}
+                            <div class="hwcert-enc">${t('hwcert_tier_' + tier)}</div>
                         </div>
-                    ` : `<div class="hwcert-mistakes"><div class="hwcert-no-mistakes">${t('hwcert_no_mistakes')}</div></div>`}
-                    ${teacherNote ? `
-                        <div class="hwcert-teacher-note">
-                            <div class="hwcert-teacher-note-title">${t('hwcert_teacher_note_title')}</div>
-                            <div class="hwcert-teacher-note-text">${esc(teacherNote)}</div>
-                        </div>
-                    ` : ''}
-                    <div class="hwcert-verse">${t('hwcert_verse')}<small>${t('hwcert_verse_ref')}</small></div>
+                    </div>
+                    <div class="hwcert-mist">
+                        ${shownMistakes.length ? `
+                            <h3>${t('hwcert_mistakes_title')}</h3>
+                            <div class="hwcert-mlist">
+                                ${shownMistakes.map(m => `<div class="hwcert-mi">${esc(m.question)}${m.correctAnswer ? `<em>${t('hwcert_correct_answer_label')} ${esc(m.correctAnswer)}</em>` : ''}</div>`).join('')}
+                            </div>
+                            ${moreMistakes > 0 ? `<div class="hwcert-mmore">${t('hwcert_mistakes_more').replace('{n}', moreMistakes)}</div>` : ''}
+                        ` : `<div class="hwcert-nomist">${t('hwcert_no_mistakes')}</div>`}
+                    </div>
+                    ${teacherNote ? `<div class="hwcert-note"><b>${t('hwcert_teacher_note_title')}</b><span>${esc(teacherNote)}</span></div>` : ''}
                 </div>
-                <div class="hwcert-tail">
-                    <div class="hwcert-foot${teacher.stamp ? ' has-stamp' : ''}">
-                        <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_date_label')}<b>${dates.hijri ? esc(dates.hijri) + '<br>' : ''}${esc(dates.greg)}</b></div>
+                <div class="hwcert-close">
+                    <div class="hwcert-row">
                         ${teacher.stamp ? `<div class="hwcert-stamp"><img src="${esc(teacher.stamp)}" alt=""></div>` : ''}
                         <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
                     </div>
+                    <div class="hwcert-when">${t('hwcert_issued_on')} <b>${esc(dates.hijri || dates.greg)}</b>${dates.hijri ? `<br><b>${esc(dates.greg)}</b>` : ''}</div>
+                    <div class="hwcert-number">${t('hwcert_number_label')} <bdi dir="ltr">${esc(certNo)}</bdi></div>
                 </div>
-            </div></div>
+            </div>
             <div class="hwcert-actions">
                 <button type="button" class="hwcert-btn-save" id="hwcert-save-btn">${t('hwcert_save_btn')}</button>
                 <button type="button" class="hwcert-btn-share" id="hwcert-share-btn">${t('hwcert_share_btn')}</button>
                 <button type="button" class="hwcert-btn-close" id="hwcert-close-btn">${t('hwcert_close_btn')}</button>
             </div>
-            <div class="hwcert-note" id="hwcert-note" style="display:none;"></div>
+            <div class="hwcert-note-msg" id="hwcert-note" style="display:none;"></div>
         </div>
     `;
     document.body.appendChild(overlay);
 
     const cardEl = overlay.querySelector('#hwcert-card');
+    fitCertificate(cardEl);
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl)); } catch (e) { /* تجاهل */ }
     const noteEl = overlay.querySelector('#hwcert-note');
     const showNote = (msg) => { noteEl.textContent = msg; noteEl.style.display = 'block'; };
 

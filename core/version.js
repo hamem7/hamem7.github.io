@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.36';
+export const APP_VERSION = '1.0.37';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.37',
+        date: '2026-10-18',
+        items: [
+            { type: 'improved', text: { ar: 'شهادة تقدير الواجب بتصميم جديد على قالب المصحف: توزيع منسّق للاسم والنتيجة ونطاق الواجب وأخطاء الطالب وكلمة المعلم، والذيل (الختم والتوقيع والتاريخ) يسار المصحف، ويصغّر الخط تلقائياً إذا كثرت الأخطاء.', en: 'Homework certificate redesigned on the Quran-stand template: tidy layout for name, score, scope, mistakes and teacher note, with the signature/stamp/date footer beside the Quran; text auto-shrinks when there are many mistakes.' } }
+        ]
+    },
     {
         version: '1.0.36',
         date: '2026-10-18',

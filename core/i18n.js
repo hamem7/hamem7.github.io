@@ -1256,6 +1256,8 @@ export const translations = {
         hwcert_verse_ref: "سورة المزمل: 4",
         hwcert_teacher_label: "المعلم",
         hwcert_date_label: "التاريخ",
+        hwcert_issued_on: "تحريرًا في:",
+        hwcert_mistakes_more: "و {n} أخطاء أخرى",
         hwcert_subtitle: "منصة حمٓ لتثبيت الحفظ و المراجعة", // 🌟 الاسم المعتمد بعلامة المد (U+0653) وبدون "دار"
         hwcert_score_label: "النتيجة النهائية",
         hwcert_tier_excellent: "🌟 أداء رائع ومتميز! استمر بهذا التألق، أنت قدوة لزملائك.",
@@ -3868,6 +3870,8 @@ export const translations = {
         hwcert_verse_ref: "Al-Muzzammil: 4",
         hwcert_teacher_label: "Teacher",
         hwcert_date_label: "Date",
+        hwcert_issued_on: "Issued on:",
+        hwcert_mistakes_more: "+ {n} more",
         hwcert_subtitle: "Ham Platform for Retaining & Reviewing Memorization", // 🌟 نفس صياغة splash_subtitle
         hwcert_score_label: "Final Score",
         hwcert_tier_excellent: "🌟 Outstanding performance! Keep shining, you're a role model for your classmates.",
