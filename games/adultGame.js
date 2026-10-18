@@ -664,11 +664,17 @@ async function playNextMission() {
             // حاوية الجولة العادية؛ ولو تعذّرت إعادة بنائها (سجل قديم غير قابل للتحليل) يبقى العرض الثابت 🌟
             const linkRebuilt = (wItem.questionType === 'link_ends' || wItem.questionType === 'link_word_surah' ||
                 wItem.questionType === 'kids_link_ends' || wItem.questionType === 'kids_link_word_surah') ? rebuildLinkFromRecord(wItem) : null;
+            // 🌟 [جديد] أرقام الآيات بالترتيب المخلوط الذي ظهر للطالب فعلاً (يعرف المعلم ما كان السؤال)؛
+            // السجلات القديمة لا تملكه فيظهر تنبيه صريح بدل نص يوحي أنه ترتيب العرض 🌟
+            const orderSeenLine = (wItem.questionType === 'order' && Array.isArray(wItem.orderShuffled) && wItem.orderShuffled.length)
+                ? `<div style="font-size:1.3rem; font-weight:bold; margin:8px 0; color:#92400e;">${t('order_seen_first')}: ${wItem.orderShuffled.join('، ')}</div>` : '';
             if (isInteractiveOrder || linkRebuilt) {
-                originalBodyHTML = '';
+                originalBodyHTML = orderSeenLine;
             } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
-                originalBodyHTML = `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
+                originalBodyHTML = orderSeenLine + `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
                     wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
+            } else if (wItem.questionType === 'order') {
+                originalBodyHTML = `<div style="font-size:1.1rem; color:#92400e; font-weight:bold; margin-bottom:6px;">${t('order_legacy_note')}</div><div class="quran-text" style="font-size:3rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
@@ -1068,6 +1074,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 linkPairs: linkRec ? linkRec.linkPairs : null,
                 correctAns: cd.correctAns || null,
                 hint: cd.hint || null,
+                orderShuffled: (cd.type === 'order' && Array.isArray(cd.shuffled)) ? cd.shuffled.map(a => a.numberInSurah) : null,
                 orderAyahs: (cd.type === 'order' && Array.isArray(cd.original)) ? cd.original.map(a => ({ text: a.text, numberInSurah: a.numberInSurah, surahName: a.surahName })) : null,
                 sourceSection: 'adult',
                 dateRecorded: new Date().toISOString()
