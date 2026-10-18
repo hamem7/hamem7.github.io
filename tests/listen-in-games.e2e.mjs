@@ -44,7 +44,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
     m.GameState.queue.forEach((q, i) => { if (i >= 1 && i <= 3) q.type = type; if (kids && i === 4) q.type = 'kids_listen_ayah'; });
   }, { kids, cfg, type });
   await sleep(1500);
-  await page.evaluate(() => document.getElementById('mmt-close')?.click());
+  await page.evaluate(() => { document.getElementById('mmt-close')?.click(); document.getElementById('whats-new-modal')?.remove(); }) ;
   const answer = async () => page.evaluate((kids) => {
     const g = window.__GS, d = g.currentData;
     if (kids) { const b = [...document.querySelectorAll('.kids-mcq-btn')]; if (d.type === 'kids_mcq' && b.length && d.correctAns && !d.surahOptions) b[d.options.findIndex(o => o.trim() === d.correctAns.trim())].click(); else window.recordKidsAnswer(true); }
@@ -53,6 +53,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
   const listens = [];
   for (let step = 0; step < 40 && listens.length < 3; step++) {
     await sleep(500);
+    await page.evaluate(() => document.getElementById('whats-new-modal')?.remove());
     const cd = await page.evaluate(() => { const g = window.__GS; const d = g.currentData; return d ? { type: d.type, idx: g.currentIndex, done: !!d.__answered, title: d.questionTitle, dir: d.dir || d.listenDir, oldListen: Array.isArray(d.surahOptions) } : null; });
     if (!cd || cd.done) continue;
     if (cd.oldListen && !globalThis.__oldChecked) {
