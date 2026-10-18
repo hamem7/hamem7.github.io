@@ -5129,6 +5129,7 @@ export const translations = {
         "يمكنك إغلاق هذه الصفحة (النافذة) الآن بأمان يا بطل.": "You can safely close this page (window) now, champion.",
         "-- اختر الكلمة الصحيحة --": "-- Choose the correct word --",
         "اكتب الكلمة الناقصة هنا...": "Type the missing word here...",
+        "بإمكانك سؤال أحد الوالدين في هذا السؤال": "You can ask a parent for help with this question",
         "اكتب الآيات الثلاث هنا بتركيز...": "Write the three ayahs here, with focus...",
         "اختر الفراغ الأول [ 1 ]:": "Choose blank 1 [ 1 ]:",
         "اختر الفراغ الثاني [ 2 ]:": "Choose blank 2 [ 2 ]:",

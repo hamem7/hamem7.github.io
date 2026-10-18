@@ -155,6 +155,7 @@ function renderQuestion() {
 
     let html = `
         <h3 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 15px;">${hl(q.title)}</h3>
+        ${(q.type === 'mcq' && String(q.title || '').includes('ما معنى')) ? `<div style="background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e; padding: 10px 14px; border-radius: 10px; font-size: 1.05rem; margin: -5px 0 15px;">👨‍👩‍👧 ${t('بإمكانك سؤال أحد الوالدين في هذا السؤال')}</div>` : ''}
         <!-- 🌟 [جديد] class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية.
              🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
              الآية الفعلي (نفس خط class="quran-text" المستخدم بباقي المنصة) حتى يظهر برسم عثماني
