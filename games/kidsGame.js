@@ -146,8 +146,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
             // ضمن اللعبة قبل اكتمال تحميلها هنا، هناك خط رجوع مباشر في playKidsListenAyahAudio
             // أدناه فلا يتأثر تدفق اللعبة بهذا التحميل أصلاً 🌟
             if (AppState.kidsAudioManager) {
-                const ayahNumbersForAudio = ayahsPool.map(a => a.number);
-                AppState.kidsAudioManager.prefetchAyahs(ayahNumbersForAudio)
+                AppState.kidsAudioManager.prefetchAyahs(ayahsPool)   // 🎧 كائنات الآيات (الرابط يحتاج السورة والآية أيضاً)
                     .catch(err => console.error("خطأ أثناء التحميل المسبق لأصوات آيات ركن الأطفال:", err));
             }
 
@@ -717,60 +716,7 @@ function showKidsListenSurahStep() {
     document.getElementById('kids-listen-surah-area').style.display = 'block';
 }
 
-// 🌟 [جديد بالكامل] تشغيل صوت الآية للعبة "استمع وخمّن الآية" — أول تشغيل صوت تلاوة حقيقي في
-// المنصة كلها (راجع تعليق generateKidsListenAyah في engine/kidsEngine.js لتفاصيل المصدر
-// والافتراضات). مُعرَّفة هنا (لا في kidsEngine.js) لأن كل التحكم بالـDOM/الصوت في هذا الملف
-// بالضبط — بنفس فلسفة window.recordKidsAnswer أعلاه — والمحرك نفسه يبقى نقياً بلا DOM. بلا أي
-// تشغيل تلقائي (autoplay) عمدًا: المتصفحات غالبًا تمنعه بعد أول سؤال في الجلسة، والأنسب
-// للطفل أصلاً إنه يضغط الزر بنفسه ويقدر يعيد الاستماع عدة مرات قبل الاختيار.
-// 🌟 [تعديل] كانت هذه الدالة تُشغِّل audio.src (رابط CDN) مباشرة بلا أي تخزين محلي — الآن تتحقق
-// أولاً من database/kidsAudioDB.js (عبر AppState.kidsAudioManager): لو الصوت مخزَّن مسبقًا
-// (الحالة المعتادة، بفضل التحميل المسبق في openKidsGameScreen أعلاه) تشغّله من النسخة المحلية
-// مباشرة — يعمل بدون إنترنت تمامًا. ولو غير مخزَّن بعد (نادر) تشغّله من رابط الـCDN كخط رجوع
-// كما كان سابقًا، وتخزّنه في نفس اللحظة بصمت ليكون جاهزًا أوفلاين من المرة القادمة.
-window.playKidsListenAyahAudio = async function() {
-    const audio = document.getElementById('kids-listen-audio-player');
-    const btn = document.getElementById('kids-listen-play-btn');
-    if (!audio) return;
-    const ayahNumber = GameState.currentData && GameState.currentData.ayahObj ? GameState.currentData.ayahObj.number : null;
-
-    const stopPulse = () => { if (btn) btn.classList.remove('playing'); };
-    const startPlayback = () => {
-        audio.currentTime = 0;
-        if (btn) btn.classList.add('playing');
-        audio.onended = stopPulse;
-        audio.onpause = stopPulse;
-        // 🌟 تنبيه واضح للمعلم/الطفل لو تعذّر التشغيل نهائيًا (لا إنترنت + غير مخزَّن محليًا
-        // بعد) بدل فشل صامت
-        audio.play().catch(() => { stopPulse(); alert(t('kids_listen_audio_error')); });
-    };
-
-    // 🌟 المحاولة الأولى: تشغيل من التخزين المحلي (Blob في IndexedDB) لو موجود — offline بالكامل
-    if (ayahNumber && AppState.kidsAudioManager) {
-        try {
-            const cachedBlob = await AppState.kidsAudioManager.getAudio(ayahNumber);
-            if (cachedBlob) {
-                // نبني object URL مرة واحدة فقط لكل سؤال (لا نعيد بناءه مع كل ضغطة على الزر
-                // لنفس الآية)، بدل تكرار الاستدعاء الكامل من IndexedDB بلا داعٍ
-                if (audio.dataset.cachedAyahNumber !== String(ayahNumber)) {
-                    audio.src = URL.createObjectURL(cachedBlob);
-                    audio.dataset.cachedAyahNumber = String(ayahNumber);
-                }
-                startPlayback();
-                return;
-            }
-        } catch (e) {
-            console.warn("تعذر قراءة صوت الآية المخزَّن محليًا، سيُستخدَم رابط CDN كخط رجوع:", e);
-        }
-    }
-
-    // 🌟 خط الرجوع: الصوت غير مخزَّن محليًا بعد — نشغّله من رابط الـCDN الموجود أصلاً في
-    // audio.src (راجع generateKidsListenAyah)، ونخزّنه بصمت في الخلفية لأي مرة قادمة
-    startPlayback();
-    if (ayahNumber && AppState.kidsAudioManager && audio.dataset.cachedAyahNumber !== String(ayahNumber)) {
-        AppState.kidsAudioManager.cacheFromUrl(ayahNumber, audio.src).catch(() => {});
-    }
-}
+// 🎧 [2026-10-18] مشغّل صوت «استمع وخمّن الآية» انتقل إلى components/listenAyahAudio.js (مشغّل موحَّد بصوت المنشاوي مع تخزين محلي).
 
 function saveTempError() {
     let errorTypes = []; 

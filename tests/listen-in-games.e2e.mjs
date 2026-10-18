@@ -15,7 +15,7 @@ const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '
 const ctx = await browser.newContext({ locale: 'ar', viewport: { width: 1180, height: 900 } });
 const audioHits = [];
 await ctx.route('**/*', r => { const u = new URL(r.request().url());
-  if (u.hostname === 'everyayah.com') { audioHits.push(u.pathname); return r.fulfill({ status: 200, contentType: 'audio/wav', body: wav }); }
+  if (u.hostname === 'everyayah.com' || u.hostname === 'cdn.islamic.network') { audioHits.push(u.pathname); return r.fulfill({ status: 200, contentType: 'audio/wav', body: wav }); }
   return u.hostname === 'localhost' ? r.continue() : r.abort(); });
 const page = await ctx.newPage(); const errs = [];
 page.on('pageerror', e => { errs.push(e.message); console.log('   [pageerror]', e.message); }); page.on('dialog', d => d.dismiss().catch(() => {}));
@@ -41,7 +41,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
     await (kids ? m.openKidsGameScreen(cfg) : m.openAdultGameScreen(cfg));
     window.__GS = m.GameState;
     // نفرض نوع السؤال على الأسئلة 2..4 (الأول يُعرض فعلاً)
-    m.GameState.queue.forEach((q, i) => { if (i >= 1 && i <= 3) q.type = type; });
+    m.GameState.queue.forEach((q, i) => { if (i >= 1 && i <= 3) q.type = type; if (kids && i === 4) q.type = 'kids_listen_ayah'; });
   }, { kids, cfg, type });
   await sleep(1500);
   await page.evaluate(() => document.getElementById('mmt-close')?.click());
@@ -53,11 +53,18 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
   const listens = [];
   for (let step = 0; step < 40 && listens.length < 3; step++) {
     await sleep(500);
-    const cd = await page.evaluate(() => { const g = window.__GS; const d = g.currentData; return d ? { type: d.type, idx: g.currentIndex, done: !!d.__answered, title: d.questionTitle, dir: d.dir || d.listenDir } : null; });
+    const cd = await page.evaluate(() => { const g = window.__GS; const d = g.currentData; return d ? { type: d.type, idx: g.currentIndex, done: !!d.__answered, title: d.questionTitle, dir: d.dir || d.listenDir, oldListen: Array.isArray(d.surahOptions) } : null; });
     if (!cd || cd.done) continue;
+    if (cd.oldListen && !globalThis.__oldChecked) {
+      globalThis.__oldChecked = true;
+      const o = await page.evaluate(() => { const b = document.querySelector('#game-question audio + button'); return b ? { cls: b.className, n: b.dataset.n, s: b.dataset.s } : null; });
+      check(`${tag}: «استمع وخمّن الآية» صار بالمشغّل الموحَّد (زر ببيانات الآية، بنفس كلاسه القديم)`, !!o && o.cls === 'kids-listen-play-btn' && +o.s >= 46 && !!o.n, JSON.stringify(o));
+      await page.click('#game-question audio + button'); await sleep(400);
+      check(`${tag}: ضغط الزر شغّل الصوت`, await page.evaluate(() => document.querySelector('#game-question audio').played.length > 0));
+    }
     if (cd.type === 'listen_next' || (cd.type === 'kids_mcq' && cd.dir)) {
       const info = await page.evaluate((kids) => ({
-        src: document.querySelector('#game-question audio')?.getAttribute('src'),
+        src: (() => { const b = document.querySelector('#game-question audio + button'); return b ? `${b.dataset.n}|${b.dataset.s}|${b.dataset.a}` : null; })(),
         btnClass: document.querySelector('#game-question audio + button')?.className,
         titleShown: document.getElementById('game-title').innerText,
         hintBtn: !kids && getComputedStyle(document.getElementById('hint-btn')).display !== 'none',
@@ -77,7 +84,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
   else {
     check(`${tag}: ظهر سؤال الاستماع (${listens.length})`, listens.length >= 1);
     listens.forEach((l, i) => {
-      check(`${tag} [${i + 1}]: الصوت من everyayah بالمنشاوي وآية ≥ سورة 46`, /everyayah\.com\/data\/Minshawy_Murattal_128kbps\/(\d{3})\d{3}\.mp3$/.test(l.src || '') && +RegExp.$1 >= 46, l.src);
+      check(`${tag} [${i + 1}]: بيانات الآية على الزر وسورتها ≥ 46`, /^\d+\|(\d+)\|\d+$/.test(l.src || '') && +RegExp.$1 >= 46, l.src);
       check(`${tag} [${i + 1}]: الزر بكلاس اللعبة الموجود (${kids ? 'kids-listen-play-btn' : 'btn'})`, l.btnClass === (kids ? 'kids-listen-play-btn' : 'btn'), l.btnClass);
       check(`${tag} [${i + 1}]: نص الآية المسموعة غير معروض في السؤال`, !/﴿/.test(l.textLeak), l.textLeak.slice(0, 60));
       check(`${tag} [${i + 1}]: ضغط الزر شغّل الصوت فعلاً`, l.played);
@@ -88,6 +95,19 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
   await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500);
   await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 }
+// التخزين المحلي: التحميل المسبق خزّن آيات بالمنشاوي، وبقايا قارئ آخر تُحذف، والتشغيل التالي من المخزَّن
+const st = await page.evaluate(async () => {
+  const { AppState } = await import('/core/app.js'); const m = AppState.kidsAudioManager;
+  const all = () => new Promise(res => { const tx = m.db.transaction('ayahAudio', 'readonly'); const r = tx.objectStore('ayahAudio').getAll(); r.onsuccess = () => res(r.result); });
+  const before = await all();
+  await new Promise(res => { const tx = m.db.transaction('ayahAudio', 'readwrite'); tx.objectStore('ayahAudio').put({ number: 999999, blob: new Blob(['x']), reciter: 'abdulbasit' }); tx.oncomplete = res; });
+  const staleHidden = (await m.getAudio(999999)) === null;
+  await m.prefetchAyahs([]);
+  const after = await all();
+  return { minshawi: before.filter(r => r.reciter === 'minshawi').length, staleHidden, stalePurged: !after.some(r => r.number === 999999) };
+});
+check('التحميل المسبق خزّن آيات بالمنشاوي', st.minshawi > 20, String(st.minshawi));
+check('ملف قارئ آخر يُتجاهل ثم يُحذف', st.staleHidden && st.stalePurged, JSON.stringify(st));
 check('بلا أخطاء جافاسكربت', errs.length === 0, errs.join(' | ').slice(0, 200));
 console.log(`\n${ok} PASS / ${bad} FAIL`);
 await browser.close(); srv.close(); process.exit(bad ? 1 : 0);

@@ -20,6 +20,7 @@ import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, b
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع للشيخ… ثم كمّل»
+import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -289,6 +290,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             }
 
             GameState.pool = ayahsPool; 
+            // 🎧 [جديد 2026-10-18] تحميل صوت آيات النطاق (آخر خمسة أجزاء فقط) في الخلفية ليعمل سؤال «استمع وكمّل» بلا إنترنت لاحقاً (بلا انتظار، وبصمت)
+            if (AppState.kidsAudioManager) AppState.kidsAudioManager.prefetchAyahs(ayahsPool.filter(a => a.surahNumber >= LISTEN_MIN_SURAH)).catch(() => {});
             GameState.queue = [];
             
             // 🌟 [جديد] أضفنا 'link_ends' (لعبة اربط أول الآية بآخرها) لكلا وضعي التقييم.

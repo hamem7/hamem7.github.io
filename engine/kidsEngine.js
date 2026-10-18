@@ -4,7 +4,7 @@
 // أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
 import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare, wordIsSurahName } from './quranEngine.js';
 import { t, tf, surahNameLocal } from '../core/i18n.js';
-import { ayahAudioUrl, listenBodyHTML } from './ayahAudio.js';
+import { listenBodyHTML } from './ayahAudio.js';
 
 
 // ==========================================================================
@@ -258,7 +258,7 @@ export class KidsEngine {
             if (!d || !d.ayahObj) continue;
             const a = d.ayahObj;
             return { ...d, listenDir: dir, questionTitle: dir === 'next' ? 'kids_listen_next_title' : 'kids_listen_prev_title',
-                questionBody: listenBodyHTML({ url: ayahAudioUrl(a.surahNumber, a.numberInSurah), instruction: t(dir === 'next' ? 'kids_listen_next_instruction' : 'kids_listen_prev_instruction'), btnLabel: t('kids_listen_play_btn'), btnClass: 'kids-listen-play-btn' }) };
+                questionBody: listenBodyHTML({ ayah: a, instruction: t(dir === 'next' ? 'kids_listen_next_instruction' : 'kids_listen_prev_instruction'), btnLabel: t('kids_listen_play_btn'), btnClass: 'kids-listen-play-btn' }) };
         }
         return null;
     }
@@ -268,6 +268,7 @@ export class KidsEngine {
     // أُزيلت من قائمة ألعاب kidsGame.js بالكامل (gamesList + استدعاؤها)، وحُذفت الدالة هنا لأنها
     // أصبحت غير مستخدَمة في أي مكان آخر بالمنصة (تحققنا بالبحث في كل الملفات قبل الحذف).
 
+    // 🎧 [تحديث 2026-10-18] القارئ صار الشيخ المنشاوي (توحيد الصوت مع «استمع وكمّل»)، والتعليق التالي عن عبد الباسط تاريخي — المصدر الحالي في engine/ayahAudio.js.
     // 🌟 [جديد بالكامل] لعبة "استمع وخمّن الآية" — أول ميزة استماع فعلي لتلاوة قرآنية حقيقية في
     // المنصة كلها. قبل هذه الميزة لم يوجد أي صوت تلاوة مسجَّل يُشغَّل من المنصة إطلاقًا؛ قسم
     // "التسميع المباشر" (recitation/) هو فقط لتسجيل ملاحظات المعلم أثناء استماعه هو للطالب مباشرة
@@ -341,19 +342,14 @@ export class KidsEngine {
         // 🌟 رقم الآية العام (number، لا numberInSurah) هو نفسه المستخدَم في مسار الصوت على
         // cdn.islamic.network — نفس ترقيم alquran.cloud الذي تُبنى منه قاعدة بيانات القرآن أصلاً.
         // 🌟 [تعديل] 64 بدل 192 (bitrate أقل — راجع الشرح أعلى الدالة ثم في kidsAudioDB.js)
-        let audioUrl = `https://cdn.islamic.network/quran/audio/64/ar.abdulbasitmurattal/${ayah.number}.mp3`;
 
         // 🌟 نصوص هذا الـquestionBody (التعليمة وزر الاستماع) بالعربي مباشرة بلا مفاتيح i18n —
         // بنفس أسلوب كل دوال هذا الملف تمامًا (لا توجد أي ترجمة لنصوص questionBody/questionTitle
         // في أي منها)، حفاظًا على مبدأ "محرك نقي بلا استيراد t()/DOM" في kidsEngine.js. عنوان
         // اللعبة (questionTitle) وحده مفتاح i18n حقيقي (`kids_listen_title`) لأنه يمر أصلاً عبر
         // t() في games/kidsGame.js عند العرض بلا أي تكلفة إضافية هنا.
-        let questionBody = `
-        <div style="text-align:center;">
-            <div style="font-size:1.5rem; font-weight:bold; color:#1e3a5f; margin-bottom:20px;">${t('kids_listen_instruction')}</div>
-            <audio id="kids-listen-audio-player" src="${audioUrl}" preload="auto"></audio>
-            <button type="button" id="kids-listen-play-btn" class="kids-listen-play-btn" onclick="window.playKidsListenAyahAudio()">${t('kids_listen_play_btn')}</button>
-        </div>`;
+        // 🎧 [2026-10-18] توحيد الصوت: صار بصوت المنشاوي ومن نفس مشغّل/تخزين سؤال «استمع وكمّل» (راجع engine/ayahAudio.js وcomponents/listenAyahAudio.js)
+        let questionBody = listenBodyHTML({ ayah, instruction: t('kids_listen_instruction'), btnLabel: t('kids_listen_play_btn'), btnClass: 'kids-listen-play-btn' });
 
         // 🌟 [جديد] الخطوة الثانية من اللعبة (بطلب المعلم): بعد ما يختار الطفل الآية الصحيحة
         // اللي سمعها، تظهر له خطوة ثانية يختار فيها من أي سورة هذه الآية — نفس فكرة لعبة "خمن
