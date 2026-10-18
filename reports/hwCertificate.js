@@ -126,12 +126,12 @@ function ensureStyles() {
         .hwcert-medal span { font-size: .62rem; font-weight: 700; }
         .hwcert-verse { font-family: 'Amiri', serif; font-size: 1.05rem; line-height: 1.7; color: #06352a; margin: 2px 0 4px; }
         .hwcert-verse small { display: block; font-size: .72rem; opacity: .7; font-family: inherit; }
-        .hwcert-foot { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 10px; }
+        .hwcert-foot { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: 10px; }
         .hwcert-foot.has-stamp { grid-template-columns: 1fr 60px 1fr; }
         .hwcert-sig { font-size: .75rem; color: var(--dh-ink-soft, #4a6058); }
         .hwcert-sig-line { border-bottom: 1.5px solid currentColor; height: 16px; margin-bottom: 3px; }
         .hwcert-sig b { display: block; color: var(--dh-ink, #10241c); font-size: .8rem; line-height: 1.4; word-break: break-word; }
-        .hwcert-stamp { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+        .hwcert-stamp { width: 60px; height: 60px; align-self: center; display: flex; align-items: center; justify-content: center; }
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
         .hwcert-score-caption { font-size: 0.85rem; text-align: center; color: var(--dh-ink-soft, #4a6058); margin-bottom: 8px; }
         .hwcert-scope { background: rgba(13,92,70,0.08); border: 1px solid rgba(13,92,70,0.28); border-radius: 14px;
@@ -296,9 +296,9 @@ export function showHomeworkCertificate(submission, student, scope) {
                 </div>
                 <div class="hwcert-tail">
                     <div class="hwcert-foot${teacher.stamp ? ' has-stamp' : ''}">
-                        <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
-                        ${teacher.stamp ? `<div class="hwcert-stamp"><img src="${esc(teacher.stamp)}" alt=""></div>` : ''}
                         <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_date_label')}<b>${dates.hijri ? esc(dates.hijri) + '<br>' : ''}${esc(dates.greg)}</b></div>
+                        ${teacher.stamp ? `<div class="hwcert-stamp"><img src="${esc(teacher.stamp)}" alt=""></div>` : ''}
+                        <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
                     </div>
                 </div>
             </div></div>
