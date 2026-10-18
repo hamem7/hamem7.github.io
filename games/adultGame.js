@@ -19,6 +19,7 @@ import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, b
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
+import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع للشيخ… ثم كمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -158,6 +159,7 @@ async function probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz) {
             case 'catch': d = await eng.generateCatchGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'next': d = await eng.generateNextAyahGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'previous': d = await eng.generatePreviousAyahGame(p, isJuz, chunkIndex, totalChunks); break;
+            case 'listen_next': d = await eng.generateListenAyahGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'around': d = await eng.generateAroundAyahGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'between': d = await eng.generateBetweenGame(p, isJuz, chunkIndex, totalChunks); break;
             case 'guess_surah': d = await eng.generateGuessSurahGame(p, chunkIndex, totalChunks); break;
@@ -304,8 +306,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             // تربوي من المعلم يمكن إرجاعها بحذفها من هذه القائمة فقط، بلا أي تعديل آخر.
             // وضع الجزء الآن 12 لعبة (كل الألعاب)، وضع السورة/النطاق 10 ألعاب.
             let gamesList = config.isJuzMode
-                ? ['catch', 'next', 'previous', 'around', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends', 'link_word_surah']
-                : ['catch', 'next', 'previous', 'around', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends'];
+                ? ['catch', 'next', 'previous', 'around', 'guess_surah', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends', 'link_word_surah', 'listen_next']
+                : ['catch', 'next', 'previous', 'around', 'order', 'between', 'recite', 'mistake', 'complete_ayah', 'word_meaning', 'visual_memory', 'link_ends', 'listen_next'];
             // 🌟 [2026-10-03] بطلب المعلم: "اربط الكلمة بسورتها" تدخل أيضاً وضع "من سورة إلى سورة" إذا
             // كان النطاق ثلاث سور فما فوق (تُعدّ السور المختلفة الموجودة فعلاً في آيات النطاق)
             if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
@@ -852,6 +854,7 @@ async function playNextMission() {
             if(type === 'catch') GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'next') GameState.currentData = await retryGen(() => AppState.quranEngine.generateNextAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'previous') { GameState.currentData = await retryGen(() => AppState.quranEngine.generatePreviousAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint !== t('qe_none')) document.getElementById('hint-btn').style.display = 'inline-block'; }
+            else if(type === 'listen_next') { GameState.currentData = await retryGen(() => AppState.quranEngine.generateListenAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks)); if(GameState.currentData && GameState.currentData.hint) document.getElementById('hint-btn').style.display = 'inline-block'; }
             else if(type === 'around') GameState.currentData = await retryGen(() => AppState.quranEngine.generateAroundAyahGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'between') GameState.currentData = await retryGen(() => AppState.quranEngine.generateBetweenGame(activePool, GameState.config.isJuzMode, chunkIndex, totalChunks));
             else if(type === 'guess_surah') GameState.currentData = await retryGen(() => AppState.quranEngine.generateGuessSurahGame(activePool, chunkIndex, totalChunks));
@@ -998,6 +1001,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 [تصحيح] اتجاه السهمين عُكِس ليوافق اتجاه القراءة العربية (RTL): "ماذا بعدها" ⬅️ و"ماذا قبلها" ➡️ 🌟
         else if(tType==='next') typeLabel= t("⬅️ ماذا بعدها؟"); 
         else if(tType==='previous') typeLabel= t("➡️ ماذا قبلها؟"); 
+        else if(tType==='listen_next') typeLabel= t('listen_type_label');
         else if(tType==='order') typeLabel= t("🔀 رتب الآيات");
         // 🌟 [قديم] تصنيف لعبة "رتب السور" السابقة — لم تعد هذه اللعبة تُستخدم في أي جولة جديدة
         // (استُبدلت بـ'link_word_surah' أدناه)، لكن أبقينا هذا السطر بلا حذف احترازًا 🌟

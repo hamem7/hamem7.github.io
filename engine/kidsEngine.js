@@ -4,6 +4,7 @@
 // أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
 import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare, wordIsSurahName } from './quranEngine.js';
 import { t, tf, surahNameLocal } from '../core/i18n.js';
+import { ayahAudioUrl, listenBodyHTML } from './ayahAudio.js';
 
 
 // ==========================================================================
@@ -247,6 +248,21 @@ export class KidsEngine {
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
         return { type: 'kids_mcq', questionTitle: t("ماذا قبل هذه الآية؟ ➡️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
     }
+    // 🎧 [جديد 2026-10-18] «استمع وكمّل يا بطل»: صوت آية بصوت المنشاوي ثم يختار الطفل الآية التي بعدها (أو التي قبلها) من 3 خيارات.
+    // يبني على «ماذا بعد؟» و«ماذا قبل؟» نفسيهما (نفس الخيارات والمشتتات الذكية) ويستبدل نص الآية بزر الصوت المعتمد للأطفال (kids-listen-play-btn).
+    // نطاق الأطفال أصلاً هو الأجزاء 26–30 فلا قيد إضافي. الصوت لا يُخزَّن محلياً (على عكس «استمع وخمّن الآية») فيحتاج إنترنت.
+    async generateKidsListenNext(ayahsPool, chunkIndex, totalChunks) {
+        const dirs = Math.random() < 0.5 ? ['next', 'prev'] : ['prev', 'next'];
+        for (const dir of dirs) {
+            const d = dir === 'next' ? await this.generateKidsNextAyahGame(ayahsPool, chunkIndex, totalChunks) : await this.generateKidsPrevious(ayahsPool, chunkIndex, totalChunks);
+            if (!d || !d.ayahObj) continue;
+            const a = d.ayahObj;
+            return { ...d, listenDir: dir, questionTitle: dir === 'next' ? 'kids_listen_next_title' : 'kids_listen_prev_title',
+                questionBody: listenBodyHTML({ url: ayahAudioUrl(a.surahNumber, a.numberInSurah), instruction: t(dir === 'next' ? 'kids_listen_next_instruction' : 'kids_listen_prev_instruction'), btnLabel: t('kids_listen_play_btn'), btnClass: 'kids-listen-play-btn' }) };
+        }
+        return null;
+    }
+
     // 🌟 [حذف] لعبة "كم عدد آيات هذه السورة؟" (generateKidsAyahCount) — طلب المعلم إزالتها من
     // ركن الأطفال لأنها صعبة على الصغار (تتطلب حفظ عدد آيات دقيق بدل حفظ نص/معنى الآية نفسها).
     // أُزيلت من قائمة ألعاب kidsGame.js بالكامل (gamesList + استدعاؤها)، وحُذفت الدالة هنا لأنها

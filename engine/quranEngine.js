@@ -1,6 +1,7 @@
 // engine/quranEngine.js
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
+import { LISTEN_MIN_SURAH, ayahAudioUrl, listenHint, listenBodyHTML } from "./ayahAudio.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
 const kidsSurahNameHtml = (name) => `<span style="font-family:'Tajawal','Cairo',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
@@ -327,6 +328,24 @@ export class QuranEngine {
         return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
+    // 🎧 [جديد 2026-10-18] «استمع للشيخ… ثم كمّل»: يُشغَّل صوت آية بصوت المنشاوي ويذكر الطالب التي بعدها (أو التي قبلها).
+    // يبني على مولّدَي «ماذا بعدها؟» و«ماذا قبلها؟» نفسيهما (نفس اختيار الآية وحدود السورة) ثم يستبدل نص الآية المعروض بزر صوت،
+    // فيبقى التقييم والتقرير و«علاج الخطأ» كأي سؤال «ماذا بعدها؟». محصور في آخر خمسة أجزاء (سورة ٤٦ فما فوق).
+    async generateListenAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) {
+        const pool = ayahsPool.filter(a => a.surahNumber >= LISTEN_MIN_SURAH);
+        if (pool.length === 0) return null;
+        const dirs = Math.random() < 0.5 ? ['next', 'prev'] : ['prev', 'next'];
+        for (const dir of dirs) {
+            const d = dir === 'next' ? await this.generateNextAyahGame(pool, isJuz, chunkIndex, totalChunks) : await this.generatePreviousAyahGame(pool, isJuz, chunkIndex, totalChunks);
+            if (!d || !d.ayahObj || !d.fullAnswer) continue;
+            const a = d.ayahObj;
+            return { ...d, type: 'listen_next', dir, questionTitle: dir === 'next' ? 'listen_next_title' : 'listen_prev_title',
+                questionBody: listenBodyHTML({ url: ayahAudioUrl(a.surahNumber, a.numberInSurah), instruction: tl(dir === 'next' ? 'listen_next_prompt' : 'listen_prev_prompt', dir === 'next' ? 'كمّل!' : 'ما قبلها؟'), btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
+                hint: listenHint(d.fullAnswer) };
+        }
+        return null;
+    }
+
     // 🌟 [جديد 2026-10-10] «سؤال مميز»: تُعرض آية واحدة ويطلب من الطالب ذكر الآية التي قبلها والتي بعدها
     // معاً. يُعلَّم السؤال بـspecial:true فتعرض الشاشة شارة «سؤال مميز» فوقه، وعند الإجابة الصحيحة
     // تظهر مكافأة خاصة (راجع showSpecialReward في adultGame.js). الآيتان المحيطتان من نفس سورة الآية

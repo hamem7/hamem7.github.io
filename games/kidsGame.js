@@ -18,6 +18,7 @@ import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, b
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
+import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع وكمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
@@ -161,7 +162,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
             // 🌟 [جديد] 'kids_listen_ayah' — لعبة "استمع وخمّن الآية" (راجع تعليق
             // generateKidsListenAyah في engine/kidsEngine.js لتفاصيل الفكرة والافتراضات
             // الكاملة). تعتمد على نفس ayahsPool بالضبط كباقي ألعاب هذه القائمة (بلا نطاق مستقل)
-            let gamesList = ['kids_catch', 'kids_next', 'kids_word_order', 'kids_tf', 'kids_guess_surah', 'kids_recite', 'kids_start_surah', 'kids_extra_word', 'kids_previous', 'kids_link_ends', 'kids_link_word_surah', 'kids_listen_ayah'];
+            let gamesList = ['kids_catch', 'kids_next', 'kids_word_order', 'kids_tf', 'kids_guess_surah', 'kids_recite', 'kids_start_surah', 'kids_extra_word', 'kids_previous', 'kids_link_ends', 'kids_link_word_surah', 'kids_listen_ayah', 'kids_listen_next'];
             // ألعاب تحتاج أكثر من سورة لا معنى لها لو النطاق سورة واحدة
             if (new Set(ayahsPool.map(a => a.surahNumber)).size < 2) {
                 gamesList = gamesList.filter(g => g !== 'kids_guess_surah' && g !== 'kids_link_word_surah');
@@ -572,6 +573,8 @@ async function playNextMission() {
         // 🌟 [جديد] لعبة "استمع وخمّن الآية" — ترجع type: 'kids_mcq' بالضبط مثل باقي ألعاب
         // الاختيار من متعدد، فتُعرض تلقائيًا عبر نفس مسار kids-mcq-area أدناه بلا أي تعديل عليه 🌟
         else if(type === 'kids_listen_ayah') GameState.currentData = await AppState.kidsEngine.generateKidsListenAyah(activePool, chunkIndex, totalChunks);
+        // 🎧 [جديد 2026-10-18] «استمع وكمّل يا بطل» (صوت المنشاوي) — kids_mcq كغيرها، فتُعرض عبر نفس مسار الخيارات
+        else if(type === 'kids_listen_next') GameState.currentData = await AppState.kidsEngine.generateKidsListenNext(activePool, chunkIndex, totalChunks);
 
         if(!GameState.currentData) { GameState.currentData = await AppState.kidsEngine.generateKidsCatchGame(activePool, -1, 1); }
         
