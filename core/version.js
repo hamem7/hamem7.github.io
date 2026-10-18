@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.33';
+export const APP_VERSION = '1.0.34';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.34',
+        date: '2026-10-18',
+        items: [
+            { type: 'new', text: { ar: 'لعبة جديدة «استمع للشيخ… ثم كمّل» بصوت الشيخ المنشاوي: يسمع الطالب آية ثم يُكمل التي بعدها أو التي قبلها داخل نطاق حفظه، مع تلميح وكشف الإجابة وجولة مراجعة للأخطاء.', en: 'New game "Listen to the Sheikh… then continue" with Sheikh Al-Minshawi: the student hears a verse then continues the next (or previous) one within their memorization range, with a hint, answer reveal and a mistakes review round.' } }
+        ]
+    },
     {
         version: '1.0.33',
         date: '2026-10-17',

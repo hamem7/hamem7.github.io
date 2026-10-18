@@ -669,6 +669,9 @@ function setupSplashListeners() {
     // تصفح "ركن المتشابهات" الحقيقية عبر openSimilaritiesBrowser أسفل هذا الملف — بنفس
     // نمط openHomeworkPrep/openDualTestSetup بالضبط
     if (btnSimilarities) btnSimilarities.addEventListener('click', openSimilaritiesBrowser);
+    // 🎧 [جديد] بطاقة «استمع للشيخ… ثم كمّل»
+    const btnListen = document.getElementById('btn-listen-main');
+    if (btnListen) btnListen.addEventListener('click', openListenGame);
 
     if (btnDual) btnDual.addEventListener('click', openDualTestSetup);
 
@@ -906,6 +909,22 @@ export function openSimilarityGame(scope) {
         });
     }).catch(err => {
         console.error('تعذر تحميل شاشة لعب ركن المتشابهات:', err);
+        alert(t('جاري تجهيز شاشة اللعب 🛠️'));
+    });
+}
+
+// 🎧 [جديد — 2026-10-18] فتح لعبة «استمع للشيخ… ثم كمّل» (listen/) — نفس نمط openSimilarityGame: ثيم الكبار + استيراد كسول.
+export function openListenGame() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+
+    import('../listen/listen-play.js').then(module => {
+        loadScreen({
+            templateUrl: 'listen/listen-play.html',
+            initFunction: () => module.initListenGame()
+        });
+    }).catch(err => {
+        console.error('تعذر تحميل لعبة استمع وكمّل:', err);
         alert(t('جاري تجهيز شاشة اللعب 🛠️'));
     });
 }

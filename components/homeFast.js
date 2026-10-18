@@ -18,7 +18,7 @@
 // كل التنسيق في css/homeFast.css بأسماء dh-fast-* و dh-bnav-* الجديدة فقط (لا تعديل على أي قاعدة قائمة). 🌟🌟
 
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
-import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, openAccountScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
+import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openListenGame, openTajweedSection, openPrivacyScreen, openAccountScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
@@ -60,6 +60,9 @@ const NEW_KEYS = {
         sheet_more_title: 'المزيد',
         sheet_close: 'إغلاق',
         sheet_sim_title: 'تحدي المتشابهات',
+        sheet_listen_title: 'استمع وكمّل',
+        btn_listen: 'استمع وكمّل',
+        card_listen_desc: 'يسمع الطالب آية بصوت المنشاوي ثم يُكمل التي بعدها',
         sheet_tajweed_title: 'أبطال التجويد',
         sheet_soon_tag: 'قيد التطوير',
         sheet_homework: 'إعداد الواجب الذكي',
@@ -117,6 +120,9 @@ const NEW_KEYS = {
         sheet_more_title: 'More',
         sheet_close: 'Close',
         sheet_sim_title: 'Similar Verses Challenge',
+        sheet_listen_title: 'Listen & Continue',
+        btn_listen: 'Listen & Continue',
+        card_listen_desc: 'Hear a verse by Al-Minshawi, then continue the next one',
         sheet_tajweed_title: 'Tajweed Heroes',
         sheet_soon_tag: 'In development',
         sheet_homework: 'Smart Homework Setup',
@@ -371,6 +377,7 @@ const IC = {
     students: '<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/>',
     more: '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
     sim: '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/><path d="M7 9h1M16 9h1"/>',
+    listen: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/>',
     tajweed: '<path d="M12 3v18M5 8c2 0 3-1 3-3M19 8c-2 0-3-1-3-3M5 16c2 0 3 1 3 3M19 16c-2 0-3 1-3 3"/>',
     homework: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
     dual: '<path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/>',
@@ -405,6 +412,7 @@ function sheetItems(kind) {
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
         { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },
         { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
+        { key: 'sheet_listen_title', icon: IC.listen, run: openListenGame },
         { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
         { key: 'sheet_profile', icon: IC.profile, run: () => openAccountScreen() },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
