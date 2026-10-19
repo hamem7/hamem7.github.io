@@ -160,7 +160,8 @@ function ensureStyles() {
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
         .hwcert-when { font-size: ${U(2.3)}; line-height: 1.5; white-space: nowrap; }
         .hwcert-when b { color: #2a1e10; }
-        .hwcert-number { font-family: 'Reem Kufi', sans-serif; font-size: ${U(2.4)}; font-weight: 700; color: #1f4d40; text-align: right; margin-top: ${U(.8)}; }
+        .hwcert-number { position: absolute; right: ${U(5)}; bottom: ${U(1.2)}; font-family: 'Reem Kufi', sans-serif; font-size: ${U(2.3)}; font-weight: 700; color: #1f4d40;
+            background: rgba(255,255,255,.85); border-radius: ${U(1.2)}; padding: ${U(.4)} ${U(1.6)}; white-space: nowrap; }
         .hwcert-number bdi { letter-spacing: ${U(.1)}; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
@@ -328,8 +329,8 @@ export function showHomeworkCertificate(submission, student, scope) {
                         <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
                     </div>
                     <div class="hwcert-when">${t('hwcert_issued_on')} <b>${esc(dates.hijri || dates.greg)}</b>${dates.hijri ? `<br><b>${esc(dates.greg)}</b>` : ''}</div>
-                    <div class="hwcert-number">${t('hwcert_number_label')} <bdi dir="ltr">${esc(certNo)}</bdi></div>
                 </div>
+                <div class="hwcert-number">${t('hwcert_number_label')} <bdi dir="ltr">${esc(certNo)}</bdi></div>
             </div>
             <div class="hwcert-actions">
                 <button type="button" class="hwcert-btn-save" id="hwcert-save-btn">${t('hwcert_save_btn')}</button>
