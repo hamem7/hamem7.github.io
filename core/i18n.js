@@ -3655,6 +3655,7 @@ export const translations = {
 
         // عناوين ألعاب ركن الأطفال (engine/kidsEngine.js)
         "اختر الكلمة الناقصة يا بطل! 🎯": "Choose the missing word, champ! 🎯",
+        "اختر الكلمات الناقصة يا بطل! 🎯": "Choose the missing words, champ! 🎯",
         "ماذا بعد هذه الآية يا بطل؟ ⬅️": "What comes after this ayah, champ? ⬅️",
         "رتب كلمات الآية يا بطل 🧩": "Order the ayah's words, champ! 🧩",
         "صح أم خطأ؟ 🚦": "True or False? 🚦",
