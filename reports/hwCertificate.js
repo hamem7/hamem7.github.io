@@ -104,7 +104,7 @@ function ensureStyles() {
             background: #fdf6e3 url(assets/certificates/template-quran.jpg) center/100% 100% no-repeat;
             box-shadow: 0 30px 60px rgba(0,0,0,0.35); font-family: 'Reem Kufi', 'Cairo', sans-serif; color: #2a1e10; }
         .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
-        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; letter-spacing: ${S(.2)}; }
+        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
         .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
         .hwcert-title { font-size: ${S(6.6)}; color: #6b4a1e; line-height: 1.2; font-weight: 700; margin: ${S(.3)} 0 0; }
         .hwcert-orn { display: flex; align-items: center; gap: ${S(2)}; color: #a8841c; font-size: ${S(2.4)}; margin-top: ${S(.2)}; }
@@ -146,16 +146,17 @@ function ensureStyles() {
             border-radius: ${S(2.4)}; padding: ${S(.9)} ${S(2.4)}; box-sizing: border-box; }
         .hwcert-note b { font-size: ${S(2.3)}; color: #2f7f6a; margin-inline-end: ${S(1)}; }
         .hwcert-note span { font-family: 'Amiri', serif; font-size: ${S(2.5)}; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-        .hwcert-close { position: absolute; left: ${U(13)}; width: ${U(42)}; top: ${U(102.8)}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
+        .hwcert-close { position: absolute; left: ${U(11)}; width: ${U(46)}; top: ${U(102.8)}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
         .hwcert-row { display: flex; justify-content: center; align-items: flex-end; gap: ${U(2.5)}; margin-bottom: ${U(1)}; }
-        .hwcert-sig { width: ${U(20)}; font-size: ${U(2.6)}; }
+        .hwcert-sig { min-width: ${U(20)}; font-size: ${U(2.6)}; }
         .hwcert-sig-line { border-bottom: ${U(.35)} solid #6a5a44; height: ${U(3.4)}; margin-bottom: ${U(.7)}; }
-        .hwcert-sig b { display: block; color: #2a1e10; font-size: ${U(2.9)}; line-height: 1.5; word-break: break-word; }
+        .hwcert-sig b { display: block; color: #2a1e10; font-size: ${U(2.9)}; line-height: 1.5; white-space: nowrap; }
         .hwcert-stamp { width: ${U(10)}; height: ${U(10)}; display: flex; align-items: center; justify-content: center; }
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
         .hwcert-when { font-size: ${U(2.3)}; line-height: 1.5; white-space: nowrap; }
         .hwcert-when b { color: #2a1e10; }
-        .hwcert-number { font-family: 'Reem Kufi', sans-serif; font-size: ${U(1.9)}; color: #a8841c; letter-spacing: ${U(.2)}; margin-top: ${U(.5)}; }
+        .hwcert-number { font-family: 'Reem Kufi', sans-serif; font-size: ${U(2.4)}; font-weight: 700; color: #1f4d40; text-align: right; margin-top: ${U(.8)}; }
+        .hwcert-number bdi { letter-spacing: ${U(.1)}; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
@@ -170,15 +171,15 @@ function ensureStyles() {
 // يضبط وحدة القياس --u من عرض البطاقة الفعلي وارتفاعها بنسبة القالب، ثم يُصغّر نصوص العمود الرئيسي (--f)
 // بالقدر اللازم حتى لا يتجاوز آخر عنصر فيه موضع ذيل المعلم (يسار المصحف).
 const CERT_RATIO = 1608 / 1200;
-function fitCertificate(card) {
+function fitCertificate(card, maxF = 1) {
     const w = card.clientWidth;
     if (!w) return;
     card.style.setProperty('--u', (w / 100) + 'px');
     card.style.height = (w * CERT_RATIO) + 'px';
-    card.style.setProperty('--f', '1');
+    card.style.setProperty('--f', String(maxF));
     const main = card.querySelector('.hwcert-main');
     const limit = 102 * w / 100;
-    let f = 1;
+    let f = maxF;
     while (f > 0.5 && main.offsetTop + main.offsetHeight > limit) {
         f = Math.round((f - 0.03) * 100) / 100;
         card.style.setProperty('--f', String(f));
@@ -336,8 +337,10 @@ export function showHomeworkCertificate(submission, student, scope) {
     document.body.appendChild(overlay);
 
     const cardEl = overlay.querySelector('#hwcert-card');
-    fitCertificate(cardEl);
-    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl)); } catch (e) { /* تجاهل */ }
+    // بلا كلمة معلم: يُوزَّع المكان الفارغ بتكبير نصوص العمود الرئيسي (حتى 1.3×) بدل تركه خالياً
+    const maxF = teacherNote ? 1 : 1.3;
+    fitCertificate(cardEl, maxF);
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl, maxF)); } catch (e) { /* تجاهل */ }
     const noteEl = overlay.querySelector('#hwcert-note');
     const showNote = (msg) => { noteEl.textContent = msg; noteEl.style.display = 'block'; };
 
