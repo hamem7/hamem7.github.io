@@ -1879,6 +1879,30 @@ export function openReportScreen(gameState){
   if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
   try { applyLanguage(); } catch (e) { /* غير حرِج — نكمل حتى لو لم تتوفر */ }
   initReportScreen();
+  autoArchiveOnOpen();
+}
+
+// 🗂️ [جديد] حفظ تلقائي للتقرير الفردي في «الشهادات والتقارير ← التقارير السابقة» بمجرد عرضه، دون انتظار أن يضغط المعلم
+// تصدير صورة/PDF. بعد استقرار الشاشة (الخطوط والصور) نلتقط الورقة كما هي دون أي تبديل في التخطيط (فلا وميض)، ثم يستبدلها
+// أي تصدير لاحق لنفس التقرير بالنسخة المختصرة النهائية (نفس النوع+الاسم+الوصف = سجل واحد). لا يعطّل الشاشة أبداً.
+const AUTO_ARCHIVE_DELAY_MS = 1500;
+function autoArchiveOnOpen(){
+  const page = document.getElementById('report-page');
+  const data = reportData;
+  if (!page || !data) return;
+  setTimeout(async () => {
+    try {
+      if (document.getElementById('report-page') !== page) return; // غادر المعلم الشاشة قبل الحفظ
+      await ensureHtml2Canvas();
+      await ensureFontsReady();
+      await ensureStampCleaned();
+      await ensureArtReady();
+      if (document.getElementById('report-page') !== page) return;
+      const canvas = await window.html2canvas(page, { scale: 2, backgroundColor: '#f9f4ea', useCORS: true, ignoreElements: ignoreNoExport });
+      const m = await import('./reportArchive.js');
+      await m.archiveReport({ kind: 'individual', name: data.name, sub: [localizeGenerated(data.scope), data.date].filter(Boolean).join(' — '), canvas });
+    } catch (e) { /* تجاهل — الحفظ التلقائي لا يؤثر على عرض التقرير */ }
+  }, AUTO_ARCHIVE_DELAY_MS);
 }
 
 // 🌟 [إصلاح] نصوص التقرير (نقاط القوة / بحاجة إلى تركيز / ملاحظة المعلم) تُبنى وقت فتح
