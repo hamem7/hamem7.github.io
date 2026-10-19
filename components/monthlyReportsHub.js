@@ -43,9 +43,11 @@ function ensureStyles() {
 .mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;color:#10241c;direction:rtl;margin:auto 0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}
 .mrh-head{background:#fff;color:var(--dh-emerald-700,#0d5c46);padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e4dfcc;}
-.mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;}
-.mrh-title{margin:0;font-size:1.25rem;font-weight:800;color:var(--dh-emerald-700,#0d5c46);}
-.mrh-x{margin-inline-start:auto;background:#f1efe4;border:none;color:#5a6b63;width:36px;height:36px;border-radius:50%;font-size:1rem;cursor:pointer;}
+.mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;margin-inline-start:auto;}
+.mrh-title{margin:0;font-size:1.5rem;font-weight:700 !important;color:var(--dh-emerald-700,#0d5c46) !important;text-shadow:none !important;line-height:1.3;}
+.mrh-x{background:#fff;border:1px solid #e4dfcc;color:#0d5c46;width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;}
+.mrh-x:hover{background:#eaf4ef;}
+.mrh-card[dir="ltr"] .mrh-x svg{transform:scaleX(-1);}
 .mrh-steps{display:flex;align-items:center;gap:6px;padding:16px 22px 0;}
 .mrh-st{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;color:#5a6b63;}
 .mrh-st b{width:26px;height:26px;border-radius:50%;background:#ece8d6;display:grid;place-items:center;font-size:.8rem;}
@@ -239,9 +241,9 @@ export async function openMonthlyReportsHub(opts = {}) {
   overlay.innerHTML = `
     <div class="mrh-card" dir="${AppState.currentLang === 'ar' ? 'rtl' : 'ltr'}">
       <div class="mrh-head">
-        <span class="mrh-ico">📅</span>
+        <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
         <h2 class="mrh-title">${esc(t('mrh_title'))}</h2>
-        <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}">✕</button>
+        <span class="mrh-ico" aria-hidden="true">📅</span>
       </div>
       <div id="mrh-steps"></div>
       <div class="mrh-body" id="mrh-body"></div>

@@ -389,15 +389,15 @@ function ensureTableStylesInjected() {
 .mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
 .mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
 .mmt-head-row { display: flex; align-items: center; gap: 12px; }
-.mmt-ico { width: 46px; height: 46px; border-radius: 13px; background: var(--mmt-tint); display: grid; place-items: center; font-size: 1.4rem; flex: none; }
+.mmt-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: var(--mmt-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.mmt-back:hover { background: var(--mmt-tint); }
+.mmt-screen[dir="ltr"] .mmt-back svg { transform: scaleX(-1); }
 .mmt-kicker { font-size: .8rem; font-weight: 700; color: var(--mmt-mute); }
-.mmt-title { margin: 0; font-size: 1.5rem; font-weight: 800 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'Tajawal', sans-serif; }
+.mmt-title { margin: 0; font-size: 1.7rem; font-weight: 700 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'Tajawal', sans-serif; }
 .mmt-sub { font-size: .9rem; color: var(--mmt-mute); }
 .mmt-head-btns { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .mmt-home { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--mmt-soft); background: var(--mmt-tint); color: var(--mmt-blue); font-family: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 .mmt-home:hover { background: var(--mmt-soft); }
-.mmt-close { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1efe4; color: #5a6b63; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
-.mmt-close:hover { background: #e6e2d3; }
 .mmt-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .mmt-stat { background: var(--mmt-tint); color: var(--mmt-blue); border-radius: 10px; padding: 4px 12px; font-size: .85rem; font-weight: 700; }
 .mmt-stat b { font-size: 1.05rem; direction: ltr; unicode-bidi: isolate; }
@@ -544,11 +544,10 @@ function openMemorizationTable(initialQueue, meta = {}) {
       return `<div class="mmt-screen" dir="${isRtl ? 'rtl' : 'ltr'}" role="dialog" aria-modal="true" aria-labelledby="mmt-title">
         <div class="mmt-head">
           <div class="mmt-head-row">
-            <span class="mmt-ico" aria-hidden="true">📖</span>
+            <button class="mmt-back" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
             <div><div class="mmt-kicker">${kicker}</div><h2 class="mmt-title" id="mmt-title">${t('mmt_heading')}</h2></div>
             <div class="mmt-head-btns">
               <button class="mmt-home" id="mmt-home" title="${t('mmt_home_btn')}">🏠 ${t('mmt_home_btn')}</button>
-              <button class="mmt-close" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}">✕</button>
             </div>
           </div>
           ${inner.head || ''}
