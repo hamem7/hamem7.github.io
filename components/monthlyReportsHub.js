@@ -112,6 +112,15 @@ function ensureStyles() {
 .mrh-d{display:block;font-style:normal;font-size:.72rem;font-weight:800;margin-top:2px;}
 .mrh-d.up{color:#047857;}.mrh-d.down{color:#b45309;}
 .mrh-note{color:#92400e;font-size:.85rem;margin:2px 0 8px;}
+.mrh-filters{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:2px;}
+.mrh-flt{flex:none;border:1.5px solid #e4dfcc;background:#fff;border-radius:999px;padding:7px 14px;font-family:inherit;font-weight:700;color:#10241c;cursor:pointer;font-size:.88rem;}
+.mrh-flt.mrh-sel{background:#0d5c46;border-color:#0d5c46;color:#fff;}
+.mrh-flt small{opacity:.75;margin-inline-start:4px;font-weight:800;}
+.mrh-star{background:linear-gradient(135deg,#fff8dc,#fbf3d5);border:1.5px solid #e9d27a;border-radius:18px;padding:12px 14px;margin-top:10px;}
+.mrh-star h4{margin:0 0 8px;color:#8a6612;font-size:1rem;}
+.mrh-star-row{display:flex;flex-wrap:wrap;gap:8px;}
+.mrh-star-b{background:#fff;border:1px solid #e9d27a;border-radius:999px;padding:5px 12px;font-family:inherit;font-weight:700;color:#6b4e0a;cursor:pointer;font-size:.88rem;}
+.mrh-badge{display:inline-block;font-size:.72rem;font-weight:800;background:#fbf3d5;color:#8a6612;border-radius:99px;padding:1px 8px;margin-inline-start:6px;white-space:nowrap;}
 .mrh-foot{padding:6px 22px 18px;color:#5a6b63;font-size:.9rem;text-align:center;}
 `;
   document.head.appendChild(st);
@@ -305,11 +314,15 @@ export async function openMonthlyReportsHub(opts = {}) {
     let sel = (presetMonth && months.find(m => m.year === presetMonth.year && m.month1 === presetMonth.month1))
       || (new Date().getDate() <= REMINDER_DAYS ? months[1] : months[0]);
     let rows = [];
+    let flt = 'all';
+    let stars = { top: null, active: null };
     body.innerHTML = `
       ${toastText ? `<div class="mrh-toast">${esc(toastText)}</div>` : ''}
       <div id="mrh-ov"></div>
       <div class="mrh-months" id="mrh-ovm"></div>
+      <div id="mrh-star"></div>
       <input class="mrh-search" id="mrh-search" type="text" autocomplete="off" placeholder="${esc(t('mrh_search_ph'))}">
+      <div class="mrh-filters" id="mrh-flt"></div>
       <div class="mrh-list" id="mrh-list"><div class="mrh-empty">…</div></div>`;
     renderFoot();
     const input = body.querySelector('#mrh-search');
@@ -330,14 +343,39 @@ export async function openMonthlyReportsHub(opts = {}) {
         <div class="mrh-bar"><i style="width:${pct}%"></i></div>
         <div class="mrh-ov-chips"><span>✓ ${esc(t('mrh_ov_ready_n').replace('{n}', ready))}</span><span>! ${esc(t('mrh_ov_missing_n').replace('{n}', missing))}</span></div></div>`;
     }
+    function computeStars() {
+      // التميّز: أكثر حفظًا جديدًا + أكثر نشاطًا في غرفة اللعب (يلزم قيمة موجبة، والأول عند التعادل)
+      const best = (key) => rows.reduce((m, r) => { const v = key(r); return v > 0 && (!m || v > key(m)) ? r : m; }, null);
+      stars = { top: best(r => r.info.newAyahs || 0), active: best(r => r.info.games.n || 0) };
+    }
+    function badgesOf(r) {
+      return (stars.top === r ? `<span class="mrh-badge">🏆 ${esc(t('mrh_badge_top'))}</span>` : '')
+        + (stars.active === r ? `<span class="mrh-badge">🎮 ${esc(t('mrh_badge_active'))}</span>` : '');
+    }
+    function renderStars() {
+      const host = body.querySelector('#mrh-star');
+      const list2 = [stars.top && ['🏆', t('mrh_badge_top'), stars.top], stars.active && ['🎮', t('mrh_badge_active'), stars.active]].filter(Boolean);
+      host.innerHTML = list2.length ? `<div class="mrh-star"><h4>🌟 ${esc(t('mrh_star_title').replace('{month}', monthName(sel.year, sel.month1, false)))}</h4><div class="mrh-star-row">${
+        list2.map(([ic, lb, r]) => `<button class="mrh-star-b" data-id="${esc(r.s.id)}">${ic} ${esc(lb)}: ${esc(r.s.name)}</button>`).join('')}</div></div>` : '';
+      host.querySelectorAll('.mrh-star-b').forEach(el => el.addEventListener('click', () => {
+        const st = students.find(x => String(x.id) === el.dataset.id);
+        if (st) showStudent(st, { year: sel.year, month1: sel.month1 });
+      }));
+    }
+    function renderFilters() {
+      const cnt = (k) => k === 'all' ? rows.length : rows.filter(r => r.state === k).length;
+      const keys = ['all', 'ready', 'missing', 'done', 'nodata'].filter(k => k === 'all' || k === flt || cnt(k));
+      body.querySelector('#mrh-flt').innerHTML = keys.map(k => `<button class="mrh-flt ${k === flt ? 'mrh-sel' : ''}" data-k="${k}">${esc(k === 'all' ? t('mrh_filter_all') : chipLabel[k])}<small>${cnt(k)}</small></button>`).join('');
+      body.querySelectorAll('#mrh-flt .mrh-flt').forEach(b => b.addEventListener('click', () => { flt = b.dataset.k; renderFilters(); renderList(); }));
+    }
     function renderList() {
       const q = norm(input.value);
-      const found = rows.filter(r => !q || norm(r.s.name).includes(q));
+      const found = rows.filter(r => (flt === 'all' || r.state === flt) && (!q || norm(r.s.name).includes(q)));
       if (!found.length) { list.innerHTML = `<div class="mrh-empty">${esc(q ? t('mrh_no_match') : t('mrh_empty_list'))}</div>`; return; }
       list.innerHTML = found.map((r, i) => `
         <div class="mrh-item ${q && i === 0 ? 'mrh-first' : ''}" data-id="${esc(r.s.id)}" role="button" tabindex="0">
           <span class="mrh-av">${avatarHtml(r.s)}</span>
-          <span><div class="mrh-nm">${esc(r.s.name)}</div><div class="mrh-gr">${esc(r.s.grade || '')}</div></span>
+          <span><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade || '')}</div></span>
           <span class="mrh-chip ${r.state}">${esc(chipLabel[r.state])}</span>
         </div>`).join('');
       list.querySelectorAll('.mrh-item').forEach(el => el.addEventListener('click', () => {
@@ -356,7 +394,7 @@ export async function openMonthlyReportsHub(opts = {}) {
       }));
       rows.sort((x, y) => (rank[x.state] - rank[y.state]) || String(x.s.name || '').localeCompare(String(y.s.name || ''), 'ar'));
       if (!body.isConnected) return;
-      renderOv(); renderList();
+      computeStars(); renderOv(); renderStars(); renderFilters(); renderList();
     }
     input.addEventListener('input', renderList);
     input.addEventListener('keydown', (e) => {
