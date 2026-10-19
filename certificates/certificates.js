@@ -100,7 +100,8 @@ function ensureStyles() {
     .cc-overlay .cc-step > h3 { color: #0d5c46 !important; }
     .cc-overlay .cc-field label { color: #4a6058 !important; }
     .cc-head h2 { margin: 0; font-size: 1.2rem; font-weight: 700; flex: none; }
-    .cc-tabs { display: flex; gap: 6px; margin-inline-start: auto; flex-wrap: wrap; }
+    .cc-tabs { display: flex; gap: 6px; margin-inline-start: 8px; flex-wrap: wrap; }
+    #cc-close { margin-inline-start: auto; }
     .cc-tab { border: 1px solid rgba(13,92,70,.35); background: transparent; color: #0d5c46; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: .88rem; }
     .cc-tab.is-on { background: #0d5c46; color: #fffdf6; border-color: #0d5c46; }
     .cc-x { border: none; background: rgba(13,92,70,.1); color: #0d5c46; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex: none; }
@@ -562,7 +563,6 @@ export async function openCertificatesHub(opts = {}) {
             <div class="cc-hist">
                 <div class="cc-hist-note">${esc(t('cc_rep_note'))}</div>
                 <div class="cc-hist-tools">
-                    <input id="cc-rep-search" type="search" placeholder="${esc(t('cc_rep_search_ph'))}" autocomplete="off">
                     <select id="cc-rep-student" aria-label="${esc(t('cc_rep_student_all'))}"></select>
                     <select id="cc-rep-filter">
                         <option value="">${esc(t('cc_all_types'))}</option>
@@ -966,10 +966,9 @@ export async function openCertificatesHub(opts = {}) {
     }
     function renderReports() {
         releaseUrls();
-        const q = $('#cc-rep-search').value.trim();
         const f = $('#cc-rep-filter').value;
         const st = $('#cc-rep-student').value;
-        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st)) && (!q || String(r.name || '').includes(q)));
+        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st));
         if (!rows.length) {
             repList.innerHTML = `<div class="cc-empty">${reports.length ? esc(t('cc_no_match')) : t('cc_rep_empty')}</div>`;
             return;
@@ -998,7 +997,6 @@ export async function openCertificatesHub(opts = {}) {
             } catch (e) { /* بلا صورة مصغّرة */ }
         });
     }
-    $('#cc-rep-search').addEventListener('input', renderReports);
     $('#cc-rep-filter').addEventListener('change', renderReports);
     $('#cc-rep-student').addEventListener('change', renderReports);
     const reportFileName = (r) => `${safeName(repKindLabel(r.kind))}-${safeName(r.name)}.jpg`;
