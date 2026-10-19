@@ -37,7 +37,7 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 20%,rgba(255,255,255,.18),transparent 25%),radial-gradient(circle at 80% 80%,rgba(255,214,80,.18),transparent 25%),linear-gradient(135deg,#082a46,#126c80,#d59c36);background-color:#082a46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
+.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#fff;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
 .mrh-overlay *{text-shadow:none;-webkit-text-stroke:0;}
 .mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;color:#10241c;direction:rtl;margin:auto 0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}
