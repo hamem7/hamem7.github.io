@@ -877,7 +877,7 @@ async function playNextMission() {
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
-            if(['between', 'recite'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
+            if(['between', 'recite', 'similar'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             // «قبلها وبعدها» له نفس تخطيط «الآية بين آيتين» (نقاط + آية + نقاط)
             else if(GameState.currentData.type === 'around') document.body.dataset.gameQ = 'between';
             // زر «نصف إجابة» لسؤال «قبلها وبعدها» فقط

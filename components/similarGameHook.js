@@ -73,11 +73,12 @@ export function formatAdultSimilar(sim, pool) {
     // نفس خط ووزن آيات بقية المنصة (Amiri Quran بوزن عادي) — كان وزن زر .btn الغامق يطغى على الخيارات
     const font = isSurah ? '' : " font-family:'Amiri Quran', serif !important; font-weight:400 !important; line-height:2;";
     // 🌟 كل خيار زرٌّ يضغطه الطالب فتُسجَّل إجابته (صحيحة أو خاطئة) تلقائياً — يربطها adultGame.js عبر .sim-opt-btn
+    // الأحجام والمسافات من css/gameFullscreen.css (data-game-q="similar") فيظهر السؤال وخياراته كاملاً بلا تمرير
     const lines = sim.options.map((opt, i) =>
         `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size};${font} margin:12px 0; padding:12px 16px; text-align:center;">${label(opt, i)}</button>`
     ).join('');
-    const body = `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
-        `<div style="max-width:760px; margin:0 auto;">${lines}</div>`;
+    const body = `<div class="sim-q-text sim-q-adult" style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
+        `<div class="sim-opts" style="max-width:760px; margin:0 auto;">${lines}</div>`;
     const correctIndex = sim.options.findIndex(o => String(o) === String(sim.correctAnswer));
     return {
         type: 'similar', questionTitle: ADULT_TITLES[sim.kind], questionBody: body,
