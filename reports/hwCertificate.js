@@ -106,7 +106,8 @@ function ensureStyles() {
         .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
         .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
         .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
-        .hwcert-title { font-family: 'Aref Ruqaa', 'Amiri', serif; font-size: ${S(8)}; color: #6b4a1e; line-height: 1.3; font-weight: 700; margin: ${S(.3)} 0 0; }
+        .hwcert-title { margin: ${S(.3)} 0 0; line-height: 0; }
+        .hwcert-title img { height: ${S(8.4)}; width: auto; display: block; margin: 0 auto; }
         .hwcert-orn { display: flex; align-items: center; gap: ${S(2)}; color: #a8841c; font-size: ${S(2.4)}; margin-top: ${S(.2)}; }
         .hwcert-orn i { height: 1px; width: ${S(15)}; background: linear-gradient(90deg, transparent, #a8841c); }
         .hwcert-orn i:last-child { transform: scaleX(-1); }
@@ -286,7 +287,7 @@ export function showHomeworkCertificate(submission, student, scope) {
             <div class="hwcert-card" id="hwcert-card" dir="${dir}">
                 <div class="hwcert-main">
                     <div class="hwcert-brand"><img src="assets/brand/ham-mark.svg" alt="${t('hwcert_logo_alt')}">${t('hwcert_subtitle')}</div>
-                    <h2 class="hwcert-title">${titleText}</h2>
+                    <h2 class="hwcert-title"><img src="assets/certificates/title-thuluth.png" alt="${titleText}"></h2>
                     <div class="hwcert-orn"><i></i>✦<i></i></div>
                     <div class="hwcert-person">
                         ${avatarUrl
