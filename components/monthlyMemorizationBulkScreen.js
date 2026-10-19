@@ -36,7 +36,7 @@
 // بين "لا تزعج" و"لا تنسَ" بدل عدم التذكير إطلاقًا بعد أول تأجيل.
 // =============================================================================
 
-import { AppState, t, tf, surahNameLocal } from '../core/app.js';
+import { AppState, t, tf, surahNameLocal, loadSplashScreen } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import {
   calcMemorizationProgress,
@@ -386,15 +386,20 @@ function ensureTableStylesInjected() {
 .mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
   background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
 .mmt-screen[dir="ltr"] { direction: ltr; }
-.mmt-head { background: linear-gradient(135deg, var(--mmt-blue), var(--mmt-deep)); color: #fff; padding: 18px 24px; display: grid; gap: 8px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
-.mmt-head-row { display: flex; align-items: flex-start; gap: 12px; }
-.mmt-kicker { font-size: .8rem; font-weight: 700; opacity: .85; }
-.mmt-title { margin: 0; font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
-.mmt-sub { font-size: .9rem; opacity: .9; }
-.mmt-close { margin-inline-start: auto; width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.1); color: #fff; font-size: 1.1rem; cursor: pointer; flex-shrink: 0; }
-.mmt-close:hover { background: rgba(255,255,255,.2); }
+.mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
+.mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
+.mmt-head-row { display: flex; align-items: center; gap: 12px; }
+.mmt-ico { width: 46px; height: 46px; border-radius: 13px; background: var(--mmt-tint); display: grid; place-items: center; font-size: 1.4rem; flex: none; }
+.mmt-kicker { font-size: .8rem; font-weight: 700; color: var(--mmt-mute); }
+.mmt-title { margin: 0; font-size: 1.5rem; font-weight: 800 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'Tajawal', sans-serif; }
+.mmt-sub { font-size: .9rem; color: var(--mmt-mute); }
+.mmt-head-btns { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.mmt-home { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--mmt-soft); background: var(--mmt-tint); color: var(--mmt-blue); font-family: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.mmt-home:hover { background: var(--mmt-soft); }
+.mmt-close { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f1efe4; color: #5a6b63; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+.mmt-close:hover { background: #e6e2d3; }
 .mmt-stats { display: flex; flex-wrap: wrap; gap: 8px; }
-.mmt-stat { background: rgba(255,255,255,.14); border-radius: 10px; padding: 4px 12px; font-size: .85rem; }
+.mmt-stat { background: var(--mmt-tint); color: var(--mmt-blue); border-radius: 10px; padding: 4px 12px; font-size: .85rem; font-weight: 700; }
 .mmt-stat b { font-size: 1.05rem; direction: ltr; unicode-bidi: isolate; }
 .mmt-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 18px; background: var(--mmt-tint); border-bottom: 1px solid var(--mmt-soft); flex-shrink: 0; }
 .mmt-tools input { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--mmt-soft); background: #fff; font-family: inherit; font-size: .95rem; width: 230px; max-width: 100%; box-sizing: border-box; }
@@ -429,8 +434,8 @@ function ensureTableStylesInjected() {
 .mmt-hint.err { color: #b91c1c; font-weight: 700; }
 .mmt-btn { border: none; border-radius: 12px; padding: 12px 22px; font-family: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; background: var(--mmt-blue); color: #fff; }
 .mmt-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-.mmt-done { flex: 1; overflow: auto; padding: 36px 24px; display: flex; align-items: center; justify-content: center; background: var(--dh-surface-alt, #f6f3e8); }
-.mmt-done-card { width: 100%; max-width: 860px; background: #fff; border: 1px solid var(--mmt-line); border-radius: 24px; box-shadow: 0 24px 60px rgba(6,35,28,.12); padding: 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 36px 56px; box-sizing: border-box; }
+.mmt-done { flex: 1; overflow: auto; padding: 36px 24px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 20% 15%, rgba(255,255,255,.12), transparent 30%), radial-gradient(circle at 85% 85%, rgba(212,175,55,.16), transparent 30%), linear-gradient(135deg, #06231c, #0d5c46 55%, #147c5e); }
+.mmt-done-card { width: 100%; max-width: 860px; background: var(--dh-surface, #fffdf6); border: 1px solid var(--mmt-line); border-radius: 24px; box-shadow: 0 24px 60px rgba(6,35,28,.12); padding: 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 36px 56px; box-sizing: border-box; }
 .mmt-ring { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
 .mmt-ring svg.mmt-ring-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mmt-ring-arc { transition: stroke-dashoffset .8s ease; }
@@ -438,7 +443,7 @@ function ensureTableStylesInjected() {
 .mmt-ring-pct { font-size: 2.3rem; font-weight: 800; color: var(--mmt-blue); line-height: 1; direction: ltr; unicode-bidi: isolate; }
 .mmt-ring-sub { font-size: .8rem; color: var(--mmt-mute); }
 .mmt-done-main { flex: 1 1 340px; min-width: 0; display: grid; gap: 16px; }
-.mmt-done-title { font-size: 1.9rem; font-weight: 800; color: var(--mmt-blue); margin: 0; }
+.mmt-done-title { font-size: 1.9rem; font-weight: 800 !important; color: var(--mmt-blue) !important; margin: 0; font-family: 'Tajawal', sans-serif; }
 .mmt-done-desc { color: var(--mmt-mute); font-size: 1.05rem; line-height: 1.8; margin: 0; }
 .mmt-checks { border: 1px solid var(--mmt-line); border-radius: 16px; overflow: hidden; background: #fff; }
 .mmt-check { display: flex; align-items: center; gap: 12px; padding: 12px 16px; font-weight: 700; font-size: .98rem; }
@@ -539,13 +544,28 @@ function openMemorizationTable(initialQueue, meta = {}) {
       return `<div class="mmt-screen" dir="${isRtl ? 'rtl' : 'ltr'}" role="dialog" aria-modal="true" aria-labelledby="mmt-title">
         <div class="mmt-head">
           <div class="mmt-head-row">
+            <span class="mmt-ico" aria-hidden="true">📖</span>
             <div><div class="mmt-kicker">${kicker}</div><h2 class="mmt-title" id="mmt-title">${t('mmt_heading')}</h2></div>
-            <button class="mmt-close" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}">✕</button>
+            <div class="mmt-head-btns">
+              <button class="mmt-home" id="mmt-home" title="${t('mmt_home_btn')}">🏠 ${t('mmt_home_btn')}</button>
+              <button class="mmt-close" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}">✕</button>
+            </div>
           </div>
           ${inner.head || ''}
         </div>
         ${inner.body}
       </div>`;
+    }
+
+    // أزرار الشريط العلوي المشتركة بين كل الحالات: الرئيسية + الإغلاق
+    async function goHome() {
+      if (!saving && rows.some(isDirty) && !await hamConfirm(t('mmt_unsaved_confirm'))) return;
+      close();
+      try { loadSplashScreen(); } catch (e) { console.error('[monthlyMemorizationBulkScreen.js] تعذر العودة للرئيسية:', e); }
+    }
+    function bindChrome() {
+      overlay.querySelector('#mmt-close').addEventListener('click', tryClose);
+      overlay.querySelector('#mmt-home').addEventListener('click', goHome);
     }
 
     function renderTable() {
@@ -581,7 +601,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
           <div class="mmt-bar"><span class="mmt-hint" id="mmt-hint"></span><button class="mmt-btn" id="mmt-save"></button></div>`
       });
 
-      overlay.querySelector('#mmt-close').addEventListener('click', tryClose);
+      bindChrome();
       overlay.querySelectorAll('tbody tr').forEach(tr => {
         const row = rows[+tr.dataset.i];
         const sel = tr.querySelector('[data-k="s"]');
@@ -739,7 +759,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
         </div></div>`
       });
       rows = [];
-      overlay.querySelector('#mmt-close').addEventListener('click', close);
+      bindChrome();
       overlay.querySelector('#mmt-done-close').addEventListener('click', close);
       const reports = overlay.querySelector('#mmt-open-reports');
       if (reports) reports.addEventListener('click', () => {
