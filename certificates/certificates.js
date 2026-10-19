@@ -560,10 +560,9 @@ export async function openCertificatesHub(opts = {}) {
         </section>
         <section class="cc-pane" data-pane="history" hidden>
             <div class="cc-hist">
-                <div class="cc-hist-tools">
-                    <input id="cc-search" type="search" placeholder="${esc(t('cc_search_ph'))}" autocomplete="off">
-                    <select id="cc-filter"><option value="">${esc(t('cc_all_types'))}</option></select>
-                </div>
+                <input id="cc-search" class="cc-search" type="search" placeholder="🔍 ${esc(t('cc_rep_search_ph'))}" autocomplete="off">
+                <div class="cc-chips" id="cc-hist-chips"></div>
+                <div class="cc-chips cc-kinds" id="cc-hist-kinds"></div>
                 <div id="cc-hist-list"></div>
             </div>
         </section>
@@ -885,17 +884,29 @@ export async function openCertificatesHub(opts = {}) {
 
     // ----- سجل الشهادات -----
     const histList = $('#cc-hist-list');
-    const filterSel = $('#cc-filter');
-    filterSel.innerHTML += TYPES.map(x => `<option value="${x.id}">${esc(L(x.label, uiLang()))}</option>`).join('');
+    let histStudent = '', histType = '';
+    const histKinds = $('#cc-hist-kinds');
+    histKinds.innerHTML = `<button type="button" class="cc-chip is-on" data-kind="">${esc(t('cc_rep_kind_all'))}</button>` +
+        TYPES.map(x => `<button type="button" class="cc-chip" data-kind="${x.id}">${esc(L(x.label, uiLang()))}</button>`).join('');
+    function fillHistStudents() {
+        const counts = new Map();
+        history.forEach(r => { const n = String(r.name || '').trim(); if (n) counts.set(n, (counts.get(n) || 0) + 1); });
+        if (!counts.has(histStudent)) histStudent = '';
+        const q = $('#cc-search').value.trim();
+        const names = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b, uiLang()))
+            .filter(n => !q || n.includes(q) || n === histStudent);
+        const chip = (val, label, n) => `<button type="button" class="cc-chip${val === histStudent ? ' is-on' : ''}" data-student="${esc(val)}">${esc(label)}<i>${n}</i></button>`;
+        $('#cc-hist-chips').innerHTML = chip('', t('cc_rep_student_all'), history.length) + names.map(n => chip(n, n, counts.get(n))).join('');
+    }
     async function loadHistory() {
         try { history = await getAllCertificates(); } catch (e) { console.warn('تعذّر قراءة سجل الشهادات:', e); history = []; }
         $('#cc-count').textContent = history.length ? `(${history.length})` : '';
+        fillHistStudents();
         renderHistory();
     }
     function renderHistory() {
         const q = $('#cc-search').value.trim();
-        const f = filterSel.value;
-        const rows = history.filter(r => (!f || r.typeId === f) && (!q || String(r.name || '').includes(q)));
+        const rows = history.filter(r => (!histType || r.typeId === histType) && (!histStudent || String(r.name || '').trim() === histStudent) && (!q || histStudent || String(r.name || '').includes(q)));
         if (!rows.length) {
             histList.innerHTML = `<div class="cc-empty">${history.length ? esc(t('cc_no_match')) : t('cc_hist_empty')}</div>`;
             return;
@@ -911,8 +922,20 @@ export async function openCertificatesHub(opts = {}) {
             </div>`;
         }).join('');
     }
-    $('#cc-search').addEventListener('input', renderHistory);
-    filterSel.addEventListener('change', renderHistory);
+    $('#cc-search').addEventListener('input', () => { fillHistStudents(); renderHistory(); });
+    $('#cc-hist-chips').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-student]');
+        if (!b) return;
+        histStudent = b.dataset.student;
+        fillHistStudents(); renderHistory();
+    });
+    histKinds.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-kind]');
+        if (!b) return;
+        histType = b.dataset.kind;
+        histKinds.querySelectorAll('.cc-chip').forEach(c => c.classList.toggle('is-on', c === b));
+        renderHistory();
+    });
     histList.addEventListener('click', async (e) => {
         const btn = e.target.closest('button[data-act]');
         const row = e.target.closest('.cc-row');
