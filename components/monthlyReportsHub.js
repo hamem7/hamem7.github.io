@@ -37,9 +37,9 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#f4f1e6;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
+.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 20%,rgba(255,255,255,.18),transparent 25%),radial-gradient(circle at 80% 80%,rgba(255,214,80,.18),transparent 25%),linear-gradient(135deg,#082a46,#126c80,#d59c36);background-color:#082a46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
 .mrh-overlay *{text-shadow:none;-webkit-text-stroke:0;}
-.mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;direction:rtl;margin:auto 0;overflow:hidden;}
+.mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;color:#10241c;direction:rtl;margin:auto 0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}
 .mrh-head{background:#fff;color:var(--dh-emerald-700,#0d5c46);padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e4dfcc;}
 .mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;}
@@ -82,7 +82,7 @@ function ensureStyles() {
 .mrh-panel.ready{background:#f3faf6;border:1.5px solid #bfe3d2;}
 .mrh-panel.missing{background:#fffbeb;border:1.5px solid #f5d98a;}
 .mrh-panel.nodata{background:#f1f5f9;border:1.5px solid #cbd5e1;}
-.mrh-status{font-size:1.08rem;font-weight:800;margin-bottom:6px;}
+.mrh-status{font-size:1.08rem;font-weight:800;margin-bottom:6px;color:#92400e;}.mrh-panel.nodata .mrh-status{color:#475569;}
 .mrh-panel.ready .mrh-status{color:#0d5c46;}
 .mrh-line{color:#334155;font-size:.95rem;line-height:1.8;}
 .mrh-fixrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
