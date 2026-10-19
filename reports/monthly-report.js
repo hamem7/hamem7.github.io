@@ -1892,6 +1892,13 @@ function initMonthlyReportScreen() {
   populateMonthYearSelects();
   // 🌟 [جديد] لو فُتحت من مركز التقارير: اختر الشهر المطلوب ثم (اختياريًا) صدِّر تلقائيًا بعد اكتمال الرسم
   const opts = mrOpenOptions;
+  if (opts && opts.returnTo === 'hub') {
+    // الرجوع هنا يعود لمركز التقارير لا لملف الطالب — فيجب أن يقول الزر ذلك
+    ['btn-mr-back', 'btn-mr-back-2'].forEach(id => {
+      const sp = $(id) && $(id).querySelector('span');
+      if (sp) { sp.setAttribute('data-i18n', 'mr_back_hub_btn'); sp.textContent = t('mr_back_hub_btn'); }
+    });
+  }
   if (opts && typeof opts.year === 'number' && typeof opts.monthIndex0 === 'number') {
     const ySel = $('mr-select-year'), mSel = $('mr-select-month');
     if (ySel) {

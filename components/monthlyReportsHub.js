@@ -449,11 +449,11 @@ export async function openMonthlyReportsHub(opts = {}) {
       });
 
       const go = (autoExport) => {
-        document.removeEventListener('keydown', onKey);
-        overlay.remove();
-        import('../reports/monthly-report.js').then(m => m.openMonthlyReportScreen({
-          student, year: sel.year, monthIndex0: sel.month1 - 1, autoExport, returnTo: 'hub'
-        })).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
+        import('../reports/monthly-report.js').then(m => {
+          document.removeEventListener('keydown', onKey);
+          overlay.remove();
+          m.openMonthlyReportScreen({ student, year: sel.year, monthIndex0: sel.month1 - 1, autoExport, returnTo: 'hub' });
+        }).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
       };
       body.querySelector('#mrh-wa').addEventListener('click', () => go('whatsapp'));
       body.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
