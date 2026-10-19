@@ -576,6 +576,7 @@ export async function openCertificatesHub(opts = {}) {
                     <button type="button" class="cc-chip" data-kind="individual">${esc(t('cc_rep_kind_individual'))}</button>
                     <button type="button" class="cc-chip" data-kind="dual">${esc(t('cc_rep_kind_dual'))}</button>
                     <button type="button" class="cc-chip" data-kind="monthly">${esc(t('cc_rep_kind_monthly'))}</button>
+                    <button type="button" class="cc-chip" data-kind="homework">${esc(t('cc_rep_kind_homework'))}</button>
                 </div>
                 <div id="cc-rep-list"></div>
             </div>
@@ -999,7 +1000,7 @@ export async function openCertificatesHub(opts = {}) {
         releaseUrls();
         const q = $('#cc-rep-search').value.trim();
         const f = repKind, st = repStudent;
-        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st) && (!q || st || repStudents(r).some(n => n.includes(q))));
+        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st)) && (!q || st || repStudents(r).some(n => n.includes(q))));
         if (!rows.length) {
             repList.innerHTML = `<div class="cc-empty">${reports.length ? esc(t('cc_no_match')) : t('cc_rep_empty')}</div>`;
             return;

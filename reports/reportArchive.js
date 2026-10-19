@@ -83,7 +83,7 @@ export function deleteArchivedReport(id) {
  * pageId: معرّف عنصر الورقة | prepare: تجهيز html2canvas والخطوط والصور | getMeta: يعيد { name, sub, students, scope, dateLabel } أو null
  */
 const autoTimers = {};
-export function autoArchiveOnOpen({ kind, pageId, prepare, getMeta, delay = 1500 }) {
+export function autoArchiveOnOpen({ kind, pageId, prepare, getMeta, delay = 1500, background = '#f9f4ea' }) {
     clearTimeout(autoTimers[kind]);
     const page = document.getElementById(pageId);
     if (!page) return;
@@ -95,7 +95,7 @@ export function autoArchiveOnOpen({ kind, pageId, prepare, getMeta, delay = 1500
             await prepare();
             if (document.getElementById(pageId) !== page) return;
             const canvas = await window.html2canvas(page, {
-                scale: 2, backgroundColor: '#f9f4ea', useCORS: true,
+                scale: 2, backgroundColor: background, useCORS: true,
                 ignoreElements: (el) => !!(el.classList && el.classList.contains('no-export'))
             });
             await archiveReport({ kind, canvas, ...meta });
@@ -104,7 +104,7 @@ export function autoArchiveOnOpen({ kind, pageId, prepare, getMeta, delay = 1500
 }
 
 /**
- * يحفظ التقرير المُصدَّر. kind: 'individual' | 'dual' | 'monthly'
+ * يحفظ التقرير المُصدَّر. kind: 'individual' | 'dual' | 'monthly' | 'homework'
  * name: اسم الطالب (أو «أ × ب» للاختبار الثنائي) | sub: سطر وصفي (النطاق/الشهر/التاريخ) | canvas: لقطة التقرير
  * التقرير نفسه (نفس النوع + الاسم + الوصف) يُستبدل بأحدث تصدير بدل التكرار (تصدير PNG ثم PDF لنفس التقرير = سجل واحد).
  */

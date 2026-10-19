@@ -350,6 +350,13 @@ export function showHomeworkCertificate(submission, student, scope) {
     const noteEl = overlay.querySelector('#hwcert-note');
     const showNote = (msg) => { noteEl.textContent = msg; noteEl.style.display = 'block'; };
 
+    // 🗂️ حفظ تلقائي للشهادة في «الشهادات والتقارير ← التقارير السابقة» بمجرد عرضها (تظهر في صفحة الطالب بنوعها ونطاقها وتاريخها)
+    import('./reportArchive.js').then(m => m.autoArchiveOnOpen({
+        kind: 'homework', pageId: 'hwcert-card', delay: 800, background: '#fdf6e3',
+        prepare: async () => { await ensureHtml2Canvas(); try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) { /* تجاهل */ } },
+        getMeta: () => ({ name: studentName, students: [studentName], scope: scopeText || '', dateLabel: dates.greg, sub: [scopeText, certNo].filter(Boolean).join(' — ') })
+    })).catch(() => {});
+
     overlay.querySelector('#hwcert-close-btn').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
