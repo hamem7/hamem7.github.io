@@ -100,10 +100,10 @@ function ensureStyles() {
     .cc-overlay .cc-step > h3 { color: #0d5c46 !important; }
     .cc-overlay .cc-field label { color: #4a6058 !important; }
     .cc-head h2 { margin: 0; font-size: 1.2rem; font-weight: 700; flex: none; }
-    .cc-tabs { display: flex; gap: 6px; margin-inline-start: 8px; flex-wrap: wrap; }
+    .cc-tabs { display: flex; gap: 2px; margin-inline-start: 8px; background: #e9e4cf; border-radius: 999px; padding: 4px; flex-wrap: wrap; }
     #cc-close { margin-inline-start: auto; }
-    .cc-tab { border: 1px solid rgba(13,92,70,.35); background: transparent; color: #0d5c46; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: .88rem; }
-    .cc-tab.is-on { background: #0d5c46; color: #fffdf6; border-color: #0d5c46; }
+    .cc-tab { border: 0; background: transparent; color: #0d5c46; border-radius: 999px; padding: 7px 14px; font: inherit; font-weight: 700; cursor: pointer; font-size: .88rem; }
+    .cc-tab.is-on { background: #0d5c46; color: #fffdf6; box-shadow: 0 2px 6px rgba(13,92,70,.3); }
     .cc-x { border: none; background: rgba(13,92,70,.1); color: #0d5c46; width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; flex: none; }
     .cc-pane { flex: 1; overflow-y: auto; padding: 16px; }
     .cc-pane[hidden] { display: none; }
@@ -155,6 +155,14 @@ function ensureStyles() {
     .cc-hist-note { font-size: .84rem; color: #4a6058; background: #fffdf6; border: 1px dashed #d9d2b6; border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; line-height: 1.7; }
     .cc-hist-tools { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
     .cc-hist-tools input, .cc-hist-tools select { font: inherit; padding: 9px 12px; border: 1.5px solid #d9d2b6; border-radius: 10px; background: #fff; flex: 1 1 180px; min-width: 0; }
+    .cc-search { width: 100%; font: inherit; padding: 9px 12px; border: 1.5px solid #d9d2b6; border-radius: 10px; background: #fff; margin-bottom: 8px; }
+    .cc-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .cc-chip { font: inherit; border: 1px solid #d9d2b6; background: #fff; color: #10241c; border-radius: 999px; padding: 5px 12px; font-size: .85rem; cursor: pointer; }
+    .cc-chip i { font-style: normal; opacity: .7; margin-inline-start: 4px; }
+    .cc-chip.is-on { background: #0d5c46; color: #fff; border-color: #0d5c46; }
+    .cc-kinds .cc-chip { border-radius: 8px; padding: 4px 12px; font-size: .82rem; background: #fffdf6; }
+    .cc-kinds .cc-chip.is-on { background: #8a6612; border-color: #8a6612; }
+    .cc-kinds { margin-bottom: 12px; }
     .cc-row { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #e3dcc2; border-radius: 14px; padding: 10px; margin-bottom: 8px; }
     .cc-row img { width: 92px; aspect-ratio: ${PAGE_W} / ${PAGE_H}; object-fit: cover; border-radius: 6px; flex: none; box-shadow: 0 2px 6px rgba(0,0,0,.18); }
     .cc-row img.is-report { width: 64px; height: 84px; aspect-ratio: auto; object-position: top; background: #f1ecdc; }
@@ -562,14 +570,13 @@ export async function openCertificatesHub(opts = {}) {
         <section class="cc-pane" data-pane="reports" hidden>
             <div class="cc-hist">
                 <div class="cc-hist-note">${esc(t('cc_rep_note'))}</div>
-                <div class="cc-hist-tools">
-                    <select id="cc-rep-student" aria-label="${esc(t('cc_rep_student_all'))}"></select>
-                    <select id="cc-rep-filter">
-                        <option value="">${esc(t('cc_all_types'))}</option>
-                        <option value="individual">${esc(t('cc_rep_kind_individual'))}</option>
-                        <option value="dual">${esc(t('cc_rep_kind_dual'))}</option>
-                        <option value="monthly">${esc(t('cc_rep_kind_monthly'))}</option>
-                    </select>
+                <input id="cc-rep-search" class="cc-search" type="search" placeholder="🔍 ${esc(t('cc_rep_search_ph'))}" autocomplete="off">
+                <div class="cc-chips" id="cc-rep-chips"></div>
+                <div class="cc-chips cc-kinds" id="cc-rep-kinds">
+                    <button type="button" class="cc-chip is-on" data-kind="">${esc(t('cc_rep_kind_all'))}</button>
+                    <button type="button" class="cc-chip" data-kind="individual">${esc(t('cc_rep_kind_individual'))}</button>
+                    <button type="button" class="cc-chip" data-kind="dual">${esc(t('cc_rep_kind_dual'))}</button>
+                    <button type="button" class="cc-chip" data-kind="monthly">${esc(t('cc_rep_kind_monthly'))}</button>
                 </div>
                 <div id="cc-rep-list"></div>
             </div>
@@ -954,21 +961,22 @@ export async function openCertificatesHub(opts = {}) {
     }
     // أسماء الطلاب في السجل (الاختبار الثنائي يظهر لكل من الطالبين؛ السجلات القديمة: نفكّ «أ × ب»)
     const repStudents = (r) => (Array.isArray(r.students) && r.students.length ? r.students : String(r.name || '').split('×').map(x => x.trim())).filter(Boolean);
+    let repStudent = '', repKind = '';
     function fillRepStudents() {
-        const sel = $('#cc-rep-student');
-        const cur = sel.value;
         const counts = new Map();
         reports.forEach(r => repStudents(r).forEach(n => counts.set(n, (counts.get(n) || 0) + 1)));
-        const names = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b, uiLang()));
-        sel.innerHTML = `<option value="">${esc(t('cc_rep_student_all'))}</option>` +
-            names.map(n => `<option value="${esc(n)}">${esc(n)} (${counts.get(n)})</option>`).join('');
-        sel.value = counts.has(cur) ? cur : '';
+        if (!counts.has(repStudent)) repStudent = '';
+        const q = $('#cc-rep-search').value.trim();
+        const names = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b, uiLang()))
+            .filter(n => !q || n.includes(q) || n === repStudent);
+        const chip = (val, label, n) => `<button type="button" class="cc-chip${val === repStudent ? ' is-on' : ''}" data-student="${esc(val)}">${esc(label)}<i>${n}</i></button>`;
+        $('#cc-rep-chips').innerHTML = chip('', t('cc_rep_student_all'), reports.length) + names.map(n => chip(n, n, counts.get(n))).join('');
     }
     function renderReports() {
         releaseUrls();
-        const f = $('#cc-rep-filter').value;
-        const st = $('#cc-rep-student').value;
-        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st));
+        const q = $('#cc-rep-search').value.trim();
+        const f = repKind, st = repStudent;
+        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st) && (!q || st || repStudents(r).some(n => n.includes(q))));
         if (!rows.length) {
             repList.innerHTML = `<div class="cc-empty">${reports.length ? esc(t('cc_no_match')) : t('cc_rep_empty')}</div>`;
             return;
@@ -997,8 +1005,20 @@ export async function openCertificatesHub(opts = {}) {
             } catch (e) { /* بلا صورة مصغّرة */ }
         });
     }
-    $('#cc-rep-filter').addEventListener('change', renderReports);
-    $('#cc-rep-student').addEventListener('change', renderReports);
+    $('#cc-rep-search').addEventListener('input', () => { fillRepStudents(); renderReports(); });
+    $('#cc-rep-chips').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-student]');
+        if (!b) return;
+        repStudent = b.dataset.student;
+        fillRepStudents(); renderReports();
+    });
+    $('#cc-rep-kinds').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-kind]');
+        if (!b) return;
+        repKind = b.dataset.kind;
+        $('#cc-rep-kinds').querySelectorAll('.cc-chip').forEach(c => c.classList.toggle('is-on', c === b));
+        renderReports();
+    });
     const reportFileName = (r) => `${safeName(repKindLabel(r.kind))}-${safeName(r.name)}.jpg`;
     function openViewer(rec, blob) {
         closeViewer();
