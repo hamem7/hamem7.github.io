@@ -1,7 +1,7 @@
 // engine/quranEngine.js
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
-import { LISTEN_MIN_SURAH, listenHint, listenBodyHTML } from "./ayahAudio.js";
+import { LISTEN_MIN_SURAH, listenBodyHTML } from "./ayahAudio.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
 const kidsSurahNameHtml = (name) => `<span style="font-family:'Tajawal','Cairo',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
@@ -340,8 +340,8 @@ export class QuranEngine {
             if (!d || !d.ayahObj || !d.fullAnswer) continue;
             const a = d.ayahObj;
             return { ...d, type: 'listen_next', dir, questionTitle: dir === 'next' ? 'listen_next_title' : 'listen_prev_title',
-                questionBody: listenBodyHTML({ ayah: a, instruction: tl(dir === 'next' ? 'listen_next_prompt' : 'listen_prev_prompt', dir === 'next' ? 'كمّل!' : 'ما قبلها؟'), btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
-                hint: listenHint(d.fullAnswer) };
+                questionBody: listenBodyHTML({ ayah: a, instruction: tl(dir === 'next' ? 'listen_next_prompt' : 'listen_prev_prompt', dir === 'next' ? 'ما الآية التي بعدها؟' : 'ما الآية التي قبلها؟'), btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
+                hint: null }; // بلا تلميح (كباقي «ماذا بعدها؟») فلا يظهر زر التلميح
         }
         return null;
     }

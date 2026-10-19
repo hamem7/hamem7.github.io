@@ -2406,8 +2406,8 @@ export const translations = {
         // 🎧 [جديد 2026-10-18] سؤال «استمع للشيخ… ثم كمّل» (صوت المنشاوي) داخل ألعاب الكبار والأطفال
         listen_next_title: "🎧 استمع للشيخ… ثم كمّل",
         listen_prev_title: "🎧 استمع للشيخ… ثم قُل التي قبلها",
-        listen_next_prompt: "كمّل!",
-        listen_prev_prompt: "ما قبلها؟",
+        listen_next_prompt: "ما الآية التي بعدها؟",
+        listen_prev_prompt: "ما الآية التي قبلها؟",
         listen_play_btn: "🔊 استمع للشيخ",
         listen_type_label: "🎧 استمع وكمّل",
         kids_listen_next_title: "استمع وكمّل يا بطل 🎧",
@@ -5020,8 +5020,8 @@ export const translations = {
         // 🎧 [new 2026-10-18] "Listen to the Sheikh… then continue" question (Al-Minshawi) inside the adults and kids games
         listen_next_title: "🎧 Listen to the Sheikh… then continue",
         listen_prev_title: "🎧 Listen to the Sheikh… then say the verse before it",
-        listen_next_prompt: "Continue!",
-        listen_prev_prompt: "The verse before?",
+        listen_next_prompt: "What is the next verse?",
+        listen_prev_prompt: "What is the previous verse?",
         listen_play_btn: "🔊 Listen to the Sheikh",
         listen_type_label: "🎧 Listen & continue",
         kids_listen_next_title: "Listen and Continue, Champ! 🎧",

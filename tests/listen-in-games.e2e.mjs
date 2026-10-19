@@ -76,7 +76,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
       if (outDir && listens.length === 1) await page.screenshot({ path: path.join(outDir, `${kids ? 'kids' : 'adult'}-listen-question.png`) });
       await page.click('#game-question audio + button'); await sleep(500);
       listens[listens.length - 1].played = await page.evaluate(() => document.querySelector('#game-question audio').played.length > 0);
-      if (!kids) { await page.click('#hint-btn'); listens[listens.length - 1].hint = await page.innerText('#hint-text'); await page.click('#show-ans-btn'); await sleep(200); listens[listens.length - 1].ans = await page.innerText('#game-answer'); if (outDir && listens.length === 1) await page.screenshot({ path: path.join(outDir, 'adult-listen-answer.png') }); }
+      if (!kids) { listens[listens.length - 1].hintShown = await page.evaluate(() => { const b = document.getElementById('hint-btn'); return !!b && getComputedStyle(b).display !== 'none'; }); await page.click('#show-ans-btn'); await sleep(200); listens[listens.length - 1].ans = await page.innerText('#game-answer'); if (outDir && listens.length === 1) await page.screenshot({ path: path.join(outDir, 'adult-listen-answer.png') }); }
     }
     if (cd.idx === (listens.length ? undefined : -1)) { /* لا شيء */ }
     await answer(); await sleep(700);
@@ -90,7 +90,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
       check(`${tag} [${i + 1}]: نص الآية المسموعة غير معروض في السؤال`, !/﴿/.test(l.textLeak), l.textLeak.slice(0, 60));
       check(`${tag} [${i + 1}]: ضغط الزر شغّل الصوت فعلاً`, l.played);
       if (kids) check(`${tag} [${i + 1}]: ثلاثة خيارات`, l.opts === 3, String(l.opts));
-      else check(`${tag} [${i + 1}]: التلميح والإجابة يظهران`, !!l.hint && l.hint.includes('﴿') && l.ans.includes('﴿'), `${l.hint} | ${l.ans.replace(/\n+/g, ' ').slice(0, 60)}`);
+      else check(`${tag} [${i + 1}]: لا تلميح، والإجابة تظهر`, !l.hintShown && l.ans.includes('﴿'), `${l.hintShown} | ${l.ans.replace(/\n+/g, ' ').slice(0, 60)}`);
     });
   }
   await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500);
