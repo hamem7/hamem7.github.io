@@ -106,7 +106,7 @@ function ensureStyles() {
         .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
         .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
         .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
-        .hwcert-title { font-size: ${S(6.6)}; color: #6b4a1e; line-height: 1.2; font-weight: 700; margin: ${S(.3)} 0 0; }
+        .hwcert-title { font-family: 'Aref Ruqaa', 'Amiri', serif; font-size: ${S(8)}; color: #6b4a1e; line-height: 1.3; font-weight: 700; margin: ${S(.3)} 0 0; }
         .hwcert-orn { display: flex; align-items: center; gap: ${S(2)}; color: #a8841c; font-size: ${S(2.4)}; margin-top: ${S(.2)}; }
         .hwcert-orn i { height: 1px; width: ${S(15)}; background: linear-gradient(90deg, transparent, #a8841c); }
         .hwcert-orn i:last-child { transform: scaleX(-1); }
@@ -139,6 +139,10 @@ function ensureStyles() {
         .hwcert-mlist { display: grid; grid-template-columns: 1fr 1fr; gap: 0 ${S(2.4)}; }
         .hwcert-mi { font-family: 'Amiri', serif; font-size: ${S(2.3)}; line-height: 1.45; padding: ${S(.7)} 0; border-top: 1px dashed #d9c58c; word-break: break-word; }
         .hwcert-mi:nth-child(-n+2) { border-top: none; }
+        .hwcert-mlist.one { grid-template-columns: 1fr; }
+        .hwcert-mlist.one .hwcert-mi:nth-child(2) { border-top: 1px dashed #d9c58c; }
+        .hwcert-mlist.one .hwcert-mi { display: flex; align-items: flex-start; gap: ${S(2.4)}; }
+        .hwcert-mlist.one .hwcert-mi em { flex: 1 1 55%; }
         .hwcert-mi em { display: block; font-style: normal; font-weight: 700; color: #147c5e; }
         .hwcert-mmore { font-size: ${S(2.1)}; color: #a15230; text-align: center; padding-top: ${S(.4)}; }
         .hwcert-nomist { text-align: center; color: #147c5e; font-weight: 700; font-size: ${S(2.6)}; padding: ${S(.8)} 0; }
@@ -194,7 +198,7 @@ function ensureCertFonts() {
     if (document.getElementById('hwcert-fonts')) return;
     const link = document.createElement('link');
     link.id = 'hwcert-fonts'; link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@500;700&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Reem+Kufi:wght@500;700&display=swap';
     document.head.appendChild(link);
 }
 
@@ -309,7 +313,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                     <div class="hwcert-mist">
                         ${shownMistakes.length ? `
                             <h3>${t('hwcert_mistakes_title')}</h3>
-                            <div class="hwcert-mlist">
+                            <div class="hwcert-mlist${shownMistakes.length === 1 ? ' one' : ''}">
                                 ${shownMistakes.map(m => `<div class="hwcert-mi">${esc(m.question)}${m.correctAnswer ? `<em>${t('hwcert_correct_answer_label')} ${esc(m.correctAnswer)}</em>` : ''}</div>`).join('')}
                             </div>
                             ${moreMistakes > 0 ? `<div class="hwcert-mmore">${t('hwcert_mistakes_more').replace('{n}', moreMistakes)}</div>` : ''}
