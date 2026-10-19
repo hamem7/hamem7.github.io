@@ -37,47 +37,61 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#0d1b16;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;}
-.mrh-card{background:#fffdf6;border-radius:26px;max-width:640px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.45);border:3px solid var(--dh-gold-500,#d4af37);max-height:94vh;overflow-y:auto;direction:rtl;}
+.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#f4f1e6;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
+.mrh-overlay *{text-shadow:none;-webkit-text-stroke:0;}
+.mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;direction:rtl;margin:auto 0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}
-.mrh-head{background:linear-gradient(135deg,var(--dh-emerald-700,#0d5c46),#0a4736);color:#fff;padding:18px 26px;display:flex;align-items:center;justify-content:space-between;border-radius:22px 22px 0 0;}
-.mrh-title{margin:0;font-size:1.4rem;font-weight:800;}
-.mrh-x{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.1rem;cursor:pointer;}
-.mrh-body{padding:22px 26px 10px;}
+.mrh-head{background:#fff;color:var(--dh-emerald-700,#0d5c46);padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e4dfcc;}
+.mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;}
+.mrh-title{margin:0;font-size:1.25rem;font-weight:800;color:var(--dh-emerald-700,#0d5c46);}
+.mrh-x{margin-inline-start:auto;background:#f1efe4;border:none;color:#5a6b63;width:36px;height:36px;border-radius:50%;font-size:1rem;cursor:pointer;}
+.mrh-steps{display:flex;align-items:center;gap:6px;padding:16px 22px 0;}
+.mrh-st{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:700;color:#5a6b63;}
+.mrh-st b{width:26px;height:26px;border-radius:50%;background:#ece8d6;display:grid;place-items:center;font-size:.8rem;}
+.mrh-st.on{color:#0d5c46;}.mrh-st.on b{background:#0d5c46;color:#fff;}.mrh-st.done b{background:#147c5e;color:#fff;}
+.mrh-ln{flex:1;height:2px;background:#e6e1cf;}
+.mrh-body{padding:16px 22px 10px;}
 .mrh-banner{background:#fffbeb;border:2px solid #fcd34d;color:#92400e;border-radius:14px;padding:10px 14px;margin-bottom:16px;font-weight:700;font-size:.95rem;}
 .mrh-banner button{background:none;border:none;color:#92400e;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;}
 .mrh-banner-list{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;}
 .mrh-chip-name{background:#fff;border:1px solid #fcd34d;border-radius:999px;padding:4px 12px;cursor:pointer;font-family:inherit;font-weight:700;color:#92400e;}
 .mrh-toast{background:#ecfdf5;border:2px solid #6ee7b7;color:#065f46;border-radius:14px;padding:10px 14px;margin-bottom:16px;font-weight:800;}
-.mrh-search{width:100%;box-sizing:border-box;padding:16px 18px;border-radius:16px;border:2px solid #e2d9c4;font-size:1.25rem;font-family:inherit;background:#fff;}
-.mrh-search:focus{outline:none;border-color:var(--dh-gold-500,#d4af37);}
+.mrh-search{width:100%;box-sizing:border-box;padding:15px 18px;border-radius:18px;border:2px solid #147c5e;font-size:1.15rem;font-family:inherit;background:#fff;box-shadow:0 0 0 5px rgba(20,124,94,.1);}
+.mrh-search:focus{outline:none;}
 .mrh-list{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
-.mrh-item{display:flex;align-items:center;gap:12px;background:#fff;border:2px solid #efe7d2;border-radius:14px;padding:10px 14px;cursor:pointer;font-family:inherit;text-align:start;}
-.mrh-item:hover,.mrh-item.mrh-first{border-color:var(--dh-gold-500,#d4af37);background:#fffbeb;}
-.mrh-av{width:44px;height:44px;border-radius:50%;background:#f0fdf4;border:2px solid var(--dh-emerald-700,#0d5c46);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--dh-emerald-700,#0d5c46);overflow:hidden;flex:none;}
+.mrh-item{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid #e4dfcc;border-radius:16px;padding:10px 14px;cursor:pointer;font-family:inherit;text-align:start;}
+.mrh-item:hover,.mrh-item.mrh-first{border-color:#147c5e;background:#f3faf6;}
+.mrh-av{width:44px;height:44px;border-radius:50%;background:#e7f4ee;border:2px solid var(--dh-emerald-700,#0d5c46);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:var(--dh-emerald-700,#0d5c46);overflow:hidden;flex:none;}
 .mrh-av img{width:100%;height:100%;object-fit:cover;}
-.mrh-nm{font-weight:800;color:#1e293b;font-size:1.1rem;}
-.mrh-gr{color:#6b6252;font-size:.85rem;}
-.mrh-empty{color:#6b6252;text-align:center;padding:14px;}
-.mrh-stu-row{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.mrh-nm{font-weight:800;color:#10241c;font-size:1.1rem;}
+.mrh-gr{color:#5a6b63;font-size:.85rem;}
+.mrh-empty{color:#5a6b63;text-align:center;padding:14px;}
+.mrh-stu-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;background:linear-gradient(135deg,#0d5c46,#0a4736);color:#fff;border-radius:20px;padding:14px 16px;}
+.mrh-stu-row .mrh-av{width:52px;height:52px;background:rgba(255,255,255,.15);border-color:var(--dh-gold-500,#d4af37);color:#fff;}
+.mrh-stu-row .mrh-nm{color:#fff;}.mrh-stu-row .mrh-gr{color:#cfe8dd;}
 .mrh-link{background:none;border:none;color:var(--dh-emerald-700,#0d5c46);font-weight:800;cursor:pointer;font-family:inherit;text-decoration:underline;margin-inline-start:auto;}
-.mrh-months{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
-.mrh-month{border:2px solid #e2d9c4;background:#fff;border-radius:999px;padding:8px 14px;font-family:inherit;font-weight:800;color:#3a2c1f;cursor:pointer;font-size:.95rem;}
-.mrh-month.mrh-sel{background:var(--dh-emerald-700,#0d5c46);border-color:var(--dh-emerald-700,#0d5c46);color:#fff;}
-.mrh-panel{border-radius:16px;padding:16px 18px;margin-bottom:16px;}
-.mrh-panel.ready{background:#f0fdf4;border:2px solid #86efac;}
-.mrh-panel.missing{background:#fffbeb;border:2px solid #fcd34d;}
-.mrh-panel.nodata{background:#f1f5f9;border:2px solid #cbd5e1;}
-.mrh-status{font-size:1.15rem;font-weight:800;margin-bottom:6px;}
-.mrh-line{color:#334155;font-size:.98rem;line-height:1.8;}
+.mrh-stu-row .mrh-link{background:rgba(255,255,255,.14);color:#fff;text-decoration:none;border-radius:10px;padding:6px 12px;font-size:.82rem;}
+.mrh-months{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;}
+.mrh-month{flex:none;border:1.5px solid #e4dfcc;background:#fff;border-radius:999px;padding:8px 16px;font-family:inherit;font-weight:700;color:#10241c;cursor:pointer;font-size:.9rem;}
+.mrh-month.mrh-sel{background:var(--dh-gold-500,#d4af37);border-color:var(--dh-gold-500,#d4af37);color:#2b2208;}
+.mrh-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.mrh-tile{background:#fff;border:1.5px solid #e4dfcc;border-radius:16px;padding:12px 8px;text-align:center;}
+.mrh-tile b{display:block;font-size:1.5rem;font-weight:800;color:#0d5c46;line-height:1.2;}
+.mrh-tile small{color:#5a6b63;font-size:.75rem;}
+.mrh-panel{border-radius:16px;padding:14px 16px;margin-bottom:10px;}
+.mrh-panel.ready{background:#f3faf6;border:1.5px solid #bfe3d2;}
+.mrh-panel.missing{background:#fffbeb;border:1.5px solid #f5d98a;}
+.mrh-panel.nodata{background:#f1f5f9;border:1.5px solid #cbd5e1;}
+.mrh-status{font-size:1.08rem;font-weight:800;margin-bottom:6px;}
+.mrh-panel.ready .mrh-status{color:#0d5c46;}
+.mrh-line{color:#334155;font-size:.95rem;line-height:1.8;}
 .mrh-fixrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
-.mrh-fix{background:#f59e0b;color:#fff;border:none;border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:800;cursor:pointer;}
-.mrh-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
-.mrh-btn{flex:1;min-width:150px;padding:14px;border-radius:14px;border:none;font-family:inherit;font-weight:800;font-size:1.05rem;cursor:pointer;background:var(--dh-emerald-700,#0d5c46);color:#fff;}
-.mrh-btn.gold{background:var(--dh-gold-500,#d4af37);color:#2b2620;}
-.mrh-btn.ghost{background:#f1f5f9;color:#334155;}
+.mrh-fix{background:#b45309;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:inherit;font-weight:800;cursor:pointer;}
+.mrh-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 8px;}
+.mrh-btn{padding:14px;border-radius:14px;border:1.5px solid #e4dfcc;font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;background:#fff;color:#10241c;}
+.mrh-btn#mrh-wa{grid-column:1/-1;background:var(--dh-emerald-700,#0d5c46);border-color:var(--dh-emerald-700,#0d5c46);color:#fff;font-weight:800;font-size:1.05rem;padding:15px;box-shadow:0 8px 18px rgba(13,92,70,.3);}
 .mrh-note{color:#92400e;font-size:.85rem;margin:2px 0 8px;}
-.mrh-foot{padding:10px 26px 18px;color:#6b6252;font-size:.9rem;text-align:center;}
+.mrh-foot{padding:6px 22px 18px;color:#5a6b63;font-size:.9rem;text-align:center;}
 `;
   document.head.appendChild(st);
 }
@@ -206,17 +220,24 @@ export async function openMonthlyReportsHub(opts = {}) {
   overlay.innerHTML = `
     <div class="mrh-card" dir="${AppState.currentLang === 'ar' ? 'rtl' : 'ltr'}">
       <div class="mrh-head">
-        <h2 class="mrh-title">📅 ${esc(t('mrh_title'))}</h2>
+        <span class="mrh-ico">📅</span>
+        <h2 class="mrh-title">${esc(t('mrh_title'))}</h2>
         <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}">✕</button>
       </div>
+      <div id="mrh-steps"></div>
       <div class="mrh-body" id="mrh-body"></div>
       <div class="mrh-foot" id="mrh-foot"></div>
     </div>`;
   document.body.appendChild(overlay);
   const body = overlay.querySelector('#mrh-body');
   const foot = overlay.querySelector('#mrh-foot');
+  const stepsHost = overlay.querySelector('#mrh-steps');
   overlay.querySelector('#mrh-close').addEventListener('click', () => overlay.remove());
 
+  function stepsHtml(n) {
+    const st = (i, k) => `<div class="mrh-st ${i < n ? 'done' : i === n ? 'on' : ''}"><b>${i < n ? '✓' : i}</b>${esc(t(k))}</div>`;
+    return `<div class="mrh-steps">${st(1, 'mrh_step_student')}<div class="mrh-ln"></div>${st(2, 'mrh_step_month')}<div class="mrh-ln"></div>${st(3, 'mrh_step_export')}</div>`;
+  }
   function doneTodayCount() {
     const today = new Date().toDateString();
     return Object.values(readDone()).filter(ts => { const d = new Date(ts); return !isNaN(d) && d.toDateString() === today; }).length;
@@ -233,6 +254,7 @@ export async function openMonthlyReportsHub(opts = {}) {
       <div id="mrh-banner"></div>
       <input class="mrh-search" id="mrh-search" type="text" autocomplete="off" placeholder="${esc(t('mrh_search_ph'))}">
       <div class="mrh-list" id="mrh-list"></div>`;
+    stepsHost.innerHTML = stepsHtml(1);
     renderFoot();
     const input = body.querySelector('#mrh-search');
     const list = body.querySelector('#mrh-list');
@@ -310,8 +332,13 @@ export async function openMonthlyReportsHub(opts = {}) {
         const memoLine = info.beginLabel
           ? t('mrh_summary_memo').replace('{from}', info.beginLabel).replace('{to}', info.endLabel).replace('{n}', info.newAyahs != null ? info.newAyahs : '—')
           : `${t('mrh_summary_end_only')} ${info.endLabel}`;
-        panel = `<div class="mrh-panel ready">
-          <div class="mrh-status">${esc(t('mrh_status_ready'))}</div>
+        panel = `<div class="mrh-tiles">
+          <div class="mrh-tile"><b>${info.newAyahs != null ? info.newAyahs : '—'}</b><small>${esc(t('mrh_tile_ayahs'))}</small></div>
+          <div class="mrh-tile"><b>${info.games.n}</b><small>${esc(t('mrh_tile_sessions'))}</small></div>
+          <div class="mrh-tile"><b>${info.games.avg != null ? info.games.avg + '٪' : '—'}</b><small>${esc(t('mrh_tile_avg'))}</small></div>
+        </div>
+        <div class="mrh-panel ready">
+          <div class="mrh-status">✓ ${esc(t('mrh_status_ready'))}</div>
           <div class="mrh-line">${esc(memoLine)}</div>
           <div class="mrh-line">${esc(info.games.n ? t('mrh_summary_games').replace('{n}', info.games.n).replace('{avg}', info.games.avg) : t('mrh_summary_games_none'))}</div>
           <div class="mrh-note">${esc(t('mrh_summary_hw_note'))}</div>
@@ -334,6 +361,7 @@ export async function openMonthlyReportsHub(opts = {}) {
           <div class="mrh-fixrow"><button class="mrh-fix" id="mrh-review" style="background:#0d5c46;">${esc(info.review ? t('mrh_review_edit') : t('mrh_review_add'))}</button></div>
         </div>`;
 
+      stepsHost.innerHTML = stepsHtml(2);
       body.innerHTML = `
         <div class="mrh-stu-row">
           <span class="mrh-av">${avatarHtml(student)}</span>
