@@ -121,6 +121,19 @@ function ensureStyles() {
 .mrh-star-row{display:flex;flex-wrap:wrap;gap:8px;}
 .mrh-star-b{background:#fff;border:1px solid #e9d27a;border-radius:999px;padding:5px 12px;font-family:inherit;font-weight:700;color:#6b4e0a;cursor:pointer;font-size:.88rem;}
 .mrh-badge{display:inline-block;font-size:.72rem;font-weight:800;background:#fbf3d5;color:#8a6612;border-radius:99px;padding:1px 8px;margin-inline-start:6px;white-space:nowrap;}
+/* شاشة عريضة (≥900px): قائمة الطلاب يمينًا + بطاقة التقرير يسارًا بدون تغيير الشاشة */
+.mrh-card.mrh-wide{background:transparent;border:0;overflow:visible;}
+.mrh-wide .mrh-head{background:transparent;border:0;padding:16px 24px 6px;}
+.mrh-wide .mrh-title{color:#fff !important;}
+.mrh-wide .mrh-ico{background:rgba(255,255,255,.14);}
+.mrh-wide #mrh-steps{display:none;}
+.mrh-wide .mrh-body{display:grid;grid-template-columns:minmax(340px,420px) 1fr;gap:16px;align-items:start;padding:10px 24px 24px;}
+.mrh-pane{background:#fffdf6;border:1px solid #e4dfcc;border-radius:22px;padding:16px;box-shadow:0 14px 40px rgba(6,35,28,.18);min-width:0;}
+.mrh-pane-detail{position:sticky;top:12px;}
+.mrh-pane-empty{color:#5a6b63;text-align:center;padding:60px 20px;line-height:2;}
+.mrh-pane-empty b{display:block;font-size:2.4rem;}
+.mrh-item.mrh-sel{border-color:#147c5e;background:#f3faf6;box-shadow:0 0 0 3px rgba(20,124,94,.14);}
+.mrh-wide .mrh-foot{color:#cfe8dd;}
 .mrh-foot{padding:6px 22px 18px;color:#5a6b63;font-size:.9rem;text-align:center;}
 `;
   document.head.appendChild(st);
@@ -265,18 +278,23 @@ export async function openMonthlyReportsHub(opts = {}) {
   // الهيدر العلوي للمنصة (#main-header) يبقى ظاهرًا فوق الشاشة كما في باقي المنصة
   const mainHeader = document.getElementById('main-header');
   if (mainHeader) overlay.style.top = Math.max(0, Math.round(mainHeader.getBoundingClientRect().bottom)) + 'px';
+  const card = overlay.querySelector('.mrh-card');
   const body = overlay.querySelector('#mrh-body');
   const foot = overlay.querySelector('#mrh-foot');
   const stepsHost = overlay.querySelector('#mrh-steps');
   // الإغلاق: لو فُتح المركز عائدًا من شاشة التقرير فالصفحة التي تحته هي التقرير نفسه، فنعيد المعلم لمكان دخوله الأصلي
   const cameFromReport = !!opts.returnedFrom;
   if (!cameFromReport) hubOrigin = document.getElementById('btn-monthly-reports-hub') ? 'students' : 'home';
+  const wideMq = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null;
+  const isWide = () => !!(wideMq && wideMq.matches);
+  let refreshList = null;  // تُضبط في شاشة القائمة: تعيد قراءة حالات الطلاب بعد تعديل من البطاقة الجانبية
   let backToList = null;   // تُضبط في شاشة الطالب: Esc يرجع للقائمة أولًا
   // زر «الرئيسية» في الهيدر يتولّى العودة بنفسه، فنكتفي بإزالة الشاشة
   const headerHome = document.getElementById('header-home-btn');
   function dropHub() {
     document.removeEventListener('keydown', onKey);
     if (headerHome) headerHome.removeEventListener('click', dropHub);
+    if (wideMq) wideMq.removeEventListener('change', onWideChange);
     overlay.remove();
   }
   if (headerHome) headerHome.addEventListener('click', dropHub);
@@ -291,6 +309,8 @@ export async function openMonthlyReportsHub(opts = {}) {
     if (backToList) backToList(); else closeHub();
   }
   document.addEventListener('keydown', onKey);
+  function onWideChange() { showSearch(); }   // تغيّر عرض الشاشة: نعيد بناء التخطيط المناسب
+  if (wideMq) wideMq.addEventListener('change', onWideChange);
   overlay.querySelector('#mrh-close').addEventListener('click', closeHub);
 
   function stepsHtml(n) {
@@ -307,16 +327,19 @@ export async function openMonthlyReportsHub(opts = {}) {
   }
 
   // ---- شاشة 1: نظرة شاملة + بحث + تحديد جماعي ----
-  async function showSearch(toastText, presetMonth) {
+  async function showSearch(toastText, presetMonth, selectStudent) {
     backToList = null;
+    const wide = isWide();
+    card.classList.toggle('mrh-wide', wide);
     stepsHost.innerHTML = stepsHtml(1);
+    let selId = selectStudent ? String(selectStudent.id) : null;
     const months = recentMonths();
     let sel = (presetMonth && months.find(m => m.year === presetMonth.year && m.month1 === presetMonth.month1))
       || (new Date().getDate() <= REMINDER_DAYS ? months[1] : months[0]);
     let rows = [];
     let flt = 'all';
     let stars = { top: null, active: null };
-    body.innerHTML = `
+    const listHtml = `
       ${toastText ? `<div class="mrh-toast">${esc(toastText)}</div>` : ''}
       <div id="mrh-ov"></div>
       <div class="mrh-months" id="mrh-ovm"></div>
@@ -324,6 +347,10 @@ export async function openMonthlyReportsHub(opts = {}) {
       <input class="mrh-search" id="mrh-search" type="text" autocomplete="off" placeholder="${esc(t('mrh_search_ph'))}">
       <div class="mrh-filters" id="mrh-flt"></div>
       <div class="mrh-list" id="mrh-list"><div class="mrh-empty">…</div></div>`;
+    body.innerHTML = wide
+      ? `<div class="mrh-pane" id="mrh-pane-list">${listHtml}</div><div class="mrh-pane mrh-pane-detail" id="mrh-pane-detail"><div class="mrh-pane-empty"><b>👈</b>${esc(t('mrh_pick_student'))}</div></div>`
+      : listHtml;
+    const detailHost = wide ? body.querySelector('#mrh-pane-detail') : null;
     renderFoot();
     const input = body.querySelector('#mrh-search');
     const list = body.querySelector('#mrh-list');
@@ -359,7 +386,7 @@ export async function openMonthlyReportsHub(opts = {}) {
         list2.map(([ic, lb, r]) => `<button class="mrh-star-b" data-id="${esc(r.s.id)}">${ic} ${esc(lb)}: ${esc(r.s.name)}</button>`).join('')}</div></div>` : '';
       host.querySelectorAll('.mrh-star-b').forEach(el => el.addEventListener('click', () => {
         const st = students.find(x => String(x.id) === el.dataset.id);
-        if (st) showStudent(st, { year: sel.year, month1: sel.month1 });
+        if (st) pick(st);
       }));
     }
     function renderFilters() {
@@ -373,15 +400,22 @@ export async function openMonthlyReportsHub(opts = {}) {
       const found = rows.filter(r => (flt === 'all' || r.state === flt) && (!q || norm(r.s.name).includes(q)));
       if (!found.length) { list.innerHTML = `<div class="mrh-empty">${esc(q ? t('mrh_no_match') : t('mrh_empty_list'))}</div>`; return; }
       list.innerHTML = found.map((r, i) => `
-        <div class="mrh-item ${q && i === 0 ? 'mrh-first' : ''}" data-id="${esc(r.s.id)}" role="button" tabindex="0">
+        <div class="mrh-item ${q && i === 0 ? 'mrh-first' : ''} ${String(r.s.id) === selId ? 'mrh-sel' : ''}" data-id="${esc(r.s.id)}" role="button" tabindex="0">
           <span class="mrh-av">${avatarHtml(r.s)}</span>
           <span><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade || '')}</div></span>
           <span class="mrh-chip ${r.state}">${esc(chipLabel[r.state])}</span>
         </div>`).join('');
       list.querySelectorAll('.mrh-item').forEach(el => el.addEventListener('click', () => {
         const st = students.find(x => String(x.id) === el.dataset.id);
-        if (st) showStudent(st, { year: sel.year, month1: sel.month1 });
+        if (st) pick(st);
       }));
+    }
+    // شاشة عريضة: تُعرض بطاقة الطالب في اللوحة الجانبية؛ الضيقة: تحلّ محل القائمة كما كانت
+    function pick(st) {
+      if (!wide) { showStudent(st, { year: sel.year, month1: sel.month1 }); return; }
+      selId = String(st.id);
+      list.querySelectorAll('.mrh-item').forEach(el => el.classList.toggle('mrh-sel', el.dataset.id === selId));
+      showStudent(st, { year: sel.year, month1: sel.month1 }, detailHost);
     }
     async function loadRows() {
       renderMonths();
@@ -395,16 +429,19 @@ export async function openMonthlyReportsHub(opts = {}) {
       rows.sort((x, y) => (rank[x.state] - rank[y.state]) || String(x.s.name || '').localeCompare(String(y.s.name || ''), 'ar'));
       if (!body.isConnected) return;
       computeStars(); renderOv(); renderStars(); renderFilters(); renderList();
+      if (wide && selId && !detailHost.querySelector('.mrh-stu-row')) { const st = students.find(x => String(x.id) === selId); if (st) pick(st); }
     }
     input.addEventListener('input', renderList);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { const first = list.querySelector('.mrh-item'); if (first) first.click(); }
     });
+    refreshList = wide ? loadRows : null;
     await loadRows();
   }
 
   // ---- شاشة 2: بطاقة الطالب ----
-  async function showStudent(student, preset) {
+  async function showStudent(student, preset, embedHost) {
+    const host = embedHost || body;   // embedHost: اللوحة الجانبية في الشاشة العريضة
     const months = recentMonths();
     let sel = (preset && months.find(m => m.year === preset.year && m.month1 === preset.month1)) || months[0];
 
@@ -453,12 +490,12 @@ export async function openMonthlyReportsHub(opts = {}) {
           <div class="mrh-fixrow"><button class="mrh-fix" id="mrh-review" style="background:#0d5c46;">${esc(info.review ? t('mrh_review_edit') : t('mrh_review_add'))}</button></div>
         </div>`;
 
-      stepsHost.innerHTML = stepsHtml(2);
-      body.innerHTML = `
+      if (!embedHost) stepsHost.innerHTML = stepsHtml(2);
+      host.innerHTML = `
         <div class="mrh-stu-row">
           <span class="mrh-av">${avatarHtml(student)}</span>
           <span><div class="mrh-nm">${esc(student.name)}</div><div class="mrh-gr">${esc(student.grade || '')}</div></span>
-          <button class="mrh-link" id="mrh-change">${esc(t('mrh_change_student'))}</button>
+          ${embedHost ? '' : `<button class="mrh-link" id="mrh-change">${esc(t('mrh_change_student'))}</button>`}
         </div>
         <div class="mrh-months">
           ${months.map((m, i) => `<button class="mrh-month ${m === sel ? 'mrh-sel' : ''}" data-i="${i}">${mark(i)} ${esc(m.isCurrent ? t('mrh_current_month') + ' · ' : '')}${esc(monthName(m.year, m.month1, m.year !== new Date().getFullYear()))}</button>`).join('')}
@@ -477,28 +514,30 @@ export async function openMonthlyReportsHub(opts = {}) {
         </div>`;
       renderFoot();
 
-      backToList = () => { backToList = null; showSearch(null, sel); };
-      body.querySelector('#mrh-change').addEventListener('click', backToList);
-      const step1 = stepsHost.querySelector('#mrh-step1'); if (step1) step1.addEventListener('click', backToList);
-      body.querySelectorAll('.mrh-month').forEach(b => b.addEventListener('click', () => { sel = months[parseInt(b.dataset.i, 10)]; render(); }));
-      const fixBtn = body.querySelector('#mrh-fix') || body.querySelector('#mrh-edit');
+      if (!embedHost) {
+        backToList = () => { backToList = null; showSearch(null, sel); };
+        host.querySelector('#mrh-change').addEventListener('click', backToList);
+        const step1 = stepsHost.querySelector('#mrh-step1'); if (step1) step1.addEventListener('click', backToList);
+      }
+      host.querySelectorAll('.mrh-month').forEach(b => b.addEventListener('click', () => { sel = months[parseInt(b.dataset.i, 10)]; render(); }));
+      const fixBtn = host.querySelector('#mrh-fix') || host.querySelector('#mrh-edit');
       if (fixBtn) fixBtn.addEventListener('click', async () => {
         overlay.style.display = 'none'; // نخفي المركز مؤقتًا خلف شاشة التسجيل (هي بدورها overlay)
         try {
           const { openMonthEndingForStudent } = await import('./monthlyMemorizationBulkScreen.js');
           await openMonthEndingForStudent(student, sel.year, sel.month1);
         } finally { overlay.style.display = ''; }
-        render();
+        render(); if (refreshList) refreshList();
       });
 
-      const revBtn = body.querySelector('#mrh-review');
+      const revBtn = host.querySelector('#mrh-review');
       if (revBtn) revBtn.addEventListener('click', async () => {
         overlay.style.display = 'none';
         try {
           const { openMonthReviewForStudent } = await import('./monthlyReviewScreen.js');
           await openMonthReviewForStudent(student, sel.year, sel.month1);
         } finally { overlay.style.display = ''; }
-        render();
+        render(); if (refreshList) refreshList();
       });
 
       const go = (autoExport) => {
@@ -508,9 +547,9 @@ export async function openMonthlyReportsHub(opts = {}) {
           m.openMonthlyReportScreen({ student, year: sel.year, monthIndex0: sel.month1 - 1, autoExport, returnTo: 'hub' });
         }).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
       };
-      body.querySelector('#mrh-wa').addEventListener('click', () => go('whatsapp'));
-      body.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
-      body.querySelector('#mrh-preview').addEventListener('click', () => go(null));
+      host.querySelector('#mrh-wa').addEventListener('click', () => go('whatsapp'));
+      host.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
+      host.querySelector('#mrh-preview').addEventListener('click', () => go(null));
     }
     await render();
   }
@@ -522,6 +561,7 @@ export async function openMonthlyReportsHub(opts = {}) {
     const ts = readDone()[doneKey(back.studentId, back.year, back.month1)];
     const exportedNow = ts && new Date(ts).getTime() >= (back.openedAt || 0);
     if (st && exportedNow) { await showSearch(t('mrh_exported_ok').replace('{name}', st.name), { year: back.year, month1: back.month1 }); return; }
+    if (st && isWide()) { await showSearch(null, { year: back.year, month1: back.month1 }, st); return; }
     if (st) { await showStudent(st, { year: back.year, month1: back.month1 }); return; }
   }
   await showSearch();
