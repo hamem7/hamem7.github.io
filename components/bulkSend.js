@@ -197,10 +197,15 @@ async function copyText(text) {
 
 // ==========================================================
 // asPage=true: يُفتح كصفحة مستقلة داخل المنصة (تستبدل الشاشة الحالية في #app-root) بدل نافذة عائمة؛ وonClose يتولّى العودة للشاشة السابقة.
-export async function openBulkSend({ onClose, asPage = false } = {}) {
+// container: عنصر موجود يُبنى فيه المحتوى مباشرةً كتبويب داخل الشاشة الحالية (بلا استبدال الشاشة)، مثل «سجل الواجبات».
+export async function openBulkSend({ onClose, asPage = false, container = null } = {}) {
     injectStyle();
     let ov;
-    if (asPage) {
+    if (container) {
+        asPage = true;
+        ov = container;
+        ov.className = 'bs-ov bs-pg';
+    } else if (asPage) {
         switchTheme('adult');
         document.body.style.backgroundImage = '';
         await loadScreen({ templateUrl: 'settings/bulk-send.html' });
@@ -238,9 +243,9 @@ export async function openBulkSend({ onClose, asPage = false } = {}) {
         if (busy) return toast(L('انتظر حتى تنتهي العملية الجارية.', 'Please wait for the current operation to finish.'));
         const pending = rows.filter(r => r.state === 'ready').length;
         if (pending && !await hamConfirm(L(`هناك ${pending} واجباً مجهَّزاً لم يُنشر بعد، وسيضيع عند الإغلاق. إغلاق؟`, `${pending} prepared homework(s) are not published and will be lost. Close anyway?`))) return;
-        closed = true; document.removeEventListener('keydown', onKey); if (!asPage) ov.remove(); if (onClose) onClose();
+        closed = true; document.removeEventListener('keydown', onKey); if (!asPage) ov.remove(); if (container) ov.innerHTML = ''; if (onClose) onClose();
     };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const onKey = (e) => { if (e.key === 'Escape' && (!container || ov.offsetParent)) close(); };
     document.addEventListener('keydown', onKey);
 
     // ---------- تحميل الطلاب ----------

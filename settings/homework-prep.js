@@ -1330,6 +1330,7 @@ function setupListeners() {
     // 🌟 [2026-10-01] حُذف زر btn-tab-new الصغير؛ الدخول لتبويب الإعداد صار من الزر الكبير #btn-hero-new فقط
     const btnHistory = document.getElementById('btn-tab-history');
     const btnFinalResults = document.getElementById('btn-final-results');
+    const btnBulk = document.getElementById('hw-btn-bulk');
     const tabNew = document.getElementById('tab-new-hw');
     const tabHistory = document.getElementById('tab-history');
     const tabFinalResults = document.getElementById('tab-final-results');
@@ -1415,7 +1416,20 @@ function setupListeners() {
         tabNew.style.display = (tab === 'new') ? 'block' : 'none';
         tabHistory.style.display = (tab === 'history') ? 'block' : 'none';
         tabFinalResults.style.display = (tab === 'final') ? 'block' : 'none';
-        setActiveTabBtn(tab === 'new' ? null : (tab === 'history' ? btnHistory : btnFinalResults));
+        const tabBulk = document.getElementById('tab-bulk-send');
+        if (tabBulk) tabBulk.style.display = (tab === 'bulk') ? 'block' : 'none';
+        setActiveTabBtn(tab === 'new' ? null : (tab === 'history' ? btnHistory : (tab === 'bulk' ? btnBulk : btnFinalResults)));
+        if (btnBulk) {
+            const on = tab === 'bulk';
+            btnBulk.classList.toggle('btn-outline', !on);
+            btnBulk.style.background = on ? 'var(--dh-gold-500)' : '';
+            btnBulk.style.color = on ? '#2b2100' : '';
+        }
+        if (tab === 'bulk' && tabBulk && !tabBulk.childElementCount) {
+            import('../components/bulkSend.js')
+                .then(m => m.openBulkSend({ container: tabBulk, onClose: () => { switchHwTab('history'); renderDueToday(); } }))
+                .catch(err => { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); });
+        }
         // 🌟 [جديد 2026-10-01] الزر الكبير "إعداد واجب جديد" يختفي داخل تبويب الإعداد نفسه ويظهر في بقية التبويبات
         const heroBar = document.getElementById('hwp3-hero-bar');
         if (heroBar) heroBar.style.display = (tab === 'new') ? 'none' : '';
@@ -1439,12 +1453,7 @@ function setupListeners() {
         m.openWeekSchedule({ onClose: () => renderDueToday() });
     });
     // 📤 [جديد — الإرسال الجماعي] شاشة اختيارية مستقلة (components/bulkSend.js)؛ بعد إغلاقها نحدّث «مستحق اليوم» والسجل
-    document.getElementById('hw-btn-bulk')?.addEventListener('click', async () => {
-        try {
-            const m = await import('../components/bulkSend.js');
-            m.openBulkSend({ asPage: true, onClose: async () => { const app = await import('../core/app.js'); app.openHomeworkPrep(); } });
-        } catch (err) { console.error('تعذر فتح الإرسال الجماعي:', err); alert(L('تعذر فتح الإرسال الجماعي. حاول مرة أخرى.', 'Could not open Bulk send. Please try again.')); }
-    });
+    btnBulk?.addEventListener('click', () => switchHwTab('bulk'));
     document.getElementById('btn-hero-new')?.addEventListener('click', () => {
         switchHwTab('new');
         window.scrollTo({ top: 0, behavior: 'smooth' });
