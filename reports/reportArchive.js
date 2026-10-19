@@ -78,16 +78,43 @@ export function deleteArchivedReport(id) {
 }
 
 /**
+ * 🗂️ حفظ تلقائي بمجرد عرض التقرير (دون انتظار التصدير): بعد استقرار الشاشة يلتقط الصفحة كما هي ويحفظها.
+ * أي نداء جديد لنفس النوع يلغي المؤقت السابق (تغيير الشهر مثلاً)، وأي تصدير لاحق يستبدل السجل بالنسخة النهائية.
+ * pageId: معرّف عنصر الورقة | prepare: تجهيز html2canvas والخطوط والصور | getMeta: يعيد { name, sub, students, scope, dateLabel } أو null
+ */
+const autoTimers = {};
+export function autoArchiveOnOpen({ kind, pageId, prepare, getMeta, delay = 1500 }) {
+    clearTimeout(autoTimers[kind]);
+    const page = document.getElementById(pageId);
+    if (!page) return;
+    autoTimers[kind] = setTimeout(async () => {
+        try {
+            if (document.getElementById(pageId) !== page) return; // غادر المعلم الشاشة قبل الحفظ
+            const meta = getMeta();
+            if (!meta) return;
+            await prepare();
+            if (document.getElementById(pageId) !== page) return;
+            const canvas = await window.html2canvas(page, {
+                scale: 2, backgroundColor: '#f9f4ea', useCORS: true,
+                ignoreElements: (el) => !!(el.classList && el.classList.contains('no-export'))
+            });
+            await archiveReport({ kind, canvas, ...meta });
+        } catch (e) { /* تجاهل — الحفظ التلقائي لا يؤثر على عرض التقرير */ }
+    }, delay);
+}
+
+/**
  * يحفظ التقرير المُصدَّر. kind: 'individual' | 'dual' | 'monthly'
  * name: اسم الطالب (أو «أ × ب» للاختبار الثنائي) | sub: سطر وصفي (النطاق/الشهر/التاريخ) | canvas: لقطة التقرير
  * التقرير نفسه (نفس النوع + الاسم + الوصف) يُستبدل بأحدث تصدير بدل التكرار (تصدير PNG ثم PDF لنفس التقرير = سجل واحد).
  */
-export async function archiveReport({ kind, name, sub, canvas }) {
+export async function archiveReport({ kind, name, sub, canvas, students, scope, dateLabel }) {
     try {
         if (!canvas || !canvas.width || !canvas.height || !window.indexedDB) return;
         const { blob, w, h } = await canvasToJpegBlob(canvas);
         if (!blob) return;
-        const meta = { kind, name: String(name || ''), sub: String(sub || ''), w, h, size: blob.size, createdAt: Date.now() };
+        const names = (Array.isArray(students) && students.length ? students : [name]).map(x => String(x || '').trim()).filter(Boolean);
+        const meta = { kind, name: String(name || ''), sub: String(sub || ''), students: names, scope: String(scope || ''), dateLabel: String(dateLabel || ''), w, h, size: blob.size, createdAt: Date.now() };
         const existing = (await listArchivedReports()).filter(r => r.kind === kind && r.name === meta.name && r.sub === meta.sub);
         const id = await tx([META, FILES], 'readwrite', (t, set) => {
             existing.forEach(r => { t.objectStore(META).delete(r.id); t.objectStore(FILES).delete(r.id); });

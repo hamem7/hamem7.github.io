@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.38';
+export const APP_VERSION = '1.0.39';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.39',
+        date: '2026-10-19',
+        items: [
+            { type: 'improved', text: { ar: 'التقرير الثنائي والشهري يُحفظان تلقائياً مثل الفردي، وفي «التقارير السابقة» صار بإمكانك اختيار طالب لترى كل تقاريره مع نوع الاختبار والنطاق والتاريخ.', en: 'Dual and monthly reports are now saved automatically like the individual one, and in "Previous reports" you can pick a student to see all their reports with test type, scope and date.' } }
+        ]
+    },
     {
         version: '1.0.38',
         date: '2026-10-19',

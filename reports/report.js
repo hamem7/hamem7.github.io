@@ -1555,7 +1555,7 @@ function logReportGenerated(canvas){
   } catch (e) { /* تجاهل — لا نمنع التصدير بسبب فشل تسجيل العدّاد فقط */ }
   // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
   try {
-    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'individual', name: reportData && reportData.name, sub: [reportData && localizeGenerated(reportData.scope), reportData && reportData.date].filter(Boolean).join(' — '), canvas })).catch(() => {});
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'individual', canvas, ...(reportArchiveMeta() || {}) })).catch(() => {});
   } catch (e) { /* تجاهل */ }
 }
 
@@ -1882,27 +1882,19 @@ export function openReportScreen(gameState){
   autoArchiveOnOpen();
 }
 
-// 🗂️ [جديد] حفظ تلقائي للتقرير الفردي في «الشهادات والتقارير ← التقارير السابقة» بمجرد عرضه، دون انتظار أن يضغط المعلم
-// تصدير صورة/PDF. بعد استقرار الشاشة (الخطوط والصور) نلتقط الورقة كما هي دون أي تبديل في التخطيط (فلا وميض)، ثم يستبدلها
-// أي تصدير لاحق لنفس التقرير بالنسخة المختصرة النهائية (نفس النوع+الاسم+الوصف = سجل واحد). لا يعطّل الشاشة أبداً.
-const AUTO_ARCHIVE_DELAY_MS = 1500;
+// 🗂️ [جديد] حفظ تلقائي للتقرير الفردي في «الشهادات والتقارير ← التقارير السابقة» بمجرد عرضه، دون انتظار التصدير.
+// أي تصدير لاحق لنفس التقرير يستبدل النسخة التلقائية بالنسخة المختصرة النهائية (راجع reportArchive.js).
+function reportArchiveMeta(){
+  const d = reportData;
+  if (!d) return null;
+  const scope = localizeGenerated(d.scope);
+  return { name: d.name, students: [d.name], scope, dateLabel: d.date, sub: [scope, d.date].filter(Boolean).join(' — ') };
+}
 function autoArchiveOnOpen(){
-  const page = document.getElementById('report-page');
-  const data = reportData;
-  if (!page || !data) return;
-  setTimeout(async () => {
-    try {
-      if (document.getElementById('report-page') !== page) return; // غادر المعلم الشاشة قبل الحفظ
-      await ensureHtml2Canvas();
-      await ensureFontsReady();
-      await ensureStampCleaned();
-      await ensureArtReady();
-      if (document.getElementById('report-page') !== page) return;
-      const canvas = await window.html2canvas(page, { scale: 2, backgroundColor: '#f9f4ea', useCORS: true, ignoreElements: ignoreNoExport });
-      const m = await import('./reportArchive.js');
-      await m.archiveReport({ kind: 'individual', name: data.name, sub: [localizeGenerated(data.scope), data.date].filter(Boolean).join(' — '), canvas });
-    } catch (e) { /* تجاهل — الحفظ التلقائي لا يؤثر على عرض التقرير */ }
-  }, AUTO_ARCHIVE_DELAY_MS);
+  import('./reportArchive.js').then(m => m.autoArchiveOnOpen({
+    kind: 'individual', pageId: 'report-page', getMeta: reportArchiveMeta,
+    prepare: async () => { await ensureHtml2Canvas(); await ensureFontsReady(); await ensureStampCleaned(); await ensureArtReady(); }
+  })).catch(() => {});
 }
 
 // 🌟 [إصلاح] نصوص التقرير (نقاط القوة / بحاجة إلى تركيز / ملاحظة المعلم) تُبنى وقت فتح

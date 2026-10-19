@@ -563,6 +563,7 @@ export async function openCertificatesHub(opts = {}) {
                 <div class="cc-hist-note">${esc(t('cc_rep_note'))}</div>
                 <div class="cc-hist-tools">
                     <input id="cc-rep-search" type="search" placeholder="${esc(t('cc_rep_search_ph'))}" autocomplete="off">
+                    <select id="cc-rep-student" aria-label="${esc(t('cc_rep_student_all'))}"></select>
                     <select id="cc-rep-filter">
                         <option value="">${esc(t('cc_all_types'))}</option>
                         <option value="individual">${esc(t('cc_rep_kind_individual'))}</option>
@@ -948,13 +949,27 @@ export async function openCertificatesHub(opts = {}) {
     async function loadReports() {
         try { reports = await listArchivedReports(); } catch (e) { console.warn('تعذّر قراءة أرشيف التقارير:', e); reports = []; }
         $('#cc-rep-count').textContent = reports.length ? `(${reports.length})` : '';
+        fillRepStudents();
         renderReports();
+    }
+    // أسماء الطلاب في السجل (الاختبار الثنائي يظهر لكل من الطالبين؛ السجلات القديمة: نفكّ «أ × ب»)
+    const repStudents = (r) => (Array.isArray(r.students) && r.students.length ? r.students : String(r.name || '').split('×').map(x => x.trim())).filter(Boolean);
+    function fillRepStudents() {
+        const sel = $('#cc-rep-student');
+        const cur = sel.value;
+        const counts = new Map();
+        reports.forEach(r => repStudents(r).forEach(n => counts.set(n, (counts.get(n) || 0) + 1)));
+        const names = Array.from(counts.keys()).sort((a, b) => a.localeCompare(b, uiLang()));
+        sel.innerHTML = `<option value="">${esc(t('cc_rep_student_all'))}</option>` +
+            names.map(n => `<option value="${esc(n)}">${esc(n)} (${counts.get(n)})</option>`).join('');
+        sel.value = counts.has(cur) ? cur : '';
     }
     function renderReports() {
         releaseUrls();
         const q = $('#cc-rep-search').value.trim();
         const f = $('#cc-rep-filter').value;
-        const rows = reports.filter(r => (!f || r.kind === f) && (!q || String(r.name || '').includes(q)));
+        const st = $('#cc-rep-student').value;
+        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st)) && (!q || String(r.name || '').includes(q)));
         if (!rows.length) {
             repList.innerHTML = `<div class="cc-empty">${reports.length ? esc(t('cc_no_match')) : t('cc_rep_empty')}</div>`;
             return;
@@ -965,7 +980,7 @@ export async function openCertificatesHub(opts = {}) {
             return `<div class="cc-row" data-id="${r.id}">
                 <img class="is-report" alt="" data-thumb="${r.id}">
                 <div class="cc-row-main"><div class="cc-row-name">${esc(r.name)}</div>
-                    <div class="cc-row-meta"><span class="cc-badge">${esc(repKindLabel(r.kind))}</span>${esc(r.sub || '')}<br>${esc(when)}</div></div>
+                    <div class="cc-row-meta"><span class="cc-badge">${esc(repKindLabel(r.kind))}</span>${r.scope ? esc(t('cc_rep_scope')) + ': ' + esc(r.scope) + '<br>' : esc(r.sub || '') + '<br>'}${esc(t('cc_rep_date'))}: ${esc(r.dateLabel || when)}${r.dateLabel ? ' · ' + esc(when) : ''}</div></div>
                 <div class="cc-row-btns">
                     <button type="button" data-act="view">${esc(t('cc_rep_view'))}</button>
                     <button type="button" data-act="download">${esc(t('cc_rep_download'))}</button>
@@ -985,6 +1000,7 @@ export async function openCertificatesHub(opts = {}) {
     }
     $('#cc-rep-search').addEventListener('input', renderReports);
     $('#cc-rep-filter').addEventListener('change', renderReports);
+    $('#cc-rep-student').addEventListener('change', renderReports);
     const reportFileName = (r) => `${safeName(repKindLabel(r.kind))}-${safeName(r.name)}.jpg`;
     function openViewer(rec, blob) {
         closeViewer();

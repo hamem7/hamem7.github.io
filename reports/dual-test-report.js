@@ -343,7 +343,7 @@ function logReportGenerated(canvas) {
   } catch (e) { /* تجاهل */ }
   // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
   try {
-    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'dual', name: reportData && (reportData.nameA + ' × ' + reportData.nameB), sub: reportData && reportData.date, canvas })).catch(() => {});
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'dual', canvas, ...(dualArchiveMeta() || {}) })).catch(() => {});
   } catch (e) { /* تجاهل */ }
 }
 
@@ -722,8 +722,23 @@ function goHome() {
   try { loadSplashScreen(); } catch (e) { console.error(e); }
 }
 
+// 🗂️ بيانات أرشفة الاختبار الثنائي: يظهر لكل من الطالبين في صفحته، والنطاق = نطاقات الجولات
+function dualArchiveMeta() {
+  const d = reportData;
+  if (!d) return null;
+  const scope = Array.from(new Set((d.rounds || []).map(r => r.rangeLabel).filter(x => x && x !== t('dts_range_not_set')))).join(' | ');
+  return { name: d.nameA + ' × ' + d.nameB, students: [d.nameA, d.nameB], scope, dateLabel: d.date, sub: [scope, d.date].filter(Boolean).join(' — ') };
+}
+function autoArchiveOnOpen() {
+  import('./reportArchive.js').then(m => m.autoArchiveOnOpen({
+    kind: 'dual', pageId: 'dtr-page', getMeta: dualArchiveMeta,
+    prepare: async () => { await ensureHtml2Canvas(); await ensureFontsReady(); }
+  })).catch(() => {});
+}
+
 async function initDualTestReportScreen() {
   await renderAll();
+  autoArchiveOnOpen();
 
   const noteInput = $('dtr-note-input');
   if (noteInput) noteInput.addEventListener('input', renderNoteBox);
