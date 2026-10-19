@@ -44,7 +44,7 @@
                     <button class="btn btn-correct" id="btn-record-correct" data-i18n="correct_ans_btn" style="font-size: 1.4rem; padding: 12px 25px;">🟢 إجابة صحيحة تامة</button>
                     <button class="btn btn-wrong" id="btn-record-wrong" data-i18n="record_note_btn" style="font-size: 1.4rem; padding: 12px 25px;">📝 تسجيل ملاحظة</button>
                     <!-- «نصف إجابة»: خاص بسؤال «اذكر الآية قبلها والآية بعدها» فقط (يظهر عبر adultGame.js) -->
-                    <button class="btn btn-note" id="btn-record-partial" style="display:none; font-size: 1.4rem; padding: 12px 25px;">🟡 نصف إجابة</button>
+                    <button class="btn btn-note" id="btn-record-partial" data-i18n="partial_ans_btn" style="display:none; font-size: 1.4rem; padding: 12px 25px;">🟡 نصف إجابة</button>
                     <!-- 🌟 [عدّل] كان بستايل inline كامل منفصل عن هوية المنصة — نُقل لكلاس
                          .btn-confirm-next الموحّد (راجع css/adults.css) بنفس الألوان بالضبط،
                          بلا أي تغيير بصري 🌟 -->
@@ -54,8 +54,8 @@
                 </div>
                 <div id="partial-choice" style="display:none; justify-content:center; align-items:center; flex-wrap:wrap; gap:12px; margin-top:15px; padding:12px; border-radius:12px; background:#fffbeb; border:1px dashed #f5b301;">
                     <span style="width:100%; text-align:center; font-weight:bold; color:#7a4a00;">أي نصف نسيه أو أخطأ فيه الطالب؟</span>
-                    <button class="btn btn-wrong" id="btn-partial-before" style="font-size:1.3rem; padding:10px 22px;">➡️ الآية قبلها</button>
-                    <button class="btn btn-wrong" id="btn-partial-after" style="font-size:1.3rem; padding:10px 22px;">⬅️ الآية بعدها</button>
+                    <button class="btn btn-wrong" id="btn-partial-before" data-i18n="partial_before_btn" style="font-size:1.3rem; padding:10px 22px;">➡️ الآية قبلها</button>
+                    <button class="btn btn-wrong" id="btn-partial-after" data-i18n="partial_after_btn" style="font-size:1.3rem; padding:10px 22px;">⬅️ الآية بعدها</button>
                 </div>
             </div>
 
