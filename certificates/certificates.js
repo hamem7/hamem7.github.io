@@ -999,7 +999,7 @@ export async function openCertificatesHub(opts = {}) {
         releaseUrls();
         const q = $('#cc-rep-search').value.trim();
         const f = repKind, st = repStudent;
-        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st) && (!q || st || repStudents(r).some(n => n.includes(q))));
+        const rows = reports.filter(r => (!f || r.kind === f) && (!st || repStudents(r).includes(st)) && (!q || st || repStudents(r).some(n => n.includes(q))));
         if (!rows.length) {
             repList.innerHTML = `<div class="cc-empty">${reports.length ? esc(t('cc_no_match')) : t('cc_rep_empty')}</div>`;
             return;
