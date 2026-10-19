@@ -29,7 +29,7 @@ function ensureStyles() {
 .mrv-card{background:#fffdf6;border-radius:26px;max-width:760px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.45);border:3px solid var(--dh-gold-500,#d4af37);max-height:94vh;overflow-y:auto;direction:rtl;}
 .mrv-card[dir="ltr"]{direction:ltr;}
 .mrv-head{background:linear-gradient(135deg,var(--dh-emerald-700,#0d5c46),#0a4736);color:#fff;padding:18px 26px;border-radius:22px 22px 0 0;}
-.mrv-title{margin:0 0 4px;font-size:1.35rem;font-weight:800;}
+.mrv-head .mrv-title{margin:0 0 4px;font-size:1.35rem;font-weight:800;color:#fff !important;text-shadow:0 2px 4px rgba(0,0,0,.35) !important;}
 .mrv-sub{opacity:.9;font-size:.95rem;}
 .mrv-body{padding:18px 22px 6px;}
 .mrv-hint{color:#6b6252;font-size:.9rem;margin-bottom:12px;line-height:1.7;}

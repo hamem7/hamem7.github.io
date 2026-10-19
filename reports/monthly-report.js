@@ -1485,6 +1485,19 @@ function renderTeacherSign(d) {
   }
 }
 
+// 🗂️ بيانات أرشفة التقرير الشهري (النطاق = نطاق حفظ الطالب إن وُجد، والتاريخ = الشهر)
+function monthlyArchiveMeta() {
+  const d = reportData;
+  if (!d) return null;
+  return { name: d.name, students: [d.name], scope: d.hasMemoRange ? d.memoScope : '', dateLabel: d.periodLabel, sub: d.periodLabel };
+}
+function autoArchiveOnOpen() {
+  import('./reportArchive.js').then(m => m.autoArchiveOnOpen({
+    kind: 'monthly', pageId: 'mreport-page', getMeta: monthlyArchiveMeta,
+    prepare: async () => { await ensureHtml2Canvas(); await ensureFontsReady(); ensureStampCleaned(); }
+  })).catch(() => {});
+}
+
 function renderAll(d) {
   reportData = d;
   const stage = $('mr-stage-inner');
@@ -1524,6 +1537,7 @@ function renderAll(d) {
   renderTrendBlock(d);
   renderNoteBox();
   renderTeacherSign(d);
+  autoArchiveOnOpen();
 }
 
 async function refreshReport() {
@@ -1657,7 +1671,7 @@ function logReportGenerated(canvas) {
   } catch (e) { /* تجاهل */ }
   // 🗂️ [جديد] حفظ نسخة التقرير تلقائياً في الأرشيف (يظهر في «الشهادات والتقارير ← التقارير السابقة») — لا يعطّل التصدير أبداً
   try {
-    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'monthly', name: reportData && reportData.name, sub: reportData && reportData.periodLabel, canvas })).catch(() => {});
+    import('./reportArchive.js').then(m => m.archiveReport({ kind: 'monthly', canvas, ...(monthlyArchiveMeta() || {}) })).catch(() => {});
   } catch (e) { /* تجاهل */ }
 }
 
