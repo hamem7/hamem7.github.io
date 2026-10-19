@@ -36,7 +36,7 @@
 // بين "لا تزعج" و"لا تنسَ" بدل عدم التذكير إطلاقًا بعد أول تأجيل.
 // =============================================================================
 
-import { AppState, t, tf, surahNameLocal, loadSplashScreen } from '../core/app.js';
+import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import {
   calcMemorizationProgress,
@@ -48,6 +48,12 @@ import {
 
 const STYLE_ID = 'mmb-styles';
 const AUTO_SHOWN_FLAG_KEY = 'darham_monthly_memo_bulk_last_auto_shown';
+
+// الهيدر العلوي للمنصة (#main-header) يبقى ظاهرًا فوق الشاشات: نبدأ الغطاء من أسفله
+function placeBelowMainHeader(overlay) {
+  const h = document.getElementById('main-header');
+  if (h) overlay.style.top = Math.max(0, Math.round(h.getBoundingClientRect().bottom)) + 'px';
+}
 
 function ensureStylesInjected() {
   if (document.getElementById(STYLE_ID)) return;
@@ -384,7 +390,7 @@ function ensureTableStylesInjected() {
   style.textContent = `
 .mmt-overlay { position: fixed; inset: 0; background: rgba(6, 35, 28, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
 .mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
-  background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
+  background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
 .mmt-screen[dir="ltr"] { direction: ltr; }
 .mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
 .mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
@@ -396,8 +402,6 @@ function ensureTableStylesInjected() {
 .mmt-title { margin: 0; font-size: 1.7rem; font-weight: 700 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'Tajawal', sans-serif; }
 .mmt-sub { font-size: .9rem; color: var(--mmt-mute); }
 .mmt-head-btns { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.mmt-home { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--mmt-soft); background: var(--mmt-tint); color: var(--mmt-blue); font-family: inherit; font-weight: 800; font-size: .92rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-.mmt-home:hover { background: var(--mmt-soft); }
 .mmt-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .mmt-stat { background: var(--mmt-tint); color: var(--mmt-blue); border-radius: 10px; padding: 4px 12px; font-size: .85rem; font-weight: 700; }
 .mmt-stat b { font-size: 1.05rem; direction: ltr; unicode-bidi: isolate; }
@@ -507,6 +511,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
   const overlay = document.createElement('div');
   overlay.className = 'mmt-overlay';
   document.body.appendChild(overlay);
+  placeBelowMainHeader(overlay);
 
   return new Promise((resolve) => {
     let rows = [];
@@ -525,6 +530,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
 
     function close() {
       document.removeEventListener('keydown', onKey);
+      if (headerHome) headerHome.removeEventListener('click', close);
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       resolve();
     }
@@ -535,6 +541,9 @@ function openMemorizationTable(initialQueue, meta = {}) {
     function onKey(e) { if (e.key === 'Escape') tryClose(); }
     document.addEventListener('keydown', onKey);
     overlay.addEventListener('click', e => { if (e.target === overlay) tryClose(); });
+    // زر «الرئيسية» في هيدر المنصة يتولّى العودة بنفسه، فنكتفي بإزالة الشاشة
+    const headerHome = document.getElementById('header-home-btn');
+    if (headerHome) headerHome.addEventListener('click', close);
 
     function shell(inner) {
       const months = [...new Set(rows.filter(r => r.item.type === 'ending').map(r => `${r.item.month}/${r.item.year}`))];
@@ -547,7 +556,6 @@ function openMemorizationTable(initialQueue, meta = {}) {
             <button class="mmt-back" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
             <div><div class="mmt-kicker">${kicker}</div><h2 class="mmt-title" id="mmt-title">${t('mmt_heading')}</h2></div>
             <div class="mmt-head-btns">
-              <button class="mmt-home" id="mmt-home" title="${t('mmt_home_btn')}">🏠 ${t('mmt_home_btn')}</button>
             </div>
           </div>
           ${inner.head || ''}
@@ -556,15 +564,9 @@ function openMemorizationTable(initialQueue, meta = {}) {
       </div>`;
     }
 
-    // أزرار الشريط العلوي المشتركة بين كل الحالات: الرئيسية + الإغلاق
-    async function goHome() {
-      if (!saving && rows.some(isDirty) && !await hamConfirm(t('mmt_unsaved_confirm'))) return;
-      close();
-      try { loadSplashScreen(); } catch (e) { console.error('[monthlyMemorizationBulkScreen.js] تعذر العودة للرئيسية:', e); }
-    }
+    // زر الرجوع (السهم)؛ زر «الرئيسية» في هيدر المنصة نفسه
     function bindChrome() {
       overlay.querySelector('#mmt-close').addEventListener('click', tryClose);
-      overlay.querySelector('#mmt-home').addEventListener('click', goHome);
     }
 
     function renderTable() {
@@ -786,6 +788,7 @@ function buildOverlayShell() {
   ensureStylesInjected();
   const overlay = document.createElement('div');
   overlay.className = 'mmb-overlay';
+  placeBelowMainHeader(overlay);
   overlay.innerHTML = `
     <div class="mmb-screen" dir="${AppState.currentLang === 'ar' ? 'rtl' : 'ltr'}">
       <div class="mmb-header">

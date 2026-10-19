@@ -250,6 +250,9 @@ export async function openMonthlyReportsHub(opts = {}) {
       <div class="mrh-foot" id="mrh-foot"></div>
     </div>`;
   document.body.appendChild(overlay);
+  // الهيدر العلوي للمنصة (#main-header) يبقى ظاهرًا فوق الشاشة كما في باقي المنصة
+  const mainHeader = document.getElementById('main-header');
+  if (mainHeader) overlay.style.top = Math.max(0, Math.round(mainHeader.getBoundingClientRect().bottom)) + 'px';
   const body = overlay.querySelector('#mrh-body');
   const foot = overlay.querySelector('#mrh-foot');
   const stepsHost = overlay.querySelector('#mrh-steps');
@@ -257,9 +260,16 @@ export async function openMonthlyReportsHub(opts = {}) {
   const cameFromReport = !!opts.returnedFrom;
   if (!cameFromReport) hubOrigin = document.getElementById('btn-monthly-reports-hub') ? 'students' : 'home';
   let backToList = null;   // تُضبط في شاشة الطالب: Esc يرجع للقائمة أولًا
-  function closeHub() {
+  // زر «الرئيسية» في الهيدر يتولّى العودة بنفسه، فنكتفي بإزالة الشاشة
+  const headerHome = document.getElementById('header-home-btn');
+  function dropHub() {
     document.removeEventListener('keydown', onKey);
+    if (headerHome) headerHome.removeEventListener('click', dropHub);
     overlay.remove();
+  }
+  if (headerHome) headerHome.addEventListener('click', dropHub);
+  function closeHub() {
+    dropHub();
     if (!cameFromReport) return;
     if (hubOrigin === 'home') import('../core/app.js').then(m => m.loadSplashScreen()).catch(() => {});
     else import('../student/student.js').then(m => m.loadMyStudentsScreen()).catch(() => {});
