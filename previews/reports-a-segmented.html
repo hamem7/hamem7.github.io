@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — تبويبات مجمّعة + قائمة طلاب بالعدد</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g7:#0d5c46;--g1:#e7f4ee;--gold:#8a6612;--ink:#10241c;--ink2:#4a6058;--line:#d9d2b6;--bg:#f4f1e6;--card:#fffdf6}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh}
+button{cursor:pointer;border:0;background:none;color:inherit;font:inherit}
+.head{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--card);border-bottom:1px solid #e3dcc2;color:var(--g7);flex-wrap:wrap}
+.head h2{font-size:1.2rem}
+.x{margin-inline-start:auto;width:36px;height:36px;border-radius:50%;background:rgba(13,92,70,.1);color:var(--g7)}
+.pane{max-width:1000px;margin:0 auto;padding:16px}
+.note{font-size:.84rem;color:var(--ink2);background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;line-height:1.7}
+.row{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid #e3dcc2;border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.row .th{width:46px;height:60px;border-radius:8px;background:var(--g1)}
+.row b{display:block}.row small{color:var(--ink2)}
+.badge{background:var(--g1);color:var(--g7);border-radius:99px;padding:1px 9px;font-size:.75rem;font-weight:700;margin-inline-end:6px}
+.acts{margin-inline-start:auto;display:flex;gap:6px}
+.acts button{border:1px solid var(--line);border-radius:9px;padding:5px 10px;font-size:.82rem;background:var(--card)}
+.tabs{display:flex;background:#e9e4cf;border-radius:999px;padding:4px;gap:2px;margin-inline-start:8px}
+.tabs button{padding:7px 16px;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--g7)}
+.tabs button.on{background:var(--g7);color:#fffdf6;box-shadow:0 2px 6px rgba(13,92,70,.3)}
+.tabs button.rep.on{background:var(--gold)}
+.tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tools select{font:inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;flex:1 1 200px}
+</style></head><body>
+<div class="head"><h2>🏅 الشهادات والتقارير</h2>
+<nav class="tabs"><button>إصدار شهادة</button><button>سجل الشهادات (2)</button><button class="on rep">🗂️ التقارير السابقة (23)</button></nav>
+<button class="x">✕</button></div>
+<div class="pane">
+<div class="note">كل تقرير يُعرض (تقييم فردي أو اختبار ثنائي أو تقرير شهري) يُحفظ هنا تلقائياً. اختر اسم طالب لترى كل تقاريره بنوعها ونطاقها وتاريخها.</div>
+<div class="tools"><select><option>كل الطلاب</option><option>أحمد محمد (3)</option><option>سارة علي (2)</option></select><select><option>كل الأنواع</option></select></div>
+<div class="row"><div class="th"></div><div><b>أحمد محمد</b><small><span class="badge">تقييم فردي</span>النطاق: سورة الملك · 14 أكتوبر 2026</small></div><div class="acts"><button>عرض</button><button>تنزيل</button><button>مشاركة</button></div></div>
+<div class="row"><div class="th"></div><div><b>أحمد محمد × سارة علي</b><small><span class="badge">اختبار ثنائي</span>النطاق: جزء عمّ · 10 أكتوبر 2026</small></div><div class="acts"><button>عرض</button><button>تنزيل</button><button>مشاركة</button></div></div>
+</div>
+<script></script>
+</body></html>
