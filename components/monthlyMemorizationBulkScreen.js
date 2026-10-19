@@ -234,6 +234,10 @@ export async function countPendingMonthlyMemorization() {
   return n;
 }
 
+async function countActiveStudents() {
+  try { return (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden).length; } catch (e) { return 0; }
+}
+
 function closeOverlay(overlay) {
   if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
 }
@@ -378,11 +382,11 @@ function ensureTableStylesInjected() {
   const style = document.createElement('style');
   style.id = TBL_STYLE_ID;
   style.textContent = `
-.mmt-overlay { position: fixed; inset: 0; background: rgba(10, 18, 40, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-.mmt-screen { --mmt-blue: #1e3a8a; --mmt-deep: #172554; --mmt-tint: #e8eefc; --mmt-soft: #c7d4f5; --mmt-ink: #10203f; --mmt-mute: #55627a; --mmt-line: #e3e7ef;
-  background: #fbfcff; color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
+.mmt-overlay { position: fixed; inset: 0; background: rgba(6, 35, 28, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+.mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
+  background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; height: 100dvh; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
 .mmt-screen[dir="ltr"] { direction: ltr; }
-.mmt-head { background: linear-gradient(135deg, var(--mmt-blue), var(--mmt-deep)); color: #fff; padding: 18px 24px; display: grid; gap: 8px; flex-shrink: 0; }
+.mmt-head { background: linear-gradient(135deg, var(--mmt-blue), var(--mmt-deep)); color: #fff; padding: 18px 24px; display: grid; gap: 8px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
 .mmt-head-row { display: flex; align-items: flex-start; gap: 12px; }
 .mmt-kicker { font-size: .8rem; font-weight: 700; opacity: .85; }
 .mmt-title { margin: 0; font-size: 1.7rem; font-weight: 800; line-height: 1.2; }
@@ -397,7 +401,7 @@ function ensureTableStylesInjected() {
 .mmt-banner { width: 100%; font-weight: 700; color: #166534; font-size: .9rem; }
 .mmt-scroll { overflow: auto; flex: 1; min-height: 0; }
 .mmt-table { width: 100%; border-collapse: collapse; font-size: .95rem; font-variant-numeric: tabular-nums; }
-.mmt-table th { position: sticky; top: 0; z-index: 1; background: #f3f5fa; color: var(--mmt-mute); font-size: .78rem; font-weight: 700; text-align: start; padding: 9px 10px; border-bottom: 1px solid var(--mmt-line); white-space: nowrap; }
+.mmt-table th { position: sticky; top: 0; z-index: 1; background: var(--dh-surface-alt, #f6f3e8); color: var(--mmt-mute); font-size: .78rem; font-weight: 700; text-align: start; padding: 9px 10px; border-bottom: 1px solid var(--mmt-line); white-space: nowrap; }
 .mmt-table td { padding: 9px 10px; border-bottom: 1px solid var(--mmt-line); vertical-align: middle; }
 .mmt-table tr.is-dirty td { background: var(--mmt-tint); }
 .mmt-table tr.is-err td { background: #fee2e2; }
@@ -408,7 +412,7 @@ function ensureTableStylesInjected() {
 .mmt-av img { width: 100%; height: 100%; object-fit: cover; }
 .mmt-start { white-space: nowrap; }
 .mmt-month-tag { display: inline-block; font-size: .72rem; color: var(--mmt-mute); margin-inline-start: 4px; }
-.mmt-table select, .mmt-table input[type="number"] { padding: 7px 8px; border-radius: 9px; border: 1px solid #cfd6e4; background: #fff; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
+.mmt-table select, .mmt-table input[type="number"] { padding: 7px 8px; border-radius: 9px; border: 1px solid #d9d3bd; background: #fff; font-family: inherit; font-size: 1rem; box-sizing: border-box; }
 .mmt-table select { max-width: 170px; }
 .mmt-table input[type="number"] { width: 72px; text-align: center; font-weight: 700; }
 .mmt-table select:focus, .mmt-table input:focus { outline: none; border-color: var(--dh-gold-500, #d4af37); box-shadow: 0 0 0 2px rgba(212,175,55,.35); }
@@ -425,11 +429,28 @@ function ensureTableStylesInjected() {
 .mmt-hint.err { color: #b91c1c; font-weight: 700; }
 .mmt-btn { border: none; border-radius: 12px; padding: 12px 22px; font-family: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; background: var(--mmt-blue); color: #fff; }
 .mmt-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
-.mmt-done { flex: 1; padding: 34px 24px; text-align: center; display: grid; gap: 14px; justify-items: center; align-content: center; }
-.mmt-done-desc { font-size: 1.15rem; }
-.mmt-done-emoji { font-size: 4.5rem; }
-.mmt-done-title { font-size: 1.4rem; font-weight: 800; color: var(--mmt-blue); }
-.mmt-done-desc { color: var(--mmt-mute); }
+.mmt-done { flex: 1; overflow: auto; padding: 36px 24px; display: flex; align-items: center; justify-content: center; background: var(--dh-surface-alt, #f6f3e8); }
+.mmt-done-card { width: 100%; max-width: 860px; background: #fff; border: 1px solid var(--mmt-line); border-radius: 24px; box-shadow: 0 24px 60px rgba(6,35,28,.12); padding: 40px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 36px 56px; box-sizing: border-box; }
+.mmt-ring { position: relative; width: 200px; height: 200px; flex-shrink: 0; }
+.mmt-ring svg.mmt-ring-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mmt-ring-arc { transition: stroke-dashoffset .8s ease; }
+.mmt-ring-in { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.mmt-ring-pct { font-size: 2.3rem; font-weight: 800; color: var(--mmt-blue); line-height: 1; direction: ltr; unicode-bidi: isolate; }
+.mmt-ring-sub { font-size: .8rem; color: var(--mmt-mute); }
+.mmt-done-main { flex: 1 1 340px; min-width: 0; display: grid; gap: 16px; }
+.mmt-done-title { font-size: 1.9rem; font-weight: 800; color: var(--mmt-blue); margin: 0; }
+.mmt-done-desc { color: var(--mmt-mute); font-size: 1.05rem; line-height: 1.8; margin: 0; }
+.mmt-checks { border: 1px solid var(--mmt-line); border-radius: 16px; overflow: hidden; background: #fff; }
+.mmt-check { display: flex; align-items: center; gap: 12px; padding: 12px 16px; font-weight: 700; font-size: .98rem; }
+.mmt-check + .mmt-check { border-top: 1px solid var(--mmt-line); }
+.mmt-check svg { flex-shrink: 0; color: var(--mmt-blue); }
+.mmt-check.is-mute { color: var(--mmt-mute); font-weight: 500; }
+.mmt-check.is-mute svg { color: var(--mmt-mute); }
+.mmt-done-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.mmt-btn.is-ghost { background: #fff; color: var(--mmt-blue); border: 1px solid var(--mmt-soft); }
+.mmt-btn.is-ghost:hover { background: var(--mmt-tint); }
+.mmt-btn { min-height: 48px; }
+.mmt-btn:not(.is-ghost):hover:not(:disabled) { background: var(--mmt-deep); }
 .mmt-screen button:focus-visible, .mmt-screen input:focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
 @media (max-width: 720px) {
   .mmt-title { font-size: 1.4rem; }
@@ -471,9 +492,10 @@ function deltaHtml(res) {
 }
 
 /**
+ * meta.totalStudents = عدد الطلاب النشطين (لحلقة التقدّم في شاشة الإنجاز).
  * يعرض الجدول ويرجع Promise تُحل عند إغلاق الشاشة (بعد الحفظ أو بزر الإغلاق).
  */
-function openMemorizationTable(initialQueue) {
+function openMemorizationTable(initialQueue, meta = {}) {
   ensureTableStylesInjected();
   const surahsData = AppState.surahsData || [];
   const isRtl = AppState.currentLang === 'ar';
@@ -677,19 +699,63 @@ function openMemorizationTable(initialQueue) {
     }
 
     function renderDone(laterCount) {
+      const total = meta.totalStudents || 0;
+      const recorded = Math.max(0, total - laterCount);
+      const pct = total ? Math.round((recorded / total) * 100) : 100;
+      const C = 2 * Math.PI * 84;
+      const partial = laterCount > 0;
+      const tick = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>';
+      const clock = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
       overlay.innerHTML = shell({
-        body: `<div class="mmt-done">
-          <div class="mmt-done-emoji">${savedCount ? '🎉' : '✅'}</div>
-          <div class="mmt-done-title">${savedCount ? t('mmb_done_title') : ''}</div>
-          <div class="mmt-done-desc">${savedCount ? tf('mmt_done_desc', { n: savedCount, k: savedAyahs }) : t('mmb_nothing_pending')}</div>
-          ${laterCount ? `<div class="mmt-done-desc">${tf('mmt_done_later', { n: laterCount })}</div>` : ''}
-          <button class="mmt-btn" id="mmt-done-close">${t('mmb_close_btn')}</button>
-        </div>`
+        head: `<div class="mmt-stats">
+          ${total ? `<span class="mmt-stat">${t('mmt_stat_students')} <b>${total}</b></span><span class="mmt-stat">${t('mmt_stat_done')} <b>${recorded}</b></span>` : ''}
+          ${savedCount ? `<span class="mmt-stat">${t('mmt_stat_total')} <b>${savedAyahs}</b></span>` : ''}
+        </div>`,
+        body: `<div class="mmt-done"><div class="mmt-done-card" role="status" aria-live="polite">
+          <div class="mmt-ring">
+            <svg class="mmt-ring-svg" viewBox="0 0 200 200" role="img" aria-label="${pct}%">
+              <circle cx="100" cy="100" r="84" fill="none" stroke="var(--mmt-tint)" stroke-width="14"/>
+              <circle class="mmt-ring-arc" cx="100" cy="100" r="84" fill="none" stroke="var(--mmt-blue)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 100 100)"/>
+            </svg>
+            <div class="mmt-ring-in">${partial ? '' : '<svg width="46" height="46" viewBox="0 0 52 52" fill="none" aria-hidden="true"><path d="M13 27l9 9 17-19" stroke="var(--mmt-blue)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+              <div class="mmt-ring-pct">${pct}%</div>
+              ${total ? `<div class="mmt-ring-sub">${tf('mmt_ring_sub', { a: recorded, b: total })}</div>` : ''}
+            </div>
+          </div>
+          <div class="mmt-done-main">
+            <h3 class="mmt-done-title">${partial ? tf('mmt_partial_title', { n: laterCount }) : t('mmt_all_done_title')}</h3>
+            <p class="mmt-done-desc">${partial ? tf('mmt_done_later', { n: laterCount }) : savedCount ? tf('mmt_done_desc', { n: savedCount, k: savedAyahs }) : t('mmt_all_done_desc')}</p>
+            ${partial ? '' : `<div class="mmt-checks">
+              <div class="mmt-check">${tick}<span>${t('mmt_check_prev')}</span></div>
+              <div class="mmt-check">${tick}<span>${t('mmt_check_auto')}</span></div>
+              <div class="mmt-check is-mute">${clock}<span>${t('mmt_check_next')}</span></div>
+            </div>`}
+            <div class="mmt-done-actions">
+              ${partial ? `<button class="mmt-btn" id="mmt-review-later">${t('mmt_review_later')}</button>` : ''}
+              <button class="mmt-btn${partial ? ' is-ghost' : ''}" id="mmt-done-close">${t('mmb_close_btn')}</button>
+              ${partial ? '' : `<button class="mmt-btn is-ghost" id="mmt-open-reports">${t('mmt_open_reports')}</button>`}
+            </div>
+          </div>
+        </div></div>`
       });
       rows = [];
       overlay.querySelector('#mmt-close').addEventListener('click', close);
       overlay.querySelector('#mmt-done-close').addEventListener('click', close);
-      overlay.querySelector('#mmt-done-close').focus();
+      const reports = overlay.querySelector('#mmt-open-reports');
+      if (reports) reports.addEventListener('click', () => {
+        close();
+        import('./monthlyReportsHub.js').then(m => m.openMonthlyReportsHub()).catch(err => console.error('[monthlyMemorizationBulkScreen.js] تعذر فتح مركز التقارير:', err));
+      });
+      const review = overlay.querySelector('#mmt-review-later');
+      if (review) review.addEventListener('click', async () => {
+        let next = [];
+        try { next = await buildPendingQueue(); } catch (e) { console.error(e); }
+        if (!next.length) return;
+        banner = '';
+        setQueue(next);
+        renderTable();
+      });
+      (review || overlay.querySelector('#mmt-done-close')).focus();
     }
 
     setQueue(initialQueue);
@@ -722,7 +788,7 @@ function buildOverlayShell() {
 export async function openMonthlyMemorizationBulkScreen() {
   try {
     const queue = await buildPendingQueue();
-    await openMemorizationTable(queue); // قائمة فارغة ← رسالة «كل شيء محدَّث» داخل نفس الشاشة
+    await openMemorizationTable(queue, { totalStudents: await countActiveStudents() }); // قائمة فارغة ← رسالة «كل شيء محدَّث» داخل نفس الشاشة
   } catch (e) {
     console.error('[monthlyMemorizationBulkScreen.js] تعذر فتح شاشة الحفظ الشهري الجماعية:', e);
   }
@@ -767,7 +833,7 @@ export async function maybeAutoOpenMonthlyMemorizationBulk() {
 
     try { localStorage.setItem(AUTO_SHOWN_FLAG_KEY, todayKey); } catch (e) { /* تجاهل */ }
 
-    await openMemorizationTable(queue);
+    await openMemorizationTable(queue, { totalStudents: await countActiveStudents() });
   } catch (e) {
     console.error('[monthlyMemorizationBulkScreen.js] تعذر الفحص التلقائي للحفظ الشهري:', e);
   }
