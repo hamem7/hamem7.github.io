@@ -38,9 +38,9 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.12),transparent 30%),radial-gradient(circle at 85% 85%,rgba(212,175,55,.16),transparent 30%),linear-gradient(135deg,#06231c,#0d5c46 55%,#147c5e);background-color:#0d5c46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
+.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.12),transparent 30%),radial-gradient(circle at 85% 85%,rgba(212,175,55,.16),transparent 30%),linear-gradient(135deg,#06231c,#0d5c46 55%,#147c5e);background-color:#0d5c46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
 .mrh-overlay *{text-shadow:none;-webkit-text-stroke:0;}
-.mrh-card{background:#fffdf6;border-radius:28px;max-width:600px;width:100%;box-shadow:0 14px 40px rgba(6,35,28,.12);border:1px solid #e4dfcc;color:#10241c;direction:rtl;margin:auto 0;overflow:hidden;}
+.mrh-card{background:#fffdf6;border-radius:0;max-width:none;width:100%;min-height:100%;box-sizing:border-box;border:0;color:#10241c;direction:rtl;margin:0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}
 .mrh-head{background:#fff;color:var(--dh-emerald-700,#0d5c46);padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e4dfcc;}
 .mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;margin-inline-start:auto;}
@@ -100,7 +100,7 @@ function ensureStyles() {
 .mrh-bar i{display:block;height:100%;background:linear-gradient(90deg,#f0d878,#d4af37);border-radius:99px;}
 .mrh-ov-chips{display:flex;gap:8px;flex-wrap:wrap;font-size:.8rem;font-weight:700;}
 .mrh-ov-chips span{background:rgba(255,255,255,.14);border-radius:99px;padding:2px 10px;}
-.mrh-list{max-height:46vh;overflow-y:auto;padding:2px;}
+.mrh-list{max-height:none;overflow-y:auto;padding:2px;}
 .mrh-item{position:relative;}
 .mrh-chip{margin-inline-start:auto;border-radius:99px;font-size:.74rem;font-weight:800;padding:2px 10px;white-space:nowrap;}
 .mrh-chip.done{background:#e7f4ee;color:#047857;}.mrh-chip.ready{background:#fbf3d5;color:#8a6612;}
