@@ -340,7 +340,7 @@ export class QuranEngine {
             if (!d || !d.ayahObj || !d.fullAnswer) continue;
             const a = d.ayahObj;
             return { ...d, type: 'listen_next', dir, questionTitle: dir === 'next' ? 'listen_next_title' : 'listen_prev_title',
-                questionBody: listenBodyHTML({ ayah: a, instruction: tl(dir === 'next' ? 'listen_next_prompt' : 'listen_prev_prompt', dir === 'next' ? 'ما الآية التي بعدها؟' : 'ما الآية التي قبلها؟'), btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
+                questionBody: listenBodyHTML({ ayah: a, instruction: '', btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
                 hint: null }; // بلا تلميح (كباقي «ماذا بعدها؟») فلا يظهر زر التلميح
         }
         return null;

@@ -42,7 +42,7 @@ export function listenHint(text, words = 2) {
 // btnClass: كلاس الزر الموجود أصلاً في اللعبة (الأطفال: kids-listen-play-btn، الكبار: btn) — لا أنماط جديدة.
 export function listenBodyHTML({ ayah, instruction, btnLabel, btnClass }) {
     return `<div style="text-align:center;">` +
-        `<div style="font-size:${btnClass === 'btn' ? '1.8rem' : '1.5rem'}; font-weight:bold; margin-bottom:20px;${btnClass === 'btn' ? '' : ' color:#1e3a5f;'}">${instruction}</div>` +
+        (instruction ? `<div style="font-size:${btnClass === 'btn' ? '1.8rem' : '1.5rem'}; font-weight:bold; margin-bottom:20px;${btnClass === 'btn' ? '' : ' color:#1e3a5f;'}">${instruction}</div>` : '') +
         `<audio preload="none"></audio>` +
         `<button type="button" class="${btnClass}" data-n="${ayah.number || ''}" data-s="${ayah.surahNumber}" data-a="${ayah.numberInSurah}" onclick="window.playListenAyahAudio(this)">${btnLabel}</button>` +
         `</div>`;
