@@ -96,6 +96,40 @@ export class KidsEngine {
         return options;
     }
 
+    // 🌟 [جديد] «اختر الكلمات الناقصة»: إخفاء عبارة من 2–3 كلمات متتالية من وسط الآية.
+    // الصعوبة تتدرج مع طول الآية (4 كلمات: كلمة واحدة؛ 5–7: كلمتان؛ 8+: كلمتان أو ثلاث) وتبقى
+    // كلمتان مرئيتان على الأقل. المشتتات: (أ) عبارات متتالية بنفس الطول من نفس السورة (ثم غيرها) الأشبه
+    // شكلاً، (ب) عبارة صحيحة بعد تبديل كلمة واحدة منها (أصعب: تحتاج حفظاً لا تمييزاً). ثلاثة خيارات
+    // للكلمتين وأربعة للثلاث. ترجع null لو تعذّر ذلك فيعود المحرّك للكلمة الواحدة.
+    buildMissingPhraseQuestion(ayahsPool, ayah, tokens, realIdxs, cleanText) {
+        const n = realIdxs.length; if (n < 5) return null;
+        const k = n >= 8 ? (Math.random() < 0.4 ? 3 : 2) : 2;
+        // مواضع بداية العبارة: كلها كلمات فعلية متتالية (بلا رمز وقف بينها)، لا تبدأ بأول كلمة ولا تنتهي بآخرها
+        const first = realIdxs[0], last = realIdxs[n - 1];
+        const starts = []; for (let i = first + 1; i + k - 1 < last; i++) { let ok = true; for (let j = i; j < i + k; j++) if (!realIdxs.includes(j)) { ok = false; break; } if (ok) starts.push(i); }
+        if (!starts.length) return null;
+        const strong = starts.filter(i => tokens.slice(i, i + k).some(w => bareAr(w).length >= 3));
+        const pool = strong.length ? strong : starts; const start = pool[Math.floor(Math.random() * pool.length)];
+        const phraseWords = tokens.slice(start, start + k); const correct = phraseWords.join(' ');
+        const shown = [...tokens.slice(0, start), ' ..... ', ...tokens.slice(start + k)].join(' ');
+        const windows = ayahsList => { const out = []; ayahsList.forEach(a => { const w = splitAyahWords(a.text); for (let i = 0; i + k <= w.length; i++) out.push(w.slice(i, i + k).join(' ')); }); return out; };
+        const keyOf = bareAr(correct), ayahBare = bareAr(cleanText);
+        const bad = txt => { const b = bareAr(txt); return b === keyOf || ayahBare.includes(b); };
+        const sameSurah = ayahsPool.filter(a => a.surahNumber === ayah.surahNumber && a.number !== ayah.number);
+        let cands = windows(sameSurah).filter(x => !bad(x));
+        if (cands.length < 8) cands = cands.concat(windows(ayahsPool.filter(a => a.surahNumber !== ayah.surahNumber).slice(0, 80)).filter(x => !bad(x)));
+        const total = k === 3 ? 4 : 3; const options = [correct]; const used = new Set([keyOf]);
+        // (ب) تبديل كلمة واحدة من العبارة الصحيحة بكلمة شبيهة من نفس السورة
+        const wordPool = []; sameSurah.concat(ayahsPool.slice(0, 80)).forEach(a => wordPool.push(...splitAyahWords(a.text)));
+        const swapAt = Math.floor(Math.random() * k); const swapWord = pickSimilar(phraseWords[swapAt], wordPool.filter(w => bareAr(w).length >= 3 && !phraseWords.some(pw => bareAr(pw) === bareAr(w))), 1, wordShapeScore)[0];
+        if (swapWord) { const sw = phraseWords.slice(); sw[swapAt] = swapWord; const txt = sw.join(' '); if (!bad(txt)) { options.push(txt); used.add(bareAr(txt)); } }
+        // (أ) عبارات متتالية شبيهة
+        for (const c of pickSimilar(correct, cands, 8, wordShapeScore)) { if (options.length >= total) break; const b = bareAr(c); if (used.has(b)) continue; used.add(b); options.push(c); }
+        if (options.length < total) return null;
+        shuffleArr(options);
+        return { type: 'kids_mcq', questionTitle: t("اختر الكلمات الناقصة يا بطل! 🎯"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7; line-height: 1.6;">﴿\u00A0${shown}\u00A0﴾</div>`, correctAns: correct, options, ayahObj: ayah, reportText: cleanText };
+    }
+
     async generateKidsCatchGame(ayahsPool, chunkIndex, totalChunks) { 
         // 🌟🌟 [إصلاح] الكلمة المخفية لا يجوز أن تكون علامة وقف (زي ۚ "الجيم الصغيرة") — كانت
         // القسمة بالمسافات تعتبر رمز الوقف كلمةً مستقلة، فلو صادف وقوعه في منتصف الآية بالضبط
@@ -103,6 +137,9 @@ export class KidsEngine {
         // الحل: نحتفظ بالنص المعروض كما هو (برموز وقفه، splitAyahTokens)، لكن نختار موضع الإخفاء
         // من مواضع الكلمات الفعلية فقط (realWordIndexes)، ونسحب المشتتات من splitAyahWords 🌟🌟
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text); let words = splitAyahTokens(ayah.text); let realIdxs = realWordIndexes(words); if(realIdxs.length < 4) return null;
+        // 🌟 [جديد] عبارة ناقصة (2–3 كلمات متتالية) بدل كلمة واحدة، حسب طول الآية؛ ولو لم يتوفر لها
+        // مشتتات كافية نرجع للكلمة الواحدة أدناه كما كانت تماماً
+        const phraseQ = this.buildMissingPhraseQuestion(ayahsPool, ayah, words, realIdxs, cleanText); if (phraseQ) return phraseQ;
         // 🌟 [ذكاء] الكلمة المخفية: من وسط الآية وليست حرف/أداة قصيرة (تُخمَّن نحوياً بلا حفظ)
         let midIdxs = realIdxs.slice(1, -1).filter(i => bareAr(words[i]).length >= 3);
         let hideIdx = midIdxs.length ? midIdxs[Math.floor(Math.random() * midIdxs.length)] : realIdxs[Math.floor(realIdxs.length / 2)];

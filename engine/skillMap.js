@@ -102,6 +102,7 @@ const GAME_TYPE_SKILL = {
 // kids_mcq سؤال متعدد الأشكال يميّزه العنوان
 const KIDS_MCQ_TITLE_HINTS = [
     ['الكلمة الناقصة', 'recall'],
+    ['الكلمات الناقصة', 'recall'],
     ['ماذا بعد', 'sequence'],
     ['ماذا قبل', 'sequence'],
     ['خمن السورة', 'context'],

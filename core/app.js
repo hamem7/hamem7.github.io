@@ -199,7 +199,7 @@ function renderWhatsNewModal(entries) {
                 ${entry.items.map(item => `
                     <li>
                         <span class="whats-new-badge whats-new-badge-${item.type}">${typeLabels[item.type] || ''}</span>
-                        <span>${item[AppState.currentLang] || item.ar}</span>
+                        <span>${(item.text && (item.text[AppState.currentLang] || item.text.ar)) || item[AppState.currentLang] || item.ar || ''}</span>
                     </li>
                 `).join('')}
             </ul>
