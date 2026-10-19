@@ -576,6 +576,7 @@ export async function openCertificatesHub(opts = {}) {
                     <button type="button" class="cc-chip" data-kind="individual">${esc(t('cc_rep_kind_individual'))}</button>
                     <button type="button" class="cc-chip" data-kind="dual">${esc(t('cc_rep_kind_dual'))}</button>
                     <button type="button" class="cc-chip" data-kind="monthly">${esc(t('cc_rep_kind_monthly'))}</button>
+                    <button type="button" class="cc-chip" data-kind="homework">${esc(t('cc_rep_kind_homework'))}</button>
                 </div>
                 <div id="cc-rep-list"></div>
             </div>
