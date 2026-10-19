@@ -1868,8 +1868,11 @@ const exportPdf = () => withExportView('full', exportPdfRaw);
 let mrOpenOptions = null;
 
 function goBackToProfile() {
-  if (mrOpenOptions && mrOpenOptions.returnTo === 'hub' && reportData && reportData.student) {
-    const back = { studentId: reportData.student.id, year: reportData.year, month1: reportData.monthIndex0 + 1, openedAt: mrOpenOptions.openedAt };
+  if (mrOpenOptions && mrOpenOptions.returnTo === 'hub' && ((reportData && reportData.student) || mrOpenOptions.student)) {
+    const hasData = reportData && reportData.student;
+    const back = hasData
+      ? { studentId: reportData.student.id, year: reportData.year, month1: reportData.monthIndex0 + 1, openedAt: mrOpenOptions.openedAt }
+      : { studentId: mrOpenOptions.student.id, year: mrOpenOptions.year, month1: mrOpenOptions.monthIndex0 + 1, openedAt: mrOpenOptions.openedAt };
     mrOpenOptions = null;
     import('../components/monthlyReportsHub.js').then(m => m.openMonthlyReportsHub({ returnedFrom: back })).catch(err => {
       console.error('[monthly-report.js] تعذر العودة لمركز التقارير:', err);
