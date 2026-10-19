@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — تقارير الشهر (تصميم احترافي)</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g8:#0a4736; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee; --g0:#f3faf6;
+  --gold:#d4af37; --gold-d:#8a6612; --gold-soft:#fbf3d5;
+  --ink:#10241c; --ink2:#5a6b63; --line:#e6e1cf; --paper:#fffdf6;
+  --amber:#b45309; --amber-soft:#fffbeb; --amber-line:#f5d98a;
+  --ok:#047857; --ok-soft:#ecfdf5; --ok-line:#a7e3c8;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Tajawal',system-ui,sans-serif;
+   text-shadow:none;-webkit-text-stroke:0}
+body{background:#0d1b16;color:var(--ink);min-height:100vh;padding:24px 16px 60px}
+.label{max-width:1000px;margin:0 auto 14px;color:#b9d6c9;font-size:.9rem;text-align:center}
+.stage{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;align-items:flex-start}
+.col{width:100%;max-width:560px}
+.col>h3{color:var(--gold);font-weight:700;font-size:.95rem;margin-bottom:10px;text-align:center}
+button{font:inherit;border:0;cursor:pointer;color:inherit;background:none}
+
+/* البطاقة */
+.card{background:var(--paper);border-radius:24px;overflow:hidden;border:1.5px solid var(--gold);
+  box-shadow:0 30px 70px rgba(0,0,0,.5),0 0 0 6px rgba(212,175,55,.08)}
+.head{position:relative;background:linear-gradient(135deg,var(--g7),var(--g8));color:#fff;
+  padding:18px 22px;display:flex;align-items:center;gap:14px}
+.head::after{content:"";position:absolute;inset-inline:0;bottom:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.ico{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.4rem;flex:none}
+.head h2{font-size:1.3rem;font-weight:800;letter-spacing:0;color:#fff;line-height:1.2}
+.head small{display:block;color:#cfe8dd;font-size:.82rem;font-weight:500;margin-top:2px}
+.x{margin-inline-start:auto;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);
+  color:#fff;font-size:1rem;transition:.15s}
+.x:hover{background:rgba(255,255,255,.26)}
+.body{padding:20px 22px 22px}
+
+/* البحث */
+.search{position:relative}
+.search svg{position:absolute;inset-inline-start:16px;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;stroke:var(--ink2);fill:none;stroke-width:2;stroke-linecap:round}
+.search input{width:100%;padding:15px 48px;border-radius:16px;border:1.5px solid var(--line);
+  background:#fff;font-size:1.1rem;outline:none;transition:.15s;color:var(--ink)}
+.search input:focus{border-color:var(--g6);box-shadow:0 0 0 4px rgba(20,124,94,.12)}
+.hint{margin-top:10px;color:var(--ink2);font-size:.85rem;display:flex;align-items:center;gap:6px}
+.list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--line);
+  border-radius:16px;padding:10px 14px;text-align:start;transition:.15s;width:100%}
+.item:hover,.item.first{border-color:var(--g6);background:var(--g0);box-shadow:0 4px 14px rgba(13,92,70,.1)}
+.av{width:44px;height:44px;border-radius:50%;background:var(--g1);border:2px solid var(--g7);
+  color:var(--g7);display:grid;place-items:center;font-weight:800;font-size:1.15rem;flex:none}
+.nm{font-weight:800;font-size:1.05rem;color:var(--ink)}
+.gr{color:var(--ink2);font-size:.82rem}
+.go{margin-inline-start:auto;color:var(--g6);font-size:1.1rem}
+
+/* بطاقة الطالب */
+.stu{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.stu .nm{font-size:1.15rem}
+.change{margin-inline-start:auto;border:1.5px solid var(--line);background:#fff;border-radius:12px;
+  padding:7px 14px;font-weight:700;font-size:.85rem;color:var(--g7)}
+.change:hover{background:var(--g1)}
+.sec{font-size:.8rem;font-weight:700;color:var(--ink2);margin:0 2px 8px;letter-spacing:.2px}
+.months{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.m{position:relative;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:9px 6px;
+  text-align:center;font-weight:700;font-size:.92rem;color:var(--ink);transition:.15s}
+.m:hover{border-color:var(--g6)}
+.m small{display:block;font-size:.72rem;font-weight:500;color:var(--ink2);margin-top:1px}
+.m i{position:absolute;top:6px;inset-inline-end:8px;font-style:normal;font-size:.72rem}
+.m.sel{background:var(--g7);border-color:var(--g7);color:#fff;box-shadow:0 6px 16px rgba(13,92,70,.25)}
+.m.sel small{color:#cfe8dd}
+
+.status{display:flex;gap:12px;align-items:flex-start;border-radius:16px;padding:14px 16px;margin-bottom:10px;border:1.5px solid}
+.status .b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:1rem;color:#fff}
+.status.ok{background:var(--ok-soft);border-color:var(--ok-line)}.status.ok .b{background:var(--ok)}
+.status.warn{background:var(--amber-soft);border-color:var(--amber-line)}.status.warn .b{background:var(--amber)}
+.status h4{font-size:1rem;font-weight:800}
+.status.ok h4{color:var(--ok)}.status.warn h4{color:var(--amber)}
+.status p{color:#3b4d45;font-size:.9rem;line-height:1.75;margin-top:2px}
+.status .lnk{margin-top:6px;font-weight:800;font-size:.85rem;color:var(--g7);text-decoration:underline;text-underline-offset:3px}
+.status .fix{margin-top:8px;background:var(--amber);color:#fff;border-radius:10px;padding:7px 14px;font-weight:800;font-size:.85rem}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border-radius:14px;
+  font-weight:800;font-size:1rem;transition:.15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.wa{background:var(--g7);color:#fff;box-shadow:0 6px 16px rgba(13,92,70,.28)}
+.btn.pdf{background:var(--gold);color:#2b2208;box-shadow:0 6px 16px rgba(212,175,55,.3)}
+.btn.pre{grid-column:1/-1;background:#fff;border:1.5px solid var(--line);color:var(--ink2);font-weight:700;padding:11px}
+.foot{text-align:center;color:var(--ink2);font-size:.82rem;padding:0 22px 16px}
+</style>
+</head>
+<body>
+<p class="label">معاينة تصميم «تقارير الشهر» الجديد — الشاشتان بنفس الخطوات الحالية (بحث ← بطاقة الطالب) بتنسيق أنظف</p>
+<div class="stage">
+
+  <!-- الشاشة 1 -->
+  <div class="col">
+    <h3>١ — البحث عن الطالب</h3>
+    <div class="card">
+      <div class="head">
+        <div class="ico">📅</div>
+        <div><h2>تقارير الشهر</h2><small>أصدر تقرير أي طالب في ثوانٍ</small></div>
+        <button class="x" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="body">
+        <div class="search">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="text" value="أحم" aria-label="اسم الطالب">
+        </div>
+        <div class="list">
+          <button class="item first"><span class="av">أ</span><span><div class="nm">أحمد محمد</div><div class="gr">الصف الرابع</div></span><span class="go">‹</span></button>
+          <button class="item"><span class="av">أ</span><span><div class="nm">أحمد خالد</div><div class="gr">الصف الثاني</div></span><span class="go">‹</span></button>
+        </div>
+        <div class="hint">↵ اضغط Enter لاختيار أول نتيجة</div>
+      </div>
+      <div class="foot">تم تصدير ٣ تقارير اليوم</div>
+    </div>
+  </div>
+
+  <!-- الشاشة 2 -->
+  <div class="col">
+    <h3>٢ — بطاقة الطالب والتصدير</h3>
+    <div class="card">
+      <div class="head">
+        <div class="ico">📅</div>
+        <div><h2>تقارير الشهر</h2><small>أصدر تقرير أي طالب في ثوانٍ</small></div>
+        <button class="x" aria-label="إغلاق">✕</button>
+      </div>
+      <div class="body">
+        <div class="stu">
+          <span class="av">أ</span>
+          <span><div class="nm">أحمد محمد</div><div class="gr">الصف الرابع</div></span>
+          <button class="change">تغيير الطالب</button>
+        </div>
+
+        <div class="sec">اختر الشهر</div>
+        <div class="months">
+          <button class="m sel">أكتوبر<small>الشهر الحالي</small><i>✅</i></button>
+          <button class="m">سبتمبر<small>2026</small><i>⚠️</i></button>
+          <button class="m">أغسطس<small>2026</small><i>✅</i></button>
+        </div>
+
+        <div class="status ok">
+          <div class="b">✓</div>
+          <div>
+            <h4>جاهز للتصدير</h4>
+            <p>من سورة البقرة ٤٠ إلى سورة البقرة ٧٥ — ٣٥ آية جديدة<br>جلسات غرفة اللعب: ٦ جلسات بمتوسط ٨٢٪</p>
+            <button class="lnk">تعديل آخر سورة وآية</button>
+          </div>
+        </div>
+
+        <div class="status warn">
+          <div class="b">!</div>
+          <div>
+            <h4>مراجعة الشهر لم تُسجَّل</h4>
+            <p>اختيارية — لا تمنع التصدير.</p>
+            <button class="fix">إضافة المراجعة</button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn wa">💬 نسخة واتساب</button>
+          <button class="btn pdf">📄 طباعة PDF</button>
+          <button class="btn pre">👁️ معاينة التقرير</button>
+        </div>
+      </div>
+      <div class="foot">تم تصدير ٣ تقارير اليوم</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
