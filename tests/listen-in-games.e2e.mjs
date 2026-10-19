@@ -90,7 +90,7 @@ for (const { kids, name, cfg, type, expectNone } of SCEN) {
       check(`${tag} [${i + 1}]: نص الآية المسموعة غير معروض في السؤال`, !/﴿/.test(l.textLeak), l.textLeak.slice(0, 60));
       check(`${tag} [${i + 1}]: ضغط الزر شغّل الصوت فعلاً`, l.played);
       if (kids) check(`${tag} [${i + 1}]: ثلاثة خيارات`, l.opts === 3, String(l.opts));
-      else check(`${tag} [${i + 1}]: لا تلميح، والإجابة تظهر`, !l.hintShown && l.ans.includes('﴿'), `${l.hintShown} | ${l.ans.replace(/\n+/g, ' ').slice(0, 60)}`);
+      else check(`${tag} [${i + 1}]: التلميح لـ«قبلها» فقط، والإجابة تظهر`, l.hintShown === (l.dir === 'prev') && l.ans.includes('﴿'), `${l.hintShown} | ${l.ans.replace(/\n+/g, ' ').slice(0, 60)}`);
     });
   }
   await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500);
