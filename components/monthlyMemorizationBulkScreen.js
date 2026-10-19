@@ -395,7 +395,7 @@ function ensureTableStylesInjected() {
 .mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
 .mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
 .mmt-head-row { display: flex; align-items: center; gap: 12px; }
-.mmt-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: var(--mmt-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.mmt-back { min-width: 44px; height: 44px; gap: 8px; padding: 0 14px !important; font-family: inherit; font-weight: 700; font-size: .95rem; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: var(--mmt-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .mmt-back:hover { background: var(--mmt-tint); }
 .mmt-screen[dir="ltr"] .mmt-back svg { transform: scaleX(-1); }
 .mmt-kicker { font-size: .8rem; font-weight: 700; color: var(--mmt-mute); }
@@ -545,6 +545,8 @@ function openMemorizationTable(initialQueue, meta = {}) {
     const headerHome = document.getElementById('header-home-btn');
     if (headerHome) headerHome.addEventListener('click', close);
 
+    // اسم الوجهة على زر الرجوع: «طلابي» لو فُتحت الشاشة منها، وإلا «الرئيسية»
+    const backLabel = t(document.getElementById('btn-monthly-memo-bulk') ? 'my_students_title' : 'header_home_btn');
     function shell(inner) {
       const months = [...new Set(rows.filter(r => r.item.type === 'ending').map(r => `${r.item.month}/${r.item.year}`))];
       const kicker = months.length === 1
@@ -553,7 +555,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
       return `<div class="mmt-screen" dir="${isRtl ? 'rtl' : 'ltr'}" role="dialog" aria-modal="true" aria-labelledby="mmt-title">
         <div class="mmt-head">
           <div class="mmt-head-row">
-            <button class="mmt-back" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+            <button class="mmt-back" id="mmt-close" aria-label="${t('mmb_close_btn')}" title="${t('mmb_close_btn')}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><span>${backLabel}</span></button>
             <div><div class="mmt-kicker">${kicker}</div><h2 class="mmt-title" id="mmt-title">${t('mmt_heading')}</h2></div>
             <div class="mmt-head-btns">
             </div>

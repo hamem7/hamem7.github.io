@@ -45,7 +45,7 @@ function ensureStyles() {
 .mrh-head{background:#fff;color:var(--dh-emerald-700,#0d5c46);padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e4dfcc;}
 .mrh-ico{width:42px;height:42px;border-radius:12px;background:#e7f4ee;display:grid;place-items:center;font-size:1.3rem;flex:none;margin-inline-start:auto;}
 .mrh-title{margin:0;font-size:1.5rem;font-weight:700 !important;color:var(--dh-emerald-700,#0d5c46) !important;text-shadow:none !important;line-height:1.3;}
-.mrh-x{background:#fff;border:1px solid #e4dfcc;color:#0d5c46;width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;}
+.mrh-x{background:#fff;border:1px solid #e4dfcc;color:#0d5c46;min-width:44px;height:44px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.95rem;}
 .mrh-x:hover{background:#eaf4ef;}
 .mrh-card[dir="ltr"] .mrh-x svg{transform:scaleX(-1);}
 .mrh-steps{display:flex;align-items:center;gap:6px;padding:16px 22px 0;}
@@ -236,12 +236,15 @@ export async function openMonthlyReportsHub(opts = {}) {
 
   const students = await loadActiveStudents();
   const overlay = document.createElement('div');
+  // اسم الوجهة على زر الرجوع: «طلابي» لو فُتح المركز منها، وإلا «الرئيسية»
+  const backFrom = opts.returnedFrom ? hubOrigin : (document.getElementById('btn-monthly-reports-hub') ? 'students' : 'home');
+  const backLabel = t(backFrom === 'students' ? 'my_students_title' : 'header_home_btn');
   overlay.className = 'mrh-overlay';
   overlay.id = 'mrh-overlay';
   overlay.innerHTML = `
     <div class="mrh-card" dir="${AppState.currentLang === 'ar' ? 'rtl' : 'ltr'}">
       <div class="mrh-head">
-        <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+        <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><span>${esc(backLabel)}</span></button>
         <h2 class="mrh-title">${esc(t('mrh_title'))}</h2>
         <span class="mrh-ico" aria-hidden="true">📅</span>
       </div>
