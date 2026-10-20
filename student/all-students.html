@@ -24,8 +24,23 @@
     #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
 
     /* 🌟 [جديد 2026-10-01] وسم الحقول: "مطلوب" للاسم فقط و"اختياري" لباقي الحقول في نافذة التعديل */
-    #edit-modal .dh-opt-tag { font-size: 0.85rem; font-weight: normal; color: #94a3b8; }
-    #edit-modal .dh-req-tag { color: #b45309; font-weight: bold; }
+    #edit-modal .dh-opt-tag { font-size: 0.85rem; font-weight: normal; color: var(--dh-ink-soft); }
+    #edit-modal .dh-req-tag, #edit-modal .dh-opt-tag[data-i18n="stu_required_tag"] { color: var(--dh-warn) !important; font-weight: bold; }
+
+    /* 🌟 [توحيد الهوية] نافذة التعديل بحقول موحّدة: ارتفاع 46px، حد 1.5px، حواف 12px، تركيز بحلقة ذهبية، وزر اختيار الصورة بشكل المنصة.
+       (كانت حقول النصوص 16px/2px بجانب القوائم 12px/1px، ولونان مختلفان لـ«إلزامي»، وزر ملف خام من المتصفح.) 🌟 */
+    #edit-modal h2 { font-size: 1.5rem !important; margin: 0 0 18px !important; text-align: center; text-shadow: none !important; color: var(--dh-emerald-700) !important; }
+    #edit-modal .form-grid { gap: 14px; }
+    #edit-modal .input-group label { margin-bottom: 6px; font-weight: 600; font-size: .92rem; color: var(--dh-ink); }
+    #edit-modal .input-group input:not([type="file"]):not([type="hidden"]),
+    #edit-modal .input-group select {
+        min-height: 46px; margin-bottom: 0; padding: 10px 14px; font-size: 1rem; color: var(--dh-ink); background: #fff;
+        border: 1.5px solid var(--dh-line-strong) !important; border-radius: var(--dh-r-md) !important;
+    }
+    #edit-modal .input-group input:not([type="file"]):focus,
+    #edit-modal .input-group select:focus { background: #fff; border-color: var(--dh-gold-500) !important; outline: 3px solid var(--dh-focus); outline-offset: 1px; }
+    #edit-modal input[type="file"] { width: 100%; padding: 8px 10px; font-size: .95rem; color: var(--dh-ink-soft); background: var(--dh-surface-alt); border: 1.5px dashed var(--dh-line-strong); border-radius: var(--dh-r-md); }
+    #edit-modal input[type="file"]::file-selector-button { margin-inline-end: 10px; padding: 7px 14px; border: 0; border-radius: var(--dh-r-pill); background: var(--dh-emerald-700); color: var(--dh-surface); font: inherit; font-weight: 600; cursor: pointer; }
 
     #app-root .as-panel { max-width: 780px; margin: 0 auto; background: #fff; color: #10261f; border-radius: 20px; padding: 20px; box-shadow: 0 16px 40px rgba(0,0,0,0.18); text-align: right; display: grid; gap: 14px; }
     #app-root .as-toplinks { display: flex; flex-wrap: wrap; gap: 6px 16px; }

@@ -1104,6 +1104,14 @@ export async function loadStudentProfileScreen() {
                     avatarImg.src = student.avatar;
                     avatarImg.style.display = 'block';
                 }
+            } else {
+                // 🌟 [توحيد الهوية] طالب بلا صورة: دائرة بحرف الاسم الأول (كانت <img> فارغة تظهر كأيقونة صورة مكسورة).
+                // setupAvatarEdit يزيلها تلقائياً عند رفع صورة حقيقية (يحذف كل .profile-avatar غير <img>) 🌟
+                avatarImg.style.display = 'none';
+                const initialDiv = document.createElement('div');
+                initialDiv.className = 'profile-avatar profile-avatar--initial';
+                initialDiv.textContent = (student.name || '').trim().charAt(0) || '👤';
+                avatarImg.parentElement.insertBefore(initialDiv, avatarImg);
             }
 
             // 🌟 [جديد 2026-10-01] زرّا بدء التقييم من ملف الطالب — الأول بالوضع المناسب لصفه والثاني بالوضع الآخر
