@@ -102,11 +102,16 @@ body.adult-theme {
     transform: translateY(-3px); 
 }
 
+/* [توحيد الهوية — مرحلة 2] الزر الثانوي «شفاف بحد» (إلغاء/رجوع/خروج) بدل التدرّج الأزرق المخضر القديم الذي كان يبدو كزر رئيسي */
 .adult-theme .btn-outline { 
-    background: linear-gradient(135deg, #12627d, #29aeb8) !important; 
-    color: white !important; 
+    background: transparent !important; 
+    color: var(--dh-emerald-700, #0d5c46) !important; 
+    border: 2px solid var(--dh-emerald-700, #0d5c46) !important; 
     box-shadow: none !important; 
 }
+.adult-theme .btn-outline:hover { background: var(--dh-surface-alt, #f6f3e8) !important; }
+/* أزرار خيارات الإجابة (تبقى بارزة): زمردي مصمت بدل الشفاف */
+.adult-theme .btn-outline.sim-opt-btn { background: linear-gradient(135deg, var(--dh-emerald-700, #0d5c46), var(--dh-emerald-600, #147c5e)) !important; color: #fff !important; border-color: transparent !important; }
 
 .adult-theme .btn-wrong { 
     background: #df4e4e !important; 
@@ -317,7 +322,7 @@ body.adult-theme {
 
 :where(.adult-theme) h1, :where(.adult-theme) h2, :where(.adult-theme) h3, :where(.adult-theme) .question-text {
     color: #1e3a5f !important;
-    text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff !important; 
+    text-shadow: none !important;   /* [توحيد الهوية — مرحلة 2] كان ظلاً أبيض بسمك 2px موروثاً من تصميم الأطفال على خلفية الصور؛ لا معنى له على بطاقات الكبار */
     font-weight: 700 !important; /* 🌟 التعديل من 900 إلى 700 ليتناسب مع الخط الجديد 🌟 */
 }
 

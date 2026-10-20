@@ -6,6 +6,16 @@
      تُعدّل أي قاعدة عامة في global.css أو adults.css، فلا تؤثر على أي شاشة أخرى. كل الـid
      المستخدمة في settings/dashboard.js باقية بلا أي تغيير — التعديل شكلي بالكامل 🌟🌟 -->
 <style>
+    /* 🌟 [توحيد الهوية — مرحلة 2] حقول لوحة التقييم عند الكبار بشكل واحد (كانت القوائم بحد أصفر 2.5px/18px والرقم بحد رمادي 2px/10px).
+       ركن الأطفال يبقى بشكله الأصفر المميّز لأن القاعدة محصورة في .adult-theme. 🌟 */
+    .adult-theme #app-root .kids-styled-select,
+    .adult-theme #app-root :is(#q-count-surah, #q-count-range, #q-count-juz) {
+        min-height: 46px; padding: 10px 14px !important; font-size: 1.1rem !important; font-weight: 600 !important; color: var(--dh-ink) !important;
+        background: #fff !important; border: 1.5px solid var(--dh-line-strong) !important; border-radius: var(--dh-r-md) !important; box-shadow: none !important;
+    }
+    .adult-theme #app-root .kids-styled-select:focus,
+    .adult-theme #app-root :is(#q-count-surah, #q-count-range, #q-count-juz):focus { border-color: var(--dh-gold-500) !important; box-shadow: 0 0 0 3px rgba(212, 175, 55, .35) !important; outline: none; }
+
     @keyframes dash-fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
     /* 🌟 حاوية اللوحة — بدل الخلفية شبه البيضاء والظل الغامق القادمَين من .control-panel

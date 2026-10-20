@@ -362,3 +362,6 @@ body.kids-theme {
         padding: 20px 14px !important;
     }
 }
+
+/* زر «العودة للقائمة الرئيسية» في دخول الأطفال: كان رمادياً بستايل مضمَّن في student/login.html (أُزيل منه ليأخذ الكبار الزر الشفاف الموحّد) */
+.kids-theme #btn-back-splash { background: #64748b !important; border: none !important; color: #fff !important; }
