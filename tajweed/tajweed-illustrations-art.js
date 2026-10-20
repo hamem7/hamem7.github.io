@@ -18,11 +18,14 @@ const baseLen = (s) => s.replace(/[ً-ٰٟۖ-ۭ]/g, '').length;
 // ------------------------------------------------------------
 // أدوات رسم صغيرة
 // ------------------------------------------------------------
+// المشهد كله يُعكس أفقياً (ليُقرأ من اليمين إلى اليسار)، فيُقلَب كل نص حول مركزه ليبقى مقروءاً غير معكوس
+const fl = (cx) => `transform="translate(${cx},0) scale(-1,1) translate(${-cx},0)"`;
+
 function badge(cx, cy, r, ch, fill, opts = {}) {
     const fs = opts.fs || Math.round(r * 1.1);
     const stroke = opts.stroke || INK;
     return `<g${opts.opacity ? ` opacity="${opts.opacity}"` : ''}><circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2.5"${opts.dash ? ' stroke-dasharray="5 4"' : ''}/>
-        <text x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" font-family="${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
+        <text ${fl(cx)} x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" font-family="${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
 }
 function arrow(x1, y1, x2, y2, color = INK, dash = false) {
     const a = Math.atan2(y2 - y1, x2 - x1), h = 9;
@@ -48,7 +51,7 @@ function wordCards(words, color) {
     const ws = words.filter(Boolean);
     if (!ws.length) return '';
     if (ws.length === 1) return wordCard(180, 136, 230, ws[0], color);
-    return wordCard(94, 136, 168, ws[0], color) + wordCard(266, 136, 168, ws[1], color);
+    return wordCard(266, 136, 168, ws[0], color) + wordCard(94, 136, 168, ws[1], color);
 }
 
 // ------------------------------------------------------------
@@ -89,7 +92,7 @@ const SCENES = {
         const out = ghunna
             ? `${wave(204, 46, 60, '#d65db1')}${dots(300, 108, 2, '#d65db1')}`
             : `<path d="M 208 50 q 5 -7 10 0 t 10 0 t 10 0" fill="none" stroke="#9aa5b1" stroke-width="3" stroke-linecap="round"/><path d="M 204 36 l 62 28 M 266 36 l -62 28" stroke="#b3261e" stroke-width="4" stroke-linecap="round"/>`;
-        return `${badge(52, 58, 26, from, '#3f8fd2', { fs: 32 })}<text x="86" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="${INK}">+</text>${badge(122, 58, 26, to, '#4aa84a', { fs: 32 })}
+        return `${badge(52, 58, 26, from, '#3f8fd2', { fs: 32 })}<text ${fl(86)} x="86" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="${INK}">+</text>${badge(122, 58, 26, to, '#4aa84a', { fs: 32 })}
             ${arrow(154, 58, 198, 58)}${out}${badge(300, 58, 38, to + SHADDA, '#4aa84a', { fs: 46 })}`;
     },
     // الإظهار: عدسة تُظهر الحرف واضحًا وبعده الحرف التالي بلا مزج
@@ -106,7 +109,7 @@ const SCENES = {
             <path d="M 94 40 q 30 -30 60 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/><polygon points="156,44 142,40 150,30" fill="${INK}"/>
             <path d="M 154 76 q -30 30 -60 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/><polygon points="92,72 106,76 98,86" fill="${INK}"/>
             ${badge(190, 58, 32, mid, '#7b5cc4', { fs: 40 })}${wave(228, 100, 40, '#d65db1', 5)}
-            <text x="252" y="68" text-anchor="middle" font-size="24" font-weight="700" fill="${INK}">+</text>${badge(300, 58, 30, to, '#4aa84a', { fs: 38 })}`;
+            <text ${fl(252)} x="252" y="68" text-anchor="middle" font-size="24" font-weight="700" fill="${INK}">+</text>${badge(300, 58, 30, to, '#4aa84a', { fs: 38 })}`;
     },
     // لام «ال» القمرية: قمر مضيء تُنطق اللام عنده
     moon(next) {
@@ -125,7 +128,7 @@ const SCENES = {
     },
     // المثلان/المتقاربان/المتجانسان
     twins(a, b) {
-        return `${badge(110, 58, 36, a, '#5d4691', { fs: 44 })}<text x="180" y="70" text-anchor="middle" font-size="40" font-weight="700" fill="${INK}">=</text>${badge(250, 58, 36, b, '#5d4691', { fs: 44 })}
+        return `${badge(110, 58, 36, a, '#5d4691', { fs: 44 })}<text ${fl(180)} x="180" y="70" text-anchor="middle" font-size="40" font-weight="700" fill="${INK}">=</text>${badge(250, 58, 36, b, '#5d4691', { fs: 44 })}
             <path d="M 110 104 q 70 22 140 0" fill="none" stroke="#5d4691" stroke-width="3.5" stroke-linecap="round"/>`;
     },
     neighbors(a, b) {
@@ -148,7 +151,7 @@ const SCENES = {
         const y0 = rows.length === 1 ? 100 : 82;
         const band = rows.map((n, i) => {
             const y = y0 + i * 18;
-            return `<text x="${gx + 6}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="700" fill="${INK}" font-family="system-ui,sans-serif">${n}</text>` +
+            return `<text ${fl(gx + 6)} x="${gx + 6}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="700" fill="${INK}" font-family="system-ui,sans-serif">${n}</text>` +
                 Array.from({ length: n }, (_, k) => `<circle cx="${gx + 28 + k * 17}" cy="${y}" r="6.5" fill="#2f7d32" stroke="${INK}" stroke-width="1.5"/>`).join('');
         }).join('');
         const sx = tx(tokens.length - 1);
@@ -198,7 +201,7 @@ export function buildIllustrationSVG(ruleId, words = [], label = '') {
     if (!def) return '';
     return `<svg class="tjw-illus-svg" viewBox="0 0 360 196" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">
         <rect x="1.5" y="1.5" width="357" height="193" rx="20" fill="${PAPER}" stroke="${def.color}" stroke-width="3"/>
-        ${def.scene()}${wordCards(words, def.color)}</svg>`;
+        <g transform="translate(360,0) scale(-1,1)">${def.scene()}</g>${wordCards(words, def.color)}</svg>`;
 }
 
 // ------------------------------------------------------------
