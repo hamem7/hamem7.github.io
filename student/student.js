@@ -1087,9 +1087,9 @@ export async function loadStudentProfileScreen() {
                 let d = new Date(student.dob);
                 ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
             }
-            document.getElementById('prof-age').innerText = `🎂 ${ageStr}`;
-            document.getElementById('prof-country').innerText = student.country ? `🌍 ${student.country}` : t("stu_country_not_set");
-            document.getElementById('prof-phone').innerText = student.phone ? `📱 ${student.phone}` : t("stu_phone_not_set");
+            document.getElementById('prof-age').innerText = ageStr;
+            document.getElementById('prof-country').innerText = student.country ? student.country : stripEmoji(t("stu_country_not_set"));
+            document.getElementById('prof-phone').innerText = student.phone ? student.phone : stripEmoji(t("stu_phone_not_set"));
 
             const avatarImg = document.getElementById('prof-avatar');
             if (student.avatar) {
@@ -1120,11 +1120,11 @@ export async function loadStudentProfileScreen() {
                 const mainEval = document.getElementById('btn-prof-start-eval');
                 const altEval = document.getElementById('btn-prof-start-eval-alt');
                 if (mainEval) {
-                    mainEval.textContent = t(kidsDefault ? 'stu_start_eval_kids' : 'stu_start_eval_adult');
+                    mainEval.textContent = stripEmoji(t(kidsDefault ? 'stu_start_eval_kids' : 'stu_start_eval_adult'));
                     mainEval.onclick = () => startEvaluationForStudent(student, kidsDefault);
                 }
                 if (altEval) {
-                    altEval.textContent = t(kidsDefault ? 'stu_start_eval_adult' : 'stu_start_eval_kids');
+                    altEval.textContent = stripEmoji(t(kidsDefault ? 'stu_start_eval_adult' : 'stu_start_eval_kids'));
                     altEval.onclick = () => startEvaluationForStudent(student, !kidsDefault);
                 }
             }
@@ -1136,7 +1136,7 @@ export async function loadStudentProfileScreen() {
             const dueWeaknessCount = getDueWeaknesses(student).length;
             const totalWeaknessCount = Array.isArray(student.weaknesses) ? student.weaknesses.length : 0;
             if (dueWeaknessCount > 0) {
-                btnWeakness.innerText = t('fixp_prof_start').replace('{n}', dueWeaknessCount);
+                setTileLabel(btnWeakness, stripEmoji(t('fixp_prof_start').replace(/\s*\(\{n\}\)/, '')), dueWeaknessCount);
                 btnWeakness.onclick = () => {
                     if (AppState.isKidsMode) {
                         openKidsGameScreen({}, true);
@@ -1145,12 +1145,10 @@ export async function loadStudentProfileScreen() {
                     }
                 };
             } else if (totalWeaknessCount > 0) {
-                btnWeakness.classList.add('btn-idle');   // 🌟 [توحيد الهوية] مظهر المعطَّل من css/components.css (كان الأحمر !important يغلب اللون الرمادي المضمَّن)
-                btnWeakness.innerText = t('fixp_prof_waiting').replace('{n}', totalWeaknessCount);
+                setTileLabel(btnWeakness, stripEmoji(t('fixp_prof_waiting').replace('{n}', totalWeaknessCount)));
                 btnWeakness.disabled = true;
             } else {
-                btnWeakness.classList.add('btn-idle');
-                btnWeakness.innerText = t("stu_no_errors_btn");
+                setTileLabel(btnWeakness, stripEmoji(t("stu_no_errors_btn")));
                 btnWeakness.disabled = true;
             }
 
@@ -1160,11 +1158,11 @@ export async function loadStudentProfileScreen() {
             const btnArchive = document.getElementById('btn-prof-archive');
             const archiveCount = Array.isArray(student.resolvedWeaknesses) ? student.resolvedWeaknesses.length : 0;
             if (archiveCount > 0) {
-                btnArchive.innerHTML = `📂 ${t('archive_title')} (${archiveCount})`;
+                setTileLabel(btnArchive, `${stripEmoji(t('archive_title'))} (${archiveCount})`);
                 btnArchive.disabled = false;
                 btnArchive.onclick = () => { renderArchiveList(student); openModal('archive-modal'); };
             } else {
-                btnArchive.innerHTML = `📂 ${t('archive_empty')}`;
+                setTileLabel(btnArchive, stripEmoji(t('archive_empty')));
                 btnArchive.disabled = true;
             }
             document.getElementById('btn-prof-edit-all')?.addEventListener('click', async () => {
@@ -1197,7 +1195,7 @@ export async function loadStudentProfileScreen() {
             // 🌟 [جديد — الواجب الذكي] زر «ملف المهارات» (استيراد ديناميكي كالزر السابق تفادياً لأي حلقة استيراد)
             const skillsBtn = document.getElementById('btn-prof-skills');
             if (skillsBtn) {
-                if (AppState.currentLang === 'en') skillsBtn.textContent = '📊 Skills profile';
+                setTileLabel(skillsBtn, AppState.currentLang === 'en' ? 'Skills profile' : 'ملف المهارات');
                 skillsBtn.addEventListener('click', () => {
                     import('../components/skillProfile.js').then(m => m.openSkillProfileModal(student)).catch(err => {
                         console.error('تعذر فتح ملف المهارات:', err);
@@ -1223,13 +1221,14 @@ export async function loadStudentProfileScreen() {
                 tbody.innerHTML = `<tr><td colspan="4">${t('stu_no_history')}</td></tr>`;
             } else {
                 histData.reverse().forEach((record, index) => {
-                    let color = record.score >= 90 ? 'var(--dh-ok, #15803d)' : (record.score >= 80 ? '#064e3b' : (record.score >= 70 ? '#b45309' : 'var(--dh-danger, #b91c1c)'));
+                    let color = record.score >= 90 ? 'var(--dh-ok, #15803d)' : (record.score >= 80 ? 'var(--dh-emerald-700)' : (record.score >= 70 ? 'var(--dh-warn, #b45309)' : 'var(--dh-danger, #b91c1c)'));
+                    const barW = Math.max(0, Math.min(100, Number(record.score) || 0));
                     tbody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>
                             <td>${record.date}</td>
                             <td>${esc(localizeGenerated(trStored(String(record.range || ''))))}</td>
-                            <td style="color:${color}; font-size:1.3rem;">${record.score}%</td>
+                            <td><div class="pf-pct"><div class="pf-pct-bar"><i style="width:${barW}%; background:${color};"></i></div><b style="color:${color};">${record.score}%</b></div></td>
                         </tr>
                     `;
                 });
@@ -1245,6 +1244,7 @@ export async function loadStudentProfileScreen() {
             // 🌟 [جديد] تفعيل التعديل المباشر لكل بيانات ملف الطالب المعروضة هنا (الصورة،
             // الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف) — راجع الدالة أدناه لتفاصيل الفكرة
             setupInlineProfileEditing(student);
+            setupProfileUi(student);
         }
     });
 }
@@ -1408,6 +1408,75 @@ async function renderSimilaritiesProfileSection(student) {
 // رأس الملف تحديدًا (الصورة/الاسم/الصف/العمر/الدولة/الهاتف) — أما الإحصائيات المحسوبة
 // (النقاط، عدد التقييمات، الانتصارات)، الأوسمة، وسجل التقييمات السابقة فهي نتائج/سجلات
 // تُبنى تلقائيًا من نشاط الطالب الفعلي، فتبقى للعرض فقط ولا تُعدَّل يدويًا هنا.
+// 🌟 [2026-10-20 — إعادة تصميم ملف الطالب] أدوات الواجهة الجديدة: الإيموجي في نصوص الترجمة المشتركة تُزال هنا فقط
+// (الأيقونات صارت SVG في student-profile.html) بلا لمس النصوص نفسها لأنها تُستعمل في شاشات أخرى 🌟
+function stripEmoji(str) {
+    return String(str == null ? '' : str).replace(/[\p{Extended_Pictographic}\uFE0F\u200D]/gu, '').replace(/\s+/g, ' ').trim();
+}
+
+// يضبط نص البلاطة (زر بأيقونة): العنوان في .pf-t والشارة العددية (إن وُجدت) في .pf-badge
+function setTileLabel(btn, text, badge) {
+    if (!btn) return;
+    const tEl = btn.querySelector('.pf-t');
+    if (tEl) tEl.textContent = text; else btn.textContent = text;
+    const bEl = btn.querySelector('.pf-badge');
+    if (bEl) bEl.textContent = badge ? String(badge) : '';
+}
+
+// الشرائح (العمر/البلد/الهاتف) تأخذ إطاراً منقّطاً عند غياب القيمة، وشريط «اكتمال الملف» = نسبة الحقول المعبّأة من ستة
+function refreshProfileMeta(student) {
+    const has = {
+        age: !!student.dob && !isNaN(new Date(student.dob)),
+        country: !!(student.country && String(student.country).trim()),
+        phone: !!(student.phone && String(student.phone).trim())
+    };
+    [['age', 'pf-chip-age'], ['country', 'pf-chip-country'], ['phone', 'pf-chip-phone']].forEach(([k, id]) => {
+        const chip = document.getElementById(id);
+        if (chip) chip.dataset.missing = has[k] ? '0' : '1';
+    });
+    const filled = [!!(student.name && String(student.name).trim()), !!(student.grade && String(student.grade).trim()), has.age, has.country, has.phone, !!student.avatar].filter(Boolean).length;
+    const pct = Math.round((filled / 6) * 100);
+    const pctEl = document.getElementById('prof-complete-pct');
+    const barEl = document.getElementById('prof-complete-bar');
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (barEl) barEl.style.width = pct + '%';
+}
+
+// نافذتا التلميح وقائمة التقييم (فتح/إغلاق)، وتنظيف إيموجي الترجمة من العناصر ذات .pf-lbl (يعاد تلقائياً لو أُعيد تطبيق اللغة)
+function setupProfileUi(student) {
+    refreshProfileMeta(student);
+    const pairs = [['btn-prof-hint', 'prof-edit-hint'], ['btn-prof-eval-menu', 'prof-eval-menu']];
+    const closeAll = () => pairs.forEach(([b, p]) => {
+        const box = document.getElementById(p), btn = document.getElementById(b);
+        if (box) box.hidden = true;
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+    pairs.forEach(([b, p]) => {
+        const btn = document.getElementById(b), box = document.getElementById(p);
+        if (!btn || !box) return;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasOpen = !box.hidden;
+            closeAll();
+            box.hidden = wasOpen;
+            btn.setAttribute('aria-expanded', String(!wasOpen));
+        });
+    });
+    document.getElementById('prof-eval-menu')?.addEventListener('click', closeAll);
+    if (window.__pfOutsideClose) document.removeEventListener('click', window.__pfOutsideClose);
+    window.__pfOutsideClose = (e) => { if (!e.target.closest || !e.target.closest('.pf-pop')) closeAll(); };
+    document.addEventListener('click', window.__pfOutsideClose);
+
+    const root = document.querySelector('.pf-page');
+    if (!root) return;
+    const tidy = () => root.querySelectorAll('.pf-lbl').forEach(el => {
+        const c = stripEmoji(el.textContent);
+        if (c !== el.textContent) el.textContent = c;
+    });
+    tidy();
+    new MutationObserver(tidy).observe(root, { subtree: true, childList: true, characterData: true });
+}
+
 function computeAgeLabel(dob) {
     if (!dob) return t("stu_age_not_set");
     const d = new Date(dob);
@@ -1470,14 +1539,16 @@ function setupInlineProfileEditing(student) {
     bindInlineFieldEdit(document.getElementById('prof-grade'), {
         getValue: () => student.grade || '',
         setValue: (v) => { student.grade = v.trim(); },
-        render: () => (student.grade ? trStored(student.grade) : t("stu_grade_not_set"))
+        render: () => (student.grade ? trStored(student.grade) : t("stu_grade_not_set")),
+        onAfterSave: () => refreshProfileMeta(student)
     });
 
     // الدولة — اختياري
     bindInlineFieldEdit(document.getElementById('prof-country'), {
         getValue: () => student.country || '',
         setValue: (v) => { student.country = v.trim(); },
-        render: () => student.country ? `🌍 ${esc(student.country)}` : t("stu_country_not_set")
+        render: () => student.country ? esc(student.country) : stripEmoji(t("stu_country_not_set")),
+        onAfterSave: () => refreshProfileMeta(student)
     });
 
     // الهاتف — اختياري
@@ -1485,7 +1556,8 @@ function setupInlineProfileEditing(student) {
         inputType: 'tel',
         getValue: () => student.phone || '',
         setValue: (v) => { student.phone = v.trim(); },
-        render: () => student.phone ? `📱 ${esc(student.phone)}` : t("stu_phone_not_set")
+        render: () => student.phone ? esc(student.phone) : stripEmoji(t("stu_phone_not_set")),
+        onAfterSave: () => refreshProfileMeta(student)
     });
 
     // تاريخ الميلاد — الحقل المعروض فعليًا هو "العمر" المحسوب، لكن التعديل يتم على
@@ -1494,7 +1566,8 @@ function setupInlineProfileEditing(student) {
         inputType: 'date',
         getValue: () => student.dob || '',
         setValue: (v) => { student.dob = v; },
-        render: () => `🎂 ${computeAgeLabel(student.dob)}`
+        render: () => computeAgeLabel(student.dob),
+        onAfterSave: () => refreshProfileMeta(student)
     });
 
     setupAvatarEdit(student);
@@ -1522,6 +1595,7 @@ function setupAvatarEdit(student) {
             const img = document.getElementById('prof-avatar');
             img.src = student.avatar;
             img.style.display = 'block';
+            refreshProfileMeta(student);
         };
         reader.readAsDataURL(fileInput.files[0]);
     });

@@ -1,41 +1,101 @@
 <!-- student/student-profile.html -->
 <style>
-    /* 🌟 [جديد 2026-10-01] زرّا "ابدأ تقييم" — الأول بنفس لون الإجراء الرئيسي المعتمد في المنصة (ذهبي) والثاني ثانوي زمرّدي.
-       بادئة #app-root لازمة للتغلب على !important الموجودة في .adult-theme .btn (adults.css) بلا لمس تلك القاعدة العامة 🌟 */
-    #app-root .prof-start-eval-btn { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important; color: var(--dh-emerald-900) !important; border: none !important; box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important; }
-    #app-root .prof-start-eval-alt { background: #fff !important; color: var(--dh-emerald-700) !important; border: 2px solid var(--dh-emerald-600) !important; box-shadow: none !important; }
+    /* 🌟 [2026-10-20 — إعادة تصميم ملف الطالب (النموذج أ)] الصفحة للمعلم: يعدّل بيانات الطالب ويطّلع عليها. «ابدأ تقييم» صار قائمة صغيرة
+       بدل أن يكون الزر الأكبر. كل المعرّفات (id) والوظائف كما هي؛ تغيّر الهيكل والتنسيق فقط (انظر refreshProfileMeta وsetupProfileUi في student.js).
+       أيقونات SVG موحّدة بدل الإيموجي، والأصناف الجديدة كلها بادئتها pf- حتى لا تتعارض مع .btn / .stat-card القديمة 🌟 */
+    .pf-page { padding: 20px 16px 40px; max-width: 1000px; margin: 0 auto; direction: rtl; }
+    .pf-page svg.pf-i { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    html[dir="ltr"] .pf-page { direction: ltr; }
+    html[dir="ltr"] .pf-back svg { transform: scaleX(-1); }
+    .pf-page .prof-inline-input { font: inherit; color: var(--dh-ink); background: #fff; border: 2px solid var(--dh-gold-500); border-radius: 8px; padding: 2px 8px; width: 100%; max-width: 260px; box-sizing: border-box; }
+    .pf-page .prof-editable-field { cursor: text; border-radius: 8px; padding: 0 4px; margin: 0 -4px; transition: background .15s; }
+    .pf-page .prof-editable-field:hover:not(.is-editing) { background: rgba(212, 175, 55, .22); outline: none; }
+    .pf-page .prof-editable-field:hover:not(.is-editing)::after { content: none; }
 
-    /* 🌟 [توحيد الهوية] ملف الطالب بلغة الجيل الحديث (نفس معرّفات الأزرار والوظائف): الإجراءات الثانوية بشكل «شفاف بحد» واحد بدل
-       التدرّج الأزرق المخضر القديم، «علاج الأخطاء» بنبرة الخطر الهادئة، زر العودة بحجم 44px، وصورة بإطار ذهبي،
-       وإحصاءات بلون واحد. الأرقام والبيانات لم تتغير. 🌟 */
-    #app-root #btn-back-from-prof { background: var(--dh-surface) !important; color: var(--dh-emerald-700) !important; border: 1px solid var(--dh-line) !important; box-shadow: none !important; min-height: 44px; padding: 8px 18px !important; font-size: 1rem !important; }
-    #app-root .profile-header .btn-outline:not(.prof-start-eval-alt) { background: transparent !important; color: var(--dh-emerald-700) !important; border: 2px solid var(--dh-emerald-700) !important; box-shadow: none !important; padding: 8px 18px !important; font-size: 1rem !important; min-height: 44px; }
-    #app-root .profile-header .btn-outline:not(.prof-start-eval-alt):disabled { border-color: var(--dh-line-strong) !important; color: var(--dh-ink-soft) !important; }
-    #app-root .profile-header #btn-prof-weakness:not(.btn-idle) { background: var(--dh-danger-bg) !important; color: var(--dh-danger) !important; border: 2px solid var(--dh-danger) !important; box-shadow: none !important; padding: 8px 18px !important; font-size: 1rem !important; min-height: 44px; }
-    #app-root .profile-header #btn-prof-weakness.btn-idle { padding: 8px 18px !important; font-size: 1rem !important; min-height: 44px; }
-    #app-root .prof-start-eval-btn, #app-root .prof-start-eval-alt { min-height: 44px; }
-    #app-root .profile-header { border: 1px solid var(--dh-line); border-radius: var(--dh-r-lg); }
-    #app-root .profile-avatar { border: 3px solid var(--dh-gold-500); background: var(--dh-emerald-700); }
-    #app-root .profile-avatar--initial { background: var(--dh-emerald-700); color: var(--dh-gold-300); font-weight: 700; font-size: 2.6rem; }
-    #app-root .stat-card { border: 1px solid var(--dh-line); border-radius: var(--dh-r-lg); }
-    .stat-card h3 { color: var(--dh-ink-soft) !important; text-shadow: none !important; font-size: 1rem !important; }
-    .stat-card p { color: var(--dh-emerald-700) !important; }
-    #prof-name { color: var(--dh-ink) !important; text-shadow: none !important; }
-    #prof-grade { color: var(--dh-emerald-600) !important; }
-    .profile-wrapper { padding: 40px 20px; max-width: 900px; margin: 0 auto; direction: rtl; }
-    .profile-header { display: flex; align-items: center; gap: 20px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px; border: 2px solid #e2e8f0; flex-wrap: wrap; }
-    .profile-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #10b981; background: #f8fafc; font-size: 3rem; display: flex; align-items: center; justify-content: center; }
-    .profile-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; border: 2px solid #e2e8f0; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .history-table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    .history-table th, .history-table td { padding: 15px; text-align: center; border-bottom: 1px solid #f1f5f9; }
-    .history-table th { background: #064e3b; color: white; font-size: 1.2rem; }
-    .history-table td { font-size: 1.1rem; font-weight: bold; color: #1e293b; }
+    .pf-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--dh-tap); padding: 8px 18px; border-radius: var(--dh-r-md); border: 1px solid var(--dh-line-strong); background: var(--dh-surface); color: var(--dh-emerald-700); font: inherit; font-weight: 600; font-size: .95rem; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+    .pf-btn:hover { transform: translateY(-1px); box-shadow: var(--dh-sh-soft); }
+    .pf-btn:focus-visible, .pf-tile:focus-visible, .pf-chip:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
+    .pf-btn-gold { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); border-color: transparent; color: #3a2c00; }
+
+    .pf-topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+    .pf-grow { flex: 1; }
+    .pf-pop { position: relative; }
+    .pf-popbox { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); background: var(--dh-surface); border: 1px solid var(--dh-line); border-radius: var(--dh-r-md); box-shadow: var(--dh-sh-lift); z-index: 30; }
+    .pf-hint { width: min(320px, 80vw); padding: 12px 14px; font-size: .9rem; color: var(--dh-ink-soft); }
+    .pf-menu { min-width: 220px; padding: 6px; }
+    .pf-menu button { display: flex; width: 100%; align-items: center; gap: 8px; border: 0; background: transparent; padding: 10px 12px; border-radius: var(--dh-r-sm); font: inherit; color: var(--dh-ink); text-align: start; min-height: var(--dh-tap); cursor: pointer; }
+    .pf-menu button:hover { background: var(--dh-surface-alt); }
+
+    .pf-hero { border-radius: var(--dh-r-xl); padding: 28px; color: #fff; background: radial-gradient(900px 300px at 100% 0, rgba(212, 175, 55, .22), transparent 60%), linear-gradient(135deg, var(--dh-emerald-800), var(--dh-emerald-900)); box-shadow: var(--dh-sh-soft); display: flex; gap: 26px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+    .pf-avatar { position: relative; width: 112px; height: 112px; flex: none; }
+    .pf-avatar .profile-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--dh-gold-500); background: var(--dh-emerald-700); display: flex; align-items: center; justify-content: center; font-size: 3rem; box-sizing: border-box; }
+    .pf-avatar .profile-avatar--initial { color: var(--dh-gold-300); font-weight: 700; font-size: 2.8rem; }
+    .pf-avatar-cam { position: absolute; bottom: -2px; inset-inline-end: -2px; width: 36px; height: 36px; border-radius: 50%; background: var(--dh-gold-500); color: #3a2c00; border: 3px solid var(--dh-emerald-800); display: grid; place-items: center; padding: 0; cursor: pointer; }
+    .pf-hero-main { flex: 1; min-width: 240px; }
+    .pf-hero h1 { margin: 0; font-size: 2rem; line-height: 1.3; font-family: var(--dh-font-ui); color: #fff; }
+    .pf-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 3px 12px; border-radius: 999px; background: var(--dh-gold-500); color: #3a2c00; font-size: .88rem; font-weight: 600; }
+    .pf-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .pf-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; min-height: 36px; border-radius: 999px; background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .2); font-size: .9rem; color: rgba(255, 255, 255, .85); }
+    .pf-chip[data-missing="1"] { border-style: dashed; background: transparent; color: var(--dh-gold-300); }
+    .pf-hero-side { display: flex; flex-direction: column; gap: 12px; min-width: 200px; flex: 0 1 230px; }
+    .pf-prog-head { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: .85rem; color: rgba(255, 255, 255, .75); }
+    .pf-prog-head b { color: #fff; font-variant-numeric: tabular-nums; }
+    .pf-bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .2); overflow: hidden; }
+    .pf-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--dh-emerald-600), var(--dh-gold-500)); }
+
+    .pf-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .pf-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-align: start; padding: 16px; border-radius: var(--dh-r-lg); background: var(--dh-surface); border: 1px solid var(--dh-line); box-shadow: var(--dh-sh-soft); min-height: 96px; font: inherit; color: var(--dh-ink); cursor: pointer; transition: transform .15s, border-color .15s; }
+    .pf-tile:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--dh-emerald-600); }
+    .pf-tile:disabled { background: var(--dh-surface-alt); color: var(--dh-ink-soft); box-shadow: none; cursor: default; }
+    .pf-tile:disabled .pf-tile-ic { background: var(--dh-line); color: var(--dh-ink-soft); }
+    .pf-tile-ic { width: 40px; height: 40px; border-radius: var(--dh-r-md); display: grid; place-items: center; background: #dcf1e8; color: var(--dh-emerald-700); }
+    .pf-tile-ic svg { width: 22px; height: 22px; }
+    .pf-tile-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; font-size: .98rem; }
+    .pf-tile.is-warn:not(:disabled) .pf-tile-ic { background: var(--dh-danger-bg); color: var(--dh-danger); }
+    .pf-tile.is-warn:not(:disabled) { border-color: rgba(185, 28, 28, .3); }
+    .pf-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 99px; background: var(--dh-danger); color: #fff; font-size: .8rem; font-weight: 700; }
+    .pf-badge:empty { display: none; }
+
+    .pf-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .pf-stat { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: var(--dh-r-lg); background: var(--dh-surface); border: 1px solid var(--dh-line); box-shadow: var(--dh-sh-soft); }
+    .pf-stat-ic { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; flex: none; background: #fbf3d6; color: #7a5c08; }
+    .pf-stat-ic.is-g { background: #dcf1e8; color: var(--dh-emerald-700); }
+    .pf-stat-ic svg { width: 24px; height: 24px; }
+    .pf-stat-v { margin: 0; font-size: 2rem; font-weight: 700; line-height: 1.1; color: var(--dh-emerald-700); font-variant-numeric: tabular-nums; }
+    .pf-stat-l { margin: 0; font-size: .88rem; color: var(--dh-ink-soft); }
+
+    .pf-h2 { display: flex; align-items: center; gap: 8px; margin: 22px 0 12px; font-size: 1.15rem; color: var(--dh-emerald-800); }
+    .pf-tablewrap { overflow-x: auto; background: var(--dh-surface); border: 1px solid var(--dh-line); border-radius: var(--dh-r-lg); box-shadow: var(--dh-sh-soft); }
+    .history-table { width: 100%; border-collapse: collapse; }
+    .history-table th { padding: 11px 14px; text-align: start; font-size: .82rem; font-weight: 600; color: var(--dh-ink-soft); border-bottom: 1px solid var(--dh-line-strong); letter-spacing: .02em; }
+    .history-table td { padding: 12px 14px; text-align: start; font-size: .93rem; border-bottom: 1px solid var(--dh-line); color: var(--dh-ink); font-variant-numeric: tabular-nums; }
+    .history-table tr:last-child td { border-bottom: 0; }
+    .pf-pct { display: flex; align-items: center; gap: 10px; }
+    .pf-pct-bar { flex: 1; min-width: 60px; height: 8px; border-radius: 99px; background: var(--dh-line); overflow: hidden; }
+    .pf-pct-bar > i { display: block; height: 100%; border-radius: 99px; }
+    .pf-pct b { min-width: 44px; }
+
+    .dtpa-badges-title { display: flex; align-items: center; gap: 8px; }
+
+    @media (max-width: 860px) { .pf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) {
+        .pf-page { padding: 12px 12px 32px; }
+        .pf-hero { padding: 20px; gap: 18px; }
+        .pf-hero h1 { font-size: 1.6rem; }
+        .pf-hero-side { flex-basis: 100%; }
+        .pf-stats { gap: 8px; }
+        .pf-stat { flex-direction: column; text-align: center; gap: 6px; padding: 12px 6px; }
+        .pf-stat-ic { width: 36px; height: 36px; }
+        .pf-stat-ic svg { width: 18px; height: 18px; }
+        .pf-stat-v { font-size: 1.5rem; }
+        .pf-stat-l { font-size: .72rem; line-height: 1.3; }
+    }
+    @media (prefers-reduced-motion: reduce) { .pf-btn, .pf-tile { transition: none; } }
 
     /* 🌟 [جديد] بادئة معزولة تماماً (dtpa-) لعرض إنجازات "الاختبارات الثنائية" في ملف
        الطالب — لا تلمس أي صنف عام موجود، فقط قواعد جديدة خاصة بهذا القسم. نفس الهوية
        البصرية المعتمدة في كل المنصة (--dh-emerald / --dh-gold) */
-    .dtpa-badges-section { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid #e2e8f0; margin-bottom: 30px; }
+    .dtpa-badges-section { background: var(--dh-surface); padding: 22px; border-radius: var(--dh-r-lg); box-shadow: var(--dh-sh-soft); border: 1px solid var(--dh-line); margin-bottom: 16px; }
     .dtpa-badges-title { margin: 0 0 15px 0; color: #064e3b; font-size: 1.3rem; }
     .dtpa-badges-grid { display: flex; flex-wrap: wrap; gap: 12px; }
     .dtpa-badge-item { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fffbeb, #ffffff); border: 2px solid var(--dh-gold-500); border-radius: 30px; padding: 10px 18px; }
@@ -51,7 +111,7 @@
        css/tajweed.css بدلاً من ألوان المنصة المعتادة، بنفس الاستثناء الموثَّق في القسم 10 من
        مستند "التصور-المعماري-الكامل-لمسار-التجويد.md" — باقي هذه الصفحة (dtpa-* وغيرها)
        يلتزم بالهوية الموحّدة كما هي، هذا القسم فقط استثناء صريح ومحصور. */
-    .tjp-section { background: #f7f0e1; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 2px solid #1e3a5f22; margin-bottom: 30px; }
+    .tjp-section { background: #f7f0e1; padding: 22px; border-radius: var(--dh-r-lg); box-shadow: var(--dh-sh-soft); border: 2px solid #1e3a5f22; margin-bottom: 16px; }
     .tjp-title { margin: 0 0 15px 0; color: #1e3a5f; font-size: 1.3rem; }
     .tjp-empty { color: #7a6a54; text-align: center; padding: 15px 0; }
     .tjp-summary { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
@@ -62,95 +122,96 @@
     .tjp-badge-item { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fffdf6, #f7f0e1); border: 2px solid #8c2f3d55; border-radius: 30px; padding: 10px 18px; }
     .tjp-badge-item .tjp-badge-icon { font-size: 1.6rem; }
     .tjp-badge-item .tjp-badge-name { font-weight: bold; color: #3a2c1f; font-size: 1rem; }
-
-    /* 🌟 [جديد] التعديل المباشر (Inline Edit) لبيانات ملف الطالب — الشاشة تفتح على
-       عرضها المعتاد، وأي بيانة معروضة (الاسم، الصف، تاريخ الميلاد، الدولة، الهاتف،
-       الصورة) قابلة للتعديل بالضغط عليها مباشرة، من غير مودال منفصل. الحفظ فوري عند
-       الخروج من الحقل، وزر "📅 تقرير الإنجاز الشهري" الموجود أصلاً هو أمر الطباعة
-       النهائي بعد الانتهاء من أي تعديل (راجع setupInlineProfileEditing في student.js) 🌟 */
-    .prof-edit-hint { color: #92400e; background: #fffbeb; border: 1px dashed var(--dh-gold-500); border-radius: 10px; padding: 8px 14px; font-size: 0.95rem; margin-bottom: 15px; display: inline-block; }
-    .prof-editable-field { cursor: pointer; border-radius: 6px; }
-    .prof-editable-field:hover:not(.is-editing) { background: #fffbeb; outline: 1px dashed var(--dh-gold-500); }
-    .prof-editable-field:hover:not(.is-editing)::after { content: " ✏️"; opacity: 0.6; font-size: 0.75em; }
-    .prof-inline-input { font: inherit; color: inherit; background: #fff; border: 2px solid var(--dh-gold-500); border-radius: 6px; padding: 2px 8px; width: 100%; max-width: 260px; box-sizing: border-box; }
-    .profile-avatar-wrap { position: relative; }
-    .prof-avatar-edit-btn { position: absolute; bottom: -2px; inset-inline-end: -2px; width: 32px; height: 32px; border-radius: 50%; background: var(--dh-gold-500); color: #1e293b; border: 3px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2); padding: 0; }
 </style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="pfi-back" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="pfi-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.8 2.8 0 00-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+<symbol id="pfi-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="pfi-wrench" viewBox="0 0 24 24"><path d="M14.5 6.5a4 4 0 005 5L20 12 9 21a2.1 2.1 0 01-3-3l9-9z"/><path d="M14.5 6.5l3-3"/></symbol>
+<symbol id="pfi-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2.5h8a2 2 0 012 2V18a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></symbol>
+<symbol id="pfi-cal" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></symbol>
+<symbol id="pfi-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12.5 16V8M17 16v-8"/></symbol>
+<symbol id="pfi-trophy" viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 01-10 0z"/><path d="M7 6H4v2a3 3 0 003 3M17 6h3v2a3 3 0 01-3 3M12 14v4M8.5 20h7"/></symbol>
+<symbol id="pfi-swords" viewBox="0 0 24 24"><path d="M5 4l8 8M19 4l-8 8M4 20l3-3M20 20l-3-3M8 16l-2 2M16 16l2 2"/></symbol>
+<symbol id="pfi-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></symbol>
+<symbol id="pfi-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+<symbol id="pfi-phone" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/></symbol>
+<symbol id="pfi-cake" viewBox="0 0 24 24"><path d="M4 20h16v-6a2 2 0 00-2-2H6a2 2 0 00-2 2zM4 16c2 1.5 3 1.5 4 0s3-1.5 4 0 3 1.5 4 0 2-1.5 4 0M12 12V8M12 5.5v.01"/></symbol>
+<symbol id="pfi-grad" viewBox="0 0 24 24"><path d="M2.5 9L12 4.5 21.5 9 12 13.5z"/><path d="M6.5 11.5V16c1.5 1.7 3.4 2.5 5.5 2.5s4-.8 5.5-2.5v-4.5"/></symbol>
+<symbol id="pfi-play" viewBox="0 0 24 24"><path d="M7 4.5l12 7.5-12 7.5z"/></symbol>
+<symbol id="pfi-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></symbol>
+<symbol id="pfi-award" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5.5"/><path d="M8.5 13.5L7 21l5-3 5 3-1.5-7.5"/></symbol>
+</defs></svg>
+<div class="screen active profile-wrapper pf-page">
+    <div class="pf-topbar">
+        <button class="pf-btn pf-back" id="btn-back-from-prof" type="button"><svg class="pf-i"><use href="#pfi-back"/></svg><span class="pf-lbl" data-i18n="pfx_back">العودة</span></button>
+        <span class="pf-grow"></span>
+        <!-- تلميح التعديل المباشر صار زراً صغيراً بدل الشريط الدائم (النص نفسه prof_edit_hint) -->
+        <div class="pf-pop">
+            <button class="pf-btn" id="btn-prof-hint" type="button" aria-expanded="false"><svg class="pf-i"><use href="#pfi-info"/></svg><span data-i18n="pf_hint_btn">كيف أعدّل؟</span></button>
+            <div class="pf-popbox pf-hint" id="prof-edit-hint" hidden><span class="pf-lbl" data-i18n="prof_edit_hint">اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر "تقرير الإنجاز الشهري" للطباعة بعد الانتهاء</span></div>
+        </div>
+        <!-- بدء التقييم: إجراء ثانوي في قائمة؛ الأول بالوضع المناسب لصف الطالب والثاني بالآخر (النصوص من loadStudentProfileScreen) -->
+        <div class="pf-pop">
+            <button class="pf-btn" id="btn-prof-eval-menu" type="button" aria-expanded="false"><svg class="pf-i"><use href="#pfi-play"/></svg><span data-i18n="pf_eval_menu_btn">بدء تقييم</span></button>
+            <div class="pf-popbox pf-menu" id="prof-eval-menu" hidden>
+                <button type="button" id="btn-prof-start-eval"></button>
+                <button type="button" id="btn-prof-start-eval-alt"></button>
+            </div>
+        </div>
+    </div>
 
-<div class="screen active profile-wrapper">
-    <button class="btn btn-outline" id="btn-back-from-prof" data-i18n="pfx_back" style="margin-bottom: 20px; font-size: 1.2rem;">🔙 العودة</button>
-
-    <!-- 🌟 [جديد] تنويه بسيط لتوضيح إن كل البيانات المعروضة قابلة للتعديل مباشرة 🌟 -->
-    <p class="prof-edit-hint" data-i18n="prof_edit_hint">💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر "تقرير الإنجاز الشهري" للطباعة بعد الانتهاء</p>
-
-    <div class="profile-header">
-        <!-- 🌟 [جديد] غلاف الصورة + زر تغييرها — يحيط بالصورة الفعلية أو شكل الإيموجي
-             البديل (يُدرَج ديناميكياً من student.js) على حدٍ سواء 🌟 -->
-        <div class="profile-avatar-wrap" id="prof-avatar-wrap">
+    <section class="pf-hero profile-header">
+        <!-- غلاف الصورة + زر تغييرها — يحيط بالصورة الفعلية أو الدائرة البديلة (تُدرَج من student.js) -->
+        <div class="pf-avatar" id="prof-avatar-wrap">
             <img id="prof-avatar" class="profile-avatar" src="" alt="صورة الطالب">
-            <button type="button" class="prof-avatar-edit-btn" id="btn-prof-avatar-edit" data-i18n-title="prof_avatar_change_title" title="تغيير الصورة">📷</button>
+            <button type="button" class="pf-avatar-cam" id="btn-prof-avatar-edit" data-i18n-title="prof_avatar_change_title" title="تغيير الصورة"><svg class="pf-i"><use href="#pfi-cam"/></svg></button>
             <input type="file" id="prof-avatar-file" accept="image/*" style="display:none;">
         </div>
-        <div style="flex: 1;">
-            <h1 id="prof-name" style="margin: 0; color: #064e3b; font-size: 2.2rem; font-family: 'IBM Plex Sans Arabic', sans-serif;">اسم الطالب</h1>
-            <p id="prof-grade" style="margin: 5px 0 0 0; color: #10b981; font-weight: bold; font-size: 1.2rem;">الصف الدراسي</p>
-            <!-- 🌟 الخانات الجديدة التي تعرض كل بيانات الطالب 🌟 -->
-            <p style="margin: 10px 0 0 0; color: #475569; font-size: 1.1rem; line-height: 1.8;">
-                <span id="prof-age"></span> | <span id="prof-country"></span> | <span id="prof-phone"></span>
-            </p>
+        <div class="pf-hero-main">
+            <h1 id="prof-name">اسم الطالب</h1>
+            <span class="pf-pill"><svg class="pf-i"><use href="#pfi-grad"/></svg><span id="prof-grade">الصف الدراسي</span></span>
+            <!-- كل بيانات الطالب؛ الناقص منها يظهر بإطار منقّط (data-missing) -->
+            <div class="pf-chips">
+                <span class="pf-chip" id="pf-chip-age" data-missing="1"><svg class="pf-i"><use href="#pfi-cake"/></svg><span id="prof-age"></span></span>
+                <span class="pf-chip" id="pf-chip-country" data-missing="1"><svg class="pf-i"><use href="#pfi-globe"/></svg><span id="prof-country"></span></span>
+                <span class="pf-chip" id="pf-chip-phone" data-missing="1"><svg class="pf-i"><use href="#pfi-phone"/></svg><span id="prof-phone"></span></span>
+            </div>
         </div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] بدء تقييم هذا الطالب مباشرة بدل المرور بالرئيسية ثم
-                 واجهة الكبار/الأطفال ثم كتابة الاسم. الزر الأول بالوضع المناسب لصف الطالب (تخمين موثَّق في
-                 student.js: isKidsGrade) والثاني للوضع الآخر — النصوص تُضبط من loadStudentProfileScreen 🌟 -->
-            <button class="btn prof-start-eval-btn" id="btn-prof-start-eval" style="padding: 15px 25px; font-size: 1.3rem;"></button>
-            <button class="btn btn-outline prof-start-eval-alt" id="btn-prof-start-eval-alt" style="padding: 10px 25px; font-size: 1rem;"></button>
-            <!-- زر تعديل كل بيانات الطالب (الاسم/الصف/الدولة/الهاتف/نطاق الحفظ/الصورة) عبر نافذة التعديل الكاملة -->
-            <button class="btn btn-outline" id="btn-prof-edit-all" data-i18n="prof_edit_all_btn" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">✏️ تعديل كل بيانات الطالب</button>
-            <button class="btn btn-wrong" id="btn-prof-weakness" style="padding: 15px 25px; font-size: 1.3rem;">🛠️ علاج الأخطاء</button>
-            <!-- 🌟 [جديد] زر أرشيف الأخطاء المصححة — يعرض كل خطأ سابق صحّحه الطالب
-                 بدل ما يختفي أثره نهائياً (راجع resolvedWeaknesses في student.js) 🌟 -->
-            <button class="btn btn-outline" id="btn-prof-archive" data-i18n="archive_title" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">📂 أرشيف الأخطاء المعالَجة</button>
-            <!-- 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يجمع الواجبات المنزلية والاختبارات
-                 الثنائية والأخطاء المعالَجة وانتظام المراجعة عبر شهر كامل (راجع
-                 reports/monthly-report.js وشاشة فتحه في student.js) 🌟 -->
-            <button class="btn btn-outline" id="btn-prof-monthly-report" data-i18n="monthly_report_btn" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">📅 تقرير الإنجاز الشهري</button>
-            <!-- 🌟 [جديد — الواجب الذكي] ملف مهارات الطالب: دقة كل مهارة، التشخيص التلقائي، جودة الأداء، وخريطة إتقان المقاطع
-                 (components/skillProfile.js). النص يُضبط من student.js بلغة الواجهة 🌟 -->
-            <button class="btn btn-outline" id="btn-prof-skills" style="padding: 12px 25px; font-size: 1.1rem; border-color: var(--dh-gold-500); color: var(--dh-emerald-700);">📊 ملف المهارات</button>
+        <div class="pf-hero-side">
+            <div>
+                <div class="pf-prog-head"><span data-i18n="pf_complete_lbl">اكتمال الملف</span><b id="prof-complete-pct">0%</b></div>
+                <div class="pf-bar"><i id="prof-complete-bar" style="width:0%"></i></div>
+            </div>
+            <!-- تعديل كل بيانات الطالب (الاسم/الصف/الدولة/الهاتف/نطاق الحفظ/الصورة) عبر نافذة التعديل الكاملة -->
+            <button class="pf-btn pf-btn-gold" id="btn-prof-edit-all" type="button"><svg class="pf-i"><use href="#pfi-pen"/></svg><span class="pf-lbl" data-i18n="prof_edit_all_btn">تعديل كل بيانات الطالب</span></button>
         </div>
+    </section>
+
+    <div class="pf-tiles">
+        <!-- علاج الأخطاء (عدّاد المستحق في الشارة) — النص يُضبط من student.js -->
+        <button class="pf-tile is-warn" id="btn-prof-weakness" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-wrench"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span><span class="pf-badge"></span></span></button>
+        <!-- تقرير الإنجاز الشهري: الواجبات والاختبارات الثنائية والأخطاء المعالَجة وانتظام المراجعة (reports/monthly-report.js) -->
+        <button class="pf-tile" id="btn-prof-monthly-report" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-cal"/></svg></span><span class="pf-tile-t"><span class="pf-t pf-lbl" data-i18n="monthly_report_btn">تقرير الإنجاز الشهري</span></span></button>
+        <!-- ملف المهارات (components/skillProfile.js) — النص يُضبط من student.js بلغة الواجهة -->
+        <button class="pf-tile" id="btn-prof-skills" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-chart"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
+        <!-- أرشيف الأخطاء المصححة (resolvedWeaknesses) — معطّل ما لم يوجد أرشيف -->
+        <button class="pf-tile" id="btn-prof-archive" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-folder"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
     </div>
 
-    <div class="profile-stats">
-        <div class="stat-card">
-            <h3 data-i18n="pfx_total_points" style="margin:0; color:#64748b;">إجمالي النقاط المكتسبة 🏆</h3>
-            <p id="prof-points" style="font-size: 2.5rem; font-weight: bold; color:#f59e0b; margin:10px 0 0 0;">0</p>
-        </div>
-        <div class="stat-card">
-            <h3 data-i18n="pfx_eval_count" style="margin:0; color:#64748b;">عدد التقييمات السابقة 📈</h3>
-            <p id="prof-evals" style="font-size: 2.5rem; font-weight: bold; color:#10b981; margin:10px 0 0 0;">0</p>
-        </div>
-        <!-- 🌟 [جديد] عدد انتصارات "الاختبارات الثنائية" — يُملأ من dualtests/dual-test-play.js
-             عبر AppState.dualTestsManager (راجع renderDualTestAchievements في student.js) -->
-        <div class="stat-card">
-            <h3 data-i18n="pfx_dual_wins" style="margin:0; color:#64748b;">انتصارات الاختبارات الثنائية 🆚</h3>
-            <p id="prof-duel-wins" style="font-size: 2.5rem; font-weight: bold; color:var(--dh-ok, #15803d); margin:10px 0 0 0;">0</p>
-        </div>
+    <div class="pf-stats">
+        <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-points">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_total_points">إجمالي النقاط المكتسبة</p></div></div>
+        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-trend"/></svg></span><div><p class="pf-stat-v" id="prof-evals">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_eval_count">عدد التقييمات السابقة</p></div></div>
+        <!-- انتصارات "الاختبارات الثنائية" — يُملأ من renderDualTestAchievements في student.js -->
+        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-swords"/></svg></span><div><p class="pf-stat-v" id="prof-duel-wins">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_dual_wins">انتصارات الاختبارات الثنائية</p></div></div>
     </div>
 
-    <!-- 🌟 [جديد] بطاقة أوسمة/إنجازات "الاختبارات الثنائية" — راجع BADGE_CATALOG في
-         engine/dualTestEngine.js وrenderDualTestAchievements في student.js -->
+    <!-- أوسمة "الاختبارات الثنائية" — راجع BADGE_CATALOG في engine/dualTestEngine.js وrenderDualTestAchievements -->
     <div class="dtpa-badges-section">
-        <h3 class="dtpa-badges-title" data-i18n="pfx_dual_badges">🎖️ أوسمة الاختبارات الثنائية</h3>
+        <h3 class="dtpa-badges-title"><svg class="pf-i"><use href="#pfi-award"/></svg><span class="pf-lbl" data-i18n="pfx_dual_badges">أوسمة الاختبارات الثنائية</span></h3>
         <div id="dtpa-badges-grid" class="dtpa-badges-grid"></div>
     </div>
-
-    <!-- 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" — إضافة صرفة بلا أي لمس لبقية الشاشة، بهوية
-         "أبطال التجويد" المستقلة (لازوردي/نحاسي/عنّابي، راجع css/tajweed.css) داخل بطاقة معزولة
-         بادئتها tjp- (Tajweed-Journey-Profile) حتى لا تتعارض مع أي فئة أخرى في هذه الصفحة.
-         يُملأ من renderTajweedProfileSection في student.js عبر AppState.tajweedManager —
-         best-effort بالكامل (لو الميزة غير مُهيَّأة لأي سبب، تُعرض حالة "لم يبدأ بعد" بدل تعطيل
-         باقي شاشة الملف الشخصي، بنفس أسلوب renderDualTestAchievements تماماً). -->
+    <!-- قسما «إتقان المتشابهات» و«مسار التجويد» بهويتهما المستقلة (simp-/tjp-)، يُملآن من student.js (best-effort) -->
     <div class="simp-section" id="simp-section">
         <h3 class="simp-title" data-i18n="sim_profile_section_title">إتقان المتشابهات 🔗</h3>
         <div id="simp-content"></div>
@@ -161,22 +222,21 @@
         <div id="tjp-content"></div>
     </div>
 
-    <h2 data-i18n="pfx_history_title" style="color: #064e3b; border-bottom: 2px solid #d4af37; padding-bottom: 10px; display: inline-block;">سجل التقييمات السابقة 📅</h2>
-    <div style="overflow-x: auto; margin-top: 15px;">
+    <h2 class="pf-h2"><svg class="pf-i"><use href="#pfi-cal"/></svg><span class="pf-lbl" data-i18n="pfx_history_title">سجل التقييمات السابقة</span></h2>
+    <div class="pf-tablewrap">
         <table class="history-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;" data-i18n="pfx_col_no">م</th>
-                    <th style="width: 25%;" data-i18n="pfx_col_date">التاريخ</th>
-                    <th style="width: 50%;" data-i18n="pfx_col_range">نطاق التقييم</th>
-                    <th style="width: 15%;" data-i18n="pfx_col_pct">النسبة المئوية</th>
+                    <th style="width: 8%;" data-i18n="pfx_col_no">م</th>
+                    <th style="width: 22%;" data-i18n="pfx_col_date">التاريخ</th>
+                    <th style="width: 40%;" data-i18n="pfx_col_range">نطاق التقييم</th>
+                    <th style="width: 30%;" data-i18n="pfx_col_pct">النسبة المئوية</th>
                 </tr>
             </thead>
             <tbody id="prof-history-body"></tbody>
         </table>
     </div>
 </div>
-
 <!-- 🌟 [جديد] نافذة أرشيف الأخطاء المصححة — تعرض كل خطأ سابق صحّحه الطالب بكامل
      تفاصيله (نوع السؤال، نصه، الأخطاء المسجّلة، تاريخ ارتكابه وتاريخ تصحيحه) بدل
      ما يختفي أثره نهائياً بمجرد تصحيحه (راجع resolvedWeaknesses في student.js

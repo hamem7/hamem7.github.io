@@ -1708,6 +1708,9 @@ export const translations = {
         prof_edit_hint: "💡 اضغط على أي بيانة لتعديلها مباشرة، ثم استخدم زر \"تقرير الإنجاز الشهري\" للطباعة بعد الانتهاء",
         prof_avatar_change_title: "تغيير الصورة",
         prof_edit_all_btn: "✏️ تعديل كل بيانات الطالب",
+        pf_hint_btn: "كيف أعدّل؟",
+        pf_eval_menu_btn: "بدء تقييم",
+        pf_complete_lbl: "اكتمال الملف",
 
         // 🌟 [جديد] "بطاقة الترحيب بالطالب" — تحية قصيرة في وسط الشاشة مع صورة الطالب، تظهر
         // فور اختيار اسمه وقبل لوحة التقييم مباشرة ثم تختفي وحدها بعد ثوانٍ قليلة.
@@ -4414,6 +4417,9 @@ export const translations = {
         prof_edit_hint: "💡 Click any info to edit it directly, then use the \"Monthly Achievement Report\" button to print once you're done",
         prof_avatar_change_title: "Change photo",
         prof_edit_all_btn: "✏️ Edit all student data",
+        pf_hint_btn: "How do I edit?",
+        pf_eval_menu_btn: "Start evaluation",
+        pf_complete_lbl: "Profile completeness",
 
         // 🌟 [New] "Student welcome card" — see the matching Arabic block above for the full
         // rationale comment (components/welcomeBanner.js)
