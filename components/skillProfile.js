@@ -31,10 +31,10 @@ export const qualityLabel = (c) => (isEnglish() ? QUALITY_EN[c] : QUALITY[c] && 
 
 const LEVEL_META = {
     unseen:    { ar: 'لم يُسأل', en: 'Not asked', color: '#cbd5e1' },
-    needs_fix: { ar: 'يحتاج علاجاً', en: 'Needs fixing', color: '#dc2626' },
+    needs_fix: { ar: 'يحتاج علاجاً', en: 'Needs fixing', color: 'var(--dh-danger, #b91c1c)' },
     shaky:     { ar: 'هشّ', en: 'Shaky', color: '#f59e0b' },
     solid:     { ar: 'ثابت', en: 'Solid', color: '#34d399' },
-    mastered:  { ar: 'متقن', en: 'Mastered', color: '#047857' }
+    mastered:  { ar: 'متقن', en: 'Mastered', color: 'var(--dh-ok, #15803d)' }
 };
 export const levelLabel = (lv) => { const m = LEVEL_META[lv] || LEVEL_META.unseen; return isEnglish() ? m.en : m.ar; };
 
@@ -186,14 +186,14 @@ export function ensureSkillStyles() {
     styleInjected = true;
 }
 
-const toneColor = { bad: '#dc2626', warn: '#f59e0b', good: '#047857', mute: '#94a3b8' };
+const toneColor = { bad: 'var(--dh-danger, #b91c1c)', warn: '#f59e0b', good: 'var(--dh-ok, #15803d)', mute: '#94a3b8' };
 
 function skillBarsHTML(ctx) {
     return SKILLS.map(sk => {
         const st = ctx.stats[sk];
         const has = st && st.count > 0 && st.acc !== null;
         const pct = has ? Math.round(st.acc * 100) : 0;
-        const color = !has ? '#cbd5e1' : !st.enough ? '#94a3b8' : st.acc < THRESHOLDS.weakAcc ? '#dc2626' : st.acc >= THRESHOLDS.strongAcc ? '#047857' : '#f59e0b';
+        const color = !has ? '#cbd5e1' : !st.enough ? '#94a3b8' : st.acc < THRESHOLDS.weakAcc ? 'var(--dh-danger, #b91c1c)' : st.acc >= THRESHOLDS.strongAcc ? 'var(--dh-ok, #15803d)' : '#f59e0b';
         const hint = !has ? L('لا بيانات', 'No data')
             : L(`${st.count} سؤالاً`, `${st.count} questions`) + (st.enough ? '' : L(' — غير كافٍ للحكم', ' — not enough to judge'));
         const extra = sk === 'fluency' ? L(' (تُقاس في الحصة)', ' (measured in class)') : '';
@@ -218,7 +218,7 @@ function matrixHTML(ctx) {
     const head = `<tr><th></th>${cols.map(([id]) => `<th>${esc(segLabel(id))}</th>`).join('')}</tr>`;
     const rows = skills.map(sk => `<tr><th style="text-align:right">${esc(skillLabel(sk))}</th>${cols.map(([, g]) => {
         const c = g.cells[sk];
-        const bg = !c ? '#f1f5f9' : (c.s / c.n) < 0.5 ? '#dc2626' : (c.s / c.n) < 0.8 ? '#fbbf24' : '#34d399';
+        const bg = !c ? '#f1f5f9' : (c.s / c.n) < 0.5 ? 'var(--dh-danger, #b91c1c)' : (c.s / c.n) < 0.8 ? '#fbbf24' : '#34d399';
         return `<td style="background:${bg}"></td>`;
     }).join('')}</tr>`).join('');
     return `<div style="overflow-x:auto"><table class="sk-mx">${head}${rows}</table></div>
@@ -243,7 +243,7 @@ export function renderSkillProfileHTML(ctx, student) {
     const qHtml = Object.keys(QUALITY).map(k => `<div class="sk-kv"><span>${esc(qualityLabel(k))}${k === 'haraka' ? ` <span class="sk-note">${L('— ضبط تلاوة/تجويد، لا يُعالَج بالواجب', '— recitation/tajweed, not fixed by homework')}</span>` : ''}</span><b>${q[k] || 0}</b></div>`).join('');
     const rangeNote = ctx.range && ctx.range.ok
         ? `<div class="sk-note">${L('نطاق الحفظ المعتمد', 'Memorization range used')}: ${esc(segLabel(ctx.path.segments[0].id))} → ${esc(segLabel(ctx.path.segments[ctx.path.segments.length - 1].id))} (${ctx.path.total} ${L('آية', 'ayahs')}, ${segCount(ctx.path.segments.length)})</div>`
-        : `<div class="sk-note" style="color:#dc2626">${L('لا يوجد نطاق حفظ مسجَّل لهذا الطالب.', 'No memorization range is recorded for this student.')}</div>`;
+        : `<div class="sk-note" style="color:var(--dh-danger, #b91c1c)">${L('لا يوجد نطاق حفظ مسجَّل لهذا الطالب.', 'No memorization range is recorded for this student.')}</div>`;
     return `
     <div class="sk-note">${esc(status.text)}</div>${rangeNote}
     <div class="sk-sec"><h3>${L('مهارات الطالب', 'Student skills')}</h3>

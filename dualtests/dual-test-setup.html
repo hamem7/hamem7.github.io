@@ -66,7 +66,7 @@
     .dts-test-row-meta { font-size: 0.95rem; color: #64748b; }
     .dts-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
     .dts-badge-draft { background: #fef3c7; color: #92400e; }
-    .dts-badge-ready { background: #dcfce7; color: #166534; box-shadow: 0 0 0 3px rgba(22,101,52,0.08); }
+    .dts-badge-ready { background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-ok, #15803d); box-shadow: 0 0 0 3px rgba(22,101,52,0.08); }
     .dts-test-row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .dts-test-row-actions button {
         padding: 8px 14px; font-size: 0.95rem; border-radius: 10px; border: 2px solid #cbd5e1; background: #fff;
@@ -74,12 +74,12 @@
     }
     .dts-test-row-actions button:hover { border-color: var(--dh-emerald-600); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
     .dts-test-row-actions button:active { transform: scale(0.95); }
-    .dts-btn-danger { color: #b91c1c !important; border-color: #fecaca !important; }
+    .dts-btn-danger { color: var(--dh-danger, #b91c1c) !important; border-color: #fecaca !important; }
     .dts-empty-msg { text-align: center; color: #94a3b8; padding: 40px 10px; font-size: 1.1rem; }
     .dts-empty-msg::before { content: "📭"; display: block; font-size: 2.6rem; margin-bottom: 10px; }
 
     /* ===== محرر الاختبار (معالج 3 خطوات) ===== */
-    .dts-hint { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; background: #f0fdf4; border: 1px dashed var(--dh-emerald-600); border-radius: 10px; padding: 10px 14px; }
+    .dts-hint { color: #64748b; font-size: 0.95rem; margin-bottom: 20px; background: var(--dh-ok-bg, #e7f4ee); border: 1px dashed var(--dh-emerald-600); border-radius: 10px; padding: 10px 14px; }
 
     /* 🌟 [جديد] مؤشر الخطوات الثلاث أعلى المحرر — دوائر مرقّمة + خط واصل، يتلوّن حسب التقدّم
        (الحالية بارزة بالذهبي، المكتملة بعلامة صح خضراء) حتى يعرف المعلم مكانه بلمحة دائماً */

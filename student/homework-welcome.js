@@ -24,7 +24,7 @@ function showMsg(text, kind) {
     const box = document.getElementById('hw-welcome-msg');
     if (!box) return;
     const styles = {
-        error: 'background:#fee2e2; color:#b91c1c;',
+        error: 'background:var(--dh-danger-bg, #fde8e8); color:var(--dh-danger, #b91c1c);',
         info: 'background:#e0f2fe; color:#0369a1;'
     };
     box.style.cssText = 'display:block; margin-bottom:20px; padding:15px; border-radius:12px; font-size:1.15rem; line-height:1.7; font-weight:bold; ' + (styles[kind] || styles.info);

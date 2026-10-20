@@ -47,9 +47,9 @@
 .dh-teacher-auth-error {
     margin-top: 12px;
     padding: 10px 12px;
-    background: #fef2f2;
+    background: var(--dh-danger-bg, #fde8e8);
     border: 1px solid #fecaca;
-    color: #b91c1c;
+    color: var(--dh-danger, #b91c1c);
     border-radius: 10px;
     font-size: 0.9rem;
 }

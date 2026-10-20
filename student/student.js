@@ -1033,7 +1033,7 @@ function buildArchiveCard(w) {
     let lang = AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US';
     let recordedDate = w.dateRecorded ? new Date(w.dateRecorded).toLocaleDateString(lang) : '—';
     let resolvedDate = w.dateResolved ? new Date(w.dateResolved).toLocaleDateString(lang) : '—';
-    let errorLine = w.errorTypes ? `<div style="font-size:0.95rem; color:#991b1b; margin-bottom:8px;">${t("الخطأ السابق المسجل:")} [ ${localizeErrorTypes(w.errorTypes)} ]</div>` : '';
+    let errorLine = w.errorTypes ? `<div style="font-size:0.95rem; color:var(--dh-danger, #b91c1c); margin-bottom:8px;">${t("الخطأ السابق المسجل:")} [ ${localizeErrorTypes(w.errorTypes)} ]</div>` : '';
 
     return `
     <div style="border:2px solid #e2e8f0; border-radius: 14px; padding: 15px; background:#f8fafc;">
@@ -1223,7 +1223,7 @@ export async function loadStudentProfileScreen() {
                 tbody.innerHTML = `<tr><td colspan="4">${t('stu_no_history')}</td></tr>`;
             } else {
                 histData.reverse().forEach((record, index) => {
-                    let color = record.score >= 90 ? '#166534' : (record.score >= 80 ? '#064e3b' : (record.score >= 70 ? '#b45309' : '#dc2626'));
+                    let color = record.score >= 90 ? 'var(--dh-ok, #15803d)' : (record.score >= 80 ? '#064e3b' : (record.score >= 70 ? '#b45309' : 'var(--dh-danger, #b91c1c)'));
                     tbody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>

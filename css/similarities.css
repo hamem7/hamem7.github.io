@@ -321,8 +321,8 @@
     display: inline-block;
     margin-top: 6px;
     font-size: 0.9rem;
-    color: #b91c1c;
-    background: #fee2e2;
+    color: var(--dh-danger, #b91c1c);
+    background: var(--dh-danger-bg, #fde8e8);
     padding: 3px 10px;
     border-radius: 10px;
 }
@@ -541,7 +541,7 @@
 }
 
 .sim-icon-btn-danger:hover {
-    background: #fee2e2;
+    background: var(--dh-danger-bg, #fde8e8);
     border-color: #df4e4e;
 }
 
@@ -622,7 +622,7 @@
 .sim-form-remove-occ-btn {
     background: none;
     border: none;
-    color: #b91c1c;
+    color: var(--dh-danger, #b91c1c);
     font-size: 0.85rem;
     cursor: pointer;
     padding: 4px 8px;
@@ -850,8 +850,8 @@
 }
 
 .sim-cat-badge {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--dh-ok-bg, #e7f4ee);
+    color: var(--dh-ok, #15803d);
     border: 1px solid rgba(22, 101, 52, 0.25);
     font-size: 0.85rem;
 }
@@ -949,10 +949,10 @@
 .sim-pick-student-btn.sim-pick-last { box-shadow: 0 0 0 3px var(--dh-gold-500); }
 
 .sim-res-saved { color: #475569; margin: 0 0 14px; font-size: 1rem; }
-.sim-res-failed { color: #b91c1c; font-weight: bold; }
+.sim-res-failed { color: var(--dh-danger, #b91c1c); font-weight: bold; }
 .sim-res-h { margin: 14px 0 8px; font-size: 1.05rem; text-align: right; }
 .sim-res-weak { color: #b45309; }
-.sim-res-up { color: #166534; }
+.sim-res-up { color: var(--dh-ok, #15803d); }
 .sim-res-list { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .sim-res-list li {
     display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
@@ -962,7 +962,7 @@
 
 .sim-level-chip { font-size: 0.82rem; font-weight: bold; padding: 3px 12px; border-radius: 999px; white-space: nowrap; background: #fef3c7; color: #92400e; }
 .sim-level-chip.sim-level-improving { background: #e0e7ff; color: #3730a3; }
-.sim-level-chip.sim-level-mastered { background: #dcfce7; color: #166534; }
+.sim-level-chip.sim-level-mastered { background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-ok, #15803d); }
 .sim-level-chip.sim-level-review { background: #ffe4e6; color: #9f1239; }
 
 /* بطاقة «إتقان المتشابهات» في ملف الطالب */
@@ -983,4 +983,4 @@
 
 /* أسئلة المتشابهات الأربعة: نص السؤال كاملاً (آيات بين ﴿ ﴾ + سياق) بأسطر مستقلة وخط المصحف للآيات */
 .sim-q-text { line-height: 2.2; text-align: center; }
-.sim-q-text .sim-q-verse { display: inline-block; font-size: 1.35em; color: var(--primary, #047857); line-height: 1.9; }
+.sim-q-text .sim-q-verse { display: inline-block; font-size: 1.35em; color: var(--primary, var(--dh-ok, #15803d)); line-height: 1.9; }

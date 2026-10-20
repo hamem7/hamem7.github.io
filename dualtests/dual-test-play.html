@@ -60,7 +60,7 @@
     /* 🌟 [جديد] نص السؤال بخط كبير وعريض يملأ جزءاً كبيراً من الشاشة — لمناسبة الأطفال على
        موبايل/آيباد. حجم متجاوب عبر clamp() بدل رقم ثابت، بلا أي مكتبة خطوط خارجية */
     .dtp-question-range-box { margin: 20px 0 22px 0; display: flex; flex-direction: column; gap: 14px; }
-    .dtp-range-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; background: #f0fdf4; border-radius: 18px; padding: 16px 18px; }
+    .dtp-range-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; background: var(--dh-ok-bg, #e7f4ee); border-radius: 18px; padding: 16px 18px; }
     .dtp-range-row.dtp-range-to { background: #fffbeb; }
     .dtp-range-icon { font-size: clamp(1.6rem, 4.5vw, 2.4rem); flex-shrink: 0; }
     .dtp-range-label { font-size: clamp(1rem, 2.6vw, 1.3rem); font-weight: bold; color: #64748b; flex-shrink: 0; }
@@ -70,7 +70,7 @@
     /* ===== شريط النقاط الحي ===== */
     .dtp-scorebar { display: flex; justify-content: space-between; gap: 15px; background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 14px 18px; margin-bottom: 18px; flex-wrap: wrap; animation: dtp-fadeInUp 0.35s ease both; }
     .dtp-score-side { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 120px; transition: background 0.2s ease; }
-    .dtp-score-side.dtp-turn-active { background: #f0fdf4; border-radius: 12px; padding: 6px; animation: dtp-pulseRing 1.8s ease-in-out infinite; }
+    .dtp-score-side.dtp-turn-active { background: var(--dh-ok-bg, #e7f4ee); border-radius: 12px; padding: 6px; animation: dtp-pulseRing 1.8s ease-in-out infinite; }
     /* 🌟 [جديد] "لحظة حاسمة" — توهج ذهبي نابض على شريط النقاط كله لما الفرق بين الطالبين
        يبقى بسيط جداً (راجع updateScorebarTension في dual-test-play.js) */
     .dtp-scorebar.dtp-tension { border-color: var(--dh-gold-500); animation: dtp-pulseGold 1.3s ease-in-out infinite; }
@@ -105,12 +105,12 @@
     .dtp-question-actions button { padding: 12px 18px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 1.05rem; transition: transform 0.12s ease, box-shadow 0.15s ease; }
     .dtp-question-actions button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
     .dtp-question-actions button:active:not(:disabled) { transform: scale(0.96); }
-    .dtp-btn-mistake { background: #fee2e2; color: #991b1b; }
+    .dtp-btn-mistake { background: var(--dh-danger-bg, #fde8e8); color: var(--dh-danger, #b91c1c); }
     .dtp-btn-helper { background: #dbeafe; color: #1e40af; }
     .dtp-btn-swap { background: #fef3c7; color: #92400e; }
     .dtp-btn-finish { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-emerald-700)); color: #fff; }
     .dtp-question-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .dtp-mistakes-counter { margin-top: 10px; color: #991b1b; font-weight: bold; }
+    .dtp-mistakes-counter { margin-top: 10px; color: var(--dh-danger, #b91c1c); font-weight: bold; }
     /* 🌟 [جديد] اهتزاز بصري خفيف لبطاقة السؤال عند كل خطأ يُسجَّل — يُضاف/يُزال عبر JS في كل
        ضغطة (retrigger)، وليس مباشرة على العنصر، حتى يتكرر التأثير مع كل خطأ جديد */
     .dtp-shake-anim { animation: dtp-shake 0.4s ease; }
@@ -118,7 +118,7 @@
     .dtp-current-points { margin-top: 6px; font-weight: bold; font-size: 1.05rem; transition: color 0.2s ease; }
     .dtp-current-points.pts-full { color: var(--dh-emerald-700); }
     .dtp-current-points.pts-mid { color: #b45309; }
-    .dtp-current-points.pts-low { color: #b91c1c; }
+    .dtp-current-points.pts-low { color: var(--dh-danger, #b91c1c); }
 
     /* ===== نافذة ملخص نتيجة السؤال ===== */
     #dtp-question-result-modal .modal-content { animation: dtp-scaleIn 0.25s ease both; }
@@ -139,7 +139,7 @@
     .dtp-result-detail { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 90px; }
     .dtp-result-detail-label { font-size: 0.85rem; color: #64748b; }
     .dtp-result-detail-value { font-size: 1.2rem; font-weight: bold; color: #1e293b; }
-    .dtp-result-deduction-value { color: #b91c1c; }
+    .dtp-result-deduction-value { color: var(--dh-danger, #b91c1c); }
     .dtp-result-continue-btn { background: var(--dh-emerald-600); color: #fff; border: none; padding: 14px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: transform 0.12s ease, background 0.2s ease; }
     .dtp-result-continue-btn:hover { background: var(--dh-emerald-700); }
     .dtp-result-continue-btn:active { transform: scale(0.97); }

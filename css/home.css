@@ -162,10 +162,10 @@
 .header-account-btn .ha-ic { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; overflow: hidden; }
 .header-account-btn .ha-ic img { width: 100%; height: 100%; object-fit: cover; }
 .header-account-btn .ha-dot { position: absolute; top: -3px; inset-inline-start: -3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--dh-emerald-900, #06231c); background: #f59e0b; }
-.header-account-btn .ha-dot[data-level="bad"] { background: #dc2626; }
+.header-account-btn .ha-dot[data-level="bad"] { background: var(--dh-danger, #b91c1c); }
 /* نقطة التنبيه داخل زر الرئيسية «حسابي والنسخ» (بجوار النص بدل الزاوية) */
 .ha-dot-inline { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; margin-inline-start: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
-.ha-dot-inline[data-level="bad"] { background: #dc2626; }
+.ha-dot-inline[data-level="bad"] { background: var(--dh-danger, #b91c1c); }
 .ha-dot-inline[hidden] { display: none; }
 
 @media (max-width: 768px) {

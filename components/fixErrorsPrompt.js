@@ -31,15 +31,15 @@ function injectStyleOnce() {
     style.textContent = `
     #${OVERLAY_ID} { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); }
     #${OVERLAY_ID} .dh-fixp-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'IBM Plex Sans Arabic', sans-serif; }
-    #${OVERLAY_ID} .dh-fixp-avatar { width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #fff; background: var(--dh-emerald-700, #047857); border: 4px solid var(--dh-gold-500, #d4a017); }
+    #${OVERLAY_ID} .dh-fixp-avatar { width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #fff; background: var(--dh-emerald-700, var(--dh-ok, #15803d)); border: 4px solid var(--dh-gold-500, #d4a017); }
     #${OVERLAY_ID} .dh-fixp-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    #${OVERLAY_ID} .dh-fixp-title { margin: 0 0 10px; font-size: 1.5rem; color: var(--dh-emerald-700, #047857); }
+    #${OVERLAY_ID} .dh-fixp-title { margin: 0 0 10px; font-size: 1.5rem; color: var(--dh-emerald-700, var(--dh-ok, #15803d)); }
     #${OVERLAY_ID} .dh-fixp-body { margin: 0 0 20px; font-size: 1.15rem; line-height: 1.8; color: #334155; }
     #${OVERLAY_ID} .dh-fixp-actions { display: flex; flex-direction: column; gap: 10px; }
     #${OVERLAY_ID} .dh-fixp-btn { border: 0; border-radius: 14px; padding: 14px 18px; font-size: 1.15rem; font-weight: bold; cursor: pointer; font-family: inherit; }
-    #${OVERLAY_ID} .dh-fixp-btn-primary { background: var(--dh-emerald-700, #047857); color: #fff; }
-    #${OVERLAY_ID} .dh-fixp-btn-secondary { background: #fff; color: var(--dh-emerald-700, #047857); border: 2px solid var(--dh-gold-500, #d4a017); }
-    #${OVERLAY_ID} .dh-fixp-stat { display: inline-block; margin: 0 0 14px; padding: 6px 16px; border-radius: 999px; background: #ecfdf5; color: var(--dh-emerald-700, #047857); font-weight: bold; font-size: 1.05rem; }
+    #${OVERLAY_ID} .dh-fixp-btn-primary { background: var(--dh-emerald-700, var(--dh-ok, #15803d)); color: #fff; }
+    #${OVERLAY_ID} .dh-fixp-btn-secondary { background: #fff; color: var(--dh-emerald-700, var(--dh-ok, #15803d)); border: 2px solid var(--dh-gold-500, #d4a017); }
+    #${OVERLAY_ID} .dh-fixp-stat { display: inline-block; margin: 0 0 14px; padding: 6px 16px; border-radius: 999px; background: #ecfdf5; color: var(--dh-emerald-700, var(--dh-ok, #15803d)); font-weight: bold; font-size: 1.05rem; }
     #${OVERLAY_ID}.dh-fixp-kids .dh-fixp-card { width: min(94vw, 520px); border-radius: 30px; }
     #${OVERLAY_ID}.dh-fixp-kids .dh-fixp-title { font-size: 1.8rem; }
     #${OVERLAY_ID}.dh-fixp-kids .dh-fixp-body { font-size: 1.35rem; }

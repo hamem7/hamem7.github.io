@@ -95,18 +95,18 @@ function injectStyleOnce() {
     #${OVERLAY_ID} { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); }
     #${OVERLAY_ID} .dh-pause-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'IBM Plex Sans Arabic', sans-serif; }
     #${OVERLAY_ID} .dh-pause-icon { font-size: 2.6rem; margin-bottom: 4px; }
-    #${OVERLAY_ID} .dh-pause-title { margin: 0 0 6px; font-size: 1.5rem; color: var(--dh-emerald-700, #047857); }
+    #${OVERLAY_ID} .dh-pause-title { margin: 0 0 6px; font-size: 1.5rem; color: var(--dh-emerald-700, var(--dh-ok, #15803d)); }
     #${OVERLAY_ID} .dh-pause-student { margin: 0 0 12px; font-size: 1.1rem; color: #475569; font-weight: bold; }
     #${OVERLAY_ID} .dh-pause-range { margin: 0 0 12px; font-size: 1.15rem; line-height: 1.7; color: #334155; }
     #${OVERLAY_ID} .dh-pause-stats { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 0 14px; }
-    #${OVERLAY_ID} .dh-pause-chip { padding: 6px 16px; border-radius: 999px; background: #ecfdf5; color: var(--dh-emerald-700, #047857); font-weight: bold; font-size: 1.05rem; }
+    #${OVERLAY_ID} .dh-pause-chip { padding: 6px 16px; border-radius: 999px; background: #ecfdf5; color: var(--dh-emerald-700, var(--dh-ok, #15803d)); font-weight: bold; font-size: 1.05rem; }
     #${OVERLAY_ID} .dh-pause-chip-when { background: #fffbeb; color: #92400e; }
     #${OVERLAY_ID} .dh-pause-bar { height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin: 0 0 20px; }
-    #${OVERLAY_ID} .dh-pause-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--dh-emerald-700, #047857), var(--dh-gold-500, #d4a017)); border-radius: 999px; }
+    #${OVERLAY_ID} .dh-pause-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--dh-emerald-700, var(--dh-ok, #15803d)), var(--dh-gold-500, #d4a017)); border-radius: 999px; }
     #${OVERLAY_ID} .dh-pause-actions { display: flex; flex-direction: column; gap: 10px; }
     #${OVERLAY_ID} .dh-pause-btn { border: 0; border-radius: 14px; padding: 14px 18px; font-size: 1.15rem; font-weight: bold; cursor: pointer; font-family: inherit; }
-    #${OVERLAY_ID} .dh-pause-btn-primary { background: var(--dh-emerald-700, #047857); color: #fff; }
-    #${OVERLAY_ID} .dh-pause-btn-secondary { background: #fff; color: #b91c1c; border: 2px solid #fecaca; }
+    #${OVERLAY_ID} .dh-pause-btn-primary { background: var(--dh-emerald-700, var(--dh-ok, #15803d)); color: #fff; }
+    #${OVERLAY_ID} .dh-pause-btn-secondary { background: #fff; color: var(--dh-danger, #b91c1c); border: 2px solid #fecaca; }
     #${OVERLAY_ID}.dh-pause-kids .dh-pause-card { width: min(94vw, 520px); border-radius: 30px; }
     #${OVERLAY_ID}.dh-pause-kids .dh-pause-title { font-size: 1.8rem; }
     #${OVERLAY_ID}.dh-pause-kids .dh-pause-range { font-size: 1.35rem; }

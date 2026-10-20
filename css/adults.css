@@ -370,9 +370,9 @@ body.adult-theme {
 
 :where(.adult-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #b45309; transform: scale(1.1); }
 
-:where(.adult-theme) .q-circle.correct { background: #dcfce7; border-color: #10b981; color: #166534; }
+:where(.adult-theme) .q-circle.correct { background: var(--dh-ok-bg, #e7f4ee); border-color: #10b981; color: var(--dh-ok, #15803d); }
 
-:where(.adult-theme) .q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+:where(.adult-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger, #b91c1c); }
 
 @media (max-width: 900px) {
     :where(.adult-theme) .game-layout {

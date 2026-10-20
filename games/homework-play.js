@@ -160,7 +160,7 @@ function renderQuestion() {
              🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
              الآية الفعلي (نفس خط class="quran-text" المستخدم بباقي المنصة) حتى يظهر برسم عثماني
              دقيق يشمل كل علامات الضبط الخاصة بالقرآن 🌟 -->
-        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: #047857; margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;${q.simKind ? ' white-space: pre-line;' : ''}">
+        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: var(--dh-ok, #15803d); margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;${q.simKind ? ' white-space: pre-line;' : ''}">
             ${hl(q.text)}
         </div>
         <div id="hp-options-container" style="display: flex; flex-direction: column; gap: 10px;">
@@ -246,7 +246,7 @@ function renderQuestion() {
         for (let c = 1; c <= colsCount; c++) { html += `<th style="padding: 15px;">${c}</th>`; }
         html += `</tr>`;
         q.options.forEach((opt, rIdx) => {
-            html += `<tr id="hp-matrix-row-${q.id}-${rIdx}"><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: #047857; line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
+            html += `<tr id="hp-matrix-row-${q.id}-${rIdx}"><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: var(--dh-ok, #15803d); line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
             let selectedCol = savedArr.indexOf(opt) + 1;
             for (let c = 1; c <= colsCount; c++) {
                 const isChecked = (selectedCol === c) ? 'checked' : '';
@@ -509,9 +509,9 @@ function renderFeedback(items) {
     box.textContent = '';
     if (!Array.isArray(items) || !items.length || !hw || !Array.isArray(hw.questions)) return;
     const meta = {
-        correct: { icon: '✅', key: 'hw_fb_correct', color: '#166534', bg: '#f0fdf4' },
+        correct: { icon: '✅', key: 'hw_fb_correct', color: 'var(--dh-ok, #15803d)', bg: 'var(--dh-ok-bg, #e7f4ee)' },
         partial: { icon: '🟡', key: 'hw_fb_partial', color: '#92400e', bg: '#fffbeb' },
-        wrong:   { icon: '❌', key: 'hw_fb_wrong',   color: '#b91c1c', bg: '#fef2f2' },
+        wrong:   { icon: '❌', key: 'hw_fb_wrong',   color: 'var(--dh-danger, #b91c1c)', bg: 'var(--dh-danger-bg, #fde8e8)' },
         manual:  { icon: '⏳', key: 'hw_fb_manual',  color: '#475569', bg: '#f1f5f9' }
     };
     const answerEl = (c) => {
@@ -574,8 +574,8 @@ function renderSubmissionStatus(a) {
     renderFeedback(a.state === 'confirmed' && a.receipt ? a.receipt.feedback : null);
 
     const badgeStyles = {
-        ok: 'background:#dcfce7; color:#166534;', info: 'background:#e0f2fe; color:#0369a1;',
-        warn: 'background:#fef3c7; color:#92400e;', bad: 'background:#fee2e2; color:#b91c1c;'
+        ok: 'background:var(--dh-ok-bg, #e7f4ee); color:var(--dh-ok, #15803d);', info: 'background:#e0f2fe; color:#0369a1;',
+        warn: 'background:#fef3c7; color:#92400e;', bad: 'background:var(--dh-danger-bg, #fde8e8); color:var(--dh-danger, #b91c1c);'
     };
     const setBadge = (kind, key) => {
         badge.style.cssText = 'display:inline-block; padding:5px 16px; border-radius:20px; font-size:1.05rem; font-weight:bold; ' + badgeStyles[kind];

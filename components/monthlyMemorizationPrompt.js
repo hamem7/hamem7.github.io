@@ -71,10 +71,10 @@ function ensureStylesInjected() {
 .mmp-field select:focus, .mmp-field input:focus { outline: none; border-color: var(--dh-gold-500, #d4af37); }
 .mmp-hint { font-size: 0.82rem; color: #92400e; margin-top: 4px; }
 .mmp-warning {
-  background: #fef2f2; border: 2px solid #fca5a5; color: #991b1b; border-radius: 12px;
+  background: var(--dh-danger-bg, #fde8e8); border: 2px solid #fca5a5; color: var(--dh-danger, #b91c1c); border-radius: 12px;
   padding: 12px 14px; font-size: 0.92rem; margin-bottom: 16px; line-height: 1.7;
 }
-.mmp-journey { background: #f0fdf4; border: 2px dashed var(--dh-emerald-700, #0d5c46); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: center; }
+.mmp-journey { background: var(--dh-ok-bg, #e7f4ee); border: 2px dashed var(--dh-emerald-700, #0d5c46); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: center; }
 .mmp-journey-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; font-size: 1.05rem; font-weight: 700; color: #1e293b; }
 .mmp-journey-arrow { color: var(--dh-gold-500, #d4af37); font-size: 1.3rem; }
 .mmp-journey-new { margin-top: 10px; font-size: 1.3rem; font-weight: 800; color: var(--dh-emerald-700, #0d5c46); }

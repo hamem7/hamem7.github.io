@@ -345,7 +345,7 @@ async function loadHomeworkDashboard() {
             const draftLabel = t('hw_draft_status').replace(/[🚀📝]/g, '').trim();
 
             const statusBadge = hw.status === 'published'
-                ? `<span style="background:#dcfce7; color:#166534; padding:5px 10px; border-radius:20px; font-size:0.9rem;">${publishedLabel}</span>`
+                ? `<span style="background:var(--dh-ok-bg, #e7f4ee); color:var(--dh-ok, #15803d); padding:5px 10px; border-radius:20px; font-size:0.9rem;">${publishedLabel}</span>`
                 : `<span style="background:#fef3c7; color:#b45309; padding:5px 10px; border-radius:20px; font-size:0.9rem;">${draftLabel}</span>`;
 
             const generalLinkText = t('hw_general_link').replace(/[-]/g, '').trim();
@@ -385,7 +385,7 @@ async function loadHomeworkDashboard() {
                     <!-- 🌟 مخفية افتراضياً؛ تظهرها loadNeedsGradingStat فقط لو فيه تسليم لهذا الواجب
                          بانتظار تصحيح المعلم اليدوي (نفس معيار needsManualGrading المستخدم أصلاً
                          في loadSubmissionsInline) -->
-                    <div id="hw-alert-${hw.id}" style="display:none; margin-top:6px; background:#fee2e2; color:#b91c1c; font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⚠️ ${t('hw_needs_grading_row_badge')}</div>
+                    <div id="hw-alert-${hw.id}" style="display:none; margin-top:6px; background:var(--dh-danger-bg, #fde8e8); color:var(--dh-danger, #b91c1c); font-size:0.8rem; padding:3px 10px; border-radius:12px; font-weight:bold;">⚠️ ${t('hw_needs_grading_row_badge')}</div>
                     <!-- 🌟🌟 [جديد] مخفية افتراضياً؛ تظهرها loadOverdueHomeworkStat فقط لو كان هذا
                          الواجب مخصَّصاً لطالب محدد، منشوراً منذ HW_OVERDUE_DAYS يوماً أو أكثر، ولم
                          يصل أي تسليم منه بعد لهذا الطالب — راجع الدالة أسفل هذا الملف -->
@@ -1085,8 +1085,8 @@ function openGradingRoom(subIndex) {
     // الحد 300 حرف حتى تبقى الشهادة متناسقة (راجع TEACHER_NOTE_MAX في Code.gs وreports/hwCertificate.js).
     modalHtml += `
                 </div>
-                <div style="margin-top: 25px; padding: 16px; background: #f0fdf4; border: 2px dashed #86efac; border-radius: 15px;">
-                    <label for="grading-teacher-note" style="display:block; font-weight: bold; color: #166534; margin-bottom: 8px; font-size: 1.1rem;">💬 ${t('hw_teacher_note_label')}</label>
+                <div style="margin-top: 25px; padding: 16px; background: var(--dh-ok-bg, #e7f4ee); border: 2px dashed #86efac; border-radius: 15px;">
+                    <label for="grading-teacher-note" style="display:block; font-weight: bold; color: var(--dh-ok, #15803d); margin-bottom: 8px; font-size: 1.1rem;">💬 ${t('hw_teacher_note_label')}</label>
                     <textarea id="grading-teacher-note" maxlength="300" rows="3" placeholder="${esc(t('hw_teacher_note_placeholder'))}" style="width: 100%; box-sizing: border-box; padding: 10px; font-size: 1.05rem; border: 2px solid #bbf7d0; border-radius: 10px; font-family: inherit; resize: vertical; outline: none;">${esc(sub.teacherNote || '')}</textarea>
                     <div style="font-size: 0.85rem; color: #64748b; margin-top: 6px;">${t('hw_teacher_note_hint')}</div>
                 </div>
@@ -1656,10 +1656,10 @@ async function refreshSmartInfo() {
     let html = '';
 
     if (!ctx.range.ok && ctx.range.reason === 'bad_direction') {
-        html += card('#fef2f2', '#fecaca', `⚠️ <b>${esc(L(`نطاق ${student.name} باتجاه خاطئ (${student.memoFrom} ← ${student.memoTo}).`, `${student.name}'s range has the wrong direction (${student.memoFrom} → ${student.memoTo}).`))}</b><br>
+        html += card('var(--dh-danger-bg, #fde8e8)', '#fecaca', `⚠️ <b>${esc(L(`نطاق ${student.name} باتجاه خاطئ (${student.memoFrom} ← ${student.memoTo}).`, `${student.name}'s range has the wrong direction (${student.memoFrom} → ${student.memoTo}).`))}</b><br>
             ${esc(L('الحفظ يبدأ من الناس صعوداً (الناس ← النبأ ← الملك ← المجادلة ...). صحّح «حفظ من» و«حفظ إلى» في ملفه، مثل: من الناس إلى المجادلة.', 'Memorization starts from An-Nas upward. Fix "Memorized from/to" in their file, e.g. from An-Nas to Al-Mujadila.'))}`);
     } else if (!ctx.range.ok) {
-        html += card('#fef2f2', '#fecaca', `⚠️ <b>${esc(L(`لا يوجد نطاق حفظ مسجَّل لـ ${student.name}.`, `No memorization range is recorded for ${student.name}.`))}</b><br>
+        html += card('var(--dh-danger-bg, #fde8e8)', '#fecaca', `⚠️ <b>${esc(L(`لا يوجد نطاق حفظ مسجَّل لـ ${student.name}.`, `No memorization range is recorded for ${student.name}.`))}</b><br>
             ${esc(L('لا يُنشأ الواجب قبل تحديد نطاق حفظه (من سورة … إلى سورة …) في ملفه، أو تسجيل موضعه الشهري.', 'Homework cannot be created before a range is set in their file or a monthly position is recorded.'))}<br>
             ${btn('hw-btn-update-pos', '📅 ' + esc(L('تسجيل موضع حفظه الآن', 'Record their position now')), 'background:#d97706;')}`);
     } else {
@@ -1667,11 +1667,11 @@ async function refreshSmartInfo() {
         const status = learningStatus(ctx);
         html += card('#ecfdf5', '#a7f3d0', `📖 <b>${esc(L('نطاق الحفظ المعتمد', 'Memorization range used'))}:</b> ${esc(first)} ← ${esc(last)}
             <span style="color:#64748b;">(${ctx.path.total} ${esc(L('آية', 'ayahs'))} · ${esc(segCount(ctx.path.segments.length))})</span><br>
-            <span style="color:${status.ready ? '#047857' : '#92400e'};">🧠 ${esc(status.text)}</span><br>
+            <span style="color:${status.ready ? 'var(--dh-ok, #15803d)' : '#92400e'};">🧠 ${esc(status.text)}</span><br>
             ${btn('hw-btn-skill-profile', '📊 ' + esc(L('ملف المهارات', 'Skills profile')), 'background:#0ea5e9;')}`);
         // مسار تصاعدي يبدأ من الفاتحة: غالباً قيمة افتراضية قديمة في «حفظ من» (كانت الفاتحة تُحفظ تلقائياً قبل الخيار «غير محدد»)
         if (ctx.range.direction === 'forward' && ctx.range.fromSurah === 1 && ctx.range.toSurah > 1) {
-            html += card('#fef2f2', '#fecaca', `⚠️ ${esc(L(`نطاق ${student.name} المسجَّل يبدأ من الفاتحة حتى ${student.memoTo}، فتُعرض كل السور والأحزاب بينهما. إن كان يحفظ من الناس صعوداً فصحّح «حفظ من» في ملفه ليظهر نطاقه الفعلي فقط.`, `${student.name}'s recorded range runs from Al-Fatiha to ${student.memoTo}, so every surah/hizb in between is listed. If they memorize from An-Nas upward, fix "Memorized from" in their file so only their real range appears.`))}`);
+            html += card('var(--dh-danger-bg, #fde8e8)', '#fecaca', `⚠️ ${esc(L(`نطاق ${student.name} المسجَّل يبدأ من الفاتحة حتى ${student.memoTo}، فتُعرض كل السور والأحزاب بينهما. إن كان يحفظ من الناس صعوداً فصحّح «حفظ من» في ملفه ليظهر نطاقه الفعلي فقط.`, `${student.name}'s recorded range runs from Al-Fatiha to ${student.memoTo}, so every surah/hizb in between is listed. If they memorize from An-Nas upward, fix "Memorized from" in their file so only their real range appears.`))}`);
         }
         if (ctx.stale.stale) {
             const why = ctx.stale.hasRecords
@@ -1682,7 +1682,7 @@ async function refreshSmartInfo() {
     }
     // عدد مرات الواجب الأسبوعية لهذا الطالب: مرتان (الافتراضي) أو مرة واحدة فقط — يغيّر أيام تذكيره في جدول الأسبوع
     const pw = perWeekOf(student);
-    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? 'outline:3px solid #047857; outline-offset:2px;' : 'background:#e2e8f0 !important; color:#334155 !important; box-shadow:none !important;'}">${pw === n ? '✓ ' : ''}${esc(label)}</button>`;
+    const pwBtn = (n, label) => `<button type="button" class="btn hw-perweek-btn" data-pw="${n}" aria-pressed="${pw === n}" style="padding:6px 14px; font-size:0.95rem; min-width:unset; margin-inline-end:6px; ${pw === n ? 'outline:3px solid var(--dh-ok, #15803d); outline-offset:2px;' : 'background:#e2e8f0 !important; color:#334155 !important; box-shadow:none !important;'}">${pw === n ? '✓ ' : ''}${esc(label)}</button>`;
     html += card('#f8fafc', '#e2e8f0', `🔔 <b>${esc(L('تفعيل التذكير:', 'Reminder frequency:'))}</b><br>
         ${pwBtn(2, L('مرتين في الأسبوع', 'Twice a week'))}${pwBtn(1, L('مرة واحدة في الأسبوع', 'Once a week'))}
         <div id="hw-perweek-msg" style="color:#64748b; font-size:0.9rem; margin-top:4px;">${esc(L('يحدّد كم مرة أسبوعياً يستحق الطالب واجباً ذكياً في «مهام اليوم» وجدول الأسبوع.', 'Sets how many times a week this student is due a smart homework in "Today\'s tasks" and the weekly schedule.'))}</div>`);
@@ -1742,7 +1742,7 @@ function renderScopePanel() {
             `In your last homework (${smartResume.label}) ${smartResume.pct}% was covered; ${smartResume.uncoveredCount} of ${segCount(smartResume.total)} are still unchecked.`))}
             <button type="button" id="hw-btn-resume" class="hw-mini-btn" style="margin-inline-start:8px;">${esc(L('أكمل', 'Continue'))}</button></div>`;
     } else if (smartResume) {
-        banner.innerHTML = `<div class="hw-resume" style="background:#f0fdf4;border-color:#bbf7d0;">✓ ${esc(L('اكتملت تغطية نطاق الواجب السابق — جرّب «اقترح لي» لنطاق جديد.', 'The last homework\'s range is fully covered — try "Suggest" for a new range.'))}</div>`;
+        banner.innerHTML = `<div class="hw-resume" style="background:var(--dh-ok-bg, #e7f4ee);border-color:#bbf7d0;">✓ ${esc(L('اكتملت تغطية نطاق الواجب السابق — جرّب «اقترح لي» لنطاق جديد.', 'The last homework\'s range is fully covered — try "Suggest" for a new range.'))}</div>`;
     } else banner.innerHTML = '';
 
     const strip = $id('hw-hizb-strip'), list = $id('hw-surah-list');
@@ -1979,7 +1979,7 @@ function renderSmartSummary() {
     const order = ['new', 'near', 'far', 'err'].filter(c => counts[c]);
     bar.innerHTML = `<div style="display:flex; height:14px; border-radius:7px; overflow:hidden; background:#e2e8f0;">${order.map(c => `<i style="width:${counts[c] / total * 100}%; background:${colors[c]};"></i>`).join('')}</div>
         <div style="display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:8px; font-size:0.9rem;">${order.map(c => `<span><span class="sk-p ${catClass(c)}">${esc(catLabel(c))}</span>${counts[c]}</span>`).join('')}</div>
-        ${lastGen ? `<div style="margin-top:8px; font-size:0.9rem; color:#047857;">📊 ${esc(L(`يغطي هذا الواجب ${lastGen.distinct} من ${segCount(lastGen.scopeTotal)} في «${lastGen.label}» — منها ${lastGen.newly} لم تُفحص خلال الدورة (تبقّى ${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)}).`,
+        ${lastGen ? `<div style="margin-top:8px; font-size:0.9rem; color:var(--dh-ok, #15803d);">📊 ${esc(L(`يغطي هذا الواجب ${lastGen.distinct} من ${segCount(lastGen.scopeTotal)} في «${lastGen.label}» — منها ${lastGen.newly} لم تُفحص خلال الدورة (تبقّى ${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)}).`,
             `This homework covers ${lastGen.distinct} of ${segCount(lastGen.scopeTotal)} in "${lastGen.label}" — ${lastGen.newly} of them not checked within the cycle (${Math.max(0, lastGen.uncoveredBefore - lastGen.newly)} left).`))}</div>` : ''}`;
 }
 
@@ -2025,9 +2025,9 @@ function renderPreview() {
         } else if (q.type === 'tajweed_extract') {
             optionsHTML = `<div style="margin-top: 10px; font-size: 1.1rem; color: #0369a1;">✍️ ${t('سؤال تجويد — يصحّحه المعلم يدوياً (نقطتان)')}</div>`;
         } else if (q.type === 'write_3_ayahs') {
-            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">${t('الآيات الثلاث المطلوبة:')}</strong><br>${q.correctAnswer}</div>`;
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: var(--dh-ok-bg, #e7f4ee); padding: 10px; border-radius: 8px;">✍️ <strong style="color:#0369a1;">${t('الآيات الثلاث المطلوبة:')}</strong><br>${q.correctAnswer}</div>`;
         } else if (q.type === 'around_ayah') {
-            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: #f0fdf4; padding: 10px; border-radius: 8px; white-space: pre-line;">✍️ <strong style="color:#0369a1;">${t('الإجابة المطلوبة (تصحيح يدوي، نقطتان):')}</strong><br>${q.correctAnswer}</div>`;
+            optionsHTML = `<div style="margin-top: 10px; font-size: 1.2rem; color: #10b981; background: var(--dh-ok-bg, #e7f4ee); padding: 10px; border-radius: 8px; white-space: pre-line;">✍️ <strong style="color:#0369a1;">${t('الإجابة المطلوبة (تصحيح يدوي، نقطتان):')}</strong><br>${q.correctAnswer}</div>`;
         } else if (q.type === 'matching') {
             // 🌟 [جديد] معاينة أزواج المطابقة الصحيحة للمعلم قبل النشر (بدايات ↔ نهايات)
             optionsHTML = `<div style="margin-top: 10px; background: #f1f5f9; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">`;
@@ -2046,7 +2046,7 @@ function renderPreview() {
             q.options.forEach(opt => {
                 let isCorrect = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : (opt === q.correctAnswer);
                 let icon = q.type === 'checkbox' ? (isCorrect ? '☑️' : '🔲') : (isCorrect ? '✔️' : '⚪');
-                optionsHTML += `<li style="padding: 5px; background: ${isCorrect ? '#dcfce7' : '#f1f5f9'}; margin-bottom: 5px; border-radius: 5px; font-weight: ${isCorrect ? 'bold' : 'normal'};">${icon} ${opt}</li>`;
+                optionsHTML += `<li style="padding: 5px; background: ${isCorrect ? 'var(--dh-ok-bg, #e7f4ee)' : '#f1f5f9'}; margin-bottom: 5px; border-radius: 5px; font-weight: ${isCorrect ? 'bold' : 'normal'};">${icon} ${opt}</li>`;
             });
             optionsHTML += `</ul>`;
         }
@@ -2055,7 +2055,7 @@ function renderPreview() {
 
         qCard.innerHTML = actionsHtml + `
             <div style="font-weight: bold; color: #0f172a; font-size: 1.2rem; width: 70%;">${t("السؤال")} ${index + 1}: ${hl(q.title)} <span style="font-size:0.9rem; color:#64748b; font-weight:normal;">(${q.points || 1} ${t('نقاط')})</span> ${manualBadge}</div>
-            <div class="quran-text" style="font-size: 1.6rem; color: #047857; margin-top: 10px;">${hl(q.text)}</div>
+            <div class="quran-text" style="font-size: 1.6rem; color: var(--dh-ok, #15803d); margin-top: 10px;">${hl(q.text)}</div>
             ${optionsHTML}
             ${whyHtmlFor(q)}
         `;

@@ -78,7 +78,7 @@
 
     .hwp2-stat-published { --hwp2-accent: var(--dh-emerald-600); --hwp2-accent-soft: rgba(20, 124, 94, .12); }
     .hwp2-stat-draft { --hwp2-accent: var(--dh-gold-500); --hwp2-accent-soft: rgba(212, 175, 55, .18); }
-    .hwp2-stat-grading { --hwp2-accent: #dc2626; --hwp2-accent-soft: rgba(220, 38, 38, .1); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    .hwp2-stat-grading { --hwp2-accent: var(--dh-danger, #b91c1c); --hwp2-accent-soft: rgba(220, 38, 38, .1); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
     .hwp2-stat-overdue { --hwp2-accent: #c2410c; --hwp2-accent-soft: rgba(194, 65, 12, .1); cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
     /* 🌟 [محافَظ عليه] بطاقتا "يحتاج تصحيح" و"متأخر عن التسليم" قابلتان للنقر فعلياً */
     .hwp2-stat-grading:hover, .hwp2-stat-overdue:hover { transform: translateY(-4px); box-shadow: 0 16px 28px rgba(0, 0, 0, .14); }
@@ -171,23 +171,23 @@
     .hw-scope-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px; }
     .hw-scope-head { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 10px; font-size: 0.95rem; }
     .hw-scope-head label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
-    .hw-mini-btn { border: 0; border-radius: 999px; padding: 6px 14px; font-size: 0.9rem; font-weight: 700; font-family: inherit; cursor: pointer; background: #047857; color: #fff; }
+    .hw-mini-btn { border: 0; border-radius: 999px; padding: 6px 14px; font-size: 0.9rem; font-weight: 700; font-family: inherit; cursor: pointer; background: var(--dh-ok, #15803d); color: #fff; }
     .hw-mini-btn.alt { background: #e2e8f0; color: #334155; }
     .hw-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; max-height: 280px; overflow-y: auto; padding: 2px; }
     .hw-tile { border: 2px solid #e2e8f0; border-radius: 10px; background: #fff; padding: 6px 4px 7px; text-align: center; cursor: pointer; font-family: inherit; font-size: 0.76rem; line-height: 1.4; position: relative; color: #334155; }
     .hw-tile b { display: block; font-size: 1.02rem; color: #0f172a; }
-    .hw-tile.sel { border-color: #047857; background: #ecfdf5; box-shadow: 0 0 0 2px #a7f3d0 inset; }
+    .hw-tile.sel { border-color: var(--dh-ok, #15803d); background: #ecfdf5; box-shadow: 0 0 0 2px #a7f3d0 inset; }
     .hw-tile .bar { height: 5px; border-radius: 3px; margin-top: 5px; background: #e2e8f0; overflow: hidden; }
     .hw-tile .bar i { display: block; height: 100%; background: #10b981; }
-    .hw-tile .fix { position: absolute; top: 2px; inset-inline-start: 4px; color: #dc2626; font-size: 0.72rem; font-weight: 800; }
+    .hw-tile .fix { position: absolute; top: 2px; inset-inline-start: 4px; color: var(--dh-danger, #b91c1c); font-size: 0.72rem; font-weight: 800; }
     .hw-tile.partial { border-style: dashed; }
     .hw-sur-grid { display: flex; flex-wrap: wrap; gap: 6px; max-height: 200px; overflow-y: auto; }
     .hw-sur-chip { border: 2px solid #e2e8f0; border-radius: 999px; background: #fff; padding: 4px 12px; font-size: 0.88rem; cursor: pointer; font-family: inherit; color: #334155; }
-    .hw-sur-chip.sel { border-color: #047857; background: #ecfdf5; font-weight: 700; }
+    .hw-sur-chip.sel { border-color: var(--dh-ok, #15803d); background: #ecfdf5; font-weight: 700; }
     .hw-resume { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.95rem; line-height: 1.7; }
-    .hw-coverage { margin-top: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 9px 12px; font-size: 0.95rem; line-height: 1.8; }
+    .hw-coverage { margin-top: 10px; background: var(--dh-ok-bg, #e7f4ee); border: 1px solid #bbf7d0; border-radius: 10px; padding: 9px 12px; font-size: 0.95rem; line-height: 1.8; }
     .hw-coverage .warn { color: #b45309; }
-    .hw-coverage button { border: 0; background: #047857; color: #fff; border-radius: 999px; padding: 2px 12px; font-family: inherit; font-size: 0.85rem; cursor: pointer; margin-inline-start: 6px; }
+    .hw-coverage button { border: 0; background: var(--dh-ok, #15803d); color: #fff; border-radius: 999px; padding: 2px 12px; font-family: inherit; font-size: 0.85rem; cursor: pointer; margin-inline-start: 6px; }
 
     /* 🌟🌟 [جديد] أزرار "إجراءات" دائرية أكبر وأوضح بدل الأزرار المستطيلة الصغيرة السابقة في
        عمود "إجراءات" بجدول "سجل الواجبات" — بنفس الهوية البصرية (ذهبي/زمرّدي) مع الاحتفاظ
@@ -203,7 +203,7 @@
     .hwp2-action-btn:active { transform: translateY(-1px) scale(1); }
     .hwp2-action-view { background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)); }
     .hwp2-action-link { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: #2b2100; }
-    .hwp2-action-delete { background: linear-gradient(135deg, #f87171, #dc2626); }
+    .hwp2-action-delete { background: linear-gradient(135deg, #f87171, var(--dh-danger, #b91c1c)); }
     .hwp2-actions-cell { display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; }
     /* 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] كل زر إجراء في سجل الواجبات صار تحته نص قصير (نتائج / رابط / نشر / حذف)
        لأن الأيقونات وحدها لا يظهر لها تلميح على الهاتف، وزر الحذف يُفصل عن بقية الأزرار بمسافة وخط حتى لا يُضغط بالخطأ.
@@ -268,7 +268,7 @@
     .hwp3-btn[hidden] { display: none; }
     .hwp3-btn-results { background: var(--dh-emerald-700); color: #fff; }
     .hwp3-btn-results:hover { background: var(--dh-emerald-800); }
-    .hwp3-btn-results.is-grading { background: #b42318; }
+    .hwp3-btn-results.is-grading { background: var(--dh-danger, #b91c1c); }
     .hwp3-btn-results.is-grading:hover { background: #8f1d14; }
     .hwp3-btn-publish { background: var(--dh-gold-500); color: #2b2100; }
     .hwp3-btn-publish:hover { background: var(--dh-gold-300); }
@@ -283,7 +283,7 @@
         background: var(--dh-surface); border: 1px solid #e3dfcc; border-radius: 12px; box-shadow: 0 12px 30px rgba(6, 35, 28, .18); }
     .hwp3-more.is-open .hwp3-menu { display: block; }
     .hwp3-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent;
-        font-family: inherit; font-size: .95rem; font-weight: 700; color: #b42318; cursor: pointer; text-align: start; }
+        font-family: inherit; font-size: .95rem; font-weight: 700; color: var(--dh-danger, #b91c1c); cursor: pointer; text-align: start; }
     .hwp3-menu-item:hover { background: #fdecea; }
 
 
@@ -291,10 +291,10 @@
     .hwp3-cleanup-note { margin: 14px 0 4px; padding: 12px 16px; border-radius: 12px; background: rgba(212, 175, 55, .16);
         border-inline-start: 5px solid var(--dh-gold-500); color: var(--dh-ink); font-size: .95rem; line-height: 1.7; text-align: start; }
     .hwp3-cleanup-note strong { color: #7a4b00; }
-    .hwp3-stale { margin: 12px 0 0; padding: 12px 16px; border-radius: 12px; background: #fdecea; border-inline-start: 5px solid #b42318;
+    .hwp3-stale { margin: 12px 0 0; padding: 12px 16px; border-radius: 12px; background: #fdecea; border-inline-start: 5px solid var(--dh-danger, #b91c1c);
         color: #7a1a12; font-size: .95rem; line-height: 1.7; text-align: start; display: none; }
     .hwp3-stale-line { margin: 2px 0; font-weight: 700; }
-    .hwp3-stale button { margin-top: 8px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #b42318; color: #fff;
+    .hwp3-stale button { margin-top: 8px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--dh-danger, #b91c1c); color: #fff;
         font-family: inherit; font-weight: 700; cursor: pointer; }
     .hwp3-stale button:focus-visible { outline: 3px solid var(--dh-gold-300); outline-offset: 2px; }
 
@@ -369,18 +369,18 @@
     }
     .hwp3-confirm-btn:focus-visible { outline: 3px solid var(--dh-gold-300, #e6c75a); outline-offset: 2px; }
     .hwp3-confirm-cancel { background: #f1f5f9; color: #1f2937; border-color: #cbd5e1; }
-    .hwp3-confirm-ok { background: #b91c1c; color: #ffffff; }
-    .hwp3-confirm-ok:hover { background: #991b1b; }
+    .hwp3-confirm-ok { background: var(--dh-danger, #b91c1c); color: #ffffff; }
+    .hwp3-confirm-ok:hover { background: var(--dh-danger, #b91c1c); }
 
     /* ===== [2026-10-09] تصميم فاتح مبسّط (معاينة أ) — تعديل شكلي فقط، بلا مساس بالبيانات أو المنطق ===== */
     .hwp2-header-bar { background: #fff; border-bottom: 3px solid var(--dh-gold-500); }
-    .hwp2-header-icon { background: #e7f4ee; color: var(--dh-emerald-700); }
+    .hwp2-header-icon { background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-emerald-700); }
     #app-root .hwp2-header-title { color: var(--dh-ink) !important; }
     .hwp2-header-sub { color: var(--dh-ink-soft); }
     .hwp2-account-email { color: var(--dh-ink-soft); }
     #app-root .hwp2-btn-ghost { background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important; border: 1px solid #e3ebe6 !important; }
-    #app-root .hwp2-btn-ghost:hover { background: #e7f4ee !important; }
-    .hwp3-hero { background: linear-gradient(135deg, #e7f4ee, #fbf3d5); color: var(--dh-ink); box-shadow: var(--dh-shadow-soft); }
+    #app-root .hwp2-btn-ghost:hover { background: var(--dh-ok-bg, #e7f4ee) !important; }
+    .hwp3-hero { background: linear-gradient(135deg, var(--dh-ok-bg, #e7f4ee), #fbf3d5); color: var(--dh-ink); box-shadow: var(--dh-shadow-soft); }
     .hwp3-hero:hover { box-shadow: var(--dh-shadow-lift); }
     .hwp3-hero-title { color: var(--dh-emerald-700); }
     .hwp3-hero-sub { color: var(--dh-ink-soft); }
@@ -389,7 +389,7 @@
     /* أزرار نطاق الواجب بدل الراديو + سطر يوضّح ما تحتها */
     .hw-scope-head label { border: 2px solid #e2e8f0; border-radius: 12px; padding: 7px 14px; background: #fff; font-weight: 600; transition: .12s; }
     .hw-scope-head label:hover { border-color: var(--dh-emerald-600); }
-    .hw-scope-head label.on { border-color: var(--dh-emerald-700); background: #e7f4ee; color: var(--dh-emerald-700); }
+    .hw-scope-head label.on { border-color: var(--dh-emerald-700); background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-emerald-700); }
     .hw-scope-head label input { display: none; }
     #hw-scope-resume-wrap, #hw-resume-banner { display: none !important; }
     .hw-scope-help { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin: 4px 2px 10px; font-weight: 600; font-size: .95rem; color: var(--dh-ink); }
@@ -427,12 +427,12 @@
     .hwp5-sec h3 { font-size: 1.15rem; color: var(--dh-ink); margin: 0; }
     .hwp5-sec a { color: var(--dh-emerald-600); font-weight: 600; font-size: .9rem; cursor: pointer; }
     .hwp5-tag { font-size: .72rem; font-weight: 700; padding: 2px 10px; border-radius: 99px; background: #fbf3d5; color: #8a6a00; }
-    .hwp5-tag.r { background: #fde8e8; color: #dc2626; }
+    .hwp5-tag.r { background: var(--dh-danger-bg, #fde8e8); color: var(--dh-danger, #b91c1c); }
     /* بطاقات «مستحق اليوم» صغيرة بحجم بطاقات الإحصائيات (اسم الطالب في الأعلى، وتحته الشارة وزر «أنشئ») */
     .hwp5-due { display: flex; flex-direction: column; gap: 8px; }
     .hwp5-tcard { background: var(--dh-surface); border-radius: 14px; padding: 9px 12px; box-shadow: var(--dh-shadow-soft); display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; border-inline-start: 5px solid var(--dh-gold-500); min-width: 0; }
-    .hwp5-tcard.late { border-inline-start-color: #dc2626; }
-    .hwp5-tcard .av { width: 34px; height: 34px; border-radius: 50%; background: #e7f4ee; color: var(--dh-emerald-700); display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
+    .hwp5-tcard.late { border-inline-start-color: var(--dh-danger, #b91c1c); }
+    .hwp5-tcard .av { width: 34px; height: 34px; border-radius: 50%; background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-emerald-700); display: grid; place-items: center; font-weight: 700; font-size: .9rem; }
     .hwp5-tcard .m { min-width: 0; }
     .hwp5-tcard .m b { display: block; font-size: .95rem; line-height: 1.35; overflow-wrap: anywhere; }
     .hwp5-tcard .row2 { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -670,7 +670,7 @@
                 <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
                     <button class="btn" id="btn-save-hw-publish" style="flex: 2; background: linear-gradient(45deg, #8b5cf6, #6d28d9); font-size: 1.4rem; min-width: 200px;" data-i18n="hw_publish_btn">🚀 اعتماد ونشر الواجب</button>
                     <button class="btn btn-outline" id="btn-save-hw-draft" style="flex: 1; border-color: #f59e0b; color: #d97706; background: white; font-size: 1.4rem; min-width: 150px;" data-i18n="hw_draft_btn">📝 حفظ كمسودة</button>
-                    <button class="btn btn-outline" id="btn-cancel-hw" style="flex: 1; border-color: #ef4444; color: #dc2626; background: white; font-size: 1.4rem; min-width: 120px;" data-i18n="hw_cancel_btn">✖ إلغاء</button>
+                    <button class="btn btn-outline" id="btn-cancel-hw" style="flex: 1; border-color: #ef4444; color: var(--dh-danger, #b91c1c); background: white; font-size: 1.4rem; min-width: 120px;" data-i18n="hw_cancel_btn">✖ إلغاء</button>
                 </div>
             </div>
         </div>
@@ -771,7 +771,7 @@
 
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_text_label">نص السؤال / الآية:</label>
-            <textarea id="qb-text" rows="3" data-i18n-placeholder="اكتب الآية أو النص هنا..." placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: #047857;"></textarea>
+            <textarea id="qb-text" rows="3" data-i18n-placeholder="اكتب الآية أو النص هنا..." placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: var(--dh-ok, #15803d);"></textarea>
         </div>
 
         <div class="input-group" style="margin-bottom: 15px;">
