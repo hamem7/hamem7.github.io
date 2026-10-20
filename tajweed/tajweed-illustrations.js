@@ -8,7 +8,7 @@
 import { t } from '../core/app.js';
 import { findPhraseRanges } from '../core/quranTextUtils.js';
 import { getAyahForExample } from './tajweed-shared.js';
-import { hasIllustration, buildIllustrationSVG, buildMakharijSVG, buildMakharijLegendHTML } from './tajweed-illustrations-art.js';
+import { hasIllustration, buildIllustrationSVG } from './tajweed-illustrations-art.js';
 
 // عبارة المثال من آية حقيقية في مصحف المنصة
 async function phraseOf(ex) {
@@ -30,11 +30,4 @@ export async function renderRuleIllustrationHTML(rule) {
     const caption = t('tjw_ill_' + rule.id);
     return `<section class="tjw-illus"><h3 class="tjw-section-title">${t('tjw_illus_title')}</h3>
         <figure>${buildIllustrationSVG(rule.id, words.slice(0, 2), caption)}<figcaption>${caption}</figcaption></figure></section>`;
-}
-
-// 🌟 مخارج الحروف: الرسم + قائمة المخارج الـ17 (جاهز للإدراج في أي شاشة؛ غير مربوط بدرس حتى الآن)
-export function renderMakharijHTML() {
-    const title = t('tjw_mkh_title');
-    return `<section class="tjw-illus"><h3 class="tjw-section-title">${title}</h3>
-        <figure>${buildMakharijSVG(title)}</figure>${buildMakharijLegendHTML(k => t('tjw_mkh_' + k))}</section>`;
 }
