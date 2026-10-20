@@ -227,3 +227,168 @@ body.adult-theme {
 .special-reward-sub { font-size:1.1rem; margin-top:6px; }
 @keyframes specialRewardPop { from { transform:translate(-50%,-50%) scale(.3); opacity:0; } to { transform:translate(-50%,-50%) scale(1); opacity:1; } }
 .special-reward-cert { margin-top:12px; padding:8px 12px; border-radius:12px; background:rgba(255,255,255,.7); font-size:1.05rem; font-weight:bold; }
+
+/* ==========================================================================
+   [توحيد الهوية — مرحلة 3] قواعد كانت تُكتب في css/kids.css بلا تقييد بثيم فتسري على واجهة الكبار أيضًا (بـ!important غالبًا).
+   فُصلت الآن: kids.css صار يطبّقها على .kids-theme فقط، وهذه نسخة واجهة الكبار منها بنفس القيم تمامًا (لا تغيير مرئي).
+   :where() يُبقي الخصوصية كما كانت (0,1,0) فيبقى ترتيب التغلّب على القواعد الأخرى كما هو. من الآن يمكن تعديل نسخة الكبار
+   (مثلاً إزالة ظل العناوين الأبيض) دون لمس ركن الأطفال. 
+   ========================================================================== */
+:where(.adult-theme) .game-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    max-width: 1200px !important;
+    margin: 8vh auto !important;
+    gap: 40px !important;
+    padding: 0 20px;
+}
+
+:where(.adult-theme) .game-sidebar {
+    width: 280px !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-radius: 25px !important;
+    padding: 25px !important;
+    border: 4px solid #fcd34d !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    flex-shrink: 0;
+}
+
+:where(.adult-theme) .game-main-area {
+    flex: 1 !important;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-radius: 30px !important;
+    padding: 40px !important;
+    border: 3px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15) !important;
+}
+
+:where(.adult-theme) .login-container, :where(.adult-theme) .dashboard-wrapper .control-panel, :where(.adult-theme) .report-card {
+    max-width: 700px !important;
+    margin: 8vh auto !important;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 3px solid rgba(255, 255, 255, 0.8) !important;
+    border-radius: 30px !important;
+    padding: 40px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+}
+
+:where(.adult-theme) #student-dropdown {
+    width: 90% !important;
+    padding: 15px 20px !important;
+    font-size: 1.6rem !important;
+    font-family: 'IBM Plex Sans Arabic', sans-serif !important; /* 🌟 التعديل 🌟 */
+    font-weight: 600 !important; /* 🌟 التعديل لوزن مريح 🌟 */
+    color: #1e3a5f !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 3px solid #fcd34d !important;
+    border-radius: 50px !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+    margin-bottom: 25px !important;
+    outline: none !important;
+    transition: 0.3s !important;
+}
+
+:where(.adult-theme) #student-dropdown:hover {
+    background: #ffffff !important;
+    border-color: #f59e0b !important;
+    transform: scale(1.02) !important;
+}
+
+:where(.adult-theme) .btn {
+    border-radius: 50px !important;
+    font-weight: 600 !important; /* 🌟 التعديل 🌟 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+:where(.adult-theme) .btn:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+}
+
+:where(.adult-theme) h1, :where(.adult-theme) h2, :where(.adult-theme) h3, :where(.adult-theme) .question-text {
+    color: #1e3a5f !important;
+    text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff !important; 
+    font-weight: 700 !important; /* 🌟 التعديل من 900 إلى 700 ليتناسب مع الخط الجديد 🌟 */
+}
+
+:where(.adult-theme) .quran-text {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 15px 25px;
+    border-radius: 20px;
+    border: 2px dashed #10b981;
+    display: inline-block;
+    color: #064e3b;
+}
+
+:where(.adult-theme) .in-game-student {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 15px !important;
+    margin-bottom: 25px !important;
+    background: rgba(255,255,255,0.7) !important;
+    padding: 10px !important;
+    border-radius: 50px !important;
+    border: 2px dashed #10b981 !important;
+}
+
+:where(.adult-theme) .in-game-student img {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    background-color: #e2e8f0 !important;
+    border: 3px solid #10b981 !important;
+    color: transparent !important;
+}
+
+:where(.adult-theme) .in-game-student h3 {
+    margin: 0 !important;
+    font-size: 1.6rem !important;
+    color: #1e3a5f !important;
+    font-weight: 700 !important; /* 🌟 التعديل 🌟 */
+}
+
+:where(.adult-theme) .tracker-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+:where(.adult-theme) .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #64748b; }
+
+:where(.adult-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #b45309; transform: scale(1.1); }
+
+:where(.adult-theme) .q-circle.correct { background: #dcfce7; border-color: #10b981; color: #166534; }
+
+:where(.adult-theme) .q-circle.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+
+@media (max-width: 900px) {
+    :where(.adult-theme) .game-layout {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        margin: 3vh auto !important;
+        gap: 16px !important;
+        padding: 0 12px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    :where(.adult-theme) .game-sidebar {
+        width: 100% !important;
+        box-sizing: border-box;
+        padding: 16px !important;
+    }
+    :where(.adult-theme) .game-main-area {
+        flex: none !important;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 20px 14px !important;
+    }
+}
