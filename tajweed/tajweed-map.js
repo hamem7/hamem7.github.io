@@ -16,6 +16,7 @@ import {
 } from '../engine/tajweedJourney.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
 import { renderRuleIllustrationHTML } from './tajweed-illustrations.js';
+import { renderBookStripHTML, makharijButtonHTML } from './tajweed-book-images.js';
 import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
 import { openParentSummary } from './tajweed-summary.js';
 import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
@@ -315,6 +316,7 @@ async function renderBrowseHTML() {
                 <p class="tjw-hero-sub">${t('tjw_hero_progress').replace('{done}', masteredCount).replace('{total}', totalRules)}</p>
                 <div class="tjw-hero-actions">
                     <button class="tjw-link-btn" data-action="open-leaderboard">🏆 ${t('tjw_leaderboard_title')}</button>
+                    ${makharijButtonHTML()}
                     <button class="tjw-link-btn" data-action="parent-summary">${t('tjw_sum_btn_session')}</button>
                     <button class="tjw-link-btn" data-action="change-student">${t('tjw_change_student')}</button>
                 </div>
@@ -521,6 +523,8 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                 </section>
 
                 ${illusHTML}
+
+                ${renderBookStripHTML(rule.id)}
 
                 ${cardsHTML}
 

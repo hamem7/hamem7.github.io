@@ -110,6 +110,9 @@ await page.click('.tjw-flip'); await sleep(100);
 check('الضغط على البطاقة يقلبها', await page.evaluate(() => document.querySelector('.tjw-flip').classList.contains('is-flipped')));
 const illus = await page.evaluate(() => ({ svg: !!document.querySelector('.tjw-illus .tjw-illus-svg'), words: document.querySelectorAll('.tjw-illus-svg text[direction=rtl]').length, cap: (document.querySelector('.tjw-illus figcaption') || {}).textContent || '' }));
 check('الدرس يعرض صورة توضيحية للحكم بكلمات قرآنية من المنصة وتسمية', illus.svg && illus.words >= 1 && illus.cap.length > 10 && !illus.cap.startsWith('tjw_'), JSON.stringify(illus));
+const book = await page.evaluate(() => ({ thumbs: document.querySelectorAll('.tjw-book-thumb').length, credit: (document.querySelector('.tjw-book-credit') || {}).textContent || '' }));
+await sleep(500);
+check('درس الإخفاء يعرض صور كتاب التجويد المصور مع نسبته لصاحبه', book.thumbs >= 1 && /سويد/.test(book.credit), JSON.stringify(book));
 await shot('1-ikhfa-lesson');
 
 // ٢) ألعاب الحروف للإخفاء (حروف): اجمع/الدخيل/صنّف

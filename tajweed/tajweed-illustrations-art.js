@@ -18,11 +18,14 @@ const baseLen = (s) => s.replace(/[ً-ٰٟۖ-ۭ]/g, '').length;
 // ------------------------------------------------------------
 // أدوات رسم صغيرة
 // ------------------------------------------------------------
+// المشهد كله يُعكس أفقياً (ليُقرأ من اليمين إلى اليسار)، فيُقلَب كل نص حول مركزه ليبقى مقروءاً غير معكوس
+const fl = (cx) => `transform="translate(${cx},0) scale(-1,1) translate(${-cx},0)"`;
+
 function badge(cx, cy, r, ch, fill, opts = {}) {
     const fs = opts.fs || Math.round(r * 1.1);
     const stroke = opts.stroke || INK;
     return `<g${opts.opacity ? ` opacity="${opts.opacity}"` : ''}><circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2.5"${opts.dash ? ' stroke-dasharray="5 4"' : ''}/>
-        <text x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" font-family="${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
+        <text ${fl(cx)} x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" font-family="${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
 }
 function arrow(x1, y1, x2, y2, color = INK, dash = false) {
     const a = Math.atan2(y2 - y1, x2 - x1), h = 9;
@@ -48,7 +51,7 @@ function wordCards(words, color) {
     const ws = words.filter(Boolean);
     if (!ws.length) return '';
     if (ws.length === 1) return wordCard(180, 136, 230, ws[0], color);
-    return wordCard(94, 136, 168, ws[0], color) + wordCard(266, 136, 168, ws[1], color);
+    return wordCard(266, 136, 168, ws[0], color) + wordCard(94, 136, 168, ws[1], color);
 }
 
 // ------------------------------------------------------------
@@ -89,7 +92,7 @@ const SCENES = {
         const out = ghunna
             ? `${wave(204, 46, 60, '#d65db1')}${dots(300, 108, 2, '#d65db1')}`
             : `<path d="M 208 50 q 5 -7 10 0 t 10 0 t 10 0" fill="none" stroke="#9aa5b1" stroke-width="3" stroke-linecap="round"/><path d="M 204 36 l 62 28 M 266 36 l -62 28" stroke="#b3261e" stroke-width="4" stroke-linecap="round"/>`;
-        return `${badge(52, 58, 26, from, '#3f8fd2', { fs: 32 })}<text x="86" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="${INK}">+</text>${badge(122, 58, 26, to, '#4aa84a', { fs: 32 })}
+        return `${badge(52, 58, 26, from, '#3f8fd2', { fs: 32 })}<text ${fl(86)} x="86" y="68" text-anchor="middle" font-size="26" font-weight="700" fill="${INK}">+</text>${badge(122, 58, 26, to, '#4aa84a', { fs: 32 })}
             ${arrow(154, 58, 198, 58)}${out}${badge(300, 58, 38, to + SHADDA, '#4aa84a', { fs: 46 })}`;
     },
     // الإظهار: عدسة تُظهر الحرف واضحًا وبعده الحرف التالي بلا مزج
@@ -106,7 +109,7 @@ const SCENES = {
             <path d="M 94 40 q 30 -30 60 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/><polygon points="156,44 142,40 150,30" fill="${INK}"/>
             <path d="M 154 76 q -30 30 -60 0" fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round"/><polygon points="92,72 106,76 98,86" fill="${INK}"/>
             ${badge(190, 58, 32, mid, '#7b5cc4', { fs: 40 })}${wave(228, 100, 40, '#d65db1', 5)}
-            <text x="252" y="68" text-anchor="middle" font-size="24" font-weight="700" fill="${INK}">+</text>${badge(300, 58, 30, to, '#4aa84a', { fs: 38 })}`;
+            <text ${fl(252)} x="252" y="68" text-anchor="middle" font-size="24" font-weight="700" fill="${INK}">+</text>${badge(300, 58, 30, to, '#4aa84a', { fs: 38 })}`;
     },
     // لام «ال» القمرية: قمر مضيء تُنطق اللام عنده
     moon(next) {
@@ -125,7 +128,7 @@ const SCENES = {
     },
     // المثلان/المتقاربان/المتجانسان
     twins(a, b) {
-        return `${badge(110, 58, 36, a, '#5d4691', { fs: 44 })}<text x="180" y="70" text-anchor="middle" font-size="40" font-weight="700" fill="${INK}">=</text>${badge(250, 58, 36, b, '#5d4691', { fs: 44 })}
+        return `${badge(110, 58, 36, a, '#5d4691', { fs: 44 })}<text ${fl(180)} x="180" y="70" text-anchor="middle" font-size="40" font-weight="700" fill="${INK}">=</text>${badge(250, 58, 36, b, '#5d4691', { fs: 44 })}
             <path d="M 110 104 q 70 22 140 0" fill="none" stroke="#5d4691" stroke-width="3.5" stroke-linecap="round"/>`;
     },
     neighbors(a, b) {
@@ -148,7 +151,7 @@ const SCENES = {
         const y0 = rows.length === 1 ? 100 : 82;
         const band = rows.map((n, i) => {
             const y = y0 + i * 18;
-            return `<text x="${gx + 6}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="700" fill="${INK}" font-family="system-ui,sans-serif">${n}</text>` +
+            return `<text ${fl(gx + 6)} x="${gx + 6}" y="${y + 6}" text-anchor="middle" font-size="16" font-weight="700" fill="${INK}" font-family="system-ui,sans-serif">${n}</text>` +
                 Array.from({ length: n }, (_, k) => `<circle cx="${gx + 28 + k * 17}" cy="${y}" r="6.5" fill="#2f7d32" stroke="${INK}" stroke-width="1.5"/>`).join('');
         }).join('');
         const sx = tx(tokens.length - 1);
@@ -198,58 +201,41 @@ export function buildIllustrationSVG(ruleId, words = [], label = '') {
     if (!def) return '';
     return `<svg class="tjw-illus-svg" viewBox="0 0 360 196" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">
         <rect x="1.5" y="1.5" width="357" height="193" rx="20" fill="${PAPER}" stroke="${def.color}" stroke-width="3"/>
-        ${def.scene()}${wordCards(words, def.color)}</svg>`;
+        <g transform="translate(360,0) scale(-1,1)">${def.scene()}</g>${wordCards(words, def.color)}</svg>`;
 }
 
 // ------------------------------------------------------------
-// مخارج الحروف: مقطع جانبي للرأس (الوجه نحو اليمين) بـ17 مخرجاً مرقّمة بألوان مناطقها الخمس
+// مخارج الحروف الـ17: المناطق الخمس وألوانها (الصور في tajweed-book-images.js من كتاب «التجويد المصور»)
 // ------------------------------------------------------------
 const MKH_COLORS = { jawf: '#2f7d32', halq: '#8c2f3d', lisan: '#3f8fd2', shafa: '#d65db1', khayshum: '#7b5cc4' };
-
-// [رقم، منطقة، حروف، مفتاح الاسم، س، ص]
-export const MAKHARIJ = [
-    [1, 'jawf', 'و ا ي', 'jawf', 168, 392],
-    [2, 'halq', 'ء ه', 'halq_aqsa', 214, 326],
-    [3, 'halq', 'ع ح', 'halq_wasat', 214, 300],
-    [4, 'halq', 'غ خ', 'halq_adna', 218, 274],
-    [5, 'lisan', 'ق', 'lisan_q', 236, 236],
-    [6, 'lisan', 'ك', 'lisan_k', 252, 214],
-    [7, 'lisan', 'ج ش ي', 'lisan_wasat', 276, 207],
-    [8, 'lisan', 'ض', 'lisan_dad', 268, 244],
-    [9, 'lisan', 'ل', 'lisan_lam', 300, 213],
-    [10, 'lisan', 'ن', 'lisan_noon', 322, 233],
-    [11, 'lisan', 'ر', 'lisan_raa', 300, 240],
-    [12, 'lisan', 'ط د ت', 'lisan_tdt', 320, 211],
-    [13, 'lisan', 'ص س ز', 'lisan_ssz', 338, 247],
-    [14, 'lisan', 'ظ ذ ث', 'lisan_zhth', 338, 222],
-    [15, 'shafa', 'ف', 'shafa_fa', 366, 252],
-    [16, 'shafa', 'ب م و', 'shafa_bmw', 372, 228],
-    [17, 'khayshum', 'غنّة', 'khayshum', 290, 177]
-];
 export const MAKHARIJ_COLORS = MKH_COLORS;
 
-export function buildMakharijSVG(label = '') {
-    const body = `
-        <path d="M 112 410 V 306 C 52 282 44 176 92 110 C 134 52 246 42 304 92 C 330 114 340 134 346 158 L 376 192 Q 380 202 364 204 L 354 208 Q 364 216 356 224 Q 366 230 358 238 Q 372 250 350 262 Q 352 280 334 292 L 258 304 L 244 330 V 410 Z" fill="#fde3c8" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M 360 188 Q 300 164 214 176 Q 196 190 200 214 L 214 212 Q 252 190 336 206 Q 346 200 360 188 Z" fill="#cfe3f5" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M 338 206 Q 300 194 258 198 Q 226 204 214 216 L 212 236 Q 222 222 232 232 L 224 270 H 196 V 330 H 244 L 252 300 Q 292 282 336 262 Q 346 246 338 224 Z" fill="#f7a9a8" stroke="${INK}" stroke-width="2" stroke-linejoin="round" opacity=".55"/>
-        <path d="M 204 330 Q 214 262 232 246 Q 262 224 300 230 Q 328 228 342 236 Q 330 250 308 258 Q 260 272 238 306 Z" fill="#e8776f" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M 352 207 Q 372 211 366 225 Q 362 227 352 226 Z" fill="#d9534f" stroke="${INK}" stroke-width="2"/><path d="M 352 228 Q 372 232 368 248 Q 360 256 350 250 Z" fill="#d9534f" stroke="${INK}" stroke-width="2"/>
-        <rect x="338" y="206" width="12" height="20" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/>
-        <rect x="338" y="230" width="12" height="18" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/>
-        <path d="M 196 270 V 410 M 244 330 V 410" stroke="${INK}" stroke-width="3"/>
-        <path d="M 168 405 V 372 L 196 336" fill="none" stroke="${MKH_COLORS.jawf}" stroke-width="4" stroke-dasharray="6 5" stroke-linecap="round"/>
-        <ellipse cx="168" cy="404" rx="30" ry="7" fill="#d9c9a3" opacity=".6"/>`;
-    const pts = MAKHARIJ.map(([n, reg, , , x, y]) => `<g><circle cx="${x}" cy="${y}" r="8.2" fill="${MKH_COLORS[reg]}" stroke="#fff" stroke-width="1.8"/><text x="${x}" y="${y + 3.6}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#fff" font-family="system-ui,sans-serif">${n}</text></g>`).join('');
-    return `<svg class="tjw-illus-svg" viewBox="150 140 252 290" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="151.5" y="141.5" width="249" height="287" rx="14" fill="${PAPER}" stroke="#a8571e" stroke-width="3"/>${body}${pts}</svg>`;
-}
+// [رقم، منطقة، حروف، مفتاح الاسم]
+export const MAKHARIJ = [
+    [1, 'jawf', 'و ا ي', 'jawf'],
+    [2, 'halq', 'ء ه', 'halq_aqsa'],
+    [3, 'halq', 'ع ح', 'halq_wasat'],
+    [4, 'halq', 'غ خ', 'halq_adna'],
+    [5, 'lisan', 'ق', 'lisan_q'],
+    [6, 'lisan', 'ك', 'lisan_k'],
+    [7, 'lisan', 'ج ش ي', 'lisan_wasat'],
+    [8, 'lisan', 'ض', 'lisan_dad'],
+    [9, 'lisan', 'ل', 'lisan_lam'],
+    [10, 'lisan', 'ن', 'lisan_noon'],
+    [11, 'lisan', 'ر', 'lisan_raa'],
+    [12, 'lisan', 'ط د ت', 'lisan_tdt'],
+    [13, 'lisan', 'ص س ز', 'lisan_ssz'],
+    [14, 'lisan', 'ظ ذ ث', 'lisan_zhth'],
+    [15, 'shafa', 'ف', 'shafa_fa'],
+    [16, 'shafa', 'ب م و', 'shafa_bmw'],
+    [17, 'khayshum', 'غنّة', 'khayshum']
+];
 
 const MKH_REGIONS = ['jawf', 'halq', 'lisan', 'shafa', 'khayshum'];
 
-// قائمة المخارج تحت الرسم: مجموعة لكل منطقة، وفي كل صف الرقم الملوَّن + الحروف + اسم المخرج (من مفتاح ترجمة)
-export function buildMakharijLegendHTML(name) {
+// قائمة المخارج: مجموعة لكل منطقة، وفي كل صف الرقم الملوَّن + الحروف + اسم المخرج (من مفتاح ترجمة) + محتوى إضافي اختياري (extra(n))
+export function buildMakharijLegendHTML(name, extra = () => '') {
     return `<div class="tjw-mkh-legend">${MKH_REGIONS.map(reg => `
         <div class="tjw-mkh-group" style="--mkc:${MKH_COLORS[reg]}"><h4>${esc(name('region_' + reg))}</h4>
-        ${MAKHARIJ.filter(m => m[1] === reg).map(([n, , letters, key]) => `<div class="tjw-mkh-row"><span class="tjw-mkh-n">${n}</span><span class="tjw-mkh-l">${esc(letters)}</span><span class="tjw-mkh-t">${esc(name(key))}</span></div>`).join('')}</div>`).join('')}</div>`;
+        ${MAKHARIJ.filter(m => m[1] === reg).map(([n, , letters, key]) => `<div class="tjw-mkh-row"><span class="tjw-mkh-n">${n}</span><span class="tjw-mkh-l">${esc(letters)}</span><span class="tjw-mkh-t">${esc(name(key))}</span>${extra(n)}</div>`).join('')}</div>`).join('')}</div>`;
 }

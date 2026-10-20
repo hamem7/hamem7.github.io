@@ -1005,3 +1005,19 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mkh-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--mkc); color: #fff; font-weight: 700; font-size: 0.8rem; display: grid; place-items: center; }
 .tjw-mkh-l { flex: none; min-width: 72px; font-family: 'Amiri Quran', serif; font-size: 1.5rem; line-height: 1.5; color: var(--tjw-ink); }
 .tjw-mkh-t { font-size: 0.88rem; color: var(--tjw-text); line-height: 1.5; }
+.tjw-book-strip, .tjw-mkh-imgs { display: flex; flex-wrap: wrap; gap: 8px; }
+.tjw-book-thumb { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 118px; padding: 4px; border: 2px solid var(--tjw-line); border-radius: 12px; background: #fff; cursor: pointer; font-family: inherit; color: var(--tjw-text); }
+.tjw-book-thumb img { width: 100%; height: 84px; object-fit: cover; border-radius: 8px; }
+.tjw-book-thumb span { font-size: 0.72rem; line-height: 1.3; text-align: center; }
+.tjw-book-thumb:hover, .tjw-book-thumb:focus-visible { border-color: var(--tjw-gold-deep); outline: none; }
+.tjw-book-credit { font-size: 0.78rem; color: var(--tjw-muted); margin: 8px 0 0; line-height: 1.6; }
+.tjw-mkh-imgs { flex-basis: 100%; margin-top: 4px; }
+.tjw-mkh-row { flex-wrap: wrap; }
+.tjw-book-overlay { position: fixed; inset: 0; z-index: 2147482000; background: rgba(8, 18, 32, 0.78); display: flex; align-items: flex-start; justify-content: center; padding: 14px; overflow: auto; }
+.tjw-book-panel { position: relative; background: var(--tjw-card, #fffdf7); color: var(--tjw-text, #3a2c1f); border-radius: 18px; padding: 18px 16px 16px; width: 100%; max-width: 760px; margin: auto; }
+.tjw-book-panel h2 { margin: 0 0 4px; font-size: 1.2rem; }
+.tjw-book-close { position: absolute; top: 8px; inset-inline-start: 8px; width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--tjw-accent, #8c2f3d); color: #fff; font-size: 1rem; cursor: pointer; }
+.tjw-book-lb { text-align: center; max-width: 820px; }
+.tjw-book-lb img { width: 100%; height: auto; max-height: 72vh; object-fit: contain; border-radius: 12px; }
+.tjw-book-lb h3 { margin: 8px 0 0; font-size: 1.05rem; }
+.tjw-book-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
