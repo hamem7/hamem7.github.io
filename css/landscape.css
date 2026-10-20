@@ -1,0 +1,58 @@
+/* css/landscape.css — الهاتف في الوضع الأفقي (ارتفاع قصير). [توحيد الهوية — مرحلة 4]
+   المشكلة: عرض الهاتف الأفقي (≈844px) أكبر من حد تخطيط الهاتف (768px) فيأخذ تخطيط الحاسوب بارتفاع ≈390px، فتبتلع الترويسة
+   ولوحة المؤقت الشاشة ولا يظهر السؤال. هنا نضغط الترويسة والحشوات ونجعل لوحة المسار عموداً جانبياً بجانب السؤال.
+   كل القواعد داخل media واحد، فلا يتغير شيء على الحاسوب ولا على الهاتف العمودي ولا على الأجهزة اللوحية (ارتفاعها > 500px). */
+@media (max-height: 500px) and (orientation: landscape) {
+
+    /* ترويسة نحيفة */
+    body #main-header { padding: 4px 14px !important; gap: 10px; border-bottom-width: 2px; min-height: 0; }
+    body #main-header .home-header-logo { height: 30px; }
+    body #main-header #header-title { font-size: .85rem; }
+    body #main-header #top-student-name { font-size: .7rem; }
+    body #main-header #lang-toggle-btn,
+    body #main-header .header-home-btn { padding: 4px 12px; font-size: .8rem; min-height: 32px; }
+    body #main-header .header-account-btn { width: 32px; height: 32px; }
+
+    /* الشريط السفلي: أيقونات فقط */
+    :root { --m-bnav-h: 40px; }
+    .dh-bnav-lb { display: none; }
+    .dh-bnav-item { gap: 0; }
+
+    /* حشوات الشاشات */
+    body #app-root .screen { padding: 8px 16px; }
+    body #app-root .login-container,
+    body #app-root .report-card { margin: 4px auto 8px !important; padding: 14px 18px !important; }
+    body #app-root .splash-title,
+    body #app-root .screen > h1 { font-size: 1.35rem !important; margin-bottom: 6px !important; }
+
+    /* شاشات اللعب (كبار/أطفال): السؤال بجانب لوحة المسار بدل أن تبتلع اللوحة الشاشة */
+    body #app-root .game-layout { flex-direction: row !important; align-items: flex-start !important; margin: 6px auto !important; gap: 10px !important; padding: 0 10px !important; }
+    body #app-root .game-sidebar { width: 210px !important; flex: none; padding: 10px !important; border-radius: 18px !important;
+        position: sticky; top: 6px; max-height: calc(100dvh - 12px); overflow-y: auto; }
+    body #app-root .game-main-area { flex: 1 1 0 !important; width: auto !important; min-width: 0; padding: 12px !important; border-radius: 18px !important; }
+    body #app-root .game-sidebar .timer-text { font-size: 1.7rem; margin-bottom: 6px; padding-bottom: 6px; }
+    body #app-root .game-sidebar h3 { font-size: .95rem !important; margin-bottom: 6px !important; }
+    body #app-root .tracker-grid { gap: 5px; }
+    body #app-root .q-circle { width: 28px !important; height: 28px !important; font-size: .85rem !important; border-width: 1.5px; }
+    body #app-root .game-sidebar .btn,
+    body #app-root .game-sidebar button { font-size: .85rem !important; min-height: 34px; padding: 5px 10px !important; margin-top: 6px !important; }
+    body #app-root .game-main-area .btn { min-height: 38px; padding: 6px 14px !important; }
+
+    /* عناصر داخل شاشة اللعب: اسم الطالب والسؤال ونص الآية أصغر ليظهر السؤال كاملاً أو أغلبه دون تمرير */
+    body #app-root .in-game-student { margin-bottom: 8px !important; padding: 4px 10px !important; gap: 10px !important; }
+    body #app-root .in-game-student img { width: 34px !important; height: 34px !important; border-width: 2px !important; }
+    body #app-root .in-game-student h3 { font-size: 1.05rem !important; }
+    body #app-root .game-main-area .question-text,
+    body #app-root .game-main-area h2 { font-size: 1.1rem !important; padding: 4px 14px !important; margin: 4px auto !important; }
+    body #app-root .game-main-area .quran-text { font-size: 1.9rem !important; line-height: 2 !important; padding: 6px 14px !important; }
+
+    /* بنّر الاختبار الثنائي */
+    body #app-root .dts-header-banner { padding: 6px 16px !important; margin-bottom: 8px !important; gap: 10px; }
+    body #app-root .dts-header-icon { width: 32px !important; height: 32px !important; font-size: .8rem !important; }
+    body #app-root .dts-header-banner h1.dts-editor-title { font-size: 1.1rem !important; }
+    body #app-root .dts-editor-actions { padding: 6px 20px calc(6px + env(safe-area-inset-bottom, 0px)) !important; gap: 8px; margin-top: 12px; }
+    body #app-root .dts-editor-actions button { min-height: 38px !important; padding: 5px 14px !important; font-size: .92rem !important; }
+
+    /* بطاقات إعداد/نتائج عامة (الاختبارات الثنائية وغيرها): لا تتخذ ارتفاعًا أكبر من الشاشة */
+    body #app-root .modal-content { max-height: calc(100dvh - 16px); overflow-y: auto; }
+}

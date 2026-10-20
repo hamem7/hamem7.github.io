@@ -17,6 +17,10 @@
 .dh-btn[disabled], .dh-btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
 .dh-btn svg, .dh-chip svg { width: 1.15em; height: 1.15em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
+/* ===== زر بلا إجراء متاح (مثل «لا توجد أخطاء مسجلة») — يطغى على لون الزر الأصلي ويبدو معطّلًا بوضوح ===== */
+#app-root .btn.btn-idle, #app-root .btn.btn-idle:hover { background: var(--dh-surface-alt) !important; color: var(--dh-ink-soft) !important; border: 2px solid var(--dh-line-strong) !important;
+    box-shadow: none !important; transform: none !important; cursor: not-allowed; text-shadow: none; }
+
 /* ===== الحقول ===== */
 .dh-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: .92rem; color: var(--dh-ink); }
 .dh-label small { margin-inline-start: 6px; font-weight: 500; color: var(--dh-ink-soft); }
@@ -79,3 +83,10 @@
     font-weight: 600; font-size: .92rem; box-shadow: var(--dh-sh-lift); }
 
 @media (prefers-reduced-motion: reduce) { .dh-btn, .dh-spinner, .dh-skeleton { animation: none; transition: none; } }
+
+/* ===== أهداف اللمس (شاشات اللمس فقط): روابط نصية كانت بارتفاع 21–26px ترتفع إلى 44px دون تغيير شكلها ===== */
+@media (pointer: coarse) {
+    body #app-root .as-link { min-height: var(--dh-tap); display: inline-flex; align-items: center; padding-inline: 6px !important; }
+    body #app-root .btn-prof-link { min-height: var(--dh-tap) !important; display: inline-flex; align-items: center; }
+    .dh-monthly-memo-banner-close::after { content: ""; position: absolute; inset: -9px; }
+}

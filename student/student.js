@@ -1137,13 +1137,11 @@ export async function loadStudentProfileScreen() {
                     }
                 };
             } else if (totalWeaknessCount > 0) {
-                btnWeakness.style.background = "#cbd5e1";
-                btnWeakness.style.color = "#475569";
+                btnWeakness.classList.add('btn-idle');   // 🌟 [توحيد الهوية] مظهر المعطَّل من css/components.css (كان الأحمر !important يغلب اللون الرمادي المضمَّن)
                 btnWeakness.innerText = t('fixp_prof_waiting').replace('{n}', totalWeaknessCount);
                 btnWeakness.disabled = true;
             } else {
-                btnWeakness.style.background = "#cbd5e1";
-                btnWeakness.style.color = "#475569";
+                btnWeakness.classList.add('btn-idle');
                 btnWeakness.innerText = t("stu_no_errors_btn");
                 btnWeakness.disabled = true;
             }

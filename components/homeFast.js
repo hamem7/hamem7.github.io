@@ -29,7 +29,7 @@ const LOGIN_SCREEN = 'student/login.html';
 // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] أُضيفت شاشتا تصفّح المتشابهات والتجويد (ألعاب) ليبقى الشريط متاحاً فيهما؛ شاشات اللعب الفعلي تبقى بلا شريط
 const SIM_SCREEN = 'similarities/similarities-home.html';
 const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
-const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'components/account-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
+const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'components/account-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'settings/dashboard.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
 const HW_NEW_KEY = 'dh_hw_new_count';
 

@@ -38,7 +38,7 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.12),transparent 30%),radial-gradient(circle at 85% 85%,rgba(212,175,55,.16),transparent 30%),linear-gradient(135deg,#06231c,#0d5c46 55%,#147c5e);background-color:#0d5c46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif;overflow-y:auto;}
+.mrh-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background-image:radial-gradient(circle at 20% 15%,rgba(255,255,255,.12),transparent 30%),radial-gradient(circle at 85% 85%,rgba(212,175,55,.16),transparent 30%),linear-gradient(135deg,#06231c,#0d5c46 55%,#147c5e);background-color:#0d5c46;background-attachment:fixed;z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding:0;box-sizing:border-box;font-family:'IBM Plex Sans Arabic',sans-serif;overflow-y:auto;}
 .mrh-overlay *{text-shadow:none;-webkit-text-stroke:0;}
 .mrh-card{background:#fffdf6;border-radius:0;max-width:none;width:100%;min-height:100%;box-sizing:border-box;border:0;color:#10241c;direction:rtl;margin:0;overflow:hidden;}
 .mrh-card[dir="ltr"]{direction:ltr;}

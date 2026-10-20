@@ -30,7 +30,7 @@ function injectStyleOnce() {
     style.id = STYLE_ID;
     style.textContent = `
     #${OVERLAY_ID} { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); }
-    #${OVERLAY_ID} .dh-fixp-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'Tajawal', sans-serif; }
+    #${OVERLAY_ID} .dh-fixp-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'IBM Plex Sans Arabic', sans-serif; }
     #${OVERLAY_ID} .dh-fixp-avatar { width: 84px; height: 84px; margin: 0 auto 12px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: bold; color: #fff; background: var(--dh-emerald-700, #047857); border: 4px solid var(--dh-gold-500, #d4a017); }
     #${OVERLAY_ID} .dh-fixp-avatar img { width: 100%; height: 100%; object-fit: cover; }
     #${OVERLAY_ID} .dh-fixp-title { margin: 0 0 10px; font-size: 1.5rem; color: var(--dh-emerald-700, #047857); }

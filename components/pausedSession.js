@@ -93,7 +93,7 @@ function injectStyleOnce() {
     style.id = STYLE_ID;
     style.textContent = `
     #${OVERLAY_ID} { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(15, 23, 42, 0.55); }
-    #${OVERLAY_ID} .dh-pause-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'Tajawal', sans-serif; }
+    #${OVERLAY_ID} .dh-pause-card { width: min(92vw, 460px); background: #fff; border-radius: 22px; padding: 28px 24px 22px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border-top: 6px solid var(--dh-gold-500, #d4a017); font-family: 'IBM Plex Sans Arabic', sans-serif; }
     #${OVERLAY_ID} .dh-pause-icon { font-size: 2.6rem; margin-bottom: 4px; }
     #${OVERLAY_ID} .dh-pause-title { margin: 0 0 6px; font-size: 1.5rem; color: var(--dh-emerald-700, #047857); }
     #${OVERLAY_ID} .dh-pause-student { margin: 0 0 12px; font-size: 1.1rem; color: #475569; font-weight: bold; }

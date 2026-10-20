@@ -4,7 +4,7 @@ import { tl, labelL, nameL } from "../core/langBridge.js";
 import { LISTEN_MIN_SURAH, listenBodyHTML } from "./ayahAudio.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
-const kidsSurahNameHtml = (name) => `<span style="font-family:'Tajawal','Cairo',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
+const kidsSurahNameHtml = (name) => `<span style="font-family:'IBM Plex Sans Arabic',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
 
 // 🌟 [2026-10-03] مفتاح فهرس السور الخفيف (راجع getAllSurahsList)
 const SURAH_INDEX_KEY = 'dh_surah_index_v1';

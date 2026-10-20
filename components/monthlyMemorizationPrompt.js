@@ -50,7 +50,7 @@ function ensureStylesInjected() {
   position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
   display: flex; align-items: center; justify-content: center;
   z-index: 9999; padding: 20px; box-sizing: border-box;
-  font-family: 'Tajawal', sans-serif;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
 }
 .mmp-card {
   background: #fffdf6; border-radius: 20px; max-width: 480px; width: 100%;

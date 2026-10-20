@@ -25,7 +25,7 @@ function ensureStyles() {
   const st = document.createElement('style');
   st.id = STYLE_ID;
   st.textContent = `
-.mrv-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#0d1b16;z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:'Tajawal',sans-serif;}
+.mrv-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:#0d1b16;z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:'IBM Plex Sans Arabic',sans-serif;}
 .mrv-card{background:#fffdf6;border-radius:26px;max-width:760px;width:100%;box-shadow:0 30px 70px rgba(0,0,0,.45);border:3px solid var(--dh-gold-500,#d4af37);max-height:94vh;overflow-y:auto;direction:rtl;}
 .mrv-card[dir="ltr"]{direction:ltr;}
 .mrv-head{background:linear-gradient(135deg,var(--dh-emerald-700,#0d5c46),#0a4736);color:#fff;padding:18px 26px;border-radius:22px 22px 0 0;}
