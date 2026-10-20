@@ -15,6 +15,7 @@ import {
     EXAM_PASS_SCORE, EXAM_SIZE
 } from '../engine/tajweedJourney.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
+import { renderRuleIllustrationHTML } from './tajweed-illustrations.js';
 import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
 import { openParentSummary } from './tajweed-summary.js';
 import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
@@ -484,6 +485,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const howtoGridHTML = (howtoHTML || cautionHTML) ? `<div class="tjw-howto-grid">${howtoHTML}${cautionHTML}</div>` : '';
 
     // 🌟 [جديد] بطاقات الحروف القابلة للقلب (كلمات قرآنية من المنصة) + شجرة الحكم على غرار كتاب «فتوحات الرحمن»
+    const illusHTML = await renderRuleIllustrationHTML(rule);
     const cardsInnerHTML = await renderLetterCardsHTML(rule);
     const cardsHTML = cardsInnerHTML
         ? `<section><h3 class="tjw-section-title">${t('tjw_letter_cards_title')}</h3>${cardsInnerHTML}</section>` : '';
@@ -517,6 +519,8 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     <h3 class="tjw-section-title">${t('tjw_letters_label')}</h3>
                     <div class="tjw-letter-chips">${lettersHTML}</div>
                 </section>
+
+                ${illusHTML}
 
                 ${cardsHTML}
 

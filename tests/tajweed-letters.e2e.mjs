@@ -108,6 +108,8 @@ check('شجرة الحكم: الحكم الحالي مظلَّل، والإدغ�
 check('زر «العب بحروف هذا الحكم» موجود (إضافة)', lesson.lettersBtn);
 await page.click('.tjw-flip'); await sleep(100);
 check('الضغط على البطاقة يقلبها', await page.evaluate(() => document.querySelector('.tjw-flip').classList.contains('is-flipped')));
+const illus = await page.evaluate(() => ({ svg: !!document.querySelector('.tjw-illus .tjw-illus-svg'), words: document.querySelectorAll('.tjw-illus-svg text[direction=rtl]').length, cap: (document.querySelector('.tjw-illus figcaption') || {}).textContent || '' }));
+check('الدرس يعرض صورة توضيحية للحكم بكلمات قرآنية من المنصة وتسمية', illus.svg && illus.words >= 1 && illus.cap.length > 10 && !illus.cap.startsWith('tjw_'), JSON.stringify(illus));
 await shot('1-ikhfa-lesson');
 
 // ٢) ألعاب الحروف للإخفاء (حروف): اجمع/الدخيل/صنّف

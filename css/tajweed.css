@@ -516,6 +516,9 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-rule-card.tjw-revealed .tjw-notice-answer { display: block; }
 .tjw-rule-card.tjw-revealed .tjw-pill-btn { display: none; }
 
+.tjw-illus figure { margin: 0; text-align: center; }
+.tjw-illus-svg { width: 100%; max-width: 520px; height: auto; display: block; margin: 0 auto; }
+.tjw-illus figcaption { margin-top: 8px; font-size: 0.95rem; font-weight: 700; color: var(--tjw-text); line-height: 1.7; }
 .tjw-howto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .tjw-howto, .tjw-caution { border-radius: 18px; padding: 16px 18px; line-height: 1.9; font-size: 0.98rem; }
 .tjw-howto { background: rgba(31, 157, 85, 0.09); border: 1.5px solid rgba(31, 157, 85, 0.4); }
