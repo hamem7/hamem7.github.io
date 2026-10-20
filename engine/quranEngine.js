@@ -320,12 +320,12 @@ export class QuranEngine {
     
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
         let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
-        let prevAyahText = ""; let hintText = tl('qe_none', 'لا يوجد'); let hintFull = null; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex > 0) { prevAyahText = cleanAyahText(ayahsPool[currentIndex - 1].text); if(currentIndex > 1) { let prev2 = cleanAyahText(ayahsPool[currentIndex - 2].text); hintFull = prev2; hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_range_start', 'أول النطاق'); } } 
-        else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintFull = prev2; hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
+        let prevAyahText = ""; let hintText = tl('qe_none', 'لا يوجد'); let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
+        if(currentIndex > 0) { prevAyahText = cleanAyahText(ayahsPool[currentIndex - 1].text); if(currentIndex > 1) { let prev2 = cleanAyahText(ayahsPool[currentIndex - 2].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_range_start', 'أول النطاق'); } } 
+        else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
-        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, hintFull, reportText: targetText }; 
+        return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
     }
     
     // 🎧 [جديد 2026-10-18] «استمع للشيخ… ثم كمّل»: يُشغَّل صوت آية بصوت المنشاوي ويذكر الطالب التي بعدها (أو التي قبلها).
@@ -341,8 +341,8 @@ export class QuranEngine {
             const a = d.ayahObj;
             return { ...d, type: 'listen_next', dir, questionTitle: dir === 'next' ? 'listen_next_title' : 'listen_prev_title',
                 questionBody: listenBodyHTML({ ayah: a, instruction: '', btnLabel: tl('listen_play_btn', '🔊 استمع للشيخ'), btnClass: 'btn' }),
-                // «ما قبلها»: التلميح هو الآية التي قبل الإجابة (لا بداية الإجابة نفسها فيُكشف الجواب)، و«ما بعدها» بلا تلميح (فلا يظهر الزر)
-                hint: dir === 'prev' ? (d.hintFull || d.hint) : null };
+                // «ما قبلها»: التلميح هو أول 3 كلمات من الآية التي قبل الإجابة (كالسؤال العادي، فلا يُكشف الجواب)، و«ما بعدها» بلا تلميح (فلا يظهر الزر)
+                hint: dir === 'prev' ? d.hint : null };
         }
         return null;
     }
