@@ -998,3 +998,10 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-sum-overlay button:focus-visible { outline: 3px solid #e0b04f; outline-offset: 2px; }
 @media (max-width: 560px) { .tjw-sum-overlay { padding: 0; align-items: flex-end; } .tjw-sum-card { max-height: 96vh; border-radius: 22px 22px 0 0; } }
 @media (prefers-reduced-motion: reduce) { .tjw-sum-copy { transition: none; } }
+.tjw-mkh-legend { display: grid; gap: 10px; margin-top: 12px; text-align: start; }
+.tjw-mkh-group { border: 2px solid var(--mkc); border-radius: 14px; padding: 8px 12px; background: var(--tjw-card); }
+.tjw-mkh-group h4 { margin: 0 0 4px; color: var(--mkc); font-size: 1rem; }
+.tjw-mkh-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
+.tjw-mkh-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--mkc); color: #fff; font-weight: 700; font-size: 0.8rem; display: grid; place-items: center; }
+.tjw-mkh-l { flex: none; min-width: 72px; font-family: 'Amiri Quran', serif; font-size: 1.5rem; line-height: 1.5; color: var(--tjw-ink); }
+.tjw-mkh-t { font-size: 0.88rem; color: var(--tjw-text); line-height: 1.5; }
