@@ -1,0 +1,81 @@
+/* css/components.css — مكوّنات موحّدة بادئتها dh- (أزرار، حقول، شارات، بطاقات، ترويسة شاشة، نوافذ، حالات).
+   كلها أسماء جديدة لا تتعارض مع أي صنف قائم، وتعتمد على css/tokens.css ومتغيرات css/home.css.
+   الأصناف القديمة تبقى تعمل كما هي حتى تُرحَّل شاشاتها واحدة بعد أخرى. */
+
+/* ===== الأزرار ===== */
+.dh-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--dh-tap); padding: 10px 22px;
+    border: 2px solid transparent; border-radius: var(--dh-r-pill); font: inherit; font-weight: 700; font-size: 1rem; line-height: 1.2;
+    cursor: pointer; text-decoration: none; transition: transform .15s, box-shadow .15s, background .15s; }
+.dh-btn:hover { transform: translateY(-2px); }
+.dh-btn:focus-visible, .dh-field:focus-visible, .dh-chip:focus-visible, .dh-back:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
+.dh-btn--primary { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-ink); box-shadow: 0 6px 16px rgba(212, 175, 55, .35); }
+.dh-btn--secondary { background: var(--dh-emerald-700); color: var(--dh-surface); }
+.dh-btn--ghost { background: transparent; color: var(--dh-emerald-700); border-color: var(--dh-emerald-700); }
+.dh-btn--danger { background: var(--dh-danger-bg); color: var(--dh-danger); border-color: var(--dh-danger); }
+.dh-btn--sm { padding: 6px 14px; font-size: .9rem; }
+.dh-btn--block { width: 100%; }
+.dh-btn[disabled], .dh-btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+.dh-btn svg, .dh-chip svg { width: 1.15em; height: 1.15em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== الحقول ===== */
+.dh-label { display: block; margin-bottom: 6px; font-weight: 600; font-size: .92rem; color: var(--dh-ink); }
+.dh-label small { margin-inline-start: 6px; font-weight: 500; color: var(--dh-ink-soft); }
+.dh-label small.dh-req { color: var(--dh-warn); }
+.dh-field { width: 100%; min-height: 46px; padding: 10px 14px; font: inherit; font-size: 1rem; color: var(--dh-ink); background: #fff;
+    border: 1.5px solid var(--dh-line-strong); border-radius: var(--dh-r-md); }
+.dh-field:focus { outline: 3px solid var(--dh-focus); outline-offset: 1px; border-color: var(--dh-gold-500); }
+.dh-field::placeholder { color: var(--dh-ink-soft); opacity: .7; }
+.dh-file { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px dashed var(--dh-line-strong); border-radius: var(--dh-r-md);
+    color: var(--dh-ink-soft); background: var(--dh-surface-alt); cursor: pointer; }
+
+/* ===== الشارات ===== */
+.dh-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 12px; border-radius: var(--dh-r-pill);
+    background: var(--dh-surface-alt); border: 1px solid var(--dh-line); color: var(--dh-ink); font-size: .88rem; font-weight: 600; }
+.dh-chip--ok { background: var(--dh-ok-bg); color: var(--dh-ok); border-color: transparent; }
+.dh-chip--warn { background: var(--dh-warn-bg); color: var(--dh-warn); border-color: transparent; }
+.dh-chip--bad { background: var(--dh-danger-bg); color: var(--dh-danger); border-color: transparent; }
+.dh-chip--info { background: var(--dh-info-bg); color: var(--dh-info); border-color: transparent; }
+
+/* ===== البطاقة وترويسة الشاشة ===== */
+.dh-card { background: var(--dh-surface); border: 1px solid var(--dh-line); border-radius: var(--dh-r-lg); padding: var(--dh-sp-4); box-shadow: var(--dh-sh-soft); color: var(--dh-ink); }
+.dh-screen-head { display: flex; align-items: center; gap: var(--dh-sp-3); }
+.dh-screen-head h1, .dh-screen-head h2 { margin: 0; font-size: 1.3rem; font-weight: 700; line-height: 1.3; color: var(--dh-ink); text-shadow: none; }
+.dh-screen-head p { margin: 0; font-size: .88rem; color: var(--dh-ink-soft); }
+.dh-back { width: var(--dh-tap); height: var(--dh-tap); flex: none; display: grid; place-items: center; padding: 0; border-radius: 14px;
+    border: 1px solid var(--dh-line); background: var(--dh-surface); color: var(--dh-emerald-700); cursor: pointer; }
+[dir="ltr"] .dh-back svg, html[lang="en"] .dh-back svg { transform: scaleX(-1); }
+
+/* ===== النوافذ (ورقة سفلية على الهاتف) ===== */
+.dh-overlay { position: fixed; inset: 0; z-index: var(--dh-z-modal); display: flex; align-items: center; justify-content: center; padding: 14px;
+    background: rgba(6, 35, 28, .72); }
+.dh-overlay[hidden] { display: none; }
+.dh-modal { width: 100%; max-width: 440px; max-height: 100%; overflow: auto; padding: 20px; background: var(--dh-surface); color: var(--dh-ink);
+    border-radius: var(--dh-r-xl); border-top: 4px solid var(--dh-gold-500); box-shadow: var(--dh-sh-overlay); }
+.dh-modal h2, .dh-modal h3 { margin: 0 0 6px; font-size: 1.15rem; text-shadow: none; color: var(--dh-ink); }
+.dh-modal p { margin: 0 0 14px; color: var(--dh-ink-soft); }
+.dh-modal-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.dh-modal-actions .dh-btn { flex: 1 1 120px; }
+@media (max-width: 560px) {
+    .dh-overlay--sheet { align-items: flex-end; padding: 0; }
+    .dh-overlay--sheet .dh-modal { max-width: none; border-radius: var(--dh-r-xl) var(--dh-r-xl) 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* ===== حالات الفراغ والتحميل والخطأ ===== */
+.dh-state { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 22px 14px; text-align: center; color: var(--dh-ink); }
+.dh-state h3 { margin: 0; font-size: 1rem; text-shadow: none; color: var(--dh-ink); }
+.dh-state p { margin: 0; font-size: .9rem; color: var(--dh-ink-soft); }
+.dh-state-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 14px; background: var(--dh-surface-alt); color: var(--dh-ink-soft); }
+.dh-state--error .dh-state-icon { background: var(--dh-danger-bg); color: var(--dh-danger); }
+.dh-state-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dh-state-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.dh-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--dh-line-strong); border-top-color: var(--dh-emerald-600); animation: dh-spin .9s linear infinite; }
+@keyframes dh-spin { to { transform: rotate(360deg); } }
+.dh-skeleton { height: 12px; width: 80%; border-radius: 6px; background: linear-gradient(90deg, var(--dh-line), var(--dh-surface-alt), var(--dh-line)); background-size: 200% 100%; animation: dh-shimmer 1.4s linear infinite; }
+@keyframes dh-shimmer { to { background-position: -200% 0; } }
+
+/* ===== رسالة مؤقتة ===== */
+.dh-toast { position: fixed; inset-inline: 16px; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: var(--dh-z-toast); width: fit-content; margin-inline: auto;
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; background: var(--dh-emerald-800); color: #fffdf6;
+    font-weight: 600; font-size: .92rem; box-shadow: var(--dh-sh-lift); }
+
+@media (prefers-reduced-motion: reduce) { .dh-btn, .dh-spinner, .dh-skeleton { animation: none; transition: none; } }
