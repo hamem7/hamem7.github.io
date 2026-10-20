@@ -19,7 +19,7 @@ figure{margin:0}.tjw-illus-svg{width:100%;height:auto;display:block}figcaption{m
 .tjw-mkh-n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--mkc);color:#fff;font-weight:700;font-size:.8rem;display:grid;place-items:center}
 .tjw-mkh-l{flex:none;min-width:72px;font-family:'Amiri Quran',serif;font-size:1.5rem;line-height:1.5}.tjw-mkh-t{font-size:.88rem;line-height:1.5}
 .note{background:#f3d27a33;border:1px dashed #c9a23a;border-radius:12px;padding:10px 14px;font-size:.92rem;margin-top:18px}
-.imgs{display:flex;flex-wrap:wrap;gap:8px;flex-basis:100%}.bk{width:130px;text-align:center;font-size:.75rem;color:var(--ink);text-decoration:none}.bk img{width:100%;border-radius:10px;border:1px solid var(--line)}.tjw-mkh-row{flex-wrap:wrap}
+.imgs{display:flex;flex-wrap:wrap;gap:8px;flex-basis:100%}.bk{width:150px;text-align:center;font-size:.75rem;color:var(--ink);text-decoration:none}.bk img{width:100%;border-radius:10px;border:1px solid var(--line)}.tjw-mkh-row{flex-wrap:wrap}
 </style></head><body><div class="wrap">
 <h1>معاينة: رسومات أحكام التجويد ومخارج الحروف</h1>
 <p class="muted">صفحة مراجعة مستقلة لا تمسّ التطبيق. كل الرسومات من تصميمنا بالكود (ليست من أي كتاب)، والكلمات القرآنية داخلها من مصحف المنصة نفسه، والنصوص تحتها هي نفسها المضافة في <code>core/i18n.js</code>.</p>
@@ -27,6 +27,7 @@ figure{margin:0}.tjw-illus-svg{width:100%;height:auto;display:block}figcaption{m
 <h2 id="mkh">مخارج الحروف — صور كتاب «التجويد المصور» (د. أيمن رشدي سويد)</h2>
 <p class="muted">الصور للاستخدام التعليمي غير التجاري. اضغط أي صورة لتكبيرها.</p>
 <div id="mkleg"></div>
+<h2 id="dk">صور العروض التوضيحية (القلقلة، المتجانسين والمتقاربين)</h2><div id="rdeck"></div>
 <h2 id="rb">صور الأحكام من الكتاب</h2><div id="rbook"></div>
 <div id="rules"></div>
 <div class="note"><b>للمراجعة:</b> (١) هل فكرة كل رسم مناسبة للطفل؟ (٢) في المخارج: هل مواضع الأرقام الـ17 وأسماؤها مقبولة؟ (٣) تلميح: كلمات الأمثلة مأخوذة من «مثال الحكم» و«مثال التطبيق» في كتالوج الأحكام، فتغيير الأمثلة يغيّرها تلقائيًا.</div>
@@ -35,7 +36,7 @@ import {TAJWEED_STAGES} from '../../engine/tajweedRulesCatalog.js';
 import {findPhraseRanges} from '../../core/quranTextUtils.js';
 import {cleanAyahText} from '../../engine/quranEngine.js';
 import {hasIllustration,buildIllustrationSVG,buildMakharijLegendHTML} from '../../tajweed/tajweed-illustrations-art.js';
-import {BOOK_IMAGES,MAKHARIJ_IMAGES,RULE_BOOK_IMAGES,bookImageUrl} from '../../engine/tajweedBookImages.js';
+import {BOOK_IMAGES,MAKHARIJ_IMAGES,RULE_BOOK_IMAGES,RULE_DECK_IMAGES,bookImageUrl} from '../../engine/tajweedBookImages.js';
 const QURAN=(await (await fetch('../../database/quran-uthmani.json')).json()).data.surahs;
 // النصوص العربية من i18n.js مباشرة (أول ظهور لكل مفتاح = النسخة العربية)
 const SRC=await (await fetch('../../core/i18n.js')).text();
@@ -44,8 +45,9 @@ const phrase=ex=>{if(!ex)return'';const tx=cleanAyahText(QURAN[ex.surah-1].ayahs
 const $=s=>document.querySelector(s);
 const img=id=>`<a class="bk" href="../../${bookImageUrl(id)}" target="_blank"><img src="../../${bookImageUrl(id)}" alt=""><span>${BOOK_IMAGES[id].ar}</span></a>`;
 $('#mkleg').innerHTML=buildMakharijLegendHTML(k=>tr('tjw_mkh_'+k),n=>`<div class="imgs">${(MAKHARIJ_IMAGES[n]||[]).map(img).join('')}</div>`);
+$('#rdeck').innerHTML=Object.entries(RULE_DECK_IMAGES).map(([r,ids])=>`<h3>${r}</h3><div class="imgs">${ids.map(img).join('')}</div>`).join('');
 $('#rbook').innerHTML=Object.entries(RULE_BOOK_IMAGES).map(([r,ids])=>`<h3>${r}</h3><div class="imgs">${ids.map(img).join('')}</div>`).join('');
-let html='',nav='<a href="#mkh">المخارج</a><a href="#rb">صور الأحكام</a>';
+let html='',nav='<a href="#mkh">المخارج</a><a href="#dk">العروض التوضيحية</a><a href="#rb">صور الأحكام</a>';
 for(const st of TAJWEED_STAGES){
   const id='st_'+st.id;nav+=`<a href="#${id}">${st.icon||''} ${tr(st.nameKey)}</a>`;
   html+=`<h2 id="${id}">${st.icon||''} ${tr(st.nameKey)}</h2><div class="grid">`;
