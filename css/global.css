@@ -185,8 +185,9 @@
 @keyframes linkCorrectPop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
 /* النوافذ المنبثقة والتوست */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease;}
-.modal-content { background: white; padding: 2.5rem; border-radius: 20px; width: 90%; max-width: 650px; text-align: center; box-shadow: var(--shadow-md); max-height: 95vh; overflow-y: auto; color: #333;}
+/* [توحيد الهوية] خلفية النوافذ بلون الهوية الزمردي (كانت أسود 70%) وبطاقة النافذة بحواف 26px وشريط ذهبي علوي وظل موحّد — كما في حوار core/dialog.js */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6,35,28,0.72); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease;}
+.modal-content { background: var(--dh-surface, #fffdf6); padding: 2.5rem; border-radius: var(--dh-r-xl, 26px); border-top: 4px solid var(--dh-gold-500, #d4af37); width: 90%; max-width: 650px; text-align: center; box-shadow: var(--dh-sh-overlay, var(--shadow-md)); max-height: 95vh; overflow-y: auto; color: var(--dh-ink, #333);}
 #toast-encouragement { visibility: hidden; min-width: 250px; background-color: var(--success); color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 1.5rem; font-weight: 700; border: 2px solid var(--gold); box-shadow: var(--shadow-md);}
 #toast-encouragement.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }

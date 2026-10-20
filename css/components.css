@@ -90,3 +90,9 @@
     body #app-root .btn-prof-link { min-height: var(--dh-tap) !important; display: inline-flex; align-items: center; }
     .dh-monthly-memo-banner-close::after { content: ""; position: absolute; inset: -9px; }
 }
+
+/* ===== حالات الفراغ القائمة بأسمائها (22 شكلًا مختلفًا) تأخذ مظهر dh-state الموحّد دون تغيير أي HTML ===== */
+#app-root :is(.dts-empty-msg, .as-empty, .sim-empty) { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 26px 14px; text-align: center;
+    color: var(--dh-ink-soft); font-size: 1rem; line-height: 1.7; }
+#app-root :is(.dts-empty-msg, .as-empty, .sim-empty)::before { content: ""; display: block; width: 46px; height: 46px; margin: 0; flex: none; border-radius: 14px; font-size: 0;
+    background: var(--dh-surface-alt) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234a6058' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5'/%3E%3C/svg%3E") center / 24px no-repeat; }

@@ -111,12 +111,14 @@
     #app-root .input-group label { font-size: .9rem; }
 
     /* ===== 6) النوافذ المنبثقة: لا تتجاوز الجزء الظاهر (dvh يراعي شريط المتصفح ولوحة المفاتيح) ===== */
-    .modal-overlay { padding: 10px; }
+    /* 🌟 [توحيد الهوية] على الهاتف تظهر النافذة كورقة سفلية بعرض الشاشة (أسهل للإبهام) بدل بطاقة وسط الشاشة 🌟 */
+    .modal-overlay { padding: 0; align-items: flex-end; }
     .modal-content {
         width: 100%;
-        max-height: calc(100dvh - 20px);
-        padding: 16px 14px;
-        border-radius: var(--m-radius-lg);
+        max-width: none;
+        max-height: calc(100dvh - 24px);
+        padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+        border-radius: var(--dh-r-xl, 26px) var(--dh-r-xl, 26px) 0 0;
         overscroll-behavior: contain;
     }
     #app-root .modal-content { padding: 16px 14px; }

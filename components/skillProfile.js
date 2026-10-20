@@ -154,12 +154,12 @@ export function ensureSkillStyles() {
     const st = document.createElement('style');
     st.id = 'sk-style';
     st.textContent = `
-    .sk-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
-    .sk-box{background:#fff;color:#0f172a;border-radius:16px;max-width:760px;width:100%;padding:18px 18px 22px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:right}
+    .sk-ov{position:fixed;inset:0;background:rgba(6,35,28,.72);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:16px}
+    .sk-box{background:var(--dh-surface,#fffdf6);color:var(--dh-ink,#10241c);border-radius:var(--dh-r-xl,26px);border-top:4px solid var(--dh-gold-500,#d4af37);max-width:760px;width:100%;padding:18px 18px 22px;box-shadow:var(--dh-sh-overlay,0 20px 50px rgba(0,0,0,.3));text-align:right}
     .sk-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
     .sk-head h2{margin:0;font-size:1.25rem;color:#0f172a}
-    .sk-x{border:0;background:#f1f5f9;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}
-    .sk-sec{border:1px solid #e2e8f0;border-radius:12px;padding:12px 14px;margin-top:12px}
+    .sk-x{border:0;background:var(--dh-surface-alt,#f6f3e8);border-radius:12px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}
+    .sk-sec{border:1px solid var(--dh-line,#e4dfcc);border-radius:12px;padding:12px 14px;margin-top:12px}
     .sk-sec h3{margin:0 0 8px;font-size:1.05rem;color:#334155}
     .sk-note{font-size:.88rem;color:#64748b;margin-top:4px}
     .sk-row{margin-top:10px}

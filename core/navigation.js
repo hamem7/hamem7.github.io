@@ -35,7 +35,7 @@ export async function loadScreen(route) {
     // 🌟 [2026-10-07 — إصلاح وميض الشكل القديم] لا نمسح الشاشة الحالية ولا نغيّر ثيمها أثناء جلب الشاشة الجديدة: كان
     // الانتظار (تحميل الوحدة + الملف + بوابة الدخول) يعرض لثوانٍ رسالة "جاري التحميل" على ثيم الكبار الأزرق القديم.
     // الآن تبقى الشاشة السابقة كما هي حتى تجهز الجديدة فتُستبدل دفعة واحدة؛ والرسالة تظهر فقط إن كان الجذر فارغاً.
-    if (!booting && !root.firstElementChild) root.innerHTML = '<div class="dh-screen-loading" style="text-align:center; font-size:1rem; padding:32px 16px; opacity:.8;">⏳ جاري التحميل... Loading</div>';
+    if (!booting && !root.firstElementChild) root.innerHTML = '<div class="dh-screen-loading dh-state" role="status" style="color:#fffdf6;"><div class="dh-spinner" aria-hidden="true"></div><p style="color:inherit;opacity:.85;">جاري التحميل… Loading</p></div>';   // 🌟 [توحيد الهوية] مؤشر دوّار بدل نص ⏳ 🌟
     document.body.classList.add('dh-nav-pending');
 
     try {
