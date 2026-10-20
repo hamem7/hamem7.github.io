@@ -5,9 +5,8 @@
    كلاس قديم مشترك مع شاشات أخرى (splash-title, login-container, btn, main-menu-btn...) —
    لذلك لا يوجد أي تأثير على أي شاشة أخرى في المنصة غير هاتين المنطقتين. 🌟 */
 
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
 /* 🌟 [جديد] خط Lateef لعنوان الواجهة (آية "حمٓ وَٱلۡكِتَٰبِ ٱلۡمُبِينِ") — يدعم التشكيل الكامل وعلامات المصحف */
-@import url('https://fonts.googleapis.com/css2?family=Lateef:wght@500;600;700&display=swap');
+/* خطا Amiri وLateef مستضافان محليًا في css/fonts.css */
 
 :root {
     --dh-emerald-900: #06231c;

@@ -57,8 +57,11 @@
     <meta property="og:locale" content="ar_AR">
     <meta name="twitter:card" content="summary_large_image">
 
-    <!-- 🌟 التعديل التجريبي: تم استبدال خطي Tajawal و Amiri بخط IBM Plex Sans Arabic بأوزانه المطلوبة 🌟 -->
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 🌟 [توحيد الهوية] الخطوط مستضافة داخل المنصة (css/fonts.css + assets/fonts) بدل تحميلها من Google في كل فتح:
+         IBM Plex Sans Arabic (400/500/600/700) وAmiri Quran وAmiri وLateef. تُحمَّل كل شريحة عند الحاجة فقط. 🌟 -->
+    <link rel="preload" href="assets/fonts/ibm-plex-sans-arabic-400-arabic.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="assets/fonts/ibm-plex-sans-arabic-700-arabic.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="css/fonts.css">
 
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/adults.css">

@@ -1,5 +1,5 @@
 /* css/global.css */
-@import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&display=swap');
+/* خط Amiri Quran صار مستضافًا محليًا في css/fonts.css (يُحمَّل من index.html) */
 
 :root { 
     --primary: #0d5c46; --secondary: #147c5e; --gold: #d4af37; 
