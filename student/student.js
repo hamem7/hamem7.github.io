@@ -1165,20 +1165,8 @@ export async function loadStudentProfileScreen() {
                 setTileLabel(btnArchive, stripEmoji(t('archive_empty')));
                 btnArchive.disabled = true;
             }
-            document.getElementById('btn-prof-edit-all')?.addEventListener('click', async () => {
-                const id = student.id;
-                try {
-                    await loadAllStudentsScreen();
-                    // initFunction في loadScreen لا يُنتظر، فننتظر ظهور نافذة التعديل وربط أزرارها قبل فتحها
-                    for (let i = 0; i < 50 && !(document.getElementById('edit-stu-id') && document.getElementById('all-students-body')?.children.length); i++) {
-                        await new Promise(r => setTimeout(r, 100));
-                    }
-                    await openEditStudentModal(id);
-                } catch (err) {
-                    console.error('تعذّر فتح نافذة تعديل الطالب:', err);
-                    alert('تعذّر فتح نافذة التعديل: ' + (err && err.message ? err.message : err));
-                }
-            });
+            // «تعديل كل بيانات الطالب» يفتح نافذة التعديل فوق ملف الطالب نفسه (لا انتقال لشاشة «كل الطلاب») — راجع openProfileEditModal
+            document.getElementById('btn-prof-edit-all')?.addEventListener('click', () => openProfileEditModal(student));
             document.getElementById('btn-close-archive')?.addEventListener('click', () => closeModal('archive-modal'));
 
             // 🌟 [جديد] زر فتح "تقرير الإنجاز الشهري" — يستورد reports/monthly-report.js
@@ -1467,14 +1455,13 @@ function setupProfileUi(student) {
     window.__pfOutsideClose = (e) => { if (!e.target.closest || !e.target.closest('.pf-pop')) closeAll(); };
     document.addEventListener('click', window.__pfOutsideClose);
 
-    const root = document.querySelector('.pf-page');
-    if (!root) return;
-    const tidy = () => root.querySelectorAll('.pf-lbl').forEach(el => {
+    const roots = [document.querySelector('.pf-page'), document.getElementById('pfe-modal')].filter(Boolean);
+    const tidy = () => roots.forEach(r => r.querySelectorAll('.pf-lbl').forEach(el => {
         const c = stripEmoji(el.textContent);
         if (c !== el.textContent) el.textContent = c;
-    });
+    }));
     tidy();
-    new MutationObserver(tidy).observe(root, { subtree: true, childList: true, characterData: true });
+    roots.forEach(r => new MutationObserver(tidy).observe(r, { subtree: true, childList: true, characterData: true }));
 }
 
 function computeAgeLabel(dob) {
@@ -1648,6 +1635,102 @@ async function openEditStudentModal(id) {
 
 // 🌟 رموز الصور الرمزية للبنات (مطابقة لخيارات my-students.html) 🌟
 const EDIT_GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];
+
+// 🌟 [2026-10-20] نافذة «تعديل كل بيانات الطالب» داخل ملف الطالب: نفس حقول وقواعد نافذة «كل الطلاب» القديمة (edit-modal)
+// لكن تُفتح فوق الصفحة الحالية وتعيد رسم الملف بعد الحفظ بدل الانتقال بين الشاشات 🌟
+let pfeNewAvatar = null;   // data URL مصغّر لصورة اختارها المعلم داخل النافذة (null = بلا تغيير)
+
+function pfeRenderPhoto(student, dataUrl) {
+    const box = document.getElementById('pfe-photo-img');
+    if (!box) return;
+    const av = dataUrl || student.avatar;
+    box.textContent = '';
+    if (av && av.length >= 10) {
+        const img = document.createElement('img');
+        img.src = av; img.alt = ''; img.className = 'pfe-photo-img'; img.style.border = '0';
+        box.appendChild(img);
+    } else if (av) {
+        box.textContent = av;
+    } else {
+        box.textContent = (student.name || '').trim().charAt(0) || '👤';
+    }
+}
+
+function openProfileEditModal(student) {
+    pfeNewAvatar = null;
+    populateSurahOptions('pfe-memo-from', 'pfe-memo-to');
+    const $ = (id) => document.getElementById(id);
+    $('pfe-id').value = student.id;
+    $('pfe-name').value = student.name || '';
+    $('pfe-sub').textContent = student.name || '';
+    $('pfe-dob').value = student.dob || '';
+    $('pfe-age').textContent = '';
+    if (student.dob) calcAgeDynamic('pfe-dob', 'pfe-age');
+    setGradeSelectValuePreservingLegacy('pfe-grade', student.grade || '');
+    $('pfe-country').value = student.country || '';
+    $('pfe-phone').value = student.phone || '';
+    if (student.memoFrom) $('pfe-memo-from').value = student.memoFrom;
+    $('pfe-memo-to').value = student.memoTo || '';
+    $('pfe-gender').value = (student.avatar && student.avatar.length < 10 && EDIT_GIRL_AVATARS.includes(student.avatar)) ? 'girl' : 'boy';
+    $('pfe-avatar').value = '';
+    $('pfe-error').hidden = true;
+    pfeRenderPhoto(student);
+
+    $('pfe-dob').onchange = () => calcAgeDynamic('pfe-dob', 'pfe-age');
+    $('pfe-photo-btn').onclick = () => $('pfe-avatar').click();
+    $('pfe-avatar').onchange = async () => {
+        const f = $('pfe-avatar').files && $('pfe-avatar').files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            pfeNewAvatar = await shrinkAvatarDataUrl(e.target.result);
+            pfeRenderPhoto(student, pfeNewAvatar);
+        };
+        reader.readAsDataURL(f);
+    };
+    $('pfe-cancel').onclick = () => closeModal('pfe-modal');   // «إلغاء» يغلق النافذة ويبقى المعلم في ملف الطالب نفسه
+    $('pfe-modal').onclick = (e) => { if (e.target === $('pfe-modal')) closeModal('pfe-modal'); };
+    $('pfe-modal').onkeydown = (e) => { if (e.key === 'Escape') closeModal('pfe-modal'); else if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'file') $('pfe-save').click(); };
+    $('pfe-save').onclick = () => saveProfileEditAction();
+    openModal('pfe-modal');
+    $('pfe-name').focus();
+}
+
+async function saveProfileEditAction() {
+    const $ = (id) => document.getElementById(id);
+    const fail = (msg) => { const e = $('pfe-error'); e.textContent = msg; e.hidden = false; };
+    const id = parseStudentId($('pfe-id').value);
+    const students = await AppState.studentManager.getAllStudents();
+    const s = students.find(x => x.id === id);
+    if (!s) return;
+    const name = $('pfe-name').value.trim();
+    if (!name) return fail(t('stu_name_required'));
+    const memoFrom = $('pfe-memo-from').value, memoTo = $('pfe-memo-to').value;
+    if (!memoFrom || !memoTo) return fail(t('stu_memo_required_alert'));
+    if (!memoDirectionOk(memoFrom, memoTo)) return fail(t('stu_memo_direction_alert'));
+    s.name = name;
+    s.dob = $('pfe-dob').value;
+    s.grade = $('pfe-grade').value;
+    s.country = $('pfe-country').value;
+    s.phone = $('pfe-phone').value;
+    s.memoFrom = memoFrom;
+    s.memoTo = memoTo;
+    if (pfeNewAvatar) {
+        s.avatar = pfeNewAvatar;
+    } else {
+        const g = $('pfe-gender').value;
+        if (g && (!s.avatar || s.avatar.length < 10)) {
+            const isGirlNow = EDIT_GIRL_AVATARS.includes(s.avatar);
+            if (g === 'girl' && !isGirlNow) s.avatar = '👧🏻';
+            else if (g === 'boy' && isGirlNow) s.avatar = '👦🏻';
+        }
+    }
+    await AppState.studentManager.updateStudent(s);
+    AppState.currentStudent = s;
+    closeModal('pfe-modal');
+    populateStudentsDropdown();
+    loadStudentProfileScreen();
+}
 
 async function saveEditedStudentAction() {
     let id = parseStudentId(document.getElementById('edit-stu-id').value);

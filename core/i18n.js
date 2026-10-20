@@ -1711,6 +1711,9 @@ export const translations = {
         pf_hint_btn: "كيف أعدّل؟",
         pf_eval_menu_btn: "بدء تقييم",
         pf_complete_lbl: "اكتمال الملف",
+        pfe_sec_basic: "البيانات الأساسية",
+        pfe_sec_contact: "التواصل",
+        pfe_sec_memo: "مستوى الحفظ",
 
         // 🌟 [جديد] "بطاقة الترحيب بالطالب" — تحية قصيرة في وسط الشاشة مع صورة الطالب، تظهر
         // فور اختيار اسمه وقبل لوحة التقييم مباشرة ثم تختفي وحدها بعد ثوانٍ قليلة.
@@ -4420,6 +4423,9 @@ export const translations = {
         pf_hint_btn: "How do I edit?",
         pf_eval_menu_btn: "Start evaluation",
         pf_complete_lbl: "Profile completeness",
+        pfe_sec_basic: "Basic details",
+        pfe_sec_contact: "Contact",
+        pfe_sec_memo: "Memorization level",
 
         // 🌟 [New] "Student welcome card" — see the matching Arabic block above for the full
         // rationale comment (components/welcomeBanner.js)
