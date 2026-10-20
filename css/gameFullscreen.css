@@ -166,29 +166,29 @@ body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student { padd
 body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student img { width: 44px !important; height: 44px !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student h3 { font-size: 1.35rem !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title { margin-bottom: 8px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title > span { font-size: 1.5rem !important; padding: 6px 26px !important; }
+body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title > span { font-size: clamp(1.5rem, 3.6vh, 2.2rem) !important; padding: 8px 34px !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-text {
-    font-size: clamp(1.1rem, 2.7vh, 1.7rem) !important;
+    font-size: clamp(1.35rem, 3.5vh, 2.3rem) !important;
     line-height: 1.6 !important;
-    margin: 0 0 clamp(6px, 1.4vh, 14px) !important;
+    margin: 0 0 clamp(8px, 2vh, 20px) !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-verse {
     display: inline-block;
     max-width: 100%;
-    font-size: clamp(1.4rem, 3.4vh, 2.4rem) !important;
-    line-height: 1.65 !important;
-    padding: 2px 16px !important;
-    margin: 2px 0 !important;
+    font-size: clamp(2.1rem, 6vh, 3.8rem) !important;
+    line-height: 1.7 !important;
+    padding: 6px 28px !important;
+    margin: 4px 0 !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opts {
     display: grid;
-    gap: clamp(6px, 1.3vh, 12px);
-    max-width: 860px !important;
+    gap: clamp(8px, 1.8vh, 18px);
+    max-width: 1000px !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn {
     margin: 0 !important;
-    padding: clamp(2px, 0.7vh, 8px) 18px !important;
-    font-size: clamp(1.15rem, 2.8vh, 1.8rem) !important;
+    padding: clamp(6px, 1.4vh, 14px) 20px !important;
+    font-size: clamp(1.4rem, 3.5vh, 2.3rem) !important;
     line-height: 1.6 !important;
     white-space: normal;
 }
