@@ -4,7 +4,7 @@
 // ولوحة «مخارج الحروف» الكاملة (الـ17 مخرجاً مع صورها)، ونافذة تكبير بأسهم وتنقّل بلوحة المفاتيح.
 // كل عرض يحمل نسبة الكتاب لصاحبه. البيانات في engine/tajweedBookImages.js.
 import { t, AppState } from '../core/app.js';
-import { BOOK_IMAGES, MAKHARIJ_IMAGES, RULE_BOOK_IMAGES, bookImageUrl } from '../engine/tajweedBookImages.js';
+import { BOOK_IMAGES, MAKHARIJ_IMAGES, RULE_BOOK_IMAGES, RULE_DECK_IMAGES, bookImageUrl, isDeckImage } from '../engine/tajweedBookImages.js';
 import { buildMakharijLegendHTML } from './tajweed-illustrations-art.js';
 
 const isEn = () => AppState.currentLang === 'en';
@@ -17,13 +17,13 @@ function thumbHTML(ids, i) {
     return `<button type="button" class="tjw-book-thumb" data-tjw-book="${ids.join(',')}" data-i="${i}" aria-label="${esc(titleOf(id))}">
         <img src="${bookImageUrl(id)}" alt="${esc(titleOf(id))}" loading="lazy" onerror="this.closest('.tjw-book-thumb').remove()"><span>${esc(titleOf(id))}</span></button>`;
 }
-const creditHTML = () => `<p class="tjw-book-credit">${t('tjw_book_credit')}</p>`;
+const creditHTML = (ids) => (ids || []).some(id => !isDeckImage(id)) ? `<p class="tjw-book-credit">${t('tjw_book_credit')}</p>` : '';
 
 export function renderBookStripHTML(ruleId) {
-    const ids = RULE_BOOK_IMAGES[ruleId];
-    if (!ids || !ids.length) return '';
-    return `<section class="tjw-book"><h3 class="tjw-section-title">${t('tjw_book_title')}</h3>
-        <div class="tjw-book-strip">${ids.map((_, i) => thumbHTML(ids, i)).join('')}</div>${creditHTML()}</section>`;
+    const section = (ids, titleKey) => ids && ids.length
+        ? `<section class="tjw-book"><h3 class="tjw-section-title">${t(titleKey)}</h3>
+        <div class="tjw-book-strip">${ids.map((_, i) => thumbHTML(ids, i)).join('')}</div>${creditHTML(ids)}</section>` : '';
+    return section(RULE_DECK_IMAGES[ruleId], 'tjw_deck_title') + section(RULE_BOOK_IMAGES[ruleId], 'tjw_book_title');
 }
 
 export const makharijButtonHTML = () => `<button class="tjw-link-btn" data-tjw-open-makharij="1">🗺️ ${t('tjw_book_makharij_btn')}</button>`;
@@ -35,7 +35,7 @@ function makharijPanelHTML() {
     });
     return `<div class="tjw-book-overlay" role="dialog" aria-modal="true" aria-label="${esc(t('tjw_book_makharij_title'))}">
         <div class="tjw-book-panel"><button type="button" class="tjw-book-close" data-tjw-book-close="1" aria-label="${esc(t('tjw_book_close'))}">✕</button>
-        <h2>${t('tjw_book_makharij_title')}</h2>${creditHTML()}${legend}</div></div>`;
+        <h2>${t('tjw_book_makharij_title')}</h2>${creditHTML(['p094_0'])}${legend}</div></div>`;
 }
 
 // ------------------------------------------------------------
@@ -51,7 +51,7 @@ function showLightbox(ids, i) {
     el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true');
     const paint = () => {
         el.innerHTML = `<div class="tjw-book-panel tjw-book-lb"><button type="button" class="tjw-book-close" data-tjw-lb-close="1" aria-label="${esc(t('tjw_book_close'))}">✕</button>
-            <img src="${bookImageUrl(ids[idx])}" alt="${esc(titleOf(ids[idx]))}"><h3>${esc(titleOf(ids[idx]))}</h3>${creditHTML()}
+            <img src="${bookImageUrl(ids[idx])}" alt="${esc(titleOf(ids[idx]))}"><h3>${esc(titleOf(ids[idx]))}</h3>${creditHTML([ids[idx]])}
             ${ids.length > 1 ? `<div class="tjw-book-nav"><button type="button" class="tjw-outline-btn" data-lb="1">${t('tjw_book_next')}</button><span>${idx + 1} / ${ids.length}</span><button type="button" class="tjw-outline-btn" data-lb="-1">${t('tjw_book_prev')}</button></div>` : ''}</div>`;
     };
     el.addEventListener('click', (e) => {
