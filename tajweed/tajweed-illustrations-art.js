@@ -177,7 +177,7 @@ const RULE_SCENES = {
     mithlain: { scene: () => SCENES.twins('ب', 'ب'), color: '#5d4691' },
     mutaqaribain: { scene: () => SCENES.neighbors('ل', 'ر'), color: '#5d4691' },
     mutajanisain: { scene: () => SCENES.sameHouse('د', 'ت'), color: '#5d4691' },
-    madd_tabii: { scene: () => SCENES.beats([['ا', '#2f7d32'], ['و', '#2f7d32'], ['ي', '#2f7d32']], [2]), color: '#2f7d32' },
+    madd_tabii: { scene: () => SCENES.beats([['و', '#2f7d32'], ['ا', '#2f7d32'], ['ي', '#2f7d32']], [2]), color: '#2f7d32' },
     madd_wajib_muttasil: { scene: () => SCENES.beats([['ا', '#2f7d32'], ['ء', '#c0392b']], [4, 5], { together: true }), color: '#2f7d32' },
     madd_jaiz_munfasil: { scene: () => SCENES.beats([['ا', '#2f7d32'], ['ء', '#c0392b']], [2, 4, 5], { apart: true }), color: '#2f7d32' },
     madd_arid_sukun: { scene: () => SCENES.beats([['ي', '#2f7d32'], ['ن', '#3f8fd2']], [2, 4, 6], { stop: true }), color: '#2f7d32' },
@@ -208,7 +208,7 @@ const MKH_COLORS = { jawf: '#2f7d32', halq: '#8c2f3d', lisan: '#3f8fd2', shafa: 
 
 // [رقم، منطقة، حروف، مفتاح الاسم، س، ص]
 export const MAKHARIJ = [
-    [1, 'jawf', 'ا و ي', 'jawf', 168, 392],
+    [1, 'jawf', 'و ا ي', 'jawf', 168, 392],
     [2, 'halq', 'ء ه', 'halq_aqsa', 214, 326],
     [3, 'halq', 'ع ح', 'halq_wasat', 214, 300],
     [4, 'halq', 'غ خ', 'halq_adna', 218, 274],
