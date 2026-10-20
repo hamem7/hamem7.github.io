@@ -366,7 +366,7 @@ export const TAJWEED_STAGES = [
                 id: 'madd_tabii',
                 nameKey: 'tjw_rule_madd_tabii_name',
                 defKey: 'tjw_rule_madd_tabii_def',
-                letters: 'ا و ي',
+                letters: 'و ا ي',
                 glyph: 'طب',
                 noticeKey: 'tjw_rule_madd_tabii_notice',
                 makhrajNote: 'يُمدّ الصوت بمقدار حركتين فقط (قدر قبض إصبعين أو بسطهما) ثم يُتوقّف.',

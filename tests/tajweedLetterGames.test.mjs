@@ -152,7 +152,7 @@ test('شجرة التلخيص: كل أحكام المرحلة حاضرة، وا�
     const noon = buildStageTree('noon_sakinah');
     const grp = noon.branches.find(b => b.groupKey);
     assert.deepEqual(grp.children.map(c => c.ruleId), ['idgham_bighunnah', 'idgham_bila_ghunnah']);
-    assert.equal(buildStageTree('madd').branches[0].children[0].kind, 'letters'); // المد الطبيعي ا و ي
+    assert.equal(buildStageTree('madd').branches[0].children[0].kind, 'letters'); // المد الطبيعي و ا ي
     assert.equal(buildStageTree('madd').branches[1].children[0].kind, 'text');
 });
 
