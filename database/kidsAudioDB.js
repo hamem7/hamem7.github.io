@@ -32,11 +32,11 @@ const RECITER_ID = LISTEN_RECITER.id;
 // أقل حجم مقبول لملف صوت صالح (يمنع تخزين صفحة خطأ HTML أو ملف فارغ على أنه صوت)
 const MIN_AUDIO_BYTES = 2000;
 
-// ⚠️ باقية كما كانت لقسم «أبطال التجويد» (tajweed/*): يشغّلها مباشرة بصوت عبد الباسط بلا تخزين. لم يُشملها توحيد الصوت (طُلب لألعاب
-// الأطفال وسؤال «استمع وكمّل» فقط). الألعاب لا تستعملها أبداً.
+// 🎧 [2026-10-20 — بطلب صاحب المنصة] «أبطال التجويد» (tajweed/*) صار بصوت المنشاوي أيضاً (كان بصوت عبد الباسط سهواً عند التوحيد).
+// يشغّلها مباشرة بلا تخزين؛ playTajweedAudio (tajweed-shared.js) يجرّب جودة 64 ثم 128.
 export const KIDS_AUDIO_BITRATE = 64;
 export function buildAyahAudioUrl(ayahNumber) {
-    return `https://cdn.islamic.network/quran/audio/${KIDS_AUDIO_BITRATE}/ar.abdulbasitmurattal/${ayahNumber}.mp3`;
+    return `https://cdn.islamic.network/quran/audio/${KIDS_AUDIO_BITRATE}/${LISTEN_RECITER.cdnEdition}/${ayahNumber}.mp3`;
 }
 
 export function initKidsAudioDB() {

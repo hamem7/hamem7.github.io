@@ -20,7 +20,7 @@ import { renderBookStripHTML, makharijButtonHTML } from './tajweed-book-images.j
 import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
 import { openParentSummary } from './tajweed-summary.js';
 import { hasStageTreeActivity, isLetterGameRule } from '../engine/tajweedLetterGames.js';
-import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce } from './tajweed-shared.js';
+import { getAyahForExample, highlightForTajweed, pickStudentExamples, highlightWordsHTML, resetLegacyTajweedDataOnce, playTajweedAudio } from './tajweed-shared.js';
 // 🌟 [جديد] بطاقة "الترحيب بالطالب" المشتركة — نفس المكوّن المستخدَم فعلياً في شاشة تسجيل
 // الدخول الأساسية (شاشة التقييم) بعد اختيار اسم الطالب مباشرة، راجع student/student.js
 // (setupLoginListeners) للاستخدام الأصلي. نستوردها هنا لعرضها بنفس الطريقة تماماً بعد اختيار
@@ -256,8 +256,7 @@ function startActivity(mode, { stageId, ruleId, dueRuleIds }) {
 function playRuleAudio(btn) {
     const url = btn.dataset.tjwAudio;
     if (!url) return;
-    const audio = new Audio(url);
-    audio.play().catch(() => { /* تجاهل بصمت — غالباً انقطاع إنترنت مؤقت */ });
+    playTajweedAudio(url);
 }
 
 // ============================================================

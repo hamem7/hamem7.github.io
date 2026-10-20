@@ -17,6 +17,17 @@ import { createAnnotationIndex, memorizedAyahsFromPath, findCandidateAyahs } fro
 // 🌟 تخزين مؤقت لكل سورة تُجلَب من QuranEngine — نفس فكرة surahCache في similarities.js
 const surahCache = new Map();
 
+// 🎧 تشغيل صوت آية (المنشاوي) في «أبطال التجويد»: إن تعذّرت جودة 64 تُجرَّب 128 تلقائياً
+export function playTajweedAudio(url) {
+    if (!url) return;
+    const audio = new Audio(url);
+    audio.onerror = () => {
+        audio.onerror = null;
+        if (url.includes('/audio/64/')) { audio.src = url.replace('/audio/64/', '/audio/128/'); audio.play().catch(() => {}); }
+    };
+    audio.play().catch(() => { /* الخطأ يصل عبر onerror، أو انقطاع إنترنت مؤقت */ });
+}
+
 export async function getAyahForExample(surahNumber, ayahNumber) {
     try {
         let surah = surahCache.get(surahNumber);

@@ -19,7 +19,7 @@ import {
 } from '../engine/tajweedEngine.js';
 import {
     getAyahForExample, syncStudentTajweedProgress, pickStudentExamples, loadAnnotationIndex, highlightWordsHTML,
-    highlightForTajweed, makeConflictChecker, buildExamSources
+    highlightForTajweed, makeConflictChecker, buildExamSources, playTajweedAudio
 } from './tajweed-shared.js';
 import {
     ensureJourney, canTakeExam, canTeacherCheck, applyPracticeResult, applyExamResult, applyTeacherResult,
@@ -404,8 +404,7 @@ function renderTeacherCheckpointHTML(q) {
 async function handleActivityClick(e) {
     const audioBtn = e.target.closest('[data-tjw-audio]');
     if (audioBtn) {
-        const audio = new Audio(audioBtn.dataset.tjwAudio);
-        audio.play().catch(() => {});
+        playTajweedAudio(audioBtn.dataset.tjwAudio);
         return;
     }
 
