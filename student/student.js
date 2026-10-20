@@ -1455,7 +1455,7 @@ function setupProfileUi(student) {
     window.__pfOutsideClose = (e) => { if (!e.target.closest || !e.target.closest('.pf-pop')) closeAll(); };
     document.addEventListener('click', window.__pfOutsideClose);
 
-    const roots = [document.querySelector('.pf-page'), document.getElementById('pfe-modal')].filter(Boolean);
+    const roots = [document.querySelector('.pf-page'), document.getElementById('pfe-panel')].filter(Boolean);
     const tidy = () => roots.forEach(r => r.querySelectorAll('.pf-lbl').forEach(el => {
         const c = stripEmoji(el.textContent);
         if (c !== el.textContent) el.textContent = c;
@@ -1636,8 +1636,8 @@ async function openEditStudentModal(id) {
 // 🌟 رموز الصور الرمزية للبنات (مطابقة لخيارات my-students.html) 🌟
 const EDIT_GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];
 
-// 🌟 [2026-10-20] نافذة «تعديل كل بيانات الطالب» داخل ملف الطالب: نفس حقول وقواعد نافذة «كل الطلاب» القديمة (edit-modal)
-// لكن تُفتح فوق الصفحة الحالية وتعيد رسم الملف بعد الحفظ بدل الانتقال بين الشاشات 🌟
+// 🌟 [2026-10-20] لوحة «تعديل كل بيانات الطالب» داخل ملف الطالب: نفس حقول وقواعد نافذة «كل الطلاب» القديمة (edit-modal)
+// لكن تنفتح داخل الصفحة نفسها تحت الغلاف (لا نافذة فوقها) وتعيد رسم الملف بعد الحفظ بدل الانتقال بين الشاشات 🌟
 let pfeNewAvatar = null;   // data URL مصغّر لصورة اختارها المعلم داخل النافذة (null = بلا تغيير)
 
 function pfeRenderPhoto(student, dataUrl) {
@@ -1654,6 +1654,13 @@ function pfeRenderPhoto(student, dataUrl) {
     } else {
         box.textContent = (student.name || '').trim().charAt(0) || '👤';
     }
+}
+
+function closeProfileEdit() {
+    const panel = document.getElementById('pfe-panel');
+    if (panel) panel.hidden = true;
+    pfeNewAvatar = null;
+    document.getElementById('btn-prof-edit-all')?.focus({ preventScroll: true });
 }
 
 function openProfileEditModal(student) {
@@ -1688,12 +1695,13 @@ function openProfileEditModal(student) {
         };
         reader.readAsDataURL(f);
     };
-    $('pfe-cancel').onclick = () => closeModal('pfe-modal');   // «إلغاء» يغلق النافذة ويبقى المعلم في ملف الطالب نفسه
-    $('pfe-modal').onclick = (e) => { if (e.target === $('pfe-modal')) closeModal('pfe-modal'); };
-    $('pfe-modal').onkeydown = (e) => { if (e.key === 'Escape') closeModal('pfe-modal'); else if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'file') $('pfe-save').click(); };
+    $('pfe-cancel').onclick = () => closeProfileEdit();   // «إلغاء» يطوي اللوحة ويبقى المعلم في ملف الطالب نفسه
+    $('pfe-panel').onkeydown = (e) => { if (e.key === 'Escape') closeProfileEdit(); else if (e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type !== 'file') $('pfe-save').click(); };
     $('pfe-save').onclick = () => saveProfileEditAction();
-    openModal('pfe-modal');
-    $('pfe-name').focus();
+    const panel = $('pfe-panel');
+    panel.hidden = false;
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('pfe-name').focus({ preventScroll: true });
 }
 
 async function saveProfileEditAction() {
@@ -1727,7 +1735,7 @@ async function saveProfileEditAction() {
     }
     await AppState.studentManager.updateStudent(s);
     AppState.currentStudent = s;
-    closeModal('pfe-modal');
+    closeProfileEdit();
     populateStudentsDropdown();
     loadStudentProfileScreen();
 }

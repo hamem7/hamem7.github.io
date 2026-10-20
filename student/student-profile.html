@@ -4,7 +4,7 @@
        بدل أن يكون الزر الأكبر. كل المعرّفات (id) والوظائف كما هي؛ تغيّر الهيكل والتنسيق فقط (انظر refreshProfileMeta وsetupProfileUi في student.js).
        أيقونات SVG موحّدة بدل الإيموجي، والأصناف الجديدة كلها بادئتها pf- حتى لا تتعارض مع .btn / .stat-card القديمة 🌟 */
     .pf-page { padding: 20px 16px 40px; max-width: 1000px; margin: 0 auto; direction: rtl; }
-    #pfe-modal svg.pf-i, .pf-page svg.pf-i { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .pf-page svg.pf-i { width: 1.15em; height: 1.15em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
     html[dir="ltr"] .pf-page { direction: ltr; }
     html[dir="ltr"] .pf-back svg { transform: scaleX(-1); }
     .pf-page .prof-inline-input { font: inherit; color: var(--dh-ink); background: #fff; border: 2px solid var(--dh-gold-500); border-radius: 8px; padding: 2px 8px; width: 100%; max-width: 260px; box-sizing: border-box; }
@@ -84,15 +84,16 @@
 
 
     /* ===== نافذة «تعديل كل بيانات الطالب» داخل ملف الطالب نفسه (بدل الانتقال لشاشة «كل الطلاب») ===== */
-    #pfe-modal .modal-content { max-width: 640px; width: 100%; padding: 0; text-align: start; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; }
-    .pfe-head { display: flex; align-items: center; gap: 14px; padding: 20px 24px; background: linear-gradient(135deg, var(--dh-emerald-800), var(--dh-emerald-900)); color: #fff; }
-    .pfe-head h2 { margin: 0 !important; font-size: 1.25rem !important; text-align: start !important; color: #fff !important; text-shadow: none !important; }
-    .pfe-head p { margin: 2px 0 0; font-size: .9rem; color: rgba(255,255,255,.75); }
+    .pfe-panel { background: var(--dh-surface); border: 1px solid var(--dh-line); border-radius: var(--dh-r-xl); box-shadow: var(--dh-sh-soft); overflow: hidden; margin-bottom: 14px; text-align: start; }
+    .pfe-panel[hidden] { display: none; }
+    .pfe-head { display: flex; align-items: center; gap: 14px; padding: 18px 24px; background: var(--dh-surface-alt); border-bottom: 1px solid var(--dh-line); color: var(--dh-ink); }
+    .pfe-head h2 { margin: 0 !important; font-size: 1.25rem !important; text-align: start !important; color: var(--dh-emerald-800) !important; text-shadow: none !important; }
+    .pfe-head p { margin: 2px 0 0; font-size: .9rem; color: var(--dh-ink-soft); }
     .pfe-photo { position: relative; width: 64px; height: 64px; flex: none; }
     .pfe-photo-img { width: 100%; height: 100%; border-radius: 50%; border: 3px solid var(--dh-gold-500); background: var(--dh-emerald-700); color: var(--dh-gold-300); display: flex; align-items: center; justify-content: center; font-size: 1.9rem; font-weight: 700; object-fit: cover; box-sizing: border-box; overflow: hidden; }
-    .pfe-photo-btn { position: absolute; bottom: -4px; inset-inline-end: -4px; width: 30px; height: 30px; border-radius: 50%; background: var(--dh-gold-500); color: #3a2c00; border: 2px solid var(--dh-emerald-800); display: grid; place-items: center; padding: 0; cursor: pointer; }
+    .pfe-photo-btn { position: absolute; bottom: -4px; inset-inline-end: -4px; width: 30px; height: 30px; border-radius: 50%; background: var(--dh-gold-500); color: #3a2c00; border: 2px solid var(--dh-surface); display: grid; place-items: center; padding: 0; cursor: pointer; }
     .pfe-photo-btn svg { width: 15px; height: 15px; }
-    .pfe-body { padding: 20px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+    .pfe-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; }
     .pfe-sec-t { margin: 0 0 10px; font-size: .8rem; font-weight: 700; letter-spacing: .04em; color: var(--dh-ink-soft); display: flex; align-items: center; gap: 10px; }
     .pfe-sec-t::after { content: ""; flex: 1; height: 1px; background: var(--dh-line); }
     .pfe-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -115,6 +116,11 @@
         .pfe-head, .pfe-body { padding-inline: 16px; }
         .pfe-foot { padding-inline: 16px; }
     }
+
+    /* الأوسمة والمتشابهات والتجويد: شبكة متجاوبة بدل ثلاث بطاقات عريضة متتالية */
+    .pf-extras { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; margin-bottom: 4px; }
+    .pf-extras > * { margin: 0 !important; min-width: 0; }
+    #app-root .pf-extras .simp-section { margin: 0 !important; }
 
     .dtpa-badges-title { display: flex; align-items: center; gap: 8px; }
 
@@ -230,58 +236,8 @@
         </div>
     </section>
 
-    <div class="pf-tiles">
-        <!-- علاج الأخطاء (عدّاد المستحق في الشارة) — النص يُضبط من student.js -->
-        <button class="pf-tile is-warn" id="btn-prof-weakness" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-wrench"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span><span class="pf-badge"></span></span></button>
-        <!-- تقرير الإنجاز الشهري: الواجبات والاختبارات الثنائية والأخطاء المعالَجة وانتظام المراجعة (reports/monthly-report.js) -->
-        <button class="pf-tile" id="btn-prof-monthly-report" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-cal"/></svg></span><span class="pf-tile-t"><span class="pf-t pf-lbl" data-i18n="monthly_report_btn">تقرير الإنجاز الشهري</span></span></button>
-        <!-- ملف المهارات (components/skillProfile.js) — النص يُضبط من student.js بلغة الواجهة -->
-        <button class="pf-tile" id="btn-prof-skills" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-chart"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
-        <!-- أرشيف الأخطاء المصححة (resolvedWeaknesses) — معطّل ما لم يوجد أرشيف -->
-        <button class="pf-tile" id="btn-prof-archive" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-folder"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
-    </div>
-
-    <div class="pf-stats">
-        <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-points">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_total_points">إجمالي النقاط المكتسبة</p></div></div>
-        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-trend"/></svg></span><div><p class="pf-stat-v" id="prof-evals">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_eval_count">عدد التقييمات السابقة</p></div></div>
-        <!-- انتصارات "الاختبارات الثنائية" — يُملأ من renderDualTestAchievements في student.js -->
-        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-swords"/></svg></span><div><p class="pf-stat-v" id="prof-duel-wins">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_dual_wins">انتصارات الاختبارات الثنائية</p></div></div>
-    </div>
-
-    <!-- أوسمة "الاختبارات الثنائية" — راجع BADGE_CATALOG في engine/dualTestEngine.js وrenderDualTestAchievements -->
-    <div class="dtpa-badges-section">
-        <h3 class="dtpa-badges-title"><svg class="pf-i"><use href="#pfi-award"/></svg><span class="pf-lbl" data-i18n="pfx_dual_badges">أوسمة الاختبارات الثنائية</span></h3>
-        <div id="dtpa-badges-grid" class="dtpa-badges-grid"></div>
-    </div>
-    <!-- قسما «إتقان المتشابهات» و«مسار التجويد» بهويتهما المستقلة (simp-/tjp-)، يُملآن من student.js (best-effort) -->
-    <div class="simp-section" id="simp-section">
-        <h3 class="simp-title" data-i18n="sim_profile_section_title">إتقان المتشابهات 🔗</h3>
-        <div id="simp-content"></div>
-    </div>
-
-    <div class="tjp-section" id="tjp-section">
-        <h3 class="tjp-title" data-i18n="tjw_profile_section_title">مسار التجويد 🏆</h3>
-        <div id="tjp-content"></div>
-    </div>
-
-    <h2 class="pf-h2"><svg class="pf-i"><use href="#pfi-cal"/></svg><span class="pf-lbl" data-i18n="pfx_history_title">سجل التقييمات السابقة</span></h2>
-    <div class="pf-tablewrap">
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th style="width: 8%;" data-i18n="pfx_col_no">م</th>
-                    <th style="width: 22%;" data-i18n="pfx_col_date">التاريخ</th>
-                    <th style="width: 40%;" data-i18n="pfx_col_range">نطاق التقييم</th>
-                    <th style="width: 30%;" data-i18n="pfx_col_pct">النسبة المئوية</th>
-                </tr>
-            </thead>
-            <tbody id="prof-history-body"></tbody>
-        </table>
-    </div>
-</div>
-<!-- نافذة «تعديل كل بيانات الطالب» — تُفتح فوق ملف الطالب مباشرة وتحفظ بـ saveProfileEditAction في student.js (نفس قواعد التحقق القديمة: الاسم ونطاق الحفظ إلزاميان واتجاه النطاق صحيح) -->
-<div id="pfe-modal" class="modal-overlay">
-    <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="pfe-title">
+    <!-- لوحة «تعديل كل بيانات الطالب» — تنفتح داخل ملف الطالب نفسه (تحت الغلاف مباشرة، لا نافذة فوقه) وتحفظ بـ saveProfileEditAction في student.js (نفس قواعد التحقق القديمة: الاسم ونطاق الحفظ إلزاميان واتجاه النطاق صحيح) -->
+    <section id="pfe-panel" class="pfe-panel" aria-labelledby="pfe-title" hidden>
         <div class="pfe-head">
             <div class="pfe-photo">
                 <div class="pfe-photo-img" id="pfe-photo-img"></div>
@@ -322,6 +278,58 @@
             <button type="button" class="pf-btn" id="pfe-cancel"><span class="pf-lbl" data-i18n="cancel">إلغاء</span></button>
             <button type="button" class="pf-btn pf-btn-gold" id="pfe-save"><svg class="pf-i"><use href="#pfi-check"/></svg><span class="pf-lbl" data-i18n="as_save_edits">حفظ التعديلات</span></button>
         </div>
+    </section>
+
+    <div class="pf-tiles">
+        <!-- علاج الأخطاء (عدّاد المستحق في الشارة) — النص يُضبط من student.js -->
+        <button class="pf-tile is-warn" id="btn-prof-weakness" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-wrench"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span><span class="pf-badge"></span></span></button>
+        <!-- تقرير الإنجاز الشهري: الواجبات والاختبارات الثنائية والأخطاء المعالَجة وانتظام المراجعة (reports/monthly-report.js) -->
+        <button class="pf-tile" id="btn-prof-monthly-report" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-cal"/></svg></span><span class="pf-tile-t"><span class="pf-t pf-lbl" data-i18n="monthly_report_btn">تقرير الإنجاز الشهري</span></span></button>
+        <!-- ملف المهارات (components/skillProfile.js) — النص يُضبط من student.js بلغة الواجهة -->
+        <button class="pf-tile" id="btn-prof-skills" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-chart"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
+        <!-- أرشيف الأخطاء المصححة (resolvedWeaknesses) — معطّل ما لم يوجد أرشيف -->
+        <button class="pf-tile" id="btn-prof-archive" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-folder"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
+    </div>
+
+    <div class="pf-stats">
+        <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-points">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_total_points">إجمالي النقاط المكتسبة</p></div></div>
+        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-trend"/></svg></span><div><p class="pf-stat-v" id="prof-evals">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_eval_count">عدد التقييمات السابقة</p></div></div>
+        <!-- انتصارات "الاختبارات الثنائية" — يُملأ من renderDualTestAchievements في student.js -->
+        <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-swords"/></svg></span><div><p class="pf-stat-v" id="prof-duel-wins">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_dual_wins">انتصارات الاختبارات الثنائية</p></div></div>
+    </div>
+
+    <div class="pf-extras">
+    <!-- أوسمة "الاختبارات الثنائية" — راجع BADGE_CATALOG في engine/dualTestEngine.js وrenderDualTestAchievements -->
+    <div class="dtpa-badges-section">
+        <h3 class="dtpa-badges-title"><svg class="pf-i"><use href="#pfi-award"/></svg><span class="pf-lbl" data-i18n="pfx_dual_badges">أوسمة الاختبارات الثنائية</span></h3>
+        <div id="dtpa-badges-grid" class="dtpa-badges-grid"></div>
+    </div>
+    <!-- قسما «إتقان المتشابهات» و«مسار التجويد» بهويتهما المستقلة (simp-/tjp-)، يُملآن من student.js (best-effort) -->
+    <div class="simp-section" id="simp-section">
+        <h3 class="simp-title" data-i18n="sim_profile_section_title">إتقان المتشابهات 🔗</h3>
+        <div id="simp-content"></div>
+    </div>
+
+    <div class="tjp-section" id="tjp-section">
+        <h3 class="tjp-title" data-i18n="tjw_profile_section_title">مسار التجويد 🏆</h3>
+        <div id="tjp-content"></div>
+    </div>
+
+    </div>
+
+    <h2 class="pf-h2"><svg class="pf-i"><use href="#pfi-cal"/></svg><span class="pf-lbl" data-i18n="pfx_history_title">سجل التقييمات السابقة</span></h2>
+    <div class="pf-tablewrap">
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;" data-i18n="pfx_col_no">م</th>
+                    <th style="width: 22%;" data-i18n="pfx_col_date">التاريخ</th>
+                    <th style="width: 40%;" data-i18n="pfx_col_range">نطاق التقييم</th>
+                    <th style="width: 30%;" data-i18n="pfx_col_pct">النسبة المئوية</th>
+                </tr>
+            </thead>
+            <tbody id="prof-history-body"></tbody>
+        </table>
     </div>
 </div>
 <!-- 🌟 [جديد] نافذة أرشيف الأخطاء المصححة — تعرض كل خطأ سابق صحّحه الطالب بكامل
