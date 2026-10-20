@@ -1,0 +1,39 @@
+/* css/tokens.css — الرموز المركزية للهوية البصرية (إضافة فقط: لا يغيّر أي مظهر قائم بنفسه).
+   تكمّل المتغيرات الموجودة في css/home.css (--dh-emerald-* و--dh-gold-* و--dh-surface* و--dh-ink*) ولا تكرّرها.
+   تُستعمل في المكوّنات الموحّدة (css/components.css) وفي أي شاشة تُرحَّل إلى النظام الموحّد. */
+:root {
+    /* حالات المعنى (بدل عشرات درجات الأحمر/الأخضر/البرتقالي المتفرقة) */
+    --dh-ok: #15803d;      --dh-ok-bg: #e7f4ee;
+    --dh-warn: #b45309;    --dh-warn-bg: #fef3c7;
+    --dh-danger: #b91c1c;  --dh-danger-bg: #fde8e8;
+    --dh-info: #0369a1;    --dh-info-bg: #e0f2fe;
+
+    /* خطوط وحدود محايدة بلون الهوية (بدل الرمادي الأزرق) */
+    --dh-line: #e4dfcc;
+    --dh-line-strong: #cfc7a8;
+    --dh-focus: #d4af37;
+
+    /* الخطوط */
+    --dh-font-ui: 'IBM Plex Sans Arabic', Tahoma, 'Segoe UI', system-ui, sans-serif;
+    --dh-font-quran: 'Amiri Quran', 'Traditional Arabic', serif;
+
+    /* المسافات */
+    --dh-sp-1: 4px;  --dh-sp-2: 8px;  --dh-sp-3: 12px;  --dh-sp-4: 16px;  --dh-sp-5: 24px;  --dh-sp-6: 32px;
+
+    /* الحواف: 5 درجات فقط */
+    --dh-r-sm: 8px;  --dh-r-md: 12px;  --dh-r-lg: 18px;  --dh-r-xl: 26px;  --dh-r-pill: 999px;
+
+    /* الظلال: 3 درجات */
+    --dh-sh-soft: 0 6px 18px rgba(6, 35, 28, .10);
+    --dh-sh-lift: 0 16px 36px rgba(6, 35, 28, .18);
+    --dh-sh-overlay: 0 24px 60px rgba(6, 35, 28, .35);
+
+    /* الطبقات (z-index): 5 درجات */
+    --dh-z-header: 100;
+    --dh-z-panel: 500;
+    --dh-z-modal: 1000;
+    --dh-z-toast: 2000;
+
+    /* أحجام اللمس */
+    --dh-tap: 44px;
+}
