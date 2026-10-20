@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>معاينة: رسومات أحكام التجويد ومخارج الحروف</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1e6;--card:#fffdf8;--ink:#2b2118;--muted:#6f6150;--line:#e2d8c3;--accent:#8c2f3d;--tjw-card:#fffdf8;--tjw-ink:#2b2118;--tjw-text:#3a2c1f}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1b2b;--card:#16263b;--ink:#f2ead8;--muted:#a9b4c4;--line:#2a3d57;--accent:#e58a98;--tjw-card:#16263b;--tjw-ink:#f2ead8;--tjw-text:#f2ead8}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.7}
+.wrap{max-width:980px;margin:0 auto;padding:16px 16px 70px}h1{font-size:1.5rem;margin:.4rem 0}h2{font-size:1.2rem;color:var(--accent);margin:26px 0 8px}
+.muted{color:var(--muted);font-size:.92rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.chips a{color:var(--accent);border:1.5px solid var(--accent);border-radius:99px;padding:3px 12px;text-decoration:none;font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px}
+.item h3{margin:0 0 6px;font-size:1rem}.item .stage{font-size:.78rem;color:var(--muted)}
+figure{margin:0}.tjw-illus-svg{width:100%;height:auto;display:block}figcaption{margin-top:6px;font-size:.9rem;font-weight:700}
+.mk{display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:16px;align-items:start}@media(max-width:700px){.mk{grid-template-columns:1fr}}
+.tjw-mkh-legend{display:grid;gap:10px}.tjw-mkh-group{border:2px solid var(--mkc);border-radius:14px;padding:8px 12px;background:var(--card)}
+.tjw-mkh-group h4{margin:0 0 4px;color:var(--mkc);font-size:1rem}.tjw-mkh-row{display:flex;align-items:center;gap:10px;padding:3px 0}
+.tjw-mkh-n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--mkc);color:#fff;font-weight:700;font-size:.8rem;display:grid;place-items:center}
+.tjw-mkh-l{flex:none;min-width:72px;font-family:'Amiri Quran',serif;font-size:1.5rem;line-height:1.5}.tjw-mkh-t{font-size:.88rem;line-height:1.5}
+.note{background:#f3d27a33;border:1px dashed #c9a23a;border-radius:12px;padding:10px 14px;font-size:.92rem;margin-top:18px}
+</style></head><body><div class="wrap">
+<h1>معاينة: رسومات أحكام التجويد ومخارج الحروف</h1>
+<p class="muted">صفحة مراجعة مستقلة لا تمسّ التطبيق. كل الرسومات من تصميمنا بالكود (ليست من أي كتاب)، والكلمات القرآنية داخلها من مصحف المنصة نفسه، والنصوص تحتها هي نفسها المضافة في <code>core/i18n.js</code>.</p>
+<div class="chips" id="nav"></div>
+<h2 id="mkh">مخارج الحروف (جديد)</h2>
+<div class="mk"><figure id="mkfig"></figure><div id="mkleg"></div></div>
+<div id="rules"></div>
+<div class="note"><b>للمراجعة:</b> (١) هل فكرة كل رسم مناسبة للطفل؟ (٢) في المخارج: هل مواضع الأرقام الـ17 وأسماؤها مقبولة؟ (٣) تلميح: كلمات الأمثلة مأخوذة من «مثال الحكم» و«مثال التطبيق» في كتالوج الأحكام، فتغيير الأمثلة يغيّرها تلقائيًا.</div>
+<script type="module">
+import {TAJWEED_STAGES} from '../../engine/tajweedRulesCatalog.js';
+import {findPhraseRanges} from '../../core/quranTextUtils.js';
+import {cleanAyahText} from '../../engine/quranEngine.js';
+import {hasIllustration,buildIllustrationSVG,buildMakharijSVG,buildMakharijLegendHTML} from '../../tajweed/tajweed-illustrations-art.js';
+const QURAN=(await (await fetch('../../database/quran-uthmani.json')).json()).data.surahs;
+// النصوص العربية من i18n.js مباشرة (أول ظهور لكل مفتاح = النسخة العربية)
+const SRC=await (await fetch('../../core/i18n.js')).text();
+const tr=k=>{const m=SRC.match(new RegExp('\\b'+k+':\\s*"((?:[^"\\\\]|\\\\.)*)"'));return m?JSON.parse('"'+m[1]+'"'):k};
+const phrase=ex=>{if(!ex)return'';const tx=cleanAyahText(QURAN[ex.surah-1].ayahs[ex.ayah-1].text);const r=findPhraseRanges(tx,ex.highlight);return r.length?tx.slice(r[0][0],r[0][1]):''};
+const $=s=>document.querySelector(s);
+$('#mkfig').innerHTML=buildMakharijSVG(tr('tjw_mkh_title'));
+$('#mkleg').innerHTML=buildMakharijLegendHTML(k=>tr('tjw_mkh_'+k));
+let html='',nav='<a href="#mkh">المخارج</a>';
+for(const st of TAJWEED_STAGES){
+  const id='st_'+st.id;nav+=`<a href="#${id}">${st.icon||''} ${tr(st.nameKey)}</a>`;
+  html+=`<h2 id="${id}">${st.icon||''} ${tr(st.nameKey)}</h2><div class="grid">`;
+  for(const r of st.rules){
+    if(!hasIllustration(r.id))continue;
+    const words=[];for(const ex of [r.example,r.practiceExample]){const w=phrase(ex);if(w&&!words.includes(w))words.push(w)}
+    const cap=tr('tjw_ill_'+r.id);
+    html+=`<div class="item"><h3>${tr(r.nameKey)}</h3><figure>${buildIllustrationSVG(r.id,words.slice(0,2),cap)}<figcaption>${cap}</figcaption></figure></div>`;
+  }
+  html+='</div>';
+}
+$('#rules').innerHTML=html;$('#nav').innerHTML=nav;
+</script></div></body></html>
