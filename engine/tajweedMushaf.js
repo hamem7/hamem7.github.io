@@ -11,7 +11,7 @@
 // وpoolRefs = آيات حفظ الطالب [{surah, ayah}]. كل مولّد يرجع سؤالاً أو null.
 
 export const MUSHAF_STAGE_ID = 'know_mushaf';
-export const MUSHAF_LESSONS = ['ayah_number', 'surah_head', 'juz_hizb', 'waqf', 'silent_sukun', 'madd_letters', 'sin_saad', 'sajda'];
+export const MUSHAF_LESSONS = ['ayah_number', 'juz_hizb', 'waqf', 'silent_sukun', 'madd_letters', 'sin_saad', 'sajda'];
 export const MUSHAF_RULE_PREFIX = 'mushaf_';
 export const lessonRuleId = (lesson) => MUSHAF_RULE_PREFIX + lesson;
 export const lessonOfRule = (rule) => (rule && rule.mushaf && rule.mushaf.lesson) || null;
@@ -260,15 +260,6 @@ function g_sh_page_surah(ctx, R) {
     if (!p) return null;
     return choice({ ruleId: R, kind: 'sh_page_surah', key: 'sh_page_surah:' + p.a.sn, stemKey: 'tjw_mq_sh_page_surah', media: { kind: 'pagehead', juz: p.a.juz, sname: p.a.sname }, near: p.near, options: surahNameOptions(ctx, p.a), explain: { extraKey: 'tjw_ex_pagehead' } }, ctx);
 }
-function g_sh_count(ctx, R) {
-    const p = pickAyah(ctx, (a) => a.n === 1 && a.count >= 3);
-    if (!p) return null;
-    const ans = p.a.count, ch = new Set([ans]);
-    let guard = 0;
-    while (ch.size < 4 && guard++ < 50) { const d = ans + Math.floor(ctx.rng() * 9) - 4; if (d >= 1) ch.add(d); }
-    return choice({ ruleId: R, kind: 'sh_count', key: 'sh_count:' + p.a.sn, stemKey: 'tjw_mq_sh_count', stemVars: { surah: p.a.sname }, near: p.near, media: { kind: 'banner', sname: p.a.sname },
-        options: [...ch].map((n) => opt(n, n === ans, { label: AR(n) })), explain: { extraKey: 'tjw_ex_banner' } }, ctx);
-}
 function g_sh_tap_bsm(ctx, R) {
     const p = pickAyah(ctx, (a) => a.n === 1 && a.sn !== 1 && a.sn !== 9, { maxLen: 90 });
     const bsm = ctx.byKey.get('1:1');
@@ -303,18 +294,6 @@ function g_jh_read(ctx, R) {
     while (ch.size < 4 && guard++ < 50) { const d = ans + Math.floor(ctx.rng() * 7) - 3; if (d >= 1 && d <= max) ch.add(d); }
     return choice({ ruleId: R, kind: 'jh_read', key: 'jh_read:' + p.a.q, stemKey: isJuz ? 'tjw_mq_jh_read_juz' : 'tjw_mq_jh_read_hizb', media: { kind: 'lantern', q: p.a.q, sname: p.a.sname, n: p.a.n }, near: p.near,
         options: [...ch].map((n) => opt(n, n === ans, { labelKey: isJuz ? 'tjw_mo_juz_n' : 'tjw_mo_hizb_n', labelVars: { n } })), explain: { extraKey: 'tjw_ex_lantern', q: p.a.q } }, ctx);
-}
-function g_jh_tap(ctx, R) {
-    // ثلاثة أسطر دائماً: السابق والآية والتالية، أو الآية والتاليتان إن بدأ الربع من أول سورة
-    const linesOf = (a) => { const prev = ctx.byKey.get(a.sn + ':' + (a.n - 1)), n1 = ctx.byKey.get(a.sn + ':' + (a.n + 1)), n2 = ctx.byKey.get(a.sn + ':' + (a.n + 2)); return prev && n1 ? [prev, a, n1] : n1 && n2 ? [a, n1, n2] : null; };
-    const starts = quarterStarts(ctx).filter((a) => a.text.length < 140 && linesOf(a));
-    const mine = starts.filter((a) => ctx.isMine(a));
-    const list = mine.length ? mine : ctx.nearest(starts, 8);
-    if (!list.length) return null;
-    const a = pickOne(list, ctx.rng), near = !mine.length && ctx.hasPool;
-    const m = quarterMarker(a.q);
-    return { type: 'mushaf_tap', ruleId: R, kind: 'jh_tap', key: 'jh_tap:' + a.q, stemKey: 'tjw_mq_jh_tap', stemVars: { marker: m.lines.join(' ') }, layout: 'lines', near,
-        segments: linesOf(a).map((x) => ({ t: x.text.replace(/^\u06DE\s*/, ''), ok: x === a, text: true, rosetteN: x.n })), media: { kind: 'lantern', q: a.q }, explain: { extraKey: 'tjw_ex_lantern', q: a.q } };
 }
 function g_jh_rub_meaning(ctx, R) {
     const p = pickAyah(ctx, (a) => ayahHasSign(a, 'rub_mark'));
@@ -488,17 +467,15 @@ function g_sj_count(ctx, R) {
 // وصفات الدروس: مولّدات كل درس وفي أي وضع تصلح (practice: تعرّف، explore: تفاعل ضغط ووصل، exam: تنوّع)
 // ============================================================
 const RECIPES = {
+    // درس واحد: رقم الآية + لوحة اسم السورة ورأس الصفحة (كانا درسين منفصلين)
     ayah_number: [
-        { id: 'an_place', fn: g_an_place, group: 'choice' }, { id: 'an_meaning', fn: g_an_meaning, group: 'choice' }, { id: 'an_which', fn: g_an_which, group: 'choice' },
-        { id: 'an_tap', fn: g_an_tap, group: 'tap' }
-    ],
-    surah_head: [
-        { id: 'sh_banner', fn: g_sh_banner, group: 'choice' }, { id: 'sh_after', fn: g_sh_after, group: 'choice' }, { id: 'sh_page_juz', fn: g_sh_page_juz, group: 'choice' },
-        { id: 'sh_page_surah', fn: g_sh_page_surah, group: 'choice' }, { id: 'sh_count', fn: g_sh_count, group: 'choice' }, { id: 'sh_tap_bsm', fn: g_sh_tap_bsm, group: 'tap' }
+        { id: 'an_place', fn: g_an_place, group: 'choice' }, { id: 'sh_banner', fn: g_sh_banner, group: 'choice' }, { id: 'an_meaning', fn: g_an_meaning, group: 'choice' },
+        { id: 'sh_after', fn: g_sh_after, group: 'choice' }, { id: 'an_which', fn: g_an_which, group: 'choice' }, { id: 'sh_page_juz', fn: g_sh_page_juz, group: 'choice' },
+        { id: 'an_tap', fn: g_an_tap, group: 'tap' }, { id: 'sh_tap_bsm', fn: g_sh_tap_bsm, group: 'tap' }, { id: 'sh_page_surah', fn: g_sh_page_surah, group: 'choice' }
     ],
     juz_hizb: [
         { id: 'jh_name', fn: g_jh_name, group: 'choice' }, { id: 'jh_read', fn: g_jh_read, group: 'choice' }, { id: 'jh_rub_meaning', fn: g_jh_rub_meaning, group: 'choice' },
-        { id: 'jh_fact', fn: g_jh_fact, group: 'choice' }, { id: 'jh_tap', fn: g_jh_tap, group: 'tap' }, { id: 'jh_rub_tap', fn: g_jh_rub_tap, group: 'tap' }
+        { id: 'jh_fact', fn: g_jh_fact, group: 'choice' }, { id: 'jh_rub_tap', fn: g_jh_rub_tap, group: 'tap' }
     ],
     waqf: [
         { id: 'name', fn: g_sign_name('waqf'), group: 'choice' }, { id: 'meaning', fn: g_sign_meaning('waqf'), group: 'choice' }, { id: 'reverse', fn: g_sign_reverse('waqf'), group: 'choice' },
@@ -525,23 +502,26 @@ export const recipesOf = (lesson) => RECIPES[lesson] || [];
 
 // size: عدد الأسئلة. mode: practice (تعرّف) | explore (تفاعل) | exam (تنويع) | review.
 // prevKinds: أنواع آخر اختبار (الاختبار يقدّم الأنواع التي لم تظهر فيه). لا تتكرر مفاتيح الأسئلة (key) داخل الجلسة الواحدة.
-export function buildMushafQuestions(lesson, ctx, { mode = 'practice', size = 5, prevKinds = [] } = {}) {
+export function buildMushafQuestions(lesson, ctx, { mode = 'practice', size = 5, prevKinds = [], exclude = null } = {}) {
     const R = lessonRuleId(lesson);
     let recipes = recipesOf(lesson);
     if (!recipes.length) return [];
     if (mode === 'explore') recipes = [...recipes.filter((r) => r.group !== 'choice'), ...recipes.filter((r) => r.group === 'choice')];
     else if (mode === 'practice') recipes = [...recipes.filter((r) => r.group === 'choice'), ...recipes.filter((r) => r.group !== 'choice')];
     else recipes = shuffle(recipes, ctx.rng).sort((a, b) => (prevKinds.includes(a.id) ? 1 : 0) - (prevKinds.includes(b.id) ? 1 : 0));
-    const out = [], used = new Set();
+    // exclude: مفاتيح أسئلة ظهرت للطالب في ألعاب هذا الحكم؛ لا تُعاد إلا إن لم يبقَ سؤال جديد (يُملأ من المستبعَدة آخراً)
+    const out = [], used = new Set(), skipped = [];
     let attempts = 0;
-    while (out.length < size && attempts < size * 12) {
-        const r = mode === 'practice' || mode === 'explore' ? recipes[attempts % recipes.length] : recipes[attempts % recipes.length];
+    while (out.length < size && attempts < size * 24) {
+        const r = recipes[attempts % recipes.length];
         attempts++;
         const q = r.fn(ctx, R);
         if (!q || used.has(q.key)) continue;
+        if (exclude && exclude.has(q.key)) { skipped.push({ ...q, kind: r.id }); continue; }
         used.add(q.key);
         out.push({ ...q, kind: r.id });
     }
+    for (const q of skipped) { if (out.length >= size) break; if (!used.has(q.key)) { used.add(q.key); out.push(q); } }
     return mode === 'exam' ? shuffle(out, ctx.rng) : out;
 }
 

@@ -272,7 +272,9 @@ async function handleContainerClick(e) {
         const updated = applyLearned(rec);
         updated.status = statusFromJourney(updated, updated.status);
         await AppState.tajweedManager.saveMastery(updated);
-        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
+        startChain(btn.dataset.stage, btn.dataset.rule);
+    } else if (action === 'start-chain') {
+        startChain(btn.dataset.stage, btn.dataset.rule);
     } else if (action === 'start-exam') {
         startActivity('exam', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
     } else if (action === 'play-game') {
@@ -284,7 +286,7 @@ async function handleContainerClick(e) {
     } else if (action === 'resume-path') {
         const rec = await AppState.tajweedManager.getMasteryRecord(AppState.currentStudent.id, btn.dataset.rule);
         const rs = ensureJourney(rec).resume;
-        if (rs) startActivity(rs.mode, { stageId: rs.stageId, ruleId: rs.ruleId, pathRuleId: rs.pathRuleId, resume: rs });
+        if (rs) startActivity(rs.mode, { stageId: rs.stageId, ruleId: rs.ruleId, pathRuleId: rs.pathRuleId, resume: rs, chain: rs.chain, chainPos: rs.chainPos, chainTotal: rs.chainTotal });
     } else if (action === 'clear-resume') {
         const rec = await AppState.tajweedManager.getMasteryRecord(AppState.currentStudent.id, btn.dataset.rule);
         if (rec) { await AppState.tajweedManager.saveMastery(setResume(rec, null)); render(); }
@@ -307,9 +309,21 @@ async function handleContainerClick(e) {
     }
 }
 
-function startActivity(mode, { stageId, ruleId, dueRuleIds, pathRuleId, resume }) {
+// 🌟 مسار الحكم المتصل: كل ألعاب الحكم متتابعة ثم التحدي الأخير في سلسلة واحدة بلا شاشات وسيطة (التنقل بينها داخل tajweed-activity.js)
+function startChain(stageId, ruleId) {
+    const rule = getTajweedRule(stageId, ruleId);
+    const games = rule ? gamesForRule(rule, stageId) : ['practice'];
+    const first = games[0];
+    startActivity(first, {
+        stageId, ruleId: (first === 'practice' || first === 'letters' || first === 'mushaf') ? ruleId : null, pathRuleId: ruleId,
+        chain: [...games.slice(1), 'exam'], chainPos: 1, chainTotal: games.length + 1
+    });
+}
+
+function startActivity(mode, { stageId, ruleId, dueRuleIds, pathRuleId, resume, chain, chainPos, chainTotal }) {
     openTajweedActivityScreen({
         mode,
+        chain: chain || null, chainPos: chainPos || null, chainTotal: chainTotal || null,
         stageId,
         ruleId,
         pathRuleId: pathRuleId || null,
@@ -548,7 +562,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
         const next = nextGameKey(journey, gameKeys);
         const avgNote = journey.gamesAvg != null ? `<p class="tjw-checkpoint-banner">${t('tjw_path_games_avg').replace('{n}', journey.gamesAvg).replace('{p}', GAMES_PASS_SCORE)}</p>` : '';
         ctaHTML = `${!journey.practiceSinceFail ? `<p class="tjw-checkpoint-banner">${t('tjw_retake_hint')}</p>` : ''}${avgNote}${gamesListHTML}
-            ${next ? `<button class="tjw-cta-btn" data-action="play-game" data-game="${next}" ${attrs}>${t(journey.gamesAvg != null ? 'tjw_path_replay' : 'tjw_path_play').replace('{game}', gameName(next))}</button>` : ''}`;
+            <button class="tjw-cta-btn" data-action="start-chain" ${attrs}>${t(journey.gamesAvg != null ? 'tjw_path_replay_all' : 'tjw_path_play_all')}</button>`;
     } else if (step === 'exam') {
         ctaHTML = `${gamesListHTML}<button class="tjw-cta-btn" data-action="start-exam" ${attrs}>📝 ${t('tjw_path_start_challenge')}</button>
             <p class="tjw-exam-info">${t('tjw_exam_info').replace('{n}', EXAM_SIZE).replace('{p}', EXAM_PASS_SCORE)}</p>

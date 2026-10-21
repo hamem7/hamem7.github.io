@@ -22,13 +22,13 @@ const ayahInfo = (surah, ayah) => {
     return a ? { text: cleanAyahText(a.text), number: a.number, surahName: quran[surah - 1].name } : null;
 };
 
-test('المراحل كلها حاضرة: «تعرّف على مصحفك» أولاً (8 دروس) ثم 8 مراحل المتن (27 حكماً): 9 مراحل و35 حكماً', () => {
+test('المراحل كلها حاضرة: «تعرّف على مصحفك» أولاً (7 دروس) ثم 8 مراحل المتن (27 حكماً): 9 مراحل و34 حكماً', () => {
     assert.equal(TAJWEED_STAGES.length, 9);
     assert.equal(TAJWEED_STAGES[0].id, 'know_mushaf');
     assert.equal(TAJWEED_STAGES[1].id, 'qalqalah');
-    assert.equal(TAJWEED_STAGES[0].rules.length, 8);
+    assert.equal(TAJWEED_STAGES[0].rules.length, 7);
     assert.equal(flat.filter(x => !x.rule.mushaf).length, 27);
-    assert.equal(flat.length, 35);
+    assert.equal(flat.length, 34);
 });
 
 test('معرّفات الأحكام والمراحل فريدة', () => {
