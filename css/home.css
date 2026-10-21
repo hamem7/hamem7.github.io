@@ -1069,6 +1069,17 @@
 .home-menu-secondary .home-card-similarities .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-gold-500)); }
 .home-menu-secondary .home-card-similarities .home-card-title { color: var(--dh-emerald-800); }
 
+/* 🎓 بطاقة «أبطال التجويد» بعد نقلها إلى الصف الثانوي: صبغة خفيفة بنفس منطق بقية البطاقات، بلونَي هويتها (لازوردي/عنّابي) */
+.home-menu-secondary .home-card-tajweed {
+    background: rgba(140, 47, 61, 0.10);
+    border-top: 3px solid #8c2f3d;
+    color: inherit;
+    box-shadow: none;
+}
+.home-menu-secondary .home-card-tajweed .home-card-icon { background: linear-gradient(135deg, #1e3a5f, #8c2f3d); }
+.home-menu-secondary .home-card-tajweed .home-card-title { color: #6b2330; }
+.home-menu-secondary .home-card-tajweed .home-card-badge { position: static; order: 3; margin-inline-start: auto; background: #8c2f3d; color: #fff; white-space: nowrap; }
+
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
    الطويلة (min-height:190px مع justify-content:flex-end تحجز مكاناً له تحت النص دائماً).
