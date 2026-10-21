@@ -76,7 +76,34 @@ function checkMatch(q, R) {
     return errs;
 }
 
+// «في أي سورتين؟»: العبارة ترد (ككلمات كاملة داخل آية) في السورتين الصحيحتين وحدهما ضمن نطاق السؤال، والخياران الآخران خاطئان
+function checkPair(q, R) {
+    const errs = [], fail = (m) => errs.push(m);
+    if (/[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n'))) fail('رقم داخل السؤال أو الخيارات');
+    if (q.options.length !== 3) fail('عدد الخيارات ' + q.options.length);
+    if (q.options[q.correctIndex] !== q.correctAnswer) fail('correctIndex لا يطابق correctAnswer');
+    const phrase = pieces(q.text)[0];
+    if (!phrase || pieces(q.text).length !== 1) return [...errs, 'العبارة غير موجودة أو متعددة'];
+    const scopeJuz30 = /من سور جزء عمّ/.test(q.text);
+    if (!scopeJuz30 && !/الأجزاء الخمسة الأخيرة/.test(q.text)) fail('نطاق غير معروف');
+    const pl = ' ' + letters(phrase) + ' ';
+    const range = scopeJuz30 ? [78, 114] : [46, 114];
+    const holders = new Set();
+    for (const [num, arr] of R.bySurah) if (num >= range[0] && num <= range[1] && arr.some(v => (' ' + v.l + ' ').includes(pl))) holders.add(num);
+    const optNums = q.options.map(o => o.split('|').map(n => R.nameToNum.get(letters(n))));
+    if (optNums.some(p => p.length !== 2 || p.some(n => n == null || n < range[0] || n > range[1]) || p[0] === p[1])) fail('خيار ليس سورتين صالحتين ضمن النطاق');
+    if (holders.size !== 2) fail('عدد السور التي ترد فيها العبارة ' + holders.size);
+    const same = (p) => p.length === 2 && p.every(n => holders.has(n));
+    const rightIdx = optNums.map((p, i) => same(p) ? i : -1).filter(i => i >= 0);
+    if (rightIdx.length !== 1 || rightIdx[0] !== q.correctIndex) fail('الخيار الصحيح المحسوب ≠ المعلَّم صحيحاً');
+    if (!optNums.some(p => !p.some(n => holders.has(n)))) fail('لا خيار بسورتين خاطئتين');
+    if (!optNums.some(p => p.filter(n => holders.has(n)).length === 1)) fail('لا خيار بسورة صحيحة وأخرى خاطئة');
+    if (![...R.allText].some(t => letters(t).includes(letters(phrase)))) fail('العبارة ليست من المصحف');
+    return errs;
+}
+
 export function checkQuestion(q, R) {
+    if (q.type === 'sim_pair') return checkPair(q, R);
     if (q.type === 'sim_which') return checkWhich(q, R);
     if (q.type === 'sim_match') return checkMatch(q, R);
     const errs = [];
@@ -109,7 +136,6 @@ export function checkQuestion(q, R) {
         D.forEach((d, i) => {
             const full = q.options[i];
             if (d === full) return;
-            if (q.type === 'sim_surah') return fail('خيار سورة مقصوص');
             if (!d.endsWith(' …')) return fail('خيار مقصوص بلا «…»: ' + d);
             const head = d.slice(0, -2), hw = head.split(/\s+/).length, fw = full.split(/\s+/).length;
             if (!(full === head || full.startsWith(head + ' '))) fail('العرض ليس بادئة حرفية من الخيار الكامل');
@@ -124,21 +150,7 @@ export function checkQuestion(q, R) {
     const sname = R.names.find(n => afterSurah === n || afterSurah.startsWith(n + ' ')) || afterSurah;
     const optL = q.options.map(letters);
     const corrL = letters(q.correctAnswer);
-    if (q.type === 'sim_surah') {
-        const shown = ps.map(letters);
-        const holders = new Set();
-        for (const [num, arr] of R.bySurah) {
-            if (shown.length === 1 ? arr.some(v => v.l.includes(shown[0]))
-                : arr.some((v, i) => v.l === shown[0] && arr[i + 1] && arr[i + 1].l === shown[1])) holders.add(num);
-        }
-        const optNums = q.options.map(o => R.nameToNum.get(letters(o)));
-        if (optNums.some(n => n == null)) fail('خيار ليس اسم سورة');
-        const right = optNums.filter(n => holders.has(n));
-        if (right.length !== 1) fail(`عدد السور الصحيحة بين الخيارات = ${right.length}`);
-        if (right.length === 1 && right[0] !== R.nameToNum.get(corrL)) fail('الخيار الصحيح المحسوب ≠ المعلَّم صحيحاً');
-        // لا تحتوي أي سورة خاطئة الآية نفسها
-        optNums.forEach((n, i) => { if (i !== q.correctIndex && holders.has(n)) fail('سورة خاطئة تحوي الآية: ' + q.options[i]); });
-    } else {
+    {
         const sn = R.nameToNum.get(letters(sname || ''));
         const arr = R.bySurah.get(sn);
         if (!arr) { fail('اسم السورة في السؤال غير معروف: ' + sname); return errs; }
@@ -178,6 +190,7 @@ export function checkQuestion(q, R) {
 // تكرار/كشف داخل المجموعة: لا نص مكرر، ولا جواب سؤال ظاهر (كآية كاملة) في نص سؤال آخر
 // «حقيقة» السؤال مستخرجة من نصه (مستقلة عن المولّد): سؤالان بحقيقة واحدة مكرران ولو اختلف نوعهما
 export function factOf(q) {
+    if (q.type === 'sim_pair') return 'pair|' + letters(q.pair.phrase);
     if (q.type === 'sim_which') return 'which|' + q.options.map(letters).sort().join('+');
     if (q.type === 'sim_match') return 'match|' + q.match.left.map(x => letters(x.text)).sort().join('+');
     const ps = pieces(q.text), full = ps.filter(p => !/ \.{6}$/.test(p)).map(letters);

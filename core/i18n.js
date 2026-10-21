@@ -2520,6 +2520,12 @@ export const translations = {
         // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل ألعاب الصغار والكبار (components/similarGameHook.js)
         "في أي آية من المتشابهات؟ 🔢": "في أي آية من المتشابهات؟ 🔢",
         "في أي سورة من المتشابهات؟ 🌟": "في أي سورة من المتشابهات؟ 🌟",
+        "في أي سورتين من المتشابهات؟ 🌟": "في أي سورتين من المتشابهات؟ 🌟",
+        "في أي سورتين؟ 🔀": "في أي سورتين؟ 🔀",
+        "من المتشابهات: في أي سورتين؟": "من المتشابهات: في أي سورتين؟",
+        sim_q_pair_juz30: "﴿{word}﴾ وردت في سورتين من سور جزء عمّ، ما هما؟",
+        sim_q_pair_last5: "﴿{word}﴾ وردت في سورتين من سور الأجزاء الخمسة الأخيرة من القرآن، ما هما؟",
+        sim_pair_and: " و ",
         "من المتشابهات 🔀": "من المتشابهات 🔀",
         sim_inj_in_surah: "من سورة {surah}",
         sim_inj_ayah_label: "الآية {n}",
@@ -5267,6 +5273,12 @@ export const translations = {
         // 🌟 [new — 2026-10-11] Similar-verse questions inside the kids and adults games
         "في أي آية من المتشابهات؟ 🔢": "Which ayah (similar verses)? 🔢",
         "في أي سورة من المتشابهات؟ 🌟": "Which surah (similar verses)? 🌟",
+        "في أي سورتين من المتشابهات؟ 🌟": "In which two surahs? (similar verses) 🌟",
+        "في أي سورتين؟ 🔀": "In which two surahs? 🔀",
+        "من المتشابهات: في أي سورتين؟": "Similar verses: in which two surahs?",
+        sim_q_pair_juz30: "﴿{word}﴾ appears in two surahs of Juz' Amma. Which two?",
+        sim_q_pair_last5: "﴿{word}﴾ appears in two surahs of the last five juz of the Quran. Which two?",
+        sim_pair_and: " & ",
         "من المتشابهات 🔀": "Similar verses 🔀",
         sim_inj_in_surah: "From Surah {surah}",
         sim_inj_ayah_label: "Ayah {n}",
@@ -5797,7 +5809,7 @@ const GENERATED_KEYS = [
     'qe_report_order_ayahs', 'qe_report_recite_full', 'qe_report_recite_part',
     'qe_report_link_kids', 'qe_report_link_adult', 'qe_report_order_surahs',
     'qe_report_word_surah_kids', 'qe_report_word_surah_adult',
-    'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
+    'sim_q_pair_juz30', 'sim_q_pair_last5', 'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
 ];
 let _genPatterns = null;
 function _escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }

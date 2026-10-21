@@ -66,7 +66,7 @@ for (const { kids, name, cfg: scenCfg } of SCEN) {
   check(`${tag}: ظهر سؤالا متشابهات أثناء اللعب`, seen.length === 2, `ظهر ${seen.length}`);
   seen.forEach(s => check(`${tag}: النص بالسكون القرآني (لا سكون دائري U+0652)`, !(s.q + (s.ans || '')).includes('\u0652')));
   seen.forEach((s, i) => console.log(`   [${i + 1}] ${s.simKind} | ${s.title}\n       سؤال: ${s.q.replace(/\n+/g, ' ⏎ ').slice(0, 220)}\n       ${kids ? 'أزرار: ' + s.btns.join(' | ') : 'إجابة: ' + (s.ans || '').replace(/\n+/g, ' ⏎ ').slice(0, 140)}`));
-  if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل (أسماء السور بلا ﴿﴾، والآيات بداخلها)`, s.btns.length >= 3 && (s.simKind === 'sim_surah' ? s.btns.every(b => !b.includes('﴿')) : s.btns.every(b => b.includes('﴿'))), s.btns.join('|')));
+  if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل (أسماء السور بلا ﴿﴾، والآيات بداخلها)`, s.btns.length >= 3 && (s.simKind === 'sim_pair' ? s.btns.every(b => !b.includes('﴿')) : s.btns.every(b => b.includes('﴿'))), s.btns.join('|')));
   await page.evaluate(() => { const b = document.querySelector('#btn-home, .btn-home'); });
   await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500);
   await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
