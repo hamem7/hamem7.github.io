@@ -2591,6 +2591,7 @@ export const translations = {
         adult_surah_text: "سورة {name} (من {a} إلى {b})",
         adult_reduced_questions: "تم تقليل الأسئلة إلى {n} لتناسب حجم السورة.",
         gen_note_prefix: "ملاحظة: {text}",
+        qe_word_meaning_title: "ما معنى «{w}» في هذه الآية؟",
         // 🌟 [جديد] التقرير الفردي (report.js)
         rp_question: "سؤال",
         rp_loc_ayah: "سورة {name} - آية {n}",
@@ -5362,6 +5363,7 @@ export const translations = {
         adult_surah_text: "Surah {name} (from {a} to {b})",
         adult_reduced_questions: "The number of questions was reduced to {n} to fit the size of the surah.",
         gen_note_prefix: "Note: {text}",
+        qe_word_meaning_title: "What does «{w}» mean in this ayah?",
         // 🌟 [جديد] التقرير الفردي (report.js)
         rp_question: "Question",
         rp_loc_ayah: "Surah {name} - Ayah {n}",
@@ -5795,7 +5797,7 @@ const GENERATED_KEYS = [
     'qe_report_order_ayahs', 'qe_report_recite_full', 'qe_report_recite_part',
     'qe_report_link_kids', 'qe_report_link_adult', 'qe_report_order_surahs',
     'qe_report_word_surah_kids', 'qe_report_word_surah_adult',
-    'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix'
+    'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
 ];
 let _genPatterns = null;
 function _escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }

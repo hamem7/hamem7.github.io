@@ -35,6 +35,14 @@ export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, cur
     // نعرض ملخصاً قصيراً ثم نذهب إلى شاشة الألعاب بدل شاشة التقرير 🌟
     fixFromLogin: false };
 
+// تبديل اللغة أثناء سؤال معروض: نحدّث عنوان السؤال فورًا بدل أن يبقى بلغة لحظة عرضه
+document.addEventListener('app-lang-changed', () => {
+    const src = GameState.currentData && GameState.currentData.questionTitle;
+    const span = document.querySelector('#game-title > span:only-child');
+    if (!src || !span || GameState.isWeaknessMode || GameState.currentData.type === 'weakness') return;
+    span.textContent = localizeGenerated(t(src));
+});
+
 const AudioContext = window.AudioContext || window.webkitAudioContext; let audioCtx;
 
 function initAudio() { 
@@ -875,7 +883,7 @@ async function playNextMission() {
 
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             
-            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`; 
+            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${localizeGenerated(t(GameState.currentData.questionTitle))}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
             if(['between', 'recite', 'similar'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             // «قبلها وبعدها» له نفس تخطيط «الآية بين آيتين» (نقاط + آية + نقاط)
