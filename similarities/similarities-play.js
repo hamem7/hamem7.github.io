@@ -201,14 +201,14 @@ function updateProgressUI() {
 // 🌟 [إعادة كتابة] الأسئلة الأربعة (من أي سورة؟ / أكمل الآية / ماذا بعدها؟ / ما قبلها؟) يولّدها engine/similarityQuestions.js
 // بنص سؤال كامل جاهز (الآيات بين ﴿ ﴾ والسياق داخله، بلا أي رقم آية)، فلا حاجة لبناء سياق خاص بكل نوع هنا:
 // نعرض نص السؤال كما هو ثم الخيارات. الخيارات القرآنية آيات/نهايات آيات تُعرض بسطر مستقل لكل خيار.
-const SURAH_OPTION_TYPES = new Set(['sim_pair']);
+const SURAH_OPTION_TYPES = new Set(['sim_pair', 'sim_notin']);
 
 function buildOptionsHTML(q) {
     const isSurah = SURAH_OPTION_TYPES.has(q.type);
     return q.options.map((opt, i) => {
         const classes = ['btn', 'btn-outline', 'sim-play-option-btn'];
         if (!isSurah) classes.push('quran-text', 'sim-play-option-fulltext');
-        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(q.type === 'sim_pair' ? pairOptionLabel(opt) : ((q.optionsDisplay && q.optionsDisplay[i]) || opt))}</button>`;
+        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(SURAH_OPTION_TYPES.has(q.type) ? pairOptionLabel(opt) : ((q.optionsDisplay && q.optionsDisplay[i]) || opt))}</button>`;
     }).join('');
 }
 

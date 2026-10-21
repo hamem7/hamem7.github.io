@@ -62,7 +62,7 @@ for (const s of sample) {
             if (q.type === 'sim_match') q.match.pairs.forEach(p => kids.push(para([run((q.match.left.find(x => x.id === p.left).text) + '  ⇄  ' + q.match.right.find(x => x.id === p.right).text, { quran: true, size: 26 })], { indent: 720, after: 40 })));
             else q.options.forEach((o, i) => {
                 const ok = i === q.correctIndex;
-                kids.push(para([run(`${LET[i]}) `, { bold: true, size: 26, color: ok ? '0B7A3B' : undefined }), run(q.type === 'sim_pair' ? q.optionsDisplay[i] : '﴿ ' + q.optionsDisplay[i] + ' ﴾', { quran: q.type !== 'sim_pair', size: 28, bold: ok, color: ok ? '0B7A3B' : undefined }), ...(ok ? [run('  ✓', { bold: true, color: '0B7A3B' })] : [])], { indent: 720, after: 40 }));
+                kids.push(para([run(`${LET[i]}) `, { bold: true, size: 26, color: ok ? '0B7A3B' : undefined }), run(['sim_pair', 'sim_notin'].includes(q.type) ? q.optionsDisplay[i] : '﴿ ' + q.optionsDisplay[i] + ' ﴾', { quran: !['sim_pair', 'sim_notin'].includes(q.type), size: 28, bold: ok, color: ok ? '0B7A3B' : undefined }), ...(ok ? [run('  ✓', { bold: true, color: '0B7A3B' })] : [])], { indent: 720, after: 40 }));
             });
             kids.push(para([run('المرجع (للمعلم): ' + q.ref, { size: 20, color: '888888' })], { indent: 360, after: 160 }));
         });

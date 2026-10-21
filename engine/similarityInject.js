@@ -42,7 +42,7 @@ export function eligibleGroups(allGroups, pool) {
         g.occurrences.some(o => index.has(keyOf(o.surahNumber, occurrenceFirstAyah(o)))));
 }
 
-const KIDS_TYPES = new Set(['sim_pair']);
+const KIDS_TYPES = new Set(['sim_pair', 'sim_notin']);
 
 // يبني حتى `count` سؤالاً، كل واحد من مجموعة مختلفة، والموضع المسؤول عنه داخل النطاق.
 // يرجع كائنات JSON: { kind:'sim_*', groupId, anchorPhrase, scope, text, options, optionsDisplay (للعرض، مقصوصة)، correctAnswer, correctIndex, ref, occurrence:{...} }

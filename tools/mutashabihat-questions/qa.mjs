@@ -102,7 +102,32 @@ function checkPair(q, R) {
     return errs;
 }
 
+// «أيُّ سورة لم ترد؟»: العبارة ترد في العدد المذكور (ثلاث/أربع/خمس) من سور النطاق، وخيار واحد فقط سورة لا ترد فيها والباقي ترد فيها
+function checkNotin(q, R) {
+    const errs = [], fail = (m) => errs.push(m);
+    if (/[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n'))) fail('رقم داخل السؤال أو الخيارات');
+    if (q.options.length !== 3) fail('عدد الخيارات ' + q.options.length);
+    if (q.options[q.correctIndex] !== q.correctAnswer) fail('correctIndex لا يطابق correctAnswer');
+    const phrase = pieces(q.text)[0];
+    if (!phrase || pieces(q.text).length !== 1) return [...errs, 'العبارة غير موجودة أو متعددة'];
+    const scopeJuz30 = /من سور جزء عمّ/.test(q.text);
+    if (!scopeJuz30 && !/الأجزاء الخمسة الأخيرة/.test(q.text)) fail('نطاق غير معروف');
+    const cnt = { 'ثلاث': 3, 'أربع': 4, 'خمس': 5 }[(q.text.match(/وردت في (\S+) سور/) || [])[1]];
+    const pl = ' ' + letters(phrase) + ' ';
+    const range = scopeJuz30 ? [78, 114] : [46, 114];
+    const holders = new Set();
+    for (const [num, arr] of R.bySurah) if (num >= range[0] && num <= range[1] && arr.some(v => (' ' + v.l + ' ').includes(pl))) holders.add(num);
+    if (holders.size !== cnt) fail(`عدد السور المذكور ${cnt} ≠ الفعلي ${holders.size}`);
+    const nums = q.options.map(o => R.nameToNum.get(letters(o)));
+    if (nums.some(n => n == null || n < range[0] || n > range[1])) fail('خيار ليس سورة ضمن النطاق');
+    const notIdx = nums.map((n, i) => holders.has(n) ? -1 : i).filter(i => i >= 0);
+    if (notIdx.length !== 1 || notIdx[0] !== q.correctIndex) fail('الخيار الذي لا ترد فيه العبارة ليس هو المعلَّم صحيحاً');
+    if (![...R.allText].some(t => letters(t).includes(letters(phrase)))) fail('العبارة ليست من المصحف');
+    return errs;
+}
+
 export function checkQuestion(q, R) {
+    if (q.type === 'sim_notin') return checkNotin(q, R);
     if (q.type === 'sim_pair') return checkPair(q, R);
     if (q.type === 'sim_which') return checkWhich(q, R);
     if (q.type === 'sim_match') return checkMatch(q, R);
@@ -190,7 +215,7 @@ export function checkQuestion(q, R) {
 // تكرار/كشف داخل المجموعة: لا نص مكرر، ولا جواب سؤال ظاهر (كآية كاملة) في نص سؤال آخر
 // «حقيقة» السؤال مستخرجة من نصه (مستقلة عن المولّد): سؤالان بحقيقة واحدة مكرران ولو اختلف نوعهما
 export function factOf(q) {
-    if (q.type === 'sim_pair') return 'pair|' + letters(q.pair.phrase);
+    if (q.type === 'sim_pair' || q.type === 'sim_notin') return 'phrase|' + letters(q.pair.phrase);
     if (q.type === 'sim_which') return 'which|' + q.options.map(letters).sort().join('+');
     if (q.type === 'sim_match') return 'match|' + q.match.left.map(x => letters(x.text)).sort().join('+');
     const ps = pieces(q.text), full = ps.filter(p => !/ \.{6}$/.test(p)).map(letters);

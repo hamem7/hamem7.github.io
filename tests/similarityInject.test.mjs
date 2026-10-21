@@ -39,13 +39,13 @@ test('الصغار: «في أي سورتين» فقط، 3–4 خيارات، ا�
         const groups = new Set();
         for (const q of qs) {
             n++;
-            assert.ok(['sim_pair'].includes(q.kind), q.kind);
+            assert.ok(['sim_pair', 'sim_notin'].includes(q.kind), q.kind);
             assert.ok(q.options.length >= 3 && q.options.length <= 4, `${q.groupId} خيارات=${q.options.length}`);
             assert.equal(q.options[q.correctIndex], q.correctAnswer);
             assert.equal(new Set(q.options).size, q.options.length);
             assert.ok(!/[0-9\u0660-\u0669]/.test(q.text + q.options.join('')), 'رقم داخل السؤال');
             assert.ok(pool.some(a => a.surahNumber === q.occurrence.surahNumber && a.numberInSurah === q.occurrence.ayahNumber));
-            assert.ok(q.pair && q.pair.occurrences.length >= 1 && q.options.every(o => o.split('|').length === 2));
+            assert.ok(q.pair && q.pair.occurrences.length >= 1 && q.options.every(o => o.split('|').length === (q.kind === 'sim_pair' ? 2 : 1)));
             assert.ok(!groups.has(q.groupId)); groups.add(q.groupId);
         }
     }
@@ -59,7 +59,7 @@ test('الكبار: أنواع متعددة من الأربعة وخيارات �
             assert.equal(q.options[q.correctIndex], q.correctAnswer); assert.ok(q.options.length >= (q.kind === 'sim_which' ? 2 : 3));
         }
     }
-    assert.ok(kinds.size >= 2 && [...kinds].every(k => ['sim_pair', 'sim_complete', 'sim_which'].includes(k)), [...kinds].join());
+    assert.ok(kinds.size >= 2 && [...kinds].every(k => ['sim_pair', 'sim_notin', 'sim_complete', 'sim_which'].includes(k)), [...kinds].join());
 });
 test('injectIntoQueue يستبدل خانات دون تغيير الطول ويحتفظ بـ chunkIndex', () => {
     const queue = Array.from({ length: 20 }, (_, i) => ({ type: 'catch', chunkIndex: i }));

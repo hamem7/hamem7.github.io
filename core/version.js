@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.42';
+export const APP_VERSION = '1.0.43';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.43',
+        date: '2026-10-21',
+        items: [
+            { type: 'new', text: { ar: 'سؤال متشابهات جديد للأجزاء 26–30: «العبارة وردت في (ثلاث) سور، فأيُّ السور الآتية لم ترد فيها؟». واستُبعدت العبارات القصيرة جداً والكلمات المفردة من أسئلة «في أي سورتين؟».', en: 'New similar-verses question for juz 26–30: "The phrase appears in (three) surahs. Which of these surahs does it NOT appear in?". Very short phrases and single words are no longer used in the "which two surahs?" questions.' } }
+        ]
+    },
     {
         version: '1.0.42',
         date: '2026-10-21',

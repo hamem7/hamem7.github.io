@@ -2571,6 +2571,15 @@ export const translations = {
         sim_q_pair_juz30: "﴿{word}﴾ وردت في سورتين من سور جزء عمّ، ما هما؟",
         sim_q_pair_last5: "﴿{word}﴾ وردت في سورتين من سور الأجزاء الخمسة الأخيرة من القرآن، ما هما؟",
         sim_pair_and: " و ",
+        sim_q_notin_juz30_3: "﴿{word}﴾ وردت في ثلاث سور من سور جزء عمّ. أيُّ السور الآتية لم ترد فيها؟",
+        sim_q_notin_last5_3: "﴿{word}﴾ وردت في ثلاث سور من سور الأجزاء الخمسة الأخيرة من القرآن. أيُّ السور الآتية لم ترد فيها؟",
+        sim_q_notin_juz30_4: "﴿{word}﴾ وردت في أربع سور من سور جزء عمّ. أيُّ السور الآتية لم ترد فيها؟",
+        sim_q_notin_last5_4: "﴿{word}﴾ وردت في أربع سور من سور الأجزاء الخمسة الأخيرة من القرآن. أيُّ السور الآتية لم ترد فيها؟",
+        sim_q_notin_juz30_5: "﴿{word}﴾ وردت في خمس سور من سور جزء عمّ. أيُّ السور الآتية لم ترد فيها؟",
+        sim_q_notin_last5_5: "﴿{word}﴾ وردت في خمس سور من سور الأجزاء الخمسة الأخيرة من القرآن. أيُّ السور الآتية لم ترد فيها؟",
+        "أيُّ سورة لم ترد؟ من المتشابهات 🌟": "أيُّ سورة لم ترد؟ من المتشابهات 🌟",
+        "أيُّ سورة لم ترد؟ 🔀": "أيُّ سورة لم ترد؟ 🔀",
+        "من المتشابهات: أيُّ سورة لم ترد؟": "من المتشابهات: أيُّ سورة لم ترد؟",
         "من المتشابهات 🔀": "من المتشابهات 🔀",
         sim_inj_in_surah: "من سورة {surah}",
         sim_inj_ayah_label: "الآية {n}",
@@ -5369,6 +5378,15 @@ export const translations = {
         sim_q_pair_juz30: "﴿{word}﴾ appears in two surahs of Juz' Amma. Which two?",
         sim_q_pair_last5: "﴿{word}﴾ appears in two surahs of the last five juz of the Quran. Which two?",
         sim_pair_and: " & ",
+        sim_q_notin_juz30_3: "﴿{word}﴾ appears in three surahs of Juz' Amma. Which of these surahs does it NOT appear in?",
+        sim_q_notin_last5_3: "﴿{word}﴾ appears in three surahs of the last five juz of the Quran. Which of these surahs does it NOT appear in?",
+        sim_q_notin_juz30_4: "﴿{word}﴾ appears in four surahs of Juz' Amma. Which of these surahs does it NOT appear in?",
+        sim_q_notin_last5_4: "﴿{word}﴾ appears in four surahs of the last five juz of the Quran. Which of these surahs does it NOT appear in?",
+        sim_q_notin_juz30_5: "﴿{word}﴾ appears in five surahs of Juz' Amma. Which of these surahs does it NOT appear in?",
+        sim_q_notin_last5_5: "﴿{word}﴾ appears in five surahs of the last five juz of the Quran. Which of these surahs does it NOT appear in?",
+        "أيُّ سورة لم ترد؟ من المتشابهات 🌟": "Which surah is NOT one? (similar verses) 🌟",
+        "أيُّ سورة لم ترد؟ 🔀": "Which surah is NOT one? 🔀",
+        "من المتشابهات: أيُّ سورة لم ترد؟": "Similar verses: which surah is NOT one?",
         "من المتشابهات 🔀": "Similar verses 🔀",
         sim_inj_in_surah: "From Surah {surah}",
         sim_inj_ayah_label: "Ayah {n}",
@@ -5899,7 +5917,7 @@ const GENERATED_KEYS = [
     'qe_report_order_ayahs', 'qe_report_recite_full', 'qe_report_recite_part',
     'qe_report_link_kids', 'qe_report_link_adult', 'qe_report_order_surahs',
     'qe_report_word_surah_kids', 'qe_report_word_surah_adult',
-    'sim_q_pair_juz30', 'sim_q_pair_last5', 'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
+    'sim_q_pair_juz30', 'sim_q_pair_last5', 'sim_q_notin_juz30_3', 'sim_q_notin_last5_3','sim_q_notin_juz30_4', 'sim_q_notin_last5_4','sim_q_notin_juz30_5', 'sim_q_notin_last5_5', 'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
 ];
 let _genPatterns = null;
 function _escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }

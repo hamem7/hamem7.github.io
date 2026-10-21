@@ -40,10 +40,10 @@ const surahLabel = (name) => surahNameLocal ? surahNameLocal(name) : name;
 // ---------------- الصغار ----------------
 // أزرار الاختيار: «في أي سورتين؟» تُعرض أسماء السورتين (optionsKind: 'sim_pair')، وبقية الأنواع آيات داخل ﴿ ﴾ (الافتراضي)
 export function formatKidsSimilar(sim, pool) {
-    if (!sim || sim.kind !== 'sim_pair') return null;
+    if (!sim || !['sim_pair', 'sim_notin'].includes(sim.kind)) return null;
     return {
         type: 'kids_mcq',
-        questionTitle: 'في أي سورتين من المتشابهات؟ 🌟',
+        questionTitle: sim.kind === 'sim_notin' ? 'أيُّ سورة لم ترد؟ من المتشابهات 🌟' : 'في أي سورتين من المتشابهات؟ 🌟',
         questionBody: `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; color:#0284c7;">${questionTextToHTML(localizedQuestionText(sim), toQuranicSukun)}</div>`,
         correctAns: sim.correctAnswer, options: sim.options, simDisplay: sim.optionsDisplay, optionsKind: 'sim_pair',
         ayahObj: ayahObjFor(sim, pool), reportText: qtext(sim.occurrence.fullText), simKind: sim.kind, simGroupId: sim.groupId
@@ -62,11 +62,11 @@ export function kidsSimilarOptionLabel(opt, kind, cd) {
 
 // ---------------- الكبار ----------------
 // سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
-const ADULT_TITLES = { sim_pair: 'في أي سورتين؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
+const ADULT_TITLES = { sim_pair: 'في أي سورتين؟ 🔀', sim_notin: 'أيُّ سورة لم ترد؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
 
 export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;
-    const isSurah = sim.kind === 'sim_pair'; // خيارات نصية قصيرة (أسماء سور) لا آيات
+    const isSurah = sim.kind === 'sim_pair' || sim.kind === 'sim_notin'; // خيارات نصية قصيرة (أسماء سور) لا آيات
     const label = (v, i) => isSurah ? pairOptionLabel(v) : '﴿ ' + toQuranicSukun((sim.optionsDisplay && i != null && sim.optionsDisplay[i]) || v) + ' ﴾';
     const cls = isSurah ? 'btn btn-outline sim-opt-btn' : 'btn btn-outline sim-opt-btn quran-text';
     const size = isSurah ? '2rem' : '1.7rem';
