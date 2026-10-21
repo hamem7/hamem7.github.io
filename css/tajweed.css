@@ -490,7 +490,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     padding: 20px 18px;
     text-align: center;
 }
-.tjw-example-text { font-family: 'Amiri Quran', serif; font-size: 1.9rem; line-height: 2.3; color: #20160b; }
+.tjw-example-text { font-family: var(--tjw-quran-font); font-size: 1.9rem; line-height: 2.3; color: #20160b; }
 .tjw-highlight { background: rgba(224, 176, 79, 0.55); color: #5a1020; border-radius: 8px; padding: 0 5px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 .tjw-example-ref { font-size: 0.95rem; font-weight: 700; color: var(--tjw-secondary); margin-top: 4px; }
 .tjw-example-note { font-size: 0.8rem; color: var(--tjw-muted); margin: 4px 0 12px; }
@@ -608,7 +608,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-answer-btn:disabled { cursor: default; opacity: 0.7; }
 .tjw-answer-correct { background: var(--tjw-good) !important; border-color: #167a42 !important; color: #fff !important; opacity: 1 !important; box-shadow: 0 4px 0 #0f5a2f !important; }
 .tjw-answer-wrong { background: var(--tjw-bad) !important; border-color: #96281b !important; color: #fff !important; opacity: 1 !important; box-shadow: 0 4px 0 #6f1d13 !important; }
-.tjw-word-btn { font-family: 'Amiri Quran', serif; font-size: clamp(1.8rem, 3.6vw, 2.4rem); padding: 20px 12px; }
+.tjw-word-btn { font-family: var(--tjw-quran-font); font-size: clamp(1.8rem, 3.6vw, 2.4rem); padding: 20px 12px; }
 
 .tjw-link-columns { display: flex; gap: 16px; }
 .tjw-link-col { flex: 1; display: flex; flex-direction: column; gap: 10px; }
@@ -629,7 +629,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-next-question-btn { display: flex; margin: 20px auto 0; }
 
 /* ---------- شاشة النتيجة ---------- */
-.tjw-result-card { background: var(--tjw-card); color: var(--tjw-text); border-radius: 28px; padding: 34px 26px; max-width: 520px; margin: 10px auto; text-align: center; box-shadow: var(--tjw-shadow); border-top: 6px solid var(--tjw-gold); }
+.tjw-result-card, .tjw-chain-pass { background: var(--tjw-card); color: var(--tjw-text); border-radius: 28px; padding: 34px 26px; max-width: 520px; margin: 10px auto; text-align: center; box-shadow: var(--tjw-shadow); border-top: 6px solid var(--tjw-gold); }
 .tjw-result-ring { --p: 0; --c: var(--tjw-good); width: 150px; height: 150px; margin: 0 auto 10px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(58, 44, 31, 0.12) 0); position: relative; }
 .tjw-result-ring::before { content: ""; position: absolute; inset: 13px; background: var(--tjw-card); border-radius: 50%; }
 .tjw-result-score { position: relative; font-size: 2.4rem; font-weight: 800; color: var(--tjw-primary); }
@@ -685,7 +685,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     .tjw-activity-ayah-box { padding: 20px 12px 16px; }
     .tjw-howto-grid { grid-template-columns: 1fr; }
     .tjw-dim { grid-template-columns: 90px 1fr 36px; }
-    .tjw-activity-card, .tjw-result-card { padding: 20px 16px; }
+    .tjw-activity-card, .tjw-result-card, .tjw-chain-pass { padding: 20px 16px; }
     .tjw-answer-grid { grid-template-columns: 1fr; }
     .tjw-link-columns { flex-direction: column; }
     .tjw-checkpoint-rate-row { flex-direction: column; }
@@ -779,7 +779,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-tree-leaf {
     min-width: 34px; height: 34px; padding: 0 6px; display: grid; place-items: center; border-radius: 10px;
     background: color-mix(in srgb, var(--tjw-tree-c) 14%, #fff); color: var(--tjw-tree-c);
-    font-family: 'Amiri Quran', serif; font-weight: 700; font-size: 1.3rem; line-height: 1;
+    font-family: var(--tjw-quran-font); font-weight: 700; font-size: 1.3rem; line-height: 1;
 }
 .tjw-tree-leaf.is-pair { display: inline-flex; align-items: center; justify-content: center; }
 .tjw-tree-leaf i { font-style: normal; opacity: 0.6; margin: 0 3px; font-size: 0.9em; }
@@ -801,27 +801,27 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     align-items: center; justify-content: center; padding: 8px; text-align: center; box-sizing: border-box;
 }
 .tjw-flip-front { justify-content: flex-start; padding-top: 6px; background: var(--tjw-fc); color: #fff; box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2); }
-.tjw-flip-front b { font-family: 'Amiri Quran', serif; font-size: 3.2rem; line-height: 1.7; }
+.tjw-flip-front b { font-family: var(--tjw-quran-font); font-size: 3.2rem; line-height: 1.7; }
 .tjw-flip.is-pair .tjw-flip-front b { font-size: 2.3rem; }
 .tjw-flip-front i { font-style: normal; opacity: 0.75; font-size: 1.2rem; margin: 0 4px; }
 .tjw-flip-front small { position: absolute; bottom: 8px; opacity: 0.9; font-size: 0.78rem; }
 .tjw-flip-back { transform: rotateY(180deg); background: #fff; border: 3px solid var(--tjw-fc); color: var(--tjw-text); gap: 4px; }
-.tjw-flip-word { font-family: 'Amiri Quran', serif; font-size: 1.35rem; line-height: 1.7; }
+.tjw-flip-word { font-family: var(--tjw-quran-font); font-size: 1.35rem; line-height: 1.7; }
 .tjw-flip-mark { background: none; color: var(--tjw-fc, var(--tjw-accent)); font-weight: 700; }
 .tjw-flip-back small { color: var(--tjw-muted); font-size: 0.78rem; }
 .tjw-flip-badge { font-weight: 800; border-radius: 999px; padding: 0 10px; }
 .tjw-flip-badge.is-idgham { background: rgba(31, 157, 85, 0.14); color: var(--tjw-good); }
 .tjw-flip-badge.is-izhar { background: rgba(192, 57, 43, 0.14); color: var(--tjw-bad); }
 
-.tjw-big-letter { font-family: 'Amiri Quran', serif; font-size: 4.4rem; line-height: 1.4; letter-spacing: 0; }
+.tjw-big-letter { font-family: var(--tjw-quran-font); font-size: 4.4rem; line-height: 1.4; letter-spacing: 0; }
 .tjw-pair-plus { opacity: 0.5; font-size: 2rem; }
 .tjw-answer-grid.tjw-letter-grid { grid-template-columns: repeat(4, 1fr); }
-.tjw-letter-opt { font-family: 'Amiri Quran', serif; font-size: 2.2rem; padding: 8px; }
+.tjw-letter-opt { font-family: var(--tjw-quran-font); font-size: 2.2rem; padding: 8px; }
 .tjw-collect-count { text-align: center; font-weight: 800; color: var(--tjw-muted); margin-bottom: 10px; direction: ltr; }
 .tjw-letter-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 @media (min-width: 520px) { .tjw-letter-board { grid-template-columns: repeat(6, 1fr); } }
 .tjw-letter-tile {
-    aspect-ratio: 1; cursor: pointer; font-family: 'Amiri Quran', serif; font-weight: 700; font-size: 2.2rem; color: var(--tjw-primary);
+    aspect-ratio: 1; cursor: pointer; font-family: var(--tjw-quran-font); font-weight: 700; font-size: 2.2rem; color: var(--tjw-primary);
     background: #fff; border: 2.5px solid var(--tjw-primary-light); border-radius: 16px; box-shadow: 0 4px 0 rgba(45, 90, 140, 0.35); padding: 0;
     transition: transform 0.12s ease;
 }
@@ -829,7 +829,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-letter-tile.is-right { background: var(--tjw-good); border-color: #167a42; color: #fff; box-shadow: 0 4px 0 #0f5a2f; }
 .tjw-letter-tile.is-wrong { background: var(--tjw-bad); border-color: #96281b; color: #fff; box-shadow: 0 4px 0 #6f1d13; }
 .tjw-letter-tile:disabled { cursor: default; }
-.tjw-link-example { font-family: 'Amiri Quran', serif; font-size: 1.25rem; line-height: 1.7; }
+.tjw-link-example { font-family: var(--tjw-quran-font); font-size: 1.25rem; line-height: 1.7; }
 .tjw-link-example .tjw-flip-mark { color: var(--tjw-accent); }
 
 @media (prefers-reduced-motion: reduce) { .tjw-flip-inner, .tjw-letter-tile { transition: none; } }
@@ -846,15 +846,10 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .adult-theme .tjw-wrap .tjw-e-hero h1 { margin: 0; font-size: 1.9rem; line-height: 1.3; color: #fff8e6 !important; }
 .tjw-e-hero h1::after { content: ""; display: block; width: 64px; height: 3px; border-radius: 3px; background: var(--tjw-gold); margin-top: 6px; }
 .tjw-e-hero p { margin: 6px 0 0; color: #c9d3e3; max-width: 46ch; }
-.tjw-e-stats { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 2px; }
-.tjw-e-stat { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 4px 12px; font-size: 0.88rem; color: #f4ecd8; }
-.tjw-e-stat b { color: var(--tjw-gold); font-size: 1.05rem; margin-inline-end: 4px; }
 .tjw-e-seg { display: inline-flex; background: rgba(255, 255, 255, 0.08); border-radius: 999px; padding: 3px; }
 .tjw-e-seg button { border: 0; background: none; padding: 6px 16px; border-radius: 999px; font: inherit; font-weight: 800; color: #d7e3f5; cursor: pointer; }
 .tjw-e-seg button.is-on { background: var(--tjw-gold); color: #3a2a08; }
 
-.tjw-e-layout { display: grid; gap: 16px; grid-template-columns: 1fr; }
-@container (min-width: 760px) { .tjw-e-layout { grid-template-columns: 1.15fr 0.85fr; align-items: start; } }
 .tjw-e-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .tjw-e-card { background: var(--tjw-card); color: var(--tjw-text); border-radius: 20px; padding: 16px; box-shadow: var(--tjw-shadow); border-top: 5px solid var(--tjw-gold); }
 .tjw-e-card.tjw-e-plain { border-top-color: var(--tjw-primary-light); }
@@ -886,7 +881,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-e-search { display: flex; align-items: center; gap: 8px; border: 2px solid var(--tjw-line); border-radius: 14px; padding: 6px 12px; background: #fff; margin-bottom: 10px; }
 .tjw-e-search input { border: 0; outline: 0; flex: 1; font: inherit; background: none; min-width: 0; color: var(--tjw-text); }
 .tjw-e-search:focus-within { border-color: var(--tjw-primary-light); box-shadow: 0 0 0 4px rgba(45, 90, 140, 0.18); }
-.tjw-e-students { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.tjw-e-students { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
 .tjw-st { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; text-align: start; background: #fff; border: 2px solid var(--tjw-line); border-radius: 16px; padding: 10px; color: var(--tjw-text); cursor: pointer; font: inherit; transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s; }
 .tjw-st:hover { transform: translateY(-2px); border-color: var(--tjw-primary-light); }
 .tjw-st[aria-pressed="true"] { border-color: var(--tjw-gold-deep); box-shadow: 0 0 0 3px rgba(224, 176, 79, 0.55); }
@@ -903,19 +898,26 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-e-empty, .tjw-e-empty-note { text-align: center; color: var(--tjw-muted); padding: 24px 10px; }
 .tjw-e-big { font-size: 2.6rem; }
 
-/* مسار الرحلة */
-.tjw-e-path { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
-.tjw-e-sg { position: relative; border: 2px solid var(--tjw-line); background: #fff; border-radius: 16px; padding: 10px 6px 8px; text-align: center; display: flex; flex-direction: column; gap: 3px; align-items: center; }
-.tjw-e-ic { --p: 0; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(58, 44, 31, 0.1) 0); }
-.tjw-e-ic span { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 1.4rem; }
-.tjw-e-nm { font-weight: 800; font-size: 0.82rem; line-height: 1.35; color: var(--tjw-text); }
-.tjw-e-ct { font-size: 0.76rem; color: var(--tjw-muted); }
-.tjw-e-sg.is-locked { opacity: 0.5; filter: grayscale(0.7); }
-.tjw-e-sg.is-locked::after { content: "🔒"; position: absolute; top: 4px; inset-inline-start: 6px; font-size: 0.85rem; }
-.tjw-e-sg.is-active { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 28%, transparent); }
-.tjw-e-sg.is-done { border-color: var(--tjw-good); }
-.tjw-e-sg.is-done .tjw-e-ct { color: var(--tjw-good); font-weight: 800; }
+/* مسار التقدّم المصغّر: شريط أفقي واحد بدوائر المراحل (الحلقة = التقدّم)، والمرحلة الجارية وحدها يظهر عدّاد أحكامها */
+.tjw-e-track { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 8px 12px 6px; color: #e8edf6; }
+.tjw-e-track-head b { font-size: 0.82rem; color: #f4ecd8; }
+.tjw-e-path { display: flex; gap: 0; overflow-x: auto; padding: 6px 2px 4px; scrollbar-width: thin; }
+.tjw-e-sg { position: relative; flex: 0 0 68px; width: 68px; text-align: center; display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.tjw-e-sg:not(:last-child)::before { content: ""; position: absolute; top: 19px; inset-inline-start: calc(50% + 21px); width: 26px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, 0.18); }
+.tjw-e-sg.is-done:not(:last-child)::before { background: var(--tjw-good); }
+.tjw-e-ic { --p: 0; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255, 255, 255, 0.16) 0); }
+.tjw-e-ic span { width: 31px; height: 31px; border-radius: 50%; background: #fffdf7; display: grid; place-items: center; font-size: 1.05rem; }
+.tjw-e-nm { font-weight: 700; font-size: 0.7rem; line-height: 1.3; color: #dfe7f3; }
+.tjw-e-ct { display: none; font-size: 0.68rem; color: var(--tjw-gold); }
+.tjw-e-sg.is-locked { opacity: 0.45; filter: grayscale(0.7); }
+.tjw-e-sg.is-active .tjw-e-ic { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 40%, transparent); }
+.tjw-e-sg.is-active .tjw-e-nm { color: var(--tjw-gold); }
+.tjw-e-sg.is-active .tjw-e-ct { display: block; }
+.tjw-e-sg.is-done .tjw-e-nm { color: #9fe3bd; }
 .tjw-e-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--tjw-muted); margin-top: 10px; }
+.tjw-e-single { max-width: 720px; width: 100%; margin-inline: auto; gap: 12px; }
+.tjw-e-foot { display: flex; justify-content: center; }
+.tjw-e-foot .tjw-e-ghost { color: #f4ecd8; }
 
 /* تنبيه المراجعة */
 .tjw-e-alert { display: flex; gap: 12px; align-items: center; background: linear-gradient(135deg, #fff1dc, #ffe0b0); border: 1.5px solid rgba(217, 138, 31, 0.6); color: #6b3d00; border-radius: 16px; padding: 10px 14px; }
@@ -943,6 +945,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 
 /* نظرة المعلم */
 .tjw-e-tsum { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.tjw-e-stat { border: 1px solid var(--tjw-line); border-radius: 12px; padding: 4px 12px; font-size: 0.88rem; }
+.tjw-e-stat b { color: var(--tjw-primary); font-size: 1.05rem; margin-inline-end: 4px; }
 .tjw-e-card .tjw-e-stat { background: #fff; color: var(--tjw-text); border-color: var(--tjw-line); }
 .tjw-e-sortrow { margin-bottom: 8px; }
 .tjw-e-sortrow .tjw-e-lbl { margin: 0; }
@@ -1006,7 +1010,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mkh-group h4 { margin: 0 0 4px; color: var(--mkc); font-size: 1rem; }
 .tjw-mkh-row { display: flex; align-items: center; gap: 10px; padding: 3px 0; }
 .tjw-mkh-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--mkc); color: #fff; font-weight: 700; font-size: 0.8rem; display: grid; place-items: center; }
-.tjw-mkh-l { flex: none; min-width: 72px; font-family: 'Amiri Quran', serif; font-size: 1.5rem; line-height: 1.5; color: var(--tjw-ink); }
+.tjw-mkh-l { flex: none; min-width: 72px; font-family: var(--tjw-quran-font); font-size: 1.5rem; line-height: 1.5; color: var(--tjw-ink); }
 .tjw-mkh-t { font-size: 0.88rem; color: var(--tjw-text); line-height: 1.5; }
 .tjw-book-strip, .tjw-mkh-imgs { display: flex; flex-wrap: wrap; gap: 8px; }
 .tjw-book-thumb { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 118px; padding: 4px; border: 2px solid var(--tjw-line); border-radius: 12px; background: #fff; cursor: pointer; font-family: inherit; color: var(--tjw-text); }
@@ -1046,8 +1050,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
    مرحلة «تعرّف على مصحفك» (tajweed/tajweed-mushaf-ui.js): فانوس الهامش، لوحة السورة، رأس الصفحة، وردة الآية، العلامات
    الصور الحقيقية في assets/tajweed/mushaf/ والكلمات تُكتب فوقها. النصوص القرآنية دائماً dir=rtl حتى في الواجهة الإنجليزية.
    ============================================================ */
-:root { --tjw-mushaf: #b7791f; }
-.tjw-mk-ar { font-family: 'Amiri Quran', serif; direction: rtl; unicode-bidi: isolate; }
+:root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }
+.tjw-mk-ar { font-family: var(--tjw-quran-font); direction: rtl; unicode-bidi: isolate; }
 .tjw-mk-lesson { display: flex; flex-direction: column; gap: 14px; }
 .tjw-mk-intro { margin: 0; line-height: 1.9; }
 .tjw-mk-tip { background: rgba(224, 176, 79, 0.16); border-inline-start: 4px solid var(--tjw-gold); border-radius: 10px; padding: 8px 12px; line-height: 1.8; }
@@ -1058,17 +1062,16 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mk-flow { display: flex; flex-wrap: wrap; gap: 0.1rem 0.4rem; align-items: center; justify-content: flex-start; line-height: 2.3; }
 
 /* وردة رقم الآية */
-.tjw-mk-rosette { display: inline-grid; place-items: center; min-width: 1.75em; height: 1.75em; margin: 0 0.2em; padding: 0 0.15em; border-radius: 50%;
-    border: 2px double var(--tjw-gold-deep); background: #fff8e6; color: var(--tjw-accent); font-family: 'Amiri Quran', serif; font-size: 0.68em; line-height: 1; vertical-align: middle; }
-.tjw-mk-rosette.is-big { font-size: 1.6rem; min-width: 2.4em; height: 2.4em; }
+.tjw-mk-rosette { display: inline; margin: 0 0.12em; color: #20160b; font-family: var(--tjw-quran-font); font-size: 1em; line-height: inherit; font-weight: 400; white-space: nowrap; }
+.tjw-mk-rosette.is-big { font-size: 3.4rem; line-height: 1.4; }
 .tjw-mk-bigrosette { display: grid; place-items: center; padding: 10px; }
 
 /* لوحة اسم السورة ورأس الصفحة */
 .tjw-mk-bannerbox, .tjw-mk-pageheadbox, .tjw-mk-wordbox, .tjw-mk-imgbox { display: grid; place-items: center; gap: 4px; margin: 6px 0; }
 .tjw-mk-banner { position: relative; width: min(100%, 520px); }
 .tjw-mk-banner img { display: block; width: 100%; height: auto; }
-.tjw-mk-banner-name { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Amiri Quran', serif; font-size: clamp(1.1rem, 4.4vw, 1.9rem); color: #1b1b1b; padding-inline: 30%; text-align: center; line-height: 1.2; }
-.tjw-mk-pagehead { display: flex; justify-content: space-between; gap: 16px; width: min(100%, 420px); font-family: 'Amiri Quran', serif; font-size: 1.05rem; color: #555; border-bottom: 1px solid #e3d5b0; padding-bottom: 2px; }
+.tjw-mk-banner-name { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--tjw-quran-font); font-size: clamp(1.1rem, 4.4vw, 1.9rem); color: #1b1b1b; padding-inline: 30%; text-align: center; line-height: 1.2; }
+.tjw-mk-pagehead { display: flex; justify-content: space-between; gap: 16px; width: min(100%, 420px); font-family: var(--tjw-quran-font); font-size: 1.05rem; color: #555; border-bottom: 1px solid #e3d5b0; padding-bottom: 2px; }
 .tjw-mk-pageheadbox small { color: var(--tjw-muted); }
 .tjw-mk-wordbox { font-size: 2rem; background: #fffef9; border: 2px solid #e8dcc0; border-radius: 14px; padding: 8px 18px; }
 .tjw-mk-bsm { text-align: center; margin-bottom: 6px; }
@@ -1078,8 +1081,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 
 /* فانوس الهامش: صورة حقيقية والكلمات فوقها (النسب مقيسة من الصورة) */
 .tjw-mk-lantern { position: relative; container-type: inline-size; width: 84px; margin: 0 auto; }
-.tjw-mk-lantern img { display: block; width: 100%; height: auto; }
-.tjw-mk-lantern-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: 'Amiri Quran', serif; font-weight: 700; color: #111; line-height: 1.25; }
+.tjw-mk-lantern svg { display: block; width: 100%; height: auto; }
+.tjw-mk-lantern-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: var(--tjw-quran-font); font-weight: 700; color: #111; line-height: 1.25; }
 .tjw-mk-media-lantern { display: grid; place-items: center; padding: 6px; }
 .tjw-mk-gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
 .tjw-mk-gallery figure { margin: 0; text-align: center; background: #fff; border: 2px solid var(--tjw-line); border-radius: 14px; padding: 8px; color: var(--tjw-text); }
@@ -1102,18 +1105,18 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mk-signcard { background: #fff; color: var(--tjw-text); border: 2px solid var(--tjw-line); border-radius: 16px; padding: 10px; display: grid; gap: 4px; align-content: start; }
 .tjw-mk-signcard h4 { margin: 0; color: var(--tjw-primary); }
 .tjw-mk-signcard p { margin: 0; font-size: 0.88rem; color: var(--tjw-muted); line-height: 1.7; }
-.tjw-mk-signglyph { font-family: 'Amiri Quran', serif; font-size: 3.4rem; line-height: 2.2; color: var(--tjw-accent); text-align: center; background: #fff8e6; border-radius: 12px; padding-top: 0.1em; }
+.tjw-mk-signglyph { font-family: var(--tjw-quran-font); font-size: 3.4rem; line-height: 2.2; color: var(--tjw-accent); text-align: center; background: #fff8e6; border-radius: 12px; padding-top: 0.1em; }
 .tjw-mk-signglyph.is-card { font-size: 3.2rem; }
 .tjw-mk-signex { font-size: 1.3rem; line-height: 2.1; background: #fffef9; border-radius: 10px; padding: 2px 8px; color: #1b1b1b; }
 .tjw-mk-signex mark, .tjw-mk-ayahbox mark { background: #ffe08a; color: var(--tjw-accent); border-radius: 6px; padding: 0 0.1em; }
-.tjw-mk-optglyph { font-family: 'Amiri Quran', serif; font-size: 2rem; line-height: 1.6; color: var(--tjw-accent); }
+.tjw-mk-optglyph { font-family: var(--tjw-quran-font); font-size: 2rem; line-height: 1.6; color: var(--tjw-accent); }
 .tjw-mk-glyphopt { min-height: 64px; }
 
 /* أسئلة الضغط والوصل */
 .tjw-mk-seg { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 10px; padding: 0 0.25em; min-height: 2.2em; cursor: pointer; }
 .tjw-mk-seg:hover:not(:disabled) { background: #e7f2ff; border-color: var(--tjw-primary-light); }
 .tjw-mk-seg.is-mark { min-width: 2.2em; border: 2px dashed rgba(140, 47, 61, 0.45); background: #fff8e6; color: var(--tjw-accent); line-height: 2; padding: 0 0.1em; }
-.tjw-mk-segnum { border-radius: 50%; border: 2px double var(--tjw-gold-deep); background: #fff8e6; color: var(--tjw-accent); min-width: 2.2em; font-size: 0.8em; }
+.tjw-mk-segnum { font-family: var(--tjw-quran-font); border: 2px solid transparent; border-radius: 12px; background: transparent; color: #20160b; min-width: 2.2em; font-size: 1.15em; line-height: 1.6; padding: 0 0.15em; }
 .tjw-mk-segtext { line-height: 2; }
 .tjw-mk-lines { display: flex; flex-direction: column; gap: 8px; }
 .tjw-mk-segline { display: block; text-align: start; width: 100%; font-size: 1.4rem; line-height: 2.1; border-color: var(--tjw-line); background: #fffef9; color: #1b1b1b; padding: 4px 12px; }
@@ -1127,3 +1130,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     .tjw-mk-pagedemo { grid-template-columns: 72px 1fr; }
     .tjw-mk-lantern { width: 72px; }
 }
+
+/* سلسلة الحكم: رقم الخطوة في شريط التقدّم وشاشة العبور بين لعبتين */
+.tjw-chain-label { color: var(--tjw-gold); font-weight: 800; }
+.tjw-chain-pass { text-align: center; }
+.tjw-chain-emoji { font-size: 3.2rem; line-height: 1.2; }

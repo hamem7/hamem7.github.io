@@ -32,7 +32,7 @@ check('الطالب الجديد: زر البداية يذكر أول درس ف�
 await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
 
 const stages = await page.evaluate(() => [...document.querySelectorAll('.tjw-stage-section')].map(s => ({ title: s.querySelector('.tjw-stage-title span')?.textContent.trim(), locked: s.classList.contains('tjw-stage-locked'), tiles: s.querySelectorAll('.tjw-rule-tile').length })));
-check('المرحلة الأولى في الخريطة «تعرّف على مصحفك» مفتوحة بثمانية دروس', stages[0].title === 'تعرّف على مصحفك' && !stages[0].locked && stages[0].tiles === 8, JSON.stringify(stages[0]));
+check('المرحلة الأولى في الخريطة «تعرّف على مصحفك» مفتوحة بسبعة دروس (رقم الآية ولوحة السورة درس واحد)', stages[0].title === 'تعرّف على مصحفك' && !stages[0].locked && stages[0].tiles === 7, JSON.stringify(stages[0]));
 check('القلقلة ثاني مرحلة ومقفلة حتى يُتقن الطالب المرحلة الأولى', /القلقلة/.test(stages[1].title) && stages[1].locked, JSON.stringify(stages[1]));
 check('أزرار «اربط» و«شجرة» غير معروضة لمرحلة المصحف (لا حروف)', !(await page.$('[data-action="start-link"][data-stage="know_mushaf"]')) && !(await page.$('[data-action="start-tree"][data-stage="know_mushaf"]')));
 await shot('1-map');
@@ -41,9 +41,9 @@ const openRule = async (rid) => { await page.click(`[data-rule="${rid}"].tjw-rul
 const backToMap = async () => { await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile'); };
 
 // ============================================================
-// الدروس الثمانية: كل درس يُعرض بمحتواه الحقيقي دون أخطاء وبلا مفاتيح ترجمة خام
+// الدروس السبعة: كل درس يُعرض بمحتواه الحقيقي دون أخطاء وبلا مفاتيح ترجمة خام
 // ============================================================
-const LESSONS = ['mushaf_ayah_number', 'mushaf_surah_head', 'mushaf_juz_hizb', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_sin_saad', 'mushaf_sajda'];
+const LESSONS = ['mushaf_ayah_number', 'mushaf_juz_hizb', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_sin_saad', 'mushaf_sajda'];
 const rawKeys = async () => page.evaluate(() => (document.body.innerText.match(/\btjw_[a-z0-9_]+\b/g) || []));
 for (const rid of LESSONS) {
   await openRule(rid);
@@ -64,42 +64,32 @@ void text0;
 // مسار الحكم كاملاً على درس «رقم الآية»
 // ============================================================
 const RID = 'mushaf_ayah_number';
-const answerCorrect = async (mode) => {
-  const q = await page.evaluate(() => window.__tjwQuestion && window.__tjwQuestion());
+const chainLabels = new Set();
+const answerCorrect = async () => {
+  const q = await page.evaluate(() => { const q = window.__tjwQuestion && window.__tjwQuestion(); window.__prevQ = q; return q; });
   if (!q) return false;
   if (q.type === 'mushaf_choice') await page.click(`[data-mk-opt="${q.options.find(o => o.ok).id}"]`);
   else if (q.type === 'mushaf_tap') await page.click(`[data-mk-seg="${q.segments.findIndex(s => s.ok)}"]`);
   else if (q.type === 'mushaf_match') for (const p of q.pairs) { await page.click(`[data-mk-l="${p.id}"]`); await page.click(`[data-mk-r="${p.id}"]`); }
-  if (mode === 'exam') await sleep(650); else { await page.waitForSelector('[data-action="next-question"]', { timeout: 8000 }); await page.click('[data-action="next-question"]'); await sleep(250); }
+  // الانتقال تلقائي بعد كل إجابة (بلا زر «التالي»): ننتظر تغيّر السؤال أو ظهور شاشة العبور/النتيجة
+  await page.waitForFunction(() => window.__tjwQuestion() !== window.__prevQ, null, { timeout: 9000 });
   return true;
 };
-const runAll = async (mode, max = 12) => { for (let i = 0; i < max; i++) { if (await page.$('.tjw-result-card')) return; await page.waitForSelector('.tjw-mk-card, .tjw-result-card', { timeout: 15000 }); if (await page.$('.tjw-result-card')) return; await answerCorrect(mode); } };
+const runAll = async (max = 40) => { for (let i = 0; i < max; i++) { await page.waitForSelector('.tjw-mk-card, .tjw-result-card', { timeout: 15000 }); if (await page.$('.tjw-result-card')) return; chainLabels.add(((await page.textContent('.tjw-progress-label')).match(/الخطوة \d من \d/) || [''])[0]); await answerCorrect(); } };
 await openRule(RID);
 check('الدرس الجديد: خطوة الشرح وزر «فهمت» فقط', !!(await page.$('[data-action="mark-learned"]')) && !(await page.$('[data-action="start-exam"]')));
 await page.click('[data-action="mark-learned"]'); await page.waitForSelector('.tjw-mk-card');
-check('«فهمت» تفتح لعبة التدرّب بخمسة أسئلة من مولّد المصحف', /\/ 5/.test(await page.textContent('.tjw-progress-label')));
-// سؤال بالضغط: خطأ أولاً يُظهر التفسير والصواب
+check('«فهمت» تفتح سلسلة الحكم: الخطوة 1 من 3 وخمسة أسئلة', /الخطوة 1 من 3/.test(await page.textContent('.tjw-progress-label')) && /\/ 5/.test(await page.textContent('.tjw-progress-label')), await page.textContent('.tjw-progress-label'));
 const q1 = await page.evaluate(() => window.__tjwQuestion());
 check('سؤال التدرّب من نوع المصحف ويحمل مفتاح نص ومفتاح تفسير', ['mushaf_choice', 'mushaf_tap', 'mushaf_match'].includes(q1.type) && !!q1.stemKey);
-await runAll('practice'); await page.waitForSelector('.tjw-result-card');
-const r1 = await page.evaluate(() => ({ score: document.querySelector('.tjw-result-score')?.textContent, next: document.querySelector('[data-action="go-game"]')?.dataset.game, exam: !!document.querySelector('[data-action="go-exam"]') }));
-check('نهاية التدرّب 100%: اللعبة التالية «استكشف المصحف» ولا يُفتح التحدي بعد', r1.score === '100%' && r1.next === 'mushaf' && !r1.exam, JSON.stringify(r1));
-await shot('4-game1-result');
-await page.click('[data-action="go-game"]'); await page.waitForSelector('.tjw-mk-card');
-check('«استكشف المصحف» يبدأ بأسئلة تفاعلية (ضغط أو وصل أو اختيار)', /\/ 5/.test(await page.textContent('.tjw-progress-label')));
-const kinds = []; for (let i = 0; i < 5; i++) { const q = await page.evaluate(() => window.__tjwQuestion()); kinds.push(q.type); await answerCorrect('explore'); }
-check('وضع الاستكشاف يقدّم الضغط/الوصل أولاً', kinds.some(k => k === 'mushaf_tap' || k === 'mushaf_match'), kinds.join(','));
-await page.waitForSelector('.tjw-result-card');
-const r2 = await page.evaluate(() => ({ score: document.querySelector('.tjw-result-score')?.textContent, exam: !!document.querySelector('[data-action="go-exam"]') }));
-check('بعد اللعبتين بمتوسط 100% يُفتح التحدي', r2.score === '100%' && r2.exam, JSON.stringify(r2));
-await page.click('[data-action="go-exam"]'); await page.waitForSelector('.tjw-mk-card');
-const nQ = Number((await page.textContent('.tjw-progress-label')).split('/')[1]);
-check('التحدي: من 5 إلى 8 أسئلة من أنواع المصحف', nQ >= 5 && nQ <= 8, String(nQ));
-// في التحدي لا تلوين ولا تفسير أثناءه
-const q0 = await page.evaluate(() => window.__tjwQuestion());
-if (q0.type === 'mushaf_choice') await page.click(`[data-mk-opt="${q0.options.find(o => o.ok).id}"]`); else if (q0.type === 'mushaf_tap') await page.click(`[data-mk-seg="${q0.segments.findIndex(s => s.ok)}"]`); else for (const p of q0.pairs) { await page.click(`[data-mk-l="${p.id}"]`); await page.click(`[data-mk-r="${p.id}"]`); }
-check('أثناء التحدي لا يظهر تلوين صح/خطأ ولا تفسير', !(await page.$('.tjw-answer-correct, .tjw-answer-wrong, .tjw-feedback')));
-await sleep(700); await runAll('exam');
+// إجابة صحيحة: ينتقل وحده للسؤال التالي بلا زر
+await answerCorrect();
+check('بعد الإجابة ينتقل مباشرة للسؤال التالي بلا زر «التالي»', !(await page.$('[data-action="next-question"]')) && /2 \/ 5/.test(await page.textContent('.tjw-progress-label')), await page.textContent('.tjw-progress-label'));
+const seenKeys = []; const keyLog = setInterval(async () => { try { const k = await page.evaluate(() => { const q = window.__tjwQuestion && window.__tjwQuestion(); return q ? q.key : null; }); if (k && !seenKeys.includes(k)) seenKeys.push(k); } catch (e) { /* التنقل */ } }, 120);
+await runAll();
+clearInterval(keyLog);
+check('السلسلة مرّت بالخطوات الثلاث (تدرّب ← استكشف ← تحدٍّ) بلا شاشات نتيجة وسيطة', chainLabels.size === 3, [...chainLabels].join(' | '));
+check('لا تكرار لسؤال بين ألعاب الحكم والتحدي', new Set(seenKeys).size === seenKeys.length, String(seenKeys.length));
 await page.waitForSelector('.tjw-result-card');
 const ex = await page.evaluate(() => ({ head: document.querySelector('.tjw-result-headline')?.textContent, score: document.querySelector('.tjw-result-score')?.textContent, approve: !!document.querySelector('[data-action="approve-now"]') }));
 check('اجتياز التحدي 100% مع زر «اعتماد المعلم»', /اجتزت/.test(ex.head) && ex.score === '100%' && ex.approve, JSON.stringify(ex));
@@ -114,9 +104,9 @@ check('القلقلة ما زالت مقفلة (بقيت سبعة دروس)', aw
 // ============================================================
 // بقية الدروس: سؤال واحد من كل نوع يعمل (اختيار/ضغط/وصل) في تدرّب الدرس
 // ============================================================
-for (const rid of LESSONS.slice(1)) {
+for (const rid of LESSONS.slice(1, -1)) {   // «السجدة» تبقى بلا إنجاز لنفحص سؤالها بالإنجليزية في آخر الاختبار
   await openRule(rid); await page.click('[data-action="mark-learned"]'); await page.waitForSelector('.tjw-mk-card');
-  await runAll('practice'); await page.waitForSelector('.tjw-result-card');
+  await runAll(); await page.waitForSelector('.tjw-result-card');
   check(`درس ${rid}: تدرّب كامل 100% بلا أخطاء`, (await page.textContent('.tjw-result-score')) === '100%');
   await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile');
 }
@@ -135,7 +125,7 @@ for (const rid of ['mushaf_ayah_number', 'mushaf_juz_hizb', 'mushaf_waqf', 'mush
   if (rid === 'mushaf_waqf') await shot('6-lesson-waqf-en');
   await page.click('#tjw-btn-level-back'); await page.waitForSelector('.tjw-rule-tile');
 }
-await openRule('mushaf_waqf'); await page.click('[data-action="play-game"]'); await page.waitForSelector('.tjw-mk-card');   // التدرّب أُنجز سابقاً: الزر الرئيسي «استكشف المصحف»
+await openRule('mushaf_sajda'); await page.click('[data-action="mark-learned"]'); await page.waitForSelector('.tjw-mk-card');
 const enQ = await page.evaluate(() => ({ stem: document.querySelector('.tjw-activity-prompt')?.textContent || '', raw: (document.body.innerText.match(/\btjw_[a-z0-9_]+\b/g) || []).length }));
 check('الإنجليزية — سؤال التدرّب: نص السؤال إنجليزي بلا مفاتيح خام', enQ.stem.length > 3 && !/[؀-ۿ]{3}/.test(enQ.stem.replace(/[«»“”"]/g, '').replace(/\([^)]*\)/g, '')) && enQ.raw === 0, JSON.stringify(enQ));
 await shot('7-question-en');

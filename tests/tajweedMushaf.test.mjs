@@ -19,7 +19,7 @@ const SCOPES = { amma: (a) => a.sn >= 78, tabarak: (a) => a.sn >= 67 && a.sn <= 
 const ctxOf = (scope) => M.buildMushafCtx(all, all.filter(SCOPES[scope]).map((a) => ({ surah: a.sn, ayah: a.n })));
 const labelOf = (o) => [o.labelKey, JSON.stringify(o.labelVars || {}), o.label, o.glyph].join('|');
 
-test('الدروس الثمانية في الكتالوج بترتيبها، ولكل درس مولّدات وعلامات', () => {
+test('الدروس السبعة في الكتالوج بترتيبها، ولكل درس مولّدات وعلامات', () => {
     const stage = getTajweedStage(M.MUSHAF_STAGE_ID);
     assert.equal(TAJWEED_STAGES[0].id, M.MUSHAF_STAGE_ID);
     assert.deepEqual(stage.rules.map((r) => M.lessonOfRule(r)), M.MUSHAF_LESSONS);
@@ -191,6 +191,25 @@ test('كل مفتاح ترجمة تستعمله المرحلة موجود (ال�
     used.add(TAJWEED_STAGES[0].nameKey);
     const missing = [...used].filter((k) => !(k in AR) || !(k in EN));
     assert.deepEqual(missing, []);
+});
+
+test('بطلب المعلم: لا سؤال «كم آية في سورة…» ولا «اضغط الآية التي يبدأ عندها الموضع»، و«رقم الآية ولوحة السورة» درس واحد', () => {
+    const kinds = new Set(M.MUSHAF_LESSONS.flatMap((l) => M.recipesOf(l).map((r) => r.id)));
+    assert.ok(!kinds.has('sh_count') && !kinds.has('jh_tap'));
+    assert.ok(!M.MUSHAF_LESSONS.includes('surah_head'));
+    ['sh_banner', 'sh_after', 'sh_page_juz', 'an_place', 'an_tap'].forEach((k) => assert.ok(M.recipesOf('ayah_number').some((r) => r.id === k), k));
+    Object.keys(SCOPES).forEach((sc) => M.MUSHAF_LESSONS.forEach((l) => M.buildMushafQuestions(l, ctxOf(sc), { size: 12 }).forEach((q) => assert.ok(q.kind !== 'sh_count' && q.kind !== 'jh_tap'))));
+});
+
+test('منع التكرار: الأسئلة المستبعَدة (exclude) لا تُعاد ما دام في الدرس غيرها', () => {
+    const ctx = ctxOf('amma');
+    ['ayah_number', 'juz_hizb', 'waqf', 'sajda'].forEach((l) => {
+        const first = M.buildMushafQuestions(l, ctx, { size: 4 });
+        const seen = new Set(first.map((q) => q.key));
+        const second = M.buildMushafQuestions(l, ctx, { size: 3, exclude: seen });
+        assert.ok(second.length >= 2, l);
+        assert.equal(second.filter((q) => seen.has(q.key)).length, 0, l + ': تكرار رغم وجود أسئلة جديدة');
+    });
 });
 
 console.log(`\n${pass} نجح، ${fail} فشل`);

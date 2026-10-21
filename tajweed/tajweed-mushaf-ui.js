@@ -49,17 +49,41 @@ export async function getMushafCtx(student) {
 // ============================================================
 // أشكال المصحف
 // ============================================================
-export const rosetteHTML = (n, cls = '') => `<span class="tjw-mk-rosette ${cls}" dir="ltr">${M.AR(n)}</span>`;
+// رقم الآية: خط المصحف (UthmanicHafs) يرسم الأرقام الهندية وحدها داخل علامة نهاية الآية نفسها المطبوعة في المصحف، فلا رسم يدوي هنا
+export const rosetteHTML = (n, cls = '') => `<span class="tjw-mk-rosette ${cls}" dir="rtl" role="img" aria-label="${esc(M.AR(n))}">${M.AR(n)}</span>`;
 const markGlyph = (code) => (code === '۩' || code === '۞' ? code : `ـ${code}ـ`);
+
+// فانوس الهامش: رسم SVG متماثل (الصورة المقتطعة من المطبوع كانت مائلة). المقاسات بوحدات viewBox عرضها 100؛ النافذة الداخلية للكلمات نفسها في «الكامل» و«العلوي».
+const LN = { stroke: '#2f7d3a', cream: '#f7f0d6', teal: '#3b9aa6', gold: '#d9a441' };
+function lanternDome(flip) {
+    const f = flip ? 'transform="translate(0 280) scale(1 -1)"' : '';
+    return `<g ${f}>
+        <path d="M3 92 C3 66 30 58 40 36 C44 27 47 20 50 11 C53 20 56 27 60 36 C70 58 97 66 97 92 Z" fill="${LN.cream}" stroke="${LN.stroke}" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M50 20 C42 38 30 46 16 48 M50 20 C58 38 70 46 84 48 M50 34 C44 46 34 54 26 58 M50 34 C56 46 66 54 74 58" fill="none" stroke="${LN.teal}" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="50" cy="66" r="6" fill="none" stroke="${LN.teal}" stroke-width="2.4"/><circle cx="50" cy="66" r="2" fill="${LN.gold}"/>
+        <path d="M50 11 C46 6 42 4 40 7 M50 11 C54 6 58 4 60 7" fill="none" stroke="${LN.stroke}" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="5" r="3" fill="${LN.gold}" stroke="${LN.stroke}" stroke-width="1.4"/>
+    </g>`;
+}
+function lanternFrame(y0, y1, win) {
+    const [wx0, wy0, wx1, wy1] = win;
+    const dots = [];
+    for (let x = 14; x <= 86; x += 12) { dots.push(`<circle cx="${x}" cy="${y0 + 5.5}" r="2" fill="${LN.teal}"/>`, `<circle cx="${x}" cy="${y1 - 5.5}" r="2" fill="${LN.teal}"/>`); }
+    for (let y = Math.ceil((y0 + 14) / 12) * 12; y <= y1 - 14; y += 12) { dots.push(`<circle cx="5.5" cy="${y}" r="2" fill="${LN.teal}"/>`, `<circle cx="94.5" cy="${y}" r="2" fill="${LN.teal}"/>`); }
+    return `<rect x="2" y="${y0}" width="96" height="${y1 - y0}" rx="6" fill="${LN.cream}" stroke="${LN.stroke}" stroke-width="3.2"/>
+        <rect x="9" y="${y0 + 8}" width="82" height="${y1 - y0 - 16}" rx="3" fill="none" stroke="${LN.gold}" stroke-width="1.4"/>${dots.join('')}
+        <rect x="${wx0}" y="${wy0}" width="${wx1 - wx0}" height="${wy1 - wy0}" rx="2" fill="#fffdf5" stroke="${LN.stroke}" stroke-width="1.6"/>`;
+}
+const lanternSVG = (full) => `<svg viewBox="0 0 100 ${full ? 280 : 197}" width="100%" aria-hidden="true" focusable="false">${lanternDome(false)}${lanternFrame(92, full ? 200 : 195, [19.6, 118.7, 80.2, 175.6])}${full ? lanternDome(true) : ''}</svg>`;
+const frameSVG = () => `<svg viewBox="0 0 100 104" width="100%" aria-hidden="true" focusable="false">${lanternFrame(2, 102, [18, 17.7, 81, 82.2])}</svg>`;
 
 export function lanternHTML(q) {
     const m = M.quarterMarker(q), n = m.lines.length;
     const fs = n === 3 ? (m.lines[0].length > 5 ? 9.5 : 12.5) : (m.kind === 'juz' ? 11.5 : 15);
     const box = m.full ? 'left:19.6%;right:19.8%;top:42.4%;bottom:37.3%' : 'left:19.6%;right:19.8%;top:60.2%;bottom:10.8%';
-    return `<div class="tjw-mk-lantern" role="img" aria-label="${esc(m.lines.join(' '))}"><img src="${ASSET}lantern-${m.full ? 'full' : 'top'}.webp" alt="">` +
+    return `<div class="tjw-mk-lantern" role="img" aria-label="${esc(m.lines.join(' '))}">${lanternSVG(m.full)}` +
         `<div class="tjw-mk-lantern-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${l}</span>`).join('')}</div></div>`;
 }
-export const frameHTML = (text) => `<div class="tjw-mk-lantern" role="img" aria-label="${esc(text)}"><img src="${ASSET}lantern-frame.webp" alt=""><div class="tjw-mk-lantern-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${text}</div></div>`;
+export const frameHTML = (text) => `<div class="tjw-mk-lantern" role="img" aria-label="${esc(text)}">${frameSVG()}<div class="tjw-mk-lantern-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${text}</div></div>`;
 export const bannerHTML = (sname) => `<div class="tjw-mk-banner" role="img" aria-label="${esc(sname)}"><img src="${ASSET}banner-blank.webp" alt=""><span class="tjw-mk-banner-name" dir="rtl">سُورَةُ ${esc(sname)}</span></div>`;
 export const pageHeadHTML = (juz, sname) => `<div class="tjw-mk-pagehead" dir="rtl"><span>الجزء ${M.JUZ_ORDINALS_AR[juz - 1]}</span><span>سُورَةُ ${esc(sname)}</span></div>`;
 
@@ -128,7 +152,7 @@ const matchState = (q) => {
 function tapBodyHTML(q) {
     if (q.layout === 'ayah_numbers') {
         const parts = q.segments.map((s, i) => (s.rosette
-            ? `<button type="button" class="tjw-mk-seg tjw-mk-segnum" data-mk-seg="${i}">${M.AR(s.n)}</button>`
+            ? `<button type="button" class="tjw-mk-seg tjw-mk-segnum" data-mk-seg="${i}" dir="rtl" aria-label="${M.AR(s.n)}">${M.AR(s.n)}</button>`
             : `<span class="tjw-mk-segtext">${esc(s.t)}</span>`));
         return `<div class="tjw-activity-ayah-box tjw-mk-ayahbox"><div class="tjw-example-text tjw-mk-ar tjw-mk-flow" dir="rtl">${parts.join(' ')}</div></div>`;
     }
@@ -226,7 +250,7 @@ export function handleMushafClick(e, q, { exam = false } = {}) {
 // ============================================================
 // الدرس: يُركَّب داخل شاشة الحكم (tajweed-map.js) بدل بطاقات الحروف والأمثلة
 // ============================================================
-const SHORT = { ayah_number: 'an', surah_head: 'sh', juz_hizb: 'jh', waqf: 'wq', silent_sukun: 'sk', madd_letters: 'md', sin_saad: 'sn', sajda: 'sj' };
+const SHORT = { ayah_number: 'an', juz_hizb: 'jh', waqf: 'wq', silent_sukun: 'sk', madd_letters: 'md', sin_saad: 'sn', sajda: 'sj' };
 const markTokens = (a, signId) => M.ayahTokens(a).map((tok) => (M.tokenHasSign(signId, tok) ? `<mark class="tjw-highlight">${esc(tok)}</mark>` : esc(tok))).join(' ');
 const audioBtn = (a) => (a && a.g ? `<button type="button" class="tjw-listen-btn" data-tjw-audio="${buildAyahAudioUrl(a.g)}">🔊 ${t('tjw_listen_btn')}</button>` : '');
 const refLine = (a, near) => `<div class="tjw-example-ref">${surahDisplay(a.sname, a.sn)} — ${t('tjw_ayah_word')} ${a.n}</div>${near ? `<div class="tjw-hifz-tag tjw-mk-near">${t('tjw_mu_near')}</div>` : ''}`;
@@ -240,7 +264,7 @@ function signCardHTML(ctx, sign) {
         const pr = M.pickSignAyah(ctx, sign);
         ex = pr && { a: pr.a, near: pr.near, html: `${markTokens(pr.a, sign.id)} ${rosetteHTML(pr.a.n)}` };
     }
-    const glyph = sign.id === 'ayah_end' ? `<img src="${ASSET}ayah-number.webp" alt="" class="tjw-mk-signimg">` : `<span dir="rtl">${markGlyph(sign.code)}</span>`;
+    const glyph = sign.id === 'ayah_end' ? rosetteHTML(12, 'is-big') : `<span dir="rtl">${markGlyph(sign.code)}</span>`;
     return `<div class="tjw-mk-signcard">
         <div class="tjw-mk-signglyph is-card">${glyph}</div>
         <h4>${esc(t(M.signNameKey(sign.id)))}</h4>
@@ -255,7 +279,7 @@ export async function renderMushafLessonHTML(rule, student) {
     const ctx = await getMushafCtx(student);
     const s = SHORT[lesson];
     const intro = `<p class="tjw-mk-intro">${esc(t(`tjw_mul_${s}_intro`))}</p>`;
-    const tip = `<div class="tjw-mk-tip">💡 ${esc(t(`tjw_mul_${s}_tip`))}</div>`;
+    const tip = `<div class="tjw-mk-tip">💡 ${esc(t(`tjw_mul_${s}_tip`))}${lesson === 'ayah_number' ? ' ' + esc(t('tjw_mul_sh_tip')) : ''}</div>`;
     let visual = '';
 
     if (lesson === 'ayah_number') {
@@ -266,11 +290,12 @@ export async function renderMushafLessonHTML(rule, student) {
                 <div class="is-right"><h4>✅ ${esc(t('tjw_mul_an_right'))}</h4><div class="tjw-mk-ar" dir="rtl">${esc(a.text)} ${rosetteHTML(a.n)} ${esc(b.text)} ${rosetteHTML(b.n)}</div></div></div>
                 ${refLine(a, pr.near)}${audioBtn(a)}`;
         }
-    } else if (lesson === 'surah_head') {
-        const pr = M.pickAyah(ctx, (a) => a.n === 1 && a.sn !== 1 && a.sn !== 9, { maxLen: 90 });
-        if (pr) {
+        // ثانياً في الدرس نفسه: لوحة اسم السورة والبسملة ورأس الصفحة (كانت درساً مستقلاً)
+        const sp = M.pickAyah(ctx, (a) => a.n === 1 && a.sn !== 1 && a.sn !== 9, { maxLen: 90 });
+        if (sp) {
+            const pr = sp;
             const bsm = ctx.byKey.get('1:1');
-            visual = `<div class="tjw-mk-figs"><figure><div class="tjw-mk-bannerbox">${bannerHTML(pr.a.sname)}</div><figcaption>${esc(t('tjw_mul_sh_banner_cap'))}</figcaption></figure>
+            visual += `<p class="tjw-mk-intro">${esc(t('tjw_mul_sh_intro'))}</p><div class="tjw-mk-figs"><figure><div class="tjw-mk-bannerbox">${bannerHTML(pr.a.sname)}</div><figcaption>${esc(t('tjw_mul_sh_banner_cap'))}</figcaption></figure>
                 <div class="tjw-activity-ayah-box tjw-mk-ayahbox"><div class="tjw-example-text tjw-mk-ar" dir="rtl"><div class="tjw-mk-bsm">${bsm ? esc(bsm.text) : ''}</div>${esc(pr.a.text)} ${rosetteHTML(pr.a.n)}</div></div>
                 ${refLine(pr.a, pr.near)}${audioBtn(pr.a)}
                 <figure><div class="tjw-mk-pageheadbox">${pageHeadHTML(pr.a.juz, pr.a.sname)}<small>${esc(fill(t('tjw_mu_juz_caption'), { n: pr.a.juz }))}</small></div><figcaption>${esc(t('tjw_mul_sh_page_cap'))}</figcaption></figure></div>
@@ -282,7 +307,8 @@ export async function renderMushafLessonHTML(rule, student) {
         let page = '';
         if (pq) page = `<div class="tjw-mk-pagedemo"><div class="tjw-mk-pagedemo-margin">${lanternHTML(pq.a.q)}</div><div class="tjw-mk-pagedemo-body">${pageHeadHTML(pq.a.juz, pq.a.sname)}<div class="tjw-mk-ar tjw-example-text" dir="rtl">${esc(pq.a.text)} ${rosetteHTML(pq.a.n)}</div>${refLine(pq.a, pq.near)}${audioBtn(pq.a)}</div></div>
             <p class="tjw-mk-note">${esc(t('tjw_mul_jh_margin_cap'))}</p>`;
-        visual = `<div class="tjw-mk-gallery">${gallery}</div><div class="tjw-mk-counts">${esc(t('tjw_mul_jh_counts'))}</div>${page}`;
+        const rubCard = `<h4 class="tjw-mk-sub">${esc(t('tjw_mu_lesson_signs'))}</h4><div class="tjw-mk-signgrid">${M.signsOfLesson('juz_hizb').map((sg) => signCardHTML(ctx, sg)).join('')}</div>`;
+        visual = `<div class="tjw-mk-gallery">${gallery}</div><div class="tjw-mk-counts">${esc(t('tjw_mul_jh_counts'))}</div>${page}${rubCard}`;
     } else {
         const signs = M.signsOfLesson(lesson);
         const cards = signs.map((sg) => signCardHTML(ctx, sg)).join('');

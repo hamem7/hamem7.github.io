@@ -48,7 +48,7 @@ test('«فهمت» وحدها تجعل الطالب «بدأ» (بلا محاو�
 
 test('إتقان «تعرّف على مصحفك» ثم القلقلة ينقل الحكم الحالي إلى المرحلة التالية ويفتحها، ويزيد المتقن والنسبة', () => {
     const s = sum({ mastery: [...masterAllIn(['know_mushaf']), rec('qalqalah', 'mastered'), rec('ghunna_wajiba', 'practice')] });
-    assert.equal(s.done, 9);   // 8 دروس مصحف + القلقلة
+    assert.equal(s.done, 8);   // 7 دروس مصحف + القلقلة
     assert.equal(s.current.ruleId, 'ghunna_wajiba'); assert.equal(s.current.step, 'exam');
     assert.equal(s.stageCounts[0].complete, true); assert.equal(s.stageCounts[1].complete, true); assert.equal(s.stageCounts[2].unlocked, true); assert.equal(s.stageCounts[2].active, true);
     assert.ok(s.progressPct > 0 && s.progressPct < 100);

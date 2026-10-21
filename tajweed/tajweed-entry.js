@@ -7,7 +7,7 @@
 import { AppState, t } from '../core/app.js';
 import { TAJWEED_STAGES, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import {
-    summarizeStudent, sortByRecency, pickPreselected, classOverview, sortForTeacher, topStudents, timeAgo
+    summarizeStudent, sortByRecency, pickPreselected, classOverview, sortForTeacher, timeAgo
 } from '../engine/tajweedEntry.js';
 
 const SEARCH_FROM = 9;      // يظهر حقل البحث لمن عدد طلابهم أكثر من ثمانية
@@ -149,35 +149,21 @@ function reviewAlert(list, sel) {
     return due ? `<div class="tjw-e-alert"><span class="tjw-e-em">🔁</span><div><b>${tpl('tjw_e_class_due', { n: due })}</b>${t('tjw_e_class_due_sub')}</div></div>` : '';
 }
 
+// مسار تقدّم مصغّر بدل شبكة البطاقات: شريط أفقي واحد بدوائر المراحل (الحلقة = التقدّم) يتمرّر على الجوال، وتحته اسم المرحلة الجارية فقط
 function journeyPanel(sel) {
-    const totalRules = getAllRulesFlat().length;
     const nodes = TAJWEED_STAGES.map((stage, i) => {
         const n = stage.rules.length;
         const c = sel ? sel.stageCounts[i] : null;
         const p = c ? Math.round((c.mastered + (c.active ? stepFraction(sel.current.step) : 0)) / n * 100) : 0;
         const cls = c ? (c.complete ? 'is-done' : c.active ? 'is-active' : !c.unlocked ? 'is-locked' : '') : '';
-        return `<div class="tjw-e-sg ${cls}" style="--c:${stageColor(stage)};"><div class="tjw-e-ic" style="--p:${p};"><span>${c && c.complete ? '✅' : stage.icon}</span></div>
-            <div class="tjw-e-nm">${t(stage.nameKey)}</div>
-            <div class="tjw-e-ct">${c ? tpl('tjw_e_mastered_of', { m: c.mastered, n }) : tpl('tjw_e_n_rules', { n })}</div></div>`;
+        const label = c ? tpl('tjw_e_mastered_of', { m: c.mastered, n }) : tpl('tjw_e_n_rules', { n });
+        return `<div class="tjw-e-sg ${cls}" style="--c:${stageColor(stage)};" title="${esc(t(stage.nameKey) + ' — ' + label)}"><div class="tjw-e-ic" style="--p:${p};"><span>${c && c.complete ? '✅' : stage.icon}</span></div>
+            <div class="tjw-e-nm">${t(stage.nameKey)}</div><div class="tjw-e-ct">${label}</div></div>`;
     }).join('');
-    return `<section class="tjw-e-card tjw-e-plain" aria-label="${t('tjw_e_journey_title')}"><h2>${t('tjw_e_journey_title')}</h2>
-        <p class="tjw-e-sub">${sel ? tpl('tjw_e_journey_sub_student', { name: esc(sel.student.name) }) : tpl('tjw_e_journey_sub_generic', { stages: TAJWEED_STAGES.length, rules: totalRules })}</p>
-        <div class="tjw-e-path">${nodes}</div>
-        ${sel ? `<div class="tjw-e-legend"><span>✅ ${t('tjw_e_leg_done')}</span><span>🔒 ${t('tjw_e_leg_locked')}</span><span>${t('tjw_e_leg_ring')}</span></div>` : ''}</section>`;
+    return `<section class="tjw-e-track" aria-label="${t('tjw_e_journey_title')}"><div class="tjw-e-track-head"><b>${t('tjw_e_journey_title')}</b></div><div class="tjw-e-path">${nodes}</div></section>`;
 }
 // وزن الخطوة الحالية داخل الحكم الجاري في حلقة المرحلة (نفس أوزان تقدّم الحكم التقريبية في الرحلة)
 const stepFraction = (step) => ({ learn: 0.1, practice: 0.35, exam: 0.6, awaiting_teacher: 0.85 }[step] || 0);
-
-function leaderboardPreview(list) {
-    if (list.length < 3) return '';
-    const top = topStudents(list);
-    const rows = [['streak', 'tjw_e_lb_streak'], ['mastered', 'tjw_e_lb_mastered'], ['weekly', 'tjw_e_lb_weekly']].filter(([k]) => top[k].length);
-    if (!rows.length) return '';
-    const pill = (s) => `<span class="tjw-e-pill"><i>${avatarInner(s.student)}</i>${esc(s.student.name)}</span>`;
-    return `<section class="tjw-e-card tjw-e-plain" aria-label="${t('tjw_e_lb_title')}"><h2>🏆 ${t('tjw_e_lb_title')}</h2><p class="tjw-e-sub">${t('tjw_e_lb_sub')}</p>
-        <div class="tjw-e-lb">${rows.map(([k, key]) => `<div class="tjw-e-lbrow"><div class="tjw-e-lbt">${t(key)}</div><div class="tjw-e-chips">${top[k].map(pill).join('')}</div></div>`).join('')}</div>
-        <div class="tjw-e-row"><button type="button" class="tjw-e-ghost" data-action="open-leaderboard">${t('tjw_e_btn_lb')}</button></div></section>`;
-}
 
 function teacherView(list) {
     if (!list.length) return `<section class="tjw-e-card"><div class="tjw-e-empty"><div class="tjw-e-big">📋</div><b>${t('tjw_e_t_empty')}</b></div></section>`;
@@ -208,9 +194,7 @@ export function renderEntryHTML() {
     const header = `
         <nav class="tjw-e-crumbs" aria-label="${t('tjw_e_crumb_aria')}"><button type="button" class="tjw-e-link" data-action="entry-home">${t('tjw_e_crumb_home')}</button><span>›</span><b>${t('tjw_home_title')}</b></nav>
         <header class="tjw-e-hero"><div><h1>${t('tjw_home_title')}</h1>
-            <p>${tpl('tjw_e_hero_sub', { stages: TAJWEED_STAGES.length, rules: getAllRulesFlat().length })}</p>
-            <div class="tjw-e-stats"><span class="tjw-e-stat"><b>${TAJWEED_STAGES.length}</b>${t('tjw_e_stat_stages')}</span><span class="tjw-e-stat"><b>${getAllRulesFlat().length}</b>${t('tjw_e_stat_rules')}</span>
-            <span class="tjw-e-stat"><b>4</b>${t('tjw_e_stat_steps')}</span><span class="tjw-e-stat"><b>🎮</b>${t('tjw_e_stat_games')}</span></div></div>
+            <p>${tpl('tjw_e_hero_sub', { stages: TAJWEED_STAGES.length, rules: getAllRulesFlat().length })}</p></div>
             ${list.length ? `<div class="tjw-e-seg" role="tablist" aria-label="${t('tjw_e_mode_aria')}">
                 <button type="button" role="tab" aria-selected="${entryState.mode === 'student'}" class="${entryState.mode === 'student' ? 'is-on' : ''}" data-action="entry-mode" data-mode="student">🧒 ${t('tjw_e_mode_student')}</button>
                 <button type="button" role="tab" aria-selected="${entryState.mode === 'teacher'}" class="${entryState.mode === 'teacher' ? 'is-on' : ''}" data-action="entry-mode" data-mode="teacher">👩‍🏫 ${t('tjw_e_mode_teacher')}</button></div>` : ''}
@@ -218,8 +202,10 @@ export function renderEntryHTML() {
     if (!list.length) {
         return `<div class="tjw-entry">${header}<div class="tjw-e-col"><section class="tjw-e-card"><div class="tjw-e-empty"><div class="tjw-e-big">🌟</div><b>${t('tjw_no_students')}</b></div></section>${journeyPanel(null)}</div></div>`;
     }
+    // عمود واحد مرتَّب: بطاقة «أكمل» ← مسار التقدّم المصغّر ← تنبيه المراجعة ← اختيار الطالب ← لوحة الأبطال
     const body = entryState.mode === 'teacher'
         ? teacherView(list)
-        : `<div class="tjw-e-layout"><div class="tjw-e-col">${continueBanner(sel)}${studentsPanel(list)}</div><div class="tjw-e-col">${reviewAlert(list, sel)}${journeyPanel(sel)}${leaderboardPreview(list)}</div></div>`;
+        : `<div class="tjw-e-col tjw-e-single">${continueBanner(sel)}${journeyPanel(sel)}${reviewAlert(list, sel)}${studentsPanel(list)}
+            ${list.length >= 3 ? `<div class="tjw-e-foot"><button type="button" class="tjw-e-ghost" data-action="open-leaderboard">🏆 ${t('tjw_e_btn_lb')}</button></div>` : ''}</div>`;
     return `<div class="tjw-entry">${header}${body}</div>`;
 }

@@ -78,7 +78,6 @@ const MUSHAF_STAGE = {
     mushaf: true,
     rules: [
         { id: 'mushaf_ayah_number', nameKey: 'tjw_rule_mushaf_ayah_number_name', defKey: 'tjw_rule_mushaf_ayah_number_def', noticeKey: 'tjw_rule_mushaf_ayah_number_notice', letters: '', glyph: '١', mushaf: { lesson: 'ayah_number' } },
-        { id: 'mushaf_surah_head', nameKey: 'tjw_rule_mushaf_surah_head_name', defKey: 'tjw_rule_mushaf_surah_head_def', noticeKey: 'tjw_rule_mushaf_surah_head_notice', letters: '', glyph: '🏷️', mushaf: { lesson: 'surah_head' } },
         { id: 'mushaf_juz_hizb', nameKey: 'tjw_rule_mushaf_juz_hizb_name', defKey: 'tjw_rule_mushaf_juz_hizb_def', noticeKey: 'tjw_rule_mushaf_juz_hizb_notice', letters: '', glyph: '۞', mushaf: { lesson: 'juz_hizb' } },
         { id: 'mushaf_waqf', nameKey: 'tjw_rule_mushaf_waqf_name', defKey: 'tjw_rule_mushaf_waqf_def', noticeKey: 'tjw_rule_mushaf_waqf_notice', letters: '', glyph: 'ـۚـ', mushaf: { lesson: 'waqf' } },
         { id: 'mushaf_silent_sukun', nameKey: 'tjw_rule_mushaf_silent_sukun_name', defKey: 'tjw_rule_mushaf_silent_sukun_def', noticeKey: 'tjw_rule_mushaf_silent_sukun_notice', letters: '', glyph: 'ـۡـ', mushaf: { lesson: 'silent_sukun' } },
