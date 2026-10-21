@@ -102,24 +102,28 @@ const surah=n=>S[n-1];
 
 /* ---- العلامات ---- */
 const SIGNS=[
- {c:'ۘ',n:'م',t:'وقف لازم',d:'يجب الوقوف عندها لأن الوصل يغيّر المعنى.',g:'waqf'},
- {c:'ۙ',n:'لا',t:'لا وقف',d:'لا يُوقَف عندها. فإن اضطررتَ للنَّفَس فأعد من الكلمة التي قبلها.',g:'waqf'},
- {c:'ۚ',n:'ج',t:'وقف جائز',d:'الوقف والوصل جائزان على السواء.',g:'waqf'},
- {c:'ۖ',n:'صلى',t:'الوصل أولى',d:'يجوز الوقف لكن الأفضل أن تصل.',g:'waqf'},
- {c:'ۗ',n:'قلى',t:'الوقف أولى',d:'يجوز الوصل لكن الأفضل أن تقف.',g:'waqf'},
- {c:'ۛ',n:'∴ المعانقة',t:'تعانق الوقف',d:'ثلاث نقاط في موضعين قريبين: قِف عند أحدهما فقط، لا عند الاثنين.',g:'waqf'},
- {c:'ۜ',n:'س',t:'سكتة',d:'توقّف قصير بقدر حركتين دون أخذ نفس، ثم أكمل.',g:'waqf'},
- {c:'۟',n:'دائرة صغيرة',t:'حرف لا يُنطق',d:'الحرف الذي فوقه دائرة صفراء صغيرة يُكتب ولا يُقرأ في الوصل.',g:'sil'},
- {c:'۠',n:'مستطيل صغير',t:'حرف لا يُنطق عند الوقف',d:'يُقرأ في الوصل ولا يُقرأ عند الوقف.',g:'sil'},
- {c:'ٓ',n:'المدّة ~',t:'علامة المدّ',d:'تدلّ على مدّ زائد على الطبيعي (متصل أو منفصل أو لازم…) بحسب ما بعدها.',g:'mad'},
- {c:'ٰ',n:'الألف الخنجرية',t:'ألف صغيرة',d:'ألف تُنطق مدّاً لكنها لا تُكتب كاملة (مثل: الرحمٰن).',g:'mad'},
- {c:'ۥ',n:'الواو الصغيرة',t:'صلة الضمير',d:'تُنطق ضمة طويلة بعد هاء الضمير في الوصل (له، به).',g:'mad'},
- {c:'ۦ',n:'الياء الصغيرة',t:'صلة الضمير',d:'تُنطق كسرة طويلة بعد هاء الضمير في الوصل (فيه، عليه).',g:'mad'},
- {c:'\u06E1',n:'السكون',t:'علامة السكون في المصحف',d:'رأس حاء صغيرة فوق الحرف تدلّ على أنه ساكن لا حركة له.',g:'sk'},
- {c:'ۢ',n:'الميم الصغيرة',t:'ميم الإقلاب',d:'ميم صغيرة فوق النون أو التنوين تدلّ على إقلابها ميماً قبل الباء.',g:'sk'},
- {c:'۩',n:'علامة السجدة',t:'موضع سجدة',d:'تُوضع في أول آية السجدة أو قريب منها لتنبّه القارئ.',g:'saj'},
+ {c:'ۘ',n:'م',t:'وقف لازم',d:'تفيد لزوم الوقف: يجب الوقوف عندها لأن الوصل يغيّر المعنى.',g:'waqf'},
+ {c:'ۙ',n:'لا',t:'لا وقف',d:'تفيد النهي عن الوقف. فإن اضطررتَ للنَّفَس فأعد من الكلمة التي قبلها.',g:'waqf'},
+ {c:'ۚ',n:'ج',t:'وقف جائز',d:'تفيد جواز الوقف: الوقف والوصل جائزان على السواء.',g:'waqf'},
+ {c:'ۖ',n:'صلى',t:'الوصل أولى',d:'تفيد بأن الوصل أولى مع جواز الوقف.',g:'waqf'},
+ {c:'ۗ',n:'قلى',t:'الوقف أولى',d:'تفيد أن الوقف أولى (ويجوز الوصل).',g:'waqf'},
+ {c:'ۛ',n:'∴ المعانقة',t:'تعانق الوقف',d:'تفيد جواز الوقف بأحد الموضعين وليس في كليهما: ثلاث نقاط في موضعين قريبين.',g:'waqf'},
+ {c:'ۜ',n:'س',t:'سكتة',d:'توقّف قصير بقدر حركتين دون أخذ نفس، ثم أكمل. تأتي علامة «س» وحدها بعد الكلمة.',g:'waqf',ex:[[83,14],[75,27],[36,52],[18,1],[69,28]]},
+ {c:'۟',n:'دائرة صغيرة',t:'حرف زائد لا يُنطق',d:'للدلالة على زيادة الحرف وعدم النطق به: يُكتب ولا يُقرأ، لا في الوصل ولا في الوقف.',g:'sil'},
+ {c:'۠',n:'مستطيل صغير',t:'حرف زائد حين الوصل',d:'للدلالة على زيادة الحرف حين الوصل: لا يُنطق إذا وصلتَ الكلام، ويُنطق عند الوقف عليه.',g:'sil'},
+ {c:'ٓ',n:'المدّة ~',t:'علامة المدّ',d:'للدلالة على لزوم المدّ الزائد على الطبيعي (متصل أو منفصل أو لازم…) بحسب ما بعدها.',g:'mad'},
+ {c:'ٰ',n:'الألف الخنجرية',t:'حرف متروك يجب النطق به',d:'للدلالة على وجوب النطق بالحروف المتروكة: ألف تُنطق مدّاً لكنها لا تُكتب كاملة (مثل: الرحمٰن).',g:'mad'},
+ {c:'ۥ',n:'الواو الصغيرة',t:'صلة الضمير',d:'للدلالة على وجوب النطق بالحرف المتروك: تُنطق ضمة طويلة بعد هاء الضمير في الوصل (له، به).',g:'mad'},
+ {c:'ۦ',n:'الياء الصغيرة',t:'صلة الضمير',d:'للدلالة على وجوب النطق بالحرف المتروك: تُنطق كسرة طويلة بعد هاء الضمير في الوصل (فيه، عليه).',g:'mad'},
+ {c:'ۡ',n:'السكون',t:'علامة السكون في المصحف',d:'للدلالة على سكون الحرف: رأس حاء صغيرة فوق الحرف.',g:'sk'},
+ {c:'ۢ',n:'الميم الصغيرة',t:'ميم الإقلاب',d:'للدلالة على وجود الإقلاب: ميم صغيرة فوق النون أو التنوين تُنطق ميماً قبل الباء.',g:'sk'},
+ {c:'ۜ',n:'س فوق الحرف',t:'السين بدل الصاد',d:'للدلالة على وجوب النطق بالسين بدل الصاد، وتأتي داخل الكلمة فوق الصاد.',g:'sin',ex:[[2,245],[7,69]]},
+ {c:'ۣ',n:'س تحت الحرف',t:'الصاد أشهر',d:'إذا وُضعت السين بالأسفل فالنطق بالصاد أشهر (مع جواز السين).',g:'sin',ex:[[52,37]]},
+ {c:'۩',n:'علامة السجدة',t:'موضع سجود',d:'للدلالة على موضع السجود، أما كلمة وجوب السجود فقد وُضع فوقها خط.',g:'saj'},
+ {c:'۞',n:'علامة الربع ۞',t:'بداية جزء أو حزب أو نصف أو ربع',d:'للدلالة على بداية الأجزاء والأحزاب وأنصافها وأرباعها (ويقابلها فانوس الهامش).',g:'pos'},
+ {c:'',n:'رقم الآية',t:'نهاية الآية ورقمها',d:'للدلالة على نهاية الآية ورقمها: الرقم دائماً بعد الآية لا قبلها.',g:'pos',img:'mushaf-crops/ayah-number.png'},
 ];
-const GROUPS={waqf:'علامات الوقف',sil:'حروف لا تُنطق',mad:'المدّ والصلة',sk:'السكون وما يشبهه',saj:'السجدة'};
+const GROUPS={waqf:'علامات الوقف',sil:'حروف لا تُنطق',mad:'المدّ والصلة',sk:'السكون وما يشبهه',sin:'السين مكان الصاد',saj:'السجدة',pos:'الأجزاء والآيات'};
 
 
 /* ---- نطاق حفظ الطالب: كل الأمثلة والأسئلة تُؤخذ منه (كما في pickStudentExamples / getStudentAyahPool) ---- */
@@ -148,6 +152,9 @@ function example(ch){
   const any=ALL.filter(a=>body(a).includes(ch));
   if(!any.length) return null;
   const short=any.filter(a=>body(a).length<160);return {a:nearest(short.length?short:any,1)[0],mine:false};}
+function exampleRefs(refs){const as=refs.map(([sn,n])=>ALL.find(a=>a.sn===sn&&a.numberInSurah===n)).filter(Boolean);
+  const mine=as.filter(a=>POOLSET.has(key(a)));if(mine.length)return {a:mine[0],mine:true};return {a:nearest(as,1)[0],mine:false};}
+function anyAyah(){const src=POOL.length?POOL:ALL;return {a:src.filter(a=>body(a).length<110&&a.numberInSurah>1).sort((x,y)=>body(x).length-body(y).length)[0]||src[0],mine:POOL.length>0};}
 const hifzTag=m=>m?'<span class="tag" style="background:#e8f8ee;color:#14633a">📖 من حفظك</span>':'<span class="tag" style="background:#fff6df;color:#8a5a00">📍 من نطاق قريب من حفظك</span>';
 const noData=(stem,why)=>`<p class="stem">${stem}</p><div class="fb show b">${why}<br><small>في التطبيق يُستبدل هذا السؤال بسؤال آخر مناسب لمحفوظ الطالب، ولا يُعرض سؤال من خارجه.</small></div>`;
 function markHTML(t,ch){
@@ -213,7 +220,7 @@ root.innerHTML=`
 <div class="row"><button class="ghost" id="dNext">آية أخرى ↻</button></div></section>
 
 <section class="card"><h2>٧) علامات السجدة</h2><p class="sub">المواضع الخمسة عشر من بيانات المصحف، وما يقع في محفوظ الطالب يُبرَز ويُسأل عنه وحده.</p>
-<div id="sajSum" class="note" style="margin:0 0 8px"></div><div id="saj"></div></section>
+<div class="mgal" id="sajMarks"></div><div id="sajSum" class="note" style="margin:8px 0"></div><div id="saj"></div></section>
 
 <section class="card"><h2>٨) شكل السؤال الجديد (قالب موحّد)</h2><p class="sub">هيكل ثابت: المطلوب ← الوسيط ← الخيارات ← التغذية. الوسيط يتغيّر حسب نوع السؤال، وكل نوع يُسجَّل دون تعديل الملف الأساسي.</p>
 <div class="tabs" id="qtabs"><button data-q="tap" class="on">اضغط في الآية</button><button data-q="choose">اختر الاسم</button><button data-q="match">صِل العلامة باسمها</button><button data-q="mname">🏮 معنى الهامش</button><button data-q="mtap">🏮 اضغط موضع الربع</button><button data-q="mjuz">🏮 أي جزء؟</button><button data-q="mhead">📄 اقرأ رأس الصفحة</button></div>
@@ -293,22 +300,29 @@ hNext.onclick=()=>{qI++;paintHizb()};
 
 /* ---- ٥ بطاقات العلامات ---- */
 function paintSigns(){signs.innerHTML=Object.keys(GROUPS).map(g=>`<h3 style="margin:10px 0 6px;color:var(--primary)">${GROUPS[g]}</h3><div class="grid">${SIGNS.filter(s=>s.g===g).map(s=>{
-  const e=example(s.c);
-  const exHTML=e?`<div class="ex">${markHTML(body(e.a),s.c)} ${num(e.a.numberInSurah)}</div><p>${hifzTag(e.mine)} ${surahName({name:e.a.sname})} — آية ${AR(e.a.numberInSurah)}</p>`:'<p>لا مثال في النص المحلي.</p>';
-  return `<div class="sign"><div class="glyph">${s.c==='۩'?s.c:'ـ'+s.c+'ـ'}</div><b>${s.n} — ${s.t}</b><p>${s.d}</p>${exHTML}</div>`;}).join('')}</div>`).join('');
-  skNote.textContent='السكون في المنصة: النص المحلي يحمل ْ (U+0652) وتحوّله الدالة المركزية toQuranicSukun في quranEngine.js إلى ۡ (رأس الحاء) عند كل عرض، والمعاينة تستدعي الدالة نفسها.';}
+  const e=s.ex?exampleRefs(s.ex):(s.c?example(s.c):anyAyah());
+  const exHTML=e?`<div class="ex">${s.c?markHTML(body(e.a),s.c):body(e.a)} ${num(e.a.numberInSurah)}</div><p>${hifzTag(e.mine)} ${surahName({name:e.a.sname})} — آية ${AR(e.a.numberInSurah)}</p>`:'<p>لا مثال في النص المحلي.</p>';
+  const glyph=s.img?`<img src="${s.img}" alt="" style="height:64px;vertical-align:middle">`:(s.c==='۩'||s.c==='۞'?s.c:'ـ'+s.c+'ـ');
+  return `<div class="sign"><div class="glyph">${glyph}</div><b>${s.n} — ${s.t}</b><p>${s.d}</p>${exHTML}</div>`;}).join('')}</div>`).join('');
+  skNote.textContent='السكون في المنصة: النص المحلي يحمل ْ (U+0652) وتحوّله الدالة المركزية toQuranicSukun في quranEngine.js إلى ۡ (رأس الحاء) عند كل عرض، والمعاينة تستدعي الدالة نفسها. وتعريفات العلامات مأخوذة من «علامات الوقف ومصطلحات الضبط» في مصحفك المطبوع.';}
 
 /* ---- ٦ اكتشف العلامات ---- */
-const LOOK=Object.fromEntries(SIGNS.map(s=>[s.c,s]));
+const SIGN_IDX=(ch,prev)=>ch==='\u06DC'&&prev!==' '?SIGNS.findIndex(x=>x.g==='sin'&&x.c===ch):SIGNS.findIndex(x=>x.c===ch);
+const LOOK={};SIGNS.forEach(s=>{if(s.c&&!LOOK[s.c])LOOK[s.c]=s;});
 function paintDisc(){
   const a=discPool[(dI*5)%discPool.length];
-  const t=[...body(a)].map(ch=>LOOK[ch]&&ch!=='ۡ'?`<span class="mk" data-c="${ch}">${ch}</span>`:ch).join('');
+  const cs=[...body(a)];const t=cs.map((ch,i)=>LOOK[ch]&&ch!=='\u06E1'?`<span class="mk" data-i="${SIGN_IDX(ch,cs[i-1])}">${ch}</span>`:ch).join('');
   disc.innerHTML=`<div>${hifzTag(!discNear)}</div>${t} ${num(a.numberInSurah)}`;discFb.textContent='اضغط على علامة صغيرة داخل الآية.';}
-disc.addEventListener('click',e=>{const m=e.target.closest('.mk');if(!m)return;disc.querySelectorAll('.mk').forEach(x=>x.classList.remove('on'));m.classList.add('on');const s=LOOK[m.dataset.c];discFb.innerHTML=`<b>${s.n} — ${s.t}</b>: ${s.d}`;});
+disc.addEventListener('click',e=>{const m=e.target.closest('.mk');if(!m)return;disc.querySelectorAll('.mk').forEach(x=>x.classList.remove('on'));m.classList.add('on');const s=SIGNS[+m.dataset.i];discFb.innerHTML=`<b>${s.n} — ${s.t}</b>: ${s.d}`;});
 dNext.onclick=()=>{dI++;paintDisc()};
 
 /* ---- ٧ السجدات ---- */
 const sajs=ALL.filter(a=>a.sajda);
+/* هامش «سجدة»: الإطار الحقيقي فارغاً والكلمة تُكتب فوقه */
+const frameHTML=t=>`<div class="lant" role="img" aria-label="${t}"><img src="mushaf-crops/lantern-frame.webp" alt=""><div class="lt" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${t}</div></div>`;
+sajMarks.innerHTML=`<figure>${frameHTML('سجدة')}<figcaption><b>١) هامش الصفحة</b>إطار صغير مكتوب فيه «سجدة»</figcaption></figure>
+<figure><img src="mushaf-crops/sajda-mark.png" alt="" style="height:84px"><figcaption><b>٢) رمز داخل السطر</b>يشبه قبة المسجد قبل موضع السجود</figcaption></figure>
+<figure><img src="mushaf-crops/sajda-overline.png" alt="" style="height:60px;max-width:100%"><figcaption><b>٣) خط فوق الكلمات</b>يدلّ على الكلمات التي يُسجد عندها</figcaption></figure>`;
 function paintSaj(){const n=sajs.filter(a=>POOLSET.has(key(a))).length;const nr=n?null:nearest(sajs,1)[0];
   sajSum.textContent=n?`في محفوظ الطالب ${AR(n)} من ١٥ موضعاً، وتُوجَّه الأسئلة إليها أولاً.`:`لا توجد سجدة في محفوظ هذا الطالب، فيتعلم العلامة من أقرب موضع إلى حفظه: ${surahName({name:nr.sname})} آية ${AR(nr.numberInSurah)}.`;
   saj.innerHTML=sajs.map(a=>{const mine=POOLSET.has(key(a)),near=nr===a;
@@ -317,8 +331,8 @@ function paintSaj(){const n=sajs.filter(a=>POOLSET.has(key(a))).length;const nr=
 /* ---- ٨ قالب السؤال: كل الأنواع من محفوظ الطالب ---- */
 const inScopeSigns=g=>SIGNS.filter(x=>x.g===g&&POOL.some(a=>body(a).includes(x.c)));
 const Q={
- tap(){const a=rnd(discPool);const t=body(a),idx=[...t].findIndex(ch=>WAQF_RE.test(ch));
-  const html=[...t].map((ch,i)=>WAQF_RE.test(ch)?`<span class="mk" data-ok="${i===idx?1:0}">${ch}</span>`:ch).join('');
+ tap(){const a=rnd(discPool);const cs=[...body(a)],isW=(ch,i)=>WAQF_RE.test(ch)&&(ch!=='\u06DC'||cs[i-1]===' '),idx=cs.findIndex(isW);
+  const html=cs.map((ch,i)=>isW(ch,i)?`<span class="mk" data-ok="${i===idx?1:0}">${ch}</span>`:ch).join('');
   return `<p class="stem">اضغط على علامة الوقف في الآية التالية</p><div class="media mq big">${hifzTag(!discNear)} ${html} ${num(a.numberInSurah)}</div><div class="fb" id="qfb"></div>`;},
  choose(){const all=SIGNS.filter(x=>x.g==='waqf'),m0=inScopeSigns('waqf'),r=rnd(m0.length?m0:all);
   const opts=[r,...all.filter(x=>x!==r).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
