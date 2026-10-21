@@ -45,7 +45,7 @@ h1{margin:6px 0 2px;font-size:1.8rem;color:#fff}h1::after{content:"";display:blo
 .page{position:relative;background:#fffef9;border:2px solid #d9c9a3;border-radius:6px;padding:14px 14px 14px 104px;min-height:230px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
 .margin{position:absolute;inset-block:8px;inset-inline-end:6px;width:86px;display:flex;align-items:center;justify-content:center}.lant{position:relative;container-type:inline-size;width:100%}.lant img{width:100%;display:block;height:auto}.lant .lt{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-family:'Amiri Quran',serif;font-weight:700;color:#111;line-height:1.25}.margin .lant{width:78px}
 .sajrow{display:grid;grid-template-columns:2.2em 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:6px;font-size:.9rem}
-.sajrow.mine{background:#e8f8ee;border-color:#8bd0a5}.sajrow.mine::after{content:""}
+.sajrow.mine{background:#e8f8ee;border-color:#8bd0a5}.sajrow.near{background:#fff6df;border-color:#e0b04f}
 .sajrow .n{font-weight:700;color:var(--accent)}.sajrow em{font-style:normal;font-size:.76rem;border-radius:999px;padding:0 8px;background:rgba(30,58,95,.1);color:var(--primary)}
 .sajrow em.ob{background:rgba(192,57,43,.14);color:var(--bad)}
 .sbanner{position:relative;margin:4px 0 10px;text-align:center;padding:12px 8px;border:3px double var(--gold-d);border-radius:14px;background:linear-gradient(180deg,#fff8e6,#fbeec9)}
@@ -88,7 +88,7 @@ document.getElementById('vD').onclick=()=>{frame.classList.remove('mob');vD.clas
 document.getElementById('vM').onclick=()=>{frame.classList.add('mob');vM.classList.add('on');vD.classList.remove('on')};
 
 const S=(await (await fetch('../../database/quran-uthmani.json')).json()).data.surahs;
-const ALL=[];S.forEach(s=>s.ayahs.forEach(a=>ALL.push({...a,sn:s.number,sname:s.name,stype:s.revelationType,scount:s.ayahs.length})));
+const ALL=[];S.forEach(s=>s.ayahs.forEach(a=>ALL.push({...a,i:ALL.length,sn:s.number,sname:s.name,stype:s.revelationType,scount:s.ayahs.length})));
 const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const BSM_WORDS=4;
 const surahName=s=>s.name.replace(/^سُورَةُ\s*/,'');
@@ -133,6 +133,12 @@ const SCOPES={
 let scope='amma',POOL=[],POOLSET=new Set();
 const key=a=>a.sn+':'+a.numberInSurah;
 const WAQF_RE=/[\u06D6-\u06DC]/,SIGN_RE=/[\u06D6-\u06DC\u06DF\u06E5\u06E6]/;
+/* أقرب نطاق: المسافة (بعدد الآيات في ترتيب المصحف) بين الآية وأقرب آية من محفوظ الطالب */
+let POOLIDX=[];
+const dist=a=>{if(!POOLIDX.length)return 0;let lo=0,hi=POOLIDX.length-1;while(lo<hi){const m=(lo+hi)>>1;if(POOLIDX[m]<a.i)lo=m+1;else hi=m;}
+  const d1=Math.abs(POOLIDX[lo]-a.i),d2=lo>0?Math.abs(POOLIDX[lo-1]-a.i):1e9;return Math.min(d1,d2);};
+const nearest=(arr,k=20)=>arr.slice().sort((x,y)=>dist(x)-dist(y)||body(x).length-body(y).length).slice(0,k);
+let quartersNear=false,discNear=false,Qnear=false;
 const rnd=arr=>arr[Math.floor(Math.random()*arr.length)];
 /* أقصر آية فيها العلامة: من محفوظ الطالب أولاً، وإلا مثال توضيحي خارجه (يُوسَم صراحة) */
 function example(ch){
@@ -140,8 +146,8 @@ function example(ch){
   if(mine.length) return {a:mine[0],mine:true};
   const any=ALL.filter(a=>body(a).includes(ch));
   if(!any.length) return null;
-  const amma=any.filter(a=>a.juz===30);return {a:(amma.length?amma:any).sort((x,y)=>body(x).length-body(y).length)[0],mine:false};}
-const hifzTag=m=>m?'<span class="tag" style="background:#e8f8ee;color:#14633a">📖 من حفظك</span>':'<span class="tag" style="background:#fff1ef;color:#8a2218">⚠️ ليست في حفظك — مثال توضيحي فقط</span>';
+  const short=any.filter(a=>body(a).length<160);return {a:nearest(short.length?short:any,1)[0],mine:false};}
+const hifzTag=m=>m?'<span class="tag" style="background:#e8f8ee;color:#14633a">📖 من حفظك</span>':'<span class="tag" style="background:#fff6df;color:#8a5a00">📍 من نطاق قريب من حفظك</span>';
 const noData=(stem,why)=>`<p class="stem">${stem}</p><div class="fb show b">${why}<br><small>في التطبيق يُستبدل هذا السؤال بسؤال آخر مناسب لمحفوظ الطالب، ولا يُعرض سؤال من خارجه.</small></div>`;
 function markHTML(t,ch){
   return t.split(ch).join(`<mark>${ch}</mark>`);}
@@ -155,9 +161,9 @@ root.innerHTML=`
 <h1>مرحلة «تعرّف على مصحفك»</h1>
 <p class="lead">المرحلة الأولى قبل القلقلة: يتعلم الطالب كل ما في المصحف خلاف الآيات نفسها. هذه الصفحة معاينة للشكل المقترح، وكل أمثلتها من المصحف المحلي.</p>
 
-<section class="card"><h2>نطاق الحفظ: مبدأ يحكم كل أسئلة المرحلة</h2><p class="sub">كما في بقية التجويد: كل مثال وكل سؤال يُؤخذ من آيات الطالب المحفوظة فقط. غيّر «نطاق حفظ الطالب» في الشريط العلوي لترى الصفحة كلها تتبدّل.</p>
+<section class="card"><h2>نطاق الحفظ: مبدأ يحكم كل أسئلة المرحلة</h2><p class="sub">كما في بقية التجويد: كل مثال وكل سؤال يُؤخذ من آيات الطالب المحفوظة أولاً. غيّر «نطاق حفظ الطالب» في الشريط العلوي لترى الصفحة كلها تتبدّل.</p>
 <div id="scopeStats" class="row"></div>
-<p class="note">القاعدة: العلامة التي ليست في محفوظ الطالب <b>لا تُسأل عنها</b>، ويُعرض لها في الدرس مثال توضيحي موسوم «⚠️ ليست في حفظك». وإن لم يوجد في محفوظه موضع لنوع سؤال (مثل سجدة أو بداية ربع) يُستبدل السؤال بآخر.</p></section>
+<p class="note">القاعدة: الأولوية دائماً لمحفوظ الطالب. فإن لم توجد العلامة في محفوظه (سجدة، بداية ربع، علامة وقف معينة…) تُعرض له من <b>أقرب نطاق إلى حفظه</b> في ترتيب المصحف، ويُوسَم المثال «📍 من نطاق قريب من حفظك» ليعرف أنه خارج حفظه.</p></section>
 
 <section class="card"><h2>٠) الأشكال كما هي في مصحف المنصة</h2><p class="sub">مقتطعة من صور الصفحات في <code>assets/mushaf/</code> (مصحف المدينة، صفحات quran_android). هذا هو الشكل المرجعي الذي سيراه الطالب في مصحفه.</p>
 <div class="real">
@@ -223,9 +229,15 @@ function derive(){
   const by=new Map();POOL.forEach(a=>{if(!by.has(a.sn))by.set(a.sn,[]);by.get(a.sn).push(a)});
   headPool=[...by.keys()];
   tapPool=headPool.filter(n=>by.get(n).some(a=>a.numberInSurah===1)&&by.get(n).some(a=>a.numberInSurah===2));
-  quarters=POOL.filter(a=>a.text.includes('۞'));
-  discPool=POOL.filter(a=>body(a).length<150&&SIGN_RE.test(body(a))&&WAQF_RE.test(body(a)));
-  QS=ALL.map((a,i)=>({a,i})).filter(({a,i})=>(i===0||a.hizbQuarter!==ALL[i-1].hizbQuarter)&&POOLSET.has(key(a))).map(({a})=>a);
+  POOLIDX=POOL.map(a=>a.i);
+  quarters=POOL.filter(a=>a.text.includes('۞'));quartersNear=!quarters.length;
+  if(quartersNear)quarters=nearest(ALL.filter(a=>a.text.includes('۞')),8);
+  const discOK=a=>body(a).length<150&&SIGN_RE.test(body(a))&&WAQF_RE.test(body(a));
+  discPool=POOL.filter(discOK);discNear=!discPool.length;
+  if(discNear)discPool=nearest(ALL.filter(discOK),20);
+  const QSall=ALL.filter((a,i)=>i===0||a.hizbQuarter!==ALL[i-1].hizbQuarter);
+  QS=QSall.filter(a=>POOLSET.has(key(a)));Qnear=!QS.length;
+  if(Qnear)QS=nearest(QSall,8);
   tapI=hI=qI=dI=0;}
 function paintNum(){
   if(!tapPool.length){cmpNo.innerHTML=cmpYes.innerHTML='';tapNum.innerHTML='<span class="fb show b" style="display:block">لا توجد سورة في محفوظ الطالب بآيتين متتاليتين من أولها.</span>';return;}
@@ -285,50 +297,44 @@ function paintSigns(){signs.innerHTML=Object.keys(GROUPS).map(g=>`<h3 style="mar
 /* ---- ٦ اكتشف العلامات ---- */
 const LOOK=Object.fromEntries(SIGNS.map(s=>[s.c,s]));
 function paintDisc(){
-  if(!discPool.length){disc.innerHTML='<span class="fb show b" style="display:block;font-size:1rem">لا توجد في محفوظ الطالب آية فيها علامات وقف ظاهرة.</span>';return;}
   const a=discPool[(dI*5)%discPool.length];
   const t=[...body(a)].map(ch=>LOOK[ch]&&ch!=='ۡ'?`<span class="mk" data-c="${ch}">${ch}</span>`:ch).join('');
-  disc.innerHTML=`${t} ${num(a.numberInSurah)}`;discFb.textContent='اضغط على علامة صغيرة داخل الآية.';}
+  disc.innerHTML=`<div>${hifzTag(!discNear)}</div>${t} ${num(a.numberInSurah)}`;discFb.textContent='اضغط على علامة صغيرة داخل الآية.';}
 disc.addEventListener('click',e=>{const m=e.target.closest('.mk');if(!m)return;disc.querySelectorAll('.mk').forEach(x=>x.classList.remove('on'));m.classList.add('on');const s=LOOK[m.dataset.c];discFb.innerHTML=`<b>${s.n} — ${s.t}</b>: ${s.d}`;});
 dNext.onclick=()=>{dI++;paintDisc()};
 
 /* ---- ٧ السجدات ---- */
 const sajs=ALL.filter(a=>a.sajda);
-function paintSaj(){const n=sajs.filter(a=>POOLSET.has(key(a))).length;
-  sajSum.textContent=n?`في محفوظ الطالب ${AR(n)} من ١٥ موضعاً، وعنها وحدها تُوجَّه الأسئلة.`:'لا توجد سجدة في محفوظ هذا الطالب: يتعلم العلامة وشكلها فقط، ولا يُسأل عن مواضع السجدات.';
-  saj.innerHTML=sajs.map(a=>{const mine=POOLSET.has(key(a));
-  return `<div class="sajrow ${mine?'mine':''}"><span class="n">${AR(a.sajda.id)}</span><span>${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)} — الجزء ${AR(a.juz)}${mine?' ✅ في محفوظك':''}</span><em class="${a.sajda.obligatory?'ob':''}">${a.sajda.obligatory?'واجبة (عند بعض العلماء)':'مستحبة'}</em></div>`}).join('');}
+function paintSaj(){const n=sajs.filter(a=>POOLSET.has(key(a))).length;const nr=n?null:nearest(sajs,1)[0];
+  sajSum.textContent=n?`في محفوظ الطالب ${AR(n)} من ١٥ موضعاً، وتُوجَّه الأسئلة إليها أولاً.`:`لا توجد سجدة في محفوظ هذا الطالب، فيتعلم العلامة من أقرب موضع إلى حفظه: ${surahName({name:nr.sname})} آية ${AR(nr.numberInSurah)}.`;
+  saj.innerHTML=sajs.map(a=>{const mine=POOLSET.has(key(a)),near=nr===a;
+  return `<div class="sajrow ${mine?'mine':near?'near':''}"><span class="n">${AR(a.sajda.id)}</span><span>${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)} — الجزء ${AR(a.juz)}${mine?' ✅ في محفوظك':near?' 📍 الأقرب إلى حفظك':''}</span><em class="${a.sajda.obligatory?'ob':''}">${a.sajda.obligatory?'واجبة (عند بعض العلماء)':'مستحبة'}</em></div>`}).join('');}
 
 /* ---- ٨ قالب السؤال: كل الأنواع من محفوظ الطالب ---- */
 const inScopeSigns=g=>SIGNS.filter(x=>x.g===g&&POOL.some(a=>body(a).includes(x.c)));
 const Q={
- tap(){if(!discPool.length)return noData('اضغط على علامة الوقف في الآية','لا توجد في محفوظ الطالب آية فيها علامة وقف.');
-  const a=rnd(discPool);const t=body(a),idx=[...t].findIndex(ch=>WAQF_RE.test(ch));
+ tap(){const a=rnd(discPool);const t=body(a),idx=[...t].findIndex(ch=>WAQF_RE.test(ch));
   const html=[...t].map((ch,i)=>WAQF_RE.test(ch)?`<span class="mk" data-ok="${i===idx?1:0}">${ch}</span>`:ch).join('');
-  return `<p class="stem">اضغط على علامة الوقف في الآية التالية</p><div class="media mq big">${hifzTag(true)} ${html} ${num(a.numberInSurah)}</div><div class="fb" id="qfb"></div>`;},
- choose(){const mine=inScopeSigns('waqf');if(!mine.length)return noData('ما اسم هذه العلامة؟','لا توجد علامة وقف في محفوظ الطالب.');
-  const all=SIGNS.filter(x=>x.g==='waqf'),r=rnd(mine);
+  return `<p class="stem">اضغط على علامة الوقف في الآية التالية</p><div class="media mq big">${hifzTag(!discNear)} ${html} ${num(a.numberInSurah)}</div><div class="fb" id="qfb"></div>`;},
+ choose(){const all=SIGNS.filter(x=>x.g==='waqf'),m0=inScopeSigns('waqf'),r=rnd(m0.length?m0:all);
   const opts=[r,...all.filter(x=>x!==r).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
   return `<p class="stem">ما اسم هذه العلامة؟</p><div class="media"><div class="mq big" style="text-align:center;color:var(--accent)">${r.c}</div></div>
   <div class="opts">${opts.map(o=>`<button class="opt" data-ok="${o===r?1:0}" data-d="${r.t}: ${r.d}">${o.n}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;},
- match(){const mine=inScopeSigns('waqf');if(mine.length<2)return noData('صِل كل علامة باسمها','يلزم علامتا وقف على الأقل في محفوظ الطالب.');
-  const s=mine.slice(0,4);const names=s.slice().sort(()=>Math.random()-.5);
+ match(){const all=SIGNS.filter(x=>x.g==='waqf'),mine=inScopeSigns('waqf');
+  const s=[...mine,...all.filter(x=>!mine.includes(x))].slice(0,4);const names=s.slice().sort(()=>Math.random()-.5);
   return `<p class="stem">صِل كل علامة باسمها</p><div class="match" id="mt" data-n="${s.length}">${s.map(x=>`<button class="g" data-k="${x.c}">${x.c}</button>`).join('')}${names.map(x=>`<button data-n="${x.c}">${x.n}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;},
- mname(){if(!QS.length)return noData('ما معنى هذا الهامش؟','لا يبدأ ربع ولا حزب في محفوظ هذا الطالب.');
-  const kinds=[['rub','ربع حزب'],['nisf','نصف حزب'],['thalatha','ثلاثة أرباع حزب'],['hizb','بداية حزب'],['juz','بداية جزء']];
+ mname(){  const kinds=[['rub','ربع حزب'],['nisf','نصف حزب'],['thalatha','ثلاثة أرباع حزب'],['hizb','بداية حزب'],['juz','بداية جزء']];
   const a=rnd(QS),q=a.hizbQuarter,m=quarterMarker(q);const r=kinds.find(k=>k[0]===m.kind);
-  return `<p class="stem">ما معنى هذا الهامش الذي على جانب الصفحة؟</p><div class="media" style="display:grid;place-items:center"><div style="width:84px">${markerHTML(q)}</div>${hifzTag(true)} <small>${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)}</small></div>
+  return `<p class="stem">ما معنى هذا الهامش الذي على جانب الصفحة؟</p><div class="media" style="display:grid;place-items:center"><div style="width:84px">${markerHTML(q)}</div>${hifzTag(!Qnear)} <small>${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)}</small></div>
   <div class="opts">${kinds.map(k=>`<button class="opt" data-ok="${k[0]===r[0]?1:0}" data-d="${m.lines.join(' ')} = ${r[1]}">${k[1]}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;},
- mtap(){const ok=QS.filter(x=>{const i=ALL.indexOf(x),n=ALL[i+1];return n&&n.sn===x.sn&&POOLSET.has(key(n));});
-  if(!ok.length)return noData('اضغط موضع بداية الربع','لا يوجد في محفوظ الطالب ربع يبدأ وبعده آية في المحفوظ.');
-  const short=ok.filter(x=>body(x).length<120);const a=rnd(short.length?short:ok);const i=ALL.indexOf(a),m=quarterMarker(a.hizbQuarter);
-  const near=[ALL[i-1],a,ALL[i+1]].filter(x=>x&&x.sn===a.sn&&POOLSET.has(key(x)));
+ mtap(){const inP=x=>Qnear||POOLSET.has(key(x));const ok0=QS.filter(x=>{const n=ALL[x.i+1];return n&&n.sn===x.sn&&inP(n);});const ok=ok0.length?ok0:QS.filter(x=>ALL[x.i+1]&&ALL[x.i+1].sn===x.sn);
+  const short=ok.filter(x=>body(x).length<120);const a=rnd(short.length?short:ok);const i=a.i,m=quarterMarker(a.hizbQuarter);
+  const near=[ALL[i-1],a,ALL[i+1]].filter(x=>x&&x.sn===a.sn&&(ok0.length?inP(x):true));
   const line=x=>`<div class="mq-line mq" data-ok="${x===a?1:0}" style="font-size:1.35rem;line-height:2.1">${body(x).replace(/^۞\s*/,'')} ${num(x.numberInSurah)}</div>`;
-  return `<p class="stem">يقول الهامش: «${m.lines.join(' ')}». اضغط على الآية التي يبدأ عندها هذا الموضع ${hifzTag(true)}</p><div class="media" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center"><div>${markerHTML(a.hizbQuarter)}</div><div>${near.map(line).join('')}</div></div><div class="fb" id="qfb"></div>`;},
- mjuz(){if(!QS.length)return noData('اقرأ الهامش','لا يبدأ ربع ولا حزب في محفوظ هذا الطالب.');
-  const a=rnd(QS),q=a.hizbQuarter,m=quarterMarker(q),isJuz=m.kind==='juz',ans=isJuz?m.juz:m.hz,max=isJuz?30:60;
+  return `<p class="stem">يقول الهامش: «${m.lines.join(' ')}». اضغط على الآية التي يبدأ عندها هذا الموضع ${hifzTag(!Qnear)}</p><div class="media" style="display:grid;grid-template-columns:70px 1fr;gap:10px;align-items:center"><div>${markerHTML(a.hizbQuarter)}</div><div>${near.map(line).join('')}</div></div><div class="fb" id="qfb"></div>`;},
+ mjuz(){const a=rnd(QS),q=a.hizbQuarter,m=quarterMarker(q),isJuz=m.kind==='juz',ans=isJuz?m.juz:m.hz,max=isJuz?30:60;
   const ch=new Set([ans]);while(ch.size<4){const d=ans+Math.floor(Math.random()*7)-3;if(d>=1&&d<=max)ch.add(d);}
-  return `<p class="stem">${isJuz?'في أي جزء بدأنا؟':'في أي حزب نحن؟'} اقرأ الهامش ${hifzTag(true)}</p><div class="media" style="display:grid;place-items:center"><div style="width:84px">${markerHTML(q)}</div></div>
+  return `<p class="stem">${isJuz?'في أي جزء بدأنا؟':'في أي حزب نحن؟'} اقرأ الهامش ${hifzTag(!Qnear)}</p><div class="media" style="display:grid;place-items:center"><div style="width:84px">${markerHTML(q)}</div></div>
   <div class="opts">${[...ch].sort(()=>Math.random()-.5).map(n=>`<button class="opt" data-ok="${n===ans?1:0}" data-d="الهامش يقول: ${m.lines.join(' — ')}">${isJuz?'الجزء':'الحزب'} ${AR(n)}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;}
 };
 function showQ(k){curQ=k;qbox.innerHTML=Q[k]();
