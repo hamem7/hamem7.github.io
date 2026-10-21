@@ -15,6 +15,7 @@ import {
     EXAM_PASS_SCORE, EXAM_SIZE, GAMES_PASS_SCORE
 } from '../engine/tajweedJourney.js';
 import { gamesForRule } from '../engine/tajweedPath.js';
+import { getRuleDetailKeys } from '../engine/tajweedRuleDetails.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
 import { renderMushafLessonHTML } from './tajweed-mushaf-ui.js';   // درس «تعرّف على مصحفك»
 import { renderRuleIllustrationHTML } from './tajweed-illustrations.js';
@@ -573,6 +574,9 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
         ? `<div class="tjw-howto"><h3 class="tjw-section-title">${t('tjw_howto_title')}</h3><p>${t(rule.makhrajNote)}</p></div>` : '';
     const cautionHTML = rule.commonMistakes
         ? `<div class="tjw-caution"><h3 class="tjw-section-title">${t('tjw_caution_title')}</h3><p>${t(rule.commonMistakes)}</p></div>` : '';
+    const detailKeys = getRuleDetailKeys(rule.id);
+    const detailHTML = detailKeys.length
+        ? `<section class="tjw-detail"><h3 class="tjw-section-title">${t('tjw_detail_title')}</h3><ul>${detailKeys.map(k => `<li>${t(k)}</li>`).join('')}</ul></section>` : '';
     const howtoGridHTML = (howtoHTML || cautionHTML) ? `<div class="tjw-howto-grid">${howtoHTML}${cautionHTML}</div>` : '';
 
     // 🌟 [جديد] بطاقات الحروف القابلة للقلب (كلمات قرآنية من المنصة) + شجرة الحكم على غرار كتاب «فتوحات الرحمن»
@@ -633,6 +637,8 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                 ${treeHTML}
 
                 ${howtoGridHTML}
+
+                ${detailHTML}
 
                 <section class="tjw-mastery-box">
                     ${stepperHTML}

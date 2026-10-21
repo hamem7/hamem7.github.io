@@ -39,6 +39,8 @@
         injectStyle();
         var item = queue.shift();
         var msg = item.msg;
+        var en = false;
+        try { en = localStorage.getItem('app_lang') === 'en'; } catch (e) { /* تجاهل */ }
         var prevFocus = document.activeElement;
 
         var overlay = document.createElement('div');
@@ -49,14 +51,14 @@
         box.setAttribute('aria-modal', 'true');
         var title = document.createElement('div');
         title.className = 'ham-dialog-title';
-        title.textContent = 'منصة حمٓ';
+        title.textContent = en ? 'Ham Platform' : 'منصة حمٓ';
         var body = document.createElement('p');
         body.className = 'ham-dialog-msg';
         body.textContent = msg;
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ham-dialog-btn';
-        btn.textContent = item.confirm ? 'موافق' : 'حسنًا';
+        btn.textContent = item.confirm ? (en ? 'OK' : 'موافق') : (en ? 'Got it' : 'حسنًا');
         var row = document.createElement('div');
         row.style.cssText = 'display:flex;gap:10px;justify-content:center;flex-wrap:wrap';
         var cancel = null;
@@ -64,7 +66,7 @@
             cancel = document.createElement('button');
             cancel.type = 'button';
             cancel.className = 'ham-dialog-btn ham-dialog-btn-cancel';
-            cancel.textContent = 'إلغاء';
+            cancel.textContent = en ? 'Cancel' : 'إلغاء';
         }
         box.appendChild(title);
         box.appendChild(body);

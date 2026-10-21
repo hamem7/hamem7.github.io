@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { TAJWEED_STAGES, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { generateDiscoverQuestion, generateApplyQuestion, generateChooseRuleQuestion, TAJWEED_BADGE_CATALOG, badgeKeyForStageMaster } from '../engine/tajweedEngine.js';
+import { TAJWEED_RULE_DETAILS } from '../engine/tajweedRuleDetails.js';
 import { cleanAyahText } from '../engine/quranEngine.js';
 import { findPhraseRanges, buildStrippedCharMap } from '../core/quranTextUtils.js';
 
@@ -104,3 +105,11 @@ test('أمثلة لام «ال»: الحرف بعد «ال» ضمن حروف ا�
 
 console.log(`\n${pass} نجح، ${fail} فشل`);
 if (fail) process.exit(1);
+
+test('تفاصيل الأحكام الإضافية: كل حكم مذكور موجود وكل مفتاح له ترجمة عربية وإنجليزية', () => {
+    const ids = new Set(getAllRulesFlat().map(f => f.rule.id));
+    for (const [rid, keys] of Object.entries(TAJWEED_RULE_DETAILS)) {
+        assert.ok(ids.has(rid), 'حكم غير موجود ' + rid);
+        keys.forEach(k => assert.ok((i18nSrc.split(k + ':').length - 1) >= 2, 'ترجمة ناقصة ' + k));
+    }
+});

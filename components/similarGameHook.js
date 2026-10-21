@@ -6,7 +6,7 @@
 // أي فشل (لا مدير متشابهات، نطاق بلا مجموعات...) يترك الطابور كما هو تماماً فتستمر اللعبة بلا هذه الأسئلة.
 import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { similarCountFor, buildSimilarQuestions, injectIntoQueue, cleanOccurrenceText } from '../engine/similarityInject.js';
-import { ensureSimilarityQuran, questionTextToHTML } from '../engine/similarityQuestions.js';
+import { ensureSimilarityQuran, questionTextToHTML, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { toQuranicSukun } from '../engine/quranEngine.js';
 
 // 🌟 كل نص قرآني معروض هنا يمر على السكون القرآني (U+06E1) كباقي المنصة (راجع cleanAyahText في quranEngine.js)،
@@ -38,15 +38,14 @@ function ayahObjFor(sim, pool) {
 const surahLabel = (name) => surahNameLocal ? surahNameLocal(name) : name;
 
 // ---------------- الصغار ----------------
-// أزرار الاختيار: أسماء السور تُعرض «سورة X» (optionsKind: 'sim_surah')، وبقية الأنواع آيات داخل ﴿ ﴾ (الافتراضي)
+// أزرار الاختيار: «في أي سورتين؟» تُعرض أسماء السورتين (optionsKind: 'sim_pair')، وبقية الأنواع آيات داخل ﴿ ﴾ (الافتراضي)
 export function formatKidsSimilar(sim, pool) {
-    if (!sim || sim.kind !== 'sim_surah') return null;
-    const isSurah = sim.kind === 'sim_surah';
+    if (!sim || sim.kind !== 'sim_pair') return null;
     return {
         type: 'kids_mcq',
-        questionTitle: isSurah ? 'في أي سورة من المتشابهات؟ 🌟' : 'ماذا بعدها؟ من المتشابهات 🔀',
-        questionBody: `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; color:#0284c7;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>`,
-        correctAns: sim.correctAnswer, options: sim.options, simDisplay: sim.optionsDisplay, optionsKind: isSurah ? 'sim_surah' : 'sim_text',
+        questionTitle: 'في أي سورتين من المتشابهات؟ 🌟',
+        questionBody: `<div style="font-size:1.8rem; font-weight:bold; line-height:1.9; color:#0284c7;">${questionTextToHTML(localizedQuestionText(sim), toQuranicSukun)}</div>`,
+        correctAns: sim.correctAnswer, options: sim.options, simDisplay: sim.optionsDisplay, optionsKind: 'sim_pair',
         ayahObj: ayahObjFor(sim, pool), reportText: qtext(sim.occurrence.fullText), simKind: sim.kind, simGroupId: sim.groupId
     };
 }
@@ -57,17 +56,18 @@ export function kidsSimilarOptionLabel(opt, kind, cd) {
         const shown = cd && cd.simDisplay ? cd.simDisplay[cd.options.indexOf(opt)] : null;
         return `﴿\u00A0${toQuranicSukun(shown || opt)}\u00A0﴾`;
     }
+    if (kind === 'sim_pair') return pairOptionLabel(opt);
     return tf('sim_inj_surah_label', { name: surahLabel(opt) });
 }
 
 // ---------------- الكبار ----------------
 // سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
-const ADULT_TITLES = { sim_surah: 'من أي سورة؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
+const ADULT_TITLES = { sim_pair: 'في أي سورتين؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
 
 export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;
-    const isSurah = sim.kind === 'sim_surah';
-    const label = (v, i) => isSurah ? tf('sim_inj_surah_label', { name: surahLabel(v) }) : '﴿ ' + toQuranicSukun((sim.optionsDisplay && i != null && sim.optionsDisplay[i]) || v) + ' ﴾';
+    const isSurah = sim.kind === 'sim_pair'; // خيارات نصية قصيرة (أسماء سور) لا آيات
+    const label = (v, i) => isSurah ? pairOptionLabel(v) : '﴿ ' + toQuranicSukun((sim.optionsDisplay && i != null && sim.optionsDisplay[i]) || v) + ' ﴾';
     const cls = isSurah ? 'btn btn-outline sim-opt-btn' : 'btn btn-outline sim-opt-btn quran-text';
     const size = isSurah ? '2rem' : '1.7rem';
     // نفس خط ووزن آيات بقية المنصة (Amiri Quran بوزن عادي) — كان وزن زر .btn الغامق يطغى على الخيارات
@@ -77,7 +77,7 @@ export function formatAdultSimilar(sim, pool) {
     const lines = sim.options.map((opt, i) =>
         `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size};${font} margin:12px 0; padding:12px 16px; text-align:center;">${label(opt, i)}</button>`
     ).join('');
-    const body = `<div class="sim-q-text sim-q-adult" style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(sim.text, toQuranicSukun)}</div>` +
+    const body = `<div class="sim-q-text sim-q-adult" style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(localizedQuestionText(sim), toQuranicSukun)}</div>` +
         `<div class="sim-opts" style="max-width:760px; margin:0 auto;">${lines}</div>`;
     const correctIndex = sim.options.findIndex(o => String(o) === String(sim.correctAnswer));
     return {

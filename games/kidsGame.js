@@ -644,7 +644,7 @@ async function playNextMission() {
                     GameState.currentData.options.forEach(opt => {
                         let btn = document.createElement('button');
                         btn.className = 'kids-mcq-btn quran-text';
-                        if (['sim_ayah', 'sim_surah', 'sim_text'].includes(GameState.currentData.optionsKind)) btn.innerHTML = kidsSimilarOptionLabel(opt, GameState.currentData.optionsKind, GameState.currentData);
+                        if (['sim_ayah', 'sim_pair', 'sim_text'].includes(GameState.currentData.optionsKind)) btn.innerHTML = kidsSimilarOptionLabel(opt, GameState.currentData.optionsKind, GameState.currentData);
                         else btn.innerHTML = (GameState.currentData.optionsKind === 'surah' && AppState.currentLang === 'en') ? surahNameLocal(opt) : `﴿\u00A0${opt}\u00A0﴾`;
                         let isAyahCorrect = opt.trim() === GameState.currentData.correctAns.trim();
                         // 🌟 [جديد] لعبة "استمع وخمّن الآية" فقط — تُميَّز بوجود surahOptions في

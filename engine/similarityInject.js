@@ -42,7 +42,7 @@ export function eligibleGroups(allGroups, pool) {
         g.occurrences.some(o => index.has(keyOf(o.surahNumber, occurrenceFirstAyah(o)))));
 }
 
-const KIDS_TYPES = new Set(['sim_surah']);
+const KIDS_TYPES = new Set(['sim_pair']);
 
 // يبني حتى `count` سؤالاً، كل واحد من مجموعة مختلفة، والموضع المسؤول عنه داخل النطاق.
 // يرجع كائنات JSON: { kind:'sim_*', groupId, anchorPhrase, scope, text, options, optionsDisplay (للعرض، مقصوصة)، correctAnswer, correctIndex, ref, occurrence:{...} }
@@ -53,13 +53,16 @@ export function buildSimilarQuestions({ allGroups, pool, count, kids }) {
     const out = [];
     for (const g of shuffle(eligibleGroups(allGroups, pool))) {
         if (out.length >= count) break;
-        const cands = shuffle(generateQuestionsForGroup(g).filter(q => inPool(q.occurrence) && (!kids || KIDS_TYPES.has(q.type))));
+        // «في أي سورتين؟»: يكفي أن يقع أحد الموضعين في نطاق الطالب (والموضع المرجعي للتقرير هو ذلك الموضع)
+        const inRange = (q) => q.pair ? q.pair.occurrences.some(inPool) : inPool(q.occurrence);
+        const cands = shuffle(generateQuestionsForGroup(g).filter(q => inRange(q) && (!kids || KIDS_TYPES.has(q.type))));
         if (!cands.length) continue;
         const q = cands[0];
+        if (q.pair) q.occurrence = q.pair.occurrences.find(inPool);
         out.push({
             kind: q.type, groupId: q.groupId, anchorPhrase: q.anchorPhrase, scope: q.scope,
             text: q.text, options: q.options.map(String), optionsDisplay: (q.optionsDisplay || q.options).map(String), correctAnswer: String(q.correctAnswer), correctIndex: q.correctIndex, ref: q.ref,
-            occurrence: { ...q.occurrence }
+            occurrence: { ...q.occurrence }, ...(q.pair ? { pair: q.pair } : {})
         });
     }
     return out;

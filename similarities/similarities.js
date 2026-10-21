@@ -59,7 +59,7 @@
 //   نفس السورة من جديد في القائمة، وليس عبر أزرار الأجزاء. لو المعلم احتاج زر تصفح دائم لهذه
 //   السور لاحقاً، هذا يحتاج قرار/تصميم إضافي منفصل (مثلاً بطاقة سادسة "سور أخرى" في الشاشة
 //   الرئيسية). 🌟
-import { AppState, loadSplashScreen, openSimilarityGame, t } from '../core/app.js';
+import { AppState, loadSplashScreen, openSimilarityGame, t, isEnglish, surahNameLocal } from '../core/app.js';
 // 🌟 [عدّل] دوال المطابقة النصية العربية النقية (تظليل/تقسيم نطاقات الآيات) انتقلت لملف
 // core/quranTextUtils.js المشترك عند بناء الألعاب التفاعلية، لتصبح قابلة لإعادة الاستخدام
 // من engine/similarityEngine.js وsimilarities-play.js بلا ازدواجية — بلا أي تغيير في السلوك
@@ -125,7 +125,7 @@ export function bucketTitle(b) {
     if (b.titleKey) return t(b.titleKey);
     const nameOf = n => {
         const s = (AppState.surahsData || []).find(x => x.number === n);
-        return s ? s.name : String(n);
+        return s ? (isEnglish() ? surahNameLocal(n) : s.name) : String(n);
     };
     return b.from === b.to ? nameOf(b.from) : `${nameOf(b.from)} – ${nameOf(b.to)}`;
 }
@@ -644,7 +644,7 @@ function renderSurahPickerForAddHTML(surahList) {
     }
     const cards = surahList.map(s => `
         <button class="sim-card sim-surah-card" data-action="add-group-pick-surah" data-surah="${s.number}">
-            <span class="sim-surah-name">${s.number}. ${s.name}</span>
+            <span class="sim-surah-name">${s.number}. ${isEnglish() ? surahNameLocal(s.number) : s.name}</span>
         </button>`).join('');
     return `
         <div class="sim-add-search-wrap">
@@ -666,7 +666,7 @@ function renderSurahListHTML(surahList, scope) {
         const count = allSimilarities.filter(r => r.scope === scope && (r.surahs || []).includes(s.number)).length;
         return `<button class="sim-card sim-surah-card" data-action="open-surah" data-surah="${s.number}" data-scope="${scope}">
             <span class="sim-surah-num">${s.number}</span>
-            <span class="sim-surah-name">${s.name}</span>
+            <span class="sim-surah-name">${isEnglish() ? surahNameLocal(s.number) : s.name}</span>
             <span class="sim-surah-count">${count} ${t('sim_groups_count_suffix')}</span>
         </button>`;
     }).join('');
