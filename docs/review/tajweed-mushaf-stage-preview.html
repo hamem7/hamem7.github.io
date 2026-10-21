@@ -67,6 +67,13 @@ h1{margin:6px 0 2px;font-size:1.8rem;color:#fff}h1::after{content:"";display:blo
 .match .g{font-family:'Amiri Quran',serif;font-size:1.9rem;color:var(--accent)}
 .arch{direction:ltr;text-align:left;background:#0b1626;color:#cfe3ff;border-radius:12px;padding:12px;font-size:.8rem;overflow:auto;line-height:1.6;white-space:pre}
 .loading{padding:30px;text-align:center;color:#c9d3e3}
+
+.real{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.real figure{margin:0;background:#fff;border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.real img{max-width:100%;height:auto;image-rendering:auto}.real .sm{height:84px;width:auto}
+.real figcaption{font-size:.84rem;color:var(--muted);margin-top:6px}.real figcaption b{color:var(--primary);display:block}
+.pgv{display:grid;gap:12px;grid-template-columns:minmax(0,300px) 1fr;align-items:start}.frame.mob .pgv{grid-template-columns:1fr}
+.pgv img{width:100%;border:2px solid #d9c9a3;border-radius:6px;background:#fff}
 </style></head><body>
 <div class="pv"><b>معاينة — ليست جزءاً من التطبيق</b>
 <span>العرض:</span><button id="vD" class="on">حاسوب</button><button id="vM">جوال</button>
@@ -130,6 +137,20 @@ const EXTRAS=[['ٱ','ألف الوصل'],['ۢ','ميم الإقلاب'],['ً','�
 root.innerHTML=`
 <h1>مرحلة «تعرّف على مصحفك»</h1>
 <p class="lead">المرحلة الأولى قبل القلقلة: يتعلم الطالب كل ما في المصحف خلاف الآيات نفسها. هذه الصفحة معاينة للشكل المقترح، وكل أمثلتها من المصحف المحلي.</p>
+
+<section class="card"><h2>٠) الأشكال كما هي في مصحف المنصة</h2><p class="sub">مقتطعة من صور الصفحات في <code>assets/mushaf/</code> (مصحف المدينة، صفحات quran_android). هذا هو الشكل المرجعي الذي سيراه الطالب في مصحفه.</p>
+<div class="real">
+<figure style="grid-column:1/-1"><img src="mushaf-crops/banner-tin.png" alt="لوحة اسم سورة التين"><figcaption><b>لوحة اسم السورة</b>إطار مزخرف يتوسطه اسم السورة، وتأتي بعدها البسملة ثم الآيات</figcaption></figure>
+<figure><img class="sm" src="mushaf-crops/ayah-number.png" alt="رقم آية"><figcaption><b>رقم الآية</b>وردة مستديرة بداخلها الرقم، في <u>نهاية</u> الآية</figcaption></figure>
+<figure><img class="sm" src="mushaf-crops/hizb-mark.png" alt="علامة الربع"><figcaption><b>علامة الربع ۞</b>وردة ثمانية رؤوس في بداية الربع داخل السطر</figcaption></figure>
+<figure><img class="sm" src="mushaf-crops/sajda-mark.png" alt="علامة السجدة"><figcaption><b>علامة السجدة ۩</b>رمز يشبه قبة المسجد قبل موضع السجود</figcaption></figure>
+<figure><img class="sm" src="mushaf-crops/sajda-overline.png" alt="خط فوق كلمات السجدة"><figcaption><b>خط فوق الكلمات</b>يُرسم فوق الكلمات التي يُسجد عندها (وَٱسْجُدْ وَٱقْتَرِب)</figcaption></figure>
+</div>
+<p class="note">لاحظت أن صور الصفحات هذه لا تحوي هامش الجزء والحزب المكتوب، فهو يُرسم في التطبيق من بيانات الآيات كما في قسم ٤.</p>
+<h3 style="margin:14px 0 6px;color:var(--primary)">اطلع على الصفحة الحقيقية</h3>
+<div class="row"><label>الصفحة: <input id="pgNo" type="number" min="1" max="604" value="597" style="width:5em"></label>
+<button class="ghost" data-pg="2">البقرة ٢</button><button class="ghost" data-pg="5">ربع ۞ ٥</button><button class="ghost" data-pg="597">سجدة ٥٩٧</button><button class="ghost" data-pg="176">سجدة الأعراف ١٧٦</button></div>
+<div class="pgv"><img id="pgImg" src="../../assets/mushaf/page597.webp" alt="صفحة من المصحف"><p class="note" style="margin:0">في درس «اعثر على العلامة في الصفحة» سيرى الطالب صفحة حقيقية مثل هذه ويضغط على مكان العلامة المطلوبة.</p></div></section>
 
 <section class="card"><h2>١) خريطة المرحلة</h2><p class="sub">ثمانية دروس، لكل درس الخطوات الأربع نفسها: شرح ← تطبيق ← اختبار ← اعتماد المعلم</p>
 <div class="path">${LESSONS.map((l,i)=>`<div class="les"><span class="ic">${l[0]}</span><b>${i+1}. ${l[1]}</b><small>${l[2]}</small></div>`).join('')}</div>
@@ -268,5 +289,9 @@ qbox.addEventListener('click',e=>{const k=qbox.dataset.k;
 qtabs.onclick=e=>{const b=e.target.closest('button');if(b)showQ(b.dataset.q)};
 showQ('tap');
 
+
+const pgNo=document.getElementById('pgNo'),pgImg=document.getElementById('pgImg');
+const setPg=n=>{n=Math.max(1,Math.min(604,+n||1));pgNo.value=n;pgImg.src='../../assets/mushaf/page'+String(n).padStart(3,'0')+'.webp'};
+pgNo.onchange=()=>setPg(pgNo.value);root.addEventListener('click',e=>{const b=e.target.closest('[data-pg]');if(b)setPg(b.dataset.pg)});
 document.getElementById('load').hidden=true;root.hidden=false;
 </script></body></html>
