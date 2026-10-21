@@ -22,22 +22,28 @@ def norm(s):
     return s.replace('ا', '')  # الألف الخنجرية والإملاء العثماني يختلفان عن إملاء الكتاب
 
 
+def norm2(s):
+    """مطابقة أوسع للكلمات التي يختلف رسمها (ياء/ألف مقصورة، تاء/هاء، واو...): نحذف حروف العلة أيضاً."""
+    return re.sub('[يوةه]', '', norm(s))
+
+
 def tokens(text):
     return [t for t in text.replace('﻿', '').split() if t]
 
 
 def vocalized(ayah_text, word):
     """يرجع الكلمة بتشكيلها من الآية (أقصر مدى من الكلمات يحتوي الكلمة المطلوبة) أو None."""
-    nw = norm(word)
-    if len(nw) < 2:
-        return None
     toks = tokens(ayah_text)
-    nt = [norm(t) for t in toks]
     want = max(1, len(word.split()))
-    for width in range(1, want + 3):
-        for i in range(0, len(toks) - width + 1):
-            if nw in ''.join(nt[i:i + width]):
-                return ' '.join(toks[i:i + width])
+    for fn, minlen in ((norm, 2), (norm2, 3)):
+        nw = fn(word)
+        if len(nw) < minlen:
+            continue
+        nt = [fn(t) for t in toks]
+        for width in range(1, want + 3):
+            for i in range(0, len(toks) - width + 1):
+                if nw in ''.join(nt[i:i + width]):
+                    return ' '.join(toks[i:i + width])
     return None
 
 
