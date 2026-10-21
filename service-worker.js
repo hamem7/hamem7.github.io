@@ -1,5 +1,5 @@
 const MUSHAF_CACHE = 'dar-ham-mushaf-v1'; // صور صفحات المصحف (تُخزَّن عند أول عرض فقط، لا تحميل مسبق للـ604)
-const CACHE_NAME = 'dar-ham-quran-v37'; // 🌟 رُفع من v3 إلى v4 مع دمج نظام الواجبات الجديد (2026-09-25) — أي تعديل جوهري لاحق في الملفات المخزّنة يستوجب رفعه مرة أخرى
+const CACHE_NAME = 'dar-ham-quran-v38'; // 🌟 رُفع من v3 إلى v4 مع دمج نظام الواجبات الجديد (2026-09-25) — أي تعديل جوهري لاحق في الملفات المخزّنة يستوجب رفعه مرة أخرى
 
 // عند تثبيت التطبيق لأول مرة
 self.addEventListener('install', (event) => {
@@ -45,8 +45,10 @@ self.addEventListener('fetch', (event) => {
         })());
         return;
     }
+    // 🩹 [2026-10-21] 'no-cache': تحقّق من الخادم دائماً (304 سريع إن لم يتغير الملف) بدل الاكتفاء بكاش المتصفح المؤقت. عدة عمليات نشر متتالية
+    // كانت تترك على الجهاز وحدات قديمة بجانب جديدة، فيفشل استيراد شاشات مثل «أبطال التجويد» («جاري تجهيز الشاشة 🛠️») حتى تحديث الصفحة بالقوة.
     event.respondWith(
-        fetch(req).catch(async () => {
+        fetch(req, { cache: 'no-cache' }).catch(async () => {
             const cached = await caches.match(req);
             return cached || Response.error();     // 🌟 لا نُرجع undefined أبداً
         })
