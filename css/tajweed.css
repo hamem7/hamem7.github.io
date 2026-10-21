@@ -526,6 +526,9 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-howto .tjw-section-title { color: #167a42; }
 .tjw-caution .tjw-section-title { color: var(--tjw-bad); }
 .tjw-howto p, .tjw-caution p { margin: 0; }
+.tjw-detail { border-radius: 18px; padding: 16px 18px; line-height: 1.9; font-size: 0.98rem; background: rgba(41, 98, 168, 0.07); border: 1.5px solid rgba(41, 98, 168, 0.3); }
+.tjw-detail ul { margin: 0; padding-inline-start: 1.2em; }
+.tjw-detail li { margin-bottom: 6px; }
 
 /* لوحة الإتقان */
 .tjw-mastery-box { background: #fff; border: 1.5px solid var(--tjw-line); border-radius: 20px; padding: 16px 18px; }
