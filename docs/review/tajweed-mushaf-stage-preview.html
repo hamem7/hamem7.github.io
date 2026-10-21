@@ -75,6 +75,7 @@ h1{margin:6px 0 2px;font-size:1.8rem;color:#fff}h1::after{content:"";display:blo
 .pgv img{width:100%;border:2px solid #d9c9a3;border-radius:6px;background:#fff}
 .mgal{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:10px}.mgal figure{margin:0;text-align:center;background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px}.mgal .lant{width:84px;margin:0 auto}.mgal figcaption{font-size:.8rem;color:var(--muted)}.mgal b{color:var(--primary);display:block}
 .mcards{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.mq-line{cursor:pointer;border-radius:10px;padding:2px 6px}.mq-line:hover{background:#e7f2ff}.mq-line.ok{background:#c8f0d6}.mq-line.bad{background:#fbd0cb}
+.phead{display:flex;justify-content:space-between;gap:10px;font-family:'Amiri Quran',serif;font-size:1.05rem;color:#555;border-bottom:1px solid #e3d5b0;margin:-4px 0 8px;padding-bottom:2px}.pheadbox{background:#fffef9;border:2px solid #d9c9a3;border-radius:6px;padding:6px 12px}
 </style></head><body>
 <div class="pv"><b>معاينة — ليست جزءاً من التطبيق</b>
 <span>العرض:</span><button id="vD" class="on">حاسوب</button><button id="vM">جوال</button>
@@ -199,9 +200,9 @@ root.innerHTML=`
 <section class="card"><h2>٤) درس «الجزء والحزب والربع» — الهامش</h2><p class="sub">على هامش كل مصحف مطبوع يظهر «فانوس» مزخرف حيث يبدأ ربع أو حزب أو جزء، وفي سطر الآية نفسه يظهر الرمز ۞. شكل الفانوس وكلماته تتغير حسب المستوى.</p>
 <div class="mgal" id="mgal"></div>
 <h3 style="margin:14px 0 6px;color:var(--primary)">كما يظهر في الصفحة</h3>
-<div class="page"><div class="margin" id="mgn"></div><p id="hizbTag" style="margin:0 0 6px"></p><div id="hizbAyah" class="mq"></div></div>
+<div class="page"><div class="margin" id="mgn"></div><div class="phead" id="phead"></div><p id="hizbTag" style="margin:0 0 6px"></p><div id="hizbAyah" class="mq"></div></div>
 <div class="row"><button class="ghost" id="hNext">مثال آخر ↻</button></div>
-<p class="note">الفانوس صورة حقيقية مقتطعة من مصحف مطبوع (إطار فارغ)، والكلمات تُكتب فوقه من بيانات الآية (<code>hizbQuarter</code>، 240 ربعاً). فلا حاجة لصورة لكل موضع.<br>⚠️ افتراضي: ربع/نصف/ثلاثة أرباع بقبّة علوية فقط، وبداية الحزب والجزء بقبّتين (كما في صورك). تحقق من نصف الحزب وثلاثة الأرباع في مصحفك.</p></section>
+<p class="note">الفانوس صورة حقيقية مقتطعة من مصحف مطبوع (إطار فارغ)، والكلمات تُكتب فوقه من بيانات الآية (<code>hizbQuarter</code>، 240 ربعاً). فلا حاجة لصورة لكل موضع.<br>✅ تأكدت من صور مصحفك: الربع والنصف وثلاثة الأرباع بقبّة علوية فقط («ربع / الحزب / ٥٢» وهكذا)، وبداية الحزب والجزء بقبّتين («الحزب ٥٢»، «الجزء ٢٧ / الحزب ٥٣»).<br>🔎 ولاحظت في صورك أن <b>رأس الصفحة</b> يحمل اسم الجزء بالحروف (الجزء السادس والعشرون) على اليمين واسم السورة على اليسار. أضفته أعلى الصفحة هنا، وفي سؤال «اقرأ رأس الصفحة».</p></section>
 
 <section class="card"><h2>٥) درس العلامات (وقف، سكون، مد، صلة…)</h2><p class="sub">بطاقة لكل علامة: الرمز كبيراً، واسمها، وعملها، ومثال حقيقي من المصحف (من محفوظ الطالب).</p>
 <div id="signs"></div>
@@ -215,7 +216,7 @@ root.innerHTML=`
 <div id="sajSum" class="note" style="margin:0 0 8px"></div><div id="saj"></div></section>
 
 <section class="card"><h2>٨) شكل السؤال الجديد (قالب موحّد)</h2><p class="sub">هيكل ثابت: المطلوب ← الوسيط ← الخيارات ← التغذية. الوسيط يتغيّر حسب نوع السؤال، وكل نوع يُسجَّل دون تعديل الملف الأساسي.</p>
-<div class="tabs" id="qtabs"><button data-q="tap" class="on">اضغط في الآية</button><button data-q="choose">اختر الاسم</button><button data-q="match">صِل العلامة باسمها</button><button data-q="mname">🏮 معنى الهامش</button><button data-q="mtap">🏮 اضغط موضع الربع</button><button data-q="mjuz">🏮 أي جزء؟</button></div>
+<div class="tabs" id="qtabs"><button data-q="tap" class="on">اضغط في الآية</button><button data-q="choose">اختر الاسم</button><button data-q="match">صِل العلامة باسمها</button><button data-q="mname">🏮 معنى الهامش</button><button data-q="mtap">🏮 اضغط موضع الربع</button><button data-q="mjuz">🏮 أي جزء؟</button><button data-q="mhead">📄 اقرأ رأس الصفحة</button></div>
 <div class="qcard" id="qbox"></div>
 <div class="arch">registerQuestionType('tap_in_ayah', { render(q), bind(root, q, answer), check(q, a) })
 registerQuestionType('choose_sign',  { … })
@@ -273,6 +274,8 @@ function quarterMarker(q){const hz=Math.floor((q-1)/4)+1,r=(q-1)%4,juz=Math.floo
   if(r===1) return {kind:'rub',full:false,lines:['ربع','الحزب',AR(hz)],name:'ربع حزب',juz,hz};
   if(r===2) return {kind:'nisf',full:false,lines:['نصف','الحزب',AR(hz)],name:'نصف حزب',juz,hz};
   return {kind:'thalatha',full:false,lines:['ثلاثة أرباع','الحزب',AR(hz)],name:'ثلاثة أرباع حزب',juz,hz};}
+const ORD=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر','الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر','السابع عشر','الثامن عشر','التاسع عشر','العشرون','الحادي والعشرون','الثاني والعشرون','الثالث والعشرون','الرابع والعشرون','الخامس والعشرون','السادس والعشرون','السابع والعشرون','الثامن والعشرون','التاسع والعشرون','الثلاثون'];
+const pageHead=a=>`<span>الجزء ${ORD[a.juz-1]}</span><span>${a.sname}</span>`;
 /* الفانوس الحقيقي: صورة مقتطعة من مصحف مطبوع (إطار فارغ) والكلمات تُكتب فوقه */
 function markerHTML(q){const m=quarterMarker(q),n=m.lines.length;
   const fs=n===3?(m.lines[0].length>5?9.5:12.5):(m.kind==='juz'?11.5:15);
@@ -282,6 +285,7 @@ mgal.innerHTML=[[2,'ربع'],[3,'نصف'],[4,'ثلاثة أرباع'],[5,'بدا
 function paintHizb(){
   const mine=quarters.length>0;
   const a=mine?quarters[(qI*7+3)%quarters.length]:ALL.filter(x=>x.text.includes('۞'))[(qI*7+3)%199],q=a.hizbQuarter,m=quarterMarker(q);
+  phead.innerHTML=pageHead(a);
   hizbAyah.innerHTML=`${toQuranicSukun(a.text.replace(/^﻿/,''))} ${num(a.numberInSurah)}`;
   mgn.innerHTML=markerHTML(q);
   hizbTag.innerHTML=`${hifzTag(mine)} <span class="tag">${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)}</span> <span class="tag">${m.name}</span> <span class="tag">الربع ${AR(q)} من ٢٤٠</span>`;}
@@ -336,6 +340,10 @@ const Q={
   const ch=new Set([ans]);while(ch.size<4){const d=ans+Math.floor(Math.random()*7)-3;if(d>=1&&d<=max)ch.add(d);}
   return `<p class="stem">${isJuz?'في أي جزء بدأنا؟':'في أي حزب نحن؟'} اقرأ الهامش ${hifzTag(!Qnear)}</p><div class="media" style="display:grid;place-items:center"><div style="width:84px">${markerHTML(q)}</div></div>
   <div class="opts">${[...ch].sort(()=>Math.random()-.5).map(n=>`<button class="opt" data-ok="${n===ans?1:0}" data-d="الهامش يقول: ${m.lines.join(' — ')}">${isJuz?'الجزء':'الحزب'} ${AR(n)}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;}
+,
+ mhead(){const a=rnd(POOL.length?POOL:ALL),ans=a.juz;const ch=new Set([ans]);while(ch.size<4)ch.add(1+Math.floor(Math.random()*30));
+  return `<p class="stem">اقرأ رأس الصفحة: في أي جزء أنت؟ ${hifzTag(POOL.length>0)}</p><div class="media"><div class="phead pheadbox" style="margin:0">${pageHead(a)}</div></div>
+  <div class="opts">${[...ch].sort((x,y)=>x-y).map(n=>`<button class="opt" data-ok="${n===ans?1:0}" data-d="الجزء ${ORD[ans-1]} = الجزء ${AR(ans)}">الجزء ${AR(n)}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;}
 };
 function showQ(k){curQ=k;qbox.innerHTML=Q[k]();
   qtabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.q===k));
@@ -347,7 +355,7 @@ function showQ(k){curQ=k;qbox.innerHTML=Q[k]();
 qbox.addEventListener('click',e=>{const k=qbox.dataset.k;if(!window.qfb)return;
   if(k==='mtap'){const l=e.target.closest('.mq-line');if(!l)return;const ok=l.dataset.ok==='1';l.classList.add(ok?'ok':'bad');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! عند هذه الآية يبدأ الربع، ولهذا تجد ۞ أول السطر.':'ليست هذه، ابحث عن الآية التي يبدأ عندها الموضع.';}
   if(k==='tap'){const m=e.target.closest('.mk');if(!m)return;const ok=m.dataset.ok==='1';m.classList.add('on');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! هذه علامة وقف.':'هذه ليست العلامة المطلوبة، حاول مرة أخرى.';}
-  if(k==='choose'||k==='mname'||k==='mjuz'){const o=e.target.closest('.opt');if(!o)return;const ok=o.dataset.ok==='1';o.classList.add(ok?'ok':'bad');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! '+o.dataset.d:'ليست الإجابة الصحيحة، حاول مرة أخرى.';}});
+  if(k==='choose'||k==='mname'||k==='mjuz'||k==='mhead'){const o=e.target.closest('.opt');if(!o)return;const ok=o.dataset.ok==='1';o.classList.add(ok?'ok':'bad');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! '+o.dataset.d:'ليست الإجابة الصحيحة، حاول مرة أخرى.';}});
 qtabs.onclick=e=>{const b=e.target.closest('button');if(b)showQ(b.dataset.q)};
 
 /* ---- نطاق الحفظ: ملخص وإعادة الرسم ---- */
