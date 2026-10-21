@@ -6,7 +6,7 @@
 // متعدد الأبعاد (§4)، قفل/فتح المراحل (§3)، وكتالوج الأوسمة (§8). الشاشات في tajweed/*.js
 // تستدعي هذه الدوال ثم تحفظ النتيجة عبر database/tajweedDB.js.
 
-import { TAJWEED_STAGES, getTajweedStage, getStageRuleIds, getAllRulesFlat } from './tajweedRulesCatalog.js';
+import { TAJWEED_STAGES, getTajweedStage, getStageRuleIds, getAllRulesFlat, isMushafRule } from './tajweedRulesCatalog.js';
 import { findPhraseRanges } from '../core/quranTextUtils.js';
 import { isWaqfMark } from './quranEngine.js';
 import { statusFromJourney, journeyPercent, ensureJourney, EXAM_SIZE } from './tajweedJourney.js';
@@ -54,7 +54,11 @@ export const ACTIVITY_DIMENSION_MAP = {
     odd_letter: 'knows',
     classify_letter: 'distinguishes',
     classify_pair: 'distinguishes',
-    pair_link: 'distinguishes'
+    pair_link: 'distinguishes',
+    // 🌟 [مرحلة «تعرّف على مصحفك»] اختيار علامة يقيس «يعرف»، والضغط عليها داخل الآية «يكتشف»، والوصل «يميّز» (engine/tajweedMushaf.js)
+    mushaf_choice: 'knows',
+    mushaf_tap: 'discovers',
+    mushaf_match: 'distinguishes'
 };
 
 const MASTERY_DIMENSION_KEYS = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'];
@@ -181,7 +185,7 @@ export function computeAllStageProgress(masteryRecordsForStudent) {
 // 1) اختر الحكم — MCQ: تُعرَض حروف الحكم، يختار الطالب اسم الحكم الصحيح من بين 4 خيارات
 // (الصحيح + 3 مشتَّتات من أحكام أخرى عبر المرحلتين معاً لصعوبة تمييز حقيقية)
 export function generateChooseRuleQuestion(rule) {
-    const allOthers = getAllRulesFlat().map(x => x.rule).filter(r => r.id !== rule.id);
+    const allOthers = getAllRulesFlat().map(x => x.rule).filter(r => r.id !== rule.id && !isMushafRule(r));   // دروس «تعرّف على مصحفك» بلا حروف: لا تصلح مشتِّتاً
     const distractors = pickRandom(allOthers, Math.min(3, allOthers.length));
     const options = shuffleArray([rule, ...distractors]).map(r => ({ ruleId: r.id, nameKey: r.nameKey }));
     return {
@@ -351,7 +355,7 @@ export function generateIdentifyQuestion(rule, source, { conflicts = null } = {}
     if (covered.size === 0) return null;
     const flat = getAllRulesFlat();
     const myStage = (flat.find(x => x.rule.id === rule.id) || {}).stageId;
-    const eligible = flat.filter(x => x.rule.id !== rule.id && !rulesConflict(rule.id, x.rule.id) && !(conflicts && conflicts(x.rule.id, source, covered)));
+    const eligible = flat.filter(x => x.rule.id !== rule.id && !isMushafRule(x.rule) && !rulesConflict(rule.id, x.rule.id) && !(conflicts && conflicts(x.rule.id, source, covered)));
     const sameStage = eligible.filter(x => x.stageId === myStage).map(x => x.rule);
     const others = eligible.filter(x => x.stageId !== myStage).map(x => x.rule);
     const picked = pickRandom(sameStage, Math.min(2, sameStage.length));
@@ -432,6 +436,8 @@ export function computeCheckpointScore(ratings) {
 export const TAJWEED_BADGE_CATALOG = {
     first_step: { icon: '👣', nameKey: 'tjw_badge_first_step_name', descKey: 'tjw_badge_first_step_desc', repeatable: false },
     first_mastery: { icon: '🌱', nameKey: 'tjw_badge_first_mastery_name', descKey: 'tjw_badge_first_mastery_desc', repeatable: false },
+    // 🌟 [مرحلة «تعرّف على مصحفك» — المرحلة الأولى قبل القلقلة]
+    stage_master_know_mushaf: { icon: '📖', nameKey: 'tjw_badge_stage_master_know_mushaf_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'know_mushaf' },
     stage_master_qalqalah: { icon: '💥', nameKey: 'tjw_badge_stage_master_qalqalah_name', descKey: 'tjw_badge_stage_master_desc', repeatable: false, stageId: 'qalqalah' },
     // 🌟🌟 [جديد ٢٨ سبتمبر — تعميق المحتوى من الكتاب] وسامان جديدان يطابقان المرحلتين
     // الجديدتين في tajweedRulesCatalog.js (راجع التعليق التوثيقي هناك لسبب الترتيب والمصدر).

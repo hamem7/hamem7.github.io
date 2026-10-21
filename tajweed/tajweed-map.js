@@ -8,7 +8,7 @@
 // حاوية واحدة (#tjw-container) يُعاد رسم محتواها بالكامل حسب "الحالة" الحالية.
 import { AppState, loadSplashScreen, openTajweedActivityScreen, t } from '../core/app.js';
 import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
-import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
+import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat, isMushafRule } from '../engine/tajweedRulesCatalog.js';
 import { computeAllStageProgress, isStageUnlocked, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
 import {
     ensureJourney, journeyStep, journeyPercent, applyLearned, applyAudioHeard, setResume, nextGameKey, statusFromJourney,
@@ -16,6 +16,7 @@ import {
 } from '../engine/tajweedJourney.js';
 import { gamesForRule } from '../engine/tajweedPath.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
+import { renderMushafLessonHTML } from './tajweed-mushaf-ui.js';   // درس «تعرّف على مصحفك»
 import { renderRuleIllustrationHTML } from './tajweed-illustrations.js';
 import { renderBookStripHTML, makharijButtonHTML } from './tajweed-book-images.js';
 import { entryState, resetEntryState, loadEntrySummaries, renderEntryHTML, getEntrySummaries } from './tajweed-entry.js';
@@ -276,7 +277,7 @@ async function handleContainerClick(e) {
     } else if (action === 'play-game') {
         // 🌟 [مسار الحكم] لعبة من ألعاب الحكم (تدرّب، حروف، شجرة، ربط): الأخيرتان على مستوى المرحلة فتحملان الحكم في pathRuleId
         const game = btn.dataset.game, rid = btn.dataset.rule;
-        startActivity(game, { stageId: btn.dataset.stage, ruleId: (game === 'practice' || game === 'letters') ? rid : null, pathRuleId: rid });
+        startActivity(game, { stageId: btn.dataset.stage, ruleId: (game === 'practice' || game === 'letters' || game === 'mushaf') ? rid : null, pathRuleId: rid });
     } else if (action === 'approve-teacher') {
         startActivity('teacher_approve', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
     } else if (action === 'resume-path') {
@@ -433,7 +434,7 @@ async function renderBrowseHTML() {
         // 🌟🌟 [جديد ٢٨ سبتمبر] نشاط "اربط الحكم بحروفه" (generateLinkQuestion) يحتاج حكمين
         // على الأقل بالمرحلة ليكون له معنى (مطابقة اسم↔حروف) — بعد دمج القلقلة الصغرى/الكبرى
         // بحكم واحد، مرحلة القلقلة أصبحت بحكم واحد فقط، فيُخفى الزر بدل عرضه ليؤدي لشاشة خطأ
-        const linkBtnHTML = stage.rules.length >= 2
+        const linkBtnHTML = stage.rules.length >= 2 && !stage.mushaf
             ? `<button class="tjw-outline-btn" data-action="start-link" data-stage="${stage.id}">🔗 ${t('tjw_link_activity_btn')}</button>`
             : '';
 
@@ -493,9 +494,10 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     if (!stage || !rule) return `<div class="tjw-empty-state">${t('tjw_rule_not_found')}</div>`;
 
     // 🌟 مثال الدرس من حفظ الطالب نفسه إن وُجد الحكم في نطاق حفظه (جدول التوسيم)، وإلا مثال الكتالوج
-    const mine = AppState.currentStudent ? (await pickStudentExamples(rule, AppState.currentStudent, 1))[0] : null;
-    const ayahInfo = mine ? mine.ayahInfo : await getAyahForExample(rule.example.surah, rule.example.ayah);
-    const exAyahNumber = mine ? mine.ayah : rule.example.ayah;
+    const mk = isMushafRule(rule);   // دروس «تعرّف على مصحفك»: بلا حروف ولا مثال ثابت (الدرس من آيات حفظ الطالب في tajweed-mushaf-ui.js)
+    const mine = (!mk && AppState.currentStudent) ? (await pickStudentExamples(rule, AppState.currentStudent, 1))[0] : null;
+    const ayahInfo = mk ? null : (mine ? mine.ayahInfo : await getAyahForExample(rule.example.surah, rule.example.ayah));
+    const exAyahNumber = mine ? mine.ayah : (mk ? 0 : rule.example.ayah);
     const ayahHTML = ayahInfo
         ? (mine ? highlightWordsHTML(ayahInfo.text, mine.occurrences)
                 : highlightForTajweed(ayahInfo.text, rule.example.highlight, rule.example.firstOnly))
@@ -553,7 +555,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     } else if (step === 'awaiting_teacher') {
         ctaHTML = `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_approve_hint')}</p>
             <button class="tjw-cta-btn" data-action="approve-teacher" ${attrs}>${t('tjw_approve_btn')}</button>
-            <button class="tjw-quiet-btn" data-action="start-checkpoint" ${attrs}>${t('tjw_detailed_cp')}</button>`;
+            ${mk ? '' : `<button class="tjw-quiet-btn" data-action="start-checkpoint" ${attrs}>${t('tjw_detailed_cp')}</button>`}`;
     } else {
         ctaHTML = `<p class="tjw-mastered-banner">✅ ${t('tjw_mastered_step_note')}</p>
             <button class="tjw-quiet-btn" data-action="play-game" data-game="practice" ${attrs}>${t('tjw_path_replay_btn').replace('{game}', gameName('practice'))}</button>`;
@@ -574,15 +576,16 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const howtoGridHTML = (howtoHTML || cautionHTML) ? `<div class="tjw-howto-grid">${howtoHTML}${cautionHTML}</div>` : '';
 
     // 🌟 [جديد] بطاقات الحروف القابلة للقلب (كلمات قرآنية من المنصة) + شجرة الحكم على غرار كتاب «فتوحات الرحمن»
-    const illusHTML = await renderRuleIllustrationHTML(rule);
-    const cardsInnerHTML = await renderLetterCardsHTML(rule);
+    const illusHTML = mk ? '' : await renderRuleIllustrationHTML(rule);
+    const cardsInnerHTML = mk ? '' : await renderLetterCardsHTML(rule);
+    const mkLessonHTML = mk ? await renderMushafLessonHTML(rule, AppState.currentStudent) : '';
     const cardsHTML = cardsInnerHTML
         ? `<section><h3 class="tjw-section-title">${t('tjw_letter_cards_title')}</h3>${cardsInnerHTML}</section>` : '';
     const lettersGameHTML = '';   // ألعاب الحروف صارت جزءاً من حزمة ألعاب الحكم (زر واحد في مسار الحكم)
     // 🌟 «ملخص هذا الحكم للولي»: متاح في كل خطوات الرحلة (يلخّص ما تمّ حتى الآن)
     const summaryBtnHTML = AppState.currentStudent
         ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="parent-summary" ${attrs}>${t('tjw_lesson_summary_btn')}</button></div>` : '';
-    const treeHTML = `<section><h3 class="tjw-section-title">${t('tjw_tree_title')}</h3>${renderStageTreeHTML(stageId, ruleId)}</section>`;
+    const treeHTML = mk ? '' : `<section><h3 class="tjw-section-title">${t('tjw_tree_title')}</h3>${renderStageTreeHTML(stageId, ruleId)}</section>`;
 
     const dimsHTML = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'].map(k => {
         const v = mastery ? (mastery.dimensions[k] || 0) : 0;
@@ -602,7 +605,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
             </header>
 
             <div class="tjw-lesson-body">
-                <section>
+                ${mk ? mkLessonHTML : `<section>
                     <h3 class="tjw-section-title">${t('tjw_letters_label')}</h3>
                     <div class="tjw-letter-chips">${lettersHTML}</div>
                 </section>
@@ -619,7 +622,7 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
                     ${surahRefHTML}
                     <div class="tjw-example-note">${t(mine ? 'tjw_example_hifz_note' : 'tjw_example_source_note')}</div>
                     ${audioBtnHTML}
-                </section>
+                </section>`}
 
                 <section class="tjw-notice-box">
                     <div class="tjw-notice-question">${t(rule.noticeKey)}</div>

@@ -97,7 +97,7 @@ function checkQuestion(q, ruleId) {
 
 test('اختبار متنوع لكل حكم في الكتالوج: حجم مقبول وأسئلة سليمة وأنواع متعدّدة', () => {
     const problems = [];
-    getAllRulesFlat().forEach(({ rule }) => {
+    getAllRulesFlat().filter(x => !x.rule.mushaf).forEach(({ rule }) => {   // دروس المصحف: tests/tajweedMushaf.test.mjs
         for (let n = 0; n < 10; n++) {
             const qs = buildVariedExamQuestions(rule, sourcesOf(rule), { prevKinds: [] });
             try {

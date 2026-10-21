@@ -28,12 +28,12 @@ await BOOT(page);
 // أول فتح لركن التجويد على الجهاز يحذف بيانات التجويد القديمة مرة واحدة (قرار موثَّق)، فنفتحه قبل زرع البيانات حتى لا تُمسح
 await page.evaluate(() => window.__APP.openTajweedSection()); await page.waitForSelector('.tjw-entry'); await sleep(500);
 
-// بيانات تجريبية حقيقية: m = عدد الأحكام المتقنة في كل مرحلة (من القلقلة)، step = خطوة الحكم الحالي، days = أيام نشاطه (قبل كم يوم)، due = عدد أحكامه المستحقة
+// بيانات تجريبية حقيقية: m = عدد الأحكام المتقنة في كل مرحلة (تبدأ بمرحلة «تعرّف على مصحفك» ثم القلقلة)، step = خطوة الحكم الحالي، days = أيام نشاطه (قبل كم يوم)، due = عدد أحكامه المستحقة
 const SEED = [
-  ['أحمد', '👦🏻', [1, 1, 3, 2, 0, 0, 0, 0], 'practice', [0, 1, 2], 2], ['سارة', '👧🏻', [1, 1, 2, 0, 0, 0, 0, 0], 'exam', [0, 1, 2, 3, 4], 0], ['يوسف', '👦🏻', [1, 0, 0, 0, 0, 0, 0, 0], 'learn', [5], 1],
-  ['مريم', '👩🏻', [1, 1, 3, 5, 3, 1, 0, 0], 'teacher', [1, 2], 3], ['عمر', '👦🏻', [1, 1, 1, 0, 0, 0, 0, 0], 'practice', [9], 0], ['ليلى', '👩🏻', [1, 1, 3, 5, 3, 3, 7, 2], 'exam', [0], 0],
-  ['خالد', '👦🏻', [0, 0, 0, 0, 0, 0, 0, 0], 'none', [], 0], ['نورة', '👩🏻', [1, 1, 3, 3, 0, 0, 0, 0], 'practice', [3], 0], ['حمزة', '👦🏻', [1, 1, 0, 0, 0, 0, 0, 0], 'learn', [20], 0],
-  ['آية', '👧🏻', [1, 1, 3, 1, 0, 0, 0, 0], 'teacher', [0, 1], 2], ['زياد', '👦🏻', [1, 0, 0, 0, 0, 0, 0, 0], 'practice', [30], 0], ['رهف', '👧🏻', [1, 1, 3, 5, 2, 0, 0, 0], 'exam', [2, 3], 1]];
+  ['أحمد', '👦🏻', [8, 1, 1, 3, 2, 0, 0, 0, 0], 'practice', [0, 1, 2], 2], ['سارة', '👧🏻', [8, 1, 1, 2, 0, 0, 0, 0, 0], 'exam', [0, 1, 2, 3, 4], 0], ['يوسف', '👦🏻', [8, 1, 0, 0, 0, 0, 0, 0, 0], 'learn', [5], 1],
+  ['مريم', '👩🏻', [8, 1, 1, 3, 5, 3, 1, 0, 0], 'teacher', [1, 2], 3], ['عمر', '👦🏻', [8, 1, 1, 1, 0, 0, 0, 0, 0], 'practice', [9], 0], ['ليلى', '👩🏻', [8, 1, 1, 3, 5, 3, 3, 7, 2], 'exam', [0], 0],
+  ['خالد', '👦🏻', [0, 0, 0, 0, 0, 0, 0, 0, 0], 'none', [], 0], ['نورة', '👩🏻', [8, 1, 1, 3, 3, 0, 0, 0, 0], 'practice', [3], 0], ['حمزة', '👦🏻', [8, 1, 1, 0, 0, 0, 0, 0, 0], 'learn', [20], 0],
+  ['آية', '👧🏻', [8, 1, 1, 3, 1, 0, 0, 0, 0], 'teacher', [0, 1], 2], ['زياد', '👦🏻', [8, 1, 0, 0, 0, 0, 0, 0, 0], 'practice', [30], 0], ['رهف', '👧🏻', [8, 1, 1, 3, 5, 2, 0, 0, 0], 'exam', [2, 3], 1]];
 await page.evaluate(async (SEED) => {
   const m = window.__APP, J = window.__J, C = window.__C, DAY = 86400000, now = Date.now();
   const flat = C.getAllRulesFlat(), stages = C.TAJWEED_STAGES;
@@ -69,7 +69,7 @@ await toEntry(); await shot('1-entry-many');
 const first = await page.evaluate(() => ({ h1: document.querySelector('.tjw-e-hero h1')?.textContent, stats: [...document.querySelectorAll('.tjw-e-stats .tjw-e-stat b')].map(b => b.textContent),
   cards: document.querySelectorAll('.tjw-st').length, showAll: document.querySelector('[data-action="entry-all"]')?.textContent.trim(), search: !!document.querySelector('#tjw-student-search-input'),
   topbarHidden: getComputedStyle(document.querySelector('.tjw-topbar')).display === 'none', datalist: !!document.querySelector('datalist'), oldBack: [...document.querySelectorAll('button')].some(b => b.id === 'tjw-btn-exit' && b.offsetParent !== null) }));
-check('الترويسة والإحصاءات: أبطال التجويد، 8 مراحل، 27 حكماً، 4 خطوات', first.h1 === 'أبطال التجويد' && first.stats.slice(0, 3).join(',') === '8,27,4', JSON.stringify(first.stats));
+check('الترويسة والإحصاءات: أبطال التجويد، 9 مراحل، 35 حكماً (8 دروس مصحف + 27)، 4 خطوات', first.h1 === 'أبطال التجويد' && first.stats.slice(0, 3).join(',') === '9,35,4', JSON.stringify(first.stats));
 check('12 طالباً: تظهر 6 بطاقات وزر «عرض كل الطلاب (12)» وحقل البحث', first.cards === 6 && /12/.test(first.showAll || '') && first.search, JSON.stringify({ c: first.cards, s: first.showAll }));
 check('لا شريط علوي ولا زر «العودة» مكرر ولا قائمة datalist قديمة', first.topbarHidden && !first.datalist && !first.oldBack);
 
@@ -108,16 +108,16 @@ await shot('3-opened-current-rule');
 // ٦) الطالب الجديد: خطوات الرحلة وزر أول حكم يفتح القلقلة بخطوة الشرح
 await toEntry(); await pickCard('خالد');
 const onb = await page.evaluate(() => ({ title: document.querySelector('.tjw-e-onb h2')?.textContent, steps: document.querySelectorAll('.tjw-e-ob').length, btn: document.querySelector('[data-action="entry-go"]')?.textContent.trim(), alert: !!document.querySelector('.tjw-e-alert') }));
-check('الطالب الجديد: ترحيب بالخطوات الأربع وزر «ابدأ أول حكم: القلقلة» ولا تنبيه مراجعة', /أهلاً خالد/.test(onb.title) && onb.steps === 4 && /القلقلة/.test(onb.btn) && !onb.alert, JSON.stringify(onb));
+check('الطالب الجديد: ترحيب بالخطوات الأربع وزر «ابدأ أول حكم: رقم الآية» ولا تنبيه مراجعة', /أهلاً خالد/.test(onb.title) && onb.steps === 4 && /رقم الآية/.test(onb.btn) && !onb.alert, JSON.stringify(onb));
 await shot('4-entry-new-student');
 await page.click('[data-action="entry-go"]'); await page.waitForSelector('.tjw-stepper');
-check('زر أول حكم يفتح القلقلة بخطوة الشرح', (await txt('.tjw-rule-card-name')) === 'القلقلة' && !!(await page.$('[data-action="mark-learned"]')));
+check('زر أول حكم يفتح «رقم الآية» (أول درس في مرحلة المصحف) بخطوة الشرح', (await txt('.tjw-rule-card-name')) === 'رقم الآية' && !!(await page.$('[data-action="mark-learned"]')));
 
 // ٧) لمحة الرحلة للطالب المحدَّد: مراحل 8، مكتملة ومغلقة ونشطة
 await toEntry(); await pickCard('نورة');
 const jr = await page.evaluate(() => ({ nodes: document.querySelectorAll('.tjw-e-sg').length, done: document.querySelectorAll('.tjw-e-sg.is-done').length, active: document.querySelectorAll('.tjw-e-sg.is-active').length, locked: document.querySelectorAll('.tjw-e-sg.is-locked').length,
   activeName: document.querySelector('.tjw-e-sg.is-active .tjw-e-nm')?.textContent.trim(), activeCt: document.querySelector('.tjw-e-sg.is-active .tjw-e-ct')?.textContent.trim() }));
-check('نورة: 8 مراحل (3 مكتملة، 1 نشطة هي «النون الساكنة والتنوين» بـ3 من 5، و4 مغلقة)', jr.nodes === 8 && jr.done === 3 && jr.active === 1 && jr.locked === 4 && /النون الساكنة/.test(jr.activeName) && /3 من 5/.test(jr.activeCt), JSON.stringify(jr));
+check('نورة: 9 مراحل (4 مكتملة، 1 نشطة هي «النون الساكنة والتنوين» بـ3 من 5، و4 مغلقة)', jr.nodes === 9 && jr.done === 4 && jr.active === 1 && jr.locked === 4 && /النون الساكنة/.test(jr.activeName) && /3 من 5/.test(jr.activeCt), JSON.stringify(jr));
 
 // ٨) معاينة لوحة الأبطال ثم فتح اللوحة الكاملة
 const lb = await page.evaluate(() => ({ rows: document.querySelectorAll('.tjw-e-lbrow').length, pills: document.querySelectorAll('.tjw-e-pill').length, title: document.querySelector('.tjw-e-lbrow')?.parentElement.parentElement.querySelector('h2')?.textContent.trim() }));
@@ -128,7 +128,7 @@ check('«عرض اللوحة كاملة» يفتح لوحة الأبطال ال�
 // ٩) وضع المعلم: نظرة الصف وجدول المراحل والترتيب وفتح رحلة طالب من صفه
 await toEntry(); await page.click('[data-action="entry-mode"][data-mode="teacher"]'); await sleep(200);
 const tch = await page.evaluate(() => ({ stats: [...document.querySelectorAll('.tjw-e-tsum .tjw-e-stat b')].map(b => Number(b.textContent)), rows: document.querySelectorAll('tr[data-action="entry-row"]').length, cols: document.querySelectorAll('.tjw-e-tbl thead th').length }));
-check('نظرة الصف: 12 طالباً، 6 عندهم مراجعات (أحمد ويوسف ومريم وآية ورهف + لا)، جدول 12 صفاً و10 أعمدة', tch.stats[0] === 12 && tch.rows === 12 && tch.cols === 10, JSON.stringify(tch));
+check('نظرة الصف: 12 طالباً، 6 عندهم مراجعات (أحمد ويوسف ومريم وآية ورهف + لا)، جدول 12 صفاً و11 عموداً', tch.stats[0] === 12 && tch.rows === 12 && tch.cols === 11, JSON.stringify(tch));
 check('عدّاد «عندهم مراجعات» = 5 (أحمد، يوسف، مريم، آية، رهف)', tch.stats[1] === 5, String(tch.stats[1]));
 check('عدّاد «لم يبدؤوا» = 1 (خالد)', tch.stats[3] === 1, String(tch.stats[3]));
 await shot('5-entry-teacher');

@@ -5,12 +5,14 @@
 import { getTajweedStage, getAllRulesFlat } from './tajweedRulesCatalog.js';
 import { isLetterGameRule, hasStageTreeActivity } from './tajweedLetterGames.js';
 
-export const GAME_KEYS = ['practice', 'letters', 'tree', 'link'];
+export const GAME_KEYS = ['practice', 'letters', 'tree', 'link', 'mushaf'];
 // مفتاح اللعبة هو نفسه وضع النشاط (mode) في tajweed-activity.js
 export const gameModeOf = (key) => key;
 export const gameLabelKey = (key) => `tjw_game_${key}`;
 
 export function gamesForRule(rule, stageId) {
+    // 🌟 دروس «تعرّف على مصحفك»: تدرّب (أسئلة تعرّف) ثم «استكشف المصحف» (ضغط ووصل)؛ لا حروف ولا شجرة ولا ربط حروف
+    if (rule && rule.mushaf) return ['practice', 'mushaf'];
     const keys = ['practice'];
     if (rule && isLetterGameRule(rule)) keys.push('letters');
     if (stageId && hasStageTreeActivity(stageId)) keys.push('tree');
