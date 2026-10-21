@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>معاينة: مرحلة «تعرّف على مصحفك»</title>
+<link rel="stylesheet" href="../../css/fonts.css">
+<style>
+:root{--primary:#1e3a5f;--primary-l:#2d5a8c;--accent:#8c2f3d;--ink:#0b1a2e;--ink2:#13294a;--gold:#e0b04f;--gold-d:#b98a2c;--card:#fffdf7;--text:#3a2c1f;--muted:#6f6150;--line:rgba(58,44,31,.13);--good:#1f9d55;--bad:#c0392b;--mush:#0f766e}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:#f4ecd8;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.7;
+background:radial-gradient(circle at 15% 0%,rgba(45,90,140,.55),transparent 45%),radial-gradient(circle at 90% 100%,rgba(140,47,61,.35),transparent 40%),linear-gradient(180deg,var(--ink2),var(--ink));background-attachment:fixed}
+button{font:inherit;cursor:pointer;color:inherit}button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pv{position:sticky;top:0;z-index:20;background:rgba(6,14,26,.93);border-bottom:1px solid rgba(224,176,79,.35);padding:8px 14px;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:.85rem}
+.pv b{color:var(--gold)}.pv button{background:transparent;border:1.5px solid rgba(224,176,79,.5);border-radius:999px;padding:3px 12px}.pv button.on{background:var(--gold);color:#3a2a08;font-weight:700}
+.frame{max-width:980px;margin:0 auto;padding:16px 14px 70px;transition:max-width .25s}.frame.mob{max-width:390px}
+h1{margin:6px 0 2px;font-size:1.8rem;color:#fff}h1::after{content:"";display:block;width:64px;height:3px;border-radius:3px;background:var(--gold);margin-top:6px}
+.lead{color:#c9d3e3;max-width:60ch;margin:6px 0 14px}
+.card{background:var(--card);color:var(--text);border-radius:20px;padding:16px;margin:0 0 16px;box-shadow:0 10px 30px rgba(3,12,26,.35);border-top:5px solid var(--gold)}
+.card h2{margin:0 0 2px;font-size:1.15rem;color:var(--primary)}.card .sub{margin:0 0 12px;color:var(--muted);font-size:.9rem}
+.note{background:#fff6df;border:1px dashed var(--gold-d);border-radius:12px;padding:8px 12px;font-size:.86rem;color:#6b4a0c;margin:10px 0 0}
+.path{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.les{background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center}
+.les .ic{font-size:1.7rem;display:block}.les b{display:block;font-size:.88rem;line-height:1.4;color:var(--primary)}.les small{color:var(--muted);font-size:.76rem}
+.les.extra{border-style:dashed;background:#fbf6e8}
+.mq{font-family:'Amiri Quran',serif;font-size:1.65rem;line-height:2.5;color:#1b1b1b;text-align:justify}
+.mq.big{font-size:2.05rem}
+.ayahbox{background:#fffef9;border:2px solid #e8dcc0;border-radius:16px;padding:12px 16px}
+.num{display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;margin:0 .25em;border-radius:50%;border:2px double var(--gold-d);color:var(--accent);font-family:'Amiri Quran',serif;font-size:.7em;line-height:1;vertical-align:middle;background:#fff8e6;padding:0 .15em}
+.num.tap{cursor:pointer}.num.tap:hover{background:#ffe9a8}
+.num.ok{background:#c8f0d6;border-color:var(--good)}.num.bad{background:#fbd0cb;border-color:var(--bad)}
+.mk{cursor:pointer;border-radius:8px;padding:0 .08em;transition:background .15s}.mk:hover{background:#e7f2ff}
+.mk.on{background:#ffe08a;box-shadow:0 0 0 2px var(--gold-d)}
+.tag{display:inline-block;border-radius:999px;padding:0 10px;font-size:.78rem;font-weight:700;background:rgba(30,58,95,.1);color:var(--primary)}
+.btn{border:0;border-radius:12px;padding:8px 16px;font-weight:700;color:#fff;background:linear-gradient(180deg,var(--primary-l),var(--primary));box-shadow:0 3px 0 #14294a}
+.btn.gold{background:linear-gradient(180deg,#f0c35f,var(--gold-d));color:#3a2a08;box-shadow:0 3px 0 #8a6414}
+.ghost{border:2px solid var(--primary-l);background:transparent;color:var(--primary-l);border-radius:12px;padding:5px 12px;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.cmp{display:grid;gap:12px;grid-template-columns:1fr 1fr}.frame.mob .cmp{grid-template-columns:1fr}
+.cmp>div{border-radius:14px;padding:10px;border:2px solid var(--line)}.cmp .no{background:#fff1ef;border-color:#f0b4ac}.cmp .yes{background:#eefaf2;border-color:#9ad8b3}
+.cmp h3{margin:0 0 4px;font-size:.95rem}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.sign{background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px;display:grid;gap:4px}
+.sign .glyph{font-family:'Amiri Quran',serif;font-size:4rem;line-height:2.2;padding-top:.2em;color:var(--accent);text-align:center;background:#fff8e6;border-radius:12px}
+.sign b{color:var(--primary)}.sign p{margin:0;font-size:.86rem;color:var(--muted)}
+.sign .ex{font-family:'Amiri Quran',serif;font-size:1.25rem;line-height:2.1;color:#1b1b1b;background:#fffef9;border-radius:10px;padding:2px 8px}
+.sign .ex mark{background:#ffe08a;color:var(--accent);border-radius:6px;padding:0 .1em}
+.page{position:relative;background:#fffef9;border:2px solid #d9c9a3;border-radius:6px;padding:14px 56px 14px 14px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.margin{position:absolute;inset-block:10px;inset-inline-end:8px;width:44px;border-inline-start:2px solid #e3d5b0;display:flex;align-items:center;justify-content:center}
+.margin span{background:#fff;border:2px solid var(--gold-d);color:var(--accent);border-radius:12px;padding:3px 4px;font-weight:700;font-size:.74rem;text-align:center;line-height:1.35}
+.sajrow{display:grid;grid-template-columns:2.2em 1fr auto;gap:8px;align-items:center;padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:6px;font-size:.9rem}
+.sajrow.mine{background:#e8f8ee;border-color:#8bd0a5}.sajrow.mine::after{content:""}
+.sajrow .n{font-weight:700;color:var(--accent)}.sajrow em{font-style:normal;font-size:.76rem;border-radius:999px;padding:0 8px;background:rgba(30,58,95,.1);color:var(--primary)}
+.sajrow em.ob{background:rgba(192,57,43,.14);color:var(--bad)}
+.sbanner{position:relative;margin:4px 0 10px;text-align:center;padding:12px 8px;border:3px double var(--gold-d);border-radius:14px;background:linear-gradient(180deg,#fff8e6,#fbeec9)}
+.sbanner .nm{font-family:'Amiri Quran',serif;font-size:2rem;color:var(--accent);line-height:1.5}
+.sbanner small{display:block;color:var(--muted)}
+.bsm{text-align:center;font-family:'Amiri Quran',serif;font-size:1.5rem;color:#1b1b1b}
+.qcard{border:2px solid var(--line);border-radius:18px;padding:14px;background:#fff}
+.qcard .stem{font-weight:700;color:var(--primary);margin:0 0 8px}
+.qcard .media{background:#fffef9;border:2px solid #e8dcc0;border-radius:14px;padding:8px 12px;margin-bottom:10px}
+.opts{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.opt{border:2px solid var(--line);border-radius:12px;background:#fff;padding:9px;font-weight:700;color:var(--text)}
+.opt:hover{border-color:var(--primary-l)}.opt.ok{background:#c8f0d6;border-color:var(--good)}.opt.bad{background:#fbd0cb;border-color:var(--bad)}
+.opt .gl{font-family:'Amiri Quran',serif;font-size:1.8rem;display:block;color:var(--accent)}
+.fb{margin-top:10px;border-radius:12px;padding:8px 12px;font-size:.9rem;display:none}.fb.show{display:block}.fb.g{background:#e8f8ee;color:#14633a}.fb.b{background:#fdecea;color:#8a2218}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tabs button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:3px 14px;color:var(--text)}.tabs button.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.match{display:grid;gap:8px;grid-template-columns:1fr 1fr}.match button{border:2px solid var(--line);background:#fff;border-radius:12px;padding:8px;font-weight:700;color:var(--text)}
+.match button.sel{border-color:var(--gold-d);background:#fff3cf}.match button.done{background:#c8f0d6;border-color:var(--good);opacity:.75}
+.match .g{font-family:'Amiri Quran',serif;font-size:1.9rem;color:var(--accent)}
+.arch{direction:ltr;text-align:left;background:#0b1626;color:#cfe3ff;border-radius:12px;padding:12px;font-size:.8rem;overflow:auto;line-height:1.6;white-space:pre}
+.loading{padding:30px;text-align:center;color:#c9d3e3}
+</style></head><body>
+<div class="pv"><b>معاينة — ليست جزءاً من التطبيق</b>
+<span>العرض:</span><button id="vD" class="on">حاسوب</button><button id="vM">جوال</button>
+<span style="margin-inline-start:auto;color:#ffd9a0">كل نصوص القرآن تُجلب من <code>database/quran-uthmani.json</code> وقت العرض</span></div>
+<div class="frame" id="frame"><div class="loading" id="load">جارٍ تحميل المصحف المحلي…</div><div id="root" hidden></div></div>
+
+<script type="module">
+const frame=document.getElementById('frame');
+document.getElementById('vD').onclick=()=>{frame.classList.remove('mob');vD.classList.add('on');vM.classList.remove('on')};
+document.getElementById('vM').onclick=()=>{frame.classList.add('mob');vM.classList.add('on');vD.classList.remove('on')};
+
+const S=(await (await fetch('../../database/quran-uthmani.json')).json()).data.surahs;
+const ALL=[];S.forEach(s=>s.ayahs.forEach(a=>ALL.push({...a,sn:s.number,sname:s.name,stype:s.revelationType,scount:s.ayahs.length})));
+const AR=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const BSM_WORDS=4;
+const surahName=s=>s.name.replace(/^سُورَةُ\s*/,'');
+const body=a=>{ // نص الآية دون البسملة الملصقة بأول آيات السور (عدا الفاتحة)
+  let t=a.text.replace(/^﻿/,'');
+  if(a.numberInSurah===1&&a.sn!==1&&a.sn!==9) t=t.split(' ').slice(BSM_WORDS).join(' ');
+  return t;};
+const num=(n,cls='',extra='')=>`<span class="num ${cls}" ${extra}>${AR(n)}</span>`;
+const surah=n=>S[n-1];
+
+/* ---- العلامات ---- */
+const SIGNS=[
+ {c:'ۘ',n:'م',t:'وقف لازم',d:'يجب الوقوف عندها لأن الوصل يغيّر المعنى.',g:'waqf'},
+ {c:'ۙ',n:'لا',t:'لا وقف',d:'لا يُوقَف عندها. فإن اضطررتَ للنَّفَس فأعد من الكلمة التي قبلها.',g:'waqf'},
+ {c:'ۚ',n:'ج',t:'وقف جائز',d:'الوقف والوصل جائزان على السواء.',g:'waqf'},
+ {c:'ۖ',n:'صلى',t:'الوصل أولى',d:'يجوز الوقف لكن الأفضل أن تصل.',g:'waqf'},
+ {c:'ۗ',n:'قلى',t:'الوقف أولى',d:'يجوز الوصل لكن الأفضل أن تقف.',g:'waqf'},
+ {c:'ۛ',n:'∴ المعانقة',t:'تعانق الوقف',d:'ثلاث نقاط في موضعين قريبين: قِف عند أحدهما فقط، لا عند الاثنين.',g:'waqf'},
+ {c:'ۜ',n:'س',t:'سكتة',d:'توقّف قصير بقدر حركتين دون أخذ نفس، ثم أكمل.',g:'waqf'},
+ {c:'۟',n:'دائرة صغيرة',t:'حرف لا يُنطق',d:'الحرف الذي فوقه دائرة صفراء صغيرة يُكتب ولا يُقرأ في الوصل.',g:'sil'},
+ {c:'۠',n:'مستطيل صغير',t:'حرف لا يُنطق عند الوقف',d:'يُقرأ في الوصل ولا يُقرأ عند الوقف.',g:'sil'},
+ {c:'ٓ',n:'المدّة ~',t:'علامة المدّ',d:'تدلّ على مدّ زائد على الطبيعي (متصل أو منفصل أو لازم…) بحسب ما بعدها.',g:'mad'},
+ {c:'ٰ',n:'الألف الخنجرية',t:'ألف صغيرة',d:'ألف تُنطق مدّاً لكنها لا تُكتب كاملة (مثل: الرحمٰن).',g:'mad'},
+ {c:'ۥ',n:'الواو الصغيرة',t:'صلة الضمير',d:'تُنطق ضمة طويلة بعد هاء الضمير في الوصل (له، به).',g:'mad'},
+ {c:'ۦ',n:'الياء الصغيرة',t:'صلة الضمير',d:'تُنطق كسرة طويلة بعد هاء الضمير في الوصل (فيه، عليه).',g:'mad'},
+ {c:'ْ',n:'السكون',t:'علامة السكون في هذا المصحف',d:'تدلّ على أن الحرف ساكن لا حركة له.',g:'sk'},
+ {c:'ۢ',n:'الميم الصغيرة',t:'ميم الإقلاب',d:'ميم صغيرة فوق النون أو التنوين تدلّ على إقلابها ميماً قبل الباء.',g:'sk'},
+ {c:'۩',n:'علامة السجدة',t:'موضع سجدة',d:'تُوضع في أول آية السجدة أو قريب منها لتنبّه القارئ.',g:'saj'},
+];
+const GROUPS={waqf:'علامات الوقف',sil:'حروف لا تُنطق',mad:'المدّ والصلة',sk:'السكون وما يشبهه',saj:'السجدة'};
+const SOURCE_NOTE={ 'ْ':'نص تنزيل المحلي يستخدم ْ (U+0652) للسكون. شكل «رأس الخاء» ۡ يظهر في بعض المصاحف المطبوعة، وسأعرضه جنب هذا الشكل إن اعتمدتَه.'};
+
+/* أقصر آية فيها العلامة، مع تفضيل جزء عمّ لأن الأطفال يحفظونه */
+function example(ch){
+  const has=a=>body(a).includes(ch);
+  const pool=ALL.filter(has);
+  if(!pool.length) return null;
+  const amma=pool.filter(a=>a.juz===30); const p=(amma.length?amma:pool).slice().sort((x,y)=>body(x).length-body(y).length);
+  return p[0];}
+function markHTML(t,ch){
+  return t.split(ch).join(`<mark>${ch}</mark>`);}
+
+/* ---- بناء الصفحة ---- */
+const root=document.getElementById('root');
+const LESSONS=[['🔢','رقم الآية','في النهاية لا في البداية'],['🏷️','اسم السورة','لوحة الاسم والبسملة'],['📚','الجزء والحزب والربع','هامش الصفحة و ۞'],['🛑','علامات الوقف','٧ علامات كاملة'],['⭕','السكون والدائرة','ما يُقرأ وما لا يُقرأ'],['〰️','علامة المد','المدّة والألف الخنجرية'],['وي','الواو والياء الصغيرتان','صلة هاء الضمير'],['۩','علامات السجدة','والتي في محفوظك']];
+const EXTRAS=[['ٱ','ألف الوصل'],['ۢ','ميم الإقلاب'],['ً','التنوين'],['ّ','الشدّة'],['📄','أجزاء الصفحة'],['۪','الإشمام والإمالة (معلومة)']];
+
+root.innerHTML=`
+<h1>مرحلة «تعرّف على مصحفك»</h1>
+<p class="lead">المرحلة الأولى قبل القلقلة: يتعلم الطالب كل ما في المصحف خلاف الآيات نفسها. هذه الصفحة معاينة للشكل المقترح، وكل أمثلتها من المصحف المحلي.</p>
+
+<section class="card"><h2>١) خريطة المرحلة</h2><p class="sub">ثمانية دروس، لكل درس الخطوات الأربع نفسها: شرح ← تطبيق ← اختبار ← اعتماد المعلم</p>
+<div class="path">${LESSONS.map((l,i)=>`<div class="les"><span class="ic">${l[0]}</span><b>${i+1}. ${l[1]}</b><small>${l[2]}</small></div>`).join('')}</div>
+<p class="sub" style="margin-top:12px">إضافات مقترحة (تُختار منها):</p>
+<div class="path">${EXTRAS.map(e=>`<div class="les extra"><span class="ic">${e[0]}</span><b>${e[1]}</b></div>`).join('')}</div></section>
+
+<section class="card" id="sNum"><h2>٢) درس «رقم الآية»</h2><p class="sub">الفكرة الأهم: الرقم يأتي بعد الآية. يرى الطالب الخطأ والصواب جنباً إلى جنب، ثم يجرّب.</p>
+<div class="cmp"><div class="no"><h3>❌ ما يظنه كثير من الأطفال</h3><div id="cmpNo" class="mq"></div></div>
+<div class="yes"><h3>✅ الصواب: الرقم في نهاية الآية</h3><div id="cmpYes" class="mq"></div></div></div>
+<h3 style="margin:14px 0 4px;color:var(--primary)">جرّب: اضغط على رقم الآية الأولى</h3>
+<div class="ayahbox"><div id="tapNum" class="mq big"></div></div><div class="fb" id="tapFb"></div>
+<div class="row"><button class="ghost" id="tapNext">سورة أخرى ↻</button></div></section>
+
+<section class="card"><h2>٣) درس «اسم السورة وبدايتها»</h2><p class="sub">اللوحة التي فيها اسم السورة، ثم البسملة، ثم الآية الأولى.</p>
+<div class="ayahbox"><div id="sHead"></div></div>
+<div class="row"><button class="ghost" id="sNext">سورة أخرى ↻</button></div>
+<p class="note">في المصحف المطبوع تُرسم لوحة مزخرفة. هنا أرسمها بالـCSS (إطار مزدوج وخط الأميري)، والاسم والعدد ونوع النزول مأخوذة من بيانات المصحف.</p></section>
+
+<section class="card"><h2>٤) درس «الجزء والحزب والربع»</h2><p class="sub">الرمز ۞ داخل النص يدلّ على بداية ربع، وعلى الهامش اسم الجزء أو الحزب أو الربع.</p>
+<div class="page"><div class="margin"><span id="mgn"></span></div><div id="hizbAyah" class="mq"></div></div>
+<div class="row"><button class="ghost" id="hNext">مثال آخر ↻</button></div>
+<p class="note">حساب الهامش: كل 8 أرباع جزء، وكل 4 أرباع حزب. أخذته من حقل <code>hizbQuarter</code> لكل آية (240 ربعاً).</p></section>
+
+<section class="card"><h2>٥) درس العلامات (وقف، سكون، مد، صلة…)</h2><p class="sub">بطاقة لكل علامة: الرمز كبيراً، واسمها، وعملها، ومثال حقيقي من المصحف (من جزء عمّ إن وُجد).</p>
+<div id="signs"></div>
+<p class="note" id="skNote"></p></section>
+
+<section class="card"><h2>٦) «اكتشف العلامات في الآية»</h2><p class="sub">وضع تعليمي: اضغط أي علامة في الآية فيظهر اسمها وعملها.</p>
+<div class="ayahbox"><div id="disc" class="mq big"></div></div><div class="fb show g" id="discFb">اضغط على علامة صغيرة داخل الآية.</div>
+<div class="row"><button class="ghost" id="dNext">آية أخرى ↻</button></div></section>
+
+<section class="card"><h2>٧) علامات السجدة</h2><p class="sub">المواضع الخمسة عشر من بيانات المصحف. فعّل «محفوظي» ليبرز ما يقع ضمن الجزء الذي يحفظه الطالب.</p>
+<div class="row"><label><input type="checkbox" id="amma"> محفوظي: جزء عمّ (يُحسب في التطبيق من نطاق حفظ الطالب)</label></div>
+<div id="saj"></div></section>
+
+<section class="card"><h2>٨) شكل السؤال الجديد (قالب موحّد)</h2><p class="sub">هيكل ثابت: المطلوب ← الوسيط ← الخيارات ← التغذية. الوسيط يتغيّر حسب نوع السؤال، وكل نوع يُسجَّل دون تعديل الملف الأساسي.</p>
+<div class="tabs" id="qtabs"><button data-q="tap" class="on">اضغط في الآية</button><button data-q="choose">اختر الاسم</button><button data-q="match">صِل العلامة باسمها</button></div>
+<div class="qcard" id="qbox"></div>
+<div class="arch">registerQuestionType('tap_in_ayah', { render(q), bind(root, q, answer), check(q, a) })
+registerQuestionType('choose_sign',  { … })
+registerQuestionType('match_signs',  { … })
+// renderCurrentQuestion  ←  QUESTION_TYPES[q.type].render(q)   (بدل سلسلة if / else if)</div></section>`;
+
+/* ---- ٢ رقم الآية ---- */
+const tapPool=[112,108,103,105,106,114,113,110,111,109];
+let tapI=0;
+function paintNum(){
+  const s=surah(tapPool[tapI%tapPool.length]);
+  const a1=s.ayahs[0],a2=s.ayahs[1];
+  const t1=body({...a1,sn:s.number}),t2=body({...a2,sn:s.number});
+  cmpNo.innerHTML=`${num(1)} ${t1} ${num(2)} ${t2}`;
+  cmpYes.innerHTML=`${t1} ${num(1)} ${t2} ${num(2)}`;
+  tapFb.className='fb';tapFb.textContent='';
+  // الرقم الصحيح بعد الآية الأولى، والفخاخ: رقم قبلها، ورقم الآية الثانية
+  tapNum.innerHTML=`<span class="num tap" data-k="start">${AR(1)}</span> ${t1} <span class="num tap" data-k="right">${AR(1)}</span> ${t2} <span class="num tap" data-k="two">${AR(2)}</span>`;
+  tapNum.dataset.surah=surahName(s);
+}
+tapNum.addEventListener('click',e=>{const n=e.target.closest('.num');if(!n)return;
+  tapNum.querySelectorAll('.num').forEach(x=>x.classList.remove('ok','bad'));
+  const right=n.dataset.k==='right';n.classList.add(right?'ok':'bad');
+  tapFb.className='fb show '+(right?'g':'b');
+  tapFb.textContent=right?'أحسنت! رقم الآية يأتي في نهايتها، بعد آخر كلمة منها.':(n.dataset.k==='start'?'هذا الرقم قبل الآية. تذكّر: الرقم يُكتب بعد انتهاء الآية لا قبلها.':'هذا رقم الآية التالية. ابحث عن الرقم الذي يلي نهاية الآية الأولى.');});
+tapNext.onclick=()=>{tapI++;paintNum()};paintNum();
+
+/* ---- ٣ اسم السورة ---- */
+const headPool=[1,2,78,112,67,36,55,18];let hI=0;
+function paintHead(){
+  const s=surah(headPool[hI%headPool.length]);const a=s.ayahs[0];
+  const bsm=s.number===1||s.number===9?'':`<div class="bsm">${S[0].ayahs[0].text.replace(/^﻿/,'')}</div>`;
+  sHead.innerHTML=`<div class="sbanner"><div class="nm">${s.name}</div><small>${AR(s.ayahs.length)} آية — ${s.revelationType==='Meccan'?'مكية':'مدنية'} — الجزء ${AR(a.juz)}</small></div>
+  ${s.number===9?'<p class="note">سورة التوبة: لا بسملة في أولها. فرصة لسؤال «لماذا؟».</p>':bsm}
+  <div class="mq">${body({...a,sn:s.number})} ${num(a.numberInSurah)}</div>`;}
+sNext.onclick=()=>{hI++;paintHead()};paintHead();
+
+/* ---- ٤ الجزء والحزب والربع ---- */
+const quarters=ALL.filter(a=>a.text.includes('۞'));let qI=0;
+function quarterLabel(q){const hz=Math.floor((q-1)/4)+1,r=(q-1)%4;
+  return r===0?`بداية الحزب ${AR(hz)}`:['','ربع الحزب '+AR(hz),'نصف الحزب '+AR(hz),'ثلاثة أرباع الحزب '+AR(hz)][r];}
+function paintHizb(){
+  const a=quarters[(qI*7+3)%quarters.length];
+  const q=a.hizbQuarter;const juzStart=q%8===1;
+  hizbAyah.innerHTML=`${a.text.replace(/^﻿/,'')} ${num(a.numberInSurah)}`;
+  mgn.innerHTML=(juzStart?`الجزء<br>${AR(a.juz)}<br>`:'')+quarterLabel(q).replace(' ','<br>');
+  hizbAyah.insertAdjacentHTML('beforebegin',`<p style="margin:0 0 6px"><span class="tag">${a.sname.replace(/^سُورَةُ\s*/,'')} — آية ${AR(a.numberInSurah)}</span> <span class="tag">الربع ${AR(q)} من ٢٤٠</span></p>`);
+  const prev=hizbAyah.parentElement.querySelectorAll('p.__x');}
+function repaintHizb(){hizbAyah.parentElement.querySelectorAll(':scope > p').forEach(p=>p.remove());paintHizb();}
+hNext.onclick=()=>{qI++;repaintHizb()};paintHizb();
+
+/* ---- ٥ بطاقات العلامات ---- */
+signs.innerHTML=Object.keys(GROUPS).map(g=>`<h3 style="margin:10px 0 6px;color:var(--primary)">${GROUPS[g]}</h3><div class="grid">${SIGNS.filter(s=>s.g===g).map(s=>{
+  const ex=example(s.c);
+  const exHTML=ex?`<div class="ex">${markHTML(body(ex),s.c)} ${num(ex.numberInSurah)}</div><p>${surahName({name:ex.sname})} — آية ${AR(ex.numberInSurah)}</p>`:'<p>لا مثال في النص المحلي.</p>';
+  return `<div class="sign"><div class="glyph">${s.c==='\u06E9'?s.c:'ـ'+s.c+'ـ'}</div><b>${s.n} — ${s.t}</b><p>${s.d}</p>${exHTML}</div>`;}).join('')}</div>`).join('');
+skNote.textContent='ملاحظة: '+SOURCE_NOTE['ْ'];
+
+/* ---- ٦ اكتشف العلامات ---- */
+const LOOK=Object.fromEntries(SIGNS.map(s=>[s.c,s]));
+const discPool=ALL.filter(a=>a.juz===30&&body(a).length>40&&body(a).length<110&&/[ۖ-ۜ۟ۥۦ]/.test(body(a)));let dI=0;
+function paintDisc(){
+  const a=discPool[(dI*5)%discPool.length];
+  const t=[...body(a)].map(ch=>LOOK[ch]&&ch!=='ْ'?`<span class="mk" data-c="${ch}">${ch}</span>`:ch).join('');
+  disc.innerHTML=`${t} ${num(a.numberInSurah)}`;discFb.textContent='اضغط على علامة صغيرة داخل الآية.';}
+disc.addEventListener('click',e=>{const m=e.target.closest('.mk');if(!m)return;disc.querySelectorAll('.mk').forEach(x=>x.classList.remove('on'));m.classList.add('on');const s=LOOK[m.dataset.c];discFb.innerHTML=`<b>${s.n} — ${s.t}</b>: ${s.d}`;});
+dNext.onclick=()=>{dI++;paintDisc()};paintDisc();
+
+/* ---- ٧ السجدات ---- */
+const sajs=ALL.filter(a=>a.sajda);
+function paintSaj(){saj.innerHTML=sajs.map(a=>{const mine=amma.checked&&a.juz===30;
+  return `<div class="sajrow ${mine?'mine':''}"><span class="n">${AR(a.sajda.id)}</span><span>${surahName({name:a.sname})} — آية ${AR(a.numberInSurah)} — الجزء ${AR(a.juz)}${mine?' ✅ ضمن محفوظك':''}</span><em class="${a.sajda.obligatory?'ob':''}">${a.sajda.obligatory?'واجبة (عند بعض العلماء)':'مستحبة'}</em></div>`}).join('');}
+amma.onchange=paintSaj;paintSaj();
+
+/* ---- ٨ قالب السؤال ---- */
+const Q={
+ tap(){const a=discPool[(Math.floor(Math.random()*discPool.length))];
+  const t=body(a),idx=[...t].findIndex(ch=>/[ۖ-ۜ]/.test(ch));
+  const chars=[...t];const sign=chars[idx];
+  const html=chars.map((ch,i)=>/[ۖ-ۜ]/.test(ch)?`<span class="mk" data-ok="${i===idx?1:0}">${ch}</span>`:ch).join('');
+  return `<p class="stem">اضغط على علامة الوقف في الآية التالية</p><div class="media mq big">${html} ${num(a.numberInSurah)}</div><div class="fb" id="qfb"></div>`;},
+ choose(){const s=SIGNS.filter(x=>x.g==='waqf');const r=s[Math.floor(Math.random()*s.length)];
+  const opts=[r,...s.filter(x=>x!==r).sort(()=>Math.random()-.5).slice(0,3)].sort(()=>Math.random()-.5);
+  return `<p class="stem">ما اسم هذه العلامة؟</p><div class="media"><div class="mq big" style="text-align:center;color:var(--accent)">${r.c}</div></div>
+  <div class="opts">${opts.map(o=>`<button class="opt" data-ok="${o===r?1:0}" data-d="${r.t}: ${r.d}">${o.n}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;},
+ match(){const s=SIGNS.filter(x=>x.g==='waqf').slice(0,4);const names=s.slice().sort(()=>Math.random()-.5);
+  return `<p class="stem">صِل كل علامة باسمها</p><div class="match" id="mt">${s.map(x=>`<button class="g" data-k="${x.c}">${x.c}</button>`).join('')}${names.map(x=>`<button data-n="${x.c}">${x.n}</button>`).join('')}</div><div class="fb" id="qfb"></div>`;}
+};
+function showQ(k){qbox.innerHTML=Q[k]();
+  qtabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.q===k));
+  qbox.dataset.k=k;
+  if(k==='match'){let sel=null,done=0;mt.onclick=e=>{const b=e.target.closest('button');if(!b||b.classList.contains('done'))return;
+    if(b.dataset.k){mt.querySelectorAll('[data-k]').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;return;}
+    if(!sel)return;if(sel.dataset.k===b.dataset.n){sel.classList.add('done');b.classList.add('done');sel.classList.remove('sel');sel=null;done++;
+      if(done===4){qfb.className='fb show g';qfb.textContent='ممتاز! وصلتَ كل العلامات.';}}else{b.classList.add('bad');setTimeout(()=>b.classList.remove('bad'),500);}}}}
+qbox.addEventListener('click',e=>{const k=qbox.dataset.k;
+  if(k==='tap'){const m=e.target.closest('.mk');if(!m)return;const ok=m.dataset.ok==='1';m.classList.add('on');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! هذه علامة وقف.':'هذه ليست العلامة المطلوبة، حاول مرة أخرى.';}
+  if(k==='choose'){const o=e.target.closest('.opt');if(!o)return;const ok=o.dataset.ok==='1';o.classList.add(ok?'ok':'bad');qfb.className='fb show '+(ok?'g':'b');qfb.textContent=ok?'صحيح! '+o.dataset.d:'ليست الإجابة الصحيحة، حاول مرة أخرى.';}});
+qtabs.onclick=e=>{const b=e.target.closest('button');if(b)showQ(b.dataset.q)};
+showQ('tap');
+
+document.getElementById('load').hidden=true;root.hidden=false;
+</script></body></html>
