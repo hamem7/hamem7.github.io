@@ -1216,8 +1216,11 @@ function buildOrderGameUI() {
                 if(GameState.currentData.studentAnswer.length === GameState.currentData.original.length) { 
                     let isCorrect = true; 
                     for(let i=0; i<GameState.currentData.original.length; i++) { 
-                        if(GameState.currentData.studentAnswer[i].numberInSurah !== GameState.currentData.original[i].numberInSurah) isCorrect = false; 
-                    } 
+                        // الآية المكررة داخل السورة (مثل «ولا أنتم عابدون ما أعبد» في الكافرون) تُحسب صحيحة
+                        // لو طابق نصها نص الآية المطلوبة في هذا الموضع، حتى لو اختلف رقمها.
+                        const picked = GameState.currentData.studentAnswer[i], expected = GameState.currentData.original[i];
+                        if(picked.numberInSurah !== expected.numberInSurah && picked.text !== expected.text) isCorrect = false;
+                    }
                     if(isCorrect) { recordAnswer(true); } 
                     else { 
                         playErrorSound(); GameState.orderAttempts++;
