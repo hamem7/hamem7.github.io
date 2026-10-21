@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.44';
+export const APP_VERSION = '1.0.45';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.45',
+        date: '2026-10-21',
+        items: [
+            { type: 'fixed', text: { ar: 'علامات الضبط في ركن التجويد (الوقف والسكون والمدّ وما يشبهها) صارت بشكل المصحف المطبوع وبحجم كبير. وأُصلح خط المصحف: كانت علامات مثل الصفر المستدير ۟ والميم الصغيرة ۭ تظهر دائرة منقطة ◉ بدل شكلها الحقيقي.', en: 'Mushaf marks in the Tajweed corner (stop, sukun, madd and similar) now appear in the printed Mushaf shape and at a large size. The Mushaf font was also fixed: marks such as the round zero ۟ and the small low meem ۭ used to show a dotted circle ◉ instead of their real shape.' } }
+        ]
+    },
     {
         version: '1.0.44',
         date: '2026-10-21',
