@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.43';
+export const APP_VERSION = '1.0.44';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.44',
+        date: '2026-10-21',
+        items: [
+            { type: 'improved', text: { ar: 'أسئلة «معاني الكلمات» صارت أبسط للأطفال: اعتمدنا كتاب «السراج في بيان غريب القرآن» للشيخ محمد الخضيري مصدراً أول للمعنى القصير (نحو ٦٠٠٠ كلمة)، وبقي كتاب «كلمات القرآن» للشيخ حسنين مخلوف احتياطياً للكلمات التي لا يغطيها، مع اختصار شروحه الطويلة.', en: 'The "word meanings" questions are now simpler for children: "Al-Siraj fi Bayan Gharib al-Quran" by Sheikh Muhammad al-Khudayri is the first source of the short meaning (about 6,000 words), while "Kalimat al-Quran" by Sheikh Hasanayn Makhluf stays as a fallback for words it does not cover, with its long explanations shortened.' } }
+        ]
+    },
     {
         version: '1.0.43',
         date: '2026-10-21',
