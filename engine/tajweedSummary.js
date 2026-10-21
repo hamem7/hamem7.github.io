@@ -14,7 +14,7 @@ import { summarizeStudent } from './tajweedEntry.js';
 import { ensureJourney, journeyStep } from './tajweedJourney.js';
 
 // ترتيب عرض أنواع الأنشطة داخل الحكم الواحد (منطق التعلّم: تطبيق وألعاب ثم اختبار ثم مراجعة ثم تسميع)
-export const MODE_ORDER = ['practice', 'letters', 'tree', 'link', 'challenge', 'exam', 'review', 'teacher_checkpoint'];
+export const MODE_ORDER = ['practice', 'letters', 'tree', 'link', 'mushaf', 'challenge', 'exam', 'review', 'teacher_checkpoint'];
 
 const tsOf = (x) => new Date(x).getTime();
 const pad = (n) => String(n).padStart(2, '0');

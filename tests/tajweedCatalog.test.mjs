@@ -13,7 +13,8 @@ let pass = 0, fail = 0;
 const test = (name, fn) => { try { fn(); pass++; console.log('✅ ' + name); } catch (e) { fail++; console.log('❌ ' + name + '\n   ' + e.message); } };
 
 const quran = JSON.parse(fs.readFileSync(new URL('../database/quran-uthmani.json', import.meta.url), 'utf8')).data.surahs;
-const i18nSrc = fs.readFileSync(new URL('../core/i18n.js', import.meta.url), 'utf8');
+// ترجمات مرحلة «تعرّف على مصحفك» في ملف مستقل يُدمج في القاموس (core/i18nMushaf.js): نفحص المصدرين معاً
+const i18nSrc = fs.readFileSync(new URL('../core/i18n.js', import.meta.url), 'utf8') + fs.readFileSync(new URL('../core/i18nMushaf.js', import.meta.url), 'utf8');
 const flat = getAllRulesFlat();
 
 const ayahInfo = (surah, ayah) => {
@@ -21,9 +22,13 @@ const ayahInfo = (surah, ayah) => {
     return a ? { text: cleanAyahText(a.text), number: a.number, surahName: quran[surah - 1].name } : null;
 };
 
-test('أحكام المتن كلها حاضرة: 8 مراحل و27 حكماً', () => {
-    assert.equal(TAJWEED_STAGES.length, 8);
-    assert.equal(flat.length, 27);
+test('المراحل كلها حاضرة: «تعرّف على مصحفك» أولاً (8 دروس) ثم 8 مراحل المتن (27 حكماً): 9 مراحل و35 حكماً', () => {
+    assert.equal(TAJWEED_STAGES.length, 9);
+    assert.equal(TAJWEED_STAGES[0].id, 'know_mushaf');
+    assert.equal(TAJWEED_STAGES[1].id, 'qalqalah');
+    assert.equal(TAJWEED_STAGES[0].rules.length, 8);
+    assert.equal(flat.filter(x => !x.rule.mushaf).length, 27);
+    assert.equal(flat.length, 35);
 });
 
 test('معرّفات الأحكام والمراحل فريدة', () => {
@@ -49,7 +54,7 @@ test('لكل مرحلة وسام «بطل» معرَّف بالاسم والمف
 
 test('نص «اختر الحكم» لا يتطابق بين حكمين (لا سؤال بإجابتين صحيحتين)', () => {
     const seen = new Map();
-    flat.forEach(({ rule }) => {
+    flat.filter(x => !x.rule.mushaf).forEach(({ rule }) => {   // دروس المصحف بلا حروف: لا «اختر الحكم» لها
         const k = generateChooseRuleQuestion(rule).letters.trim();
         assert.ok(!seen.has(k), `${rule.id} و${seen.get(k)} لهما نفس النص «${k}»`);
         seen.set(k, rule.id);
@@ -58,7 +63,7 @@ test('نص «اختر الحكم» لا يتطابق بين حكمين (لا س�
 
 test('كل مثال: الآية موجودة، والعبارة تُطابَق، ويولَّد سؤال بكلمة صحيحة ومشتِّتات سليمة', () => {
     const problems = [];
-    flat.forEach(({ rule }) => {
+    flat.filter(x => !x.rule.mushaf).forEach(({ rule }) => {   // دروس المصحف أسئلتها من محرك المصحف (tests/tajweedMushaf.test.mjs)
         [['example', rule.example, generateDiscoverQuestion], ['practiceExample', rule.practiceExample, generateApplyQuestion],
             ...(rule.extraExamples || []).map((e, i) => ['extra' + i, e, generateApplyQuestion])].forEach(([field, ex, gen]) => {
             const info = ayahInfo(ex.surah, ex.ayah);

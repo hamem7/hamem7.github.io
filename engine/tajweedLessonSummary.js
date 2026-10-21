@@ -8,7 +8,7 @@ import { ensureJourney, journeyStep } from './tajweedJourney.js';
 import { localDayKey, groupActivities } from './tajweedSummary.js';
 
 const tsOf = (x) => new Date(x).getTime();
-export const GAME_MODES = ['practice', 'letters', 'tree', 'link'];
+export const GAME_MODES = ['practice', 'letters', 'tree', 'link', 'mushaf'];
 
 export function buildLessonModel({ student, ruleId, stageId = null, mastery = [], sessions = [], now = Date.now(), day = null }) {
     const rec = mastery.find(m => m.ruleId === ruleId) || null, j = ensureJourney(rec);

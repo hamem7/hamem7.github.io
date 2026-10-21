@@ -46,17 +46,17 @@ test('«فهمت» وحدها تجعل الطالب «بدأ» (بلا محاو�
     assert.equal(sum({ mastery: [r] }).started, true);
 });
 
-test('إتقان القلقلة ينقل الحكم الحالي إلى المرحلة التالية ويفتحها، ويزيد المتقن والنسبة', () => {
-    const s = sum({ mastery: [rec('qalqalah', 'mastered'), rec('ghunna_wajiba', 'practice')] });
-    assert.equal(s.done, 1);
+test('إتقان «تعرّف على مصحفك» ثم القلقلة ينقل الحكم الحالي إلى المرحلة التالية ويفتحها، ويزيد المتقن والنسبة', () => {
+    const s = sum({ mastery: [...masterAllIn(['know_mushaf']), rec('qalqalah', 'mastered'), rec('ghunna_wajiba', 'practice')] });
+    assert.equal(s.done, 9);   // 8 دروس مصحف + القلقلة
     assert.equal(s.current.ruleId, 'ghunna_wajiba'); assert.equal(s.current.step, 'exam');
-    assert.equal(s.stageCounts[0].complete, true); assert.equal(s.stageCounts[1].unlocked, true); assert.equal(s.stageCounts[1].active, true);
+    assert.equal(s.stageCounts[0].complete, true); assert.equal(s.stageCounts[1].complete, true); assert.equal(s.stageCounts[2].unlocked, true); assert.equal(s.stageCounts[2].active, true);
     assert.ok(s.progressPct > 0 && s.progressPct < 100);
 });
 
 test('الحكم الحالي داخل مرحلة متعددة الأحكام: أول غير متقن، مع موضعه وعدد أحكام مرحلته', () => {
-    const early = TAJWEED_STAGES.slice(0, 2).map(s => s.id);
-    const meem = TAJWEED_STAGES[2];
+    const early = TAJWEED_STAGES.slice(0, 3).map(s => s.id);
+    const meem = TAJWEED_STAGES[3];
     const s = sum({ mastery: [...masterAllIn(early), rec(meem.rules[0].id, 'mastered'), rec(meem.rules[1].id, 'learn')] });
     assert.equal(s.current.ruleId, meem.rules[1].id); assert.equal(s.current.ruleIndex, 1); assert.equal(s.current.ruleCount, meem.rules.length);
     assert.equal(s.current.step, 'practice');

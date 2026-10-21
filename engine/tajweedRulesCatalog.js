@@ -65,7 +65,31 @@
 // التصفّح الذي حفظه الطالب بالفعل.
 // 🌟 حروف كل حكم — نص عربي خام (بلا مفتاح ترجمة) لأنها رسم عربي ثابت لا يُترجَم بذاته،
 // بعكس التعريف والشرح المحيطين بها واللذين يحتاجان مفاتيح tjw_* ثنائية اللغة
+// 🌟🌟 [مرحلة جديدة — 2026-10-21] «تعرّف على مصحفك» هي المرحلة الأولى قبل القلقلة (بطلب المعلم): يتعرّف الطالب على كل ما في المصحف
+// خلاف الآيات: رقم الآية (في نهايتها لا في أولها)، لوحة اسم السورة ورأس الصفحة، فانوس الجزء والحزب والربع، علامات الوقف، السكون
+// والحروف الصامتة، المدّ والحروف الصغيرة، السين مكان الصاد، علامات السجدة. أحكامها «دروس» بلا حروف ولا أمثلة آيات ثابتة (الحقل mushaf):
+// أسئلتها تُولَّد من آيات حفظ الطالب (أو أقرب نطاق إليه) في engine/tajweedMushaf.js، وتعريفاتها من «علامات الوقف ومصطلحات الضبط» في
+// المصحف المطبوع. لا حقول example/letters لها: كل كود يمرّ بالأحكام يتخطّاها عبر isMushafRule.
+const MUSHAF_STAGE = {
+    id: 'know_mushaf',
+    nameKey: 'tjw_stage_know_mushaf_name',
+    icon: '📖',
+    colorVar: '--tjw-mushaf',
+    mushaf: true,
+    rules: [
+        { id: 'mushaf_ayah_number', nameKey: 'tjw_rule_mushaf_ayah_number_name', defKey: 'tjw_rule_mushaf_ayah_number_def', noticeKey: 'tjw_rule_mushaf_ayah_number_notice', letters: '', glyph: '١', mushaf: { lesson: 'ayah_number' } },
+        { id: 'mushaf_surah_head', nameKey: 'tjw_rule_mushaf_surah_head_name', defKey: 'tjw_rule_mushaf_surah_head_def', noticeKey: 'tjw_rule_mushaf_surah_head_notice', letters: '', glyph: '🏷️', mushaf: { lesson: 'surah_head' } },
+        { id: 'mushaf_juz_hizb', nameKey: 'tjw_rule_mushaf_juz_hizb_name', defKey: 'tjw_rule_mushaf_juz_hizb_def', noticeKey: 'tjw_rule_mushaf_juz_hizb_notice', letters: '', glyph: '۞', mushaf: { lesson: 'juz_hizb' } },
+        { id: 'mushaf_waqf', nameKey: 'tjw_rule_mushaf_waqf_name', defKey: 'tjw_rule_mushaf_waqf_def', noticeKey: 'tjw_rule_mushaf_waqf_notice', letters: '', glyph: 'ـۚـ', mushaf: { lesson: 'waqf' } },
+        { id: 'mushaf_silent_sukun', nameKey: 'tjw_rule_mushaf_silent_sukun_name', defKey: 'tjw_rule_mushaf_silent_sukun_def', noticeKey: 'tjw_rule_mushaf_silent_sukun_notice', letters: '', glyph: 'ـۡـ', mushaf: { lesson: 'silent_sukun' } },
+        { id: 'mushaf_madd_letters', nameKey: 'tjw_rule_mushaf_madd_letters_name', defKey: 'tjw_rule_mushaf_madd_letters_def', noticeKey: 'tjw_rule_mushaf_madd_letters_notice', letters: '', glyph: 'ـٰـ', mushaf: { lesson: 'madd_letters' } },
+        { id: 'mushaf_sin_saad', nameKey: 'tjw_rule_mushaf_sin_saad_name', defKey: 'tjw_rule_mushaf_sin_saad_def', noticeKey: 'tjw_rule_mushaf_sin_saad_notice', letters: '', glyph: 'ـۜـ', mushaf: { lesson: 'sin_saad' } },
+        { id: 'mushaf_sajda', nameKey: 'tjw_rule_mushaf_sajda_name', defKey: 'tjw_rule_mushaf_sajda_def', noticeKey: 'tjw_rule_mushaf_sajda_notice', letters: '', glyph: '۩', mushaf: { lesson: 'sajda' } }
+    ]
+};
+
 export const TAJWEED_STAGES = [
+    MUSHAF_STAGE,
     {
         id: 'qalqalah',
         nameKey: 'tjw_stage_qalqalah_name',
@@ -610,6 +634,10 @@ export function getStageRuleIds(stageId) {
 
 // 🌟 [جديد — المرحلة 3] أول مرحلة في الكتالوج (بوابة الدخول دائماً غير مقفلة) — يُستخدَم
 // كنقطة بداية افتراضية عند إنشاء تقدّم جديد لطالب لم يبدأ بعد
+// حكم/مرحلة «تعرّف على مصحفك»: دروس بلا حروف ولا آيات مثال (أسئلتها في engine/tajweedMushaf.js)
+export const isMushafRule = (rule) => !!(rule && rule.mushaf);
+export const isMushafStageId = (stageId) => { const st = TAJWEED_STAGES.find((x) => x.id === stageId); return !!(st && st.mushaf); };
+
 export function getFirstStageId() {
     return TAJWEED_STAGES.length > 0 ? TAJWEED_STAGES[0].id : null;
 }

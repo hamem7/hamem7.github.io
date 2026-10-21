@@ -1041,3 +1041,89 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-stage-intro-card { max-width: 440px; width: 100%; border-radius: 20px; padding: 24px 20px; background: #16304f; color: #fff8e6; border: 1.5px solid rgba(224, 176, 79, 0.6); display: flex; flex-direction: column; gap: 12px; text-align: center; }
 .tjw-stage-intro-card h2 { margin: 0; font-size: 1.3rem; }
 .tjw-stage-intro-card p { margin: 0; opacity: 0.85; }
+
+/* ============================================================
+   مرحلة «تعرّف على مصحفك» (tajweed/tajweed-mushaf-ui.js): فانوس الهامش، لوحة السورة، رأس الصفحة، وردة الآية، العلامات
+   الصور الحقيقية في assets/tajweed/mushaf/ والكلمات تُكتب فوقها. النصوص القرآنية دائماً dir=rtl حتى في الواجهة الإنجليزية.
+   ============================================================ */
+:root { --tjw-mushaf: #b7791f; }
+.tjw-mk-ar { font-family: 'Amiri Quran', serif; direction: rtl; unicode-bidi: isolate; }
+.tjw-mk-lesson { display: flex; flex-direction: column; gap: 14px; }
+.tjw-mk-intro { margin: 0; line-height: 1.9; }
+.tjw-mk-tip { background: rgba(224, 176, 79, 0.16); border-inline-start: 4px solid var(--tjw-gold); border-radius: 10px; padding: 8px 12px; line-height: 1.8; }
+.tjw-mk-note { margin: 4px 0 0; font-size: 0.86rem; color: var(--tjw-muted); }
+.tjw-mk-sub { margin: 4px 0 0; color: var(--tjw-primary); }
+.tjw-mk-near { background: #fff6df; color: #8a5a00; border: 1px solid #e0b04f; }
+.tjw-mk-ayahbox { margin: 6px 0; }
+.tjw-mk-flow { display: flex; flex-wrap: wrap; gap: 0.1rem 0.4rem; align-items: center; justify-content: flex-start; line-height: 2.3; }
+
+/* وردة رقم الآية */
+.tjw-mk-rosette { display: inline-grid; place-items: center; min-width: 1.75em; height: 1.75em; margin: 0 0.2em; padding: 0 0.15em; border-radius: 50%;
+    border: 2px double var(--tjw-gold-deep); background: #fff8e6; color: var(--tjw-accent); font-family: 'Amiri Quran', serif; font-size: 0.68em; line-height: 1; vertical-align: middle; }
+.tjw-mk-rosette.is-big { font-size: 1.6rem; min-width: 2.4em; height: 2.4em; }
+.tjw-mk-bigrosette { display: grid; place-items: center; padding: 10px; }
+
+/* لوحة اسم السورة ورأس الصفحة */
+.tjw-mk-bannerbox, .tjw-mk-pageheadbox, .tjw-mk-wordbox, .tjw-mk-imgbox { display: grid; place-items: center; gap: 4px; margin: 6px 0; }
+.tjw-mk-banner { position: relative; width: min(100%, 520px); }
+.tjw-mk-banner img { display: block; width: 100%; height: auto; }
+.tjw-mk-banner-name { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Amiri Quran', serif; font-size: clamp(1.1rem, 4.4vw, 1.9rem); color: #1b1b1b; padding-inline: 30%; text-align: center; line-height: 1.2; }
+.tjw-mk-pagehead { display: flex; justify-content: space-between; gap: 16px; width: min(100%, 420px); font-family: 'Amiri Quran', serif; font-size: 1.05rem; color: #555; border-bottom: 1px solid #e3d5b0; padding-bottom: 2px; }
+.tjw-mk-pageheadbox small { color: var(--tjw-muted); }
+.tjw-mk-wordbox { font-size: 2rem; background: #fffef9; border: 2px solid #e8dcc0; border-radius: 14px; padding: 8px 18px; }
+.tjw-mk-bsm { text-align: center; margin-bottom: 6px; }
+.tjw-mk-imgbox img { max-height: 90px; width: auto; }
+.tjw-mk-imgbox img.is-wide, .tjw-mk-signimg.is-wide { max-width: 100%; max-height: 64px; }
+.tjw-mk-signimg { height: 60px; width: auto; vertical-align: middle; }
+
+/* فانوس الهامش: صورة حقيقية والكلمات فوقها (النسب مقيسة من الصورة) */
+.tjw-mk-lantern { position: relative; container-type: inline-size; width: 84px; margin: 0 auto; }
+.tjw-mk-lantern img { display: block; width: 100%; height: auto; }
+.tjw-mk-lantern-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: 'Amiri Quran', serif; font-weight: 700; color: #111; line-height: 1.25; }
+.tjw-mk-media-lantern { display: grid; place-items: center; padding: 6px; }
+.tjw-mk-gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.tjw-mk-gallery figure { margin: 0; text-align: center; background: #fff; border: 2px solid var(--tjw-line); border-radius: 14px; padding: 8px; color: var(--tjw-text); }
+.tjw-mk-gallery figcaption, .tjw-mk-figs figcaption { font-size: 0.82rem; color: var(--tjw-muted); margin-top: 4px; }
+.tjw-mk-counts { text-align: center; font-weight: 700; color: var(--tjw-primary); background: rgba(30, 58, 95, 0.08); border-radius: 12px; padding: 6px; }
+.tjw-mk-pagedemo { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; background: #fffef9; border: 2px solid #d9c9a3; border-radius: 8px; padding: 12px; color: #3a2c1f; }
+.tjw-mk-pagedemo-body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tjw-mk-figs { display: flex; flex-direction: column; gap: 10px; }
+.tjw-mk-figs figure { margin: 0; text-align: center; }
+
+/* مقارنة رقم الآية */
+.tjw-mk-cmp { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.tjw-mk-cmp > div { border-radius: 14px; padding: 10px; border: 2px solid var(--tjw-line); color: #1b1b1b; font-size: 1.35rem; line-height: 2.2; }
+.tjw-mk-cmp .is-wrong { background: #fff1ef; border-color: #f0b4ac; }
+.tjw-mk-cmp .is-right { background: #eefaf2; border-color: #9ad8b3; }
+.tjw-mk-cmp h4 { margin: 0 0 4px; font-size: 0.9rem; font-family: inherit; }
+
+/* بطاقات العلامات */
+.tjw-mk-signgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.tjw-mk-signcard { background: #fff; color: var(--tjw-text); border: 2px solid var(--tjw-line); border-radius: 16px; padding: 10px; display: grid; gap: 4px; align-content: start; }
+.tjw-mk-signcard h4 { margin: 0; color: var(--tjw-primary); }
+.tjw-mk-signcard p { margin: 0; font-size: 0.88rem; color: var(--tjw-muted); line-height: 1.7; }
+.tjw-mk-signglyph { font-family: 'Amiri Quran', serif; font-size: 3.4rem; line-height: 2.2; color: var(--tjw-accent); text-align: center; background: #fff8e6; border-radius: 12px; padding-top: 0.1em; }
+.tjw-mk-signglyph.is-card { font-size: 3.2rem; }
+.tjw-mk-signex { font-size: 1.3rem; line-height: 2.1; background: #fffef9; border-radius: 10px; padding: 2px 8px; color: #1b1b1b; }
+.tjw-mk-signex mark, .tjw-mk-ayahbox mark { background: #ffe08a; color: var(--tjw-accent); border-radius: 6px; padding: 0 0.1em; }
+.tjw-mk-optglyph { font-family: 'Amiri Quran', serif; font-size: 2rem; line-height: 1.6; color: var(--tjw-accent); }
+.tjw-mk-glyphopt { min-height: 64px; }
+
+/* أسئلة الضغط والوصل */
+.tjw-mk-seg { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 10px; padding: 0 0.25em; min-height: 2.2em; cursor: pointer; }
+.tjw-mk-seg:hover:not(:disabled) { background: #e7f2ff; border-color: var(--tjw-primary-light); }
+.tjw-mk-seg.is-mark { min-width: 2.2em; border: 2px dashed rgba(140, 47, 61, 0.45); background: #fff8e6; color: var(--tjw-accent); line-height: 2; padding: 0 0.1em; }
+.tjw-mk-segnum { border-radius: 50%; border: 2px double var(--tjw-gold-deep); background: #fff8e6; color: var(--tjw-accent); min-width: 2.2em; font-size: 0.8em; }
+.tjw-mk-segtext { line-height: 2; }
+.tjw-mk-lines { display: flex; flex-direction: column; gap: 8px; }
+.tjw-mk-segline { display: block; text-align: start; width: 100%; font-size: 1.4rem; line-height: 2.1; border-color: var(--tjw-line); background: #fffef9; color: #1b1b1b; padding: 4px 12px; }
+.tjw-mk-seg.tjw-answer-correct { background: #c8f0d6; border-color: var(--tjw-good); color: #14633a; }
+.tjw-mk-seg.tjw-answer-wrong { background: #fbd0cb; border-color: var(--tjw-bad); }
+.tjw-mk-seg.tjw-answer-picked { background: #ffe9a8; border-color: var(--tjw-gold-deep); }
+.tjw-mk-match .tjw-mk-matchbtn { min-height: 52px; }
+
+@media (max-width: 560px) {
+    .tjw-mk-cmp { grid-template-columns: 1fr; }
+    .tjw-mk-pagedemo { grid-template-columns: 72px 1fr; }
+    .tjw-mk-lantern { width: 72px; }
+}

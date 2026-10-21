@@ -1,6 +1,7 @@
 // core/i18n.js
 import { AppState } from './app.js';
 import { registerTranslator } from './langBridge.js';
+import { MUSHAF_I18N } from './i18nMushaf.js';
 
 // 🌟 القاموس الشامل لكل شاشات المنصة والواجبات الجديدة 🌟
 export const translations = {
@@ -5800,6 +5801,10 @@ export const translations = {
         "لم تُؤخَذ أي نسخة احتياطية بعد على هذا الجهاز": "No backup has been taken on this device yet"
     }
 };
+
+// 🌟 [2026-10-21] ترجمات مرحلة «تعرّف على مصحفك» في ملف مستقل (core/i18nMushaf.js) تُدمج هنا بالآلية نفسها
+Object.assign(translations.ar, MUSHAF_I18N.ar);
+Object.assign(translations.en, MUSHAF_I18N.en);
 
 export function t(key) {
     const lang = AppState.currentLang;
