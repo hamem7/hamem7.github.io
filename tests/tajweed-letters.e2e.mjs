@@ -93,6 +93,8 @@ async function playAll(ruleId, label) {
   return kinds;
 }
 
+// ألعاب الحروف داخل مسار الحكم (تأتي بعد «تدرّب»)؛ نفتحها هنا مباشرة بمعاملات المسار نفسها
+const startLetters = (stageId, ruleId) => page.evaluate(([s, r]) => window.__APP.openTajweedActivityScreen({ mode: 'letters', stageId: s, ruleId: r, pathRuleId: r, dueRuleIds: [], studentId: window.__APP.AppState.currentStudent.id }), [stageId, ruleId]);
 // ١) إظهار/إخفاء وبطاقات الحروف وشجرة الحكم في شاشة الحكم (الإخفاء: 15 حرفاً بكلمات من المنصة)
 await toMap(); await openRule('ikhfa');
 const lesson = await page.evaluate(() => ({
@@ -105,7 +107,7 @@ check('بطاقات الإخفاء: 15 بطاقة', lesson.cards === 15, String(
 const strip = s => s.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '').replace(/[أإآٱ]/g, 'ا');
 check('ظهر كل بطاقة كلمة قرآنية من المنصة حرفها المظلَّل هو حرف وجهها', lesson.backs.every(b => b.word.length > 2 && strip(b.mark)[0] === strip(b.front)[0]), JSON.stringify(lesson.backs.filter(b => !(b.word.length > 2 && strip(b.mark)[0] === strip(b.front)[0])).slice(0, 3)));
 check('شجرة الحكم: الحكم الحالي مظلَّل، والإدغام مجمَّع، وخمسة أحكام', lesson.tree && lesson.activeNode === 'الإخفاء' && lesson.treeNodes === 5 && lesson.group === 'الإدغام', JSON.stringify({ a: lesson.activeNode, n: lesson.treeNodes, g: lesson.group }));
-check('زر «العب بحروف هذا الحكم» موجود (إضافة)', lesson.lettersBtn);
+check('ألعاب الحروف صارت داخل مسار الحكم: لا زر مستقل لها في الشرح', !lesson.lettersBtn);
 await page.click('.tjw-flip'); await sleep(100);
 check('الضغط على البطاقة يقلبها', await page.evaluate(() => document.querySelector('.tjw-flip').classList.contains('is-flipped')));
 const illus = await page.evaluate(() => ({ svg: !!document.querySelector('.tjw-illus .tjw-illus-svg'), words: document.querySelectorAll('.tjw-illus-svg text[direction=rtl]').length, cap: (document.querySelector('.tjw-illus figcaption') || {}).textContent || '' }));
@@ -116,7 +118,7 @@ check('درس الإخفاء يعرض صور كتاب التجويد المصو�
 await shot('1-ikhfa-lesson');
 
 // ٢) ألعاب الحروف للإخفاء (حروف): اجمع/الدخيل/صنّف
-await page.click('[data-action="start-letters"]'); await page.waitForSelector('.tjw-activity-card');
+await startLetters('noon_sakinah', 'ikhfa'); await page.waitForSelector('.tjw-activity-card');
 check('عنوان الشاشة «ألعاب الحروف» و5 أسئلة', /ألعاب الحروف/.test(await page.textContent('#tjwa-title')) && /\/ 5/.test(await page.textContent('.tjw-progress-label')));
 const kinds1 = await playAll('ikhfa', 'ألعاب حروف الإخفاء'); await shot('2-ikhfa-letters-result');
 check('تنوّع الأسئلة: لوح جمع + دخيل + تصنيف', ['collect', 'letter-option', 'classify'].every(k => kinds1.includes(k)), kinds1.join(','));
@@ -125,7 +127,7 @@ check('تنوّع الأسئلة: لوح جمع + دخيل + تصنيف', ['coll
 await toMap(); await openRule('mutajanisain');
 const pairs = await page.evaluate(() => ({ cards: document.querySelectorAll('.tjw-flip.is-pair').length, badges: [...document.querySelectorAll('.tjw-flip-badge')].length, words: [...document.querySelectorAll('.tjw-flip-word')].every(w => w.textContent.trim().length > 2) }));
 check('بطاقات أزواج المتجانسين: 6 بطاقات بكلمات وشارة «يُدغم»', pairs.cards === 6 && pairs.badges === 6 && pairs.words, JSON.stringify(pairs));
-await page.click('[data-action="start-letters"]'); await page.waitForSelector('.tjw-activity-card');
+await startLetters('mithlain', 'mutajanisain'); await page.waitForSelector('.tjw-activity-card');
 const kinds2 = await playAll('mutajanisain', 'ألعاب أزواج المتجانسين');
 check('أسئلة الأزواج: صنّف الزوج واربط الحرفين', kinds2.includes('classify') && kinds2.includes('letter-option'), kinds2.join(','));
 

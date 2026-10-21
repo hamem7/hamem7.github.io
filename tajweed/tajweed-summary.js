@@ -9,6 +9,8 @@ import { TAJWEED_STAGES, getAllRulesFlat } from '../engine/tajweedRulesCatalog.j
 import { TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { buildSessionSummary, buildRuleSummary, formatSummaryText, cleanForCopy } from '../engine/tajweedSummary.js';
+import { buildLessonModel, formatLessonSummary } from '../engine/tajweedLessonSummary.js';
+import { summarizeStudent } from '../engine/tajweedEntry.js';
 
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tr = (key, vars = {}) => plain(Object.entries(vars).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), t(key)));
@@ -58,7 +60,7 @@ function ruleOptions(data, wanted) {
 // ============================================================
 // النافذة
 // ============================================================
-export async function openParentSummary({ studentId, ruleId = null, kind = null } = {}) {
+export async function openParentSummary({ studentId, ruleId = null, kind = null, onClose = null } = {}) {
     document.getElementById('tjw-sum-overlay')?.remove();
     const data = await loadStudentData(studentId);
     if (!data) return;
@@ -67,7 +69,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     const lastActive = data.sessions.filter(s => s.ruleId).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
     const defaultRule = lastActive && opts.some(r => r.id === lastActive.ruleId) ? lastActive.ruleId : (opts[0] && opts[0].id) || null;
     const st = { kind: kind || (ruleId ? 'rule' : 'session'), ruleId: ruleId || defaultRule, note: '', home: true, dirty: false };
-    if (st.kind === 'rule' && !st.ruleId) st.kind = 'session';
+    if ((st.kind === 'rule' || st.kind === 'lesson') && !st.ruleId) st.kind = 'session';
     const returnFocus = document.activeElement;
 
     const ctx = () => ({
@@ -76,6 +78,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     });
     const build = () => {
         const base = { student: data.student, sessions: data.sessions, mastery: data.mastery, dueRuleIds: data.dueRuleIds };
+        if (st.kind === 'lesson') return buildLessonModel({ student: data.student, ruleId: st.ruleId, mastery: data.mastery, sessions: data.sessions });
         return st.kind === 'rule'
             ? buildRuleSummary({ ...base, ruleId: st.ruleId })
             : buildSessionSummary({ ...base, achievements: data.achievements });
@@ -92,6 +95,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
             <div class="tjw-sum-head"><h2>${t('tjw_sum_title')}</h2><button type="button" class="tjw-sum-x" data-sum="close" aria-label="${esc(t('tjw_sum_close'))}">✕</button></div>
             <p class="tjw-sum-student">👤 ${esc(data.student.name)}</p>
             <div class="tjw-sum-tabs" role="tablist">
+                <button type="button" role="tab" data-sum="tab" data-kind="lesson">${t('tjw_sum_tab_lesson')}</button>
                 <button type="button" role="tab" data-sum="tab" data-kind="session">${t('tjw_sum_tab_session')}</button>
                 <button type="button" role="tab" data-sum="tab" data-kind="rule">${t('tjw_sum_tab_rule')}</button>
             </div>
@@ -113,7 +117,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     const $ = (sel) => ov.querySelector(sel);
     const textEl = $('#tjw-sum-text'), toastEl = $('#tjw-sum-toast');
     const toast = (msg) => { toastEl.textContent = msg; clearTimeout(toast._t); toast._t = setTimeout(() => { toastEl.textContent = ''; }, 2500); };
-    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); if (returnFocus && returnFocus.focus) try { returnFocus.focus(); } catch (e) { /* العنصر لم يعد موجوداً */ } };
+    const close = () => { ov.remove(); if (typeof onClose === 'function') { try { onClose(); } catch (e) { /* لا شيء */ } } document.removeEventListener('keydown', onKey); if (returnFocus && returnFocus.focus) try { returnFocus.focus(); } catch (e) { /* العنصر لم يعد موجوداً */ } };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onKey);
 
@@ -121,14 +125,20 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
     const autosize = () => { textEl.style.height = 'auto'; textEl.style.height = Math.min(textEl.scrollHeight + 4, Math.round(window.innerHeight * 0.5)) + 'px'; };
     const sync = () => {
         ov.querySelectorAll('[data-sum="tab"]').forEach(b => { const on = b.dataset.kind === st.kind; b.classList.toggle('is-on', on); b.setAttribute('aria-selected', String(on)); });
-        $('#tjw-sum-rulepick').hidden = st.kind !== 'rule';
+        $('#tjw-sum-rulepick').hidden = st.kind === 'session';
+        $('#tjw-sum-home').closest('label').style.display = st.kind === 'lesson' ? 'none' : '';
         const sel = $('#tjw-sum-rule'); if (st.ruleId) sel.value = st.ruleId;
         const model = build();
-        textEl.value = formatSummaryText(model, ctx());
+        if (st.kind === 'lesson') {
+            const sInfo = summarizeStudent({ student: data.student, mastery: data.mastery, sessions: data.sessions, dueRuleIds: data.dueRuleIds });
+            const nextId = sInfo.current && sInfo.current.ruleId !== st.ruleId ? sInfo.current.ruleId : null;
+            textEl.value = formatLessonSummary(model, { tr, ruleName: id => plain(t(ruleOf(id).nameKey)), nextRuleName: nextId ? plain(t(ruleOf(nextId).nameKey)) : null, note: st.note });
+        } else textEl.value = formatSummaryText(model, ctx());
         st.dirty = false;
         autosize(); textEl.scrollTop = 0;
         const old = $('#tjw-sum-dayold');
         old.hidden = !(st.kind === 'session' && !model.empty && !model.isToday);
+        if (st.kind === 'lesson') old.hidden = true;
         if (!old.hidden) old.textContent = tr('tjw_sum_day_old', { date: formatDate(model.day) });
     };
     // تغيير أي عنصر تحكم بعد أن عدّل المعلم النص يسأله قبل الاستبدال
@@ -139,7 +149,7 @@ export async function openParentSummary({ studentId, ruleId = null, kind = null 
         const b = e.target.closest('[data-sum]'); if (!b) return;
         const act = b.dataset.sum;
         if (act === 'close') return close();
-        if (act === 'tab') { const prev = st.kind; st.kind = b.dataset.kind; if (st.kind === 'rule' && !st.ruleId) { st.kind = prev; return; } if (!regenerate()) st.kind = prev, ov.querySelectorAll('[data-sum="tab"]').forEach(x => x.classList.toggle('is-on', x.dataset.kind === st.kind)); return; }
+        if (act === 'tab') { const prev = st.kind; st.kind = b.dataset.kind; if ((st.kind === 'rule' || st.kind === 'lesson') && !st.ruleId) { st.kind = prev; return; } if (!regenerate()) st.kind = prev, ov.querySelectorAll('[data-sum="tab"]').forEach(x => x.classList.toggle('is-on', x.dataset.kind === st.kind)); return; }
         if (act === 'regen') return void regenerate();
         if (act === 'copy') {
             const text = cleanForCopy(textEl.value);            // ما يُنسخ هو النص المنظَّف كما يراه المعلم بعد تعديله

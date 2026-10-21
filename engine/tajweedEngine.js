@@ -369,7 +369,7 @@ export function generateIdentifyQuestion(rule, source, { conflicts = null } = {}
     };
 }
 
-function examDiscoverFromSource(rule, src) {
+export function examDiscoverFromSource(rule, src) {
     if (src.occurrences) return generateAnnotatedQuestion('apply_new_ayah', rule, src.ayahInfo, src.occurrences);
     return buildDiscoverStyleQuestion('apply_new_ayah', rule, src.ayahInfo, src);
 }

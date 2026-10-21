@@ -12,6 +12,11 @@ export const EXAM_SIZE = 8;              // عدد أسئلة الاختبار (
 export const EXAM_MIN_SIZE = 5;
 export const TEACHER_PASS_SCORE = 70;    // اعتماد المعلم (درجة «سمّع لي»)
 
+// 🌟 [مسار الحكم المتصل — 2026-10-21] «التطبيق» صار «حزمة ألعاب» تُلعب متتابعة (تدرّب، حروف، شجرة، ربط). تُنجَز الخطوة حين تُلعب كل
+// ألعاب الحكم ويبلغ متوسط نتائجها هذا الحد (بطلب المعلم: «نسبة معينة لكل الأسئلة»). الأقل من 60% في لعبة واحدة بعد رسوب الاختبار
+// يكفي لفكّ قفل إعادة الاختبار (كما كان بعد جلسة تطبيق ناجحة).
+export const GAMES_PASS_SCORE = 75;
+
 export const JOURNEY_STEPS = ['learn', 'practice', 'exam', 'awaiting_teacher', 'mastered'];
 
 export function emptyJourney() {
@@ -21,7 +26,10 @@ export function emptyJourney() {
         practiceSinceFail: true,          // يُصفَّر عند رسوب الاختبار ويعود true بجلسة تطبيق ناجحة
         examAttempts: [],                 // [{at, score, passed}]
         examPassedAt: null,
-        teacherApprovedAt: null
+        teacherApprovedAt: null,
+        // مسار الحكم المتصل: آخر نتيجة لكل لعبة {practice, letters, tree, link}، ومتوسطها، ومتى استمع الطالب لمثال بصوت المنشاوي، ونقطة التوقف،
+        // وأنواع آخر اختبار (فلا تتكرر تشكيلته في الاختبار التالي)
+        gameScores: {}, gamesAvg: null, audioAt: null, resume: null, examKinds: []
     };
 }
 
@@ -77,9 +85,10 @@ export function applyPracticeResult(record, scorePercent, now = new Date()) {
     });
 }
 
-export function applyExamResult(record, scorePercent, now = new Date()) {
+export function applyExamResult(record, scorePercent, now = new Date(), kinds = null) {
     const passed = scorePercent >= EXAM_PASS_SCORE;
     const out = withJourney(record, j => {
+        if (kinds && kinds.length) j.examKinds = kinds;   // تشكيلة أنواع هذا الاختبار: لا يكرّرها الاختبار التالي (engine/tajweedExamVariety.js)
         j.examAttempts = [...(j.examAttempts || []), { at: now.toISOString(), score: Math.round(scorePercent), passed }];
         if (passed) { if (!j.examPassedAt) j.examPassedAt = now.toISOString(); }
         else j.practiceSinceFail = false;
@@ -102,3 +111,54 @@ export function statusFromJourney(record, previousStatus) {
     const started = j.learnedAt || (record && (record.attemptsCount || 0) > 0);
     return started ? 'in_progress' : 'available';
 }
+
+// ============================================================
+// مسار الحكم المتصل (ألعاب ← اختبار ← اعتماد بضغطة، مع إيقاف واستكمال)
+// ============================================================
+
+// نتيجة لعبة واحدة من حزمة الألعاب. required = مفاتيح ألعاب هذا الحكم (من engine/tajweedPath.js). عند لعب كلها يُحسب المتوسط، وبلوغه
+// GAMES_PASS_SCORE يُنجز الخطوة. بعد رسوب اختبار سابق تكفي لعبة ≥60% لفكّ قفل إعادة الاختبار.
+export function applyGameResult(record, gameKey, scorePercent, required, now = new Date()) {
+    return withJourney(record, j => {
+        if (!j.learnedAt) j.learnedAt = now.toISOString();
+        const sc = Math.round(scorePercent);
+        j.gameScores = { ...(j.gameScores || {}), [gameKey]: sc };
+        j.practiceCount = (j.practiceCount || 0) + 1;
+        const req = (required && required.length) ? required : [gameKey];
+        if (req.every(k => typeof j.gameScores[k] === 'number')) {
+            j.gamesAvg = Math.round(req.reduce((a, k) => a + j.gameScores[k], 0) / req.length);
+            j.practiceBest = Math.max(j.practiceBest || 0, j.gamesAvg);
+            if (j.gamesAvg >= GAMES_PASS_SCORE && !j.practicePassedAt) j.practicePassedAt = now.toISOString();
+        }
+        if (scorePercent >= PRACTICE_PASS_SCORE) j.practiceSinceFail = true;
+    });
+}
+
+// الألعاب التي لم تُلعب بعد، أو (بعد لعبها كلها دون بلوغ الحد) الأضعف نتيجةً ليُعاد
+export function nextGameKey(journey, required) {
+    const j = journey || emptyJourney();
+    const scores = j.gameScores || {};
+    const missing = (required || []).find(k => typeof scores[k] !== 'number');
+    if (missing) return missing;
+    if (j.practicePassedAt) return null;
+    return [...(required || [])].sort((a, b) => (scores[a] ?? 0) - (scores[b] ?? 0))[0] || null;
+}
+
+// اعتماد المعلم بضغطة واحدة (بعد اجتياز الاختبار فقط)
+export function applyTeacherApproval(record, now = new Date()) {
+    const j0 = ensureJourney(record);
+    const approved = !!j0.examPassedAt;
+    const out = withJourney(record, j => { if (approved && !j.teacherApprovedAt) j.teacherApprovedAt = now.toISOString(); });
+    return { record: out, approved };
+}
+
+// الطالب استمع لمثال بصوت المنشاوي في درس الحكم (يُذكر في الملخص فقط إن حدث فعلاً)
+export function applyAudioHeard(record, now = new Date()) {
+    return withJourney(record, j => { if (!j.audioAt) j.audioAt = now.toISOString(); });
+}
+
+// نقطة التوقف: لقطة النشاط الجاري (نوعه وأسئلته ومكانه) ليكمل الطالب من السؤال نفسه المرة القادمة
+export function setResume(record, snapshot, now = new Date()) {
+    return withJourney(record, j => { j.resume = snapshot ? { ...snapshot, savedAt: now.toISOString() } : null; });
+}
+export const clearResume = (record) => setResume(record, null);

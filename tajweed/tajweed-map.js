@@ -11,9 +11,10 @@ import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { computeAllStageProgress, isStageUnlocked, TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
 import {
-    ensureJourney, journeyStep, journeyPercent, applyLearned, statusFromJourney,
-    EXAM_PASS_SCORE, EXAM_SIZE
+    ensureJourney, journeyStep, journeyPercent, applyLearned, applyAudioHeard, setResume, nextGameKey, statusFromJourney,
+    EXAM_PASS_SCORE, EXAM_SIZE, GAMES_PASS_SCORE
 } from '../engine/tajweedJourney.js';
+import { gamesForRule } from '../engine/tajweedPath.js';
 import { renderStageTreeHTML, renderLetterCardsHTML } from './tajweed-letters-ui.js';
 import { renderRuleIllustrationHTML } from './tajweed-illustrations.js';
 import { renderBookStripHTML, makharijButtonHTML } from './tajweed-book-images.js';
@@ -95,6 +96,54 @@ async function render() {
     container.innerHTML = html;
 
     if (currentView.view === 'pickStudent') bindEntryInputs();
+    if (currentView.view === 'browse') maybeShowStageIntro();
+}
+
+// ============================================================
+// 🌟 [مسار الحكم] رسالة عند فتح مرحلة جديدة بعد إنهاء السابقة: يختار المعلم مراجعة جديدة لما سبق أو البدء بالمرحلة الجديدة.
+// تظهر مرة واحدة لكل (طالب × مرحلة) (العلامة في localStorage)، ولا تظهر لمرحلة بدأها الطالب فعلاً.
+// ============================================================
+const introKey = (studentId, stageId) => `dh_tjw_stage_intro_${studentId}_${stageId}`;
+async function maybeShowStageIntro() {
+    const student = AppState.currentStudent;
+    if (!student || document.getElementById('tjw-stage-intro')) return;
+    let allMastery;
+    try { allMastery = await AppState.tajweedManager.getMasteryByStudent(student.id); } catch (e) { return; }
+    const progress = computeAllStageProgress(allMastery);
+    for (let i = 1; i < TAJWEED_STAGES.length; i++) {
+        const prev = TAJWEED_STAGES[i - 1], stage = TAJWEED_STAGES[i];
+        if (!(progress[prev.id] && progress[prev.id].status === 'completed')) continue;
+        if (!progress[stage.id] || progress[stage.id].status !== 'available') continue;
+        try { if (localStorage.getItem(introKey(student.id, stage.id))) continue; } catch (e) { /* لا تخزين: تظهر دون تذكّر */ }
+        showStageIntro(student, prev, stage);
+        return;
+    }
+}
+
+function showStageIntro(student, prev, stage) {
+    const ov = document.createElement('div');
+    ov.id = 'tjw-stage-intro';
+    ov.className = 'tjw-stage-intro-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    const fill = (str, vars) => Object.entries(vars).reduce((a, [k, v]) => a.split(`{${k}}`).join(v), str);
+    ov.innerHTML = `<div class="tjw-stage-intro-card">
+        <h2>${fill(t('tjw_stage_done_title'), { student: student.name, stage: t(prev.nameKey) })}</h2>
+        <p>${t('tjw_stage_done_ask')}</p>
+        <button type="button" class="tjw-outline-btn" data-intro="review">${t('tjw_stage_review_btn')}</button>
+        <button type="button" class="tjw-cta-btn" data-intro="start">${fill(t('tjw_stage_start_btn'), { stage: t(stage.nameKey) })}</button>
+        <button type="button" class="tjw-link-btn" data-intro="later">${t('tjw_stage_later_btn')}</button>
+    </div>`;
+    document.body.appendChild(ov);
+    const done = () => { try { localStorage.setItem(introKey(student.id, stage.id), '1'); } catch (e) { /* لا شيء */ } ov.remove(); };
+    ov.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-intro]');
+        if (!b) return;
+        const choice = b.dataset.intro;
+        done();
+        if (choice === 'review') startActivity('review', { stageId: null, ruleId: null, dueRuleIds: prev.rules.map(r => r.id) });
+        else if (choice === 'start') pushView('ruleDetail', { stageId: stage.id, ruleId: stage.rules[0].id });
+    });
 }
 
 // 🌟 إعادة رسم شاشة الدخول من البيانات المحمَّلة (بلا قراءة جديدة من قاعدة البيانات): اختيار طالب، تبديل الوضع، الترتيب...
@@ -186,7 +235,7 @@ async function handleContainerClick(e) {
     }
     if (action === 'parent-summary') {
         // 🌟 [جديد] «ملخص جاهز للولي»: من بطاقة حكم (ملخص الحكم) أو من الخريطة (ملخص الحصة)
-        if (AppState.currentStudent) openParentSummary({ studentId: AppState.currentStudent.id, ruleId: btn.dataset.rule || null, kind: btn.dataset.rule ? 'rule' : 'session' });
+        if (AppState.currentStudent) openParentSummary({ studentId: AppState.currentStudent.id, ruleId: btn.dataset.rule || null, kind: btn.dataset.rule ? 'lesson' : 'session' });
         return;
     }
     if (action === 'change-student') {
@@ -221,11 +270,24 @@ async function handleContainerClick(e) {
         const updated = applyLearned(rec);
         updated.status = statusFromJourney(updated, updated.status);
         await AppState.tajweedManager.saveMastery(updated);
-        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
+        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
     } else if (action === 'start-exam') {
-        startActivity('exam', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
+        startActivity('exam', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
+    } else if (action === 'play-game') {
+        // 🌟 [مسار الحكم] لعبة من ألعاب الحكم (تدرّب، حروف، شجرة، ربط): الأخيرتان على مستوى المرحلة فتحملان الحكم في pathRuleId
+        const game = btn.dataset.game, rid = btn.dataset.rule;
+        startActivity(game, { stageId: btn.dataset.stage, ruleId: (game === 'practice' || game === 'letters') ? rid : null, pathRuleId: rid });
+    } else if (action === 'approve-teacher') {
+        startActivity('teacher_approve', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
+    } else if (action === 'resume-path') {
+        const rec = await AppState.tajweedManager.getMasteryRecord(AppState.currentStudent.id, btn.dataset.rule);
+        const rs = ensureJourney(rec).resume;
+        if (rs) startActivity(rs.mode, { stageId: rs.stageId, ruleId: rs.ruleId, pathRuleId: rs.pathRuleId, resume: rs });
+    } else if (action === 'clear-resume') {
+        const rec = await AppState.tajweedManager.getMasteryRecord(AppState.currentStudent.id, btn.dataset.rule);
+        if (rec) { await AppState.tajweedManager.saveMastery(setResume(rec, null)); render(); }
     } else if (action === 'start-practice') {
-        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule });
+        startActivity('practice', { stageId: btn.dataset.stage, ruleId: btn.dataset.rule, pathRuleId: btn.dataset.rule });
     } else if (action === 'start-link') {
         startActivity('link', { stageId: btn.dataset.stage, ruleId: null });
     } else if (action === 'start-letters') {
@@ -243,20 +305,32 @@ async function handleContainerClick(e) {
     }
 }
 
-function startActivity(mode, { stageId, ruleId, dueRuleIds }) {
+function startActivity(mode, { stageId, ruleId, dueRuleIds, pathRuleId, resume }) {
     openTajweedActivityScreen({
         mode,
         stageId,
         ruleId,
+        pathRuleId: pathRuleId || null,
+        resume: resume || null,
         dueRuleIds: dueRuleIds || [],
         studentId: AppState.currentStudent.id
     });
+}
+
+// الطالب استمع لمثال بصوت المنشاوي داخل درس حكم: يُسجَّل (مرة واحدة) فيذكره ملخص الحصة بصدق
+async function markAudioHeard(stageId, ruleId) {
+    try {
+        const rec = await AppState.tajweedManager.getOrCreateMasteryRecord(AppState.currentStudent.id, stageId, ruleId);
+        if (ensureJourney(rec).audioAt) return;
+        await AppState.tajweedManager.saveMastery(applyAudioHeard(rec));
+    } catch (e) { /* تسجيل الاستماع ثانوي: لا يعطّل الصوت */ }
 }
 
 function playRuleAudio(btn) {
     const url = btn.dataset.tjwAudio;
     if (!url) return;
     playTajweedAudio(url);
+    if (currentView.view === 'ruleDetail' && currentView.params && AppState.currentStudent) markAudioHeard(currentView.params.stageId, currentView.params.ruleId);
 }
 
 // ============================================================
@@ -452,23 +526,37 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const lastExamHTML = lastExam ? `<p class="tjw-last-exam">${t('tjw_last_exam').replace('{n}', lastExam.score)}</p>` : '';
     const dp = { stage: stageId, rule: ruleId };
     const attrs = `data-stage="${dp.stage}" data-rule="${dp.rule}"`;
+    // 🌟 [مسار الحكم المتصل] زر رئيسي واحد حسب الخطوة: ألعاب الحكم متتابعة ← التحدي (الاختبار) ← اعتماد المعلم بضغطة؛ ومع «إيقاف» سابق
+    // يصير الزر الرئيسي «استكمال من حيث توقفنا» لهذا الطالب.
+    const gameKeys = gamesForRule(rule, stageId);
+    const gScores = journey.gameScores || {};
+    const gameChip = (k) => `<span class="tjw-game-chip ${typeof gScores[k] === 'number' ? 'is-done' : ''}">${typeof gScores[k] === 'number' ? '✓ ' : ''}${t('tjw_game_' + k)}${typeof gScores[k] === 'number' ? ` ${gScores[k]}%` : ''}</span>`;
+    const gamesListHTML = `<div class="tjw-games-list"><div class="tjw-games-head">${t('tjw_path_games_head')}</div><div class="tjw-games-chips">${gameKeys.map(gameChip).join('')}</div></div>`;
+    const gameName = (k) => t('tjw_game_' + k);
+    const rs = journey.resume && Array.isArray(journey.resume.questions) && journey.resume.questions.length ? journey.resume : null;
     let ctaHTML;
-    if (step === 'learn') {
+    if (rs) {
+        ctaHTML = `<p class="tjw-checkpoint-banner">⏸ ${t('tjw_resume_where').replace('{what}', t('tjw_ls_at_' + rs.mode)).replace('{n}', (rs.qIndex || 0) + 1).replace('{total}', rs.questions.length)}</p>
+            <button class="tjw-cta-btn" data-action="resume-path" ${attrs}>${t('tjw_resume_btn')}</button>
+            <button class="tjw-quiet-btn" data-action="clear-resume" ${attrs}>${t('tjw_restart_btn')}</button>`;
+    } else if (step === 'learn') {
         ctaHTML = `<button class="tjw-cta-btn" data-action="mark-learned" ${attrs}>✅ ${t('tjw_step_learn_cta')}</button>`;
     } else if (step === 'practice') {
-        ctaHTML = `${!journey.practiceSinceFail ? `<p class="tjw-checkpoint-banner">${t('tjw_retake_hint')}</p>` : ''}
-            <button class="tjw-cta-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_step_practice_cta')}</button>`;
+        const next = nextGameKey(journey, gameKeys);
+        const avgNote = journey.gamesAvg != null ? `<p class="tjw-checkpoint-banner">${t('tjw_path_games_avg').replace('{n}', journey.gamesAvg).replace('{p}', GAMES_PASS_SCORE)}</p>` : '';
+        ctaHTML = `${!journey.practiceSinceFail ? `<p class="tjw-checkpoint-banner">${t('tjw_retake_hint')}</p>` : ''}${avgNote}${gamesListHTML}
+            ${next ? `<button class="tjw-cta-btn" data-action="play-game" data-game="${next}" ${attrs}>${t(journey.gamesAvg != null ? 'tjw_path_replay' : 'tjw_path_play').replace('{game}', gameName(next))}</button>` : ''}`;
     } else if (step === 'exam') {
-        ctaHTML = `<button class="tjw-cta-btn" data-action="start-exam" ${attrs}>📝 ${t('tjw_step_exam_cta')}</button>
-            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>
-            <p class="tjw-exam-info">${t('tjw_exam_info').replace('{n}', EXAM_SIZE).replace('{p}', EXAM_PASS_SCORE)}</p>`;
+        ctaHTML = `${gamesListHTML}<button class="tjw-cta-btn" data-action="start-exam" ${attrs}>📝 ${t('tjw_path_start_challenge')}</button>
+            <p class="tjw-exam-info">${t('tjw_exam_info').replace('{n}', EXAM_SIZE).replace('{p}', EXAM_PASS_SCORE)}</p>
+            <button class="tjw-quiet-btn" data-action="play-game" data-game="practice" ${attrs}>${t('tjw_path_replay_btn').replace('{game}', gameName('practice'))}</button>`;
     } else if (step === 'awaiting_teacher') {
-        ctaHTML = `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_awaiting_teacher_note')}</p>
-            <button class="tjw-cta-btn" data-action="start-checkpoint" ${attrs}>🎤 ${t('tjw_start_checkpoint_btn')}</button>
-            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>`;
+        ctaHTML = `<p class="tjw-checkpoint-banner">🎤 ${t('tjw_approve_hint')}</p>
+            <button class="tjw-cta-btn" data-action="approve-teacher" ${attrs}>${t('tjw_approve_btn')}</button>
+            <button class="tjw-quiet-btn" data-action="start-checkpoint" ${attrs}>${t('tjw_detailed_cp')}</button>`;
     } else {
         ctaHTML = `<p class="tjw-mastered-banner">✅ ${t('tjw_mastered_step_note')}</p>
-            <button class="tjw-outline-btn" data-action="start-practice" ${attrs}>🎯 ${t('tjw_practice_more_btn')}</button>`;
+            <button class="tjw-quiet-btn" data-action="play-game" data-game="practice" ${attrs}>${t('tjw_path_replay_btn').replace('{game}', gameName('practice'))}</button>`;
     }
 
     // 🌟 [إعادة تصميم] حروف الحكم كرقائق منفصلة؛ وإن كان النص وصفاً (مثل «كل الحروف عدا…») يُعرض رقاقة نصية واحدة
@@ -490,12 +578,10 @@ async function renderRuleDetailHTML({ stageId, ruleId }) {
     const cardsInnerHTML = await renderLetterCardsHTML(rule);
     const cardsHTML = cardsInnerHTML
         ? `<section><h3 class="tjw-section-title">${t('tjw_letter_cards_title')}</h3>${cardsInnerHTML}</section>` : '';
-    // 🌟 «ألعاب الحروف»: لعبة إضافية مستقلة لكل حكم قائم على حروف أو أزواج، متاحة في كل خطوات الرحلة
-    const lettersGameHTML = isLetterGameRule(rule)
-        ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="start-letters" ${attrs}>🎮 ${t('tjw_letters_play_btn')}</button></div>` : '';
+    const lettersGameHTML = '';   // ألعاب الحروف صارت جزءاً من حزمة ألعاب الحكم (زر واحد في مسار الحكم)
     // 🌟 «ملخص هذا الحكم للولي»: متاح في كل خطوات الرحلة (يلخّص ما تمّ حتى الآن)
     const summaryBtnHTML = AppState.currentStudent
-        ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="parent-summary" ${attrs}>${t('tjw_sum_btn_rule')}</button></div>` : '';
+        ? `<div class="tjw-lesson-actions tjw-extra-games"><button class="tjw-outline-btn" data-action="parent-summary" ${attrs}>${t('tjw_lesson_summary_btn')}</button></div>` : '';
     const treeHTML = `<section><h3 class="tjw-section-title">${t('tjw_tree_title')}</h3>${renderStageTreeHTML(stageId, ruleId)}</section>`;
 
     const dimsHTML = ['knows', 'distinguishes', 'discovers', 'applies', 'recalls', 'pronounces'].map(k => {

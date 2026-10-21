@@ -155,15 +155,19 @@ await toEntry(); await page.click('[data-action="entry-map"]'); await page.waitF
 await page.click('[data-rule="izhar"].tjw-rule-tile'); await page.waitForSelector('.tjw-stepper');
 check('شاشة الحكم فيها زر «ملخص هذا الحكم»', !!(await page.$('[data-action="parent-summary"][data-rule="izhar"]')));
 await page.click('[data-action="parent-summary"][data-rule="izhar"]'); await page.waitForSelector('#tjw-sum-overlay');
-check('يفتح على تبويب الحكم والإظهار الحلقي', await page.evaluate(() => document.querySelector('[data-sum="tab"].is-on').dataset.kind === 'rule' && document.getElementById('tjw-sum-rule').value === 'izhar') && (await txt('#tjw-sum-text')).includes('ملخص حكم «الإظهار الحلقي»'));
+check('يفتح على تبويب «ملخص الحصة» لذلك الحكم', await page.evaluate(() => document.querySelector('[data-sum="tab"].is-on').dataset.kind === 'lesson' && document.getElementById('tjw-sum-rule').value === 'izhar') && (await txt('#tjw-sum-text')).includes('حصة اليوم مع'));
+await page.click('[data-sum="tab"][data-kind="rule"]'); await sleep(200);
+check('وتبويب «ملخص الحكم» يبقى متاحاً بتفاصيله', (await txt('#tjw-sum-text')).includes('ملخص حكم «الإظهار الحلقي»'));
 await page.keyboard.press('Escape');
 
 // ١٢) شاشة النتيجة: بعد جلسة تطبيق حقيقية يظهر الزر ويشمل ملخص الحصة نشاطها الجديد
-await page.click('[data-action="start-practice"]'); await page.waitForSelector('.tjw-activity-card');
+await page.click('[data-action="mark-learned"], [data-action="play-game"]'); await page.waitForSelector('.tjw-activity-card');
 for (let i = 0; i < 6; i++) { if (await page.$('.tjw-result-card')) break; await page.waitForSelector('.tjw-answer-btn:not([disabled]), .tjw-result-card'); const b = await page.$('.tjw-answer-btn:not([disabled])'); if (!b) continue; await b.click(); await page.waitForSelector('[data-action="next-question"]'); await page.click('[data-action="next-question"]'); await sleep(250); }
 await page.waitForSelector('.tjw-result-card');
 check('شاشة نتيجة التطبيق فيها زر «ملخص اليوم»', !!(await page.$('.tjw-result-card [data-action="parent-summary"]')));
 await page.click('.tjw-result-card [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
+check('نتيجة اللعبة تفتح «ملخص الحصة» الدافئ أولاً', await page.evaluate(() => document.querySelector('[data-sum="tab"].is-on').dataset.kind === 'lesson'));
+await page.click('[data-sum="tab"][data-kind="session"]'); await sleep(250);
 const afterPractice = await txt('#tjw-sum-text');
 check('ملخص الحصة بعد التطبيق يشمل التطبيق الجديد (×3 للإظهار الحلقي) ويبقى اعتماد اليوم', /التطبيق \d+% ×3/.test(afterPractice) && afterPractice.includes('أتقن حكم «الإظهار الحلقي»'), afterPractice.split('\n').filter(l => l.includes('🔹')).join(' | '));
 await page.keyboard.press('Escape');
@@ -171,6 +175,7 @@ await page.keyboard.press('Escape');
 // ١٣) الإنجليزية
 await page.evaluate(() => { window.__APP.AppState.currentLang = 'en'; });
 await page.click('.tjw-result-card [data-action="parent-summary"]'); await page.waitForSelector('#tjw-sum-overlay');
+await page.click('[data-sum="tab"][data-kind="session"]'); await sleep(250);
 const en = await txt('#tjw-sum-text');
 check('الإنجليزية: النص بالإنجليزية (عدا الاسم)', /^Peace be upon you/.test(en) && /lesson summary/i.test(en) && !/[\u0600-\u06FF]/.test(en.replace(/«[^»]*»/g, '').replace(/أحمد/g, '').replace(/مخارج الحروف ممتازة/g, '')), en.slice(0, 160));
 check('الإنجليزية: زر النسخ مترجم', /Copy the message/.test(await page.textContent('#tjw-sum-copy')));

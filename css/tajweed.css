@@ -1021,3 +1021,20 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-book-lb img { width: 100%; height: auto; max-height: 72vh; object-fit: contain; border-radius: 12px; }
 .tjw-book-lb h3 { margin: 8px 0 0; font-size: 1.05rem; }
 .tjw-book-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
+
+/* ---------- مسار الحكم المتصل: قائمة الألعاب، الاستكمال، مرحلة جديدة ---------- */
+.tjw-games-list { width: 100%; margin: 4px 0 8px; }
+.tjw-games-head { font-size: 0.85rem; opacity: 0.8; margin-bottom: 6px; }
+.tjw-games-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tjw-game-chip {
+    padding: 4px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 700;
+    background: #eef2f8; border: 1px solid #c5d2e6; color: #1d3b63;
+}
+.tjw-game-chip.is-done { background: #e1f4e8; border-color: #8fd1a9; color: #165a34; }
+.tjw-quiet-btn { background: none; border: 0; padding: 8px 6px; font: inherit; font-size: 0.9rem; color: #1d3b63; text-decoration: underline; cursor: pointer; align-self: center; }
+.tjw-quiet-btn:hover { color: #8a1f3c; }
+.tjw-tf-statement { font-size: 1.4rem; line-height: 1.9; }
+.tjw-stage-intro-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(8, 18, 36, 0.72); display: grid; place-items: center; padding: 16px; }
+.tjw-stage-intro-card { max-width: 440px; width: 100%; border-radius: 20px; padding: 24px 20px; background: #16304f; color: #fff8e6; border: 1.5px solid rgba(224, 176, 79, 0.6); display: flex; flex-direction: column; gap: 12px; text-align: center; }
+.tjw-stage-intro-card h2 { margin: 0; font-size: 1.3rem; }
+.tjw-stage-intro-card p { margin: 0; opacity: 0.85; }
