@@ -51,7 +51,7 @@ for (const rid of LESSONS) {
   check(`درس ${rid}: يُعرض بمحتواه (بلا رقائق حروف ولا شجرة) وصوره تُحمَّل`, info.lesson && !info.hasLetters && !info.hasTree && info.imgsOk, JSON.stringify(info));
   check(`درس ${rid}: لا مفاتيح ترجمة خام ظاهرة`, (await rawKeys()).length === 0, (await rawKeys()).slice(0, 3).join(','));
   if (rid === 'mushaf_juz_hizb') check('درس الجزء والحزب: خمسة فوانيس في المعرض + فانوس مثال', info.lantern >= 6, String(info.lantern));
-  if (rid === 'mushaf_waqf') check('درس الوقف: سبع علامات بتعريفاتها', info.cards === 7, String(info.cards));
+  if (rid === 'mushaf_waqf') check('درس الوقف: ست علامات بتعريفاتها (نص المصحف المصحَّح بلا علامة «لا»)', info.cards === 6, String(info.cards));
   if (rid === 'mushaf_ayah_number') await shot('2-lesson-ayah-number');
   if (rid === 'mushaf_sajda') await shot('3-lesson-sajda');
   await page.click('#tjw-btn-level-back'); await page.waitForSelector('.tjw-rule-tile');

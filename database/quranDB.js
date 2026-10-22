@@ -58,6 +58,13 @@ async function fetchQuranPayload() {
     throw lastError;
 }
 
+// 🌟 [2026-10-22] إصدار نص المصحف المخزَّن في IndexedDB. المصحف يُخزَّن مرة واحدة عند أول تشغيل ولا يُعاد تحميله، فلولا هذا الرقم لبقيت الأجهزة
+// القديمة على النص السابق. ارفعه كلما استُبدل ملف database/quran-uthmani.json (v2: النسخة المصحَّحة: التنوين المفتوح بدل الميم الصغيرة، ی، ۡ، ۤ…).
+export const QURAN_TEXT_VERSION = 2;
+const TEXT_VERSION_KEY = 'dh_quran_text_v';
+const storedTextVersion = () => { try { return Number(localStorage.getItem(TEXT_VERSION_KEY)) || 0; } catch (e) { return 0; } };
+const markTextVersion = () => { try { localStorage.setItem(TEXT_VERSION_KEY, String(QURAN_TEXT_VERSION)); } catch (e) { /* لا شيء */ } };
+
 export async function ensureQuranLoaded() { 
     // 🌟 [2026-10-03] طلب "تخزين دائم" حتى لا يمسح المتصفح المصحف وبيانات الطلاب تلقائياً عند امتلاء الجهاز
     // (best-effort: بلا انتظار ولا أي رسالة للمستخدم، وأي رفض أو عدم دعم يُتجاهل بصمت)
@@ -83,10 +90,21 @@ export async function ensureQuranLoaded() {
                     const writeTx = db.transaction(QURAN_STORE, "readwrite"); 
                     const writeStore = writeTx.objectStore(QURAN_STORE); 
                     data.data.surahs.forEach(surah => writeStore.put(surah)); 
-                    writeTx.oncomplete = () => resolve(db); 
+                    writeTx.oncomplete = () => { markTextVersion(); resolve(db); };
                     writeTx.onerror = () => fail(writeTx.error);
                     writeTx.onabort = () => fail(writeTx.error);
                 } catch (error) { fail(error); } 
+            } else if (storedTextVersion() < QURAN_TEXT_VERSION) {
+                // نص مخزَّن من إصدار أقدم: نستبدله بالنص الحالي (put يستبدل السور بمفتاحها). لو تعذّر التحميل نكمل بالنص القديم ونعيد المحاولة لاحقاً
+                try {
+                    const data = await fetchQuranPayload();
+                    const writeTx = db.transaction(QURAN_STORE, "readwrite");
+                    const writeStore = writeTx.objectStore(QURAN_STORE);
+                    data.data.surahs.forEach(surah => writeStore.put(surah));
+                    writeTx.oncomplete = () => { markTextVersion(); resolve(db); };
+                    writeTx.onerror = () => { console.warn('تعذّر تحديث نص المصحف المخزَّن', writeTx.error); resolve(db); };
+                    writeTx.onabort = () => { console.warn('تعذّر تحديث نص المصحف المخزَّن', writeTx.error); resolve(db); };
+                } catch (error) { console.warn('تعذّر تحديث نص المصحف المخزَّن؛ نكمل بالنص السابق', error); resolve(db); }
             } else { 
                 resolve(db); 
             } 

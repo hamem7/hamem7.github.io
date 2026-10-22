@@ -33,7 +33,8 @@ export function toQuranicSukun(text) {
 export function normalizeForCompare(text) {
     if (!text) return "";
     return text
-        .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ]/g, '')
+        .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ\u08F0-\u08FF]/g, '')
+        .replace(/[\u06CC]/g, 'ى')   // ی (نص المصحف المصحَّح) ← ى فتتوحّد بقية الدوال مع الياء
         .replace(/[ٱأإآ]/g, 'ا')
         .replace(/\s+/g, ' ')
         .trim();
@@ -42,8 +43,8 @@ export function normalizeForCompare(text) {
 export const cleanAyahText = (text) => {
     if(!text) return "";
     let original = text.trim();
-    let noDiacritics = original.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '');
-    noDiacritics = noDiacritics.replace(/[ٱأإآ]/g, 'ا'); 
+    let noDiacritics = original.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '');
+    noDiacritics = noDiacritics.replace(/[ٱأإآ]/g, 'ا').replace(/[\u0649\u06CC]/g, 'ي'); 
     let bareText = noDiacritics.replace(/\s+/g, ''); 
     if (bareText.startsWith('بسماللهالرحمنالرحيم')) { 
         let words = original.split(/\s+/); 
@@ -287,8 +288,8 @@ export class QuranEngine {
         
         let hintWords = "";
         for (let i = 0; i < words.length - 1; i++) { 
-            let w1 = words[i].replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, ''); 
-            let w2 = words[i+1].replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, ''); 
+            let w1 = words[i].replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '').replace(/\u06CC/g, '\u0649'); 
+            let w2 = words[i+1].replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '').replace(/\u06CC/g, '\u0649'); 
             if (w1.length >= 3 && w2.length >= 3 && !stopWords.includes(w1) && !stopWords.includes(w2)) { 
                 hintWords = words[i] + ' ' + words[i+1]; 
                 break; 
@@ -432,7 +433,7 @@ export class QuranEngine {
     async generateMistakeGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
         const ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!ayah) return null; let cleanText = cleanAyahText(ayah.text);
         const words = cleanText.split(/\s+/); if(words.length < 3) return null; 
-        let candidates = []; for(let i=0; i<words.length; i++) { if(words[i].replace(/[^أ-ي]/g, "").length >= 3) candidates.push(i); } 
+        let candidates = []; for(let i=0; i<words.length; i++) { if(words[i].replace(/[^أ-ي\u06CC]/g, "").length >= 3) candidates.push(i); } 
         // 🌟 خط الرجوع نفسه يتجنب رموز الوقف: نأخذ مواضع الكلمات الفعلية، وفقط لو لم توجد إطلاقاً
         // نرجع للسلوك القديم (منتصف الآية) 🌟
         if(candidates.length === 0) { let realIdxs = realWordIndexes(words); candidates = realIdxs.length ? realIdxs : [Math.floor(words.length / 2)]; }
@@ -764,7 +765,7 @@ export class QuranEngine {
         for (let a of ayahsPool) {
             let words = cleanAyahText(a.text).split(/\s+/);
             for (let w of words) {
-                let bare = w.replace(/[^أ-ي]/g, "");
+                let bare = w.replace(/[^أ-ي\u06CC]/g, "");
                 if (bare.length < 2) continue;
                 globalFreq.set(bare, (globalFreq.get(bare) || 0) + 1);
             }
@@ -779,7 +780,7 @@ export class QuranEngine {
             for (let ayah of s.ayahs) {
                 let words = cleanAyahText(ayah.text).split(/\s+/);
                 for (let w of words) {
-                    let bare = w.replace(/[^أ-ي]/g, "");
+                    let bare = w.replace(/[^أ-ي\u06CC]/g, "");
                     if (bare.length < 4 || usedWords.has(bare)) continue;
                     // 🌟 [تعديل بطلب المعلم] لا تكون الكلمة هي اسم السورة نفسه (والعصر ← العصر):
                     // الإجابة تصبح بديهية بلا حفظ — كان مسموحاً سابقاً ككلمة مميِّزة، وأُلغي ذلك
@@ -804,10 +805,10 @@ export class QuranEngine {
             if (!picked) {
                 // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
                 let ayahsShuffled = [...s.ayahs].sort(() => Math.random() - 0.5);
-                let fallbackWords = ayahsShuffled.flatMap(a => cleanAyahText(a.text).split(/\s+/)).filter(w => w.replace(/[^أ-ي]/g, "").length >= 2 && !wordIsSurahName(w, s.name));
+                let fallbackWords = ayahsShuffled.flatMap(a => cleanAyahText(a.text).split(/\s+/)).filter(w => w.replace(/[^أ-ي\u06CC]/g, "").length >= 2 && !wordIsSurahName(w, s.name));
                 picked = fallbackWords.length ? fallbackWords[Math.floor(Math.random() * fallbackWords.length)] : s.name;
             }
-            usedWords.add(picked.replace(/[^أ-ي]/g, ""));
+            usedWords.add(picked.replace(/[^أ-ي\u06CC]/g, ""));
             pairs.push({ number: s.number, name: s.name, word: picked });
         }
         if (pairs.length < 2) return null;

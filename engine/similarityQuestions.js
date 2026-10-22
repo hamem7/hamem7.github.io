@@ -21,13 +21,13 @@
 import { tl, nameL, labelL } from '../core/langBridge.js';
 
 // ---------------- تطبيع النص ----------------
-const MARKS = /[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۨ-ۭـ]/g;
+const MARKS = /[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۨ-ۭـ\u08F0-\u08FF]/g;
 const BASMALA_SKEL = 'بسم الله الرحمن الرحيم';
 
 // تطبيع للمقارنة بين نصين من المصحف نفسه (أو بحث نص داخل نص): بلا تشكيل ولا فروق ألف/ياء/تاء مربوطة
 export function norm(s) {
     return String(s == null ? '' : s).replace(/﻿/g, '').replace(MARKS, '')
-        .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه')
+        .replace(/[أإآٱ]/g, 'ا').replace(/[ى\u06CC]/g, 'ي').replace(/ة/g, 'ه')
         .replace(/\s+/g, ' ').trim();
 }
 

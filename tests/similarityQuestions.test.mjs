@@ -133,9 +133,9 @@ test('سقف المطلع: لا مطلع «أكمل الآية» يتجاوز 15
 test('QuranIndex: البسملة والـBOM لا يدخلان نص الآية الأولى', () => {
     const Q = new QuranIndex(loadQuranSurahs());
     assert.ok(!Q.verse(2, 1).text.includes('بِسْمِ'));
-    assert.equal(Q.verse(2, 1).text.split(' ')[0], 'الٓمٓ');
+    assert.equal(Q.verse(2, 1).text.split(' ')[0], 'الۤمۤ');   // نص المصحف المصحَّح يكتب المدّة U+06E4
     assert.ok(!Q.verse(1, 1).text.startsWith('﻿'));
-    assert.ok(Q.verse(1, 1).text.includes('بِسْمِ'));       // الفاتحة: البسملة آية
+    assert.ok(Q.verse(1, 1).text.includes('بِسۡمِ'))   // السكون ۡ (U+06E1) في نص المصحف المصحَّح;       // الفاتحة: البسملة آية
     assert.ok(norm(Q.verse(9, 1).text).startsWith('براءه'));   // التوبة بلا بسملة
     assert.equal(Q.flat.length, 6236);
 });

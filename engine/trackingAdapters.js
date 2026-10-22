@@ -17,8 +17,8 @@ import { segmentIdFor } from './trackingEngine.js';
 // ------------------------------------------
 export function normalizeForMatch(s) {
     return String(s || '')
-        .replace(/[ً-ٰٟۖ-ۭـ]/g, '')   // الحركات وعلامات الوقف والتطويل
-        .replace(/[ٱأإآ]/g, 'ا').replace(/[ى]/g, 'ي').replace(/[ۀة]/g, 'ه')
+        .replace(/[ً-ٰٟۖ-ۭ\u08F0-\u08FFـ]/g, '')   // الحركات وعلامات الوقف والتطويل
+        .replace(/[ٱأإآ]/g, 'ا').replace(/[ى\u06CC]/g, 'ي').replace(/[ۀة]/g, 'ه')
         .replace(/[﴿﴾ ]/g, ' ')
         .replace(/\s+/g, ' ').trim();
 }

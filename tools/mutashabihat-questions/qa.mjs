@@ -5,7 +5,7 @@ import { generateGroupQuestions, mulberry32, SIM_TYPES } from '../../engine/simi
 
 // تطبيع مستقل: حروف عربية أساسية فقط، مع توحيد الألف والياء والتاء المربوطة
 const letters = (s) => String(s).replace(/[أإآٱ]/g, 'ا').replace(/ٰ/g, '')
-    .replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[^ء-غف-يا ]/g, '')
+    .replace(/[ىی]/g, 'ي').replace(/ة/g, 'ه').replace(/[^ء-غف-يا ]/g, '')
     .replace(/\s+/g, ' ').trim();
 const BASMALA = 'بسم الله الرحمن الرحيم';
 

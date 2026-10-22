@@ -19,13 +19,13 @@
 // (بدل تركهما تُشالان بالكامل بالخطأ)، والهمزة المفردة ء (U+0621) استُبعدت عمداً من بداية
 // النطاق (تُكتب منفصلة عن الألف أحياناً بالرسم العثماني بينما التفريغ اليدوي يكتبها مدموجة).
 export function isArabicBaseLetterCode(code) {
-    return (code >= 0x0622 && code <= 0x063A) || (code >= 0x0641 && code <= 0x064A) || code === 0x0671 || code === 0x0670;
+    return (code >= 0x0622 && code <= 0x063A) || (code >= 0x0641 && code <= 0x064A) || code === 0x0671 || code === 0x0670 || code === 0x06CC;   // 06CC: الياء في نص المصحف المصحَّح
 }
 
 // توحيد صيغ الألف (إ أ آ ٱ والألف الخنجرية ٰ) لحرف "ا"، وألف مقصورة "ى" لـ"ي"
 export function normalizeArabicChar(ch) {
     if (ch === 'إ' || ch === 'أ' || ch === 'آ' || ch === 'ٱ' || ch === 'ٰ') return 'ا';
-    if (ch === 'ى') return 'ي';
+    if (ch === 'ى' || ch === '\u06CC' || ch === 'ئ') return 'ي';   // ی (U+06CC) هي الياء في نص المصحف المصحَّح، وئ تُكتب فيه ى + علامة همزة
     return ch;
 }
 
@@ -33,7 +33,7 @@ export function normalizeArabicChar(ch) {
 // قرآنية صغيرة) — بدونها تقف نهاية التظليل/الإخفاء عند الحرف الأخير بالظبط وتترك حركته خارج
 // النطاق بصرياً (اكتُشف بالاختبار الفعلي). نمدّد النهاية لتشملها.
 export function isTrailingMarkCode(code) {
-    return (code >= 0x064B && code <= 0x065F) || (code >= 0x06D6 && code <= 0x06ED);
+    return (code >= 0x064B && code <= 0x065F) || (code >= 0x06D6 && code <= 0x06ED) || (code >= 0x08F0 && code <= 0x08FF);   // 08F0–08FF: التنوين المفتوح
 }
 
 // يبني نسخة من النص مجرّدة (حروف أساسية موحّدة فقط) + خريطة تربط كل حرف في النسخة المجرّدة
@@ -80,7 +80,7 @@ export function findPhraseRanges(text, phrase) {
             while (origEnd < text.length && isTrailingMarkCode(text.codePointAt(origEnd))) origEnd++;
             // 🛡️ الهمزة المنفردة ء (U+0621) مستبعدة من النسخة المجرّدة عمداً، فلو انتهت العبارة بها («والسماء») وقفت المطابقة
             // قبلها وبقيت «ءِ» عالقة في أول ما بعد العبارة (تظهر في خيارات المتشابهات). نمدّد النهاية لتشملها مع حركتها.
-            if (/ء[\u064B-\u065F\u06D6-\u06ED]*$/.test(variant) && text.codePointAt(origEnd) === 0x0621) {
+            if (/ء[\u064B-\u065F\u06D6-\u06ED\u08F0-\u08FF]*$/.test(variant) && text.codePointAt(origEnd) === 0x0621) {
                 origEnd++;
                 while (origEnd < text.length && isTrailingMarkCode(text.codePointAt(origEnd))) origEnd++;
             }
