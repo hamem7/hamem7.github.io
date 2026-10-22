@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — شريط الملاحظة السفلي</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--g1:#e7f4ee;--gold:#d4af37;--bg:#fffcf3;--card:#fff;--ink:#10241c;--ink2:#5a6f66;--line:#e6e2d3;--red:#dc2626;--redbg:#fde8e8;--ora:#f59e0b;--ora2:#ea580c;--ok:#33a56b;--note:#e0504f}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1713;--card:#12241d;--ink:#eaf5ef;--ink2:#9db8ac;--line:#21392f;--g1:#16342a;--redbg:#3a1d1d}}
+body.kids{--note:#f59e0b}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6}
+button{cursor:pointer;border:0;background:none;color:inherit;font:inherit}
+.app{max-width:560px;margin:0 auto;min-height:100vh;padding:0 16px 230px}
+header{display:flex;align-items:center;gap:8px;padding:14px 0 8px}
+header h1{font-size:1rem;flex:1}
+.pill{padding:6px 12px;border-radius:99px;border:2px solid var(--g7);color:var(--g7);font-weight:700;font-size:.8rem}
+.pill.on{background:var(--g7);color:#fff}
+.prog{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--gold));width:0;transition:.3s}
+.meta{display:flex;justify-content:space-between;color:var(--ink2);font-size:.85rem;margin-bottom:12px}
+.card{background:var(--card);border-radius:22px;padding:22px 18px;box-shadow:0 8px 24px rgba(6,35,28,.08);text-align:center;transition:transform .2s,opacity .2s}
+.card.out{transform:translateX(60px);opacity:0}
+[dir=ltr] .card.out{transform:translateX(-60px)}
+.qlabel{color:var(--ink2);font-size:.9rem;margin-bottom:8px}
+.verse{font-family:'Amiri Quran',serif;font-size:1.9rem;line-height:2.1;color:var(--g9)}
+@media (prefers-color-scheme:dark){.verse{color:#eaf5ef}}
+.blank{display:inline-block;min-width:90px;border-bottom:3px dashed var(--gold);color:transparent;user-select:none}
+.ans{margin-top:12px;background:var(--g1);border-radius:14px;padding:10px 14px;display:none;font-family:'Amiri Quran',serif;font-size:1.5rem;color:var(--g7)}
+.ans.on{display:block;animation:up .25s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.show{margin:14px auto 0;padding:10px 22px;border-radius:99px;border:2px solid var(--g7);color:var(--g7);font-weight:700}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
+.badge{background:var(--redbg);color:#991b1b;border-radius:99px;padding:4px 12px;font-size:.85rem;font-weight:600}
+body.kids .badge{background:#fff1d6;color:#92400e}
+
+/* الشريط السفلي */
+.dock{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line);box-shadow:0 -10px 30px rgba(6,35,28,.12);border-radius:22px 22px 0 0}
+.dock .in{max-width:560px;margin:0 auto;padding:12px 16px 16px}
+.sheet{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+.sheet.on{grid-template-rows:1fr}
+.sheet>div{overflow:hidden}
+.sheet .pad{padding-bottom:12px}
+.sheet h3{font-size:.92rem;color:var(--ink2);margin:2px 0 8px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:99px;border:2px solid var(--line);background:var(--bg);font-weight:600;font-size:.95rem;transition:.15s;user-select:none}
+.chip:active{transform:scale(.96)}
+.chip kbd{font-size:.68rem;background:var(--line);border-radius:6px;padding:0 6px;color:var(--ink2)}
+.chip.on{border-color:var(--note);background:var(--redbg);color:#991b1b}
+body.kids .chip.on{background:#fff1d6;color:#92400e}
+.chip.on kbd{background:var(--note);color:#fff}
+.chip.dk{border-color:#fecaca}
+.chip.self{border-style:dashed}
+.chip.self.on{border-color:var(--ok);background:var(--g1);color:var(--g7)}
+.chip.self.on kbd{background:var(--ok)}
+.txt{margin-top:10px;width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:1rem}
+.row{display:flex;gap:8px}
+.row button{flex:1;padding:14px 6px;border-radius:16px;font-weight:700;font-size:1rem;color:#fff;transition:.15s;white-space:nowrap}
+.row button:active{transform:scale(.97)}
+.b-ok{background:linear-gradient(135deg,var(--ok),var(--g6));box-shadow:0 6px 16px rgba(20,124,94,.3)}
+.b-note{background:var(--note);box-shadow:0 6px 16px rgba(224,80,79,.28)}
+.b-note.undo{background:var(--card);color:var(--note);border:2px solid var(--note);box-shadow:none}
+.b-save{background:linear-gradient(135deg,var(--ora2),var(--ora));box-shadow:0 6px 16px rgba(234,88,12,.3);display:none;flex:1.25}
+.b-save.on{display:block;animation:up .2s ease}
+.hint{text-align:center;color:var(--ink2);font-size:.72rem;margin-top:8px}
+
+.toast{position:fixed;top:12px;inset-inline:16px;max-width:528px;margin:0 auto;background:#10241c;color:#fff;border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden;z-index:5}
+.toast.on{display:flex;animation:up .25s ease}
+.toast span{flex:1;font-size:.92rem}
+.toast button{color:var(--gold);font-weight:700;padding:4px 8px}
+.toast i{position:absolute;inset-inline-start:0;bottom:0;height:3px;background:var(--gold);width:100%;animation:bar 5s linear forwards}
+@keyframes bar{to{width:0}}
+.done{display:none;text-align:center;padding:30px 0}.done.on{display:block}
+.sumrow{display:flex;justify-content:space-between;background:var(--card);border-radius:14px;padding:10px 14px;margin-top:8px}
+.again{margin-top:18px;padding:12px 28px;border-radius:99px;background:var(--g7);color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 data-i18n="title">🎓 اختبار الطالب</h1>
+    <button class="pill" id="kidsBtn"></button>
+    <button class="pill" id="lang">English</button>
+  </header>
+
+  <div id="quiz">
+    <div class="prog"><i id="prog"></i></div>
+    <div class="meta"><span id="counter"></span><span data-i18n="student">الطالب: أحمد</span></div>
+    <div class="card" id="card">
+      <div class="qlabel" data-i18n="q_label">أكمل الآية</div>
+      <div class="verse" id="verse"></div>
+      <div class="ans" id="ans"></div>
+      <button class="show" id="show"></button>
+      <div class="badges" id="badges"></div>
+    </div>
+  </div>
+
+  <div class="done" id="done">
+    <h2 data-i18n="done_title">🎉 انتهى الاختبار</h2>
+    <p style="color:var(--ink2)" data-i18n="done_sub">ملخص الملاحظات المسجّلة</p>
+    <div id="sum"></div>
+    <button class="again" id="again" data-i18n="again">إعادة التجربة</button>
+  </div>
+</div>
+
+<div class="dock" id="dock"><div class="in">
+  <div class="sheet" id="sheet"><div><div class="pad">
+    <h3 id="sheetTitle"></h3>
+    <div class="chips" id="chips"></div>
+    <input class="txt" id="txt" type="text">
+  </div></div></div>
+  <div class="row">
+    <button class="b-ok" id="ok"></button>
+    <button class="b-note" id="noteBtn"></button>
+    <button class="b-save" id="save"></button>
+  </div>
+  <div class="hint" id="hint"></div>
+</div></div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="undo"></button><i></i></div>
+
+<script>
+const T={
+ar:{title:"🎓 اختبار الطالب",student:"الطالب: أحمد",q_label:"أكمل الآية",show:"👁️ إظهار الإجابة للمطابقة",hide:"🙈 إخفاء الإجابة",
+ok:"🟢 إجابة صحيحة تامة",ok_k:"⭐ أحسنت",note:"📝 ملاحظة",undoNote:"↩ تراجع",save:n=>n?`⏭ حفظ (${n}) والتالي`:"⏭ حفظ والتالي",save_last:n=>n?`🏁 حفظ (${n}) وإنهاء`:"🏁 حفظ وإنهاء",
+sheet_title:"نوع الملاحظة:",sheet_title_k:"ما الذي نراجعه؟",txt_ph:"أو اكتب ملاحظة نصية...",
+e_word:"خطأ كلمة",e_word_k:"كلمة نراجعها",e_haraka:"خطأ حركة",e_haraka_k:"حركة نتدرّب عليها",e_forget:"نسيان آية",e_dont:"لم يعرف الإجابة",e_self:"🌟 صححها بنفسه",
+toast_ok:"سُجّلت: إجابة صحيحة تامة",toast_note:n=>`تم حفظ الملاحظة (${n})`,undo:"↩ تراجع",counter:(a,b)=>`السؤال ${a} من ${b}`,
+hint:"اختصارات: 1–5 الأنواع · N ملاحظة/تراجع · Enter حفظ · Space صحيحة · Z تراجع",
+kids:"👶 وضع الأطفال",adults:"🧑 وضع الكبار",
+done_title:"🎉 انتهى الاختبار",done_sub:"ملخص الملاحظات المسجّلة",again:"إعادة التجربة",s_ok:"إجابات صحيحة تامة",s_note:"أسئلة بها ملاحظات"},
+en:{title:"🎓 Student Quiz",student:"Student: Ahmad",q_label:"Complete the verse",show:"👁️ Show answer to compare",hide:"🙈 Hide answer",
+ok:"🟢 Fully correct",ok_k:"⭐ Great job",note:"📝 Note",undoNote:"↩ Undo",save:n=>n?`⏭ Save (${n}) & next`:"⏭ Save & next",save_last:n=>n?`🏁 Save (${n}) & finish`:"🏁 Save & finish",
+sheet_title:"Note type:",sheet_title_k:"What shall we review?",txt_ph:"Or type a text note...",
+e_word:"Word error",e_word_k:"A word to review",e_haraka:"Vowel error",e_haraka_k:"A vowel to practice",e_forget:"Forgot ayah",e_dont:"Didn't know answer",e_self:"🌟 Self-corrected",
+toast_ok:"Recorded: fully correct",toast_note:n=>`Note saved (${n})`,undo:"↩ Undo",counter:(a,b)=>`Question ${a} of ${b}`,
+hint:"Shortcuts: 1–5 types · N note/undo · Enter save · Space correct · Z undo",
+kids:"👶 Kids mode",adults:"🧑 Adults mode",
+done_title:"🎉 Quiz finished",done_sub:"Recorded notes summary",again:"Try again",s_ok:"Fully correct answers",s_note:"Questions with notes"}
+};
+const Q=[
+ {v:'﴿ وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا <span class="blank">لِيَعْبُدُونِ</span> ﴾',a:'لِيَعْبُدُونِ'},
+ {v:'﴿ إِنَّ مَعَ الْعُسْرِ <span class="blank">يُسْرًا</span> ﴾',a:'يُسْرًا'},
+ {v:'﴿ فَاذْكُرُونِي <span class="blank">أَذْكُرْكُمْ</span> ﴾',a:'أَذْكُرْكُمْ'},
+ {v:'﴿ وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ <span class="blank">أَجْرَ الْمُحْسِنِينَ</span> ﴾',a:'أَجْرَ الْمُحْسِنِينَ'}
+];
+const TYPES=[['e_word'],['e_haraka'],['e_forget'],['e_dont',1],['e_self',2]];
+let lang='ar',kids=false,i=0,open=false,sel=new Set(),results=[],lastSnap=null,tt=null;
+const $=id=>document.getElementById(id);
+const t=k=>{const d=T[lang];return (kids&&d[k+'_k']!==undefined)?d[k+'_k']:d[k]};
+
+function applyLang(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(e=>{const v=t(e.dataset.i18n);if(typeof v==='string')e.textContent=v});
+  $('lang').textContent=lang==='ar'?'English':'العربية';
+  $('kidsBtn').textContent=kids?t('adults'):t('kids');$('kidsBtn').classList.toggle('on',kids);
+  document.body.classList.toggle('kids',kids);
+  $('txt').placeholder=t('txt_ph');$('sheetTitle').textContent=t('sheet_title');
+  $('undo').textContent=t('undo');$('hint').textContent=t('hint');$('ok').textContent=t('ok');
+  renderChips();render();
+}
+function renderChips(){
+  $('chips').innerHTML='';
+  TYPES.forEach(([k,kind],n)=>{
+    const b=document.createElement('button');
+    b.className='chip'+(kind===1?' dk':'')+(kind===2?' self':'')+(sel.has(k)?' on':'');
+    b.innerHTML=`<kbd>${n+1}</kbd>${t(k)}`;
+    b.onclick=()=>toggle(k);
+    $('chips').appendChild(b);
+  });
+}
+function toggle(k){
+  if(sel.has(k))sel.delete(k);
+  else{
+    if(k==='e_dont'){sel.clear()}else sel.delete('e_dont');
+    sel.add(k);
+  }
+  renderChips();render();
+}
+function showAns(on){
+  $('ans').classList.toggle('on',on);$('ans').textContent=Q[i].a;
+  $('show').textContent=on?t('hide'):t('show');
+}
+function openNote(){open=true;$('sheet').classList.add('on');if(!$('ans').classList.contains('on'))showAns(true);render()}
+function closeNote(){open=false;sel=new Set();$('txt').value='';$('sheet').classList.remove('on');renderChips();render()}
+function render(){
+  $('verse').innerHTML=Q[i].v;
+  $('counter').textContent=T[lang].counter(i+1,Q.length);
+  $('prog').style.width=(i/Q.length*100)+'%';
+  $('show').textContent=$('ans').classList.contains('on')?t('hide'):t('show');
+  const n=sel.size,has=n||$('txt').value.trim(),last=i===Q.length-1;
+  $('noteBtn').textContent=open?T[lang].undoNote:t('note');
+  $('noteBtn').classList.toggle('undo',open);
+  $('ok').textContent=t('ok');
+  $('save').classList.toggle('on',open&&!!has);
+  $('save').textContent=(last?T[lang].save_last:T[lang].save)(n);
+  $('badges').innerHTML='';
+}
+function commit(res){
+  lastSnap={i,res:results[i]};
+  results[i]=res;
+  toast(res.sel.length||res.text?T[lang].toast_note(res.sel.length+(res.text?1:0)):T[lang].toast_ok);
+  $('card').classList.add('out');
+  setTimeout(()=>{
+    $('card').classList.remove('out');
+    if(i===Q.length-1){finish();return}
+    i++;open=false;sel=new Set();$('txt').value='';$('sheet').classList.remove('on');showAns(false);renderChips();render();
+  },180);
+}
+const doOk=()=>commit({sel:[],text:''});
+const doSave=()=>{const text=$('txt').value.trim();if(!sel.size&&!text)return;commit({sel:[...sel],text})};
+function undo(){
+  if(!lastSnap)return;
+  const at=lastSnap.i;results.length=at;lastSnap=null;
+  $('done').classList.remove('on');$('quiz').style.display='';$('dock').style.display='';
+  i=at;open=false;sel=new Set();$('txt').value='';$('sheet').classList.remove('on');showAns(false);
+  $('toast').classList.remove('on');renderChips();render();
+}
+function toast(msg){
+  $('toastMsg').textContent=msg;
+  const el=$('toast');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>{el.classList.remove('on');lastSnap=null},5000);
+}
+function finish(){
+  $('quiz').style.display='none';$('dock').style.display='none';$('done').classList.add('on');$('prog').style.width='100%';
+  const withNote=results.filter(r=>r.sel.length||r.text).length;
+  let h=`<div class="sumrow"><span>${T[lang].s_ok}</span><b>${results.length-withNote}</b></div><div class="sumrow"><span>${T[lang].s_note}</span><b>${withNote}</b></div>`;
+  TYPES.forEach(([k])=>{const c=results.filter(r=>r.sel.includes(k)).length;if(c)h+=`<div class="sumrow"><span>${t(k)}</span><b>${c}</b></div>`});
+  $('sum').innerHTML=h;
+}
+$('ok').onclick=()=>{if(open)closeNote();doOk()};
+$('noteBtn').onclick=()=>open?closeNote():openNote();
+$('save').onclick=doSave;
+$('show').onclick=()=>showAns(!$('ans').classList.contains('on'));
+$('txt').oninput=render;
+$('txt').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doSave()}};
+$('undo').onclick=undo;
+$('lang').onclick=()=>{lang=lang==='ar'?'en':'ar';applyLang()};
+$('kidsBtn').onclick=()=>{kids=!kids;applyLang()};
+$('again').onclick=()=>{i=0;results=[];lastSnap=null;$('done').classList.remove('on');$('quiz').style.display='';$('dock').style.display='';open=false;sel=new Set();showAns(false);applyLang()};
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if($('done').classList.contains('on'))return;
+  if(e.key>='1'&&e.key<='5'){if(!open)openNote();toggle(TYPES[+e.key-1][0])}
+  else if(e.key==='n'||e.key==='N'||e.key==='ن'){open?closeNote():openNote()}
+  else if(e.key==='Enter'){e.preventDefault();open?doSave():doOk()}
+  else if(e.key===' '){e.preventDefault();if(open)closeNote();doOk()}
+  else if(e.key==='z'||e.key==='Z'||e.key==='ز')undo();
+});
+applyLang();
+</script>
+</body>
+</html>
