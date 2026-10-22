@@ -200,6 +200,53 @@ body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt
     line-height: 1.7 !important;
 }
 
+/* 🌟 «اقرأ الآية من السورة المذكورة» (sim_named): المحتوى في منتصف اللوحة ويملؤها — عنوان وسؤال وعبارة كبيرة ثم الأزرار بحجم متناسق،
+   والأحجام تتبع ارتفاع النافذة فلا يظهر تمرير للصفحة (التلميحات الإضافية تُمرَّر داخل اللوحة فقط). RTL/LTR: التخطيط عمودي متماثل فيعمل مع اللغتين. */
+@media (min-width: 901px) {
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] .game-main-area {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(8px, 2vh, 22px);
+    }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-title { margin-bottom: clamp(10px, 3vh, 34px) !important; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-title > span { font-size: clamp(1.5rem, 3.6vh, 2.3rem) !important; padding: 8px 36px !important; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question { margin: 0 !important; max-width: 1100px; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question .sim-q-text {
+        font-size: clamp(1.6rem, 4vh, 2.6rem) !important;
+        line-height: 1.9 !important;
+        margin: 0 !important;
+    }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question .sim-q-verse {
+        display: inline-block;
+        font-size: clamp(2.2rem, 6vh, 4rem) !important;
+        line-height: 1.8 !important;
+        padding: 4px 26px !important;
+        margin: 0 8px !important;
+        vertical-align: middle;
+    }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area .btn {
+        font-size: clamp(1.3rem, 3vh, 1.9rem) !important;
+        padding: clamp(10px, 1.8vh, 16px) clamp(28px, 3vw, 48px) !important;
+        min-width: 220px;
+    }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #hint-btn,
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #show-ans-btn { margin: 0 !important; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area > div[style*="margin-top"],
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-buttons { margin-top: 0 !important; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #hint-text { width: min(100%, 900px); margin-bottom: 0 !important; font-size: clamp(1.4rem, 3.4vh, 2.2rem) !important; }
+    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] .answer-box { width: min(100%, 1000px); }
+}
+
 /* زر ملء الشاشة — مخفي على الهاتف (لا فائدة منه هناك وتدعمه متصفحات قليلة) */
 .game-fs-btn { width: 100%; margin-top: 10px; padding: 10px; }
 @media (max-width: 900px) {
