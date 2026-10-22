@@ -14,7 +14,8 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 // 🌟 [جديد] تحديد موضع الخطأ (من آية ... إلى آية ...) في أسئلة التسميع — راجع components/reciteRangePicker.js
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
-import { prepareReciteRangeBox, readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
+import { readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
+import { bindNoteSheet, toggleNoteSheet, closeNoteSheet, readNoteChips } from '../components/noteSheet.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
@@ -253,25 +254,20 @@ function initGameUI() {
     // أو الآن في شاشة "علاج الخطأ السابق". أضفناه هنا بنفس منطق نسخة الكبار 🌟
     document.getElementById('show-ans-btn')?.addEventListener('click', toggleAnswer);
 
-    document.getElementById('btn-record-wrong')?.addEventListener('click', () => {
-        document.querySelectorAll('#error-modal input[type="checkbox"]').forEach(cb => cb.checked = false); 
-        document.getElementById('custom-note').value = ''; 
-        // 🌟 صندوق "موضع الخطأ" يظهر لأسئلة التسميع فقط ويُخفى لغيرها
-        prepareReciteRangeBox(GameState.currentData);
-        openModal('error-modal'); 
-    });
+    // 📝 «ملاحظة» ⇄ «تراجع»: تنزلق القائمة السفلية (components/noteSheet.js) ولا يُسجَّل شيء قبل «حفظ والتالي»
+    document.getElementById('btn-record-wrong')?.addEventListener('click', toggleNoteSheet);
+    bindNoteSheet();
     
     document.getElementById('btn-record-correct')?.addEventListener('click', async () => {
         if(GameState.tempErrors.length > 0) {
             let confirmClear = await hamConfirm(t("لقد سجّلت ملاحظات مسبقاً. هل تريد إلغاءها واعتبار الإجابة صحيحة؟"));
             if(!confirmClear) return;
         }
+        closeNoteSheet();
         recordAnswer(true);
     });
 
-    document.getElementById('btn-save-error-temp')?.addEventListener('click', saveTempError);
     document.getElementById('btn-submit-all-errors')?.addEventListener('click', submitAllErrors);
-    document.getElementById('btn-close-error')?.addEventListener('click', () => closeModal('error-modal'));
 
     playNextMission();
 }
@@ -407,9 +403,7 @@ async function playNextMission() {
         GameState.tempRanges = [];
         GameState.orderAttempts = 0;
         
-        document.getElementById('temp-errors-container').style.display = 'none';
-        document.getElementById('temp-errors-list').innerHTML = '';
-        document.getElementById('btn-submit-all-errors').style.display = 'none';
+        closeNoteSheet();
         
         document.getElementById('in-game-student-info').style.display = 'flex'; 
         document.getElementById('in-game-name').innerText = AppState.currentStudent.name; 
@@ -718,9 +712,9 @@ function showKidsListenSurahStep() {
 
 // 🎧 [2026-10-18] مشغّل صوت «استمع وخمّن الآية» انتقل إلى components/listenAyahAudio.js (مشغّل موحَّد بصوت المنشاوي مع تخزين محلي).
 
-function saveTempError() {
-    let errorTypes = []; 
-    document.querySelectorAll('#error-modal input[type="checkbox"]:checked').forEach(cb => errorTypes.push(cb.value)); 
+// 💾 «حفظ والتالي»: يجمع أنواع الملاحظات المختارة + النص (+ موضع التسميع إن وُجد) ويسجّل السؤال دفعة واحدة
+function submitAllErrors() {
+    let errorTypes = readNoteChips();
     let customNote = document.getElementById('custom-note').value.trim();
     if(customNote) errorTypes.push(tfAr('gen_note_prefix', { text: customNote }));
     // 🌟 [جديد] موضع الخطأ بالتحديد (من آية ... إلى آية ...) لأسئلة التسميع — اختياري؛ يكفي
@@ -733,16 +727,7 @@ function saveTempError() {
         errorTypes.push(reciteRangeChipText(rangeSel));
     }
     GameState.tempErrors.push(...errorTypes);
-    closeModal('error-modal'); 
-    document.getElementById('temp-errors-container').style.display = 'block';
-    const listDiv = document.getElementById('temp-errors-list');
-    listDiv.innerHTML = GameState.tempErrors.map(e => `<span style="background:#fecaca; color:#7f1d1d; padding:4px 10px; border-radius:15px; font-size:1rem;">❌ ${t(e)}</span>`).join('');
-    document.getElementById('btn-submit-all-errors').style.display = 'block';
-    playErrorSound();
-}
-
-function submitAllErrors() {
-    if(GameState.tempErrors.length === 0) return;
+    closeNoteSheet();
     recordAnswer(false, GameState.tempErrors);
 }
 
