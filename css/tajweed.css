@@ -1144,3 +1144,10 @@ html[lang="ar"] .tjw-example-ref, html[lang="ar"] .tjw-flip-face small.tjw-flip-
 .tjw-chain-label { color: var(--tjw-gold); font-weight: 800; }
 .tjw-chain-pass { text-align: center; }
 .tjw-chain-emoji { font-size: 3.2rem; line-height: 1.2; }
+
+/* ⭐ حروف الأحكام وعروض الحروف في الشرح والاختبارات بخط المصحف (KFGQPC) كذلك، بوزن واحد 400 حتى لا يُغلِّظها التصنيع الاصطناعي */
+.tjw-letter-chip:not(.is-text), .tjw-letters-display:not(.tjw-tf-statement), .tjw-tree-leaf, .tjw-letter-tile {
+    font-family: var(--tjw-quran-font); font-weight: 400; font-synthesis: none;
+}
+.tjw-letter-chip:not(.is-text) *, .tjw-letters-display:not(.tjw-tf-statement) *, .tjw-tree-leaf *, .tjw-letter-tile * { font-family: inherit; }
+.tjw-word-btn, .tjw-flip-front b, .tjw-flip-word, .tjw-big-letter, .tjw-link-example, .tjw-example-text { font-weight: 400; font-synthesis: none; }
