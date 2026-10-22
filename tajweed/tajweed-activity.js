@@ -259,7 +259,7 @@ async function buildQuestionsOnce() {
     } else if (params.mode === 'challenge') {
         const stage = getTajweedStage(params.stageId);
         if (!stage) return;
-        if (stage.mushaf) { questions = buildMushafStageChallenge(await getMushafCtx(AppState.currentStudent), 5); return; }
+        if (stage.mushaf) { questions = buildMushafStageChallenge(await getMushafCtx(AppState.currentStudent), 3); return; }
         const ayahInfoByRuleId = {};
         for (const rule of stage.rules) {
             ayahInfoByRuleId[rule.id] = await entryForRule(rule);

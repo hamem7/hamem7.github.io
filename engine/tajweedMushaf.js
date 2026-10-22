@@ -529,16 +529,18 @@ export function buildMushafQuestions(lesson, ctx, { mode = 'practice', size = 5,
     return mode === 'exam' ? shuffle(out, ctx.rng) : out;
 }
 
-// تحدي المرحلة: سؤال واحد من كل درس (بترتيب عشوائي)
-export function buildMushafStageChallenge(ctx, size = 5) {
-    const lessons = shuffle(MUSHAF_LESSONS, ctx.rng);
-    const out = [];
-    for (const l of lessons) {
-        if (out.length >= size) break;
-        const q = buildMushafQuestions(l, ctx, { mode: 'practice', size: 1 })[0];
-        if (q) out.push(q);
+// تحدي المرحلة: يقيس كل دروس المرحلة (رقم الآية، الجزء والحزب، الوقف، السكون، المد، السين/الصاد، السجدة)
+// perLesson أسئلة من كل درس بأنواع متنوعة دون تكرار، ثم تُخلط كلها في اختبار واحد
+export function buildMushafStageChallenge(ctx, perLesson = 3) {
+    const out = [], used = new Set();
+    for (const l of MUSHAF_LESSONS) {
+        for (const q of buildMushafQuestions(l, ctx, { mode: 'exam', size: perLesson })) {
+            if (used.has(q.key)) continue;
+            used.add(q.key);
+            out.push(q);
+        }
     }
-    return out;
+    return shuffle(out, ctx.rng);
 }
 
 export const isMushafQuestionType = (type) => type === 'mushaf_choice' || type === 'mushaf_tap' || type === 'mushaf_match';

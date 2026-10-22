@@ -160,10 +160,11 @@ test('اختبار المصحف: من 5 إلى 8 أسئلة بأنواع متع�
     assert.ok(firstSeen / tries > 0.6, `الأنواع الجديدة لم تُقدَّم (${firstSeen}/${tries})`);
 });
 
-test('تحدي المرحلة: سؤال من كل درس مختلف حتى خمسة', () => {
-    const qs = M.buildMushafStageChallenge(ctxOf('amma'), 5);
-    assert.equal(qs.length, 5);
-    assert.equal(new Set(qs.map((q) => q.ruleId)).size, 5);
+test('تحدي المرحلة: يغطي كل الدروس بعدد كبير من الأسئلة دون تكرار', () => {
+    const qs = M.buildMushafStageChallenge(ctxOf('amma'), 3);
+    assert.ok(qs.length >= 18, `عدد الأسئلة قليل: ${qs.length}`);
+    assert.equal(new Set(qs.map((q) => q.ruleId)).size, M.MUSHAF_LESSONS.length);
+    assert.equal(new Set(qs.map((q) => q.key)).size, qs.length);
 });
 
 // ---------- الترجمة ----------
