@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — تسجيل الخطأ السريع</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--g1:#e7f4ee;--gold:#d4af37;--bg:#fffcf3;--card:#fff;--ink:#10241c;--ink2:#5a6f66;--line:#e6e2d3;--red:#dc2626;--redbg:#fde8e8;--ora:#f59e0b;--ora2:#ea580c;--ok:#33a56b}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1713;--card:#12241d;--ink:#eaf5ef;--ink2:#9db8ac;--line:#21392f;--g1:#16342a;--redbg:#3a1d1d}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.6}
+button{cursor:pointer;border:0;background:none;color:inherit;font:inherit}
+.app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 16px 120px}
+header{display:flex;align-items:center;gap:10px;padding:16px 0 8px}
+header h1{font-size:1.05rem;flex:1}
+.lang{padding:6px 14px;border-radius:99px;border:2px solid var(--g7);color:var(--g7);font-weight:700;font-size:.85rem}
+.prog{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--gold));width:0;transition:.3s}
+.meta{display:flex;justify-content:space-between;color:var(--ink2);font-size:.85rem;margin-bottom:12px}
+.card{background:var(--card);border-radius:22px;padding:22px 18px;box-shadow:0 8px 24px rgba(6,35,28,.08);text-align:center;position:relative;touch-action:pan-y;transition:transform .2s,opacity .2s}
+.card.out{transform:translateX(-60px);opacity:0}
+[dir=rtl] .card.out{transform:translateX(60px)}
+.qlabel{color:var(--ink2);font-size:.9rem;margin-bottom:8px}
+.verse{font-family:'Amiri Quran',serif;font-size:1.9rem;line-height:2.1;color:var(--g9)}
+@media (prefers-color-scheme:dark){.verse{color:#eaf5ef}}
+.blank{display:inline-block;min-width:90px;border-bottom:3px dashed var(--gold);color:transparent;user-select:none}
+.ans{margin-top:12px;background:var(--g1);border-radius:14px;padding:10px 14px;display:none;font-family:'Amiri Quran',serif;font-size:1.5rem;color:var(--g7)}
+.ans.on{display:block;animation:up .25s ease}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.show{margin:14px auto 0;padding:10px 22px;border-radius:99px;border:2px solid var(--g7);color:var(--g7);font-weight:700}
+.sect{margin:20px 0 8px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.sect small{color:var(--ink2);font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:99px;border:2px solid var(--line);background:var(--card);font-weight:600;transition:.15s;user-select:none}
+.chip:active{transform:scale(.96)}
+.chip kbd{font-size:.7rem;background:var(--line);border-radius:6px;padding:0 6px;color:var(--ink2);font-family:inherit}
+.chip.on{border-color:var(--red);background:var(--redbg);color:#991b1b}
+.chip.on kbd{background:var(--red);color:#fff}
+.chip.dk{border-color:#fecaca}
+.chip.dk.on{background:var(--red);color:#fff;border-color:var(--red)}
+.noteBtn{margin-top:12px;color:var(--ink2);font-weight:600;padding:8px 4px}
+.noteBox{display:none;margin-top:8px}.noteBox.on{display:block}
+.noteBox textarea{width:100%;height:76px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:1rem;resize:none}
+.dock{position:fixed;inset-inline:0;bottom:0;background:linear-gradient(transparent,var(--bg) 30%);padding:26px 16px 16px}
+.dock .in{max-width:560px;margin:0 auto}
+.next{width:100%;padding:18px;border-radius:20px;font-size:1.25rem;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--ok),var(--g6));box-shadow:0 10px 24px rgba(20,124,94,.35);transition:.2s}
+.next:active{transform:scale(.98)}
+.next.err{background:linear-gradient(135deg,var(--ora2),var(--ora));box-shadow:0 10px 24px rgba(234,88,12,.35)}
+.hint{text-align:center;color:var(--ink2);font-size:.78rem;margin-top:8px}
+.toast{position:fixed;inset-inline:16px;bottom:130px;max-width:528px;margin:0 auto;background:#10241c;color:#fff;border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden}
+.toast.on{display:flex;animation:up .25s ease}
+.toast span{flex:1;font-size:.92rem}
+.toast button{color:var(--gold);font-weight:700;padding:4px 8px}
+.toast i{position:absolute;inset-inline-start:0;bottom:0;height:3px;background:var(--gold);width:100%;animation:bar 5s linear forwards}
+@keyframes bar{to{width:0}}
+.compare{margin-top:22px;background:var(--card);border-radius:18px;padding:14px 16px;box-shadow:0 2px 10px rgba(6,35,28,.06);font-size:.9rem}
+.compare b{color:var(--g7)}
+.compare .row{display:flex;justify-content:space-between;padding:4px 0}
+.done{display:none;text-align:center;padding:30px 0}
+.done.on{display:block}
+.done h2{margin-bottom:6px}
+.sumrow{display:flex;justify-content:space-between;background:var(--card);border-radius:14px;padding:10px 14px;margin-top:8px}
+.again{margin-top:18px;padding:12px 28px;border-radius:99px;background:var(--g7);color:#fff;font-weight:700}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <h1 data-i18n="title">🎓 اختبار الطالب — تسجيل سريع للأخطاء</h1>
+    <button class="lang" id="lang">English</button>
+  </header>
+
+  <div id="quiz">
+    <div class="prog"><i id="prog"></i></div>
+    <div class="meta"><span id="counter"></span><span data-i18n="student">الطالب: أحمد</span></div>
+
+    <div class="card" id="card">
+      <div class="qlabel" data-i18n="q_label">أكمل الآية</div>
+      <div class="verse" id="verse"></div>
+      <div class="ans" id="ans"></div>
+      <button class="show" id="show" data-i18n="show">👁️ إظهار الإجابة للمطابقة</button>
+    </div>
+
+    <div class="sect"><span data-i18n="chips_title">ما نوع الخطأ؟ (اختياري)</span><small data-i18n="chips_sub">اضغط لتفعيل/إلغاء</small></div>
+    <div class="chips" id="chips"></div>
+
+    <button class="noteBtn" id="noteBtn" data-i18n="add_note">＋ ملاحظة نصية</button>
+    <div class="noteBox" id="noteBox"><textarea id="note" data-i18n-ph="note_ph" placeholder="اكتب ملاحظتك هنا (اختياري)..."></textarea></div>
+
+    <div class="compare">
+      <div class="row"><span data-i18n="cmp_title">الضغطات بالطريقة الجديدة</span><b id="taps">0</b></div>
+      <div class="row"><span data-i18n="cmp_old">بالطريقة القديمة كان سيحتاج</span><b id="old">0</b></div>
+    </div>
+  </div>
+
+  <div class="done" id="done">
+    <h2 data-i18n="done_title">🎉 انتهى الاختبار</h2>
+    <p style="color:var(--ink2)" data-i18n="done_sub">ملخص الملاحظات المسجّلة</p>
+    <div id="sum"></div>
+    <button class="again" id="again" data-i18n="again">إعادة التجربة</button>
+  </div>
+</div>
+
+<div class="dock" id="dock"><div class="in">
+  <button class="next" id="next"></button>
+  <div class="hint" data-i18n="hint">اختصارات: 1–5 الأنواع · Enter أو Space التالي · Z تراجع · أو اسحب البطاقة</div>
+</div></div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><button id="undo" data-i18n="undo">↩ تراجع</button><i></i></div>
+
+<script>
+const T={
+ar:{title:"🎓 اختبار الطالب — تسجيل سريع للأخطاء",student:"الطالب: أحمد",q_label:"أكمل الآية",show:"👁️ إظهار الإجابة للمطابقة",hide:"🙈 إخفاء الإجابة",
+chips_title:"ما نوع الخطأ؟ (اختياري)",chips_sub:"اضغط لتفعيل/إلغاء",add_note:"＋ ملاحظة نصية",hide_note:"− إخفاء الملاحظة",note_ph:"اكتب ملاحظتك هنا (اختياري)...",
+err_word:"كلمة تحتاج مراجعة",err_haraka:"حركة تحتاج تصحيح",err_forget:"نسيان آية",err_multi:"أكثر من نقطة",err_dont:"لم يعرف الإجابة",
+next_ok:"✔ إجابة صحيحة، التالي",next_err:n=>`⏭ حفظ (${n}) والتالي`,next_last:"✔ صحيحة، إنهاء",next_last_err:n=>`🏁 حفظ (${n}) وإنهاء`,
+undo:"↩ تراجع",t_ok:"تم تسجيل: إجابة صحيحة",t_err:n=>`تم حفظ ${n} ملاحظة`,counter:(a,b)=>`السؤال ${a} من ${b}`,
+cmp_title:"الضغطات بالطريقة الجديدة",cmp_old:"بالطريقة القديمة كان سيحتاج",
+hint:"اختصارات: 1–5 الأنواع · Enter أو Space التالي · Z تراجع · أو اسحب البطاقة",
+done_title:"🎉 انتهى الاختبار",done_sub:"ملخص الملاحظات المسجّلة",again:"إعادة التجربة",s_ok:"إجابات صحيحة تامة",s_err:"أسئلة بها ملاحظات"},
+en:{title:"🎓 Student Quiz — Quick Error Recording",student:"Student: Ahmad",q_label:"Complete the verse",show:"👁️ Show answer to compare",hide:"🙈 Hide answer",
+chips_title:"Error type? (optional)",chips_sub:"Tap to toggle",add_note:"＋ Text note",hide_note:"− Hide note",note_ph:"Write your note here (optional)...",
+err_word:"Word needs review",err_haraka:"Vowel needs correction",err_forget:"Forgot ayah",err_multi:"Multiple points",err_dont:"Didn't know answer",
+next_ok:"✔ Correct, next",next_err:n=>`⏭ Save (${n}) & next`,next_last:"✔ Correct, finish",next_last_err:n=>`🏁 Save (${n}) & finish`,
+undo:"↩ Undo",t_ok:"Recorded: correct answer",t_err:n=>`${n} note(s) saved`,counter:(a,b)=>`Question ${a} of ${b}`,
+cmp_title:"Taps with the new flow",cmp_old:"The old flow would need",
+hint:"Shortcuts: 1–5 types · Enter or Space next · Z undo · or swipe the card",
+done_title:"🎉 Quiz finished",done_sub:"Recorded notes summary",again:"Try again",s_ok:"Fully correct answers",s_err:"Questions with notes"}
+};
+const Q=[
+ {v:'﴿ وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا <span class="blank">لِيَعْبُدُونِ</span> ﴾',a:'لِيَعْبُدُونِ'},
+ {v:'﴿ إِنَّ مَعَ الْعُسْرِ <span class="blank">يُسْرًا</span> ﴾',a:'يُسْرًا'},
+ {v:'﴿ فَاذْكُرُونِي <span class="blank">أَذْكُرْكُمْ</span> ﴾',a:'أَذْكُرْكُمْ'},
+ {v:'﴿ وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ <span class="blank">أَجْرَ الْمُحْسِنِينَ</span> ﴾',a:'أَجْرَ الْمُحْسِنِينَ'}
+];
+const TYPES=[['err_word'],['err_haraka'],['err_forget'],['err_multi'],['err_dont',true]];
+let lang='ar',i=0,sel=new Set(),taps=0,results=[],lastSnap=null,tt=null,swipeX=null;
+const $=id=>document.getElementById(id), t=k=>T[lang][k];
+
+function applyLang(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(e=>{const v=t(e.dataset.i18n);if(typeof v==='string')e.textContent=v});
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>e.placeholder=t(e.dataset.i18nPh));
+  $('lang').textContent=lang==='ar'?'English':'العربية';
+  renderChips();render();
+}
+function renderChips(){
+  $('chips').innerHTML='';
+  TYPES.forEach(([k,dk],n)=>{
+    const b=document.createElement('button');
+    b.className='chip'+(dk?' dk':'')+(sel.has(k)?' on':'');
+    b.innerHTML=`<kbd>${n+1}</kbd>${t(k)}`;
+    b.onclick=()=>toggle(k);
+    $('chips').appendChild(b);
+  });
+}
+function toggle(k){
+  taps++;
+  if(sel.has(k))sel.delete(k);
+  else{
+    if(k==='err_dont')sel.clear(); else sel.delete('err_dont');
+    sel.add(k);
+    if(!$('ans').classList.contains('on'))showAns(true);
+  }
+  renderChips();render();
+}
+function showAns(on){
+  $('ans').classList.toggle('on',on);
+  $('ans').textContent=Q[i].a;
+  $('show').textContent=on?t('hide'):t('show');
+}
+function render(){
+  $('verse').innerHTML=Q[i].v;
+  $('counter').textContent=t('counter')(i+1,Q.length);
+  $('prog').style.width=(i/Q.length*100)+'%';
+  const last=i===Q.length-1,n=sel.size;
+  const nb=$('next');
+  nb.className='next'+(n?' err':'');
+  nb.textContent=n?(last?t('next_last_err'):t('next_err'))(n):(last?t('next_last'):t('next_ok'));
+  $('taps').textContent=n+1;
+  $('old').textContent=n?n+3:1;
+}
+function next(){
+  const err=[...sel];
+  lastSnap={i,sel:new Set(sel),taps,note:$('note').value};
+  results[i]={err,note:$('note').value};
+  toast(err.length?t('t_err')(err.length):t('t_ok'));
+  $('card').classList.add('out');
+  setTimeout(()=>{
+    $('card').classList.remove('out');
+    if(i===Q.length-1){finish();return}
+    i++;reset();render();
+  },180);
+}
+function reset(){sel=new Set();taps=0;$('note').value='';$('noteBox').classList.remove('on');$('noteBtn').textContent=t('add_note');showAns(false);renderChips()}
+function undo(){
+  if(!lastSnap)return;
+  $('done').classList.remove('on');$('quiz').style.display='';$('dock').style.display='';
+  i=lastSnap.i;sel=lastSnap.sel;taps=lastSnap.taps;$('note').value=lastSnap.note;
+  results.length=i;lastSnap=null;
+  $('toast').classList.remove('on');
+  renderChips();showAns(false);render();
+}
+function toast(msg){
+  $('toastMsg').textContent=msg;
+  const el=$('toast');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>{el.classList.remove('on');lastSnap=null},5000);
+}
+function finish(){
+  $('quiz').style.display='none';$('dock').style.display='none';$('done').classList.add('on');
+  const ok=results.filter(r=>!r.err.length).length;
+  let h=`<div class="sumrow"><span>${t('s_ok')}</span><b>${ok}</b></div><div class="sumrow"><span>${t('s_err')}</span><b>${results.length-ok}</b></div>`;
+  TYPES.forEach(([k])=>{const c=results.filter(r=>r.err.includes(k)).length;if(c)h+=`<div class="sumrow"><span>${t(k)}</span><b>${c}</b></div>`});
+  $('sum').innerHTML=h;
+  $('prog').style.width='100%';
+}
+$('next').onclick=()=>{taps++;next()};
+$('show').onclick=()=>{taps++;showAns(!$('ans').classList.contains('on'))};
+$('noteBtn').onclick=()=>{const on=$('noteBox').classList.toggle('on');$('noteBtn').textContent=on?t('hide_note'):t('add_note');if(on)$('note').focus()};
+$('undo').onclick=undo;
+$('lang').onclick=()=>{lang=lang==='ar'?'en':'ar';applyLang()};
+$('again').onclick=()=>{i=0;results=[];lastSnap=null;$('done').classList.remove('on');$('quiz').style.display='';$('dock').style.display='';reset();render()};
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='TEXTAREA')return;
+  if(e.key>='1'&&e.key<='5'){toggle(TYPES[+e.key-1][0])}
+  else if(e.key==='Enter'||e.key===' '){e.preventDefault();$('done').classList.contains('on')||(taps++,next())}
+  else if(e.key==='z'||e.key==='Z'||e.key==='ز')undo();
+});
+const card=$('card');
+card.addEventListener('touchstart',e=>{swipeX=e.touches[0].clientX},{passive:true});
+card.addEventListener('touchend',e=>{if(swipeX===null)return;const d=e.changedTouches[0].clientX-swipeX;swipeX=null;if(Math.abs(d)>90){taps++;next()}});
+applyLang();
+</script>
+</body>
+</html>
