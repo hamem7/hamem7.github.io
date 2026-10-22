@@ -1286,6 +1286,24 @@ function finishLinkQuestion() {
     recordAnswer(true, [label]);
 }
 
+// نهايات (أو بدايات) متطابقة النص في سؤال الربط (مثل «أهله مسرورًا» في الانشقاق): لو اختار الطالب أيًّا من
+// المتطابقتين تُحسب صحيحة؛ نبدّل هويتي العنصرين المتطابقين حتى يُثبَّت الزوج على ما ضغطه ويبقى الآخر لزوجه.
+function resolveLinkMatch(data, startItem, endItem) {
+    if (startItem.id === endItem.id) return true;
+    const sameText = (a, b) => a && b && a.text === b.text;
+    const ownEnd = data.ends.find(e => e.id === startItem.id);
+    if (ownEnd && sameText(ownEnd, endItem)) {
+        ownEnd.id = endItem.id; endItem.id = startItem.id;
+        return true;
+    }
+    const otherStart = data.starts.find(s => s.id === endItem.id);
+    if (otherStart && sameText(otherStart, startItem)) {
+        otherStart.id = startItem.id; startItem.id = endItem.id;
+        return true;
+    }
+    return false;
+}
+
 // 🌟 [جديد] بناء واجهة لعبة "اربط أول الآية بآخرها" — تعتمد على النقر فقط (بلا سحب) بنفس فلسفة
 // buildOrderGameUI أعلاه: يضغط المعلم/الطالب على بداية آية من العمود الأول (تُحدَّد بإطار ذهبي)،
 // ثم على النهاية المتوقّعة من العمود الثاني. لو الربط صحيح تتحوّل الآيتان لحالة "مطابَقة" دائمة
@@ -1360,7 +1378,7 @@ function buildLinkGameUI() {
             el.onclick = () => {
                 if (data.selectedStart === null) return;
                 let startItem = data.starts[data.selectedStart];
-                if (startItem.id === item.id) {
+                if (resolveLinkMatch(data, startItem, item)) {
                     data.matchedPairs.push(item.id);
                     data.selectedStart = null;
                     // 🌟 [جديد] نعلّم الزوج اللي اتطابق حالاً بس، عشان حركة correct-pop تشتغل

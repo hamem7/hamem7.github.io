@@ -914,6 +914,24 @@ function buildWordOrderUI() {
 // في games/adultGame.js (راجع تعليقها هناك لتفاصيل الفكرة الكاملة)، بنفس أسباب التكرار
 // الموضَّحة أعلاه في هذا الملف (persistEvaluationToHistory/computeQuestionScoreForHistory):
 // كل ملف لعبة مستقل بالكامل عن الآخر ولا يستورد من واجهة الآخر.
+// نهايات (أو بدايات) متطابقة النص في سؤال الربط (مثل «أهله مسرورًا» في الانشقاق): لو اختار الطالب أيًّا من
+// المتطابقتين تُحسب صحيحة؛ نبدّل هويتي العنصرين المتطابقين حتى يُثبَّت الزوج على ما ضغطه ويبقى الآخر لزوجه.
+function resolveLinkMatch(data, startItem, endItem) {
+    if (startItem.id === endItem.id) return true;
+    const sameText = (a, b) => a && b && a.text === b.text;
+    const ownEnd = data.ends.find(e => e.id === startItem.id);
+    if (ownEnd && sameText(ownEnd, endItem)) {
+        ownEnd.id = endItem.id; endItem.id = startItem.id;
+        return true;
+    }
+    const otherStart = data.starts.find(s => s.id === endItem.id);
+    if (otherStart && sameText(otherStart, startItem)) {
+        otherStart.id = startItem.id; startItem.id = endItem.id;
+        return true;
+    }
+    return false;
+}
+
 function buildLinkGameUI() {
     const startsDiv = document.getElementById('link-starts-col');
     const endsDiv = document.getElementById('link-ends-col');
@@ -960,7 +978,7 @@ function buildLinkGameUI() {
             el.onclick = () => {
                 if (data.selectedStart === null) return;
                 let startItem = data.starts[data.selectedStart];
-                if (startItem.id === item.id) {
+                if (resolveLinkMatch(data, startItem, item)) {
                     data.matchedPairs.push(item.id);
                     data.selectedStart = null;
                     data.justMatchedId = item.id;
