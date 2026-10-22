@@ -55,6 +55,7 @@ export const signsOfLesson = (lesson) => MUSHAF_SIGNS.filter((s) => s.lesson ===
 export const signNameKey = (id) => `tjw_mk_${id}_name`;
 export const signDefKey = (id) => `tjw_mk_${id}_def`;
 // علامتان بشكل واحد (س): لا يُسأل عن شكلها منفردةً بلا سياق
+const ZERO_IDS = ['zero_round', 'zero_rect'];
 const AMBIGUOUS_GLYPH = new Set(['saktah', 'sin_over']);
 
 // ============================================================
@@ -333,18 +334,18 @@ function g_sign_name(lesson, { skip = [] } = {}) {
         return choice({ ruleId: R, kind: 'name', key: 'name:' + sign.id, stemKey: lesson === 'waqf' ? 'tjw_mq_name_waqf' : 'tjw_mq_name', near: false, media: glyphMedia(sign), options: signOptions(sign.id, { pool, field: 'name' }), explain: explainSign(sign.id) }, ctx);
     };
 }
-function g_sign_meaning(lesson) {
+function g_sign_meaning(lesson, { skip = [] } = {}) {
     return (ctx, R) => {
-        const signs = signsOfLesson(lesson).filter((s) => s.code && (lesson === 'waqf' || !AMBIGUOUS_GLYPH.has(s.id)));
+        const signs = signsOfLesson(lesson).filter((s) => s.code && !skip.includes(s.id) && (lesson === 'waqf' || !AMBIGUOUS_GLYPH.has(s.id)));
         const sign = pickOne(signs, ctx.rng);
         if (!sign) return null;
         const pool = lesson === 'waqf' ? shuffle(signs.filter((s) => s.id !== sign.id), ctx.rng) : null;
         return choice({ ruleId: R, kind: 'meaning', key: 'meaning:' + sign.id, stemKey: 'tjw_mq_meaning', near: false, media: glyphMedia(sign), options: signOptions(sign.id, { pool, field: 'def' }), explain: explainSign(sign.id) }, ctx);
     };
 }
-function g_sign_reverse(lesson) {
+function g_sign_reverse(lesson, { skip = [] } = {}) {
     return (ctx, R) => {
-        const signs = signsOfLesson(lesson).filter((s) => s.code && (lesson === 'waqf' || !AMBIGUOUS_GLYPH.has(s.id)));
+        const signs = signsOfLesson(lesson).filter((s) => s.code && !skip.includes(s.id) && (lesson === 'waqf' || !AMBIGUOUS_GLYPH.has(s.id)));
         const sign = pickOne(signs, ctx.rng);
         if (!sign || signs.length < 3) return null;
         const others = shuffle(signs.filter((s) => s.id !== sign.id), ctx.rng).slice(0, 3);
@@ -391,7 +392,8 @@ function g_sk_when(ctx, R) {
         opt('always', false, { labelKey: 'tjw_mo_always_read' }),
         opt('wasl_only', false, { labelKey: 'tjw_mo_wasl_only' })
     ];
-    return choice({ ruleId: R, kind: 'when', key: 'when:' + pick, stemKey: 'tjw_mq_sk_when', stemVars: { sign: signNameKey(pick) }, near: false, media: glyphMedia(signById(pick)), options: opts, explain: explainSign(pick) }, ctx);
+    const p = pickSignAyah(ctx, signById(pick));   // العلامة تظهر في آية حقيقية لا منفردة؛ وإلا نعرضها منفردة
+    return choice({ ruleId: R, kind: 'when', key: 'when:' + pick, stemKey: 'tjw_mq_sk_when', stemVars: { sign: signNameKey(pick) }, near: !!(p && p.near), media: p ? ayahMedia(p.a) : glyphMedia(signById(pick)), options: opts, explain: explainSign(pick) }, ctx);
 }
 function g_sk_sukun(ctx, R) {
     const p = pickAyah(ctx, (a) => ayahHasSign(a, 'sukun') && ayahTokens(a).length <= 12, { maxLen: 90 });
@@ -486,8 +488,10 @@ const RECIPES = {
         { id: 'tap_waqf', fn: g_waqf_tap_any, group: 'tap' }, { id: 'match', fn: g_waqf_match, group: 'match' }, { id: 'tap_sakta', fn: g_waqf_sakta, group: 'tap' }
     ],
     silent_sukun: [
-        { id: 'name', fn: g_sign_name('silent_sukun'), group: 'choice' }, { id: 'meaning', fn: g_sign_meaning('silent_sukun'), group: 'choice' }, { id: 'reverse', fn: g_sign_reverse('silent_sukun'), group: 'choice' },
-        { id: 'when', fn: g_sk_when, group: 'choice' }, { id: 'sukun_shape', fn: g_sk_sukun, group: 'choice' }, { id: 'tap', fn: g_sign_tap('silent_sukun'), group: 'tap' }
+        // الصفر الدائري والمستطيل يُسألان داخل آية حقيقية (اضغط على الكلمة، ومتى يُنطق) لا رمزاً منفرداً
+        { id: 'name', fn: g_sign_name('silent_sukun', { skip: ZERO_IDS }), group: 'choice' }, { id: 'meaning', fn: g_sign_meaning('silent_sukun', { skip: ZERO_IDS }), group: 'choice' }, { id: 'reverse', fn: g_sign_reverse('silent_sukun', { skip: ZERO_IDS }), group: 'choice' },
+        { id: 'when', fn: g_sk_when, group: 'choice' }, { id: 'sukun_shape', fn: g_sk_sukun, group: 'choice' }, { id: 'tap', fn: g_sign_tap('silent_sukun'), group: 'tap' },
+        { id: 'tap_round', fn: g_sign_tap('silent_sukun', { onlyIds: ['zero_round'] }), group: 'tap' }, { id: 'tap_rect', fn: g_sign_tap('silent_sukun', { onlyIds: ['zero_rect'] }), group: 'tap' }
     ],
     madd_letters: [
         { id: 'name', fn: g_sign_name('madd_letters'), group: 'choice' }, { id: 'meaning', fn: g_sign_meaning('madd_letters'), group: 'choice' }, { id: 'reverse', fn: g_sign_reverse('madd_letters'), group: 'choice' },

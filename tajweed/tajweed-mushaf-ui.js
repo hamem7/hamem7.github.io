@@ -64,7 +64,7 @@ export function lanternHTML(q) {
     const fs = n === 3 ? (m.lines[0].length > 5 ? 9.5 : 12.5) : (m.kind === 'juz' ? 11.5 : 15);
     const box = m.full ? 'left:19.6%;right:19.8%;top:42.4%;bottom:37.3%' : 'left:19.6%;right:19.8%;top:60.2%;bottom:10.8%';
     return `<div class="tjw-mk-lantern" role="img" aria-label="${esc(m.lines.join(' '))}">${lanternImg(m.full ? 'full' : 'top')}` +
-        `<div class="tjw-mk-lantern-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${l}</span>`).join('')}</div></div>`;
+        `<div class="tjw-mk-lantern-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${l.replace(/[\u0660-\u0669]+/g, '<b class="tjw-mk-lantern-num">$&</b>')}</span>`).join('')}</div></div>`;
 }
 export const frameHTML = (text) => `<div class="tjw-mk-lantern" role="img" aria-label="${esc(text)}">${lanternImg('frame')}<div class="tjw-mk-lantern-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${text}</div></div>`;
 export const bannerHTML = (sname) => `<div class="tjw-mk-banner" role="img" aria-label="${esc(sname)}"><img src="${ASSET}banner-blank.webp" alt=""><span class="tjw-mk-banner-name" dir="rtl">سُورَةُ ${esc(sname)}</span></div>`;
