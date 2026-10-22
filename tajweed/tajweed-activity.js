@@ -8,10 +8,10 @@
 // إجابات الطالب، ويحفظ النتيجة (إتقان + جلسة + جدول مراجعة + أوسمة) عبر database/tajweedDB.js
 // وdatabase/reviewScheduleDB.js.
 import { AppState, openTajweedSection, t } from '../core/app.js';
-import { getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds, isMushafRule } from '../engine/tajweedRulesCatalog.js';
+import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds, isMushafRule } from '../engine/tajweedRulesCatalog.js';
 import {
     generateChooseRuleQuestion, generateLinkQuestion, generateDiscoverQuestion, generateApplyQuestion,
-    buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress,
+    buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress, isStageUnlocked,
     generateAnnotatedQuestion, generateIdentifyQuestion, buildExamQuestions,
     evaluateSessionAchievements, TAJWEED_BADGE_CATALOG,
     // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — راجع تعليق الاستيراد أدناه عند استخدامهما
@@ -42,6 +42,8 @@ let qIndex = 0;
 let touchedRuleIds = new Set();
 let masteryBeforeMap = {}; // ruleId -> {status, dimensions}
 let stageProgressBefore = {};
+// المراحل التي اجتاز الطالب تحديها (محفوظة في tajweedProgress.passedStages)
+const passedStagesOf = () => (AppState.currentStudent && AppState.currentStudent.tajweedProgress && AppState.currentStudent.tajweedProgress.passedStages) || [];
 let questionResults = []; // {ruleId, correct}
 // 🌟 حالة خاصة لنشاط "اربط الحكم بحروفه" (متعدد الأزواج في "سؤال" واحد)
 let linkSelectedName = null;
@@ -207,7 +209,7 @@ async function buildQuestionsOnce() {
     const allMastery = await AppState.tajweedManager.getMasteryByStudent(studentId);
     masteryBeforeMap = {};
     allMastery.forEach(m => { masteryBeforeMap[m.ruleId] = { status: m.status, dimensions: { ...m.dimensions } }; });
-    stageProgressBefore = computeAllStageProgress(allMastery);
+    stageProgressBefore = computeAllStageProgress(allMastery, passedStagesOf());
 
     questions = [];
     linkMatchedRuleIds = new Set();
@@ -1064,7 +1066,11 @@ async function finishSession() {
     }
 
     const allMasteryAfter = await AppState.tajweedManager.getMasteryByStudent(studentId);
-    const stageProgressAfter = computeAllStageProgress(allMasteryAfter);
+    // 🌟 «تحدي المرحلة»: الدرجة ≥ حدّ النجاح تعني اجتياز المرحلة وفتح التالية
+    const challengePassed = params.mode === 'challenge' && !!params.stageId && scorePercent >= EXAM_PASS_SCORE;
+    const nextStage = challengePassed ? TAJWEED_STAGES[TAJWEED_STAGES.findIndex(s => s.id === params.stageId) + 1] : null;
+    const wasNextLocked = !!nextStage && !isStageUnlocked(nextStage.id, stageProgressBefore);
+    const stageProgressAfter = computeAllStageProgress(allMasteryAfter, [...passedStagesOf(), ...(challengePassed ? [params.stageId] : [])]);
     const ruleRecAfter = allMasteryAfter.find(m => m.ruleId === ruleKey) || null;
     const journeyAfter = ruleKey ? ensureJourney(ruleRecAfter) : null;
     const stepAfter = journeyAfter ? journeyStep(journeyAfter) : null;
@@ -1134,7 +1140,7 @@ async function finishSession() {
         earnedBadges.push(def);
     }
 
-    await syncStudentTajweedProgress(AppState.currentStudent, sessionMode, ruleKey);
+    await syncStudentTajweedProgress(AppState.currentStudent, sessionMode, ruleKey, challengePassed ? params.stageId : null);
 
     // 🌟 [سلسلة الحكم] لعبة في سلسلة: تُسجَّل نتيجتها ثم تبدأ اللعبة التالية (أو التحدي) مباشرة بلا شاشة نتيجة؛ تتوقف السلسلة عند شاشة
     // النتيجة فقط إن لم يبلغ متوسط الألعاب الحدّ فلا يُفتح التحدي (تُعرض «أعد ألعاب الحكم»)
@@ -1149,7 +1155,7 @@ async function finishSession() {
         return;
     }
     if (chainBadges.length) { earnedBadges.unshift(...chainBadges); chainBadges = []; }
-    renderResultScreen({ scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey });
+    renderResultScreen({ challengeResult: params.mode === 'challenge' ? { passed: challengePassed, unlockedStage: wasNextLocked ? nextStage : null } : null, scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey });
 }
 
 // شاشة عبور قصيرة بين لعبتين من سلسلة الحكم (لا زرّ: تنتقل وحدها)، ثم تبدأ اللعبة التالية أو التحدي الأخير
@@ -1170,7 +1176,7 @@ async function continueChain({ prevMode, scorePercent, nextMode }) {
     await bootMode();
 }
 
-function renderResultScreen({ scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey }) {
+function renderResultScreen({ challengeResult, scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey }) {
     const container = document.getElementById('tjwa-container');
     const progressEl = document.getElementById('tjwa-progress');
     if (progressEl) progressEl.innerHTML = '';
@@ -1188,6 +1194,12 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
         ? `<p class="tjw-result-note">✅ ${t('tjw_rule_mastered_note')}</p>` : '';
     const stageNoteHTML = justCompletedStageId
         ? `<p class="tjw-result-note">🎉 ${t('tjw_stage_completed_note')}</p>` : '';
+
+    // 🌟 نتيجة «تحدي المرحلة»: نجاح يفتح المرحلة التالية، أو حدّ النجاح المطلوب
+    const challengeHTML = !challengeResult ? ''
+        : challengeResult.passed
+            ? `<p class="tjw-result-note">🏆 ${t('tjw_challenge_passed')}</p>${challengeResult.unlockedStage ? `<p class="tjw-result-note">🔓 ${t('tjw_challenge_unlocked').replace('{stage}', t(challengeResult.unlockedStage.nameKey))}</p>` : ''}`
+            : `<p class="tjw-result-note tjw-result-note-warn">${t('tjw_challenge_failed').replace('{n}', EXAM_PASS_SCORE)}</p>`;
 
     // 🌟 [مسار الحكم] بعد لعبة: اللعبة التالية، أو التحدي إن بلغ متوسط الألعاب الحد (75%)، أو إعادة أضعف لعبة لرفع المتوسط.
     // وبعد اعتماد المعلم: رسالة الاعتماد. (حُذف زر «الحكم التالي»: كان يقفز متجاوزاً درس الحكم التالي وخطوات رحلته.)
@@ -1229,6 +1241,7 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             <p class="tjw-result-sub">${correctCount} / ${totalQuestions} ${t('tjw_correct_answers_unit')}</p>
             ${masteredNoteHTML}
             ${stageNoteHTML}
+            ${challengeHTML}
             ${badgesHTML}
             <div class="tjw-result-actions">
                 ${journeyHTML}

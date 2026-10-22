@@ -367,7 +367,7 @@ async function renderBrowseHTML() {
     const allMastery = await AppState.tajweedManager.getMasteryByStudent(student.id);
     const masteryByRule = {};
     allMastery.forEach(m => { masteryByRule[m.ruleId] = m; });
-    const stageProgress = computeAllStageProgress(allMastery);
+    const stageProgress = computeAllStageProgress(allMastery, (student.tajweedProgress && student.tajweedProgress.passedStages) || []);
 
     // 🌟 المراجعة المستحقة تُحسَب فقط من الأحكام التي بدأها الطالب فعلاً (بعدد محاولات ≥ 1،
     // راجع الملاحظة أعلاه في handleContainerClick حول سبب استخدام attemptsCount بدل status)
@@ -448,7 +448,7 @@ async function renderBrowseHTML() {
             </button>`;
         }).join('');
 
-        const canChallenge = stage.rules.some(r => masteryByRule[r.id] && (masteryByRule[r.id].attemptsCount || 0) > 0);
+        const canChallenge = true;   // التحدي هو بوّابة المرحلة التالية: متاح لكل مرحلة مفتوحة
         // 🌟🌟 [جديد ٢٨ سبتمبر] نشاط "اربط الحكم بحروفه" (generateLinkQuestion) يحتاج حكمين
         // على الأقل بالمرحلة ليكون له معنى (مطابقة اسم↔حروف) — بعد دمج القلقلة الصغرى/الكبرى
         // بحكم واحد، مرحلة القلقلة أصبحت بحكم واحد فقط، فيُخفى الزر بدل عرضه ليؤدي لشاشة خطأ
@@ -472,7 +472,7 @@ async function renderBrowseHTML() {
                 <div class="tjw-stage-card">
                     <h2 class="tjw-stage-title">
                         <span>${t(stage.nameKey)}</span>
-                        <span class="tjw-stage-percent">${progress.percentComplete}%</span>
+                        <span class="tjw-stage-percent">${progress.challengePassed ? '🏆 ' : ''}${progress.percentComplete}%</span>
                     </h2>
                     <div class="tjw-stage-progress-track"><div class="tjw-stage-progress-fill" style="width:${progress.percentComplete}%; background: var(${stage.colorVar});"></div></div>
                     <div class="tjw-rule-tiles">${tilesHTML}</div>
