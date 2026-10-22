@@ -31,6 +31,3 @@
 @font-face { font-family: 'Lateef'; font-style: normal; font-weight: 700; font-display: swap; src: url('../assets/fonts/lateef-700-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 /* خط المصحف (KFGQPC Uthmanic Script HAFS — مجمع الملك فهد لطباعة المصحف الشريف): نفس شكل حروف المصحف المطبوع، ويرسم الأرقام الهندية وحدها داخل علامة نهاية الآية */
 @font-face { font-family: 'Uthmanic Hafs'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/uthmanic-hafs.woff2?v=2') format('woff2'); }
-/* ⭐ نص القرآن في المنصة كلها بخط المصحف (KFGQPC Uthmanic Hafs): كل مكان يطلب 'Amiri Quran' (آيات الألعاب والواجبات والتقارير والشهادات…) يأخذ الحروف العربية من خط المصحف
-   تلقائياً بلا تعديل كل موضع على حدة؛ يُعرَّف بعد وجوه Amiri Quran الأصلية فيتغلّب عليها في نطاق الحروف العربية فقط، وما عداه (الأقواس ﴿﴾ والحروف اللاتينية) يبقى من Amiri Quran. */
-@font-face { font-family: 'Amiri Quran'; font-style: normal; font-weight: 400; font-display: swap; src: url('../assets/fonts/uthmanic-hafs.woff2?v=2') format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF; }

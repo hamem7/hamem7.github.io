@@ -72,7 +72,7 @@ function ensureFonts() {
             + '&family=El+Messiri:wght@400;700&family=Lateef:wght@400;700&family=Katibeh&family=Markazi+Text:wght@400;700&family=Lemonada:wght@400;700&display=swap';
         document.head.appendChild(link);
     }
-    const load = Promise.all(['700 40px "Reem Kufi"', '700 40px "Aref Ruqaa"', '400 20px "Amiri"', '700 20px "Amiri"', '700 40px "Playfair Display"', '500 20px "Cormorant Garamond"', '400 20px "Uthmanic Hafs"']
+    const load = Promise.all(['700 40px "Reem Kufi"', '700 40px "Aref Ruqaa"', '400 20px "Amiri"', '700 20px "Amiri"', '700 40px "Playfair Display"', '500 20px "Cormorant Garamond"']
         .map(f => (document.fonts ? document.fonts.load(f, 'بسم الله Abc') : Promise.resolve()).catch(() => {})));
     // لا ننتظر الشبكة أكثر من 4 ثوانٍ (بلا إنترنت تظهر الخطوط الاحتياطية)
     fontsPromise = Promise.race([load, new Promise(r => setTimeout(r, 4000))]).then(() => (document.fonts && document.fonts.ready) || null).catch(() => {});
@@ -230,7 +230,7 @@ function ensureStyles() {
     .cc-text b { color: var(--title); font-weight: 700; }
     .cc-extra { font-size: calc(19px * var(--s)); line-height: 1.7; color: var(--ink); opacity: .92; font-style: italic; }
     .cc-verse { font-size: calc(19px * var(--s)); line-height: 1.8; color: var(--title); }
-    .cc-verse .cc-ar { display: block; font-family: 'Uthmanic Hafs', 'Amiri', serif; direction: rtl; }
+    .cc-verse .cc-ar { display: block; font-family: 'Amiri', serif; direction: rtl; }
     .cc-lang-en .cc-verse .cc-ar { font-size: calc(17px * var(--s)); line-height: 1.7; }
     .cc-verse .cc-tr { display: block; font-style: italic; font-size: calc(17px * var(--s)); line-height: 1.4; }
     .cc-verse small { display: block; font-size: calc(13px * var(--s)); opacity: .75; }

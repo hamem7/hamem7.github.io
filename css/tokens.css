@@ -15,7 +15,7 @@
 
     /* الخطوط */
     --dh-font-ui: 'IBM Plex Sans Arabic', Tahoma, 'Segoe UI', system-ui, sans-serif;
-    --dh-font-quran: 'Uthmanic Hafs', 'Amiri Quran', 'Traditional Arabic', serif;
+    --dh-font-quran: 'Amiri Quran', 'Traditional Arabic', serif;
 
     /* المسافات */
     --dh-sp-1: 4px;  --dh-sp-2: 8px;  --dh-sp-3: 12px;  --dh-sp-4: 16px;  --dh-sp-5: 24px;  --dh-sp-6: 32px;

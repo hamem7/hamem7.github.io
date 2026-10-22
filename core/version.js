@@ -8,7 +8,7 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.51';
+export const APP_VERSION = '1.0.52';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
@@ -16,10 +16,10 @@ export const APP_VERSION = '1.0.51';
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
     {
-        version: '1.0.51',
+        version: '1.0.52',
         date: '2026-10-22',
         items: [
-            { type: 'improved', text: { ar: 'نص القرآن في المنصة كلها (الألعاب والواجبات والمتشابهات والتقارير والشهادات وأسئلة معاني الكلمات وعنوان الرئيسية) صار بخط المصحف (KFGQPC).', en: 'Quran text across the whole platform (games, homework, similar verses, reports, certificates, word-meaning questions and the home title) now uses the Mushaf font (KFGQPC).' } }
+            { type: 'improved', text: { ar: 'خط المصحف (KFGQPC) مقصور على ركن التجويد: الشرح والألعاب والاختبارات والرسوم التوضيحية؛ وبقية المنصة بخطها السابق.', en: 'The Mushaf font (KFGQPC) is limited to the Tajweed corner: lessons, games, tests and illustrations; the rest of the platform keeps its previous font.' } }
         ]
     },
     {

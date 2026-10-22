@@ -1609,7 +1609,7 @@ async function ensureFontsReady() {
         document.fonts.load('700 14px Cairo'), document.fonts.load('600 13px Cairo'), document.fonts.load('800 14px Cairo'),
         // 🌟 خطوط هوية "منازل القمر" (نفس العائلات المعتمدة سابقًا)
         document.fonts.load('700 32px "Reem Kufi"'), document.fonts.load('600 14px "IBM Plex Sans Arabic"'),
-        document.fonts.load('700 14px "IBM Plex Sans Arabic"'), document.fonts.load('400 20px "Amiri Quran"', 'بسم الله')
+        document.fonts.load('700 14px "IBM Plex Sans Arabic"'), document.fonts.load('400 20px "Amiri Quran"')
       ]);
       await document.fonts.ready;
     } catch (e) { /* تجاهل */ }
