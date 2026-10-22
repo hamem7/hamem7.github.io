@@ -165,15 +165,17 @@ export function isStageUnlocked(stageId, allStageProgress) {
     if (idx <= 0) return true; // أول مرحلة دائماً مفتوحة
     const prevStage = TAJWEED_STAGES[idx - 1];
     const prevProgress = allStageProgress[prevStage.id];
-    return !!prevProgress && prevProgress.status === 'completed';
+    // 🌟 المرحلة السابقة تُفتح التالية إمّا باكتمال إتقان أحكامها أو باجتياز «تحدي المرحلة» (challengePassed)
+    return !!prevProgress && (prevProgress.status === 'completed' || !!prevProgress.challengePassed);
 }
 
 // 🌟 يبني كائن stageProgress كاملاً لكل مراحل الكتالوج دفعة واحدة — يُستخدَم لتحديث حقل
 // tajweedProgress.stageProgress في سجل الطالب بعد كل جلسة نشاط
-export function computeAllStageProgress(masteryRecordsForStudent) {
+export function computeAllStageProgress(masteryRecordsForStudent, passedStageIds = []) {
     const result = {};
     TAJWEED_STAGES.forEach(stage => {
         result[stage.id] = computeStageProgress(stage.id, masteryRecordsForStudent);
+        if (passedStageIds.includes(stage.id)) result[stage.id].challengePassed = true;
     });
     return result;
 }

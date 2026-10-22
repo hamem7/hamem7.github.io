@@ -38,7 +38,7 @@ export function currentStreak(sessions, now = Date.now()) {
 export function summarizeStudent({ student, mastery = [], sessions = [], dueRuleIds = [], now = Date.now() }) {
     const byRule = {};
     mastery.forEach(m => { byRule[m.ruleId] = m; });
-    const stageProgress = computeAllStageProgress(mastery);
+    const stageProgress = computeAllStageProgress(mastery, (student && student.tajweedProgress && student.tajweedProgress.passedStages) || []);
     const flat = getAllRulesFlat();
 
     const done = flat.filter(({ rule }) => byRule[rule.id] && byRule[rule.id].status === 'mastered').length;

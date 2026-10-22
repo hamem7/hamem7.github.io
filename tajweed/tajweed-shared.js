@@ -71,10 +71,13 @@ export function highlightForTajweed(text, phrase, firstOnly = false) {
 // سجل الطالب عبر AppState.studentManager.updateStudent — نقطة استدعاء واحدة موحّدة تُستدعى
 // من tajweed-activity.js فور إتمام أي جلسة نشاط، حتى لا يتكرر نفس منطق "أين نكمل" في أكثر
 // من مكان. lastActivityType اختياري (لعرضه لاحقاً في ملف الطالب إن احتجنا).
-export async function syncStudentTajweedProgress(student, lastActivityType, lastRuleId) {
+export async function syncStudentTajweedProgress(student, lastActivityType, lastRuleId, passedStageId) {
     if (!student || !AppState.tajweedManager) return null;
     const allMastery = await AppState.tajweedManager.getMasteryByStudent(student.id);
-    const stageProgress = computeAllStageProgress(allMastery);
+    // 🌟 المراحل التي اجتاز الطالب «تحدي المرحلة» فيها (تُفتح بها المرحلة التالية) — تُحفظ ولا تُفقد بإعادة الحساب
+    const passedStages = new Set((student.tajweedProgress && student.tajweedProgress.passedStages) || []);
+    if (passedStageId) passedStages.add(passedStageId);
+    const stageProgress = computeAllStageProgress(allMastery, [...passedStages]);
 
     // 🌟 تحديد "أين نكمل تلقائياً": أول حكم غير 'mastered' في أول مرحلة مفتوحة وغير مكتملة،
     // وإلا (كل شيء متقن) نبقى على آخر حكم لمسه الطالب فعلياً
@@ -96,7 +99,8 @@ export async function syncStudentTajweedProgress(student, lastActivityType, last
         currentRuleId,
         lastActivityAt: new Date().toISOString(),
         lastActivityType: lastActivityType || (student.tajweedProgress && student.tajweedProgress.lastActivityType) || null,
-        stageProgress
+        stageProgress,
+        passedStages: [...passedStages]
     };
 
     await AppState.studentManager.updateStudent(student);
