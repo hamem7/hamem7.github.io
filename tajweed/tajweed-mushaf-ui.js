@@ -51,7 +51,8 @@ export async function getMushafCtx(student) {
 // ============================================================
 // رقم الآية: خط المصحف (UthmanicHafs) يرسم الأرقام الهندية وحدها داخل علامة نهاية الآية نفسها المطبوعة في المصحف، فلا رسم يدوي هنا
 export const rosetteHTML = (n, cls = '') => `<span class="tjw-mk-rosette ${cls}" dir="rtl" role="img" aria-label="${esc(M.AR(n))}">${M.AR(n)}</span>`;
-const markGlyph = (code) => (code === '۩' || code === '۞' ? code : `ـ${code}ـ`);
+// العلامة وحدها بلا تطويل (الخط تحتها كان يشوّش على الطالب)
+const markGlyph = (code) => code;
 
 // فانوس الهامش: الصور الأصلية المقتطعة من المصحف المطبوع (الإطار فارغ) والكلمات تُكتب فوق النافذة
 const lanternImg = (name) => `<img src="${ASSET}lantern-${name}.webp" alt="">`;

@@ -37,6 +37,7 @@ export const MUSHAF_SIGNS = [
     { id: 'zero_round', code: '۟', lesson: 'silent_sukun' },
     { id: 'zero_rect', code: '۠', lesson: 'silent_sukun' },
     { id: 'sukun', code: 'ۡ', lesson: 'silent_sukun' },
+    { id: 'shadda', code: 'ّ', lesson: 'silent_sukun' },
     { id: 'small_meem', code: 'ۢ', lesson: 'silent_sukun' },
     { id: 'madd', code: 'ٓ', lesson: 'madd_letters' },
     { id: 'dagger_alif', code: 'ٰ', lesson: 'madd_letters' },
@@ -350,7 +351,7 @@ function g_sign_reverse(lesson) {
 }
 function g_sign_tap(lesson, { onlyIds = null } = {}) {
     return (ctx, R) => {
-        const signs = signsOfLesson(lesson).filter((s) => s.code && !AMBIGUOUS_GLYPH.has(s.id) && s.id !== 'sukun' && (!onlyIds || onlyIds.includes(s.id)));
+        const signs = signsOfLesson(lesson).filter((s) => s.code && !AMBIGUOUS_GLYPH.has(s.id) && s.id !== 'sukun' && s.id !== 'shadda' && (!onlyIds || onlyIds.includes(s.id)));
         const sign = pickOne(signs, ctx.rng);
         if (!sign) return null;
         const p = pickAyah(ctx, (a) => ayahHasSign(a, sign.id) && ayahTokens(a).length <= 16);
