@@ -165,32 +165,38 @@ body[data-dh-screen$="Game.html"][data-game-q="similar"] .game-main-area { paddi
 body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student { padding: 4px 10px !important; margin-bottom: 8px !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student img { width: 44px !important; height: 44px !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student h3 { font-size: 1.35rem !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title { margin-bottom: 8px !important; }
+body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title { margin-bottom: clamp(10px, 3vh, 28px) !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title > span { font-size: clamp(1.5rem, 3.6vh, 2.2rem) !important; padding: 8px 34px !important; }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-text {
-    font-size: clamp(1.35rem, 3.5vh, 2.3rem) !important;
+    font-size: clamp(1.5rem, 4.4vh, 2.8rem) !important;
     line-height: 1.6 !important;
-    margin: 0 0 clamp(8px, 2vh, 20px) !important;
+    margin: 0 0 clamp(14px, 4vh, 40px) !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-verse {
     display: inline-block;
     max-width: 100%;
-    font-size: clamp(2.1rem, 6vh, 3.8rem) !important;
+    font-size: clamp(2.3rem, 7.5vh, 4.8rem) !important;
     line-height: 1.7 !important;
     padding: 6px 28px !important;
     margin: 4px 0 !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opts {
     display: grid;
-    gap: clamp(8px, 1.8vh, 18px);
-    max-width: 1000px !important;
+    gap: clamp(12px, 3.2vh, 32px);
+    max-width: 1100px !important;
 }
 body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn {
     margin: 0 !important;
-    padding: clamp(6px, 1.4vh, 14px) 20px !important;
-    font-size: clamp(1.4rem, 3.5vh, 2.3rem) !important;
+    padding: clamp(12px, 3vh, 30px) 24px !important;
+    font-size: clamp(1.6rem, 4.6vh, 3rem) !important;
     line-height: 1.6 !important;
     white-space: normal;
+}
+/* خيارات الآيات (نفس حجم آيات «الآية بين آيتين» / «تسميع مقطع» كي يشبه بقية الأسئلة) — أسماء السور تبقى بالحجم أعلاه */
+body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn.quran-text {
+    font-size: clamp(2.3rem, 5.6vh, 3.8rem) !important;
+    line-height: 1.8 !important;
+    padding: clamp(4px, 1.2vh, 12px) 24px !important;
 }
 
 /* زر ملء الشاشة — مخفي على الهاتف (لا فائدة منه هناك وتدعمه متصفحات قليلة) */
