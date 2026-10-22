@@ -54,7 +54,7 @@ function letterBackHTML(rule, letter, ayahByKey, mine) {
     const own = mine && mine.get(letter);
     if (own) {
         return `<span class="tjw-flip-word">${own.before}<mark class="tjw-flip-mark">${own.mark}</mark>${own.after}</span>
-                <small>${own.surahName} ${own.ayah}</small>`;
+                <small class="tjw-flip-ref">${own.surahName} ${own.ayah}</small>`;
     }
     const ex = (LETTER_EXAMPLES[rule.id] || {})[letter];
     if (ex) {
@@ -62,21 +62,21 @@ function letterBackHTML(rule, letter, ayahByKey, mine) {
         const parts = ayah && splitLetterExample(ayah.text, ex);
         if (parts) {
             return `<span class="tjw-flip-word">${parts.before}<mark class="tjw-flip-mark">${parts.mark}</mark>${parts.after}</span>
-                    <small>${ayah.surahName} ${ex.a}</small>`;
+                    <small class="tjw-flip-ref">${ayah.surahName} ${ex.a}</small>`;
         }
     }
     const ayah = ayahByKey.get(`${rule.example.surah}:${rule.example.ayah}`);
     if (!ayah) return `<small>${t(rule.nameKey)}</small>`;
     const ranges = findPhraseRanges(ayah.text, rule.example.highlight);
     const phrase = ranges.length ? ayah.text.slice(ranges[0][0], ranges[0][1]) : '';
-    return `<span class="tjw-flip-word">${phrase || ayah.text}</span><small>${ayah.surahName} ${rule.example.ayah}</small>`;
+    return `<span class="tjw-flip-word">${phrase || ayah.text}</span><small class="tjw-flip-ref">${ayah.surahName} ${rule.example.ayah}</small>`;
 }
 
 function pairBackHTML(rule, p, ayahByKey) {
     const ayah = ayahByKey.get(`${p.s}:${p.v}`);
     const phrase = ayah ? pairPhrase(ayah.text, p) : null;
     const badge = `<small class="tjw-flip-badge ${p.g ? 'is-idgham' : 'is-izhar'}">${t(p.g ? 'tjw_pair_idgham' : 'tjw_pair_izhar')}</small>`;
-    return `<span class="tjw-flip-word">${phrase || ''}</span>${badge}${ayah ? `<small>${ayah.surahName} ${p.v}</small>` : ''}`;
+    return `<span class="tjw-flip-word">${phrase || ''}</span>${badge}${ayah ? `<small class="tjw-flip-ref">${ayah.surahName} ${p.v}</small>` : ''}`;
 }
 
 export async function renderLetterCardsHTML(rule) {

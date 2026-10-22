@@ -9,7 +9,7 @@
 
 const INK = '#2b2118';
 const PAPER = '#fff8e6';
-const QFONT = "'Amiri Quran', serif";
+const QFONT = "'Uthmanic Hafs','Amiri Quran',serif";   // خط المصحف نفسه المستعمل في بقية الركن؛ يُكتب style لا خاصية font-family لأن قاعدة * العامة في global.css تتغلّب على الخاصية
 const SHADDA = 'ّ';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -25,7 +25,7 @@ function badge(cx, cy, r, ch, fill, opts = {}) {
     const fs = opts.fs || Math.round(r * 1.1);
     const stroke = opts.stroke || INK;
     return `<g${opts.opacity ? ` opacity="${opts.opacity}"` : ''}><circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="2.5"${opts.dash ? ' stroke-dasharray="5 4"' : ''}/>
-        <text ${fl(cx)} x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" font-family="${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
+        <text ${fl(cx)} x="${cx}" y="${cy + fs * 0.2}" text-anchor="middle" style="font-family:${QFONT}" font-size="${fs}" fill="${opts.color || '#fff'}">${esc(ch)}</text></g>`;
 }
 function arrow(x1, y1, x2, y2, color = INK, dash = false) {
     const a = Math.atan2(y2 - y1, x2 - x1), h = 9;
@@ -45,7 +45,7 @@ const dots = (cx, cy, n, color) => {
 function wordCard(cx, y, w, text, color) {
     const n = baseLen(text), fs = n <= 6 ? 26 : n <= 11 ? 22 : n <= 16 ? 19 : 16;
     return `<g><rect x="${cx - w / 2}" y="${y}" width="${w}" height="54" rx="14" fill="#fff" stroke="${color}" stroke-width="3"/>
-        <text x="${cx}" y="${y + 36}" text-anchor="middle" direction="rtl" font-family="${QFONT}" font-size="${fs}" fill="${INK}">${esc(text)}</text></g>`;
+        <text x="${cx}" y="${y + 36}" text-anchor="middle" direction="rtl" style="font-family:${QFONT}" font-size="${fs}" fill="${INK}">${esc(text)}</text></g>`;
 }
 function wordCards(words, color) {
     const ws = words.filter(Boolean);
