@@ -1486,7 +1486,7 @@ async function ensureFontsReady(){
         document.fonts.load('400 18px Amiri'),
         document.fonts.load('700 38px Amiri'),
         document.fonts.load('italic 700 16px Amiri'),
-        document.fonts.load('400 15px "Amiri Quran"'),
+        document.fonts.load('400 15px "Amiri Quran"', 'بسم الله'),
         document.fonts.load('600 13px Cairo'),
         document.fonts.load('700 14px Cairo'),
         document.fonts.load('800 14px Cairo')
