@@ -65,7 +65,7 @@ body.kids .chip.on{background:#fff1d6;color:#92400e}
 .b-save.on{display:block;animation:up .2s ease}
 .hint{text-align:center;color:var(--ink2);font-size:.72rem;margin-top:8px}
 
-.toast{position:fixed;top:12px;inset-inline:16px;max-width:528px;margin:0 auto;background:#10241c;color:#fff;border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden;z-index:5}
+.toast{position:fixed;bottom:0;inset-inline:16px;max-width:528px;margin:0 auto;background:#10241c;color:#fff;border-radius:16px;padding:12px 16px;display:none;align-items:center;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.3);overflow:hidden;z-index:5}
 .toast.on{display:flex;animation:up .25s ease}
 .toast span{flex:1;font-size:.92rem}
 .toast button{color:var(--gold);font-weight:700;padding:4px 8px}
@@ -125,17 +125,17 @@ const T={
 ar:{title:"🎓 اختبار الطالب",student:"الطالب: أحمد",q_label:"أكمل الآية",show:"👁️ إظهار الإجابة للمطابقة",hide:"🙈 إخفاء الإجابة",
 ok:"🟢 إجابة صحيحة تامة",ok_k:"⭐ أحسنت",note:"📝 ملاحظة",undoNote:"↩ تراجع",save:n=>n?`⏭ حفظ (${n}) والتالي`:"⏭ حفظ والتالي",save_last:n=>n?`🏁 حفظ (${n}) وإنهاء`:"🏁 حفظ وإنهاء",
 sheet_title:"نوع الملاحظة:",sheet_title_k:"ما الذي نراجعه؟",txt_ph:"أو اكتب ملاحظة نصية...",
-e_word:"خطأ كلمة",e_word_k:"كلمة نراجعها",e_haraka:"خطأ حركة",e_haraka_k:"حركة نتدرّب عليها",e_forget:"نسيان آية",e_dont:"لم يعرف الإجابة",e_self:"🌟 صححها بنفسه",
+e_word:"خطأ كلمة",e_word_k:"كلمة نراجعها",e_haraka:"خطأ حركة",e_haraka_k:"حركة نتدرّب عليها",e_forget:"نسيان آية",e_dont:"لم يعرف الإجابة",
 toast_ok:"سُجّلت: إجابة صحيحة تامة",toast_note:n=>`تم حفظ الملاحظة (${n})`,undo:"↩ تراجع",counter:(a,b)=>`السؤال ${a} من ${b}`,
-hint:"اختصارات: 1–5 الأنواع · N ملاحظة/تراجع · Enter حفظ · Space صحيحة · Z تراجع",
+hint:"اختصارات: 1–4 الأنواع · N ملاحظة/تراجع · Enter حفظ · Space صحيحة · Z تراجع",
 kids:"👶 وضع الأطفال",adults:"🧑 وضع الكبار",
 done_title:"🎉 انتهى الاختبار",done_sub:"ملخص الملاحظات المسجّلة",again:"إعادة التجربة",s_ok:"إجابات صحيحة تامة",s_note:"أسئلة بها ملاحظات"},
 en:{title:"🎓 Student Quiz",student:"Student: Ahmad",q_label:"Complete the verse",show:"👁️ Show answer to compare",hide:"🙈 Hide answer",
 ok:"🟢 Fully correct",ok_k:"⭐ Great job",note:"📝 Note",undoNote:"↩ Undo",save:n=>n?`⏭ Save (${n}) & next`:"⏭ Save & next",save_last:n=>n?`🏁 Save (${n}) & finish`:"🏁 Save & finish",
 sheet_title:"Note type:",sheet_title_k:"What shall we review?",txt_ph:"Or type a text note...",
-e_word:"Word error",e_word_k:"A word to review",e_haraka:"Vowel error",e_haraka_k:"A vowel to practice",e_forget:"Forgot ayah",e_dont:"Didn't know answer",e_self:"🌟 Self-corrected",
+e_word:"Word error",e_word_k:"A word to review",e_haraka:"Vowel error",e_haraka_k:"A vowel to practice",e_forget:"Forgot ayah",e_dont:"Didn't know answer",
 toast_ok:"Recorded: fully correct",toast_note:n=>`Note saved (${n})`,undo:"↩ Undo",counter:(a,b)=>`Question ${a} of ${b}`,
-hint:"Shortcuts: 1–5 types · N note/undo · Enter save · Space correct · Z undo",
+hint:"Shortcuts: 1–4 types · N note/undo · Enter save · Space correct · Z undo",
 kids:"👶 Kids mode",adults:"🧑 Adults mode",
 done_title:"🎉 Quiz finished",done_sub:"Recorded notes summary",again:"Try again",s_ok:"Fully correct answers",s_note:"Questions with notes"}
 };
@@ -145,7 +145,7 @@ const Q=[
  {v:'﴿ فَاذْكُرُونِي <span class="blank">أَذْكُرْكُمْ</span> ﴾',a:'أَذْكُرْكُمْ'},
  {v:'﴿ وَاصْبِرْ فَإِنَّ اللَّهَ لَا يُضِيعُ <span class="blank">أَجْرَ الْمُحْسِنِينَ</span> ﴾',a:'أَجْرَ الْمُحْسِنِينَ'}
 ];
-const TYPES=[['e_word'],['e_haraka'],['e_forget'],['e_dont',1],['e_self',2]];
+const TYPES=[['e_word'],['e_haraka'],['e_forget'],['e_dont',1]];
 let lang='ar',kids=false,i=0,open=false,sel=new Set(),results=[],lastSnap=null,tt=null;
 const $=id=>document.getElementById(id);
 const t=k=>{const d=T[lang];return (kids&&d[k+'_k']!==undefined)?d[k+'_k']:d[k]};
@@ -219,7 +219,7 @@ function undo(){
 }
 function toast(msg){
   $('toastMsg').textContent=msg;
-  const el=$('toast');el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  const el=$('toast');el.style.bottom=($('dock').offsetHeight+10)+'px';el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
   clearTimeout(tt);tt=setTimeout(()=>{el.classList.remove('on');lastSnap=null},5000);
 }
 function finish(){
@@ -242,7 +242,7 @@ $('again').onclick=()=>{i=0;results=[];lastSnap=null;$('done').classList.remove(
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT')return;
   if($('done').classList.contains('on'))return;
-  if(e.key>='1'&&e.key<='5'){if(!open)openNote();toggle(TYPES[+e.key-1][0])}
+  if(e.key>='1'&&e.key<='4'){if(!open)openNote();toggle(TYPES[+e.key-1][0])}
   else if(e.key==='n'||e.key==='N'||e.key==='ن'){open?closeNote():openNote()}
   else if(e.key==='Enter'){e.preventDefault();open?doSave():doOk()}
   else if(e.key===' '){e.preventDefault();if(open)closeNote();doOk()}
