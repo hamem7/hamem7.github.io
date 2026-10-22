@@ -648,6 +648,12 @@ async function handleActivityClick(e) {
         return;
     }
 
+    // 🌟 «إنهاء»: يفتح الملخص الجاهز للولي ليُرسَل، وعند إغلاقه نعود للخريطة
+    if (e.target.closest('[data-action="finish-session"]')) {
+        openParentSummary({ studentId: AppState.currentStudent.id, ruleId: pathRuleIdOf(), kind: pathRuleIdOf() ? 'lesson' : 'session', onClose: () => openTajweedSection() });
+        return;
+    }
+
     if (e.target.closest('[data-action="back-to-map"]')) {
         openTajweedSection();
         return;
@@ -1211,6 +1217,8 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
     // انتهى الحكم (اعتمده المعلم): يُعرض «بدء حكم جديد» أو «إنهاء» بدل «العودة للخريطة»
     const ruleDone = params.mode === 'teacher_approve' || (params.mode === 'teacher_checkpoint' && !!(checkpointOutcome && checkpointOutcome.approved));
 
+    const nextRuleId = ruleDone && AppState.currentStudent.tajweedProgress ? AppState.currentStudent.tajweedProgress.currentRuleId : null;
+
     const headlineKey = scorePercent >= 80 ? 'tjw_result_great' : scorePercent >= 50 ? 'tjw_result_good' : 'tjw_result_retry';
     const ringColor = scorePercent >= 80 ? 'var(--tjw-good)' : scorePercent >= 50 ? 'var(--tjw-gold-deep)' : 'var(--tjw-accent)';
 
@@ -1227,8 +1235,8 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
                 ${params.mode === 'teacher_approve' ? '' : `<button class="tjw-outline-btn" data-action="retry-activity">🔁 ${t('tjw_retry_activity_btn')}</button>`}
                 <button class="tjw-outline-btn" data-action="parent-summary">${t(ruleKey ? 'tjw_lesson_summary_btn' : 'tjw_sum_btn')}</button>
                 ${ruleDone
-                    ? `<button class="tjw-cta-btn" data-action="new-rule">▶️ ${t('tjw_new_rule_btn')}</button>
-                       <button class="tjw-outline-btn" data-action="back-to-map">🏁 ${t('tjw_finish_session_btn')}</button>`
+                    ? `${nextRuleId ? `<button class="tjw-cta-btn" data-action="new-rule">▶️ ${t('tjw_new_rule_named_btn').replace('{rule}', ruleNameOf(nextRuleId))}</button>` : ''}
+                       <button class="${nextRuleId ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="finish-session">🏁 ${t('tjw_finish_session_btn')}</button>`
                     : `<button class="${journeyHTML ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>`}
             </div>
         </div>`;

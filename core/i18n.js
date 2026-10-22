@@ -2519,6 +2519,7 @@ export const translations = {
         tjw_back_to_map_btn: "العودة للخريطة",
         tjw_new_rule_btn: "بدء حكم جديد",
         tjw_finish_session_btn: "إنهاء",
+        tjw_new_rule_named_btn: "بدء حكم «{rule}» ➜",
         tjw_exit_main_btn: "العودة للقائمة الرئيسية",
 
         // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم "سمّع لي" — بُعد pronounces، راجع §2 من
@@ -5335,6 +5336,7 @@ export const translations = {
         tjw_back_to_map_btn: "Back to map",
         tjw_new_rule_btn: "Start a new rule",
         tjw_finish_session_btn: "Finish",
+        tjw_new_rule_named_btn: "Start «{rule}» ➜",
         tjw_exit_main_btn: "Back to main menu",
 
         // 🌟🌟 [New Sept 28] teacher checkpoint gate "Listen to me" — pronounces dimension
