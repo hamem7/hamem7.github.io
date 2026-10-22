@@ -1050,8 +1050,10 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
    مرحلة «تعرّف على مصحفك» (tajweed/tajweed-mushaf-ui.js): فانوس الهامش، لوحة السورة، رأس الصفحة، وردة الآية، العلامات
    الصور الحقيقية في assets/tajweed/mushaf/ والكلمات تُكتب فوقها. النصوص القرآنية دائماً dir=rtl حتى في الواجهة الإنجليزية.
    ============================================================ */
-:root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Amiri Quran', serif; --tjw-ayah-end-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }   /* نص القرآن بخط المنصة نفسه (Amiri Quran) فتظهر العلامات (الألف الخنجرية والواو والياء الصغيرة…) كما في بقية المنصة؛ خط المصحف للدائرة المزخرفة حول رقم الآية وحدها */
+:root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Uthmanic Hafs', 'Amiri Quran', serif; --tjw-ayah-end-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }   /* نص القرآن في هذه المرحلة بخط المصحف (KFGQPC) لأنه يرسم الألف الخنجرية والمدّة والواو والياء الصغيرة بحجم المطبوع وملتصقة بالحرف */
 .tjw-mk-ar { font-family: var(--tjw-quran-font); direction: rtl; unicode-bidi: isolate; }
+/* ⚠️ global.css يضع font-family: IBM Plex Sans Arabic على كل عنصر (*)، فكان أي عنصر داخل نص القرآن (الكلمة المظلّلة mark، span، زر الكلمة) يُرسم بخط الواجهة لا بخط القرآن فتتغيّر الحروف وموضع الواو والياء الصغيرتين. نُورّث الخط صراحةً (وردة رقم الآية لها خطها أدناه) */
+.tjw-mk-ar *, .tjw-mk-signglyph *, .tjw-mk-optglyph *, .tjw-mk-wordbox *, .tjw-mk-seg * { font-family: inherit; }
 /* خط المصحف بوزن واحد (400) في الشرح والأسئلة معًا: أزرار الإجابة والعناوين بوزن 800 كانت تُغلِّظ العلامات (المستطيل والدائرة والوقف) بسمك مصطنع يخالف رسمها في النص القرآني */
 .tjw-mk-signglyph, .tjw-mk-signglyph *, .tjw-mk-optglyph, .tjw-mk-optglyph *, .tjw-mk-ar, .tjw-mk-ar *, .tjw-mk-wordbox, .tjw-mk-rosette, .tjw-mk-segnum { font-weight: 400; font-synthesis: none; }
 .tjw-mk-lesson { display: flex; flex-direction: column; gap: 14px; }

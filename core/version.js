@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.48';
+export const APP_VERSION = '1.0.49';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.49',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'في «تعرّف على مصحفك»: الكلمة المظلّلة وما داخل نص الآية كان يُرسم بخط الواجهة بدل خط المصحف، فظهرت الواو والياء الصغيرتان مرفوعتين والألف الخنجرية غير واضحة. صار كل النص بخط المصحف، والواو والياء الصغيرتان في موضعهما بعد الهاء.', en: 'In "Get to know your Mushaf": the highlighted word and everything inside the ayah text was drawn in the interface font instead of the Mushaf font, so the small waw/yaa looked raised and the dagger alif unclear. All text now uses the Mushaf font, with the small waw/yaa in their proper place after the heh.' } }
+        ]
+    },
     {
         version: '1.0.48',
         date: '2026-10-22',
