@@ -94,12 +94,59 @@ function startTimer(minutes) {
     GameState.timerInterval = setInterval(() => { 
         GameState.timeRemaining--; 
         updateTimerDisplay(); 
-        if(GameState.timeRemaining <= 0) { 
-            clearInterval(GameState.timerInterval); 
-            playErrorSound(); 
-            alert(t("انتهى الوقت المخصص للاختبار!")); // سيتم عرض النص الأصلي إذا لم يضف للقاموس
-        } 
-    }, 1000); 
+        // 🌟 [جديد] تنبيه مسبق قبل انتهاء الوقت (دقيقة ثم 10 ثوانٍ) حتى لا يُفاجَأ الطالب
+        if (GameState.timeRemaining === 60) showTimerHint(t('timer_one_minute_left'));
+        else if (GameState.timeRemaining === 10) showTimerHint(t('timer_ten_seconds_left'));
+        if(GameState.timeRemaining <= 0) {
+            clearInterval(GameState.timerInterval);
+            playErrorSound();
+            offerExtraTime();
+        }
+    }, 1000);
+}
+
+const EXTRA_TIME_MINUTES = 5;
+
+// 🌟 [جديد] عند انتهاء الوقت لا نقطع الاختبار: نعرض خيار إضافة دقائق (يتكرر كلما انتهى الوقت)،
+// ولو اختار المعلم/الطالب "متابعة بدون مؤقت" (أو أغلق النافذة) يكمل الاختبار بلا حد زمني
+async function offerExtraTime() {
+    const addMore = await hamConfirm(t('timer_up_extend_msg'), {
+        ok: tf('timer_add_minutes', { n: EXTRA_TIME_MINUTES }),
+        cancel: t('timer_continue_no_limit')
+    });
+    if (addMore) {
+        GameState.timeRemaining = EXTRA_TIME_MINUTES * 60;
+        updateTimerDisplay();
+        GameState.timerInterval = setInterval(() => {
+            GameState.timeRemaining--;
+            updateTimerDisplay();
+            if (GameState.timeRemaining === 10) showTimerHint(t('timer_ten_seconds_left'));
+            if (GameState.timeRemaining <= 0) {
+                clearInterval(GameState.timerInterval);
+                playErrorSound();
+                offerExtraTime();
+            }
+        }, 1000);
+    } else {
+        // بلا حد زمني: نُظهر 00:00 ثابتاً ونوقف التنبيه الوامض
+        GameState.timeRemaining = 0;
+        updateTimerDisplay();
+    }
+}
+
+function showTimerHint(text) {
+    let el = document.getElementById('timer-hint-toast');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'timer-hint-toast';
+        el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#b45309;color:#fff;' +
+            'padding:10px 20px;border-radius:999px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3);transition:opacity .3s;pointer-events:none';
+        document.body.appendChild(el);
+    }
+    el.textContent = text;
+    el.style.opacity = '1';
+    clearTimeout(el._hideT);
+    el._hideT = setTimeout(() => { el.style.opacity = '0'; }, 3500);
 }
 
 function updateTimerDisplay() { 
@@ -108,8 +155,9 @@ function updateTimerDisplay() {
     const display = document.getElementById('timer-display'); 
     if(!display) return; 
     display.innerText = `${m}:${s} ⏱️`; 
-    if(GameState.timeRemaining <= 60) display.classList.add('timer-warning'); 
-    else display.classList.remove('timer-warning'); 
+    const warn = GameState.timeRemaining > 0 && GameState.timeRemaining <= 60;
+    display.classList.toggle('timer-warning', warn);
+    display.classList.toggle('timer-critical', GameState.timeRemaining > 0 && GameState.timeRemaining <= 10);
 }
 
 function getShuffledBag(gamesList) {

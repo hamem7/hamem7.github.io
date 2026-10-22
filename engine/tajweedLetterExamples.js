@@ -80,7 +80,7 @@ export const LETTER_EXAMPLES = {
 // علامات الوقف (ۚ ۖ …) كلمات مستقلة في النص فتفصل بين كلمتين متجاورتين؛ تُحذف قبل البحث عن العبارة
 export const withoutWaqf = (text) => text.split(' ').filter(w => w && !isWaqfMark(w)).join(' ');
 
-const MARKS = 'ً-ٰٟۖ-ۭ';
+const MARKS = 'ً-ٰٟۖ-ۭ\u08F0-\u08FF';   // 08F0–08FF: التنوين المفتوح في نص المصحف المصحَّح
 const CLUSTER_RE = new RegExp(`.[${MARKS}]*`, 'g');
 const FIRST_LETTER_RE = new RegExp(`^(.[${MARKS}]*)`);
 
@@ -117,7 +117,7 @@ export function splitLetterExample(rawAyahText, entry) {
 const SUKUN_RE = /[ْۡ]/;
 const SHADDA_RE = /ّ/;
 const QALQALA_LETTERS = 'قطبجد';
-const HAMZA_FORMS = { 'أ': 'ء', 'إ': 'ء', 'ؤ': 'ء', 'ئ': 'ء' };
+const HAMZA_FORMS = { 'أ': 'ء', 'إ': 'ء', 'ؤ': 'ء', 'ئ': 'ء', '\u06CC': 'ي', 'ى': 'ي' };   // U+06CC: الياء في نص المصحف المصحَّح
 const PAIR_RULES = new Set(['izhar', 'idgham_bighunnah', 'idgham_bila_ghunnah', 'iqlab', 'ikhfa', 'ikhfa_shafawi', 'idgham_shafawi']);
 export const hasInRangeLetterExamples = (ruleId) => ruleId === 'qalqalah' || ruleId === 'ghunna_wajiba' || PAIR_RULES.has(ruleId);
 

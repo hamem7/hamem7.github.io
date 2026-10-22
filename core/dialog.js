@@ -58,7 +58,8 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'ham-dialog-btn';
-        btn.textContent = item.confirm ? (en ? 'OK' : 'موافق') : (en ? 'Got it' : 'حسنًا');
+        var labels = item.labels || {};
+        btn.textContent = item.confirm ? (labels.ok || (en ? 'OK' : 'موافق')) : (en ? 'Got it' : 'حسنًا');
         var row = document.createElement('div');
         row.style.cssText = 'display:flex;gap:10px;justify-content:center;flex-wrap:wrap';
         var cancel = null;
@@ -66,7 +67,7 @@
             cancel = document.createElement('button');
             cancel.type = 'button';
             cancel.className = 'ham-dialog-btn ham-dialog-btn-cancel';
-            cancel.textContent = en ? 'Cancel' : 'إلغاء';
+            cancel.textContent = labels.cancel || (en ? 'Cancel' : 'إلغاء');
         }
         box.appendChild(title);
         box.appendChild(body);
@@ -109,9 +110,10 @@
     }
 
     // بديل confirm(): يُرجع Promise<boolean> — استعمله بـ: if (!(await hamConfirm('...'))) return;
-    window.hamConfirm = function (message) {
+    // labels (اختياري): { ok, cancel } لتخصيص نصَّي الزرين (يجب أن يكونا مترجمين مسبقاً من المستدعي)
+    window.hamConfirm = function (message, labels) {
         return new Promise(function (resolve) {
-            enqueue({ msg: message == null ? '' : String(message), confirm: true, resolve: resolve });
+            enqueue({ msg: message == null ? '' : String(message), confirm: true, resolve: resolve, labels: labels });
         });
     };
 })();

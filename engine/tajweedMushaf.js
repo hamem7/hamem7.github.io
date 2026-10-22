@@ -28,7 +28,6 @@ export const MUSHAF_SIGNS = [
     { id: 'ayah_end', code: '', lesson: 'ayah_number', kind: 'rosette' },
     { id: 'rub_mark', code: '۞', lesson: 'juz_hizb', standalone: true },
     { id: 'waqf_lazim', code: 'ۘ', lesson: 'waqf', standalone: true, abbr: 'م' },
-    { id: 'waqf_la', code: 'ۙ', lesson: 'waqf', standalone: true, abbr: 'لا' },
     { id: 'waqf_jaiz', code: 'ۚ', lesson: 'waqf', standalone: true, abbr: 'ج' },
     { id: 'waqf_sala', code: 'ۖ', lesson: 'waqf', standalone: true, abbr: 'صلى' },
     { id: 'waqf_qala', code: 'ۗ', lesson: 'waqf', standalone: true, abbr: 'قلى' },
@@ -39,7 +38,7 @@ export const MUSHAF_SIGNS = [
     { id: 'sukun', code: 'ۡ', demo: 'مۡ', lesson: 'silent_sukun' },
     { id: 'shadda', code: 'ّ', demo: 'لَّ', lesson: 'silent_sukun' },
     { id: 'small_meem', code: 'ۢ', demo: 'نۢ', lesson: 'silent_sukun' },
-    { id: 'madd', code: 'ٓ', demo: 'حمٓ', lesson: 'madd_letters' },
+    { id: 'madd', code: '\u06E4', demo: 'حم\u06E4', lesson: 'madd_letters' },   // المدّة في نص المصحف المصحَّح U+06E4 (كانت U+0653)
     { id: 'dagger_alif', code: 'ٰ', demo: 'ذَٰلِكَ', lesson: 'madd_letters' },
     { id: 'small_waw', code: 'ۥ', demo: 'لَهُۥ', lesson: 'madd_letters' },
     { id: 'small_yaa', code: 'ۦ', demo: 'بِهِۦ', lesson: 'madd_letters' },
@@ -136,7 +135,7 @@ export function tokenHasSign(signId, tok) {
     return tok.includes(s.code);
 }
 export const ayahHasSign = (a, signId) => ayahTokens(a).some((tok) => tokenHasSign(signId, tok));
-const WAQF_IDS = ['waqf_lazim', 'waqf_la', 'waqf_jaiz', 'waqf_sala', 'waqf_qala', 'waqf_muanaqa'];
+const WAQF_IDS = ['waqf_lazim', 'waqf_jaiz', 'waqf_sala', 'waqf_qala', 'waqf_muanaqa'];
 export const isWaqfToken = (tok) => WAQF_IDS.some((id) => tokenHasSign(id, tok));
 const refAyahs = (ctx, sign) => (sign.refs || []).map(([sn, n]) => ctx.byKey.get(sn + ':' + n)).filter(Boolean);
 const ayahsWithSign = (ctx, sign) => (sign.refs ? refAyahs(ctx, sign) : ctx.all.filter((a) => ayahHasSign(a, sign.id)));
@@ -398,7 +397,7 @@ function g_sk_sukun(ctx, R) {
     const p = pickAyah(ctx, (a) => ayahHasSign(a, 'sukun') && ayahTokens(a).length <= 12, { maxLen: 90 });
     if (!p) return null;
     return choice({ ruleId: R, kind: 'sukun_shape', key: 'sukun_shape:' + keyOfAyah(p.a), stemKey: 'tjw_mq_sk_shape', near: p.near, media: { kind: 'ayah', parts: [{ t: 'text', v: p.a.text }, { t: 'rosette', n: p.a.n }], sname: p.a.sname },
-        options: [opt('head', true, { glyph: showOfCode('ۡ') }), opt('circle', false, { glyph: showOfCode('۟') }), opt('hat', false, { glyph: showOfCode('ٓ') }), opt('dot', false, { glyph: showOfCode('ۢ') })], explain: explainSign('sukun') }, ctx);
+        options: [opt('head', true, { glyph: showOfCode('ۡ') }), opt('circle', false, { glyph: showOfCode('۟') }), opt('hat', false, { glyph: showOfCode('\u06E4') }), opt('dot', false, { glyph: showOfCode('ۢ') })], explain: explainSign('sukun') }, ctx);
 }
 function g_sin_word(ctx, R) {
     const sign = signById(pickOne(['sin_over', 'sin_under', 'saktah'], ctx.rng));

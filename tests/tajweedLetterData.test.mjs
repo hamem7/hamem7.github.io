@@ -15,7 +15,7 @@ const test = (name, fn) => { try { fn(); pass++; console.log('✅ ' + name); } c
 const quran = JSON.parse(fs.readFileSync(new URL('../database/quran-uthmani.json', import.meta.url), 'utf8')).data.surahs;
 const ayahText = (s, a) => { const x = quran[s - 1] && quran[s - 1].ayahs[a - 1]; return x ? cleanAyahText(x.text) : null; };
 const strip = (s) => s.replace(/[ً-ٰٟۖ-ۭ]/g, '');
-const base = (c) => ({ 'أ': 'ء', 'إ': 'ء', 'ؤ': 'ء', 'ئ': 'ء', 'ٱ': 'ا' }[c] || c);
+const base = (c) => ({ 'أ': 'ء', 'إ': 'ء', 'ؤ': 'ء', 'ئ': 'ء', 'ٱ': 'ا', 'ی': 'ي' }[c] || c);   // ی (U+06CC): الياء في نص المصحف المصحَّح
 const ruleIds = new Set(getAllRulesFlat().map(x => x.rule.id));
 
 test('كل حكم في ملفَّي البيانات موجود في الكتالوج', () => {

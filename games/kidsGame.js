@@ -454,7 +454,7 @@ async function playNextMission() {
         let activePool = pool;
         if (type !== 'kids_word_order') {
             let filtered = pool.filter(a => {
-                let plainText = a.text.replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED]/g, '');
+                let plainText = a.text.replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '').replace(/\u06CC/g, '\u0649');
                 return !plainText.includes('فبأي آلاء ربكما تكذبان') && 
                        !plainText.includes('فباي الاء ربكما تكذبان') && 
                        !plainText.includes('ويل يومئذ للمكذبين');
