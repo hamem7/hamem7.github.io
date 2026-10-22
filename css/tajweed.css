@@ -1087,9 +1087,11 @@ html[lang="ar"] .tjw-example-ref, html[lang="ar"] .tjw-flip-face small.tjw-flip-
 .tjw-mk-signimg { height: 60px; width: auto; vertical-align: middle; }
 
 /* فانوس الهامش: صورة حقيقية والكلمات فوقها (النسب مقيسة من الصورة) */
-.tjw-mk-lantern { position: relative; container-type: inline-size; width: 84px; margin: 0 auto; }
+.tjw-mk-lantern { position: relative; container-type: inline-size; width: 120px; margin: 0 auto; }
 .tjw-mk-lantern img { display: block; width: 100%; height: auto; }
 .tjw-mk-lantern-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: var(--tjw-quran-font); font-weight: 700; color: #111; line-height: 1.25; }
+/* أرقام الفانوس بخط عادي: خط المصحف يرسم الأرقام الهندية داخل علامة نهاية الآية فتصير صغيرة لا تُقرأ */
+.tjw-mk-lantern-num, .tjw-mk-lantern-num * { font-family: 'Amiri', 'Amiri Quran', serif; font-weight: 700; font-size: 1.35em; line-height: 1; }
 .tjw-mk-media-lantern { display: grid; place-items: center; padding: 6px; }
 .tjw-mk-gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
 .tjw-mk-gallery figure { margin: 0; text-align: center; background: #fff; border: 2px solid var(--tjw-line); border-radius: 14px; padding: 8px; color: var(--tjw-text); }
@@ -1137,7 +1139,7 @@ html[lang="ar"] .tjw-example-ref, html[lang="ar"] .tjw-flip-face small.tjw-flip-
 @media (max-width: 560px) {
     .tjw-mk-cmp { grid-template-columns: 1fr; }
     .tjw-mk-pagedemo { grid-template-columns: 72px 1fr; }
-    .tjw-mk-lantern { width: 72px; }
+    .tjw-mk-lantern { width: 100px; }
 }
 
 /* سلسلة الحكم: رقم الخطوة في شريط التقدّم وشاشة العبور بين لعبتين */
