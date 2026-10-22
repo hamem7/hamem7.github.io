@@ -53,15 +53,18 @@ test('«ما الكلمة الناقصة؟»: 3 خيارات مختلفة، ال
     assert.ok(n > 20, 'أسئلة قليلة جداً: ' + n);
 });
 
-test('«ما الكلمة الناقصة؟»: لا يُعرض من الآية ما يكشف الجواب (الباقي بعد الكلمة الناقصة مخفي)', () => {
+test('«ما الكلمة الناقصة؟»: الفراغ مكان الكلمة الصحيحة فقط، ولا يُعرض بعد الفراغ ما يكشفه في الأسئلة ذات العبارة المتطابقة', () => {
+    let mid = 0;
     for (let seed = 1; seed <= 30; seed++) for (const q of batch(seed).filter(q => q.kind === 'sim_missing')) {
         const a = q.reveal.a, i = a.mark[0];
-        const shown = q.stemLine.replace('......', '').trim();
-        const stemWords = i === 0 ? shown : a.words.slice(0, i).join(' ');
-        if (q.stemLine.endsWith('......')) assert.equal(shown, a.words.slice(0, i).join(' ')), assert.ok(!shown.includes(a.words.slice(i).join(' ')));
-        else assert.equal(shown, a.words.slice(i + 1).join(' '));
-        assert.ok(stemWords !== undefined);
+        const full = a.words.map((w, k) => (k === i ? '......' : w)).join(' ');
+        const stem = q.stemLine.replace(/^… /, '').replace(/ …$/, '');
+        assert.ok(full.includes(stem) && stem.includes('......'), 'المقطع المعروض ليس من الآية');
+        assert.ok(!stem.includes(a.words[i]) || a.words.filter(w => w === a.words[i]).length > 1, 'الكلمة الصحيحة ظاهرة');
+        const prefixOnly = stem.endsWith('......'), suffixOnly = stem.startsWith('......');
+        if (!prefixOnly && !suffixOnly) mid++;       // صيغ متقاربة: الفراغ وسط الآية
     }
+    assert.ok(mid > 0, 'لا توجد أسئلة صيغ متقاربة (فراغ وسط الآية)');
 });
 
 test('«اقرأ الآية من السورة المذكورة»: 2–5 سور، السورة المطلوبة بينها، والآية تحوي العبارة، بلا رقم في السؤال', () => {

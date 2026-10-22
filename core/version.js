@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.55';
+export const APP_VERSION = '1.0.56';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.56',
+        date: '2026-10-22',
+        items: [
+            { type: 'improved', text: { ar: 'سؤال «ما الكلمة الناقصة؟» صار يلتقط الصيغ المتقاربة أيضًا: آيات تتفق في أربع كلمات وتختلف في كلمة واحدة وسط العبارة (مثل «بما كانوا يعملون» و«بما كنتم تعملون»)، فيكون الفراغ في موضع الاختلاف نفسه.', en: 'The "Which word is missing?" question now also catches near-variant verses: verses that share four words and differ in one word in the middle of the phrase (for example "bima kanu ya\'malun" vs "bima kuntum ta\'malun"), so the blank sits exactly where they differ.' } },
+        ]
+    },
     {
         version: '1.0.55',
         date: '2026-10-22',

@@ -15,6 +15,7 @@ import { tl, nameL, sepL } from '../core/langBridge.js';
 
 export const RECALL_TYPES = ['sim_missing', 'sim_named'];
 const GRAM = 4;          // أقصر عبارة مشتركة (كلمات) لاعتبار آيتين متشابهتين
+const VWIN = 5;          // صيغ متقاربة: نافذة من 5 كلمات تتفق آيتان في 4 منها وتختلفان في كلمة واحدة من الثلاث الوسطى («بما كانوا يعملون» / «بما كنتم تعملون»)
 const MAX_LOCS = 7;      // أكثر من هذا = صيغة عامة («على كل شيء قدير») لا يُخلط فيها شيء بشيء
 const NAMED_MAX = 5;     // «اقرأ الآية من السورة المذكورة»: 2–5 سور
 const MAX_STEM_WORDS = 15;
@@ -72,7 +73,12 @@ function bankFor(Q, memorized) {
         const g = v.x.slice(i, i + GRAM).join(' ');
         let a = idx.get(g); if (!a) { a = new Set(); idx.set(g, a); } a.add(v);
     }
-    const bank = { M, idx, surahs: [...new Set(M.map(v => v.s))] };
+    const vidx = new Map();   // مفتاح نافذة بنجمة مكان كلمة وسطى ← الآيات التي تطابقها (النافذة، ومكان النجمة)
+    for (const v of M) for (let i = 0; i + VWIN <= v.x.length; i++) for (let m = 1; m <= VWIN - 2; m++) {
+        const k = v.x.slice(i, i + VWIN).map((w, q) => (q === m ? '*' : w)).join(' ');
+        let a = vidx.get(k); if (!a) { a = []; vidx.set(k, a); } a.push({ v, p: i, m });
+    }
+    const bank = { M, idx, vidx, surahs: [...new Set(M.map(v => v.s))] };
     perQ.set(key, bank);
     return bank;
 }
@@ -105,6 +111,33 @@ function buildGroups(bank, scopeKeys) {
     return out;
 }
 
+// مجموعات الصيغ المتقاربة: آية من النطاق تشارك آيات أخرى نافذة من 5 كلمات تختلف في كلمة وسطى واحدة (على الأقل كلمتان مختلفتان بين المواضع).
+function buildVariantGroups(bank, scopeKeys) {
+    const seen = new Set(), out = [];
+    for (const v of bank.M) {
+        if (!scopeKeys.has(v.s + ':' + v.n)) continue;
+        let best = null;
+        for (let i = 0; i + VWIN <= v.x.length; i++) for (let m = 1; m <= VWIN - 2; m++) {
+            const k = v.x.slice(i, i + VWIN).map((w, q) => (q === m ? '*' : w)).join(' ');
+            const hits = bank.vidx.get(k);
+            if (!hits || hits.length < 2 || hits.length > MAX_LOCS) continue;
+            if (new Set(hits.map(h => h.v.x[h.p + m])).size < 2) continue;      // كلها الكلمة نفسها = مجموعة متطابقة (تغطيها المجموعات العادية)
+            const shared = v.x.slice(i, i + VWIN).filter((_, q) => q !== m).join('').replace(/[اويءئؤ]/g, '').length;
+            if (shared < 8) continue;                                              // عبارة ضعيفة
+            const nS = new Set(hits.map(h => h.v.s)).size, score = nS * 20 + shared / 10;
+            if (!best || score > best.score) best = { score, m, i, hits, nS, k };
+        }
+        if (!best) continue;
+        const id = 'v|' + best.hits.map(h => h.v.s + ':' + h.v.n).sort().join('|');
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const locs = best.hits.map(h => ({ v: h.v, p: h.p, k: VWIN, m: h.m }));
+        const text = v.w.slice(best.i, best.i + VWIN).map((w, q) => (q === best.m ? '…' : w)).join(' ');
+        out.push({ id, variant: true, key: best.k, phrase: text, x: v.x.slice(best.i, best.i + VWIN), k: VWIN, locs, anchor: locs.find(l => l.v === v), nS: best.nS });
+    }
+    return out;
+}
+
 function tailsAfterRun(bank, run) {
     const out = [];
     for (const v of bank.M) { const p = findRun(v.x, run); if (p >= 0 && p + run.length < v.w.length) out.push({ v, i: p + run.length }); }
@@ -122,7 +155,38 @@ const baseOf = (Q, g, type) => {
 // ---------------- «ما الكلمة الناقصة؟» ----------------
 // الكلمة الناقصة = أول كلمة بعد العبارة المشتركة (موضع الافتراق بين الآيات)، وإن كانت العبارة في آخر الآية فالكلمة التي قبلها.
 // يُعرض من الآية ما قبل الكلمة الناقصة فقط (أو ما بعدها في الحالة الثانية) حتى لا يُستدل على الجواب من الباقي.
+function mkMissingVariant(Q, bank, g, rng) {
+    // الكلمة الناقصة هنا وسط عبارة مشتركة: تختلف بين المواضع («بما كانوا يعملون» / «بما كنتم تعملون»). تُعرض الآية كلها والفراغ مكانها.
+    const a = g.anchor, i = a.p + a.m, cw = a.v.x[i];
+    let cnt = 0;                                   // ألا توجد في سورة الآية آية أخرى بالنافذة نفسها فيلتبس الفراغ
+    for (const h of bank.vidx.get(g.key) || []) if (h.v.s === a.v.s) cnt++;
+    if (cnt !== 1) return null;
+    const by = new Map();
+    for (const l of g.locs) { const w = l.v.x[l.p + l.m]; if (w !== cw && !by.has(w)) by.set(w, { l, w, ww: l.v.w[l.p + l.m] }); }
+    const others = [...by.values()];
+    if (!others.length) return null;
+    const crossFirst = shuffled(others, rng).sort((x, y) => (y.l.v.s !== a.v.s) - (x.l.v.s !== a.v.s));
+    const twin = crossFirst[0];
+    if (twin.l.v.s === a.v.s) return null;       // الشبيهة من سورة أخرى (لعلّ الخلط بين السور هو المقصود)
+    const pool = crossFirst.slice(1).map(o => ({ w: o.ww, k: o.w }));
+    if (pool.length < 1 && i >= 1) { const L = a.v.x.slice(i - 1, i); for (const v of bank.M) { if (v === a.v) continue; const p = findRun(v.x, L); if (p >= 0 && p + 1 < v.x.length) pool.push({ w: v.w[p + 1], k: v.x[p + 1] }); } }
+    const seen = new Set([cw, twin.w]), d = [];
+    for (const p of shuffled(pool, rng)) if (!seen.has(p.k)) { seen.add(p.k); d.push(p); }
+    if (!d.length) return null;
+    const opts = shuffled([{ w: a.v.w[i], ok: true }, { w: twin.ww }, { w: d[0].w }], rng);
+    const blank = '......', words = a.v.w.map((x, q) => (q === i ? blank : x));
+    const from = a.v.w.length > 24 ? Math.max(0, i - 8) : 0, to = a.v.w.length > 24 ? Math.min(a.v.w.length, i + 9) : a.v.w.length;
+    const stemLine = (from > 0 ? '… ' : '') + words.slice(from, to).join(' ') + (to < a.v.w.length ? ' …' : '');
+    const name = Q.surahName(a.v.s);
+    const bj = twin.l.p + twin.l.m;
+    return { ...baseOf(Q, g, 'sim_missing'), anchorPhrase: g.phrase,
+        text: `في سورة ${name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟\n﴿${stemLine}﴾`,
+        tpl: { key: 'sim_q_missing', params: { name } }, stemLine,
+        options: opts.map(o => o.w), optionsDisplay: opts.map(o => o.w), correctAnswer: a.v.w[i], correctIndex: opts.findIndex(o => o.ok),
+        reveal: { a: verseRec(Q, a, [i]), b: verseRec(Q, twin.l, [bj]) } };
+}
 function mkMissing(Q, bank, g, rng) {
+    if (g.variant) return mkMissingVariant(Q, bank, g, rng);
     const a = g.anchor, right = a.p + a.k < a.v.x.length, i = right ? a.p + a.k : a.p - 1;
     if (i < 0 || i > MAX_STEM_WORDS) return null;
     const cw = a.v.x[i], pool = [], at = (l) => (right ? l.p + l.k : l.p - 1);
@@ -160,6 +224,7 @@ function mkMissing(Q, bank, g, rng) {
 
 // ---------------- «اقرأ الآية من السورة المذكورة» ----------------
 function mkNamed(Q, bank, g, rng) {
+    if (g.variant) return null;               // العبارة هنا بكلمة متغيّرة فلا يصلح عرضها كعبارة واحدة
     const by = new Map();
     for (const l of g.locs) if (!by.has(l.v.s)) by.set(l.v.s, l);
     const locs = [...by.values()].sort((x, y) => x.v.s - y.v.s);
@@ -211,15 +276,17 @@ export function generateRecallQuestions(Q, memorized, scopePool, { count = 1, rn
     const all = new Set(memorized);
     for (const k of scopeKeys) all.add(+k.split(':')[0]);                  // آيات الاختبار تُقارَن دائماً بشبيهاتها ولو خرجت عن النطاق المسجَّل
     const bank = bankFor(Q, all);
-    const groups = shuffled(buildGroups(bank, scopeKeys), rng);
+    const groups = shuffled([...buildGroups(bank, scopeKeys), ...buildVariantGroups(bank, scopeKeys)], rng);
     groups.sort((x, y) => (y.nS > 1) - (x.nS > 1));                          // العابرة للسور أولاً (ثبات الترتيب العشوائي داخل كل فئة)
-    const out = [];
+    const out = [], usedAnchor = new Set();      // سؤال واحد لكل آية مرجعية
     let turn = 0;
     for (const g of groups) {
         if (out.length >= count) break;
+        const ak = g.anchor.v.s + ':' + g.anchor.v.n;
+        if (usedAnchor.has(ak)) continue;
         for (let j = 0; j < types.length; j++) {
             const q = BUILDERS[types[(turn + j) % types.length]](Q, bank, g, rng);
-            if (q) { out.push(q); turn = (turn + j + 1) % types.length; break; }
+            if (q) { out.push(q); usedAnchor.add(ak); turn = (turn + j + 1) % types.length; break; }
         }
     }
     return out;
