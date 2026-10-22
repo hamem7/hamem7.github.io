@@ -192,6 +192,12 @@ body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt
     line-height: 1.6 !important;
     white-space: normal;
 }
+/* خيارات الآيات (نفس حجم آيات «الآية بين آيتين» / «تسميع مقطع» كي يشبه بقية الأسئلة) — أسماء السور تبقى بالحجم أعلاه */
+body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn.quran-text {
+    font-size: clamp(2.3rem, 5.6vh, 3.8rem) !important;
+    line-height: 1.8 !important;
+    padding: clamp(4px, 1.2vh, 12px) 24px !important;
+}
 
 /* زر ملء الشاشة — مخفي على الهاتف (لا فائدة منه هناك وتدعمه متصفحات قليلة) */
 .game-fs-btn { width: 100%; margin-top: 10px; padding: 10px; }
