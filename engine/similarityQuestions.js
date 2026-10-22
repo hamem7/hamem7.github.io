@@ -390,6 +390,17 @@ export function localizedQuestionText(q) {
         const tpl = pairTpl(q.pair.scope, kind === 'sim_notin' ? q.pair.count : 0);
         return tl(tpl.key, tpl.ar, { word: q.pair.phrase });
     }
+    // [2026-10-22] «أكمل الآية» و«أيُّ الآيتين»: نصهما المخزَّن عربي، فيُعاد بناؤه بقوالب i18n عند العرض (كانا يظهران عربيين في واجهة الإنجليزية)
+    if (q && q.occurrence && typeof q.text === 'string') {
+        const name = () => nameL(q.occurrence.surahName);
+        if (kind === 'sim_which') return tl('sim_q_which', 'أيُّ الآيتين الآتيتين وردت في سورة {name}؟', { name: name() });
+        if (kind === 'sim_complete') {
+            let m = q.text.match(/^في سورة .+?، جاء قوله تعالى: (﴿[^﴾]*﴾)\nثم جاءت بعدها الآية:\n(﴿[^﴾]*﴾)\nما الذي يُكمل الآية؟$/);
+            if (m) return tl('sim_q_complete_prev', 'في سورة {name}، جاء قوله تعالى: {v1}\nثم جاءت بعدها الآية:\n{v2}\nما الذي يُكمل الآية؟', { name: name(), v1: m[1], v2: m[2] });
+            m = q.text.match(/^افتتح الله تعالى سورة .+? بقوله:\n(﴿[^﴾]*﴾)\nما الذي يُكمل الآية؟$/);
+            if (m) return tl('sim_q_complete_first', 'افتتح الله تعالى سورة {name} بقوله:\n{v1}\nما الذي يُكمل الآية؟', { name: name(), v1: m[1] });
+        }
+    }
     return q ? q.text : '';
 }
 // خيار داخلي: «أ|ب» (سورتان) يُعرض «أ و ب»، واسم سورة واحدة يُعرض «سورة أ»، بلغة الواجهة

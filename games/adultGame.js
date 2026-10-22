@@ -641,6 +641,7 @@ async function playNextMission() {
 
         updateTrackerUI();
         GameState.hintUsed = false;
+        GameState.hintLevel = 0;
         GameState.currentQuestionStartTime = Date.now();
         GameState.tempErrors = [];
         GameState.tempRanges = [];
@@ -956,6 +957,10 @@ async function playNextMission() {
                 document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
                     `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;">${escapeOptHtml(opt)}</button>`).join('') + `</div>`);
             }
+            // 🌟 [جديد — 2026-10-22] «اقرأ الآية من السورة المذكورة»: مساعدات متدرجة (أول كلمة ← الآية السابقة ← 3 آيات) بزر التلميح نفسه
+            if (type === 'similar' && GameState.currentData && Array.isArray(GameState.currentData.hintStages) && GameState.currentData.hintStages.length) {
+                const hb = document.getElementById('hint-btn'); hb.style.display = 'inline-block'; hb.innerHTML = t('hint_btn');
+            }
             // 🌟 [جديد] سؤال المتشابهات: الخيارات أزرار — الضغط يحدّد إجابة الطالب ويُسجَّلها صحيحة أو خاطئة تلقائياً (بلا تقييم المعلم)
             if ((type === 'similar' || type === 'word_meaning') && GameState.currentData && GameState.currentData.correctIndex >= 0) {
                 const cd = GameState.currentData;
@@ -982,6 +987,16 @@ async function playNextMission() {
 
 function showHint() { 
     GameState.hintUsed = true; 
+    // مساعدات متدرجة (أسئلة الاستحضار): كل ضغطة تكشف المرحلة التالية وتبقى السابقة ظاهرة؛ ينتهي الزر بآخر مرحلة
+    const stages = GameState.currentData && GameState.currentData.hintStages;
+    if (Array.isArray(stages) && stages.length) {
+        GameState.hintLevel = Math.min((GameState.hintLevel || 0) + 1, stages.length);
+        const box = document.getElementById('hint-text');
+        box.innerHTML = stages.slice(0, GameState.hintLevel).join('<hr style="opacity:.25; margin:12px 0;">');
+        box.style.display = 'block';
+        if (GameState.hintLevel >= stages.length) document.getElementById('hint-btn').style.display = 'none';
+        return;
+    }
     document.getElementById('hint-text').innerText = `﴿\u00A0${GameState.currentData.hint}\u00A0﴾`; 
     document.getElementById('hint-text').style.display = 'block'; 
     document.getElementById('hint-btn').style.display = 'none'; 
@@ -1154,7 +1169,8 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         let earnedScore = 10;
         if (GameState.orderAttempts === 1) earnedScore = 8;
         else if (GameState.orderAttempts >= 2) earnedScore = 6;
-        else if (GameState.hintUsed) earnedScore = 8;
+        // المساعدات المتدرجة: 8 للمساعدة الأولى والثانية، و6 عند الوصول لمرحلة الخيارات الثلاثة (راجع hintStages)
+        else if (GameState.hintUsed) earnedScore = (GameState.hintLevel >= 3) ? 6 : 8;
         // 🌟 [جديد] «لا أعرف هذه» في الربط: يُخصم من درجة السؤال بنسبة الأزواج غير المعروفة فقط
         // (مثلاً 1 من 4 ⇒ ×0.75) مع التقريب لأقرب عدد صحيح 🌟
         if (unkInfo) earnedScore = Math.round(earnedScore * (unkInfo.total - unkInfo.unknown) / unkInfo.total);

@@ -2620,6 +2620,19 @@ export const translations = {
         sim_inj_q_disc_surah: "ما خاتمة الآية التي فيها هذه العبارة في سورة {surah}؟",
         sim_inj_q_recall_ayah: "اختر نص الآية {n} من سورة {surah}",
         sim_inj_q_recall_surah: "اختر نص الآية الصحيحة التي وردت في سورة {surah}",
+        // 🌟 [2026-10-22] «ما الكلمة الناقصة؟» و«اقرأ الآية من السورة المذكورة» (ركن الكبار فقط) — راجع engine/recallQuestions.js
+        "ما الكلمة الناقصة؟ 🔀": "ما الكلمة الناقصة؟ 🔀",
+        "اقرأ الآية من السورة المذكورة 🔀": "اقرأ الآية من السورة المذكورة 🔀",
+        sim_q_missing: "في سورة {name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟",
+        sim_q_named_2: "العبارة ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.",
+        sim_q_named_n: "العبارة ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.",
+        sim_q_which: "أيُّ الآيتين الآتيتين وردت في سورة {name}؟",
+        sim_q_complete_prev: "في سورة {name}، جاء قوله تعالى: {v1}\nثم جاءت بعدها الآية:\n{v2}\nما الذي يُكمل الآية؟",
+        sim_q_complete_first: "افتتح الله تعالى سورة {name} بقوله:\n{v1}\nما الذي يُكمل الآية؟",
+        sim_hint_first: "الآية تبدأ بـ:",
+        sim_hint_prev: "الآية التي قبلها في {name}:",
+        sim_hint_opts: "أيٌّ من هذه الآيات هي الواردة في {name}؟",
+        sim_missing_res: "في {name} جاءت «{word}»، وفي {sto} جاءت «{other}».",
         kids_surah_label: "سورة ( {name} )",
         report_first_ayah_of_surah: "أول آية من سورة {name}",
         report_extract_word: "استخراج كلمة {word}",
@@ -5456,6 +5469,19 @@ export const translations = {
         sim_inj_q_disc_surah: "What is the ending of the ayah containing this phrase in Surah {surah}?",
         sim_inj_q_recall_ayah: "Choose the text of ayah {n} of Surah {surah}",
         sim_inj_q_recall_surah: "Choose the correct ayah that appears in Surah {surah}",
+        // 🌟 [2026-10-22] "Which word is missing?" and "Recite the verse of the named surah" (adults corner only)
+        "ما الكلمة الناقصة؟ 🔀": "Which word is missing? 🔀",
+        "اقرأ الآية من السورة المذكورة 🔀": "Recite the verse of the named surah 🔀",
+        sim_q_missing: "In Surah {name}, the verse below appears with one word missing. Which word is missing?",
+        sim_q_named_2: "The phrase ﴿{word}﴾ appears in two surahs you have memorized: {names}. Recite from memory the verse in Surah {name}.",
+        sim_q_named_n: "The phrase ﴿{word}﴾ appears in {n} surahs you have memorized: {names}. Recite from memory the verse in Surah {name}.",
+        sim_q_which: "Which of these two verses is in Surah {name}?",
+        sim_q_complete_prev: "In Surah {name}, Allah says: {v1}\nThen the next verse comes:\n{v2}\nWhat completes the verse?",
+        sim_q_complete_first: "Allah opened Surah {name} with:\n{v1}\nWhat completes the verse?",
+        sim_hint_first: "The verse begins with:",
+        sim_hint_prev: "The verse before it in {name}:",
+        sim_hint_opts: "Which of these verses is the one in {name}?",
+        sim_missing_res: "In {name} the wording is “{word}”, and in {sto} it is “{other}”.",
         kids_surah_label: "Surah ( {name} )",
         report_first_ayah_of_surah: "First ayah of Surah {name}",
         report_extract_word: "Extracting the word {word}",
@@ -5980,7 +6006,7 @@ const GENERATED_KEYS = [
     'qe_report_order_ayahs', 'qe_report_recite_full', 'qe_report_recite_part',
     'qe_report_link_kids', 'qe_report_link_adult', 'qe_report_order_surahs',
     'qe_report_word_surah_kids', 'qe_report_word_surah_adult',
-    'sim_q_pair_juz30', 'sim_q_pair_last5', 'sim_q_notin_juz30_3', 'sim_q_notin_last5_3','sim_q_notin_juz30_4', 'sim_q_notin_last5_4','sim_q_notin_juz30_5', 'sim_q_notin_last5_5', 'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
+    'sim_q_named_2', 'sim_q_named_n', 'sim_q_pair_juz30', 'sim_q_pair_last5', 'sim_q_notin_juz30_3', 'sim_q_notin_last5_3','sim_q_notin_juz30_4', 'sim_q_notin_last5_4','sim_q_notin_juz30_5', 'sim_q_notin_last5_5', 'kids_range_text', 'adult_range_text', 'adult_juz_text', 'adult_surah_text', 'gen_note_prefix', 'qe_word_meaning_title'
 ];
 let _genPatterns = null;
 function _escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }

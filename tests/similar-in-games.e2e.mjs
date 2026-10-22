@@ -1,4 +1,5 @@
-// tests/similar-in-games.e2e.mjs — أسئلة المتشابهات داخل ألعاب الصغار والكبار (سؤال لكل 10).
+// tests/similar-in-games.e2e.mjs — أسئلة المتشابهات داخل لعبة الكبار فقط (سؤال لكل 10) — [2026-10-22] الصغار بلا متشابهات.
+// السيناريوهان الأخيران يفحصان سؤالي الاستحضار (ما الكلمة الناقصة؟ / اقرأ الآية من السورة المذكورة) على الأحقاف بنطاق حفظ الناس←الأحقاف، بالعربية ثم الإنجليزية.
 // الاستعمال: PLAYWRIGHT_MODULE_DIR=/opt/node-tools/node_modules node tests/similar-in-games.e2e.mjs [outDir]
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path'; import { createRequire } from 'node:module'; import { fileURLToPath } from 'node:url';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -26,13 +27,17 @@ const SCEN = [
   { kids: false, name: 'الكبار — الجزء 1 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
   { kids: false, name: 'الكبار — الجزء 26 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 } },
   { kids: false, name: 'الكبار — الجزء 30 (جزء عمّ)', cfg: { qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 } },
+  { kids: false, memo: true, recall: true, lang: 'ar', name: 'الكبار — الأحقاف بنطاق حفظ الناس←الأحقاف (استحضار)', cfg: { qCount: 20, isJuzMode: false, surahNum: 46, startAyah: 1, endAyah: 35 } },
+  { kids: false, memo: true, recall: true, lang: 'en', name: 'Adults — Al-Ahqaf, memorized An-Nas→Al-Ahqaf (English)', cfg: { qCount: 20, isJuzMode: false, surahNum: 46, startAyah: 1, endAyah: 35 } },
 ];
-for (const { kids, name, cfg: scenCfg } of SCEN) {
+for (const { kids, name, cfg: scenCfg, memo, recall, lang } of SCEN) {
   const tag = (kids ? 'الصغار' : 'الكبار') + ' | ' + name;
   console.log(`\n=== ${tag} ===`);
-  const info = await page.evaluate(async ({ kids, scenCfg }) => {
+  const info = await page.evaluate(async ({ kids, scenCfg, memo, lang }) => {
     const { AppState } = await import('/core/app.js');
-    const id = await AppState.studentManager.addStudent({ name: 'تجربة ' + (kids ? 'صغير' : 'كبير'), type: kids ? 'kids' : 'adult' });
+    if (lang) AppState.currentLang = lang;
+    const nm = (n) => (AppState.surahsData.find(x => x.number === n) || {}).name;
+    const id = await AppState.studentManager.addStudent({ name: 'تجربة ' + (kids ? 'صغير' : 'كبير'), type: kids ? 'kids' : 'adult', ...(memo ? { memoFrom: nm(114), memoTo: nm(46) } : {}) });
     AppState.currentStudent = (await AppState.studentManager.getAllStudents()).find(x => x.id === id);
     if (kids) { AppState.currentStudent.type = 'kids'; }
     const m = await import(kids ? '/games/kidsGame.js' : '/games/adultGame.js');
@@ -40,9 +45,10 @@ for (const { kids, name, cfg: scenCfg } of SCEN) {
     await (kids ? m.openKidsGameScreen(cfg) : m.openAdultGameScreen(cfg));
     window.__GS = m.GameState;
     return { n: m.GameState.queue.length, sims: m.GameState.queue.filter(q => q.type === 'similar').length };
-  }, { kids, scenCfg });
+  }, { kids, scenCfg, memo, lang });
   await sleep(1500);
   await page.evaluate(() => document.getElementById('mmt-close')?.click());
+  if (kids) { check(`${tag}: الصغار بلا أسئلة متشابهات (ركن الكبار فقط)`, info.n > 0 && info.sims === 0, JSON.stringify(info)); await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500); await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click()); continue; }
   check(`${tag}: طول الطابور 20 وفيه سؤالان من المتشابهات`, info.n === 20 && info.sims === 2, JSON.stringify(info));
   const seen = []; let lastIdx = -1, idle = 0;
   for (let step = 0; step < 120 && idle < 12; step++) {
@@ -56,6 +62,13 @@ for (const { kids, name, cfg: scenCfg } of SCEN) {
       const btns = kids ? await page.$$eval('.kids-mcq-btn', b => b.map(x => x.innerText.trim())) : [];
       seen.push({ ...cd, q, btns });
       if (outDir) await page.screenshot({ path: path.join(outDir, `${kids ? 'kids' : 'adult'}-${seen.length}.png`) });
+      if (cd.simKind === 'sim_named') {
+        const hb = await page.evaluate(() => { const b = document.getElementById('hint-btn'); return b && getComputedStyle(b).display !== 'none'; });
+        check(`${tag}: زر المساعدة ظاهر في «اقرأ الآية من السورة المذكورة»`, hb);
+        let prev = '';
+        for (let k = 0; k < 3; k++) { await page.evaluate(() => { const b = document.getElementById('hint-btn'); if (getComputedStyle(b).display !== 'none') b.click(); }); const h = await page.evaluate(() => document.getElementById('hint-text').innerText); seen[seen.length - 1].hint = h; if (k === 0) check(`${tag}: المساعدة الأولى تظهر`, h.trim().length > 0); prev = h; }
+        check(`${tag}: المساعدات تتراكم (أكثر من مرحلة بعد 3 ضغطات)`, (seen[seen.length - 1].hint || '').length > 0);
+      }
       if (!kids) { await page.evaluate(() => document.getElementById('show-ans-btn').click()); await sleep(200); seen[seen.length - 1].ans = await page.evaluate(() => document.getElementById('game-answer').innerText); }
     }
     if (kids) {
@@ -64,6 +77,7 @@ for (const { kids, name, cfg: scenCfg } of SCEN) {
     } else await page.evaluate(() => document.getElementById('btn-record-correct')?.click());
   }
   check(`${tag}: ظهر سؤالا متشابهات أثناء اللعب`, seen.length === 2, `ظهر ${seen.length}`);
+  if (lang === 'en') seen.forEach(s => check(`${tag}: نص السؤال بالإنجليزية (لا عربي خارج الآيات)`, !/[\u0600-\u06FF]/.test(s.q.replace(/﴿[^﴾]*﴾/g, '').replace(/^[^\n]*$/m, m => m)) || !/[\u0600-\u06FF]/.test(s.q.split('\n')[0].replace(/﴿[^﴾]*﴾/g, '')), s.q.slice(0, 160)));
   seen.forEach(s => check(`${tag}: النص بالسكون القرآني (لا سكون دائري U+0652)`, !(s.q + (s.ans || '')).includes('\u0652')));
   seen.forEach((s, i) => console.log(`   [${i + 1}] ${s.simKind} | ${s.title}\n       سؤال: ${s.q.replace(/\n+/g, ' ⏎ ').slice(0, 220)}\n       ${kids ? 'أزرار: ' + s.btns.join(' | ') : 'إجابة: ' + (s.ans || '').replace(/\n+/g, ' ⏎ ').slice(0, 140)}`));
   if (kids) seen.forEach(s => check(`${tag}: ثلاثة خيارات على الأقل (أسماء السور بلا ﴿﴾، والآيات بداخلها)`, s.btns.length >= 3 && (['sim_pair', 'sim_notin'].includes(s.simKind) ? s.btns.every(b => !b.includes('﴿')) : s.btns.every(b => b.includes('﴿'))), s.btns.join('|')));

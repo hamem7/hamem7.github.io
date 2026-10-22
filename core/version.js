@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.54';
+export const APP_VERSION = '1.0.55';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.55',
+        date: '2026-10-22',
+        items: [
+            { type: 'new', text: { ar: 'سؤالان جديدان في ركن الكبار لقياس استحضار المتشابهات من كل محفوظ الطالب: «ما الكلمة الناقصة؟» (يختار الكلمة الصحيحة بين كلمة الآية وكلمة الآية الشبيهة في سورة أخرى) و«اقرأ الآية من السورة المذكورة» (تُذكر له أسماء السور وله مساعدات متدرجة: أول كلمة ثم الآية التي قبلها ثم ثلاث آيات). الأخطاء تدخل «علاج الخطأ» كالمعتاد.', en: 'Two new questions in the adults corner that test recall of similar verses across everything the student has memorized: "Which word is missing?" (choose between the verse\'s word and the word of the similar verse in another surah) and "Recite the verse of the named surah" (the surah names are given, with graded hints: first word, then the previous verse, then three verses). Mistakes go to the mistakes review as usual.' } },
+            { type: 'improved', text: { ar: 'المتشابهات صارت في ركن الكبار فقط (لا تظهر في ألعاب الصغار). ونصّا سؤالي «أكمل الآية» و«أيُّ الآيتين» يظهران الآن بالإنجليزية عند اختيارها.', en: 'Similar-verse questions now appear in the adults corner only (not in kids games). The "complete the verse" and "which of the two verses" question texts now show in English when English is selected.' } },
+        ]
+    },
     {
         version: '1.0.54',
         date: '2026-10-22',

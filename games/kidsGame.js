@@ -21,7 +21,7 @@ import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع وكمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
-import { injectSimilarQuestions, formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
+import { formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
 import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -187,8 +187,8 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                     const j = Math.floor(Math.random() * (i + 1));
                     [GameState.queue[i], GameState.queue[j]] = [GameState.queue[j], GameState.queue[i]];
                 }
-                // 🌟 سؤال متشابهات لكل 10 أسئلة (يستبدل خانات عشوائية؛ بلا مجموعات في النطاق = لا يتغير شيء)
-                await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, true);
+                // 🌟 [2026-10-22] أسئلة المتشابهات في ركن الكبار فقط (بطلب المعلم): لا حقن هنا. تبقى formatKidsSimilar/kidsSimilarOptionLabel
+                // لعرض أسئلة قديمة موجودة في اختبار صغار معلّق (حُفظ قبل هذا التعديل).
             }
         }
         await loadScreen({ templateUrl: 'games/kidsGame.html', initFunction: initGameUI });
