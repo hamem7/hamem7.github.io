@@ -8,10 +8,10 @@
 // إجابات الطالب، ويحفظ النتيجة (إتقان + جلسة + جدول مراجعة + أوسمة) عبر database/tajweedDB.js
 // وdatabase/reviewScheduleDB.js.
 import { AppState, openTajweedSection, t } from '../core/app.js';
-import { getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds } from '../engine/tajweedRulesCatalog.js';
+import { TAJWEED_STAGES, getTajweedStage, getTajweedRule, getAllRulesFlat, getStageRuleIds, isMushafRule } from '../engine/tajweedRulesCatalog.js';
 import {
     generateChooseRuleQuestion, generateLinkQuestion, generateDiscoverQuestion, generateApplyQuestion,
-    buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress,
+    buildStageChallengeQuestions, buildReviewQuestions, applySessionToMastery, computeAllStageProgress, isStageUnlocked,
     generateAnnotatedQuestion, generateIdentifyQuestion, buildExamQuestions,
     evaluateSessionAchievements, TAJWEED_BADGE_CATALOG,
     // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — راجع تعليق الاستيراد أدناه عند استخدامهما
@@ -23,7 +23,7 @@ import {
 } from './tajweed-shared.js';
 import {
     ensureJourney, canTakeExam, canTeacherCheck, applyGameResult, applyExamResult, applyTeacherResult, applyTeacherApproval,
-    nextGameKey, setResume, statusFromJourney, journeyStep, EXAM_PASS_SCORE, EXAM_MIN_SIZE, TEACHER_PASS_SCORE, GAMES_PASS_SCORE
+    nextGameKey, setResume, statusFromJourney, journeyStep, EXAM_PASS_SCORE, EXAM_SIZE, EXAM_MIN_SIZE, TEACHER_PASS_SCORE, GAMES_PASS_SCORE
 } from '../engine/tajweedJourney.js';
 import { gamesForRuleId, GAME_KEYS } from '../engine/tajweedPath.js';
 import { buildVariedExamQuestions, examKindsOf } from '../engine/tajweedExamVariety.js';
@@ -32,6 +32,9 @@ import { buildAyahAudioUrl } from '../database/kidsAudioDB.js';
 import { buildRuleLetterGameQuestions, buildStageTreeQuestions } from '../engine/tajweedLetterGames.js';
 import { buildExamplesLinkQuestion } from './tajweed-letters-ui.js';
 import { openParentSummary } from './tajweed-summary.js';
+// 🌟 [مرحلة «تعرّف على مصحفك»] أسئلتها من آيات حفظ الطالب (أو أقرب نطاق إليه): اختيار، ضغط داخل الآية، ووصل
+import { buildMushafQuestions, buildMushafStageChallenge, lessonOfRule, isMushafQuestionType } from '../engine/tajweedMushaf.js';
+import { getMushafCtx, renderMushafQuestionHTML, handleMushafClick } from './tajweed-mushaf-ui.js';
 
 let params = null;
 let questions = [];
@@ -39,6 +42,8 @@ let qIndex = 0;
 let touchedRuleIds = new Set();
 let masteryBeforeMap = {}; // ruleId -> {status, dimensions}
 let stageProgressBefore = {};
+// المراحل التي اجتاز الطالب تحديها (محفوظة في tajweedProgress.passedStages)
+const passedStagesOf = () => (AppState.currentStudent && AppState.currentStudent.tajweedProgress && AppState.currentStudent.tajweedProgress.passedStages) || [];
 let questionResults = []; // {ruleId, correct}
 // 🌟 حالة خاصة لنشاط "اربط الحكم بحروفه" (متعدد الأزواج في "سؤال" واحد)
 let linkSelectedName = null;
@@ -52,23 +57,31 @@ let checkpointNote = '';
 let checkpointOutcome = null; // {score, approved} بعد إرسال «سمّع لي»
 let examReview = [];           // تفاصيل أسئلة الاختبار لشاشة المراجعة بعد النتيجة
 let examKinds = [];            // أنواع أسئلة الاختبار الجاري (تُحفظ مع النتيجة فلا تتكرر تشكيلتها)
-const RESUMABLE_MODES = ['practice', 'letters', 'tree', 'link', 'exam'];   // أنشطة المسار: يُحفظ مكانها فيكمل الطالب منه
+const RESUMABLE_MODES = ['practice', 'letters', 'tree', 'link', 'mushaf', 'exam'];   // أنشطة المسار: يُحفظ مكانها فيكمل الطالب منه
 // 🌟 حالة لوح «اجمع حروف الحكم» (سؤال متعدد النقرات): تُصفَّر عند ظهور السؤال لأول مرة فقط
 let collectIndex = -1;
 let collectFound = new Set();   // فهارس اللوحات الصحيحة المضغوطة
 let collectWrong = new Set();   // فهارس اللوحات الخاطئة المضغوطة
 let collectErrors = 0;
+// 🌟 [مسار متصل] الانتقال التلقائي للسؤال التالي (بلا زر)، وسلسلة ألعاب الحكم ثم التحدي، ومنع تكرار الأسئلة داخل السلسلة
+let advanceTimer = null;
+let seenSigs = new Set();      // بصمات الأسئلة التي ظهرت في هذه السلسلة (ألعاب + تحدٍّ) فلا تُعاد
+let chainBadges = [];
+let activityToken = 0;         // يتغيّر عند الخروج فلا تكمل سلسلة معلّقة بعد مغادرة الشاشة          // أوسمة ربحها الطالب في ألعاب السلسلة تُعرض مع النتيجة الأخيرة
+const clearAdvance = () => { if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; } };
 
 export async function initTajweedActivity() {
     params = AppState.tajweedActivityParams;
     AppState.tajweedActivityParams = null;
+    // خطّاف اختبارات المتصفح فقط: خامل في الاستعمال العادي ولا يعمل إلا إذا فعّلته الاختبارات بعلامة في localStorage (tests/tajweed-mushaf.e2e.mjs)
+    try { if (localStorage.getItem('dh_e2e_hooks')) window.__tjwQuestion = () => questions[qIndex] || null; } catch (e) { /* لا تخزين: لا خطّاف */ }
 
     const titleEl = document.getElementById('tjwa-title');
     if (titleEl && params && params.mode === 'exam') titleEl.textContent = t('tjw_exam_title');
     if (titleEl && params && params.mode === 'tree') titleEl.textContent = t('tjw_tree_activity_title');
     if (titleEl && params && params.mode === 'letters') titleEl.textContent = t('tjw_letters_activity_title');
     const exitBtn = document.getElementById('tjwa-btn-exit');
-    if (exitBtn) exitBtn.addEventListener('click', () => openTajweedSection());
+    if (exitBtn) exitBtn.addEventListener('click', () => { clearAdvance(); activityToken++; openTajweedSection(); });
 
     const container = document.getElementById('tjwa-container');
     if (container) container.addEventListener('click', handleActivityClick);
@@ -88,13 +101,19 @@ async function bootMode() {
     container.innerHTML = `<div class="tjw-loading">${t('sim_loading')}</div>`;
     const titleEl = document.getElementById('tjwa-title');
     if (titleEl) titleEl.textContent = params.mode === 'exam' ? t('tjw_exam_title') : params.mode === 'tree' ? t('tjw_tree_activity_title') : params.mode === 'letters' ? t('tjw_letters_activity_title') : t('tjw_activity_title');
+    clearAdvance();
     examKinds = [];
-    await buildQuestions();
+    const resuming = !!(params.resume && Array.isArray(params.resume.questions) && params.resume.questions.length);
+    if (!params.chainPos || params.chainPos === 1) { seenSigs = new Set(); chainBadges = []; }
+    if (resuming && Array.isArray(params.resume.seen)) seenSigs = new Set(params.resume.seen);
+    if (!resuming) await buildQuestions();
+    else await buildQuestions({ keep: true });
+    if (!resuming) questions.forEach(q => seenSigs.add(sigOf(q)));
     qIndex = 0;
     questionResults = [];
     touchedRuleIds = new Set();
     // 🌟 [مسار الحكم] استكمال من نقطة التوقف: الأسئلة نفسها ومكانها ونتائجها حتى الآن
-    if (params.resume && Array.isArray(params.resume.questions) && params.resume.questions.length) {
+    if (resuming) {
         questions = params.resume.questions;
         qIndex = Math.min(params.resume.qIndex || 0, questions.length - 1);
         questionResults = params.resume.results || [];
@@ -128,6 +147,7 @@ const canResumeHere = () => !!(params && RESUMABLE_MODES.includes(params.mode) &
 function snapshotNow() {
     return {
         mode: params.mode, stageId: params.stageId || null, ruleId: params.ruleId || null, pathRuleId: pathRuleIdOf(),
+        chain: params.chain || null, chainPos: params.chainPos || null, chainTotal: params.chainTotal || null, seen: [...seenSigs],
         questions, qIndex, results: questionResults, review: examReview, kinds: examKinds, touched: [...touchedRuleIds]
     };
 }
@@ -145,6 +165,7 @@ function setupPauseButton() {
     btn.style.display = canResumeHere() ? '' : 'none';
     btn.onclick = async () => {
         if (!canResumeHere()) return;
+        clearAdvance();
         await saveResume(snapshotNow());
         const { openParentSummary } = await import('./tajweed-summary.js');
         await openParentSummary({ studentId: AppState.currentStudent.id, ruleId: pathRuleIdOf(), kind: 'lesson', onClose: () => openTajweedSection() });
@@ -154,12 +175,41 @@ function setupPauseButton() {
 // ============================================================
 // بناء طابور الأسئلة حسب وضع النشاط (mode)
 // ============================================================
-async function buildQuestions() {
+// بصمة السؤال لمنع التكرار: مفتاح أسئلة المصحف، أو الآية (أي سؤال آخر على الآية نفسها تكرار)، أو نوع السؤال مع حرفه/حكمه
+function sigOf(q) {
+    if (q.key) return q.key;
+    if (q.ayahText) return 'a:' + String(q.ayahText).replace(/<[^>]*>/g, '').slice(0, 80);
+    const pair = q.pair ? q.pair.a + q.pair.b : null;
+    return [q.type, q.ruleId, q.letters, q.letter, pair, q.first, q.text, q.textKey, q.claimNameKey, q.correctRuleId, q.correctLetter, q.riddle && q.riddle.letter]
+        .filter(x => x != null).join('|');
+}
+const DEDUPE_MODES = ['practice', 'letters', 'tree', 'link', 'mushaf', 'exam'];
+
+// يبني الأسئلة ثم يستبعد ما ظهر من قبل في السلسلة: يعيد التوليد (عشوائياً) حتى ست مرات بحثاً عن تشكيلة جديدة كلها، فإن لم توجد تُملأ من المكرَّر
+// حتى الحدّ الأدنى فقط (الاختبار EXAM_MIN_SIZE، وغيره ثلاثة).
+async function buildQuestions(opts = {}) {
+    await buildQuestionsOnce();
+    if (opts.keep || !pathRuleIdOf() || !DEDUPE_MODES.includes(params.mode) || !questions.length) return;
+    const fresh = (list) => { const inList = new Set(); return list.filter(q => { const g = sigOf(q); if (seenSigs.has(g) || inList.has(g)) return false; inList.add(g); return true; }); };
+    let best = { all: questions, kinds: examKinds, kept: fresh(questions) };
+    for (let i = 0; i < 6 && best.kept.length < best.all.length; i++) {
+        await buildQuestionsOnce();
+        const kept = fresh(questions);
+        if (kept.length > best.kept.length) best = { all: questions, kinds: examKinds, kept };
+    }
+    const min = params.mode === 'exam' ? EXAM_MIN_SIZE : Math.min(3, best.all.length);
+    const out = best.kept.slice();
+    for (const q of best.all) { if (out.length >= min) break; if (!out.includes(q)) out.push(q); }
+    questions = out;
+    examKinds = examKindsOf(questions);
+}
+
+async function buildQuestionsOnce() {
     const studentId = AppState.currentStudent.id;
     const allMastery = await AppState.tajweedManager.getMasteryByStudent(studentId);
     masteryBeforeMap = {};
     allMastery.forEach(m => { masteryBeforeMap[m.ruleId] = { status: m.status, dimensions: { ...m.dimensions } }; });
-    stageProgressBefore = computeAllStageProgress(allMastery);
+    stageProgressBefore = computeAllStageProgress(allMastery, passedStagesOf());
 
     questions = [];
     linkMatchedRuleIds = new Set();
@@ -169,6 +219,10 @@ async function buildQuestions() {
     if (params.mode === 'practice') {
         const rule = getTajweedRule(params.stageId, params.ruleId);
         if (!rule) return;
+        if (isMushafRule(rule)) {
+            questions = buildMushafQuestions(lessonOfRule(rule), await getMushafCtx(AppState.currentStudent), { mode: 'practice', size: 5, exclude: seenSigs });
+            return;
+        }
         // 🌟 آيات من حفظ الطالب نفسه إن وُجد الحكم في نطاق حفظه (جدول التوسيم)، وإلا أمثلة الكتالوج
         const mine = await pickStudentExamples(rule, AppState.currentStudent, 3);
         const conflicts = makeConflictChecker(await loadAnnotationIndex());
@@ -187,6 +241,10 @@ async function buildQuestions() {
             identifyQ = identifyQ || generateIdentifyQuestion(rule, { ayahInfo: exAyah, highlight: rule.example.highlight, firstOnly: rule.example.firstOnly, surah: rule.example.surah, ayah: rule.example.ayah }, { conflicts });
         }
         questions = [generateChooseRuleQuestion(rule), identifyQ, discoverQ, applyQ].filter(Boolean);
+    } else if (params.mode === 'mushaf') {
+        // 🌟 «استكشف المصحف»: ضغط داخل الآية ووصل (أسئلة تفاعلية) قبل أسئلة التعرّف
+        const rule = getTajweedRule(params.stageId, params.ruleId);
+        questions = rule && isMushafRule(rule) ? buildMushafQuestions(lessonOfRule(rule), await getMushafCtx(AppState.currentStudent), { mode: 'explore', size: 5, exclude: seenSigs }) : [];
     } else if (params.mode === 'link') {
         const q = generateLinkQuestion(params.stageId);
         const examplesQ = await buildExamplesLinkQuestion(params.stageId); // «صِل المثال بحكمه» بنص من المنصة
@@ -201,6 +259,7 @@ async function buildQuestions() {
     } else if (params.mode === 'challenge') {
         const stage = getTajweedStage(params.stageId);
         if (!stage) return;
+        if (stage.mushaf) { questions = buildMushafStageChallenge(await getMushafCtx(AppState.currentStudent), 5); return; }
         const ayahInfoByRuleId = {};
         for (const rule of stage.rules) {
             ayahInfoByRuleId[rule.id] = await entryForRule(rule);
@@ -212,16 +271,30 @@ async function buildQuestions() {
             .filter(Boolean)
             .map(x => x.rule);
         const ayahInfoByRuleId = {};
-        for (const rule of dueRules) {
+        const classic = dueRules.filter(r => !isMushafRule(r));
+        for (const rule of classic) {
             ayahInfoByRuleId[rule.id] = await entryForRule(rule);
         }
-        questions = buildReviewQuestions(dueRules, ayahInfoByRuleId);
+        questions = classic.length ? buildReviewQuestions(classic, ayahInfoByRuleId) : [];
+        const mkDue = dueRules.filter(isMushafRule);
+        if (mkDue.length) {
+            const mkCtx = await getMushafCtx(AppState.currentStudent);
+            mkDue.forEach(r => questions.push(...buildMushafQuestions(lessonOfRule(r), mkCtx, { mode: 'review', size: 2 })));
+            questions = questions.sort(() => Math.random() - 0.5).slice(0, 5);
+        }
     } else if (params.mode === 'exam') {
         // 🌟 [رحلة الحكم] اختبار الحكم: لا يُفتح إلا بعد شرح وتطبيق ناجح (ولا يُعاد بعد رسوب قبل تطبيق جديد)
         const rule = getTajweedRule(params.stageId, params.ruleId);
         if (!rule) return;
         const rec = await AppState.tajweedManager.getMasteryRecord(studentId, rule.id);
         if (!canTakeExam(ensureJourney(rec))) return;
+        if (isMushafRule(rule)) {
+            questions = buildMushafQuestions(lessonOfRule(rule), await getMushafCtx(AppState.currentStudent), { mode: 'exam', size: EXAM_SIZE, prevKinds: ensureJourney(rec).examKinds || [], exclude: seenSigs });
+            if (questions.length < EXAM_MIN_SIZE) questions = [];
+            examKinds = examKindsOf(questions);
+            examReview = [];
+            return;
+        }
         const sources = await buildExamSources(rule, AppState.currentStudent);
         const conflicts = makeConflictChecker(await loadAnnotationIndex());
         const prevKinds = ensureJourney(rec).examKinds || [];
@@ -241,7 +314,7 @@ async function buildQuestions() {
         // 🌟🌟 [جديد ٢٨ سبتمبر] بوّابة تسميع المعلم — "سؤال" واحد فقط من نوع خاص يحمل معايير
         // التقييم + الآيتين المرجعيتين (للتصفّح، لا لبناء سؤال MCQ). راجع §2 من مستند التعميق.
         const rule = getTajweedRule(params.stageId, params.ruleId);
-        if (!rule) return;
+        if (!rule || isMushafRule(rule)) return;   // دروس المصحف يُعتمد فيها بضغطة واحدة (teacher_approve)
         // 🌟 «سمّع لي» بعد اجتياز اختبار الحكم فقط (الخطوة الرابعة من رحلة الحكم)
         const recCp = await AppState.tajweedManager.getMasteryRecord(studentId, rule.id);
         if (!canTeacherCheck(ensureJourney(recCp))) return;
@@ -277,8 +350,9 @@ function renderProgress() {
     // 🌟 [إعادة تصميم] شريط تقدّم مرئي بدل نص فقط: يمتلئ بعدد الأسئلة المنجزة
     const current = Math.min(qIndex + 1, questions.length);
     const pct = Math.round((qIndex / questions.length) * 100);
+    const chainLabel = params && params.chainTotal ? `<span class="tjw-chain-label">${t('tjw_chain_step').replace('{i}', params.chainPos || 1).replace('{n}', params.chainTotal)}</span>` : '';
     el.innerHTML = `<div class="tjw-progress-bar"><span style="width:${pct}%;"></span></div>
-        <span class="tjw-progress-label">${t('tjw_question_label')} ${current} / ${questions.length}</span>`;
+        <span class="tjw-progress-label">${chainLabel}${t('tjw_question_label')} ${current} / ${questions.length}</span>`;
 }
 
 // ============================================================
@@ -303,6 +377,7 @@ function renderCurrentQuestion() {
     else if (q.type === 'discover_in_ayah' || q.type === 'apply_new_ayah') container.innerHTML = renderDiscoverHTML(q);
     else if (q.type === 'identify_rule') container.innerHTML = renderIdentifyHTML(q);
     else if (q.type === 'link_rule_letters') container.innerHTML = renderLinkHTML(q);
+    else if (isMushafQuestionType(q.type)) container.innerHTML = renderMushafQuestionHTML(q);
     else if (q.type === 'tf_statement') container.innerHTML = renderTfHTML(q);
     else if (q.type === 'spot_rule') container.innerHTML = renderSpotHTML(q);
     else if (q.type === 'teacher_checkpoint') container.innerHTML = renderTeacherCheckpointHTML(q);
@@ -528,15 +603,8 @@ async function handleActivityClick(e) {
         return;
     }
 
-    const nextBtn = e.target.closest('[data-action="next-question"]');
-    if (nextBtn) {
-        linkMatchedRuleIds = new Set(); linkWrongAttempts = 0; linkSelectedName = null; linkSelectedLetter = null;
-        qIndex++;
-        renderProgress();
-        renderCurrentQuestion();
-        autosaveResume();
-        return;
-    }
+    // اللمس على لوحة التفسير يتخطى الانتظار (الانتقال تلقائي بعد كل إجابة، بلا زر «التالي»)
+    if (advanceTimer && e.target.closest('.tjw-feedback')) { goNextQuestion(); return; }
 
     const restartBtn = e.target.closest('[data-action="retry-activity"]');
     if (restartBtn) {
@@ -551,16 +619,19 @@ async function handleActivityClick(e) {
 
     // 🌟 [مسار الحكم] من شاشة نتيجة لعبة إلى اللعبة التالية أو التحدي (الاختبار)، ومن نتيجة اختبار راسب إلى لعبة جديدة، ومن اجتياز الاختبار
     // إلى اعتماد المعلم، دون العودة للخريطة.
-    const goBtn = e.target.closest('[data-action="go-exam"], [data-action="go-game"], [data-action="approve-now"]');
+    const goBtn = e.target.closest('[data-action="go-exam"], [data-action="go-game"], [data-action="approve-now"], [data-action="go-chain"]');
     if (goBtn) {
         const ruleId = pathRuleIdOf();
         const base = { stageId: params.stageId, studentId: AppState.currentStudent.id, ruleId, pathRuleId: ruleId };
         const act = goBtn.dataset.action;
-        if (act === 'go-exam') params = { ...base, mode: 'exam' };
+        if (act === 'go-chain') {
+            const games = gamesForRuleId(ruleId), first = games[0];
+            params = { ...base, mode: first, ruleId: (first === 'practice' || first === 'letters' || first === 'mushaf') ? ruleId : null, chain: [...games.slice(1), 'exam'], chainPos: 1, chainTotal: games.length + 1 };
+        } else if (act === 'go-exam') params = { ...base, mode: 'exam' };
         else if (act === 'approve-now') params = { ...base, mode: 'teacher_approve' };
         else {
             const game = goBtn.dataset.game || 'practice';
-            params = { ...base, mode: game, ruleId: (game === 'practice' || game === 'letters') ? ruleId : null };
+            params = { ...base, mode: game, ruleId: (game === 'practice' || game === 'letters' || game === 'mushaf') ? ruleId : null };
         }
         await bootMode();
         return;
@@ -569,6 +640,19 @@ async function handleActivityClick(e) {
     // 🌟 [جديد] «ملخص جاهز للولي» من شاشة النتيجة: بعد «سمّع لي» يُفتح ملخص الحكم، وغير ذلك ملخص الحصة
     if (e.target.closest('[data-action="parent-summary"]')) {
         openParentSummary({ studentId: AppState.currentStudent.id, ruleId: pathRuleIdOf(), kind: pathRuleIdOf() ? 'lesson' : 'session' });
+        return;
+    }
+
+    // 🌟 بعد اعتماد المعلم للحكم: «بدء حكم جديد» يعيد الطالب إلى الخريطة ويفتح حكمه التالي مباشرة (بلا إعادة اختيار الاسم)
+    if (e.target.closest('[data-action="new-rule"]')) {
+        AppState.tajweedAutoEnter = { studentId: AppState.currentStudent.id, after: 'continue' };
+        openTajweedSection();
+        return;
+    }
+
+    // 🌟 «إنهاء»: يفتح الملخص الجاهز للولي ليُرسَل، وعند إغلاقه نعود للخريطة
+    if (e.target.closest('[data-action="finish-session"]')) {
+        openParentSummary({ studentId: AppState.currentStudent.id, ruleId: pathRuleIdOf(), kind: pathRuleIdOf() ? 'lesson' : 'session', onClose: () => openTajweedSection() });
         return;
     }
 
@@ -631,6 +715,31 @@ async function handleActivityClick(e) {
     }
 
     if (answerLocked) return;
+
+    // 🌟 [مرحلة «تعرّف على مصحفك»] أسئلة الاختيار والضغط داخل الآية والوصل
+    const mkQ = questions[qIndex];
+    if (mkQ && isMushafQuestionType(mkQ.type)) {
+        const mk = handleMushafClick(e, mkQ, { exam: params.mode === 'exam' });
+        if (mk) {
+            const mkContainer = document.getElementById('tjwa-container');
+            if (mk.redraw) mkContainer.innerHTML = renderMushafQuestionHTML(mkQ);
+            if (!mk.done) return;
+            answerLocked = true;
+            if (params.mode === 'exam') {
+                await recordQuestionResult(mkQ.ruleId, mk.correct, mk.detail);
+                advanceAfterExamAnswer();
+                return;
+            }
+            await recordQuestionResult(mkQ.ruleId, mk.correct);
+            const card = mkContainer.querySelector('.tjw-activity-card') || mkContainer;
+            const box = document.createElement('div');
+            box.className = `tjw-feedback ${mk.correct ? 'is-good' : 'is-bad'}`;
+            box.innerHTML = mk.feedbackHTML;
+            card.appendChild(box);
+            showNextButton();
+            return;
+        }
+    }
 
     const chooseBtn = e.target.closest('[data-choose-rule]');
     if (chooseBtn) {
@@ -808,13 +917,21 @@ function showFeedback(ruleId, isCorrect) {
     card.appendChild(box);
 }
 
+function goNextQuestion() {
+    clearAdvance();
+    linkMatchedRuleIds = new Set(); linkWrongAttempts = 0; linkSelectedName = null; linkSelectedLetter = null;
+    qIndex++;
+    renderProgress();
+    renderCurrentQuestion();
+    autosaveResume();
+}
+
+// بعد كل إجابة: الانتقال للسؤال التالي (أو النتيجة) تلقائياً؛ الصحيحة بسرعة والخاطئة أبطأ ليقرأ الطالب التفسير، واللمس على التفسير يتخطى الانتظار
 function showNextButton() {
-    const container = document.getElementById('tjwa-container');
-    const btn = document.createElement('button');
-    btn.className = 'tjw-cta-btn tjw-next-question-btn';
-    btn.dataset.action = 'next-question';
-    btn.textContent = qIndex + 1 >= questions.length ? `✅ ${t('tjw_finish_activity_btn')}` : `➡️ ${t('tjw_next_question_btn')}`;
-    container.appendChild(btn);
+    clearAdvance();
+    const wrong = !!document.querySelector('#tjwa-container .tjw-feedback.is-bad');
+    const at = qIndex;
+    advanceTimer = setTimeout(() => { advanceTimer = null; if (qIndex === at) goNextQuestion(); }, wrong ? 3200 : 1200);
 }
 
 // ============================================================
@@ -877,7 +994,7 @@ async function recordQuestionResult(ruleId, isCorrect, detail) {
     else if (params.mode === 'practice') effectiveActivityType = questions[qIndex].type;
     else if (params.mode === 'challenge') effectiveActivityType = 'stage_challenge';
     else if (params.mode === 'review') effectiveActivityType = 'review';
-    else if (params.mode === 'tree' || params.mode === 'letters') effectiveActivityType = questions[qIndex].type;
+    else if (params.mode === 'tree' || params.mode === 'letters' || params.mode === 'mushaf') effectiveActivityType = questions[qIndex].type;
     const scorePercent = isCorrect ? 100 : 0;
 
     await updateRuleMastery(ruleId, effectiveActivityType, scorePercent);
@@ -949,7 +1066,11 @@ async function finishSession() {
     }
 
     const allMasteryAfter = await AppState.tajweedManager.getMasteryByStudent(studentId);
-    const stageProgressAfter = computeAllStageProgress(allMasteryAfter);
+    // 🌟 «تحدي المرحلة»: الدرجة ≥ حدّ النجاح تعني اجتياز المرحلة وفتح التالية
+    const challengePassed = params.mode === 'challenge' && !!params.stageId && scorePercent >= EXAM_PASS_SCORE;
+    const nextStage = challengePassed ? TAJWEED_STAGES[TAJWEED_STAGES.findIndex(s => s.id === params.stageId) + 1] : null;
+    const wasNextLocked = !!nextStage && !isStageUnlocked(nextStage.id, stageProgressBefore);
+    const stageProgressAfter = computeAllStageProgress(allMasteryAfter, [...passedStagesOf(), ...(challengePassed ? [params.stageId] : [])]);
     const ruleRecAfter = allMasteryAfter.find(m => m.ruleId === ruleKey) || null;
     const journeyAfter = ruleKey ? ensureJourney(ruleRecAfter) : null;
     const stepAfter = journeyAfter ? journeyStep(journeyAfter) : null;
@@ -1019,16 +1140,43 @@ async function finishSession() {
         earnedBadges.push(def);
     }
 
-    await syncStudentTajweedProgress(AppState.currentStudent, sessionMode, ruleKey);
+    await syncStudentTajweedProgress(AppState.currentStudent, sessionMode, ruleKey, challengePassed ? params.stageId : null);
 
-    if (params.mode === 'exam') {
-        renderExamResultScreen({ scorePercent, correctCount, totalQuestions, passed: !!(examOutcome && examOutcome.passed), earnedBadges });
+    // 🌟 [سلسلة الحكم] لعبة في سلسلة: تُسجَّل نتيجتها ثم تبدأ اللعبة التالية (أو التحدي) مباشرة بلا شاشة نتيجة؛ تتوقف السلسلة عند شاشة
+    // النتيجة فقط إن لم يبلغ متوسط الألعاب الحدّ فلا يُفتح التحدي (تُعرض «أعد ألعاب الحكم»)
+    if (GAME_KEYS.includes(params.mode) && ruleKey && params.chain && params.chain.length && (params.chain[0] !== 'exam' || stepAfter === 'exam')) {
+        chainBadges.push(...earnedBadges);
+        await continueChain({ prevMode: params.mode, scorePercent, nextMode: params.chain[0] });
         return;
     }
-    renderResultScreen({ scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey });
+    if (params.mode === 'exam') {
+        const allBadges = [...chainBadges, ...earnedBadges]; chainBadges = [];
+        renderExamResultScreen({ scorePercent, correctCount, totalQuestions, passed: !!(examOutcome && examOutcome.passed), earnedBadges: allBadges });
+        return;
+    }
+    if (chainBadges.length) { earnedBadges.unshift(...chainBadges); chainBadges = []; }
+    renderResultScreen({ challengeResult: params.mode === 'challenge' ? { passed: challengePassed, unlockedStage: wasNextLocked ? nextStage : null } : null, scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey });
 }
 
-function renderResultScreen({ scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey }) {
+// شاشة عبور قصيرة بين لعبتين من سلسلة الحكم (لا زرّ: تنتقل وحدها)، ثم تبدأ اللعبة التالية أو التحدي الأخير
+async function continueChain({ prevMode, scorePercent, nextMode }) {
+    const token = activityToken, ruleId = pathRuleIdOf();
+    const container = document.getElementById('tjwa-container');
+    const progressEl = document.getElementById('tjwa-progress');
+    if (progressEl) progressEl.innerHTML = '';
+    const isExam = nextMode === 'exam';
+    container.innerHTML = `<div class="tjw-chain-pass">
+        <div class="tjw-chain-emoji">${isExam ? '🏁' : '🎮'}</div>
+        <h2 class="tjw-result-headline">${t('tjw_chain_done').replace('{game}', t('tjw_game_' + prevMode)).replace('{n}', scorePercent)}</h2>
+        <p class="tjw-result-sub">${isExam ? t('tjw_chain_to_challenge') : t('tjw_chain_next').replace('{game}', t('tjw_game_' + nextMode))}</p></div>`;
+    await new Promise(r => setTimeout(r, 1500));
+    if (token !== activityToken || !document.getElementById('tjwa-container')) return;
+    const base = { stageId: params.stageId, studentId: AppState.currentStudent.id, ruleId, pathRuleId: ruleId, chain: params.chain.slice(1), chainPos: (params.chainPos || 1) + 1, chainTotal: params.chainTotal };
+    params = isExam ? { ...base, mode: 'exam' } : { ...base, mode: nextMode, ruleId: (nextMode === 'practice' || nextMode === 'letters' || nextMode === 'mushaf') ? ruleId : null };
+    await bootMode();
+}
+
+function renderResultScreen({ challengeResult, scorePercent, correctCount, totalQuestions, earnedBadges, justMasteredRuleId, justCompletedStageId, stageProgressAfter, stepAfter, journeyAfter, ruleKey }) {
     const container = document.getElementById('tjwa-container');
     const progressEl = document.getElementById('tjwa-progress');
     if (progressEl) progressEl.innerHTML = '';
@@ -1047,6 +1195,12 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
     const stageNoteHTML = justCompletedStageId
         ? `<p class="tjw-result-note">🎉 ${t('tjw_stage_completed_note')}</p>` : '';
 
+    // 🌟 نتيجة «تحدي المرحلة»: نجاح يفتح المرحلة التالية، أو حدّ النجاح المطلوب
+    const challengeHTML = !challengeResult ? ''
+        : challengeResult.passed
+            ? `<p class="tjw-result-note">🏆 ${t('tjw_challenge_passed')}</p>${challengeResult.unlockedStage ? `<p class="tjw-result-note">🔓 ${t('tjw_challenge_unlocked').replace('{stage}', t(challengeResult.unlockedStage.nameKey))}</p>` : ''}`
+            : `<p class="tjw-result-note tjw-result-note-warn">${t('tjw_challenge_failed').replace('{n}', EXAM_PASS_SCORE)}</p>`;
+
     // 🌟 [مسار الحكم] بعد لعبة: اللعبة التالية، أو التحدي إن بلغ متوسط الألعاب الحد (75%)، أو إعادة أضعف لعبة لرفع المتوسط.
     // وبعد اعتماد المعلم: رسالة الاعتماد. (حُذف زر «الحكم التالي»: كان يقفز متجاوزاً درس الحكم التالي وخطوات رحلته.)
     let journeyHTML = '';
@@ -1059,7 +1213,7 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             const next = nextGameKey(journeyAfter, gamesForRuleId(ruleKey));
             if (journeyAfter.gamesAvg != null) {
                 journeyHTML = `<p class="tjw-result-note tjw-result-note-warn">${t('tjw_path_games_avg').replace('{n}', journeyAfter.gamesAvg).replace('{p}', GAMES_PASS_SCORE)}</p>
-                    ${next ? `<button class="tjw-cta-btn" data-action="go-game" data-game="${next}">${t('tjw_path_replay').replace('{game}', gameName(next))}</button>` : ''}`;
+                    ${next ? `<button class="tjw-cta-btn" data-action="go-chain">${t('tjw_path_replay_all')}</button>` : ''}`;
             } else if (next) {
                 journeyHTML = `<button class="tjw-cta-btn" data-action="go-game" data-game="${next}">${t('tjw_path_next_game').replace('{game}', gameName(next))}</button>`;
             }
@@ -1072,6 +1226,11 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             : `<p class="tjw-result-note tjw-result-note-warn">${t('tjw_checkpoint_not_approved').replace('{n}', TEACHER_PASS_SCORE)}</p>`;
     }
 
+    // انتهى الحكم (اعتمده المعلم): يُعرض «بدء حكم جديد» أو «إنهاء» بدل «العودة للخريطة»
+    const ruleDone = params.mode === 'teacher_approve' || (params.mode === 'teacher_checkpoint' && !!(checkpointOutcome && checkpointOutcome.approved));
+
+    const nextRuleId = ruleDone && AppState.currentStudent.tajweedProgress ? AppState.currentStudent.tajweedProgress.currentRuleId : null;
+
     const headlineKey = scorePercent >= 80 ? 'tjw_result_great' : scorePercent >= 50 ? 'tjw_result_good' : 'tjw_result_retry';
     const ringColor = scorePercent >= 80 ? 'var(--tjw-good)' : scorePercent >= 50 ? 'var(--tjw-gold-deep)' : 'var(--tjw-accent)';
 
@@ -1082,12 +1241,16 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             <p class="tjw-result-sub">${correctCount} / ${totalQuestions} ${t('tjw_correct_answers_unit')}</p>
             ${masteredNoteHTML}
             ${stageNoteHTML}
+            ${challengeHTML}
             ${badgesHTML}
             <div class="tjw-result-actions">
                 ${journeyHTML}
                 ${params.mode === 'teacher_approve' ? '' : `<button class="tjw-outline-btn" data-action="retry-activity">🔁 ${t('tjw_retry_activity_btn')}</button>`}
                 <button class="tjw-outline-btn" data-action="parent-summary">${t(ruleKey ? 'tjw_lesson_summary_btn' : 'tjw_sum_btn')}</button>
-                <button class="${journeyHTML ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>
+                ${ruleDone
+                    ? `${nextRuleId ? `<button class="tjw-cta-btn" data-action="new-rule">▶️ ${t('tjw_new_rule_named_btn').replace('{rule}', ruleNameOf(nextRuleId))}</button>` : ''}
+                       <button class="${nextRuleId ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="finish-session">🏁 ${t('tjw_finish_session_btn')}</button>`
+                    : `<button class="${journeyHTML ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>`}
             </div>
         </div>`;
 }
@@ -1115,7 +1278,7 @@ function renderExamResultScreen({ scorePercent, correctCount, totalQuestions, pa
             ${badgesHTML}
             ${reviewHTML}
             <div class="tjw-result-actions">
-                ${passed ? `<button class="tjw-cta-btn" data-action="approve-now">${t('tjw_approve_btn')}</button>` : `<button class="tjw-cta-btn" data-action="go-game" data-game="practice">🎯 ${t('tjw_exam_go_practice')}</button>`}
+                ${passed ? `<button class="tjw-cta-btn" data-action="approve-now">${t('tjw_approve_btn')}</button>` : `<button class="tjw-cta-btn" data-action="go-chain">🎯 ${t('tjw_exam_go_practice')}</button>`}
                 <button class="tjw-outline-btn" data-action="parent-summary">${t('tjw_lesson_summary_btn')}</button>
                 <button class="tjw-outline-btn" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>
             </div>

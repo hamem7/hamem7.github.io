@@ -101,7 +101,7 @@ const conflicts = (ruleId, source, covered) => index.has(ruleId) && index.occurr
 
 test('اختبار كل حكم من أمثلة الكتالوج: من 5 إلى 8 أسئلة، فيها «اختر الحكم» و«ما حكم المظلَّل»', () => {
     const bad = [];
-    getAllRulesFlat().forEach(({ rule }) => {
+    getAllRulesFlat().filter(x => !x.rule.mushaf).forEach(({ rule }) => {   // دروس المصحف: tests/tajweedMushaf.test.mjs
         const qs = buildExamQuestions(rule, catalogSources(rule), { conflicts });
         if (qs.length < EXAM_MIN_SIZE || qs.length > EXAM_SIZE) bad.push(`${rule.id}: ${qs.length} سؤالاً`);
         if (!qs.some(q => q.type === 'choose_rule')) bad.push(`${rule.id}: لا اختر الحكم`);
@@ -112,7 +112,7 @@ test('اختبار كل حكم من أمثلة الكتالوج: من 5 إلى 8
 
 test('سؤال «ما حكم المظلَّل»: الصحيح بين الخيارات، 3-4 خيارات فريدة، ولا مشتِّت متعارض مع الحكم', () => {
     const bad = [];
-    getAllRulesFlat().forEach(({ rule }) => {
+    getAllRulesFlat().filter(x => !x.rule.mushaf).forEach(({ rule }) => {
         catalogSources(rule).forEach(src => {
             for (let n = 0; n < 6; n++) {
                 const q = generateIdentifyQuestion(rule, src, { conflicts });

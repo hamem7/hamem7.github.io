@@ -2,7 +2,7 @@
 // فحوص جودة أسئلة المتشابهات على القرآن كله (كل المجموعات الـ1659). التنفيذ في tools/mutashabihat-questions/qa.mjs
 import assert from 'node:assert/strict';
 import { runAll, summarize, checkQuestion, buildRaw } from '../tools/mutashabihat-questions/qa.mjs';
-import { QuranIndex, norm, skel, shortenOptions, stripHizbMark } from '../engine/similarityQuestions.js';
+import { QuranIndex, norm, skel, shortenOptions, stripHizbMark, isWeakPhrase } from '../engine/similarityQuestions.js';
 import { loadQuranSurahs } from '../tools/mutashabihat-questions/load.mjs';
 
 let pass = 0, fail = 0;
@@ -10,11 +10,12 @@ const test = (name, fn) => { try { fn(); pass++; console.log('✅ ' + name); } c
 
 const res = await runAll({ seed: 7 });
 const sum = summarize(res);
+const allQsEarly = res.groups.flatMap(g => g.questions);
 console.log(sum);
 
 test('تُولَّد أسئلة لمعظم المجموعات وبكل الأنواع', () => {
     assert.ok(sum.total > 1500);
-    ['sim_surah', 'sim_complete', 'sim_which', 'sim_match'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
+    ['sim_pair', 'sim_notin', 'sim_complete', 'sim_which', 'sim_match'].forEach(t => assert.ok(sum.byType[t] > 0, 'لا أسئلة من نوع ' + t));
 });
 test('لا رقم (عربي أو لاتيني) داخل نص أي سؤال أو خياراته', () => {
     const bad = res.groups.flatMap(g => g.questions).filter(q => /[0-9٠-٩۰-۹]/.test([q.text, ...q.options].join('\n')));
@@ -23,20 +24,40 @@ test('لا رقم (عربي أو لاتيني) داخل نص أي سؤال أو 
 test('كل سؤال: خيار صحيح واحد بالضبط، والخاطئة ليست صحيحة في السياق (بحث في المصحف كله)، وما بين ﴿ ﴾ حرفي', () => {
     assert.equal(res.failures.length, 0, JSON.stringify(res.failures.slice(0, 3)));
 });
-test('«من أي سورة؟»: لا تحتوي أي سورة خاطئة الآية نفسها', () => {
-    assert.equal(res.failures.filter(f => f.type === 'sim_surah').length, 0);
-    assert.ok(sum.byType.sim_surah > 0);
+test('«في أي سورتين؟»: للأجزاء 26–30 فقط، ولا يوجد نوع «من أي سورة؟» القديم', () => {
+    assert.equal(res.failures.filter(f => f.type === 'sim_pair').length, 0);
+    assert.ok(sum.byType.sim_pair > 0);
+    assert.equal(sum.byType.sim_surah || 0, 0);
+    const ps = allQsEarly.filter(q => q.type === 'sim_pair');
+    ps.forEach(q => { assert.ok(q.juz >= 26 && q.juz <= 30, q.groupId); assert.equal(q.options.length, 3); assert.equal(q.pair.surahs.length, 2); });
+    assert.ok(ps.some(q => q.groupId === 'amma-3' && q.correctAnswer === 'النازعات|الفجر' && /جزء عمّ/.test(q.text)), 'amma-3 (يتذكر الإنسان) النازعات والفجر');
+});
+test('«أيُّ سورة لم ترد؟»: للأجزاء 26–30، وخيار واحد فقط لا ترد فيه العبارة، وبلا عبارات ضعيفة في أي من النوعين', () => {
+    assert.equal(res.failures.filter(f => f.type === 'sim_notin').length, 0);
+    const ns = allQsEarly.filter(q => q.type === 'sim_notin');
+    assert.ok(ns.length > 0);
+    ns.forEach(q => { assert.ok(q.juz >= 26 && q.juz <= 30); assert.ok(q.pair.count >= 3 && q.pair.count <= 5); assert.ok(q.options.every(o => !o.includes('|'))); });
+    allQsEarly.filter(q => q.pair).forEach(q => assert.ok(!isWeakPhrase(q.pair.phrase), q.pair.phrase));
+    ['فَلَوْلَا', 'حَفِيظٌ', 'إِنَّا كُنَّا', 'هَٰذَا يَوْمُ'].forEach(p => assert.ok(isWeakPhrase(p), p));
+    ['يَتَذَكَّرُ ٱلْإِنسَٰنُ', 'قَدْ أَفْلَحَ'].forEach(p => assert.ok(!isWeakPhrase(p), p));
+    assert.ok(!allQsEarly.some(q => q.pair && /[ۖ-ۜ]/.test(q.pair.phrase)), 'علامة وقف داخل العبارة');
 });
 test('لا سؤالان في المجموعة نفسها يتكرران أو يكشف أحدهما جواب الآخر', () => {
     assert.equal(res.groupFailures.length, 0, JSON.stringify(res.groupFailures.slice(0, 3)));
 });
 test('عدد الخيارات 3 أو 4 وموضع الجواب الصحيح موزّع بالتساوي', () => {
-    const qs = res.groups.flatMap(g => g.questions).filter(q => q.type === 'sim_surah' || q.type === 'sim_complete');
+    const qs = res.groups.flatMap(g => g.questions).filter(q => q.type === 'sim_pair' || q.type === 'sim_notin' || q.type === 'sim_complete');
     assert.ok(qs.every(q => q.options.length >= 3 && q.options.length <= 4));
+    const pairs = qs.filter(q => q.type === 'sim_pair'), pc = [0, 0, 0];
+    pairs.forEach(q => pc[q.correctIndex]++);
+    assert.ok(pc.every(c => c > 0), 'موضع الجواب في sim_pair: ' + pc.join());
     const four = qs.filter(q => q.options.length === 4), cnt = [0, 0, 0, 0];
     four.forEach(q => cnt[q.correctIndex]++);
-    const mean = four.length / 4;
-    cnt.forEach(c => assert.ok(Math.abs(c - mean) / mean < 0.1, cnt.join()));
+    const mean = four.length / 4; // لا أسئلة بأربعة خيارات بعد حذف «من أي سورة؟»: يُفحص التوزيع فقط إن وُجدت
+    if (four.length) cnt.forEach(c => assert.ok(Math.abs(c - mean) / mean < 0.1, cnt.join()));
+    const three = qs.filter(q => q.options.length === 3), c3 = [0, 0, 0];
+    three.forEach(q => c3[q.correctIndex]++);
+    c3.forEach(c => assert.ok(Math.abs(c - three.length / 3) / (three.length / 3) < 0.1, c3.join()));
 });
 test('لا مجموعة بأكثر من 4 أسئلة، ولا نوعان متطابقان الهدف داخل المجموعة', () => {
     res.groups.forEach(g => assert.ok(g.count <= 4));
@@ -57,10 +78,15 @@ test('ضابط سلبي: خيار خاطئ يساوي الصحيح في السي
     const q = structuredClone(sample('sim_complete')); const i = (q.correctIndex + 1) % q.options.length; q.options[i] = q.correctAnswer;
     assert.ok(checkQuestion(q, R).length > 0);
 });
-test('ضابط سلبي: خيار «سورة» ليس اسم سورة يُكتشف', () => {
-    const q = structuredClone(sample('sim_surah'));
-    q.options[(q.correctIndex + 1) % q.options.length] = 'سورة وهمية';
-    assert.ok(checkQuestion(q, R).some(e => e.includes('ليس اسم سورة')));
+test('ضابط سلبي: جعل الخيار الخاطئ هو الجواب في «في أي سورتين؟» يُكتشف', () => {
+    const q = structuredClone(sample('sim_pair'));
+    q.options[(q.correctIndex + 1) % 3] = q.correctAnswer;
+    assert.ok(checkQuestion(q, R).length > 0);
+});
+test('ضابط سلبي: خيار «سورتين» باسم سورة وهمي يُكتشف', () => {
+    const q = structuredClone(sample('sim_pair'));
+    q.options[(q.correctIndex + 1) % 3] = 'وهمية|الفجر';
+    assert.ok(checkQuestion(q, R).some(e => e.includes('ليس سورتين صالحتين')));
 });
 
 // قصّ الخيارات الطويلة للعرض

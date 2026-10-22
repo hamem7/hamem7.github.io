@@ -22,7 +22,7 @@ import { AppState, loadSplashScreen, t } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
-import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark } from '../engine/similarityQuestions.js';
+import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
 // 🌟 نفس آلية الصوت المستخدمة في games/kidsGame.js بالضبط (Web Audio API المدمجة في
@@ -201,14 +201,14 @@ function updateProgressUI() {
 // 🌟 [إعادة كتابة] الأسئلة الأربعة (من أي سورة؟ / أكمل الآية / ماذا بعدها؟ / ما قبلها؟) يولّدها engine/similarityQuestions.js
 // بنص سؤال كامل جاهز (الآيات بين ﴿ ﴾ والسياق داخله، بلا أي رقم آية)، فلا حاجة لبناء سياق خاص بكل نوع هنا:
 // نعرض نص السؤال كما هو ثم الخيارات. الخيارات القرآنية آيات/نهايات آيات تُعرض بسطر مستقل لكل خيار.
-const SURAH_OPTION_TYPES = new Set(['sim_surah']);
+const SURAH_OPTION_TYPES = new Set(['sim_pair', 'sim_notin']);
 
 function buildOptionsHTML(q) {
     const isSurah = SURAH_OPTION_TYPES.has(q.type);
     return q.options.map((opt, i) => {
         const classes = ['btn', 'btn-outline', 'sim-play-option-btn'];
         if (!isSurah) classes.push('quran-text', 'sim-play-option-fulltext');
-        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText((q.optionsDisplay && q.optionsDisplay[i]) || opt)}</button>`;
+        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(SURAH_OPTION_TYPES.has(q.type) ? pairOptionLabel(opt) : ((q.optionsDisplay && q.optionsDisplay[i]) || opt))}</button>`;
     }).join('');
 }
 
@@ -226,7 +226,7 @@ async function renderQuestion() {
     const optionsExtraClass = SURAH_OPTION_TYPES.has(q.type) ? '' : ' sim-play-options-fulltext';
     container.innerHTML = `
         <div class="sim-group-card">
-            <div class="sim-play-prompt sim-q-text">${questionTextToHTML(q.text)}</div>
+            <div class="sim-play-prompt sim-q-text">${questionTextToHTML(localizedQuestionText(q))}</div>
             <div class="sim-play-options${optionsExtraClass}">${buildOptionsHTML(q)}</div>
             <div class="sim-play-feedback" id="simplay-feedback"></div>
         </div>`;

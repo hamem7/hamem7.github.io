@@ -38,6 +38,12 @@ const after = await page.evaluate(async () => { const m = window.__APP; const st
     ach: (await m.AppState.tajweedManager.getAchievementsByStudent(st.id)).length, review: (await m.AppState.reviewScheduleManager.getAllRuleSchedules()).length,
     progress: st.tajweedProgress, studentStillThere: !!st && st.name === 'أحمد' }; });
 check('أول فتح لركن التجويد يحذف كل بيانات التجويد القديمة (إتقان، جلسات، أوسمة، مراجعة، تقدّم الطالب) ويُبقي الطالب', after.mastery === 0 && after.sessions === 0 && after.ach === 0 && after.review === 0 && after.progress === undefined && after.studentStillThere, JSON.stringify(after));
+// «تعرّف على مصحفك» هي المرحلة الأولى قبل القلقلة: نُتقن دروسها الثمانية مباشرة لتُفتح القلقلة (مسارها الكامل في tests/tajweed-mushaf.e2e.mjs)،
+// ونُسكت رسالة «المرحلة الجديدة» الخاصة بالقلقلة حتى لا تحجب الخريطة (يبقى فحص رسالة المرحلة التي تليها أدناه)
+await page.evaluate(async () => { const m = window.__APP; const J = await import('/engine/tajweedJourney.js'); const C = await import('/engine/tajweedRulesCatalog.js'); const st = (await m.AppState.studentManager.getAllStudents())[0];
+  for (const r of C.getTajweedStage('know_mushaf').rules) { let rec = await m.AppState.tajweedManager.getOrCreateMasteryRecord(st.id, 'know_mushaf', r.id);
+    rec = J.applyLearned(rec); rec = J.applyPracticeResult(rec, 100); rec = J.applyExamResult(rec, 100).record; rec = J.applyTeacherApproval(rec).record; rec.attemptsCount = 3; rec.status = J.statusFromJourney(rec, rec.status); await m.AppState.tajweedManager.saveMastery(rec); }
+  localStorage.setItem('dh_tjw_stage_intro_' + st.id + '_qalqalah', '1'); });
 await page.evaluate(() => { const b = document.querySelector('.tjw-st[data-name="أحمد"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.click('[data-action="entry-map"]'); await page.waitForSelector('.tjw-rule-tile', { timeout: 15000 });
 const stepText = async () => page.evaluate(() => [...document.querySelectorAll('.tjw-stepper li')].map(li => (li.classList.contains('is-current') ? 'C' : li.classList.contains('is-done') ? 'D' : '-')).join(''));
 const openRule = async (rid) => { await page.click(`[data-rule="${rid}"].tjw-rule-tile`); await page.waitForSelector('.tjw-stepper'); };

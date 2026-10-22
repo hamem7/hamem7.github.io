@@ -10,11 +10,15 @@
 // القواعد (من PROMPT_FOR_CODE.md):
 //  1) لا رقم آية في نص السؤال ولا في الخيارات. الموضع يُعرَّف باسم السورة + الآية السابقة/اللاحقة.
 //     الرقم يبقى في حقل ref للمعلم فقط.
-//  2) أربعة أنواع: sim_surah | sim_complete | sim_which | sim_match — غرضها تمييز الآية/الكلمة عن شبيهتها في سورة أخرى.
+//  2) أربعة أنواع: sim_pair | sim_complete | sim_which | sim_match — غرضها تمييز الآية/الكلمة عن شبيهتها في سورة أخرى.
+//     (حُذف «من أي سورة وردت هذه الآية؟»: جوابه يُعرف من الجزء المميِّز للآية لا من المتشابه، فليس من المتشابهات.)
+//     sim_pair «في أي سورتين وردت العبارة؟» وsim_notin «أيُّ سورة لم ترد فيها؟» (3–5 سور) للأجزاء 26–30 فقط (جزء عمّ والأجزاء الخمسة الأخيرة).
 //     أسئلة «ماذا بعدها؟/ما قبلها؟» محذوفة: هي ترتيب عادي موجود أصلاً في أسئلة السابقة واللاحقة وليست من التمييز بين المتشابهات
 //  3) تطابق لفظ الآيتين في موضعين: يُعرض معهما السياق حتى يكون الجواب واحداً.
 //  4) منع التكرار داخل المجموعة: لا سؤالان يسألان الحقيقة نفسها ولا يكشف أحدهما جواب الآخر.
 //  5) كل الخيارات الخاطئة من نص القرآن نفسه، ويُتحقق آلياً أنها ليست جواباً صحيحاً في السياق المذكور.
+
+import { tl, nameL, labelL } from '../core/langBridge.js';
 
 // ---------------- تطبيع النص ----------------
 const MARKS = /[ؐ-ًؚ-ٰٟۖ-ۜ۟-۪ۨ-ۭـ]/g;
@@ -269,6 +273,133 @@ function holdersOf(Q, text) {
     return Q._hc.get(text);
 }
 
+// ---------------- «في أي سورتين وردت العبارة؟» (sim_pair) ----------------
+// للأجزاء الخمسة الأخيرة (26–30) بطلب المعلم. العبارة تُحدَّد بالنص المشترك بين مواضع المجموعة، والجواب هو السورتان
+// الوحيدتان اللتان ترد فيهما العبارة ضمن النطاق المذكور في السؤال (جزء عمّ، أو الأجزاء الخمسة الأخيرة)، ويُحسب من المصحف مباشرة.
+export const PAIR_FIRST_JUZ = 26;
+export const PAIR_LAST_JUZ = 30;
+const PAIR_SEP = '|';
+// كلمات الآية بتطبيع صارم (بلا تشكيل فقط): المطابقة بين آيات المصحف نفسه لا بالهيكل الصامت، فـ«صراطًا» ≠ «صراطٍ»
+// علامات الوقف المستقلة (ۚ ۖ ...) ليست كلمات: تُستبعد من العبارة المعروضة ومن المطابقة
+const contentWords = (text) => wordsOf(text).filter(w => norm(w));
+const strictWords = (Q, v) => {
+    Q._ws = Q._ws || new Map();
+    const k = v.s + ':' + v.n;
+    if (!Q._ws.has(k)) Q._ws.set(k, contentWords(v.text).map(norm));
+    return Q._ws.get(k);
+};
+const hasRun = (ws, run) => { for (let i = 0; i + run.length <= ws.length; i++) if (run.every((x, j) => ws[i + j] === x)) return true; return false; };
+// أطول مقطع كلمات متصل مشترك بين كل المواضع (بنص المصحف العثماني للموضع الأول)، أو null
+function commonRun(Q, locs) {
+    const base = contentWords(locs[0].text), bs = strictWords(Q, locs[0].v), others = locs.slice(1).map(l => strictWords(Q, l.v));
+    let best = null;
+    for (let i = 0; i < bs.length; i++) {
+        for (let j = bs.length; j > i && (!best || j - i > best.len); j--) {
+            const run = bs.slice(i, j);
+            if (others.every(o => hasRun(o, run))) { best = { len: j - i, words: base.slice(i, j) }; break; }
+        }
+    }
+    return best ? best.words.join(' ') : null;
+}
+// عبارة المجموعة بنص المصحف (الكلمات الفعلية من الموضع الأول)، أو null إن لم ترد في كل المواضع
+function anchorRun(Q, locs, phrase) {
+    // العبارة في بيانات المجموعة بإملاء مبسّط: تُحدَّد بالهيكل الصامت في الموضع الأول، ثم يُشترط تطابق كلماتها الفعلية في كل المواضع
+    const sp = wordsOf(phrase).map(skel);
+    if (!sp.length) return null;
+    const first = locs[0], fw = contentWords(first.text), fs = fw.map(skel);
+    for (let i = 0; i + sp.length <= fs.length; i++) {
+        if (!sp.every((x, j) => fs[i + j] === x)) continue;
+        const run = fw.slice(i, i + sp.length).map(norm);
+        return locs.every(l => hasRun(strictWords(Q, l.v), run)) ? fw.slice(i, i + sp.length).join(' ') : null;
+    }
+    return null;
+}
+// السور (ضمن النطاق) التي ترد فيها العبارة داخل آية واحدة
+function phraseHolders(Q, phrase, scopeSet) {
+    const sp = wordsOf(phrase).map(norm), out = new Set();
+    for (const v of Q.flat) if (scopeSet.has(v.s) && !out.has(v.s) && hasRun(strictWords(Q, v), sp)) out.add(v.s);
+    return out;
+}
+const juzRange = (Q, from, to) => { const s = new Set(); for (let j = from; j <= to; j++) Q.juzSurahs(j).forEach(x => s.add(x)); return s; };
+
+// عبارة ضعيفة لا تصلح سؤال متشابهات: كلمة واحدة، أو أقل من خمسة حروف أصلية في مجموع الكلمات (مثل «إنا كنا»، «هذا يوم»)
+export function isWeakPhrase(phrase) {
+    const sk = contentWords(phrase).map(skel);
+    return sk.length < 2 || sk.join('').length < 5;
+}
+const NOTIN_MIN = 3, NOTIN_MAX = 5;
+const COUNT_WORD = { 3: 'ثلاث', 4: 'أربع', 5: 'خمس' };
+
+// «في أي سورتين؟» (العبارة في سورتين بالضبط) أو «أي سورة لم ترد؟» (في 3–5 سور: الجواب سورة من النطاق لا ترد فيها)
+function pairCandidate(Q, group, locs, rng) {
+    if (!locs.every(l => l.v.juz >= PAIR_FIRST_JUZ && l.v.juz <= PAIR_LAST_JUZ)) return null;
+    const surahs = [...new Set(locs.map(l => l.s))];
+    const scopes = [];
+    if (locs.every(l => l.v.juz === PAIR_LAST_JUZ)) scopes.push({ id: 'juz30', set: juzRange(Q, 30, 30) });
+    scopes.push({ id: 'last5', set: juzRange(Q, PAIR_FIRST_JUZ, PAIR_LAST_JUZ) });
+    const phrases = [anchorRun(Q, locs, cleanPhrase(group.anchorPhrase)), locs.length > 1 ? commonRun(Q, locs) : null].filter(Boolean);
+    for (const phrase of [...new Set(phrases)]) {
+        if (isWeakPhrase(phrase)) continue;
+        const sk = contentWords(phrase).map(skel);
+        const np = norm(phrase);
+        const hides = (s) => { const n = norm(Q.surahName(s)).replace(/^ال/, ''); return n.length >= 3 && np.includes(n); }; // اسم السورة داخل العبارة يكشف الجواب
+        for (const sc of scopes) {
+            const holders = phraseHolders(Q, phrase, sc.set);
+            if (!surahs.every(s => holders.has(s)) || holders.size < 2 || holders.size > NOTIN_MAX) continue;
+            const hs = [...holders].sort((a, b) => a - b);
+            if (hs.some(hides)) continue;
+            const decoys = shuffled([...sc.set].filter(s => !holders.has(s) && !hides(s)), rng);
+            if (decoys.length < 3) continue;
+            const occ = locs.filter(l => holders.has(l.s)).map(l => ({ surahNumber: l.s, surahName: l.surahName, ayahNumber: l.n, fullText: l.text }));
+            const base = { shown: new Set(), answer: new Set(), key: 'pair|' + group.groupId, facts: new Set(['phrase|' + sk.join(' ')]) };
+            const name = (n) => Q.surahName(n);
+            if (hs.length === 2) {
+                const key = (a) => [...a].sort((x, y) => x - y).map(name).join(PAIR_SEP);
+                const keep = hs[Math.floor(rng() * 2)];
+                const f = finalize([key(hs), key([keep, decoys[0]]), key([decoys[1], decoys[2]])], key(hs), rng);
+                if (!f) continue;
+                return { ...base, type: 'sim_pair', text: pairQuestionText(phrase, sc.id), opts: f.opts, ci: f.ci, loc: locs.find(l => l.s === hs[0]) || locs[0],
+                    extra: { pair: { phrase, scope: sc.id, surahs: hs, occurrences: occ } } };
+            }
+            if (hs.length < NOTIN_MIN) continue;
+            const two = shuffled(hs, rng).slice(0, 2);
+            const f = finalize([name(decoys[0]), ...two.map(name)], name(decoys[0]), rng);
+            if (!f) continue;
+            return { ...base, type: 'sim_notin', text: pairQuestionText(phrase, sc.id, hs.length), opts: f.opts, ci: f.ci, loc: locs.find(l => l.s === hs[0]) || locs[0],
+                extra: { pair: { phrase, scope: sc.id, surahs: hs, count: hs.length, occurrences: occ } } };
+        }
+    }
+    return null;
+}
+
+const PAIR_TEXTS = {
+    juz30: { key: 'sim_q_pair_juz30', ar: '﴿{word}﴾ وردت في سورتين من سور جزء عمّ، ما هما؟' },
+    last5: { key: 'sim_q_pair_last5', ar: '﴿{word}﴾ وردت في سورتين من سور الأجزاء الخمسة الأخيرة من القرآن، ما هما؟' }
+};
+const NOTIN_TEXTS = {
+    juz30: (n) => ({ key: 'sim_q_notin_juz30_' + n, ar: '﴿{word}﴾ وردت في ' + COUNT_WORD[n] + ' سور من سور جزء عمّ. أيُّ السور الآتية لم ترد فيها؟' }),
+    last5: (n) => ({ key: 'sim_q_notin_last5_' + n, ar: '﴿{word}﴾ وردت في ' + COUNT_WORD[n] + ' سور من سور الأجزاء الخمسة الأخيرة من القرآن. أيُّ السور الآتية لم ترد فيها؟' })
+};
+const fillTpl = (s, params) => { Object.keys(params || {}).forEach(k => { s = s.split('{' + k + '}').join(String(params[k])); }); return s; };
+const pairTpl = (scope, count) => count ? NOTIN_TEXTS[scope](count) : PAIR_TEXTS[scope];
+export function pairQuestionText(phrase, scope, count = 0) { return fillTpl(pairTpl(scope, count).ar, { word: phrase }); }
+// نص السؤال بلغة الواجهة (نصه المخزَّن عربي دائماً): في Node أو قبل تسجيل المترجم يرجع العربي نفسه
+export function localizedQuestionText(q) {
+    const kind = q && (q.type || q.kind);
+    if ((kind === 'sim_pair' || kind === 'sim_notin') && q.pair && q.pair.scope) {
+        const tpl = pairTpl(q.pair.scope, kind === 'sim_notin' ? q.pair.count : 0);
+        return tl(tpl.key, tpl.ar, { word: q.pair.phrase });
+    }
+    return q ? q.text : '';
+}
+// خيار داخلي: «أ|ب» (سورتان) يُعرض «أ و ب»، واسم سورة واحدة يُعرض «سورة أ»، بلغة الواجهة
+export const pairNames = (opt) => String(opt).split(PAIR_SEP);
+export function pairOptionLabel(opt) {
+    const names = pairNames(opt);
+    if (names.length === 1) return labelL(names[0]);
+    return names.map(n => nameL(n)).join(tl('sim_pair_and', ' و '));
+}
+
 function buildCandidates(Q, group, locs, juz, rng, stats = null, allowMatch = true) {
     const cphrase = cleanPhrase(group.anchorPhrase);
     const surahs = [...new Set(locs.map(l => l.s))];
@@ -276,39 +407,10 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null, allowMatch = tr
     const identical = new Set(locs.map(l => l.norm)).size < locs.length;
     const anchored = sameSurah && identical;
     const cand = [];
-    const juzSurahs = Q.juzSurahs(juz);
+    const pc = pairCandidate(Q, group, locs, rng);
+    if (pc) cand.push(pc);
 
     for (const l of locs) {
-        // ---- من أي سورة؟ (فقط حين تتعدد السور) ----
-        if (!sameSurah) {
-            let text, shown, seq;
-            if (identical) {
-                const useNext = !!l.next;
-                const a = useNext ? l.v : l.prev, b = useNext ? l.next : l.v;
-                if (!a || !b || a.n === 1) continue;
-                text = 'قال تعالى: ' + verse(a.text) + ' ثم تليها: ' + verse(b.text) + '\nفي أي سورة من سور الجزء وردت هاتان الآيتان؟';
-                shown = [tid(a), tid(b)]; seq = [a.text, b.text];
-            } else {
-                // الآية الأولى من السورة معروفة بمطلعها (مثل «ويل لكل همزة لمزة»)، فجوابها بديهي: لا يُسأل عنها «من أي سورة؟»
-                if (l.n === 1) continue;
-                text = 'في أي سورة من سور الجزء وردت هذه الآية؟\n' + verse(l.text);
-                shown = [tid(l.v)]; seq = [l.text];
-            }
-            // السور التي تحوي الموضع المعروض فعلاً: يجب أن تكون سورة الجواب وحدها بين الخيارات
-            const holders = seq.length === 2 ? Q.surahsContainingPair(seq[0], seq[1]) : Q.surahsContaining(seq[0]);
-            const groupOpts = surahs.filter(s => s === l.s || !holders.has(s));
-            const decoys = shuffled(juzSurahs.filter(s => !surahs.includes(s) && !holders.has(s)), rng)
-                .slice(0, Math.max(0, 3 - groupOpts.length));
-            const f = finalize([...groupOpts, ...decoys].map(s => Q.surahName(s)), Q.surahName(l.s), rng);
-            if (f && holders.has(l.s)) {
-                const optSurahs = f.opts.map(n => [...Q.surahs.values()].find(x => x.plainName === n).number);
-                if (optSurahs.filter(s => holders.has(s)).length === 1) {
-                    cand.push({ type: 'sim_surah', text, opts: f.opts, ci: f.ci, loc: l, shown: new Set(shown), answer: new Set(),
-                        key: 'map|' + l.vid + '|' + (identical ? 'pair' : 'one'), facts: new Set(['map|' + shown.join('+')]) });
-                }
-            }
-        }
-
         // ---- أكمل الآية ----
         if (stats) { stats.locs++; stats.at[l.phraseAt] = (stats.at[l.phraseAt] || 0) + 1; }
         if (l.stem && identical) { if (stats) stats.identicalBlocked++; }
@@ -385,7 +487,7 @@ function buildCandidates(Q, group, locs, juz, rng, stats = null, allowMatch = tr
 }
 
 // سؤالان مكرران: يسألان الحقيقة نفسها، أو جواب أحدهما ظاهر في نص الآخر
-const isDup = (a, b) => a.key === b.key || setHas(a.facts, b.facts) || setHas(a.answer, b.shown) || setHas(b.answer, a.shown);
+const isDup = (a, b) => a.key === b.key || a.text === b.text || setHas(a.facts, b.facts) || setHas(a.answer, b.shown) || setHas(b.answer, a.shown);
 
 // أكبر مجموعة (حتى 4) من المرشّحات لا تكرار بينها؛ وعند التساوي: الأكثر تنوعاً في الأنواع ثم في المواضع
 function chooseBest(cands, max = 4) {
@@ -448,13 +550,13 @@ export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = {
         const at = posRef.n % c.opts.length; posRef.n++;
         others.splice(at, 0, correct);
         const l = c.loc;
-        // السور قصيرة دائماً؛ الخيارات القرآنية تُقصّ للعرض فقط
-        const optionsDisplay = c.type === 'sim_surah' ? [...others] : shortenOptions(others);
+        // أسماء السور قصيرة دائماً؛ الخيارات القرآنية تُقصّ للعرض فقط
+        const optionsDisplay = (c.type === 'sim_pair' || c.type === 'sim_notin') ? others.map(o => pairNames(o).join(' و ')) : shortenOptions(others);
         res.questions.push({
             type: c.type, text: c.text, options: others, optionsDisplay, correctIndex: at, correctAnswer: correct, ref: l.ref,
             groupId: group.groupId, anchorPhrase: stripHizbMark(group.anchorPhrase), scope: group.scope, category: group.category,
             occurrence: { surahNumber: l.s, surahName: l.surahName, ayahNumber: l.n, fullText: l.text },
-            juz
+            juz, ...(c.extra || {})
         });
     }
     if (res.questions.length < 4) {
@@ -465,8 +567,8 @@ export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = {
     return res;
 }
 
-export const SIM_TYPES = ['sim_surah', 'sim_complete', 'sim_which', 'sim_match'];
-export const SIM_TYPE_LABELS = { sim_surah: 'من أي سورة؟', sim_complete: 'أكمل الآية', sim_which: 'أيُّ الآيتين من السورة؟', sim_match: 'صِل الآية بسورتها', sim_next: 'ماذا بعدها؟', sim_prev: 'ما الآية التي قبلها؟' };
+export const SIM_TYPES = ['sim_pair', 'sim_notin', 'sim_complete', 'sim_which', 'sim_match'];
+export const SIM_TYPE_LABELS = { sim_pair: 'في أي سورتين؟', sim_notin: 'أيُّ سورة لم ترد؟', sim_complete: 'أكمل الآية', sim_which: 'أيُّ الآيتين من السورة؟', sim_match: 'صِل الآية بسورتها', sim_next: 'ماذا بعدها؟', sim_prev: 'ما الآية التي قبلها؟' };
 
 // ---------------- مصحف المنصة في المتصفح ----------------
 // يُحمَّل مرة واحدة من IndexedDB عبر QuranEngine (نفس النص الذي تعرضه بقية الشاشات) ويُحفظ هنا

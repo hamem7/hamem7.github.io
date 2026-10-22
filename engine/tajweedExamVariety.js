@@ -4,7 +4,8 @@
 // تشكيلة آخر اختبار)، وأسئلة من آيات حفظ الطالب أولاً ثم أمثلة الكتالوج (مصادر buildExamSources). الأنواع القديمة (اختر الحكم، حكم الكلمة
 // المظلَّلة، اكتشف الكلمة) باقية كما هي، وتنضم إليها: استمع واحكم، أين الخطأ، صح أم خطأ عن حروف الحكم أو قاعدته، ولغز «من أنا؟».
 // خالص بلا DOM. يعتمد على مولّدات tajweedEngine.js ولا يعتمد عليه tajweedEngine (لا استيراد دائري).
-import { getAllRulesFlat } from './tajweedRulesCatalog.js';
+import { getAllRulesFlat as getAllRulesFlatAll, isMushafRule } from './tajweedRulesCatalog.js';
+const getAllRulesFlat = () => getAllRulesFlatAll().filter(x => !isMushafRule(x.rule));   // دروس المصحف بلا حروف: لا تدخل ألغاز «من أنا؟» ولا مقارنات الحروف
 import { getRuleLetters, ALL_LETTERS } from './tajweedLetterGames.js';
 import { RULE_FACTS } from './tajweedFacts.js';
 import { EXAM_SIZE } from './tajweedJourney.js';

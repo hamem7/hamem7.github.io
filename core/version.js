@@ -8,13 +8,85 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.41';
+export const APP_VERSION = '1.0.52';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.52',
+        date: '2026-10-22',
+        items: [
+            { type: 'improved', text: { ar: 'خط المصحف (KFGQPC) مقصور على ركن التجويد: الشرح والألعاب والاختبارات والرسوم التوضيحية؛ وبقية المنصة بخطها السابق.', en: 'The Mushaf font (KFGQPC) is limited to the Tajweed corner: lessons, games, tests and illustrations; the rest of the platform keeps its previous font.' } }
+        ]
+    },
+    {
+        version: '1.0.50',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'ركن التجويد كله: توحيد خط النص القرآني (خط المصحف) في الشرح والألعاب والرسوم التوضيحية؛ كانت الكلمة المظلّلة ورسوم الأحكام وبطاقات الحروف واسم السورة تُرسم بخط الواجهة.', en: 'Whole Tajweed corner: the Quran text now uses one font (the Mushaf font) in lessons, games and illustrations; the highlighted word, rule illustrations, letter cards and surah names were drawn in the interface font.' } }
+        ]
+    },
+    {
+        version: '1.0.49',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'في «تعرّف على مصحفك»: الكلمة المظلّلة وما داخل نص الآية كان يُرسم بخط الواجهة بدل خط المصحف، فظهرت الواو والياء الصغيرتان مرفوعتين والألف الخنجرية غير واضحة. صار كل النص بخط المصحف، والواو والياء الصغيرتان في موضعهما بعد الهاء.', en: 'In "Get to know your Mushaf": the highlighted word and everything inside the ayah text was drawn in the interface font instead of the Mushaf font, so the small waw/yaa looked raised and the dagger alif unclear. All text now uses the Mushaf font, with the small waw/yaa in their proper place after the heh.' } }
+        ]
+    },
+    {
+        version: '1.0.48',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'في «تعرّف على مصحفك»: نص القرآن بخط المنصة نفسه، فظهرت الألف الخنجرية والواو والياء الصغيرة والمدّة في مواضعها الصحيحة كما في المصحف.', en: 'In "Get to know your Mushaf": Quran text now uses the platform\'s own Quran font, so the dagger alif, small waw, small yaa and madd sign appear in their correct places as in the Mushaf.' } },
+            { type: 'improved', text: { ar: 'كل علامة تُعرض على حرف داخل كلمة حقيقية (مثل ذٰلك، لَهُۥ، حمٓ) بدل رسمها وحدها، وأُزيلت العلامات من أسماء العلامات.', en: 'Each sign is now shown on a letter inside a real word (like ذٰلك, لَهُۥ, حمٓ) instead of alone, and the marks were removed from the sign names.' } }
+        ]
+    },
+    {
+        version: '1.0.47',
+        date: '2026-10-22',
+        items: [
+            { type: 'new', text: { ar: 'أُضيفت علامة الشدّة ّ إلى «تعرّف على مصحفك» (في درس السكون والحروف الصامتة).', en: 'The shadda ّ was added to "Get to know your Mushaf" (in the Sukun & Silent Letters lesson).' } },
+            { type: 'improved', text: { ar: 'حُذف الخط الذي كان تحت العلامات (الوقف وغيرها) وكُبّرت العلامة ليراها الطالب بوضوح.', en: 'The line under the marks (stop signs and others) was removed and the marks were enlarged so students can see them clearly.' } }
+        ]
+    },
+    {
+        version: '1.0.46',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'توحيد رسم العلامات في «تعرّف على مصحفك»: العلامة (الصفر المستطيل والمستدير والسكون وعلامات الوقف) تظهر في الأسئلة بنفس شكلها في الشرح وفي النص القرآني، وعادت فوانيس الحزب والجزء والربع إلى صورتها الأصلية من المصحف المطبوع.', en: 'Unified mark rendering in "Get to know your Mushaf": marks (rectangular and round zero, sukun, stop signs) now look the same in questions as in the lesson and in the Quran text, and the Hizb, Juz and quarter lanterns are back to their original printed-Mushaf look.' } }
+        ]
+    },
+    {
+        version: '1.0.45',
+        date: '2026-10-21',
+        items: [
+            { type: 'fixed', text: { ar: 'علامات الضبط في ركن التجويد (الوقف والسكون والمدّ وما يشبهها) صارت بشكل المصحف المطبوع وبحجم كبير. وأُصلح خط المصحف: كانت علامات مثل الصفر المستدير ۟ والميم الصغيرة ۭ تظهر دائرة منقطة ◉ بدل شكلها الحقيقي.', en: 'Mushaf marks in the Tajweed corner (stop, sukun, madd and similar) now appear in the printed Mushaf shape and at a large size. The Mushaf font was also fixed: marks such as the round zero ۟ and the small low meem ۭ used to show a dotted circle ◉ instead of their real shape.' } }
+        ]
+    },
+    {
+        version: '1.0.44',
+        date: '2026-10-21',
+        items: [
+            { type: 'improved', text: { ar: 'أسئلة «معاني الكلمات» صارت أبسط للأطفال: اعتمدنا كتاب «السراج في بيان غريب القرآن» للشيخ محمد الخضيري مصدراً أول للمعنى القصير (نحو ٦٠٠٠ كلمة)، وبقي كتاب «كلمات القرآن» للشيخ حسنين مخلوف احتياطياً للكلمات التي لا يغطيها، مع اختصار شروحه الطويلة.', en: 'The "word meanings" questions are now simpler for children: "Al-Siraj fi Bayan Gharib al-Quran" by Sheikh Muhammad al-Khudayri is the first source of the short meaning (about 6,000 words), while "Kalimat al-Quran" by Sheikh Hasanayn Makhluf stays as a fallback for words it does not cover, with its long explanations shortened.' } }
+        ]
+    },
+    {
+        version: '1.0.43',
+        date: '2026-10-21',
+        items: [
+            { type: 'new', text: { ar: 'سؤال متشابهات جديد للأجزاء 26–30: «العبارة وردت في (ثلاث) سور، فأيُّ السور الآتية لم ترد فيها؟». واستُبعدت العبارات القصيرة جداً والكلمات المفردة من أسئلة «في أي سورتين؟».', en: 'New similar-verses question for juz 26–30: "The phrase appears in (three) surahs. Which of these surahs does it NOT appear in?". Very short phrases and single words are no longer used in the "which two surahs?" questions.' } }
+        ]
+    },
+    {
+        version: '1.0.42',
+        date: '2026-10-21',
+        items: [
+            { type: 'improved', text: { ar: 'أسئلة المتشابهات: صار السؤال «العبارة (…) وردت في سورتين من سور جزء عمّ (أو الأجزاء الخمسة الأخيرة)، ما هما؟» بدل «في أي سورة وردت هذه الآية؟» لأن الأخير ليس من المتشابهات.', en: 'Similar-verses questions: the question is now "The phrase (…) appears in two surahs of Juz\' Amma (or the last five juz). Which two?" instead of "Which surah is this ayah from?", since the latter is not about similar verses.' } }
+        ]
+    },
     {
         version: '1.0.41',
         date: '2026-10-19',

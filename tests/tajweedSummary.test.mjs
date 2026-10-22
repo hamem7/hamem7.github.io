@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { TAJWEED_STAGES, getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { TAJWEED_BADGE_CATALOG } from '../engine/tajweedEngine.js';
+import { MUSHAF_I18N } from '../core/i18nMushaf.js';   // ترجمات مرحلة «تعرّف على مصحفك» (تُدمج في القاموس في i18n.js)
 import { applyLearned, applyPracticeResult, applyExamResult, applyTeacherResult, statusFromJourney } from '../engine/tajweedJourney.js';
 import {
     MODE_ORDER, pluralKey, localDayKey, groupActivities, buildSessionSummary, buildRuleSummary, formatSummaryText, homeKeyForStep,
@@ -18,7 +19,7 @@ const test = (name, fn) => { try { fn(); pass++; console.log('✅ ' + name); } c
 const src = fs.readFileSync(new URL('../core/i18n.js', import.meta.url), 'utf8');
 const enAt = src.indexOf('\n    en: {');
 const dict = (text) => { const d = {}; for (const m of text.matchAll(/^\s*(tjw_[a-z0-9_]+):\s*("(?:[^"\\]|\\.)*")/gm)) if (!(m[1] in d)) d[m[1]] = JSON.parse(m[2]); return d; };
-const AR = dict(src.slice(0, enAt)), EN = dict(src.slice(enAt));
+const AR = { ...dict(src.slice(0, enAt)), ...MUSHAF_I18N.ar }, EN = { ...dict(src.slice(enAt)), ...MUSHAF_I18N.en };
 const mkTr = (D) => (key, vars = {}) => {
     if (!(key in D)) throw new Error('مفتاح ترجمة ناقص: ' + key);
     return Object.entries(vars).reduce((s, [k, v]) => s.split(`{${k}}`).join(v), D[key]);
@@ -142,7 +143,8 @@ test('المراجعات المعلّقة، وملاحظة المعلم المض
 
 test('اقتراح «في البيت» يتبع الخطوة القادمة', () => {
     assert.deepEqual(['learn', 'practice', 'exam', 'awaiting_teacher', 'mastered'].map(homeKeyForStep), ['learn', 'practice', 'exam', 'teacher', 'review']);
-    const m = session({ sessions: [sess(0, 'qalqalah', 'practice', 70)], mastery: [rec('qalqalah', { learn: 0, practice: 0 })] });
+    const mushafDone = flat.filter(x => x.stageId === 'know_mushaf').map(x => rec(x.rule.id, { learn: 9, practice: 9, exam: 9, teacher: 9 }));   // المرحلة الأولى متقنة فتصير القلقلة هي الحالية
+    const m = session({ sessions: [sess(0, 'qalqalah', 'practice', 70)], mastery: [...mushafDone, rec('qalqalah', { learn: 0, practice: 0 })] });
     assert.equal(m.next.step, 'exam');
     assert.ok(formatSummaryText(m, ctx).includes('مراجعة الحكم استعداداً لاختباره'));
 });
