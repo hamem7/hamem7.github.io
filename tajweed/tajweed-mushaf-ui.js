@@ -53,37 +53,17 @@ export async function getMushafCtx(student) {
 export const rosetteHTML = (n, cls = '') => `<span class="tjw-mk-rosette ${cls}" dir="rtl" role="img" aria-label="${esc(M.AR(n))}">${M.AR(n)}</span>`;
 const markGlyph = (code) => (code === '۩' || code === '۞' ? code : `ـ${code}ـ`);
 
-// فانوس الهامش: رسم SVG متماثل (الصورة المقتطعة من المطبوع كانت مائلة). المقاسات بوحدات viewBox عرضها 100؛ النافذة الداخلية للكلمات نفسها في «الكامل» و«العلوي».
-const LN = { stroke: '#2f7d3a', cream: '#f7f0d6', teal: '#3b9aa6', gold: '#d9a441' };
-function lanternDome(flip) {
-    const f = flip ? 'transform="translate(0 280) scale(1 -1)"' : '';
-    return `<g ${f}>
-        <path d="M3 92 C3 66 30 58 40 36 C44 27 47 20 50 11 C53 20 56 27 60 36 C70 58 97 66 97 92 Z" fill="${LN.cream}" stroke="${LN.stroke}" stroke-width="3.2" stroke-linejoin="round"/>
-        <path d="M50 20 C42 38 30 46 16 48 M50 20 C58 38 70 46 84 48 M50 34 C44 46 34 54 26 58 M50 34 C56 46 66 54 74 58" fill="none" stroke="${LN.teal}" stroke-width="2.6" stroke-linecap="round"/>
-        <circle cx="50" cy="66" r="6" fill="none" stroke="${LN.teal}" stroke-width="2.4"/><circle cx="50" cy="66" r="2" fill="${LN.gold}"/>
-        <path d="M50 11 C46 6 42 4 40 7 M50 11 C54 6 58 4 60 7" fill="none" stroke="${LN.stroke}" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="5" r="3" fill="${LN.gold}" stroke="${LN.stroke}" stroke-width="1.4"/>
-    </g>`;
-}
-function lanternFrame(y0, y1, win) {
-    const [wx0, wy0, wx1, wy1] = win;
-    const dots = [];
-    for (let x = 14; x <= 86; x += 12) { dots.push(`<circle cx="${x}" cy="${y0 + 5.5}" r="2" fill="${LN.teal}"/>`, `<circle cx="${x}" cy="${y1 - 5.5}" r="2" fill="${LN.teal}"/>`); }
-    for (let y = Math.ceil((y0 + 14) / 12) * 12; y <= y1 - 14; y += 12) { dots.push(`<circle cx="5.5" cy="${y}" r="2" fill="${LN.teal}"/>`, `<circle cx="94.5" cy="${y}" r="2" fill="${LN.teal}"/>`); }
-    return `<rect x="2" y="${y0}" width="96" height="${y1 - y0}" rx="6" fill="${LN.cream}" stroke="${LN.stroke}" stroke-width="3.2"/>
-        <rect x="9" y="${y0 + 8}" width="82" height="${y1 - y0 - 16}" rx="3" fill="none" stroke="${LN.gold}" stroke-width="1.4"/>${dots.join('')}
-        <rect x="${wx0}" y="${wy0}" width="${wx1 - wx0}" height="${wy1 - wy0}" rx="2" fill="#fffdf5" stroke="${LN.stroke}" stroke-width="1.6"/>`;
-}
-const lanternSVG = (full) => `<svg viewBox="0 0 100 ${full ? 280 : 197}" width="100%" aria-hidden="true" focusable="false">${lanternDome(false)}${lanternFrame(92, full ? 200 : 195, [19.6, 118.7, 80.2, 175.6])}${full ? lanternDome(true) : ''}</svg>`;
-const frameSVG = () => `<svg viewBox="0 0 100 104" width="100%" aria-hidden="true" focusable="false">${lanternFrame(2, 102, [18, 17.7, 81, 82.2])}</svg>`;
+// فانوس الهامش: الصور الأصلية المقتطعة من المصحف المطبوع (الإطار فارغ) والكلمات تُكتب فوق النافذة
+const lanternImg = (name) => `<img src="${ASSET}lantern-${name}.webp" alt="">`;
 
 export function lanternHTML(q) {
     const m = M.quarterMarker(q), n = m.lines.length;
     const fs = n === 3 ? (m.lines[0].length > 5 ? 9.5 : 12.5) : (m.kind === 'juz' ? 11.5 : 15);
     const box = m.full ? 'left:19.6%;right:19.8%;top:42.4%;bottom:37.3%' : 'left:19.6%;right:19.8%;top:60.2%;bottom:10.8%';
-    return `<div class="tjw-mk-lantern" role="img" aria-label="${esc(m.lines.join(' '))}">${lanternSVG(m.full)}` +
+    return `<div class="tjw-mk-lantern" role="img" aria-label="${esc(m.lines.join(' '))}">${lanternImg(m.full ? 'full' : 'top')}` +
         `<div class="tjw-mk-lantern-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${l}</span>`).join('')}</div></div>`;
 }
-export const frameHTML = (text) => `<div class="tjw-mk-lantern" role="img" aria-label="${esc(text)}">${frameSVG()}<div class="tjw-mk-lantern-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${text}</div></div>`;
+export const frameHTML = (text) => `<div class="tjw-mk-lantern" role="img" aria-label="${esc(text)}">${lanternImg('frame')}<div class="tjw-mk-lantern-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw">${text}</div></div>`;
 export const bannerHTML = (sname) => `<div class="tjw-mk-banner" role="img" aria-label="${esc(sname)}"><img src="${ASSET}banner-blank.webp" alt=""><span class="tjw-mk-banner-name" dir="rtl">سُورَةُ ${esc(sname)}</span></div>`;
 export const pageHeadHTML = (juz, sname) => `<div class="tjw-mk-pagehead" dir="rtl"><span>الجزء ${M.JUZ_ORDINALS_AR[juz - 1]}</span><span>سُورَةُ ${esc(sname)}</span></div>`;
 

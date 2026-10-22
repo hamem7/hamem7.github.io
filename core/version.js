@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.45';
+export const APP_VERSION = '1.0.46';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.46',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'توحيد رسم العلامات في «تعرّف على مصحفك»: العلامة (الصفر المستطيل والمستدير والسكون وعلامات الوقف) تظهر في الأسئلة بنفس شكلها في الشرح وفي النص القرآني، وعادت فوانيس الحزب والجزء والربع إلى صورتها الأصلية من المصحف المطبوع.', en: 'Unified mark rendering in "Get to know your Mushaf": marks (rectangular and round zero, sukun, stop signs) now look the same in questions as in the lesson and in the Quran text, and the Hizb, Juz and quarter lanterns are back to their original printed-Mushaf look.' } }
+        ]
+    },
     {
         version: '1.0.45',
         date: '2026-10-21',

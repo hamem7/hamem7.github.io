@@ -1052,6 +1052,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
    ============================================================ */
 :root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }
 .tjw-mk-ar { font-family: var(--tjw-quran-font); direction: rtl; unicode-bidi: isolate; }
+/* خط المصحف بوزن واحد (400) في الشرح والأسئلة معًا: أزرار الإجابة والعناوين بوزن 800 كانت تُغلِّظ العلامات (المستطيل والدائرة والوقف) بسمك مصطنع يخالف رسمها في النص القرآني */
+.tjw-mk-signglyph, .tjw-mk-signglyph *, .tjw-mk-optglyph, .tjw-mk-optglyph *, .tjw-mk-ar, .tjw-mk-ar *, .tjw-mk-wordbox, .tjw-mk-rosette, .tjw-mk-segnum { font-weight: 400; font-synthesis: none; }
 .tjw-mk-lesson { display: flex; flex-direction: column; gap: 14px; }
 .tjw-mk-intro { margin: 0; line-height: 1.9; }
 .tjw-mk-tip { background: rgba(224, 176, 79, 0.16); border-inline-start: 4px solid var(--tjw-gold); border-radius: 10px; padding: 8px 12px; line-height: 1.8; }
@@ -1081,7 +1083,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 
 /* فانوس الهامش: صورة حقيقية والكلمات فوقها (النسب مقيسة من الصورة) */
 .tjw-mk-lantern { position: relative; container-type: inline-size; width: 84px; margin: 0 auto; }
-.tjw-mk-lantern svg { display: block; width: 100%; height: auto; }
+.tjw-mk-lantern img { display: block; width: 100%; height: auto; }
 .tjw-mk-lantern-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-family: var(--tjw-quran-font); font-weight: 700; color: #111; line-height: 1.25; }
 .tjw-mk-media-lantern { display: grid; place-items: center; padding: 6px; }
 .tjw-mk-gallery { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
