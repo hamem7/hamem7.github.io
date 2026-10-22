@@ -34,19 +34,23 @@ export const MUSHAF_SIGNS = [
     { id: 'waqf_qala', code: 'ۗ', lesson: 'waqf', standalone: true, abbr: 'قلى' },
     { id: 'waqf_muanaqa', code: 'ۛ', lesson: 'waqf', standalone: true, abbr: '∴' },
     { id: 'saktah', code: 'ۜ', lesson: 'waqf', standalone: true, abbr: 'س', refs: [[83, 14], [75, 27], [36, 52], [18, 1], [69, 28]] },
-    { id: 'zero_round', code: '۟', lesson: 'silent_sukun' },
-    { id: 'zero_rect', code: '۠', lesson: 'silent_sukun' },
-    { id: 'sukun', code: 'ۡ', lesson: 'silent_sukun' },
-    { id: 'shadda', code: 'ّ', lesson: 'silent_sukun' },
-    { id: 'small_meem', code: 'ۢ', lesson: 'silent_sukun' },
-    { id: 'madd', code: 'ٓ', lesson: 'madd_letters' },
-    { id: 'dagger_alif', code: 'ٰ', lesson: 'madd_letters' },
-    { id: 'small_waw', code: 'ۥ', lesson: 'madd_letters' },
-    { id: 'small_yaa', code: 'ۦ', lesson: 'madd_letters' },
-    { id: 'sin_over', code: 'ۜ', lesson: 'sin_saad', refs: [[2, 245], [7, 69]] },
-    { id: 'sin_under', code: 'ۣ', lesson: 'sin_saad', refs: [[52, 37]] },
+    { id: 'zero_round', code: '۟', demo: 'ا۟', lesson: 'silent_sukun' },
+    { id: 'zero_rect', code: '۠', demo: 'ا۠', lesson: 'silent_sukun' },
+    { id: 'sukun', code: 'ۡ', demo: 'مۡ', lesson: 'silent_sukun' },
+    { id: 'shadda', code: 'ّ', demo: 'لَّ', lesson: 'silent_sukun' },
+    { id: 'small_meem', code: 'ۢ', demo: 'نۢ', lesson: 'silent_sukun' },
+    { id: 'madd', code: 'ٓ', demo: 'حمٓ', lesson: 'madd_letters' },
+    { id: 'dagger_alif', code: 'ٰ', demo: 'ذَٰلِكَ', lesson: 'madd_letters' },
+    { id: 'small_waw', code: 'ۥ', demo: 'لَهُۥ', lesson: 'madd_letters' },
+    { id: 'small_yaa', code: 'ۦ', demo: 'بِهِۦ', lesson: 'madd_letters' },
+    { id: 'sin_over', code: 'ۜ', demo: 'صۜ', lesson: 'sin_saad', refs: [[2, 245], [7, 69]] },
+    { id: 'sin_under', code: 'ۣ', demo: 'صۣ', lesson: 'sin_saad', refs: [[52, 37]] },
     { id: 'sajda_sign', code: '۩', lesson: 'sajda', standalone: true }
 ];
+// الرسم الذي يراه الطالب للعلامة: العلامات التي تُكتب على حرف (السكون، الشدّة، الألف الخنجرية…) تُعرض على حرف حامل داخل الكلمة كما تُرسم في المصحف،
+// لأن العلامة وحدها بلا حرف تُرسم في الخط شكلاً مختلفاً (شرطة أو نقطة) لا يشبه المصحف. العلامات المستقلة (الوقف، ۞، ۩) تُعرض كما هي.
+export const signShow = (sign) => sign.demo || sign.code;
+const showOfCode = (code) => { const s = MUSHAF_SIGNS.find((x) => x.code === code && x.demo && x.id !== 'sin_over'); return s ? s.demo : code; };
 export const signById = (id) => MUSHAF_SIGNS.find((s) => s.id === id) || null;
 export const signsOfLesson = (lesson) => MUSHAF_SIGNS.filter((s) => s.lesson === lesson);
 export const signNameKey = (id) => `tjw_mk_${id}_name`;
@@ -180,7 +184,7 @@ function signOptions(signId, { pool = null, n = 4, field = 'name' } = {}) {
     }
     return out;
 }
-const glyphMedia = (sign) => ({ kind: 'glyph', code: sign.code, abbr: sign.abbr || '' });
+const glyphMedia = (sign) => ({ kind: 'glyph', code: signShow(sign), abbr: sign.abbr || '' });
 const explainSign = (...ids) => ({ signs: ids });
 
 // ============================================================
@@ -346,7 +350,7 @@ function g_sign_reverse(lesson) {
         if (!sign || signs.length < 3) return null;
         const others = shuffle(signs.filter((s) => s.id !== sign.id), ctx.rng).slice(0, 3);
         return choice({ ruleId: R, kind: 'reverse', key: 'reverse:' + sign.id, stemKey: 'tjw_mq_reverse', stemVars: { def: signDefKey(sign.id) }, near: false, media: null,
-            options: [sign, ...others].map((s) => opt(s.id, s.id === sign.id, { glyph: s.code, abbr: s.abbr || '' })), explain: explainSign(sign.id) }, ctx);
+            options: [sign, ...others].map((s) => opt(s.id, s.id === sign.id, { glyph: signShow(s), abbr: s.abbr || '' })), explain: explainSign(sign.id) }, ctx);
     };
 }
 function g_sign_tap(lesson, { onlyIds = null } = {}) {
@@ -370,7 +374,7 @@ function g_waqf_tap_any(ctx, R) {
 function g_waqf_match(ctx, R) {
     const signs = shuffle(signsOfLesson('waqf').filter((s) => s.id !== 'saktah'), ctx.rng).slice(0, 4);
     return { type: 'mushaf_match', ruleId: R, kind: 'match', key: 'match:' + signs.map((s) => s.id).join(','), stemKey: 'tjw_mq_match', stemVars: {}, near: false,
-        pairs: signs.map((s) => ({ id: s.id, glyph: s.code, abbr: s.abbr || '', labelKey: signNameKey(s.id) })), explain: { extraKey: 'tjw_ex_waqf_match' }, media: null };
+        pairs: signs.map((s) => ({ id: s.id, glyph: signShow(s), abbr: s.abbr || '', labelKey: signNameKey(s.id) })), explain: { extraKey: 'tjw_ex_waqf_match' }, media: null };
 }
 function g_waqf_sakta(ctx, R) {
     const sign = signById('saktah');
@@ -394,7 +398,7 @@ function g_sk_sukun(ctx, R) {
     const p = pickAyah(ctx, (a) => ayahHasSign(a, 'sukun') && ayahTokens(a).length <= 12, { maxLen: 90 });
     if (!p) return null;
     return choice({ ruleId: R, kind: 'sukun_shape', key: 'sukun_shape:' + keyOfAyah(p.a), stemKey: 'tjw_mq_sk_shape', near: p.near, media: { kind: 'ayah', parts: [{ t: 'text', v: p.a.text }, { t: 'rosette', n: p.a.n }], sname: p.a.sname },
-        options: [opt('head', true, { glyph: 'ۡ' }), opt('circle', false, { glyph: '۟' }), opt('hat', false, { glyph: 'ٓ' }), opt('dot', false, { glyph: 'ۢ' })], explain: explainSign('sukun') }, ctx);
+        options: [opt('head', true, { glyph: showOfCode('ۡ') }), opt('circle', false, { glyph: showOfCode('۟') }), opt('hat', false, { glyph: showOfCode('ٓ') }), opt('dot', false, { glyph: showOfCode('ۢ') })], explain: explainSign('sukun') }, ctx);
 }
 function g_sin_word(ctx, R) {
     const sign = signById(pickOne(['sin_over', 'sin_under', 'saktah'], ctx.rng));

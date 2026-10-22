@@ -1050,7 +1050,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
    مرحلة «تعرّف على مصحفك» (tajweed/tajweed-mushaf-ui.js): فانوس الهامش، لوحة السورة، رأس الصفحة، وردة الآية، العلامات
    الصور الحقيقية في assets/tajweed/mushaf/ والكلمات تُكتب فوقها. النصوص القرآنية دائماً dir=rtl حتى في الواجهة الإنجليزية.
    ============================================================ */
-:root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }
+:root { --tjw-mushaf: #b7791f; --tjw-quran-font: 'Amiri Quran', serif; --tjw-ayah-end-font: 'Uthmanic Hafs', 'Amiri Quran', serif; }   /* نص القرآن بخط المنصة نفسه (Amiri Quran) فتظهر العلامات (الألف الخنجرية والواو والياء الصغيرة…) كما في بقية المنصة؛ خط المصحف للدائرة المزخرفة حول رقم الآية وحدها */
 .tjw-mk-ar { font-family: var(--tjw-quran-font); direction: rtl; unicode-bidi: isolate; }
 /* خط المصحف بوزن واحد (400) في الشرح والأسئلة معًا: أزرار الإجابة والعناوين بوزن 800 كانت تُغلِّظ العلامات (المستطيل والدائرة والوقف) بسمك مصطنع يخالف رسمها في النص القرآني */
 .tjw-mk-signglyph, .tjw-mk-signglyph *, .tjw-mk-optglyph, .tjw-mk-optglyph *, .tjw-mk-ar, .tjw-mk-ar *, .tjw-mk-wordbox, .tjw-mk-rosette, .tjw-mk-segnum { font-weight: 400; font-synthesis: none; }
@@ -1064,7 +1064,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mk-flow { display: flex; flex-wrap: wrap; gap: 0.1rem 0.4rem; align-items: center; justify-content: flex-start; line-height: 2.3; }
 
 /* وردة رقم الآية */
-.tjw-mk-rosette { display: inline; margin: 0 0.12em; color: #20160b; font-family: var(--tjw-quran-font); font-size: 1em; line-height: inherit; font-weight: 400; white-space: nowrap; }
+.tjw-mk-rosette { display: inline; margin: 0 0.12em; color: #20160b; font-family: var(--tjw-ayah-end-font); font-size: 1em; line-height: inherit; font-weight: 400; white-space: nowrap; }
 .tjw-mk-rosette.is-big { font-size: 3.4rem; line-height: 1.4; }
 .tjw-mk-bigrosette { display: grid; place-items: center; padding: 10px; }
 
@@ -1111,6 +1111,8 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mk-signglyph.is-card { font-size: 9rem; line-height: 1; padding: 0.3em 0 0.12em; }
 .tjw-mk-signex { font-size: 1.8rem; line-height: 2.1; background: #fffef9; border-radius: 10px; padding: 2px 8px; color: #1b1b1b; }
 .tjw-mk-signex mark, .tjw-mk-ayahbox mark { background: #ffe08a; color: var(--tjw-accent); border-radius: 6px; padding: 0 0.1em; }
+.tjw-mk-signglyph.is-word, .tjw-mk-signglyph.is-card.is-word { font-size: 5.5rem; line-height: 1.6; padding: 0.15em 0 0.1em; }
+.tjw-mk-optglyph.is-word { font-size: 3.2rem; line-height: 1.8; }
 .tjw-mk-optglyph { font-family: var(--tjw-quran-font); font-size: 6rem; line-height: 1.25; color: var(--tjw-accent); }
 .tjw-mk-glyphopt { min-height: 64px; }
 
@@ -1118,7 +1120,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-mk-seg { font: inherit; color: inherit; background: transparent; border: 2px solid transparent; border-radius: 10px; padding: 0 0.25em; min-height: 2.2em; cursor: pointer; }
 .tjw-mk-seg:hover:not(:disabled) { background: #e7f2ff; border-color: var(--tjw-primary-light); }
 .tjw-mk-seg.is-mark { min-width: 2.2em; border: 2px dashed rgba(140, 47, 61, 0.45); background: #fff8e6; color: var(--tjw-accent); line-height: 2; padding: 0 0.1em; }
-.tjw-mk-segnum { font-family: var(--tjw-quran-font); border: 2px solid transparent; border-radius: 12px; background: transparent; color: #20160b; min-width: 2.2em; font-size: 1.15em; line-height: 1.6; padding: 0 0.15em; }
+.tjw-mk-segnum { font-family: var(--tjw-ayah-end-font); border: 2px solid transparent; border-radius: 12px; background: transparent; color: #20160b; min-width: 2.2em; font-size: 1.15em; line-height: 1.6; padding: 0 0.15em; }
 .tjw-mk-segtext { line-height: 2; }
 .tjw-mk-lines { display: flex; flex-direction: column; gap: 8px; }
 .tjw-mk-segline { display: block; text-align: start; width: 100%; font-size: 1.4rem; line-height: 2.1; border-color: var(--tjw-line); background: #fffef9; color: #1b1b1b; padding: 4px 12px; }

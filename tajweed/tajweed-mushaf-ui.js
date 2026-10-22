@@ -53,6 +53,8 @@ export async function getMushafCtx(student) {
 export const rosetteHTML = (n, cls = '') => `<span class="tjw-mk-rosette ${cls}" dir="rtl" role="img" aria-label="${esc(M.AR(n))}">${M.AR(n)}</span>`;
 // العلامة وحدها بلا تطويل (الخط تحتها كان يشوّش على الطالب)
 const markGlyph = (code) => code;
+// العلامة المعروضة على حرف حامل (كلمة) أصغر حجماً من العلامة المستقلة (الوقف، ۞، ۩) التي تحتاج تكبيراً لتُرى
+const wordCls = (g) => (/[\u0621-\u064A\u0671]/.test(String(g)) ? ' is-word' : '');
 
 // فانوس الهامش: الصور الأصلية المقتطعة من المصحف المطبوع (الإطار فارغ) والكلمات تُكتب فوق النافذة
 const lanternImg = (name) => `<img src="${ASSET}lantern-${name}.webp" alt="">`;
@@ -78,7 +80,7 @@ function ayahMediaHTML(media) {
 function mediaHTML(media) {
     if (!media) return '';
     switch (media.kind) {
-        case 'glyph': return `<div class="tjw-mk-signglyph" dir="rtl">${markGlyph(media.code)}</div>`;
+        case 'glyph': return `<div class="tjw-mk-signglyph${wordCls(media.code)}" dir="rtl">${markGlyph(media.code)}</div>`;
         case 'lantern': return `<div class="tjw-mk-media-lantern">${lanternHTML(media.q)}</div>`;
         case 'frame': return `<div class="tjw-mk-media-lantern">${frameHTML(media.text)}</div>`;
         case 'pagehead': return `<div class="tjw-mk-pageheadbox">${pageHeadHTML(media.juz, media.sname)}<small>${esc(fill(t('tjw_mu_juz_caption'), { n: media.juz }))}</small></div>`;
@@ -103,7 +105,7 @@ function stemOf(q) {
 const nearTag = (q) => (q.near ? `<div class="tjw-hifz-tag tjw-mk-near">${t('tjw_mu_near')}</div>` : '');
 
 function optionLabelHTML(o) {
-    if (o.glyph !== undefined) return `<span class="tjw-mk-optglyph" dir="rtl">${markGlyph(o.glyph)}</span>`;
+    if (o.glyph !== undefined) return `<span class="tjw-mk-optglyph${wordCls(o.glyph)}" dir="rtl">${markGlyph(o.glyph)}</span>`;
     if (o.labelKey) return esc(fill(t(o.labelKey), o.labelVars));
     if (o.surah) return surahDisplay(o.label, o.surah);
     return esc(o.label);
@@ -147,7 +149,7 @@ function tapBodyHTML(q) {
 function matchBodyHTML(q) {
     const st = matchState(q);
     const rightOrder = st.order.map((i) => q.pairs[i]);
-    const left = q.pairs.map((p) => `<button type="button" class="tjw-answer-btn tjw-mk-matchbtn ${st.matched.has(p.id) ? 'tjw-link-matched' : ''} ${st.sel === p.id ? 'tjw-link-selected' : ''}" data-mk-l="${p.id}" ${st.matched.has(p.id) ? 'disabled' : ''}><span class="tjw-mk-optglyph" dir="rtl">${markGlyph(p.glyph)}</span></button>`).join('');
+    const left = q.pairs.map((p) => `<button type="button" class="tjw-answer-btn tjw-mk-matchbtn ${st.matched.has(p.id) ? 'tjw-link-matched' : ''} ${st.sel === p.id ? 'tjw-link-selected' : ''}" data-mk-l="${p.id}" ${st.matched.has(p.id) ? 'disabled' : ''}><span class="tjw-mk-optglyph${wordCls(p.glyph)}" dir="rtl">${markGlyph(p.glyph)}</span></button>`).join('');
     const right = rightOrder.map((p) => `<button type="button" class="tjw-answer-btn tjw-mk-matchbtn ${st.matched.has(p.id) ? 'tjw-link-matched' : ''} ${st.flash === p.id ? 'tjw-answer-wrong' : ''}" data-mk-r="${p.id}" ${st.matched.has(p.id) ? 'disabled' : ''}>${esc(t(p.labelKey))}</button>`).join('');
     return `<div class="tjw-link-columns tjw-mk-match"><div class="tjw-link-col">${left}</div><div class="tjw-link-col">${right}</div></div>`;
 }
@@ -245,9 +247,9 @@ function signCardHTML(ctx, sign) {
         const pr = M.pickSignAyah(ctx, sign);
         ex = pr && { a: pr.a, near: pr.near, html: `${markTokens(pr.a, sign.id)} ${rosetteHTML(pr.a.n)}` };
     }
-    const glyph = sign.id === 'ayah_end' ? rosetteHTML(12, 'is-big') : `<span dir="rtl">${markGlyph(sign.code)}</span>`;
+    const glyph = sign.id === 'ayah_end' ? rosetteHTML(12, 'is-big') : `<span dir="rtl">${M.signShow(sign)}</span>`;
     return `<div class="tjw-mk-signcard">
-        <div class="tjw-mk-signglyph is-card">${glyph}</div>
+        <div class="tjw-mk-signglyph is-card${sign.demo ? ' is-word' : ''}">${glyph}</div>
         <h4>${esc(t(M.signNameKey(sign.id)))}</h4>
         <p>${esc(t(M.signDefKey(sign.id)))}</p>
         ${ex ? `<div class="tjw-mk-signex tjw-mk-ar" dir="rtl">${ex.html}</div>${refLine(ex.a, ex.near)}${audioBtn(ex.a)}` : ''}

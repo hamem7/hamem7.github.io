@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.47';
+export const APP_VERSION = '1.0.48';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.48',
+        date: '2026-10-22',
+        items: [
+            { type: 'fixed', text: { ar: 'في «تعرّف على مصحفك»: نص القرآن بخط المنصة نفسه، فظهرت الألف الخنجرية والواو والياء الصغيرة والمدّة في مواضعها الصحيحة كما في المصحف.', en: 'In "Get to know your Mushaf": Quran text now uses the platform\'s own Quran font, so the dagger alif, small waw, small yaa and madd sign appear in their correct places as in the Mushaf.' } },
+            { type: 'improved', text: { ar: 'كل علامة تُعرض على حرف داخل كلمة حقيقية (مثل ذٰلك، لَهُۥ، حمٓ) بدل رسمها وحدها، وأُزيلت العلامات من أسماء العلامات.', en: 'Each sign is now shown on a letter inside a real word (like ذٰلك, لَهُۥ, حمٓ) instead of alone, and the marks were removed from the sign names.' } }
+        ]
+    },
     {
         version: '1.0.47',
         date: '2026-10-22',
