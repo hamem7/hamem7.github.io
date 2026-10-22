@@ -56,7 +56,10 @@ export function initTajweedMap() {
     currentView = { view: 'pickStudent', params: null };
     resetEntryState();
     // 🌟 حذف بيانات التجويد القديمة مرة واحدة على الجهاز قبل أي عرض (النظام الجديد يحلّ محلها)
-    resetLegacyTajweedDataOnce().catch(() => {}).then(() => render());
+    // 🌟 «بدء حكم جديد» من شاشة نتيجة النشاط: ندخل مباشرة بالطالب نفسه إلى حكمه التالي بدل شاشة اختيار الاسم
+    const auto = AppState.tajweedAutoEnter;
+    AppState.tajweedAutoEnter = null;
+    resetLegacyTajweedDataOnce().catch(() => {}).then(() => auto ? enterStudent(auto.studentId, auto.after) : render());
 }
 
 function pushView(view, params) {

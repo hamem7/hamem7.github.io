@@ -641,6 +641,13 @@ async function handleActivityClick(e) {
         return;
     }
 
+    // 🌟 بعد اعتماد المعلم للحكم: «بدء حكم جديد» يعيد الطالب إلى الخريطة ويفتح حكمه التالي مباشرة (بلا إعادة اختيار الاسم)
+    if (e.target.closest('[data-action="new-rule"]')) {
+        AppState.tajweedAutoEnter = { studentId: AppState.currentStudent.id, after: 'continue' };
+        openTajweedSection();
+        return;
+    }
+
     if (e.target.closest('[data-action="back-to-map"]')) {
         openTajweedSection();
         return;
@@ -1201,6 +1208,9 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
             : `<p class="tjw-result-note tjw-result-note-warn">${t('tjw_checkpoint_not_approved').replace('{n}', TEACHER_PASS_SCORE)}</p>`;
     }
 
+    // انتهى الحكم (اعتمده المعلم): يُعرض «بدء حكم جديد» أو «إنهاء» بدل «العودة للخريطة»
+    const ruleDone = params.mode === 'teacher_approve' || (params.mode === 'teacher_checkpoint' && !!(checkpointOutcome && checkpointOutcome.approved));
+
     const headlineKey = scorePercent >= 80 ? 'tjw_result_great' : scorePercent >= 50 ? 'tjw_result_good' : 'tjw_result_retry';
     const ringColor = scorePercent >= 80 ? 'var(--tjw-good)' : scorePercent >= 50 ? 'var(--tjw-gold-deep)' : 'var(--tjw-accent)';
 
@@ -1216,7 +1226,10 @@ function renderResultScreen({ scorePercent, correctCount, totalQuestions, earned
                 ${journeyHTML}
                 ${params.mode === 'teacher_approve' ? '' : `<button class="tjw-outline-btn" data-action="retry-activity">🔁 ${t('tjw_retry_activity_btn')}</button>`}
                 <button class="tjw-outline-btn" data-action="parent-summary">${t(ruleKey ? 'tjw_lesson_summary_btn' : 'tjw_sum_btn')}</button>
-                <button class="${journeyHTML ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>
+                ${ruleDone
+                    ? `<button class="tjw-cta-btn" data-action="new-rule">▶️ ${t('tjw_new_rule_btn')}</button>
+                       <button class="tjw-outline-btn" data-action="back-to-map">🏁 ${t('tjw_finish_session_btn')}</button>`
+                    : `<button class="${journeyHTML ? 'tjw-outline-btn' : 'tjw-cta-btn'}" data-action="back-to-map">🏠 ${t('tjw_back_to_map_btn')}</button>`}
             </div>
         </div>`;
 }
