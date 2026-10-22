@@ -1044,6 +1044,18 @@ export const translations = {
         err_haraka: "حركة تحتاج تصحيح",
         err_forget: "نسيان آية",
         err_dont_know: "لم يعرف الإجابة",
+        // 🌟 [جديد] القائمة السفلية للملاحظات (components/noteSheet.js) — التسميات للعرض فقط، والمخزَّن قيم err_* القديمة 🌟
+        note_btn: "📝 ملاحظة",
+        note_undo_btn: "↩ تراجع",
+        note_save_next: "⏭ حفظ والتالي",
+        note_sheet_title: "نوع الملاحظة:",
+        note_sheet_title_kids: "ما الذي نراجعه؟",
+        note_inline_ph: "أو اكتب ملاحظة نصية...",
+        nt_word: "خطأ كلمة",
+        nt_word_kids: "كلمة نراجعها",
+        nt_haraka: "خطأ حركة",
+        nt_haraka_kids: "حركة نتدرّب عليها",
+        correct_ans_btn_kids: "⭐ أحسنت",
         note_ph: "اكتب ملاحظتك اليدوية هنا (اختياري)...",
         // 🌟 [تعديل] كان "إضافة الملاحظة ومتابعة التسميع" — عبارة "متابعة التسميع" كانت غامضة
         // (توحي بالانتقال للسؤال التالي)، والاسم الجديد يوضح أن الزر يحفظ الملاحظة ويُبقي
@@ -3864,6 +3876,18 @@ export const translations = {
         err_haraka: "Vowel/Haraka Needs Correction",
         err_forget: "Forgot Ayah",
         err_dont_know: "Didn't Know Answer",
+        // 🌟 [New] Bottom note sheet (components/noteSheet.js) — labels are display-only; the stored values remain the old err_* ones 🌟
+        note_btn: "📝 Note",
+        note_undo_btn: "↩ Undo",
+        note_save_next: "⏭ Save & Next",
+        note_sheet_title: "Note type:",
+        note_sheet_title_kids: "What shall we review?",
+        note_inline_ph: "Or type a text note...",
+        nt_word: "Word error",
+        nt_word_kids: "A word to review",
+        nt_haraka: "Vowel error",
+        nt_haraka_kids: "A vowel to practice",
+        correct_ans_btn_kids: "⭐ Great job",
         note_ph: "Write your manual note here (optional)...",
         // 🌟 [Updated] Was "Add Note & Continue Reciting" — renamed to match the Arabic label 🌟
         add_err_cont: "➕ Save & Continue Question",

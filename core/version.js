@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.53';
+export const APP_VERSION = '1.0.54';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.54',
+        date: '2026-10-22',
+        items: [
+            { type: 'improved', text: { ar: 'تسجيل الملاحظات أسرع: زر «📝 ملاحظة» تنزلق تحته قائمة بأنواع الملاحظات (خطأ كلمة، خطأ حركة، نسيان آية، لم يعرف الإجابة) وحقل للنص، ويتحول الزر إلى «↩ تراجع». ثم «⏭ حفظ والتالي» في نفس الصف بدل نافذة الملاحظة المؤقتة.', en: 'Faster note taking: the "📝 Note" button now slides open a list of note types (word error, vowel error, forgot ayah, didn\'t know) plus a text field, and turns into "↩ Undo". Then "⏭ Save & Next" in the same row replaces the temporary-note window.' } },
+            { type: 'improved', text: { ar: 'ركن الأطفال: زر «⭐ أحسنت» بدل «إجابة صحيحة تامة»، وأنواع الملاحظات بصياغة لطيفة («كلمة نراجعها»، «حركة نتدرّب عليها») ولون برتقالي هادئ.', en: 'Kids corner: a "⭐ Great job" button replaces "Completely correct answer", with gentle note labels ("A word to review", "A vowel to practice") and a soft orange colour.' } }
+        ]
+    },
     {
         version: '1.0.53',
         date: '2026-10-22',

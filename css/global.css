@@ -257,3 +257,23 @@ span.quran-text:not(.order-item):not(.order-slot):not(.link-item) {
     padding-top: 0.12em !important;
     padding-bottom: 0.42em !important;
 }
+
+/* 🌟 [جديد] القائمة السفلية لتسجيل الملاحظات (components/noteSheet.js) — تنزلق تحت صف الأزرار
+   بدل نافذة «تسجيل ملاحظة مؤقتة». نفس الشكل للكبار والأطفال، والأطفال بلون برتقالي هادئ بدل الأحمر 🌟 */
+.note-sheet { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; margin-top: 0; }
+.note-sheet.open { grid-template-rows: 1fr; margin-top: 15px; }
+.note-sheet > div { overflow: hidden; min-height: 0; }
+.note-sheet-body { background: #fff; color: #10241c; border: 1px solid rgba(0,0,0,.1); border-radius: 18px; padding: 14px; text-align: start; }
+.note-sheet-title { font-size: 1.05rem; font-weight: 700; color: #5a6f66; margin-bottom: 10px; }
+.note-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.note-chip { position: relative; cursor: pointer; }
+.note-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.note-chip span { display: inline-block; padding: 10px 18px; border-radius: 99px; border: 2px solid #e6e2d3; background: #fffcf3; font-weight: 600; font-size: 1.1rem; transition: .15s; user-select: none; }
+.note-chip.is-dont span { border-color: #fecaca; }
+.note-chip input:checked + span { border-color: #df4e4e; background: #fde8e8; color: #991b1b; }
+.note-chip input:focus-visible + span { outline: 3px solid #147c5e; outline-offset: 2px; }
+.note-sheet--kids .note-chip input:checked + span { border-color: #f59e0b; background: #fff1d6; color: #92400e; }
+#custom-note { margin-top: 12px; width: 100%; padding: 11px 14px; border-radius: 14px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 1.1rem; background: #fffcf3; color: #10241c; }
+#btn-record-wrong.note-undo { background: #fff !important; color: #df4e4e !important; border: 2px solid #df4e4e !important; }
+.kids-theme #btn-record-wrong.note-undo { color: #d97706 !important; border-color: #f59e0b !important; }
+@media (prefers-reduced-motion: reduce) { .note-sheet { transition: none; } }
