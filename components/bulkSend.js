@@ -110,6 +110,10 @@ function injectStyle() {
     .bs-tile{border:1px solid #cfdcd5;background:#fff;border-radius:10px;padding:5px 10px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:inherit;color:inherit;text-align:center}
     .bs-tile small{display:block;font-weight:500;font-size:.66rem;color:#4a6058}
     .bs-tile.on{background:#0d5c46;color:#fff;border-color:#0d5c46}.bs-tile.on small{color:#cfe8dc}
+    .bs-cv{display:block;height:4px;margin-top:4px;background:#e3ebe6;border-radius:99px;overflow:hidden;min-width:34px}
+    .bs-cv i{display:block;height:100%;background:#d4af37;border-radius:99px}
+    .bs-cv.full i{background:#147c5e}
+    .bs-tile.on .bs-cv{background:rgba(255,255,255,.28)}.bs-tile.on .bs-cv i{background:#f2d675}.bs-tile.on .bs-cv.full i{background:#fff}
     .bs-sugg{font-size:.84rem;color:#0d5c46;font-weight:700;line-height:1.7}
     .bs-links{display:none;margin-top:12px;background:#fff;border:1px solid #e3ebe6;border-radius:14px;padding:12px 14px}
     .bs-links.on{display:block}
@@ -356,8 +360,20 @@ export async function openBulkSend({ onClose, asPage = false, container = null }
         const isS = r.scope === 'surah', list = isS ? r.model.surahs : r.model.groups;
         const key = (x) => (isS ? x.number : x.id);
         const unitW = isS ? L('السور', 'surahs') : (r.model.unit === 'hizb' ? L('الأحزاب', 'hizbs') : L('الأرباع', 'quarters'));
+        // شريط التغطية: كم من مقاطع العنصر فُحص خلال دورة المراجعة (نفس بيانات «اقترح لي»)
+        const covBar = (x) => {
+            const c = x.cov;
+            if (!c || !c.total) return '';
+            const pct = Math.round(c.examined / c.total * 100);
+            return `<span class="bs-cv${pct >= 100 ? ' full' : ''}"><i style="width:${pct}%"></i></span>`;
+        };
+        const covTip = (x) => {
+            const c = x.cov;
+            if (!c || !c.total) return '';
+            return ` — ${L(`فُحص ${nf(c.examined)} من ${nf(c.total)} مقطعاً`, `Checked ${nf(c.examined)} of ${nf(c.total)} segments`)}`;
+        };
         return `<div class="bs-sub"><div class="t"><span>${esc(L('اضغط ما تريده من ', 'Tap the ') + unitW)} <small>(${nf(r.pick.size)} / ${nf(list.length)})</small></span><span><a data-a="all">${esc(L('تحديد الكل', 'Select all'))}</a> · <a data-a="clear">${esc(L('مسح', 'Clear'))}</a></span></div>
-            <div class="bs-tiles">${list.map(x => `<button type="button" class="bs-tile${r.pick.has(key(x)) ? ' on' : ''}" data-k="${esc(String(key(x)))}" title="${esc(isS ? x.name : groupTitle(x))}">${isS ? esc(x.name) : `${esc(groupLabel(x))}${x.name ? `<small>${esc(x.name)}</small>` : ''}`}</button>`).join('')}</div></div>`;
+            <div class="bs-tiles">${list.map(x => `<button type="button" class="bs-tile${r.pick.has(key(x)) ? ' on' : ''}" data-k="${esc(String(key(x)))}" title="${esc((isS ? x.name : groupTitle(x)) + covTip(x))}">${isS ? esc(x.name) : `${esc(groupLabel(x))}${x.name ? `<small>${esc(x.name)}</small>` : ''}`}${covBar(x)}</button>`).join('')}</div></div>`;
     };
     const rowInner = (r) => {
         const dis = r.status === 'norange' || r.state === 'pub' || r.state === 'publishing' || r.state === 'planning';
