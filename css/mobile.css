@@ -179,6 +179,7 @@
         display: block; width: 100%; margin: 0 0 6px; padding: 6px 8px;
         font-size: clamp(1.15rem, 5.2vw, 1.4rem) !important; line-height: 1.85 !important; border-radius: 10px;
     }
+    #app-root .link-item.quran-text { font-size: clamp(1.3rem, 5.8vw, 1.6rem) !important; }
     #app-root #order-shuffled .order-item.order-text-long,
     #app-root #order-slots .order-slot.filled.order-text-long { font-size: clamp(1.05rem, 4.6vw, 1.25rem) !important; }
     #app-root #order-shuffled .order-item.order-text-xlong,

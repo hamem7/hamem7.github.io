@@ -97,7 +97,7 @@ body[data-qfit="link"] #app-root .link-item {
     display: block !important; width: 100%; box-sizing: border-box; text-align: center; overflow-wrap: anywhere;
     margin: 0 0 calc(.4 * var(--u)) !important;
     padding: calc(.2 * var(--u)) calc(.6 * var(--u)) !important;
-    font-size: max(1.3rem, min(calc(2.6 * var(--u)), 9vw)) !important;
+    font-size: max(1.5rem, min(calc(3.1 * var(--u)), 10vw)) !important;
     line-height: 1.75 !important;
 }
 body[data-qfit="link"] #app-root .link-item .link-unknown-btn { font-size: max(.85rem, calc(.95 * var(--u))) !important; }
@@ -138,5 +138,5 @@ body[data-qfit-measuring] #app-root * { transition: none !important; }
         flex: 1 1 0 !important; width: auto !important; min-width: 0; margin: 0 !important;
         font-size: .74rem !important; line-height: 1.25; min-height: 38px; padding: 4px 6px !important;
     }
-    body[data-qfit="link"] #app-root .link-item { font-size: max(1.15rem, min(calc(2.6 * var(--u)), 9vw)) !important; }
+    body[data-qfit="link"] #app-root .link-item { font-size: max(1.3rem, min(calc(3.1 * var(--u)), 10vw)) !important; }
 }
