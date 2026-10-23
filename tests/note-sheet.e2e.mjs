@@ -72,7 +72,7 @@ for (const { kids, name, cfg } of SCEN) {
   check(`${name}: لا نافذة قديمة والقائمة مغلقة والزر «ملاحظة»`, !s.modal && !s.open && s.label.includes('ملاحظة') && !s.label.includes('تراجع') && s.save === 'none', JSON.stringify(s));
   check(`${name}: نص زر الإجابة الصحيحة`, kids ? s.correct.includes('أحسنت') : s.correct.includes('إجابة صحيحة تامة'), s.correct);
   await page.click('#btn-record-wrong'); await sleep(350); s = await S();
-  check(`${name}: «ملاحظة» تفتح القائمة وتتحول إلى «تراجع» وتظهر الإجابة`, s.open && s.label.includes('تراجع') && s.ans === 'block' && s.save === 'none', JSON.stringify(s));
+  check(`${name}: «ملاحظة» تفتح القائمة وتتحول إلى «تراجع» ولا تفتح الإجابة تلقائياً`, s.open && s.label.includes('تراجع') && s.ans === 'none' && s.save === 'none', JSON.stringify(s));
   if (outDir) await page.screenshot({ path: path.join(outDir, `${kids ? 'kids' : 'adult'}-note-sheet-open.png`) });
   await page.click('.note-chip:nth-child(1)'); await sleep(100); s = await S();
   check(`${name}: اختيار نوع يُظهر «حفظ والتالي»`, s.checked.length === 1 && s.save !== 'none', JSON.stringify(s));

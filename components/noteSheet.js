@@ -44,9 +44,7 @@ export function openNoteSheet() {
     clearSheet();
     sheet.classList.add('open');
     setNoteLabel(true);
-    // تُظهَر الإجابة تلقائياً للمطابقة إن كانت مخفية (والزر ظاهر)
-    const ans = $('game-answer'), showBtn = $('show-ans-btn');
-    if (ans && showBtn && ans.style.display !== 'block' && showBtn.style.display !== 'none') showBtn.click();
+    // لا تُفتح الإجابة تلقائياً: تظهر فقط بزر «إظهار الإجابة» نفسه
     syncNoteSave();
     // بعد انتهاء الانزلاق: نُبقي القائمة ظاهرة على الشاشات القصيرة
     setTimeout(() => { if (isNoteSheetOpen()) sheet.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 320);
