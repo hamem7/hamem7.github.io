@@ -46,6 +46,18 @@ document.addEventListener('app-lang-changed', () => {
     span.textContent = localizeGenerated(t(src));
 });
 
+// نص سؤال المتشابهات (أزراره وحالته لا تُمَسّ): يُعاد بناؤه بلغة الواجهة الجديدة عند تبديل اللغة أثناء عرضه
+document.addEventListener('app-lang-changed', () => {
+    const cd = GameState.currentData, item = GameState.queue && GameState.queue[GameState.currentIndex];
+    if (!cd || cd.type !== 'similar' || !item || !item.sim) return;
+    const el = document.querySelector('#game-question .sim-q-text');
+    const fresh = formatAdultSimilar(item.sim, GameState.pool);
+    if (!el || !fresh) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = fresh.questionBody;
+    const txt = tmp.querySelector('.sim-q-text');
+    if (txt) el.innerHTML = txt.innerHTML;
+});
+
 const AudioContext = window.AudioContext || window.webkitAudioContext; let audioCtx;
 
 function initAudio() { 
