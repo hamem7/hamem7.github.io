@@ -167,6 +167,16 @@
 .ha-dot-inline { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; margin-inline-start: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
 .ha-dot-inline[data-level="bad"] { background: var(--dh-danger, #b91c1c); }
 .ha-dot-inline[hidden] { display: none; }
+/* ☁️ شريط «انتهى ربط النسخ الاحتياطي» في الرئيسية — يتبع اتجاه اللغة (RTL/LTR) تلقائياً */
+.drive-reconnect-banner { display: flex; align-items: center; gap: 12px; margin: 10px 0; padding: 12px 14px; border-radius: 14px; background: rgba(245, 158, 11, .14); border: 1px solid rgba(245, 158, 11, .55); color: inherit; position: relative; }
+.drive-reconnect-banner[hidden] { display: none; }
+.drive-reconnect-banner .drb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.drive-reconnect-banner .drb-title { font-size: 1rem; }
+.drive-reconnect-banner .drb-desc { font-size: .8rem; line-height: 1.6; opacity: .85; }
+.drive-reconnect-banner .drb-btn { flex: none; border: 0; border-radius: 999px; padding: 8px 16px; font: inherit; font-weight: 700; cursor: pointer; background: #f59e0b; color: #1f1300; }
+.drive-reconnect-banner .drb-btn:disabled { opacity: .6; cursor: default; }
+.drive-reconnect-banner .drb-close { flex: none; align-self: flex-start; border: 0; background: transparent; color: inherit; font-size: 1.3rem; line-height: 1; cursor: pointer; opacity: .7; }
+@media (max-width: 600px) { .drive-reconnect-banner { flex-wrap: wrap; } .drive-reconnect-banner .drb-btn { width: 100%; order: 3; } }
 
 @media (max-width: 768px) {
     /* 🌟 على الجوال: إخفاء نص "الرئيسية" والإبقاء على الأيقونة فقط لتوفير مساحة —

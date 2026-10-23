@@ -99,6 +99,9 @@ function waitForGis(timeoutMs = 8000) {
 /** يطلب رمزاً. interactive=false: بلا نافذة اختيار حساب (تنجح فقط إن سبق للمعلم الموافقة وجوجل تسمح بنافذة صامتة). */
 async function getToken({ interactive, selectAccount = false, loginHint }) {
     if (!selectAccount && tokenState && tokenState.exp > Date.now() + 60000) return tokenState.token;
+    // 🚫 [2026-10-23] لا نافذة جوجل بلا نقرة من المعلم أبداً: المتصفح يحظرها ويُظهر للمستخدم رسالة «تم حظر النوافذ المنبثقة».
+    // الصامت يكتفي بالرمز المخزَّن في الذاكرة؛ وإلا يُسجَّل «يحتاج إعادة ربط» ويظهر شريط في الرئيسية (components/driveReconnectBanner.js).
+    if (!interactive) throw new DriveError('AUTH_REQUIRED', 'silent sign-in needs a user gesture');
     const oauth2 = await waitForGis();
     const hint = loginHint || (selectAccount ? undefined : preferredHint());
     const token = await new Promise((resolve, reject) => {
@@ -330,6 +333,10 @@ export function maybeAutoDriveBackup() {
         if (!isDriveEnabled() || !isDriveAuto() || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
         const last = Date.parse(getDriveLastOk() || '') || 0;
         if (Date.now() - last < FREQ_MS[getDriveAutoFreq()]) return;
-        setTimeout(() => { runDriveBackup({ interactive: false }).catch(() => {}); }, 20000);
+        setTimeout(() => {
+            runDriveBackup({ interactive: false })
+                .catch(() => {})
+                .finally(() => { try { document.dispatchEvent(new CustomEvent('dh:backup-health')); } catch (e) { /* لا شيء */ } });
+        }, 20000);
     } catch (e) { /* لا شيء */ }
 }

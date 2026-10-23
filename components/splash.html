@@ -352,6 +352,16 @@
                         </button>
                     </div>
 
+                    <!-- ☁️ [2026-10-23] شريط «انتهى ربط النسخ الاحتياطي» — يُدار من components/driveReconnectBanner.js (مخفي إلا عند الحاجة) -->
+                    <div class="drive-reconnect-banner" id="drive-reconnect-banner" role="status" hidden>
+                        <div class="drb-text">
+                            <strong class="drb-title" id="drb-title" data-i18n="drive_banner_title">ربط النسخ الاحتياطي انتهى، اضغط لإعادة الربط</strong>
+                            <span class="drb-desc" id="drb-desc" data-i18n="drive_banner_desc"></span>
+                        </div>
+                        <button type="button" class="drb-btn" id="drb-reconnect-btn" data-i18n="drive_banner_btn">إعادة الربط</button>
+                        <button type="button" class="drb-close" id="drb-close-btn" data-i18n-title="drive_banner_close" aria-label="إغلاق">×</button>
+                    </div>
+
                     <div class="home-chips-row">
                         <div class="home-date-bar" id="home-date-bar" aria-live="polite">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>

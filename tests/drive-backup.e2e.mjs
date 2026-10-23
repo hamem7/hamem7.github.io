@@ -166,7 +166,7 @@ await page.reload();
 await page.evaluate(() => { window.__gis.mode = 'silentfail'; });
 r = await run({ interactive: false });
 ok(!r.ok && r.code === 'AUTH_REQUIRED' && (await ls('dh_drive_needs_reconnect')) === '1', '6) فشل الإذن الصامت يُسجَّل «يحتاج إعادة ربط»');
-ok((await page.evaluate(() => window.__gis.requests.at(-1).prompt)) === 'none', '6) الطلب الصامت بلا نافذة (prompt none)');
+ok((await page.evaluate(() => window.__gis.requests.length)) === 0, '6) الطلب الصامت لا يطلب من Google إطلاقاً (لا نافذة بلا نقرة، فلا حظر منبثقات)');
 await page.evaluate(() => { window.__gis.mode = 'ok'; });
 r = await run({ interactive: true });
 ok(r.ok && (await ls('dh_drive_needs_reconnect')) === null, '6) النسخ التفاعلي بعدها ينجح ويمسح علامة إعادة الربط');
