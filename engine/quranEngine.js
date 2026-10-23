@@ -730,11 +730,16 @@ export class QuranEngine {
     // ⚠️ [افتراض صريح 3]: بقيت نفس قيود مكان الظهور القديمة (ركن الأطفال: دائماً ضمن نطاق الطفل،
     // ركن الكبار: وضع "الجزء" فقط) لأن السبب الأصلي ما زال قائماً — الحاجة لسورتين مختلفتين على
     // الأقل ضمن النطاق، وهذا غالباً غير متوفر في نطاق "سورة واحدة" أو "من سورة لأخرى" بنفس السورة.
+    // 🌟 [2026-10-23 — إصلاح جذري لجودة الكلمة] المشكلة: كلمات شائعة («تحتها»، «والذي»، «الناس») وردت في سور كثيرة
+    // فصار الربط تخميناً. السبب: كان التكرار يُحسب داخل نطاق الاختبار فقط (جزء/سور الطفل)، فتبدو الكلمة «نادرة»
+    // وهي في الحقيقة موجودة في سور أخرى — وأحياناً داخل سور الجولة نفسها — وكان خط الرجوع يقبل أي كلمة.
+    // الحل: فهرس تكرار عبر القرآن كله (كلمة ← مجموعة السور التي ترد فيها، بعد توحيد الرسم وحذف و/ف/ال الملتصقة)
+    // + اختيار بمستويات: (0) كلمة تنفرد بها السورة في القرآن كله، (1) مقطع من 2–3 كلمات تنفرد به السورة،
+    // (2) كلمة في ≤3 سور، (3) مقطع في ≤3 سور، (4) كلمة/مقطع لا يرد في أي سورة أخرى من الجولة (تمييز كافٍ للسؤال).
+    // وفي كل الأحوال شرط إلزامي: لا ترد الكلمة/المقطع في أي سورة أخرى من الجولة (فتبقى إجابة صحيحة واحدة)،
+    // ولا تكون اسمَ أي سورة من الخيارات (لا كشف بالاستبعاد). إن تعذّرت سورة بدّلناها بسورة أخرى من النطاق.
     async generateLinkWordSurahGame(ayahsPool, isKids) {
-        // كلمات شائعة جداً تتكرر في أغلب السور فلا تصلح "علامة مميِّزة" لسورة بعينها
-        // 🌟 [إصلاح] وسّعنا القائمة لتشمل أفعالاً وتراكيب شائعة جداً كانت تمر من الفلتر القديم رغم
-        // شيوعها الفعلي (زي "يجعل"/"إنما"/"الليل") لأنها ببساطة ≥4 أحرف وغير موجودة بالقائمة
-        // القصيرة السابقة — راجع التعليق الأكبر أسفل الدالة لتفاصيل الإصلاح الرئيسي (فلتر التكرار) 🌟
+        // كلمات وظيفية/شائعة جداً لا تصلح علامة مهما كان تكرارها في الفهرس (طبقة أمان إضافية)
         const COMMON_WORDS = new Set([
             "الله", "لله", "بالله", "والله", "اللهم", "الرحمن", "الرحيم", "رب", "ربك", "ربكم", "ربهم", "ربنا",
             "الذين", "الذي", "التي", "اللذين", "اللاتي", "كان", "كانوا", "كانت", "إن", "أن", "إنه", "إنها",
@@ -746,8 +751,8 @@ export class QuranEngine {
             "الأرض", "السماء", "السماوات", "جميعا", "جميعاً", "أيضا", "أيضاً", "إذ", "إذا", "لعل", "لعلكم",
             "لعلهم", "كي", "لكي", "سوف", "غير", "سوى", "نحو", "مثل", "كل", "بعض", "جميع", "يقول", "تقول",
             "نقول", "أقول", "قل", "قلنا", "فقال", "وقال", "له", "لها", "منها", "فيها", "عليها", "إليها",
-            "بها", "معها", "كذلك", "وكذلك", "أولئك", "الذي", "أولاء"
-        ]);
+            "بها", "معها", "كذلك", "وكذلك", "أولئك", "أولاء", "الناس", "تحتها", "والذي", "والذين"
+        ].map(w => wordStem(wordKey(w))));
 
         let bySurah = new Map();
         for (let a of ayahsPool) {
@@ -757,75 +762,77 @@ export class QuranEngine {
         let surahsInRange = [...bySurah.values()];
         if (surahsInRange.length < 2) return null;
 
-        let shuffledSurahs = [...surahsInRange].sort(() => Math.random() - 0.5);
+        const index = await this.getWordIndex(ayahsPool);
         // 🌟 [2026-10-06] بطلب المعلم: 5 كلمات و5 سور (للصغار والكبار)، وتقلّ تلقائياً لو النطاق أقل من 5 سور
-        let targetCount = Math.min(5, shuffledSurahs.length);
-        let chosen = shuffledSurahs.slice(0, targetCount);
+        const targetCount = Math.min(5, surahsInRange.length);
 
-        // 🌟 [إصلاح جوهري] المشكلة اللي بلّغ عنها المعلم: الكلمات المُختارة كانت "عشوائية" فعلاً —
-        // شائعة جداً وتتكرر بمواضع كثيرة (زي "فإنما"، "يجعل"، "والليل") فيصعب على الطالب معرفة أي
-        // سورة تخصّها تحديداً لأنها لا ترتبط ذهنياً بسورة بعينها. القائمة اليدوية أعلاه وحدها غير
-        // كافية لأنها لا تغطي كل الأفعال/التراكيب المتكررة في القرآن كله.
-        // الحل: نحسب تكرار كل كلمة عربية (بعد إزالة التشكيل) عبر *كل* آيات النطاق الممرَّر بالكامل
-        // (ayahsPool)، لا فقط آيات السور المختارة لهذه الجولة تحديداً — ثم نُفضّل دائماً الكلمة
-        // الأقل تكراراً (والأفضل: التي تظهر مرة واحدة فقط `freq === 1`) كـ"الكلمة المميِّزة" لكل
-        // سورة. هذا يضمن أن الكلمة لا تتكرر فعلياً في أي مكان آخر ضمن نفس النطاق الذي يُختبر فيه
-        // الطالب في هذه الجولة تحديداً — معيار تفرّد حقيقي محسوب من البيانات الفعلية بدل قائمة
-        // شائعة ثابتة فقط. ⚠️ [افتراض صريح]: "الأقل تكراراً" هنا يُحسب داخل النطاق الممرَّر فقط
-        // (مثلاً الجزء أو نطاق سور الطفل)، وليس عبر القرآن الكريم كاملاً — لا حاجة لتحميل نص
-        // القرآن كله لهذا الحساب، والنطاق المحلي كافٍ عملياً لأن الجولة نفسها لا تختبر إلا سوراً من
-        // نفس النطاق.
-        let globalFreq = new Map();
-        for (let a of ayahsPool) {
-            let words = cleanAyahText(a.text).split(/\s+/);
-            for (let w of words) {
-                let bare = w.replace(/[^أ-ي\u06CC]/g, "");
-                if (bare.length < 2) continue;
-                globalFreq.set(bare, (globalFreq.get(bare) || 0) + 1);
-            }
-        }
-
-        let usedWords = new Set();
-        let pairs = [];
-        for (let s of chosen) {
-            // 🌟 نجمع كل الكلمات المرشَّحة من *كل* آيات السورة المتاحة بالنطاق (لا نتوقف عند أول
-            // آية فيها مرشَّح واحد كما كان سابقاً) لنقدر نختار الأندر فعلياً من بينها كلها 🌟
-            let candidates = [];
+        // مرشَّحات سورة: كلمات مفردة ثم مقاطع، كلٌّ مع أولويته وعدد السور التي ترد فيها في القرآن كله
+        const candidatesFor = (s) => {
+            const singles = new Map(), phrases = [];
             for (let ayah of s.ayahs) {
-                let words = cleanAyahText(ayah.text).split(/\s+/);
-                for (let w of words) {
-                    let bare = w.replace(/[^أ-ي\u06CC]/g, "");
-                    if (bare.length < 4 || usedWords.has(bare)) continue;
-                    // 🌟 [تعديل بطلب المعلم] لا تكون الكلمة هي اسم السورة نفسه (والعصر ← العصر):
-                    // الإجابة تصبح بديهية بلا حفظ — كان مسموحاً سابقاً ككلمة مميِّزة، وأُلغي ذلك
-                    if (wordIsSurahName(w, s.name)) continue;
-                    if (COMMON_WORDS.has(bare)) continue;
-                    candidates.push({ word: w, bare, freq: globalFreq.get(bare) || 1 });
+                const words = splitAyahWords(ayah.text);
+                const keys = words.map(wordKey);
+                for (let i = 0; i < words.length; i++) {
+                    const stem = wordStem(keys[i]);
+                    if (keys[i].length < 4 || COMMON_WORDS.has(stem) || singles.has(stem)) continue;
+                    const set = index.stemSurahs.get(stem);
+                    singles.set(stem, { text: words[i], stems: [stem], phrase: false, surahs: set ? set.size : 1 });
+                }
+                for (let len = 2; len <= 3; len++) {
+                    for (let i = 0; i + len <= words.length; i++) {
+                        const stems = keys.slice(i, i + len).map(wordStem);
+                        if (stems.some(st => st.length < 2)) continue;
+                        phrases.push({ text: words.slice(i, i + len).join(' '), stems, keys: keys.slice(i, i + len), phrase: true });
+                    }
                 }
             }
-            let picked = null;
-            if (candidates.length > 0) {
-                // 🌟 [2026-10-14] بطلب المعلم: تنويع الكلمة لكل سورة بين الطلاب. كان الاختيار محصوراً بالأقل
-                // تكراراً فقط (غالباً كلمة واحدة بالسور القصيرة فتثبت). الآن نجمع مجموعة "كلمات مميِّزة" أوسع:
-                // كل ما تكراره ≤ 2 ضمن النطاق، وإن قلّت عن 4 كلمات مختلفة نكمّلها بأقل الكلمات تكراراً
-                // التالية (بترتيب التكرار)، ثم نختار عشوائياً منها — تبقى الكلمة مميِّزة لكن غير ثابتة.
-                let byBare = new Map();
-                for (let c of candidates) if (!byBare.has(c.bare)) byBare.set(c.bare, c);
-                let sorted = [...byBare.values()].sort((a, b) => a.freq - b.freq);
-                let pool = sorted.filter(c => c.freq <= Math.max(2, sorted[0].freq));
-                if (pool.length < 4) pool = sorted.slice(0, 4);
-                picked = pool[Math.floor(Math.random() * pool.length)].word;
+            const out = [...singles.values()];
+            // المقاطع: نرتّب نوافذ الآيات بأندر كلمة فيها ونقيّم عدداً محدوداً فقط (الأداء)
+            const rarity = (p) => Math.min(...p.stems.map(st => (index.stemSurahs.get(st) || { size: 1 }).size));
+            phrases.sort((a, b) => rarity(a) - rarity(b) || Math.random() - 0.5);
+            let seen = new Set();
+            for (let p of phrases.slice(0, 120)) {
+                if (seen.has(p.keys.join(' '))) continue;
+                seen.add(p.keys.join(' '));
+                const where = index.phraseSurahs(p.keys);
+                if (!where.has(s.number)) continue;
+                out.push({ ...p, surahs: where.size, where });
             }
-            if (!picked) {
-                // خط رجوع: أي كلمة عربية من حرفين فأكثر من أول آية متاحة، حتى لو شائعة أو مكررة
-                let ayahsShuffled = [...s.ayahs].sort(() => Math.random() - 0.5);
-                let fallbackWords = ayahsShuffled.flatMap(a => cleanAyahText(a.text).split(/\s+/)).filter(w => w.replace(/[^أ-ي\u06CC]/g, "").length >= 2 && !wordIsSurahName(w, s.name));
-                picked = fallbackWords.length ? fallbackWords[Math.floor(Math.random() * fallbackWords.length)] : s.name;
+            return out;
+        };
+        // هل ترد العلامة (كلمة/مقطع) داخل سورة معيّنة؟
+        const occursIn = (c, surahNum) => c.phrase
+            ? (c.where ? c.where.has(surahNum) : index.phraseSurahs(c.keys).has(surahNum))
+            : (index.stemSurahs.get(c.stems[0]) || new Set()).has(surahNum);
+        const priorityOf = (c) => (c.surahs === 1 ? (c.phrase ? 1 : 0) : c.surahs <= 3 ? (c.phrase ? 3 : 2) : 4);
+        // لا تكشف الإجابة: ليست اسم سورة من الخيارات (ولا تتضمّن اسمها) — يشمل الاستبعاد
+        const revealsName = (c, name) => (c.phrase ? c.text.split(' ') : [c.text]).some(w => wordIsSurahName(w, name));
+
+        let best = [];
+        for (let attempt = 0; attempt < 6 && best.length < targetCount; attempt++) {
+            const order = [...surahsInRange].sort(() => Math.random() - 0.5);
+            let acc = [];
+            for (let s of order) {
+                if (acc.length >= targetCount) break;
+                if (acc.some(p => revealsName(p, s.name))) continue; // علامة سورة سابقة تكشف اسم هذه
+                const ok = candidatesFor(s).filter(c => {
+                    if (revealsName(c, s.name)) return false;
+                    for (let p of acc) {
+                        if (occursIn(c, p.number) || occursIn(p, s.number) || revealsName(c, p.name)) return false;
+                    }
+                    return true;
+                });
+                if (!ok.length) continue;
+                const minP = Math.min(...ok.map(priorityOf));
+                const top = ok.filter(c => priorityOf(c) === minP);
+                const pick = top[Math.floor(Math.random() * top.length)];
+                acc.push({ ...pick, number: s.number, name: s.name });
             }
-            usedWords.add(picked.replace(/[^أ-ي\u06CC]/g, ""));
-            pairs.push({ number: s.number, name: s.name, word: picked });
+            const score = (arr) => arr.length * 10 - arr.reduce((t, p) => t + priorityOf(p), 0) / Math.max(1, arr.length);
+            if (acc.length > best.length || (acc.length === best.length && score(acc) > score(best))) best = acc;
         }
-        if (pairs.length < 2) return null;
+        if (best.length < 2) return null;
+        const pairs = best.map(p => ({ number: p.number, name: p.name, word: p.text }));
 
         let starts = pairs.map(p => ({ id: p.number, text: p.word })).sort(() => Math.random() - 0.5);
         let ends = pairs.map(p => ({ id: p.number, text: p.name })).sort(() => Math.random() - 0.5);
@@ -846,6 +853,63 @@ export class QuranEngine {
             reportText: `${isKids ? "ربط كلمة بسورتها" : "ربط كلمات بسورها"}: ${namesList}`
         };
     }
+
+    // 🌟 فهرس تكرار الكلمات عبر القرآن كله (يُبنى مرة واحدة ويُحفظ في الذاكرة): stemSurahs = جذع الكلمة ← السور
+    // التي ترد فيها، وphraseSurahs(keys) = السور التي يرد فيها المقطع حرفياً (بعد توحيد الرسم).
+    // لو لم تتوفر كل السور في القاعدة نكمّل بآيات النطاق الممرَّر كي لا يتعطّل التوليد.
+    async getWordIndex(ayahsPool) {
+        if (this._wordIndex) return this._wordIndex;
+        const stemSurahs = new Map(), texts = new Map();
+        const addSurahText = (n, ayahTexts) => {
+            const keysPerAyah = ayahTexts.map(t => splitAyahWords(t).map(wordKey));
+            for (let ks of keysPerAyah) for (let k of ks) {
+                if (k.length < 2) continue;
+                const st = wordStem(k);
+                if (!stemSurahs.has(st)) stemSurahs.set(st, new Set());
+                stemSurahs.get(st).add(n);
+            }
+            texts.set(n, ' ' + keysPerAyah.map(ks => ks.join(' ')).join(' | ') + ' ');
+        };
+        let loaded = 0;
+        for (let n = 1; n <= 114; n++) {
+            let surah = null;
+            try { surah = await this.getSurah(n); } catch (e) { /* سورة غير متاحة: نكمل */ }
+            if (surah && surah.ayahs && surah.ayahs.length) { addSurahText(n, surah.ayahs.map(a => a.text)); loaded++; }
+        }
+        if (loaded < 114) {
+            const fromPool = new Map();
+            for (let a of ayahsPool) { if (!texts.has(a.surahNumber)) { if (!fromPool.has(a.surahNumber)) fromPool.set(a.surahNumber, []); fromPool.get(a.surahNumber).push(a.text); } }
+            for (let [n, arr] of fromPool) addSurahText(n, arr);
+        }
+        const phraseSurahs = (keys) => {
+            const needle = ' ' + keys.join(' ') + ' ';
+            let cand = null;
+            for (let k of keys) {
+                const set = stemSurahs.get(wordStem(k));
+                if (!set) return new Set();
+                cand = cand ? new Set([...cand].filter(x => set.has(x))) : new Set(set);
+            }
+            return new Set([...(cand || [])].filter(n => texts.get(n) && texts.get(n).includes(needle)));
+        };
+        const index = { stemSurahs, phraseSurahs, complete: loaded === 114 };
+        if (loaded === 114) this._wordIndex = index; // الناقص لا يُخزَّن فيُعاد بناؤه لاحقاً
+        return index;
+    }
+}
+// 🌟 مفتاح الكلمة للمقارنة: بلا تشكيل/وقف، توحيد الألف والياء والتاء المربوطة
+export function wordKey(w) {
+    return String(w || '')
+        .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ࣓-ࣿـ]/g, '')
+        .replace(/[ٱأإآ]/g, 'ا').replace(/[ىی]/g, 'ي').replace(/ة/g, 'ه').replace(/[ؤئ]/g, m => (m === 'ؤ' ? 'و' : 'ي'))
+        .replace(/[^ء-ي]/g, '');
+}
+// 🌟 جذع تقريبي: يحذف و/ف العاطفة ثم (ب/ك/ل)+ال أو ال — محافظ عمداً (يجمع الأشكال فيزيد التكرار ولا ينقصه)
+export function wordStem(key) {
+    let s = key;
+    if (/^[وف]/.test(s) && s.length - 1 >= 3) s = s.slice(1);
+    const m = s.match(/^(?:[بكل]?ال|لل)/);
+    if (m && s.length - m[0].length >= 2) s = s.slice(m[0].length);
+    return s;
 }
 // 🌟 [جديد] ترتيب عمود النهايات بحيث لا تقف أي نهاية في نفس صف بدايتها الصحيحة إطلاقاً
 // (طلب المعلم: الإجابة الصحيحة يجب ألا تكون أمام أختها في أي صف). يُستخدم في لعبتي
