@@ -46,6 +46,17 @@
     body #app-root .game-main-area h2 { font-size: 1.1rem !important; padding: 4px 14px !important; margin: 4px auto !important; }
     body #app-root .game-main-area .quran-text { font-size: 1.9rem !important; line-height: 2 !important; padding: 6px 14px !important; }
 
+    /* عنوان السؤال وسطر الفراغ في «الآية بين آيتين» + أسئلة الآية: أصغر ليظهر السؤال كاملاً */
+    body #app-root .game-main-area #game-title { margin-bottom: 6px !important; }
+    body #app-root .game-main-area #game-title > span { font-size: 1.15rem !important; padding: 4px 18px !important; }
+    body #app-root .game-main-area .between-gap { margin: 4px auto !important; }
+    body #app-root .game-main-area #game-question > .quran-text { font-size: 1.7rem !important; line-height: 1.7 !important; margin-top: 0 !important; }
+
+    /* تسميع مقطع: بطاقة مضغوطة (عنوان + «من قوله تعالى» + آيتا البداية والنهاية) ليظهر السؤال كاملاً */
+    body:is([data-game-q="recite"], [data-game-q="kids_recite"]) #app-root #game-question > div { padding: 8px 14px !important; margin-top: 0 !important; }
+    body:is([data-game-q="recite"], [data-game-q="kids_recite"]) #app-root #game-question > div > div { font-size: 1.05rem !important; margin: 0 0 2px !important; }
+    body:is([data-game-q="recite"], [data-game-q="kids_recite"]) #app-root #game-question .quran-text { font-size: 1.5rem !important; line-height: 1.6 !important; margin: 2px 0 !important; padding: 2px 10px !important; }
+
     /* بنّر الاختبار الثنائي */
     body #app-root .dts-header-banner { padding: 6px 16px !important; margin-bottom: 8px !important; gap: 10px; }
     body #app-root .dts-header-icon { width: 32px !important; height: 32px !important; font-size: .8rem !important; }

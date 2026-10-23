@@ -954,6 +954,7 @@ async function playNextMission() {
             // معه في سجل الأخطاء (يُعاد عرضه في «علاج الخطأ» بلا أزرار فيقيّمه المعلم يدوياً كبقية الأسئلة).
             if (type === 'word_meaning' && GameState.currentData && GameState.currentData.type === 'word_meaning') {
                 const cd = GameState.currentData;
+                document.body.dataset.gameQ = 'word_meaning'; // آية كاملة + 4 خيارات: خط أصغر (css/gameFullscreen.css) ليظهر السؤال وخياراته
                 cd.optionTexts = cd.options;
                 document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
                     `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;">${escapeOptHtml(opt)}</button>`).join('') + `</div>`);

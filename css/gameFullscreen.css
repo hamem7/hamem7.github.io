@@ -125,13 +125,25 @@
     /* 🌟 [جديد] تكبير نص الآية في الأسئلة ذات الآية الواحدة (استدعِ/ماذا بعدها/ماذا قبلها/خمن السورة/اكتشف الخطأ/
        أكمل) — كانت 3.5rem ثابتة وتترك مساحة فارغة تحتها؛ الآن الحجم يتبع ارتفاع النافذة فيبقى السؤال وأزراره بلا تمرير */
     body[data-dh-screen$="Game.html"]:not([data-game-q]) #game-question > .quran-text {
-        font-size: clamp(3.2rem, 7.4vh, 4.9rem) !important;
+        font-size: clamp(2.2rem, min(7.4vh, 4.8vw), 4.9rem) !important;
         line-height: 1.8 !important;
     }
+    /* معنى الكلمة: آية كاملة (قد تبلغ ثلاثة أسطر) ثم أربعة خيارات — خط أصغر وخيارات مضغوطة */
+    body[data-dh-screen$="Game.html"][data-game-q="word_meaning"] #game-question > .quran-text {
+        font-size: clamp(1.8rem, min(4.4vh, 3.4vw), 3.2rem) !important;
+        line-height: 1.7 !important;
+    }
+    body[data-dh-screen$="Game.html"][data-game-q="word_meaning"] #game-question .sim-opt-btn {
+        font-size: clamp(1.15rem, 2.6vh, 1.6rem) !important;
+        margin: clamp(4px, 1vh, 12px) 0 !important;
+        padding: clamp(6px, 1.2vh, 12px) 16px !important;
+    }
     /* لعبة اربط الكلمة بسورتها / اربط أول الآية بآخرها: بطاقات أكبر */
-    body[data-dh-screen$="Game.html"] #interactive-link-area .link-item {
-        font-size: clamp(2.3rem, 5vh, 3.3rem);
-        line-height: 1.9;
+    body[data-dh-screen$="Game.html"] :is(#interactive-link-area, #kids-link-area) .link-item {
+        font-size: clamp(1.5rem, min(3.6vh, 3vw), 3.3rem);
+        line-height: 1.6;
+        padding: clamp(6px, 1.2vh, 15px) 16px;
+        margin-bottom: clamp(4px, 1vh, 10px);
     }
 
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
@@ -144,6 +156,22 @@
         min-height: calc(100vh - 24px);
         min-height: calc(100dvh - 24px);
     }
+}
+
+/* حاسوب/آيباد أفقي: خيارات الاختيار تتبع الارتفاع (كانت 2rem ثابتة فتدفع بقية الخيارات خارج الصندوق) */
+@media (min-width: 901px) {
+    body[data-dh-screen$="Game.html"] .kids-mcq-btn {
+        font-size: clamp(1.3rem, min(3.4vh, 2.6vw), 2rem);
+        padding: clamp(6px, 1.4vh, 15px) 24px;
+        margin: clamp(4px, 1vh, 10px);
+    }
+}
+/* عرض 901–1100px (آيباد أفقي): لوحة المسار أضيق ليأخذ السؤال عرضًا أكبر */
+@media (min-width: 901px) and (max-width: 1100px) {
+    body[data-dh-screen$="Game.html"] .game-sidebar { width: 215px !important; padding: 12px !important; }
+    body[data-dh-screen$="Game.html"] .game-sidebar .btn,
+    body[data-dh-screen$="Game.html"] .game-sidebar button { font-size: .9rem !important; padding: 6px 10px !important; }
+    body[data-dh-screen$="Game.html"] .game-main-area { padding: 14px 18px !important; }
 }
 
 /* شاشات لابتوب قصيرة (ارتفاع ≤780px): مسافات أضيق حول السؤال حتى يظهر هو وأزراره بلا تمرير */
