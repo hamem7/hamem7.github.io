@@ -48,10 +48,14 @@ export const INTERNAL_SIM_QUESTIONS_ENABLED = true;
 const isDisabledScope = (g) => !INTERNAL_SIM_QUESTIONS_ENABLED && g && g.scope === 'internal';
 export { isDisabledScope as isSimScopeDisabled };
 
+// 🌟 [2026-10-23] بطلب المعلم: الأنواع المعروضة للطالب في الألعاب هي «في أي سورتين؟» و«أي سورة لم ترد؟» (و«اقرأ الآية من السورة المذكورة» من recallQuestions).
+// بقية الأنواع (sim_which / sim_complete) تبقى مولَّدة ومحفوظة في الشيفرة لكن لا تظهر في الألعاب؛ الواجب المنزلي لا يتأثر. للتفعيل أضفها هنا.
+export const STUDENT_SIM_TYPES = ['sim_pair', 'sim_notin'];
+
 export function buildGameRound(groups) {
     const list = (Array.isArray(groups) ? groups : (groups ? [groups] : [])).filter(g => !isDisabledScope(g));
     let all = [];
-    list.forEach(g => { all = all.concat(generateQuestionsForGroup(g)); });
+    list.forEach(g => { all = all.concat(generateQuestionsForGroup(g, { types: STUDENT_SIM_TYPES })); });
     const shuffled = shuffle(all);
     const questions = shuffled.slice(0, MAX_ROUND_QUESTIONS);
     return {

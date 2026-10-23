@@ -24,13 +24,13 @@ await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click());
 const SCEN = [
   { kids: true, name: 'الصغار — الأحقاف..النازعات', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 46, kidsTo: 79, isJuzMode: false, surahNum: 0 } },
   { kids: true, name: 'الصغار — البقرة وآل عمران (متشابهات داخلية)', cfg: { qCount: 20, isKidsRange: true, kidsFrom: 2, kidsTo: 3, isJuzMode: false, surahNum: 0 } },
-  { kids: false, name: 'الكبار — الجزء 1 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
+  { kids: false, none: true, name: 'الكبار — الجزء 1 (لا نوع من الثلاثة المعتمدة ممكن هنا ← بلا متشابهات)', cfg: { qCount: 20, isJuzMode: true, juzNum: 1, surahNum: 0 } },
   { kids: false, name: 'الكبار — الجزء 26 (متشابهات داخلية)', cfg: { qCount: 20, isJuzMode: true, juzNum: 26, surahNum: 0 } },
   { kids: false, name: 'الكبار — الجزء 30 (جزء عمّ)', cfg: { qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 } },
   { kids: false, memo: true, recall: true, lang: 'ar', name: 'الكبار — الأحقاف بنطاق حفظ الناس←الأحقاف (استحضار)', cfg: { qCount: 20, isJuzMode: false, surahNum: 46, startAyah: 1, endAyah: 35 } },
   { kids: false, memo: true, recall: true, lang: 'en', name: 'Adults — Al-Ahqaf, memorized An-Nas→Al-Ahqaf (English)', cfg: { qCount: 20, isJuzMode: false, surahNum: 46, startAyah: 1, endAyah: 35 } },
 ];
-for (const { kids, name, cfg: scenCfg, memo, recall, lang } of SCEN) {
+for (const { kids, name, cfg: scenCfg, memo, recall, lang, none } of SCEN) {
   const tag = (kids ? 'الصغار' : 'الكبار') + ' | ' + name;
   console.log(`\n=== ${tag} ===`);
   const info = await page.evaluate(async ({ kids, scenCfg, memo, lang }) => {
@@ -49,6 +49,7 @@ for (const { kids, name, cfg: scenCfg, memo, recall, lang } of SCEN) {
   await sleep(1500);
   await page.evaluate(() => document.getElementById('mmt-close')?.click());
   if (kids) { check(`${tag}: الصغار بلا أسئلة متشابهات (ركن الكبار فقط)`, info.n > 0 && info.sims === 0, JSON.stringify(info)); await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500); await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click()); continue; }
+  if (none) { check(`${tag}: طول الطابور 20 بلا أسئلة متشابهات (الأنواع غير المعتمدة لا تظهر)`, info.n === 20 && info.sims === 0, JSON.stringify(info)); continue; }
   check(`${tag}: طول الطابور 20 وفيه سؤالان من المتشابهات`, info.n === 20 && info.sims === 2, JSON.stringify(info));
   const seen = []; let lastIdx = -1, idle = 0;
   for (let step = 0; step < 120 && idle < 12; step++) {

@@ -7,6 +7,7 @@
 import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { similarCountFor, buildSimilarQuestions, injectIntoQueue, cleanOccurrenceText } from '../engine/similarityInject.js';
 import { ensureSimilarityQuran, getSimilarityQuran, questionTextToHTML, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
+import { STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
 import { generateRecallQuestions, memorizedSurahsOf, localizedRecallText } from '../engine/recallQuestions.js';
 import { toQuranicSukun } from '../engine/quranEngine.js';
 
@@ -18,9 +19,9 @@ const qtext = (s) => toQuranicSukun(cleanOccurrenceText(s));
 // الحقن: سؤال لكل 10 أسئلة، يبدأ بسؤال من النوعين الجديدين («ما الكلمة الناقصة؟» و«اقرأ الآية من السورة المذكورة») ثم يتناوب مع الأنواع القديمة.
 // النوعان الجديدان يقارنان آيات نطاق الاختبار بشبيهاتها في كل محفوظ الطالب (من memoFrom إلى memoTo في ملفه).
 // 🌟 [2026-10-23] بطلب المعلم يقتصر ركن الكبار على ثلاثة أنواع: «اقرأ الآية من السورة المذكورة» و«في أي سورتين؟» و«أي سورة لم ترد؟».
-// بقية الأنواع (الكلمة الناقصة، أيّ الآيتين، أكمل الآية) لا تُحقن في الألعاب إلا لتكميل العدد حين لا يتوفر من الثلاثة ما يكفي، و«صِل كل آية بسورتها» يبقى للواجب المنزلي كما هو.
+// بقية الأنواع (الكلمة الناقصة، أيّ الآيتين، أكمل الآية) لا تُحقن في الألعاب، و«صِل كل آية بسورتها» يبقى للواجب المنزلي كما هو.
 const GAME_RECALL_TYPES = ['sim_named'];
-const GAME_OLD_TYPES = ['sim_pair', 'sim_notin'];
+const GAME_OLD_TYPES = STUDENT_SIM_TYPES;
 export async function injectSimilarQuestions(queue, pool, qCount, kids) {
     try {
         if (kids) return queue;
@@ -39,12 +40,6 @@ export async function injectSimilarQuestions(queue, pool, qCount, kids) {
         for (let i = 0; sims.length < count && (i < fresh.length || i < old.length); i++) {
             if (fresh[i]) sims.push(fresh[i]);
             if (sims.length < count && old[i]) sims.push(old[i]);
-        }
-        // لا يتوفر من الأنواع الثلاثة ما يكفي (مثلاً نطاق خارج الأجزاء 26-30 بلا محفوظ عابر للسور): نُكمل من بقية الأنواع بدل ألّا يظهر شيء
-        if (sims.length < count) {
-            const have = new Set(sims.map(q => q.groupId));
-            const more = buildSimilarQuestions({ allGroups, pool, count: count - sims.length, kids: false }).filter(q => !have.has(q.groupId));
-            sims.push(...more.slice(0, count - sims.length));
         }
         return injectIntoQueue(queue, sims);
     } catch (err) {

@@ -19,7 +19,7 @@ export const CHANGELOG = [
         version: '1.0.57',
         date: '2026-10-23',
         items: [
-            { type: 'improved', text: { ar: 'أسئلة المتشابهات في ركن الكبار صارت ثلاثة أنواع فقط: «اقرأ الآية من السورة المذكورة» و«في أي سورتين؟» و«أي سورة لم ترد؟» (يُكمَّل العدد من بقية الأنواع عند الحاجة). سؤال «صِل كل آية بسورتها» يبقى في الواجب المنزلي كما هو.', en: 'Similar-verse questions in the adults\' corner are now three types only: "Recite the verse from the named surah", "In which two surahs?" and "Which surah does not contain it?" (other types top up the count only when needed). The "Match each verse to its surah" question stays in homework unchanged.' } }
+            { type: 'improved', text: { ar: 'أسئلة المتشابهات في ركن الكبار صارت ثلاثة أنواع فقط: «اقرأ الآية من السورة المذكورة» و«في أي سورتين؟» و«أي سورة لم ترد؟». سؤال «صِل كل آية بسورتها» يبقى في الواجب المنزلي كما هو.', en: 'Similar-verse questions in the adults\' corner are now three types only: "Recite the verse from the named surah", "In which two surahs?" and "Which surah does not contain it?". The "Match each verse to its surah" question stays in homework unchanged.' } }
         ]
     },
     {
