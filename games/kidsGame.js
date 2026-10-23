@@ -6,7 +6,8 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare, setActiveSurahPlan } from '../engine/quranEngine.js';
+import { normalizeForCompare, setActiveSurahPlan, setActiveChunkOffset, newChunkOffset } from '../engine/quranEngine.js';
+import { setSeenStudent, recordSeen } from '../engine/seenLedger.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -81,10 +82,57 @@ function getShuffledBag(gamesList) {
     return bag;
 }
 
+// 🌟 توليد سؤال من نوع معيّن (مشترك بين العرض وفحص الجاهزية probeKidsType). نوع 'similar' لا يمر من هنا.
+async function genKidsQuestion(type, activePool, chunkIndex, totalChunks) {
+    let d = null;
+    if(type === 'kids_catch') d = await AppState.kidsEngine.generateKidsCatchGame(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_next') d = await AppState.kidsEngine.generateKidsNextAyahGame(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_tf') d = await AppState.kidsEngine.generateKidsTrueFalse(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_guess_surah') d = await AppState.kidsEngine.generateKidsGuessSurah(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_recite') d = await AppState.quranEngine.generateReciteGame(activePool, false, true, chunkIndex, totalChunks);
+    else if(type === 'kids_word_order') d = await AppState.kidsEngine.generateKidsWordOrderGame(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_start_surah') d = await AppState.kidsEngine.generateKidsStartSurah(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_extra_word') d = await AppState.kidsEngine.generateKidsExtraWord(activePool, chunkIndex, totalChunks);
+    else if(type === 'kids_previous') d = await AppState.kidsEngine.generateKidsPrevious(activePool, chunkIndex, totalChunks);
+    // 🌟 [جديد] لعبة "اربط بداية الآية بنهايتها" — تستخدم نفس دالة محرك الكبار
+    // (quranEngine.generateLinkGame) بمعامل isKids=true لصياغة عنوان مناسبة للأطفال 🌟
+    else if(type === 'kids_link_ends') d = await AppState.quranEngine.generateLinkGame(activePool, true, chunkIndex, totalChunks);
+    // 🌟 [إعادة تصميم] لعبة "اربط الكلمة بالسورة" — محل "رتب السور" القديمة، تستخدم نفس دالة
+    // محرك الكبار (quranEngine.generateLinkWordSurahGame) بمعامل isKids=true؛ ضمن نطاق السور
+    // الذي اختاره المعلم للطفل (kidsFrom/kidsTo) مباشرة 🌟
+    else if(type === 'kids_link_word_surah') d = await AppState.quranEngine.generateLinkWordSurahGame(activePool, true);
+    // 🌟 [جديد] لعبة "استمع وخمّن الآية" — ترجع type: 'kids_mcq' بالضبط مثل باقي ألعاب
+    // الاختيار من متعدد، فتُعرض تلقائيًا عبر نفس مسار kids-mcq-area أدناه بلا أي تعديل عليه 🌟
+    else if(type === 'kids_listen_ayah') d = await AppState.kidsEngine.generateKidsListenAyah(activePool, chunkIndex, totalChunks);
+    // 🎧 [جديد 2026-10-18] «استمع وكمّل يا بطل» (صوت المنشاوي) — kids_mcq كغيرها، فتُعرض عبر نفس مسار الخيارات
+    else if(type === 'kids_listen_next') d = await AppState.kidsEngine.generateKidsListenNext(activePool, chunkIndex, totalChunks);
+    return d;
+}
+
+// نفس تصفية آيات التكرار الشهيرة (الرحمن/المرسلات) المطبّقة وقت العرض، حتى يحكم الفحص بنفس الشروط
+function kidsActivePoolFor(type, pool) {
+    if (type === 'kids_word_order') return pool;
+    const filtered = pool.filter(a => {
+        let plainText = a.text.replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '').replace(/\u06CC/g, '\u0649');
+        return !plainText.includes('فبأي آلاء ربكما تكذبان') && !plainText.includes('فباي الاء ربكما تكذبان') && !plainText.includes('ويل يومئذ للمكذبين');
+    });
+    return filtered.length > 0 ? filtered : pool;
+}
+
+// فحص جاهزية: هل يُولَّد هذا النوع فعلاً في النطاق؟ (المولّدات تبني نصوصاً فقط بلا أثر جانبي). يعيد المحاولة لأن اختيار الآية عشوائي.
+async function probeKidsType(type, pool, chunkIndex, totalChunks) {
+    for (let a = 0; a < 3; a++) {
+        try { if (await genKidsQuestion(type, kidsActivePoolFor(type, pool), chunkIndex, totalChunks)) return true; } catch (e) { /* فشل = غير جاهز */ }
+    }
+    return false;
+}
+
 // 🌟 [جديد] المعامل الثالث resumeSnapshot (اختياري) — نفس فكرة adultGame.js بالضبط: استكمال اختبار
 // معلّق من أول سؤال لم يُجَب. غيابه = السلوك القديم تماماً بلا أي تغيير.
 export async function openKidsGameScreen(config, isWeakness = false, resumeSnapshot = null) {
     setActiveSurahPlan(null); // 🌟 خطة تغطية سور جزء عم خاصة بركن الكبار — لا تتسرب لهذا الركن
+    setActiveChunkOffset(null); // 🌟 إزاحة حدود الشرائح تُفعَّل أدناه لاختبار جديد أو تُستعاد من الطابور المعلّق
+    setSeenStudent(AppState.currentStudent && AppState.currentStudent.id); // 🌟 دفتر «ما رآه الطالب» (engine/seenLedger.js)
     if (resumeSnapshot) { config = resumeSnapshot.config || config; isWeakness = false; }
     // 🌟 [جديد] تنبيه ما قبل بدء اللعب — بلا أي ذكر لميزة "التلميح" عمداً (بطلب صريح من
     // المعلم)، لأنها غير موصولة فعلياً في ركن الأطفال بعد (راجع تعليق GameState.hintUsed
@@ -176,12 +224,23 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                 GameState.reportDetails = Array.isArray(resumeSnapshot.reportDetails) ? resumeSnapshot.reportDetails : [];
                 if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
                 GameState.resumedFromPause = true;
+                { const withOff = GameState.queue.find(q => typeof q.off === 'number'); if (withOff) setActiveChunkOffset(withOff.off); }
             } else {
+                const chunkOff = newChunkOffset(ayahsPool.length);
+                setActiveChunkOffset(chunkOff);
+                // 🌟 لا يدخل الطابور إلا نوع نجح فحصه (probeKidsType)؛ الفاشل يبقى في الكيس ويُجرَّب في سؤال لاحق بدل أن يتحول صامتاً إلى «صيد الآية».
+                // لو فشل كل ما في الكيس نرجع للسلوك القديم (السحب المباشر ثم الرجوع لـ kids_catch وقت العرض).
                 let currentBag = getShuffledBag(gamesList);
                 for(let i=0; i<qCount; i++) {
                     if (currentBag.length === 0) currentBag = getShuffledBag(gamesList);
-                    let selectedType = currentBag.pop();
-                    GameState.queue.push({ type: selectedType, chunkIndex: i });
+                    let idx = -1;
+                    for (let k = currentBag.length - 1; k >= 0; k--) { if (await probeKidsType(currentBag[k], ayahsPool, i, qCount)) { idx = k; break; } }
+                    if (idx === -1 && currentBag.length < gamesList.length) {
+                        currentBag = getShuffledBag(gamesList);
+                        for (let k = currentBag.length - 1; k >= 0; k--) { if (await probeKidsType(currentBag[k], ayahsPool, i, qCount)) { idx = k; break; } }
+                    }
+                    let selectedType = idx === -1 ? currentBag.pop() : currentBag.splice(idx, 1)[0];
+                    GameState.queue.push({ type: selectedType, chunkIndex: i, off: chunkOff });
                 }
                 // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور (كل عنصر يحتفظ بنوعه ونطاقه chunkIndex)
                 for (let i = GameState.queue.length - 1; i > 0; i--) {
@@ -548,30 +607,11 @@ async function playNextMission() {
             return;
         }
 
-        if(type === 'kids_catch') GameState.currentData = await AppState.kidsEngine.generateKidsCatchGame(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_next') GameState.currentData = await AppState.kidsEngine.generateKidsNextAyahGame(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_tf') GameState.currentData = await AppState.kidsEngine.generateKidsTrueFalse(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_guess_surah') GameState.currentData = await AppState.kidsEngine.generateKidsGuessSurah(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_recite') GameState.currentData = await AppState.quranEngine.generateReciteGame(activePool, false, true, chunkIndex, totalChunks);
-        else if(type === 'kids_word_order') GameState.currentData = await AppState.kidsEngine.generateKidsWordOrderGame(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_start_surah') GameState.currentData = await AppState.kidsEngine.generateKidsStartSurah(activePool, chunkIndex, totalChunks);
-        else if(type === 'kids_extra_word') GameState.currentData = await AppState.kidsEngine.generateKidsExtraWord(activePool, chunkIndex, totalChunks);
-        else if(type === 'similar') GameState.currentData = formatKidsSimilar(queueItem.sim, GameState.pool);
-        else if(type === 'kids_previous') GameState.currentData = await AppState.kidsEngine.generateKidsPrevious(activePool, chunkIndex, totalChunks);
-        // 🌟 [جديد] لعبة "اربط بداية الآية بنهايتها" — تستخدم نفس دالة محرك الكبار
-        // (quranEngine.generateLinkGame) بمعامل isKids=true لصياغة عنوان مناسبة للأطفال 🌟
-        else if(type === 'kids_link_ends') GameState.currentData = await AppState.quranEngine.generateLinkGame(activePool, true, chunkIndex, totalChunks);
-        // 🌟 [إعادة تصميم] لعبة "اربط الكلمة بالسورة" — محل "رتب السور" القديمة، تستخدم نفس دالة
-        // محرك الكبار (quranEngine.generateLinkWordSurahGame) بمعامل isKids=true؛ ضمن نطاق السور
-        // الذي اختاره المعلم للطفل (kidsFrom/kidsTo) مباشرة 🌟
-        else if(type === 'kids_link_word_surah') GameState.currentData = await AppState.quranEngine.generateLinkWordSurahGame(activePool, true);
-        // 🌟 [جديد] لعبة "استمع وخمّن الآية" — ترجع type: 'kids_mcq' بالضبط مثل باقي ألعاب
-        // الاختيار من متعدد، فتُعرض تلقائيًا عبر نفس مسار kids-mcq-area أدناه بلا أي تعديل عليه 🌟
-        else if(type === 'kids_listen_ayah') GameState.currentData = await AppState.kidsEngine.generateKidsListenAyah(activePool, chunkIndex, totalChunks);
-        // 🎧 [جديد 2026-10-18] «استمع وكمّل يا بطل» (صوت المنشاوي) — kids_mcq كغيرها، فتُعرض عبر نفس مسار الخيارات
-        else if(type === 'kids_listen_next') GameState.currentData = await AppState.kidsEngine.generateKidsListenNext(activePool, chunkIndex, totalChunks);
+        if(type === 'similar') GameState.currentData = formatKidsSimilar(queueItem.sim, GameState.pool);
+        else GameState.currentData = await genKidsQuestion(type, activePool, chunkIndex, totalChunks);
 
         if(!GameState.currentData) { GameState.currentData = await AppState.kidsEngine.generateKidsCatchGame(activePool, -1, 1); }
+        recordSeen(GameState.currentData && GameState.currentData.ayahObj); // 🌟 دفتر «ما رآه الطالب» عند العرض الفعلي
         
         document.getElementById('game-title').innerHTML = `<span style="background:white; padding:10px 30px; border-radius:50px; display:inline-block; font-size:1.8rem; border:2px solid var(--kids-accent); color:var(--kids-primary); font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
         

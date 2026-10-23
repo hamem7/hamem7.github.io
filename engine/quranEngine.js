@@ -2,6 +2,7 @@
 import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL } from "../core/langBridge.js";
 import { LISTEN_MIN_SURAH, listenBodyHTML } from "./ayahAudio.js";
+import { pickLeastSeen } from "./seenLedger.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
 const kidsSurahNameHtml = (name) => `<span style="font-family:'IBM Plex Sans Arabic',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
@@ -174,14 +175,21 @@ export function planSurahCoverage(pool, qCount) {
 let activeSurahPlan = null;
 export function setActiveSurahPlan(plan) { activeSurahPlan = Array.isArray(plan) && plan.length ? plan : null; }
 
+// 🌟 إزاحة دائرية عشوائية لحدود شرائح الاختبار (null = بلا إزاحة): تتغير حدود الشرائح من اختبار لآخر فلا تُسأل الخانة
+// الأولى دائماً من أول النطاق. تُحفظ مع طابور الاختبار (queue[i].off) لتُستعاد عند استكمال اختبار معلّق.
+let activeChunkOffset = null;
+export function setActiveChunkOffset(off) { activeChunkOffset = (typeof off === 'number' && off >= 0) ? off : null; }
+export function newChunkOffset(poolLen) { return poolLen > 1 ? Math.floor(Math.random() * poolLen) : 0; }
+
+// الاختيار داخل المنطقة يفضّل الآية الأقل رؤيةً للطالب (engine/seenLedger.js)؛ بلا طالب/دفتر = عشوائي كما كان.
 export function pickTargetAyah(pool, chunkIndex, totalChunks) {
     if (!pool || pool.length === 0) return null;
     if (activeSurahPlan && chunkIndex >= 0 && activeSurahPlan[chunkIndex] !== undefined) {
         const own = pool.filter(a => a.surahNumber === activeSurahPlan[chunkIndex]);
-        if (own.length) return own[Math.floor(Math.random() * own.length)];
+        if (own.length) return pickLeastSeen(own);
     }
     if (chunkIndex === undefined || chunkIndex === -1 || totalChunks === undefined || totalChunks === 0) {
-        return pool[Math.floor(Math.random() * pool.length)];
+        return pickLeastSeen(pool);
     }
     let chunkSize = pool.length / totalChunks;
     let start = Math.floor(chunkIndex * chunkSize); 
@@ -191,11 +199,17 @@ export function pickTargetAyah(pool, chunkIndex, totalChunks) {
     if (end <= start) end = start + 1; 
     if (end > pool.length) end = pool.length;
     
-    let region = pool.slice(start, end); 
+    let region;
+    if (activeChunkOffset !== null && pool.length > 1) {
+        region = [];
+        for (let i = start; i < end; i++) region.push(pool[(i + activeChunkOffset) % pool.length]);
+    } else {
+        region = pool.slice(start, end);
+    }
     if (region.length === 0) region = pool; 
     
-    let ayah = region[Math.floor(Math.random() * region.length)];
-    if (!ayah) ayah = pool[Math.floor(Math.random() * pool.length)];
+    let ayah = pickLeastSeen(region);
+    if (!ayah) ayah = pickLeastSeen(pool);
     return ayah;
 }
 

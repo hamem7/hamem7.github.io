@@ -7,7 +7,8 @@ import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
-import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
+import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, setActiveChunkOffset, newChunkOffset, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
+import { setSeenStudent, recordSeen } from '../engine/seenLedger.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -310,6 +311,8 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
     GameState.currentIndex = 0;
     GameState.consecutiveCorrect = 0;
     setActiveSurahPlan(null); // 🌟 خطة تغطية السور (جزء عم) تُفعَّل أدناه فقط عند الحاجة
+    setActiveChunkOffset(null); // 🌟 إزاحة حدود الشرائح تُفعَّل أدناه فقط لاختبار جديد أو تُستعاد من الطابور المعلّق
+    setSeenStudent(AppState.currentStudent && AppState.currentStudent.id); // 🌟 دفتر «ما رآه الطالب» (engine/seenLedger.js)
     
     try {
         if (isWeakness) {
@@ -388,14 +391,18 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 if (resumeSnapshot.evalRangeText) GameState.evalRangeText = resumeSnapshot.evalRangeText;
                 GameState.resumedFromPause = true;
                 // 🌟 استعادة خطة السور المحفوظة داخل الطابور (اختبار جزء عم المعلّق)
+                { const withOff = GameState.queue.find(q => typeof q.off === 'number'); if (withOff) setActiveChunkOffset(withOff.off); }
                 if (GameState.queue.every(q => q.surahNum !== undefined)) setActiveSurahPlan(GameState.queue.reduce((pl, q) => { pl[q.chunkIndex] = q.surahNum; return pl; }, []));
             } else {
                 // 🌟 جزء عم: سؤال لكل سورة قبل أي تكرار (راجع planSurahCoverage في quranEngine.js). تُفعَّل الخطة قبل بناء
                 // الطابور حتى يفحص probeGameType اللعبة على السورة المخصصة للسؤال فعلاً.
                 const plan = (config.isJuzMode && config.juzNum === JUZ_AMMA_NUMBER) ? planSurahCoverage(ayahsPool, qCount) : null;
                 setActiveSurahPlan(plan);
+                const chunkOff = newChunkOffset(ayahsPool.length);
+                setActiveChunkOffset(chunkOff);
                 GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
                 if (plan) GameState.queue.forEach((q, i) => { q.surahNum = plan[i]; });
+                GameState.queue.forEach(q => { q.off = chunkOff; }); // تُحفظ مع الطابور لاستكمال اختبار معلّق بنفس الحدود
                 // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور. نخلط عناصر الطابور كاملة (النوع +
                 // chunkIndex + surahNum معاً) فيبقى توزيع النطاق وتغطية السور كما هي لكن بترتيب العرض عشوائياً.
                 shuffleInPlace(GameState.queue);
@@ -801,6 +808,7 @@ async function playNextMission() {
         if(type === 'order') {
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateOrderGame(activePool, false, chunkIndex, totalChunks));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            recordSeen(GameState.currentData && GameState.currentData.ayahObj); // دفتر «ما رآه الطالب»
             GameState.currentData.studentAnswer = [];
             document.getElementById('interactive-order-area').style.display = 'block';
             // 🌟 [قديم] نعيد نص التعليمة وعنوان العمود الثاني لأصلهما الخاص بـ"رتب الآيات" —
@@ -823,6 +831,7 @@ async function playNextMission() {
             // مختلفين، لازم نضبط نص التعليمة وعنواني العمودين حسب النوع الحالي في كل مرة 🌟
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateLinkWordSurahGame(activePool, false));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            recordSeen(GameState.currentData && GameState.currentData.ayahObj); // دفتر «ما رآه الطالب»
 
             if (GameState.currentData.type === 'link_word_surah') {
                 GameState.currentData.matchedPairs = [];
@@ -853,6 +862,7 @@ async function playNextMission() {
         } else if (type === 'visual_memory') {
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateVisualMemoryGame(activePool, chunkIndex, totalChunks));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            recordSeen(GameState.currentData && GameState.currentData.ayahObj); // دفتر «ما رآه الطالب»
             if(GameState.currentData && GameState.currentData.type === 'visual_memory') document.body.dataset.gameQ = 'visual_memory';
             
             document.getElementById('teacher-eval-area').style.display = 'block'; 
@@ -879,6 +889,7 @@ async function playNextMission() {
             // لعبة الربط، فيظهر النص الحرفي "undefined" مع أزرار تقييم يدوية لا يجب ظهورها) 🌟
             GameState.currentData = await retryGen(() => AppState.quranEngine.generateLinkGame(activePool, false, chunkIndex, totalChunks));
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            recordSeen(GameState.currentData && GameState.currentData.ayahObj); // دفتر «ما رآه الطالب»
 
             if (GameState.currentData.type === 'link_ends') {
                 GameState.currentData.matchedPairs = [];
@@ -927,6 +938,7 @@ async function playNextMission() {
             else if(type === 'word_meaning') GameState.currentData = await retryGen(() => AppState.quranEngine.generateWordMeaningGame(activePool, chunkIndex, totalChunks));
 
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
+            recordSeen(GameState.currentData && GameState.currentData.ayahObj); // 🌟 تسجيل الآية في دفتر الطالب عند العرض الفعلي
             
             document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${localizeGenerated(t(GameState.currentData.questionTitle))}</span>`; 
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
