@@ -241,8 +241,8 @@ function mkNamed(Q, bank, g, rng) {
     const names = locs.map(l => Q.surahName(l.v.s)), name = Q.surahName(tg.v.s);
     const two = locs.length === 2;
     const text = two
-        ? `﴿${g.phrase}﴾ ورد في سورتين من محفوظك، هما: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`
-        : `﴿${g.phrase}﴾ ورد في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`;
+        ? `الآية ﴿${g.phrase}﴾ وردت في سورتين من محفوظك، هما: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`
+        : `الآية ﴿${g.phrase}﴾ وردت في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`;
     return { ...baseOf(Q, g, 'sim_named'), text,
         tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: g.phrase, n: locs.length, names: names.join('، '), name } },
         options: [], optionsDisplay: [], correctAnswer: tg.v.w.join(' '), correctIndex: -1, hints,
@@ -255,8 +255,8 @@ const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };
 // النص المخزَّن عربي دائماً (يُترجم عند العرض فقط)؛ في Node أو قبل تسجيل المترجم يرجع العربي نفسه. القوالب في core/i18n.js بالمفاتيح نفسها.
 const TPL_AR = {
     sim_q_missing: 'في سورة {name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟',
-    sim_q_named_2: '﴿{word}﴾ ورد في سورتين من محفوظك، هما: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.',
-    sim_q_named_n: '﴿{word}﴾ ورد في {n} سور من محفوظك، هي: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.'
+    sim_q_named_2: 'الآية ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.',
+    sim_q_named_n: 'الآية ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.'
 };
 export function localizedRecallText(q) {
     if (!q || !q.tpl || !TPL_AR[q.tpl.key]) return q ? q.text : '';
