@@ -32,6 +32,13 @@ test('لا مجموعات في نطاق خارج الأجزاء 26-30 ← لا �
     assert.equal(eligibleGroups(ALL, far).length, 0);
     assert.deepEqual(buildSimilarQuestions({ allGroups: ALL, pool: far, count: 3, kids: true }), []);
 });
+test('مرشّح types: يقتصر على الأنواع المطلوبة فقط (ألعاب الكبار)', () => {
+    let n = 0;
+    for (let r = 0; r < 40; r++) {
+        for (const q of buildSimilarQuestions({ allGroups: ALL, pool, count: 3, kids: false, types: ['sim_pair', 'sim_notin'] })) { n++; assert.ok(['sim_pair', 'sim_notin'].includes(q.kind), q.kind); }
+    }
+    assert.ok(n > 0);
+});
 test('الصغار: «في أي سورتين» فقط، 3–4 خيارات، الصحيح بينها، موضعه داخل النطاق، بلا رقم آية', () => {
     let n = 0;
     for (let r = 0; r < 60; r++) {

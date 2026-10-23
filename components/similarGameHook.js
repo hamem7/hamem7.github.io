@@ -17,6 +17,10 @@ const qtext = (s) => toQuranicSukun(cleanOccurrenceText(s));
 // 🌟 [2026-10-22] أسئلة المتشابهات في ركن الكبار فقط (بطلب المعلم): kids=true لا يحقن شيئاً.
 // الحقن: سؤال لكل 10 أسئلة، يبدأ بسؤال من النوعين الجديدين («ما الكلمة الناقصة؟» و«اقرأ الآية من السورة المذكورة») ثم يتناوب مع الأنواع القديمة.
 // النوعان الجديدان يقارنان آيات نطاق الاختبار بشبيهاتها في كل محفوظ الطالب (من memoFrom إلى memoTo في ملفه).
+// 🌟 [2026-10-23] بطلب المعلم يقتصر ركن الكبار على ثلاثة أنواع: «اقرأ الآية من السورة المذكورة» و«في أي سورتين؟» و«أي سورة لم ترد؟».
+// بقية الأنواع (الكلمة الناقصة، أيّ الآيتين، أكمل الآية) لا تُحقن في الألعاب إلا لتكميل العدد حين لا يتوفر من الثلاثة ما يكفي، و«صِل كل آية بسورتها» يبقى للواجب المنزلي كما هو.
+const GAME_RECALL_TYPES = ['sim_named'];
+const GAME_OLD_TYPES = ['sim_pair', 'sim_notin'];
 export async function injectSimilarQuestions(queue, pool, qCount, kids) {
     try {
         if (kids) return queue;
@@ -25,16 +29,22 @@ export async function injectSimilarQuestions(queue, pool, qCount, kids) {
         if (AppState.similaritiesReady) await AppState.similaritiesReady;
         await ensureSimilarityQuran(AppState.quranEngine); // نص الآيات من مصحف المنصة
         const allGroups = await AppState.similaritiesManager.getAllSimilarities();
-        const old = buildSimilarQuestions({ allGroups, pool, count, kids: false });
+        const old = buildSimilarQuestions({ allGroups, pool, count, kids: false, types: GAME_OLD_TYPES });
         let fresh = [];
         try {
             const memorized = memorizedSurahsOf(AppState.currentStudent, AppState.surahsData) || new Set((pool || []).map(a => a.surahNumber));
-            fresh = generateRecallQuestions(getSimilarityQuran(), memorized, pool, { count });
+            fresh = generateRecallQuestions(getSimilarityQuran(), memorized, pool, { count, types: GAME_RECALL_TYPES });
         } catch (e) { console.warn('تعذّر توليد أسئلة الاستحضار:', e); }
         const sims = [];
         for (let i = 0; sims.length < count && (i < fresh.length || i < old.length); i++) {
             if (fresh[i]) sims.push(fresh[i]);
             if (sims.length < count && old[i]) sims.push(old[i]);
+        }
+        // لا يتوفر من الأنواع الثلاثة ما يكفي (مثلاً نطاق خارج الأجزاء 26-30 بلا محفوظ عابر للسور): نُكمل من بقية الأنواع بدل ألّا يظهر شيء
+        if (sims.length < count) {
+            const have = new Set(sims.map(q => q.groupId));
+            const more = buildSimilarQuestions({ allGroups, pool, count: count - sims.length, kids: false }).filter(q => !have.has(q.groupId));
+            sims.push(...more.slice(0, count - sims.length));
         }
         return injectIntoQueue(queue, sims);
     } catch (err) {

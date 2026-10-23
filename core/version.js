@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.56';
+export const APP_VERSION = '1.0.57';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.57',
+        date: '2026-10-23',
+        items: [
+            { type: 'improved', text: { ar: 'أسئلة المتشابهات في ركن الكبار صارت ثلاثة أنواع فقط: «اقرأ الآية من السورة المذكورة» و«في أي سورتين؟» و«أي سورة لم ترد؟» (يُكمَّل العدد من بقية الأنواع عند الحاجة). سؤال «صِل كل آية بسورتها» يبقى في الواجب المنزلي كما هو.', en: 'Similar-verse questions in the adults\' corner are now three types only: "Recite the verse from the named surah", "In which two surahs?" and "Which surah does not contain it?" (other types top up the count only when needed). The "Match each verse to its surah" question stays in homework unchanged.' } }
+        ]
+    },
     {
         version: '1.0.56',
         date: '2026-10-22',
