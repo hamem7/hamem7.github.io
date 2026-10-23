@@ -128,23 +128,8 @@
         font-size: clamp(2.2rem, min(7.4vh, 4.8vw), 4.9rem) !important;
         line-height: 1.8 !important;
     }
-    /* معنى الكلمة: آية كاملة (قد تبلغ ثلاثة أسطر) ثم أربعة خيارات — خط أصغر وخيارات مضغوطة */
-    body[data-dh-screen$="Game.html"][data-game-q="word_meaning"] #game-question > .quran-text {
-        font-size: clamp(1.8rem, min(4.4vh, 3.4vw), 3.2rem) !important;
-        line-height: 1.7 !important;
-    }
-    body[data-dh-screen$="Game.html"][data-game-q="word_meaning"] #game-question .sim-opt-btn {
-        font-size: clamp(1.15rem, 2.6vh, 1.6rem) !important;
-        margin: clamp(4px, 1vh, 12px) 0 !important;
-        padding: clamp(6px, 1.2vh, 12px) 16px !important;
-    }
-    /* لعبة اربط الكلمة بسورتها / اربط أول الآية بآخرها: بطاقات أكبر */
-    body[data-dh-screen$="Game.html"] :is(#interactive-link-area, #kids-link-area) .link-item {
-        font-size: clamp(1.5rem, min(3.6vh, 3vw), 3.3rem);
-        line-height: 1.6;
-        padding: clamp(6px, 1.2vh, 15px) 16px;
-        margin-bottom: clamp(4px, 1vh, 10px);
-    }
+    /* معنى الكلمة + اربط أول الآية بآخرها/اربط الكلمة بسورتها + أسئلة المتشابهات: أحجامها وتوزيعها في css/questionLayout.css
+       (معامل تكبير واحد يحسبه components/questionFit.js حسب المساحة) — لا قواعد خاصة بكل نوع هنا بعد الآن. */
 
     /* وضع ملء الشاشة: إخفاء الترويسة والاستفادة بكامل الارتفاع */
     body[data-game-fs="1"] #main-header { display: none !important; }
@@ -186,94 +171,7 @@
     body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #teacher-eval-buttons { margin-top: 8px !important; }
 }
 
-/* 🌟 أسئلة المتشابهات (كبار: من أي سورة؟ / أكمل الآية / أيّ الآيتين...): الخطوط والألوان كباقي المنصة (IBM Plex للنص وAmiri Quran للآيات
-   وأزرار .btn-outline الفيروزية) — فقط الأحجام والمسافات تتبع ارتفاع النافذة فيظهر السؤال وكل خياراته بلا تمرير */
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question { margin-bottom: 8px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] .game-main-area { padding-top: 12px !important; padding-bottom: 12px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student { padding: 4px 10px !important; margin-bottom: 8px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student img { width: 44px !important; height: 44px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] .in-game-student h3 { font-size: 1.35rem !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title { margin-bottom: clamp(4px, 1vh, 10px) !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-title > span { font-size: clamp(1.3rem, 3.2vh, 2rem) !important; padding: 4px 28px !important; }
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-text {
-    font-size: clamp(1.2rem, 2.9vh, 2rem) !important;
-    line-height: 1.5 !important;
-    margin: 0 0 clamp(4px, 1vh, 10px) !important;
-}
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-q-verse {
-    display: inline-block;
-    max-width: 100%;
-    box-sizing: border-box;
-    font-size: clamp(1.6rem, 4vh, 3rem) !important;
-    line-height: 1.7 !important;
-    padding: 2px 18px !important;
-    margin: 2px 0 !important;
-}
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opts {
-    display: grid;
-    gap: clamp(6px, 1.4vh, 14px);
-    max-width: 1000px !important;
-    margin-top: clamp(4px, 1vh, 10px) !important;
-}
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn {
-    margin: 0 !important;
-    padding: clamp(4px, 1vh, 10px) 20px !important;
-    font-size: clamp(1.3rem, 3.2vh, 2.1rem) !important;
-    line-height: 1.5 !important;
-    white-space: normal;
-}
-/* خيارات الآيات: خط الآيات بحجم يتبع الارتفاع، مضغوط كي يظهر السؤال وكل الخيارات بلا تمرير */
-body[data-dh-screen$="Game.html"][data-game-q="similar"] #game-question .sim-opt-btn.quran-text {
-    font-size: clamp(1.5rem, 3.7vh, 2.8rem) !important;
-    line-height: 1.7 !important;
-}
-
-/* 🌟 «اقرأ الآية من السورة المذكورة» (sim_named): المحتوى في منتصف اللوحة ويملؤها — عنوان وسؤال وعبارة كبيرة ثم الأزرار بحجم متناسق،
-   والأحجام تتبع ارتفاع النافذة فلا يظهر تمرير للصفحة (التلميحات الإضافية تُمرَّر داخل اللوحة فقط). RTL/LTR: التخطيط عمودي متماثل فيعمل مع اللغتين. */
-@media (min-width: 901px) {
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] .game-main-area {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: clamp(8px, 2vh, 22px);
-    }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-title { margin-bottom: clamp(10px, 3vh, 34px) !important; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-title > span { font-size: clamp(1.5rem, 3.6vh, 2.3rem) !important; padding: 8px 36px !important; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question { margin: 0 !important; max-width: 1100px; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question .sim-q-text {
-        font-size: clamp(1.6rem, 4vh, 2.6rem) !important;
-        line-height: 1.9 !important;
-        margin: 0 !important;
-    }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #game-question .sim-q-verse {
-        display: inline-block;
-        font-size: clamp(2.2rem, 6vh, 4rem) !important;
-        line-height: 1.8 !important;
-        padding: 4px 26px !important;
-        margin: 0 8px !important;
-        vertical-align: middle;
-    }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area .btn {
-        font-size: clamp(1.3rem, 3vh, 1.9rem) !important;
-        padding: clamp(10px, 1.8vh, 16px) clamp(28px, 3vw, 48px) !important;
-        min-width: 220px;
-    }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #hint-btn,
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #show-ans-btn { margin: 0 !important; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-area > div[style*="margin-top"],
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #teacher-eval-buttons { margin-top: 0 !important; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] #hint-text { width: min(100%, 900px); margin-bottom: 0 !important; font-size: clamp(1.4rem, 3.4vh, 2.2rem) !important; }
-    body[data-dh-screen$="Game.html"][data-sim-kind="sim_named"] .answer-box { width: min(100%, 1000px); }
-}
+/* 🌟 أسئلة المتشابهات (كل أنواعها) وسؤال «اقرأ الآية من السورة المذكورة»: انتقلت إلى css/questionLayout.css — راجع تعليق السبب الجذري هناك. */
 
 /* زر ملء الشاشة — مخفي على الهاتف (لا فائدة منه هناك وتدعمه متصفحات قليلة) */
 .game-fs-btn { width: 100%; margin-top: 10px; padding: 10px; }

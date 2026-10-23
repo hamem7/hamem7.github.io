@@ -18,6 +18,7 @@ import { readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord }
 import { bindNoteSheet, toggleNoteSheet, closeNoteSheet, readNoteChips } from '../components/noteSheet.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+import { initQuestionFit } from '../components/questionFit.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع وكمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
@@ -199,6 +200,7 @@ function initGameUI() {
     // 🌟 [إصلاح فحص الأزرار] أُزيل سطر الإسناد الذاتي هنا (كان يشير لمعرّف مجرد)؛ التعريف الفعلي لـ window.recordKidsAnswer أدناه على مستوى الملف 🌟
     initGameSoundToggle();
     initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
+    initQuestionFit(); // 🌟 [جديد] ملاءمة خطوط أسئلة المتشابهات/الربط للمساحة تلقائيًا — راجع components/questionFit.js وcss/questionLayout.css
     initAudio(); 
     
     GameState.sessionStartTime = new Date(); 

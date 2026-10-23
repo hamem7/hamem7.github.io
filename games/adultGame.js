@@ -19,6 +19,7 @@ import { readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord }
 import { bindNoteSheet, toggleNoteSheet, closeNoteSheet, readNoteChips } from '../components/noteSheet.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { initGameFullscreen } from '../components/gameFullscreen.js';
+import { initQuestionFit } from '../components/questionFit.js';
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع للشيخ… ثم كمّل»
 import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
@@ -427,6 +428,7 @@ function initGameUI() {
 
     initGameSoundToggle();
     initGameFullscreen(); // 🌟 [جديد] زر ملء الشاشة للعرض أمام الطلاب — راجع components/gameFullscreen.js
+    initQuestionFit(); // 🌟 [جديد] ملاءمة خطوط أسئلة المتشابهات/الربط للمساحة تلقائيًا — راجع components/questionFit.js وcss/questionLayout.css
     initAudio(); 
     startTimer(30); 
     
@@ -956,7 +958,7 @@ async function playNextMission() {
                 const cd = GameState.currentData;
                 document.body.dataset.gameQ = 'word_meaning'; // آية كاملة + 4 خيارات: خط أصغر (css/gameFullscreen.css) ليظهر السؤال وخياراته
                 cd.optionTexts = cd.options;
-                document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
+                document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div class="sim-opts" style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
                     `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;">${escapeOptHtml(opt)}</button>`).join('') + `</div>`);
             }
             // 🌟 [جديد — 2026-10-22] «اقرأ الآية من السورة المذكورة»: مساعدات متدرجة (أول كلمة ← الآية السابقة ← 3 آيات) بزر التلميح نفسه

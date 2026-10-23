@@ -1,0 +1,142 @@
+/* css/questionLayout.css
+   🌟 [جديد 2026-10-23] تخطيط موحّد لأسئلة: المتشابهات (كل أنواعها) + معنى الكلمة (data-qfit="sim")،
+   واربط أول الآية بآخرها / اربط الكلمة بسورتها للكبار والصغار (data-qfit="link").
+   السبب الجذري للخلل السابق: لكل نوع سؤال كانت قواعد خاصة بأحجام ثابتة أو clamp(vh) في gameFullscreen.css وmobile.css:
+     · «اقرأ الآية من السورة المذكورة» جعل .game-main-area flex بـ align-items:center فانكمش شريط اسم الطالب (340px بدل عرض اللوحة)
+       وبـ justify-content:center فيُقصّ أعلى المحتوى عند تجاوزه الارتفاع، والآية inline-block وسط الجملة فتتمزق الجملة حولها.
+     · «أي سورة لم ترد؟» و«معنى الكلمة» و«اربط» كل منها بحجم/حشوة مختلف، فيبقى نصف اللوحة فارغًا على الشاشات الكبيرة
+       ويتجاوز الشاشة على الهاتف.
+   الحل: كل الأحجام هنا مضروبة في --u = --qf × --qb؛ و--qf يحسبه components/questionFit.js (أكبر قيمة تُناسب المساحة).
+   لا شيء هنا يعمل إلا إذا وُسم <body> بـ data-qfit، فبقية الأسئلة لا تتأثر إطلاقًا.
+   الاتجاه: لا خصائص left/right — فقط margin-inline/inset المنطقية والمحاذاة بالمنتصف، فيصحّ في RTL وLTR معًا. */
+
+body[data-qfit] { --qb: 1rem; --u: calc(var(--qf, 1) * var(--qb)); }
+@media (max-width: 900px) { body[data-qfit] { --qb: .9rem; } }
+@media (max-width: 600px) { body[data-qfit] { --qb: .78rem; } }
+
+/* ===== مشترك: اللوحة عمود واحد؛ شريط الطالب والعنوان بعرض اللوحة كباقي الأسئلة؛ المحتوى النشط يتوسّط رأسيًا بلا قصّ ===== */
+body[data-qfit] #app-root .game-main-area { display: flex; flex-direction: column; align-items: stretch; }
+body[data-qfit] #app-root .game-main-area > #teacher-eval-area,
+body[data-qfit] #app-root .game-main-area > #interactive-link-area,
+body[data-qfit] #app-root .game-main-area > #kids-link-area {
+    margin-block: auto !important;   /* هوامش auto تتوسّط عند وجود فراغ وتنهار إلى 0 عند التجاوز (بخلاف justify-content:center الذي يقصّ الأعلى) */
+    width: 100%; box-sizing: border-box; text-align: center;
+}
+
+/* ===== المتشابهات + معنى الكلمة ===== */
+body[data-qfit="sim"] #app-root #game-question {
+    margin: 0 auto !important; max-width: min(100%, 1100px); text-align: center;
+}
+/* نص السؤال: كتلة واحدة؛ العبارة القرآنية في سطرها الخاص بدل أن تكون inline-block وسط الجملة فتتمزق */
+body[data-qfit="sim"] #app-root #game-question .sim-q-text {
+    font-size: max(1.05rem, calc(1.75 * var(--u))) !important;
+    line-height: 1.75 !important;
+    margin: 0 0 calc(.5 * var(--u)) !important;
+    overflow-wrap: anywhere;
+}
+body[data-qfit="sim"] #app-root #game-question :is(.sim-q-verse, > .quran-text) {
+    display: block !important; width: fit-content; max-width: 100%; box-sizing: border-box;
+    margin: calc(.3 * var(--u)) auto !important;
+    padding-inline: .6em !important;
+    font-size: max(1.5rem, calc(2.9 * var(--u))) !important;
+    line-height: 1.8 !important;
+}
+body[data-qfit="sim"] #app-root #game-question .sim-opts {
+    display: grid !important; gap: calc(.55 * var(--u));
+    width: 100%; max-width: min(100%, 960px) !important; margin: calc(.45 * var(--u)) auto 0 !important;
+}
+body[data-qfit="sim"] #app-root #game-question .sim-opt-btn {
+    margin: 0 !important; width: 100%; box-sizing: border-box; white-space: normal; overflow-wrap: anywhere;
+    padding: calc(.45 * var(--u)) 1rem !important;
+    font-size: max(1.15rem, calc(2.1 * var(--u))) !important;
+    line-height: 1.5 !important;
+}
+body[data-qfit="sim"] #app-root #game-question .sim-opt-btn.quran-text {
+    font-size: max(1.3rem, calc(2.5 * var(--u))) !important;
+    line-height: 1.75 !important;
+}
+/* أزرار المعلم والتلميح تحت السؤال (اقرأ الآية من السورة المذكورة...): بحجم يتبع نفس المقياس */
+body[data-qfit="sim"] #app-root #teacher-eval-area .btn {
+    font-size: max(1rem, calc(1.3 * var(--u))) !important;
+    padding: calc(.5 * var(--u)) calc(1.3 * var(--u)) !important;
+}
+/* التلميح و«إظهار الإجابة» في صف واحد (يوفّر سطرًا على الهاتف)، والسؤال وصناديق التلميح/الإجابة/التقييم بعرض كامل */
+body[data-qfit="sim"] #app-root #teacher-eval-area:not([style*="display: none"]) {
+    display: flex !important; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: calc(.8 * var(--u));
+}
+body[data-qfit="sim"] #app-root #teacher-eval-area > * { flex: 0 0 auto; }
+body[data-qfit="sim"] #app-root #teacher-eval-area > :is(#game-question, #hint-text, #game-answer, #teacher-eval-buttons, #partial-choice, #note-sheet) { flex: 0 0 100%; box-sizing: border-box; }
+body[data-qfit="sim"] #app-root #hint-btn { margin: calc(.6 * var(--u)) 0 0 !important; }
+body[data-qfit="sim"] #app-root #teacher-eval-area > div[style*="margin-top"],
+body[data-qfit="sim"] #app-root #teacher-eval-buttons { margin-top: calc(.6 * var(--u)) !important; gap: calc(.6 * var(--u)) !important; }
+body[data-qfit="sim"] #app-root #hint-text {
+    max-width: min(100%, 900px); margin: calc(.5 * var(--u)) auto !important; box-sizing: border-box;
+    font-size: max(1.2rem, calc(1.7 * var(--u))) !important; padding: calc(.5 * var(--u)) !important;
+}
+body[data-qfit="sim"] #app-root .answer-box { max-width: min(100%, 1000px); margin-inline: auto; }
+
+/* ===== اربط (الكبار #interactive-link-area والصغار #kids-link-area) ===== */
+body[data-qfit="link"] #app-root :is(#interactive-link-area, #kids-link-area) > p {
+    font-size: max(1rem, calc(1.25 * var(--u))) !important; line-height: 1.6 !important;
+    margin: 0 auto calc(.5 * var(--u)) !important; text-align: center;
+}
+body[data-qfit="link"] #app-root :is(#interactive-link-area, #kids-link-area) { margin-top: 0 !important; }
+body[data-qfit="link"] #app-root .link-grid {
+    flex-direction: row !important; align-items: stretch !important; justify-content: center;
+    gap: calc(.8 * var(--u)) !important; margin-top: calc(.3 * var(--u)) !important;
+}
+body[data-qfit="link"] #app-root .link-col {
+    flex: 1 1 0; min-width: 0; box-sizing: border-box;
+    padding: calc(.6 * var(--u)) calc(.7 * var(--u)) !important; border-radius: calc(.9 * var(--u)) !important;
+}
+body[data-qfit="link"] #app-root .link-col h3 {
+    font-size: max(.95rem, calc(1.2 * var(--u))) !important; line-height: 1.4 !important; margin: 0 0 calc(.4 * var(--u)) !important; padding: 0 !important;
+}
+/* بطاقات الآيات: كتلة بعرض العمود (قائمة متراصة) وخط كبير يناسب الأطفال، يتبع المساحة المتاحة */
+body[data-qfit="link"] #app-root .link-item {
+    display: block !important; width: 100%; box-sizing: border-box; text-align: center; overflow-wrap: anywhere;
+    margin: 0 0 calc(.4 * var(--u)) !important;
+    padding: calc(.2 * var(--u)) calc(.6 * var(--u)) !important;
+    font-size: max(1.3rem, min(calc(2.6 * var(--u)), 9vw)) !important;
+    line-height: 1.75 !important;
+}
+body[data-qfit="link"] #app-root .link-item .link-unknown-btn { font-size: max(.85rem, calc(.95 * var(--u))) !important; }
+
+/* أثناء قياس المساحة (components/questionFit.js) تُوقَف الانتقالات حتى لا يُقاس تخطيط قديم */
+body[data-qfit-measuring] #app-root * { transition: none !important; }
+
+/* ===== آيباد/تابلت رأسي (769–900px) =====
+   السبب الجذري: ضغط لوحة المؤقت/المسار (mobile.css §8) مشروط بـ max-width:768px، فعلى 810–900px تبقى اللوحة الكبيرة (~500px) فوق السؤال
+   فيُدفع إلى أسفل الشاشة ويظهر تمرير حتى لأقصر الأسئلة. نفس قواعد الهاتف تُطبَّق هنا لشاشة اللعب فقط (تخطيط وأحجام؛ لا منطق). */
+@media (min-width: 769px) and (max-width: 900px) {
+    body[data-dh-screen$="Game.html"] #app-root .game-layout { margin: 0 auto !important; gap: 10px !important; padding: 0 !important; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 10px 12px !important; border-radius: var(--m-radius-lg, 18px) !important; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar > * { flex: 0 0 100%; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar .timer-text { flex: 0 0 auto; font-size: 1.45rem; margin: 0; padding: 0; border-bottom: 0; line-height: 1.2; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar > h3 { flex: 0 1 auto; font-size: .95rem !important; margin: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
+    body[data-dh-screen$="Game.html"] #app-root .tracker-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+    body[data-dh-screen$="Game.html"] #app-root .q-circle { width: 30px; height: 30px; font-size: .85rem; border-width: 1.5px; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar :is(#btn-pause-game, #btn-exit-game) {
+        flex: 1 1 0; width: auto !important; margin: 2px 0 0 !important; min-width: 0;
+        font-size: .95rem !important; min-height: 40px; padding: 6px 12px !important;
+    }
+    body[data-dh-screen$="Game.html"] #app-root .game-main-area { padding: 14px 16px !important; }
+    body[data-dh-screen$="Game.html"] #app-root .in-game-student { padding: 2px 10px !important; margin-bottom: 8px !important; gap: 10px !important; }
+    body[data-dh-screen$="Game.html"] #app-root .in-game-student img { width: 42px !important; height: 42px !important; border-width: 2px !important; }
+    body[data-dh-screen$="Game.html"] #app-root .in-game-student h3 { font-size: 1.15rem !important; }
+    body[data-dh-screen$="Game.html"] #app-root #game-title { margin-bottom: 10px !important; }
+    body[data-dh-screen$="Game.html"] #app-root #game-title > span { font-size: 1.4rem !important; padding: 6px 22px !important; }
+}
+
+/* ===== هاتف صغير (≤600px): لوحة المؤقت/المسار أنحف — كانت تأخذ ~280px من 640px (ثلاثة أسطر دوائر + زرّان + زر صوت منفصل) =====
+   الأزرار الثلاثة في صف واحد والدوائر أصغر؛ تخطيط فقط، يخدم كل أنواع الأسئلة بالتساوي. */
+@media (max-width: 600px) {
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar { padding: 8px 10px !important; gap: 6px; }
+    body[data-dh-screen$="Game.html"] #app-root .q-circle { width: 24px; height: 24px; font-size: .72rem; }
+    body[data-dh-screen$="Game.html"] #app-root .tracker-grid { gap: 3px; }
+    body[data-dh-screen$="Game.html"] #app-root .game-sidebar :is(#btn-pause-game, #btn-exit-game, #btn-game-sound) {
+        flex: 1 1 0 !important; width: auto !important; min-width: 0; margin: 0 !important;
+        font-size: .74rem !important; line-height: 1.25; min-height: 38px; padding: 4px 6px !important;
+    }
+    body[data-qfit="link"] #app-root .link-item { font-size: max(1.15rem, min(calc(2.6 * var(--u)), 9vw)) !important; }
+}
