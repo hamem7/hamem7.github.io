@@ -113,8 +113,25 @@ function bindDueAutoRefresh() {
     });
 }
 
+// 🌟 [إصلاح الترجمة] عند تبديل اللغة والشاشة مفتوحة: العناصر ذات data-i18n تُترجَم تلقائياً، أما النصوص التي يضبطها
+// JS (setupSmartPanelStatic) وصفوف السجل وبطاقة «مستحق اليوم» فكانت تبقى بلغتها القديمة. نعيد ضبطها هنا. يُربط مرة واحدة.
+let langBound = false;
+function bindLangRefresh() {
+    if (langBound) return;
+    langBound = true;
+    document.addEventListener('app-lang-changed', () => {
+        if (!document.getElementById('hw-smart-desc')) return;   // الشاشة غير مفتوحة الآن
+        try {
+            setupSmartPanelStatic();
+            loadHomeworkDashboard().catch(() => {});
+            refreshSmartInfo().catch(() => {});
+        } catch (e) { console.warn('تعذر تحديث لغة شاشة الواجبات:', e); }
+    });
+}
+
 export async function initHomeworkPrep() {
     bindDueAutoRefresh();
+    bindLangRefresh();
     // 🌟 [2026-10-02] حلّت الجولة الإرشادية (components/guidedTour.js) محل تلميح 'homework_prep' القديم.
     // تنتظر ظهور عناصر الشاشة فعلياً قبل الإبراز، وbest-effort (أي فشل لا يمنع فتح الشاشة).
     import('../components/guidedTour.js').then(m => m.maybeStartTour('homework')).catch(() => {});
