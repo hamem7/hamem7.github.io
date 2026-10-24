@@ -374,7 +374,7 @@ async function renderDueForReview() {
             foot.className = 'qc-foot';
             const over = schedRows.length > capacity && capacity > 0;
             foot.innerHTML = `${over ? `<span class="qc-foot-warn">${esc(L(`اليوم ${schedRows.length} واجبات تنتظر الإعداد وطاقتك الموزَّعة ${capacity} — رحّل ما تشاء لغد (⏭).`, `${schedRows.length} homeworks are waiting today and your balanced capacity is ${capacity} — postpone some (⏭).`))}</span>` : ''}
-                <button type="button" class="qc-foot-btn">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>
+                <button type="button" class="qc-foot-btn qc-foot-week">📅 ${esc(L('جدول الأسبوع', 'Weekly schedule'))}</button>
                 <button type="button" class="qc-foot-btn qc-foot-bulk">📤 ${esc(L('الإرسال الجماعي', 'Bulk send'))}</button>`;
             foot.querySelector('.qc-foot-btn').addEventListener('click', async (e) => {
                 e.stopPropagation();
