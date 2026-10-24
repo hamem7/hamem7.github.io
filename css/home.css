@@ -969,6 +969,9 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+.home-card-badge { position: absolute; top: 14px; inset-inline-end: 14px; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; background: #b45309; color: #fff; }
+.home-card-badge[hidden] { display: none; }
+
 .home-card:hover {
     transform: translateY(-5px);
     box-shadow: var(--dh-shadow-lift);

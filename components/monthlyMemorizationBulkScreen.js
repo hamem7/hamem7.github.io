@@ -23,8 +23,8 @@
 // تفاعل من المعلم — تحقيقًا لمبدأ "المعلم يسجّل الحقائق فقط، والنظام يحسب الباقي".
 //
 // نقطتا الاستدعاء الرئيسيتان لهذه الشاشة الجماعية:
-//   1) تلقائيًا مرة واحدة يوميًا كحد أقصى (وليس عند كل دخول) من الشاشة الرئيسية —
-//      راجع maybeAutoOpenMonthlyMemorizationBulk في core/app.js.
+//   1) [2026-10-24] لم يعد هناك فتح تلقائي: تظهر شارة «N بانتظارك» على بطاقة «طلابي» في الرئيسية
+//      (refreshHomeStudentsBadge في core/app.js) والمعلم يفتح الشاشة بنفسه.
 //   2) يدويًا في أي وقت من زر "📋 تسجيل الحفظ الشهري لكل الطلاب" في شاشة
 //      student/my-students.html — لمعالجة أي طالب تم تخطّيه سابقًا.
 // (بالإضافة لنقطة استدعاء ثالثة أحادية الطالب: openInitialPositionForNewStudent)
@@ -47,7 +47,6 @@ import {
 } from '../engine/memorizationEngine.js';
 
 const STYLE_ID = 'mmb-styles';
-const AUTO_SHOWN_FLAG_KEY = 'darham_monthly_memo_bulk_last_auto_shown';
 
 // الهيدر العلوي للمنصة (#main-header) يبقى ظاهرًا فوق الشاشات: نبدأ الغطاء من أسفله
 function placeBelowMainHeader(overlay) {
@@ -845,30 +844,6 @@ export async function openInitialPositionForNewStudent(student) {
     console.error('[monthlyMemorizationBulkScreen.js] تعذر عرض شاشة نقطة البداية الأولى للطالب الجديد:', e);
   }
 }
-
-/**
- * الفحص التلقائي — يُستدعى مرة واحدة عند إقلاع المنصة (راجع core/app.js). لا يعرض
- * شيئًا إطلاقًا لو: (أ) لا يوجد أي طالب معلَّق، أو (ب) سبق العرض تلقائيًا اليوم
- * بالفعل (راجع تعليق أعلى الملف لسبب "يوميًا" تحديدًا بدل "مرة كل الشهر").
- */
-export async function maybeAutoOpenMonthlyMemorizationBulk() {
-  try {
-    const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    let lastShown = null;
-    try { lastShown = localStorage.getItem(AUTO_SHOWN_FLAG_KEY); } catch (e) { /* تجاهل */ }
-    if (lastShown === todayKey) return;
-
-    const queue = await buildPendingQueue();
-    if (!queue.length) return;
-
-    try { localStorage.setItem(AUTO_SHOWN_FLAG_KEY, todayKey); } catch (e) { /* تجاهل */ }
-
-    await openMemorizationTable(queue, { totalStudents: await countActiveStudents() });
-  } catch (e) {
-    console.error('[monthlyMemorizationBulkScreen.js] تعذر الفحص التلقائي للحفظ الشهري:', e);
-  }
-}
-
 
 /**
  * 🌟 [جديد] تسجيل/تعديل "آخر سورة وآية" لشهر محدَّد لطالب واحد — تُستدعى من مركز

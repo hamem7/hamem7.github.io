@@ -684,7 +684,7 @@ function watchMyStudentsOverlays() {
     _msOverlayObserver?.disconnect();
     _msOverlayObserver = new MutationObserver((mutations) => {
         if (!document.getElementById('ms-screen')) { _msOverlayObserver.disconnect(); _msOverlayObserver = null; return; }
-        const closed = mutations.some(mu => [...mu.removedNodes].some(n => n.nodeType === 1 && n.classList && (n.classList.contains('mmb-overlay') || n.classList.contains('mrh-overlay'))));
+        const closed = mutations.some(mu => [...mu.removedNodes].some(n => n.nodeType === 1 && n.classList && (n.classList.contains('mmb-overlay') || n.classList.contains('mmt-overlay') || n.classList.contains('mrh-overlay'))));
         if (closed) refreshMyStudentsSummary();
     });
     _msOverlayObserver.observe(document.body, { childList: true });
@@ -1195,9 +1195,8 @@ export async function loadStudentProfileScreen() {
             // 🌟 [مُعدَّل — بطلب صريح من المعلم بعد أول تجربة] كان هنا فحص "تسجيل الحفظ
             // الشهري" يظهر عند فتح كل ملف طالب على حدة — أُزيل نهائيًا من هنا لأنه كان
             // يظهر بشكل مزعج (نفس النافذة تتكرر عند كل دخول لنفس الطالب طالما لم تُكمَّل
-            // كل خطواته). الفحص الآن أصبح شاشة واحدة جامعة لكل الطلاب معًا، تُفتح تلقائيًا
-            // مرة واحدة يوميًا من الشاشة الرئيسية (راجع maybeAutoOpenMonthlyMemorizationBulk
-            // في core/app.js)، أو يدويًا في أي وقت من زر "📋 تسجيل الحفظ الشهري لكل
+            // كل خطواته). الفحص الآن أصبح شاشة واحدة جامعة لكل الطلاب معًا، تُفتح بنفسها
+            // لا تلقائيًا (شارة «بانتظارك» على بطاقة «طلابي» تذكّر المعلم)، أي يدويًا في أي وقت من زر "📋 تسجيل الحفظ الشهري لكل
             // الطلاب" في شاشة "طلابي" (راجع components/monthlyMemorizationBulkScreen.js).
 
             const histData = JSON.parse(localStorage.getItem(`history_${student.id}`)) || [];

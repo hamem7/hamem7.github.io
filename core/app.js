@@ -430,15 +430,6 @@ async function bootSystem() {
         // إذا لم يكن هناك رابط مباشر، افتح شاشة المعلم الرئيسية
         await loadSplashScreen();
 
-        // 🌟 [جديد] فحص تلقائي (مرة واحدة يوميًا كحد أقصى) هل يحتاج أي طالب تسجيل
-        // بداية شهر جديد أو نهاية شهر سابق غير مكتمل في "سجل الحفظ الشهري" — استيراد
-        // ديناميكي حتى لا يُحمَّل هذا الملف إطلاقًا في مسار دخول الطالب عبر رابط واجب
-        // مباشر أعلاه. لا يُعطّل إقلاع المنصة إطلاقًا حتى لو فشل (best-effort بالكامل).
-        // راجع components/monthlyMemorizationBulkScreen.js لتفاصيل "مرة يوميًا".
-        import('../components/monthlyMemorizationBulkScreen.js')
-            .then(m => m.maybeAutoOpenMonthlyMemorizationBulk())
-            .catch(err => console.error('تعذر الفحص التلقائي للحفظ الشهري:', err));
-
         // 🌟 فحص "الجديد في هذا التحديث" — بعد فتح الشاشة الرئيسية للمعلم فقط، وليس في
         // مسار دخول الطالب عبر رابط واجب مباشر أعلاه (لأن التحديثات غالباً خاصة بأدوات
         // إدارة المعلم وليست جزءاً من تجربة الطالب) 🌟
@@ -613,10 +604,33 @@ function updateHomeDateBar() {
     }
 }
 
+// 🌟 [2026-10-24 — بطلب المعلم] بدل فتح شاشة «الحفظ» تلقائيًا فوق الرئيسية: شارة «N بانتظارك» على بطاقة «طلابي»
+// (نفس نص ms_badge_memo ونفس عدّاد شاشة طلابي). best-effort: أي فشل يُبقي الشارة مخفية. الاستيراد ديناميكي كي لا يُحمَّل
+// الملف في مسار دخول الطالب. تُعاد صياغة النص عند تبديل اللغة لأن الشارة بلا data-i18n.
+let _homeBadgeLangBound = false;
+async function refreshHomeStudentsBadge() {
+    const badge = document.getElementById('home-badge-students');
+    if (!badge) return;
+    const paint = () => {
+        const n = +badge.dataset.n || 0;
+        badge.textContent = tf('ms_badge_memo', { n });
+        badge.hidden = n === 0;
+    };
+    if (!_homeBadgeLangBound) { _homeBadgeLangBound = true; document.addEventListener('app-lang-changed', paint); }
+    try {
+        const m = await import('../components/monthlyMemorizationBulkScreen.js');
+        const n = await m.countPendingMonthlyMemorization();
+        if (n == null || !badge.isConnected) return;
+        badge.dataset.n = String(n);
+        paint();
+    } catch (e) { console.warn('تعذر حساب شارة «طلابي» في الرئيسية:', e); }
+}
+
 function setupSplashListeners() {
     updateHomeDateBar();
     // 🧑‍🏫 الترحيب الشخصي، شارة إكمال البيانات، ملخص الواجبات، وتنبيه يوم ميلاد المعلم
     initTeacherProfileUI();
+    refreshHomeStudentsBadge();
 
     const btnAdult = document.getElementById('btn-adult-main');
     const btnKids = document.getElementById('btn-kids-main');
