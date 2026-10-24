@@ -1940,6 +1940,22 @@ export const translations = {
         report_focus_age_since: "منذ",
         report_focus_age_unit_few: "أيام",
         report_focus_age_unit_many: "يومًا",
+        // 🌟 [جديد] تجميع "بحاجة إلى تركيز" حسب السورة + أرقام الآيات + سطر النمط + ملاحظة ولي الأمر المبنية على الأخطاء 🌟
+        report_focus_list_sep: "، ",
+        report_focus_and_join: " و",
+        report_focus_more_surah_one: "سورة أخرى",
+        report_focus_more_surah_two: "سورتان أخريان",
+        report_focus_more_surah_few: "سور أخرى",
+        report_focus_more_surah_many: "سورة أخرى",
+        report_focus_v_one: "آية {n}",
+        report_focus_v_many: "الآيات {n}",
+        report_focus_v_range: "من الآية {a} إلى الآية {b}",
+        report_focus_pattern: "نمط يتكرر: «{g}» في سور {l}",
+        rp_note_focus_surahs: " ننصح بمراجعة {surahs} مراجعةً هادئة",
+        rp_note_focus_types: "، مع التركيز على {types}",
+        rp_note_focus_repeat: " وبعض هذه المواضع تكرّر الخطأ فيها، وبالصبر والمراجعة القصيرة كل يوم يثبت الحفظ بإذن الله.",
+        rp_note_focus_past_extra: " ولا ننسى {surahs} من الجلسات السابقة.",
+        rp_note_focus_past: " ويبقى لدينا من الجلسات السابقة {surahs} لنعود إليها بلطف.",
 
         // ============================================================
         // 🌟 [جديد بالكامل] شاشات "أبطال التجويد" — المرحلة 1 (كتالوج + تصفّح ثابت)
@@ -4804,6 +4820,22 @@ export const translations = {
         report_focus_age_since: "",
         report_focus_age_unit_few: "days ago",
         report_focus_age_unit_many: "days ago",
+        // 🌟 [New] "Needs focus" grouped by surah + verse numbers + pattern line + a parent note built from the actual mistakes 🌟
+        report_focus_list_sep: ", ",
+        report_focus_and_join: " and ",
+        report_focus_more_surah_one: "more surah",
+        report_focus_more_surah_two: "more surahs",
+        report_focus_more_surah_few: "more surahs",
+        report_focus_more_surah_many: "more surahs",
+        report_focus_v_one: "verse {n}",
+        report_focus_v_many: "verses {n}",
+        report_focus_v_range: "from verse {a} to verse {b}",
+        report_focus_pattern: "Recurring pattern: \"{g}\" in surahs {l}",
+        rp_note_focus_surahs: " We suggest a gentle review of {surahs}",
+        rp_note_focus_types: ", focusing on {types}",
+        rp_note_focus_repeat: " Some of these spots repeated the mistake, and with patience and a short review each day the memorization will settle, God willing.",
+        rp_note_focus_past_extra: " And let's not forget {surahs} from earlier sessions.",
+        rp_note_focus_past: " From earlier sessions, {surahs} are still waiting for us to revisit them gently.",
 
         // ============================================================
         // 🌟 [New] "Tajweed Heroes" screens — Phase 1 (catalog + static browsing)

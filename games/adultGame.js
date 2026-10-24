@@ -1127,7 +1127,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if (reciteRec) { reportText = reciteRec.reportText; ayahNum = reciteRec.num; }
     }
 
-    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null });
+    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null, reciteRanges: reciteRec ? reciteRec.ranges : null });
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة
     // الإتقان الحقيقية (0-100%) في بطاقة "نظرة سريعة" بالشاشة الرئيسية. نحسب كل سؤال

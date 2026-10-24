@@ -446,6 +446,13 @@ function getQuestionResults(){
       // كما هو بذكر رقم الآية، لأنه يُستخدم أيضًا في عرض تفصيل كل سؤال على حدة.
       focusLocation: d.surahName ? tf('rp_loc_surah', { name: surahNamesLocal(d.surahName) }) : (d.location || d.ayahRef || d.reference || ''),
       text: localizeGenerated(d.text || ''),
+      // 🌟 حقول خام لصندوق "بحاجة إلى تركيز": اسم السورة الأصلي، نوع السؤال، رقم الآية، مواضع التسميع،
+      // ونص السؤال غير المترجَم (مفتاح مقارنة ثابت بين اللغات مع سجل weaknesses)
+      rawText: d.text || '',
+      surahRaw: d.surahName || '',
+      qType: d.type || '',
+      ayahNum: d.num != null ? d.num : null,
+      reciteRanges: Array.isArray(d.reciteRanges) ? d.reciteRanges : null,
       status,
       score: computeQuestionScore(d),
       max: 10,
@@ -489,38 +496,20 @@ function buildStats(questionResults){
 // القوة/التركيز من نتائج الأسئلة الفعلية + currentStudent.weaknesses
 // (عناصرها كائنات {text, num, surahName, errorTypes} كما في adultGame.js).
 //
-// 🌟 [إعادة تصميم كاملة لصندوق "بحاجة إلى تركيز"] 🌟
-// السلوك القديم: كان الصندوق يأخذ أول 3 عناصر من student.weaknesses فقط، ولا
-// ينزل لأخطاء الاختبار الحالي إلا إذا كان السجل فارغًا تمامًا. ولأن weaknesses
-// سجل *تراكمي* عبر كل الجلسات (كبار + أطفال) ولا يُشطب منه بند إلا بعد نجاح
-// الطالب فيه داخل "تحدي تصحيح الأخطاء"، كانت النتيجة أن:
-//   1) بندًا قديمًا من جلسة سابقة يظهر لولي الأمر وكأنه خطأ ابنه في اختبار اليوم،
-//   2) وأخطاء اليوم الحقيقية قد لا تظهر إطلاقًا لأن السجل القديم يحجبها،
-//   3) والأسئلة التي حُلّت بتلميح أو بعد إعادة ترتيب (وخُصمت درجتها فعلًا 8/10)
-//      لا تظهر أبدًا رغم أنها أصدق مؤشر على "حفظ غير مثبَّت".
-//
-// السلوك الجديد — ثلاث طبقات بترتيب صارم، كلٌّ منها بعنوان فرعي ظاهر في التقرير
-// حتى يعرف ولي الأمر مصدر كل بند بالضبط:
-//   الطبقة 1: أخطاء اختبار اليوم        (status === 'wrong')            حتى 3 بنود
-//   الطبقة 2: ما يحتاج تثبيتًا اليوم      (status === 'hint' | 'reorder') حتى بندين
-//   الطبقة 3: متابعة من جلسات سابقة      (student.weaknesses)            حتى بندين
-//   وإن خلت الثلاث: السطر الثابت المعتاد كما كان تمامًا.
-// بسقف إجمالي 4 بنود، مع ذكر عدد ما زاد صراحة ("+ن بندًا آخر") بدل إخفائه صامتًا.
-//
-// افتراضات صرّحنا بها بدل تنفيذها بصمت:
-//   • "متابعة سابقة" = أي عنصر باقٍ في weaknesses لم يُعالَج بعد، أيًّا كان مصدره
-//     (ركن الكبار أو ركن الأطفال) وأيًّا كان نطاق اختبار اليوم — لأن السجل نفسه
-//     لا يحمل ما يربطه بنطاق بعينه.
-//   • عمر البند يُحسب من w.dateRecorded المخزَّن فعلًا في errorObj، ويُعرض كما هو
-//     دون تقريب؛ وأي سجل قديم بلا هذا الحقل يظهر بلا ذكر عمر بدل تخمينه.
-//   • تطابق بند اليوم مع بند في السجل القديم يُعتبر "خطأ متكرر" ويُدمجان في بند
-//     واحد، والمقارنة بنص السؤال (reportText) بعد تجريد التشكيل — نفس مفتاح
-//     المقارنة المستخدم في adultGame.js/kidsGame.js بالحرف.
-// -----------------------------------------------------------------------------
-const FOCUS_MAX_TOTAL   = 4;  // سقف بنود الصندوق كله
-const FOCUS_MAX_TODAY   = 3;  // سقف أخطاء اليوم
-const FOCUS_MAX_PARTIAL = 2;  // سقف "يحتاج تثبيتًا"
-const FOCUS_MAX_PAST    = 2;  // سقف المتابعة السابقة
+// 🌟 [إعادة تصميم ثانية لصندوق "بحاجة إلى تركيز"] — تجميع حسب السورة 🌟
+// المصدر: نتائج أسئلة اليوم (خطأ / تلميح / إعادة ترتيب) + سجل student.weaknesses لما لم يُعالَج بعد.
+// القواعد:
+//   • كل سورة بلوك واحد باسمها، وتحته أنواع الأخطاء جنبًا إلى جنب (تلتف عند ضيق المكان).
+//   • داخل السورة: أنواع اللعب التي لها نفس السبب بالضبط تُدمج في سطر واحد (🔀 رتب الآيات + 🔗 ربط الآيات — السبب).
+//   • بين السور: السطر المتطابق تمامًا (نفس الأنواع ونفس السبب) في سورتين فأكثر يُكتب مرة واحدة بأسماء السور.
+//   • أول 3 بلوكات بتفاصيلها، والسور الباقية بأسمائها فقط (سورتان في السطر)، وما زاد على 8 سور يُعَدّ صراحة.
+//   • رقم الآية يُذكر لصيد الآية واكتشف الخطأ والذاكرة البصرية؛ وللتسميع "من الآية أ إلى الآية ب" إن حدّده المعلم.
+//   • "خطأ متكرر" فقط إذا كان للبند سجل في weaknesses أقدم من بداية جلسة اليوم. ⚠️ اللعبة تحفظ خطأ اليوم في
+//     weaknesses قبل فتح التقرير، فمجرد وجود البند في السجل لا يعني التكرار (كان هذا سبب ظهور العبارة على كل خطأ).
+//     السجل لا يعدّ المرات، فنفرّق بين "أول مرة" و"سبق الخطأ فيه" فقط.
+const FOCUS_MAX_DETAILED = 3;  // بلوكات تُعرض بتفاصيلها
+const FOCUS_MAX_COMPACT  = 8;  // سور تُعرض بأسمائها فقط
+const FOCUS_VERSE_TYPE = /^(kids_)?(catch|mistake|visual_memory|recite)$/;
 
 // تجريد النص من التشكيل والتطويل وعلامات الآية قبل المقارنة — نفس فلسفة
 // normalizeForCompare في ملفات الألعاب، منسوخة هنا محليًا فقط حتى يبقى التقرير
@@ -535,31 +524,20 @@ function normalizeFocusKey(text){
     .replace(/\s+/g, ' ')
     .trim();
 }
-// صياغة سطر الفائض بصيغة عربية سليمة (مفرد/مثنى/جمع قلة/جمع كثرة) بدل رقم ملصوق
-// بصيغة واحدة تنتج "+ 1 بندًا آخر" وهو خطأ لغوي في تقرير يُطبع لولي الأمر.
-function focusMoreLabel(n){
+// "أ، ب و ج" (عربي) | "A, B and C" (إنجليزي)
+function focusJoin(list){
+  if (list.length <= 1) return list[0] || '';
+  return list.slice(0, -1).join(t('report_focus_list_sep')) + t('report_focus_and_join') + list[list.length - 1];
+}
+// صياغة سطر الفائض (للبنود غير المنسوبة لسورة) بصيغة عربية سليمة (مفرد/مثنى/جمع قلة/جمع كثرة)
+function focusMoreLabel(n, unit){
+  const p = unit === 'surah' ? 'report_focus_more_surah_' : 'report_focus_more_';
   if (AppState.currentLang === 'en') {
-    return `+ ${n} ${n === 1 ? t('report_focus_more_one') : t('report_focus_more_many')}`;
+    return `+ ${n} ${n === 1 ? t(p + 'one') : t(p + 'many')}`;
   }
-  if (n === 1) return `+ ${t('report_focus_more_one')}`;
-  if (n === 2) return `+ ${t('report_focus_more_two')}`;
-  return `+ ${n} ${n <= 10 ? t('report_focus_more_few') : t('report_focus_more_many')}`;
-}
-function focusKeyOfResult(r){
-  return normalizeFocusKey(r.text || `${r.location || ''} ${r.type || ''}`);
-}
-// "سورة الشمس" — نفس صيغة focusLocation المبنية في getQuestionResults تمامًا،
-// حتى يظهر بند السجل القديم بنفس شكل بند اليوم بلا اختلاف بصري. هذه الدالة
-// تُستخدم فقط داخل صندوق "بحاجة إلى تركيز" (طبقة "متابعة سابقة")، لذا لا تذكر
-// رقم الآية عمدًا — راجع تعليق focusLocation أعلاه في getQuestionResults 🌟
-function weaknessLocation(w){
-  if (!w.surahName) return '';
-  return tf('rp_loc_surah', { name: surahNamesLocal(w.surahName) });
-}
-function joinFocusParts(location, type, reason){
-  const head = [location, type].filter(Boolean).join(' · ');
-  if (!head) return reason || '';
-  return reason ? `${head} — ${reason}` : head;
+  if (n === 1) return `+ ${t(p + 'one')}`;
+  if (n === 2) return `+ ${t(p + 'two')}`;
+  return `+ ${n} ${n <= 10 ? t(p + 'few') : t(p + 'many')}`;
 }
 function focusAgeLabel(dateRecorded){
   if (!dateRecorded) return '';
@@ -574,10 +552,229 @@ function focusAgeLabel(dateRecorded){
   // اللغتين، لذا نركّب الجملة حسب اللغة بدل ربط المفاتيح بترتيب عربي ثابت.
   return AppState.currentLang === 'en' ? `${days} ${unit}` : `${t('report_focus_age_since')} ${days} ${unit}`;
 }
+// "سورة الشمس" — بلا رقم آية؛ رقم الآية يُذكر بجانب نوع السؤال لا بجانب السورة.
+function focusSurahLabel(raw){
+  return raw ? tf('rp_loc_surah', { name: surahNamesLocal(raw) }) : '';
+}
+function stripLeadingEmoji(label){
+  return String(label || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+}
+
+// موضع الخطأ من آية/آيات: { nums:[5] } أو { ranges:[[أ,ب]] } أو null (لا يُذكر)
+function focusVerseInfo(qType, num, ranges){
+  const type = String(qType || '');
+  if (!FOCUS_VERSE_TYPE.test(type)) return null;
+  if (Array.isArray(ranges) && ranges.length) {
+    const rs = ranges.map(r => [Number(r && r.from), Number(r && r.to)]).filter(r => r[0] > 0 && r[1] >= r[0]);
+    return rs.length ? { ranges: rs } : null;
+  }
+  if (/recite$/.test(type)) return null; // تسميع بلا تحديد موضع: لا رقم آية يُنسب إليه
+  const n = Number(num);
+  return n > 0 ? { nums: [n] } : null;
+}
+function focusVerseText(infos){
+  const sep = t('report_focus_list_sep');
+  const nums = [], ranges = [];
+  infos.forEach(v => {
+    if (!v) return;
+    (v.nums || []).forEach(n => { if (!nums.includes(n)) nums.push(n); });
+    (v.ranges || []).forEach(r => { if (!ranges.some(x => x[0] === r[0] && x[1] === r[1])) ranges.push(r); });
+  });
+  nums.sort((a, b) => a - b);
+  const parts = [];
+  if (nums.length === 1) parts.push(tf('report_focus_v_one', { n: nums[0] }));
+  else if (nums.length > 1) parts.push(tf('report_focus_v_many', { n: nums.join(sep) }));
+  ranges.forEach(r => parts.push(r[0] === r[1] ? tf('report_focus_v_one', { n: r[0] }) : tf('report_focus_v_range', { a: r[0], b: r[1] })));
+  return parts.join(sep);
+}
+
+// يجمع بنود الصندوق: أخطاء اليوم أولًا (rank 0 خطأ، 1 تلميح/إعادة ترتيب)، ثم ما بقي في السجل (rank 2)
+function collectFocusEntries(student, questionResults){
+  const weaknesses = Array.isArray(student.weaknesses) ? student.weaknesses : [];
+  const weakByKey = new Map();
+  weaknesses.forEach(w => {
+    const key = normalizeFocusKey(typeof w === 'string' ? w : w.text);
+    if (key && !weakByKey.has(key)) weakByKey.set(key, w);
+  });
+  const sessionStart = (activeGameState && activeGameState.sessionStartTime) ? new Date(activeGameState.sessionStartTime).getTime() : NaN;
+  const dayStart = new Date(); dayStart.setHours(0, 0, 0, 0);
+  const boundary = isNaN(sessionStart) ? dayStart.getTime() : sessionStart;
+  // سجل بلا تاريخ = سجل قديم قبل إضافة dateRecorded، فهو سابق لهذه الجلسة بالتأكيد
+  const recordedBefore = w => {
+    if (!w || typeof w === 'string') return true;
+    const ts = Date.parse(w.dateRecorded);
+    return isNaN(ts) ? true : ts < boundary;
+  };
+
+  const entries = [];
+  const todayKeys = new Set();
+  questionResults.filter(r => r.status === 'wrong' || r.status === 'hint' || r.status === 'reorder').forEach(r => {
+    const key = normalizeFocusKey(r.rawText || r.text || `${r.location || ''} ${r.type || ''}`);
+    todayKeys.add(key);
+    const prior = key ? weakByKey.get(key) : null;
+    entries.push({
+      rank: r.status === 'wrong' ? 0 : 1,
+      surah: r.surahRaw || '',
+      type: r.type || '',
+      reason: r.note || t('rp_note_wrong'),
+      repeated: !!prior && recordedBefore(prior),
+      verse: focusVerseInfo(r.qType, r.ayahNum, r.reciteRanges)
+    });
+  });
+
+  weaknesses.forEach(w => {
+    const isStr = typeof w === 'string';
+    const key = normalizeFocusKey(isStr ? w : w.text);
+    if (key && todayKeys.has(key)) return;
+    let surah = '', type = '', verse = null;
+    if (isStr) {
+      type = localizeGenerated(w);
+    } else {
+      surah = w.surahName || '';
+      type = localizeGenerated(w.questionTypeLabel || '');
+      // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض نصه الخام
+      if (!surah && !type) {
+        type = localizeGenerated(w.text)
+          || (Array.isArray(w.errorTypes) ? w.errorTypes.map(localizeGenerated).join(t('report_focus_list_sep')) : localizeGenerated(w.errorTypes))
+          || '';
+      }
+      verse = focusVerseInfo(w.questionType, w.num, w.reciteRanges);
+    }
+    if (!surah && !type) return;
+    const age = isStr ? '' : focusAgeLabel(w.dateRecorded);
+    entries.push({ rank: 2, surah, type, reason: t('report_focus_not_resolved') + (age ? ` (${age})` : ''), repeated: false, verse });
+  });
+  return entries;
+}
+
+function buildFocusBlocks(entries){
+  const sorted = entries.map((e, i) => Object.assign({ i }, e)).sort((a, b) => a.rank - b.rank || a.i - b.i);
+
+  // 1) سورة ← أسطر (مدموجة بنفس السبب والتكرار) ← أنواع اللعب
+  const surahs = new Map();
+  sorted.forEach(e => {
+    const sk = normalizeFocusKey(e.surah);
+    if (!surahs.has(sk)) surahs.set(sk, { sk, raw: e.surah, count: 0, rank: e.rank, order: surahs.size, lines: new Map() });
+    const s = surahs.get(sk);
+    s.count++;
+    const lk = `${e.repeated ? 1 : 0}|${e.reason}`;
+    if (!s.lines.has(lk)) s.lines.set(lk, { reason: e.reason, repeated: e.repeated, rank: e.rank, games: new Map() });
+    const line = s.lines.get(lk);
+    if (!line.games.has(e.type)) line.games.set(e.type, []);
+    line.games.get(e.type).push(e.verse);
+  });
+
+  const gameText = (line, withVerse) => Array.from(line.games.entries()).map(([label, vs]) => {
+    const v = withVerse ? focusVerseText(vs) : '';
+    return v ? `${label} (${v})` : label;
+  }).filter(Boolean).join(' + ');
+  const lineOut = (line, withVerse) => {
+    const g = gameText(line, withVerse);
+    return { text: g ? `${g} — ${line.reason}` : line.reason, repeated: line.repeated };
+  };
+
+  // 2) الأسطر المتطابقة تمامًا (نفس الأنواع + نفس السبب + نفس التكرار) في سورتين فأكثر ← بلوك مشترك
+  const sigMap = new Map();
+  surahs.forEach(s => {
+    if (!s.sk) return;
+    s.lines.forEach((line, lk) => {
+      const sig = Array.from(line.games.keys()).sort().join('+') + '#' + lk;
+      if (!sigMap.has(sig)) sigMap.set(sig, []);
+      sigMap.get(sig).push({ s, line, lk });
+    });
+  });
+  const blocks = [];
+  sigMap.forEach(group => {
+    if (group.length < 2) return;
+    const names = group.map(g => {
+      const v = focusVerseText(Array.prototype.concat.apply([], Array.from(g.line.games.values())));
+      return focusSurahLabel(g.s.raw) + (v ? ` (${v})` : '');
+    });
+    group.forEach(g => g.s.lines.delete(g.lk));
+    blocks.push({
+      shared: true,
+      rank: Math.min.apply(null, group.map(g => g.line.rank)),
+      order: Math.min.apply(null, group.map(g => g.s.order)),
+      surahKeys: group.map(g => g.s.sk),
+      gameLabels: Array.from(group[0].line.games.keys()),
+      title: focusJoin(names),
+      lines: [lineOut(group[0].line, false)]
+    });
+  });
+  // 3) ما تبقى من كل سورة
+  surahs.forEach(s => {
+    if (!s.lines.size) return;
+    const lines = Array.from(s.lines.values()).sort((a, b) => a.rank - b.rank);
+    blocks.push({
+      shared: false,
+      rank: lines[0].rank,
+      order: s.order,
+      surahKeys: s.sk ? [s.sk] : [],
+      gameLabels: [],
+      title: focusSurahLabel(s.raw),
+      lines: lines.map(l => lineOut(l, true))
+    });
+  });
+  // البنود غير المنسوبة لسورة (سجلات قديمة) بعد كل السور
+  blocks.sort((a, b) => (a.surahKeys.length ? 0 : 1) - (b.surahKeys.length ? 0 : 1) || a.rank - b.rank || a.order - b.order);
+
+  const out = [];
+  const detailed = blocks.slice(0, FOCUS_MAX_DETAILED);
+  detailed.forEach(b => out.push({ kind: 'surah', title: b.title, lines: b.lines }));
+
+  // السور التي لم تظهر في البلوكات المفصّلة: أسماء فقط (سورتان في السطر) مع عدد بنود كل سورة
+  const covered = new Set();
+  detailed.forEach(b => b.surahKeys.forEach(k => covered.add(k)));
+  const compact = [];
+  let legacyRest = 0;
+  blocks.slice(FOCUS_MAX_DETAILED).forEach(b => {
+    if (!b.surahKeys.length) { legacyRest += b.lines.length; return; }
+    b.surahKeys.forEach(k => {
+      if (covered.has(k)) return;
+      covered.add(k);
+      compact.push({ name: focusSurahLabel(surahs.get(k).raw), count: surahs.get(k).count });
+    });
+  });
+  if (compact.length) out.push({ kind: 'compact', items: compact.slice(0, FOCUS_MAX_COMPACT) });
+  if (compact.length > FOCUS_MAX_COMPACT) out.push({ kind: 'more', text: focusMoreLabel(compact.length - FOCUS_MAX_COMPACT, 'surah') });
+  if (legacyRest > 0) out.push({ kind: 'more', text: focusMoreLabel(legacyRest) });
+
+  // 4) نمط: نوع لعبة أُخطئ فيه اليوم في سورتين فأكثر — يُحذف إن كان بلوك مشترك يغطيه بالكامل
+  const byGame = new Map();
+  sorted.filter(e => e.rank < 2 && e.surah && e.type).forEach(e => {
+    if (!byGame.has(e.type)) byGame.set(e.type, new Map());
+    byGame.get(e.type).set(normalizeFocusKey(e.surah), e.surah);
+  });
+  let pattern = null;
+  byGame.forEach((m, label) => {
+    if (m.size < 2 || (pattern && pattern.size >= m.size)) return;
+    const coveredByShared = blocks.some(b => b.shared && b.gameLabels.includes(label) && Array.from(m.keys()).every(k => b.surahKeys.includes(k)));
+    if (!coveredByShared) pattern = { size: m.size, label, raws: Array.from(m.values()) };
+  });
+  if (pattern) {
+    out.push({
+      kind: 'pattern',
+      text: tf('report_focus_pattern', { g: stripLeadingEmoji(pattern.label), l: focusJoin(pattern.raws.map(r => surahNamesLocal(r))) })
+    });
+  }
+  return out;
+}
+
+// خلاصة تُبنى عليها ملاحظة ولي الأمر التلقائية
+function summarizeFocus(entries){
+  const uniq = (arr) => arr.filter((x, i) => arr.indexOf(x) === i);
+  const today = entries.filter(e => e.rank < 2);
+  const todaySurahs = uniq(today.filter(e => e.surah).map(e => focusSurahLabel(e.surah)));
+  const pastSurahs = uniq(entries.filter(e => e.rank === 2 && e.surah).map(e => focusSurahLabel(e.surah)))
+    .filter(n => !todaySurahs.includes(n));
+  const counts = new Map();
+  today.forEach(e => { const k = stripLeadingEmoji(e.type); if (k) counts.set(k, (counts.get(k) || 0) + 1); });
+  const types = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(x => x[0]).slice(0, 2);
+  return { todaySurahs, pastSurahs, types, repeated: today.some(e => e.repeated) };
+}
 
 function getSkillHighlights(student, questionResults, speedCompare){
   const correct = questionResults.filter(r => r.status === 'full');
-  const wrong = questionResults.filter(r => r.status === 'wrong');
 
   const strengths = [];
   if (correct.length) {
@@ -599,58 +796,13 @@ function getSkillHighlights(student, questionResults, speedCompare){
     strengths.push(t('rp_strength_consistent'));
   }
 
-  // 🌟 [إعادة تصميم] بناء بنود "بحاجة إلى تركيز" على ثلاث طبقات معنونة بدل قائمة
-  // مسطّحة كانت تخلط أخطاء اليوم بأخطاء قديمة بلا تمييز (راجع الشرح المطوّل أعلى
-  // هذا القسم). الترتيب صارم: أخطاء اليوم ← ما يحتاج تثبيتًا اليوم ← متابعة سابقة.
-  const partial = questionResults.filter(r => r.status === 'hint' || r.status === 'reorder');
-  const weaknesses = Array.isArray(student.weaknesses) ? student.weaknesses : [];
-
-  // الطبقة 3 (نُجهّزها أولًا لأن مفاتيحها لازمة لكشف "الخطأ المتكرر" في الطبقة 1)
-  const pastAll = weaknesses.map(w => {
-    if (typeof w === 'string') return { key: normalizeFocusKey(w), text: w };
-    const head = joinFocusParts(weaknessLocation(w), localizeGenerated(w.questionTypeLabel || ''), '');
-    // خط الرجوع لأي سجل قديم محفوظ قبل إضافة surahName/questionTypeLabel: نعرض
-    // نصه الخام كما كان يُعرض تمامًا قبل هذا التعديل، فلا يختفي أي بند مسجَّل.
-    const label = head
-      || localizeGenerated(w.text)
-      || (Array.isArray(w.errorTypes) ? w.errorTypes.map(localizeGenerated).join(AppState.currentLang === 'en' ? ', ' : '، ') : localizeGenerated(w.errorTypes))
-      || '';
-    if (!label) return null;
-    const age = focusAgeLabel(w.dateRecorded);
-    const tail = t('report_focus_not_resolved') + (age ? ` (${age})` : '');
-    return { key: normalizeFocusKey(w.text || label), text: `${label} — ${tail}` };
-  }).filter(Boolean);
-
-  const todayKeys = new Set(wrong.concat(partial).map(focusKeyOfResult));
-  const pastKeys = new Set(pastAll.map(p => p.key));
-  // البند الذي أخطأ فيه الطالب اليوم وهو مسجَّل أصلًا في سجله القديم = خطأ متكرر،
-  // وهي أقوى إشارة يمكن إعطاؤها لولي الأمر، ومبنية على بيانات مسجَّلة 100%.
-  const buildToday = (r, kind) => {
-    // 🌟 [عدّل] نستخدم focusLocation (السورة كاملة بلا رقم آية) بدل location هنا
-    // تحديدًا، لأن هذا البند يُعرض داخل صندوق "بحاجة إلى تركيز" — راجع تعليق
-    // focusLocation في getQuestionResults أعلاه للسبب.
-    const body = joinFocusParts(r.focusLocation, r.type, r.note || t('rp_note_wrong'));
-    return {
-      kind,
-      text: pastKeys.has(focusKeyOfResult(r)) ? `${t('report_focus_repeated')}: ${body}` : body
-    };
-  };
-
-  const pastPending = pastAll.filter(p => !todayKeys.has(p.key));
-  const needsFocus = [];
-  const pushCapped = (arr) => arr.forEach(it => { if (needsFocus.length < FOCUS_MAX_TOTAL) needsFocus.push(it); });
-  pushCapped(wrong.slice(0, FOCUS_MAX_TODAY).map(r => buildToday(r, 'today')));
-  pushCapped(partial.slice(0, FOCUS_MAX_PARTIAL).map(r => buildToday(r, 'partial')));
-  pushCapped(pastPending.slice(0, FOCUS_MAX_PAST).map(p => ({ kind: 'past', text: p.text })));
-
-  // ⚠️ لا نُخفي الفائض بصمت: نذكر عدده صراحة — الإخفاء الصامت يخالف مبدأ الصدق
-  // الذي يقوم عليه هذا التقرير كله.
-  const remaining = (wrong.length + partial.length + pastPending.length) - needsFocus.length;
-  if (remaining > 0) needsFocus.push({ kind: 'more', text: focusMoreLabel(remaining) });
+  const entries = collectFocusEntries(student, questionResults);
+  const needsFocus = buildFocusBlocks(entries);
+  const focusSummary = summarizeFocus(entries);
 
   if (!strengths.length) strengths.push(t('rp_strength_default'));
   if (!needsFocus.length) needsFocus.push({ kind: 'none', text: t('rp_focus_default') });
-  return { strengths, needsFocus };
+  return { strengths, needsFocus, focusSummary };
 }
 
 function getAvatarValue(student){
@@ -719,17 +871,9 @@ function getHonestyLine(tier){
   if (tier === 'average') return t('rp_honesty_average');
   return t('rp_honesty_weak');
 }
-// أولوية اختيار البند الذي تذكره ملاحظة ولي الأمر: خطأ اليوم ← ما يحتاج تثبيتًا
-// اليوم ← متابعة سابقة. وتُستبعد بنود العدّ ("+ن بندًا آخر") والسطر الافتراضي لأنها
-// ليست نقاط تركيز فعلية يصح بناء توصية عليها.
-function pickNoteFocus(items){
-  const usable = (items || []).filter(it => it && (it.kind === 'today' || it.kind === 'partial' || it.kind === 'past'));
-  if (!usable.length) return null;
-  return usable.find(it => it.kind === 'today')
-      || usable.find(it => it.kind === 'partial')
-      || usable[0];
-}
-function getAutoParentNote(tier, name, needsFocus){
+// ملاحظة ولي الأمر تُبنى من الأخطاء الواردة فعلًا: سور اليوم ثم أنواع اللعب الأكثر تعثرًا، مع جملة دافئة
+// عند التكرار، وتذكير لطيف بما بقي من جلسات سابقة. بلا أخطاء: الخاتمة المعتادة فقط.
+function getAutoParentNote(tier, name, focus){
   const leadByTier = {
     excellent: tf('rp_note_lead_excellent', { name }),
     good: tf('rp_note_lead_good', { name }),
@@ -737,18 +881,22 @@ function getAutoParentNote(tier, name, needsFocus){
     weak: tf('rp_note_lead_weak', { name })
   };
   const lead = leadByTier[tier] || leadByTier.average;
-  // 🌟 كانت الملاحظة تأخذ needsFocus[0] حرفيًا، وهو بعد إعادة تصميم الصندوق قد يكون
-  // بندًا من "المتابعة السابقة" لا من اختبار اليوم. فنختار الآن بند اليوم أولًا، ولا
-  // نلجأ لبند قديم إلا إذا خلا اليوم من أي ملاحظة — ونصرّح حينها أنه سابق، حتى لا
-  // يفهم ولي الأمر أنه خطأ حدث اليوم 🌟
-  const pick = pickNoteFocus(needsFocus);
-  const focus = pick
-    ? tf('rp_note_focus', { text: (pick.kind === 'past' ? t('report_note_focus_past_prefix') + ' ' : '') + pick.text })
-    : '';
+  const f = focus || { todaySurahs: [], pastSurahs: [], types: [], repeated: false };
+  const quote = (n) => AppState.currentLang === 'en' ? `"${n}"` : `«${n}»`;
+  let text = '';
+  if (f.todaySurahs.length) {
+    text += tf('rp_note_focus_surahs', { surahs: focusJoin(f.todaySurahs.slice(0, 3)) });
+    if (f.types.length) text += tf('rp_note_focus_types', { types: focusJoin(f.types.map(quote)) });
+    text += '.';
+    if (f.repeated) text += t('rp_note_focus_repeat');
+    if (f.pastSurahs.length) text += tf('rp_note_focus_past_extra', { surahs: focusJoin(f.pastSurahs.slice(0, 2)) });
+  } else if (f.pastSurahs.length) {
+    text += tf('rp_note_focus_past', { surahs: focusJoin(f.pastSurahs.slice(0, 3)) });
+  }
   const closing = tier === 'weak'
     ? t('rp_note_close_weak')
     : t('rp_note_close_other');
-  return lead + focus + closing;
+  return lead + text + closing;
 }
 
 // -----------------------------------------------------------------------------
@@ -864,7 +1012,7 @@ function buildReportData(){
     };
   }
 
-  const { strengths, needsFocus } = getSkillHighlights(student, questionResults, speedCompare);
+  const { strengths, needsFocus, focusSummary } = getSkillHighlights(student, questionResults, speedCompare);
 
   // 🌟 تسجيل هذه المحاولة في سجل الطالب ليبني سُلّم التقدّم في التقارير القادمة —
   // *فقط* لو لم تكن مسجَّلة فيه بالفعل. الحالة المعتادة: games/adultGame.js أو
@@ -929,7 +1077,7 @@ function buildReportData(){
     ledger: questionResults,
     strengths,
     needsFocus,
-    autoNote: getAutoParentNote(tier, student.name || t('rp_default_student'), needsFocus),
+    autoNote: getAutoParentNote(tier, student.name || t('rp_default_student'), focusSummary),
     teacher
   };
 }
@@ -1085,30 +1233,26 @@ function renderInsights(d){
   setHTML('report-needs-list', needsFocusHtml(d.needsFocus, dotIcon));
 }
 
-// 🌟 [جديد] عرض بنود "بحاجة إلى تركيز" مجمَّعة تحت عناوين فرعية حسب مصدر كل بند
-// (اليوم / يحتاج تثبيتًا / متابعة سابقة) — هذا العنوان هو جوهر التعديل كله: هو ما
-// يمنع ولي الأمر من قراءة بند قديم على أنه خطأ اليوم 🌟
-const FOCUS_GROUP_KEY = {
-  today:   'report_focus_group_today',
-  partial: 'report_focus_group_partial',
-  past:    'report_focus_group_past'
-};
+// عرض بنود "بحاجة إلى تركيز": بلوك لكل سورة (أو لسور تشترك في نفس الخطأ)، وأسماء سور مضغوطة،
+// وسطر الفائض، وسطر النمط. كل النصوص تصل جاهزة ومترجمة من getSkillHighlights.
 function needsFocusHtml(items, dotIcon){
-  let html = '';
-  let lastKind = null;
-  (items || []).forEach(it => {
-    // خط رجوع: لو وصل بند كنص مجرد (نسخة قديمة من البيانات) نعرضه كبند عادي بلا عنوان.
-    const item = (typeof it === 'string') ? { kind: 'none', text: it } : (it || { kind: 'none', text: '' });
-    const kind = item.kind || 'none';
-    if (FOCUS_GROUP_KEY[kind] && kind !== lastKind) {
-      html += `<li class="insight-sub">${escapeHtml(t(FOCUS_GROUP_KEY[kind]))}</li>`;
+  return (items || []).map(raw => {
+    // خط رجوع: لو وصل بند كنص مجرد (نسخة قديمة من البيانات) نعرضه كبند عادي.
+    const item = (typeof raw === 'string') ? { kind: 'none', text: raw } : (raw || { kind: 'none', text: '' });
+    if (item.kind === 'surah') {
+      const lines = (item.lines || []).map(l =>
+        `<span class="focus-line">${l.repeated ? `<b class="focus-tag">${escapeHtml(t('report_focus_repeated'))}</b>` : ''}${escapeHtml(l.text)}</span>`
+      ).join('');
+      return `<li class="insight-item">${dotIcon}<div class="focus-body">${item.title ? `<div class="focus-name">${escapeHtml(item.title)}</div>` : ''}<div class="focus-lines">${lines}</div></div></li>`;
     }
-    lastKind = kind;
-    html += (kind === 'more')
-      ? `<li class="insight-more">${escapeHtml(item.text)}</li>`
-      : `<li class="insight-item">${dotIcon}<span>${escapeHtml(item.text)}</span></li>`;
-  });
-  return html;
+    if (item.kind === 'compact') {
+      return `<li class="focus-compact">${(item.items || []).map(c =>
+        `<span class="focus-c">${dotIcon}<span>${escapeHtml(c.name)} <small>(${c.count})</small></span></span>`).join('')}</li>`;
+    }
+    if (item.kind === 'more') return `<li class="insight-more">${escapeHtml(item.text)}</li>`;
+    if (item.kind === 'pattern') return `<li class="focus-pattern">${escapeHtml(item.text)}</li>`;
+    return `<li class="insight-item">${dotIcon}<span>${escapeHtml(item.text)}</span></li>`;
+  }).join('');
 }
 
 function renderNoteBox(){

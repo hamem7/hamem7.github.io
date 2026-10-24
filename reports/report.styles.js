@@ -319,6 +319,17 @@ export const REPORT_STYLES = `
   /* بلا letter-spacing — نفس سبب .eyebrow أعلاه بالضبط */
   #report-screen .insight-sub{list-style:none; font-size:11.5px; font-weight:800; color:#9e3b2d; opacity:.85; margin-top:4px;}
   #report-screen .insight-list .insight-sub:first-child{margin-top:0;}
+  /* تجميع حسب السورة: اسم السورة ثم أنواع الأخطاء جنبًا إلى جنب (تلتف عند ضيق المكان)، وأسماء مضغوطة سورتان في السطر */
+  #report-screen .focus-body{flex:1; min-width:0;}
+  #report-screen .focus-name{font-weight:800; font-size:14px; line-height:1.6;}
+  #report-screen .focus-lines{display:flex; flex-wrap:wrap; gap:2px 16px; margin-top:2px;}
+  #report-screen .focus-line{font-size:13px; font-weight:600; line-height:1.65; min-width:0;}
+  #report-screen .focus-tag{font-size:11px; font-weight:800; background:#9e3b2d; color:#fff7f3; border-radius:20px; padding:1px 9px; margin-inline-end:6px;}
+  #report-screen .focus-compact{list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:6px 12px;}
+  #report-screen .focus-c{display:flex; align-items:flex-start; gap:7px; font-size:13px; font-weight:700; min-width:0; line-height:1.6;}
+  #report-screen .focus-c svg{flex:none; margin-top:3px;}
+  #report-screen .focus-c small{color:#8a726b; font-weight:600;}
+  #report-screen .focus-pattern{list-style:none; font-size:12.5px; font-weight:700; background:rgba(158,59,45,.09); color:#9e3b2d; border-radius:10px; padding:8px 11px;}
   #report-screen .insight-more{list-style:none; font-size:12px; font-weight:700; color:#8a726b; background:rgba(255,253,248,.75); border:1px solid rgba(0,0,0,.06); border-radius:6px; padding:5px 9px; align-self:flex-start;}
 
   /* ============== ملاحظة المعلم لولي الأمر ============== */
