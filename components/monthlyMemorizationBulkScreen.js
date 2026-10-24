@@ -390,7 +390,7 @@ function ensureTableStylesInjected() {
   style.textContent = `
 .mmt-overlay { position: fixed; inset: 0; background: rgba(6, 35, 28, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
-  background: var(--dh-surface-alt, #f6f3e8); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
+  background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
 .mmt-screen[dir="ltr"] { direction: ltr; }
 .mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
 .mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 1px solid var(--dh-line, #e4dfcc); }
@@ -399,14 +399,14 @@ function ensureTableStylesInjected() {
 .mmt-back:hover { background: var(--mmt-tint); }
 .mmt-screen[dir="ltr"] .mmt-back svg { transform: scaleX(-1); }
 .mmt-kicker { font-size: .8rem; font-weight: 700; color: var(--mmt-mute); }
-.mmt-title { margin: 0; font-size: 1.7rem; font-weight: 700 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.mmt-title { margin: 0; font-size: 1.5rem; font-weight: 700 !important; line-height: 1.25; color: var(--mmt-blue) !important; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .mmt-sub { font-size: .9rem; color: var(--mmt-mute); }
 .mmt-head-btns { margin-inline-start: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .mmt-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .mmt-stat { background: var(--mmt-tint); color: var(--mmt-blue); border-radius: 10px; padding: 4px 12px; font-size: .85rem; font-weight: 700; }
 .mmt-stat b { font-size: 1.05rem; direction: ltr; unicode-bidi: isolate; }
-.mmt-card { flex: 1; min-height: 0; width: calc(100% - 36px); max-width: 1100px; margin: 18px auto; display: flex; flex-direction: column; background: var(--dh-surface, #fffdf6); border: 1px solid var(--dh-line, #e4dfcc); border-radius: var(--dh-radius-md, 18px); box-shadow: var(--dh-shadow-soft, 0 10px 30px rgba(6,35,28,.12)); overflow: hidden; }
-.mmt-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--mmt-tint); border-bottom: 1px solid var(--dh-line, #e4dfcc); flex-shrink: 0; }
+.mmt-card { flex: 1; min-height: 0; width: calc(100% - 36px); max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; overflow: hidden; }
+.mmt-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 14px 18px; background: transparent; flex-shrink: 0; }
 .mmt-tools input { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--mmt-soft); background: #fff; font-family: inherit; font-size: .95rem; width: 230px; max-width: 100%; box-sizing: border-box; }
 .mmt-banner { width: 100%; font-weight: 700; color: var(--dh-ok, #15803d); font-size: .9rem; }
 .mmt-scroll { overflow: auto; flex: 1; min-height: 0; }
@@ -464,7 +464,7 @@ function ensureTableStylesInjected() {
 .mmt-screen button:focus-visible, .mmt-screen input:focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
 @media (max-width: 720px) {
   .mmt-title { font-size: 1.4rem; }
-  .mmt-card { width: 100%; margin: 0; border-radius: 0; border-width: 1px 0; }
+  .mmt-card { width: 100%; }
   .mmt-table thead { display: none; }
   .mmt-table, .mmt-table tbody { display: block; }
   .mmt-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 12px 14px; border-bottom: 1px solid var(--mmt-line); }
