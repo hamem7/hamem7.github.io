@@ -388,6 +388,8 @@ function ensureTableStylesInjected() {
   const style = document.createElement('style');
   style.id = TBL_STYLE_ID;
   style.textContent = `
+/* الترويسة المعتمدة تبقى ظاهرة فوق الشاشة حتى لو فُتحت من الرئيسية (حيث تُخفى) أو بعد تمرير الصفحة — كما في certificates.js */
+body.mmt-open #main-header { display: flex !important; position: fixed !important; top: 0; left: 0; right: 0; transform: none !important; z-index: 10050; }
 .mmt-overlay { position: fixed; inset: 0; background: rgba(6, 35, 28, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
   background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
@@ -512,6 +514,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
   const isRtl = AppState.currentLang === 'ar';
   const overlay = document.createElement('div');
   overlay.className = 'mmt-overlay';
+  document.body.classList.add('mmt-open');
   document.body.appendChild(overlay);
   placeBelowMainHeader(overlay);
 
@@ -533,6 +536,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
     function close() {
       document.removeEventListener('keydown', onKey);
       if (headerHome) headerHome.removeEventListener('click', close);
+      document.body.classList.remove('mmt-open');
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
       resolve();
     }
