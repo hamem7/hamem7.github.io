@@ -1,0 +1,14 @@
+name: check-header
+on:
+  push:
+    paths: ['**.html', 'css/home.css', 'tools/check-header.mjs']
+  pull_request:
+    paths: ['**.html', 'css/home.css', 'tools/check-header.mjs']
+jobs:
+  header:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node tools/check-header.mjs

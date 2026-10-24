@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-i18n="priv_title">سياسة الخصوصية — حمٓ</title>
 <link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/home.css">
 <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <!-- 🌟 [2026-10-03 — بطلب صاحب المنصة] نفس شكل المنصة: ترويسة #main-header (الشعار يميناً و«الرئيسية» يساراً) ونمط رأس
@@ -19,29 +22,6 @@
     background-attachment: fixed;
     color: #10241c; line-height: 1.9;
   }
-  .dh-header {
-    display: flex; align-items: center; justify-content: space-between; gap: 20px;
-    padding: 14px 35px;
-    background: linear-gradient(120deg, #06231c, #0d5c46 55%, #147c5e);
-    border-bottom: 3px solid #d4af37;
-    box-shadow: 0 10px 30px rgba(6, 35, 28, 0.12);
-    color: #fffdf6;
-  }
-  .dh-brand { display: flex; align-items: center; gap: 14px; }
-  .dh-logo { display: flex; align-items: center; justify-content: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(135deg, #f0d878, #d4af37); box-shadow: 0 6px 14px rgba(212, 175, 55, 0.35); flex-shrink: 0; }
-  .dh-brand-text { display: flex; flex-direction: column; line-height: 1.35; }
-  .dh-brand-title { font-size: 1.15rem; font-weight: 700; }
-  .dh-brand-sub { font-size: 0.9rem; opacity: 0.85; font-weight: 500; }
-  .header-home-btn {
-    display: inline-flex; align-items: center; gap: 7px;
-    background: rgba(255, 255, 255, 0.12); color: #fffdf6;
-    border: 1.5px solid rgba(255, 253, 246, 0.4);
-    padding: 8px 18px; border-radius: 30px;
-    font: inherit; font-weight: 600; font-size: 1rem; text-decoration: none;
-    transition: 0.25s ease;
-  }
-  .header-home-btn:hover { background: #d4af37; border-color: #d4af37; color: #06231c; }
-  .header-home-btn:focus-visible, .priv-back:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
   main { max-width: 720px; margin: 0 auto; padding: 22px 20px 60px; display: flex; flex-direction: column; gap: 18px; }
   .priv-head { display: flex; align-items: center; gap: 10px; background: #fffdf6; border-radius: 20px; padding: 14px 16px; }
   .priv-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; }
@@ -60,28 +40,29 @@
   .contact a:hover { text-decoration: underline; }
   footer { text-align: center; padding: 0 20px 24px; color: rgba(255, 253, 246, 0.7); font-size: 0.85rem; }
   @media (max-width: 768px) {
-    .dh-header { padding: 10px 16px; }
-    .dh-logo { width: 40px; height: 40px; }
-    .header-home-btn span { display: none; }
-    .header-home-btn { padding: 8px 12px; }
     .priv-title { font-size: 1.5rem; }
   }
 </style>
 </head>
 <body>
-  <header class="dh-header">
-    <div class="dh-brand">
-      <span class="dh-logo" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 6.5c-1.5-1-3.6-1.3-5.5-0.7v10c1.9-0.6 4-0.3 5.5 0.7 1.5-1 3.6-1.3 5.5-0.7v-10c-1.9-0.6-4-0.3-5.5 0.7Z" stroke="#06231c" stroke-width="1.3" stroke-linejoin="round" fill="none"/><path d="M12 6.5v10.7" stroke="#06231c" stroke-width="1.3"/></svg></span>
-      <div class="dh-brand-text">
-        <span class="dh-brand-title" data-i18n="header_title">🏆 رحلة إتقان القرآن</span>
-        <span class="dh-brand-sub" data-i18n="header_subtitle">منصة حمٓ</span>
+  <!-- الترويسة المعتمدة: نسخة طبق الأصل من #main-header في index.html (تنسيقها من css/home.css، والشعار من core/brandLogo.js) — لا تعدّلها هنا -->
+  <div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+      <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+      <div class="home-header-text">
+        <span id="header-title" data-i18n="header_title">🏆 رحلة إتقان القرآن</span>
+        <span id="top-student-name" data-i18n="header_subtitle">منصة حمٓ</span>
       </div>
     </div>
-    <a class="header-home-btn" id="priv-home-btn" href="index.html" title="الرئيسية" data-i18n-title="header_home_btn">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span data-i18n="header_home_btn">الرئيسية</span>
-    </a>
-  </header>
+    <div class="header-actions">
+      <button id="header-home-btn" class="header-home-btn" type="button" data-i18n-title="header_home_btn" title="الرئيسية">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="header_home_btn">الرئيسية</span>
+      </button>
+      <button id="header-account-btn" class="header-account-btn" type="button" style="display:none;"><span class="ha-ic" id="header-account-ic">👤</span></button>
+      <button id="lang-toggle-btn" class="lang-btn" type="button" data-i18n="lang_toggle">English</button>
+    </div>
+  </div>
 
   <main>
     <div class="priv-head">
@@ -122,6 +103,14 @@
 
   <footer data-i18n="priv_footer">© 2026 عبدالله بن المياح الأزهري — حمٓ · مجاني للاستخدام غير التجاري</footer>
 
+  <script src="core/brandLogo.js"></script>
+  <script>
+    document.getElementById('header-home-btn').addEventListener('click', () => { location.href = 'index.html'; });
+    document.getElementById('lang-toggle-btn').addEventListener('click', () => {
+      try { localStorage.setItem('app_lang', localStorage.getItem('app_lang') === 'en' ? 'ar' : 'en'); } catch (e) {}
+      location.reload();
+    });
+  </script>
   <!-- 🌟 ترجمة الصفحة حسب لغة المنصة المحفوظة (app_lang) عبر نفس قاموس core/i18n.js -->
   <script type="module">
     (async () => {
