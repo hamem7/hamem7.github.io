@@ -1056,6 +1056,8 @@ export const translations = {
         err_dont_know: "لم يعرف الإجابة",
         // 🌟 [جديد] القائمة السفلية للملاحظات (components/noteSheet.js) — التسميات للعرض فقط، والمخزَّن قيم err_* القديمة 🌟
         note_btn: "📝 ملاحظة",
+        // 🌟 [جديد] زر "علاج الخطأ السابق": بدل «ملاحظة» يختار المعلم مباشرة «لم يعرف الإجابة» 🌟
+        dont_know_btn: "🔴 لم يعرف الإجابة",
         note_undo_btn: "↩ تراجع",
         note_save_next: "⏭ حفظ والتالي",
         note_sheet_title: "نوع الملاحظة:",
@@ -3927,6 +3929,8 @@ export const translations = {
         err_dont_know: "Didn't Know Answer",
         // 🌟 [New] Bottom note sheet (components/noteSheet.js) — labels are display-only; the stored values remain the old err_* ones 🌟
         note_btn: "📝 Note",
+        // 🌟 [New] Previous-mistake review screen: the teacher picks "Didn't know the answer" directly instead of "Note" 🌟
+        dont_know_btn: "🔴 Didn't Know Answer",
         note_undo_btn: "↩ Undo",
         note_save_next: "⏭ Save & Next",
         note_sheet_title: "Note type:",

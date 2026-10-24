@@ -18,7 +18,8 @@ export function isNoteSheetOpen() {
 function setNoteLabel(open) {
     const btn = $('btn-record-wrong');
     if (!btn) return;
-    const key = open ? 'note_undo_btn' : 'note_btn';
+    // في «علاج الخطأ السابق» الزر دائماً «لم يعرف الإجابة» (لا قائمة ولا تراجع)
+    const key = btn.dataset.weakness ? 'dont_know_btn' : (open ? 'note_undo_btn' : 'note_btn');
     btn.dataset.i18n = key;
     btn.innerHTML = t(key);
     btn.classList.toggle('note-undo', open);
@@ -66,6 +67,16 @@ export function toggleNoteSheet() {
 // الأنواع المخزَّنة (قيم checkbox) من القائمة + نص المعلم يؤخذ من #custom-note في الملف المستدعي
 export function readNoteChips() {
     return [...document.querySelectorAll('#note-sheet input[type="checkbox"]:checked')].map(cb => cb.value);
+}
+
+// «علاج الخطأ السابق»: أمام المعلم خياران فقط — «إجابة صحيحة تامة» أو «لم يعرف الإجابة».
+// يحوّل زر «ملاحظة» إلى «لم يعرف الإجابة» ويسجّله مباشرة (onDontKnow) دون فتح قائمة الأنواع
+export function bindWeaknessButtons(onDontKnow) {
+    const btn = $('btn-record-wrong');
+    if (!btn) return;
+    btn.dataset.weakness = '1';
+    setNoteLabel(false);
+    btn.addEventListener('click', onDontKnow);
 }
 
 export function bindNoteSheet() {

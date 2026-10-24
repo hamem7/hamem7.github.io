@@ -16,7 +16,7 @@ import { showFixErrorsSummary, getDueWeaknesses, applyFixCorrectAnswer, applyFix
 // 🌟 [جديد] حفظ نص أسئلة الربط (بداية/نهاية الآية، الكلمة/السورة) عند تسجيل الخطأ — راجع components/questionTextRecord.js
 import { buildLinkQuestionRecord, buildWeaknessQuestionHeader, rebuildLinkFromRecord } from '../components/questionTextRecord.js';
 import { readReciteRangeSelection, reciteRangeChipText, buildReciteRangeRecord } from '../components/reciteRangePicker.js';
-import { bindNoteSheet, toggleNoteSheet, closeNoteSheet, readNoteChips } from '../components/noteSheet.js';
+import { bindNoteSheet, bindWeaknessButtons, toggleNoteSheet, closeNoteSheet, readNoteChips } from '../components/noteSheet.js';
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js (نفس adultGame.js)
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initQuestionFit } from '../components/questionFit.js';
@@ -316,7 +316,9 @@ function initGameUI() {
     document.getElementById('show-ans-btn')?.addEventListener('click', toggleAnswer);
 
     // 📝 «ملاحظة» ⇄ «تراجع»: تنزلق القائمة السفلية (components/noteSheet.js) ولا يُسجَّل شيء قبل «حفظ والتالي»
-    document.getElementById('btn-record-wrong')?.addEventListener('click', toggleNoteSheet);
+    // 🛠️ في «علاج الخطأ السابق» الخياران فقط: «إجابة صحيحة تامة» أو «لم يعرف الإجابة» (بلا قائمة أنواع)
+    if (GameState.isWeaknessMode) bindWeaknessButtons(() => recordAnswer(false, ['لم يعرف الإجابة']));
+    else document.getElementById('btn-record-wrong')?.addEventListener('click', toggleNoteSheet);
     bindNoteSheet();
     
     document.getElementById('btn-record-correct')?.addEventListener('click', async () => {
