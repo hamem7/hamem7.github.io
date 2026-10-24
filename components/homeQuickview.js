@@ -279,6 +279,8 @@ async function renderDueForReview() {
 
             const student = (students || []).find(s => s.id === sched.studentId);
             if (!student || student.isHidden) return;
+            // طالب موقوف مؤقتاً في جدول الأسبوع (بلا أي يوم) لا يظهر كتذكير في أي مكان
+            if (student.hwSchedule && Array.isArray(student.hwSchedule.days) && student.hwSchedule.days.length === 0) return;
             if (isTaskDone(`due:${student.id}`)) return; // 🌟 [2026-10-07] عُلِّمت «تمّت» اليوم
 
             rowOf(student).overdueDays = Math.floor((now - nextDue) / 86400000);
