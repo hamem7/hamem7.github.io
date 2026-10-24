@@ -605,7 +605,21 @@ async function playNextMission() {
             // 🌟 [جديد] كانت شاشة علاج الخطأ عند الأطفال لا تعرض الإجابة الصحيحة إطلاقاً
             // (خلافاً لنسخة الكبار) — أضفناها هنا مع زر "إظهار الإجابة للمطابقة" 🌟
             document.getElementById('show-ans-btn').style.display = 'inline-block';
-            document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
+            // 🌟 [جديد] عند كشف الإجابة نعرض أيضًا السؤال نفسه وكل الاختيارات (مع تمييز الصحيح) لأسئلة
+            // الاختيار من متعدد. السجلات القديمة بلا options تعرض الإجابة كما كانت 🌟
+            let questionRecapHTML = '';
+            if (Array.isArray(wItem.options) && wItem.options.length && wItem.correctAns) {
+                const kind = wItem.optionsKind;
+                const optLabel = (opt) => (kind === 'surah')
+                    ? (AppState.currentLang === 'en' ? surahNameLocal(opt) : opt)
+                    : `﴿\u00A0${opt}\u00A0﴾`;
+                const optsHTML = wItem.options.map(opt => {
+                    const ok = String(opt).trim() === String(wItem.correctAns).trim();
+                    return `<div class="quran-text" style="margin:6px auto; padding:8px 16px; max-width:760px; border-radius:16px; font-size:1.8rem; border:2px solid ${ok ? '#10b981' : '#cbd5e1'}; background:${ok ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.6)'};">${ok ? '✅ ' : ''}${optLabel(opt)}</div>`;
+                }).join('');
+                questionRecapHTML = `<div style="margin:10px 0 18px;">${headLine}${originalBodyHTML}<div style="margin-top:10px;">${optsHTML}</div></div><hr style="opacity:.25;">`;
+            }
+            document.getElementById('game-answer').innerHTML = `${questionRecapHTML}${t("الإجابة الصحيحة:")}<br><div style="color:var(--secondary); font-size:1.4rem; font-weight:bold; margin: 10px 0;">${tf('game_ref_label', { name: surahNameLocal(wItem.surahName), n: wItem.num })}</div><span class="quran-text">﴿\u00A0${GameState.currentData.fullAnswer}\u00A0﴾</span>`;
             return;
         }
 
@@ -829,6 +843,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 linkPairs: linkRec ? linkRec.linkPairs : null,
                 correctAns: cd.correctAns || null,
                 options: Array.isArray(cd.options) ? cd.options : null,
+                optionsKind: cd.optionsKind || null,
                 originalWords: (cd.type === 'kids_word_order' && Array.isArray(cd.originalWords)) ? cd.originalWords : null,
                 sourceSection: 'kids',
                 dateRecorded: new Date().toISOString()
