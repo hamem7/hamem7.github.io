@@ -325,6 +325,28 @@ export function skillSummaryForWindow(events, fromTs, toTs) {
     };
 }
 
+// تغطية المراجعة في نافذة زمنية: كم آية مختلفة من مسار حفظ الطالب ظهرت في اختباراته وواجباته، وأي السور لم يُسأل عنها.
+// تُحسب الأحداث الحيّة فقط (اختبار/واجب)، لا أخطاء القائمة ولا الاستيراد القديم، وبشرط رقم آية داخل المسار (الحدث بلا آية لا يُحتسب).
+export function coverageForWindow(events, path, fromTs, toTs) {
+    if (!path || !path.total) return null;
+    const seen = new Set();
+    (events || []).forEach(e => {
+        if (e.ts < fromTs || e.ts >= toTs || (e.source !== 'game' && e.source !== 'homework')) return;
+        const seg = path.byId.get(e.segment);
+        if (!seg || !Number.isInteger(e.ayah) || e.ayah < seg.from || e.ayah > seg.limit) return;
+        seen.add(`${seg.surah}:${e.ayah}`);
+    });
+    if (!seen.size) return null;
+    const surahTotals = new Map(), surahSeen = new Set();
+    path.segments.forEach(s => surahTotals.set(s.surah, true));
+    seen.forEach(k => surahSeen.add(+k.split(':')[0]));
+    const missing = [...surahTotals.keys()].filter(n => !surahSeen.has(n));
+    return {
+        tested: seen.size, total: path.total, pct: Math.round(seen.size / path.total * 100),
+        surahsCovered: surahSeen.size, surahsTotal: surahTotals.size, missing
+    };
+}
+
 // السياق الكامل لطالب: كل ما تحتاجه شاشات الملف والتخطيط، محسوباً من الأحداث والسجلات الشهرية وملف الطالب
 export function buildContext({ surahsData, student, records, events, now = Date.now() }) {
     const range = resolveRange(surahsData, student, records);

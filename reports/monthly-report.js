@@ -271,6 +271,13 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div id="mr-skills-content"></div>
         </div>
 
+        <!-- تغطية المراجعة: كم آية من محفوظه ظهرت في اختبارات الشهر وواجباته. يُخفى لو لا بيانات. النصوص من renderCoverageBlock -->
+        <div class="mr-block pdf-block" id="mr-cov-block" style="display:none;">
+          <div class="section-title" id="mr-cov-title"></div>
+          <div class="section-sub" id="mr-cov-sub"></div>
+          <div id="mr-cov-content"></div>
+        </div>
+
         <div class="mr-block pdf-block" id="mr-dual-block">
           <div class="section-title" data-i18n="mr_dual_section_title">الاختبارات الثنائية هذا الشهر</div>
           <div class="section-sub" data-i18n="mr_dual_section_sub">كل مواجهة مكتملة خاض فيها الطالب هذا الشهر</div>
@@ -822,6 +829,15 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب ملخص المهارات:', e);
   }
 
+  // تغطية المراجعة لهذا الشهر (null لو لا نطاق حفظ أو لا أحداث بآيات)
+  let coverage = null;
+  try {
+    const svc = await import('../core/trackingService.js');
+    coverage = await svc.getMonthCoverage(student, year, monthIndex0);
+  } catch (e) {
+    console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
+  }
+
   return {
     student, year, monthIndex0,
     periodLabel: monthYearLabel(year, monthIndex0),
@@ -843,7 +859,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     achievementsThisMonth,
     resolvedThisMonth,
     reviewSchedule, reviewedWithinThisMonth,
-    journey, reviewSummary, comparison, trend, skillSummary
+    journey, reviewSummary, comparison, trend, skillSummary, coverage
   };
 }
 
@@ -1220,6 +1236,21 @@ function renderSkillsBlock(d) {
   $('mr-skills-content').innerHTML = `${bars}<ul style="margin:12px 0 0;padding-inline-start:20px;font-size:0.95rem;line-height:1.8;">${lines}</ul>`;
 }
 
+function renderCoverageBlock(d) {
+  const c = d.coverage;
+  setBlockVisible('mr-cov-block', !!c);
+  if (!c) return;
+  setText('mr-cov-title', t('mr_cov_title'));
+  setText('mr-cov-sub', t('mr_cov_sub'));
+  const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
+  const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));
+  const names = shown.join(AppState.currentLang === 'en' ? ', ' : '، ') + (c.missing.length > 3 ? ' ' + t('mr_cov_others') : '');
+  const color = c.pct >= 60 ? '#047857' : (c.pct >= 30 ? '#f59e0b' : '#64748b');
+  $('mr-cov-content').innerHTML = `<div style="font-size:1.05rem;font-weight:700;">${esc(fill('mr_cov_main', { n: c.tested, total: c.total, pct: c.pct }))}</div>
+    <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:8px;"><i style="display:block;height:100%;width:${c.pct}%;background:${color};border-radius:5px;"></i></div>
+    <div style="margin-top:10px;font-size:0.95rem;line-height:1.8;">${esc(fill('mr_cov_surahs', { c: c.surahsCovered, t: c.surahsTotal }))}${c.missing.length ? '<br>' + esc(fill('mr_cov_missing', { names })) : ''}</div>`;
+}
+
 function renderDualBlock(d) {
   const el = $('mr-dual-content');
   if (!el) return;
@@ -1529,6 +1560,7 @@ function renderAll(d) {
   renderGameEvalBlock(d);
   renderHomeworkBlock(d);
   renderSkillsBlock(d);
+  renderCoverageBlock(d);
   renderDualBlock(d);
   renderAchievementsBlock(d);
   renderErrorsBlock(d);

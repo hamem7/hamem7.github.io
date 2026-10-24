@@ -10,7 +10,7 @@
 
 import { AppState } from './app.js';
 import {
-    buildContext, planHomework, skillSummaryForWindow, monthlyStaleness, segmentIdFor,
+    buildContext, planHomework, skillSummaryForWindow, coverageForWindow, monthlyStaleness, segmentIdFor,
     hizbOfQuarter, groupSegments, coverageOf, coverageAdvice, suggestGroups, selectionSegIds, DAY_MS
 } from '../engine/trackingEngine.js';
 import {
@@ -206,6 +206,14 @@ export async function getMonthSkillSummary(student, year, monthIndex) {
     const to = new Date(year, monthIndex + 1, 1).getTime();
     const sum = skillSummaryForWindow(events, from, to);
     return sum.eventCount ? sum : null;
+}
+
+// تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
+export async function getMonthCoverage(student, year, monthIndex) {
+    if (!manager()) return null;
+    const ctx = await loadContext(student);
+    if (!ctx || !ctx.path) return null;
+    return coverageForWindow(ctx.events, ctx.path, new Date(year, monthIndex, 1).getTime(), new Date(year, monthIndex + 1, 1).getTime());
 }
 
 // ------------------------------------------
