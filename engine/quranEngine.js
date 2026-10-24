@@ -778,10 +778,12 @@ export class QuranEngine {
                     const set = index.stemSurahs.get(stem);
                     singles.set(stem, { text: words[i], stems: [stem], phrase: false, surahs: set ? set.size : 1 });
                 }
-                for (let len = 2; len <= 3; len++) {
+                // 🌟 للأطفال: كلمتان فقط تسهيلاً عليهم، ويجب أن تحوي إحداهما كلمة مميِّزة (ليست وظيفية/شائعة)
+                for (let len = 2; len <= (isKids ? 2 : 3); len++) {
                     for (let i = 0; i + len <= words.length; i++) {
                         const stems = keys.slice(i, i + len).map(wordStem);
                         if (stems.some(st => st.length < 2)) continue;
+                        if (isKids && !stems.some((st, j) => keys[i + j].length >= 4 && !COMMON_WORDS.has(st))) continue;
                         phrases.push({ text: words.slice(i, i + len).join(' '), stems, keys: keys.slice(i, i + len), phrase: true });
                     }
                 }
@@ -804,7 +806,8 @@ export class QuranEngine {
         const occursIn = (c, surahNum) => c.phrase
             ? (c.where ? c.where.has(surahNum) : index.phraseSurahs(c.keys).has(surahNum))
             : (index.stemSurahs.get(c.stems[0]) || new Set()).has(surahNum);
-        const priorityOf = (c) => (c.surahs === 1 ? (c.phrase ? 1 : 0) : c.surahs <= 3 ? (c.phrase ? 3 : 2) : 4);
+        // 🌟 للأطفال: المقطع من كلمتين أولى دائماً، والكلمة المفردة احتياطاً فقط
+        const priorityOf = (c) => (isKids && !c.phrase ? 10 : 0) + (c.surahs === 1 ? (c.phrase ? 1 : 0) : c.surahs <= 3 ? (c.phrase ? 3 : 2) : 4);
         // لا تكشف الإجابة: ليست اسم سورة من الخيارات (ولا تتضمّن اسمها) — يشمل الاستبعاد
         const revealsName = (c, name) => (c.phrase ? c.text.split(' ') : [c.text]).some(w => wordIsSurahName(w, name));
 
