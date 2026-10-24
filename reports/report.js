@@ -509,7 +509,9 @@ function buildStats(questionResults){
 //     السجل لا يعدّ المرات، فنفرّق بين "أول مرة" و"سبق الخطأ فيه" فقط.
 const FOCUS_MAX_DETAILED = 3;  // بلوكات تُعرض بتفاصيلها
 const FOCUS_MAX_COMPACT  = 8;  // سور تُعرض بأسمائها فقط
-const FOCUS_VERSE_TYPE = /^(kids_)?(catch|mistake|visual_memory|recite)$/;
+// رقم الآية يُذكر لكل الأنواع المرتبطة بآية واحدة محددة (صيد الآية، اكتشف الخطأ، الذاكرة البصرية، التالية، السابقة،
+// أكمل الآية، معنى الكلمة، آية بين آيتين...). يُستثنى ما لا يُنسب لآية واحدة: الترتيب والربط والمتشابهات وتخمين السورة.
+const FOCUS_NO_VERSE_TYPE = /order|link|similar|weakness|guess_surah|start_surah/;
 
 // تجريد النص من التشكيل والتطويل وعلامات الآية قبل المقارنة — نفس فلسفة
 // normalizeForCompare في ملفات الألعاب، منسوخة هنا محليًا فقط حتى يبقى التقرير
@@ -563,7 +565,7 @@ function stripLeadingEmoji(label){
 // موضع الخطأ من آية/آيات: { nums:[5] } أو { ranges:[[أ,ب]] } أو null (لا يُذكر)
 function focusVerseInfo(qType, num, ranges){
   const type = String(qType || '');
-  if (!FOCUS_VERSE_TYPE.test(type)) return null;
+  if (!type || FOCUS_NO_VERSE_TYPE.test(type)) return null;
   if (Array.isArray(ranges) && ranges.length) {
     const rs = ranges.map(r => [Number(r && r.from), Number(r && r.to)]).filter(r => r[0] > 0 && r[1] >= r[0]);
     return rs.length ? { ranges: rs } : null;
