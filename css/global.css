@@ -183,6 +183,15 @@
 .link-item.matched.unknown { opacity: 1; background: #f59e0b; border-color: #92400e; border-width: 3px; color: #fff; font-weight: 700 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.25); cursor: default; }
 .link-unknown-btn { display: block; margin: 8px auto 0; padding: 6px 14px; border: 2px solid #b45309; background: #fff7ed; color: #92400e; border-radius: 999px; font-family: inherit; font-size: 0.95rem; font-weight: 700; line-height: 1.4; cursor: pointer; }
 .link-unknown-btn:hover { background: #ffedd5; }
+/* الزر على جانب البطاقة (الطرف المقابل لاتجاه القراءة، أي يسار البطاقة في العربية ويمينها في الإنجليزية)
+   بدل أن يكون تحت الكلمة: لا يزيد ارتفاع البطاقة ولا يحرّك ما حولها. الحشو المتماثل يُبقي الكلمة في المنتصف.
+   في الشاشات الضيقة يعود تحت الكلمة حتى لا يتزاحم مع النص */
+.link-item.selected:not(.matched) { padding-inline: clamp(5.5rem, 28%, 8rem) !important; }
+.link-item.selected .link-unknown-btn { position: absolute; inset-inline-end: 10px; top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap; text-shadow: none; }
+@media (max-width: 600px) {
+    .link-item.selected:not(.matched) { padding-inline: 20px !important; }
+    .link-item.selected .link-unknown-btn { position: static; transform: none; margin: 8px auto 0; }
+}
 @keyframes linkCorrectPop { 0% { transform: scale(1); } 45% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
 /* النوافذ المنبثقة والتوست */

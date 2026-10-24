@@ -101,6 +101,11 @@ body[data-qfit="link"] #app-root .link-item {
     line-height: 1.75 !important;
 }
 body[data-qfit="link"] #app-root .link-item .link-unknown-btn { font-size: max(.85rem, calc(.95 * var(--u))) !important; }
+/* مساحة محجوزة للزر الجانبي داخل البطاقة المحدَّدة (يتجاوز الحشو أعلاه) */
+body[data-qfit="link"] #app-root .link-item.selected:not(.matched) { padding-inline: clamp(5.5rem, 28%, 8rem) !important; }
+@media (max-width: 600px) {
+    body[data-qfit="link"] #app-root .link-item.selected:not(.matched) { padding-inline: calc(.6 * var(--u)) !important; }
+}
 
 /* أثناء قياس المساحة (components/questionFit.js) تُوقَف الانتقالات حتى لا يُقاس تخطيط قديم */
 body[data-qfit-measuring] #app-root * { transition: none !important; }
