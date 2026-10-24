@@ -390,10 +390,10 @@ function ensureTableStylesInjected() {
   style.textContent = `
 .mmt-overlay { position: fixed; inset: 0; background: rgba(6, 35, 28, .82); z-index: 10000; display: flex; align-items: stretch; justify-content: stretch; padding: 0; box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .mmt-screen { --mmt-blue: var(--dh-emerald-700, #0d5c46); --mmt-deep: var(--dh-emerald-800, #0b3d30); --mmt-tint: #eaf5ef; --mmt-soft: #cfe6da; --mmt-ink: var(--dh-ink, #10241c); --mmt-mute: var(--dh-ink-soft, #4a6058); --mmt-line: #e6e2d3;
-  background: var(--dh-surface, #fffdf6); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
+  background: var(--dh-surface-alt, #f6f3e8); color: var(--mmt-ink); border-radius: 0; width: 100%; height: 100%; max-width: none; max-height: none; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 30px 70px rgba(0,0,0,.45); direction: rtl; }
 .mmt-screen[dir="ltr"] { direction: ltr; }
 .mmt-overlay *, .mmt-overlay h2, .mmt-overlay h3 { text-shadow: none !important; -webkit-text-stroke: 0 !important; }
-.mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 3px solid var(--dh-gold-500, #d4af37); }
+.mmt-head { background: #fff; color: var(--mmt-blue); padding: 14px 24px; display: grid; gap: 10px; flex-shrink: 0; border-bottom: 1px solid var(--dh-line, #e4dfcc); }
 .mmt-head-row { display: flex; align-items: center; gap: 12px; }
 .mmt-back { min-width: 44px; height: 44px; gap: 8px; padding: 0 14px !important; font-family: inherit; font-weight: 700; font-size: .95rem; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: var(--mmt-blue); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .mmt-back:hover { background: var(--mmt-tint); }
@@ -405,8 +405,9 @@ function ensureTableStylesInjected() {
 .mmt-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .mmt-stat { background: var(--mmt-tint); color: var(--mmt-blue); border-radius: 10px; padding: 4px 12px; font-size: .85rem; font-weight: 700; }
 .mmt-stat b { font-size: 1.05rem; direction: ltr; unicode-bidi: isolate; }
-.mmt-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 18px; background: var(--mmt-tint); border-bottom: 1px solid var(--mmt-soft); flex-shrink: 0; }
-.mmt-tools input { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--mmt-soft); background: #fff; font-family: inherit; font-size: .95rem; width: 230px; max-width: 100%; box-sizing: border-box; }
+.mmt-card { flex: 1; min-height: 0; width: calc(100% - 36px); max-width: 1100px; margin: 18px auto; display: flex; flex-direction: column; background: var(--dh-surface, #fffdf6); border: 1px solid var(--dh-line, #e4dfcc); border-radius: var(--dh-radius-md, 18px); box-shadow: var(--dh-shadow-soft, 0 10px 30px rgba(6,35,28,.12)); overflow: hidden; }
+.mmt-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--mmt-tint); border-bottom: 1px solid var(--dh-line, #e4dfcc); flex-shrink: 0; }
+.mmt-tools input { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--mmt-soft); background: #fff; font-family: inherit; font-size: .95rem; width: 230px; max-width: 100%; box-sizing: border-box; }
 .mmt-banner { width: 100%; font-weight: 700; color: var(--dh-ok, #15803d); font-size: .9rem; }
 .mmt-scroll { overflow: auto; flex: 1; min-height: 0; }
 .mmt-table { width: 100%; border-collapse: collapse; font-size: .95rem; font-variant-numeric: tabular-nums; }
@@ -414,7 +415,7 @@ function ensureTableStylesInjected() {
 .mmt-table td { padding: 9px 10px; border-bottom: 1px solid var(--mmt-line); vertical-align: middle; }
 .mmt-table tr.is-dirty td { background: var(--mmt-tint); }
 .mmt-table tr.is-err td { background: var(--dh-danger-bg, #fde8e8); }
-.mmt-table tr.is-later td { opacity: .45; }
+.mmt-table tr.is-later td { opacity: .5; }
 .mmt-table tr.is-later td.mmt-c-later { opacity: 1; }
 .mmt-who { display: flex; align-items: center; gap: 10px; font-weight: 800; }
 .mmt-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--mmt-tint); color: var(--mmt-blue); border: 2px solid var(--mmt-blue); font-weight: 800; overflow: hidden; flex-shrink: 0; }
@@ -433,7 +434,7 @@ function ensureTableStylesInjected() {
 .mmt-pill { font-size: .75rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: #fef3c7; color: #92400e; white-space: nowrap; }
 .mmt-c-later { text-align: center; }
 .mmt-c-later input { width: 20px; height: 20px; accent-color: var(--mmt-blue); cursor: pointer; }
-.mmt-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid var(--mmt-line); background: #fff; flex-shrink: 0; }
+.mmt-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 18px; border-top: 1px solid var(--mmt-line); background: var(--dh-surface, #fffdf6); flex-shrink: 0; }
 .mmt-hint { font-size: .85rem; color: var(--mmt-mute); }
 .mmt-hint.err { color: var(--dh-danger, #b91c1c); font-weight: 700; }
 .mmt-btn { border: none; border-radius: 12px; padding: 12px 22px; font-family: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; background: var(--mmt-blue); color: #fff; }
@@ -463,6 +464,7 @@ function ensureTableStylesInjected() {
 .mmt-screen button:focus-visible, .mmt-screen input:focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
 @media (max-width: 720px) {
   .mmt-title { font-size: 1.4rem; }
+  .mmt-card { width: 100%; margin: 0; border-radius: 0; border-width: 1px 0; }
   .mmt-table thead { display: none; }
   .mmt-table, .mmt-table tbody { display: block; }
   .mmt-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; padding: 12px 14px; border-bottom: 1px solid var(--mmt-line); }
@@ -574,7 +576,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
     function renderTable() {
       overlay.innerHTML = shell({
         head: `<div class="mmt-sub">${t('mmt_sub')}</div><div class="mmt-stats" id="mmt-stats"></div>`,
-        body: `
+        body: `<div class="mmt-card">
           <div class="mmt-tools">
             ${banner ? `<div class="mmt-banner">${banner}</div>` : ''}
             <input type="search" id="mmt-search" placeholder="${t('mmt_search_ph')}" aria-label="${t('mmt_search_ph')}">
@@ -601,7 +603,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
               </tr>`;
             }).join('')}</tbody>
           </table></div>
-          <div class="mmt-bar"><span class="mmt-hint" id="mmt-hint"></span><button class="mmt-btn" id="mmt-save"></button></div>`
+          <div class="mmt-bar"><span class="mmt-hint" id="mmt-hint"></span><button class="mmt-btn" id="mmt-save"></button></div></div>`
       });
 
       bindChrome();
