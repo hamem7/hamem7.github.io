@@ -46,6 +46,7 @@ import { listAllSubmissionsForNotifications } from '../core/homeworkApi.js';
 import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homeworkApi.js';
 // 🌟 [جديد] نطاق الواجب الحقيقي المسجَّل في الخادم (meta.scope) — احتياط لو لم تتوفر النسخة المحلية للواجب
 import { fetchHomeworkScope } from '../core/homeworkApi.js';
+import { disableHomeworkLinkOnServer } from '../core/homeworkApi.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -448,7 +449,10 @@ async function loadHomeworkDashboard() {
             btn.addEventListener('click', async (e) => {
                 const id = e.currentTarget.getAttribute('data-id');
                 if (await confirmHwDelete()) {   // 🌟 نافذة تأكيد في وسط الصفحة بدل confirm() العلوي
+                    // 🌟 تعطيل الرابط على الخادم أولاً: يرى الطالب «حذف المعلم هذا الواجب». الفشل لا يمنع الحذف المحلي لكن ننبّه المعلم.
+                    const linkDisabled = await disableHomeworkLinkOnServer(id);
                     await AppState.homeworkManager.deleteHomework(id);
+                    if (!linkDisabled) alert(t('hw_delete_link_failed'));
                     await loadHomeworkDashboard();
                 }
             });

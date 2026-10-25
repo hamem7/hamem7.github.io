@@ -67,7 +67,7 @@ export function reportSubmitFailure(hwId, code, message, attempts, rejected) {
 
 /** فشل تحميل الواجب عند فتح الرابط (لا يُبلَّغ NOT_FOUND/CLOSED: رابط خاطئ أو واجب مغلق = متوقَّع). */
 export function reportLoadFailure(hwId, code, message) {
-    if (code === 'NOT_FOUND' || code === 'CLOSED') return;
+    if (code === 'NOT_FOUND' || code === 'CLOSED' || code === 'DELETED') return;
     reportClientError({ kind: 'load_failed', hwId, code, message: `${code || 'ERROR'}${message ? ': ' + message : ''}` });
 }
 

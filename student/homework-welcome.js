@@ -88,7 +88,7 @@ async function loadHomework(hwId) {
     } catch (e) {
         reportLoadFailure(hwId, e && e.code, e && e.message);
         enterBtn.disabled = false;
-        const final = (e instanceof ApiError) && (e.code === 'NOT_FOUND' || e.code === 'CLOSED');
+        const final = (e instanceof ApiError) && (e.code === 'NOT_FOUND' || e.code === 'CLOSED' || e.code === 'DELETED');
         showMsg(friendlyErrorText(e) + (final ? '' : ' — ' + t('hw_st_nothing_submitted')), 'error');
         if (final) {
             enterBtn.style.display = 'none';

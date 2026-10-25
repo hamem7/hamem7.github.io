@@ -106,6 +106,7 @@ async function init() {
     homework = r.homework;
   } catch (e) {
     if (e instanceof ApiError && e.code === 'NOT_FOUND') return showError('الواجب غير موجود', 'الرابط غير صحيح أو حُذف الواجب. اطلب رابطاً جديداً من المعلم.', '🔍', false);
+    if (e instanceof ApiError && e.code === 'DELETED') return showError('تم حذف الواجب', 'حذف المعلم هذا الواجب ولم يعد متاحاً. اطلب رابطاً جديداً من المعلم.', '🗑️', false);
     if (e instanceof ApiError && e.code === 'CLOSED') return showError('الواجب مغلق', 'أغلق المعلم هذا الواجب ولم يعد يقبل تسليمات.', '🔒', false);
     return showError('تعذّر تحميل الواجب', friendlyError(e) + ' — لم يتم تسليم أي شيء.', '📡', true);
   }

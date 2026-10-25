@@ -504,6 +504,7 @@ function getHomeworkPublic_(req) {
   var found = findHomework_(id);
   if (!found || !found.row.rec) throw err_('NOT_FOUND', 'Homework not found');
   var rec = found.row.rec;
+  if (rec.status === 'deleted') throw err_('DELETED', 'This homework was deleted by the teacher');
   if (rec.status === 'closed') throw err_('CLOSED', 'This homework is closed');
   return ok_({
     serverTime: nowIso_(),
@@ -552,7 +553,8 @@ function listHomeworks_(auth) {
 
 function setHomeworkStatus_(req, auth) {
   var status = String(req.status || '');
-  if (status !== 'published' && status !== 'closed') throw err_('BAD_REQUEST', 'status must be published|closed');
+  // 'deleted' = حذفه المعلم من سجله: يبقى الصف (لتسليماته) لكن الرابط يعطي الطالب DELETED
+  if (status !== 'published' && status !== 'closed' && status !== 'deleted') throw err_('BAD_REQUEST', 'status must be published|closed|deleted');
   var found = findHomework_(String(req.id || ''));
   if (!found || !found.row.rec || !canAccessHw_(found.row.rec, auth)) throw err_('NOT_FOUND', 'Homework not found');
   var rec = found.row.rec;
@@ -748,6 +750,7 @@ function submit_(req) {
       return publicReceipt_(loaded.rows[i].rec, { duplicate: true });
     }
   }
+  if (hw.status === 'deleted') throw err_('DELETED', 'This homework was deleted by the teacher');
   if (hw.status === 'closed') throw err_('CLOSED', 'This homework is closed');
 
   // 2) Identity: assigned homework forces the assigned name; otherwise a name is required.

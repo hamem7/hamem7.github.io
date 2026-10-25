@@ -24,7 +24,7 @@ export function friendlyErrorText(e) {
     const map = {
         NETWORK: 'hw_err_network', TIMEOUT: 'hw_err_timeout', BAD_RESPONSE: 'hw_err_bad_response',
         UNAUTHORIZED: 'hw_err_unauthorized', NOT_FOUND: 'hw_err_not_found',
-        CLOSED: 'hw_err_closed', ALREADY_SUBMITTED: 'hw_err_already', BUSY: 'hw_err_busy',
+        CLOSED: 'hw_err_closed', DELETED: 'hw_err_deleted', ALREADY_SUBMITTED: 'hw_err_already', BUSY: 'hw_err_busy',
         NOT_PERSISTED: 'hw_err_not_persisted', PERSIST_VERIFY_FAILED: 'hw_err_not_persisted',
         UNGRADED_QUESTIONS: 'hw_err_ungraded', VERSION_CONFLICT: 'hw_err_conflict'
     };
@@ -116,6 +116,23 @@ export async function isHomeworkMissingOnServer(id) {
     if (!isServerHomeworkId(id)) return false;
     try { await call('getHomework', { id }, {}); return false; }
     catch (e) { return (e instanceof ApiError && e.code === 'NOT_FOUND'); }
+}
+
+// 🌟 [جديد] عند حذف المعلم للواجب من سجله: نعطّل رابطه على الخادم فيرى الطالب «حذف المعلم هذا الواجب».
+// الحالة 'deleted' تتطلب نسخة الخادم الأحدث؛ لو كانت الخادم قديماً (BAD_REQUEST) نرجع للإغلاق 'closed' (يمنع الدخول والتسليم أيضاً).
+// تُرجع true عند النجاح، وfalse عند أي فشل (شبكة/صلاحية) — الحذف المحلي لا يتعطل بسببها.
+export async function disableHomeworkLinkOnServer(id) {
+    if (!isServerHomeworkId(id)) return true;
+    try {
+        try { await teacherCall('setHomeworkStatus', { id, status: 'deleted' }, { write: true }); }
+        catch (e) {
+            if (!(e instanceof ApiError) || e.code !== 'BAD_REQUEST') throw e;
+            await teacherCall('setHomeworkStatus', { id, status: 'closed' }, { write: true });
+        }
+        return true;
+    } catch (e) {
+        return (e instanceof ApiError && e.code === 'NOT_FOUND');   // غير موجود أصلاً = الرابط معطّل
+    }
 }
 
 // معرّفات واجبات الحساب الحالي الموجودة في الخادم (للتصفية المسبقة فقط؛ الحذف المحلي لا يعتمد عليها وحدها)

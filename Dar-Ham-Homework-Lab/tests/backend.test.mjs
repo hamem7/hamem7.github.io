@@ -122,6 +122,15 @@ await test('getHomework: invalid / unknown / injection-style ids give NOT_FOUND'
   }
 });
 
+await test('deleting a homework (status deleted) makes the public link answer DELETED and blocks submissions', async () => {
+  const { be, key } = fresh();
+  const qs = await makeQuestions(4);
+  const c = be.post({ action: 'createHomework', ...key, homework: { questions: qs } });
+  assert.equal(be.post({ action: 'setHomeworkStatus', ...key, id: c.id, status: 'deleted' }).ok, true);
+  assert.equal(be.get({ action: 'getHomework', id: c.id }).code, 'DELETED');
+  assert.equal(be.post({ action: 'submit', hwId: c.id, clientSubmissionId: cid(), studentName: 'سارة', answers: {} }).code, 'DELETED');
+});
+
 await test('closing a homework makes the public link answer CLOSED and blocks new submissions', async () => {
   const { be, key } = fresh();
   const qs = await makeQuestions(4);
