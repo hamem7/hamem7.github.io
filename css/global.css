@@ -187,8 +187,8 @@
    وهو الطرف البعيد عن عمود النهايات، فلا يقع في مسار حركة الماوس نحو النهاية فيقلّ الضغط عليه بالخطأ.
    بدل أن يكون تحت الكلمة: لا يزيد ارتفاع البطاقة ولا يحرّك ما حولها. الحشو المتماثل يُبقي الكلمة في المنتصف.
    في الشاشات الضيقة يعود تحت الكلمة حتى لا يتزاحم مع النص */
-.link-item.selected:not(.matched) { padding-inline: clamp(5.5rem, 28%, 8rem) !important; }
-.link-item.selected .link-unknown-btn { position: absolute; inset-inline-start: 10px; top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap; text-shadow: none; }
+.link-item.selected:not(.matched) { padding-inline: clamp(4.5rem, 20%, 6rem) !important; }
+.link-item.selected .link-unknown-btn { position: absolute; inset-inline-start: 10px; top: 50%; transform: translateY(-50%); margin: 0; width: 4.5rem; white-space: normal; text-align: center; line-height: 1.25; padding: 5px 6px; border-radius: 14px; font-size: 0.8rem; text-shadow: none; }
 @media (max-width: 600px) {
     .link-item.selected:not(.matched) { padding-inline: 20px !important; }
     .link-item.selected .link-unknown-btn { position: static; transform: none; margin: 8px auto 0; }
