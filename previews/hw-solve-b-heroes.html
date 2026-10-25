@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ب) — حل الواجب برحلة الأبطال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hw-solve-shared.css">
+<style>
+/* النموذج (ب) «رحلة الأبطال»: ألوان مرحة، نجوم، بطاقات كبيرة، مناسب للأطفال */
+:root{--bg:#e9f6f1;--card:#fff;--card2:#f7fcfa;--ink:#10241c;--ink2:#587068;--line:#cfe6dc;--soft:#e0f3ea;--seg:#d6eae1;
+--g7:#0d5c46;--g6:#17a673;--gold:#f5b50a;--gold2:#ffe08a;--tb:linear-gradient(135deg,#0d5c46,#25a07a 60%,#2f80ed);--selbg:#e3fbef;
+--mbg:#fff8e1;--mbd:#f5c542;--ayah:#0b4a3a;--barbg:rgba(255,255,255,.94);--sh:0 8px 0 rgba(13,92,70,.1),0 14px 30px rgba(13,92,70,.1);--r:26px}
+body.dark{--bg:#071a24;--card:#0e2a38;--card2:#0a2230;--ink:#e6f6ff;--ink2:#9bbccd;--line:#1c4256;--soft:#13394b;--seg:#17384a;--g7:#6ee7b7;--g6:#22c58b;
+--mbg:#17323f;--mbd:#8a6d12;--ayah:#b4f5da;--barbg:rgba(14,42,56,.95);--selbg:#0f3b33}
+body.dark .btn{color:#05202b}body.dark .btn.ghost{color:var(--g7)}body.dark .seg.done,body.dark .opt.sel .lt,body.dark .orow .num,body.dark .how li span{color:#05202b}
+.btn{border-radius:18px;box-shadow:0 5px 0 rgba(0,0,0,.18)}.btn:active{box-shadow:0 1px 0 rgba(0,0,0,.18);transform:translateY(4px)}.btn.ghost,.btn.link,.btn.soft{box-shadow:none}
+.seg{border-radius:50%;min-height:48px;max-width:56px;margin-inline:auto}
+.seg.done::after{content:"⭐";position:absolute;top:-10px;inset-inline-end:-6px;font-size:.9rem}
+.opt{border-radius:22px;border-width:3px;min-height:72px}.opt.sel{transform:scale(1.015);box-shadow:0 5px 0 rgba(23,166,115,.35)}
+.opt:nth-child(2) .lt{background:#dbeafe;color:#1d4ed8}.opt:nth-child(3) .lt{background:#fce7f3;color:#be185d}.opt:nth-child(4) .lt{background:#fef3c7;color:#b45309}.opt:nth-child(5) .lt{background:#ede9fe;color:#6d28d9}
+.opt.sel .lt{background:var(--g6)!important;color:#fff!important}
+.mushaf{border-style:dashed}.orn{color:var(--gold)}
+.hero .avatar{width:84px;height:84px;font-size:2.6rem;animation:bob 2.4s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-6px)}}
+.stars{background:#fff3c4;color:#7a5a00;font-weight:700}body.dark .stars{background:#3a3210;color:#ffe08a}
+.tile{border-radius:20px}.qtype{background:#dbeafe;color:#1d4ed8}
+</style>
+</head>
+<body data-theme="heroes">
+<div id="app"></div>
+<script src="hw-solve-shared.js"></script>
+</body>
+</html>

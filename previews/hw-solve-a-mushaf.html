@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — حل الواجب بأسلوب المصحف</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hw-solve-shared.css">
+<style>
+/* النموذج (أ) «المصحف الهادئ»: ورق دافئ، زمرّد وذهب، إطار زخرفي، هدوء وتركيز */
+:root{--bg:#f3eedd;--card:#fffdf6;--card2:#fff;--ink:#10241c;--ink2:#5a6f66;--line:#e3dcc3;--soft:#efe9d3;--seg:#e8e1c8;
+--g7:#0d5c46;--g6:#147c5e;--gold:#d4af37;--gold2:#f1dd8f;--tb:linear-gradient(135deg,#0b3d30,#147c5e);--selbg:#ecf8f1;
+--mbg:#fbf4dc;--mbd:#d9bf6a;--ayah:#0b4a3a;--barbg:rgba(255,253,246,.92);--sh:0 10px 30px rgba(6,35,28,.1)}
+body.dark{--bg:#08130f;--card:#101f19;--card2:#0c1814;--ink:#e8f4ee;--ink2:#97b1a5;--line:#1f362b;--soft:#16302a;--seg:#1b2f27;--g7:#5fd1a6;--g6:#1f9d77;
+--mbg:#13261f;--mbd:#6b5a1f;--ayah:#a7f0d2;--barbg:rgba(16,31,25,.94);--selbg:#12332a}
+body.dark .btn{color:#06231c}body.dark .btn.ghost{color:var(--g7)}body.dark .seg.done,body.dark .opt.sel .lt,body.dark .orow .num,body.dark .how li span{color:#06231c}
+.qcard{border-top:5px solid var(--gold)}
+.mushaf::before,.mushaf::after{content:"﴾";position:absolute;top:50%;transform:translateY(-50%);color:var(--gold);font-size:2.2rem;opacity:.5}
+.mushaf::before{inset-inline-start:8px}.mushaf::after{content:"﴿";inset-inline-end:8px}
+</style>
+</head>
+<body data-theme="mushaf">
+<div id="app"></div>
+<script src="hw-solve-shared.js"></script>
+</body>
+</html>
