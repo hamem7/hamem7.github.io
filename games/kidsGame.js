@@ -865,9 +865,10 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         // 🌟 [جديد] الإجابة الصحيحة بعد ترتيب خاطئ سابق تُسجَّل ضمن الأخطاء التي تُعالَج
         // (بقرار المعلم). ⚠️ افتراض: أي محاولة ترتيب خاطئة واحدة تكفي (orderAttempts >= 1)، وهي نفس
         // عتبة حالة 'reorder' في التقرير. التسجيل لا يجري في وضع العلاج نفسه، ولا يتكرر لو الخطأ مسجَّل أصلًا 🌟
-        if (!GameState.isWeaknessMode && (GameState.orderAttempts >= 1)) {
-            const origin = 'reorder';
-            const errs = [t(origin === 'reorder' ? 'weak_origin_reorder' : 'weak_origin_hint')];
+        const unkInfo = GameState.currentData && GameState.currentData.unknownInfo;
+        if (!GameState.isWeaknessMode && (unkInfo || GameState.orderAttempts >= 1)) {
+            const origin = unkInfo ? 'unknown' : 'reorder';
+            const errs = [unkInfo ? unkInfo.label : t('weak_origin_reorder')];
             if(!AppState.currentStudent.weaknesses) AppState.currentStudent.weaknesses = [];
             if(!AppState.currentStudent.weaknesses.some(w => normalizeForCompare(w.text) === normalizeForCompare(reportText))) AppState.currentStudent.weaknesses.push(buildErrorObj(errs, origin));
         }
@@ -875,7 +876,9 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         let earnedScore = 10;
         if (GameState.orderAttempts === 1) earnedScore = 8;
         else if (GameState.orderAttempts >= 2) earnedScore = 6;
-        
+        // «لا أعرف هذه» في الربط: يُخصم من الدرجة بنسبة الأزواج غير المعروفة فقط
+        if (unkInfo) earnedScore = Math.round(earnedScore * (unkInfo.total - unkInfo.unknown) / unkInfo.total);
+
         AppState.currentStudent.totalScore += earnedScore; 
         GameState.consecutiveCorrect++;
         if(GameState.consecutiveCorrect === 2) { setTimeout(() => { showToastEncouragement(); }, 500); GameState.consecutiveCorrect = 0; }
@@ -976,6 +979,44 @@ function resolveLinkMatch(data, startItem, endItem) {
     return false;
 }
 
+// 🌟 [جديد] «لا أعرف هذه» في ألعاب الربط (نسخة مطابقة لما في games/adultGame.js — راجع تعليقاته):
+// الزوج المعلَّم يُعدّ مطابَقاً فتظهر نهايته الصحيحة، ويُسجَّل السؤال كاملاً في سجل الضعف عند اكتماله،
+// وتُخصم من درجته نسبة غير المعروف فقط 🌟
+function isUnknownPair(data, id) {
+    return Array.isArray(data.unknownIds) && data.unknownIds.includes(id);
+}
+
+function markLinkPairUnknown(id) {
+    const data = GameState.currentData;
+    if (!data || data.locked || data.matchedPairs.includes(id)) return;
+    if (!Array.isArray(data.unknownIds)) data.unknownIds = [];
+    data.unknownIds.push(id);
+    data.matchedPairs.push(id);
+    data.selectedStart = null;
+    data.justMatchedId = id;
+    buildLinkGameUI();
+    data.justMatchedId = null;
+    if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
+}
+
+function finishLinkQuestion() {
+    const data = GameState.currentData;
+    const unk = (data && data.unknownIds) || [];
+    if (!unk.length) { recordAnswer(true); return; }
+    const names = unk.map(id => {
+        const s = data.starts.find(x => x.id === id);
+        return s ? s.text.split(/\s+/).slice(0, 5).join(' ') + '…' : '';
+    }).filter(Boolean).join(' ، ');
+    const label = t('link_unknown_err') + ' ' + names;
+    if (unk.length >= data.starts.length || GameState.isWeaknessMode) {
+        playErrorSound();
+        recordAnswer(false, [label]);
+        return;
+    }
+    data.unknownInfo = { unknown: unk.length, total: data.starts.length, label };
+    recordAnswer(true, [label]);
+}
+
 function buildLinkGameUI() {
     const startsDiv = document.getElementById('link-starts-col');
     const endsDiv = document.getElementById('link-ends-col');
@@ -992,7 +1033,8 @@ function buildLinkGameUI() {
         let el = document.createElement('div');
         let cls = 'link-item quran-text';
         if (isMatched) {
-            cls += ' matched pair-' + (idx % PAIR_COLORS_COUNT);
+            if (isUnknownPair(data, item.id)) cls += ' matched unknown';
+            else cls += ' matched pair-' + (idx % PAIR_COLORS_COUNT);
             if (data.justMatchedId === item.id) cls += ' correct-pop';
         }
         if (data.selectedStart === idx) cls += ' selected';
@@ -1003,6 +1045,14 @@ function buildLinkGameUI() {
                 data.selectedStart = (data.selectedStart === idx) ? null : idx;
                 buildLinkGameUI();
             };
+            if (data.selectedStart === idx) {
+                const unkBtn = document.createElement('button');
+                unkBtn.type = 'button';
+                unkBtn.className = 'link-unknown-btn';
+                unkBtn.innerText = t('link_unknown_btn');
+                unkBtn.onclick = (e) => { e.stopPropagation(); markLinkPairUnknown(item.id); };
+                el.appendChild(unkBtn);
+            }
         }
         startsDiv.appendChild(el);
     });
@@ -1013,7 +1063,8 @@ function buildLinkGameUI() {
         let cls = 'link-item quran-text';
         if (isMatched) {
             let pairIdx = data.starts.findIndex(s => s.id === item.id);
-            cls += ' matched pair-' + (pairIdx % PAIR_COLORS_COUNT);
+            if (isUnknownPair(data, item.id)) cls += ' matched unknown';
+            else cls += ' matched pair-' + (pairIdx % PAIR_COLORS_COUNT);
             if (data.justMatchedId === item.id) cls += ' correct-pop';
         }
         el.className = cls;
@@ -1029,7 +1080,7 @@ function buildLinkGameUI() {
                     if (data.matchedPairs.length < data.starts.length) playSuccessSound();
                     buildLinkGameUI();
                     data.justMatchedId = null;
-                    if (data.matchedPairs.length === data.starts.length) setTimeout(() => recordAnswer(true), 400);
+                    if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
                 } else {
                     playErrorSound();
                     GameState.orderAttempts++;
