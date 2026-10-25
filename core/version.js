@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.57';
+export const APP_VERSION = '1.0.58';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.58',
+        date: '2026-10-25',
+        items: [
+            { type: 'improved', text: { ar: 'اختيارات «في أي سورتين؟» و«أي سورة لم ترد؟» صارت مشتِّتة: السور الخاطئة قريبة من الصحيحة في الطول والموضع، فلا يُستبعد الجواب بمجرد أن يكون من سور كبيرة.', en: 'The choices in "In which two surahs?" and "Which surah does not contain it?" are now more distracting: wrong surahs are close to the right ones in length and position, so the answer can no longer be ruled out just because it comes from long surahs.' } },
+            { type: 'improved', text: { ar: 'في «اكتشف الخطأ/الخطأين» تُدسّ كلمة قريبة من الأصلية في الطول والنهاية ومن سياق السورة، فلا يظهر الخطأ لغرابته.', en: 'In "Spot the mistake(s)" the inserted word now resembles the original in length and ending and comes from the same surah context, so it no longer stands out as obviously wrong.' } }
+        ]
+    },
     {
         version: '1.0.57',
         date: '2026-10-23',

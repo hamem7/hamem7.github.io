@@ -120,6 +120,32 @@ export function wordIsSurahName(word, surahName) {
 
 // 🌟 تقطيع نص الآية إلى كلمات فعلية فقط (بعد استبعاد رموز الوقف تماماً) — تُستخدم في كل موضع
 // كانت النتيجة فيه ستظهر للطالب كاختيار أو كبطاقة كلمة أو كمشتت.
+// 🌟 «اكتشف الخطأ»: الكلمة المدسوسة تُختار قريبة من الأصلية (طولاً ونهايةً وبدايةً)، ويُفضَّل أن تكون من نفس السورة أو من آية مجاورة،
+// حتى لا تُكتشف لغرابتها عن السياق. يُستبعد ما يطابق الأصلية بدون تشكيل، ويُختار عشوائياً من أقرب المرشحين.
+const _bareWord = (w) => String(w).replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي');
+function pickMistakeWord(original, ayah, ayahsPool, used, ayahWords) {
+    const o = _bareWord(original), inAyah = new Set(ayahWords.map(_bareWord));
+    const sameFirst = o.startsWith('ال') || o.startsWith('و') || o.startsWith('ف');
+    const scored = []; const seen = new Set();
+    for (const a of ayahsPool) {
+        if (a === ayah || (a.number === ayah.number)) continue;
+        const near = a.surahNumber === ayah.surahNumber ? (Math.abs(a.numberInSurah - ayah.numberInSurah) <= 5 ? 0 : 1) : 3;
+        for (const w of splitAyahWords(a.text)) {
+            const b = _bareWord(w);
+            if (b.length < 3 || b === o || inAyah.has(b) || seen.has(b) || used.has(w)) continue;
+            seen.add(b);
+            let suf = 0; while (suf < 3 && suf < b.length && suf < o.length && b[b.length - 1 - suf] === o[o.length - 1 - suf]) suf++;
+            let pre = 0; while (pre < 2 && pre < b.length && pre < o.length && b[pre] === o[pre]) pre++;
+            const d = Math.abs(b.length - o.length) * 1.5 - suf - (sameFirst ? pre : 0) * 0.5 + near;
+            scored.push({ w, d });
+        }
+    }
+    if (!scored.length) return null;
+    scored.sort((x, y) => x.d - y.d);
+    const top = scored.slice(0, 6);
+    return top[Math.floor(Math.random() * top.length)].w;
+}
+
 export function splitAyahWords(text) {
     return cleanAyahText(text).split(/\s+/).filter(w => w && !isWaqfMark(w));
 }
@@ -462,10 +488,9 @@ export class QuranEngine {
         const wrongWords = [...words];
         const used = new Set();
         replaceIdxs.forEach(replaceIdx => {
-            let targetLen = words[replaceIdx].length; let stolenWord = "بَلْ";
-            // 🌟 الكلمة "المدسوسة" تُسحب من كلمات فعلية فقط (splitAyahWords) — قبل ذلك كان ممكن أن
-            // تُسحب علامة وقف منفردة فتظهر داخل الآية كأنها الكلمة الخاطئة المطلوب اكتشافها 🌟
-            for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx] && !used.has(w)); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } }
+            let targetLen = words[replaceIdx].length; let stolenWord = pickMistakeWord(words[replaceIdx], ayah, ayahsPool, used, words);
+            if(!stolenWord) { stolenWord = "بَلْ";
+            for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx] && !used.has(w)); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } } }
             used.add(stolenWord); wrongWords[replaceIdx] = stolenWord;
         });
         const mistakeTitle = replaceIdxs.length > 1 ? "اكتشف الخطأين 🔍" : "اكتشف الخطأ 🔍";

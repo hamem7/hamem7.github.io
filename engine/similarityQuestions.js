@@ -330,6 +330,21 @@ export function isWeakPhrase(phrase) {
 const NOTIN_MIN = 3, NOTIN_MAX = 5;
 const COUNT_WORD = { 3: 'ثلاث', 4: 'أربع', 5: 'خمس' };
 
+// 🌟 مشتتات «في أي سورتين؟»: سورة قريبة من السورة المقصودة في الطول (عدد الآيات) وفي الموضع من المصحف، مع قدر من العشوائية،
+// فلا يستبعد الطالب سورتين قصيرتين لمجرد أن الجواب من سور كبيرة (ولا العكس)
+function surahLen(Q, s) {
+    if (!Q._sl) { Q._sl = new Map(); for (const v of Q.flat) Q._sl.set(v.s, (Q._sl.get(v.s) || 0) + 1); }
+    return Q._sl.get(s) || 1;
+}
+function pickNear(Q, pool, target, rng, taken) {
+    const lt = Math.log(surahLen(Q, target));
+    const scored = pool.filter(s => !taken.has(s)).map(s => ({ s, d: Math.abs(Math.log(surahLen(Q, s)) - lt) + Math.abs(s - target) / 114 + rng() * 0.35 }));
+    if (!scored.length) return null;
+    scored.sort((a, b) => a.d - b.d);
+    taken.add(scored[0].s);
+    return scored[0].s;
+}
+
 // «في أي سورتين؟» (العبارة في سورتين بالضبط) أو «أي سورة لم ترد؟» (في 3–5 سور: الجواب سورة من النطاق لا ترد فيها)
 function pairCandidate(Q, group, locs, rng) {
     if (!locs.every(l => l.v.juz >= PAIR_FIRST_JUZ && l.v.juz <= PAIR_LAST_JUZ)) return null;
@@ -348,22 +363,27 @@ function pairCandidate(Q, group, locs, rng) {
             if (!surahs.every(s => holders.has(s)) || holders.size < 2 || holders.size > NOTIN_MAX) continue;
             const hs = [...holders].sort((a, b) => a - b);
             if (hs.some(hides)) continue;
-            const decoys = shuffled([...sc.set].filter(s => !holders.has(s) && !hides(s)), rng);
+            const decoys = [...sc.set].filter(s => !holders.has(s) && !hides(s));
             if (decoys.length < 3) continue;
             const occ = locs.filter(l => holders.has(l.s)).map(l => ({ surahNumber: l.s, surahName: l.surahName, ayahNumber: l.n, fullText: l.text }));
             const base = { shown: new Set(), answer: new Set(), key: 'pair|' + group.groupId, facts: new Set(['phrase|' + sk.join(' ')]) };
             const name = (n) => Q.surahName(n);
             if (hs.length === 2) {
                 const key = (a) => [...a].sort((x, y) => x - y).map(name).join(PAIR_SEP);
-                const keep = hs[Math.floor(rng() * 2)];
-                const f = finalize([key(hs), key([keep, decoys[0]]), key([decoys[1], decoys[2]])], key(hs), rng);
+                const ki = Math.floor(rng() * 2), keep = hs[ki], drop = hs[1 - ki];
+                const taken = new Set();
+                const d1 = pickNear(Q, decoys, drop, rng, taken), d2 = pickNear(Q, decoys, hs[0], rng, taken), d3 = pickNear(Q, decoys, hs[1], rng, taken);
+                if (d1 == null || d2 == null || d3 == null) continue;
+                const f = finalize([key(hs), key([keep, d1]), key([d2, d3])], key(hs), rng);
                 if (!f) continue;
                 return { ...base, type: 'sim_pair', text: pairQuestionText(phrase, sc.id), opts: f.opts, ci: f.ci, loc: locs.find(l => l.s === hs[0]) || locs[0],
                     extra: { pair: { phrase, scope: sc.id, surahs: hs, occurrences: occ } } };
             }
             if (hs.length < NOTIN_MIN) continue;
             const two = shuffled(hs, rng).slice(0, 2);
-            const f = finalize([name(decoys[0]), ...two.map(name)], name(decoys[0]), rng);
+            const dn = pickNear(Q, decoys, two[0], rng, new Set());
+            if (dn == null) continue;
+            const f = finalize([name(dn), ...two.map(name)], name(dn), rng);
             if (!f) continue;
             return { ...base, type: 'sim_notin', text: pairQuestionText(phrase, sc.id, hs.length), opts: f.opts, ci: f.ci, loc: locs.find(l => l.s === hs[0]) || locs[0],
                 extra: { pair: { phrase, scope: sc.id, surahs: hs, count: hs.length, occurrences: occ } } };
