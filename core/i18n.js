@@ -2160,44 +2160,44 @@ export const translations = {
         // 🌟 غنة الميم والنون المشدَّدتين — أي ميم أو نون عليها شدة تُغَنّ بمقدار حركتين، بلا
         // تفريق حالات (حكم واحد بسيط، أول ما يتعلّمه الطفل قبل أحكام الميم/النون الساكنة)
         tjw_rule_ghunna_wajiba_name: "غنة الميم والنون المشدَّدتين",
-        tjw_rule_ghunna_wajiba_def: "أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين",
+        tjw_rule_ghunna_wajiba_def: "أي ميم أو نون عليها شدة (مّ أو نّ) تُنطق بغنة كاملة من الأنف بمقدار حركتين للمعرفة مكانها تحديداً ضع يدك علي أنفك وأغلقه وقل (مّ أو نّ)",
         tjw_rule_ghunna_wajiba_notice: "استمع لـ 'عَمَّ' — هل تسمع رنيناً من الأنف يمتدّ على الميم المشدَّدة؟",
 
         // 🌟 أحكام الميم الساكنة الثلاثة (من الكتاب) — راجع makhrajNote/commonMistakes بكل
         // حكم في tajweedRulesCatalog.js للتفاصيل الكاملة (نص عربي خام، غير مترجم بعد)
         tjw_rule_ikhfa_shafawi_name: "الإخفاء الشفوي",
-        tjw_rule_ikhfa_shafawi_def: "لما تيجي الميم الساكنة قبل حرف الباء، تُخفى بغنة بمقدار حركتين — حالة وسط بين الإظهار والإدغام",
+        tjw_rule_ikhfa_shafawi_def: "إخفاء الميم الساكنة عند الباء بغنة كاملة ضوابطه: : أن يأتي بعد الميم الساكنة باءٌ متحركة. أن تكون الميم والباء في كلمتين؛ بأن تكون الميم الساكنة في آخر الكلمة الأولى، والباء المتحركة في أول الكلمة الثانية. . تحقيق الإخفاء الشفوي: اختلف العلماء في كيفية تحقيقه، ومن أقوالهم: : إطباق الشفتين بحيث يتلامسان تلامسًا لطيفًا دون ترك فرجة، ودون شدّ زائد، وهو القول الراجح. إبقاء فرجة صغيرة جدًا. علامته: تعرية الميم الساكنة من السكون، وعدم تشديد الباء، نحو: ﴿يَعۡتَصِم بِٱللَّهِ﴾ [آل عمران: 101].",
         tjw_rule_ikhfa_shafawi_notice: "استمع لـ 'تَرْمِيهِم بِحِجَارَةٍ' — هل تسمع غنة خفيفة بدل ميم واضحة قبل الباء؟",
 
         tjw_rule_idgham_shafawi_name: "الإدغام الشفوي (المثلين)",
-        tjw_rule_idgham_shafawi_def: "لما تيجي الميم الساكنة قبل ميم متحرّكة، تندمجان في ميم واحدة مشدَّدة بغنة كاملة",
+        tjw_rule_idgham_shafawi_def: "تعريف الإدغام الشفوي : إدخال حرف ساكن في حرف متحرك بحيث يصيران حرفًا واحدًا مشددًا من جنس الثاني. وهو هنا: إدخال الميم الساكنة في الميم المتحركة بغنة أكمل ما تكون وتشديد الميم الثانية.",
         tjw_rule_idgham_shafawi_notice: "استمع لـ 'لَهُم مَّغْفِرَةٌ' — هل تسمع ميماً واحدة مشدَّدة بدل ميمين منفصلتين؟",
 
         tjw_rule_izhar_shafawi_name: "الإظهار الشفوي",
-        tjw_rule_izhar_shafawi_def: "لما تيجي الميم الساكنة قبل أي حرف عدا الباء والميم، تُنطق واضحة تماماً من مخرجها بلا أي غنة زائدة",
+        tjw_rule_izhar_shafawi_def: "إظهار الميم الساكنة من مخرجها من غير غنة ظاهرة فيها سُمّي بالإظهار لوجوب إظهار الميم الساكنة من مخرجها، وسُمّي شفويًا لخروج الميم من الشفتين. حروفه: جميع حروف الهجاء عدا الباء والميم.",
         tjw_rule_izhar_shafawi_notice: "استمع لـ 'عَلَيْهِمْ غَيْرِ' — هل تسمع الميم واضحة تماماً بلا أي غنة؟",
 
         tjw_rule_izhar_name: "الإظهار الحلقي",
-        tjw_rule_izhar_def: "لما تيجي النون الساكنة أو التنوين قبل أحد حروف الحلق الستة، تُنطق النون واضحة تماماً بلا أي تغيير",
+        tjw_rule_izhar_def: "إظهار النون الساكنة أو نون التنوين قبل أحد حروف الحلق الستة فتُنطق النون واضحة تماماً بلا أي تغيير سواء كانا في كلمة أو كلمتين.",
         tjw_rule_izhar_notice: "استمع للنون في 'مِّنْ خَوْفٍ' — هل تسمع نطقها واضحة بلا أي تغيير؟",
 
         // 🌟🌟 [تقسيم صريح بدل حكم "إدغام" واحد — راجع الملاحظة التوثيقية في tajweedRulesCatalog.js
         // عند noon_sakinah لسبب هذا التقسيم] مفاتيح tjw_rule_idgham_* القديمة (بلا لاحقة
         // bighunnah/bila_ghunnah) أُزيلت لعدم وجود بيانات طلاب حقيقية تشير إليها بعد
-        tjw_rule_idgham_bighunnah_name: "الإدغام بغنة",
-        tjw_rule_idgham_bighunnah_def: "لما تيجي النون الساكنة أو التنوين قبل أحد حروف (ي ن م و)، تندمج النون في الحرف اللي بعدها تماماً مع بقاء غنة كاملة بمقدار حركتين",
+        tjw_rule_idgham_bighunnah_name: "الإدغام نوعان بغنة أو بدون غنة",
+        tjw_rule_idgham_bighunnah_def: "الادغام هو : إدخال النون الساكنة أو التنوين في أحد أحرف الإدغام وتشديد حرف الإدغام. سبب تسميته: سُمّي بالإدغام لدخول النون الساكنة في أحد حروف الإدغام فأصبحا حرفًا واحدًا مشددًا. حروفه: مجموعة في كلمة: (يرملون). أقسامه من حيث الغنة : إدغام بدون غنة: حروفه: اللام والراء (رل) إدغام بغنة: حروفه مجموعة في كلمة: (ينمو)",
         tjw_rule_idgham_bighunnah_notice: "استمع لـ 'مَن يَعْمَلْ' — هل تسمع اندماج النون في الياء مع غنة تمتدّ؟",
 
         tjw_rule_idgham_bila_ghunnah_name: "الإدغام بغير غنة",
-        tjw_rule_idgham_bila_ghunnah_def: "لما تيجي النون الساكنة أو التنوين قبل حرفَي (ل ر)، تندمج النون فيهما تماماً وبسرعة بلا أي غنة إطلاقاً",
+        tjw_rule_idgham_bila_ghunnah_def: "إذا جاءت النون الساكنة أو التنوين قبل حرفَي (ل ر)، تندمج النون فيهما تماماً وبسرعة بلا أي غنة إطلاقاً",
         tjw_rule_idgham_bila_ghunnah_notice: "استمع لـ 'هُدًى لِّلْمُتَّقِينَ' — هل تسمع اندماجاً سريعاً بلا أي أثر لغنة؟",
 
         tjw_rule_iqlab_name: "الإقلاب",
-        tjw_rule_iqlab_def: "لما تيجي النون الساكنة أو التنوين قبل حرف الباء، تتحوّل النون لصوت ميم مخفاة مع غنّة",
+        tjw_rule_iqlab_def: "الاقلاب أو القلب هو : تحويل النون الساكنة أو التنوين إذا جاء بعدهما باء متحركة في كلمة أو كلمتين إلى ميم ساكنة مخفاة بغنة كاملة وحروفه هي : حرف الباء فقط. ضابطه: أن يأتي بعد النون الساكنة أو التنوين باءٌ متحركة في كلمة أو كلمتين .",
         tjw_rule_iqlab_notice: "استمع لـ 'عَلِيمٌ بِذَاتِ الصُّدُورِ' — هل تسمع صوت ميم خفيفة بدل النون قبل الباء؟",
 
-        tjw_rule_ikhfa_name: "الإخفاء",
-        tjw_rule_ikhfa_def: "لما تيجي النون الساكنة أو التنوين قبل أحد باقي الحروف، تُنطق النون بصوت بين الإظهار والإدغام مع غنّة",
+        tjw_rule_ikhfa_name: "الإخفاء الحقيقي",
+        tjw_rule_ikhfa_def: "الإخفاء الحقيقي هو : إخفاء النون الساكنة أو نون التنوين عند أحد أحرف الإخفاء بغنة كاملة وسُمّي بالإخفاء لنطق النون الساكنة أو التنوين بصفة بين الإظهار والإدغام، وسُمّي حقيقيًا لتحقق الإخفاء عند حروفه.",
         tjw_rule_ikhfa_notice: "استمع لـ 'مِّن سِجِّيلٍ' — هل تسمع غنّة خفيفة بدل نطق النون بوضوح؟",
 
         // 🌟 [جديد — المراحل 2+3+4+5] خريطة التقدّم، بوّابة المراجعة، الأنشطة التفاعلية،
@@ -5040,31 +5040,31 @@ export const translations = {
         // 🌟 Ghunnah of doubled Meem/Noon — one simple rule, no sub-cases, taught first (before
         // Meem/Noon Sakinah rules) in the reference book
         tjw_rule_ghunna_wajiba_name: "Ghunnah of Doubled Meem & Noon",
-        tjw_rule_ghunna_wajiba_def: "Any doubled meem or noon (مّ or نّ) is pronounced with a full nasal hum for the duration of two harakat",
+        tjw_rule_ghunna_wajiba_def: "Any doubled meem or noon (مّ or نّ) is pronounced with a full nasal hum from the nose for the duration of two harakat. To find its exact place, put your hand on your nose, close it, and say (مّ or نّ)",
         tjw_rule_ghunna_wajiba_notice: "Listen to 'Amma' — can you hear a nasal hum stretching through the doubled meem?",
 
         // 🌟 The three Meem Sakinah rules (from the reference book)
         tjw_rule_ikhfa_shafawi_name: "Labial Ikhfa (Ikhfa Shafawi)",
-        tjw_rule_ikhfa_shafawi_def: "When Meem Sakinah is followed by the letter baa, it is concealed with a nasal hum for two harakat — a state midway between clear and merged",
+        tjw_rule_ikhfa_shafawi_def: "Ikhfa of the silent meem before the baa with a full nasal hum. Its conditions: a moving baa must follow the silent meem; the meem and the baa must be in two words, the silent meem at the end of the first word and the moving baa at the start of the second. How it is done: scholars differ on how to achieve it; among their views: closing the lips so that they touch gently with no gap and no extra tension, which is the preferred view; or leaving a very small gap. Its sign: the silent meem is written without a sukun and the baa without a shaddah, e.g. ﴿يَعۡتَصِم بِٱللَّهِ﴾ [Al-Imran: 101].",
         tjw_rule_ikhfa_shafawi_notice: "Listen to 'tarmeehim bihijaarah' — can you hear a light hum instead of a clear meem before the baa?",
 
         tjw_rule_idgham_shafawi_name: "Labial Idgham (Meem into Meem)",
-        tjw_rule_idgham_shafawi_def: "When Meem Sakinah is followed by a moving meem, the two merge into one doubled meem with a full nasal hum",
+        tjw_rule_idgham_shafawi_def: "Definition of Idgham Shafawi: entering a silent letter into a moving letter so that they become one doubled letter of the type of the second. Here: entering the silent meem into the moving meem with the fullest nasal hum and doubling the second meem.",
         tjw_rule_idgham_shafawi_notice: "Listen to 'lahum maghfiratun' — can you hear one doubled meem instead of two separate meems?",
 
         tjw_rule_izhar_shafawi_name: "Labial Izhar (Izhar Shafawi)",
-        tjw_rule_izhar_shafawi_def: "When Meem Sakinah is followed by any letter other than baa or meem, it is pronounced clearly from its articulation point with no extra nasal hum",
+        tjw_rule_izhar_shafawi_def: "Showing the silent meem clearly from its articulation point with no noticeable nasal hum. It is called izhar because the silent meem must be shown from its articulation point, and shafawi because the meem comes out from the lips. Its letters: all the letters of the alphabet except the baa and the meem.",
         tjw_rule_izhar_shafawi_notice: "Listen to 'alayhim ghayri' — can you hear the meem pronounced clearly with no hum at all?",
 
         tjw_rule_izhar_name: "Clear Pronunciation (Izhar)",
-        tjw_rule_izhar_def: "When Noon Sakinah or Tanween is followed by one of the six throat letters, the noon is pronounced clearly with no change",
+        tjw_rule_izhar_def: "Showing the Noon Sakinah or the Tanween noon before one of the six throat letters, so the noon is pronounced completely clearly with no change, whether in one word or two.",
         tjw_rule_izhar_notice: "Listen to the noon in 'min khawf' — do you hear it pronounced clearly, unchanged?",
 
         // 🌟🌟 [Explicit split instead of one "Idgham" rule — see the documentation note next to
         // noon_sakinah in tajweedRulesCatalog.js for why] the old tjw_rule_idgham_* keys were
         // removed — no real student data referenced them yet
-        tjw_rule_idgham_bighunnah_name: "Idgham with Nasalization",
-        tjw_rule_idgham_bighunnah_def: "When Noon Sakinah or Tanween is followed by one of the letters (ي ن م و), the noon fully merges into the next letter while a full nasal hum is kept for two harakat",
+        tjw_rule_idgham_bighunnah_name: "Idgham: With or Without Nasalization",
+        tjw_rule_idgham_bighunnah_def: "Idgham is entering the Noon Sakinah or Tanween into one of the idgham letters and doubling the idgham letter. Reason for the name: it is called idgham because the Noon Sakinah enters one of the idgham letters so they become one doubled letter. Its letters: gathered in the word (يرملون). Its types by nasalization: idgham without nasal hum: its letters are lām and rā’ (رل); idgham with nasal hum: its letters are gathered in the word (ينمو).",
         tjw_rule_idgham_bighunnah_notice: "Listen to 'man ya'mal' — can you hear the noon merge into the yaa with a lingering hum?",
 
         tjw_rule_idgham_bila_ghunnah_name: "Idgham without Nasalization",
@@ -5072,11 +5072,11 @@ export const translations = {
         tjw_rule_idgham_bila_ghunnah_notice: "Listen to 'hudal-lilmuttaqeen' — can you hear a quick merge with no hum at all?",
 
         tjw_rule_iqlab_name: "Iqlab (Conversion)",
-        tjw_rule_iqlab_def: "When Noon Sakinah or Tanween is followed by the letter baa, the noon converts into a hidden meem sound with a nasal tone",
+        tjw_rule_iqlab_def: "Iqlab (conversion) is turning the Noon Sakinah or Tanween into a hidden silent meem with a full nasal hum when a moving baa follows them, in one word or two. Its letter: the baa only. Its condition: a moving baa comes after the Noon Sakinah or Tanween, in one word or two.",
         tjw_rule_iqlab_notice: "Listen to 'aleemun bidhaatis-sudoor' — can you hear a light meem sound instead of the noon before the baa?",
 
-        tjw_rule_ikhfa_name: "Ikhfa (Concealment)",
-        tjw_rule_ikhfa_def: "When Noon Sakinah or Tanween is followed by one of the remaining letters, the noon is pronounced midway between clear and merged, with a nasal tone",
+        tjw_rule_ikhfa_name: "Ikhfa Haqiqi (True Concealment)",
+        tjw_rule_ikhfa_def: "Ikhfa Haqiqi is concealing the Noon Sakinah or Tanween noon at one of the ikhfa letters with a full nasal hum. It is called ikhfa because the Noon Sakinah or Tanween is pronounced in a state between izhar and idgham, and haqiqi because the concealment truly occurs at its letters.",
         tjw_rule_ikhfa_notice: "Listen to 'min sijjeel' — can you hear a light nasal tone instead of a clear noon?",
 
         // 🌟 [New — Phases 2+3+4+5] progress map, mandatory review gate, interactive
@@ -5896,25 +5896,25 @@ export const translations = {
         pfx_back_in_prof: "🔙 Back",
         // 🌟 [جديد] معايير بوابة التجويد
         "حرف القلقلة الساكن يُنطق بضغط ثم انفتاح مفاجئ يُحدِث \"نبرة\" أو ارتداداً صوتياً خفيفاً — وليس حركة كاملة (ليس فتحة ولا ضمة ولا كسرة)": "The silent qalqalah letter is pronounced with a squeeze followed by a sudden release that produces a light \"bounce\" or echo — it is not a full vowel (not a fatha, damma or kasra).",
-        "الخطأ الأشيع عند الأطفال: تحويل القلقلة لحركة كاملة (مثلاً نطق الساكن كأنه مفتوح)، أو العكس: إهمال الارتداد تماماً والوقوف على الحرف ساكناً بلا أي نبرة، خصوصاً في القلقلة الكبرى عند الوقف": "Most common mistake in children: turning the qalqalah into a full vowel (e.g. pronouncing the silent letter as if it had a fatha), or the opposite: dropping the bounce completely and stopping on the letter flatly with no echo, especially in the major qalqalah when stopping.",
+        "الخطأ المنتشر عند الأطفال: تحويل القلقلة لحركة كاملة (مثلاً نطق الساكن كأنه مفتوح)، أو العكس: الوقوف على الحرف ساكناً بلا أي نبرة، خصوصاً في القلقلة الكبرى عند الوقف": "Common mistake in children: turning the qalqalah into a full vowel (e.g. pronouncing the silent letter as if it had a fatha), or the opposite: stopping on the letter flatly with no echo, especially in the major qalqalah when stopping.",
         "الغنة صوت يخرج من الخيشوم (الأنف) لا من الفم، بمقدار حركتين (زمن قبض إصبعين أو بسطهما تقريباً) — استمر بصوت الميم أو النون المشدَّدة حتى تحس بالرنين في أنفك لا في فمك.": "Ghunnah is a sound that comes from the nasal passage (the nose), not the mouth, held for two counts (about the time of folding or extending two fingers) — keep the sound of the doubled meem or noon going until you feel the resonance in your nose, not your mouth.",
-        "أشيع خطأ عند الأطفال: تقصير الغنة لأقل من حركتين (نطق سريع يشبه الحرف العادي غير المشدَّد)، أو العكس: مطّها أطول من اللازم فتشبه المد.": "Most common mistake in children: shortening the ghunnah to less than two counts (a quick pronunciation that sounds like an ordinary, non-doubled letter), or the opposite: stretching it longer than needed so it sounds like a madd.",
+        "من الأخطاء : تقصير الغنة لأقل من حركتين (نطق سريع يشبه الحرف العادي غير المشدَّد)، أو العكس: مطّها أطول من اللازم فتشبه المد": "Common mistake in children: shortening the ghunnah to less than two counts (a quick pronunciation that sounds like an ordinary, non-doubled letter), or the opposite: stretching it longer than needed so it sounds like a madd.",
         "الشفتان تُخفيان انطباقهما التام (لا إظهار كامل ولا إدغام كامل) مع غنة بمقدار حركتين — حالة وسط تماماً بين الإظهار والإدغام.": "The lips hide their full closure (neither full clarity nor full merging) with a ghunnah of two counts — a state exactly between clear pronunciation and merging.",
         "أشيع خطأ: تحويلها لإدغام كامل (دمج الميم في الباء تماماً)، أو العكس: إظهار الميم بوضوح تام بلا أي غنة مخفاة.": "Most common mistake: turning it into a complete merging (blending the meem fully into the baa), or the opposite: pronouncing the meem completely clearly with no hidden ghunnah at all.",
-        "الميمان تندمجان في ميم واحدة مشدَّدة بغنة كاملة بمقدار حركتين — نفس حكم الغنة الواجبة (المرحلة السابقة) لكن سببها هنا التقاء ميمين لا التشديد المكتوب.": "The two meems merge into one doubled meem with a full ghunnah of two counts — the same rule as the obligatory ghunnah (previous stage), but here the cause is the meeting of two meems rather than a written shaddah.",
-        "أشيع خطأ: نطق الميمين منفصلتين بدل دمجهما في ميم واحدة، أو تقصير مدة الغنة عن حركتين.": "Most common mistake: pronouncing the two meems separately instead of merging them into one, or shortening the ghunnah to less than two counts.",
+        "سبب تسميته: سُمّي بالإدغام لدخول الميم الساكنة في الميم المتحركة فصارا حرفًا واحدًا مشددًا (الميم المشددة)، وسُمّي شفويًا لخروج الميم من الشفتين. حروفه: حرف الميم فقط.": "Reason for the name: it is called idgham because the silent meem enters the moving meem so they become one doubled letter (the doubled meem), and it is called shafawi because the meem comes out from the lips. Its letter: the meem only.",
+        "من الأخطاء المنتشرة : نطق الميمين منفصلتين بدل دمجهما في ميم واحدة، أو تقصير مدة الغنة عن حركتين.": "Common mistakes: pronouncing the two meems separately instead of merging them into one, or shortening the ghunnah to less than two counts.",
         "إطباق الشفتين على الميم الساكنة بوضوح تام من مخرجها من غير أي غنة زائدة — أوضح أحكام الميم الساكنة الثلاثة نطقاً.": "The lips close clearly on the silent meem from its proper articulation point with no extra ghunnah — the clearest of the three silent-meem rules in pronunciation.",
         "أشيع خطأ عند الأطفال تحديداً قبل حرفي الفاء والواو (قريبَي مخرج من الباء): إضافة غنة خفيفة بالخطأ وكأنها إخفاء شفوي رغم أن الحكم إظهار تام.": "Most common mistake in children, specifically before the letters faa and waw (close to the baa in articulation): wrongly adding a light ghunnah as if it were a labial ikhfa, although the rule is full clear pronunciation.",
         "النون الساكنة تُنطق من مخرجها الطبيعي (طرف اللسان) واضحة تماماً بلا غنة زائدة عن غنتها الطبيعية الخفيفة — لأن حروف الحلق الستة بعيدة المخرج عن النون فلا تؤثر فيها.": "The silent noon is pronounced from its natural articulation point (the tip of the tongue) completely clearly, with no ghunnah beyond its natural light one — because the six throat letters are far from the noon in articulation and do not affect it.",
         "أشيع خطأ: إضافة غنة زائدة بالخطأ (كأنها إخفاء) خصوصاً قبل حرفي الغين والخاء تحديداً لقربهما نسبياً من وسط الفم.": "Most common mistake: wrongly adding an extra ghunnah (as if it were ikhfa), especially before the letters ghayn and khaa, because they are relatively close to the middle of the mouth.",
         "النون الساكنة أو التنوين يندمجان تماماً في الحرف التالي (من حروف \"ينمو\") مع بقاء غنة كاملة بمقدار حركتين أثناء الاندماج.": "The silent noon or tanween merges completely into the following letter (one of the letters of \"yanmu\") while a full ghunnah of two counts remains during the merging.",
-        "أشيع خطأ: إسقاط الغنة تماماً وكأنه إدغام بغير غنة، أو نطق النون منفصلة قبل الحرف التالي بدل اندماجها الكامل فيه.": "Most common mistake: dropping the ghunnah completely as if it were a merging without ghunnah, or pronouncing the noon separately before the next letter instead of merging fully into it.",
+        "من الأخطاء : إسقاط الغنة تماماً وكأنه إدغام بغير غنة، أو نطق النون منفصلة قبل الحرف التالي بدل اندماجها الكامل فيه.": "Common mistakes: dropping the ghunnah completely as if it were a merging without ghunnah, or pronouncing the noon separately before the next letter instead of merging fully into it.",
         "النون الساكنة أو التنوين يندمجان تماماً في اللام أو الراء التالية بلا أي غنة إطلاقاً — اندماج كامل وسريع، على عكس النوع السابق.": "The silent noon or tanween merges completely into the following laam or raa with no ghunnah at all — a full, quick merging, unlike the previous type.",
-        "أشيع خطأ: إبقاء أثر غنة خفيف بالخطأ (خلط مع الإدغام بغنة)، وهذا هو الفارق الجوهري الذي يجب أن يميّزه الطالب بوضوح بين الحكمين.": "Most common mistake: wrongly leaving a light trace of ghunnah (confusing it with merging with ghunnah), which is the key difference the student must clearly tell apart between the two rules.",
+        "من الأخطاء: إبقاء أثر غنة خفيف بالخطأ (خلط مع الإدغام بغنة)، وهذا هو الفارق الجوهري الذي يجب أن يميّزه الطالب بوضوح بين الحكمين.": "Common mistakes: wrongly leaving a light trace of ghunnah (confusing it with merging with ghunnah), which is the key difference the student must clearly tell apart between the two rules.",
         "النون الساكنة أو التنوين يتحوّلان فعلياً لصوت ميم مخفاة (بغنة) قبل نطق الباء — تحوّل حقيقي في الصوت وليس مجرد إخفاء.": "The silent noon or tanween actually changes into the sound of a hidden meem (with ghunnah) before pronouncing the baa — a real change in the sound, not just hiding.",
         "أشيع خطأ: نطق النون الأصلية دون تحويلها لميم، أو نسيان علامة الميم الصغيرة فوق النون عند الكتابة بخط اليد.": "Most common mistake: pronouncing the original noon without turning it into a meem, or forgetting the small meem sign above the noon when writing by hand.",
         "حالة وسط تماماً بين الإظهار والإدغام: النون الساكنة أو التنوين تُخفَيان بغنة بمقدار حركتين بلا إدغام كامل وبلا إظهار كامل — أدق أحكام النون الساكنة نطقاً ويحتاج تدريباً أطول من الطفل.": "A state exactly between clear pronunciation and merging: the silent noon or tanween is hidden with a ghunnah of two counts, with neither full merging nor full clarity — the most delicate of the silent-noon rules to pronounce and it needs longer training for a child.",
-        "أشيع خطأ: الميل لأحد طرفَي الحكم بالكامل (إظهار واضح جداً أو إدغام كامل) بدل الحالة الوسطى الدقيقة، خصوصاً مع الحروف الخمسة عشر الكثيرة.": "Most common mistake: leaning completely to one extreme of the rule (very clear pronunciation or full merging) instead of the delicate middle state, especially with the many fifteen letters.",
+        "من الأخطاء : الميل لأحد طرفَي الحكم بالكامل (إظهار واضح جداً أو إدغام كامل) بدل الحالة الوسطى الدقيقة، خصوصاً مع الحروف الخمسة عشر الكثيرة.": "Common mistakes: leaning completely to one extreme of the rule (very clear pronunciation or full merging) instead of the delicate middle state, especially with the many fifteen letters.",
         // 🌟 [جديد] رسائل متفرقة
         "جاري تجهيز شاشة ترحيب الطالب 🛠️ (انتقل للخطوة التالية من فضلك!)": "Preparing the student welcome screen 🛠️ (please move on to the next step!)",
         "جاري تجهيز شاشة إعداد الواجبات 🛠️ (انتقل للخطوة التالية من فضلك)": "Preparing the homework setup screen 🛠️ (please move on to the next step)",
