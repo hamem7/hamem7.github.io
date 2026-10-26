@@ -3,7 +3,7 @@ import { AppState } from '../core/app.js';
 // 🌟🌟 [محدَّث] كان هذا الملف يستورد رفع النتيجة/الصوت من core/firebase.js ويحسب الدرجة على هاتف الطالب ويدّعي
 // النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
 // أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
-import { t, localizeHomeworkText } from '../core/i18n.js';
+import { t, tf, localizeHomeworkText } from '../core/i18n.js';
 const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤال وقت العرض فقط (الآيات لا تُمَسّ)
 // 🌟 [إصلاح تدقيق ما قبل الإطلاق] escape للخيارات وإجابة الطالب المحفوظة داخل HTML/attributes: كان علامة " في خيار أو إجابة تكسر الـ attribute وتضيّع الإجابة عند إعادة الفتح
 import { esc } from '../core/escape.js';
@@ -12,6 +12,7 @@ import { ApiError } from '../core/api.js';
 import { initErrorReporter } from '../core/errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء
 import { saveDraft, loadDraft, getAttempt, startSubmission, attemptSend, startAutoRetry, watchAttempt, isLocalStorageWorking } from '../core/submitQueue.js';
 
+let confettiDone = false;
 let hw = null;
 let student = null;
 let currentIndex = 0;
@@ -30,9 +31,11 @@ export function initHomeworkPlay() {
     }
 
     initErrorReporter({ getHwId: () => (hw && hw.id) || null });
-    document.getElementById('hp-student-name').innerText = `${t('hw_st_hero_prefix')} ${student.name}`;
+    document.getElementById('hp-student-name').textContent = `${t('hw_st_hero_prefix')} ${student.name}`;
     currentIndex = 0;
     answers = {};
+    skipped = {}; orderState = {}; orderTouched = {}; encShown = {}; inReview = false;
+    loadPrefs();
 
     // 🌟 شريط تنبيه عدم وجود اتصال + تنبيه لو منع المتصفح الحفظ المحلي (وضع التصفح الخاص)
     bindConnectivityBanner();
@@ -97,317 +100,386 @@ function bindConnectivityBanner() {
     update();
 }
 
+// ==========================================================
+// 🌟 [2026-10-26] واجهة «المصحف الهادئ»: حالة العرض + التنقّل + المراجعة + الأسئلة
+// ==========================================================
+let skipped = {};            // أسئلة تخطّاها الطالب (للعرض فقط، لا تُرسَل)
+let orderState = {};         // سؤال الترتيب: الترتيب الحالي للخيارات (لا يُحسب إجابة قبل أن يحرّكه الطالب)
+let orderTouched = {};
+let encShown = {};
+let fontScale = 1;
+let focusMode = false;
+let toastTimer = null;
+const FONT_KEY = 'darham_hp_font';
+
+const $ = (id) => document.getElementById(id);
+const LETTERS_AR = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز'];
+const LETTERS_EN = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+const isAr = () => AppState.currentLang !== 'en';
+const letterOf = (i) => (isAr() ? LETTERS_AR : LETTERS_EN)[i] || String(i + 1);
+
+function isAnswered(q) {
+    const a = answers[q.id];
+    if (a === undefined || a === null) return false;
+    if (Array.isArray(a)) return a.some(x => x);
+    if (typeof a === 'object') return Object.keys(a).length > 0;
+    return String(a).trim() !== '';
+}
+const answeredCount = () => hw.questions.filter(isAnswered).length;
+
+function toast(msg) {
+    const el = $('hp-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function confetti() {
+    try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; } catch (e) { /* لا شيء */ }
+    const box = document.createElement('div');
+    box.className = 'hp-confetti';
+    const colors = ['#d4af37', '#25a07a', '#f1dd8f', '#2f80ed', '#e0463c', '#8b5cf6'];
+    for (let i = 0; i < 70; i++) {
+        const p = document.createElement('i');
+        p.style.cssText = `left:${Math.random() * 100}%;background:${colors[i % colors.length]};animation-delay:${Math.random() * .6}s;animation-duration:${2 + Math.random() * 1.6}s;transform:rotate(${Math.random() * 360}deg)`;
+        box.appendChild(p);
+    }
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 4200);
+}
+
+function applyFont() {
+    const s = document.querySelector('.hp-screen');
+    if (s) s.style.setProperty('--hp-fs', String(fontScale));
+}
+function loadPrefs() {
+    try { const f = parseFloat(localStorage.getItem(FONT_KEY)); if (f >= 0.85 && f <= 1.5) fontScale = f; } catch (e) { /* التخزين قد يكون ممنوعاً */ }
+    applyFont();
+}
+function savePref() { try { localStorage.setItem(FONT_KEY, String(fontScale)); } catch (e) { /* لا شيء */ } }
+
+function flashSaved() {
+    const el = $('hp-saved');
+    if (!el) return;
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+
+// تشجيع خفيف عند كل إجابة جديدة (مرة لكل عدد مُجاب)
+function onAnswerChanged() {
+    flashSaved();
+    const n = answeredCount();
+    if (n >= 1 && !encShown[n]) {
+        encShown[n] = 1;
+        const frac = n / hw.questions.length;
+        toast(t('hw_pl_enc_' + (frac >= 1 ? 5 : frac >= .75 ? 4 : frac >= .5 ? 3 : n === 1 ? 1 : 2)));
+    }
+    paintSegments();
+}
+
+function paintSegments() {
+    const box = $('hp-segs');
+    if (!box) return;
+    box.textContent = '';
+    hw.questions.forEach((q, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        const done = isAnswered(q);
+        b.className = 'hp-seg' + (done ? ' done' : '') + (!done && skipped[q.id] ? ' skip' : '') + (i === currentIndex ? ' cur' : '');
+        b.textContent = String(i + 1);
+        b.setAttribute('aria-label', `${t('hw_pl_q')} ${i + 1}`);
+        if (i === currentIndex) b.setAttribute('aria-current', 'step');
+        b.addEventListener('click', () => goTo(i));
+        box.appendChild(b);
+    });
+    const bar = $('hp-progress-bar');
+    if (bar) bar.style.width = `${Math.round(answeredCount() / hw.questions.length * 100)}%`;
+}
+
+function goTo(i) {
+    saveCurrentAnswer();
+    if (i < 0 || i >= hw.questions.length) return;
+    if (inReview) showPlay();
+    currentIndex = i;
+    persistDraft();
+    renderQuestion();
+}
+let inReview = false;
+function showPlay() {
+    inReview = false;
+    $('hp-review').hidden = true;
+    $('hp-play-view').style.display = '';
+    $('hp-bar').style.display = '';
+}
+function showReview() {
+    saveCurrentAnswer();
+    persistDraft();
+    inReview = true;
+    $('hp-play-view').style.display = 'none';
+    $('hp-bar').style.display = 'none';
+    const un = hw.questions.filter(q => !isAnswered(q));
+    const note = $('hp-review-note');
+    note.className = 'hp-note ' + (un.length ? 'warn' : 'ok');
+    note.textContent = un.length ? t('hw_pl_warn_unanswered') : t('hw_pl_all_answered');
+    $('btn-hp-submit').textContent = un.length ? t('hw_pl_submit_anyway') : t('hw_pl_submit');
+    const tiles = $('hp-review-tiles');
+    tiles.textContent = '';
+    hw.questions.forEach((q, i) => {
+        const a = isAnswered(q), sk = !a && skipped[q.id];
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'hp-tile ' + (a ? 'ok' : sk ? 'sk' : 'no');
+        const tn = document.createElement('span'); tn.className = 'tn'; tn.textContent = String(i + 1);
+        const tt = document.createElement('span'); tt.className = 'tt'; tt.textContent = plain(hl(q.title));
+        const ts = document.createElement('span'); ts.className = 'ts'; ts.textContent = a ? '✔ ' + t('hw_pl_answered') : sk ? '↷ ' + t('hw_pl_skipped') : '○ ' + t('hw_pl_unanswered');
+        b.append(tn, tt, ts);
+        b.addEventListener('click', () => goTo(i));
+        tiles.appendChild(b);
+    });
+    $('hp-review').hidden = false;
+    try { window.scrollTo(0, 0); } catch (e) { /* لا شيء */ }
+}
+// نص عادي من عنوان قد يحوي <br>: يُعرض بـ textContent فقط
+function plain(s) { return String(s == null ? '' : s).replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '').trim(); }
+
 function setupListeners() {
-    document.getElementById('btn-hp-next').addEventListener('click', () => {
+    $('btn-hp-next').addEventListener('click', () => { if (currentIndex < hw.questions.length - 1) goTo(currentIndex + 1); });
+    $('btn-hp-prev').addEventListener('click', () => { if (currentIndex > 0) goTo(currentIndex - 1); });
+    $('btn-hp-skip').addEventListener('click', () => {
         saveCurrentAnswer();
-        if (currentIndex < hw.questions.length - 1) {
-            currentIndex++;
-            renderQuestion();
-        }
+        const q = hw.questions[currentIndex];
+        if (!isAnswered(q)) skipped[q.id] = 1;
+        if (currentIndex < hw.questions.length - 1) goTo(currentIndex + 1); else showReview();
     });
+    $('btn-hp-review').addEventListener('click', showReview);
+    $('btn-hp-back').addEventListener('click', () => { showPlay(); renderQuestion(); });
 
-    document.getElementById('btn-hp-prev').addEventListener('click', () => {
-        saveCurrentAnswer();
-        if (currentIndex > 0) {
-            currentIndex--;
-            renderQuestion();
-        }
-    });
-
-    document.getElementById('btn-hp-submit').addEventListener('click', () => {
+    $('btn-hp-submit').addEventListener('click', () => {
         saveCurrentAnswer();
         submitHomework();
     });
 
-    document.getElementById('btn-hp-finish').addEventListener('click', () => {
-        window.close();
-        document.body.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f8fafc; text-align: center; padding: 20px;">
-                <div>
-                    <div style="font-size: 5rem; margin-bottom: 20px;">👋</div>
-                    <h1 style="color: #10b981; font-size: 2.5rem; margin-bottom: 10px;">${t('تم إرسال التقييم!')}</h1>
-                    <p style="color: #475569; font-size: 1.5rem;">${t('يمكنك إغلاق هذه الصفحة (النافذة) الآن بأمان يا بطل.')}</p>
-                </div>
-            </div>
-        `;
+    $('btn-hp-font-minus').addEventListener('click', () => { fontScale = Math.max(.85, +(fontScale - .1).toFixed(2)); applyFont(); savePref(); });
+    $('btn-hp-font-plus').addEventListener('click', () => { fontScale = Math.min(1.5, +(fontScale + .1).toFixed(2)); applyFont(); savePref(); });
+    $('btn-hp-focus').addEventListener('click', (e) => {
+        focusMode = !focusMode;
+        document.body.classList.toggle('hp-focus', focusMode);
+        e.currentTarget.setAttribute('aria-pressed', String(focusMode));
     });
+
+    // تنبيه عند مغادرة الصفحة قبل التسليم (لا يظهر بعد وجود محاولة تسليم)
+    window.addEventListener('beforeunload', (e) => {
+        if (!hw || getAttempt(hw.id)) return;
+        if (answeredCount() > 0) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    $('btn-hp-finish').addEventListener('click', () => {
+        window.close();
+        document.body.textContent = '';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex; justify-content:center; align-items:center; height:100vh; background:var(--dh-surface-alt,#f3eedd); text-align:center; padding:20px;';
+        const inner = document.createElement('div');
+        const e1 = document.createElement('div'); e1.style.cssText = 'font-size:5rem; margin-bottom:20px;'; e1.textContent = '👋';
+        const h = document.createElement('h1'); h.style.cssText = 'color:#0d5c46; font-size:2.2rem; margin-bottom:10px;'; h.textContent = t('تم إرسال التقييم!');
+        const p = document.createElement('p'); p.style.cssText = 'color:#4a6058; font-size:1.4rem;'; p.textContent = t('يمكنك إغلاق هذه الصفحة (النافذة) الآن بأمان يا بطل.');
+        inner.append(e1, h, p); wrap.append(inner); document.body.append(wrap);
+    });
+}
+
+function typeName(type) {
+    const k = { mcq: 'mcq', checkbox: 'multi', dropdown: 'dropdown', written_blank: 'blank', write_3_ayahs: 'write', around_ayah: 'write', tajweed_extract: 'write', dual_dropdown: 'dual', matrix_order: 'order', matching: 'match' }[type];
+    return k ? t('hw_pl_type_' + k) : '';
 }
 
 function renderQuestion() {
     const q = hw.questions[currentIndex];
-    const container = document.getElementById('hp-question-container');
+    const container = $('hp-question-container');
     const total = hw.questions.length;
 
-    document.getElementById('hp-progress-text').innerText = `${currentIndex + 1} / ${total}`;
-    document.getElementById('hp-progress-bar').style.width = `${((currentIndex + 1) / total) * 100}%`;
+    $('hp-progress-text').textContent = tf('hw_pl_q_of', { n: currentIndex + 1, total });
+    paintSegments();
 
-    document.getElementById('btn-hp-prev').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-    if (currentIndex === total - 1) {
-        document.getElementById('btn-hp-next').style.display = 'none';
-        document.getElementById('btn-hp-submit').style.display = 'inline-block';
-    } else {
-        document.getElementById('btn-hp-next').style.display = 'inline-block';
-        document.getElementById('btn-hp-submit').style.display = 'none';
-    }
+    $('btn-hp-prev').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+    const last = currentIndex === total - 1;
+    $('btn-hp-next').style.display = last ? 'none' : '';
+    $('btn-hp-review').style.display = last ? '' : 'none';
 
-    // السؤال الجديد يبدأ من أعلى الصفحة (كان الطالب يبقى أسفلها فيضطر للصعود لقراءة السؤال)
+    // السؤال الجديد يبدأ من أعلى الصفحة
     try { window.scrollTo(0, 0); } catch (e) {}
 
+    const savedAns = answers[q.id] === undefined ? '' : answers[q.id];
+    const qc = $('hp-qcard');
+    if (qc) { qc.style.animation = 'none'; void qc.offsetWidth; qc.style.animation = ''; }
+
     let html = `
-        <h3 style="color: #1e293b; font-size: 1.5rem; margin-bottom: 15px;">${hl(q.title)}</h3>
-        ${(q.type === 'mcq' && String(q.title || '').includes('ما معنى')) ? `<div style="background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e; padding: 10px 14px; border-radius: 10px; font-size: 1.05rem; margin: -5px 0 15px;">👨‍👩‍👧 ${t('بإمكانك سؤال أحد الوالدين في هذا السؤال')}</div>` : ''}
-        <!-- 🌟 [جديد] class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية.
-             🌟 الخط كان 'Amiri' العادي — تم تغييره لـ 'Amiri Quran' لأن هذا الصندوق يعرض نص
-             الآية الفعلي (نفس خط class="quran-text" المستخدم بباقي المنصة) حتى يظهر برسم عثماني
-             دقيق يشمل كل علامات الضبط الخاصة بالقرآن 🌟 -->
-        <div class="dh-verse" style="background: #f8fafc; padding: 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 1.8rem; color: var(--dh-ok, #15803d); margin-bottom: 25px; line-height: 1.6; font-family: 'Amiri Quran', serif;${q.simKind ? ' white-space: pre-line;' : ''}">
-            ${hl(q.text)}
-        </div>
-        <div id="hp-options-container" style="display: flex; flex-direction: column; gap: 10px;">
+        <span class="hp-qtype">${esc(typeName(q.type))}</span>
+        <h3 class="hp-qtitle">${hl(q.title)}</h3>
+        ${(q.type === 'mcq' && String(q.title || '').includes('ما معنى')) ? `<div class="hp-parent">👨‍👩‍👧 ${t('بإمكانك سؤال أحد الوالدين في هذا السؤال')}</div>` : ''}
+        ${q.text ? `<!-- class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية -->
+        <div class="hp-mushaf"><div class="hp-ayah dh-verse">${hl(q.text)}</div></div>` : ''}
+        <div id="hp-options-container">
     `;
 
-    const savedAns = answers[q.id] || "";
-
-    if (q.type === 'mcq') {
-        // 🌟 خيارات هذه الأسئلة غالباً آيات/كلمات قرآنية كاملة بالتشكيل (مثلاً "ما هي الآية
-        // التالية؟") وكانت بلا أي خط مخصص أصلاً (ترث الخط العام IBM Plex Sans Arabic الذي لا
-        // يدعم رموز الرسم العثماني إطلاقاً) — أضفنا font-family: 'Amiri Quran' هنا 🌟
-        q.options.forEach(opt => {
-            const isChecked = savedAns === opt ? 'checked' : '';
-            html += `
-                <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
-                    <input type="radio" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${esc(hl(opt))}
-                </label>
-            `;
-        });
-    } else if (q.type === 'checkbox') {
+    if (q.type === 'mcq' || q.type === 'checkbox') {
+        const multi = q.type === 'checkbox';
         const savedArr = Array.isArray(savedAns) ? savedAns : [];
-        q.options.forEach(opt => {
-            const isChecked = savedArr.includes(opt) ? 'checked' : '';
+        html += `<p class="hp-help">${t(multi ? 'hw_pl_pick_many' : 'hw_pl_pick_one')}</p><div class="hp-opts">`;
+        q.options.forEach((opt, i) => {
+            const on = multi ? savedArr.includes(opt) : savedAns === opt;
             html += `
-                <label style="display: flex; align-items: center; padding: 15px; background: white; border: 2px solid ${isChecked ? '#10b981' : '#cbd5e1'}; border-radius: 10px; cursor: pointer; transition: 0.3s; font-size: 1.3rem; color: #334155; font-weight: ${isChecked ? 'bold' : 'normal'}; font-family: 'Amiri Quran', serif;">
-                    <input type="checkbox" name="hp_q_${q.id}" value="${esc(opt)}" ${isChecked} style="margin-left: 15px; transform: scale(1.5);">
-                    ${esc(hl(opt))}
-                </label>
-            `;
+                <label class="hp-opt${on ? ' sel' : ''}">
+                    <input type="${multi ? 'checkbox' : 'radio'}" name="hp_q_${q.id}" value="${esc(opt)}" ${on ? 'checked' : ''}>
+                    <span class="hp-lt">${esc(letterOf(i))}</span><span class="hp-ot dh-verse">${esc(hl(opt))}</span><span class="hp-ck" aria-hidden="true">${multi ? '☑' : '●'}</span>
+                </label>`;
         });
+        html += `</div>`;
     } else if (q.type === 'dropdown') {
-        // 🌟 خيارات القائمة المنسدلة هنا كلمات قرآنية (إكمال الفراغ) — الخط تغيّر لـ 'Amiri Quran'
-        // بدل 'Tajawal' حتى تظهر الكلمة بنفس رسمها العثماني الصحيح 🌟
-        html += `<select id="hp_q_${q.id}_select" style="padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedAns ? 'selected' : ''}>${t('-- اختر الكلمة الصحيحة --')}</option>
-        `;
-        q.options.forEach(opt => {
-            const isSelected = savedAns === opt ? 'selected' : '';
-            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
-        });
+        html += `<select class="hp-select" id="hp_q_${q.id}_select">
+            <option value="" disabled ${!savedAns ? 'selected' : ''}>${t('-- اختر الكلمة الصحيحة --')}</option>`;
+        q.options.forEach(opt => { html += `<option value="${esc(opt)}" ${savedAns === opt ? 'selected' : ''}>${esc(opt)}</option>`; });
         html += `</select>`;
     } else if (q.type === 'written_blank') {
-        // 🌟 حقول كتابة الطالب هنا أيضاً تغيّرت لـ 'Amiri Quran' (بدل 'Amiri' العادي) حتى يرى
-        // الطالب أثناء الكتابة نفس رسم الحروف والتشكيل المستخدم في بقية المنصة 🌟
-        html += `<input type="text" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="${t('اكتب الكلمة الناقصة هنا...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">`;
+        html += `<input type="text" class="hp-field" id="hp_q_${q.id}_text" value="${esc(savedAns)}" placeholder="${t('اكتب الكلمة الناقصة هنا...')}" autocomplete="off">`;
     } else if (q.type === 'write_3_ayahs') {
-        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الآيات الثلاث هنا بتركيز...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
+        html += `<textarea class="hp-field" id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الآيات الثلاث هنا بتركيز...')}">${esc(savedAns || '')}</textarea>`;
     } else if (q.type === 'around_ayah') {
-        html += `<textarea id="hp_q_${q.id}_textarea" rows="5" placeholder="${t('اكتب الآية التي قبلها ثم الآية التي بعدها...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns || '')}</textarea>`;
+        html += `<textarea class="hp-field" id="hp_q_${q.id}_textarea" rows="5" placeholder="${t('اكتب الآية التي قبلها ثم الآية التي بعدها...')}">${esc(savedAns || '')}</textarea>`;
     } else if (q.type === 'tajweed_extract') {
-        html += `<textarea id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الحكمين مع الكلمة التي ظهر فيها كل حكم...')}" style="width: 100%; padding: 15px; font-size: 1.5rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none; resize: vertical;">${esc(savedAns)}</textarea>`;
+        html += `<textarea class="hp-field" id="hp_q_${q.id}_textarea" rows="4" placeholder="${t('اكتب الحكمين مع الكلمة التي ظهر فيها كل حكم...')}">${esc(savedAns || '')}</textarea>`;
     } else if (q.type === 'dual_dropdown') {
-        const savedArr = Array.isArray(savedAns) ? savedAns : ["", ""];
-        html += `<div style="display: flex; gap: 15px; flex-wrap: wrap;">`;
-        html += `<div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">${t('اختر الفراغ الأول [ 1 ]:')}</label>
-            <select id="hp_q_${q.id}_select1" style="width: 100%; padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedArr[0] ? 'selected' : ''}>${t('-- اختر الكلمة الأولى --')}</option>`;
-        q.options1.forEach(opt => {
-            const isSelected = savedArr[0] === opt ? 'selected' : '';
-            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
-        });
-        html += `</select></div>`;
-        html += `<div style="flex: 1; min-width: 200px;">
-            <label style="display: block; margin-bottom: 5px; color: #475569; font-weight: bold;">${t('اختر الفراغ الثاني [ 2 ]:')}</label>
-            <select id="hp_q_${q.id}_select2" style="width: 100%; padding: 15px; font-size: 1.4rem; border: 2px solid #cbd5e1; border-radius: 10px; font-family: 'Amiri Quran', serif; outline: none;">
-            <option value="" disabled ${!savedArr[1] ? 'selected' : ''}>${t('-- اختر الكلمة الثانية --')}</option>`;
-        q.options2.forEach(opt => {
-            const isSelected = savedArr[1] === opt ? 'selected' : '';
-            html += `<option value="${esc(opt)}" ${isSelected}>${esc(opt)}</option>`;
-        });
-        html += `</select></div>`;
-        html += `</div>`;
+        const savedArr = Array.isArray(savedAns) ? savedAns : ['', ''];
+        const sel = (n, label, ph, opts) => `<div><label for="hp_q_${q.id}_select${n}">${t(label)}</label>
+            <select class="hp-select" id="hp_q_${q.id}_select${n}"><option value="" disabled ${!savedArr[n - 1] ? 'selected' : ''}>${t(ph)}</option>
+            ${opts.map(opt => `<option value="${esc(opt)}" ${savedArr[n - 1] === opt ? 'selected' : ''}>${esc(opt)}</option>`).join('')}</select></div>`;
+        html += `<div class="hp-dual">${sel(1, 'اختر الفراغ الأول [ 1 ]:', '-- اختر الكلمة الأولى --', q.options1)}${sel(2, 'اختر الفراغ الثاني [ 2 ]:', '-- اختر الكلمة الثانية --', q.options2)}</div>`;
     } else if (q.type === 'matrix_order') {
-        const savedArr = Array.isArray(savedAns) ? savedAns : [];
-        const colsCount = q.options.length;
-        html += `<div id="hp-matrix-status-${q.id}" style="margin-bottom: 10px; padding: 10px 14px; border-radius: 10px; font-weight: bold; text-align: center;"></div>`;
-        html += `<div style="overflow-x: auto; background: white; border-radius: 10px; border: 1px solid #cbd5e1; direction: rtl;">
-            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 1.2rem;">
-                <tr style="background: #f1f5f9; color: #334155;">
-                    <th style="padding: 15px; text-align: right;">${t('الآية المبعثرة')}</th>`;
-        for (let c = 1; c <= colsCount; c++) { html += `<th style="padding: 15px;">${c}</th>`; }
-        html += `</tr>`;
-        q.options.forEach((opt, rIdx) => {
-            html += `<tr id="hp-matrix-row-${q.id}-${rIdx}"><td style="text-align: right; padding: 15px; border-bottom: 1px solid #e2e8f0; font-family: 'Amiri Quran', serif; font-size: 1.5rem; color: var(--dh-ok, #15803d); line-height: 1.6; min-width: 250px;">${esc(opt)}</td>`;
-            let selectedCol = savedArr.indexOf(opt) + 1;
-            for (let c = 1; c <= colsCount; c++) {
-                const isChecked = (selectedCol === c) ? 'checked' : '';
-                html += `<td style="border-bottom: 1px solid #e2e8f0; padding: 10px;">
-                    <input type="radio" name="hp_q_${q.id}_r${rIdx}" value="${c}" ${isChecked} style="transform: scale(1.6); cursor: pointer;">
-                </td>`;
-            }
-            html += `</tr>`;
-        });
-        html += `</table></div>`;
+        html += `<p class="hp-help">${t('hw_pl_order_help')}</p><div id="hp-olist-${q.id}" class="hp-olist"></div>`;
     } else if (q.type === 'matching') {
-        // 🌟🌟 [جديد] نمط المطابقة: عمودان (بدايات / نهايات)، نقر-للربط بدل سحب-وإفلات (أبسط
-        // وأكثر ثباتاً على شاشات اللمس بجافاسكريبت خام). العرض التفاعلي الفعلي يُبنى لاحقاً في
-        // renderMatchingColumns بعد حقن الـ HTML، لأنه يحتاج مستمعي أحداث بمراجع مغلقة (closures)
-        // لكل بطاقة، وهذا أصعب بكثير عبر نص HTML خام كباقي الأنواع.
+        // نمط المطابقة: عمودان (بدايات / نهايات)، نقر-للربط؛ التفاعل يُبنى بعد حقن الـ HTML في renderMatchingColumns
         html += `
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-                <div id="hp-match-left-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t(q.leftTitle || 'البدايات')}</div>
-                </div>
-                <div id="hp-match-right-${q.id}" style="flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px;">
-                    <div style="font-weight: bold; color: #475569; text-align: center; margin-bottom: 5px;">${t(q.rightTitle || 'النهايات')}</div>
-                </div>
+            <div class="hp-mgrid">
+                <div id="hp-match-left-${q.id}" class="hp-mcol"><div class="hp-mtitle">${t(q.leftTitle || 'البدايات')}</div></div>
+                <div id="hp-match-right-${q.id}" class="hp-mcol"><div class="hp-mtitle">${t(q.rightTitle || 'النهايات')}</div></div>
             </div>
-            <div style="margin-top: 15px; text-align: center; color: #64748b; font-size: 1rem;">${t(q.matchHint || 'اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.')}</div>
-        `;
+            <p class="hp-help" style="text-align:center; margin-top:14px;">${t(q.matchHint || 'اضغط على بداية، ثم على نهايتها المطابقة لها. اضغط على أي بطاقة مربوطة لفك ربطها.')}</p>`;
     }
 
     html += `</div>`;
     container.innerHTML = html;
 
     // تفعيل أحداث الأسئلة
-    const inputs = container.querySelectorAll('input:not([type="file"]), select');
-    inputs.forEach(input => {
-        input.addEventListener('change', (e) => {
+    container.querySelectorAll('input:not([type="file"]), select, textarea').forEach(input => {
+        input.addEventListener('change', () => {
             if (q.type === 'mcq') {
-                container.querySelectorAll('label').forEach(l => {
-                    l.style.borderColor = '#cbd5e1'; l.style.fontWeight = 'normal';
-                });
-                input.parentElement.style.borderColor = '#10b981';
-                input.parentElement.style.fontWeight = 'bold';
+                container.querySelectorAll('.hp-opt').forEach(l => l.classList.remove('sel'));
+                input.closest('.hp-opt').classList.add('sel');
             } else if (q.type === 'checkbox') {
-                input.parentElement.style.borderColor = input.checked ? '#10b981' : '#cbd5e1';
-                input.parentElement.style.fontWeight = input.checked ? 'bold' : 'normal';
-            } else if (q.type === 'matrix_order') {
-                const val = e.target.value;
-                const name = e.target.name;
-                container.querySelectorAll(`input[type="radio"][value="${val}"]`).forEach(r => {
-                    if (r.name !== name) r.checked = false;
-                });
-                updateMatrixStatus(q, container);
+                input.closest('.hp-opt').classList.toggle('sel', input.checked);
             }
+            delete skipped[q.id];
+            saveCurrentAnswer();
+            onAnswerChanged();
         });
+        if (input.matches('input[type="text"], textarea')) input.addEventListener('input', () => { delete skipped[q.id]; saveCurrentAnswer(); onAnswerChanged(); });
     });
 
-    if (q.type === 'matrix_order') updateMatrixStatus(q, container);
-
-    // 🌟 تفعيل تفاعل المطابقة (نقر-للربط) بعد حقن أعمدتها الفارغة في الـ HTML أعلاه 🌟
+    if (q.type === 'matrix_order') renderOrderList(q);
     if (q.type === 'matching') {
         const initialPairs = (answers[q.id] && typeof answers[q.id] === 'object') ? answers[q.id] : {};
         renderMatchingColumns(q, initialPairs);
     }
 }
 
-// [2026-10-17] سؤال الترتيب: يبيّن للطالب كم آية اختار لها ترتيباً (ويلوّن الصفوف المكتملة) ويحذّره من الصفوف الناقصة،
-// فيعرف أنه أتمّ كل المطلوب حتى لو كان الترتيب خاطئاً.
-function updateMatrixStatus(q, container) {
-    const total = q.options.length;
-    let done = 0;
-    q.options.forEach((opt, rIdx) => {
-        const answered = !!container.querySelector(`input[name="hp_q_${q.id}_r${rIdx}"]:checked`);
-        if (answered) done++;
-        const row = container.querySelector(`#hp-matrix-row-${q.id}-${rIdx}`);
-        if (row) row.style.background = answered ? '#ecfdf5' : '#fffbeb';
+// 🌟 سؤال الترتيب: قائمة بطاقات تُرتَّب بالسحب أو بالأسهم (بدل جدول أزرار الراديو). صيغة الإجابة المحفوظة كما كانت:
+// مصفوفة الخيارات بترتيب الطالب. لا تُحتسب إجابة إلا بعد أن يحرّك الطالب بطاقة (فالترتيب الأوّلي مبعثر عمداً).
+function renderOrderList(q) {
+    const list = $(`hp-olist-${q.id}`);
+    if (!list) return;
+    if (!orderState[q.id]) {
+        const saved = Array.isArray(answers[q.id]) ? answers[q.id].filter(x => q.options.includes(x)) : [];
+        orderState[q.id] = saved.length ? [...saved, ...q.options.filter(o => !saved.includes(o))] : [...q.options];
+        orderTouched[q.id] = saved.length > 0;
+    }
+    const order = orderState[q.id];
+    const move = (from, to) => {
+        if (to < 0 || to >= order.length || from === to) return;
+        order.splice(to, 0, order.splice(from, 1)[0]);
+        orderTouched[q.id] = true;
+        delete skipped[q.id];
+        saveCurrentAnswer();
+        renderOrderList(q);
+        onAnswerChanged();
+    };
+    list.textContent = '';
+    order.forEach((opt, pos) => {
+        const row = document.createElement('div');
+        row.className = 'hp-orow' + (orderTouched[q.id] ? ' touched' : '');
+        row.draggable = true;
+        const num = document.createElement('span'); num.className = 'hp-num'; num.textContent = String(pos + 1);
+        const txt = document.createElement('span'); txt.className = 'hp-ot dh-verse'; txt.textContent = hl(opt);
+        const arrows = document.createElement('span'); arrows.className = 'hp-arrows';
+        const mk = (sym, label, disabled, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'hp-ib sm'; b.textContent = sym; b.setAttribute('aria-label', label); b.disabled = disabled; b.addEventListener('click', fn); return b; };
+        arrows.append(mk('▲', 'up', pos === 0, () => move(pos, pos - 1)), mk('▼', 'down', pos === order.length - 1, () => move(pos, pos + 1)));
+        row.append(num, txt, arrows);
+        row.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', String(pos)); row.classList.add('drag'); });
+        row.addEventListener('dragend', () => row.classList.remove('drag'));
+        row.addEventListener('dragover', (e) => e.preventDefault());
+        row.addEventListener('drop', (e) => { e.preventDefault(); move(parseInt(e.dataTransfer.getData('text/plain'), 10), pos); });
+        list.appendChild(row);
     });
-    const el = container.querySelector(`#hp-matrix-status-${q.id}`);
-    if (!el) return;
-    const ok = done === total;
-    el.style.background = ok ? '#d1fae5' : '#fef3c7';
-    el.style.color = ok ? '#065f46' : '#92400e';
-    el.textContent = ok
-        ? `✅ ${t('أتممت ترتيب كل الآيات')} (${done}/${total})`
-        : `⚠️ ${t('رتّبت')} ${done} ${t('من')} ${total} — ${t('بقي')} ${total - done} ${t('آيات بلا ترتيب (الصفوف الملونة بالأصفر)')}`;
 }
 
-// 🌟🌟 [جديد] بناء وتفعيل عمودي المطابقة (بدايات/نهايات) بالكامل عبر الـ DOM مباشرة (لا نص HTML خام)
-// لأن كل بطاقة تحتاج مستمع نقر خاصاً بها يعرف حالتها الحالية (مربوطة/غير مربوطة) — أسهل وأضمن
-// بالإنشاء البرمجي المباشر من محاولة كتابة onclick داخل نص الـ HTML لكل بطاقة.
+// 🌟🌟 بناء وتفعيل عمودي المطابقة (بدايات/نهايات) عبر الـ DOM مباشرة لأن كل بطاقة تحتاج مستمع نقر يعرف حالتها
 function renderMatchingColumns(q, initialPairs) {
-    const leftContainer = document.getElementById(`hp-match-left-${q.id}`);
-    const rightContainer = document.getElementById(`hp-match-right-${q.id}`);
+    const leftContainer = $(`hp-match-left-${q.id}`);
+    const rightContainer = $(`hp-match-right-${q.id}`);
     if (!leftContainer || !rightContainer) return;
 
-    // نسخة قابلة للتعديل من الأزواج (خريطة: معرف البداية -> معرف النهاية)، منسوخة من الإجابة
-    // المحفوظة سابقاً (لو الطالب رجع لهذا السؤال بعد التنقل بين الأسئلة)
     let pairs = { ...initialPairs };
     let selectedLeftId = null;
-    const pairColors = ['#0ea5e9', '#10b981', '#f59e0b', '#a855f7', '#ec4899', '#14b8a6'];
-
-    function colorForLeft(leftId) {
-        const idx = q.leftItems.findIndex(it => it.id === leftId);
-        return pairColors[idx % pairColors.length];
-    }
+    const pairColors = ['#2f80ed', '#e8a317', '#8b5cf6', '#14b8a6', '#ec4899', '#0ea5e9'];
+    const idxOfLeft = (leftId) => Math.max(0, q.leftItems.findIndex(it => it.id === leftId));
+    const colorForLeft = (leftId) => pairColors[idxOfLeft(leftId) % pairColors.length];
 
     function persistAnswer() {
-        // 🌟 نحفظ نسخة جديدة في answers[q.id] مباشرة (لا داعي لانتظار saveCurrentAnswer عند
-        // الانتقال بين الأسئلة، لأن تفاعل المطابقة لحظي بطبيعته)
+        // نحفظ نسخة جديدة في answers[q.id] مباشرة (تفاعل المطابقة لحظي بطبيعته)
         answers[q.id] = { ...pairs };
+        if (Object.keys(pairs).length) delete skipped[q.id];
     }
-
+    function makeCard(text, pairedLeftId, selected, onClick) {
+        const card = document.createElement('div');
+        card.className = 'hp-match-card' + (selected ? ' active' : '');
+        card.setAttribute('role', 'button'); card.tabIndex = 0;
+        if (pairedLeftId) card.style.borderColor = colorForLeft(pairedLeftId);
+        const span = document.createElement('span'); span.textContent = text; card.appendChild(span);
+        if (pairedLeftId) { const em = document.createElement('em'); em.style.background = colorForLeft(pairedLeftId); em.textContent = String(idxOfLeft(pairedLeftId) + 1); card.appendChild(em); }
+        card.addEventListener('click', onClick);
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } });
+        return card;
+    }
     function renderCards() {
         leftContainer.querySelectorAll('.hp-match-card').forEach(el => el.remove());
         rightContainer.querySelectorAll('.hp-match-card').forEach(el => el.remove());
 
         q.leftItems.forEach(item => {
             const isPaired = !!pairs[item.id];
-            const isSelected = selectedLeftId === item.id;
-            const borderColor = isPaired ? colorForLeft(item.id) : (isSelected ? '#0f172a' : '#cbd5e1');
-
-            const card = document.createElement('div');
-            card.className = 'hp-match-card';
-            card.style.cssText = `padding: 14px; background: white; border: 3px solid ${borderColor}; border-radius: 10px; cursor: pointer; font-family: 'Amiri Quran', serif; font-size: 1.3rem; color: #334155; text-align: center;`;
-            card.innerText = item.text;
-            card.addEventListener('click', () => {
-                if (isPaired) {
-                    delete pairs[item.id]; // فك الربط عند الضغط على بطاقة مربوطة مسبقاً
-                    selectedLeftId = null;
-                } else {
-                    selectedLeftId = (selectedLeftId === item.id) ? null : item.id;
-                }
-                persistAnswer();
-                renderCards();
-            });
-            leftContainer.appendChild(card);
+            leftContainer.appendChild(makeCard(item.text, isPaired ? item.id : null, selectedLeftId === item.id, () => {
+                if (isPaired) { delete pairs[item.id]; selectedLeftId = null; }   // فك الربط عند الضغط على بطاقة مربوطة
+                else selectedLeftId = (selectedLeftId === item.id) ? null : item.id;
+                persistAnswer(); renderCards(); onAnswerChanged();
+            }));
         });
-
         q.rightItems.forEach(item => {
             const pairedLeftId = Object.keys(pairs).find(l => pairs[l] === item.id);
-            const isPaired = !!pairedLeftId;
-            const borderColor = isPaired ? colorForLeft(pairedLeftId) : '#cbd5e1';
-
-            const card = document.createElement('div');
-            card.className = 'hp-match-card';
-            card.style.cssText = `padding: 14px; background: white; border: 3px solid ${borderColor}; border-radius: 10px; cursor: pointer; font-family: 'Amiri Quran', serif; font-size: 1.3rem; color: #334155; text-align: center;`;
-            card.innerText = item.text;
-            card.addEventListener('click', () => {
-                if (isPaired) {
-                    delete pairs[pairedLeftId];
-                    persistAnswer();
-                    renderCards();
-                    return;
-                }
-                if (!selectedLeftId) return; // لازم يختار بداية أولاً قبل الربط
-                // لو هذه النهاية مربوطة ببداية أخرى مسبقاً، نفكّ ذلك الربط القديم أولاً
+            rightContainer.appendChild(makeCard(item.text, pairedLeftId || null, false, () => {
+                if (pairedLeftId) { delete pairs[pairedLeftId]; persistAnswer(); renderCards(); onAnswerChanged(); return; }
+                if (!selectedLeftId) return;   // لازم يختار بداية أولاً قبل الربط
                 Object.keys(pairs).forEach(l => { if (pairs[l] === item.id) delete pairs[l]; });
                 pairs[selectedLeftId] = item.id;
                 selectedLeftId = null;
-                persistAnswer();
-                renderCards();
-            });
-            rightContainer.appendChild(card);
+                persistAnswer(); renderCards(); onAnswerChanged();
+            }));
         });
     }
 
@@ -428,10 +500,10 @@ function saveCurrentAnswer() {
         if (sel && sel.value) answers[q.id] = sel.value;
     } else if (q.type === 'written_blank') {
         const textIn = document.getElementById(`hp_q_${q.id}_text`);
-        if (textIn && textIn.value.trim()) answers[q.id] = textIn.value.trim();
+        if (textIn) { if (textIn.value.trim()) answers[q.id] = textIn.value.trim(); else delete answers[q.id]; }
     } else if (q.type === 'write_3_ayahs' || q.type === 'tajweed_extract' || q.type === 'around_ayah') {
         const textareaIn = document.getElementById(`hp_q_${q.id}_textarea`);
-        if (textareaIn && textareaIn.value.trim()) answers[q.id] = textareaIn.value.trim();
+        if (textareaIn) { if (textareaIn.value.trim()) answers[q.id] = textareaIn.value.trim(); else delete answers[q.id]; }
     } else if (q.type === 'dual_dropdown') {
         const sel1 = document.getElementById(`hp_q_${q.id}_select1`);
         const sel2 = document.getElementById(`hp_q_${q.id}_select2`);
@@ -439,15 +511,8 @@ function saveCurrentAnswer() {
         const val2 = (sel2 && sel2.value) ? sel2.value : "";
         if (val1 || val2) answers[q.id] = [val1, val2];
     } else if (q.type === 'matrix_order') {
-        let studentOrder = [];
-        q.options.forEach((opt, rIdx) => {
-            const checked = document.querySelector(`input[name="hp_q_${q.id}_r${rIdx}"]:checked`);
-            if (checked) {
-                const colIndex = parseInt(checked.value) - 1;
-                studentOrder[colIndex] = opt;
-            }
-        });
-        answers[q.id] = studentOrder;
+        // الترتيب يُحسب إجابة فقط بعد أن يحرّك الطالب بطاقة (الترتيب الأوّلي مبعثر عمداً)
+        if (orderTouched[q.id] && orderState[q.id]) answers[q.id] = [...orderState[q.id]];
     }
     // ملاحظة: matching يُحفظ أيضاً تلقائياً فور كل ضغطة ربط/فك ربط (renderMatchingColumns)، لنفس سبب الصوت
 }
@@ -589,6 +654,7 @@ function renderSubmissionStatus(a) {
         set('hp-result-score', t('hw_st_confirmed_text'));
         set('hp-result-note', t('hw_st_confirmed_note'));
         setBadge('ok', 'hw_st_badge_confirmed');
+        if (!confettiDone) { confettiDone = true; confetti(); }   // احتفال مرة واحدة عند التأكيد الحقيقي من الخادم
         if (a.receipt && a.receipt.submissionId) meta.push(t('hw_st_receipt') + ' ' + String(a.receipt.submissionId).slice(-8));
         if (a.confirmedAt) meta.push(t('hw_st_confirmed_at') + ' ' + new Date(a.confirmedAt).toLocaleString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US'));
         finish.style.display = 'block';

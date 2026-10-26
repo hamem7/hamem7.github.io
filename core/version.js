@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.59';
+export const APP_VERSION = '1.0.60';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.60',
+        date: '2026-10-26',
+        items: [
+            { type: 'new', text: { ar: 'شاشة حل الواجب للطالب بتصميم «المصحف الهادئ»: شريط أسئلة مقسَّم قابل للنقر، بطاقة آية بإطار مصحف، أزرار تنقّل ثابتة أسفل الشاشة، وشاشة مراجعة قبل التسليم.', en: 'The student homework screen now uses the calm Mushaf design: a tappable segmented question bar, a Mushaf-style verse card, fixed bottom navigation, and a review screen before submitting.' } },
+            { type: 'improved', text: { ar: 'سؤال الترتيب صار ببطاقات تُسحب أو تُحرَّك بالأسهم بدل جدول الأزرار، مع تشجيع خفيف أثناء الحل، وزر «تخطَّ وارجع لاحقاً»، وتكبير الخط ووضع التركيز، واحتفال عند وصول الواجب.', en: 'Ordering questions now use draggable cards (or arrows) instead of a radio grid, with light encouragement while solving, a “skip and come back” button, text size and focus mode, and a celebration when the homework arrives.' } },
+        ]
+    },
     {
         version: '1.0.59',
         date: '2026-10-26',

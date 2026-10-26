@@ -1,74 +1,168 @@
 <!-- games/homework-play.html -->
-<div class="screen active" style="background: #f8fafc; min-height: 100vh; padding: 20px;">
+<!-- 🌟 [2026-10-26] تصميم «المصحف الهادئ»: شريط تقدّم مقسَّم قابل للنقر، بطاقة آية بإطار مصحف، أزرار تنقّل سفلية ثابتة، وشاشة مراجعة قبل
+     التسليم. الأنماط محصورة بالبادئة hp- ولا تمس أي شاشة أخرى. المعرّفات (ids) كما كانت لأن games/homework-play.js وتختبراتها تعتمد عليها. -->
+<div class="screen active hp-screen">
 <style>
-/* 🌟 [إصلاح التوافق مع الشاشات] شارة التقدّم كانت absolute (يسار 20px) فوق العنوان المتمركز، فيتقاطعان ويُقصّ العنوان
-   مع اسم الطالب الطويل على الهاتف الصغير. تحت 480px تنزل لتصبح عنصرًا عاديًا أسفل الاسم. نطاقها المعرّف hp-progress-text فقط. 🌟 */
-@media (max-width: 480px) {
-    #hp-progress-text { position: static !important; display: inline-block; margin-top: 10px; }
-    #hp-student-name { overflow-wrap: anywhere; }
-    /* 🌟 أزرار التنقل السفلية (السابق/التالي/التسليم) كانت بلا التفاف ولا gap فينضغط زر «إنهاء وتسليم الواجب» ويُقصّ من الحافة
-       على الهاتف الصغير. الآن حشوة أقل + التفاف + الأزرار تتقاسم العرض. 🌟 */
-    .hp-nav-bar { padding: 16px 14px !important; gap: 10px; flex-wrap: wrap; }
-    .hp-nav-bar .btn { min-width: 0; flex: 1 1 120px; padding-inline: 12px; }
-}
-@media (max-width: 360px) {
-    /* 🌟 عنوان الهيدر 2rem يتجاوز عرض المحتوى (297px من 280px) على شاشة 320px؛ نصغّره قليلًا فقط هناك. 🌟 */
-    h2[data-i18n="hw_pl_title"] { font-size: 1.65rem !important; }
-}
+.hp-screen { min-height: 100vh; padding: 14px 14px 120px; background: var(--dh-surface-alt, #f3eedd); font-family: var(--dh-font-ui, 'IBM Plex Sans Arabic', Tahoma, sans-serif); color: var(--dh-ink, #10241c); --hp-fs: 1; }
+.hp-screen * { box-sizing: border-box; }
+.hp-screen button { font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.hp-screen :focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
+.hp-wrap { max-width: 760px; margin: 0 auto; }
+.hp-banner { max-width: 760px; margin: 0 auto 12px; padding: 12px 16px; border-radius: 12px; font-weight: bold; display: none; }
+.hp-banner.warn { background: #fef3c7; color: #92400e; } .hp-banner.bad { background: var(--dh-danger-bg, #fde8e8); color: var(--dh-danger, #b91c1c); }
+.hp-card { background: var(--dh-surface, #fffdf6); border-radius: 22px; box-shadow: 0 10px 30px rgba(6, 35, 28, .10); padding: 18px; margin-bottom: 14px; }
+.hp-head-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.hp-eyebrow { color: var(--dh-emerald-700, #0d5c46); font-weight: 700; font-size: 1rem; }
+.hp-sname { font-size: 1.1rem; font-weight: 700; overflow-wrap: anywhere; }
+.hp-head-tools { display: flex; gap: 6px; flex: none; }
+.hp-ib { min-width: 44px; min-height: 44px; border-radius: 12px; border: 0; background: #efe9d3; color: var(--dh-emerald-700, #0d5c46); font-weight: 700; cursor: pointer; }
+.hp-ib[aria-pressed="true"] { background: var(--dh-emerald-700, #0d5c46); color: #fff; }
+.hp-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 12px 0 10px; flex-wrap: wrap; }
+.hp-saved { font-size: .82rem; color: var(--dh-ok, #15803d); opacity: .6; } .hp-saved.flash { animation: hp-flash 1.4s; }
+@keyframes hp-flash { 0% { opacity: 1; transform: scale(1.06); } 100% { opacity: .6; } }
+.hp-segs { display: flex; gap: 6px; }
+.hp-seg { flex: 1; min-height: 44px; min-width: 0; border: 0; border-radius: 12px; background: #e8e1c8; color: #4a6058; font-weight: 700; cursor: pointer; position: relative; transition: transform .2s; }
+.hp-seg.done { background: var(--dh-emerald-600, #147c5e); color: #fff; }
+.hp-seg.skip { background: repeating-linear-gradient(45deg, #fde68a, #fde68a 6px, #fef3c7 6px, #fef3c7 12px); color: #78350f; }
+.hp-seg.cur { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 1px; transform: translateY(-2px); }
+.hp-pbar { height: 8px; background: #e8e1c8; border-radius: 99px; overflow: hidden; margin-top: 10px; }
+#hp-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--dh-gold-500, #d4af37), var(--dh-gold-300, #f0d878)); border-radius: 99px; transition: width .4s; }
+.hp-qcard { border-top: 5px solid var(--dh-gold-500, #d4af37); animation: hp-in .3s ease both; }
+@keyframes hp-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.hp-qtype { display: inline-block; font-size: .78rem; font-weight: 700; background: #efe9d3; color: var(--dh-emerald-700, #0d5c46); padding: 2px 10px; border-radius: 99px; }
+.hp-qtitle { font-size: calc(1.25rem * var(--hp-fs)); margin: 6px 0 12px; line-height: 1.6; }
+.hp-parent { background: #fffbeb; border: 1.5px solid #fde68a; color: #92400e; padding: 10px 14px; border-radius: 12px; font-size: 1rem; margin: 0 0 12px; }
+.hp-mushaf { position: relative; text-align: center; border-radius: 18px; padding: 22px 16px 14px; margin: 14px 0; background: #fbf4dc; border: 2px solid #d9bf6a; box-shadow: inset 0 0 0 5px #fbf4dc, inset 0 0 0 6px #d9bf6a; }
+.hp-mushaf::before { content: "❁"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--dh-surface, #fffdf6); color: var(--dh-gold-500, #d4af37); font-size: 1.5rem; padding: 0 10px; line-height: 1; }
+.hp-ayah { font-family: 'Amiri Quran', 'Amiri', serif; font-size: calc(1.8rem * var(--hp-fs)); line-height: 2.1; color: #0b4a3a; }
+.hp-help { color: var(--dh-ink-soft, #4a6058); font-size: calc(.92rem * var(--hp-fs)); margin: 2px 0 10px; }
+.hp-opts { display: flex; flex-direction: column; gap: 10px; }
+.hp-opt { position: relative; display: flex; align-items: center; gap: 14px; min-height: 62px; padding: 10px 14px; border: 2px solid var(--dh-line, #e4dfcc); border-radius: 16px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; }
+.hp-opt:active { transform: scale(.985); }
+.hp-opt input { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; }
+.hp-lt { width: 38px; height: 38px; border-radius: 12px; background: #efe9d3; color: var(--dh-emerald-700, #0d5c46); display: grid; place-items: center; font-weight: 700; flex: none; }
+.hp-ot { flex: 1; font-family: 'Amiri Quran', serif; font-size: calc(1.45rem * var(--hp-fs)); text-align: start; }
+.hp-ck { opacity: 0; color: var(--dh-emerald-600, #147c5e); font-size: 1.3rem; }
+.hp-opt.sel { border-color: var(--dh-emerald-600, #147c5e); background: #ecf8f1; } .hp-opt.sel .hp-lt { background: var(--dh-emerald-600, #147c5e); color: #fff; } .hp-opt.sel .hp-ck { opacity: 1; }
+.hp-opt:focus-within { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
+.hp-field, .hp-select { width: 100%; min-height: 58px; padding: 12px 16px; border: 2px solid var(--dh-line, #e4dfcc); border-radius: 16px; background: #fff; color: var(--dh-ink, #10241c); font-family: 'Amiri Quran', serif; font-size: calc(1.5rem * var(--hp-fs)); }
+textarea.hp-field { resize: vertical; line-height: 1.9; }
+.hp-field:focus, .hp-select:focus { outline: 3px solid var(--dh-gold-300, #f0d878); border-color: var(--dh-gold-500, #d4af37); }
+.hp-dual { display: flex; gap: 14px; flex-wrap: wrap; } .hp-dual > div { flex: 1; min-width: 200px; } .hp-dual label { display: block; margin-bottom: 5px; color: var(--dh-ink-soft, #4a6058); font-weight: bold; }
+.hp-olist { display: grid; gap: 8px; }
+.hp-orow { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 2px solid var(--dh-line, #e4dfcc); border-radius: 16px; background: #fff; cursor: grab; }
+.hp-orow.drag { opacity: .4; } .hp-orow.touched { border-color: var(--dh-emerald-600, #147c5e); }
+.hp-num { width: 34px; height: 34px; border-radius: 50%; background: var(--dh-emerald-700, #0d5c46); color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+.hp-orow .hp-ot { font-size: calc(1.3rem * var(--hp-fs)); } .hp-arrows { display: flex; gap: 4px; }
+.hp-ib.sm { min-width: 40px; min-height: 40px; font-size: .9rem; } .hp-ib:disabled { opacity: .35; cursor: default; }
+.hp-mgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .hp-mcol { display: grid; gap: 8px; align-content: start; }
+.hp-mtitle { font-weight: bold; color: var(--dh-ink-soft, #4a6058); text-align: center; }
+.hp-match-card { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 56px; padding: 8px 12px; border: 3px solid var(--dh-line, #e4dfcc); border-radius: 14px; background: #fff; cursor: pointer; font-family: 'Amiri Quran', serif; font-size: calc(1.2rem * var(--hp-fs)); text-align: start; }
+.hp-match-card em { font-style: normal; font-family: system-ui; font-size: .85rem; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: #fff; flex: none; }
+.hp-match-card.active { border-color: var(--dh-gold-500, #d4af37); background: #fffbeb; box-shadow: 0 0 0 3px rgba(212, 175, 55, .3); }
+.hp-bar { position: fixed; inset-inline: 0; bottom: 0; z-index: 20; background: rgba(255, 253, 246, .93); backdrop-filter: blur(10px); border-top: 1px solid var(--dh-line, #e4dfcc); padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); }
+.hp-bar-in { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+.hp-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 16px; border-radius: 14px; border: 0; font-weight: 700; background: var(--dh-emerald-700, #0d5c46); color: #fff; cursor: pointer; }
+.hp-btn:disabled { opacity: .5; cursor: not-allowed; } .hp-btn.gold { background: var(--dh-gold-500, #d4af37); color: #2b2100; }
+.hp-btn.ghost { background: transparent; border: 2px solid var(--dh-emerald-700, #0d5c46); color: var(--dh-emerald-700, #0d5c46); }
+.hp-btn.link { background: none; color: var(--dh-ink-soft, #4a6058); text-decoration: underline; font-size: .8rem; line-height: 1.3; padding-inline: 6px; min-height: 44px; font-weight: 600; }
+.hp-review h2 { color: var(--dh-emerald-700, #0d5c46); margin: 0 0 4px; }
+.hp-tiles { display: grid; gap: 8px; margin: 12px 0 16px; }
+.hp-tile { display: flex; align-items: center; gap: 12px; padding: 10px 14px; min-height: 58px; border-radius: 14px; border: 2px solid var(--dh-line, #e4dfcc); background: #fff; text-align: start; cursor: pointer; }
+.hp-tile .tn { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: #e8e1c8; flex: none; } .hp-tile .tt { flex: 1; font-weight: 600; } .hp-tile .ts { font-size: .82rem; font-weight: 700; }
+.hp-tile.ok { border-color: var(--dh-emerald-600, #147c5e); } .hp-tile.ok .tn { background: var(--dh-emerald-600, #147c5e); color: #fff; } .hp-tile.ok .ts { color: var(--dh-ok, #15803d); }
+.hp-tile.sk { border-color: #f59e0b; background: #fffbeb; } .hp-tile.sk .ts { color: #b45309; } .hp-tile.no { border-color: #fca5a5; } .hp-tile.no .ts { color: var(--dh-danger, #b91c1c); }
+.hp-note { padding: 12px 14px; border-radius: 12px; font-weight: 600; margin: 10px 0; } .hp-note.warn { background: #fef3c7; color: #92400e; } .hp-note.ok { background: #dcfce7; color: #15803d; }
+.hp-row { display: flex; gap: 10px; flex-wrap: wrap; } .hp-row > * { flex: 1 1 140px; }
+#hp-toast { position: fixed; inset-inline: 16px; bottom: 100px; margin: 0 auto; max-width: 420px; background: #10241c; color: #fff; padding: 12px 16px; border-radius: 14px; text-align: center; font-weight: 600; z-index: 70; opacity: 0; transform: translateY(12px); transition: .3s; pointer-events: none; }
+#hp-toast.show { opacity: 1; transform: none; }
+.hp-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 10000; overflow: hidden; } .hp-confetti i { position: absolute; top: -20px; width: 10px; height: 16px; border-radius: 2px; animation: hp-fall linear forwards; }
+@keyframes hp-fall { to { top: 105vh; transform: rotate(720deg); } }
+/* نافذة حالة التسليم */
+.hp-modal { display: none; position: fixed; inset: 0; background: rgba(6, 35, 28, .75); z-index: 9999; justify-content: center; align-items: center; padding: 14px; }
+.hp-modal-card { background: var(--dh-surface, #fffdf6); padding: 30px 22px; border-radius: 24px; border-top: 6px solid var(--dh-gold-500, #d4af37); text-align: center; max-width: 520px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(6, 35, 28, .4); }
+body.hp-focus .hp-eyebrow, body.hp-focus .hp-saved, body.hp-focus .hp-pbar, body.hp-focus .hp-qtype { display: none; }
+@media (max-width: 520px) { .hp-card { padding: 14px; } .hp-mgrid { gap: 8px; } .hp-bar .hp-btn { padding-inline: 12px; } }
+@media (max-width: 480px) { .hp-btn.gold, .hp-bar #btn-hp-next, .hp-bar #btn-hp-review { min-width: 0; } }
+@media (prefers-reduced-motion: reduce) { .hp-screen *, .hp-confetti i { animation: none !important; transition: none !important; } }
 </style>
-    <!-- 🌟 [جديد] تنبيهات: لا يوجد اتصال (الإجابات محفوظة على جهازك) / المتصفح لا يسمح بالحفظ المحلي -->
-    <div id="hp-offline-banner" data-i18n="hw_st_offline_banner" style="display:none; max-width:800px; margin:0 auto 12px; background:#fef3c7; color:#92400e; padding:12px 16px; border-radius:12px; font-weight:bold; text-align:center;">📴 لا يوجد اتصال بالإنترنت الآن. إجاباتك تُحفظ على جهازك ولن تضيع.</div>
-    <div id="hp-storage-banner" data-i18n="hw_st_storage_banner" style="display:none; max-width:800px; margin:0 auto 12px; background:var(--dh-danger-bg, #fde8e8); color:var(--dh-danger, #b91c1c); padding:12px 16px; border-radius:12px; font-weight:bold; text-align:center;">⚠️ المتصفح لا يسمح بحفظ الإجابات على الجهاز (وضع التصفح الخاص؟). لا تُغلق الصفحة قبل التسليم.</div>
-    <div style="max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
-        
-        <!-- الرأس وشريط التقدم -->
-        <div style="background: linear-gradient(45deg, #10b981, #059669); color: white; padding: 20px; text-align: center; position: relative;">
-            <h2 data-i18n="hw_pl_title" style="margin: 0; font-size: 2rem;">تحدي الأبطال 🏆</h2>
-            <div id="hp-student-name" style="font-size: 1.2rem; margin-top: 10px; font-weight: bold;"></div>
-            <div id="hp-progress-text" style="position: absolute; top: 20px; left: 20px; font-size: 1.2rem; font-weight: bold; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; direction: ltr;"></div>
-        </div>
-        <div style="height: 10px; background: #e2e8f0; width: 100%;">
-            <div id="hp-progress-bar" style="height: 100%; width: 0%; background: #fbbf24; transition: width 0.4s ease;"></div>
+
+    <!-- تنبيهات: لا يوجد اتصال (الإجابات محفوظة على جهازك) / المتصفح لا يسمح بالحفظ المحلي -->
+    <div id="hp-offline-banner" class="hp-banner warn" data-i18n="hw_st_offline_banner">📴 لا يوجد اتصال بالإنترنت الآن. إجاباتك تُحفظ على جهازك ولن تضيع.</div>
+    <div id="hp-storage-banner" class="hp-banner bad" data-i18n="hw_st_storage_banner">⚠️ المتصفح لا يسمح بحفظ الإجابات على الجهاز (وضع التصفح الخاص؟). لا تُغلق الصفحة قبل التسليم.</div>
+
+    <div class="hp-wrap">
+        <div id="hp-play-view">
+            <div class="hp-card" id="hp-head">
+                <div class="hp-head-top">
+                    <div>
+                        <div class="hp-eyebrow" data-i18n="hw_pl_title">تحدي الأبطال 🏆</div>
+                        <div id="hp-student-name" class="hp-sname"></div>
+                    </div>
+                    <div class="hp-head-tools">
+                        <button type="button" class="hp-ib" id="btn-hp-font-minus" aria-label="A-">A−</button>
+                        <button type="button" class="hp-ib" id="btn-hp-font-plus" aria-label="A+">A+</button>
+                        <button type="button" class="hp-ib" id="btn-hp-focus" aria-pressed="false" data-i18n-title="hw_pl_focus" title="وضع التركيز">🎯</button>
+                    </div>
+                </div>
+                <div class="hp-meta"><b id="hp-progress-text"></b><span id="hp-saved" class="hp-saved" data-i18n="hw_pl_saved">💾 تم الحفظ على جهازك</span></div>
+                <div id="hp-segs" class="hp-segs" role="group"></div>
+                <div class="hp-pbar"><div id="hp-progress-bar"></div></div>
+            </div>
+            <div class="hp-card hp-qcard" id="hp-qcard">
+                <!-- سيتم حقن الأسئلة هنا عبر الجافاسكربت -->
+                <div id="hp-question-container"></div>
+            </div>
         </div>
 
-        <!-- مساحة عرض السؤال الديناميكي -->
-        <div id="hp-question-container" style="padding: 30px; text-align: right;">
-            <!-- سيتم حقن الأسئلة هنا عبر الجافاسكربت -->
-        </div>
-
-        <!-- أزرار التنقل السفلية -->
-        <div class="hp-nav-bar" style="padding: 20px 30px; background: #f1f5f9; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0;">
-            <button class="btn btn-outline" id="btn-hp-prev" data-i18n="hw_pl_prev" style="visibility: hidden; font-size: 1.3rem;">السابق</button>
-            <button class="btn" id="btn-hp-next" data-i18n="hw_pl_next" style="background: #0ea5e9; font-size: 1.3rem;">التالي ➡️</button>
-            <button class="btn" id="btn-hp-submit" data-i18n="hw_pl_submit" style="display: none; background: #8b5cf6; font-size: 1.4rem;">📨 إنهاء وتسليم الواجب</button>
+        <!-- 🌟 شاشة المراجعة قبل التسليم: حالة كل سؤال (مجاب / مخطّى / بلا إجابة) مع الانتقال إليه بالنقر -->
+        <div id="hp-review" class="hp-card hp-review" hidden>
+            <h2 data-i18n="hw_pl_review_title">مراجعة قبل التسليم</h2>
+            <p class="hp-help" data-i18n="hw_pl_review_sub">اضغط على أي سؤال للرجوع إليه.</p>
+            <div id="hp-review-note" class="hp-note"></div>
+            <div id="hp-review-tiles" class="hp-tiles"></div>
+            <div class="hp-row">
+                <button type="button" class="hp-btn ghost" id="btn-hp-back" data-i18n="hw_pl_back">العودة للأسئلة</button>
+                <button type="button" class="hp-btn gold" id="btn-hp-submit" data-i18n="hw_pl_submit">📨 إنهاء وتسليم الواجب</button>
+            </div>
         </div>
     </div>
+
+    <!-- أزرار التنقل السفلية الثابتة -->
+    <nav class="hp-bar" id="hp-bar" aria-label="navigation">
+        <div class="hp-bar-in">
+            <button type="button" class="hp-btn ghost" id="btn-hp-prev" data-i18n="hw_pl_prev">السابق</button>
+            <button type="button" class="hp-btn link" id="btn-hp-skip" data-i18n="hw_pl_skip">تخطَّ وارجع لاحقاً</button>
+            <button type="button" class="hp-btn" id="btn-hp-next" data-i18n="hw_pl_next">التالي ➡️</button>
+            <button type="button" class="hp-btn gold" id="btn-hp-review" data-i18n="hw_pl_review_btn" style="display: none;">مراجعة وتسليم ✔</button>
+        </div>
+    </nav>
+    <div id="hp-toast" role="status"></div>
 </div>
 
-<!-- 🌟🌟 [أُعيد تصميمها] نافذة "حالة التسليم" الصادقة: كانت تعرض دائماً "انتهى التحدي.. تم حفظ نتيجتك وإجاباتك بنجاح"
-     كنص ثابت حتى لو لم يصل شيء للمعلم. الآن كل نص هنا يُملأ من games/homework-play.js (renderSubmissionStatus) حسب
-     الحالة الحقيقية: جاري الإرسال / فشل (الإجابات محفوظة) / وصل (مؤكَّد من الخادم) / مرفوض. -->
-<div id="hp-result-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; justify-content: center; align-items: center;">
-    <div class="modal-content" style="background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
-        <div id="hp-result-icon" style="font-size: 5rem; margin-bottom: 10px;">⏳</div>
-        <h2 id="hp-result-title" style="color: #0f766e; font-size: 2rem; margin-top: 0;"></h2>
-        <p id="hp-result-score" style="font-size: 1.4rem; font-weight: bold; color: #334155; margin: 15px 0; line-height: 1.6;"></p>
+<!-- 🌟🌟 نافذة "حالة التسليم" الصادقة: كل نص هنا يُملأ من games/homework-play.js (renderSubmissionStatus) حسب الحالة الحقيقية:
+     جاري الإرسال / فشل (الإجابات محفوظة) / وصل (مؤكَّد من الخادم) / مرفوض. -->
+<div id="hp-result-modal" class="hp-modal">
+    <div class="hp-modal-card">
+        <div id="hp-result-icon" style="font-size: 4.5rem; margin-bottom: 6px;">⏳</div>
+        <h2 id="hp-result-title" style="color: var(--dh-emerald-700, #0d5c46); font-size: 1.8rem; margin-top: 0;"></h2>
+        <p id="hp-result-score" style="font-size: 1.25rem; font-weight: bold; color: var(--dh-ink, #10241c); margin: 14px 0; line-height: 1.6;"></p>
         <p><span id="hp-result-badge"></span></p>
-        <p id="hp-result-note" style="color: #64748b; font-size: 1.15rem; margin: 15px 0;"></p>
-        <p id="hp-result-meta" style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;"></p>
+        <p id="hp-result-note" style="color: var(--dh-ink-soft, #4a6058); font-size: 1.05rem; margin: 14px 0;"></p>
+        <p id="hp-result-meta" style="color: #7a8a82; font-size: .95rem; margin-bottom: 18px;"></p>
 
-        <!-- 🌟 [جديد 2026-10-15] مراجعة فورية للأسئلة المصحَّحة آلياً (صح/خطأ + الإجابة الصحيحة) بلا أي درجة؛ تُملأ من renderFeedback -->
+        <!-- مراجعة فورية للأسئلة المصحَّحة آلياً (صح/خطأ + الإجابة الصحيحة) بلا أي درجة؛ تُملأ من renderFeedback -->
         <div id="hp-feedback" style="display: none; text-align: start; margin: 0 0 18px;"></div>
 
-        <!-- 🌟 [جديد 2026-10-02] يظهر فقط عند رفض الخادم بسبب اسم مكرَّر (ALREADY_SUBMITTED) في واجب عام: تغيير الاسم وإعادة الإرسال -->
+        <!-- يظهر فقط عند رفض الخادم بسبب اسم مكرَّر (ALREADY_SUBMITTED) في واجب عام: تغيير الاسم وإعادة الإرسال -->
         <div id="hp-dup-box" style="display: none; margin: 10px 0 14px; text-align: start;">
-            <label for="hp-dup-name" data-i18n="hw_st_dup_label" style="display:block; font-weight:bold; color:#334155; margin-bottom:6px;">اسمك الكامل</label>
-            <input id="hp-dup-name" type="text" maxlength="80" autocomplete="name" style="width:100%; box-sizing:border-box; padding:12px 14px; font-size:1.2rem; font-family:inherit; border:2px solid #cbd5e1; border-radius:12px;">
+            <label for="hp-dup-name" data-i18n="hw_st_dup_label" style="display:block; font-weight:bold; margin-bottom:6px;">اسمك الكامل</label>
+            <input id="hp-dup-name" type="text" maxlength="80" autocomplete="name" class="hp-field" style="font-family: inherit; font-size: 1.2rem;">
             <p id="hp-dup-err" style="display:none; color:var(--dh-danger, #b91c1c); font-weight:bold; margin:8px 0 0;"></p>
-            <button class="btn" id="btn-hp-dup-send" data-i18n="hw_st_dup_btn" style="width:100%; font-size:1.3rem; background:#0f766e; margin-top:12px;">📨 إرسال بالاسم الجديد</button>
+            <button type="button" class="hp-btn" id="btn-hp-dup-send" data-i18n="hw_st_dup_btn" style="width:100%; margin-top:12px;">📨 إرسال بالاسم الجديد</button>
         </div>
-        <button class="btn" id="btn-hp-retry"data-i18n="hw_st_retry_btn" style="display: none; width: 100%; font-size: 1.4rem; background: #0ea5e9; margin-bottom: 12px;">🔄 إعادة الإرسال الآن</button>
+        <button type="button" class="hp-btn" id="btn-hp-retry" data-i18n="hw_st_retry_btn" style="display: none; width: 100%; margin-bottom: 12px;">🔄 إعادة الإرسال الآن</button>
         <!-- زر الإغلاق يظهر فقط بعد تأكيد الخادم (أو رفضه) — لا نُشجّع الطالب على الإغلاق قبل ذلك -->
-        <button class="btn" id="btn-hp-finish" data-i18n="hw_st_close_btn" style="display: none; width: 100%; font-size: 1.5rem; background: #ef4444;">✖️ إغلاق الصفحة</button>
+        <button type="button" class="hp-btn gold" id="btn-hp-finish" data-i18n="hw_st_close_btn" style="display: none; width: 100%;">✖️ إغلاق الصفحة</button>
     </div>
 </div>
