@@ -401,7 +401,7 @@ export class QuranEngine {
         const nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text);
         const targetText = cleanAyahText(targetAyah.text);
         // نقاط قبل الآية وبعدها توضّح للطالب أن المطلوب آيتان ناقصتان (نفس شكل فراغ «الآية بين آيتين»)
-        const gap = (label) => `<span class="between-gap" aria-label="${label}" style="display:block; margin:18px auto; font-weight:900; font-size:inherit; line-height:1; letter-spacing:0.35em; color:inherit; direction:ltr; white-space:nowrap; overflow:hidden; text-align:center;">${'.&nbsp;'.repeat(5)+'.'}</span>`;
+        const gap = (label) => `<span class="between-gap" aria-label="${label}" style="display:block; margin:18px auto; font-family:'Amiri Quran',serif !important; font-weight:400; font-size:inherit; text-align:center;">........</span>`;
         const ansBox = (label, txt) => `<div style="margin:8px 0;"><div style="color:var(--secondary); font-size:1.2rem; font-weight:bold;">${label}</div><span class="quran-text">﴿\u00A0${txt}\u00A0﴾</span></div>`;
         return {
             type: 'around', special: true,
