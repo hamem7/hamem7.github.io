@@ -21,6 +21,11 @@ function injectStyle() {
     st.textContent = `
     .ws-ov{position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:14px}
     .ws-box{background:#fff;color:#0f172a;border-radius:16px;max-width:860px;width:100%;padding:16px 16px 20px;box-shadow:0 20px 50px rgba(0,0,0,.3);text-align:right}
+    .ws-pg{padding:0}
+    .ws-pg .ws-box{max-width:none;box-shadow:none;border:1px solid #e2e8f0;padding:14px 14px 18px}
+    [dir="ltr"] .ws-box{text-align:left}
+    [dir="ltr"] .ws-tbl td.ws-name{text-align:left;border-radius:10px 0 0 10px}
+    [dir="ltr"] .ws-tbl td.ws-st{border-radius:0 10px 10px 0}
     .ws-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
     .ws-head h2{margin:0;font-size:1.2rem}
     .ws-x{border:0;background:#f1f5f9;border-radius:10px;width:36px;height:36px;font-size:1.1rem;cursor:pointer}
@@ -43,18 +48,21 @@ function injectStyle() {
     document.head.appendChild(st);
 }
 
-export async function openWeekSchedule({ onClose } = {}) {
+// container: عنصر موجود يُبنى فيه الجدول مباشرةً كتبويب داخل الشاشة الحالية (بلا نافذة ولا زر إغلاق)، مثل «الإرسال الجماعي».
+export async function openWeekSchedule({ onClose, container = null } = {}) {
     injectStyle();
     try { await ensureSchedules(); } catch (e) { console.warn(e); }
-    const ov = document.createElement('div');
-    ov.className = 'ws-ov';
-    ov.innerHTML = `<div class="ws-box" role="dialog" aria-modal="true">
-        <div class="ws-head"><h2>📅 ${esc(L('جدول الواجبات الأسبوعي', 'Weekly homework schedule'))}</h2><button class="ws-x" aria-label="${esc(L('إغلاق', 'Close'))}">✕</button></div>
+    const ov = container || document.createElement('div');
+    ov.className = container ? 'ws-pg' : 'ws-ov';
+    ov.innerHTML = `<div class="ws-box"${container ? '' : ' role="dialog" aria-modal="true"'}>
+        <div class="ws-head"><h2>📅 ${esc(L('جدول الواجبات الأسبوعي', 'Weekly homework schedule'))}</h2>${container ? '' : `<button class="ws-x" aria-label="${esc(L('إغلاق', 'Close'))}">✕</button>`}</div>
         <div id="ws-body"></div></div>`;
-    document.body.appendChild(ov);
-    const close = () => { ov.remove(); if (onClose) onClose(); };
-    ov.querySelector('.ws-x').addEventListener('click', close);
-    ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    if (!container) {
+        document.body.appendChild(ov);
+        const close = () => { ov.remove(); if (onClose) onClose(); };
+        ov.querySelector('.ws-x').addEventListener('click', close);
+        ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+    }
     const body = ov.querySelector('#ws-body');
 
     async function render() {
