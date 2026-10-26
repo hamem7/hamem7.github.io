@@ -96,10 +96,25 @@ try {
     await page.evaluate(() => !document.querySelector('input[name="hwType"]') && !document.getElementById('hw-surah-select') && !document.getElementById('hw-general-btn')));
   check('A2 عدد الأسئلة ودورة المراجعة وزر التوليد ظاهرة', await page.isVisible('#hw-q-count-smart') && await page.isVisible('#hw-cycle-weeks') && await page.isVisible('#btn-generate-hw'));
 
+  // 🌟 المنصة تستبدل alert() بنافذتها الخاصة (core/dialog.js: .ham-dialog-overlay) فلا يصلح حدث 'dialog' الأصلي في Playwright،
+  // وتبقى النافذة فوق الشاشة وتمنع النقرات التالية. نسجّل نص كل نافذة ونضغط «موافق» تلقائياً.
+  await page.evaluate(() => {
+    window.__hamMsgs = [];
+    new MutationObserver(() => {
+      const o = document.querySelector('.ham-dialog-overlay');
+      if (o && !o.dataset.seen) {
+        o.dataset.seen = '1';
+        window.__hamMsgs.push((o.querySelector('.ham-dialog-msg') || {}).textContent || '');
+        setTimeout(() => { const b = o.querySelector('.ham-dialog-btn'); if (b) b.click(); }, 50);
+      }
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+  const lastDialog = () => page.evaluate(() => window.__hamMsgs[window.__hamMsgs.length - 1] || '');
+
   // توليد بلا طالب → تنبيه ولا أسئلة
   let dialogMsg = '';
-  page.once('dialog', d => { dialogMsg = d.message(); d.dismiss().catch(() => {}); });
   await page.click('#btn-generate-hw'); await sleep(600);
+  dialogMsg = await lastDialog();
   check('A3 التوليد بلا طالب مرفوض برسالة واضحة', dialogMsg.includes('اختر الطالب') && !(await page.isVisible('#hw-preview-section')), dialogMsg);
 
   // اختيار طالب بلا نطاق
@@ -107,8 +122,8 @@ try {
   await page.click('.hwp2-student-result'); await sleep(1200);
   const noRangeInfo = await page.evaluate(() => document.getElementById('hw-smart-info').innerText);
   check('A4 طالب بلا نطاق: تنبيه صريح وزر تسجيل الموضع', noRangeInfo.includes('لا يوجد نطاق حفظ') && noRangeInfo.includes('تسجيل موضع'), noRangeInfo.replace(/\s+/g, ' ').slice(0, 80));
-  page.once('dialog', d => { dialogMsg = d.message(); d.dismiss().catch(() => {}); });
   await page.click('#btn-generate-hw'); await sleep(800);
+  dialogMsg = await lastDialog();
   check('A5 لا يُولَّد واجب لطالب بلا نطاق', !(await page.isVisible('#hw-preview-section')) && /حدّد نطاق حفظ/.test(dialogMsg), dialogMsg);
 
   // اختيار الطالب صاحب النطاق
@@ -340,7 +355,7 @@ try {
     const before = await svc.loadContext(student, { ensureBackfill: false });
     const now = new Date();
     await AppState.monthlyMemorizationManager.saveBeginning(sid, now.getFullYear(), now.getMonth() + 1, { surahNumber: 79, ayahNumber: 1 });
-    await AppState.monthlyMemorizationManager.saveEnding(sid, now.getFullYear(), now.getMonth() + 1, { surahNumber: 78, ayahNumber: 12 }, 58);
+    await AppState.monthlyMemorizationManager.saveEnding(sid, now.getFullYear(), now.getMonth() + 1, { surahNumber: 79, ayahNumber: 20 }, 58);   // 🌟 داخل آخر سورة معلنة (النازعات = memoTo): قاعدة 2026-10-17 تتجاهل أي موضع شهري خارجها
     const after = await svc.loadContext(student, { ensureBackfill: false });
     const stale = await svc.listStaleMonthlyStudents();
     return { before: { stale: before.stale.stale, hasRecords: before.stale.hasRecords, src: before.range.source, total: before.path.total },
@@ -348,7 +363,7 @@ try {
       staleNames: stale.map(x => x.student.name) };
   }, approved.studentId);
   check('H1 قبل التسجيل الشهري: تنبيه تقادم ومصدر النطاق = ملف الطالب', mm.before.stale && !mm.before.hasRecords && mm.before.src === 'student', JSON.stringify(mm.before));
-  check('H2 بعد تسجيل نهاية الشهر (النبأ:12): النطاق يمتد للموضع الدقيق ويزول التنبيه', !mm.after.stale && mm.after.src === 'monthly' && mm.after.toSurah === 78 && mm.after.ayah === 12 && mm.after.total === mm.before.total + 12, JSON.stringify(mm.after));
+  check('H2 بعد تسجيل نهاية الشهر (النازعات:20): النطاق يُضبط على الموضع الدقيق داخل آخر سورة ويزول التنبيه', !mm.after.stale && mm.after.src === 'monthly' && mm.after.toSurah === 79 && mm.after.ayah === 20 && mm.after.total === mm.before.total - 26, JSON.stringify(mm.after));
   check('H3 قائمة «موضع قديم» تضم الطالب بلا سجل لا المحدَّث', !mm.staleNames.includes('محمد التجريبي'));
 
   await page.evaluate(async (sid) => {
