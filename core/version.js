@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.58';
+export const APP_VERSION = '1.0.59';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.59',
+        date: '2026-10-26',
+        items: [
+            { type: 'new', text: { ar: 'شاشة ترحيب الطالب بتصميم «المصحف الهادئ»، وفيها «إعداد معلم القرآن الكريم» باسمك المسجَّل في بياناتك.', en: 'The student welcome screen now uses the calm Mushaf design and shows “Prepared by Quran teacher” with the name registered in your profile.' } },
+            { type: 'improved', text: { ar: 'يظهر اسم الطالب فور فتح الرابط دون انتظار الخادم (للروابط الجديدة).', en: 'The student’s name now appears the moment the link opens, without waiting for the server (new links).' } },
+        ]
+    },
     {
         version: '1.0.58',
         date: '2026-10-25',

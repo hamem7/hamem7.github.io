@@ -1,36 +1,59 @@
 <!-- student/homework-welcome.html -->
-<div class="screen active" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
-    <div class="modal-content" style="background: white; padding: 40px 30px; border-radius: 25px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 40px rgba(14, 165, 233, 0.15); border: 2px solid #bae6fd;">
-        
-        <!-- 🌟 [2026-10-03] شعار المنصة بدل أيقونة 🎯 — الطالب لا يرى الرئيسية، فهذه واجهة المنصة عنده. الافتتاحية مرة في الجلسة (core/brandLogo.js) -->
-        <span data-ham-logo="full" data-ham-play="intro" data-ham-title="منصة حمٓ" style="display: block; height: 130px; aspect-ratio: 253 / 352; margin: 0 auto 14px;"></span>
-        
-        <h1 style="color: #0369a1; font-size: 2.2rem; margin-top: 0; margin-bottom: 10px;" data-i18n="تحدي قرآني جديد!">تحدي قرآني جديد!</h1>
-        <p style="color: #64748b; font-size: 1.3rem; margin-bottom: 25px;" data-i18n="معلمك يرسل لك مهمة خاصة.. هل أنت مستعد لإثبات مهارتك يا بطل؟">معلمك يرسل لك مهمة خاصة.. هل أنت مستعد لإثبات مهارتك يا بطل؟</p>
-        
-        <!-- 🌟 قسم الترحيب المخصص للطالب (يظهر برمجياً إذا تم تحديد الطالب) 🌟 -->
-        <div id="hw-personalized-welcome" style="display: none; margin-bottom: 25px; padding: 30px 20px; background: #ecfdf5; border-radius: 20px; border: 2px dashed #10b981;">
-            <h2 id="hw-welcome-name" style="color: var(--dh-ok, #15803d); margin: 0; font-size: 1.8rem; font-weight: bold; line-height: 1.6;"></h2>
+<!-- 🌟 [2026-10-26] تصميم «المصحف الهادئ» (الورق الدافئ + الإطار الذهبي). الأنماط محصورة بالبادئة hww- ولا تمس أي شاشة أخرى. -->
+<style>
+.hww-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--dh-surface-alt, #f3eedd); }
+.hww-card { background: var(--dh-surface, #fffdf6); max-width: 520px; width: 100%; text-align: center; padding: 28px 24px; border-radius: 26px; border-top: 6px solid var(--dh-gold-500, #d4af37); box-shadow: 0 16px 36px rgba(6, 35, 28, .14); }
+.hww-title { color: var(--dh-emerald-700, #0d5c46); font-size: 2rem; margin: 0 0 6px; }
+.hww-sub { color: var(--dh-ink-soft, #4a6058); font-size: 1.15rem; margin: 0 0 14px; }
+.hww-teacher { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 0 0 16px; padding: 8px 18px; border-radius: 999px; background: #efe9d3; color: var(--dh-ink, #10241c); font-size: 1.05rem; }
+.hww-teacher b { color: var(--dh-emerald-700, #0d5c46); }
+.hww-skel { display: inline-block; width: 110px; height: 1em; border-radius: 6px; vertical-align: middle; background: linear-gradient(90deg, #e3dcc3 25%, #f3eedd 50%, #e3dcc3 75%); background-size: 200% 100%; animation: hww-shimmer 1.2s linear infinite; }
+@keyframes hww-shimmer { to { background-position: -200% 0; } }
+.hww-ayah-frame { position: relative; margin: 6px 0 16px; padding: 18px 14px; border-radius: 18px; background: #fbf4dc; border: 2px solid #d9bf6a; box-shadow: inset 0 0 0 5px #fbf4dc, inset 0 0 0 6px #d9bf6a; }
+#hw-personalized-welcome h2 { margin: 0; font-size: 1.6rem; line-height: 1.7; color: var(--dh-ok, #15803d); font-weight: bold; }
+.hww-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 0 0 16px; }
+.hww-chip { background: #efe9d3; border-radius: 999px; padding: 6px 14px; font-size: .95rem; }
+.hww-name-box { background: #fff; padding: 16px; border-radius: 16px; margin-bottom: 18px; border: 2px dashed #d9bf6a; }
+.hww-name-box label { display: block; font-weight: bold; color: var(--dh-ink, #10241c); margin-bottom: 12px; font-size: 1.1rem; }
+.hww-name-box input { width: 100%; box-sizing: border-box; padding: 14px; font-size: 1.3rem; font-weight: bold; text-align: center; color: var(--dh-ink, #10241c); border: 2px solid var(--dh-line-strong, #cfc7a8); border-radius: 14px; background: #fff; }
+.hww-name-box input:focus { outline: 3px solid var(--dh-gold-300, #f0d878); border-color: var(--dh-gold-500, #d4af37); }
+.hww-btn { width: 100%; min-height: 56px; border-radius: 16px; font-size: 1.3rem; font-weight: 700; border: 0; cursor: pointer; }
+#btn-enter-hw { background: var(--dh-gold-500, #d4af37); color: #2b2100; box-shadow: 0 8px 18px rgba(212, 175, 55, .35); }
+#btn-enter-hw:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+#btn-cancel-hw { margin-top: 12px; background: transparent !important; color: var(--dh-ink-soft, #4a6058) !important; box-shadow: none !important; border: 0 !important; text-decoration: underline; font-size: 1rem; min-height: 44px; }
+@media (max-width: 480px) { .hww-card { padding: 22px 16px; } .hww-title { font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) { .hww-skel { animation: none; } }
+</style>
+<div class="screen active hww-screen">
+    <div class="modal-content hww-card">
+
+        <!-- شعار المنصة (الطالب لا يرى الرئيسية، فهذه واجهة المنصة عنده). الافتتاحية مرة في الجلسة (core/brandLogo.js) -->
+        <span data-ham-logo="full" data-ham-play="intro" data-ham-title="منصة حمٓ" style="display: block; height: 110px; aspect-ratio: 253 / 352; margin: 0 auto 10px;"></span>
+
+        <h1 class="hww-title" data-i18n="تحدي قرآني جديد!">تحدي قرآني جديد!</h1>
+        <p class="hww-sub" data-i18n="معلمك يرسل لك مهمة خاصة.. هل أنت مستعد لإثبات مهارتك يا بطل؟">معلمك يرسل لك مهمة خاصة.. هل أنت مستعد لإثبات مهارتك يا بطل؟</p>
+
+        <!-- 🌟 [جديد] إعداد المعلم: الاسم المسجَّل في بيانات المعلم، يصل من الخادم مع الواجب (يظهر الهيكل الرمادي حتى يصل) -->
+        <div class="hww-teacher" id="hw-teacher-line"><span data-i18n="hw_st_prepared_by">إعداد معلم القرآن الكريم:</span> <b id="hw-teacher-name"><span class="hww-skel"></span></b></div>
+
+        <!-- قسم الترحيب المخصص للطالب: يظهر فوراً إن حمل الرابط اسمه، وإلا بعد وصول الواجب من الخادم -->
+        <div id="hw-personalized-welcome" class="hww-ayah-frame" style="display: none;">
+            <h2 id="hw-welcome-name"></h2>
         </div>
 
-        <!-- 🌟🌟 [محدَّث] قسم إدخال الاسم (يظهر فقط لو الواجب "رابط عام" غير مخصَّص لطالب بعينه).
-             كان قائمة اختيار من طلاب الجهاز نفسه، وهذا لا يصلح لهاتف طالب جديد لا يحتوي أي طلاب. الاسم
-             يُرسَل مع التسليم، والمعلم هو من يربطه بسجل الطالب عند الاعتماد. -->
-        <div id="hw-dropdown-section" style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px dashed #cbd5e1;">
-            <label for="hw-student-name-input" data-i18n="hw_st_name_label" style="display: block; font-weight: bold; color: #334155; margin-bottom: 15px; font-size: 1.2rem;">اكتب اسمك الكامل ليصل واجبك لمعلمك:</label>
-            <input type="text" id="hw-student-name-input" maxlength="80" autocomplete="name" data-i18n-placeholder="hw_st_name_placeholder" placeholder="مثال: أحمد محمد" style="width: 100%; box-sizing: border-box; padding: 15px; font-size: 1.4rem; font-weight: bold; color: #1e3a5f; border: 2px solid #93c5fd; border-radius: 10px; text-align: center; outline: none; background: white;">
+        <div class="hww-chips" id="hw-chips" style="display: none;"></div>
+
+        <!-- إدخال الاسم: للرابط العام فقط (غير مخصَّص لطالب). الاسم يُرسَل مع التسليم، والمعلم يربطه بسجل الطالب عند الاعتماد. -->
+        <div id="hw-dropdown-section" class="hww-name-box" style="display: none;">
+            <label for="hw-student-name-input" data-i18n="hw_st_name_label">اكتب اسمك الكامل ليصل واجبك لمعلمك:</label>
+            <input type="text" id="hw-student-name-input" maxlength="80" autocomplete="name" data-i18n-placeholder="hw_st_name_placeholder" placeholder="مثال: أحمد محمد">
         </div>
 
-        <!-- 🌟 [جديد] رسالة الحالة (جاري التحميل / خطأ صادق) — لا تظهر أي رسالة "نجاح" هنا إطلاقاً -->
-        <div id="hw-welcome-msg" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 12px; font-size: 1.15rem; line-height: 1.7; font-weight: bold;"></div>
-        <button class="btn" id="btn-retry-load-hw" data-i18n="hw_st_retry_load" style="display: none; width: 100%; margin-bottom: 15px; background: #0ea5e9; font-size: 1.2rem; padding: 12px; border-radius: 12px;">🔄 إعادة المحاولة</button>
+        <!-- رسالة الحالة (جاري التحميل / خطأ صادق) — لا تظهر أي رسالة "نجاح" هنا إطلاقاً -->
+        <div id="hw-welcome-msg" role="status" style="display: none; margin-bottom: 20px; padding: 15px; border-radius: 12px; font-size: 1.15rem; line-height: 1.7; font-weight: bold;"></div>
+        <button class="btn hww-btn" id="btn-retry-load-hw" data-i18n="hw_st_retry_load" style="display: none; margin-bottom: 15px; background: var(--dh-emerald-700, #0d5c46); color: #fff;">🔄 إعادة المحاولة</button>
 
-        <button class="btn" id="btn-enter-hw" data-i18n="🚀 انطلق للتحدي!" style="width: 100%; background: linear-gradient(45deg, #10b981, #059669); font-size: 1.5rem; padding: 15px; border-radius: 12px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);">
-            🚀 انطلق للتحدي!
-        </button>
-        
-        <button class="btn btn-outline" id="btn-cancel-hw" data-i18n="✖️ لست مستعداً الآن (عودة)" style="width: 100%; margin-top: 15px; font-size: 1.2rem; border-color: #ef4444; color: #ef4444; border-radius: 12px;">
-            ✖️ لست مستعداً الآن (عودة)
-        </button>
+        <button class="btn hww-btn" id="btn-enter-hw" data-i18n="🚀 انطلق للتحدي!">🚀 انطلق للتحدي!</button>
+        <button class="btn hww-btn" id="btn-cancel-hw" data-i18n="✖️ لست مستعداً الآن (عودة)">✖️ لست مستعداً الآن (عودة)</button>
     </div>
 </div>

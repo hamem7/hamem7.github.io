@@ -773,6 +773,7 @@ function getHomeworkPublic_(req) {
     homework: {
       id: rec.id, createdAt: rec.createdAt, status: rec.status,
       assignedStudentName: rec.assignedStudentName || null,
+      teacherName: (rec.meta && rec.meta.teacherName) ? String(rec.meta.teacherName).slice(0, 80) : null,   // 🌟 للعرض في ترحيب الطالب فقط (بقية meta تبقى خاصة)
       questions: rec.questions.map(safeQuestion_)
     }
   });

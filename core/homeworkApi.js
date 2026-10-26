@@ -12,6 +12,22 @@
 import { call, callWithRetry, ApiError, clearTeacherAuth } from './api.js';
 import { submissionNeedsGrading } from './submissionStatus.js';
 import { t } from './i18n.js';
+import { AppState } from './app.js';
+
+// 🌟 [جديد] اسم معلم القرآن كما هو مسجَّل في بياناته (ملف المعلم)؛ يُحفظ مع الواجب ويظهر في شاشة ترحيب الطالب.
+export function registeredTeacherName() {
+    const tch = (AppState && AppState.currentTeacher) || {};
+    let saved = '';
+    try { saved = localStorage.getItem('darham_teacher_name') || ''; } catch (e) { /* لا شيء */ }
+    return String(tch.name || (AppState && AppState.teacherName) || saved || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+
+// 🌟 [جديد] رابط الطالب: ?hw=<المعرّف> (+ &n=<اسم الطالب> للواجب المخصَّص). الاسم في الرابط للعرض الفوري فقط
+// قبل رجوع الخادم؛ ما يعتمده النظام فعلاً هو اسم الخادم، ويحلّ محله فور وصوله.
+export function homeworkShareUrl(baseUrl, id, assignedStudentName) {
+    const n = assignedStudentName ? '&n=' + encodeURIComponent(String(assignedStudentName).slice(0, 80)) : '';
+    return `${baseUrl}?hw=${id}${n}`;
+}
 
 // معرّف الواجب الجديد: HW_ + 32 خانة سداسية عشوائية (122 بت) يولّدها الخادم — غير قابل للتخمين.
 // أي معرّف لا يطابق هذا الشكل هو واجب قديم من نظام Firebase (كان HW_<وقت>).
@@ -49,7 +65,8 @@ export async function publishHomeworkToServer(homework) {
     // بصمة فريدة لهذه المحاولة تُحفظ في meta الواجب، فيميّز الاسترداد بعد انقطاع الاتصال واجبَنا الذي ربما حُفظ عن واجب سابق
     // لنفس الطالب بنفس عدد الأسئلة (كان يُعدّ منشوراً خطأً فلا يظهر خطأ النشر ويُرجَع رابط الواجب القديم).
     const nonce = 'n' + sentAt.toString(36) + Math.random().toString(36).slice(2, 10);
-    const payload = { ...homework, meta: { ...(homework.meta || {}), clientNonce: nonce } };
+    const teacherName = registeredTeacherName();
+    const payload = { ...homework, meta: { ...(homework.meta || {}), clientNonce: nonce, ...(teacherName ? { teacherName } : {}) } };
     try {
         return await teacherCall('createHomework', { homework: payload }, { write: true, timeoutMs: 60000 });
     } catch (e) {

@@ -15,7 +15,7 @@
       how: 'كيف يعمل؟', h1: 'اقرأ السؤال بهدوء', h2: 'اختر أو اكتب إجابتك — تُحفظ تلقائياً', h3: 'راجع ثم سلّم الواجب',
       start: 'ابدأ الحل ▶', resume: 'أكمل من حيث توقفت ▶',
       q: 'سؤال', of: 'من', saved: '💾 تم الحفظ على جهازك', stars: 'نجوم',
-      hint: '💡 تلميح', hintCost: '(يخصم نجمة)', hintUsed: 'التلميح', skip: 'تخطَّ وارجع لاحقاً', prev: '◀ السابق', next: 'التالي ▶', review: 'مراجعة وتسليم ✔',
+      skip: 'تخطَّ وارجع لاحقاً', prev: '◀ السابق', next: 'التالي ▶', review: 'مراجعة وتسليم ✔',
       listen: '🔊 استمع', listenNo: 'الصوت التجريبي غير متاح في هذا المتصفح',
       pickOne: 'اختر إجابة واحدة', pickMany: 'اختر كل ما ينطبق', typeHere: 'اكتب الكلمة هنا…',
       orderHelp: 'اسحب البطاقة أو استخدم الأسهم لترتيب الآيات', matchHelp: 'اضغط على بداية الآية ثم على نهايتها. اضغط مرة أخرى على المربوط لفكّ الربط.',
@@ -40,7 +40,7 @@
       how: 'How does it work?', h1: 'Read the question calmly', h2: 'Choose or type — answers save automatically', h3: 'Review, then submit',
       start: 'Start ▶', resume: 'Continue where I stopped ▶',
       q: 'Question', of: 'of', saved: '💾 Saved on your device', stars: 'stars',
-      hint: '💡 Hint', hintCost: '(costs a star)', hintUsed: 'Hint', skip: 'Skip and come back', prev: '◀ Back', next: 'Next ▶', review: 'Review & submit ✔',
+      skip: 'Skip and come back', prev: '◀ Back', next: 'Next ▶', review: 'Review & submit ✔',
       listen: '🔊 Listen', listenNo: 'Demo audio is not available in this browser',
       pickOne: 'Choose one answer', pickMany: 'Select all that apply', typeHere: 'Type the word here…',
       orderHelp: 'Drag a card or use the arrows to order the verses', matchHelp: 'Tap the start of a verse, then its ending. Tap a linked one again to unlink.',
@@ -62,21 +62,18 @@
   /* ---------- الأسئلة التجريبية (سورة الإخلاص) ---------- */
   const Q = [
     { id: 1, type: 'mcq', title: { ar: 'أكمل الآية', en: 'Complete the verse' }, ayah: 'قُلْ هُوَ ٱللَّهُ أَحَدٌ ﴿١﴾ ٱللَّهُ ______',
-      options: ['ٱلصَّمَدُ', 'ٱلْعَظِيمُ', 'ٱلْغَفُورُ'], hint: { ar: 'هي الآية الثانية، ومعناها: المقصود في كل الحاجات.', en: 'It is verse 2, meaning: the One everyone turns to for every need.' } },
+      options: ['ٱلصَّمَدُ', 'ٱلْعَظِيمُ', 'ٱلْغَفُورُ'] },
     { id: 2, type: 'order', title: { ar: 'رتّب آيات سورة الإخلاص', en: 'Order the verses of Al-Ikhlas' }, ayah: '﴿ سُورَةُ ٱلْإِخْلَاصِ ﴾',
-      options: ['وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ', 'قُلْ هُوَ ٱللَّهُ أَحَدٌ', 'لَمْ يَلِدْ وَلَمْ يُولَدْ', 'ٱللَّهُ ٱلصَّمَدُ'],
-      hint: { ar: 'تبدأ السورة بكلمة «قُلْ» وتنتهي بنفي الكفء.', en: 'The surah starts with “Qul” and ends by negating any equal.' } },
+      options: ['وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ', 'قُلْ هُوَ ٱللَّهُ أَحَدٌ', 'لَمْ يَلِدْ وَلَمْ يُولَدْ', 'ٱللَّهُ ٱلصَّمَدُ'], },
     { id: 3, type: 'match', title: { ar: 'صِل بداية الآية بنهايتها', en: 'Match each verse start to its ending' }, ayah: '﴿ ٱلْإِخْلَاصِ ﴾',
-      left: ['قُلْ هُوَ ٱللَّهُ', 'لَمْ يَلِدْ', 'وَلَمْ يَكُن لَّهُۥ'], right: ['كُفُوًا أَحَدٌۢ', 'وَلَمْ يُولَدْ', 'أَحَدٌ'],
-      hint: { ar: 'ابدأ بالأسهل: «قُلْ هُوَ ٱللَّهُ …».', en: 'Start with the easy one: “Qul huwa Allahu …”.' } },
-    { id: 4, type: 'blank', title: { ar: 'اكتب الكلمة الناقصة', en: 'Type the missing word' }, ayah: 'لَمْ يَلِدْ وَلَمْ ______',
-      hint: { ar: 'الكلمة من ثلاثة أحرف وتبدأ بحرف الياء.', en: 'The word starts with the letter Ya (ي).' } },
+      left: ['قُلْ هُوَ ٱللَّهُ', 'لَمْ يَلِدْ', 'وَلَمْ يَكُن لَّهُۥ'], right: ['كُفُوًا أَحَدٌۢ', 'وَلَمْ يُولَدْ', 'أَحَدٌ'], },
+    { id: 4, type: 'blank', title: { ar: 'اكتب الكلمة الناقصة', en: 'Type the missing word' }, ayah: 'لَمْ يَلِدْ وَلَمْ ______', },
     { id: 5, type: 'multi', title: { ar: 'اختر الكلمات الواردة في السورة', en: 'Choose the words found in the surah' }, ayah: '﴿ ٱللَّهُ ٱلصَّمَدُ ﴾',
-      options: ['ٱلصَّمَدُ', 'أَحَدٌ', 'ٱلرَّحْمَٰنِ', 'كُفُوًا'], hint: { ar: 'اثنتان منها تتكرران في آخر آيتين.', en: 'Two of them appear in the last two verses.' } }
+      options: ['ٱلصَّمَدُ', 'أَحَدٌ', 'ٱلرَّحْمَٰنِ', 'كُفُوًا'] }
   ];
 
   /* ---------- الحالة ---------- */
-  const S = { lang: 'ar', view: 'welcome', idx: 0, ans: {}, touched: {}, skipped: {}, hintUsed: {}, font: 1, dark: false, focus: false, offline: false, sub: null, active: null, started: false, encShown: {} };
+  const S = { lang: 'ar', view: 'welcome', idx: 0, ans: {}, touched: {}, skipped: {}, font: 1, dark: false, focus: false, offline: false, sub: null, active: null, started: false, encShown: {} };
   const t = () => T[S.lang];
   const total = Q.length;
   const isAns = (q) => {
@@ -88,7 +85,7 @@
     return false;
   };
   const answeredCount = () => Q.filter(isAns).length;
-  const starsLeft = () => Math.max(0, answeredCount() - Object.keys(S.hintUsed).length);
+  const starsLeft = () => answeredCount();
 
   /* ---------- أدوات واجهة ---------- */
   const app = $('#app');
@@ -193,10 +190,8 @@
         <div class="mushaf"><div class="orn" aria-hidden="true">❁</div><p class="ayah" id="ayah">${esc(q.ayah)}</p>
           <button class="ib sm" id="lis">${esc(L.listen)}</button></div>
         <div id="ans"></div>
-        <div class="tools"><button class="btn soft" id="hint">${esc(L.hint)} <small>${esc(L.hintCost)}</small></button></div>
-        <div id="hintbox" class="hintbox" ${S.hintUsed[q.id] ? '' : 'hidden'}>💡 ${esc(q.hint[S.lang])}</div></div></section>`;
+        </div></section>`;
     v.querySelectorAll('.seg').forEach((b) => (b.onclick = () => go(+b.dataset.i)));
-    $('#hint').onclick = () => { S.hintUsed[q.id] = 1; $('#hintbox').hidden = false; updateChrome(); toast('💡 −1 ⭐'); };
     $('#lis').onclick = () => { try { const u = new SpeechSynthesisUtterance(q.ayah.replace(/[﴿﴾_]/g, '')); u.lang = 'ar-SA'; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { toast(t().listenNo); } };
     renderAnswer(q, $('#ans'));
   }
@@ -291,7 +286,7 @@
       ${s === 'failed' ? `<button class="btn" id="rt">${esc(L.retry)}</button>` : ''}
       <p><button class="btn ghost" id="rs">${esc(L.again)}</button></p></section>`;
     if ($('#rt')) $('#rt').onclick = () => { S.offline = false; S.sub = 'pending'; render(); setTimeout(() => { S.sub = 'confirmed'; render(); confetti(); }, 1200); };
-    $('#rs').onclick = () => { Object.assign(S, { view: 'welcome', idx: 0, ans: {}, touched: {}, skipped: {}, hintUsed: {}, sub: null, active: null, started: false, encShown: {} }); render(); };
+    $('#rs').onclick = () => { Object.assign(S, { view: 'welcome', idx: 0, ans: {}, touched: {}, skipped: {}, sub: null, active: null, started: false, encShown: {} }); render(); };
   }
 
   /* ---------- الإعدادات: خط، ليلي، تركيز، لغة، محاكاة الانقطاع ---------- */

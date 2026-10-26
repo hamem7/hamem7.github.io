@@ -278,7 +278,7 @@ try {
   console.log('\n=== الروابط والرسائل ===');
   const links = await page.evaluate(() => [...document.querySelectorAll('.bs-lk')].map(l => ({ name: l.querySelector('b').innerText, url: l.querySelector('.u').innerText, btns: [...l.querySelectorAll('button')].map(b => b.className) })));
   check('L1 ثلاثة صفوف روابط، لكل واحد نسخ/واتساب/تيليجرام', links.length === 3 && links.every(l => /\?hw=HW_/.test(l.url) && l.btns.join().includes('cp') && l.btns.join().includes('wa') && l.btns.join().includes('tg')), JSON.stringify(links.map(l => l.name)));
-  check('L2 الرابط يطابق معرّف الواجب المنشور لنفس الطالب', links.every(l => { const h = mine.find(x => x.who === l.name); return h && l.url.endsWith('?hw=' + h.id); }));
+  check('L2 الرابط يطابق معرّف الواجب المنشور لنفس الطالب', links.every(l => { const h = mine.find(x => x.who === l.name); return h && l.url.includes('?hw=' + h.id) && new URL(l.url).searchParams.get('n') === l.name; }));   // 🌟 الرابط يحمل &n=<اسم الطالب> للترحيب الفوري
   await page.evaluate(() => { window.__opened = []; window.open = (u) => { window.__opened.push(String(u)); return null; }; });
   await page.locator('.bs-lk', { hasText: 'بلال الثاني' }).locator('.wa').click();
   await page.locator('.bs-lk', { hasText: 'بلال الثاني' }).locator('.tg').click();

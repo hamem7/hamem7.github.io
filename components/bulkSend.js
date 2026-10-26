@@ -16,7 +16,7 @@ import { isEnglish, t } from '../core/i18n.js';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
 import { loadContext, buildSelectionModel, planSmartHomework, suggestSelection, saveLastScope, getMonthlyStaleness } from '../core/trackingService.js';
 import { listDueToday, markStudentPublished } from '../core/hwScheduleService.js';
-import { publishHomeworkToServer, friendlyErrorText } from '../core/homeworkApi.js';
+import { publishHomeworkToServer, homeworkShareUrl, friendlyErrorText } from '../core/homeworkApi.js';
 import { loadScreen, switchTheme } from '../core/navigation.js';
 import { ensureHomeworkSignIn } from './teacherAuthGate.js';
 import { catLabel } from './skillProfile.js';
@@ -711,7 +711,7 @@ export async function openBulkSend({ onClose, asPage = false, container = null }
                 });
                 await markStudentPublished(std);
                 const baseUrl = window.location.origin + window.location.pathname;
-                r.hwId = created.id; r.link = `${baseUrl}?hw=${created.id}`;
+                r.hwId = created.id; r.link = homeworkShareUrl(baseUrl, created.id, std.name);
                 try {
                     await AppState.homeworkManager.createHomework({
                         id: created.id, createdAt: created.createdAt, questions: res.questions, status: 'published',

@@ -20,7 +20,7 @@ import { segLabel, segCount, qCount, learningStatus, reasonText, catLabel, catCl
 // الآن من core/homeworkApi.js (خادم Google Apps Script) — أبقينا نفس أسماء دوال القراءة لتقليل التغيير هنا،
 // وأضفنا publishHomeworkToServer/fetchPublicHomework/gradeSubmissionOnServer. الدوال القديمة الخاصة بطوابير
 // إعادة الرفع (queuePendingHomeworkSync...) موجودة هناك كدوال فارغة آمنة ولم يعد لها دور فعلي.
-import { listClientErrors, getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
+import { listClientErrors, getSubmissionsFromCloud, getSubmissionsNeedingGrading, queuePendingHomeworkSync, flushPendingHomeworkSync, isHomeworkPendingSync, getPendingSubmissionsCountForHomework, publishHomeworkToServer, homeworkShareUrl, fetchPublicHomework, gradeSubmissionOnServer, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 // 🌟 [جديد] كتابة النتيجة المعتمدة في سجل الطالب (history_<id>) على جهاز المعلم + إيجاد/إنشاء الطالب
 import { findLocalStudentForSubmission, findAmbiguousNameMatches, createLocalStudent, recordApprovedResult, isResultRecorded, normalizeName } from '../core/homeworkRecords.js';
 // 🌟 بوابة الدخول بجوجل لنظام الواجبات (لو انتهت صلاحية الجلسة المحفوظة أثناء العمل)
@@ -66,7 +66,7 @@ let lastFailedHomeworkForRetry = null;
 // 🌟🌟 [محدَّث] رابط المشاركة = عنوان المنصة + ?hw=<معرّف الواجب>. المعرّف عشوائي غير قابل للتخمين (يولّده الخادم)،
 // والرابط لا يحمل أي أسئلة أو إجابات؛ الطالب يجلب الواجب (بدون الإجابات الصحيحة) من الخادم عند فتحه.
 function buildHomeworkShareLink(baseUrl, hwData) {
-    return `${baseUrl}?hw=${hwData.id}`;
+    return homeworkShareUrl(baseUrl, hwData.id, hwData.assignedStudentName);
 }
 
 // 🌟🌟 [جديد] رسالة "نسخ رابط الواجب" الجاهزة كاملة للمشاركة عبر واتساب أو أي تطبيق مراسلة —

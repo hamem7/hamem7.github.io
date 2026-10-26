@@ -12,7 +12,7 @@
 //    السماح بإعادة الحل (حتى بلا إنترنت، لأننا لا نحتاج جلب الواجب من جديد لعرض حالة تسليم موجود).
 import { AppState } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
-import { t } from '../core/i18n.js';
+import { t, tf } from '../core/i18n.js';
 import { ApiError } from '../core/api.js';
 import { fetchPublicHomework, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 import { getAttempt, loadDraft } from '../core/submitQueue.js';
@@ -30,6 +30,41 @@ function showMsg(text, kind) {
     box.style.cssText = 'display:block; margin-bottom:20px; padding:15px; border-radius:12px; font-size:1.15rem; line-height:1.7; font-weight:bold; ' + (styles[kind] || styles.info);
     box.textContent = text;
 }
+// 🌟 [جديد 2026-10-26] ترحيب مخصَّص باسم الطالب (من الرابط فوراً، ثم من الخادم عند وصوله)
+function renderPersonalized(name) {
+    document.getElementById('hw-dropdown-section').style.display = 'none';
+    document.getElementById('hw-personalized-welcome').style.display = 'block';
+    const nameEl = document.getElementById('hw-welcome-name');
+    nameEl.textContent = '';
+    nameEl.append(t('hw_st_welcome_prefix'), document.createElement('br'));
+    const span = document.createElement('span');
+    span.style.color = '#0f766e';
+    span.textContent = '👑 ' + name + ' 🚀';
+    nameEl.append(span);
+}
+// اسم الطالب من الرابط (&n=): للعرض الفوري فقط؛ لا يُعتمد في التسليم (الاعتماد على اسم الخادم).
+function nameFromLink() {
+    try {
+        const n = (new URLSearchParams(window.location.search).get('n') || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+        return n.length >= 2 ? n : '';
+    } catch (e) { return ''; }
+}
+function setTeacherLine(name) {
+    const line = document.getElementById('hw-teacher-line');
+    const el = document.getElementById('hw-teacher-name');
+    if (!line || !el) return;
+    if (name) { el.textContent = name; line.style.display = ''; } else line.style.display = 'none';   // لا اسم مسجَّل = لا سطر
+}
+function renderChips(count) {
+    const box = document.getElementById('hw-chips');
+    if (!box || !count) return;
+    box.textContent = '';
+    [['📝 ' + tf('hw_st_chip_q', { n: count }), ''], ['⏱️ ' + tf('hw_st_chip_min', { n: Math.max(2, Math.ceil(count * 0.8)) }), ''], ['💾 ' + t('hw_st_chip_save'), '']].forEach(([txt]) => {
+        const c = document.createElement('span'); c.className = 'hww-chip'; c.textContent = txt; box.append(c);
+    });
+    box.style.display = 'flex';
+}
+
 function hideMsg() { const b = document.getElementById('hw-welcome-msg'); if (b) b.style.display = 'none'; }
 
 function goHome() {
@@ -70,16 +105,20 @@ export async function initHomeworkWelcome(hwId) {
         return;
     }
 
-    // 3) جلب الواجب (نسخة الطالب الآمنة) من الخادم
-    await loadHomework(hwId);
+    // 3) 🌟 عرض فوري: إن حمل الرابط اسم الطالب نرحّب به مباشرة دون انتظار الخادم (الاسم الرسمي يصل بعدها)
+    const linkName = nameFromLink();
+    if (linkName) renderPersonalized(linkName);
+
+    // 4) جلب الواجب (نسخة الطالب الآمنة) من الخادم
+    await loadHomework(hwId, !!linkName);
 }
 
-async function loadHomework(hwId) {
+async function loadHomework(hwId, nameShown) {
     const retryBtn = document.getElementById('btn-retry-load-hw');
     const enterBtn = document.getElementById('btn-enter-hw');
     retryBtn.style.display = 'none';
     enterBtn.disabled = true;
-    showMsg(t('hw_st_loading'), 'info');
+    showMsg(t('hw_st_preparing'), 'info');
 
     let homework;
     initErrorReporter({ getHwId: () => currentHwId || hwId });
@@ -87,15 +126,17 @@ async function loadHomework(hwId) {
         homework = await fetchPublicHomework(hwId);
     } catch (e) {
         reportLoadFailure(hwId, e && e.code, e && e.message);
+        setTeacherLine('');
         enterBtn.disabled = false;
         const final = (e instanceof ApiError) && (e.code === 'NOT_FOUND' || e.code === 'CLOSED' || e.code === 'DELETED');
         showMsg(friendlyErrorText(e) + (final ? '' : ' — ' + t('hw_st_nothing_submitted')), 'error');
         if (final) {
             enterBtn.style.display = 'none';
             document.getElementById('hw-dropdown-section').style.display = 'none';
+            document.getElementById('hw-personalized-welcome').style.display = 'none';
         } else {
             retryBtn.style.display = 'block';
-            retryBtn.onclick = () => loadHomework(hwId);
+            retryBtn.onclick = () => loadHomework(hwId, nameShown);
             enterBtn.style.display = 'none';
         }
         return;
@@ -107,20 +148,15 @@ async function loadHomework(hwId) {
     AppState.currentHomework = homework;
     currentHwId = homework.id;
 
+    setTeacherLine(homework.teacherName || '');
+    renderChips((homework.questions || []).length);
     if (homework.assignedStudentName) {
         // واجب مخصَّص: الاسم يأتي من الخادم ولا يستطيع الطالب تغييره
         AppState.currentStudent = { id: null, name: homework.assignedStudentName };
-        document.getElementById('hw-dropdown-section').style.display = 'none';
-        document.getElementById('hw-personalized-welcome').style.display = 'block';
-        const nameEl = document.getElementById('hw-welcome-name');
-        nameEl.textContent = '';
-        nameEl.append(t('hw_st_welcome_prefix'), document.createElement('br'));
-        const span = document.createElement('span');
-        span.style.color = '#0f766e';
-        span.textContent = '👑 ' + homework.assignedStudentName + ' 🚀';
-        nameEl.append(span);
+        renderPersonalized(homework.assignedStudentName);
     } else {
         AppState.currentStudent = null;
+        document.getElementById('hw-personalized-welcome').style.display = 'none';   // الرابط حمل اسماً لكن الواجب عام
         document.getElementById('hw-dropdown-section').style.display = '';
         // 🌟 [إصلاح تدقيق] بعد تحديث الصفحة كانت الإجابات تُستعاد لكن خانة الاسم تعود فارغة فيضطر الطالب لإعادة كتابته.
         // نملؤها من المسودة المحفوظة على الجهاز (إن وُجدت)؛ لا شيء يُرسل قبل ضغط الطالب "ابدأ".
