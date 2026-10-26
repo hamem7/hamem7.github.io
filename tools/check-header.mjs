@@ -7,7 +7,7 @@ import { join, relative } from 'node:path';
 const ROOT = new URL('..', import.meta.url).pathname;
 const SKIP = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'Dar-Ham-Homework-Lab']);
 const REQUIRED = ['id="main-header"', 'class="home-header-brand', 'data-ham-logo="full"', 'id="header-title"', 'id="top-student-name"',
-  'class="header-actions"', 'id="header-home-btn"', 'id="header-account-btn"', 'id="lang-toggle-btn"'];
+  'class="header-actions"', 'id="header-home-btn"', 'id="header-account-btn"', 'id="theme-toggle-btn"', 'id="lang-toggle-btn"'];
 const FORBIDDEN = ['class="dh-header"', 'class="dh-brand"', 'class="dh-logo"'];
 
 const files = [];

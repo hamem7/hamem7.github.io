@@ -12,6 +12,7 @@
     body #main-header #lang-toggle-btn,
     body #main-header .header-home-btn { padding: 4px 12px; font-size: .8rem; min-height: 32px; }
     body #main-header .header-account-btn { width: 32px; height: 32px; }
+    body #main-header #theme-toggle-btn { width: 32px; height: 32px; }
 
     /* الشريط السفلي: أيقونات فقط */
     :root { --m-bnav-h: 40px; }

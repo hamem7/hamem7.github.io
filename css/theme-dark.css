@@ -1,0 +1,395 @@
+/* css/theme-dark.css — المظهر الداكن للمنصة (يعمل فقط حين يكون <html data-theme="dark"> — core/themeInit.js).
+   آخر ملف تنسيق يُحمَّل عمداً (index.html / privacy.html) ليتغلّب على ما قبله بدل تعديل مئات القواعد القديمة.
+   القاعدة: الألوان «الدلالية» (سطوح/نصوص/حدود/حالات) تُقلب هنا؛ أما الزمردي الداكن والذهبي فهوية ثابتة (الترويسة، بطاقات الكبار/الأطفال،
+   الفوتر) تبقى كما هي في المظهرين. أي شاشة جديدة: استعمل متغيرات --dh-surface / --dh-ink / --dh-line… ولا تكتب لوناً فاتحاً ثابتاً.
+   ركن الأطفال (body.kids-theme) له هويته الملوّنة الخاصة فيبقى فاتحاً في المرحلة الحالية. */
+
+/* ============ 1) الرموز: تنقلب تلقائياً لكل ما يستعملها ============ */
+html[data-theme="dark"] {
+    color-scheme: dark;
+
+    --dh-surface: #14241f;
+    --dh-surface-alt: #0d1a16;
+    --dh-bg-soft: #0f1d19;
+    --dh-ink: #e8f2ec;
+    --dh-ink-soft: #9db8ac;
+    --dh-line: #2a3d34;
+    --dh-line-strong: #3a5246;
+
+    /* حالات المعنى: نص أفتح + خلفية داكنة بنفس الدلالة */
+    --dh-ok: #6fd49a;      --dh-ok-bg: #12301f;
+    --dh-warn: #f0b36a;    --dh-warn-bg: #3a2a0e;
+    --dh-danger: #f87171;  --dh-danger-bg: #3a1a1a;
+    --dh-info: #7dd3fc;    --dh-info-bg: #0c2a3d;
+
+    --dh-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --dh-shadow-lift: 0 22px 45px rgba(0, 0, 0, 0.55);
+    --dh-sh-soft: 0 6px 18px rgba(0, 0, 0, .40);
+    --dh-sh-lift: 0 16px 36px rgba(0, 0, 0, .50);
+    --dh-sh-overlay: 0 24px 60px rgba(0, 0, 0, .65);
+
+    /* متغيرات global.css القديمة */
+    --bg-color: #0d1a16;
+    --text-dark: #e8f2ec;
+    --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.45);
+
+    /* ألوان نص «زمردية» تُستعمل فوق السطوح (العناوين): فاتحة في الداكن */
+    --dh-dk-title: #8fd6b4;
+    --dh-dk-accent: #f0d878;
+}
+
+/* ركن الأطفال يبقى بهويته الفاتحة الملوّنة: نعيد رموز السطوح لقيمها الفاتحة داخله حتى لا ينقلب نصه على خلفياته الثابتة */
+html[data-theme="dark"] body.kids-theme {
+    color-scheme: light;
+    --dh-surface: #fffdf6; --dh-surface-alt: #f6f3e8; --dh-ink: #10241c; --dh-ink-soft: #4a6058;
+    --dh-line: #e4dfcc; --dh-line-strong: #cfc7a8;
+    --dh-ok: #15803d; --dh-ok-bg: #e7f4ee; --dh-warn: #b45309; --dh-warn-bg: #fef3c7;
+    --dh-danger: #b91c1c; --dh-danger-bg: #fde8e8; --dh-info: #0369a1; --dh-info-bg: #e0f2fe;
+    --bg-color: #f8fcfc; --text-dark: #1f2937;
+    --dh-dk-title: #0b3d30; --dh-dk-accent: #7a5a0e;
+}
+
+html[data-theme="dark"] body { background-color: #0a1512; color: var(--dh-ink); }
+
+/* خلفية الشاشات الداخلية (كانت تدرّجاً أزرق/ذهبياً فاتحاً) → زمردي ليلي بنفس الهوية */
+html[data-theme="dark"] body.adult-theme {
+    background: #0a1512;
+    background-image: radial-gradient(circle at 18% 12%, rgba(20, 124, 94, .22), transparent 32%),
+        radial-gradient(circle at 85% 90%, rgba(212, 175, 55, .10), transparent 30%),
+        linear-gradient(160deg, #06231c, #0a1512 55%, #0b1a15);
+    background-attachment: fixed;
+    color: var(--dh-ink);
+}
+
+/* ============ 2) الشاشة الرئيسية ============ */
+html[data-theme="dark"] .home-menu { background: var(--dh-surface-alt); }
+html[data-theme="dark"] .home-hero-wave path { fill: var(--dh-surface-alt); }
+html[data-theme="dark"] .home-why { background: var(--dh-surface); }
+html[data-theme="dark"] .home-why-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .home-why-card { background: var(--dh-surface-alt); border-color: var(--dh-line); }
+html[data-theme="dark"] .home-card { border-color: var(--dh-line); }
+
+/* بطاقات «طلابي/الواجبات/الثنائية/الشهادات/المتشابهات/التجويد»: صبغة داكنة بنفس ألوانها وعناوين فاتحة */
+html[data-theme="dark"] .home-menu-primary .home-card-students { background: linear-gradient(150deg, #17302a, #12251f 85%); }
+html[data-theme="dark"] .home-card-students,
+html[data-theme="dark"] .home-menu-secondary .home-card-similarities { background: rgba(20, 124, 94, 0.18); }
+html[data-theme="dark"] .home-card-homework { background: rgba(139, 92, 246, 0.16); }
+html[data-theme="dark"] .home-card-dual { background: rgba(148, 163, 184, 0.13); }
+html[data-theme="dark"] .home-card-certs { background: rgba(212, 175, 55, 0.14); }
+html[data-theme="dark"] .home-menu-secondary .home-card-tajweed { background: rgba(190, 80, 100, 0.14); }
+html[data-theme="dark"] .home-card-students .home-card-title,
+html[data-theme="dark"] .home-menu-primary .home-card-students .home-card-title,
+html[data-theme="dark"] .home-menu-secondary .home-card-similarities .home-card-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .home-card-homework .home-card-title { color: #c4b5fd; }
+html[data-theme="dark"] .home-card-dual .home-card-title { color: #cbd5e1; }
+html[data-theme="dark"] .home-card-certs .home-card-title { color: var(--dh-dk-accent); }
+html[data-theme="dark"] .home-menu-secondary .home-card-tajweed .home-card-title { color: #f0a8b4; }
+html[data-theme="dark"] .home-menu-primary .home-card-students .home-card-arrow { color: var(--dh-dk-title); }
+
+/* «ابدأ من هنا» */
+html[data-theme="dark"] .home-start-here { background: var(--dh-surface); }
+html[data-theme="dark"] .home-start-here-text strong { color: var(--dh-dk-title); }
+
+/* ============ 3) النوافذ والبطاقات العائمة ============ */
+html[data-theme="dark"] .teacher-profile-modal-box,
+html[data-theme="dark"] .whats-new-modal-box { background: var(--dh-surface); color: var(--dh-ink); border-color: var(--dh-line); }
+html[data-theme="dark"] .teacher-profile-modal-box h3,
+html[data-theme="dark"] .whats-new-modal-box h3,
+html[data-theme="dark"] .whats-new-entry-header,
+html[data-theme="dark"] .dh-backup-section-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .teacher-profile-photo-zone,
+html[data-theme="dark"] .teacher-profile-stamp-zone,
+html[data-theme="dark"] .dh-backup-section { background: var(--dh-surface-alt); border-color: var(--dh-line-strong); color: var(--dh-ink); }
+html[data-theme="dark"] .teacher-profile-modal .input-group label { color: var(--dh-ink); }
+html[data-theme="dark"] .teacher-profile-modal .input-group input,
+html[data-theme="dark"] .teacher-profile-modal .input-group select,
+html[data-theme="dark"] .teacher-profile-modal .input-group textarea {
+    background: var(--dh-surface-alt); color: var(--dh-ink); -webkit-text-fill-color: var(--dh-ink); border-color: var(--dh-line-strong);
+}
+html[data-theme="dark"] .whats-new-entry-items li { color: var(--dh-ink); }
+html[data-theme="dark"] .whats-new-modal-actions .btn { color: var(--dh-ink); }
+
+/* ============ 4) واجهة الكبار: بطاقات وحقول وعناوين (adults.css) ============ */
+html[data-theme="dark"] .adult-theme .login-container,
+html[data-theme="dark"] .adult-theme .control-panel,
+html[data-theme="dark"] .adult-theme .game-sidebar,
+html[data-theme="dark"] .adult-theme .game-main-area,
+html[data-theme="dark"] .adult-theme .report-card,
+html[data-theme="dark"] .adult-theme .profile-container,
+html[data-theme="dark"] .adult-theme #screen-all-students > div:not(.btn-group),
+html[data-theme="dark"] :where(.adult-theme) .login-container,
+html[data-theme="dark"] :where(.adult-theme) .dashboard-wrapper .control-panel,
+html[data-theme="dark"] :where(.adult-theme) .report-card,
+html[data-theme="dark"] :where(.adult-theme) .game-sidebar,
+html[data-theme="dark"] :where(.adult-theme) .game-main-area {
+    background: var(--dh-surface) !important;
+    color: var(--dh-ink);
+    border-color: var(--dh-line) !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, .5) !important;
+}
+html[data-theme="dark"] .adult-theme .splash-title,
+html[data-theme="dark"] .adult-theme .splash-subtitle,
+html[data-theme="dark"] .adult-theme h1,
+html[data-theme="dark"] .adult-theme h2,
+html[data-theme="dark"] .adult-theme h3,
+html[data-theme="dark"] .adult-theme label,
+html[data-theme="dark"] :where(.adult-theme) h1,
+html[data-theme="dark"] :where(.adult-theme) h2,
+html[data-theme="dark"] :where(.adult-theme) h3,
+html[data-theme="dark"] :where(.adult-theme) .question-text,
+html[data-theme="dark"] :where(.adult-theme) .in-game-student h3 { color: var(--dh-ink) !important; }
+
+html[data-theme="dark"] .adult-theme select,
+html[data-theme="dark"] .adult-theme input[type="text"],
+html[data-theme="dark"] .adult-theme input[type="date"],
+html[data-theme="dark"] .adult-theme input[type="number"],
+html[data-theme="dark"] .adult-theme input[type="password"],
+html[data-theme="dark"] .adult-theme input[type="email"],
+html[data-theme="dark"] .adult-theme input[type="search"],
+html[data-theme="dark"] .adult-theme textarea,
+html[data-theme="dark"] :where(.adult-theme) #student-dropdown {
+    background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important; border-color: var(--dh-line-strong) !important;
+}
+html[data-theme="dark"] .adult-theme select:focus,
+html[data-theme="dark"] .adult-theme input:focus,
+html[data-theme="dark"] .adult-theme textarea:focus { background: #0f201a !important; border-color: var(--dh-gold-500) !important; }
+html[data-theme="dark"] .adult-theme ::placeholder { color: #7f9a8e; }
+html[data-theme="dark"] .adult-theme .btn-outline { color: var(--dh-dk-title) !important; border-color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] .adult-theme .btn-outline:hover { background: rgba(143, 214, 180, .12) !important; }
+html[data-theme="dark"] .adult-theme .btn-outline.sim-opt-btn { color: #fff !important; }
+
+html[data-theme="dark"] .adult-theme .q-circle,
+html[data-theme="dark"] :where(.adult-theme) .q-circle { background: #1d2f28; color: var(--dh-ink-soft); border-color: var(--dh-line-strong); }
+html[data-theme="dark"] :where(.adult-theme) .q-circle.active { background: #3a3210; color: var(--dh-dk-accent); border-color: var(--dh-gold-500); }
+html[data-theme="dark"] .adult-theme .q-circle.active { color: #4b3609; }
+html[data-theme="dark"] :where(.adult-theme) .q-circle.correct { background: var(--dh-ok-bg); color: var(--dh-ok); border-color: #1f7a4d; }
+html[data-theme="dark"] :where(.adult-theme) .q-circle.wrong { background: var(--dh-danger-bg); color: var(--dh-danger); border-color: #8f2d2d; }
+html[data-theme="dark"] :where(.adult-theme) .quran-text { background: rgba(255, 255, 255, .04); color: #e9f3ee; border-color: #1f7a4d; }
+html[data-theme="dark"] :where(.adult-theme) .in-game-student { background: rgba(255, 255, 255, .04) !important; border-color: #1f7a4d !important; }
+html[data-theme="dark"] :where(.adult-theme) .in-game-student img { background-color: var(--dh-surface-alt) !important; }
+
+/* ============ 5) عناصر مشتركة: التوست والحوارات والبطاقات العامة ============ */
+html[data-theme="dark"] .dh-hint-card,
+html[data-theme="dark"] .dh-sheet-panel { background: var(--dh-surface); color: var(--dh-ink); border-color: var(--dh-line); }
+html[data-theme="dark"] .dh-hint-title,
+html[data-theme="dark"] .dh-sheet-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .dh-hint-body,
+html[data-theme="dark"] .dh-sheet-lb { color: var(--dh-ink); }
+html[data-theme="dark"] .dh-sheet-desc { color: var(--dh-ink-soft); }
+html[data-theme="dark"] .dh-sheet-item { background: var(--dh-surface-alt); color: var(--dh-ink); border-color: var(--dh-line); }
+
+/* ============ 6) شاشة «طلابي» (student/my-students.html) ============ */
+html[data-theme="dark"] #app-root #ms-screen { color: var(--dh-ink); }
+html[data-theme="dark"] #app-root #ms-screen .ms-back,
+html[data-theme="dark"] #app-root #acct-screen .ac-back { background: var(--dh-surface); border-color: var(--dh-line-strong); color: var(--dh-dk-title); }
+html[data-theme="dark"] #app-root #ms-screen .ms-back:hover,
+html[data-theme="dark"] #app-root #acct-screen .ac-back:hover { background: #1d3329; }
+html[data-theme="dark"] #app-root #ms-screen .ms-title { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat,
+html[data-theme="dark"] #app-root #ms-screen .ms-card { background: var(--dh-surface); border-color: var(--dh-line); color: var(--dh-ink); }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-primary,
+html[data-theme="dark"] #app-root #ms-screen .ms-card-primary { background: #0d5c46; border-color: #147c5e; color: #fff; }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-num { color: var(--dh-ink); }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-primary .ms-stat-num { color: #fff; }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-num.is-alert { color: var(--dh-warn); }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-of,
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-label,
+html[data-theme="dark"] #app-root #ms-screen .ms-card-desc,
+html[data-theme="dark"] #app-root #ms-screen .ms-section-title { color: var(--dh-ink-soft) !important; }
+html[data-theme="dark"] #app-root #ms-screen .ms-stat-primary .ms-stat-label,
+html[data-theme="dark"] #app-root #ms-screen .ms-card-primary .ms-card-desc { color: #d7efe6 !important; }
+html[data-theme="dark"] #app-root #ms-screen .ms-card:hover { box-shadow: 0 10px 22px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] #app-root #ms-screen .ms-card-icon { background: #1d3329; color: var(--dh-dk-title); }
+html[data-theme="dark"] #app-root #ms-screen .ms-card-primary .ms-card-icon { background: rgba(255, 255, 255, .14); color: #fff; }
+html[data-theme="dark"] #app-root #ms-screen .ms-card-icon-gold { background: #3a3210; color: var(--dh-dk-accent); }
+html[data-theme="dark"] #app-root #ms-screen .ms-badge-soft { background: #3a3210; color: var(--dh-dk-accent); }
+html[data-theme="dark"] #app-root #ms-screen .ms-reminder { background: var(--dh-surface-alt); }
+html[data-theme="dark"] #app-root #ms-screen .ms-reminder-btn { color: var(--dh-dk-title); }
+
+/* نافذة إضافة طالب */
+html[data-theme="dark"] #add-modal .modal-content { background: var(--dh-surface) !important; color: var(--dh-ink) !important; box-shadow: 0 24px 60px rgba(0, 0, 0, .6) !important; }
+html[data-theme="dark"] #add-modal input,
+html[data-theme="dark"] #add-modal select { background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important; border-color: var(--dh-line-strong) !important; }
+html[data-theme="dark"] #add-modal input:focus,
+html[data-theme="dark"] #add-modal select:focus { background: #0f201a !important; border-color: var(--dh-gold-500) !important; }
+html[data-theme="dark"] #add-modal label { color: var(--dh-ink) !important; }
+html[data-theme="dark"] #add-modal .dh-opt-tag { color: var(--dh-ink-soft) !important; }
+html[data-theme="dark"] #add-modal .dh-req-tag { color: var(--dh-warn) !important; }
+html[data-theme="dark"] #app-root #add-modal .as-add-title,
+html[data-theme="dark"] #add-modal .as-add-title,
+html[data-theme="dark"] #add-modal .as-add-preview b { color: var(--dh-ink) !important; }
+html[data-theme="dark"] #add-modal .as-add-hint,
+html[data-theme="dark"] #add-modal .as-step-title,
+html[data-theme="dark"] #add-modal .as-add-preview span,
+html[data-theme="dark"] #add-modal .as-add-link { color: var(--dh-ink-soft); }
+html[data-theme="dark"] #add-modal .as-add-link:hover { color: var(--dh-ink); }
+html[data-theme="dark"] #add-modal .as-add-toast,
+html[data-theme="dark"] #add-modal .as-dot.done { background: var(--dh-ok-bg); color: var(--dh-ok); }
+html[data-theme="dark"] #add-modal .as-add-age,
+html[data-theme="dark"] #add-modal #btn-save-add-another { color: var(--dh-dk-title); }
+html[data-theme="dark"] #add-modal .as-add-warn { color: var(--dh-warn); }
+html[data-theme="dark"] #add-modal .as-dot { background: var(--dh-surface-alt); color: var(--dh-ink-soft); border-color: var(--dh-line-strong); }
+html[data-theme="dark"] #add-modal .as-dot.on { background: #0d5c46; color: #fff; border-color: #147c5e; }
+html[data-theme="dark"] #add-modal .as-dot-bar { background: var(--dh-line-strong); }
+html[data-theme="dark"] #add-modal .as-add-preview,
+html[data-theme="dark"] .avatar-opt { background: var(--dh-surface-alt); border-color: var(--dh-line-strong); }
+html[data-theme="dark"] .avatar-opt.active { background: #3a3210; border-color: var(--dh-gold-500); }
+html[data-theme="dark"] #app-root #add-modal .as-add-back,
+html[data-theme="dark"] #add-modal .as-add-back { background: transparent !important; color: var(--dh-dk-title) !important; border-color: var(--dh-dk-title) !important; }
+
+/* ============ 7) «سجل الطلاب» (student/all-students.html) ============ */
+html[data-theme="dark"] #app-root .as-panel { background: var(--dh-surface); color: var(--dh-ink); box-shadow: 0 16px 40px rgba(0, 0, 0, .5); }
+html[data-theme="dark"] #app-root .as-head h1,
+html[data-theme="dark"] #app-root .as-info .btn-prof-link { color: var(--dh-ink); }
+html[data-theme="dark"] #app-root .as-info .btn-prof-link:hover,
+html[data-theme="dark"] #app-root .as-link:hover,
+html[data-theme="dark"] #app-root .as-pts { color: var(--dh-dk-title); }
+html[data-theme="dark"] #app-root .as-link,
+html[data-theme="dark"] #app-root .as-count,
+html[data-theme="dark"] #app-root .as-sub,
+html[data-theme="dark"] #app-root .as-pts small,
+html[data-theme="dark"] #app-root .as-more,
+html[data-theme="dark"] #app-root .as-hidden-box summary,
+html[data-theme="dark"] #app-root .as-empty { color: var(--dh-ink-soft); }
+html[data-theme="dark"] #app-root .as-search { background: var(--dh-surface-alt); border-color: var(--dh-line-strong); color: var(--dh-ink); }
+html[data-theme="dark"] #app-root .as-list { border-color: var(--dh-line); }
+html[data-theme="dark"] #app-root .as-row + .as-row { border-top-color: var(--dh-line); }
+html[data-theme="dark"] #app-root .as-info .btn-weakness { color: var(--dh-warn) !important; }
+html[data-theme="dark"] #app-root .as-go.btn-show { background: #1d3329 !important; color: var(--dh-ink) !important; }
+html[data-theme="dark"] #app-root .as-more:hover,
+html[data-theme="dark"] #app-root .as-menu-wrap.open .as-more { background: #1d3329; color: var(--dh-ink); }
+html[data-theme="dark"] #app-root .as-menu { background: var(--dh-surface); border-color: var(--dh-line-strong); box-shadow: 0 12px 28px rgba(0, 0, 0, .55); }
+html[data-theme="dark"] #app-root .as-menu button { color: var(--dh-ink) !important; }
+html[data-theme="dark"] #app-root .as-menu button:hover { background: #1d3329 !important; }
+html[data-theme="dark"] #app-root .as-menu .btn-delete { color: var(--dh-danger) !important; }
+html[data-theme="dark"] #app-root .as-btn-secondary { background: transparent !important; color: var(--dh-dk-title) !important; border-color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] #app-root .as-btn-secondary:hover { background: rgba(143, 214, 180, .12) !important; }
+html[data-theme="dark"] #edit-modal h2 { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] #edit-modal .input-group input:not([type="file"]):not([type="hidden"]),
+html[data-theme="dark"] #edit-modal .input-group select,
+html[data-theme="dark"] #edit-modal .input-group input:not([type="file"]):focus,
+html[data-theme="dark"] #edit-modal .input-group select:focus { background: var(--dh-surface-alt); color: var(--dh-ink); }
+
+/* ============ 8) قائمة اقتراحات البحث (student/login.html) ============ */
+html[data-theme="dark"] .dhs-list { background: var(--dh-surface); border-color: var(--dh-line-strong); box-shadow: 0 14px 34px rgba(0, 0, 0, .55); }
+html[data-theme="dark"] .dhs-item { color: var(--dh-ink); border-bottom-color: var(--dh-line); }
+html[data-theme="dark"] .dhs-item:hover,
+html[data-theme="dark"] .dhs-item.is-active { background: #1d3329; color: var(--dh-dk-title); }
+html[data-theme="dark"] .dhs-empty { color: var(--dh-ink-soft); }
+html[data-theme="dark"] .dhs-item mark { color: inherit; }
+
+/* ============ 9) ملف الطالب (student/student-profile.html) — معظمه يستعمل المتغيرات فينقلب وحده؛ هنا الألوان الثابتة فقط ============ */
+html[data-theme="dark"] .pf-page .prof-inline-input,
+html[data-theme="dark"] .pfe-f input,
+html[data-theme="dark"] .pfe-f select { background: var(--dh-surface-alt); color: var(--dh-ink); }
+html[data-theme="dark"] .pf-btn { color: var(--dh-dk-title); }
+html[data-theme="dark"] #app-root .simp-section .simp-title,
+html[data-theme="dark"] .pf-h2,
+html[data-theme="dark"] .pfe-head h2,
+html[data-theme="dark"] .pf-stat-v,
+html[data-theme="dark"] .pfe-age { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] .pf-tile-ic,
+html[data-theme="dark"] .pf-stat-ic.is-g { background: #1d3329; color: var(--dh-dk-title); }
+html[data-theme="dark"] .pf-stat-ic { background: #3a3210; color: var(--dh-dk-accent); }
+html[data-theme="dark"] .dtpa-badges-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .dtpa-badge-item { background: linear-gradient(135deg, #2a2810, var(--dh-surface)); }
+html[data-theme="dark"] .dtpa-badge-item .dtpa-badge-name { color: var(--dh-ink); }
+html[data-theme="dark"] .dtpa-badge-item .dtpa-badge-count { color: var(--dh-dk-accent); }
+html[data-theme="dark"] .dtpa-badges-empty,
+html[data-theme="dark"] .tjp-empty { color: var(--dh-ink-soft); }
+html[data-theme="dark"] .tjp-section { background: #231c1f; border-color: #4a3140; }
+html[data-theme="dark"] .tjp-title { color: #9bb8e8; }
+html[data-theme="dark"] .tjp-summary-item,
+html[data-theme="dark"] .tjp-badge-item { background: var(--dh-surface); }
+html[data-theme="dark"] .tjp-summary-item strong { color: #f0a070; }
+html[data-theme="dark"] .tjp-summary-item span,
+html[data-theme="dark"] .tjp-badge-item .tjp-badge-name { color: var(--dh-ink); }
+
+/* ============ 10) «حسابي والنسخ الاحتياطي» (components/account-screen.html) ============ */
+html[data-theme="dark"] #app-root #acct-screen { color: var(--dh-ink); }
+html[data-theme="dark"] #app-root #acct-screen .ac-title { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] #app-root #acct-screen .ac-sub,
+html[data-theme="dark"] #app-root #acct-screen .ac-muted,
+html[data-theme="dark"] #app-root #acct-screen .ac-btn.link,
+html[data-theme="dark"] #app-root #acct-screen .ac-media-cap span,
+html[data-theme="dark"] #app-root #acct-screen details.ac-fold summary::after,
+html[data-theme="dark"] #app-root #acct-screen .ac-zone { color: var(--dh-ink-soft); }
+html[data-theme="dark"] #app-root #acct-screen .ac-card,
+html[data-theme="dark"] #app-root #acct-screen details.ac-fold { background: var(--dh-surface); border-color: var(--dh-line); box-shadow: 0 6px 24px rgba(0, 0, 0, .4); }
+html[data-theme="dark"] #app-root #acct-screen .ac-card h3,
+html[data-theme="dark"] #app-root #acct-screen .ac-media-cap b { color: var(--dh-ink) !important; }
+html[data-theme="dark"] #app-root #acct-screen .ac-photo,
+html[data-theme="dark"] #app-root #acct-screen .ac-chip,
+html[data-theme="dark"] #app-root #acct-screen .ac-btn.sec { background: #1d3329; color: var(--dh-dk-title); }
+html[data-theme="dark"] #app-root #acct-screen .ac-chip.off { background: #22302a; color: var(--dh-ink-soft); }
+html[data-theme="dark"] #app-root #acct-screen .ac-btn.ghost { background: transparent; color: var(--dh-ink); border-color: var(--dh-line-strong); }
+html[data-theme="dark"] #app-root #acct-screen .ac-status[data-level="ok"] { background: var(--dh-ok-bg); border-color: #1f5a3a; color: var(--dh-ok); }
+html[data-theme="dark"] #app-root #acct-screen .ac-status[data-level="warn"],
+html[data-theme="dark"] #app-root #acct-screen .ac-warnbox { background: var(--dh-warn-bg); border-color: #6b4a14; color: var(--dh-warn); }
+html[data-theme="dark"] #app-root #acct-screen .ac-status[data-level="bad"] { background: var(--dh-danger-bg); border-color: #7a2d2d; color: var(--dh-danger); }
+html[data-theme="dark"] #app-root #acct-screen .ac-kv,
+html[data-theme="dark"] #app-root #acct-screen details.ac-fold .ac-in { border-color: var(--dh-line); }
+html[data-theme="dark"] #app-root #acct-screen .ac-zone { background: var(--dh-surface-alt); }
+html[data-theme="dark"] #app-root #acct-screen .ac-zone:hover { background: #1d2f28; }
+html[data-theme="dark"] #app-root #acct-screen .ac-field input,
+html[data-theme="dark"] #app-root #acct-screen .ac-field select,
+html[data-theme="dark"] #app-root #acct-screen .ac-picker select { background: var(--dh-surface-alt); color: var(--dh-ink); border-color: var(--dh-line-strong); }
+
+/* ============ 11) لوحة تجهيز الاختبار (settings/dashboard.html) ============ */
+html[data-theme="dark"] .adult-theme #app-root .kids-styled-select,
+html[data-theme="dark"] .adult-theme #app-root :is(#q-count-surah, #q-count-range, #q-count-juz) { background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important; }
+html[data-theme="dark"] #app-root .dash-panel .splash-title { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] .dash-student-chip { color: var(--dh-dk-title) !important; border-color: var(--dh-line); }
+html[data-theme="dark"] #app-root .dash-btn-secondary { background: transparent !important; color: var(--dh-dk-title) !important; border-color: var(--dh-dk-title) !important; }
+
+/* ============ 12) بوابة تسجيل دخول المعلم ============ */
+html[data-theme="dark"] .dh-teacher-auth-box { background: var(--dh-surface); box-shadow: 0 25px 50px rgba(0, 0, 0, .6); }
+html[data-theme="dark"] .dh-teacher-auth-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .dh-teacher-auth-error { border-color: #7a2d2d; }
+html[data-theme="dark"] .home-why-more { color: var(--dh-dk-title); }
+
+/* ============ 13) البحث السريع والحوارات المنبثقة (core/dialog.js) ============ */
+html[data-theme="dark"] .dh-fast-box { background: var(--dh-surface); color: var(--dh-ink); border-color: var(--dh-gold-500); }
+html[data-theme="dark"] .dh-fast-box input { color: var(--dh-ink); }
+html[data-theme="dark"] .dh-fast-box input::placeholder,
+html[data-theme="dark"] .dh-fast-empty { color: var(--dh-ink-soft); }
+html[data-theme="dark"] .dh-fast-kbd { background: var(--dh-surface-alt); color: var(--dh-ink-soft); border-color: var(--dh-line-strong); }
+html[data-theme="dark"] .dh-fast-results { background: var(--dh-surface); color: var(--dh-ink); box-shadow: 0 12px 28px rgba(0, 0, 0, .6); border: 1px solid var(--dh-line-strong); }
+html[data-theme="dark"] .dh-fast-item { border-bottom-color: var(--dh-line); }
+html[data-theme="dark"] .dh-fast-go.is-kids { background: #3a3210; color: var(--dh-dk-accent); }
+
+html[data-theme="dark"] .ham-dialog { background: var(--dh-surface); color: var(--dh-ink); box-shadow: 0 18px 50px rgba(0, 0, 0, .7); }
+html[data-theme="dark"] .ham-dialog-title { color: var(--dh-dk-title); }
+html[data-theme="dark"] .ham-dialog-btn-cancel { background: #26382f; color: var(--dh-ink); }
+html[data-theme="dark"] .ham-dialog-overlay { background: rgba(0, 0, 0, .65); }
+html[data-theme="dark"] .pf-btn.pf-btn-gold,
+html[data-theme="dark"] .pf-btn-gold { color: #3a2c00; }
+
+/* ============ 14) شاشات بمتغيراتها الخاصة وتفاصيل ما بعد التوليد التلقائي ============ */
+/* أبطال التجويد: متغيراتها الخاصة (--tjw-*) فنقلب السطوح والنصوص فقط ونترك ألوان الهوية (الأزرق/العنّابي) */
+html[data-theme="dark"] body:not(.kids-theme) {
+    --tjw-base: #0f1d19; --tjw-card: #14241f; --tjw-text: #e8f2ec; --tjw-muted: #9db8ac;
+    --tjw-line: rgba(255, 255, 255, 0.12);
+}
+html[data-theme="dark"] .sim-stat-num { color: var(--dh-dk-title); }
+html[data-theme="dark"] .sim-stat { background: rgba(143, 214, 180, .08); border-color: rgba(143, 214, 180, .2); }
+html[data-theme="dark"] .cc-x { background: rgba(143, 214, 180, .14); color: var(--dh-dk-title); }
+html[data-theme="dark"] body:not(.kids-theme) .cc-overlay { background: #0d1a16 !important; }
+html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-active,
+html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-open { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-active .dh-bnav-ic,
+html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-open .dh-bnav-ic { background: rgba(143, 214, 180, .16) !important; }
+
+/* ============ 15) صفحة الخصوصية المستقلة (privacy.html) وشاشتها داخل المنصة ============ */
+html[data-theme="dark"] .priv-head { background: var(--dh-surface); }
+html[data-theme="dark"] .priv-back { background: var(--dh-surface-alt); border-color: var(--dh-line-strong); color: var(--dh-dk-title); }
+html[data-theme="dark"] .priv-back:hover { background: #1d3329; }
+html[data-theme="dark"] .priv-title,
+html[data-theme="dark"] .card h2 { color: var(--dh-dk-title); }
+html[data-theme="dark"] .priv-sub,
+html[data-theme="dark"] .updated { color: var(--dh-ink-soft); }
+html[data-theme="dark"] .card { background: var(--dh-surface); border-color: var(--dh-line); color: var(--dh-ink); }
+html[data-theme="dark"] .contact { border-top-color: var(--dh-line-strong); }
+html[data-theme="dark"] .contact a { color: var(--dh-dk-title); }
+html[data-theme="dark"] body:not(.adult-theme):not(.kids-theme) { color: var(--dh-ink); }

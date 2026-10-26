@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" class="dh-booting">
 <head>
+<script src="core/themeInit.js"></script>
 <script src="core/dialog.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,6 +107,9 @@
     <link rel="stylesheet" href="css/landscape.css">
     <!-- 🌟 [جديد 2026-10-23] تخطيط موحّد لأسئلة المتشابهات/معنى الكلمة/الربط (يعمل فقط عند data-qfit) — راجع css/questionLayout.css وcomponents/questionFit.js -->
     <link rel="stylesheet" href="css/questionLayout.css">
+    <!-- 🌙 [جديد 2026-10-26] المظهر الداكن: يعمل فقط حين يكون <html data-theme="dark"> (core/themeInit.js في أعلى الصفحة) — آخر ملف تنسيق عمداً ليتغلّب على ما قبله -->
+    <link rel="stylesheet" href="css/theme-dark-auto.css?v=20261026a">   <!-- مُولَّد: node tools/gen-dark-theme.mjs -->
+    <link rel="stylesheet" href="css/theme-dark.css?v=20261026a">
 
     <!-- 🌟🌟 [جديد] تحليلات خصوصية بسيطة عبر GoatCounter (مجاني بالكامل، مفتوح المصدر،
          بدون أي إعلانات وبدون بصمة متصفح Fingerprinting) — لا تُخزَّن أي بيانات شخصية
@@ -188,6 +192,9 @@
             <!-- ☁️ [جديد 2026-10-16] «حسابي والنسخ الاحتياطي»: components/accountEntry.js يملأ الصورة/الحرف ونقطة التنبيه ويفتح الشاشة. بلا data-i18n على الأبناء (يُرسم من JS) -->
             <button id="header-account-btn" class="header-account-btn" type="button" data-i18n-title="acct_entry_title" title="حسابي والنسخ الاحتياطي" aria-label="حسابي والنسخ الاحتياطي" style="display:none;">
                 <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" hidden></span>
+            </button>
+            <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
             </button>
             <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
         </div>

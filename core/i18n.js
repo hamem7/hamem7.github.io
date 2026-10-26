@@ -1290,6 +1290,11 @@ export const translations = {
         dtr_auto_note_tie: "انتهت المواجهة بين {a} و{b} بالتعادل ({pa} - {pb} نقطة). أداء متكافئ ما شاء الله، بارك الله فيهما.",
         dtr_auto_note_win: "فاز {winner} في المواجهة أمام {loser} (الجولات {wr} - {lr}، فارق {diff} نقطة). بارك الله في الطالبين وزادهما حرصاً على كتاب الله.",
         header_home_btn: "الرئيسية",
+        theme_auto: "المظهر: تلقائي (حسب الجهاز)",
+        theme_light: "المظهر: فاتح",
+        theme_dark: "المظهر: داكن",
+        theme_toggle_hint: "اضغط للتبديل",
+        theme_label: "المظهر: تلقائي / فاتح / داكن",
         hw_publish_failed: "❌ لم يتم نشر الواجب (لم يؤكد الخادم حفظه). لم يُنشأ أي رابط.",
         hw_link_check_failed: "❌ تعذّر التأكد من الرابط.",
         hw_link_check_late_failed: "⚠️ الواجب منشور، لكن تعذّر التأكد من أن الرابط يفتح عند الطالب. جرّب فتح الرابط بنفسك قبل إرساله.", // 🌟
@@ -4250,6 +4255,11 @@ export const translations = {
         dtr_auto_note_tie: "The match between {a} and {b} ended in a tie ({pa} - {pb} points). An evenly matched performance — well done to both.",
         dtr_auto_note_win: "{winner} won the match against {loser} (rounds {wr} - {lr}, {diff} points apart). Well done to both students — keep up the care for the Book of Allah.",
         header_home_btn: "Home",
+        theme_auto: "Theme: automatic (follows device)",
+        theme_light: "Theme: light",
+        theme_dark: "Theme: dark",
+        theme_toggle_hint: "click to switch",
+        theme_label: "Theme: auto / light / dark",
         hw_publish_failed: "❌ Homework was NOT published (the server did not confirm saving). No link was created.",
         hw_link_check_failed: "❌ Could not verify the link.",
         hw_link_check_late_failed: "⚠️ The homework is published, but we could not confirm the link opens for students. Try opening it yourself before sending.", // 🌟

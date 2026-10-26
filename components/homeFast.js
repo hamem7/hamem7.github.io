@@ -20,6 +20,7 @@
 import { translations, t, tf, applyLanguage } from '../core/i18n.js';
 import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openSimilaritiesBrowser, openTajweedSection, openPrivacyScreen, openAccountScreen, openCertificates, loadSplashScreen, loadLoginScreen } from '../core/app.js';
 import { switchTheme } from '../core/navigation.js';
+import { bindThemeButton } from '../core/theme.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
 
 const HOME_SCREEN = 'components/splash.html';
@@ -325,6 +326,14 @@ function buildLayout() {
         b.addEventListener('click', () => document.getElementById('lang-toggle-btn')?.click());
         row.appendChild(b);
     }
+    // 🌙 زر المظهر (فاتح/داكن/تلقائي): الترويسة مخفية في الرئيسية فنضعه هنا بجانب زر اللغة — الأيقونة والعنوان من core/theme.js
+    if (row && !document.getElementById('dh-fast-theme')) {
+        const tb = document.createElement('button');
+        tb.type = 'button'; tb.id = 'dh-fast-theme'; tb.className = 'dh-fast-theme';
+        tb.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>';
+        row.appendChild(tb);
+        bindThemeButton(tb);
+    }
 
     // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] عنوانا قسمين قصيران (يظهران على الهاتف فقط — راجع css/mobile.css): "الألعاب والأركان"
     // فوق الكبار/الصغار/طلابي و"أدوات المعلم" فوق الواجبات/الثنائية، حتى يُقرأ ترتيب الأولوية من أول نظرة بلا تمرير
@@ -379,6 +388,7 @@ const IC = {
     table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
     memo: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
     profile: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5"/><path d="M18.5 4.5l1 1"/>',
+    theme: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
     lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/>',
     privacy: '<path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6Z"/>',
     contact: '<path d="M4 5h16v11H8l-4 4Z"/>'
@@ -407,6 +417,7 @@ function sheetItems(kind) {
         { key: 'sheet_sim_title', tag: 'sheet_soon_tag', icon: IC.sim, run: openSimilaritiesBrowser },
         { key: 'sheet_tajweed_title', tag: 'sheet_soon_tag', icon: IC.tajweed, run: openTajweedSection },
         { key: 'sheet_profile', icon: IC.profile, run: () => openAccountScreen() },
+        { key: 'theme_label', icon: IC.theme, run: () => window.DHTheme?.cycle(), keep: true },
         { key: 'lang_toggle', icon: IC.lang, run: () => document.getElementById('lang-toggle-btn')?.click(), keep: true },
         { key: 'sheet_privacy', icon: IC.privacy, run: openPrivacyScreen },
         { key: 'sheet_contact', icon: IC.contact, href: 'https://wa.me/201027814948' }

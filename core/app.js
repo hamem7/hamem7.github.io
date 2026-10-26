@@ -53,6 +53,7 @@ import { startHomeworkSubmissionWatcher } from './homeworkNotifier.js';
 // أدناه (checkMonthlyBackupReminder). راجع core/backupRestore.js للآلية الكاملة، وزرّي
 // "نسخة احتياطية الآن"/"استرجاع" الفعليين في components/teacherProfile.js
 import { exportFullBackup } from './backupRestore.js';
+import { initThemeToggle } from './theme.js';
 
 // 🛡️ إعادة تصدير دوال الترجمة لضمان عدم كسر أي ملف خارجي يستوردها من app.js
 export { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage };
@@ -284,6 +285,7 @@ function renderBackupReminderModal(thisMonth) {
 async function bootSystem() {
     try {
         applyLanguage();
+        initThemeToggle();   // 🌙 زر المظهر (فاتح/داكن/تلقائي) في الترويسة — core/theme.js
 
         const langBtn = document.getElementById('lang-toggle-btn');
         if (langBtn) {
