@@ -76,13 +76,13 @@
         padding-top: 6px;
         padding-bottom: 6px;
     }
-    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span:not(.between-dots) {
+    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span {
         display: block;
         line-height: 1.2;
         font-size: inherit !important;
         margin: 14px 0 !important;
     }
-    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span:not(.between-dots) + br { display: none; }
+    body[data-dh-screen$="Game.html"][data-game-q="between"] #game-question > .quran-text > span + br { display: none; }
 
     /* تسميع مقطع: خط يتبع ارتفاع الشاشة + مسافات أضيق */
     body[data-dh-screen$="Game.html"]:is([data-game-q="recite"], [data-game-q="kids_recite"]) #game-question { margin-bottom: 8px !important; }

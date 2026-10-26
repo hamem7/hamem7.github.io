@@ -401,12 +401,12 @@ export class QuranEngine {
         const nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text);
         const targetText = cleanAyahText(targetAyah.text);
         // نقاط ..... قبل الآية وبعدها (نفس شكل «الآية بين آيتين» و«أكمل الجزء الناقص») توضّح أن المطلوب آيتان ناقصتان
-        const gap = (label) => `<span class="between-dots" aria-label="${label}">.....</span>`;
+        const gap = (label) => `<div class="between-dots" aria-label="${label}" style="margin:6px 0;">.....</div>`;
         const ansBox = (label, txt) => `<div style="margin:8px 0;"><div style="color:var(--secondary); font-size:1.2rem; font-weight:bold;">${label}</div><span class="quran-text">﴿\u00A0${txt}\u00A0﴾</span></div>`;
         return {
             type: 'around', special: true,
             questionTitle: "اذكر الآية قبلها والآية بعدها ↔️",
-            questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">${gap('الآية التي قبلها')} ﴿\u00A0${targetText}\u00A0﴾ ${gap('الآية التي بعدها')}</div>`,
+            questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">${gap('الآية التي قبلها')}<div>﴿\u00A0${targetText}\u00A0﴾</div>${gap('الآية التي بعدها')}</div>`,
             fullAnswer: `${prevText}\u00A0﴾ ﴿\u00A0${nextText}`,
             answerHTML: ansBox('➡️ الآية التي قبلها', prevText) + ansBox('⬅️ الآية التي بعدها', nextText),
             ayahObj: targetAyah, reportText: targetText
@@ -430,7 +430,7 @@ export class QuranEngine {
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
         if(currentIndex > 0 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex - 1].surahNumber === targetAyah.surahNumber && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
         else { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
-        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${prevText}\u00A0﴾ <span class="between-dots" aria-label="آية ناقصة">.....</span> ﴿\u00A0${nextText}\u00A0﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
+        return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;"><div>﴿\u00A0${prevText}\u00A0﴾</div><div class="between-dots" aria-label="آية ناقصة" style="margin:6px 0;">.....</div><div>﴿\u00A0${nextText}\u00A0﴾</div></div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
     }
     
     async generateReciteGame(ayahsPool, isJuz, isKids, chunkIndex, totalChunks) { 
