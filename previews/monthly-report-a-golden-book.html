@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — التقرير الشهري (الكتاب الذهبي)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g8:#0a4736;--g7:#0d5c46;--g6:#147c5e;--g1:#e7f4ee;--gold:#d4af37;--gold-l:#f0d878;--gold-d:#8a6612;--ink:#10241c;--ink2:#4a6058;--line:#e3dbbd;--paper:#fffdf6;--rose:#a15230;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1b16;color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:18px 12px 60px}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+.bar{max-width:794px;margin:0 auto 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;color:#b9d6c9;font-size:.85rem}
+.bar .pill{background:#17332a;border:1px solid #2c5446;color:#e8f3ee;border-radius:999px;padding:6px 14px;font-weight:600}
+.bar .pill.on{background:var(--gold);border-color:var(--gold);color:#2b2620}
+.scroll{overflow-x:auto}
+.page{width:794px;max-width:100%;margin:0 auto;background:var(--paper);overflow:hidden;border-radius:6px;box-shadow:0 30px 70px rgba(0,0,0,.55)}
+.k{font-family:'Reem Kufi','Amiri',serif}
+/* hero */
+.hero{position:relative;background:var(--g9);color:#f6f3e8;padding:26px 44px 52px;border-bottom:3px solid var(--gold)}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 22% 60%,rgba(20,124,94,.55),transparent 55%),repeating-linear-gradient(45deg,transparent 0 30px,rgba(212,175,55,.06) 30px 31px),repeating-linear-gradient(-45deg,transparent 0 30px,rgba(212,175,55,.06) 30px 31px)}
+.hero::after{content:"";position:absolute;inset:12px;border:1px solid rgba(212,175,55,.35);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.top{display:flex;align-items:center;gap:12px}
+.brand{font-size:26px;color:#fffdf6;line-height:1}.brand small{display:block;font-family:inherit;font-size:12px;color:var(--gold);margin-top:3px;font-family:'IBM Plex Sans Arabic'}
+.verse{flex:1;text-align:center;font-family:'Amiri',serif;font-size:20px;color:var(--gold-l)}
+.period{text-align:end}.period b{display:block;font-size:24px;color:var(--gold-l);font-weight:600}.period span{font-size:12.5px;color:#c9d8d0}
+.hmain{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px}
+.eyebrow{font-size:14px;color:var(--gold);display:flex;align-items:center;gap:10px}.eyebrow::before{content:"";width:28px;height:1px;background:var(--gold)}
+.idrow{display:flex;align-items:center;gap:16px;margin-top:8px}
+.av{width:78px;height:78px;border-radius:50%;padding:4px;background:var(--gold);flex:none}.av div{width:100%;height:100%;border-radius:50%;background:#0b3d30;display:grid;place-items:center;font-family:'Amiri';font-weight:700;font-size:34px;color:var(--gold-l)}
+.nm{font-family:'Amiri',serif;font-size:34px;font-weight:700;line-height:1.15;color:#fffdf6}
+.chip{display:inline-block;margin-top:5px;font-size:12.5px;color:var(--gold-l);border:1px solid rgba(212,175,55,.6);border-radius:20px;padding:3px 13px}
+.grade{font-size:13.5px;color:#c9d8d0}
+.moon{width:158px;height:158px;flex:none}
+.star{position:absolute;left:50%;margin-left:-26px;bottom:-27px;width:52px;height:52px;z-index:2}
+/* body */
+.body{padding:46px 44px 10px}
+.sec{margin-bottom:26px}
+.st{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:600;color:#0b3d30}.st::after{content:"";flex:1;height:1px;background:var(--line)}
+.ss{font-size:12.5px;color:var(--ink2);margin:5px 0 12px}
+/* exec summary */
+.exec{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 12px;text-align:center;position:relative}
+.kpi i{display:block;font-style:normal;font-size:20px;margin-bottom:4px}
+.kpi b{display:block;font-size:30px;line-height:1.05;color:#0b3d30;font-weight:600}
+.kpi span{font-size:12px;color:var(--ink2);font-weight:500}
+.delta{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;border-radius:99px;padding:2px 9px}
+.up{background:#e4f4ea;color:#166534}.dn{background:#f6e6df;color:var(--rose)}.eq{background:#f4efe0;color:var(--gold-d)}
+/* journey */
+.jr{background:#f4f8ee;border:1.5px dashed #c9932f;border-radius:16px;padding:18px 20px}
+.track{position:relative;height:74px;margin:6px 6px 0}
+.track .rail{position:absolute;top:30px;left:0;right:0;height:8px;border-radius:8px;background:#dfe9d6}
+.track .fill{position:absolute;top:30px;right:0;height:8px;border-radius:8px;background:linear-gradient(270deg,var(--g6),var(--gold));width:62%}
+.dot{position:absolute;top:22px;width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--g7);margin-right:-12px}
+.dot.cur{border-color:var(--gold);background:var(--gold-l);box-shadow:0 0 0 5px rgba(212,175,55,.25)}
+.dot em{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-style:normal;font-size:11.5px;white-space:nowrap;font-weight:600;color:var(--ink)}
+.dot u{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:11px;text-decoration:none;color:var(--gold-d);font-weight:700;white-space:nowrap}
+.jfoot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--ink2)}
+.jfoot b{font-family:'Amiri';font-size:21px;color:var(--gold-d)}
+/* two cols */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.legend{display:flex;flex-direction:column;gap:6px;margin-top:6px;font-size:12.5px}
+.legend div{display:flex;align-items:center;gap:8px}.legend b{margin-inline-start:auto;color:#0b3d30}
+.sw{width:10px;height:10px;border-radius:3px;flex:none}
+/* heatmap */
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:6px}
+.heat span{aspect-ratio:1;border-radius:6px;background:#efe9d3;font-size:10px;display:grid;place-items:center;color:#8d8668}
+.heat .l1{background:#cfe7da;color:#245}.heat .l2{background:#7fc1a3;color:#06231c}.heat .l3{background:#147c5e;color:#fff}.heat .l4{background:var(--gold);color:#2b2620;font-weight:700}
+.hl{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--ink2);margin-top:8px}
+/* compare */
+.cmp{display:flex;flex-direction:column;gap:9px}
+.cmp div{display:grid;grid-template-columns:96px 1fr 54px;align-items:center;gap:8px;font-size:12.5px}
+.cmp .bg{height:9px;border-radius:9px;background:#eee8d2;position:relative}.cmp .bg i{position:absolute;top:0;right:0;bottom:0;border-radius:9px;background:var(--g6)}.cmp .bg i.p{background:#cdbd86;height:4px;bottom:auto;top:auto;position:absolute;bottom:-6px}
+/* letter */
+.tpls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tpls button,.phr button{font-size:12px;font-weight:600;border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 13px;color:var(--ink2)}
+.tpls button.on{background:var(--g8);color:#fff;border-color:var(--g8)}
+.phr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.phr button{background:#fbf3e1;color:var(--gold-d);border-style:dashed}
+.letter{position:relative;border-radius:14px;padding:24px 28px;transition:.25s}
+.letter .lab{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.letter .txt{font-size:15px;line-height:2;outline:none;min-height:90px}
+.letter .sgn{margin-top:12px;font-size:12.5px;display:flex;justify-content:space-between;align-items:center}
+.letter[data-t="classic"]{background:#fff;border:1px solid var(--line);border-inline-start:6px solid var(--gold)}
+.letter[data-t="classic"] .lab{color:var(--gold-d)}
+.letter[data-t="manuscript"]{background:#fbf3e1 radial-gradient(circle at 50% 0,#fff8e6,transparent 70%);border:2px double #c9932f;box-shadow:inset 0 0 0 6px #fbf3e1,inset 0 0 0 7px rgba(201,147,47,.5)}
+.letter[data-t="manuscript"] .txt{font-family:'Amiri',serif;font-size:19px;line-height:2.1;text-align:center}
+.letter[data-t="manuscript"] .lab{justify-content:center;color:var(--gold-d);font-family:'Reem Kufi'}
+.letter[data-t="modern"]{background:linear-gradient(135deg,var(--g8),var(--g9));color:#f6f3e8}
+.letter[data-t="modern"] .lab{color:var(--gold-l)}.letter[data-t="modern"]::before{content:"“";position:absolute;top:-6px;inset-inline-end:18px;font-size:90px;font-family:'Amiri';color:rgba(212,175,55,.35);line-height:1}
+.letter[data-t="stars"]{background:#fff7e0;border:2px solid #f3c969;border-radius:22px}
+.letter[data-t="stars"] .lab{color:#b45309}.letter[data-t="stars"]::after{content:"⭐ 🌙 ✨";position:absolute;top:10px;inset-inline-end:16px;font-size:16px}
+/* plan */
+.goals{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.goal{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.goal b{display:block;font-size:26px;color:var(--gold-d);font-weight:600}.goal span{font-size:12.5px;font-weight:600}
+.goal .ck{display:block;width:18px;height:18px;border:2px solid var(--g7);border-radius:5px;margin:8px auto 0}
+/* closing */
+.close{display:flex;justify-content:space-between;align-items:flex-end;padding:6px 44px 22px;gap:14px}
+.sig{width:200px;text-align:center}.sig .ln{border-bottom:1.5px solid var(--ink);height:36px;font-family:'Amiri';font-size:24px;color:#0b3d30}.sig span{font-size:12px;color:var(--ink2)}
+.qr{width:74px;height:74px;border:1px solid var(--line);border-radius:8px;background:repeating-conic-gradient(var(--ink) 0 25%,#fff 0 50%) 0 0/14px 14px;opacity:.85}
+.qrl{font-size:10.5px;color:var(--ink2);text-align:center;margin-top:3px}
+.foot{background:var(--g9);color:#e8dfb5;text-align:center;padding:13px;font-size:12.5px}.foot b{color:var(--gold-l)}
+.note{max-width:794px;margin:16px auto 0;color:#8fb3a3;font-size:.78rem;line-height:1.8}
+@media(max-width:700px){.exec,.goals{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div><b style="color:var(--gold)" data-i="title">معاينة A — «الكتاب الذهبي»</b> · <span data-i="sub">بيانات تجريبية</span></div>
+  <div style="display:flex;gap:6px"><button class="pill" id="lang">English</button></div>
+</div>
+
+<div class="scroll"><div class="page" id="page">
+  <div class="hero">
+    <div class="top">
+      <div class="brand k">حمٓ<small data-i="brandSub">أبطال القرآن</small></div>
+      <div class="verse">وَقُل رَّبِّ زِدْنِي عِلْمًا</div>
+      <div class="period"><b class="k" data-i="month">أكتوبر 2026</b><span data-i="range">من 1 إلى 31 أكتوبر</span></div>
+    </div>
+    <div class="hmain">
+      <div style="flex:1;min-width:0">
+        <div class="eyebrow k" data-i="eyebrow">التقرير الشهري لولي الأمر</div>
+        <div class="idrow">
+          <div class="av"><div data-i="avatar">ي</div></div>
+          <div><div class="nm" data-i="name">يوسف أحمد</div><div class="grade" data-i="grade">الصف الخامس</div><span class="chip" data-i="scope">الحفظ: من النبأ إلى الطارق</span></div>
+        </div>
+      </div>
+      <svg class="moon" viewBox="0 0 300 300"><g stroke="#d4af37" stroke-width="9" stroke-linecap="round" id="ring"></g><circle cx="150" cy="150" r="110" fill="none" stroke="#d4af37" stroke-opacity=".3"/><circle cx="150" cy="150" r="84" fill="#164f40" stroke="#d4af37" stroke-opacity=".7" stroke-width="3"/><path d="M150 66 A84 84 0 1 1 150 234 A50 84 0 1 0 150 66Z" fill="#f0d878"/><text x="150" y="162" text-anchor="middle" font-family="Reem Kufi" font-size="40" fill="#06231c" font-weight="700">87%</text></svg>
+    </div>
+    <svg class="star" viewBox="0 0 52 52"><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5"/><rect x="9" y="9" width="34" height="34" fill="#06231c" stroke="#d4af37" stroke-width="1.5" transform="rotate(45 26 26)"/><circle cx="26" cy="26" r="6" fill="#d4af37"/></svg>
+  </div>
+
+  <div class="body">
+    <div class="sec">
+      <div class="st k" data-i="s1">الخلاصة التنفيذية</div>
+      <div class="ss" data-i="s1s">أهم ما حدث هذا الشهر في ثوانٍ</div>
+      <div class="exec">
+        <div class="kpi"><i>📖</i><b class="k">42</b><span data-i="k1">آية جديدة</span><br><em class="delta up">▲ +12</em></div>
+        <div class="kpi"><i>📝</i><b class="k">91%</b><span data-i="k2">متوسط الواجبات</span><br><em class="delta up">▲ +6%</em></div>
+        <div class="kpi"><i>🔁</i><b class="k">18/22</b><span data-i="k3">أيام المراجعة</span><br><em class="delta eq">● =</em></div>
+        <div class="kpi"><i>🏅</i><b class="k">3</b><span data-i="k4">أوسمة جديدة</span><br><em class="delta up">▲ +1</em></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="st k" data-i="s2">رحلة الحفظ</div>
+      <div class="ss" data-i="s2s">من أين بدأ وإلى أين وصل هذا الشهر</div>
+      <div class="jr">
+        <div class="track">
+          <div class="rail"></div><div class="fill"></div>
+          <div class="dot" style="right:0"><u data-i="j0">البداية</u><em data-i="jA">النبأ</em></div>
+          <div class="dot" style="right:38%"><em data-i="jB">النازعات</em></div>
+          <div class="dot cur" style="right:62%"><u data-i="jn">الآن ★</u><em data-i="jC">الانفطار</em></div>
+          <div class="dot" style="right:100%"><em data-i="jD">الطارق</em></div>
+        </div>
+        <div class="jfoot"><span data-i="jf">٦٢٪ من المقرر الفصلي</span><b data-i="jnew">+42 آية هذا الشهر</b></div>
+      </div>
+    </div>
+
+    <div class="sec two">
+      <div>
+        <div class="st k" data-i="s3">خريطة المهارات</div>
+        <div class="box" style="margin-top:10px">
+          <svg viewBox="0 0 220 200" width="100%" id="radar"></svg>
+          <div class="legend">
+            <div><span class="sw" style="background:#147c5e"></span><span data-i="rs">أقوى مهارة</span><b data-i="rsv">الإتقان 95%</b></div>
+            <div><span class="sw" style="background:#d4af37"></span><span data-i="rf">تحتاج تركيزًا</span><b data-i="rfv">المدود 68%</b></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="st k" data-i="s4">خريطة الالتزام</div>
+        <div class="box" style="margin-top:10px">
+          <div class="heat" id="heat"></div>
+          <div class="hl"><span data-i="less">أقل</span><span class="sw" style="background:#efe9d3"></span><span class="sw" style="background:#cfe7da"></span><span class="sw" style="background:#7fc1a3"></span><span class="sw" style="background:#147c5e"></span><span class="sw" style="background:#d4af37"></span><span data-i="more">أكثر</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="st k" data-i="s5">مقارنة بالشهر الماضي</div>
+      <div class="box" style="margin-top:10px"><div class="cmp">
+        <div><span data-i="c1">الحفظ</span><span class="bg"><i style="width:78%"></i><i class="p" style="width:56%"></i></span><b>▲ 12</b></div>
+        <div><span data-i="c2">الواجبات</span><span class="bg"><i style="width:91%"></i><i class="p" style="width:85%"></i></span><b>▲ 6%</b></div>
+        <div><span data-i="c3">المراجعة</span><span class="bg"><i style="width:82%"></i><i class="p" style="width:82%"></i></span><b>=</b></div>
+      </div></div>
+    </div>
+
+    <div class="sec">
+      <div class="st k" data-i="s6">رسالة المعلم</div>
+      <div class="ss" data-i="s6s">اختر قالبًا جاهزًا للرسالة، ثم عدّل النص أو أضف عبارة جاهزة (جرّب الأزرار)</div>
+      <div class="tpls" id="tpls"></div>
+      <div class="phr" id="phr"></div>
+      <div class="letter" id="letter" data-t="classic">
+        <div class="lab k">✉ <span data-i="ll">رسالة المعلم لولي الأمر</span></div>
+        <div class="txt" id="txt" contenteditable="true"></div>
+        <div class="sgn"><span data-i="lsg">المعلم: أ. محمد الأمين</span><span>—</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="st k" data-i="s7">أهداف الشهر القادم</div>
+      <div class="ss" data-i="s7s">أهداف رقمية قابلة للقياس يُراجَع تحقيقها في التقرير القادم</div>
+      <div class="goals">
+        <div class="goal"><b class="k">45</b><span data-i="g1">آية جديدة</span><i class="ck"></i></div>
+        <div class="goal"><b class="k">20</b><span data-i="g2">يوم مراجعة</span><i class="ck"></i></div>
+        <div class="goal"><b class="k">95%</b><span data-i="g3">إتقان المدود</span><i class="ck"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="close">
+    <div class="sig"><div class="ln" data-i="sigName">م. الأمين</div><span data-i="sigL">توقيع المعلم</span></div>
+    <div><div class="qr"></div><div class="qrl" data-i="qr">امسح للتحقق</div></div>
+  </div>
+  <div class="foot"><b data-i="bless">بارك الله في جهدكم · معًا نرعى الحفظ</b> · <span data-i="issued">تاريخ الإصدار: 1 نوفمبر 2026</span></div>
+</div></div>
+
+<p class="note" data-i="note">هذه معاينة ثابتة ببيانات تجريبية لاقتراح الشكل النهائي للتقرير الشهري: الخلاصة التنفيذية، رحلة الحفظ، خريطة المهارات والالتزام، المقارنة، قوالب الرسالة، أهداف قابلة للقياس، ورمز تحقق. لا تغيّر المنصة الحالية.</p>
+
+<script>
+var L={ar:{
+title:'معاينة A — «الكتاب الذهبي»',sub:'بيانات تجريبية',brandSub:'أبطال القرآن',month:'أكتوبر 2026',range:'من 1 إلى 31 أكتوبر',eyebrow:'التقرير الشهري لولي الأمر',avatar:'ي',name:'يوسف أحمد',grade:'الصف الخامس',scope:'الحفظ: من النبأ إلى الطارق',
+s1:'الخلاصة التنفيذية',s1s:'أهم ما حدث هذا الشهر في ثوانٍ',k1:'آية جديدة',k2:'متوسط الواجبات',k3:'أيام المراجعة',k4:'أوسمة جديدة',
+s2:'رحلة الحفظ',s2s:'من أين بدأ وإلى أين وصل هذا الشهر',j0:'البداية',jA:'النبأ',jB:'النازعات',jn:'الآن ★',jC:'الانفطار',jD:'الطارق',jf:'٦٢٪ من المقرر الفصلي',jnew:'+42 آية هذا الشهر',
+s3:'خريطة المهارات',rs:'أقوى مهارة',rsv:'الإتقان 95%',rf:'تحتاج تركيزًا',rfv:'المدود 68%',s4:'خريطة الالتزام',less:'أقل',more:'أكثر',
+s5:'مقارنة بالشهر الماضي',c1:'الحفظ',c2:'الواجبات',c3:'المراجعة',
+s6:'رسالة المعلم',s6s:'اختر قالبًا جاهزًا للرسالة، ثم عدّل النص أو أضف عبارة جاهزة (جرّب الأزرار)',ll:'رسالة المعلم لولي الأمر',lsg:'المعلم: أ. محمد الأمين',
+s7:'أهداف الشهر القادم',s7s:'أهداف رقمية قابلة للقياس يُراجَع تحقيقها في التقرير القادم',g1:'آية جديدة',g2:'يوم مراجعة',g3:'إتقان المدود',
+sigName:'م. الأمين',sigL:'توقيع المعلم',qr:'امسح للتحقق',bless:'بارك الله في جهدكم · معًا نرعى الحفظ',issued:'تاريخ الإصدار: 1 نوفمبر 2026',
+note:'هذه معاينة ثابتة ببيانات تجريبية لاقتراح الشكل النهائي للتقرير الشهري: الخلاصة التنفيذية، رحلة الحفظ، خريطة المهارات والالتزام، المقارنة، قوالب الرسالة، أهداف قابلة للقياس، ورمز تحقق. لا تغيّر المنصة الحالية.',
+skills:['الإتقان','الحفظ','المراجعة','المدود','الوقف'],
+tpl:{classic:'كلاسيكي',manuscript:'مخطوطة',modern:'عصري',stars:'نجوم (أطفال)'},
+phr:['🌱 تقدّم ملحوظ','🔁 ركّز على المراجعة','🤲 شكرًا لمتابعتكم','🎯 هدف الشهر القادم'],
+phrT:['ما شاء الله، تقدّم ملحوظ في حفظه هذا الشهر.','نوصي بزيادة المراجعة اليومية لتثبيت المحفوظ.','نشكر لكم متابعتكم الحثيثة، فهي سر النجاح.','هدفنا القادم: إتقان أحكام المدود.'],
+msg:'السلام عليكم ورحمة الله، ولي أمر الطالب الغالي يوسف — حفظ يوسف 42 آية جديدة هذا الشهر بمتوسط واجبات 91%. بارك الله فيه وزاده حرصًا وتوفيقًا.'},
+en:{
+title:'Preview A — "The Golden Book"',sub:'Sample data',brandSub:'Heroes of the Quran',month:'October 2026',range:'Oct 1 – Oct 31',eyebrow:'Monthly report for parents',avatar:'Y',name:'Yusuf Ahmad',grade:'Grade 5',scope:'Memorization: An-Naba to At-Tariq',
+s1:'Executive summary',s1s:'The month at a glance',k1:'New ayahs',k2:'Homework average',k3:'Review days',k4:'New badges',
+s2:'Memorization journey',s2s:'Where he started and where he got to this month',j0:'Start',jA:'An-Naba',jB:'An-Nazi\'at',jn:'Now ★',jC:'Al-Infitar',jD:'At-Tariq',jf:'62% of the term target',jnew:'+42 ayahs this month',
+s3:'Skills map',rs:'Strongest skill',rsv:'Mastery 95%',rf:'Needs focus',rfv:'Madd 68%',s4:'Consistency map',less:'Less',more:'More',
+s5:'Versus last month',c1:'Memorization',c2:'Homework',c3:'Review',
+s6:'Teacher\'s message',s6s:'Pick a ready-made letter style, then edit the text or add a quick phrase (try the buttons)',ll:'Teacher\'s message to the parent',lsg:'Teacher: Mr. Muhammad Al-Amin',
+s7:'Next month\'s goals',s7s:'Measurable targets reviewed in the next report',g1:'New ayahs',g2:'Review days',g3:'Madd mastery',
+sigName:'M. Al-Amin',sigL:'Teacher\'s signature',qr:'Scan to verify',bless:'May God bless your efforts · Together we nurture memorization',issued:'Issued: Nov 1, 2026',
+note:'A static preview with sample data proposing the final look of the monthly report: executive summary, memorization journey, skills and consistency maps, comparison, letter templates, measurable goals and a verification code. It does not change the live platform.',
+skills:['Mastery','Memorize','Review','Madd','Waqf'],
+tpl:{classic:'Classic',manuscript:'Manuscript',modern:'Modern',stars:'Stars (kids)'},
+phr:['🌱 Clear progress','🔁 Focus on review','🤲 Thank you','🎯 Next goal'],
+phrT:['Masha\'Allah, clear progress in his memorization this month.','We recommend more daily review to consolidate what he learned.','Thank you for your close follow-up — it is the secret of success.','Our next goal: mastering the madd rules.'],
+msg:'Peace be upon you, dear parent of Yusuf — Yusuf memorized 42 new ayahs this month with a 91% homework average. Barakallahu feek, may God increase him in diligence and success.'}};
+var cur='ar',tpl='classic',$=function(s){return document.querySelector(s)};
+function radar(){var v=[95,88,82,68,76],n=L[cur].skills,cx=110,cy=100,R=70,p=[],g='';
+ for(var r=1;r<=3;r++){var q=[];for(var i=0;i<5;i++){var a=-Math.PI/2+i*2*Math.PI/5;q.push((cx+R*r/3*Math.cos(a)).toFixed(1)+','+(cy+R*r/3*Math.sin(a)).toFixed(1))}g+='<polygon points="'+q.join(' ')+'" fill="none" stroke="#e3dbbd"/>'}
+ for(var i=0;i<5;i++){var a=-Math.PI/2+i*2*Math.PI/5,k=v[i]/100;p.push((cx+R*k*Math.cos(a)).toFixed(1)+','+(cy+R*k*Math.sin(a)).toFixed(1));
+  g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+R*Math.cos(a)).toFixed(1)+'" y2="'+(cy+R*Math.sin(a)).toFixed(1)+'" stroke="#e3dbbd"/><text x="'+(cx+(R+16)*Math.cos(a)).toFixed(1)+'" y="'+(cy+(R+16)*Math.sin(a)+4).toFixed(1)+'" text-anchor="middle" font-size="10.5" fill="#4a6058" font-family="IBM Plex Sans Arabic">'+n[i]+'</text>'}
+ $('#radar').innerHTML=g+'<polygon points="'+p.join(' ')+'" fill="rgba(20,124,94,.28)" stroke="#147c5e" stroke-width="2"/>'}
+function build(){var d=L[cur];
+ document.querySelectorAll('[data-i]').forEach(function(e){var k=e.getAttribute('data-i');if(d[k]!=null)e.textContent=d[k]});
+ document.documentElement.lang=cur;document.documentElement.dir=cur==='ar'?'rtl':'ltr';$('#lang').textContent=cur==='ar'?'English':'العربية';
+ $('#tpls').innerHTML=Object.keys(d.tpl).map(function(k){return '<button data-t="'+k+'" class="'+(k===tpl?'on':'')+'">'+d.tpl[k]+'</button>'}).join('');
+ $('#phr').innerHTML=d.phr.map(function(x,i){return '<button data-p="'+i+'">'+x+'</button>'}).join('');
+ $('#txt').textContent=d.msg;radar()}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;
+ if(b.id==='lang'){cur=cur==='ar'?'en':'ar';build()}
+ else if(b.dataset.t){tpl=b.dataset.t;$('#letter').dataset.t=tpl;document.querySelectorAll('#tpls button').forEach(function(x){x.classList.toggle('on',x===b)})}
+ else if(b.dataset.p!=null){$('#txt').textContent+=' '+L[cur].phrT[+b.dataset.p]}});
+(function(){var r='';[0,45,90,135,180,225,270,315].forEach(function(a){r+='<line x1="150" y1="12" x2="150" y2="34" transform="rotate('+a+' 150 150)"/>'});$('#ring').innerHTML=r;
+ var lv=[0,3,4,2,0,1,0,3,4,4,2,1,0,3,3,4,2,0,1,3,4,4,3,2,0,3,4,3,2,4,3],h='';lv.forEach(function(v,i){h+='<span class="'+(v?'l'+v:'')+'">'+(i+1)+'</span>'});$('#heat').innerHTML=h;build()})();
+</script>
+</body>
+</html>

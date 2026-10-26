@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — التقرير الشهري (بطاقة الإنجاز)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--a:#0a4736;--a2:#06231c;--a3:#147c5e;--gold:#d4af37;--gl:#f0d878;--tx:#f6f3e8}
+.th-sky{--a:#12395f;--a2:#071a2e;--a3:#2b7fc7}
+.th-rose{--a:#6b1f3e;--a2:#2c0b19;--a3:#c4487a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1b16;color:var(--tx);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:18px 12px 60px}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+.bar{max-width:760px;margin:0 auto 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;color:#b9d6c9;font-size:.85rem}
+.bar .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pill{background:#17332a;border:1px solid #2c5446;color:#e8f3ee;border-radius:999px;padding:6px 14px;font-weight:600;font-size:.82rem}
+.pill.on{background:var(--gold);border-color:var(--gold);color:#2b2620}
+.sw{width:22px;height:22px;border-radius:50%;border:2px solid #fff3}.sw.on{border-color:#fff}
+.stage{display:flex;justify-content:center}
+.card{width:405px;max-width:100%;min-height:720px;border-radius:26px;overflow:hidden;position:relative;color:var(--tx);
+  background:radial-gradient(circle at 80% 8%,color-mix(in srgb,var(--a3) 70%,transparent),transparent 45%),linear-gradient(170deg,var(--a),var(--a2) 78%);
+  box-shadow:0 30px 70px rgba(0,0,0,.6),0 0 0 1.5px rgba(212,175,55,.6);display:flex;flex-direction:column;padding:20px 20px 16px;gap:11px}
+.card.sq{aspect-ratio:auto;min-height:0;gap:7px;padding:16px}.card.sq .sec,.card.sq .xpl,.card.sq .quote small{display:none}.card.sq .mini{padding:6px 12px}.card.sq .ringbox{width:120px;height:120px}
+.card::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0 34px,rgba(212,175,55,.05) 34px 35px),repeating-linear-gradient(-45deg,transparent 0 34px,rgba(212,175,55,.05) 34px 35px);pointer-events:none}
+.card>*{position:relative}
+.k{font-family:'Reem Kufi','Amiri',serif}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#c9d8d0}
+.top b{font-size:17px;color:var(--gl);font-weight:600}
+.who{display:flex;align-items:center;gap:12px}
+.av{width:60px;height:60px;border-radius:50%;padding:3px;background:var(--gold);flex:none}.av div{width:100%;height:100%;border-radius:50%;background:var(--a2);display:grid;place-items:center;font:700 28px 'Amiri';color:var(--gl)}
+.who h1{font:700 26px/1.15 'Amiri',serif;color:#fffdf6}
+.lvl{display:inline-flex;align-items:center;gap:6px;margin-top:4px;background:rgba(212,175,55,.16);border:1px solid rgba(212,175,55,.6);border-radius:99px;padding:2px 12px;font-size:12px;color:var(--gl);font-weight:600}
+.xp{height:7px;border-radius:7px;background:rgba(255,255,255,.14);margin-top:6px;overflow:hidden}.xp i{display:block;height:100%;width:72%;background:linear-gradient(270deg,var(--gl),var(--gold));border-radius:7px;margin-inline-start:0}
+.xpl{display:flex;justify-content:space-between;font-size:10.5px;color:#c9d8d0;margin-top:3px}
+.ringwrap{display:flex;align-items:center;justify-content:center;gap:14px}
+.ringbox{position:relative;width:150px;height:150px;flex:none}
+.ringbox svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringbox .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ringbox .c b{display:block;font:600 40px/1 'Reem Kufi';color:var(--gl)}.ringbox .c span{font-size:11px;color:#c9d8d0}
+.side{display:flex;flex-direction:column;gap:9px;flex:1}
+.mini{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px 12px}
+.mini b{font:600 22px/1 'Reem Kufi';color:var(--gl)}.mini span{display:block;font-size:11.5px;color:#d7e4dd;margin-top:2px}
+.sec{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:11px 13px}
+.sec h3{font:600 13.5px 'Reem Kufi';color:var(--gold);margin-bottom:7px;display:flex;justify-content:space-between}
+.sec h3 small{font:500 11px 'IBM Plex Sans Arabic';color:#c9d8d0}
+.path{display:flex;align-items:center;justify-content:space-between;position:relative;padding:4px 6px 0}
+.path::before{content:"";position:absolute;top:13px;right:14px;left:14px;height:3px;background:repeating-linear-gradient(90deg,rgba(212,175,55,.6) 0 6px,transparent 6px 11px)}
+.stp{position:relative;text-align:center;font-size:10.5px;color:#d7e4dd;width:20%}
+.stp i{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;margin:0 auto 4px;background:var(--gold);color:#2b2620;font-style:normal;font-size:11px;font-weight:700}
+.stp.todo i{background:var(--a2);border:2px dashed var(--gold);color:var(--gold)}
+.stp.now i{width:26px;height:26px;margin-top:-3px;background:var(--gl);box-shadow:0 0 0 5px rgba(240,216,120,.25)}
+.week{display:flex;align-items:flex-end;justify-content:space-between;gap:6px;height:74px;margin-top:4px}
+.week div{flex:1;text-align:center;font-size:10px;color:#c9d8d0}
+.week i{display:block;width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(0deg,var(--a3),var(--gl));margin-bottom:3px}
+.shelf{display:flex;gap:8px}
+.bd{flex:1;text-align:center;font-size:10.5px;color:#d7e4dd;background:rgba(255,255,255,.07);border-radius:12px;padding:8px 2px}
+.bd i{display:block;font-style:normal;font-size:22px;margin-bottom:2px}
+.bd.lock{opacity:.4;filter:grayscale(1)}
+.quote{background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.06));border:1px solid rgba(212,175,55,.5);border-radius:16px;padding:11px 14px;font:400 15.5px/1.8 'Amiri',serif;color:#fff7dc;text-align:center}
+.quote small{display:block;font:500 11px 'IBM Plex Sans Arabic';color:var(--gl);margin-top:3px}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#c9d8d0;border-top:1px solid rgba(212,175,55,.35);padding-top:9px}
+.foot b{color:var(--gl)}
+.note{max-width:760px;margin:16px auto 0;color:#8fb3a3;font-size:.78rem;line-height:1.8;text-align:center}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div><b style="color:var(--gold)" data-i="title">معاينة B — «بطاقة الإنجاز»</b> · <span data-i="sub">بيانات تجريبية · مصمَّمة لواتساب</span></div>
+  <div class="grp">
+    <button class="pill on" data-fmt="story" data-i="fs">قصة 9:16</button>
+    <button class="pill" data-fmt="sq" data-i="fq">مربع 1:1</button>
+    <button class="sw on" data-th="" style="background:#0a4736" title="emerald"></button>
+    <button class="sw" data-th="th-sky" style="background:#12395f" title="sky"></button>
+    <button class="sw" data-th="th-rose" style="background:#6b1f3e" title="rose"></button>
+    <button class="pill" id="lang">English</button>
+  </div>
+</div>
+
+<div class="stage" id="stage">
+<div class="card" id="card">
+  <div class="top"><span class="k" style="font-size:19px;color:#fffdf6">حمٓ <small style="font:500 11px 'IBM Plex Sans Arabic';color:var(--gold)" data-i="brand">· أبطال القرآن</small></span><span><b class="k" data-i="month">أكتوبر 2026</b></span></div>
+
+  <div class="who">
+    <div class="av"><div data-i="av">ي</div></div>
+    <div style="flex:1;min-width:0">
+      <h1 data-i="name">يوسف أحمد</h1>
+      <span class="lvl">⚔ <span data-i="lvl">فارس الحفظ · المستوى 7</span></span>
+      <div class="xp"><i></i></div>
+      <div class="xpl"><span data-i="xp1">720 / 1000 نقطة</span><span data-i="xp2">يتبقى 280 للمستوى 8</span></div>
+    </div>
+  </div>
+
+  <div class="ringwrap">
+    <div class="ringbox">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="11"/><circle cx="60" cy="60" r="52" fill="none" stroke="#f0d878" stroke-width="11" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="42.5"/></svg>
+      <div class="c"><div><b>87%</b><span data-i="ov">الإنجاز العام</span></div></div>
+    </div>
+    <div class="side">
+      <div class="mini"><b>42</b><span data-i="m1">آية جديدة 📖</span></div>
+      <div class="mini"><b>91%</b><span data-i="m2">متوسط الواجبات 📝</span></div>
+      <div class="mini"><b>🔥 12</b><span data-i="m3">يومًا متتاليًا</span></div>
+    </div>
+  </div>
+
+  <div class="sec"><h3><span data-i="h1">رحلة الحفظ</span><small data-i="h1s">النبأ ← الطارق</small></h3>
+    <div class="path">
+      <div class="stp"><i>✓</i><span data-i="p1">النبأ</span></div>
+      <div class="stp"><i>✓</i><span data-i="p2">النازعات</span></div>
+      <div class="stp now"><i>★</i><span data-i="p3">الانفطار</span></div>
+      <div class="stp todo"><i>·</i><span data-i="p4">المطففين</span></div>
+      <div class="stp todo"><i>·</i><span data-i="p5">الطارق</span></div>
+    </div>
+  </div>
+
+  <div class="sec opt"><h3><span data-i="h2">نشاط الأسابيع</span><small data-i="h2s">آيات + واجبات</small></h3>
+    <div class="week"><div><i style="height:30px"></i><span data-i="w1">أ1</span></div><div><i style="height:44px"></i><span data-i="w2">أ2</span></div><div><i style="height:36px"></i><span data-i="w3">أ3</span></div><div><i style="height:56px"></i><span data-i="w4">أ4</span></div></div>
+  </div>
+
+  <div class="sec opt"><h3><span data-i="h3">خزانة الأوسمة</span><small data-i="h3s">3 جديدة</small></h3>
+    <div class="shelf"><div class="bd"><i>🏆</i><span data-i="b1">متقن</span></div><div class="bd"><i>🔥</i><span data-i="b2">مثابر</span></div><div class="bd"><i>⭐</i><span data-i="b3">واجب كامل</span></div><div class="bd lock"><i>👑</i><span data-i="b4">بدر الشهر</span></div></div>
+  </div>
+
+  <div class="quote"><span data-i="q">«ما شاء الله! حفظ يوسف 42 آية هذا الشهر — استمر يا بطل.»</span><small data-i="qs">— أ. محمد الأمين</small></div>
+
+  <div class="foot"><span><b data-i="goal">هدف نوفمبر:</b> <span data-i="goalv">45 آية · 20 يوم مراجعة</span></span><span>♡</span></div>
+</div>
+</div>
+<p class="note" data-i="note">معاينة ثابتة ببيانات تجريبية: بطاقة عمودية مثالية للقطات الواتساب، بنظام مستويات ونقاط، وثيم ألوان قابل للتبديل (الأزرار أعلاه). لا تغيّر المنصة الحالية.</p>
+
+<script>
+var L={ar:{title:'معاينة B — «بطاقة الإنجاز»',sub:'بيانات تجريبية · مصمَّمة لواتساب',fs:'قصة 9:16',fq:'مربع 1:1',brand:'· أبطال القرآن',month:'أكتوبر 2026',av:'ي',name:'يوسف أحمد',lvl:'فارس الحفظ · المستوى 7',xp1:'720 / 1000 نقطة',xp2:'يتبقى 280 للمستوى 8',ov:'الإنجاز العام',m1:'آية جديدة 📖',m2:'متوسط الواجبات 📝',m3:'يومًا متتاليًا',h1:'رحلة الحفظ',h1s:'النبأ ← الطارق',p1:'النبأ',p2:'النازعات',p3:'الانفطار',p4:'المطففين',p5:'الطارق',h2:'نشاط الأسابيع',h2s:'آيات + واجبات',w1:'أ1',w2:'أ2',w3:'أ3',w4:'أ4',h3:'خزانة الأوسمة',h3s:'3 جديدة',b1:'متقن',b2:'مثابر',b3:'واجب كامل',b4:'بدر الشهر',q:'«ما شاء الله! حفظ يوسف 42 آية هذا الشهر — استمر يا بطل.»',qs:'— أ. محمد الأمين',goal:'هدف نوفمبر:',goalv:'45 آية · 20 يوم مراجعة',note:'معاينة ثابتة ببيانات تجريبية: بطاقة عمودية مثالية للقطات الواتساب، بنظام مستويات ونقاط، وثيم ألوان قابل للتبديل (الأزرار أعلاه). لا تغيّر المنصة الحالية.'},
+en:{title:'Preview B — "Achievement Card"',sub:'Sample data · built for WhatsApp',fs:'Story 9:16',fq:'Square 1:1',brand:'· Heroes of the Quran',month:'October 2026',av:'Y',name:'Yusuf Ahmad',lvl:'Memorization Knight · Level 7',xp1:'720 / 1000 pts',xp2:'280 left for level 8',ov:'Overall',m1:'new ayahs 📖',m2:'homework avg 📝',m3:'day streak',h1:'Memorization journey',h1s:'An-Naba → At-Tariq',p1:'An-Naba',p2:'An-Nazi\'at',p3:'Al-Infitar',p4:'Al-Mutaffifin',p5:'At-Tariq',h2:'Weekly activity',h2s:'ayahs + homework',w1:'W1',w2:'W2',w3:'W3',w4:'W4',h3:'Badge shelf',h3s:'3 new',b1:'Master',b2:'Persistent',b3:'Full homework',b4:'Full moon',q:'"Masha\'Allah! Yusuf memorized 42 ayahs this month — keep going, hero."',qs:'— Mr. Muhammad Al-Amin',goal:'November goal:',goalv:'45 ayahs · 20 review days',note:'A static preview with sample data: a vertical card ideal for WhatsApp, with a level/points system and swappable color themes (buttons above). It does not change the live platform.'}};
+var cur='ar';
+function build(){var d=L[cur];document.querySelectorAll('[data-i]').forEach(function(e){var k=e.getAttribute('data-i');if(d[k]!=null)e.textContent=d[k]});
+ document.documentElement.lang=cur;document.documentElement.dir=cur==='ar'?'rtl':'ltr';document.getElementById('lang').textContent=cur==='ar'?'English':'العربية'}
+document.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var c=document.getElementById('card');
+ if(b.id==='lang'){cur=cur==='ar'?'en':'ar';build()}
+ else if(b.dataset.fmt){c.classList.toggle('sq',b.dataset.fmt==='sq');document.querySelectorAll('[data-fmt]').forEach(function(x){x.classList.toggle('on',x===b)})}
+ else if(b.dataset.th!=null){document.body.className=b.dataset.th;document.querySelectorAll('.sw').forEach(function(x){x.classList.toggle('on',x===b)})}});
+build();
+</script>
+</body>
+</html>
