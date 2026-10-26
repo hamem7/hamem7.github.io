@@ -8,6 +8,9 @@
 .hp-screen button { font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .hp-screen :focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
 .hp-wrap { max-width: 760px; margin: 0 auto; }
+/* فاصل فعلي في آخر المحتوى: padding الشاشة تلغيه mobile.css (#app-root .screen) فكان الشريط السفلي يغطي آخر سؤال/خيار */
+.hp-wrap::after { content: ""; display: block; height: calc(170px + env(safe-area-inset-bottom)); }
+.hp-orow { scroll-margin-bottom: 190px; }
 .hp-banner { max-width: 760px; margin: 0 auto 12px; padding: 12px 16px; border-radius: 12px; font-weight: bold; display: none; }
 .hp-banner.warn { background: #fef3c7; color: #92400e; } .hp-banner.bad { background: var(--dh-danger-bg, #fde8e8); color: var(--dh-danger, #b91c1c); }
 .hp-card { background: var(--dh-surface, #fffdf6); border-radius: 22px; box-shadow: 0 10px 30px rgba(6, 35, 28, .10); padding: 18px; margin-bottom: 14px; }
