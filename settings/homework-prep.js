@@ -1439,7 +1439,21 @@ function setupListeners() {
         tabFinalResults.style.display = (tab === 'final') ? 'block' : 'none';
         const tabBulk = document.getElementById('tab-bulk-send');
         if (tabBulk) tabBulk.style.display = (tab === 'bulk') ? 'block' : 'none';
-        setActiveTabBtn(tab === 'new' ? null : (tab === 'history' ? btnHistory : (tab === 'bulk' ? btnBulk : btnFinalResults)));
+        // 📅 «جدول الأسبوع» تبويب داخل الصفحة: يُبنى عند الدخول، ويُفرَّغ عند الخروج منه مع تحديث «مستحق اليوم»
+        const tabWeek = document.getElementById('tab-week-schedule');
+        if (tabWeek) {
+            tabWeek.style.display = (tab === 'week') ? 'block' : 'none';
+            if (tab === 'week') {
+                import('../components/weekSchedule.js')
+                    .then(m => m.openWeekSchedule({ container: tabWeek }))
+                    .catch(err => { console.error('تعذر فتح جدول الأسبوع:', err); alert(L('تعذر فتح جدول الأسبوع. حاول مرة أخرى.', 'Could not open the weekly schedule. Please try again.')); });
+            } else if (tabWeek.childElementCount) {
+                tabWeek.innerHTML = '';
+                renderDueToday();
+                refreshSmartInfo();
+            }
+        }
+        setActiveTabBtn(tab === 'new' ? null : (tab === 'history' ? btnHistory : (tab === 'bulk' ? btnBulk : (tab === 'week' ? null : btnFinalResults))));
         if (btnBulk) {
             const on = tab === 'bulk';
             btnBulk.classList.toggle('btn-outline', !on);
@@ -1469,9 +1483,9 @@ function setupListeners() {
         if (form && (top < 0 || top > window.innerHeight * 0.6)) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
         document.querySelectorAll('#hwp5-due .hwp5-tcard').forEach(c => c.classList.toggle('sel', c.dataset.name === b.dataset.name));
     });
-    document.getElementById('hwp5-week')?.addEventListener('click', async () => {
-        const m = await import('../components/weekSchedule.js');
-        m.openWeekSchedule({ onClose: () => renderDueToday() });
+    document.getElementById('hwp5-week')?.addEventListener('click', () => {
+        switchHwTab('week');
+        document.getElementById('tab-week-schedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     // 📤 [جديد — الإرسال الجماعي] شاشة اختيارية مستقلة (components/bulkSend.js)؛ بعد إغلاقها نحدّث «مستحق اليوم» والسجل
     btnBulk?.addEventListener('click', () => switchHwTab('bulk'));
@@ -1503,9 +1517,9 @@ function setupListeners() {
         } finally { btn.disabled = false; }
     });
     bindScopePanel();
-    document.getElementById('hw-btn-week')?.addEventListener('click', async () => {
-        const m = await import('../components/weekSchedule.js');
-        m.openWeekSchedule({ onClose: () => refreshSmartInfo() });
+    document.getElementById('hw-btn-week')?.addEventListener('click', () => {
+        switchHwTab('week');
+        document.getElementById('tab-week-schedule')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
     document.getElementById('btn-save-hw-publish')?.addEventListener('click', () => saveHomeworkToDB('published'));
