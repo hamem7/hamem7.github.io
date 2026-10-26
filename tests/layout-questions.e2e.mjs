@@ -28,7 +28,7 @@ const KINDS = [
   { id: 'sim_named', lang: 'ar' }, { id: 'sim_named', lang: 'en' },
   { id: 'sim_pair' }, { id: 'sim_notin' }, { id: 'sim_complete' }, { id: 'sim_which' }, { id: 'sim_missing' },
   { id: 'word_meaning' }, { id: 'link_ends' }, { id: 'link_word_surah' },
-  { id: 'catch' }, { id: 'between' }, { id: 'around' }, { id: 'complete_ayah' }, { id: 'recite' },
+  { id: 'catch' }, { id: 'between' }, { id: 'recite' },
 ];
 
 for (const MODE of [{ kids: false, kinds: KINDS }, { kids: true, kinds: KIDS_KINDS }]) for (const vp of VIEWPORTS) {
