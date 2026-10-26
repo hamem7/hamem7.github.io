@@ -23,12 +23,10 @@
 .hp-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 12px 0 10px; flex-wrap: wrap; }
 .hp-saved { font-size: .82rem; color: var(--dh-ok, #15803d); opacity: .6; } .hp-saved.flash { animation: hp-flash 1.4s; }
 @keyframes hp-flash { 0% { opacity: 1; transform: scale(1.06); } 100% { opacity: .6; } }
-.hp-segs { display: flex; gap: 6px; }
-.hp-seg { flex: 1; min-height: 44px; min-width: 0; border: 0; border-radius: 12px; background: #e8e1c8; color: #4a6058; font-weight: 700; cursor: pointer; position: relative; transition: transform .2s; }
-.hp-seg.done { background: var(--dh-emerald-600, #147c5e); color: #fff; }
-.hp-seg.skip { background: repeating-linear-gradient(45deg, #fde68a, #fde68a 6px, #fef3c7 6px, #fef3c7 12px); color: #78350f; }
-.hp-seg.cur { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 1px; transform: translateY(-2px); }
-.hp-pbar { height: 8px; background: #e8e1c8; border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.hp-counter { font-size: 1.15rem; }
+.hp-pbar { height: 10px; background: #e8e1c8; border-radius: 99px; overflow: hidden; }
+.hp-prog-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; font-size: .85rem; color: var(--dh-ink-soft, #4a6058); font-weight: 600; }
+.hp-prog-foot .hp-btn.link { font-size: .85rem; }
 #hp-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--dh-gold-500, #d4af37), var(--dh-gold-300, #f0d878)); border-radius: 99px; transition: width .4s; }
 .hp-qcard { border-top: 5px solid var(--dh-gold-500, #d4af37); animation: hp-in .3s ease both; }
 @keyframes hp-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -85,7 +83,7 @@ textarea.hp-field { resize: vertical; line-height: 1.9; }
 /* نافذة حالة التسليم */
 .hp-modal { display: none; position: fixed; inset: 0; background: rgba(6, 35, 28, .75); z-index: 9999; justify-content: center; align-items: center; padding: 14px; }
 .hp-modal-card { background: var(--dh-surface, #fffdf6); padding: 30px 22px; border-radius: 24px; border-top: 6px solid var(--dh-gold-500, #d4af37); text-align: center; max-width: 520px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(6, 35, 28, .4); }
-body.hp-focus .hp-eyebrow, body.hp-focus .hp-saved, body.hp-focus .hp-pbar, body.hp-focus .hp-qtype { display: none; }
+body.hp-focus .hp-eyebrow, body.hp-focus .hp-saved, body.hp-focus .hp-pbar, body.hp-focus .hp-prog-foot, body.hp-focus .hp-qtype { display: none; }
 @media (max-width: 520px) { .hp-card { padding: 14px; } .hp-mgrid { gap: 8px; } .hp-bar .hp-btn { padding-inline: 12px; } }
 @media (max-width: 480px) { .hp-btn.gold, .hp-bar #btn-hp-next, .hp-bar #btn-hp-review { min-width: 0; } }
 @media (prefers-reduced-motion: reduce) { .hp-screen *, .hp-confetti i { animation: none !important; transition: none !important; } }
@@ -109,9 +107,9 @@ body.hp-focus .hp-eyebrow, body.hp-focus .hp-saved, body.hp-focus .hp-pbar, body
                         <button type="button" class="hp-ib" id="btn-hp-focus" aria-pressed="false" data-i18n-title="hw_pl_focus" title="وضع التركيز">🎯</button>
                     </div>
                 </div>
-                <div class="hp-meta"><b id="hp-progress-text"></b><span id="hp-saved" class="hp-saved" data-i18n="hw_pl_saved">💾 تم الحفظ على جهازك</span></div>
-                <div id="hp-segs" class="hp-segs" role="group"></div>
-                <div class="hp-pbar"><div id="hp-progress-bar"></div></div>
+                <div class="hp-meta"><b id="hp-progress-text" class="hp-counter"></b><span id="hp-saved" class="hp-saved" data-i18n="hw_pl_saved">💾 تم الحفظ على جهازك</span></div>
+                <div class="hp-pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div id="hp-progress-bar"></div></div>
+                <div class="hp-prog-foot"><span id="hp-answered-text"></span><button type="button" class="hp-btn link" id="btn-hp-list" data-i18n="hw_pl_list_btn">📋 قائمة الأسئلة</button></div>
             </div>
             <div class="hp-card hp-qcard" id="hp-qcard">
                 <!-- سيتم حقن الأسئلة هنا عبر الجافاسكربت -->

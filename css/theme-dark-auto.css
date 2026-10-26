@@ -598,10 +598,9 @@ html[data-theme="dark"] body:not(.kids-theme) [style*="color:#64748b"]:not([styl
 html[data-theme="dark"] body:not(.kids-theme) [style*="background:#fffbeb"] { background: #1d2722 !important; }
 html[data-theme="dark"] body:not(.kids-theme) [style*="background:#fffdf5"] { background: #1a231f !important; }
 
-/* ===== games/homework-play.html (24) ===== */
+/* ===== games/homework-play.html (23) ===== */
 html[data-theme="dark"] body:not(.kids-theme) .hp-banner.warn { background: #25322c !important; color: #e6b699 !important; }
 html[data-theme="dark"] body:not(.kids-theme) .hp-ib { background: #26332d !important; }
-html[data-theme="dark"] body:not(.kids-theme) .hp-seg { background: #2b3832 !important; color: #b3c5be !important; }
 html[data-theme="dark"] body:not(.kids-theme) .hp-pbar { background: #2b3832 !important; }
 html[data-theme="dark"] body:not(.kids-theme) .hp-qtype { background: #26332d !important; }
 html[data-theme="dark"] body:not(.kids-theme) .hp-parent { background: #1d2722 !important; border: 1.5px solid #3f3a27 !important; color: #e6b699 !important; }

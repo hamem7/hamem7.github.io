@@ -179,22 +179,12 @@ function onAnswerChanged() {
 }
 
 function paintSegments() {
-    const box = $('hp-segs');
-    if (!box) return;
-    box.textContent = '';
-    hw.questions.forEach((q, i) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        const done = isAnswered(q);
-        b.className = 'hp-seg' + (done ? ' done' : '') + (!done && skipped[q.id] ? ' skip' : '') + (i === currentIndex ? ' cur' : '');
-        b.textContent = String(i + 1);
-        b.setAttribute('aria-label', `${t('hw_pl_q')} ${i + 1}`);
-        if (i === currentIndex) b.setAttribute('aria-current', 'step');
-        b.addEventListener('click', () => goTo(i));
-        box.appendChild(b);
-    });
+    const total = hw.questions.length, n = answeredCount();
+    const pct = Math.round(n / total * 100);
     const bar = $('hp-progress-bar');
-    if (bar) bar.style.width = `${Math.round(answeredCount() / hw.questions.length * 100)}%`;
+    if (bar) { bar.style.width = `${pct}%`; if (bar.parentElement) bar.parentElement.setAttribute('aria-valuenow', String(pct)); }
+    const ans = $('hp-answered-text');
+    if (ans) ans.textContent = tf('hw_pl_answered_of', { n, total });
 }
 
 function goTo(i) {
@@ -253,6 +243,7 @@ function setupListeners() {
         if (currentIndex < hw.questions.length - 1) goTo(currentIndex + 1); else showReview();
     });
     $('btn-hp-review').addEventListener('click', showReview);
+    $('btn-hp-list').addEventListener('click', showReview);
     $('btn-hp-back').addEventListener('click', () => { showPlay(); renderQuestion(); });
 
     $('btn-hp-submit').addEventListener('click', () => {
