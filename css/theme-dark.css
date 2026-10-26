@@ -168,7 +168,9 @@ html[data-theme="dark"] .home-menu-primary .home-card-tajweed {
 :where(html[data-theme="dark"] body:not(.kids-theme)) .home-date-card,
 :where(html[data-theme="dark"] body:not(.kids-theme)) .dash-panel,
 :where(html[data-theme="dark"] body:not(.kids-theme)) .control-panel,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .hwp2-assign-box {
+:where(html[data-theme="dark"] body:not(.kids-theme)) .hwp2-assign-box,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-e-track,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-intro-card {
     box-shadow: 0 0 0 1px var(--dh-line-strong), inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 22px rgba(0, 0, 0, .5);
 }
 
@@ -454,8 +456,8 @@ html[data-theme="dark"] .pf-btn-gold { color: #3a2c00; }
 /* ============ 14) شاشات بمتغيراتها الخاصة وتفاصيل ما بعد التوليد التلقائي ============ */
 /* أبطال التجويد: متغيراتها الخاصة (--tjw-*) فنقلب السطوح والنصوص فقط ونترك ألوان الهوية (الأزرق/العنّابي) */
 html[data-theme="dark"] body:not(.kids-theme) {
-    --tjw-base: #0f1d19; --tjw-card: #14241f; --tjw-text: #e8f2ec; --tjw-muted: #9db8ac;
-    --tjw-line: rgba(255, 255, 255, 0.12);
+    --tjw-base: #0f1d19; --tjw-card: #182a23; --tjw-text: #e8f2ec; --tjw-muted: #9db8ac;
+    --tjw-line: rgba(255, 255, 255, 0.18);
 }
 html[data-theme="dark"] .sim-stat-num { color: var(--dh-dk-title); }
 html[data-theme="dark"] .sim-stat { background: rgba(143, 214, 180, .08); border-color: rgba(143, 214, 180, .2); }
@@ -478,3 +480,6 @@ html[data-theme="dark"] .card { background: var(--dh-surface); border-color: var
 html[data-theme="dark"] .contact { border-top-color: var(--dh-line-strong); }
 html[data-theme="dark"] .contact a { color: var(--dh-dk-title); }
 html[data-theme="dark"] body:not(.adult-theme):not(.kids-theme) { color: var(--dh-ink); }
+
+/* تجويد: «رحلة الأحكام» كانت شفافة بلا حدّ فتذوب في الخلفية الداكنة */
+html[data-theme="dark"] body:not(.kids-theme) .tjw-e-track { background: #1a2c25; border-color: var(--dh-line-strong); }
