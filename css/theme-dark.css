@@ -8,13 +8,13 @@
 html[data-theme="dark"] {
     color-scheme: dark;
 
-    --dh-surface: #14241f;
+    --dh-surface: #182a23;
     --dh-surface-alt: #0d1a16;
     --dh-bg-soft: #0f1d19;
     --dh-ink: #e8f2ec;
     --dh-ink-soft: #9db8ac;
-    --dh-line: #2a3d34;
-    --dh-line-strong: #3a5246;
+    --dh-line: #33493f;
+    --dh-line-strong: #46614f;
 
     /* حالات المعنى: نص أفتح + خلفية داكنة بنفس الدلالة */
     --dh-ok: #6fd49a;      --dh-ok-bg: #12301f;
@@ -127,6 +127,49 @@ html[data-theme="dark"] .home-menu-primary .home-card-similarities,
 html[data-theme="dark"] .home-menu-primary .home-card-tajweed {
     border: 1px solid rgba(255, 253, 246, .22);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 10px 26px rgba(0, 0, 0, .6);
+}
+
+
+/* ============ 2-ب) نظام موحّد لكل البطاقات/المربعات داخل المنصة (الداكن) ============
+   الفكرة: السطح أفتح من الخلفية (--dh-surface أعلاه) + حلقة حدّ واضحة + إضاءة علوية داخلية + ظل عميق.
+   مكتوب بـ :where() (تخصيص صفر) ليغلبه أي مظهر خاص بحالة (محدَّد/نشط/مرور) ولا يمسّ الخلفيات الدلالية؛ ويستثني ركن الأطفال.
+   بطاقة جديدة: أضف اسم صنفها إلى هذه القائمة. */
+:where(html[data-theme="dark"] body:not(.kids-theme)) .card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .home-why-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .home-quickcard,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-hint-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-welcome-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .ms-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .ac-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-surah-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-group-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-word-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-panel,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .bs-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .hp-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .hw-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-sum-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-intro-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-rule-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-rule-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-letter-tile,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-e-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .report-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-fast-box,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dts-range-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .mrv-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .mmp-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-pause-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-fixp-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .home-date-card,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .dash-panel,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .control-panel,
+:where(html[data-theme="dark"] body:not(.kids-theme)) .hwp2-assign-box {
+    box-shadow: 0 0 0 1px var(--dh-line-strong), inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 22px rgba(0, 0, 0, .5);
 }
 
 /* «ابدأ من هنا» */
