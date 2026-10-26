@@ -3,7 +3,7 @@
      التسليم. الأنماط محصورة بالبادئة hp- ولا تمس أي شاشة أخرى. المعرّفات (ids) كما كانت لأن games/homework-play.js وتختبراتها تعتمد عليها. -->
 <div class="screen active hp-screen">
 <style>
-.hp-screen { min-height: 100vh; padding: 14px 14px 120px; background: var(--dh-surface-alt, #f3eedd); font-family: var(--dh-font-ui, 'IBM Plex Sans Arabic', Tahoma, sans-serif); color: var(--dh-ink, #10241c); --hp-fs: 1; }
+.hp-screen { min-height: 100vh; padding: 14px 14px calc(190px + env(safe-area-inset-bottom)); scroll-padding-bottom: 190px; background: var(--dh-surface-alt, #f3eedd); font-family: var(--dh-font-ui, 'IBM Plex Sans Arabic', Tahoma, sans-serif); color: var(--dh-ink, #10241c); --hp-fs: 1; }
 .hp-screen * { box-sizing: border-box; }
 .hp-screen button { font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .hp-screen :focus-visible { outline: 3px solid var(--dh-gold-500, #d4af37); outline-offset: 2px; }
@@ -36,7 +36,8 @@
 .hp-mushaf::before { content: "❁"; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--dh-surface, #fffdf6); color: var(--dh-gold-500, #d4af37); font-size: 1.5rem; padding: 0 10px; line-height: 1; }
 .hp-ayah { font-family: 'Amiri Quran', 'Amiri', serif; font-size: calc(1.8rem * var(--hp-fs)); line-height: 2.1; color: #0b4a3a; }
 .hp-help { color: var(--dh-ink-soft, #4a6058); font-size: calc(.92rem * var(--hp-fs)); margin: 2px 0 10px; }
-.hp-opts { display: flex; flex-direction: column; gap: 10px; }
+.hp-opts { display: flex; flex-direction: column; gap: 10px; padding-bottom: 24px; }
+.hp-opt { scroll-margin-bottom: 190px; }
 .hp-opt { position: relative; display: flex; align-items: center; gap: 14px; min-height: 62px; padding: 10px 14px; border: 2px solid var(--dh-line, #e4dfcc); border-radius: 16px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; }
 .hp-opt:active { transform: scale(.985); }
 .hp-opt input { position: absolute; opacity: 0; width: 100%; height: 100%; inset: 0; margin: 0; cursor: pointer; }
