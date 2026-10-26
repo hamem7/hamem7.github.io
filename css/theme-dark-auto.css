@@ -802,8 +802,9 @@ html[data-theme="dark"] body:not(.kids-theme) .dh-pause-chip-when { background: 
 html[data-theme="dark"] body:not(.kids-theme) .dh-pause-bar { background: #1f2731 !important; }
 html[data-theme="dark"] body:not(.kids-theme) .dh-pause-btn-secondary { background: #14241f !important; border: 2px solid #3f2727 !important; }
 
-/* ===== components/weekSchedule.js (10) ===== */
+/* ===== components/weekSchedule.js (11) ===== */
 html[data-theme="dark"] body:not(.kids-theme) .ws-box { background: #14241f !important; color: #d6def0 !important; }
+html[data-theme="dark"] body:not(.kids-theme) .ws-pg .ws-box { border: 1px solid #29323d !important; }
 html[data-theme="dark"] body:not(.kids-theme) .ws-x { background: #18222b !important; }
 html[data-theme="dark"] body:not(.kids-theme) .ws-note { color: #95a1b3 !important; }
 html[data-theme="dark"] body:not(.kids-theme) .ws-btn.alt { background: #1f2731 !important; color: #bac5d6 !important; }
