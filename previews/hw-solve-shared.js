@@ -20,7 +20,7 @@
       pickOne: 'اختر إجابة واحدة', pickMany: 'اختر كل ما ينطبق', typeHere: 'اكتب الكلمة هنا…',
       orderHelp: 'اسحب البطاقة أو استخدم الأسهم لترتيب الآيات', matchHelp: 'اضغط على بداية الآية ثم على نهايتها. اضغط مرة أخرى على المربوط لفكّ الربط.',
       reviewT: 'مراجعة قبل التسليم', reviewSub: 'اضغط على أي سؤال للرجوع إليه.', answered: 'مجاب', unanswered: 'بدون إجابة', skipped: 'تم تخطّيه',
-      warnUn: 'لديك أسئلة لم تُجب عنها. يمكنك الرجوع إليها أو التسليم كما هي.', allDone: 'أحسنت! أجبت عن كل الأسئلة 🎉',
+      warnUn: 'لديك أسئلة لم تُجب عنها. يمكنك الرجوع إليها أو التسليم كما هي.', allDone: 'سجّلنا إجاباتك على كل الأسئلة. راجعها ثم سلّم (النتيجة تظهر بعد التسليم) 📝',
       back: 'العودة للأسئلة', submit: '📨 تسليم الواجب', submitAnyway: '📨 سلّم على أي حال',
       pendT: 'جاري إرسال واجبك…', pendX: 'لم يصل بعد إلى معلمك. لا تُغلق الصفحة حتى يظهر التأكيد.', pendB: 'قيد الإرسال (غير مؤكَّد)',
       okT: 'وصل واجبك إلى معلمك', okX: 'تأكّد الخادم من استلام إجاباتك وحفظها. سيراجعها معلمك ويعتمد نتيجتك.', okB: 'تم الاستلام والحفظ (مؤكَّد)',
@@ -28,7 +28,7 @@
       retry: '🔄 إعادة الإرسال الآن', receipt: 'رقم التسليم', again: '↺ إعادة تشغيل المعاينة',
       offlineB: '📴 لا يوجد اتصال بالإنترنت الآن. إجاباتك تُحفظ على جهازك ولن تضيع.',
       set: { title: 'إعدادات الشاشة', font: 'حجم الخط', dark: 'الوضع الليلي', focus: 'وضع التركيز (إخفاء المشتتات)', lang: 'English', offline: 'محاكاة انقطاع الاتصال', close: 'إغلاق' },
-      enc: ['ما شاء الله! بداية موفّقة 🌟', 'أحسنت، استمر يا بطل 💪', 'رائع! أنت في منتصف الطريق 🚀', 'قاربت على النهاية، ثبّتك الله ✨', 'ممتاز! أكملت كل الإجابات 🏆'],
+      enc: ['تم حفظ إجابتك 📝', 'تم حفظ إجابتك، واصل 💪', 'تم حفظ إجابتك، أنت في منتصف الطريق 🚀', 'تم حفظ إجابتك، قاربت على النهاية ✨', 'تم حفظ كل إجاباتك، راجعها ثم سلّم 📝'],
       leave: 'لديك إجابات لم تُسلَّم بعد. هل تريد المغادرة؟',
       preview: 'معاينة تصميم', model: THEME === 'mushaf' ? 'نموذج (أ) — المصحف الهادئ' : 'نموذج (ب) — رحلة الأبطال'
     },
@@ -45,7 +45,7 @@
       pickOne: 'Choose one answer', pickMany: 'Select all that apply', typeHere: 'Type the word here…',
       orderHelp: 'Drag a card or use the arrows to order the verses', matchHelp: 'Tap the start of a verse, then its ending. Tap a linked one again to unlink.',
       reviewT: 'Review before submitting', reviewSub: 'Tap any question to go back to it.', answered: 'Answered', unanswered: 'Unanswered', skipped: 'Skipped',
-      warnUn: 'Some questions have no answer. You can go back or submit as is.', allDone: 'Well done! You answered every question 🎉',
+      warnUn: 'Some questions have no answer. You can go back or submit as is.', allDone: 'All questions have an answer. Review them, then submit (your score appears after submitting) 📝',
       back: 'Back to questions', submit: '📨 Submit homework', submitAnyway: '📨 Submit anyway',
       pendT: 'Sending your homework…', pendX: 'It has not reached your teacher yet. Do not close the page until confirmed.', pendB: 'Sending (not confirmed)',
       okT: 'Your homework reached your teacher', okX: 'The server confirmed it received and saved your answers. Your teacher will review and approve your result.', okB: 'Received and saved (confirmed)',
@@ -53,7 +53,7 @@
       retry: '🔄 Resend now', receipt: 'Submission no.', again: '↺ Restart preview',
       offlineB: '📴 No internet connection. Your answers are saved on your device and will not be lost.',
       set: { title: 'Screen settings', font: 'Text size', dark: 'Dark mode', focus: 'Focus mode (hide distractions)', lang: 'العربية', offline: 'Simulate going offline', close: 'Close' },
-      enc: ['MashaAllah! A great start 🌟', 'Well done, keep going 💪', 'Awesome! You are halfway there 🚀', 'Almost there, keep it up ✨', 'Excellent! Every answer is in 🏆'],
+      enc: ['Answer saved 📝', 'Answer saved, keep going 💪', 'Answer saved, you are halfway 🚀', 'Answer saved, almost there ✨', 'All answers saved. Review, then submit 📝'],
       leave: 'You have answers that were not submitted. Leave anyway?',
       preview: 'Design preview', model: THEME === 'mushaf' ? 'Model A — Calm Mushaf' : 'Model B — Heroes Journey'
     }
