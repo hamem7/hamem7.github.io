@@ -893,3 +893,18 @@ html[data-theme="dark"] body:not(.kids-theme) [style*="color:#1e293b"]:not([styl
 html[data-theme="dark"] body:not(.kids-theme) [style*="color:#64748b"]:not([style*="gradient"]) { color: #95a1b3 !important; }
 html[data-theme="dark"] body:not(.kids-theme) [style*="border-top:1px dashed #e2e8f0"] { border-top: 1px dashed #29323d !important; }
 html[data-theme="dark"] body:not(.kids-theme) [style*="color:#b45309"]:not([style*="gradient"]) { color: #e1af89 !important; }
+
+/* ===== components/questionTextRecord.js (3) ===== */
+html[data-theme="dark"] body:not(.kids-theme) [style*="color:#64748b"]:not([style*="gradient"]) { color: #95a1b3 !important; }
+html[data-theme="dark"] body:not(.kids-theme) [style*="background:#fffbeb"] { background: #1d2722 !important; }
+html[data-theme="dark"] body:not(.kids-theme) [style*="color:#92400e"]:not([style*="gradient"]) { color: #e6b699 !important; }
+
+/* ===== components/similarGameHook.js (1) ===== */
+html[data-theme="dark"] body:not(.kids-theme) [style*="color:#0284c7"]:not([style*="gradient"]) { color: #82c0e0 !important; }
+
+/* ===== core/app.js (1) ===== */
+html[data-theme="dark"] body:not(.kids-theme) try { background: #14241f !important; }
+
+/* ===== games/adultGame.js (2) ===== */
+html[data-theme="dark"] body:not(.kids-theme) [style*="color:#92400e"]:not([style*="gradient"]) { color: #e6b699 !important; }
+html[data-theme="dark"] body:not(.kids-theme) [style*="color:#64748b"]:not([style*="gradient"]) { color: #95a1b3 !important; }

@@ -22,8 +22,17 @@ const INCLUDE = [
   'components/monthlyReviewScreen.js', 'components/fixErrorsPrompt.js', 'components/pausedSession.js', 'components/weekSchedule.js',
   'components/homeQuickview.js', 'components/monthlyReportsHub.js', 'components/accountScreen.js', 'components/skillProfile.js',
   'components/teacherProfile.js', 'components/noteSheet.js', 'components/driveReconnectBanner.js',
-  'student/student.js', 'core/homeworkNotifier.js'
+  'student/student.js', 'core/homeworkNotifier.js',
+  'components/questionTextRecord.js', 'components/similarGameHook.js', 'core/app.js', 'games/adultGame.js'
 ];
+const CHECK = process.argv.includes('--check');   // فحص فقط (CI): لا يكتب شيئاً، يرجع 1 إن كان الملف المولَّد قديماً أو ظهرت شاشة بألوان فاتحة ثابتة غير مشمولة
+// ملفات منسَّقة يدوياً للمظهر الداكن (css/theme-dark.css) أو مقصودة فاتحة — لا تحتاج التوليد التلقائي
+const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/kids.css', 'css/tokens.css', 'css/fonts.css', 'css/theme-dark.css', 'css/theme-dark-auto.css',
+  'student/my-students.html', 'student/all-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
+  'css/teacherAuthGate.css', 'core/dialog.js']);
+const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
+// مقصودة فاتحة: ركن الأطفال، والمطبوعات (تقارير/شهادات تُصدَّر صوراً وPDF بورقة فاتحة دائماً)
+const INTENTIONAL_LIGHT = [/^games\/kidsGame\./, /^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/, /kids/i];
 const SCOPE = 'html[data-theme="dark"] body:not(.kids-theme) ';
 
 // ---------- ألوان ----------
@@ -212,5 +221,32 @@ for (const f of INCLUDE) {
   total += r.length;
   out.push(`\n/* ===== ${f} (${r.length}) ===== */\n` + r.join('\n'));
 }
-writeFileSync(join(ROOT, 'css/theme-dark-auto.css'), out.join('\n') + '\n');
-console.log(`✓ css/theme-dark-auto.css — ${total} قاعدة من ${INCLUDE.length} ملف`);
+const generated = out.join('\n') + '\n';
+if (!CHECK) {
+  writeFileSync(join(ROOT, 'css/theme-dark-auto.css'), generated);
+  console.log(`✓ css/theme-dark-auto.css — ${total} قاعدة من ${INCLUDE.length} ملف`);
+}
+
+if (CHECK) {
+  const errors = [];
+  let current = ''; try { current = readFileSync(join(ROOT, 'css/theme-dark-auto.css'), 'utf8'); } catch (e) { /* مفقود */ }
+  if (current !== generated) errors.push('css/theme-dark-auto.css قديم أو مفقود — شغّل: node tools/gen-dark-theme.mjs ثم ارفع الناتج');
+  // شاشة/ملف بألوان فاتحة ثابتة لم يُدرَج في INCLUDE ولا في HANDLED
+  const covered = new Set([...INCLUDE, ...HANDLED]);
+  const uncovered = [];
+  (function walk(d) {
+    for (const n of readdirSync(d)) {
+      if (SCAN_SKIP_DIRS.has(n)) continue;
+      const p = join(d, n);
+      if (statSync(p).isDirectory()) { walk(p); continue; }
+      if (!/\.(css|html|js)$/.test(n)) continue;
+      const rel = relative(ROOT, p).replace(/\\/g, '/');
+      if (covered.has(rel) || INTENTIONAL_LIGHT.some(re => re.test(rel))) continue;
+      let n2 = 0; try { n2 = generate(rel).length + (rel.endsWith('.css') ? 0 : generateInline(rel).length); } catch (e) { /* تجاهل */ }
+      if (n2) uncovered.push(`${rel} (${n2} لون فاتح ثابت)`);
+    }
+  })(ROOT);
+  for (const u of uncovered) errors.push(`${u} — أضِفه إلى INCLUDE في tools/gen-dark-theme.mjs (للتوليد التلقائي) أو إلى HANDLED إن نسّقته يدوياً في css/theme-dark.css، أو استعمل رموز --dh-*`);
+  if (errors.length) { console.error('✗ المظهر الداكن:\n' + errors.join('\n')); process.exit(1); }
+  console.log('✓ المظهر الداكن: الملف المولَّد محدَّث ولا توجد شاشة بألوان فاتحة غير مشمولة');
+}

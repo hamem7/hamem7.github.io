@@ -21,3 +21,4 @@
 - الشاشات الجديدة: استعمل رموز الهوية (`--dh-surface` و`--dh-ink` و`--dh-ink-soft` و`--dh-line` و`--dh-ok/warn/danger/info` وخلفياتها) ولا تكتب ألواناً فاتحة ثابتة؛ فتنقلب تلقائياً في `css/tokens.css` / `css/theme-dark.css`.
 - الألوان الثابتة القديمة في الشاشات غير المحوَّلة تُولَّد لها نسخة داكنة تلقائياً: `node tools/gen-dark-theme.mjs` يعيد كتابة `css/theme-dark-auto.css` (لا تعدّله يدوياً). شاشة/ملف جديد بألوان ثابتة: أضفه إلى قائمة `INCLUDE` في الأداة ثم أعد التوليد. التعديلات اليدوية في `css/theme-dark.css`.
 - ركن الأطفال (`body.kids-theme`) يبقى فاتحاً في المظهرين.
+- قبل أي رفع: شغّل `node tools/gen-dark-theme.mjs --check` — يجب أن ينجح (يعمل أيضًا في GitHub Actions: `.github/workflows/check-dark-theme.yml`). يفشل إن كان `css/theme-dark-auto.css` قديماً (أعد التوليد وارفعه) أو ظهر ملف بألوان فاتحة ثابتة غير مشمول (أضِفه إلى `INCLUDE`/`HANDLED` في الأداة).
