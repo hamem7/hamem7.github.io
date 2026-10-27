@@ -2,7 +2,7 @@
    آخر ملف تنسيق يُحمَّل عمداً (index.html / privacy.html) ليتغلّب على ما قبله بدل تعديل مئات القواعد القديمة.
    القاعدة: الألوان «الدلالية» (سطوح/نصوص/حدود/حالات) تُقلب هنا؛ أما الزمردي الداكن والذهبي فهوية ثابتة (الترويسة، بطاقات الكبار/الأطفال،
    الفوتر) تبقى كما هي في المظهرين. أي شاشة جديدة: استعمل متغيرات --dh-surface / --dh-ink / --dh-line… ولا تكتب لوناً فاتحاً ثابتاً.
-   ركن الأطفال (body.kids-theme) له هويته الملوّنة الخاصة فيبقى فاتحاً في المرحلة الحالية. */
+   ركن الأطفال (body.kids-theme) يتبع المظهر الداكن أيضاً بأسطح ليلية مع الإبقاء على ألوانه المرحة (قسم «ركن الأطفال» أدناه). */
 
 /* ============ 1) الرموز: تنقلب تلقائياً لكل ما يستعملها ============ */
 html[data-theme="dark"] {
@@ -39,16 +39,13 @@ html[data-theme="dark"] {
     --dh-dk-accent: #f0d878;
 }
 
-/* ركن الأطفال يبقى بهويته الفاتحة الملوّنة: نعيد رموز السطوح لقيمها الفاتحة داخله حتى لا ينقلب نصه على خلفياته الثابتة */
+/* ركن الأطفال في الداكن: يحتفظ بألوانه المرحة (صور الخلفية والتدرجات والأزرار الملوّنة) على أسطح ليلية ونص فاتح.
+   صور الخلفية تُضبط inline (core/app.js: assets/kids_bg/N.jpg) فنعتّمها بدمج الضرب مع لون الخلفية بدل تغيير الصورة. */
 html[data-theme="dark"] body.kids-theme {
-    color-scheme: light;
-    --dh-surface: #fffdf6; --dh-surface-alt: #f6f3e8; --dh-ink: #10241c; --dh-ink-soft: #4a6058;
-    --dh-line: #e4dfcc; --dh-line-strong: #cfc7a8;
-    --dh-ok: #15803d; --dh-ok-bg: #e7f4ee; --dh-warn: #b45309; --dh-warn-bg: #fef3c7;
-    --dh-danger: #b91c1c; --dh-danger-bg: #fde8e8; --dh-info: #0369a1; --dh-info-bg: #e0f2fe;
-    --bg-color: #f8fcfc; --text-dark: #1f2937;
-    --dh-dk-title: #0b3d30; --dh-dk-accent: #7a5a0e;
+    background-color: #566784;
+    background-blend-mode: multiply;
 }
+html[data-theme="dark"] body.kids-theme :is(h1, h2, h3, .question-text) { text-shadow: 0 2px 6px rgba(0, 0, 0, .55) !important; }
 
 html[data-theme="dark"] body { background-color: #0a1512; color: var(--dh-ink); }
 
@@ -134,43 +131,43 @@ html[data-theme="dark"] .home-menu-primary .home-card-tajweed {
    الفكرة: السطح أفتح من الخلفية (--dh-surface أعلاه) + حلقة حدّ واضحة + إضاءة علوية داخلية + ظل عميق.
    مكتوب بـ :where() (تخصيص صفر) ليغلبه أي مظهر خاص بحالة (محدَّد/نشط/مرور) ولا يمسّ الخلفيات الدلالية؛ ويستثني ركن الأطفال.
    بطاقة جديدة: أضف اسم صنفها إلى هذه القائمة. */
-:where(html[data-theme="dark"] body:not(.kids-theme)) .card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .home-why-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .home-quickcard,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-hint-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-welcome-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .ms-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .ac-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-surah-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-group-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .sim-word-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .mrh-panel,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .bs-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .hp-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .hw-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-sum-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-intro-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-rule-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-rule-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-letter-tile,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-e-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .report-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-fast-box,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dts-range-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .mrv-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .mmp-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-pause-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dh-fixp-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .home-date-card,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .dash-panel,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .control-panel,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .hwp2-assign-box,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-e-track,
-:where(html[data-theme="dark"] body:not(.kids-theme)) .tjw-stage-intro-card {
+:where(html[data-theme="dark"] body:not(.dh-light)) .card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .home-why-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .home-quickcard,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dh-hint-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dh-welcome-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .ms-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .ac-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .sim-surah-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .sim-group-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .sim-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .sim-word-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .mrh-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .mrh-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .mrh-panel,
+:where(html[data-theme="dark"] body:not(.dh-light)) .bs-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .hp-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .hw-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-sum-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-stage-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-stage-intro-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-rule-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-rule-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-letter-tile,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-e-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .report-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dh-fast-box,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dts-range-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .mrv-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .mmp-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dh-pause-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dh-fixp-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .home-date-card,
+:where(html[data-theme="dark"] body:not(.dh-light)) .dash-panel,
+:where(html[data-theme="dark"] body:not(.dh-light)) .control-panel,
+:where(html[data-theme="dark"] body:not(.dh-light)) .hwp2-assign-box,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-e-track,
+:where(html[data-theme="dark"] body:not(.dh-light)) .tjw-stage-intro-card {
     box-shadow: 0 0 0 1px var(--dh-line-strong), inset 0 1px 0 rgba(255, 255, 255, .06), 0 8px 22px rgba(0, 0, 0, .5);
 }
 
@@ -455,18 +452,18 @@ html[data-theme="dark"] .pf-btn-gold { color: #3a2c00; }
 
 /* ============ 14) شاشات بمتغيراتها الخاصة وتفاصيل ما بعد التوليد التلقائي ============ */
 /* أبطال التجويد: متغيراتها الخاصة (--tjw-*) فنقلب السطوح والنصوص فقط ونترك ألوان الهوية (الأزرق/العنّابي) */
-html[data-theme="dark"] body:not(.kids-theme) {
+html[data-theme="dark"] body:not(.dh-light) {
     --tjw-base: #0f1d19; --tjw-card: #182a23; --tjw-text: #e8f2ec; --tjw-muted: #9db8ac;
     --tjw-line: rgba(255, 255, 255, 0.18);
 }
 html[data-theme="dark"] .sim-stat-num { color: var(--dh-dk-title); }
 html[data-theme="dark"] .sim-stat { background: rgba(143, 214, 180, .08); border-color: rgba(143, 214, 180, .2); }
 html[data-theme="dark"] .cc-x { background: rgba(143, 214, 180, .14); color: var(--dh-dk-title); }
-html[data-theme="dark"] body:not(.kids-theme) .cc-overlay { background: #0d1a16 !important; }
-html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-active,
-html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-open { color: var(--dh-dk-title) !important; }
-html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-active .dh-bnav-ic,
-html[data-theme="dark"] body:not(.kids-theme) .dh-bnav-item.is-open .dh-bnav-ic { background: rgba(143, 214, 180, .16) !important; }
+html[data-theme="dark"] body:not(.dh-light) .cc-overlay { background: #0d1a16 !important; }
+html[data-theme="dark"] body:not(.dh-light) .dh-bnav-item.is-active,
+html[data-theme="dark"] body:not(.dh-light) .dh-bnav-item.is-open { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] body:not(.dh-light) .dh-bnav-item.is-active .dh-bnav-ic,
+html[data-theme="dark"] body:not(.dh-light) .dh-bnav-item.is-open .dh-bnav-ic { background: rgba(143, 214, 180, .16) !important; }
 
 /* ============ 15) صفحة الخصوصية المستقلة (privacy.html) وشاشتها داخل المنصة ============ */
 html[data-theme="dark"] .priv-head { background: var(--dh-surface); }
@@ -482,7 +479,7 @@ html[data-theme="dark"] .contact a { color: var(--dh-dk-title); }
 html[data-theme="dark"] body:not(.adult-theme):not(.kids-theme) { color: var(--dh-ink); }
 
 /* تجويد: «رحلة الأحكام» كانت شفافة بلا حدّ فتذوب في الخلفية الداكنة */
-html[data-theme="dark"] body:not(.kids-theme) .tjw-e-track { background: #1a2c25; border-color: var(--dh-line-strong); }
+html[data-theme="dark"] body:not(.dh-light) .tjw-e-track { background: #1a2c25; border-color: var(--dh-line-strong); }
 
 /* ============ 16) ضبط التباين (WCAG AA) بعد المراجعة البصرية للألعاب والواجب — المرحلة 3 ============ */
 /* أزرار التقييم/الملاحظة: نص أبيض فوق ألوان الفاتح الزاهية كان تباينه 2.2–3.9؛ في الداكن ندرّج اللون نفسه (أخضر/أحمر/كهرماني/برتقالي) لما يبلغ ≥ 4.5 */
@@ -491,22 +488,53 @@ html[data-theme="dark"] .adult-theme .btn-wrong { background: #c53030 !important
 html[data-theme="dark"] .adult-theme .btn-note { background: #b45309 !important; }
 html[data-theme="dark"] .adult-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
 /* رسالة التشجيع والشارات: خلفيتها --success/--dh-danger التي تفتح في الداكن (نص أبيض عليها 1.8) فنثبّت خلفية داكنة */
-html[data-theme="dark"] body:not(.kids-theme) #toast-encouragement { background-color: #1f7a4d; }
+html[data-theme="dark"] body:not(.dh-light) #toast-encouragement { background-color: #1f7a4d; }
 html[data-theme="dark"] .pf-badge { background: #c53030; }
 /* ألوان inline في ألعاب الكبار: نص قرآني/عنوان إجابة بلون var(--primary|--secondary) (زمردي غامق) فوق سطح داكن؛ الخلفية الصريحة (inline) تستثني كتل البطاقة الفاتحة. اللون فقط — الخط القرآني لا يُمسّ */
-html[data-theme="dark"] body:not(.kids-theme) :is([style*="color:var(--primary)"], [style*="color: var(--primary)"], [style*="color:var(--secondary)"], [style*="color: var(--secondary)"], .quran-text[style*="color:#156643"], .quran-text[style*="color:#0d5c46"]):not([style*="background"]) { color: var(--dh-dk-title) !important; }
+html[data-theme="dark"] body:not(.dh-light) :is([style*="color:var(--primary)"], [style*="color: var(--primary)"], [style*="color:var(--secondary)"], [style*="color: var(--secondary)"], .quran-text[style*="color:#156643"], .quran-text[style*="color:#0d5c46"]):not([style*="background"]) { color: var(--dh-dk-title) !important; }
 /* شريط «تنظيف تلقائي» في إعداد الواجب: عنوان بني على خلفية ذهبية شفافة */
-html[data-theme="dark"] body:not(.kids-theme) .hwp3-cleanup-note strong { color: var(--dh-dk-accent); }
+html[data-theme="dark"] body:not(.dh-light) .hwp3-cleanup-note strong { color: var(--dh-dk-accent); }
 /* سؤال «في أي صفحة تقع الآية»: عنوانا الصفحتين (أبيض على #94a3b8 ≈ 2.6) */
-html[data-theme="dark"] body:not(.kids-theme) [style*="background:#94a3b8"] { background: #475569 !important; }
+html[data-theme="dark"] body:not(.dh-light) [style*="background:#94a3b8"] { background: #475569 !important; }
 /* أيقونة VS في إعداد الاختبار الثنائي: خلفيتها تدرّج ذهبي ثابت (قاعدة منفصلة عن لونها فلا يلتقطها المولِّد) */
-html[data-theme="dark"] body:not(.kids-theme) .dts-header-icon { color: var(--dh-emerald-900) !important; }
+html[data-theme="dark"] body:not(.dh-light) .dts-header-icon { color: var(--dh-emerald-900) !important; }
 /* زر «وزّع تلقائياً» (weekSchedule): خلفيته var(--dh-ok) تفتح في الداكن */
 html[data-theme="dark"] .ws-btn:not(.alt) { background: #1f7a4d; }
 /* تبويب «التقارير السابقة» في الشهادات: ذهبي غامق بنص أبيض ثابت — قاعدة .cc-tab المولَّدة كانت تقلب نصه لفاتح (4.1) */
-html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports,
-html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports.is-on { color: #fff !important; }
+html[data-theme="dark"] body:not(.dh-light) .cc-tab-reports,
+html[data-theme="dark"] body:not(.dh-light) .cc-tab-reports.is-on { color: #fff !important; }
 /* أوراق التقارير/الشهادات تبقى فاتحة دائماً (تُصدَّر صورة/PDF): قاعدة .adult-theme h1/h2/h3 (!important) كانت تقلب عناوينها لنص فاتح على ورق فاتح (تباين 1.0) */
 html[data-theme="dark"] #report-screen .r-title { color: #0b3d30 !important; }
 html[data-theme="dark"] #report-screen .section-title { color: #2b2620 !important; }
 html[data-theme="dark"] .hwcert-mist h3 { color: #a15230 !important; }
+/* التجويد: لون المرحلة (--tjw-card-color) يُستعمل نصاً وحدّاً وخلفية؛ في الداكن نفتّح استعماله «نصاً/حدّاً» فقط بمزجه مع الأبيض فيبقى لون كل مرحلة مميّزاً ويقرأ على السطح الداكن */
+html[data-theme="dark"] body:not(.dh-light) :is(.tjw-section-title, .tjw-rule-letters-value, .tjw-letter-chip),
+html[data-theme="dark"] body.adult-theme .tjw-wrap .tjw-section-title { color: color-mix(in srgb, var(--tjw-card-color) 38%, #fff) !important; }
+html[data-theme="dark"] body:not(.dh-light) .tjw-letter-chip { border-color: color-mix(in srgb, var(--tjw-card-color) 55%, #fff); }
+html[data-theme="dark"] body:not(.dh-light) .tjw-howto .tjw-section-title,
+html[data-theme="dark"] body.adult-theme .tjw-wrap .tjw-howto .tjw-section-title { color: #a2e8c1 !important; }
+html[data-theme="dark"] body:not(.dh-light) .tjw-caution .tjw-section-title,
+html[data-theme="dark"] body.adult-theme .tjw-wrap .tjw-caution .tjw-section-title { color: #db796f !important; }
+/* التجويد: نص الآية (لونه بنّي غامق ثابت) وعلامة نهاية الآية، والكلمة المظلَّلة بالحكم: فاتحان/أوضح على السطح الداكن — اللون والخلفية فقط، الخط القرآني كما هو */
+html[data-theme="dark"] body:not(.dh-light) .tjw-example-text,
+html[data-theme="dark"] body:not(.dh-light) .tjw-mk-rosette { color: #eef4ef; }
+html[data-theme="dark"] body:not(.dh-light) .tjw-highlight { background: rgba(224, 176, 79, .88); color: #3d0a14 !important; }
+
+/* ============ 17) ركن الأطفال (body.kids-theme) — تفاصيل ما بعد التوليد التلقائي ============ */
+/* الزر الافتراضي (تدرّج سماوي فاتح بنص أبيض ≈ 2.1): في الداكن نفس اللون بدرجة أغمق (≥ 4.9). الأزرار ذات الصنف الدلالي/الـinline تبقى كما هي. */
+html[data-theme="dark"] body.kids-theme .btn:not(.btn-outline):not(.btn-note):not(.btn-confirm-next):not(.btn-wrong):not([style*="background"]) { background: linear-gradient(135deg, #0369a1, #0576b3); }
+html[data-theme="dark"] body.kids-theme .btn.btn-wrong:not([style*="background"]) { background: linear-gradient(135deg, #0369a1, #0576b3); }
+html[data-theme="dark"] body.kids-theme .btn-note { background: #b45309 !important; }
+html[data-theme="dark"] body.kids-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
+/* «صح/خطأ» بألوان inline زاهية (أخضر #10b981 / أحمر #ef4444 بنص أبيض 2.5–3.8) */
+html[data-theme="dark"] body.kids-theme .kids-tf-btn[style*="#10b981"] { background: #047857 !important; }
+html[data-theme="dark"] body.kids-theme .kids-tf-btn[style*="#ef4444"] { background: #b91c1c !important; }
+/* الوردي (#db2777) نصاً فوق سطح داكن: تعليمات الألعاب واسم السورة */
+html[data-theme="dark"] body.kids-theme [style*="color:#db2777"],
+html[data-theme="dark"] body.kids-theme [style*="color: #db2777"] { color: #f9a8d4 !important; }
+/* حقول الإدخال والقوائم: أرضية داكنة ونص فاتح مع إبقاء حدّها الذهبي المرح */
+html[data-theme="dark"] body.kids-theme :is(select, input[type="text"], input[type="search"], input[type="number"], textarea, .kids-styled-select, .kids-styled-input, #student-search-input) {
+    background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important;
+}
+html[data-theme="dark"] body.kids-theme ::placeholder { color: #8da7a0; opacity: 1; }
+html[data-theme="dark"] body.kids-theme :is(select, input, textarea):focus { background: #0f201a !important; }

@@ -167,8 +167,8 @@ function ensureStyles() {
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
         .hwcert-btn-save { background: var(--dh-emerald-700, #0d5c46); color: #fdf6e3; }
-        .hwcert-btn-share { background: #25D366; color: #fff; }
-        .hwcert-btn-close { background: transparent; color: #a15230; border: 2px solid #a15230 !important; }
+        .hwcert-btn-share { background: #25D366; color: #04361a; }
+        .hwcert-btn-close { background: transparent; color: #f0b394; border: 2px solid #f0b394 !important; }
         .hwcert-note-msg { font-size: 0.8rem; color: #fdf6e3; margin-top: 10px; }
     `;
     document.head.appendChild(style);

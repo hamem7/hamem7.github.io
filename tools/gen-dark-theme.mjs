@@ -1,7 +1,7 @@
 // يولّد css/theme-dark-auto.css: نسخة داكنة تلقائية للألوان الفاتحة الثابتة في تنسيقات الشاشات التي لم تُحوَّل لمتغيرات الهوية بعد.
 // التشغيل: node tools/gen-dark-theme.mjs   (يعيد كتابة الملف كاملاً — لا تعدّله يدوياً؛ التعديلات اليدوية تذهب إلى css/theme-dark.css الذي يُحمَّل بعده)
 // القواعد: خلفية فاتحة ← خلفية داكنة بنفس الصبغة · نص داكن ← نص فاتح بنفس الصبغة · حدود فاتحة ← حدود داكنة.
-// لا نلمس: التدرجات الملوّنة (هوية)، الخلفيات المتوسطة/الداكنة، ما يستعمل var(--…)، ولا ركن الأطفال (body.kids-theme).
+// لا نلمس: التدرجات الملوّنة (هوية)، الخلفيات المتوسطة/الداكنة، ما يستعمل var(--…). ركن الأطفال (body.kids-theme) مشمول: قواعده المولَّدة تُنسَب إليه مباشرة.
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -23,17 +23,19 @@ const INCLUDE = [
   'components/homeQuickview.js', 'components/monthlyReportsHub.js', 'components/accountScreen.js', 'components/skillProfile.js',
   'components/teacherProfile.js', 'components/noteSheet.js', 'components/driveReconnectBanner.js',
   'student/student.js', 'core/homeworkNotifier.js',
-  'components/questionTextRecord.js', 'components/similarGameHook.js', 'core/app.js', 'games/adultGame.js'
+  'components/questionTextRecord.js', 'components/similarGameHook.js', 'core/app.js', 'games/adultGame.js',
+  'css/kids.css', 'games/kidsGame.html', 'games/kidsGame.js', 'engine/kidsEngine.js', 'components/reciteRangePicker.js'
 ];
 const CHECK = process.argv.includes('--check');   // فحص فقط (CI): لا يكتب شيئاً، يرجع 1 إن كان الملف المولَّد قديماً أو ظهرت شاشة بألوان فاتحة ثابتة غير مشمولة
 // ملفات منسَّقة يدوياً للمظهر الداكن (css/theme-dark.css) أو مقصودة فاتحة — لا تحتاج التوليد التلقائي
-const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/kids.css', 'css/tokens.css', 'css/fonts.css', 'css/theme-dark.css', 'css/theme-dark-auto.css',
+const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'css/fonts.css', 'css/theme-dark.css', 'css/theme-dark-auto.css',
   'student/my-students.html', 'student/all-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
   'css/teacherAuthGate.css', 'core/dialog.js']);
 const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
 // مقصودة فاتحة: ركن الأطفال، والمطبوعات (تقارير/شهادات تُصدَّر صوراً وPDF بورقة فاتحة دائماً)
-const INTENTIONAL_LIGHT = [/^games\/kidsGame\./, /^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/, /kids/i];
-const SCOPE = 'html[data-theme="dark"] body:not(.kids-theme) ';
+const INTENTIONAL_LIGHT = [/^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/];
+// body:not(.dh-light): صنف احتياطي (لا يستعمله أحد حالياً) يتيح استثناء شاشة بعينها لتبقى فاتحة؛ يبقي خصوصية القاعدة كما كانت سابقاً (body:not(.kids-theme)) فلا يتغيّر ترتيب الغلبة مع theme-dark.css
+const SCOPE = 'html[data-theme="dark"] body:not(.dh-light) ';
 
 // ---------- ألوان ----------
 const NAMED = { white: '#ffffff', black: '#000000' };
@@ -89,20 +91,22 @@ function darkBorder(c) {
 }
 
 // متغيرات الهوية الثابتة (الزمردي) المستعملة كلون نص فوق سطح فاتح — تُعامل كأنها ألوان صريحة
-const VARS = { 'var(--dh-emerald-900)': '#06231c', 'var(--dh-emerald-800)': '#0b3d30', 'var(--dh-emerald-700)': '#0d5c46', 'var(--dh-emerald-600)': '#147c5e', 'var(--primary)': '#0d5c46', 'var(--secondary)': '#147c5e' };
+// ألوان الهوية المخصّصة لركن التجويد (--tjw-*): لا تنقلب بنفسها لأنها تُستعمل أيضاً خلفيات بنص أبيض؛ فنقلب استعمالها «كنص» هنا فقط
+const TJW = { primary: '#1e3a5f', 'primary-light': '#2d5a8c', secondary: '#a8571e', 'secondary-light': '#c97a3d', accent: '#8c2f3d', 'accent-light': '#b0475a', ink: '#0b1a2e', 'ink-2': '#13294a', 'gold-deep': '#b98a2c', lam: '#17796c', mithlain: '#5d4691', madd: '#2f7d32', lazim: '#a23b72', good: '#1f9d55', bad: '#c0392b' };
+const VARS = { ...Object.fromEntries(Object.entries(TJW).map(([k, v]) => [`var(--tjw-${k})`, v])), 'var(--dh-emerald-900)': '#06231c', 'var(--dh-emerald-800)': '#0b3d30', 'var(--dh-emerald-700)': '#0d5c46', 'var(--dh-emerald-600)': '#147c5e', 'var(--primary)': '#0d5c46', 'var(--secondary)': '#147c5e' };
 const COLOR_RE = /#[0-9a-fA-F]{3,8}\b|rgba?\([^)]*\)|\bwhite\b|\bblack\b/g;
 // var(--اسم-خاص, #لون) لمتغير غير مُدرج في رموز الهوية: نعامل اللون الاحتياطي كأنه الصريح (الرموز --dh-* و--tjw-* تنقلب وحدها)
 const unwrapVar = v => v.replace(/var\(\s*--(?!dh-|tjw-)[\w-]+\s*,\s*((?:#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|white|black))\s*\)/g, '$1');
 function mapBackground(v) {
   v = unwrapVar(v);
   if (/url\(/.test(v)) return { skip: true };
-  if (/var\(\s*--(?:dh-(?:gold|emerald)-\d+|primary|secondary|gold)\b/.test(v)) return { dark: true, skip: true };   // خلفية هوية ثابتة (زمردي/ذهبي): لا تنقلب فلا نقلب نصّها
+  if (/var\(\s*--(?:dh-(?:gold|emerald)-\d+|primary|secondary|gold|tjw-(?:primary|primary-light|secondary|secondary-light|accent|accent-light|ink|ink-2|gold|gold-deep|lam|mithlain|madd|lazim|good|bad))\b/.test(v)) return { dark: true, skip: true };   // خلفية هوية ثابتة (زمردي/ذهبي): لا تنقلب فلا نقلب نصّها
   if (/var\(/.test(v) && !/gradient\(/.test(v)) return { skip: true };   // var وحده: ينقلب بالرموز؛ تدرّج يخلط var مع ألوان صريحة: نحوّل الصريحة فقط
   const cols = v.match(COLOR_RE) || [];
   if (!cols.length) return { skip: true };
   const isGrad = /gradient\(/.test(v);
   let allLight = true, out = v;
-  for (const t of cols) { const c = parseColor(t); if (!c) return { skip: true }; if (c.a < 0.05) continue; if (hsl(c).l < 0.78) allLight = false; }
+  for (const t of cols) { const c = parseColor(t); if (!c) return { skip: true }; if (c.a < 0.2) continue; if (hsl(c).l < 0.78) allLight = false; }   // تلوين خفيف (≤ 20%) فوق سطح فاتح ليس خلفية داكنة
   if (!allLight) return { dark: true, skip: true };           // تدرّج/لون هوية: نتركه ونمنع تحويل النص داخله
   out = v.replace(COLOR_RE, t => { const c = parseColor(t); return c && c.a >= 0.05 ? (darkBg(c) || t) : t; });
   return { value: out, light: true, isGrad };
@@ -152,7 +156,7 @@ function generate(file) {
       const lines = []; let bgState = 'none';
       for (const [p, v] of decls) if (p.startsWith('background')) {
         const r = mapBackground(v);
-        if (r.value) { lines.push(`${p}: ${r.value} !important`); bgState = 'light'; } else bgState = r.dark ? 'dark' : (bgState === 'none' ? 'other' : bgState);
+        if (r.value) { /* قيمة لم تتغيّر (تلوين خفيف): لا نعيد كتابتها */ if (r.value !== unwrapVar(v)) lines.push(`${p}: ${r.value} !important`); bgState = 'light'; }  else bgState = r.dark ? 'dark' : (bgState === 'none' ? 'other' : bgState);
       }
       for (const [p, v] of decls) {
         if (p === 'color') {
@@ -161,7 +165,7 @@ function generate(file) {
           if (/var\(/.test(v) && !VARS[vk]) continue;
           const c = parseColor(VARS[vk] || v);
           // نص بنّي غامق أو زر بلا خلفية في نفس القاعدة: غالباً فوق خلفية ذهبية معرَّفة في قاعدة أخرى فلا نقلبه
-          if (bgState === 'none' && c) { const k = hsl(c); if (k.h >= 25 && k.h <= 55 && k.s > 0.4 && k.l < 0.3) continue; if (/btn|button|cta|gold/i.test(sel)) continue; }
+          if (bgState === 'none' && c) { const k = hsl(c); if (k.h >= 25 && k.h <= 55 && k.s > 0.4 && k.l < 0.3) { if (process.env.DEBUG_BROWN) console.error('BROWN', file, sel.trim().slice(0, 80), v); continue; } if (/btn|button|cta|gold/i.test(sel)) continue; }
           const n = c && lightText(c);
           if (n) lines.push(`color: ${n} !important`);
         } else if (p.startsWith('border')) {
@@ -171,7 +175,9 @@ function generate(file) {
         }
       }
       if (!lines.length) continue;
-      const sels = splitSelectors(sel).filter(s => !/kids|\.kid/.test(s)).map(s => SCOPE + s);
+      // محدِّد يبدأ بـ .adult-theme / body.adult-theme / :where(.adult-theme): هذا الصنف على <body> نفسه، فلا يصحّ «body:not(.kids-theme) .adult-theme …» (يطلب سليلاً بهذا الصنف)
+      const scoped = s => { const m = s.match(/^(?:body)?(?::where\(\.(adult|kids)-theme\)|\.(adult|kids)-theme)(\s.*)?$/); return m ? `html[data-theme="dark"] body.${m[1] || m[2]}-theme${m[3] || ''}` : SCOPE + s; };
+      const sels = splitSelectors(sel).map(scoped);
       if (!sels.length) continue;
       const body = lines.join('; ');
       const key = sels.join(',') + '{' + body;

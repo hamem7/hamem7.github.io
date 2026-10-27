@@ -146,7 +146,7 @@ function ensureStyles() {
     .cc-btn:disabled { opacity: .6; cursor: wait; }
     .cc-btn-png { background: #0d5c46; color: #fdf6e3; }
     .cc-btn-pdf { background: #8a6612; color: #fff; }
-    .cc-btn-wa { background: #25D366; color: #fff; }
+    .cc-btn-wa { background: #25D366; color: #04361a; }
     .cc-btn-keep { background: transparent; color: #0d5c46; border: 2px solid #0d5c46; }
     .cc-note { text-align: center; font-size: .82rem; color: #4a6058; padding: 4px 16px 0; min-height: 0; }
     .cc-note:empty { display: none; }
