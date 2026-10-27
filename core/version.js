@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.61';
+export const APP_VERSION = '1.0.62';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.62',
+        date: '2026-10-27',
+        items: [
+            { type: 'new', text: { ar: 'معاني الكلمات القرآنية صارت مترجمة بالكامل إلى الإنجليزية (7560 معنى، كل ترجمة من ثلاث أو أربع كلمات كحد أقصى) في أسئلة «ما معنى كلمة ...» بالواجبات واللعبة، وتظهر تلقائياً عند اختيار English.', en: 'All Quranic word meanings are now fully translated into English (7,560 meanings, each at most three or four words) in the “What does this word mean?” questions in homework and games, shown automatically when English is selected.' } }
+        ]
+    },
     {
         version: '1.0.61',
         date: '2026-10-26',

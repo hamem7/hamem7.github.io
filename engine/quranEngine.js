@@ -1,22 +1,15 @@
 // engine/quranEngine.js
 import { QURAN_STORE } from "../database/quranDB.js";
-import { tl, labelL, nameL } from "../core/langBridge.js";
+import { tl, labelL, nameL, isEnL } from "../core/langBridge.js";
 import { LISTEN_MIN_SURAH, listenBodyHTML } from "./ayahAudio.js";
 import { pickLeastSeen } from "./seenLedger.js";
+import { shortMeaning, loadWordMeaningsEn, meaningEn, distinctInEnglish } from "./wordMeaningData.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
 const kidsSurahNameHtml = (name) => `<span style="font-family:'IBM Plex Sans Arabic',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
 
-// 🌟 [جديد] اختصار معنى الكلمة ليكون ≤ 5 كلمات (4–5 مثالية) فيقرأه الطالب بسهولة: نأخذ أول جملة/عبارة قبل
-// أول فاصل (؛ : ، .) ثم نتحقق من العدد؛ لو بقي أطول يرجع null فتُتخطّى الكلمة (ويُختار غيرها). المعنى الكامل يبقى في الملف.
-export const MAX_MEANING_WORDS = 5;
-export function shortMeaning(text, max = MAX_MEANING_WORDS) {
-    const t = String(text || '').trim();
-    const cnt = (x) => x.split(/\s+/).filter(Boolean).length;
-    if (cnt(t) <= max) return t.replace(/[.؛:،\s]+$/, '');
-    const first = t.split(/[؛:،.]/).map(x => x.trim()).find(Boolean) || '';
-    return first && cnt(first) <= max ? first : null;
-}
+// اختصار معنى الكلمة (≤ 5 كلمات) وترجمته الإنجليزية (≤ 4 كلمات): engine/wordMeaningData.js
+export { MAX_MEANING_WORDS, shortMeaning } from "./wordMeaningData.js";
 
 // 🌟 [2026-10-03] مفتاح فهرس السور الخفيف (راجع getAllSurahsList)
 const SURAH_INDEX_KEY = 'dh_surah_index_v1';
@@ -541,6 +534,7 @@ export class QuranEngine {
         }
         const data = QuranEngine._wordMeanings;
         if (!data || !ayahsPool || !ayahsPool.length) return null;
+        await loadWordMeaningsEn();   // الترجمة الإنجليزية للخيارات (تُطبَّق وقت العرض فقط؛ المخزَّن عربي)
         const entriesOf = (a) => (data[String(a.surahNumber)] || []).filter(e => e[0] === a.numberInSurah && e[1].length <= 40 && shortMeaning(e[2]));
 
         let ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks);
@@ -561,7 +555,7 @@ export class QuranEngine {
         for (const sn of [ayah.surahNumber, ayah.surahNumber - 1, ayah.surahNumber + 1, ayah.surahNumber - 2, ayah.surahNumber + 2]) {
             for (const e of (data[String(sn)] || [])) { const m = shortMeaning(e[2]); if (m && m !== correct && e[1] !== entry[1]) others.push(m); }
         }
-        const unique = [...new Set(others)].sort((a, b) => Math.abs(a.length - correct.length) - Math.abs(b.length - correct.length) || (0.5 - Math.random()));
+        const unique = distinctInEnglish(correct, [...new Set(others)]).sort((a, b) => Math.abs(a.length - correct.length) - Math.abs(b.length - correct.length) || (0.5 - Math.random()));
         const wrong = unique.slice(0, 10).sort(() => 0.5 - Math.random()).slice(0, 2);
         if (wrong.length < 2) return null;
 
@@ -575,7 +569,7 @@ export class QuranEngine {
             options,
             correctIndex: options.indexOf(correct),
             fullAnswer: correct,
-            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${entry[1]}»: ${correct}</span>`,
+            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${entry[1]}»: ${isEnL() ? (meaningEn(correct) || correct) : correct}</span>`,
             ayahObj: ayah,
             reportText: ayahText
         };

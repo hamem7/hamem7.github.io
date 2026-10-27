@@ -49,7 +49,7 @@ history_<id> + أحداث التتبّع (محلي على جهاز المعلم)
 | التجويد | `tajweed_extract`* |
 
 \* = يحتاج تصحيح المعلم يدويًا.
-المشتتات (الخيارات الخاطئة) تُختار بالتشابه الرسمي للكلمة والطول والقافية لا عشوائيًا (`pickDistractorWords/Texts`). علامات الوقف تُستبعد من «الكلمات». معاني الكلمات من `database/data/wordMeanings.json` (كتاب «كلمات القرآن» لحسنين مخلوف، يُبنى بـ`tools/build_word_meanings.py`). أسئلة المتشابهات تُحقن عبر `engine/similarityInject.js`.
+المشتتات (الخيارات الخاطئة) تُختار بالتشابه الرسمي للكلمة والطول والقافية لا عشوائيًا (`pickDistractorWords/Texts`). علامات الوقف تُستبعد من «الكلمات». معاني الكلمات من `database/data/wordMeanings.json` (كتاب «كلمات القرآن» لحسنين مخلوف، يُبنى بـ`tools/build_word_meanings.py`). ترجمتها الإنجليزية (≤ 4 كلمات لكل معنى، بنفس ترتيب العربي) في `database/data/wordMeanings.en.json` وتُطبَّق وقت العرض عبر `engine/wordMeaningData.js` (المخزَّن في الواجب يبقى عربياً)؛ يتحقق منها `tests/wordMeaningEnglish.test.js`. أسئلة المتشابهات تُحقن عبر `engine/similarityInject.js`.
 
 ### ج) «الواجب الذكي» — التتبّع والتخطيط
 - `engine/trackingEngine.js` (ملف خالص بلا DOM): كل أداء = **حدث** (موضع + مهارة + صيغة + دقة + زمن + جودة خطأ). منه فقط تُحسب: مستوى كل **مقطع** (10 آيات) — `unseen / needs_fix / shaky / solid / mastered` — ودقة كل مهارة (مع تلاشي نصف عمر 45 يومًا)، والتشخيص، وخطة الواجب القادم `planHomework`.

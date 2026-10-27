@@ -1,5 +1,6 @@
 // engine/homeworkEngine.js
 import { cleanAyahText, isWaqfMark, splitAyahWords, shortMeaning } from './quranEngine.js';
+import { loadWordMeaningsEn, distinctInEnglish } from './wordMeaningData.js';
 import { HW_FORMATS } from './skillMap.js';
 
 // ==========================================
@@ -177,6 +178,7 @@ export class HomeworkEngine {
         const hard = isHard(opts);
         const data = await this.loadWordMeanings();
         if (!data) return null;
+        await loadWordMeaningsEn();   // لتفادي خيارين متطابقين بالإنجليزية؛ المخزَّن عربي والترجمة وقت العرض
         const entriesOf = (a) => ((data[String(a.surahNumber)] || []).filter(e => e[0] === a.numberInSurah && e[1].length <= 40 && shortMeaning(e[2])));
         let ayah = targetAyah, entries = entriesOf(ayah);
         if (!entries.length) {
@@ -195,7 +197,7 @@ export class HomeworkEngine {
         for (const sn of [ayah.surahNumber, ayah.surahNumber - 1, ayah.surahNumber + 1, ayah.surahNumber - 2, ayah.surahNumber + 2]) {
             for (const e of (data[String(sn)] || [])) { const m = shortMeaning(e[2]); if (m && m !== correctAnswer && e[1] !== entry[1]) others.push(m); }
         }
-        const unique = [...new Set(others)].sort((a, b) => Math.abs(a.length - correctAnswer.length) - Math.abs(b.length - correctAnswer.length) || (0.5 - Math.random()));
+        const unique = distinctInEnglish(correctAnswer, [...new Set(others)]).sort((a, b) => Math.abs(a.length - correctAnswer.length) - Math.abs(b.length - correctAnswer.length) || (0.5 - Math.random()));
         // الصعب: خمسة خيارات من أقرب المعاني طولاً فقط (نافذة 6) بدل أربعة من نافذة 12
         const wrongCount = 3;   // أربعة خيارات كحد أقصى حتى لا يضطر الطفل للتمرير
         const wrong = unique.slice(0, hard ? 6 : 12).sort(() => 0.5 - Math.random()).slice(0, wrongCount);

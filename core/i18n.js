@@ -2,6 +2,7 @@
 import { AppState } from './app.js';
 import { registerTranslator } from './langBridge.js';
 import { MUSHAF_I18N } from './i18nMushaf.js';
+import { meaningEn, loadWordMeaningsEn } from '../engine/wordMeaningData.js';
 
 // 🌟 القاموس الشامل لكل شاشات المنصة والواجبات الجديدة 🌟
 export const translations = {
@@ -6164,7 +6165,7 @@ export function trStored(text) {
 }
 
 // 🌟 تسجيل المترجم في جسر المحرّكات النقية (راجع core/langBridge.js للشرح)
-registerTranslator({ t, tf, surahNameLocal, surahLabel });
+registerTranslator({ t, tf, surahNameLocal, surahLabel, isEn: isEnglish });
 
 // 🌟 localizeGenerated: ترجمة "النصوص المولَّدة" (نصوص التقارير وسجل الطالب وأسئلة الواجبات) التي تُخزَّن
 // بصيغة عربية قياسية مع متغيرات (اسم سورة، أرقام، كلمة...). كل قالب هنا هو مفتاح قاموس عربي فيه
@@ -6287,6 +6288,9 @@ export function localizeHomeworkText(text) {
     if (AppState.currentLang !== 'en') return s;
     const exact = trStored(s);
     if (exact !== s) return exact;
+    // معنى كلمة قرآنية (خيارات «ما معنى ...») → ترجمته الإنجليزية (≤ 4 كلمات) من database/data/wordMeanings.en.json
+    const wm = meaningEn(s);
+    if (wm) return wm;
     let m;
     if ((m = s.match(/^سورة\s+(.+)$/))) return 'Surah ' + surahNameLocal(m[1].trim());
     if ((m = s.match(/^حدد كل الآيات التي تنتمي إلى \(سورة (.+)\) ☑️:$/))) return 'Select all the ayahs that belong to (Surah ' + surahNameLocal(m[1].trim()) + ') ☑️:';
@@ -6330,6 +6334,7 @@ export function applyLanguage() {
 export function toggleLanguage() {
     AppState.currentLang = AppState.currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('app_lang', AppState.currentLang);
+    if (AppState.currentLang === 'en') loadWordMeaningsEn();   // ترجمة معاني الكلمات (تُحمَّل مرة واحدة)
     applyLanguage();
     // 🌟 [إصلاح] الشاشات التي تبني نصوصها ديناميكيًا (مثل التقرير) تعيد بناء نفسها بعد تبديل اللغة
     try { document.dispatchEvent(new CustomEvent('app-lang-changed')); } catch (e) { /* غير حرِج */ }

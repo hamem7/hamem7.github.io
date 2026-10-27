@@ -32,3 +32,6 @@ export function labelL(surahName) { return _impl ? _impl.surahLabel(surahName) :
 
 // sepL(): فاصل القوائم (، في العربية و , في الإنجليزية)
 export function sepL() { return _impl ? _impl.tf('list_sep') : '، '; }
+
+// isEnL(): هل لغة الواجهة الحالية إنجليزية؟ (false لو لا مترجم مسجَّل — اختبارات Node)
+export function isEnL() { return !!(_impl && _impl.isEn && _impl.isEn()); }

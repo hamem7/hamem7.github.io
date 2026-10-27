@@ -2,6 +2,7 @@
 // 🌟 استيراد دالة الترجمة t 🌟
 import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
+import { localizeHomeworkText } from '../core/i18n.js';   // معاني الكلمات بالإنجليزية وقت العرض
 import { addGoldStar, starsSuffix } from '../core/goldStars.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
@@ -1020,7 +1021,7 @@ async function playNextMission() {
                 document.body.dataset.gameQ = 'word_meaning'; // آية كاملة + 4 خيارات: خط أصغر (css/gameFullscreen.css) ليظهر السؤال وخياراته
                 cd.optionTexts = cd.options;
                 document.getElementById('game-question').insertAdjacentHTML('beforeend', `<div class="sim-opts sim-opts-chips" style="max-width:760px; margin:0 auto;">` + cd.options.map((opt, i) =>
-                    `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;">${escapeOptHtml(opt)}</button>`).join('') + `</div>`);
+                    `<button type="button" class="btn btn-outline sim-opt-btn" data-idx="${i}" style="display:block; width:100%; font-size:1.7rem; margin:12px 0; padding:12px 16px; text-align:center;">${escapeOptHtml(localizeHomeworkText(opt))}</button>`).join('') + `</div>`);
             }
             // 🌟 [جديد — 2026-10-22] «اقرأ الآية من السورة المذكورة»: مساعدات متدرجة (أول كلمة ← الآية السابقة ← 3 آيات) بزر التلميح نفسه
             if (type === 'similar' && GameState.currentData && Array.isArray(GameState.currentData.hintStages) && GameState.currentData.hintStages.length) {

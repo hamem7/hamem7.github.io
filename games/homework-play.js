@@ -4,6 +4,7 @@ import { AppState } from '../core/app.js';
 // النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
 // أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
 import { t, tf, localizeHomeworkText } from '../core/i18n.js';
+import { loadWordMeaningsEn } from '../engine/wordMeaningData.js';
 const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤال وقت العرض فقط (الآيات لا تُمَسّ)
 // 🌟 [إصلاح تدقيق ما قبل الإطلاق] escape للخيارات وإجابة الطالب المحفوظة داخل HTML/attributes: كان علامة " في خيار أو إجابة تكسر الـ attribute وتضيّع الإجابة عند إعادة الفتح
 import { esc } from '../core/escape.js';
@@ -67,7 +68,10 @@ export function initHomeworkPlay() {
         currentIndex = Math.min(draft.index || 0, hw.questions.length - 1);
     }
     startDraftAutosave();
-    renderQuestion();
+    // معاني الكلمات بالإنجليزية: ننتظر تحميل ملف الترجمة (مرة واحدة) قبل أول عرض لو الواجهة إنجليزية وفي الواجب سؤال معنى
+    const hasMeaningQ = AppState.currentLang === 'en' && hw.questions.some(q => q.type === 'mcq' && String(q.title || '').includes('ما معنى'));
+    if (hasMeaningQ) loadWordMeaningsEn().then(renderQuestion, renderQuestion);
+    else renderQuestion();
 }
 
 // ==========================================================
