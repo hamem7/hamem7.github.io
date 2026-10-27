@@ -61,6 +61,35 @@ const SCAN = () => {
 };
 
 
+// كاشف «المربعات الذائبة»: عنصر بحدّ/تعبئة لا يتمايزان عن سطحه (تباين الحدّ < 1.8 والتعبئة < 1.25)
+// يكشف «مربعات ذائبة»: عنصر بحدّ/خلفية لا يتمايزان عن ما حوله (تباين الحدّ < 1.8 والتعبئة < 1.25) وله حجم بطاقة
+const BOX = () => {
+  const parse = s => { const m = s && s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };
+  const lin = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
+  const L = c => .2126 * lin(c.r) + .7152 * lin(c.g) + .0722 * lin(c.b);
+  const cr = (a, b) => { const x = L(a), y = L(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+  const over = (f, b) => ({ r: f.r * f.a + b.r * (1 - f.a), g: f.g * f.a + b.g * (1 - f.a), b: f.b * f.a + b.b * (1 - f.a), a: 1 });
+  const effBg = el => { const chain = []; for (let e = el; e; e = e.parentElement) chain.push(e); let bg = { r: 10, g: 21, b: 18, a: 1 }; for (const e of chain.reverse()) { const c = parse(getComputedStyle(e).backgroundColor); if (c && c.a > 0) bg = over(c, bg); } return bg; };
+  const vis = el => { const cs = getComputedStyle(el), r = el.getBoundingClientRect(); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0 || r.width < 40 || r.height < 24) return false; return r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth; };
+  const sel = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (typeof el.className === 'string' && el.className ? '.' + el.className.trim().split(/\s+/).slice(0, 3).join('.') : '');
+  const out = []; const seen = new Set();
+  for (const el of document.querySelectorAll('#app-root *, .game-layout *, body > div *')) {
+    if (!vis(el)) continue;
+    const cs = getComputedStyle(el);
+    const bw = parseFloat(cs.borderTopWidth) || 0; const bs = cs.borderTopStyle;
+    const own = parse(cs.backgroundColor); const hasFill = own && own.a > .02;
+    const hasBorder = bw >= 1 && bs !== 'none' && parse(cs.borderTopColor) && parse(cs.borderTopColor).a > .05;
+    if (!hasFill && !hasBorder) continue;
+    if (el.children.length === 0 && !el.textContent.trim()) continue;
+    const parentBg = effBg(el.parentElement || document.body);
+    const fillC = hasFill ? cr(over(own, parentBg), parentBg) : 1;
+    const bc = hasBorder ? parse(cs.borderTopColor) : null; const borderC = bc ? cr(over(bc, hasFill ? over(own, parentBg) : parentBg), parentBg) : 1;
+    // «مربع» مقصود: له إما حدّ أو تعبئة، ولا يتمايز
+    if (fillC < 1.25 && borderC < 1.8) { const k = sel(el); if (seen.has(k)) continue; seen.add(k); out.push({ s: k, t: el.textContent.trim().slice(0, 18), fill: +fillC.toFixed(2), border: +borderC.toFixed(2), bw, bs }); }
+  }
+  return out;
+};
+
 async function open(colorScheme, pref, lang = 'ar', viewport = { width: 1200, height: 900 }) {
   const ctx = await browser.newContext({ locale: lang, viewport, colorScheme });
   await ctx.route('**/*', r => new URL(r.request().url()).hostname === 'localhost' ? r.continue() : r.abort());
@@ -134,6 +163,26 @@ const wantClean = (name, rows) => { const r = rows.filter(x => !HDR.has(x.t)); c
   await page.evaluate(() => document.getElementById('btn-record-correct')?.click()); await sleep(3800);
   await page.evaluate(() => { document.getElementById('show-ans-btn')?.click(); }); await sleep(600);
   wantClean('[فاتح] لعبة الكبار (استدعِ الآية) وأزرار التقييم', await page.evaluate(SCAN));
+  await ctx.close();
+}
+
+// ===== 2c) الداكن: مربعات الترتيب والربط وملاحظات المعلم واضحة (لا مربعات ذائبة) =====
+{
+  const { ctx, page } = await open('dark', 'dark', 'ar');
+  await page.evaluate(async () => {
+    const { AppState } = await import('/core/app.js'); const nm = n => (AppState.surahsData.find(x => x.number === n) || {}).name;
+    const id = await AppState.studentManager.addStudent({ name: 'عبدالرحمن', type: 'adult', memoFrom: nm(114), memoTo: nm(78) });
+    AppState.currentStudent = (await AppState.studentManager.getAllStudents()).find(x => x.id === id);
+    const m = await import('/games/adultGame.js'); await m.openAdultGameScreen({ qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 }); window.__GS = m.GameState;
+  });
+  await sleep(1500);
+  for (const k of ['order', 'link_ends', 'link_word_surah']) {
+    await page.evaluate((k) => { const GS = window.__GS; GS.queue = [{ type: 'catch' }, { type: k, chunkIndex: 0 }, { type: 'catch' }]; GS.currentIndex = 0; }, k);
+    await page.evaluate(() => document.getElementById('btn-record-correct')?.click()); await sleep(3800);
+    await page.evaluate(() => document.getElementById('btn-record-wrong')?.click()); await sleep(700);   // يفتح قائمة الملاحظات
+    const bad = (await page.evaluate(BOX)).filter(x => /order-item|order-slot|link-item|note-chip|note-sheet-body|^span$/.test(x.s));
+    check(`[داكن] مربعات «${k}» وأزرار الملاحظات واضحة الحدود`, bad.length === 0, bad.slice(0, 3).map(x => `${x.s} ${x.fill}/${x.border}`).join(' | '));
+  }
   await ctx.close();
 }
 
