@@ -13,8 +13,12 @@ html[data-theme="dark"] {
     --dh-bg-soft: #0f1d19;
     --dh-ink: #e8f2ec;
     --dh-ink-soft: #9db8ac;
-    --dh-line: #4a655a;          /* ≈ 2.3:1 فوق --dh-surface (كان #33493f ≈ 1.3:1 فتذوب البطاقات) */
-    --dh-line-strong: #6a8a7b;   /* ≈ 3.3:1: حدود العناصر التفاعلية */
+    /* سلّم الأسطح: صفحة ← لوحة ← بطاقة ← عنصر مرفوع (كل درجة أفتح من التي قبلها) */
+    --dh-surface-0: #0a1512; --dh-surface-1: #12211b; --dh-surface-2: #182a23; --dh-surface-3: #263d33;
+    /* الحدود: خافتة ≈ 1.9:1، متوسطة ≈ 2.3:1، قوية ≈ 3.3:1 فوق --dh-surface-2 (كان #33493f ≈ 1.3:1 فتذوب البطاقات) */
+    --dh-border-soft: #3f5a4e; --dh-border: #4b665a; --dh-border-strong: #6a8a7b;
+    --dh-line: var(--dh-border);
+    --dh-line-strong: var(--dh-border-strong);
 
     /* حالات المعنى: نص أفتح + خلفية داكنة بنفس الدلالة */
     --dh-ok: #6fd49a;      --dh-ok-bg: #12301f;
@@ -544,8 +548,8 @@ html[data-theme="dark"] .visual-blur-img { background: #fffdf5 !important; borde
 /* ============ 18) ألعاب الترتيب والربط: وضوح المربعات في الداكن ============
    المولِّد كان يحوّل الأبيض إلى لون أغمق من لوحة اللعب والحدود الفاتحة إلى حدود شبه غير مرئية (تباين ≈ 1.2) فتذوب المربعات.
    هنا نرفع البطاقة فوق اللوحة (أفتح منها) ونجعل حدودها مرئية (≥ 3:1)، والخانات الفارغة بحدّ منقّط واضح، والخانة المملوءة بلون الصواب. */
-html[data-theme="dark"] body:not(.dh-light) :is(.order-col, .link-col) { background: rgba(255, 255, 255, .035) !important; border-color: #3f5a4e !important; }
-html[data-theme="dark"] body:not(.dh-light) :is(.order-item, .link-item) { background: #263d33 !important; border: 2px solid #6a8a7b !important; color: #e4f6ec !important; box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+html[data-theme="dark"] body:not(.dh-light) :is(.order-col, .link-col) { background: rgba(255, 255, 255, .035) !important; border-color: var(--dh-border-soft) !important; }
+html[data-theme="dark"] body:not(.dh-light) :is(.order-item, .link-item) { background: var(--dh-surface-3) !important; border: 2px solid var(--dh-border-strong) !important; color: #e4f6ec !important; box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
 html[data-theme="dark"] body:not(.dh-light) :is(.order-item, .link-item):hover { background: #2f4d40 !important; border-color: #9bd8bb !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-slot { background: rgba(255, 255, 255, .03) !important; border: 2px dashed #7c9b8c !important; color: #b4cbc0 !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-slot.filled { background: #1f4d3b !important; border: 2px solid #4cc79a !important; color: #e4f6ec !important; }
@@ -553,15 +557,15 @@ html[data-theme="dark"] body:not(.dh-light) .order-slot.filled:hover { backgroun
 html[data-theme="dark"] body:not(.dh-light) .link-item.selected { background: #4a4018 !important; border-color: #f0d878 !important; box-shadow: 0 0 0 3px rgba(240, 216, 120, .35); }
 
 /* ملاحظات المعلم (القائمة السفلية) وحقولها: حدود وتعبئة مرئية بدل الذائبة (تباين الحدّ كان ≈ 1.1–1.4) */
-html[data-theme="dark"] body:not(.dh-light) .note-sheet-body { background: rgba(255, 255, 255, .045) !important; border: 1px solid #4b665a !important; color: var(--dh-ink) !important; }
-html[data-theme="dark"] body:not(.dh-light) .note-chip span { background: #263d33 !important; border: 2px solid #6a8a7b !important; color: #e4f6ec !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-sheet-body { background: rgba(255, 255, 255, .045) !important; border: 1px solid var(--dh-border) !important; color: var(--dh-ink) !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-chip span { background: var(--dh-surface-3) !important; border: 2px solid var(--dh-border-strong) !important; color: #e4f6ec !important; }
 html[data-theme="dark"] body:not(.dh-light) .note-chip.is-dont span { border-color: #d98a8a !important; }
 html[data-theme="dark"] body:not(.dh-light) .note-chip input:checked + span { background: #5a2a2d !important; border-color: #f08a8a !important; color: #ffe0e0 !important; }
 html[data-theme="dark"] body:not(.dh-light) .note-chip input:focus-visible + span { outline-color: var(--dh-gold-500); }
-html[data-theme="dark"] body:not(.dh-light) #custom-note { background: #14241f !important; border: 2px solid #6a8a7b !important; color: var(--dh-ink) !important; }
+html[data-theme="dark"] body:not(.dh-light) #custom-note { background: #14241f !important; border: 2px solid var(--dh-border-strong) !important; color: var(--dh-ink) !important; }
 /* حاويات inline بتعبئة شفافة داكنة (rgba(0,0,0,.05)) كحاوية «سمّع من … إلى …» وصندوق التلميح */
 html[data-theme="dark"] body:not(.dh-light) [style*="background: rgba(0,0,0,0.05)"],
-html[data-theme="dark"] body:not(.dh-light) [style*="background:rgba(0,0,0,0.05)"] { background: rgba(255, 255, 255, .05) !important; border-color: #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) [style*="background:rgba(0,0,0,0.05)"] { background: rgba(255, 255, 255, .05) !important; border-color: var(--dh-border) !important; }
 
 /* ============ 19) حدود العناصر التفاعلية والبطاقات التي كانت تذوب في الخلفية (نتيجة مسح «المربعات الذائبة») ============
    القاعدة: كل زر/حقل/بطاقة قابلة للنقر لها حدّ بتباين ≥ 2.2 فوق سطحها، والعناصر التفاعلية (أزرار صغيرة، أدوات، حقول) ≥ 3:1 عبر --dh-line-strong. */

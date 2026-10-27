@@ -87,7 +87,7 @@ function lightText(c) {
 function darkBorder(c) {
   const { h, s, l } = hsl(c);
   if (l < 0.75) return null;
-  return s < 0.14 ? withAlpha('#4b665a', c.a) : withAlpha(hex(h, Math.min(s, 0.4) * 0.6, 0.34), c.a);   // حدود مرئية (≈ 2.3:1 فوق أسطح الداكن) بدل شبه المعدومة
+  return s < 0.14 ? (c.a >= 1 ? 'var(--dh-border, #4b665a)' : withAlpha('#4b665a', c.a)) : withAlpha(hex(h, Math.min(s, 0.4) * 0.6, 0.34), c.a);   // حدود مرئية (≈ 2.3:1 فوق أسطح الداكن) بدل شبه المعدومة
 }
 
 // متغيرات الهوية الثابتة (الزمردي) المستعملة كلون نص فوق سطح فاتح — تُعامل كأنها ألوان صريحة

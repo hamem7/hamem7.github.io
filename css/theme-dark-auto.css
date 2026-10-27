@@ -2,7 +2,7 @@
    النسخة الداكنة للألوان الفاتحة الثابتة في الشاشات التي لم تُحوَّل لمتغيرات الهوية. التعديلات اليدوية: css/theme-dark.css (يُحمَّل بعده). */
 
 /* ===== css/global.css (23) ===== */
-html[data-theme="dark"] body:not(.dh-light) .timer-text { border-bottom: 2px dashed #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) .timer-text { border-bottom: 2px dashed var(--dh-border, #4b665a) !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-item { background: #14241f !important; border: 2px solid #495565 !important; color: #b8edde !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-slot { background: #14241f !important; border: 2px dashed #495565 !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-slot.filled { color: #b8edde !important; }
@@ -307,7 +307,7 @@ html[data-theme="dark"] body:not(.dh-light) #app-root #priv-screen .priv-contact
 html[data-theme="dark"] body:not(.dh-light) .hwp2-header-icon { background: #14241f1f !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-btn-ghost { background: #14241f1a !important; border: 1px solid #4b665a59 !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-btn-ghost:hover { background: #14241f33 !important; }
-html[data-theme="dark"] body:not(.dh-light) .hwp2-tabs-bar { border-bottom: 1px solid #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) .hwp2-tabs-bar { border-bottom: 1px solid var(--dh-border, #4b665a) !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-seg-btn:not(.btn-outline) { color: #b8edde !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-seg-gold { color: #e6b699 !important; }
 html[data-theme="dark"] body:not(.dh-light) .hwp2-content-bar { background: #161f27 !important; }
@@ -509,7 +509,7 @@ html[data-theme="dark"] body:not(.dh-light) .dts-gen-mode button { color: #a6b0a
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-panel { background: #1a2a21 !important; border: 1.5px solid #466753 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-field label { color: #c6d3cd !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-field input,
-html[data-theme="dark"] body:not(.dh-light) .dts-gen-field select { background: #14241f !important; border: 1.5px solid #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) .dts-gen-field select { background: #14241f !important; border: 1.5px solid var(--dh-border, #4b665a) !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-locked { background: #1f2a25 !important; color: #e9d1a5 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-target { color: #c6d3cd !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-btn-ok { background: #14241f !important; color: #caf2e8 !important; }
@@ -521,7 +521,7 @@ html[data-theme="dark"] body:not(.dh-light) .dts-gen-chip-ok { background: #1b33
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-chip-warn { background: #301b17 !important; color: #de897d !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-chip-pending { background: #212d27 !important; color: #e9d1a5 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-gen-edge { color: #a6b0ab !important; }
-html[data-theme="dark"] body:not(.dh-light) .dts-gen-mini { background: #14241f !important; border: 1px solid #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) .dts-gen-mini { background: #14241f !important; border: 1px solid var(--dh-border, #4b665a) !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-qx-composer { background: #202623 !important; border: 1.5px solid #675f46 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-qx-composer-swap { background: #1b2420 !important; border-color: #6c5b42 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dts-qx-field label { color: #caf2e8 !important; }
@@ -976,8 +976,8 @@ html[data-theme="dark"] body:not(.dh-light) .kids-styled-select { background: #1
 html[data-theme="dark"] body:not(.dh-light) .kids-styled-input { background: #14241f !important; color: #b1c8e6 !important; }
 html[data-theme="dark"] body.kids-theme .btn { border: 2px solid #4b665a80 !important; }
 html[data-theme="dark"] body:not(.dh-light) :where(.kids-theme .btn-outline) { background: #14241f !important; color: #97c9e5 !important; }
-html[data-theme="dark"] body:not(.dh-light) .kids-mcq-btn { border: 4px solid #4b665a !important; }
-html[data-theme="dark"] body:not(.dh-light) .kids-tf-btn { border: 4px solid #4b665a !important; }
+html[data-theme="dark"] body:not(.dh-light) .kids-mcq-btn { border: 4px solid var(--dh-border, #4b665a) !important; }
+html[data-theme="dark"] body:not(.dh-light) .kids-tf-btn { border: 4px solid var(--dh-border, #4b665a) !important; }
 html[data-theme="dark"] body.kids-theme h1,
 html[data-theme="dark"] body.kids-theme h2,
 html[data-theme="dark"] body.kids-theme h3,
