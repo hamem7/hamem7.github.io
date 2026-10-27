@@ -168,7 +168,6 @@ html[data-theme="dark"] .home-menu-primary .home-card-tajweed {
 :where(html[data-theme="dark"] body:not(.dh-light)) .mmp-card,
 :where(html[data-theme="dark"] body:not(.dh-light)) .dh-pause-card,
 :where(html[data-theme="dark"] body:not(.dh-light)) .dh-fixp-card,
-:where(html[data-theme="dark"] body:not(.dh-light)) .home-date-card,
 :where(html[data-theme="dark"] body:not(.dh-light)) .dash-panel,
 :where(html[data-theme="dark"] body:not(.dh-light)) .control-panel,
 :where(html[data-theme="dark"] body:not(.dh-light)) .hwp2-assign-box,
@@ -569,8 +568,8 @@ html[data-theme="dark"] body:not(.dh-light) [style*="background:rgba(0,0,0,0.05)
 
 /* ============ 19) حدود العناصر التفاعلية والبطاقات التي كانت تذوب في الخلفية (نتيجة مسح «المربعات الذائبة») ============
    القاعدة: كل زر/حقل/بطاقة قابلة للنقر لها حدّ بتباين ≥ 2.2 فوق سطحها، والعناصر التفاعلية (أزرار صغيرة، أدوات، حقول) ≥ 3:1 عبر --dh-line-strong. */
-html[data-theme="dark"] body:not(.dh-light) :is(.hp-ib, .hp-btn.ghost, .pf-tile, .tjw-e-search, .tjw-e-seg, .dash-eval-pill, .ac-btn, .ms-card, .as-panel, .dts-panel, .dh-fast-lang, .home-account-btn) { border: 1.5px solid var(--dh-line-strong) !important; }
-html[data-theme="dark"] body:not(.dh-light) :is(.hp-card, .tjw-e-cont, .tjw-e-track, .hwp2-stat-card, .home-quickcard, .home-quickcard-reports, .tjp-section, .hww-teacher, .ac-status) { border: 1px solid var(--dh-line) !important; }
+html[data-theme="dark"] body:not(.dh-light) :is(.hp-ib, .hp-btn.ghost, .pf-tile, .tjw-e-search, .tjw-e-seg, .dash-eval-pill, .ac-btn, .ms-card, .as-panel, .dts-panel) { border: 1.5px solid var(--dh-line-strong) !important; }
+html[data-theme="dark"] body:not(.dh-light) :is(.hp-card, .tjw-e-cont, .tjw-e-track, .hwp2-stat-card, .tjp-section, .hww-teacher, .ac-status) { border: 1px solid var(--dh-line) !important; }
 html[data-theme="dark"] body:not(.dh-light) :is(.ms-card-icon, .pf-tile-ic, .pf-stat-ic, .hwp2-header-icon, .sim-juz-meta, .dtp-vs-wins) { box-shadow: inset 0 0 0 1px var(--dh-line-strong); }
 html[data-theme="dark"] body:not(.dh-light) .note-sheet-title { color: var(--dh-ink-soft) !important; }
 /* ركن الأطفال: صور الخلفية عشوائية وبسطوع متفاوت، فلوحات الزجاج (٤٥٪ شفافية) تجعل تباين النص يتأرجح بحسب الصورة؛ نرفع كثافتها لثبات القراءة مع بقاء الصورة ظاهرة حولها */
