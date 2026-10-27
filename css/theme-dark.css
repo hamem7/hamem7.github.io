@@ -13,8 +13,8 @@ html[data-theme="dark"] {
     --dh-bg-soft: #0f1d19;
     --dh-ink: #e8f2ec;
     --dh-ink-soft: #9db8ac;
-    --dh-line: #33493f;
-    --dh-line-strong: #46614f;
+    --dh-line: #4a655a;          /* ≈ 2.3:1 فوق --dh-surface (كان #33493f ≈ 1.3:1 فتذوب البطاقات) */
+    --dh-line-strong: #6a8a7b;   /* ≈ 3.3:1: حدود العناصر التفاعلية */
 
     /* حالات المعنى: نص أفتح + خلفية داكنة بنفس الدلالة */
     --dh-ok: #6fd49a;      --dh-ok-bg: #12301f;
@@ -551,3 +551,14 @@ html[data-theme="dark"] body:not(.dh-light) .order-slot { background: rgba(255, 
 html[data-theme="dark"] body:not(.dh-light) .order-slot.filled { background: #1f4d3b !important; border: 2px solid #4cc79a !important; color: #e4f6ec !important; }
 html[data-theme="dark"] body:not(.dh-light) .order-slot.filled:hover { background: #4a2326 !important; border-color: #f08a8a !important; }
 html[data-theme="dark"] body:not(.dh-light) .link-item.selected { background: #4a4018 !important; border-color: #f0d878 !important; box-shadow: 0 0 0 3px rgba(240, 216, 120, .35); }
+
+/* ملاحظات المعلم (القائمة السفلية) وحقولها: حدود وتعبئة مرئية بدل الذائبة (تباين الحدّ كان ≈ 1.1–1.4) */
+html[data-theme="dark"] body:not(.dh-light) .note-sheet-body { background: rgba(255, 255, 255, .045) !important; border: 1px solid #4b665a !important; color: var(--dh-ink) !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-chip span { background: #263d33 !important; border: 2px solid #6a8a7b !important; color: #e4f6ec !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-chip.is-dont span { border-color: #d98a8a !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-chip input:checked + span { background: #5a2a2d !important; border-color: #f08a8a !important; color: #ffe0e0 !important; }
+html[data-theme="dark"] body:not(.dh-light) .note-chip input:focus-visible + span { outline-color: var(--dh-gold-500); }
+html[data-theme="dark"] body:not(.dh-light) #custom-note { background: #14241f !important; border: 2px solid #6a8a7b !important; color: var(--dh-ink) !important; }
+/* حاويات inline بتعبئة شفافة داكنة (rgba(0,0,0,.05)) كحاوية «سمّع من … إلى …» وصندوق التلميح */
+html[data-theme="dark"] body:not(.dh-light) [style*="background: rgba(0,0,0,0.05)"],
+html[data-theme="dark"] body:not(.dh-light) [style*="background:rgba(0,0,0,0.05)"] { background: rgba(255, 255, 255, .05) !important; border-color: #4b665a !important; }
