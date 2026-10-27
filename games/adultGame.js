@@ -113,8 +113,7 @@ function startTimer(minutes) {
         GameState.timeRemaining--; 
         updateTimerDisplay(); 
         // 🌟 [جديد] تنبيه مسبق قبل انتهاء الوقت (دقيقة ثم 10 ثوانٍ) حتى لا يُفاجَأ الطالب
-        if (GameState.timeRemaining === 60) showTimerHint(t('timer_one_minute_left'));
-        else if (GameState.timeRemaining === 10) showTimerHint(t('timer_ten_seconds_left'));
+        timerWarnings();
         if(GameState.timeRemaining <= 0) {
             clearInterval(GameState.timerInterval);
             playErrorSound();
@@ -138,7 +137,7 @@ async function offerExtraTime() {
         GameState.timerInterval = setInterval(() => {
             GameState.timeRemaining--;
             updateTimerDisplay();
-            if (GameState.timeRemaining === 10) showTimerHint(t('timer_ten_seconds_left'));
+            timerWarnings();
             if (GameState.timeRemaining <= 0) {
                 clearInterval(GameState.timerInterval);
                 playErrorSound();
@@ -150,6 +149,35 @@ async function offerExtraTime() {
         GameState.timeRemaining = 0;
         updateTimerDisplay();
     }
+}
+
+// تنبيه صوتي مع النص: عند دقيقة ثم 10 ثوانٍ نغمة تنبيه، ثم تكّة كل ثانية حتى انتهاء الوقت
+function playTimerAlertSound(urgent) {
+    if (isSfxMuted()) return;
+    try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const beeps = urgent ? [0, 0.18] : [0];
+        beeps.forEach(off => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(urgent ? 1040 : 880, now + off);
+            gain.gain.setValueAtTime(0.0001, now + off);
+            gain.gain.exponentialRampToValueAtTime(0.18, now + off + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + off + 0.14);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now + off);
+            osc.stop(now + off + 0.16);
+        });
+    } catch (e) { /* الصوت اختياري */ }
+}
+
+function timerWarnings() {
+    const left = GameState.timeRemaining;
+    if (left === 60) { showTimerHint(t('timer_one_minute_left')); playTimerAlertSound(false); }
+    else if (left === 10) { showTimerHint(t('timer_ten_seconds_left')); playTimerAlertSound(true); }
+    else if (left > 0 && left < 10) playTimerAlertSound(false);
 }
 
 function showTimerHint(text) {
