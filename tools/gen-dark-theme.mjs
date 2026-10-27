@@ -73,7 +73,8 @@ const withAlpha = (c, a) => a >= 1 ? c : `${c}${Math.round(a * 255).toString(16)
 function darkBg(c) {
   const { h, s, l } = hsl(c);
   if (l < 0.78) return null;
-  if (s < 0.14) return withAlpha(l >= 0.985 ? '#14241f' : l >= 0.93 ? '#0f1d19' : l >= 0.85 ? '#1d2f28' : '#26382f', c.a);
+  // الأسطح المحايدة المعتمة تُكتب برموز سلّم الأسطح (فتتبع لوحة كل ركن: الكبار أخضر ليلي، الأطفال بنفسجي دافئ)؛ الشفافة تبقى قيماً ثابتة
+  if (s < 0.14) { if (c.a >= 1) return l >= 0.985 ? 'var(--dh-surface-2, #182a23)' : l >= 0.93 ? 'var(--dh-surface-1, #12211b)' : l >= 0.85 ? 'var(--dh-surface-3, #263d33)' : '#26382f'; return withAlpha(l >= 0.985 ? '#14241f' : l >= 0.93 ? '#0f1d19' : l >= 0.85 ? '#1d2f28' : '#26382f', c.a); }
   const warm = h >= 30 && h <= 75;               // الكريمي/الأصفر الفاتح يصير بنيّاً موحلاً إن حافظنا على إشباعه: نخفّفه ونميل به قليلاً للزمردي
   return withAlpha(hex(warm ? 150 : h, Math.min(s, 0.5) * (warm ? 0.3 : 0.7), 0.11 + (1 - l) * 0.55), c.a);
 }
@@ -81,6 +82,7 @@ function darkBg(c) {
 function lightText(c) {
   const { h, s, l } = hsl(c);
   if (l >= 0.5 || c.a < 0.6) return null;
+  if (s < 0.25) return l < 0.3 ? 'var(--dh-ink, #e8f2ec)' : 'var(--dh-ink-soft, #9db8ac)';   // نص محايد غامق/رمادي ← رمزا الحبر
   return hex(h, Math.min(s, 0.6), Math.min(0.92, 0.97 - l * 0.7));
 }
 // حدود فاتحة ← داكنة

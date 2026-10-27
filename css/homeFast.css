@@ -59,7 +59,7 @@ body.dh-core-screen.dh-header-hidden:not(.dh-home-screen) #main-header { transfo
 /* ===== 5) الشارات على أزرار الواجبات والاختبارات الثنائية ===== */
 .dh-fast-badge {
     position: absolute; top: 10px; inset-inline-start: 10px;
-    background: var(--dh-gold-500, #d4af37); color: #3a2c00; font-size: .72rem; font-weight: 700;
+    background: var(--dh-gold-500, #d4af37); color: var(--dh-on-gold, #3a2c00); font-size: .72rem; font-weight: 700;
     padding: 3px 9px; border-radius: 999px; box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
 }
 #btn-homework-main, #btn-dual-main { position: relative; }

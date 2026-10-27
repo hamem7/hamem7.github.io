@@ -848,7 +848,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-e-hero p { margin: 6px 0 0; color: #c9d3e3; max-width: 46ch; }
 .tjw-e-seg { display: inline-flex; background: rgba(255, 255, 255, 0.08); border-radius: 999px; padding: 3px; }
 .tjw-e-seg button { border: 0; background: none; padding: 6px 16px; border-radius: 999px; font: inherit; font-weight: 800; color: #d7e3f5; cursor: pointer; }
-.tjw-e-seg button.is-on { background: var(--tjw-gold); color: #3a2a08; }
+.tjw-e-seg button.is-on { background: var(--tjw-gold); color: var(--dh-on-gold, #3a2a08); }
 
 .tjw-e-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .tjw-e-card { background: var(--tjw-card); color: var(--tjw-text); border-radius: 20px; padding: 16px; box-shadow: var(--tjw-shadow); border-top: 5px solid var(--tjw-gold); }

@@ -574,4 +574,22 @@ html[data-theme="dark"] body:not(.dh-light) :is(.hp-card, .tjw-e-cont, .tjw-e-tr
 html[data-theme="dark"] body:not(.dh-light) :is(.ms-card-icon, .pf-tile-ic, .pf-stat-ic, .hwp2-header-icon, .sim-juz-meta, .dtp-vs-wins) { box-shadow: inset 0 0 0 1px var(--dh-line-strong); }
 html[data-theme="dark"] body:not(.dh-light) .note-sheet-title { color: var(--dh-ink-soft) !important; }
 /* ركن الأطفال: صور الخلفية عشوائية وبسطوع متفاوت، فلوحات الزجاج (٤٥٪ شفافية) تجعل تباين النص يتأرجح بحسب الصورة؛ نرفع كثافتها لثبات القراءة مع بقاء الصورة ظاهرة حولها */
-html[data-theme="dark"] body.kids-theme :is(.game-main-area, .login-container, .dashboard-wrapper .control-panel, .report-card) { background: rgba(14, 26, 24, .84) !important; }
+html[data-theme="dark"] body.kids-theme :is(.game-main-area, .login-container, .dashboard-wrapper .control-panel, .report-card) { background: color-mix(in srgb, var(--dh-surface-1) 86%, transparent) !important; }
+
+/* لوحة ركن الأطفال الداكنة: بنفسجي ليلي دافئ بدل الأخضر الأحادي (المرح والتمييز عن واجهة الكبار)، عبر نفس رموز السلّم فتتبعها كل القواعد المولَّدة والمكتوبة بالرموز */
+html[data-theme="dark"] body.kids-theme {
+    --dh-surface-0: #17132e; --dh-surface-1: #1f1a3d; --dh-surface-2: #272150; --dh-surface-3: #352d66;
+    --dh-surface: #272150; --dh-surface-alt: #1f1a3d;
+    --dh-border-soft: #4b4383; --dh-border: #6257a3; --dh-border-strong: #9b8fe0;
+    --dh-line: var(--dh-border); --dh-line-strong: var(--dh-border-strong);
+    --dh-ink: #f6f2ff; --dh-ink-soft: #cfc6ee;
+    --dh-dk-title: #ffd98a; --dh-dk-accent: #ffe08a;
+}
+/* ركن الأطفال: بقية الأسطح (الشريط الجانبي، شريط الطالب، صندوق الآية، دوائر المسار، أزرار الخيارات) بالرموز البنفسجية فتتناسق مع لوحة اللعب */
+html[data-theme="dark"] body.kids-theme .game-sidebar { background: var(--dh-surface-2) !important; }
+html[data-theme="dark"] body.kids-theme :is(.in-game-student, .quran-text) { background: color-mix(in srgb, var(--dh-surface-0) 72%, transparent) !important; }
+html[data-theme="dark"] body.kids-theme .q-circle { background: var(--dh-surface-3); color: var(--dh-ink-soft); border-color: var(--dh-border); }
+html[data-theme="dark"] body.kids-theme .q-circle.active { background: #4a3b12; color: var(--dh-dk-accent); border-color: #f59e0b; }
+html[data-theme="dark"] body.kids-theme .q-circle.correct { background: var(--dh-ok-bg); color: var(--dh-ok-ink); border-color: #1f7a4d; }
+html[data-theme="dark"] body.kids-theme .q-circle.wrong { background: var(--dh-danger-bg); color: var(--dh-danger-ink); border-color: #8f2d2d; }
+html[data-theme="dark"] body.kids-theme :is(.kids-mcq-btn, .link-item, .order-item) { background: var(--dh-surface-3) !important; border-color: var(--dh-border-strong) !important; }

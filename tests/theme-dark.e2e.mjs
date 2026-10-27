@@ -17,7 +17,7 @@ let ok = 0, bad = 0; const check = (n, c, d = '') => { c ? ok++ : bad++; console
 const HDR = new Set();   // لا استثناءات: الترويسة وأزرارها ضمن الفحص أيضاً
 
 const SCAN = () => {
-  const parse = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };
+  const parse = s => { if (!s) return null; const q = s.match(/color\(srgb ([^)]+)\)/); if (q) { const p = q[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0] * 255, g: p[1] * 255, b: p[2] * 255, a: p[3] === undefined ? 1 : p[3] }; } const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };   // color(srgb …) ناتج color-mix()
   const lin = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
   const L = c => .2126 * lin(c.r) + .7152 * lin(c.g) + .0722 * lin(c.b);
   const cr = (a, b) => { const x = L(a), y = L(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
@@ -64,7 +64,7 @@ const SCAN = () => {
 // كاشف «المربعات الذائبة»: عنصر بحدّ/تعبئة لا يتمايزان عن سطحه (تباين الحدّ < 1.8 والتعبئة < 1.25)
 // يكشف «مربعات ذائبة»: عنصر بحدّ/خلفية لا يتمايزان عن ما حوله (تباين الحدّ < 1.8 والتعبئة < 1.25) وله حجم بطاقة
 const BOX = () => {
-  const parse = s => { const m = s && s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };
+  const parse = s => { if (!s) return null; const q = s.match(/color\(srgb ([^)]+)\)/); if (q) { const p = q[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0] * 255, g: p[1] * 255, b: p[2] * 255, a: p[3] === undefined ? 1 : p[3] }; } const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };   // color(srgb …) ناتج color-mix()
   const lin = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); };
   const L = c => .2126 * lin(c.r) + .7152 * lin(c.g) + .0722 * lin(c.b);
   const cr = (a, b) => { const x = L(a), y = L(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };

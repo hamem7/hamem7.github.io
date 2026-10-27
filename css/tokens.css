@@ -13,6 +13,8 @@
     --dh-surface-0: #f6f3e8; --dh-surface-1: #fffdf6; --dh-surface-2: #fffdf6; --dh-surface-3: #ffffff;
     /* حدود دلالية: خافتة (فواصل/بطاقات) ← متوسطة ← قوية (عناصر تفاعلية، ≥ 3:1 في الداكن) */
     --dh-border-soft: #e4dfcc; --dh-border: #cfc7a8; --dh-border-strong: #a89f84;
+    /* أزواج «اللون + النص عليه»: النص فوق خلفيات الهوية الثابتة لا يتغيّر بالمظهر ولا يخمّنه مولِّد الداكن */
+    --dh-on-gold: #2b2100; --dh-on-emerald: #fffdf6; --dh-on-danger: #ffffff; --dh-on-ok: #ffffff;
     --dh-gold-ink: #8a6221;   /* ذهبي كنصّ فوق سطح فاتح (≥ 4.5) */
 
     /* خطوط وحدود محايدة بلون الهوية (بدل الرمادي الأزرق) */
