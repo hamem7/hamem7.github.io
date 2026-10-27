@@ -569,3 +569,5 @@ html[data-theme="dark"] body:not(.dh-light) :is(.hp-ib, .hp-btn.ghost, .pf-tile,
 html[data-theme="dark"] body:not(.dh-light) :is(.hp-card, .tjw-e-cont, .tjw-e-track, .hwp2-stat-card, .home-quickcard, .home-quickcard-reports, .tjp-section, .hww-teacher, .ac-status) { border: 1px solid var(--dh-line) !important; }
 html[data-theme="dark"] body:not(.dh-light) :is(.ms-card-icon, .pf-tile-ic, .pf-stat-ic, .hwp2-header-icon, .sim-juz-meta, .dtp-vs-wins) { box-shadow: inset 0 0 0 1px var(--dh-line-strong); }
 html[data-theme="dark"] body:not(.dh-light) .note-sheet-title { color: var(--dh-ink-soft) !important; }
+/* ركن الأطفال: صور الخلفية عشوائية وبسطوع متفاوت، فلوحات الزجاج (٤٥٪ شفافية) تجعل تباين النص يتأرجح بحسب الصورة؛ نرفع كثافتها لثبات القراءة مع بقاء الصورة ظاهرة حولها */
+html[data-theme="dark"] body.kids-theme :is(.game-main-area, .login-container, .dashboard-wrapper .control-panel, .report-card) { background: rgba(14, 26, 24, .84) !important; }
