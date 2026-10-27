@@ -99,7 +99,7 @@ export function formatAdultSimilar(sim, pool) {
         `<button type="button" class="${cls}" data-idx="${i}" style="display:block; width:100%; font-size:${size};${font} margin:12px 0; padding:12px 16px; text-align:center;">${label(opt, i)}</button>`
     ).join('');
     const body = `<div class="sim-q-text sim-q-adult" style="font-size:1.8rem; font-weight:bold; line-height:1.9; margin:10px 0 16px;">${questionTextToHTML(localizedQuestionText(sim), toQuranicSukun)}</div>` +
-        `<div class="sim-opts" style="max-width:760px; margin:0 auto;">${lines}</div>`;
+        `<div class="sim-opts${isSurah ? ' sim-opts-chips' : ''}" style="max-width:760px; margin:0 auto;">${lines}</div>`;
     const correctIndex = sim.options.findIndex(o => String(o) === String(sim.correctAnswer));
     return {
         type: 'similar', questionTitle: ADULT_TITLES[sim.kind], questionBody: body,

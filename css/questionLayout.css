@@ -69,9 +69,34 @@ body[data-qfit="sim"] #app-root #teacher-eval-area > :is(#game-question, #hint-t
 body[data-qfit="sim"] #app-root #hint-btn { margin: calc(.6 * var(--u)) 0 0 !important; }
 body[data-qfit="sim"] #app-root #teacher-eval-area > div[style*="margin-top"],
 body[data-qfit="sim"] #app-root #teacher-eval-buttons { margin-top: calc(.6 * var(--u)) !important; gap: calc(.6 * var(--u)) !important; }
+/* التلميح: كان max-width:900px يُنقص قاعدة الصف (100%) فيتّسع الصف لزر «تلميح» بجانب الصندوق فيُزاح ويبدو مبعثرًا.
+   الآن الصندوق يأخذ الصف كاملًا (flex-basis:100%) ويُحدَّد عرضه المرئي بهوامش جانبية، ويأتي ترتيبه بعد صف الأزرار
+   (تلميح + إظهار الإجابة) فلا يتحرّك أيٌّ منهما عند ظهوره؛ كل المحتوى المنسدل (تلميح ← إجابة ← تقييم) تحت الأزرار. */
 body[data-qfit="sim"] #app-root #hint-text {
-    max-width: min(100%, 900px); margin: calc(.5 * var(--u)) auto !important; box-sizing: border-box;
+    flex: 0 0 100%; max-width: 100%;
+    margin: calc(.5 * var(--u)) max(0px, calc((100% - 900px) / 2)) !important; box-sizing: border-box;
     font-size: max(1.2rem, calc(1.7 * var(--u))) !important; padding: calc(.5 * var(--u)) !important;
+    animation: dh-hint-in .22s ease-out;
+}
+body[data-qfit="sim"] #app-root #teacher-eval-area > #hint-text { order: 1; }
+body[data-qfit="sim"] #app-root #teacher-eval-area > #game-answer { order: 2; }
+body[data-qfit="sim"] #app-root #teacher-eval-area > #teacher-eval-buttons { order: 3; }
+body[data-qfit="sim"] #app-root #teacher-eval-area > :is(#partial-choice, #note-sheet) { order: 4; }
+@keyframes dh-hint-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { body[data-qfit="sim"] #app-root #hint-text { animation: none; } }
+/* «اقرأ الآية من السورة المذكورة»: المحتوى يبدأ من أعلى اللوحة (لا توسيط رأسي) فلا يقفز السؤال لأعلى حين يظهر التلميح ويطول المحتوى */
+body[data-sim-kind="sim_named"][data-qfit="sim"] #app-root .game-main-area > #teacher-eval-area { margin-block: 0 auto !important; }
+
+/* خيارات أسماء السور («في أي سورتين؟» و«أي سورة لم ترد؟»): كلمة أو كلمتان — بدل شريط بعرض السطر كله،
+   بطاقات مدمجة متوسّطة تتوزّع في صف واحد أو أكثر بحسب العرض (الاتجاه: grid متماثل فيصحّ في RTL وLTR). */
+body[data-qfit="sim"] #app-root #game-question .sim-opts.sim-opts-chips {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 14rem));
+    justify-content: center; max-width: min(100%, 760px) !important;
+    gap: calc(.6 * var(--u)) calc(.8 * var(--u));
+}
+body[data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
+    width: 100% !important; font-size: max(1.1rem, calc(1.7 * var(--u))) !important;
+    padding: calc(.5 * var(--u)) .8rem !important; border-radius: 999px;
 }
 body[data-qfit="sim"] #app-root .answer-box { max-width: min(100%, 1000px); margin-inline: auto; }
 
