@@ -151,6 +151,34 @@ function ensureStyles() {
         .hwcert-conn { flex: 0 1 ${S(5)}; display: flex; align-items: center; margin-top: ${S(2.4)}; }
         .hwcert-conn i { display: block; width: 100%; height: 1px; background: #d9c58c; }
         .hwcert-lfirst { font-size: ${S(1.9)}; color: #6a5a44; text-align: center; margin-top: ${S(.8)}; }
+        .hwcert-ladder.tx { padding: ${S(.9)} ${S(1.6)} ${S(.9)}; }
+        .hwcert-ladder.tx h3 { margin-bottom: ${S(.6)}; }
+        .hwcert-trow { display: flex; }
+        .hwcert-tcell { flex: 1 1 0; text-align: center; line-height: 1.25; border-inline-start: 1px solid #e6d8a6; min-width: 0; }
+        .hwcert-tcell:first-child { border-inline-start: none; }
+        .hwcert-tcell small { display: block; font-size: ${S(1.8)}; color: #6a5a44; font-weight: 700; }
+        .hwcert-tcell.cur small { color: #2a1e10; }
+        .hwcert-tcell b { display: block; font-size: ${S(3.4)}; line-height: 1.15; }
+        .hwcert-tcell em { display: block; font-style: normal; font-size: ${S(1.9)}; font-weight: 700; }
+        .hwcert-tcell span { display: block; font-size: ${S(1.6)}; color: #6a5a44; }
+        .hwcert-tcell.cur b { text-shadow: 0 0 ${S(1)} rgba(212,175,55,.6); }
+        .hwcert-split { display: flex; align-items: flex-start; gap: ${S(1.6)}; width: 100%; margin-top: ${S(1.6)}; }
+        .hwcert-split .hwcert-ladder { width: ${S(26)}; flex: none; margin-top: 0; }
+        .hwcert-split .hwcert-mist { flex: 1 1 0; min-width: 0; margin-top: 0; }
+        .hwcert-split .hwcert-mlist { grid-template-columns: 1fr; }
+        .hwcert-split .hwcert-mi:nth-child(2) { border-top: 1px dashed #d9c58c; }
+        .hwcert-ladder.vt { padding-bottom: ${S(1)}; }
+        .hwcert-vstep { display: flex; gap: ${S(1.3)}; text-align: start; }
+        .hwcert-vdotcol { display: flex; flex-direction: column; align-items: center; flex: none; padding-top: ${S(.5)}; }
+        .hwcert-vdot { display: block; width: ${S(2.4)}; height: ${S(2.4)}; border-radius: 50%; box-sizing: border-box; border: ${S(.3)} solid #fffdf8; box-shadow: 0 0 0 ${S(.22)} currentColor; flex: none; }
+        .hwcert-vstep.cur .hwcert-vdot { box-shadow: 0 0 0 ${S(.22)} currentColor, 0 0 0 ${S(.65)} rgba(212,175,55,.45); }
+        .hwcert-vline { display: block; flex: 1 1 auto; width: 1px; background: #d9c58c; min-height: ${S(3)}; margin: ${S(.3)} 0; }
+        .hwcert-vtxt { padding-bottom: ${S(1)}; line-height: 1.3; }
+        .hwcert-vtxt small { display: block; font-size: ${S(1.8)}; color: #6a5a44; font-weight: 700; }
+        .hwcert-vstep.cur .hwcert-vtxt small { color: #2a1e10; }
+        .hwcert-vtxt b { display: block; font-size: ${S(2.3)}; }
+        .hwcert-vtxt span { display: block; font-size: ${S(1.6)}; color: #6a5a44; }
+        .hwcert-vstep:last-of-type .hwcert-vtxt { padding-bottom: 0; }
         .hwcert-mist { width: 100%; margin-top: ${S(1.6)}; text-align: start; background: rgba(255,255,255,.82); border: 1px solid #e0cd98;
             border-radius: ${S(2.4)}; padding: ${S(1.3)} ${S(2.4)} ${S(1)}; box-sizing: border-box; }
         .hwcert-mist h3 { font-size: ${S(2.5)}; color: #a15230; font-weight: 700; margin: 0 0 ${S(.4)}; text-align: center; }
@@ -239,6 +267,21 @@ function buildHwLadder(submission, student, score, issuedAt) {
 }
 function ladderHtml(steps) {
     if (!steps) return '';
+    const mode = (typeof window !== 'undefined' && window.__hwLadderMode) || 'row';
+    const first = steps.length < 2 ? `<div class="hwcert-lfirst">${t('hwcert_ladder_first')}</div>` : '';
+    if (mode === 'text') {
+        const cells = steps.map(s => `<div class="hwcert-tcell${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
+            <small>${esc(s.label)}</small><b>${s.score}%</b><em>${esc(s.tierLabel)}</em><span dir="ltr">${esc(s.date)}</span>
+        </div>`).join('');
+        return `<div class="hwcert-ladder tx"><h3>${t('hwcert_ladder_title')}</h3><div class="hwcert-trow">${cells}</div>${first}</div>`;
+    }
+    if (mode === 'vert') {
+        const rows = steps.map((s, i) => `<div class="hwcert-vstep${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
+            <div class="hwcert-vdotcol"><i class="hwcert-vdot" style="background:${s.color};"></i>${i < steps.length - 1 ? '<i class="hwcert-vline"></i>' : ''}</div>
+            <div class="hwcert-vtxt"><small>${esc(s.label)}</small><b>${s.score}% · ${esc(s.tierLabel)}</b><span dir="ltr">${esc(s.date)}</span></div>
+        </div>`).join('');
+        return `<div class="hwcert-ladder vt"><h3>${t('hwcert_ladder_title')}</h3>${rows}${first}</div>`;
+    }
     const star = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.6.7-4.1 4 1.1 5.6L10 14.5l-5.1 2.7 1.1-5.6-4.1-4 5.6-.7z" fill="#fffdf8"/></svg>';
     const html = steps.map(s => `<div class="hwcert-step${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
             <div class="hwcert-dot" style="background:${s.color};">${star}</div>
@@ -333,6 +376,7 @@ export function showHomeworkCertificate(submission, student, scope) {
     const teacher = getTeacherForCertificate();
     const avatarUrl = getStudentAvatar(student);
     const mistakes = collectMistakes(submission);
+    const vert = typeof window !== 'undefined' && window.__hwLadderMode === 'vert';
     const ladderBlock = ladderHtml(buildHwLadder(submission, student, score, issuedAt));
     // 🌟 [جديد] كلمة المعلم الاختيارية (تُحفظ مع التسليم من غرفة التصحيح) — لا تظهر الكتلة لو فارغة
     const teacherNote = String(submission.teacherNote || '').trim();
@@ -373,7 +417,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                             <div class="hwcert-enc">${t('hwcert_tier_' + tier)}</div>
                         </div>
                     </div>
-                    ${ladderBlock}
+                    ${vert ? '<div class="hwcert-split">' : ''}${ladderBlock}
                     <div class="hwcert-mist">
                         ${shownMistakes.length ? `
                             <h3>${t('hwcert_mistakes_title')}</h3>
@@ -383,6 +427,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                             ${moreMistakes > 0 ? `<div class="hwcert-mmore">${t('hwcert_mistakes_more').replace('{n}', moreMistakes)}</div>` : ''}
                         ` : `<div class="hwcert-nomist">${t('hwcert_no_mistakes')}</div>`}
                     </div>
+                    ${vert ? '</div>' : ''}
                     ${teacherNote ? `<div class="hwcert-note"><b>${t('hwcert_teacher_note_title')}</b><span>${esc(teacherNote)}</span></div>` : ''}
                 </div>
                 <div class="hwcert-close">
