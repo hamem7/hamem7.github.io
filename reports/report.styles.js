@@ -37,7 +37,7 @@ export const REPORT_STYLES = `
   }
   #report-screen .grp{display:flex; align-items:center; gap:8px; padding-inline-end:12px; border-inline-end:1px solid #46403690;}
   #report-screen .grp:last-child{border-inline-end:none; padding-inline-end:0;}
-  #report-screen .grp-label{color:#8f8674; font-size:10.5px; font-weight:700; margin-inline-end:4px;}
+  #report-screen .grp-label{color:#a89f8a; font-size:10.5px; font-weight:700; margin-inline-end:4px;}
   #report-screen .chip{
     font-family:'Cairo',sans-serif; font-weight:700; font-size:12.5px; cursor:pointer;
     background:transparent; color:#c2b393; border:1px solid #4d4738; border-radius:999px;
@@ -59,20 +59,20 @@ export const REPORT_STYLES = `
     background:#3a352a; border:1px solid #55503f; border-radius:8px;
     padding:8px 12px; color:#f3ede1; width:150px;
   }
-  #report-screen .teacher-name-input::placeholder{color:#8f8674;}
+  #report-screen .teacher-name-input::placeholder{color:#a89f8a;}
 
   #report-screen .note-bar{
     display:flex; align-items:center; gap:10px; padding:10px 16px;
     background:#332d24; border-top:1px solid #46403690;
   }
-  #report-screen .note-bar label{color:#c2b393; font-size:11.5px; font-weight:700; flex:none;}
+  #report-screen .note-bar label{color:#c2b393 !important; font-size:11.5px; font-weight:700; flex:none;}
   #report-screen .note-bar textarea{
     flex:1; resize:vertical; min-height:34px; max-height:110px;
     font-family:'Cairo',sans-serif; font-size:12.5px; font-weight:600;
     background:#f9f4ea; border:1px solid #55503f; border-radius:8px;
     padding:8px 12px; color:#2b2620;
   }
-  #report-screen .note-bar .hint{color:#8f8674; font-size:10px; font-weight:600; flex:none;}
+  #report-screen .note-bar .hint{color:#a89f8a; font-size:10px; font-weight:600; flex:none;}
 
   #report-screen .report-stage{display:flex; justify-content:center; padding:36px 16px 60px; background:#e9e4d8; border-radius:0 0 12px 12px;}
 
@@ -128,7 +128,7 @@ export const REPORT_STYLES = `
      يُفقده التشكيل السياقي (الوصل بين الحروف)، فتخرج العبارة في الملف المطبوع مفكّكة
      ومقلوبة الترتيب بينما تبدو سليمة تمامًا على الشاشة — وهو بالضبط ما حدث في سطر
      "منصة حمٓ لتثبيت الحفظ و المراجعة" أعلى التقرير. */
-  #report-screen .eyebrow{font-size:11.5px; font-weight:700; color:#a79a83;}
+  #report-screen .eyebrow{font-size:11.5px; font-weight:700; color:#6f644e;}
   #report-screen .r-title{
     font-family:'Amiri',serif; font-weight:700; font-size:38px; line-height:1.15;
     color:#0b3d30; margin:6px 0 0;
@@ -136,7 +136,7 @@ export const REPORT_STYLES = `
   #report-screen .r-subtitle{font-family:'Amiri',serif; font-size:22px; font-weight:700; color:#2b2620; margin-top:2px;}
   #report-screen .r-tagline{
     display:inline-flex; align-items:center; gap:12px; margin-top:12px;
-    font-size:13px; font-weight:600; color:#a79a83;
+    font-size:13px; font-weight:600; color:#6f644e;
   }
   #report-screen .r-tagline::before, #report-screen .r-tagline::after{
     content:''; width:34px; height:1px; background:#c9932f; opacity:.6;
@@ -215,7 +215,7 @@ export const REPORT_STYLES = `
   /* ============== عناوين الأقسام ============== */
   #report-screen .sec-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:4px;}
   #report-screen .section-title{font-size:16.5px; font-weight:800; color:#2b2620; margin:0;}
-  #report-screen .section-sub{font-size:12px; color:#a79a83; font-weight:600; margin:0;}
+  #report-screen .section-sub{font-size:12px; color:#6f644e; font-weight:600; margin:0;}
 
   /* ============== سُلّم التقدّم ============== */
   #report-screen .ladder-card{
@@ -240,7 +240,7 @@ export const REPORT_STYLES = `
   #report-screen .conn-cell{flex:0 1 46px; display:flex; align-items:center; justify-content:center; margin-top:19px;}
   #report-screen .conn-cell i{display:block; width:100%; height:2px; background:#e4d9c4; border-radius:2px;}
   #report-screen .ladder-empty{
-    font-size:12.5px; font-weight:600; color:#a79a83; text-align:center; margin:14px 0 2px;
+    font-size:12.5px; font-weight:600; color:#6f644e; text-align:center; margin:14px 0 2px;
   }
 
   /* ============== جدول الأسئلة (يظهر في PDF فقط) ============== */
@@ -266,14 +266,14 @@ export const REPORT_STYLES = `
   #report-screen .qnum{text-align:center; font-weight:700; color:#8a726b;}
   #report-screen .qicon{display:flex; justify-content:center;}
   #report-screen .qsubject{min-width:0;}
-  #report-screen .qtype{font-size:11.5px; font-weight:700; color:#a79a83;}
+  #report-screen .qtype{font-size:11.5px; font-weight:700; color:#6f644e;}
   #report-screen .qloc{font-size:13px; font-weight:700; color:#2b2620; margin-top:2px;}
   /* خط 'Amiri Quran' موحَّد مع class="quran-text" بباقي المنصة حتى تظهر نصوص الآيات
      في التقرير المُصدَّر بنفس رسم المصحف (رموز الرسم العثماني لا يدعمها Amiri العادي) */
   #report-screen .qtext{font-family:'Amiri Quran',serif; font-size:15px; color:#4a4238; margin-top:4px; line-height:1.75;}
   #report-screen .qscore{text-align:center; font-weight:800; white-space:nowrap;}
   #report-screen .qnote{font-size:12px; font-weight:600; color:#8a726b; line-height:1.6;}
-  #report-screen .qempty{text-align:center; color:#a79a83; font-size:14.5px; padding:18px 0;}
+  #report-screen .qempty{text-align:center; color:#6f644e; font-size:14.5px; padding:18px 0;}
 
   /* ============== شرائط العدّ ============== */
   /* ⚠️ خارج بطاقة الجدول عمدًا: لو بقيت داخلها لاختفت مع الجدول في وضع الصورة المختصرة */
@@ -347,7 +347,7 @@ export const REPORT_STYLES = `
     margin-top:8px; padding-top:20px; border-top:1px solid #e4d9c4;
     display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;
   }
-  #report-screen .footer-meta{font-size:12px; color:#a79a83; font-weight:600; line-height:2;}
+  #report-screen .footer-meta{font-size:12px; color:#6f644e; font-weight:600; line-height:2;}
   #report-screen .footer-meta b{color:#6b6252; font-weight:700;}
   /* 🌟 ختم المعلم الرسمي — الصورة التي يرفعها المعلم في "ملف المعلم" (teacherDB.stamp)،
      فوق سطر الاسم مباشرة. الحاوية كلها تُخفى من جافاسكريبت إن لم يرفع المعلم ختمًا،
@@ -362,7 +362,7 @@ export const REPORT_STYLES = `
   #report-screen .sign{text-align:center; min-width:190px;}
   #report-screen .sign-line{border-bottom:1.4px solid #cdbf9f; height:8px; min-width:190px;}
   #report-screen .sign-name{font-family:'Amiri',serif; font-weight:700; font-size:15.5px; color:#0b3d30; margin-top:7px;}
-  #report-screen .teacher-label{font-size:11.5px; color:#a79a83; font-weight:700; margin-top:3px;}
+  #report-screen .teacher-label{font-size:11.5px; color:#6f644e; font-weight:700; margin-top:3px;}
 
   #report-screen .home-bar{display:flex; justify-content:center; padding:18px 16px 0;}
   #report-screen .home-btn{

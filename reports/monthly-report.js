@@ -908,14 +908,14 @@ function renderSummaryTiles(d) {
     label: t('mr_tile_new_memo'),
     value: (d.journey && d.journey.hasEnding && d.journey.newAyahs != null) ? String(d.journey.newAyahs) : '—',
     sub: t('mr_tile_new_memo_sub'),
-    color: (d.journey && d.journey.hasEnding) ? '#8a6221' : '#a79a83'
+    color: (d.journey && d.journey.hasEnding) ? '#8a6221' : '#6f644e'
   });
 
   tiles.push({
     label: t('mr_tile_gameeval_avg'),
     value: d.gameEvalAvg != null ? `${d.gameEvalAvg}%` : '—',
     sub: t('mr_tile_gameeval_count').replace('{n}', d.gameEvalEntries.length),
-    color: d.gameEvalAvg != null ? scoreTierColor(d.gameEvalAvg) : '#a79a83',
+    color: d.gameEvalAvg != null ? scoreTierColor(d.gameEvalAvg) : '#6f644e',
     pct: d.gameEvalAvg // 🌟 نسبة → تُرسَم بمنزل القمر مع شارة المستوى
   });
 
@@ -923,7 +923,7 @@ function renderSummaryTiles(d) {
     label: t('mr_tile_homework_avg'),
     value: d.homeworkAvg != null ? `${d.homeworkAvg}%` : '—',
     sub: t('mr_tile_homework_count').replace('{n}', d.homeworkEntries.length),
-    color: d.homeworkAvg != null ? scoreTierColor(d.homeworkAvg) : '#a79a83',
+    color: d.homeworkAvg != null ? scoreTierColor(d.homeworkAvg) : '#6f644e',
     pct: d.homeworkAvg
   });
 

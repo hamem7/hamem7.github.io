@@ -104,7 +104,7 @@ function ensureStyles() {
             background: #fdf6e3 url(assets/certificates/template-quran.jpg) center/100% 100% no-repeat;
             box-shadow: 0 30px 60px rgba(0,0,0,0.35); font-family: 'Reem Kufi', 'Cairo', sans-serif; color: #2a1e10; }
         .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
-        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #2f7f6a; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
+        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #276b59; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
         .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
         .hwcert-title { margin: ${S(.3)} 0 0; line-height: 0; }
         .hwcert-title img { height: ${S(8.4)}; width: auto; display: block; margin: 0 auto; }

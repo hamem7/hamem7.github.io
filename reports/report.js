@@ -240,15 +240,15 @@ const REPORT_TEMPLATE = `
 
         <div class="stat-line pdf-block">
           <span class="stat-item">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#a79a83" stroke-width="1.6"/><path d="M10 6v4.3l3 1.7" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7.5" stroke="#6f644e" stroke-width="1.6"/><path d="M10 6v4.3l3 1.7" stroke="#6f644e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span data-i18n="rep_stat_avgtime">متوسط وقت الإجابة</span>: <b id="report-stat-avgtime">--</b>
           </span>
           <span class="stat-item">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 3.5a4.5 4.5 0 0 0-2.4 8.3c.5.3.9.9.9 1.5v.4h3v-.4c0-.6.4-1.2.9-1.5A4.5 4.5 0 0 0 10 3.5z" stroke="#a79a83" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 16.3h2.6M9.1 17.8h1.8" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M10 3.5a4.5 4.5 0 0 0-2.4 8.3c.5.3.9.9.9 1.5v.4h3v-.4c0-.6.4-1.2.9-1.5A4.5 4.5 0 0 0 10 3.5z" stroke="#6f644e" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.7 16.3h2.6M9.1 17.8h1.8" stroke="#6f644e" stroke-width="1.6" stroke-linecap="round"/></svg>
             <span data-i18n="rep_stat_hints">تلميحات مستخدمة</span>: <b id="report-stat-hints">0</b>
           </span>
           <span class="stat-item">
-            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 0 1 10.2-4.2M16 10a6 6 0 0 1-10.2 4.2" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round"/><path d="M14 3.5v2.6h-2.6M6 16.5v-2.6h2.6" stroke="#a79a83" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg width="15" height="15" viewBox="0 0 20 20" fill="none"><path d="M4 10a6 6 0 0 1 10.2-4.2M16 10a6 6 0 0 1-10.2 4.2" stroke="#6f644e" stroke-width="1.6" stroke-linecap="round"/><path d="M14 3.5v2.6h-2.6M6 16.5v-2.6h2.6" stroke="#6f644e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             <span data-i18n="rep_stat_reorders">محاولات ترتيب متكررة</span>: <b id="report-stat-reorders">0</b>
           </span>
         </div>

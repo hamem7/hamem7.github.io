@@ -108,7 +108,7 @@
 .dh-welcome-sub {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--dh-gold-500);
+    color: var(--dh-gold-ink, #8a6221);
     margin: 0;
 }
 

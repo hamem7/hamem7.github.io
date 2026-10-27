@@ -986,7 +986,7 @@ html[data-theme="dark"] body.kids-theme .quran-text { background: #14241fb3 !imp
 html[data-theme="dark"] body.kids-theme .in-game-student { background: #14241fb3 !important; }
 html[data-theme="dark"] body.kids-theme .in-game-student img { background-color: #1f2731 !important; }
 html[data-theme="dark"] body.kids-theme .in-game-student h3 { color: #b1c8e6 !important; }
-html[data-theme="dark"] body.kids-theme .q-circle { background: #1f2731 !important; border: 2px solid #2b323b !important; color: #95a1b3 !important; }
+html[data-theme="dark"] body.kids-theme .q-circle { background: #1f2731 !important; border: 2px solid #2b323b !important; color: #acb7c7 !important; }
 
 /* ===== games/kidsGame.html (6) ===== */
 html[data-theme="dark"] body:not(.dh-light) [style*="background: rgba(0,0,0,0.05)"] { background: rgba(0,0,0,0.05) !important; }

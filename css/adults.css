@@ -114,12 +114,12 @@ body.adult-theme {
 .adult-theme .btn-outline.sim-opt-btn { background: linear-gradient(135deg, var(--dh-emerald-700, #0d5c46), var(--dh-emerald-600, #147c5e)) !important; color: #fff !important; border-color: transparent !important; }
 
 .adult-theme .btn-wrong { 
-    background: #df4e4e !important; 
+    background: #c53030 !important; 
     color: white !important; 
 }
 
 .adult-theme .btn-correct {
-    background: #35a66e !important;
+    background: #1a7f4b !important;
     color: white !important;
 }
 
@@ -129,13 +129,13 @@ body.adult-theme {
    "اعتماد والانتقال للسؤال التالي" لم يكن له أي كلاس أصلاً. لا تغيير في الألوان الفعلية —
    فقط نقلها لكلاسات معزولة بنفس نمط .btn-wrong/.btn-correct أعلاه بالضبط 🌟 */
 .adult-theme .btn-note {
-    background: #f59e0b !important;
+    background: #b45309 !important;
     color: white !important;
     border: none !important;
 }
 
 .adult-theme .btn-confirm-next {
-    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    background: linear-gradient(135deg, #c2410c, #9a3412) !important;
     color: white !important;
     border: none !important;
     box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3) !important;
@@ -366,13 +366,13 @@ body.adult-theme {
 
 :where(.adult-theme) .tracker-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 
-:where(.adult-theme) .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #64748b; }
+:where(.adult-theme) .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #475569; }
 
-:where(.adult-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #b45309; transform: scale(1.1); }
+:where(.adult-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #92400e; transform: scale(1.1); }
 
-:where(.adult-theme) .q-circle.correct { background: var(--dh-ok-bg, #e7f4ee); border-color: #10b981; color: var(--dh-ok, #15803d); }
+:where(.adult-theme) .q-circle.correct { background: var(--dh-ok-bg, #e7f4ee); border-color: #10b981; color: var(--dh-ok-ink, #166534); }
 
-:where(.adult-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger, #b91c1c); }
+:where(.adult-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger-ink, #991b1b); }
 
 @media (max-width: 900px) {
     :where(.adult-theme) .game-layout {

@@ -21,6 +21,8 @@ html[data-theme="dark"] {
     --dh-warn: #f0b36a;    --dh-warn-bg: #3a2a0e;
     --dh-danger: #f87171;  --dh-danger-bg: #3a1a1a;
     --dh-info: #7dd3fc;    --dh-info-bg: #0c2a3d;
+    --dh-ok-ink: #6fd49a;  --dh-danger-ink: #f87171;
+    --dh-gold-ink: #e8c866;
 
     --dh-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.45);
     --dh-shadow-lift: 0 22px 45px rgba(0, 0, 0, 0.55);
@@ -494,8 +496,6 @@ html[data-theme="dark"] .pf-badge { background: #c53030; }
 html[data-theme="dark"] body:not(.dh-light) :is([style*="color:var(--primary)"], [style*="color: var(--primary)"], [style*="color:var(--secondary)"], [style*="color: var(--secondary)"], .quran-text[style*="color:#156643"], .quran-text[style*="color:#0d5c46"]):not([style*="background"]) { color: var(--dh-dk-title) !important; }
 /* شريط «تنظيف تلقائي» في إعداد الواجب: عنوان بني على خلفية ذهبية شفافة */
 html[data-theme="dark"] body:not(.dh-light) .hwp3-cleanup-note strong { color: var(--dh-dk-accent); }
-/* سؤال «في أي صفحة تقع الآية»: عنوانا الصفحتين (أبيض على #94a3b8 ≈ 2.6) */
-html[data-theme="dark"] body:not(.dh-light) [style*="background:#94a3b8"] { background: #475569 !important; }
 /* أيقونة VS في إعداد الاختبار الثنائي: خلفيتها تدرّج ذهبي ثابت (قاعدة منفصلة عن لونها فلا يلتقطها المولِّد) */
 html[data-theme="dark"] body:not(.dh-light) .dts-header-icon { color: var(--dh-emerald-900) !important; }
 /* زر «وزّع تلقائياً» (weekSchedule): خلفيته var(--dh-ok) تفتح في الداكن */
@@ -526,9 +526,6 @@ html[data-theme="dark"] body.kids-theme .btn:not(.btn-outline):not(.btn-note):no
 html[data-theme="dark"] body.kids-theme .btn.btn-wrong:not([style*="background"]) { background: linear-gradient(135deg, #0369a1, #0576b3); }
 html[data-theme="dark"] body.kids-theme .btn-note { background: #b45309 !important; }
 html[data-theme="dark"] body.kids-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
-/* «صح/خطأ» بألوان inline زاهية (أخضر #10b981 / أحمر #ef4444 بنص أبيض 2.5–3.8) */
-html[data-theme="dark"] body.kids-theme .kids-tf-btn[style*="#10b981"] { background: #047857 !important; }
-html[data-theme="dark"] body.kids-theme .kids-tf-btn[style*="#ef4444"] { background: #b91c1c !important; }
 /* الوردي (#db2777) نصاً فوق سطح داكن: تعليمات الألعاب واسم السورة */
 html[data-theme="dark"] body.kids-theme [style*="color:#db2777"],
 html[data-theme="dark"] body.kids-theme [style*="color: #db2777"] { color: #f9a8d4 !important; }

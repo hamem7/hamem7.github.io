@@ -31,9 +31,9 @@ export const MONTHLY_REPORT_STYLES = `
     background:#fffdf8; border:1px solid #e4d9c4; border-radius:14px;
     padding:16px 18px; text-align:center;
   }
-  #report-screen .mr-tile-label{font-size:12px; color:#a79a83; font-weight:700; margin-bottom:8px;}
+  #report-screen .mr-tile-label{font-size:12px; color:#6f644e; font-weight:700; margin-bottom:8px;}
   #report-screen .mr-tile-value{font-family:'Amiri',serif; font-size:26px; font-weight:700; color:#8a6221;}
-  #report-screen .mr-tile-sub{font-size:11.5px; color:#a79a83; font-weight:600; margin-top:4px;}
+  #report-screen .mr-tile-sub{font-size:11.5px; color:#6f644e; font-weight:600; margin-top:4px;}
 
   /* ============== جداول تفصيل النشاط (واجبات / اختبارات ثنائية) ============== */
   #report-screen .mr-block{
@@ -42,7 +42,7 @@ export const MONTHLY_REPORT_STYLES = `
   }
   #report-screen .mr-table{width:100%; border-collapse:collapse; margin-top:10px;}
   #report-screen .mr-table th{
-    font-size:11.5px; font-weight:700; color:#a79a83; text-align:start;
+    font-size:11.5px; font-weight:700; color:#6f644e; text-align:start;
     padding:6px 8px; border-bottom:1px solid #e4d9c4;
   }
   #report-screen .mr-table td{
@@ -50,7 +50,7 @@ export const MONTHLY_REPORT_STYLES = `
     border-bottom:1px solid #f0e9db;
   }
   #report-screen .mr-table tr:last-child td{border-bottom:none;}
-  #report-screen .mr-empty-row{color:#a79a83; font-size:12.5px; font-weight:600; padding:10px 4px;}
+  #report-screen .mr-empty-row{color:#6f644e; font-size:12.5px; font-weight:600; padding:10px 4px;}
   #report-screen .mr-badge{
     display:inline-block; padding:3px 10px; border-radius:999px;
     font-size:11.5px; font-weight:700; white-space:nowrap;
@@ -98,7 +98,7 @@ export const MONTHLY_REPORT_STYLES = `
   /* ============== 🌟 [جديد] "اتجاه الحفظ التراكمي" عبر عدّة أشهر ============== */
   #report-screen .mr-trend-svg{width:100%; height:auto; max-height:200px; display:block; margin-top:4px;}
   #report-screen .mr-trend-val{font-family:'Cairo',sans-serif; font-size:11px; font-weight:800; fill:#8a6221;}
-  #report-screen .mr-trend-lbl{font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:600; fill:#a79a83;}
+  #report-screen .mr-trend-lbl{font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:600; fill:#6f644e;}
   #report-screen .mr-trend-total{
     text-align:center; margin-top:10px; font-family:'Amiri',serif; font-size:17px;
     font-weight:700; color:#0d5c46;
@@ -106,7 +106,7 @@ export const MONTHLY_REPORT_STYLES = `
 
   /* ============== ملاحظة "بيانات غير متتبَّعة حاليًا" (نطاق الحفظ) ============== */
   #report-screen .mr-note-inline{
-    font-size:12px; color:#a79a83; font-weight:600; margin-top:8px; line-height:1.7;
+    font-size:12px; color:#6f644e; font-weight:600; margin-top:8px; line-height:1.7;
   }
 
   @media (max-width:760px){

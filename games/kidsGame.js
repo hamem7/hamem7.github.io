@@ -689,8 +689,8 @@ async function playNextMission() {
                 if(GameState.currentData.type === 'kids_tf') { 
                     optsContainer.innerHTML = `
                         <div style="display:flex; justify-content:center; gap:20px; margin-top:20px; flex-wrap:wrap;">
-                            <button class="kids-tf-btn" style="background:#10b981;" onclick="window.recordKidsAnswer(${GameState.currentData.isTrue})">✅ ${t("نـعـم")}</button>
-                            <button class="kids-tf-btn" style="background:#ef4444;" onclick="window.recordKidsAnswer(${!GameState.currentData.isTrue})">❌ ${t("لا")}</button>
+                            <button class="kids-tf-btn" style="background:#047857;" onclick="window.recordKidsAnswer(${GameState.currentData.isTrue})">✅ ${t("نـعـم")}</button>
+                            <button class="kids-tf-btn" style="background:#b91c1c;" onclick="window.recordKidsAnswer(${!GameState.currentData.isTrue})">❌ ${t("لا")}</button>
                         </div>`; 
                 } else {
                     GameState.currentData.options.forEach(opt => {
@@ -951,7 +951,7 @@ function buildWordOrderUI() {
                 buildWordOrderUI(); 
             }; 
         } else {
-            slot.className = 'order-slot'; slot.style.minWidth = '60px'; slot.innerHTML = `<span style="color:#cbd5e1;">...</span>`;
+            slot.className = 'order-slot'; slot.style.minWidth = '60px'; slot.innerHTML = `<span style="color:#64748b;">...</span>`;
         }
         slotDiv.appendChild(slot);
     }

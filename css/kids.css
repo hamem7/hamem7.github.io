@@ -174,13 +174,13 @@ body.kids-theme {
    ومتابعة" و"اعتماد والانتقال للسؤال التالي" في games/kidsGame.html يستخدمان نفس
    الكلاسات الجديدة (كانتا سابقاً بستايل inline منفصل تماماً هنا أيضاً) 🌟 */
 .kids-theme .btn-note {
-    background: #f59e0b !important;
+    background: #b45309 !important;
     color: white !important;
     border: none !important;
 }
 
 .kids-theme .btn-confirm-next {
-    background: linear-gradient(135deg, #f97316, #ea580c) !important;
+    background: linear-gradient(135deg, #c2410c, #9a3412) !important;
     color: white !important;
     border: none !important;
     box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3) !important;
@@ -190,7 +190,7 @@ body.kids-theme {
    .adult-theme فقط)، فتظهر بعض الأزرار بلا لون أو حجم موحّد. أضفنا قيمًا افتراضية بـ :where()
    (خصوصية صفر) كي لا تتغلب على أي ستايل خاص بزر بعينه أو inline، مع تكبير أدنى لهدف اللمس 🌟 */
 :where(.kids-theme .btn) {
-    background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+    background: linear-gradient(135deg, #0576b3, #0369a1);
     color: #fff;
     padding: 12px 26px;
     font-size: 1.2rem;
@@ -292,9 +292,9 @@ body.kids-theme {
 }
 
 :where(.kids-theme) .tracker-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-:where(.kids-theme) .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #64748b; }
-:where(.kids-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #b45309; transform: scale(1.1); }
-:where(.kids-theme) .q-circle.correct { background: var(--dh-ok-bg, #e7f4ee); border-color: #10b981; color: var(--dh-ok, #15803d); }
+:where(.kids-theme) .q-circle { width: 35px; height: 35px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; border: 2px solid #cbd5e1; color: #475569; }
+:where(.kids-theme) .q-circle.active { background: #fef08a; border-color: #f59e0b; color: #92400e; transform: scale(1.1); }
+:where(.kids-theme) .q-circle.correct { background: var(--dh-ok-bg, #e7f4ee); border-color: #10b981; color: var(--dh-ok-ink, #166534); }
 
 /* =========================================
    🌟 [جديد بالكامل] زر تشغيل الصوت للعبة "استمع وخمّن الآية" — قواعد معزولة تمامًا بادئة
@@ -332,7 +332,7 @@ body.kids-theme {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.07); }
 }
-:where(.kids-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger, #b91c1c); }
+:where(.kids-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger-ink, #991b1b); }
 /* ==========================================================================
    🌟 [إصلاح التوافق مع الشاشات] التخطيط الجانبي (مسار + مربع اللعب) كان بقواعد !important صفّية وعرض ثابت 280px
    بلا أي media query، فكان يفيض أفقيًا على الهاتف والآيباد الرأسي (الصفحة تتّسع أكثر من الشاشة).

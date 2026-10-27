@@ -410,7 +410,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     font-weight: 800;
     border-radius: 50%;
     color: #fff;
-    background: var(--tjw-tile-color);
+    background: color-mix(in srgb, var(--tjw-tile-color) 72%, #000);
 }
 .tjw-rule-tile-letters.is-long { font-size: 1.15rem; }
 .tjw-rule-tile-name { font-size: 0.95rem; font-weight: 800; text-align: center; line-height: 1.4; }
@@ -438,7 +438,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     flex-wrap: wrap;
     padding: 26px 28px;
     color: #fffdf6;
-    background: linear-gradient(135deg, var(--tjw-card-color), #0d1f38);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--tjw-card-color) 72%, #000), #0d1f38);   /* تعتيم خفيف لبداية التدرّج: النص الأبيض/الذهبي فوق كل ألوان المراحل ≥ 4.5 */
 }
 .tjw-rule-symbol { flex: none; }
 .tjw-rule-symbol svg { display: block; }
@@ -457,7 +457,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
     background: rgba(255, 255, 255, 0.1);
 }
 .tjw-lesson-hero-text { flex: 1; min-width: 220px; }
-.tjw-rule-card-eyebrow { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.4px; color: var(--tjw-gold); margin-bottom: 4px; }
+.tjw-rule-card-eyebrow { font-size: 0.9rem; font-weight: 700; letter-spacing: 0.4px; color: color-mix(in srgb, var(--tjw-gold) 45%, #fff); margin-bottom: 4px; }
 .tjw-rule-card-name { margin: 0; font-size: 2rem; font-weight: 800; color: #fff8e6; }
 .tjw-rule-card-def { margin: 8px 0 0; font-size: 1.05rem; line-height: 1.8; color: rgba(255, 248, 230, 0.92); }
 
@@ -871,7 +871,7 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-e-stepper i { font-style: normal; padding: 1px 9px; border-radius: 999px; background: rgba(58, 44, 31, 0.08); color: var(--tjw-muted); }
 .tjw-e-stepper i.is-done { background: rgba(31, 157, 85, 0.16); color: var(--tjw-good); }
 .tjw-e-stepper i.is-cur { background: var(--tjw-accent); color: #fff; font-weight: 800; }
-.tjw-e-cta { cursor: pointer; border: 0; border-radius: 14px; padding: 11px 20px; font: inherit; font-weight: 800; color: #3a2a08; background: linear-gradient(180deg, #f0c35f, var(--tjw-gold-deep)); box-shadow: 0 4px 0 #8a6414; transition: transform 0.12s; }
+.tjw-e-cta { cursor: pointer; border: 0; border-radius: 14px; padding: 11px 20px; font: inherit; font-weight: 800; color: #2b1d04; background: linear-gradient(180deg, #f0c35f, var(--tjw-gold-deep)); box-shadow: 0 4px 0 #8a6414; transition: transform 0.12s; }
 .tjw-e-cta:active { transform: translateY(3px); box-shadow: none; }
 .tjw-e-ghost { cursor: pointer; border: 2px solid var(--tjw-primary-light); background: transparent; color: var(--tjw-primary-light); border-radius: 12px; padding: 7px 14px; font: inherit; font-weight: 800; }
 .tjw-e-ghost.is-on { background: var(--tjw-primary-light); color: #fff; }
@@ -908,10 +908,10 @@ html[dir="ltr"] .tjw-btn-exit:hover::before { transform: scaleX(-1) translateX(3
 .tjw-e-ic { --p: 0; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--c) calc(var(--p) * 1%), rgba(255, 255, 255, 0.16) 0); }
 .tjw-e-ic span { width: 31px; height: 31px; border-radius: 50%; background: #fffdf7; display: grid; place-items: center; font-size: 1.05rem; }
 .tjw-e-nm { font-weight: 700; font-size: 0.7rem; line-height: 1.3; color: #dfe7f3; }
-.tjw-e-ct { display: none; font-size: 0.68rem; color: var(--tjw-gold); }
+.tjw-e-ct { display: none; font-size: 0.68rem; color: color-mix(in srgb, var(--tjw-gold) 70%, #fff); }
 .tjw-e-sg.is-locked { opacity: 0.45; filter: grayscale(0.7); }
 .tjw-e-sg.is-active .tjw-e-ic { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 40%, transparent); }
-.tjw-e-sg.is-active .tjw-e-nm { color: var(--tjw-gold); }
+.tjw-e-sg.is-active .tjw-e-nm { color: color-mix(in srgb, var(--tjw-gold) 70%, #fff); }
 .tjw-e-sg.is-active .tjw-e-ct { display: block; }
 .tjw-e-sg.is-done .tjw-e-nm { color: #9fe3bd; }
 .tjw-e-legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 0.76rem; color: var(--tjw-muted); margin-top: 10px; }

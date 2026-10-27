@@ -7,6 +7,9 @@
     --dh-warn: #b45309;    --dh-warn-bg: #fef3c7;
     --dh-danger: #b91c1c;  --dh-danger-bg: #fde8e8;
     --dh-info: #0369a1;    --dh-info-bg: #e0f2fe;
+    /* نص أخضر/أحمر فوق خلفيات الحالة الفاتحة (دوائر المسار): أغمق من --dh-ok/--dh-danger ليبلغ ≥ 4.5 */
+    --dh-ok-ink: #166534;  --dh-danger-ink: #991b1b;
+    --dh-gold-ink: #8a6221;   /* ذهبي كنصّ فوق سطح فاتح (≥ 4.5) */
 
     /* خطوط وحدود محايدة بلون الهوية (بدل الرمادي الأزرق) */
     --dh-line: #e4dfcc;

@@ -14,7 +14,7 @@ await new Promise(r => srv.on('listening', r)); const WEB = `http://localhost:${
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'], ...(process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {}) });
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 let ok = 0, bad = 0; const check = (n, c, d = '') => { c ? ok++ : bad++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}${d ? '  — ' + d : ''}`); };
-const HDR = new Set(['الرئيسية', 'English', 'العربية', 'Home', 'حسابي والنسخ', 'My account & backups']);   // الترويسة: هوية ثابتة (تباين 4.0 معروف، مستثناة عمداً)
+const HDR = new Set();   // لا استثناءات: الترويسة وأزرارها ضمن الفحص أيضاً
 
 const SCAN = () => {
   const parse = s => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[ ,/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p[3] === undefined ? 1 : p[3] }; };
@@ -73,6 +73,8 @@ async function open(colorScheme, pref, lang = 'ar', viewport = { width: 1200, he
 const attr = (page) => page.evaluate(() => ({ t: document.documentElement.dataset.theme, p: document.documentElement.dataset.themePref, bg: getComputedStyle(document.body).backgroundColor }));
 const lum = (rgb) => { const m = rgb.match(/\d+/g).map(Number); return (m[0] + m[1] + m[2]) / 3; };
 
+const wantClean = (name, rows) => { const r = rows.filter(x => !HDR.has(x.t)); check(`${name}: لا نص دون AA`, r.length === 0, r.slice(0, 4).map(x => `${x.s} «${x.t}» ${x.cr}`).join(' | ')); };
+
 // ===== 1) السلوك =====
 {
   let { ctx, page, errs } = await open('dark', null);
@@ -116,8 +118,26 @@ const lum = (rgb) => { const m = rgb.match(/\d+/g).map(Number); return (m[0] + m
   await ctx.close();
 }
 
+// ===== 2b) الفاتح: نفس فحص التباين على الرئيسية (تشمل الترويسة) وسؤال «استدعِ الآية» وأزرار التقييم =====
+{
+  const { ctx, page } = await open('light', 'light', 'ar');
+  const r0 = (await page.evaluate(SCAN)).filter(x => x.s !== 'h1#main-title.home-title');   // عنوان الهيرو نص متدرّج متحرّك: التقاط مؤقت لا تباين فعلي
+  check('[فاتح] الشاشة الرئيسية والترويسة: لا نص دون AA', r0.length === 0, r0.slice(0, 4).map(x => `${x.s} «${x.t}» ${x.cr}`).join(' | '));
+  await page.evaluate(async () => {
+    const { AppState } = await import('/core/app.js'); const nm = n => (AppState.surahsData.find(x => x.number === n) || {}).name;
+    const id = await AppState.studentManager.addStudent({ name: 'عبدالرحمن', type: 'adult', memoFrom: nm(114), memoTo: nm(78) });
+    AppState.currentStudent = (await AppState.studentManager.getAllStudents()).find(x => x.id === id);
+    const m = await import('/games/adultGame.js'); await m.openAdultGameScreen({ qCount: 20, isJuzMode: true, juzNum: 30, surahNum: 0 }); window.__GS = m.GameState;
+  });
+  await sleep(1500);
+  await page.evaluate(() => { const GS = window.__GS; GS.queue = [{ type: 'catch' }, { type: 'catch', chunkIndex: 0 }, { type: 'catch' }]; GS.currentIndex = 0; });
+  await page.evaluate(() => document.getElementById('btn-record-correct')?.click()); await sleep(3800);
+  await page.evaluate(() => { document.getElementById('show-ans-btn')?.click(); }); await sleep(600);
+  wantClean('[فاتح] لعبة الكبار (استدعِ الآية) وأزرار التقييم', await page.evaluate(SCAN));
+  await ctx.close();
+}
+
 // ===== 3) تباين النص (WCAG AA) — الداكن بالعربية والإنجليزية =====
-const wantClean = (name, rows) => { const r = rows.filter(x => !HDR.has(x.t)); check(`${name}: لا نص دون AA`, r.length === 0, r.slice(0, 4).map(x => `${x.s} «${x.t}» ${x.cr}`).join(' | ')); };
 for (const lang of ['ar', 'en']) {
   const { ctx, page, errs } = await open('dark', 'dark', lang);
   wantClean(`[${lang}] الشاشة الرئيسية`, await page.evaluate(SCAN));
@@ -202,6 +222,8 @@ async function openKids(pref) {
   check('بلا أخطاء JS (أطفال داكن)', k.errs.length === 0, k.errs.slice(0, 2).join(' | '));
   await k.ctx.close();
   const l = await openKids('light');
+  const lrows = []; for (let i = 0; i < 6; i++) { await sleep(1200); const t = await l.page.evaluate(() => (window.__GS.currentData || {}).type); const rows = await l.page.evaluate(SCAN); if (rows.length) lrows.push(`${t}: ${rows.slice(0, 2).map(x => `${x.s} «${x.t}» ${x.cr}`).join(' ; ')}`); await l.page.evaluate(() => window.recordKidsAnswer && window.recordKidsAnswer(true)); }
+  check('[فاتح] ألعاب الأطفال ومسار الأسئلة: لا نص دون AA', lrows.length === 0, lrows.slice(0, 3).join(' | '));
   const lt = await l.page.evaluate(() => ({ blend: getComputedStyle(document.body).backgroundBlendMode, side: getComputedStyle(document.querySelector('.game-sidebar')).backgroundColor }));
   check('ركن الأطفال في الفاتح لم يتغيّر: بلا دمج وشريط جانبي فاتح', !lt.blend.includes('multiply') && lum(lt.side) > 200, JSON.stringify(lt));
   await l.ctx.close();

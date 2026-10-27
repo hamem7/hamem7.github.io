@@ -88,7 +88,7 @@
 }
 
 #lang-toggle-btn {
-    background: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(6, 35, 28, 0.2) !important;
     color: #fffdf6 !important;
     border: 1.5px solid rgba(255, 253, 246, 0.4);
     padding: 8px 18px;
@@ -111,7 +111,7 @@
 #theme-toggle-btn {
     display: inline-grid; place-items: center;
     width: 40px; height: 40px; padding: 0;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(6, 35, 28, 0.2);
     color: #fffdf6;
     border: 1.5px solid rgba(255, 253, 246, 0.4);
     border-radius: 50%;
@@ -137,7 +137,7 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(6, 35, 28, 0.2);
     color: #fffdf6;
     border: 1.5px solid rgba(255, 253, 246, 0.4);
     padding: 8px 18px;
@@ -1593,7 +1593,7 @@ h1.home-title .home-title-ha {
     padding: 6px 12px;
     border-radius: 30px;
     border: 1.5px solid var(--dh-gold-500);
-    background: rgba(255, 253, 246, 0.12);
+    background: rgba(6, 35, 28, 0.22);
     color: var(--dh-gold-300);
     font-family: inherit;
     font-size: 0.82rem;
