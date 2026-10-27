@@ -44,6 +44,9 @@ document.addEventListener('app-lang-changed', () => {
     const span = document.querySelector('#game-title > span:only-child');
     if (!src || !span || GameState.isWeaknessMode || GameState.currentData.type === 'weakness') return;
     span.textContent = localizeGenerated(t(src));
+    // شارة «سؤال مميز» نص ثابت مبنيّ لحظة العرض: تُحدَّث هي أيضًا (وإلا بقيت بالعربية بعد التبديل للإنجليزية)
+    const badge = document.querySelector('#game-title > .special-q-badge');
+    if (badge) badge.textContent = `⭐ ${t('سؤال مميز')} ⭐`;
 });
 
 // نص سؤال المتشابهات (أزراره وحالته لا تُمَسّ): يُعاد بناؤه بلغة الواجهة الجديدة عند تبديل اللغة أثناء عرضه
