@@ -506,3 +506,7 @@ html[data-theme="dark"] .ws-btn:not(.alt) { background: #1f7a4d; }
 /* تبويب «التقارير السابقة» في الشهادات: ذهبي غامق بنص أبيض ثابت — قاعدة .cc-tab المولَّدة كانت تقلب نصه لفاتح (4.1) */
 html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports,
 html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports.is-on { color: #fff !important; }
+/* أوراق التقارير/الشهادات تبقى فاتحة دائماً (تُصدَّر صورة/PDF): قاعدة .adult-theme h1/h2/h3 (!important) كانت تقلب عناوينها لنص فاتح على ورق فاتح (تباين 1.0) */
+html[data-theme="dark"] #report-screen .r-title { color: #0b3d30 !important; }
+html[data-theme="dark"] #report-screen .section-title { color: #2b2620 !important; }
+html[data-theme="dark"] .hwcert-mist h3 { color: #a15230 !important; }
