@@ -749,13 +749,13 @@ async function playNextMission() {
                 originalBodyHTML = orderSeenLine;
             } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
                 originalBodyHTML = orderSeenLine + `<div style="font-size:1.3rem; font-weight:bold; margin-bottom:10px;">${t('correct_order')}:</div>` +
-                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
+                    wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:clamp(1.6rem, 3.6vh, 2.2rem); margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
             } else if (wItem.questionType === 'order') {
-                originalBodyHTML = `<div style="font-size:1.1rem; color:#92400e; font-weight:bold; margin-bottom:6px;">${t('order_legacy_note')}</div><div class="quran-text" style="font-size:3rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
+                originalBodyHTML = `<div style="font-size:1.1rem; color:#92400e; font-weight:bold; margin-bottom:6px;">${t('order_legacy_note')}</div><div class="quran-text" style="font-size:clamp(2.2rem, 5.6vh, 3.8rem);">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             } else if (wItem.questionBody) {
                 originalBodyHTML = wItem.questionBody;
             } else {
-                originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
+                originalBodyHTML = `<div class="quran-text" style="font-size:clamp(2.2rem, 5.6vh, 3.8rem);">﴿\u00A0${wItem.text}\u00A0﴾</div>`;
             }
 
             // 🌟 [إصلاح] صيغة السؤال الأصلية بخط كبير فوق نصه (بدل سطر صغير تحت النص) + تنبيه للأخطاء القديمة 🌟
@@ -788,7 +788,7 @@ async function playNextMission() {
                 if (orderShufTitleEl) orderShufTitleEl.innerHTML = t('shuffled_ayahs');
                 buildOrderGameUI();
                 document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="font-size:1.3rem; font-weight:bold; margin:10px 0;">${t('correct_order')}:</div>` +
-                    orig.map((a, i) => `<div class="quran-text" style="font-size:2.2rem; margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
+                    orig.map((a, i) => `<div class="quran-text" style="font-size:clamp(1.6rem, 3.6vh, 2.2rem); margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
                 return;
             }
 
@@ -809,7 +809,7 @@ async function playNextMission() {
                 buildLinkGameUI();
                 // لا فائدة من «إظهار الإجابة للمطابقة» هنا: الربط تفاعلي ويصحّح نفسه
                 document.getElementById('show-ans-btn').style.display = 'none';
-                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div class="quran-text" style="font-size:2rem; margin-top:10px;">${linkRebuilt.answerHTML}</div>`;
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div class="quran-text" style="font-size:clamp(1.6rem, 3.6vh, 2rem); margin-top:10px;">${linkRebuilt.answerHTML}</div>`;
                 return;
             }
 
