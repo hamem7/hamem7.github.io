@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — التقرير الشهري (الخلفية القرآنية)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Amiri+Quran&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g8:#0a4736;--g7:#0d5c46;--gold:#d4af37;--gold-l:#f0d878;--gold-d:#8a6612;--ink:#10241c;--ink2:#4a6058;--line:#e3dbbd;--paper:#fffdf6;--bg:url("../assets/brand/monthly-report-bg.webp")}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1b16;color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:18px 12px 60px}
+button{font:inherit;border:0;cursor:pointer;background:none;color:inherit}
+.bar{max-width:794px;margin:0 auto 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:#b9d6c9;font-size:.85rem}
+.bar .pill{background:#17332a;border:1px solid #2c5446;color:#e8f3ee;border-radius:999px;padding:6px 14px;font-weight:600}
+.bar .pill.on{background:var(--gold);border-color:var(--gold);color:#2b2620}
+.bar .sp{flex:1}
+.note{max-width:794px;margin:0 auto 14px;color:#9fc4b4;font-size:.82rem;line-height:1.7;background:#12281f;border:1px solid #2c5446;border-radius:10px;padding:10px 14px}
+.scroll{overflow-x:auto}
+.v{display:none}.v.on{display:block}
+.page{width:794px;max-width:100%;margin:0 auto 18px;background:var(--paper);overflow:hidden;border-radius:6px;box-shadow:0 30px 70px rgba(0,0,0,.55);position:relative}
+.k{font-family:'Reem Kufi','Amiri',serif}
+.quran-text{font-family:'Amiri Quran',serif}
+
+/* ===== هيرو مشترك (مبسّط عن الحقيقي) ===== */
+.hero{position:relative;background:var(--g9);color:#f6f3e8;padding:24px 44px 46px;border-bottom:3px solid var(--gold)}
+.hero::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 22% 60%,rgba(20,124,94,.55),transparent 55%),repeating-linear-gradient(45deg,transparent 0 30px,rgba(212,175,55,.06) 30px 31px),repeating-linear-gradient(-45deg,transparent 0 30px,rgba(212,175,55,.06) 30px 31px)}
+.hero::after{content:"";position:absolute;inset:12px;border:1px solid rgba(212,175,55,.35);pointer-events:none}
+.hero>*{position:relative;z-index:1}
+.top{display:flex;align-items:center;gap:12px}
+.brand{font-size:26px;color:#fffdf6;line-height:1}.brand small{display:block;font-size:12px;color:var(--gold);margin-top:3px;font-family:'IBM Plex Sans Arabic'}
+.period{margin-inline-start:auto;text-align:end}.period b{display:block;font-size:24px;color:var(--gold-l);font-weight:600}.period span{font-size:12.5px;color:#c9d8d0}
+.idrow{display:flex;align-items:center;gap:16px;margin-top:16px}
+.av{width:78px;height:78px;border-radius:50%;padding:4px;background:var(--gold);flex:none}.av div{width:100%;height:100%;border-radius:50%;background:#0b3d30;display:grid;place-items:center;font-family:'Amiri';font-weight:700;font-size:34px;color:var(--gold-l)}
+.nm{font-family:'Amiri',serif;font-size:34px;font-weight:700;line-height:1.15;color:#fffdf6}
+.chip{display:inline-block;margin-top:5px;font-size:12.5px;color:var(--gold-l);border:1px solid rgba(212,175,55,.6);border-radius:20px;padding:3px 13px}
+
+/* ===== محتوى مشترك ===== */
+.body{padding:28px 48px 30px;position:relative;z-index:1}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.tile{background:#fffdf8;border:1px solid #e4d9c4;border-radius:14px;padding:12px;text-align:center}
+.tile i{display:block;font-style:normal;font-size:12px;color:#6f644e;font-weight:600;margin-bottom:6px}
+.tile b{font-family:'Amiri',serif;font-size:26px;color:#8a6221}
+.card{background:#fffdf8;border:1px solid #e4d9c4;border-radius:14px;padding:14px 16px;margin-bottom:14px}
+.card h3{font-family:'Reem Kufi','Amiri',serif;font-size:17px;color:var(--g8);margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f6efd9;color:#6f5a22;padding:7px 8px;text-align:start;font-weight:600}
+td{padding:7px 8px;border-bottom:1px solid #eee5cd}
+tr:last-child td{border-bottom:0}
+.foot{text-align:center;font-size:12px;color:#6f644e;padding:14px 0 18px;position:relative;z-index:1}
+
+/* ===== شريط البسملة ===== */
+.bism{font-size:26px;line-height:1.9;text-align:center;color:#8a6221}
+.orn{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--gold)}
+.orn::before,.orn::after{content:"";height:1px;width:120px;background:linear-gradient(90deg,transparent,var(--gold))}
+.orn::after{transform:scaleX(-1)}
+.orn svg{width:22px;height:22px}
+
+/* ===== 1) غلاف كامل ثم الصفحة ===== */
+.v1 .cover{height:1123px;background:var(--paper) var(--bg) no-repeat center bottom/cover;display:flex;flex-direction:column;align-items:center;padding-top:60px;text-align:center}
+.v1 .cover .t{font-family:'Reem Kufi','Amiri',serif;font-size:50px;color:var(--g8);margin-top:10px;font-weight:600}
+.v1 .cover .s{font-size:17px;color:var(--ink2);margin-top:6px;font-weight:500}
+.v1 .cover .n{font-family:'Amiri',serif;font-size:40px;color:var(--gold-d);font-weight:700;margin-top:22px}
+.v1 .cover .m{font-size:15px;color:var(--ink2);margin-top:6px}
+.v1 .p2{background:var(--paper)}
+
+/* ===== 2) الصورة شريط ختامي أسفل الصفحة ===== */
+.v2 .page{background:var(--paper)}
+.v2 .bottom{position:relative;height:300px;background:var(--bg) no-repeat center bottom/100% auto;margin-top:-10px}
+.v2 .bottom::before{content:"";position:absolute;left:0;right:0;top:0;height:140px;background:linear-gradient(var(--paper),rgba(255,253,246,0))}
+
+/* ===== 3) شريط علوي مصوَّر فوق الترويسة ===== */
+.v3 .band{position:relative;height:190px;background:var(--paper) var(--bg) no-repeat center 74%/118% auto;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid var(--gold)}
+.v3 .band::before{content:"";position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(rgba(255,253,246,.92),rgba(255,253,246,.55))}
+.v3 .band>*{position:relative}
+.v3 .band .bism{font-size:30px;line-height:1.7}
+
+/* ===== 4) خلفية خفيفة كاملة (ورق مصوَّر) ===== */
+.v4 .page::before{content:"";position:absolute;left:0;right:0;top:0;bottom:0;background:var(--bg) no-repeat center/cover;opacity:.42}
+.v4 .page>*{position:relative}
+.v4 .strip{padding:14px 0 12px;background:linear-gradient(rgba(255,253,246,.75),rgba(255,253,246,0))}
+
+/* ===== 5) هيرو فوق الصورة (الهيرو شفاف زجاجي) ===== */
+.v5 .page{background:var(--paper) var(--bg) no-repeat center top/100% auto}
+.v5 .hero{background:rgba(6,35,28,.86);backdrop-filter:blur(2px)}
+.v5 .hero::before{opacity:.6}
+.v5 .gap{height:150px}
+.v5 .card,.v5 .tile{background:rgba(255,253,248,.9)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <button class="pill on" data-v="1" data-ar="١ غلاف كامل" data-en="1 Full cover">١ غلاف كامل</button>
+  <button class="pill" data-v="2" data-ar="٢ شريط سفلي" data-en="2 Bottom banner">٢ شريط سفلي</button>
+  <button class="pill" data-v="3" data-ar="٣ شريط علوي" data-en="3 Top band">٣ شريط علوي</button>
+  <button class="pill" data-v="4" data-ar="٤ ورق مصوَّر" data-en="4 Photo paper">٤ ورق مصوَّر</button>
+  <button class="pill" data-v="5" data-ar="٥ هيرو فوق الصورة" data-en="5 Hero over image">٥ هيرو فوق الصورة</button>
+  <span class="sp"></span>
+  <button class="pill" id="lang">English</button>
+</div>
+<div class="note" id="note"></div>
+
+<!-- ============ 1 ============ -->
+<div class="v v1 on scroll">
+  <div class="page cover">
+    <div class="quran-text bism">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <div class="orn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="14" height="14"/><rect x="5" y="5" width="14" height="14" transform="rotate(45 12 12)"/></svg></div>
+    <div class="t" data-ar="التقرير الشهري" data-en="Monthly Report">التقرير الشهري</div>
+    <div class="s" data-ar="حلقات القرآن الكريم" data-en="Quran Circles">حلقات القرآن الكريم</div>
+    <div class="n" data-ar="أحمد محمد" data-en="Ahmed Mohamed">أحمد محمد</div>
+    <div class="m" data-ar="أكتوبر ٢٠٢٦ · ربيع الآخر ١٤٤٨" data-en="October 2026 · Rabi II 1448">أكتوبر ٢٠٢٦ · ربيع الآخر ١٤٤٨</div>
+  </div>
+  <div class="page p2" id="p1-2"></div>
+</div>
+
+<!-- ============ 2 ============ -->
+<div class="v v2 scroll">
+  <div class="page" id="p2-1"><div class="bottom"></div></div>
+</div>
+
+<!-- ============ 3 ============ -->
+<div class="v v3 scroll">
+  <div class="page" id="p3-1"></div>
+</div>
+
+<!-- ============ 4 ============ -->
+<div class="v v4 scroll">
+  <div class="page" id="p4-1"></div>
+</div>
+
+<!-- ============ 5 ============ -->
+<div class="v v5 scroll">
+  <div class="page" id="p5-1"></div>
+</div>
+
+<template id="t-hero">
+  <div class="hero">
+    <div class="top">
+      <div class="k brand" data-ar="حلقات القرآن" data-en="Quran Circles">حلقات القرآن<small data-ar="منصة الحفظ والمراجعة" data-en="Memorization & review platform">منصة الحفظ والمراجعة</small></div>
+      <div class="period k"><b data-ar="أكتوبر ٢٠٢٦" data-en="October 2026">أكتوبر ٢٠٢٦</b><span data-ar="ربيع الآخر ١٤٤٨" data-en="Rabi II 1448">ربيع الآخر ١٤٤٨</span></div>
+    </div>
+    <div class="idrow">
+      <div class="av"><div>أ</div></div>
+      <div><div class="nm" data-ar="أحمد محمد" data-en="Ahmed Mohamed">أحمد محمد</div><span class="chip" data-ar="الصف الرابع" data-en="Grade 4">الصف الرابع</span></div>
+    </div>
+  </div>
+</template>
+<template id="t-body">
+  <div class="body">
+    <div class="tiles">
+      <div class="tile"><i data-ar="صفحات الحفظ" data-en="Pages memorized">صفحات الحفظ</i><b>١٢</b></div>
+      <div class="tile"><i data-ar="المراجعة" data-en="Revision">المراجعة</i><b>٤٠</b></div>
+      <div class="tile"><i data-ar="الحضور" data-en="Attendance">الحضور</i><b>٩٢٪</b></div>
+      <div class="tile"><i data-ar="التقييم" data-en="Rating">التقييم</i><b>٤٫٦</b></div>
+    </div>
+    <div class="card"><h3 data-ar="سجل الأسبوع" data-en="Weekly log">سجل الأسبوع</h3>
+      <table><tr><th data-ar="اليوم" data-en="Day">اليوم</th><th data-ar="الحفظ" data-en="Memorization">الحفظ</th><th data-ar="التقييم" data-en="Rating">التقييم</th></tr>
+      <tr><td data-ar="الأحد" data-en="Sunday">الأحد</td><td data-ar="البقرة ٢٥٥–٢٥٧" data-en="Al-Baqarah 255–257">البقرة ٢٥٥–٢٥٧</td><td>★★★★★</td></tr>
+      <tr><td data-ar="الثلاثاء" data-en="Tuesday">الثلاثاء</td><td data-ar="البقرة ٢٥٨–٢٦٠" data-en="Al-Baqarah 258–260">البقرة ٢٥٨–٢٦٠</td><td>★★★★☆</td></tr>
+      <tr><td data-ar="الخميس" data-en="Thursday">الخميس</td><td data-ar="مراجعة جزء عمّ" data-en="Juz Amma review">مراجعة جزء عمّ</td><td>★★★★★</td></tr></table></div>
+    <div class="card"><h3 data-ar="رسالة المعلم" data-en="Teacher's note">رسالة المعلم</h3>
+      <p style="font-size:14px;line-height:1.9;color:var(--ink2)" data-ar="أحمد مجتهد ومنتظم، ونوصي بالمراجعة اليومية القصيرة لتثبيت ما حفظه هذا الشهر." data-en="Ahmed is diligent and consistent. A short daily review is recommended to solidify this month's memorization.">أحمد مجتهد ومنتظم، ونوصي بالمراجعة اليومية القصيرة لتثبيت ما حفظه هذا الشهر.</p></div>
+  </div>
+  <div class="foot" data-ar="أُعدّ هذا التقرير تلقائيًا من المنصة" data-en="Generated automatically by the platform">أُعدّ هذا التقرير تلقائيًا من المنصة</div>
+</template>
+<template id="t-bism"><div class="quran-text bism">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div></template>
+<template id="t-orn"><div class="orn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="14" height="14"/><rect x="5" y="5" width="14" height="14" transform="rotate(45 12 12)"/></svg></div></template>
+
+<script>
+const T = id => document.getElementById(id).content.cloneNode(true);
+const add = (pid, ...ids) => { const p = document.getElementById(pid); ids.forEach(i => p.append(T(i))); return p; };
+
+add('p1-2', 't-hero', 't-body');
+
+const p2 = document.getElementById('p2-1');
+const bottom = p2.querySelector('.bottom');
+['t-hero', 't-body'].forEach(i => p2.insertBefore(T(i), bottom));
+
+const p3 = document.getElementById('p3-1');
+const band = document.createElement('div'); band.className = 'band';
+band.append(T('t-bism'), T('t-orn')); p3.append(band); add('p3-1', 't-hero', 't-body');
+
+const p4 = document.getElementById('p4-1');
+const strip = document.createElement('div'); strip.className = 'strip';
+strip.append(T('t-bism'), T('t-orn')); p4.append(strip); add('p4-1', 't-hero', 't-body');
+
+const p5 = document.getElementById('p5-1');
+p5.append(T('t-hero')); const gap = document.createElement('div'); gap.className = 'gap'; p5.append(gap); add('p5-1', 't-body');
+
+const notes = {
+  1: ['غلاف كامل: الصورة بملء الصفحة الأولى (بسملة + عنوان + اسم الطالب)، ثم صفحة التقرير الحالية بلا تغيير. الأجمل بصريًا، لكنه يضيف صفحة للـPDF.',
+      'Full cover: the image fills a first page (basmala, title, student name), then the current report page unchanged. Most striking, but adds a page to the PDF.'],
+  2: ['شريط سفلي: التقرير كما هو، وفي نهاية الصفحة الأولى شريط من الصورة يتلاشى في الورق. خفيف ولا يلمس المقروئية.',
+      'Bottom banner: the report as-is, with the image fading into the paper at the end of page one. Light and keeps readability.'],
+  3: ['شريط علوي: فوق الترويسة الزمردية شريط مصوَّر (أقواس + بسملة + نقش). هذا ما سألتَ عنه فوق الترويسة.',
+      'Top band: an image strip (arches + basmala + ornament) above the emerald hero. This answers the "above the header" idea.'],
+  4: ['ورق مصوَّر: الصورة كاملة بشفافية خفيفة خلف الصفحة كلها، وبسملة فوق الهيرو. هوية قوية لكن الأقسام تحتاج بطاقات معتمة.',
+      'Photo paper: the full image at low opacity behind the page, basmala above the hero. Strong identity, but sections need opaque cards.'],
+  5: ['هيرو فوق الصورة: الهيرو شبه شفاف في أعلى الصورة والبطاقات تبدأ بعد مساحة فارغة. مختلف وأنيق لكنه يستهلك ارتفاعًا.',
+      'Hero over image: a translucent hero at the top of the image, cards starting after an open area. Distinct and elegant but uses vertical space.']
+};
+let lang = 'ar', cur = 1;
+function paint(){
+  document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-ar]').forEach(e => {
+    const s = e.getAttribute('data-' + lang);
+    const t = [...e.childNodes].find(n => n.nodeType === 3);
+    if (t) t.textContent = s; else if (!e.children.length) e.textContent = s;
+  });
+  document.getElementById('note').textContent = notes[cur][lang === 'ar' ? 0 : 1];
+  document.getElementById('lang').textContent = lang === 'ar' ? 'English' : 'العربية';
+}
+document.querySelectorAll('.bar [data-v]').forEach(b => b.onclick = () => {
+  cur = +b.dataset.v;
+  document.querySelectorAll('.bar [data-v]').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.v').forEach(v => v.classList.toggle('on', v.classList.contains('v' + cur)));
+  paint();
+});
+document.getElementById('lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; paint(); };
+paint();
+</script>
+</body>
+</html>
