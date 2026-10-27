@@ -765,8 +765,9 @@ async function playNextMission() {
 
             GameState.currentData = { type: 'weakness', questionTitle: t("تحدي تصحيح الخطأ السابق"), questionBody: `${headLine}${originalBodyHTML}${errorLine}${dateLine}`, fullAnswer: wItem.fullAnswer || wItem.text, ayahObj: { numberInSurah: wItem.num, surahName: wItem.surahName }, reportText: wItem.text };
             document.getElementById('teacher-eval-area').style.display = 'block';
-            document.getElementById('teacher-eval-buttons').style.display = 'flex';
-            const specialBadge = GameState.currentData.special ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
+            // أسئلة الربط تقيّم نفسها: «لا أعرف هذه» داخل بطاقة البداية والتصحيح تلقائي، فلا أزرار تقييم عامة
+            document.getElementById('teacher-eval-buttons').style.display = linkRebuilt ? 'none' : 'flex';
+            const specialBadge =GameState.currentData.special ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
             document.getElementById('game-title').innerHTML = specialBadge + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
 
