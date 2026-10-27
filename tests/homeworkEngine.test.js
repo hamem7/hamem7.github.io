@@ -21,7 +21,7 @@
 
 import assert from 'node:assert/strict';
 import { HomeworkEngine } from '../engine/homeworkEngine.js';
-import { cleanAyahText, isWaqfMark, splitAyahWords, normalizeForCompare } from '../engine/quranEngine.js';
+import { cleanAyahText, isWaqfMark, splitAyahWords, normalizeForCompare, shortMeaning } from '../engine/quranEngine.js';
 
 let passCount = 0;
 let failCount = 0;
@@ -375,7 +375,8 @@ await test('word_meaning: سؤال mcq صالح بإجابة صحيحة بين 4
             assert.equal(q.options.length, 4);
             assert.equal(new Set(q.options).size, 4, 'الاختيارات فريدة');
             assert.ok(q.options.includes(q.correctAnswer));
-            assert.ok(WM[String(sn)].some(e => e[2] === q.correctAnswer && q.title.includes(e[1])), 'الإجابة تخص الكلمة المسؤول عنها');
+            assert.ok(q.options.every(o => o.split(/\s+/).length <= 5), 'المعنى ≤ 5 كلمات');
+            assert.ok(WM[String(sn)].some(e => shortMeaning(e[2]) === q.correctAnswer && q.title.includes(e[1])), 'الإجابة تخص الكلمة المسؤول عنها');
         }
     }
 });
