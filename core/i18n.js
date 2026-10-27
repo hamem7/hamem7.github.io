@@ -5589,6 +5589,12 @@ export const translations = {
         // 🌟 [2026-10-22] "Which word is missing?" and "Recite the verse of the named surah" (adults corner only)
         "ما الكلمة الناقصة؟ 🔀": "Which word is missing? 🔀",
         "اقرأ الآية من السورة المذكورة 🔀": "Recite the verse of the named surah 🔀",
+        // ⭐ Special-question badge and celebration (before/after + named-surah questions)
+        "سؤال مميز": "Special Question",
+        "ما شاء الله! حافظ مميز": "MashaAllah! An outstanding memorizer",
+        "وسام النجمة الذهبية ⭐ + 5 نقاط إضافية": "Golden star medal ⭐ + 5 bonus points",
+        "مجموع نجومك:": "Your total stars:",
+        "حصلتَ على شهادة النجوم الذهبية! ستجدها في «الشهادات والتقارير»": "You earned the Golden Stars certificate! Find it in “Certificates & Reports”",
         sim_q_missing: "In Surah {name}, the verse below appears with one word missing. Which word is missing?",
         sim_q_named_2: "The verse ﴿{word}﴾ appears in two surahs you have memorized: {names}. Recite from memory the verse in Surah {name}.",
         sim_q_named_n: "The verse ﴿{word}﴾ appears in {n} surahs you have memorized: {names}. Recite from memory the verse in Surah {name}.",

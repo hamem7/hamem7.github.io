@@ -954,7 +954,8 @@ async function playNextMission() {
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             recordSeen(GameState.currentData && GameState.currentData.ayahObj); // 🌟 تسجيل الآية في دفتر الطالب عند العرض الفعلي
             
-            document.getElementById('game-title').innerHTML = `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${localizeGenerated(t(GameState.currentData.questionTitle))}</span>`; 
+            const specialBadgeMain = (GameState.currentData.special && !GameState.isWeaknessMode) ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
+            document.getElementById('game-title').innerHTML = specialBadgeMain + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${localizeGenerated(t(GameState.currentData.questionTitle))}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
             if(['between', 'recite', 'similar'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             if (GameState.currentData.simKind === 'sim_named') document.body.dataset.simKind = 'sim_named'; // تخطيط ممتلئ لسؤال «اقرأ الآية من السورة المذكورة»
