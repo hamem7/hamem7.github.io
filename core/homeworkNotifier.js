@@ -29,6 +29,8 @@
 import { isTeacherAuthed } from './api.js';
 import { listAllSubmissionsForNotifications } from './homeworkApi.js';
 import { t } from './i18n.js';
+import { AppState } from './app.js';
+import { formatSubmittedAt } from './submissionStatus.js';
 // 🌟 [جديد — إصلاح XSS] اسم الطالب في إشعار التسليم يأتي من الخادم، فيُنظَّف قبل الحقن في innerHTML
 import { esc } from './escape.js';
 
@@ -149,6 +151,14 @@ function ensureToastContainer() {
     return container;
 }
 
+// نص الإشعار بوقت التسليم الفعلي (قد يصل الإشعار متأخراً عن التسليم، فلا نقول «الآن»)
+function submissionBodyText(sub, rawName) {
+    const when = formatSubmittedAt(sub, AppState.currentLang);
+    return when
+        ? t('hw_notif_new_submission_body_at').replace('{name}', rawName).replace('{when}', when)
+        : t('hw_notif_new_submission_body').replace('{name}', rawName);
+}
+
 function showNewSubmissionToast(sub) {
     const container = ensureToastContainer();
     const toast = document.createElement('div');
@@ -158,7 +168,7 @@ function showNewSubmissionToast(sub) {
         <span class="dh-hw-notif-icon" aria-hidden="true">🔔</span>
         <span class="dh-hw-notif-text">
             <span class="dh-hw-notif-title">${t('hw_notif_new_submission_title')}</span>
-            <span class="dh-hw-notif-body">${t('hw_notif_new_submission_body').replace('{name}', esc(studentName))}</span>
+            <span class="dh-hw-notif-body">${submissionBodyText(sub, esc(studentName))}</span>
         </span>
         <button type="button" class="dh-hw-notif-close" aria-label="✕">✕</button>
     `;
@@ -202,7 +212,7 @@ function showDesktopNotifications(subs) {
         subs.forEach(sub => {
             const name = sub.studentName || t('hw_notif_unknown_student');
             open(new Notification(title, {
-                body: t('hw_notif_new_submission_body').replace('{name}', name),
+                body: submissionBodyText(sub, name),
                 icon: 'icons/icon-192.png', tag: 'dh-hw-' + (sub.docId || sub.id || name)
             }));
         });
