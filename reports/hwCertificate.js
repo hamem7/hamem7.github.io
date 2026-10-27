@@ -20,6 +20,7 @@ import { esc } from '../core/escape.js';
 import { AppState } from '../core/app.js';
 // 🌟 سجل نتائج الواجبات المعتمدة في ملف الطالب (نفس مصدر الكتابة في recordApprovedResult)
 import { readStudentHistory } from '../core/homeworkRecords.js';
+import { isTeacherAuthed } from '../core/api.js';
 
 // ------------------------------------------------------------
 // تحميل html2canvas من cdnjs — نفس الرابط والنسخة المستخدمة بالضبط في reports/report.js
@@ -218,39 +219,69 @@ function fitCertificate(card, maxF = 1) {
 
 // 🌟 «مستوى التقدّم العام» للواجبات: هذا الواجب ثم آخر 3 واجبات معتمدة سابقة للطالب (الأحدث أولاً، أقصى اليمين في RTL).
 // يقرأ نتائج الواجبات فقط (source: 'homework') — الاختبارات الفردية مسار مستقل ولا تدخل هنا. يستبعد التسليم نفسه،
-// ويستبعد ما اعتُمد بعده (فتبقى شهادة قديمة تعرض ما كان قبلها). بلا طالب مربوط ← لا سُلّم (null).
+// ويستبعد ما اعتُمد بعده (فتبقى شهادة قديمة تعرض ما كان قبلها). يظهر السُلّم دائماً: بلا طالب مربوط تظهر محطة «هذا الواجب» وحدها
+// مع سطر «غير مربوط بسجل طالب». المحطات السابقة تُكمَل من الواجبات المعتمدة في الخادم (fetchCloudPrevious) للواجبات القديمة غير المسجَّلة محلياً.
 const LADDER_COLOR = { excellent: '#147c5e', good: '#2c6f73', average: '#b8862b', weak: '#a15230' };
 function shortDate(ms) {
     const d = new Date(ms);
     const p = (n) => String(n).padStart(2, '0');
     return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
-function buildHwLadder(submission, student, score, issuedAt) {
-    if (!student || student.id == null) return null;
+// previous المحلي: سجلات history_<id> ذات source 'homework' ومعتمدة → { submissionId, score, timestamp }
+function localPreviousHomework(student) {
+    if (!student || student.id == null) return [];
     let list = [];
-    try { list = readStudentHistory(student.id) || []; } catch (e) { return null; }
+    try { list = readStudentHistory(student.id) || []; } catch (e) { return []; }
+    return list
+        .filter(h => h && h.source === 'homework' && h.approved && typeof h.score === 'number')
+        .map(h => ({ submissionId: h.submissionId, score: h.score, timestamp: Number(h.timestamp) || 0 }));
+}
+// الواجبات المعتمدة من الخادم لنفس الطالب (نفس مطابقة reports/monthly-report.js: s.studentId == student.id). أي فشل ← [] بصمت.
+async function fetchCloudPrevious(student) {
+    if (!student || student.id == null || !isTeacherAuthed()) return [];
+    try {
+        const { getAllSubmissionsFromCloud } = await import('../core/homeworkApi.js');
+        const all = await getAllSubmissionsFromCloud();
+        return (all || [])
+            .filter(s => s && String(s.studentId) === String(student.id) && typeof s.finalScore === 'number')
+            .map(s => ({ submissionId: s.id, score: s.finalScore, timestamp: Date.parse(s.approvedAt) || 0 }))
+            .filter(h => h.timestamp > 0);
+    } catch (e) {
+        console.warn('[hwCertificate] تعذّر جلب الواجبات السابقة من الخادم — يُكتفى بالسجل المحلي:', e);
+        return [];
+    }
+}
+// يدمج المحلي والسحابي بلا تكرار (المفتاح submissionId؛ المحلي يغلب)، يستبعد هذا التسليم وما بعد تاريخه.
+function buildHwLadder(submission, student, score, issuedAt, cloudPrev) {
     const currentMs = issuedAt.getTime();
-    const previous = list
-        .filter(h => h && h.source === 'homework' && h.approved && h.submissionId !== submission.id
-            && typeof h.score === 'number' && (Number(h.timestamp) || 0) <= currentMs)
-        .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
-        .slice(-3).reverse();
-    const labels = [t('hwcert_step_prev1'), t('hwcert_step_prev2'), t('hwcert_step_prev3')];
     const step = (label, ms, sc, isCurrent) => {
         const tier = getTier(sc);
         return { label, date: shortDate(ms), score: Math.round(sc), tierLabel: t('hwcert_tier_name_' + tier), color: LADDER_COLOR[tier], isCurrent };
     };
-    return [step(t('hwcert_step_current'), currentMs, score, true)]
-        .concat(previous.map((h, i) => step(labels[i], Number(h.timestamp) || currentMs, h.score, false)));
+    const current = step(t('hwcert_step_current'), currentMs, score, true);
+    if (!student || student.id == null) return { steps: [current], unlinked: true };
+    const seen = new Set();
+    const merged = [];
+    localPreviousHomework(student).concat(cloudPrev || []).forEach(h => {
+        const key = h.submissionId === undefined || h.submissionId === null ? null : String(h.submissionId);
+        if (key !== null) { if (seen.has(key)) return; seen.add(key); }
+        merged.push(h);
+    });
+    const previous = merged
+        .filter(h => String(h.submissionId) !== String(submission.id) && (Number(h.timestamp) || 0) <= currentMs)
+        .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
+        .slice(-3).reverse();
+    const labels = [t('hwcert_step_prev1'), t('hwcert_step_prev2'), t('hwcert_step_prev3')];
+    return { steps: [current].concat(previous.map((h, i) => step(labels[i], Number(h.timestamp) || currentMs, h.score, false))), unlinked: false };
 }
-function ladderHtml(steps) {
-    if (!steps) return '';
+function ladderHtml({ steps, unlinked }) {
     const rows = steps.map((s, i) => `<div class="hwcert-vstep${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
             <div class="hwcert-vdotcol"><i class="hwcert-vdot" style="background:${s.color};"></i>${i < steps.length - 1 ? '<i class="hwcert-vline"></i>' : ''}</div>
             <div class="hwcert-vtxt"><small>${esc(s.label)}</small><b>${s.score}% · ${esc(s.tierLabel)}</b><span dir="ltr">${esc(s.date)}</span></div>
         </div>`).join('');
-    const first = steps.length < 2 ? `<div class="hwcert-lfirst">${t('hwcert_ladder_first')}</div>` : '';
-    return `<div class="hwcert-ladder vt"><h3>${t('hwcert_ladder_title')}</h3>${rows}${first}</div>`;
+    const foot = unlinked ? `<div class="hwcert-lfirst">${t('hwcert_ladder_unlinked')}</div>`
+        : steps.length < 2 ? `<div class="hwcert-lfirst">${t('hwcert_ladder_first')}</div>` : '';
+    return `<div class="hwcert-ladder vt"><h3>${t('hwcert_ladder_title')}</h3>${rows}${foot}</div>`;
 }
 
 const MAX_MISTAKES = 10;
@@ -336,14 +367,14 @@ export function showHomeworkCertificate(submission, student, scope) {
     const teacher = getTeacherForCertificate();
     const avatarUrl = getStudentAvatar(student);
     const mistakes = collectMistakes(submission);
-    const ladderBlock = ladderHtml(buildHwLadder(submission, student, score, issuedAt));
+    const ladderBlock = ladderHtml(buildHwLadder(submission, student, score, issuedAt));   // السُلّم يظهر دائماً (راجع buildHwLadder)
     // 🌟 [جديد] كلمة المعلم الاختيارية (تُحفظ مع التسليم من غرفة التصحيح) — لا تظهر الكتلة لو فارغة
     const teacherNote = String(submission.teacherNote || '').trim();
     const filename = `شهادة-${studentName}.png`.replace(/[\\/:*?"<>|]/g, '_');
 
     const overlay = document.createElement('div');
     overlay.className = 'hwcert-overlay';
-    const shownMistakes = mistakes.slice(0, ladderBlock ? MAX_MISTAKES_BESIDE_LADDER : MAX_MISTAKES);
+    const shownMistakes = mistakes.slice(0, MAX_MISTAKES_BESIDE_LADDER);
     const moreMistakes = mistakes.length - shownMistakes.length;
     const dir = (AppState && AppState.currentLang === 'en') ? 'ltr' : 'rtl';
     const titleText = t('hwcert_title').replace(/\s*🏅/, '');
@@ -376,7 +407,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                             <div class="hwcert-enc">${t('hwcert_tier_' + tier)}</div>
                         </div>
                     </div>
-                    ${ladderBlock ? '<div class="hwcert-split">' : ''}${ladderBlock}
+                    <div class="hwcert-split">${ladderBlock}
                     <div class="hwcert-mist">
                         ${shownMistakes.length ? `
                             <h3>${t('hwcert_mistakes_title')}</h3>
@@ -386,7 +417,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                             ${moreMistakes > 0 ? `<div class="hwcert-mmore">${t('hwcert_mistakes_more').replace('{n}', moreMistakes)}</div>` : ''}
                         ` : `<div class="hwcert-nomist">${t('hwcert_no_mistakes')}</div>`}
                     </div>
-                    ${ladderBlock ? '</div>' : ''}
+                    </div>
                     ${teacherNote ? `<div class="hwcert-note"><b>${t('hwcert_teacher_note_title')}</b><span>${esc(teacherNote)}</span></div>` : ''}
                 </div>
                 <div class="hwcert-close">
@@ -413,6 +444,16 @@ export function showHomeworkCertificate(submission, student, scope) {
     const maxF = teacherNote ? 1 : 1.3;
     fitCertificate(cardEl, maxF);
     try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl, maxF)); } catch (e) { /* تجاهل */ }
+    // إكمال المحطات السابقة من الخادم بعد ظهور الشهادة (لا تُحجب بالشبكة؛ الفشل صامت ويبقى السجل المحلي)
+    if (student && student.id != null) {
+        fetchCloudPrevious(student).then(cloudPrev => {
+            if (!cloudPrev.length || !overlay.isConnected) return;
+            const holder = document.createElement('div');
+            holder.innerHTML = ladderHtml(buildHwLadder(submission, student, score, issuedAt, cloudPrev));
+            const old = overlay.querySelector('.hwcert-ladder');
+            if (old && holder.firstElementChild) { old.replaceWith(holder.firstElementChild); fitCertificate(cardEl, maxF); }
+        });
+    }
     const noteEl = overlay.querySelector('#hwcert-note');
     const showNote = (msg) => { noteEl.textContent = msg; noteEl.style.display = 'block'; };
 

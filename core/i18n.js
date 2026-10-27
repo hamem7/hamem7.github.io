@@ -1340,6 +1340,7 @@ export const translations = {
         hwcert_subtitle: "منصة حمٓ لتثبيت الحفظ و المراجعة", // 🌟 الاسم المعتمد بعلامة المد (U+0653) وبدون "دار"
         hwcert_ladder_title: "مستوى التقدّم العام",
         hwcert_ladder_first: "هذا أول واجب معتمد في سجل الطالب — ستظهر المقارنة بالواجبات السابقة بدءًا من الواجب القادم.",
+        hwcert_ladder_unlinked: "غير مربوط بسجل طالب — لا توجد مقارنة بالواجبات السابقة.",
         hwcert_step_current: "هذا الواجب",
         hwcert_step_prev1: "الواجب السابق",
         hwcert_step_prev2: "قبله",
@@ -4312,6 +4313,7 @@ export const translations = {
         hwcert_subtitle: "Ham Platform for Retaining & Reviewing Memorization", // 🌟 نفس صياغة splash_subtitle
         hwcert_ladder_title: "Overall progress level",
         hwcert_ladder_first: "This is the first approved homework in the student's record — the comparison with previous homework will appear from the next one onwards.",
+        hwcert_ladder_unlinked: "Not linked to a student record — no comparison with previous homework.",
         hwcert_step_current: "This homework",
         hwcert_step_prev1: "Previous homework",
         hwcert_step_prev2: "The one before",
