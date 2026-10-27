@@ -55,3 +55,11 @@ export function syncSubmissionScoreToLocalHistory(studentId, hwId, newScore) {
         return false;
     }
 }
+
+// وقت التسليم الحقيقي (تاريخ + ساعة) بلغة الواجهة؛ يعتمد توقيت الخادم المخزَّن مع التسليم لا لحظة عرضه.
+// '' لو لم يتوفر أي توقيت.
+export function formatSubmittedAt(sub, lang) {
+    const ts = Number(sub && sub.timestamp) || Date.parse((sub && sub.submittedAt) || '') || 0;
+    if (!ts) return (sub && sub.date) || '';
+    return new Date(ts).toLocaleString(lang === 'en' ? 'en-US' : 'ar-EG', { dateStyle: 'medium', timeStyle: 'short' });
+}

@@ -1392,6 +1392,8 @@ export const translations = {
         // core/homeworkNotifier.js
         hw_notif_new_submission_title: "🔔 تسليم واجب جديد",
         hw_notif_new_submission_body: "الطالب {name} سلّم واجبه الآن.",
+        hw_submitted_at: "وقت التسليم", hw_grading_next: "التالي ←", hw_grading_prev: "→ السابق", hw_grading_paper_n: "ورقة {i} من {n}",
+        hw_notif_new_submission_body_at: "الطالب {name} سلّم واجبه في {when}.",
         hw_notif_many_body: "وصلك {n} تسليمات جديدة.", // 🌟 إشعار سطح المكتب المجمَّع
         hw_notif_unknown_student: "أحد الطلاب",
         hw_st_legacy_link: "هذا رابط واجب قديم لم يعد يعمل. اطلب من معلمك رابطاً جديداً.",
@@ -4350,6 +4352,8 @@ export const translations = {
         hw_copy_msg_footer: "Please open the link and solve the homework, then press \"Submit\" when you finish ... wishing you the best of luck 🌟",
         hw_notif_new_submission_title: "🔔 New homework submission",
         hw_notif_new_submission_body: "{name} just submitted their homework.",
+        hw_submitted_at: "Submitted at", hw_grading_next: "Next →", hw_grading_prev: "← Previous", hw_grading_paper_n: "Paper {i} of {n}",
+        hw_notif_new_submission_body_at: "{name} submitted their homework on {when}.",
         hw_notif_many_body: "You received {n} new submissions.", // 🌟 grouped desktop notification
         hw_notif_unknown_student: "A student",
         hw_st_legacy_link: "This is an old homework link and no longer works. Ask your teacher for a new one.",

@@ -30,7 +30,7 @@ import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // 🌟🌟 [جديد — المرحلة 3] syncSubmissionScoreToLocalHistory: تُبقي نسخة history_<studentId>
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
-import { submissionNeedsGrading, submissionHasPendingManual } from '../core/submissionStatus.js';
+import { submissionNeedsGrading, submissionHasPendingManual, formatSubmittedAt } from '../core/submissionStatus.js';
 import { t, applyLanguage, localizeHomeworkText, surahLabel } from '../core/i18n.js';
 const hl = localizeHomeworkText; // 🌟 ترجمة نص السؤال المخزَّن بالعربية وقت العرض فقط
 // 🌟 [جديد — إصلاح XSS] تنظيف أي نص قادم من الخادم (اسم الطالب/إجاباته) قبل حقنه في innerHTML
@@ -471,6 +471,7 @@ async function loadHomeworkDashboard() {
         document.querySelectorAll('.btn-view-results').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 const hwId = e.currentTarget.getAttribute('data-id');
+                if (e.currentTarget.classList.contains('is-grading')) { await startGradingQueue(hwId); return; }
                 await toggleInlineSubmissions(hwId);
             });
         });
@@ -949,7 +950,7 @@ async function loadSubmissionsInline(hwId) {
                             ${esc(sub.studentName)} ${badge}
                             <button class="btn btn-open-grading" data-idx="${index}" style="background: #8b5cf6; padding: 4px 12px; font-size: 0.95rem; margin-right: 10px;">🔍 ${t('مراجعة وتصحيح')}</button>
                         </td>
-                        <td style="padding: 15px; color: #64748b;">${sub.date}</td>
+                        <td style="padding: 15px; color: #64748b;">${esc(formatSubmittedAt(sub, AppState.currentLang))}</td>
                         <td style="padding: 15px; font-weight: bold; font-size: 1.3rem;" id="score-cell-${index}">${scoreCellHtml}</td>
                     </tr>
                 `;
@@ -961,6 +962,7 @@ async function loadSubmissionsInline(hwId) {
             document.querySelectorAll('.btn-open-grading').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const idx = e.currentTarget.getAttribute('data-idx');
+                    gradingQueue = [];
                     openGradingRoom(idx);
                 });
             });
@@ -973,6 +975,38 @@ async function loadSubmissionsInline(hwId) {
             <br><button class="btn" id="btn-retry-submissions" style="margin-top:10px; background:#0ea5e9;">🔄 ${t('إعادة المحاولة')}</button>
         </div>`;
         document.getElementById('btn-retry-submissions')?.addEventListener('click', () => loadSubmissionsInline(hwId));
+    }
+}
+
+// طابور التصحيح: فهارس التسليمات المنتظرة في currentSubmissionsList مرتبةً من الأقدم تسليماً.
+// يُملأ عند الضغط على زر «تصحيح الآن»، ويفرغ عند فتح غرفة تصحيح من قائمة الطلاب العادية.
+let gradingQueue = [];
+
+function gradingNavHtml(subIndex) {
+    const pos = gradingQueue.indexOf(Number(subIndex));
+    if (pos < 0 || gradingQueue.length < 2) return '';
+    const btn = (dir, label, off) => `<button type="button" class="btn btn-outline" data-grading-nav="${dir}" ${off ? 'disabled' : ''} style="padding:2px 12px; font-size:0.95rem;">${label}</button>`;
+    return `<span style="display:flex; align-items:center; gap:8px;">
+        ${btn(1, t('hw_grading_next'), pos >= gradingQueue.length - 1)}
+        <b>${t('hw_grading_paper_n').replace('{i}', pos + 1).replace('{n}', gradingQueue.length)}</b>
+        ${btn(-1, t('hw_grading_prev'), pos <= 0)}
+    </span>`;
+}
+
+// الزر الأحمر «تصحيح الآن»: يفتح غرفة التصحيح مباشرة على أقدم ورقة منتظرة بدل قائمة الطلاب.
+async function startGradingQueue(hwId) {
+    try {
+        const subs = await getSubmissionsFromCloud(hwId);
+        const ts = s => Number(s.timestamp) || Date.parse(s.submittedAt || '') || 0;
+        currentHwIdForGrading = hwId;
+        currentSubmissionsList = subs;
+        gradingQueue = subs.map((s, i) => i).filter(i => submissionNeedsGrading(subs[i]) && subs[i].details)
+            .sort((a, b) => ts(subs[a]) - ts(subs[b]));
+        if (!gradingQueue.length) { await toggleInlineSubmissions(hwId); return; }
+        openGradingRoom(gradingQueue[0]);
+    } catch (e) {
+        console.error('تعذر فتح غرفة التصحيح:', e);
+        alert(t('hw_results_load_error') + ' ' + friendlyErrorText(e));
     }
 }
 
@@ -990,6 +1024,11 @@ function openGradingRoom(subIndex) {
                             ? t('⏳ الدرجة النهائية ستظهر بعد اعتماد كل الأسئلة اليدوية')
                             : `${t('النتيجة:')} ${sub.score}%`
                     }</div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin:-8px 0 16px; color:#64748b; font-size:0.95rem;">
+                    <span>🕒 ${t('hw_submitted_at')}: <b>${esc(formatSubmittedAt(sub, AppState.currentLang))}</b></span>
+                    ${gradingNavHtml(subIndex)}
                 </div>
 
                 <!-- 🌟 أنماط أزرار الدرجة اليدوية — محصورة داخل #grading-room-modal فقط حتى لا تؤثر على أي شاشة أخرى -->
@@ -1131,6 +1170,14 @@ function openGradingRoom(subIndex) {
 
     document.getElementById('btn-close-grading').addEventListener('click', () => {
         document.getElementById('grading-room-modal').remove();
+    });
+    document.querySelectorAll('#grading-room-modal [data-grading-nav]').forEach(b => {
+        b.addEventListener('click', () => {
+            const pos = gradingQueue.indexOf(Number(subIndex)) + Number(b.dataset.gradingNav);
+            if (pos < 0 || pos >= gradingQueue.length) return;
+            document.getElementById('grading-room-modal')?.remove();
+            openGradingRoom(gradingQueue[pos]);
+        });
     });
 
     // 🌟🌟 [جديد] اختيار درجة السؤال اليدوي: حدث click فقط (لا wheel/touchmove/pointermove)، فلا تتغيّر
