@@ -530,6 +530,9 @@ async function loadNeedsGradingStat(allHWs) {
         const localIds = new Set(allHWs.map(hw => String(hw.id)));
         const pending = (await getSubmissionsNeedingGrading()).filter(sub => localIds.has(String(sub.hwId)));
         pendingGradingHwIds = new Set(pending.map(sub => sub.hwId));
+        // عدد الأوراق المنتظرة لكل واجب: يظهر على زر الصف «تصحيح الآن (٣)»
+        pendingGradingCounts = new Map();
+        pending.forEach(sub => { const k = String(sub.hwId); pendingGradingCounts.set(k, (pendingGradingCounts.get(k) || 0) + 1); });
         statEl.innerText = pending.length;
 
         pendingGradingHwIds.forEach(hwId => {
@@ -626,6 +629,7 @@ async function loadOverdueHomeworkStat(allHWs) {
 // ==========================================================================================
 let activeHwFilter = 'all';   // all | published | draft | grading | overdue
 let hwSearchText = '';
+let pendingGradingCounts = new Map();
 
 // مقارنة المعرّفات كنصوص لأن بعض المعرّفات قد تكون أرقاماً (محلية) وبعضها نصوصاً (من الخادم)
 function hwSetHas(set, id) {
@@ -646,7 +650,8 @@ function applyHwRowStates() {
             const ic = resBtn.querySelector('.hwp3-ic');
             const lbl = resBtn.querySelector('.hwp3-lbl');
             if (ic) ic.textContent = needsGrading ? '✍️' : '📊';
-            if (lbl) lbl.textContent = needsGrading ? t('hw_act_grade_now') : t('hw_act_results');
+            const n = pendingGradingCounts.get(String(id)) || 0;
+            if (lbl) lbl.textContent = needsGrading ? t('hw_act_grade_now') + (n > 0 ? ` (${n})` : '') : t('hw_act_results');
         }
         // 🌟 [تعديل] لا زر "تذكير الطالب" ولا أي إرسال تلقائي: الواجب المتأخر يظهر للمعلم كتنبيه فقط (شارة ⏰ + بطاقة المتأخر)،
         // والمعلم هو من يتواصل مع الطالب بنفسه (واتساب مثلاً).
@@ -926,7 +931,8 @@ async function loadSubmissionsInline(hwId) {
             currentSubmissionsList.forEach((sub, index) => {
                 // 🌟🌟 [عدّل] نفس الفحص بالضبط، عبر الدالة المشتركة submissionNeedsGrading — راجع core/submissionStatus.js
                 let needsGrading = submissionNeedsGrading(sub);
-                let badge = needsGrading ? `<span style="background: #fef08a; color: #854d0e; font-size: 0.8rem; padding: 2px 5px; border-radius: 5px;">${t('يحتاج تصحيح')}</span>` : "";
+                // الحالة تظهر مرة واحدة في خلية الدرجة («بانتظار التصحيح»)، فلا وسم «يحتاج تصحيح» مكرر بجانب الاسم
+                let badge = "";
 
                 // 🌟🌟 [جديد] لا نعرض أي رقم/نسبة مئوية قبل اكتمال التصحيح اليدوي: sub.score قبل الاعتماد
                 // (provisionalScore من الخادم) محسوب من الأسئلة الآلية فقط ويتجاهل الأسئلة اليدوية المعلّقة

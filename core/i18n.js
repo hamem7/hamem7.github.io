@@ -1466,7 +1466,7 @@ export const translations = {
         hw_act_results: "النتائج", hw_act_link: "نسخ الرابط", hw_act_delete: "حذف", hw_act_publish: "نشر",
         // 🌟 [جديد 2026-10-01 — إعادة تصميم سجل الواجبات]
         hw_hero_title: "جاهز لواجب جديد؟", hw_hero_sub: "اختر الطالب وسيُبنى الواجب تلقائياً على نطاق حفظه وأخطائه في أقل من دقيقة.",
-        hw_act_grade_now: "يحتاج تصحيح", hw_act_remind: "تذكير الطالب", hw_act_more: "المزيد من الإجراءات",
+        hw_act_grade_now: "تصحيح الآن", hw_act_remind: "تذكير الطالب", hw_act_more: "المزيد من الإجراءات",
         hw_filter_all: "الكل", hw_filter_published: "منشور", hw_filter_draft: "مسودة", hw_filter_grading: "يحتاج تصحيح", hw_filter_overdue: "متأخر",
         hw_search_ph: "ابحث باسم الطالب", hw_filter_empty: "لا توجد واجبات مطابقة.",
         hw_remind_msg: "السلام عليكم {name}، تذكير بواجبك المنزلي في منصة حمٓ. رابط الواجب:",
@@ -4422,7 +4422,7 @@ export const translations = {
         hw_act_results: "Results", hw_act_link: "Copy link", hw_act_delete: "Delete", hw_act_publish: "Publish",
         // 🌟 [New 2026-10-01 — homework history redesign]
         hw_hero_title: "Ready for new homework?", hw_hero_sub: "Pick the student and the homework is built automatically from their range and mistakes in under a minute.",
-        hw_act_grade_now: "Needs grading", hw_act_remind: "Remind student", hw_act_more: "More actions",
+        hw_act_grade_now: "Grade now", hw_act_remind: "Remind student", hw_act_more: "More actions",
         hw_filter_all: "All", hw_filter_published: "Published", hw_filter_draft: "Draft", hw_filter_grading: "Needs grading", hw_filter_overdue: "Overdue",
         hw_search_ph: "Search by student name", hw_filter_empty: "No matching homework.",
         hw_remind_msg: "Peace be upon you {name}, a reminder about your homework on Ham. Homework link:",
