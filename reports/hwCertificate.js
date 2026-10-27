@@ -18,6 +18,8 @@ import { t, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i1
 import { esc } from '../core/escape.js';
 // 🌟 ملف المعلم (الاسم + الختم) من AppState — نفس مصدر reports/dual-test-report.js، مع حماية لو لم يُحمَّل بعد
 import { AppState } from '../core/app.js';
+// 🌟 سجل نتائج الواجبات المعتمدة في ملف الطالب (نفس مصدر الكتابة في recordApprovedResult)
+import { readStudentHistory } from '../core/homeworkRecords.js';
 
 // ------------------------------------------------------------
 // تحميل html2canvas من cdnjs — نفس الرابط والنسخة المستخدمة بالضبط في reports/report.js
@@ -134,6 +136,21 @@ function ensureStyles() {
         .hwcert-scope small { display: block; font-size: ${S(2)}; color: #6a5a44; }
         .hwcert-scope b { font-family: 'Amiri', serif; font-size: ${S(2.8)}; color: #2c6f73; line-height: 1.45; }
         .hwcert-enc { font-family: 'Amiri', serif; font-size: ${S(2.7)}; line-height: 1.5; background: rgba(212,175,55,.16); border-radius: ${S(2.2)}; padding: ${S(1)} ${S(2.4)}; }
+        .hwcert-ladder { width: 100%; margin-top: ${S(1.6)}; background: rgba(255,255,255,.82); border: 1px solid #e0cd98; border-radius: ${S(2.4)}; padding: ${S(1.1)} ${S(2)} ${S(1)}; box-sizing: border-box; }
+        .hwcert-ladder h3 { font-size: ${S(2.5)}; color: #2c6f73; font-weight: 700; margin: 0 0 ${S(1)}; text-align: center; }
+        .hwcert-lrow { display: flex; align-items: flex-start; }
+        .hwcert-step { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; gap: ${S(.5)}; text-align: center; min-width: 0; }
+        .hwcert-dot { width: ${S(5)}; height: ${S(5)}; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+            border: ${S(.35)} solid #fffdf8; box-shadow: 0 0 0 ${S(.25)} currentColor; }
+        .hwcert-dot svg { width: ${S(2.4)}; height: ${S(2.4)}; display: block; }
+        .hwcert-step.cur .hwcert-dot { box-shadow: 0 0 0 ${S(.25)} currentColor, 0 0 0 ${S(.75)} rgba(212,175,55,.4); }
+        .hwcert-swhen { font-size: ${S(1.9)}; font-weight: 700; color: #6a5a44; line-height: 1.4; }
+        .hwcert-step.cur .hwcert-swhen { color: #2a1e10; }
+        .hwcert-swhen span { display: block; font-size: ${S(1.8)}; color: #4a4234; }
+        .hwcert-stier { font-size: ${S(1.9)}; font-weight: 700; }
+        .hwcert-conn { flex: 0 1 ${S(5)}; display: flex; align-items: center; margin-top: ${S(2.4)}; }
+        .hwcert-conn i { display: block; width: 100%; height: 1px; background: #d9c58c; }
+        .hwcert-lfirst { font-size: ${S(1.9)}; color: #6a5a44; text-align: center; margin-top: ${S(.8)}; }
         .hwcert-mist { width: 100%; margin-top: ${S(1.6)}; text-align: start; background: rgba(255,255,255,.82); border: 1px solid #e0cd98;
             border-radius: ${S(2.4)}; padding: ${S(1.3)} ${S(2.4)} ${S(1)}; box-sizing: border-box; }
         .hwcert-mist h3 { font-size: ${S(2.5)}; color: #a15230; font-weight: 700; margin: 0 0 ${S(.4)}; text-align: center; }
@@ -190,6 +207,49 @@ function fitCertificate(card, maxF = 1) {
         f = Math.round((f - 0.03) * 100) / 100;
         card.style.setProperty('--f', String(f));
     }
+}
+
+
+// 🌟 «مستوى التقدّم العام» للواجبات: هذا الواجب ثم آخر 3 واجبات معتمدة سابقة للطالب (الأحدث أولاً، أقصى اليمين في RTL).
+// يقرأ نتائج الواجبات فقط (source: 'homework') — الاختبارات الفردية مسار مستقل ولا تدخل هنا. يستبعد التسليم نفسه،
+// ويستبعد ما اعتُمد بعده (فتبقى شهادة قديمة تعرض ما كان قبلها). بلا طالب مربوط ← لا سُلّم (null).
+const LADDER_COLOR = { excellent: '#147c5e', good: '#2c6f73', average: '#b8862b', weak: '#a15230' };
+function shortDate(ms) {
+    const d = new Date(ms);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+function buildHwLadder(submission, student, score, issuedAt) {
+    if (!student || student.id == null) return null;
+    let list = [];
+    try { list = readStudentHistory(student.id) || []; } catch (e) { return null; }
+    const currentMs = issuedAt.getTime();
+    const previous = list
+        .filter(h => h && h.source === 'homework' && h.approved && h.submissionId !== submission.id
+            && typeof h.score === 'number' && (Number(h.timestamp) || 0) <= currentMs)
+        .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
+        .slice(-3).reverse();
+    const labels = [t('hwcert_step_prev1'), t('hwcert_step_prev2'), t('hwcert_step_prev3')];
+    const step = (label, ms, sc, isCurrent) => {
+        const tier = getTier(sc);
+        return { label, date: shortDate(ms), score: Math.round(sc), tierLabel: t('hwcert_tier_name_' + tier), color: LADDER_COLOR[tier], isCurrent };
+    };
+    return [step(t('hwcert_step_current'), currentMs, score, true)]
+        .concat(previous.map((h, i) => step(labels[i], Number(h.timestamp) || currentMs, h.score, false)));
+}
+function ladderHtml(steps) {
+    if (!steps) return '';
+    const star = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6l2.5 5.3 5.6.7-4.1 4 1.1 5.6L10 14.5l-5.1 2.7 1.1-5.6-4.1-4 5.6-.7z" fill="#fffdf8"/></svg>';
+    const html = steps.map(s => `<div class="hwcert-step${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
+            <div class="hwcert-dot" style="background:${s.color};">${star}</div>
+            <div class="hwcert-swhen">${esc(s.label)}<span dir="ltr">${esc(s.date)} — ${s.score}%</span></div>
+            <div class="hwcert-stier">${esc(s.tierLabel)}</div>
+        </div>`).join('<div class="hwcert-conn"><i></i></div>');
+    return `<div class="hwcert-ladder">
+        <h3>${t('hwcert_ladder_title')}</h3>
+        <div class="hwcert-lrow">${html}</div>
+        ${steps.length < 2 ? `<div class="hwcert-lfirst">${t('hwcert_ladder_first')}</div>` : ''}
+    </div>`;
 }
 
 const MAX_MISTAKES = 10;
@@ -273,6 +333,7 @@ export function showHomeworkCertificate(submission, student, scope) {
     const teacher = getTeacherForCertificate();
     const avatarUrl = getStudentAvatar(student);
     const mistakes = collectMistakes(submission);
+    const ladderBlock = ladderHtml(buildHwLadder(submission, student, score, issuedAt));
     // 🌟 [جديد] كلمة المعلم الاختيارية (تُحفظ مع التسليم من غرفة التصحيح) — لا تظهر الكتلة لو فارغة
     const teacherNote = String(submission.teacherNote || '').trim();
     const filename = `شهادة-${studentName}.png`.replace(/[\\/:*?"<>|]/g, '_');
@@ -312,6 +373,7 @@ export function showHomeworkCertificate(submission, student, scope) {
                             <div class="hwcert-enc">${t('hwcert_tier_' + tier)}</div>
                         </div>
                     </div>
+                    ${ladderBlock}
                     <div class="hwcert-mist">
                         ${shownMistakes.length ? `
                             <h3>${t('hwcert_mistakes_title')}</h3>
