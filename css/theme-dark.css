@@ -538,3 +538,5 @@ html[data-theme="dark"] body.kids-theme :is(select, input[type="text"], input[ty
 }
 html[data-theme="dark"] body.kids-theme ::placeholder { color: #8da7a0; opacity: 1; }
 html[data-theme="dark"] body.kids-theme :is(select, input, textarea):focus { background: #0f201a !important; }
+/* التجويد: عنوان المرحلة يأخذ لون المرحلة (--tjw-stage-color) نصاً؛ نفتّحه بنفس أسلوب --tjw-card-color (المراحل المقفلة لها لون خاص) */
+html[data-theme="dark"] body.adult-theme .tjw-wrap .tjw-stage-section:not(.tjw-stage-locked) .tjw-stage-title { color: color-mix(in srgb, var(--tjw-stage-color) 38%, #fff) !important; }
