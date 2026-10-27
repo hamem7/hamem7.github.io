@@ -249,7 +249,7 @@ html[data-theme="dark"] .adult-theme .btn-outline.sim-opt-btn { color: #fff !imp
 html[data-theme="dark"] .adult-theme .q-circle,
 html[data-theme="dark"] :where(.adult-theme) .q-circle { background: #1d2f28; color: var(--dh-ink-soft); border-color: var(--dh-line-strong); }
 html[data-theme="dark"] :where(.adult-theme) .q-circle.active { background: #3a3210; color: var(--dh-dk-accent); border-color: var(--dh-gold-500); }
-html[data-theme="dark"] .adult-theme .q-circle.active { color: #4b3609; }
+html[data-theme="dark"] .adult-theme .q-circle.active { color: var(--dh-dk-accent); }
 html[data-theme="dark"] :where(.adult-theme) .q-circle.correct { background: var(--dh-ok-bg); color: var(--dh-ok); border-color: #1f7a4d; }
 html[data-theme="dark"] :where(.adult-theme) .q-circle.wrong { background: var(--dh-danger-bg); color: var(--dh-danger); border-color: #8f2d2d; }
 html[data-theme="dark"] :where(.adult-theme) .quran-text { background: rgba(255, 255, 255, .04); color: #e9f3ee; border-color: #1f7a4d; }
@@ -483,3 +483,26 @@ html[data-theme="dark"] body:not(.adult-theme):not(.kids-theme) { color: var(--d
 
 /* تجويد: «رحلة الأحكام» كانت شفافة بلا حدّ فتذوب في الخلفية الداكنة */
 html[data-theme="dark"] body:not(.kids-theme) .tjw-e-track { background: #1a2c25; border-color: var(--dh-line-strong); }
+
+/* ============ 16) ضبط التباين (WCAG AA) بعد المراجعة البصرية للألعاب والواجب — المرحلة 3 ============ */
+/* أزرار التقييم/الملاحظة: نص أبيض فوق ألوان الفاتح الزاهية كان تباينه 2.2–3.9؛ في الداكن ندرّج اللون نفسه (أخضر/أحمر/كهرماني/برتقالي) لما يبلغ ≥ 4.5 */
+html[data-theme="dark"] .adult-theme .btn-correct { background: #1f7a4d !important; }
+html[data-theme="dark"] .adult-theme .btn-wrong { background: #c53030 !important; }
+html[data-theme="dark"] .adult-theme .btn-note { background: #b45309 !important; }
+html[data-theme="dark"] .adult-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
+/* رسالة التشجيع والشارات: خلفيتها --success/--dh-danger التي تفتح في الداكن (نص أبيض عليها 1.8) فنثبّت خلفية داكنة */
+html[data-theme="dark"] body:not(.kids-theme) #toast-encouragement { background-color: #1f7a4d; }
+html[data-theme="dark"] .pf-badge { background: #c53030; }
+/* ألوان inline في ألعاب الكبار: نص قرآني/عنوان إجابة بلون var(--primary|--secondary) (زمردي غامق) فوق سطح داكن؛ الخلفية الصريحة (inline) تستثني كتل البطاقة الفاتحة. اللون فقط — الخط القرآني لا يُمسّ */
+html[data-theme="dark"] body:not(.kids-theme) :is([style*="color:var(--primary)"], [style*="color: var(--primary)"], [style*="color:var(--secondary)"], [style*="color: var(--secondary)"], .quran-text[style*="color:#156643"], .quran-text[style*="color:#0d5c46"]):not([style*="background"]) { color: var(--dh-dk-title) !important; }
+/* شريط «تنظيف تلقائي» في إعداد الواجب: عنوان بني على خلفية ذهبية شفافة */
+html[data-theme="dark"] body:not(.kids-theme) .hwp3-cleanup-note strong { color: var(--dh-dk-accent); }
+/* سؤال «في أي صفحة تقع الآية»: عنوانا الصفحتين (أبيض على #94a3b8 ≈ 2.6) */
+html[data-theme="dark"] body:not(.kids-theme) [style*="background:#94a3b8"] { background: #475569 !important; }
+/* أيقونة VS في إعداد الاختبار الثنائي: خلفيتها تدرّج ذهبي ثابت (قاعدة منفصلة عن لونها فلا يلتقطها المولِّد) */
+html[data-theme="dark"] body:not(.kids-theme) .dts-header-icon { color: var(--dh-emerald-900) !important; }
+/* زر «وزّع تلقائياً» (weekSchedule): خلفيته var(--dh-ok) تفتح في الداكن */
+html[data-theme="dark"] .ws-btn:not(.alt) { background: #1f7a4d; }
+/* تبويب «التقارير السابقة» في الشهادات: ذهبي غامق بنص أبيض ثابت — قاعدة .cc-tab المولَّدة كانت تقلب نصه لفاتح (4.1) */
+html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports,
+html[data-theme="dark"] body:not(.kids-theme) .cc-tab-reports.is-on { color: #fff !important; }

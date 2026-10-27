@@ -96,6 +96,7 @@ const unwrapVar = v => v.replace(/var\(\s*--(?!dh-|tjw-)[\w-]+\s*,\s*((?:#[0-9a-
 function mapBackground(v) {
   v = unwrapVar(v);
   if (/url\(/.test(v)) return { skip: true };
+  if (/var\(\s*--(?:dh-(?:gold|emerald)-\d+|primary|secondary|gold)\b/.test(v)) return { dark: true, skip: true };   // خلفية هوية ثابتة (زمردي/ذهبي): لا تنقلب فلا نقلب نصّها
   if (/var\(/.test(v) && !/gradient\(/.test(v)) return { skip: true };   // var وحده: ينقلب بالرموز؛ تدرّج يخلط var مع ألوان صريحة: نحوّل الصريحة فقط
   const cols = v.match(COLOR_RE) || [];
   if (!cols.length) return { skip: true };
@@ -156,8 +157,9 @@ function generate(file) {
       for (const [p, v] of decls) {
         if (p === 'color') {
           if (bgState === 'dark' || bgState === 'other' && false) continue;
-          if (/var\(/.test(v) && !VARS[v.replace(/\s+/g, '')]) continue;
-          const c = parseColor(VARS[v.replace(/\s+/g, '')] || v);
+          const vk = v.replace(/\s+/g, '').replace(/^var\((--[\w-]+),.*\)$/, 'var($1)');   // var(--dh-emerald-700, #0d5c46) ≡ var(--dh-emerald-700)
+          if (/var\(/.test(v) && !VARS[vk]) continue;
+          const c = parseColor(VARS[vk] || v);
           // نص بنّي غامق أو زر بلا خلفية في نفس القاعدة: غالباً فوق خلفية ذهبية معرَّفة في قاعدة أخرى فلا نقلبه
           if (bgState === 'none' && c) { const k = hsl(c); if (k.h >= 25 && k.h <= 55 && k.s > 0.4 && k.l < 0.3) continue; if (/btn|button|cta|gold/i.test(sel)) continue; }
           const n = c && lightText(c);
