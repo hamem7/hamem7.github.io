@@ -598,7 +598,8 @@ async function playNextMission() {
                 let lEnds = document.querySelector('#kids-link-area h3[data-i18n="link_ends_title"]');
                 if (lEnds) lEnds.innerHTML = t(isWS ? 'link_word_surah_ends_title' : 'link_ends_title');
                 buildLinkGameUI();
-                document.getElementById('show-ans-btn').style.display = 'inline-block';
+                // لا فائدة من «إظهار الإجابة للمطابقة» هنا: الربط تفاعلي ويصحّح نفسه
+                document.getElementById('show-ans-btn').style.display = 'none';
                 document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div class="quran-text" style="font-size:2rem; margin-top:10px;">${linkRebuilt.answerHTML}</div>`;
                 return;
             }
