@@ -540,3 +540,14 @@ html[data-theme="dark"] body.adult-theme .tjw-wrap .tjw-stage-section:not(.tjw-s
 
 /* سؤال «في أي صفحة تقع الآية»: صور صفحات المصحف (assets/mushaf/*.webp) شفافة بحبر أسود فتختفي على السطح الداكن (وتظهر حوافها الباهتة فقط). نمنحها ورق المصحف الكريمي كما في نافذة التكبير (#zoomModal) بدل قلب ألوانها فيبقى التشكيل وعلامات الوقف كما هي. */
 html[data-theme="dark"] .visual-blur-img { background: #fffdf5 !important; border-color: #d4af37 !important; }
+
+/* ============ 18) ألعاب الترتيب والربط: وضوح المربعات في الداكن ============
+   المولِّد كان يحوّل الأبيض إلى لون أغمق من لوحة اللعب والحدود الفاتحة إلى حدود شبه غير مرئية (تباين ≈ 1.2) فتذوب المربعات.
+   هنا نرفع البطاقة فوق اللوحة (أفتح منها) ونجعل حدودها مرئية (≥ 3:1)، والخانات الفارغة بحدّ منقّط واضح، والخانة المملوءة بلون الصواب. */
+html[data-theme="dark"] body:not(.dh-light) :is(.order-col, .link-col) { background: rgba(255, 255, 255, .035) !important; border-color: #3f5a4e !important; }
+html[data-theme="dark"] body:not(.dh-light) :is(.order-item, .link-item) { background: #263d33 !important; border: 2px solid #6a8a7b !important; color: #e4f6ec !important; box-shadow: 0 2px 0 rgba(0, 0, 0, .35); }
+html[data-theme="dark"] body:not(.dh-light) :is(.order-item, .link-item):hover { background: #2f4d40 !important; border-color: #9bd8bb !important; }
+html[data-theme="dark"] body:not(.dh-light) .order-slot { background: rgba(255, 255, 255, .03) !important; border: 2px dashed #7c9b8c !important; color: #b4cbc0 !important; }
+html[data-theme="dark"] body:not(.dh-light) .order-slot.filled { background: #1f4d3b !important; border: 2px solid #4cc79a !important; color: #e4f6ec !important; }
+html[data-theme="dark"] body:not(.dh-light) .order-slot.filled:hover { background: #4a2326 !important; border-color: #f08a8a !important; }
+html[data-theme="dark"] body:not(.dh-light) .link-item.selected { background: #4a4018 !important; border-color: #f0d878 !important; box-shadow: 0 0 0 3px rgba(240, 216, 120, .35); }
