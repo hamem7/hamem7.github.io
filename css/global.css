@@ -105,6 +105,10 @@
 .order-slot.filled { border-style: solid; border-color: var(--primary); background: var(--dh-ok-bg, #e7f4ee); color: var(--primary); font-size: 2.2rem; font-family: 'Amiri Quran', serif !important; font-weight: 400 !important; box-shadow: var(--shadow-sm); line-height: 2.2;}
 #order-slots .order-slot, #kids-order-surahs-slots .order-slot { position: relative; padding-inline-start: 56px; }
 .order-slot-num { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--dh-surface-3, #e2e8f0); border: 1px solid var(--dh-border-strong, #94a3b8); color: var(--dh-ink-soft, #475569); font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1rem; font-weight: 700; line-height: 1; }
+/* ضغط الهوامش وارتفاع السطر (لا حجم الخط) ليظهر أكبر عدد من الآيات داخل الشاشة بلا تمرير */
+#order-shuffled .order-item { display: block; margin: 0 0 8px; padding: 6px 16px; line-height: 1.9; text-align: center; }
+#order-slots .order-slot { margin-bottom: 8px; min-height: 60px; padding-top: 6px; padding-bottom: 6px; }
+#order-slots .order-slot.filled { line-height: 1.9; }
 .order-slot.filled:hover { background: var(--dh-danger-bg, #fde8e8); border-color: var(--danger); }
 
 /* 🌟 [جديد] حل مشكلة الآيات الطويلة في لعبة "رتب الآيات": بدل ما الصفحة كلها تعمل سكرول
@@ -114,7 +118,7 @@
    عشان ما تتأثرش أي شاشة تانية بتستخدمها (ترتيب كلمات الآية/ترتيب السور عند الأطفال).
    عنوان العمود (h3) بيفضل ثابت فوق (sticky) كمرجع بصري أثناء السكرول الداخلي 🌟 */
 .order-col h3 { position: sticky; top: 0; background: inherit; padding-bottom: 8px; z-index: 1; }
-.order-list-scroll { max-height: 55vh; overflow-y: auto; padding-inline-end: 6px; }
+.order-list-scroll { max-height: max(55vh, calc(100dvh - 300px)); overflow-y: auto; padding-inline-end: 6px; }
 
 /* 🌟 [جديد] تصغير خط الآيات الطويلة في لعبة "رتب الآيات" فقط، بدل تكبيرها 2.2rem دايمًا:
    الحجم يُحسب ديناميكيًا حسب طول نص الآية في buildOrderGameUI (games/adultGame.js) — الآيات
