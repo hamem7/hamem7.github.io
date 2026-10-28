@@ -44,30 +44,54 @@
 .dh-rem-empty { font-size: .84rem; color: var(--dh-ink-soft); margin: 0 0 8px; line-height: 1.7; }
 .dh-rem-addwide { width: 100%; border: 1px dashed var(--dh-border-strong); background: transparent; color: var(--dh-gold-ink); border-radius: var(--dh-r-md); padding: 9px; font-family: inherit; font-weight: 700; font-size: .86rem; cursor: pointer; }
 .dh-rem-addwide:hover { background: var(--dh-surface-3); }
-.dh-remcard button:focus-visible, .dh-rem-screen button:focus-visible, .dh-rem-modal button:focus-visible, .dh-rem-banner button:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
+.dh-remcard button:focus-visible, .dh-rem-modal button:focus-visible, .dh-rem-banner button:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
 
-/* ---------- 2) الشاشة الكاملة «تذكيراتي» (تبدأ من أسفل الترويسة الموحّدة) ---------- */
-.dh-rem-screen { position: fixed; inset: 0; z-index: 6400; display: flex; flex-direction: column; background: var(--dh-surface-0); color: var(--dh-ink); font-family: var(--dh-font-ui); }
-.dh-rem-screen * { box-sizing: border-box; }
-.dh-rem-shead { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--dh-border); background: var(--dh-surface-1); }
-.dh-rem-shead h2 { margin: 0; font-size: 1.15rem; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
-.dh-rem-ibtn { width: 40px; height: 40px; border-radius: var(--dh-r-md); border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); font-size: 1.1rem; cursor: pointer; font-family: inherit; display: grid; place-items: center; padding: 0; }
-.dh-rem-pbtn { border: 0; border-radius: var(--dh-r-pill); background: var(--dh-emerald-700); color: var(--dh-on-emerald); font-family: inherit; font-weight: 700; font-size: .9rem; padding: 9px 16px; cursor: pointer; min-height: 40px; }
-.dh-rem-sbody { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 90px; width: 100%; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-.dh-rem-slist { display: flex; flex-direction: column; gap: 6px; }
-.dh-rem-seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; background: var(--dh-surface-3); border: 1px solid var(--dh-border); border-radius: var(--dh-r-md); padding: 3px; }
-.dh-rem-seg button { border: 0; background: transparent; color: var(--dh-ink-soft); border-radius: 9px; padding: 6px 2px; font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; min-height: 44px; }
-.dh-rem-seg button b { display: block; font-size: 1rem; color: var(--dh-ink); }
-.dh-rem-seg button.is-on { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
-.dh-rem-seg button.is-on b { color: var(--dh-on-emerald); }
-.dh-rem-seg button.is-red b { color: var(--dh-danger); }
-.dh-rem-seg button.is-on.is-red b { color: var(--dh-on-emerald); }
+/* ---------- 2) شاشة «تذكيراتي» الكاملة: شاشة عادية داخل #app-root تحت الترويسة الموحّدة (كباقي المنصة) ---------- */
+#app-root #rem-screen { max-width: 760px; margin: 0 auto; padding: 22px 16px 120px; display: flex; flex-direction: column; gap: 14px; text-align: start; color: var(--dh-ink); font-family: var(--dh-font-ui); }
+#rem-screen * { box-sizing: border-box; }
+.dh-rem-phead { display: flex; align-items: center; gap: 12px; background: var(--dh-surface-1); border: 1px solid var(--dh-border); border-radius: 20px; padding: 10px 12px; box-shadow: var(--dh-sh-soft); }
+.dh-rem-back { width: 44px; height: 44px; flex: none; border-radius: 14px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.dh-rem-back:hover { background: var(--dh-surface-2); }
+[dir="ltr"] #rem-screen .dh-rem-back svg, html[lang="en"] #rem-screen .dh-rem-back svg { transform: scaleX(-1); }
+.dh-rem-ptitle { flex: 1; min-width: 0; }
+.dh-rem-ptitle h2 { margin: 0 !important; font-size: 1.6rem !important; font-weight: 700 !important; line-height: 1.3; color: var(--dh-ink) !important; text-shadow: none !important; }
+.dh-rem-ptitle small { display: block; font-size: .88rem; color: var(--dh-ink-soft); }
+.dh-rem-pbtn { border: 0; border-radius: var(--dh-r-pill); background: var(--dh-emerald-700); color: var(--dh-on-emerald); font-family: inherit; font-weight: 700; font-size: .92rem; padding: 9px 18px; cursor: pointer; min-height: 44px; }
+/* «التالي»: بطاقة بارزة بحدّ ذهبي فيها أقرب تذكير وموعده */
+.dh-rem-hero { display: flex; align-items: center; gap: 12px; background: var(--dh-surface-1); border: 1px solid var(--dh-border); border-top: 4px solid var(--dh-gold-500); border-radius: 20px; padding: 14px; box-shadow: var(--dh-sh-soft); }
+.dh-rem-hero.is-late { border-top-color: var(--dh-danger); background: var(--dh-danger-bg); }
+.dh-rem-hero-ic { width: 48px; height: 48px; flex: none; border-radius: 14px; display: grid; place-items: center; background: var(--dh-gold-500); color: var(--dh-on-gold); }
+.dh-rem-hero-ic svg { width: 26px; height: 26px; }
+.dh-rem-hero-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dh-rem-hero-txt small { font-size: .78rem; color: var(--dh-ink-soft); font-weight: 600; }
+.dh-rem-hero-txt b { font-size: 1.05rem; line-height: 1.5; overflow-wrap: anywhere; }
+.dh-rem-hero-time { font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dh-rem-hero.is-clear > div b { display: block; }
+.dh-rem-hero.is-clear small { display: block; color: var(--dh-ink-soft); font-size: .84rem; }
+/* بلاطات الحالة = تبويبات التصفية */
+.dh-rem-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.dh-rem-tile { border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); border-radius: 16px; padding: 10px 4px; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 68px; }
+.dh-rem-tile b { font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.dh-rem-tile span { font-size: .78rem; font-weight: 600; color: var(--dh-ink-soft); }
+.dh-rem-tile.is-red b { color: var(--dh-danger); }
+.dh-rem-tile.is-on { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); }
+.dh-rem-tile.is-on b, .dh-rem-tile.is-on span { color: var(--dh-on-emerald); }
+.dh-rem-slist { display: flex; flex-direction: column; gap: 8px; }
+.dh-rem-slist .dh-rem-row { padding: 12px; border-radius: 16px; }
 .dh-rem-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .dh-rem-chip { border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); border-radius: var(--dh-r-pill); padding: 5px 14px; font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; min-height: 36px; }
 .dh-rem-chip.is-on { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: var(--dh-on-emerald); }
-.dh-rem-gh { font-size: .8rem; font-weight: 700; color: var(--dh-ink-soft); margin: 6px 2px 0; display: flex; justify-content: space-between; }
-.dh-rem-nothing { text-align: center; color: var(--dh-ink-soft); padding: 34px 10px; line-height: 1.8; }
-.dh-rem-fab { position: absolute; inset-inline-start: 18px; bottom: 18px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--dh-emerald-700); color: var(--dh-on-emerald); font-size: 1.9rem; line-height: 1; box-shadow: var(--dh-sh-lift); cursor: pointer; font-family: inherit; }
+.dh-rem-gh { font-size: .82rem; font-weight: 700; color: var(--dh-ink-soft); margin: 8px 2px 0; }
+.dh-rem-nothing { text-align: center; color: var(--dh-ink-soft); padding: 30px 10px; line-height: 1.8; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.dh-rem-nothing > svg { width: 44px; height: 44px; opacity: .5; }
+.dh-rem-nothing p { margin: 0; }
+.dh-rem-nothing .dh-rem-addwide { width: auto; padding: 9px 22px; }
+#rem-screen button:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
+@media (max-width: 480px) {
+    #app-root #rem-screen { padding-inline: 12px; }
+    .dh-rem-ptitle h2 { font-size: 1.35rem !important; }
+    .dh-rem-hero-time { font-size: 1.1rem; }
+}
 
 /* ---------- 3) النوافذ: نموذج الإضافة + تنبيه عاجل ---------- */
 .dh-rem-modal { position: fixed; inset: 0; z-index: 6600; background: rgba(6, 20, 15, .6); display: flex; align-items: flex-end; justify-content: center; font-family: var(--dh-font-ui); }

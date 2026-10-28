@@ -10,7 +10,8 @@
 // ==========================================================
 
 import { translations, t, tf, isEnglish } from '../core/i18n.js';
-import { AppState } from '../core/app.js';
+import { AppState, loadSplashScreen } from '../core/app.js';
+import { loadScreen, switchTheme } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
 import { loadStudentProfileScreen } from '../student/student.js';
 import {
@@ -61,6 +62,7 @@ const NEW_KEYS = {
         rem_more_waiting: '+{n} تذكيرات أخرى بانتظارك',
         rem_day_today: 'اليوم', rem_day_tomorrow: 'غدًا', rem_day_yesterday: 'أمس',
         rem_late: 'متأخر',
+        rem_back: 'رجوع', rem_hero_next: 'التالي', rem_hero_late: 'حان موعده', rem_all_clear: 'لا شيء بانتظارك', rem_all_clear_sub: 'كل تذكيراتك منجزة. أضف تذكيرًا جديدًا متى شئت.',
         rem_notif_title: 'تذكير: {title}'
     },
     en: {
@@ -101,6 +103,7 @@ const NEW_KEYS = {
         rem_more_waiting: '+{n} more reminders waiting',
         rem_day_today: 'Today', rem_day_tomorrow: 'Tomorrow', rem_day_yesterday: 'Yesterday',
         rem_late: 'Late',
+        rem_back: 'Back', rem_hero_next: 'Next up', rem_hero_late: 'Due now', rem_all_clear: 'Nothing waiting', rem_all_clear_sub: 'All your reminders are done. Add a new one anytime.',
         rem_notif_title: 'Reminder: {title}'
     }
 };
@@ -246,29 +249,53 @@ export function initHomeReminders() {
 }
 
 // ---------------------------------------------------------------------------
-// 2) الشاشة الكاملة
+// 2) الشاشة الكاملة: شاشة عادية تُحقن في #app-root تحت الترويسة الموحّدة (كباقي المنصة) عبر loadScreen
 // ---------------------------------------------------------------------------
+const SCREEN_URL = 'components/reminders-screen.html';
 let screenEl = null;
 let screenState = { tab: null, kind: 'all' };
-let headerHomeHandler = null;
+const ICON_BACK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+const TAB_ORDER = ['overdue', 'today', 'upcoming', 'done'];
 
 function defaultTab(now) {
     const s = summarize(getReminders(), now);
     return (s.today === 0 && s.overdue > 0) ? 'overdue' : 'today';
 }
 
+/** «بعد ساعتين» / «in 2 hours» — بلا مفاتيح ترجمة إضافية (Intl يتكفّل باللغتين). */
+function relText(ts, now) {
+    const mins = Math.round((ts - now) / 60000);
+    const rtf = new Intl.RelativeTimeFormat(loc(), { numeric: 'auto' });
+    const abs = Math.abs(mins);
+    if (abs < 1) return rtf.format(0, 'minute');
+    if (abs < 60) return rtf.format(mins, 'minute');
+    if (abs < 2880) return rtf.format(Math.round(mins / 60), 'hour');
+    return rtf.format(Math.round(mins / 1440), 'day');
+}
+
+function heroHtml(all, now) {
+    const next = all.filter(r => !r.done).sort((a, b) => fireAt(a) - fireAt(b))[0];
+    if (!next) return `<div class="dh-rem-hero is-clear"><span class="dh-rem-hero-ic">${ICON_BELL}</span><div><b>${esc(t('rem_all_clear'))}</b><small>${esc(t('rem_all_clear_sub'))}</small></div></div>`;
+    const f = fireAt(next), late = f <= now;
+    const sub = [dayLabel(f, now), next.studentName].filter(Boolean).join(' · ');
+    return `<div class="dh-rem-hero${late ? ' is-late' : ''}" data-id="${esc(next.id)}">
+        <span class="dh-rem-hero-ic">${ICON_BELL}</span>
+        <div class="dh-rem-hero-txt"><small>${esc(t(late ? 'rem_hero_late' : 'rem_hero_next'))} · ${esc(relText(f, now))}</small><b>${esc(next.title)}</b><small>${esc(sub)}</small></div>
+        <span class="dh-rem-hero-time">${esc(fmtTime(f))}</span>
+        <button type="button" class="dh-rem-ck" data-act="done" aria-label="${esc(t('rem_done_aria'))}">${ICON_CHECK}</button>
+    </div>`;
+}
+
 function renderScreen() {
-    if (!screenEl) return;
+    if (!screenEl || !screenEl.isConnected) return;
     const now = Date.now();
     const all = getSorted();
     const sum = summarize(all, now);
-    const kind = screenState.kind;
-    const tab = screenState.tab;
+    const { tab, kind } = screenState;
     const items = all.filter(r => bucketOf(r, now) === tab && (kind === 'all' || r.kind === kind));
-    const tabs = [['today', sum.today], ['upcoming', sum.upcoming], ['overdue', sum.overdue], ['done', sum.done]];
     let list = '';
     if (!items.length) {
-        list = `<p class="dh-rem-nothing">${esc(t('rem_nothing'))}</p>`;
+        list = `<div class="dh-rem-nothing">${ICON_BELL}<p>${esc(t('rem_nothing'))}</p><button type="button" class="dh-rem-addwide" data-go="add">${esc(t('rem_add_plus'))}</button></div>`;
     } else if (tab === 'upcoming' || tab === 'overdue') {
         let last = null;
         for (const r of items) {
@@ -279,76 +306,62 @@ function renderScreen() {
     } else {
         list = items.map(r => rowHtml(r, now, { showDate: tab === 'done' })).join('');
     }
-    const body = screenEl.querySelector('.dh-rem-sbody');
-    const keep = body ? body.scrollTop : 0;
-    body.innerHTML = `
-        <div class="dh-rem-seg" role="tablist">${tabs.map(([k, n]) => `<button type="button" role="tab" aria-selected="${k === tab}" class="${k === tab ? 'is-on' : ''}${k === 'overdue' && n ? ' is-red' : ''}" data-tab="${k}"><b>${n}</b>${esc(t('rem_tab_' + k))}</button>`).join('')}</div>
-        <div class="dh-rem-chips">${['all', 'student', 'personal', 'work'].map(k => `<button type="button" class="dh-rem-chip${k === kind ? ' is-on' : ''}" data-kind="${k}" aria-pressed="${k === kind}">${esc(t('rem_kind_' + k))}</button>`).join('')}</div>
-        <div class="dh-rem-slist">${list}</div>`;
-    body.scrollTop = keep;
-    screenEl.querySelector('.dh-rem-scount').textContent = String(sum.actionable || '');
-}
-
-function onScreenKey(e) { if (e.key === 'Escape' && !document.querySelector('.dh-rem-modal')) closeRemindersScreen(); }
-function onScreenResize() { if (screenEl) placeBelowMainHeader(screenEl); }
-
-export function openRemindersScreen(tab) {
-    if (screenEl) { if (tab) { screenState.tab = tab; renderScreen(); } return; }
-    const now = Date.now();
-    screenState = { tab: tab || defaultTab(now), kind: 'all' };
-    screenEl = document.createElement('div');
-    screenEl.className = 'dh-rem-screen';
-    screenEl.setAttribute('role', 'dialog');
-    screenEl.setAttribute('aria-label', t('rem_title'));
-    screenEl.setAttribute('dir', isEnglish() ? 'ltr' : 'rtl');
+    const dateLine = new Date(now).toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' });
+    const keep = window.scrollY;
     screenEl.innerHTML = `
-        <div class="dh-rem-shead">
-            <button type="button" class="dh-rem-ibtn" data-close="1" aria-label="${esc(t('rem_close'))}" title="${esc(t('rem_close'))}">✕</button>
-            <h2>${esc(t('rem_title'))} <span class="dh-rem-count dh-rem-scount"></span></h2>
+        <div class="dh-rem-phead">
+            <button type="button" class="dh-rem-back" data-close="1" aria-label="${esc(t('rem_back'))}" title="${esc(t('rem_back'))}">${ICON_BACK}</button>
+            <div class="dh-rem-ptitle"><h2>${esc(t('rem_title'))}</h2><small>${esc(dateLine)}</small></div>
             <button type="button" class="dh-rem-pbtn" data-go="add">${esc(t('rem_add_plus'))}</button>
         </div>
-        <div class="dh-rem-sbody"></div>
-        <button type="button" class="dh-rem-fab" data-go="add" aria-label="${esc(t('rem_add'))}" title="${esc(t('rem_add'))}">＋</button>`;
-    document.body.appendChild(screenEl);
-    placeBelowMainHeader(screenEl);
-    screenEl.addEventListener('click', (e) => {
-        if (e.target.closest('[data-close]')) { closeRemindersScreen(); return; }
-        if (e.target.closest('[data-go="add"]')) { openReminderForm(null); return; }
-        const tabBtn = e.target.closest('[data-tab]');
-        if (tabBtn) { screenState.tab = tabBtn.dataset.tab; renderScreen(); return; }
-        const kindBtn = e.target.closest('[data-kind]');
-        if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); return; }
-        handleRowAction(e);
-    });
-    document.addEventListener('keydown', onScreenKey);
-    window.addEventListener('resize', onScreenResize);
-    document.addEventListener('dh:reminders-changed', renderScreen);
-    document.addEventListener('app-lang-changed', onScreenLang);
-    document.addEventListener('dh:screen', closeRemindersScreen);
-    headerHomeHandler = () => closeRemindersScreen();
-    document.getElementById('header-home-btn')?.addEventListener('click', headerHomeHandler);
-    renderScreen();
+        ${heroHtml(all, now)}
+        <div class="dh-rem-tiles" role="tablist">${TAB_ORDER.map(k => `<button type="button" role="tab" aria-selected="${k === tab}" class="dh-rem-tile t-${k}${k === tab ? ' is-on' : ''}${k === 'overdue' && sum.overdue ? ' is-red' : ''}" data-tab="${k}"><b>${sum[k]}</b><span>${esc(t('rem_tab_' + k))}</span></button>`).join('')}</div>
+        <div class="dh-rem-chips">${['all', 'student', 'personal', 'work'].map(k => `<button type="button" class="dh-rem-chip${k === kind ? ' is-on' : ''}" data-kind="${k}" aria-pressed="${k === kind}">${esc(t('rem_kind_' + k))}</button>`).join('')}</div>
+        <div class="dh-rem-slist">${list}</div>`;
+    window.scrollTo(0, keep);
 }
 
-function onScreenLang() {
-    if (!screenEl) return;
-    const tab = screenState.tab, kind = screenState.kind;
+function onScreenNav(e) {
+    // أي شاشة أخرى تُحقن مكان هذه (dh:screen) → نفكّ المستمعين
+    if (e.detail && e.detail.screen === SCREEN_URL) return;
     closeRemindersScreen();
-    openRemindersScreen(tab);
-    screenState.kind = kind;
-    renderScreen();
+}
+function onScreenClick(e) {
+    if (e.target.closest('[data-close]')) { loadSplashScreen(); return; }
+    if (e.target.closest('[data-go="add"]')) { openReminderForm(null); return; }
+    const tabBtn = e.target.closest('[data-tab]');
+    if (tabBtn) { screenState.tab = tabBtn.dataset.tab; renderScreen(); return; }
+    const kindBtn = e.target.closest('[data-kind]');
+    if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); return; }
+    handleRowAction(e);
+}
+
+export function openRemindersScreen(tab) {
+    if (screenEl && screenEl.isConnected) { if (tab) { screenState.tab = tab; renderScreen(); } return; }
+    screenState = { tab: tab || defaultTab(Date.now()), kind: 'all' };
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return loadScreen({
+        templateUrl: SCREEN_URL,
+        initFunction: () => {
+            screenEl = document.getElementById('rem-screen');
+            if (!screenEl) return;
+            screenEl.addEventListener('click', onScreenClick);
+            document.addEventListener('dh:reminders-changed', renderScreen);
+            document.addEventListener('app-lang-changed', renderScreen);
+            document.addEventListener('dh:screen', onScreenNav);
+            if (!screenEl.dataset.tick) screenEl.dataset.tick = String(setInterval(renderScreen, 60000));
+            renderScreen();
+        }
+    }).catch(err => console.error('تعذر فتح شاشة تذكيراتي:', err));
 }
 
 export function closeRemindersScreen() {
     if (!screenEl) return;
-    document.removeEventListener('keydown', onScreenKey);
-    window.removeEventListener('resize', onScreenResize);
+    clearInterval(Number(screenEl.dataset.tick));
     document.removeEventListener('dh:reminders-changed', renderScreen);
-    document.removeEventListener('app-lang-changed', onScreenLang);
-    document.removeEventListener('dh:screen', closeRemindersScreen);
-    if (headerHomeHandler) document.getElementById('header-home-btn')?.removeEventListener('click', headerHomeHandler);
-    headerHomeHandler = null;
-    screenEl.remove();
+    document.removeEventListener('app-lang-changed', renderScreen);
+    document.removeEventListener('dh:screen', onScreenNav);
     screenEl = null;
 }
 
@@ -552,7 +565,6 @@ async function openStudentOf(r) {
         const s = students.find(x => String(x.id) === String(r.studentId));
         if (!s) { alert(t('rem_student_missing')); return; }
         AppState.currentStudent = s;
-        closeRemindersScreen();
         loadStudentProfileScreen();
     } catch (e) { alert(t('rem_student_missing')); }
 }

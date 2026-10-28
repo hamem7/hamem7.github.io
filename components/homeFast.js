@@ -32,7 +32,7 @@ const LOGIN_SCREEN = 'student/login.html';
 // 🌟 [2026-10-03 — مراجعة تجربة الهاتف] أُضيفت شاشتا تصفّح المتشابهات والتجويد (ألعاب) ليبقى الشريط متاحاً فيهما؛ شاشات اللعب الفعلي تبقى بلا شريط
 const SIM_SCREEN = 'similarities/similarities-home.html';
 const TAJWEED_SCREEN = 'tajweed/tajweed-map.html';
-const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'components/account-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'settings/dashboard.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
+const CORE_SCREENS = [HOME_SCREEN, 'components/privacy-screen.html', 'components/account-screen.html', 'components/reminders-screen.html', 'student/my-students.html', 'student/all-students.html', 'student/student-profile.html', 'settings/homework-prep.html', 'settings/dashboard.html', 'dualtests/dual-test-setup.html', LOGIN_SCREEN, SIM_SCREEN, TAJWEED_SCREEN];
 
 const HW_NEW_KEY = 'dh_hw_new_count';
 
@@ -402,7 +402,7 @@ const ITEMS = [
     { id: 'kids', key: 'bnav_kids_short', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: IC.kids },
     { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: IC.students },
     { id: 'tasks', key: 'bnav_tasks', screens: [], run: openTasks, icon: IC.tasks },
-    { id: 'reminders', key: 'bnav_reminders', screens: [], run: () => openRemindersScreen(), icon: IC.reminders },
+    { id: 'reminders', key: 'bnav_reminders', screens: ['components/reminders-screen.html'], run: () => openRemindersScreen(), icon: IC.reminders },
     { id: 'more', key: 'bnav_more', screens: ['settings/homework-prep.html', 'dualtests/dual-test-setup.html', SIM_SCREEN, TAJWEED_SCREEN], run: () => openSheet('more'), icon: IC.more }
 ];
 

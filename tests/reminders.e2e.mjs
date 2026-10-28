@@ -99,19 +99,19 @@ check('بعد إعادة الفتح: شريط «فاتتك» واحد', (await p
 await page.evaluate(() => { document.querySelector('.dh-tour-skip')?.click(); document.getElementById('whats-new-modal')?.remove(); });
 
 console.log('\n=== الشاشة الكاملة ===');
-await page.locator('.dh-rem-banner [data-do="view"]').click();
-check('الشاشة الكاملة تفتح على «اليوم» وفيها الفائت', await page.locator('.dh-rem-screen').isVisible() && (await page.locator('.dh-rem-seg .is-on').getAttribute('data-tab')) === 'today' && (await page.locator('.dh-rem-screen .dh-rem-row.is-late').count()) >= 1);
-const scrTop = await page.evaluate(() => ({ s: document.querySelector('.dh-rem-screen').getBoundingClientRect().top, h: document.getElementById('main-header').getBoundingClientRect().bottom }));
-check('الشاشة تبدأ من أسفل الترويسة', Math.abs(scrTop.s - Math.round(scrTop.h)) <= 1, JSON.stringify(scrTop));
+await page.locator('.dh-rem-banner [data-do="view"]').click(); await page.waitForSelector('#rem-screen .dh-rem-tile', { timeout: 10000 }); await sleep(700);
+check('الشاشة الكاملة تفتح على «اليوم» وفيها الفائت', await page.locator('#rem-screen').isVisible() && (await page.locator('.dh-rem-tile.is-on').getAttribute('data-tab')) === 'today' && (await page.locator('#rem-screen .dh-rem-row.is-late').count()) >= 1);
+const scrTop = await page.evaluate(() => ({ s: document.querySelector('#rem-screen').getBoundingClientRect().top, h: document.getElementById('main-header').getBoundingClientRect().bottom }));
+check('الشاشة داخل #app-root تحت الترويسة (لا ترويسة خاصة)', scrTop.s >= Math.round(scrTop.h) - 1 && (await page.locator('#app-root #rem-screen').count()) === 1, JSON.stringify(scrTop));
 await shot('screen-light');
-await page.locator('.dh-rem-screen [data-tab="upcoming"]').click();
-check('تبويب «القادمة» يعرض تذكير الغد', (await page.locator('.dh-rem-screen .dh-rem-row').count()) >= 1);
-await page.locator('.dh-rem-screen [data-kind="work"]').click();
-check('تصفية «عمل» تُظهر المؤجَّل فقط', (await page.locator('.dh-rem-screen .dh-rem-row').count()) <= 1);
+await page.locator('#rem-screen [data-tab="upcoming"]').click();
+check('تبويب «القادمة» يعرض تذكير الغد', (await page.locator('#rem-screen .dh-rem-row').count()) >= 1);
+await page.locator('#rem-screen [data-kind="work"]').click();
+check('تصفية «عمل» تُظهر المؤجَّل فقط', (await page.locator('#rem-screen .dh-rem-row').count()) <= 1);
 await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
 await shot('screen-dark');
-await page.locator('.dh-rem-screen [data-close]').click();
-check('الإغلاق', (await page.locator('.dh-rem-screen').count()) === 0);
+await page.locator('#rem-screen [data-close]').click();
+await sleep(800); check('الرجوع للرئيسية', (await page.locator('#rem-screen').count()) === 0);
 
 console.log('\n=== النسخة الاحتياطية والمظهر والإنجليزية ===');
 const bk = await page.evaluate(async () => { const m = await import('/core/backupRestore.js'); const fn = m.buildBackupPayload || m.exportAllData || m.createBackupPayload; return { has: !!fn, names: Object.keys(m).filter(k => /backup|export|payload/i.test(k)) }; });
@@ -135,9 +135,9 @@ check('الهاتف: لوحة «مهام» لا تكرّر بطاقة التذك
 check('الهاتف: لوحة «مهام» تحوي «مهام اليوم» (الغلاف انتقل سليماً)', await mp.locator('.dh-sheet-panel #home-quickcard').count() === 1);
 await mp.locator('.dh-sheet-x').click(); await sleep(300);
 await mp.locator('.dh-bnav-item[data-id="reminders"]').click(); await sleep(400);
-check('الهاتف: الزر يفتح الشاشة الكاملة وفيها التذكير', await mp.locator('.dh-rem-screen .dh-rem-row').count() === 1);
+check('الهاتف: الزر يفتح الشاشة الكاملة وفيها التذكير', await mp.locator('#rem-screen .dh-rem-row').count() === 1);
 if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-screen.png') });
-await mp.locator('.dh-rem-screen [data-go="add"]').first().click(); await sleep(300);
+await mp.locator('#rem-screen [data-go="add"]').first().click(); await sleep(300);
 await mp.locator('[data-rep="weekly"]').click();
 check('الهاتف: نموذج الإضافة يفتح فوق الشاشة', await mp.locator('.dh-rem-form .dh-rem-panel').isVisible());
 if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-form.png') });
