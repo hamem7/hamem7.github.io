@@ -214,6 +214,8 @@ ok((await page.textContent('#acct-edit-btn')).includes('إضافة'), '13) مل�
 ok(await page.evaluate(() => !document.getElementById('acct-progress-card').hidden), '13) بطاقة اكتمال الحساب ظاهرة');
 await page.evaluate(async () => { const m = await import('/core/app.js'); m.AppState.currentTeacher = { name: 'أحمد' }; m.openAccountScreen(); });
 await page.waitForSelector('#acct-screen', { timeout: 10000 });
+// الشاشة مفتوحة أصلاً فيتحقق المحدِّد فوراً: ننتظر إعادة رسمها بالبيانات الجديدة بدل قراءة النص القديم
+await page.waitForFunction(() => (document.getElementById('acct-edit-btn')?.textContent || '').includes('تعديل'), null, { timeout: 10000 }).catch(() => {});
 ok((await page.textContent('#acct-edit-btn')).includes('تعديل'), '13) بعد وجود بيانات: الزر «تعديل بياناتي»');
 
 ok(errors.length === 0, 'لا أخطاء صفحة: ' + errors.join(' | '));
