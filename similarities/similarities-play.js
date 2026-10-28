@@ -22,6 +22,9 @@ import { AppState, loadSplashScreen, t } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
+import { memorizedSurahsOf } from '../engine/recallQuestions.js';
+// سور محفوظ الطالب الحالي (إن وُجد طالب بنطاق حفظ) لئلا تُسأل أسئلة جوابها أو خياراتها سور لم يحفظها؛ null = بلا قيد
+const studentMemorized = () => memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
 import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
@@ -146,7 +149,7 @@ export async function initSimilarityGamePlay() {
     try { await ensureSimilarityQuran(AppState.quranEngine); }
     catch (e) { console.warn('تعذّر تحميل المصحف لأسئلة المتشابهات:', e); container.innerHTML = `<div class="sim-empty">${t('sim_no_data')}</div>`; return; }
 
-    const round = buildGameRound(groups);
+    const round = buildGameRound(groups, { memorized: studentMemorized() });
     // 🛡️ خط دفاع صريح (لا نفترض صمتاً أن كل مجموعة صالحة للعب): لو لم تتوفر بيانات كافية
     // (كل المجموعات بموضع واحد، أو كل مواضعها بنفس رقم آية/سورة...) نعرض رسالة ودّية للمعلم
     // بدل شاشة أسئلة فارغة أو خطأ برمجي — راجع تعليق buildGameRound في
@@ -334,7 +337,7 @@ async function renderResultsScreen() {
         // الأسئلة المتاحة (سقف MAX_ROUND_QUESTIONS)، هذا يعني أيضاً مجموعة فرعية مختلفة من
         // الأسئلة نفسها في كل محاولة لو النطاق أكبر من السقف، بدل تكرار نفس الخيارات بالضبط
         // (نفس الطالب يستمر في الجولة التالية بلا إعادة اختيار)
-        PlayState.round = buildGameRound(PlayState.groups);
+        PlayState.round = buildGameRound(PlayState.groups, { memorized: studentMemorized() });
         PlayState.currentIndex = 0;
         PlayState.correctCount = 0;
         PlayState.answers = [];

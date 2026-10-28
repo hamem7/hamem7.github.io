@@ -433,10 +433,11 @@ async function pickSimilarityQuestions(k, poolIndex, scopeSurahs, rng, manager) 
         };
         const eligible = all.filter(g => g && (g.occurrences || []).length >= 2 && g.occurrences.every(memorized));
         const out = [], usedGroups = new Set();
+        const memoSurahs = new Set([...poolIndex].map(k => parseInt(k, 10))); // سور محفوظ الطالب: لا جواب ولا خيار من خارجها
         for (const g of eligible.sort(() => rng() - 0.5)) {
             if (out.length >= k) break;
             if (usedGroups.has(g.groupId)) continue;
-            const q = buildHomeworkSimilarityQuestion(g);
+            const q = buildHomeworkSimilarityQuestion(g, { memorized: memoSurahs });
             if (!q) continue;
             q.id = 'q_' + Date.now() + '_sim' + out.length + Math.random().toString(36).slice(2, 6);
             usedGroups.add(g.groupId);
