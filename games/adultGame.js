@@ -1489,14 +1489,12 @@ function buildLinkGameUI() {
         }
         el.className = cls;
         el.innerText = item.text;
-        // الواجهة الإنجليزية: اسم السورة بحروف لاتينية (بلا ترجمة) تحت الاسم العربي، لمن لا يقرأ العربية
+        // الواجهة الإنجليزية: اسم السورة بحروف لاتينية فقط (بلا ترجمة وبلا خط عربي)
         if (AppState.currentLang === 'en') {
             const translit = surahNameLocal(item.text);
             if (translit && translit !== item.text && /^[\x20-\x7E]+$/.test(translit)) {
-                const tr = document.createElement('span');
-                tr.className = 'link-translit';
-                tr.textContent = translit;
-                el.appendChild(tr);
+                el.className = cls.replace('quran-text', 'link-translit-only');
+                el.textContent = translit;
             }
         }
         if (!isMatched && !data.locked) {

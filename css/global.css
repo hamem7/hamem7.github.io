@@ -191,8 +191,8 @@
 .link-item.selected .link-unknown-btn { position: absolute; inset-inline-start: 10px; top: 50%; transform: translateY(-50%); margin: 0; width: 4.5rem; white-space: normal; text-align: center; line-height: 1.25; padding: 5px 6px; border-radius: 14px; font-size: 0.8rem; text-shadow: none; }
 /* الإنجليزية: .quran-text يبقى rtl فيقع الزر يمين البطاقة؛ نضعه على اليسار (بعيداً عن مسار الحركة نحو عمود النهايات) */
 [dir="ltr"] .link-item.selected .link-unknown-btn { inset-inline-start: auto; left: 10px; right: auto; }
-/* النطق اللاتيني لاسم السورة تحت الاسم العربي (الواجهة الإنجليزية فقط) */
-.link-item .link-translit { display: block; direction: ltr; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.9rem; font-weight: 600; line-height: 1.2; margin-top: -4px; opacity: 0.85; text-shadow: none; }
+/* الإنجليزية: اسم السورة بحروف لاتينية فقط (ليس نصاً قرآنياً فلا يحمل .quran-text) */
+.link-item.link-translit-only { direction: ltr; font-family: 'IBM Plex Sans Arabic', sans-serif !important; font-size: 1.5rem; font-weight: 600 !important; line-height: 2.2; text-align: center; }
 @media (max-width: 600px) {
     .link-item.selected:not(.matched) { padding-inline: 20px !important; }
     .link-item.selected .link-unknown-btn { position: static; transform: none; margin: 8px auto 0; }
