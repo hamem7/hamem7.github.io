@@ -50,7 +50,8 @@ for (const { kids, name, cfg: scenCfg, memo, recall, lang, none } of SCEN) {
   await page.evaluate(() => document.getElementById('mmt-close')?.click());
   if (kids) { check(`${tag}: الصغار بلا أسئلة متشابهات (ركن الكبار فقط)`, info.n > 0 && info.sims === 0, JSON.stringify(info)); await page.goto(WEB + '/index.html'); await page.waitForSelector('#btn-my-students-main', { timeout: 30000 }); await sleep(1500); await page.evaluate(() => document.querySelector('.dh-tour-skip')?.click()); continue; }
   if (none) { check(`${tag}: طول الطابور 20 بلا أسئلة متشابهات (الأنواع غير المعتمدة لا تظهر)`, info.n === 20 && info.sims === 0, JSON.stringify(info)); continue; }
-  check(`${tag}: طول الطابور 20 وفيه سؤالان من المتشابهات`, info.n === 20 && info.sims === 2, JSON.stringify(info));
+  // [2026-10-28] «اقرأ الآية من السورة المذكورة» لا يزيد على نصف خانات المتشابهات؛ فحين لا يتوفر نوع آخر (الأحقاف) يبقى سؤال واحد والخانة الثانية تأخذ نوعاً عادياً
+  check(`${tag}: طول الطابور 20 وفيه سؤال أو سؤالان من المتشابهات`, info.n === 20 && (recall ? info.sims >= 1 && info.sims <= 2 : info.sims === 2), JSON.stringify(info));
   const seen = []; let lastIdx = -1, idle = 0;
   for (let step = 0; step < 120 && idle < 12; step++) {
     await sleep(500);
@@ -77,7 +78,7 @@ for (const { kids, name, cfg: scenCfg, memo, recall, lang, none } of SCEN) {
         if (d.type === 'kids_mcq' && b.length && d.correctAns && !d.surahOptions) b[d.options.findIndex(o => o.trim() === d.correctAns.trim())].click(); else window.recordKidsAnswer && window.recordKidsAnswer(true); });
     } else await page.evaluate(() => document.getElementById('btn-record-correct')?.click());
   }
-  check(`${tag}: ظهر سؤالا متشابهات أثناء اللعب`, seen.length === 2, `ظهر ${seen.length}`);
+  check(`${tag}: ظهرت أسئلة المتشابهات أثناء اللعب`, recall ? seen.length >= 1 && seen.length <= 2 : seen.length === 2, `ظهر ${seen.length}`);
   if (lang === 'en') seen.forEach(s => check(`${tag}: نص السؤال بالإنجليزية (لا عربي خارج الآيات)`, !/[\u0600-\u06FF]/.test(s.q.replace(/﴿[^﴾]*﴾/g, '').replace(/^[^\n]*$/m, m => m)) || !/[\u0600-\u06FF]/.test(s.q.split('\n')[0].replace(/﴿[^﴾]*﴾/g, '')), s.q.slice(0, 160)));
   seen.forEach(s => check(`${tag}: النص بالسكون القرآني (لا سكون دائري U+0652)`, !(s.q + (s.ans || '')).includes('\u0652')));
   seen.forEach((s, i) => console.log(`   [${i + 1}] ${s.simKind} | ${s.title}\n       سؤال: ${s.q.replace(/\n+/g, ' ⏎ ').slice(0, 220)}\n       ${kids ? 'أزرار: ' + s.btns.join(' | ') : 'إجابة: ' + (s.ans || '').replace(/\n+/g, ' ⏎ ').slice(0, 140)}`));

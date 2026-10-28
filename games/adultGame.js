@@ -27,6 +27,7 @@ import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «اس�
 import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
+import { similarCountFor } from '../engine/similarityInject.js';
 import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard, autoSavePaused, discardAutoSaved, ownsPaused } from '../components/pausedSession.js';
 import { setLeaveGuard } from '../core/leaveGuard.js';
 
@@ -283,6 +284,7 @@ async function probeGameTypeOnce(type, pool, chunkIndex, totalChunks, isJuz) {
             case 'visual_memory': d = await eng.generateVisualMemoryGame(p, chunkIndex, totalChunks); break;
             case 'link_ends': d = await eng.generateLinkGame(p, false, chunkIndex, totalChunks); return !!d && d.type === 'link_ends';
             case 'link_word_surah': d = await eng.generateLinkWordSurahGame(p, false); return !!d && d.type === 'link_word_surah';
+            case 'similar': return !!AppState.similaritiesManager;   // 🌟 خانة المتشابهات داخل الكيس؛ تُملأ لاحقاً بـinjectSimilarQuestions
             default: return false;
         }
         return !!d;
@@ -430,6 +432,9 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             if (!config.isJuzMode && config.isRangeMode && new Set(ayahsPool.map(a => a.surahNumber)).size >= 3) {
                 gamesList.push('link_word_surah');
             }
+            // 🌟 [2026-10-28] المتشابهات خانة واحدة في الدورة نفسها (لا تستبدل أسئلة الدورة بعد بنائها) فتظهر كل الأنواع قبل أن يتكرر أيٌّ منها.
+            // تُضاف فقط حين تستحق الجلسة سؤال متشابهات (5 أسئلة فأكثر)، وتُملأ بعد البناء في injectSimilarQuestions.
+            if (similarCountFor(qCount) > 0 && AppState.similaritiesManager) gamesList.push('similar');
             
             // 🌟 [إصلاح] استبدلنا الحلقة القديمة (كانت تختار الأنواع بلا التأكد أنها ستُولَّد فعلاً،
             // فتتحول الألعاب الفاشلة صامتة إلى "صيد الآية") بـbuildGameQueue أعلاه
@@ -454,6 +459,13 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 const chunkOff = newChunkOffset(ayahsPool.length);
                 setActiveChunkOffset(chunkOff);
                 GameState.queue = await buildGameQueue(gamesList, qCount, ayahsPool, !!config.isJuzMode);
+                // 🌟 سؤال متشابهات لكل 10 أسئلة على الأقل: ما نقص عن ذلك يأخذ مكان سؤال مكرَّر (ثاني ظهور لنوعه)، فلا يضيع نوع ظهر مرة واحدة
+                if (gamesList.includes('similar')) {
+                    let need = similarCountFor(qCount) - GameState.queue.filter(q => q.type === 'similar').length;
+                    const seenT = new Set(), dups = [];
+                    GameState.queue.forEach((q, i) => { if (seenT.has(q.type)) dups.push(i); else seenT.add(q.type); });
+                    for (let k = dups.length - 1; k >= 0 && need > 0; k--, need--) GameState.queue[dups[k]].type = 'similar';
+                }
                 if (plan) GameState.queue.forEach((q, i) => { q.surahNum = plan[i]; });
                 GameState.queue.forEach(q => { q.off = chunkOff; }); // تُحفظ مع الطابور لاستكمال اختبار معلّق بنفس الحدود
                 // 🌟 بطلب المعلم: الأسئلة بترتيب عشوائي لا بترتيب الآيات/السور. نخلط عناصر الطابور كاملة (النوع +
@@ -461,6 +473,16 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 shuffleInPlace(GameState.queue);
                 // 🌟 سؤال متشابهات لكل 10 أسئلة (يستبدل خانات عشوائية بعد الخلط؛ بلا مجموعات في النطاق = لا يتغير شيء)
                 await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, false);
+                // خانة متشابهات لم يتوفر لها سؤال (لا مجموعات في النطاق...) تأخذ أقل الأنواع العادية ظهوراً بدل «صيد الآية»
+                for (const q of GameState.queue) {
+                    if (q.type !== 'similar' || q.sim) continue;
+                    const cnt = (ty) => GameState.queue.filter(x => x.type === ty).length;
+                    let pick = 'catch';
+                    for (const ty of gamesList.filter(g => g !== 'similar').sort((a, b) => cnt(a) - cnt(b))) {
+                        if (await probeGameType(ty, ayahsPool, q.chunkIndex, qCount, !!config.isJuzMode)) { pick = ty; break; }
+                    }
+                    q.type = pick;
+                }
             }
         }
         await loadScreen({ templateUrl: 'games/adultGame.html', initFunction: initGameUI });

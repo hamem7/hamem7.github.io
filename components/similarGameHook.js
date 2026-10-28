@@ -5,7 +5,7 @@
 // بشكل البيانات الذي تعرضه كل لعبة (الصغار: kids_mcq بأزرار اختيار، الكبار: سؤال شفهي يقيّمه المعلم مع عرض الخيارات).
 // أي فشل (لا مدير متشابهات، نطاق بلا مجموعات...) يترك الطابور كما هو تماماً فتستمر اللعبة بلا هذه الأسئلة.
 import { AppState, t, tf, surahNameLocal } from '../core/app.js';
-import { similarCountFor, buildSimilarQuestions, injectIntoQueue, cleanOccurrenceText } from '../engine/similarityInject.js';
+import { buildSimilarQuestions, cleanOccurrenceText } from '../engine/similarityInject.js';
 import { ensureSimilarityQuran, getSimilarityQuran, questionTextToHTML, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
 import { generateRecallQuestions, memorizedSurahsOf, localizedRecallText } from '../engine/recallQuestions.js';
@@ -22,10 +22,15 @@ const qtext = (s) => toQuranicSukun(cleanOccurrenceText(s));
 // بقية الأنواع (الكلمة الناقصة، أيّ الآيتين، أكمل الآية) لا تُحقن في الألعاب، و«صِل كل آية بسورتها» يبقى للواجب المنزلي كما هو.
 const GAME_RECALL_TYPES = ['sim_named'];
 const GAME_OLD_TYPES = STUDENT_SIM_TYPES;
+// 🌟 [2026-10-28] المتشابهات خانة داخل «الكيس» نفسه (type:'similar' بلا sim، راجع buildGameQueue في adultGame.js) فتكتمل دورة الأنواع
+// ولا يُستبدل سؤال عادي بها. هنا تُملأ هذه الخانات بأسئلة فعلية؛ و«اقرأ الآية من السورة المذكورة» لا يزيد على نصف الخانات (يتناوب مع
+// «في أي سورتين؟» و«أي سورة لم ترد؟»). أي خانة لم يتوفر لها سؤال تبقى type:'similar' بلا sim فيُبدِّلها adultGame.js بنوع عادي.
 export async function injectSimilarQuestions(queue, pool, qCount, kids) {
     try {
-        if (kids) return queue;
-        const count = similarCountFor(qCount);
+        if (kids || !Array.isArray(queue)) return queue;
+        const slots = [];
+        queue.forEach((q, i) => { if (q && q.type === 'similar' && !q.sim) slots.push(i); });
+        const count = slots.length;
         if (!count || !AppState.similaritiesManager) return queue;
         if (AppState.similaritiesReady) await AppState.similaritiesReady;
         await ensureSimilarityQuran(AppState.quranEngine); // نص الآيات من مصحف المنصة
@@ -34,14 +39,15 @@ export async function injectSimilarQuestions(queue, pool, qCount, kids) {
         const old = buildSimilarQuestions({ allGroups, pool, count, kids: false, types: GAME_OLD_TYPES, memorized });
         let fresh = [];
         try {
-            fresh = generateRecallQuestions(getSimilarityQuran(), memorized, pool, { count, types: GAME_RECALL_TYPES });
+            fresh = generateRecallQuestions(getSimilarityQuran(), memorized, pool, { count: Math.ceil(count / 2), types: GAME_RECALL_TYPES });
         } catch (e) { console.warn('تعذّر توليد أسئلة الاستحضار:', e); }
         const sims = [];
         for (let i = 0; sims.length < count && (i < fresh.length || i < old.length); i++) {
             if (fresh[i]) sims.push(fresh[i]);
             if (sims.length < count && old[i]) sims.push(old[i]);
         }
-        return injectIntoQueue(queue, sims);
+        sims.forEach((sim, k) => { queue[slots[k]] = { ...queue[slots[k]], type: 'similar', sim }; });
+        return queue;
     } catch (err) {
         console.warn('تعذّر حقن أسئلة المتشابهات في اللعبة:', err);
         return queue;
