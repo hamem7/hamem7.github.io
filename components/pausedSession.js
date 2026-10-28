@@ -80,6 +80,7 @@ export function clearPausedEvaluation(student) {
  * @param {Function} getContext - يرجع { student, studentManager }
  */
 export function createPausedLeaveGuard(getGameState, kids, getContext) {
+    installUnloadWarning(getGameState);
     return async () => {
         if (!document.getElementById('btn-exit-game')) return true;
         const gs = getGameState();
@@ -87,7 +88,7 @@ export function createPausedLeaveGuard(getGameState, kids, getContext) {
         if (!gs || gs.isWeaknessMode || !student || !studentManager) return true;
         const answered = gs.reportDetails.length;
         if (answered === 0 || answered >= gs.queue.length) return true;
-        const replacing = student.pausedEvaluation && !gs.resumedFromPause;
+        const replacing = student.pausedEvaluation && !ownsPaused(gs);
         if (!await hamConfirm(t(replacing ? 'pause_leave_replace_confirm' : 'pause_leave_confirm'))) return false;
         const previous = student.pausedEvaluation;
         try {
@@ -99,9 +100,53 @@ export function createPausedLeaveGuard(getGameState, kids, getContext) {
             alert(t('pause_save_failed'));
             return false;
         }
+        gs.autoSaved = true;
         clearInterval(gs.timerInterval);
         return true;
     };
+}
+
+/** اللقطة المخزَّنة في سجل الطالب تخصّ هذه الجلسة (استُكملت منها أو حفظتها هذه الجلسة تلقائياً)؟ */
+export function ownsPaused(gs) { return !!(gs && (gs.resumedFromPause || gs.autoSaved)); }
+
+/**
+ * 🌟 حفظ تلقائي صامت بعد كل إجابة: يحمي الاختبار من إغلاق تبويب/نافذة المتصفح (زر ✕) أو انقطاع الجهاز، حيث لا فرصة
+ * لحفظ لحظة الخروج. يتم فقط عند وجود عمل فعلي (إجابة واحدة على الأقل ولم تنتهِ الأسئلة) وخارج جلسة علاج الأخطاء.
+ * لا يستبدل اختباراً معلّقاً آخر للطالب لم تبدأ منه هذه الجلسة (يتخطى بصمت). أي فشل لا يقاطع الاختبار.
+ */
+export function autoSavePaused(gs, kids, student, studentManager) {
+    try {
+        if (!gs || gs.isWeaknessMode || !student || !studentManager) return;
+        const answered = gs.reportDetails.length;
+        if (answered === 0 || answered >= gs.queue.length) return;
+        if (student.pausedEvaluation && !ownsPaused(gs)) return;
+        student.pausedEvaluation = buildPausedSnapshot(gs, kids);
+        gs.autoSaved = true;
+        studentManager.updateStudent(student).catch(err => console.warn('تعذر الحفظ التلقائي للاختبار:', err));
+    } catch (err) { console.warn('تعذر الحفظ التلقائي للاختبار:', err); }
+}
+
+/** يحذف لقطة الحفظ التلقائي التي صنعتها هذه الجلسة فقط (عند «خروج وإنهاء» الصريح أو اكتمال الاختبار) */
+export function discardAutoSaved(gs, student, studentManager) {
+    if (!gs || !gs.autoSaved || !student || !student.pausedEvaluation) return;
+    clearPausedEvaluation(student);
+    gs.autoSaved = false;
+    studentManager.updateStudent(student).catch(() => { /* best-effort */ });
+}
+
+// 🌟 تنبيه المتصفح عند إغلاق التبويب/النافذة أو تحديث الصفحة أثناء اختبار فيه عمل فعلي (الحفظ التلقائي أعلاه يحفظ ما سبق)
+let unloadGetter = null;
+function installUnloadWarning(getGameState) {
+    unloadGetter = getGameState;
+    if (installUnloadWarning.done) return;
+    installUnloadWarning.done = true;
+    window.addEventListener('beforeunload', (e) => {
+        if (!document.getElementById('btn-exit-game')) return;
+        const gs = unloadGetter && unloadGetter();
+        if (!gs || gs.isWeaknessMode || gs.reportDetails.length === 0 || gs.reportDetails.length >= gs.queue.length) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
 }
 
 // ===================== نصوص مساعدة =====================

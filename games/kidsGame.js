@@ -24,7 +24,7 @@ import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; //
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع وكمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
-import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard } from '../components/pausedSession.js';
+import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard, autoSavePaused, discardAutoSaved, ownsPaused } from '../components/pausedSession.js';
 import { setLeaveGuard } from '../core/leaveGuard.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -152,6 +152,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
     AppState.fixFlow = null;
     GameState.weaknessSnapshot = [];
     GameState.reportDetails = [];
+    GameState.autoSaved = false; // 🌟 هل حفظت هذه الجلسة لقطة تلقائية في سجل الطالب؟ (components/pausedSession.js)
     GameState.resumedFromPause = false; // 🌟 [جديد] يُضبط true فقط عند استكمال اختبار معلّق (أدناه)
     GameState.currentIndex = 0;
     GameState.consecutiveCorrect = 0;
@@ -277,6 +278,7 @@ function initGameUI() {
     // واحدة بالخطأ لو فيه إجابات مسجَّلة بالفعل. لو الجلسة لسه في أولها نخرج مباشرة بلا إزعاج
     document.getElementById('btn-exit-game')?.addEventListener('click', async () => {
         if (GameState.reportDetails.length > 0 && !await hamConfirm(t('exit_game_confirm_msg'))) return;
+        if (!GameState.resumedFromPause) discardAutoSaved(GameState, AppState.currentStudent, AppState.studentManager);
         loadDashboardScreen();
     });
 
@@ -295,7 +297,7 @@ function initGameUI() {
             if (!student) return;
             // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (نفس منطق adultGame.js): رسالة الاستبدال وحدها
             // لو سيُستبدل اختبار معلّق آخر، وإلا تأكيد الحفظ العادي
-            const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
+            const replacing = student.pausedEvaluation && !ownsPaused(GameState);
             if (!await hamConfirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
@@ -441,7 +443,7 @@ async function playNextMission() {
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (راجع adultGame.js)
-            if (GameState.resumedFromPause && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
+            if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
                 clearPausedEvaluation(AppState.currentStudent);
                 AppState.studentManager.updateStudent(AppState.currentStudent).catch(() => { /* best-effort */ });
             }
@@ -818,6 +820,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
     }
 
     GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: false, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, qIndex: GameState.currentIndex, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null, reciteRanges: reciteRec ? reciteRec.ranges : null });
+    autoSavePaused(GameState, true, AppState.currentStudent, AppState.studentManager); // 🌟 حفظ تلقائي صامت بعد كل إجابة (يحمي من إغلاق المتصفح)
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة
     // الإتقان الحقيقية (0-100%) في بطاقة "نظرة سريعة" بالشاشة الرئيسية. نحسب كل سؤال

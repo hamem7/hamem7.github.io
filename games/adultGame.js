@@ -27,7 +27,7 @@ import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «اس�
 import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
-import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard } from '../components/pausedSession.js';
+import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard, autoSavePaused, discardAutoSaved, ownsPaused } from '../components/pausedSession.js';
 import { setLeaveGuard } from '../core/leaveGuard.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
@@ -353,6 +353,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
     AppState.fixFlow = null;
     GameState.weaknessSnapshot = [];
     GameState.reportDetails = [];
+    GameState.autoSaved = false; // 🌟 هل حفظت هذه الجلسة لقطة تلقائية في سجل الطالب؟ (components/pausedSession.js)
     GameState.resumedFromPause = false; // 🌟 [جديد] يُضبط true فقط عند استكمال اختبار معلّق (أدناه)
     GameState.currentIndex = 0;
     GameState.consecutiveCorrect = 0;
@@ -501,6 +502,7 @@ function initGameUI() {
     // سؤال اتسجّل له إجابة) نخرج مباشرة زي السابق تماماً بدون إزعاج المعلم بتأكيد لا داعي له
     document.getElementById('btn-exit-game')?.addEventListener('click', async () => {
         if (GameState.reportDetails.length > 0 && !await hamConfirm(t('exit_game_confirm_msg'))) return;
+        if (!GameState.resumedFromPause) discardAutoSaved(GameState, AppState.currentStudent, AppState.studentManager);
         clearInterval(GameState.timerInterval);
         loadDashboardScreen();
     });
@@ -522,7 +524,7 @@ function initGameUI() {
             // اختبار معلّق آخر موجود (لم يبدأ منه هذا الاختبار) → تأكيد قبل استبداله (افتراض: معلّق واحد لكل طالب)
             // 🌟 [جديد] نافذة تأكيد قبل الحفظ والعودة لاحقاً (تجنّباً للضغط بالخطأ). لو فيه اختبار معلّق آخر
             // سيُستبدل نعرض رسالة الاستبدال وحدها (هي أصلاً تأكيد) بدل نافذتين متتاليتين؛ وإلا نعرض تأكيد الحفظ
-            const replacing = student.pausedEvaluation && !GameState.resumedFromPause;
+            const replacing = student.pausedEvaluation && !ownsPaused(GameState);
             if (!await hamConfirm(t(replacing ? 'pause_replace_confirm' : 'pause_confirm_msg'))) return;
             pauseBtn.disabled = true;
             try {
@@ -674,7 +676,7 @@ async function playNextMission() {
             persistEvaluationToHistory();
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (best-effort) حتى لا تظهر
             // بطاقة "اختبار غير مكتمل" مرة أخرى. اختبار جديد عادي لا يمسّ أي لقطة موجودة
-            if (GameState.resumedFromPause && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
+            if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
                 clearPausedEvaluation(AppState.currentStudent);
                 AppState.studentManager.updateStudent(AppState.currentStudent).catch(() => { /* best-effort */ });
             }
@@ -1170,6 +1172,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
     }
 
     GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null, reciteRanges: reciteRec ? reciteRec.ranges : null });
+    autoSavePaused(GameState, false, AppState.currentStudent, AppState.studentManager); // 🌟 حفظ تلقائي صامت بعد كل إجابة (يحمي من إغلاق المتصفح)
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة
     // الإتقان الحقيقية (0-100%) في بطاقة "نظرة سريعة" بالشاشة الرئيسية. نحسب كل سؤال

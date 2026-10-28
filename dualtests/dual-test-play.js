@@ -106,6 +106,14 @@ export async function initDualTestPlay() {
         return hamConfirm(t('dtp_leave_header_confirm'));
     });
 
+    window.addEventListener('beforeunload', (e) => {
+        if (!document.getElementById('dtp-back-btn')) return;
+        const fin = document.getElementById('dtp-final-back-btn');
+        if (fin && fin.offsetParent !== null) return;
+        e.preventDefault();
+        e.returnValue = '';
+    });
+
     document.getElementById('dtp-swap-cancel-btn')?.addEventListener('click', () => closeModal('dtp-swap-modal'));
 
     startRoundFlow();

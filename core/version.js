@@ -19,6 +19,7 @@ export const CHANGELOG = [
         version: '1.0.63',
         date: '2026-10-28',
         items: [
+            { type: 'new', text: { ar: 'الاختبار الفردي يُحفظ تلقائياً بعد كل إجابة، فلو أُغلق المتصفح أو التبويب بالخطأ (زر ✕) يمكنك الاستكمال من بطاقة «استكمال»، ويُنبّهك المتصفح قبل الإغلاق أثناء اختبار جارٍ. لا يُحفظ شيء إن لم تُجب عن أي سؤال بعد.', en: 'Individual tests are now auto-saved after every answer, so if the browser or tab is closed by mistake (the ✕ button) you can continue from the “Resume” card, and the browser warns you before closing during a running test. Nothing is saved if no question has been answered yet.' } },
             { type: 'improved', text: { ar: 'حماية من الخروج بالخطأ: الضغط على «الرئيسية» أو «حسابي» أثناء اختبار فيه إجابات يطلب تأكيداً أولاً، ثم يحفظ الاختبار تلقائياً لتستكمله لاحقاً من بطاقة «استكمال». ولو لم تُجب بعد على أي سؤال يخرج مباشرة بلا حفظ. وفي المواجهات الثنائية يظهر التأكيد نفسه.', en: 'Protection from leaving by mistake: pressing “Home” or “My account” during a test with recorded answers now asks for confirmation, then auto-saves the test so you can continue it later from the “Resume” card. If no question has been answered yet, it leaves directly without saving. Two-player matches show the same confirmation.' } }
         ]
     },
