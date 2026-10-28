@@ -346,7 +346,9 @@ function pickNear(Q, pool, target, rng, taken) {
 }
 
 // «في أي سورتين؟» (العبارة في سورتين بالضبط) أو «أي سورة لم ترد؟» (في 3–5 سور: الجواب سورة من النطاق لا ترد فيها)
-function pairCandidate(Q, group, locs, rng) {
+// memo (اختياري): مجموعة أرقام السور التي يحفظها الطالب. عند تمريرها يكون السؤال عادلاً له: سورتا الجواب من محفوظه،
+// وفي «أي سورة لم ترد؟» السورتان المعروضتان وسورة الجواب كلها من محفوظه (وإلا لا يستطيع الحكم)؛ ومشتتات «في أي سورتين؟» تُفضَّل من محفوظه.
+function pairCandidate(Q, group, locs, rng, memo = null) {
     if (!locs.every(l => l.v.juz >= PAIR_FIRST_JUZ && l.v.juz <= PAIR_LAST_JUZ)) return null;
     const surahs = [...new Set(locs.map(l => l.s))];
     const scopes = [];
@@ -365,14 +367,17 @@ function pairCandidate(Q, group, locs, rng) {
             if (hs.some(hides)) continue;
             const decoys = [...sc.set].filter(s => !holders.has(s) && !hides(s));
             if (decoys.length < 3) continue;
+            const known = memo ? decoys.filter(s => memo.has(s)) : decoys;
             const occ = locs.filter(l => holders.has(l.s)).map(l => ({ surahNumber: l.s, surahName: l.surahName, ayahNumber: l.n, fullText: l.text }));
             const base = { shown: new Set(), answer: new Set(), key: 'pair|' + group.groupId, facts: new Set(['phrase|' + sk.join(' ')]) };
             const name = (n) => Q.surahName(n);
             if (hs.length === 2) {
+                if (memo && !hs.every(s => memo.has(s))) continue;
+                const dpool = known.length >= 3 ? known : decoys;
                 const key = (a) => [...a].sort((x, y) => x - y).map(name).join(PAIR_SEP);
                 const ki = Math.floor(rng() * 2), keep = hs[ki], drop = hs[1 - ki];
                 const taken = new Set();
-                const d1 = pickNear(Q, decoys, drop, rng, taken), d2 = pickNear(Q, decoys, hs[0], rng, taken), d3 = pickNear(Q, decoys, hs[1], rng, taken);
+                const d1 = pickNear(Q, dpool, drop, rng, taken), d2 = pickNear(Q, dpool, hs[0], rng, taken), d3 = pickNear(Q, dpool, hs[1], rng, taken);
                 if (d1 == null || d2 == null || d3 == null) continue;
                 const f = finalize([key(hs), key([keep, d1]), key([d2, d3])], key(hs), rng);
                 if (!f) continue;
@@ -380,8 +385,10 @@ function pairCandidate(Q, group, locs, rng) {
                     extra: { pair: { phrase, scope: sc.id, surahs: hs, occurrences: occ } } };
             }
             if (hs.length < NOTIN_MIN) continue;
-            const two = shuffled(hs, rng).slice(0, 2);
-            const dn = pickNear(Q, decoys, two[0], rng, new Set());
+            const shownPool = memo ? hs.filter(s => memo.has(s)) : hs;
+            if (shownPool.length < 2 || !known.length) continue;
+            const two = shuffled(shownPool, rng).slice(0, 2);
+            const dn = pickNear(Q, known, two[0], rng, new Set());
             if (dn == null) continue;
             const f = finalize([name(dn), ...two.map(name)], name(dn), rng);
             if (!f) continue;
@@ -431,14 +438,14 @@ export function pairOptionLabel(opt) {
     return names.map(n => nameL(n)).join(tl('sim_pair_and', ' و '));
 }
 
-function buildCandidates(Q, group, locs, juz, rng, stats = null, allowMatch = true) {
+function buildCandidates(Q, group, locs, juz, rng, stats = null, allowMatch = true, memo = null) {
     const cphrase = cleanPhrase(group.anchorPhrase);
     const surahs = [...new Set(locs.map(l => l.s))];
     const sameSurah = surahs.length === 1;
     const identical = new Set(locs.map(l => l.norm)).size < locs.length;
     const anchored = sameSurah && identical;
     const cand = [];
-    const pc = pairCandidate(Q, group, locs, rng);
+    const pc = pairCandidate(Q, group, locs, rng, memo);
     if (pc) cand.push(pc);
 
     for (const l of locs) {
@@ -556,13 +563,13 @@ export function shortenOptions(opts, max = OPTION_WORDS) {
 
 // stats: كائن اختياري لتجميع قمع «أكمل الآية» (للتقارير فقط). midVerse: دعم عبارة وسط الآية (مفعّل افتراضياً بسقف 15 كلمة للمطلع)
 export function newCompleteStats() { return { locs: 0, at: {}, identicalBlocked: 0, stemLocs: 0, fewOptions: 0, notUnique: 0, built: 0, groupsWithCand: 0, groupsChosen: 0, completeChosen: 0 }; }
-export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = true, stats = null, match = true, types = null } = {}) {
+export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = true, stats = null, match = true, types = null, memorized = null } = {}) {
     const notes = [];
     const { locs, phrase } = resolveLocations(Q, group, notes, midVerse);
     const res = { groupId: group.groupId, questions: [], locations: locs.length, notes, reason: '' };
     if (locs.length < 2) { res.reason = 'أقل من موضعين صالحين بعد مطابقة المصحف'; return res; }
     const juz = locs[0].v.juz;
-    const cand = shuffled(buildCandidates(Q, group, locs, juz, rng, stats, match), rng).filter(c => !types || types.includes(c.type))
+    const cand = shuffled(buildCandidates(Q, group, locs, juz, rng, stats, match, memorized), rng).filter(c => !types || types.includes(c.type))
         .sort((a, b) => SIM_TYPES.indexOf(a.type) - SIM_TYPES.indexOf(b.type));
     const chosen = chooseBest(cand, 4);
     if (stats) { const nc = cand.filter(c => c.type === 'sim_complete').length; if (nc) stats.groupsWithCand++; const cc = chosen.filter(c => c.type === 'sim_complete').length; if (cc) stats.groupsChosen++; stats.completeChosen += cc; }

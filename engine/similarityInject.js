@@ -46,7 +46,8 @@ const KIDS_TYPES = new Set(['sim_pair', 'sim_notin']);
 
 // يبني حتى `count` سؤالاً، كل واحد من مجموعة مختلفة، والموضع المسؤول عنه داخل النطاق.
 // يرجع كائنات JSON: { kind:'sim_*', groupId, anchorPhrase, scope, text, options, optionsDisplay (للعرض، مقصوصة)، correctAnswer, correctIndex, ref, occurrence:{...} }
-export function buildSimilarQuestions({ allGroups, pool, count, kids, types }) {
+// memorized (اختياري): مجموعة أرقام السور المحفوظة؛ تمنع أسئلة «سورتين/لم ترد» التي جوابها أو خياراتها خارج محفوظ الطالب
+export function buildSimilarQuestions({ allGroups, pool, count, kids, types, memorized = null }) {
     if (!count || count <= 0) return [];
     const index = new Set((pool || []).map(a => keyOf(a.surahNumber, a.numberInSurah)));
     const inPool = (o) => index.has(keyOf(o.surahNumber, o.ayahNumber));
@@ -55,7 +56,7 @@ export function buildSimilarQuestions({ allGroups, pool, count, kids, types }) {
         if (out.length >= count) break;
         // «في أي سورتين؟»: يكفي أن يقع أحد الموضعين في نطاق الطالب (والموضع المرجعي للتقرير هو ذلك الموضع)
         const inRange = (q) => q.pair ? q.pair.occurrences.some(inPool) : inPool(q.occurrence);
-        const cands = shuffle(generateQuestionsForGroup(g).filter(q => inRange(q) && (!kids || KIDS_TYPES.has(q.type)) && (!types || types.includes(q.type))));
+        const cands = shuffle(generateQuestionsForGroup(g, { memorized }).filter(q => inRange(q) && (!kids || KIDS_TYPES.has(q.type)) && (!types || types.includes(q.type))));
         if (!cands.length) continue;
         const q = cands[0];
         if (q.pair) q.occurrence = q.pair.occurrences.find(inPool);

@@ -30,10 +30,10 @@ export async function injectSimilarQuestions(queue, pool, qCount, kids) {
         if (AppState.similaritiesReady) await AppState.similaritiesReady;
         await ensureSimilarityQuran(AppState.quranEngine); // نص الآيات من مصحف المنصة
         const allGroups = await AppState.similaritiesManager.getAllSimilarities();
-        const old = buildSimilarQuestions({ allGroups, pool, count, kids: false, types: GAME_OLD_TYPES });
+        const memorized = memorizedSurahsOf(AppState.currentStudent, AppState.surahsData) || new Set((pool || []).map(a => a.surahNumber));
+        const old = buildSimilarQuestions({ allGroups, pool, count, kids: false, types: GAME_OLD_TYPES, memorized });
         let fresh = [];
         try {
-            const memorized = memorizedSurahsOf(AppState.currentStudent, AppState.surahsData) || new Set((pool || []).map(a => a.surahNumber));
             fresh = generateRecallQuestions(getSimilarityQuran(), memorized, pool, { count, types: GAME_RECALL_TYPES });
         } catch (e) { console.warn('تعذّر توليد أسئلة الاستحضار:', e); }
         const sims = [];
