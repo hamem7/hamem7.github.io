@@ -306,4 +306,11 @@ span.quran-text:not(.order-item):not(.order-slot):not(.link-item) {
     border-radius: 0;
     background: none;
     box-shadow: none;
+    /* خط المصحف أصغر بصرياً من خط الواجهة بنفس القياس: نكبّره نسبةً لحجم العنوان ليبدو بحجمه (الحجم فقط، لا الخط ولا الوزن)
+       ونلغي ارتفاع السطر الكبير والحشوة العامة حتى لا يتضخم سطر العنوان */
+    font-size: 1.35em !important;
+    line-height: 1 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    max-width: none;
 }
