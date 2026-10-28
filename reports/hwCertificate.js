@@ -67,7 +67,7 @@ function collectMistakes(submission) {
         return d.isCorrect === false;
     }).map(d => ({
         question: localizeHomeworkText(d.question || ''),
-        correctAnswer: d.correctAnswer ? (isSurahName(d.correctAnswer) ? surahNameLocal(d.correctAnswer) : d.correctAnswer) : null
+        correctAnswer: d.correctAnswer ? (isSurahName(d.correctAnswer) ? surahNameLocal(d.correctAnswer) : localizeHomeworkText(d.correctAnswer)) : null
     }));
 }
 

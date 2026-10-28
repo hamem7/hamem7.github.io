@@ -1091,11 +1091,11 @@ function openGradingRoom(subIndex) {
             modalHtml += `
                 <div style="margin: 10px 0; font-size: 1.2rem;">
                     <span style="color: #64748b;">${t('إجابة الطالب:')}</span>
-                    <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${esc(d.studentAnswer)}</strong>
+                    <strong style="color: ${d.isCorrect || d.manualScore > 0 ? '#10b981' : '#ef4444'};">${esc(localizeHomeworkText(d.studentAnswer))}</strong>
                 </div>
                 ${d.type === 'tajweed_extract' ? '' : `<div style="margin: 10px 0; font-size: 1.2rem;">
                     <span style="color: #64748b;">${t('الإجابة النموذجية:')}</span>
-                    <strong style="color: #10b981;">${esc(d.correctAnswer)}</strong>
+                    <strong style="color: #10b981;">${esc(localizeHomeworkText(d.correctAnswer))}</strong>
                 </div>`}
             `;
         }
@@ -2134,7 +2134,7 @@ function renderPreview() {
             q.options.forEach(opt => {
                 let isCorrect = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : (opt === q.correctAnswer);
                 let icon = q.type === 'checkbox' ? (isCorrect ? '☑️' : '🔲') : (isCorrect ? '✔️' : '⚪');
-                optionsHTML += `<li style="padding: 5px; background: ${isCorrect ? 'var(--dh-ok-bg, #e7f4ee)' : '#f1f5f9'}; margin-bottom: 5px; border-radius: 5px; font-weight: ${isCorrect ? 'bold' : 'normal'};">${icon} ${opt}</li>`;
+                optionsHTML += `<li style="padding: 5px; background: ${isCorrect ? 'var(--dh-ok-bg, #e7f4ee)' : '#f1f5f9'}; margin-bottom: 5px; border-radius: 5px; font-weight: ${isCorrect ? 'bold' : 'normal'};">${icon} ${localizeHomeworkText(opt)}</li>`;
             });
             optionsHTML += `</ul>`;
         }

@@ -6166,6 +6166,7 @@ export function trStored(text) {
 
 // 🌟 تسجيل المترجم في جسر المحرّكات النقية (راجع core/langBridge.js للشرح)
 registerTranslator({ t, tf, surahNameLocal, surahLabel, isEn: isEnglish });
+try { if (AppState.currentLang === 'en') loadWordMeaningsEn(); } catch (e) { /* غير حرِج */ }
 
 // 🌟 localizeGenerated: ترجمة "النصوص المولَّدة" (نصوص التقارير وسجل الطالب وأسئلة الواجبات) التي تُخزَّن
 // بصيغة عربية قياسية مع متغيرات (اسم سورة، أرقام، كلمة...). كل قالب هنا هو مفتاح قاموس عربي فيه
