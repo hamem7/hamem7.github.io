@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { MUTASHABIHAT_SEED as ALL } from '../database/data/mutashabihatSeed.js';
 import { similarCountFor, eligibleGroups, buildSimilarQuestions, injectIntoQueue, occurrenceFirstAyah, cleanOccurrenceText } from '../engine/similarityInject.js';
+import { buildHomeworkSimilarityQuestion, buildGameRound } from '../engine/similarityEngine.js';
 import { setSimilarityQuran } from '../engine/similarityQuestions.js';
 import { loadQuranSurahs } from '../tools/mutashabihat-questions/load.mjs';
 setSimilarityQuran(loadQuranSurahs());
@@ -80,6 +81,20 @@ test('عدالة المحفوظ: طالب يحفظ من الواقعة إلى ا
                 const shown = q.pair.surahs.filter(s => memorized.has(s));
                 assert.ok(shown.length >= 2, `${q.groupId} سور معروضة خارج المحفوظ`);
             }
+        }
+    }
+    assert.ok(seen > 0);
+});
+test('عدالة المحفوظ في الواجب وجولات اللعب: كل أنواع الأسئلة من سور المحفوظ فقط', () => {
+    const memorized = new Set(); for (let s = 56; s <= 114; s++) memorized.add(s);
+    let seen = 0;
+    for (const g of ALL.slice(0, 400)) {
+        const gens = [];
+        for (let r = 0; r < 3; r++) { const q = buildHomeworkSimilarityQuestion(g, { memorized }); if (q) gens.push(q); }
+        for (const q of buildGameRound([g], { memorized }).questions) {
+            seen++;
+            if (q.occurrence) assert.ok(memorized.has(q.occurrence.surahNumber), `${g.groupId} ${q.type} موضع خارج المحفوظ`);
+            if (q.pair) assert.ok(q.pair.surahs.filter(s => memorized.has(s)).length >= 2, `${g.groupId}`);
         }
     }
     assert.ok(seen > 0);

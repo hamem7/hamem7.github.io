@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """يدمج مسودة نسخ «السراج في بيان غريب القرآن» (الخضيري) مع database/data/wordMeanings.json.
 الاستعمال: python3 tools/merge_siraj_meanings.py   (يقرأ tools/siraj-transcription/b*.txt)
-السراج مصدر أول للمعنى القصير؛ ويبقى مخلوف (tools/build_word_meanings.py) احتياطاً للكلمات التي لا يغطيها السراج في الآية نفسها،
+السراج مصدر أول للمعنى القصير؛ ويبقى مخلوف (tools/build_word_meanings.py) احتياطاً للآيات التي ليس لها أي مدخل في السراج،
 وتُختصر معاني مخلوف الطويلة: نأخذ أول البدائل قبل «أو» ثم نقطع عند فاصلة إن زادت عن الحد.
 صيغة المسودة: «آية|كلمة|معنى» وسطر «#رقم_السورة» عند بداية كل سورة. لا نثق بالرقم إلا إذا طابقت الكلمة نص الآية.
 الناتج: {"سورة":[[آية, كلمة, معنى], ...]} كما في السابق، مع حفظ نسخة مخلوف الأصلية في database/data/wordMeanings.makhlouf.json."""
@@ -114,8 +114,8 @@ def main():
         for e in rows:
             covered.setdefault(e[0], []).append(norm(e[1]))
         for v, w, m in mk.get(sn, []):
-            nw = norm(w)
-            if any(nw and c and (nw in c or c in nw) for c in covered.get(v, [])):
+            # السراج هو المعتمد: مخلوف لا يدخل إلا لآية لا مدخل لها في السراج (لا يُخلط مصدران في الآية الواحدة)
+            if covered.get(v):
                 skipped_mk += 1; continue
             sm = shorten(m)
             if sm != m:

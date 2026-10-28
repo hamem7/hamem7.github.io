@@ -52,10 +52,10 @@ export { isDisabledScope as isSimScopeDisabled };
 // بقية الأنواع (sim_which / sim_complete) تبقى مولَّدة ومحفوظة في الشيفرة لكن لا تظهر في الألعاب؛ الواجب المنزلي لا يتأثر. للتفعيل أضفها هنا.
 export const STUDENT_SIM_TYPES = ['sim_pair', 'sim_notin'];
 
-export function buildGameRound(groups) {
+export function buildGameRound(groups, { memorized = null } = {}) {
     const list = (Array.isArray(groups) ? groups : (groups ? [groups] : [])).filter(g => !isDisabledScope(g));
     let all = [];
-    list.forEach(g => { all = all.concat(generateQuestionsForGroup(g, { types: STUDENT_SIM_TYPES })); });
+    list.forEach(g => { all = all.concat(generateQuestionsForGroup(g, { types: STUDENT_SIM_TYPES, memorized })); });
     const shuffled = shuffle(all);
     const questions = shuffled.slice(0, MAX_ROUND_QUESTIONS);
     return {
@@ -93,14 +93,14 @@ export function toHomeworkQuestion(simQ) {
 }
 
 // سؤال واجب واحد من مجموعة متشابهات (نوعه عشوائي من الأنواع الممكنة لها)، أو null لو بياناتها لا تكفي.
-export function buildHomeworkSimilarityQuestion(group) {
+export function buildHomeworkSimilarityQuestion(group, { memorized = null } = {}) {
     if (isDisabledScope(group)) return null;
     // «صِل الآية بسورتها» يحتاج مجموعة من ثلاث سور فأكثر، وهو يزاحم بقية الأنواع في الاختيار، فنجرّبه أولاً بنسبة معقولة
     if (Math.random() < 0.4) {
-        const m = generateQuestionsForGroup(group, { match: true, types: ['sim_match'] }).map(toHomeworkQuestion).find(Boolean);
+        const m = generateQuestionsForGroup(group, { match: true, types: ['sim_match'], memorized }).map(toHomeworkQuestion).find(Boolean);
         if (m) return m;
     }
-    for (const c of shuffle(generateQuestionsForGroup(group, { match: true }))) {
+    for (const c of shuffle(generateQuestionsForGroup(group, { match: true, memorized }))) {
         const q = toHomeworkQuestion(c);
         if (q) return q;
     }

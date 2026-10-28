@@ -565,7 +565,9 @@ export function shortenOptions(opts, max = OPTION_WORDS) {
 export function newCompleteStats() { return { locs: 0, at: {}, identicalBlocked: 0, stemLocs: 0, fewOptions: 0, notUnique: 0, built: 0, groupsWithCand: 0, groupsChosen: 0, completeChosen: 0 }; }
 export function generateGroupQuestions(Q, group, { rng = Math.random, posRef = { n: 0 }, midVerse = true, stats = null, match = true, types = null, memorized = null } = {}) {
     const notes = [];
-    const { locs, phrase } = resolveLocations(Q, group, notes, midVerse);
+    const resolved = resolveLocations(Q, group, notes, midVerse), phrase = resolved.phrase;
+    // محفوظ الطالب: تُستبعد مواضع السور التي لا يحفظها فلا يُسأل عنها ولا تظهر خيارًا ولا جوابًا (يلزم موضعان محفوظان على الأقل)
+    const locs = memorized ? resolved.locs.filter(l => memorized.has(l.s)) : resolved.locs;
     const res = { groupId: group.groupId, questions: [], locations: locs.length, notes, reason: '' };
     if (locs.length < 2) { res.reason = 'أقل من موضعين صالحين بعد مطابقة المصحف'; return res; }
     const juz = locs[0].v.juz;
