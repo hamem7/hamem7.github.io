@@ -20,7 +20,7 @@ for (const s of Object.keys(ar)) {
         assert.ok(!/[؀-ۿ]/.test(txt), `حروف عربية في الإنجليزية: ${txt}`);
     });
 }
-assert.equal(total, 7560);
+assert.equal(total, 6727);   // السراج أولاً؛ مخلوف فقط لآيات بلا مدخل في السراج
 
 // المحمِّل + البحث بالمعنى العربي (المختصر أو الكامل)
 globalThis.fetch = async (u) => ({ ok: true, json: async () => read(String(u).includes('.en.') ? 'wordMeanings.en.json' : 'wordMeanings.json') });
