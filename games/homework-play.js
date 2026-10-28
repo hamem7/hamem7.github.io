@@ -3,7 +3,7 @@ import { AppState } from '../core/app.js';
 // 🌟🌟 [محدَّث] كان هذا الملف يستورد رفع النتيجة/الصوت من core/firebase.js ويحسب الدرجة على هاتف الطالب ويدّعي
 // النجاح قبل أي رفع. الآن: الإجابات تُحفظ على الجهاز (مسودة) ثم تُرسل للخادم الذي يصحّحها ويؤكد حفظها، ولا تظهر
 // أي رسالة "وصل" إلا بعد تأكيد الخادم — راجع core/submitQueue.js. (التسجيل الصوتي غير مدعوم حالياً في الواجبات)
-import { t, tf, localizeHomeworkText } from '../core/i18n.js';
+import { t, tf, localizeHomeworkText, wrapQuranWordTitle } from '../core/i18n.js';
 import { loadWordMeaningsEn } from '../engine/wordMeaningData.js';
 const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤال وقت العرض فقط (الآيات لا تُمَسّ)
 // 🌟 [إصلاح تدقيق ما قبل الإطلاق] escape للخيارات وإجابة الطالب المحفوظة داخل HTML/attributes: كان علامة " في خيار أو إجابة تكسر الـ attribute وتضيّع الإجابة عند إعادة الفتح
@@ -309,7 +309,7 @@ function renderQuestion() {
 
     let html = `
         <span class="hp-qtype">${esc(typeName(q.type))}</span>
-        <h3 class="hp-qtitle">${hl(q.title)}</h3>
+        <h3 class="hp-qtitle">${(q.type === 'mcq' && String(q.title || '').includes('ما معنى')) ? wrapQuranWordTitle(hl(q.title)) : hl(q.title)}</h3>
         ${(q.type === 'mcq' && String(q.title || '').includes('ما معنى')) ? `<div class="hp-parent">👨‍👩‍👧 ${t('بإمكانك سؤال أحد الوالدين في هذا السؤال')}</div>` : ''}
         ${q.text ? `<!-- class="dh-verse" (css/global.css) يثبّت اتجاه الآية RTL فلا تنقلب أقواسها ﴿ ﴾ في الإنجليزية -->
         <div class="hp-mushaf"><div class="hp-ayah dh-verse">${hl(q.text)}</div></div>` : ''}

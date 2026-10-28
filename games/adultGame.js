@@ -2,7 +2,7 @@
 // 🌟 استيراد دالة الترجمة t 🌟
 import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
-import { localizeHomeworkText } from '../core/i18n.js';   // معاني الكلمات بالإنجليزية وقت العرض
+import { localizeHomeworkText, wrapQuranWordTitle } from '../core/i18n.js';   // معاني الكلمات بالإنجليزية وقت العرض
 import { addGoldStar, starsSuffix } from '../core/goldStars.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
@@ -44,7 +44,8 @@ document.addEventListener('app-lang-changed', () => {
     const src = GameState.currentData && GameState.currentData.questionTitle;
     const span = document.querySelector('#game-title > span:only-child');
     if (!src || !span || GameState.isWeaknessMode || GameState.currentData.type === 'weakness') return;
-    span.textContent = localizeGenerated(t(src));
+    if (GameState.currentData.type === 'word_meaning') span.innerHTML = wrapQuranWordTitle(localizeGenerated(t(src)));
+    else span.textContent = localizeGenerated(t(src));
     // شارة «سؤال مميز» نص ثابت مبنيّ لحظة العرض: تُحدَّث هي أيضًا (وإلا بقيت بالعربية بعد التبديل للإنجليزية)
     const badge = document.querySelector('#game-title > .special-q-badge');
     if (badge) badge.textContent = `⭐ ${t('سؤال مميز')} ⭐`;
@@ -990,7 +991,7 @@ async function playNextMission() {
             recordSeen(GameState.currentData && GameState.currentData.ayahObj); // 🌟 تسجيل الآية في دفتر الطالب عند العرض الفعلي
             
             const specialBadgeMain = (GameState.currentData.special && !GameState.isWeaknessMode) ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
-            document.getElementById('game-title').innerHTML = specialBadgeMain + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${localizeGenerated(t(GameState.currentData.questionTitle))}</span>`;
+            document.getElementById('game-title').innerHTML = specialBadgeMain + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${GameState.currentData.type === 'word_meaning' ? wrapQuranWordTitle(localizeGenerated(t(GameState.currentData.questionTitle))) : localizeGenerated(t(GameState.currentData.questionTitle))}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
             if(['between', 'recite', 'similar'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             if (GameState.currentData.simKind === 'sim_named' || GameState.currentData.simKind === 'sim_notin') document.body.dataset.simKind = GameState.currentData.simKind; // sim_named: تخطيط ممتلئ؛ sim_notin: أحجام خط بمستوى بقية ألعاب الكبار

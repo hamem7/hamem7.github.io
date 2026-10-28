@@ -6214,6 +6214,11 @@ export function surahNamesLocal(str) {
     return surahNameLocal(s);
 }
 
+// عنوان «ما معنى «كلمة» ...»: الكلمة القرآنية داخل « » تُلفّ بـ quran-text لتظهر بخط المصحف (الخط العام لا يرثه عنصر فرعي)
+export function wrapQuranWordTitle(html) {
+    return String(html == null ? '' : html).replace(/«([^«»<>]+)»/g, '«<span class="quran-text">$1</span>»');
+}
+
 export function localizeGenerated(text) {
     if (typeof text !== 'string' || !text) return text;
     const exact = trStored(text);
