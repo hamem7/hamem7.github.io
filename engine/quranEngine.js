@@ -594,7 +594,8 @@ export class QuranEngine {
             options,
             correctIndex: options.indexOf(correct),
             fullAnswer: correct,
-            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${shownWord}»: ${isEnL() ? (meaningEn(correct) || correct) : correct}</span>`,
+            answerWord: shownWord,
+            answerHTML: `<span class="wm-answer" style="font-size:1.8rem; font-weight:bold;">«${shownWord}»: ${isEnL() ? (meaningEn(correct) || correct) : correct}</span>`,
             ayahObj: ayah,
             reportText: ayahText
         };

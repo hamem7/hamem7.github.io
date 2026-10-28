@@ -47,6 +47,15 @@ document.addEventListener('app-lang-changed', () => {
     if (!src || !span || GameState.isWeaknessMode || GameState.currentData.type === 'weakness') return;
     if (GameState.currentData.type === 'word_meaning') span.innerHTML = wrapQuranWordTitle(localizeGenerated(t(src)));
     else span.textContent = localizeGenerated(t(src));
+    // خيارات «معنى الكلمة» وإجابتها تُترجم أيضاً (المخزَّن عربي والترجمة وقت العرض فقط)
+    const cd = GameState.currentData;
+    if (cd.type !== 'word_meaning') return;
+    document.querySelectorAll('#game-question .sim-opt-btn').forEach(b => {
+        const o = cd.options && cd.options[Number(b.dataset.idx)];
+        if (typeof o === 'string') b.textContent = localizeHomeworkText(o);
+    });
+    const ans = document.querySelector('#game-answer .wm-answer');
+    if (ans && cd.answerWord) ans.textContent = `«${cd.answerWord}»: ${localizeHomeworkText(cd.fullAnswer)}`;
 });
 
 // نص سؤال المتشابهات (أزراره وحالته لا تُمَسّ): يُعاد بناؤه بلغة الواجهة الجديدة عند تبديل اللغة أثناء عرضه
