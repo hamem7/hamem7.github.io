@@ -180,7 +180,7 @@ function handleRowAction(e, afterChange) {
 const GROUP_MAX_ROWS = 4;
 let groupBound = false;
 
-/** يجمع بطاقتي الرئيسية في غلاف واحد (تذكيراتي فوق «مهام اليوم») ليتنقّلا معاً؛ يُرجع بطاقة التذكيرات. */
+/** يجمع بطاقتي الرئيسية في غلاف واحد («مهام اليوم» فوق وتذكيراتي تحتها) ليتنقّلا معاً؛ يُرجع بطاقة التذكيرات. */
 function ensureReminderCard() {
     let host = document.getElementById('home-quickcard-reminders');
     if (host && host.isConnected) return host;
@@ -198,7 +198,7 @@ function ensureReminderCard() {
     host.id = 'home-quickcard-reminders';
     host.className = 'dh-remcard';
     host.setAttribute('aria-label', t('rem_title'));
-    stack.insertBefore(host, card);
+    stack.appendChild(host);   // تحت «مهام اليوم»
     return host;
 }
 

@@ -25,7 +25,7 @@ await page.goto(WEB + '/index.html'); await page.waitForSelector('#home-quickcar
 await page.evaluate(() => { document.querySelector('.dh-tour-skip')?.click(); document.getElementById('whats-new-modal')?.remove(); });
 
 console.log('\n=== المجموعة والإضافة ===');
-check('بطاقة «تذكيراتي» مستقلة فوق «مهام اليوم» داخل الغلاف', await page.evaluate(() => { const r = document.getElementById('home-quickcard-reminders'); return !!r && r.nextElementSibling && r.nextElementSibling.id === 'home-quickcard' && r.parentElement.id === 'home-quick-stack'; }));
+check('بطاقة «تذكيراتي» مستقلة تحت «مهام اليوم» داخل الغلاف', await page.evaluate(() => { const r = document.getElementById('home-quickcard-reminders'); return !!r && r.previousElementSibling && r.previousElementSibling.id === 'home-quickcard' && r.parentElement.id === 'home-quick-stack'; }));
 check('حالة فارغة وزر إضافة', await page.locator('#home-quickcard-reminders .dh-rem-addwide').isVisible());
 await page.locator('#home-quickcard-reminders .dh-rem-addwide').click();
 check('نموذج الإضافة يفتح', await page.locator('.dh-rem-form .dh-rem-panel').isVisible());
