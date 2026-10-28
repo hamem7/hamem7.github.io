@@ -30,7 +30,8 @@ import { getTeacherEmail } from './api.js';
 // داخل الملف، بحيث تبقى الملفات القديمة (بلا هذا الحقل) قابلة للاسترجاع كما كانت (توافق خلفي) 🌟
 function isBackupLocalStorageKey(key) {
     return key.startsWith('history_') || key.startsWith('darham_avatar_') ||
-           key === 'darham_reports_log' || key === 'darham_teacher_name' || key === 'darham_teacher_signature';
+           key === 'darham_reports_log' || key === 'darham_teacher_name' || key === 'darham_teacher_signature' ||
+           key === 'dh_reminders';   // «تذكيراتي» (منبّه المعلم الشخصي — core/reminders.js)
 }
 function collectBackupLocalStorage() {
     const out = {};

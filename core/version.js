@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.63';
+export const APP_VERSION = '1.0.64';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.64',
+        date: '2026-10-28',
+        items: [
+            { type: 'new', text: { ar: 'تذكيراتي: منبّه شخصي للمعلم داخل «مهام اليوم». اكتب ما تريد إنجازه مع طلابك (وربطه بطالب) أو لنفسك أو لعملك، واختر الوقت والتكرار (يوميًا/أسبوعيًا)، فتُنبّهك المنصة في موعده بشريط علوي وصوت (أو نافذة وسط الشاشة للتذكير العاجل) مع أزرار «تمّت» و«أجّل» و«افتح ملف الطالب». ويظهر إشعار المتصفح إن كانت المنصة في تبويب خلفي، وعند فتح المنصة يُخبرك بما فاتك. الشاشة الكاملة من «عرض الكل» أو من «المزيد». التذكيرات تدخل في النسخة الاحتياطية.', en: 'My reminders: a personal alarm for the teacher inside “Today’s tasks”. Write what you want to do with your students (link a student), for yourself or for work, pick the time and repeat (daily/weekly), and the platform alerts you on time with a top banner and a sound (or a full pop-up for urgent ones) with Done, Snooze and Open student profile buttons. A browser notification appears if the platform is in a background tab, and on opening it tells you what you missed. The full screen is under “View all” or “More”. Reminders are included in backups.' } }
+        ]
+    },
     {
         version: '1.0.63',
         date: '2026-10-28',

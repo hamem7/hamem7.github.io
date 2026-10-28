@@ -400,6 +400,10 @@
                          تظهر العنوان لو في عنصر واحد على الأقل، أو رسالة "لا شيء معلّق اليوم" لو لا
                          شيء وكان عند المعلم طالب واحد على الأقل، وتبقى مخفية تماماً لو لا طلاب بعد.
                          الـids القديمة لكل عنصر بالداخل لم تتغير إطلاقاً (لا تأثير على أي منطق سابق). -->
+                    <!-- 🌟 [جديد — «تذكيراتي» منبّه المعلم الشخصي] مجموعة التذكيرات اليدوية (طلاب/شخصي/عمل) أول البطاقة؛ يملؤها
+                         components/reminders.js (initHomeReminders) من core/reminders.js. مستقلة عن «يحتاج منك اليوم» ولا تغيّر عدّاداتها -->
+                    <div id="home-quickcard-reminders"></div>
+
                     <div class="home-quickcard-today" id="home-quickcard-today" style="display:none;">
                         <!-- 🌟 [2026-10-07 — «مهام اليوم» الشكل أ] رأس ملخّص يحلّ محل عنوان «يحتاج منك اليوم»: يُملأ من updateTodayGroup -->
                         <div class="qts" id="home-quickcard-today-sum" style="display:none;">

@@ -22,6 +22,8 @@ import { AppState, setEvaluationMode, openHomeworkPrep, openDualTestSetup, openS
 import { switchTheme } from '../core/navigation.js';
 import { bindThemeButton } from '../core/theme.js';
 import { loadMyStudentsScreen, loadAllStudentsScreen, enterStudentEvaluation, rankStudentMatches, normName } from '../student/student.js';
+// 🌟 [جديد — «تذكيراتي»] شاشة التذكيرات + عدّاد المتأخر/اليوم للشارة (راجع components/reminders.js)
+import { openRemindersScreen, actionableCount } from './reminders.js';
 
 const HOME_SCREEN = 'components/splash.html';
 // الشاشات الأساسية: يظهر فيها الشريط السفلي (هاتف) وتنزلق ترويستها
@@ -374,6 +376,7 @@ function goAdult() { setEvaluationMode(false); return loadLoginScreen(); }
 function goKids() { setEvaluationMode(true); return loadLoginScreen(); }
 const IC = {
     home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9"/>',
+    reminders: '<path d="M6 17V11a6 6 0 1 1 12 0v6l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/>',
     tasks: '<rect x="4" y="3.5" width="16" height="17" rx="2.5"/><path d="M8 9l1.6 1.6L12.5 7.7M8 15l1.6 1.6 2.9-2.9M14.5 9.5H17M14.5 15.5H17"/>',
     adult: '<path d="M2 9l10-5 10 5-10 5-10-5Z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/>',
     kids: '<circle cx="12" cy="8" r="4"/><path d="M4 20c1.4-4.4 4.4-6.5 8-6.5s6.6 2.1 8 6.5"/>',
@@ -410,6 +413,7 @@ function sheetItems(kind) {
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
         { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
+        { key: 'sheet_reminders', icon: IC.reminders, run: () => openRemindersScreen(), badge: () => actionableCount() },
         { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
         { key: 'sheet_certs', icon: IC.certs, run: () => openCertificates() },
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
@@ -516,12 +520,13 @@ function readTasksCount() { try { return parseInt(localStorage.getItem(TASKS_COU
 function renderTasksBadge() {
     const btn = bnav && bnav.querySelector('.dh-bnav-item[data-id="tasks"] .dh-bnav-ic');
     if (!btn) return;
-    const n = readTasksCount();
+    const n = readTasksCount() + actionableCount();   // + تذكيرات «تذكيراتي» المتأخرة/اليوم
     let b = btn.querySelector('.dh-bnav-badge');
     if (n <= 0) { if (b) b.remove(); return; }
     if (!b) { b = document.createElement('span'); b.className = 'dh-bnav-badge'; btn.appendChild(b); }
     b.textContent = n > 9 ? '9+' : String(n);
 }
+document.addEventListener('dh:reminders-changed', renderTasksBadge);
 document.addEventListener('dh:tasks-count', (e) => {
     try { localStorage.setItem(TASKS_COUNT_KEY, String((e.detail && e.detail.n) || 0)); } catch (err) { /* التخزين غير متاح: يبقى الرقم لهذه الجلسة فقط */ }
     renderTasksBadge();

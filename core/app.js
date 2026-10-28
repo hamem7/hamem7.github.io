@@ -36,6 +36,9 @@ import { initTeacherProfileUI, renderTeacherGreeting } from '../components/teach
 import { initHomeQuickview } from '../components/homeQuickview.js';
 // 🌟 [جديد 2026-10-01] الدخول السريع (بحث الطلاب + تابع من حيث توقفت + الشارات + الشريط السفلي + ?go=)
 import { initHomeFast } from '../components/homeFast.js';
+// 🌟 [جديد — «تذكيراتي» منبّه المعلم الشخصي] راجع components/reminders.js وcore/reminders.js
+import { initHomeReminders, bindReminderAlerts } from '../components/reminders.js';
+import { startReminderWatcher } from './reminders.js';
 // 🌟 توست التنويه أسفل الشاشة — يُستخدم في شاشة "الاختبارات الثنائية" (بدل alert())
 import { showToastEncouragement } from '../components/ui.js';
 import { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage } from './i18n.js';
@@ -377,6 +380,10 @@ async function bootSystem() {
         // لا يفعل شيئاً فعلياً لو لم يسجّل المعلم الدخول بجوجل داخل نظام الواجبات على هذا الجهاز (ولا يطلب أي دخول).
         startHomeworkSubmissionWatcher();
 
+        // 🌟 [جديد] مراقب «تذكيراتي»: يعمل طوال الجلسة على أي شاشة (فحص كل 15 ثانية + عند عودة التبويب) ويبثّ التنبيهات
+        bindReminderAlerts();
+        startReminderWatcher();
+
         // 🧑‍🏫 ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن
         AppState.teacherManager = new TeacherManager(teacherDB);
@@ -715,6 +722,9 @@ function setupSplashListeners() {
     // التقارير، تذكير يوم ميلاد طالب، آية/حديث اليوم، زر النشر السريع) —
     // كل شيء في components/homeQuickview.js حتى لا يتضخم هذا الملف
     initHomeQuickview();
+
+    // 🌟 [جديد] مجموعة «تذكيراتي» داخل بطاقة «مهام اليوم»
+    initHomeReminders();
 
     // 🌟 [جديد 2026-10-01] بطاقة "ابدأ من هنا" للمعلم الجديد (لا طلاب مسجَّلون بعد)
     initStartHereCard();
