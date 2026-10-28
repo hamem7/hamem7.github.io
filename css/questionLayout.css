@@ -34,7 +34,7 @@ body[data-qfit="sim"] #app-root #game-question .sim-q-text {
     margin: 0 0 calc(.5 * var(--u)) !important;
     overflow-wrap: anywhere;
 }
-body[data-qfit="sim"] #app-root #game-question :is(.sim-q-verse, > .quran-text) {
+body[data-qfit="sim"] #app-root :is(#game-question .sim-q-verse, #game-question > .quran-text) {
     display: block !important; width: fit-content; max-width: 100%; box-sizing: border-box;
     margin: calc(.3 * var(--u)) auto !important;
     padding-inline: .6em !important;
@@ -105,7 +105,7 @@ body[data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
 body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question .sim-q-text {
     font-size: min(max(1.05rem, calc(1.75 * var(--u))), 2.2rem) !important;
 }
-body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question :is(.sim-q-verse, > .quran-text) {
+body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root :is(#game-question .sim-q-verse, #game-question > .quran-text) {
     font-size: min(max(1.5rem, calc(2.9 * var(--u))), clamp(2.2rem, 5.6vh, 3.8rem)) !important;
 }
 body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
