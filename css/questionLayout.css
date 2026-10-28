@@ -102,13 +102,13 @@ body[data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
 /* «أيُّ سورة لم ترد؟» (الكبار): كانت الأحجام تتضخّم حتى 4.9rem للعبارة و3rem للسؤال و2.2rem للخيارات (معامل --qf حتى 1.7)،
    فصارت أكبر من بقية ألعاب الكبار. الآن تُقيَّد بسقف بقية الألعاب: العبارة القرآنية clamp(2.2rem, 5.6vh, 3.8rem) كـ«تسميع مقطع»
    و«الآية بين آيتين»، ونص السؤال حتى 2.2rem، وأزرار أسماء السور حتى 2rem كأزرار الاختيار (.kids-mcq-btn). التخطيط حول النص فقط — لا يُمسّ نوع الخط القرآني. */
-body[data-sim-kind="sim_notin"][data-qfit="sim"] #app-root #game-question .sim-q-text {
+body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question .sim-q-text {
     font-size: min(max(1.05rem, calc(1.75 * var(--u))), 2.2rem) !important;
 }
-body[data-sim-kind="sim_notin"][data-qfit="sim"] #app-root #game-question :is(.sim-q-verse, > .quran-text) {
+body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question :is(.sim-q-verse, > .quran-text) {
     font-size: min(max(1.5rem, calc(2.9 * var(--u))), clamp(2.2rem, 5.6vh, 3.8rem)) !important;
 }
-body[data-sim-kind="sim_notin"][data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
+body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
     font-size: min(max(1.05rem, calc(1.3 * var(--u))), 2rem) !important;
 }
 
