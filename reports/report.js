@@ -93,6 +93,14 @@ const REPORT_TEMPLATE = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
         <span data-i18n="rep_tb_pdf">ملف PDF شامل</span>
       </button>
+      <button class="rbtn" id="btn-report-wa-png">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
+        <span data-i18n="rep_tb_wa_png">واتساب: صورة</span>
+      </button>
+      <button class="rbtn" id="btn-report-wa-pdf">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
+        <span data-i18n="rep_tb_wa_pdf">واتساب: ملف PDF</span>
+      </button>
     </div>
     <div class="grp">
       <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] "تقييم طالب آخر": يفتح شاشة اختيار الطالب مباشرة بنفس الوضع الحالي
@@ -1740,8 +1748,9 @@ async function withExportWidth(fn){
   }
 }
 
-async function exportPng(){ return withExportWidth(exportPngAtPageWidth); }
-async function exportPngAtPageWidth(){
+async function exportPng(){ return withExportWidth(() => exportPngAtPageWidth(false)); }
+async function sharePng(){ return withExportWidth(() => exportPngAtPageWidth(true)); }
+async function exportPngAtPageWidth(share){
   await ensureHtml2Canvas();
   await ensureFontsReady();
   await ensureStampCleaned();
@@ -1760,11 +1769,39 @@ async function exportPngAtPageWidth(){
     target.classList.remove(BRIEF_CLASS);
   }
 
+  if (share) {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    await shareToWhatsApp(blob, buildFileName('png'), 'image/png');
+    logReportGenerated(canvas);
+    return;
+  }
   const link = document.createElement('a');
   link.download = buildFileName('png');
   link.href = canvas.toDataURL('image/png');
   document.body.appendChild(link); link.click(); document.body.removeChild(link);
   logReportGenerated(canvas);
+}
+
+// 🌟 [جديد] مشاركة التقرير (صورة أو PDF) عبر واتساب الجهاز: Web Share API مع الملف مرفَقًا — الطريقة الوحيدة
+// التي تفتح واتساب ومعه الملف جاهزًا (رابط wa.me يدعم نصًا فقط). إن لم يدعمها المتصفح (غالبًا الحاسوب) ينزَّل الملف
+// ويُفتح واتساب (ويب) لإرفاقه يدويًا.
+async function shareToWhatsApp(blob, filename, mime){
+  const file = new File([blob], filename, { type: mime });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: t('rep_title'), text: reportData ? reportData.name : '' });
+    } catch (err) {
+      if (!err || err.name !== 'AbortError') throw err; // إلغاء المستخدم لنافذة المشاركة ليس خطأً
+    }
+    return;
+  }
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = filename; link.href = url;
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  alert(t('rep_wa_unsupported_note'));
+  window.open('https://wa.me/', '_blank', 'noopener');
 }
 
 // ---------------------------------------------------------------------------
@@ -1818,8 +1855,9 @@ function packBlocksIntoPages(blocks, maxPageHeight){
 
 // 🌟 ملف الـ PDF يبقى **شاملاً** كل أقسام التقرير بما فيها جدول الأسئلة — لا يُضاف
 // هنا كلاس dh-brief إطلاقًا. هذا هو الفرق الوحيد بينه وبين تصدير الصورة أعلاه.
-async function exportPdf(){ return withExportWidth(exportPdfAtPageWidth); }
-async function exportPdfAtPageWidth(){
+async function exportPdf(){ return withExportWidth(() => exportPdfAtPageWidth(false)); }
+async function sharePdf(){ return withExportWidth(() => exportPdfAtPageWidth(true)); }
+async function exportPdfAtPageWidth(share){
   await ensureHtml2Canvas();
   await ensureJsPdf();
   await ensureFontsReady();
@@ -1888,7 +1926,11 @@ async function exportPdfAtPageWidth(){
     pdf.addImage(sliceImg, 'PNG', marginXPt, marginYPt, contentWidthPt, sliceHeightPt, undefined, 'FAST');
   });
 
-  pdf.save(buildFileName('pdf'));
+  if (share) {
+    await shareToWhatsApp(pdf.output('blob'), buildFileName('pdf'), 'application/pdf');
+  } else {
+    pdf.save(buildFileName('pdf'));
+  }
   logReportGenerated(canvas);
 }
 
@@ -1993,6 +2035,10 @@ function initReportScreen(){
   const pdfBtn = $('btn-report-pdf');
   if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('rp_busy'), exportPng));
   if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('rp_busy'), exportPdf));
+  const waPngBtn = $('btn-report-wa-png');
+  const waPdfBtn = $('btn-report-wa-pdf');
+  if (waPngBtn) waPngBtn.addEventListener('click', withBusyLabel(waPngBtn, t('rp_busy'), sharePng));
+  if (waPdfBtn) waPdfBtn.addEventListener('click', withBusyLabel(waPdfBtn, t('rp_busy'), sharePdf));
 
   // -- العودة للرئيسية (زر في الشريط العلوي وآخر في نهاية التقرير) --
   const homeBtn = $('btn-report-home');
