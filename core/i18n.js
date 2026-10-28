@@ -8,7 +8,7 @@ import { meaningEn, loadWordMeaningsEn } from '../engine/wordMeaningData.js';
 export const translations = {
     ar: {
         header_title: "🏆 رحلة إتقان القرآن",
-        header_title_kids: "🎈 ركن الأبطال الصغار",
+        header_title_kids: "🏆 ركن الأبطال الصغار",
         header_subtitle: "منصة حمٓ",
         login_kids_title: "تسجيل دخول الأبطال 🎈",
         login_adults_title: "تسجيل الدخول",
@@ -2964,7 +2964,7 @@ export const translations = {
     },
     en: {
         header_title: "🏆 Quran Mastery Journey",
-        header_title_kids: "🎈 Little Champions Corner",
+        header_title_kids: "🏆 Little Champions Corner",
         header_subtitle: "Ham Platform",
         login_kids_title: "Heroes Login 🎈",
         login_adults_title: "Login",
