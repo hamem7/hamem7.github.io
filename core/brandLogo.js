@@ -153,3 +153,61 @@
         requestAnimationFrame(function () { queued = false; mount(document); });
     }).observe(document.documentElement, { childList: true, subtree: true });
 })();
+
+// 🌟 [2026-10-28] سلوك مشترك للترويسة #main-header (يعمل في index.html وفي أي صفحة مستقلة تنسخ الترويسة، مثل privacy.html):
+//  (1) فصل أيقونة العنوان (🏆 / 🎈…) عن نصه في عنصر #header-title-ic، فيقع سطر «منصة حمٓ» تحت نص العنوان وليس تحت الأيقونة
+//      (شبكة .home-header-text في css/home.css). النصوص المترجمة والديناميكية (لوحة التقييم…) تبقى تبدأ بالأيقونة كما هي،
+//      والفصل يُعاد تلقائياً مع كل تغيير لنص العنوان.
+//  (2) رسم زر اللغة المضغوط «AR | EN» مع إبراز اللغة الحالية (window.HamHeader.paintLang؛ يستدعيها core/app.js عند التبديل).
+(function () {
+    'use strict';
+    if (window.HamHeader) return;
+    var RE = null;
+    try { RE = new RegExp('^\\s*(\\p{Extended_Pictographic}\\uFE0F?)\\s*', 'u'); } catch (e) { /* متصفح قديم: تبقى الأيقونة داخل العنوان كما كانت */ }
+    var obs = null;
+
+    function splitTitle() {
+        var t = document.getElementById('header-title');
+        if (!t || !RE) return;
+        var ic = document.getElementById('header-title-ic');
+        var txt = t.textContent || '';
+        var m = RE.exec(txt);
+        if (m) {
+            if (!ic) {
+                ic = document.createElement('span');
+                ic.id = 'header-title-ic';
+                ic.className = 'header-title-ic';
+                ic.setAttribute('aria-hidden', 'true');
+                t.parentNode.insertBefore(ic, t);
+            }
+            ic.textContent = m[1];
+            ic.hidden = false;
+            t.textContent = txt.slice(m[0].length);
+        } else if (ic) {
+            ic.hidden = true;
+        }
+        if (obs) obs.takeRecords();   // تجاهل تغييراتنا نحن حتى لا نعيد التنفيذ بلا نهاية
+    }
+
+    function paintLang(lang) {
+        var b = document.getElementById('lang-toggle-btn');
+        if (!b) return;
+        var en = lang === 'en';
+        b.innerHTML = '<span class="lb-opt' + (en ? '' : ' is-on') + '">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt' + (en ? ' is-on' : '') + '">EN</span>';
+        var name = en ? 'العربية' : 'English';   // اسم اللغة التي سيُبدَّل إليها الزر
+        b.setAttribute('aria-label', name);
+        b.title = name;
+    }
+
+    window.HamHeader = { paintLang: paintLang, splitTitle: splitTitle };
+
+    var lang = 'ar';
+    try { lang = localStorage.getItem('app_lang') === 'en' ? 'en' : 'ar'; } catch (e) { /* التخزين غير متاح */ }
+    paintLang(lang);
+    splitTitle();
+    var t0 = document.getElementById('header-title');
+    if (t0 && RE) {
+        obs = new MutationObserver(splitTitle);
+        obs.observe(t0, { childList: true, characterData: true, subtree: true });
+    }
+})();

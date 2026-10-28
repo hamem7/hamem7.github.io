@@ -69,43 +69,95 @@
     filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3));
 }
 
+/* 🌟 [2026-10-28] شبكة بعمودين: أيقونة العنوان (🏆، تُفصل بـ core/brandLogo.js في #header-title-ic) ثم نص العنوان، و«منصة حمٓ» في عمود النص
+   فتقع تحت «رحلة إتقان القرآن» وليس تحت الأيقونة. بلا أيقونة (مخفية) يبقى العمود الأول بعرض صفر */
 #main-header .home-header-text {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0;
     line-height: 1.35;
-    text-align: right;
+    text-align: start;
 }
 
+#main-header .header-title-ic {
+    grid-column: 1;
+    grid-row: 1;
+    margin-inline-end: 8px;
+    font-size: 1.15rem;
+    line-height: 1;
+}
+#main-header .header-title-ic[hidden] { display: none; }
+
 #main-header #header-title {
+    grid-column: 2;
+    grid-row: 1;
     font-size: 1.15rem;
     font-weight: 700;
 }
 
 #main-header #top-student-name {
+    grid-column: 2;
+    grid-row: 2;
     font-size: 0.9rem;
     opacity: 0.85;
     font-weight: 500;
 }
 
+/* 🌟 [2026-10-28] حركات دقيقة موحّدة لأزرار الترويسة: رفع بسيط + توهّج ذهبي عند المرور، وضغطة تعيد الزر لمكانه.
+   الانتقال يشمل الحشوة والحجم أيضاً فيكون تغيّر الترويسة عند تغيير حجم النافذة/اتجاه الشاشة سلساً */
+#main-header,
+#main-header .home-header-logo,
+#main-header .home-header-text > * { transition: padding .3s ease, gap .3s ease, height .3s ease, font-size .3s ease, opacity .3s ease; }
+#main-header .home-header-logo { transition: height .3s ease, filter .3s ease, transform .3s ease; }
+#main-header .home-header-brand:hover .home-header-logo { filter: drop-shadow(0 4px 14px rgba(240, 216, 120, 0.45)); transform: translateY(-1px); }
+#lang-toggle-btn,
+#theme-toggle-btn,
+.header-home-btn,
+.header-account-btn { transition: transform .2s ease, box-shadow .25s ease, background-color .25s ease, border-color .25s ease, color .25s ease !important; }
+#lang-toggle-btn:hover,
+#theme-toggle-btn:hover,
+.header-home-btn:hover,
+.header-account-btn:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 16px rgba(212, 175, 55, 0.38) !important; }
+#lang-toggle-btn:active,
+#theme-toggle-btn:active,
+.header-home-btn:active,
+.header-account-btn:active { transform: translateY(0) !important; box-shadow: none !important; }
+#lang-toggle-btn:focus-visible,
+.header-home-btn:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+    #main-header, #main-header * { transition: none !important; }
+    #lang-toggle-btn:hover, #theme-toggle-btn:hover, .header-home-btn:hover, .header-account-btn:hover { transform: none !important; }
+}
+
+/* 🌟 [2026-10-28] زر اللغة مضغوط «AR | EN» (يُرسم من core/brandLogo.js)، واللغة الحالية بالذهبي. الاتجاه ثابت LTR ليبقى الشكل «AR | EN» في الاتجاهين */
 #lang-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    direction: ltr;
     background: rgba(6, 35, 28, 0.2) !important;
     color: #fffdf6 !important;
     border: 1.5px solid rgba(255, 253, 246, 0.4);
-    padding: 8px 18px;
+    padding: 8px 14px;
     border-radius: 30px;
     cursor: pointer;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 0.92rem;
+    letter-spacing: .04em;
     box-shadow: none !important;
-    transition: 0.25s ease;
 }
+#lang-toggle-btn .lb-opt { opacity: .6; transition: opacity .25s ease, color .25s ease; }
+#lang-toggle-btn .lb-opt.is-on { opacity: 1; color: var(--dh-gold-300); font-weight: 800; }
+#lang-toggle-btn .lb-sep { opacity: .4; font-weight: 400; }
 
 #lang-toggle-btn:hover {
     background: var(--dh-gold-500) !important;
     border-color: var(--dh-gold-500);
     color: var(--dh-emerald-900) !important;
-    transform: translateY(-2px) scale(1.05);
 }
+#lang-toggle-btn:hover .lb-opt { opacity: .7; color: var(--dh-emerald-900); }
+#lang-toggle-btn:hover .lb-opt.is-on { opacity: 1; color: var(--dh-emerald-900); }
 
 /* 🌙 [2026-10-26] زر المظهر (فاتح/داكن/تلقائي) في الترويسة: دائرة شفافة بنفس شكل زر اللغة، وأيقونته تُرسم من core/theme.js (#theme-toggle-btn) */
 #theme-toggle-btn {
@@ -156,7 +208,9 @@
     transform: translateY(-2px) scale(1.05);
 }
 
-/* ☁️ [جديد 2026-10-16] زر «حسابي والنسخ الاحتياطي» في الترويسة: دائرة صورة/حرف المعلم + نقطة تنبيه (برتقالية: تحتاج نسخة، حمراء: لا توجد) */
+/* ☁️ [جديد 2026-10-16] زر «حسابي والنسخ الاحتياطي» في الترويسة: دائرة صورة/حرف المعلم + نقطة حالة
+   🌟 [2026-10-28] إطار ذهبي رفيع بفاصل زمردي، ونقطة الحالة في الركن السفلي دائماً: أخضر (سليم) / برتقالي (تحتاج نسخة) / أحمر (لا توجد نسخة) */
+.header-account-wrap { position: relative; display: inline-flex; }
 .header-account-btn {
     position: relative;
     width: 40px; height: 40px;
@@ -165,18 +219,54 @@
     display: inline-grid; place-items: center;
     background: #fffdf6;
     color: var(--dh-emerald-900);
-    border: 2px solid var(--dh-gold-500);
+    border: 1.5px solid var(--dh-gold-500);
+    box-shadow: 0 0 0 2px var(--dh-emerald-800);
     cursor: pointer;
     font: inherit; font-weight: 700; font-size: 1rem;
     overflow: visible;
-    transition: 0.25s ease;
 }
-.header-account-btn:hover { transform: translateY(-2px) scale(1.05); }
-.header-account-btn:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+.header-account-btn:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 3px; }
 .header-account-btn .ha-ic { width: 100%; height: 100%; border-radius: 50%; display: grid; place-items: center; overflow: hidden; }
 .header-account-btn .ha-ic img { width: 100%; height: 100%; object-fit: cover; }
-.header-account-btn .ha-dot { position: absolute; top: -3px; inset-inline-start: -3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--dh-emerald-900, #06231c); background: #f59e0b; }
+.header-account-btn .ha-dot { position: absolute; bottom: -2px; inset-inline-end: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--dh-emerald-800, #0b3d30); background: #3fcf8e; }
+.header-account-btn .ha-dot[data-level="warn"] { background: #f59e0b; }
 .header-account-btn .ha-dot[data-level="bad"] { background: var(--dh-danger, #b91c1c); }
+.header-account-btn .ha-dot[hidden] { display: none; }
+
+/* القائمة المنسدلة: تظهر بمرور الماوس (الأجهزة التي تدعمه) أو بالنقر (.is-open)؛ تتبع المظهر الداكن برموز الهوية */
+.header-account-menu {
+    position: absolute; top: 100%; inset-inline-end: 0; z-index: 1300;
+    min-width: 230px; padding-top: 10px;
+    opacity: 0; visibility: hidden; transform: translateY(-6px);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+}
+.header-account-wrap.is-open .header-account-menu,
+.header-account-wrap:has(:focus-visible) .header-account-menu {
+    opacity: 1; visibility: visible; transform: none; transition-delay: 0s;
+}
+@media (hover: hover) {
+    .header-account-wrap:hover .header-account-menu { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+}
+.header-account-menu .ham-panel {
+    background: var(--dh-surface-3, var(--dh-surface)); color: var(--dh-ink);
+    border: 1px solid var(--dh-border-strong, var(--dh-line, #d9d4c0)); border-radius: 14px;
+    box-shadow: var(--dh-shadow-lift); padding: 6px; text-align: start;
+}
+.header-account-menu .ham-head { display: flex; flex-direction: column; padding: 8px 12px 10px; border-bottom: 1px solid var(--dh-border, var(--dh-line, #e3decb)); margin-bottom: 4px; min-width: 0; }
+.header-account-menu .ham-head b { font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.header-account-menu .ham-head span { font-size: .78rem; color: var(--dh-ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: ltr; text-align: start; }
+.header-account-menu .ham-head span:empty { display: none; }
+.header-account-menu .ham-item {
+    display: block; width: 100%; text-align: start; font: inherit; font-size: .92rem; font-weight: 600;
+    background: transparent; color: var(--dh-ink); border: 0; border-radius: 9px; padding: 9px 12px; cursor: pointer;
+    transition: background-color .15s ease;
+}
+.header-account-menu .ham-item:hover,
+.header-account-menu .ham-item:focus-visible { background: var(--dh-surface-2, var(--dh-surface-alt)); outline: none; }
+.header-account-menu .ham-item:focus-visible { box-shadow: inset 0 0 0 2px var(--dh-gold-500); }
+.header-account-menu .ham-item[hidden] { display: none; }
+.header-account-menu .ham-danger { color: var(--dh-danger, #b91c1c); }
+@media (prefers-reduced-motion: reduce) { .header-account-menu { transition: none; transform: none; } }
 /* نقطة التنبيه داخل زر الرئيسية «حسابي والنسخ» (بجوار النص بدل الزاوية) */
 .ha-dot-inline { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; margin-inline-start: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.55); }
 .ha-dot-inline[data-level="bad"] { background: var(--dh-danger, #b91c1c); }

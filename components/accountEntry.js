@@ -3,6 +3,7 @@
 // وتفتح شاشة components/account-screen.html، وتُظهر نقطة تنبيه (برتقالية: تحتاج نسخة / حمراء: لا توجد نسخة) إن كان على الجهاز طلاب
 // ولا توجد نسخة حديثة (engine/backupHealth.js). لا تُظهر نقطة لمن لا طلاب عنده بعد (لا شيء يستحق الحماية فلا إزعاج).
 import { AppState, openAccountScreen } from '../core/app.js';
+import { getTeacherEmail, isTeacherAuthed, signOutTeacher } from '../core/api.js';
 import { t } from '../core/i18n.js';
 import { canLeave } from '../core/leaveGuard.js';
 import { backupHealth } from '../engine/backupHealth.js';
@@ -33,6 +34,8 @@ export async function computeBackupState() {
 
 export async function refreshAccountEntry() {
     const btn = document.getElementById('header-account-btn');
+    const wrap = document.getElementById('header-account-wrap');
+    if (wrap) wrap.style.display = '';
     if (btn) btn.style.display = '';
     const p = AppState.currentTeacher || {};
     const ic = document.getElementById('header-account-ic');
@@ -50,13 +53,70 @@ export async function refreshAccountEntry() {
         const dot = document.getElementById(id);
         if (dot) { dot.hidden = !show; dot.dataset.level = level; }
     });
+    // نقطة الترويسة نقطة حالة دائمة: بلا تنبيه تكون خضراء (سليم)، وبه تأخذ لون المستوى
+    const hdot = document.getElementById('header-account-dot');
+    if (hdot) {
+        const lv = show ? level : 'ok';
+        hdot.hidden = false;
+        hdot.dataset.level = lv;
+        hdot.title = t('acct_status_' + lv);
+    }
+    refreshAccountMenu();
+}
+
+/** رأس القائمة المنسدلة (الاسم والإيميل) وإظهار «تسجيل الخروج» فقط عند وجود جلسة جوجل. */
+function refreshAccountMenu() {
+    const p = AppState.currentTeacher || {};
+    const name = document.getElementById('ham-name');
+    if (name) name.textContent = p.name || t('acct_name_none');
+    const mail = document.getElementById('ham-email');
+    if (mail) mail.textContent = (isTeacherAuthed() && getTeacherEmail()) || '';
+    const out = document.getElementById('ham-logout');
+    if (out) out.hidden = !isTeacherAuthed();
+}
+
+function setMenuOpen(open) {
+    const wrap = document.getElementById('header-account-wrap');
+    if (!wrap) return;
+    wrap.classList.toggle('is-open', open);
+    document.getElementById('header-account-btn')?.setAttribute('aria-expanded', String(open));
+}
+
+async function openProfile() {
+    await openAccountScreen();
+    document.getElementById('acct-edit-btn')?.click();   // يفتح بطاقة «تعديل بياناتي» داخل شاشة الحساب
+}
+
+async function doLogout() {
+    if (!await hamConfirm(t('acct_menu_logout_confirm'))) return;
+    signOutTeacher();
+    refreshAccountMenu();
+    document.dispatchEvent(new CustomEvent('dh:backup-health'));
 }
 
 export function initAccountEntry() {
     if (inited) return;
     inited = true;
     // تفويض على المستند: زر الرئيسية يُعاد إنشاؤه مع كل تحميل للشاشة الرئيسية
-    document.addEventListener('click', async (e) => { if (e.target.closest('#header-account-btn, #home-account-btn') && await canLeave()) openAccountScreen(); });
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('#home-account-btn')) { canLeave().then(ok => { if (ok) openAccountScreen(); }); return; }
+        // زر الترويسة يفتح/يغلق القائمة المنسدلة (النقر للجوال؛ على الحاسوب تظهر أيضاً بمرور الماوس)
+        if (e.target.closest('#header-account-btn')) { const w = document.getElementById('header-account-wrap'); setMenuOpen(!w?.classList.contains('is-open')); return; }
+        const item = e.target.closest('#header-account-menu .ham-item');
+        if (item) {
+            setMenuOpen(false);
+            item.blur();
+            if (item.id === 'ham-logout') { doLogout(); return; }
+            // حارس الخروج من اختبار جارٍ (core/leaveGuard.js) قبل مغادرة الشاشة الحالية
+            canLeave().then(ok => { if (ok) (item.id === 'ham-profile' ? openProfile() : openAccountScreen()); });
+            return;
+        }
+        setMenuOpen(false);   // نقر خارج القائمة
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { setMenuOpen(false); }
+    });
+    document.addEventListener('app-lang-changed', refreshAccountEntry);
     ['dh:screen', 'dh:drive-backup-done', 'dh:local-backup-done', 'dh:backup-health'].forEach(ev => document.addEventListener(ev, () => refreshAccountEntry()));
     refreshAccountEntry();
 }

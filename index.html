@@ -190,13 +190,25 @@
                 <span data-i18n="header_home_btn">الرئيسية</span>
             </button>
             <!-- ☁️ [جديد 2026-10-16] «حسابي والنسخ الاحتياطي»: components/accountEntry.js يملأ الصورة/الحرف ونقطة التنبيه ويفتح الشاشة. بلا data-i18n على الأبناء (يُرسم من JS) -->
-            <button id="header-account-btn" class="header-account-btn" type="button" data-i18n-title="acct_entry_title" title="حسابي والنسخ الاحتياطي" aria-label="حسابي والنسخ الاحتياطي" style="display:none;">
-                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" hidden></span>
-            </button>
+            <!-- 🌟 [2026-10-28] قائمة منسدلة لزر الحساب: تُفتح بمرور الماوس أو بالنقر (الجوال)، ومنطقها في components/accountEntry.js.
+                 النقطة #header-account-dot صارت نقطة حالة دائمة (أخضر: سليم، برتقالي: تحتاج نسخة، أحمر: لا توجد نسخة) 🌟 -->
+            <div class="header-account-wrap" id="header-account-wrap" style="display:none;">
+                <button id="header-account-btn" class="header-account-btn" type="button" data-i18n-title="acct_entry_title" title="حسابي والنسخ الاحتياطي" aria-label="حسابي والنسخ الاحتياطي" aria-haspopup="menu" aria-expanded="false" aria-controls="header-account-menu">
+                    <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+                </button>
+                <div class="header-account-menu" id="header-account-menu" role="menu" aria-labelledby="header-account-btn">
+                    <div class="ham-panel">
+                        <div class="ham-head"><b id="ham-name"></b><span id="ham-email"></span></div>
+                        <button type="button" class="ham-item" role="menuitem" id="ham-profile" data-i18n="acct_menu_profile">الملف الشخصي</button>
+                        <button type="button" class="ham-item" role="menuitem" id="ham-settings" data-i18n="acct_menu_settings">الإعدادات والنسخ الاحتياطي</button>
+                        <button type="button" class="ham-item ham-danger" role="menuitem" id="ham-logout" data-i18n="acct_menu_logout" hidden>تسجيل الخروج</button>
+                    </div>
+                </div>
+            </div>
             <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
             </button>
-            <button id="lang-toggle-btn" class="lang-btn" data-i18n="lang_toggle">English</button>
+            <button id="lang-toggle-btn" class="lang-btn" type="button" data-i18n-title="lang_toggle" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
         </div>
     </div>
 

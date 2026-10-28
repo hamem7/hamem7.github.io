@@ -125,7 +125,7 @@ ok(drive.files.size === 1, '4) ملف واحد على Drive');
 ok((await vis('#acct-drive-rows')) && (await txt('#acct-drive-email')) === 'teacher@example.com', '4) يظهر الحساب المرتبط (بريد Drive)');
 ok((await txt('#acct-drive-count')).includes('1'), '4) عدد النسخ = 1');
 ok((await txt('#acct-status-lines')).includes('طالب'), '4) سطر Drive في بطاقة الحالة يذكر عدد الطلاب');
-ok(await vis('#header-account-btn') && !(await vis('#header-account-dot')), '4) أيقونة الترويسة ظاهرة في شاشة حسابي بلا نقطة تنبيه بعد النسخ');
+ok(await vis('#header-account-btn') && (await page.getAttribute('#header-account-dot', 'data-level')) === 'ok', '4) أيقونة الترويسة ظاهرة في شاشة حسابي ونقطة الحالة خضراء (سليم) بعد النسخ');
 ok(dialogs.some(d => d.includes('تم النسخ إلى Drive')), '4) رسالة نجاح للمعلم');
 
 // 5) عدم تطابق الحساب مع حساب الواجبات ← تحذير + «اعتمد»

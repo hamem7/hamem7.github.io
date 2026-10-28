@@ -292,6 +292,7 @@ async function bootSystem() {
         if (langBtn) {
             langBtn.addEventListener('click', () => {
                 toggleLanguage();
+                window.HamHeader?.paintLang(AppState.currentLang);   // زر اللغة المضغوط «AR | EN» (core/brandLogo.js)
                 // 🌟 إعادة رسم شريط التاريخ والترحيب بلغتهما الجديدة إن كنا في الشاشة الرئيسية حالياً
                 if (document.getElementById('home-date-bar')) updateHomeDateBar();
                 if (document.getElementById('home-greeting')) renderTeacherGreeting();
