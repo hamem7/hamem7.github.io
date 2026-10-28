@@ -71,6 +71,39 @@ export function clearPausedEvaluation(student) {
     if (student && student.pausedEvaluation) delete student.pausedEvaluation;
 }
 
+/**
+ * 🌟 حارس مغادرة الاختبار من الترويسة («الرئيسية»/«حسابي») — يُسجَّل في core/leaveGuard.js.
+ * - لا شاشة اختبار حالياً، أو جلسة علاج أخطاء، أو لا إجابات بعد، أو كل الأسئلة أُجيبت ← مغادرة مباشرة بلا أي حفظ ولا تأكيد.
+ * - يوجد عمل فعلي ← تأكيد ثم حفظ تلقائي كلقطة «اختبار غير مكتمل» (نفس زر «حفظ والعودة لاحقًا»)؛ فشل الحفظ ← نبقى في الاختبار.
+ * @param {Function} getGameState - يرجع GameState الحالي
+ * @param {boolean} kids
+ * @param {Function} getContext - يرجع { student, studentManager }
+ */
+export function createPausedLeaveGuard(getGameState, kids, getContext) {
+    return async () => {
+        if (!document.getElementById('btn-exit-game')) return true;
+        const gs = getGameState();
+        const { student, studentManager } = getContext();
+        if (!gs || gs.isWeaknessMode || !student || !studentManager) return true;
+        const answered = gs.reportDetails.length;
+        if (answered === 0 || answered >= gs.queue.length) return true;
+        const replacing = student.pausedEvaluation && !gs.resumedFromPause;
+        if (!await hamConfirm(t(replacing ? 'pause_leave_replace_confirm' : 'pause_leave_confirm'))) return false;
+        const previous = student.pausedEvaluation;
+        try {
+            student.pausedEvaluation = buildPausedSnapshot(gs, kids);
+            await studentManager.updateStudent(student);
+        } catch (err) {
+            console.error('تعذر الحفظ التلقائي للاختبار:', err);
+            if (previous) student.pausedEvaluation = previous; else delete student.pausedEvaluation;
+            alert(t('pause_save_failed'));
+            return false;
+        }
+        clearInterval(gs.timerInterval);
+        return true;
+    };
+}
+
 // ===================== نصوص مساعدة =====================
 
 function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }

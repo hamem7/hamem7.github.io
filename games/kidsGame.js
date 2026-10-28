@@ -24,7 +24,8 @@ import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; //
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع وكمّل»
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { formatKidsSimilar, kidsSimilarOptionLabel } from '../components/similarGameHook.js';
-import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
+import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard } from '../components/pausedSession.js';
+import { setLeaveGuard } from '../core/leaveGuard.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 0, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
     // 🌟 [إصلاح] لقطة ثابتة من قائمة الأخطاء وقت بدء التحدي — نفس إصلاح adultGame.js بالضبط:
@@ -281,6 +282,8 @@ function initGameUI() {
 
     // 🌟 [جديد] زر "⏸️ حفظ والعودة لاحقًا" — نفس منطق adultGame.js (لقطة داخل سجل الطالب)، مع
     // kids=true لتُعرَض البطاقة لاحقاً في ركن الأطفال فقط. ركن الأطفال بلا مؤقّت فلا شيء يُوقَف هنا
+    // 🌟 [جديد] «الرئيسية»/«حسابي» في الترويسة أثناء اختبار فيه عمل فعلي: تأكيد ثم حفظ تلقائي كاختبار غير مكتمل (core/leaveGuard.js)
+    setLeaveGuard(createPausedLeaveGuard(() => GameState, true, () => ({ student: AppState.currentStudent, studentManager: AppState.studentManager })));
     const pauseBtn = document.getElementById('btn-pause-game');
     if (pauseBtn) {
         if (GameState.isWeaknessMode) pauseBtn.style.display = 'none';

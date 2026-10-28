@@ -1,6 +1,7 @@
 // core/app.js
 // © 2026 عبدالله بن المياح الأزهري — منصة حمٓ. PolyForm Noncommercial 1.0.0 (انظر LICENSE): للاستخدام غير التجاري فقط.
 import { ensureQuranLoaded } from '../database/quranDB.js';
+import { canLeave } from './leaveGuard.js';
 import { initStudentDB, StudentManager } from '../database/studentDB.js';
 import { initHomeworkDB, HomeworkManager } from '../database/homeworkDB.js';
 import { initTeacherDB, TeacherManager } from '../database/teacherDB.js';
@@ -304,7 +305,8 @@ async function bootSystem() {
         // ركن الأطفال ظاهرة بالخطأ بعد الرجوع للرئيسية 🌟
         const homeBtn = document.getElementById('header-home-btn');
         if (homeBtn) {
-            homeBtn.addEventListener('click', () => {
+            homeBtn.addEventListener('click', async () => {
+                if (!await canLeave()) return; // اختبار جارٍ: تأكيد + حفظ تلقائي (core/leaveGuard.js)
                 switchTheme('adult');
                 document.body.style.backgroundImage = '';
                 loadSplashScreen();

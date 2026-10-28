@@ -29,6 +29,7 @@
 
 import { AppState, loadSplashScreen, t, openDualTestSetup } from '../core/app.js';
 import { esc } from '../core/escape.js';
+import { setLeaveGuard } from '../core/leaveGuard.js';
 // 🌟 [جديد] showToastEncouragement — لتنبيه المعلم بلطف عند استرجاع تقدّم جولة جارية بعد
 // تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
 import { openModal, closeModal, triggerConfetti, showToastEncouragement } from '../components/ui.js';
@@ -94,6 +95,15 @@ export async function initDualTestPlay() {
         if (await hamConfirm(t('العودة الآن ستُغلق الجلسة. تقدّمك محفوظ تلقائياً حتى آخر سؤال اعتمدته — فقط السؤال المفتوح حالياً (لو لم تعتمده بعد) قد يُفقَد. متابعة؟'))) {
             loadSplashScreen();
         }
+    });
+
+    // 🌟 [جديد] «الرئيسية»/«حسابي» في الترويسة أثناء مواجهة جارية: تأكيد فقط (التقدّم يُحفظ تلقائياً أصلاً عبر
+    // persistInProgressRound). لا تأكيد بعد ظهور النتيجة النهائية (زر العودة للرئيسية ظاهر) أو خارج هذه الشاشة
+    setLeaveGuard(async () => {
+        if (!document.getElementById('dtp-back-btn')) return true;
+        const fin = document.getElementById('dtp-final-back-btn');
+        if (fin && fin.offsetParent !== null) return true;
+        return hamConfirm(t('dtp_leave_header_confirm'));
     });
 
     document.getElementById('dtp-swap-cancel-btn')?.addEventListener('click', () => closeModal('dtp-swap-modal'));

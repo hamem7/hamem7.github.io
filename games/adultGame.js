@@ -27,7 +27,8 @@ import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «اس�
 import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
 // 🌟 [جديد — 2026-10-11] أسئلة المتشابهات داخل اللعبة (سؤال لكل 10) — راجع components/similarGameHook.js
 import { injectSimilarQuestions, formatAdultSimilar } from '../components/similarGameHook.js';
-import { buildPausedSnapshot, clearPausedEvaluation } from '../components/pausedSession.js';
+import { buildPausedSnapshot, clearPausedEvaluation, createPausedLeaveGuard } from '../components/pausedSession.js';
+import { setLeaveGuard } from '../core/leaveGuard.js';
 
 export let GameState = { config: null, pool: [], queue: [], currentIndex: 0, currentData: null, reportDetails: [], timerInterval: null, timeRemaining: 900, sessionStartTime: null, consecutiveCorrect: 0, isWeaknessMode: false, evalRangeText: "", hintUsed: false, currentQuestionStartTime: null, tempErrors: [], orderAttempts: 0,
     // 🌟 [إصلاح] لقطة ثابتة من قائمة الأخطاء وقت بدء جلسة "تحدي الأخطاء" — كانت الشاشة تقرأ
@@ -507,6 +508,8 @@ function initGameUI() {
     // 🌟 [جديد] زر "⏸️ حفظ والعودة لاحقًا": يحفظ لقطة الاختبار داخل سجل الطالب (راجع
     // components/pausedSession.js) ثم يعود للوحة. لا يظهر في جلسة "علاج الأخطاء" (إجاباتها محفوظة
     // أصلاً). السؤال المفتوح حالياً (غير المُجاب) يُعاد توليده عند الاستكمال — لا شيء منه يُحفَظ.
+    // 🌟 [جديد] «الرئيسية»/«حسابي» في الترويسة أثناء اختبار فيه عمل فعلي: تأكيد ثم حفظ تلقائي كاختبار غير مكتمل (core/leaveGuard.js)
+    setLeaveGuard(createPausedLeaveGuard(() => GameState, false, () => ({ student: AppState.currentStudent, studentManager: AppState.studentManager })));
     const pauseBtn = document.getElementById('btn-pause-game');
     if (pauseBtn) {
         if (GameState.isWeaknessMode) pauseBtn.style.display = 'none';

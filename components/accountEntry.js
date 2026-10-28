@@ -4,6 +4,7 @@
 // ولا توجد نسخة حديثة (engine/backupHealth.js). لا تُظهر نقطة لمن لا طلاب عنده بعد (لا شيء يستحق الحماية فلا إزعاج).
 import { AppState, openAccountScreen } from '../core/app.js';
 import { t } from '../core/i18n.js';
+import { canLeave } from '../core/leaveGuard.js';
 import { backupHealth } from '../engine/backupHealth.js';
 import { backupReminder } from '../engine/backupReminder.js';
 
@@ -55,7 +56,7 @@ export function initAccountEntry() {
     if (inited) return;
     inited = true;
     // تفويض على المستند: زر الرئيسية يُعاد إنشاؤه مع كل تحميل للشاشة الرئيسية
-    document.addEventListener('click', (e) => { if (e.target.closest('#header-account-btn, #home-account-btn')) openAccountScreen(); });
+    document.addEventListener('click', async (e) => { if (e.target.closest('#header-account-btn, #home-account-btn') && await canLeave()) openAccountScreen(); });
     ['dh:screen', 'dh:drive-backup-done', 'dh:local-backup-done', 'dh:backup-health'].forEach(ev => document.addEventListener(ev, () => refreshAccountEntry()));
     refreshAccountEntry();
 }
