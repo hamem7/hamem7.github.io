@@ -1360,6 +1360,8 @@ function buildOrderGameUI() {
         } else {
             slot.className = 'order-slot'; slot.innerHTML = `<span style="color:#cbd5e1;">${t("مكان فارغ...")}</span>`;
         }
+        const num = document.createElement('span'); num.className = 'order-slot-num'; num.textContent = String(i + 1);
+        slot.insertBefore(num, slot.firstChild);
         slotDiv.appendChild(slot);
     }
 }
