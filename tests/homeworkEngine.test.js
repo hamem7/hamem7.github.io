@@ -376,7 +376,7 @@ await test('word_meaning: سؤال mcq صالح بإجابة صحيحة بين 4
             assert.equal(new Set(q.options).size, 4, 'الاختيارات فريدة');
             assert.ok(q.options.includes(q.correctAnswer));
             assert.ok(q.options.every(o => o.split(/\s+/).length <= 5), 'المعنى ≤ 5 كلمات');
-            assert.ok(WM[String(sn)].some(e => shortMeaning(e[2]) === q.correctAnswer && q.title.includes(e[1])), 'الإجابة تخص الكلمة المسؤول عنها');
+            assert.ok(WM[String(sn)].some(e => shortMeaning(e[2]) === q.correctAnswer && normalizeForCompare(q.title).replace(/ /g, '').includes(normalizeForCompare(e[1]).replace(/ /g, '').replace(/^[وف]/, ''))), 'الإجابة تخص الكلمة المسؤول عنها (العنوان بصيغة المصحف)');
         }
     }
 });

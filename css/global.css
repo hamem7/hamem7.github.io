@@ -291,3 +291,13 @@ span.quran-text:not(.order-item):not(.order-slot):not(.link-item) {
 #btn-record-wrong.note-undo { background: #fff !important; color: #df4e4e !important; border: 2px solid #df4e4e !important; }
 .kids-theme #btn-record-wrong.note-undo { color: #d97706 !important; border-color: #f59e0b !important; }
 @media (prefers-reduced-motion: reduce) { .note-sheet { transition: none; } }
+
+/* كلمة «ما معنى «…»» داخل العنوان: بنص المصحف نفسه (يبقى .quran-text للخط) لكن بلا مربع ولا حدود ولا تعبئة */
+.quran-text.dh-qword {
+    display: inline;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}
