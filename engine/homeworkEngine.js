@@ -1,5 +1,5 @@
 // engine/homeworkEngine.js
-import { cleanAyahText, isWaqfMark, splitAyahWords, shortMeaning } from './quranEngine.js';
+import { cleanAyahText, isWaqfMark, splitAyahWords, shortMeaning, verseFormOfWord } from './quranEngine.js';
 import { loadWordMeaningsEn, distinctInEnglish } from './wordMeaningData.js';
 import { HW_FORMATS } from './skillMap.js';
 
@@ -205,7 +205,7 @@ export class HomeworkEngine {
 
         return {
             type: 'mcq',
-            title: `ما معنى «${entry[1]}» في هذه الآية؟`,
+            title: `ما معنى «${verseFormOfWord(ayah.text, entry[1])}» في هذه الآية؟`,
             text: `﴿\u00A0${cleanAyahText(ayah.text)}\u00A0﴾`,
             options: [correctAnswer, ...wrong].sort(() => 0.5 - Math.random()),
             correctAnswer,

@@ -103,6 +103,8 @@
 .order-slot { background: white; border: 2px dashed #cbd5e1; padding: 15px 20px; margin-bottom: 10px; border-radius: 10px; min-height: 70px; display: flex; align-items: center; color: #cbd5e1; font-size: 1.4rem; font-weight: bold; cursor: pointer; transition: 0.2s;}
 /* ✅ إضافة !important لحماية خط القرآن هنا */
 .order-slot.filled { border-style: solid; border-color: var(--primary); background: var(--dh-ok-bg, #e7f4ee); color: var(--primary); font-size: 2.2rem; font-family: 'Amiri Quran', serif !important; font-weight: 400 !important; box-shadow: var(--shadow-sm); line-height: 2.2;}
+#order-slots .order-slot, #kids-order-surahs-slots .order-slot { position: relative; padding-inline-start: 56px; }
+.order-slot-num { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--dh-surface-3, #e2e8f0); border: 1px solid var(--dh-border-strong, #94a3b8); color: var(--dh-ink-soft, #475569); font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1rem; font-weight: 700; line-height: 1; }
 .order-slot.filled:hover { background: var(--dh-danger-bg, #fde8e8); border-color: var(--danger); }
 
 /* 🌟 [جديد] حل مشكلة الآيات الطويلة في لعبة "رتب الآيات": بدل ما الصفحة كلها تعمل سكرول
@@ -291,3 +293,13 @@ span.quran-text:not(.order-item):not(.order-slot):not(.link-item) {
 #btn-record-wrong.note-undo { background: #fff !important; color: #df4e4e !important; border: 2px solid #df4e4e !important; }
 .kids-theme #btn-record-wrong.note-undo { color: #d97706 !important; border-color: #f59e0b !important; }
 @media (prefers-reduced-motion: reduce) { .note-sheet { transition: none; } }
+
+/* كلمة «ما معنى «…»» داخل العنوان: بنص المصحف نفسه (يبقى .quran-text للخط) لكن بلا مربع ولا حدود ولا تعبئة */
+.quran-text.dh-qword {
+    display: inline;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+}

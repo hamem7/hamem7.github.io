@@ -154,6 +154,30 @@ export function splitAyahWords(text) {
     return cleanAyahText(text).split(/\s+/).filter(w => w && !isWaqfMark(w));
 }
 
+// 🌟 كلمة السؤال «ما معنى «…»» كما هي في نص الآية نفسه (بتشكيلها ورسمها العثماني): بعض مداخل المعاني (احتياطي «كلمات القرآن»)
+// مكتوبة بإملاء مبسّط وقد تخرج عن حدود الكلمة ("بُسّت الجبال")؛ نبحث عن المقطع المطابق (بعد تجريد التشكيل) بين كلمات الآية
+// ونعرضه كما ورد في المصحف، وإلا نرجع الكلمة الأصلية دون تغيير. حرف الواو/الفاء الملتصق بأول المقطع (وَبُسَّتِ) لا يُعرض.
+export function verseFormOfWord(ayahText, word) {
+    const norm = (x) => normalizeForCompare(x).replace(/[^\u0621-\u064A]/g, '');
+    const target = norm(word);
+    const words = splitAyahWords(ayahText);
+    if (!target || !words.length) return word;
+    for (let i = 0; i < words.length; i++) {
+        let acc = '';
+        for (let j = i; j < words.length; j++) {
+            acc += norm(words[j]);
+            if (acc.length > target.length + 1) break;
+            const exact = acc === target;
+            const prefixed = acc.length === target.length + 1 && /^[وف]/.test(acc) && acc.slice(1) === target;
+            if (!exact && !prefixed) continue;
+            const span = words.slice(i, j + 1);
+            if (prefixed) span[0] = span[0].replace(/^[وف][\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]*/, '');
+            return span.join(' ') || word;
+        }
+    }
+    return word;
+}
+
 // 🌟 تقطيع يحافظ على رموز الوقف داخل المصفوفة (لأن النص المعروض للطالب يجب أن يظل كما هو في
 // المصحف برموز وقفه)، ويُستخدم مع realWordIndexes أدناه لمعرفة مواضع الكلمات الفعلية فقط.
 export function splitAyahTokens(text) {
@@ -561,7 +585,8 @@ export class QuranEngine {
 
         const options = [correct, ...wrong].sort(() => 0.5 - Math.random());
         const ayahText = cleanAyahText(ayah.text);
-        const title = `ما معنى «${entry[1]}» في هذه الآية؟`;
+        const shownWord = verseFormOfWord(ayah.text, entry[1]);   // الكلمة كما في الآية
+        const title = `ما معنى «${shownWord}» في هذه الآية؟`;
         return {
             type: 'word_meaning',
             questionTitle: title,
@@ -569,7 +594,7 @@ export class QuranEngine {
             options,
             correctIndex: options.indexOf(correct),
             fullAnswer: correct,
-            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${entry[1]}»: ${isEnL() ? (meaningEn(correct) || correct) : correct}</span>`,
+            answerHTML: `<span style="font-size:1.8rem; font-weight:bold;">«${shownWord}»: ${isEnL() ? (meaningEn(correct) || correct) : correct}</span>`,
             ayahObj: ayah,
             reportText: ayahText
         };
