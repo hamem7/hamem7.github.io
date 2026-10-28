@@ -28,10 +28,10 @@ const posRef = { n: Math.floor(Math.random() * 4) };
 
 // أسئلة مجموعة واحدة (حتى 4)؛ مصفوفة فارغة إن لم يُحمَّل المصحف أو لم تكفِ بيانات المجموعة
 // match=false (الافتراضي): بلا «صِل الآية بسورتها» لأنه لا يصلح لأزرار الاختيار في الألعاب؛ الواجب وحده يطلبه
-export function generateQuestionsForGroup(group, { match = false, types = null } = {}) {
+export function generateQuestionsForGroup(group, { match = false, types = null, memorized = null } = {}) {
     const Q = getSimilarityQuran();
     if (!Q || !group) return [];
-    try { return generateGroupQuestions(Q, group, { rng: Math.random, posRef, match, types }).questions; }
+    try { return generateGroupQuestions(Q, group, { rng: Math.random, posRef, match, types, memorized }).questions; }
     catch (err) { console.warn('تعذّر توليد أسئلة المجموعة', group && group.groupId, err); return []; }
 }
 

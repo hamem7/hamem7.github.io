@@ -68,6 +68,22 @@ test('الكبار: أنواع متعددة من الأربعة وخيارات �
     }
     assert.ok(kinds.size >= 2 && [...kinds].every(k => ['sim_pair', 'sim_notin', 'sim_complete', 'sim_which'].includes(k)), [...kinds].join());
 });
+test('عدالة المحفوظ: طالب يحفظ من الواقعة إلى الناس ← جواب «سورتين/لم ترد» وسورة الجواب من محفوظه فقط', () => {
+    const memorized = new Set(); for (let s = 56; s <= 114; s++) memorized.add(s);
+    const wide = []; for (let s = 56; s <= 114; s++) for (let n = 1; n <= 100; n++) wide.push({ surahNumber: s, numberInSurah: n });
+    const names = new Map(); let seen = 0;
+    for (let r = 0; r < 80; r++) {
+        for (const q of buildSimilarQuestions({ allGroups: ALL, pool: wide, count: 6, kids: false, types: ['sim_pair', 'sim_notin'], memorized })) {
+            seen++;
+            if (q.kind === 'sim_pair') assert.ok(q.pair.surahs.every(s => memorized.has(s)), `${q.groupId} جواب خارج المحفوظ: ${q.pair.surahs}`);
+            else {
+                const shown = q.pair.surahs.filter(s => memorized.has(s));
+                assert.ok(shown.length >= 2, `${q.groupId} سور معروضة خارج المحفوظ`);
+            }
+        }
+    }
+    assert.ok(seen > 0);
+});
 test('injectIntoQueue يستبدل خانات دون تغيير الطول ويحتفظ بـ chunkIndex', () => {
     const queue = Array.from({ length: 20 }, (_, i) => ({ type: 'catch', chunkIndex: i }));
     const sims = buildSimilarQuestions({ allGroups: ALL, pool, count: 2, kids: true });
