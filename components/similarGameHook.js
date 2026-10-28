@@ -148,7 +148,7 @@ function formatRecallSimilar(sim, pool) {
     const answer = recallAnswerHTML(sim);
     return {
         type: 'similar', questionTitle: ADULT_TITLES[sim.kind], questionBody: body,
-        // ⭐ «اقرأ الآية من السورة المذكورة» سؤال مميز كسؤال «قبلها وبعدها»: شارة + احتفال ووسام ذهبي عند الإجابة الصحيحة (راجع adultGame.js)
+        // ⭐ «اقرأ الآية من السورة المذكورة» سؤال مميز كسؤال «قبلها وبعدها»: نجمة متحركة + احتفال ووسام ذهبي عند الإجابة الصحيحة (راجع adultGame.js)
         special: !missing,
         correctIndex: missing ? sim.correctIndex : -1,
         ...(missing ? { optionTexts: sim.options.map(String), fullAnswer: toQuranicSukun(sim.correctAnswer) } : { fullAnswer: toQuranicSukun(sim.correctAnswer), hintStages: recallHintStages(sim) }),
