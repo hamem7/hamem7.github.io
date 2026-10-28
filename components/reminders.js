@@ -17,7 +17,7 @@ import {
     getSorted, getReminders, getReminder, addReminder, updateReminder, removeReminder, completeReminder, snoozeReminder,
     snoozeReminderToTomorrow, actionableCount, playReminderChime, notifyHidden, askNotificationPermissionOnce
 } from '../core/reminders.js';
-import { fireAt, bucketOf, summarize, dayStart, addDays, quickTimes, SNOOZE_MINUTES } from '../engine/reminders.js';
+import { fireAt, bucketOf, summarize, dayStart, addDays, quickTimes, firstOccurrence, SNOOZE_MINUTES } from '../engine/reminders.js';
 
 // ---------------------------------------------------------------------------
 // الترجمات
@@ -39,8 +39,14 @@ const NEW_KEYS = {
         rem_f_student: 'الطالب (اختياري)', rem_no_student: 'بدون طالب',
         rem_f_when: 'متى؟',
         rem_q_hour: 'بعد ساعة', rem_q_evening: 'المساء 6:00', rem_q_tomorrow: 'غدًا صباحًا',
-        rem_f_repeat: 'التكرار', rem_r_none: 'مرة واحدة', rem_r_daily: 'يوميًا', rem_r_weekly: 'أسبوعيًا',
-        rem_rep_daily: 'يتكرر يوميًا', rem_rep_weekly: 'يتكرر أسبوعيًا',
+        rem_f_repeat: 'التكرار', rem_r_none: 'مرة واحدة', rem_r_daily: 'كل يوم', rem_r_weekly: 'كل أسبوع',
+        rem_rep_daily: 'يتكرر كل يوم', rem_rep_weekly: 'يتكرر كل أسبوع', rem_rep_weekly_days: 'كل {days}',
+        rem_f_day: 'اليوم', rem_f_days: 'في أي الأيام؟', rem_f_time: 'الساعة', rem_other_date: 'تاريخ آخر…',
+        rem_am: 'ص', rem_pm: 'م', rem_hour_up: 'زيادة الساعة', rem_hour_down: 'إنقاص الساعة', rem_min_up: 'زيادة الدقائق', rem_min_down: 'إنقاص الدقائق',
+        rem_sum_once: '{day}، {time}', rem_sum_daily: 'كل يوم، {time}', rem_sum_weekly: 'كل {days}، {time}',
+        rem_sum_next: 'أول تنبيه: {when}', rem_sum_forget: 'اضبطه مرة وسنُذكّرك دائمًا، ويتجدد وحده.',
+        rem_err_days: 'اختر يومًا واحدًا على الأقل.',
+        rem_and: ' و',
         rem_f_urgent: 'عاجل: نافذة تنبيه وسط الشاشة',
         rem_save: 'حفظ التذكير', rem_delete: 'حذف', rem_cancel: 'إلغاء', rem_close: 'إغلاق',
         rem_err_title: 'اكتب ما تريد تذكّره.', rem_err_time: 'اختر وقتًا صحيحًا.', rem_err_past: 'اختر وقتًا في المستقبل.',
@@ -73,8 +79,14 @@ const NEW_KEYS = {
         rem_f_student: 'Student (optional)', rem_no_student: 'No student',
         rem_f_when: 'When?',
         rem_q_hour: 'In 1 hour', rem_q_evening: 'This evening 6:00', rem_q_tomorrow: 'Tomorrow morning',
-        rem_f_repeat: 'Repeat', rem_r_none: 'Once', rem_r_daily: 'Daily', rem_r_weekly: 'Weekly',
-        rem_rep_daily: 'Repeats daily', rem_rep_weekly: 'Repeats weekly',
+        rem_f_repeat: 'Repeat', rem_r_none: 'Once', rem_r_daily: 'Every day', rem_r_weekly: 'Every week',
+        rem_rep_daily: 'Repeats every day', rem_rep_weekly: 'Repeats every week', rem_rep_weekly_days: 'Every {days}',
+        rem_f_day: 'Day', rem_f_days: 'On which days?', rem_f_time: 'Time', rem_other_date: 'Other date…',
+        rem_am: 'AM', rem_pm: 'PM', rem_hour_up: 'Hour up', rem_hour_down: 'Hour down', rem_min_up: 'Minutes up', rem_min_down: 'Minutes down',
+        rem_sum_once: '{day}, {time}', rem_sum_daily: 'Every day, {time}', rem_sum_weekly: 'Every {days}, {time}',
+        rem_sum_next: 'First alert: {when}', rem_sum_forget: 'Set it once and we will keep reminding you; it renews itself.',
+        rem_err_days: 'Pick at least one day.',
+        rem_and: ' & ',
         rem_f_urgent: 'Urgent: show a full pop-up alert',
         rem_save: 'Save reminder', rem_delete: 'Delete', rem_cancel: 'Cancel', rem_close: 'Close',
         rem_err_title: 'Write what you want to be reminded of.', rem_err_time: 'Pick a valid time.', rem_err_past: 'Pick a time in the future.',
@@ -119,8 +131,18 @@ function placeBelowMainHeader(el) {
     el.style.top = bottom + 'px';
 }
 
+/** أسماء أيام الأسبوع (0=أحد … 6=سبت) باللغة الحالية. */
+function weekdayName(dow, style = 'long') {
+    return new Date(2026, 9, 25 + dow).toLocaleDateString(loc(), { weekday: style });   // 25 أكتوبر 2026 = أحد
+}
+/** ترتيب عرض الأيام: السبت أولاً بالعربية (أسبوع العمل في المنصة)، والأحد أولاً بالإنجليزية. */
+const weekOrder = () => (isEnglish() ? [0, 1, 2, 3, 4, 5, 6] : [6, 0, 1, 2, 3, 4, 5]);
+const daysText = (days) => days.slice().sort((a, b) => weekOrder().indexOf(a) - weekOrder().indexOf(b)).map(d => weekdayName(d)).join(t('rem_and'));
+
 function repeatNote(r) {
-    return r.repeat === 'daily' ? t('rem_rep_daily') : (r.repeat === 'weekly' ? t('rem_rep_weekly') : '');
+    if (r.repeat === 'daily') return t('rem_rep_daily');
+    if (r.repeat === 'weekly') return r.days && r.days.length ? tf('rem_rep_weekly_days', { days: daysText(r.days) }) : t('rem_rep_weekly');
+    return '';
 }
 
 function rowHtml(r, now, opts = {}) {
@@ -333,44 +355,62 @@ export function closeRemindersScreen() {
 // ---------------------------------------------------------------------------
 // 3) نموذج الإضافة/التعديل
 // ---------------------------------------------------------------------------
-function toLocalInput(ts) {
-    const d = new Date(ts);
-    const p = (n) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
+const pad2 = (n) => String(n).padStart(2, '0');
+const QUICK_HOURS = [[8, 0], [10, 0], [13, 0], [16, 0], [18, 0], [21, 0]];
+const timeText = (h, m) => new Date(2026, 0, 1, h, m).toLocaleTimeString(loc(), { hour: 'numeric', minute: '2-digit' });
+const atOf = (dayTs, h, m) => { const d = new Date(dayTs); d.setHours(h, m, 0, 0); return d.getTime(); };
 
 export function openReminderForm(reminder) {
     if (document.querySelector('.dh-rem-modal.dh-rem-form')) return;
     const editing = !!reminder;
     const now = Date.now();
-    const q = quickTimes(now);
+    // الحالة الابتدائية: جديد = اليوم بعد ساعة تقريباً (مقرَّبة لأقرب 5 دقائق)؛ تعديل = من موعد التذكير الأساسي
+    const seed = new Date(editing ? reminder.at : quickTimes(now).hour);
+    if (!editing) { seed.setMinutes(Math.ceil(seed.getMinutes() / 5) * 5, 0, 0); }
     const state = {
         kind: editing ? reminder.kind : 'personal',
         studentId: editing ? reminder.studentId : null,
-        studentName: editing ? reminder.studentName : ''
+        repeat: editing ? reminder.repeat : 'none',
+        days: editing ? (reminder.days.length ? reminder.days.slice() : [seed.getDay()]) : [seed.getDay()],
+        dayTs: dayStart(seed.getTime()),
+        h: seed.getHours(),
+        m: seed.getMinutes()
     };
-    const initialTs = editing ? fireAt(reminder) : q.hour;
+    const orig = editing ? { repeat: reminder.repeat, days: reminder.days.slice(), dayTs: dayStart(reminder.at), h: seed.getHours(), m: seed.getMinutes() } : null;
+
     const ov = document.createElement('div');
     ov.className = 'dh-rem-modal dh-rem-form';
     ov.setAttribute('dir', isEnglish() ? 'ltr' : 'rtl');
+    const dayStrip = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map(i => {
+        const ts = addDays(dayStart(now), i);
+        const top = i === 0 ? t('rem_day_today') : (i === 1 ? t('rem_day_tomorrow') : weekdayName(new Date(ts).getDay(), 'short'));
+        return `<button type="button" class="dh-rem-day" data-day="${ts}"><small>${esc(top)}</small><b>${new Date(ts).getDate()}</b></button>`;
+    }).join('');
     ov.innerHTML = `
         <div class="dh-rem-panel" role="dialog" aria-modal="true" aria-labelledby="dh-rem-f-h">
             <h3 id="dh-rem-f-h">${esc(t(editing ? 'rem_form_edit' : 'rem_form_new'))}</h3>
             <div><label class="dh-rem-lab" for="dh-rem-f-title">${esc(t('rem_f_title'))}</label>
                 <input class="dh-rem-field" id="dh-rem-f-title" type="text" maxlength="140" placeholder="${esc(t('rem_f_title_ph'))}" value="${editing ? esc(reminder.title) : ''}" autocomplete="off"></div>
             <div><span class="dh-rem-lab">${esc(t('rem_f_kind'))}</span>
-                <div class="dh-rem-chips" data-kinds>${['student', 'personal', 'work'].map(k => `<button type="button" class="dh-rem-chip${k === state.kind ? ' is-on' : ''}" data-kind="${k}">${esc(kindLabel(k))}</button>`).join('')}</div></div>
-            <div data-student-wrap ${state.kind === 'student' ? '' : 'hidden'}><label class="dh-rem-lab" for="dh-rem-f-student">${esc(t('rem_f_student'))}</label>
+                <div class="dh-rem-chips" data-kinds>${['student', 'personal', 'work'].map(k => `<button type="button" class="dh-rem-chip" data-kind="${k}">${esc(kindLabel(k))}</button>`).join('')}</div></div>
+            <div data-student-wrap hidden><label class="dh-rem-lab" for="dh-rem-f-student">${esc(t('rem_f_student'))}</label>
                 <select class="dh-rem-field" id="dh-rem-f-student"><option value="">${esc(t('rem_no_student'))}</option></select></div>
-            <div><span class="dh-rem-lab">${esc(t('rem_f_when'))}</span>
-                <div class="dh-rem-chips" data-quick>
-                    <button type="button" class="dh-rem-chip" data-ts="${q.hour}">${esc(t('rem_q_hour'))}</button>
-                    <button type="button" class="dh-rem-chip" data-ts="${q.evening}">${esc(t('rem_q_evening'))}</button>
-                    <button type="button" class="dh-rem-chip" data-ts="${q.tomorrow}">${esc(t('rem_q_tomorrow'))}</button>
+            <div><span class="dh-rem-lab">${esc(t('rem_f_repeat'))}</span>
+                <div class="dh-rem-chips" data-reps>${['none', 'daily', 'weekly'].map(k => `<button type="button" class="dh-rem-chip" data-rep="${k}">${esc(t('rem_r_' + k))}</button>`).join('')}</div></div>
+            <div data-once><span class="dh-rem-lab">${esc(t('rem_f_day'))}</span>
+                <div class="dh-rem-days" data-strip>${dayStrip}<button type="button" class="dh-rem-day is-other" data-other><b>…</b><small>${esc(t('rem_other_date'))}</small></button></div>
+                <input class="dh-rem-field" id="dh-rem-f-date" type="date" hidden aria-label="${esc(t('rem_other_date'))}" style="margin-top:8px"></div>
+            <div data-weekly hidden><span class="dh-rem-lab">${esc(t('rem_f_days'))}</span>
+                <div class="dh-rem-chips" data-wds>${weekOrder().map(d => `<button type="button" class="dh-rem-chip" data-wd="${d}">${esc(weekdayName(d))}</button>`).join('')}</div></div>
+            <div><span class="dh-rem-lab">${esc(t('rem_f_time'))}</span>
+                <div class="dh-rem-timebox" dir="ltr">
+                    <div class="dh-rem-step"><button type="button" class="dh-rem-sb" data-step="h:-1" aria-label="${esc(t('rem_hour_down'))}">−</button><output class="dh-rem-tv" data-out="h"></output><button type="button" class="dh-rem-sb" data-step="h:1" aria-label="${esc(t('rem_hour_up'))}">+</button></div>
+                    <span class="dh-rem-colon">:</span>
+                    <div class="dh-rem-step"><button type="button" class="dh-rem-sb" data-step="m:-5" aria-label="${esc(t('rem_min_down'))}">−</button><output class="dh-rem-tv" data-out="m"></output><button type="button" class="dh-rem-sb" data-step="m:5" aria-label="${esc(t('rem_min_up'))}">+</button></div>
+                    <div class="dh-rem-ampm"><button type="button" class="dh-rem-chip" data-ap="am">${esc(t('rem_am'))}</button><button type="button" class="dh-rem-chip" data-ap="pm">${esc(t('rem_pm'))}</button></div>
                 </div>
-                <input class="dh-rem-field" id="dh-rem-f-when" type="datetime-local" value="${toLocalInput(initialTs)}" style="margin-top:8px" aria-label="${esc(t('rem_f_when'))}"></div>
-            <div><label class="dh-rem-lab" for="dh-rem-f-repeat">${esc(t('rem_f_repeat'))}</label>
-                <select class="dh-rem-field" id="dh-rem-f-repeat">${['none', 'daily', 'weekly'].map(k => `<option value="${k}"${editing && reminder.repeat === k ? ' selected' : ''}>${esc(t('rem_r_' + k))}</option>`).join('')}</select></div>
+                <div class="dh-rem-chips" data-quick style="margin-top:8px">${QUICK_HOURS.map(([h, m]) => `<button type="button" class="dh-rem-chip" data-qh="${h}" data-qm="${m}">${esc(timeText(h, m))}</button>`).join('')}</div></div>
+            <div class="dh-rem-sum" id="dh-rem-f-sum" aria-live="polite"></div>
             <label class="dh-rem-check"><input type="checkbox" id="dh-rem-f-urgent"${editing && reminder.urgent ? ' checked' : ''}> ${esc(t('rem_f_urgent'))}</label>
             <div class="dh-rem-err" id="dh-rem-f-err" role="alert"></div>
             <div class="dh-rem-actions">
@@ -380,27 +420,63 @@ export function openReminderForm(reminder) {
             </div>
         </div>`;
     document.body.appendChild(ov);
-    const $ = (s) => ov.querySelector(s);
-    const titleEl = $('#dh-rem-f-title'), whenEl = $('#dh-rem-f-when'), errEl = $('#dh-rem-f-err'), stuSel = $('#dh-rem-f-student');
+    const $ = (sel) => ov.querySelector(sel);
+    const $$ = (sel) => Array.from(ov.querySelectorAll(sel));
+    const titleEl = $('#dh-rem-f-title'), errEl = $('#dh-rem-f-err'), stuSel = $('#dh-rem-f-student'), dateEl = $('#dh-rem-f-date');
 
     const close = () => { document.removeEventListener('keydown', onKey); ov.remove(); };
     const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     document.addEventListener('keydown', onKey);
 
-    const markQuick = () => {
-        const v = new Date(whenEl.value).getTime();
-        ov.querySelectorAll('[data-quick] .dh-rem-chip').forEach(c => c.classList.toggle('is-on', Number(c.dataset.ts) === v));
-    };
-    markQuick();
+    /** موعد التنبيه الأول بحسب الحالة الحالية (أو null مع سبب الخطأ). */
+    function computeAt() {
+        if (state.repeat === 'none') return { at: atOf(state.dayTs, state.h, state.m) };
+        if (state.repeat === 'daily') return { at: firstOccurrence('daily', [], state.h, state.m, Date.now()) };
+        if (!state.days.length) return { err: 'rem_err_days' };
+        return { at: firstOccurrence('weekly', state.days, state.h, state.m, Date.now()) };
+    }
+    const sameSchedule = () => !!orig && orig.repeat === state.repeat && orig.h === state.h && orig.m === state.m
+        && (state.repeat === 'none' ? orig.dayTs === state.dayTs : (state.repeat === 'daily' || orig.days.slice().sort().join() === state.days.slice().sort().join()));
+
+    function render() {
+        $$('[data-kinds] .dh-rem-chip').forEach(c => c.classList.toggle('is-on', c.dataset.kind === state.kind));
+        $('[data-student-wrap]').hidden = state.kind !== 'student';
+        $$('[data-reps] .dh-rem-chip').forEach(c => c.classList.toggle('is-on', c.dataset.rep === state.repeat));
+        $('[data-once]').hidden = state.repeat !== 'none';
+        $('[data-weekly]').hidden = state.repeat !== 'weekly';
+        $$('[data-strip] .dh-rem-day[data-day]').forEach(c => c.classList.toggle('is-on', Number(c.dataset.day) === state.dayTs));
+        const inStrip = !!$(`[data-strip] [data-day="${state.dayTs}"]`);
+        const other = $('[data-other]');
+        other.classList.toggle('is-on', !inStrip);
+        other.querySelector('small').textContent = inStrip ? t('rem_other_date') : dayLabel(state.dayTs, now);
+        $$('[data-wd]').forEach(c => c.classList.toggle('is-on', state.days.includes(Number(c.dataset.wd))));
+        const h12 = state.h % 12 === 0 ? 12 : state.h % 12;
+        $('[data-out="h"]').textContent = String(h12);
+        $('[data-out="m"]').textContent = pad2(state.m);
+        $$('[data-ap]').forEach(c => c.classList.toggle('is-on', (c.dataset.ap === 'pm') === (state.h >= 12)));
+        $$('[data-quick] .dh-rem-chip').forEach(c => c.classList.toggle('is-on', Number(c.dataset.qh) === state.h && Number(c.dataset.qm) === state.m));
+        // الملخص: ما سيحدث بالضبط (ويؤكد «اضبطه وانسه» للمتكرر)
+        const when = timeText(state.h, state.m);
+        let line;
+        if (state.repeat === 'none') line = tf('rem_sum_once', { day: dayLabel(state.dayTs, now), time: when });
+        else if (state.repeat === 'daily') line = tf('rem_sum_daily', { time: when });
+        else line = state.days.length ? tf('rem_sum_weekly', { days: daysText(state.days), time: when }) : '';
+        const c = computeAt();
+        const first = c.at ? tf('rem_sum_next', { when: `${dayLabel(c.at, now)}، ${fmtTime(c.at)}` }) : '';
+        const forget = state.repeat !== 'none' ? t('rem_sum_forget') : '';
+        $('#dh-rem-f-sum').innerHTML = `<b>${esc(line)}</b>${state.repeat !== 'none' && first ? `<span>${esc(first)}</span>` : ''}${forget ? `<span>${esc(forget)}</span>` : ''}`;
+        errEl.textContent = '';
+    }
+    render();
 
     // قائمة الطلاب (غير متزامنة؛ فشلها لا يمنع إضافة التذكير)
     (async () => {
         try {
             const students = AppState.studentManager ? await AppState.studentManager.getAllStudents() : [];
-            students.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar')).forEach(s => {
+            students.slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'ar')).forEach(st => {
                 const o = document.createElement('option');
-                o.value = String(s.id);
-                o.textContent = s.name || String(s.id);
+                o.value = String(st.id);
+                o.textContent = st.name || String(st.id);
                 stuSel.appendChild(o);
             });
             if (state.studentId != null) stuSel.value = String(state.studentId);
@@ -410,39 +486,57 @@ export function openReminderForm(reminder) {
     ov.addEventListener('click', (e) => {
         if (e.target === ov || e.target.closest('[data-cancel]')) { close(); return; }
         const kindBtn = e.target.closest('[data-kinds] [data-kind]');
-        if (kindBtn) {
-            state.kind = kindBtn.dataset.kind;
-            ov.querySelectorAll('[data-kinds] .dh-rem-chip').forEach(c => c.classList.toggle('is-on', c === kindBtn));
-            $('[data-student-wrap]').hidden = state.kind !== 'student';
-            return;
+        if (kindBtn) { state.kind = kindBtn.dataset.kind; render(); return; }
+        const rep = e.target.closest('[data-rep]');
+        if (rep) { state.repeat = rep.dataset.rep; render(); return; }
+        const day = e.target.closest('[data-strip] [data-day]');
+        if (day) { state.dayTs = Number(day.dataset.day); render(); return; }
+        if (e.target.closest('[data-other]')) { dateEl.hidden = false; try { dateEl.showPicker ? dateEl.showPicker() : dateEl.focus(); } catch (err) { dateEl.focus(); } return; }
+        const wd = e.target.closest('[data-wd]');
+        if (wd) {
+            const d = Number(wd.dataset.wd);
+            state.days = state.days.includes(d) ? state.days.filter(x => x !== d) : state.days.concat(d);
+            render(); return;
         }
-        const quick = e.target.closest('[data-quick] [data-ts]');
-        if (quick) { whenEl.value = toLocalInput(Number(quick.dataset.ts)); markQuick(); return; }
+        const step = e.target.closest('[data-step]');
+        if (step) {
+            const [k, n] = step.dataset.step.split(':'); const delta = Number(n);
+            if (k === 'h') state.h = (state.h + delta + 24) % 24;
+            else { const total = (state.h * 60 + state.m + delta + 1440) % 1440; state.h = Math.floor(total / 60); state.m = total % 60; }
+            render(); return;
+        }
+        const ap = e.target.closest('[data-ap]');
+        if (ap) { const pm = ap.dataset.ap === 'pm'; if (pm !== (state.h >= 12)) state.h = (state.h + 12) % 24; render(); return; }
+        const q = e.target.closest('[data-qh]');
+        if (q) { state.h = Number(q.dataset.qh); state.m = Number(q.dataset.qm); render(); return; }
         if (e.target.closest('[data-del]')) {
             Promise.resolve(window.hamConfirm ? window.hamConfirm(t('rem_delete_confirm')) : true).then(ok => { if (ok) { removeReminder(reminder.id); close(); } });
             return;
         }
         if (e.target.closest('[data-save]')) save();
     });
-    whenEl.addEventListener('input', markQuick);
+    dateEl.addEventListener('change', () => {
+        const [y, mo, d] = String(dateEl.value).split('-').map(Number);
+        if (y && mo && d) { state.dayTs = new Date(y, mo - 1, d).getTime(); dateEl.hidden = true; render(); }
+    });
     titleEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } });
 
     function save() {
         const title = titleEl.value.trim();
         if (!title) { errEl.textContent = t('rem_err_title'); titleEl.focus(); return; }
-        const ts = new Date(whenEl.value).getTime();
-        if (!Number.isFinite(ts)) { errEl.textContent = t('rem_err_time'); whenEl.focus(); return; }
-        const unchangedTime = editing && ts === fireAt(reminder);
-        if (!unchangedTime && ts < Date.now() - 60000) { errEl.textContent = t('rem_err_past'); whenEl.focus(); return; }
+        const c = computeAt();
+        if (c.err) { errEl.textContent = t(c.err); return; }
+        const unchanged = sameSchedule();
+        if (!unchanged && state.repeat === 'none' && c.at < Date.now() - 60000) { errEl.textContent = t('rem_err_past'); return; }
         const withStudent = state.kind === 'student' && stuSel.value !== '';
         const opt = stuSel.options[stuSel.selectedIndex];
         const sid = withStudent ? (isNaN(Number(stuSel.value)) ? stuSel.value : Number(stuSel.value)) : null;
         const fields = {
-            title, kind: state.kind, repeat: $('#dh-rem-f-repeat').value, urgent: $('#dh-rem-f-urgent').checked,
+            title, kind: state.kind, repeat: state.repeat, days: state.repeat === 'weekly' ? state.days : [], urgent: $('#dh-rem-f-urgent').checked,
             studentId: sid, studentName: withStudent && opt ? opt.textContent : ''
         };
-        if (editing) updateReminder(reminder.id, { ...fields, ...(unchangedTime ? {} : { at: ts }) });
-        else addReminder({ ...fields, at: ts });
+        if (editing) updateReminder(reminder.id, { ...fields, ...(unchanged ? {} : { at: c.at }) });
+        else addReminder({ ...fields, at: c.at });
         askNotificationPermissionOnce();
         close();
     }

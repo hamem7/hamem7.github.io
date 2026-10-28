@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import {
   sanitize, fireAt, isDue, bucketOf, summarize, nextOccurrence, complete, snooze, snoozeUntilTomorrow,
-  tomorrowMorning, quickTimes, sortReminders, pruneDone, dayStart
+  tomorrowMorning, quickTimes, sortReminders, pruneDone, dayStart, firstOccurrence, rollForward
 } from '../engine/reminders.js';
 
 let pass = 0, fail = 0; const failures = [];
@@ -92,6 +92,42 @@ await test('pruneDone: يحذف المنجز الأقدم من 30 يوماً ف�
   const old = { ...base({ id: 'o' }), done: true, doneAt: now - 31 * 86400000 };
   const recent = { ...base({ id: 'n' }), done: true, doneAt: now - 5 * 86400000 };
   assert.deepEqual(pruneDone([old, recent, base({ id: 'p' })], now).map(x => x.id), ['n', 'p']);
+});
+// ---- التكرار الأسبوعي بأيام محددة + «اضبطه وانسه» ----
+const SAT_D = 10, SUN_D = 11, MON_D = 12, TUE_D = 13;   // أكتوبر 2026: 10 سبت … 13 ثلاثاء
+await test('sanitize: days للأسبوعي فقط، مرتّبة وبلا تكرار وضمن 0..6', () => {
+  const r = sanitize({ title: 'x', at: at(SAT_D, 18), repeat: 'weekly', days: [6, 2, 2, 9, 'a', 0] });
+  assert.deepEqual(r.days, [0, 2, 6]);
+  assert.deepEqual(sanitize({ title: 'x', at: 5, repeat: 'daily', days: [1] }).days, []);
+});
+await test('nextOccurrence أسبوعي بأيام: السبت+الثلاثاء بنفس الساعة', () => {
+  const sat6pm = at(SAT_D, 18, 0);
+  assert.equal(nextOccurrence(sat6pm, 'weekly', sat6pm, [6, 2]), at(TUE_D, 18, 0));
+  assert.equal(nextOccurrence(sat6pm, 'weekly', at(TUE_D, 18, 0), [6, 2]), at(17, 18, 0));   // السبت التالي
+  assert.equal(nextOccurrence(sat6pm, 'weekly', at(TUE_D, 17, 59), [6, 2]), at(TUE_D, 18, 0));
+});
+await test('firstOccurrence: يومي (اليوم إن لم تفت وإلا غداً) وأسبوعي (أقرب يوم مختار)', () => {
+  const now = at(14, 10, 0);   // الأربعاء 14
+  assert.equal(firstOccurrence('daily', [], 18, 30, now), at(14, 18, 30));
+  assert.equal(firstOccurrence('daily', [], 8, 0, now), at(15, 8, 0));
+  assert.equal(firstOccurrence('weekly', [6, 2], 18, 0, now), at(17, 18, 0));   // أقرب سبت
+  assert.equal(firstOccurrence('weekly', [3], 18, 0, now), at(14, 18, 0));      // الأربعاء اليوم ولم تفت
+  assert.equal(firstOccurrence('weekly', [3], 9, 0, now), at(21, 9, 0));        // فاتت: الأربعاء التالي
+});
+await test('complete: أسبوعي بأيام يتقدّم لليوم المختار التالي', () => {
+  const r = base({ repeat: 'weekly', days: [6, 2], at: at(SAT_D, 18, 0) });
+  assert.equal(complete(r, at(SAT_D, 18, 5)).at, at(TUE_D, 18, 0));
+});
+await test('rollForward: المتكرر المتجاهَل يقفز لآخر موعد حلّ ويُنبّه من جديد', () => {
+  const weekly = base({ repeat: 'weekly', days: [6], at: at(3, 18, 0) });            // السبت 3
+  assert.equal(rollForward(weekly, at(9, 12)).at, at(3, 18, 0));                      // لم يحلّ التالي بعد
+  assert.equal(rollForward(weekly, at(10, 19)).at, at(10, 18, 0));                    // حلّ السبت 10
+  assert.equal(rollForward(weekly, at(25, 12)).at, at(24, 18, 0));                    // تأخّر أسابيع: يقفز لآخر سبت
+  const daily = base({ repeat: 'daily', at: at(1, 9, 0), snoozeUntil: at(1, 9, 30) });
+  const rd = rollForward(daily, at(14, 10, 0));
+  assert.equal(rd.at, at(14, 9, 0)); assert.equal(rd.snoozeUntil, null);
+  const once = base(); assert.equal(rollForward(once, at(30)), once);
+  const done = { ...base({ repeat: 'daily' }), done: true }; assert.equal(rollForward(done, at(30)), done);
 });
 await test('dayStart: منتصف الليل المحلي', () => { assert.equal(dayStart(at(14, 23, 59)), at(14, 0, 0)); });
 

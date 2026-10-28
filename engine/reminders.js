@@ -37,6 +37,10 @@ export function sanitize(raw, now = Date.now()) {
         urgent: !!raw.urgent,
         studentId: (typeof sid === 'number' || (typeof sid === 'string' && sid)) ? sid : null,
         studentName: String(raw.studentName == null ? '' : raw.studentName).trim().slice(0, 80),
+        // أيام الأسبوع (0=أحد … 6=سبت) للتكرار الأسبوعي فقط؛ فارغة = كل 7 أيام من موعد البداية
+        days: raw.repeat === 'weekly' && Array.isArray(raw.days)
+            ? [...new Set(raw.days.map(Number).filter(n => Number.isInteger(n) && n >= 0 && n <= 6))].sort((a, b) => a - b)
+            : [],
         snoozeUntil: Number.isFinite(snooze) && snooze > 0 ? snooze : null,
         done: !!raw.done,
         doneAt: Number.isFinite(Number(raw.doneAt)) && raw.doneAt ? Number(raw.doneAt) : null,
@@ -82,8 +86,20 @@ export function summarize(list, now) {
     return out;
 }
 
-/** أول موعد متكرر بعد `after` بنفس الساعة (يحترم تغيّر التوقيت الصيفي لأنه يتقدّم بالتاريخ لا بالمللي ثانية). */
-export function nextOccurrence(at, repeat, after) {
+/**
+ * أول موعد متكرر بعد `after` بنفس الساعة (يحترم تغيّر التوقيت الصيفي لأنه يتقدّم بالتاريخ لا بالمللي ثانية).
+ * أسبوعي بأيام محددة (days): أقرب يوم من الأيام المختارة بنفس ساعة `at`.
+ */
+export function nextOccurrence(at, repeat, after, days = []) {
+    if (repeat === 'weekly' && days.length) {
+        const t = new Date(at);
+        const d = new Date(after);
+        d.setHours(t.getHours(), t.getMinutes(), 0, 0);
+        for (let i = 0; i <= 14; i++) {
+            const c = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i, t.getHours(), t.getMinutes(), 0, 0);
+            if (days.includes(c.getDay()) && c.getTime() > after) return c.getTime();
+        }
+    }
     const step = repeat === 'weekly' ? 7 : 1;
     const d = new Date(at);
     const gapDays = Math.floor((after - at) / DAY);
@@ -92,10 +108,34 @@ export function nextOccurrence(at, repeat, after) {
     return d.getTime();
 }
 
+/** أول موعد تنبيه لتذكير متكرر جديد: اليوم بهذه الساعة إن لم تفت، وإلا أقرب موعد تالٍ (يومي) أو أقرب يوم مختار (أسبوعي). */
+export function firstOccurrence(repeat, days, hour, minute, now) {
+    const today = new Date(now);
+    today.setHours(hour, minute, 0, 0);
+    if (repeat === 'daily') return today.getTime() > now ? today.getTime() : nextOccurrence(today.getTime(), 'daily', now);
+    return nextOccurrence(today.getTime(), 'weekly', now, days);
+}
+
 /** إكمال التذكير: غير المتكرر يُعلَّم منجزاً، والمتكرر يتقدّم لموعده التالي ويبقى فعّالاً. */
 export function complete(r, now) {
     if (r.repeat === 'none') return { ...r, done: true, doneAt: now, snoozeUntil: null };
-    return { ...r, at: nextOccurrence(r.at, r.repeat, Math.max(now, r.at)), snoozeUntil: null, doneAt: now };
+    return { ...r, at: nextOccurrence(r.at, r.repeat, Math.max(now, r.at), r.days), snoozeUntil: null, doneAt: now };
+}
+
+/**
+ * «اضبطه وانسه»: التذكير المتكرر الذي لم يُنجَز ومرّ موعده التالي يقفز تلقائياً لآخر موعد حلّ (≤ الآن) فيُنبّه من جديد
+ * بدل أن يبقى متأخراً بلا تنبيه إلى الأبد. غير المتكرر والمنجز لا يتغيران.
+ */
+export function rollForward(r, now) {
+    if (r.repeat === 'none' || r.done) return r;
+    let next = nextOccurrence(r.at, r.repeat, r.at, r.days);
+    if (next > now) return r;
+    for (let i = 0; i < 2000; i++) {
+        const n2 = nextOccurrence(next, r.repeat, next, r.days);
+        if (n2 > now) break;
+        next = n2;
+    }
+    return { ...r, at: next, snoozeUntil: null };
 }
 
 export function snooze(r, minutes, now) {

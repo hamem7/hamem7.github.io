@@ -9,7 +9,7 @@
 // ⚠️ قيد معروف: لا خادم Push، فلا تنبيه والمنصة/المتصفح مغلقان. يظهر «فاتتك» عند الفتح التالي.
 // ==========================================================
 import {
-    sanitize, newReminderId, isDue, fireAt, complete, snooze, snoozeUntilTomorrow, sortReminders, pruneDone, summarize, dayStart
+    sanitize, newReminderId, isDue, fireAt, complete, snooze, snoozeUntilTomorrow, sortReminders, pruneDone, summarize, dayStart, rollForward
 } from '../engine/reminders.js';
 
 const KEY = 'dh_reminders';
@@ -147,6 +147,10 @@ let firstTick = true;
 
 function tick() {
     const now = Date.now();
+    // المتكرر الذي لم يُنجَز ومرّ موعده التالي يقفز لآخر موعد حلّ (راجع rollForward) فيُنبّه من جديد
+    const current = getReminders();
+    const rolled = current.map(r => rollForward(r, now));
+    if (rolled.some((r, i) => r !== current[i])) write(rolled);
     const due = getSorted().filter(r => isDue(r, now) && firedAt.get(r.id) !== fireAt(r));
     if (!due.length) { firstTick = false; return; }
     const missed = [];

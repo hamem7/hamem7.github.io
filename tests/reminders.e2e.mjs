@@ -34,11 +34,38 @@ check('حفظ بلا عنوان يعرض خطأ ولا يحفظ', (await page.lo
 await page.fill('#dh-rem-f-title', 'اتصال بولي أمر الطالب أحمد');
 await page.locator('[data-kinds] [data-kind="student"]').click();
 check('اختيار «طالب» يُظهر قائمة الطلاب', await page.locator('[data-student-wrap]').isVisible());
-await page.locator('[data-quick] [data-ts]').nth(2).click();
+await page.locator('[data-strip] [data-day]').nth(1).click();
+await page.locator('[data-quick] [data-qh="8"]').click();
+check('الملخص يوضح «غدًا» والساعة 8:00', /غدًا/.test(await page.locator('#dh-rem-f-sum').innerText()) && /8:00/.test(await page.locator('#dh-rem-f-sum').innerText()));
 await page.locator('[data-save]').click();
 let list = await stored();
 check('حُفظ تذكير واحد بنوع طالب', list.length === 1 && list[0].kind === 'student' && list[0].title.includes('أحمد'));
 check('الإضافة لغد صباحاً: لا يظهر في «اليوم» بل في القادمة', (await page.locator('#home-quickcard-reminders .dh-rem-row').count()) === 0);
+
+console.log('\n=== التكرار الأسبوعي: اضبطه وانسه ===');
+await page.locator('#home-quickcard-reminders .dh-rem-add').click();
+await page.fill('#dh-rem-f-title', 'مراجعة أسبوعية مع الحلقة');
+await page.locator('[data-rep="weekly"]').click();
+check('اختيار «كل أسبوع» يُظهر أيام الأسبوع ويخفي شريط الأيام', await page.locator('[data-weekly]').isVisible() && !(await page.locator('[data-once]').isVisible()));
+for (const c of await page.locator('[data-wd].is-on').all()) await c.click();
+await page.locator('[data-wd="6"]').click(); await page.locator('[data-wd="2"]').click();
+await page.locator('[data-ap="pm"]').click(); await page.locator('[data-quick] [data-qh="18"]').click();
+const sum = await page.locator('#dh-rem-f-sum').innerText();
+check('الملخص: كل سبت وثلاثاء 6:00 م + أول تنبيه + عبارة التجدد', /كل/.test(sum) && /6:00/.test(sum) && /أول تنبيه/.test(sum) && /يتجدد/.test(sum), sum.replace(/\n/g, ' | '));
+await shot('form-weekly');
+await page.locator('[data-save]').click();
+list = await stored(); const wk = list.find(r => r.title.includes('أسبوعية'));
+check('حُفظ أسبوعياً بأيام [2,6] وبالساعة 18:00 وأول موعد في المستقبل', wk && wk.repeat === 'weekly' && JSON.stringify(wk.days) === '[2,6]' && new Date(wk.at).getHours() === 18 && wk.at > Date.now() && [2, 6].includes(new Date(wk.at).getDay()));
+const rolled = await page.evaluate(async () => {   // «اضبطه وانسه»: تأخّر أسبوعين بلا إنجاز → يقفز لآخر موعد ويُنبّه
+  const m = await import('/core/reminders.js'); const r = m.getReminders().find(x => x.title.includes('أسبوعية'));
+  const old = new Date(r.at); old.setDate(old.getDate() - 14); m.updateReminder(r.id, { at: old.getTime() });
+  return null;
+});
+await page.evaluate(() => window.dispatchEvent(new Event('focus'))); await sleep(600);
+list = await stored(); const wk2 = list.find(r => r.title.includes('أسبوعية'));
+check('المتأخر أسبوعين يقفز وحده لآخر موعد حلّ (≤ الآن)', wk2.at <= Date.now() && wk2.at > Date.now() - 8 * 86400000);
+await page.evaluate(async () => { const m = await import('/core/reminders.js'); m.removeReminder(m.getReminders().find(x => x.title.includes('أسبوعية')).id); });
+await page.evaluate(() => document.querySelectorAll('.dh-rem-banner').forEach(b => b.remove()));
 
 console.log('\n=== التنبيه: شريط علوي ===');
 const T0 = Date.now();
@@ -111,6 +138,7 @@ await mp.locator('.dh-bnav-item[data-id="reminders"]').click(); await sleep(400)
 check('الهاتف: الزر يفتح الشاشة الكاملة وفيها التذكير', await mp.locator('.dh-rem-screen .dh-rem-row').count() === 1);
 if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-screen.png') });
 await mp.locator('.dh-rem-screen [data-go="add"]').first().click(); await sleep(300);
+await mp.locator('[data-rep="weekly"]').click();
 check('الهاتف: نموذج الإضافة يفتح فوق الشاشة', await mp.locator('.dh-rem-form .dh-rem-panel').isVisible());
 if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-form.png') });
 const noScroll = await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);

@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.65';
+export const APP_VERSION = '1.0.66';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.66',
+        date: '2026-10-28',
+        items: [
+            { type: 'new', text: { ar: 'تذكيراتي: التكرار الأسبوعي «اضبطه وانسه». اختر «كل أسبوع» ثم أيام الأسبوع التي تريدها (سبت وثلاثاء مثلًا) والساعة، فيُنبّهك كل أسبوع وحده، ويتجدد تلقائيًا حتى لو لم تضغط «تمّت». وهناك «كل يوم» أيضًا.', en: 'My reminders: weekly repeat, “set it and forget it”. Choose “Every week”, pick the weekdays you want (e.g. Saturday and Tuesday) and the time, and it alerts you every week on its own, renewing itself even if you do not tap Done. “Every day” is available too.' } },
+            { type: 'improved', text: { ar: 'منتقي اليوم والوقت صار خاصًا بالمنصة بدل منتقي المتصفح: شريط أيام (اليوم، غدًا، الجمعة 30…)، وأزرار + و− للساعة والدقائق مع ص/م، وأوقات جاهزة، وسطر ملخص يوضح متى سيُنبّهك بالضبط.', en: 'The day and time picker is now built into the platform instead of the browser’s: a day strip (Today, Tomorrow, Fri 30…), plus/minus buttons for hours and minutes with AM/PM, quick times, and a summary line showing exactly when you will be alerted.' } }
+        ]
+    },
     {
         version: '1.0.65',
         date: '2026-10-28',
