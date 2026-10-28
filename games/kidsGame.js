@@ -1071,6 +1071,16 @@ function buildLinkGameUI() {
         }
         el.className = cls;
         el.innerText = item.text;
+        // الواجهة الإنجليزية: اسم السورة بحروف لاتينية (بلا ترجمة) تحت الاسم العربي، لمن لا يقرأ العربية
+        if (AppState.currentLang === 'en') {
+            const translit = surahNameLocal(item.text);
+            if (translit && translit !== item.text && /^[\x20-\x7E]+$/.test(translit)) {
+                const tr = document.createElement('span');
+                tr.className = 'link-translit';
+                tr.textContent = translit;
+                el.appendChild(tr);
+            }
+        }
         if (!isMatched && !data.locked) {
             el.onclick = () => {
                 if (data.selectedStart === null) return;
