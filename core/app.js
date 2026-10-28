@@ -554,7 +554,8 @@ export function setEvaluationMode(kids) {
 // تُنقَل البطاقة (بنفس عناصرها وidها فلا يتأثر initHomeQuickview) إلى قسم أخضر مستقل بعد قسم الأزرار، وتُعاد
 // لمكانها الأصلي في الهيرو عند اتساع الشاشة. التنسيق في آخر css/home.css (بادئة home-quick-mobile).
 function arrangeHomeForMobile() {
-    const card = document.getElementById('home-quickcard');
+    // 🌟 [«تذكيراتي»] ينتقل غلاف البطاقتين (#home-quick-stack: تذكيراتي + مهام اليوم) إن وُجد، وإلا البطاقة وحدها
+    const card = document.getElementById('home-quick-stack') || document.getElementById('home-quickcard');
     const grid = document.querySelector('.home-hero-grid');
     const menu = document.querySelector('.home-menu');
     if (!card || !grid || !menu || !window.matchMedia) return;

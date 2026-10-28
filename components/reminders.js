@@ -25,7 +25,7 @@ import { fireAt, bucketOf, summarize, dayStart, addDays, quickTimes, SNOOZE_MINU
 const NEW_KEYS = {
     ar: {
         rem_title: 'تذكيراتي',
-        sheet_reminders: 'تذكيراتي',
+        bnav_reminders: 'تذكيراتي',
         rem_add: 'تذكير جديد',
         rem_add_plus: '＋ تذكير جديد',
         rem_view_all: 'عرض الكل',
@@ -59,7 +59,7 @@ const NEW_KEYS = {
     },
     en: {
         rem_title: 'My reminders',
-        sheet_reminders: 'My reminders',
+        bnav_reminders: 'Reminders',
         rem_add: 'New reminder',
         rem_add_plus: '＋ New reminder',
         rem_view_all: 'View all',
@@ -126,16 +126,15 @@ function repeatNote(r) {
 function rowHtml(r, now, opts = {}) {
     const f = fireAt(r);
     const late = !r.done && f <= now;
-    const meta = [];
-    meta.push(`<span class="dh-rem-pill k-${esc(r.kind)}">${esc(kindLabel(r.kind))}</span>`);
+    const meta = [`<span class="dh-rem-pill k-${esc(r.kind)}">${esc(kindLabel(r.kind))}</span>`];
     if (r.studentName) meta.push(`<span>${esc(r.studentName)}</span>`);
-    if (opts.showDate) meta.push(`<span>${esc(dayLabel(f, now))}</span>`);
     const rep = repeatNote(r);
     if (rep) meta.push(`<span>${esc(rep)}</span>`);
-    return `<div class="dh-rem-row${late ? ' is-late' : ''}${r.done ? ' is-done' : ''}" data-id="${esc(r.id)}">
-        <button type="button" class="dh-rem-ck" data-act="${r.done ? 'reopen' : 'done'}" aria-label="${esc(r.done ? t('rem_reopen_aria') : t('rem_done_aria'))}">${ICON_CHECK}</button>
+    const dayLine = opts.showDate ? `<small>${esc(dayLabel(f, now))}</small>` : '';
+    return `<div class="dh-rem-row${late ? ' is-late' : ''}${r.done ? ' is-done' : ''}" data-id="${esc(r.id)}" data-kind="${esc(r.kind)}">
+        <span class="dh-rem-when"><b>${esc(fmtTime(f))}</b>${dayLine}</span>
         <button type="button" class="dh-rem-main" data-act="edit"><span class="dh-rem-name">${esc(r.title)}</span><span class="dh-rem-meta">${meta.join('')}</span></button>
-        <span class="dh-rem-time">${esc(fmtTime(f))}</span>
+        <button type="button" class="dh-rem-ck" data-act="${r.done ? 'reopen' : 'done'}" aria-label="${esc(r.done ? t('rem_reopen_aria') : t('rem_done_aria'))}">${ICON_CHECK}</button>
     </div>`;
 }
 
@@ -159,9 +158,32 @@ function handleRowAction(e, afterChange) {
 const GROUP_MAX_ROWS = 4;
 let groupBound = false;
 
+/** يجمع بطاقتي الرئيسية في غلاف واحد (تذكيراتي فوق «مهام اليوم») ليتنقّلا معاً؛ يُرجع بطاقة التذكيرات. */
+function ensureReminderCard() {
+    let host = document.getElementById('home-quickcard-reminders');
+    if (host && host.isConnected) return host;
+    const card = document.getElementById('home-quickcard');
+    if (!card) return null;
+    let stack = card.parentElement && card.parentElement.id === 'home-quick-stack' ? card.parentElement : null;
+    if (!stack) {
+        stack = document.createElement('div');
+        stack.id = 'home-quick-stack';
+        stack.className = 'home-quick-stack';
+        card.parentNode.insertBefore(stack, card);
+        stack.appendChild(card);
+    }
+    host = document.createElement('section');
+    host.id = 'home-quickcard-reminders';
+    host.className = 'dh-remcard';
+    host.setAttribute('aria-label', t('rem_title'));
+    stack.insertBefore(host, card);
+    return host;
+}
+
 export function renderHomeReminders() {
-    const host = document.getElementById('home-quickcard-reminders');
+    const host = ensureReminderCard();
     if (!host) return;
+    host.setAttribute('aria-label', t('rem_title'));
     const now = Date.now();
     const tomorrow = addDays(dayStart(now), 1);
     const pending = getSorted().filter(r => !r.done && fireAt(r) < tomorrow);
@@ -176,11 +198,10 @@ export function renderHomeReminders() {
             <button type="button" class="dh-rem-addwide" data-go="add">${esc(t('rem_add_plus'))}</button>
             ${total ? `<div class="dh-rem-foot"><button type="button" class="dh-rem-link" data-go="all">${esc(t('rem_view_all'))}</button></div>` : ''}`;
     }
-    host.innerHTML = `<div class="dh-rem">
-        <div class="dh-rem-head"><span class="dh-rem-title">${esc(t('rem_title'))}</span>
+    host.innerHTML = `<div class="dh-rem-head"><span class="dh-rem-bellic">${ICON_BELL}</span><span class="dh-rem-title">${esc(t('rem_title'))}</span>
             ${pending.length ? `<span class="dh-rem-count">${pending.length}</span>` : ''}
             <button type="button" class="dh-rem-add" data-go="add" aria-label="${esc(t('rem_add'))}" title="${esc(t('rem_add'))}">＋</button></div>
-        ${body}</div>`;
+        ${body}`;
     if (!host.dataset.remBound) {
         host.dataset.remBound = '1';
         host.addEventListener('click', (e) => {

@@ -402,6 +402,7 @@ const ITEMS = [
     { id: 'kids', key: 'bnav_kids_short', screens: [LOGIN_SCREEN], when: () => !!AppState.isKidsMode, run: goKids, icon: IC.kids },
     { id: 'students', key: 'bnav_students', screens: ['student/my-students.html', 'student/all-students.html', 'student/student-profile.html'], run: goStudents, icon: IC.students },
     { id: 'tasks', key: 'bnav_tasks', screens: [], run: openTasks, icon: IC.tasks },
+    { id: 'reminders', key: 'bnav_reminders', screens: [], run: () => openRemindersScreen(), icon: IC.reminders },
     { id: 'more', key: 'bnav_more', screens: ['settings/homework-prep.html', 'dualtests/dual-test-setup.html', SIM_SCREEN, TAJWEED_SCREEN], run: () => openSheet('more'), icon: IC.more }
 ];
 
@@ -413,7 +414,6 @@ function sheetItems(kind) {
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
         { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
-        { key: 'sheet_reminders', icon: IC.reminders, run: () => openRemindersScreen(), badge: () => actionableCount() },
         { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
         { key: 'sheet_certs', icon: IC.certs, run: () => openCertificates() },
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
@@ -453,7 +453,7 @@ function ensureSheet() {
 // «مهام»: بطاقة #home-quickcard نفسها تنتقل إلى اللوحة ثم تعود لمكانها في الرئيسية عند الإغلاق (هاتف: .home-quick-mobile، وإلا
 // خانة سطح المكتب). لو تغيّرت الشاشة واللوحة مفتوحة تُترك البطاقة القديمة لتُحذف مع اللوحة (الرئيسية الجديدة تبني بطاقتها).
 function returnTasksCard() {
-    const card = sheet && sheet.querySelector('#home-quickcard');
+    const card = sheet && sheet.querySelector('#home-quick-stack, #home-quickcard');
     if (!card) return;
     const home = document.querySelector('.home-quick-mobile') || document.getElementById('home-quickcard-slot');
     if (home && document.body.dataset.dhScreen === HOME_SCREEN) home.appendChild(card); else card.remove();
@@ -480,7 +480,7 @@ function openSheet(kind) {
     returnTasksCard();
     grid.innerHTML = '';
     if (kind === 'tasks') {
-        const card = document.getElementById('home-quickcard');
+        const card = document.getElementById('home-quick-stack') || document.getElementById('home-quickcard');
         if (card) grid.appendChild(card);
     } else sheetItems(kind).forEach(it => {
         const b = document.createElement(it.href ? 'a' : 'button');
@@ -517,14 +517,17 @@ async function openTasks() {
 // رقم المهام المعلّقة على زر «مهام» (يُحدَّث عند كل فتح للرئيسية؛ يُحفظ ليبقى ظاهرًا في الشاشات الأخرى)
 const TASKS_COUNT_KEY = 'dh_tasks_count';
 function readTasksCount() { try { return parseInt(localStorage.getItem(TASKS_COUNT_KEY) || '0', 10) || 0; } catch (e) { return 0; } }
-function renderTasksBadge() {
-    const btn = bnav && bnav.querySelector('.dh-bnav-item[data-id="tasks"] .dh-bnav-ic');
+function setNavBadge(id, n, extraClass) {
+    const btn = bnav && bnav.querySelector(`.dh-bnav-item[data-id="${id}"] .dh-bnav-ic`);
     if (!btn) return;
-    const n = readTasksCount() + actionableCount();   // + تذكيرات «تذكيراتي» المتأخرة/اليوم
     let b = btn.querySelector('.dh-bnav-badge');
     if (n <= 0) { if (b) b.remove(); return; }
-    if (!b) { b = document.createElement('span'); b.className = 'dh-bnav-badge'; btn.appendChild(b); }
+    if (!b) { b = document.createElement('span'); b.className = 'dh-bnav-badge' + (extraClass ? ' ' + extraClass : ''); btn.appendChild(b); }
     b.textContent = n > 9 ? '9+' : String(n);
+}
+function renderTasksBadge() {
+    setNavBadge('tasks', readTasksCount());
+    setNavBadge('reminders', actionableCount(), 'is-rem');   // شارة ذهبية مستقلة لـ«تذكيراتي» (المتأخرة + اليوم)
 }
 document.addEventListener('dh:reminders-changed', renderTasksBadge);
 document.addEventListener('dh:tasks-count', (e) => {

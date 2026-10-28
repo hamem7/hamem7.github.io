@@ -21,11 +21,12 @@ let ok = 0, bad = 0; const check = (n, c, d = '') => { c ? ok++ : bad++; console
 const shot = async (n) => { if (outDir) await page.screenshot({ path: path.join(outDir, n + '.png') }); };
 const stored = () => page.evaluate(() => JSON.parse(localStorage.getItem('dh_reminders') || '[]'));
 
-await page.goto(WEB + '/index.html'); await page.waitForSelector('#home-quickcard-reminders .dh-rem', { timeout: 30000 }); await sleep(1500);
+await page.goto(WEB + '/index.html'); await page.waitForSelector('#home-quickcard-reminders .dh-rem-head', { timeout: 30000 }); await sleep(1500);
 await page.evaluate(() => { document.querySelector('.dh-tour-skip')?.click(); document.getElementById('whats-new-modal')?.remove(); });
 
 console.log('\n=== المجموعة والإضافة ===');
-check('مجموعة «تذكيراتي» ظاهرة بحالة فارغة وزر إضافة', await page.locator('#home-quickcard-reminders .dh-rem-addwide').isVisible());
+check('بطاقة «تذكيراتي» مستقلة فوق «مهام اليوم» داخل الغلاف', await page.evaluate(() => { const r = document.getElementById('home-quickcard-reminders'); return !!r && r.nextElementSibling && r.nextElementSibling.id === 'home-quickcard' && r.parentElement.id === 'home-quick-stack'; }));
+check('حالة فارغة وزر إضافة', await page.locator('#home-quickcard-reminders .dh-rem-addwide').isVisible());
 await page.locator('#home-quickcard-reminders .dh-rem-addwide').click();
 check('نموذج الإضافة يفتح', await page.locator('.dh-rem-form .dh-rem-panel').isVisible());
 await page.locator('[data-save]').click();
@@ -100,12 +101,17 @@ const mp = await mctx.newPage(); mp.on('pageerror', e => { errs.push(e.message);
 await mp.goto(WEB + '/index.html'); await mp.waitForSelector('.dh-bnav-item[data-id="tasks"]', { timeout: 30000 }); await sleep(1500);
 await mp.evaluate(() => { document.querySelector('.dh-tour-skip')?.click(); document.getElementById('whats-new-modal')?.remove(); });
 await mp.evaluate(async () => { const m = await import('/core/reminders.js'); m.addReminder({ title: 'متابعة حفظ الطالب يوسف قبل الاختبار', kind: 'student', at: Date.now() + 3600000 }); });
+check('الهاتف: زر «تذكيراتي» في الشريط السفلي بشارة ذهبية = 1', (await mp.locator('.dh-bnav-item[data-id="reminders"] .dh-bnav-badge.is-rem').textContent()) === '1');
+check('الهاتف: شارة «مهام» لا تحسب التذكيرات', (await mp.locator('.dh-bnav-item[data-id="tasks"] .dh-bnav-badge').count()) === 0);
 await mp.locator('.dh-bnav-item[data-id="tasks"]').click(); await sleep(500);
-check('الهاتف: مجموعة «تذكيراتي» داخل لوحة «مهام»', await mp.locator('.dh-sheet-panel #home-quickcard-reminders .dh-rem-row').count() === 1);
-check('الهاتف: شارة زر «مهام» تشمل التذكيرات', (await mp.locator('.dh-bnav-item[data-id="tasks"] .dh-bnav-badge').textContent()) === '1');
-if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-sheet.png') });
-await mp.locator('.dh-sheet-panel .dh-rem-add').click(); await sleep(300);
-check('الهاتف: نموذج الإضافة يفتح فوق اللوحة', await mp.locator('.dh-rem-form .dh-rem-panel').isVisible());
+check('الهاتف: لوحة «مهام» لا تكرّر بطاقة التذكيرات', !(await mp.locator('.dh-sheet-panel #home-quickcard-reminders').isVisible()));
+check('الهاتف: لوحة «مهام» تحوي «مهام اليوم» (الغلاف انتقل سليماً)', await mp.locator('.dh-sheet-panel #home-quickcard').count() === 1);
+await mp.locator('.dh-sheet-x').click(); await sleep(300);
+await mp.locator('.dh-bnav-item[data-id="reminders"]').click(); await sleep(400);
+check('الهاتف: الزر يفتح الشاشة الكاملة وفيها التذكير', await mp.locator('.dh-rem-screen .dh-rem-row').count() === 1);
+if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-screen.png') });
+await mp.locator('.dh-rem-screen [data-go="add"]').first().click(); await sleep(300);
+check('الهاتف: نموذج الإضافة يفتح فوق الشاشة', await mp.locator('.dh-rem-form .dh-rem-panel').isVisible());
 if (outDir) await mp.screenshot({ path: path.join(outDir, 'mobile-form.png') });
 const noScroll = await mp.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1);
 check('الهاتف: لا تمرير أفقي', noScroll);
