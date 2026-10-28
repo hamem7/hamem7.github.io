@@ -47,9 +47,6 @@ document.addEventListener('app-lang-changed', () => {
     if (!src || !span || GameState.isWeaknessMode || GameState.currentData.type === 'weakness') return;
     if (GameState.currentData.type === 'word_meaning') span.innerHTML = wrapQuranWordTitle(localizeGenerated(t(src)));
     else span.textContent = localizeGenerated(t(src));
-    // شارة «سؤال مميز» نص ثابت مبنيّ لحظة العرض: تُحدَّث هي أيضًا (وإلا بقيت بالعربية بعد التبديل للإنجليزية)
-    const badge = document.querySelector('#game-title > .special-q-badge');
-    if (badge) badge.textContent = `⭐ ${t('سؤال مميز')} ⭐`;
 });
 
 // نص سؤال المتشابهات (أزراره وحالته لا تُمَسّ): يُعاد بناؤه بلغة الواجهة الجديدة عند تبديل اللغة أثناء عرضه
@@ -802,8 +799,8 @@ async function playNextMission() {
             document.getElementById('teacher-eval-area').style.display = 'block';
             // أسئلة الربط تقيّم نفسها: «لا أعرف هذه» داخل بطاقة البداية والتصحيح تلقائي، فلا أزرار تقييم عامة
             document.getElementById('teacher-eval-buttons').style.display = linkRebuilt ? 'none' : 'flex';
-            const specialBadge =GameState.currentData.special ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
-            document.getElementById('game-title').innerHTML = specialBadge + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
+            const specialCls = GameState.currentData.special ? ' special-q-title' : '';
+            document.getElementById('game-title').innerHTML = `<span class="${specialCls.trim()}" style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
 
             // 🌟 [جديد] تفعيل لعبة الترتيب التفاعلية نفسها (نفس الحاوية والدالة buildOrderGameUI
@@ -995,8 +992,8 @@ async function playNextMission() {
             if(!GameState.currentData) GameState.currentData = await retryGen(() => AppState.quranEngine.generateCatchGame(activePool, GameState.config.isJuzMode, -1, 1));
             recordSeen(GameState.currentData && GameState.currentData.ayahObj); // 🌟 تسجيل الآية في دفتر الطالب عند العرض الفعلي
             
-            const specialBadgeMain = (GameState.currentData.special && !GameState.isWeaknessMode) ? `<div class="special-q-badge">⭐ ${t("سؤال مميز")} ⭐</div>` : '';
-            document.getElementById('game-title').innerHTML = specialBadgeMain + `<span style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${GameState.currentData.type === 'word_meaning' ? wrapQuranWordTitle(localizeGenerated(t(GameState.currentData.questionTitle))) : localizeGenerated(t(GameState.currentData.questionTitle))}</span>`;
+            const specialClsMain = (GameState.currentData.special && !GameState.isWeaknessMode) ? 'special-q-title' : '';
+            document.getElementById('game-title').innerHTML = `<span class="${specialClsMain}" style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem; font-weight:bold;">${GameState.currentData.type === 'word_meaning' ? wrapQuranWordTitle(localizeGenerated(t(GameState.currentData.questionTitle))) : localizeGenerated(t(GameState.currentData.questionTitle))}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody; 
             if(['between', 'recite', 'similar'].includes(GameState.currentData.type)) document.body.dataset.gameQ = GameState.currentData.type;
             if (GameState.currentData.simKind === 'sim_named' || GameState.currentData.simKind === 'sim_notin') document.body.dataset.simKind = GameState.currentData.simKind; // sim_named: تخطيط ممتلئ؛ sim_notin: أحجام خط بمستوى بقية ألعاب الكبار
