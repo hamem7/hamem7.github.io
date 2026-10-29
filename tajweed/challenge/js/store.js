@@ -13,7 +13,11 @@ function write() { try { mem.t = Date.now(); localStorage.setItem(KEY, JSON.stri
 const ensure = (id) => { const d = read(); return (d.rules[id] ||= { learned: false, lv: { 1: 0, 2: 0, 3: 0 } }); };
 
 export const getRule = (id) => ensure(id);
-export function setLearned(id) { ensure(id).learned = true; write(); }
+// تقارير التقدّم للمنصة (تُركَّب في app.js): تُكتب في قاعدة بيانات المنصة باسم الطالب
+let sink = null;
+export const setSink = (fn) => { sink = fn; };
+export const emit = (evt) => { try { sink && sink(evt); } catch (e) { console.error(e); } };
+export function setLearned(id) { ensure(id).learned = true; write(); emit({ type: 'learned', ruleId: id }); }
 export function setStars(id, level, n) { const r = ensure(id); r.lv[level] = Math.max(r.lv[level] || 0, n); write(); }
 export function setStageStars(id, n) { const d = read(); d.stages[id] = Math.max(d.stages[id] || 0, n); write(); }
 export const getStageStars = (id) => read().stages[id] || 0;

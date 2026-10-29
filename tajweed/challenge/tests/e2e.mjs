@@ -131,7 +131,13 @@ await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
     await p2.fill('#who-q', 'سا'); ok((await p2.$$('.who-card')).length === 1, 'بحث الطالب'); await p2.fill('#who-q', '');
     await p2.click('.who-card >> nth=0'); await p2.waitForSelector('.hero'); const nm = await p2.$eval('.who-chip b', (e) => e.textContent); ok(nm.length > 1, 'شريحة الطالب');
     await go(p2, '#/learn/mushaf_waqf'); await p2.waitForSelector('.lesson'); for (let i = 0; i < 4; i++) await p2.click('#l-next'); await p2.click('#l-done'); await p2.waitForSelector('.quiz');
-    ok(await p2.evaluate(() => Object.keys(localStorage).some((k) => /^tjc\.progress\.v1\.\d+/.test(k))), 'التقدم يُحفظ باسم الطالب'); await noOverflow(p2, 'who');
+    ok(await p2.evaluate(() => Object.keys(localStorage).some((k) => /^tjc\.progress\.v1\.\d+/.test(k))), 'التقدم يُحفظ باسم الطالب');
+    for (let i = 0; i < 5; i++) await answer(p2, true); await p2.waitForSelector('.result');
+    await p2.waitForTimeout(400);
+    const db = await p2.evaluate(async () => { const m = await import('/core/app.js'); const mg = m.AppState.tajweedManager; const sess = await mg.getAllSessions(); const mast = await mg.getAllMastery(); return { sess: sess.filter((x) => x.ruleId === 'mushaf_waqf'), mast: mast.filter((x) => x.ruleId === 'mushaf_waqf') }; });
+    ok(db.sess.length === 1 && db.sess[0].scorePercent === 100 && db.sess[0].totalQuestions === 5, `جلسة قاعدة المنصة: ${JSON.stringify(db.sess)}`);
+    ok(db.mast.length === 1 && db.mast[0].stageId === 'know_mushaf' && db.mast[0].dimensions.knows === 60 && db.mast[0].dimensions.distinguishes === 60 && db.mast[0].status === 'in_progress' && db.mast[0].attemptsCount === 2, `سجل الإتقان: ${JSON.stringify(db.mast)}`);
+    await noOverflow(p2, 'who');
     await c2.close(); } }
 // التقدم محفوظ ومفتوح الآن
 await go(p, `#/`); await p.waitForSelector('.hero');

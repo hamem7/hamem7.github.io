@@ -246,7 +246,7 @@ function playRun(kind, ruleId, level, stageId) {
 
 function finish(kind, ruleId, level, stageId, correct, total, st) {
   const s = calcStars(correct, total); const pass = s >= 1;
-  if (kind === 'level') store.setStars(ruleId, level, s); else if (kind === 'stage') store.setStageStars(stageId, s); else store.setMixed(s);
+  if (kind === 'level') { store.setStars(ruleId, level, s); store.emit({ type: 'level', ruleId, level, correct, total, stars: s }); } else if (kind === 'stage') store.setStageStars(stageId, s); else store.setMixed(s);
   const nextLevel = kind === 'level' && pass && level < 3;
   const again = kind === 'level' ? `#/play/${ruleId}/${level}` : kind === 'stage' ? `#/stage/${stageId}` : '#/mixed';
   shell(`
@@ -371,6 +371,7 @@ const syncAttrs = () => {
 export async function start(hostEl, options = {}) {
   host = hostEl; opts = options;
   if (options.getLang) setLangSource(options.getLang);
+  store.setSink((e) => { if (student) opts.onProgress?.(e, student); });
   student = null; guest = false; store.setProfile(options.students?.length ? '' : (options.profile || ''));
   const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
   const css = ['challenge.css', 'mushaf.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
