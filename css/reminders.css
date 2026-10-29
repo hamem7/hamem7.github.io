@@ -93,6 +93,14 @@
     .dh-rem-hero-time { font-size: 1.1rem; }
 }
 
+.dh-rem-tools { display: flex; gap: 4px; flex: none; }
+.dh-rem-tool { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-2); color: var(--dh-ink-soft); display: grid; place-items: center; padding: 0; cursor: pointer; }
+.dh-rem-tool svg { width: 18px; height: 18px; }
+.dh-rem-tool:hover { color: var(--dh-ink); background: var(--dh-surface-3); }
+.dh-rem-tool.is-del { color: var(--dh-danger); }
+.dh-rem-tool.is-del:hover { background: var(--dh-danger-bg); }
+@media (max-width: 480px) { .dh-rem-slist .dh-rem-row { flex-wrap: wrap; } .dh-rem-slist .dh-rem-main { flex-basis: calc(100% - 80px); } .dh-rem-slist .dh-rem-tools { margin-inline-start: auto; } }
+
 /* ---------- 3) النوافذ: نموذج الإضافة + تنبيه عاجل ---------- */
 .dh-rem-modal { position: fixed; inset: 0; z-index: 6600; background: rgba(6, 20, 15, .6); display: flex; align-items: flex-end; justify-content: center; font-family: var(--dh-font-ui); }
 .dh-rem-modal * { box-sizing: border-box; }
