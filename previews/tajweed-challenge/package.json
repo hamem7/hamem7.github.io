@@ -1,0 +1,12 @@
+{
+  "name": "tajweed-challenge-prototype",
+  "private": true,
+  "type": "module",
+  "description": "نموذج مستقل لركن «تحدي التجويد» — لا يعتمد على ملفات المنصة وقت التشغيل",
+  "scripts": {
+    "build:data": "node tools/build-data.mjs",
+    "verify": "node tools/verify.mjs",
+    "test": "node tools/verify.mjs && node tests/games.test.mjs",
+    "serve": "node tools/serve.mjs"
+  }
+}

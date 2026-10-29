@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تحدي التجويد</title>
+<meta name="description" content="نموذج مستقل لركن «تحدي التجويد»: تعلّم أحكام التجويد باللعب.">
+<meta name="theme-color" content="#0d5c46">
+<!-- اللغة والمظهر قبل الرسم الأول لتجنّب الوميض -->
+<script>
+(function(){try{var l=localStorage.getItem('tjc.lang')||((navigator.language||'ar').indexOf('ar')===0?'ar':'en');if(l!=='ar'&&l!=='en')l='ar';var d=document.documentElement;d.lang=l;d.dir=l==='ar'?'rtl':'ltr';
+var p=localStorage.getItem('tjc.theme')||'auto';var dark=p==='dark'||(p==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);d.dataset.theme=dark?'dark':'light';}catch(e){}})();
+</script>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/challenge.css">
+<link rel="icon" href="assets/brand/ham-mark.svg" type="image/svg+xml">
+</head>
+<body>
+<a class="skip" href="#app" data-i="skip">⏭</a>
+<header class="bar" id="preview-bar">
+  <a class="brand" href="#/" aria-label="تحدي التجويد">
+    <img src="assets/brand/ham-mark.svg" alt="" width="34" height="34">
+    <span class="brand-text"><b id="brand-title">تحدي التجويد</b><small data-i="preview_tag">نموذج مستقل للمراجعة</small></span>
+  </a>
+  <nav class="bar-actions" aria-label="main">
+    <button type="button" id="btn-home" class="bar-btn"><span aria-hidden="true">🏠</span><span class="lbl" data-i="nav_home">الرئيسية</span></button>
+    <button type="button" id="btn-about" class="bar-btn"><span aria-hidden="true">📚</span><span class="lbl" data-i="nav_about">المصادر والمراجعة</span></button>
+    <button type="button" id="btn-review" class="bar-btn icon" data-it="nav_review" aria-pressed="false">🔍</button>
+    <button type="button" id="btn-theme" class="bar-btn icon" data-it="nav_theme" aria-pressed="false">🌙</button>
+    <button type="button" id="btn-lang" class="bar-btn" data-i="nav_lang">English</button>
+  </nav>
+</header>
+<main id="app" tabindex="-1"><p class="loading">⏳</p></main>
+<noscript><p style="padding:24px">يتطلّب هذا النموذج تفعيل JavaScript. / This prototype needs JavaScript.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
