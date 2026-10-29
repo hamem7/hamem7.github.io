@@ -76,6 +76,7 @@ function renderHome() {
         return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(META[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
       }).join('')}</ul>`}
       <footer class="stage-foot">
+        ${st.id === 'mushaf' ? `<a class="btn ghost" href="#/explorer">🔎 ${t('mk_explorer')}</a>` : ''}
         <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(stStars)}</button>
         ${unlockedChallenge ? '' : `<small>${t('stage_challenge_locked')}</small>`}
       </footer>
@@ -316,6 +317,7 @@ function render() {
     if (p[0] === 'play' && META[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
     if (p[0] === 'stage' && STAGES.some((s) => s.id === p[1])) return playRun('stage', null, null, p[1]);
     if (p[0] === 'mixed') return playRun('mixed');
+    if (p[0] === 'explorer') return M.renderExplorer();
     if (p[0] === 'about') return renderAbout();
     return bad();
   } catch (e) {

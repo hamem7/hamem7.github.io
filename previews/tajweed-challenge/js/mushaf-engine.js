@@ -1,7 +1,8 @@
 // js/mushaf-engine.js — محرك أسئلة قسم «تعرف على مصحفك» (منطق خالص بلا DOM).
 // أنواع الأسئلة: choice (اختيار عام مع وسيط: علامة/آية/فانوس/لوحة) · signtap (اضغط العلامة في الآية) · ayahnum (اضغط رقم الآية).
 import { POOL, SURAHS } from '../data/pool.js';
-import { SIGNS, MUSHAF, NO_TAP, AMBIGUOUS, MARKER_KINDS, MARKER_NAMES, quarterMarker, MUSHAF_FACTS, signImg, partImg } from '../data/mushaf.js';
+import { SIGNS, MUSHAF, NO_TAP, AMBIGUOUS, MARKER_KINDS, MARKER_NAMES, quarterMarker, MUSHAF_FACTS, signImg, partImg, EXPLORE, JUZ_ORDINALS_AR } from '../data/mushaf.js';
+import { X } from '../data/mushaf-texts.js';
 import { wordClusters } from './quran.js';
 import { rng, shuffle, ayahOf } from './engine.js';
 
@@ -77,6 +78,7 @@ export function genSignReverse(lessonId, r) {
 
 export function genSignTap(lessonId, r, { exclude = new Set(), onlyIds = null, maxWords = 8 } = {}) {
   const ids = MUSHAF[lessonId].signs.filter((x) => !NO_TAP.has(x) && (!onlyIds || onlyIds.includes(x)) && signCandidates(x).length);
+  if (!ids.length) return null;
   for (let t = 0; t < 40; t++) {
     const id = pick(ids, r); const cs = signCandidates(id).filter((c) => !exclude.has(c.key) && c.n <= maxWords + (t > 20 ? 4 : 0));
     if (!cs.length) continue; const c = pick(cs, r); const n = POOL[c.key].w.length;
@@ -97,8 +99,10 @@ export function genAyahNum(r, { maxWords = 6 } = {}) {
 
 const BANK = {
   mushaf_ayah_number: [
-    { id: 'where', media: { kind: 'img', src: 'assets/mushaf/ayah-number.webp', alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: T('أين ي\u064Fكتب رقم الآية؟', 'Where is the ayah number written?'),
-      options: [T('في نهاية الآية داخل وردة', 'At the end of the ayah, inside a rosette'), T('في بداية الآية', 'At the start of the ayah'), T('في أعلى الصفحة', 'At the top of the page'), T('على هامش الصفحة', 'In the page margin')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
+    { id: 'meaning', media: { kind: 'img', src: 'assets/mushaf/ayah-number.webp', alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_meaning'),
+      options: [X('mo_ayah_end_num'), X('mo_surah_start'), X('mo_stop_sign'), X('mo_sajda_place')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
+    { id: 'where', media: { kind: 'img', src: 'assets/mushaf/ayah-number.webp', alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_place'),
+      options: [X('mo_end_of_ayah'), X('mo_start_of_ayah'), T('في أعلى الصفحة', 'At the top of the page'), T('على هامش الصفحة', 'In the page margin')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
     { id: 'banner', media: { kind: 'img', src: partImg('banner'), alt: T('لوحة اسم السورة', 'The surah title panel'), cls: 'banner-photo' }, stem: T('ما هذه اللوحة المزخرفة؟', 'What is this ornamental panel?'),
       options: [T('لوحة اسم السورة', 'The surah title panel'), T('علامة بداية الجزء', 'The start-of-juz mark'), T('علامة السجدة', 'The sajdah mark'), T('رقم الآية', 'The ayah number')], answer: 0, explain: T('قبل أول آية في كل سورة لوحة مزخرفة فيها اسمها.', 'Before the first ayah of every surah there is an ornamental panel with its name.') },
     { id: 'basmala', media: { kind: 'img', src: partImg('banner'), alt: T('لوحة اسم السورة', 'The surah title panel'), cls: 'banner-photo' }, stem: T('ما الذي يأتي بعد لوحة اسم السورة؟', 'What comes after the surah title panel?'),
@@ -166,31 +170,116 @@ export function genSajdaHas(r, { maxWords = 14 } = {}) {
     explain: yes ? MUSHAF.mushaf_sajda.ex[0] : MUSHAF.mushaf_sajda.ex[1] };
 }
 
+// ───────── مولدات إضافية (مطابقة لوصفات المنصة، بنصوصها المعتمدة) ─────────
+const AR_DIG = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+const numLabel = (n) => T(AR_DIG(n), String(n));
+const numOptions = (ans, r, lo, hi) => { const set = new Set([ans]); let g = 0; while (set.size < 4 && g++ < 50) set.add(Math.max(lo, Math.min(hi, ans + Math.floor(r() * 9) - 4))); return shuffle([...set], r).map((n) => ({ id: String(n), label: numLabel(n) })); };
+const surahPool = () => [...new Set(Object.keys(POOL).map((k) => Number(k.split(':')[0])))].filter((s) => s !== 9);
+const surahOpt = (s) => ({ id: String(s), label: T(SURAHS[s].ar, SURAHS[s].en) });
+const surahOptions = (ans, r) => { const others = shuffle(surahPool().filter((x) => x !== ans), r).slice(0, 3); return shuffle([ans, ...others], r).map(surahOpt); };
+
+// «ما اسم هذه السورة؟» — لوحة اسم السورة (إطار حقيقي من المصحف مكتوب فوقه الاسم، كما في المنصة)
+export function genBannerName(r) {
+  const s = pick(surahPool().filter((x) => x >= 78 || x === 1), r);
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_banner', stem: X('mq_sh_banner'), media: { kind: 'banner', surah: s }, layout: 'text', options: surahOptions(s, r), answer: String(s), explain: X('ex_banner') };
+}
+export function genPageJuz(r) {
+  const keys = Object.keys(POOL).filter((k) => POOL[k].j !== 30); const key = pick(r() < 0.7 && keys.length ? keys : Object.keys(POOL), r); const j = POOL[key].j; const s = Number(key.split(':')[0]);
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_juz', stem: X('mq_sh_page_juz'), media: { kind: 'pagehead', juz: j, surah: s }, layout: 'text',
+    options: numOptions(j, r, 1, 30).map((o) => ({ id: o.id, label: X('mo_juz_n', { n: numLabel(Number(o.id)) }) })), answer: String(j), explain: X('ex_pagehead') };
+}
+export function genPageSurah(r) {
+  const key = pick(Object.keys(POOL).filter((k) => Number(k.split(':')[0]) !== 9), r); const s = Number(key.split(':')[0]);
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_surah', stem: X('mq_sh_page_surah'), media: { kind: 'pagehead', juz: POOL[key].j, surah: s }, layout: 'text', options: surahOptions(s, r), answer: String(s), explain: X('ex_pagehead') };
+}
+export function genAfterBanner(r) {
+  const s = pick(surahPool().filter((x) => x >= 78 || x === 1), r);
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_after', stem: X('mq_sh_after'), media: { kind: 'banner', surah: s }, layout: 'text',
+    options: shuffle([{ id: 'bsm', label: X('mo_basmala') }, { id: 'juz', label: X('mo_juz_number') }, { id: 'page', label: X('mo_page_number') }, { id: 'end', label: X('mo_surah_end') }], r), answer: 'bsm', explain: X('ex_basmala') };
+}
+// «اضغط على البسملة»: ٤ صور حقيقية من الصفحة
+export function genTapBasmala(r) {
+  const o = [{ id: 'bsm', label: X('mo_basmala'), img: partImg('basmala') }, { id: 'banner', label: T('لوحة اسم السورة', 'The surah title panel'), img: partImg('banner') }, { id: 'num', label: SIGNS.ayah_end.name, img: signImg('ayah_end') }, { id: 'sajda', label: SIGNS.sajda_sign.name, img: signImg('sajda_sign') }];
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_tap_bsm', stem: X('mq_sh_tap_bsm'), media: null, layout: 'glyphs', options: shuffle(o, r), answer: 'bsm', explain: X('ex_basmala') };
+}
+// قراءة الفانوس: أي حزب؟ أي جزء؟
+export function genLanternRead(r) {
+  const qs = Object.values(POOL).map((v) => v.q).filter(Boolean); const q = pick(qs, r); const m = quarterMarker(q);
+  const juz = m.kind === 'juz' && r() < 0.5;
+  const ans = juz ? m.juz : m.hizb;
+  return { type: 'choice', lesson: 'mushaf_juz_hizb', kind: juz ? 'jh_read_juz' : 'jh_read_hizb', stem: X(juz ? 'mq_jh_read_juz' : 'mq_jh_read_hizb'), media: { kind: 'lantern', q }, layout: 'num', options: numOptions(ans, r, 1, juz ? 30 : 60), answer: String(ans), explain: X('ex_lantern') };
+}
+export function genRubMeaning(r) {
+  const ids = ['rub_mark', 'ayah_end', 'sajda_sign', 'waqf_jaiz'];
+  return { type: 'choice', lesson: 'mushaf_juz_hizb', kind: 'jh_rub_meaning', stem: X('mq_meaning'), media: { kind: 'img', src: signImg('rub_mark'), alt: SIGNS.rub_mark.name, cls: 'sign-photo' }, layout: 'text', options: shuffle(ids, r).map((x) => optSign(x, 'def')), answer: 'rub_mark', explain: explainSign('rub_mark') };
+}
+// لعبة المطابقة: صل كل علامة وقف باسمها
+export function genWaqfMatch(r, n = 4) {
+  const ids = shuffle(MUSHAF.mushaf_waqf.signs, r).slice(0, n);
+  const pairs = ids.map((id) => ({ id, img: signImg(id), label: SIGNS[id].name, abbr: SIGNS[id].abbr }));
+  return { type: 'match', lesson: 'mushaf_waqf', kind: 'match', stem: X('mq_match'), pairs, right: shuffle(pairs.map((p) => ({ id: p.id, label: p.label })), r), explain: X('ex_waqf_match') };
+}
+export function checkMatch(q, leftId, rightId) { return { ok: leftId === rightId }; }
+// اضغط على أي علامة وقف في الآية (وقف لازم/جائز/الوصل أولى/الوقف أولى/تعانق — بلا السكتة)
+const WAQF_ANY = ['waqf_lazim', 'waqf_jaiz', 'waqf_sala', 'waqf_qala', 'waqf_muanaqa'];
+export function genWaqfTapAny(r, { maxWords = 9 } = {}) {
+  const codes = WAQF_ANY.map((x) => SIGNS[x].code);
+  const keys = Object.keys(POOL).filter((k) => POOL[k].w.length <= maxWords && Object.values(POOL[k].wq).some((str) => str.split(' ').some((tk) => codes.includes(tk))));
+  if (!keys.length) return null; const key = pick(keys, r); const v = POOL[key]; const marks = [];
+  Object.entries(v.wq).forEach(([i, str]) => str.split(' ').forEach((tk, k) => { if (codes.includes(tk)) marks.push(`${i}:${k}`); }));
+  return { type: 'signtap', lesson: 'mushaf_waqf', signId: 'waqf_jaiz', codes, key, accept: { words: [], marks }, stem: X('mq_tap_waqf'), explain: X('ex_waqf_tap'), thumb: signImg('waqf_jaiz'), hl: {} };
+}
+// السكون والحروف الصامتة
+export function genSkWhen(r) {
+  const id = pick(['zero_round', 'zero_rect'], r);
+  return { type: 'choice', lesson: 'mushaf_silent_sukun', kind: 'sk_when', stem: X('mq_sk_when', { sign: SIGNS[id].name }), media: { kind: 'img', src: signImg(id), alt: SIGNS[id].name, cls: 'sign-photo' }, layout: 'text',
+    options: shuffle([{ id: 'never', label: X('mo_never_read') }, { id: 'waqf', label: X('mo_waqf_only') }, { id: 'always', label: X('mo_always_read') }, { id: 'wasl', label: X('mo_wasl_only') }], r), answer: id === 'zero_round' ? 'never' : 'waqf', explain: explainSign(id) };
+}
+export function genSkShape(r) {
+  const ids = ['sukun', 'zero_round', 'zero_rect', 'small_meem'];
+  return { type: 'choice', lesson: 'mushaf_silent_sukun', kind: 'sk_shape', stem: X('mq_sk_shape'), media: null, layout: 'glyphs', options: shuffle(ids, r).map((x) => ({ id: x, label: SIGNS[x].name, img: signImg(x) })), answer: 'sukun', explain: explainSign('sukun') };
+}
+// السين مكان الصاد
+export function genSinWord(r) {
+  const id = pick(['sin_over', 'sin_under'], r);
+  return { type: 'choice', lesson: 'mushaf_sin_saad', kind: 'sin_word', stem: X('mq_sin_word'), media: { kind: 'img', src: signImg(id), alt: SIGNS[id].name, cls: 'sign-photo' }, layout: 'text', options: shuffle(['sin_over', 'sin_under', 'sukun', 'zero_round'], r).map((x) => optSign(x)), answer: id, explain: explainSign(id) };
+}
+export function genSinWhich(r) {
+  const id = pick(['sin_over', 'sin_under'], r);
+  return { type: 'choice', lesson: 'mushaf_sin_saad', kind: 'sin_which', stem: X('mq_sin_which', { sign: SIGNS[id].name }), media: { kind: 'img', src: signImg(id), alt: SIGNS[id].name, cls: 'sign-photo' }, layout: 'text', options: shuffle([{ id: 'sin', label: X('mo_say_sin') }, { id: 'saad', label: X('mo_say_saad') }], r), answer: id === 'sin_over' ? 'sin' : 'saad', explain: explainSign(id) };
+}
+// «ما العلامة عند الدبوس؟» — صفحة مصحف حقيقية وعليها دبوس ذهبي واحد
+export function genPinName(lessonId, r) {
+  const pins = (EXPLORE[lessonId] || []).flatMap((pg) => pg.pins.filter((p) => p.sign).map((p) => ({ page: pg.page, p })));
+  if (!pins.length) return null; const { page, p } = pick(pins, r); const id = p.sign;
+  return { type: 'choice', lesson: lessonId, kind: 'pin_name', stem: T('ما العلامة التي عند الدبوس الذهبي في هذه الصفحة؟', 'Which sign is at the golden pin on this page?'), media: { kind: 'pagepin', page, x: p.x, y: p.y }, layout: 'text',
+    options: optionIds(id, lessonId, r).map((x) => optSign(x)), answer: id, explain: explainSign(id) };
+}
+// السجدة: اضغط علامة السجدة
+export function genSajdaTap(r) { return genSignTap('mushaf_sajda', r, { maxWords: 16 }); }
+
 // ───────── بناء المستويات ─────────
-function fillUntil(list, n, make) { const out = list.filter(Boolean); let g = 0; while (out.length < n && g++ < 20) { const q = make(); if (q) out.push(q); } return out.slice(0, n); }
+function fillUntil(list, n, make) { const out = list.filter(Boolean); let g = 0; while (out.length < n && g++ < 30) { const q = make(); if (q) out.push(q); } return out.slice(0, n); }
 
 export function buildMushafLevel(id, level, seed = Date.now()) {
-  const r = rng(seed); const L = MUSHAF[id].lesson; const qs = [];
+  const r = rng(seed); const L = MUSHAF[id].lesson; const noVerses = !!MUSHAF[id].noVerses;
   const sign = () => genSignTap(id, r, { exclude: level === 3 ? lessonKeysOf(id) : new Set(), maxWords: level === 3 ? 11 : level === 1 ? 6 : 8 });
-  const name = () => genSignName(id, r), mean = () => genSignMeaning(id, r), rev = () => genSignReverse(id, r);
-  if (L === 'ayah_number') {
-    const used = new Set(); const bank = () => { const q = genBank(id, r, used); used.add(q.kind.split(':')[1]); return q; };
-    const plan = level === 1 ? [() => genAyahNum(r), bank, () => genAyahNum(r), bank, bank] : level === 2 ? [bank, () => genAyahNum(r), bank, () => genAyahNum(r), bank] : [() => genAyahNum(r, { maxWords: 8 }), () => genAyahNum(r, { maxWords: 8 }), bank, () => genAyahNum(r, { maxWords: 8 }), bank];
-    plan.forEach((f) => qs.push(f()));
-  } else if (L === 'juz_hizb') {
-    const used = new Set(); const fact = () => { const q = genFact(r, used); used.add(q.kind.split(':')[1]); return q; };
-    const plan = level === 1 ? [fact, fact, () => genLantern(r), fact, () => genLantern(r)] : level === 2 ? [() => genLantern(r), () => genVerseJuz(r), fact, () => genLantern(r), () => genVerseJuz(r)] : [() => genVerseJuz(r), () => genLantern(r), () => genVerseJuz(r), () => genLantern(r), fact];
-    plan.forEach((f) => qs.push(f()));
-  } else if (L === 'sajda') {
-    const used = new Set(); const bank = () => { const q = genBank(id, r, used); used.add(q.kind.split(':')[1]); return q; };
-    const plan = level === 1 ? [bank, () => genSajdaHas(r), bank, () => genSajdaCount(r), () => genSajdaHas(r)] : level === 2 ? [() => genSajdaHas(r), bank, () => genSajdaHas(r), () => genSajdaCount(r), () => genSajdaHas(r)] : [() => genSajdaHas(r, { maxWords: 20 }), () => genSajdaHas(r, { maxWords: 20 }), bank, () => genSajdaHas(r, { maxWords: 20 }), () => genSajdaHas(r, { maxWords: 20 })];
-    plan.forEach((f) => qs.push(f()));
-  } else {
-    const plan = level === 1 ? [name, mean, sign, name, sign] : level === 2 ? [rev, name, sign, mean, rev] : [sign, sign, name, rev, sign];
-    plan.forEach((f) => qs.push(f()));
-    const out = fillUntil(qs, 5, () => [name, mean, rev][Math.floor(r() * 3)]()); return out;
-  }
-  return qs;
+  const name = () => genSignName(id, r), mean = () => genSignMeaning(id, r), rev = () => genSignReverse(id, r), pin = () => genPinName(id, r);
+  const used = new Set(); const bank = () => { const q = genBank(id, r, used); used.add(q.kind.split(':')[1]); return q; };
+  const fact = () => { const q = genFact(r, used); used.add(q.kind.split(':')[1]); return q; };
+  const num = () => genAyahNum(r, level === 3 ? { maxWords: 8 } : {});
+  const spare = L === 'ayah_number' ? [num, bank, () => genBannerName(r)] : L === 'juz_hizb' ? [fact, () => genLantern(r), () => genLanternRead(r)] : L === 'sajda' ? [() => genSajdaHas(r), bank, () => genSajdaCount(r)] : [name, mean, rev];
+  let plan;
+  if (L === 'ayah_number') plan = level === 1 ? [num, bank, () => genBannerName(r), num, () => genTapBasmala(r)] : level === 2 ? [bank, num, () => genPageJuz(r), () => genBannerName(r), () => genAfterBanner(r)] : [num, () => genPageSurah(r), num, () => genPageJuz(r), bank];
+  else if (L === 'juz_hizb') plan = level === 1 ? [fact, () => genLantern(r), () => genLanternRead(r), fact, () => genRubMeaning(r)] : level === 2 ? [() => genLantern(r), () => genLanternRead(r), () => genVerseJuz(r), sign, fact] : [() => genVerseJuz(r), () => genLanternRead(r), sign, () => genLantern(r), () => genVerseJuz(r)];
+  else if (L === 'sajda') plan = level === 1 ? [bank, () => genSajdaHas(r), bank, () => genSajdaCount(r), sign] : level === 2 ? [() => genSajdaHas(r), bank, sign, () => genSajdaCount(r), () => genSajdaHas(r)] : [() => genSajdaHas(r, { maxWords: 20 }), sign, bank, () => genSajdaHas(r, { maxWords: 20 }), sign];
+  else if (L === 'waqf') plan = level === 1 ? [name, () => genWaqfMatch(r, 3), () => genWaqfTapAny(r), mean, sign] : level === 2 ? [rev, () => genWaqfMatch(r, 4), name, sign, () => genWaqfTapAny(r)] : [sign, () => genWaqfTapAny(r, { maxWords: 12 }), () => genWaqfMatch(r, 5), rev, sign];
+  else if (L === 'silent_sukun') plan = level === 1 ? [name, mean, () => genSkWhen(r), name, () => genSkShape(r)] : level === 2 ? [() => genSkShape(r), sign, () => genSkWhen(r), rev, pin] : [sign, () => genSkWhen(r), sign, () => genSkShape(r), rev];
+  else if (L === 'sin_saad') plan = level === 1 ? [() => genSinWord(r), () => genSinWhich(r), mean, () => genSinWord(r), () => genSinWhich(r)] : level === 2 ? [() => genSinWhich(r), sign, () => genSinWord(r), pin, () => genSinWhich(r)] : [sign, () => genSinWhich(r), sign, () => genSinWord(r), rev];
+  else if (noVerses) plan = level === 1 ? [name, mean, pin, name, mean] : level === 2 ? [pin, rev, name, pin, mean] : [pin, pin, rev, name, pin];
+  else plan = level === 1 ? [name, mean, sign, name, sign] : level === 2 ? [rev, name, sign, mean, pin] : [sign, sign, name, rev, pin];
+  const qs = plan.map((f) => f());
+  return fillUntil(qs, 5, () => pick(spare, r)());
 }
 function lessonKeysOf(id) { const s = new Set(); for (const sid of MUSHAF[id].signs) signExamples(sid, 3).forEach((e) => s.add(e.key)); return s; }
 

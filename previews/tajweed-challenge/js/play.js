@@ -2,7 +2,8 @@
 import { RULES } from '../data/rules.js';
 import { checkIdentify, checkSpot, checkTap, checkSortPlacement, checkLetters, whyOf } from './engine.js';
 import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML } from './ui.js';
-import { checkChoice, checkSignTap, checkAyahNum } from './mushaf-engine.js';
+import { checkChoice, checkSignTap, checkAyahNum, checkMatch } from './mushaf-engine.js';
+import { X } from '../data/mushaf-texts.js';
 import { POOL } from '../data/pool.js';
 import { t, tx, num } from './i18n.js';
 import { playAyah, stopAudio } from './audio.js';
@@ -196,7 +197,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   function renderChoice(q) {
     const lay = q.layout || 'text';
     const optHTML = (o) => lay === 'glyphs'
-      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
+      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
       : `<button type="button" class="opt" data-o="${esc(o.id)}"><b>${esc(tx(o.label))}</b></button>`;
     const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? 'glyphs' : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
     frame(q, `
@@ -210,6 +211,30 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
       if (!res.ok) b.classList.add('wrong');
       finishQuestion(res.ok, null, [esc(tx(q.explain))], res.ok ? goodTitle() : badTitle());
     }));
+  }
+
+  // ─────────── match (صِل كل علامة باسمها) ───────────
+  function renderMatch(q) {
+    let sel = null, errors = 0, done = 0;
+    frame(q, `
+      <p class="q-prompt">${esc(tx(q.stem))}</p>
+      <div class="match" role="group">
+        <div class="match-col left">${q.pairs.map((p) => `<button type="button" class="m-item m-left" data-id="${esc(p.id)}" aria-label="${esc(tx(p.label))}"><img class="m-img" src="${esc(p.img)}" alt="">${p.abbr ? `<small>${esc(p.abbr)}</small>` : ''}</button>`).join('')}</div>
+        <div class="match-col right">${q.right.map((p) => `<button type="button" class="m-item m-right" data-id="${esc(p.id)}"><b>${esc(tx(p.label))}</b></button>`).join('')}</div>
+      </div>
+      <div class="hint-slot" aria-live="polite"></div>
+      <div class="fb-slot"></div>`);
+    const hint = root.querySelector('.hint-slot');
+    root.querySelector('.match').addEventListener('click', (e) => {
+      const b = e.target.closest('.m-item'); if (!b || b.disabled) return;
+      if (b.classList.contains('m-left')) { root.querySelectorAll('.m-left').forEach((x) => x.classList.remove('sel')); b.classList.add('sel'); sel = b; hint.innerHTML = ''; return; }
+      if (!sel) { hint.innerHTML = `<p class="hint">${esc(tx(X('mq_match')))}</p>`; return; }
+      const res = checkMatch(q, sel.dataset.id, b.dataset.id);
+      if (res.ok) {
+        [sel, b].forEach((x) => { x.disabled = true; x.classList.remove('sel'); x.classList.add('right'); }); sel = null; done++; hint.innerHTML = '';
+        if (done === q.pairs.length) finishQuestion(errors === 0, null, [esc(tx(q.explain)), esc(tx(X('mu_match_errors', { n: num(errors) })))], errors === 0 ? goodTitle() : badTitle());
+      } else { errors++; b.classList.add('shake', 'miss'); setTimeout(() => b.classList.remove('shake', 'miss'), 500); hint.innerHTML = `<p class="hint bad">${esc(tx(X('mu_match_wrong')))}</p>`; }
+    });
   }
 
   // ─────────── signtap (اضغط العلامة في الآية) ───────────
@@ -264,7 +289,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
 
   function render() {
     const q = qs[i];
-    ({ choice: renderChoice, signtap: renderSignTap, ayahnum: renderAyahNum, identify: renderIdentify, spot: renderSpot, tapletter: renderTap, sort: renderSort, letters: renderLetters })[q.type](q);
+    ({ choice: renderChoice, match: renderMatch, signtap: renderSignTap, ayahnum: renderAyahNum, identify: renderIdentify, spot: renderSpot, tapletter: renderTap, sort: renderSort, letters: renderLetters })[q.type](q);
   }
   render();
 }

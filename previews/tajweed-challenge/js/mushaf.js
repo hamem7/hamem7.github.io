@@ -1,14 +1,15 @@
 // js/mushaf.js — شاشات قسم «تعرف على مصحفك»: صفحة الدرس والدرس بخمس خطوات (بنفس هوية بقية التجربة).
 import { POOL } from '../data/pool.js';
-import { MUSHAF, SIGNS, quarterMarker, MARKER_KINDS, MARKER_NAMES, signImg, partImg } from '../data/mushaf.js';
+import { MUSHAF, SIGNS, quarterMarker, MARKER_KINDS, MARKER_NAMES, signImg, partImg, LESSON_TXT } from '../data/mushaf.js';
+import { X } from '../data/mushaf-texts.js';
 import { STAGES, stageOf } from '../data/rules.js';
 import { signExamples } from './mushaf-engine.js';
 import { t, tx, num } from './i18n.js';
 import * as store from './store.js';
-import { esc, badge, reviewNote, isReview, ayahHTML, lanternHTML, bannerHTML, ayahLabel, starsHTML, ruleName, legendHTML } from './ui.js';
+import { esc, badge, reviewNote, isReview, ayahHTML, lanternHTML, bannerHTML, frameHTML, pageHeadHTML, ayahLabel, starsHTML, ruleName, legendHTML } from './ui.js';
 import { audioBtn } from './ui.js';
 import { bindAudio } from './play.js';
-import { exploreHTML, bindExplore } from './mushaf-explore.js';
+import { exploreHTML, bindExplore, pagesFor } from './mushaf-explore.js';
 
 const glyphChip = (id) => { const g = SIGNS[id]; return `<span class="lchip sign-chip" title="${esc(tx(g.name))}"><img class="chip-img" src="${esc(signImg(id))}" alt=""><small>${esc(tx(g.name))}</small></span>`; };
 
@@ -44,27 +45,40 @@ export function initMushaf(H) {
   }
 
   function renderMushafLearn(id, step = 0, sIdx = 0, eIdx = 0) {
-    const m = MUSHAF[id]; const st = stageOf(id); const N = 5; let body = ''; const key = ['intro', 'explore', 'cards', 'examples', 'watch'][step];
+    const m = MUSHAF[id]; const st = stageOf(id); const keys = m.noVerses ? ['intro', 'explore', 'cards', 'watch'] : ['intro', 'explore', 'cards', 'examples', 'watch']; const N = keys.length; let body = ''; const key = keys[step]; const [introK, tipK] = LESSON_TXT[m.lesson] || [];
     if (key === 'intro') {
       body = `<h2>${t('mk_l1')}</h2><h3 class="rule-name">${esc(tx(m.name))}</h3>
         <figure class="viz-fig mushaf-vis">${lessonVisual(m)}</figure>
         <div class="card kid-card"><small>${t('mk_notice')}</small><p>${esc(tx(m.notice))}</p></div>
-        <div class="card def-card"><small>${t('def_label')}</small><p>${esc(tx(m.def))}</p></div>`;
+        <div class="card def-card"><small>${t('def_label')}</small><p>${esc(tx(m.def))}</p></div>${introK ? `<div class="card"><p>${esc(tx(X(introK)))}</p></div>` : ''}`;
     } else if (key === 'explore') {
       body = `<h2>${t('mk_explore')}</h2><div class="ornament" aria-hidden="true"><i></i><b>❖</b><i></i></div>${exploreHTML(id)}`;
     } else if (key === 'cards') {
       let inner;
       if (m.lesson === 'ayah_number') {
-        inner = `<div class="sign-grid">
+        const k = '78:1'; const words = POOL[k].w.map((w) => `<span class="w quran-text">${esc(w)}</span>`).join(' '); const ros = `<span class="rosette quran-text static">${num(1)}</span>`;
+        inner = `<div class="card"><p>${esc(tx(X('mul_an_intro')))}</p></div>
+          <div class="cmp"><div class="cmp-card bad"><b>❌ ${esc(tx(X('mul_an_wrong')))}</b><div class="ayah rosettes cmp-verse" dir="rtl" lang="ar">${ros} ${words}</div></div>
+          <div class="cmp-card good"><b>✅ ${esc(tx(X('mul_an_right')))}</b><div class="ayah rosettes cmp-verse" dir="rtl" lang="ar">${words} ${ros}</div></div></div>
+          <div class="card kid-card"><p>${esc(tx(X('mul_an_tip')))}</p></div>
+          <div class="sign-grid">
           <div class="sign-card"><div class="sc-glyph"><img class="sc-img" src="assets/mushaf/ayah-number.webp" alt=""></div><b>${esc(tx(SIGNS.ayah_end.name))}</b><p>${esc(tx(SIGNS.ayah_end.def))}</p></div>
-          <div class="sign-card"><div class="sc-glyph"><img class="sc-img wide" src="${partImg('banner')}" alt=""></div><b>${esc(tx(m.ex[0]))}</b><p>${esc(tx(m.ex[1]))}</p></div>
-          <div class="sign-card"><div class="sc-glyph"><img class="sc-img wide" src="${partImg('basmala')}" alt=""></div><b>${esc(tx(m.ex[2]))}</b></div></div>`;
+          <div class="sign-card"><div class="sc-glyph"><img class="sc-img wide" src="${partImg('banner')}" alt=""></div><b>${esc(tx(X('mul_sh_banner_cap')))}</b><p>${esc(tx(m.ex[0]))}</p></div>
+          <div class="sign-card"><div class="sc-glyph"><img class="sc-img wide" src="${partImg('basmala')}" alt=""></div><b>${esc(tx(X('mo_basmala')))}</b><p>${esc(tx(m.ex[1]))}</p></div>
+          <div class="sign-card"><div class="sc-glyph"><div class="pagehead-box">${pageHeadHTML(30, 78)}</div></div><b>${esc(tx(X('mul_sh_page_cap')))}</b><p>${esc(tx(m.ex[2]))}</p></div></div>
+          <div class="card"><p>${esc(tx(X('mul_sh_intro')))}</p></div><div class="card kid-card"><p>${esc(tx(X('mul_sh_tip')))}</p></div>`;
       } else if (m.lesson === 'juz_hizb') {
         inner = `<h3 class="sub">${t('mk_lantern_title')}</h3><div class="lantern-gallery">${[2, 3, 4, 5, 9].map((q) => { const mk = quarterMarker(q); return `<figure>${lanternHTML(q)}<figcaption><b>${esc(tx(MARKER_NAMES[mk.kind]))}</b></figcaption></figure>`; }).join('')}</div>
-          <div class="card"><p>${esc(tx(m.ex[0]))}</p></div><div class="card kid-card"><p>${esc(tx(m.ex[1]))}</p></div>
+          <div class="card"><p>${esc(tx(X('mul_jh_intro')))}</p></div><div class="card"><p>${esc(tx(m.ex[0]))}</p></div><div class="card kid-card"><p><b>${esc(tx(X('mul_jh_counts')))}</b><br>${esc(tx(X('mul_jh_tip')))}</p></div>
           <div class="sign-grid"><div class="sign-card"><div class="sc-glyph"><img class="sc-img" src="${signImg('rub_mark')}" alt=""></div><b>${esc(tx(SIGNS.rub_mark.name))}</b><p>${esc(tx(SIGNS.rub_mark.def))}</p></div></div>`;
+      } else if (m.lesson === 'sajda') {
+        inner = `<div class="card"><p>${esc(tx(X('mul_sj_intro')))}</p></div><div class="gallery3">
+          <figure>${frameHTML('سجدة')}<figcaption><b>${esc(tx(X('mul_sj_c1')))}</b><br>${esc(tx(X('mul_sj_c1d')))}</figcaption></figure>
+          <figure><img class="media-img" src="${signImg('sajda_sign')}" alt=""><figcaption><b>${esc(tx(X('mul_sj_c2')))}</b><br>${esc(tx(X('mul_sj_c2d')))}</figcaption></figure>
+          <figure><img class="media-img" src="${partImg('overline')}" alt=""><figcaption><b>${esc(tx(X('mul_sj_c3')))}</b><br>${esc(tx(X('mul_sj_c3d')))}</figcaption></figure></div>
+          <div class="card kid-card"><p>${esc(tx(X('mul_sj_tip')))}</p></div>`;
       } else {
-        inner = `<div class="sign-grid">${m.signs.map((sid) => { const s = SIGNS[sid]; return `<div class="sign-card"><div class="sc-glyph"><img class="sc-img" src="${esc(signImg(sid))}" alt="${esc(tx(s.name))}"></div>${s.abbr ? `<span class="tag">${esc(s.abbr)}</span>` : ''}<b>${esc(tx(s.name))}</b><p>${esc(tx(s.def))}</p></div>`; }).join('')}</div>${m.lesson === 'waqf' ? `<div class="card"><p>${esc(tx(m.ex[1]))}</p></div>` : ''}`;
+        inner = `${introK ? `<div class="card"><p>${esc(tx(X(introK)))}</p></div>` : ''}<div class="sign-grid">${m.signs.map((sid) => { const s = SIGNS[sid]; return `<div class="sign-card"><div class="sc-glyph"><img class="sc-img" src="${esc(signImg(sid))}" alt="${esc(tx(s.name))}"></div>${s.abbr ? `<span class="tag">${esc(s.abbr)}</span>` : ''}<b>${esc(tx(s.name))}</b><p>${esc(tx(s.def))}</p></div>`; }).join('')}</div>${m.lesson === 'waqf' ? `<div class="card"><p>${esc(tx(m.ex[1]))}</p></div>` : ''}${tipK ? `<div class="card kid-card"><p>${esc(tx(X(tipK)))}</p></div>` : ''}`;
       }
       body = `<h2>${t('mk_l2')}</h2>${inner}`;
     } else if (key === 'examples') {
@@ -100,6 +114,14 @@ export function initMushaf(H) {
     app.querySelectorAll('[data-sign]').forEach((b) => b.addEventListener('click', () => renderMushafLearn(id, 3, Number(b.dataset.sign), 0)));
     app.querySelectorAll('[data-ex]').forEach((b) => b.addEventListener('click', () => renderMushafLearn(id, 3, sIdx, Math.max(0, eIdx + Number(b.dataset.ex)))));
   }
-  void renderHub; void bindNav; void STAGES; void legendHTML;
-  return { renderMushafRule, renderMushafLearn };
+  // مستكشف المصحف: كل صفحة حقيقية وعليها كل علامات الدروس؛ اضغط أي دبوس لتعرف ما هي
+  function renderExplorer() {
+    const st = STAGES.find((x) => x.id === 'mushaf'); const total = pagesFor('all').reduce((a, pg) => a + pg.pins.length, 0);
+    shell(`
+      ${crumb([{ href: '#/', label: esc(t('app_title')) }, { label: esc(t('mk_explorer')) }])}
+      <section class="panel" ${stageStyle(st)}><h1>🔎 ${t('mk_explorer')}</h1><p class="lead">${t('mk_explorer_lead', { n: num(total) })}</p><div class="ornament" aria-hidden="true"><i></i><b>❖</b><i></i></div>${exploreHTML('all')}</section>`, { cls: 'rule-page mushaf-page' });
+    bindExplore(document.getElementById('app'));
+  }
+  void renderHub; void bindNav; void legendHTML;
+  return { renderMushafRule, renderMushafLearn, renderExplorer };
 }

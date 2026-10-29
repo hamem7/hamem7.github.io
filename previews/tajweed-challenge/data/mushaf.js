@@ -29,11 +29,27 @@ export const SIGNS = {
   small_yaa: { lesson: 'madd_letters', code: 'ۦ', glyph: 'بِهِۦ', where: 'word', name: T('الياء الصغيرة', 'Small yaa'), def: T('للدلالة على وجوب النطق بالحرف المتروك: تُنطق كسرة طويلة بعد هاء الضمير في الوصل (فيه، عليه).', 'An omitted letter that must be pronounced: a long “ee” after the pronoun hā’ when joining (fīhi, ʿalayhi).') },
   sin_over: { lesson: 'sin_saad', code: 'ۜ', glyph: 'صۜ', where: 'word', refs: ['2:245', '7:69'], name: T('س فوق الحرف', 'Seen above a letter'), def: T('للدلالة على وجوب النطق بالسين بدل الصاد، وتأتي داخل الكلمة فوق الصاد.', 'Means you must pronounce a seen instead of the saad. It sits inside the word, above the saad.') },
   sin_under: { lesson: 'sin_saad', code: 'ۣ', glyph: 'صۣ', where: 'word', refs: ['52:37'], name: T('س تحت الحرف', 'Seen below a letter'), def: T('إذا وُضعت السين بالأسفل فالنطق بالصاد أشهر (مع جواز السين).', 'When the seen is written below, pronouncing saad is more common (seen is also allowed).') },
-  sajda_sign: { lesson: 'sajda', code: '۩', glyph: '۩', where: 'wq', name: T('علامة السجدة', 'Sajdah sign'), def: T('للدلالة على موضع السجود، أما كلمة وجوب السجود فقد وُضع فوقها خط.', 'Marks the place of prostration; a line is drawn above the words at which you prostrate.') }
+  sajda_sign: { lesson: 'sajda', code: '۩', glyph: '۩', where: 'wq', name: T('علامة السجدة', 'Sajdah sign'), def: T('للدلالة على موضع السجود، أما كلمة وجوب السجود فقد وُضع فوقها خط.', 'Marks the place of prostration; a line is drawn above the words at which you prostrate.') },
+  // ───── علامات إضافية (غير موجودة في مرحلة المنصة): الصورة من صفحة المصحف المطبوع، والتعريف بصياغة مبسّطة موسومة للمراجعة ─────
+  fatha: { lesson: 'harakat', img: true, name: T('الفتحة', 'Fatha'), def: T('خط صغير مائل فوق الحرف: يُنطق الحرف معها بصوت «َ» (فتح الفم).', 'A small slanted stroke above a letter: the letter is read with an “a” sound (the mouth opens).') },
+  damma: { lesson: 'harakat', img: true, name: T('الضمّة', 'Damma'), def: T('واو صغيرة فوق الحرف: يُنطق الحرف معها بصوت «ُ» (تُضمّ الشفتان).', 'A tiny curled stroke, like a small waw, above a letter: the letter is read with an “u” sound (the lips round).') },
+  kasra: { lesson: 'harakat', img: true, name: T('الكسرة', 'Kasra'), def: T('خط صغير مائل تحت الحرف: يُنطق الحرف معها بصوت «ِ» (كسر الفم نحو الأسفل).', 'A small slanted stroke below a letter: the letter is read with an “i” sound.') },
+  fathatan: { lesson: 'harakat', img: true, name: T('تنوين الفتح', 'Fathatan'), def: T('فتحتان فوق الحرف في آخر الاسم: يُنطق الحرف مع صوت «ـً» ثم نون ساكنة (an)، ولا تُكتب النون.', 'Two fatha strokes above the last letter of a noun: read as an “an” sound — a noon sound that is not written.') },
+  dammatan: { lesson: 'harakat', img: true, name: T('تنوين الضمّ', 'Dammatan'), def: T('ضمّتان فوق الحرف في آخر الاسم: يُنطق الحرف مع صوت «ـٌ» ثم نون ساكنة (un)، ولا تُكتب النون.', 'Two damma strokes above the last letter of a noun: read as an “un” sound — a noon sound that is not written.') },
+  kasratan: { lesson: 'harakat', img: true, name: T('تنوين الكسر', 'Kasratan'), def: T('كسرتان تحت الحرف في آخر الاسم: يُنطق الحرف مع صوت «ـٍ» ثم نون ساكنة (in)، ولا تُكتب النون.', 'Two kasra strokes below the last letter of a noun: read as an “in” sound — a noon sound that is not written.') },
+  alif_wasla: { lesson: 'hamza', img: true, name: T('ألف الوصل', 'Alif wasla'), def: T('ألف تُنطق إذا ابتدأنا الكلام بها، وتسقط من النطق إذا وصلناها بما قبلها (مثل «ٱل» التعريف).', 'An alif that is pronounced when we start a phrase with it, and dropped when we join it to the word before (like the “al-” of “the”).') },
+  hamza_above: { lesson: 'hamza', img: true, name: T('الهمزة فوق الألف', 'Hamza above alif'), def: T('رأس عين صغيرة فوق الألف (أ): همزة قطع تُنطق دائمًا في أول الكلام وفي الوصل.', 'A tiny ʿayn-shaped head above the alif (أ): a hamza that is always pronounced, whether you start with it or join to it.') },
+  hamza_below: { lesson: 'hamza', img: true, name: T('الهمزة تحت الألف', 'Hamza below alif'), def: T('رأس عين صغيرة تحت الألف (إ): همزة قطع مكسورة تُنطق دائمًا.', 'A tiny ʿayn-shaped head below the alif (إ): a hamza with a kasra, always pronounced.') },
+  hamza_line: { lesson: 'hamza', img: true, name: T('الهمزة على السطر', 'Hamza on the line'), def: T('همزة تُكتب وحدها على السطر بلا حرف يحملها (ء)، وتُنطق همزة، وتأتي بعد حرف مدّ في مواضع كثيرة.', 'A hamza written on its own on the line with no letter carrying it (ء); it is pronounced as a hamza, often after a madd letter.') },
+  ishmam: { lesson: 'special', img: true, name: T('علامة الإشمام', 'Ishmam sign'), def: T('علامة نادرة تدلّ على ضمّ الشفتين قبل النطق بالنون المشدّدة دون صوت للضمّة؛ وهي في موضع واحد من القرآن (سورة يوسف).', 'A rare sign meaning: round the lips before saying the doubled noon, without any “u” sound. It occurs in just one place in the Quran (Surah Yusuf).') },
+  imala: { lesson: 'special', img: true, name: T('علامة الإمالة', 'Imala sign'), def: T('علامة نادرة تدلّ على إمالة الألف نحو الياء والفتحة نحو الكسرة؛ وهي في موضع واحد في قراءة حفص (سورة هود).', 'A rare sign meaning: lean the alif toward a “ee” sound and the fatha toward a kasra. In Hafs it occurs in just one place (Surah Hud).') }
 };
 
+
 // علامات تأتي على حرف وتكثر في النص: تُعرَّف ولا يُسأل عنها «اضغط الكلمة» (كما في المنصة)
-export const NO_TAP = new Set(['sukun', 'shadda', 'ayah_end', 'rub_mark', 'sajda_sign']);
+export const NO_TAP = new Set(['sukun', 'shadda', 'ayah_end']);
+// علامات صورتها من الصفحة الحقيقية فقط (لا رمز لها في نص الآيات): تُدرَّس بالاستكشاف والأسئلة المصوّرة لا بالضغط في آية
+export const IMG_ONLY = new Set(Object.keys(SIGNS).filter((k) => SIGNS[k].img));
 // علامتان بشكل واحد (س): لا يُسأل عن شكلها منفردةً بلا سياق
 export const AMBIGUOUS = new Set(['saktah', 'sin_over']);
 
@@ -89,6 +105,30 @@ export const MUSHAF = {
     watch: T('السكتة تأتي وحدها بين كلمتين، أما هنا فالسين الصغيرة على الصاد داخل الكلمة نفسها.', 'The saktah stands alone between two words; here the small seen sits on the saad inside the word itself.'),
     ex: [], review: 'كلمات هذا الدرس قليلة جدًا في المصحف؛ الأمثلة من آيات خارج جزء عمّ (2:245، 7:69، 52:37)'
   },
+  mushaf_harakat: {
+    id: 'mushaf_harakat', kind: 'mushaf', lesson: 'harakat', stage: 'mushaf', signs: ['fatha', 'damma', 'kasra', 'fathatan', 'dammatan', 'kasratan'], noVerses: true,
+    name: T('الحركات والتنوين', 'Vowel Marks & Tanween'), short: T('ـَ ـُ ـِ', 'ـَ ـُ ـِ'), tagline: T('ثلاث حركات وثلاثة تنوين', 'Three vowels and three tanween'),
+    def: T('الحركات ثلاث: الفتحة فوق الحرف والضمّة فوقه والكسرة تحته. وإذا تكرّرت العلامة في آخر الاسم صارت تنوينًا: تنوين فتح وضمّ وكسر، وتُنطق معه نون ساكنة لا تُكتب.', 'There are three vowels: the fatha above a letter, the damma above it, the kasra below it. When the mark is doubled at the end of a noun it becomes tanween — fathatan, dammatan, kasratan — and an unwritten noon sound is added.'),
+    notice: T('انظر إلى أواخر الكلمات: هل ترى علامتين متجاورتين بدل علامة واحدة؟', 'Look at the ends of words: do you see two marks side by side instead of one?'),
+    watch: T('الحركة الواحدة: صوت قصير. التنوين (علامتان): صوت الحركة ثم نون لا تُكتب. تنوين الكسر يكون تحت الحرف.', 'One mark: a short vowel sound. Tanween (two marks): the vowel sound plus an unwritten noon. Kasratan is written below the letter.'),
+    ex: [], review: 'هذا الدرس إضافة من عندي (ليس في مرحلة المنصة): الصور حقيقية من صفحات المصحف، لكن نصوص التعريف بصياغتي وتحتاج مراجعة معلّم'
+  },
+  mushaf_hamza: {
+    id: 'mushaf_hamza', kind: 'mushaf', lesson: 'hamza', stage: 'mushaf', signs: ['alif_wasla', 'hamza_above', 'hamza_below', 'hamza_line'], noVerses: true,
+    name: T('الألف والهمزة', 'Alif & Hamza'), short: T('ٱ أ إ ء', 'ٱ أ إ ء'), tagline: T('ألف تسقط وهمزة لا تسقط', 'An alif that drops and a hamza that stays'),
+    def: T('ألف الوصل تُنطق في بدء الكلام وتسقط في وصله. أما الهمزة فتُنطق دائمًا: تُكتب فوق الألف أو تحتها أو وحدها على السطر.', 'The alif of joining is pronounced when you start with it and dropped when you join. The hamza is always pronounced: it is written above the alif, below it, or on its own on the line.'),
+    notice: T('هل تحمل الألف رأس عين صغيرة؟ فوقها أو تحتها؟ أم لا تحمل شيئًا؟', 'Does the alif carry a tiny ʿayn-shaped head — above it, below it — or nothing at all?'),
+    watch: T('الألف التي لا تحمل رأس عين (ٱ) قد تسقط في الوصل. التي تحمله (أ إ) تُنطق دائمًا.', 'An alif without the ʿayn-shaped head (ٱ) may drop when joining. One with the head (أ إ) is always pronounced.'),
+    ex: [], review: 'هذا الدرس إضافة من عندي (ليس في مرحلة المنصة): الصور حقيقية من صفحات المصحف، لكن نصوص التعريف بصياغتي وتحتاج مراجعة معلّم'
+  },
+  mushaf_special: {
+    id: 'mushaf_special', kind: 'mushaf', lesson: 'special', stage: 'mushaf', signs: ['ishmam', 'imala'], noVerses: true,
+    name: T('علامات نادرة', 'Rare Marks'), short: T('إشمام · إمالة', 'Ishmam · Imala'), tagline: T('علامتان لا تأتيان إلا مرة واحدة', 'Two marks that appear only once'),
+    def: T('في المصحف علامتان لا تأتيان إلا في موضع واحد: علامة الإشمام (ضمّ الشفتين) في سورة يوسف، وعلامة الإمالة في سورة هود. إذا رأيت واحدة منهما فاسأل معلّمك عن طريقة نطقها.', 'The mushaf has two marks that appear in only one place each: the ishmam sign (rounding the lips) in Surah Yusuf and the imala sign in Surah Hud. If you see one, ask your teacher to model the pronunciation.'),
+    notice: T('علامة صغيرة غريبة لم ترها من قبل: لا تخف! هي نادرة جدًا.', 'A strange little mark you have not seen before: do not worry — it is very rare.'),
+    watch: T('هاتان العلامتان تُتعلَّمان بالسماع من المعلّم: الصورة تعرّفك بهما فقط.', 'These two marks are learned by listening to a teacher: the picture only helps you recognise them.'),
+    ex: [], review: 'هذا الدرس إضافة من عندي (ليس في مرحلة المنصة): الصور حقيقية من صفحات المصحف، لكن نصوص التعريف بصياغتي وتحتاج مراجعة معلّم، وأحكام النطق يُرجع فيها للمعلّم'
+  },
   mushaf_sajda: {
     id: 'mushaf_sajda', kind: 'mushaf', lesson: 'sajda', stage: 'mushaf', signs: ['sajda_sign'],
     name: T('علامات السجدة', 'Sajdah Signs'), short: T('۩', '۩'), tagline: T('ثلاث علامات تدلّك على موضع السجود', 'Three signs show where to prostrate'),
@@ -119,7 +159,7 @@ export const JUZ_ORDINALS_AR = ['الأول', 'الثاني', 'الثالث', '�
 // لوحة الرمز على بلاطات الرئيسية (علامات على حروف حاملة ليظهر شكلها كما في المصحف)
 export const PLATES = {
   mushaf_ayah_number: '﴿١﴾', mushaf_juz_hizb: '۞', mushaf_waqf: 'ـۘـ ـۚـ ـۖـ',
-  mushaf_silent_sukun: 'ا۟ مۡ نۢ', mushaf_madd_letters: 'حمۤ ذَٰلِكَ', mushaf_sin_saad: 'صۜ', mushaf_sajda: '۩'
+  mushaf_silent_sukun: 'ا۟ مۡ نۢ', mushaf_madd_letters: 'حمۤ ذَٰلِكَ', mushaf_sin_saad: 'صۜ', mushaf_sajda: '۩', mushaf_harakat: 'بَ بُ بِ', mushaf_hamza: 'ٱ أ إ ء', mushaf_special: 'ۜ ۬'
 };
 
 // ───── صور حقيقية من المصحف المطبوع ─────
@@ -156,6 +196,20 @@ export const EXPLORE = {
     { page: 39, label: T('س فوق الصاد', 'Seen above the saad'), pins: [{ sign: 'sin_over', x: 402, y: 1205 }] },
     { page: 525, label: T('س تحت الصاد', 'Seen below the saad'), pins: [{ sign: 'sin_under', x: 585, y: 402 }] }
   ],
+  mushaf_harakat: [
+    { page: 583, label: T('الفتحة والضمّة والكسرة', 'Fatha, damma and kasra'), pins: [{ sign: 'kasra', x: 605, y: 218 }, { sign: 'fatha', x: 537, y: 310 }, { sign: 'damma', x: 470, y: 307 }] },
+    { page: 582, label: T('تنوين الفتح', 'Fathatan'), pins: [{ sign: 'fathatan', x: 532, y: 646 }] },
+    { page: 226, label: T('تنوين الضمّ', 'Dammatan'), pins: [{ sign: 'dammatan', x: 268, y: 565 }] },
+    { page: 585, label: T('تنوين الكسر', 'Kasratan'), pins: [{ sign: 'kasratan', x: 80, y: 380 }] }
+  ],
+  mushaf_hamza: [
+    { page: 582, label: T('ألف الوصل والهمزة تحت الألف', 'Alif wasla and hamza below alif'), pins: [{ sign: 'alif_wasla', x: 485, y: 218 }, { sign: 'hamza_below', x: 612, y: 725 }] },
+    { page: 585, label: T('الهمزة فوق الألف وعلى السطر', 'Hamza above alif and on the line'), pins: [{ sign: 'hamza_above', x: 455, y: 214 }, { sign: 'hamza_line', x: 345, y: 385 }] }
+  ],
+  mushaf_special: [
+    { page: 236, label: T('الإشمام (سورة يوسف)', 'Ishmam (Surah Yusuf)'), pins: [{ sign: 'ishmam', x: 325, y: 903 }] },
+    { page: 226, label: T('الإمالة (سورة هود)', 'Imala (Surah Hud)'), pins: [{ sign: 'imala', x: 548, y: 567 }] }
+  ],
   mushaf_sajda: [{ page: 528, label: T('سجدة سورة النجم', 'The sajdah of Surah An-Najm'), pins: [{ sign: 'sajda_sign', x: 118, y: 640 }, { part: 'overline', x: 300, y: 612 }] }]
 };
 // بطاقات أجزاء الصفحة التي ليست علامات
@@ -165,4 +219,17 @@ export const PARTS = {
   overline: { name: T('خط فوق كلمات السجود', 'The line above the words of prostration'), def: T('للدلالة على موضع السجود، أما كلمة وجوب السجود فقد وُضع فوقها خط.', 'Marks the place of prostration; a line is drawn above the words at which you prostrate.') }
 };
 // صورة تمثّل الدرس على بلاط الرئيسية
-export const LESSON_IMG = { mushaf_ayah_number: 'ayah_end', mushaf_juz_hizb: 'rub_mark', mushaf_waqf: 'waqf_sala', mushaf_silent_sukun: 'zero_round', mushaf_madd_letters: 'madd', mushaf_sin_saad: 'sin_over', mushaf_sajda: 'sajda_sign' };
+export const LESSON_IMG = { mushaf_ayah_number: 'ayah_end', mushaf_juz_hizb: 'rub_mark', mushaf_waqf: 'waqf_sala', mushaf_silent_sukun: 'zero_round', mushaf_madd_letters: 'madd', mushaf_sin_saad: 'sin_over', mushaf_sajda: 'sajda_sign', mushaf_harakat: 'fatha', mushaf_hamza: 'alif_wasla', mushaf_special: 'ishmam' };
+
+// نصوص المقدمة والنصيحة لكل درس (من نصوص المنصة المعتمدة، انظر data/mushaf-texts.js)
+export const LESSON_TXT = { ayah_number: ['mul_an_intro', 'mul_an_tip'], juz_hizb: ['mul_jh_intro', 'mul_jh_tip'], waqf: ['mul_wq_intro', 'mul_wq_tip'], silent_sukun: ['mul_sk_intro', 'mul_sk_tip'], madd_letters: ['mul_md_intro', 'mul_md_tip'], sin_saad: ['mul_sn_intro', 'mul_sn_tip'], sajda: ['mul_sj_intro', 'mul_sj_tip'] };
+
+// نافذة مكبّرة حول دبابيس الصفحة (بكسلات الصفحة الأصلية) — تُستعمل في «استكشف» وفي أسئلة «ما العلامة عند الدبوس؟»
+export function pageWindow(pins) {
+  const xs = pins.map((p) => p.x), ys = pins.map((p) => p.y);
+  const W = Math.min(PAGE_W, Math.max(480, Math.max(...xs) - Math.min(...xs) + 380)); const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
+  const left = Math.min(Math.max(cx - W / 2, 0), PAGE_W - W);
+  const H = Math.min(PAGE_H, Math.max(W * 0.62, Math.max(...ys) - Math.min(...ys) + 300)); const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+  const top = Math.min(Math.max(cy - H / 2, 0), PAGE_H - H);
+  return { W, H, left, top };
+}

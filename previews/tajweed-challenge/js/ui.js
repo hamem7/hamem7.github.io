@@ -1,7 +1,8 @@
 // js/ui.js — عناصر عرض مشتركة (آية، شارات، وسيلة إيضاح) بلا حالة.
 import { POOL, SURAHS } from '../data/pool.js';
 import { META, LETTER_NAMES } from '../data/rules.js';
-import { quarterMarker } from '../data/mushaf.js';
+import { X } from '../data/mushaf-texts.js';
+import { quarterMarker, JUZ_ORDINALS_AR, pageImg, pageWindow, PAGE_W } from '../data/mushaf.js';
 import { wordHTML, hlAttr } from './quran.js';
 import { t, tx, num, getLang } from './i18n.js';
 
@@ -49,6 +50,15 @@ export function lanternHTML(q) {
   return `<div class="lant" role="img" aria-label="${esc(m.lines.join(' '))}"><img src="${ASSET}lantern-${m.full ? 'full' : 'top'}.webp" alt=""><div class="lant-text quran-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${esc(l)}</span>`).join('')}</div></div>`;
 }
 export const bannerHTML = (surahNo) => `<div class="banner" role="img" aria-label="${esc(SURAHS[surahNo].ar)}"><img src="${ASSET}banner-blank.webp" alt=""><span class="banner-name quran-text" dir="rtl">س\u064Fور\u064Eة\u064F ${esc(SURAHS[surahNo].ar)}</span></div>`;
+// إطار «سجدة» على الهامش: إطار الفانوس الحقيقي من المصحف مكتوب فيه النص (كما في المنصة)
+export const frameHTML = (text) => `<div class="lant frame" role="img" aria-label="${esc(text)}"><img src="${ASSET}lantern-frame.webp" alt=""><div class="lant-text quran-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw"><span>${esc(text)}</span></div></div>`;
+// رأس الصفحة (اسم الجزء يمينًا واسم السورة يسارًا) — صور الصفحات بلا هوامش فالنص مكتوب كما في المنصة
+export const pageHeadHTML = (juz, s) => `<div class="pagehead" dir="rtl"><span class="quran-text">الجزء ${JUZ_ORDINALS_AR[juz - 1]}</span><span class="quran-text">س\u064Fور\u064Eة\u064F ${esc(SURAHS[s].ar)}</span></div><small class="pagehead-cap">${esc(tx(X('mu_juz_caption', { n: num(juz) })))}</small>`;
+// صفحة مصحف حقيقية بنافذة مكبّرة ودبوس ذهبي واحد
+export function pagePinHTML(page, x, y) {
+  const { W, H, left, top } = pageWindow([{ x, y }]);
+  return `<figure class="realpage pinq"><div class="rp-frame" style="aspect-ratio:${W.toFixed(0)} / ${H.toFixed(0)}"><img class="rp-img" src="${pageImg(page)}" alt="${esc(t('mk_page_alt', { n: num(page) }))}" style="width:${(PAGE_W / W * 100).toFixed(2)}%;left:${(-left / W * 100).toFixed(3)}%;top:${(-top / H * 100).toFixed(3)}%"><span class="pin static" style="left:${((x - left) / W * 100).toFixed(2)}%;top:${((y - top) / H * 100).toFixed(2)}%" aria-hidden="true">★</span></div></figure>`;
+}
 export function mediaHTML(m) {
   if (!m) return '';
   if (m.kind === 'glyph') return `<div class="glyph-big quran-text" dir="rtl" aria-hidden="true">${esc(m.glyph)}</div>`;
@@ -56,6 +66,9 @@ export function mediaHTML(m) {
   if (m.kind === 'verse') return `<div class="ayah-wrap">${ayahHTML(m.key)}<div class="ayah-meta"><span>${esc(ayahLabel(m.key))}</span></div></div>`;
   if (m.kind === 'lantern') return `<div class="media-lantern">${lanternHTML(m.q)}</div>`;
   if (m.kind === 'banner') return bannerHTML(m.surah);
+  if (m.kind === 'pagehead') return `<div class="pagehead-box">${pageHeadHTML(m.juz, m.surah)}</div>`;
+  if (m.kind === 'pagepin') return pagePinHTML(m.page, m.x, m.y);
+  if (m.kind === 'frame') return `<div class="media-lantern">${frameHTML(m.text)}</div>`;
   return '';
 }
 

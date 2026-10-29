@@ -34,6 +34,13 @@ async function answer(p, correct) {
     const v = q.accept; const sel = (w) => `.tapw[data-w="${w}"]`;
     if (correct) await p.click(v.words.length ? sel(v.words[0]) : `.tapm[data-m="${v.marks[0]}"]`);
     else { const bad = []; for (let i = 0; i < 40 && bad.length < 2; i++) if (!v.words.includes(i) && (await p.$(sel(i)))) bad.push(i); await p.click(sel(bad[0])); await p.waitForSelector('.hint.bad'); await p.click(sel(bad[1])); }
+  } else if (q.type === 'match') {
+    const left = q.pairs.map((x) => x.id);
+    for (let k = 0; k < left.length; k++) {
+      await p.click(`.m-left[data-id="${left[k]}"]`);
+      if (!correct && k === 0) { const w = left.find((x) => x !== left[0]); await p.click(`.m-right[data-id="${w}"]`); await p.waitForSelector('.hint.bad'); await p.click(`.m-left[data-id="${left[0]}"]`); }
+      await p.click(`.m-right[data-id="${left[k]}"]`);
+    }
   } else if (q.type === 'ayahnum') {
     if (correct) await p.click(`.rosette[data-k="${q.target}"]`);
     else { await p.click(`.rosette[data-k="${q.keys[0]}"]`); await p.waitForSelector('.hint.bad'); await p.click(`.rosette[data-k="${q.keys[0]}"]`); }
@@ -85,14 +92,14 @@ for (const [name, w, h] of sizes) {
 const { ctx, p } = await open(1100, 900, { review: false });
 const types = new Set();
 for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
-  const isM = !!MUSHAF[rid];
+  const isM = !!MUSHAF[rid]; const noV = isM && !!MUSHAF[rid].noVerses;
   await p.goto(`${BASE}/index.html#/rule/${rid}`); await p.waitForSelector('.rule-hero');
   ok(await p.$eval('.steps .step:nth-child(2) .btn', (e) => e.classList.contains('disabled')), `${rid}: المستوى ١ يجب أن يكون مقفل\u064Bا قبل الدرس`);
   await p.click('.steps .step:first-child .btn'); await p.waitForSelector('.lesson');
-  for (let step = 0; step < 4; step++) {
+  for (let step = 0; step < (noV ? 3 : 4); step++) {
     if (isM && [1, 2, 3].includes(step)) { await p.waitForTimeout(250); const bad = await p.$$eval('.lesson-body img', (a) => a.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src'))); ok(bad.length === 0, `${rid}: صور لم ت\u064Fحم\u064E\u0651ل ${bad.join(',')}`); const nImg = await p.$$eval('.lesson-body img', (a) => a.length); ok(nImg >= 1 || (rid === 'mushaf_ayah_number' && step === 3), `${rid}: خطوة ${step} بلا صور مصحف`); }
     if (isM && step === 1) { await p.waitForSelector('.pin'); const np = (await p.$$('.pin')).length; ok(np >= 1, `${rid}: دبابيس الصفحة ${np}`); await p.click('.pin >> nth=0'); await p.waitForSelector('.info-card'); ok((await p.$eval('.info-card', (e) => e.innerText.length)) > 20, `${rid}: بطاقة العلامة فارغة`); await p.click('.pin-leg >> nth=' + (np - 1)); await p.waitForSelector('.pin.sel'); }
-    if (isM && step === 3) { await p.waitForSelector('.ayah'); ok(await p.$eval('.lesson-body', (e) => e.innerText.length > 40), `${rid}: خطوة المثال فارغة`); const tabs = await p.$$('[data-sign]'); if (tabs.length > 1) { await tabs[1].click(); await p.waitForSelector('.ayah'); } }
+    if (isM && step === 3 && !noV) { await p.waitForSelector('.ayah'); ok(await p.$eval('.lesson-body', (e) => e.innerText.length > 40), `${rid}: خطوة المثال فارغة`); const tabs = await p.$$('[data-sign]'); if (tabs.length > 1) { await tabs[1].click(); await p.waitForSelector('.ayah'); } }
     if (step === 2 && !isM) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); await p.waitForSelector('.hlbox', { state: 'attached', timeout: 3000 }).catch(() => {}); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
     await p.click('#l-next'); await p.waitForTimeout(80);
   }
@@ -104,7 +111,14 @@ for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
     await p.waitForSelector('.result'); ok((await p.$$eval('.big-stars .on', (a) => a.length)) === 3, `${rid} L${lv}: لم تظهر ٣ نجوم بإجابات صحيحة كاملة`);
   }
 }
-ok(['identify', 'spot', 'tapletter', 'sort', 'letters', 'choice', 'signtap', 'ayahnum'].every((t) => types.has(t)), `أنواع الألعاب الم\u064Fختب\u064Eرة: ${[...types]}`);
+ok(['identify', 'spot', 'tapletter', 'sort', 'letters', 'choice', 'signtap', 'ayahnum', 'match'].every((t) => types.has(t)), `أنواع الألعاب الم\u064Fختب\u064Eرة: ${[...types]}`);
+// مستكشف المصحف: كل الصفحات والدبابيس
+await p.goto(`${BASE}/index.html#/explorer`); await p.waitForSelector('.explore .pin');
+{ const tabs = await p.$$('.page-tabs [data-page]'); ok(tabs.length >= 10, `المستكشف: صفحات ${tabs.length}`);
+  for (let k = 0; k < tabs.length; k++) { await p.click(`.page-tabs [data-page="${k}"]`); await p.waitForSelector('.explore .pin'); await p.waitForTimeout(120);
+    const bad = await p.$$eval('.explore img', (a) => a.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src'))); ok(bad.length === 0, `المستكشف ${k}: صور لم تُحمَّل ${bad}`);
+    const np = (await p.$$('.pin')).length; for (let n = 0; n < np; n++) { await p.click(`.pin >> nth=${n}`); await p.waitForSelector('.info-card'); ok((await p.$eval('.info-card', (e) => e.innerText.length)) > 20, `المستكشف ${k}/${n}: بطاقة فارغة`); } }
+  await noOverflow(p, 'explorer'); await p.screenshot({ path: path.join(SHOTS, 'explorer.png'), fullPage: true }); }
 // التقدم محفوظ ومفتوح الآن
 await p.goto(`${BASE}/index.html#/`); await p.waitForSelector('.hero');
 ok(await p.$eval('.ring-txt b', (e) => e.innerText !== '٠'), 'النجوم لا ت\u064Fحفظ');

@@ -91,3 +91,29 @@
 .sign-photo { max-height: 130px; background: var(--paper); border: 4px double var(--gilt); padding: 8px 14px; } .banner-photo { max-height: 96px; width: min(100%, 440px); object-fit: contain; }
 .sign-thumb-wrap { display: flex; align-items: center; gap: 10px; justify-content: center; margin: 4px 0; color: var(--ink-soft); } .sign-thumb { max-height: 64px; width: auto; background: var(--paper); border: 2px solid var(--gilt-2); border-radius: 8px; padding: 2px 8px; }
 .page-tabs { margin: 6px 0 4px; }
+
+/* ───── أسئلة المصحف الإضافية: رأس الصفحة، الإطار، المطابقة، الدبوس الثابت ───── */
+.pagehead-box { display: grid; place-items: center; gap: 4px; margin: 6px auto; width: min(100%, 440px); padding: 10px 14px; background: var(--surface-2); border: 1.5px solid var(--line-strong); border-radius: 14px; }
+.pagehead { display: flex; justify-content: space-between; gap: 16px; width: 100%; font-size: 1.15rem; color: var(--ink-soft); border-bottom: 1px solid var(--gilt); padding-bottom: 2px; }
+.pagehead-cap { color: var(--ink-soft); }
+.pin.static { cursor: default; pointer-events: none; font-size: .95rem; }
+.lant.frame { width: 96px; }
+.match { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 8px 0; }
+.match-col { display: grid; gap: 8px; align-content: start; }
+.m-item { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 64px; padding: 8px 10px; border: 2px solid var(--line-strong); border-radius: 14px; background: var(--surface-3, var(--surface-2)); color: var(--ink); font: inherit; cursor: pointer; }
+.m-item:hover:not(:disabled) { border-color: var(--gilt); }
+.m-item.sel { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent); }
+.m-item.right { border-color: var(--ok, #2e8b57); background: color-mix(in srgb, var(--ok, #2e8b57) 14%, transparent); opacity: .85; }
+.m-item.miss { border-color: var(--danger, #c0392b); }
+.m-img { max-width: 100%; max-height: 54px; height: auto; background: #fbf5e4; border-radius: 8px; }
+.explorer-bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0 10px; }
+.explorer-bar .chipbtn { border: 1.5px solid var(--line-strong); background: var(--surface-2); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; cursor: pointer; }
+.explorer-bar .chipbtn.on { background: var(--c, var(--gilt)); color: #fff; border-color: transparent; }
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; margin: 8px 0; }
+.cmp .cmp-card { border: 2px solid var(--line-strong); border-radius: 14px; padding: 10px; background: var(--surface-2); display: grid; gap: 8px; justify-items: center; text-align: center; }
+.cmp .cmp-card.bad { border-color: var(--danger, #c0392b); } .cmp .cmp-card.good { border-color: var(--ok, #2e8b57); }
+.cmp .cmp-verse { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.cmp .cmp-verse .rose-img { height: 34px; width: auto; background: none; }
+.gallery3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 12px; margin: 8px 0; }
+.gallery3 figure { margin: 0; text-align: center; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 14px; padding: 10px; display: grid; gap: 6px; justify-items: center; }
+.gallery3 .media-img { max-height: 90px; width: auto; max-width: 100%; }

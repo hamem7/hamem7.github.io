@@ -1,23 +1,28 @@
 // js/mushaf-explore.js — «استكشف الصفحة»: صفحة مصحف مطبوع حقيقية (صورة من المصحف) عليها دبابيس ذهبية مرقمة عند مواضع العلامات.
 // يضغط الطفل على الدبوس (أو بند الفهرس) فتظهر بطاقة العلامة: صورتها الحقيقية مقتطعة من الصفحة نفسها + اسمها وتعريفها (نصوص المنصة المعتمدة).
 // لا رسم ولا خط من عندنا هنا: الصفحة والعلامات صور من المصحف المطبوع (انظر tools/crop-signs.py).
-import { EXPLORE, SIGNS, PARTS, signImg, partImg, pageImg, PAGE_W, PAGE_H } from '../data/mushaf.js';
+import { EXPLORE, SIGNS, PARTS, signImg, partImg, pageImg, pageWindow, PAGE_W, PAGE_H } from '../data/mushaf.js';
 import { t, tx, num } from './i18n.js';
 import { esc } from './ui.js';
 
+// كل صفحات «استكشف» مدمجة بحسب رقم الصفحة (مستكشف المصحف): دبابيس كل الدروس على الصفحة الواحدة
+const T = (ar, en) => ({ ar, en });
+let ALL = null;
+export function pagesFor(key) {
+  if (key !== 'all') return EXPLORE[key];
+  if (ALL) return ALL;
+  const by = new Map();
+  for (const pages of Object.values(EXPLORE)) for (const pg of pages) { const e = by.get(pg.page) || { page: pg.page, pins: [] }; for (const p of pg.pins) if (!e.pins.some((q) => (q.sign || q.part) === (p.sign || p.part))) e.pins.push(p); by.set(pg.page, e); }
+  return (ALL = [...by.values()].sort((a, b) => a.page - b.page).map((e) => ({ ...e, label: T('كل علامات هذه الصفحة', 'All the marks on this page'), tab: T(`الصفحة ${e.page}`, `Page ${e.page}`) })));
+}
 const infoOf = (p) => (p.sign ? { img: signImg(p.sign), name: SIGNS[p.sign].name, def: SIGNS[p.sign].def, abbr: SIGNS[p.sign].abbr } : { img: partImg(p.part), name: PARTS[p.part].name, def: PARTS[p.part].def });
 
 export function exploreHTML(lessonId, pageIdx = 0) {
-  const pages = EXPLORE[lessonId]; const pg = pages[Math.min(pageIdx, pages.length - 1)];
-  // نافذة مكبرة حول الدبابيس (لتقرأ العلامات الصغيرة على الهاتف)
-  const xs = pg.pins.map((p) => p.x), ys = pg.pins.map((p) => p.y);
-  const W = Math.min(PAGE_W, Math.max(480, Math.max(...xs) - Math.min(...xs) + 380)); const cx = (Math.max(...xs) + Math.min(...xs)) / 2;
-  const left = Math.min(Math.max(cx - W / 2, 0), PAGE_W - W);
-  const H = Math.min(PAGE_H, Math.max(W * 0.62, Math.max(...ys) - Math.min(...ys) + 300)); const cy = (Math.max(...ys) + Math.min(...ys)) / 2;
-  const top = Math.min(Math.max(cy - H / 2, 0), PAGE_H - H);
+  const pages = pagesFor(lessonId); const pg = pages[Math.min(pageIdx, pages.length - 1)];
+  const { W, H, left, top } = pageWindow(pg.pins);
   const pinsHTML = pg.pins.map((p, i) => `<button type="button" class="pin" data-n="${i + 1}" style="left:${((p.x - left) / W * 100).toFixed(2)}%;top:${((p.y - top) / H * 100).toFixed(2)}%" aria-label="${esc(tx(infoOf(p).name))}">${num(i + 1)}</button>`).join('');
   const legend = pg.pins.map((p, i) => { const inf = infoOf(p); return `<li><button type="button" class="pin-leg" data-pinsel="${i + 1}"><b class="pn">${num(i + 1)}</b><img class="leg-img" src="${esc(inf.img)}" alt=""><span>${esc(tx(inf.name))}</span></button></li>`; }).join('');
-  const tabs = pages.length > 1 ? `<div class="tabs page-tabs" role="tablist">${pages.map((q, i) => `<button type="button" role="tab" aria-selected="${i === pageIdx}" class="${i === pageIdx ? 'on' : ''}" data-page="${i}">${esc(tx(q.label))}</button>`).join('')}</div>` : '';
+  const tabs = pages.length > 1 ? `<div class="tabs page-tabs" role="tablist">${pages.map((q, i) => `<button type="button" role="tab" aria-selected="${i === pageIdx}" class="${i === pageIdx ? 'on' : ''}" data-page="${i}">${esc(tx(q.tab || q.label))}</button>`).join('')}</div>` : '';
   return `<div class="explore" data-lesson="${lessonId}" data-page="${pageIdx}" data-pins='${JSON.stringify(pg.pins.map((p) => ({ sign: p.sign || null, part: p.part || null })))}'>
     ${tabs}
     <figure class="realpage"><div class="rp-frame" style="aspect-ratio:${W.toFixed(0)} / ${H.toFixed(0)}"><img class="rp-img" src="${pageImg(pg.page)}" alt="${esc(t('mk_page_alt', { n: num(pg.page) }))}" style="width:${(PAGE_W / W * 100).toFixed(2)}%;left:${(-left / W * 100).toFixed(3)}%;top:${(-top / H * 100).toFixed(3)}%">${pinsHTML}</div><figcaption>${esc(t('mk_page_n', { n: num(pg.page) }))} · ${esc(tx(pg.label))}</figcaption></figure>

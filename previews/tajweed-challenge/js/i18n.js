@@ -14,6 +14,8 @@ const D = {
   mk_rule_kind: { ar: 'درس مصحف', en: 'Mushaf lesson' },
   ex_prev: { ar: 'المثال السابق', en: 'Previous example' },
   ex_next: { ar: 'المثال التالي', en: 'Next example' },
+  mk_explorer: { ar: 'مستكشف المصحف', en: 'Mushaf Explorer' },
+  mk_explorer_lead: { ar: 'صفحات حقيقية من المصحف المطبوع عليها {n} علامة. اضغط أي رقم ذهبي لتعرف ما هي: اسمها ومعناها وشكلها.', en: 'Real pages of the printed mushaf with {n} marks on them. Tap any golden number to learn what it is: its name, meaning and look.' },
   mk_explore: { ar: 'استكشف صفحة المصحف', en: 'Explore a mushaf page' },
   mk_explore_hint: { ar: 'اضغط على الأرقام الذهبية في الصفحة لتعرف كل علامة.', en: 'Tap the golden numbers on the page to discover each sign.' },
   mk_explore_empty: { ar: '👆 اختر رقم\u064Bا من الصفحة أو من القائمة', en: '👆 Pick a number on the page or in the list' },
