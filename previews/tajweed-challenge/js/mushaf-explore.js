@@ -38,7 +38,7 @@ export function bindExplore(scope) {
     info.classList.remove('flash'); void info.offsetWidth; info.classList.add('flash');
   };
   root.addEventListener('click', (e) => {
-    const tab = e.target.closest('[data-page]'); if (tab) { root.outerHTML = exploreHTML(lesson, Number(tab.dataset.page)); bindExplore(scope); return; }
+    const tab = e.target.closest('.page-tabs [data-page]'); if (tab) { root.outerHTML = exploreHTML(lesson, Number(tab.dataset.page)); bindExplore(scope); return; }
     const b = e.target.closest('.pin, .pin-leg'); if (b) pick(b.dataset.n || b.dataset.pinsel);
   });
 }
