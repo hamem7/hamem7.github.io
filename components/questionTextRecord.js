@@ -48,16 +48,25 @@ export function rebuildLinkFromRecord(wItem) {
     if (!pairs) return null;
     const starts = pairs.map(p => ({ id: p.id, text: p.start }));
     let ends = pairs.map(p => ({ id: p.id, text: p.end }));
-    const sameOrder = (a) => a.every((e, i) => e.id === starts[i].id);
-    for (let attempt = 0; attempt < 20; attempt++) {
+    // لا تقف أي نهاية في نفس صف بدايتها الصحيحة (نفس ضمان arrangeEndsNotFacing في quranEngine.js):
+    // محاولات خلط عشوائي، ثم إزاحة دورية مضمونة لا تُبقي أي زوج في صفه.
+    const noneFacing = (a) => a.every((e, i) => e.id !== starts[i].id);
+    let arranged = null;
+    for (let attempt = 0; attempt < 50 && !arranged; attempt++) {
         const s = ends.slice();
         for (let i = s.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [s[i], s[j]] = [s[j], s[i]];
         }
-        ends = s;
-        if (!sameOrder(ends)) break;
+        if (noneFacing(s)) arranged = s;
     }
+    if (!arranged) {
+        const byId = new Map(ends.map(e => [e.id, e]));
+        const aligned = starts.map(s => byId.get(s.id));
+        const k = 1 + Math.floor(Math.random() * (aligned.length - 1));
+        arranged = aligned.map((_, i) => aligned[(i + k) % aligned.length]);
+    }
+    ends = arranged;
     return { starts, ends, answerHTML: pairs.map(p => `${p.start} ${(wItem.questionType || '').includes('word_surah') ? '⟷' : '…'} ${p.end}`).join('<br>') };
 }
 
