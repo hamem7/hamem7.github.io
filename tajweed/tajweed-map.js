@@ -11,9 +11,13 @@ export async function initTajweedMap() {
     if (!host) return;
     try {
         const { start } = await import('./challenge/js/app.js');
+        // قائمة الطلاب الظاهرين من قاعدة المنصة (بدونها يعمل الركن بلا اسم)
+        let students = [];
+        try { students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden).map(s => ({ id: s.id, name: s.name })); } catch (e) { /* بلا قائمة */ }
         await start(host, {
             getLang: () => AppState.currentLang,
             onExit: loadSplashScreen,
+            students,
             profile: AppState.currentStudent && AppState.currentStudent.id ? String(AppState.currentStudent.id) : ''
         });
     } catch (err) {

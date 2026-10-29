@@ -9,7 +9,7 @@ function read() {
   try { const raw = localStorage.getItem(KEY); mem = raw ? { ...blank(), ...JSON.parse(raw) } : blank(); } catch { mem = blank(); }
   return mem;
 }
-function write() { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch { /* التخزين غير متاح: نكتفي بالذاكرة */ } }
+function write() { try { mem.t = Date.now(); localStorage.setItem(KEY, JSON.stringify(mem)); } catch { /* التخزين غير متاح: نكتفي بالذاكرة */ } }
 const ensure = (id) => { const d = read(); return (d.rules[id] ||= { learned: false, lv: { 1: 0, 2: 0, 3: 0 } }); };
 
 export const getRule = (id) => ensure(id);
@@ -31,4 +31,12 @@ export function isUnlocked(id, level, review = false) {
   const r = ensure(id);
   if (level === 1) return r.learned;
   return (r.lv[level - 1] || 0) >= 1;
+}
+
+// ملخص تقدّم أي ملف طالب دون التبديل إليه (لبطاقات اختيار الطالب)
+export function peek(id, ruleIds) {
+  let d = null; try { const raw = localStorage.getItem(id ? `${BASE}.${id}` : BASE); d = raw ? JSON.parse(raw) : null; } catch { d = null; }
+  let got = 0, mastered = 0, started = 0;
+  for (const rid of ruleIds) { const r = d?.rules?.[rid]; if (!r) continue; const n = (r.lv?.[1] || 0) + (r.lv?.[2] || 0) + (r.lv?.[3] || 0); got += n; if ((r.lv?.[3] || 0) >= 1) mastered++; if (n > 0 || r.learned) started++; }
+  return { got, max: ruleIds.length * 9, mastered, started, t: d?.t || 0 };
 }

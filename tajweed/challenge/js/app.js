@@ -17,6 +17,8 @@ import { setToastHost } from './play.js';
 
 let root = null; // <main id="app"> داخل Shadow DOM (يُنشأ في start)
 let host = null, wrap = null, opts = {};
+let guest = false; // اختار «بدون اسم»
+let student = null; // الطالب المختار {id, name} أو null (بدون اسم)
 let M;
 const ALL_RULES = STAGES.flatMap((s) => s.rules);
 
@@ -301,12 +303,14 @@ function render() {
   const p = h.split('/').filter(Boolean);
   const bad = () => { go('#/'); };
   try {
+    if (opts.students?.length && !student && !(guest && p[0] !== 'who')) return renderWho();
     if (!p.length) return renderHome();
     if (p[0] === 'rule' && META[p[1]]) return renderRule(p[1]);
     if (p[0] === 'learn' && META[p[1]]) return renderLearn(p[1]);
     if (p[0] === 'play' && META[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
     if (p[0] === 'stage' && STAGES.some((s) => s.id === p[1])) return playRun('stage', null, null, p[1]);
     if (p[0] === 'mixed') return playRun('mixed');
+    if (p[0] === 'who') return renderWho();
     if (p[0] === 'explorer') return M.renderExplorer();
     if (p[0] === 'about') return renderAbout();
     return bad();
@@ -316,8 +320,40 @@ function render() {
   }
 }
 
+// ───────── اختيار الطالب ─────────
+const HUES = ['violet', 'rose', 'emerald', 'amber', 'sky', 'teal'];
+const hueOf = (name) => HUES[[...String(name)].reduce((h, c) => (h * 31 + c.codePointAt(0)) >>> 0, 7) % HUES.length];
+const initial = (name) => [...String(name).trim()][0] || '؟';
+const normName = (s) => String(s || '').replace(/[\u064B-\u0652\u0670]/g, '').replace(/[أإآٱ]/g, 'ا').trim().toLowerCase();
+function chooseStudent(st) {
+  student = st; guest = !st; store.setProfile(st ? String(st.id) : '');
+  try { localStorage.setItem('tjc.last', st ? String(st.id) : ''); } catch { /* لا تخزين */ }
+  syncAttrs(); go('#/');
+}
+function renderWho(filter = '') {
+  const all = (opts.students || []).slice(); const last = (() => { try { return localStorage.getItem('tjc.last') || ''; } catch { return ''; } })();
+  const sum = new Map(all.map((s) => [String(s.id), store.peek(String(s.id), ALL_RULES)]));
+  all.sort((x, y) => (String(y.id) === last) - (String(x.id) === last) || sum.get(String(y.id)).t - sum.get(String(x.id)).t || String(x.name).localeCompare(String(y.name), 'ar'));
+  const q = normName(filter); const list = q ? all.filter((s) => normName(s.name).includes(q)) : all;
+  shell(`
+    <section class="who">
+      <header class="who-head"><span class="who-ico" aria-hidden="true">👤</span><div><h1>${t('who_title')}</h1><p class="muted">${t('who_lead')}</p></div><span class="pill who-count">${t('who_count', { n: num(all.length) })}</span></header>
+      ${all.length > 6 ? `<label class="who-search"><span aria-hidden="true">🔍</span><input type="search" id="who-q" value="${esc(filter)}" placeholder="${esc(t('who_search'))}" autocomplete="off" aria-label="${esc(t('who_search'))}"></label>` : ''}
+      <ul class="who-grid" role="list">${list.map((s) => { const m = sum.get(String(s.id)); const hue = hueOf(s.name); return `<li><button type="button" class="who-card${String(s.id) === last ? ' last' : ''}" data-id="${esc(s.id)}" style="--hue:var(--h-${hue})">
+        <span class="who-av" aria-hidden="true">${esc(initial(s.name))}</span>
+        <span class="who-body"><b>${esc(s.name)}</b><small>${m.started ? esc(t('who_progress', { m: num(m.mastered), n: num(ALL_RULES.length), s: num(m.got) })) : esc(t('who_new'))}</small>
+        <span class="pbar" aria-hidden="true"><i style="width:${Math.round((m.got / m.max) * 100)}%"></i></span></span>
+        ${String(s.id) === last ? `<em class="who-tag">${t('who_last')}</em>` : ''}<span class="arr" aria-hidden="true"></span></button></li>`; }).join('')}</ul>
+      ${list.length ? '' : `<p class="muted center">${t('who_none')}</p>`}
+      <button type="button" class="who-guest" data-id="">${t('who_guest')} <small>${t('who_guest_d')}</small></button>
+    </section>`, { cls: 'who-page' });
+  root.querySelector('#who-q')?.addEventListener('input', (e) => { renderWho(e.target.value); const n = root.querySelector('#who-q'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); });
+  root.querySelectorAll('[data-id]').forEach((b) => b.addEventListener('click', () => chooseStudent(b.dataset.id === '' ? null : (opts.students || []).find((s) => String(s.id) === b.dataset.id))));
+}
+
 // ───────── الشريط الصغير داخل الركن (الترويسة الرئيسية للمنصة تبقى هي الوحيدة) ─────────
 const barHTML = () => `
+  ${student ? `<button type="button" class="who-chip" data-act="who" style="--hue:var(--h-${hueOf(student.name)})" title="${esc(t('who_change'))}"><span class="who-av sm" aria-hidden="true">${esc(initial(student.name))}</span><b>${esc(student.name)}</b><small>${t('who_change')}</small></button>` : ''}
   <nav class="tbar" aria-label="${esc(t('app_title'))}">
     <button type="button" class="btn ghost sm" data-act="home">🏠 <span>${esc(t('nav_home'))}</span></button>
     <button type="button" class="btn ghost sm" data-act="about">📚 <span>${esc(t('nav_about'))}</span></button>
@@ -335,7 +371,7 @@ const syncAttrs = () => {
 export async function start(hostEl, options = {}) {
   host = hostEl; opts = options;
   if (options.getLang) setLangSource(options.getLang);
-  store.setProfile(options.profile || '');
+  student = null; guest = false; store.setProfile(options.students?.length ? '' : (options.profile || ''));
   const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
   const css = ['challenge.css', 'mushaf.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
   sr.innerHTML = `${css.map((h) => `<link rel="stylesheet" href="${h}">`).join('')}<div class="tjc" id="tjc"><div id="tjc-bar"></div><main id="app" tabindex="-1"></main></div>`;
@@ -343,7 +379,7 @@ export async function start(hostEl, options = {}) {
   await Promise.all([...sr.querySelectorAll('link')].map((l) => new Promise((res) => { if (l.sheet) res(); else { l.addEventListener('load', res); l.addEventListener('error', res); } })));
   wrap.querySelector('#tjc-bar').addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]'); if (!b) return;
-    if (b.dataset.act === 'home') go('#/'); else if (b.dataset.act === 'about') go('#/about'); else if (b.dataset.act === 'exit') opts.onExit?.();
+    if (b.dataset.act === 'home') go('#/'); else if (b.dataset.act === 'who') go('#/who'); else if (b.dataset.act === 'about') go('#/about'); else if (b.dataset.act === 'exit') opts.onExit?.();
     else if (b.dataset.act === 'review') { setReview(!isReview()); syncAttrs(); render(); }
   });
   M = initMushaf({ shell, crumb, stageStyle, go, root: () => root });

@@ -124,6 +124,15 @@ await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
     const bad = await p.$$eval('.explore img', (a) => a.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src'))); ok(bad.length === 0, `المستكشف ${k}: صور لم تُحمَّل ${bad}`);
     const np = (await p.$$('.pin')).length; for (let n = 0; n < np; n++) { await p.click(`.pin >> nth=${n}`); await p.waitForSelector('.info-card'); ok((await p.$eval('.info-card', (e) => e.innerText.length)) > 20, `المستكشف ${k}/${n}: بطاقة فارغة`); } }
   await noOverflow(p, 'explorer'); await p.screenshot({ path: path.join(SHOTS, 'explorer.png'), fullPage: true }); }
+// اختيار الطالب: يظهر عند وجود طلاب في قاعدة المنصة، والبحث، وحفظ التقدم باسمه
+{ const { ctx: c2, p: p2 } = await open(420, 900, { review: false }).catch(() => ({}));
+  if (p2) { await p2.evaluate(async () => { const m = await import('/core/app.js'); for (const n of ['أحمد', 'سارة', 'يوسف', 'مريم', 'عمر', 'ليلى', 'خالد', 'نورة']) await m.AppState.studentManager.addStudent({ name: n, avatar: '', isHidden: false, dob: '', grade: '', country: '', phone: '', gender: 'boy', memoFrom: '', memoTo: '', weaknesses: [], resolvedWeaknesses: [] }); m.openTajweedSection(); });
+    await p2.waitForSelector('.who-card'); ok((await p2.$$('.who-card')).length === 8, 'اختيار الطالب: ٨ بطاقات');
+    await p2.fill('#who-q', 'سا'); ok((await p2.$$('.who-card')).length === 1, 'بحث الطالب'); await p2.fill('#who-q', '');
+    await p2.click('.who-card >> nth=0'); await p2.waitForSelector('.hero'); const nm = await p2.$eval('.who-chip b', (e) => e.textContent); ok(nm.length > 1, 'شريحة الطالب');
+    await go(p2, '#/learn/mushaf_waqf'); await p2.waitForSelector('.lesson'); for (let i = 0; i < 4; i++) await p2.click('#l-next'); await p2.click('#l-done'); await p2.waitForSelector('.quiz');
+    ok(await p2.evaluate(() => Object.keys(localStorage).some((k) => /^tjc\.progress\.v1\.\d+/.test(k))), 'التقدم يُحفظ باسم الطالب'); await noOverflow(p2, 'who');
+    await c2.close(); } }
 // التقدم محفوظ ومفتوح الآن
 await go(p, `#/`); await p.waitForSelector('.hero');
 ok(await p.$eval('.ring-txt b', (e) => e.innerText !== '٠'), 'النجوم لا ت\u064Fحفظ');
