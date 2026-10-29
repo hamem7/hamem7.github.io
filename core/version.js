@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.66';
+export const APP_VERSION = '1.0.67';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.67',
+        date: '2026-10-29',
+        items: [
+            { type: 'new', text: { ar: 'ركن «تحدي التجويد» الجديد يحلّ محلّ «أبطال التجويد»: ١٠ دروس تبدأ بقسم «تعرّف على مصحفك» (رقم الآية، الجزء والحزب، الحركات والتنوين، الألف والهمزة، الوقف، السكون، المدّ، السجدة…) بصور حقيقية من صفحات المصحف، وألعاب متنوعة وتغذية راجعة مفسَّرة، و«مستكشف المصحف» تضغط فيه أي علامة على صفحة حقيقية فتعرف ما هي.', en: 'The new “Tajweed Challenge” corner replaces “Tajweed Heroes”: 10 lessons starting with “Know Your Mushaf” (ayah numbers, juz and hizb, vowel marks and tanween, alif and hamza, stops, sukun, madd, sajdah…) with real images from the mushaf pages, varied games with explained feedback, and a “Mushaf Explorer” where you tap any mark on a real page to learn what it is.' } },
+            { type: 'improved', text: { ar: 'الركن يعمل تحت ترويسة المنصة الموحّدة وبخلفيتها وألوانها ومظهرها الداكن ولغتها (عربي/إنجليزي) من غير ترويسة خاصة.', en: 'The corner runs under the platform’s unified header with its background, colours, dark theme and language (Arabic/English) — no header of its own.' } }
+        ]
+    },
     {
         version: '1.0.66',
         date: '2026-10-28',

@@ -30,7 +30,9 @@ const CHECK = process.argv.includes('--check');   // فحص فقط (CI): لا ي
 // ملفات منسَّقة يدوياً للمظهر الداكن (css/theme-dark.css) أو مقصودة فاتحة — لا تحتاج التوليد التلقائي
 const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'css/fonts.css', 'css/theme-dark.css', 'css/theme-dark-auto.css',
   'student/my-students.html', 'student/all-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
-  'css/teacherAuthGate.css', 'core/dialog.js']);
+  'css/teacherAuthGate.css', 'core/dialog.js',
+  // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
+  'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css']);
 const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
 // مقصودة فاتحة: ركن الأطفال، والمطبوعات (تقارير/شهادات تُصدَّر صوراً وPDF بورقة فاتحة دائماً)
 const INTENTIONAL_LIGHT = [/^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/];

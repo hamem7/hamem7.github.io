@@ -1,0 +1,12 @@
+{
+  "name": "tajweed-challenge-prototype",
+  "private": true,
+  "type": "module",
+  "description": "ركن «تحدي التجويد» — يحلّ محل شاشات أبطال التجويد؛ يُركَّب من tajweed/tajweed-map.js داخل Shadow DOM",
+  "scripts": {
+    "build:data": "node tools/build-data.mjs",
+    "verify": "node tools/verify.mjs",
+    "test": "node tools/verify.mjs && node tests/games.test.mjs",
+    "serve": "node tools/serve.mjs"
+  }
+}
