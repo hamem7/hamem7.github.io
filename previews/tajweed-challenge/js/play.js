@@ -38,7 +38,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   function frame(q, bodyHTML) {
     window.__tjcQ = q; // خطاف للاختبارات الآلية (لا أثر له على السلوك)
     root.innerHTML = `
-      <section class="quiz" aria-live="off">
+      <div class="page"><section class="quiz" aria-live="off">
         <div class="quiz-top">
           <button type="button" class="btn-ghost q-exit">✕ <span>${t('back')}</span></button>
           <div class="q-progress" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${i + 1}">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'cur' : ''}"></i>`).join('')}</div>
@@ -46,7 +46,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
         </div>
         ${head ? `<div class="quiz-head">${head}</div>` : ''}
         <div class="q-card type-${q.type}">${bodyHTML}</div>
-      </section>`;
+      </section></div>`;
     root.querySelector('.q-exit').addEventListener('click', () => { stopAudio(); onExit && onExit(); });
     bindAudio(root);
     window.scrollTo({ top: 0 });

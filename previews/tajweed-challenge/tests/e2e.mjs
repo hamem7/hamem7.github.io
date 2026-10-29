@@ -78,7 +78,7 @@ for (const rid of Object.keys(RULES)) {
   ok(await p.$eval('.steps .step:nth-child(2) .btn', (e) => e.classList.contains('disabled')), `${rid}: المستوى ١ يجب أن يكون مقفل\u064Bا قبل الدرس`);
   await p.click('.steps .step:first-child .btn'); await p.waitForSelector('.lesson');
   for (let step = 0; step < 4; step++) {
-    if (step === 2) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
+    if (step === 2) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); await p.waitForSelector('.hlbox', { state: 'attached', timeout: 3000 }).catch(() => {}); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
     await p.click('#l-next'); await p.waitForTimeout(80);
   }
   ok(await p.$eval('.poem', (e) => e.innerText.length > 10), `${rid}: لا أبيات`);

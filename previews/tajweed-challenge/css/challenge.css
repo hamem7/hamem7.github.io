@@ -168,7 +168,8 @@ p { margin: 0 0 .7em; }
 
 /* ── الأسئلة ── */
 .quiz { max-width: 820px; margin: 0 auto; }
-.quiz-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; } .quiz-top .q-progress { max-width: none; min-width: 120px; } .q-count { color: var(--ink-soft); font-size: .85rem; }
+.quiz-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; } .quiz-top .q-progress { max-width: none; min-width: 120px; } .q-count { color: var(--ink-soft); font-size: .85rem; white-space: nowrap; }
+.quiz-top .q-progress { flex: 1 1 140px; }
 .quiz-head { color: var(--c-ink); margin-bottom: 4px; }
 .q-card { background: var(--surface); border: 1px solid var(--line); border-top: 6px solid var(--c); border-radius: 24px; padding: clamp(14px, 3vw, 26px); box-shadow: var(--shadow); animation: fadeUp .3s both; }
 .q-prompt { font-size: 1.25rem; font-weight: 700; text-align: center; margin-bottom: 4px; } .q-sub { text-align: center; color: var(--ink-soft); font-size: .92rem; }
