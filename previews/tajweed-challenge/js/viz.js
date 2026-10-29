@@ -96,6 +96,7 @@ export const VIZ_CAPTION = {
 
 // أيقونات المراحل
 export const STAGE_ICONS = {
+  book: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 12 C18 8 10 8 6 10 V38 C10 36 18 36 24 40 C30 36 38 36 42 38 V10 C38 8 30 8 24 12Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/><path d="M24 12 V40" stroke="currentColor" stroke-width="3"/><circle cx="33" cy="20" r="3.5" fill="currentColor"/></svg>',
   wave: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 26 q6 -14 12 0 t12 0 t12 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M10 36 q5 -8 10 0 t10 0 t8 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"/></svg>',
   lips: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 26 q9 -12 18 -4 q9 -8 18 4 q-9 14 -18 14 q-9 0 -18 -14z" fill="currentColor"/><path d="M8 26 h32" stroke="var(--surface)" stroke-width="2.5" fill="none"/></svg>',
   noon: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 28 q14 14 28 0" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/><circle cx="24" cy="14" r="4.5" fill="currentColor"/></svg>',

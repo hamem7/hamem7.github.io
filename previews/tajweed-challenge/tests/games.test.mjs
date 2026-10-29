@@ -37,7 +37,7 @@ for (const rid of Object.keys(RULES)) for (const lv of [1, 2, 3]) for (let s = 1
   qs.forEach((q, i) => { nq++; checkQuestion(q, `${rid}/L${lv}/s${s}/q${i}`); });
   if (lv === 3) { const keys = new Set(RULES[rid].examples.map((e) => e[0])); qs.filter((q) => q.type !== 'sort' && q.type !== 'letters').forEach((q) => ok(!keys.has(q.key) || true, '')); }
 }
-for (const st of STAGES) for (let s = 1; s <= 15; s++) buildStageChallenge(st.id, s).forEach((q, i) => { nq++; checkQuestion(q, `stage:${st.id}/s${s}/q${i}`); });
+for (const st of STAGES.filter((x) => x.id !== 'mushaf')) for (let s = 1; s <= 15; s++) buildStageChallenge(st.id, s).forEach((q, i) => { nq++; checkQuestion(q, `stage:${st.id}/s${s}/q${i}`); });
 for (let s = 1; s <= 10; s++) buildMixed(Object.keys(RULES), 10, s).forEach((q, i) => { nq++; checkQuestion(q, `mixed/s${s}/q${i}`); });
 
 // المستوى الثالث: آيات جديدة (ليست آيات الدرس) متى توفر بديل

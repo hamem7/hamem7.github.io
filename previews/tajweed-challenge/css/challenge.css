@@ -7,7 +7,7 @@
   --emerald: #0d5c46; --emerald-2: #147c5e; --on-emerald: #fffdf6;
   --gold: #d4af37; --gold-ink: #7a5614; --on-gold: #2b2100; --gold-soft: #fbf3d5;
   --ok: #15803d; --ok-bg: #e7f4ee; --bad: #b91c1c; --bad-bg: #fde8e8; --info: #0369a1;
-  --h-violet: #6d4ad8; --h-rose: #c2306f; --h-emerald: #0d7a5c; --h-amber: #b86a00; --h-sky: #0b79b5;
+  --h-violet: #6d4ad8; --h-rose: #c2306f; --h-emerald: #0d7a5c; --h-amber: #b86a00; --h-sky: #0b79b5; --h-teal: #0f766e;
   --shadow: 0 6px 20px rgba(6, 35, 28, .10); --shadow-lg: 0 18px 44px rgba(6, 35, 28, .18);
   --r: 18px; --r-sm: 12px; --tap: 48px;
   --font-ui: 'IBM Plex Sans Arabic', Tahoma, 'Segoe UI', system-ui, sans-serif;
@@ -20,7 +20,7 @@
   --emerald: #2fbf93; --emerald-2: #3fd3a6; --on-emerald: #06231c;
   --gold: #e3c155; --gold-ink: #f0d27a; --on-gold: #2b2100; --gold-soft: #2f2812;
   --ok: #4ade80; --ok-bg: #12301f; --bad: #ff8585; --bad-bg: #3a1618; --info: #6cc3f2;
-  --h-violet: #a78bfa; --h-rose: #f472b6; --h-emerald: #34d399; --h-amber: #fbbf24; --h-sky: #5ec4f5;
+  --h-violet: #a78bfa; --h-rose: #f472b6; --h-emerald: #34d399; --h-amber: #fbbf24; --h-sky: #5ec4f5; --h-teal: #2dd4bf;
   --shadow: 0 6px 20px rgba(0, 0, 0, .45); --shadow-lg: 0 18px 44px rgba(0, 0, 0, .6);
 }
 :root { --c: var(--hue); --c-soft: color-mix(in srgb, var(--c) 13%, var(--surface)); --c-mid: color-mix(in srgb, var(--c) 28%, var(--surface)); --c-ink: color-mix(in srgb, var(--c) 78%, var(--ink)); }
@@ -246,3 +246,35 @@ p { margin: 0 0 .7em; }
   .q-prompt { font-size: 1.1rem; }
 }
 @media (min-width: 1100px) { .ayah { font-size: 3rem; } }
+
+/* ── قسم «تعرّف على مصحفك» ── */
+.vis-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px; }
+.vis-row.glyphs { gap: 10px; }
+.media-img { max-width: 100%; height: auto; max-height: 150px; border-radius: 10px; background: #fffef9; padding: 4px; } .media-img.sm { max-height: 110px; }
+.media { display: grid; place-items: center; margin: 6px 0 10px; } .media .media-img { max-height: 190px; } .media .ayah-wrap { width: 100%; }
+.glyph-big { font-size: clamp(4rem, 16vw, 6.5rem); color: var(--c-ink); text-align: center; background: var(--surface-3); border-radius: 22px; padding: 0 28px; min-width: 150px; line-height: 2 !important; }
+.lant { position: relative; container-type: inline-size; width: 84px; } .lant img { width: 100%; display: block; height: auto; background: none; padding: 0; border-radius: 0; }
+.lant-text { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-weight: 700; color: #111; overflow: hidden; } .lant-text.quran-text, .lant-text span { line-height: 1.2 !important; }
+.media-lantern .lant, .lantern-gallery .lant { width: 96px; } .vis-row .lant { width: 78px; }
+.lantern-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; } .lantern-gallery figure { margin: 0; text-align: center; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px; } .lantern-gallery .lant { margin: 0 auto; }
+.banner { position: relative; width: min(100%, 440px); margin-inline: auto; } .banner img { display: block; width: 100%; height: auto; background: #fffef9; padding: 0; border-radius: 6px; max-height: none; }
+.banner-name { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(1rem, 4.4vw, 1.7rem); color: #1b1b1b; padding-inline: 28%; text-align: center; } .banner-name.quran-text { line-height: 1.2 !important; }
+.vis-row .banner { width: min(100%, 300px); }
+.sign-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); margin: 10px 0; }
+.sign-card { background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; gap: 4px; text-align: center; } .sign-card p { margin: 0; color: var(--ink-soft); font-size: .92rem; line-height: 1.55; } .sign-card b { color: var(--c-ink); }
+.sc-glyph { background: var(--surface-3); border-radius: 14px; min-height: 86px; display: grid; place-items: center; font-size: 2.4rem; color: var(--c-ink); padding: 0 8px; } .sc-glyph.big { font-size: 3.6rem; } .sc-glyph.pagehead { display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; padding: 10px 14px; border-bottom: 2px solid var(--line-strong); border-radius: 6px; }
+.sign-chip b { font-size: 2rem; } .sign-chip small { max-width: 11ch; text-align: center; }
+.sign-tabs { margin: 8px 0; } .tabs { display: flex; gap: 6px; flex-wrap: wrap; } .tabs button { border: 2px solid var(--line-strong); background: var(--surface-2); border-radius: 999px; padding: 4px 14px; min-height: 44px; font-weight: 600; } .tabs button.on { background: var(--c); border-color: var(--c); color: var(--on-emerald); } [data-theme="dark"] .tabs button.on { color: #06231c; }
+.tag { align-self: center; background: var(--gold-soft); color: var(--gold-ink); border: 1px solid var(--gold); border-radius: 999px; padding: 0 12px; font-weight: 700; font-family: var(--font-quran); }
+.waqf.mk-on { background: color-mix(in srgb, var(--c) 32%, transparent); box-shadow: 0 0 0 .1em color-mix(in srgb, var(--c) 70%, transparent); border-radius: .3em; color: var(--c-ink); font-size: 1em; }
+.waqf.rub { font-size: .9em; color: var(--gold-ink); }
+.tapm { background: transparent; border: 2px dashed var(--line-strong); border-radius: 10px; cursor: pointer; min-width: 40px; min-height: 44px; padding: 0 6px; color: var(--ink); font-size: 1.1em; } .tapm:hover { background: var(--c-soft); border-color: var(--c); } .tapm.miss { background: var(--bad-bg); border-color: var(--bad); }
+.rosette { display: inline-grid; place-items: center; min-width: 2em; height: 2em; border-radius: 50%; border: 2px double var(--gold); background: var(--gold-soft); color: var(--gold-ink); font-size: .55em; line-height: 1 !important; margin-inline: .25em; vertical-align: middle; padding: 0 .3em; }
+button.rosette { cursor: pointer; min-width: 44px; height: 44px; font-size: .62em; } button.rosette:hover { background: color-mix(in srgb, var(--gold) 40%, var(--surface)); } .rosette.ok { background: var(--ok-bg); border-color: var(--ok); } .rosette.miss { background: var(--bad-bg); border-color: var(--bad); }
+.vseg { display: inline; padding: .1em .2em; border-radius: .4em; } .vseg.vhl { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent); }
+.opts.layout-num { grid-template-columns: repeat(4, 1fr); } .opts.layout-yn { grid-template-columns: 1fr 1fr; } .opts.layout-glyphs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } .opts.layout-2 { grid-template-columns: 1fr 1fr; }
+.opts.layout-num .opt b { font-size: 1.6rem; } .glyph-opt { min-height: 96px; } .glyph-opt .g { font-size: 2.6rem; color: var(--c-ink); line-height: 1.8 !important; }
+.opts.layout-1 .opt { align-items: flex-start; text-align: start; }
+@media (max-width: 520px) { .opts.layout-2 { grid-template-columns: 1fr; } .opts.layout-num { grid-template-columns: repeat(2, 1fr); } }
+.waqf.quran-text { line-height: 1.35 !important; display: inline-block; vertical-align: middle; } .waqf.mk-on { padding: 0 .12em; }
+.sign-chip.wq b { font-size: 2.6rem; line-height: 1.5 !important; }

@@ -6,23 +6,23 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadQuran, loadAnnotations, annotationOccurrences, ayahText } from './lib/source.mjs';
+import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, inPool } from './lib/source.mjs';
 import { detectAyah } from './lib/detect.mjs';
 import { tokenize, isWaqfToken } from '../js/arabic.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(HERE, '..', 'data', 'pool.js');
-const SURAHS = (n) => n === 1 || n >= 78;
 const Q = loadQuran(), A = loadAnnotations();
 const pool = {}, surahs = {}; const stats = {}; const dropped = {};
 for (const s of Q) {
-  if (!SURAHS(s.number)) continue;
+  if (!s.ayahs.some((a) => inPool(s.number, a.numberInSurah))) continue;
   surahs[s.number] = { ar: s.name.replace(/^س\u064Fور\u064Eة\u064F\s*/, ''), en: s.englishName, n: s.ayahs.length };
   for (const a of s.ayahs) {
+    if (!inPool(s.number, a.numberInSurah)) continue;
     const text = ayahText(s, a); const key = `${s.number}:${a.numberInSurah}`;
     const det = detectAyah(text);
     const tk = text.trim().split(/\s+/); const wq = {}; let wi = -1;
-    for (const t of tk) { if (isWaqfToken(t)) { if (wi >= 0) wq[wi] = (wq[wi] || '') + t; } else wi++; }
+    for (const t of tk) { if (isWaqfToken(t)) { if (wi >= 0) wq[wi] = wq[wi] ? wq[wi] + ' ' + t : t; } else wi++; }
     const occ = [];
     for (const o of det.occ) {
       const theirs = annotationOccurrences(A, key, o.rule);
@@ -32,14 +32,15 @@ for (const s of Q) {
       occ.push([o.rule, o.w1, o.w2, o.trigger, o.at ?? -1, v]);
       stats[o.rule] = (stats[o.rule] || 0) + 1;
     }
-    pool[key] = { w: det.words, wq, o: occ, p: a.page, j: a.juz };
+    const lead = text.trim().split(/\s+/)[0];
+    pool[key] = { w: det.words, wq, o: occ, p: a.page, j: a.juz, q: a.hizbQuarter, ...(a.sajda ? { sj: 1 } : {}), ...(isWaqfToken(lead) && lead.includes('\u06DE') ? { rb: 1 } : {}) };
     if (det.words.length !== tk.filter(t => !isWaqfToken(t)).length) throw new Error('word mismatch ' + key);
   }
 }
 const banner = `// data/pool.js — مول\u064E\u0651د آلي\u064Bا ب\u0640 tools/build-data.mjs (لا تعد\u0651له يدوي\u064Bا).
 // المحتوى: نص الآيات كما هو في مصحف المنصة (database/quran-uthmani.json — «النسخة المصححة» المشتقة من نص تنزيل ومجمع الملك فهد)،
 // منسوخا نسخة مستقلة، مع حذف بسملة أول السور (كما تفعل المنصة) وتقسيم الكلمات. w: الكلمات، wq: علامات الوقف بعد الكلمة،
-// o: مواضع الأحكام [الحكم، كلمة1، كلمة2، الحرف المؤثر، فهرس الحرف داخل الكلمة، عدد المصادر المتفقة]، p: الصفحة، j: الجزء.
+// o: مواضع الأحكام [الحكم، كلمة1، كلمة2، الحرف المؤثر، فهرس الحرف داخل الكلمة، عدد المصادر المتفقة]، p: الصفحة، j: الجزء، q: ربع الحزب (١–٢٤٠)، sj: فيها سجدة، rb: تبدأ بعلامة الربع ۞.
 `;
 fs.writeFileSync(OUT, banner + 'export const SURAHS = ' + JSON.stringify(surahs) + ';\nexport const POOL = ' + JSON.stringify(pool) + ';\n');
 console.log('ayahs:', Object.keys(pool).length, 'bytes:', fs.statSync(OUT).size);

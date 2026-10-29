@@ -10,6 +10,8 @@
 //   find (تلميح البحث)، why (سبب الإجابة، {t}=الحرف المؤثّر)، watch (تنبيه)، vs (مقارنة بأحكام مشابهة)، letters، poem، length، examples
 // أمثلة الدرس: [مفتاح الآية، كلمة١، كلمة٢، ملاحظة اختيارية] — كلمة١/كلمة٢ فهرسا الكلمتين كما في pool.js.
 
+import { MUSHAF } from './mushaf.js';
+
 const T = (ar, en) => ({ ar, en });
 
 export const SOURCES = {
@@ -75,6 +77,7 @@ export const L_SHAMSI = ['ط', 'ث', 'ص', 'ر', 'ت', 'ض', 'ذ', 'ن', 'د', '
 
 // ترتيب المراحل المقترح: من الأبسط (صوتان) ← ثلاثة أحكام للميم ← النون (٥) ← لام «ال» ← المدود
 export const STAGES = [
+  { id: 'mushaf', hue: 'teal', icon: 'book', name: T('تعرّف على مصحفك', 'Know Your Mushaf'), blurb: T('أرقام الآيات، الجزء والحزب، علامات الوقف والسكون والمدّ والسجدة', 'Ayah numbers, juz and hizb, and the signs of stopping, sukun, madd and sajdah'), rules: ['mushaf_ayah_number', 'mushaf_juz_hizb', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_sin_saad', 'mushaf_sajda'] },
   { id: 'sounds', hue: 'violet', icon: 'wave', name: T('أصوات خاصة', 'Special Sounds'), blurb: T('الغنّة والقلقلة: صوتان يميّزان تلاوتك', 'Ghunna and Qalqalah: two sounds that colour your recitation'), rules: ['ghunna', 'qalqalah'] },
   { id: 'meem', hue: 'rose', icon: 'lips', name: T('الميم الساكنة', 'Meem Sakinah'), blurb: T('ثلاثة أحكام للميم الساكنة (مْ)', 'Three rulings for the silent meem (مْ)'), rules: ['meem_ikhfa', 'meem_idgham', 'meem_izhar'] },
   { id: 'noon', hue: 'emerald', icon: 'noon', name: T('النون الساكنة والتنوين', 'Noon Sakinah & Tanween'), blurb: T('خمس صور: إظهار، إدغام بغنة، إدغام بلا غنة، إقلاب، إخفاء', 'Five forms: izhar, idgham with/without ghunna, iqlab, ikhfa'), rules: ['noon_izhar', 'noon_idgham_ghunna', 'noon_idgham_no_ghunna', 'noon_iqlab', 'noon_ikhfa'] },
@@ -476,3 +479,6 @@ export const CONFUSABLES = {
 };
 
 export const stageOf = (ruleId) => STAGES.find(s => s.rules.includes(ruleId));
+
+// بيانات كل الدروس (أحكام التجويد + دروس المصحف) بحقول موحّدة: name, short, tagline
+export const META = { ...RULES, ...MUSHAF };

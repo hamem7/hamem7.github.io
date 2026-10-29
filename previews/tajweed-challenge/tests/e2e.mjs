@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url); const { chromium } = require('pl
 const BASE = process.argv[2] || 'http://localhost:8123'; const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SHOTS = path.join(HERE, '..', 'docs', 'screenshots'); fs.mkdirSync(SHOTS, { recursive: true });
 const { RULES, STAGES } = await import('../data/rules.js');
+const { MUSHAF } = await import('../data/mushaf.js');
 const errors = [], log = []; let checks = 0;
 const ok = (c, m) => { checks++; if (!c) errors.push(m); };
 
@@ -26,6 +27,16 @@ async function answer(p, correct) {
   if (q.type === 'identify') {
     const pick = correct ? q.answer : q.options.find((o) => o !== q.answer);
     await p.click(`.opt[data-o="${pick}"]`);
+  } else if (q.type === 'choice') {
+    const pick = correct ? q.answer : q.options.find((o) => o.id !== q.answer).id;
+    await p.click(`.opt[data-o="${pick}"]`);
+  } else if (q.type === 'signtap') {
+    const v = q.accept; const sel = (w) => `.tapw[data-w="${w}"]`;
+    if (correct) await p.click(v.words.length ? sel(v.words[0]) : `.tapm[data-m="${v.marks[0]}"]`);
+    else { const bad = []; for (let i = 0; i < 40 && bad.length < 2; i++) if (!v.words.includes(i) && (await p.$(sel(i)))) bad.push(i); await p.click(sel(bad[0])); await p.waitForSelector('.hint.bad'); await p.click(sel(bad[1])); }
+  } else if (q.type === 'ayahnum') {
+    if (correct) await p.click(`.rosette[data-k="${q.target}"]`);
+    else { await p.click(`.rosette[data-k="${q.keys[0]}"]`); await p.waitForSelector('.hint.bad'); await p.click(`.rosette[data-k="${q.keys[0]}"]`); }
   } else if (q.type === 'letters') {
     const pick = correct ? q.answer : q.options.find((o) => o !== q.answer);
     await p.click(`.opt[data-o="${pick}"]`);
@@ -58,7 +69,7 @@ async function answer(p, correct) {
 const sizes = [['phone', 390, 844], ['tablet', 820, 1180], ['desktop', 1366, 800]];
 for (const [name, w, h] of sizes) {
   const { ctx, p } = await open(w, h);
-  ok((await p.$$('.stage')).length === 5, `${name}: ٥ محطات`); await noOverflow(p, `${name}/home`);
+  ok((await p.$$('.stage')).length === STAGES.length, `${name}: عدد المحطات`); await noOverflow(p, `${name}/home`);
   await p.screenshot({ path: path.join(SHOTS, `home-${name}.png`), fullPage: true });
   await p.goto(`${BASE}/index.html?review=1#/rule/noon_ikhfa`); await p.waitForSelector('.rule-hero'); await noOverflow(p, `${name}/rule`);
   await p.screenshot({ path: path.join(SHOTS, `rule-${name}.png`), fullPage: true });
@@ -73,15 +84,17 @@ for (const [name, w, h] of sizes) {
 // ═══ 2) كل حكم: الدرس (٥ خطوات) ثم ٣ مستويات بإجابات صحيحة، مع فحص أزرار الدرس والأمثلة ═══
 const { ctx, p } = await open(1100, 900, { review: false });
 const types = new Set();
-for (const rid of Object.keys(RULES)) {
+for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
+  const isM = !!MUSHAF[rid];
   await p.goto(`${BASE}/index.html#/rule/${rid}`); await p.waitForSelector('.rule-hero');
   ok(await p.$eval('.steps .step:nth-child(2) .btn', (e) => e.classList.contains('disabled')), `${rid}: المستوى ١ يجب أن يكون مقفل\u064Bا قبل الدرس`);
   await p.click('.steps .step:first-child .btn'); await p.waitForSelector('.lesson');
   for (let step = 0; step < 4; step++) {
-    if (step === 2) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); await p.waitForSelector('.hlbox', { state: 'attached', timeout: 3000 }).catch(() => {}); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
+    if (step === 2 && isM) { await p.waitForSelector('.ayah'); ok(await p.$eval('.lesson-body', (e) => e.innerText.length > 40), `${rid}: خطوة المثال فارغة`); const tabs = await p.$$('[data-sign]'); if (tabs.length > 1) { await tabs[1].click(); await p.waitForSelector('.ayah'); } }
+    if (step === 2 && !isM) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); await p.waitForSelector('.hlbox', { state: 'attached', timeout: 3000 }).catch(() => {}); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
     await p.click('#l-next'); await p.waitForTimeout(80);
   }
-  ok(await p.$eval('.poem', (e) => e.innerText.length > 10), `${rid}: لا أبيات`);
+  if (!isM) ok(await p.$eval('.poem', (e) => e.innerText.length > 10), `${rid}: لا أبيات`);
   await p.click('#l-done'); await p.waitForSelector('.quiz');
   for (const lv of [1, 2, 3]) {
     if (lv > 1) { await p.goto(`${BASE}/index.html#/play/${rid}/${lv}`); await p.waitForSelector('.quiz'); }
@@ -89,7 +102,7 @@ for (const rid of Object.keys(RULES)) {
     await p.waitForSelector('.result'); ok((await p.$$eval('.big-stars .on', (a) => a.length)) === 3, `${rid} L${lv}: لم تظهر ٣ نجوم بإجابات صحيحة كاملة`);
   }
 }
-ok(['identify', 'spot', 'tapletter', 'sort', 'letters'].every((t) => types.has(t)), `أنواع الألعاب الم\u064Fختب\u064Eرة: ${[...types]}`);
+ok(['identify', 'spot', 'tapletter', 'sort', 'letters', 'choice', 'signtap', 'ayahnum'].every((t) => types.has(t)), `أنواع الألعاب الم\u064Fختب\u064Eرة: ${[...types]}`);
 // التقدم محفوظ ومفتوح الآن
 await p.goto(`${BASE}/index.html#/`); await p.waitForSelector('.hero');
 ok(await p.$eval('.ring-txt b', (e) => e.innerText !== '٠'), 'النجوم لا ت\u064Fحفظ');

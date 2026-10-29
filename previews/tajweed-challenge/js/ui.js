@@ -1,6 +1,7 @@
 // js/ui.js — عناصر عرض مشتركة (آية، شارات، وسيلة إيضاح) بلا حالة.
 import { POOL, SURAHS } from '../data/pool.js';
-import { RULES, LETTER_NAMES } from '../data/rules.js';
+import { META, LETTER_NAMES } from '../data/rules.js';
+import { quarterMarker } from '../data/mushaf.js';
 import { wordHTML, hlAttr } from './quran.js';
 import { t, tx, num, getLang } from './i18n.js';
 
@@ -18,8 +19,9 @@ export const surahName = (s) => (getLang() === 'ar' ? SURAHS[s].ar : SURAHS[s].e
 export const ayahLabel = (key) => { const [s, a] = key.split(':').map(Number); return t('from_ayah', { s: surahName(s), a: num(a) }); };
 
 // آية كاملة. hl: {كلمة:{مقطع:'cause'|'trigger'}}، mode: 'plain'|'tap'، onlyRange: [من,إلى] لتقليص العرض
-export function ayahHTML(key, { hl = null, mode = 'plain', accepted = null } = {}) {
+export function ayahHTML(key, { hl = null, mode = 'plain', accepted = null, marks = null, tapMarks = false } = {}) {
   const v = POOL[key]; const parts = [];
+  if (v.rb) parts.push(markHTML('\u06DE', 'lead', marks, tapMarks, 'rub'));
   v.w.forEach((w, i) => {
     const map = hl && hl[i] ? hl[i] : null;
     const inner = wordHTML(w);
@@ -27,9 +29,34 @@ export function ayahHTML(key, { hl = null, mode = 'plain', accepted = null } = {
     parts.push(mode === 'tap'
       ? `<button type="button" class="${cls} tapw" data-w="${i}">${inner}</button>`
       : `<span class="${cls}" data-w="${i}"${hlAttr(map)}>${inner}</span>`);
-    if (v.wq[i]) parts.push(`<span class="waqf quran-text" aria-hidden="true">${esc(v.wq[i])}</span>`);
+    if (v.wq[i]) v.wq[i].split(' ').forEach((tok, k) => parts.push(markHTML(tok, `${i}:${k}`, marks, tapMarks, '')));
   });
   return `<div class="ayah decor" dir="rtl" lang="ar">${parts.join(' ')}</div>`;
+}
+function markHTML(tok, id, marks, tap, extra) {
+  const on = marks && marks.has(id) ? ' mk-on' : '';
+  return tap
+    ? `<button type="button" class="waqf quran-text tapm${on} ${extra}" data-m="${id}" aria-label="mark">${esc(tok)}</button>`
+    : `<span class="waqf quran-text${on} ${extra}" aria-hidden="true">${esc(tok)}</span>`;
+}
+
+// ───── وسائط درس المصحف (صور مقتطعة من المصحف المطبوع، تركب عليها النصوص) ─────
+const ASSET = 'assets/mushaf/';
+export function lanternHTML(q) {
+  const m = quarterMarker(q), n = m.lines.length;
+  const fs = n === 3 ? (m.lines[0].length > 5 ? 9.5 : 12.5) : (m.kind === 'juz' ? 11.5 : 15);
+  const box = m.full ? 'left:19.6%;right:19.8%;top:42.4%;bottom:37.3%' : 'left:19.6%;right:19.8%;top:60.2%;bottom:10.8%';
+  return `<div class="lant" role="img" aria-label="${esc(m.lines.join(' '))}"><img src="${ASSET}lantern-${m.full ? 'full' : 'top'}.webp" alt=""><div class="lant-text quran-text" dir="rtl" style="${box};font-size:${fs}cqw">${m.lines.map((l) => `<span>${esc(l)}</span>`).join('')}</div></div>`;
+}
+export const bannerHTML = (surahNo) => `<div class="banner" role="img" aria-label="${esc(SURAHS[surahNo].ar)}"><img src="${ASSET}banner-blank.webp" alt=""><span class="banner-name quran-text" dir="rtl">س\u064Fور\u064Eة\u064F ${esc(SURAHS[surahNo].ar)}</span></div>`;
+export function mediaHTML(m) {
+  if (!m) return '';
+  if (m.kind === 'glyph') return `<div class="glyph-big quran-text" dir="rtl" aria-hidden="true">${esc(m.glyph)}</div>`;
+  if (m.kind === 'img') return `<img class="media-img" src="${esc(m.src)}" alt="${esc(tx(m.alt))}">`;
+  if (m.kind === 'verse') return `<div class="ayah-wrap">${ayahHTML(m.key)}<div class="ayah-meta"><span>${esc(ayahLabel(m.key))}</span></div></div>`;
+  if (m.kind === 'lantern') return `<div class="media-lantern">${lanternHTML(m.q)}</div>`;
+  if (m.kind === 'banner') return bannerHTML(m.surah);
+  return '';
 }
 
 // عبارة (كلمة/كلمتان) من آية مع تلوين اختياري
@@ -60,7 +87,7 @@ export function legendHTML(ruleId) {
   return `<div class="legend" aria-hidden="true"><span><i class="dot cause"></i>${esc(tx(a))}</span>${b ? `<span><i class="dot trigger"></i>${esc(tx(b))}</span>` : ''}</div>`;
 }
 
-export const ruleName = (id) => tx(RULES[id].name);
+export const ruleName = (id) => tx(META[id].name);
 
 export function starsHTML(n, max = 3) {
   return `<span class="stars" role="img" aria-label="${n}/${max}">${Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}">★</i>`).join('')}</span>`;

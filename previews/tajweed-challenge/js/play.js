@@ -1,7 +1,9 @@
 // js/play.js — واجهة تشغيل الأسئلة (identify / spot / tapletter / sort / letters) مع التغذية الراجعة المفسرة.
 import { RULES } from '../data/rules.js';
 import { checkIdentify, checkSpot, checkTap, checkSortPlacement, checkLetters, whyOf } from './engine.js';
-import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc } from './ui.js';
+import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML } from './ui.js';
+import { checkChoice, checkSignTap, checkAyahNum } from './mushaf-engine.js';
+import { POOL } from '../data/pool.js';
 import { t, tx, num } from './i18n.js';
 import { playAyah, stopAudio } from './audio.js';
 
@@ -190,9 +192,78 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
     }));
   }
 
+  // ─────────── choice (دروس المصحف: اختيار مع وسيط) ───────────
+  function renderChoice(q) {
+    const lay = q.layout || 'text';
+    const optHTML = (o) => lay === 'glyphs'
+      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}"><span class="g quran-text" dir="rtl">${esc(o.glyph)}</span>${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
+      : `<button type="button" class="opt" data-o="${esc(o.id)}"><b>${esc(tx(o.label))}</b></button>`;
+    const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? 'glyphs' : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
+    frame(q, `
+      <p class="q-prompt">${esc(tx(q.stem))}</p>
+      <div class="media">${mediaHTML(q.media)}</div>
+      <div class="opts layout-${cols}" role="group">${q.options.map(optHTML).join('')}</div>
+      <div class="fb-slot"></div>`);
+    root.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => {
+      const res = checkChoice(q, b.dataset.o);
+      root.querySelectorAll('.opt').forEach((x) => { x.disabled = true; if (x.dataset.o === q.answer) x.classList.add('right'); });
+      if (!res.ok) b.classList.add('wrong');
+      finishQuestion(res.ok, null, [esc(tx(q.explain))], res.ok ? goodTitle() : badTitle());
+    }));
+  }
+
+  // ─────────── signtap (اضغط العلامة في الآية) ───────────
+  function renderSignTap(q) {
+    let attempts = 0; let done = false;
+    frame(q, `
+      <p class="q-prompt">${esc(tx(q.stem))}</p>
+      <div class="ayah-wrap">${ayahHTML(q.key, { mode: 'tap', tapMarks: true })}<div class="ayah-meta"><span>${esc(ayahLabel(q.key))}</span></div></div>
+      <div class="hint-slot" aria-live="polite"></div>
+      <div class="fb-slot"></div>`);
+    const wrap = root.querySelector('.ayah-wrap');
+    const reveal = () => { wrap.querySelector('.ayah').outerHTML = ayahHTML(q.key, { hl: q.hl, marks: new Set(q.accept.marks) }); };
+    wrap.addEventListener('click', (e) => {
+      const b = e.target.closest('.tapw, .tapm'); if (!b || done) return;
+      const target = b.dataset.m !== undefined ? { m: b.dataset.m } : { w: Number(b.dataset.w) };
+      const res = checkSignTap(q, target);
+      if (res.ok) { done = true; reveal(); finishQuestion(attempts === 0, null, [esc(tx(q.explain))], attempts === 0 ? goodTitle() : badTitle()); }
+      else {
+        attempts++; b.classList.add('shake', 'miss'); setTimeout(() => b.classList.remove('shake'), 500);
+        if (attempts >= 2) { done = true; reveal(); finishQuestion(false, null, [esc(tx(q.explain))], badTitle()); }
+        else root.querySelector('.hint-slot').innerHTML = `<p class="hint bad">${esc(tx(q.stem))} <em>${t('try_again')}</em></p>`;
+      }
+    });
+  }
+
+  // ─────────── ayahnum (اضغط رقم الآية) ───────────
+  function renderAyahNum(q) {
+    let attempts = 0; let done = false;
+    const seq = q.keys.map((k) => {
+      const v = POOL[k]; const words = v.w.map((w, i) => `<span class="w quran-text">${esc(w)}</span>${v.wq[i] ? ' <span class="waqf quran-text">' + esc(v.wq[i]) + '</span>' : ''}`).join(' ');
+      const n = Number(k.split(':')[1]);
+      const rosette = `<button type="button" class="rosette quran-text" data-k="${k}" aria-label="${n}">${num(n)}</button>`;
+      return `<span class="vseg${k === q.target ? ' vhl' : ''}">${words} ${rosette}</span>`;
+    }).join(' ');
+    frame(q, `
+      <p class="q-prompt">${esc(tx(q.stem))}</p>
+      <div class="ayah-wrap"><div class="ayah rosettes" dir="rtl" lang="ar">${seq}</div><div class="ayah-meta"><span>${esc(ayahLabel(q.target))}</span></div></div>
+      <div class="hint-slot" aria-live="polite"></div>
+      <div class="fb-slot"></div>`);
+    root.querySelector('.ayah-wrap').addEventListener('click', (e) => {
+      const b = e.target.closest('.rosette'); if (!b || done) return;
+      const res = checkAyahNum(q, b.dataset.k);
+      if (res.ok) { done = true; b.classList.add('ok', 'pop'); finishQuestion(attempts === 0, null, [esc(tx(q.explain))], attempts === 0 ? goodTitle() : badTitle()); }
+      else {
+        attempts++; b.classList.add('miss', 'shake'); setTimeout(() => b.classList.remove('shake'), 500);
+        if (attempts >= 2) { done = true; root.querySelector(`.rosette[data-k="${q.target}"]`).classList.add('ok'); finishQuestion(false, null, [esc(tx(q.explain))], badTitle()); }
+        else root.querySelector('.hint-slot').innerHTML = `<p class="hint bad">${esc(tx(q.explain))} <em>${t('try_again')}</em></p>`;
+      }
+    });
+  }
+
   function render() {
     const q = qs[i];
-    ({ identify: renderIdentify, spot: renderSpot, tapletter: renderTap, sort: renderSort, letters: renderLetters })[q.type](q);
+    ({ choice: renderChoice, signtap: renderSignTap, ayahnum: renderAyahNum, identify: renderIdentify, spot: renderSpot, tapletter: renderTap, sort: renderSort, letters: renderLetters })[q.type](q);
   }
   render();
 }

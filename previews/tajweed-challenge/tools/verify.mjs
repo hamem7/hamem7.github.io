@@ -10,9 +10,10 @@ import { POOL, SURAHS } from '../data/pool.js';
 import { RULES, STAGES, SOURCES, CONFUSABLES, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
 import { UI_DICT } from '../js/i18n.js';
 import { VIZ, VIZ_CAPTION } from '../js/viz.js';
-import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, PLATFORM } from './lib/source.mjs';
+import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, PLATFORM, inPool } from './lib/source.mjs';
 import { detectAyah, IZHAR_LETTERS, IDGHAM_GHUNNA_LETTERS, IDGHAM_NO_GHUNNA_LETTERS, IKHFA_LETTERS, QALQALAH_LETTERS, QAMARI_LETTERS, SHAMSI_LETTERS } from './lib/detect.mjs';
 import { tokenize, isWaqfToken } from '../js/arabic.js';
+import { MUSHAF, SIGNS } from '../data/mushaf.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); const ROOT = path.join(HERE, '..');
 const errors = [], notes = []; const fail = (m) => errors.push(m);
@@ -21,7 +22,7 @@ const Q = loadQuran(), A = loadAnnotations();
 // 1 + 3
 let nAyah = 0, nWords = 0;
 for (const s of Q) for (const a of s.ayahs) {
-  const key = `${s.number}:${a.numberInSurah}`; const v = POOL[key]; if (!v) continue; nAyah++;
+  const key = `${s.number}:${a.numberInSurah}`; const v = POOL[key]; if (!v) { if (inPool(s.number, a.numberInSurah)) fail(`[بنك] ${key} ناقص`); continue; } nAyah++;
   const toks = ayahText(s, a).trim().split(/\s+/); while (toks.length && isWaqfToken(toks[0])) toks.shift(); /* علامة الحزب \u06DE في أول الآية ليست كلمة */ const rebuilt = [];
   v.w.forEach((w, i) => { rebuilt.push(w); if (v.wq[i]) rebuilt.push(v.wq[i]); }); nWords += v.w.length;
   if (rebuilt.join(' ') !== toks.join(' ')) fail(`[نص] ${key}: النص في البنك يخالف المصحف`);
@@ -96,6 +97,15 @@ const fontsCss = fs.readFileSync(path.join(ROOT, 'css/fonts.css'), 'utf8'); cons
 for (const l of fontsCss.split('\n').filter((x) => x.startsWith('@font-face') && x.includes('Amiri Quran'))) if (!platFonts.includes(l)) fail('[خط] تعريف خط قرآني يخالف المنصة');
 for (const f of fs.readdirSync(path.join(ROOT, 'assets/fonts'))) if (!fs.readFileSync(path.join(ROOT, 'assets/fonts', f)).equals(fs.readFileSync(path.join(PLATFORM, 'assets/fonts', f)))) fail(`[خط] ${f} يخالف المنصة`);
 if (/letter-spacing\s*:\s*[^n]/.test(css.split('.quran-text')[1] || '') && /quran[^{]*\{[^}]*letter-spacing:\s*[0-9]/.test(css)) fail('[خط] letter-spacing على النص القرآني');
+
+// 9) قسم المصحف: لغتان، صور موجودة ومطابقة لأصل المنصة، علامات مطابقة لرموز المنصة، أمثلة كل علامة في البنك
+for (const m of Object.values(MUSHAF)) { for (const k of ['name', 'short', 'tagline', 'def', 'notice', 'watch']) needBoth(m[k], `mushaf.${m.id}.${k}`); if (!STAGES.some((st) => st.rules.includes(m.id))) fail(`[مصحف] ${m.id} خارج المراحل`); }
+for (const [id, sg] of Object.entries(SIGNS)) { needBoth(sg.name, `sign.${id}.name`); needBoth(sg.def, `sign.${id}.def`); if (!MUSHAF[`mushaf_${sg.lesson}`]) fail(`[مصحف] علامة ${id} بلا درس`); }
+const mushafSrc = fs.readFileSync(path.join(PLATFORM, 'engine/tajweedMushaf.js'), 'utf8');
+for (const [id, sg] of Object.entries(SIGNS)) { if (sg.code && sg.code.length === 1 && !mushafSrc.includes(`id: '${id}', code: '${sg.code}'`) && !mushafSrc.includes(`id: '${id}', code: '\\u${sg.code.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}'`)) fail(`[مصحف] رمز ${id} يخالف المنصة`); }
+for (const f of fs.readdirSync(path.join(ROOT, 'assets/mushaf'))) { if (!fs.readFileSync(path.join(ROOT, 'assets/mushaf', f)).equals(fs.readFileSync(path.join(PLATFORM, 'assets/tajweed/mushaf', f)))) fail(`[صور] ${f} يخالف المنصة`); }
+for (const f of ['ayah-number', 'banner-blank', 'lantern-frame', 'lantern-full', 'lantern-top', 'sajda-mark', 'sajda-overline']) if (!fs.existsSync(path.join(ROOT, 'assets/mushaf', f + '.webp'))) fail(`[صور] ${f} مفقودة`);
+notes.push(`دروس المصحف: ${Object.keys(MUSHAF).length} — علامات: ${Object.keys(SIGNS).length}`);
 
 console.log(notes.join('\n'));
 if (errors.length) { console.error(`\n✗ ${errors.length} مخالفة:\n` + errors.join('\n')); process.exit(1); }

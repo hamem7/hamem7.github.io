@@ -1,6 +1,10 @@
 // js/app.js — الموجه والشاشات: الرئيسية، الحكم، الدرس، اللعب، النتيجة، المصادر.
 import { POOL } from '../data/pool.js';
-import { STAGES, RULES, SOURCES, stageOf } from '../data/rules.js';
+import { STAGES, RULES, META, SOURCES, stageOf } from '../data/rules.js';
+import { MUSHAF } from '../data/mushaf.js';
+import { buildMushafLevel, buildMushafStage, mushafMixedQuestion } from './mushaf-engine.js';
+import { initMushaf } from './mushaf.js';
+import { rng, shuffle } from './engine.js';
 import { lessonExamples, buildLevel, buildStageChallenge, buildMixed, stars as calcStars, whyOf, LEVELS } from './engine.js';
 import { locate, initDecor } from './quran.js';
 import { vizFor, VIZ_CAPTION, STAGE_ICONS } from './viz.js';
@@ -11,6 +15,7 @@ import { runQuiz, bindAudio } from './play.js';
 import { stopAudio } from './audio.js';
 
 const root = document.getElementById('app');
+let M;
 const ALL_RULES = STAGES.flatMap((s) => s.rules);
 
 // ───────── المظهر (فاتح/داكن) ─────────
@@ -68,7 +73,7 @@ function renderHome() {
       </header>
       <ul class="rule-list">${st.rules.map((id) => {
         const r = store.getRule(id);
-        return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(RULES[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
+        return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(META[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
       }).join('')}</ul>
       <footer class="stage-foot">
         <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(stStars)}</button>
@@ -104,6 +109,7 @@ function renderHome() {
 
 // ───────── صفحة الحكم ─────────
 function renderRule(id) {
+  if (MUSHAF[id]) return M.renderMushafRule(id);
   const rule = RULES[id]; const st = stageOf(id); const r = store.getRule(id);
   const lvls = [1, 2, 3].map((lv) => {
     const open = store.isUnlocked(id, lv, isReview());
@@ -157,6 +163,7 @@ function renderRule(id) {
 
 // ───────── الدرس ─────────
 function renderLearn(id, step = 0, exIdx = 0) {
+  if (MUSHAF[id]) return M.renderMushafLearn(id, step);
   const rule = RULES[id]; const st = stageOf(id); const exs = lessonExamples(id);
   const N = 5; const L = rule.letters; const src = SOURCES[rule.poem.src];
   let body = '';
@@ -183,7 +190,7 @@ function renderLearn(id, step = 0, exIdx = 0) {
       <div class="ayah-wrap lesson-ayah">${ayahHTML(e.key, { hl: locate(e.occ, POOL[e.key].w) })}<div class="ayah-meta"><span>${esc(ayahLabel(e.key))}</span>${audioBtn(e.key)}</div></div>
       ${legendHTML(id)}<p class="muted small">${t('legend_hint')}</p>
       <p class="card why-card">${esc(tx(whyOf(id, e.occ[3])))}</p>
-      <div class="row between"><button class="btn ghost" data-ex="-1" ${exIdx === 0 ? 'disabled' : ''}>${t('prev')}</button><button class="btn ghost" data-ex="1" ${exIdx === exs.length - 1 ? 'disabled' : ''}>${t('next')}</button></div>`;
+      <div class="row between"><button class="btn ghost" data-ex="-1" ${exIdx === 0 ? 'disabled' : ''}>${t('ex_prev')}</button><button class="btn ghost" data-ex="1" ${exIdx === exs.length - 1 ? 'disabled' : ''}>${t('ex_next')}</button></div>`;
   } else if (step === 3) {
     const vs = rule.vs.map((v) => {
       const other = RULES[v.with]; const oe = lessonExamples(v.with)[0]; const me = exs[0];
@@ -230,9 +237,10 @@ function renderLearn(id, step = 0, exIdx = 0) {
 // ───────── اللعب والنتيجة ─────────
 function playRun(kind, ruleId, level, stageId) {
   let qs, head;
-  if (kind === 'level') { qs = buildLevel(ruleId, level); head = `<b>${esc(ruleName(ruleId))}</b> · ${t(`lvl_${level}`)}`; }
-  else if (kind === 'stage') { qs = buildStageChallenge(stageId); head = `<b>${esc(tx(STAGES.find((s) => s.id === stageId).name))}</b> · ${t('stage_challenge')}`; }
-  else { const learned = ALL_RULES.filter((id) => store.getRule(id).learned); qs = buildMixed(learned.length >= 2 ? learned : ALL_RULES, 10); head = `<b>${t('home_mixed')}</b>`; }
+  if (kind === 'level') { qs = MUSHAF[ruleId] ? buildMushafLevel(ruleId, level) : buildLevel(ruleId, level); head = `<b>${esc(ruleName(ruleId))}</b> · ${t(`lvl_${level}`)}`; }
+  else if (kind === 'stage') { qs = stageId === 'mushaf' ? buildMushafStage() : buildStageChallenge(stageId); head = `<b>${esc(tx(STAGES.find((s) => s.id === stageId).name))}</b> · ${t('stage_challenge')}`; }
+  else { const learned = ALL_RULES.filter((id) => store.getRule(id).learned); const pool = learned.length >= 2 ? learned : ALL_RULES; const tajweed = pool.filter((id) => !MUSHAF[id]); const mush = pool.filter((id) => MUSHAF[id]); const rr = rng(Date.now());
+    qs = shuffle([...(tajweed.length ? buildMixed(tajweed, mush.length ? 7 : 10) : []), ...mush.slice(0, 3).map((id) => mushafMixedQuestion(id, rr))], rr); head = `<b>${t('home_mixed')}</b>`; }
   const st = ruleId ? stageOf(ruleId) : stageId ? STAGES.find((s) => s.id === stageId) : null;
   root.classList.toggle('in-quiz', true);
   runQuiz(root, {
@@ -270,6 +278,7 @@ function finish(kind, ruleId, level, stageId, correct, total, st) {
 function reviewItems() {
   const items = [];
   for (const id of ALL_RULES) {
+    if (MUSHAF[id]) { if (MUSHAF[id].review) items.push({ where: ruleName(id), what: tx(MUSHAF[id].tagline), why: MUSHAF[id].review }); continue; }
     const r = RULES[id];
     if (r.review) items.push({ where: ruleName(id), what: tx(r.length), why: r.review });
     if (r.poem.review) items.push({ where: ruleName(id), what: r.poem.ar.join(' / '), why: r.poem.review });
@@ -302,9 +311,9 @@ function render() {
   const bad = () => { go('#/'); };
   try {
     if (!p.length) return renderHome();
-    if (p[0] === 'rule' && RULES[p[1]]) return renderRule(p[1]);
-    if (p[0] === 'learn' && RULES[p[1]]) return renderLearn(p[1]);
-    if (p[0] === 'play' && RULES[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
+    if (p[0] === 'rule' && META[p[1]]) return renderRule(p[1]);
+    if (p[0] === 'learn' && META[p[1]]) return renderLearn(p[1]);
+    if (p[0] === 'play' && META[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
     if (p[0] === 'stage' && STAGES.some((s) => s.id === p[1])) return playRun('stage', null, null, p[1]);
     if (p[0] === 'mixed') return playRun('mixed');
     if (p[0] === 'about') return renderAbout();
@@ -332,6 +341,7 @@ function chrome() {
 }
 
 
+M = initMushaf({ shell, crumb, stageStyle, go });
 applyDir(); applyTheme(); chrome(); initDecor(root);
 window.addEventListener('hashchange', render);
 if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);

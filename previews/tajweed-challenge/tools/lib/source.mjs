@@ -25,3 +25,8 @@ export function ayahText(surah, a) {
   if (surah.number !== 1 && a.numberInSurah === 1) { const w = t.split(/\s+/); if (w.length > 4 && w[0].replace(/[^\u0621-\u064A]/g, '') === 'بسم') t = w.slice(4).join(' '); }
   return t;
 }
+
+// آيات البنك: الفاتحة وسور جزء عم، + آيات إضافية لدرس «تعرف على مصحفك» (السجدات الخمس عشرة، السكتات، السين مكان الصاد)
+export const EXTRA_AYAHS = new Set(['7:206', '13:15', '16:50', '17:109', '19:58', '22:18', '22:77', '25:60', '27:26', '32:15', '38:24', '41:38', '53:62',
+  '83:14', '75:27', '36:52', '18:1', '69:28', '2:245', '7:69', '52:37', '2:2', '54:6', '5:26']);
+export const inPool = (surahNo, ayahNo) => surahNo === 1 || surahNo >= 78 || EXTRA_AYAHS.has(`${surahNo}:${ayahNo}`);
