@@ -115,3 +115,54 @@ export const MARKER_NAMES = {
   rub: T('ربع الحزب', 'Quarter of a hizb'), nisf: T('نصف الحزب', 'Half of a hizb'), thalatha: T('ثلاثة أرباع الحزب', 'Three quarters of a hizb'), hizb: T('بداية حزب', 'Start of a hizb'), juz: T('بداية جزء', 'Start of a juz')
 };
 export const JUZ_ORDINALS_AR = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر', 'الحادي عشر', 'الثاني عشر', 'الثالث عشر', 'الرابع عشر', 'الخامس عشر', 'السادس عشر', 'السابع عشر', 'الثامن عشر', 'التاسع عشر', 'العشرون', 'الحادي والعشرون', 'الثاني والعشرون', 'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون', 'السابع والعشرون', 'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
+
+// لوحة الرمز على بلاطات الرئيسية (علامات على حروف حاملة ليظهر شكلها كما في المصحف)
+export const PLATES = {
+  mushaf_ayah_number: '﴿١﴾', mushaf_juz_hizb: '۞', mushaf_waqf: 'ـۘـ ـۚـ ـۖـ',
+  mushaf_silent_sukun: 'ا۟ مۡ نۢ', mushaf_madd_letters: 'حمۤ ذَٰلِكَ', mushaf_sin_saad: 'صۜ', mushaf_sajda: '۩'
+};
+
+// ───── صور حقيقية من المصحف المطبوع ─────
+// كل صورة مقتطعة من صفحة مصحف حقيقية (tools/crop-signs.py، والتوثيق في assets/mushaf/signs/PROVENANCE.json)، أو من مقتطعات المنصة (assets/tajweed/mushaf).
+export const SIGN_IMG = { ayah_end: 'assets/mushaf/ayah-number.webp', rub_mark: 'assets/mushaf/hizb-mark.webp', sajda_sign: 'assets/mushaf/sajda-mark.webp' };
+export const signImg = (id) => SIGN_IMG[id] || `assets/mushaf/signs/${id}.webp`;
+export const partImg = (id) => `assets/mushaf/signs/part_${id}.webp`;
+export const pageImg = (n) => `assets/mushaf/pages/page${String(n).padStart(3, '0')}.webp`;
+export const PAGE_W = 800, PAGE_H = 1294;
+
+// «استكشف الصفحة»: صفحات حقيقية بدبابيس على مواضع العلامات (إحداثيات بكسلات الصفحة ٨٠٠×١٢٩٤)
+export const EXPLORE = {
+  mushaf_ayah_number: [{ page: 582, label: T('أول سورة النبأ', 'The start of Surah An-Naba'), pins: [{ part: 'banner', x: 400, y: 48 }, { part: 'basmala', x: 400, y: 138 }, { sign: 'ayah_end', x: 603, y: 222 }, { sign: 'ayah_end', x: 358, y: 222 }] }],
+  mushaf_juz_hizb: [{ page: 39, label: T('علامة الربع ۞ في السطر', 'The ۞ mark inside a line'), pins: [{ sign: 'rub_mark', x: 237, y: 711 }] }],
+  mushaf_waqf: [
+    { page: 588, label: T('الوصل أولى والسكتة', 'Continue-preferred and the saktah'), pins: [{ sign: 'waqf_sala', x: 600, y: 256 }, { sign: 'saktah', x: 528, y: 262 }] },
+    { page: 528, label: T('وقف لازم', 'Compulsory stop'), pins: [{ sign: 'waqf_lazim', x: 555, y: 1195 }] },
+    { page: 584, label: T('وقف جائز', 'Permissible stop'), pins: [{ sign: 'waqf_jaiz', x: 100, y: 352 }] },
+    { page: 443, label: T('الوقف أولى', 'Stopping is preferred'), pins: [{ sign: 'waqf_qala', x: 300, y: 942 }] },
+    { page: 2, label: T('تعانق الوقف', 'Paired stops'), pins: [{ sign: 'waqf_muanaqa', x: 300, y: 232 }] }
+  ],
+  mushaf_silent_sukun: [
+    { page: 582, label: T('الشدّة والصفر الدائري', 'Shadda and the round zero'), pins: [{ sign: 'shadda', x: 735, y: 205 }, { sign: 'zero_round', x: 410, y: 1105 }] },
+    { page: 584, label: T('الصفر المستطيل', 'The rectangular zero'), pins: [{ sign: 'zero_rect', x: 548, y: 283 }] },
+    { page: 585, label: T('الميم الصغيرة', 'The small meem'), pins: [{ sign: 'small_meem', x: 370, y: 766 }] },
+    { page: 2, label: T('السكون', 'The sukun'), pins: [{ sign: 'sukun', x: 340, y: 262 }] }
+  ],
+  mushaf_madd_letters: [
+    { page: 582, label: T('المدّة والياء الصغيرة', 'The madd sign and the small yaa'), pins: [{ sign: 'madd', x: 556, y: 618 }, { sign: 'small_yaa', x: 345, y: 638 }] },
+    { page: 585, label: T('الواو الصغيرة', 'The small waw'), pins: [{ sign: 'small_waw', x: 222, y: 218 }] },
+    { page: 2, label: T('الألف الخنجرية', 'The dagger alif'), pins: [{ sign: 'dagger_alif', x: 505, y: 245 }] }
+  ],
+  mushaf_sin_saad: [
+    { page: 39, label: T('س فوق الصاد', 'Seen above the saad'), pins: [{ sign: 'sin_over', x: 402, y: 1205 }] },
+    { page: 525, label: T('س تحت الصاد', 'Seen below the saad'), pins: [{ sign: 'sin_under', x: 585, y: 402 }] }
+  ],
+  mushaf_sajda: [{ page: 528, label: T('سجدة سورة النجم', 'The sajdah of Surah An-Najm'), pins: [{ sign: 'sajda_sign', x: 118, y: 640 }, { part: 'overline', x: 300, y: 612 }] }]
+};
+// بطاقات أجزاء الصفحة التي ليست علامات
+export const PARTS = {
+  banner: { name: T('لوحة اسم السورة', 'The surah title panel'), def: T('قبل أول آية في كل سورة لوحة مزخرفة فيها اسمها.', 'Before the first ayah of every surah there is an ornamental panel with its name.') },
+  basmala: { name: T('البسملة', 'The basmala'), def: T('بعد لوحة اسم السورة تأتي البسملة (إلا في سورة التوبة)، ثم أول آية.', 'After the title panel comes the basmala (except in Surah At-Tawbah), then the first ayah.') },
+  overline: { name: T('خط فوق كلمات السجود', 'The line above the words of prostration'), def: T('للدلالة على موضع السجود، أما كلمة وجوب السجود فقد وُضع فوقها خط.', 'Marks the place of prostration; a line is drawn above the words at which you prostrate.') }
+};
+// صورة تمثّل الدرس على بلاط الرئيسية
+export const LESSON_IMG = { mushaf_ayah_number: 'ayah_end', mushaf_juz_hizb: 'rub_mark', mushaf_waqf: 'waqf_sala', mushaf_silent_sukun: 'zero_round', mushaf_madd_letters: 'madd', mushaf_sin_saad: 'sin_over', mushaf_sajda: 'sajda_sign' };

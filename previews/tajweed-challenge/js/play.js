@@ -47,7 +47,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
           <span class="q-count">${t('q_n', { i: num(i + 1), n: num(total) })}</span>
         </div>
         ${head ? `<div class="quiz-head">${head}</div>` : ''}
-        <div class="q-card type-${q.type}">${bodyHTML}</div>
+        <div class="q-card type-${q.type}${q.lesson ? ' mushaf' : ''}">${bodyHTML}</div>
       </section></div>`;
     root.querySelector('.q-exit').addEventListener('click', () => { stopAudio(); onExit && onExit(); });
     bindAudio(root);
@@ -196,7 +196,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   function renderChoice(q) {
     const lay = q.layout || 'text';
     const optHTML = (o) => lay === 'glyphs'
-      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}"><span class="g quran-text" dir="rtl">${esc(o.glyph)}</span>${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
+      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
       : `<button type="button" class="opt" data-o="${esc(o.id)}"><b>${esc(tx(o.label))}</b></button>`;
     const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? 'glyphs' : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
     frame(q, `
@@ -217,6 +217,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
     let attempts = 0; let done = false;
     frame(q, `
       <p class="q-prompt">${esc(tx(q.stem))}</p>
+      ${q.thumb ? `<div class="sign-thumb-wrap"><small>${t('mk_how_looks')}</small><img class="sign-thumb" src="${esc(q.thumb)}" alt=""></div>` : ''}
       <div class="ayah-wrap">${ayahHTML(q.key, { mode: 'tap', tapMarks: true })}<div class="ayah-meta"><span>${esc(ayahLabel(q.key))}</span></div></div>
       <div class="hint-slot" aria-live="polite"></div>
       <div class="fb-slot"></div>`);

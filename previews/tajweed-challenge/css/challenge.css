@@ -144,7 +144,7 @@ p { margin: 0 0 .7em; }
 .tapw.miss { background: var(--bad-bg); border-color: var(--bad); } .accepted { background: color-mix(in srgb, var(--ok) 16%, transparent); border-radius: .4em; }
 .tapword-wrap { text-align: center; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 20px; padding: 8px; margin: 12px 0; }
 .tapword { font-size: clamp(3rem, 12vw, 5rem); padding: 4px 18px; display: inline-block; }
-.lt-hit { position: absolute; z-index: 2; background: transparent; border: 2px solid transparent; border-radius: .3em; padding: 0; cursor: pointer; min-width: 28px; }
+.lt-hit { position: absolute; z-index: 2; background: transparent; border: 2px solid transparent; border-radius: .3em; padding: 0; cursor: pointer; }
 .lt-hit:hover { background: color-mix(in srgb, var(--c) 16%, transparent); border-color: var(--c); }
 .lt-hit.miss { background: var(--bad-bg); border-color: var(--bad); opacity: .85; } .lt-hit.hl-cause { background: color-mix(in srgb, var(--c) 32%, transparent); border-color: var(--c); }
 .big-letter { display: grid; place-items: center; margin: 12px 0; } .big-letter .lchip { transform: scale(1.8); margin: 26px 0; } .big-letter .lchip b { font-size: 3rem; }
@@ -270,7 +270,7 @@ p { margin: 0 0 .7em; }
 .waqf.rub { font-size: .9em; color: var(--gold-ink); }
 .tapm { background: transparent; border: 2px dashed var(--line-strong); border-radius: 10px; cursor: pointer; min-width: 40px; min-height: 44px; padding: 0 6px; color: var(--ink); font-size: 1.1em; } .tapm:hover { background: var(--c-soft); border-color: var(--c); } .tapm.miss { background: var(--bad-bg); border-color: var(--bad); }
 .rosette { display: inline-grid; place-items: center; min-width: 2em; height: 2em; border-radius: 50%; border: 2px double var(--gold); background: var(--gold-soft); color: var(--gold-ink); font-size: .55em; line-height: 1 !important; margin-inline: .25em; vertical-align: middle; padding: 0 .3em; }
-button.rosette { cursor: pointer; min-width: 44px; height: 44px; font-size: .62em; } button.rosette:hover { background: color-mix(in srgb, var(--gold) 40%, var(--surface)); } .rosette.ok { background: var(--ok-bg); border-color: var(--ok); } .rosette.miss { background: var(--bad-bg); border-color: var(--bad); }
+button.rosette { cursor: pointer; width: 46px; height: 46px; min-width: 0; padding: 0; font-size: .62em; } button.rosette:hover { background: color-mix(in srgb, var(--gold) 40%, var(--surface)); } .rosette.ok { background: var(--ok-bg); border-color: var(--ok); } .rosette.miss { background: var(--bad-bg); border-color: var(--bad); }
 .vseg { display: inline; padding: .1em .2em; border-radius: .4em; } .vseg.vhl { background: color-mix(in srgb, var(--c) 16%, transparent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 45%, transparent); }
 .opts.layout-num { grid-template-columns: repeat(4, 1fr); } .opts.layout-yn { grid-template-columns: 1fr 1fr; } .opts.layout-glyphs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); } .opts.layout-2 { grid-template-columns: 1fr 1fr; }
 .opts.layout-num .opt b { font-size: 1.6rem; } .glyph-opt { min-height: 96px; } .glyph-opt .g { font-size: 2.6rem; color: var(--c-ink); line-height: 1.8 !important; }

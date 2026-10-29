@@ -52,7 +52,7 @@ export const bannerHTML = (surahNo) => `<div class="banner" role="img" aria-labe
 export function mediaHTML(m) {
   if (!m) return '';
   if (m.kind === 'glyph') return `<div class="glyph-big quran-text" dir="rtl" aria-hidden="true">${esc(m.glyph)}</div>`;
-  if (m.kind === 'img') return `<img class="media-img" src="${esc(m.src)}" alt="${esc(tx(m.alt))}">`;
+  if (m.kind === 'img') return `<img class="media-img ${esc(m.cls || '')}" src="${esc(m.src)}" alt="${esc(tx(m.alt))}">`;
   if (m.kind === 'verse') return `<div class="ayah-wrap">${ayahHTML(m.key)}<div class="ayah-meta"><span>${esc(ayahLabel(m.key))}</span></div></div>`;
   if (m.kind === 'lantern') return `<div class="media-lantern">${lanternHTML(m.q)}</div>`;
   if (m.kind === 'banner') return bannerHTML(m.surah);

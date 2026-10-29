@@ -1,7 +1,7 @@
 // js/mushaf-engine.js — محرك أسئلة قسم «تعرف على مصحفك» (منطق خالص بلا DOM).
 // أنواع الأسئلة: choice (اختيار عام مع وسيط: علامة/آية/فانوس/لوحة) · signtap (اضغط العلامة في الآية) · ayahnum (اضغط رقم الآية).
 import { POOL, SURAHS } from '../data/pool.js';
-import { SIGNS, MUSHAF, NO_TAP, AMBIGUOUS, MARKER_KINDS, MARKER_NAMES, quarterMarker, MUSHAF_FACTS } from '../data/mushaf.js';
+import { SIGNS, MUSHAF, NO_TAP, AMBIGUOUS, MARKER_KINDS, MARKER_NAMES, quarterMarker, MUSHAF_FACTS, signImg, partImg } from '../data/mushaf.js';
 import { wordClusters } from './quran.js';
 import { rng, shuffle, ayahOf } from './engine.js';
 
@@ -40,7 +40,7 @@ export function signExamples(signId, n = 3, { exclude = new Set(), maxWords = 10
 }
 
 // ───────── مولدات الأسئلة ─────────
-const optSign = (id, field = 'name') => ({ id, label: SIGNS[id][field], glyph: SIGNS[id].glyph, abbr: SIGNS[id].abbr || null });
+const optSign = (id, field = 'name') => ({ id, label: SIGNS[id][field], img: signImg(id), abbr: SIGNS[id].abbr || null });
 const explainSign = (id) => T(`${SIGNS[id].name.ar}: ${SIGNS[id].def.ar}`, `${SIGNS[id].name.en}: ${SIGNS[id].def.en}`);
 
 function signPool(lessonId, { noZero = false, noAmb = true } = {}) {
@@ -61,12 +61,12 @@ function optionIds(correct, lessonId, r, n = 4) {
 
 export function genSignName(lessonId, r) {
   const id = pick(signPool(lessonId, { noZero: true }), r);
-  return { type: 'choice', lesson: lessonId, kind: 'name', stem: T('ما اسم هذه العلامة؟', 'What is the name of this sign?'), media: { kind: 'glyph', glyph: SIGNS[id].glyph }, layout: 'text',
+  return { type: 'choice', lesson: lessonId, kind: 'name', stem: T('ما اسم هذه العلامة؟', 'What is the name of this sign?'), media: { kind: 'img', src: signImg(id), alt: SIGNS[id].name, cls: 'sign-photo' }, layout: 'text',
     options: optionIds(id, lessonId, r).map((x) => optSign(x)), answer: id, explain: explainSign(id) };
 }
 export function genSignMeaning(lessonId, r) {
   const id = pick(signPool(lessonId, { noZero: true }), r);
-  return { type: 'choice', lesson: lessonId, kind: 'meaning', stem: T('ما معنى هذه العلامة؟', 'What does this sign mean?'), media: { kind: 'glyph', glyph: SIGNS[id].glyph }, layout: 'text',
+  return { type: 'choice', lesson: lessonId, kind: 'meaning', stem: T('ما معنى هذه العلامة؟', 'What does this sign mean?'), media: { kind: 'img', src: signImg(id), alt: SIGNS[id].name, cls: 'sign-photo' }, layout: 'text',
     options: optionIds(id, lessonId, r).map((x) => optSign(x, 'def')), answer: id, explain: explainSign(id) };
 }
 export function genSignReverse(lessonId, r) {
@@ -81,7 +81,7 @@ export function genSignTap(lessonId, r, { exclude = new Set(), onlyIds = null, m
     const id = pick(ids, r); const cs = signCandidates(id).filter((c) => !exclude.has(c.key) && c.n <= maxWords + (t > 20 ? 4 : 0));
     if (!cs.length) continue; const c = pick(cs, r); const n = POOL[c.key].w.length;
     if (n - c.words.length < 2) continue;
-    return { type: 'signtap', lesson: lessonId, signId: id, key: c.key, accept: { words: c.words, marks: c.marks }, stem: T(`اضغط على ${SIGNS[id].name.ar} في الآية`, `Tap the ${SIGNS[id].name.en} in the verse`), explain: explainSign(id), hl: hlForWords(c.key, id, c.words) };
+    return { type: 'signtap', lesson: lessonId, signId: id, key: c.key, accept: { words: c.words, marks: c.marks }, stem: T(`اضغط على ${SIGNS[id].name.ar} في الآية`, `Tap the ${SIGNS[id].name.en} in the verse`), explain: explainSign(id), thumb: signImg(id), hl: hlForWords(c.key, id, c.words) };
   }
   return null;
 }
@@ -99,9 +99,9 @@ const BANK = {
   mushaf_ayah_number: [
     { id: 'where', media: { kind: 'img', src: 'assets/mushaf/ayah-number.webp', alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: T('أين ي\u064Fكتب رقم الآية؟', 'Where is the ayah number written?'),
       options: [T('في نهاية الآية داخل وردة', 'At the end of the ayah, inside a rosette'), T('في بداية الآية', 'At the start of the ayah'), T('في أعلى الصفحة', 'At the top of the page'), T('على هامش الصفحة', 'In the page margin')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
-    { id: 'banner', media: { kind: 'banner' }, stem: T('ما هذه اللوحة المزخرفة؟', 'What is this ornamental panel?'),
+    { id: 'banner', media: { kind: 'img', src: partImg('banner'), alt: T('لوحة اسم السورة', 'The surah title panel'), cls: 'banner-photo' }, stem: T('ما هذه اللوحة المزخرفة؟', 'What is this ornamental panel?'),
       options: [T('لوحة اسم السورة', 'The surah title panel'), T('علامة بداية الجزء', 'The start-of-juz mark'), T('علامة السجدة', 'The sajdah mark'), T('رقم الآية', 'The ayah number')], answer: 0, explain: T('قبل أول آية في كل سورة لوحة مزخرفة فيها اسمها.', 'Before the first ayah of every surah there is an ornamental panel with its name.') },
-    { id: 'basmala', media: { kind: 'banner' }, stem: T('ما الذي يأتي بعد لوحة اسم السورة؟', 'What comes after the surah title panel?'),
+    { id: 'basmala', media: { kind: 'img', src: partImg('banner'), alt: T('لوحة اسم السورة', 'The surah title panel'), cls: 'banner-photo' }, stem: T('ما الذي يأتي بعد لوحة اسم السورة؟', 'What comes after the surah title panel?'),
       options: [T('البسملة ثم أول آية', 'The basmala, then the first ayah'), T('علامة الربع', 'The quarter mark'), T('علامة السجدة', 'The sajdah mark'), T('رقم الصفحة', 'The page number')], answer: 0, explain: T('بعد لوحة اسم السورة تأتي البسملة (إلا في سورة التوبة)، ثم أول آية.', 'After the title panel comes the basmala (except in Surah At-Tawbah), then the first ayah.') },
     { id: 'pagehead', media: null, stem: T('في أعلى صفحة المصحف: ما الذي على اليمين وما الذي على اليسار؟', 'At the top of a mushaf page: what is on the right and what is on the left?'),
       options: [T('اسم الجزء على اليمين واسم السورة على اليسار', 'The juz name on the right, the surah name on the left'), T('اسم السورة على اليمين واسم الجزء على اليسار', 'The surah name on the right, the juz name on the left'), T('رقم الآية على اليمين ورقم الصفحة على اليسار', 'The ayah number on the right, the page number on the left'), T('علامة الوقف على اليمين والسجدة على اليسار', 'A stop sign on the right, a sajdah on the left')], answer: 0, explain: T('في أعلى الصفحة اسم الجزء على اليمين واسم السورة على اليسار.', 'At the top of the page: the juz name on the right and the surah name on the left.') }
@@ -121,7 +121,6 @@ export function genBank(lessonId, r, avoid = new Set()) {
   const items = BANK[lessonId].filter((b) => !avoid.has(b.id)); const b = pick(items.length ? items : BANK[lessonId], r);
   const order = shuffle(b.options.map((o, i) => ({ id: String(i), label: o })), r);
   const q = { type: 'choice', lesson: lessonId, kind: 'bank:' + b.id, stem: b.stem, media: b.media ? { ...b.media } : null, layout: 'text', options: order, answer: '0', explain: b.explain };
-  if (q.media && q.media.kind === 'banner') { const sn = pick([78, 80, 87, 93, 96, 97, 99, 101, 105, 108, 110, 112, 114], r); q.media.surah = sn; }
   return q;
 }
 

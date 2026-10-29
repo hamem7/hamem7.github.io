@@ -45,7 +45,7 @@ export const hlAttr = (map) => (map ? ` data-hl="${Object.entries(map).map(([c, 
 function layer(container) {
   const old = new Map();
   container.querySelectorAll(':scope > .lt-hit').forEach((h) => old.set(h.dataset.ci, h.className));
-  container.querySelectorAll(':scope > .hlbox, :scope > .lt-hit').forEach((n) => n.remove());
+  container.querySelectorAll(':scope > .hlbox, :scope > .lt-hit, :scope > .pin').forEach((n) => n.remove());
   const cr = container.getBoundingClientRect();
   const place = (el, r) => { el.style.left = `${r.left - cr.left}px`; el.style.top = `${r.top - cr.top}px`; el.style.width = `${r.width}px`; el.style.height = `${r.height}px`; };
   const rangeOf = (node, c) => { const r = document.createRange(); r.setStart(node, c.s); r.setEnd(node, c.e); return r.getBoundingClientRect(); };
@@ -60,17 +60,33 @@ function layer(container) {
   });
   if (container.dataset.taps) {
     const node = container.firstChild; if (!node || node.nodeType !== 3) return;
-    wordClusters(node.textContent).forEach((c, i) => {
-      const r = rangeOf(node, c); if (!r.width) return;
-      const hit = document.createElement('button'); hit.type = 'button'; hit.className = old.get(String(i)) || 'lt-hit'; hit.dataset.ci = String(i);
-      hit.setAttribute('aria-label', `${i + 1}`); place(hit, r); container.appendChild(hit);
+    // مناطق اللمس: تحسب من مواضع المقاطع ثم تفصل عن بعضها (حروف الكلمة المتصلة تتداخل مستطيلاتها)
+    const items = [];
+    wordClusters(node.textContent).forEach((c, i) => { const r = rangeOf(node, c); if (r.width) items.push({ i, left: r.left - cr.left, right: r.right - cr.left, top: r.top - cr.top, height: r.height }); });
+    items.sort((a, b) => a.left - b.left);
+    for (let k = 0; k + 1 < items.length; k++) { const a = items[k], b = items[k + 1]; if (a.right > b.left) { const mid = (a.right + b.left) / 2; a.right = mid; b.left = mid; } }
+    items.forEach((it) => {
+      const hit = document.createElement('button'); hit.type = 'button'; hit.className = old.get(String(it.i)) || 'lt-hit'; hit.dataset.ci = String(it.i);
+      hit.setAttribute('aria-label', `${it.i + 1}`);
+      hit.style.left = `${it.left}px`; hit.style.top = `${it.top}px`; hit.style.width = `${Math.max(it.right - it.left, 4)}px`; hit.style.height = `${it.height}px`; container.appendChild(hit);
     });
   }
+  // دبابيس «استكشف الصفحة»: عنصر يحمل data-pin (وإن حمل data-pinc فالدبوس فوق ذلك المقطع)
+  container.querySelectorAll('[data-pin]').forEach((el) => {
+    let r;
+    if (el.dataset.pinc !== undefined && el.firstChild && el.firstChild.nodeType === 3) { const cs = wordClusters(el.firstChild.textContent); const c = cs[Number(el.dataset.pinc)]; r = c ? rangeOf(el.firstChild, c) : el.getBoundingClientRect(); }
+    else r = el.getBoundingClientRect();
+    if (!r.width && !r.height) return;
+    const pin = document.createElement('button'); pin.type = 'button'; pin.className = 'pin'; pin.dataset.n = el.dataset.pin; pin.textContent = ''; pin.setAttribute('aria-label', `pin ${el.dataset.pin}`);
+    const sel = container.dataset.sel; if (sel && sel === el.dataset.pin) pin.classList.add('sel');
+    pin.style.left = `${Math.min(Math.max(r.left - cr.left + r.width / 2, 16), cr.width - 16)}px`; pin.style.top = `${Math.max(r.top - cr.top + (el.classList.contains('w') ? r.height * 0.06 : -6), 12)}px`;
+    pin.append(document.createTextNode(el.dataset.pin)); container.appendChild(pin);
+  });
 }
 export function decorate(scope = document) { scope.querySelectorAll('.decor').forEach(layer); }
 export function initDecor(root) {
   let raf = 0; const run = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => decorate(root)); };
-  new MutationObserver((muts) => { if (muts.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && !(n.classList.contains('hlbox') || n.classList.contains('lt-hit'))))) run(); }).observe(root, { childList: true, subtree: true });
+  new MutationObserver((muts) => { if (muts.some((m) => [...m.addedNodes].some((n) => n.nodeType === 1 && !(n.classList.contains('hlbox') || n.classList.contains('lt-hit') || n.classList.contains('pin'))))) run(); }).observe(root, { childList: true, subtree: true });
   window.addEventListener('resize', run);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
   run();

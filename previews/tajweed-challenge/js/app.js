@@ -1,7 +1,7 @@
 // js/app.js — الموجه والشاشات: الرئيسية، الحكم، الدرس، اللعب، النتيجة، المصادر.
 import { POOL } from '../data/pool.js';
 import { STAGES, RULES, META, SOURCES, stageOf } from '../data/rules.js';
-import { MUSHAF } from '../data/mushaf.js';
+import { MUSHAF, LESSON_IMG, signImg } from '../data/mushaf.js';
 import { buildMushafLevel, buildMushafStage, mushafMixedQuestion } from './mushaf-engine.js';
 import { initMushaf } from './mushaf.js';
 import { rng, shuffle } from './engine.js';
@@ -65,16 +65,16 @@ function renderHome() {
     const unlockedChallenge = isReview() || st.rules.some((id) => store.getRule(id).lv[1] >= 1);
     const stStars = store.getStageStars(st.id);
     return `
-    <article class="stage" ${stageStyle(st)}>
+    <article class="stage${st.id === 'mushaf' ? ' mushaf-stage' : ''}" ${stageStyle(st)}>
       <header class="stage-head">
         <span class="stage-ico" aria-hidden="true">${STAGE_ICONS[st.icon]}</span>
         <div class="stage-title"><small>${t('stage_n', { n: num(si + 1) })}</small><h3>${esc(tx(st.name))}</h3><p>${esc(tx(st.blurb))}</p></div>
         <div class="stage-prog" aria-label="${got}/${max}"><b>${num(mastered)}/${num(st.rules.length)}</b><small>${t('home_mastered')}</small><div class="pbar"><i style="width:${Math.round((got / max) * 100)}%"></i></div></div>
       </header>
-      <ul class="rule-list">${st.rules.map((id) => {
+      ${st.id === 'mushaf' ? `<ul class="tiles">${st.rules.map((id) => { const r = store.getRule(id); return `<li><a class="tile" href="#/rule/${id}"><span class="plate"><img class="plate-img" src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span><b>${esc(ruleName(id))}</b>${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a></li>`; }).join('')}</ul>` : `<ul class="rule-list">${st.rules.map((id) => {
         const r = store.getRule(id);
         return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(META[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
-      }).join('')}</ul>
+      }).join('')}</ul>`}
       <footer class="stage-foot">
         <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(stStars)}</button>
         ${unlockedChallenge ? '' : `<small>${t('stage_challenge_locked')}</small>`}

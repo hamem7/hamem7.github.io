@@ -13,7 +13,7 @@ import { VIZ, VIZ_CAPTION } from '../js/viz.js';
 import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, PLATFORM, inPool } from './lib/source.mjs';
 import { detectAyah, IZHAR_LETTERS, IDGHAM_GHUNNA_LETTERS, IDGHAM_NO_GHUNNA_LETTERS, IKHFA_LETTERS, QALQALAH_LETTERS, QAMARI_LETTERS, SHAMSI_LETTERS } from './lib/detect.mjs';
 import { tokenize, isWaqfToken } from '../js/arabic.js';
-import { MUSHAF, SIGNS } from '../data/mushaf.js';
+import { MUSHAF, SIGNS, EXPLORE, PARTS, signImg, partImg, pageImg, PAGE_W, PAGE_H, LESSON_IMG } from '../data/mushaf.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url)); const ROOT = path.join(HERE, '..');
 const errors = [], notes = []; const fail = (m) => errors.push(m);
@@ -103,8 +103,26 @@ for (const m of Object.values(MUSHAF)) { for (const k of ['name', 'short', 'tagl
 for (const [id, sg] of Object.entries(SIGNS)) { needBoth(sg.name, `sign.${id}.name`); needBoth(sg.def, `sign.${id}.def`); if (!MUSHAF[`mushaf_${sg.lesson}`]) fail(`[مصحف] علامة ${id} بلا درس`); }
 const mushafSrc = fs.readFileSync(path.join(PLATFORM, 'engine/tajweedMushaf.js'), 'utf8');
 for (const [id, sg] of Object.entries(SIGNS)) { if (sg.code && sg.code.length === 1 && !mushafSrc.includes(`id: '${id}', code: '${sg.code}'`) && !mushafSrc.includes(`id: '${id}', code: '\\u${sg.code.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}'`)) fail(`[مصحف] رمز ${id} يخالف المنصة`); }
-for (const f of fs.readdirSync(path.join(ROOT, 'assets/mushaf'))) { if (!fs.readFileSync(path.join(ROOT, 'assets/mushaf', f)).equals(fs.readFileSync(path.join(PLATFORM, 'assets/tajweed/mushaf', f)))) fail(`[صور] ${f} يخالف المنصة`); }
+for (const f of fs.readdirSync(path.join(ROOT, 'assets/mushaf')).filter((x) => x.endsWith('.webp'))) { if (!fs.readFileSync(path.join(ROOT, 'assets/mushaf', f)).equals(fs.readFileSync(path.join(PLATFORM, 'assets/tajweed/mushaf', f)))) fail(`[صور] ${f} يخالف المنصة`); }
 for (const f of ['ayah-number', 'banner-blank', 'lantern-frame', 'lantern-full', 'lantern-top', 'sajda-mark', 'sajda-overline']) if (!fs.existsSync(path.join(ROOT, 'assets/mushaf', f + '.webp'))) fail(`[صور] ${f} مفقودة`);
+// 10) كل علامة صورة حقيقية مقتطعة من صفحة المصحف (لا رسم ولا خط من عندنا): الملف موجود، أبعاده معقولة، وله توثيق (صفحة + إحداثيات)، والصفحات والدبابيس سليمة
+const prov = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/mushaf/signs/PROVENANCE.json'), 'utf8'));
+const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
+const webpSize = (rel) => { const b = fs.readFileSync(path.join(ROOT, rel)); if (b.toString('ascii', 0, 4) !== 'RIFF' || b.toString('ascii', 8, 12) !== 'WEBP') return null; const f = b.toString('ascii', 12, 16); if (f === 'VP8 ') return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff]; if (f === 'VP8L') { const v = b.readUInt32LE(21); return [(v & 0x3fff) + 1, ((v >> 14) & 0x3fff) + 1]; } if (f === 'VP8X') return [b.readUIntLE(24, 3) + 1, b.readUIntLE(27, 3) + 1]; return null; };
+for (const id of Object.keys(SIGNS)) {
+  const rel = signImg(id); if (!exists(rel)) { fail(`[صور] علامة ${id} بلا صورة: ${rel}`); continue; }
+  const dim = webpSize(rel); if (!dim || dim[0] < 40 || dim[1] < 30) fail(`[صور] ${id} أبعاد غير معقولة ${dim}`);
+  if (rel.includes('/signs/') && !prov[id]) fail(`[صور] ${id} بلا توثيق في PROVENANCE.json`);
+}
+for (const [id, pv] of Object.entries(prov)) { if (!exists(`assets/mushaf/signs/${id}.webp`)) fail(`[صور] ${id} في التوثيق بلا ملف`); const [x0, y0, x1, y1] = pv.box; if (x1 > PAGE_W || y1 > PAGE_H || x0 < 0 || y0 < 0 || x1 <= x0 || y1 <= y0) fail(`[صور] مقتطع ${id} خارج الصفحة`); }
+for (const id of Object.keys(PARTS)) if (!exists(partImg(id))) fail(`[صور] جزء ${id} بلا صورة`);
+for (const [lid, pages] of Object.entries(EXPLORE)) {
+  if (!MUSHAF[lid]) fail(`[استكشف] ${lid} ليس درس\u064Bا`);
+  for (const pg of pages) { if (!exists(pageImg(pg.page))) fail(`[استكشف] صفحة ${pg.page} مفقودة`); for (const p of pg.pins) { if (p.x < 0 || p.x > PAGE_W || p.y < 0 || p.y > PAGE_H) fail(`[استكشف] دبوس خارج الصفحة ${lid}:${pg.page}`); if (p.sign && !SIGNS[p.sign]) fail(`[استكشف] علامة ${p.sign}`); if (p.part && !PARTS[p.part]) fail(`[استكشف] جزء ${p.part}`); } needBoth(pg.label, `explore.${lid}.${pg.page}`); }
+}
+for (const lid of Object.keys(MUSHAF)) { if (!EXPLORE[lid]) fail(`[استكشف] ${lid} بلا صفحة`); if (!SIGNS[LESSON_IMG[lid]]) fail(`[بلاط] ${lid}`); }
+for (const sg of Object.values(SIGNS)) if (sg.lesson === 'sin_saad' || sg.lesson) void sg;
+notes.push(`صور العلامات الحقيقية: ${Object.keys(SIGNS).length} علامة، ${Object.keys(prov).length} مقتطع\u064Bا موث\u064E\u0651ق\u064Bا`);
 notes.push(`دروس المصحف: ${Object.keys(MUSHAF).length} — علامات: ${Object.keys(SIGNS).length}`);
 
 console.log(notes.join('\n'));
