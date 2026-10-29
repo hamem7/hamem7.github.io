@@ -169,7 +169,7 @@ function rowHtml(r, now, opts = {}) {
 function handleRowAction(e, afterChange) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return false;
-    const row = btn.closest('.dh-rem-row');
+    const row = btn.closest('[data-id]');
     const id = row && row.dataset.id;
     if (!id) return false;
     const act = btn.dataset.act;
@@ -338,9 +338,9 @@ function onScreenClick(e) {
     if (e.target.closest('[data-go="add"]')) { openReminderForm(null); return; }
     const tabBtn = e.target.closest('[data-tab]');
     if (tabBtn) { screenState.tab = tabBtn.dataset.tab; renderScreen(); return; }
-    const kindBtn = e.target.closest('[data-kind]');
-    if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); return; }
-    handleRowAction(e);
+    if (handleRowAction(e)) return;   // قبل شرائح النوع: الصف نفسه يحمل data-kind فكان يبتلع النقر
+    const kindBtn = e.target.closest('.dh-rem-chip[data-kind]');
+    if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); }
 }
 
 export function openRemindersScreen(tab) {
