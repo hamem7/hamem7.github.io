@@ -101,7 +101,7 @@ await p.waitForSelector('.result'); ok((await p.$$eval('.big-stars .on', (a) => 
 for (const st of STAGES) { await p.goto(`${BASE}/index.html#/stage/${st.id}`); await p.waitForSelector('.quiz'); const n = await p.$$eval('.q-progress i', (a) => a.length); for (let i = 0; i < n; i++) await answer(p, i % 2 === 0); await p.waitForSelector('.result'); }
 await p.goto(`${BASE}/index.html#/mixed`); await p.waitForSelector('.quiz'); for (let i = 0; i < 10; i++) await answer(p, true); await p.waitForSelector('.result');
 // شاشة المصادر + مسح التقدم
-await p.goto(`${BASE}/index.html#/about`); await p.waitForSelector('.src-list'); ok((await p.$$('.src-list .card')).length === 5, 'مصادر ٥'); ok((await p.$$('.review-list li')).length >= 3, 'قائمة المراجعة');
+await p.goto(`${BASE}/index.html#/about`); await p.waitForSelector('.src-list'); ok((await p.$$('.src-list .card')).length === Object.keys((await import('../data/rules.js')).SOURCES).length, 'عدد المصادر'); ok((await p.$$('.review-list li')).length >= 3, 'قائمة المراجعة');
 await p.click('#btn-reset'); ok((await p.textContent('#reset-msg')).length > 3, 'رسالة المسح');
 await ctx.close();
 
