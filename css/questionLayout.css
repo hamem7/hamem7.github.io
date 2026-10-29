@@ -112,6 +112,13 @@ body:is([data-sim-kind="sim_notin"], [data-game-q="word_meaning"])[data-qfit="si
     font-size: min(max(1.05rem, calc(1.3 * var(--u))), 2rem) !important;
 }
 
+/* «معنى الكلمة» (الكبار): زرّ الخيار يتسع لنصّ المعنى كله (عربي ≤ 5 كلمات أو إنجليزي ≤ 4) في سطر واحد فلا ينزل شيء للسطر التالي.
+   كان سقف العرض 34rem فيلتفّ النص؛ الآن السقف عرض الحاوية، ويصغر الخط تبعاً لعرض الشاشة (5.4vw) كي يتسع على الجوال أيضاً. */
+body[data-game-q="word_meaning"][data-qfit="sim"] #app-root #game-question .sim-opts-chips .sim-opt-btn {
+    max-width: 100%; white-space: nowrap;
+    font-size: min(max(1.05rem, calc(1.3 * var(--u))), 2rem, 5.4vw) !important;
+}
+
 /* ===== اربط (الكبار #interactive-link-area والصغار #kids-link-area) ===== */
 body[data-qfit="link"] #app-root :is(#interactive-link-area, #kids-link-area) > p {
     font-size: max(1rem, calc(1.25 * var(--u))) !important; line-height: 1.6 !important;
