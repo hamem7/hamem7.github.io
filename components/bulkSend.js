@@ -20,6 +20,7 @@ import { publishHomeworkToServer, homeworkShareUrl, friendlyErrorText } from '..
 import { loadScreen, switchTheme } from '../core/navigation.js';
 import { ensureHomeworkSignIn } from './teacherAuthGate.js';
 import { catLabel } from './skillProfile.js';
+import { describeScope } from '../engine/scopeWording.js';
 
 const L = (ar, en) => (isEnglish() ? en : ar);
 const nf = (n) => String(n);
@@ -152,8 +153,10 @@ const surahName = (n) => { const s = (AppState.surahsData || []).find(x => x.num
 const groupTitle = (g) => (g.unit === 'quarter' ? `${L('الحزب', 'Hizb')} ${g.hizb} · ${L('ربع', 'Q')} ${g.quarter}` : `${L('الحزب', 'Hizb')} ${g.hizb}`);
 const groupLabel = (g) => (g.unit === 'quarter' ? `${L('ح', 'H')}${g.hizb}·${g.quarter}` : `${L('ح', 'H')}${g.hizb}`);
 
-// نص النطاق لرسالة ولي الأمر: كل النطاق، أو «من X إلى Y» إن كان المختار متصلاً بترتيب المصحف، وإلا تُسرد العناصر.
+// نص النطاق لرسالة ولي الأمر بأسماء السور والأجزاء (engine/scopeWording.js)؛ الصياغة القديمة بالأحزاب احتياطٌ إن تعذّر.
 function scopeLabelOf(row, selection, model) {
+    const plain = describeScope({ model, selection, L, surahName });
+    if (plain) return plain;
     if (!selection || selection.mode === 'all' || !model) return L('كل النطاق', 'Whole range');
     if (selection.mode === 'surah') {
         const items = model.surahs.filter(s => selection.ids.includes(s.number));
