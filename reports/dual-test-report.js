@@ -706,11 +706,13 @@ function renderTeacherSign(d) {
   }
 }
 
-// 👏 هل حصل أي طالب على 100%؟ = كل أسئلته المسجَّلة (على امتداد الجولات) بلا أي خطأ، وسؤال واحد على الأقل
+// 👏 هل حصل أي طالب على 99% فأكثر؟ = مجموع درجات أسئلته المسجَّلة (على امتداد الجولات) ÷ الدرجة الكاملة، وسؤال واحد على الأقل
 function hasPerfectStudent(d) {
   return ['A', 'B'].some(side => {
     const all = d.rounds.reduce((acc, r) => acc.concat(side === 'A' ? r.entriesA : r.entriesB), []);
-    return all.length > 0 && all.every(e => !e.mistakes);
+    const earned = all.reduce((s, e) => s + (e.earnedPoints || 0), 0);
+    const max = all.reduce((s, e) => s + (e.earnedPoints || 0) + (e.deduction || 0), 0);
+    return max > 0 && earned / max >= 0.99;
   });
 }
 

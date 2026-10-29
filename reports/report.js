@@ -1533,8 +1533,8 @@ function renderReport(d){
   setText('report-honesty-line', d.honestyLine);
 
   // 🌟 [جديد] صوت تصفيق احتفالي عند نتيجة "ممتاز" (راجع تعليق playExcellentReportSound أعلاه)
-  // 👏 100% بالضبط: ملف التصفيق (core/applauseSound.js) مرة واحدة لكل فتح للتقرير؛ دون ذلك نغمة «ممتاز» المولَّدة
-  if (d.score >= 100) playApplauseOnce('ind-' + reportOpenToken, 'report-page');
+  // 👏 99% فأكثر: ملف التصفيق (core/applauseSound.js) مرة واحدة لكل فتح للتقرير؛ دون ذلك نغمة «ممتاز» المولَّدة
+  if (d.score >= 99) playApplauseOnce('ind-' + reportOpenToken, 'report-page');
   else if (d.tier === 'excellent') playExcellentReportSound();
 
   setText('report-count-full', d.counts.full);
