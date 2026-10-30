@@ -263,8 +263,7 @@ body.dh-home-screen .home-footer-copy { justify-self: end; text-align: end; font
 /* صفّا الواجبات/الثنائية: العنوان + الشارة تكفيان (الوصف كان يتكسّر على سطرين ويفسد التناسق) */
 body.dh-home-screen .home-menu-two .home-card-desc { display: none; }
 body.dh-home-screen .home-menu-two .home-card-title { white-space: nowrap; font-size: 1.05rem; }
-/* 🎓 بطاقة «أبطال التجويد» (الخامسة بعد نقلها من صف «قريباً» بطلب صاحب المنصة): تمتد بعرض الصف حتى لا تبقى وحدها في نصفه */
-body.dh-home-screen .home-menu-two #btn-tajweed-main { grid-column: 1 / -1; }
+/* 🎓 بطاقة «أبطال التجويد»: بنفس حجم بقية الأزرار (خانة واحدة من الشبكة) بطلب صاحب المنصة */
 
 
 /* ===== 12) 🌟 العمود الجانبي (سطح المكتب): "ابدأ من هنا" فوق "نظرة سريعة" بشكل طولي ===== */
