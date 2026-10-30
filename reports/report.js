@@ -22,6 +22,7 @@ import { AppState, applyLanguage, loadDashboardScreen, loadLoginScreen } from '.
 // التنسيق (CSS) منقول بالكامل إلى report.styles.js بدل تضخيم هذا الملف —
 // نفس المحتوى تمامًا، منظَّم في ملف مستقل فقط.
 import { REPORT_STYLES } from './report.styles.js';
+import { playApplauseOnce, stopApplause, isApplauseMuted, setApplauseMuted } from '../core/applauseSound.js';
 // 🌟 [جديد] هذا الملف كان عربيًا بالكامل بنصوص مكتوبة مباشرة بلا أي ربط بنظام الترجمة.
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
@@ -96,6 +97,10 @@ const REPORT_TEMPLATE = `
       <button class="rbtn" id="btn-report-wa-png">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
         <span data-i18n="rep_tb_wa_png">واتساب: صورة</span>
+      </button>
+      <button class="rbtn ghost" id="btn-report-applause" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <span id="btn-report-applause-label"></span>
       </button>
       <button class="rbtn" id="btn-report-wa-pdf">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
@@ -1528,7 +1533,9 @@ function renderReport(d){
   setText('report-honesty-line', d.honestyLine);
 
   // 🌟 [جديد] صوت تصفيق احتفالي عند نتيجة "ممتاز" (راجع تعليق playExcellentReportSound أعلاه)
-  if (d.tier === 'excellent') playExcellentReportSound();
+  // 👏 99% فأكثر: ملف التصفيق (core/applauseSound.js) مرة واحدة لكل فتح للتقرير؛ دون ذلك نغمة «ممتاز» المولَّدة
+  if (d.score >= 99) playApplauseOnce('ind-' + reportOpenToken, 'report-page');
+  else if (d.tier === 'excellent') playExcellentReportSound();
 
   setText('report-count-full', d.counts.full);
   setText('report-count-partial', d.counts.partial);
@@ -2057,7 +2064,10 @@ function initReportScreen(){
 // كان الملف يستورد نسخة واحدة ثابتة من adultGame.js فقط — راجع تعليق activeGameState
 // في أول الملف لتفاصيل السبب. لو اتنادت بدون معامل (مثلاً عبر window.openReportScreen
 // من مكان قديم)، نكمل بآخر GameState معروف بدل ما نفضي activeGameState بغلط 🌟
+let reportOpenToken = 0;
 export function openReportScreen(gameState){
+  reportOpenToken++;
+  stopApplause();
   if (gameState) activeGameState = gameState;
   const root = document.getElementById('app-root');
   if (!root) {
@@ -2073,7 +2083,22 @@ export function openReportScreen(gameState){
   if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
   try { applyLanguage(); } catch (e) { /* غير حرِج — نكمل حتى لو لم تتوفر */ }
   initReportScreen();
+  initApplauseToggle();
   autoArchiveOnOpen();
+}
+
+// 👏 زر كتم/تفعيل تصفيق الدرجة الكاملة (يُحفظ الاختيار)
+function initApplauseToggle(){
+  const btn = $('btn-report-applause');
+  if (!btn) return;
+  const refresh = () => {
+    const lbl = $('btn-report-applause-label');
+    if (lbl) lbl.textContent = isApplauseMuted() ? t('rep_applause_off') : t('rep_applause_on');
+    btn.style.opacity = isApplauseMuted() ? '0.6' : '';
+  };
+  btn.addEventListener('click', () => { setApplauseMuted(!isApplauseMuted()); refresh(); });
+  refresh();
+  document.addEventListener('app-lang-changed', refresh);
 }
 
 // 🗂️ [جديد] حفظ تلقائي للتقرير الفردي في «الشهادات والتقارير ← التقارير السابقة» بمجرد عرضه، دون انتظار التصدير.

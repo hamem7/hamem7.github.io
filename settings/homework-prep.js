@@ -47,6 +47,7 @@ import { isHomeworkMissingOnServer, listServerHomeworkIds } from '../core/homewo
 // 🌟 [جديد] نطاق الواجب الحقيقي المسجَّل في الخادم (meta.scope) — احتياط لو لم تتوفر النسخة المحلية للواجب
 import { fetchHomeworkScope } from '../core/homeworkApi.js';
 import { disableHomeworkLinkOnServer } from '../core/homeworkApi.js';
+import { describeScope } from '../engine/scopeWording.js';
 // 🌟🌟 [جديد] ترميز بيانات الواجب داخل رابط المشاركة نفسه — بدل ما يحمل الرابط معرّف الواجب
 // فقط ويحتاج بحث محلي/سحابي عند فتحه، بيحمل الواجب كامل، فيفتح فوراً بلا أي اتصال إطلاقاً
 // (راجع الشرح الكامل بجانب encodeHomeworkForLink في database/homeworkDB.js)
@@ -1694,9 +1695,14 @@ function groupRangeText(g) {
     return `${L('من', 'From')} ${a} ${L('إلى', 'to')} ${b}`;
 }
 
-// نص نطاق الاختبار لرسالة ولي الأمر: ما اختاره المعلم فقط (لا نطاق حفظ الطالب الكلي).
-// اختيار متصل → «من سورة X إلى سورة Y» / «من الحزب X إلى الحزب Y» (بترتيب المصحف)، وإلا تُسرد العناصر.
+// نص نطاق الاختبار لرسالة ولي الأمر: ما اختاره المعلم فقط، بلغة مفهومة لولي الأمر والطفل (engine/scopeWording.js):
+// سورة → اسمها، حزبان = جزء → «جزء عمّ كاملاً»، حزب/بعضه → «من سورة X إلى سورة Y»، كل النطاق → من أول سورة إلى آخرها.
+// الصياغة القديمة بالأحزاب أدناه احتياطٌ إن تعذّر النموذج.
 function shareRangeText() {
+    if (scopeMode === 'all' || scopeMode === 'hizb' || scopeMode === 'surah') {
+        const plain = describeScope({ model: smartModel, selection: currentSelection(), L, surahName: surNameOf });
+        if (plain) return plain;
+    }
     const rangeOrList = (items, one, from, to) => {
         if (!items.length) return selectionLabel();
         if (items.length === 1) return one(items[0]);

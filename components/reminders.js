@@ -62,7 +62,7 @@ const NEW_KEYS = {
         rem_more_waiting: '+{n} تذكيرات أخرى بانتظارك',
         rem_day_today: 'اليوم', rem_day_tomorrow: 'غدًا', rem_day_yesterday: 'أمس',
         rem_late: 'متأخر',
-        rem_back: 'رجوع', rem_hero_next: 'التالي', rem_hero_late: 'حان موعده', rem_all_clear: 'لا شيء بانتظارك', rem_all_clear_sub: 'كل تذكيراتك منجزة. أضف تذكيرًا جديدًا متى شئت.',
+        rem_edit: 'تعديل', rem_back: 'رجوع', rem_hero_next: 'التالي', rem_hero_late: 'حان موعده', rem_all_clear: 'لا شيء بانتظارك', rem_all_clear_sub: 'كل تذكيراتك منجزة. أضف تذكيرًا جديدًا متى شئت.',
         rem_notif_title: 'تذكير: {title}'
     },
     en: {
@@ -103,7 +103,7 @@ const NEW_KEYS = {
         rem_more_waiting: '+{n} more reminders waiting',
         rem_day_today: 'Today', rem_day_tomorrow: 'Tomorrow', rem_day_yesterday: 'Yesterday',
         rem_late: 'Late',
-        rem_back: 'Back', rem_hero_next: 'Next up', rem_hero_late: 'Due now', rem_all_clear: 'Nothing waiting', rem_all_clear_sub: 'All your reminders are done. Add a new one anytime.',
+        rem_edit: 'Edit', rem_back: 'Back', rem_hero_next: 'Next up', rem_hero_late: 'Due now', rem_all_clear: 'Nothing waiting', rem_all_clear_sub: 'All your reminders are done. Add a new one anytime.',
         rem_notif_title: 'Reminder: {title}'
     }
 };
@@ -126,6 +126,8 @@ const kindLabel = (k) => t('rem_kind_' + k);
 const SNOOZE_KEYS = { 5: 'rem_sn_5', 10: 'rem_sn_10', 30: 'rem_sn_30', 60: 'rem_sn_60' };
 
 const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 const ICON_BELL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 17V11a6 6 0 1 1 12 0v6l1.5 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>';
 
 function placeBelowMainHeader(el) {
@@ -159,6 +161,7 @@ function rowHtml(r, now, opts = {}) {
     return `<div class="dh-rem-row${late ? ' is-late' : ''}${r.done ? ' is-done' : ''}" data-id="${esc(r.id)}" data-kind="${esc(r.kind)}">
         <span class="dh-rem-when"><b>${esc(fmtTime(f))}</b>${dayLine}</span>
         <button type="button" class="dh-rem-main" data-act="edit"><span class="dh-rem-name">${esc(r.title)}</span><span class="dh-rem-meta">${meta.join('')}</span></button>
+        ${opts.actions ? `<span class="dh-rem-tools"><button type="button" class="dh-rem-tool" data-act="edit" aria-label="${esc(t('rem_edit'))}" title="${esc(t('rem_edit'))}">${ICON_EDIT}</button><button type="button" class="dh-rem-tool is-del" data-act="delete" aria-label="${esc(t('rem_delete'))}" title="${esc(t('rem_delete'))}">${ICON_TRASH}</button></span>` : ''}
         <button type="button" class="dh-rem-ck" data-act="${r.done ? 'reopen' : 'done'}" aria-label="${esc(r.done ? t('rem_reopen_aria') : t('rem_done_aria'))}">${ICON_CHECK}</button>
     </div>`;
 }
@@ -166,13 +169,17 @@ function rowHtml(r, now, opts = {}) {
 function handleRowAction(e, afterChange) {
     const btn = e.target.closest('[data-act]');
     if (!btn) return false;
-    const row = btn.closest('.dh-rem-row');
+    const row = btn.closest('[data-id]');
     const id = row && row.dataset.id;
     if (!id) return false;
     const act = btn.dataset.act;
     if (act === 'done') completeReminder(id);
     else if (act === 'reopen') updateReminder(id, { done: false, doneAt: null });
     else if (act === 'edit') openReminderForm(getReminder(id));
+    else if (act === 'delete') {
+        Promise.resolve(window.hamConfirm ? window.hamConfirm(t('rem_delete_confirm')) : confirm(t('rem_delete_confirm'))).then(ok => { if (ok) removeReminder(id); });
+        return true;   // الحذف يُحدّث القائمة عبر dh:reminders-changed
+    }
     if (afterChange) afterChange();
     return true;
 }
@@ -301,10 +308,10 @@ function renderScreen() {
         for (const r of items) {
             const label = dayLabel(fireAt(r), now);
             if (label !== last) { list += `<div class="dh-rem-gh"><span>${esc(label)}</span></div>`; last = label; }
-            list += rowHtml(r, now);
+            list += rowHtml(r, now, { actions: true });
         }
     } else {
-        list = items.map(r => rowHtml(r, now, { showDate: tab === 'done' })).join('');
+        list = items.map(r => rowHtml(r, now, { showDate: tab === 'done', actions: true })).join('');
     }
     const dateLine = new Date(now).toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' });
     const keep = window.scrollY;
@@ -331,9 +338,9 @@ function onScreenClick(e) {
     if (e.target.closest('[data-go="add"]')) { openReminderForm(null); return; }
     const tabBtn = e.target.closest('[data-tab]');
     if (tabBtn) { screenState.tab = tabBtn.dataset.tab; renderScreen(); return; }
-    const kindBtn = e.target.closest('[data-kind]');
-    if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); return; }
-    handleRowAction(e);
+    if (handleRowAction(e)) return;   // قبل شرائح النوع: الصف نفسه يحمل data-kind فكان يبتلع النقر
+    const kindBtn = e.target.closest('.dh-rem-chip[data-kind]');
+    if (kindBtn) { screenState.kind = kindBtn.dataset.kind; renderScreen(); }
 }
 
 export function openRemindersScreen(tab) {

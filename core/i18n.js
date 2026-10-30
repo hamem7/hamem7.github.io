@@ -205,6 +205,8 @@ export const translations = {
         stu_start_eval_adult: "🚀 ابدأ تقييم (الكبار)",
         stu_start_eval_kids: "🧒 ابدأ تقييم (الأطفال)",
         rep_tb_another: "تقييم طالب آخر",
+        rep_applause_on: "🔊 التصفيق: مفعّل",
+        rep_applause_off: "🔇 التصفيق: مكتوم",
         btn_all_students: "📊 سجل الطلاب العام",
         // 🌟 [جديد] رسائل النسخة الاحتياطية (v2 تشمل سجل التقييمات)
         backup_restore_ok: "تم استعادة البيانات بنجاح (الطلاب + سجل التقييمات)!",
@@ -3163,6 +3165,8 @@ export const translations = {
         stu_start_eval_adult: "🚀 Start evaluation (Adults)",
         stu_start_eval_kids: "🧒 Start evaluation (Kids)",
         rep_tb_another: "Evaluate another student",
+        rep_applause_on: "🔊 Applause: on",
+        rep_applause_off: "🔇 Applause: muted",
         btn_all_students: "📊 General Students Record",
         // 🌟 [New] Backup messages (v2 includes evaluations history)
         backup_restore_ok: "Data restored successfully (students + evaluations history)!",

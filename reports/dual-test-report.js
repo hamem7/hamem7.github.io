@@ -28,6 +28,7 @@
 // =============================================================================
 
 import { AppState, applyLanguage, loadSplashScreen, t, surahNameLocal } from '../core/app.js';
+import { playApplauseOnce, stopApplause, isApplauseMuted, setApplauseMuted } from '../core/applauseSound.js';
 import { DUAL_TEST_REPORT_STYLES } from './dual-test-report.styles.js';
 import { BADGE_CATALOG } from '../engine/dualTestEngine.js';
 
@@ -69,6 +70,10 @@ const DUAL_TEST_REPORT_TEMPLATE = `
       </button>
     </div>
     <div class="dtr-tb-grp">
+      <button type="button" class="dtr-rbtn ghost" id="dtr-btn-applause">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+        <span id="dtr-btn-applause-label"></span>
+      </button>
       <button type="button" class="dtr-rbtn ghost" id="dtr-btn-home">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
         <span data-i18n="dtr_home_btn">العودة للرئيسية</span>
@@ -701,7 +706,18 @@ function renderTeacherSign(d) {
   }
 }
 
+// 👏 هل حصل أي طالب على 99% فأكثر؟ = مجموع درجات أسئلته المسجَّلة (على امتداد الجولات) ÷ الدرجة الكاملة، وسؤال واحد على الأقل
+function hasPerfectStudent(d) {
+  return ['A', 'B'].some(side => {
+    const all = d.rounds.reduce((acc, r) => acc.concat(side === 'A' ? r.entriesA : r.entriesB), []);
+    const earned = all.reduce((s, e) => s + (e.earnedPoints || 0), 0);
+    const max = all.reduce((s, e) => s + (e.earnedPoints || 0) + (e.deduction || 0), 0);
+    return max > 0 && earned / max >= 0.99;
+  });
+}
+
 function renderReport(d) {
+  if (hasPerfectStudent(d)) playApplauseOnce('dual-' + dualOpenToken, 'dtr-page');
   renderHeader(d);
   renderLadder(d);
   renderRounds(d);
@@ -738,6 +754,17 @@ function autoArchiveOnOpen() {
 
 async function initDualTestReportScreen() {
   await renderAll();
+  const applauseBtn = $('dtr-btn-applause');
+  if (applauseBtn) {
+    const refresh = () => {
+      const lbl = $('dtr-btn-applause-label');
+      if (lbl) lbl.textContent = isApplauseMuted() ? t('rep_applause_off') : t('rep_applause_on');
+      applauseBtn.style.opacity = isApplauseMuted() ? '0.6' : '';
+    };
+    applauseBtn.addEventListener('click', () => { setApplauseMuted(!isApplauseMuted()); refresh(); });
+    refresh();
+    document.addEventListener('app-lang-changed', refresh);
+  }
   autoArchiveOnOpen();
 
   const noteInput = $('dtr-note-input');
@@ -793,7 +820,10 @@ async function initDualTestReportScreen() {
 // أسلوب report.js الذي يستقبل GameState من adultGame.js/kidsGame.js مباشرة عند الاستدعاء،
 // بدل استيراد نسخة ثابتة) — حتى تبقى هذه الشاشة قابلة للفتح لاحقاً من أي مكان آخر بالمنصة
 // (مثلاً سجل مواجهات طالب) بمجرد تمرير match/test له، بلا أي تعديل هنا.
+let dualOpenToken = 0;
 export async function openDualTestReportScreen(match, test) {
+  dualOpenToken++;
+  stopApplause();
   activeMatch = match;
   activeTest = test;
   const root = document.getElementById('app-root');

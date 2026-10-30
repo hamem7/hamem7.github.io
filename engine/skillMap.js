@@ -54,7 +54,7 @@ export const HW_FORMATS = {
     checkbox:      { skill: 'context',   level: 'recognition', manual: false, weight: 1, diff: 'hard' },
     matching:      { skill: 'context',   level: 'recall',      manual: false, weight: 1, diff: 'medium' },
     visual_page:   { skill: 'visual',    level: 'recognition', manual: false, weight: 0.5, diff: 'medium', retired: true },   // أُلغي من التوليد (تخمين 50%)؛ يبقى للتاريخ القديم فقط
-    // معاني الكلمات (كتاب كلمات القرآن لحسنين مخلوف): فهم لا حفظ، فوزنه نصف دليل الإتقان
+    // معاني الكلمات (السراج للخضيري أولاً، وكلمات القرآن لحسنين مخلوف احتياطاً): فهم لا حفظ، فوزنه نصف دليل الإتقان
     word_meaning:  { skill: 'context',   level: 'recognition', manual: false, weight: 0.5, diff: 'medium' },
     tajweed_extract: { skill: 'tajweed', level: 'production',  manual: true,  weight: 1, diff: 'medium' }
 };
