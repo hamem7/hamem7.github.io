@@ -102,6 +102,16 @@ body.adult-theme {
     transform: translateY(-3px); 
 }
 
+/* 🎧 زر «استمع للشيخ» (سؤال استمع وكمّل): ينبض بحلقة ذهبية أثناء التلاوة (الصنف .playing يضيفه components/listenAyahAudio.js) */
+.adult-theme .btn.playing {
+    animation: adultListenPulse 1s ease-in-out infinite;
+}
+@keyframes adultListenPulse {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(231,173,53,0.6)); }
+    50%      { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(231,173,53,0.9)); } /* filter لا box-shadow: ظل .btn مُعلَّم !important فلا تحرّكه الأنيميشن */
+}
+@media (prefers-reduced-motion: reduce) { .adult-theme .btn.playing { animation: none; } }
+
 /* [توحيد الهوية — مرحلة 2] الزر الثانوي «شفاف بحد» (إلغاء/رجوع/خروج) بدل التدرّج الأزرق المخضر القديم الذي كان يبدو كزر رئيسي */
 .adult-theme .btn-outline { 
     background: transparent !important; 

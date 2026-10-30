@@ -332,6 +332,7 @@ body.kids-theme {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.07); }
 }
+@media (prefers-reduced-motion: reduce) { .kids-listen-play-btn.playing { animation: none; } }
 :where(.kids-theme) .q-circle.wrong { background: var(--dh-danger-bg, #fde8e8); border-color: #ef4444; color: var(--dh-danger-ink, #991b1b); }
 /* ==========================================================================
    🌟 [إصلاح التوافق مع الشاشات] التخطيط الجانبي (مسار + مربع اللعب) كان بقواعد !important صفّية وعرض ثابت 280px
