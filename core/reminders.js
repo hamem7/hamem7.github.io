@@ -5,7 +5,7 @@
 // - المراقب: فحص كل 15 ثانية + عند عودة التبويب للواجهة/التركيز، بمقارنة الوقت الفعلي (لا setTimeout طويل لأن المتصفح يؤخّره
 //   في التبويبات الخلفية). يبثّ dh:reminder-due لكل تذكير حان، وعند أول فحص بعد الفتح يجمع الفائت (أقدم من دقيقتين) في
 //   حدث واحد dh:reminders-missed بدل إغراق المعلم بتنبيهات متتالية.
-// - إشعار المتصفح (Notification API) يُعرض فقط والصفحة مخفية وبعد موافقة المعلم؛ الصوت بعد أول تفاعل (سياسة التشغيل التلقائي).
+// - إشعار المتصفح (Notification API) يُعرض فقط والصفحة مخفية وبعد موافقة المعلم؛ الصوت جرس مكرر حتى يتفاعل المعلم، ويُفتح بعد أول تفاعل (سياسة التشغيل التلقائي).
 // ⚠️ قيد معروف: لا خادم Push، فلا تنبيه والمنصة/المتصفح مغلقان. يظهر «فاتتك» عند الفتح التالي.
 // ==========================================================
 import {
@@ -79,35 +79,70 @@ export function actionableCount(now = Date.now()) { return summarize(getReminder
 // الصوت: يُفعَّل بعد أول تفاعل من المعلم (قيد تشغيل الصوت التلقائي في المتصفحات)
 // ------------------------------------------------------------
 let audioCtx = null;
-function armAudio() {
-    const unlock = () => {
-        try {
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (AC && !audioCtx) audioCtx = new AC();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        } catch (e) { /* لا صوت: يبقى التنبيه البصري */ }
-        window.removeEventListener('pointerdown', unlock, true);
-        window.removeEventListener('keydown', unlock, true);
-    };
-    window.addEventListener('pointerdown', unlock, true);
-    window.addEventListener('keydown', unlock, true);
-}
-export function playReminderChime() {
-    if (!audioCtx || audioCtx.state !== 'running') return;
+let alarmTimer = null;
+let alarmStopAt = 0;
+function ensureCtx() {
     try {
-        const t0 = audioCtx.currentTime;
-        [[880, 0], [1175, 0.18]].forEach(([freq, delay]) => {
-            const o = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            o.type = 'sine';
-            o.frequency.value = freq;
-            g.gain.setValueAtTime(0.0001, t0 + delay);
-            g.gain.exponentialRampToValueAtTime(0.22, t0 + delay + 0.02);
-            g.gain.exponentialRampToValueAtTime(0.0001, t0 + delay + 0.45);
-            o.connect(g); g.connect(audioCtx.destination);
-            o.start(t0 + delay); o.stop(t0 + delay + 0.5);
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC && !audioCtx) audioCtx = new AC();
+        if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+    } catch (e) { /* لا صوت: يبقى التنبيه البصري */ }
+    return audioCtx;
+}
+function armAudio() {
+    // أي تفاعل (نقر/لمس/مفتاح/عودة التركيز) يفتح الصوت؛ ويبقى المستمع حتى يصير السياق «يعمل» فعلاً
+    const unlock = () => {
+        ensureCtx();
+        if (audioCtx && audioCtx.state === 'running') {
+            ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(ev => window.removeEventListener(ev, unlock, true));
+        }
+    };
+    ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(ev => window.addEventListener(ev, unlock, true));
+    ensureCtx();   // في تطبيق سطح المكتب المثبّت يسمح المتصفح غالباً بالتشغيل دون نقر
+}
+function ring() {
+    const ctx = audioCtx;
+    if (!ctx || ctx.state !== 'running') return;
+    try {
+        const t0 = ctx.currentTime + 0.02;
+        // ثلاث نغمات متصاعدة مرتين: جرس واضح (مربّع + مثلّث) بشدة أعلى بكثير من النغمة القديمة
+        const notes = [[784, 0], [988, 0.22], [1319, 0.44], [784, 0.9], [988, 1.12], [1319, 1.34]];
+        notes.forEach(([freq, delay]) => {
+            ['triangle', 'square'].forEach((type, i) => {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = type;
+                o.frequency.value = freq;
+                const peak = i ? 0.12 : 0.55;
+                g.gain.setValueAtTime(0.0001, t0 + delay);
+                g.gain.exponentialRampToValueAtTime(peak, t0 + delay + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, t0 + delay + 0.4);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(t0 + delay); o.stop(t0 + delay + 0.45);
+            });
         });
     } catch (e) { /* لا شيء */ }
+}
+export function stopReminderAlarm() {
+    if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
+}
+/** جرس واضح يتكرر كل ~3 ثوانٍ حتى يتفاعل المعلم مع الصفحة أو تمرّ 45 ثانية. */
+export function playReminderChime() {
+    ensureCtx();
+    stopReminderAlarm();
+    alarmStopAt = Date.now() + 45000;
+    const go = () => {
+        if (Date.now() > alarmStopAt) { stopReminderAlarm(); return; }
+        if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
+        ring();
+    };
+    go();
+    alarmTimer = setInterval(go, 3000);
+    const ack = () => {
+        stopReminderAlarm();
+        ['pointerdown', 'keydown'].forEach(ev => window.removeEventListener(ev, ack, true));
+    };
+    setTimeout(() => ['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, ack, true)), 600);
 }
 
 // ------------------------------------------------------------
@@ -115,15 +150,17 @@ export function playReminderChime() {
 // ------------------------------------------------------------
 const baseTitle = { value: null };
 export function notifyHidden(title, body, tag) {
-    if (!document.hidden) return;
+    // يُعرض أيضاً والنافذة خلف نوافذ أخرى (لا تُعدّ «مخفية» لكنها غير مرئية للمعلم)
+    const away = document.hidden || !(document.hasFocus && document.hasFocus());
+    if (!away) return;
     try {
         if ('Notification' in window && Notification.permission === 'granted') {
-            const n = new Notification(title, { body, tag, icon: 'icons/icon-192.png?v=6' });
+            const n = new Notification(title, { body, tag, icon: 'icons/icon-192.png?v=6', requireInteraction: true, renotify: true, silent: false });
             n.onclick = () => { try { window.focus(); } catch (e) { /* لا شيء */ } n.close(); };
         }
     } catch (e) { /* بعض المتصفحات تمنع الإنشاء المباشر: يكفي وميض العنوان */ }
     if (baseTitle.value === null) baseTitle.value = document.title;
-    document.title = '🔔 ' + title;
+    if (document.hidden) document.title = '🔔 ' + title;
 }
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && baseTitle.value !== null) { document.title = baseTitle.value; baseTitle.value = null; }
