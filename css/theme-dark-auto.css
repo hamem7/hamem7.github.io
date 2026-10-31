@@ -302,7 +302,7 @@ html[data-theme="dark"] body:not(.dh-light) #app-root #priv-screen li { color: #
 html[data-theme="dark"] body:not(.dh-light) #app-root #priv-screen .priv-contact { border-top: 1px dashed #676047 !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root #priv-screen .priv-contact a { color: #b8edde !important; }
 
-/* ===== settings/homework-prep.html (73) ===== */
+/* ===== settings/homework-prep.html (74) ===== */
 html[data-theme="dark"] body:not(.dh-light) .hwp2-header-icon { background: #14241f1f !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-btn-ghost { background: #14241f1a !important; border: 1px solid #4b665a59 !important; }
 html[data-theme="dark"] body:not(.dh-light) #app-root .hwp2-btn-ghost:hover { background: #14241f33 !important; }
@@ -322,6 +322,7 @@ html[data-theme="dark"] body:not(.dh-light) .hw-tile.sel { background: #162e23 !
 html[data-theme="dark"] body:not(.dh-light) .hw-tile .bar { background: #1f2731 !important; }
 html[data-theme="dark"] body:not(.dh-light) .hw-sur-chip { background: var(--dh-surface-2, #182a23) !important; border: 2px solid #465467 !important; color: var(--dh-ink, #e8f2ec) !important; }
 html[data-theme="dark"] body:not(.dh-light) .hw-sur-chip.sel { background: #162e23 !important; }
+html[data-theme="dark"] body:not(.dh-light) .hw-sur-chip .cv { background: #1f2731 !important; }
 html[data-theme="dark"] body:not(.dh-light) .hw-resume { background: #151f2c !important; border: 1px solid #42546c !important; }
 html[data-theme="dark"] body:not(.dh-light) .hw-coverage { border: 1px solid #426c50 !important; }
 html[data-theme="dark"] body:not(.dh-light) .hw-coverage .warn { color: #e1af89 !important; }

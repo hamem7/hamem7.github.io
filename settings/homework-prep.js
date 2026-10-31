@@ -1856,7 +1856,13 @@ function renderScopePanel() {
             <div class="bar"><i style="width:${covPct}%"></i></div></button>`;
     }).join('');
 
-    list.innerHTML = m.surahs.map(s => `<button type="button" class="hw-sur-chip${scopeMode === 'surah' && scopeIds.has(s.number) ? ' sel' : ''}" data-n="${s.number}">${esc(surahLabelLocal(s))}${s.cov.uncoveredCount ? ` <small style="color:#b45309;">·${s.cov.uncoveredCount}</small>` : ' ✓'}</button>`).join('');
+    // مربع لكل سورة وتحته خط مؤشر على تغطيتها في الاختبارات (نفس شكل الإرسال الجماعي)
+    list.innerHTML = m.surahs.map(s => {
+        const tot = s.cov.total || 0, unc = s.cov.uncoveredCount || 0;
+        const pct = tot ? Math.round((tot - unc) / tot * 100) : 100;
+        const tip = `${surahLabelLocal(s)} — ${L(`فُحص ${tot - unc} من ${tot} مقطعاً`, `Checked ${tot - unc} of ${tot} segments`)}`;
+        return `<button type="button" class="hw-sur-chip${scopeMode === 'surah' && scopeIds.has(s.number) ? ' sel' : ''}" data-n="${s.number}" title="${esc(tip)}">${esc(surahLabelLocal(s))}<span class="cv${pct >= 100 ? ' full' : ''}"><i style="width:${pct}%"></i></span></button>`;
+    }).join('');
     updateCoverageLine();
 }
 
