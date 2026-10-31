@@ -13,6 +13,9 @@
 .hm-strip { position: relative; height: 62px; margin: -18px -18px 10px; border-radius: 22px 22px 0 0; background: var(--hm-strip-url) center / cover no-repeat; }
 .hm-strip::after { content: ""; position: absolute; inset: auto 0 0 0; height: 30px; background: linear-gradient(transparent, var(--hm-surface)); }
 
+/* عنوان نصّي فوق صورة الشهر (نص حقيقي لا داخل الصورة) */
+.hm-cap { position: absolute; z-index: 1; inset: auto 0 18px; text-align: center; font-weight: 700; font-size: 1.05rem; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .7), 0 0 10px rgba(0, 0, 0, .45); }
+
 /* ---------- شاشة الترحيب ---------- */
 .hww-screen[data-hm] { background: linear-gradient(color-mix(in srgb, var(--hm-bg) 90%, transparent), color-mix(in srgb, var(--hm-bg) 95%, transparent)), var(--hm-hero-url) center / cover no-repeat, var(--hm-bg) !important; }
 .hww-screen[data-hm] .hww-card { position: relative; background: var(--hm-surface) !important; border-top-color: var(--hm-hi) !important; color: var(--hm-ink); }
@@ -61,6 +64,11 @@
 .hp-screen[data-hm] #hp-toast { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
 .hp-screen[data-hm] :focus-visible { outline-color: var(--hm-hi); }
 
+/* شريط تقدّم مخصّص (FLAGS.PROG): «المسار» — من غيم رمادي إلى شمس، ورأس الطفل عند حدّ التقدّم */
+.hp-screen[data-hm-prog="path"] .hp-pbar { height: 14px; overflow: visible; position: relative; }
+.hp-screen[data-hm-prog="path"] #hp-progress-bar { position: relative; background: linear-gradient(90deg, #6b7684, var(--hm-accent) 55%, var(--hm-hi)) !important; }
+.hp-screen[data-hm-prog="path"] #hp-progress-bar::after { content: ""; position: absolute; top: 50%; inset-inline-end: -13px; width: 28px; height: 28px; transform: translateY(-50%); border-radius: 50%; background: var(--hm-mascot-url) center 22% / 150% no-repeat, var(--hm-surface); border: 2px solid var(--hm-hi); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+
 /* ---------- نافذة الإنجاز (آخر صفحة) ---------- */
 #hp-result-modal[data-hm] .hp-modal-card { position: relative; background: var(--hm-surface) !important; border-top-color: var(--hm-hi) !important; color: var(--hm-ink); }
 #hp-result-modal[data-hm] #hp-result-title { color: var(--hm-accent) !important; }
@@ -73,6 +81,7 @@
 .hm-medal b { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--hm-hi); color: var(--hm-onHi); font-size: 1.2rem; line-height: 1; box-shadow: 0 3px 8px rgba(0, 0, 0, .35); }
 .hm-medal-img { display: block; width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .3)); }
 .hm-medal-label { display: inline-block; padding: 3px 14px; border-radius: 99px; background: var(--hm-hi); color: var(--hm-onHi); font-weight: 700; font-size: .9rem; }
+.hm-quote { margin: 0; padding: 4px 12px; border-radius: 12px; background: var(--hm-chip); color: var(--hm-ink); font-weight: 600; font-size: .95rem; line-height: 1.7; text-align: center; }
 .hm-done { margin: 2px 0 0; font-weight: 700; color: var(--hm-accent); font-size: 1.1rem; line-height: 1.6; }
 .hm-logo-end { display: block; width: min(220px, 70%); height: auto; margin: 14px auto 0; }
 

@@ -31,12 +31,14 @@ function paintVars(el, th) {
     el.style.setProperty('--hm-hero-url', u('hero'));
     el.style.setProperty('--hm-strip-url', u(FLAGS.STRIP[th.n] ? 'strip' : 'hero'));
     el.style.setProperty('--hm-medal-url', u(FLAGS.MEDALP[th.n] ? 'medal' : 'hero'));
+    if (FLAGS.MEDAL_IMG[th.n]) el.style.setProperty('--hm-mascot-url', u('medal'));
 }
 
 // يضبط المتغيرات ويتابع تبديل المظهر (فاتح/داكن) طالما العنصر في الصفحة
 function activate(el, th) {
     ensureCss();
     el.setAttribute('data-hm', String(th.n));
+    if (FLAGS.PROG && FLAGS.PROG[th.n]) el.setAttribute('data-hm-prog', FLAGS.PROG[th.n]);
     paintVars(el, th);
     const mo = new MutationObserver(() => { if (!el.isConnected) { mo.disconnect(); return; } paintVars(el, th); });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -65,6 +67,8 @@ export function decorateWelcome() {
         const hero = document.createElement('div'); hero.className = 'hm-hero'; hero.setAttribute('role', 'img');
         card.insertBefore(hero, card.firstChild);
         ['l', 'r'].forEach(s => { const c = cornerImg(th.n, s); if (c) card.insertBefore(c, hero.nextSibling); });
+        let cap = null;
+        if (th.ar.cap) { cap = document.createElement('div'); cap.className = 'hm-cap'; hero.appendChild(cap); }
         const title = card.querySelector('.hww-title'), sub = card.querySelector('.hww-sub');
         const badge = document.createElement('div'); badge.className = 'hm-badge';
         const thumb = document.createElement('span'); thumb.className = 'hm-thumb'; const bt = document.createElement('span'); badge.append(thumb, bt);
@@ -73,6 +77,7 @@ export function decorateWelcome() {
         const paint = () => {
             const x = th[lang()];
             hero.setAttribute('aria-label', x.name);
+            if (cap) cap.textContent = x.cap;
             bt.textContent = x.badge; if (title) title.textContent = x.title; if (sub) sub.textContent = x.sub;
         };
         paint(); onLang(paint, root);
@@ -119,6 +124,7 @@ export function renderResultExtras(confirmed) {
         if (FLAGS.MEDAL_IMG[th.n]) { const m = document.createElement('img'); m.className = 'hm-medal-img'; m.alt = x.medal; m.src = assetUrl(th.n, 'medal'); add(m); }
         else { const m = document.createElement('div'); m.className = 'hm-medal'; m.setAttribute('role', 'img'); m.setAttribute('aria-label', x.medal); const g = document.createElement('b'); g.textContent = th.glyph; m.appendChild(g); add(m); }
         const lab = document.createElement('span'); lab.className = 'hm-medal-label'; lab.textContent = x.medal; add(lab);
+        if (x.quote) { const q = document.createElement('p'); q.className = 'hm-quote'; q.textContent = x.quote; add(q); }
         const done = document.createElement('p'); done.className = 'hm-done'; done.textContent = x.done; add(done);
         if (icon) icon.style.display = 'none';
         const score = document.getElementById('hp-result-score');

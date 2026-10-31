@@ -8,7 +8,8 @@
 // • الخط القرآني لا يتأثر إطلاقاً بالثيمات (لا تُعدَّل font-family/weight للنص القرآني).
 // • للتجربة: ?hm=1..12 في الرابط أو localStorage.dh_hm = 1..12؛ ولتعطيل الثيمة: localStorage.dh_hm = 'off'.
 // • الصور في assets/themes/mXX-{hero|strip|medal|corner|deco|logo}.webp (انظر FLAGS أدناه).
-// ⚠️ جُمادى الأولى (5) وربيع الآخر (4) ثيمتان مؤقتتان بصور مبدئية، وتُستكمل صورهما لاحقاً.
+// • حقول اختيارية في نصوص الشهر: cap = عنوان فوق صورة الترحيب، quote = نص (حديث/آية) نصًّا حقيقيًّا تحت الوسام، prog = عبارة شريط التقدّم.
+// ⚠️ ربيع الآخر (4) ثيمة مؤقتة بصور مبدئية، وتُستكمل صورها لاحقاً (جمادى الأولى = «الصدق» اكتملت).
 // ==========================================================
 export const THEMES = [
  { n:1, icon:'🌙', glyph:'✦', pat:'spark', corner:'✦', conf:['🌙','✨','⭐'],
@@ -31,9 +32,9 @@ export const THEMES = [
    en:{ name:'Rabi‘ al-Akhir', occ:'Soft blossoms and calm — gentle rose tones', badge:'Rabi‘ II Homework', title:'The memorization garden blooms!', sub:'Pick the loveliest ayat today.. ready?', enc:['A beautiful answer, like a rose! 🌸','Gentle, calm and precise','Well done, keep picking'], done:'Your garden is full of achievements!', medal:'Rose Medal' },
    L:['#f9ecef','#fffafb','#3a1520','#7a4f5c','#a3214a','#ffffff','#d4a24a','#2b1a00','#fdeff2','#e3a2b4','#f6dce3','#ecc9d3'],
    D:['#1a0b11','#281219','#fbe5ea','#d0a3b0','#f08aa8','#2e0a16','#e5b055','#281700','#32161f','#8e3f58','#3c1c27','#502c38'] },
- { n:5, icon:'❄️', glyph:'❄', pat:'spark', corner:'❄', conf:['❄️','✨','💎'],
-   ar:{ name:'جُمادى الأولى', occ:'برودة الشتاء ونقاء الثلج — أزرق جليدي', badge:'واجب جمادى الأولى', title:'تحدّي الثلج الصافي!', sub:'صفاء الذهن يُتقن الحفظ.. انطلق!', enc:['إجابة صافية كالجليد! ❄️','تركيز رائع','ما شاء الله، ذهنك صافٍ'], done:'إنجازٌ بنقاء الثلج!', medal:'وسام الجليد' },
-   en:{ name:'Jumada al-Ula', occ:'Winter chill and pure snow — icy blues', badge:'Jumada I Homework', title:'The Crystal-Clear Challenge!', sub:'A clear mind masters memorization.. go!', enc:['A crystal-clear answer! ❄️','Wonderful focus','MashaAllah, a sharp mind'], done:'An achievement as pure as snow!', medal:'Ice Medal' },
+ { n:5, icon:'✅', glyph:'✓', pat:'spark', corner:'✓', conf:['✅','💚','✨'],
+   ar:{ name:'جُمادى الأولى', occ:'قيمة الشهر: الصدق — «عليكم بالصدق فإن الصدق يهدي إلى البرّ»', badge:'واجب جمادى الأولى', title:'اختر الصدق.. تكن سعيدًا!', sub:'الصدق راحة للقلب وثقة من الناس.. هيا يا بطل!', enc:['صادق وأمين، أحسنت! ✅','الصدق يهدي إلى البرّ','ما شاء الله، طريقك نور'], done:'صدقتَ في عملك.. بارك الله فيك!', medal:'وسام الصدق', cap:'الصدق يهدي إلى الجنّة', quote:'«عليكم بالصدق فإن الصدق يهدي إلى البرّ»', prog:'الصدق راحة للقلب' },
+   en:{ name:'Jumada al-Ula', occ:'Value of the month: honesty — “Hold fast to truthfulness, for truthfulness leads to righteousness”', badge:'Jumada I Homework', title:'Choose honesty.. be happy!', sub:'Honesty brings peace to the heart and trust from people.. let’s go, hero!', enc:['Honest and trustworthy, well done! ✅','Truthfulness leads to righteousness','MashaAllah, your path is light'], done:'You were honest in your work.. barakAllahu feek!', medal:'Honesty Medal', cap:'Honesty leads to Paradise', quote:'“Hold fast to truthfulness, for truthfulness leads to righteousness”', prog:'Honesty is peace for the heart' },
    L:['#e9f4fa','#fafdff','#0c2433','#476579','#0b6a8f','#ffffff','#7cc4e0','#06222f','#eef8fd','#86c1dc','#d6ebf6','#c2dfee'],
    D:['#08141c','#0f2330','#e4f3fb','#a2c4d6','#6cc3ea','#06212d','#8fd3ee','#05222e','#122c3d','#3a7a9a','#183649','#24506a'] },
  { n:6, icon:'🌨️', glyph:'❖', pat:'grid', corner:'❖', conf:['🌨️','⛄','✨'],
@@ -76,11 +77,12 @@ export const THEMES = [
 // ملاحظات الأصول: ORI = جهة ثقل زخرفة الزاوية في ملفها الأصلي (تُقلب لتوضع أعلى البطاقة)؛ STRIP/MEDALP = صورة مخصصة لشريط
 // الحل/الوسام الدائري؛ DECO = صورة علوية في شاشة الإنجاز؛ MEDAL_IMG = وسام جاهز بدل الدائرة؛ LOGO_END = شعار في آخر صفحة.
 export const FLAGS = {
-    ORI: { 1: 'bl', 2: 'tl', 3: 'bl', 4: 'bl', 5: 'br', 7: 'br', 8: 'bl', 10: 'bl', 12: 'bl' },
-    STRIP: { 6: 1, 7: 1, 11: 1 },
+    ORI: { 1: 'bl', 2: 'tl', 3: 'bl', 4: 'bl', 7: 'br', 8: 'bl', 10: 'bl', 12: 'bl' },
+    STRIP: { 5: 1, 6: 1, 7: 1, 11: 1 },
     MEDALP: { 6: 1, 7: 1, 11: 1 },
     DECO: { 8: 1, 9: 1, 10: 1 },
-    MEDAL_IMG: { 9: 1 },
+    MEDAL_IMG: { 5: 1, 9: 1 },
+    PROG: { 5: 'path' },   // شريط تقدّم مخصّص: path = مسار من الغيم إلى الشمس ورأس الطفل عند حدّ التقدّم
     LOGO_END: { 6: 1 }
 };
 
