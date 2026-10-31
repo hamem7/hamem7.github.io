@@ -16,6 +16,7 @@ import { t, tf } from '../core/i18n.js';
 import { ApiError } from '../core/api.js';
 import { fetchPublicHomework, isServerHomeworkId, friendlyErrorText } from '../core/homeworkApi.js';
 import { getAttempt, loadDraft } from '../core/submitQueue.js';
+import { decorateWelcome } from '../core/homeworkMonthly.js';   // 🌙 ثيمة الواجب الشهرية (هجرية) — تتجاهل أي فشل
 import { initErrorReporter, reportLoadFailure } from '../core/errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء
 
 let currentHwId = null;
@@ -86,6 +87,7 @@ function goToPlay() {
 
 export async function initHomeworkWelcome(hwId) {
     currentHwId = hwId;
+    decorateWelcome();
     setupCommonListeners();
 
     // 1) رابط قديم من نظام Firebase (معرّف بشكل مختلف أو رابط مُرمَّز فيه الواجب كاملاً)

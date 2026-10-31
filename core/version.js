@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.67';
+export const APP_VERSION = '1.0.68';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.68',
+        date: '2026-10-31',
+        items: [
+            { type: 'new', text: { ar: 'واجب الطالب يتجدّد تلقائياً كل شهر هجري: ثيمة خاصة بالشهر (ألوان فاتحة وداكنة، صورة وزخارف، عبارات تشجيع، ووسام عند التسليم) على شاشتي ترحيب الواجب وحلّه. بلا أي تدخل منك.', en: 'The student homework now renews itself every Hijri month: a themed look (light and dark colors, image and ornaments, encouraging phrases and a medal on submission) on both the welcome and solving screens. No action needed from you.' } },
+            { type: 'improved', text: { ar: 'جمادى الآخرة بقيمة «كان خُلُقه القرآن» وشعارها في آخر صفحة، ورجب بصور الصلاة والخشوع، وذو القعدة بالمسجد الأقصى، ورمضان بالتمر والفانوس.', en: 'Jumada al-Akhira carries the value “His character was the Qur’an” with its emblem on the last page, Rajab features prayer and humility, Dhul Qa‘dah features Al-Aqsa, and Ramadan has dates and a lantern.' } }
+        ]
+    },
     {
         version: '1.0.67',
         date: '2026-10-29',

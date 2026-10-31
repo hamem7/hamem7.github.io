@@ -1,0 +1,79 @@
+/* css/homework-monthly.css — ثيمة الواجب الشهرية (هجرية) لشاشتي الطالب: ترحيب الواجب وحلّه.
+   تُفعَّل فقط حين يحمل جذر الشاشة data-hm (يضعه core/homeworkMonthly.js) وتأخذ ألوانها من المتغيرات --hm-* التي يضبطها
+   من config/monthly-themes.js (فاتح/داكن). لا ألوان ثابتة هنا إطلاقاً (var فقط)، فالمظهر الداكن يأتي من لوحة الثيمة نفسها.
+   ممنوع هنا لمس الخط القرآني (font-family/weight/letter-spacing) — الأنماط للألوان والتخطيط حول النص فقط. */
+
+/* ---------- عناصر مشتركة (تُحقن بالجافاسكربت) ---------- */
+.hm-hero { position: relative; height: 150px; margin: -28px -24px 14px; border-radius: 20px 20px 0 0; background: var(--hm-hero-url) center / cover no-repeat; }
+.hm-hero::after { content: ""; position: absolute; inset: auto 0 0 0; height: 56px; background: linear-gradient(transparent, var(--hm-surface)); }
+.hm-orn { position: absolute; top: 0; width: 72px; max-width: 22%; pointer-events: none; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .25)); }
+.hm-orn.l { left: 0; } .hm-orn.r { right: 0; }
+.hm-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px 3px 4px; border-radius: 99px; background: var(--hm-chip); color: var(--hm-accent); font-weight: 700; font-size: .9rem; margin: 0 0 8px; }
+.hm-thumb { display: inline-block; width: 24px; height: 24px; border-radius: 50%; background: var(--hm-hero-url) center / cover; border: 2px solid var(--hm-hi); flex: none; }
+.hm-strip { position: relative; height: 62px; margin: -18px -18px 10px; border-radius: 22px 22px 0 0; background: var(--hm-strip-url) center / cover no-repeat; }
+.hm-strip::after { content: ""; position: absolute; inset: auto 0 0 0; height: 30px; background: linear-gradient(transparent, var(--hm-surface)); }
+
+/* ---------- شاشة الترحيب ---------- */
+.hww-screen[data-hm] { background: linear-gradient(color-mix(in srgb, var(--hm-bg) 90%, transparent), color-mix(in srgb, var(--hm-bg) 95%, transparent)), var(--hm-hero-url) center / cover no-repeat, var(--hm-bg) !important; }
+.hww-screen[data-hm] .hww-card { position: relative; background: var(--hm-surface) !important; border-top-color: var(--hm-hi) !important; color: var(--hm-ink); }
+.hww-screen[data-hm] .hww-title { color: var(--hm-accent) !important; }
+.hww-screen[data-hm] .hww-sub { color: var(--hm-ink2) !important; }
+.hww-screen[data-hm] .hww-teacher { background: var(--hm-chip) !important; color: var(--hm-ink) !important; }
+.hww-screen[data-hm] .hww-teacher b { color: var(--hm-accent) !important; }
+.hww-screen[data-hm] .hww-ayah-frame { background: var(--hm-frame) !important; border-color: var(--hm-frameLine) !important; box-shadow: inset 0 0 0 5px var(--hm-frame), inset 0 0 0 6px var(--hm-frameLine) !important; }
+.hww-screen[data-hm] #hw-personalized-welcome h2 { color: var(--hm-accent) !important; }
+.hww-screen[data-hm] #hw-welcome-name span { color: var(--hm-accent) !important; }
+.hww-screen[data-hm] .hww-chip { background: var(--hm-chip) !important; color: var(--hm-ink) !important; }
+.hww-screen[data-hm] .hww-name-box { background: var(--hm-surface) !important; border-color: var(--hm-frameLine) !important; }
+.hww-screen[data-hm] .hww-name-box label { color: var(--hm-ink) !important; }
+.hww-screen[data-hm] .hww-name-box input { background: var(--hm-bg) !important; color: var(--hm-ink) !important; border-color: var(--hm-frameLine) !important; }
+.hww-screen[data-hm] #btn-enter-hw { background: var(--hm-hi) !important; color: var(--hm-onHi) !important; box-shadow: 0 8px 18px color-mix(in srgb, var(--hm-hi) 35%, transparent) !important; }
+.hww-screen[data-hm] #btn-retry-load-hw { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
+.hww-screen[data-hm] #btn-cancel-hw { color: var(--hm-ink2) !important; }
+.hww-screen[data-hm] .hww-skel { background: var(--hm-chip) !important; }
+
+/* ---------- شاشة الحل ---------- */
+.hp-screen[data-hm] { background: linear-gradient(color-mix(in srgb, var(--hm-bg) 90%, transparent), color-mix(in srgb, var(--hm-bg) 95%, transparent)), var(--hm-hero-url) center / cover no-repeat, var(--hm-bg) !important; color: var(--hm-ink); }
+.hp-screen[data-hm] .hp-card { position: relative; background: var(--hm-surface) !important; color: var(--hm-ink); }
+.hp-screen[data-hm] .hp-eyebrow { color: var(--hm-accent) !important; display: flex; align-items: center; gap: 6px; }
+.hp-screen[data-hm] .hp-ib { background: var(--hm-chip) !important; color: var(--hm-accent) !important; }
+.hp-screen[data-hm] .hp-ib[aria-pressed="true"] { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
+.hp-screen[data-hm] .hp-pbar { background: var(--hm-line) !important; }
+.hp-screen[data-hm] #hp-progress-bar { background: linear-gradient(90deg, var(--hm-accent), var(--hm-hi)) !important; }
+.hp-screen[data-hm] .hp-qcard { border-top-color: var(--hm-hi) !important; }
+.hp-screen[data-hm] .hp-qtype { background: var(--hm-chip) !important; color: var(--hm-accent) !important; }
+.hp-screen[data-hm] .hp-help, .hp-screen[data-hm] .hp-prog-foot { color: var(--hm-ink2) !important; }
+.hp-screen[data-hm] .hp-mushaf { background: var(--hm-frame) !important; border-color: var(--hm-frameLine) !important; box-shadow: inset 0 0 0 5px var(--hm-frame), inset 0 0 0 6px var(--hm-frameLine) !important; }
+.hp-screen[data-hm] .hp-mushaf::before { background: var(--hm-surface) !important; color: var(--hm-hi) !important; }
+.hp-screen[data-hm] .hp-opt, .hp-screen[data-hm] .hp-orow, .hp-screen[data-hm] .hp-tile, .hp-screen[data-hm] .hp-match-card, .hp-screen[data-hm] .hp-field, .hp-screen[data-hm] .hp-select { background: var(--hm-surface) !important; border-color: var(--hm-line) !important; color: var(--hm-ink); }
+.hp-screen[data-hm] .hp-lt { background: var(--hm-chip) !important; color: var(--hm-accent) !important; }
+.hp-screen[data-hm] .hp-opt.sel { border-color: var(--hm-accent) !important; background: color-mix(in srgb, var(--hm-accent) 12%, var(--hm-surface)) !important; }
+.hp-screen[data-hm] .hp-opt.sel .hp-lt { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
+.hp-screen[data-hm] .hp-ck { color: var(--hm-accent) !important; }
+.hp-screen[data-hm] .hp-num { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
+.hp-screen[data-hm] .hp-match-card.active { border-color: var(--hm-hi) !important; }
+.hp-screen[data-hm] .hp-bar { background: color-mix(in srgb, var(--hm-surface) 93%, transparent) !important; border-top-color: var(--hm-line) !important; }
+.hp-screen[data-hm] .hp-btn { background: var(--hm-accent); color: var(--hm-onAccent); }
+.hp-screen[data-hm] .hp-btn.gold { background: var(--hm-hi) !important; color: var(--hm-onHi) !important; }
+.hp-screen[data-hm] .hp-btn.ghost { background: transparent !important; border-color: var(--hm-accent) !important; color: var(--hm-accent) !important; }
+.hp-screen[data-hm] .hp-btn.link { background: none !important; color: var(--hm-ink2) !important; border: 0 !important; }
+.hp-screen[data-hm] .hp-review h2 { color: var(--hm-accent) !important; }
+.hp-screen[data-hm] #hp-toast { background: var(--hm-accent) !important; color: var(--hm-onAccent) !important; }
+.hp-screen[data-hm] :focus-visible { outline-color: var(--hm-hi); }
+
+/* ---------- نافذة الإنجاز (آخر صفحة) ---------- */
+#hp-result-modal[data-hm] .hp-modal-card { position: relative; background: var(--hm-surface) !important; border-top-color: var(--hm-hi) !important; color: var(--hm-ink); }
+#hp-result-modal[data-hm] #hp-result-title { color: var(--hm-accent) !important; }
+#hp-result-modal[data-hm] #hp-result-score { color: var(--hm-ink) !important; }
+#hp-result-modal[data-hm] .hp-btn { background: var(--hm-accent); color: var(--hm-onAccent); }
+#hp-result-modal[data-hm] .hp-btn.gold { background: var(--hm-hi) !important; color: var(--hm-onHi) !important; }
+.hm-result { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0 0 8px; }
+.hm-result .hm-deco { display: block; width: 86%; max-height: 90px; object-fit: contain; }
+.hm-medal { position: relative; width: 132px; height: 132px; margin: 4px 0 12px; border-radius: 50%; background: var(--hm-medal-url) center / cover no-repeat; border: 6px solid var(--hm-hi); box-shadow: 0 10px 24px rgba(0, 0, 0, .3), 0 0 0 3px color-mix(in srgb, var(--hm-hi) 45%, transparent); }
+.hm-medal b { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--hm-hi); color: var(--hm-onHi); font-size: 1.2rem; line-height: 1; box-shadow: 0 3px 8px rgba(0, 0, 0, .35); }
+.hm-medal-img { display: block; width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .3)); }
+.hm-medal-label { display: inline-block; padding: 3px 14px; border-radius: 99px; background: var(--hm-hi); color: var(--hm-onHi); font-weight: 700; font-size: .9rem; }
+.hm-done { margin: 2px 0 0; font-weight: 700; color: var(--hm-accent); font-size: 1.1rem; line-height: 1.6; }
+.hm-logo-end { display: block; width: min(220px, 70%); height: auto; margin: 14px auto 0; }
+
+@media (max-width: 480px) { .hm-hero { margin: -22px -16px 12px; height: 128px; } }

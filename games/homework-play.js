@@ -10,6 +10,7 @@ const hl = localizeHomeworkText; // 🌟 اختصار: ترجمة نص السؤ�
 import { esc } from '../core/escape.js';
 import { friendlyErrorText } from '../core/homeworkApi.js';
 import { ApiError } from '../core/api.js';
+import { decoratePlay, monthlyEncouragement, renderResultExtras } from '../core/homeworkMonthly.js';   // 🌙 ثيمة الواجب الشهرية (هجرية)
 import { initErrorReporter } from '../core/errorReporter.js';   // 🌟 [2026-10-13] مراقبة الأخطاء
 import { saveDraft, loadDraft, getAttempt, startSubmission, attemptSend, startAutoRetry, watchAttempt, isLocalStorageWorking } from '../core/submitQueue.js';
 
@@ -32,6 +33,7 @@ export function initHomeworkPlay() {
     }
 
     initErrorReporter({ getHwId: () => (hw && hw.id) || null });
+    decoratePlay();
     document.getElementById('hp-student-name').textContent = `${t('hw_st_hero_prefix')} ${student.name}`;
     currentIndex = 0;
     answers = {};
@@ -177,7 +179,7 @@ function onAnswerChanged() {
     if (n >= 1 && !encShown[n]) {
         encShown[n] = 1;
         const frac = n / hw.questions.length;
-        toast(t('hw_pl_enc_' + (frac >= 1 ? 5 : frac >= .75 ? 4 : frac >= .5 ? 3 : n === 1 ? 1 : 2)));
+        toast(monthlyEncouragement(n, hw.questions.length) || t('hw_pl_enc_' + (frac >= 1 ? 5 : frac >= .75 ? 4 : frac >= .5 ? 3 : n === 1 ? 1 : 2)));
     }
     paintSegments();
 }
@@ -699,4 +701,5 @@ function renderSubmissionStatus(a) {
     }
     if (a.attempts) meta.push(t('hw_st_attempts') + ' ' + a.attempts);
     set('hp-result-meta', meta.join(' • '));
+    renderResultExtras(a.state === 'confirmed');   // 🌙 مكافأة الشهر (وسام/عبارة/شعار) عند التأكيد الحقيقي فقط
 }
