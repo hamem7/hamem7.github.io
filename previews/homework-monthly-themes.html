@@ -28,14 +28,16 @@ body { background:var(--pbg); color:var(--pink); line-height:1.6; }
 .theme { margin-bottom:34px; padding:16px; border-radius:22px; background:var(--bg); border:1px solid var(--line); color:var(--ink); }
 .th-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
 .th-num { width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-weight:700; font-size:1.2rem; }
-.th-head h2 { font-size:1.35rem; }
+.th-head h2 { font-size:1.35rem; display:flex; align-items:center; gap:8px; }
+.thumb { display:inline-block; width:38px; height:38px; border-radius:50%; background:center/cover; border:3px solid var(--hi); flex:none; box-shadow:0 2px 6px rgba(0,0,0,.25); }
+.thumb.s { width:20px; height:20px; border-width:2px; vertical-align:middle; margin-inline-end:4px; }
 .th-head p { color:var(--ink2); font-size:.95rem; flex-basis:100%; }
 .cur-tag { background:var(--hi); color:var(--onHi); border-radius:99px; padding:2px 12px; font-size:.8rem; font-weight:700; }
 .swatches { display:flex; gap:6px; margin-inline-start:auto; }
 .swatches b { width:24px; height:24px; border-radius:8px; border:1px solid var(--line); }
 .frames { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px; }
 .fcap { font-size:.82rem; font-weight:700; color:var(--ink2); margin-bottom:6px; }
-.scr { border-radius:20px; padding:14px; min-height:470px; background-color:var(--bg); border:1px solid var(--line); position:relative; overflow:hidden; }
+.scr { background-size:cover; background-position:center; border-radius:20px; padding:14px; min-height:470px; background-color:var(--bg); border:1px solid var(--line); position:relative; overflow:hidden; }
 .pat-dots { background-image:radial-gradient(color-mix(in srgb,var(--accent) 16%,transparent) 1.5px,transparent 1.6px); background-size:18px 18px; }
 .pat-diamond { background-image:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 12%,transparent) 0 1px,transparent 1px 16px),repeating-linear-gradient(-45deg,color-mix(in srgb,var(--accent) 12%,transparent) 0 1px,transparent 1px 16px); }
 .pat-stripes { background-image:repeating-linear-gradient(90deg,color-mix(in srgb,var(--accent) 11%,transparent) 0 2px,transparent 2px 22px); }
@@ -122,12 +124,12 @@ const T = [
    L:['#f6ece2','#fffaf4','#3a1f12','#7a5a49','#9a3f1d','#ffffff','#d98a3d','#2b1400','#fbefe0','#d9a77a','#f1dfcb','#e6d2bb'],
    D:['#1a0f0a','#271710','#f6e6d9','#c9a994','#f0a77a','#2a1205','#e6a04f','#2a1400','#301c13','#8a5a3a','#3a2418','#4a3022'] },
  { n:3, icon:'🌿', glyph:'❀', pat:'dots', corner:'❀', conf:['🌿','🌸','🍃'],
-   ar:{ name:'رَبيع الأول', occ:'ربيع القلوب — أخضر طازج وأوراق متفتحة', badge:'واجب ربيع الأول', title:'ربيعُ قلبك مع القرآن!', sub:'تفتّح مع كل آية كما تتفتح الأزهار.. هيا!', enc:['أزهرت إجابتك! 🌿','نموّ جميل يوماً بعد يوم','ما شاء الله، تقدّم ممتاز'], done:'أزهر إنجازك هذا الشهر!', medal:'وسام الربيع' },
-   en:{ name:'Rabi‘ al-Awwal', occ:'The spring of hearts — fresh greens and blooming leaves', badge:'Rabi‘ I Homework', title:'Spring for your heart with the Qur’an!', sub:'Bloom with every ayah.. let’s go!', enc:['Your answer bloomed! 🌿','Lovely growth day by day','MashaAllah, excellent progress'], done:'Your achievement bloomed this month!', medal:'Spring Medal' },
+   ar:{ name:'رَبيع الأول', occ:'شهر مولد النبي ﷺ — القبة الخضراء للمسجد النبوي', badge:'واجب ربيع الأول', title:'ربيعُ قلبك مع القرآن!', sub:'في شهر مولد نبينا ﷺ.. صلِّ عليه وهيا نبدأ!', enc:['أزهرت إجابتك! 🌿','نموّ جميل يوماً بعد يوم','ما شاء الله، تقدّم ممتاز'], done:'أزهر إنجازك هذا الشهر!', medal:'وسام الربيع' },
+   en:{ name:'Rabi‘ al-Awwal', occ:'The month of the Prophet’s ﷺ birth — the Green Dome of the Prophet’s Mosque', badge:'Rabi‘ I Homework', title:'Spring for your heart with the Qur’an!', sub:'In the month of our Prophet’s ﷺ birth.. send blessings upon him and let’s begin!', enc:['Your answer bloomed! 🌿','Lovely growth day by day','MashaAllah, excellent progress'], done:'Your achievement bloomed this month!', medal:'Spring Medal' },
    L:['#eaf6ee','#fbfffc','#0f2a1b','#4a6b57','#14693f','#ffffff','#e0c24a','#2b2300','#effaf2','#7fc59a','#d9f0e1','#c4e3cf'],
    D:['#08140d','#10241a','#e5f6ec','#a4c7b2','#6fd49b','#06210f','#e6cb5a','#231c00','#14301f','#3f8a5f','#1a3a28','#25503a'] },
  { n:4, icon:'🌸', glyph:'✿', pat:'waves', corner:'✿', conf:['🌸','🌷','🦋'],
-   ar:{ name:'رَبيع الآخر', occ:'ورود ناعمة وهدوء — وردي لطيف', badge:'واجب ربيع الآخر', title:'بستان الحفظ يزهر!', sub:'اقطف أجمل الآيات اليوم.. هل أنت جاهز؟', enc:['إجابة جميلة كالوردة! 🌸','لطيف وهادئ ومتقن','أحسنت، واصل القطف'], done:'بستانك مليء بالإنجازات!', medal:'وسام الوردة' },
+   ar:{ name:'رَبيع الآخر', occ:'هلال وورود ناعمة — وردي لطيف', badge:'واجب ربيع الآخر', title:'بستان الحفظ يزهر!', sub:'اقطف أجمل الآيات اليوم.. هل أنت جاهز؟', enc:['إجابة جميلة كالوردة! 🌸','لطيف وهادئ ومتقن','أحسنت، واصل القطف'], done:'بستانك مليء بالإنجازات!', medal:'وسام الوردة' },
    en:{ name:'Rabi‘ al-Akhir', occ:'Soft blossoms and calm — gentle rose tones', badge:'Rabi‘ II Homework', title:'The memorization garden blooms!', sub:'Pick the loveliest ayat today.. ready?', enc:['A beautiful answer, like a rose! 🌸','Gentle, calm and precise','Well done, keep picking'], done:'Your garden is full of achievements!', medal:'Rose Medal' },
    L:['#f9ecef','#fffafb','#3a1520','#7a4f5c','#a3214a','#ffffff','#d4a24a','#2b1a00','#fdeff2','#e3a2b4','#f6dce3','#ecc9d3'],
    D:['#1a0b11','#281219','#fbe5ea','#d0a3b0','#f08aa8','#2e0a16','#e5b055','#281700','#32161f','#8e3f58','#3c1c27','#502c38'] },
@@ -152,7 +154,7 @@ const T = [
    L:['#f4eaf0','#fffafd','#301528','#755065','#8a2a6a','#ffffff','#f0a23a','#2a1500','#faeff6','#d49bbf','#f0dce9','#e4c7d8'],
    D:['#180b15','#261220','#f8e6f1','#cca3bd','#e48fc6','#2e0a22','#f2ae4c','#281500','#301729','#86467a','#3b1d33','#50304a'] },
  { n:9, icon:'🏮', glyph:'☪', pat:'diamond', corner:'☪', conf:['🏮','🌙','⭐'],
-   ar:{ name:'رَمَضان', occ:'شهر القرآن — كحلي وذهبي وفانوس', badge:'واجب شهر رمضان', title:'تحدّي شهر القرآن!', sub:'شهرٌ أُنزل فيه القرآن.. هل أنت مستعد يا بطل؟', enc:['رمضان كريم! 🏮','نور على نور','ما شاء الله، همّة عالية'], done:'أنرتَ رمضان بإنجازك!', medal:'وسام الفانوس' },
+   ar:{ name:'رَمَضان', occ:'شهر القرآن — تمر وفانوس على سماء كحلية', badge:'واجب شهر رمضان', title:'تحدّي شهر القرآن!', sub:'شهرٌ أُنزل فيه القرآن.. هل أنت مستعد يا بطل؟', enc:['رمضان كريم! 🏮','نور على نور','ما شاء الله، همّة عالية'], done:'أنرتَ رمضان بإنجازك!', medal:'وسام الفانوس' },
    en:{ name:'Ramadan', occ:'The month of the Qur’an — navy, gold and a lantern', badge:'Ramadan Homework', title:'The Month-of-the-Qur’an Challenge!', sub:'The month in which the Qur’an was revealed.. ready, hero?', enc:['Ramadan Kareem! 🏮','Light upon light','MashaAllah, high spirit'], done:'You lit up Ramadan with your success!', medal:'Lantern Medal' },
    L:['#f4efe0','#fffdf3','#0e1b3d','#4b5878','#14275e','#ffffff','#d4a62a','#261c00','#fbf3d6','#d2ad45','#f1e6bd','#e4d7a5'],
    D:['#070d1f','#0f1a3a','#f1ecd6','#b5bdd6','#f0c94f','#1b1500','#8ea6ff','#070d1f','#142250','#b8962f','#1c2c63','#2b3d7a'] },
@@ -213,29 +215,29 @@ function render() {
     const sw = [4, 6, 8, 9].map(i => `<b style="background:${arr[i]}" title="${arr[i]}"></b>`).join('');
     const fall = t.conf.concat(t.conf).map((g, i) => `<span style="inset-inline-start:${8 + i * 16}%;animation-delay:${(i * 0.7).toFixed(1)}s">${g}</span>`).join('');
     return `<section class="theme" id="t${t.n}" style="${vars(t)}">
-      <div class="th-head"><div class="th-num">${t.n}</div><h2>${t.icon} ${esc(x.name)}</h2>${t.n === cm ? `<span class="cur-tag">${u.cur}</span>` : ''}
+      <div class="th-head"><div class="th-num">${t.n}</div><h2><span class="thumb" style="background-image:url(${A(t.n, 'hero')})"></span>${esc(x.name)}</h2>${t.n === cm ? `<span class="cur-tag">${u.cur}</span>` : ''}
         <div class="swatches" aria-label="${u.swatch}">${sw}</div><p>${esc(x.occ)}</p></div>
       <div class="frames">
-        <div><div class="fcap">${u.f1}</div><div class="scr pat-${t.pat}"><div class="card">
+        <div><div class="fcap">${u.f1}</div><div class="scr" style="background-image:linear-gradient(color-mix(in srgb,var(--bg) 90%,transparent),color-mix(in srgb,var(--bg) 95%,transparent)),url(${A(t.n, 'hero')})"><div class="card">
           <div class="hero" style="background-image:url(${A(t.n, 'hero')})"></div>
           ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : `<span class="corner l">${t.corner}</span><span class="corner r">${t.corner}</span>`}
-          <div class="logo">حمٓ</div><span class="badge">${t.icon} ${esc(x.badge)}</span>
+          <div class="logo">حمٓ</div><span class="badge"><span class="thumb s" style="background-image:url(${A(t.n, 'hero')})"></span>${esc(x.badge)}</span>
           <h3>${esc(x.title)}</h3><p class="sub">${esc(x.sub)}</p>
           <div class="teacher"><span>${u.prep}</span><b>${u.teacher}</b></div>
-          <div class="afr"><h4>${u.prefix}<br>${t.icon} ${u.student} ${t.corner}</h4></div>
+          <div class="afr"><h4>${u.prefix}<br>${u.student} ${t.corner}</h4></div>
           <div class="chips"><span class="chip">${u.chipQ}</span><span class="chip">${u.chipM}</span><span class="chip">${u.chipS}</span></div>
           <button class="btn">${u.go}</button><button class="btn2">${u.later}</button></div></div></div>
-        <div><div class="fcap">${u.f2}</div><div class="scr pat-${t.pat}">
-          <div class="pcard"><div class="strip" style="background-image:url(${A(t.n, 'hero')})"></div><div class="eyebrow"><span>${t.icon} ${esc(x.badge)}</span><span>${u.student}</span></div>
+        <div><div class="fcap">${u.f2}</div><div class="scr" style="background-image:linear-gradient(color-mix(in srgb,var(--bg) 90%,transparent),color-mix(in srgb,var(--bg) 95%,transparent)),url(${A(t.n, 'hero')})">
+          <div class="pcard"><div class="strip" style="background-image:url(${A(t.n, 'hero')})"></div><div class="eyebrow"><span><span class="thumb s" style="background-image:url(${A(t.n, 'hero')})"></span>${esc(x.badge)}</span><span>${u.student}</span></div>
             <div class="segs"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="cnt">${u.q} ٢ ${u.of} ٥</div></div>
           <div class="pcard qcard"><span class="qtype">${u.qtype}</span><div class="qtitle">${u.qtitle}</div>
             <div class="mushaf" data-g="${t.corner}"><div class="ayah quran-text">${u.ayah}</div></div>
             ${u.o.map((o, i) => `<div class="opt ${i === 0 ? 'sel' : ''}"><span class="lt">${u.letters[i]}</span><span class="ot quran-text">${o}</span></div>`).join('')}
             <div class="nav2"><button class="btn g">${u.prev}</button><button class="btn">${u.next}</button></div></div>
           <div class="enc">${esc(x.enc[0])}</div></div></div>
-        <div><div class="fcap">${u.f3}</div><div class="scr pat-${t.pat} done"><div class="fall">${fall}</div>
+        <div><div class="fcap">${u.f3}</div><div class="scr done" style="background-image:linear-gradient(color-mix(in srgb,var(--bg) 90%,transparent),color-mix(in srgb,var(--bg) 95%,transparent)),url(${A(t.n, 'hero')})"><div class="fall">${fall}</div>
           ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : ''}${t.n === 9 ? `<img class="garland" alt="" src="${A(9, 'garland')}">` : ''}
-          <h3 style="color:var(--accent);margin:34px 0 6px">${t.icon} ${u.fin}</h3>
+          <h3 style="color:var(--accent);margin:34px 0 6px">${u.fin}</h3>
           <div class="medal" style="background-image:url(${A(t.n, 'hero')})"><b>${t.glyph}</b></div><span class="mlab">${u.medalL}: ${esc(x.medal)}</span>
           <div style="color:var(--ink2)">${u.scoreL}</div><div class="score">${u.score}</div>
           <p style="margin:8px 0;font-weight:700;color:var(--ink)">${esc(x.done)}</p>
