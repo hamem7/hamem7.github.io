@@ -45,7 +45,14 @@ body { background:var(--pbg); color:var(--pink); line-height:1.6; }
 .card { position:relative; background:var(--surface); border-radius:22px; border-top:6px solid var(--hi); padding:18px 14px; box-shadow:0 12px 28px rgba(0,0,0,.12); text-align:center; }
 .card .corner { position:absolute; top:8px; font-size:1.1rem; color:var(--hi); }
 .card .corner.l { inset-inline-start:12px; } .card .corner.r { inset-inline-end:12px; }
-.logo { width:54px; height:54px; border-radius:16px; margin:0 auto 6px; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-size:1.5rem; font-weight:700; }
+.hero { height:128px; margin:-18px -14px 12px; border-radius:16px 16px 0 0; background:center/cover no-repeat; position:relative; }
+.hero::after { content:""; position:absolute; inset:auto 0 0 0; height:46px; background:linear-gradient(transparent,var(--surface)); }
+.orn { position:absolute; top:0; width:64px; pointer-events:none; z-index:2; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+.orn.l { left:0; } .orn.r { right:0; }
+.garland { position:absolute; top:0; left:50%; transform:translateX(-50%); width:70%; height:120px; object-fit:cover; object-position:top; z-index:2; pointer-events:none; }
+.strip { height:54px; margin:-12px -14px 8px; border-radius:18px 18px 0 0; background:center/cover no-repeat; position:relative; }
+.strip::after { content:""; position:absolute; inset:auto 0 0 0; height:26px; background:linear-gradient(transparent,var(--surface)); }
+.logo { width:54px; height:54px; border-radius:16px; margin:-38px auto 6px; border:4px solid var(--surface); position:relative; z-index:3; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-size:1.5rem; font-weight:700; }
 .badge { display:inline-block; padding:3px 12px; border-radius:99px; background:var(--chip); color:var(--accent); font-weight:700; font-size:.85rem; margin-bottom:6px; }
 .card h3 { color:var(--accent); font-size:1.35rem; line-height:1.5; margin:2px 0 4px; }
 .card .sub { color:var(--ink2); font-size:.95rem; margin-bottom:10px; }
@@ -80,8 +87,9 @@ body { background:var(--pbg); color:var(--pink); line-height:1.6; }
 .fall span { position:absolute; top:-20px; font-size:1.3rem; animation:fall 4s linear infinite; }
 @keyframes fall { to { transform:translateY(560px) rotate(200deg); } }
 .big { font-size:3.2rem; line-height:1.1; }
-.medal { margin:12px auto; width:150px; height:150px; border-radius:50%; display:grid; place-items:center; align-content:center; background:radial-gradient(circle at 35% 30%,var(--hi),color-mix(in srgb,var(--hi) 60%,var(--accent))); color:var(--onHi); box-shadow:0 10px 24px rgba(0,0,0,.25), inset 0 0 0 6px rgba(255,255,255,.35); }
-.medal b { font-size:2.4rem; line-height:1; } .medal small { font-weight:700; font-size:.82rem; padding:0 10px; }
+.medal { margin:12px auto 4px; width:150px; height:150px; border-radius:50%; position:relative; background:center/cover no-repeat; border:7px solid var(--hi); box-shadow:0 10px 24px rgba(0,0,0,.30), 0 0 0 3px color-mix(in srgb,var(--hi) 45%,transparent), inset 0 0 0 2px rgba(255,255,255,.5); }
+.medal b { position:absolute; bottom:-14px; left:50%; transform:translateX(-50%); width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--hi); color:var(--onHi); font-size:1.3rem; line-height:1; box-shadow:0 3px 8px rgba(0,0,0,.35); }
+.mlab { display:inline-block; margin:12px 0 4px; padding:3px 14px; border-radius:99px; background:var(--hi); color:var(--onHi); font-weight:700; font-size:.82rem; }
 .score { font-size:1.6rem; font-weight:700; color:var(--accent); }
 .encs { margin-top:10px; display:grid; gap:6px; }
 .encs div { background:var(--chip); border-radius:12px; padding:6px 10px; font-size:.88rem; }
@@ -164,6 +172,10 @@ const T = [
    L:['#efeeea','#ffffff','#121212','#55524b','#1a1a1a','#ffffff','#c9a227','#261d00','#faf6e6','#c9a227','#ebe7d6','#d9d5c3'],
    D:['#0b0b0b','#171717','#f3f0e6','#b5b0a0','#e6c24c','#1a1400','#f1f0ea','#141414','#1f1c10','#a8872a','#272414','#38341f'] }
 ];
+const ORI = {1:'bl',2:'tl',3:'bl',4:'bl',5:'br',6:'tr',7:'br',8:'bl',10:'bl',11:'tl',12:'bl'};
+const pad = n => String(n).padStart(2, '0');
+const A = (n, k) => `../assets/themes/m${pad(n)}-${k}.webp`;
+function orn(n, side) { const o = ORI[n]; if (!o) return ''; let sx = o.includes('r') ? -1 : 1; const sy = o.includes('b') ? -1 : 1; if (side === 'r') sx = -sx; return `<img class="orn ${side}" alt="" src="${A(n, 'corner')}" style="transform:scale(${sx},${sy})">`; }
 const KEYS = ['bg','surface','ink','ink2','accent','onAccent','hi','onHi','frame','frameLine','chip','line'];
 const UI = {
  ar:{ page:'معاينة — ثيمات الواجب الشهرية (حسب الشهر الهجري)', lang:'English', dark:'🌙 المظهر الداكن', light:'☀️ المظهر الفاتح',
@@ -205,7 +217,8 @@ function render() {
         <div class="swatches" aria-label="${u.swatch}">${sw}</div><p>${esc(x.occ)}</p></div>
       <div class="frames">
         <div><div class="fcap">${u.f1}</div><div class="scr pat-${t.pat}"><div class="card">
-          <span class="corner l">${t.corner}</span><span class="corner r">${t.corner}</span>
+          <div class="hero" style="background-image:url(${A(t.n, 'hero')})"></div>
+          ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : `<span class="corner l">${t.corner}</span><span class="corner r">${t.corner}</span>`}
           <div class="logo">حمٓ</div><span class="badge">${t.icon} ${esc(x.badge)}</span>
           <h3>${esc(x.title)}</h3><p class="sub">${esc(x.sub)}</p>
           <div class="teacher"><span>${u.prep}</span><b>${u.teacher}</b></div>
@@ -213,7 +226,7 @@ function render() {
           <div class="chips"><span class="chip">${u.chipQ}</span><span class="chip">${u.chipM}</span><span class="chip">${u.chipS}</span></div>
           <button class="btn">${u.go}</button><button class="btn2">${u.later}</button></div></div></div>
         <div><div class="fcap">${u.f2}</div><div class="scr pat-${t.pat}">
-          <div class="pcard"><div class="eyebrow"><span>${t.icon} ${esc(x.badge)}</span><span>${u.student}</span></div>
+          <div class="pcard"><div class="strip" style="background-image:url(${A(t.n, 'hero')})"></div><div class="eyebrow"><span>${t.icon} ${esc(x.badge)}</span><span>${u.student}</span></div>
             <div class="segs"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="cnt">${u.q} ٢ ${u.of} ٥</div></div>
           <div class="pcard qcard"><span class="qtype">${u.qtype}</span><div class="qtitle">${u.qtitle}</div>
             <div class="mushaf" data-g="${t.corner}"><div class="ayah quran-text">${u.ayah}</div></div>
@@ -221,8 +234,9 @@ function render() {
             <div class="nav2"><button class="btn g">${u.prev}</button><button class="btn">${u.next}</button></div></div>
           <div class="enc">${esc(x.enc[0])}</div></div></div>
         <div><div class="fcap">${u.f3}</div><div class="scr pat-${t.pat} done"><div class="fall">${fall}</div>
-          <div class="big">${t.icon}</div><h3 style="color:var(--accent);margin:6px 0">${u.fin}</h3>
-          <div class="medal"><b>${t.glyph}</b><small>${u.medalL}: ${esc(x.medal)}</small></div>
+          ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : ''}${t.n === 9 ? `<img class="garland" alt="" src="${A(9, 'garland')}">` : ''}
+          <h3 style="color:var(--accent);margin:34px 0 6px">${t.icon} ${u.fin}</h3>
+          <div class="medal" style="background-image:url(${A(t.n, 'hero')})"><b>${t.glyph}</b></div><span class="mlab">${u.medalL}: ${esc(x.medal)}</span>
           <div style="color:var(--ink2)">${u.scoreL}</div><div class="score">${u.score}</div>
           <p style="margin:8px 0;font-weight:700;color:var(--ink)">${esc(x.done)}</p>
           <div class="encs">${x.enc.map(e => `<div>${esc(e)}</div>`).join('')}</div></div></div>
