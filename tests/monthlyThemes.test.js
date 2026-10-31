@@ -41,6 +41,7 @@ ok(hijriMonth(new Date('2026-03-01T12:00:00Z')) === 9, 'مارس 2026 = رمضا
 ok(hijriMonth(new Date('2025-07-10T12:00:00Z')) === 1, 'يوليو 2025 = محرّم (1)');
 ok(activeMonth({ force: '7' }) === 7 && activeMonth({ force: 'off' }) === 0, 'تجاوز اختباري ?hm= وتعطيل off');
 ok(activeMonth({ search: '?hm=12', force: null }) === 12, 'قراءة hm من الرابط');
+ok(getTheme(4).ar.cap && getTheme(4).en.quote && FLAGS.PROG[4] && FLAGS.MEDAL_IMG[4] && FLAGS.STRIP[4], 'ربيع الآخر (الذكر): نصوص ثنائية + وسام وشريط مخصّصان');
 ok(getTheme(5).ar.cap && getTheme(5).en.cap && getTheme(5).ar.quote && getTheme(5).en.quote && FLAGS.PROG[5] && FLAGS.MEDAL_IMG[5], 'جمادى الأولى (الصدق): نصوص الحديث والعنوان ثنائية + وسام وشريط مخصّصان');
 ok(getTheme(5).n === 5 && getTheme(13) === null, 'getTheme');
 ok(assetUrl(3, 'hero', 'http://x/a/').endsWith('/a/m03-hero.webp'), 'مسار الأصل');

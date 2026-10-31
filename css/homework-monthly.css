@@ -67,7 +67,13 @@
 /* شريط تقدّم مخصّص (FLAGS.PROG): «المسار» — من غيم رمادي إلى شمس، ورأس الطفل عند حدّ التقدّم */
 .hp-screen[data-hm-prog="path"] .hp-pbar { height: 14px; overflow: visible; position: relative; }
 .hp-screen[data-hm-prog="path"] #hp-progress-bar { position: relative; background: linear-gradient(90deg, #6b7684, var(--hm-accent) 55%, var(--hm-hi)) !important; }
-.hp-screen[data-hm-prog="path"] #hp-progress-bar::after { content: ""; position: absolute; top: 50%; inset-inline-end: -13px; width: 28px; height: 28px; transform: translateY(-50%); border-radius: 50%; background: var(--hm-mascot-url) center 22% / 150% no-repeat, var(--hm-surface); border: 2px solid var(--hm-hi); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+[data-hm-prog] #hp-progress-bar::after { content: ""; position: absolute; top: 50%; inset-inline-end: -13px; width: 28px; height: 28px; transform: translateY(-50%); border-radius: 50%; background: var(--hm-mascot-url) center 22% / 150% no-repeat, var(--hm-surface); border: 2px solid var(--hm-hi); box-shadow: 0 2px 6px rgba(0, 0, 0, .3); }
+/* «حبّات المسبحة» (ربيع الآخر): المسار حبّات فارغة وتمتلئ حبّة بعد حبّة مع كل إجابة، وخاتم التسبيح عند حدّ التقدّم */
+.hp-screen[data-hm-prog="beads"] .hp-pbar { height: 16px; overflow: visible; background: radial-gradient(circle at 50% 50%, var(--hm-line) 0 6px, transparent 6.6px) 0 0 / 18px 16px repeat-x !important; border-radius: 0; }
+html[dir="rtl"] .hp-screen[data-hm-prog="beads"] .hp-pbar { background-position: 100% 0 !important; }
+.hp-screen[data-hm-prog="beads"] #hp-progress-bar { position: relative; background: radial-gradient(circle at 50% 50%, var(--hm-accent) 0 6px, transparent 6.6px) 0 0 / 18px 16px repeat-x !important; border-radius: 0; }
+html[dir="rtl"] .hp-screen[data-hm-prog="beads"] #hp-progress-bar { background-position: 100% 0 !important; }
+.hp-screen[data-hm-prog="beads"] #hp-progress-bar::after { border-radius: 9px; background: var(--hm-mascot-url) center / contain no-repeat; border: 0; box-shadow: none; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)); inset-inline-end: -16px; width: 26px; height: 30px; }
 
 /* ---------- نافذة الإنجاز (آخر صفحة) ---------- */
 #hp-result-modal[data-hm] .hp-modal-card { position: relative; background: var(--hm-surface) !important; border-top-color: var(--hm-hi) !important; color: var(--hm-ink); }
@@ -79,7 +85,7 @@
 .hm-result .hm-deco { display: block; width: 86%; max-height: 90px; object-fit: contain; }
 .hm-medal { position: relative; width: 132px; height: 132px; margin: 4px 0 12px; border-radius: 50%; background: var(--hm-medal-url) center / cover no-repeat; border: 6px solid var(--hm-hi); box-shadow: 0 10px 24px rgba(0, 0, 0, .3), 0 0 0 3px color-mix(in srgb, var(--hm-hi) 45%, transparent); }
 .hm-medal b { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--hm-hi); color: var(--hm-onHi); font-size: 1.2rem; line-height: 1; box-shadow: 0 3px 8px rgba(0, 0, 0, .35); }
-.hm-medal-img { display: block; width: 140px; height: 140px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .3)); }
+.hm-medal-img { display: block; width: 150px; height: 140px; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .3)); }
 .hm-medal-label { display: inline-block; padding: 3px 14px; border-radius: 99px; background: var(--hm-hi); color: var(--hm-onHi); font-weight: 700; font-size: .9rem; }
 .hm-quote { margin: 0; padding: 4px 12px; border-radius: 12px; background: var(--hm-chip); color: var(--hm-ink); font-weight: 600; font-size: .95rem; line-height: 1.7; text-align: center; }
 .hm-done { margin: 2px 0 0; font-weight: 700; color: var(--hm-accent); font-size: 1.1rem; line-height: 1.6; }

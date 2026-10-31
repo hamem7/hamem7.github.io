@@ -9,7 +9,7 @@
 // • للتجربة: ?hm=1..12 في الرابط أو localStorage.dh_hm = 1..12؛ ولتعطيل الثيمة: localStorage.dh_hm = 'off'.
 // • الصور في assets/themes/mXX-{hero|strip|medal|corner|deco|logo}.webp (انظر FLAGS أدناه).
 // • حقول اختيارية في نصوص الشهر: cap = عنوان فوق صورة الترحيب، quote = نص (حديث/آية) نصًّا حقيقيًّا تحت الوسام، prog = عبارة شريط التقدّم.
-// ⚠️ ربيع الآخر (4) ثيمة مؤقتة بصور مبدئية، وتُستكمل صورها لاحقاً (جمادى الأولى = «الصدق» اكتملت).
+// ⚠️ جمادى الأولى = «الصدق» وربيع الآخر = «الذكر» اكتملتا بصورهما.
 // ==========================================================
 export const THEMES = [
  { n:1, icon:'🌙', glyph:'✦', pat:'spark', corner:'✦', conf:['🌙','✨','⭐'],
@@ -27,11 +27,11 @@ export const THEMES = [
    en:{ name:'Rabi‘ al-Awwal', occ:'The month of the Prophet’s ﷺ birth — the Green Dome of the Prophet’s Mosque', badge:'Rabi‘ I Homework', title:'Spring for your heart with the Qur’an!', sub:'In the month of our Prophet’s ﷺ birth.. send blessings upon him and let’s begin!', enc:['Your answer bloomed! 🌿','Lovely growth day by day','MashaAllah, excellent progress'], done:'Your achievement bloomed this month!', medal:'Spring Medal' },
    L:['#eaf6ee','#fbfffc','#0f2a1b','#4a6b57','#14693f','#ffffff','#e0c24a','#2b2300','#effaf2','#7fc59a','#d9f0e1','#c4e3cf'],
    D:['#08140d','#10241a','#e5f6ec','#a4c7b2','#6fd49b','#06210f','#e6cb5a','#231c00','#14301f','#3f8a5f','#1a3a28','#25503a'] },
- { n:4, icon:'🌸', glyph:'✿', pat:'waves', corner:'✿', conf:['🌸','🌷','🦋'],
-   ar:{ name:'رَبيع الآخر', occ:'هلال وورود ناعمة — وردي لطيف', badge:'واجب ربيع الآخر', title:'بستان الحفظ يزهر!', sub:'اقطف أجمل الآيات اليوم.. هل أنت جاهز؟', enc:['إجابة جميلة كالوردة! 🌸','لطيف وهادئ ومتقن','أحسنت، واصل القطف'], done:'بستانك مليء بالإنجازات!', medal:'وسام الوردة' },
-   en:{ name:'Rabi‘ al-Akhir', occ:'Soft blossoms and calm — gentle rose tones', badge:'Rabi‘ II Homework', title:'The memorization garden blooms!', sub:'Pick the loveliest ayat today.. ready?', enc:['A beautiful answer, like a rose! 🌸','Gentle, calm and precise','Well done, keep picking'], done:'Your garden is full of achievements!', medal:'Rose Medal' },
-   L:['#f9ecef','#fffafb','#3a1520','#7a4f5c','#a3214a','#ffffff','#d4a24a','#2b1a00','#fdeff2','#e3a2b4','#f6dce3','#ecc9d3'],
-   D:['#1a0b11','#281219','#fbe5ea','#d0a3b0','#f08aa8','#2e0a16','#e5b055','#281700','#32161f','#8e3f58','#3c1c27','#502c38'] },
+ { n:4, icon:'📿', glyph:'❁', pat:'dots', corner:'❁', conf:['📿','✨','🌙'],
+   ar:{ name:'رَبيع الآخر', occ:'قيمة الشهر: الذكر — «لا يزال لسانك رطبًا من ذكر الله»', badge:'واجب ربيع الآخر', title:'اجعل لسانك رطبًا بالذكر!', sub:'اذكر الله في كل أحوالك.. هيا يا بطل!', enc:['ذاكرٌ لله، أحسنت! 📿','سبحان الله، تقدّم رائع','ما شاء الله، لسانٌ رطب بالذكر'], done:'ذكرتَ الله فطابت نفسك.. بارك الله فيك!', medal:'وسام الذاكر', cap:'اذكر الله في كل أحوالك', quote:'«لا يزال لسانك رطبًا من ذكر الله»', prog:'سبّح مع كل إجابة' },
+   en:{ name:'Rabi‘ al-Akhir', occ:'Value of the month: remembrance (dhikr) — “Let your tongue always be moist with the remembrance of Allah”', badge:'Rabi‘ II Homework', title:'Keep your tongue moist with dhikr!', sub:'Remember Allah in every state.. let’s go, hero!', enc:['A rememberer of Allah, well done! 📿','SubhanAllah, great progress','MashaAllah, a tongue moist with dhikr'], done:'You remembered Allah and your heart is at ease.. barakAllahu feek!', medal:'Rememberer Medal', cap:'Remember Allah in every state', quote:'“Let your tongue always be moist with the remembrance of Allah”', prog:'Glorify Allah with every answer' },
+   L:['#f3ecf8','#fffbff','#2a1238','#65507a','#6b2c91','#ffffff','#e0a63a','#2b1a00','#f7eefc','#bf9fd6','#eadcf4','#dccaea'],
+   D:['#150b1d','#211330','#f1e6fa','#bfa8d3','#c79cee','#220a36','#e8b655','#281700','#2b1a3d','#7a4d9e','#35214b','#4a3262'] },
  { n:5, icon:'✅', glyph:'✓', pat:'spark', corner:'✓', conf:['✅','💚','✨'],
    ar:{ name:'جُمادى الأولى', occ:'قيمة الشهر: الصدق — «عليكم بالصدق فإن الصدق يهدي إلى البرّ»', badge:'واجب جمادى الأولى', title:'اختر الصدق.. تكن سعيدًا!', sub:'الصدق راحة للقلب وثقة من الناس.. هيا يا بطل!', enc:['صادق وأمين، أحسنت! ✅','الصدق يهدي إلى البرّ','ما شاء الله، طريقك نور'], done:'صدقتَ في عملك.. بارك الله فيك!', medal:'وسام الصدق', cap:'الصدق يهدي إلى الجنّة', quote:'«عليكم بالصدق فإن الصدق يهدي إلى البرّ»', prog:'الصدق راحة للقلب' },
    en:{ name:'Jumada al-Ula', occ:'Value of the month: honesty — “Hold fast to truthfulness, for truthfulness leads to righteousness”', badge:'Jumada I Homework', title:'Choose honesty.. be happy!', sub:'Honesty brings peace to the heart and trust from people.. let’s go, hero!', enc:['Honest and trustworthy, well done! ✅','Truthfulness leads to righteousness','MashaAllah, your path is light'], done:'You were honest in your work.. barakAllahu feek!', medal:'Honesty Medal', cap:'Honesty leads to Paradise', quote:'“Hold fast to truthfulness, for truthfulness leads to righteousness”', prog:'Honesty is peace for the heart' },
@@ -77,12 +77,12 @@ export const THEMES = [
 // ملاحظات الأصول: ORI = جهة ثقل زخرفة الزاوية في ملفها الأصلي (تُقلب لتوضع أعلى البطاقة)؛ STRIP/MEDALP = صورة مخصصة لشريط
 // الحل/الوسام الدائري؛ DECO = صورة علوية في شاشة الإنجاز؛ MEDAL_IMG = وسام جاهز بدل الدائرة؛ LOGO_END = شعار في آخر صفحة.
 export const FLAGS = {
-    ORI: { 1: 'bl', 2: 'tl', 3: 'bl', 4: 'bl', 7: 'br', 8: 'bl', 10: 'bl', 12: 'bl' },
-    STRIP: { 5: 1, 6: 1, 7: 1, 11: 1 },
+    ORI: { 1: 'bl', 2: 'tl', 3: 'bl', 7: 'br', 8: 'bl', 10: 'bl', 12: 'bl' },
+    STRIP: { 4: 1, 5: 1, 6: 1, 7: 1, 11: 1 },
     MEDALP: { 6: 1, 7: 1, 11: 1 },
     DECO: { 8: 1, 9: 1, 10: 1 },
-    MEDAL_IMG: { 5: 1, 9: 1 },
-    PROG: { 5: 'path' },   // شريط تقدّم مخصّص: path = مسار من الغيم إلى الشمس ورأس الطفل عند حدّ التقدّم
+    MEDAL_IMG: { 4: 1, 5: 1, 9: 1 },
+    PROG: { 4: 'beads', 5: 'path' },   // شريط تقدّم مخصّص: path = مسار من الغيم إلى الشمس ورأس الطفل عند حدّ التقدّم؛ beads = حبّات مسبحة تمتلئ مع كل إجابة وخاتم التسبيح عند حدّ التقدّم
     LOGO_END: { 6: 1 }
 };
 
