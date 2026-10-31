@@ -3,6 +3,7 @@
 import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { localizeHomeworkText, wrapQuranWordTitle } from '../core/i18n.js';   // معاني الكلمات بالإنجليزية وقت العرض
+import { excludeRefrainAyahs } from '../engine/refrainRules.js';
 import { addGoldStar, starsSuffix } from '../core/goldStars.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
@@ -231,13 +232,7 @@ function getShuffledBag(gamesList) {
 // (سؤال "رتب الآيات" لا يُستثنى منه شيء، وباقي الأسئلة تستثني آيات التكرار الشهيرة كالرحمن والمرسلات)
 function getActivePoolForType(type, pool) {
     if (type === 'order') return pool;
-    let filtered = pool.filter(a => {
-        let plainText = a.text.replace(/[ؗ-ًؚ-ْۖ-ۜ۟-۪ۨ-ۭ]/g, '');
-        return !plainText.includes('فبأي آلاء ربكما تكذبان') &&
-               !plainText.includes('فباي الاء ربكما تكذبان') &&
-               !plainText.includes('ويل يومئذ للمكذبين');
-    });
-    return filtered.length > 0 ? filtered : pool;
+    return excludeRefrainAyahs(pool);   // engine/refrainRules.js (الرحمن/المرسلات)
 }
 
 // 🌟 [إصلاح] فحص جاهزية: هل تستطيع هذه اللعبة أن تُولِّد سؤالاً فعلياً في النطاق المختار؟

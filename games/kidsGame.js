@@ -2,6 +2,7 @@
 // 🌟 استيراد الدالة السحرية للترجمة 🌟
 import { AppState, loadDashboardScreen, t, tf, tfAr, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
+import { excludeRefrainAyahs } from '../engine/refrainRules.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
@@ -113,11 +114,7 @@ async function genKidsQuestion(type, activePool, chunkIndex, totalChunks) {
 // نفس تصفية آيات التكرار الشهيرة (الرحمن/المرسلات) المطبّقة وقت العرض، حتى يحكم الفحص بنفس الشروط
 function kidsActivePoolFor(type, pool) {
     if (type === 'kids_word_order') return pool;
-    const filtered = pool.filter(a => {
-        let plainText = a.text.replace(/[\u0617-\u061A\u064B-\u0652\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08F0-\u08FF]/g, '').replace(/\u06CC/g, '\u0649');
-        return !plainText.includes('فبأي آلاء ربكما تكذبان') && !plainText.includes('فباي الاء ربكما تكذبان') && !plainText.includes('ويل يومئذ للمكذبين');
-    });
-    return filtered.length > 0 ? filtered : pool;
+    return excludeRefrainAyahs(pool);   // engine/refrainRules.js (الرحمن/المرسلات)
 }
 
 // فحص جاهزية: هل يُولَّد هذا النوع فعلاً في النطاق؟ (المولّدات تبني نصوصاً فقط بلا أثر جانبي). يعيد المحاولة لأن اختيار الآية عشوائي.

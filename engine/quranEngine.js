@@ -3,6 +3,7 @@ import { QURAN_STORE } from "../database/quranDB.js";
 import { tl, labelL, nameL, isEnL } from "../core/langBridge.js";
 import { LISTEN_MIN_SURAH, listenBodyHTML } from "./ayahAudio.js";
 import { pickLeastSeen } from "./seenLedger.js";
+import { hasDuplicateAyahTexts } from "./refrainRules.js";
 import { shortMeaning, loadWordMeaningsEn, meaningEn, distinctInEnglish } from "./wordMeaningData.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
@@ -446,6 +447,8 @@ export class QuranEngine {
         let ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); let startIdx = ayahsPool.findIndex(a => a.numberInSurah === ayah.numberInSurah && a.surahNumber === ayah.surahNumber);
         if (startIdx > ayahsPool.length - count) startIdx = ayahsPool.length - count;
         if (ayahsPool[startIdx].surahNumber !== ayahsPool[startIdx + count - 1].surahNumber) { let validStarts = []; for(let i=0; i<=ayahsPool.length - count; i++) { if(ayahsPool[i].surahNumber === ayahsPool[i+count-1].surahNumber) validStarts.push(i); } if(validStarts.length === 0) return null; startIdx = validStarts[Math.floor(Math.random() * validStarts.length)]; }
+        // آيات متكررة حرفياً (فبأي آلاء...) داخل النافذة تجعل الترتيب بلا جواب وحيد: نختار نافذة بلا تكرار أو نُرجع null
+        if (hasDuplicateAyahTexts(ayahsPool.slice(startIdx, startIdx + count))) { const ok = []; for (let i = 0; i <= ayahsPool.length - count; i++) { const w = ayahsPool.slice(i, i + count); if (w[0].surahNumber === w[count - 1].surahNumber && !hasDuplicateAyahTexts(w)) ok.push(i); } if (ok.length === 0) return null; startIdx = ok[Math.floor(Math.random() * ok.length)]; }
         const ayahs = []; for(let i=0; i<count; i++) ayahs.push(ayahsPool[startIdx + i]);
         ayahs.forEach(a => a.text = cleanAyahText(a.text)); const shuffled = [...ayahs].sort(() => Math.random() - 0.5); let verseNums = ayahs.map(a => a.numberInSurah).join('، '); 
         return { type: 'order', questionTitle: isKids ? "رتب الآيات يا بطل 🔀" : "🔀 رتب الآيات", original: ayahs, shuffled: shuffled, surahName: ayahs[0].surahName, reportText: `الآيات (ترتيب): ${verseNums}`, ayahObj: ayahs[0] }; 
