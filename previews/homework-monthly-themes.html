@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — ثيمات الواجب الشهرية (هجري)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Amiri+Quran&display=swap" rel="stylesheet">
+<style>
+/* معاينة للمراجعة فقط — لا تمس المنصة. الخط القرآني Amiri Quran كما في css/global.css ولا يُغيَّر في أي ثيمة. */
+:root { --pbg:#f4f3ee; --pink:#10241c; --pink2:#4a6058; --pcard:#fff; --pline:#ddd9c8; }
+html[data-pm="dark"] { --pbg:#0b1411; --pink:#e8efe9; --pink2:#a8bbb1; --pcard:#14211c; --pline:#2a3b34; }
+* { box-sizing:border-box; margin:0; padding:0; font-family:'IBM Plex Sans Arabic', system-ui, sans-serif; }
+body { background:var(--pbg); color:var(--pink); line-height:1.6; }
+.quran-text { font-family:'Amiri Quran', serif; }
+.wrap { max-width:1240px; margin:0 auto; padding:0 16px; }
+.bar { position:sticky; top:0; z-index:50; background:var(--pcard); border-bottom:1px solid var(--pline); }
+.bar .wrap { display:flex; align-items:center; gap:10px; padding-block:10px; flex-wrap:wrap; }
+.bar h1 { font-size:1.05rem; flex:1; min-width:200px; }
+.pb { min-height:40px; padding:6px 14px; border-radius:12px; border:1px solid var(--pline); background:var(--pbg); color:var(--pink); font-weight:700; cursor:pointer; }
+.intro { margin:18px 0; padding:16px 18px; background:var(--pcard); border:1px solid var(--pline); border-radius:16px; }
+.intro p { color:var(--pink2); margin-top:4px; }
+.now { display:inline-block; margin-top:8px; padding:4px 12px; border-radius:99px; background:var(--pbg); border:1px solid var(--pline); font-weight:700; }
+.nav { display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px; margin-bottom:22px; }
+.nav a { display:flex; align-items:center; gap:6px; padding:8px 10px; border-radius:12px; text-decoration:none; font-weight:700; font-size:.9rem; color:var(--pink); background:var(--pcard); border:1px solid var(--pline); }
+.nav a i { width:14px; height:14px; border-radius:50%; flex:none; }
+.nav a.cur { outline:3px solid #d4af37; }
+.theme { margin-bottom:34px; padding:16px; border-radius:22px; background:var(--bg); border:1px solid var(--line); color:var(--ink); }
+.th-head { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.th-num { width:44px; height:44px; border-radius:14px; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-weight:700; font-size:1.2rem; }
+.th-head h2 { font-size:1.35rem; }
+.th-head p { color:var(--ink2); font-size:.95rem; flex-basis:100%; }
+.cur-tag { background:var(--hi); color:var(--onHi); border-radius:99px; padding:2px 12px; font-size:.8rem; font-weight:700; }
+.swatches { display:flex; gap:6px; margin-inline-start:auto; }
+.swatches b { width:24px; height:24px; border-radius:8px; border:1px solid var(--line); }
+.frames { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px; }
+.fcap { font-size:.82rem; font-weight:700; color:var(--ink2); margin-bottom:6px; }
+.scr { border-radius:20px; padding:14px; min-height:470px; background-color:var(--bg); border:1px solid var(--line); position:relative; overflow:hidden; }
+.pat-dots { background-image:radial-gradient(color-mix(in srgb,var(--accent) 16%,transparent) 1.5px,transparent 1.6px); background-size:18px 18px; }
+.pat-diamond { background-image:repeating-linear-gradient(45deg,color-mix(in srgb,var(--accent) 12%,transparent) 0 1px,transparent 1px 16px),repeating-linear-gradient(-45deg,color-mix(in srgb,var(--accent) 12%,transparent) 0 1px,transparent 1px 16px); }
+.pat-stripes { background-image:repeating-linear-gradient(90deg,color-mix(in srgb,var(--accent) 11%,transparent) 0 2px,transparent 2px 22px); }
+.pat-waves { background-image:radial-gradient(circle at 50% 100%,transparent 0 10px,color-mix(in srgb,var(--accent) 16%,transparent) 10px 11px,transparent 11px); background-size:28px 14px; }
+.pat-grid { background-image:linear-gradient(color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px); background-size:22px 22px; }
+.pat-spark { background-image:radial-gradient(circle at 20% 30%,color-mix(in srgb,var(--hi) 55%,transparent) 0 2px,transparent 3px),radial-gradient(circle at 70% 70%,color-mix(in srgb,var(--accent) 30%,transparent) 0 1.5px,transparent 2.5px); background-size:56px 56px; }
+.card { position:relative; background:var(--surface); border-radius:22px; border-top:6px solid var(--hi); padding:18px 14px; box-shadow:0 12px 28px rgba(0,0,0,.12); text-align:center; }
+.card .corner { position:absolute; top:8px; font-size:1.1rem; color:var(--hi); }
+.card .corner.l { inset-inline-start:12px; } .card .corner.r { inset-inline-end:12px; }
+.logo { width:54px; height:54px; border-radius:16px; margin:0 auto 6px; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-size:1.5rem; font-weight:700; }
+.badge { display:inline-block; padding:3px 12px; border-radius:99px; background:var(--chip); color:var(--accent); font-weight:700; font-size:.85rem; margin-bottom:6px; }
+.card h3 { color:var(--accent); font-size:1.35rem; line-height:1.5; margin:2px 0 4px; }
+.card .sub { color:var(--ink2); font-size:.95rem; margin-bottom:10px; }
+.teacher { display:inline-flex; gap:6px; padding:5px 14px; border-radius:99px; background:var(--chip); font-size:.85rem; margin-bottom:10px; }
+.afr { margin:6px 0 10px; padding:12px 8px; border-radius:16px; background:var(--frame); border:2px solid var(--frameLine); box-shadow:inset 0 0 0 4px var(--frame), inset 0 0 0 5px var(--frameLine); }
+.afr h4 { font-size:1.12rem; line-height:1.7; color:var(--accent); }
+.chips { display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:12px; }
+.chip { background:var(--chip); border-radius:99px; padding:3px 11px; font-size:.82rem; color:var(--ink); }
+.btn { width:100%; min-height:48px; border-radius:14px; border:0; font-weight:700; font-size:1.1rem; background:var(--hi); color:var(--onHi); box-shadow:0 6px 14px color-mix(in srgb,var(--hi) 35%,transparent); }
+.btn2 { margin-top:8px; background:none; border:0; color:var(--ink2); text-decoration:underline; font-size:.9rem; }
+/* شاشة الحل */
+.pcard { background:var(--surface); border-radius:18px; padding:12px 14px; margin-bottom:10px; box-shadow:0 8px 20px rgba(0,0,0,.10); }
+.eyebrow { display:flex; justify-content:space-between; align-items:center; font-weight:700; color:var(--accent); font-size:.9rem; margin-bottom:8px; }
+.segs { display:flex; gap:4px; } .segs i { flex:1; height:9px; border-radius:99px; background:var(--line); } .segs i.on { background:linear-gradient(90deg,var(--accent),var(--hi)); }
+.cnt { font-size:.85rem; color:var(--ink2); margin-top:4px; }
+.qcard { border-top:5px solid var(--hi); }
+.qtype { display:inline-block; font-size:.75rem; font-weight:700; background:var(--chip); color:var(--accent); padding:2px 10px; border-radius:99px; }
+.qtitle { font-size:1.05rem; margin:6px 0 8px; }
+.mushaf { position:relative; text-align:center; border-radius:16px; padding:18px 10px 10px; margin:12px 0 10px; background:var(--frame); border:2px solid var(--frameLine); box-shadow:inset 0 0 0 4px var(--frame), inset 0 0 0 5px var(--frameLine); }
+.mushaf::before { content:attr(data-g); position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:var(--surface); color:var(--hi); font-size:1.3rem; padding:0 8px; line-height:1; }
+.ayah { font-size:1.55rem; line-height:2.1; color:var(--ink); }
+.opt { display:flex; align-items:center; gap:10px; min-height:48px; padding:6px 10px; margin-bottom:7px; border:2px solid var(--line); border-radius:14px; background:var(--surface); }
+.opt .lt { width:30px; height:30px; border-radius:10px; background:var(--chip); color:var(--accent); display:grid; place-items:center; font-weight:700; flex:none; }
+.opt .ot { flex:1; font-size:1.3rem; }
+.opt.sel { border-color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,var(--surface)); } .opt.sel .lt { background:var(--accent); color:var(--onAccent); }
+.opt.sel::after { content:"✓"; color:var(--accent); font-weight:700; }
+.nav2 { display:flex; gap:8px; margin-top:6px; } .nav2 .btn { min-height:44px; font-size:1rem; } .nav2 .btn.g { background:var(--chip); color:var(--accent); box-shadow:none; flex:.6; }
+.enc { margin:8px auto 0; width:fit-content; max-width:100%; padding:6px 14px; border-radius:99px; background:var(--accent); color:var(--onAccent); font-weight:700; font-size:.88rem; }
+/* الإنجاز */
+.done { text-align:center; padding-top:24px; }
+.fall { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+.fall span { position:absolute; top:-20px; font-size:1.3rem; animation:fall 4s linear infinite; }
+@keyframes fall { to { transform:translateY(560px) rotate(200deg); } }
+.big { font-size:3.2rem; line-height:1.1; }
+.medal { margin:12px auto; width:150px; height:150px; border-radius:50%; display:grid; place-items:center; align-content:center; background:radial-gradient(circle at 35% 30%,var(--hi),color-mix(in srgb,var(--hi) 60%,var(--accent))); color:var(--onHi); box-shadow:0 10px 24px rgba(0,0,0,.25), inset 0 0 0 6px rgba(255,255,255,.35); }
+.medal b { font-size:2.4rem; line-height:1; } .medal small { font-weight:700; font-size:.82rem; padding:0 10px; }
+.score { font-size:1.6rem; font-weight:700; color:var(--accent); }
+.encs { margin-top:10px; display:grid; gap:6px; }
+.encs div { background:var(--chip); border-radius:12px; padding:6px 10px; font-size:.88rem; }
+@media (prefers-reduced-motion: reduce) { .fall span { animation:none; top:20px; } }
+</style>
+</head>
+<body>
+<div class="bar"><div class="wrap">
+  <h1 id="pg-title"></h1>
+  <button class="pb" id="b-lang"></button>
+  <button class="pb" id="b-mode"></button>
+</div></div>
+<div class="wrap">
+  <div class="intro" id="intro"></div>
+  <div class="nav" id="nav"></div>
+  <div id="themes"></div>
+</div>
+<script>
+/* ===== بيانات الثيمات الاثنتي عشرة (الأشهر الهجرية) =====
+   ألوان: [bg, surface, ink, ink2, accent, onAccent, hi, onHi, frame, frameLine, chip, line] — لكل منها نسخة فاتحة وداكنة. */
+const T = [
+ { n:1, icon:'🌙', glyph:'✦', pat:'spark', corner:'✦', conf:['🌙','✨','⭐'],
+   ar:{ name:'مُحرَّم', occ:'بداية العام الهجري — صفحة جديدة وعزيمة جديدة', badge:'واجب شهر محرّم', title:'عامٌ هجري جديد.. وتحدٍّ جديد!', sub:'ابدأ عامك بآية.. هل أنت مستعد يا بطل؟', enc:['بداية موفقة! 🌙','خطوة بعد خطوة يبدأ العام','ما شاء الله، ثبات جميل'], done:'افتتحتَ عامك بإنجاز!', medal:'وسام البداية' },
+   en:{ name:'Muharram', occ:'The Hijri new year — a fresh page, a fresh resolve', badge:'Muharram Homework', title:'A new Hijri year.. a new challenge!', sub:'Start your year with an ayah.. are you ready, hero?', enc:['A blessed start! 🌙','The year begins one step at a time','MashaAllah, lovely consistency'], done:'You opened your year with an achievement!', medal:'Fresh Start Medal' },
+   L:['#eaf0f7','#fbfdff','#0f1f33','#4a5b70','#1e3a8a','#ffffff','#c9a227','#2b2100','#eef3fb','#8fa6d1','#dde7f6','#cdd9ec'],
+   D:['#0a1220','#121d33','#e8eefb','#a9b8d3','#8fb0ff','#0a1220','#e0bb44','#241b00','#16233f','#4a6aa8','#1d2d4f','#2a3d63'] },
+ { n:2, icon:'🏜️', glyph:'◈', pat:'diamond', corner:'◈', conf:['🍂','🌾','✨'],
+   ar:{ name:'صَفَر', occ:'الصبر والمثابرة — ألوان الرمال الدافئة', badge:'واجب شهر صفر', title:'تحدّي الصبر والمثابرة!', sub:'بالصبر تُتقن التلاوة.. هيا يا بطل!', enc:['صبرٌ جميل، واصل! 🏜️','كل محاولة تقرّبك أكثر','أحسنت، ثابت على الطريق'], done:'ثمرة صبرك إنجاز رائع!', medal:'وسام المثابر' },
+   en:{ name:'Safar', occ:'Patience and perseverance — warm desert tones', badge:'Safar Homework', title:'The Patience & Perseverance Challenge!', sub:'Patience perfects recitation.. let’s go, hero!', enc:['Beautiful patience, keep going! 🏜️','Every try brings you closer','Well done, steady on the path'], done:'The fruit of your patience is great!', medal:'Perseverance Medal' },
+   L:['#f6ece2','#fffaf4','#3a1f12','#7a5a49','#9a3f1d','#ffffff','#d98a3d','#2b1400','#fbefe0','#d9a77a','#f1dfcb','#e6d2bb'],
+   D:['#1a0f0a','#271710','#f6e6d9','#c9a994','#f0a77a','#2a1205','#e6a04f','#2a1400','#301c13','#8a5a3a','#3a2418','#4a3022'] },
+ { n:3, icon:'🌿', glyph:'❀', pat:'dots', corner:'❀', conf:['🌿','🌸','🍃'],
+   ar:{ name:'رَبيع الأول', occ:'ربيع القلوب — أخضر طازج وأوراق متفتحة', badge:'واجب ربيع الأول', title:'ربيعُ قلبك مع القرآن!', sub:'تفتّح مع كل آية كما تتفتح الأزهار.. هيا!', enc:['أزهرت إجابتك! 🌿','نموّ جميل يوماً بعد يوم','ما شاء الله، تقدّم ممتاز'], done:'أزهر إنجازك هذا الشهر!', medal:'وسام الربيع' },
+   en:{ name:'Rabi‘ al-Awwal', occ:'The spring of hearts — fresh greens and blooming leaves', badge:'Rabi‘ I Homework', title:'Spring for your heart with the Qur’an!', sub:'Bloom with every ayah.. let’s go!', enc:['Your answer bloomed! 🌿','Lovely growth day by day','MashaAllah, excellent progress'], done:'Your achievement bloomed this month!', medal:'Spring Medal' },
+   L:['#eaf6ee','#fbfffc','#0f2a1b','#4a6b57','#14693f','#ffffff','#e0c24a','#2b2300','#effaf2','#7fc59a','#d9f0e1','#c4e3cf'],
+   D:['#08140d','#10241a','#e5f6ec','#a4c7b2','#6fd49b','#06210f','#e6cb5a','#231c00','#14301f','#3f8a5f','#1a3a28','#25503a'] },
+ { n:4, icon:'🌸', glyph:'✿', pat:'waves', corner:'✿', conf:['🌸','🌷','🦋'],
+   ar:{ name:'رَبيع الآخر', occ:'ورود ناعمة وهدوء — وردي لطيف', badge:'واجب ربيع الآخر', title:'بستان الحفظ يزهر!', sub:'اقطف أجمل الآيات اليوم.. هل أنت جاهز؟', enc:['إجابة جميلة كالوردة! 🌸','لطيف وهادئ ومتقن','أحسنت، واصل القطف'], done:'بستانك مليء بالإنجازات!', medal:'وسام الوردة' },
+   en:{ name:'Rabi‘ al-Akhir', occ:'Soft blossoms and calm — gentle rose tones', badge:'Rabi‘ II Homework', title:'The memorization garden blooms!', sub:'Pick the loveliest ayat today.. ready?', enc:['A beautiful answer, like a rose! 🌸','Gentle, calm and precise','Well done, keep picking'], done:'Your garden is full of achievements!', medal:'Rose Medal' },
+   L:['#f9ecef','#fffafb','#3a1520','#7a4f5c','#a3214a','#ffffff','#d4a24a','#2b1a00','#fdeff2','#e3a2b4','#f6dce3','#ecc9d3'],
+   D:['#1a0b11','#281219','#fbe5ea','#d0a3b0','#f08aa8','#2e0a16','#e5b055','#281700','#32161f','#8e3f58','#3c1c27','#502c38'] },
+ { n:5, icon:'❄️', glyph:'❄', pat:'spark', corner:'❄', conf:['❄️','✨','💎'],
+   ar:{ name:'جُمادى الأولى', occ:'برودة الشتاء ونقاء الثلج — أزرق جليدي', badge:'واجب جمادى الأولى', title:'تحدّي الثلج الصافي!', sub:'صفاء الذهن يُتقن الحفظ.. انطلق!', enc:['إجابة صافية كالجليد! ❄️','تركيز رائع','ما شاء الله، ذهنك صافٍ'], done:'إنجازٌ بنقاء الثلج!', medal:'وسام الجليد' },
+   en:{ name:'Jumada al-Ula', occ:'Winter chill and pure snow — icy blues', badge:'Jumada I Homework', title:'The Crystal-Clear Challenge!', sub:'A clear mind masters memorization.. go!', enc:['A crystal-clear answer! ❄️','Wonderful focus','MashaAllah, a sharp mind'], done:'An achievement as pure as snow!', medal:'Ice Medal' },
+   L:['#e9f4fa','#fafdff','#0c2433','#476579','#0b6a8f','#ffffff','#7cc4e0','#06222f','#eef8fd','#86c1dc','#d6ebf6','#c2dfee'],
+   D:['#08141c','#0f2330','#e4f3fb','#a2c4d6','#6cc3ea','#06212d','#8fd3ee','#05222e','#122c3d','#3a7a9a','#183649','#24506a'] },
+ { n:6, icon:'🌨️', glyph:'❖', pat:'grid', corner:'❖', conf:['🌨️','⛄','✨'],
+   ar:{ name:'جُمادى الآخرة', occ:'هدوء الشتاء — رمادي مخضر أنيق', badge:'واجب جمادى الآخرة', title:'دفء الحفظ في برد الشتاء!', sub:'اجعل القرآن رفيق دفئك.. هيا بنا!', enc:['دافئة وموفقة! 🌨️','هدوء وإتقان','أحسنت، استمر'], done:'دفء إنجازك يملأ الشتاء!', medal:'وسام الشتاء' },
+   en:{ name:'Jumada al-Akhira', occ:'Winter calm — elegant grey-teal', badge:'Jumada II Homework', title:'The warmth of memorization in winter!', sub:'Let the Qur’an be your warmth.. let’s go!', enc:['Warm and right! 🌨️','Calm and precise','Well done, keep it up'], done:'The warmth of your success fills winter!', medal:'Winter Medal' },
+   L:['#e8eeef','#f9fbfb','#14262b','#4f666c','#26606b','#ffffff','#c8a24a','#2a2000','#eef4f5','#8aaab0','#d9e5e7','#c5d5d8'],
+   D:['#0a1316','#12222a','#e3eef0','#a3bcc1','#7fc0cc','#07202a','#dbb454','#261c00','#15303a','#43737e','#1b3944','#28505c'] },
+ { n:7, icon:'✨', glyph:'✧', pat:'spark', corner:'✧', conf:['✨','🌟','🌌'],
+   ar:{ name:'رَجَب', occ:'من الأشهر الحُرُم — ليل صافٍ ونجوم', badge:'واجب شهر رجب', title:'رحلة بين النجوم والآيات!', sub:'في الشهر الحرام نزداد قرباً.. هل أنت مستعد؟', enc:['نجمة جديدة لك! ✨','تألّقت في الإجابة','ما شاء الله، ارتقاء جميل'], done:'سطعتَ كنجمٍ في سماء رجب!', medal:'وسام النجمة' },
+   en:{ name:'Rajab', occ:'One of the sacred months — clear night and stars', badge:'Rajab Homework', title:'A journey among stars and ayat!', sub:'In the sacred month we draw closer.. ready?', enc:['A new star for you! ✨','You shone in that answer','MashaAllah, beautiful rise'], done:'You shone like a star in Rajab’s sky!', medal:'Star Medal' },
+   L:['#eeeaf8','#fcfbff','#1c1236','#5b5180','#5b34a8','#ffffff','#e8c04a','#2a1f00','#f3effc','#a591d6','#e3dcf5','#d3c9ee'],
+   D:['#0d0a1c','#181332','#ece7fb','#b3a9d8','#b49cf5','#1a0e3a','#f0cd5c','#2a2000','#1d1740','#5f4ca6','#261e52','#372d6e'] },
+ { n:8, icon:'🌅', glyph:'❋', pat:'waves', corner:'❋', conf:['🌅','🌙','✨'],
+   ar:{ name:'شَعبان', occ:'التهيّؤ لرمضان — غروب بنفسجي وعنبري', badge:'واجب شهر شعبان', title:'استعد لرمضان بالقرآن!', sub:'يقترب الشهر الكريم.. جهّز قلبك ولسانك!', enc:['تهيّؤ موفق! 🌅','رمضان على الأبواب','أحسنت، قلبك جاهز'], done:'أنت تستعد بأجمل صورة!', medal:'وسام الاستعداد' },
+   en:{ name:'Sha‘ban', occ:'Getting ready for Ramadan — violet-amber sunset', badge:'Sha‘ban Homework', title:'Get ready for Ramadan with the Qur’an!', sub:'The blessed month nears.. prepare heart and tongue!', enc:['Great preparation! 🌅','Ramadan is at the door','Well done, your heart is ready'], done:'You are preparing in the best way!', medal:'Readiness Medal' },
+   L:['#f4eaf0','#fffafd','#301528','#755065','#8a2a6a','#ffffff','#f0a23a','#2a1500','#faeff6','#d49bbf','#f0dce9','#e4c7d8'],
+   D:['#180b15','#261220','#f8e6f1','#cca3bd','#e48fc6','#2e0a22','#f2ae4c','#281500','#301729','#86467a','#3b1d33','#50304a'] },
+ { n:9, icon:'🏮', glyph:'☪', pat:'diamond', corner:'☪', conf:['🏮','🌙','⭐'],
+   ar:{ name:'رَمَضان', occ:'شهر القرآن — كحلي وذهبي وفانوس', badge:'واجب شهر رمضان', title:'تحدّي شهر القرآن!', sub:'شهرٌ أُنزل فيه القرآن.. هل أنت مستعد يا بطل؟', enc:['رمضان كريم! 🏮','نور على نور','ما شاء الله، همّة عالية'], done:'أنرتَ رمضان بإنجازك!', medal:'وسام الفانوس' },
+   en:{ name:'Ramadan', occ:'The month of the Qur’an — navy, gold and a lantern', badge:'Ramadan Homework', title:'The Month-of-the-Qur’an Challenge!', sub:'The month in which the Qur’an was revealed.. ready, hero?', enc:['Ramadan Kareem! 🏮','Light upon light','MashaAllah, high spirit'], done:'You lit up Ramadan with your success!', medal:'Lantern Medal' },
+   L:['#f4efe0','#fffdf3','#0e1b3d','#4b5878','#14275e','#ffffff','#d4a62a','#261c00','#fbf3d6','#d2ad45','#f1e6bd','#e4d7a5'],
+   D:['#070d1f','#0f1a3a','#f1ecd6','#b5bdd6','#f0c94f','#1b1500','#8ea6ff','#070d1f','#142250','#b8962f','#1c2c63','#2b3d7a'] },
+ { n:10, icon:'🎉', glyph:'✺', pat:'dots', corner:'✺', conf:['🎉','🎊','🎈'],
+   ar:{ name:'شَوّال', occ:'فرحة العيد — مرجاني وفيروزي', badge:'واجب شهر شوال', title:'عيدٌ سعيد وتحدٍّ سعيد!', sub:'بعد رمضان تواصل الهمّة.. هيا نحتفل بالقرآن!', enc:['عيدك مبارك! 🎉','فرحة إنجاز جديدة','أحسنت، همّتك لا تهدأ'], done:'إنجاز بحجم فرحة العيد!', medal:'وسام العيد' },
+   en:{ name:'Shawwal', occ:'The joy of Eid — coral and turquoise', badge:'Shawwal Homework', title:'A happy Eid and a happy challenge!', sub:'The momentum continues after Ramadan.. let’s celebrate the Qur’an!', enc:['Eid Mubarak! 🎉','A new joy of achievement','Well done, your drive never rests'], done:'An achievement as big as Eid joy!', medal:'Eid Medal' },
+   L:['#fff0e8','#fffaf7','#3a1710','#855244','#0f766e','#ffffff','#ff8a5c','#3a1000','#fff3ea','#f0a78a','#fddccd','#f3cbb8'],
+   D:['#1c0e0a','#2a1612','#fde9df','#d0a496','#4fd1c1','#04211e','#ff9a72','#3a1100','#341b15','#a65a44','#40231b','#55342a'] },
+ { n:11, icon:'🕊️', glyph:'❦', pat:'stripes', corner:'❦', conf:['🕊️','🍃','✨'],
+   ar:{ name:'ذو القَعدة', occ:'من الأشهر الحُرُم — سكينة وسلام، زيتوني هادئ', badge:'واجب ذي القعدة', title:'سكينة القرآن وسلامه!', sub:'اهدأ واقرأ وتدبّر.. هيا بنا يا بطل!', enc:['سكينة وإتقان! 🕊️','هدوء جميل في الأداء','ما شاء الله، تدبّر رائع'], done:'إنجازٌ يغمره السلام!', medal:'وسام السكينة' },
+   en:{ name:'Dhul Qa‘dah', occ:'A sacred month — tranquility and peace, calm olive', badge:'Dhul Qa‘dah Homework', title:'The Qur’an’s tranquility and peace!', sub:'Calm down, read and reflect.. let’s go, hero!', enc:['Calm and precise! 🕊️','Beautiful serenity in your work','MashaAllah, wonderful reflection'], done:'An achievement wrapped in peace!', medal:'Serenity Medal' },
+   L:['#f0f1e2','#fcfdf5','#232a10','#5d6740','#5a6b17','#ffffff','#d1a93c','#2a2000','#f5f6e6','#a8b26a','#e3e7c6','#d3d9ad'],
+   D:['#10130a','#1b2010','#eef2d9','#b6bf93','#b5c95a','#1a2204','#e0bc4c','#262000','#232a14','#6c7a35','#2c3419','#3c4725'] },
+ { n:12, icon:'🕋', glyph:'۞', pat:'diamond', corner:'۞', conf:['🕋','🌟','✨'],
+   ar:{ name:'ذو الحِجّة', occ:'الحج وعرفة والعيد — أسود وذهبي وأبيض', badge:'واجب ذي الحجة', title:'لبّيك.. تحدّي الأيام العشر!', sub:'أفضل الأيام.. أكثر فيها من القرآن والذكر!', enc:['لبّيك اللهم لبّيك! 🕋','عشر مباركة، أحسنت','ما شاء الله، بارك الله فيك'], done:'ختمتَ العام بأجمل الإنجازات!', medal:'وسام الحجيج' },
+   en:{ name:'Dhul Hijjah', occ:'Hajj, ‘Arafah and Eid — black, gold and white', badge:'Dhul Hijjah Homework', title:'Labbayk.. the Ten Days Challenge!', sub:'The best of days.. increase your Qur’an and dhikr!', enc:['Labbayk Allahumma labbayk! 🕋','Blessed ten days, well done','MashaAllah, barakAllahu feek'], done:'You closed the year with great achievements!', medal:'Pilgrim Medal' },
+   L:['#efeeea','#ffffff','#121212','#55524b','#1a1a1a','#ffffff','#c9a227','#261d00','#faf6e6','#c9a227','#ebe7d6','#d9d5c3'],
+   D:['#0b0b0b','#171717','#f3f0e6','#b5b0a0','#e6c24c','#1a1400','#f1f0ea','#141414','#1f1c10','#a8872a','#272414','#38341f'] }
+];
+const KEYS = ['bg','surface','ink','ink2','accent','onAccent','hi','onHi','frame','frameLine','chip','line'];
+const UI = {
+ ar:{ page:'معاينة — ثيمات الواجب الشهرية (حسب الشهر الهجري)', lang:'English', dark:'🌙 المظهر الداكن', light:'☀️ المظهر الفاتح',
+   introT:'12 ثيمة جاهزة للواجب المنزلي عند الطالب', introP:'تشمل شاشة الترحيب وشاشة الحل: ألوان، زخارف، رموز، عبارات تشجيع، ووسام شهري. الهيكل ثابت والتجديد في «الجلد» فقط. الخط القرآني Amiri Quran ثابت في كل الثيمات. تتبدّل الثيمة تلقائياً حسب الشهر الهجري لتاريخ جهاز الطالب. بدّل اللغة والمظهر من الأعلى لمراجعة كل شيء.',
+   nowL:'الشهر الهجري الآن:', cur:'ثيمة الشهر الحالي', f1:'١) شاشة الترحيب', f2:'٢) شاشة الحل', f3:'٣) بعد التسليم',
+   prefix:'مرحبًا بك يا بطل', student:'أحمد', prep:'إعداد معلم القرآن الكريم:', teacher:'أ. محمد', go:'🚀 انطلق للتحدي!', later:'✖️ لست مستعداً الآن',
+   chipQ:'📝 ٥ أسئلة', chipM:'⏱️ ٤ دقائق', chipS:'💾 حفظ تلقائي', q:'السؤال', of:'من', qtype:'أكمل الآية', qtitle:'أكمل الآية الكريمة:',
+   prev:'السابق', next:'التالي', ayah:'وَرَتِّلِ ٱلْقُرْءَانَ .....', o:['تَرْتِيلًا','تَفْصِيلًا','تَنزِيلًا'], letters:['أ','ب','ج'],
+   fin:'اكتمل الواجب!', score:'٤ من ٥', scoreL:'نتيجتك', medalL:'وسام', swatch:'ألوان الثيمة' },
+ en:{ page:'Preview — Monthly Homework Themes (Hijri months)', lang:'العربية', dark:'🌙 Dark mode', light:'☀️ Light mode',
+   introT:'12 ready-made themes for the student homework', introP:'Covers the welcome and solving screens: colors, ornaments, icons, encouraging phrases and a monthly medal. The layout stays fixed; only the “skin” renews. The Qur’anic font (Amiri Quran) is identical in every theme. The theme switches automatically by the Hijri month of the student’s device date. Toggle language and mode above to review everything.',
+   nowL:'Current Hijri month:', cur:'Current month’s theme', f1:'1) Welcome screen', f2:'2) Solving screen', f3:'3) After submission',
+   prefix:'Welcome, hero', student:'Ahmad', prep:'Prepared by Qur’an teacher:', teacher:'Mr. Mohammed', go:'🚀 Start the challenge!', later:'✖️ Not ready now',
+   chipQ:'📝 5 questions', chipM:'⏱️ 4 minutes', chipS:'💾 Auto-save', q:'Question', of:'of', qtype:'Complete the ayah', qtitle:'Complete the verse:',
+   prev:'Previous', next:'Next', ayah:'وَرَتِّلِ ٱلْقُرْءَانَ .....', o:['تَرْتِيلًا','تَفْصِيلًا','تَنزِيلًا'], letters:['A','B','C'],
+   fin:'Homework complete!', score:'4 of 5', scoreL:'Your score', medalL:'Medal', swatch:'Theme colors' }
+};
+let lang = 'ar', mode = 'light';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function hijriMonth() {
+  try { const m = parseInt(new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month:'numeric' }).format(new Date()), 10); return m >= 1 && m <= 12 ? m : 0; } catch (e) { return 0; }
+}
+function vars(th) { const a = mode === 'dark' ? th.D : th.L; return KEYS.map((k, i) => `--${k}:${a[i]}`).join(';'); }
+function render() {
+  const u = UI[lang], cm = hijriMonth();
+  document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.documentElement.dataset.pm = mode; document.title = u.page;
+  $('#pg-title').textContent = u.page; $('#b-lang').textContent = u.lang; $('#b-mode').textContent = mode === 'dark' ? u.light : u.dark;
+  const cmName = cm ? T[cm - 1][lang].name : '—';
+  $('#intro').innerHTML = `<h2>${u.introT}</h2><p>${u.introP}</p><span class="now">${u.nowL} ${cm} · ${esc(cmName)}</span>`;
+  $('#nav').innerHTML = T.map(t => `<a href="#t${t.n}" class="${t.n === cm ? 'cur' : ''}" style="${vars(t)}"><i style="background:${mode === 'dark' ? t.D[4] : t.L[4]}"></i>${t.n} · ${esc(t[lang].name)}</a>`).join('');
+  $('#themes').innerHTML = T.map(t => {
+    const x = t[lang], arr = mode === 'dark' ? t.D : t.L;
+    const sw = [4, 6, 8, 9].map(i => `<b style="background:${arr[i]}" title="${arr[i]}"></b>`).join('');
+    const fall = t.conf.concat(t.conf).map((g, i) => `<span style="inset-inline-start:${8 + i * 16}%;animation-delay:${(i * 0.7).toFixed(1)}s">${g}</span>`).join('');
+    return `<section class="theme" id="t${t.n}" style="${vars(t)}">
+      <div class="th-head"><div class="th-num">${t.n}</div><h2>${t.icon} ${esc(x.name)}</h2>${t.n === cm ? `<span class="cur-tag">${u.cur}</span>` : ''}
+        <div class="swatches" aria-label="${u.swatch}">${sw}</div><p>${esc(x.occ)}</p></div>
+      <div class="frames">
+        <div><div class="fcap">${u.f1}</div><div class="scr pat-${t.pat}"><div class="card">
+          <span class="corner l">${t.corner}</span><span class="corner r">${t.corner}</span>
+          <div class="logo">حمٓ</div><span class="badge">${t.icon} ${esc(x.badge)}</span>
+          <h3>${esc(x.title)}</h3><p class="sub">${esc(x.sub)}</p>
+          <div class="teacher"><span>${u.prep}</span><b>${u.teacher}</b></div>
+          <div class="afr"><h4>${u.prefix}<br>${t.icon} ${u.student} ${t.corner}</h4></div>
+          <div class="chips"><span class="chip">${u.chipQ}</span><span class="chip">${u.chipM}</span><span class="chip">${u.chipS}</span></div>
+          <button class="btn">${u.go}</button><button class="btn2">${u.later}</button></div></div></div>
+        <div><div class="fcap">${u.f2}</div><div class="scr pat-${t.pat}">
+          <div class="pcard"><div class="eyebrow"><span>${t.icon} ${esc(x.badge)}</span><span>${u.student}</span></div>
+            <div class="segs"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div><div class="cnt">${u.q} ٢ ${u.of} ٥</div></div>
+          <div class="pcard qcard"><span class="qtype">${u.qtype}</span><div class="qtitle">${u.qtitle}</div>
+            <div class="mushaf" data-g="${t.corner}"><div class="ayah quran-text">${u.ayah}</div></div>
+            ${u.o.map((o, i) => `<div class="opt ${i === 0 ? 'sel' : ''}"><span class="lt">${u.letters[i]}</span><span class="ot quran-text">${o}</span></div>`).join('')}
+            <div class="nav2"><button class="btn g">${u.prev}</button><button class="btn">${u.next}</button></div></div>
+          <div class="enc">${esc(x.enc[0])}</div></div></div>
+        <div><div class="fcap">${u.f3}</div><div class="scr pat-${t.pat} done"><div class="fall">${fall}</div>
+          <div class="big">${t.icon}</div><h3 style="color:var(--accent);margin:6px 0">${u.fin}</h3>
+          <div class="medal"><b>${t.glyph}</b><small>${u.medalL}: ${esc(x.medal)}</small></div>
+          <div style="color:var(--ink2)">${u.scoreL}</div><div class="score">${u.score}</div>
+          <p style="margin:8px 0;font-weight:700;color:var(--ink)">${esc(x.done)}</p>
+          <div class="encs">${x.enc.map(e => `<div>${esc(e)}</div>`).join('')}</div></div></div>
+      </div></section>`;
+  }).join('');
+}
+$('#b-lang').onclick = () => { lang = lang === 'ar' ? 'en' : 'ar'; render(); };
+$('#b-mode').onclick = () => { mode = mode === 'dark' ? 'light' : 'dark'; render(); };
+render();
+</script>
+</body>
+</html>
