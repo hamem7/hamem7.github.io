@@ -51,7 +51,7 @@ body { background:var(--pbg); color:var(--pink); line-height:1.6; }
 .hero::after { content:""; position:absolute; inset:auto 0 0 0; height:46px; background:linear-gradient(transparent,var(--surface)); }
 .orn { position:absolute; top:0; width:64px; pointer-events:none; z-index:2; filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
 .orn.l { left:0; } .orn.r { right:0; }
-.garland { position:absolute; top:0; left:50%; transform:translateX(-50%); width:70%; height:120px; object-fit:cover; object-position:top; z-index:2; pointer-events:none; }
+.garland { position:absolute; top:0; left:50%; transform:translateX(-50%); width:86%; max-height:96px; object-fit:contain; object-position:top; z-index:2; pointer-events:none; }
 .strip { height:54px; margin:-12px -14px 8px; border-radius:18px 18px 0 0; background:center/cover no-repeat; position:relative; }
 .strip::after { content:""; position:absolute; inset:auto 0 0 0; height:26px; background:linear-gradient(transparent,var(--surface)); }
 .logo { width:54px; height:54px; border-radius:16px; margin:-38px auto 6px; border:4px solid var(--surface); position:relative; z-index:3; display:grid; place-items:center; background:var(--accent); color:var(--onAccent); font-size:1.5rem; font-weight:700; }
@@ -91,6 +91,7 @@ body { background:var(--pbg); color:var(--pink); line-height:1.6; }
 .big { font-size:3.2rem; line-height:1.1; }
 .medal { margin:12px auto 4px; width:150px; height:150px; border-radius:50%; position:relative; background:center/cover no-repeat; border:7px solid var(--hi); box-shadow:0 10px 24px rgba(0,0,0,.30), 0 0 0 3px color-mix(in srgb,var(--hi) 45%,transparent), inset 0 0 0 2px rgba(255,255,255,.5); }
 .medal b { position:absolute; bottom:-14px; left:50%; transform:translateX(-50%); width:38px; height:38px; border-radius:50%; display:grid; place-items:center; background:var(--hi); color:var(--onHi); font-size:1.3rem; line-height:1; box-shadow:0 3px 8px rgba(0,0,0,.35); }
+.medalimg { display:block; width:150px; height:150px; object-fit:contain; margin:8px auto 0; filter:drop-shadow(0 8px 14px rgba(0,0,0,.3)); }
 .mlab { display:inline-block; margin:12px 0 4px; padding:3px 14px; border-radius:99px; background:var(--hi); color:var(--onHi); font-weight:700; font-size:.82rem; }
 .score { font-size:1.6rem; font-weight:700; color:var(--accent); }
 .encs { margin-top:10px; display:grid; gap:6px; }
@@ -175,6 +176,7 @@ const T = [
    D:['#0b0b0b','#171717','#f3f0e6','#b5b0a0','#e6c24c','#1a1400','#f1f0ea','#141414','#1f1c10','#a8872a','#272414','#38341f'] }
 ];
 const ORI = {1:'bl',2:'tl',3:'bl',4:'bl',5:'br',6:'tr',7:'br',8:'bl',10:'bl',11:'tl',12:'bl'};
+const DECO = {8:1,9:1,10:1}, MEDAL_IMG = {9:1};
 const pad = n => String(n).padStart(2, '0');
 const A = (n, k) => `../assets/themes/m${pad(n)}-${k}.webp`;
 function orn(n, side) { const o = ORI[n]; if (!o) return ''; let sx = o.includes('r') ? -1 : 1; const sy = o.includes('b') ? -1 : 1; if (side === 'r') sx = -sx; return `<img class="orn ${side}" alt="" src="${A(n, 'corner')}" style="transform:scale(${sx},${sy})">`; }
@@ -236,9 +238,9 @@ function render() {
             <div class="nav2"><button class="btn g">${u.prev}</button><button class="btn">${u.next}</button></div></div>
           <div class="enc">${esc(x.enc[0])}</div></div></div>
         <div><div class="fcap">${u.f3}</div><div class="scr done" style="background-image:linear-gradient(color-mix(in srgb,var(--bg) 90%,transparent),color-mix(in srgb,var(--bg) 95%,transparent)),url(${A(t.n, 'hero')})"><div class="fall">${fall}</div>
-          ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : ''}${t.n === 9 ? `<img class="garland" alt="" src="${A(9, 'garland')}">` : ''}
-          <h3 style="color:var(--accent);margin:34px 0 6px">${u.fin}</h3>
-          <div class="medal" style="background-image:url(${A(t.n, 'hero')})"><b>${t.glyph}</b></div><span class="mlab">${u.medalL}: ${esc(x.medal)}</span>
+          ${ORI[t.n] ? orn(t.n, 'l') + orn(t.n, 'r') : ''}${DECO[t.n] ? `<img class="garland" alt="" src="${A(t.n, 'deco')}">` : ''}
+          <h3 style="color:var(--accent);margin:${DECO[t.n] ? 100 : 34}px 0 6px">${u.fin}</h3>
+          ${MEDAL_IMG[t.n] ? `<img class="medalimg" alt="" src="${A(t.n, 'medal')}">` : `<div class="medal" style="background-image:url(${A(t.n, 'hero')})"><b>${t.glyph}</b></div>`}<span class="mlab">${u.medalL}: ${esc(x.medal)}</span>
           <div style="color:var(--ink2)">${u.scoreL}</div><div class="score">${u.score}</div>
           <p style="margin:8px 0;font-weight:700;color:var(--ink)">${esc(x.done)}</p>
           <div class="encs">${x.enc.map(e => `<div>${esc(e)}</div>`).join('')}</div></div></div>
