@@ -830,6 +830,8 @@ async function playNextMission() {
             document.getElementById('teacher-eval-area').style.display = 'block';
             // أسئلة الربط تقيّم نفسها: «لا أعرف هذه» داخل بطاقة البداية والتصحيح تلقائي، فلا أزرار تقييم عامة
             document.getElementById('teacher-eval-buttons').style.display = linkRebuilt ? 'none' : 'flex';
+            // «نصف إجابة» يظهر أيضاً في العلاج لسؤال «قبلها وبعدها» تحديداً (قد يحلّ الطالب نصفه فقط)
+            { const pb = document.getElementById('btn-record-partial'); if (pb) pb.style.display = (wItem.questionType === 'around') ? '' : 'none'; }
             const specialCls = GameState.currentData.special ? ' special-q-title' : '';
             document.getElementById('game-title').innerHTML = `<span class="${specialCls.trim()}" style="padding:10px 30px; border-radius:50px; display:inline-block; border:2px solid var(--primary); background: rgba(0,0,0,0.05); font-size:1.8rem;">🛠️ ${t("علاج الخطأ السابق")}</span>`;
             document.getElementById('game-question').innerHTML = GameState.currentData.questionBody;
