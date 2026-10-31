@@ -83,7 +83,7 @@ export const FLAGS = {
     DECO: { 8: 1, 9: 1, 10: 1 },
     MEDAL_IMG: { 4: 1, 5: 1, 9: 1 },
     PROG: { 4: 'beads', 5: 'path' },   // شريط تقدّم مخصّص: path = مسار من الغيم إلى الشمس ورأس الطفل عند حدّ التقدّم؛ beads = حبّات مسبحة تمتلئ مع كل إجابة وخاتم التسبيح عند حدّ التقدّم
-    LOGO_END: { 6: 1 }
+    LOGO_END: {}
 };
 
 export const COLOR_KEYS = ['bg', 'surface', 'ink', 'ink2', 'accent', 'onAccent', 'hi', 'onHi', 'frame', 'frameLine', 'chip', 'line'];
