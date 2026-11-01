@@ -1073,15 +1073,15 @@ function renderJourneyBlock(d) {
     `;
     return;
   }
-  // شريط تقدّم على المصحف كله: من الفاتحة (بداية الشريط) إلى الناس (نهايته). الاتجاه يتبع لغة الصفحة
-  // (RTL: الفاتحة يمينًا ويتجه الشريط يسارًا). الجزء الملوَّن = المدى الذي حُفظ هذا الشهر.
+  // تصميم "التكبير": (1) شريط المصحف كله بحدود السور الحقيقية (عرض كل سورة ∝ آياتها) مع تمييز المدى المحفوظ،
+  // (2) قمع يوصل المدى بشريط مكبَّر، (3) الشريط المكبَّر بأسماء السور المارّ بها، (4) بطاقتا البداية والنهاية.
+  // الاتجاه يتبع اتجاه صفحة التقرير (العربية: الفاتحة يمينًا ويتجه الشريط يسارًا).
   const sd = AppState.surahsData || [];
   const total = sd.reduce((n, s) => n + (s.ayahsCount || 0), 0);
+  const cum = []; { let c = 0; sd.forEach(s => { cum.push(c); c += s.ayahsCount || 0; }); }
   const posOf = (p) => {
-    if (!p || !total) return null;
-    let before = 0;
-    for (const s of sd) { if (s.number === p.s) break; before += s.ayahsCount || 0; }
-    return Math.min(1, Math.max(0, (before + (p.a || 0)) / total));
+    const i = p ? sd.findIndex(s => s.number === p.s) : -1;
+    return (i < 0 || !total) ? null : Math.min(1, Math.max(0, (cum[i] + (p.a || 0)) / total));
   };
   const pb = posOf(d.journey.beginPos), pe = posOf(d.journey.endPos);
   const first = String(d.name || '').trim().split(/\s+/)[0] || d.name;
@@ -1094,31 +1094,54 @@ function renderJourneyBlock(d) {
       <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>${sentence}</div>`;
     return;
   }
+  const rtl = ((document.getElementById('mreport-page') || {}).getAttribute?.('dir') || 'rtl') === 'rtl';
+  const ph = (x) => rtl ? 100 - x : x;                       // موضع أفقي فعلي % من نسبة المصحف (0=الفاتحة)
+  const f2 = (x) => x.toFixed(3);
   const lo = Math.min(pb, pe), hi = Math.max(pb, pe);
-  const pct = (x) => (x * 100).toFixed(2);
-  const segW = Math.max(hi - lo, 0.006); // حدّ أدنى مرئي للمدى القصير
-  const edge = (x) => x < 0.2 ? 'start' : (x > 0.8 ? 'end' : 'mid');
+  const span = Math.max(hi - lo, 1e-6);
+  // المدى الفعلي (بحدّ أدنى مرئي)
+  const mid = (lo + hi) / 2, vis = Math.max(span, 0.008);
+  const vl = Math.max(0, mid - vis / 2), vh = Math.min(1, mid + vis / 2);
+  const physL = Math.min(ph(vl * 100), ph(vh * 100)), physW = (vh - vl) * 100;
+
+  const full = sd.map(s => `<i style="flex:${s.ayahsCount}"></i>`).join('');
+  // السور التي يمر بها المدى المحفوظ (للشريط المكبَّر)
+  const zs = [];
+  sd.forEach((s, i) => {
+    const c0 = cum[i] / total, c1 = (cum[i] + s.ayahsCount) / total;
+    const a0 = Math.max(lo, c0), a1 = Math.min(hi, c1);
+    if (a1 > a0) zs.push({ n: s.number, z0: (a0 - lo) / span, z1: (a1 - lo) / span });
+  });
+  const zoomSegs = zs.map(z => {
+    const x0 = ph(z.z0 * 100), x1 = ph(z.z1 * 100), l = Math.min(x0, x1), w = Math.abs(x1 - x0);
+    return `<div class="mr-zm-seg" style="left:${f2(l)}%;width:${f2(w)}%"><span>${esc(surahNameLocal(z.n))}</span></div>`;
+  }).join('');
+  const zb = pb <= pe ? 0 : 1, ze = 1 - zb;                  // موضع البداية والنهاية داخل المكبَّر (0=طرف الفاتحة)
+  const xb = ph(zb * 100), xe = ph(ze * 100);
+  const toward = xe < xb ? '←' : '→';
+  const cardB = `<div class="mr-zm-card"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>`;
+  const cardE = `<div class="mr-zm-card"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>`;
+  const ltr = xb <= xe ? [cardB, cardE] : [cardE, cardB];   // من اليسار فعليًا إلى اليمين
+  const cards = rtl ? ltr.slice().reverse() : ltr;           // ترتيب DOM يتبع اتجاه الصفحة
   const quranPct = Math.max(0.1, Math.round((hi - lo) * 1000) / 10);
+  const ofQuran = AppState.currentLang === 'en' ? 'of the Quran' : 'من المصحف';
+  const ayahsWord = AppState.currentLang === 'en' ? 'ayahs' : 'آية';
+  const nA = d.journey.newAyahs != null ? d.journey.newAyahs : '';
   el.innerHTML = `
     <div class="mr-journey-box mr-jp">
-      <div class="mr-jp-ends"><span>${surahNameLocal(1)}</span><span>${surahNameLocal(114)}</span></div>
-      <div class="mr-jp-stage">
-        <div class="mr-jp-lbl mr-jp-lbl-top mr-jp-${edge(pb)}" style="inset-inline-start:${pct(pb)}%">
-          <span class="mr-journey-label">${t('mr_journey_begin_label')}</span>
-          <span class="mr-journey-pos">${d.journey.beginLabel}</span>
-        </div>
-        <div class="mr-jp-track">
-          <div class="mr-jp-fill" style="inset-inline-start:${pct(lo)}%;width:${pct(segW)}%"></div>
-          <i class="mr-jp-dot mr-jp-dot-b" style="inset-inline-start:${pct(pb)}%"></i>
-          <i class="mr-jp-dot mr-jp-dot-e" style="inset-inline-start:${pct(pe)}%"></i>
-        </div>
-        <div class="mr-jp-lbl mr-jp-lbl-bot mr-jp-${edge(pe)}" style="inset-inline-start:${pct(pe)}%">
-          <span class="mr-journey-pos">${d.journey.endLabel}</span>
-          <span class="mr-journey-label">${t('mr_journey_end_label')}</span>
-        </div>
+      <div class="mr-jp-ends"><span>${esc(surahNameLocal(1))}</span><span>${quranPct}% ${ofQuran}</span><span>${esc(surahNameLocal(114))}</span></div>
+      <div class="mr-jp-full">
+        <div class="mr-jp-surahs">${full}</div>
+        <div class="mr-jp-range" style="left:${f2(physL)}%;width:${f2(physW)}%"></div>
       </div>
+      <svg class="mr-jp-funnel" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+        <polygon points="${f2(physL)},0 ${f2(physL + physW)},0 100,24 0,24" class="mr-jp-funnel-fill"/>
+        <line x1="${f2(physL)}" y1="0" x2="0" y2="24" class="mr-jp-funnel-edge"/>
+        <line x1="${f2(physL + physW)}" y1="0" x2="100" y2="24" class="mr-jp-funnel-edge"/>
+      </svg>
+      <div class="mr-zm-bar">${zoomSegs}<i class="mr-zm-dot" style="left:calc(${f2(xb)}% ${xb < 50 ? '+' : '-'} 13px)"></i><i class="mr-zm-dot mr-zm-dot-e" style="left:calc(${f2(xe)}% ${xe < 50 ? '+' : '-'} 13px)"></i></div>
+      <div class="mr-zm-cards">${cards[0]}<div class="mr-zm-mid"><b>${nA}</b> ${nA !== '' ? ayahsWord : ''}<span>${toward}</span></div>${cards[1]}</div>
       ${sentence}
-      <div class="mr-jp-pct">${quranPct}% ${AppState.currentLang === 'en' ? 'of the Quran' : 'من المصحف'}</div>
     </div>`;
 }
 
@@ -1365,7 +1388,7 @@ function renderErrorsBlock(d) {
             <td>${new Date(w.dateResolved).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
             <td>${w.surahName
               ? (w.ayahText
-                ? `<div class="mr-err-surah">${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)} (${w.num})</div><div class="mr-err-ayah quran-text" dir="rtl">﴿${esc(w.ayahText)}﴾</div>`
+                ? `<div class="mr-err-surah">${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)} (${w.num})</div><div class="mr-err-ayah quran-text" dir="rtl">${esc(w.ayahText)}</div>`
                 : `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}`)
               : (localizeGenerated(w.text) || '—')}</td>
           </tr>

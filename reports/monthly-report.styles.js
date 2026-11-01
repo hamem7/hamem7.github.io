@@ -120,24 +120,6 @@ export const MONTHLY_REPORT_STYLES = `
   }
   #report-screen .note-bar textarea{border-radius:12px; min-height:56px;}
 
-  /* ============== شريط تقدّم رحلة الحفظ على المصحف كله ============== */
-  #report-screen .mr-jp{padding:16px 24px 18px;}
-  #report-screen .mr-jp-ends{display:flex; justify-content:space-between; font-size:11px; font-weight:700; opacity:.75; margin-bottom:4px;}
-  #report-screen .mr-jp-stage{position:relative; padding:46px 0;}
-  #report-screen .mr-jp-track{position:relative; height:14px; border-radius:999px; background:rgba(0,0,0,.14);}
-  #report-screen .mr-jp-fill{position:absolute; top:0; bottom:0; border-radius:999px; background:linear-gradient(90deg,#d4af37,#f0d878);}
-  #report-screen .mr-jp-dot{position:absolute; top:50%; width:18px; height:18px; margin-top:-9px; margin-inline-start:-9px; border-radius:50%; background:#fff; border:4px solid #c9932f; box-sizing:border-box;}
-  #report-screen .mr-jp-dot-e{background:#c9932f; border-color:#fff;}
-  #report-screen .mr-jp-lbl{position:absolute; width:0; display:flex; justify-content:center;}
-  #report-screen .mr-jp-lbl.mr-jp-start{justify-content:flex-start;}
-  #report-screen .mr-jp-lbl.mr-jp-end{justify-content:flex-end;}
-  #report-screen .mr-jp-lbl > span{white-space:nowrap;}
-  #report-screen .mr-jp-lbl{flex-direction:column; align-items:center;}
-  #report-screen .mr-jp-lbl.mr-jp-start{align-items:flex-start;}
-  #report-screen .mr-jp-lbl.mr-jp-end{align-items:flex-end;}
-  #report-screen .mr-jp-lbl-top{top:0;}
-  #report-screen .mr-jp-lbl-bot{bottom:0;}
-  #report-screen .mr-jp-pct{margin-top:4px; font-size:11.5px; font-weight:700; opacity:.7;}
   #report-screen .mr-err-surah{font-size:11.5px; color:#6f644e; font-weight:700; margin-bottom:3px;}
   #report-screen .mr-err-ayah{font-size:1.15rem; line-height:2; text-align:start;}
 
