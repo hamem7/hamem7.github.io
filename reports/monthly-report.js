@@ -887,6 +887,8 @@ async function buildMonthlyReportData(year, monthIndex0) {
     generatedDate: formatDateArabicOrEn(new Date()),
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
     name: student.name || t('mr_default_student_label'),
+    // الجنس لصياغة الرسالة (نفس قاعدة الشهادات: الصورة الرمزية أو حقل gender)
+    female: ['👧🏻', '👩🏻', '🧕🏻'].includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',
     // الصف من ملف الطالب (student.grade) — اختياري، يُخفى لو فارغ
     grade: student.grade ? trStored(student.grade) : '',
     memoScope, hasMemoRange,
@@ -1468,13 +1470,13 @@ function toneKey(baseKey, tone) { return tone === 'warm' ? baseKey + '_warm' : b
 
 function buildAutoNote(d) {
   const tone = getNoteTone();
-  const tk = (k) => toneKey(k, tone);
+  const tk = (k) => toneKey(k, tone) + (d.female ? '_f' : '');
   const parts = [];
   // الاسم الأول فقط في النبرة الدافئة (أقرب للكلام البشري من تكرار الاسم الكامل)
   const nm = tone === 'warm' ? (String(d.name || '').trim().split(/\s+/)[0] || d.name) : d.name;
   // 🌟 [جديد] افتتاحية دافئة بالاسم الأول للطالب (للنبرة الدافئة فقط)
   if (tone === 'warm') {
-    parts.push(t('mr_auto_note_open_warm').replace('{name}', nm));
+    parts.push(t('mr_auto_note_open_warm' + (d.female ? '_f' : '')).replace('{name}', nm));
   }
   // 🌟 [جديد] جملة الحفظ الجديد أولًا لو تم تسجيل نهاية الشهر فعليًا — أدق وأصدق
   // من جملة "النطاق الحالي" وحدها لأنها تعكس تحرّكًا فعليًا خلال هذا الشهر تحديدًا
@@ -1499,7 +1501,7 @@ function buildAutoNote(d) {
   }
   // 🌟 [إصلاح] جملة النطاق لا تُضاف إلا لو سُجِّل نطاق فعلًا (وإلا تظهر "النطاق الحالي: غير مسجَّل" بلا فائدة)
   if (d.hasMemoRange) parts.push(t(tk('mr_auto_note_memo')).replace('{scope}', d.memoScope));
-  if (tone === 'warm') parts.push(t('mr_auto_note_close_warm').replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name));
+  if (tone === 'warm') parts.push(t('mr_auto_note_close_warm' + (d.female ? '_f' : '')).replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name));
   return parts.join(' ');
 }
 
