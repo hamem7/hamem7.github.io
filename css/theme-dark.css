@@ -529,10 +529,11 @@ html[data-theme="dark"] body.kids-theme .btn:not(.btn-outline):not(.btn-note):no
 html[data-theme="dark"] body.kids-theme .btn.btn-wrong:not([style*="background"]) { background: linear-gradient(135deg, #0369a1, #0576b3); }
 html[data-theme="dark"] body.kids-theme .btn-note { background: #b45309 !important; }
 html[data-theme="dark"] body.kids-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
-/* الوردي (#db2777) نصاً فوق سطح داكن: تعليمات الألعاب واسم السورة */
+/* الوردي الغامق (#9d174d) نصاً فوق سطح داكن: تعليمات الألعاب واسم السورة */
+html[data-theme="dark"] body.kids-theme [style*="color:#9d174d"],
+html[data-theme="dark"] body.kids-theme [style*="color: #9d174d"],
 html[data-theme="dark"] body.kids-theme [style*="color:#db2777"],
-html[data-theme="dark"] body.kids-theme [style*="color: #db2777"],
-html[data-theme="dark"] body.kids-theme [style*="color:#9d174d"] { color: #f9a8d4 !important; }
+html[data-theme="dark"] body.kids-theme [style*="color: #db2777"] { color: #f9a8d4 !important; }
 /* حقول الإدخال والقوائم: أرضية داكنة ونص فاتح مع إبقاء حدّها الذهبي المرح */
 html[data-theme="dark"] body.kids-theme :is(select, input[type="text"], input[type="search"], input[type="number"], textarea, .kids-styled-select, .kids-styled-input, #student-search-input) {
     background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important;

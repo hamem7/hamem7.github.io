@@ -988,12 +988,13 @@ html[data-theme="dark"] body.kids-theme .in-game-student img { background-color:
 html[data-theme="dark"] body.kids-theme .in-game-student h3 { color: #b1c8e6 !important; }
 html[data-theme="dark"] body.kids-theme .q-circle { background: #1f2731 !important; border: 2px solid #495565 !important; color: var(--dh-ink-soft, #9db8ac) !important; }
 
-/* ===== games/kidsGame.html (6) ===== */
+/* ===== games/kidsGame.html (7) ===== */
+html[data-theme="dark"] body:not(.dh-light) [style*="color: #9d174d"]:not([style*="gradient"]) { color: #e38eb0 !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="background: rgba(0,0,0,0.05)"] { background: rgba(0,0,0,0.05) !important; }
+html[data-theme="dark"] body:not(.dh-light) [style*="color:#9d174d"]:not([style*="gradient"]) { color: #e38eb0 !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="background:#f0f9ff"] { background: #15222b !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="border-color:#bae6fd"] { border-color: #425d6c !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="color:#1e3a5f"]:not([style*="gradient"]) { color: #b1c8e6 !important; }
-html[data-theme="dark"] body:not(.dh-light) [style*="color:#9d174d"]:not([style*="gradient"]) { color: #e38eb0 !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="background:rgba(255,255,255,0.92)"] { background: #14241feb !important; }
 
 /* ===== games/kidsGame.js (3) ===== */
