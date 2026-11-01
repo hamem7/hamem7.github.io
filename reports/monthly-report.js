@@ -1809,8 +1809,16 @@ function ignoreNoExport(el) { return !!(el.classList && el.classList.contains('n
 // 🌟 [جديد] suffix اختياري لاسم الملف (يُستخدم لنسخة واتساب أدناه)، بلا أي تغيير
 // على تسمية PNG/PDF الحاليين (استدعاؤهما بلا الوسيط الثاني يبقيهما كما هما بالحرف)
 function buildFileName(ext, suffix) {
-  const namePart = slugifyForFilename(reportData.name);
-  const periodPart = slugifyForFilename(reportData.periodLabel);
+  // تنظيف يمنع تشوّه الاسم عند المشاركة (Ø§Ù„...): نزيل علامات الاتجاه/التحكم المخفية التي يضيفها Intl بالعربية،
+  // ونحوّل الأرقام الهندية (٠-٩ / ۰-۹) إلى لاتينية، ونحذف محارف الملفات الممنوعة، كما يفعل التقرير الفردي (أرقام لاتينية فقط).
+  const clean = (s) => String(s || '')
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06F0))
+    .replace(/[​-‏‪-‮⁦-⁩؜﻿  ]/g, ' ')
+    .replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ')
+    .trim();
+  const namePart = clean(slugifyForFilename(reportData.name));
+  const periodPart = clean(slugifyForFilename(reportData.periodLabel));
   return `تقرير شهري ${namePart} ${periodPart}${suffix ? ' ' + suffix : ''}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
 }
 const HQ_SCALE = 3;
