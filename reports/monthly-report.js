@@ -1107,6 +1107,16 @@ function renderJourneyBlock(d) {
     const j0 = ayahIndex(sd, bd.start.surah, bd.start.ayah), j1 = ayahIndex(sd, bd.end.surah, bd.end.ayah);
     if (Math.min(hi, j1) - Math.max(lo, j0) + 1 > 0) juzList.push({ n, bd, j0, j1, from: Math.max(lo, j0), to: Math.min(hi, j1) });
   }
+  // الملوَّن = ما أنجزه الطالب في الجزء حتى موضعه الحالي (نهاية الشهر)، والباقي بلا لون. يُفترض أن الحفظ يمضي في اتجاه
+  // واحد من بداية الجزء عنده: لو كان الاتجاه نحو الفاتحة (النهاية قبل البداية في ترتيب المصحف) فبدايته آخر الجزء (مثل الحديد
+  // ثم النجم)، وإلا فأول الجزء. الأجزاء التي تجاوزها كاملة. الجزء الحالي = جزء موضع نهاية الشهر.
+  const backward = ie < ib;
+  const curJuz = (juzList.find(j => ie >= j.j0 && ie <= j.j1) || juzList[juzList.length - 1]).n;
+  juzList.forEach(j => {
+    if (j.n === curJuz) { j.from = backward ? ie : j.j0; j.to = backward ? j.j1 : ie; }
+    else { j.from = j.j0; j.to = j.j1; }
+  });
+  juzList.sort((a, b) => (a.n === curJuz ? -1 : b.n === curJuz ? 1 : a.n - b.n));   // الجزء الحالي أولًا
   const MAX_TRACKS = 3;
   const tracksHtml = juzList.slice(0, MAX_TRACKS).map(j => {
     const len = j.j1 - j.j0 + 1, cov = j.to - j.from + 1;
@@ -1146,7 +1156,6 @@ function renderJourneyBlock(d) {
     ? `<div class="mr-jm-foot">${t('mr_jm_more').replace('{n}', juzList.length - MAX_TRACKS)}</div>` : '';
   const nA = d.journey.newAyahs != null ? d.journey.newAyahs : '';
   // الهدف المؤقت: إتمام الجزء الذي يحفظ فيه الطالب الآن (جزء موضع نهاية الشهر)
-  const curJuz = (juzList.find(j => ie >= j.j0 && ie <= j.j1) || juzList[juzList.length - 1]).n;
   const toward = t('mr_jm_toward').replace('{juz}', juzLabel(curJuz, t));
   el.innerHTML = `
     <div class="mr-journey-box mr-jm">
