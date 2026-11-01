@@ -31,7 +31,8 @@ import { ensureHomeworkSignIn } from '../components/teacherAuthGate.js';
 // المحلية متزامنة مع الدرجة النهائية بعد التصحيح اليدوي — راجع الشرح الكامل بجانبها في
 // core/submissionStatus.js.
 import { submissionNeedsGrading, submissionHasPendingManual, formatSubmittedAt } from '../core/submissionStatus.js';
-import { t, applyLanguage, localizeHomeworkText, surahLabel } from '../core/i18n.js';
+import { t, applyLanguage, localizeHomeworkText, surahLabel, surahNameLocal } from '../core/i18n.js';
+import { segmentIdFor } from '../engine/trackingEngine.js';
 const hl = localizeHomeworkText; // 🌟 ترجمة نص السؤال المخزَّن بالعربية وقت العرض فقط
 // 🌟 [جديد — إصلاح XSS] تنظيف أي نص قادم من الخادم (اسم الطالب/إجاباته) قبل حقنه في innerHTML
 import { esc } from '../core/escape.js';
@@ -2190,6 +2191,16 @@ function openQuestionBuilderModal(index = -1) {
         `;
     }
 
+    // موضع السؤال (سورة + رقم آية): إلزامي، ويُسجَّل في خريطة التتبّع ليدخل في تغطية المراجعة
+    const surahSel = document.getElementById('qb-surah'), ayahInp = document.getElementById('qb-ayah');
+    document.getElementById('qb-pos-label').textContent = L('موضع السؤال في القرآن (السورة ورقم الآية):', 'Question position in the Quran (surah and ayah number):');
+    ayahInp.placeholder = L('رقم الآية', 'Ayah no.');
+    surahSel.innerHTML = `<option value="">${L('اختر السورة…', 'Choose surah…')}</option>` +
+        (AppState.surahsData || []).map(sv => `<option value="${sv.number}">${sv.number}. ${esc(surahNameLocal(sv.number))}</option>`).join('');
+    const prevPos = index >= 0 ? currentTracking[currentGeneratedQuestions[index].id] : null;
+    surahSel.value = prevPos && prevPos.surah ? String(prevPos.surah) : '';
+    ayahInp.value = prevPos && prevPos.ayah ? String(prevPos.ayah) : '';
+
     if (index >= 0) {
         const q = currentGeneratedQuestions[index];
         document.getElementById('qb-modal-title').innerText = `${t('hw_modal_q_title')} ${index + 1}`;
@@ -2218,6 +2229,13 @@ function saveManualQuestion() {
     const correctRaw = document.getElementById('qb-correct').value.trim();
 
     if (!title || !text) return alert(t("الرجاء كتابة عنوان ونص السؤال!"));
+
+    const posSurah = parseInt(document.getElementById('qb-surah').value, 10);
+    const posAyah = parseInt(document.getElementById('qb-ayah').value, 10);
+    const posInfo = (AppState.surahsData || []).find(sv => sv.number === posSurah);
+    if (!posInfo || !Number.isInteger(posAyah) || posAyah < 1 || posAyah > posInfo.ayahsCount) {
+        return alert(L('حدّد سورة السؤال ورقم الآية (رقم صحيح ضمن السورة) ليُسجَّل السؤال في تتبّع الطالب.', 'Choose the question\'s surah and a valid ayah number so the question is recorded in the student\'s tracking.'));
+    }
 
     const editIndex = parseInt(document.getElementById('qb-edit-index').value);
     const oldQ = editIndex >= 0 ? currentGeneratedQuestions[editIndex] : null;
@@ -2254,6 +2272,10 @@ function saveManualQuestion() {
     };
     // بعد تعديل المعلم يبقى السؤال معلَّماً أنه من المتشابهات (لسطر المعاينة فقط؛ لا أثر له على الطالب أو التصحيح)
     if (oldQ && oldQ.simGroupId) { newQ.simGroupId = oldQ.simGroupId; newQ.simKind = oldQ.simKind; }
+
+    // تسجيل موضع السؤال اليدوي (يُحفظ مع الواجب ويحوّله التصحيح المعتمد إلى حدث أداء بآية محددة)
+    const oldTrack = currentTracking[newQ.id] || {};
+    currentTracking[newQ.id] = { ...oldTrack, surah: posSurah, ayah: posAyah, segment: segmentIdFor(AppState.surahsData, posSurah, posAyah) };
 
     if (editIndex >= 0) {
         currentGeneratedQuestions[editIndex] = newQ;

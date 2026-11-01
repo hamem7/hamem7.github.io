@@ -773,6 +773,15 @@
             <input type="text" id="qb-title" data-i18n-placeholder="اكتب عنوان السؤال..." placeholder="اكتب عنوان السؤال..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.2rem;">
         </div>
 
+        <!-- موضع السؤال في القرآن: يُسجَّل مع كل سؤال يدوي ليدخل في تتبّع الطالب وتغطية المراجعة بالتقرير الشهري -->
+        <div class="input-group" style="margin-bottom: 15px;">
+            <label id="qb-pos-label" style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;">موضع السؤال في القرآن:</label>
+            <div style="display: flex; gap: 10px;">
+                <select id="qb-surah" style="flex: 2; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.1rem;"></select>
+                <input type="number" id="qb-ayah" min="1" inputmode="numeric" style="flex: 1; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.1rem;">
+            </div>
+        </div>
+
         <div class="input-group" style="margin-bottom: 15px;">
             <label style="font-weight: bold; color: #475569; display: block; margin-bottom: 5px;" data-i18n="hw_q_text_label">نص السؤال / الآية:</label>
             <textarea id="qb-text" rows="3" data-i18n-placeholder="اكتب الآية أو النص هنا..." placeholder="اكتب الآية أو النص هنا..." style="width: 100%; padding: 10px; border: 2px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 1.3rem; color: var(--dh-ok, #15803d);"></textarea>
