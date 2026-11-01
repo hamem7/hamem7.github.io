@@ -58,6 +58,7 @@ import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.j
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 // 🌟 [جديد] "رحلة المراجعة" — ملخص مراجعة الأجزاء الخمسة (دالة خالصة، راجع engine/reviewParts.js)
 import { summarizeReview } from '../engine/reviewParts.js';
+import { getTheme, hijriMonth } from '../config/monthly-themes.js';
 // 🌟 [تحديث] getAllSubmissionsFromCloud لم تعد تُستورد بشكل ثابت هنا فوق — راجع
 // سبب ذلك بالتفصيل عند نقطة استخدامها الوحيدة داخل buildMonthlyReportData أدناه
 // (قسم "2) الواجبات المنزلية").
@@ -589,17 +590,25 @@ async function buildMonthlyReportData(year, monthIndex0) {
     // نظام الواجبات موجودة على هذا الجهاز يُتخطّى قسم الواجبات بملاحظة هادئة، وباقي التقرير يعمل كالمعتاد.
     const { isTeacherAuthed } = await import('../core/api.js');
     let hwTitleById = {};
+    let hwScopeById = {};
     try {
       const allHw = AppState.homeworkManager ? await AppState.homeworkManager.getAllHomeworks() : [];
-      allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; });
+      allHw.forEach(h => { hwTitleById[h.id] = h.title || ''; hwScopeById[h.id] = (h.scope && h.scope.label) ? String(h.scope.label) : ''; });
     } catch (e) { /* لو تعذّر جلب عناوين الواجبات نكتفي بمعرّف الواجب كنص بديل */ }
     const inMonth = (ts) => typeof ts === 'number' && ts >= monthStart && ts < monthEnd;
-    const toEntry = (hwId, ts, date, score) => ({
-      timestamp: ts,
-      date: date || '',
-      title: hwTitleById[hwId] || hwId || t('mr_hw_untitled'),
-      score: typeof score === 'number' ? score : 0
-    });
+    // النطاق (من سورة كذا إلى كذا) بدل معرّف الواجب التقني HW_xxx الذي لا يفهمه ولي الأمر
+    const toEntry = (hwId, ts, date, score, rangeText) => {
+      const rt = String(rangeText || '').replace(/^واجب منزلي:\s*/, '');
+      const histRange = /^واجب منزلي/.test(rt) ? '' : rt; // "واجب منزلي (N أسئلة)" ليس نطاقًا
+      const rawTitle = hwTitleById[hwId] || '';
+      return {
+        timestamp: ts,
+        date: date || '',
+        scope: hwScopeById[hwId] || histRange || '',
+        title: /^HW_/i.test(rawTitle) ? '' : rawTitle,
+        score: typeof score === 'number' ? score : 0
+      };
+    };
 
     // 🌟 [إصلاح] السجل المحلي (history_<id>) يحتفظ بنتيجة كل واجب معتمد (source: 'homework') حتى بعد حذف الواجب
     // وتسليماته من الخادم بالتنظيف التلقائي (20 يوماً)، فنقرأه دائماً حتى لا تختفي درجات الواجبات من التقرير.
@@ -612,7 +621,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
         // كل سجل محلي يُعدّ "مُغطّى" ولو كان في شهر آخر (يُحسب بتاريخ الاعتماد) كي لا يُحتسب من الخادم أيضاً بتاريخ التسليم
         if (h.submissionId !== undefined && h.submissionId !== null) seenSubmissionIds.add(String(h.submissionId));
         if (!inMonth(h.timestamp)) return;
-        localEntries.push(toEntry(h.hwId, h.timestamp, h.date, h.score));
+        localEntries.push(toEntry(h.hwId, h.timestamp, h.date, h.score, h.range));
       });
     } catch (e) { console.error('[monthly-report.js] تعذر قراءة سجل الواجبات المحلي:', e); }
 
@@ -640,6 +649,16 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب تسليمات الواجبات من السحابة:', e);
     homeworkErrorMsg = t('mr_cloud_error');
   }
+  // 🏅 وسام الشهر الهجري الذي يظهر للطالب في نهاية الواجب: لكل شهر هجري سُلِّم فيه واجب هذا الشهر
+  const monthMedals = [];
+  try {
+    const seenH = new Set();
+    homeworkEntries.forEach(e => {
+      const hm = hijriMonth(new Date(e.timestamp));
+      const th = hm ? getTheme(hm) : null;
+      if (th && th.ar && th.ar.medal && !seenH.has(hm)) { seenH.add(hm); monthMedals.push({ n: hm, ar: th.ar.medal, en: th.en && th.en.medal }); }
+    });
+  } catch (e) { /* لا ثيمة = لا وسام */ }
   const homeworkAvg = homeworkEntries.length
     ? Math.round(homeworkEntries.reduce((s, e) => s + e.score, 0) / homeworkEntries.length)
     : null;
@@ -863,7 +882,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     avatar: getAvatarHtml(student),
     teacher,
     gameEvalEntries, gameEvalAvg,
-    homeworkEntries, homeworkAvg, homeworkErrorMsg,
+    homeworkEntries, homeworkAvg, homeworkErrorMsg, monthMedals,
     dualEntries, dualWins, dualLosses, dualTies,
     achievementsThisMonth,
     resolvedThisMonth,
@@ -937,9 +956,10 @@ function renderSummaryTiles(d) {
   });
 
   const dualTotal = d.dualWins + d.dualLosses + d.dualTies;
-  tiles.push({
+  // بلا مواجهات مسجَّلة لا تُعرض بطاقة فوز–خسارة–تعادل أصلًا
+  if (dualTotal) tiles.push({
     label: t('mr_tile_dual_results'),
-    value: dualTotal ? `${d.dualWins}–${d.dualLosses}–${d.dualTies}` : '—',
+    value: `${d.dualWins}–${d.dualLosses}–${d.dualTies}`,
     sub: t('mr_tile_dual_sub'),
     color: '#8a6221'
   });
@@ -953,7 +973,7 @@ function renderSummaryTiles(d) {
 
   tiles.push({
     label: t('mr_tile_achievements'),
-    value: String(d.achievementsThisMonth.length),
+    value: String(d.achievementsThisMonth.length + d.monthMedals.length),
     sub: t('mr_tile_achievements_sub'),
     color: '#8a6221'
   });
@@ -1226,7 +1246,7 @@ function renderHomeworkBlock(d) {
         ${d.homeworkEntries.map(e => `
           <tr>
             <td>${e.date}</td>
-            <td>${e.title}</td>
+            <td>${e.scope ? `<b>${esc(localizeGenerated(e.scope))}</b>${e.title ? `<div class="mr-err-surah">${esc(e.title)}</div>` : ''}` : esc(e.title || t('mr_hw_untitled'))}</td>
             <td style="color:${scoreTierColor(e.score)}; font-weight:800;">${e.score}%</td>
           </tr>
         `).join('')}
@@ -1314,11 +1334,12 @@ function renderDualBlock(d) {
 function renderAchievementsBlock(d) {
   const el = $('mr-achv-content');
   if (!el) return;
-  setBlockVisible('mr-achv-block', !!d.achievementsThisMonth.length);
-  if (!d.achievementsThisMonth.length) {
+  setBlockVisible('mr-achv-block', !!(d.achievementsThisMonth.length || d.monthMedals.length));
+  if (!d.achievementsThisMonth.length && !d.monthMedals.length) {
     return;
   }
-  el.innerHTML = `<div class="mr-achv-list">${d.achievementsThisMonth.map(a => {
+  const medalChips = d.monthMedals.map(m => `<span class="mr-achv-chip">🏅 ${esc((AppState.currentLang === 'en' && m.en) ? m.en : m.ar)}</span>`).join('');
+  el.innerHTML = `<div class="mr-achv-list">${medalChips}${d.achievementsThisMonth.map(a => {
     const def = BADGE_CATALOG[a.badgeKey];
     if (!def) return '';
     return `<span class="mr-achv-chip">${def.icon} ${t(def.nameKey)}</span>`;
