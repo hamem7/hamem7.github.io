@@ -187,8 +187,9 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mr-jt-bar{position:relative; height:26px; border-radius:9px; overflow:hidden; border:1px solid rgba(255,255,255,.16); background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.03) 6px 12px);}
   #report-screen .page.mr2 .mr-jt-on{position:absolute; inset-block:0; background:linear-gradient(180deg,#f3df8c,#d4af37); box-shadow:0 0 12px rgba(240,216,120,.5);}
   #report-screen .page.mr2 .mr-jt-tick{position:absolute; inset-block:0; width:1px; background:rgba(11,61,48,.55);}
-  #report-screen .page.mr2 .mr-jt-names{display:flex; font-size:11px; font-weight:600; color:#9fb8ad;}
-  #report-screen .page.mr2 .mr-jt-names span{text-align:center; white-space:nowrap; overflow:hidden; min-width:0;}
+  #report-screen .page.mr2 .mr-jt-names{display:flex; align-items:flex-start; gap:2px; font-size:11px; font-weight:600; color:#9fb8ad; line-height:1.45;}
+  #report-screen .page.mr2 .mr-jt-names span{text-align:center; min-width:0; overflow-wrap:anywhere; padding:0 1px;}
+  #report-screen .page.mr2 .mr-jt-names span.mem{color:#f0d878; font-weight:800;}
   @media (max-width:560px){
     #report-screen .page.mr2 .mr-jm{flex-direction:column; gap:16px;}
     #report-screen .page.mr2 .mr-jm-stat{width:auto; border-inline-end:0; padding-inline-end:0; border-bottom:1px solid rgba(240,216,120,.28); padding-bottom:14px;}
