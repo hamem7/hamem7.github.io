@@ -99,6 +99,7 @@ export const MONTHLY_REPORT_STYLES = `
   #report-screen .report-toolbar .grp-label{margin-inline-end:2px; letter-spacing:.2px;}
   #report-screen .rbtn{transition:transform .12s ease, filter .12s ease;}
   #report-screen .rbtn:hover:not([disabled]){transform:translateY(-1px); filter:brightness(1.06);}
+  #report-screen .rbtn.wa{background:#25d366; color:#06331a;}
   #report-screen .mr-month-bar{
     display:flex; align-items:center; justify-content:center; gap:10px 14px; flex-wrap:wrap;
     padding:12px 20px; background:#2a251e; border-top:none; border-bottom:1px solid #46403690;

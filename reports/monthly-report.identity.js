@@ -162,28 +162,26 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mr-journey-arrow{color:#d4af37;}
   #report-screen .page.mr2 .mr-journey-new{font-family:'Amiri',serif; color:#f6f3e8; font-size:20px;}
 
-  /* رحلة الحفظ — شريط المصحف + التكبير */
-  #report-screen .page.mr2 .mr-jp{padding:18px 22px 20px; text-align:center;}
-  #report-screen .page.mr2 .mr-jp-ends{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; font-weight:700; color:#9fb8ad; margin-bottom:8px;}
-  #report-screen .page.mr2 .mr-jp-ends span:nth-child(2){color:#f0d878; background:rgba(212,175,55,.14); border:1px solid rgba(212,175,55,.45); border-radius:999px; padding:2px 12px;}
-  #report-screen .page.mr2 .mr-jp-full{position:relative; height:18px; border-radius:9px; overflow:hidden; background:#06231c;}
-  #report-screen .page.mr2 .mr-jp-surahs{display:flex; height:100%; gap:1px;}
-  #report-screen .page.mr2 .mr-jp-surahs i{display:block; height:100%; background:rgba(246,243,232,.26);}
-  #report-screen .page.mr2 .mr-jp-range{position:absolute; top:0; bottom:0; background:#f0d878; box-shadow:0 0 0 2px #0b3d30, 0 0 10px 2px rgba(240,216,120,.7);}
-  #report-screen .page.mr2 .mr-jp-funnel{display:block; width:100%; height:26px;}
-  #report-screen .page.mr2 .mr-jp-funnel-fill{fill:rgba(240,216,120,.16);}
-  #report-screen .page.mr2 .mr-jp-funnel-edge{stroke:rgba(240,216,120,.7); stroke-width:1.2; vector-effect:non-scaling-stroke; stroke-dasharray:3 3;}
-  #report-screen .page.mr2 .mr-zm-bar{position:relative; height:46px; border-radius:12px; overflow:hidden; background:linear-gradient(180deg,#f3df8c,#d4af37); border:1px solid #f0d878;}
-  #report-screen .page.mr2 .mr-zm-seg{position:absolute; top:0; bottom:0; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 1px rgba(11,61,48,.35);}
-  #report-screen .page.mr2 .mr-zm-seg span{font-family:'Cairo',sans-serif; font-size:14px; font-weight:800; color:#0b3d30; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 8px;}
-  #report-screen .page.mr2 .mr-zm-dot{position:absolute; top:50%; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%; background:#0b3d30; border:3px solid #fff;}
-  #report-screen .page.mr2 .mr-zm-dot-e{background:#fff; border-color:#0b3d30;}
-  #report-screen .page.mr2 .mr-zm-cards{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:14px;}
-  #report-screen .page.mr2 .mr-zm-card{flex:1; background:rgba(255,255,255,.06); border:1px solid rgba(240,216,120,.3); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:2px;}
-  #report-screen .page.mr2 .mr-zm-mid{flex:none; display:flex; flex-direction:column; align-items:center; color:#f6f3e8; font-size:13px; font-weight:700;}
-  #report-screen .page.mr2 .mr-zm-mid b{font-family:'Amiri',serif; font-size:22px; color:#f0d878;}
-  #report-screen .page.mr2 .mr-zm-mid span{color:#d4af37; font-size:20px; line-height:1;}
-  #report-screen .page.mr2 .mr-jp .mr-journey-new{margin-top:14px;}
+  /* رحلة الحفظ — خريطة الأجزاء */
+  #report-screen .page.mr2 .mr-jm{display:flex; align-items:stretch; gap:22px; padding:20px 22px; text-align:start;}
+  #report-screen .page.mr2 .mr-jm-stat{flex:none; width:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-inline-end:1px solid rgba(240,216,120,.28); padding-inline-end:22px;}
+  #report-screen .page.mr2 .mr-jm-num{font-family:'Amiri',serif; font-size:68px; line-height:1; font-weight:700; color:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-cap{margin-top:6px; font-size:13px; font-weight:700; color:#f6f3e8;}
+  #report-screen .page.mr2 .mr-jm-name{margin-top:10px; font-size:11.5px; font-weight:600; color:#9fb8ad;}
+  #report-screen .page.mr2 .mr-jm-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:14px;}
+  #report-screen .page.mr2 .mr-jm-route{display:flex; align-items:center; gap:12px;}
+  #report-screen .page.mr2 .mr-jm-pt{display:flex; flex-direction:column; gap:2px;}
+  #report-screen .page.mr2 .mr-jm-way{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:60px;}
+  #report-screen .page.mr2 .mr-jm-way i{display:block; width:100%; height:0; border-top:2px dashed rgba(240,216,120,.7);}
+  #report-screen .page.mr2 .mr-jm-way em{font-style:normal; font-size:10.5px; font-weight:700; color:#d4af37;}
+  #report-screen .page.mr2 .mr-jm-grid{display:grid; grid-template-columns:repeat(10,1fr); gap:6px;}
+  #report-screen .page.mr2 .mr-jm-tile{position:relative; height:34px; border-radius:8px; overflow:hidden; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center;}
+  #report-screen .page.mr2 .mr-jm-tile b{position:relative; font-size:12px; font-weight:700; color:#8fa89c;}
+  #report-screen .page.mr2 .mr-jm-tile i{position:absolute; inset-inline:0; bottom:0; background:linear-gradient(180deg,#f3df8c,#d4af37);}
+  #report-screen .page.mr2 .mr-jm-tile.on{border-color:#f0d878; box-shadow:0 0 0 1px #f0d878, 0 0 12px rgba(240,216,120,.45);}
+  #report-screen .page.mr2 .mr-jm-tile.on b{color:#f0d878; font-weight:800; font-size:13px; text-shadow:0 1px 2px rgba(0,0,0,.5);}
+  #report-screen .page.mr2 .mr-jm-foot{font-size:11.5px; font-weight:600; color:#9fb8ad;}
+  #report-screen .page.mr2 .mr-jm-foot b{color:#f0d878;}
   #report-screen .page.mr2 .mr-err-surah{color:#4a6058;}
 
   /* اتجاه الحفظ */

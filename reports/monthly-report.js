@@ -57,7 +57,7 @@ import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.j
 // ("لا يوجد سجل تاريخي لتغيّر نطاق الحفظ"). getSurahInfo دالة خالصة لا تلمس أي DOM.
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 // 🌟 [جديد] "رحلة المراجعة" — ملخص مراجعة الأجزاء الخمسة (دالة خالصة، راجع engine/reviewParts.js)
-import { summarizeReview } from '../engine/reviewParts.js';
+import { summarizeReview, ayahIndex, juzBounds, juzLabel, JUZ_COUNT } from '../engine/reviewParts.js';
 import { getTheme, hijriMonth } from '../config/monthly-themes.js';
 // 🌟 [تحديث] getAllSubmissionsFromCloud لم تعد تُستورد بشكل ثابت هنا فوق — راجع
 // سبب ذلك بالتفصيل عند نقطة استخدامها الوحيدة داخل buildMonthlyReportData أدناه
@@ -111,6 +111,17 @@ const MONTHLY_REPORT_TEMPLATE = `
       <button class="rbtn" id="btn-mr-whatsapp" data-i18n-title="mr_export_whatsapp_hint">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
         <span data-i18n="mr_export_whatsapp">نسخة واتساب</span>
+      </button>
+    </div>
+    <div class="grp">
+      <span class="grp-label" data-i18n="mr_wa_group_label">إرسال واتساب</span>
+      <button class="rbtn wa" id="btn-mr-wa-img" data-i18n-title="mr_wa_img_hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+        <span data-i18n="mr_wa_img">صورة</span>
+      </button>
+      <button class="rbtn wa" id="btn-mr-wa-pdf" data-i18n-title="mr_wa_pdf_hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>
+        <span data-i18n="mr_wa_pdf">PDF</span>
       </button>
     </div>
     <div class="grp">
@@ -1073,75 +1084,52 @@ function renderJourneyBlock(d) {
     `;
     return;
   }
-  // تصميم "التكبير": (1) شريط المصحف كله بحدود السور الحقيقية (عرض كل سورة ∝ آياتها) مع تمييز المدى المحفوظ،
-  // (2) قمع يوصل المدى بشريط مكبَّر، (3) الشريط المكبَّر بأسماء السور المارّ بها، (4) بطاقتا البداية والنهاية.
-  // الاتجاه يتبع اتجاه صفحة التقرير (العربية: الفاتحة يمينًا ويتجه الشريط يسارًا).
+  // تصميم "خريطة الأجزاء": لوحة إحصاء كبيرة + 30 بلاطة (الأجزاء)؛ تُضاء الأجزاء التي مرّ بها الحفظ هذا الشهر،
+  // وتُظلَّل حصة المدى داخل كل بلاطة من أسفلها. الاتجاه يتبع اتجاه الصفحة (العربية: الجزء 1 يمينًا).
   const sd = AppState.surahsData || [];
-  const total = sd.reduce((n, s) => n + (s.ayahsCount || 0), 0);
-  const cum = []; { let c = 0; sd.forEach(s => { cum.push(c); c += s.ayahsCount || 0; }); }
-  const posOf = (p) => {
-    const i = p ? sd.findIndex(s => s.number === p.s) : -1;
-    return (i < 0 || !total) ? null : Math.min(1, Math.max(0, (cum[i] + (p.a || 0)) / total));
-  };
-  const pb = posOf(d.journey.beginPos), pe = posOf(d.journey.endPos);
+  const ib = d.journey.beginPos ? ayahIndex(sd, d.journey.beginPos.s, d.journey.beginPos.a) : null;
+  const ie = d.journey.endPos ? ayahIndex(sd, d.journey.endPos.s, d.journey.endPos.a) : null;
   const first = String(d.name || '').trim().split(/\s+/)[0] || d.name;
   const sentence = d.journey.newAyahs != null
     ? `<div class="mr-journey-new">${t('mr_journey_sentence').replace('{name}', first).replace('{n}', '<b>' + d.journey.newAyahs + '</b>')}</div>` : '';
-  if (pb == null || pe == null) {
+  if (!sd.length || ib == null || ie == null || !juzBounds(sd, 1)) {
     el.innerHTML = `<div class="mr-journey-box">
       <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
       <div class="mr-journey-arrow">↓</div>
       <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>${sentence}</div>`;
     return;
   }
-  const rtl = ((document.getElementById('mreport-page') || {}).getAttribute?.('dir') || 'rtl') === 'rtl';
-  const ph = (x) => rtl ? 100 - x : x;                       // موضع أفقي فعلي % من نسبة المصحف (0=الفاتحة)
-  const f2 = (x) => x.toFixed(3);
-  const lo = Math.min(pb, pe), hi = Math.max(pb, pe);
-  const span = Math.max(hi - lo, 1e-6);
-  // المدى الفعلي (بحدّ أدنى مرئي)
-  const mid = (lo + hi) / 2, vis = Math.max(span, 0.008);
-  const vl = Math.max(0, mid - vis / 2), vh = Math.min(1, mid + vis / 2);
-  const physL = Math.min(ph(vl * 100), ph(vh * 100)), physW = (vh - vl) * 100;
-
-  const full = sd.map(s => `<i style="flex:${s.ayahsCount}"></i>`).join('');
-  // السور التي يمر بها المدى المحفوظ (للشريط المكبَّر)
-  const zs = [];
-  sd.forEach((s, i) => {
-    const c0 = cum[i] / total, c1 = (cum[i] + s.ayahsCount) / total;
-    const a0 = Math.max(lo, c0), a1 = Math.min(hi, c1);
-    if (a1 > a0) zs.push({ n: s.number, z0: (a0 - lo) / span, z1: (a1 - lo) / span });
-  });
-  const zoomSegs = zs.map(z => {
-    const x0 = ph(z.z0 * 100), x1 = ph(z.z1 * 100), l = Math.min(x0, x1), w = Math.abs(x1 - x0);
-    return `<div class="mr-zm-seg" style="left:${f2(l)}%;width:${f2(w)}%"><span>${esc(surahNameLocal(z.n))}</span></div>`;
-  }).join('');
-  const zb = pb <= pe ? 0 : 1, ze = 1 - zb;                  // موضع البداية والنهاية داخل المكبَّر (0=طرف الفاتحة)
-  const xb = ph(zb * 100), xe = ph(ze * 100);
-  const toward = xe < xb ? '←' : '→';
-  const cardB = `<div class="mr-zm-card"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>`;
-  const cardE = `<div class="mr-zm-card"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>`;
-  const ltr = xb <= xe ? [cardB, cardE] : [cardE, cardB];   // من اليسار فعليًا إلى اليمين
-  const cards = rtl ? ltr.slice().reverse() : ltr;           // ترتيب DOM يتبع اتجاه الصفحة
-  const quranPct = Math.max(0.1, Math.round((hi - lo) * 1000) / 10);
-  const ofQuran = AppState.currentLang === 'en' ? 'of the Quran' : 'من المصحف';
-  const ayahsWord = AppState.currentLang === 'en' ? 'ayahs' : 'آية';
+  const lo = Math.min(ib, ie), hi = Math.max(ib, ie);
+  const lit = [];
+  const tiles = [];
+  for (let n = 1; n <= JUZ_COUNT; n++) {
+    const bd = juzBounds(sd, n);
+    const j0 = ayahIndex(sd, bd.start.surah, bd.start.ayah), j1 = ayahIndex(sd, bd.end.surah, bd.end.ayah);
+    const ov = Math.min(hi, j1) - Math.max(lo, j0) + 1;
+    const frac = ov > 0 ? Math.min(1, ov / (j1 - j0 + 1)) : 0;
+    if (frac > 0) lit.push(n);
+    tiles.push(`<div class="mr-jm-tile${frac > 0 ? ' on' : ''}"><i style="height:${frac > 0 ? Math.max(14, Math.round(frac * 100)) : 0}%"></i><b>${n}</b></div>`);
+  }
+  const en = AppState.currentLang === 'en';
+  const litText = lit.map(n => juzLabel(n, t)).join(en ? ', ' : '، ');
   const nA = d.journey.newAyahs != null ? d.journey.newAyahs : '';
+  const toward = ie < ib ? (en ? 'toward Al-Fatihah' : 'باتجاه الفاتحة') : (en ? 'toward An-Nas' : 'باتجاه الناس');
   el.innerHTML = `
-    <div class="mr-journey-box mr-jp">
-      <div class="mr-jp-ends"><span>${esc(surahNameLocal(1))}</span><span>${quranPct}% ${ofQuran}</span><span>${esc(surahNameLocal(114))}</span></div>
-      <div class="mr-jp-full">
-        <div class="mr-jp-surahs">${full}</div>
-        <div class="mr-jp-range" style="left:${f2(physL)}%;width:${f2(physW)}%"></div>
+    <div class="mr-journey-box mr-jm">
+      <div class="mr-jm-stat">
+        <div class="mr-jm-num">${nA !== '' ? nA : '—'}</div>
+        <div class="mr-jm-cap">${en ? 'new ayahs memorized' : 'آية جديدة حُفظت'}</div>
+        <div class="mr-jm-name">${esc(first)}</div>
       </div>
-      <svg class="mr-jp-funnel" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
-        <polygon points="${f2(physL)},0 ${f2(physL + physW)},0 100,24 0,24" class="mr-jp-funnel-fill"/>
-        <line x1="${f2(physL)}" y1="0" x2="0" y2="24" class="mr-jp-funnel-edge"/>
-        <line x1="${f2(physL + physW)}" y1="0" x2="100" y2="24" class="mr-jp-funnel-edge"/>
-      </svg>
-      <div class="mr-zm-bar">${zoomSegs}<i class="mr-zm-dot" style="left:calc(${f2(xb)}% ${xb < 50 ? '+' : '-'} 13px)"></i><i class="mr-zm-dot mr-zm-dot-e" style="left:calc(${f2(xe)}% ${xe < 50 ? '+' : '-'} 13px)"></i></div>
-      <div class="mr-zm-cards">${cards[0]}<div class="mr-zm-mid"><b>${nA}</b> ${nA !== '' ? ayahsWord : ''}<span>${toward}</span></div>${cards[1]}</div>
-      ${sentence}
+      <div class="mr-jm-main">
+        <div class="mr-jm-route">
+          <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
+          <div class="mr-jm-way"><i></i><em>${toward}</em></div>
+          <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>
+        </div>
+        <div class="mr-jm-grid">${tiles.join('')}</div>
+        <div class="mr-jm-foot">${en ? 'Quran map · 30 juz' : 'خريطة المصحف · الأجزاء الثلاثون'}${litText ? ` — <b>${esc(litText)}</b>` : ''}</div>
+      </div>
     </div>`;
 }
 
@@ -1803,7 +1791,7 @@ async function exportPng() {
 // WHATSAPP_TARGET_WIDTH_PX (بدل HQ_SCALE الكامل) وبصيغة JPEG (أخف حجمًا من PNG
 // لصورة طويلة كهذه، ووضوحها كافٍ تمامًا لصورة تُشاهَد على شاشة هاتف). لا تُغيّر
 // أي شيء في exportPng/exportPdf أعلاه — زر منفصل تمامًا يستدعيها.
-async function exportWhatsAppRaw() {
+async function exportWhatsAppRaw(share = false) {
   await ensureHtml2Canvas();
   await ensureFontsReady();
   await ensureStampCleaned(); // 🌟 [جديد] لا يخرج الملف بالختم غير المنظَّف
@@ -1813,6 +1801,11 @@ async function exportWhatsAppRaw() {
     scale, backgroundColor: '#fffdf6', useCORS: true,
     ignoreElements: ignoreNoExport
   });
+  if (share) {   // مشاركة مباشرة: نُرجع الملف بدل تنزيله
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
+    logReportGenerated(canvas);
+    return { blob, filename: buildFileName('jpg', t('mr_export_whatsapp_suffix')), mime: 'image/jpeg' };
+  }
   const link = document.createElement('a');
   link.download = buildFileName('jpg', t('mr_export_whatsapp_suffix'));
   link.href = canvas.toDataURL('image/jpeg', 0.92);
@@ -1856,7 +1849,7 @@ function packBlocksIntoPages(blocks, maxPageHeight) {
   return pages;
 }
 
-async function exportPdfRaw() {
+async function exportPdfRaw(share = false) {
   await ensureHtml2Canvas();
   await ensureJsPdf();
   await ensureFontsReady();
@@ -1917,6 +1910,10 @@ async function exportPdfRaw() {
     pdf.addImage(sliceImg, 'PNG', marginXPt, marginYPt, contentWidthPt, sliceHeightPt, undefined, 'FAST');
   });
 
+  if (share) {
+    logReportGenerated(canvas);
+    return { blob: pdf.output('blob'), filename: buildFileName('pdf'), mime: 'application/pdf' };
+  }
   pdf.save(buildFileName('pdf'));
   logReportGenerated(canvas);
 }
@@ -1967,6 +1964,32 @@ async function withExportView(mode, fn) {
 }
 const exportWhatsApp = () => withExportView('compact', exportWhatsAppRaw);
 const exportPdf = () => withExportView('full', exportPdfRaw);
+
+// 📲 مشاركة التقرير عبر واتساب (صورة مختصرة أو PDF شامل). على الهاتف تفتح قائمة المشاركة بالملف نفسه فيختار المعلم واتساب
+// وولي الأمر؛ وعلى الحاسوب (حيث لا تدعم المتصفحات إرفاق ملف برابط) ننزّل الملف ونفتح واتساب برسالة جاهزة ليرفقه المعلم.
+async function shareViaWhatsApp(kind) {
+  const res = kind === 'pdf' ? await withExportView('full', () => exportPdfRaw(true)) : await withExportView('compact', () => exportWhatsAppRaw(true));
+  if (!res || !res.blob) throw new Error('empty export');
+  const name = (reportData && reportData.name) || '';
+  const period = (reportData && reportData.periodLabel) || '';
+  const msg = t('mr_wa_msg').replace('{name}', name).replace('{period}', period);
+  const file = new File([res.blob], res.filename, { type: res.mime });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text: msg });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
+    console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة، سننزّله بدلًا من ذلك:', e);
+  }
+  const url = URL.createObjectURL(res.blob);
+  const a = document.createElement('a'); a.href = url; a.download = res.filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+  alert(t('mr_wa_fallback_note'));
+}
 
 // -----------------------------------------------------------------------------
 // 5) نقطة الدخول
@@ -2094,6 +2117,10 @@ function initMonthlyReportScreen() {
   const pngBtn = $('btn-mr-png');
   const pdfBtn = $('btn-mr-pdf');
   const whatsappBtn = $('btn-mr-whatsapp');
+  const waImgBtn = $('btn-mr-wa-img');
+  const waPdfBtn = $('btn-mr-wa-pdf');
+  if (waImgBtn) waImgBtn.addEventListener('click', withBusyLabel(waImgBtn, t('mr_exporting'), () => shareViaWhatsApp('image')));
+  if (waPdfBtn) waPdfBtn.addEventListener('click', withBusyLabel(waPdfBtn, t('mr_exporting'), () => shareViaWhatsApp('pdf')));
   if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('mr_exporting'), exportPng));
   if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('mr_exporting'), exportPdf));
   if (whatsappBtn) whatsappBtn.addEventListener('click', withBusyLabel(whatsappBtn, t('mr_exporting'), exportWhatsApp));
