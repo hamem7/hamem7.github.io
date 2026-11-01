@@ -82,8 +82,13 @@ export function populateDashboardData() {
         attachKidsRangeCoverageNote('kids-from-surah', 'kids-to-surah', 'q-count-kids');
     }
 
-    // «كل حفظ الطالب» يبدأ مُطفأً مع كل فتح للوحة (الطفل قد يتغيّر)
-    setKidsAll(false);
+    // زر «كل حفظ الطالب» للأطفال فقط؛ وعند فتح اللوحة لطالب جديد نعود لـ«سورة محددة» إن كان محدداً
+    const allPill = document.getElementById('eval-all-pill');
+    if (allPill) allPill.style.display = AppState.isKidsMode ? '' : 'none';
+    if (document.querySelector('input[name="evalType"]:checked')?.value === 'all') {
+        const first = document.querySelector('input[name="evalType"][value="surah"]');
+        if (first) { first.checked = true; toggleEvalType(); }
+    } else { syncKidsAll(); }
 }
 
 // ---------------------------------------------------------------------------
@@ -95,21 +100,14 @@ let kidsAllRange = null;          // { from, to } عند جاهزية «كل ا�
 let kidsAllStale = false;         // هل موضع الحفظ قديم/غير مسجَّل (يُسأل المعلم عند البدء)
 
 function isKidsAllOn() {
-    return AppState.isKidsMode && document.getElementById('btn-kids-all')?.getAttribute('aria-pressed') === 'true';
+    return AppState.isKidsMode && document.querySelector('input[name="evalType"]:checked')?.value === 'all';
 }
 
-function setKidsAll(on) {
-    const btn = document.getElementById('btn-kids-all');
-    if (!btn) return;
-    on = !!on && AppState.isKidsMode;
-    btn.setAttribute('aria-pressed', String(on));
-    btn.classList.toggle('dash-btn-primary', on);
-    btn.classList.toggle('btn-outline', !on);
-    document.getElementById('kids-manual-range').style.display = on ? 'none' : '';
-    document.getElementById('kids-all-info').style.display = on ? 'block' : 'none';
+// يُستدعى من toggleEvalType عند تغيّر النوع؛ يحسب النطاق التلقائي فقط عند اختيار «كل حفظ الطالب»
+function syncKidsAll() {
     kidsAllRange = null;
     kidsAllStale = false;
-    if (on) refreshKidsAllInfo();
+    if (isKidsAllOn()) refreshKidsAllInfo();
 }
 
 // نافذة تذكير عند البدء بـ«كل حفظ الطالب» والموضع قديم: يحدّث المعلم الآن أو يكمل بنطاق قد يكون ناقصاً
@@ -195,7 +193,7 @@ export function setupDashboardListeners() {
         const evalType = document.querySelector('input[name="evalType"]:checked')?.value || 'surah';
         const isJuzMode = evalType === 'juz';
         const isRangeMode = !AppState.isKidsMode && evalType === 'range';
-        const isKidsRange = AppState.isKidsMode && evalType === 'range';
+        const isKidsRange = AppState.isKidsMode && (evalType === 'range' || evalType === 'all');
         
         let qCountVal = 10;
         if (isKidsRange) qCountVal = document.getElementById('q-count-kids').value;
@@ -221,7 +219,6 @@ export function setupDashboardListeners() {
         };
     };
 
-    document.getElementById('btn-kids-all')?.addEventListener('click', () => setKidsAll(!isKidsAllOn()));
     document.getElementById('btn-kids-all-update')?.addEventListener('click', updateKidsPositionNow);
 
     document.getElementById('btn-start-mission')?.addEventListener('click', async () => {
@@ -255,7 +252,12 @@ function toggleEvalType() {
     document.getElementById('surah-settings').style.display = (mode === 'surah') ? 'grid' : 'none';
     const kids = AppState.isKidsMode;
     document.getElementById('range-settings').style.display = (mode === 'range' && !kids) ? 'grid' : 'none';
-    document.getElementById('kids-settings').style.display = (mode === 'range' && kids) ? 'grid' : 'none';
+    document.getElementById('kids-settings').style.display = ((mode === 'range' || mode === 'all') && kids) ? 'grid' : 'none';
+    const isAll = mode === 'all' && kids;
+    document.getElementById('kids-manual-range').style.display = isAll ? 'none' : '';
+    document.getElementById('kids-range-title').style.display = isAll ? 'none' : '';
+    document.getElementById('kids-all-info').style.display = isAll ? 'block' : 'none';
+    syncKidsAll();
     document.getElementById('juz-settings').style.display = (mode === 'juz') ? 'grid' : 'none';
     
     updateHeaderSurahName();

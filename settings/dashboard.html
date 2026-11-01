@@ -124,6 +124,8 @@
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
+            <!-- ركن الأطفال فقط: النطاق تلقائياً من آخر موضع توقف مسجّل للطالب -->
+            <label class="dash-eval-pill" id="eval-all-pill" style="display:none"><input type="radio" name="evalType" value="all"> <span data-i18n="kids_all_btn">📖 كل حفظ الطالب</span></label>
         </div>
 
         <div id="surah-settings" class="form-grid" style="text-align:right;">
@@ -171,14 +173,10 @@
         </div>
 
         <div id="kids-settings" style="display:none; text-align:center; width: 100%;">
-            <div style="color:#9d174d; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
+            <div id="kids-range-title" style="color:#9d174d; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
                 نطاق الأسئلة (من الأحقاف إلى الناس):
             </div>
 
-            <!-- زر «كل حفظ الطالب» (للأطفال فقط): النطاق يُحسب تلقائياً من آخر موضع توقف مسجّل للطالب -->
-            <div style="margin-bottom:16px;">
-                <button type="button" id="btn-kids-all" class="btn btn-outline" aria-pressed="false" style="font-size:1.2rem; padding:10px 18px;" data-i18n="kids_all_btn">📖 كل حفظ الطالب</button>
-            </div>
             <div id="kids-all-info" style="display:none; margin:0 auto 18px; max-width:560px; text-align:center; font-weight:700; line-height:1.9;">
                 <div id="kids-all-range" style="font-size:1.2rem;"></div>
                 <div id="kids-all-fresh" style="font-size:1rem; margin-top:6px;"></div>
