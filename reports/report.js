@@ -1696,7 +1696,7 @@ function buildFileName(ext){
   const namePart = slugifyForFilename(reportData.name);
   const datePart = reportData.date.replace(/\s+/g, '').replace(/\//g, '-');
   const scopePart = slugifyForFilename(localizeGenerated(reportData.scope));
-  return `${t('rp_file_prefix')}_${namePart}_${datePart}_${scopePart}.${ext}`;
+  return `${t('rp_file_prefix')} ${namePart} ${datePart} ${scopePart}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
 }
 const HQ_SCALE = 3; // جودة عالية جدًا للتصدير
 

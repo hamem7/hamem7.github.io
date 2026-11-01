@@ -1782,7 +1782,7 @@ function ignoreNoExport(el) { return !!(el.classList && el.classList.contains('n
 function buildFileName(ext, suffix) {
   const namePart = slugifyForFilename(reportData.name);
   const periodPart = slugifyForFilename(reportData.periodLabel);
-  return `تقرير_شهري_${namePart}_${periodPart}${suffix ? '_' + suffix : ''}.${ext}`;
+  return `تقرير شهري ${namePart} ${periodPart}${suffix ? ' ' + suffix : ''}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
 }
 const HQ_SCALE = 3;
 // 🌟 [جديد — مقاس واتساب جاهز، القسم 1 من طلب المعلم] عرض مستهدف بالبكسل لصورة

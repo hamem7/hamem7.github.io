@@ -429,7 +429,7 @@ async function canvasToPdfBlob(canvas) {
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 297, 210);
     return pdf.output('blob');
 }
-const safeName = (s) => String(s).replace(/[\\/:*?"<>|]/g, '_').trim() || 'certificate';
+const safeName = (s) => String(s).replace(/[\\/:*?"<>|_]/g, ' ').replace(/\s+/g, ' ').trim() || 'certificate';
 // مشاركة ملف عبر Web Share API إن أمكن، وإلا تنزيل (يُرجع true لو شُورك فعلاً)
 async function shareOrDownload(blob, filename, title, text) {
     const file = new File([blob], filename, { type: blob.type || 'image/png' });

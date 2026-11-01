@@ -328,7 +328,7 @@ function buildFileName(ext) {
   const a = slugifyForFilename(reportData.nameA);
   const b = slugifyForFilename(reportData.nameB);
   const datePart = reportData.date.replace(/\s+/g, '').replace(/\//g, '-');
-  return `تقرير_مواجهة_${a}_ضد_${b}_${datePart}.${ext}`;
+  return `تقرير مواجهة ${a} ضد ${b} ${datePart}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
 }
 const HQ_SCALE = 3;
 // 🌟 نفس مفتاح localStorage المستخدم في report.js/monthly-report.js بالحرف — تقارير
