@@ -406,6 +406,7 @@ function setupMyStudentsListeners() {
         opt.addEventListener('click', () => {
             selectAddAvatarOption(opt);
             document.getElementById('selected-avatar').value = opt.dataset.av;
+            setAddGender(EDIT_GIRL_AVATARS.includes(opt.dataset.av) ? 'girl' : 'boy', true);
             const fileInput = document.getElementById('stu-avatar');
             if (fileInput) fileInput.value = '';
             const up = document.getElementById('btn-avatar-upload');
@@ -441,6 +442,8 @@ function setupMyStudentsListeners() {
     });
     document.getElementById('btn-add-step-back')?.addEventListener('click', () => setAddStep(_addStep - 1));
     document.getElementById('stu-name')?.addEventListener('input', () => { checkAddStudentName(true); refreshAddStepButtons(); });
+    // 🌟 الجنس إلزامي عند التسجيل: يُستعمل لتأنيث الرسائل والشهادات، ويضبط الصورة الرمزية الافتراضية
+    document.querySelectorAll('#add-gender-seg button[data-g]').forEach(b => b.addEventListener('click', () => setAddGender(b.dataset.g)));
     document.getElementById('stu-name')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && _addStep === 1) { e.preventDefault(); document.getElementById('btn-add-step-next')?.click(); }
     });
@@ -461,7 +464,7 @@ async function saveNewStudentAction(addAnother) {
         grade: document.getElementById('stu-grade').value,
         country: document.getElementById('stu-country').value,
         phone: document.getElementById('stu-phone').value,
-        gender: 'boy',
+        gender: document.getElementById('stu-gender')?.value || '',
         memoFrom: document.getElementById('stu-memo-from').value,
         memoTo: document.getElementById('stu-memo-to').value,
         avatar: document.getElementById('selected-avatar').value,
@@ -473,6 +476,7 @@ async function saveNewStudentAction(addAnother) {
         resolvedWeaknesses: []
     };
     if (!data.name) return alert(t("stu_name_required"));
+    if (data.gender !== 'boy' && data.gender !== 'girl') { setAddStep(1); return alert(t("stu_gender_required_alert")); }
     // 🌟 [إلزامي — 2026-10-17] نطاق الحفظ يحدد آيات الواجب والأسئلة، فلا يُسجَّل طالب بدونه
     if (!data.memoFrom || !data.memoTo) { setAddStep(3); return alert(t("stu_memo_required_alert")); }
     if (!memoDirectionOk(data.memoFrom, data.memoTo)) { setAddStep(3); return alert(t("stu_memo_direction_alert")); }
@@ -517,6 +521,24 @@ async function afterNewStudentSaved(data, newId, addAnother) {
     offerNewStudentGames({ ...data, id: newId });
 }
 
+// الجنس في نافذة التسجيل: fromAvatar=true يعني أن الاختيار جاء من الصورة الرمزية فلا نغيّر الصورة
+function setAddGender(g, fromAvatar) {
+    const hid = document.getElementById('stu-gender'); if (hid) hid.value = g || '';
+    document.querySelectorAll('#add-gender-seg button[data-g]').forEach(b => b.classList.toggle('on', b.dataset.g === g));
+    const warn = document.getElementById('add-gender-warn'); if (warn) warn.style.display = 'none';
+    if (!fromAvatar && g) {
+        const sel = document.getElementById('selected-avatar');
+        const cur = sel ? sel.value : '';
+        const isGirlAv = EDIT_GIRL_AVATARS.includes(cur);
+        // لو الصورة الحالية رمز من الجنس الآخر (أو الافتراضية) نبدّل لأول رمز من الجنس المختار؛ والصورة المرفوعة تبقى
+        if (cur.length < 10 && (g === 'girl') !== isGirlAv) {
+            const opt = [...document.querySelectorAll('#avatar-gallery .avatar-opt[data-av]')].find(o => EDIT_GIRL_AVATARS.includes(o.dataset.av) === (g === 'girl'));
+            if (opt) { selectAddAvatarOption(opt); sel.value = opt.dataset.av; }
+        }
+    }
+    refreshAddStepButtons();
+}
+
 function selectAddAvatarOption(el) {
     document.querySelectorAll('#avatar-gallery .avatar-opt').forEach(o => o.classList.remove('active'));
     el.classList.add('active');
@@ -533,6 +555,7 @@ function resetAddStudentForm() {
     const up = document.getElementById('btn-avatar-upload'); if (up) up.textContent = '📷';
     const first = document.querySelector('#avatar-gallery .avatar-opt[data-av]');
     if (first) { selectAddAvatarOption(first); document.getElementById('selected-avatar').value = first.dataset.av; }
+    setAddGender('');
     const warn = document.getElementById('add-name-warn'); if (warn) warn.style.display = 'none';
     setAddStep(1);
 }
@@ -559,7 +582,7 @@ function checkAddStudentName(silent) {
 }
 
 function refreshAddStepButtons() {
-    const hasName = !!(document.getElementById('stu-name')?.value.trim());
+    const hasName = !!(document.getElementById('stu-name')?.value.trim()) && !!(document.getElementById('stu-gender')?.value);
     const show = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
     show('btn-add-step-back', _addStep > 1);
     show('btn-add-step-next', _addStep < 3);
@@ -1628,12 +1651,17 @@ async function openEditStudentModal(id) {
     // 🌟 [إصلاح فحص الأزرار] كان حقل "الجنس (للصورة الرمزية)" يظهر بلا أي ربط بالحفظ. الآن يعكس نوع
     // الصورة الرمزية الحالية (لو كانت رمزًا تعبيريًا) ويُطبَّق عند الحفظ؛ ولا أثر له إن كان للطالب صورة مرفوعة 🌟
     const _genderSel = document.getElementById('edit-stu-gender');
-    if (_genderSel) _genderSel.value = (s.avatar && s.avatar.length < 10 && EDIT_GIRL_AVATARS.includes(s.avatar)) ? 'girl' : 'boy';
+    if (_genderSel) _genderSel.value = studentGenderOf(s);
     openModal('edit-modal');
 }
 
 // 🌟 رموز الصور الرمزية للبنات (مطابقة لخيارات my-students.html) 🌟
 const EDIT_GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];
+// جنس الطالب: الحقل المسجَّل أولًا، وللبيانات القديمة نستدل بالصورة الرمزية (رمز أنثوي = بنت)
+function studentGenderOf(s) {
+    if (s && (s.gender === 'girl' || s.gender === 'female')) return 'girl';
+    return (s && EDIT_GIRL_AVATARS.includes(s.avatar)) ? 'girl' : 'boy';
+}
 
 // 🌟 [2026-10-20] لوحة «تعديل كل بيانات الطالب» داخل ملف الطالب: نفس حقول وقواعد نافذة «كل الطلاب» القديمة (edit-modal)
 // لكن تنفتح داخل الصفحة نفسها تحت الغلاف (لا نافذة فوقها) وتعيد رسم الملف بعد الحفظ بدل الانتقال بين الشاشات 🌟
@@ -1677,7 +1705,7 @@ function openProfileEditModal(student) {
     $('pfe-phone').value = student.phone || '';
     if (student.memoFrom) $('pfe-memo-from').value = student.memoFrom;
     $('pfe-memo-to').value = student.memoTo || '';
-    $('pfe-gender').value = (student.avatar && student.avatar.length < 10 && EDIT_GIRL_AVATARS.includes(student.avatar)) ? 'girl' : 'boy';
+    $('pfe-gender').value = studentGenderOf(student);
     $('pfe-avatar').value = '';
     $('pfe-error').hidden = true;
     pfeRenderPhoto(student);
@@ -1722,6 +1750,7 @@ async function saveProfileEditAction() {
     s.phone = $('pfe-phone').value;
     s.memoFrom = memoFrom;
     s.memoTo = memoTo;
+    { const _pg = $('pfe-gender').value; if (_pg) s.gender = _pg; }
     if (pfeNewAvatar) {
         s.avatar = pfeNewAvatar;
     } else {
@@ -1755,6 +1784,7 @@ async function saveEditedStudentAction() {
     if (!memoDirectionOk(s.memoFrom, s.memoTo)) return alert(t("stu_memo_direction_alert"));
     // 🌟 [إصلاح فحص الأزرار] تطبيق اختيار الجنس على الصورة الرمزية (رمز تعبيري فقط، لا الصور المرفوعة) 🌟
     const _g = document.getElementById('edit-stu-gender')?.value;
+    if (_g) s.gender = _g;
     if (_g && (!s.avatar || s.avatar.length < 10)) {
         const isGirlNow = EDIT_GIRL_AVATARS.includes(s.avatar);
         if (_g === 'girl' && !isGirlNow) s.avatar = '👧🏻';
