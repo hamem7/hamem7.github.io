@@ -1,0 +1,55 @@
+/* previews/mem-record-shared.css — رموز الهوية + الهيكل المشترك لمعاينتَي «تسجيل حفظ الطالب».
+   نفس رموز css/tokens.css و css/theme-dark.css (سطوح وحدود وألوان معنى) فتنقلب المعاينة تلقائيًا في الداكن. */
+:root {
+  --dh-emerald-700: #0d5c46; --dh-emerald-800: #0b3d30; --dh-emerald-900: #06231c; --dh-emerald-600: #147c5e;
+  --dh-gold-500: #d4af37; --dh-gold-ink: #8a6221; --dh-gold-soft: #fbf3d5;
+  --dh-ink: #10241c; --dh-ink-soft: #5a6b63;
+  --dh-surface-0: #f6f3e8; --dh-surface-1: #fffdf6; --dh-surface-2: #fffdf6; --dh-surface-3: #ffffff;
+  --dh-border-soft: #e4dfcc; --dh-border: #cfc7a8; --dh-border-strong: #a89f84;
+  --dh-ok: #15803d; --dh-ok-bg: #e7f4ee; --dh-warn: #b45309; --dh-warn-bg: #fef3c7; --dh-danger: #b91c1c; --dh-danger-bg: #fde8e8;
+  --dh-primary: #0d5c46; --dh-on-primary: #fffdf6; --dh-tint: #e7f4ee;
+  --sh: 0 24px 60px rgba(6, 35, 28, .25);
+}
+:root[data-theme="dark"] {
+  --dh-ink: #e4f6ec; --dh-ink-soft: #a9c4b6; --dh-gold-ink: #e9cb6a; --dh-gold-soft: #3a3217;
+  --dh-surface-0: #0a1512; --dh-surface-1: #12211b; --dh-surface-2: #182a23; --dh-surface-3: #263d33;
+  --dh-border-soft: #3f5a4e; --dh-border: #4b665a; --dh-border-strong: #6a8a7b;
+  --dh-ok: #4ade80; --dh-ok-bg: #12301f; --dh-warn: #fbbf24; --dh-warn-bg: #3a2a08; --dh-danger: #fca5a5; --dh-danger-bg: #3d1616;
+  --dh-primary: #3fbf94; --dh-on-primary: #06231c; --dh-tint: #163328;
+  --sh: 0 24px 60px rgba(0, 0, 0, .6);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; }
+body { background: var(--dh-surface-0); color: var(--dh-ink); line-height: 1.6; min-height: 100vh; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+
+.mr-note { background: var(--dh-gold-soft); color: var(--dh-gold-ink); font-size: .85rem; padding: 7px 16px; text-align: center; border-bottom: 1px solid var(--dh-border-soft); }
+.mr-top { background: linear-gradient(120deg, #06231c, #0d5c46 55%, #147c5e); border-bottom: 3px solid var(--dh-gold-500); color: #fffdf6; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+.mr-top b { font-size: 1.02rem; margin-inline-end: auto; }
+.mr-pill { border: 1.5px solid rgba(255, 253, 246, .45); border-radius: 30px; padding: 5px 15px; font-weight: 600; font-size: .88rem; background: rgba(255, 255, 255, .12); color: #fffdf6; }
+.mr-pill:hover { background: rgba(255, 255, 255, .22); }
+.mr-stage { min-height: calc(100vh - 100px); display: flex; align-items: flex-start; justify-content: center; padding: 20px 16px 40px; background: rgba(6, 35, 28, .06); }
+
+/* عناصر مشتركة */
+.mr-sheet { width: 100%; max-width: 560px; background: var(--dh-surface-1); border: 1px solid var(--dh-border-soft); border-radius: 24px; box-shadow: var(--sh); overflow: hidden; }
+.mr-stu { display: flex; align-items: center; gap: 12px; }
+.mr-av { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.35rem; background: var(--dh-tint); color: var(--dh-primary); border: 3px solid var(--dh-primary); flex-shrink: 0; }
+.mr-stu h2 { font-size: 1.25rem; line-height: 1.2; }
+.mr-stu p { font-size: .88rem; color: var(--dh-ink-soft); font-weight: 600; }
+.mr-field label { display: block; font-weight: 700; font-size: .92rem; margin-bottom: 6px; }
+.mr-select { width: 100%; padding: 13px 14px; border-radius: 14px; border: 2px solid var(--dh-border-strong); background: var(--dh-surface-3); font-size: 1.08rem; font-weight: 600; }
+.mr-select:focus { border-color: var(--dh-gold-500); }
+.mr-actions { display: flex; gap: 10px; }
+.mr-btn { flex: 1; min-height: 50px; border-radius: 14px; font-weight: 800; font-size: 1.02rem; padding: 0 16px; transition: transform .1s ease, background .2s; }
+.mr-btn:active { transform: scale(.98); }
+.mr-btn.primary { background: var(--dh-primary); color: var(--dh-on-primary); flex: 2; }
+.mr-btn.primary:disabled { background: var(--dh-border); color: var(--dh-ink-soft); cursor: not-allowed; }
+.mr-btn.ghost { background: transparent; color: var(--dh-ink-soft); border: 2px solid var(--dh-border-strong); }
+.mr-btn.ghost:hover { background: var(--dh-surface-2); }
+.mr-delta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; font-weight: 700; background: var(--dh-tint); color: var(--dh-primary); }
+.mr-delta strong { font-size: 1.35rem; direction: ltr; unicode-bidi: isolate; }
+.mr-delta.zero { background: var(--dh-warn-bg); color: var(--dh-warn); }
+.mr-delta.bad { background: var(--dh-danger-bg); color: var(--dh-danger); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 480px) { .mr-stage { padding: 12px 10px 30px; } }

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ب) — مسار الحفظ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mem-record-shared.css">
+<style>
+.b-hero { background: linear-gradient(135deg, #06231c, #0d5c46 60%, #147c5e); color: #fffdf6; padding: 20px 22px 22px; display: grid; gap: 14px; }
+.b-hero .mr-av { background: rgba(255,255,255,.14); color: #fffdf6; border-color: var(--dh-gold-500); }
+.b-hero .mr-stu p { color: #cfe6da; }
+.b-track { height: 12px; border-radius: 999px; background: rgba(255,255,255,.2); position: relative; direction: ltr; }
+.b-track .done { position: absolute; inset-block: 0; left: 0; border-radius: 999px; background: #8fd9bb; }
+.b-track .new { position: absolute; inset-block: 0; border-radius: 999px; background: var(--dh-gold-500); transition: width .25s ease, left .25s ease; }
+.b-ends { display: flex; justify-content: space-between; font-size: .75rem; color: #cfe6da; font-weight: 600; direction: ltr; }
+.b-ends span:last-child { text-align: right; }
+.b-label { font-size: .8rem; color: #cfe6da; font-weight: 700; }
+.b-pos { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+.b-pos .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--dh-gold-500); box-shadow: 0 0 0 5px rgba(212,175,55,.3); flex-shrink: 0; }
+.b-pos small { display: block; font-size: .78rem; color: #e7d79a; font-weight: 700; }
+.b-pos strong { font-size: 1.2rem; }
+.b-body { padding: 18px 22px 6px; display: grid; gap: 16px; }
+.b-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.b-card { border: 2px solid var(--dh-border-strong); background: var(--dh-surface-3); border-radius: 16px; padding: 12px 14px; text-align: start; display: grid; gap: 2px; }
+.b-card small { font-size: .75rem; font-weight: 700; color: var(--dh-ink-soft); }
+.b-card strong { font-size: 1.05rem; }
+.b-card[aria-pressed="true"] { border-color: var(--dh-primary); background: var(--dh-tint); box-shadow: inset 0 0 0 1px var(--dh-primary); }
+.b-ay { display: grid; gap: 10px; }
+.b-ay-top { display: flex; align-items: baseline; justify-content: space-between; }
+.b-ay-top output { font-size: 2.2rem; font-weight: 800; color: var(--dh-primary); direction: ltr; line-height: 1; }
+.b-ay-top span { font-size: .85rem; color: var(--dh-ink-soft); font-weight: 600; }
+.b-range { width: 100%; height: 36px; accent-color: var(--dh-primary); direction: ltr; }
+.b-more { justify-self: start; font-size: .85rem; font-weight: 700; color: var(--dh-primary); text-decoration: underline; padding: 4px 0; }
+.b-foot { padding: 14px 22px 22px; display: grid; gap: 14px; }
+.b-hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="mr-note" data-i18n="note"></div>
+<div class="mr-top"><b data-i18n="topTitle"></b>
+  <button class="mr-pill" id="mr-theme">◐</button>
+  <button class="mr-pill" id="mr-lang">English</button>
+</div>
+<div class="mr-stage">
+  <div class="mr-sheet" id="sheet"></div>
+</div>
+<script src="mem-record-shared.js"></script>
+<script>
+(function () {
+  const sh = document.getElementById('sheet');
+  const last = { s: MR.SAMPLE.last.s, a: MR.SAMPLE.last.a };
+  let cur = { s: last.s, a: last.a };
+  let showAll = false;
+
+  function render() {
+    const max = MR.count(cur.s);
+    cur.a = Math.min(Math.max(1, cur.a), max);
+    const total = MR.total();
+    const li = MR.idx(last.s, last.a), ci = Math.max(MR.idx(cur.s, cur.a), 0);
+    const n = ci - li;
+    const cls = n < 0 ? 'bad' : n === 0 ? 'zero' : '';
+    const msg = n < 0 ? MR.t('backward') : n === 0 ? MR.t('noProgress') : MR.t('newAyahs');
+    const pct = v => Math.min(100, Math.max(0, (v / total) * 100));
+    const w = Math.max(0, pct(ci) - pct(li));
+    // خيارات سريعة: نفس سورة آخر تسجيل + السورتان التاليتان في مسار الحفظ
+    const quick = [last.s, last.s - 1, last.s - 2].filter(x => x >= 1);
+    sh.innerHTML = `
+      <div class="b-hero">
+        <div class="mr-stu"><div class="mr-av">${MR.t('student').charAt(0)}</div>
+          <div><h2>${MR.t('student')}</h2><p>${MR.t('kind')} — ${MR.t('month', { m: MR.SAMPLE.month, y: MR.SAMPLE.year })}</p></div></div>
+        <div class="b-pos"><span class="dot"></span>
+          <div><small>${MR.t('lastTitle')}</small><strong>${MR.name(last.s)} — ${last.a}</strong></div></div>
+        <div><div class="b-label">${MR.t('progressLabel')}</div>
+          <div class="b-track" style="margin-top:8px"><span class="done" style="width:${pct(li)}%"></span><span class="new" style="left:${pct(li)}%;width:${w}%"></span></div>
+          <div class="b-ends" style="margin-top:6px"><span>${MR.name(114)}</span><span>${MR.name(1)}</span></div></div>
+      </div>
+      <div class="b-body">
+        <div class="mr-field"><label>${MR.t('surah')}</label>
+          <div class="b-grid">${quick.map((q, i) => `<button class="b-card" data-s="${q}" aria-pressed="${q === cur.s}">
+            <small>${i === 0 ? MR.t('sameSurah') : MR.t('nextSurah')}</small><strong>${MR.name(q)}</strong></button>`).join('')}
+            <button class="b-card" id="other" aria-pressed="${!quick.includes(cur.s)}"><small>…</small><strong>${quick.includes(cur.s) ? MR.t('surah') : MR.name(cur.s)}</strong></button></div>
+          <div class="${showAll || !quick.includes(cur.s) ? '' : 'b-hidden'}" style="margin-top:10px">
+            <select class="mr-select" id="s" aria-label="${MR.t('surah')}">${MR.surahOptions(cur.s)}</select></div></div>
+        <div class="b-ay"><label for="a" style="font-weight:700;font-size:.92rem">${MR.t('ayah')}</label>
+          <div class="b-ay-top"><output id="out">${cur.a}</output><span>${MR.t('ayahOf', { n: max })}</span></div>
+          <input class="b-range" id="a" type="range" min="1" max="${max}" value="${cur.a}">
+          <button class="b-more" data-end>${MR.t('finishSurah')} (${max})</button></div>
+      </div>
+      <div class="b-foot">
+        <div class="mr-delta ${cls}"><span>${msg}</span><strong>${n > 0 ? '+' + n : n === 0 ? '0' : '!'}</strong></div>
+        <div class="mr-actions"><button class="mr-btn ghost">${MR.t('skip')}</button>
+          <button class="mr-btn primary" ${n < 0 ? 'disabled' : ''}>${MR.t('next')}</button></div>
+      </div>`;
+    sh.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { cur = { s: +b.dataset.s, a: b.dataset.s == last.s ? last.a : 1 }; showAll = false; render(); });
+    sh.querySelector('#other').onclick = () => { showAll = true; render(); const el = sh.querySelector('#s'); if (el) el.focus(); };
+    const sel = sh.querySelector('#s'); if (sel) sel.onchange = e => { cur = { s: +e.target.value, a: 1 }; render(); };
+    sh.querySelector('#a').oninput = e => { cur.a = +e.target.value; sh.querySelector('#out').textContent = cur.a; renderLite(); };
+    sh.querySelector('#a').onchange = () => render();
+    sh.querySelector('[data-end]').onclick = () => { cur.a = max; render(); };
+  }
+  // تحديث خفيف أثناء سحب الشريط (بدون إعادة بناء العنصر المسحوب)
+  function renderLite() {
+    const total = MR.total(), li = MR.idx(last.s, last.a), ci = MR.idx(cur.s, cur.a), n = ci - li;
+    const nw = sh.querySelector('.b-track .new');
+    nw.style.width = Math.max(0, ((ci - li) / total) * 100) + '%';
+    const d = sh.querySelector('.mr-delta'); d.className = 'mr-delta ' + (n < 0 ? 'bad' : n === 0 ? 'zero' : '');
+    d.querySelector('strong').textContent = n > 0 ? '+' + n : n === 0 ? '0' : '!';
+    d.querySelector('span').textContent = n < 0 ? MR.t('backward') : n === 0 ? MR.t('noProgress') : MR.t('newAyahs');
+    sh.querySelector('.mr-btn.primary').disabled = n < 0;
+  }
+  MR.onChange(render);
+})();
+</script>
+</body>
+</html>
