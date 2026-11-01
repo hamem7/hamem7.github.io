@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (أ) — شاشة الطلاب الموحّدة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#5a6b63; --line:#e4dfcc; --line2:#cfc7a8;
+  --bg:#f6f3e8; --card:#fffdf6; --white:#fff; --warn:#b45309; --warn-bg:#fef3c7; --ok:#15803d; --ok-bg:#e7f4ee;
+  --r:16px; --sh:0 6px 18px rgba(6,35,28,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:90px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px}
+
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
+.top h1{font-size:1.05rem}.sp{flex:1}
+.pill{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:6px 16px;font-weight:600;font-size:.9rem;background:rgba(255,255,255,.12);color:#fffdf6}
+
+.titlebar{display:flex;align-items:center;gap:10px;margin:20px 0 4px;flex-wrap:wrap}
+.titlebar h2{font-size:1.4rem}
+.month{background:var(--warn-bg);color:var(--warn);border-radius:99px;padding:3px 12px;font-size:.85rem;font-weight:700}
+.sub{color:var(--ink2);font-size:.9rem;margin-bottom:14px}
+
+/* شريط التقدّم */
+.prog{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:12px}
+.prog .row{display:flex;justify-content:space-between;font-size:.9rem;font-weight:600;margin-bottom:8px}
+.bar{height:8px;border-radius:99px;background:#ece6cf;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--g6),var(--g7));border-radius:99px;transition:width .3s}
+
+/* إضافة سريعة */
+.add{display:flex;gap:8px;margin-bottom:12px}
+.add input{flex:1;min-width:0;border:1.5px dashed var(--g6);background:#fff;border-radius:12px;padding:11px 14px;font-size:1rem}
+.add input:focus{outline:2px solid var(--gold);border-style:solid}
+.btn{border-radius:12px;padding:10px 16px;font-weight:700;font-size:.95rem;min-height:44px}
+.btn.primary{background:var(--g7);color:#fffdf6}
+.btn.ghost{border:1.5px solid var(--line2);background:#fff}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:.85rem}
+
+/* تبويبات التصفية + بحث */
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line2);background:#fff;border-radius:99px;padding:5px 14px;font-size:.85rem;font-weight:600}
+.chip.on{background:var(--g7);border-color:var(--g7);color:#fffdf6}
+.search{flex:1;min-width:140px;border:1.5px solid var(--line2);background:#fff;border-radius:99px;padding:6px 14px;font-size:.9rem}
+
+/* بطاقة الطالب */
+.list{display:grid;gap:10px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:box-shadow .2s}
+.st.open{box-shadow:var(--sh);border-color:var(--line2)}
+.st .head{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.ava{width:40px;height:40px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex:none}
+.nm{font-weight:700;flex:1;min-width:0}
+.nm small{display:block;font-weight:400;color:var(--ink2);font-size:.78rem}
+.tag{font-size:.75rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.tag.wait{background:var(--warn-bg);color:var(--warn)}
+.tag.done{background:var(--ok-bg);color:var(--ok)}
+.quick{display:flex;gap:8px;padding:0 12px 12px;flex-wrap:wrap;align-items:center}
+.quick select,.quick input.n{border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:8px 10px;min-height:40px}
+.quick select{flex:1;min-width:150px}
+.quick input.n{width:92px}
+.saved{font-size:.8rem;color:var(--ok);font-weight:600;opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.more{display:none;border-top:1px dashed var(--line2);padding:12px;background:#fbf8ec}
+.st.open .more{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.grid{grid-template-columns:1fr}}
+.f label{display:block;font-size:.8rem;color:var(--ink2);margin-bottom:3px;font-weight:600}
+.f input{width:100%;border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:8px 10px;min-height:40px}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.acts .grow{flex:1}
+.hint{font-size:.78rem;color:var(--ink2);margin-top:8px}
+.empty{text-align:center;color:var(--ink2);padding:30px 0}
+
+/* شريط سفلي */
+.foot{position:fixed;inset-inline:0;bottom:0;background:var(--card);border-top:1px solid var(--line2);padding:10px 0;box-shadow:0 -6px 18px rgba(6,35,28,.08)}
+.foot .wrap{display:flex;gap:10px;align-items:center}
+.foot .txt{flex:1;font-size:.85rem;color:var(--ink2)}
+.toast{position:fixed;inset-inline:0;bottom:80px;margin:auto;width:max-content;max-width:90vw;background:var(--g9);color:#fffdf6;border-radius:12px;padding:10px 18px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="note" data-i18n="note"></div>
+
+<header class="top"><div class="wrap">
+  <div class="logo">د</div>
+  <h1 data-i18n="brand"></h1>
+  <div class="sp"></div>
+  <button class="pill" data-i18n="home"></button>
+  <button class="pill" id="langBtn">English</button>
+</div></header>
+
+<main class="wrap">
+  <div class="titlebar">
+    <h2 data-i18n="title"></h2>
+    <span class="month" data-i18n="month"></span>
+  </div>
+  <p class="sub" data-i18n="sub"></p>
+
+  <div class="prog">
+    <div class="row"><span id="progTxt"></span><span id="progPct"></span></div>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+
+  <form class="add" id="addForm">
+    <input id="addName" data-i18n-ph="addPh" autocomplete="off">
+    <button class="btn primary" data-i18n="addBtn"></button>
+  </form>
+
+  <div class="tools">
+    <div class="chips" id="chips"></div>
+    <input class="search" id="search" data-i18n-ph="searchPh">
+  </div>
+
+  <div class="list" id="list"></div>
+</main>
+
+<div class="foot"><div class="wrap">
+  <span class="txt" data-i18n="autosave"></span>
+  <button class="btn ghost" data-i18n="reportsAll"></button>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const I18N = {
+ ar:{note:'نموذج معاينة أول — بيانات تجريبية ولا يحفظ شيئًا فعليًا', brand:'دار الحفاظ', home:'الرئيسية',
+  title:'الطلاب', month:'نوفمبر', sub:'مدخل واحد: أضف الطالب، سجّل أين توقف، وافتح ملفه أو تقريره من نفس المكان.',
+  addPh:'+ طالب جديد: اكتب الاسم ثم Enter', addBtn:'إضافة',
+  searchPh:'بحث بالاسم…', all:'الكل', wait:'بانتظارك', done:'تم تسجيله',
+  progTxt:(a,b)=>`سُجّل ${a} من ${b} طالبًا`, autosave:'يُحفظ تلقائيًا عند الاختيار — لا حاجة لإكمال كل البيانات.',
+  reportsAll:'تقارير الشهر', surah:'اختر السورة', ayah:'الآية', saved:'✓ تم الحفظ',
+  waitTag:'بانتظارك', doneTag:'تم', stoppedAt:'توقف عند', stopLbl:'أين توقف؟',
+  more:'بيانات إضافية', phone:'جوال ولي الأمر', notes:'ملاحظة', grade:'الصف / المستوى',
+  save:'حفظ', openFile:'فتح ملف الطالب', report:'إصدار التقرير', needPos:'سجّل موضع التوقف أولًا لإصدار التقرير',
+  hint:'كل الحقول اختيارية عدا الاسم — يمكنك إكمالها لاحقًا.', none:'لا يوجد طلاب مطابقون.',
+  added:n=>`أُضيف «${n}» — سجّل أين توقف أو أكمل بياناته لاحقًا`, openedFile:n=>`(معاينة) فتح ملف ${n}`, openedRep:n=>`(معاينة) تقرير ${n}`,
+  savedMsg:'تم الحفظ', ay:'آية', lastMonth:'الشهر الماضي'},
+ en:{note:'First preview — sample data, nothing is actually saved', brand:'Dar Al-Huffaz', home:'Home',
+  title:'Students', month:'November', sub:'One entry point: add a student, record where they stopped, and open their file or report from here.',
+  addPh:'+ New student: type a name, press Enter', addBtn:'Add',
+  searchPh:'Search by name…', all:'All', wait:'Waiting', done:'Recorded',
+  progTxt:(a,b)=>`${a} of ${b} students recorded`, autosave:'Saved automatically on selection — no need to fill everything.',
+  reportsAll:'Monthly reports', surah:'Choose surah', ayah:'Ayah', saved:'✓ Saved',
+  waitTag:'Waiting', doneTag:'Done', stoppedAt:'Stopped at', stopLbl:'Where did they stop?',
+  more:'More details', phone:'Parent phone', notes:'Note', grade:'Grade / level',
+  save:'Save', openFile:'Open student file', report:'Generate report', needPos:'Record the stopping point first to generate the report',
+  hint:'Every field except the name is optional — complete them later.', none:'No matching students.',
+  added:n=>`“${n}” added — record where they stopped or complete details later`, openedFile:n=>`(preview) open ${n}'s file`, openedRep:n=>`(preview) ${n}'s report`,
+  savedMsg:'Saved', ay:'ayah', lastMonth:'Last month'}
+};
+const SURAHS=[['البقرة','Al-Baqarah'],['آل عمران','Al-Imran'],['النساء','An-Nisa'],['الكهف','Al-Kahf'],['يس','Ya-Sin'],['الملك','Al-Mulk'],['النبأ','An-Naba'],['الشمس','Ash-Shams'],['الضحى','Ad-Duha'],['الناس','An-Nas']];
+let lang='ar', filter='all', q='';
+const S=[
+ {n:['أحمد علي','Ahmad Ali'],s:3,a:45},{n:['يوسف محمد','Yusuf Mohammed']},{n:['عمر خالد','Omar Khaled'],s:6,a:12},
+ {n:['إبراهيم سعيد','Ibrahim Said']},{n:['مريم حسن','Maryam Hassan'],s:1,a:200},{n:['خالد أحمد','Khaled Ahmad']},
+ {n:['بلال عمر','Bilal Omar']},{n:['سلمى يوسف','Salma Yusuf'],s:8,a:6}
+].map((x,i)=>({id:i,...x,open:false}));
+const T=k=>I18N[lang][k];
+const nm=s=>typeof s.n==='string'?s.n:s.n[lang==='ar'?0:1];
+const isDone=s=>s.s!=null;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2200)}
+function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.title=lang==='ar'?'معاينة (أ) — شاشة الطلاب الموحّدة':'Preview (A) — Unified students screen';
+  document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=T(e.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>e.placeholder=T(e.dataset.i18nPh));
+  document.getElementById('langBtn').textContent=lang==='ar'?'English':'العربية';
+  const done=S.filter(isDone).length;
+  document.getElementById('progTxt').textContent=T('progTxt')(done,S.length);
+  document.getElementById('progPct').textContent=S.length?Math.round(done/S.length*100)+'%':'';
+  document.getElementById('progBar').style.width=(S.length?done/S.length*100:0)+'%';
+  const cnt={all:S.length,wait:S.length-done,done};
+  document.getElementById('chips').innerHTML=['all','wait','done'].map(k=>`<button class="chip ${filter===k?'on':''}" data-f="${k}">${T(k)} (${cnt[k]})</button>`).join('');
+  const rows=S.filter(s=>(filter==='all'||(filter==='done')===isDone(s))&&nm(s).toLowerCase().includes(q.toLowerCase()));
+  const opts=s=>`<option value="">${T('surah')}</option>`+SURAHS.map((x,i)=>`<option value="${i}" ${s.s===i?'selected':''}>${x[lang==='ar'?0:1]}</option>`).join('');
+  document.getElementById('list').innerHTML=rows.length?rows.map(s=>`
+  <div class="st ${s.open?'open':''}" data-id="${s.id}">
+    <div class="head">
+      <div class="ava">${esc(nm(s).charAt(0))}</div>
+      <div class="nm">${esc(nm(s))}<small>${isDone(s)?`${T('stoppedAt')}: ${SURAHS[s.s][lang==='ar'?0:1]}${s.a?' · '+s.a:''}`:T('stopLbl')}</small></div>
+      <span class="tag ${isDone(s)?'done':'wait'}">${isDone(s)?T('doneTag'):T('waitTag')}</span>
+      <button class="btn ghost sm" data-act="toggle">${s.open?'▲':'▼'}</button>
+    </div>
+    <div class="quick">
+      <select data-act="surah">${opts(s)}</select>
+      <input class="n" type="number" min="1" inputmode="numeric" data-act="ayah" placeholder="${T('ayah')}" value="${s.a??''}">
+      <span class="saved" data-saved>${T('saved')}</span>
+    </div>
+    <div class="more">
+      <div class="grid">
+        <div class="f"><label>${T('phone')}</label><input type="tel" value="${esc(s.p||'')}" data-act="field"></div>
+        <div class="f"><label>${T('grade')}</label><input value="${esc(s.g||'')}" data-act="field"></div>
+        <div class="f" style="grid-column:1/-1"><label>${T('notes')}</label><input value="${esc(s.nt||'')}" data-act="field"></div>
+      </div>
+      <div class="acts">
+        <button class="btn primary" data-act="save">${T('save')}</button>
+        <button class="btn ghost" data-act="file">${T('openFile')}</button>
+        <button class="btn ghost" data-act="report" ${isDone(s)?'':'disabled style="opacity:.5"'} title="${isDone(s)?'':T('needPos')}">${T('report')}</button>
+      </div>
+      <p class="hint">${T('hint')}</p>
+    </div>
+  </div>`).join(''):`<p class="empty">${T('none')}</p>`;
+}
+
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-f]');if(f){filter=f.dataset.f;render();return}
+  if(e.target.id==='langBtn'){lang=lang==='ar'?'en':'ar';render();return}
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const el=b.closest('.st');if(!el)return;const s=S.find(x=>x.id===+el.dataset.id);
+  switch(b.dataset.act){
+    case 'toggle':s.open=!s.open;render();break;
+    case 'save':toast(T('savedMsg'));break;
+    case 'file':toast(T('openedFile')(nm(s)));break;
+    case 'report':toast(T('openedRep')(nm(s)));break;
+  }
+});
+document.addEventListener('change',e=>{
+  const el=e.target.closest('.st');if(!el)return;const s=S.find(x=>x.id===+el.dataset.id);
+  if(e.target.dataset.act==='surah'){
+    s.s=e.target.value===''?null:+e.target.value;if(s.s==null)delete s.a;
+    const keep=s.open;render();flash(s.id);
+  }
+  if(e.target.dataset.act==='ayah'){s.a=e.target.value?+e.target.value:undefined;flash(s.id,true)}
+});
+function flash(id,noRender){
+  const el=document.querySelector(`.st[data-id="${id}"] [data-saved]`);if(!el)return;
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1500);
+  if(noRender){const c=document.querySelector(`.st[data-id="${id}"] .nm small`);const s=S.find(x=>x.id===id);if(c&&isDone(s))c.textContent=`${T('stoppedAt')}: ${SURAHS[s.s][lang==='ar'?0:1]}${s.a?' · '+s.a:''}`}
+}
+document.getElementById('search').addEventListener('input',e=>{q=e.target.value;render()});
+document.getElementById('addForm').addEventListener('submit',e=>{
+  e.preventDefault();const i=document.getElementById('addName'),v=i.value.trim();if(!v)return;
+  S.unshift({id:Date.now(),n:v,open:true});i.value='';filter='all';render();toast(T('added')(v));
+});
+render();
+</script>
+</body>
+</html>
