@@ -1478,8 +1478,36 @@ function pickNoteKey(baseKey, d) {
   return baseKey + (idx ? '_v' + (idx + 1) : '') + (d.female ? '_f' : '');
 }
 
+// 🌟 [جديد] 12 رسالة دافئة (واحدة لكل شهر ميلادي)، بنسختي المذكر/المؤنث. كل مقطع داخل وسم يظهر فقط
+// إن وُجدت بياناته: <j> حفظ جديد · <g> غرفة اللعب · <h> واجبات · <d> اختبارات ثنائية · <e> أخطاء معالَجة · <m> نطاق الحفظ
+function buildMonthlyTemplateNote(d) {
+  const has = {
+    j: !!(d.journey && d.journey.hasEnding && d.journey.newAyahs != null),
+    g: d.gameEvalAvg != null,
+    h: d.homeworkAvg != null,
+    d: (d.dualWins + d.dualLosses + d.dualTies) > 0,
+    e: !!(d.resolvedThisMonth && d.resolvedThisMonth.length),
+    m: !!d.hasMemoRange
+  };
+  if (!(has.j || has.g || has.h || has.d || has.e)) return null;   // لا نشاط: نكمل بمسار «شهر هادئ» المعتاد
+  const key = 'mr_note_m' + String(d.monthIndex0 + 1).padStart(2, '0') + (d.female ? '_f' : '');
+  const tpl = t(key);
+  if (!tpl || tpl === key) return null;
+  const first = String(d.name || '').trim().split(/\s+/)[0] || d.name;
+  const vals = {
+    name: first, ayat: has.j ? d.journey.newAyahs : '', games: d.gameEvalEntries ? d.gameEvalEntries.length : 0, gameAvg: d.gameEvalAvg,
+    hw: d.homeworkEntries ? d.homeworkEntries.length : 0, hwAvg: d.homeworkAvg, w: d.dualWins, l: d.dualLosses, t: d.dualTies,
+    errs: d.resolvedThisMonth ? d.resolvedThisMonth.length : 0, scope: d.memoScope
+  };
+  return tpl
+    .replace(/<([jghdem])>([\s\S]*?)<\/\1>/g, (_, k, inner) => has[k] ? inner : '')
+    .replace(/\{(\w+)\}/g, (m, k) => (k in vals && vals[k] != null) ? vals[k] : m)
+    .replace(/\s{2,}/g, ' ').trim();
+}
+
 function buildAutoNote(d) {
   const tone = getNoteTone();
+  if (tone === 'warm') { const monthly = buildMonthlyTemplateNote(d); if (monthly) return monthly; }
   const tk = (k) => pickNoteKey(toneKey(k, tone), d);
   const parts = [];
   // الاسم الأول فقط في النبرة الدافئة (أقرب للكلام البشري من تكرار الاسم الكامل)
