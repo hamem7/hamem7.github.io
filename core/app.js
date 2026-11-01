@@ -25,6 +25,7 @@ import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
 // + عدد الآيات الجديدة المحسوب آليًا. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط.
 // راجع database/monthlyMemorizationDB.js وcomponents/monthlyMemorizationPrompt.js
 import { initMonthlyMemorizationDB, MonthlyMemorizationManager } from '../database/monthlyMemorizationDB.js';
+import { extendMemoRangeOnProgress } from './memoRangeSync.js';
 // 🌟 [جديد — الواجب الذكي] سجل أداء الطالب (أحداث المهارة/الموضع/الجودة) — راجع database/trackingDB.js وcore/trackingService.js
 import { initTrackingDB, TrackingManager } from '../database/trackingDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
@@ -409,6 +410,8 @@ async function bootSystem() {
 
         // 🌟 [جديد] "سجل الحفظ الشهري"
         AppState.monthlyMemorizationManager = new MonthlyMemorizationManager(monthlyMemorizationDB);
+        // تمديد «نطاق الحفظ» تلقائيًا عند تقدّم الطالب (يتسع فقط ولا يضيق)
+        AppState.monthlyMemorizationManager.onEndingSaved = extendMemoRangeOnProgress;
 
         // 🌟 [جديد — الواجب الذكي] "سجل أداء الطالب"
         AppState.trackingManager = new TrackingManager(trackingDB);

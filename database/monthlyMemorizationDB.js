@@ -133,6 +133,10 @@ export class MonthlyMemorizationManager {
         record.updatedAt = now;
         const id = await this._put(record);
         record.id = record.id || id;
+        // 🌟 تمديد نطاق حفظ الطالب تلقائيًا لو تقدّم (core/memoRangeSync.js)؛ فشله لا يمنع حفظ السجل
+        if (typeof this.onEndingSaved === 'function') {
+            try { await this.onEndingSaved(studentId, position); } catch (e) { console.error('[monthlyMemorizationDB] تعذر تمديد نطاق الحفظ:', e); }
+        }
         return record;
     }
 
