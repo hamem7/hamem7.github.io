@@ -531,7 +531,8 @@ html[data-theme="dark"] body.kids-theme .btn-note { background: #b45309 !importa
 html[data-theme="dark"] body.kids-theme .btn-confirm-next { background: linear-gradient(135deg, #c2410c, #9a3412) !important; }
 /* الوردي (#db2777) نصاً فوق سطح داكن: تعليمات الألعاب واسم السورة */
 html[data-theme="dark"] body.kids-theme [style*="color:#db2777"],
-html[data-theme="dark"] body.kids-theme [style*="color: #db2777"] { color: #f9a8d4 !important; }
+html[data-theme="dark"] body.kids-theme [style*="color: #db2777"],
+html[data-theme="dark"] body.kids-theme [style*="color:#9d174d"] { color: #f9a8d4 !important; }
 /* حقول الإدخال والقوائم: أرضية داكنة ونص فاتح مع إبقاء حدّها الذهبي المرح */
 html[data-theme="dark"] body.kids-theme :is(select, input[type="text"], input[type="search"], input[type="number"], textarea, .kids-styled-select, .kids-styled-input, #student-search-input) {
     background: var(--dh-surface-alt) !important; color: var(--dh-ink) !important;

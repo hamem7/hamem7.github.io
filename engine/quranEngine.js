@@ -7,7 +7,7 @@ import { hasDuplicateAyahTexts } from "./refrainRules.js";
 import { shortMeaning, loadWordMeaningsEn, meaningEn, distinctInEnglish } from "./wordMeaningData.js";
 // اسم السورة بخط واضح في ألعاب الأطفال: نستبدل علامات المصحف الخاصة (السكون المصحفي ۡ وغيره) بالتشكيل العادي
 // ونعرضه بخط Tajawal الواضح بدل خط المصحف الصعب القراءة.
-const kidsSurahNameHtml = (name) => `<span style="font-family:'IBM Plex Sans Arabic',sans-serif; font-weight:800; color:#db2777;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
+const kidsSurahNameHtml = (name) => `<span style="font-family:'IBM Plex Sans Arabic',sans-serif; font-weight:800; color:#9d174d;">[ ${String(name).replace(/\u06E1/g, '\u0652').replace(/[\u06D6-\u06ED\u08D3-\u08FF]/g, '')} ]</span>`;
 
 // اختصار معنى الكلمة (≤ 5 كلمات) وترجمته الإنجليزية (≤ 4 كلمات): engine/wordMeaningData.js
 export { MAX_MEANING_WORDS, shortMeaning } from "./wordMeaningData.js";
