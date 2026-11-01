@@ -2057,15 +2057,14 @@ async function shareViaWhatsApp(kind) {
   const name = (reportData && reportData.name) || '';
   const period = (reportData && reportData.periodLabel) || '';
   const msg = t('mr_wa_msg').replace('{name}', name).replace('{period}', period);
-  // واتساب/أندرويد يُفسد الأسماء العربية عند المشاركة (Ø§Ù„...) فنشارك باسم لاتيني آمن (بلا أي حروف عربية)
-  const ext = (res.filename.match(/\.([A-Za-z0-9]+)$/) || [, 'pdf'])[1];
-  const mm = String((reportData && reportData.periodMonth) || '').padStart(2, '0');
-  const safeName = `Monthly-Report-${(reportData && reportData.periodYear) || ''}-${mm}${kind === 'pdf' ? '' : '-WhatsApp'}.${ext}`.replace(/-+\./, '.');
-  const file = new File([res.blob], safeName, { type: res.mime });
+  // الاسم العربي يبقى كما هو. قائمة المشاركة في متصفحات الحاسوب (ويندوز) تُفسد ترميز الاسم (Ø§Ù„...)،
+  // فعلى الحاسوب نتخطّى navigator.share ونمرّ على مسار «تنزيل الملف ثم فتح واتساب» الذي يحفظ الاسم العربي سليمًا.
+  const isMobile = (navigator.userAgentData && navigator.userAgentData.mobile) || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  const file = new File([res.blob], res.filename, { type: res.mime });
   const askTap = (text, okKey) => (typeof window.hamConfirm === 'function'
     ? window.hamConfirm(text, { ok: t(okKey), cancel: t('mr_wa_cancel_btn') })
     : Promise.resolve(true));
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
     // الإنشاء استغرق وقتًا فانتهت صلاحية «النقرة» الأصلية؛ إن رفض المتصفح المشاركة نطلب نقرة جديدة ثم نكرّرها
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
