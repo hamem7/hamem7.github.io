@@ -2029,21 +2029,35 @@ async function shareViaWhatsApp(kind) {
   const period = (reportData && reportData.periodLabel) || '';
   const msg = t('mr_wa_msg').replace('{name}', name).replace('{period}', period);
   const file = new File([res.blob], res.filename, { type: res.mime });
-  try {
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], text: msg });
-      return;
+  const askTap = (text, okKey) => (typeof window.hamConfirm === 'function'
+    ? window.hamConfirm(text, { ok: t(okKey), cancel: t('mr_wa_cancel_btn') })
+    : Promise.resolve(true));
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    // الإنشاء استغرق وقتًا فانتهت صلاحية «النقرة» الأصلية؛ إن رفض المتصفح المشاركة نطلب نقرة جديدة ثم نكرّرها
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await navigator.share({ files: [file], text: msg });
+        return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
+        console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة:', e);
+        if (attempt === 0 && e && e.name === 'NotAllowedError') {
+          if (!(await askTap(t('mr_wa_ready_share'), 'mr_wa_share_btn'))) return;
+          continue;
+        }
+        break;
+      }
     }
-  } catch (e) {
-    if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
-    console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة، سننزّله بدلًا من ذلك:', e);
   }
+  // الحاسوب (أو متصفح بلا مشاركة ملفات): ننزّل الملف ثم نفتح واتساب برسالة جاهزة بنقرة جديدة من المعلم (كي لا يحجبها المتصفح)
   const url = URL.createObjectURL(res.blob);
   const a = document.createElement('a'); a.href = url; a.download = res.filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
-  alert(t('mr_wa_fallback_note'));
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  if (await askTap(t('mr_wa_fallback_note'), 'mr_wa_open_btn')) {
+    const w = window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+    if (!w) location.href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  }
 }
 
 // -----------------------------------------------------------------------------
