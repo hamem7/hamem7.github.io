@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة (ج) — قائمة الأسماء بحفظ تلقائي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g9:#06231c; --g7:#0d5c46; --g6:#147c5e; --g1:#e7f4ee;
+  --gold:#d4af37; --gold-soft:#fbf3d5; --ink:#10241c; --ink2:#5a6b63; --line:#e4dfcc; --line2:#cfc7a8;
+  --bg:#f6f3e8; --card:#fffdf6; --warn:#b45309; --warn-bg:#fef3c7; --ok:#15803d; --ok-bg:#e7f4ee;
+  --r:16px; --sh:0 6px 18px rgba(6,35,28,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:40px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.logo{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
+.top h1{font-size:1.05rem}.sp{flex:1}
+.pill{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:6px 16px;font-weight:600;font-size:.9rem;background:rgba(255,255,255,.12);color:#fffdf6}
+
+.titlebar{display:flex;align-items:center;gap:10px;margin:20px 0 12px;flex-wrap:wrap}
+.titlebar h2{font-size:1.4rem}
+.month{background:var(--warn-bg);color:var(--warn);border-radius:99px;padding:3px 12px;font-size:.85rem;font-weight:700}
+.cnt{margin-inline-start:auto;font-size:.9rem;font-weight:700;color:var(--g7)}
+
+/* بطاقة الإدخال */
+.entry{background:var(--card);border:1.5px solid var(--g6);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.entry h3{font-size:1rem;margin-bottom:12px;color:var(--g7)}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:.82rem;color:var(--ink2);margin-bottom:4px;font-weight:600}
+.f input,.f select{width:100%;border:1.5px solid var(--line2);background:#fff;border-radius:12px;padding:10px 12px;min-height:46px;font-size:1rem}
+.f input:focus,.f select:focus{outline:2px solid var(--gold)}
+.row2{display:grid;grid-template-columns:1fr 110px;gap:10px}
+.opt{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--ink2);margin-top:2px}
+.opt input{width:18px;height:18px;accent-color:var(--g7)}
+
+/* نتيجة الحفظ */
+.done{display:none;margin-top:14px;background:var(--ok-bg);border:1px solid #b6dcc8;border-radius:14px;padding:12px}
+.done.show{display:block;animation:pop .25s}
+@keyframes pop{from{transform:translateY(6px);opacity:0}to{transform:none;opacity:1}}
+.done .msg{font-weight:700;color:var(--ok);margin-bottom:10px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border-radius:12px;padding:10px 16px;font-weight:700;font-size:.95rem;min-height:44px}
+.btn.primary{background:var(--g7);color:#fffdf6}
+.btn.gold{background:var(--gold);color:#2b2100}
+.btn.ghost{border:1.5px solid var(--line2);background:#fff}
+.btn.grow{flex:1}
+
+/* قائمة الانتظار */
+.qh{display:flex;align-items:center;gap:8px;margin:22px 0 8px}
+.qh h3{font-size:1rem}
+.chips{display:flex;gap:6px;margin-inline-start:auto}
+.chip{border:1.5px solid var(--line2);background:#fff;border-radius:99px;padding:3px 12px;font-size:.8rem;font-weight:600}
+.chip.on{background:var(--g7);border-color:var(--g7);color:#fffdf6}
+.q{display:grid;gap:8px}
+.qi{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;width:100%;text-align:start}
+.qi.sel{border-color:var(--g6);outline:2px solid var(--g6)}
+.ava{width:36px;height:36px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex:none}
+.qi .t{flex:1;min-width:0;font-weight:700}
+.qi small{display:block;font-weight:400;color:var(--ink2);font-size:.78rem}
+.tag{font-size:.75rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.tag.wait{background:var(--warn-bg);color:var(--warn)}.tag.ok{background:var(--ok-bg);color:var(--ok)}
+
+/* شاشة التقرير (تبدأ أسفل الترويسة) */
+.rep{position:fixed;inset-inline:0;bottom:0;top:var(--top,0);background:var(--bg);overflow:auto;display:none;z-index:50}
+.rep.show{display:block;animation:pop .25s}
+.rep .bar{position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--line2);padding:10px 0}
+.rep .bar .wrap{display:flex;align-items:center;gap:10px}
+.rep .bar b{flex:1}
+.sheet{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:16px}
+.sheet h2{font-size:1.25rem;margin-bottom:2px}
+.sheet .meta{color:var(--ink2);font-size:.88rem;margin-bottom:14px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.kv div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.kv small{display:block;color:var(--ink2);font-size:.76rem}.kv b{font-size:1.02rem}
+.pb{height:10px;border-radius:99px;background:#ece6cf;overflow:hidden;margin:6px 0 14px}
+.pb i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--g7))}
+.toast{position:fixed;inset-inline:0;bottom:24px;margin:auto;width:max-content;max-width:90vw;background:var(--g9);color:#fffdf6;border-radius:12px;padding:10px 18px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s;z-index:99}
+.toast.show{opacity:1}
+
+.add{display:flex;gap:8px;margin:0 0 12px}
+.add input{flex:1;min-width:0;border:1.5px dashed var(--g6);background:#fff;border-radius:12px;padding:11px 14px;font-size:1rem}
+.add input:focus{outline:2px solid var(--gold);border-style:solid}
+.prog{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;margin-bottom:12px}
+.prog .r{display:flex;justify-content:space-between;font-size:.9rem;font-weight:600;margin-bottom:6px}
+.prog .b{height:8px;border-radius:99px;background:#ece6cf;overflow:hidden}.prog .b i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--g7));transition:width .3s}
+.list{display:flex;flex-direction:column;gap:10px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.st .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.st .nm{flex:1;min-width:0;font-weight:700}
+.st .nm small{display:block;font-weight:400;color:var(--ink2);font-size:.78rem}
+.line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.line select,.line input{border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:8px 10px;min-height:42px}
+.line select{flex:1;min-width:140px}.line input{width:86px}
+.line .btn{min-height:42px;padding:8px 14px}
+.btn.repbtn{background:var(--gold);color:#2b2100}
+.btn:disabled{background:#ece6cf;color:#9a937a;cursor:not-allowed}
+.saved{font-size:.78rem;color:var(--ok);font-weight:700;opacity:0;transition:opacity .3s;flex-basis:100%}
+.saved.show{opacity:1}
+.tools{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="note" data-i18n="note"></div>
+<header class="top" id="main-header"><div class="wrap">
+  <div class="logo">د</div><h1 data-i18n="brand"></h1><div class="sp"></div>
+  <button class="pill" data-i18n="home"></button>
+  <button class="pill" id="langBtn">English</button>
+</div></header>
+<main class="wrap">
+  <div class="titlebar"><h2 data-i18n="title"></h2><span class="month" data-i18n="month"></span></div>
+  <div class="prog"><div class="r"><span id="pt"></span><span id="pp"></span></div><div class="b"><i id="pb"></i></div></div>
+  <form class="add" id="addForm"><input id="addName" data-i18n-ph="addPh" autocomplete="off"><button class="btn primary" data-i18n="addBtn"></button></form>
+  <div class="tools"><div class="chips" id="chips"></div></div>
+  <div class="list" id="list"></div>
+</main>
+<section class="rep" id="rep">
+  <div class="bar"><div class="wrap"><button class="btn ghost" id="rBack" data-i18n="back"></button><b id="rTitle"></b></div></div>
+  <div class="wrap" id="rBody"></div>
+</section>
+<div class="toast" id="toast"></div>
+
+<script>
+
+const I18N={
+ ar:{note:'نموذج معاينة (ج) — بيانات تجريبية ولا يحفظ شيئًا فعليًا',brand:'دار الحفاظ',home:'الرئيسية',title:'تسجيل الطلاب',month:'نوفمبر',
+  addPh:'+ طالب جديد: اكتب الاسم ثم Enter',addBtn:'إضافة',all:'الكل',wait:'بانتظارك',ayahPh:'الآية',savedOk:'✓ تم الحفظ تلقائيًا',showRep:'عرض التقرير',repHint:'يُفعَّل بعد تسجيل حفظ جديد',progTxt:(a,b)=>`سُجّل ${a} من ${b}`,student:'الطالب',stuPh:'اختر طالبًا أو اكتب اسمًا جديدًا',surah:'السورة',ayah:'الآية',choose:'اختر السورة',
+  autoOpen:'افتح التقرير تلقائيًا بعد الحفظ',openRep:'فتح التقرير الآن',openFile:'ملف الطالب',next:'التالي ◀',nextShort:'الطالب التالي',
+  queue:'الطلاب',all:'الكل',wait:'بانتظارك',stopLbl:'لم يُسجَّل بعد',stoppedAt:'توقف عند',waitTag:'بانتظارك',okTag:'تم',
+  saved:(n,s,a)=>`✓ حُفظ تلقائيًا: ${n} — ${s}${a?' · الآية '+a:''}`,newAdded:n=>`أُضيف الطالب «${n}»`,
+  counter:(a,b)=>`${a} / ${b} سُجّل`,back:'رجوع',repOf:n=>`تقرير ${n}`,
+  rTitle:'تقرير الحفظ الشهري',lastPos:'آخر موضع',monthLbl:'الشهر',done:'المنجز هذا الشهر',pages:'صفحة تقريبًا',
+  parent:'إرسال لولي الأمر',pdf:'تحميل PDF',fileDemo:n=>`(معاينة) فتح ملف ${n}`,sent:'(معاينة) تم الإرسال',pdfd:'(معاينة) PDF',
+  pickFirst:'اختر الطالب والسورة أولًا',noNext:'لا يوجد طلاب بانتظارك — أحسنت!',progress:'التقدم'},
+ en:{note:'Preview (C) — sample data, nothing is actually saved',brand:'Dar Al-Huffaz',home:'Home',title:'Record students',month:'November',
+  addPh:'+ New student: type a name, press Enter',addBtn:'Add',all:'All',wait:'Waiting',ayahPh:'Ayah',savedOk:'✓ Saved automatically',showRep:'View report',repHint:'Enabled after recording a new entry',progTxt:(a,b)=>`${a} of ${b} recorded`,student:'Student',stuPh:'Pick a student or type a new name',surah:'Surah',ayah:'Ayah',choose:'Choose surah',
+  autoOpen:'Open the report automatically after saving',openRep:'Open report now',openFile:'Student file',next:'Next ▶',nextShort:'Next student',
+  queue:'Students',all:'All',wait:'Waiting',stopLbl:'Not recorded yet',stoppedAt:'Stopped at',waitTag:'Waiting',okTag:'Done',
+  saved:(n,s,a)=>`✓ Auto-saved: ${n} — ${s}${a?' · ayah '+a:''}`,newAdded:n=>`Student “${n}” added`,
+  counter:(a,b)=>`${a} / ${b} recorded`,back:'Back',repOf:n=>`${n}'s report`,
+  rTitle:'Monthly memorization report',lastPos:'Last position',monthLbl:'Month',done:'Done this month',pages:'pages approx.',
+  parent:'Send to parent',pdf:'Download PDF',fileDemo:n=>`(preview) open ${n}'s file`,sent:'(preview) Sent',pdfd:'(preview) PDF',
+  pickFirst:'Pick a student and surah first',noNext:'No students waiting — well done!',progress:'Progress'}
+};
+const SURAHS=[['البقرة','Al-Baqarah'],['آل عمران','Al-Imran'],['النساء','An-Nisa'],['الكهف','Al-Kahf'],['يس','Ya-Sin'],['الملك','Al-Mulk'],['النبأ','An-Naba'],['الشمس','Ash-Shams'],['الضحى','Ad-Duha'],['الناس','An-Nas']];
+const S=[
+ {n:['أحمد علي','Ahmad Ali'],s:3,a:45},{n:['يوسف محمد','Yusuf Mohammed']},{n:['عمر خالد','Omar Khaled'],s:5,a:12},
+ {n:['إبراهيم سعيد','Ibrahim Said']},{n:['مريم حسن','Maryam Hassan'],s:0,a:200},{n:['خالد أحمد','Khaled Ahmad']},
+ {n:['بلال عمر','Bilal Omar']},{n:['سلمى يوسف','Salma Yusuf'],s:7,a:6}
+].map((x,i)=>({id:i+1,...x}));
+
+let lang='ar',filter='all';
+const T=k=>I18N[lang][k], L=i=>lang==='ar'?i[0]:i[1];
+const nm=s=>typeof s.n==='string'?s.n:L(s.n);
+const isDone=s=>s.s!=null;
+const $=id=>document.getElementById(id);
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const find=id=>S.find(x=>x.id===+id);
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2000)}
+function placeRep(){$('rep').style.setProperty('--top',Math.round($('main-header').getBoundingClientRect().bottom)+'px')}
+function sub(s){return isDone(s)?T('stoppedAt')+': '+L(SURAHS[s.s])+(s.a?' · '+s.a:''):T('stopLbl')}
+function render(){
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.title=lang==='ar'?'معاينة (ج) — قائمة الأسماء بحفظ تلقائي':'Preview (C) — names list with auto-save';
+  document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=T(e.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(e=>e.placeholder=T(e.dataset.i18nPh));
+  $('langBtn').textContent=lang==='ar'?'English':'العربية';
+  const d=S.filter(isDone).length;
+  $('pt').textContent=T('progTxt')(d,S.length);$('pp').textContent=S.length?Math.round(d/S.length*100)+'%':'';$('pb').style.width=(S.length?d/S.length*100:0)+'%';
+  $('chips').innerHTML=[['all',T('all')+' ('+S.length+')'],['wait',T('wait')+' ('+(S.length-d)+')']].map(([k,v])=>`<button type="button" class="chip ${filter===k?'on':''}" data-f="${k}">${v}</button>`).join('');
+  const opts=s=>`<option value="">${T('choose')}</option>`+SURAHS.map((x,i)=>`<option value="${i}" ${s.s===i?'selected':''}>${L(x)}</option>`).join('');
+  $('list').innerHTML=S.filter(s=>filter==='all'||!isDone(s)).map(s=>`
+   <div class="st" data-id="${s.id}">
+    <div class="head"><div class="ava">${esc(nm(s).charAt(0))}</div>
+     <div class="nm">${esc(nm(s))}<small data-sub>${sub(s)}</small></div>
+     <span class="tag ${isDone(s)?'ok':'wait'}">${isDone(s)?T('okTag'):T('waitTag')}</span></div>
+    <div class="line">
+     <select data-k="s">${opts(s)}</select>
+     <input type="number" min="1" inputmode="numeric" data-k="a" placeholder="${T('ayahPh')}" value="${s.a??''}">
+     <button type="button" class="btn repbtn" data-act="rep" ${s.fresh?'':'disabled'} title="${s.fresh?'':T('repHint')}">${T('showRep')}</button>
+     <span class="saved" data-saved>${T('savedOk')}</span>
+    </div></div>`).join('');
+}
+$('list').addEventListener('change',e=>{
+  const row=e.target.closest('.st');if(!row||!e.target.dataset.k)return;const s=find(row.dataset.id);
+  if(e.target.dataset.k==='s'){s.s=e.target.value===''?undefined:+e.target.value;if(s.s==null)delete s.a}
+  else s.a=e.target.value?+e.target.value:undefined;
+  if(s.s==null){s.fresh=false;render();return}
+  s.fresh=true; // حفظ جديد ← يُفعَّل زر التقرير
+  const id=s.id,scrollY=window.scrollY;render();window.scrollTo(0,scrollY);
+  const r=document.querySelector(`.st[data-id="${id}"] [data-saved]`);r.classList.add('show');setTimeout(()=>r&&r.classList.remove('show'),1600);
+});
+$('list').addEventListener('click',e=>{const b=e.target.closest('[data-act="rep"]');if(b&&!b.disabled)openRep(find(b.closest('.st').dataset.id))});
+$('chips').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(b){filter=b.dataset.f;render()}});
+$('addForm').addEventListener('submit',e=>{e.preventDefault();const v=$('addName').value.trim();if(!v)return;
+  S.unshift({id:Date.now(),n:v});$('addName').value='';filter='all';render();toast(T('newAdded')(v))});
+let repS=null;
+function openRep(s){
+  repS=s;placeRep();$('rTitle').textContent=T('repOf')(nm(s));
+  const pct=Math.min(100,Math.round(s.s*10+(s.a||0)/4+15));
+  $('rBody').innerHTML=`<div class="sheet"><h2>${esc(nm(s))}</h2><p class="meta">${T('rTitle')} · ${T('month')}</p>
+   <div class="kv"><div><small>${T('lastPos')}</small><b>${L(SURAHS[s.s])}${s.a?' · '+s.a:''}</b></div>
+   <div><small>${T('done')}</small><b>≈ ${3+s.s} ${T('pages')}</b></div></div>
+   <small style="color:var(--ink2)">${T('progress')}</small><div class="pb"><i style="width:${pct}%"></i></div>
+   <div class="btns"><button class="btn primary grow" data-toast="sent">${T('parent')}</button><button class="btn ghost grow" data-toast="pdfd">${T('pdf')}</button></div></div>`;
+  $('rep').classList.add('show');$('rep').scrollTop=0;
+}
+$('rBody').addEventListener('click',e=>{const b=e.target.closest('[data-toast]');if(b)toast(T(b.dataset.toast))});
+$('rBack').onclick=()=>$('rep').classList.remove('show');
+$('langBtn').onclick=()=>{lang=lang==='ar'?'en':'ar';render();if($('rep').classList.contains('show'))openRep(repS)};
+window.addEventListener('resize',placeRep);
+render();
+</script>
+</body>
+</html>
