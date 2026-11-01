@@ -974,7 +974,7 @@ function renderSummaryTiles(d) {
   tiles.push({
     label: t('mr_tile_achievements'),
     value: String(d.achievementsThisMonth.length + d.monthMedals.length),
-    sub: t('mr_tile_achievements_sub'),
+    sub: t(d.achievementsThisMonth.length && d.monthMedals.length ? 'mr_tile_achievements_sub_both' : (d.monthMedals.length ? 'mr_tile_achievements_sub_medal' : 'mr_tile_achievements_sub')),
     color: '#8a6221'
   });
 
