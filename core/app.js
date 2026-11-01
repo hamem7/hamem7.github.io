@@ -25,7 +25,7 @@ import { initTajweedDB, TajweedManager } from '../database/tajweedDB.js';
 // + عدد الآيات الجديدة المحسوب آليًا. نفس نمط تهيئة بقية قواعد البيانات هنا بالضبط.
 // راجع database/monthlyMemorizationDB.js وcomponents/monthlyMemorizationPrompt.js
 import { initMonthlyMemorizationDB, MonthlyMemorizationManager } from '../database/monthlyMemorizationDB.js';
-import { extendMemoRangeOnProgress } from './memoRangeSync.js';
+import { extendMemoRangeOnProgress, backfillMemoRanges } from './memoRangeSync.js';
 // 🌟 [جديد — الواجب الذكي] سجل أداء الطالب (أحداث المهارة/الموضع/الجودة) — راجع database/trackingDB.js وcore/trackingService.js
 import { initTrackingDB, TrackingManager } from '../database/trackingDB.js';
 import { QuranEngine } from '../engine/quranEngine.js';
@@ -418,6 +418,7 @@ async function bootSystem() {
 
         AppState.surahsData = await AppState.quranEngine.getAllSurahsList();
         AppState.juzAmmaSurahs = AppState.surahsData.filter(s => s.number >= 78 && s.number <= 114);
+        backfillMemoRanges().catch(err => console.error('تعذر تحديث نطاقات الحفظ للطلاب الحاليين:', err));
 
         if ("Notification" in window && Notification.permission === "granted") {
             await checkBirthdays();

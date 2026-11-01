@@ -21,7 +21,7 @@ function showRangeToast(msg) {
     } catch (e) { /* الإشعار اختياري */ }
 }
 
-export async function extendMemoRangeOnProgress(studentId, position) {
+export async function extendMemoRangeOnProgress(studentId, position, opts = {}) {
     const surahs = AppState.surahsData || [];
     if (!position || !surahs.length || !AppState.studentManager) return false;
     const students = await AppState.studentManager.getAllStudents();
@@ -41,6 +41,24 @@ export async function extendMemoRangeOnProgress(studentId, position) {
     if (AppState.currentStudent && String(AppState.currentStudent.id) === String(student.id)) {
         AppState.currentStudent.memoTo = reached.name;
     }
-    showRangeToast(tf('memo_range_auto_extended', { name: student.name || '', to: surahNameLocal(reached.name) }));
+    if (!opts.silent) showRangeToast(tf('memo_range_auto_extended', { name: student.name || '', to: surahNameLocal(reached.name) }));
     return true;
+}
+
+// مرور واحد (مرة لكل جهاز) على الطلاب الحاليين: يمدّ نطاق كل طالب إلى آخر موضع نهاية مؤكَّد في سجله الشهري.
+// صامت (بلا إشعار لكل طالب) وآمن لإعادة التشغيل؛ يتسع النطاق فقط.
+export async function backfillMemoRanges() {
+    const FLAG = 'dh_memo_range_backfill_v1';
+    try { if (localStorage.getItem(FLAG)) return 0; } catch (e) { /* نكمل */ }
+    const mgr = AppState.monthlyMemorizationManager;
+    if (!mgr || !AppState.studentManager) return 0;
+    let changed = 0;
+    const students = await AppState.studentManager.getAllStudents();
+    for (const s of students) {
+        const latest = await mgr.getLatestLockedRecord(s.id);
+        if (latest && latest.ending && await extendMemoRangeOnProgress(s.id, latest.ending, { silent: true })) changed++;
+    }
+    try { localStorage.setItem(FLAG, '1'); } catch (e) { /* لا شيء */ }
+    if (changed) showRangeToast(tf('memo_range_backfill_done', { n: changed }));
+    return changed;
 }
