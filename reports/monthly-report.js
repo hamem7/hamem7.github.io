@@ -1163,7 +1163,7 @@ function renderJourneyBlock(d) {
     <div class="mr-journey-box mr-jm">
       <div class="mr-jm-stat">
         <div class="mr-jm-num">${nA !== '' ? nA : '—'}</div>
-        <div class="mr-jm-cap">${en ? 'new ayahs memorized' : 'آية جديدة حُفظت'}</div>
+        <div class="mr-jm-cap">${t('mr_jm_new_ayahs_cap')}</div>
         <div class="mr-jm-name">${esc(first)}</div>
       </div>
       <div class="mr-jm-main">
@@ -1326,9 +1326,8 @@ function renderSkillsBlock(d) {
   const sum = d.skillSummary;
   setBlockVisible('mr-skills-block', !!sum);
   if (!sum) return;
-  const en = AppState.currentLang === 'en';
-  setText('mr-skills-title', en ? 'Skills this month' : 'مهارات الطالب هذا الشهر');
-  setText('mr-skills-sub', en ? 'Accuracy per skill from this month\'s homework, individual tests and teacher notes' : 'دقة كل مهارة من واجبات الشهر واختباراته الفردية وملاحظات المعلم');
+  setText('mr-skills-title', t('mr_skills_title'));
+  setText('mr-skills-sub', t('mr_skills_sub'));
   const rows = SKILLS.map(sk => ({ sk, st: sum.stats[sk] })).filter(x => x.st && x.st.count > 0 && x.st.acc !== null);
   const bars = rows.map(({ sk, st }) => {
     const pct = Math.round(st.acc * 100);
