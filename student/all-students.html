@@ -120,7 +120,7 @@
         <input type="hidden" id="edit-stu-id">
         <div class="form-grid">
             <div class="input-group"><label><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label><input type="text" id="edit-stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
-            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="edit-age-display" style="font-size:0.9rem;"></span></label><input type="date" id="edit-stu-dob"></div>
+            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="edit-age-display" style="font-size:0.9rem;"></span></label><div class="dh-dob-triple" style="display:grid;grid-template-columns:.8fr 1.3fr 1fr;gap:6px;"><select id="edit-stu-dob-d" data-i18n-title="dob_day"></select><select id="edit-stu-dob-m" data-i18n-title="dob_month"></select><select id="edit-stu-dob-y" data-i18n-title="dob_year"></select></div><input type="hidden" id="edit-stu-dob"></div>
             <!-- 🌟 [عدّل] نفس تعديل قائمة الصف في student/my-students.html بالحرف: تفصيل
             المرحلتين الإعدادية والثانوية لصفوف فردية 1/2/3 بدل خيار مجمَّع واحد لكل
             منهما، و"خريج" صارت "خريج جامعي" — راجع تعليق my-students.html للتفاصيل 🌟 -->

@@ -56,6 +56,34 @@ function calcAgeDynamic(inputId, displayId) {
     displaySpan.innerText = tf('stu_age_paren', { n: Math.abs(ageDate.getUTCFullYear() - 1970) });
 }
 
+// 🌟 تاريخ الميلاد بثلاث قوائم (يوم/شهر/سنة) لنافذتي التعديل (كل الطلاب + ملف الطالب): نفس ترتيب شاشة الإضافة، بدل
+// <input type="date"> الذي يعرض «قنس/رهش/موي» على الأجهزة العربية. القيمة تُكتب في حقل مخفي بنفس id وبصيغة YYYY-MM-DD.
+function initDobTriple(dId, mId, yId, hiddenId, ageId, value) {
+    const d = document.getElementById(dId), m = document.getElementById(mId), y = document.getElementById(yId);
+    const hidden = document.getElementById(hiddenId), age = document.getElementById(ageId);
+    if (!d || !m || !y || !hidden) return;
+    const pad = n => String(n).padStart(2, '0');
+    const locale = (AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US') + '-u-nu-latn';
+    let monthName = i => String(i);
+    try { const f = new Intl.DateTimeFormat(locale, { month: 'long' }); monthName = i => f.format(new Date(2000, i - 1, 1)); } catch (e) { /* أرقام */ }
+    const mm = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(value || '');
+    const thisYear = new Date().getFullYear();
+    const years = Array.from({ length: 100 }, (_, i) => thisYear - i);
+    if (mm && !years.includes(+mm[1])) years.push(+mm[1]);
+    d.innerHTML = `<option value="">${t('dob_day')}</option>` + Array.from({ length: 31 }, (_, i) => `<option value="${pad(i + 1)}">${i + 1}</option>`).join('');
+    m.innerHTML = `<option value="">${t('dob_month')}</option>` + Array.from({ length: 12 }, (_, i) => `<option value="${pad(i + 1)}">${esc(monthName(i + 1))}</option>`).join('');
+    y.innerHTML = `<option value="">${t('dob_year')}</option>` + years.map(v => `<option value="${v}">${v}</option>`).join('');
+    const sync = () => {
+        if (!y.value) { hidden.value = ''; if (age) age.textContent = ''; return; }
+        hidden.value = `${y.value}-${m.value || '01'}-${d.value || '01'}`;
+        if (age) calcAgeDynamic(hiddenId, ageId);
+    };
+    d.onchange = m.onchange = y.onchange = sync;
+    hidden.value = '';
+    if (age) age.textContent = '';
+    if (mm) { y.value = mm[1]; m.value = pad(+mm[2]); d.value = pad(+mm[3]); sync(); }
+}
+
 function populateSurahOptions(fromId, toId) {
     const selFrom = document.getElementById(fromId);
     const selTo = document.getElementById(toId);
@@ -913,8 +941,13 @@ function setupAllStudentsListeners() {
         }
     });
     document.getElementById('btn-close-edit-modal')?.addEventListener('click', () => closeModal('edit-modal'));
-    document.getElementById('edit-stu-dob')?.addEventListener('change', () => calcAgeDynamic('edit-stu-dob', 'edit-age-display'));
-    document.getElementById('btn-save-edited-student')?.addEventListener('click', saveEditedStudentAction);
+    // حماية من الضغط المتكرر أثناء الحفظ (كان يُنفَّذ الحفظ أكثر من مرة وتتكرر الرسائل)
+    document.getElementById('btn-save-edited-student')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        if (btn.disabled) return;
+        btn.disabled = true;
+        try { await saveEditedStudentAction(); } finally { btn.disabled = false; }
+    });
 
     // 🌟 [إصلاح] النسخة الاحتياطية كانت تحفظ مخزن "students" فقط من IndexedDB، بينما سجل
     // التقييمات (history_<id>) وصور الطلاب (darham_avatar_<id>) وعدّاد التقارير
@@ -1635,8 +1668,7 @@ async function openEditStudentModal(id) {
     if(!s) return;
     document.getElementById('edit-stu-id').value = s.id;
     document.getElementById('edit-stu-name').value = s.name;
-    document.getElementById('edit-stu-dob').value = s.dob || '';
-    if(s.dob) calcAgeDynamic('edit-stu-dob', 'edit-age-display');
+    initDobTriple('edit-stu-dob-d', 'edit-stu-dob-m', 'edit-stu-dob-y', 'edit-stu-dob', 'edit-age-display', s.dob || '');
     // 🌟 [جديد] بعد تفصيل "المرحلة الإعدادية/الثانوية" إلى صفوف فردية في قائمة
     // edit-stu-grade، أي طالب قديم محفوظ بقيمة "المرحلة الإعدادية" أو "المرحلة
     // الثانوية" أو "خريج" (القيم المحذوفة من القائمة) لن تجد <option> مطابقًا، فيعرض
@@ -1697,9 +1729,7 @@ function openProfileEditModal(student) {
     $('pfe-id').value = student.id;
     $('pfe-name').value = student.name || '';
     $('pfe-sub').textContent = student.name || '';
-    $('pfe-dob').value = student.dob || '';
-    $('pfe-age').textContent = '';
-    if (student.dob) calcAgeDynamic('pfe-dob', 'pfe-age');
+    initDobTriple('pfe-dob-d', 'pfe-dob-m', 'pfe-dob-y', 'pfe-dob', 'pfe-age', student.dob || '');
     setGradeSelectValuePreservingLegacy('pfe-grade', student.grade || '');
     $('pfe-country').value = student.country || '';
     $('pfe-phone').value = student.phone || '';
@@ -1710,7 +1740,6 @@ function openProfileEditModal(student) {
     $('pfe-error').hidden = true;
     pfeRenderPhoto(student);
 
-    $('pfe-dob').onchange = () => calcAgeDynamic('pfe-dob', 'pfe-age');
     $('pfe-photo-btn').onclick = () => $('pfe-avatar').click();
     $('pfe-avatar').onchange = async () => {
         const f = $('pfe-avatar').files && $('pfe-avatar').files[0];

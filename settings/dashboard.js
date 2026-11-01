@@ -170,7 +170,8 @@ async function refreshKidsAllInfo() {
     if (from < KIDS_MIN_SURAH) { rangeEl.textContent = t('kids_all_no_range'); return; }
     kidsAllRange = { from, to };
     const nm = (n) => surahNameLocal(AppState.surahsData.find(s => s.number === n).name);
-    rangeEl.textContent = tf('kids_all_range', { from: nm(from), to: nm(to) });
+    rangeEl.textContent = tf('kids_all_range', { from: nm(from), to: nm(to) })
+        + (r.toSurah < KIDS_MIN_SURAH ? ' — ' + t('kids_all_capped') : '');
 
     const st = monthlyStaleness(records, Date.now());
     const stale = !st.hasRecords || st.days > KIDS_ALL_STALE_DAYS;
