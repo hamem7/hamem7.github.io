@@ -1468,15 +1468,25 @@ function setNoteTone(tone) {
 }
 function toneKey(baseKey, tone) { return tone === 'warm' ? baseKey + '_warm' : baseKey; }
 
+// 🌟 بنك رسائل: لكل جملة 3 صيغ (الأصلية + _v2 + _v3) × (مذكر/مؤنث _f). تُختار الصيغة
+// بثبات من (السنة والشهر + الطالب + الجملة) فتتبدّل من شهر لآخر، وتبقى ثابتة لنفس التقرير.
+const NOTE_VARIANTS = 3;
+function hashStr(str) { let h = 0; for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0; return h; }
+function pickNoteKey(baseKey, d) {
+  const sid = String((d.student && d.student.id) != null ? d.student.id : (d.name || ''));
+  const idx = (d.year * 12 + d.monthIndex0 + hashStr(sid) + hashStr(baseKey)) % NOTE_VARIANTS;
+  return baseKey + (idx ? '_v' + (idx + 1) : '') + (d.female ? '_f' : '');
+}
+
 function buildAutoNote(d) {
   const tone = getNoteTone();
-  const tk = (k) => toneKey(k, tone) + (d.female ? '_f' : '');
+  const tk = (k) => pickNoteKey(toneKey(k, tone), d);
   const parts = [];
   // الاسم الأول فقط في النبرة الدافئة (أقرب للكلام البشري من تكرار الاسم الكامل)
   const nm = tone === 'warm' ? (String(d.name || '').trim().split(/\s+/)[0] || d.name) : d.name;
   // 🌟 [جديد] افتتاحية دافئة بالاسم الأول للطالب (للنبرة الدافئة فقط)
   if (tone === 'warm') {
-    parts.push(t('mr_auto_note_open_warm' + (d.female ? '_f' : '')).replace('{name}', nm));
+    parts.push(t(pickNoteKey('mr_auto_note_open_warm', d)).replace('{name}', nm));
   }
   // 🌟 [جديد] جملة الحفظ الجديد أولًا لو تم تسجيل نهاية الشهر فعليًا — أدق وأصدق
   // من جملة "النطاق الحالي" وحدها لأنها تعكس تحرّكًا فعليًا خلال هذا الشهر تحديدًا
@@ -1501,7 +1511,7 @@ function buildAutoNote(d) {
   }
   // 🌟 [إصلاح] جملة النطاق لا تُضاف إلا لو سُجِّل نطاق فعلًا (وإلا تظهر "النطاق الحالي: غير مسجَّل" بلا فائدة)
   if (d.hasMemoRange) parts.push(t(tk('mr_auto_note_memo')).replace('{scope}', d.memoScope));
-  if (tone === 'warm') parts.push(t('mr_auto_note_close_warm' + (d.female ? '_f' : '')).replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name));
+  if (tone === 'warm') parts.push(t(pickNoteKey('mr_auto_note_close_warm', d)).replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name));
   return parts.join(' ');
 }
 
