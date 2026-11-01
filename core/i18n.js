@@ -1619,8 +1619,8 @@ export const translations = {
         mr2_hijri_suffix: "هـ",
         mr2_memo_scope_fmt: "من {from} إلى {to}",
         mr2_scope_label: "نطاق الحفظ:",
-        mr_auto_note_open_warm: "السلام عليكم ورحمة الله، ولي أمر الطالب الغالي {name} —",
-        mr_auto_note_close_warm: "بارك الله فيك يا {name}، وزادك الله حرصًا وتوفيقًا.",
+        mr_auto_note_open_warm: "السلام عليكم ورحمة الله وبركاته، ولي أمر الطالب الغالي {name}، يسرّني أن أشارككم حصاد هذا الشهر 🌿",
+        mr_auto_note_close_warm: "بارك الله فيك يا {name}، ونفع بك، وزادك حرصًا وتوفيقًا. نفخر بك وننتظر المزيد منك 🤍",
         mr_note_tone_label: "نبرة الملاحظة التلقائية:",
         mr_note_tone_formal: "رسمية",
         mr_note_tone_warm: "دافئة",
@@ -1739,10 +1739,10 @@ export const translations = {
         mr_compare_row_memo: "حفظ جديد (آية)",
         mr_compare_row_gameeval: "عدد التقييمات الفردية",
         mr_compare_row_gameeval_avg: "متوسط درجة التقييمات الفردية",
-        mr_auto_note_memo_journey: "حفظ {name} {n} آية جديدة هذا الشهر.",
+        mr_auto_note_memo_journey: "أنهى {name} هذا الشهر حفظ {n} آية جديدة، بارك الله في جهده.",
         // 🌟 [جديد] نبرة "دافئة" اختيارية للملاحظة التلقائية — راجع مفتاح
         // "نبرة الملاحظة" الجديد في شاشة التقرير الشهري (toneKey في monthly-report.js)
-        mr_auto_note_memo_journey_warm: "ما شاء الله! {name} حفظ {n} آية جديدة هذا الشهر 🌱",
+        mr_auto_note_memo_journey_warm: "ما شاء الله! أضاف {name} {n} آية جديدة إلى حفظه هذا الشهر 🌱",
 
         // 🌟 [جديد] نافذتا "تسجيل موقع الحفظ الشهري" (بداية/نهاية الشهر) —
         // راجع components/monthlyMemorizationPrompt.js
@@ -1765,16 +1765,16 @@ export const translations = {
         mmp_back_btn: "رجوع للتعديل",
         mmp_confirm_save_btn: "تأكيد وحفظ",
         mr_cloud_error: "تعذر الاتصال بالسحابة لجلب درجات الواجبات — تحقق من اتصال الإنترنت وحاول مرة أخرى.",
-        mr_auto_note_hw: "سلَّم {name} {n} واجبًا منزليًا هذا الشهر بمتوسط درجات {avg}%.",
-        mr_auto_note_hw_warm: "بذل {name} مجهودًا جميلاً في {n} واجبًا هذا الشهر، بمتوسط {avg}% 👏",
-        mr_auto_note_dual: "خاض اختبارات ثنائية بنتيجة {w} فوز و{l} خسارة و{t} تعادل.",
-        mr_auto_note_dual_warm: "استمتع بخوض بعض الاختبارات الثنائية هذا الشهر: {w} فوز و{l} خسارة و{t} تعادل — كل تجربة فيها فائدة 💪",
-        mr_auto_note_errors: "تمت معالجة {n} من الأخطاء المسجَّلة سابقًا.",
-        mr_auto_note_errors_warm: "تم التغلب على {n} من نقاط الضعف السابقة بحمد الله ✨",
-        mr_auto_note_empty: "لم يُسجَّل نشاط (واجبات أو اختبارات ثنائية) لـ{name} هذا الشهر.",
-        mr_auto_note_empty_warm: "شهر هادئ لـ{name} من ناحية الواجبات والاختبارات — نتطلع لنشاط أكثر الشهر القادم بإذن الله 🌙",
-        mr_auto_note_memo: "النطاق الحالي المسجَّل لحفظ الطالب: {scope}.",
-        mr_auto_note_memo_warm: "استمر يا بطل! النطاق الحالي لحفظك: {scope} 🌟",
+        mr_auto_note_hw: "التزم {name} بتسليم {n} من الواجبات المنزلية هذا الشهر، وكان متوسط درجاته {avg}%.",
+        mr_auto_note_hw_warm: "واجتهد {name} في {n} من الواجبات هذا الشهر، وجاء متوسطه {avg}% — جهد يستحق الشكر 👏",
+        mr_auto_note_dual: "شارك في اختبارات ثنائية وكانت حصيلته {w} فوز و{l} خسارة و{t} تعادل، وكل مشاركة تزيده خبرة.",
+        mr_auto_note_dual_warm: "وخاض بعض الاختبارات الثنائية بروح رياضية: {w} فوز و{l} خسارة و{t} تعادل — وكل تجربة تقرّبه من الإتقان 💪",
+        mr_auto_note_errors: "وتجاوز {n} من الأخطاء التي سُجّلت عليه سابقًا.",
+        mr_auto_note_errors_warm: "والأجمل أن {n} من نقاط الضعف السابقة صارت خلفه بحمد الله ✨",
+        mr_auto_note_empty: "لم يظهر لـ{name} نشاط في الواجبات أو الاختبارات هذا الشهر، ونأمل أن نراه أكثر حضورًا في الشهر القادم.",
+        mr_auto_note_empty_warm: "كان شهرًا هادئًا لـ{name} في الواجبات والاختبارات، ونحن واثقون أن الشهر القادم سيكون أجمل بإذن الله 🌙",
+        mr_auto_note_memo: "وهو الآن في رحلة حفظه عند: {scope}.",
+        mr_auto_note_memo_warm: "وحفظك الآن وصل إلى: {scope} — واصل يا بطل 🌟",
 
         // 🌟 [جديد] تقييمات غرفة اللعب الفردية (كبار/أطفال) داخل التقرير الشهري — راجع
         // persistEvaluationToHistory في games/adultGame.js/kidsGame.js ومصادر البيانات أعلى
@@ -1789,8 +1789,8 @@ export const translations = {
         mr_source_kids: "ركن الأطفال",
         mr_table_col_range: "النطاق",
         mr_table_col_section: "القسم",
-        mr_auto_note_gameeval: "خاض {name} {n} جلسة تقييم فردية في غرفة اللعب هذا الشهر بمتوسط درجات {avg}%.",
-        mr_auto_note_gameeval_warm: "خاض {name} {n} جلسة تقييم في غرفة اللعب هذا الشهر بمتوسط {avg}% — تقدّم جميل 🌟",
+        mr_auto_note_gameeval: "وشارك {name} في {n} من جلسات التقييم في غرفة اللعب بمتوسط {avg}%.",
+        mr_auto_note_gameeval_warm: "وشارك {name} بحماس في {n} من جلسات التقييم في غرفة اللعب بمتوسط {avg}% — تقدّم يسعدنا 🌟",
 
         // 🌟 [جديد بالكامل] لعبة "استمع وخمّن الآية" (ركن الأطفال فقط) — راجع تعليق
         // generateKidsListenAyah في engine/kidsEngine.js لتفاصيل الفكرة الكاملة. عنوان اللعبة
@@ -4635,8 +4635,8 @@ export const translations = {
         mr2_hijri_suffix: "AH",
         mr2_memo_scope_fmt: "from {from} to {to}",
         mr2_scope_label: "Memorization range:",
-        mr_auto_note_open_warm: "Peace be upon you, dear parent of {name} —",
-        mr_auto_note_close_warm: "Barakallahu feek, {name} — may God increase you in diligence and success.",
+        mr_auto_note_open_warm: "Peace be upon you, dear parent of {name} — I'm happy to share this month's highlights 🌿",
+        mr_auto_note_close_warm: "Barakallahu feek, {name} — may God benefit others through you and increase you in diligence and success. We're proud of you and can't wait to see more 🤍",
         mr_note_tone_label: "Auto-note tone:",
         mr_note_tone_formal: "Formal",
         mr_note_tone_warm: "Warm",
@@ -4753,8 +4753,8 @@ export const translations = {
         mr_compare_row_memo: "New memorization (ayahs)",
         mr_compare_row_gameeval: "Individual evaluations",
         mr_compare_row_gameeval_avg: "Average individual evaluation score",
-        mr_auto_note_memo_journey: "{name} memorized {n} new ayah(s) this month.",
-        mr_auto_note_memo_journey_warm: "Well done! {name} memorized {n} new ayah(s) this month 🌱",
+        mr_auto_note_memo_journey: "{name} memorized {n} new ayah(s) this month — may God bless his effort.",
+        mr_auto_note_memo_journey_warm: "Mashallah! {name} added {n} new ayah(s) to their memorization this month 🌱",
 
         // 🌟 [New] The two "record monthly memorization position" windows (start/end of month) —
         // see components/monthlyMemorizationPrompt.js
@@ -4777,16 +4777,16 @@ export const translations = {
         mmp_back_btn: "Back to edit",
         mmp_confirm_save_btn: "Confirm and save",
         mr_cloud_error: "Could not reach the cloud to fetch homework scores — check your internet connection and try again.",
-        mr_auto_note_hw: "{name} submitted {n} homework assignments this month with an average score of {avg}%.",
-        mr_auto_note_hw_warm: "{name} put in lovely effort on {n} homework assignment(s) this month, averaging {avg}% 👏",
-        mr_auto_note_dual: "Played dual tests with a record of {w} win(s), {l} loss(es), and {t} tie(s).",
-        mr_auto_note_dual_warm: "Enjoyed a few dual tests this month: {w} win(s), {l} loss(es), {t} tie(s) — every round is a chance to learn 💪",
-        mr_auto_note_errors: "{n} previously recorded mistake(s) were resolved.",
-        mr_auto_note_errors_warm: "{n} earlier weak spot(s) were worked through, alhamdulillah ✨",
-        mr_auto_note_empty: "No activity (homework or dual tests) was recorded for {name} this month.",
-        mr_auto_note_empty_warm: "A quiet month for {name} on homework and tests — looking forward to more activity next month, in shaa Allah 🌙",
-        mr_auto_note_memo: "Student's currently registered memorization range: {scope}.",
-        mr_auto_note_memo_warm: "Keep it up, champ! Your current memorization range: {scope} 🌟",
+        mr_auto_note_hw: "{name} stayed committed and handed in {n} homework assignment(s) this month, averaging {avg}%.",
+        mr_auto_note_hw_warm: "{name} also worked hard on {n} homework assignment(s), averaging {avg}% — effort worth celebrating 👏",
+        mr_auto_note_dual: "He took part in dual tests with {w} win(s), {l} loss(es) and {t} tie(s) — every round builds experience.",
+        mr_auto_note_dual_warm: "He also took on a few dual tests with a great spirit: {w} win(s), {l} loss(es), {t} tie(s) — every round brings him closer to mastery 💪",
+        mr_auto_note_errors: "He also overcame {n} mistake(s) recorded earlier.",
+        mr_auto_note_errors_warm: "Even better, {n} earlier weak spot(s) are now behind them, alhamdulillah ✨",
+        mr_auto_note_empty: "We didn't see any homework or test activity from {name} this month, and we hope to see more next month.",
+        mr_auto_note_empty_warm: "It was a quiet month for {name} on homework and tests, but we're confident next month will be brighter, in shaa Allah 🌙",
+        mr_auto_note_memo: "He is now at {scope} on his memorization journey.",
+        mr_auto_note_memo_warm: "Their memorization has now reached: {scope} — keep going, champ 🌟",
 
         // 🌟 [New] Individual game-room evaluations (adults/kids) inside the monthly report —
         // see persistEvaluationToHistory in games/adultGame.js/kidsGame.js and the data-sources
@@ -4801,8 +4801,8 @@ export const translations = {
         mr_source_kids: "Kids corner",
         mr_table_col_range: "Range",
         mr_table_col_section: "Section",
-        mr_auto_note_gameeval: "{name} played {n} individual game-room evaluation session(s) this month with an average score of {avg}%.",
-        mr_auto_note_gameeval_warm: "{name} played {n} game-room evaluation session(s) this month, averaging {avg}% — lovely progress 🌟",
+        mr_auto_note_gameeval: "{name} also took part in {n} game-room evaluation session(s), averaging {avg}%.",
+        mr_auto_note_gameeval_warm: "{name} also joined {n} game-room evaluation session(s) with great enthusiasm, averaging {avg}% — progress that makes us smile 🌟",
 
         // 🌟 [جديد بالكامل] "Listen and Guess the Ayah" game (kids corner only)
         kids_listen_title: "Listen and Guess the Ayah, Champ! 🎧",

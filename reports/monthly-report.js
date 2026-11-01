@@ -1470,21 +1470,22 @@ function buildAutoNote(d) {
   const tone = getNoteTone();
   const tk = (k) => toneKey(k, tone);
   const parts = [];
+  // الاسم الأول فقط في النبرة الدافئة (أقرب للكلام البشري من تكرار الاسم الكامل)
+  const nm = tone === 'warm' ? (String(d.name || '').trim().split(/\s+/)[0] || d.name) : d.name;
   // 🌟 [جديد] افتتاحية دافئة بالاسم الأول للطالب (للنبرة الدافئة فقط)
   if (tone === 'warm') {
-    const first = String(d.name || '').trim().split(/\s+/)[0] || d.name;
-    parts.push(t('mr_auto_note_open_warm').replace('{name}', first));
+    parts.push(t('mr_auto_note_open_warm').replace('{name}', nm));
   }
   // 🌟 [جديد] جملة الحفظ الجديد أولًا لو تم تسجيل نهاية الشهر فعليًا — أدق وأصدق
   // من جملة "النطاق الحالي" وحدها لأنها تعكس تحرّكًا فعليًا خلال هذا الشهر تحديدًا
   if (d.journey && d.journey.hasEnding && d.journey.newAyahs != null) {
-    parts.push(t(tk('mr_auto_note_memo_journey')).replace('{name}', d.name).replace('{n}', d.journey.newAyahs));
+    parts.push(t(tk('mr_auto_note_memo_journey')).replace('{name}', nm).replace('{n}', d.journey.newAyahs));
   }
   if (d.gameEvalAvg != null) {
-    parts.push(t(tk('mr_auto_note_gameeval')).replace('{name}', d.name).replace('{n}', d.gameEvalEntries.length).replace('{avg}', d.gameEvalAvg));
+    parts.push(t(tk('mr_auto_note_gameeval')).replace('{name}', nm).replace('{n}', d.gameEvalEntries.length).replace('{avg}', d.gameEvalAvg));
   }
   if (d.homeworkAvg != null) {
-    parts.push(t(tk('mr_auto_note_hw')).replace('{name}', d.name).replace('{n}', d.homeworkEntries.length).replace('{avg}', d.homeworkAvg));
+    parts.push(t(tk('mr_auto_note_hw')).replace('{name}', nm).replace('{n}', d.homeworkEntries.length).replace('{avg}', d.homeworkAvg));
   }
   const dualTotal = d.dualWins + d.dualLosses + d.dualTies;
   if (dualTotal) {
