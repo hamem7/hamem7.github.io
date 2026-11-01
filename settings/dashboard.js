@@ -92,6 +92,7 @@ export function populateDashboardData() {
 // ---------------------------------------------------------------------------
 const KIDS_ALL_STALE_DAYS = 14;   // تنبيه المعلم لتحديث الموضع إذا مضى أكثر من أسبوعين
 let kidsAllRange = null;          // { from, to } عند جاهزية «كل الحفظ»
+let kidsAllStale = false;         // هل موضع الحفظ قديم/غير مسجَّل (يُسأل المعلم عند البدء)
 
 function isKidsAllOn() {
     return AppState.isKidsMode && document.getElementById('btn-kids-all')?.getAttribute('aria-pressed') === 'true';
@@ -107,7 +108,47 @@ function setKidsAll(on) {
     document.getElementById('kids-manual-range').style.display = on ? 'none' : '';
     document.getElementById('kids-all-info').style.display = on ? 'block' : 'none';
     kidsAllRange = null;
+    kidsAllStale = false;
     if (on) refreshKidsAllInfo();
+}
+
+// نافذة تذكير عند البدء بـ«كل حفظ الطالب» والموضع قديم: يحدّث المعلم الآن أو يكمل بنطاق قد يكون ناقصاً
+function askKidsAllStale() {
+    return new Promise((resolve) => {
+        const ov = document.createElement('div');
+        ov.setAttribute('role', 'dialog');
+        ov.setAttribute('aria-modal', 'true');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.55);';
+        const box = document.createElement('div');
+        box.style.cssText = 'max-width:460px;width:100%;padding:22px;border-radius:18px;text-align:center;background:var(--dh-surface-3,#fff);color:var(--dh-ink,#10241c);border:1px solid var(--dh-border-strong,#cfc9b0);box-shadow:0 14px 40px rgba(0,0,0,.35);';
+        const msg = document.createElement('div');
+        msg.style.cssText = 'font-size:1.15rem;font-weight:700;line-height:1.9;margin-bottom:16px;';
+        msg.textContent = t('kids_all_stale_prompt');
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center;';
+        const done = (v) => { ov.remove(); resolve(v); };
+        const mk = (key, cls, v) => {
+            const b = document.createElement('button');
+            b.type = 'button'; b.className = 'btn ' + cls; b.textContent = t(key);
+            b.style.cssText = 'font-size:1.05rem;padding:10px 16px;';
+            b.addEventListener('click', () => done(v));
+            return b;
+        };
+        row.append(mk('kids_all_stale_update', 'dash-btn-primary', 'update'), mk('kids_all_stale_continue', 'btn-outline', 'continue'));
+        box.append(msg, row);
+        ov.appendChild(box);
+        ov.addEventListener('click', (e) => { if (e.target === ov) done('cancel'); });
+        document.body.appendChild(ov);
+    });
+}
+
+async function updateKidsPositionNow() {
+    const student = AppState.currentStudent;
+    if (!student) return;
+    const { openMonthEndingForStudent } = await import('../components/monthlyMemorizationBulkScreen.js');
+    const now = new Date();
+    await openMonthEndingForStudent(student, now.getFullYear(), now.getMonth() + 1);
+    if (isKidsAllOn()) await refreshKidsAllInfo();
 }
 
 async function refreshKidsAllInfo() {
@@ -135,6 +176,7 @@ async function refreshKidsAllInfo() {
 
     const st = monthlyStaleness(records, Date.now());
     const stale = !st.hasRecords || st.days > KIDS_ALL_STALE_DAYS;
+    kidsAllStale = stale;
     freshEl.textContent = !st.hasRecords ? t('kids_all_fresh_none')
         : tf(stale ? 'kids_all_fresh_stale' : 'kids_all_fresh_ok', { n: st.days });
     freshEl.style.color = stale ? 'var(--dh-warn, #b45309)' : 'var(--dh-ok, #15803d)';
@@ -180,19 +222,18 @@ export function setupDashboardListeners() {
     };
 
     document.getElementById('btn-kids-all')?.addEventListener('click', () => setKidsAll(!isKidsAllOn()));
-    document.getElementById('btn-kids-all-update')?.addEventListener('click', async () => {
-        const student = AppState.currentStudent;
-        if (!student) return;
-        const { openMonthEndingForStudent } = await import('../components/monthlyMemorizationBulkScreen.js');
-        const now = new Date();
-        await openMonthEndingForStudent(student, now.getFullYear(), now.getMonth() + 1);
-        if (isKidsAllOn()) refreshKidsAllInfo();
-    });
+    document.getElementById('btn-kids-all-update')?.addEventListener('click', updateKidsPositionNow);
 
-    document.getElementById('btn-start-mission')?.addEventListener('click', () => {
+    document.getElementById('btn-start-mission')?.addEventListener('click', async () => {
         const config = getTeacherConfig();
 
         if (config.isKidsRange && isKidsAllOn() && !kidsAllRange) return alert(t('kids_all_no_range'));
+        // تذكير: موضع الحفظ قديم → يحدّث المعلم الآن (ثم يضغط ابدأ مجدداً) أو يكمل بنطاق قد يكون ناقصاً
+        if (config.isKidsRange && isKidsAllOn() && kidsAllStale) {
+            const choice = await askKidsAllStale();
+            if (choice === 'update') { await updateKidsPositionNow(); return; }
+            if (choice !== 'continue') return;
+        }
 
         const isSingleSurah = !config.isJuzMode && !config.isRangeMode && !config.isKidsRange;
         if (isSingleSurah && isNaN(config.surahNum)) return alert(t('dash_alert_choose_surah'));
