@@ -246,8 +246,11 @@ export async function openStudentsHubScreen() {
   }
 
   function cardHtml(r, i) {
-    const sel = r.pos ? r.pos.surahNumber : '';
-    const info = r.pos ? getSurahInfo(AppState.surahsData, r.pos.surahNumber) : null;
+    // يُعرض آخر موضع مسجَّل للطالب (ختام هذا الشهر إن وُجد، وإلا بداية الشهر = آخر ختام سابق) ليعدّل المعلم منه؛
+    // مجرد العرض لا يحفظ شيئًا: الحفظ التلقائي يبدأ عند تغيير السورة أو الآية فقط.
+    const shown = r.pos || r.begin;
+    const sel = shown ? shown.surahNumber : '';
+    const info = shown ? getSurahInfo(AppState.surahsData, shown.surahNumber) : null;
     const opts = `<option value="">${esc(t('sh_pick_surah'))}</option>` + surahs
       .map(s => `<option value="${s.number}" ${s.number === sel ? 'selected' : ''}>${esc(surahNameLocal(s.name))}</option>`).join('');
     const name = esc(r.student.name || '');
@@ -259,7 +262,7 @@ export async function openStudentsHubScreen() {
       </div>
       <div class="sh-line">
         <select data-k="s" aria-label="${esc(t('sh_pick_surah'))} — ${name}">${opts}</select>
-        <input type="number" inputmode="numeric" min="1" ${info ? `max="${info.ayahsCount}"` : ''} data-k="a" placeholder="${esc(t('sh_ayah_ph'))}" value="${r.pos ? r.pos.ayahNumber : ''}" aria-label="${esc(t('sh_ayah_ph'))} — ${name}">
+        <input type="number" inputmode="numeric" min="1" ${info ? `max="${info.ayahsCount}"` : ''} data-k="a" placeholder="${esc(t('sh_ayah_ph'))}" value="${shown ? shown.ayahNumber : ''}" aria-label="${esc(t('sh_ayah_ph'))} — ${name}">
         <span class="sh-max" data-max>${info ? '/ ' + info.ayahsCount : ''}</span>
         <button type="button" class="sh-btn rep" data-act="rep" ${r.fresh ? '' : 'disabled'} title="${r.fresh ? '' : esc(t('sh_btn_report_hint'))}">${esc(t('sh_btn_report'))}</button>
         <button type="button" class="sh-btn file" data-act="file">${esc(t('sh_btn_file'))}</button>
@@ -314,7 +317,6 @@ export async function openStudentsHubScreen() {
     if (r.kind === 'first') {
       // نقطة البداية فقط: تتحول البطاقة إلى «هذا الشهر» ويُسجَّل الختام لاحقًا (لا يُفعَّل التقرير)
       r.kind = 'ending'; r.begin = pos; r.pos = null; r.status = 'open';
-      sSel.value = ''; aInp.value = '';
       card.querySelector('[data-sub]').textContent = subLine(r);
       card.querySelector('[data-tag]').className = 'sh-tag open';
       card.querySelector('[data-tag]').textContent = t('sh_tag_open');
