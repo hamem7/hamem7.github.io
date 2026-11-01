@@ -57,7 +57,7 @@ import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.j
 // ("لا يوجد سجل تاريخي لتغيّر نطاق الحفظ"). getSurahInfo دالة خالصة لا تلمس أي DOM.
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 // 🌟 [جديد] "رحلة المراجعة" — ملخص مراجعة الأجزاء الخمسة (دالة خالصة، راجع engine/reviewParts.js)
-import { summarizeReview, juzLabel } from '../engine/reviewParts.js';
+import { summarizeReview } from '../engine/reviewParts.js';
 // 🌟 [تحديث] getAllSubmissionsFromCloud لم تعد تُستورد بشكل ثابت هنا فوق — راجع
 // سبب ذلك بالتفصيل عند نقطة استخدامها الوحيدة داخل buildMonthlyReportData أدناه
 // (قسم "2) الواجبات المنزلية").
@@ -238,13 +238,12 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div id="mr-journey-content"></div>
         </div>
 
-        <!-- 🌟 [جديد] "رحلة المراجعة" — الأجزاء الخمسة (الأحقاف، الذاريات، المجادلة، تبارك، عمّ):
-             من أي سورة بدأ مراجعته هذا الشهر وإلى أين وصل، وكم سورة راجع. تُسجَّل من
-             components/monthlyReviewScreen.js في سجل الشهر (حقل review). -->
-        <div class="mr-block pdf-block" id="mr-revparts-block">
-          <div class="section-title" data-i18n="mr_revparts_title">رحلة المراجعة هذا الشهر</div>
-          <div class="section-sub" data-i18n="mr_revparts_sub">من أين بدأ الطالب مراجعة كل جزء وإلى أين وصل</div>
-          <div id="mr-revparts-content"></div>
+        <!-- تغطية المراجعة (حلّت محل "رحلة المراجعة"): كم آية من محفوظه ظهرت في اختبارات الشهر وواجباته.
+             يُخفى لو لا بيانات. النصوص من renderCoverageBlock -->
+        <div class="mr-block pdf-block" id="mr-cov-block" style="display:none;">
+          <div class="section-title" id="mr-cov-title"></div>
+          <div class="section-sub" id="mr-cov-sub"></div>
+          <div id="mr-cov-content"></div>
         </div>
 
         <!-- 🌟 [جديد] تقييمات غرفة اللعب الفردية (الكبار/الأطفال) هذا الشهر — تُقرأ من
@@ -269,13 +268,6 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div class="section-title" id="mr-skills-title"></div>
           <div class="section-sub" id="mr-skills-sub"></div>
           <div id="mr-skills-content"></div>
-        </div>
-
-        <!-- تغطية المراجعة: كم آية من محفوظه ظهرت في اختبارات الشهر وواجباته. يُخفى لو لا بيانات. النصوص من renderCoverageBlock -->
-        <div class="mr-block pdf-block" id="mr-cov-block" style="display:none;">
-          <div class="section-title" id="mr-cov-title"></div>
-          <div class="section-sub" id="mr-cov-sub"></div>
-          <div id="mr-cov-content"></div>
         </div>
 
         <div class="mr-block pdf-block" id="mr-dual-block">
@@ -700,7 +692,21 @@ async function buildMonthlyReportData(year, monthIndex0) {
     if (!w.dateResolved) return false;
     const ts = new Date(w.dateResolved).getTime();
     return !isNaN(ts) && ts >= monthStart && ts < monthEnd;
-  });
+  }).map(w => ({ ...w }));
+  // نص الآية بدل رقمها: نبحث عن رقم السورة بالاسم (بعد تطبيع التشكيل/كلمة "سورة") ثم نجلب الآية
+  const normName = (s) => String(s || '').replace(/[ً-ٰٟۖ-ۭـ]/g, '').replace(/^\s*سورة\s*/, '').replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').trim();
+  for (const w of resolvedThisMonth) {
+    try {
+      if (!w.surahName || !w.num || !AppState.quranEngine) continue;
+      const info = (AppState.surahsData || []).find(s => normName(s.name) === normName(w.surahName));
+      if (!info) continue;
+      const surah = await AppState.quranEngine.getSurah(info.number);
+      const ay = surah && Array.isArray(surah.ayahs) ? surah.ayahs.find(a => a.numberInSurah === Number(w.num)) : null;
+      if (ay && ay.text) w.ayahText = ay.text;
+    } catch (e) {
+      console.error('[monthly-report.js] تعذر جلب نص آية الخطأ المعالَج:', e);
+    }
+  }
 
   // --- 6) حالة المراجعة المتباعدة (الحالة الآن، وليست بيانات شهر بعينه) ---
   let reviewSchedule = null;
@@ -730,9 +736,12 @@ async function buildMonthlyReportData(year, monthIndex0) {
           beginLabel: `${beginInfo ? surahNameLocal(beginInfo.name) : '؟'} — ${record.beginning.ayahNumber}`,
           hasEnding: !!record.ending,
           endLabel: null,
+          beginPos: { s: record.beginning.surahNumber, a: record.beginning.ayahNumber },
+          endPos: null,
           newAyahs: typeof record.newAyahs === 'number' ? record.newAyahs : null
         };
         if (record.ending) {
+          journey.endPos = { s: record.ending.surahNumber, a: record.ending.ayahNumber };
           const endInfo = getSurahInfo(AppState.surahsData, record.ending.surahNumber);
           journey.endLabel = `${endInfo ? surahNameLocal(endInfo.name) : '؟'} — ${record.ending.ayahNumber}`;
         }
@@ -1044,33 +1053,53 @@ function renderJourneyBlock(d) {
     `;
     return;
   }
-  el.innerHTML = `
-    <div class="mr-journey-box">
+  // شريط تقدّم على المصحف كله: من الفاتحة (بداية الشريط) إلى الناس (نهايته). الاتجاه يتبع لغة الصفحة
+  // (RTL: الفاتحة يمينًا ويتجه الشريط يسارًا). الجزء الملوَّن = المدى الذي حُفظ هذا الشهر.
+  const sd = AppState.surahsData || [];
+  const total = sd.reduce((n, s) => n + (s.ayahsCount || 0), 0);
+  const posOf = (p) => {
+    if (!p || !total) return null;
+    let before = 0;
+    for (const s of sd) { if (s.number === p.s) break; before += s.ayahsCount || 0; }
+    return Math.min(1, Math.max(0, (before + (p.a || 0)) / total));
+  };
+  const pb = posOf(d.journey.beginPos), pe = posOf(d.journey.endPos);
+  const first = String(d.name || '').trim().split(/\s+/)[0] || d.name;
+  const sentence = d.journey.newAyahs != null
+    ? `<div class="mr-journey-new">${t('mr_journey_sentence').replace('{name}', first).replace('{n}', '<b>' + d.journey.newAyahs + '</b>')}</div>` : '';
+  if (pb == null || pe == null) {
+    el.innerHTML = `<div class="mr-journey-box">
       <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
       <div class="mr-journey-arrow">↓</div>
-      <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>
-      <div class="mr-journey-new">${d.journey.newAyahs != null ? t('mr_journey_sentence').replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name).replace('{n}', '<b>' + d.journey.newAyahs + '</b>') : ''}</div>
-    </div>
-  `;
-}
-
-// 🌟 [جديد] "رحلة المراجعة": صف لكل جزء تمّت مراجعته (من سورة إلى سورة + العدد + شريط تقدّم)،
-// وسطر إجمالي. الأجزاء التي لم تُراجَع لا تُعرض (لا نُظهر "صفرًا" لجزء لم يُسجَّل). بلا أي بيانة =
-// رسالة صريحة (تُخفى تلقائيًا في تصدير واتساب/PDF لأنها صف فارغ — راجع mrIsEmptyBlock).
-function renderReviewPartsBlock(d) {
-  const el = $('mr-revparts-content');
-  if (!el) return;
-  const rs = d.reviewSummary;
-  if (!rs) { el.innerHTML = `<div class="mr-empty-row">${t('mr_revparts_none')}</div>`; return; }
-  const arrow = AppState.currentLang === 'ar' ? '←' : '→';
-  const rows = rs.entries.map(p => `
-    <div class="mr-rev-row">
-      <div class="mr-rev-name">${juzLabel(p.juz, t)}</div>
-      <div class="mr-rev-range">${surahNameLocal(p.fromName)} ${p.fromAyah} <span class="mr-rev-arrow">${arrow}</span> ${surahNameLocal(p.toName)} ${p.toAyah}</div>
-      <div class="mr-rev-count">${t('mr_revparts_count_fmt').replace('{n}', p.count)}</div>
-      <div class="mr-rev-bar"><div class="mr-rev-fill" style="width:${Math.min(100, p.pct)}%;"></div></div>
-    </div>`).join('');
-  el.innerHTML = `${rows}<div class="mr-rev-total">${t('mr_revparts_total_fmt').replace('{n}', rs.totalAyahs).replace('{k}', rs.juzCount)}</div>`;
+      <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>${sentence}</div>`;
+    return;
+  }
+  const lo = Math.min(pb, pe), hi = Math.max(pb, pe);
+  const pct = (x) => (x * 100).toFixed(2);
+  const segW = Math.max(hi - lo, 0.006); // حدّ أدنى مرئي للمدى القصير
+  const edge = (x) => x < 0.2 ? 'start' : (x > 0.8 ? 'end' : 'mid');
+  const quranPct = Math.max(0.1, Math.round((hi - lo) * 1000) / 10);
+  el.innerHTML = `
+    <div class="mr-journey-box mr-jp">
+      <div class="mr-jp-ends"><span>${surahNameLocal(1)}</span><span>${surahNameLocal(114)}</span></div>
+      <div class="mr-jp-stage">
+        <div class="mr-jp-lbl mr-jp-lbl-top mr-jp-${edge(pb)}" style="inset-inline-start:${pct(pb)}%">
+          <span class="mr-journey-label">${t('mr_journey_begin_label')}</span>
+          <span class="mr-journey-pos">${d.journey.beginLabel}</span>
+        </div>
+        <div class="mr-jp-track">
+          <div class="mr-jp-fill" style="inset-inline-start:${pct(lo)}%;width:${pct(segW)}%"></div>
+          <i class="mr-jp-dot mr-jp-dot-b" style="inset-inline-start:${pct(pb)}%"></i>
+          <i class="mr-jp-dot mr-jp-dot-e" style="inset-inline-start:${pct(pe)}%"></i>
+        </div>
+        <div class="mr-jp-lbl mr-jp-lbl-bot mr-jp-${edge(pe)}" style="inset-inline-start:${pct(pe)}%">
+          <span class="mr-journey-pos">${d.journey.endLabel}</span>
+          <span class="mr-journey-label">${t('mr_journey_end_label')}</span>
+        </div>
+      </div>
+      ${sentence}
+      <div class="mr-jp-pct">${quranPct}% ${AppState.currentLang === 'en' ? 'of the Quran' : 'من المصحف'}</div>
+    </div>`;
 }
 
 // 🌟 [جديد] "المقارنة الشهرية" — تُعرض فقط لو توفرت أي بيانة فعلية للشهر السابق
@@ -1313,7 +1342,11 @@ function renderErrorsBlock(d) {
         ${d.resolvedThisMonth.map(w => `
           <tr>
             <td>${new Date(w.dateResolved).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
-            <td>${w.surahName ? `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}` : (localizeGenerated(w.text) || '—')}</td>
+            <td>${w.surahName
+              ? (w.ayahText
+                ? `<div class="mr-err-surah">${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)} (${w.num})</div><div class="mr-err-ayah quran-text" dir="rtl">﴿${esc(w.ayahText)}﴾</div>`
+                : `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}`)
+              : (localizeGenerated(w.text) || '—')}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -1556,11 +1589,10 @@ function renderAll(d) {
   renderLegend();
   renderPlanBlock(d);
   renderJourneyBlock(d);
-  renderReviewPartsBlock(d);
+  renderCoverageBlock(d);
   renderGameEvalBlock(d);
   renderHomeworkBlock(d);
   renderSkillsBlock(d);
-  renderCoverageBlock(d);
   renderDualBlock(d);
   renderAchievementsBlock(d);
   renderErrorsBlock(d);

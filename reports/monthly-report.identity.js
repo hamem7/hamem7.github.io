@@ -162,6 +162,13 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mr-journey-arrow{color:#d4af37;}
   #report-screen .page.mr2 .mr-journey-new{font-family:'Amiri',serif; color:#f6f3e8; font-size:20px;}
 
+  #report-screen .page.mr2 .mr-jp-track{background:rgba(255,255,255,.16);}
+  #report-screen .page.mr2 .mr-jp-dot{background:#0b3d30; border-color:#f0d878;}
+  #report-screen .page.mr2 .mr-jp-dot-e{background:#f0d878; border-color:#0b3d30;}
+  #report-screen .page.mr2 .mr-jp-ends, #report-screen .page.mr2 .mr-jp-pct{color:#c9d8d0;}
+  #report-screen .page.mr2 .mr-jp-lbl{flex-direction:column;}
+  #report-screen .page.mr2 .mr-err-surah{color:#4a6058;}
+
   /* اتجاه الحفظ */
   #report-screen .page.mr2 .mr-trend-total{color:#0b3d30;}
 

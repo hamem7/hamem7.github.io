@@ -86,6 +86,61 @@ export const MONTHLY_REPORT_STYLES = `
     margin-top:12px; font-family:'Amiri',serif; font-size:22px; font-weight:700; color:#8a6221;
   }
 
+  /* ============== تطوير أدوات التحكم أعلى التقرير (ترويسة التصدير + الشهر/السنة + الملاحظة) ============== */
+  #report-screen .report-toolbar{
+    gap:14px 18px; padding:14px 20px; background:linear-gradient(180deg,#2f2a22,#26211b);
+    border-bottom:1px solid #46403690;
+  }
+  #report-screen .report-toolbar .grp{
+    background:#ffffff0a; border:1px solid #ffffff14; border-radius:12px;
+    padding:6px 10px; gap:8px;
+  }
+  #report-screen .report-toolbar .grp:last-child{padding:6px 10px; border-inline-end:1px solid #ffffff14;}
+  #report-screen .report-toolbar .grp-label{margin-inline-end:2px; letter-spacing:.2px;}
+  #report-screen .rbtn{transition:transform .12s ease, filter .12s ease;}
+  #report-screen .rbtn:hover:not([disabled]){transform:translateY(-1px); filter:brightness(1.06);}
+  #report-screen .mr-month-bar{
+    display:flex; align-items:center; justify-content:center; gap:10px 14px; flex-wrap:wrap;
+    padding:12px 20px; background:#2a251e; border-top:none; border-bottom:1px solid #46403690;
+  }
+  #report-screen .mr-month-bar label{display:inline-block; margin:0; width:auto; flex:none;}
+  #report-screen .mr-month-bar select{
+    width:auto; min-width:140px; flex:0 1 180px; margin:0; background-color:#3a352a;
+    border:1px solid #6a634f; border-radius:10px; padding:8px 12px;
+  }
+  #report-screen .mr-month-bar select:focus-visible,
+  #report-screen .note-bar textarea:focus-visible{outline:2px solid #d4af37; outline-offset:2px;}
+  #report-screen .mr-month-bar .hint{
+    color:#c2b393; font-size:11.5px; font-weight:600; background:#ffffff0a;
+    border:1px dashed #ffffff22; border-radius:999px; padding:5px 12px; flex:0 1 auto;
+  }
+  #report-screen .note-bar{
+    display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; padding:12px 20px;
+    background:#2a251e;
+  }
+  #report-screen .note-bar textarea{border-radius:12px; min-height:56px;}
+
+  /* ============== شريط تقدّم رحلة الحفظ على المصحف كله ============== */
+  #report-screen .mr-jp{padding:16px 24px 18px;}
+  #report-screen .mr-jp-ends{display:flex; justify-content:space-between; font-size:11px; font-weight:700; opacity:.75; margin-bottom:4px;}
+  #report-screen .mr-jp-stage{position:relative; padding:46px 0;}
+  #report-screen .mr-jp-track{position:relative; height:14px; border-radius:999px; background:rgba(0,0,0,.14);}
+  #report-screen .mr-jp-fill{position:absolute; top:0; bottom:0; border-radius:999px; background:linear-gradient(90deg,#d4af37,#f0d878);}
+  #report-screen .mr-jp-dot{position:absolute; top:50%; width:18px; height:18px; margin-top:-9px; margin-inline-start:-9px; border-radius:50%; background:#fff; border:4px solid #c9932f; box-sizing:border-box;}
+  #report-screen .mr-jp-dot-e{background:#c9932f; border-color:#fff;}
+  #report-screen .mr-jp-lbl{position:absolute; width:0; display:flex; justify-content:center;}
+  #report-screen .mr-jp-lbl.mr-jp-start{justify-content:flex-start;}
+  #report-screen .mr-jp-lbl.mr-jp-end{justify-content:flex-end;}
+  #report-screen .mr-jp-lbl > span{white-space:nowrap;}
+  #report-screen .mr-jp-lbl{flex-direction:column; align-items:center;}
+  #report-screen .mr-jp-lbl.mr-jp-start{align-items:flex-start;}
+  #report-screen .mr-jp-lbl.mr-jp-end{align-items:flex-end;}
+  #report-screen .mr-jp-lbl-top{top:0;}
+  #report-screen .mr-jp-lbl-bot{bottom:0;}
+  #report-screen .mr-jp-pct{margin-top:4px; font-size:11.5px; font-weight:700; opacity:.7;}
+  #report-screen .mr-err-surah{font-size:11.5px; color:#6f644e; font-weight:700; margin-bottom:3px;}
+  #report-screen .mr-err-ayah{font-size:1.15rem; line-height:2; text-align:start;}
+
   /* ============== 🌟 [جديد] مفتاح "نبرة الملاحظة التلقائية" (رسمية/دافئة) ============== */
   #report-screen .mr-tone-toggle{display:inline-flex; align-items:center; gap:8px; margin-top:8px;}
   #report-screen .mr-tone-btn{
