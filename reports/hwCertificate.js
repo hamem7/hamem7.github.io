@@ -370,7 +370,7 @@ export function showHomeworkCertificate(submission, student, scope) {
     const ladderBlock = ladderHtml(buildHwLadder(submission, student, score, issuedAt));   // السُلّم يظهر دائماً (راجع buildHwLadder)
     // 🌟 [جديد] كلمة المعلم الاختيارية (تُحفظ مع التسليم من غرفة التصحيح) — لا تظهر الكتلة لو فارغة
     const teacherNote = String(submission.teacherNote || '').trim();
-    const filename = `شهادة-${studentName}.png`.replace(/[\\/:*?"<>|]/g, '_');
+    const filename = `شهادة ${studentName}.png`.replace(/[\\/:*?"<>|_]/g, ' ').replace(/\s+/g, ' ');
 
     const overlay = document.createElement('div');
     overlay.className = 'hwcert-overlay';
