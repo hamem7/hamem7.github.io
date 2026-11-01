@@ -393,8 +393,8 @@ function setupMyStudentsListeners() {
     });
 
     document.getElementById('btn-monthly-memo-bulk')?.addEventListener('click', () => {
-        import('../components/monthlyMemorizationBulkScreen.js')
-            .then(m => m.openMonthlyMemorizationBulkScreen())
+        import('../components/studentsHubScreen.js')
+            .then(m => m.openStudentsHubScreen())
             .catch(err => {
                 console.error('تعذر تحميل شاشة الحفظ الشهري الجماعية:', err);
                 alert(t('stu_screen_preparing'));

@@ -409,7 +409,7 @@ const ITEMS = [
 // ---------------------------------------------------------------------------
 // 🌟 اللوحتان السفليتان (Bottom Sheets): عنصر واحد يُعاد ملؤه. لا تخزين ولا حالة؛ كل عنصر يستدعي دالة موجودة أصلاً.
 function openReportsHub() { return import('../components/monthlyReportsHub.js').then(m => m.openMonthlyReportsHub()).catch(err => console.error('تعذر فتح مركز التقارير الشهرية:', err)); }
-function openMemoBulk() { return import('../components/monthlyMemorizationBulkScreen.js').then(m => m.openMonthlyMemorizationBulkScreen()).catch(err => console.error('تعذر فتح شاشة الحفظ الشهري:', err)); }
+function openMemoBulk() { return import('../components/studentsHubScreen.js').then(m => m.openStudentsHubScreen()).catch(err => console.error('تعذر فتح شاشة الحفظ الشهري:', err)); }
 function sheetItems(kind) {
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },

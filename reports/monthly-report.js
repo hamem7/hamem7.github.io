@@ -1911,6 +1911,14 @@ function goBackToProfile() {
     });
     return;
   }
+  if (mrOpenOptions && mrOpenOptions.returnTo === 'shub') {
+    // الفتح من شاشة «تسجيل الحفظ الشهري» الموحّدة: الرجوع يعيدها
+    mrOpenOptions = null;
+    import('../components/studentsHubScreen.js').then(m => m.openStudentsHubScreen()).catch(err => {
+      console.error('[monthly-report.js] تعذر العودة لشاشة تسجيل الحفظ:', err);
+    });
+    return;
+  }
   mrOpenOptions = null;
   // 🌟 dynamic import عمدًا (بدل استيراد ثابت من student/student.js أعلى الملف) —
   // نفس نمط التنقل المستخدم فعليًا في core/app.js (openHomeworkPrep/openDualTestSetup)،
@@ -1929,6 +1937,12 @@ function initMonthlyReportScreen() {
     ['btn-mr-back', 'btn-mr-back-2'].forEach(id => {
       const sp = $(id) && $(id).querySelector('span');
       if (sp) { sp.setAttribute('data-i18n', 'mr_back_hub_btn'); sp.textContent = t('mr_back_hub_btn'); }
+    });
+  }
+  if (opts && opts.returnTo === 'shub') {
+    ['btn-mr-back', 'btn-mr-back-2'].forEach(id => {
+      const sp = $(id) && $(id).querySelector('span');
+      if (sp) { sp.setAttribute('data-i18n', 'mr_back_sh_btn'); sp.textContent = t('mr_back_sh_btn'); }
     });
   }
   if (opts && typeof opts.year === 'number' && typeof opts.monthIndex0 === 'number') {
