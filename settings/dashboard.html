@@ -175,7 +175,17 @@
                 نطاق الأسئلة (من الأحقاف إلى الناس):
             </div>
 
-            <div class="kids-range-row">
+            <!-- زر «كل حفظ الطالب» (للأطفال فقط): النطاق يُحسب تلقائياً من آخر موضع توقف مسجّل للطالب -->
+            <div style="margin-bottom:16px;">
+                <button type="button" id="btn-kids-all" class="btn btn-outline" aria-pressed="false" style="font-size:1.2rem; padding:10px 18px;" data-i18n="kids_all_btn">📖 كل حفظ الطالب</button>
+            </div>
+            <div id="kids-all-info" style="display:none; margin:0 auto 18px; max-width:560px; text-align:center; font-weight:700; line-height:1.9;">
+                <div id="kids-all-range" style="font-size:1.2rem;"></div>
+                <div id="kids-all-fresh" style="font-size:1rem; margin-top:6px;"></div>
+                <button type="button" id="btn-kids-all-update" class="btn btn-outline" style="display:none; margin-top:8px; font-size:1rem; padding:8px 14px;" data-i18n="kids_all_update_btn">✏️ تحديث موضع الحفظ الآن</button>
+            </div>
+
+            <div class="kids-range-row" id="kids-manual-range">
                 <div class="kids-range-item">
                     <label data-i18n="from_surah">من سورة:</label>
                     <select id="kids-from-surah" class="kids-styled-select"></select>

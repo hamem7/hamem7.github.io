@@ -1,6 +1,7 @@
 // settings/dashboard.js
 import { starsSuffix } from '../core/goldStars.js';
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
+import { resolveRange, monthlyStaleness } from '../engine/trackingEngine.js';
 import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../components/juzAmmaCoverageNote.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
 import { openKidsGameScreen } from '../games/kidsGame.js';   
@@ -75,10 +76,69 @@ export function populateDashboardData() {
             kTo.appendChild(new Option(tf('dash_surah_option', { n: s.number, name: surahNameLocal(s.name) }), s.number)); 
         });
         
+        // الافتراضي: كامل نطاق ركن الأطفال (من الناس إلى الأحقاف) بعد أن كان ينتهي عند الملك
         kFrom.value = 114;
-        kTo.value = 67;
+        kTo.value = KIDS_MIN_SURAH;
         attachKidsRangeCoverageNote('kids-from-surah', 'kids-to-surah', 'q-count-kids');
     }
+
+    // «كل حفظ الطالب» يبدأ مُطفأً مع كل فتح للوحة (الطفل قد يتغيّر)
+    setKidsAll(false);
+}
+
+// ---------------------------------------------------------------------------
+// «كل حفظ الطالب» (ركن الأطفال فقط): النطاق من أول ما حفظه (memoFrom) حتى آخر موضع توقف
+// (memoTo، يمتد تلقائياً مع السجل الشهري). مقصوص على نطاق الأطفال 46–114.
+// ---------------------------------------------------------------------------
+const KIDS_ALL_STALE_DAYS = 14;   // تنبيه المعلم لتحديث الموضع إذا مضى أكثر من أسبوعين
+let kidsAllRange = null;          // { from, to } عند جاهزية «كل الحفظ»
+
+function isKidsAllOn() {
+    return AppState.isKidsMode && document.getElementById('btn-kids-all')?.getAttribute('aria-pressed') === 'true';
+}
+
+function setKidsAll(on) {
+    const btn = document.getElementById('btn-kids-all');
+    if (!btn) return;
+    on = !!on && AppState.isKidsMode;
+    btn.setAttribute('aria-pressed', String(on));
+    btn.classList.toggle('dash-btn-primary', on);
+    btn.classList.toggle('btn-outline', !on);
+    document.getElementById('kids-manual-range').style.display = on ? 'none' : '';
+    document.getElementById('kids-all-info').style.display = on ? 'block' : 'none';
+    kidsAllRange = null;
+    if (on) refreshKidsAllInfo();
+}
+
+async function refreshKidsAllInfo() {
+    const rangeEl = document.getElementById('kids-all-range');
+    const freshEl = document.getElementById('kids-all-fresh');
+    const updBtn = document.getElementById('btn-kids-all-update');
+    const student = AppState.currentStudent;
+    updBtn.style.display = 'none';
+    freshEl.textContent = '';
+    freshEl.style.color = '';
+    let records = [];
+    try { records = await AppState.monthlyMemorizationManager.getAllForStudent(student.id); } catch (e) { records = []; }
+    const r = resolveRange(AppState.surahsData, student, records);
+    if (!r.ok) {
+        rangeEl.textContent = t('kids_all_no_range');
+        updBtn.style.display = '';
+        return;
+    }
+    const from = Math.min(r.fromSurah, 114);
+    const to = Math.max(r.toSurah, KIDS_MIN_SURAH);
+    if (from < KIDS_MIN_SURAH) { rangeEl.textContent = t('kids_all_no_range'); return; }
+    kidsAllRange = { from, to };
+    const nm = (n) => surahNameLocal(AppState.surahsData.find(s => s.number === n).name);
+    rangeEl.textContent = tf('kids_all_range', { from: nm(from), to: nm(to) });
+
+    const st = monthlyStaleness(records, Date.now());
+    const stale = !st.hasRecords || st.days > KIDS_ALL_STALE_DAYS;
+    freshEl.textContent = !st.hasRecords ? t('kids_all_fresh_none')
+        : tf(stale ? 'kids_all_fresh_stale' : 'kids_all_fresh_ok', { n: st.days });
+    freshEl.style.color = stale ? 'var(--dh-warn, #b45309)' : 'var(--dh-ok, #15803d)';
+    updBtn.style.display = stale ? '' : 'none';
 }
 
 export function setupDashboardListeners() {
@@ -114,13 +174,25 @@ export function setupDashboardListeners() {
             rangeFrom: parseInt(document.getElementById('range-from-surah')?.value),
             rangeTo: parseInt(document.getElementById('range-to-surah')?.value),
             juzNum: parseInt(document.getElementById('juz-select')?.value),
-            kidsFrom: parseInt(document.getElementById('kids-from-surah')?.value),
-            kidsTo: parseInt(document.getElementById('kids-to-surah')?.value)
+            kidsFrom: (isKidsRange && isKidsAllOn() && kidsAllRange) ? kidsAllRange.from : parseInt(document.getElementById('kids-from-surah')?.value),
+            kidsTo: (isKidsRange && isKidsAllOn() && kidsAllRange) ? kidsAllRange.to : parseInt(document.getElementById('kids-to-surah')?.value)
         };
     };
 
+    document.getElementById('btn-kids-all')?.addEventListener('click', () => setKidsAll(!isKidsAllOn()));
+    document.getElementById('btn-kids-all-update')?.addEventListener('click', async () => {
+        const student = AppState.currentStudent;
+        if (!student) return;
+        const { openMonthEndingForStudent } = await import('../components/monthlyMemorizationBulkScreen.js');
+        const now = new Date();
+        await openMonthEndingForStudent(student, now.getFullYear(), now.getMonth() + 1);
+        if (isKidsAllOn()) refreshKidsAllInfo();
+    });
+
     document.getElementById('btn-start-mission')?.addEventListener('click', () => {
         const config = getTeacherConfig();
+
+        if (config.isKidsRange && isKidsAllOn() && !kidsAllRange) return alert(t('kids_all_no_range'));
 
         const isSingleSurah = !config.isJuzMode && !config.isRangeMode && !config.isKidsRange;
         if (isSingleSurah && isNaN(config.surahNum)) return alert(t('dash_alert_choose_surah'));
