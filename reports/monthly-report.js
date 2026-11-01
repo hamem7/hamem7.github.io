@@ -1084,8 +1084,8 @@ function renderJourneyBlock(d) {
     `;
     return;
   }
-  // تصميم "خريطة الأجزاء": لوحة إحصاء كبيرة + 30 بلاطة (الأجزاء)؛ تُضاء الأجزاء التي مرّ بها الحفظ هذا الشهر،
-  // وتُظلَّل حصة المدى داخل كل بلاطة من أسفلها. الاتجاه يتبع اتجاه الصفحة (العربية: الجزء 1 يمينًا).
+  // تصميم "مسار الجزء": شريط لكل جزء مرّ به حفظ هذا الشهر، مقسَّم بأطوال السور الفعلية داخل الجزء،
+  // ويُضاء المدى المحفوظ هذا الشهر فقط. لا نفترض ما حُفظ قبل الشهر ولا ما تبقّى (لا بيانات له) — فلا اختلاق.
   const sd = AppState.surahsData || [];
   const ib = d.journey.beginPos ? ayahIndex(sd, d.journey.beginPos.s, d.journey.beginPos.a) : null;
   const ie = d.journey.endPos ? ayahIndex(sd, d.journey.endPos.s, d.journey.endPos.a) : null;
@@ -1100,18 +1100,42 @@ function renderJourneyBlock(d) {
     return;
   }
   const lo = Math.min(ib, ie), hi = Math.max(ib, ie);
-  const lit = [];
-  const tiles = [];
+  const en = AppState.currentLang === 'en';
+  const juzList = [];
   for (let n = 1; n <= JUZ_COUNT; n++) {
     const bd = juzBounds(sd, n);
     const j0 = ayahIndex(sd, bd.start.surah, bd.start.ayah), j1 = ayahIndex(sd, bd.end.surah, bd.end.ayah);
-    const ov = Math.min(hi, j1) - Math.max(lo, j0) + 1;
-    const frac = ov > 0 ? Math.min(1, ov / (j1 - j0 + 1)) : 0;
-    if (frac > 0) lit.push(n);
-    tiles.push(`<div class="mr-jm-tile${frac > 0 ? ' on' : ''}"><i style="height:${frac > 0 ? Math.max(14, Math.round(frac * 100)) : 0}%"></i><b>${n}</b></div>`);
+    if (Math.min(hi, j1) - Math.max(lo, j0) + 1 > 0) juzList.push({ n, bd, j0, j1, from: Math.max(lo, j0), to: Math.min(hi, j1) });
   }
-  const en = AppState.currentLang === 'en';
-  const litText = lit.map(n => juzLabel(n, t)).join(en ? ', ' : '، ');
+  const MAX_TRACKS = 3;
+  const tracksHtml = juzList.slice(0, MAX_TRACKS).map(j => {
+    const len = j.j1 - j.j0 + 1, cov = j.to - j.from + 1;
+    const pct = cov / len * 100;
+    const pctTxt = pct < 1 ? '<1' : String(Math.round(pct));
+    let names = '', ticks = '', acc = 0;
+    for (let sn = j.bd.start.surah; sn <= j.bd.end.surah; sn++) {
+      const info = getSurahInfo(sd, sn);
+      const a0 = sn === j.bd.start.surah ? j.bd.start.ayah : 1;
+      const a1 = sn === j.bd.end.surah ? j.bd.end.ayah : (info ? info.ayahsCount : a0);
+      const cnt = a1 - a0 + 1, nm = esc(surahNameLocal(sn));
+      names += `<span style="flex:${cnt}" title="${nm}">${cnt / len >= 0.09 ? nm : ''}</span>`;
+      acc += cnt;
+      if (sn < j.bd.end.surah) ticks += `<i class="mr-jt-tick" style="inset-inline-start:${(acc / len * 100).toFixed(3)}%"></i>`;
+    }
+    const startPct = ((j.from - j.j0) / len * 100).toFixed(3), widthPct = Math.max(pct, 0.8).toFixed(3);
+    const cover = t('mr_jm_cover').replace('{c}', cov).replace('{t}', len);
+    return `<div class="mr-jt">
+      <div class="mr-jt-head">
+        <span class="mr-jt-med">${j.n}</span>
+        <div class="mr-jt-ttl"><b>${esc(juzLabel(j.n, t))}</b><small>${cover}</small></div>
+        <div class="mr-jt-pct"><b>${pctTxt}%</b><small>${t('mr_jm_pct_cap')}</small></div>
+      </div>
+      <div class="mr-jt-bar"><i class="mr-jt-on" style="inset-inline-start:${startPct}%;width:${widthPct}%"></i>${ticks}</div>
+      <div class="mr-jt-names">${names}</div>
+    </div>`;
+  }).join('');
+  const moreHtml = juzList.length > MAX_TRACKS
+    ? `<div class="mr-jm-foot">${t('mr_jm_more').replace('{n}', juzList.length - MAX_TRACKS)}</div>` : '';
   const nA = d.journey.newAyahs != null ? d.journey.newAyahs : '';
   const toward = ie < ib ? (en ? 'toward Al-Fatihah' : 'باتجاه الفاتحة') : (en ? 'toward An-Nas' : 'باتجاه الناس');
   el.innerHTML = `
@@ -1127,8 +1151,7 @@ function renderJourneyBlock(d) {
           <div class="mr-jm-way"><i></i><em>${toward}</em></div>
           <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>
         </div>
-        <div class="mr-jm-grid">${tiles.join('')}</div>
-        <div class="mr-jm-foot">${en ? 'Quran map · 30 juz' : 'خريطة المصحف · الأجزاء الثلاثون'}${litText ? ` — <b>${esc(litText)}</b>` : ''}</div>
+        <div class="mr-jm-tracks">${tracksHtml}</div>${moreHtml}
       </div>
     </div>`;
 }
