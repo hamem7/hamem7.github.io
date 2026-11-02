@@ -82,7 +82,12 @@ const CSS = `/* ===== المسرح ===== */
 #dhBadgeStage .intro .mini { width: 96px; display: grid; justify-items: center; gap: 2px; font-size: .8rem; opacity: 0; transform: scale(.4); animation: dhbr_pop .5s forwards; }
 #dhBadgeStage .intro .mini svg { width: 78px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
 #dhBadgeStage .intro .mini small { color: rgba(255,255,255,.7); font-size: .72rem; }
-#dhBadgeStage .intro .next { animation-delay: .6s; }
+#dhBadgeStage .intro .next { animation-delay: 1.2s; }
+#dhBadgeStage .intro .rays { top: -8%; }
+#dhBadgeStage .intro .count { font-size: 3.4rem; font-weight: 800; line-height: 1; color: #f6d57a; opacity: 0; animation: dhbr_pop .6s .3s forwards; }
+#dhBadgeStage .intro .mini svg { filter: drop-shadow(0 8px 12px rgba(0,0,0,.55)) drop-shadow(0 0 16px var(--t2)); animation: dhbr_bob 3.4s ease-in-out infinite; }
+#dhBadgeStage .intro .mini .shine { display: block !important; }
+#dhBadgeStage .intro .mini { transform-style: preserve-3d; }
 #dhBadgeStage .snd { position: absolute; top: 14px; inset-inline-start: 14px; z-index: 3; background: rgba(255,255,255,.12); border: 0; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1.05rem; cursor: pointer; }
 `;
 
@@ -251,12 +256,16 @@ export async function showBadgesIntro(student) {
     const hd = document.getElementById('main-header');
     if (hd) st.style.top = Math.max(0, Math.round(hd.getBoundingClientRect().bottom)) + 'px'; // تحت الترويسة الوحيدة
     const minis = items.map((b, i) => { const tk = TIER_KEYS[b.bestTier], d = defs.getBadgeDef(b.key);
-      return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk).replace('class="shine"', 'class="shine" style="display:none"')}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small></div>`; }).join('');
+      return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk)}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small></div>`; }).join('');
     st.innerHTML = `<button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
-      <div class="intro"><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
+      <canvas class="fx"></canvas><div class="intro"><div class="rays"></div><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><div class="count" id="dhIntroCount">0</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
       <div class="grid">${minis}</div><button class="next">${esc(t('bdg_intro_start'))}</button></div>`;
+    startFx(st.querySelector('canvas'), 'gold', mode); chime('gold', .4);
+    setTimeout(() => st.classList.add('shown'), 60);
+    let n = 0; const cnt = st.querySelector('#dhIntroCount');
+    const tick = setInterval(() => { n++; if (cnt) cnt.textContent = num(Math.min(n, items.length)); if (n >= items.length) clearInterval(tick); }, 220);
     await new Promise((resolve) => {
-      const end = () => { closeStage(); resolve(); };
+      const end = () => { clearInterval(tick); stopFx(); closeStage(); resolve(); };
       st.querySelector('.next').onclick = end; st.querySelector('.x').onclick = end;
     });
   } catch (e) { console.warn('[badgeReveal] تعذّر عرض لوحة الأوسمة:', e); try { closeStage(); } catch (_) { /* لا شيء */ } }
