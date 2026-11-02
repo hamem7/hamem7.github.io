@@ -14,7 +14,6 @@ import { individualGames, readHistory } from '../core/badgeService.js';
 
 const DAY_KEY = 'dh_att_prompt_day', TIME_KEY = 'dh_att_prompt_time', OFF_KEY = 'dh_att_prompt_off', STYLE = 'dh-att-prompt-style';
 const isEn = () => AppState.currentLang === 'en';
-const first = (s) => String(s || '').trim().split(/\s+/)[0] || '';
 const safeGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 const safeSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* اختياري */ } };
 
@@ -24,7 +23,8 @@ const CSS = `
 #dhAttPrompt h3{margin:0;font-size:1.15rem} #dhAttPrompt p{margin:0;color:var(--dh-ink-soft,#666);font-size:.9rem;line-height:1.7}
 #dhAttPrompt .row{background:var(--dh-surface-3,#fff);border:1.5px solid var(--dh-border,#ddd);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
 #dhAttPrompt .row.done{opacity:.55}
-#dhAttPrompt .who{font-weight:800} #dhAttPrompt .day{font-size:.82rem;color:var(--dh-ink-soft,#666)}
+#dhAttPrompt .who{font-weight:800;overflow-wrap:anywhere}
+#dhAttPrompt .all{justify-self:start;border:1.5px solid var(--dh-ok,#15803d);background:var(--dh-ok-bg,#e7f4ee);color:var(--dh-ink,#222);border-radius:12px;padding:9px 16px;font-weight:800;cursor:pointer} #dhAttPrompt .day{font-size:.82rem;color:var(--dh-ink-soft,#666)}
 #dhAttPrompt .opts{display:flex;flex-wrap:wrap;gap:6px}
 #dhAttPrompt .opts button{border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer}
 #dhAttPrompt .opts button.ok{background:var(--dh-ok-bg,#e7f4ee);border-color:var(--dh-ok,#15803d)}
@@ -72,18 +72,32 @@ export async function openAttendancePrompt(opts = {}) {
   const root = document.createElement('div'); root.id = 'dhAttPrompt'; root.setAttribute('role', 'dialog');
   const choices = [['present', 'att_prompt_present'], ['absent', 'att_prompt_absent'], ['cancelled', 'att_prompt_cancelled']];
   root.innerHTML = `<div class="box"><h3>${esc(t('att_prompt_title'))}</h3><p>${esc(t('att_prompt_sub'))}</p>
-    ${pending.map((p, i) => `<div class="row" data-i="${i}"><div><span class="who">${esc(first(p.student.name))}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
+    ${pending.length > 1 ? `<button type="button" class="all" id="dhAttAll">✓ ${esc(t('att_prompt_all_present'))}</button>` : ''}
+    ${pending.map((p, i) => `<div class="row" data-i="${i}"><div><span class="who">${esc(String(p.student.name || '').trim())}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
       <div class="opts">${choices.map(([v, k]) => `<button type="button" data-v="${v}">${esc(t(k))}</button>`).join('')}</div></div>`).join('')}
     <div class="foot"><button type="button" id="dhAttClose">${esc(t('att_prompt_later'))}</button></div></div>`;
   document.body.appendChild(root);
+  const finish = () => {
+    if (root.querySelector('.row:not(.done)')) return;
+    root.querySelector('#dhAttAll')?.remove();
+    root.querySelector('#dhAttClose').textContent = t('att_prompt_done');
+    setTimeout(() => root.remove(), 700);
+  };
+  const mark = async (row, value) => {
+    const p = pending[Number(row.dataset.i)];
+    setDayStatus(p.student, p.key, value);
+    try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return; }
+    row.classList.add('done'); row.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('ok', x.dataset.v === value); });
+  };
   root.addEventListener('click', async (e) => {
+    if (e.target.closest('#dhAttAll')) {
+      for (const row of root.querySelectorAll('.row:not(.done)')) await mark(row, 'present');
+      finish(); return;
+    }
     const b = e.target.closest('.opts button');
     if (!b) return;
-    const row = b.closest('.row'), p = pending[Number(row.dataset.i)];
-    setDayStatus(p.student, p.key, b.dataset.v);
-    try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return; }
-    row.classList.add('done'); row.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('ok', x === b); });
-    if (!root.querySelector('.row:not(.done)')) root.querySelector('#dhAttClose').textContent = t('att_prompt_done');
+    await mark(b.closest('.row'), b.dataset.v);
+    finish();
   });
   root.querySelector('#dhAttClose').onclick = () => root.remove();
   return true;
