@@ -27,7 +27,9 @@ export function renderScheduleSection(student, container) {
     else if (s) {
       if (days.size) student.schedule = { days: [...days].sort(), minutes, since: (student.schedule && student.schedule.since) || Date.now() };
       else delete student.schedule;
-      try { await AppState.studentManager.updateStudent(student); s.textContent = t('att_sched_saved'); setTimeout(() => { const b = container.querySelector('#sched-save'); if (b) b.textContent = t('att_sched_save'); }, 1600); }
+      try { await AppState.studentManager.updateStudent(student); s.textContent = t('att_sched_saved');
+        // أول مرة يُحفظ فيها جدول: نسأل المعلم متى يحب ظهور سؤال الحضور (صباحًا أم مساءً)
+        if (student.schedule) import('./attendancePrompt.js').then(m => { if (!m.getPromptSettings().configured) m.askAttendanceTime(); }).catch(() => {}); setTimeout(() => { const b = container.querySelector('#sched-save'); if (b) b.textContent = t('att_sched_save'); }, 1600); }
       catch (err) { console.warn(err); }
     }
   };

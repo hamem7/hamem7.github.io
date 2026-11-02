@@ -414,6 +414,9 @@ function setupMyStudentsListeners() {
     // 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا — استيراد ديناميكي
     // بنفس نمط بقية الشاشات المستوردة ديناميكيًا في هذا الملف
     // 🌟 [جديد] مركز التقارير الشهرية — استيراد ديناميكي (نفس نمط الأزرار المجاورة)
+    document.getElementById('btn-sessions-schedule')?.addEventListener('click', () => {
+        import('../components/scheduleManager.js').then(m => m.openScheduleManager()).catch(e => console.warn('[student] جدول الحصص:', e));
+    });
     document.getElementById('btn-monthly-reports-hub')?.addEventListener('click', () => {
         import('../components/monthlyReportsHub.js')
             .then(m => m.openMonthlyReportsHub())

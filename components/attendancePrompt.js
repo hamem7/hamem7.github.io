@@ -1,8 +1,8 @@
 // components/attendancePrompt.js
 // =============================================================================
 // 📅 سؤال الحضور: لا يُسأل المعلم إلا عن طالب لديه حصة مجدولة ولم يُسجَّل له أي نشاط في ذلك اليوم (لعبة فردية، مواجهة،
-// جلسة تجويد). يظهر مرة يوميًا بعد ساعة الإغلاق (الافتراضي 17:00، localStorage.dh_att_prompt_hour) ويلتقط الأيام المفوَّتة (آخر 7 أيام).
-// الإجابات تُحفظ في student.attendance عبر engine/attendanceEngine.js (حاضر، غائب بعذر، غائب، لم تُعقد).
+// جلسة تجويد). يظهر مرة يوميًا بعد الوقت الذي يختاره كل معلم (localStorage.dh_att_prompt_time، الافتراضي 17:00؛ ويمكن إيقافه) ويلتقط الأيام المفوَّتة (آخر 7 أيام).
+// الإجابات تُحفظ في student.attendance عبر engine/attendanceEngine.js (حضر، غاب، لم تُعقد).
 // ⚠️ قيد: المنصة تعمل في المتصفح فلا إشعار والتطبيق مغلق؛ السؤال يظهر عند الفتح بعد الساعة المحددة.
 // =============================================================================
 import { AppState, t } from '../core/app.js';
@@ -12,7 +12,7 @@ import { esc } from '../core/escape.js';
 import { needsConfirmation, setDayStatus, evidenceDays, dateKey, hasSchedule } from '../engine/attendanceEngine.js';
 import { individualGames, readHistory } from '../core/badgeService.js';
 
-const DAY_KEY = 'dh_att_prompt_day', HOUR_KEY = 'dh_att_prompt_hour', STYLE = 'dh-att-prompt-style';
+const DAY_KEY = 'dh_att_prompt_day', TIME_KEY = 'dh_att_prompt_time', OFF_KEY = 'dh_att_prompt_off', STYLE = 'dh-att-prompt-style';
 const isEn = () => AppState.currentLang === 'en';
 const first = (s) => String(s || '').trim().split(/\s+/)[0] || '';
 const safeGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -70,7 +70,7 @@ export async function openAttendancePrompt(opts = {}) {
   if (!document.getElementById(STYLE)) { const st = document.createElement('style'); st.id = STYLE; st.textContent = CSS; document.head.appendChild(st); }
   document.getElementById('dhAttPrompt')?.remove();
   const root = document.createElement('div'); root.id = 'dhAttPrompt'; root.setAttribute('role', 'dialog');
-  const choices = [['present', 'att_prompt_present'], ['absent_excused', 'att_prompt_absent_ex'], ['absent', 'att_prompt_absent'], ['cancelled', 'att_prompt_cancelled']];
+  const choices = [['present', 'att_prompt_present'], ['absent', 'att_prompt_absent'], ['cancelled', 'att_prompt_cancelled']];
   root.innerHTML = `<div class="box"><h3>${esc(t('att_prompt_title'))}</h3><p>${esc(t('att_prompt_sub'))}</p>
     ${pending.map((p, i) => `<div class="row" data-i="${i}"><div><span class="who">${esc(first(p.student.name))}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
       <div class="opts">${choices.map(([v, k]) => `<button type="button" data-v="${v}">${esc(t(k))}</button>`).join('')}</div></div>`).join('')}
@@ -89,17 +89,51 @@ export async function openAttendancePrompt(opts = {}) {
   return true;
 }
 
-/** يُستدعى عند الإقلاع وكل 10 دقائق: يفتح السؤال مرة واحدة يوميًا بعد ساعة الإغلاق إن وُجد معلّق. */
+// ---------- وقت السؤال لكل معلم ----------
+export function getPromptSettings() {
+  const time = /^\d{2}:\d{2}$/.test(safeGet(TIME_KEY) || '') ? safeGet(TIME_KEY) : null;
+  return { time: time || '17:00', configured: !!time, off: safeGet(OFF_KEY) === '1' };
+}
+export function savePromptSettings({ time, off }) {
+  if (/^\d{2}:\d{2}$/.test(time || '')) safeSet(TIME_KEY, time);
+  safeSet(OFF_KEY, off ? '1' : '0');
+}
+const fmtTime = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(isEn() ? 'en-US' : 'ar-EG', { hour: 'numeric', minute: '2-digit' }); };
+export const describePromptSettings = () => { const s = getPromptSettings(); return s.off ? t('att_time_off') : tf('att_time_summary', { t: fmtTime(s.time) }); };
+
+/** نافذة اختيار وقت سؤال الحضور (تُفتح عند أول جدول يُحفظ، ومن شاشة «جدول الحصص والحضور»). تحلّ الوعد عند الحفظ. */
+export function askAttendanceTime() {
+  return new Promise((resolve) => {
+    if (!document.getElementById(STYLE)) { const st = document.createElement('style'); st.id = STYLE; st.textContent = CSS; document.head.appendChild(st); }
+    document.getElementById('dhAttTime')?.remove();
+    const cur = getPromptSettings();
+    const root = document.createElement('div'); root.id = 'dhAttTime'; root.className = 'dh-att-overlay'; root.setAttribute('role', 'dialog');
+    root.style.cssText = 'position:fixed;inset:0;z-index:9100;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    root.innerHTML = `<div class="box" style="width:min(460px,100%);background:var(--dh-surface-1,#fff);color:var(--dh-ink,#222);border:1.5px solid var(--dh-border-strong,#bbb);border-radius:18px;padding:18px;display:grid;gap:12px">
+      <h3 style="margin:0;font-size:1.1rem">${esc(t('att_time_title'))}</h3><p style="margin:0;color:var(--dh-ink-soft,#666);font-size:.9rem;line-height:1.7">${esc(t('att_time_sub'))}</p>
+      <label style="display:flex;gap:10px;align-items:center;font-weight:700"><input type="checkbox" id="dhAttOn" ${cur.off ? '' : 'checked'} style="width:20px;height:20px"> ${esc(t('att_time_enable'))}</label>
+      <label style="display:grid;gap:4px;font-weight:700">${esc(t('att_time_label'))}<input type="time" id="dhAttT" value="${cur.time}" style="font:inherit;font-size:1.2rem;padding:8px;border-radius:10px;border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-3,#fff);color:var(--dh-ink,#222)"></label>
+      <div style="display:flex;justify-content:flex-end"><button type="button" id="dhAttSave" style="border:0;border-radius:12px;padding:9px 20px;font-weight:800;cursor:pointer;background:var(--dh-primary,#0f5b3f);color:#fff">${esc(t('att_time_save'))}</button></div></div>`;
+    document.body.appendChild(root);
+    root.querySelector('#dhAttSave').onclick = () => {
+      savePromptSettings({ time: root.querySelector('#dhAttT').value || cur.time, off: !root.querySelector('#dhAttOn').checked });
+      root.remove(); resolve(true);
+    };
+  });
+}
+
+/** يُستدعى عند الإقلاع وكل 10 دقائق: يفتح السؤال مرة واحدة يوميًا بعد الوقت الذي اختاره المعلم إن وُجد معلّق. */
 export function startAttendancePromptWatcher() {
   const check = async () => {
     try {
-      if (AppState.isKidsMode || document.getElementById('dhAttPrompt')) return;
-      const now = new Date(), hour = Number(safeGet(HOUR_KEY)) || 17;
-      if (now.getHours() < hour || safeGet(DAY_KEY) === dateKey(now)) return;
-      if (await openAttendancePrompt()) safeSet(DAY_KEY, dateKey(now));
-      else safeSet(DAY_KEY, dateKey(now));
+      const cfg = getPromptSettings();
+      if (cfg.off || AppState.isKidsMode || document.getElementById('dhAttPrompt') || document.getElementById('dhAttTime')) return;
+      const now = new Date(), [h, m] = cfg.time.split(':').map(Number);
+      if (now.getHours() * 60 + now.getMinutes() < h * 60 + m || safeGet(DAY_KEY) === dateKey(now)) return;
+      await openAttendancePrompt();
+      safeSet(DAY_KEY, dateKey(now));
     } catch (e) { console.warn('[attendancePrompt]', e); }
   };
   setTimeout(check, 4000);
-  setInterval(check, 10 * 60 * 1000);
+  setInterval(check, 5 * 60 * 1000);
 }

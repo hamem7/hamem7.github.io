@@ -70,6 +70,11 @@ const CSS = `/* ===== المسرح ===== */
 #dhBadgeStage .shine { display: none; }
 #dhBadgeStage canvas.fx { display: none; }
 }
+
+#dhBadgeStage .acts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; opacity: 0; animation: dhbr_up .6s 3.3s forwards; }
+#dhBadgeStage .acts button { border: 1.5px solid rgba(255,255,255,.45); background: rgba(255,255,255,.1); color: #fff; border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
+#dhBadgeStage .acts button:disabled { opacity: .5; }
+#dhBadgeStage .snd { position: absolute; top: 14px; inset-inline-start: 14px; z-index: 3; background: rgba(255,255,255,.12); border: 0; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1.05rem; cursor: pointer; }
 `;
 
 const isEn = () => AppState.currentLang === 'en';
@@ -132,12 +137,13 @@ function startFx(cv, tierKey, mode) {
   fxRAF = requestAnimationFrame(frame);
 }
 
-function chime(tierKey) {
-  try { if (localStorage.getItem('dh_badge_sound') !== '1') return; } catch (e) { return; }
+const soundOn = () => { try { return localStorage.getItem('dh_badge_sound') === '1'; } catch (e) { return false; } };
+function chime(tierKey, delay = 1.3) {
+  if (!soundOn()) return;
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     [523.25, 659.25, 783.99, 1046.5, 1318.5].slice(0, TIER_KEYS.indexOf(tierKey) + 2).forEach((f, i) => {
-      const o = actx.createOscillator(), g = actx.createGain(), tm = actx.currentTime + 1.3 + i * .16;
+      const o = actx.createOscillator(), g = actx.createGain(), tm = actx.currentTime + delay + i * .16;
       o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0, tm); g.gain.linearRampToValueAtTime(.18, tm + .02); g.gain.exponentialRampToValueAtTime(.0001, tm + 1.2);
       o.connect(g).connect(actx.destination); o.start(tm); o.stop(tm + 1.3);
     });
@@ -160,16 +166,28 @@ export function playBadge(r, student, opts = {}) {
       prog = `<div class="prog" style="--p:${pct}%"><div class="bar"><i></i></div><small>${esc(tf('bdg_next_left', { k: num(Math.ceil(r.next.remaining)), tier: nextTier }))}</small></div>`;
     }
     st.innerHTML = `<canvas class="fx"></canvas><button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
+      <button class="snd" aria-label="${esc(soundOn() ? t('bdg_sound_off') : t('bdg_sound_on'))}" title="${esc(soundOn() ? t('bdg_sound_off') : t('bdg_sound_on'))}">${soundOn() ? '🔔' : '🔇'}</button>
       <div class="content"><div class="rays"></div><div class="kicker">${esc(t('bdg_kicker'))}</div>
       <div class="medal">${medalSVG(def ? def.icon : r.icon, r.tierKey)}</div>
       <div class="name" role="heading" aria-level="2">${esc(t('bdg_' + r.key + '_name'))}</div>
       <span class="tierchip">${esc(tf('bdg_tier_chip', { tier: tierName }))}</span>
       <div class="who">${esc(firstName(student && student.name))}</div>
       <p class="why">${reason}</p>${prog}
-      <button class="next">${esc(opts.btn || t('bdg_continue'))}</button></div>`;
+      <button class="next">${esc(opts.btn || t('bdg_continue'))}</button>
+      <div class="acts"><button type="button" data-a="save">📷 ${esc(t('bdg_save_img'))}</button><button type="button" data-a="wa">💬 ${esc(t('bdg_share_wa'))}</button></div></div>`;
     startFx(st.querySelector('canvas'), r.tierKey, mode); chime(r.tierKey);
     setTimeout(() => st.classList.add('shown'), 60);
     const keep = !!opts.keepOpen;
+    st.querySelector('.snd').onclick = (e) => {
+      const on = !soundOn(); try { localStorage.setItem('dh_badge_sound', on ? '1' : '0'); } catch (err) { /* اختياري */ }
+      e.currentTarget.textContent = on ? '🔔' : '🔇'; e.currentTarget.title = on ? t('bdg_sound_off') : t('bdg_sound_on'); if (on) chime(r.tierKey, 0);
+    };
+    st.querySelectorAll('.acts button').forEach(btn => { btn.onclick = async () => {
+      btn.disabled = true;
+      try { const m = await import('./badgeCard.js'); await (btn.dataset.a === 'wa' ? m.shareBadgeCardWhatsApp(r, student) : m.saveBadgeCard(r, student)); }
+      catch (err) { console.warn('[badgeReveal] البطاقة:', err); }
+      btn.disabled = false;
+    }; });
     st.querySelector('.next').onclick = () => { if (!keep) closeStage(); else stopFx(); resolve('next'); };
     st.querySelector('.x').onclick = () => { closeStage(); resolve('closed'); };
   });

@@ -2,12 +2,12 @@
 // =============================================================================
 // 📅 محرّك الحضور — دوال خالصة. الأساس:
 //   • جدول الطالب student.schedule = { days: [0..6] (0 = الأحد)، minutes: 30|45|60... }
-//   • سجل الطالب student.attendance = { 'YYYY-MM-DD': 'present'|'absent_excused'|'absent'|'cancelled' } (تأكيد المعلم)
+//   • سجل الطالب student.attendance = { 'YYYY-MM-DD': 'present'|'absent'|'cancelled' } (تأكيد المعلم: حضر / غاب / لم تُعقد)
 //   • الأدلة التلقائية: أي نشاط مسجَّل في اليوم (لعبة فردية، مواجهة ثنائية، جلسة تجويد، تصحيح واجب...) = حاضر.
 // يوم مجدول بلا دليل ولا تأكيد = «unconfirmed» — لا يُحتسب حضورًا ولا غيابًا، ويظهر في مؤشر اكتمال البيانات.
 // =============================================================================
 
-export const ATTENDANCE_STATUSES = ['present', 'absent_excused', 'absent', 'cancelled'];
+export const ATTENDANCE_STATUSES = ['present', 'absent', 'cancelled'];
 export const DEFAULT_MINUTES = 60;
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -60,14 +60,13 @@ export function dayStatus(student, key, evidence) {
 export function summarizeMonth(student, year, monthIndex0, evidence, now = null) {
     const minutes = (student && student.schedule && Number(student.schedule.minutes)) || DEFAULT_MINUTES;
     const scheduled = scheduledDaysInMonth(student, year, monthIndex0, now);
-    const res = { scheduled: scheduled.length, expected: 0, present: 0, absentExcused: 0, absent: 0, cancelled: 0, unconfirmed: 0, extra: 0, minutes, hours: 0, unconfirmedDays: [], hasSchedule: hasSchedule(student) };
+    const res = { scheduled: scheduled.length, expected: 0, present: 0, absent: 0, cancelled: 0, unconfirmed: 0, extra: 0, minutes, hours: 0, unconfirmedDays: [], hasSchedule: hasSchedule(student) };
     const sset = new Set(scheduled);
     for (const k of scheduled) {
         const st = dayStatus(student, k, evidence);
         if (st === 'cancelled') { res.cancelled++; continue; }
         res.expected++;
         if (st === 'present') res.present++;
-        else if (st === 'absent_excused') res.absentExcused++;
         else if (st === 'absent') res.absent++;
         else { res.unconfirmed++; res.unconfirmedDays.push(k); }
     }

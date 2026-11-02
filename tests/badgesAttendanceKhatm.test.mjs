@@ -56,10 +56,10 @@ ok(days.length === 8 && days[0] === '2026-10-04', `حصص أكتوبر المج�
 const ev = evidenceDays([at(2026, 9, 4), at(2026, 9, 6), '2026-10-08T09:00:00']);
 let sm = summarizeMonth(st, 2026, 9, ev);
 ok(sm.present === 2 && sm.extra === 1 && sm.unconfirmed === 6 && sm.expected === 8, 'نشاط يومين مجدولين + يوم إضافي بلا جدول');
-setDayStatus(st, '2026-10-13', 'absent_excused'); setDayStatus(st, '2026-10-18', 'cancelled');
+setDayStatus(st, '2026-10-13', 'absent'); setDayStatus(st, '2026-10-18', 'cancelled');
 setDayStatus(st, '2026-10-20', 'present');
 sm = summarizeMonth(st, 2026, 9, ev);
-ok(sm.absentExcused === 1 && sm.cancelled === 1 && sm.expected === 7 && sm.present === 3, 'تأكيد المعلم: غياب بعذر/ملغاة لا تُحتسب/حضور مؤكَّد');
+ok(sm.absent === 1 && sm.cancelled === 1 && sm.expected === 7 && sm.present === 3, 'تأكيد المعلم: غاب/لم تُعقد (لا تُحتسب)/حضر');
 ok(sm.hours === 2 && sm.minutes === 30, 'الساعات = (حاضر+إضافي) × مدة الحصة (4 × 30د = 2س)');
 ok(needsConfirmation(st, '2026-10-25', ev) === true && needsConfirmation(st, '2026-10-04', ev) === false, 'يُسأل فقط عن مجدول بلا دليل');
 ok(needsConfirmation({}, '2026-10-25', ev) === false, 'بلا جدول: لا أسئلة');

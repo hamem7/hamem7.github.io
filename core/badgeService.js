@@ -93,7 +93,7 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
             const upTo = (now.getFullYear() === y && now.getMonth() === m) ? now : null;
             const sm = summarizeMonth(s, y, m, evidenceDays(evidenceTimestamps(ctx)), upTo);
             // الأيام غير المؤكَّدة لا تُحتسب غيابًا؛ نقيس النسبة على (حاضر + غائب مؤكَّد) فقط حتى لا يُظلَم الطالب بنقص تسجيل
-            const decided = sm.present + sm.absentExcused + sm.absent;
+            const decided = sm.present + sm.absent;
             if (decided > 0) attendance = { expected: decided, present: sm.present };
         }
     }

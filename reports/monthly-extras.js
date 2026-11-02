@@ -220,7 +220,6 @@ function attendanceSection(d, x) {
   if (!a.hasSchedule && !a.extra) return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-note">${esc(t('att_rep_no_schedule'))}</div></div>`;
   const kv = (n, label) => `<div><b>${num(n)}</b><span>${esc(label)}</span></div>`;
   const cells = [kv(a.expected, t('att_rep_expected')), kv(a.present, t('att_rep_present'))];
-  if (a.absentExcused) cells.push(kv(a.absentExcused, t('att_rep_absent_ex')));
   if (a.absent) cells.push(kv(a.absent, t('att_rep_absent')));
   if (a.cancelled) cells.push(kv(a.cancelled, t('att_rep_cancelled')));
   if (a.extra) cells.push(kv(a.extra, t('att_rep_extra')));
