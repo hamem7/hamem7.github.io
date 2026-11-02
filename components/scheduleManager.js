@@ -11,7 +11,6 @@ import { renderScheduleSection } from './studentSchedule.js';
 import { askAttendanceTime, describePromptSettings } from './attendancePrompt.js';
 
 const ID = 'dhSchedMgr';
-const first = (s) => String(s || '').trim().split(/\s+/)[0] || '';
 
 function daysSummary(s) {
   if (!hasSchedule(s)) return t('att_mgr_none');
@@ -31,7 +30,7 @@ export async function openScheduleManager() {
       <div style="background:var(--dh-surface-2,#f6f3e8);border:1.5px dashed var(--dh-border-strong,#bbb);border-radius:14px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
         <span>⏰ ${esc(describePromptSettings())}</span><button type="button" id="dhSmTime" style="border:0;border-radius:10px;padding:7px 14px;font-weight:800;cursor:pointer;background:var(--dh-gold-500,#e8b923);color:#2b2100">${esc(t('att_time_change'))}</button></div>
       ${students.length ? students.map((s, i) => `<div class="sm-row" data-i="${i}" style="background:var(--dh-surface-3,#fff);border:1.5px solid var(--dh-border,#ddd);border-radius:14px;padding:10px 12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>${esc(first(s.name))}</b><div style="font-size:.82rem;color:var(--dh-ink-soft,#666)">${esc(daysSummary(s))}</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>${esc(String(s.name || '').trim())}</b><div style="font-size:.82rem;color:var(--dh-ink-soft,#666)">${esc(daysSummary(s))}</div></div>
         <button type="button" class="sm-edit" data-i="${i}" style="border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer">${esc(t('att_mgr_edit'))}</button></div>
         <div class="sm-body" data-i="${i}" style="display:none;margin-top:10px"></div></div>`).join('') : `<p>${esc(t('att_mgr_empty'))}</p>`}</div>`;
   };
