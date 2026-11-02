@@ -140,6 +140,25 @@ export class MonthlyMemorizationManager {
         return record;
     }
 
+    // 🌟 [جديد] «تحديث منتصف الشهر»: نقطة تحقق في موضع الحفظ داخل سجل الشهر نفسه (record.mid = {surahNumber, ayahNumber, recordedAt}).
+    // لا تقفل الشهر ولا تغيّر beginning/ending/newAyahs، فيبقى التقرير الشهري مبنياً على «نهاية الشهر» كما كان؛ وتمدّ نطاق الحفظ
+    // (نفس خطّاف saveEnding) وتُحدّث «عمر آخر تحديث للموضع» فيتوقف تنبيه «الموضع قديم». لو لا سجل للشهر يُنشأ بلا بداية/نهاية.
+    async saveMidCheckpoint(studentId, year, month, position) {
+        let record = await this.getRecord(studentId, year, month);
+        const now = new Date().toISOString();
+        if (!record) {
+            record = { studentId, year, month, beginning: null, ending: null, newAyahs: null, locked: false, createdAt: now };
+        }
+        record.mid = { surahNumber: position.surahNumber, ayahNumber: position.ayahNumber, recordedAt: now };
+        record.updatedAt = now;
+        const id = await this._put(record);
+        record.id = record.id || id;
+        if (typeof this.onEndingSaved === 'function') {
+            try { await this.onEndingSaved(studentId, position); } catch (e) { console.error('[monthlyMemorizationDB] تعذر تمديد نطاق الحفظ:', e); }
+        }
+        return record;
+    }
+
     // 🌟 [جديد] حفظ "مراجعة الشهر" (الأجزاء الخمسة — راجع engine/reviewParts.js) داخل سجل الشهر
     // نفسه بحقل review = { entries: [{juz, from:{surah,ayah}, to:{surah,ayah}}], recordedAt } (الصيغة القديمة parts ما زالت مقروءة). لا يتأثر
     // بقفل الشهر (القفل خاص بموضع الحفظ)، ولا يمس beginning/ending/newAyahs إطلاقًا. لو لا سجل

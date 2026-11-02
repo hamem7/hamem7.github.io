@@ -48,6 +48,8 @@ import {
 
 const STYLE_ID = 'mmb-styles';
 
+import { periodicDue } from '../core/monthlyPeriods.js';
+
 // الهيدر العلوي للمنصة (#main-header) يبقى ظاهرًا فوق الشاشات: نبدأ الغطاء من أسفله
 function placeBelowMainHeader(overlay) {
   const h = document.getElementById('main-header');
@@ -193,15 +195,28 @@ async function buildPendingQueue() {
       continue;
     }
 
-    const currentRecord = records.find(r => r.year === curYear && r.month === curMonth);
-    if (currentRecord && currentRecord.beginning) continue; // هذا الشهر جاهز فعلاً، لا شيء مطلوب الآن
+    let currentRecord = records.find(r => r.year === curYear && r.month === curMonth);
+    const due = periodicDue(now);
+    // 🌟 [جديد] شهر جاهز: عند اقتراب منتصف الشهر/نهايته يظهر الطالب مرة واحدة لتحديث موضعه (مرة لكل نصف)
+    const pushPeriodic = (rec) => {
+      if (!rec || !rec.beginning || rec.ending) return;
+      const base = { student, year: curYear, month: curMonth, beginningPosition: { surahNumber: rec.beginning.surahNumber, ayahNumber: rec.beginning.ayahNumber } };
+      if (due.end) {
+        const prevLocked = records.filter(r => r.locked && r.ending && typeof r.newAyahs === 'number' && (r.year < curYear || (r.year === curYear && r.month < curMonth))).pop();
+        queue.push({ type: 'ending', ...base, lastNew: prevLocked ? prevLocked.newAyahs : null });
+      } else if (due.mid && !rec.mid) {
+        queue.push({ type: 'mid', ...base, lastNew: null });
+      }
+    };
+    if (currentRecord && currentRecord.beginning) { pushPeriodic(currentRecord); continue; }
 
     const latestLocked = [...records].reverse().find(r => r.locked && r.ending);
     if (latestLocked) {
-      // 🌟 بداية الشهر الحالي = نهاية الشهر السابق، بلا سؤال المعلم (راجع تعليق الدالة أعلاه)
-      await mgr.saveBeginning(student.id, curYear, curMonth, {
-        surahNumber: latestLocked.ending.surahNumber, ayahNumber: latestLocked.ending.ayahNumber
+      // 🌟 بداية الشهر الحالي = نهاية الشهر السابق، بلا سؤال المعلم (auto: لا تُعدّ تحديثاً يدوياً للموضع)
+      currentRecord = await mgr.saveBeginning(student.id, curYear, curMonth, {
+        surahNumber: latestLocked.ending.surahNumber, ayahNumber: latestLocked.ending.ayahNumber, auto: true
       });
+      pushPeriodic(currentRecord);
       continue;
     }
 
@@ -231,10 +246,15 @@ export async function countPendingMonthlyMemorization() {
   const curYear = now.getFullYear();
   const curMonth = now.getMonth() + 1;
   let n = 0;
+  const due = periodicDue(now);
   for (const student of students) {
     const records = await mgr.getAllForStudent(student.id);
     const pastUnfinished = records.some(r => (r.year < curYear || (r.year === curYear && r.month < curMonth)) && r.beginning && !r.ending);
-    if (pastUnfinished || !records.some(r => r.beginning || r.ending)) n++;
+    if (pastUnfinished || !records.some(r => r.beginning || r.ending)) { n++; continue; }
+    // 🌟 تحديث منتصف/نهاية الشهر الحالي (نفس شروط pushPeriodic في buildPendingQueue)
+    const cur = records.find(r => r.year === curYear && r.month === curMonth);
+    if (cur && cur.ending) continue;
+    if (due.end || (due.mid && !(cur && cur.mid))) n++;
   }
   return n;
 }
@@ -266,7 +286,8 @@ function renderHeader(overlay, index, total) {
 function runStep(overlay, item) {
   const surahsData = AppState.surahsData || [];
   const body = overlay.querySelector('#mmb-body');
-  const isEnding = item.type === 'ending';
+  const isMid = item.type === 'mid';
+  const isEnding = item.type === 'ending' || isMid;   // كلاهما يبدأ من بداية الشهر ويحسب التقدّم
   const initialPosition = isEnding ? item.beginningPosition : item.prefill;
 
   return new Promise((resolve) => {
@@ -276,7 +297,7 @@ function runStep(overlay, item) {
           <div class="mmb-avatar">${studentAvatarHtml(item.student)}</div>
           <div>
             <p class="mmb-student-name">${esc(item.student.name || '')}</p>
-            <p class="mmb-student-kind">${isEnding ? t('mmp_ending_title') : t('mmb_firsttime_title')} — ${item.month}/${item.year}</p>
+            <p class="mmb-student-kind">${isMid ? t('mmb_mid_title') : isEnding ? t('mmp_ending_title') : t('mmb_firsttime_title')} — ${item.month}/${item.year}</p>
           </div>
         </div>
         ${item.lateHint ? `<div class="mmb-warning" style="background:#fffbeb;border-color:#fcd34d;color:#92400e;">📌 ${item.lateHint}</div>` : ''}
@@ -359,7 +380,8 @@ function runStep(overlay, item) {
       body.querySelector('#mmb-btn-back').addEventListener('click', () => showPicker(position));
       if (result.valid) {
         body.querySelector('#mmb-btn-save').addEventListener('click', async () => {
-          await AppState.monthlyMemorizationManager.saveEnding(item.student.id, item.year, item.month, position, result.newAyahs);
+          if (isMid) await AppState.monthlyMemorizationManager.saveMidCheckpoint(item.student.id, item.year, item.month, position);
+          else await AppState.monthlyMemorizationManager.saveEnding(item.student.id, item.year, item.month, position, result.newAyahs);
           resolve({ action: 'saved' });
         });
       }
@@ -491,7 +513,7 @@ function posLabel(surahsData, pos) {
 }
 
 function rowResult(surahsData, row) {
-  if (row.item.type !== 'ending') return { kind: 'first' };
+  if (row.item.type !== 'ending' && row.item.type !== 'mid') return { kind: 'first' };
   const r = calcMemorizationProgress(surahsData, row.item.beginningPosition, row.end);
   if (r.valid) return { kind: r.newAyahs > 0 ? 'ok' : 'zero', n: r.newAyahs };
   return { kind: 'bad' };
@@ -526,7 +548,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
 
     const setQueue = (queue) => {
       rows = queue.map(item => {
-        const start = item.type === 'ending' ? item.beginningPosition : item.prefill;
+        const start = (item.type === 'ending' || item.type === 'mid') ? item.beginningPosition : item.prefill;
         return { item, start: { ...start }, end: { ...start }, later: false };
       });
     };
@@ -553,7 +575,7 @@ function openMemorizationTable(initialQueue, meta = {}) {
     // اسم الوجهة على زر الرجوع: «طلابي» لو فُتحت الشاشة منها، وإلا «الرئيسية»
     const backLabel = t(document.getElementById('btn-monthly-memo-bulk') ? 'my_students_title' : 'header_home_btn');
     function shell(inner) {
-      const months = [...new Set(rows.filter(r => r.item.type === 'ending').map(r => `${r.item.month}/${r.item.year}`))];
+      const months = [...new Set(rows.filter(r => r.item.type === 'ending' || r.item.type === 'mid').map(r => `${r.item.month}/${r.item.year}`))];
       const kicker = months.length === 1
         ? tf('mmt_month_fmt', { m: months[0].split('/')[0], y: months[0].split('/')[1] })
         : t('mmb_title');
@@ -591,13 +613,14 @@ function openMemorizationTable(initialQueue, meta = {}) {
             </tr></thead>
             <tbody>${rows.map((row, i) => {
               const it = row.item;
-              const isEnding = it.type === 'ending';
+              const isMid = it.type === 'mid';
+              const isEnding = it.type === 'ending' || isMid;
               const info = getSurahInfo(surahsData, row.end.surahNumber);
               const max = info ? info.ayahsCount : 1;
               const name = esc(it.student.name || '');
               return `<tr data-i="${i}" data-name="${name}">
                 <td class="mmt-c-who"><span class="mmt-who"><span class="mmt-av">${studentAvatarHtml(it.student)}</span>${name}</span></td>
-                <td class="mmt-start" data-label="${t('mmt_col_start')}">${isEnding ? `${posLabel(surahsData, it.beginningPosition)}<span class="mmt-month-tag">${it.month}/${it.year}</span>` : `<span class="mmt-pill">${t('mmt_first_start')}</span>`}</td>
+                <td class="mmt-start" data-label="${t('mmt_col_start')}">${isEnding ? `${posLabel(surahsData, it.beginningPosition)}<span class="mmt-month-tag">${isMid ? t('mmb_mid_tag') + ' ' : ''}${it.month}/${it.year}</span>` : `<span class="mmt-pill">${t('mmt_first_start')}</span>`}</td>
                 <td data-label="${t('mmt_col_surah')}"><select data-k="s" aria-label="${t('mmt_col_surah')} — ${name}">${surahOptionsHtml(surahsData, row.end.surahNumber)}</select></td>
                 <td data-label="${t('mmt_col_ayah')}"><span><input type="number" inputmode="numeric" data-k="a" min="1" max="${max}" value="${row.end.ayahNumber}" aria-label="${t('mmt_col_ayah')} — ${name}"><span class="mmt-max">/ ${max}</span></span></td>
                 <td data-label="${t('mmt_col_new')}" class="mmt-c-new"></td>
@@ -688,12 +711,17 @@ function openMemorizationTable(initialQueue, meta = {}) {
         const it = row.item;
         const position = { surahNumber: row.end.surahNumber, ayahNumber: row.end.ayahNumber };
         try {
-          if (it.type === 'ending') {
+          if (it.type === 'ending' || it.type === 'mid') {
             const r = calcMemorizationProgress(surahsData, it.beginningPosition, position);
             if (!r.valid) continue;
-            // eslint-disable-next-line no-await-in-loop
-            await mgr.saveEnding(it.student.id, it.year, it.month, position, r.newAyahs);
-            savedAyahs += r.newAyahs;
+            if (it.type === 'mid') {
+              // eslint-disable-next-line no-await-in-loop
+              await mgr.saveMidCheckpoint(it.student.id, it.year, it.month, position);
+            } else {
+              // eslint-disable-next-line no-await-in-loop
+              await mgr.saveEnding(it.student.id, it.year, it.month, position, r.newAyahs);
+              savedAyahs += r.newAyahs;
+            }
           } else {
             if (!isValidPosition(surahsData, position.surahNumber, position.ayahNumber)) continue;
             // eslint-disable-next-line no-await-in-loop
@@ -885,7 +913,7 @@ export async function openMonthEndingForStudent(student, year, month) {
         .sort((a, b) => (b.year - a.year) || (b.month - a.month))[0];
       if (before) {
         beginPos = { surahNumber: before.ending.surahNumber, ayahNumber: before.ending.ayahNumber };
-        await mgr.saveBeginning(student.id, year, month, beginPos);
+        await mgr.saveBeginning(student.id, year, month, { ...beginPos, auto: true });
       }
     }
 
@@ -914,7 +942,7 @@ export async function openMonthEndingForStudent(student, year, month) {
     const nm = month === 12 ? 1 : month + 1;
     const nextRec = await mgr.getRecord(student.id, ny, nm);
     if (saved && saved.ending && nextRec && !nextRec.locked) {
-      await mgr.saveBeginning(student.id, ny, nm, { surahNumber: saved.ending.surahNumber, ayahNumber: saved.ending.ayahNumber });
+      await mgr.saveBeginning(student.id, ny, nm, { surahNumber: saved.ending.surahNumber, ayahNumber: saved.ending.ayahNumber, auto: true });
     }
     return true;
   } catch (e) {

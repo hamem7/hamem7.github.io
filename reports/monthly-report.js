@@ -55,7 +55,7 @@ import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.j
 // (database/monthlyMemorizationDB.js) بدل نطاق student.memoFrom/memoTo الحالي فقط،
 // ساداً بذلك فجوة البيانات الموثَّقة صراحةً في تعليق هذا الملف وفي مستند التصميم
 // ("لا يوجد سجل تاريخي لتغيّر نطاق الحفظ"). getSurahInfo دالة خالصة لا تلمس أي DOM.
-import { getSurahInfo } from '../engine/memorizationEngine.js';
+import { getSurahInfo, calcMemorizationProgress } from '../engine/memorizationEngine.js';
 // 🌟 [جديد] "رحلة المراجعة" — ملخص مراجعة الأجزاء الخمسة (دالة خالصة، راجع engine/reviewParts.js)
 import { summarizeReview, ayahIndex, juzBounds, juzLabel, JUZ_COUNT } from '../engine/reviewParts.js';
 import { getTheme, hijriMonth } from '../config/monthly-themes.js';
@@ -770,10 +770,21 @@ async function buildMonthlyReportData(year, monthIndex0) {
           endPos: null,
           newAyahs: typeof record.newAyahs === 'number' ? record.newAyahs : null
         };
-        if (record.ending) {
-          journey.endPos = { s: record.ending.surahNumber, a: record.ending.ayahNumber };
-          const endInfo = getSurahInfo(AppState.surahsData, record.ending.surahNumber);
-          journey.endLabel = `${endInfo ? surahNameLocal(endInfo.name) : '؟'} — ${record.ending.ayahNumber}`;
+        // 🌟 تحديث منتصف الشهر: لو لم يُسجَّل ختام بعد نستعمل نقطة المنتصف كموضع مؤقت (بلا إعادة إدخال من المعلم)
+        const endRef = record.ending || record.mid;
+        if (endRef) {
+          journey.endPos = { s: endRef.surahNumber, a: endRef.ayahNumber };
+          const endInfo = getSurahInfo(AppState.surahsData, endRef.surahNumber);
+          journey.endLabel = `${endInfo ? surahNameLocal(endInfo.name) : '؟'} — ${endRef.ayahNumber}`;
+          if (!record.ending) {
+            const calc = calcMemorizationProgress(AppState.surahsData, { surahNumber: record.beginning.surahNumber, ayahNumber: record.beginning.ayahNumber }, { surahNumber: endRef.surahNumber, ayahNumber: endRef.ayahNumber });
+            if (calc && calc.valid) {
+              journey.hasEnding = true;
+              journey.newAyahs = calc.newAyahs;
+              journey.provisional = true;
+              journey.endLabel += ' (' + t('mr_journey_provisional') + ')';
+            }
+          }
         }
       }
     }

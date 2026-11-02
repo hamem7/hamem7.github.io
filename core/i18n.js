@@ -346,7 +346,7 @@ export const translations = {
         mmt_hint_ok: "الجديد يُحسب تلقائيًا من الناس نحو الفاتحة",
         // 🌟 [جديد] شاشة «تسجيل الحفظ الشهري» الموحّدة (components/studentsHubScreen.js)
         sh_title: "أين توقف كل طالب؟",
-        sh_sub: "اختر السورة وأدخل رقم الآية فيُحفظ تلقائيًا. يُفعَّل زر «عرض التقرير» بعد كل حفظ جديد.",
+        sh_sub: "اختر السورة وأدخل رقم الآية فيُحفظ تلقائيًا. حدّث موضع الطالب مرتين في الشهر (منتصفه ونهايته) وهو نفسه يبني التقرير الشهري، فلا إدخال مرة ثانية. يُفعَّل زر «عرض التقرير» بعد كل حفظ جديد.",
         sh_progress: "سُجّل {a} من {b}",
         sh_f_all: "الكل",
         sh_f_wait: "بانتظارك",
@@ -1825,6 +1825,9 @@ export const translations = {
         // راجع components/monthlyMemorizationPrompt.js
         mmp_beginning_title: "تسجيل موقع الحفظ — بداية الشهر",
         mmp_beginning_desc: "حدّد آخر موضع وصل إليه الطالب في حفظه عند بداية هذا الشهر (سورة وآخر آية محفوظة).",
+        mr_journey_provisional: "حتى منتصف الشهر",
+        mmb_mid_title: "تحديث منتصف الشهر",
+        mmb_mid_tag: "منتصف الشهر",
         mmp_ending_title: "تسجيل موقع الحفظ — نهاية الشهر",
         mmp_ending_desc: "حدّد آخر موضع وصل إليه الطالب في حفظه عند نهاية هذا الشهر — النظام سيحسب عدد الآيات الجديدة تلقائيًا.",
         mmp_student_label: "الطالب: {name}",
@@ -3479,7 +3482,7 @@ export const translations = {
         mmt_hint_ok: "New ayahs are calculated automatically from An-Nas toward Al-Fatihah",
         // 🌟 [new] Unified monthly memorization screen (components/studentsHubScreen.js)
         sh_title: "Where did each student stop?",
-        sh_sub: "Pick the surah and enter the ayah number — it saves automatically. The “View report” button turns on after each new entry.",
+        sh_sub: "Pick the surah and enter the ayah number — it saves automatically. Update each student twice a month (mid-month and month-end); the same entries build the monthly report, so nothing is entered twice. The “View report” button turns on after each new entry.",
         sh_progress: "{a} of {b} recorded",
         sh_f_all: "All",
         sh_f_wait: "Waiting",
@@ -4974,6 +4977,9 @@ export const translations = {
         // see components/monthlyMemorizationPrompt.js
         mmp_beginning_title: "Record Memorization Position — Start of Month",
         mmp_beginning_desc: "Set the student's last memorized position at the start of this month (surah and last memorized ayah).",
+        mr_journey_provisional: "as of mid-month",
+        mmb_mid_title: "Mid-month update",
+        mmb_mid_tag: "Mid-month",
         mmp_ending_title: "Record Memorization Position — End of Month",
         mmp_ending_desc: "Set the student's last memorized position at the end of this month — the system will calculate the number of new ayahs automatically.",
         mmp_student_label: "Student: {name}",

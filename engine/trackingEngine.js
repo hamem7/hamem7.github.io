@@ -75,8 +75,15 @@ function validPosition(surahsData, pos) {
 
 // تواريخ السجل الشهري محفوظة كنص ISO (updatedAt/createdAt)؛ نحوّلها لرقم لتعمل المقارنة والـmax
 function recordTimestamp(r) {
-    const v = r.updatedAt || r.createdAt || 0;
-    return typeof v === 'number' ? v : (Date.parse(v) || 0);
+    const num = (v) => (typeof v === 'number' ? v : (Date.parse(v) || 0));
+    // 🌟 «عمر تحديث الموضع» = آخر مرة سجّل فيها المعلم موضعاً فعلاً (نهاية/منتصف الشهر/بداية يدوية). بداية الشهر المنسوخة تلقائياً
+    // من نهاية الشهر السابق (beginning.auto) لا تُعدّ تحديثاً، وإلا بدا الموضع «محدَّثاً» بمجرد دخول شهر جديد.
+    const marks = [r.ending && r.ending.recordedAt, r.mid && r.mid.recordedAt, r.beginning && !r.beginning.auto && r.beginning.recordedAt]
+        .filter(Boolean).map(num).filter(Boolean);
+    if (marks.length) return Math.max(...marks);
+    if (r.beginning || r.ending || r.mid) return 0;   // سجل مواضع بلا أي تسجيل يدوي (بداية تلقائية فقط)
+    const v = r.updatedAt || r.createdAt || 0;        // سجلات قديمة/بلا حقول مواضع: السلوك السابق
+    return num(v);
 }
 
 // أبعد موضع معروف في السجلات الشهرية (بداية أو نهاية أي شهر) على مسار الحفظ

@@ -16,6 +16,7 @@
 
 import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { esc } from '../core/escape.js';
+import { periodicDue, latestRecordedPosition } from '../core/monthlyPeriods.js';
 import {
   calcMemorizationProgress, isValidPosition, getSurahsInMemorizationOrder, getSurahInfo
 } from '../engine/memorizationEngine.js';
@@ -121,14 +122,17 @@ async function loadRows() {
     if (!(cur && cur.beginning)) {
       const latest = [...records].reverse().find(r => r.locked && r.ending);
       if (latest && mgr) {
-        await mgr.saveBeginning(student.id, curYear, curMonth, p(latest.ending));
+        await mgr.saveBeginning(student.id, curYear, curMonth, { ...p(latest.ending), auto: true });
         cur = await mgr.getRecord(student.id, curYear, curMonth);
       }
     }
     if (cur && cur.beginning) {
+      // 🌟 تحديث مرتين في الشهر: منتصف الشهر يكفيه نقطة تحقق (mid)، ونهاية الشهر تحتاج الختام (ending). عند حلول الموعد ولم يُسجَّل = «بانتظارك»
+      const due = periodicDue(now);
+      const recorded = due.end ? !!cur.ending : !!(cur.ending || cur.mid);
       rows.push({
-        student, kind: 'ending', year: curYear, month: curMonth, begin: p(cur.beginning), pos: p(cur.ending),
-        status: cur.ending ? 'done' : 'open', fresh: false
+        student, kind: 'ending', year: curYear, month: curMonth, begin: p(cur.beginning), pos: latestRecordedPosition(cur),
+        status: recorded ? 'done' : (due.mid || due.end) ? 'wait' : 'open', fresh: false
       });
     } else {
       rows.push({ student, kind: 'first', year: curYear, month: curMonth, begin: null, pos: null, status: 'wait', fresh: false });
@@ -159,13 +163,20 @@ async function persist(row, pos, newAyahs) {
     return;
   }
   const rec = await mgr.getRecord(sid, row.year, row.month);
+  // 🌟 الشهر الجاري خارج نافذة نهاية الشهر (ولم يُختم بعد): تحديث منتصف الشهر = نقطة تحقق لا تقفل الشهر
+  const nowD = new Date();
+  const isCurrent = row.year === nowD.getFullYear() && row.month === nowD.getMonth() + 1;
+  if (isCurrent && !periodicDue(nowD).end && !(rec && rec.ending)) {
+    await mgr.saveMidCheckpoint(sid, row.year, row.month, pos);
+    return;
+  }
   if (rec && rec.locked) await mgr.unlockRecordForEdit(sid, row.year, row.month);   // تعديل حفظ سابق
   await mgr.saveEnding(sid, row.year, row.month, pos, newAyahs);
   // سلسلة الأشهر: لو للشهر التالي سجل غير مقفول تُحدَّث بدايته لتساوي هذه النهاية
   const ny = row.month === 12 ? row.year + 1 : row.year;
   const nm = row.month === 12 ? 1 : row.month + 1;
   const next = await mgr.getRecord(sid, ny, nm);
-  if (next && !next.locked) await mgr.saveBeginning(sid, ny, nm, pos);
+  if (next && !next.locked) await mgr.saveBeginning(sid, ny, nm, { ...pos, auto: true });
 }
 
 export async function openStudentsHubScreen() {
