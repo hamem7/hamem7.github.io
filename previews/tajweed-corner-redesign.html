@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاينة — إعادة ترتيب ركن التجويد</title>
+<!-- المعاينة تحمّل ملفات تنسيق المنصة بنفس ترتيب index.html وكتلة #main-header كما هي، فيظهر الركن كما سيظهر داخل المنصة.
+     المحتوى (أسماء الدروس، صورها، أمثلتها من الآيات) يُقرأ حيًّا من بيانات الركن الحقيقية tajweed/challenge/data — لا نص قرآني مكتوب يدويًا هنا.
+     التقدّم وأسماء الطلاب بيانات تجريبية فقط، ولا تُقرأ أو تُكتب أي بيانات من المنصة. -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/kids.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/homeFast.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/landscape.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
+<style>
+/* ===== ركن التجويد المقترح — كل الألوان من رموز الهوية (--dh-*) فتنقلب في المظهر الداكن؛ ألوان المحطات وحدها لها نسختان ===== */
+#tj{
+  --st-teal:#0f766e;--st-violet:#6d4ad8;--st-rose:#c2306f;--st-emerald:#0d7a5c;--st-amber:#b86a00;--st-sky:#0b79b5;
+  --surface:var(--dh-surface-3);
+  max-width:1100px;width:calc(100% - 32px);margin:24px auto 28px;background:var(--dh-surface-1);color:var(--dh-ink);
+  border-radius:28px;box-shadow:var(--dh-sh-lift);padding:22px 26px 28px;text-align:start;display:flex;flex-direction:column;gap:20px;
+  font-size:16px;line-height:1.65;box-sizing:border-box
+}
+[data-theme="dark"] #tj{--st-teal:#2dd4bf;--st-violet:#a78bfa;--st-rose:#f472b6;--st-emerald:#34d399;--st-amber:#fbbf24;--st-sky:#5ec4f5}
+#tj *,#tj *::before,#tj *::after{box-sizing:border-box}
+#tj button{font-family:inherit;margin:0;min-width:0;box-shadow:none;cursor:pointer}
+#tj h1,#tj h2,#tj h3{margin:0;color:var(--dh-ink);text-shadow:none;line-height:1.35;text-align:start}
+#tj p{margin:0}
+#tj .muted{color:var(--dh-ink-soft)}
+#tj :focus-visible{outline:3px solid var(--dh-focus,var(--dh-gold-500));outline-offset:2px}
+#tj [style*="--c:"]{--c-soft:color-mix(in srgb,var(--c) 12%,var(--dh-surface-3));--c-mid:color-mix(in srgb,var(--c) 26%,var(--dh-surface-3));--c-ink:color-mix(in srgb,var(--c) 80%,var(--dh-ink))}
+
+/* شريط الركن: الطالب فقط + زر المعلم (الرئيسية في ترويسة المنصة) */
+#tj .tj-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#tj .tj-who{display:flex;align-items:center;gap:10px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:99px;padding:4px 6px 4px 14px;color:var(--dh-ink);min-height:var(--dh-tap)}
+[dir="ltr"] #tj .tj-who{padding:4px 14px 4px 6px}
+#tj .tj-who:hover{border-color:var(--dh-emerald-600)}
+#tj .tj-who b{font-size:.98rem}
+#tj .tj-who small{color:var(--dh-ink-soft);font-size:.8rem;border-inline-start:1px solid var(--dh-border);padding-inline-start:10px}
+#tj .tj-av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--c-soft);color:var(--c-ink);border:2px solid var(--c);flex:none}
+#tj .tj-av.lg{width:52px;height:52px;font-size:1.25rem}
+#tj .tj-bar-sp{flex:1}
+#tj .tj-tbtn{display:inline-flex;align-items:center;gap:8px;background:transparent;border:1.5px solid var(--dh-border-strong);color:var(--dh-ink);border-radius:12px;padding:8px 14px;font-weight:700;font-size:.9rem;min-height:var(--dh-tap)}
+#tj .tj-tbtn:hover{background:var(--dh-surface-3)}
+#tj .tj-back{display:inline-flex;align-items:center;gap:6px;background:transparent;border:0;color:var(--dh-ink-soft);font-weight:700;padding:6px 0;font-size:.92rem;min-height:var(--dh-tap)}
+#tj .tj-back:hover{color:var(--dh-ink)}
+#tj .tj-back::before{content:"›";font-size:1.4rem;line-height:1}
+[dir="ltr"] #tj .tj-back::before{content:"‹"}
+
+/* بطاقة «خطوتك التالية» */
+#tj .tj-next{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px;align-items:center;border-radius:24px;padding:22px 24px;
+  background:linear-gradient(135deg,var(--dh-emerald-700),var(--dh-emerald-600));color:var(--dh-on-emerald);position:relative;overflow:hidden}
+#tj .tj-next::after{content:"";position:absolute;inset-inline-end:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);pointer-events:none}
+#tj .tj-next h2{color:inherit;font-size:clamp(1.35rem,2.4vw + .6rem,1.9rem)}
+#tj .tj-kicker{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:700;letter-spacing:.02em;background:rgba(255,255,255,.16);border-radius:99px;padding:3px 12px;margin-bottom:10px}
+#tj .tj-next-row{display:flex;align-items:center;gap:14px}
+#tj .tj-next .tj-plate{background:var(--dh-surface-3);border-color:transparent}
+#tj .tj-next-meta{font-size:.88rem;opacity:.9;margin-top:2px}
+#tj .tj-steps{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 18px}
+#tj .tj-steps i{font-style:normal;font-size:.82rem;font-weight:700;border-radius:99px;padding:4px 12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22)}
+#tj .tj-steps i.done{background:rgba(255,255,255,.24)}
+#tj .tj-steps i.cur{background:var(--dh-gold-500);color:var(--dh-on-gold);border-color:var(--dh-gold-500)}
+#tj .tj-acts{display:flex;gap:10px;flex-wrap:wrap}
+#tj .tj-go{background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold);border:0;border-radius:14px;padding:12px 24px;font-weight:700;font-size:1.02rem;min-height:52px;display:inline-flex;align-items:center;gap:10px}
+#tj .tj-go:hover{filter:brightness(1.05)}
+#tj .tj-go .arr::after{content:"←"}
+[dir="ltr"] #tj .tj-go .arr::after{content:"→"}
+#tj .tj-ghost-on{background:transparent;border:1.5px solid rgba(255,255,255,.45);color:inherit;border-radius:14px;padding:10px 18px;font-weight:700;min-height:52px}
+#tj .tj-ghost-on:hover{background:rgba(255,255,255,.1)}
+#tj .tj-ring{position:relative;width:150px;height:150px;flex:none}
+#tj .tj-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+[dir="ltr"] #tj .tj-ring svg{transform:rotate(-90deg) scaleY(-1)}
+#tj .tj-ring circle{fill:none;stroke-width:11}
+#tj .tj-ring .bg{stroke:rgba(255,255,255,.16)}
+#tj .tj-ring .fg{stroke:var(--dh-gold-300);stroke-linecap:round;transition:stroke-dashoffset .6s}
+#tj .tj-ring-tx{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.25}
+#tj .tj-ring-tx b{font-size:2rem}
+#tj .tj-ring-tx small{font-size:.78rem;opacity:.92}
+
+/* اللوحة (الصفيحة) الموحَّدة لكل درس: صورة علامة المصحف أو رمز الحكم */
+#tj .tj-plate{width:58px;height:58px;border-radius:16px;background:var(--c-soft);border:1.5px solid var(--c-mid);display:grid;place-items:center;flex:none;overflow:hidden}
+#tj .tj-plate img{max-width:84%;max-height:84%;object-fit:contain}
+[data-theme="dark"] #tj .tj-plate img{filter:invert(.9) hue-rotate(180deg)}
+#tj .tj-plate .quran-text{font-size:1.25rem;color:var(--c-ink);line-height:1.2 !important;white-space:nowrap}
+#tj .tj-plate.lg{width:96px;height:96px;border-radius:22px}
+#tj .tj-plate.lg .quran-text{font-size:1.9rem}
+
+/* خريطة الرحلة: ست محطات في شريط واحد */
+#tj .tj-sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+#tj .tj-sec-h h2{font-size:1.2rem}
+#tj .tj-sec-h small{color:var(--dh-ink-soft);font-size:.85rem}
+#tj .tj-path{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;position:relative}
+#tj .tj-node{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:18px;padding:14px 6px 12px;color:var(--dh-ink);text-align:center}
+#tj .tj-node:hover{border-color:var(--c)}
+#tj .tj-node[aria-pressed="true"]{border-color:var(--c);background:var(--c-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent)}
+#tj .tj-node-ic{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--dh-border-soft) 0);position:relative}
+#tj .tj-node-ic::before{content:"";position:absolute;inset:5px;border-radius:50%;background:var(--dh-surface-3)}
+#tj .tj-node[aria-pressed="true"] .tj-node-ic::before{background:var(--c-soft)}
+#tj .tj-node-ic span{position:relative;width:26px;height:26px;color:var(--c-ink);display:grid;place-items:center}
+#tj .tj-node-ic svg{width:100%;height:100%}
+#tj .tj-node-ic .ok{position:absolute;bottom:-4px;inset-inline-end:-4px;width:22px;height:22px;border-radius:50%;background:var(--dh-ok);color:var(--dh-on-ok);font-size:.72rem;display:grid;place-items:center;font-weight:700}
+#tj .tj-node small{font-size:.72rem;color:var(--dh-ink-soft);font-weight:700}
+#tj .tj-node b{font-size:.86rem;line-height:1.35}
+#tj .tj-node em{font-style:normal;font-size:.76rem;color:var(--c-ink);font-weight:700}
+#tj .tj-node .here{position:absolute;top:-10px;background:var(--dh-gold-500);color:var(--dh-on-gold);font-size:.68rem;font-weight:700;border-radius:99px;padding:1px 10px;white-space:nowrap}
+
+/* لوحة المحطة المختارة */
+#tj .tj-stage{border:1.5px solid var(--dh-border);border-top:5px solid var(--c);border-radius:22px;padding:18px;background:var(--dh-surface-2)}
+#tj .tj-stage-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+#tj .tj-stage-h .ic{width:46px;height:46px;border-radius:14px;background:var(--c-soft);color:var(--c-ink);display:grid;place-items:center;padding:9px;flex:none}
+#tj .tj-stage-h .tx{flex:1;min-width:200px}
+#tj .tj-stage-h .tx small{color:var(--c-ink);font-weight:700;font-size:.8rem}
+#tj .tj-stage-h .tx h2{font-size:1.3rem}
+#tj .tj-stage-h .tx p{color:var(--dh-ink-soft);font-size:.9rem}
+#tj .tj-stage-prog{min-width:150px;text-align:end;font-size:.85rem;color:var(--dh-ink-soft)}
+#tj .tj-stage-prog b{color:var(--dh-ink);font-size:1.05rem}
+#tj .pbar{height:8px;border-radius:99px;background:var(--dh-border-soft);overflow:hidden;margin-top:6px}
+#tj .pbar i{display:block;height:100%;background:var(--c,var(--dh-emerald-600));border-radius:inherit}
+#tj .tj-lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+#tj .tj-ls{width:100%;display:flex;align-items:center;gap:12px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:10px 12px;color:var(--dh-ink);text-align:start;min-height:84px;transition:transform .15s,border-color .15s}
+#tj .tj-ls:hover{transform:translateY(-2px);border-color:var(--c)}
+#tj .tj-ls.is-cur{border-color:var(--dh-gold-500);box-shadow:0 0 0 3px color-mix(in srgb,var(--dh-gold-500) 25%,transparent)}
+#tj .tj-ls-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#tj .tj-ls-tx b{font-size:.98rem;line-height:1.4}
+#tj .tj-ls-tx small{font-size:.8rem;color:var(--dh-ink-soft);line-height:1.45}
+#tj .tj-ls-st{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none}
+#tj .pill{font-size:.72rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+#tj .pill.done{background:var(--dh-ok-bg);color:var(--dh-ok-ink,var(--dh-ok))}
+#tj .pill.cur{background:var(--dh-gold-500);color:var(--dh-on-gold)}
+#tj .pill.go{background:var(--dh-info-bg);color:var(--dh-info)}
+#tj .pill.new{background:var(--dh-surface-0);color:var(--dh-ink-soft);border:1px solid var(--dh-border)}
+#tj .stars{color:var(--dh-gold-500);letter-spacing:1px;font-size:.88rem;white-space:nowrap}
+#tj .stars .off{color:var(--dh-border-strong)}
+#tj .tj-stage-f{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--dh-border)}
+#tj .tj-btn{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:10px 18px;font-weight:700;font-size:.95rem;min-height:var(--dh-tap);border:1.5px solid transparent}
+#tj .tj-btn.c{background:var(--c);border-color:var(--c);color:var(--dh-surface-3)}
+[data-theme="dark"] #tj .tj-btn.c{color:var(--dh-surface-0)}
+#tj .tj-btn.line{background:var(--dh-surface-3);border-color:var(--dh-border-strong);color:var(--dh-ink)}
+#tj .tj-btn.em{background:var(--dh-emerald-700);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#tj .tj-btn.locked{background:var(--dh-surface-0);border-color:var(--dh-border);color:var(--dh-ink-soft);cursor:not-allowed}
+#tj .tj-lockmsg{font-size:.85rem;color:var(--dh-ink-soft)}
+#tj .tj-lockmsg button{background:none;border:0;color:var(--c-ink);font-weight:700;text-decoration:underline;padding:0}
+
+/* بطاقتا التحدي الكبير والمستكشف */
+#tj .tj-extras{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#tj .tj-xc{display:flex;align-items:center;gap:14px;border-radius:20px;padding:16px 18px;border:1.5px solid var(--dh-border);background:var(--dh-surface-3);color:var(--dh-ink);text-align:start;min-height:96px}
+#tj .tj-xc:hover{border-color:var(--dh-gold-500)}
+#tj .tj-xc .em{font-size:1.9rem;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--dh-surface-0);flex:none}
+#tj .tj-xc span:not(.em){flex:1;display:flex;flex-direction:column}
+#tj .tj-xc small{color:var(--dh-ink-soft);font-size:.85rem}
+
+/* صفحة الدرس */
+#tj .tj-lhero{display:flex;gap:18px;align-items:center;flex-wrap:wrap;background:var(--c-soft);border-radius:24px;padding:20px;border:1.5px solid var(--c-mid)}
+#tj .tj-lhero .tx{flex:1;min-width:220px}
+#tj .tj-lhero small{color:var(--c-ink);font-weight:700}
+#tj .tj-lhero h1{font-size:clamp(1.4rem,2.6vw + .6rem,2rem) !important}
+#tj .tj-lhero p{color:var(--dh-ink-soft)}
+#tj .tj-cols{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+#tj .tj-card{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:20px;padding:16px 18px}
+#tj .tj-card h2{font-size:1.1rem;margin-bottom:10px}
+#tj .tj-vsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;position:relative}
+#tj .tj-vs{display:flex;align-items:center;gap:12px;padding:12px 0;position:relative}
+#tj .tj-vs + .tj-vs{border-top:1px dashed var(--dh-border)}
+#tj .tj-vs .n{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--dh-surface-0);border:2px solid var(--dh-border-strong);color:var(--dh-ink-soft);flex:none}
+#tj .tj-vs.done .n{background:var(--dh-ok);border-color:var(--dh-ok);color:var(--dh-on-ok)}
+#tj .tj-vs.cur .n{background:var(--dh-gold-500);border-color:var(--dh-gold-500);color:var(--dh-on-gold)}
+#tj .tj-vs .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+#tj .tj-vs .tx small{color:var(--dh-ink-soft);font-size:.82rem}
+#tj .tj-vs .tx .lk{color:var(--dh-ink-soft);font-size:.78rem}
+#tj .tj-vs .tj-btn{padding:8px 14px;font-size:.88rem}
+#tj .tj-exs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+#tj .tj-ex{background:var(--dh-surface-1);border:1px solid var(--dh-border-soft);border-radius:14px;padding:10px 14px}
+#tj .tj-ex .quran-text{font-size:1.55rem;display:block;color:var(--dh-ink)}
+#tj .tj-ex small{color:var(--dh-ink-soft);font-size:.8rem}
+#tj .tj-ex small .quran-text{display:inline;font-size:1rem}
+#tj .tj-signs{display:flex;gap:10px;flex-wrap:wrap}
+#tj .tj-def{color:var(--dh-ink);font-size:.98rem;margin-bottom:10px}
+
+/* اختيار الطالب */
+#tj .tj-whoh{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#tj .tj-whoh .tx{flex:1}
+#tj .tj-whoh h1{font-size:1.6rem !important}
+#tj .tj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;list-style:none;margin:0;padding:0}
+#tj .tj-sc{width:100%;display:flex;align-items:center;gap:12px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:18px;padding:12px 14px;color:var(--dh-ink);text-align:start;position:relative}
+#tj .tj-sc:hover{border-color:var(--dh-emerald-600)}
+#tj .tj-sc.last{border-color:var(--dh-gold-500)}
+#tj .tj-sc .tx{flex:1;min-width:0;display:flex;flex-direction:column}
+#tj .tj-sc .tx small{color:var(--dh-ink-soft);font-size:.8rem}
+#tj .tj-sc .tag{position:absolute;top:-9px;inset-inline-end:12px;background:var(--dh-gold-500);color:var(--dh-on-gold);font-size:.68rem;font-weight:700;border-radius:99px;padding:1px 10px}
+#tj .tj-guest{align-self:center;background:transparent;border:1.5px dashed var(--dh-border-strong);color:var(--dh-ink-soft);border-radius:14px;padding:10px 18px;font-weight:700;min-height:var(--dh-tap)}
+#tj .tj-guest small{display:block;font-weight:400;font-size:.8rem}
+
+/* لوحة المعلم */
+#tj .tj-nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#tj .tj-num{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column}
+#tj .tj-num b{font-size:1.6rem;line-height:1.2}
+#tj .tj-num span{font-size:.82rem;color:var(--dh-ink-soft)}
+#tj .tj-num.warn b{color:var(--dh-warn)}
+#tj .tj-num.ok b{color:var(--dh-ok)}
+#tj .tj-tw{overflow-x:auto;border:1.5px solid var(--dh-border);border-radius:16px;background:var(--dh-surface-3)}
+#tj table{width:100%;border-collapse:collapse;font-size:.9rem;min-width:640px}
+#tj th,#tj td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--dh-border-soft)}
+#tj th{font-size:.78rem;color:var(--dh-ink-soft);font-weight:700;background:var(--dh-surface-0)}
+#tj th.s,#tj td.s{text-align:start;padding-inline-start:14px}
+#tj tr:last-child td{border-bottom:0}
+#tj th .ic{display:inline-block;width:22px;height:22px;color:var(--c-ink)}
+#tj .cell{display:inline-block;min-width:44px;border-radius:8px;padding:2px 6px;font-weight:700;font-size:.82rem}
+#tj .cell.c0{color:var(--dh-ink-soft)}
+#tj .cell.c1{background:var(--dh-gold-500);color:var(--dh-on-gold)}
+#tj .cell.c2{background:var(--dh-ok-bg);color:var(--dh-ok-ink,var(--dh-ok))}
+#tj .tj-mini{background:transparent;border:1.5px solid var(--dh-border-strong);color:var(--dh-ink);border-radius:10px;padding:4px 10px;font-size:.8rem;font-weight:700;white-space:nowrap;min-height:36px}
+#tj .tj-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#tj .tj-tool{display:flex;flex-direction:column;gap:4px;align-items:flex-start;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:14px;color:var(--dh-ink);text-align:start}
+#tj .tj-tool:hover{border-color:var(--dh-emerald-600)}
+#tj .tj-tool small{color:var(--dh-ink-soft);font-size:.8rem}
+#tj .tj-tool .sw{margin-top:4px;width:44px;height:24px;border-radius:99px;background:var(--dh-border-strong);position:relative}
+#tj .tj-tool .sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:var(--dh-surface-3);transition:.2s}
+#tj .tj-tool.on .sw{background:var(--dh-emerald-600)}
+#tj .tj-tool.on .sw::after{inset-inline-start:23px}
+#tj .tj-note{font-size:.82rem;color:var(--dh-ink-soft);background:var(--dh-info-bg);border-radius:12px;padding:8px 12px}
+#tj .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--dh-ink-soft);margin-top:8px}
+
+/* تحييد إطار .quran-text العام في adults.css/kids.css (تخطيط فقط: الخلفية والحشوة والحجم؛ الخط والوزن والتباعد كما هي) */
+#app-root #tj .quran-text{background:none !important;padding:0 !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;display:inline;max-width:none;color:inherit}
+#app-root #tj .tj-plate .quran-text{font-size:1.15rem !important;line-height:1.3 !important;color:var(--c-ink);white-space:normal;text-align:center}
+#app-root #tj .tj-plate.lg .quran-text{font-size:1.7rem !important}
+#app-root #tj .tj-ex > .quran-text{display:block;font-size:1.55rem !important;color:var(--dh-ink)}
+#app-root #tj .tj-ex small .quran-text{font-size:1rem !important;line-height:1.6 !important}
+/* العناوين: adults.css يفرض لونًا أزرق ثابتًا بـ!important */
+#app-root #tj h1,#app-root #tj h2,#app-root #tj h3{color:var(--dh-ink) !important}
+#app-root #tj .tj-next h2{color:var(--dh-on-emerald) !important}
+
+/* الجوال */
+@media(max-width:760px){
+  #tj .tj-acts{flex-direction:column}
+  #tj .tj-acts > *{width:100%;justify-content:center}
+  #tj .tj-plate.lg{width:72px;height:72px}
+  #tj{width:calc(100% - 16px);margin:12px auto 18px;padding:16px 14px 20px;border-radius:22px;gap:16px}
+  #tj .tj-next{grid-template-columns:1fr;padding:18px 16px;gap:14px}
+  #tj .tj-ring{order:-1;width:100%;height:auto;display:flex;align-items:center;gap:14px}
+  #tj .tj-ring svg{width:76px;height:76px;flex:none}
+  #tj .tj-ring-tx{position:static;align-items:flex-start;text-align:start}
+  #tj .tj-ring-tx b{font-size:1.5rem}
+  #tj .tj-go{flex:1;justify-content:center}
+  #tj .tj-path{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;padding:12px 2px 6px;margin:-12px -2px 0}
+  #tj .tj-node{min-width:104px;scroll-snap-align:start}
+  #tj .tj-lessons{grid-template-columns:1fr}
+  #tj .tj-extras,#tj .tj-cols,#tj .tj-tools{grid-template-columns:1fr}
+  #tj .tj-nums{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tj .tj-who small{display:none}
+  #tj .tj-tbtn span{display:none}
+}
+
+/* شريط المعاينة السفلي (ليس جزءًا من المنصة) + رسالة */
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.pv-bar .pv-sw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pv-bar button{border:1.5px solid #d4af37;background:transparent;color:#fbf3d5;border-radius:99px;padding:5px 14px;font:inherit;font-weight:700;cursor:pointer;margin:0;min-width:0;box-shadow:none}
+.pv-bar button.on{background:#d4af37;color:#2b2100}
+.pv-toast{position:fixed;bottom:110px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
+.pv-toast.on{opacity:1}
+body{padding-bottom:120px}
+@media(max-width:480px){.pv-bar{font-size:.68rem;padding:6px 8px;gap:4px}.pv-bar button{padding:3px 9px}.pv-bar .pv-sw{gap:4px}}
+</style>
+</head>
+<body class="adult-theme" id="main-body">
+
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
+
+<div id="app-root"><div class="screen active"><main id="tj" tabindex="-1"></main></div></div>
+
+<div class="pv-toast" id="toast" role="status"></div>
+<div class="pv-bar" id="pvBar"></div>
+
+<script src="../core/brandLogo.js"></script>
+<script type="module">
+/* المحتوى الحقيقي للركن (قراءة فقط) */
+import { STAGES, RULES, META } from '../tajweed/challenge/data/rules.js';
+import { MUSHAF, LESSON_IMG, signImg } from '../tajweed/challenge/data/mushaf.js';
+import { SURAHS } from '../tajweed/challenge/data/pool.js';
+import { lessonExamples, spanText } from '../tajweed/challenge/js/engine.js';
+import { STAGE_ICONS } from '../tajweed/challenge/js/viz.js';
+
+/* ===== اللغتان: كل نص بالعربية والإنجليزية معًا ===== */
+const T = {
+ar:{pv_note:'معاينة لتصميم مقترح لركن التجويد — المحتوى من الركن الحقيقي، والطلاب والتقدّم تجريبيون، ولا شيء يُحفظ',
+ pv_who:'اختيار الطالب',pv_home:'الرئيسية',pv_lesson:'صفحة درس',pv_teacher:'لوحة المعلم',pv_new:'طالب جديد',pv_mid:'طالب في المنتصف',pv_done:'طالب أنهى كل شيء',
+ header_title:'🏆 رحلة إتقان القرآن',header_sub:'منصة حمٓ',h_home:'الرئيسية',
+ change:'تغيير',teacher:'للمعلم',
+ next_k:'خطوتك التالية',start_k:'ابدأ من هنا',done_k:'أحسنت!',
+ stop_lesson:'المحطة {s} · {st} · الدرس {i} من {n}',
+ go_learn:'ابدأ الدرس',go_lv:'تابع: مستوى «{l}»',lesson_page:'صفحة الدرس',
+ all_done_t:'أتممت كل الدروس الخمسة والعشرين 🎉',all_done_s:'راجع ما تعلّمته في «التحدي الكبير» أو استكشف صفحات المصحف.',go_mixed:'ابدأ التحدي الكبير',
+ ring_of:'{m} من {n} درسًا',ring_stars:'★ {s} نجمة',
+ path_t:'خريطة الرحلة',path_s:'اضغط محطة لترى دروسها',here:'أنت هنا',
+ stop_n:'المحطة {n}',mastered_of:'{m}/{n}',stage_mastered:'أتقنت {m} من {n}',
+ st_done:'أتقنته',st_cur:'التالي',st_go:'بدأته',st_new:'جديد',
+ challenge:'تحدّي المحطة',challenge_lock:'يُفتح بعد أن تجتاز المستوى الأول في أي درس من هذه المحطة. ابدأ بـ',
+ mixed_t:'التحدي الكبير',mixed_s:'أسئلة متنوّعة من كل ما تعلّمته',explorer_t:'مستكشف المصحف',explorer_s:'صفحات حقيقية: اضغط أي علامة لتعرف ما هي',
+ back_map:'العودة إلى خريطة الرحلة',back:'رجوع',
+ your_steps:'خطواتك في هذا الدرس',learn:'تعلّم',learn_d:'تعريف وشرح وأمثلة من القرآن',
+ lvl_1:'تعرّف',lvl_1_d:'اكتشف الحكم في آيات قصيرة',lvl_2:'ميّز',lvl_2_d:'فرّق بينه وبين الأحكام المشابهة',lvl_3:'طبّق',lvl_3_d:'آيات جديدة لم تمرّ بك',
+ mk_1:'تعرّف',mk_1_d:'ما العلامة وأين تجدها',mk_2:'ميّز',mk_2_d:'فرّق بينها وبين العلامات المشابهة',mk_3:'طبّق',mk_3_d:'جدها على صفحة من المصحف',
+ lk_learn:'🔒 أكمل الدرس أولًا',lk_prev:'🔒 اجتز المستوى السابق أولًا',
+ start:'ابدأ',again:'أعد',review:'راجع',
+ examples:'أمثلة من القرآن',signs:'العلامات في هذا الدرس',about:'فكرة الدرس',from_ayah:'سورة {s} · الآية {a}',
+ who_t:'من يتعلّم اليوم؟',who_s:'اختر اسمك ليُحفظ تقدّمك باسمك.',who_last:'آخر من تعلّم',who_new:'لم يبدأ بعد',who_prog:'{m} من {n} درسًا · ★ {s}',
+ guest:'متابعة بدون اسم',guest_s:'يُحفظ التقدّم على هذا الجهاز فقط',
+ t_title:'لوحة المعلم — التجويد',t_sub:'أين وصل كل طالب، ومن يحتاج متابعة. يُفتح برمز المعلم.',
+ t_students:'طالبًا',t_active:'نشِطون هذا الأسبوع',t_idle:'لم يبدؤوا بعد',t_done:'أنهوا كل الدروس',
+ t_col:'الطالب',t_last:'آخر نشاط',t_sum:'ملخص للولي',
+ t_tools:'أدوات المعلم',t_src:'المصادر والمراجعة',t_src_s:'مراجع كل درس وما يحتاج تحققًا',t_rev:'وضع المراجع',t_rev_s:'يفتح كل المستويات لتجربتها بنفسك',
+ t_reset:'إعادة ضبط تقدّم طالب',t_reset_s:'يمسح نجوم التجويد لطالب واحد',
+ t_moved:'هذه الأدوات كانت أزرارًا يراها الطالب في أعلى الركن؛ صارت هنا للمعلم وحده.',
+ lg_done:'أتمّ المحطة',lg_cur:'المحطة الحالية',lg_none:'لم يصلها',
+ toast:'في المنصة: ',t_open_learn:'يفتح شرح الدرس',t_open_lv:'يبدأ المستوى',t_open_ch:'يبدأ تحدي المحطة',t_open_mx:'يبدأ التحدي الكبير',t_open_ex:'يفتح مستكشف المصحف',t_sum_sent:'يُجهَّز ملخص الحصة لولي الأمر',t_src_open:'تفتح صفحة المصادر',t_reset_open:'يُطلب التأكيد ثم يُمسح التقدّم',
+ days:{0:'اليوم',1:'أمس',3:'قبل ٣ أيام',6:'قبل ٦ أيام',12:'قبل ١٢ يومًا',null:'—'}},
+en:{pv_note:'Preview of a proposed Tajweed corner — content is from the real corner; students and progress are samples; nothing is saved',
+ pv_who:'Pick student',pv_home:'Home',pv_lesson:'Lesson page',pv_teacher:'Teacher panel',pv_new:'New student',pv_mid:'Mid-way student',pv_done:'Finished student',
+ header_title:'🏆 Quran Mastery Journey',header_sub:'Ham Platform',h_home:'Home',
+ change:'Change',teacher:'Teacher',
+ next_k:'Your next step',start_k:'Start here',done_k:'Well done!',
+ stop_lesson:'Stop {s} · {st} · lesson {i} of {n}',
+ go_learn:'Start the lesson',go_lv:'Continue: “{l}” level',lesson_page:'Lesson page',
+ all_done_t:'You finished all 25 lessons 🎉',all_done_s:'Review everything in the Big Challenge, or explore real mushaf pages.',go_mixed:'Start the Big Challenge',
+ ring_of:'{m} of {n} lessons',ring_stars:'★ {s} stars',
+ path_t:'Journey map',path_s:'Tap a stop to see its lessons',here:'You are here',
+ stop_n:'Stop {n}',mastered_of:'{m}/{n}',stage_mastered:'{m} of {n} mastered',
+ st_done:'Mastered',st_cur:'Next',st_go:'Started',st_new:'New',
+ challenge:'Stop challenge',challenge_lock:'Unlocks once you pass level one in any lesson of this stop. Start with',
+ mixed_t:'The Big Challenge',mixed_s:'Mixed questions from everything you learned',explorer_t:'Mushaf Explorer',explorer_s:'Real pages: tap any mark to learn what it is',
+ back_map:'Back to the journey map',back:'Back',
+ your_steps:'Your steps in this lesson',learn:'Learn',learn_d:'Definition, explanation and Qur’an examples',
+ lvl_1:'Recognize',lvl_1_d:'Spot the rule in short verses',lvl_2:'Distinguish',lvl_2_d:'Tell it apart from similar rules',lvl_3:'Apply',lvl_3_d:'New verses you have not seen',
+ mk_1:'Recognize',mk_1_d:'What the sign is and where to find it',mk_2:'Distinguish',mk_2_d:'Tell it apart from similar signs',mk_3:'Apply',mk_3_d:'Find it on a mushaf page',
+ lk_learn:'🔒 Finish the lesson first',lk_prev:'🔒 Pass the previous level first',
+ start:'Start',again:'Again',review:'Review',
+ examples:'Examples from the Qur’an',signs:'Signs in this lesson',about:'The idea',from_ayah:'Surah {s} · verse {a}',
+ who_t:'Who is learning today?',who_s:'Pick your name so your progress is saved under it.',who_last:'Last learner',who_new:'Not started yet',who_prog:'{m} of {n} lessons · ★ {s}',
+ guest:'Continue without a name',guest_s:'Progress is kept on this device only',
+ t_title:'Teacher panel — Tajweed',t_sub:'Where each student is, and who needs follow-up. Opens with the teacher code.',
+ t_students:'students',t_active:'active this week',t_idle:'not started yet',t_done:'finished every lesson',
+ t_col:'Student',t_last:'Last activity',t_sum:'Parent summary',
+ t_tools:'Teacher tools',t_src:'Sources & review',t_src_s:'References of each lesson and what needs checking',t_rev:'Reviewer mode',t_rev_s:'Unlocks every level so you can try it',
+ t_reset:'Reset a student’s progress',t_reset_s:'Clears the Tajweed stars of one student',
+ t_moved:'These tools used to be buttons students saw at the top of the corner; they now live here, for the teacher only.',
+ lg_done:'Stop finished',lg_cur:'Current stop',lg_none:'Not reached',
+ toast:'In the platform: ',t_open_learn:'opens the lesson',t_open_lv:'starts the level',t_open_ch:'starts the stop challenge',t_open_mx:'starts the Big Challenge',t_open_ex:'opens the Mushaf Explorer',t_sum_sent:'prepares the session summary for the parent',t_src_open:'opens the sources page',t_reset_open:'asks for confirmation, then clears progress',
+ days:{0:'today',1:'yesterday',3:'3 days ago',6:'6 days ago',12:'12 days ago',null:'—'}}
+};
+
+/* ===== بيانات تجريبية للطلاب (k = عدد الدروس المتقنة بالترتيب، part = حالة الدرس التالي) ===== */
+const STU = [
+  { id: 1, n: { ar: 'يوسف أحمد', en: 'Yusuf Ahmad' }, k: 11, part: { learned: true, lv1: 2 }, d: 0, hue: 'emerald' },
+  { id: 2, n: { ar: 'مريم خالد', en: 'Maryam Khalid' }, k: 5, part: { learned: true }, d: 1, hue: 'rose' },
+  { id: 3, n: { ar: 'ليان عبدالله', en: 'Layan Abdullah' }, k: 17, part: { learned: true, lv1: 3, lv2: 1 }, d: 3, hue: 'violet' },
+  { id: 4, n: { ar: 'سارة محمود', en: 'Sara Mahmoud' }, k: 25, part: null, d: 6, hue: 'amber' },
+  { id: 5, n: { ar: 'عمر سعيد', en: 'Omar Saeed' }, k: 2, part: null, d: 12, hue: 'sky' },
+  { id: 6, n: { ar: 'آدم ياسر', en: 'Adam Yasser' }, k: 0, part: null, d: null, hue: 'teal' }
+];
+const ALL = STAGES.flatMap(s => s.rules);
+const S = { lang: 'ar', screen: 'home', stu: 1, stage: null, rule: null, review: false, from: 'home' };
+const L = (k) => T[S.lang][k];
+const tx = (o) => (o ? (o[S.lang] ?? o.ar) : '');
+const AR_D = '٠١٢٣٤٥٦٧٨٩';
+const num = (n) => (S.lang === 'ar' ? String(n).replace(/\d/g, d => AR_D[d]) : String(n));
+const tpl = (k, v) => Object.entries(v).reduce((s, [a, b]) => s.split(`{${a}}`).join(b), L(k));
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const hue = (h) => `--c:var(--st-${h})`;
+const stageOf = (id) => STAGES.find(s => s.rules.includes(id));
+const stageNo = (st) => STAGES.indexOf(st) + 1;
+
+function progOf(stu) {
+  const p = {};
+  ALL.forEach((id, i) => {
+    if (i < stu.k) p[id] = { learned: true, lv: { 1: 3, 2: i % 3 ? 3 : 2, 3: i % 4 ? 2 : 3 } };
+    else if (i === stu.k && stu.part) p[id] = { learned: !!stu.part.learned, lv: { 1: stu.part.lv1 || 0, 2: stu.part.lv2 || 0, 3: 0 } };
+    else p[id] = { learned: false, lv: { 1: 0, 2: 0, 3: 0 } };
+  });
+  return p;
+}
+const cur = () => STU.find(s => s.id === S.stu);
+const P = () => progOf(cur());
+const starsOf = (r) => r.lv[1] + r.lv[2] + r.lv[3];
+const mastered = (r) => r.lv[3] >= 1;
+function totals(p) { let s = 0, m = 0; ALL.forEach(id => { s += starsOf(p[id]); if (mastered(p[id])) m++; }); return { s, m }; }
+// الخطوة التالية: أول درس غير متقن، وفيه أول خطوة لم تُنجز (نفس منطق الركن الحالي nextStep)
+function nextStep(p) {
+  for (const id of ALL) {
+    const r = p[id];
+    if (!r.learned) return { id, step: 0 };
+    for (const lv of [1, 2, 3]) if (!(r.lv[lv] >= 1)) return { id, step: lv };
+  }
+  return null;
+}
+const stepState = (r, i) => (i === 0 ? r.learned : r.lv[i] >= 1);
+const lvName = (id, lv) => L((MUSHAF[id] ? 'mk_' : 'lvl_') + lv);
+const starsHTML = (n) => `<span class="stars" aria-label="${n}/3">${'★'.repeat(n)}<span class="off">${'★'.repeat(3 - n)}</span></span>`;
+const bestStars = (r) => Math.max(r.lv[1], r.lv[2], r.lv[3]);
+const initial = (s) => [...s.n[S.lang].trim()][0];
+const avatar = (s, lg = '') => `<span class="tj-av ${lg}" style="${hue(s.hue)}" aria-hidden="true">${esc(initial(s))}</span>`;
+
+// اللوحة الموحَّدة لكل درس: صورة العلامة الحقيقية لدروس المصحف، ورمز الحكم (بخط المصحف) لبقية الدروس
+function plate(id, lg = '') {
+  const st = stageOf(id);
+  if (MUSHAF[id]) return `<span class="tj-plate ${lg}" style="${hue(st.hue)}"><img src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span>`;
+  return `<span class="tj-plate ${lg}" style="${hue(st.hue)}"><span class="quran-text" lang="ar" dir="rtl">${esc(tx(META[id].short))}</span></span>`;
+}
+const icon = (st) => STAGE_ICONS[st.icon] || '';
+
+/* ===== اختيار الطالب ===== */
+function whoScreen() {
+  const list = STU.slice().sort((a, b) => (a.id === S.stu ? -1 : b.id === S.stu ? 1 : (a.d ?? 99) - (b.d ?? 99)));
+  return `
+  <header class="tj-whoh"><span class="tj-av lg" style="${hue('emerald')}" aria-hidden="true">👤</span><div class="tx"><h1>${L('who_t')}</h1><p class="muted">${L('who_s')}</p></div></header>
+  <ul class="tj-grid">${list.map(s => {
+    const t = totals(progOf(s)); const started = s.k > 0 || s.part;
+    return `<li><button type="button" class="tj-sc ${s.id === S.stu ? 'last' : ''}" data-pick="${s.id}">
+      ${s.id === S.stu ? `<em class="tag">${L('who_last')}</em>` : ''}${avatar(s, 'lg')}
+      <span class="tx"><b>${esc(s.n[S.lang])}</b><small>${started ? esc(tpl('who_prog', { m: num(t.m), n: num(ALL.length), s: num(t.s) })) : L('who_new')}</small>
+      <span class="pbar" style="${hue(s.hue)}"><i style="width:${Math.round(t.s / (ALL.length * 9) * 100)}%"></i></span></span></button></li>`;
+  }).join('')}</ul>
+  <button type="button" class="tj-guest" data-pick="0">${L('guest')}<small>${L('guest_s')}</small></button>`;
+}
+
+/* ===== الرئيسية ===== */
+function bar() {
+  const s = cur();
+  return `<div class="tj-bar">
+    ${s ? `<button type="button" class="tj-who" data-go="who" style="${hue(s.hue)}">${avatar(s)}<b>${esc(s.n[S.lang])}</b><small>${L('change')}</small></button>` : ''}
+    <span class="tj-bar-sp"></span>
+    <button type="button" class="tj-tbtn" data-go="teacher" aria-label="${L('teacher')}">👩‍🏫 <span>${L('teacher')}</span></button>
+  </div>`;
+}
+
+function nextCard(p) {
+  const t = totals(p); const pct = Math.round(t.s / (ALL.length * 9) * 100);
+  const R = 52, C = 2 * Math.PI * R;
+  const ring = `<div class="tj-ring" role="img" aria-label="${pct}%"><svg viewBox="0 0 130 130"><circle class="bg" cx="65" cy="65" r="${R}"/><circle class="fg" cx="65" cy="65" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}"/></svg>
+    <div class="tj-ring-tx"><b>${num(pct)}٪</b><small>${tpl('ring_of', { m: num(t.m), n: num(ALL.length) })}</small><small>${tpl('ring_stars', { s: num(t.s) })}</small></div></div>`;
+  const nx = nextStep(p);
+  if (!nx) return `<section class="tj-next"><div><span class="tj-kicker">${L('done_k')}</span><h2>${L('all_done_t')}</h2><p class="tj-next-meta">${L('all_done_s')}</p>
+    <div class="tj-acts" style="margin-top:16px"><button type="button" class="tj-go" data-toast="t_open_mx">🎯 ${L('go_mixed')} <span class="arr"></span></button><button type="button" class="tj-ghost-on" data-toast="t_open_ex">🔎 ${L('explorer_t')}</button></div></div>${ring}</section>`;
+  const st = stageOf(nx.id); const r = p[nx.id];
+  const fresh = t.s === 0 && !r.learned;
+  const steps = [0, 1, 2, 3].map(i => `<i class="${stepState(r, i) ? 'done' : i === nx.step ? 'cur' : ''}">${stepState(r, i) ? '✓' : num(i + 1)} ${i === 0 ? L('learn') : lvName(nx.id, i)}</i>`).join('');
+  const goLbl = nx.step === 0 ? L('go_learn') : tpl('go_lv', { l: lvName(nx.id, nx.step) });
+  return `<section class="tj-next">
+    <div><span class="tj-kicker">${fresh ? '🌱 ' + L('start_k') : '⏭ ' + L('next_k')}</span>
+      <div class="tj-next-row">${plate(nx.id)}<div><h2>${esc(tx(META[nx.id].name))}</h2>
+        <p class="tj-next-meta">${esc(tpl('stop_lesson', { s: num(stageNo(st)), st: tx(st.name), i: num(st.rules.indexOf(nx.id) + 1), n: num(st.rules.length) }))}</p></div></div>
+      <div class="tj-steps" aria-hidden="true">${steps}</div>
+      <div class="tj-acts"><button type="button" class="tj-go" data-toast="${nx.step === 0 ? 't_open_learn' : 't_open_lv'}">${esc(goLbl)} <span class="arr"></span></button>
+        <button type="button" class="tj-ghost-on" data-lesson="${nx.id}">${L('lesson_page')}</button></div>
+    </div>${ring}</section>`;
+}
+
+function pathHTML(p, sel) {
+  const nx = nextStep(p);
+  return `<section aria-label="${L('path_t')}"><div class="tj-sec-h"><h2>${L('path_t')}</h2><small>${L('path_s')}</small></div>
+  <div class="tj-path" role="tablist">${STAGES.map((st, i) => {
+    const m = st.rules.filter(id => mastered(p[id])).length;
+    const pctS = Math.round(st.rules.reduce((a, id) => a + starsOf(p[id]), 0) / (st.rules.length * 9) * 100);
+    const here = nx && stageOf(nx.id) === st;
+    return `<button type="button" class="tj-node" role="tab" aria-pressed="${st.id === sel}" aria-selected="${st.id === sel}" data-stage="${st.id}" style="${hue(st.hue)}">
+      ${here ? `<span class="here">${L('here')}</span>` : ''}
+      <span class="tj-node-ic" style="--p:${pctS}"><span>${icon(st)}</span>${m === st.rules.length ? '<span class="ok">✓</span>' : ''}</span>
+      <small>${tpl('stop_n', { n: num(i + 1) })}</small><b>${esc(tx(st.name))}</b><em>${tpl('mastered_of', { m: num(m), n: num(st.rules.length) })}</em></button>`;
+  }).join('')}</div></section>`;
+}
+
+function stagePanel(p, sel) {
+  const st = STAGES.find(s => s.id === sel); const nx = nextStep(p);
+  const m = st.rules.filter(id => mastered(p[id])).length;
+  const pctS = Math.round(st.rules.reduce((a, id) => a + starsOf(p[id]), 0) / (st.rules.length * 9) * 100);
+  const open = S.review || st.rules.some(id => p[id].lv[1] >= 1);
+  const firstId = st.rules.find(id => !(p[id].lv[1] >= 1)) || st.rules[0];
+  const cards = st.rules.map(id => {
+    const r = p[id]; const isCur = nx && nx.id === id;
+    const pill = mastered(r) ? `<span class="pill done">✓ ${L('st_done')}</span>` : isCur ? `<span class="pill cur">${L('st_cur')}</span>` : (r.learned ? `<span class="pill go">${L('st_go')}</span>` : `<span class="pill new">${L('st_new')}</span>`);
+    return `<li><button type="button" class="tj-ls ${isCur ? 'is-cur' : ''}" data-lesson="${id}" style="${hue(st.hue)}">${plate(id)}
+      <span class="tj-ls-tx"><b>${esc(tx(META[id].name))}</b><small>${esc(tx(META[id].tagline))}</small></span>
+      <span class="tj-ls-st">${pill}${starsHTML(bestStars(r))}</span></button></li>`;
+  }).join('');
+  return `<section class="tj-stage" style="${hue(st.hue)}" aria-label="${esc(tx(st.name))}">
+    <header class="tj-stage-h"><span class="ic">${icon(st)}</span><div class="tx"><small>${tpl('stop_n', { n: num(stageNo(st)) })}</small><h2>${esc(tx(st.name))}</h2><p>${esc(tx(st.blurb))}</p></div>
+      <div class="tj-stage-prog"><b>${tpl('stage_mastered', { m: num(m), n: num(st.rules.length) })}</b><div class="pbar"><i style="width:${pctS}%"></i></div></div></header>
+    <ul class="tj-lessons">${cards}</ul>
+    <footer class="tj-stage-f">${open
+      ? `<button type="button" class="tj-btn c" data-toast="t_open_ch">🏁 ${L('challenge')}</button>`
+      : `<span class="tj-btn locked" aria-disabled="true">🔒 ${L('challenge')}</span><span class="tj-lockmsg">${L('challenge_lock')} <button type="button" data-lesson="${firstId}">«${esc(tx(META[firstId].name))}»</button></span>`}</footer>
+  </section>`;
+}
+
+function homeScreen() {
+  const p = P(); const nx = nextStep(p);
+  if (!S.stage) S.stage = (nx ? stageOf(nx.id) : STAGES[0]).id;
+  return `${bar()}${nextCard(p)}${pathHTML(p, S.stage)}${stagePanel(p, S.stage)}
+  <section class="tj-extras">
+    <button type="button" class="tj-xc" data-toast="t_open_mx"><span class="em">🎯</span><span><b>${L('mixed_t')}</b><small>${L('mixed_s')}</small></span></button>
+    <button type="button" class="tj-xc" data-toast="t_open_ex"><span class="em">🔎</span><span><b>${L('explorer_t')}</b><small>${L('explorer_s')}</small></span></button>
+  </section>`;
+}
+
+/* ===== صفحة الدرس ===== */
+function lessonScreen() {
+  const id = S.rule; const st = stageOf(id); const p = P(); const r = p[id]; const meta = META[id];
+  const firstOpen = [0, 1, 2, 3].find(i => !stepState(r, i));
+  const steps = [0, 1, 2, 3].map(i => {
+    const done = stepState(r, i); const isCur = i === firstOpen;
+    const open = S.review || i === 0 || (i === 1 ? r.learned : r.lv[i - 1] >= 1);
+    const name = i === 0 ? L('learn') : lvName(id, i);
+    const desc = i === 0 ? L('learn_d') : L((MUSHAF[id] ? 'mk_' : 'lvl_') + i + '_d');
+    const btn = !open ? '' : `<button type="button" class="tj-btn ${isCur ? 'em' : 'line'}" data-toast="${i === 0 ? 't_open_learn' : 't_open_lv'}">${done ? (i === 0 ? L('review') : L('again')) : L('start')}</button>`;
+    return `<li class="tj-vs ${done ? 'done' : isCur ? 'cur' : ''}"><span class="n">${done ? '✓' : num(i + 1)}</span>
+      <span class="tx"><b>${name}</b><small>${desc}</small>${open ? '' : `<span class="lk">${i === 1 ? L('lk_learn') : L('lk_prev')}</span>`}</span>
+      ${i > 0 ? starsHTML(r.lv[i]) : ''}${btn}</li>`;
+  }).join('');
+  let side;
+  if (MUSHAF[id]) {
+    const signs = (meta.signs || []).slice(0, 8).map(sg => `<span class="tj-plate" style="${hue(st.hue)}"><img src="${esc(signImg(sg))}" alt=""></span>`).join('');
+    side = `<div class="tj-card"><h2>${L('about')}</h2><p class="tj-def">${esc(tx(meta.def))}</p>${signs ? `<h2 style="margin-top:14px">${L('signs')}</h2><div class="tj-signs">${signs}</div>` : ''}</div>`;
+  } else {
+    const exs = lessonExamples(id).slice(0, 3).map(e => {
+      const [s, a] = e.key.split(':').map(Number);
+      const sname = S.lang === 'ar' ? `<span class="quran-text" lang="ar">${esc(SURAHS[s].ar)}</span>` : esc(SURAHS[s].en);
+      return `<li class="tj-ex"><span class="quran-text" lang="ar" dir="rtl">${esc(spanText(e.key, e.w1, e.w2))}</span><small>${tpl('from_ayah', { s: sname, a: num(a) })}</small></li>`;
+    }).join('');
+    side = `<div class="tj-card"><h2>${L('about')}</h2><p class="tj-def">${esc(tx(RULES[id].kid))}</p><h2 style="margin-top:14px">${L('examples')}</h2><ul class="tj-exs">${exs}</ul></div>`;
+  }
+  return `<button type="button" class="tj-back" data-go="${S.from}">${S.from === 'teacher' ? L('back') : L('back_map')}</button>
+  <section class="tj-lhero" style="${hue(st.hue)}">${plate(id, 'lg')}<div class="tx"><small>${tpl('stop_n', { n: num(stageNo(st)) })} · ${esc(tx(st.name))}</small><h1>${esc(tx(meta.name))}</h1><p>${esc(tx(meta.tagline))}</p></div></section>
+  <div class="tj-cols"><div class="tj-card"><h2>${L('your_steps')}</h2><ol class="tj-vsteps">${steps}</ol></div>${side}</div>`;
+}
+
+/* ===== لوحة المعلم ===== */
+function teacherScreen() {
+  const rows = STU.map(s => {
+    const p = progOf(s); const t = totals(p); const nx = nextStep(p);
+    const cells = STAGES.map(st => {
+      const m = st.rules.filter(id => mastered(p[id])).length;
+      const k = m === st.rules.length ? 'c2' : nx && stageOf(nx.id) === st ? 'c1' : 'c0';
+      return `<td><span class="cell ${k}">${num(m)}/${num(st.rules.length)}</span></td>`;
+    }).join('');
+    return `<tr><td class="s"><b>${esc(s.n[S.lang])}</b></td>${cells}<td><b>${num(Math.round(t.s / (ALL.length * 9) * 100))}٪</b></td><td>${L('days')[s.d]}</td>
+      <td><button type="button" class="tj-mini" data-toast="t_sum_sent">${L('t_sum')}</button></td></tr>`;
+  }).join('');
+  const active = STU.filter(s => s.d !== null && s.d <= 6).length;
+  const idle = STU.filter(s => s.k === 0 && !s.part).length;
+  const done = STU.filter(s => s.k >= ALL.length).length;
+  return `<button type="button" class="tj-back" data-go="home">${L('back')}</button>
+  <header><h1 style="font-size:1.6rem">${L('t_title')}</h1><p class="muted">${L('t_sub')}</p></header>
+  <div class="tj-nums"><div class="tj-num"><b>${num(STU.length)}</b><span>${L('t_students')}</span></div><div class="tj-num ok"><b>${num(active)}</b><span>${L('t_active')}</span></div>
+    <div class="tj-num warn"><b>${num(idle)}</b><span>${L('t_idle')}</span></div><div class="tj-num"><b>${num(done)}</b><span>${L('t_done')}</span></div></div>
+  <div><div class="tj-tw"><table><thead><tr><th class="s">${L('t_col')}</th>${STAGES.map(st => `<th style="${hue(st.hue)}" title="${esc(tx(st.name))}"><span class="ic">${icon(st)}</span></th>`).join('')}<th>%</th><th>${L('t_last')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="legend"><span><span class="cell c2">✓</span> ${L('lg_done')}</span><span><span class="cell c1">·</span> ${L('lg_cur')}</span><span><span class="cell c0">·</span> ${L('lg_none')}</span></div></div>
+  <section><div class="tj-sec-h"><h2>${L('t_tools')}</h2></div>
+    <div class="tj-tools">
+      <button type="button" class="tj-tool" data-toast="t_src_open"><b>📚 ${L('t_src')}</b><small>${L('t_src_s')}</small></button>
+      <button type="button" class="tj-tool ${S.review ? 'on' : ''}" data-act="review" aria-pressed="${S.review}"><b>🔍 ${L('t_rev')}</b><small>${L('t_rev_s')}</small><span class="sw" aria-hidden="true"></span></button>
+      <button type="button" class="tj-tool" data-toast="t_reset_open"><b>↺ ${L('t_reset')}</b><small>${L('t_reset_s')}</small></button>
+    </div>
+    <p class="tj-note" style="margin-top:10px">ℹ️ ${L('t_moved')}</p></section>`;
+}
+
+/* ===== الرسم والأحداث ===== */
+const root = document.getElementById('tj');
+function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2400); }
+function syncChrome() {
+  const h = document.documentElement; h.lang = S.lang; h.dir = S.lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('header-title').textContent = L('header_title');
+  document.getElementById('top-student-name').textContent = L('header_sub');
+  document.getElementById('hdr-home').textContent = L('h_home');
+  document.getElementById('lang-toggle-btn').title = S.lang === 'ar' ? 'English' : 'العربية';
+  document.querySelectorAll('#lang-toggle-btn .lb-opt').forEach((e, i) => e.classList.toggle('is-on', (i === 0) === (S.lang === 'ar')));
+  const sw = (k, on, lbl) => `<button type="button" data-pv="${k}" class="${on ? 'on' : ''}">${lbl}</button>`;
+  document.getElementById('pvBar').innerHTML = `<div>${esc(L('pv_note'))}</div>
+    <div class="pv-sw">${sw('who', S.screen === 'who', L('pv_who'))}${sw('home', S.screen === 'home', L('pv_home'))}${sw('lesson', S.screen === 'lesson', L('pv_lesson'))}${sw('teacher', S.screen === 'teacher', L('pv_teacher'))}</div>
+    <div class="pv-sw">${sw('s6', S.stu === 6, L('pv_new'))}${sw('s1', S.stu === 1, L('pv_mid'))}${sw('s4', S.stu === 4, L('pv_done'))}</div>`;
+}
+function render(top = false) {
+  syncChrome();
+  root.innerHTML = S.screen === 'who' ? whoScreen() : S.screen === 'lesson' ? lessonScreen() : S.screen === 'teacher' ? teacherScreen() : homeScreen();
+  if (top) window.scrollTo({ top: 0 });
+}
+function show(screen) { if (screen === 'lesson' && S.screen !== 'lesson') S.from = S.screen === 'teacher' ? 'teacher' : 'home'; S.screen = screen; render(true); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'lang-toggle-btn') { S.lang = S.lang === 'ar' ? 'en' : 'ar'; return render(); }
+  if (b.id === 'theme-toggle-btn') { window.DHTheme && window.DHTheme.cycle(); return paintTheme(); }
+  if (b.id === 'header-home-btn' || b.id === 'header-account-btn') return toast(L('toast') + b.title);
+  const d = b.dataset;
+  if (d.pv) {
+    if (d.pv[0] === 's' && d.pv.length === 2) { S.stu = +d.pv[1]; S.stage = null; return render(); }
+    if (d.pv === 'lesson' && !S.rule) { const nx = nextStep(P()); S.rule = nx ? nx.id : ALL[0]; }
+    return show(d.pv);
+  }
+  if (d.go) return show(d.go);
+  if (d.pick !== undefined) { if (+d.pick) S.stu = +d.pick; S.stage = null; return show('home'); }
+  if (d.stage) { S.stage = d.stage; return render(); }
+  if (d.lesson) { S.rule = d.lesson; S.stage = stageOf(d.lesson).id; return show('lesson'); }
+  if (d.act === 'review') { S.review = !S.review; return render(); }
+  if (d.toast) return toast(L('toast') + L(d.toast));
+});
+
+/* أيقونة المظهر كما في core/theme.js */
+const TI = { auto: '<path d="M12 3a9 9 0 1 0 0 18V3z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/>', light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', dark: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>' };
+function paintTheme() { const p = window.DHTheme ? window.DHTheme.get() : 'auto'; const s = document.querySelector('#theme-toggle-btn svg'); if (s) s.innerHTML = TI[p] || TI.auto; }
+document.addEventListener('app-theme-changed', paintTheme);
+paintTheme(); render();
+</script>
+</body>
+</html>
