@@ -324,3 +324,5 @@ button.rosette { cursor: pointer; width: 46px; height: 46px; min-width: 0; paddi
   .lv-btn { flex-basis: 104px; min-height: 112px; }
   .next-card b { font-size: 1.15rem; }
 }
+.lr-pause { font-style: normal; background: color-mix(in srgb, var(--info) 16%, var(--surface-3)); color: var(--info); border: 1px solid var(--info); font-size: .74rem; font-weight: 800; border-radius: 99px; padding: 1px 10px; white-space: nowrap; }
+.who-stop { color: var(--info) !important; font-weight: 700; }

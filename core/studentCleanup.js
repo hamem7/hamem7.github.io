@@ -58,6 +58,7 @@ export async function purgeStudentRelatedData(studentId) {
     try {
         localStorage.removeItem(`history_${studentId}`);
         localStorage.removeItem(`darham_avatar_${studentId}`);
+        localStorage.removeItem(`tjc.progress.v1.${studentId}`);   // تقدّم ركن التجويد وموضع توقّف الشرح
     } catch (e) { /* localStorage قد يكون غير متاح — لا يمنع الحذف */ }
     return total;
 }

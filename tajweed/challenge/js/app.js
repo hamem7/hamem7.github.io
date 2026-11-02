@@ -51,18 +51,20 @@ const stageStyle = (st) => `style="--hue:var(--h-${st.hue})"`;
 
 // ───────── الرئيسية ─────────
 // المستوى المعروض في الرئيسية (يُحفظ على الجهاز؛ الافتراضي: مستوى الخطوة التالية)
-const LV_KEY = 'tjc.level';
-let homeLevel = (() => { try { return localStorage.getItem(LV_KEY) || ''; } catch { return ''; } })();
-const setHomeLevel = (id) => { homeLevel = id; try { localStorage.setItem(LV_KEY, id); } catch { /* لا تخزين */ } };
+// الافتراضي: مستوى الدرس الحالي (أو موضع التوقّف)؛ واختيار المعلم لمستوى آخر يبقى حتى يتغيّر الطالب
+let homeLevel = '', levelPinned = false;
+const setHomeLevel = (id) => { homeLevel = id; levelPinned = true; };
 const lessonPlate = (id) => (KNOW[id] ? `<span class="lr-plate">${art(KNOW[id].art)}</span>` : MUSHAF[id] ? `<span class="lr-plate"><img src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span>` : `<span class="lr-plate"><b class="quran-text">${esc(tx(META[id].short))}</b></span>`);
 
 function renderHome() {
   const tot = store.totals(ALL_RULES);
   const pct = Math.round((tot.got / tot.max) * 100);
-  const nxt = nextStep();
+  const last = META[store.getLast()?.id] ? store.getLast() : null;
+  const nxt0 = nextStep();
+  const nxt = last ? { hash: `#/learn/${last.id}`, rule: last.id, label: t('lr_stopped_at', { i: num(last.i + 1), n: num(last.n) }) } : nxt0;
   const R = 52, C = 2 * Math.PI * R;
   const nxtStage = nxt.rule ? stageOf(nxt.rule) : null;
-  if (!GROUPS.some((g) => g.id === homeLevel)) homeLevel = nxtStage ? nxtStage.level : GROUPS[0].id;
+  if (!levelPinned || !GROUPS.some((g) => g.id === homeLevel)) homeLevel = nxtStage ? nxtStage.level : GROUPS[0].id;
   const groupRules = (g) => STAGES.filter((st) => st.level === g.id).flatMap((st) => st.rules);
   // شريط المستويات
   const strip = GROUPS.map((g, gi) => {
@@ -79,10 +81,10 @@ function renderHome() {
     const mastered = st.rules.filter((id) => store.getRule(id).lv[3] >= 1).length;
     const unlockedChallenge = isReview() || st.rules.some((id) => store.getRule(id).lv[1] >= 1);
     const rows = st.rules.map((id) => {
-      const r = store.getRule(id); const isNext = nxt.rule === id;
+      const r = store.getRule(id); const isNext = nxt.rule === id; const ps = store.getPos(id);
       return `<li class="lrow${isNext ? ' is-next' : ''}">
-        <a class="lr-main" href="#/learn/${id}">${lessonPlate(id)}<span class="lr-tx"><b>${esc(ruleName(id))}</b><small>${esc(tx(META[id].tagline))}</small></span>${isNext ? `<em class="lr-next">${t('lr_next')}</em>` : ''}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a>
-        <span class="lr-acts"><a class="btn ${isNext ? 'primary' : 'ghost'} sm" href="#/learn/${id}">📖 ${t('lr_learn')}</a><a class="btn ghost sm" href="#/rule/${id}" title="${esc(t('lr_train'))}">🎮 <span>${t('lr_train')}</span></a></span></li>`;
+        <a class="lr-main" href="#/learn/${id}">${lessonPlate(id)}<span class="lr-tx"><b>${esc(ruleName(id))}</b><small>${esc(tx(META[id].tagline))}</small></span>${ps ? `<em class="lr-pause" title="${esc(t('lr_stopped_at', { i: num(ps.i + 1), n: num(ps.n) }))}">⏸ ${num(ps.i + 1)}/${num(ps.n)}</em>` : isNext ? `<em class="lr-next">${t('lr_next')}</em>` : ''}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a>
+        <span class="lr-acts"><a class="btn ${isNext ? 'primary' : 'ghost'} sm" href="#/learn/${id}">${ps ? `▶️ ${t('lr_continue')}` : `📖 ${t('lr_learn')}`}</a><a class="btn ghost sm" href="#/rule/${id}" title="${esc(t('lr_train'))}">🎮 <span>${t('lr_train')}</span></a></span></li>`;
     }).join('');
     return `
     <article class="stage" ${stageStyle(st)}>
@@ -104,9 +106,9 @@ function renderHome() {
     <section class="hero home-next">
       <div class="hero-text">
         <h1>${student ? t('home_hello_name', { name: esc(student.name) }) : t('home_hello')}</h1>
-        ${nr ? `<div class="next-card" ${stageStyle(nxtStage)}>${lessonPlate(nr)}<div><small>${t('next_k')} · ${esc(tx(nxtStage.name))}</small><b>${esc(ruleName(nr))}</b><small class="muted">${esc(nxt.label)}</small></div></div>` : `<p class="lead">${t('home_mixed_desc')}</p>`}
+        ${nr ? `<div class="next-card" ${stageStyle(nxtStage)}>${lessonPlate(nr)}<div><small>${last ? t('lr_resume_k') : t('next_k')} · ${esc(tx(nxtStage.name))}</small><b>${esc(ruleName(nr))}</b><small class="muted">${esc(nxt.label)}</small></div></div>` : `<p class="lead">${t('home_mixed_desc')}</p>`}
         <div class="hero-cta">
-          <a class="btn primary big" href="${learnHash}">📖 ${nr ? t('lr_start_learn') : t('home_mixed')} <span class="arr" aria-hidden="true"></span></a>
+          <a class="btn primary big" href="${learnHash}">${last ? `▶️ ${t('lr_resume_btn')}` : `📖 ${nr ? t('lr_start_learn') : t('home_mixed')}`} <span class="arr" aria-hidden="true"></span></a>
           ${nr ? `<a class="btn ghost" href="${trainHash}">🎮 ${t('lr_train')}</a>` : ''}
         </div>
       </div>
@@ -392,6 +394,7 @@ const hueOf = (name) => HUES[[...String(name)].reduce((h, c) => (h * 31 + c.code
 const initial = (name) => [...String(name).trim()][0] || '؟';
 const normName = (s) => String(s || '').replace(/[\u064B-\u0652\u0670]/g, '').replace(/[أإآٱ]/g, 'ا').trim().toLowerCase();
 function chooseStudent(st) {
+  levelPinned = false;
   student = st; guest = !st; store.setProfile(st ? String(st.id) : '');
   try { localStorage.setItem('tjc.last', st ? String(st.id) : ''); } catch { /* لا تخزين */ }
   syncAttrs(); go('#/');
@@ -407,7 +410,7 @@ function renderWho(filter = '') {
       ${all.length > 6 ? `<label class="who-search"><span aria-hidden="true">🔍</span><input type="search" id="who-q" value="${esc(filter)}" placeholder="${esc(t('who_search'))}" autocomplete="off" aria-label="${esc(t('who_search'))}"></label>` : ''}
       <ul class="who-grid" role="list">${list.map((s) => { const m = sum.get(String(s.id)); const hue = hueOf(s.name); return `<li><button type="button" class="who-card${String(s.id) === last ? ' last' : ''}" data-id="${esc(s.id)}" style="--hue:var(--h-${hue})">
         <span class="who-av" aria-hidden="true">${esc(initial(s.name))}</span>
-        <span class="who-body"><b>${esc(s.name)}</b><small>${m.started ? esc(t('who_progress', { m: num(m.mastered), n: num(ALL_RULES.length), s: num(m.got) })) : esc(t('who_new'))}</small>
+        <span class="who-body"><b>${esc(s.name)}</b><small>${m.started || m.last ? esc(t('who_progress', { m: num(m.mastered), n: num(ALL_RULES.length), s: num(m.got) })) : esc(t('who_new'))}</small>${m.last && META[m.last.id] ? `<small class="who-stop">⏸ ${esc(t('who_stopped', { lesson: ruleName(m.last.id), i: num(m.last.i + 1), n: num(m.last.n) }))}</small>` : ''}
         <span class="pbar" aria-hidden="true"><i style="width:${Math.round((m.got / m.max) * 100)}%"></i></span></span>
         ${String(s.id) === last ? `<em class="who-tag">${t('who_last')}</em>` : ''}<span class="arr" aria-hidden="true"></span></button></li>`; }).join('')}</ul>
       ${list.length ? '' : `<p class="muted center">${t('who_none')}</p>`}

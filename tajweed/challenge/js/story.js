@@ -18,6 +18,7 @@ import { AREAS, AREA_IDS, SIFAT } from '../data/know.js';
 import { stopCandidates, STOP_LABEL } from './know-engine.js';
 import { bindAudio, showToast } from './play.js';
 import { stopAudio } from './audio.js';
+import * as store from './store.js';
 
 export const hasStory = (id) => !!STORIES[id];
 
@@ -163,7 +164,10 @@ function draw({ top = false } = {}) {
   const st = stageOf(S.id);
   const head = `<div class="st-head"><div class="st-mode" role="group" aria-label="${t('st_mode_aria')}"><button type="button" data-st="mode" data-m="slides" aria-pressed="${S.mode === 'slides'}">📽 ${t('st_mode_slides')}</button><button type="button" data-st="mode" data-m="scroll" aria-pressed="${S.mode === 'scroll'}">📜 ${t('st_mode_scroll')}</button></div>
     ${S.mode === 'slides' ? `<div class="st-prog" aria-label="${esc(t('learn_step', { i: num(S.i + 1), n: num(n) }))}">${all.map((_, k) => `<button type="button" data-st="go" data-k="${k}" class="${k < S.i ? 'done' : k === S.i ? 'cur' : ''}" aria-label="${num(k + 1)}"></button>`).join('')}</div>` : ''}</div>`;
-  const body = S.mode === 'slides' ? slideHTML(all[S.i], S.i) : all.map(slideHTML).join('');
+  // حفظ الموضع (وضع العرض): يمكن التوقف عند أي شريحة والاستكمال لاحقًا
+  if (S.mode === 'slides') store.setPos(S.id, S.i, n);
+  const resumeBar = S.resumed && S.mode === 'slides' ? `<div class="st-resume" role="status"><span>▶️ ${t('st_resumed', { i: num(S.resumed + 1), n: num(n) })}</span><button type="button" class="btn ghost sm" data-st="restart">↺ ${t('st_restart')}</button></div>` : '';
+  const body = resumeBar + (S.mode === 'slides' ? slideHTML(all[S.i], S.i) : all.map(slideHTML).join(''));
   const nav = S.mode === 'slides' ? `<nav class="st-nav"><button type="button" class="btn ghost" data-st="step" data-d="-1" ${S.i === 0 ? 'disabled' : ''}>${t('prev')}</button><small>${t('learn_step', { i: num(S.i + 1), n: num(n) })}</small>${S.i === n - 1 ? `<button type="button" class="btn primary" data-st="train">🎮 ${t('start_training')}</button>` : `<button type="button" class="btn primary" data-st="step" data-d="1">${S.i === 0 ? t('st_begin') : t('next')}</button>`}</nav>` : '';
   const html = `${H.crumb([{ href: '#/', label: esc(t('app_title')) }, { href: `#/rule/${S.id}`, label: esc(ruleName(S.id)) }, { label: esc(t('step_learn')) }])}
     <section class="story ${S.mode === 'scroll' ? 'is-scroll' : ''}" ${H.stageStyle(st)}>${head}<div class="st-slides">${body}</div>${nav}</section>`;
@@ -179,9 +183,10 @@ function onClick(e) {
   const b = e.target.closest('button'); if (!b || !S) return; const d = b.dataset;
   const keep = () => { const y = window.scrollY; draw(); window.scrollTo({ top: y }); };
   if (d.st === 'mode') { S.mode = d.m; setMode(d.m); return draw({ top: true }); }
-  if (d.st === 'go') { S.i = Number(d.k); return draw({ top: true }); }
-  if (d.st === 'step') { S.i += Number(d.d); return draw({ top: true }); }
-  if (d.st === 'train') return H.onDone();
+  if (d.st === 'go') { S.i = Number(d.k); S.resumed = 0; return draw({ top: true }); }
+  if (d.st === 'step') { S.i += Number(d.d); S.resumed = 0; return draw({ top: true }); }
+  if (d.st === 'restart') { S.i = 0; S.resumed = 0; return draw({ top: true }); }
+  if (d.st === 'train') { store.clearPos(S.id); return H.onDone(); }
   if (d.st === 'rule') return H.onExit();
   if (d.st === 'copy') { try { navigator.clipboard.writeText(parentMessage(STORIES[S.id])); } catch { /* لا حافظة */ } return showToast(t('st_copied')); }
   if (d.check !== undefined) { const c = S.checks[d.check] || (S.checks[d.check] = { picked: [], last: null }); const i = Number(d.opt); if (!c.picked.includes(i)) c.picked.push(i); c.last = i; return keep(); }
@@ -192,13 +197,17 @@ document.addEventListener('keydown', (e) => {
   if (!S || S.mode !== 'slides' || !H || !H.root().isConnected || !H.root().querySelector('.story')) return;
   if (e.target && e.target.closest && e.target.closest('input,textarea,select')) return;
   const n = slidesOf(STORIES[S.id]).length; const fwd = getLang() === 'ar' ? 'ArrowLeft' : 'ArrowRight'; const back = getLang() === 'ar' ? 'ArrowRight' : 'ArrowLeft';
-  if (e.key === fwd && S.i < n - 1) { S.i++; draw({ top: true }); } else if (e.key === back && S.i > 0) { S.i--; draw({ top: true }); }
+  if (e.key === fwd && S.i < n - 1) { S.i++; S.resumed = 0; draw({ top: true }); } else if (e.key === back && S.i > 0) { S.i--; S.resumed = 0; draw({ top: true }); }
 });
 
 /** يفتح الدرس المصوَّر للدرس id. tools: { shell, crumb, stageStyle, root(), onDone(), onExit() } */
 export function renderStory(id, tools) {
   H = tools;
-  if (!S || S.id !== id) S = { id, i: 0, mode: getMode(), checks: {}, tabs: {} };
+  if (!S || S.id !== id) {
+    // نستكمل من موضع التوقّف المحفوظ لهذا الطالب في هذا الدرس (إن وُجد)
+    const pos = store.getPos(id);
+    S = { id, i: pos ? pos.i : 0, mode: getMode(), checks: {}, tabs: {}, resumed: pos ? pos.i : 0 };
+  }
   draw({ top: true });
 }
 /** يُستدعى عند مغادرة الدرس (تغيّر المسار) */

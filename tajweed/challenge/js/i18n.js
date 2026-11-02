@@ -217,6 +217,13 @@ const D = {
   lr_learn: { ar: 'الشرح', en: 'Lesson' },
   lr_train: { ar: 'تدريب', en: 'Practice' },
   lr_start_learn: { ar: 'ابدأ الشرح', en: 'Start the lesson' },
+  lr_continue: { ar: 'تابع', en: 'Resume' },
+  lr_resume_k: { ar: 'توقّفنا هنا', en: 'We stopped here' },
+  lr_resume_btn: { ar: 'تابع الشرح من حيث توقّفنا', en: 'Resume the lesson where we stopped' },
+  lr_stopped_at: { ar: 'توقّفنا عند الخطوة {i} من {n}', en: 'Stopped at step {i} of {n}' },
+  who_stopped: { ar: 'توقّف عند «{lesson}»: الخطوة {i} من {n}', en: 'Stopped at “{lesson}”: step {i} of {n}' },
+  st_resumed: { ar: 'أكملنا من الخطوة {i} من {n} حيث توقّفتم آخر مرة.', en: 'Resumed at step {i} of {n}, where you stopped last time.' },
+  st_restart: { ar: 'ابدأ من البداية', en: 'Start from the beginning' },
   know_lvl_d: { ar: 'أسئلة متنوّعة من الدرس', en: 'Mixed questions from the lesson' },
   stage_done: { ar: 'اكتمل', en: 'Done' },
   none_yet: { ar: 'لم تبدأ بعد', en: 'Not started yet' }

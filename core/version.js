@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.74';
+export const APP_VERSION = '1.0.75';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.75',
+        date: '2026-11-02',
+        items: [
+            { type: 'new', text: { ar: 'ركن التجويد يتذكّر أين توقّفتم في الشرح لكل طالب: توقّف عند أي خطوة، وفي المرة القادمة تظهر بطاقة «تابع الشرح من حيث توقّفنا» ويفتح الدرس على الخطوة نفسها (مع «ابدأ من البداية» إن أردت). وتظهر علامة ⏸ على الدرس وعلى بطاقة الطالب.', en: 'The Tajweed corner remembers where you stopped for each student: stop at any step, and next time a “Resume where we stopped” card opens the lesson at the same step (with “Start from the beginning” if you prefer). A ⏸ mark shows on the lesson and the student card.' } },
+            { type: 'fixed', text: { ar: 'تقدّم الطلاب في ركن التجويد صار داخل النسخة الاحتياطية للمنصة ويُسترجع معها، ويُمسح عند حذف الطالب.', en: 'Students’ Tajweed corner progress is now included in the platform backup and restored with it, and is removed when a student is deleted.' } }
+        ]
+    },
     {
         version: '1.0.74',
         date: '2026-11-02',

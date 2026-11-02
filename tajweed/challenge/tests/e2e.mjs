@@ -154,6 +154,13 @@ await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
     await p2.waitForSelector('.who-card'); ok((await p2.$$('.who-card')).length === 8, 'اختيار الطالب: ٨ بطاقات');
     await p2.fill('#who-q', 'سا'); ok((await p2.$$('.who-card')).length === 1, 'بحث الطالب'); await p2.fill('#who-q', '');
     await p2.click('.who-card >> nth=0'); await p2.waitForSelector('.hero'); const nm = await p2.$eval('.who-chip b', (e) => e.textContent); ok(nm.length > 1, 'شريحة الطالب');
+    // التوقّف في منتصف الشرح والاستكمال لاحقًا من الموضع نفسه (يُحفظ باسم الطالب)
+    await go(p2, '#/learn/qalqalah'); await p2.waitForSelector('.story .st-slide'); for (let k = 0; k < 3; k++) { await p2.click('.st-nav [data-st="step"][data-d="1"]'); await p2.waitForTimeout(60); }
+    await go(p2, '#/'); await p2.waitForSelector('.hero'); ok((await p2.$eval('.hero-cta .btn.primary', (e) => e.innerText)).includes('▶'), 'الرئيسية: زر «تابع الشرح»');
+    ok(await p2.$('.lrow .lr-pause'), 'الرئيسية: علامة التوقّف على صف الدرس');
+    await p2.click('.hero-cta .btn.primary'); await p2.waitForSelector('.st-resume'); ok((await p2.$eval('.st-nav small', (e) => e.innerText)).includes('٤'), 'الاستكمال من الخطوة ٤');
+    await p2.click('[data-st="restart"]'); await p2.waitForTimeout(80); ok((await p2.$eval('.st-nav small', (e) => e.innerText)).includes('١ من'), 'ابدأ من البداية'); await p2.click('.st-nav [data-st="step"][data-d="1"]'); await p2.waitForTimeout(60);
+    await go(p2, '#/who'); await p2.waitForSelector('.who-card'); ok((await p2.$$('.who-stop')).length >= 1, 'اختيار الطالب: موضع التوقّف'); await p2.click('.who-card.last'); await p2.waitForSelector('.hero');
     await go(p2, '#/learn/mushaf_waqf'); await walkStory(p2); await p2.click('.st-nav [data-st="train"]'); await p2.waitForSelector('.quiz');
     ok(await p2.evaluate(() => Object.keys(localStorage).some((k) => /^tjc\.progress\.v1\.\d+/.test(k))), 'التقدم يُحفظ باسم الطالب');
     for (let i = 0; i < 5; i++) await answer(p2, true); await p2.waitForSelector('.result');

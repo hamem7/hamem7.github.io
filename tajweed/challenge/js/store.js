@@ -24,6 +24,11 @@ export const getStageStars = (id) => read().stages[id] || 0;
 export function setMixed(n) { const d = read(); d.mixed = Math.max(d.mixed || 0, n); write(); }
 export const getMixed = () => read().mixed || 0;
 export function reset() { mem = blank(); write(); }
+// موضع التوقّف داخل الدرس المصوَّر (لكل طالب ولكل درس) + آخر درس فُتح، ليُستكمل الشرح لاحقًا من الموضع نفسه
+export function setPos(id, i, n) { const d = read(); d.pos ||= {}; const t = Date.now(); d.pos[id] = { i, n, t }; d.last = { id, i, n, t }; write(); }
+export const getPos = (id) => { const p = (read().pos || {})[id]; return p && p.i > 0 && p.i < p.n ? p : null; };
+export const getLast = () => { const l = read().last; return l && !l.done && getPos(l.id) ? l : null; };
+export function clearPos(id) { const d = read(); if (d.pos) delete d.pos[id]; if (d.last && d.last.id === id) d.last = { ...d.last, i: 0, done: true }; write(); }
 export function totals(ruleIds) {
   let got = 0, max = ruleIds.length * 9, mastered = 0;
   for (const id of ruleIds) { const r = ensure(id); got += (r.lv[1] || 0) + (r.lv[2] || 0) + (r.lv[3] || 0); if ((r.lv[3] || 0) >= 1) mastered++; }
@@ -42,5 +47,5 @@ export function peek(id, ruleIds) {
   let d = null; try { const raw = localStorage.getItem(id ? `${BASE}.${id}` : BASE); d = raw ? JSON.parse(raw) : null; } catch { d = null; }
   let got = 0, mastered = 0, started = 0;
   for (const rid of ruleIds) { const r = d?.rules?.[rid]; if (!r) continue; const n = (r.lv?.[1] || 0) + (r.lv?.[2] || 0) + (r.lv?.[3] || 0); got += n; if ((r.lv?.[3] || 0) >= 1) mastered++; if (n > 0 || r.learned) started++; }
-  return { got, max: ruleIds.length * 9, mastered, started, t: d?.t || 0 };
+  return { got, max: ruleIds.length * 9, mastered, started, t: d?.t || 0, last: d?.last && d.last.i > 0 && !d.last.done ? d.last : null };
 }

@@ -268,3 +268,4 @@
 .rv-card header { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
 .rv-card ul { margin: 0; padding-inline-start: 20px; font-size: .92rem; }
 .rv-card footer { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+.st-resume { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: color-mix(in srgb, var(--info) 12%, var(--surface-3)); border: 1.5px solid var(--info); border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--info); }

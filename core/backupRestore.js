@@ -31,7 +31,8 @@ import { getTeacherEmail } from './api.js';
 function isBackupLocalStorageKey(key) {
     return key.startsWith('history_') || key.startsWith('darham_avatar_') ||
            key === 'darham_reports_log' || key === 'darham_teacher_name' || key === 'darham_teacher_signature' ||
-           key === 'dh_reminders';   // «تذكيراتي» (منبّه المعلم الشخصي — core/reminders.js)
+           key === 'dh_reminders' ||   // «تذكيراتي» (منبّه المعلم الشخصي — core/reminders.js)
+           key.startsWith('tjc.progress.v1');   // ركن التجويد: نجوم كل طالب ودروسه وموضع توقّف الشرح (tajweed/challenge/js/store.js)
 }
 function collectBackupLocalStorage() {
     const out = {};
