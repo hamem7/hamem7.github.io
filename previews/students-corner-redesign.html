@@ -1,190 +1,205 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" data-theme="light">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>معاينة — إعادة ترتيب ركن «طلابي»</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- المعاينة تحمّل نفس ملفات تنسيق المنصة وبنفس الترتيب (index.html) وكتلة #main-header كما هي، فيظهر الركن كما سيظهر داخل المنصة تمامًا -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/kids.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/homeFast.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/landscape.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
 <style>
-:root{
-  --ok:#15803d;--ok-bg:#e7f4ee;--warn:#b45309;--warn-bg:#fef3c7;--info:#0369a1;--info-bg:#e0f2fe;--danger:#b91c1c;
-  --s0:#f6f3e8;--s1:#fffdf6;--s2:#fffdf6;--s3:#ffffff;
-  --bs:#e4dfcc;--b:#cfc7a8;--bst:#a89f84;
-  --ink:#10241c;--soft:#5a6b63;--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--gold:#d4af37;--gold-bg:#fbf3d5;
-  --on-em:#fffdf6;--on-gold:#2b2100;
-  --r:16px;--sh:0 6px 18px rgba(6,35,28,.10);
-}
-:root[data-theme="dark"]{
-  --ok:#4ade80;--ok-bg:#12372a;--warn:#fbbf24;--warn-bg:#3a2d0a;--info:#7dd3fc;--info-bg:#0c2a3d;--danger:#f87171;
-  --s0:#0b1511;--s1:#111f19;--s2:#16271f;--s3:#1c3028;
-  --bs:#22382f;--b:#2f4a3f;--bst:#5f8576;
-  --ink:#e8f1ec;--soft:#a4b9af;--g7:#3fbf93;--g6:#2aa57b;--gold-bg:#3a3110;
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
-body{background:var(--s0);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:60px}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer;border:0;background:none}
-button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+/* ===== «طلابي» الجديدة — مبنية بنفس نمط شاشة my-students.html (المحدِّدات تبدأ بـ #app-root #ms-screen) لكن بالكامل برموز الهوية
+   (--dh-*) فتنقلب تلقائيًا في المظهر الداكن بلا ألوان ثابتة ===== */
+#app-root #ms-screen{max-width:600px;text-align:start;padding:22px 20px !important;display:flex;flex-direction:column;gap:16px;color:var(--dh-ink)}
+#app-root #ms-screen button{font-family:inherit}
+#app-root #ms-screen .ms-head{display:flex;align-items:center;gap:10px}
+#app-root #ms-screen .ms-back{width:44px;height:44px;flex-shrink:0;border-radius:14px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-emerald-700);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;margin:0;min-width:0}
+#app-root #ms-screen .ms-back:hover{background:var(--dh-surface-0)}
+[dir="ltr"] #ms-screen .ms-back svg{transform:scaleX(-1)}
+#app-root #ms-screen .ms-title{margin:0 !important;font-size:1.9rem !important;font-weight:700 !important;color:var(--dh-emerald-700) !important;text-shadow:none !important;line-height:1.3;text-align:start}
+#app-root #ms-screen .ms-title small{display:block;font-size:.88rem;font-weight:400;color:var(--dh-ink-soft)}
+#app-root #ms-screen .ms-titles{flex:1;min-width:0}
 
-/* شريط المعاينة (ليس جزءًا من المنصة) */
-.pv{background:var(--gold-bg);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.82rem;padding:8px 0}
-:root[data-theme="dark"] .pv{color:#e9d27a;border-color:#5a4c1c}
-.pv .wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.pv b{flex:1;min-width:200px}
-.pv button{border:1.5px solid currentColor;border-radius:99px;padding:3px 12px;font-weight:700;font-size:.8rem}
+/* المطلوب الآن */
+#app-root #ms-screen .ms-now{background:linear-gradient(135deg,var(--dh-emerald-700),var(--dh-emerald-600));color:var(--dh-on-emerald);border-radius:20px;padding:16px;display:flex;gap:14px;align-items:center;box-shadow:var(--dh-sh-soft)}
+#app-root #ms-screen .ms-now-ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:1.4rem;flex:none}
+#app-root #ms-screen .ms-now-tx{flex:1;min-width:0}
+#app-root #ms-screen .ms-now-tx small{display:block;font-size:.78rem;opacity:.9;font-weight:600}
+#app-root #ms-screen .ms-now-tx b{font-size:1.05rem;line-height:1.5}
+#app-root #ms-screen .ms-now-go{background:var(--dh-gold-500);color:var(--dh-on-gold);font-weight:700;border:0;border-radius:12px;padding:10px 18px;min-height:var(--dh-tap);white-space:nowrap;cursor:pointer;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-now.is-clear{background:var(--dh-ok-bg);color:var(--dh-ok-ink);box-shadow:none}
+#app-root #ms-screen .ms-now.is-clear .ms-now-ic{background:transparent}
 
-/* ترويسة المنصة (محاكاة #main-header — لا تُبنى ترويسة خاصة بالركن) */
-header.top{background:linear-gradient(120deg,var(--g9),#0d5c46 55%,#147c5e);border-bottom:3px solid var(--gold);color:#fffdf6}
-.top .wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
-.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
-.top h1{font-size:1rem;flex:1}
-.pill{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:5px 14px;font-weight:600;font-size:.85rem;background:rgba(255,255,255,.12);color:#fffdf6}
+/* الاختصارات */
+#app-root #ms-screen .ms-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#app-root #ms-screen .ms-q{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong);border-radius:16px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;cursor:pointer;margin:0;min-width:0;box-shadow:none;transition:transform .15s}
+#app-root #ms-screen .ms-q:hover{transform:translateY(-2px);border-color:var(--dh-emerald-600)}
+#app-root #ms-screen .ms-q svg{color:var(--dh-gold-ink,var(--dh-ink))}
+[data-theme="dark"] #app-root #ms-screen .ms-q:not(.is-main) svg{color:var(--dh-gold-500)}
+#app-root #ms-screen .ms-q.is-main{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+#app-root #ms-screen .ms-q.is-main svg{color:var(--dh-on-emerald)}
 
-/* رأس الشاشة */
-.head{display:flex;align-items:center;gap:10px;margin:18px 0 14px}
-.back{width:44px;height:44px;border-radius:14px;border:1.5px solid var(--bst);background:var(--s3);color:var(--g7);display:grid;place-items:center;flex:none}
-html[dir="ltr"] .back svg{transform:scaleX(-1)}
-.head h2{font-size:1.6rem;color:var(--g7);flex:1;line-height:1.3}
-.head .sub{font-size:.85rem;color:var(--soft);font-weight:400;display:block}
+/* التبويبات */
+#app-root #ms-screen .ms-tabs{display:flex;gap:4px;background:var(--dh-surface-0);border:1.5px solid var(--dh-border);border-radius:16px;padding:4px}
+#app-root #ms-screen .ms-tab{flex:1;border:0;border-radius:12px;padding:10px 6px;font-weight:700;font-size:.92rem;color:var(--dh-ink-soft);background:transparent;min-height:var(--dh-tap);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-tab.on{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#app-root #ms-screen .ms-tab .n{background:var(--dh-warn-bg);color:var(--dh-warn);border-radius:99px;font-size:.72rem;padding:0 7px;font-weight:700}
+#app-root #ms-screen .ms-tab.on .n{background:rgba(255,255,255,.25);color:#fff}
 
-/* ١) المطلوب الآن — أهم عنصر: يقول للمعلم ماذا يفعل أولًا */
-.now{background:linear-gradient(135deg,var(--g7),#147c5e);color:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh);display:flex;gap:14px;align-items:center;margin-bottom:14px}
-:root[data-theme="dark"] .now{background:linear-gradient(135deg,#0f4d3b,#16654d)}
-.now .ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:1.4rem;flex:none}
-.now .tx{flex:1;min-width:0}
-.now small{display:block;font-size:.78rem;opacity:.85;font-weight:600}
-.now b{font-size:1.05rem;line-height:1.4}
-.now .go{background:var(--gold);color:var(--on-gold);font-weight:700;border-radius:12px;padding:10px 18px;min-height:44px;white-space:nowrap}
-.now.clear{background:var(--ok-bg);color:var(--ok)}
-.now.clear .ic{background:transparent}
-:root[data-theme="dark"] .now.clear{background:var(--ok-bg)}
+#app-root #ms-screen .ms-tools{display:flex;gap:8px;flex-wrap:wrap}
+#app-root #ms-screen .ms-search{flex:1;min-width:140px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:99px;padding:8px 16px;min-height:var(--dh-tap);margin:0;width:auto;font-size:1rem}
+#app-root #ms-screen .ms-btn{border:0;border-radius:12px;padding:9px 16px;font-weight:700;min-height:var(--dh-tap);cursor:pointer;margin:0;min-width:0;font-size:1rem;box-shadow:none}
+#app-root #ms-screen .ms-btn.gold{background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold)}
+#app-root #ms-screen .ms-btn.em{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#app-root #ms-screen .ms-btn.line{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong)}
+#app-root #ms-screen .ms-chips{display:flex;gap:6px;flex-wrap:wrap}
+#app-root #ms-screen .ms-chip{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:99px;padding:4px 14px;font-size:.84rem;font-weight:600;min-height:36px;cursor:pointer;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-chip.on{background:var(--dh-emerald-700);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
 
-/* ٢) أربع مهام شائعة */
-.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
-.q{background:var(--s2);border:1.5px solid var(--bs);border-radius:14px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;transition:.15s}
-.q:hover{border-color:var(--g6);transform:translateY(-2px)}
-.q i{font-style:normal;font-size:1.5rem}
-.q.main{background:var(--g7);color:#fff;border-color:var(--g7)}
-:root[data-theme="dark"] .q.main{background:#14644b}
+#app-root #ms-screen .ms-list{display:flex;flex-direction:column;gap:8px}
+#app-root #ms-screen .ms-line{display:flex;gap:4px;align-items:center}
+#app-root #ms-screen .ms-row{display:flex;align-items:center;gap:12px;background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border);border-radius:16px;padding:10px 12px;cursor:pointer;text-align:start;width:100%;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-row:hover{border-color:var(--dh-emerald-600)}
+#app-root #ms-screen .ms-row.static{cursor:default}
+#app-root #ms-screen .ms-av{width:44px;height:44px;border-radius:50%;background:var(--dh-ok-bg);color:var(--dh-ok-ink);display:grid;place-items:center;font-weight:700;flex:none}
+#app-root #ms-screen .ms-nm{flex:1;min-width:0}
+#app-root #ms-screen .ms-nm b{display:block;font-size:1.02rem}
+#app-root #ms-screen .ms-nm small{color:var(--dh-ink-soft);font-size:.8rem}
+#app-root #ms-screen .ms-tag{font-size:.74rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+#app-root #ms-screen .ms-tag.wait{background:var(--dh-warn-bg);color:var(--dh-warn)}
+#app-root #ms-screen .ms-tag.done{background:var(--dh-ok-bg);color:var(--dh-ok-ink)}
+#app-root #ms-screen .ms-tag.open{background:var(--dh-info-bg);color:var(--dh-info)}
+#app-root #ms-screen .ms-chev{color:var(--dh-ink-soft)}
+html[dir="rtl"] #ms-screen .ms-chev{transform:scaleX(-1)}
+#app-root #ms-screen .ms-menu{position:relative}
+#app-root #ms-screen .ms-dots{width:40px;height:40px;border-radius:10px;border:0;background:transparent;font-size:1.3rem;color:var(--dh-ink-soft);cursor:pointer;margin:0;min-width:0;padding:0;box-shadow:none}
+#app-root #ms-screen .ms-dots:hover{background:var(--dh-surface-0)}
+#app-root #ms-screen .ms-pop{display:none;position:absolute;inset-inline-end:0;top:42px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border-strong);border-radius:12px;box-shadow:var(--dh-sh-lift);padding:6px;min-width:190px;z-index:10}
+#app-root #ms-screen .ms-menu.open .ms-pop{display:grid}
+#app-root #ms-screen .ms-pop button{background:none;border:0;color:var(--dh-ink);text-align:start;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;margin:0;min-width:0;box-shadow:none;font-size:1rem}
+#app-root #ms-screen .ms-pop button:hover{background:var(--dh-surface-0)}
+#app-root #ms-screen .ms-pop .dng{color:var(--dh-danger)}
+#app-root #ms-screen .ms-hint{color:var(--dh-ink-soft);font-size:.85rem;margin:0}
+#app-root #ms-screen details summary{cursor:pointer;color:var(--dh-ink-soft);font-weight:600}
 
-/* ٣) التبويبات */
-.tabs{display:flex;gap:4px;background:var(--s2);border:1.5px solid var(--bs);border-radius:14px;padding:4px;margin-bottom:14px;position:sticky;top:0;z-index:5}
-.tab{flex:1;border-radius:10px;padding:10px 6px;font-weight:700;font-size:.92rem;color:var(--soft);min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
-.tab.on{background:var(--g7);color:#fff}
-:root[data-theme="dark"] .tab.on{background:#14644b}
-.tab .n{background:var(--warn-bg);color:var(--warn);border-radius:99px;font-size:.72rem;padding:0 7px;font-weight:700}
-.tab.on .n{background:rgba(255,255,255,.25);color:#fff}
-.pane{display:none}.pane.on{display:block}
-
-.card{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:14px}
-.tools{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.search{flex:1;min-width:150px;border:1.5px solid var(--bst);background:var(--s3);border-radius:99px;padding:8px 16px;min-height:44px}
-.btn{border-radius:12px;padding:9px 16px;font-weight:700;min-height:44px}
-.btn.gold{background:var(--gold);color:var(--on-gold)}
-.btn.em{background:var(--g7);color:#fff}
-:root[data-theme="dark"] .btn.em{background:#14644b}
-.btn.line{border:1.5px solid var(--bst);background:var(--s3)}
-.chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.chip{border:1.5px solid var(--bst);background:var(--s3);border-radius:99px;padding:4px 14px;font-size:.84rem;font-weight:600;min-height:36px}
-.chip.on{background:var(--g7);color:#fff;border-color:var(--g7)}
-:root[data-theme="dark"] .chip.on{background:#14644b}
-
-.list{display:flex;flex-direction:column;gap:8px}
-.row{display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:start;width:100%}
-.row:hover{border-color:var(--g6)}
-.av{width:44px;height:44px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-weight:700;flex:none}
-.nm{flex:1;min-width:0}.nm b{display:block}.nm small{color:var(--soft);font-size:.8rem}
-.tag{font-size:.74rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
-.tag.wait{background:var(--warn-bg);color:var(--warn)}.tag.done{background:var(--ok-bg);color:var(--ok)}.tag.open{background:var(--info-bg);color:var(--info)}
-.chev{color:var(--soft)}
-html[dir="rtl"] .chev{transform:scaleX(-1)}
-.menu{position:relative}
-.dots{width:40px;height:40px;border-radius:10px;font-size:1.3rem;color:var(--soft)}
-.dots:hover{background:var(--s3)}
-.pop{display:none;position:absolute;inset-inline-end:0;top:42px;background:var(--s3);border:1px solid var(--bst);border-radius:12px;box-shadow:var(--sh);padding:6px;min-width:190px;z-index:10}
-.menu.open .pop{display:grid}
-.pop button{text-align:start;padding:10px 12px;border-radius:8px;font-weight:600}
-.pop button:hover{background:var(--s0)}.pop .dng{color:var(--danger)}
-.hint{color:var(--soft);font-size:.85rem;margin:10px 0 0}
-
-/* هذا الشهر: خطوتان واضحتان */
-.step{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--b);border-radius:var(--r);background:var(--s2);margin-bottom:10px}
-.step .no{width:34px;height:34px;border-radius:50%;background:var(--g7);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
-:root[data-theme="dark"] .step .no{background:#14644b}
-.step.done .no{background:var(--ok)}
-.step .bd{flex:1;min-width:0}.step h3{font-size:1.02rem}.step p{color:var(--soft);font-size:.86rem;margin:2px 0 8px}
-.bar{height:8px;background:var(--bs);border-radius:99px;overflow:hidden;margin:6px 0 10px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--g7))}
-.mini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.mini span{background:var(--warn-bg);color:var(--warn);border-radius:99px;padding:2px 12px;font-size:.82rem;font-weight:700}
-
-/* الحصص */
-.sched{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--s3);border:1.5px dashed var(--bst);border-radius:14px;padding:10px 12px;margin-bottom:10px;flex-wrap:wrap}
-.days{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
-.days i{font-style:normal;font-size:.74rem;background:var(--ok-bg);color:var(--ok);border-radius:99px;padding:0 8px;font-weight:700}
-.days i.off{background:var(--s0);color:var(--soft);font-weight:400}
+/* هذا الشهر */
+#app-root #ms-screen .ms-step{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--dh-border);border-radius:18px;background:var(--dh-surface-3)}
+#app-root #ms-screen .ms-step .no{width:34px;height:34px;border-radius:50%;background:var(--dh-emerald-700);color:var(--dh-on-emerald);display:grid;place-items:center;font-weight:700;flex:none}
+#app-root #ms-screen .ms-step.done .no{background:var(--dh-ok)}
+#app-root #ms-screen .ms-step .bd{flex:1;min-width:0}
+#app-root #ms-screen .ms-step h3{font-size:1.05rem;margin:0;color:var(--dh-ink) !important;text-align:start;text-shadow:none}
+#app-root #ms-screen .ms-step p{color:var(--dh-ink-soft);font-size:.86rem;margin:2px 0 8px}
+#app-root #ms-screen .ms-bar{height:8px;background:var(--dh-border-soft);border-radius:99px;overflow:hidden;margin:6px 0 10px}
+#app-root #ms-screen .ms-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--dh-emerald-600),var(--dh-emerald-700))}
+#app-root #ms-screen .ms-mini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+#app-root #ms-screen .ms-mini span{background:var(--dh-warn-bg);color:var(--dh-warn);border-radius:99px;padding:2px 12px;font-size:.82rem;font-weight:700}
+#app-root #ms-screen .ms-sched{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--dh-surface-0);border:1.5px dashed var(--dh-border-strong);border-radius:16px;padding:10px 12px;flex-wrap:wrap}
+#app-root #ms-screen .ms-days{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+#app-root #ms-screen .ms-days i{font-style:normal;font-size:.74rem;background:var(--dh-ok-bg);color:var(--dh-ok-ink);border-radius:99px;padding:0 8px;font-weight:700}
+#app-root #ms-screen .ms-days i.off{background:var(--dh-surface-0);color:var(--dh-ink-soft);font-weight:400}
 
 /* ملف الطالب */
-.prof-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
-.prof-top .av{width:64px;height:64px;font-size:1.5rem}
-.prof-top h3{font-size:1.25rem}
-.act{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.stat{background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:10px;text-align:center}
-.stat b{display:block;font-size:1.3rem;color:var(--g7)}.stat small{color:var(--soft);font-size:.78rem}
-.sub-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
-.sub-tabs .chip{white-space:nowrap}
-.sec{display:none}.sec.on{display:block}
-.todo{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-weight:700;margin-bottom:10px;justify-content:space-between}
-.hist{width:100%;border-collapse:collapse;font-size:.88rem}
-.hist td,.hist th{padding:8px;border-bottom:1px solid var(--bs);text-align:start}
-.badges{display:flex;gap:8px;flex-wrap:wrap}.badges span{background:var(--gold-bg);border-radius:12px;padding:8px 12px;font-weight:700;font-size:.85rem}
+#app-root #ms-screen .ms-act{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+#app-root #ms-screen .ms-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#app-root #ms-screen .ms-stat{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:10px;text-align:center;display:flex;flex-direction:column}
+#app-root #ms-screen .ms-stat b{font-size:1.4rem;color:var(--dh-emerald-700)}
+#app-root #ms-screen .ms-stat small{color:var(--dh-ink-soft);font-size:.78rem}
+#app-root #ms-screen .ms-subtabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+#app-root #ms-screen .ms-subtabs .ms-chip{white-space:nowrap;flex-shrink:0}
+#app-root #ms-screen .ms-todo{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--dh-warn-bg);color:var(--dh-warn);font-weight:700;justify-content:space-between;margin-bottom:10px}
+#app-root #ms-screen .ms-card2{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:14px;margin-bottom:10px}
+#app-root #ms-screen .ms-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#app-root #ms-screen .ms-badges span{background:var(--dh-gold-soft,var(--dh-warn-bg));color:var(--dh-ink);border-radius:12px;padding:8px 12px;font-weight:700;font-size:.85rem}
+#app-root #ms-screen .ms-hist{width:100%;border-collapse:collapse;font-size:.88rem}
+#app-root #ms-screen .ms-hist td,#app-root #ms-screen .ms-hist th{padding:8px;border-bottom:1px solid var(--dh-border-soft);text-align:start}
 
-/* نافذة طالب جديد */
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
-.ov.on{display:flex}
-.modal{background:var(--s1);border:1.5px solid var(--bst);border-radius:20px;padding:20px;width:min(480px,100%);display:grid;gap:12px;max-height:92vh;overflow:auto}
-.modal h3{text-align:center;color:var(--g7);font-size:1.25rem}
-.modal label{font-size:.84rem;font-weight:700;color:var(--soft);display:block;margin-bottom:3px}
-.modal input,.modal select{width:100%;border:1.5px solid var(--bst);background:var(--s3);border-radius:12px;padding:10px 12px;min-height:46px}
-.seg{display:flex;gap:8px}.seg button{flex:1;border:2px solid var(--bst);border-radius:12px;padding:9px;font-weight:700;background:var(--s3)}
-.seg button.on{border-color:var(--gold);background:var(--gold-bg)}
-.dots2{display:flex;justify-content:center;gap:6px}.dots2 i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:.85rem;border:2px solid var(--b);color:var(--soft)}
-.dots2 i.on{background:var(--g7);color:#fff;border-color:var(--g7)}
-.nav{display:flex;gap:8px}.nav>*{flex:1}
-.toast{position:fixed;bottom:20px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--g9);color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:60}
-.toast.on{opacity:1}
-.legend{margin-top:22px;border:1.5px dashed var(--bst);border-radius:var(--r);padding:14px;font-size:.88rem;color:var(--soft)}
-.legend h4{color:var(--ink);margin-bottom:6px}.legend li{margin-inline-start:18px}
-@media(max-width:480px){.quick{grid-template-columns:repeat(2,1fr)}.now{flex-wrap:wrap}.now .go{width:100%}.act{grid-template-columns:1fr 1fr}.act .btn:first-child{grid-column:1/-1}}
+/* ما الذي تغيّر */
+#app-root #ms-screen .ms-legend{border:1.5px dashed var(--dh-border-strong);border-radius:16px;padding:14px;font-size:.88rem;color:var(--dh-ink-soft)}
+#app-root #ms-screen .ms-legend h4{color:var(--dh-ink);margin:0 0 6px;font-size:1rem}
+#app-root #ms-screen .ms-legend li{margin-inline-start:18px}
+
+/* نافذة طالب جديد (نفس #add-modal: .modal-overlay/.modal-content) */
+#add-modal .modal-content.as-add{max-width:520px;width:calc(100% - 24px);padding:22px !important;display:flex;flex-direction:column;gap:12px;text-align:start;max-height:92vh;overflow:auto;background:var(--dh-surface-1) !important;color:var(--dh-ink) !important;border-radius:20px !important}
+#add-modal h2{margin:0 !important;font-size:1.5rem !important;text-align:center;color:var(--dh-ink) !important;text-shadow:none !important}
+#add-modal label{display:block;font-size:.85rem;font-weight:700;color:var(--dh-ink-soft) !important;margin-bottom:3px}
+#add-modal input,#add-modal select{width:100%;border:1.5px solid var(--dh-border-strong) !important;background:var(--dh-surface-3) !important;color:var(--dh-ink) !important;border-radius:12px !important;padding:10px 12px !important;min-height:46px;margin:0}
+#add-modal .seg{display:flex;gap:8px}
+#add-modal .seg button{flex:1;border:2px solid var(--dh-border-strong);border-radius:12px;padding:9px;font-weight:700;background:var(--dh-surface-3);color:var(--dh-ink);margin:0;min-width:0;cursor:pointer;box-shadow:none}
+#add-modal .seg button.on{border-color:var(--dh-gold-500);background:var(--dh-warn-bg)}
+#add-modal .dots2{display:flex;justify-content:center;gap:6px}
+#add-modal .dots2 i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:.85rem;border:2px solid var(--dh-border);color:var(--dh-ink-soft)}
+#add-modal .dots2 i.on{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+#add-modal .nav{display:flex;gap:8px}#add-modal .nav>*{flex:1}
+#add-modal .nbtn{border:0;border-radius:12px;padding:11px;font-weight:700;min-height:var(--dh-tap);cursor:pointer;margin:0;min-width:0;font-size:1rem;box-shadow:none}
+#add-modal .nbtn.gold{background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold)}
+#add-modal .nbtn.em{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#add-modal .nbtn.line{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong)}
+#add-modal .nbtn.ghost{background:none;color:var(--dh-ink-soft)}
+
+/* شريط المعاينة السفلي (ليس جزءًا من المنصة) + رسالة */
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center}
+.pv-toast{position:fixed;bottom:56px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
+.pv-toast.on{opacity:1}
+body{padding-bottom:70px}
+@media(max-width:480px){#app-root #ms-screen{padding:16px 12px !important}#app-root #ms-screen .ms-quick{grid-template-columns:repeat(2,minmax(0,1fr))}#app-root #ms-screen .ms-now{flex-wrap:wrap}#app-root #ms-screen .ms-now-go{width:100%}#app-root #ms-screen .ms-act{grid-template-columns:1fr 1fr}#app-root #ms-screen .ms-act .ms-btn:first-child{grid-column:1/-1}}
 </style>
 </head>
-<body>
+<body class="adult-theme" id="main-body">
 
-<div class="pv"><div class="wrap">
-  <b data-i="pv_note"></b>
-  <button id="bLang"></button><button id="bTheme"></button>
-</div></div>
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
 
-<header class="top"><div class="wrap">
-  <div class="logo">ه</div><h1 data-i="platform"></h1>
-  <span class="pill" data-i="h_home"></span><span class="pill" data-i="h_acc"></span>
-</div></header>
+<div id="app-root"></div>
 
-<main class="wrap" id="main"></main>
+<div class="modal-overlay" id="add-modal"><div class="modal-content as-add" id="addBox"></div></div>
+<div class="pv-toast" id="toast"></div>
+<div class="pv-bar" id="pvBar"></div>
 
-<div class="ov" id="ovAdd"><div class="modal" id="addBox"></div></div>
-<div class="toast" id="toast"></div>
-
+<script src="../core/brandLogo.js"></script>
 <script>
 /* ===== اللغتان (نفس مبدأ المنصة: كل نص بالعربية والإنجليزية معًا) ===== */
 const T={
-ar:{pv_note:'معاينة تصميم مقترح لركن «طلابي» — بيانات تجريبية، لا تمس المنصة الحالية. جرّب كل الأزرار.',platform:'دار الهمم',h_home:'الرئيسية',h_acc:'حسابي',
+ar:{pv_note:'معاينة لتصميم مقترح لركن «طلابي» — بيانات تجريبية، لا تمس المنصة الحالية',header_title:'🏆 رحلة إتقان القرآن',header_sub:'منصة حمٓ',h_home:'الرئيسية',
  title:'طلابي',sub:'كل ما يخص طلابك في مكان واحد',back:'رجوع',
- now_k:'المطلوب الآن',now_t:'٣ طلاب بانتظار تسجيل أين توقفوا هذا الشهر',now_go:'ابدأ التسجيل',
- now_ok:'كل شيء جاهز ✓ لا يوجد مطلوب منك الآن',
+ now_k:'المطلوب الآن',now_go:'ابدأ التسجيل',now_ok:'كل شيء جاهز ✓ لا يوجد مطلوب منك الآن',
  q_add:'طالب جديد',q_memo:'تسجيل الحفظ',q_rep:'تقرير شهري',q_find:'فتح ملف طالب',
  t_students:'الطلاب',t_month:'هذا الشهر',t_sched:'الحصص والحضور',
  search:'ابحث باسم الطالب…',add:'➕ طالب جديد',f_all:'الكل',f_wait:'بانتظار الحفظ',f_hid:'المخفيون',
@@ -212,10 +227,9 @@ ar:{pv_note:'معاينة تصميم مقترح لركن «طلابي» — بي
  toast:'في المنصة الفعلية: ',
  lg_t:'ما الذي تغيّر عن الشكل الحالي؟',
  lg:['«المطلوب الآن» في أعلى الشاشة: يدلّ المعلم على أول خطوة بدل أن يخمّن.','أربعة اختصارات للمهام الأكثر استعمالًا (طالب جديد، حفظ، تقرير، فتح ملف).','ثلاثة تبويبات فقط بدل ست مساحات متفرقة: الطلاب · هذا الشهر · الحصص.','زر «طالب جديد» واحد (كان في مكانين).','«هذا الشهر» مرتّب كخطوتين: ١) الحفظ ثم ٢) التقارير، مع عدّاد تقدّم.','ملف الطالب: إجراء رئيسي واحد (بدء تقييم) وأربعة أقسام بدل صفحة طويلة.','كل الألوان من رموز الهوية فتعمل في المظهر الداكن، واللغتان والاتجاه مدعومان.']},
-en:{pv_note:'Design proposal preview for the "My Students" corner — sample data, does not touch the live platform. Try every button.',platform:'Dar Al-Himam',h_home:'Home',h_acc:'My account',
+en:{pv_note:'Preview of a proposed "My Students" corner — sample data, does not touch the live platform',header_title:'🏆 Quran Mastery Journey',header_sub:'Ham Platform',h_home:'Home',
  title:'My Students',sub:'Everything about your students in one place',back:'Back',
- now_k:'Needed now',now_t:'3 students are waiting for this month\'s stopping point',now_go:'Start recording',
- now_ok:'All set ✓ nothing needed from you right now',
+ now_k:'Needed now',now_go:'Start recording',now_ok:'All set ✓ nothing needed from you right now',
  q_add:'New student',q_memo:'Record memorization',q_rep:'Monthly report',q_find:'Open a student file',
  t_students:'Students',t_month:'This month',t_sched:'Schedule & attendance',
  search:'Search by student name…',add:'➕ New student',f_all:'All',f_wait:'Awaiting memorization',f_hid:'Hidden',
@@ -244,128 +258,142 @@ en:{pv_note:'Design proposal preview for the "My Students" corner — sample dat
  lg_t:'What changed from the current layout?',
  lg:['"Needed now" at the top: tells the teacher the first step instead of guessing.','Four shortcuts for the most common tasks (new student, memorization, report, open a file).','Three tabs instead of six scattered areas: Students · This month · Schedule.','One "New student" button (it used to exist in two places).','"This month" is two clear steps: 1) memorization, then 2) reports, with progress.','Student file: one main action (Start evaluation) and four sections instead of one long page.','All colors come from identity tokens so dark mode works; both languages and directions supported.']}
 };
-const S={lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0,pendingDone:false};
+const S={lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0};
 const L=k=>T[S.lang][k];
 const STU=[
- {n:{ar:'أحمد محمد علي',en:'Ahmed Mohamed Ali'},g:{ar:'الثالث الابتدائي',en:'3rd Primary'},st:'wait',i:'أ'},
- {n:{ar:'يوسف خالد سعيد',en:'Yousef Khaled Saeed'},g:{ar:'الخامس الابتدائي',en:'5th Primary'},st:'wait',i:'ي'},
- {n:{ar:'مريم عبدالله حسن',en:'Maryam Abdullah Hassan'},g:{ar:'الأول الإعدادي',en:'1st Prep'},st:'wait',i:'م'},
- {n:{ar:'عمر إبراهيم فتحي',en:'Omar Ibrahim Fathy'},g:{ar:'الرابع الابتدائي',en:'4th Primary'},st:'done',i:'ع'},
- {n:{ar:'فاطمة أحمد نصر',en:'Fatima Ahmed Nasr'},g:{ar:'الثاني الإعدادي',en:'2nd Prep'},st:'done',i:'ف'},
- {n:{ar:'خالد حسام الدين',en:'Khaled Hossam El-Din'},g:{ar:'الأول الثانوي',en:'1st Secondary'},st:'open',i:'خ'}
+ {n:{ar:'أحمد محمد علي',en:'Ahmed Mohamed Ali'},g:{ar:'الثالث الابتدائي',en:'3rd Primary'},st:'wait',i:{ar:'أ',en:'A'}},
+ {n:{ar:'يوسف خالد سعيد',en:'Yousef Khaled Saeed'},g:{ar:'الخامس الابتدائي',en:'5th Primary'},st:'wait',i:{ar:'ي',en:'Y'}},
+ {n:{ar:'مريم عبدالله حسن',en:'Maryam Abdullah Hassan'},g:{ar:'الأول الإعدادي',en:'1st Prep'},st:'wait',i:{ar:'م',en:'M'}},
+ {n:{ar:'عمر إبراهيم فتحي',en:'Omar Ibrahim Fathy'},g:{ar:'الرابع الابتدائي',en:'4th Primary'},st:'done',i:{ar:'ع',en:'O'}},
+ {n:{ar:'فاطمة أحمد نصر',en:'Fatima Ahmed Nasr'},g:{ar:'الثاني الإعدادي',en:'2nd Prep'},st:'done',i:{ar:'ف',en:'F'}},
+ {n:{ar:'خالد حسام الدين',en:'Khaled Hossam El-Din'},g:{ar:'الأول الثانوي',en:'1st Secondary'},st:'open',i:{ar:'خ',en:'K'}}
 ];
-const ic={back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
- chev:'<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>'};
+const svg=(p,s=24)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const ic={
+ back:svg('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',22),
+ chev:'<svg class="ms-chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>',
+ add:svg('<circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><line x1="19" y1="7" x2="19" y2="13"/><line x1="22" y1="10" x2="16" y2="10"/>'),
+ memo:svg('<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>'),
+ rep:svg('<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/>'),
+ find:svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>')};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const waitCount=()=>STU.filter(s=>s.st==='wait').length;
+const root=document.getElementById('app-root');
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)}
 const real=a=>toast(L('toast')+a);
 
 function stuRow(s,idx){
-  const tg=s.st==='wait'?`<span class="tag wait">${L('s_wait')}</span>`:s.st==='done'?`<span class="tag done">${L('s_done')}</span>`:`<span class="tag open">${L('s_open')}</span>`;
-  return `<div style="display:flex;gap:4px;align-items:center"><button class="row" data-open="${idx}"><span class="av">${s.i}</span><span class="nm"><b>${esc(s.n[S.lang])}</b><small>${esc(s.g[S.lang])}</small></span>${tg}${ic.chev}</button>
-  <div class="menu ${S.menu===idx?'open':''}"><button class="dots" data-menu="${idx}" aria-label="⋯">⋯</button><div class="pop"><button data-real="${L('m_eval')}">${L('m_eval')}</button><button data-real="${L('m_edit')}">${L('m_edit')}</button><button data-real="${L('m_hide')}">${L('m_hide')}</button><button class="dng" data-real="${L('m_del')}">${L('m_del')}</button></div></div></div>`;
+  const tg=s.st==='wait'?`<span class="ms-tag wait">${L('s_wait')}</span>`:s.st==='done'?`<span class="ms-tag done">${L('s_done')}</span>`:`<span class="ms-tag open">${L('s_open')}</span>`;
+  return `<div class="ms-line"><button type="button" class="ms-row" data-open="${idx}"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang])}</b><small>${esc(s.g[S.lang])}</small></span>${tg}${ic.chev}</button>
+  <div class="ms-menu ${S.menu===idx?'open':''}"><button type="button" class="ms-dots" data-menu="${idx}" aria-label="⋯">⋯</button><div class="ms-pop"><button type="button" data-real="${L('m_eval')}">${L('m_eval')}</button><button type="button" data-real="${L('m_edit')}">${L('m_edit')}</button><button type="button" data-real="${L('m_hide')}">${L('m_hide')}</button><button type="button" class="dng" data-real="${L('m_del')}">${L('m_del')}</button></div></div></div>`;
 }
-
 function paneStudents(){
   const q=S.q.trim().toLowerCase();
-  const list=STU.map((s,i)=>[s,i]).filter(([s])=>(S.filter==='all'||(S.filter==='wait'&&s.st==='wait')||(S.filter==='hid'&&false))&&(!q||s.n[S.lang].toLowerCase().includes(q)));
-  return `<div class="tools"><input class="search" id="search" placeholder="${L('search')}" value="${esc(S.q)}"><button class="btn gold" data-act="add">${L('add')}</button></div>
-  <div class="chips"><button class="chip ${S.filter==='all'?'on':''}" data-f="all">${L('f_all')} (${STU.length})</button><button class="chip ${S.filter==='wait'?'on':''}" data-f="wait">${L('f_wait')} (${waitCount()})</button><button class="chip" data-f="hid">${L('f_hid')} (0)</button></div>
-  <div class="list">${list.map(([s,i])=>stuRow(s,i)).join('')||'<p class="hint">—</p>'}</div>
-  <p class="hint">${L('hint_row')}</p>
-  <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--soft);font-weight:600">${L('tools')}</summary><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn line" data-real="${L('tl_exp')}">${L('tl_exp')}</button><button class="btn line" data-real="${L('tl_imp')}">${L('tl_imp')}</button></div></details>`;
+  const list=STU.map((s,i)=>[s,i]).filter(([s])=>(S.filter==='all'||(S.filter==='wait'&&s.st==='wait'))&&(!q||s.n[S.lang].toLowerCase().includes(q)));
+  return `<div class="ms-tools"><input type="search" class="ms-search" id="search" placeholder="${L('search')}" value="${esc(S.q)}"><button type="button" class="ms-btn gold" data-act="add">${L('add')}</button></div>
+  <div class="ms-chips"><button type="button" class="ms-chip ${S.filter==='all'?'on':''}" data-f="all">${L('f_all')} (${STU.length})</button><button type="button" class="ms-chip ${S.filter==='wait'?'on':''}" data-f="wait">${L('f_wait')} (${waitCount()})</button><button type="button" class="ms-chip" data-f="hid">${L('f_hid')} (0)</button></div>
+  <div class="ms-list">${list.map(([s,i])=>stuRow(s,i)).join('')||'<p class="ms-hint">—</p>'}</div>
+  <p class="ms-hint">${L('hint_row')}</p>
+  <details><summary>${L('tools')}</summary><div class="ms-tools" style="margin-top:8px"><button type="button" class="ms-btn line" data-real="${L('tl_exp')}">${L('tl_exp')}</button><button type="button" class="ms-btn line" data-real="${L('tl_imp')}">${L('tl_imp')}</button></div></details>`;
 }
 function paneMonth(){
   const w=STU.filter(s=>s.st==='wait');
-  return `<p class="hint" style="margin:0 0 10px;font-weight:700">${L('month')}</p>
-  <div class="step ${waitCount()?'':'done'}"><span class="no">1</span><div class="bd"><h3>${L('st1_t')}</h3><p>${L('st1_p')}</p>
-   <div class="bar"><i style="width:${waitCount()?75:100}%"></i></div>
-   ${waitCount()?`<div class="mini"><b style="font-size:.82rem;color:var(--soft)">${L('waiting')}</b>${w.map(s=>`<span>${esc(s.n[S.lang].split(' ')[0])}</span>`).join('')}</div>`:''}
-   <button class="btn em" data-real="${L('st1_b')}">${L('st1_b')}</button> <small style="color:var(--soft);margin-inline-start:8px">${L('st1_c')}</small></div></div>
-  <div class="step"><span class="no">2</span><div class="bd"><h3>${L('st2_t')}</h3><p>${L('st2_p')}</p>
-   <div class="bar"><i style="width:42%"></i></div>
-   <button class="btn em" data-real="${L('st2_b')}">${L('st2_b')}</button> <small style="color:var(--soft);margin-inline-start:8px">${L('st2_c')}</small></div></div>`;
+  return `<p class="ms-hint" style="font-weight:700">${L('month')}</p>
+  <div class="ms-step ${waitCount()?'':'done'}"><span class="no">1</span><div class="bd"><h3>${L('st1_t')}</h3><p>${L('st1_p')}</p>
+   <div class="ms-bar"><i style="width:${waitCount()?75:100}%"></i></div>
+   ${waitCount()?`<div class="ms-mini"><b style="font-size:.82rem;color:var(--dh-ink-soft)">${L('waiting')}</b>${w.map(s=>`<span>${esc(s.n[S.lang].split(' ')[0])}</span>`).join('')}</div>`:''}
+   <button type="button" class="ms-btn em" data-real="${L('st1_b')}">${L('st1_b')}</button> <small style="color:var(--dh-ink-soft);margin-inline-start:8px">${L('st1_c')}</small></div></div>
+  <div class="ms-step"><span class="no">2</span><div class="bd"><h3>${L('st2_t')}</h3><p>${L('st2_p')}</p>
+   <div class="ms-bar"><i style="width:42%"></i></div>
+   <button type="button" class="ms-btn em" data-real="${L('st2_b')}">${L('st2_b')}</button> <small style="color:var(--dh-ink-soft);margin-inline-start:8px">${L('st2_c')}</small></div></div>`;
 }
 function paneSched(){
   const d=L('days'),on=[1,0,1,0,1,0,0];
-  return `<div class="sched"><span>${L('sc_time')}</span><button class="btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
-  <div class="list">${STU.slice(0,4).map((s,i)=>`<div class="row" style="cursor:default"><span class="av">${s.i}</span><span class="nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button class="btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
+  return `<div class="ms-sched"><span>${L('sc_time')}</span><button type="button" class="ms-btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
+  <div class="ms-list">${STU.slice(0,4).map((s,i)=>`<div class="ms-row static"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="ms-days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button type="button" class="ms-btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
 }
+function legend(){return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${L('lg').map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 
 function hub(){
   const n=waitCount();
-  const now=n?`<div class="now"><span class="ic">📖</span><span class="tx"><small>${L('now_k')}</small><b>${S.lang==='ar'?`${n} طلاب بانتظار تسجيل أين توقفوا هذا الشهر`:`${n} students are waiting for this month's stopping point`}</b></span><button class="go" data-act="tabMonth">${L('now_go')}</button></div>`
-   :`<div class="now clear"><span class="ic">✅</span><span class="tx"><b>${L('now_ok')}</b></span></div>`;
-  return `<div class="head"><button class="back" aria-label="${L('back')}">${ic.back}</button><h2>${L('title')}<span class="sub">${L('sub')}</span></h2></div>
+  const now=n?`<div class="ms-now"><span class="ms-now-ic">📖</span><span class="ms-now-tx"><small>${L('now_k')}</small><b>${S.lang==='ar'?`${n} طلاب بانتظار تسجيل أين توقفوا هذا الشهر`:`${n} students are waiting for this month's stopping point`}</b></span><button type="button" class="ms-now-go" data-act="tabMonth">${L('now_go')}</button></div>`
+   :`<div class="ms-now is-clear"><span class="ms-now-ic">✅</span><span class="ms-now-tx"><b>${L('now_ok')}</b></span></div>`;
+  return `<div class="ms-head"><button type="button" class="ms-back" data-back="1" aria-label="${L('back')}">${ic.back}</button><div class="ms-titles"><h1 class="ms-title">${L('title')}<small>${L('sub')}</small></h1></div></div>
   ${now}
-  <div class="quick"><button class="q main" data-act="add"><i>➕</i>${L('q_add')}</button><button class="q" data-act="tabMonth"><i>📖</i>${L('q_memo')}</button><button class="q" data-act="tabMonth"><i>📄</i>${L('q_rep')}</button><button class="q" data-act="find"><i>🔍</i>${L('q_find')}</button></div>
-  <div class="tabs" role="tablist">
-   <button class="tab ${S.tab==='students'?'on':''}" data-tab="students">${L('t_students')}</button>
-   <button class="tab ${S.tab==='month'?'on':''}" data-tab="month">${L('t_month')}${n?`<span class="n">${n}</span>`:''}</button>
-   <button class="tab ${S.tab==='sched'?'on':''}" data-tab="sched">${L('t_sched')}</button></div>
-  ${S.tab==='students'?paneStudents():S.tab==='month'?paneMonth():paneSched()}`;
+  <div class="ms-quick"><button type="button" class="ms-q is-main" data-act="add">${ic.add}${L('q_add')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.memo}${L('q_memo')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.rep}${L('q_rep')}</button><button type="button" class="ms-q" data-act="find">${ic.find}${L('q_find')}</button></div>
+  <div class="ms-tabs" role="tablist">
+   <button type="button" class="ms-tab ${S.tab==='students'?'on':''}" data-tab="students">${L('t_students')}</button>
+   <button type="button" class="ms-tab ${S.tab==='month'?'on':''}" data-tab="month">${L('t_month')}${n?`<span class="n">${n}</span>`:''}</button>
+   <button type="button" class="ms-tab ${S.tab==='sched'?'on':''}" data-tab="sched">${L('t_sched')}</button></div>
+  ${S.tab==='students'?paneStudents():S.tab==='month'?paneMonth():paneSched()}
+  ${legend()}`;
 }
-
 function profile(){
   const s=STU[S.prof],sec={
-   over:`<div class="todo"><span>🛠️ ${L('p_todo')}</span><button class="btn gold" data-real="${L('p_fix')}">${L('p_fix')}</button></div>
-     <div class="card"><p><b>${L('ov_memo')}:</b> ${L('ov_memo_v')}</p><p style="margin-top:6px"><b>${L('ov_par')}:</b> <span dir="ltr">${L('ov_par_v')}</span></p></div>`,
-   prog:['pg_skill','pg_sim','pg_taj','pg_arch'].map(k=>`<div class="row" data-real="${L(k)}"><span class="nm"><b>${L(k)}</b></span>${ic.chev}</div>`).join('<div style="height:8px"></div>'),
-   badge:`<div class="card" style="margin-bottom:10px"><b>${L('pb_cab')}</b><div class="badges" style="margin-top:8px"><span>🏅 ٣ أجزاء</span><span>🌟 الأحقاف</span><span>📅 حضور</span></div></div><div class="card" style="margin-bottom:10px"><b>${L('pb_sched')}</b><div class="days" style="margin-top:6px">${L('days').map((x,k)=>`<i class="${[1,0,1,0,1,0,0][k]?'':'off'}">${x}</i>`).join('')}</div></div><div class="card"><b>${L('pb_dual')}</b><div class="badges" style="margin-top:8px"><span>⚔️ ٢</span></div></div>`,
-   hist:`<div class="card"><table class="hist"><tr><th>${L('h_date')}</th><th>${L('h_range')}</th><th>${L('h_pct')}</th></tr><tr><td>١٢/١٠</td><td>${S.lang==='ar'?'الأحقاف':'Al-Ahqaf'}</td><td>٩٢٪</td></tr><tr><td>٠٥/١٠</td><td>${S.lang==='ar'?'الجاثية':'Al-Jathiyah'}</td><td>٨٨٪</td></tr></table></div>`};
-  return `<div class="head"><button class="back" id="pback" aria-label="${L('back')}">${ic.back}</button><h2>${esc(s.n[S.lang])}<span class="sub">${esc(s.g[S.lang])}</span></h2></div>
-  <div class="act"><button class="btn gold" data-real="${L('p_eval')}">${L('p_eval')}</button><button class="btn line" data-real="${L('p_edit')}">${L('p_edit')}</button><button class="btn line" data-real="${L('p_rep')}">${L('p_rep')}</button></div>
-  <div class="stats"><div class="stat"><b>٣٤٠</b><small>${L('ps_pts')}</small></div><div class="stat"><b>١٧</b><small>${L('ps_ev')}</small></div><div class="stat"><b>٢</b><small>${L('ps_win')}</small></div></div>
-  <div class="sub-tabs">${['over','prog','badge','hist'].map(k=>`<button class="chip ${S.sub===k?'on':''}" data-sub="${k}">${L('pt_'+k)}</button>`).join('')}</div>
-  <div>${sec[S.sub]}</div>`;
+   over:`<div class="ms-todo"><span>🛠️ ${L('p_todo')}</span><button type="button" class="ms-btn gold" data-real="${L('p_fix')}">${L('p_fix')}</button></div>
+     <div class="ms-card2"><p style="margin:0"><b>${L('ov_memo')}:</b> ${L('ov_memo_v')}</p><p style="margin:6px 0 0"><b>${L('ov_par')}:</b> <span dir="ltr">${L('ov_par_v')}</span></p></div>`,
+   prog:['pg_skill','pg_sim','pg_taj','pg_arch'].map(k=>`<button type="button" class="ms-row" data-real="${L(k)}" style="margin-bottom:8px"><span class="ms-nm"><b>${L(k)}</b></span>${ic.chev}</button>`).join(''),
+   badge:`<div class="ms-card2"><b>${L('pb_cab')}</b><div class="ms-badges"><span>🏅 ${S.lang==='ar'?'٣ أجزاء':'3 juz'}</span><span>🌟 ${S.lang==='ar'?'الأحقاف':'Al-Ahqaf'}</span><span>📅 ${S.lang==='ar'?'حضور':'Attendance'}</span></div></div><div class="ms-card2"><b>${L('pb_sched')}</b><div class="ms-days" style="margin-top:6px">${L('days').map((x,k)=>`<i class="${[1,0,1,0,1,0,0][k]?'':'off'}">${x}</i>`).join('')}</div></div><div class="ms-card2"><b>${L('pb_dual')}</b><div class="ms-badges"><span>⚔️ 2</span></div></div>`,
+   hist:`<div class="ms-card2"><table class="ms-hist"><tr><th>${L('h_date')}</th><th>${L('h_range')}</th><th>${L('h_pct')}</th></tr><tr><td>12/10</td><td>${S.lang==='ar'?'الأحقاف':'Al-Ahqaf'}</td><td>92%</td></tr><tr><td>05/10</td><td>${S.lang==='ar'?'الجاثية':'Al-Jathiyah'}</td><td>88%</td></tr></table></div>`};
+  return `<div class="ms-head"><button type="button" class="ms-back" id="pback" aria-label="${L('back')}">${ic.back}</button><div class="ms-titles"><h1 class="ms-title">${esc(s.n[S.lang])}<small>${esc(s.g[S.lang])}</small></h1></div></div>
+  <div class="ms-act"><button type="button" class="ms-btn gold" data-real="${L('p_eval')}">${L('p_eval')}</button><button type="button" class="ms-btn line" data-real="${L('p_edit')}">${L('p_edit')}</button><button type="button" class="ms-btn line" data-real="${L('p_rep')}">${L('p_rep')}</button></div>
+  <div class="ms-stats"><div class="ms-stat"><b>340</b><small>${L('ps_pts')}</small></div><div class="ms-stat"><b>17</b><small>${L('ps_ev')}</small></div><div class="ms-stat"><b>2</b><small>${L('ps_win')}</small></div></div>
+  <div class="ms-subtabs">${['over','prog','badge','hist'].map(k=>`<button type="button" class="ms-chip ${S.sub===k?'on':''}" data-sub="${k}">${L('pt_'+k)}</button>`).join('')}</div>
+  <div>${sec[S.sub]}</div>
+  ${legend()}`;
 }
-
 function addModal(){
   const st=S.step,tt=['a_s1','a_s2','a_s3'];
-  const body=[`<div><label>${L('a_name')}</label><input></div><div><label>${L('a_gender')}</label><div class="seg"><button class="on">${L('a_boy')}</button><button>${L('a_girl')}</button></div></div>`,
+  const body=[`<div><label>${L('a_name')}</label><input type="text"></div><div><label>${L('a_gender')}</label><div class="seg"><button type="button" class="on">${L('a_boy')}</button><button type="button">${L('a_girl')}</button></div></div>`,
    `<div><label>${L('a_grade')}</label><select><option>—</option></select></div><div><label>${L('a_dob')}</label><div style="display:grid;grid-template-columns:.8fr 1.3fr 1fr;gap:6px"><select><option>—</option></select><select><option>—</option></select><select><option>—</option></select></div></div>`,
-   `<div><label>${L('a_phone')}</label><input inputmode="tel"></div><div><label>${L('a_memo')}</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><select><option>${S.lang==='ar'?'الناس':'An-Nas'}</option></select><select><option>—</option></select></div></div>`][st];
-  document.getElementById('addBox').innerHTML=`<h3>${L('a_title')}</h3><div class="dots2">${[0,1,2].map(i=>`<i class="${i<=st?'on':''}">${i+1}</i>`).join('')}</div><p class="hint" style="text-align:center;margin:0">${L(tt[st])}</p>${body}
-   <div class="nav">${st?`<button class="btn line" data-a="prev">${L('a_prev')}</button>`:''}${st<2?`<button class="btn em" data-a="next">${L('a_next')}</button>`:`<button class="btn gold" data-a="save">${L('a_save')}</button>`}</div>
-   <button class="btn" style="color:var(--soft)" data-a="cancel">${L('a_cancel')}</button>`;
+   `<div><label>${L('a_phone')}</label><input type="text" inputmode="tel"></div><div><label>${L('a_memo')}</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><select><option>${S.lang==='ar'?'الناس':'An-Nas'}</option></select><select><option>—</option></select></div></div>`][st];
+  document.getElementById('addBox').innerHTML=`<h2>${L('a_title')}</h2><div class="dots2">${[0,1,2].map(i=>`<i class="${i<=st?'on':''}">${i+1}</i>`).join('')}</div><p class="ms-hint" style="text-align:center;margin:0">${L(tt[st])}</p>${body}
+   <div class="nav">${st?`<button type="button" class="nbtn line" data-a="prev">${L('a_prev')}</button>`:''}${st<2?`<button type="button" class="nbtn em" data-a="next">${L('a_next')}</button>`:`<button type="button" class="nbtn gold" data-a="save">${L('a_save')}</button>`}</div>
+   <button type="button" class="nbtn ghost" data-a="cancel">${L('a_cancel')}</button>`;
 }
-
+function syncChrome(){
+  const h=document.documentElement;h.lang=S.lang;h.dir=S.lang==='ar'?'rtl':'ltr';
+  document.getElementById('header-title').textContent=L('header_title');
+  document.getElementById('top-student-name').textContent=L('header_sub');
+  document.getElementById('hdr-home').textContent=L('h_home');
+  document.querySelectorAll('#lang-toggle-btn .lb-opt').forEach((e,i)=>e.classList.toggle('is-on',(i===0)===(S.lang==='ar')));
+  document.getElementById('pvBar').textContent=L('pv_note');
+}
 function render(){
-  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
-  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=L(e.dataset.i));
-  document.getElementById('bLang').textContent=S.lang==='ar'?'English':'العربية';
-  document.getElementById('bTheme').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙';
-  document.getElementById('main').innerHTML=(S.prof===null?hub():profile())+
-   `<div class="legend"><h4>${L('lg_t')}</h4><ul>${L('lg').map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
-  if(document.getElementById('ovAdd').classList.contains('on'))addModal();
+  syncChrome();
+  root.innerHTML=`<div class="screen active"><div class="login-container" id="ms-screen">${S.prof===null?hub():profile()}</div></div>`;
+  if(document.getElementById('add-modal').style.display==='flex')addModal();
   const si=document.getElementById('search');if(si&&S.keepFocus){si.focus();si.setSelectionRange(si.value.length,si.value.length);S.keepFocus=false}
 }
 document.addEventListener('click',e=>{
-  const t=e.target.closest('button,.row');if(!t)return;
-  if(!t.closest('.menu')&&S.menu!==null){S.menu=null;}
-  if(t.id==='bLang'){S.lang=S.lang==='ar'?'en':'ar';return render()}
-  if(t.id==='bTheme'){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';return render()}
+  const t=e.target.closest('button,.ms-row');if(!t)return;
+  if(t.id==='lang-toggle-btn'){S.lang=S.lang==='ar'?'en':'ar';return render()}
+  if(t.id==='theme-toggle-btn'){window.DHTheme&&window.DHTheme.cycle();return paintTheme()}
+  if(t.id==='header-home-btn'||t.id==='header-account-btn')return real(t.title);
+  if(!t.closest('.ms-menu')&&S.menu!==null){S.menu=null;render()}
   if(t.dataset.tab){S.tab=t.dataset.tab;return render()}
   if(t.dataset.f){S.filter=t.dataset.f;return render()}
   if(t.dataset.sub){S.sub=t.dataset.sub;return render()}
   if(t.dataset.open!==undefined){S.prof=+t.dataset.open;S.sub='over';window.scrollTo(0,0);return render()}
   if(t.id==='pback'){S.prof=null;return render()}
-  if(t.classList.contains('back')){return real(L('back'))}
+  if(t.dataset.back)return real(L('back'));
   if(t.dataset.menu!==undefined){const i=+t.dataset.menu;S.menu=S.menu===i?null:i;return render()}
   if(t.dataset.real){S.menu=null;render();return real(t.dataset.real)}
   if(t.dataset.act==='tabMonth'){S.tab='month';return render()}
-  if(t.dataset.act==='find'){S.tab='students';S.keepFocus=true;render();return}
-  if(t.dataset.act==='add'){S.step=0;document.getElementById('ovAdd').classList.add('on');return addModal()}
+  if(t.dataset.act==='find'){S.tab='students';S.keepFocus=true;return render()}
+  if(t.dataset.act==='add'){S.step=0;document.getElementById('add-modal').style.display='flex';return addModal()}
   if(t.dataset.a){const a=t.dataset.a;
     if(a==='next')S.step++;else if(a==='prev')S.step--;
-    else{document.getElementById('ovAdd').classList.remove('on');if(a==='save')toast(L('a_saved'));return}
+    else{document.getElementById('add-modal').style.display='none';if(a==='save')toast(L('a_saved'));return}
     return addModal()}
-  if(S.menu!==null)render();
 });
 document.addEventListener('input',e=>{if(e.target.id==='search'){S.q=e.target.value;S.keepFocus=true;render()}});
-render();
+/* أيقونة المظهر كما في core/theme.js */
+const TI={auto:'<path d="M12 3a9 9 0 1 0 0 18V3z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',dark:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'};
+function paintTheme(){const p=window.DHTheme?window.DHTheme.get():'auto';const s=document.querySelector('#theme-toggle-btn svg');if(s)s.innerHTML=TI[p]||TI.auto}
+document.addEventListener('app-theme-changed',paintTheme);
+paintTheme();render();
 </script>
 </body>
 </html>
