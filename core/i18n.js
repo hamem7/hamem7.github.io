@@ -6298,6 +6298,7 @@ export const translations = {
         "طابق بداية كل آية بنهايتها الصحيحة 🔗:": "Match the beginning of each ayah with its correct ending 🔗:",
         "اضغط على بداية من العمود الأول، ثم على نهايتها المطابقة من العمود الثاني:": "Tap a beginning from the first column, then its matching ending from the second column:",
         "اكتب الآيات الثلاث المتتالية ابتداءً من قوله تعالى:": "Write the three consecutive ayahs starting from the words of Allah:",
+        "ما الحكم التجويدي للكلمة المظلّلة في الآية؟": "What is the Tajweed rule of the highlighted word in the ayah?",
         "يحتاج تصحيح": "Needs grading",
         "⏳ بانتظار التصحيح": "⏳ Awaiting grading",
         "مراجعة وتصحيح": "Review & grade",
@@ -6791,6 +6792,10 @@ export function localizeHomeworkText(text) {
     if ((m = s.match(/^سورة\s+(.+)$/))) return 'Surah ' + surahNameLocal(m[1].trim());
     if ((m = s.match(/^حدد كل الآيات التي تنتمي إلى \(سورة (.+)\) ☑️:$/))) return 'Select all the ayahs that belong to (Surah ' + surahNameLocal(m[1].trim()) + ') ☑️:';
     if ((m = s.match(/^رتب الآيات التالية لتكوين المقطع القرآني الصحيح \(من 1 إلى (\d+)\): \*$/))) return 'Arrange the following ayahs to form the correct Quranic passage (from 1 to ' + m[1] + '): *';
+    // 🌟 سؤال تجويد مسحوب من ملف الطالب: «قيل لك في درس التجويد: «الشرح» — ما اسم هذا الحكم؟» ← الشرح نفسه مترجَم من قاموس الأحكام
+    if ((m = s.match(/^قيل لك في درس التجويد: «(.+)» — ما اسم هذا الحكم؟$/))) {
+        return 'You were taught in the Tajweed lesson: «' + trStored(m[1]) + '» — What is the name of this rule?';
+    }
     // نص فيه تعليمات ثم <br> ثم آية: نترجم التعليمات فقط ونترك الآية كما هي
     const i = s.indexOf('<br>');
     if (i > 0) { const head = s.slice(0, i); const th = trStored(head); if (th !== head) return th + s.slice(i); }

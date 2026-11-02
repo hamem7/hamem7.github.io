@@ -20,6 +20,7 @@ import { HW_FORMATS } from '../engine/skillMap.js';
 import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
 import { buildHomeworkSimilarityQuestion } from '../engine/similarityEngine.js';
 import { ensureSimilarityQuran } from '../engine/similarityQuestions.js';
+import { buildTajweedHomeworkProfile } from './tajweedHomeworkProfile.js';
 import { readStudentHistory } from './homeworkRecords.js';
 import { fetchHomeworkFull } from './homeworkApi.js';
 
@@ -482,6 +483,10 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
     if (!plan.items.length) return { ok: false, reason: 'empty', ctx };
 
     const questions = [], tracking = {}, why = [];
+    // 🌟 أسئلة التجويد تُسحب من ملف التجويد للطالب (الأحكام التي شُرحت له) فقط إن كانت الخطة تحوي سؤال تجويد
+    const prevProfile = hwEngine.tajweedProfile;
+    hwEngine.tajweedProfile = plan.items.some(it => it.fmt === 'tajweed_extract') ? await buildTajweedHomeworkProfile(student, pool, { rng }) : null;
+    try {
     for (const item of plan.items) {
         const all = bySeg.get(item.seg.id) || [];
         const long = all.filter(a => wordsCount(a) > 3);
@@ -500,6 +505,7 @@ export async function planSmartHomework(student, n, { selection = { mode: 'all' 
         questions.push(built.question);
         why.push(meta);
     }
+    } finally { hwEngine.tajweedProfile = prevProfile || null; }
     const scopeSegIds = scopeSegs.map(s => s.id);
     if (questions.length) questions.push(...simQs);
     return {

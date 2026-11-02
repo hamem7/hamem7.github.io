@@ -2,6 +2,7 @@
 import { cleanAyahText, isWaqfMark, splitAyahWords, shortMeaning, verseFormOfWord } from './quranEngine.js';
 import { loadWordMeaningsEn, distinctInEnglish } from './wordMeaningData.js';
 import { HW_FORMATS } from './skillMap.js';
+import { buildTajweedHomeworkQuestion } from './tajweedHomework.js';
 
 // ==========================================
 // 🌟🌟 فلترة علامات الوقف القرآنية من "كلمات" الآية — [نُقلت للمحرك المركزي]
@@ -122,6 +123,8 @@ function partialStem(text, part) {
 export class HomeworkEngine {
     constructor(quranEngine) {
         this.quranEngine = quranEngine;
+        // 🌟 ملف التجويد للطالب الذي يُولَّد له الواجب الآن (يضبطه planSmartHomework؛ null = سؤال التجويد العام القديم)
+        this.tajweedProfile = null;
     }
 
     // 🌟 [جديد — الواجب الذكي] إنشاء سؤال لمفتاح صيغة معيّن (المفاتيح نفسها المعرّفة في HW_FORMATS بـ engine/skillMap.js).
@@ -623,6 +626,10 @@ export class HomeworkEngine {
     // - بلا مفتاح إجابة بقرار المعلم: correctAnswer نص فارغ (الخادم يشترط وجود الحقل فقط) والمعلم يصحّح بنفسه.
     // - نشترط 8 كلمات على الأقل في المقطع كي يحوي حكمين غالباً؛ وإلا يرجع null فيقع التوليد على البديل المعتاد.
     async createTajweedExtractQuestion(targetAyah, pool, opts = {}) {
+        // 🌟 [جديد — بطلب المعلم] لو للطالب ملف تجويد (أحكام شُرحت له) يُسحب السؤال منه ويُبنى من الشرح نفسه، ويُصحَّح آلياً.
+        // بلا ملف/أحكام يبقى السؤال العام أدناه (استخراج حكمين بتصحيح يدوي).
+        const fromFile = buildTajweedHomeworkQuestion(this.tajweedProfile);
+        if (fromFile) return fromFile.question;
         const sameSurah = (pool || [])
             .filter(a => a.surahNumber === targetAyah.surahNumber)
             .sort((a, b) => a.numberInSurah - b.numberInSurah);
