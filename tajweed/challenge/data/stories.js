@@ -316,7 +316,170 @@ const RULE_EXTRAS = {
   madd_munfasil: { title: T('المدّ المنفصل 🌉', 'The Separated Madd 🌉'), art: 'madd_two_words', mins: 6,
     hook: T('وإذا كانت الهمزة في الكلمة التالية؟', 'And if the hamza is in the next word?'),
     story: T('إذا انتهت الكلمة بحرف مدّ، وبدأت الكلمة التالية بهمزة، كأن بينهما جسرًا: نمدّ أربع حركات أو خمسًا. واسمه «منفصل» لأن المدّ في كلمة والهمزة في أخرى.', 'When a word ends with a madd letter and the next word begins with a hamza, it is as if there were a bridge between them: we stretch four or five counts. It is called “separated” because the madd is in one word and the hamza in another.'),
-    tips: { intro: T('ارسم كلمتين في صندوقين وبينهما جسر، وامدد صوتك وأنت تعبر الجسر.', 'Draw two words in two boxes with a bridge between them, and stretch your voice as you cross.') } }
+    tips: { intro: T('ارسم كلمتين في صندوقين وبينهما جسر، وامدد صوتك وأنت تعبر الجسر.', 'Draw two words in two boxes with a bridge between them, and stretch your voice as you cross.') } },
+  mithlain: { title: T('التوأمان 👯', 'The Twins 👯'), art: 'twins', mins: 6,
+    hook: T('ماذا يحدث إذا التقى حرفان متشابهان تمامًا؟', 'What happens when two identical letters meet?'),
+    story: T('حرفان توأمان متشابهان تمامًا: الأول ساكن في آخر كلمة، والثاني متحرّك في أول الكلمة التالية.\nلا نقرأ الأول وحده، بل يدخل في أخيه فنقرؤهما حرفًا واحدًا مشدّدًا.', 'Two twin letters, exactly alike: the first is silent at the end of a word, the second is voweled at the start of the next.\nWe do not read the first alone; it slips into its twin, and we read them as one doubled letter.'),
+    tips: { intro: T('اطلب من طفلين متشابهين في الطول أن يقفا متلاصقين ثم يصيرا «شخصًا واحدًا» بخطوة واحدة.', 'Ask two children of similar height to stand together, then step forward as “one person”.') } },
+  mutajanisain: { title: T('من بيت واحد 🏠', 'From One House 🏠'), art: 'same_house', mins: 7,
+    hook: T('حرفان مختلفان… لكنهما يخرجان من المكان نفسه!', 'Two different letters… from the very same spot!'),
+    story: T('الدال والتاء يخرجان من مكان واحد في الفم (طرف اللسان مع أصول الأسنان العليا)، لكن لكل منهما صوتًا مختلفًا. فإذا سكنت الدال وجاءت بعدها التاء، دخلت الدال في التاء فقرأناهما تاءً واحدة مشدّدة.', 'Dal and taa come from the same spot in the mouth (the tip of the tongue at the roots of the upper teeth), but each sounds different. When a silent dal is followed by taa, the dal goes into the taa and we read one doubled taa.'),
+    book: ['p116_0'],
+    tips: { intro: T('اطلب من الأطفال أن ينطقوا «د» ثم «ت» ويلاحظوا أن اللسان في المكان نفسه.', 'Have the children say «د» then «ت» and notice the tongue is in the same place.') } },
+  mutaqaribain: { title: T('الجاران 🏘️', 'The Neighbours 🏘️'), art: 'neighbours', mins: 6,
+    hook: T('لماذا لا نسمع اللام في بعض الكلمات قبل الراء؟', 'Why don’t we hear the lam before raa in some words?'),
+    story: T('اللام والراء جاران يسكنان في بيتين متجاورين في اللسان. فإذا سكنت اللام في آخر كلمة وجاءت بعدها راء، ذهبت اللام إلى جارتها، فنقرأ الراء مشدّدة ولا نسمع اللام.', 'Lam and raa are neighbours living in houses side by side on the tongue. When a silent lam ends a word and a raa follows, the lam goes over to its neighbour: we read the raa doubled and do not hear the lam.'),
+    book: ['p109_1', 'p113_0'],
+    tips: { intro: T('ضع بطاقتي «ل» و«ر» متجاورتين، ثم حرّك بطاقة اللام خلف الراء: «اختفت عند جارتها».', 'Put «ل» and «ر» cards side by side, then slide the lam behind the raa: “it went to its neighbour”.') } },
+  ra_tafkhim: { title: T('الراء السمينة 🎈', 'The Chubby Raa 🎈'), art: 'ra_heavy', mins: 6,
+    hook: T('لماذا نسمع الراء أحيانًا ممتلئة كبيرة؟', 'Why does the raa sometimes sound big and full?'),
+    story: T('الراء مثل البالون: إذا كانت عليها فتحة أو ضمّة انتفخت فصارت سمينة، فنملأ الفم بصوتها.\nارفع مؤخرة لسانك قليلًا وقل: «رَ… رُ».', 'The raa is like a balloon: with a fatha or damma it puffs up and becomes chubby, so we fill the mouth with its sound.\nLift the back of your tongue a little and say: “ra… ru”.'),
+    book: ['p113_0'], lettersQuiz: { yes: ['رَ', 'رُ'], no: ['رِ'], q: T('اختر الراء السمينة (المفخّمة):', 'Pick the chubby (heavy) raa:') },
+    tips: { intro: T('انفخ بالونًا أمام الأطفال وقل «رَ» بصوت ممتلئ، ثم أفرغه وقل «رِ» بصوت رقيق.', 'Blow up a balloon and say a full “ra”, then let it out and say a thin “ri”.') } },
+  ra_tarqiq: { title: T('الراء النحيفة 🪶', 'The Thin Raa 🪶'), art: 'ra_light', mins: 5,
+    hook: T('ومتى تكون الراء خفيفة رقيقة؟', 'And when is the raa thin and light?'),
+    story: T('إذا كانت تحت الراء كسرة صارت نحيفة رقيقة مثل الريشة. ابتسم قليلًا وقل: «رِ».', 'With a kasra under it, the raa becomes thin and light like a feather. Smile a little and say: “ri”.'),
+    book: ['p113_0'], lettersQuiz: { yes: ['رِ'], no: ['رَ', 'رُ'], q: T('اختر الراء النحيفة (المرقّقة):', 'Pick the thin (light) raa:') },
+    tips: { intro: T('مرّر ريشة أمام الأطفال وهم يقولون «رِ» برقّة.', 'Pass a feather in front of the children as they say a gentle “ri”.') } },
+  lam_jalala_tafkhim: { title: T('اللام العظيمة 👑', 'The Majestic Lam 👑'), art: 'lam_heavy', mins: 5,
+    hook: T('كيف ننطق اسم «الله» بعد الفتح والضم؟', 'How do we say the name “Allah” after fatha and damma?'),
+    story: T('اسم «الله» أعظم اسم. إذا جاء قبله فتح أو ضمّ نطقنا لامه ممتلئة عظيمة يملأ صوتها الفم.', 'The name “Allah” is the greatest name. After a fatha or damma we say its lam full and majestic, filling the mouth.'),
+    lettersQuiz: { yes: ['ـَ', 'ـُ'], no: ['ـِ'], q: T('بعد أيّ حركة تُفخَّم لام «الله»؟', 'After which vowel is the lam of “Allah” heavy?') },
+    tips: { intro: T('قارن بين مثالين معروضين: بعد الفتح «لام ممتلئة»، وبعد الكسر في البسملة «لام رقيقة».', 'Compare two shown examples: after a fatha the lam is full; after the kasra in the basmala it is light.') } },
+  lam_jalala_tarqiq: { title: T('اللام الرقيقة 🌸', 'The Gentle Lam 🌸'), art: 'lam_light', mins: 5,
+    hook: T('لماذا نقول لام «الله» رقيقة في البسملة؟', 'Why is the lam of “Allah” light in the basmala?'),
+    story: T('إذا جاء قبل اسم «الله» كسرة، مثل «بِسْمِ» في البسملة، نطقنا لامه رقيقة خفيفة.', 'When a kasra comes before the name “Allah”, like “bismi” in the basmala, we say its lam light and gentle.'),
+    lettersQuiz: { yes: ['ـِ'], no: ['ـَ', 'ـُ'], q: T('بعد أيّ حركة تُرقَّق لام «الله»؟', 'After which vowel is the lam of “Allah” light?') },
+    tips: { intro: T('ابدأ بالبسملة: يعرفها كل الأطفال، ونبّههم إلى أن لامها رقيقة.', 'Start with the basmala, which every child knows, and point out its light lam.') } },
+  madd_aridh: { title: T('قف… وامدد 🛑', 'Stop… and Stretch 🛑'), art: 'aridh', mins: 7,
+    hook: T('لماذا نمدّ في آخر الآية أكثر من وسطها؟', 'Why do we stretch more at the end of an ayah?'),
+    story: T('في آخر الآية نقف، فيصير الحرف الأخير ساكنًا. وإذا كان قبله حرف مد، صار المد «عارضًا للسكون»: نمدّه ٢ أو ٤ أو ٦ حركات.\nالمهم: نختار مقدارًا واحدًا ونلتزمه في كل الآيات.', 'At the end of an ayah we stop, so the last letter becomes silent. If a madd letter comes before it, the madd is “ʿarid”: we stretch it 2, 4 or 6 counts.\nThe key: choose one length and keep it for every ayah.'),
+    tips: { intro: T('اقرأ الفاتحة مع الأطفال واتفقوا على مقدار واحد (٤ حركات مثلًا) في كل آخر آية.', 'Recite Al-Fatiha with the children and agree on one length (4 counts, say) at every ayah end.') } },
+  madd_leen: { title: T('الصوت الليّن 🪶', 'The Soft Sound 🪶'), art: 'leen', mins: 5,
+    hook: T('واو وياء ساكنتان بعد فتحة… ماذا نفعل عند الوقف؟', 'A silent waw or yaa after a fatha… what do we do when stopping?'),
+    story: T('الواو والياء الساكنتان بعد فتحة صوتهما ناعم ليّن. فإذا وقفنا على الحرف الذي بعدهما مددناهما مدًّا لطيفًا (٢ أو ٤ أو ٦)، وفي الوصل لا نمدّهما.', 'A silent waw or yaa after a fatha has a soft, gentle sound. When we stop on the letter after them we stretch gently (2, 4 or 6); when joining we do not stretch.'),
+    tips: { intro: T('اقرأ سورة قريش مع الأطفال ولاحظوا المدّ الليّن في أواخر آياتها.', 'Read Surah Quraysh with the children and notice the soft madd at its ayah ends.') } },
+  madd_badal: { title: T('الهمزة تفتح الباب 🚪', 'The Hamza Opens the Door 🚪'), art: 'badal', mins: 5,
+    hook: T('ماذا لو جاءت الهمزة قبل حرف المد؟', 'What if the hamza comes before the madd letter?'),
+    story: T('هنا الهمزة تسبق حرف المد كأنها تفتح له الباب. نمدّه حركتين فقط مثل المد الطبيعي، ولا نطيله.', 'Here the hamza goes before the madd letter, as if opening the door for it. We stretch it two counts only, like the natural madd — no longer.'),
+    tips: { intro: T('قارن بين المد المتصل (مد ثم همزة: طويل) والبدل (همزة ثم مد: قصير).', 'Compare muttasil (madd then hamza: long) with badal (hamza then madd: short).') } },
+  madd_lazim: { title: T('أطول مد 📏', 'The Longest Madd 📏'), art: 'lazim6', mins: 6,
+    hook: T('ما أطول مد في القرآن؟', 'What is the longest madd in the Qur’an?'),
+    story: T('حرف مد عليه علامة المدّة، وبعده حرف مشدّد في الكلمة نفسها: هذا المد اللازم، أطول مد في القرآن! نمدّه ست حركات دائمًا: عدّ على ست أصابع.', 'A madd letter with the madd sign, followed by a doubled letter in the same word: madd lazim, the longest madd in the Qur’an! Always stretch it six counts — count on six fingers.'),
+    tips: { intro: T('اختم الفاتحة مع الأطفال وعدّوا الحركات الست معًا في آخر كلمة منها.', 'Finish Al-Fatiha with the children and count the six counts together on its last word.') } }
+
+};
+
+
+// ═════════════════════════ دروس المعرفة (data/know.js) ═════════════════════════
+const KNOW_STORIES = {
+  mushaf_adab: {
+    title: T('ضيوف على كلام الله 🤲', 'Guests of Allah’s Words 🤲'), mins: 6, cover: { art: 'adab' },
+    hook: T('كيف نستعد لقراءة القرآن؟', 'How do we get ready to read the Qur’an?'),
+    goals: [T('يستعيذ قبل القراءة.', 'Seeks refuge before reading.'), T('يعرف متى يقرأ البسملة.', 'Knows when to read the basmala.'), T('يجلس بأدب وينصت ويحفظ للمصحف مكانه.', 'Sits politely, listens, and keeps the mushaf in its place.')],
+    slides: [
+      { icon: '🧼', k: T('قبل أن نقرأ', 'Before we read'), t: T('نستعد لكلام الله', 'Getting ready for Allah’s words'),
+        b: [{ kid: T('القرآن كلام الله، فنستعد له كما نستعد لضيف عزيز:\n• نتوضّأ ونجلس في مكان نظيف.\n• نجلس بأدب واحترام.\n• ثم نقول: «أعوذ بالله من الشيطان الرجيم».', 'The Qur’an is the word of Allah, so we prepare for it as for a dear guest:\n• We make wudu and sit in a clean place.\n• We sit politely and respectfully.\n• Then we say: “I seek refuge in Allah from the accursed Satan.”') },
+          { check: { q: T('ماذا نقول قبل أن نبدأ القراءة؟', 'What do we say before we start reading?'), opts: [{ t: T('أعوذ بالله من الشيطان الرجيم', 'I seek refuge in Allah from the accursed Satan'), ok: true, fb: T('أحسنت! هذه الاستعاذة.', 'Well done! That is seeking refuge.') }, { t: T('السلام عليكم', 'Assalamu alaikum'), fb: T('نقولها للناس، أما قبل القراءة فنستعيذ.', 'We say it to people; before reading we seek refuge.') }] } }],
+        tip: T('اجعل للحصة بداية ثابتة: وضوء، جلسة، استعاذة جماعية بصوت واحد.', 'Give the lesson a fixed opening: wudu, sitting, and seeking refuge together in one voice.') },
+      { icon: '📖', k: T('البسملة', 'The basmala'), t: T('في أول كل سورة', 'At the start of every surah'),
+        b: [{ row: [{ kid: T('في أول كل سورة نقول: «بسم الله الرحمن الرحيم»، إلا سورة التوبة فإنها تبدأ بلا بسملة.', 'At the start of every surah we say the basmala — except Surah At-Tawbah, which starts without it.') }, { img: 'mushaf/signs/part_basmala.webp', cap: T('البسملة في المصحف', 'The basmala in the mushaf'), credit: 'mushaf' }] }, { ayah: '1:1', hl: null }],
+        tip: T('اسأل: «أي سورة بلا بسملة؟» حتى يحفظها الأطفال: التوبة.', 'Ask: “Which surah has no basmala?” until the children remember: At-Tawbah.') },
+      { icon: '👂', k: T('نقرأ ونستمع', 'Reading and listening'), t: T('افعل ولا تفعل', 'Do and don’t'),
+        b: [{ dodont: { no: [T('لا نقرأ بسرعة كبيرة.', 'Don’t read too fast.'), T('لا نتكلّم ونلعب إذا قُرئ القرآن.', 'Don’t chat or play while the Qur’an is recited.'), T('لا نضع المصحف على الأرض.', 'Don’t put the mushaf on the floor.')], yes: [T('نقرأ بتمهّل وترتيل.', 'Read slowly and clearly.'), T('ننصت ونستمع.', 'Listen quietly.'), T('نضع المصحف في مكان مرتفع نظيف.', 'Keep the mushaf in a clean, raised place.')] } },
+          { check: { q: T('أين نضع المصحف بعد القراءة؟', 'Where do we put the mushaf after reading?'), opts: [{ t: T('في مكان مرتفع نظيف', 'In a clean, raised place'), ok: true, fb: T('أحسنت!', 'Well done!') }, { t: T('على الأرض', 'On the floor'), fb: T('نكرم المصحف فلا نضعه على الأرض.', 'We honour the mushaf, so not on the floor.') }] } }],
+        tip: T('خصّص في الفصل رفًّا جميلًا للمصاحف يرتّبه الأطفال بأنفسهم.', 'Give the mushafs a nice shelf in class that the children arrange themselves.') }
+    ],
+    recap: [T('نتوضّأ ونجلس بأدب ونستعيذ قبل القراءة.', 'We make wudu, sit politely and seek refuge before reading.'), T('البسملة في أول كل سورة إلا التوبة.', 'The basmala starts every surah except At-Tawbah.'), T('نقرأ بتمهّل وننصت، ونكرم المصحف.', 'We read slowly, listen, and honour the mushaf.')]
+  },
+  mushaf_surahs: {
+    title: T('رفّ السور 📚', 'The Surah Shelf 📚'), mins: 6, cover: { art: 'shelf' },
+    hook: T('كم سورة في القرآن؟ ومن أولها وآخرها؟', 'How many surahs are there, and which come first and last?'),
+    goals: [T('يعرف أن في القرآن ١١٤ سورة.', 'Knows the Qur’an has 114 surahs.'), T('يعرف أول سورة وآخرها وبداية جزء عمّ.', 'Knows the first and last surahs and where Juz ʿAmma starts.'), T('يرتّب سور جزء عمّ.', 'Orders the surahs of Juz ʿAmma.')],
+    slides: [
+      { icon: '📚', k: T('١١٤ سورة', '114 surahs'), t: T('رفّ مرتّب لا يتغيّر', 'A shelf that never changes order'),
+        b: [{ row: [{ kid: T('تخيّل رفًّا عليه ١١٤ كتابًا مرقّمًا: هذه سور القرآن.\nأولها الفاتحة (١)، وآخرها الناس (١١٤)، وترتيبها في المصحف ثابت لا يتغيّر.', 'Imagine a shelf with 114 numbered books: these are the surahs of the Qur’an.\nThe first is Al-Fatiha (1), the last An-Nas (114), and their order in the mushaf never changes.') }, { art: 'shelf' }] },
+          { check: { q: T('كم سورة في القرآن؟', 'How many surahs are in the Qur’an?'), opts: [{ t: T('١١٤', '114'), ok: true, fb: T('صحيح!', 'Correct!') }, { t: T('٣٠', '30'), fb: T('٣٠ عدد الأجزاء.', '30 is the number of juz.') }, { t: T('٦٠', '60'), fb: T('٦٠ عدد الأحزاب.', '60 is the number of hizb.') }] } }],
+        tip: T('اكتب أرقام سور جزء عمّ على بطاقات ودع الأطفال يرتّبونها على الأرض كالقطار.', 'Write the Juz ʿAmma surah numbers on cards and let the children line them up like a train.') },
+      { icon: '🏁', k: T('البداية والنهاية', 'Start and end'), t: T('جزء عمّ: آخر جزء', 'Juz ʿAmma: the last juz'),
+        b: [{ row: [{ kid: T('جزء عمّ هو الجزء الثلاثون والأخير. يبدأ بسورة النبأ (٧٨) وينتهي بسورة الناس (١١٤)، وفيه ٣٧ سورة قصيرة نحفظها أولًا.', 'Juz ʿAmma is the thirtieth and last juz. It starts with An-Naba (78) and ends with An-Nas (114): 37 short surahs we memorize first.') }, { media: { kind: 'banner', surah: 78 }, cap: T('لوحة اسم سورة النبأ: أول جزء عمّ', 'The An-Naba title panel: the start of Juz ʿAmma') }] },
+          { check: { q: T('أيّ السورتين قبل الأخرى في المصحف؟', 'Which of the two surahs comes first in the mushaf?'), opts: [{ t: T('الفيل (١٠٥)', 'Al-Fil (105)'), ok: true, fb: T('أحسنت! الفيل ١٠٥ ثم قريش ١٠٦.', 'Well done! Al-Fil is 105, then Quraysh 106.') }, { t: T('قريش (١٠٦)', 'Quraysh (106)'), fb: T('قريش بعد الفيل مباشرة.', 'Quraysh comes right after Al-Fil.') }] } }],
+        tip: T('ردّدوا أسماء سور جزء عمّ من النبأ إلى الناس كنشيد.', 'Chant the names of the Juz ʿAmma surahs from An-Naba to An-Nas like a song.') },
+      { icon: '📏', k: T('الأطول والأقصر', 'Longest and shortest'), t: T('البقرة والكوثر', 'Al-Baqarah and Al-Kawthar'),
+        b: [{ kid: T('أطول سورة في القرآن البقرة (٢٨٦ آية)، وأقصرها الكوثر (ثلاث آيات قصيرة).', 'The longest surah is Al-Baqarah (286 ayahs); the shortest is Al-Kawthar (three short ayahs).') }, { ayah: '108:1', hl: null }],
+        tip: T('اقرأ سورة الكوثر كاملة مع الأطفال ليشعروا أنهم أتمّوا سورة كاملة.', 'Read Al-Kawthar in full with the children so they feel they finished a whole surah.') }
+    ],
+    recap: [T('في القرآن ١١٤ سورة بترتيب ثابت.', 'The Qur’an has 114 surahs in a fixed order.'), T('أولها الفاتحة وآخرها الناس، وجزء عمّ من النبأ إلى الناس.', 'First Al-Fatiha, last An-Nas; Juz ʿAmma runs from An-Naba to An-Nas.'), T('أطولها البقرة وأقصرها الكوثر.', 'The longest is Al-Baqarah, the shortest Al-Kawthar.')]
+  },
+  mushaf_find: {
+    title: T('المستكشف الصغير 🔍', 'The Little Explorer 🔍'), mins: 7, cover: { art: 'find_steps' },
+    hook: T('كيف تجد أي آية في المصحف بنفسك؟', 'How can you find any ayah in the mushaf yourself?'),
+    goals: [T('يعرف خطوات البحث: الجزء ثم السورة ثم الآية.', 'Knows the steps: juz, surah, then ayah.'), T('يقرأ رأس الصفحة ليعرف السورة.', 'Reads the page header to know the surah.'), T('يصل إلى الآية برقمها.', 'Reaches the ayah by its number.')],
+    slides: [
+      { icon: '🗺️', k: T('ثلاث خطوات', 'Three steps'), t: T('خريطة الكنز', 'The treasure map'),
+        b: [{ row: [{ kid: T('للعثور على آية مثل البحث عن كنز:\n١) نعرف الجزء.\n٢) نجد السورة من اسمها في أعلى الصفحة.\n٣) نتبع أرقام الآيات حتى نصل إلى رقمها.', 'Finding an ayah is like a treasure hunt:\n1) Know the juz.\n2) Find the surah from its name at the top of the page.\n3) Follow the ayah numbers until you reach it.') }, { art: 'find_steps' }] }],
+        tip: T('اكتب على السبورة «سورة الإخلاص، الآية ٤» ودع الأطفال يتسابقون إليها في مصاحفهم.', 'Write “Surah Al-Ikhlas, ayah 4” on the board and let the children race to find it.') },
+      { icon: '🏷️', k: T('اسم السورة', 'The surah name'), t: T('انظر إلى أعلى الصفحة', 'Look at the top of the page'),
+        b: [{ media: { kind: 'pagehead', juz: 30, surah: 112 }, cap: T('رأس صفحة: الجزء الثلاثون وسورة الإخلاص', 'A page header: juz 30 and Surah Al-Ikhlas') },
+          { check: { q: T('أين تجد اسم السورة في الصفحة؟', 'Where is the surah name on the page?'), opts: [{ t: T('في أعلى الصفحة', 'At the top of the page'), ok: true, fb: T('أحسنت!', 'Well done!') }, { t: T('في أسفل الصفحة', 'At the bottom of the page'), fb: T('في الأسفل رقم الصفحة.', 'The bottom has the page number.') }] } }],
+        tip: T('درّبهم على قراءة رأس الصفحة بصوت عالٍ في كل مرة يفتحون المصحف.', 'Train them to read the page header aloud every time they open the mushaf.') },
+      { icon: '🔢', k: T('رقم الآية', 'The ayah number'), t: T('الرقم في آخر الآية', 'The number is at the end'),
+        b: [{ custom: 'ayah_compare' }, { stepsT: [T('ابحث عن الرقم الذي تريده في نهايات الآيات.', 'Look for the number you want at the ends of the ayahs.'), T('الآية هي الكلام الذي قبل هذا الرقم.', 'The ayah is the words just before that number.'), T('ضع إصبعك على أول الآية وابدأ القراءة.', 'Put your finger at the start of the ayah and begin.')] },
+          { check: { q: T('أيّ آية هي الآية الخامسة؟', 'Which is the fifth ayah?'), opts: [{ t: T('التي تنتهي بالرقم ٥', 'The one ending with 5'), ok: true, fb: T('صحيح!', 'Correct!') }, { t: T('التي تبدأ بعد الرقم ٥', 'The one starting after 5'), fb: T('تلك هي السادسة.', 'That is the sixth.') }] } }],
+        tip: T('العب «أين الآية؟»: تقول رقمًا، فيضع الأطفال أصابعهم على أول آيته.', 'Play “Where’s the ayah?”: call a number and the children put a finger at its start.') }
+    ],
+    recap: [T('الجزء ← السورة ← رقم الآية.', 'Juz → surah → ayah number.'), T('اسم السورة في أعلى الصفحة، ورقم الصفحة في أسفلها.', 'The surah name is at the top; the page number at the bottom.'), T('الآية تنتهي برقمها.', 'An ayah ends with its number.')]
+  },
+  know_makharij: {
+    title: T('خريطة الفم 👄', 'The Mouth Map 👄'), mins: 9, cover: { art: 'makharij' },
+    hook: T('من أين يخرج كل حرف؟', 'Where does each letter come from?'),
+    goals: [T('يعرف المخارج العامة الخمسة.', 'Knows the five general articulation areas.'), T('يعرف حروف الحلق وحروف الشفتين.', 'Knows the throat letters and the lip letters.'), T('يعرف أن الغنّة من الخيشوم.', 'Knows the ghunna comes from the nose.')],
+    slides: [
+      { icon: '👄', k: T('الحكاية', 'The story'), t: T('لكل حرف بيت', 'Every letter has a home'),
+        b: [{ row: [{ kid: T('كل حرف له بيت يخرج منه، اسمه «المخرج». وفي فمنا خمسة أحياء كبيرة:\nالجوف، والحلق، واللسان، والشفتان، والخيشوم (الأنف).', 'Every letter has a home it comes out of, called its “makhraj”. Our mouth has five big neighbourhoods:\nthe jawf, the throat, the tongue, the lips and the nose.') }, { art: 'makharij' }] }],
+        tip: T('ارسم رأسًا كبيرًا على السبورة ولوّن الأحياء الخمسة مع الأطفال.', 'Draw a big head on the board and colour the five neighbourhoods with the children.') },
+      { icon: '🗺️', k: T('الأحياء الخمسة', 'The five neighbourhoods'), t: T('أين يسكن كل حرف؟', 'Where does each letter live?'), b: [{ areas: true }],
+        tip: T('وزّع بطاقات الحروف واطلب من كل طفل أن يضعها في «حيّها» على الرسم.', 'Hand out letter cards; each child places theirs in its “neighbourhood” on the drawing.') },
+      { icon: '✋', k: T('جرّب بنفسك', 'Try it yourself'), t: T('ضع يدك وانطق', 'Hand on, then speak'),
+        b: [{ kid: T('ضع يدك على حلقك وقل «أَعْ»: تشعر بالحرف في الحلق.\nثم المس شفتيك وقل «أَبْ»: تنطبق الشفتان.\nثم أمسك أنفك وقل «إنَّ»: تشعر بالغنّة.', 'Put your hand on your throat and say “aʿ”: you feel it in the throat.\nTouch your lips and say “ab”: your lips close.\nHold your nose and say “inna”: you feel the ghunna.') },
+          { check: { q: T('من أين يخرج حرف «ع»؟', 'Where does «ع» come from?'), opts: [{ t: T('الحلق', 'The throat'), ok: true, fb: T('أحسنت! العين من وسط الحلق.', 'Well done! ʿAyn comes from mid-throat.') }, { t: T('الشفتين', 'The lips'), fb: T('من الشفتين: ف و ب م.', 'The lips give ف و ب م.') }, { t: T('اللسان', 'The tongue'), fb: T('العين من حروف الحلق الستة.', 'ʿAyn is one of the six throat letters.') }] } }],
+        tip: T('اجعلها لعبة «حلق أم شفتان؟»: تقول حرفًا ويشير الأطفال إلى مكانه.', 'Make it a game, “throat or lips?”: say a letter and the children point to its place.') }
+    ],
+    recap: [T('المخارج العامة خمسة: الجوف والحلق واللسان والشفتان والخيشوم.', 'Five areas: jawf, throat, tongue, lips and nose.'), T('حروف الحلق: ء هـ ع ح غ خ · حروف الشفتين: ف و ب م.', 'Throat: ء هـ ع ح غ خ · lips: ف و ب م.'), T('أكثر الحروف من اللسان، والغنّة من الخيشوم.', 'Most letters come from the tongue; the ghunna from the nose.')]
+  },
+  know_sifat: {
+    title: T('حروف تهمس وحروف ثقيلة 🌬️', 'Whispering and Heavy Letters 🌬️'), mins: 8, cover: { art: 'sifat' },
+    hook: T('لماذا نهمس ببعض الحروف ونفخّم بعضها؟', 'Why do we whisper some letters and make others heavy?'),
+    goals: [T('يعرف حروف الهمس «فحثه شخص سكت».', 'Knows the whispering letters «فحثه شخص سكت».'), T('يعرف حروف الاستعلاء «خص ضغط قظ» وأنها مفخّمة.', 'Knows the heavy letters «خص ضغط قظ».'), T('يتذكّر حروف القلقلة «قطب جد».', 'Remembers the bouncing letters «قطب جد».')],
+    slides: [
+      { icon: '🌬️', k: T('الحكاية', 'The story'), t: T('لكل حرف طبع', 'Every letter has a character'),
+        b: [{ row: [{ kid: T('الحروف مثل الناس، لكل منها طبع:\n• حروف تهمس فيجري معها النفَس.\n• حروف ثقيلة يرتفع معها اللسان فتملأ الفم.\n• حروف نطّاطة تقفز إذا سكنت.', 'Letters are like people — each has a character:\n• Some whisper, and breath flows with them.\n• Some are heavy: the tongue rises and they fill the mouth.\n• Some bounce when they are silent.') }, { art: 'sifat' }] }],
+        tip: T('ضع ورقة رقيقة أمام فمك وقل «أَسْ» فتتحرّك (همس)، ثم «أَدْ» فلا تتحرّك.', 'Hold a thin paper in front of your mouth: say “as” and it moves (whisper), then “ad” and it doesn’t.') },
+      { icon: '🔤', k: T('المجموعات الثلاث', 'The three groups'), t: T('احفظ الكلمات السرّية', 'Learn the secret words'), b: [{ sifat: true }],
+        tip: T('ردّدوا الكلمات الثلاث بإيقاع: «فحثه شخص سكت · خص ضغط قظ · قطب جد».', 'Chant the three phrases rhythmically: «فحثه شخص سكت · خص ضغط قظ · قطب جد».') },
+      { icon: '✅', k: T('اختبر نفسك', 'Test yourself'), t: T('من الثقيل؟', 'Who is heavy?'),
+        b: [{ check: { q: T('اختر حروف الاستعلاء (الثقيلة):', 'Pick the heavy (istiʿla’) letters:'), multi: true, opts: [{ g: 'ص', ok: true, fb: T('من «خص ضغط قظ».', 'One of «خص ضغط قظ».') }, { g: 'ق', ok: true, fb: T('من «خص ضغط قظ».', 'One of «خص ضغط قظ».') }, { g: 'س', fb: T('السين مرقّقة.', 'Seen is light.') }, { g: 'ل', fb: T('اللام ليست منها.', 'Lam is not one of them.') }] } }],
+        tip: T('قارن بين «س» و«ص»: نفس المكان تقريبًا، لكن الصاد ثقيلة والسين خفيفة.', 'Compare «س» and «ص»: almost the same place, but saad is heavy and seen is light.') }
+    ],
+    recap: [T('الهمس: «فحثه شخص سكت» يجري معها النفَس.', 'Hams: «فحثه شخص سكت», breath flows.'), T('الاستعلاء: «خص ضغط قظ» حروف مفخّمة دائمًا.', 'Istiʿla’: «خص ضغط قظ», always heavy.'), T('القلقلة: «قطب جد» تقفز إذا سكنت.', 'Qalqalah: «قطب جد», bounce when silent.')]
+  },
+  know_waqf: {
+    title: T('كيف أقف؟ 🛑', 'How Do I Stop? 🛑'), mins: 7, cover: { art: 'waqf_end' },
+    hook: T('ماذا يحدث لآخر الكلمة إذا وقفنا عليها؟', 'What happens to the end of a word when we stop on it?'),
+    goals: [T('يقف بالسكون على الحرف المتحرّك.', 'Stops on a voweled letter with a sukun.'), T('يقف على تنوين الفتح بألف.', 'Stops on fathatan with an alif.'), T('يقف على التاء المربوطة بهاء ساكنة.', 'Stops on taa marbuta with a silent haa.')],
+    slides: [
+      { icon: '🛑', k: T('الحكاية', 'The story'), t: T('آخر الكلمة يستريح', 'The end of the word takes a rest'),
+        b: [{ row: [{ kid: T('إذا وقفنا على كلمة، يستريح آخرها:\n• الحرف المتحرّك يصير ساكنًا.\n• تنوين الفتح يصير ألفًا.\n• التاء المربوطة تصير هاءً ساكنة.\n• وما آخره حرف مد يبقى كما هو.', 'When we stop on a word, its end takes a rest:\n• A voweled letter becomes silent.\n• Fathatan becomes an alif.\n• Taa marbuta becomes a silent haa.\n• A word ending in a madd letter stays as it is.') }, { art: 'waqf_end' }] }],
+        tip: T('اقرأ آخر آية بالوصل ثم بالوقف، واطلب من الأطفال أن يصفوا الفرق.', 'Read an ayah end joined and then stopped, and ask the children to describe the difference.') },
+      { icon: '📖', k: T('في القرآن', 'In the Qur’an'), t: T('أربعة أمثلة من أواخر الآيات', 'Four examples from ayah ends'), b: [{ stops: true }],
+        tip: T('شغّل كل آية واطلب من الأطفال أن يقلّدوا طريقة الوقف في آخرها.', 'Play each verse and have the children imitate how it stops.') },
+      { icon: '✅', k: T('اختبر نفسك', 'Test yourself'), t: T('كيف نقف؟', 'How do we stop?'),
+        b: [{ check: { q: T('كلمة آخرها تاء مربوطة (ة)، نقف عليها:', 'A word ending in taa marbuta (ة) — we stop with:'), opts: [{ t: T('بهاء ساكنة', 'A silent haa'), ok: true, fb: T('أحسنت!', 'Well done!') }, { t: T('بتاء مضمومة', 'A taa with damma'), fb: T('لا نقف بالحركة.', 'We never stop with a vowel.') }] } },
+          { def: T('الرَّوم (الإتيان ببعض الحركة بصوت خفيّ) والإشمام (ضمّ الشفتين بلا صوت بعد الإسكان) وجهان آخران في الوقف، يُتلقّيان بالسماع من المعلم.', 'Rawm (a faint part of the vowel) and ishmam (rounding the lips silently after the sukun) are two further ways of stopping, learned by listening to the teacher.') }],
+        tip: T('الرَّوم والإشمام للمتقدّمين؛ يكفي الصغار الإسكان والألف والهاء.', 'Rawm and ishmam are for advanced pupils; young ones need sukun, alif and haa.') }
+    ],
+    recap: [T('نقف على المتحرّك بالسكون.', 'Stop on a voweled letter with a sukun.'), T('تنوين الفتح ← ألف · التاء المربوطة ← هاء ساكنة.', 'Fathatan → alif · taa marbuta → silent haa.'), T('ما آخره حرف مد يبقى كما هو.', 'A word ending in a madd letter stays as it is.')]
+  }
 };
 
 // عناوين رسوم «التجويد المصوّر» المستعملة (منسوخة من engine/tajweedBookImages.js في المنصة)
@@ -324,7 +487,7 @@ export const BOOK_CAPS = {
   p089_0: T('الألف المدّية', 'The madd alif'), p090_0: T('الواو المدّية', 'The madd waw'), p091_0: T('الياء المدّية', 'The madd yaa'), p094_0: T('الجوف: مخرج حروف المد', 'The jawf: where the madd letters come from'),
   p098_0: T('أقصى الحلق: الهمزة والهاء', 'Deepest throat: hamzah and haa'), p099_0: T('الحاء', 'Haa (ح)'), p099_1: T('العين', 'Ayn (ع)'), p100_0: T('الخاء', 'Khaa (خ)'), p100_1: T('الغين', 'Ghayn (غ)'),
   p101_0: T('القاف', 'Qaf (ق)'), p103_0: T('الجيم', 'Jeem (ج)'), p112_0: T('النون', 'Noon (ن)'), p116_0: T('الدال والتاء', 'Dal and taa (د ت)'), p116_1: T('الطاء', 'Taa, emphatic (ط)'),
-  p121_0: T('الباء', 'Baa (ب)'), p122_0: T('الميم', 'Meem (م)'), p123_0: T('غنّة الميم من الخيشوم', 'The ghunna of meem, from the nasal passage'), p123_1: T('غنّة النون من الخيشوم', 'The ghunna of noon, from the nasal passage'),
+  p121_0: T('الباء', 'Baa (ب)'), p109_1: T('اللام', 'Lam (ل)'), p113_0: T('الراء', 'Raa (ر)'), p099_1: T('العين', 'Ayn (ع)'), p122_0: T('الميم', 'Meem (م)'), p123_0: T('غنّة الميم من الخيشوم', 'The ghunna of meem, from the nasal passage'), p123_1: T('غنّة النون من الخيشوم', 'The ghunna of noon, from the nasal passage'),
   p185_0: T('باء ساكنة مقلقلة: تتباعد الشفتان دون الفكّين', 'A silent qalqalah baa: the lips part, not the jaws'),
   p301_0: T('إخفاء النون عند التاء والدال', 'Ikhfa of noon before taa and dal'), p302_0: T('إخفاء النون عند الكاف: وضع اللسان', 'Ikhfa of noon before kaf: tongue position'), p302_1: T('إخفاء النون عند القاف: وضع اللسان', 'Ikhfa of noon before qaf: tongue position')
 };
@@ -373,6 +536,6 @@ function ruleStory(id) {
   };
 }
 
-export const STORIES = { ...MUSHAF_STORIES };
+export const STORIES = { ...MUSHAF_STORIES, ...KNOW_STORIES };
 for (const id of Object.keys(RULE_EXTRAS)) STORIES[id] = ruleStory(id);
 export { RULE_EXTRAS };

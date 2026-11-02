@@ -15,6 +15,10 @@ import { runQuiz, bindAudio } from './play.js';
 import { stopAudio } from './audio.js';
 import { setToastHost } from './play.js';
 import { hasStory, renderStory, leaveStory } from './story.js';
+import { KNOW } from '../data/know.js';
+import { buildKnowLevel, knowQuestion } from './know-engine.js';
+import { art } from './art.js';
+import { reviewHTML, openWorksheet } from './review.js';
 
 let root = null; // <main id="app"> داخل Shadow DOM (يُنشأ في start)
 let host = null, wrap = null, opts = {};
@@ -64,12 +68,13 @@ function renderHome() {
         <div class="stage-title"><small>${t('stage_n', { n: num(si + 1) })}</small><h3>${esc(tx(st.name))}</h3><p>${esc(tx(st.blurb))}</p></div>
         <div class="stage-prog" aria-label="${got}/${max}"><b>${num(mastered)}/${num(st.rules.length)}</b><small>${t('home_mastered')}</small><div class="pbar"><i style="width:${Math.round((got / max) * 100)}%"></i></div></div>
       </header>
-      ${st.id === 'mushaf' ? `<ul class="tiles">${st.rules.map((id) => { const r = store.getRule(id); return `<li><a class="tile" href="#/rule/${id}"><span class="plate"><img class="plate-img" src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span><b>${esc(ruleName(id))}</b>${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a></li>`; }).join('')}</ul>` : `<ul class="rule-list">${st.rules.map((id) => {
+      ${st.id === 'mushaf' ? `<ul class="tiles">${st.rules.map((id) => { const r = store.getRule(id); return `<li><a class="tile" href="#/rule/${id}"><span class="plate">${KNOW[id] ? `<span class="plate-art">${art(KNOW[id].art)}</span>` : `<img class="plate-img" src="${esc(signImg(LESSON_IMG[id]))}" alt="">`}</span><b>${esc(ruleName(id))}</b>${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a></li>`; }).join('')}</ul>` : `<ul class="rule-list">${st.rules.map((id) => {
         const r = store.getRule(id);
         return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(META[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
       }).join('')}</ul>`}
       <footer class="stage-foot">
         ${st.id === 'mushaf' ? `<a class="btn ghost" href="#/explorer">🔎 ${t('mk_explorer')}</a>` : ''}
+        <a class="btn ghost" href="#/review/${st.id}">🗺️ ${t('rv_btn')}</a>
         <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(stStars)}</button>
         ${unlockedChallenge ? '' : `<small>${t('stage_challenge_locked')}</small>`}
       </footer>
@@ -104,6 +109,7 @@ function renderHome() {
 // ───────── صفحة الحكم ─────────
 function renderRule(id) {
   if (MUSHAF[id]) return M.renderMushafRule(id);
+  if (KNOW[id]) return renderKnowRule(id);
   const rule = RULES[id]; const st = stageOf(id); const r = store.getRule(id);
   const lvls = [1, 2, 3].map((lv) => {
     const open = store.isUnlocked(id, lv, isReview());
@@ -153,6 +159,25 @@ function renderRule(id) {
         <ul class="ex-list">${exs.map((e) => `<li>${spanHTML(e.key, e.w1, e.w2, locate(e.occ, POOL[e.key].w))}<small>${esc(ayahLabel(e.key))}</small></li>`).join('')}</ul>
       </div>
     </section>`, { cls: 'rule-page' });
+}
+
+// صفحة «درس المعرفة»: نفس بنية صفحة الحكم (الرسم + الخطوات الأربع + ملخص)
+function renderKnowRule(id) {
+  const k = KNOW[id]; const st = stageOf(id); const r = store.getRule(id);
+  const lvls = [1, 2, 3].map((lv) => {
+    const open = store.isUnlocked(id, lv, isReview());
+    return `<li class="step ${open ? '' : 'locked'}"><span class="step-n">${num(lv + 1)}</span><div class="step-body"><b>${t(`lvl_${lv}`)}</b><small>${t('know_lvl_d')}</small>${open ? '' : `<small class="lock">🔒 ${lv === 1 ? t('locked_learn') : t('locked_prev')}</small>`}</div>${starsHTML(r.lv[lv] || 0)}${open ? `<a class="btn ${r.lv[lv] ? 'ghost' : 'primary'}" href="#/play/${id}/${lv}">${r.lv[lv] ? t('play_again') : t('start')}</a>` : '<span class="btn disabled" aria-disabled="true">🔒</span>'}</li>`;
+  }).join('');
+  shell(`
+    ${crumb([{ href: '#/', label: esc(t('app_title')) }, { label: esc(tx(st.name)) }])}
+    <article class="rule-hero" ${stageStyle(st)}>
+      <div class="rh-text"><small class="kicker">${esc(tx(st.name))}</small><h1>${esc(tx(k.name))}</h1><p class="tagline">${esc(tx(k.tagline))}</p><p class="kid">${esc(tx(k.def))}</p></div>
+      <figure class="rh-viz know-art">${art(k.art)}</figure>
+    </article>
+    <section class="panel"><h2>${t('rule_steps')}</h2><ol class="steps" ${stageStyle(st)}>
+      <li class="step"><span class="step-n">1</span><div class="step-body"><b>${t('step_learn')}</b><small>${t('step_learn_d')}</small></div>${r.learned ? '<span class="done-tick" aria-label="done">✔</span>' : ''}<a class="btn ${r.learned ? 'ghost' : 'primary'}" href="#/learn/${id}">${r.learned ? t('review_lesson') : t('start')}</a></li>${lvls}
+    </ol></section>
+    <section class="panel"><div class="card warn-card"><small>⚠\uFE0F ${t('watch_label')}</small><p>${esc(tx(k.watch))}</p></div>${k.review ? `<p class="meta">${badge(k.review)}</p>${reviewNote(k.review)}` : ''}</section>`, { cls: 'rule-page' });
 }
 
 // ───────── الدرس ─────────
@@ -233,10 +258,17 @@ function renderLearn(id, step = 0, exIdx = 0) {
 // ───────── اللعب والنتيجة ─────────
 function playRun(kind, ruleId, level, stageId) {
   let qs, head;
-  if (kind === 'level') { qs = MUSHAF[ruleId] ? buildMushafLevel(ruleId, level) : buildLevel(ruleId, level); head = `<b>${esc(ruleName(ruleId))}</b> · ${t(`lvl_${level}`)}`; }
-  else if (kind === 'stage') { qs = stageId === 'mushaf' ? buildMushafStage() : buildStageChallenge(stageId); head = `<b>${esc(tx(STAGES.find((s) => s.id === stageId).name))}</b> · ${t('stage_challenge')}`; }
-  else { const learned = ALL_RULES.filter((id) => store.getRule(id).learned); const pool = learned.length >= 2 ? learned : ALL_RULES; const tajweed = pool.filter((id) => !MUSHAF[id]); const mush = pool.filter((id) => MUSHAF[id]); const rr = rng(Date.now());
-    qs = shuffle([...(tajweed.length ? buildMixed(tajweed, mush.length ? 7 : 10) : []), ...mush.slice(0, 3).map((id) => mushafMixedQuestion(id, rr))], rr); head = `<b>${t('home_mixed')}</b>`; }
+  if (kind === 'level') { qs = MUSHAF[ruleId] ? buildMushafLevel(ruleId, level) : KNOW[ruleId] ? buildKnowLevel(ruleId, level) : buildLevel(ruleId, level); head = `<b>${esc(ruleName(ruleId))}</b> · ${t(`lvl_${level}`)}`; }
+  else if (kind === 'stage') {
+    // تحدي المحطة: أحكام المحطة (من الكاشف) + أسئلة دروس المعرفة فيها
+    const sObj = STAGES.find((s) => s.id === stageId); const rr = rng(Date.now()); const know = sObj.rules.filter((id) => KNOW[id]); const hasRules = sObj.rules.some((id) => RULES[id]);
+    const base = stageId === 'mushaf' ? buildMushafStage() : hasRules ? buildStageChallenge(stageId) : [];
+    const extra = []; const want = Math.max(know.length ? 2 : 0, 8 - base.length); for (let k = 0; know.length && k < want; k++) extra.push(knowQuestion(know[k % know.length], rr));
+    qs = shuffle([...base, ...extra], rr).slice(0, 8); head = `<b>${esc(tx(sObj.name))}</b> · ${t('stage_challenge')}`;
+  }
+  else { const learned = ALL_RULES.filter((id) => store.getRule(id).learned); const pool = learned.length >= 2 ? learned : ALL_RULES; const tajweed = pool.filter((id) => RULES[id]); const mush = pool.filter((id) => MUSHAF[id]); const know = pool.filter((id) => KNOW[id]); const rr = rng(Date.now());
+    const side = [...shuffle(mush, rr).slice(0, 2).map((id) => mushafMixedQuestion(id, rr)), ...shuffle(know, rr).slice(0, 2).map((id) => knowQuestion(id, rr))];
+    qs = shuffle([...(tajweed.length ? buildMixed(tajweed, Math.max(6, 10 - side.length)) : []), ...side], rr); head = `<b>${t('home_mixed')}</b>`; }
   const st = ruleId ? stageOf(ruleId) : stageId ? STAGES.find((s) => s.id === stageId) : null;
   root.classList.toggle('in-quiz', true);
   runQuiz(root, {
@@ -275,6 +307,7 @@ function reviewItems() {
   const items = [];
   for (const id of ALL_RULES) {
     if (MUSHAF[id]) { if (MUSHAF[id].review) items.push({ where: ruleName(id), what: tx(MUSHAF[id].tagline), why: MUSHAF[id].review }); continue; }
+    if (KNOW[id]) { if (KNOW[id].review) items.push({ where: ruleName(id), what: tx(KNOW[id].tagline), why: KNOW[id].review }); continue; }
     const r = RULES[id];
     if (r.review) items.push({ where: ruleName(id), what: tx(r.length), why: r.review });
     if (r.poem.review) items.push({ where: ruleName(id), what: r.poem.ar.join(' / '), why: r.poem.review });
@@ -298,6 +331,12 @@ function renderAbout() {
   root.querySelector('#btn-reset').addEventListener('click', () => { store.reset(); root.querySelector('#reset-msg').textContent = t('about_reset_done'); });
 }
 
+// ───────── مراجعة المحطة ─────────
+function renderReview(stageId) {
+  shell(reviewHTML(stageId, { crumb, stageStyle }), { cls: 'review' });
+  root.querySelector('[data-rv="print"]')?.addEventListener('click', () => { if (!openWorksheet(stageId)) alert(t('rv_popup')); });
+}
+
 // ───────── الموجه ─────────
 function render() {
   stopAudio();
@@ -317,6 +356,7 @@ function render() {
     if (p[0] === 'who') return renderWho();
     if (p[0] === 'explorer') return M.renderExplorer();
     if (p[0] === 'about') return renderAbout();
+    if (p[0] === 'review' && STAGES.some((s) => s.id === p[1])) return renderReview(p[1]);
     return bad();
   } catch (e) {
     console.error(e);

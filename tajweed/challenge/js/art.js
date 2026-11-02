@@ -182,6 +182,56 @@ const ART = {
       ${counts(150, 140, 5, 'gold')}${cap(210, 178, L('مدّ ٤ أو ٥ حركات — جائز', '4 or 5 counts — permitted'), 'b', 13)}`,
     L('المد المنفصل: المد في كلمة والهمزة في التي بعدها', 'Separated madd: madd at the end of one word, hamza at the start of the next'))
 };
+// ───────────── دروس المعرفة والأحكام الجديدة ─────────────
+Object.assign(ART, {
+  adab: () => svg(420, 210, `<path class="a-ground" d="M40 182 H380"/>
+      <g class="a-stand"><path d="M150 180 L210 120 L270 180" /><path d="M170 180 L210 140 L250 180"/></g>
+      <g class="a-book"><path d="M210 118 q-46 -20 -92 -6 v-62 q46 -14 92 6z"/><path d="M210 118 q46 -20 92 -6 v-62 q-46 -14 -92 6z"/>${lines(130, 66, 64, 3, 12)}${lines(220, 66, 64, 3, 12)}</g>
+      <g class="a-hands"><path d="M70 120 q10 -40 34 -36 l-8 44z"/><path d="M350 120 q-10 -40 -34 -36 l8 44z"/></g>
+      ${cap(210, 26, L('نستعيذ، ونجلس بأدب، ونقرأ بتمهّل', 'Seek refuge, sit politely, read slowly'), 'b gold')}${cap(210, 204, L('ونضع المصحف في مكان طاهر مرتفع', 'and keep the mushaf in a clean, raised place'), 'soft', 13)}`,
+    L('آداب التلاوة', 'Manners of recitation')),
+  shelf: () => {
+    const books = [[1, 'c1'], [2, 'c2'], [3, 'c3'], [78, 'c4'], [112, 'c5'], [113, 'c6'], [114, 'c1']];
+    return svg(420, 200, `<path class="a-ground" d="M14 150 H406"/>${books.map(([n, c], i) => { const x = 360 - i * 50 - (i >= 3 ? 30 : 0); return `<g class="a-spine ${c}"><rect x="${x}" y="${40 + (i % 2) * 10}" width="40" height="${110 - (i % 2) * 10}" rx="6"/><text x="${x + 20}" y="${105}" text-anchor="middle" font-size="15">${num(n)}</text></g>`; }).join('')}
+      <text class="a-op" x="${360 - 3 * 50 + 22}" y="104" text-anchor="middle">…</text>${cap(380, 176, L('الفاتحة', 'Al-Fatiha'), 'b', 13)}${cap(40, 176, L('الناس', 'An-Nas'), 'b', 13)}${cap(210, 194, L('١١٤ سورة بترتيب ثابت', '114 surahs in a fixed order'), 'gold b', 13)}${cap(210, 26, L('جزء عمّ: من سورة النبأ (٧٨) إلى الناس (١١٤)', 'Juz ʿAmma: An-Naba (78) to An-Nas (114)'), 'soft', 13)}`,
+      L('رفّ سور القرآن من الفاتحة إلى الناس', 'A shelf of surahs from Al-Fatiha to An-Nas'));
+  },
+  find_steps: () => {
+    const st = (x, n, a, e, icon) => `<g class="a-fstep"><circle cx="${x}" cy="80" r="40"/><text class="ic" x="${x}" y="92" text-anchor="middle" font-size="30">${icon}</text><g class="a-step"><circle cx="${x + 30}" cy="48" r="13"/><text x="${x + 30}" y="53" text-anchor="middle">${num(n)}</text></g>${cap(x, 146, L(a, e), 'b')}</g>`;
+    return svg(420, 180, `${st(350, 1, 'الجزء', 'Juz', '📚')}${arrow(300, 80, 262, 80)}${st(210, 2, 'السورة', 'Surah', '🏷️')}${arrow(160, 80, 122, 80)}${st(70, 3, 'رقم الآية', 'Ayah number', '🔢')}${cap(210, 174, L('ثلاث خطوات لتجد أي آية', 'Three steps to find any ayah'), 'gold b', 13)}`, L('الجزء ثم السورة ثم رقم الآية', 'Juz, then surah, then ayah number'));
+  },
+  makharij: () => svg(420, 240, `
+      <path class="a-head" d="M300 26 C220 20 170 60 168 120 l-22 30 h22 v26 c0 18 18 28 36 28 h26 v26 h120 V26z"/>
+      <path class="a-zone jawf" d="M226 112 q40 -26 84 0 q-40 22 -84 0z"/><path class="a-zone halq" d="M300 120 v80 h-26 v-80z"/>
+      <path class="a-zone lisan" d="M190 150 q40 -22 84 -6 q-40 26 -84 6z"/><path class="a-zone shafa" d="M150 150 q-10 6 0 16 q10 6 16 -8z"/><path class="a-zone khay" d="M180 80 q20 -16 46 -8 q-20 14 -46 8z"/>
+      ${cap(70, 40, L('الخيشوم: الغنّة', 'Nose: ghunna'), 'b', 13)}${arrow(110, 50, 182, 78)}${cap(70, 100, L('الجوف: حروف المد', 'Jawf: madd letters'), 'b', 13)}${arrow(120, 104, 226, 112)}
+      ${cap(70, 150, L('الشفتان: ف و ب م', 'Lips: ف و ب م'), 'b', 13)}${arrow(110, 156, 148, 158)}${cap(70, 196, L('اللسان: ١٨ حرفًا', 'Tongue: 18 letters'), 'b', 13)}${arrow(120, 192, 200, 158)}
+      ${cap(370, 230, L('الحلق: ء هـ ع ح غ خ', 'Throat: ء هـ ع ح غ خ'), 'b', 13)}`, L('المخارج الخمسة', 'The five articulation areas')),
+  sifat: () => {
+    const g = (x, cls, icon, a, e, mn) => `<g class="a-sgrp ${cls}"><rect x="${x - 60}" y="20" width="120" height="150" rx="20"/><text x="${x}" y="78" text-anchor="middle" font-size="40">${icon}</text>${cap(x, 112, L(a, e), 'b')}<text class="quran-text a-gl" x="${x}" y="150" text-anchor="middle" font-size="19">${esc(mn)}</text></g>`;
+    return svg(420, 190, `${g(345, 'g1', '🌬️', 'الهمس', 'Whispering', 'فحثه شخص سكت')}${g(210, 'g2', '🏋️', 'الاستعلاء', 'Heavy', 'خص ضغط قظ')}${g(75, 'g3', '🏀', 'القلقلة', 'Bouncing', 'قطب جد')}`, L('ثلاث مجموعات من صفات الحروف', 'Three groups of letter qualities'));
+  },
+  waqf_end: () => {
+    const row = (y, a, b, ca, ce) => `${tile(300, y, 96, 46, a, '', 28)}${arrow(290, y + 23, 236, y + 23)}${tile(130, y, 96, 46, b, 'cause', 28)}${cap(56, y + 28, L(ca, ce), 'b', 13)}`;
+    return svg(420, 200, `${row(14, 'ـبُ', 'ـبْ', 'سكون', 'sukun')}${row(76, 'ـبًا', 'ـبَا', 'ألف', 'alif')}${row(138, 'ـةٌ', 'ـهْ', 'هاء', 'haa')}`, L('الوقف: سكون، أو ألف لتنوين الفتح، أو هاء للتاء المربوطة', 'Stopping: a sukun, an alif for fathatan, or a haa for taa marbuta'));
+  },
+  twins: () => svg(420, 170, `${tile(290, 40, 90, 80, 'لْ', 'cause', 50)}${face(335, 140, 12)}<text class="a-op" x="262" y="90" text-anchor="middle">+</text>${tile(150, 40, 90, 80, 'لَ', 'trigger', 50)}${face(195, 140, 12)}${arrow(140, 80, 106, 80)}${tile(10, 40, 90, 80, 'لّ', 'cause big', 50)}${cap(55, 160, L('حرف واحد مشدّد', 'one doubled letter'), 'b', 13)}`, L('المثلان: توأمان يصيران حرفًا واحدًا', 'Mithlayn: twins become one letter')),
+  same_house: () => svg(420, 200, `<g class="a-house"><path d="M60 90 L210 26 L360 90 V180 H60Z"/></g>${tile(240, 104, 90, 66, 'دْ', 'cause', 40)}${tile(90, 104, 90, 66, 'تّ', 'trigger', 40)}${arrow(232, 137, 186, 137)}
+      ${cap(210, 74, L('بيت واحد (مخرج واحد)', 'One house (one articulation point)'), 'b', 13)}${cap(210, 196, L('ثوبان مختلفان (صفتان مختلفتان)', 'Different clothes (different qualities)'), 'soft', 13)}`, L('المتجانسان: مخرج واحد وصفات مختلفة', 'Mutajanisayn: one point, different qualities')),
+  neighbours: () => svg(420, 200, `<g class="a-house"><path d="M230 90 L310 40 L390 90 V170 H230Z"/><path d="M30 90 L110 40 L190 90 V170 H30Z"/></g>${tile(265, 100, 90, 60, 'لْ', 'cause', 38)}${tile(65, 100, 90, 60, 'رّ', 'trigger', 38)}<path class="a-bridge" d="M230 130 q-20 -24 -40 0"/>
+      ${cap(210, 194, L('جاران متقاربان: يدخل الأول في الثاني', 'Close neighbours: the first enters the second'), 'b', 13)}`, L('المتقاربان: مخرجان متقاربان', 'Mutaqaribayn: nearby articulation points')),
+  ra_heavy: () => svg(420, 200, `<g class="a-balloon full"><ellipse cx="300" cy="80" rx="62" ry="66"/><path d="M300 146 q-6 20 0 40"/></g>${glyph(300, 104, 'رَ', 58, 'cause')}
+      <g class="a-balloon thin"><ellipse cx="110" cy="80" rx="30" ry="56"/><path d="M110 136 q-6 20 0 40"/></g>${glyph(110, 100, 'رِ', 44)}${cap(300, 192, L('مفتوحة أو مضمومة: سمينة', 'Fatha or damma: heavy'), 'b', 13)}${cap(110, 192, L('مكسورة: نحيفة', 'Kasra: light'), 'soft', 13)}`, L('الراء السمينة والراء النحيفة', 'The heavy raa and the light raa')),
+  ra_light: () => svg(420, 200, `<g class="a-balloon thin hi"><ellipse cx="300" cy="80" rx="30" ry="56"/><path d="M300 136 q-6 20 0 40"/></g>${glyph(300, 100, 'رِ', 44, 'cause')}
+      <g class="a-balloon full lo"><ellipse cx="110" cy="80" rx="62" ry="66"/><path d="M110 146 q-6 20 0 40"/></g>${glyph(110, 104, 'رَ', 58)}${cap(300, 192, L('مكسورة: نحيفة', 'Kasra: light'), 'b', 13)}${cap(110, 192, L('مفتوحة أو مضمومة: سمينة', 'Fatha or damma: heavy'), 'soft', 13)}`, L('الراء المكسورة نحيفة', 'A raa with kasra is light')),
+  lam_heavy: () => svg(420, 180, `<g class="a-word"><rect x="90" y="40" width="240" height="90" rx="20"/></g>${glyph(290, 104, 'ـَ', 50, 'trigger')}${glyph(205, 106, 'ٱللَّه', 54, 'cause')}<g class="a-balloon full"><ellipse cx="60" cy="70" rx="34" ry="38"/></g>${cap(210, 170, L('بعد فتح أو ضم: لام ممتلئة', 'After fatha or damma: a full lam'), 'b', 13)}`, L('تفخيم لام لفظ الجلالة', 'The heavy lam of “Allah”')),
+  lam_light: () => svg(420, 180, `<g class="a-word"><rect x="90" y="40" width="240" height="90" rx="20"/></g>${glyph(290, 120, 'ـِ', 50, 'trigger')}${glyph(205, 106, 'ٱللَّه', 54, 'cause')}<g class="a-balloon thin"><ellipse cx="60" cy="70" rx="18" ry="34"/></g>${cap(210, 170, L('بعد كسر: لام رقيقة', 'After kasra: a light lam'), 'b', 13)}`, L('ترقيق لام لفظ الجلالة', 'The light lam of “Allah”')),
+  aridh: () => svg(420, 190, `<g class="a-word"><rect x="200" y="24" width="200" height="80" rx="20"/></g>${glyph(330, 84, 'ـِي', 46, 'cause')}${glyph(250, 84, 'نْ', 46, 'trigger')}
+      <g class="a-sig red"><circle cx="120" cy="64" r="34"/><text x="120" y="72" text-anchor="middle" font-size="18">${esc(L('قف', 'STOP'))}</text></g>${counts(108, 140, 6, 'gold')}${cap(210, 182, L('عند الوقف: ٢ أو ٤ أو ٦ حركات', 'When stopping: 2, 4 or 6 counts'), 'b', 13)}`, L('المد العارض للسكون', 'Madd ʿarid')),
+  leen: () => svg(420, 180, `<g class="a-word"><rect x="200" y="24" width="200" height="80" rx="20"/></g>${glyph(330, 84, 'ـَيْـ', 46, 'cause')}${glyph(245, 84, 'نْ', 46, 'trigger')}<path class="a-soft" d="M30 70 q30 -30 60 0 t60 0"/>${counts(108, 136, 6, 'gold')}${cap(210, 174, L('صوت ليّن عند الوقف', 'A soft sound when stopping'), 'b', 13)}`, L('مد اللين', 'Madd leen')),
+  badal: () => svg(420, 180, `${tile(300, 40, 90, 80, 'ءَ', 'trigger', 50)}<g class="a-door"><rect x="250" y="34" width="34" height="92" rx="6"/><circle cx="276" cy="84" r="4"/></g>${arrow(240, 80, 196, 80)}${tile(100, 40, 90, 80, 'ا', 'cause', 50)}${counts(126, 150, 2, 'gold')}${cap(210, 176, L('الهمزة تفتح الباب لحرف المد: حركتان', 'The hamza opens the door for the madd: two counts'), 'b', 13)}`, L('مد البدل: همزة قبل حرف المد', 'Madd badal: a hamza before the madd letter')),
+  lazim6: () => svg(420, 190, `${tile(310, 30, 80, 76, 'ـآ', 'cause', 46)}${tile(30, 30, 80, 76, 'دّ', 'trigger', 46)}<g class="a-ruler"><rect x="120" y="54" width="180" height="28" rx="8"/></g>${counts(140, 140, 6, 'gold')}${cap(210, 182, L('أطول مد: ست حركات دائمًا 🖐️☝️', 'The longest madd: always six counts 🖐️☝️'), 'b', 13)}`, L('المد اللازم: ست حركات', 'Madd lazim: six counts'))
+});
 void getLang;
 
 export const ART_IDS = Object.keys(ART);

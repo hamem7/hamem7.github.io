@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.71';
+export const APP_VERSION = '1.0.72';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.72',
+        date: '2026-11-02',
+        items: [
+            { type: 'new', text: { ar: 'ركن التجويد صار ٤٢ درسًا في ١١ محطة: أُضيفت محطات «المخارج والصفات» و«المثلان والمتجانسان والمتقاربان» و«التفخيم والترقيق» (الراء ولام لفظ الجلالة) و«مدود أخرى» (العارض للسكون واللين والبدل واللازم) و«الوقف على أواخر الكلمات»، ولكل درس درس مصوّر وثلاثة مستويات ألعاب.', en: 'The Tajweed corner now has 42 lessons in 11 stops: new stops for articulation and letter qualities, mithlayn/mutajanisayn/mutaqaribayn, heavy and light letters (raa and the lam of “Allah”), more maddat (ʿarid, leen, badal, lazim) and stopping at word ends — each with a picture lesson and three game levels.' } },
+            { type: 'new', text: { ar: '«تعرّف على مصحفك» زادت ثلاثة دروس: آداب التلاوة، وسور القرآن وترتيبها، وكيف أجد الآية.', en: '“Know Your Mushaf” gained three lessons: manners of recitation, the surahs and their order, and how to find an ayah.' } },
+            { type: 'new', text: { ar: '«مراجعة المحطة» في كل محطة: خريطة ذهنية بما أتقنه الطالب، وخلاصة كل درس، وورقة عمل جاهزة للطباعة فيها آيات للتمرين.', en: '“Review this stop” on every stop: a mind map of what the student mastered, each lesson in brief, and a printable worksheet with practice verses.' } }
+        ]
+    },
     {
         version: '1.0.71',
         date: '2026-11-02',

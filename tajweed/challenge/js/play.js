@@ -200,7 +200,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
     const lay = q.layout || 'text';
     const optHTML = (o) => lay === 'glyphs'
       ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
-      : `<button type="button" class="opt" data-o="${esc(o.id)}"><b>${esc(tx(o.label))}</b></button>`;
+      : `<button type="button" class="opt${o.glyph ? ' opt-glyph' : ''}" data-o="${esc(o.id)}"><b${o.glyph ? ' class="quran-text" lang="ar"' : ''}>${esc(tx(o.label))}</b></button>`;
     const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? 'glyphs' : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
     frame(q, `
       <p class="q-prompt">${esc(tx(q.stem))}</p>

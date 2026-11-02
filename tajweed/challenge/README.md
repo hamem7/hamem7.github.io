@@ -17,6 +17,7 @@ python3 -m http.server 8130      # من جذر المنصة، ثم افتح http
 node tajweed/challenge/tools/verify.mjs            # مراجعة المحتوى (نص قرآني، أمثلة، لغتان، حروف، خط، صور)
 node tajweed/challenge/tests/games.test.mjs        # منطق الألعاب
 node tajweed/challenge/tests/mushaf.test.mjs       # منطق قسم المصحف
+node tajweed/challenge/tests/know.test.mjs         # دروس المعرفة وأوراق العمل
 node tajweed/challenge/tests/e2e.mjs               # متصفح حقيقي على المنصة نفسها (Playwright/Chromium) بعد تشغيل الخادم أعلاه
 ```
 
@@ -29,6 +30,8 @@ node tajweed/challenge/tests/e2e.mjs               # متصفح حقيقي عل�
 | `index.html` | الصفحة الوحيدة (شريط علوي للنموذج + `#app`) |
 | `js/app.js` | الموجّه والشاشات: الرئيسية، صفحة الحكم، الدرس، النتيجة، المصادر |
 | `js/story.js` · `data/stories.js` · `js/art.js` · `css/story.css` | **الدرس المصوَّر** (خطوة «تعلّم» لكل الدروس): المحرك، والمحتوى ثنائي اللغة (حكاية، رسوم، صور، آيات، أسئلة سريعة، فكرة للمعلم، رسالة ولي الأمر)، و٣٤ رسمًا للأطفال، وتنسيقها |
+| `data/know.js` · `js/know-engine.js` | **دروس المعرفة** (آداب التلاوة، السور، كيف أجد الآية، المخارج، الصفات، الوقف): المحتوى وبنوك الأسئلة ومولّداتها بقواعد ثابتة |
+| `js/review.js` | **مراجعة المحطة**: خريطة ذهنية وخلاصات وورقة عمل للطباعة (`#/review/<stage>`) |
 | `assets/book/` · `assets/deck/` | رسوم مخارج «التجويد المصوّر» وشرائح عرض القلقلة (نسخ مطابقة من المنصة، انظر `assets/book/SOURCE.md`) |
 | `js/play.js` | تشغيل الأسئلة والتغذية الراجعة (5 أنواع ألعاب) |
 | `js/engine.js` | **محرك الأسئلة** (منطق خالص، بلا DOM): يبني المستويات ويفحص الإجابات |

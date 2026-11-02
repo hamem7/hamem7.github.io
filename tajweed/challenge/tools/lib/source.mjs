@@ -10,7 +10,10 @@ export const ANN_NAME = {
   noon_izhar: ['izhar-halqi'], noon_idgham_ghunna: ['idgham-bighunnah'], noon_idgham_no_ghunna: ['idgham-bila-ghunnah'],
   noon_iqlab: ['iqlab'], noon_ikhfa: ['ikhfa-haqiqi'], meem_ikhfa: ['ikhfa-shafawi'], meem_idgham: ['idgham-shafawi'],
   meem_izhar: ['izhar-shafawi'], ghunna: ['ghunnah-mushaddadah'], qalqalah: ['qalqalah-sughra'],
-  lam_qamari: ['lam-qamariyyah'], lam_shamsi: ['lam-shamsiyyah'], madd_muttasil: ['madd-muttasil'], madd_munfasil: ['madd-munfasil']
+  lam_qamari: ['lam-qamariyyah'], lam_shamsi: ['lam-shamsiyyah'], madd_muttasil: ['madd-muttasil'], madd_munfasil: ['madd-munfasil'],
+  madd_aridh: ['madd-arid-lissukun'], madd_leen: ['madd-lin'], madd_badal: ['madd-badal'],
+  madd_lazim: ['madd-lazim-kalimi-muthaqqal', 'madd-lazim-kalimi-mukhaffaf', 'madd-lazim-harfi-muthaqqal', 'madd-lazim-harfi-mukhaffaf'],
+  mithlain: ['idgham-mithlayn'], mutajanisain: ['idgham-mutajanisayn'], mutaqaribain: ['idgham-mutaqaribayn']
 };
 export function annotationOccurrences(ann, key, rule) {
   const names = ANN_NAME[rule]; const flat = ann.ayahs[key]; if (!names || !flat) return null;
@@ -30,5 +33,7 @@ export function ayahText(surah, a) {
 export const EXTRA_AYAHS = new Set(['7:206', '13:15', '16:50', '17:109', '19:58', '22:18', '22:77', '25:60', '27:26', '32:15', '38:24', '41:38', '53:62',
   '83:14', '75:27', '36:52', '18:1', '69:28', '2:245', '7:69', '52:37', '2:2', '54:6', '5:26',
   // آيات قصيرة تبدأ بعلامة الربع ۞ (لأسئلة «اضغط علامة الربع»)
-  '15:49', '17:50', '19:22', '20:83', '23:36', '26:111', '28:51', '37:83', '37:145', '38:52', '51:31', '56:75', '70:19']);
+  '15:49', '17:50', '19:22', '20:83', '23:36', '26:111', '28:51', '37:83', '37:145', '38:52', '51:31', '56:75', '70:19',
+  // أمثلة قصيرة للمثلين والمتجانسين والمتقاربين (قليلة في جزء عمّ)
+  '74:14', '37:56', '54:15', '29:35', '26:22', '43:39', '10:89', '77:20', '23:93', '23:97', '4:158', '20:29', '37:29', '74:53']);
 export const inPool = (surahNo, ayahNo) => surahNo === 1 || surahNo >= 78 || EXTRA_AYAHS.has(`${surahNo}:${ayahNo}`);

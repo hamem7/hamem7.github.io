@@ -290,3 +290,8 @@ button.rosette { cursor: pointer; width: 46px; height: 46px; min-width: 0; paddi
 .who-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 14px 4px 6px; min-height: 44px; border-radius: 999px; border: 2px solid var(--c-mid); background: var(--c-soft); color: var(--ink); cursor: pointer; font: inherit; } .who-chip b { font-size: .95rem; } .who-chip small { color: var(--ink-soft); font-size: .75rem; }
 .tjc[dir="rtl"] .who-chip { padding: 4px 6px 4px 14px; }
 @media (max-width: 560px) { .who-chip small { display: none; } }
+/* دروس المعرفة: رسم صغير في بلاطة المحطة الأولى وفي صفحة الدرس (css/story.css يرسم عناصره) */
+.plate-art { display: block; width: 100%; }
+.plate-art .art { max-height: 64px; }
+.rh-viz.know-art .art { max-height: 220px; }
+.opt.opt-glyph b { font-size: 1.9rem; }

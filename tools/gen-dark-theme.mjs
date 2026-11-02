@@ -34,7 +34,9 @@ const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'cs
   // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
   'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',
   // مشهد الوسام السينمائي: مسرح داكن دائمًا بقصد (إضاءة وجزيئات ومعادن الأوسمة) فلا يتبدّل بمظهر المنصة
-  'components/badgeReveal.js']);
+  'components/badgeReveal.js',
+  // ورقة عمل التجويد للطباعة (js/review.js): ورقة بيضاء على الورق دائمًا بقصد، تُفتح في نافذة مستقلة للطباعة
+  'tajweed/challenge/js/review.js']);
 const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
 // مقصودة فاتحة: ركن الأطفال، والمطبوعات (تقارير/شهادات تُصدَّر صوراً وPDF بورقة فاتحة دائماً)
 const INTENTIONAL_LIGHT = [/^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/];

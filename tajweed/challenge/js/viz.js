@@ -63,20 +63,44 @@ export const VIZ = {
 
   madd_tabii: () => madd(2, 'ا', 0),
   madd_muttasil: () => madd(5, 'ا', 1),
-  madd_munfasil: () => madd(5, 'ا', 2)
+  madd_munfasil: () => madd(5, 'ا', 2),
+  madd_aridh: () => madd(6, 'ي', 3, 2, 'نْ'),
+  madd_leen: () => madd(6, 'ـَيْـ', 3, 2, 'نْ'),
+  madd_badal: () => madd(2, 'ا', 4),
+  madd_lazim: () => madd(6, 'ا', 5, 99, 'دّ'),
+  mithlain: () => wrap(`<g class="vz-slide-r">${block(R, BY, BW, BH, 'ل\u0652', 'cause fade-out')}</g>${block(Lx + 60, BY - 6, BW + 40, BH + 12, 'ل\u0651', 'trigger big', 42)}`, 'حرفان متماثلان يصيران حرفًا مشددًا'),
+  mutajanisain: () => wrap(`<g class="vz-slide-r">${block(R, BY, BW, BH, 'د\u0652', 'cause fade-out')}</g>${block(Lx + 60, BY - 6, BW + 40, BH + 12, 'ت\u0651', 'trigger big', 42)}<path class="vz-brace" d="M${R + BW} 26 H${Lx + 60}"/>`, 'الدال تدخل في التاء'),
+  mutaqaribain: () => wrap(`<g class="vz-slide-r">${block(R, BY, BW, BH, 'ل\u0652', 'cause fade-out')}</g>${block(Lx + 60, BY - 6, BW + 40, BH + 12, 'ر\u0651', 'trigger big', 42)}`, 'اللام تدخل في الراء'),
+  ra_tafkhim: () => wrap(`${block(140, 30, 90, 80, 'ر\u064E', 'cause big', 50)}${waves(185, 128, 3)}<path class="vz-arrow" d="M270 100 V48"/><path class="vz-arrow" d="M263 57 L270 48 L277 57"/>`, 'راء مفخمة: صوت ممتلئ'),
+  ra_tarqiq: () => wrap(`${block(140, 30, 90, 80, 'ر\u0650', 'cause big', 50)}<path class="vz-arrow" d="M150 130 q35 12 70 0"/><path class="vz-arrow" d="M270 48 V100"/><path class="vz-arrow" d="M263 91 L270 100 L277 91"/>`, 'راء مرققة: صوت نحيف'),
+  lam_jalala_tafkhim: () => wrap(`${block(R, BY, BW, BH, 'ـ\u064E', 'trigger')}${block(Lx + 50, BY - 6, BW + 40, BH + 12, 'ل\u0651', 'cause big', 42)}${arrow(R - 14, Lx + 50 + BW + 54, 70)}${waves(170, 132, 3)}`, 'بعد الفتح أو الضم تُفخّم اللام'),
+  lam_jalala_tarqiq: () => wrap(`${block(R, BY, BW, BH, 'ـ\u0650', 'trigger')}${block(Lx + 50, BY - 6, BW + 40, BH + 12, 'ل\u0651', 'cause big', 42)}${arrow(R - 14, Lx + 50 + BW + 54, 70)}<path class="vz-arrow" d="M140 134 q35 10 70 0"/>`, 'بعد الكسر تُرقّق اللام')
 };
 
-function madd(n, letter, kind) {
-  const unit = 34, total = n * unit, x0 = 180 + total / 2;          // يبدأ من اليمين
-  const segs = Array.from({ length: n }, (_, i) => `<rect class="vz-seg${n === 5 && i === 4 ? ' opt' : ''}" style="animation-delay:${i * 0.18}s" x="${x0 - (i + 1) * unit + 3}" y="64" width="${unit - 6}" height="26" rx="8"/><text class="vz-cap" x="${x0 - i * unit - unit / 2}" y="108" text-anchor="middle">${'١٢٣٤٥'[i]}</text>`).join('');
-  const lead = `${block(x0 + 8, 52, 44, 50, letter, 'cause', 30)}`;
+// kind: 0 طبيعي · 1 متصل (همزة في الكلمة) · 2 منفصل (همزة في الكلمة التالية) · 3 وقف (حرف ساكن بعد المد) · 4 بدل (همزة قبل المد) · 5 لازم (حرف مشدد بعد المد)
+function madd(n, letter, kind, optFrom = n === 5 ? 4 : 99, tailCh = 'نْ') {
+  const unit = 34, total = n * unit, x0 = 180 + total / 2 - (kind === 4 ? 30 : 0);          // يبدأ من اليمين
+  const segs = Array.from({ length: n }, (_, i) => `<rect class="vz-seg${i >= optFrom ? ' opt' : ''}" style="animation-delay:${i * 0.18}s" x="${x0 - (i + 1) * unit + 3}" y="64" width="${unit - 6}" height="26" rx="8"/><text class="vz-cap" x="${x0 - i * unit - unit / 2}" y="108" text-anchor="middle">${'١٢٣٤٥٦'[i]}</text>`).join('');
+  const lead = `${block(x0 + 8, 52, 44, 50, letter, 'cause', 30)}${kind === 4 ? block(x0 + 58, 52, 44, 50, 'ء', 'trigger', 30) : ''}`;
   const tail = kind === 1 ? `${block(x0 - total - 54, 52, 44, 50, 'ء', 'trigger', 30)}<path class="vz-brace" d="M${x0 + 56} 46 H${x0 - total - 58}"/>`
-    : kind === 2 ? `<path class="vz-brace" d="M${x0 + 56} 46 H${x0 + 4}"/>${block(x0 - total - 70, 52, 44, 50, 'ء', 'trigger', 30)}<path class="vz-brace" d="M${x0 - total - 16} 46 H${x0 - total - 74}"/>` : '';
+    : kind === 2 ? `<path class="vz-brace" d="M${x0 + 56} 46 H${x0 + 4}"/>${block(x0 - total - 70, 52, 44, 50, 'ء', 'trigger', 30)}<path class="vz-brace" d="M${x0 - total - 16} 46 H${x0 - total - 74}"/>`
+    : kind === 3 || kind === 5 ? `${block(x0 - total - 54, 52, 44, 50, tailCh, 'trigger', 30)}${kind === 3 ? `<g class="vz-no"><circle cx="${x0 - total - 32}" cy="130" r="11"/><path d="M${x0 - total - 39} 130 h14"/></g>` : ''}` : '';
   return wrap(`${segs}${lead}${tail}`, 'مقدار المد بالحركات');
 }
 
 // الرسم + جملة شرح تحتها (ثنائية اللغة)
 export const VIZ_CAPTION = {
+  madd_aridh: { ar: 'عند الوقف: ٢ أو ٤ أو ٦ حركات', en: 'When stopping: 2, 4 or 6 counts' },
+  madd_leen: { ar: 'واو أو ياء ساكنة بعد فتح، ثم وقف: ٢ أو ٤ أو ٦', en: 'Silent waw/yaa after fatha, then a stop: 2, 4 or 6' },
+  madd_badal: { ar: 'همزة ثم حرف مد: حركتان', en: 'A hamza, then a madd letter: two counts' },
+  madd_lazim: { ar: 'حرف مد ثم حرف مشدّد: ست حركات', en: 'A madd letter, then a doubled letter: six counts' },
+  mithlain: { ar: 'حرفان متماثلان يصيران حرفًا واحدًا مشدّدًا', en: 'Two identical letters become one doubled letter' },
+  mutajanisain: { ar: 'حرفان من مخرج واحد: الأول يدخل في الثاني', en: 'Two letters from one point: the first enters the second' },
+  mutaqaribain: { ar: 'حرفان متقاربان: الأول يدخل في الثاني', en: 'Two nearby letters: the first enters the second' },
+  ra_tafkhim: { ar: 'الراء المفتوحة والمضمومة سمينة', en: 'Raa with fatha or damma is heavy' },
+  ra_tarqiq: { ar: 'الراء المكسورة نحيفة', en: 'Raa with kasra is light' },
+  lam_jalala_tafkhim: { ar: 'بعد فتح أو ضم: لام «الله» مفخّمة', en: 'After fatha or damma: the lam of “Allah” is heavy' },
+  lam_jalala_tarqiq: { ar: 'بعد كسر: لام «الله» مرقّقة', en: 'After kasra: the lam of “Allah” is light' },
   noon_izhar: { ar: 'النون تبقى واضحة، ولا غن\u0651ة مطو\u0651لة', en: 'The noon stays clear; no stretched ghunna' },
   noon_idgham_ghunna: { ar: 'تذوب النون في الحرف التالي ويبقى رنين الغن\u0651ة', en: 'The noon melts into the next letter; the hum remains' },
   noon_idgham_no_ghunna: { ar: 'تذوب النون كلي\u064B\u0651ا: لا نون ولا غن\u0651ة', en: 'The noon dissolves completely: no noon, no ghunna' },
@@ -96,6 +120,10 @@ export const VIZ_CAPTION = {
 
 // أيقونات المراحل
 export const STAGE_ICONS = {
+  mouth: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M30 6 C18 6 10 14 10 24 l-4 6 h5 v6 c0 3 3 5 6 5 h4 v5" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="22" r="4" fill="currentColor"/><path d="M36 32 q4 4 8 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>',
+  merge: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="11" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="30" cy="24" r="11" fill="currentColor" opacity=".55"/></svg>',
+  weight: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 16 a7 7 0 1 1 14 0" fill="none" stroke="currentColor" stroke-width="4"/><path d="M10 18 h28 l4 22 H6z" fill="currentColor"/></svg>',
+  stop: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M17 5 h14 l12 12 v14 l-12 12 h-14 l-12 -12 v-14z" fill="currentColor"/><path d="M15 24 h18" stroke="var(--surface)" stroke-width="5" stroke-linecap="round"/></svg>',
   book: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 12 C18 8 10 8 6 10 V38 C10 36 18 36 24 40 C30 36 38 36 42 38 V10 C38 8 30 8 24 12Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/><path d="M24 12 V40" stroke="currentColor" stroke-width="3"/><circle cx="33" cy="20" r="3.5" fill="currentColor"/></svg>',
   wave: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 26 q6 -14 12 0 t12 0 t12 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M10 36 q5 -8 10 0 t10 0 t8 0" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"/></svg>',
   lips: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 26 q9 -12 18 -4 q9 -8 18 4 q-9 14 -18 14 q-9 0 -18 -14z" fill="currentColor"/><path d="M8 26 h32" stroke="var(--surface)" stroke-width="2.5" fill="none"/></svg>',

@@ -11,6 +11,7 @@
 // أمثلة الدرس: [مفتاح الآية، كلمة١، كلمة٢، ملاحظة اختيارية] — كلمة١/كلمة٢ فهرسا الكلمتين كما في pool.js.
 
 import { MUSHAF } from './mushaf.js';
+import { KNOW } from './know.js';
 
 const T = (ar, en) => ({ ar, en });
 
@@ -77,12 +78,17 @@ export const L_SHAMSI = ['ط', 'ث', 'ص', 'ر', 'ت', 'ض', 'ذ', 'ن', 'د', '
 
 // ترتيب المراحل المقترح: من الأبسط (صوتان) ← ثلاثة أحكام للميم ← النون (٥) ← لام «ال» ← المدود
 export const STAGES = [
-  { id: 'mushaf', hue: 'teal', icon: 'book', name: T('تعرّف على مصحفك', 'Know Your Mushaf'), blurb: T('أرقام الآيات، الجزء والحزب، الحركات والتنوين، الألف والهمزة، علامات الوقف والسكون والمدّ والسجدة', 'Ayah numbers, juz and hizb, vowel marks and tanween, alif and hamza, and the signs of stopping, sukun, madd and sajdah'), rules: ['mushaf_ayah_number', 'mushaf_juz_hizb', 'mushaf_harakat', 'mushaf_hamza', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_special', 'mushaf_sin_saad', 'mushaf_sajda'] },
+  { id: 'mushaf', hue: 'teal', icon: 'book', name: T('تعرّف على مصحفك', 'Know Your Mushaf'), blurb: T('أرقام الآيات، الجزء والحزب، الحركات والتنوين، الألف والهمزة، علامات الوقف والسكون والمدّ والسجدة', 'Ayah numbers, juz and hizb, vowel marks and tanween, alif and hamza, and the signs of stopping, sukun, madd and sajdah'), rules: ['mushaf_adab', 'mushaf_ayah_number', 'mushaf_surahs', 'mushaf_juz_hizb', 'mushaf_find', 'mushaf_harakat', 'mushaf_hamza', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_special', 'mushaf_sin_saad', 'mushaf_sajda'] },
+  { id: 'makharij', hue: 'sky', icon: 'mouth', name: T('المخارج والصفات', 'Articulation & Qualities'), blurb: T('من أين يخرج كل حرف؟ وما الحروف الهامسة والثقيلة والنطّاطة؟', 'Where does each letter come from? Which letters whisper, which are heavy, which bounce?'), rules: ['know_makharij', 'know_sifat'] },
   { id: 'sounds', hue: 'violet', icon: 'wave', name: T('الغنّة والقلقلة', 'Ghunna & Qalqalah'), blurb: T('صوتان يميّزان تلاوتك: رنين الأنف وقفزة الحرف', 'Two sounds that colour your recitation: the nasal hum and the letter’s bounce'), rules: ['ghunna', 'qalqalah'] },
   { id: 'meem', hue: 'rose', icon: 'lips', name: T('الميم الساكنة', 'Meem Sakinah'), blurb: T('ثلاثة أحكام للميم الساكنة (مْ)', 'Three rulings for the silent meem (مْ)'), rules: ['meem_ikhfa', 'meem_idgham', 'meem_izhar'] },
   { id: 'noon', hue: 'emerald', icon: 'noon', name: T('النون الساكنة والتنوين', 'Noon Sakinah & Tanween'), blurb: T('خمس صور: إظهار، إدغام بغنة، إدغام بلا غنة، إقلاب، إخفاء', 'Five forms: izhar, idgham with/without ghunna, iqlab, ikhfa'), rules: ['noon_izhar', 'noon_idgham_ghunna', 'noon_idgham_no_ghunna', 'noon_iqlab', 'noon_ikhfa'] },
   { id: 'lam', hue: 'amber', icon: 'sun', name: T('لام «أل»', 'The Lam of “Al”'), blurb: T('قمرية تظهر وشمسية تختفي', 'Moon letters show, sun letters hide'), rules: ['lam_qamari', 'lam_shamsi'] },
-  { id: 'madd', hue: 'sky', icon: 'madd', name: T('المدود', 'Maddat (Elongation)'), blurb: T('المد الطبيعي والمتصل والمنفصل', 'Natural, connected and separated elongation'), rules: ['madd_tabii', 'madd_muttasil', 'madd_munfasil'] }
+  { id: 'idgham', hue: 'rose', icon: 'merge', name: T('المثلان والمتجانسان والمتقاربان', 'Identical, Related & Neighbouring Letters'), blurb: T('حرفان يلتقيان فيصيران حرفًا مشدّدًا واحدًا', 'Two letters meet and become one doubled letter'), rules: ['mithlain', 'mutajanisain', 'mutaqaribain'] },
+  { id: 'tafkhim', hue: 'amber', icon: 'weight', name: T('التفخيم والترقيق', 'Heavy & Light Letters'), blurb: T('الراء ولام لفظ الجلالة: متى تكون سمينة ومتى نحيفة؟', 'The raa and the lam of “Allah”: when heavy, when light?'), rules: ['ra_tafkhim', 'ra_tarqiq', 'lam_jalala_tafkhim', 'lam_jalala_tarqiq'] },
+  { id: 'madd', hue: 'sky', icon: 'madd', name: T('المدود', 'Maddat (Elongation)'), blurb: T('المد الطبيعي والمتصل والمنفصل', 'Natural, connected and separated elongation'), rules: ['madd_tabii', 'madd_muttasil', 'madd_munfasil'] },
+  { id: 'madd2', hue: 'teal', icon: 'madd', name: T('مدود أخرى', 'More Maddat'), blurb: T('العارض للسكون واللين والبدل واللازم', 'ʿArid, leen, badal and lazim'), rules: ['madd_aridh', 'madd_leen', 'madd_badal', 'madd_lazim'] },
+  { id: 'waqf', hue: 'violet', icon: 'stop', name: T('الوقف على أواخر الكلمات', 'Stopping at Word Ends'), blurb: T('كيف ننطق آخر الكلمة إذا وقفنا عليها؟', 'How do we say the end of a word when we stop on it?'), rules: ['know_waqf'] }
 ];
 
 export const RULES = {
@@ -456,7 +462,201 @@ export const RULES = {
     review: 'جواز القصر (حركتان) وتحديد المقدار يعتمده المعلم بحسب طريق القراءة',
     poem: { ar: ['وَجَائِزٌ مَدٌّ وَقَصْرٌ إِنْ فُصِلْ', 'كُلٌّ بِكِلْمَةٍ وَهَذَا الْمُنْفَصِلْ'], ref: T('تحفة الأطفال — البيت ٤٤', 'Tuhfat al-Atfal — verse 44'), src: 'tuhfa' },
     examples: [['108:1', 0, 1], ['82:17', 0, 1], ['81:15', 0, 1]]
+  },
+
+  // ───────────────────────── المثلان والمتجانسان والمتقاربان ─────────────────────────
+  mithlain: {
+    id: 'mithlain', stage: 'idgham', viz: 'mithlain',
+    name: T('إدغام المثلين', 'Idgham of Identical Letters (Mithlayn)'), short: T('لْ لّ', 'لْ لّ'),
+    tagline: T('حرفان توأمان يصيران حرفًا واحدًا', 'Twin letters become one'),
+    def: T('المثلان: حرفان اتّفقا مخرجًا وصفةً (نفس الحرف)، فإذا سكن الأول وتحرّك الثاني أُدغم الأول في الثاني وصارا حرفًا واحدًا مشدّدًا، ويسمّى «المثلين الصغير».', 'Mithlayn: two letters identical in articulation and qualities (the same letter). When the first is silent and the second is voweled, the first merges into the second and they become one doubled letter — the “small mithlayn”.'),
+    kid: T('حرفان توأمان: الأول ساكن والثاني متحرّك. لا تقرأ الأول وحده، بل اضغط على الثاني ضغطة واحدة قوية كأنهما حرف واحد.', 'Two twin letters: the first silent, the second moving. Do not read the first on its own; press the second once, strongly, as if they were one letter.'),
+    how: [T('ابحث عن حرف ساكن في آخر كلمة.', 'Find a silent letter at the end of a word.'), T('هل أول الكلمة التالية الحرف نفسه وعليه شدّة؟', 'Does the next word begin with the same letter, carrying a shadda?'), T('اقرأهما حرفًا واحدًا مشدّدًا.', 'Read them as one doubled letter.')],
+    needs: T('حرف ساكن بعده الحرف نفسه متحرّكًا', 'a silent letter followed by the same letter, voweled'),
+    find: T('ابحث عن حرف في آخر كلمة، وأول الكلمة التالية هو الحرف نفسه مشدّدًا.', 'Find a letter ending a word where the next word starts with the same letter, doubled.'),
+    why: T('الحرف «{t}» ساكن وبعده «{t}» مثله متحرّك، فهما مثلان يُدغمان.', 'The letter “{t}” is silent and followed by another “{t}”, voweled: identical letters that merge.'),
+    watch: T('لا تقطع بين الحرفين ولا تُظهر الأول. وإدغام الميم في الميم والنون في النون سبق في دروسهما.', 'Do not separate the two letters or pronounce the first one. Meem-into-meem and noon-into-noon were covered in their own lessons.'),
+    vs: [{ with: 'mutajanisain', tip: T('المثلان: الحرف نفسه. المتجانسان: حرفان مختلفان من مخرج واحد.', 'Mithlayn: the same letter. Mutajanisayn: two different letters from one articulation point.') }, { with: 'mutaqaribain', tip: T('المتقاربان: حرفان مختلفان مخرجاهما متقاربان (مثل اللام والراء).', 'Mutaqaribayn: two different letters with nearby articulation points (like lam and raa).') }],
+    length: T('حرف واحد مشدّد', 'one doubled letter'),
+    letters: { list: [], label: T('أي حرفين متماثلين', 'any two identical letters') },
+    poem: { ar: ['إِنْ فِي الصِّفَاتِ وَالْمَخَارِجِ اتَّفَقْ', 'حَرْفَانِ فَالْمِثْلَانِ فِيهِمَا أَحَقّْ'], ref: T('تحفة الأطفال — البيت ٣٠', 'Tuhfat al-Atfal — verse 30'), src: 'tuhfa' },
+    examples: [['90:8', 1, 2], ['20:29', 0, 1], ['79:18', 1, 2]]
+  },
+  mutajanisain: {
+    id: 'mutajanisain', stage: 'idgham', viz: 'mutajanisain',
+    name: T('إدغام المتجانسين', 'Idgham of Related Letters (Mutajanisayn)'), short: T('دْ تّ', 'دْ تّ'),
+    tagline: T('حرفان من بيت واحد بثوبين مختلفين', 'Two letters from one house, in different clothes'),
+    def: T('المتجانسان: حرفان اتّفقا مخرجًا واختلفا صفةً، كالدال والتاء، والتاء والطاء، والذال والظاء، والثاء والذال، والباء والميم. فإذا سكن الأول أُدغم في الثاني.', 'Mutajanisayn: two letters sharing an articulation point but differing in qualities — dal and taa, taa and ṭaa, dhal and ẓaa, thaa and dhal, baa and meem. When the first is silent it merges into the second.'),
+    kid: T('حرفان يسكنان في بيت واحد (يخرجان من المكان نفسه في الفم) لكن لكل منهما ثوب مختلف. إذا سكن الأول دخل في الثاني وصار الثاني مشدّدًا.', 'Two letters live in one house (they come from the same spot in the mouth) but each wears different clothes. When the first is silent it slips into the second, which becomes doubled.'),
+    how: [T('ابحث عن حرف ساكن بلا علامة سكون، وبعده حرف مشدّد.', 'Find a silent letter with no sukun mark, followed by a doubled letter.'), T('هل هما من مخرج واحد (مثل د و ت)؟', 'Do they share an articulation point (like د and ت)?'), T('انطق الثاني مشدّدًا ولا تُظهر الأول.', 'Say the second one doubled and do not pronounce the first.')],
+    needs: T('حرف ساكن بعده حرف من مخرجه نفسه', 'a silent letter followed by a letter from the same articulation point'),
+    find: T('ابحث عن حرف بلا حركة ولا سكون، وبعده حرف مختلف عليه شدّة (مثل دتّ).', 'Find a letter with no vowel or sukun, followed by a different letter carrying a shadda (like دتّ).'),
+    why: T('الحرف قبل «{t}» ساكن ومن مخرجه نفسه، فهما متجانسان يُدغم الأول في «{t}».', 'The letter before “{t}” is silent and shares its articulation point: related letters, the first merges into “{t}”.'),
+    watch: T('في بعض الكلمات يبقى أثر الحرف الأول (مثل الطاء قبل التاء) فلا يكون الإدغام كاملًا؛ اسمعها من معلمك.', 'In some words a trace of the first letter remains (like ṭaa before taa), so the merge is incomplete — hear it from your teacher.'),
+    vs: [{ with: 'mithlain', tip: T('المثلان: الحرف نفسه مرتين. المتجانسان: حرفان مختلفان من مخرج واحد.', 'Mithlayn: the same letter twice. Mutajanisayn: two different letters from one articulation point.') }, { with: 'mutaqaribain', tip: T('المتقاربان مخرجاهما متقاربان لا متّحدان.', 'Mutaqaribayn have nearby, not identical, articulation points.') }],
+    length: T('حرف واحد مشدّد', 'one doubled letter'),
+    letters: { list: ['د', 'ت', 'ط', 'ذ', 'ظ', 'ث', 'ب', 'م'], label: T('أزواجه: د ت · ت ط · ذ ظ · ث ذ · ب م', 'Its pairs: د ت · ت ط · ذ ظ · ث ذ · ب م') },
+    poem: { ar: ['مُتَقَارِبَيْنِ أَوْ يَكُونَا اتَّفَقَا', 'فِي مَخْرَجٍ دُونَ الصِّفَاتِ حُقِّقَا', 'بِالْمُتَجَانِسَيْنِ ثُمَّ إِنْ سَكَنْ', 'أَوَّلُ كُلٍّ فَالصَّغِيرَ سَمِّيَنْ'], ref: T('تحفة الأطفال — البيتان ٣٢ و٣٣', 'Tuhfat al-Atfal — verses 32–33'), src: 'tuhfa' },
+    examples: [['109:4', 4, 4], ['74:14', 0, 0], ['37:56', 3, 3]]
+  },
+  mutaqaribain: {
+    id: 'mutaqaribain', stage: 'idgham', viz: 'mutaqaribain',
+    name: T('إدغام المتقاربين', 'Idgham of Neighbouring Letters (Mutaqaribayn)'), short: T('لْ رّ', 'لْ رّ'),
+    tagline: T('جاران متقاربان يتعانقان', 'Two close neighbours embrace'),
+    def: T('المتقاربان: حرفان تقاربا مخرجًا وصفةً، كاللام والراء، والقاف والكاف. فإذا سكن الأول أُدغم في الثاني.', 'Mutaqaribayn: two letters with nearby articulation points and qualities — lam and raa, qaf and kaf. When the first is silent it merges into the second.'),
+    kid: T('حرفان جاران يسكنان في بيتين متجاورين. إذا سكن الأول ذهب إلى جاره، فنقرأ الثاني مشدّدًا ولا نسمع الأول.', 'Two letters are neighbours in houses side by side. When the first is silent it goes over to its neighbour: we read the second doubled and do not hear the first.'),
+    how: [T('ابحث عن لام ساكنة قبل راء، أو قاف ساكنة قبل كاف.', 'Find a silent lam before a raa, or a silent qaf before a kaf.'), T('انظر: الحرف الثاني عليه شدّة.', 'Look: the second letter carries a shadda.'), T('انطق الثاني مشدّدًا ولا تُظهر الأول.', 'Say the second doubled without pronouncing the first.')],
+    needs: T('لام ساكنة قبل راء، أو قاف ساكنة قبل كاف', 'a silent lam before raa, or a silent qaf before kaf'),
+    find: T('ابحث عن لام بلا حركة وبعدها راء مشدّدة، أو قاف بلا حركة وبعدها كاف مشدّدة.', 'Find a lam with no vowel followed by a doubled raa, or a qaf with no vowel followed by a doubled kaf.'),
+    why: T('قبل «{t}» حرف ساكن من مخرج قريب منه، فهما متقاربان يُدغم الأول في «{t}».', 'Before “{t}” is a silent letter from a nearby articulation point: neighbouring letters, the first merges into “{t}”.'),
+    watch: T('في «بل ران» سكتة في رواية حفص تمنع الإدغام، فتُقرأ اللام ظاهرة.', 'In «بل ران» Hafs makes a saktah that prevents the merge, so the lam is pronounced.'),
+    vs: [{ with: 'mutajanisain', tip: T('المتجانسان مخرجهما واحد، والمتقاربان مخرجاهما متقاربان.', 'Mutajanisayn share one articulation point; mutaqaribayn are only close.') }, { with: 'noon_idgham_no_ghunna', tip: T('إدغام النون في اللام والراء حكم النون الساكنة، أما هنا فاللام أو القاف هي الساكنة.', 'Merging noon into lam/raa is a noon rule; here the silent letter is lam or qaf.') }],
+    length: T('حرف واحد مشدّد', 'one doubled letter'),
+    letters: { list: ['ل', 'ر', 'ق', 'ك'], label: T('زوجاه: ل ← ر · ق ← ك', 'Its pairs: ل → ر · ق → ك') },
+    poem: { ar: ['وَإِنْ يَكُونَا مَخْرَجًا تَقَارَبَا', 'وَفِي الصِّفَاتِ اخْتَلَفَا يُلَقَّبَا', 'مُتَقَارِبَيْنِ…'], ref: T('تحفة الأطفال — البيتان ٣١ و٣٢', 'Tuhfat al-Atfal — verses 31–32'), src: 'tuhfa' },
+    examples: [['77:20', 1, 1], ['23:93', 0, 1], ['4:158', 0, 1]]
+  },
+
+  // ───────────────────────── التفخيم والترقيق ─────────────────────────
+  ra_tafkhim: {
+    id: 'ra_tafkhim', stage: 'tafkhim', viz: 'ra_tafkhim',
+    name: T('تفخيم الراء', 'Heavy Raa (Tafkhim)'), short: T('رَ رُ', 'رَ رُ'),
+    tagline: T('راء مفتوحة أو مضمومة: صوت ممتلئ', 'Raa with fatha or damma: a full sound'),
+    def: T('التفخيم: تسمين صوت الحرف حتى يمتلئ الفم بصداه. وتُفخَّم الراء إذا كانت مفتوحة أو مضمومة (وفي أحوال أخرى للراء الساكنة يشرحها المعلم).', 'Tafkhim is making a letter’s sound heavy so its echo fills the mouth. The raa is heavy when it carries a fatha or a damma (other cases of the silent raa are explained by the teacher).'),
+    kid: T('الراء المفتوحة أو المضمومة راء «سمينة»: ارفع مؤخرة لسانك قليلًا ودع صوتها يملأ فمك كأنه صدى في كهف.', 'A raa with fatha or damma is a “chubby” raa: lift the back of your tongue a little and let its sound fill your mouth like an echo in a cave.'),
+    how: [T('ابحث عن الراء وانظر إلى حركتها.', 'Find the raa and look at its vowel.'), T('فتحة أو ضمّة؟ إذن هي مفخّمة.', 'Fatha or damma? Then it is heavy.'), T('انطقها بصوت ممتلئ دون أن تحوّل الفتحة إلى ضمّة.', 'Say it with a full sound without turning the fatha into a damma.')],
+    needs: T('راء عليها فتحة أو ضمّة', 'a raa with a fatha or a damma'),
+    find: T('ابحث عن راء عليها فتحة أو ضمّة.', 'Find a raa with a fatha or damma.'),
+    why: T('الحرف «{t}»: راء مفتوحة أو مضمومة، فتُفخَّم.', 'The letter “{t}” is a raa with fatha or damma, so it is heavy.'),
+    watch: T('التفخيم ليس ضمًّا: لا تجعل «رَ» تُسمع «رُو». وحالات الراء الساكنة والوقف يعلّمك إياها المعلم.', 'Heaviness is not a damma: do not let “ra” sound like “ru”. The silent raa and stopping cases are taught by the teacher.'),
+    vs: [{ with: 'ra_tarqiq', tip: T('المفتوحة والمضمومة سمينة، والمكسورة نحيفة.', 'Fatha and damma make it heavy; kasra makes it light.') }],
+    length: T('حرف واحد بصوت ممتلئ', 'one letter with a full sound'),
+    letters: { list: ['ر'], label: T('الحرف: الراء', 'The letter: raa') },
+    poem: { ar: ['وَرَقِّقِ الرَّاءَ إِذَا مَا كُسِرَتْ', 'كَذَاكَ بَعْدَ الْكَسْرِ حَيْثُ سَكَنَتْ'], ref: T('المقدمة الجزرية — باب الراءات', 'al-Muqaddima al-Jazariyya — on the raa'), src: 'jazariyya', review: 'البيت مكتوب من الحفظ ولم يُطابَق مع نسخة مطبوعة؛ يلزم تحقق المعلم' },
+    examples: [['1:3', 0, 0], ['78:33', 1, 1], ['82:11', 0, 0]]
+  },
+  ra_tarqiq: {
+    id: 'ra_tarqiq', stage: 'tafkhim', viz: 'ra_tarqiq',
+    name: T('ترقيق الراء', 'Light Raa (Tarqiq)'), short: T('رِ', 'رِ'),
+    tagline: T('راء مكسورة: صوت نحيف', 'Raa with kasra: a thin sound'),
+    def: T('الترقيق: تنحيف صوت الحرف فلا يمتلئ الفم بصداه. وتُرقَّق الراء إذا كانت مكسورة (وكذلك إذا سكنت بعد كسر في أحوال يشرحها المعلم).', 'Tarqiq is making a letter’s sound thin so it does not fill the mouth. The raa is light when it carries a kasra (and when silent after a kasra in cases the teacher explains).'),
+    kid: T('الراء المكسورة راء «نحيفة»: ابتسم قليلًا وانطقها خفيفة رقيقة كأنك تهمس بها.', 'A raa with kasra is a “thin” raa: smile a little and say it lightly and gently, as if whispering it.'),
+    how: [T('ابحث عن الراء وانظر إلى حركتها.', 'Find the raa and look at its vowel.'), T('كسرة تحتها؟ إذن هي مرقّقة.', 'A kasra under it? Then it is light.'), T('انطقها خفيفة دون أن تُفخّمها.', 'Say it lightly, not heavy.')],
+    needs: T('راء تحتها كسرة', 'a raa with a kasra'),
+    find: T('ابحث عن راء تحتها كسرة.', 'Find a raa with a kasra under it.'),
+    why: T('الحرف «{t}»: راء مكسورة، فتُرقَّق.', 'The letter “{t}” is a raa with kasra, so it is light.'),
+    watch: T('لا تُفخّم الراء المكسورة بسبب حرف ثقيل قبلها؛ الكسرة تجعلها رقيقة دائمًا.', 'Do not make a raa with kasra heavy because of a heavy letter before it; the kasra always makes it light.'),
+    vs: [{ with: 'ra_tafkhim', tip: T('المكسورة نحيفة، والمفتوحة والمضمومة سمينة.', 'Kasra makes it light; fatha and damma make it heavy.') }],
+    length: T('حرف واحد بصوت رقيق', 'one letter with a light sound'),
+    letters: { list: ['ر'], label: T('الحرف: الراء', 'The letter: raa') },
+    poem: { ar: ['وَرَقِّقِ الرَّاءَ إِذَا مَا كُسِرَتْ', 'كَذَاكَ بَعْدَ الْكَسْرِ حَيْثُ سَكَنَتْ'], ref: T('المقدمة الجزرية — باب الراءات', 'al-Muqaddima al-Jazariyya — on the raa'), src: 'jazariyya', review: 'البيت مكتوب من الحفظ ولم يُطابَق مع نسخة مطبوعة؛ يلزم تحقق المعلم' },
+    examples: [['101:1', 0, 0], ['86:1', 1, 1], ['95:2', 0, 0]]
+  },
+  lam_jalala_tafkhim: {
+    id: 'lam_jalala_tafkhim', stage: 'tafkhim', viz: 'lam_jalala_tafkhim',
+    name: T('تفخيم لام لفظ الجلالة', 'Heavy Lam in “Allah”'), short: T('ـَ ٱللَّه', 'ـَ ٱللَّه'),
+    tagline: T('بعد فتح أو ضم: لام ممتلئة', 'After fatha or damma: a full lam'),
+    def: T('تُفخَّم لام لفظ الجلالة «الله» إذا سبقتها فتحة أو ضمّة.', 'The lam of the word “Allah” is heavy when a fatha or damma comes before it.'),
+    kid: T('إذا جاء قبل اسم الله فتحة أو ضمّة، نقول «الله» بلام ممتلئة عظيمة يملأ صوتها الفم.', 'When a fatha or damma comes before the name of Allah, we say “Allah” with a full, majestic lam that fills the mouth.'),
+    how: [T('جد لفظ الجلالة «الله».', 'Find the word “Allah”.'), T('انظر إلى الحركة قبله مباشرة.', 'Look at the vowel just before it.'), T('فتحة أو ضمّة؟ فخّم اللام.', 'Fatha or damma? Make the lam heavy.')],
+    needs: T('فتحة أو ضمّة قبل لفظ الجلالة', 'a fatha or damma before the word “Allah”'),
+    find: T('ابحث عن لفظ الجلالة وقبله فتحة أو ضمّة.', 'Find the word “Allah” with a fatha or damma before it.'),
+    why: T('قبل لفظ الجلالة «{t}» بفتح أو ضم، فتُفخَّم لامه.', 'Before the word “Allah” comes “{t}” with fatha or damma, so its lam is heavy.'),
+    watch: T('ننظر إلى الحرف الذي ننطقه قبل اللام فعلًا، لا إلى ألف الوصل التي تسقط في الوصل.', 'Look at the letter actually pronounced before the lam, not at the alif wasla that drops when joining.'),
+    vs: [{ with: 'lam_jalala_tarqiq', tip: T('بعد الفتح والضم تُفخَّم، وبعد الكسر تُرقَّق.', 'Heavy after fatha and damma; light after kasra.') }],
+    length: T('لام بصوت ممتلئ', 'a full-sounding lam'),
+    letters: { list: ['ل'], label: T('الحرف: لام لفظ الجلالة', 'The letter: the lam of “Allah”') },
+    poem: { ar: ['وَفَخِّمِ اللَّامَ مِنِ اسْمِ اللَّهِ', 'عَنْ فَتْحٍ اوْ ضَمٍّ كَعَبْدُ اللَّهِ'], ref: T('المقدمة الجزرية — باب اللامات', 'al-Muqaddima al-Jazariyya — on the lam'), src: 'jazariyya', review: 'البيت مكتوب من الحفظ ولم يُطابَق مع نسخة مطبوعة؛ يلزم تحقق المعلم' },
+    examples: [['104:6', 1, 1], ['95:8', 1, 1], ['88:24', 1, 1]]
+  },
+  lam_jalala_tarqiq: {
+    id: 'lam_jalala_tarqiq', stage: 'tafkhim', viz: 'lam_jalala_tarqiq',
+    name: T('ترقيق لام لفظ الجلالة', 'Light Lam in “Allah”'), short: T('ـِ ٱللَّه', 'ـِ ٱللَّه'),
+    tagline: T('بعد كسر: لام رقيقة', 'After kasra: a light lam'),
+    def: T('تُرقَّق لام لفظ الجلالة «الله» إذا سبقتها كسرة.', 'The lam of the word “Allah” is light when a kasra comes before it.'),
+    kid: T('إذا جاء قبل اسم الله كسرة، نقول «الله» بلام رقيقة خفيفة، كما في البسملة.', 'When a kasra comes before the name of Allah, we say “Allah” with a light, gentle lam — as in the basmala.'),
+    how: [T('جد لفظ الجلالة «الله».', 'Find the word “Allah”.'), T('انظر إلى الحركة قبله مباشرة.', 'Look at the vowel just before it.'), T('كسرة؟ رقّق اللام.', 'Kasra? Make the lam light.')],
+    needs: T('كسرة قبل لفظ الجلالة', 'a kasra before the word “Allah”'),
+    find: T('ابحث عن لفظ الجلالة وقبله كسرة.', 'Find the word “Allah” with a kasra before it.'),
+    why: T('قبل لفظ الجلالة «{t}» بكسر، فتُرقَّق لامه.', 'Before the word “Allah” comes “{t}” with kasra, so its lam is light.'),
+    watch: T('في «لله» و«بالله» الكسرة على الحرف المتصل بالكلمة نفسها، فاللام رقيقة.', 'In «لله» and «بالله» the kasra is on the letter attached to the word itself, so the lam is light.'),
+    vs: [{ with: 'lam_jalala_tafkhim', tip: T('بعد الكسر تُرقَّق، وبعد الفتح والضم تُفخَّم.', 'Light after kasra; heavy after fatha and damma.') }],
+    length: T('لام بصوت رقيق', 'a light-sounding lam'),
+    letters: { list: ['ل'], label: T('الحرف: لام لفظ الجلالة', 'The letter: the lam of “Allah”') },
+    poem: { ar: ['وَفَخِّمِ اللَّامَ مِنِ اسْمِ اللَّهِ', 'عَنْ فَتْحٍ اوْ ضَمٍّ كَعَبْدُ اللَّهِ'], ref: T('المقدمة الجزرية — باب اللامات', 'al-Muqaddima al-Jazariyya — on the lam'), src: 'jazariyya', review: 'البيت مكتوب من الحفظ ولم يُطابَق مع نسخة مطبوعة؛ يلزم تحقق المعلم' },
+    examples: [['1:1', 1, 1], ['110:2', 5, 5], ['85:8', 6, 6]]
+  },
+
+  // ───────────────────────── مدود أخرى ─────────────────────────
+  madd_aridh: {
+    id: 'madd_aridh', stage: 'madd2', viz: 'madd_aridh',
+    name: T('المد العارض للسكون', 'Madd ʿArid (stop-caused)'), short: T('ـِينْ ۝', 'ـِينْ ۝'),
+    tagline: T('نقف فيطول المد', 'We stop, and the madd grows'),
+    def: T('المد العارض للسكون: أن يأتي بعد حرف المد حرف متحرّك في آخر الكلمة فنقف عليه بالسكون، فيجوز مدّه حركتين أو أربعًا أو ستًّا.', 'Madd ʿarid: a voweled letter after a madd letter at the end of a word, which we stop on with a sukun; it may be stretched two, four or six counts.'),
+    kid: T('في آخر الآية نقف، فيسكن الحرف الأخير. فإن كان قبله حرف مد صار مدًّا عارضًا: نمدّه ٢ أو ٤ أو ٦ حركات، ونختار مقدارًا واحدًا في القراءة كلها.', 'At the end of an ayah we stop, so the last letter becomes silent. If a madd letter comes before it, it becomes madd ʿarid: we stretch it 2, 4 or 6 counts — choosing one length for the whole recitation.'),
+    how: [T('في آخر الآية، انظر إلى الحرف قبل الأخير.', 'At the end of the ayah, look at the letter before the last.'), T('هل هو حرف مد؟', 'Is it a madd letter?'), T('قف على الأخير بالسكون وامدد ٢ أو ٤ أو ٦ حركات.', 'Stop on the last letter with a sukun and stretch 2, 4 or 6 counts.')],
+    needs: T('حرف مد قبل الحرف الأخير الذي نقف عليه', 'a madd letter before the last letter we stop on'),
+    find: T('ابحث في آخر الآية عن كلمة فيها حرف مد قبل آخر حرف.', 'At the end of the ayah, find a word with a madd letter before its last letter.'),
+    why: T('قبل الحرف الأخير «{t}» حرف مد، ونقف على «{t}» بالسكون، فيصير المد عارضًا للسكون.', 'A madd letter comes before the last letter “{t}”, and we stop on “{t}” with a sukun, so the madd is ʿarid.'),
+    watch: T('إذا وصلنا الآية بما بعدها زال السكون فرجع المد طبيعيًا حركتين. والتزم مقدارًا واحدًا في القراءة كلها.', 'If we join the ayah to the next, the sukun disappears and the madd returns to two natural counts. Keep one length throughout.'),
+    vs: [{ with: 'madd_tabii', tip: T('الطبيعي حركتان دائمًا، والعارض عند الوقف فقط ويجوز فيه ٢ أو ٤ أو ٦.', 'Natural is always two counts; ʿarid happens only when stopping and may be 2, 4 or 6.') }, { with: 'madd_leen', tip: T('العارض قبله حرف مد، واللين قبله واو أو ياء ساكنة بعد فتح.', 'ʿArid has a madd letter; leen has a silent waw or yaa after a fatha.') }],
+    length: T('٢ أو ٤ أو ٦ حركات عند الوقف', '2, 4 or 6 counts when stopping'),
+    letters: { list: [], label: T('السبب: الوقف بالسكون بعد حرف مد', 'The cause: stopping with sukun after a madd letter') },
+    poem: { ar: ['وَمِثْلُ ذَا إِنْ عَرَضَ السُّكُونُ', 'وَقْفًا كَتَعْلَمُونَ نَسْتَعِينُ'], ref: T('تحفة الأطفال — البيت ٤٥', 'Tuhfat al-Atfal — verse 45'), src: 'tuhfa' },
+    examples: [['1:3', 1, 1], ['78:1', 1, 1], ['81:26', 1, 1]]
+  },
+  madd_leen: {
+    id: 'madd_leen', stage: 'madd2', viz: 'madd_leen',
+    name: T('مد اللين', 'Madd Leen (soft)'), short: T('ـَيْـ ـَوْـ', 'ـَيْـ ـَوْـ'),
+    tagline: T('واو أو ياء ساكنة بعد فتحة', 'A silent waw or yaa after a fatha'),
+    def: T('حرفا اللين: الواو والياء الساكنتان بعد فتحة. فإذا جاء بعدهما حرف نقف عليه بالسكون جاز مدّهما حركتين أو أربعًا أو ستًّا.', 'The soft letters are a silent waw or yaa after a fatha. When followed by a letter we stop on with a sukun, they may be stretched two, four or six counts.'),
+    kid: T('واو أو ياء ساكنة قبلها فتحة: صوت ناعم ليّن. إذا وقفنا على الحرف الذي بعدها مددناها مدًّا لطيفًا.', 'A silent waw or yaa with a fatha before it: a soft, gentle sound. When we stop on the letter after it we stretch it gently.'),
+    how: [T('ابحث عن واو أو ياء ساكنة قبلها فتحة.', 'Find a silent waw or yaa with a fatha before it.'), T('هل نقف على الحرف الذي بعدها؟', 'Do we stop on the letter after it?'), T('امدد مدًّا لطيفًا (٢ أو ٤ أو ٦).', 'Stretch gently (2, 4 or 6).')],
+    needs: T('واو أو ياء ساكنة بعد فتح، ثم حرف نقف عليه', 'a silent waw or yaa after a fatha, then a letter we stop on'),
+    find: T('ابحث في آخر الآية عن كلمة فيها ـَيْـ أو ـَوْـ قبل آخر حرف.', 'At the end of the ayah, find a word with ـَيْـ or ـَوْـ before its last letter.'),
+    why: T('قبل «{t}» واو أو ياء ساكنة بعد فتح، ونقف على «{t}»، فهو مد لين.', 'Before “{t}” is a silent waw or yaa after a fatha, and we stop on “{t}”: madd leen.'),
+    watch: T('في الوصل لا يُمدّ اللين، بل يُنطق قصيرًا.', 'When joining, leen is not stretched; it is said short.'),
+    vs: [{ with: 'madd_aridh', tip: T('في العارض حرف مد حقيقي (ا و ي بحركة مناسبة)، وفي اللين واو أو ياء ساكنة بعد فتحة.', 'ʿArid has a true madd letter; leen has a silent waw or yaa after a fatha.') }],
+    length: T('٢ أو ٤ أو ٦ حركات عند الوقف', '2, 4 or 6 counts when stopping'),
+    letters: { list: ['و', 'ي'], label: T('حرفا اللين: و ي (ساكنتان بعد فتح)', 'The soft letters: و ي (silent, after fatha)') },
+    poem: { ar: ['وَاللِّينُ مِنْهَا الْيَا وَوَاوٌ سُكِّنَا', 'إِنِ انْفِتَاحٌ قَبْلَ كُلٍّ أُعْلِنَا'], ref: T('تحفة الأطفال — البيت ٤١', 'Tuhfat al-Atfal — verse 41'), src: 'tuhfa' },
+    examples: [['90:9', 1, 1], ['106:1', 1, 1], ['106:3', 3, 3]]
+  },
+  madd_badal: {
+    id: 'madd_badal', stage: 'madd2', viz: 'madd_badal',
+    name: T('مد البدل', 'Madd Badal'), short: T('ءَا', 'ءَا'),
+    tagline: T('الهمزة قبل حرف المد', 'The hamza comes before the madd'),
+    def: T('مد البدل: أن تتقدّم الهمزة على حرف المد في كلمة واحدة، ويُمدّ حركتين في رواية حفص.', 'Madd badal: the hamza comes before the madd letter in one word; in Hafs it is stretched two counts.'),
+    kid: T('هنا الهمزة تسبق حرف المد كأنها تفتح له الباب. نمدّه حركتين فقط مثل المد الطبيعي.', 'Here the hamza goes before the madd letter, as if opening the door for it. We stretch it two counts only, like the natural madd.'),
+    how: [T('ابحث عن همزة بعدها حرف مد.', 'Find a hamza followed by a madd letter.'), T('هل هما في كلمة واحدة؟', 'Are they in one word?'), T('امدد حركتين فقط.', 'Stretch two counts only.')],
+    needs: T('همزة قبل حرف المد في كلمة واحدة', 'a hamza before the madd letter in one word'),
+    find: T('ابحث عن كلمة فيها همزة بعدها حرف مد (مثل ءَا).', 'Find a word with a hamza followed by a madd letter (like ءَا).'),
+    why: T('الهمزة «{t}» قبل حرف المد في الكلمة نفسها، فهو مد بدل.', 'The hamza “{t}” comes before the madd letter in the same word: madd badal.'),
+    watch: T('لا تُطِل البدل كالمتصل: في المتصل الهمزة بعد المد، وفي البدل قبله.', 'Do not stretch badal like muttasil: in muttasil the hamza is after the madd, in badal before it.'),
+    vs: [{ with: 'madd_muttasil', tip: T('المتصل: مد ثم همزة (٤–٥). البدل: همزة ثم مد (حركتان).', 'Muttasil: madd then hamza (4–5). Badal: hamza then madd (2).') }],
+    length: T('حركتان', 'two counts'),
+    letters: { list: [], label: T('السبب: همزة قبل حرف المد', 'The cause: a hamza before the madd letter') },
+    poem: { ar: ['أَوْ قُدِّمَ الْهَمْزُ عَلَى الْمَدِّ وَذَا', 'بَدَلْ كَآمَنُوا وَإِيمَانًا خُذَا'], ref: T('تحفة الأطفال — البيت ٤٦', 'Tuhfat al-Atfal — verse 46'), src: 'tuhfa' },
+    examples: [['78:22', 1, 1], ['106:1', 0, 0], ['96:7', 1, 1]]
+  },
+  madd_lazim: {
+    id: 'madd_lazim', stage: 'madd2', viz: 'madd_lazim',
+    name: T('المد اللازم', 'Madd Lazim (required, six counts)'), short: T('ـآدّ', 'ـآدّ'),
+    tagline: T('أطول مد: ست حركات', 'The longest madd: six counts'),
+    def: T('المد اللازم: أن يأتي بعد حرف المد سكون أصلي ثابت وصلًا ووقفًا (وأكثره حرف مشدّد)، فيُمدّ ست حركات لزومًا. وأقسامه أربعة: كلمي مثقّل ومخفّف، وحرفي مثقّل ومخفّف (في فواتح السور).', 'Madd lazim: a madd letter followed by an original sukun present both when joining and stopping (usually a doubled letter); it is stretched six counts. It has four kinds: word-based (doubled or not) and letter-based (in the opening letters of surahs).'),
+    kid: T('هذا أطول مد في القرآن! حرف مد عليه علامة المدّ وبعده حرف مشدّد. نمدّه ست حركات: عدّ على ست أصابع 🖐️☝️.', 'The longest madd in the Qur’an! A madd letter with the madd sign, followed by a doubled letter. Stretch it six counts: count on six fingers 🖐️☝️.'),
+    how: [T('ابحث عن حرف مد عليه علامة المدّ ۤ.', 'Find a madd letter with the madd sign ۤ.'), T('هل بعده حرف مشدّد أو ساكن في الكلمة نفسها؟', 'Is it followed by a doubled or silent letter in the same word?'), T('امدد ست حركات كاملة.', 'Stretch a full six counts.')],
+    needs: T('حرف مد بعده سكون أصلي (غالبًا حرف مشدّد) في الكلمة نفسها', 'a madd letter followed by an original sukun (usually a doubled letter) in the same word'),
+    find: T('ابحث عن مدّة ۤ بعدها حرف مشدّد في الكلمة نفسها.', 'Find a madd sign ۤ followed by a doubled letter in the same word.'),
+    why: T('بعد حرف المد «{t}» مشدّد في الكلمة نفسها، فهو مد لازم ست حركات.', 'After the madd letter comes a doubled “{t}” in the same word: madd lazim, six counts.'),
+    watch: T('لا تُنقص المد اللازم عن ست حركات أبدًا.', 'Never make madd lazim shorter than six counts.'),
+    vs: [{ with: 'madd_muttasil', tip: T('المتصل: بعد المد همزة (٤–٥). اللازم: بعد المد سكون أو شدّة (٦).', 'Muttasil: a hamza after the madd (4–5). Lazim: a sukun or shadda after the madd (6).') }, { with: 'madd_aridh', tip: T('العارض سكونه بسبب الوقف فقط، واللازم سكونه ثابت دائمًا.', 'ʿArid’s sukun comes only from stopping; lazim’s sukun is always there.') }],
+    length: T('ست حركات لزومًا', 'six counts, always'),
+    letters: { list: [], label: T('السبب: سكون أصلي أو شدّة بعد حرف المد', 'The cause: an original sukun or shadda after the madd letter') },
+    poem: { ar: ['وَلَازِمٌ إِنِ السُّكُونُ أُصِّلَا', 'وَصْلًا وَوَقْفًا بَعْدَ مَدٍّ طُوِّلَا'], ref: T('تحفة الأطفال — البيت ٤٧', 'Tuhfat al-Atfal — verse 47'), src: 'tuhfa' },
+    examples: [['80:33', 2, 2], ['79:34', 2, 2], ['1:7', 8, 8]]
   }
+
 };
 
 // ترتيب المقارنة (للتمييز): من يُخلَط بمن؟ — يُستعمل لاختيار الخيارات الخاطئة المعقولة.
@@ -475,10 +675,24 @@ export const CONFUSABLES = {
   lam_shamsi: ['lam_qamari', 'ghunna', 'noon_idgham_no_ghunna'],
   madd_tabii: ['madd_muttasil', 'madd_munfasil', 'ghunna'],
   madd_muttasil: ['madd_munfasil', 'madd_tabii', 'lam_qamari'],
-  madd_munfasil: ['madd_muttasil', 'madd_tabii', 'lam_shamsi']
+  madd_munfasil: ['madd_muttasil', 'madd_tabii', 'lam_shamsi'],
+  mithlain: ['mutajanisain', 'mutaqaribain', 'meem_idgham'],
+  mutajanisain: ['mithlain', 'mutaqaribain', 'noon_ikhfa'],
+  mutaqaribain: ['mutajanisain', 'mithlain', 'noon_idgham_no_ghunna'],
+  ra_tafkhim: ['ra_tarqiq', 'lam_jalala_tafkhim', 'qalqalah'],
+  ra_tarqiq: ['ra_tafkhim', 'lam_jalala_tarqiq', 'madd_tabii'],
+  lam_jalala_tafkhim: ['lam_jalala_tarqiq', 'ra_tafkhim', 'lam_shamsi'],
+  lam_jalala_tarqiq: ['lam_jalala_tafkhim', 'ra_tarqiq', 'lam_qamari'],
+  madd_aridh: ['madd_tabii', 'madd_leen', 'madd_lazim'],
+  madd_leen: ['madd_aridh', 'madd_tabii', 'madd_badal'],
+  madd_badal: ['madd_muttasil', 'madd_tabii', 'madd_aridh'],
+  madd_lazim: ['madd_muttasil', 'madd_aridh', 'ghunna']
 };
 
 export const stageOf = (ruleId) => STAGES.find(s => s.rules.includes(ruleId));
+// أحكام تُشتق من الرسم وحده (الحركة) فلا تحتاج مصدرًا ثانيًا: المد الطبيعي، والراء المتحركة، ولام لفظ الجلالة
+export const SINGLE_SOURCE = new Set(['madd_tabii', 'ra_tafkhim', 'ra_tarqiq', 'lam_jalala_tafkhim', 'lam_jalala_tarqiq']);
+export const minSources = (ruleId) => (SINGLE_SOURCE.has(ruleId) ? 1 : 2);
 
 // بيانات كل الدروس (أحكام التجويد + دروس المصحف) بحقول موحّدة: name, short, tagline
-export const META = { ...RULES, ...MUSHAF };
+export const META = { ...RULES, ...MUSHAF, ...KNOW };

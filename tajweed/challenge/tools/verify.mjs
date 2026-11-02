@@ -7,9 +7,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { POOL, SURAHS } from '../data/pool.js';
-import { RULES, STAGES, SOURCES, CONFUSABLES, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
+import { RULES, STAGES, SOURCES, CONFUSABLES, SINGLE_SOURCE, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
 import { UI_DICT } from '../js/i18n.js';
-import { VIZ, VIZ_CAPTION } from '../js/viz.js';
+import { VIZ, VIZ_CAPTION, STAGE_ICONS } from '../js/viz.js';
+import { KNOW, BANKS, AREAS, SIFAT } from '../data/know.js';
 import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, PLATFORM, inPool } from './lib/source.mjs';
 import { detectAyah, IZHAR_LETTERS, IDGHAM_GHUNNA_LETTERS, IDGHAM_NO_GHUNNA_LETTERS, IKHFA_LETTERS, QALQALAH_LETTERS, QAMARI_LETTERS, SHAMSI_LETTERS } from './lib/detect.mjs';
 import { tokenize, isWaqfToken } from '../js/arabic.js';
@@ -40,7 +41,7 @@ for (const r of Object.values(RULES)) {
     nEx++; const v = POOL[key]; if (!v) { fail(`[أمثلة] ${r.id}: الآية ${key} غير موجودة`); continue; }
     const occ = v.o.find((o) => o[0] === r.id && o[1] === w1 && o[2] === w2);
     if (!occ) { fail(`[أمثلة] ${r.id}: ${key} (${w1}-${w2}) ليس موضع\u064Bا موث\u064E\u0651ق\u064Bا للحكم`); continue; }
-    if (r.id !== 'madd_tabii' && occ[5] < 2) fail(`[أمثلة] ${r.id}: ${key} موث\u064E\u0651ق بمصدر واحد فقط`);
+    if (!SINGLE_SOURCE.has(r.id) && occ[5] < 2) fail(`[أمثلة] ${r.id}: ${key} موث\u064E\u0651ق بمصدر واحد فقط`);
     if (note && occ[3] !== note) fail(`[أمثلة] ${r.id}: ${key} الحرف المؤث\u0651ر ${occ[3]} لا يطابق الملاحظة ${note}`);
     // حرف السبب مطابق لقاعدة الحكم نفسه (فحص مستقل عن الكاشف: من القوائم المكتوبة في المحتوى)
     const t = occ[3]; const sets = { noon_izhar: L_IZHAR, noon_idgham_ghunna: L_IDGHAM_G, noon_idgham_no_ghunna: L_IDGHAM_N, noon_iqlab: ['ب'], noon_ikhfa: L_IKHFA, qalqalah: L_QALQALAH, lam_qamari: L_QAMARI, lam_shamsi: L_SHAMSI, meem_ikhfa: ['ب'], meem_idgham: ['م'] };
@@ -60,7 +61,17 @@ for (const r of Object.values(RULES)) {
   if (!VIZ[r.viz] || !VIZ_CAPTION[r.viz]) fail(`[رسم] ${r.id}`); needBoth(VIZ_CAPTION[r.viz], `viz.${r.viz}`);
   if (!CONFUSABLES[r.id] || CONFUSABLES[r.id].length < 3) fail(`[confusables] ${r.id}`);
 }
-for (const s of STAGES) { needBoth(s.name, `stage.${s.id}`); needBoth(s.blurb, `stage.${s.id}.blurb`); }
+for (const s of STAGES) { needBoth(s.name, `stage.${s.id}`); needBoth(s.blurb, `stage.${s.id}.blurb`); if (!STAGE_ICONS[s.icon]) fail(`[مرحلة] ${s.id} بلا أيقونة`); }
+// كل درس في المراحل معرَّف مرة واحدة (حكم أو درس مصحف أو درس معرفة)
+{ const seen = new Set(); for (const s of STAGES) for (const id of s.rules) { if (seen.has(id)) fail(`[مرحلة] ${id} مكرر`); seen.add(id); if (!RULES[id] && !MUSHAF[id] && !KNOW[id]) fail(`[مرحلة] ${id} غير معرّف`); } }
+// دروس المعرفة: لغتان، بنوك أسئلة بخيارات ثنائية اللغة، ورسم موجود
+for (const k of Object.values(KNOW)) { for (const f of ['name', 'short', 'tagline', 'def', 'watch']) needBoth(k[f], `know.${k.id}.${f}`); if (!BANKS[k.id] || BANKS[k.id].length < 3) fail(`[معرفة] ${k.id}: بنك أقل من ٣`); for (const b of BANKS[k.id] || []) { needBoth(b.stem, `know.${k.id}.${b.id}.stem`); needBoth(b.explain, `know.${k.id}.${b.id}.explain`); b.options.forEach((o, i) => needBoth(o, `know.${k.id}.${b.id}.o${i}`)); if (b.options.length < 2) fail(`[معرفة] ${k.id}.${b.id}`); } }
+for (const a of Object.values(AREAS)) { needBoth(a.name, 'area'); needBoth(a.kid, 'area.kid'); }
+for (const g of Object.values(SIFAT)) { needBoth(g.name, 'sifa'); needBoth(g.kid, 'sifa.kid'); }
+// مجموعات الصفات والمخارج ثابتة: الهمس ١٠، الاستعلاء ٧، القلقلة ٥؛ الحلق ٦، اللسان ١٨، الشفتان ٤
+if (SIFAT.hams.letters.length !== 10 || SIFAT.istila.letters.length !== 7 || SIFAT.qalqalah.letters.join('') !== L_QALQALAH.join('')) fail('[صفات] أعداد المجموعات');
+if (AREAS.halq.letters.length !== 6 || AREAS.lisan.letters.length !== 18 || AREAS.shafatan.letters.length !== 4) fail('[مخارج] أعداد الحروف');
+{ const all = new Set([...AREAS.halq.letters, ...AREAS.lisan.letters, ...AREAS.shafatan.letters, 'ا']); if (all.size !== 29) fail(`[مخارج] الحروف ${all.size} (المتوقع ٢٨ + الألف)`); }
 for (const s of Object.values(SOURCES)) { needBoth(s.title, `src.${s.id}.title`); needBoth(s.ref, `src.${s.id}.ref`); needBoth(s.note, `src.${s.id}.note`); }
 for (const [k, v] of Object.entries(UI_DICT)) needBoth(v, `ui.${k}`);
 // مفاتيح t('...') المستعملة في الشيفرة موجودة
@@ -77,7 +88,8 @@ const scan = [...fs.readdirSync(path.join(ROOT, 'js')).filter((x) => x.endsWith(
 const bigrams = new Set(); for (const v of Object.values(POOL)) for (let i = 0; i + 1 < v.w.length; i++) bigrams.add(v.w[i] + ' ' + v.w[i + 1]);
 for (const f of scan) {
   const src = fs.readFileSync(f, 'utf8');
-  if (path.basename(f) === 'rules.js') { for (const g of bigrams) if (src.includes(g)) fail(`[قرآن] عبارة من البنك مكتوبة يدوي\u064Bا في rules.js: ${g}`); }
+  // أبيات المتون (poem.ar) شعر لا آيات؛ قد تشترك مع الآيات في عبارة شائعة مثل «إذا ما» فتُستثنى من فحص العبارات فقط
+  if (path.basename(f) === 'rules.js') { const body = src.replace(/poem: \{ ar: \[[^\]]*\]/g, ''); for (const g of bigrams) if (body.includes(g)) fail(`[قرآن] عبارة من البنك مكتوبة يدوي\u064Bا في rules.js: ${g}`); }
   else for (const w of marked) if (src.includes(w)) fail(`[قرآن] كلمة من البنك مكتوبة يدوي\u064Bا في ${path.basename(f)}: ${w}`);
 }
 notes.push(`فحص النص المكتوب يدوي\u064Bا: ${marked.size} كلمة م\u064Fشك\u064E\u0651لة × ${scan.length} ملف`);
@@ -158,7 +170,7 @@ notes.push(`دروس المصحف: ${Object.keys(MUSHAF).length} — علاما�
   }
   for (const [id, c] of Object.entries(BOOK_CAPS)) needBoth(c, `book.${id}`);
   // نص قرآني مكتوب يدويًا في المحتوى الجديد
-  for (const f of ['data/stories.js']) { const src = fs.readFileSync(path.join(ROOT, f), 'utf8'); for (const w of marked) if (src.includes(w)) fail(`[قرآن] كلمة من البنك مكتوبة يدويًا في ${f}: ${w}`); }
+  for (const f of ['data/stories.js', 'data/know.js']) { const src = fs.readFileSync(path.join(ROOT, f), 'utf8'); for (const w of marked) if (src.includes(w)) fail(`[قرآن] كلمة من البنك مكتوبة يدويًا في ${f}: ${w}`); }
   // نسخ مطابقة لأصل المنصة
   for (const [dir, orig] of [['assets/book', 'assets/tajweed/book'], ['assets/deck', 'assets/tajweed/qalqalah']]) for (const f of fs.readdirSync(path.join(ROOT, dir)).filter((x) => x.endsWith('.webp'))) {
     const o = path.join(PLATFORM, orig, f); if (!fs.existsSync(o) || !fs.readFileSync(o).equals(fs.readFileSync(path.join(ROOT, dir, f)))) fail(`[صور] ${dir}/${f} لا يطابق أصله ${orig}/${f}`);

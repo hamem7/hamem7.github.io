@@ -1,7 +1,7 @@
 // js/engine.js — محرك الأسئلة (منطق خالص بلا DOM، قابل للاختبار ب Node).
 // يبني الأسئلة من بنك الآيات الموثق (data/pool.js) ومن محتوى الأحكام (data/rules.js). لا يكتب نص قرآني في هذا الملف.
 import { POOL, SURAHS } from '../data/pool.js';
-import { RULES, STAGES, CONFUSABLES, LETTER_NAMES, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI, stageOf } from '../data/rules.js';
+import { RULES, STAGES, CONFUSABLES, LETTER_NAMES, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI, stageOf, minSources } from '../data/rules.js';
 import { locate, wordClusters } from './quran.js';
 
 export const LEVELS = [
@@ -31,7 +31,7 @@ export const spanText = (key, w1, w2) => POOL[key].w.slice(w1, w2 + 1).join(' ')
 const byRule = {};
 export function candidates(rule) {
   if (byRule[rule]) return byRule[rule];
-  const minV = rule === 'madd_tabii' ? 1 : 2;
+  const minV = minSources(rule);
   const out = [];
   for (const key of Object.keys(POOL)) { const os = occsOf(key, rule, minV); if (os.length) out.push({ key, occ: os }); }
   return (byRule[rule] = out);
@@ -39,7 +39,7 @@ export function candidates(rule) {
 
 export function lessonExamples(ruleId) {
   return RULES[ruleId].examples.map(([key, w1, w2, note]) => {
-    const occ = occsOf(key, ruleId, ruleId === 'madd_tabii' ? 1 : 2).find(o => o[1] === w1 && o[2] === w2);
+    const occ = occsOf(key, ruleId, minSources(ruleId)).find(o => o[1] === w1 && o[2] === w2);
     return { key, w1, w2, note: note || null, occ, ayah: ayahOf(key) };
   });
 }
@@ -100,7 +100,7 @@ export function genSpot(ruleId, r, { maxWords = 8, exclude, audio = false } = {}
 
 const TAP_RULES = new Set(['qalqalah', 'ghunna', 'madd_tabii']);
 export function genTapLetter(ruleId, r, { exclude } = {}) {
-  const minV = ruleId === 'madd_tabii' ? 1 : 2;
+  const minV = minSources(ruleId);
   let pool = candidates(ruleId).filter(c => !exclude || !exclude.has(c.key));
   if (!pool.length) pool = candidates(ruleId);
   const c = pick(pool, r); const o = pick(c.occ, r);
@@ -200,12 +200,12 @@ export function buildLevel(ruleId, level, seed = Date.now()) {
 
 export function buildStageChallenge(stageId, seed = Date.now()) {
   const r = rng(seed); const st = STAGES.find(s => s.id === stageId); const qs = [];
-  for (const rid of st.rules) {
+  for (const rid of st.rules.filter((x) => RULES[x])) {
     qs.push(genIdentify(rid, r, { nOptions: 4, sameFamily: true, maxWords: 9 }));
     qs.push(rid !== 'madd_tabii' ? genSpot(rid, r, { maxWords: 9 }) : genTapLetter(rid, r));
   }
-  const sortSet = st.rules.length >= 2 ? shuffle(st.rules, r).slice(0, Math.min(3, st.rules.length)) : [st.rules[0]];
-  if (sortSet.length >= 2) qs.push(genSort(sortSet, r, { perRule: 2 }));
+  const rr = st.rules.filter((x) => RULES[x]); const sortSet = rr.length >= 2 ? shuffle(rr, r).slice(0, Math.min(3, rr.length)) : [rr[0]];
+  if (sortSet.length >= 2 && sortSet[0]) qs.push(genSort(sortSet, r, { perRule: 2 }));
   return shuffle(qs, r).slice(0, 8);
 }
 

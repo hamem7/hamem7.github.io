@@ -24,7 +24,13 @@ export function locate(occ, words) {
   if (rule.startsWith('noon_') || rule.startsWith('meem_')) {
     if (w1 === w2) { mark(w1, at, 'cause'); mark(w1, at + 1, 'trigger'); }
     else { mark(w1, rule.startsWith('meem_') ? lastIdx(w1) : endCarrier(words[w1]), 'cause'); mark(w2, 0, 'trigger'); }
-  } else if (rule === 'ghunna' || rule === 'qalqalah' || rule === 'madd_tabii') mark(w1, at, 'cause');
+  } else if (rule === 'ghunna' || rule === 'qalqalah' || rule === 'madd_tabii' || rule.startsWith('ra_') || rule.startsWith('lam_jalala')) mark(w1, at, 'cause');
+  else if (rule === 'madd_aridh' || rule === 'madd_leen' || rule === 'madd_lazim') { mark(w1, at, 'cause'); mark(w1, at + 1, 'trigger'); }
+  else if (rule === 'madd_badal') { mark(w1, at, 'cause'); mark(w1, at - 1, 'trigger'); }
+  else if (rule === 'mithlain' || rule === 'mutajanisain' || rule === 'mutaqaribain') {
+    if (w1 === w2) { mark(w1, at, 'cause'); mark(w1, at + 1, 'trigger'); }
+    else { mark(w1, lastIdx(w1), 'cause'); mark(w2, 0, 'trigger'); }
+  }
   else if (rule === 'lam_qamari' || rule === 'lam_shamsi') { mark(w1, at - 1, 'cause'); mark(w1, at, 'trigger'); }
   else if (rule === 'madd_muttasil') { mark(w1, at, 'cause'); mark(w1, at + 1, 'trigger'); }
   else if (rule === 'madd_munfasil') {

@@ -223,3 +223,48 @@
   .st-prog button { width: 14px; } .st-prog button.cur { width: 24px; }
   .st-opt.glyph { width: 66px; height: 66px; font-size: 1.9rem; }
 }
+
+/* رسوم دروس المعرفة والأحكام الجديدة */
+.a-stand path { fill: none; stroke: var(--gold-ink); stroke-width: 5; stroke-linecap: round; }
+.a-book path { fill: color-mix(in srgb, var(--c) 18%, var(--surface-3)); stroke: var(--c); stroke-width: 3; }
+.a-hands path { fill: color-mix(in srgb, var(--gold) 40%, var(--surface-3)); stroke: var(--gold-ink); stroke-width: 2; }
+.a-spine rect { stroke: var(--ink); stroke-width: 2; } .a-spine text { fill: #fff; font-weight: 800; }
+.a-spine.c1 rect { fill: #e8743b; } .a-spine.c2 rect { fill: #3d8fd6; } .a-spine.c3 rect { fill: #4f9a35; } .a-spine.c4 rect { fill: #c99700; } .a-spine.c5 rect { fill: #d6457a; } .a-spine.c6 rect { fill: #7b5cd6; }
+.a-fstep > circle { fill: color-mix(in srgb, var(--c) 16%, var(--surface-3)); stroke: var(--c); stroke-width: 3; }
+.a-head { fill: color-mix(in srgb, var(--gold) 22%, var(--surface-3)); stroke: var(--ink); stroke-width: 2.5; }
+.a-zone { stroke: var(--ink); stroke-width: 1.5; opacity: .85; } .a-zone.jawf { fill: #7fb3e6; } .a-zone.halq { fill: #e58a8a; } .a-zone.lisan { fill: #e8a0b8; } .a-zone.shafa { fill: #c62828; } .a-zone.khay { fill: #9ad08a; }
+.a-sgrp rect { fill: color-mix(in srgb, var(--c) 14%, var(--surface-3)); stroke: var(--c); stroke-width: 2.5; } .a-sgrp.g2 rect { fill: color-mix(in srgb, var(--gold) 22%, var(--surface-3)); stroke: var(--gold); } .a-sgrp.g3 rect { fill: color-mix(in srgb, var(--info) 14%, var(--surface-3)); stroke: var(--info); }
+.a-house path { fill: color-mix(in srgb, var(--c) 12%, var(--surface-3)); stroke: var(--c); stroke-width: 3; stroke-linejoin: round; }
+.a-balloon ellipse { stroke: var(--ink); stroke-width: 2; } .a-balloon path { fill: none; stroke: var(--ink-soft); stroke-width: 2; }
+.a-balloon.full ellipse { fill: color-mix(in srgb, var(--c) 40%, var(--surface-3)); } .a-balloon.thin ellipse { fill: color-mix(in srgb, var(--info) 22%, var(--surface-3)); }
+.a-soft { fill: none; stroke: var(--c); stroke-width: 4; stroke-linecap: round; }
+.a-door rect { fill: color-mix(in srgb, var(--gold) 35%, var(--surface-3)); stroke: var(--gold-ink); stroke-width: 2; } .a-door circle { fill: var(--gold-ink); }
+.a-sig text { font-family: var(--font-ui); }
+.st-coins.small .st-coin { width: 44px; height: 44px; border-width: 3px; } .st-coins.small .st-coin .quran-text { font-size: 1.35rem; }
+.st-areas, .st-sifat { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.st-area, .st-sifa { background: var(--surface-3); border: 1.5px solid var(--line); border-top: 4px solid var(--c); border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.st-area-h small { display: block; color: var(--ink-soft); font-size: .86rem; }
+.st-area .st-fig.book img { max-height: 160px; }
+.st-hum { font-size: 1.4rem; color: var(--c-ink); }
+.st-mn-line { font-size: 1.5rem; margin: 0; text-align: center; color: var(--c-ink); }
+.st-sifa p.muted { margin: 0; font-size: .88rem; }
+.st-stop { display: flex; flex-direction: column; gap: 6px; }
+.st-stop-tag { align-self: flex-start; background: var(--c-soft); color: var(--c-ink); font-weight: 700; border-radius: 99px; padding: 2px 12px; font-size: .86rem; }
+
+/* مراجعة المحطة (js/review.js) */
+.review-page { display: flex; flex-direction: column; gap: 16px; }
+.rv-head { display: flex; gap: 14px; align-items: center; } .rv-head .stage-ico { width: 56px; height: 56px; flex: none; }
+.rv-head h1 { margin: 0; } .rv-head .lead { margin: 0; color: var(--ink-soft); }
+.rv-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.rv-map { margin: 0; background: var(--c-soft); border: 1.5px solid var(--c-mid); border-radius: 24px; padding: 10px; }
+.rv-map figcaption { text-align: center; color: var(--ink-soft); font-size: .88rem; }
+.mindmap { width: 100%; height: auto; display: block; }
+.mm-link { stroke: var(--c); stroke-width: 3; stroke-dasharray: 6 6; opacity: .7; }
+.mm-node rect { fill: var(--surface-3); stroke: var(--c); stroke-width: 2.5; } .mm-node text { fill: var(--ink); font-size: 14px; font-weight: 700; font-family: var(--font-ui); }
+.mm-node.done rect { fill: var(--ok-bg); stroke: var(--ok); } .mm-ok { fill: var(--ok) !important; font-size: 18px !important; }
+.mm-center circle { fill: var(--c); } .mm-center text { fill: var(--surface); font-size: 17px; font-weight: 800; font-family: var(--font-ui); }
+.rv-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.rv-card { background: var(--surface-3); border: 1.5px solid var(--line); border-top: 4px solid var(--c); border-radius: 18px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.rv-card header { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.rv-card ul { margin: 0; padding-inline-start: 20px; font-size: .92rem; }
+.rv-card footer { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }

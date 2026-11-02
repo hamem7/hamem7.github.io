@@ -8,6 +8,7 @@ const BASE = process.argv[2] || 'http://localhost:8130'; const HERE = path.dirna
 const SHOTS = path.join(HERE, '..', 'docs', 'screenshots'); fs.mkdirSync(SHOTS, { recursive: true });
 const { RULES, STAGES } = await import('../data/rules.js');
 const { MUSHAF } = await import('../data/mushaf.js');
+const { KNOW } = await import('../data/know.js');
 const errors = [], log = []; let checks = 0;
 const ok = (c, m) => { checks++; if (!c) errors.push(m); };
 
@@ -106,8 +107,8 @@ for (const [name, w, h] of sizes) {
 // ═══ 2) كل حكم: الدرس (٥ خطوات) ثم ٣ مستويات بإجابات صحيحة، مع فحص أزرار الدرس والأمثلة ═══
 const { ctx, p } = await open(1100, 900, { review: false });
 const types = new Set();
-for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
-  const isM = !!MUSHAF[rid]; const noV = isM && !!MUSHAF[rid].noVerses;
+for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF), ...Object.keys(KNOW)]) {
+  const isM = !!MUSHAF[rid]; const isK = !!KNOW[rid]; const noV = isM && !!MUSHAF[rid].noVerses;
   await go(p, `#/rule/${rid}`); await p.waitForSelector('.rule-hero');
   ok(await p.$eval('.steps .step:nth-child(2) .btn', (e) => e.classList.contains('disabled')), `${rid}: المستوى ١ يجب أن يكون مقفل\u064Bا قبل الدرس`);
   await p.click('.steps .step:first-child .btn');
@@ -123,7 +124,7 @@ for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
     if (await p.$('.st-slide .st-check')) ok(await p.$('.st-slide .st-fb.ok, .st-slide .st-fb.no'), `${rid}/${i}: لا تغذية راجعة للسؤال`);
     if (i === n - 1) ok((await p.$('.st-msg')) && (await p.$eval('.st-msg', (e) => e.innerText.length)) > 60, `${rid}: رسالة وليّ الأمر`);
   });
-  if (!isM) { ok(poems >= 1, `${rid}: لا أبيات`); ok(ayahs >= 3, `${rid}: آيات الدرس ${ayahs}`); }
+  if (!isM && !isK) { ok(poems >= 1, `${rid}: لا أبيات`); ok(ayahs >= 3, `${rid}: آيات الدرس ${ayahs}`); }
   if (isM) ok(pins >= 1, `${rid}: صفحة الاستكشاف`);
   if (isM && !noV) ok(ayahs >= 1 || rid === 'mushaf_ayah_number', `${rid}: لا آيات`);
   await p.click('.st-nav [data-st="train"]'); await p.waitForSelector('.quiz');
@@ -134,6 +135,8 @@ for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
   }
 }
 ok(['identify', 'spot', 'tapletter', 'sort', 'letters', 'choice', 'signtap', 'ayahnum', 'match'].every((t) => types.has(t)), `أنواع الألعاب الم\u064Fختب\u064Eرة: ${[...types]}`);
+// مراجعة كل محطة: الخريطة الذهنية والبطاقات بلا فيضان
+for (const st of STAGES) { await go(p, `#/review/${st.id}`); await p.waitForSelector('.mindmap'); ok((await p.$$('.rv-card')).length === st.rules.length, `مراجعة ${st.id}: البطاقات`); await noOverflow(p, `review/${st.id}`); }
 // مستكشف المصحف: كل الصفحات والدبابيس
 await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
 { const tabs = await p.$$('.page-tabs [data-page]'); ok(tabs.length >= 10, `المستكشف: صفحات ${tabs.length}`);

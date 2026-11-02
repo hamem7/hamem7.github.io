@@ -8,12 +8,14 @@ import { SIGNS, signImg, A, quarterMarker, MARKER_NAMES } from '../data/mushaf.j
 import { POOL, SURAHS } from '../data/pool.js';
 import { lessonExamples, whyOf } from './engine.js';
 import { signExamples } from './mushaf-engine.js';
-import { locate } from './quran.js';
+import { locate, wordClusters } from './quran.js';
 import { vizFor, VIZ_CAPTION } from './viz.js';
 import { art } from './art.js';
 import { t, tx, num, getLang } from './i18n.js';
 import { esc, ayahHTML, audioBtn, lanternHTML, mediaHTML, ayahLabel, ruleName, badge } from './ui.js';
 import { exploreHTML, bindExplore } from './mushaf-explore.js';
+import { AREAS, AREA_IDS, SIFAT } from '../data/know.js';
+import { stopCandidates, STOP_LABEL } from './know-engine.js';
 import { bindAudio, showToast } from './play.js';
 import { stopAudio } from './audio.js';
 
@@ -115,6 +117,10 @@ function block(b, key) {
   if (b.vs) return vsHTML(b.vs);
   if (b.poem) return poemHTML(b.poem);
   if (b.custom) return customHTML(b.custom);
+  if (b.stepsT) return `<ol class="st-steps">${b.stepsT.map((h, i) => `<li><span class="n">${num(i + 1)}</span><p>${esc(tx(h))}</p></li>`).join('')}</ol>`;
+  if (b.areas) return `<div class="st-areas">${AREA_IDS.map((a, i) => { const A2 = AREAS[a]; return `<div class="st-area"><div class="st-area-h"><b>${esc(tx(A2.name))}</b><small>${esc(tx(A2.kid))}</small></div><div class="st-coins small" dir="rtl">${A2.letters.map((ch, k) => coin(ch, i + k)).join('') || '<span class="st-hum">〰️ 〰️</span>'}</div>${bookFig(A2.book)}</div>`; }).join('')}</div>`;
+  if (b.sifat) return `<div class="st-sifat">${Object.values(SIFAT).map((g, i) => `<div class="st-sifa"><b>${esc(tx(g.name))}</b><p class="quran-text st-mn-line" lang="ar" dir="rtl">${esc(g.mn)}</p><div class="st-coins small" dir="rtl">${g.letters.map((ch, k) => coin(ch, i * 2 + k)).join('')}</div><p class="muted">${esc(tx(g.kid))}</p></div>`).join('')}</div>`;
+  if (b.stops) { const c = stopCandidates(); return `<div class="st-ayahs">${['sukun', 'alif', 'ha', 'asis'].map((k) => { const key = c[k].find((x) => POOL[x].w.length <= 6) || c[k][0]; const w = POOL[key].w.length - 1; return `<div class="st-stop"><span class="st-stop-tag">🛑 ${esc(tx(STOP_LABEL[k]))}</span>${ayahCard(key, { [w]: { [wordClusters(POOL[key].w[w]).length - 1]: 'cause' } })}</div>`; }).join('')}</div>`; }
   return '';
 }
 
