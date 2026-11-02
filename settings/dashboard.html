@@ -81,6 +81,28 @@
         box-shadow: 0 8px 16px rgba(13, 92, 70, 0.25);
     }
 
+    /* 🌟 [جديد] بطاقتا مصدر التقييم عند الكبار: «كل المصحف» / «نطاق حفظ الطالب» */
+    .dash-scopes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 22px; }
+    .dash-scope-card {
+        position: relative; display: grid; gap: 2px; text-align: start; font: inherit; cursor: pointer;
+        padding: 14px 18px; border-radius: 18px; color: var(--dh-ink);
+        background: var(--dh-surface-3, var(--dh-surface-alt)); border: 2px solid var(--dh-border-strong, var(--dh-line-strong));
+        transition: background .15s ease, border-color .15s ease, transform .15s ease;
+    }
+    .dash-scope-card:hover:not(:disabled) { border-color: var(--dh-gold-500); }
+    .dash-scope-card .t { font-weight: 800; font-size: 1.1rem; }
+    .dash-scope-card .d { font-size: .85rem; font-weight: 500; color: var(--dh-ink-soft); }
+    .dash-scope-card[aria-pressed="true"] {
+        background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)); border-color: var(--dh-emerald-700);
+        color: #fffdf6; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(13, 92, 70, 0.25);
+    }
+    .dash-scope-card[aria-pressed="true"] .d { color: #fffdf6; opacity: .92; }
+    .dash-scope-card[aria-pressed="true"]::after { content: "✓"; position: absolute; inset-inline-end: 14px; top: 10px; font-weight: 800; }
+    .dash-scope-card:disabled { opacity: .5; cursor: not-allowed; }
+    .dash-scope-card:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+    .dash-scope-note { text-align: center; color: var(--dh-ink-soft); font-size: .9rem; margin: -10px 0 18px; }
+    @media (max-width: 560px) { .dash-scopes { grid-template-columns: 1fr; } }
+
     /* 🌟 زر "ابدأ التقييم" — الفعل الأساسي في الشاشة، بلون الذهب المعتمد لكل أزرار
        "الإجراء الرئيسي" في الهوية الجديدة (زي home-quickcard-publish-btn وdts-btn-ready).
        بادئة #app-root هنا لنفس سبب .dash-panel أعلاه: قاعدة .adult-theme .btn في adults.css
@@ -120,12 +142,19 @@
         <!-- 🌟 [إصلاح فحص الأزرار] كان id مكررًا مع عنصر الرأس في index.html؛ صار dash-student-chip وتملؤه populateDashboardData 🌟 -->
         <div id="dash-student-chip" class="dash-student-chip" style="font-weight:bold;"></div>
 
+        <!-- الكبار فقط: مصدر التقييم. «كل المصحف» = الوضع الحالي، «نطاق حفظ الطالب» = ما حفظه فقط (كل النطاق / سورة / عدة سور / جزء) -->
+        <div class="dash-scopes" id="adult-scope" role="group" aria-label="مصدر التقييم" data-i18n-aria-label="scope_group_label" style="display:none">
+            <button type="button" class="dash-scope-card" id="scope-all" aria-pressed="true"><span class="t" data-i18n="scope_all_title">🕌 كل المصحف</span><span class="d" data-i18n="scope_all_desc">كل السور والأجزاء بلا قيد</span></button>
+            <button type="button" class="dash-scope-card" id="scope-student" aria-pressed="false"><span class="t" data-i18n="scope_student_title">📖 نطاق حفظ الطالب</span><span class="d" data-i18n="scope_student_desc">يقتصر على ما حفظه فقط</span></button>
+        </div>
+        <div class="dash-scope-note" id="scope-note" style="display:none"></div>
+
         <div class="eval-type-selector" id="eval-radios" style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px; flex-wrap:wrap;">
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="surah" checked> <span data-i18n="eval_surah">سورة محددة</span></label>
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="range"> <span data-i18n="eval_range">عدة سور</span></label>
             <label class="dash-eval-pill"><input type="radio" name="evalType" value="juz"> <span data-i18n="eval_juz">بالأجزاء</span></label>
-            <!-- ركن الأطفال فقط: النطاق تلقائياً من آخر موضع توقف مسجّل للطالب -->
-            <label class="dash-eval-pill" id="eval-all-pill" style="display:none"><input type="radio" name="evalType" value="all"> <span data-i18n="kids_all_btn">📖 كل حفظ الطالب</span></label>
+            <!-- النطاق تلقائياً من آخر موضع توقف مسجّل للطالب: للأطفال دائماً، وللكبار داخل «نطاق حفظ الطالب» -->
+            <label class="dash-eval-pill" id="eval-all-pill" style="display:none"><input type="radio" name="evalType" value="all"> <span id="eval-all-label" data-i18n="kids_all_btn">📖 كل حفظ الطالب</span></label>
         </div>
 
         <div id="surah-settings" class="form-grid" style="text-align:right;">
@@ -172,15 +201,21 @@
             </div>
         </div>
 
-        <div id="kids-settings" style="display:none; text-align:center; width: 100%;">
-            <div id="kids-range-title" style="color:#9d174d; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
-                نطاق الأسئلة (من الأحقاف إلى الناس):
-            </div>
-
-            <div id="kids-all-info" style="display:none; margin:0 auto 18px; max-width:560px; text-align:center; font-weight:700; line-height:1.9;">
+        <div id="all-settings" style="display:none; text-align:center; width:100%;">
+            <div id="kids-all-info" style="margin:0 auto 18px; max-width:560px; text-align:center; font-weight:700; line-height:1.9;">
                 <div id="kids-all-range" style="font-size:1.2rem;"></div>
                 <div id="kids-all-fresh" style="font-size:1rem; margin-top:6px;"></div>
                 <button type="button" id="btn-kids-all-update" class="btn btn-outline" style="display:none; margin-top:8px; font-size:1rem; padding:8px 14px;" data-i18n="kids_all_update_btn">✏️ تحديث موضع الحفظ الآن</button>
+            </div>
+            <div class="kids-range-item" style="max-width: 320px; margin: 20px auto;">
+                <label data-i18n="q_count">عدد الأسئلة:</label>
+                <input type="number" id="q-count-all" value="20" min="5" max="50" class="kids-styled-input">
+            </div>
+        </div>
+
+        <div id="kids-settings" style="display:none; text-align:center; width: 100%;">
+            <div id="kids-range-title" style="color:#9d174d; font-size:1.6rem; font-weight:900; margin-bottom:20px;" data-i18n="kids_range_label">
+                نطاق الأسئلة (من الأحقاف إلى الناس):
             </div>
 
             <div class="kids-range-row" id="kids-manual-range">
