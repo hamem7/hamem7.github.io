@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.69';
+export const APP_VERSION = '1.0.70';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.70',
+        date: '2026-11-02',
+        items: [
+            { type: 'new', text: { ar: '«تقارير الشهر»: ملخص للشهر بدل اللوحة الفارغة — مجموع الآيات ومتوسط النتائج والجلسات مقارنة بالشهر الماضي، ونجوم الشهر ومعهم «الأكثر تحسّنًا».', en: '"Monthly Reports": a month summary instead of the empty pane — total ayahs, average score and sessions compared with last month, plus the month\'s stars including "Most improved".' } },
+            { type: 'new', text: { ar: 'إرسال التقارير طالبًا تلو الآخر (واتساب أو PDF): بعد كل تصدير يظهر زر «التالي» مباشرة مع عدد المتبقّين، وزر «أكمل بيانات الجميع» يسجّل الناقصين واحدًا تلو الآخر.', en: 'Send reports one student after another (WhatsApp or PDF): after each export a "Next" button appears with the number left, and "Complete everyone" records the missing students one after another.' } },
+            { type: 'improved', text: { ar: 'اختيار الشهر صار قائمة واحدة داخل البطاقة الخضراء وأرقامها تعمل كمرشّحات، وكل طالب يظهر بجانبه عدد آياته الجديدة ▲/▼، وتاريخ التصدير، والتنقّل بالأسهم ↑↓ وEnter وEsc.', en: 'The month is now one dropdown inside the green card and its numbers work as filters; each student shows their new ayahs ▲/▼ and the export date, and you can move with ↑↓, Enter and Esc.' } }
+        ]
+    },
     {
         version: '1.0.69',
         date: '2026-11-02',

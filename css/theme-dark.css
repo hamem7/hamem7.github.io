@@ -604,3 +604,9 @@ html[data-theme="dark"] body.kids-theme .q-circle.active { background: #4a3b12; 
 html[data-theme="dark"] body.kids-theme .q-circle.correct { background: var(--dh-ok-bg); color: var(--dh-ok-ink); border-color: #1f7a4d; }
 html[data-theme="dark"] body.kids-theme .q-circle.wrong { background: var(--dh-danger-bg); color: var(--dh-danger-ink); border-color: #8f2d2d; }
 html[data-theme="dark"] body.kids-theme :is(.kids-mcq-btn, .link-item, .order-item) { background: var(--dh-surface-3) !important; border-color: var(--dh-border-strong) !important; }
+
+/* 🌟 [2026-11] «تقارير الشهر»: أزرار الإرسال المتتابع وبطاقة «التالي» تبقى ممتلئة في الداكن
+   (القاعدة المولَّدة لـ .mrh-btn تجعل كل الأزرار سطحًا محايدًا) */
+html[data-theme="dark"] body:not(.dh-light) .mrh-btn.pri,
+html[data-theme="dark"] body:not(.dh-light) .mrh-btn.mrh-nc-go { background: var(--dh-emerald-600, #147c5e) !important; border-color: var(--dh-emerald-600, #147c5e) !important; color: #fff !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-seq .mrh-btn.gold { background: var(--dh-gold-500, #d4af37) !important; border-color: var(--dh-gold-500, #d4af37) !important; color: #2b2208 !important; }

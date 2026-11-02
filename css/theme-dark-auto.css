@@ -866,7 +866,7 @@ html[data-theme="dark"] body:not(.dh-light) .ws-tbl td.ws-name { background: #16
 html[data-theme="dark"] body:not(.dh-light) .ws-tbl td.ws-st { color: #e1af89 !important; }
 html[data-theme="dark"] body:not(.dh-light) .ws-d { background: var(--dh-surface-2, #182a23) !important; border: 2px solid #495565 !important; }
 
-/* ===== components/monthlyReportsHub.js (54) ===== */
+/* ===== components/monthlyReportsHub.js (80) ===== */
 html[data-theme="dark"] body:not(.dh-light) .mrh-card { background: #1a231f !important; color: #dbefe7 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mrh-head { background: var(--dh-surface-2, #182a23) !important; color: #b8edde !important; border-bottom: 1px solid #676047 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mrh-title { color: #b8edde !important; }
@@ -922,6 +922,32 @@ html[data-theme="dark"] body:not(.dh-light) .mrh-pane { background: #1a231f !imp
 html[data-theme="dark"] body:not(.dh-light) .mrh-pane-empty { color: var(--dh-ink-soft, #9db8ac) !important; }
 html[data-theme="dark"] body:not(.dh-light) .mrh-item.mrh-sel { background: #172a1f !important; }
 html[data-theme="dark"] body:not(.dh-light) .mrh-foot { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-msel select { background: #14241f24 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-msel select option { background: var(--dh-surface-2, #182a23) !important; color: #dbefe7 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-oflt { background: #14241f1f !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-oflt.mrh-sel { background: #1a231f !important; color: #b8edde !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-oflt.mrh-sel b { color: #b8edde !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-stat { color: #dbefe7 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-down { color: #e1af89 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-keys { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-sum-h { color: #dbefe7 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-sum-sub { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-kpi { background: var(--dh-surface-2, #182a23) !important; border: 1.5px solid #676047 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-kpi b { color: #b8edde !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-kpi small { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-alldone { background: #162e23 !important; color: #baeedf !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-box { background: var(--dh-surface-2, #182a23) !important; border: 1.5px solid #676047 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-box.warn { background: #1d2722 !important; border-color: #6c6142 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-box.warn h4 { color: #e1af89 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-box.gold { background: #202b26 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-sum-name { background: var(--dh-surface-2, #182a23) !important; border: 1px solid #6c6142 !important; color: #e6b699 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-star2 { background: var(--dh-surface-2, #182a23) !important; color: #dbefe7 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-star2 small { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-star2>b { color: #e6d09b !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-nextcard { background: #162e23 !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-nc-ok { color: #baeedf !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-nc-note { color: var(--dh-ink-soft, #9db8ac) !important; }
+html[data-theme="dark"] body:not(.dh-light) .mrh-sum-narrow { border-top: 1px dashed #676047 !important; }
 
 /* ===== components/skillProfile.js (14) ===== */
 html[data-theme="dark"] body:not(.dh-light) .sk-head h2 { color: #d6def0 !important; }

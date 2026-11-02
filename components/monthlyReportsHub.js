@@ -27,6 +27,8 @@ import { AppState, t, surahNameLocal } from '../core/app.js';
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 import { summarizeReview } from '../engine/reviewParts.js';
 
+let bannerHidden = false;               // شريط التذكير: أخفاه المعلم في هذه الجلسة
+let lastExportMode = null;              // آخر طريقة تصدير (whatsapp|pdf) — لبطاقة «التالي» بعد الرجوع من التقرير
 let hubOrigin = 'students';              // الشاشة التي فُتح منها المركز (للرجوع إليها عند الإغلاق بعد زيارة شاشة التقرير)
 const STYLE_ID = 'mrh-styles';
 const DONE_KEY = 'darham_reports_done';   // يكتبه reports/monthly-report.js عند كل تصدير
@@ -135,6 +137,57 @@ function ensureStyles() {
 .mrh-item.mrh-sel{border-color:#147c5e;background:#f3faf6;box-shadow:0 0 0 3px rgba(20,124,94,.14);}
 .mrh-wide .mrh-foot{color:#cfe8dd;}
 .mrh-foot{padding:6px 22px 18px;color:#5a6b63;font-size:.9rem;text-align:center;}
+/* 🌟 [2026-11] اختيار الشهر داخل البطاقة الخضراء + أرقامها مرشّحات قابلة للنقر */
+.mrh-msel{position:relative;display:inline-block;margin-bottom:10px;max-width:100%;}
+.mrh-msel select{appearance:none;-webkit-appearance:none;width:auto;max-width:100%;background:rgba(255,255,255,.14);color:#fff;border:1.5px solid rgba(240,216,120,.55);border-radius:12px;padding:7px 14px;padding-inline-end:34px;font-family:inherit;font-weight:800;font-size:.95rem;cursor:pointer;margin:0;}
+.mrh-msel select option{color:#10241c;background:#fff;}
+.mrh-msel::after{content:"▾";position:absolute;inset-inline-end:12px;top:50%;transform:translateY(-50%);pointer-events:none;color:#f0d878;}
+.mrh-ov-flts{display:flex;gap:6px;flex-wrap:wrap;}
+.mrh-oflt{background:rgba(255,255,255,.12);border:1.5px solid transparent;color:#fff;border-radius:99px;padding:4px 12px;font-family:inherit;font-weight:700;font-size:.82rem;cursor:pointer;margin:0;min-width:0;box-shadow:none;}
+.mrh-oflt b{margin-inline-start:5px;color:#f0d878;}
+.mrh-oflt.mrh-sel{background:#fffdf6;color:#0d5c46;}
+.mrh-oflt.mrh-sel b{color:#0d5c46;}
+.mrh-banner-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.mrh-banner-row span{flex:1;min-width:0;}
+.mrh-banner-row .mrh-bn-x{text-decoration:none;font-size:1.2rem;line-height:1;opacity:.75;}
+/* معلومة مختصرة في صف الطالب */
+.mrh-who{flex:1;min-width:0;}
+.mrh-stat{font-weight:800;color:#10241c;}
+.mrh-up{color:var(--dh-ok, #15803d);font-weight:800;}
+.mrh-down{color:#b45309;font-weight:800;}
+.mrh-keys{color:#5a6b63;font-size:.75rem;text-align:center;margin-top:10px;}
+/* ملخص الشهر */
+.mrh-sum-h{margin:0 0 4px;font-size:1.2rem;font-weight:800;color:#10241c !important;text-shadow:none !important;}
+.mrh-sum-sub{color:#5a6b63;margin:0 0 12px;font-size:.9rem;}
+.mrh-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:10px 0 14px;}
+.mrh-kpi{background:#fff;border:1.5px solid #e4dfcc;border-radius:16px;padding:12px 8px;text-align:center;}
+.mrh-kpi b{display:block;font-size:1.5rem;font-weight:800;color:#0d5c46;line-height:1.2;}
+.mrh-kpi small{display:block;color:#5a6b63;font-size:.76rem;}
+.mrh-seq{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.mrh-btn.pri{background:#0d5c46;border-color:#0d5c46;color:#fff;font-weight:800;}
+.mrh-seq .mrh-btn.gold{background:#d4af37;border-color:#d4af37;color:#2b2208;font-weight:800;}
+.mrh-alldone{background:#ecfdf5;border:1.5px solid #6ee7b7;color:#065f46;border-radius:14px;padding:12px 14px;font-weight:800;margin-bottom:14px;}
+.mrh-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mrh-box{border-radius:18px;padding:14px;background:#fff;border:1.5px solid #e4dfcc;min-width:0;}
+.mrh-box h4{margin:0 0 8px;font-size:1rem;text-shadow:none;}
+.mrh-box.warn{background:#fffbeb;border-color:#f5d98a;}
+.mrh-box.warn h4{color:#b45309;}
+.mrh-box.gold{background:#fff8dc;border-color:#e9d27a;}
+.mrh-box.gold h4{color:#8a6612;}
+.mrh-names{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;}
+.mrh-sum-name{background:#fff;border:1px solid #f5d98a;border-radius:99px;padding:3px 11px;font-family:inherit;font-weight:700;font-size:.85rem;color:#92400e;cursor:pointer;margin:0;}
+.mrh-star2{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;background:#fff;border:1px solid #e9d27a;border-radius:14px;padding:8px 12px;margin:0 0 6px;font-family:inherit;color:#10241c;cursor:pointer;text-align:start;}
+.mrh-star2 small{display:block;color:#5a6b63;font-size:.75rem;font-weight:600;}
+.mrh-star2>b{white-space:nowrap;color:#8a6612;}
+/* بطاقة «التالي» بعد التصدير */
+.mrh-nextcard{background:#ecfdf5;border:1.5px solid #6ee7b7;border-radius:18px;padding:16px;text-align:center;margin-bottom:12px;}
+.mrh-nc-ok{color:#065f46;font-weight:800;font-size:1.05rem;margin-bottom:10px;}
+.mrh-nc-go{width:100%;background:#0d5c46;border-color:#0d5c46;color:#fff;font-weight:800;}
+.mrh-nc-note{color:#5a6b63;font-size:.82rem;margin-top:6px;}
+.mrh-nextcard .mrh-link{display:inline-block;margin:10px 8px 0;}
+.mrh-sum-narrow{margin-top:18px;padding-top:16px;border-top:1px dashed #e4dfcc;}
+.mrh-sum-narrow:empty{display:none;}
+@media (max-width:899px){.mrh-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}.mrh-cols,.mrh-seq{grid-template-columns:1fr;}}
 `;
   document.head.appendChild(st);
 }
@@ -161,6 +214,9 @@ function monthName(year, month1, withYear) {
   } catch (e) { return `${month1}/${year}`; }
 }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function deltaHtml(cur, old, suf) {
+  return (cur == null || old == null || cur === old) ? '' : `<em class="mrh-d ${cur > old ? 'up' : 'down'}" title="${esc(t('mrh_vs_prev'))}">${cur > old ? '▲' : '▼'} ${Math.abs(cur - old)}${suf || ''}</em>`;
+}
 function avatarHtml(st) {
   const name = (st.name || '؟').trim();
   const a = st.avatar || '';
@@ -268,7 +324,6 @@ export async function openMonthlyReportsHub(opts = {}) {
       <div class="mrh-head">
         <button class="mrh-x" id="mrh-close" aria-label="${esc(t('mrh_close'))}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg><span>${esc(backLabel)}</span></button>
         <h2 class="mrh-title">${esc(t('mrh_title'))}</h2>
-        <span class="mrh-ico" aria-hidden="true">📅</span>
       </div>
       <div id="mrh-steps"></div>
       <div class="mrh-body" id="mrh-body"></div>
@@ -289,6 +344,7 @@ export async function openMonthlyReportsHub(opts = {}) {
   const isWide = () => !!(wideMq && wideMq.matches);
   let refreshList = null;  // تُضبط في شاشة القائمة: تعيد قراءة حالات الطلاب بعد تعديل من البطاقة الجانبية
   let backToList = null;   // تُضبط في شاشة الطالب: Esc يرجع للقائمة أولًا
+  let closeEmbeddedFn = null; // الشاشة العريضة: إغلاق بطاقة الطالب الجانبية والعودة لملخص الشهر
   // زر «الرئيسية» في الهيدر يتولّى العودة بنفسه، فنكتفي بإزالة الشاشة
   const headerHome = document.getElementById('header-home-btn');
   function dropHub() {
@@ -313,6 +369,15 @@ export async function openMonthlyReportsHub(opts = {}) {
   if (wideMq) wideMq.addEventListener('change', onWideChange);
   overlay.querySelector('#mrh-close').addEventListener('click', closeHub);
 
+  // فتح شاشة التقرير (مع تصدير تلقائي اختياري) ثم الرجوع للمركز تلقائيًا بعدها
+  function openReport(student, m, autoExport) {
+    lastExportMode = autoExport || null;
+    import('../reports/monthly-report.js').then(mod => {
+      dropHub();
+      mod.openMonthlyReportScreen({ student, year: m.year, monthIndex0: m.month1 - 1, autoExport, returnTo: 'hub' });
+    }).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
+  }
+
   function stepsHtml(n) {
     const st = (i, k) => `<div class="mrh-st ${i < n ? 'done' : i === n ? 'on' : ''}" ${i === 1 && n > 1 ? 'id="mrh-step1" style="cursor:pointer"' : ''}><b>${i < n ? '✓' : i}</b>${esc(t(k))}</div>`;
     return `<div class="mrh-steps">${st(1, 'mrh_step_student')}<div class="mrh-ln"></div>${st(2, 'mrh_step_month')}<div class="mrh-ln"></div>${st(3, 'mrh_step_export')}</div>`;
@@ -326,8 +391,12 @@ export async function openMonthlyReportsHub(opts = {}) {
     foot.textContent = n ? t('mrh_done_today').replace('{n}', n) : '';
   }
 
-  // ---- شاشة 1: نظرة شاملة + بحث + تحديد جماعي ----
-  async function showSearch(toastText, presetMonth, selectStudent) {
+  // ---- شاشة 1: نظرة شاملة + بحث + ملخص الشهر ----
+  // 🌟 [2026-11] تطوير: اختيار الشهر داخل البطاقة الخضراء (مكان واحد) وأرقامها مرشّحات قابلة للنقر،
+  // معلومة مختصرة في كل صف (+آيات ▲/▼)، ملخص الشهر بدل اللوحة الفارغة (أرقام + إرسال متتابع +
+  // إكمال الناقصين دفعة واحدة + النجوم)، بطاقة «التالي» بعد كل تصدير، شريط تذكير، وتنقّل بالأسهم.
+  // afterExport: {name, mode} عند العودة من تصدير تقرير — تظهر بطاقة «التالي».
+  async function showSearch(toastText, presetMonth, selectStudent, afterExport) {
     backToList = null;
     const wide = isWide();
     card.classList.toggle('mrh-wide', wide);
@@ -338,102 +407,231 @@ export async function openMonthlyReportsHub(opts = {}) {
       || (new Date().getDate() <= REMINDER_DAYS ? months[1] : months[0]);
     let rows = [];
     let flt = 'all';
-    let stars = { top: null, active: null };
+    let stars = { top: null, active: null, up: null };
+    let justExported = afterExport || null;
+    let loadTok = 0;
     const listHtml = `
       ${toastText ? `<div class="mrh-toast">${esc(toastText)}</div>` : ''}
+      <div id="mrh-banner"></div>
       <div id="mrh-ov"></div>
-      <div class="mrh-months" id="mrh-ovm"></div>
-      <div id="mrh-star"></div>
+      ${wide ? '' : '<div id="mrh-next"></div>'}
       <input class="mrh-search" id="mrh-search" type="text" autocomplete="off" placeholder="${esc(t('mrh_search_ph'))}">
-      <div class="mrh-filters" id="mrh-flt"></div>
-      <div class="mrh-list" id="mrh-list"><div class="mrh-empty">…</div></div>`;
+      <div class="mrh-list" id="mrh-list"><div class="mrh-empty">…</div></div>
+      ${wide ? `<div class="mrh-keys">${esc(t('mrh_keys_hint'))}</div>` : ''}`;
     body.innerHTML = wide
-      ? `<div class="mrh-pane" id="mrh-pane-list">${listHtml}</div><div class="mrh-pane mrh-pane-detail" id="mrh-pane-detail"><div class="mrh-pane-empty"><b>👈</b>${esc(t('mrh_pick_student'))}</div></div>`
-      : listHtml;
+      ? `<div class="mrh-pane" id="mrh-pane-list">${listHtml}</div><div class="mrh-pane mrh-pane-detail" id="mrh-pane-detail" aria-live="polite"></div>`
+      : `${listHtml}<div class="mrh-sum-narrow" id="mrh-sum"></div>`;
     const detailHost = wide ? body.querySelector('#mrh-pane-detail') : null;
+    const sumHost = wide ? detailHost : body.querySelector('#mrh-sum');
     renderFoot();
     const input = body.querySelector('#mrh-search');
     const list = body.querySelector('#mrh-list');
     const chipLabel = { done: t('mrh_chip_done'), ready: t('mrh_chip_ready'), missing: t('mrh_chip_missing'), nodata: t('mrh_chip_nodata') };
     const rank = { ready: 0, missing: 1, done: 2, nodata: 3 };
+    const cnt = (k) => k === 'all' ? rows.length : rows.filter(r => r.state === k).length;
+    const selName = () => monthName(sel.year, sel.month1, false);
+    const findStu = (id) => students.find(x => String(x.id) === String(id));
 
-    function renderMonths() {
-      body.querySelector('#mrh-ovm').innerHTML = months.map((m, i) => `<button class="mrh-month ${m === sel ? 'mrh-sel' : ''}" data-i="${i}">${esc(monthName(m.year, m.month1, m.year !== new Date().getFullYear()))}</button>`).join('');
-      body.querySelectorAll('#mrh-ovm .mrh-month').forEach(b => b.addEventListener('click', () => { sel = months[parseInt(b.dataset.i, 10)]; loadRows(); }));
-    }
     function renderOv() {
-      const total = rows.length, done = rows.filter(r => r.state === 'done').length;
-      const ready = rows.filter(r => r.state === 'ready').length, missing = rows.filter(r => r.state === 'missing').length;
+      const total = rows.length, done = cnt('done');
       const pct = total ? Math.round(done / total * 100) : 0;
-      body.querySelector('#mrh-ov').innerHTML = `<div class="mrh-ov">
-        <div class="mrh-ov-top"><b>${done}/${total}</b><span>${esc(t('mrh_ov_progress').replace('{month}', monthName(sel.year, sel.month1, false)))}</span></div>
+      const keys = ['all', 'ready', 'missing', 'done', 'nodata'].filter(k => k === 'all' || k === flt || cnt(k));
+      const host = body.querySelector('#mrh-ov');
+      host.innerHTML = `<div class="mrh-ov">
+        <label class="mrh-msel"><select id="mrh-month" aria-label="${esc(t('mrh_month_label'))}">${months.map((m, i) => `<option value="${i}" ${m === sel ? 'selected' : ''}>${esc(monthName(m.year, m.month1, m.year !== new Date().getFullYear()))}${m.isCurrent ? ' · ' + esc(t('mrh_current_month')) : ''}</option>`).join('')}</select></label>
+        <div class="mrh-ov-top"><b>${done}/${total}</b><span>${esc(t('mrh_ov_progress').replace('{month}', selName()))}</span></div>
         <div class="mrh-bar"><i style="width:${pct}%"></i></div>
-        <div class="mrh-ov-chips"><span>✓ ${esc(t('mrh_ov_ready_n').replace('{n}', ready))}</span><span>! ${esc(t('mrh_ov_missing_n').replace('{n}', missing))}</span></div></div>`;
+        <div class="mrh-ov-flts" role="group">${keys.map(k => `<button type="button" class="mrh-oflt ${k === flt ? 'mrh-sel' : ''}" data-k="${k}" aria-pressed="${k === flt}">${esc(k === 'all' ? t('mrh_filter_all') : chipLabel[k])}<b>${cnt(k)}</b></button>`).join('')}</div></div>`;
+      host.querySelector('#mrh-month').addEventListener('change', (e) => { sel = months[parseInt(e.target.value, 10)] || sel; justExported = null; flt = 'all'; loadRows(); });
+      host.querySelectorAll('.mrh-oflt').forEach(b => b.addEventListener('click', () => { flt = b.dataset.k; renderOv(); renderList(); }));
+    }
+    function renderBanner() {
+      const host = body.querySelector('#mrh-banner');
+      const pending = cnt('ready') + cnt('missing');
+      if (bannerHidden || new Date().getDate() > REMINDER_DAYS || sel !== months[1] || !pending) { host.innerHTML = ''; return; }
+      host.innerHTML = `<div class="mrh-banner mrh-banner-row" role="status">🔔 <span>${esc(t('mrh_prev_banner').replace('{month}', selName()).replace('{n}', pending))}</span>
+        <button type="button" id="mrh-bn-show">${esc(t('mrh_banner_show'))}</button>
+        <button type="button" class="mrh-bn-x" id="mrh-bn-x" aria-label="${esc(t('mrh_banner_hide'))}" title="${esc(t('mrh_banner_hide'))}">×</button></div>`;
+      host.querySelector('#mrh-bn-show').addEventListener('click', () => { flt = cnt('ready') ? 'ready' : 'missing'; renderOv(); renderList(); });
+      host.querySelector('#mrh-bn-x').addEventListener('click', () => { bannerHidden = true; renderBanner(); });
     }
     function computeStars() {
-      // التميّز: أكثر حفظًا جديدًا + أكثر نشاطًا في غرفة اللعب (يلزم قيمة موجبة، والأول عند التعادل)
+      // التميّز: أكثر حفظًا جديدًا + أكثر نشاطًا في غرفة اللعب + أكثر تحسّنًا عن الشهر السابق (يلزم قيمة موجبة، والأول عند التعادل)
       const best = (key) => rows.reduce((m, r) => { const v = key(r); return v > 0 && (!m || v > key(m)) ? r : m; }, null);
-      stars = { top: best(r => r.info.newAyahs || 0), active: best(r => r.info.games.n || 0) };
+      stars = {
+        top: best(r => r.info.newAyahs || 0),
+        active: best(r => r.info.games.n || 0),
+        up: best(r => (r.info.newAyahs != null && r.prev.newAyahs != null) ? r.info.newAyahs - r.prev.newAyahs : 0)
+      };
     }
     function badgesOf(r) {
       return (stars.top === r ? `<span class="mrh-badge">🏆 ${esc(t('mrh_badge_top'))}</span>` : '')
         + (stars.active === r ? `<span class="mrh-badge">🎮 ${esc(t('mrh_badge_active'))}</span>` : '');
     }
-    function renderStars() {
-      const host = body.querySelector('#mrh-star');
-      const list2 = [stars.top && ['🏆', t('mrh_badge_top'), stars.top], stars.active && ['🎮', t('mrh_badge_active'), stars.active]].filter(Boolean);
-      host.innerHTML = list2.length ? `<div class="mrh-star"><h4>🌟 ${esc(t('mrh_star_title').replace('{month}', monthName(sel.year, sel.month1, false)))}</h4><div class="mrh-star-row">${
-        list2.map(([ic, lb, r]) => `<button class="mrh-star-b" data-id="${esc(r.s.id)}">${ic} ${esc(lb)}: ${esc(r.s.name)}</button>`).join('')}</div></div>` : '';
-      host.querySelectorAll('.mrh-star-b').forEach(el => el.addEventListener('click', () => {
-        const st = students.find(x => String(x.id) === el.dataset.id);
-        if (st) pick(st);
-      }));
-    }
-    function renderFilters() {
-      const cnt = (k) => k === 'all' ? rows.length : rows.filter(r => r.state === k).length;
-      const keys = ['all', 'ready', 'missing', 'done', 'nodata'].filter(k => k === 'all' || k === flt || cnt(k));
-      body.querySelector('#mrh-flt').innerHTML = keys.map(k => `<button class="mrh-flt ${k === flt ? 'mrh-sel' : ''}" data-k="${k}">${esc(k === 'all' ? t('mrh_filter_all') : chipLabel[k])}<small>${cnt(k)}</small></button>`).join('');
-      body.querySelectorAll('#mrh-flt .mrh-flt').forEach(b => b.addEventListener('click', () => { flt = b.dataset.k; renderFilters(); renderList(); }));
+    function statOf(r) {
+      if (r.info.newAyahs == null) return '';
+      const p = r.prev.newAyahs, c = r.info.newAyahs;
+      const d = (p == null || p === c) ? '' : ` <span class="${c > p ? 'mrh-up' : 'mrh-down'}" title="${esc(t('mrh_vs_prev'))}">${c > p ? '▲' : '▼'}${Math.abs(c - p)}</span>`;
+      return `<bdi><span class="mrh-stat">${esc(t('mrh_row_ayahs').replace('{n}', c))}</span>${d}</bdi>`;
     }
     function renderList() {
       const q = norm(input.value);
       const found = rows.filter(r => (flt === 'all' || r.state === flt) && (!q || norm(r.s.name).includes(q)));
       if (!found.length) { list.innerHTML = `<div class="mrh-empty">${esc(q ? t('mrh_no_match') : t('mrh_empty_list'))}</div>`; return; }
-      list.innerHTML = found.map((r, i) => `
+      list.innerHTML = found.map((r, i) => {
+        const stat = statOf(r);
+        const chip = r.state === 'done' && r.done ? `✓ ${new Date(r.done).toLocaleDateString(locale(), { day: 'numeric', month: 'short' })}` : chipLabel[r.state];
+        return `
         <div class="mrh-item ${q && i === 0 ? 'mrh-first' : ''} ${String(r.s.id) === selId ? 'mrh-sel' : ''}" data-id="${esc(r.s.id)}" role="button" tabindex="0">
           <span class="mrh-av">${avatarHtml(r.s)}</span>
-          <span><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade || '')}</div></span>
-          <span class="mrh-chip ${r.state}">${esc(chipLabel[r.state])}</span>
-        </div>`).join('');
+          <span class="mrh-who"><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade || '')}${r.s.grade && stat ? ' · ' : ''}${stat}</div></span>
+          <span class="mrh-chip ${r.state}" title="${esc(chipLabel[r.state])}">${esc(chip)}</span>
+        </div>`;
+      }).join('');
       list.querySelectorAll('.mrh-item').forEach(el => el.addEventListener('click', () => {
-        const st = students.find(x => String(x.id) === el.dataset.id);
+        const st = findStu(el.dataset.id);
         if (st) pick(st);
       }));
     }
+
+    // ---- ملخص الشهر (اللوحة اليسرى في العريضة، وتحت القائمة في الضيقة) ----
+    function summaryHtml() {
+      const sum = (a) => a.reduce((x, y) => x + y, 0);
+      const avgOf = (a) => { const v = a.filter(x => x != null); return v.length ? Math.round(sum(v) / v.length) : null; };
+      const anyAy = rows.some(r => r.info.newAyahs != null), anyAyP = rows.some(r => r.prev.newAyahs != null);
+      const ay = anyAy ? sum(rows.map(r => r.info.newAyahs || 0)) : null, ayP = anyAyP ? sum(rows.map(r => r.prev.newAyahs || 0)) : null;
+      const avg = avgOf(rows.map(r => r.info.games.avg)), avgP = avgOf(rows.map(r => r.prev.games.avg));
+      const ses = sum(rows.map(r => r.info.games.n)), sesP = sum(rows.map(r => r.prev.games.n));
+      const ready = rows.filter(r => r.state === 'ready'), missing = rows.filter(r => r.state === 'missing');
+      const starRow = (ic, label, r, val) => r ? `<button type="button" class="mrh-star2" data-id="${esc(r.s.id)}"><span>${ic}</span><span><b>${esc(r.s.name)}</b><small>${esc(label)}</small></span><b>${esc(val)}</b></button>` : '';
+      const starsHtml = starRow('🏆', t('mrh_badge_top'), stars.top, stars.top && t('mrh_sum_ayahs_n').replace('{n}', stars.top.info.newAyahs))
+        + starRow('🎮', t('mrh_badge_active'), stars.active, stars.active && t('mrh_sum_sessions_n').replace('{n}', stars.active.info.games.n))
+        + starRow('📈', t('mrh_badge_up'), stars.up, stars.up && `▲ ${stars.up.info.newAyahs - stars.up.prev.newAyahs}`);
+      return `
+        <h3 class="mrh-sum-h">📊 ${esc(t('mrh_sum_title').replace('{month}', selName()))}</h3>
+        ${wide ? `<p class="mrh-sum-sub">${esc(t('mrh_sum_sub'))}</p>` : ''}
+        <div class="mrh-kpis">
+          <div class="mrh-kpi"><b>${ay != null ? ay : '—'}</b><small>${esc(t('mrh_kpi_ayahs'))}</small>${deltaHtml(ay, ayP)}</div>
+          <div class="mrh-kpi"><b>${avg != null ? avg + '٪' : '—'}</b><small>${esc(t('mrh_tile_avg'))}</small>${deltaHtml(avg, avgP, '٪')}</div>
+          <div class="mrh-kpi"><b>${ses}</b><small>${esc(t('mrh_tile_sessions'))}</small>${deltaHtml(ses, sesP)}</div>
+          <div class="mrh-kpi"><b>${cnt('done')}/${rows.length}</b><small>${esc(t('mrh_kpi_done'))}</small></div>
+        </div>
+        ${ready.length ? `<div class="mrh-seq">
+            <button type="button" class="mrh-btn pri" id="mrh-seq-wa">${esc(t('mrh_seq_wa').replace('{n}', ready.length))}</button>
+            <button type="button" class="mrh-btn gold" id="mrh-seq-pdf">${esc(t('mrh_seq_pdf').replace('{n}', ready.length))}</button>
+          </div><p class="mrh-sum-sub" style="margin-top:-6px">${esc(t('mrh_seq_hint'))}</p>`
+          : (rows.length && !missing.length ? `<div class="mrh-alldone">${esc(t('mrh_all_done'))}</div>` : '')}
+        <div class="mrh-cols">
+          <div class="mrh-box warn">
+            <h4>⚠️ ${esc(t('mrh_sum_missing_h').replace('{n}', missing.length))}</h4>
+            ${missing.length ? `<p class="mrh-sum-sub">${esc(t('mrh_sum_missing_p'))}</p>
+              <div class="mrh-names">${missing.map(r => `<button type="button" class="mrh-sum-name" data-id="${esc(r.s.id)}">${esc(r.s.name)}</button>`).join('')}</div>
+              <button type="button" class="mrh-fix" id="mrh-bulk-fix">✍️ ${esc(t('mrh_sum_missing_btn').replace('{n}', missing.length))}</button>`
+              : `<p class="mrh-sum-sub" style="margin:0">${esc(t('mrh_sum_missing_none'))}</p>`}
+          </div>
+          <div class="mrh-box gold">
+            <h4>🌟 ${esc(t('mrh_star_title').replace('{month}', selName()))}</h4>
+            ${starsHtml || `<p class="mrh-sum-sub" style="margin:0">${esc(t('mrh_sum_stars_none'))}</p>`}
+          </div>
+        </div>`;
+    }
+    function bindSummary(host) {
+      const ready = rows.filter(r => r.state === 'ready'), missing = rows.filter(r => r.state === 'missing');
+      const wa = host.querySelector('#mrh-seq-wa'), pdf = host.querySelector('#mrh-seq-pdf');
+      if (wa) wa.addEventListener('click', () => openReport(ready[0].s, sel, 'whatsapp'));
+      if (pdf) pdf.addEventListener('click', () => openReport(ready[0].s, sel, 'pdf'));
+      host.querySelectorAll('.mrh-sum-name, .mrh-star2').forEach(el => el.addEventListener('click', () => { const st = findStu(el.dataset.id); if (st) pick(st); }));
+      const bulk = host.querySelector('#mrh-bulk-fix');
+      if (bulk) bulk.addEventListener('click', async () => {
+        // إكمال «آخر سورة وآية» لكل الناقصين واحدًا تلو الآخر بنفس شاشة التسجيل (تخطٍّ = ننتقل للتالي)
+        overlay.style.display = 'none';
+        try {
+          const { openMonthEndingForStudent } = await import('./monthlyMemorizationBulkScreen.js');
+          for (const r of missing) await openMonthEndingForStudent(r.s, sel.year, sel.month1);
+        } catch (e) { console.error('[monthlyReportsHub.js] تعذر إكمال البيانات دفعة واحدة:', e); }
+        finally { overlay.style.display = ''; }
+        loadRows();
+      });
+    }
+    function nextCardHtml() {
+      const ready = rows.filter(r => r.state === 'ready');
+      const nx = ready[0];
+      const arrow = AppState.currentLang === 'ar' ? '←' : '→';
+      const mode = justExported.mode;
+      return `<div class="mrh-nextcard" role="status">
+        <div class="mrh-nc-ok">${esc(t('mrh_exported_ok').replace('{name}', justExported.name))}</div>
+        ${nx ? `<button type="button" class="mrh-btn mrh-nc-go" id="mrh-nc-go" data-id="${esc(nx.s.id)}">${esc(t('mrh_next_btn').replace('{name}', nx.s.name))} ${arrow}</button>
+          ${mode ? `<div class="mrh-nc-note">${esc(t(mode === 'pdf' ? 'mrh_next_mode_pdf' : 'mrh_next_mode_wa'))}</div>` : ''}
+          <div class="mrh-nc-note">${esc(t('mrh_next_left').replace('{n}', ready.length))}</div>
+          ${mode ? `<button type="button" class="mrh-link" id="mrh-nc-view" data-id="${esc(nx.s.id)}">${esc(t('mrh_next_view'))}</button>` : ''}`
+          : `<div class="mrh-nc-ok">${esc(t('mrh_next_none'))}</div>`}
+        <button type="button" class="mrh-link" id="mrh-nc-close">${esc(t(wide ? 'mrh_back_summary' : 'mrh_close'))}</button>
+      </div>`;
+    }
+    function bindNext(host) {
+      const go = host.querySelector('#mrh-nc-go'), view = host.querySelector('#mrh-nc-view'), cls = host.querySelector('#mrh-nc-close');
+      const mode = justExported && justExported.mode;
+      if (go) { go.addEventListener('click', () => { const st = findStu(go.dataset.id); if (!st) return; if (mode) openReport(st, sel, mode); else pick(st); }); go.focus(); }
+      if (view) view.addEventListener('click', () => { const st = findStu(view.dataset.id); if (st) pick(st); });
+      if (cls) cls.addEventListener('click', () => { justExported = null; renderDetail(); });
+    }
+    function renderDetail() {
+      const nextHost = wide ? detailHost : body.querySelector('#mrh-next');
+      if (justExported) {
+        nextHost.innerHTML = nextCardHtml(); bindNext(nextHost);
+        if (wide) return;
+      } else if (!wide) nextHost.innerHTML = '';
+      if (wide && selId) return;   // بطاقة الطالب معروضة
+      sumHost.innerHTML = rows.length ? summaryHtml() : '';
+      bindSummary(sumHost);
+    }
+    function closeEmbedded() {
+      selId = null; backToList = null; closeEmbeddedFn = null;
+      list.querySelectorAll('.mrh-item').forEach(el => el.classList.remove('mrh-sel'));
+      renderDetail();
+    }
     // شاشة عريضة: تُعرض بطاقة الطالب في اللوحة الجانبية؛ الضيقة: تحلّ محل القائمة كما كانت
     function pick(st) {
+      justExported = null;
       if (!wide) { showStudent(st, { year: sel.year, month1: sel.month1 }); return; }
       selId = String(st.id);
       list.querySelectorAll('.mrh-item').forEach(el => el.classList.toggle('mrh-sel', el.dataset.id === selId));
+      backToList = closeEmbedded; closeEmbeddedFn = closeEmbedded;
       showStudent(st, { year: sel.year, month1: sel.month1 }, detailHost);
     }
     async function loadRows() {
-      renderMonths();
+      const tok = ++loadTok;
       list.innerHTML = '<div class="mrh-empty">…</div>';
       const doneMap = readDone();
-      rows = await Promise.all(students.map(async s => {
-        const info = await getMonthInfo(s, sel.year, sel.month1);
-        const done = !!doneMap[doneKey(s.id, sel.year, sel.month1)];
-        return { s, info, state: done ? 'done' : info.status };
+      const pd = new Date(sel.year, sel.month1 - 2, 1);
+      const next = await Promise.all(students.map(async s => {
+        const [info, prev] = await Promise.all([getMonthInfo(s, sel.year, sel.month1), getMonthInfo(s, pd.getFullYear(), pd.getMonth() + 1)]);
+        const done = doneMap[doneKey(s.id, sel.year, sel.month1)] || null;
+        return { s, info, prev, done, state: done ? 'done' : info.status };
       }));
-      rows.sort((x, y) => (rank[x.state] - rank[y.state]) || String(x.s.name || '').localeCompare(String(y.s.name || ''), 'ar'));
-      if (!body.isConnected) return;
-      computeStars(); renderOv(); renderStars(); renderFilters(); renderList();
-      if (wide && selId && !detailHost.querySelector('.mrh-stu-row')) { const st = students.find(x => String(x.id) === selId); if (st) pick(st); }
+      if (tok !== loadTok || !body.isConnected) return;
+      rows = next.sort((x, y) => (rank[x.state] - rank[y.state]) || String(x.s.name || '').localeCompare(String(y.s.name || ''), 'ar'));
+      computeStars(); renderOv(); renderBanner(); renderList();
+      const st = wide && selId ? findStu(selId) : null;
+      if (st) pick(st); else { selId = null; renderDetail(); }
     }
     input.addEventListener('input', renderList);
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') { const first = list.querySelector('.mrh-item'); if (first) first.click(); }
+      else if (e.key === 'ArrowDown') { const first = list.querySelector('.mrh-item'); if (first) { e.preventDefault(); first.focus(); if (wide) first.click(); } }
+    });
+    // التنقّل بين الطلاب بالأسهم (↑↓) والفتح بـ Enter
+    list.addEventListener('keydown', (e) => {
+      const items = [...list.querySelectorAll('.mrh-item')];
+      const i = items.indexOf(document.activeElement);
+      if (i < 0) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const j = i + (e.key === 'ArrowDown' ? 1 : -1);
+        if (j < 0) { input.focus(); return; }
+        const n = items[Math.min(items.length - 1, j)];
+        n.focus(); if (wide && n !== items[i]) n.click();
+      } else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); items[i].click(); }
     });
     refreshList = wide ? loadRows : null;
     await loadRows();
@@ -446,13 +644,14 @@ export async function openMonthlyReportsHub(opts = {}) {
     let sel = (preset && months.find(m => m.year === preset.year && m.month1 === preset.month1)) || months[0];
 
     async function render() {
+      const tok = host._mrhTok = {};   // التنقّل السريع بالأسهم: لا يكتب عرضٌ قديم فوق أحدث منه
       const info = await getMonthInfo(student, sel.year, sel.month1);
       const pd = new Date(sel.year, sel.month1 - 2, 1);
       const prev = await getMonthInfo(student, pd.getFullYear(), pd.getMonth() + 1);
       const done = readDone()[doneKey(student.id, sel.year, sel.month1)];
       const mName = monthName(sel.year, sel.month1, sel.year !== new Date().getFullYear());
       // إشارات الأشهر (سريعة: تُحسب مرة واحدة لكل عرض)
-      const infos = await Promise.all(months.map(m => (m.year === sel.year && m.month1 === sel.month1) ? info : getMonthInfo(student, m.year, m.month1)));
+      const infos = embedHost ? [] : await Promise.all(months.map(m => (m.year === sel.year && m.month1 === sel.month1) ? info : getMonthInfo(student, m.year, m.month1)));
       const mark = (i) => infos[i].status === 'ready' ? '✅' : (infos[i].status === 'missing' ? '⚠️' : '⚪');
 
       const dl = (cur, old, suf) => (cur == null || old == null || cur === old) ? '' : `<em class="mrh-d ${cur > old ? 'up' : 'down'}" title="${esc(t('mrh_vs_prev'))}">${cur > old ? '▲' : '▼'} ${Math.abs(cur - old)}${suf || ''}</em>`;
@@ -490,16 +689,17 @@ export async function openMonthlyReportsHub(opts = {}) {
           <div class="mrh-fixrow"><button class="mrh-fix" id="mrh-review" style="background:#0d5c46;">${esc(info.review ? t('mrh_review_edit') : t('mrh_review_add'))}</button></div>
         </div>`;
 
+      if (host._mrhTok !== tok || !host.isConnected) return;
       if (!embedHost) stepsHost.innerHTML = stepsHtml(2);
       host.innerHTML = `
         <div class="mrh-stu-row">
           <span class="mrh-av">${avatarHtml(student)}</span>
-          <span><div class="mrh-nm">${esc(student.name)}</div><div class="mrh-gr">${esc(student.grade || '')}</div></span>
-          ${embedHost ? '' : `<button class="mrh-link" id="mrh-change">${esc(t('mrh_change_student'))}</button>`}
+          <span><div class="mrh-nm">${esc(student.name)}</div><div class="mrh-gr">${esc([student.grade, embedHost ? mName : ''].filter(Boolean).join(' · '))}</div></span>
+          <button class="mrh-link" id="mrh-change">${esc(embedHost ? '✕ ' + t('mrh_back_summary') : t('mrh_change_student'))}</button>
         </div>
-        <div class="mrh-months">
+        ${embedHost ? '' : `<div class="mrh-months">
           ${months.map((m, i) => `<button class="mrh-month ${m === sel ? 'mrh-sel' : ''}" data-i="${i}">${mark(i)} ${esc(m.isCurrent ? t('mrh_current_month') + ' · ' : '')}${esc(monthName(m.year, m.month1, m.year !== new Date().getFullYear()))}</button>`).join('')}
-        </div>
+        </div>`}
         <div class="mrh-paper">
           <div class="mrh-paper-h">📄 ${esc(t('mrh_preview_paper'))} · ${esc(mName)}</div>
           ${tiles}
@@ -518,7 +718,7 @@ export async function openMonthlyReportsHub(opts = {}) {
         backToList = () => { backToList = null; showSearch(null, sel); };
         host.querySelector('#mrh-change').addEventListener('click', backToList);
         const step1 = stepsHost.querySelector('#mrh-step1'); if (step1) step1.addEventListener('click', backToList);
-      }
+      } else host.querySelector('#mrh-change').addEventListener('click', () => { if (closeEmbeddedFn) closeEmbeddedFn(); });
       host.querySelectorAll('.mrh-month').forEach(b => b.addEventListener('click', () => { sel = months[parseInt(b.dataset.i, 10)]; render(); }));
       const fixBtn = host.querySelector('#mrh-fix') || host.querySelector('#mrh-edit');
       if (fixBtn) fixBtn.addEventListener('click', async () => {
@@ -540,13 +740,7 @@ export async function openMonthlyReportsHub(opts = {}) {
         render(); if (refreshList) refreshList();
       });
 
-      const go = (autoExport) => {
-        import('../reports/monthly-report.js').then(m => {
-          document.removeEventListener('keydown', onKey);
-          overlay.remove();
-          m.openMonthlyReportScreen({ student, year: sel.year, monthIndex0: sel.month1 - 1, autoExport, returnTo: 'hub' });
-        }).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
-      };
+      const go = (autoExport) => openReport(student, sel, autoExport);
       host.querySelector('#mrh-wa').addEventListener('click', () => go('whatsapp'));
       host.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
       host.querySelector('#mrh-preview').addEventListener('click', () => go(null));
@@ -560,7 +754,7 @@ export async function openMonthlyReportsHub(opts = {}) {
     const st = students.find(s => String(s.id) === String(back.studentId));
     const ts = readDone()[doneKey(back.studentId, back.year, back.month1)];
     const exportedNow = ts && new Date(ts).getTime() >= (back.openedAt || 0);
-    if (st && exportedNow) { await showSearch(t('mrh_exported_ok').replace('{name}', st.name), { year: back.year, month1: back.month1 }); return; }
+    if (st && exportedNow) { await showSearch(null, { year: back.year, month1: back.month1 }, null, { name: st.name, mode: lastExportMode }); return; }
     if (st && isWide()) { await showSearch(null, { year: back.year, month1: back.month1 }, st); return; }
     if (st) { await showStudent(st, { year: back.year, month1: back.month1 }); return; }
   }
