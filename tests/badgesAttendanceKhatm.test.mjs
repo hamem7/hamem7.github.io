@@ -1,7 +1,7 @@
 // tests/badgesAttendanceKhatm.test.mjs — تشغيل: node tests/badgesAttendanceKhatm.test.mjs
 import { computeMonthBadges, summarizeEarned, countCappedPerDay, closestToNext, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
 import { summarizeMonth, evidenceDays, setDayStatus, needsConfirmation, dateKey, scheduledDaysInMonth } from '../engine/attendanceEngine.js';
-import { paceFrom, projectMilestones, unitsBetween, sessionsToFinish, buildNextMonthPlan } from '../engine/khatmPlan.js';
+import { paceFrom, projectMilestones, unitsBetween, sessionsToFinish, buildNextMonthPlan, buildPathMap, weightsFromPages } from '../engine/khatmPlan.js';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('✅', m); } else { fail++; console.log('❌', m); } };
 const at = (y, m, d, h = 10) => new Date(y, m, d, h).getTime();
@@ -74,8 +74,13 @@ const proj = projectMilestones({ pace, remaining: { juz: 60, half: 600 }, attend
 ok(proj[0].sessions === 10 && proj[1].sessions === 100, 'الحصص = المتبقي ÷ الوتيرة (تقريبًا للأعلى)');
 ok(proj[1].monthsFull === 12.5 && proj[1].monthsAvg > proj[1].monthsFull, 'سيناريو الحضور الفعلي أبطأ من الالتزام الكامل');
 ok(sessionsToFinish(60, pace) === 10 && sessionsToFinish(0, pace) === 0 && sessionsToFinish(5, { perSession: 0 }) === null, 'حصص إتمام الجزء');
-const w = new Array(6236).fill(0.1);
-ok(Math.abs(unitsBetween(0, 100, w) - 10) < 1e-6 && unitsBetween(0, 100) === 100, 'تحويل الآيات إلى صفحات بالأوزان');
+const surahs = [{ number: 1, ayahsCount: 3 }, { number: 2, ayahsCount: 4 }, { number: 3, ayahsCount: 2 }];
+const pm = buildPathMap(surahs);
+ok(JSON.stringify(pm) === JSON.stringify([7, 8, 3, 4, 5, 6, 0, 1, 2]), 'مسار الحفظ: السور من الأخيرة والآيات تصاعديًا');
+const pages = [1, 1, 1, 2, 2, 3, 3, 3, 3];
+const w = weightsFromPages(pages);
+ok(Math.abs(w.reduce((a, b) => a + b, 0) - 3) < 1e-9, 'مجموع الأوزان = عدد الصفحات');
+ok(Math.abs(unitsBetween(0, 2, w, pm) - 0.5) < 1e-9 && unitsBetween(0, 2) === 2, 'تحويل آيات المسار إلى صفحات (آيتان من صفحة 3 = 0.5)');
 const plan = buildNextMonthPlan({ pace, sessionsNext: 8, thisMonthNewAyahs: 40, farReviewParts: [3, 4] });
 ok(plan.tentative === true && plan.newUnits === 48 && plan.weekly.length === 4, 'خطة الشهر القادم: مبدئية وبوتيرة الطالب');
 console.log(`\nالنتيجة: ${pass} ناجح، ${fail} فاشل`);

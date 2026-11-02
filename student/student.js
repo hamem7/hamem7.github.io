@@ -1282,6 +1282,9 @@ export async function loadStudentProfileScreen() {
 
             // 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" — راجع الدالة أدناه
             renderTajweedProfileSection(student);
+            // 🌟 [جديد] خزانة الأوسمة وجدول الحصص (best-effort: فشلهما لا يمنع بقية الملف)
+            import('../components/badgeCabinet.js').then(m => m.renderBadgeCabinet(student, document.getElementById('bdgc-content'))).catch(e => console.warn('[student] الأوسمة:', e));
+            import('../components/studentSchedule.js').then(m => m.renderScheduleSection(student, document.getElementById('sched-content'))).catch(e => console.warn('[student] الجدول:', e));
             renderSimilaritiesProfileSection(student);
 
             // 🌟 [جديد] تفعيل التعديل المباشر لكل بيانات ملف الطالب المعروضة هنا (الصورة،

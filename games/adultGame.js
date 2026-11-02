@@ -697,6 +697,8 @@ async function playNextMission() {
             // 🌟 [جديد] تسجيل هذا التقييم في history_ قبل عرض التقرير — راجع تعليق
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
+            // 🌟 [جديد] تقييم الأوسمة الشهرية وعرض الجديد منها بالمشهد السينمائي (لا يحجب ولا يرمي)
+            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent)).catch(() => {});
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (best-effort) حتى لا تظهر
             // بطاقة "اختبار غير مكتمل" مرة أخرى. اختبار جديد عادي لا يمسّ أي لقطة موجودة
             if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {

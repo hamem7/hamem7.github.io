@@ -384,6 +384,8 @@ async function bootSystem() {
         // 🌟 [جديد] مراقب «تذكيراتي»: يعمل طوال الجلسة على أي شاشة (فحص كل 15 ثانية + عند عودة التبويب) ويبثّ التنبيهات
         bindReminderAlerts();
         startReminderWatcher();
+        // 🌟 [جديد] سؤال الحضور آخر اليوم (للطلاب المجدولين بلا أي نشاط فقط) — components/attendancePrompt.js
+        import('../components/attendancePrompt.js').then(m => m.startAttendancePromptWatcher()).catch(e => console.warn('[attendance]', e));
 
         // 🧑‍🏫 ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ
         // فعلاً إن وجد، وإلا يبقى currentTeacher فارغاً بلا أي إجبار على إكماله الآن

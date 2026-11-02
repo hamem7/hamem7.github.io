@@ -110,7 +110,8 @@ export function computeMonthBadges(input = {}) {
             const exp = input.attendance ? input.attendance.expected : 0;
             tier = value >= 100 && exp >= STEADY_DIAMOND_MIN_SESSIONS ? 3 : Math.min(tierIndexFor(value, def.th), 2);
         }
-        const nextAt = tier >= 3 ? null : (def.key === 'steady' && tier === 2 ? 100 : def.th[tier + 1]);
+        // المواظب: بعد ١٠٠٪ لا عدّاد نسبة؛ الماسي يحتاج ٨ حصص على الأقل لا نسبة أعلى
+        const nextAt = tier >= 3 ? null : (def.key === 'steady' && tier === 2 ? (value >= 100 ? null : 100) : def.th[tier + 1]);
         out.push({
             key: def.key, icon: def.icon, group: def.group, unit: def.unit, value, tier,
             tierKey: tier >= 0 ? TIER_KEYS[tier] : null,

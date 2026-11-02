@@ -32,7 +32,9 @@ const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'cs
   'student/my-students.html', 'student/all-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
   'css/teacherAuthGate.css', 'core/dialog.js',
   // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
-  'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css']);
+  'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',
+  // مشهد الوسام السينمائي: مسرح داكن دائمًا بقصد (إضاءة وجزيئات ومعادن الأوسمة) فلا يتبدّل بمظهر المنصة
+  'components/badgeReveal.js']);
 const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
 // مقصودة فاتحة: ركن الأطفال، والمطبوعات (تقارير/شهادات تُصدَّر صوراً وPDF بورقة فاتحة دائماً)
 const INTENTIONAL_LIGHT = [/^reports\//, /^certificates\//, /^privacy\.html$/, /^index\.html$/, /^service-worker\.js$/];

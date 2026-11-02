@@ -1,0 +1,295 @@
+// reports/monthly-extras.js
+// =============================================================================
+// أقسام التقرير الشهري الجديدة (تُحقن في صفحة التقرير القائمة دون المساس ببقية منطقها):
+//   أوسمة الشهر + مفتاح الأوسمة · الحضور والساعات · التجويد (نظري/عملي) · الطريق إلى الختم · خطة الشهر القادم (مبدئية)
+//   · مؤشر اكتمال البيانات (للمعلم فقط: لا يدخل التصدير).
+// الألوان قيم ثابتة (لا var()) لأن html2canvas يلتقط الصفحة للتصدير — نفس قاعدة monthly-report.identity.js.
+// كل نص عبر t()/tf() من i18n-badges.js (عربي/English). لا تمسّ أي نص قرآني ولا خطًا قرآنيًا هنا.
+// =============================================================================
+import { AppState, t } from '../core/app.js';
+import { tf } from '../core/i18n.js';
+import { esc } from '../core/escape.js';
+import '../core/i18n-badges.js';
+import { loadStudentContext, inputsForMonth, evidenceTimestamps } from '../core/badgeService.js';
+import { computeMonthBadges, summarizeEarned, closestToNext, BADGE_DEFS, BADGE_GROUPS, TIER_KEYS } from '../engine/badgesEngine.js';
+import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceEngine.js';
+import { ensureJourney } from '../engine/tajweedJourney.js';
+import { paceFrom, projectMilestones, buildPathMap, weightsFromPages, unitsBetween, buildNextMonthPlan, DEFAULT_SESSIONS_PER_MONTH, sessionsToFinish } from '../engine/khatmPlan.js';
+import { ayahIndex, juzBounds, JUZ_COUNT, summarizeReview } from '../engine/reviewParts.js';
+import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
+import { SKILLS } from '../engine/skillMap.js';
+import { skillLabel } from '../components/skillProfile.js';
+
+const TIER_COLORS = { bronze: ['#e7b58a', '#b87333'], silver: ['#f4f7fb', '#9aa6b6'], gold: ['#fff0b3', '#d4a017'], diamond: ['#e0f7ff', '#4fb3e8'] };
+const isEn = () => AppState.currentLang === 'en';
+const num = (n) => (isEn() ? String(n) : Number(n).toLocaleString('ar-EG', { useGrouping: false }));
+const firstName = (s) => String(s || '').trim().split(/\s+/)[0] || '';
+const fmtDate = (d) => d.toLocaleDateString(isEn() ? 'en-GB' : 'ar-EG', { month: 'long', year: 'numeric' });
+const tierName = (k) => t('bdg_tier_n_' + k);
+
+export const EXTRAS_STYLES = `
+  #report-screen .mrx{margin:18px 0; padding:16px 18px; border-radius:16px; background:#fffdf6; border:1.5px solid #e6dcbc; page-break-inside:avoid;}
+  #report-screen .mrx .section-sub{margin-bottom:10px;}
+  #report-screen .mrx-grid{display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-start;}
+  #report-screen .mrx-medal{width:132px; text-align:center; padding:10px 6px 8px; border-radius:14px; background:#ffffff; border:1.5px solid #eadfbd;}
+  #report-screen .mrx-medal .disc{width:64px; height:64px; margin:0 auto 6px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; border:3px solid rgba(255,255,255,.7);}
+  #report-screen .mrx-medal b{display:block; font-size:14px; color:#164f40;}
+  #report-screen .mrx-medal small{display:block; font-size:11.5px; color:#6b6b63; line-height:1.5;}
+  #report-screen .mrx-chip{display:inline-block; margin-top:3px; padding:1px 10px; border-radius:999px; font-size:11.5px; font-weight:700; color:#1a1300;}
+  #report-screen .mrx-total{font-size:15px; font-weight:800; color:#164f40; margin-bottom:8px;}
+  #report-screen .mrx-closest{margin-top:10px; font-size:13px; color:#8a6221;}
+  #report-screen .mrx-legend-row{display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-top:1px dashed #e6dcbc; font-size:12.5px; color:#3a3a35;}
+  #report-screen .mrx-legend-row .ic{font-size:20px; width:28px; text-align:center;}
+  #report-screen .mrx-legend-row b{color:#164f40;}
+  #report-screen .mrx-legend-row .th{display:block; color:#6b6b63; margin-top:2px;}
+  #report-screen .mrx-group{font-size:12.5px; font-weight:800; color:#8a6221; margin:10px 0 2px;}
+  #report-screen .mrx-kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin:6px 0;}
+  #report-screen .mrx-kv div{background:#fff; border:1px solid #eadfbd; border-radius:12px; padding:8px 10px; text-align:center;}
+  #report-screen .mrx-kv b{display:block; font-size:20px; color:#164f40;}
+  #report-screen .mrx-kv span{font-size:11.5px; color:#6b6b63;}
+  #report-screen .mrx-note{font-size:12px; color:#6b6b63; margin-top:6px; line-height:1.7;}
+  #report-screen .mrx-row{display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px dashed #e6dcbc; font-size:13px;}
+  #report-screen .mrx-row b{color:#164f40;}
+  #report-screen .mrx-plan-warn{background:#fff6dc; border:1px solid #ecd58a; color:#6f5410; border-radius:12px; padding:9px 12px; font-size:12.5px; line-height:1.8; margin-bottom:8px;}
+  #report-screen .mrx-teacher{background:#eef6ff; border:1.5px dashed #8ab4e8; color:#1f4c85;}
+  #report-screen .mrx-teacher button{margin-top:8px; border:0; border-radius:10px; padding:7px 14px; font-weight:700; background:#1f4c85; color:#fff; cursor:pointer;}
+`;
+
+// ---------- جمع البيانات ----------
+async function weakestSkill(d) {
+  const sum = d.skillSummary;
+  if (!sum || !sum.stats) return null;
+  const rows = SKILLS.map(sk => ({ sk, st: sum.stats[sk] })).filter(x => x.st && x.st.count > 0 && x.st.acc !== null).sort((a, b) => a.st.acc - b.st.acc);
+  return rows.length && rows[0].st.acc < 0.85 ? skillLabel(rows[0].sk) : null;
+}
+
+function currentPositionIdx(surahsData, rec) {
+  const e = rec && rec.ending;
+  if (!e) return null;
+  let sum = 0;
+  for (const s of surahsData) if (s.number > e.surahNumber) sum += s.ayahsCount;
+  return sum + e.ayahNumber;
+}
+const beginIdx = (surahsData, rec) => {
+  const b = rec && rec.beginning; if (!b) return null;
+  let sum = 0; for (const s of surahsData) if (s.number > b.surahNumber) sum += s.ayahsCount;
+  return sum + b.ayahNumber;
+};
+
+async function buildKhatm(d, ctx, att) {
+  const surahs = ctx.surahsData;
+  if (!surahs || surahs.length !== 114) return null;
+  const recs = ctx.records.filter(r => r.ending && r.beginning).sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
+  if (!recs.length) return null;
+  let weights = null, pathMap = null;
+  try {
+    const pages = AppState.quranEngine && await AppState.quranEngine.getAyahPages();
+    if (pages) { weights = weightsFromPages(pages); pathMap = buildPathMap(surahs); }
+  } catch (e) { /* نكمل بالآيات */ }
+  const pageMode = !!(weights && pathMap);
+  const unit = (lo, hi) => unitsBetween(lo, hi, weights, pathMap);
+  // بدون أرقام الصفحات نقرّب الآية بـ604/6236 صفحة حتى تبقى الوحدة «صفحات تقريبية»
+  const scale = pageMode ? 1 : 604 / 6236;
+  const posIdx = currentPositionIdx(surahs, recs[recs.length - 1]);
+  const doneUnits = unit(0, posIdx) * scale;
+  // صفحات أعلى N جزء بترتيب المسار (الجزء 30 فما دون): حجم لا موضع (حدود الأجزاء تقطع السور)
+  const juzPages = [];
+  for (let j = JUZ_COUNT; j >= 1; j--) {
+    const b = juzBounds(surahs, j); if (!b) return null;
+    const lo = ayahIndex(surahs, b.start.surah, b.start.ayah) - 1, hi = ayahIndex(surahs, b.end.surah, b.end.ayah);
+    let p = 0;
+    for (let i = lo; i < hi; i++) p += weights ? weights[i] : (604 / 6236);
+    juzPages.push(p);
+  }
+  const cum = (n) => { let s = 0; for (let i = 0; i < Math.floor(n); i++) s += juzPages[i]; if (n % 1) s += juzPages[Math.floor(n)] * (n % 1); return s; };
+  let curJuz = 1; while (curJuz < JUZ_COUNT && cum(curJuz) <= doneUnits) curJuz++;
+  const remaining = { juz: Math.max(cum(curJuz) - doneUnits, 0), five: cum(5) - doneUnits, quarter: cum(7.5) - doneUnits, half: cum(15) - doneUnits, khatm: cum(30) - doneUnits };
+  // الوتيرة: آخر 3 أشهر مقفلة ببيانات
+  const months = recs.filter(r => r.locked || r.ending).map(r => {
+    const lo = beginIdx(surahs, r), hi = currentPositionIdx(surahs, r);
+    const sessions = hasSchedule(ctx.student) ? summarizeMonth(ctx.student, r.year, r.month - 1, evidenceDays(evidenceTimestamps(ctx))).expected || DEFAULT_SESSIONS_PER_MONTH : DEFAULT_SESSIONS_PER_MONTH;
+    return { newUnits: hi > lo ? unit(lo, hi) * scale : 0, sessions };
+  });
+  const sessionsPerMonth = hasSchedule(ctx.student) ? Math.max(ctx.student.schedule.days.length * 4, 1) : DEFAULT_SESSIONS_PER_MONTH;
+  const pace = paceFrom(months, sessionsPerMonth);
+  const proj = projectMilestones({ pace, remaining, sessionsPerMonth, attendancePct: att && att.pct != null ? att.pct : null, now: new Date() });
+  return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed };
+}
+
+function tajweedMonth(d, ctx) {
+  const y = d.year, m = d.monthIndex0;
+  if (!ctx.mastery.length) return null;
+  const a = new Date(y, m, 1).getTime(), b = new Date(y, m + 1, 1).getTime();
+  const within = (iso) => { const ts = iso ? Date.parse(iso) : NaN; return Number.isFinite(ts) && ts >= a && ts < b; };
+  const c = { learned: 0, practiced: 0, exam: 0, examFirst: 0, approved: 0 };
+  ctx.mastery.forEach(rec => {
+    const j = ensureJourney(rec);
+    if (within(j.learnedAt)) c.learned++;
+    if (within(j.practicePassedAt)) c.practiced++;
+    if (within(j.examPassedAt)) c.exam++;
+    const first = (j.examAttempts || [])[0];
+    if (first && first.passed && within(first.at)) c.examFirst++;
+    if (within(j.teacherApprovedAt)) c.approved++;
+  });
+  return (c.learned + c.practiced + c.exam + c.approved) ? c : { ...c, none: true };
+}
+
+function nextTajweedRuleKey(ctx) {
+  const done = new Set(ctx.mastery.filter(r => ensureJourney(r).teacherApprovedAt).map(r => r.ruleId));
+  const hit = getAllRulesFlat().find(x => !done.has(x.rule.id));
+  return hit ? hit.rule.nameKey : null;
+}
+
+export async function collectExtras(d) {
+  const student = d.student, y = d.year, m = d.monthIndex0;
+  const ctx = await loadStudentContext(student);
+  const now = new Date();
+  const input = inputsForMonth(ctx, y, m, now);
+  const results = computeMonthBadges(input);
+  const summary = summarizeEarned(results);
+  const ev = evidenceDays(evidenceTimestamps(ctx));
+  const isCurrent = now.getFullYear() === y && now.getMonth() === m;
+  const att = summarizeMonth(student, y, m, ev, isCurrent ? now : null);
+  const khatm = await buildKhatm(d, ctx, att);
+  const tj = tajweedMonth(d, ctx);
+  const weak = await weakestSkill(d);
+  const nextRule = nextTajweedRuleKey(ctx);
+  // خطة الشهر القادم
+  const rev = d.reviewSummary;
+  // المراجعة البعيدة: أجزاء المحفوظ الأقدم مراجعةً (التي لم تُراجَع قط أولًا) — من سجلات المراجعة الشهرية
+  const farParts = [];
+  if (khatm) {
+    const last = {};
+    ctx.records.forEach(r => { if (r.review) { const stamp = r.year * 12 + r.month; (summarizeReview(r.review, ctx.surahsData)?.entries || []).forEach(e => { last[e.juz] = Math.max(last[e.juz] || -1, stamp); }); } });
+    const memorized = []; for (let j = 30; j >= Math.max(31 - khatm.curJuz, 1); j--) memorized.push(j);
+    memorized.sort((a, b) => (last[a] ?? -1) - (last[b] ?? -1) || b - a).slice(0, 4).forEach(j => farParts.push(j));
+  }
+  const sessionsNext = khatm ? khatm.sessionsPerMonth : (hasSchedule(student) ? Math.max(student.schedule.days.length * 4, 1) : DEFAULT_SESSIONS_PER_MONTH);
+  const plan = buildNextMonthPlan({
+    pace: khatm ? khatm.pace : null,
+    sessionsNext,
+    thisMonthNewAyahs: d.journey && d.journey.hasEnding ? d.journey.newAyahs : null,
+    nearReviewRange: d.journey && d.journey.hasEnding ? true : null,
+    farReviewParts: farParts,
+    nextTajweedRule: nextRule, focusSkill: weak
+  });
+  // اكتمال البيانات (للمعلم)
+  const issues = [];
+  if (!hasSchedule(student)) issues.push({ k: 'cmp_no_schedule' });
+  else if (att.unconfirmed > 0) issues.push({ k: 'cmp_unconfirmed', n: att.unconfirmed, att: true });
+  if (!(d.journey && d.journey.hasEnding)) issues.push({ k: 'cmp_no_ending' });
+  if (!d.gameEvalEntries || !d.gameEvalEntries.length) issues.push({ k: 'cmp_no_games' });
+  return { results, summary, closest: closestToNext(results), att, khatm, tj, plan, issues, hasReview: !!rev };
+}
+
+// ---------- العرض ----------
+const medalHtml = (r) => {
+  const [c1, c2] = TIER_COLORS[r.tierKey];
+  return `<div class="mrx-medal"><div class="disc" style="background:linear-gradient(135deg,${c1},${c2});">${r.icon}</div>
+    <b>${esc(t('bdg_' + r.key + '_name'))}</b>
+    <span class="mrx-chip" style="background:linear-gradient(135deg,${c1},${c2});">${esc(tierName(r.tierKey))}</span>
+    <small>${esc(t('bdg_' + r.key + '_unit'))}: ${num(Math.round(r.value))}</small></div>`;
+};
+
+function badgesSection(d, x) {
+  const name = firstName(d.name);
+  const head = `<div class="section-title">${esc(t('bdg_rep_title'))}</div><div class="section-sub">${esc(tf('bdg_rep_sub', { name }))}</div>`;
+  let body;
+  if (!x.summary.total) {
+    body = `<div class="mrx-note">${esc(t('bdg_rep_none'))}</div>`;
+  } else {
+    const order = { diamond: 0, gold: 1, silver: 2, bronze: 3 };
+    const sorted = [...x.summary.earned].sort((a, b) => order[a.tierKey] - order[b.tierKey]);
+    body = `<div class="mrx-total">${esc(tf('bdg_rep_total', { n: num(x.summary.total) }))}</div><div class="mrx-grid">${sorted.map(medalHtml).join('')}</div>`;
+  }
+  const c = x.closest;
+  const closest = c ? `<div class="mrx-closest">${esc(tf('bdg_rep_closest', { badge: t('bdg_' + c.key + '_name'), k: num(Math.ceil(c.next.remaining)) }))}</div>` : '';
+  // مفتاح الأوسمة: كل وسام وعتباته (يُظهر للوالد كيف يُنال كل وسام)
+  const legend = BADGE_GROUPS.map(g => {
+    const rows = BADGE_DEFS.filter(b => b.group === g).map(b => `<div class="mrx-legend-row"><span class="ic">${b.icon}</span><div><b>${esc(t('bdg_' + b.key + '_name'))}</b> — ${esc(t('bdg_' + b.key + '_desc'))}
+      <span class="th">${esc(tf('bdg_rep_tiers_line', { a: num(b.th[0]), b: num(b.th[1]), c: num(b.th[2]), d: num(b.th[3]) }))}</span></div></div>`).join('');
+    return `<div class="mrx-group">${esc(t('bdg_group_' + g))}</div>${rows}`;
+  }).join('');
+  return `<div class="mrx pdf-block" id="mr-badges-block">${head}${body}${closest}</div>
+    <div class="mrx pdf-block" id="mr-badges-legend"><div class="section-title">${esc(t('bdg_rep_legend'))}</div><div class="section-sub">${esc(t('bdg_rep_legend_sub'))}</div>${legend}</div>`;
+}
+
+function attendanceSection(d, x) {
+  const a = x.att;
+  const head = `<div class="section-title">${esc(t('att_rep_title'))}</div><div class="section-sub">${esc(t('att_rep_sub'))}</div>`;
+  if (!a.hasSchedule && !a.extra) return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-note">${esc(t('att_rep_no_schedule'))}</div></div>`;
+  const kv = (n, label) => `<div><b>${num(n)}</b><span>${esc(label)}</span></div>`;
+  const cells = [kv(a.expected, t('att_rep_expected')), kv(a.present, t('att_rep_present'))];
+  if (a.absentExcused) cells.push(kv(a.absentExcused, t('att_rep_absent_ex')));
+  if (a.absent) cells.push(kv(a.absent, t('att_rep_absent')));
+  if (a.cancelled) cells.push(kv(a.cancelled, t('att_rep_cancelled')));
+  if (a.extra) cells.push(kv(a.extra, t('att_rep_extra')));
+  cells.push(`<div><b>${num(a.hours)}</b><span>${esc(t('att_rep_hours'))}</span></div>`);
+  if (a.pct != null) cells.push(`<div><b>${num(a.pct)}٪</b><span>${esc(t('att_rep_pct'))}</span></div>`.replace('٪', isEn() ? '%' : '٪'));
+  // الأيام غير المؤكَّدة لا تُعرض لولي الأمر (لا غيابًا ولا حضورًا)؛ تظهر للمعلم في مؤشر الاكتمال فقط
+  return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-kv">${cells.join('')}</div>
+    <div class="mrx-note">${esc(tf('att_rep_session_len', { n: num(a.minutes) }))} · ${esc(t('att_rep_note_hours'))}</div></div>`;
+}
+
+function tajweedSection(d, x) {
+  const c = x.tj;
+  const head = `<div class="section-title">${esc(t('tjr_title'))}</div><div class="section-sub">${esc(t('tjr_sub'))}</div>`;
+  if (!c || c.none) return `<div class="mrx pdf-block" id="mr-tjr-block">${head}<div class="mrx-note">${esc(t('tjr_none'))}</div></div>`;
+  const row = (label, n, extra = '') => `<div class="mrx-row"><span>${esc(label)}${extra}</span><b>${num(n)}</b></div>`;
+  return `<div class="mrx pdf-block" id="mr-tjr-block">${head}
+    <div class="mrx-group">${esc(t('tjr_theory'))}</div>
+    ${row(t('tjr_learned'), c.learned)}${row(t('tjr_practiced'), c.practiced)}${row(t('tjr_exam'), c.exam, c.examFirst ? ` (${esc(t('tjr_exam_first'))}: ${num(c.examFirst)})` : '')}
+    <div class="mrx-group">${esc(t('tjr_practice'))}</div>
+    ${row(t('tjr_approved'), c.approved)}</div>`;
+}
+
+function khatmSection(d, x) {
+  const k = x.khatm;
+  const head = `<div class="section-title">${esc(t('khm_title'))}</div><div class="section-sub">${esc(tf('khm_sub', { name: firstName(d.name) }))}</div>`;
+  if (!k || !k.proj.length) return `<div class="mrx pdf-block" id="mr-khm-block">${head}<div class="mrx-note">${esc(t('khm_none'))}</div></div>`;
+  const keyName = { juz: 'khm_m_juz', five: 'khm_m_five', quarter: 'khm_m_quarter', half: 'khm_m_half', khatm: 'khm_m_khatm' };
+  const rows = k.proj.map(p => `<div class="mrx-row"><span>${esc(t(keyName[p.key]))}</span>
+    <b>${p.done ? esc(t('khm_done')) : esc(tf('khm_row', { s: num(p.sessions), d: fmtDate(p.dateFull) }))}</b></div>
+    ${!p.done && p.dateAvg.getTime() !== p.dateFull.getTime() ? `<div class="mrx-note" style="margin:0 0 4px;">${esc(tf('khm_row_avg', { d: fmtDate(p.dateAvg) }))}</div>` : ''}`).join('');
+  const pace = `<div class="mrx-note">${esc(tf('khm_pace', { p: num(Math.round(k.pace.perSession * 10) / 10), m: num(Math.round(k.pace.perMonth)) }))}${k.monthsUsed < 2 ? ' · ' + esc(t('khm_basis_default')) : ''}</div>`;
+  return `<div class="mrx pdf-block" id="mr-khm-block">${head}${pace}${rows}<div class="mrx-note">${esc(t('khm_foot'))}</div></div>`;
+}
+
+function planSection(d, x) {
+  const p = x.plan;
+  const rows = [];
+  rows.push([t('pln_new'), p.newUnits != null ? tf('pln_new_val', { n: num(Math.max(Math.round(p.newUnits), 1)), s: num(p.sessions) }) : t('pln_new_none')]);
+  rows.push([t('pln_near'), p.thisMonthNewAyahs != null ? tf('pln_near_val', { n: num(p.thisMonthNewAyahs) }) : t('pln_near_none')]);
+  rows.push([t('pln_far'), p.farReviewParts.length ? tf('pln_far_val', { parts: p.farReviewParts.map(num).join(isEn() ? ', ' : '، ') }) : t('pln_far_none')]);
+  rows.push([t('pln_tajweed'), p.nextTajweedRule ? tf('pln_tajweed_val', { rule: t(p.nextTajweedRule) }) : t('pln_tajweed_none')]);
+  if (p.focusSkill) rows.push([t('pln_focus'), tf('pln_focus_val', { skill: p.focusSkill })]);
+  const list = rows.map(([a, b]) => `<div class="mrx-row"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
+  return `<div class="mrx pdf-block" id="mr-plan2-block"><div class="section-title">${esc(t('pln_title'))}</div>
+    <div class="mrx-plan-warn">${esc(t('pln_disclaimer'))}</div>${list}</div>`;
+}
+
+function completenessSection(x) {
+  const body = x.issues.length
+    ? `<div>${esc(t('cmp_missing'))}</div><ul style="margin:6px 0 0; padding-inline-start:18px;">${x.issues.map(i => `<li>${esc(i.n != null ? tf(i.k, { n: num(i.n) }) : t(i.k))}</li>`).join('')}</ul>${x.issues.some(i => i.att) ? `<button type="button" id="mrx-open-att">${esc(t('cmp_open_att'))}</button>` : ''}`
+    : `<div>${esc(t('cmp_ok'))}</div>`;
+  return `<div class="mrx mrx-teacher" id="mr-complete-block" data-export-skip="1"><div class="section-title" style="color:#1f4c85;">${esc(t('cmp_title'))}</div>${body}</div>`;
+}
+
+/** يحقن الأقسام في الصفحة قبل «خطة الشهر القادم» القديمة (التي تُخفى لتحلّ محلها الخطة المحسوبة). */
+export function renderExtras(d) {
+  const x = d.extras;
+  const host = document.getElementById('mr-plan-block');
+  if (!host) return;
+  if (!x) { host.style.display = ''; return; }
+  if (!document.getElementById('mrx-style')) {
+    const st = document.createElement('style'); st.id = 'mrx-style'; st.textContent = EXTRAS_STYLES; document.head.appendChild(st);
+  }
+  document.querySelectorAll('.mrx-wrap').forEach(n => n.remove());
+  const wrap = document.createElement('div');
+  wrap.className = 'mrx-wrap';
+  wrap.innerHTML = badgesSection(d, x) + attendanceSection(d, x) + tajweedSection(d, x) + khatmSection(d, x) + planSection(d, x) + completenessSection(x);
+  host.parentNode.insertBefore(wrap, host);
+  host.style.display = 'none';
+  const btn = wrap.querySelector('#mrx-open-att');
+  if (btn) btn.onclick = async () => { try { (await import('../components/attendancePrompt.js')).openAttendancePrompt({ reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } }); } catch (e) { console.warn(e); } };
+}

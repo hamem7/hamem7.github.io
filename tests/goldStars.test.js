@@ -1,5 +1,5 @@
 // tests/goldStars.test.js — تشغيل: node tests/goldStars.test.js
-import { addGoldStar, starsSuffix, getGoldStars, STAR_MILESTONES } from '../core/goldStars.js';
+import { addGoldStar, starsSuffix, getGoldStars, STAR_MILESTONES, starsInMonth } from '../core/goldStars.js';
 import { getType } from '../certificates/texts.js';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('✅', m); } else { fail++; console.log('❌', m); } };
@@ -18,6 +18,12 @@ r = addGoldStar(old);
 ok(r.milestone === 10 && old.starCertMilestones.includes(5) && old.starCertMilestones.includes(10), 'طالب تخطّى عتبتين: شهادة واحدة لأعلى عتبة ولا تتكرر');
 ok(starsSuffix({ goldStars: 1 }) === ' ⭐', 'نجمة واحدة: ⭐ بلا عدد');
 ok(STAR_MILESTONES.every((m, i, a) => i === 0 || m > a[i - 1]), 'العتبات تصاعدية');
+
+const lg = { goldStars: 0 };
+addGoldStar(lg, new Date(2026, 9, 5).getTime()); addGoldStar(lg, new Date(2026, 9, 20).getTime()); addGoldStar(lg, new Date(2026, 10, 2).getTime());
+ok(lg.starLog.length === 3 && starsInMonth(lg, 2026, 9) === 2 && starsInMonth(lg, 2026, 10) === 1, 'سجل تواريخ النجوم يُحصي كل شهر');
+ok(starsInMonth({ goldStars: 4 }, 2026, 9) === null, 'نجوم قديمة بلا تواريخ: لا حساب شهري (null)');
+ok(starsInMonth({}, 2026, 9) === 0, 'طالب بلا نجوم: صفر');
 
 const type = getType('star');
 ok(type.id === 'star', 'نوع شهادة star موجود');

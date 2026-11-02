@@ -51,6 +51,8 @@ import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // راجع تعليق أعلى reports/monthly-report.identity.js). لا تمسّ REPORT_STYLES ولا أي CSS عام.
 import { MONTHLY_REPORT_FONTS_IMPORT, MONTHLY_REPORT_IDENTITY_STYLES } from './monthly-report.identity.js';
 import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.js';
+// 🌟 [جديد] أقسام الأوسمة/الحضور/التجويد/الختم/خطة الشهر القادم (reports/monthly-extras.js)
+import { collectExtras, renderExtras } from './monthly-extras.js';
 // 🌟 [جديد] "رحلة الحفظ الشهرية" — تُقرأ من AppState.monthlyMemorizationManager
 // (database/monthlyMemorizationDB.js) بدل نطاق student.memoFrom/memoTo الحالي فقط،
 // ساداً بذلك فجوة البيانات الموثَّقة صراحةً في تعليق هذا الملف وفي مستند التصميم
@@ -693,7 +695,8 @@ async function buildMonthlyReportData(year, monthIndex0) {
           const roundsLost = side === 'A' ? (m.roundsWonB || 0) : (m.roundsWonA || 0);
           const outcome = studentOutcomeInMatch(m, student.id); // 'win' | 'loss' | 'tie'
           if (outcome === 'win') dualWins++; else if (outcome === 'loss') dualLosses++; else if (outcome === 'tie') dualTies++;
-          return { finishedAt: m.finishedAt, opponentName: opponentName || '—', outcome, roundsWon, roundsLost };
+          // الخصم يظهر بالاسم الأول فقط (خصوصية الطالب الآخر أمام ولي الأمر)
+          return { finishedAt: m.finishedAt, opponentName: String(opponentName || '').trim().split(/\s+/)[0] || '—', outcome, roundsWon, roundsLost };
         })
         .sort((a, b) => new Date(a.finishedAt) - new Date(b.finishedAt));
     }
@@ -888,7 +891,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
   }
 
-  return {
+  const result = {
     student, year, monthIndex0,
     periodLabel: monthYearLabel(year, monthIndex0),
     periodYear: year,
@@ -915,6 +918,9 @@ async function buildMonthlyReportData(year, monthIndex0) {
     reviewSchedule, reviewedWithinThisMonth,
     journey, reviewSummary, comparison, trend, skillSummary, coverage
   };
+  // 🌟 [جديد] الأقسام الإضافية (أوسمة، حضور، تجويد، ختم، خطة): أي فشل فيها لا يمنع بقية التقرير
+  try { result.extras = await collectExtras(result); } catch (e) { console.error('[monthly-report.js] تعذر بناء الأقسام الإضافية:', e); result.extras = null; }
+  return result;
 }
 
 // 🌟 [جديد] مؤشرات خفيفة محليًا فقط لشهر بعينه (بلا أي اتصال بالسحابة) — تُستخدم
@@ -1715,6 +1721,7 @@ function renderAll(d) {
   renderSummaryTiles(d);
   renderLegend();
   renderPlanBlock(d);
+  renderExtras(d);
   renderJourneyBlock(d);
   renderCoverageBlock(d);
   renderGameEvalBlock(d);
@@ -2032,7 +2039,8 @@ async function exportPdfRaw(share = false) {
 // ⚠️ [افتراض صريح] بطاقة "بلا قيمة فعلية" = قيمتها "—" أو "0".
 // -----------------------------------------------------------------------------
 const MR_COMPACT_HIDE_IDS = ['mr-legend', 'mr-gameeval-block', 'mr-homework-block', 'mr-dual-block',
-  'mr-achv-block', 'mr-errors-block', 'mr-review-block', 'mr-compare-block', 'mr-trend-block'];
+  'mr-achv-block', 'mr-errors-block', 'mr-review-block', 'mr-compare-block', 'mr-trend-block',
+  'mr-badges-legend', 'mr-att-block', 'mr-tjr-block', 'mr-khm-block'];
 function mrIsEmptyBlock(el) {
   return !!el.querySelector('.mr-empty-row') &&
     !el.querySelector('table, .mr-journey-box, svg, .mr-achv-chip, .mr-tile');
@@ -2057,6 +2065,8 @@ async function withExportView(mode, fn) {
         if (grid && shown === 0) hide($('mr-summary-block'));
       }
       page.querySelectorAll('.mr-block').forEach(el => { if (mrIsEmptyBlock(el)) hide(el); });
+      // مؤشر اكتمال البيانات للمعلم فقط: لا يدخل أي تصدير
+      page.querySelectorAll('[data-export-skip]').forEach(hide);
     }
     return await fn();
   } finally {
@@ -2239,7 +2249,7 @@ function initMonthlyReportScreen() {
   const waPdfBtn = $('btn-mr-wa-pdf');
   if (waImgBtn) waImgBtn.addEventListener('click', withBusyLabel(waImgBtn, t('mr_exporting'), () => shareViaWhatsApp('image')));
   if (waPdfBtn) waPdfBtn.addEventListener('click', withBusyLabel(waPdfBtn, t('mr_exporting'), () => shareViaWhatsApp('pdf')));
-  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('mr_exporting'), exportPng));
+  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('mr_exporting'), () => withExportView('full', exportPng)));
   if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('mr_exporting'), exportPdf));
   if (whatsappBtn) whatsappBtn.addEventListener('click', withBusyLabel(whatsappBtn, t('mr_exporting'), exportWhatsApp));
 

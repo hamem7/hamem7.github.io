@@ -1090,6 +1090,12 @@ async function finishMatch() {
         const allMatches = await AppState.dualTestsManager.getAllMatches();
         newBadgesA = await evaluateAndSaveAchievements(match.studentIdA, match, allMatches);
         newBadgesB = await evaluateAndSaveAchievements(match.studentIdB, match, allMatches);
+        // 🌟 [جديد] أوسمة الشهر (مثل «المنافس») للطالبين بالمشهد السينمائي، بالتتابع
+        try {
+            const everyone = await AppState.studentManager.getAllStudents();
+            const { maybeShowNewBadges } = await import('../components/badgeReveal.js');
+            [match.studentIdA, match.studentIdB].forEach(id => { const s = everyone.find(x => String(x.id) === String(id)); if (s) maybeShowNewBadges(s); });
+        } catch (e) { /* اختياري */ }
     } catch (e) { /* best-effort — فشل تقييم الأوسمة لا يعطّل عرض النتيجة النهائية */ }
     renderBadgesReveal(newBadgesA, newBadgesB);
 

@@ -287,6 +287,15 @@ export class QuranEngine {
         if (rows.length === 114) { try { localStorage.setItem(SURAH_INDEX_KEY, JSON.stringify(rows)); } catch (e) { /* التخزين ممتلئ: لا مشكلة */ } }
         return toList(rows);
     }
+    // رقم صفحة المصحف لكل آية بترتيب المصحف (فهرس 0 = الفاتحة:1) — لتحويل الآيات إلى صفحات في توقع الختم. يُخزَّن في الذاكرة مرة واحدة؛ null إن لم تتوفر أرقام الصفحات.
+    async getAyahPages() {
+        if (this._ayahPages !== undefined) return this._ayahPages;
+        const rows = await new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => resolve(req.result || []); req.onerror = () => resolve([]); });
+        const pages = [];
+        rows.sort((a, b) => a.number - b.number).forEach(s => (s.ayahs || []).forEach(a => pages.push(a.page)));
+        this._ayahPages = (pages.length === 6236 && pages.every(p => Number.isFinite(p))) ? pages : null;
+        return this._ayahPages;
+    }
     async getAllAyahsOnPage(pageNum) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let pageAyahs = []; req.result.forEach(surah => { surah.ayahs.forEach(a => { if (a.page === pageNum) { a.surahName = cleanName(surah.name); a.surahNumber = surah.number; pageAyahs.push(a); } }); }); resolve(pageAyahs); }; }); }
     async getAyahsByJuz(juzNumber) { return new Promise((resolve) => { const tx = this.db.transaction(QURAN_STORE, "readonly"); const req = tx.objectStore(QURAN_STORE).getAll(); req.onsuccess = () => { let allSurahs = req.result; let juzAyahs = []; allSurahs.forEach(surah => { let filtered = surah.ayahs.filter(a => a.juz === juzNumber); if(filtered.length > 0) { let cName = cleanName(surah.name); filtered.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); juzAyahs = juzAyahs.concat(filtered); } }); resolve(juzAyahs); }; }); }
     getAyahsInRange(surah, start, end) { let cName = cleanName(surah.name); let ayahs = surah.ayahs.filter(a => a.numberInSurah >= start && a.numberInSurah <= end); ayahs.forEach(a => { a.surahName = cName; a.surahNumber = surah.number; }); return ayahs; }

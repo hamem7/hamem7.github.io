@@ -13,15 +13,32 @@ export const MILESTONES = [
 ];
 
 /**
- * pageWeights: مصفوفة طولها 6236 (مصحفية: الفاتحة:1 أول عنصر) وزن كل آية بالصفحات (مجموعها ≈ 604) — اختياري.
- * يحوّل آيات المسار [fromIdx, toIdx] (فهرس حفظ) إلى وحدات. بلا أوزان: العدد الخام.
+ * خريطة مسار الحفظ: pathMap[k-1] = فهرس الآية المصحفي (0-based) لآية فهرس الحفظ k. مسار المنصة: السور من الناس إلى الفاتحة، والآيات داخل
+ * كل سورة تصاعديًا. surahsData = [{number, ayahsCount}].
  */
-export function unitsBetween(memoFromIdx, memoToIdx, pageWeights = null) {
+export function buildPathMap(surahsData) {
+    const sorted = [...surahsData].sort((x, y) => x.number - y.number);
+    const start = {};
+    let acc = 0;
+    sorted.forEach(s => { start[s.number] = acc; acc += s.ayahsCount; });
+    const map = [];
+    for (let i = sorted.length - 1; i >= 0; i--) for (let a = 0; a < sorted[i].ayahsCount; a++) map.push(start[sorted[i].number] + a);
+    return map;
+}
+
+/** وزن كل آية بالصفحات (مجموعها = عدد صفحات المصحف) من مصفوفة رقم صفحة كل آية بترتيب المصحف. */
+export function weightsFromPages(pages) {
+    const cnt = {};
+    pages.forEach(p => { cnt[p] = (cnt[p] || 0) + 1; });
+    return pages.map(p => 1 / cnt[p]);
+}
+
+/** وحدات (صفحات إن توفرت weights وpathMap، وإلا آيات خام) بين فهرسي حفظ lo < hi على المسار. */
+export function unitsBetween(memoFromIdx, memoToIdx, weights = null, pathMap = null) {
     const lo = Math.min(memoFromIdx, memoToIdx), hi = Math.max(memoFromIdx, memoToIdx);
-    if (!pageWeights) return hi - lo;
-    // فهرس الحفظ k ↔ فهرس مصحفي (TOTAL - k)
+    if (!weights || !pathMap) return hi - lo;
     let sum = 0;
-    for (let k = lo + 1; k <= hi; k++) sum += pageWeights[TOTAL_AYAHS - k] || 0;
+    for (let k = lo + 1; k <= hi; k++) sum += weights[pathMap[k - 1]] || 0;
     return sum;
 }
 

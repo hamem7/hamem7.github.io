@@ -1141,6 +1141,8 @@ async function finishSession() {
     }
 
     await syncStudentTajweedProgress(AppState.currentStudent, sessionMode, ruleKey, challengePassed ? params.stageId : null);
+    // 🌟 [جديد] أوسمة التجويد الشهرية (المتعلّم/المطبِّق/الألمعي/متقن التجويد) بالمشهد السينمائي
+    import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent)).catch(() => {});
 
     // 🌟 [سلسلة الحكم] لعبة في سلسلة: تُسجَّل نتيجتها ثم تبدأ اللعبة التالية (أو التحدي) مباشرة بلا شاشة نتيجة؛ تتوقف السلسلة عند شاشة
     // النتيجة فقط إن لم يبلغ متوسط الألعاب الحدّ فلا يُفتح التحدي (تُعرض «أعد ألعاب الحكم»)

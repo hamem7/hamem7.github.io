@@ -439,6 +439,8 @@ async function playNextMission() {
             // 🌟 [جديد] تسجيل هذا التقييم في history_ قبل عرض التقرير — راجع تعليق
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
+            // 🌟 [جديد] تقييم الأوسمة الشهرية وعرض الجديد منها بالمشهد السينمائي (لا يحجب ولا يرمي)
+            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent)).catch(() => {});
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (راجع adultGame.js)
             if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
                 clearPausedEvaluation(AppState.currentStudent);
