@@ -368,11 +368,11 @@ function render() {
   const h = location.hash.replace(/^#/, '') || '/';
   const p = h.split('/').filter(Boolean);
   const bad = () => { go('#/'); };
+  if (!(p[0] === 'learn' && META[p[1]])) leaveStory();   // مغادرة الدرس إلى أي شاشة أخرى: يُستكمل لاحقًا من الموضع المحفوظ
   try {
     if (opts.students?.length && !student && !(guest && p[0] !== 'who')) return renderWho();
     if (!p.length) return renderHome();
     if (p[0] === 'rule' && META[p[1]]) return renderRule(p[1]);
-    if (!(p[0] === 'learn' && META[p[1]])) leaveStory();
     if (p[0] === 'learn' && META[p[1]]) return renderLearn(p[1]);
     if (p[0] === 'play' && META[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
     if (p[0] === 'stage' && STAGES.some((s) => s.id === p[1])) return playRun('stage', null, null, p[1]);
