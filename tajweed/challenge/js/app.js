@@ -78,8 +78,8 @@ function renderHome() {
   shell(`
     <section class="hero">
       <div class="hero-text">
-        <h1>${t('home_hello')}</h1>
-        <p class="lead">${t('home_lead')}</p>
+        <h1>${student ? t('home_hello_name', { name: esc(student.name) }) : t('home_hello')}</h1>
+        <p class="lead">${t('home_lead', { n: num(STAGES.length) })}</p>
         <div class="hero-cta">
           <a class="btn primary big" href="${nxt.hash}">${started ? t('home_continue') : t('home_start')} <span class="arr" aria-hidden="true"></span></a>
           ${nxt.rule ? `<small class="muted">${esc(ruleName(nxt.rule))} · ${esc(nxt.label)}</small>` : ''}

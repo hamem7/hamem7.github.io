@@ -53,7 +53,8 @@ const D = {
   hint: { ar: 'تلميح', en: 'Hint' },
 
   home_hello: { ar: 'مرحب\u064Bا يا قارئ! 🌟', en: 'Welcome, young reciter! 🌟' },
-  home_lead: { ar: 'خمس محطات تأخذك من الأصوات الأولى إلى المدود. في كل حكم: تتعل\u0651م، ثم تلعب، ثم تتقن.', en: 'Five stops take you from the first sounds to elongation. In every rule: you learn, then play, then master.' },
+  home_hello_name: { ar: 'مرحب\u064Bا يا {name}! 🌟', en: 'Welcome, {name}! 🌟' },
+  home_lead: { ar: '{n} محطات تأخذك من التعرّف على مصحفك إلى المدود. في كل درس: تتعلّم بدرس مصوّر، ثم تلعب، ثم تتقن.', en: '{n} stops take you from getting to know your mushaf to elongation. In every lesson: learn with a picture lesson, play, then master it.' },
   home_start: { ar: 'ابدأ الرحلة', en: 'Start the journey' },
   home_continue: { ar: 'تابع من حيث وقفت', en: 'Continue where you stopped' },
   home_progress: { ar: 'نجومك', en: 'Your stars' },
