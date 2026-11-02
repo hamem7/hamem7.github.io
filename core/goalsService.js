@@ -26,6 +26,10 @@ export async function loadGoalState(student) {
   for (const r of recs) for (const p of [r.ending, r.mid]) if (p && p.surahNumber) pos = Math.max(pos, pathIndexOf(surahs, p.surahNumber, p.ayahNumber));
   if (!pos) return null;
   const from = surahs.find(s => s.name === student.memoFrom);
+  // سقف نطاق الحفظ المعلَن (memoTo): السجل الشهري قد يحمل موضعًا خاطئًا أبعد (مثل البقرة) فيُمنح أجزاء لم تُحفظ.
+  // نفس مبدأ engine/trackingEngine.js resolveRange. ينطبق فقط حين يكون النطاق بالاتجاه المعتاد (من ≥ إلى).
+  const to = surahs.find(s => s.name === student.memoTo);
+  if (from && to && from.number >= to.number) pos = Math.min(pos, pathIndexOf(surahs, to.number, to.ayahsCount));
   const startIdx = from ? pathIndexOf(surahs, from.number, 1) : 1;
   let weights = null;
   try { const pages = AppState.quranEngine && await AppState.quranEngine.getAyahPages(); if (pages) weights = weightsFromPages(pages); } catch (e) { /* نكمل بالآيات */ }
@@ -61,13 +65,17 @@ export async function awardNewGoals(student) {
     const first = !student.goalLedger || !student.goalLedger.items;
     if (first) student.goalLedger = { items: {} };
     const items = student.goalLedger.items;
+    // الأهداف مشتقة من الموضع: نزيل من السجل ما لم يعد مستحقًا (منح خاطئ سابق بسبب موضع غير صحيح)
+    const earnedIds = new Set(state.earned.map(g => g.id));
+    let pruned = false;
+    Object.keys(items).forEach(id => { if (!earnedIds.has(id)) { delete items[id]; pruned = true; } });
     // ترتيب العرض على مسار الحفظ: الأجزاء من 30 نازلًا ثم المراحل الكبرى بترتيبها
     const order = (g) => (g.kind === 'juz' ? 100 - g.juz : 200 + MILESTONES.findIndex(m => m.id === g.id));
     const news = state.earned.filter(g => !(g.id in items)).sort((a, b) => order(a) - order(b));
-    if (!news.length) { if (first) await AppState.studentManager.updateStudent(student); return { fresh: [], retro: false }; }
+    if (!news.length) { if (first || pruned) await AppState.studentManager.updateStudent(student); return { fresh: [], retro: false }; }
     const now = Date.now();
     news.forEach(g => { items[g.id] = first && news.length > 1 ? { at: null, retro: true } : { at: now }; });
-    await AppState.studentManager.updateStudent(student);
+    await AppState.studentManager.updateStudent(student); // (يشمل أي تنظيف للسجل أعلاه)
     const shown = first && news.length > 1 ? [topGoal(news)] : news;
     return { fresh: shown.map(g => goalToReveal(g, state)), retro: first && news.length > 1 };
   } catch (e) { console.warn('[goalsService] تعذّر تقييم الأهداف:', e); return { fresh: [], retro: false }; }
