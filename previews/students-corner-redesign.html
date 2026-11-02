@@ -42,6 +42,38 @@
 #app-root #ms-screen .ms-now.is-clear{background:var(--dh-ok-bg);color:var(--dh-ok-ink);box-shadow:none}
 #app-root #ms-screen .ms-now.is-clear .ms-now-ic{background:transparent}
 
+
+/* شريط الأرقام (نفس .ms-stats في المنصة) */
+#app-root #ms-screen .ms-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#app-root #ms-screen .ms-num{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+#app-root #ms-screen .ms-num.is-primary{background:var(--dh-emerald-700);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#app-root #ms-screen .ms-num b{font-size:1.5rem;line-height:1.2}
+#app-root #ms-screen .ms-num b.alert{color:var(--dh-warn)}
+#app-root #ms-screen .ms-num b small{font-size:.95rem;font-weight:500;color:var(--dh-ink-soft)}
+#app-root #ms-screen .ms-num > span{font-size:.82rem;color:var(--dh-ink-soft);line-height:1.4}
+#app-root #ms-screen .ms-num.is-primary > span{color:var(--dh-on-emerald);opacity:.85}
+/* تخطيط الركن: عمود واحد على الجوال، وعمودان على الشاشات العريضة */
+#app-root #ms-screen .ms-layout{display:flex;flex-direction:column;gap:16px}
+#app-root #ms-screen .ms-aside,#app-root #ms-screen .ms-main{display:flex;flex-direction:column;gap:16px;min-width:0}
+#app-root #ms-screen .ms-side-month{display:none}
+@media(min-width:900px){
+  #app-root #ms-screen.is-wide{max-width:1120px !important;width:calc(100% - 48px);margin:28px auto !important;padding:28px 36px !important}
+  #app-root #ms-screen.is-wide .ms-now{flex-wrap:wrap}
+  #app-root #ms-screen.is-wide .ms-now-go{width:100%}
+  #app-root #ms-screen.is-wide .ms-layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:28px;align-items:start}
+  #app-root #ms-screen.is-wide .ms-aside{order:2;position:sticky;top:16px}
+  #app-root #ms-screen.is-wide .ms-main{order:1}
+  #app-root #ms-screen.is-wide .ms-nums{grid-template-columns:1fr}
+  #app-root #ms-screen.is-wide .ms-num{flex-direction:row;align-items:baseline;gap:10px;padding:12px 14px}
+  #app-root #ms-screen.is-wide .ms-num b{min-width:2.6ch}
+  #app-root #ms-screen.is-wide .ms-side-month{display:flex;flex-direction:column;gap:10px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:18px;padding:14px}
+  #app-root #ms-screen:not(.is-wide){max-width:760px !important}
+}
+#app-root #ms-screen .ms-side-month h4{margin:0;font-size:1rem;color:var(--dh-ink)}
+#app-root #ms-screen .ms-side-step{display:flex;gap:10px;align-items:center;font-size:.9rem;background:transparent;border:0;color:var(--dh-ink);text-align:start;cursor:pointer;padding:4px 0;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-side-step .no{width:26px;height:26px;border-radius:50%;background:var(--dh-emerald-700);color:var(--dh-on-emerald);display:grid;place-items:center;font-weight:700;font-size:.8rem;flex:none}
+#app-root #ms-screen .ms-side-step small{margin-inline-start:auto;color:var(--dh-ink-soft)}
+
 /* الاختصارات */
 #app-root #ms-screen .ms-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #app-root #ms-screen .ms-q{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong);border-radius:16px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;cursor:pointer;margin:0;min-width:0;box-shadow:none;transition:transform .15s}
@@ -227,7 +259,7 @@ ar:{pv_note:'معاينة لتصميم مقترح لركن «طلابي» — ب
  a_name:'الاسم (ثلاثي) — مطلوب',a_gender:'الجنس — مطلوب',a_boy:'👦🏻 ولد',a_girl:'👧🏻 بنت',
  a_grade:'الصف (اختياري)',a_dob:'تاريخ الميلاد (اختياري)',a_phone:'رقم ولي الأمر (اختياري)',a_memo:'الحفظ: من سورة — إلى سورة (إلزامي)',
  a_next:'التالي ←',a_prev:'→ رجوع',a_save:'حفظ ✔️',a_cancel:'إلغاء',a_saved:'✅ تمت إضافة الطالب (معاينة فقط)',
- toast:'في المنصة الفعلية: ',var_a:'الاقتراح ١: بلا اختصارات (الأنظف)',var_b:'الاقتراح ٢: زران فقط',
+ toast:'في المنصة الفعلية: ',stat_students:'عدد الطلاب',stat_memo:'بانتظار الحفظ',stat_reports:'تقارير أكتوبر صُدِّرت',side_t:'ملخص الشهر',lgS:'شريط الأرقام الثلاثة (عدد الطلاب · بانتظار الحفظ · تقارير الشهر) يبقى ظاهرًا أعلى الركن كما في المنصة اليوم.',lgW:'على الشاشات العريضة (حاسوب/لوحي) يتحول الركن إلى عمودين: القائمة والتبويبات في الأساس، وفي الجانب «المطلوب الآن» والأرقام وملخص الشهر — فلا تبقى مساحة فارغة. على الجوال يبقى عمودًا واحدًا.',var_a:'الاقتراح ١: بلا اختصارات (الأنظف)',var_b:'الاقتراح ٢: زران فقط',
  lgA:'لا توجد اختصارات: «المطلوب الآن» ثم التبويبات فقط، وكل شيء له مكان واحد.',lgB:'زران فقط: «طالب جديد» و«تقرير شهري» — وحُذف الزر المكرر من داخل تبويب «الطلاب».',
  lg_t:'ما الذي تغيّر عن الشكل الحالي؟',
  lg:['«المطلوب الآن» في أعلى الشاشة: يدلّ المعلم على أول خطوة بدل أن يخمّن.','أربعة اختصارات للمهام الأكثر استعمالًا (طالب جديد، حفظ، تقرير، فتح ملف).','ثلاثة تبويبات فقط بدل ست مساحات متفرقة: الطلاب · هذا الشهر · الحصص.','زر «طالب جديد» واحد (كان في مكانين).','«هذا الشهر» مرتّب كخطوتين: ١) الحفظ ثم ٢) التقارير، مع عدّاد تقدّم.','ملف الطالب: إجراء رئيسي واحد (بدء تقييم) وأربعة أقسام بدل صفحة طويلة.','كل الألوان من رموز الهوية فتعمل في المظهر الداكن، واللغتان والاتجاه مدعومان.']},
@@ -258,7 +290,7 @@ en:{pv_note:'Preview of a proposed "My Students" corner — sample data, does no
  a_name:'Full name — required',a_gender:'Gender — required',a_boy:'👦🏻 Boy',a_girl:'👧🏻 Girl',
  a_grade:'Grade (optional)',a_dob:'Birth date (optional)',a_phone:'Parent phone (optional)',a_memo:'Memorized: from surah — to surah (required)',
  a_next:'Next →',a_prev:'← Back',a_save:'Save ✔️',a_cancel:'Cancel',a_saved:'✅ Student added (preview only)',
- toast:'In the real platform: ',var_a:'Proposal 1: no shortcuts (cleanest)',var_b:'Proposal 2: two shortcuts',
+ toast:'In the real platform: ',stat_students:'Students',stat_memo:'Awaiting memorization',stat_reports:'October reports exported',side_t:'Month summary',lgS:'The three-number strip (Students · Awaiting memorization · Month reports) stays at the top of the corner, as in the platform today.',lgW:'On wide screens (desktop/tablet) the corner becomes two columns: the list and tabs as the main column, and "Needed now", the numbers and a month summary in the side column — no empty space. On mobile it stays a single column.',var_a:'Proposal 1: no shortcuts (cleanest)',var_b:'Proposal 2: two shortcuts',
  lgA:'No shortcuts: "Needed now" then the tabs only — every action has exactly one place.',lgB:'Only two shortcuts: "New student" and "Monthly report" — the duplicate button inside the Students tab was removed.',
  lg_t:'What changed from the current layout?',
  lg:['"Needed now" at the top: tells the teacher the first step instead of guessing.','Four shortcuts for the most common tasks (new student, memorization, report, open a file).','Three tabs instead of six scattered areas: Students · This month · Schedule.','One "New student" button (it used to exist in two places).','"This month" is two clear steps: 1) memorization, then 2) reports, with progress.','Student file: one main action (Start evaluation) and four sections instead of one long page.','All colors come from identity tokens so dark mode works; both languages and directions supported.']}
@@ -318,20 +350,37 @@ function paneSched(){
   return `<div class="ms-sched"><span>${L('sc_time')}</span><button type="button" class="ms-btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
   <div class="ms-list">${STU.slice(0,4).map((s,i)=>`<div class="ms-row static"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="ms-days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button type="button" class="ms-btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
 }
-function legend(){const a=L('lg').slice();a[1]=S.v==='a'?L('lgA'):L('lgB');return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function legend(){const a=L('lg').slice();a[1]=S.v==='a'?L('lgA'):L('lgB');a.push(L('lgS'),L('lgW'));return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 
 function hub(){
   const n=waitCount();
   const now=n?`<div class="ms-now"><span class="ms-now-ic">📖</span><span class="ms-now-tx"><small>${L('now_k')}</small><b>${S.lang==='ar'?`${n} طلاب بانتظار تسجيل أين توقفوا هذا الشهر`:`${n} students are waiting for this month's stopping point`}</b></span><button type="button" class="ms-now-go" data-act="tabMonth">${L('now_go')}</button></div>`
    :`<div class="ms-now is-clear"><span class="ms-now-ic">✅</span><span class="ms-now-tx"><b>${L('now_ok')}</b></span></div>`;
   return `<div class="ms-head"><button type="button" class="ms-back" data-back="1" aria-label="${L('back')}">${ic.back}</button><div class="ms-titles"><h1 class="ms-title">${L('title')}<small>${L('sub')}</small></h1></div></div>
-  ${now}
+  <div class="ms-layout">
+   <div class="ms-aside">
+    ${now}
+    <div class="ms-nums">
+     <div class="ms-num is-primary"><b>${STU.length}</b><span>${L('stat_students')}</span></div>
+     <div class="ms-num"><b class="alert">${n}</b><span>${L('stat_memo')}</span></div>
+     <div class="ms-num"><b>5<small> / ${STU.length}</small></b><span>${L('stat_reports')}</span></div>
+    </div>
+    <div class="ms-side-month"><h4>${L('side_t')} · ${L('month')}</h4>
+     <button type="button" class="ms-side-step" data-tab="month"><span class="no">1</span>${L('st1_t')}<small>${L('st1_c')}</small></button>
+     <div class="ms-bar" style="margin:0"><i style="width:${n?75:100}%"></i></div>
+     <button type="button" class="ms-side-step" data-tab="month"><span class="no">2</span>${L('st2_t')}<small>${L('st2_c')}</small></button>
+     <div class="ms-bar" style="margin:0"><i style="width:42%"></i></div>
+    </div>
+   </div>
+   <div class="ms-main">
   ${S.v==='b'?`<div class="ms-quick"><button type="button" class="ms-q is-main" data-act="add">${ic.add}${L('q_add')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.rep}${L('q_rep')}</button></div>`:''}
   <div class="ms-tabs" role="tablist">
    <button type="button" class="ms-tab ${S.tab==='students'?'on':''}" data-tab="students">${L('t_students')}</button>
    <button type="button" class="ms-tab ${S.tab==='month'?'on':''}" data-tab="month">${L('t_month')}${n?`<span class="n">${n}</span>`:''}</button>
    <button type="button" class="ms-tab ${S.tab==='sched'?'on':''}" data-tab="sched">${L('t_sched')}</button></div>
   ${S.tab==='students'?paneStudents():S.tab==='month'?paneMonth():paneSched()}
+   </div>
+  </div>
   ${legend()}`;
 }
 function profile(){
@@ -367,7 +416,7 @@ function syncChrome(){
 }
 function render(){
   syncChrome();
-  root.innerHTML=`<div class="screen active"><div class="login-container" id="ms-screen">${S.prof===null?hub():profile()}</div></div>`;
+  root.innerHTML=`<div class="screen active"><div class="login-container ${S.prof===null?'is-wide':''}" id="ms-screen">${S.prof===null?hub():profile()}</div></div>`;
   if(document.getElementById('add-modal').style.display==='flex')addModal();
   const si=document.getElementById('search');if(si&&S.keepFocus){si.focus();si.setSelectionRange(si.value.length,si.value.length);S.keepFocus=false}
 }
