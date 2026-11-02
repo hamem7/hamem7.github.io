@@ -379,22 +379,52 @@ function continueStudentEvaluationEntry() {
     }
 }
 
-export async function loadMyStudentsScreen() {
+// 🌟 [2026-11] «طلابي» محور واحد بثلاثة تبويبات (الطلاب · هذا الشهر · الحصص والحضور): قائمة «السجل العام» القديمة
+// صارت تبويب «الطلاب» داخل هذه الشاشة، فـ loadAllStudentsScreen (أدناه) تفتح نفس الشاشة على ذلك التبويب.
+export async function loadMyStudentsScreen(opts = {}) {
     await loadScreen({
         templateUrl: 'student/my-students.html',
-        initFunction: setupMyStudentsListeners
+        initFunction: () => setupMyStudentsListeners(opts)
     });
 }
 
-function setupMyStudentsListeners() {
+// تبديل تبويب «طلابي». التبويب الثالث يُرسم عند أول فتح فقط (renderScheduleTab) ويُحدَّث كل مرة يُفتح فيها.
+function setMyStudentsTab(name) {
+    const tabs = document.querySelectorAll('#ms-tabs .ms-tab');
+    if (!tabs.length) return;
+    tabs.forEach(b => { const on = b.dataset.tab === name; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    document.querySelectorAll('#ms-screen .ms-pane').forEach(p => { p.hidden = p.dataset.pane !== name; });
+    if (name === 'sched') {
+        import('../components/scheduleManager.js')
+            .then(m => m.renderScheduleTab(document.getElementById('ms-sched-body')))
+            .catch(e => console.warn('[student] الحصص والحضور:', e));
+    }
+}
+
+function setupMyStudentsListeners(opts = {}) {
     // 🌟 [جديد 2026-10-02] الجولة الإرشادية لقسم «طلابي» (مرة واحدة) — best-effort، لا تؤثر على الشاشة
-    import('../components/guidedTour.js').then(m => m.maybeStartTour('my_students')).catch(() => {});
+    import('../components/guidedTour.js').then(m => m.maybeStartTour('my_students2')).catch(() => {});
 
     const backBtn = document.getElementById('btn-back-my-students');
     backBtn?.setAttribute('aria-label', t('ms_back'));
     backBtn?.setAttribute('title', t('ms_back'));
     backBtn?.addEventListener('click', loadSplashScreen);
-    document.getElementById('btn-all-students')?.addEventListener('click', loadAllStudentsScreen);
+    // 🌟 [2026-11] التبويبات + قائمة الطلاب (السجل العام سابقاً) داخل هذه الشاشة
+    document.querySelectorAll('#ms-screen [data-tab], #ms-screen [data-goto-tab]').forEach(b =>
+        b.addEventListener('click', () => setMyStudentsTab(b.dataset.tab || b.dataset.gotoTab)));
+    setMyStudentsTab(opts.tab || 'students');
+    renderAllStudentsTable();
+    setupAllStudentsListeners();
+    // تبديل اللغة داخل الركن: النصوص المرسومة بالكود (قائمة الطلاب، التذكير، أسماء الأيام) تُعاد كتابتها بلغة الواجهة الجديدة.
+    // المستمع يفصل نفسه عند مغادرة الشاشة.
+    const onLang = () => {
+        if (!document.getElementById('ms-screen')) { document.removeEventListener('app-lang-changed', onLang); return; }
+        renderAllStudentsTable();
+        refreshMyStudentsSummary();
+        const active = document.querySelector('#ms-tabs .ms-tab.on')?.dataset.tab;
+        if (active === 'sched') setMyStudentsTab('sched');
+    };
+    document.addEventListener('app-lang-changed', onLang);
 
     // 🌟 [جديد 2026-10-03] أرقام «طلابي» (عدد الطلاب / بانتظار الحفظ / تقارير الشهر) + سطر التذكير
     refreshMyStudentsSummary();
@@ -414,9 +444,6 @@ function setupMyStudentsListeners() {
     // 🌟 [جديد] فتح شاشة "تسجيل الحفظ الشهري لكل الطلاب" يدويًا — استيراد ديناميكي
     // بنفس نمط بقية الشاشات المستوردة ديناميكيًا في هذا الملف
     // 🌟 [جديد] مركز التقارير الشهرية — استيراد ديناميكي (نفس نمط الأزرار المجاورة)
-    document.getElementById('btn-sessions-schedule')?.addEventListener('click', () => {
-        import('../components/scheduleManager.js').then(m => m.openScheduleManager()).catch(e => console.warn('[student] جدول الحصص:', e));
-    });
     document.getElementById('btn-monthly-reports-hub')?.addEventListener('click', () => {
         import('../components/monthlyReportsHub.js')
             .then(m => m.openMonthlyReportsHub())
@@ -688,14 +715,18 @@ async function refreshMyStudentsSummary() {
     const $ = (id) => document.getElementById(id);
     if (!$('ms-screen')) return;
     const stale = () => run !== _msSummaryRun || !$('ms-screen');
+    const setAll = (key, text) => document.querySelectorAll(`#ms-screen [data-ms="${key}"]`).forEach(el => { el.textContent = text; });
+    const setBar = (key, pct) => document.querySelectorAll(`#ms-screen [data-ms="${key}"]`).forEach(el => { el.style.width = Math.max(0, Math.min(100, pct)) + '%'; });
+    let total = 0;
 
     if (AppState.studentManager) try {
         const all = await AppState.studentManager.getAllStudents();
         if (stale()) return;
-        $('ms-stat-students').textContent = all.filter(s => !s.isHidden).length;
+        total = all.filter(s => !s.isHidden).length;
+        $('ms-stat-students').textContent = total;
     } catch (e) { console.warn('تعذر حساب عدد الطلاب:', e); }
 
-    // المتابعة الشهرية: عنوان القسم باسم الشهر الحالي
+    // تبويب «هذا الشهر»: اسم الشهر الحالي
     try {
         const loc = (AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US') + '-u-nu-latn';
         const month = new Intl.DateTimeFormat(loc, { month: 'long' }).format(new Date());
@@ -710,11 +741,19 @@ async function refreshMyStudentsSummary() {
         num.textContent = n;
         num.classList.toggle('is-alert', n > 0);
         num.classList.toggle('is-ok', n === 0);
+        // «المطلوب الآن»: بطاقة واحدة فقط — تذكير الحفظ لو يوجد منتظرون، وإلا «كل شيء جاهز»
+        $('ms-reminder-text').textContent = tf('ms_reminder_memo', { n });
+        $('ms-reminder').hidden = n === 0;
+        $('ms-clear').hidden = n !== 0;
         const badge = $('ms-badge-memo');
         badge.textContent = tf('ms_badge_memo', { n });
         badge.hidden = n === 0;
-        $('ms-reminder-text').textContent = tf('ms_reminder_memo', { n });
-        $('ms-reminder').hidden = n === 0;
+        const tabN = $('ms-tab-memo-n');
+        if (tabN) { tabN.textContent = n; tabN.hidden = n === 0; }
+        const done = Math.max(0, total - n);
+        setAll('step1-count', tf('ms_step1_c', { done, total }));
+        setBar('step1-bar', total ? (done / total) * 100 : 100);
+        $('ms-step1')?.classList.toggle('done', n === 0);
     } catch (e) { console.warn('تعذر حساب الحفظ الشهري المعلّق:', e); }
 
     try {
@@ -724,6 +763,8 @@ async function refreshMyStudentsSummary() {
         $('ms-stat-reports').textContent = r.done;
         $('ms-stat-reports-of').textContent = ` / ${r.total}`;
         $('ms-stat-reports-label').textContent = tf('ms_stat_reports', { month: r.monthLabel });
+        setAll('step2-count', tf('ms_step2_c', { done: r.done, total: r.total }));
+        setBar('step2-bar', r.total ? (r.done / r.total) * 100 : 0);
         const left = r.total - r.done;
         const badge = $('ms-badge-reports');
         badge.textContent = tf('ms_badge_reports', { n: left });
@@ -774,14 +815,9 @@ async function offerNewStudentGames(fallbackStudent) {
     });
 }
 
+// 🌟 [2026-11] «السجل العام» دُمج في «طلابي» (تبويب «الطلاب») — تبقى الدالة نفسها لمن يستدعيها (الشريط السفلي، رجوع ملف الطالب...)
 export async function loadAllStudentsScreen() {
-    await loadScreen({
-        templateUrl: 'student/all-students.html',
-        initFunction: async () => {
-            await renderAllStudentsTable();
-            setupAllStudentsListeners();
-        }
-    });
+    await loadMyStudentsScreen({ tab: 'students' });
 }
 
 // 🌟 [إصلاح تدقيق] معرّف الطالب قد يكون رقماً (طلاب المنصة) أو نصاً std_... (طلاب أُنشئوا من الواجبات)؛ parseInt كان يحوّل
@@ -822,21 +858,25 @@ function allStudentsRowHtml(s) {
     const hideItem = s.isHidden
         ? `<button class="btn-show" data-id="${id}">👁️ ${t('stu_restore')}</button>`
         : `<button class="btn-hide" data-id="${id}">🙈 ${t('stu_hide')}</button>`;
+    // 🌟 [2026-11 — بطلب المعلم] زر «تعديل» ظاهر بجوار اسم كل طالب (لا يُخفى داخل ⋯)؛ ⋯ للإخفاء والحذف فقط
     return `<div class="as-row${s.isHidden ? ' as-hidden-row' : ''}" data-name="${esc((s.name || '').toLowerCase())}">
-        ${allStudentsAvatarHtml(s)}
-        <div class="as-info">
-            <button class="btn-prof-link" data-id="${id}">${esc(s.name)}${starsSuffix(s)}</button>
-            <span class="as-sub">${esc(details.join(' · '))}</span>
-            ${weakness}
+        <div class="as-who">
+            ${allStudentsAvatarHtml(s)}
+            <div class="as-info">
+                <button class="btn-prof-link" data-id="${id}">${esc(s.name)}${starsSuffix(s)}</button>
+                <span class="as-sub">${esc(details.join(' · '))} · ${s.totalScore || 0} ${t('as_points_unit')}</span>
+                ${weakness}
+            </div>
         </div>
-        <div class="as-pts">${s.totalScore || 0} <small>${t('as_points_unit')}</small></div>
-        ${mainBtn}
-        <div class="as-menu-wrap">
-            <button class="as-more" aria-label="${t('as_more_options')}" title="${t('as_more_options')}">⋯</button>
-            <div class="as-menu">
-                <button class="btn-edit" data-id="${id}">✏️ ${t('stu_edit_data')}</button>
-                ${hideItem}
-                <button class="btn-delete" data-id="${id}">🗑️ ${t('stu_delete_final')}</button>
+        <div class="as-acts">
+            <button class="as-edit btn-edit" data-id="${id}" title="${t('ms_edit_tip')}">✏️ ${t('ms_edit_btn')}</button>
+            ${mainBtn}
+            <div class="as-menu-wrap">
+                <button class="as-more" aria-label="${t('as_more_options')}" title="${t('as_more_options')}">⋯</button>
+                <div class="as-menu">
+                    ${hideItem}
+                    <button class="btn-delete" data-id="${id}">🗑️ ${t('stu_delete_final')}</button>
+                </div>
             </div>
         </div>
     </div>`;
@@ -885,19 +925,9 @@ function closeAllStudentsMenus(except) {
 }
 
 function setupAllStudentsListeners() {
-    document.getElementById('btn-back-login')?.addEventListener('click', loadMyStudentsScreen);
-
-    // 🌟 [جديد] زر "تسجيل بطل جديد" المضاف حديثاً في أعلى هذه الشاشة — لا يكرر نافذة
-    // الإضافة هنا، بل يفتح شاشة "طلابي" (حيث نافذة الإضافة الحقيقية موجودة فعلاً) ثم
-    // يُطلق تلقائياً نفس زرها #btn-add-student، فيفتح المعلم النافذة مباشرة بلا خطوة
-    // وسيطة يدوية 🌟
-    document.getElementById('btn-add-champion-shortcut')?.addEventListener('click', async () => {
-        await loadMyStudentsScreen();
-        document.getElementById('btn-add-student')?.click();
-    });
     document.getElementById('as-search')?.addEventListener('input', filterAllStudentsList);
     // إغلاق قائمة ⋯ المفتوحة عند النقر في أي مكان آخر من الشاشة
-    document.querySelector('#app-root .as-panel')?.addEventListener('click', (e) => {
+    document.querySelector('#ms-pane-students')?.addEventListener('click', (e) => {
         if (!e.target.closest('.as-menu-wrap')) closeAllStudentsMenus(null);
     });
     document.getElementById('all-students-body')?.addEventListener('click', async (e) => {

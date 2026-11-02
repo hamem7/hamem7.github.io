@@ -60,56 +60,186 @@
         .avatar-opt { width: 42px; height: 42px; font-size: 1.4rem; }
         #add-modal .as-add-avatars { gap: 5px; }
     }
-    /* 🌟 [2026-10-03] «طلابي» بالتصميم الجديد (المقترح ①). المحدِّدات تبدأ بـ #app-root #ms-screen عمداً: قواعد عامة
-       في kids.css/adults.css/mobile.css تفرض لون/ظل/حجم كل h1/h2 داخل .login-container بـ !important. */
-    #app-root #ms-screen { max-width: 560px; text-align: start; padding: 22px 20px !important; display: flex; flex-direction: column; gap: 20px; color: #10241c; }
+    #app-root .as-btn-primary {
+        background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)) !important;
+        color: var(--dh-emerald-900) !important;
+        border: none !important;
+        box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3) !important;
+    }
+    #app-root .as-btn-primary:hover { box-shadow: 0 14px 26px rgba(212, 175, 55, 0.4) !important; }
+
+    #app-root .as-btn-secondary {
+        background: #fff !important;
+        color: var(--dh-emerald-700) !important;
+        border: 2px solid var(--dh-emerald-600) !important;
+        box-shadow: none !important;
+    }
+    #app-root .as-btn-secondary:hover { background: var(--dh-surface-alt) !important; }
+
+    /* 🌟 [جديد 2026-10-01] وسم الحقول: "مطلوب" للاسم فقط و"اختياري" لباقي الحقول في نافذة التعديل */
+    #edit-modal .dh-opt-tag { font-size: 0.85rem; font-weight: normal; color: var(--dh-ink-soft); }
+    #edit-modal .dh-req-tag, #edit-modal .dh-opt-tag[data-i18n="stu_required_tag"] { color: var(--dh-warn) !important; font-weight: bold; }
+
+    /* 🌟 [توحيد الهوية] نافذة التعديل بحقول موحّدة: ارتفاع 46px، حد 1.5px، حواف 12px، تركيز بحلقة ذهبية، وزر اختيار الصورة بشكل المنصة.
+       (كانت حقول النصوص 16px/2px بجانب القوائم 12px/1px، ولونان مختلفان لـ«إلزامي»، وزر ملف خام من المتصفح.) 🌟 */
+    #edit-modal h2 { font-size: 1.5rem !important; margin: 0 0 18px !important; text-align: center; text-shadow: none !important; color: var(--dh-emerald-700) !important; }
+    #edit-modal .form-grid { gap: 14px; }
+    #edit-modal .input-group label { margin-bottom: 6px; font-weight: 600; font-size: .92rem; color: var(--dh-ink); }
+    #edit-modal .input-group input:not([type="file"]):not([type="hidden"]),
+    #edit-modal .input-group select {
+        min-height: 46px; margin-bottom: 0; padding: 10px 14px; font-size: 1rem; color: var(--dh-ink); background: #fff;
+        border: 1.5px solid var(--dh-line-strong) !important; border-radius: var(--dh-r-md) !important;
+    }
+    #edit-modal .input-group input:not([type="file"]):focus,
+    #edit-modal .input-group select:focus { background: #fff; border-color: var(--dh-gold-500) !important; outline: 3px solid var(--dh-focus); outline-offset: 1px; }
+    #edit-modal input[type="file"] { width: 100%; padding: 8px 10px; font-size: .95rem; color: var(--dh-ink-soft); background: var(--dh-surface-alt); border: 1.5px dashed var(--dh-line-strong); border-radius: var(--dh-r-md); }
+    #edit-modal input[type="file"]::file-selector-button { margin-inline-end: 10px; padding: 7px 14px; border: 0; border-radius: var(--dh-r-pill); background: var(--dh-emerald-700); color: var(--dh-surface); font: inherit; font-weight: 600; cursor: pointer; }
+
+
+    /* ===== 🌟 [إعادة ترتيب «طلابي» — 2026-11] محور واحد: «المطلوب الآن» + أرقام + ثلاثة تبويبات (الطلاب · هذا الشهر · الحصص والحضور).
+       كله برموز الهوية (--dh-*) فينقلب تلقائياً في المظهر الداكن. المحدِّدات تبدأ بـ #app-root #ms-screen عمداً (قواعد عامة
+       في kids/adults/mobile.css تفرض ألوان h1/h2 والأزرار بـ !important). على الشاشات العريضة: عمودان (التبويبات ← الجانب). ===== */
+    #app-root #ms-screen { max-width: 600px; text-align: start; padding: 22px 20px !important; display: flex; flex-direction: column; gap: 16px; color: var(--dh-ink); }
+    #app-root #ms-screen button { font-family: inherit; }
     #app-root #ms-screen .ms-head { display: flex; align-items: center; gap: 10px; }
-    #app-root #ms-screen .ms-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid #e4dfcc; background: #fff; color: #0d5c46; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
-    #app-root #ms-screen .ms-back:hover { background: #eaf4ef; }
+    #app-root #ms-screen .ms-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-emerald-700); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; margin: 0; min-width: 0; }
+    #app-root #ms-screen .ms-back:hover { background: var(--dh-surface-0); }
     [dir="ltr"] #ms-screen .ms-back svg, html[lang="en"] #ms-screen .ms-back svg { transform: scaleX(-1); }
-    #app-root #ms-screen .ms-title { margin: 0 !important; font-size: 1.9rem !important; font-weight: 700 !important; color: #0d5c46 !important; text-shadow: none !important; line-height: 1.3; }
+    #app-root #ms-screen .ms-title { margin: 0 !important; font-size: 1.9rem !important; font-weight: 700 !important; color: var(--dh-emerald-700) !important; text-shadow: none !important; line-height: 1.3; text-align: start; }
+    #app-root #ms-screen .ms-layout { display: flex; flex-direction: column; gap: 16px; }
+    #app-root #ms-screen .ms-aside, #app-root #ms-screen .ms-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+    #app-root #ms-screen .ms-now { background: linear-gradient(135deg, var(--dh-emerald-700), var(--dh-emerald-600)); color: var(--dh-on-emerald); border-radius: 20px; padding: 16px; display: flex; gap: 14px; align-items: center; box-shadow: var(--dh-sh-soft); }
+    #app-root #ms-screen .ms-now[hidden], #app-root #ms-screen .ms-side-month[hidden] { display: none; }
+    #app-root #ms-screen .ms-now-ic { width: 46px; height: 46px; border-radius: 14px; background: rgba(255, 255, 255, .16); display: grid; place-items: center; font-size: 1.4rem; flex: none; }
+    #app-root #ms-screen .ms-now-tx { flex: 1; min-width: 0; }
+    #app-root #ms-screen .ms-now-tx small { display: block; font-size: .78rem; opacity: .9; font-weight: 600; }
+    #app-root #ms-screen .ms-now-tx b { font-size: 1.05rem; line-height: 1.5; }
+    #app-root #ms-screen .ms-now-go { background: var(--dh-gold-500); color: var(--dh-on-gold); font-weight: 700; border: 0; border-radius: 12px; padding: 10px 18px; min-height: var(--dh-tap); white-space: nowrap; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; font-size: 1rem; }
+    #app-root #ms-screen .ms-now.is-clear { background: var(--dh-ok-bg); color: var(--dh-ok-ink); box-shadow: none; }
+    #app-root #ms-screen .ms-now.is-clear .ms-now-ic { background: transparent; }
     #app-root #ms-screen .ms-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    #app-root #ms-screen .ms-stat { background: #fff; border: 1px solid #e4dfcc; border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    #app-root #ms-screen .ms-stat-primary { background: #0d5c46; border-color: #0d5c46; }
-    #app-root #ms-screen .ms-stat-num { font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: #10241c; }
-    #app-root #ms-screen .ms-stat-num.is-alert { color: #b45309; }
-    #app-root #ms-screen .ms-stat-num.is-ok { color: var(--dh-ok, #15803d); }
-    #app-root #ms-screen .ms-stat-of { font-size: .95rem; font-weight: 500; color: #4a6058; }
-    #app-root #ms-screen .ms-stat-label { font-size: .82rem; color: #4a6058; line-height: 1.4; }
-    #app-root #ms-screen .ms-stat-primary .ms-stat-num { color: #fff; }
-    #app-root #ms-screen .ms-stat-primary .ms-stat-label { color: #d7efe6; }
-    #app-root #ms-screen .ms-section { display: flex; flex-direction: column; gap: 10px; }
-    #app-root #ms-screen .ms-section-title { margin: 0 !important; font-size: .95rem !important; font-weight: 600 !important; color: #4a6058 !important; text-shadow: none !important; line-height: 1.5; }
-    #app-root #ms-screen .ms-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-    #app-root #ms-screen .ms-card { position: relative; text-align: start; font-family: inherit; cursor: pointer; background: #fff; color: #10241c; border: 1px solid #e4dfcc; border-radius: 20px; padding: 16px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-height: 150px; transition: transform .15s, box-shadow .15s; }
-    #app-root #ms-screen .ms-card:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(6, 35, 28, .12); }
-    #app-root #ms-screen .ms-card:focus-visible, #app-root #ms-screen .ms-back:focus-visible, #app-root #ms-screen .ms-reminder-btn:focus-visible { outline: 3px solid #d4af37; outline-offset: 2px; }
-    #app-root #ms-screen .ms-card-primary { background: #0d5c46; color: #fff; border-color: #0d5c46; }
-    #app-root #ms-screen .ms-card-icon { width: 44px; height: 44px; border-radius: 14px; background: #eaf4ef; color: #0d5c46; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
-    #app-root #ms-screen .ms-card-primary .ms-card-icon { background: rgba(255, 255, 255, .14); color: #fff; }
-    #app-root #ms-screen .ms-card-icon-gold { background: #fbf3dc; color: #8a6a10; }
-    #app-root #ms-screen .ms-card-title { font-size: 1.05rem; font-weight: 700; line-height: 1.4; }
-    #app-root #ms-screen .ms-card-desc { font-size: .82rem; color: #4a6058; line-height: 1.5; }
-    #app-root #ms-screen .ms-card-primary .ms-card-desc { color: #d7efe6; }
-    #app-root #ms-screen .ms-badge { position: absolute; top: 14px; inset-inline-end: 12px; font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
-    #app-root #ms-screen .ms-badge[hidden], #app-root #ms-screen .ms-reminder[hidden] { display: none; }
-    #app-root #ms-screen .ms-badge-alert { background: #b45309; color: #fff; }
-    #app-root #ms-screen .ms-badge-soft { background: #fbf3dc; color: #6b5310; }
-    #app-root #ms-screen .ms-reminder { background: #f6f3e8; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
-    #app-root #ms-screen .ms-reminder-dot { width: 10px; height: 10px; border-radius: 50%; background: #b45309; flex-shrink: 0; }
-    #app-root #ms-screen .ms-reminder-text { font-size: .9rem; line-height: 1.6; flex-grow: 1; }
-    #app-root #ms-screen .ms-reminder-btn { font-family: inherit; font-size: .9rem; font-weight: 700; color: #0d5c46; background: none; border: none; cursor: pointer; padding: 8px 4px; min-height: 40px; white-space: nowrap; }
-    @media (max-width: 380px) {
-        #app-root #ms-screen .ms-card { min-height: 136px; padding: 14px 12px; }
-        #app-root #ms-screen .ms-stat-num { font-size: 1.3rem; }
+    #app-root #ms-screen .ms-stat { background: var(--dh-surface-3); border: 1.5px solid var(--dh-border); border-radius: 16px; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    #app-root #ms-screen .ms-stat-primary { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); }
+    #app-root #ms-screen .ms-stat-num { font-size: 1.5rem; font-weight: 700; line-height: 1.2; color: var(--dh-ink); }
+    #app-root #ms-screen .ms-stat-num.is-alert { color: var(--dh-warn); }
+    #app-root #ms-screen .ms-stat-num.is-ok { color: var(--dh-ok); }
+    #app-root #ms-screen .ms-stat-of { font-size: .95rem; font-weight: 500; color: var(--dh-ink-soft); }
+    #app-root #ms-screen .ms-stat-label { font-size: .82rem; color: var(--dh-ink-soft); line-height: 1.4; }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-num { color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-stat-primary .ms-stat-label { color: var(--dh-on-emerald); opacity: .85; }
+    #app-root #ms-screen .ms-side-month { display: none; }
+    /* التبويبات */
+    #app-root #ms-screen .ms-tabs { display: flex; gap: 4px; background: var(--dh-surface-0); border: 1.5px solid var(--dh-border); border-radius: 16px; padding: 4px; }
+    #app-root #ms-screen .ms-tab { flex: 1; border: 0; border-radius: 12px; padding: 10px 6px; font-weight: 700; font-size: .92rem; color: var(--dh-ink-soft); background: transparent; min-height: var(--dh-tap); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-tab.on { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-tab .n { background: var(--dh-warn-bg); color: var(--dh-warn); border-radius: 99px; font-size: .72rem; padding: 0 7px; font-weight: 700; }
+    #app-root #ms-screen .ms-tab .n[hidden] { display: none; }
+    #app-root #ms-screen .ms-tab.on .n { background: rgba(255, 255, 255, .25); color: #fff; }
+    #app-root #ms-screen .ms-pane { display: flex; flex-direction: column; gap: 14px; }
+    #app-root #ms-screen .ms-pane[hidden] { display: none; }
+    #app-root #ms-screen #ms-sched-body { display: flex; flex-direction: column; gap: 14px; }
+    /* الأزرار والحقول */
+    #app-root #ms-screen .ms-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+    #app-root #ms-screen .ms-search { flex: 1; min-width: 140px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); border-radius: 99px; padding: 8px 16px; min-height: var(--dh-tap); margin: 0; width: auto; font-size: 1rem; box-sizing: border-box; }
+    #app-root #ms-screen .ms-btn { border: 0; border-radius: 12px; padding: 9px 16px; font-weight: 700; min-height: var(--dh-tap); cursor: pointer; margin: 0; min-width: 0; font-size: 1rem; box-shadow: none; }
+    #app-root #ms-screen .ms-btn.gold { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-on-gold); }
+    #app-root #ms-screen .ms-btn.em { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-btn.line { background: var(--dh-surface-3); color: var(--dh-ink); border: 1.5px solid var(--dh-border-strong); }
+    #app-root #ms-screen .ms-hint { color: var(--dh-ink-soft); font-size: .85rem; margin: 0; }
+    #app-root #ms-screen details > summary { cursor: pointer; color: var(--dh-ink-soft); font-weight: 600; }
+    #app-root #ms-screen button:focus-visible, #app-root #ms-screen input:focus-visible, #app-root #ms-screen select:focus-visible { outline: 3px solid var(--dh-gold-500); outline-offset: 2px; }
+    /* قائمة الطلاب: لكل طالب بطاقة فيها زر «تعديل» ظاهر بجوار الاسم (و⋯ للإخفاء/الحذف) */
+    #app-root #ms-screen .as-list { display: flex; flex-direction: column; gap: 8px; }
+    #app-root #ms-screen .as-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; background: var(--dh-surface-3); border: 1.5px solid var(--dh-border); border-radius: 16px; padding: 10px 12px; }
+    #app-root #ms-screen .as-row:hover { border-color: var(--dh-emerald-600); }
+    #app-root #ms-screen .as-row.as-hidden-row { opacity: .65; }
+    #app-root #ms-screen .as-who { flex: 1 1 230px; display: flex; align-items: center; gap: 12px; min-width: 0; }
+    #app-root #ms-screen .as-avatar { width: 44px; height: 44px; border-radius: 50%; flex: none; display: grid; place-items: center; overflow: hidden; color: #fff; font-size: 1.2rem; font-weight: 700; }
+    #app-root #ms-screen .as-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    #app-root #ms-screen .as-info { min-width: 0; display: grid; justify-items: start; }
+    #app-root #ms-screen .as-info .btn-prof-link { background: none; border: 0; padding: 0; margin: 0; color: var(--dh-ink); font-weight: 700; font-size: 1.05rem; cursor: pointer; text-align: start; box-shadow: none; min-width: 0; }
+    #app-root #ms-screen .as-info .btn-prof-link:hover { color: var(--dh-emerald-600); text-decoration: underline; }
+    #app-root #ms-screen .as-sub { color: var(--dh-ink-soft); font-size: .82rem; }
+    #app-root #ms-screen .as-info .btn-weakness { background: none; border: 0; padding: 0; margin: 0; color: var(--dh-warn); font-size: .85rem; cursor: pointer; box-shadow: none; min-width: 0; }
+    #app-root #ms-screen .as-acts { display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+    #app-root #ms-screen .as-acts .btn { margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .as-edit { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--dh-emerald-600); background: var(--dh-surface-3); color: var(--dh-emerald-700); border-radius: 12px; padding: 6px 12px; min-height: 40px; font-weight: 700; font-size: .9rem; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; white-space: nowrap; }
+    html[data-theme="dark"] #app-root #ms-screen .as-edit { color: var(--dh-ink); border-color: var(--dh-gold-500); }
+    #app-root #ms-screen .as-edit:hover { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .as-go { background: var(--dh-emerald-700) !important; color: var(--dh-on-emerald) !important; border: 0 !important; border-radius: 12px; padding: 6px 14px !important; min-height: 40px; font-size: .9rem !important; white-space: nowrap; }
+    #app-root #ms-screen .as-go.btn-show { background: var(--dh-surface-0) !important; color: var(--dh-ink) !important; border: 1.5px solid var(--dh-border-strong) !important; }
+    #app-root #ms-screen .as-menu-wrap { position: relative; }
+    #app-root #ms-screen .as-more { width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent; color: var(--dh-ink-soft); font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 0; margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .as-more:hover, #app-root #ms-screen .as-menu-wrap.open .as-more { background: var(--dh-surface-0); }
+    #app-root #ms-screen .as-menu { display: none; position: absolute; top: 44px; inset-inline-end: 0; z-index: 20; background: var(--dh-surface-3); border: 1.5px solid var(--dh-border-strong); border-radius: 12px; box-shadow: var(--dh-sh-lift); padding: 6px; min-width: 190px; }
+    #app-root #ms-screen .as-menu-wrap.open .as-menu { display: grid; }
+    #app-root #ms-screen .as-menu button { background: none; border: 0; color: var(--dh-ink); text-align: start; padding: 10px 12px; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; font-size: 1rem; }
+    #app-root #ms-screen .as-menu button:hover { background: var(--dh-surface-0); }
+    #app-root #ms-screen .as-menu .btn-delete { color: var(--dh-danger); }
+    #app-root #ms-screen .as-hidden-box summary { padding: 6px 2px; }
+    #app-root #ms-screen .as-hidden-box .as-list { margin-top: 8px; }
+    #app-root #ms-screen .as-empty { text-align: center; color: var(--dh-ink-soft); padding: 24px; }
+    /* هذا الشهر: خطوتان */
+    #app-root #ms-screen .ms-month-name { color: var(--dh-ink-soft); font-weight: 700; font-size: .9rem; margin: 0; }
+    #app-root #ms-screen .ms-step { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1.5px solid var(--dh-border); border-radius: 18px; background: var(--dh-surface-3); }
+    #app-root #ms-screen .ms-step .no { width: 34px; height: 34px; border-radius: 50%; background: var(--dh-emerald-700); color: var(--dh-on-emerald); display: grid; place-items: center; font-weight: 700; flex: none; }
+    #app-root #ms-screen .ms-step.done .no { background: var(--dh-ok); }
+    #app-root #ms-screen .ms-step .bd { flex: 1; min-width: 0; }
+    #app-root #ms-screen .ms-step h3 { font-size: 1.05rem; margin: 0; color: var(--dh-ink) !important; text-align: start; text-shadow: none; }
+    #app-root #ms-screen .ms-step p { color: var(--dh-ink-soft); font-size: .86rem; margin: 2px 0 8px; }
+    #app-root #ms-screen .ms-bar { height: 8px; background: var(--dh-border-soft); border-radius: 99px; overflow: hidden; margin: 6px 0 10px; }
+    #app-root #ms-screen .ms-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--dh-emerald-600), var(--dh-emerald-700)); transition: width .3s; }
+    #app-root #ms-screen .ms-step-c { color: var(--dh-ink-soft); font-size: .85rem; margin-inline-start: 8px; }
+    #app-root #ms-screen .ms-badge-n { display: inline-block; background: var(--dh-warn-bg); color: var(--dh-warn); border-radius: 99px; font-size: .75rem; font-weight: 700; padding: 2px 9px; margin-inline-start: 6px; }
+    #app-root #ms-screen .ms-badge-n[hidden] { display: none; }
+    #app-root #ms-screen .ms-side-step { display: flex; gap: 10px; align-items: center; font-size: .9rem; background: transparent; border: 0; color: var(--dh-ink); text-align: start; cursor: pointer; padding: 4px 0; margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-side-step .no { width: 26px; height: 26px; border-radius: 50%; background: var(--dh-emerald-700); color: var(--dh-on-emerald); display: grid; place-items: center; font-weight: 700; font-size: .8rem; flex: none; }
+    #app-root #ms-screen .ms-side-step small { margin-inline-start: auto; color: var(--dh-ink-soft); }
+    #app-root #ms-screen .ms-side-month h4 { margin: 0; font-size: 1rem; color: var(--dh-ink); text-align: start; text-shadow: none; }
+    /* الحصص والحضور: بطاقة منسدلة لكل طالب، وحفظ تلقائي */
+    #app-root #ms-screen .ms-sched { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--dh-surface-0); border: 1.5px dashed var(--dh-border-strong); border-radius: 16px; padding: 10px 12px; flex-wrap: wrap; }
+    #app-root #ms-screen .ms-acc { background: var(--dh-surface-3); border: 1.5px solid var(--dh-border); border-radius: 16px; overflow: hidden; }
+    #app-root #ms-screen .ms-acc.open { border-color: var(--dh-emerald-600); }
+    #app-root #ms-screen .ms-acc-h { display: flex; align-items: center; gap: 12px; width: 100%; background: transparent; border: 0; color: var(--dh-ink); text-align: start; padding: 10px 12px; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-acc-h .nm { flex: 1; min-width: 0; }
+    #app-root #ms-screen .ms-acc-h .nm b { display: block; font-size: 1.02rem; }
+    #app-root #ms-screen .ms-acc-h .nm small { color: var(--dh-ink-soft); font-size: .82rem; }
+    #app-root #ms-screen .ms-acc-h .chev { color: var(--dh-ink-soft); transition: transform .2s; }
+    #app-root #ms-screen .ms-acc.open .ms-acc-h .chev { transform: rotate(180deg); }
+    #app-root #ms-screen .ms-acc-b { display: none; padding: 4px 14px 14px; border-top: 1px dashed var(--dh-border); flex-direction: column; gap: 4px; }
+    #app-root #ms-screen .ms-acc.open .ms-acc-b { display: flex; }
+    #app-root #ms-screen .ms-acc-b label { font-size: .82rem; font-weight: 700; color: var(--dh-ink-soft); display: block; margin: 10px 0 4px; }
+    #app-root #ms-screen .ms-dayp, #app-root #ms-screen .ms-minp { display: flex; gap: 6px; flex-wrap: wrap; }
+    #app-root #ms-screen .ms-dayp button, #app-root #ms-screen .ms-minp button { min-width: 46px; min-height: 42px; border-radius: 12px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); font-weight: 700; cursor: pointer; margin: 0; padding: 0 12px; box-shadow: none; font-size: .95rem; }
+    #app-root #ms-screen .ms-dayp button.on, #app-root #ms-screen .ms-minp button.on { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-saved { color: var(--dh-ok); font-weight: 700; font-size: .85rem; min-height: 1.3em; margin-top: 6px; }
+    /* الشاشات العريضة: عمودان بدل عمود ضيق وسط فراغ. ⚠️ adults.css يفرض max-width:700px !important على كل .login-container، لذلك !important هنا. */
+    @media (min-width: 900px) {
+        #app-root #ms-screen { max-width: 1120px !important; width: calc(100% - 48px); margin: 28px auto !important; padding: 28px 36px !important; }
+        #app-root #ms-screen .ms-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr); gap: 28px; align-items: start; }
+        #app-root #ms-screen .ms-aside { order: 2; position: sticky; top: 16px; }
+        #app-root #ms-screen .ms-main { order: 1; }
+        #app-root #ms-screen .ms-now { flex-wrap: wrap; }
+        #app-root #ms-screen .ms-now-go { width: 100%; }
+        #app-root #ms-screen .ms-stats { grid-template-columns: 1fr; }
+        #app-root #ms-screen .ms-stat { flex-direction: row-reverse; justify-content: flex-end; align-items: baseline; gap: 10px; padding: 12px 14px; }
+        #app-root #ms-screen .ms-stat-num { min-width: 2.6ch; }
+        #app-root #ms-screen .ms-side-month { display: flex; flex-direction: column; gap: 10px; background: var(--dh-surface-3); border: 1.5px solid var(--dh-border); border-radius: 18px; padding: 14px; }
+    }
+    @media (max-width: 480px) {
+        #app-root #ms-screen { padding: 16px 12px !important; }
+        #app-root #ms-screen .ms-now { flex-wrap: wrap; }
+        #app-root #ms-screen .ms-now-go { width: 100%; }
     }
 </style>
 
-<!-- 🌟 [إعادة تصميم 2026-10-03 — «المقترح ①» الذي اختاره المعلم] بدل أربعة أزرار متساوية + زر عودة كبير:
-     شريط أرقام (عدد الطلاب / بانتظار الحفظ / تقارير الشهر)، ثم قسمان ببطاقات: «الطلاب» و«المتابعة الشهرية»،
-     مع شارات تنبيه وسطر تذكير. نفس معرّفات الأزرار القديمة بالضبط (btn-all-students، btn-add-student،
-     btn-monthly-memo-bulk، btn-monthly-reports-hub، btn-back-my-students) فلا يتغير أي مستمع أو اختصار يضغطها.
-     الأرقام تُملأ من setupMyStudentsListeners → refreshMyStudentsSummary في student/student.js. -->
+<!-- 🌟 [إعادة ترتيب 2026-11 — اقتراح المعلم، راجع previews/students-corner-redesign.html]
+     «طلابي» محور واحد واضح: «المطلوب الآن» ← أرقام ← ثلاثة تبويبات:
+       الطلاب (بحث + طالب جديد + قائمة بزر «تعديل» ظاهر بجوار الاسم، وهي نفس قائمة «السجل العام» القديمة بعد دمجها هنا)
+       هذا الشهر (خطوتان: ١) الحفظ الشهري ٢) تقارير الشهر)
+       الحصص والحضور (قائمة منسدلة لكل طالب: أيام ومدة الحصة، حفظ تلقائي بلا زر)
+     نفس معرّفات الأزرار القديمة (btn-add-student، btn-monthly-memo-bulk، btn-monthly-reports-hub، btn-back-my-students،
+     ms-reminder*، ms-stat-*) فلا يتغير أي مستمع أو اختصار؛ منطق التبويبات والأرقام في student/student.js (setupMyStudentsListeners). -->
 <div class="screen active">
     <div class="login-container" id="ms-screen">
         <div class="ms-head">
@@ -119,65 +249,99 @@
             <h1 class="ms-title" data-i18n="my_students_title">طلابي</h1>
         </div>
 
-        <div class="ms-stats" id="ms-stats">
-            <div class="ms-stat ms-stat-primary">
-                <span class="ms-stat-num" id="ms-stat-students">—</span>
-                <span class="ms-stat-label" data-i18n="ms_stat_students">عدد الطلاب</span>
-            </div>
-            <div class="ms-stat">
-                <span class="ms-stat-num" id="ms-stat-memo">—</span>
-                <span class="ms-stat-label" data-i18n="ms_stat_memo">بانتظار الحفظ</span>
-            </div>
-            <div class="ms-stat">
-                <span class="ms-stat-num"><span id="ms-stat-reports">—</span><span class="ms-stat-of" id="ms-stat-reports-of"></span></span>
-                <span class="ms-stat-label" id="ms-stat-reports-label" data-i18n="ms_stat_reports_generic">تقارير صُدِّرت</span>
-            </div>
-        </div>
+        <div class="ms-layout">
+            <div class="ms-aside">
+                <!-- المطلوب الآن: يظهر واحد منهما فقط (بعد حساب الأرقام) -->
+                <div class="ms-now" id="ms-reminder" hidden>
+                    <span class="ms-now-ic" aria-hidden="true">📖</span>
+                    <span class="ms-now-tx"><small data-i18n="ms_now_k">المطلوب الآن</small><b id="ms-reminder-text"></b></span>
+                    <button type="button" class="ms-now-go" id="ms-reminder-btn" data-i18n="ms_now_go">ابدأ التسجيل</button>
+                </div>
+                <div class="ms-now is-clear" id="ms-clear" hidden>
+                    <span class="ms-now-ic" aria-hidden="true">✅</span>
+                    <span class="ms-now-tx"><b data-i18n="ms_now_ok">كل شيء جاهز ✓ لا يوجد مطلوب منك الآن</b></span>
+                </div>
 
-        <section class="ms-section">
-            <h2 class="ms-section-title" data-i18n="ms_section_students">الطلاب</h2>
-            <div class="ms-grid">
-                <button type="button" class="ms-card ms-card-primary" id="btn-all-students">
-                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><circle cx="17.5" cy="8" r="2.6"/></svg></span>
-                    <span class="ms-card-title" data-i18n="ms_card_all_title">سجل الطلاب</span>
-                    <span class="ms-card-desc" data-i18n="ms_card_all_desc">افتح ملف أي طالب أو عدّل بياناته</span>
-                </button>
-                <button type="button" class="ms-card" id="btn-add-student">
-                    <span class="ms-card-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 20c1-4 3.6-6 6.5-6s5.5 2 6.5 6"/><line x1="19" y1="7" x2="19" y2="13"/><line x1="22" y1="10" x2="16" y2="10"/></svg></span>
-                    <span class="ms-card-title" data-i18n="ms_card_add_title">طالب جديد</span>
-                    <span class="ms-card-desc" data-i18n="ms_card_add_desc">الاسم فقط مطلوب</span>
-                </button>
-            </div>
-        </section>
+                <div class="ms-stats" id="ms-stats">
+                    <div class="ms-stat ms-stat-primary">
+                        <span class="ms-stat-num" id="ms-stat-students">—</span>
+                        <span class="ms-stat-label" data-i18n="ms_stat_students">عدد الطلاب</span>
+                    </div>
+                    <div class="ms-stat">
+                        <span class="ms-stat-num" id="ms-stat-memo">—</span>
+                        <span class="ms-stat-label" data-i18n="ms_stat_memo">بانتظار الحفظ</span>
+                    </div>
+                    <div class="ms-stat">
+                        <span class="ms-stat-num"><span id="ms-stat-reports">—</span><span class="ms-stat-of" id="ms-stat-reports-of"></span></span>
+                        <span class="ms-stat-label" id="ms-stat-reports-label" data-i18n="ms_stat_reports_generic">تقارير صُدِّرت</span>
+                    </div>
+                </div>
 
-        <section class="ms-section">
-            <h2 class="ms-section-title" id="ms-section-monthly" data-i18n="ms_section_monthly_generic">المتابعة الشهرية</h2>
-            <div class="ms-grid">
-                <button type="button" class="ms-card" id="btn-monthly-memo-bulk">
-                    <span class="ms-badge ms-badge-alert" id="ms-badge-memo" hidden></span>
-                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg></span>
-                    <span class="ms-card-title" data-i18n="ms_card_memo_title">الحفظ الشهري</span>
-                    <span class="ms-card-desc" data-i18n="ms_card_memo_desc">أين توقف كل طالب هذا الشهر؟</span>
-                </button>
-                <button type="button" class="ms-card" id="btn-monthly-reports-hub">
-                    <span class="ms-badge ms-badge-soft" id="ms-badge-reports" hidden></span>
-                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/></svg></span>
-                    <span class="ms-card-title" data-i18n="ms_card_reports_title">تقارير الشهر</span>
-                    <span class="ms-card-desc" data-i18n="ms_card_reports_desc">واتساب لولي الأمر أو PDF</span>
-                </button>
-                <!-- 🌟 [جديد] جدول حصص الطلاب ووقت سؤال الحضور (components/scheduleManager.js) -->
-                <button type="button" class="ms-card" id="btn-sessions-schedule">
-                    <span class="ms-card-icon ms-card-icon-gold"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                    <span class="ms-card-title" data-i18n="ms_card_sched_title">جدول الحصص والحضور</span>
-                    <span class="ms-card-desc" data-i18n="ms_card_sched_desc">أيام كل طالب ووقت سؤال الحضور</span>
-                </button>
+                <!-- ملخص الشهر: للشاشات العريضة فقط (يملأ العمود الجانبي) -->
+                <div class="ms-side-month" id="ms-side-month">
+                    <h4 data-i18n="ms_side_t">ملخص الشهر</h4>
+                    <button type="button" class="ms-side-step" data-goto-tab="month"><span class="no">1</span><span data-i18n="ms_step1_t">سجّل أين توقف كل طالب</span><small data-ms="step1-count"></small></button>
+                    <div class="ms-bar" style="margin:0"><i data-ms="step1-bar"></i></div>
+                    <button type="button" class="ms-side-step" data-goto-tab="month"><span class="no">2</span><span data-i18n="ms_step2_t">أصدر تقارير الشهر</span><small data-ms="step2-count"></small></button>
+                    <div class="ms-bar" style="margin:0"><i data-ms="step2-bar"></i></div>
+                </div>
             </div>
-        </section>
 
-        <div class="ms-reminder" id="ms-reminder" hidden>
-            <span class="ms-reminder-dot" aria-hidden="true"></span>
-            <span class="ms-reminder-text" id="ms-reminder-text"></span>
-            <button type="button" class="ms-reminder-btn" id="ms-reminder-btn" data-i18n="ms_reminder_start">ابدأ الآن</button>
+            <div class="ms-main">
+                <div class="ms-tabs" id="ms-tabs" role="tablist">
+                    <button type="button" class="ms-tab on" role="tab" data-tab="students" data-i18n="ms_tab_students">الطلاب</button>
+                    <button type="button" class="ms-tab" role="tab" data-tab="month"><span data-i18n="ms_tab_month">هذا الشهر</span><span class="n" id="ms-tab-memo-n" hidden></span></button>
+                    <button type="button" class="ms-tab" role="tab" data-tab="sched" data-i18n="ms_tab_sched">الحصص والحضور</button>
+                </div>
+
+                <!-- ① الطلاب -->
+                <section class="ms-pane" id="ms-pane-students" data-pane="students">
+                    <div class="ms-tools">
+                        <input type="search" class="ms-search" id="as-search" data-i18n-placeholder="as_search_ph" placeholder="🔎 ابحث عن طالب...">
+                        <button type="button" class="ms-btn gold" id="btn-add-student">➕ <span data-i18n="ms_card_add_title">طالب جديد</span></button>
+                    </div>
+                    <div id="all-students-body"></div>
+                    <p class="ms-hint" data-i18n="ms_students_hint">اضغط على اسم الطالب لفتح ملفه. زر «تعديل» لتغيير بياناته، و⋯ للإخفاء والحذف.</p>
+                    <details>
+                        <summary data-i18n="ms_tools">أدوات</summary>
+                        <div class="ms-tools" style="margin-top:8px">
+                            <button type="button" class="ms-btn line" id="btn-export-backup" data-i18n="backup_export_students_btn">📥 تصدير الطلاب فقط</button>
+                            <button type="button" class="ms-btn line" id="btn-import-backup-trigger" data-i18n="backup_import_students_btn">📤 استيراد الطلاب</button>
+                            <input type="file" id="importFile" accept=".json" style="display:none;">
+                        </div>
+                    </details>
+                </section>
+
+                <!-- ② هذا الشهر -->
+                <section class="ms-pane" id="ms-pane-month" data-pane="month" hidden>
+                    <p class="ms-month-name" id="ms-section-monthly" data-i18n="ms_section_monthly_generic">المتابعة الشهرية</p>
+                    <div class="ms-step" id="ms-step1">
+                        <span class="no">1</span>
+                        <div class="bd">
+                            <h3 data-i18n="ms_step1_t">سجّل أين توقف كل طالب</h3>
+                            <p data-i18n="ms_step1_d">سورة وآية لكل طالب، وتُحفظ تلقائيًا.</p>
+                            <div class="ms-bar"><i data-ms="step1-bar"></i></div>
+                            <button type="button" class="ms-btn em" id="btn-monthly-memo-bulk"><span data-i18n="ms_step1_b">افتح تسجيل الحفظ</span><span class="ms-badge-n" id="ms-badge-memo" hidden></span></button>
+                            <span class="ms-step-c" data-ms="step1-count"></span>
+                        </div>
+                    </div>
+                    <div class="ms-step" id="ms-step2">
+                        <span class="no">2</span>
+                        <div class="bd">
+                            <h3 data-i18n="ms_step2_t">أصدر تقارير الشهر</h3>
+                            <p data-i18n="ms_step2_d">واتساب لولي الأمر أو PDF، بعد تسجيل الحفظ.</p>
+                            <div class="ms-bar"><i data-ms="step2-bar"></i></div>
+                            <button type="button" class="ms-btn em" id="btn-monthly-reports-hub"><span data-i18n="ms_step2_b">افتح تقارير الشهر</span><span class="ms-badge-n" id="ms-badge-reports" hidden></span></button>
+                            <span class="ms-step-c" data-ms="step2-count"></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ③ الحصص والحضور: يُملأ من components/scheduleManager.js (renderScheduleTab) عند أول فتح -->
+                <section class="ms-pane" id="ms-pane-sched" data-pane="sched" hidden>
+                    <div id="ms-sched-body"></div>
+                </section>
+            </div>
         </div>
     </div>
 </div>
@@ -263,5 +427,29 @@
         <button class="as-add-link" id="btn-save-add-another" data-i18n="save_and_add_another">حفظ وإضافة آخر ➕</button>
         <button class="as-add-link" id="btn-add-skip-save" data-i18n="add_skip_save">تخطَّ واحفظ الآن</button>
         <button class="as-add-link" id="btn-close-add-modal" data-i18n="cancel">إلغاء</button>
+    </div>
+</div>
+
+<!-- 🌟 نافذة تعديل بيانات الطالب (كانت في student/all-students.html قبل دمج «السجل العام» في هذه الشاشة) -->
+<!-- نافذة تعديل بيانات الطالب -->
+<div id="edit-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="margin-top:0; font-size: 2.2rem;" data-i18n="as_edit_title">تعديل بيانات الطالب</h2>
+        <input type="hidden" id="edit-stu-id">
+        <div class="form-grid">
+            <div class="input-group"><label><span data-i18n="name_full">الاسم (ثلاثي):</span> <span class="dh-opt-tag dh-req-tag" data-i18n="stu_required_tag">(مطلوب)</span></label><input type="text" id="edit-stu-name" data-i18n-placeholder="name_ph" placeholder="اسم الطالب..."></div>
+            <div class="input-group"><label><span data-i18n="dob">تاريخ الميلاد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span> <span id="edit-age-display" style="font-size:0.9rem;"></span></label><div class="dh-dob-triple" style="display:grid;grid-template-columns:.8fr 1.3fr 1fr;gap:6px;"><select id="edit-stu-dob-d" data-i18n-title="dob_day"></select><select id="edit-stu-dob-m" data-i18n-title="dob_month"></select><select id="edit-stu-dob-y" data-i18n-title="dob_year"></select></div><input type="hidden" id="edit-stu-dob"></div>
+            <!-- 🌟 [عدّل] نفس تعديل قائمة الصف في student/my-students.html بالحرف: تفصيل
+            المرحلتين الإعدادية والثانوية لصفوف فردية 1/2/3 بدل خيار مجمَّع واحد لكل
+            منهما، و"خريج" صارت "خريج جامعي" — راجع تعليق my-students.html للتفاصيل 🌟 -->
+            <div class="input-group"><label><span data-i18n="grade">الصف الدراسي:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><select id="edit-stu-grade"><option value="" data-i18n="stu_not_set">غير محدد</option><option value="التمهيدي" data-i18n="التمهيدي">التمهيدي</option><option value="الأول الابتدائي" data-i18n="الأول الابتدائي">الأول الابتدائي</option><option value="الثاني الابتدائي" data-i18n="الثاني الابتدائي">الثاني الابتدائي</option><option value="الثالث الابتدائي" data-i18n="الثالث الابتدائي">الثالث الابتدائي</option><option value="الرابع الابتدائي" data-i18n="الرابع الابتدائي">الرابع الابتدائي</option><option value="الخامس الابتدائي" data-i18n="الخامس الابتدائي">الخامس الابتدائي</option><option value="السادس الابتدائي" data-i18n="السادس الابتدائي">السادس الابتدائي</option><option value="الأول الإعدادي" data-i18n="الأول الإعدادي">الأول الإعدادي</option><option value="الثاني الإعدادي" data-i18n="الثاني الإعدادي">الثاني الإعدادي</option><option value="الثالث الإعدادي" data-i18n="الثالث الإعدادي">الثالث الإعدادي</option><option value="الأول الثانوي" data-i18n="الأول الثانوي">الأول الثانوي</option><option value="الثاني الثانوي" data-i18n="الثاني الثانوي">الثاني الثانوي</option><option value="الثالث الثانوي" data-i18n="الثالث الثانوي">الثالث الثانوي</option><option value="المرحلة الجامعية" data-i18n="المرحلة الجامعية">المرحلة الجامعية</option><option value="خريج جامعي" data-i18n="خريج جامعي">خريج جامعي</option></select></div>
+            <div class="input-group"><label><span data-i18n="country">البلد:</span> <span class="dh-opt-tag" data-i18n="stu_optional_tag">(اختياري)</span></label><input type="text" id="edit-stu-country" data-i18n-placeholder="country_ph" placeholder="مثال: مصر، السعودية..."></div>
+            <div class="input-group"><label data-i18n="as_parent_phone">رقم ولي الأمر (اختياري):</label><input type="text" id="edit-stu-phone" data-i18n-placeholder="phone_ph" placeholder="لإرسال التقارير..."></div>
+            <div class="input-group"><label data-i18n="as_gender_label">الجنس (للصورة الرمزية):</label><select id="edit-stu-gender"><option value="boy" data-i18n="as_gender_boy">👦🏻 ولد</option><option value="girl" data-i18n="as_gender_girl">👧🏻 بنت</option></select></div>
+            <div class="input-group" style="grid-column: span 2;"><label><span data-i18n="as_memo_label">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="dh-opt-tag" style="color:var(--dh-danger, #b91c1c);" data-i18n="stu_required_tag">(إلزامي)</span></label><div style="display:flex; gap:10px;"><select id="edit-stu-memo-from"></select><select id="edit-stu-memo-to"></select></div><small data-i18n="stu_memo_help" style="display:block;margin-top:4px;color:#64748b;line-height:1.6;">يبدأ الحفظ من الناس صعودًا نحو البقرة: «من» = أول سورة حفظها (غالبًا الناس) و«إلى» = آخر سورة وصل إليها. تُبنى عليه الواجبات والأسئلة؛ بدونه قد تظهر أسئلة من سور لم يحفظها.</small></div>
+            <div class="input-group" style="grid-column: span 2;"><label data-i18n="as_photo_label">صورة شخصية (اختياري):</label><input type="file" id="edit-stu-avatar" accept="image/*"></div>
+        </div>
+        <button class="btn as-btn-primary" style="width: 100%; margin-top:15px; padding: 15px; font-size: 1.3rem;" id="btn-save-edited-student" data-i18n="as_save_edits">حفظ التعديلات ✔️</button>
+        <button class="btn btn-outline as-btn-secondary" style="width: 100%; margin-top:10px; padding: 15px; font-size: 1.3rem;" id="btn-close-edit-modal" data-i18n="cancel">إلغاء</button>
     </div>
 </div>

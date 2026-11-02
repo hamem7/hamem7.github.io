@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.68';
+export const APP_VERSION = '1.0.69';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.69',
+        date: '2026-11-02',
+        items: [
+            { type: 'improved', text: { ar: 'ركن «طلابي» أُعيد ترتيبه ليكون واضحًا من أول نظرة: بطاقة «المطلوب الآن» ثم الأرقام، وثلاثة تبويبات فقط — «الطلاب» و«هذا الشهر» و«الحصص والحضور». وعلى الشاشات العريضة يملأ العرض بعمودين.', en: 'The "My Students" corner was reorganised to be clear at a glance: a "Needed now" card, the numbers, and just three tabs — "Students", "This month" and "Schedule & attendance". On wide screens it fills the width in two columns.' } },
+            { type: 'new', text: { ar: 'زر «تعديل» ظاهر بجوار اسم كل طالب في قائمة الطلاب (دُمج «السجل العام» في تبويب «الطلاب»).', en: 'An "Edit" button now sits right next to every student\'s name in the students list (the general record was merged into the "Students" tab).' } },
+            { type: 'new', text: { ar: '«الحصص والحضور»: اضغط على اسم الطالب فتنزل أيام حصصه ومدتها (٣٠ أو ٤٥ أو ٦٠ دقيقة) ويُحفظ كل اختيار تلقائيًا بلا زر حفظ.', en: '"Schedule & attendance": tap a student\'s name to drop down their session days and length (30, 45 or 60 minutes); every choice saves automatically with no save button.' } }
+        ]
+    },
     {
         version: '1.0.68',
         date: '2026-10-31',

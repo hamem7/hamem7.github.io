@@ -29,7 +29,7 @@ const INCLUDE = [
 const CHECK = process.argv.includes('--check');   // فحص فقط (CI): لا يكتب شيئاً، يرجع 1 إن كان الملف المولَّد قديماً أو ظهرت شاشة بألوان فاتحة ثابتة غير مشمولة
 // ملفات منسَّقة يدوياً للمظهر الداكن (css/theme-dark.css) أو مقصودة فاتحة — لا تحتاج التوليد التلقائي
 const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'css/fonts.css', 'css/theme-dark.css', 'css/theme-dark-auto.css',
-  'student/my-students.html', 'student/all-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
+  'student/my-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
   'css/teacherAuthGate.css', 'core/dialog.js',
   // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
   'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',

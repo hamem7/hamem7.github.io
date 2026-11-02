@@ -46,15 +46,17 @@ const TOURS = {
     // طلابي (student/my-students.html)
     // 🌟 [2026-10-03] كانت الجولة تعرّف بعنصرين فقط؛ الآن تمرّ على كل محتوى الشاشة (بتصميمها الجديد: أرقام + بطاقات).
     // المفتاح أصبح 'my_students' (بدل 'students') حتى تظهر الجولة الكاملة مرة أخرى لمن شاهد النسخة القديمة.
-    my_students: {
+    // [2026-11] أُعيد ترتيب الركن (تبويبات) فصار المفتاح my_students2 لتظهر الجولة المحدَّثة مرة أخرى لمن شاهد القديمة
+    my_students2: {
         steps: [
             { target: '#ms-screen .ms-head', textKey: 'tour_students_intro' },
             { target: '#ms-stats', textKey: 'tour_students_stats' },
-            { target: '#btn-all-students', textKey: 'tour_students_all' },
-            { target: '#btn-add-student', textKey: 'tour_students_add' },
-            { target: '#btn-monthly-memo-bulk', textKey: 'tour_students_monthly_memo' },
+            { target: '#ms-tabs', textKey: 'tour_students_tabs' },
+            { target: '#btn-add-student', textKey: 'tour_students_add', before: () => document.querySelector('#ms-tabs [data-tab="students"]')?.click() },
+            { target: '#btn-monthly-memo-bulk', textKey: 'tour_students_monthly_memo', before: () => document.querySelector('#ms-tabs [data-tab="month"]')?.click() },
             { target: '#btn-monthly-reports-hub', textKey: 'tour_students_reports' },
-            { target: '#btn-back-my-students', textKey: 'tour_students_back' }
+            { target: '#ms-sched-body', textKey: 'tour_students_sched', before: () => document.querySelector('#ms-tabs [data-tab="sched"]')?.click() },
+            { target: '#btn-back-my-students', textKey: 'tour_students_back', before: () => document.querySelector('#ms-tabs [data-tab="students"]')?.click() }
         ]
     },
     // مدخل ركن الأطفال / واجهة الكبار = شاشة اختيار الطالب (student/login.html)

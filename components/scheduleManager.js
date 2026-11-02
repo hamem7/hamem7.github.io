@@ -1,55 +1,89 @@
 // components/scheduleManager.js
 // =============================================================================
-// 📅 «جدول الحصص والحضور» من شاشة «طلابي»: قائمة كل الطلاب مع أيام حصصهم ومدتها (تعديل بنقرة)، وأعلاها وقت سؤال الحضور
-// الذي يختاره المعلم (صباحًا أو مساءً، أو إيقافه). الجدول نفسه يُحفظ في student.schedule (components/studentSchedule.js).
+// 📅 تبويب «الحصص والحضور» داخل «طلابي» (student/my-students.html): قائمة كل الطلاب باسمهم كاملًا، وبالضغط على اسم
+// الطالب تنزل تحته قائمة بأيام الحصص ومدتها (٣٠ / ٤٥ / ٦٠ دقيقة). كل اختيار يُحفظ تلقائيًا فور الضغط (بلا زر حفظ).
+// أعلاها وقت سؤال الحضور الذي يختاره المعلم (صباحًا أو مساءً، أو إيقافه). الجدول يُحفظ في student.schedule
+// ({days, minutes, since}) — نفس النموذج الذي يعرضه ملف الطالب (components/studentSchedule.js) فلا تغيير في البيانات.
+// ⚠️ لو كان لطالب قديم مدة غير الثلاث (مثلًا ٩٠) تبقى ظاهرة له ولا تُفقد؛ الخيارات الجديدة للتعديل فقط ٣٠/٤٥/٦٠.
 // =============================================================================
 import { AppState, t } from '../core/app.js';
 import '../core/i18n-badges.js';
 import { esc } from '../core/escape.js';
 import { hasSchedule } from '../engine/attendanceEngine.js';
-import { renderScheduleSection } from './studentSchedule.js';
 import { askAttendanceTime, describePromptSettings } from './attendancePrompt.js';
 
-const ID = 'dhSchedMgr';
-
-function daysSummary(s) {
-  if (!hasSchedule(s)) return t('att_mgr_none');
-  return s.schedule.days.map(d => t('att_day_' + d)).join(isEn() ? ', ' : '، ') + ' · ' + s.schedule.minutes + (isEn() ? ' min' : ' د');
-}
+export const SCHEDULE_MINUTES = [30, 45, 60];
 const isEn = () => AppState.currentLang === 'en';
 
-export async function openScheduleManager() {
-  document.getElementById(ID)?.remove();
-  const students = (await AppState.studentManager.getAllStudents()).sort((a, b) => String(a.name).localeCompare(String(b.name), 'ar'));
-  const root = document.createElement('div'); root.id = ID; root.setAttribute('role', 'dialog');
-  root.style.cssText = 'position:fixed;inset:0;z-index:9050;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px';
+function daysSummary(s) {
+  if (!hasSchedule(s)) return t('ms_sched_none');
+  const days = [...s.schedule.days].map(Number).sort((a, b) => a - b).map(d => t('att_day_' + d)).join(isEn() ? ', ' : '، ');
+  return `${days} · ${s.schedule.minutes} ${t('ms_min_unit')}`;
+}
+
+function minutesOptions(current) {
+  const list = SCHEDULE_MINUTES.includes(current) ? SCHEDULE_MINUTES : [...SCHEDULE_MINUTES, current].sort((a, b) => a - b);
+  return list;
+}
+
+export async function renderScheduleTab(container) {
+  if (!container) return;
+  const students = (await AppState.studentManager.getAllStudents())
+    .filter(s => !s.isHidden)
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), 'ar'));
+  if (!container.isConnected) return;
+  let openId = null;        // الطالب المفتوح (واحد في كل مرة)
+  let savedId = null;       // آخر طالب حُفظ له (لإظهار «حُفظ تلقائيًا»)
+
   const draw = () => {
-    root.innerHTML = `<div style="width:min(620px,100%);max-height:90vh;overflow:auto;background:var(--dh-surface-1,#fff);color:var(--dh-ink,#222);border:1.5px solid var(--dh-border-strong,#bbb);border-radius:18px;padding:16px;display:grid;gap:12px">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0;font-size:1.15rem">${esc(t('att_mgr_title'))}</h3>
-        <button type="button" id="dhSmClose" style="border:0;border-radius:10px;padding:7px 14px;font-weight:800;cursor:pointer;background:var(--dh-surface-3,#eee);color:var(--dh-ink,#222)">${esc(t('att_mgr_close'))}</button></div>
-      <div style="background:var(--dh-surface-2,#f6f3e8);border:1.5px dashed var(--dh-border-strong,#bbb);border-radius:14px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-        <span>⏰ ${esc(describePromptSettings())}</span><button type="button" id="dhSmTime" style="border:0;border-radius:10px;padding:7px 14px;font-weight:800;cursor:pointer;background:var(--dh-gold-500,#e8b923);color:#2b2100">${esc(t('att_time_change'))}</button></div>
-      ${students.length ? students.map((s, i) => `<div class="sm-row" data-i="${i}" style="background:var(--dh-surface-3,#fff);border:1.5px solid var(--dh-border,#ddd);border-radius:14px;padding:10px 12px">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>${esc(String(s.name || '').trim())}</b><div style="font-size:.82rem;color:var(--dh-ink-soft,#666)">${esc(daysSummary(s))}</div></div>
-        <button type="button" class="sm-edit" data-i="${i}" style="border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer">${esc(t('att_mgr_edit'))}</button></div>
-        <div class="sm-body" data-i="${i}" style="display:none;margin-top:10px"></div></div>`).join('') : `<p>${esc(t('att_mgr_empty'))}</p>`}</div>`;
+    container.innerHTML = `<div class="ms-sched"><span>⏰ ${esc(describePromptSettings())}</span><button type="button" class="ms-btn line" data-sm-time>${esc(t('ms_sched_time_btn'))}</button></div>
+      <p class="ms-hint">${esc(t('ms_sched_hint'))}</p>
+      <div class="as-list">${students.length ? students.map(s => {
+        const open = openId === s.id, cur = hasSchedule(s) ? s.schedule : { days: [], minutes: 60 };
+        const days = new Set((cur.days || []).map(Number)), mins = Number(cur.minutes) || 60;
+        return `<div class="ms-acc${open ? ' open' : ''}" data-id="${esc(s.id)}">
+          <button type="button" class="ms-acc-h" data-sm-open="${esc(s.id)}" aria-expanded="${open}">
+            <span class="nm"><b>${esc(s.name)}</b><small>${esc(daysSummary(s))}</small></span>
+            <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="ms-acc-b">
+            <label>${esc(t('att_sched_days'))}</label>
+            <div class="ms-dayp">${[0, 1, 2, 3, 4, 5, 6].map(d => `<button type="button" class="${days.has(d) ? 'on' : ''}" data-sm-day="${d}" aria-pressed="${days.has(d)}">${esc(t('att_day_' + d))}</button>`).join('')}</div>
+            <label>${esc(t('att_sched_minutes'))}</label>
+            <div class="ms-minp">${minutesOptions(mins).map(m => `<button type="button" class="${m === mins ? 'on' : ''}" data-sm-min="${m}" aria-pressed="${m === mins}">${m}</button>`).join('')}</div>
+            <div class="ms-saved" role="status">${savedId === s.id ? esc(t('att_sched_saved')) : ''}</div>
+          </div>
+        </div>`;
+      }).join('') : `<div class="as-empty">${esc(t('att_mgr_empty'))}</div>`}</div>`;
   };
-  draw(); document.body.appendChild(root);
-  root.addEventListener('click', (e) => {
-    if (e.target.closest('#dhSmClose') || e.target === root) { root.remove(); return; }
-    if (e.target.closest('#dhSmTime')) { askAttendanceTime().then(() => { draw(); }); return; }
-    if (e.target.closest('#sched-save')) {
-      // بعد الحفظ نحدّث سطر الملخّص تحت اسم الطالب دون إعادة رسم النافذة
-      const body = e.target.closest('.sm-body');
-      setTimeout(() => { const row = body && body.closest('.sm-row'); if (row) row.querySelector('div > div > div').textContent = daysSummary(students[Number(body.dataset.i)]); }, 400);
-      return;
-    }
-    const ed = e.target.closest('.sm-edit');
-    if (ed) {
-      const body = root.querySelector(`.sm-body[data-i="${ed.dataset.i}"]`), open = body.style.display !== 'none';
-      if (open) { body.style.display = 'none'; return; }
-      body.style.display = 'block';
-      renderScheduleSection(students[Number(ed.dataset.i)], body);
-    }
-  });
+
+  // حفظ تلقائي: كل ضغطة على يوم أو مدة تُكتب فورًا في سجل الطالب
+  async function save(student, days, minutes) {
+    if (days.length) student.schedule = { days: [...days].sort((a, b) => a - b), minutes, since: (student.schedule && student.schedule.since) || Date.now() };
+    else delete student.schedule;
+    try {
+      await AppState.studentManager.updateStudent(student);
+      savedId = student.id;
+      // أول جدول يُحفظ: نسأل المعلم متى يحب ظهور سؤال الحضور (مرة واحدة)
+      if (student.schedule) import('./attendancePrompt.js').then(m => { if (!m.getPromptSettings().configured) m.askAttendanceTime().then(draw); }).catch(() => {});
+    } catch (err) { console.warn('[scheduleManager] تعذر الحفظ التلقائي:', err); savedId = null; }
+  }
+
+  container.onclick = async (e) => {
+    if (e.target.closest('[data-sm-time]')) { askAttendanceTime().then(draw); return; }
+    const head = e.target.closest('[data-sm-open]');
+    if (head) { const id = head.dataset.smOpen; openId = String(openId) === id ? null : students.find(s => String(s.id) === id)?.id; savedId = null; draw(); return; }
+    const box = e.target.closest('.ms-acc'); if (!box) return;
+    const student = students.find(s => String(s.id) === box.dataset.id); if (!student) return;
+    const cur = hasSchedule(student) ? student.schedule : { days: [], minutes: 60 };
+    const days = new Set((cur.days || []).map(Number));
+    let minutes = Number(cur.minutes) || 60;
+    const day = e.target.closest('[data-sm-day]'), min = e.target.closest('[data-sm-min]');
+    if (day) { const n = Number(day.dataset.smDay); days.has(n) ? days.delete(n) : days.add(n); }
+    else if (min) { minutes = Number(min.dataset.smMin); }
+    else return;
+    await save(student, [...days], minutes);
+    draw();
+  };
+  draw();
 }
