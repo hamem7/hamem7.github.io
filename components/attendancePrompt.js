@@ -9,7 +9,7 @@ import { AppState, t } from '../core/app.js';
 import { tf } from '../core/i18n.js';
 import '../core/i18n-badges.js';
 import { esc } from '../core/escape.js';
-import { needsConfirmation, setDayStatus, evidenceDays, dateKey, hasSchedule } from '../engine/attendanceEngine.js';
+import { needsConfirmation, setDayStatus, evidenceDays, dateKey, hasSchedule, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
 import { individualGames, readHistory } from '../core/badgeService.js';
 
 const DAY_KEY = 'dh_att_prompt_day', TIME_KEY = 'dh_att_prompt_time', OFF_KEY = 'dh_att_prompt_off', STYLE = 'dh-att-prompt-style';
@@ -42,15 +42,14 @@ export async function collectPending(opts = {}) {
   if (!mgr) return [];
   const students = (await mgr.getAllStudents()).filter(s => hasSchedule(s) && (opts.studentId == null || String(s.id) === String(opts.studentId)));
   if (!students.length) return [];
-  let matches = [], sessions = [];
-  try { if (AppState.dualTestsManager) matches = (await AppState.dualTestsManager.getAllMatches()).filter(m => m.status === 'completed' && m.finishedAt); } catch (e) { /* اختياري */ }
-  try { if (AppState.tajweedManager) sessions = await AppState.tajweedManager.getAllSessions(); } catch (e) { /* اختياري */ }
+  let matches = [], sessions = [], mastery = [], reviews = [];
+  try { if (AppState.dualTestsManager) matches = await AppState.dualTestsManager.getAllMatches(); } catch (e) { /* اختياري */ }
+  try { if (AppState.tajweedManager) { sessions = await AppState.tajweedManager.getAllSessions(); mastery = await AppState.tajweedManager.getAllMastery(); } } catch (e) { /* اختياري */ }
+  try { if (AppState.reviewScheduleManager) reviews = await AppState.reviewScheduleManager.getAllRuleSchedules(); } catch (e) { /* اختياري */ }
   const today = new Date(), todayKey = dateKey(today), out = [];
   for (const s of students) {
-    const ts = individualGames(readHistory(s.id)).map(g => g.timestamp);
-    matches.forEach(m => { if (String(m.studentIdA) === String(s.id) || String(m.studentIdB) === String(s.id)) ts.push(new Date(m.finishedAt).getTime()); });
-    sessions.forEach(x => { if (String(x.studentId) === String(s.id)) ts.push(typeof x.timestamp === 'number' ? x.timestamp : Date.parse(x.timestamp)); });
-    const ev = evidenceDays(ts.filter(Number.isFinite));
+    // أي أثر للطالب في الألعاب الفردية/الثنائية/التجويد (ولو لم يكتمل) = حاضر ذلك اليوم
+    const ev = evidenceDays(collectEvidenceTimestamps(s, { games: individualGames(readHistory(s.id)), matches, tjSessions: sessions, mastery, ruleReviews: reviews }));
     const sinceKey = s.schedule.since ? dateKey(s.schedule.since) : '0000-00-00';
     const keys = [];
     if (opts.reportMonth) {

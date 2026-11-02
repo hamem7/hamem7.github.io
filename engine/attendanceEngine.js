@@ -34,6 +34,34 @@ export function scheduledDaysInMonth(student, year, monthIndex0, upTo = null) {
     return out;
 }
 
+/**
+ * كل أثر للطالب يُعدّ حضورًا ليوم ظهوره، ولو لم يكتمل النشاط:
+ *  • ألعاب فردية (كبار/أطفال بما فيها تحدي الأخطاء) — games: [{timestamp}] (الواجبات المنزلية خارجها لأنها تُحَلّ في البيت)
+ *  • اختبار معلّق «حفظ والعودة لاحقًا» — student.pausedEvaluation.pausedAt
+ *  • مواجهات ثنائية بكل حالاتها (بدأت/غير مكتملة/مكتملة) — matches: [{studentIdA, studentIdB, startedAt, finishedAt}]
+ *  • تجويد: جلسات النشاط، وكل خطوات رحلة الحكم (شرح، تطبيق، اختبار، اعتماد)، ومراجعة الأحكام
+ * يرجع أرقام ms (تصلح لـevidenceDays).
+ */
+export function collectEvidenceTimestamps(student, src = {}) {
+    const out = [], sid = String(student && student.id);
+    const add = (v) => { const ms = typeof v === 'number' ? v : Date.parse(v); if (Number.isFinite(ms)) out.push(ms); };
+    (src.games || []).forEach(g => add(g && g.timestamp));
+    if (student && student.pausedEvaluation) add(student.pausedEvaluation.pausedAt);
+    (src.matches || []).forEach(m => {
+        if (!m || (String(m.studentIdA) !== sid && String(m.studentIdB) !== sid)) return;
+        add(m.startedAt); add(m.finishedAt);
+    });
+    (src.tjSessions || []).forEach(s => { if (s && String(s.studentId) === sid) add(s.timestamp); });
+    (src.mastery || []).forEach(r => {
+        if (!r || String(r.studentId) !== sid) return;
+        add(r.lastPracticedAt); add(r.masteredAt);
+        const j = r.journey;
+        if (j) { add(j.learnedAt); add(j.practicePassedAt); add(j.examPassedAt); add(j.teacherApprovedAt); add(j.audioAt); (j.examAttempts || []).forEach(a => add(a && a.at)); }
+    });
+    (src.ruleReviews || []).forEach(r => { if (r && String(r.studentId) === sid) add(r.lastReviewedAt); });
+    return out;
+}
+
 /** مفاتيح الأيام التي فيها أدلة نشاط: timestamps = أرقام (ms) أو نصوص ISO من كل المصادر. */
 export function evidenceDays(timestamps) {
     const s = new Set();

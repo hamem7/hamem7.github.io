@@ -13,7 +13,7 @@ import { starsInMonth } from './goldStars.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { summarizeReview } from '../engine/reviewParts.js';
 import { studentOutcomeInMatch } from '../engine/dualTestEngine.js';
-import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceEngine.js';
+import { summarizeMonth, evidenceDays, hasSchedule, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
 
 const monthKey = (y, m) => `${y}-${String(m + 1).padStart(2, '0')}`;
 const range = (y, m) => [new Date(y, m, 1).getTime(), new Date(y, m + 1, 1).getTime()];
@@ -45,19 +45,17 @@ export function individualGames(history) {
 
 /** يحمّل كل مصادر طالب مرة واحدة (للاستعمال عبر عدة أشهر). كل مصدر محمي بـtry فلا يكسر البقية. */
 export async function loadStudentContext(student) {
-    const ctx = { student, games: individualGames(readHistory(student.id)), matches: [], mastery: [], tjSessions: [], records: [], surahsData: AppState.surahsData || [] };
-    try { if (AppState.dualTestsManager) ctx.matches = (await AppState.dualTestsManager.getAllMatches()).filter(m => m.status === 'completed' && m.finishedAt && (String(m.studentIdA) === String(student.id) || String(m.studentIdB) === String(student.id))); } catch (e) { /* اختياري */ }
+    const ctx = { student, games: individualGames(readHistory(student.id)), matches: [], allMatches: [], mastery: [], tjSessions: [], ruleReviews: [], records: [], surahsData: AppState.surahsData || [] };
+    try { if (AppState.dualTestsManager) { ctx.allMatches = (await AppState.dualTestsManager.getAllMatches()).filter(m => String(m.studentIdA) === String(student.id) || String(m.studentIdB) === String(student.id)); ctx.matches = ctx.allMatches.filter(m => m.status === 'completed' && m.finishedAt); } } catch (e) { /* اختياري */ }
+    try { if (AppState.reviewScheduleManager) ctx.ruleReviews = await AppState.reviewScheduleManager.getRuleSchedulesByStudent(student.id); } catch (e) { /* اختياري */ }
     try { if (AppState.tajweedManager) { ctx.mastery = await AppState.tajweedManager.getMasteryByStudent(student.id); ctx.tjSessions = await AppState.tajweedManager.getSessionsByStudent(student.id); } } catch (e) { /* اختياري */ }
     try { if (AppState.monthlyMemorizationManager) ctx.records = await AppState.monthlyMemorizationManager.getAllForStudent(student.id); } catch (e) { /* اختياري */ }
     return ctx;
 }
 
-/** أيام النشاط (أدلة الحضور): ألعاب فردية، مواجهات، جلسات تجويد. الواجبات المنزلية لا تُحتسب حضورًا. */
+/** أدلة الحضور: أي أثر للطالب في الألعاب الفردية/المواجهات/التجويد ولو لم يكتمل (engine/attendanceEngine.js). */
 export function evidenceTimestamps(ctx) {
-    const ts = ctx.games.map(g => g.timestamp);
-    ctx.matches.forEach(m => ts.push(new Date(m.finishedAt).getTime()));
-    ctx.tjSessions.forEach(s => ts.push(typeof s.timestamp === 'number' ? s.timestamp : Date.parse(s.timestamp)));
-    return ts.filter(Number.isFinite);
+    return collectEvidenceTimestamps(ctx.student, { games: ctx.games, matches: ctx.allMatches, tjSessions: ctx.tjSessions, mastery: ctx.mastery, ruleReviews: ctx.ruleReviews });
 }
 
 function tajweedCounts(ctx, y, m) {

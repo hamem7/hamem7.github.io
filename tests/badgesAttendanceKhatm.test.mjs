@@ -1,6 +1,6 @@
 // tests/badgesAttendanceKhatm.test.mjs — تشغيل: node tests/badgesAttendanceKhatm.test.mjs
 import { computeMonthBadges, summarizeEarned, countCappedPerDay, closestToNext, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
-import { summarizeMonth, evidenceDays, setDayStatus, needsConfirmation, dateKey, scheduledDaysInMonth } from '../engine/attendanceEngine.js';
+import { summarizeMonth, evidenceDays, setDayStatus, needsConfirmation, dateKey, scheduledDaysInMonth, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
 import { paceFrom, projectMilestones, unitsBetween, sessionsToFinish, buildNextMonthPlan, buildPathMap, weightsFromPages } from '../engine/khatmPlan.js';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('✅', m); } else { fail++; console.log('❌', m); } };
@@ -65,6 +65,19 @@ ok(needsConfirmation(st, '2026-10-25', ev) === true && needsConfirmation(st, '20
 ok(needsConfirmation({}, '2026-10-25', ev) === false, 'بلا جدول: لا أسئلة');
 ok(summarizeMonth({}, 2026, 9, ev).hasSchedule === false && summarizeMonth({}, 2026, 9, ev).pct === null, 'بلا جدول: لا نسبة حضور');
 ok(dateKey(new Date(2026, 0, 5)) === '2026-01-05', 'مفتاح التاريخ');
+
+// ---- أدلة الحضور: أي أثر ولو لم يكتمل ----
+const stu = { id: 7, pausedEvaluation: { pausedAt: '2026-10-03T10:00:00' } };
+const evs = collectEvidenceTimestamps(stu, {
+  games: [{ timestamp: at(2026, 9, 1) }],
+  matches: [{ studentIdA: 7, studentIdB: 9, startedAt: '2026-10-05T09:00:00', finishedAt: null }, { studentIdA: 1, studentIdB: 2, startedAt: '2026-10-06T09:00:00' }],
+  tjSessions: [{ studentId: 7, timestamp: '2026-10-07T09:00:00' }, { studentId: 8, timestamp: '2026-10-08T09:00:00' }],
+  mastery: [{ studentId: 7, journey: { learnedAt: '2026-10-10T09:00:00', examAttempts: [{ at: '2026-10-11T09:00:00' }], teacherApprovedAt: '2026-10-12T09:00:00' } }],
+  ruleReviews: [{ studentId: 7, lastReviewedAt: '2026-10-13T09:00:00' }]
+});
+const dk = [...evidenceDays(evs)].sort();
+ok(JSON.stringify(dk) === JSON.stringify(['2026-10-01', '2026-10-03', '2026-10-05', '2026-10-07', '2026-10-10', '2026-10-11', '2026-10-12', '2026-10-13']), 'أدلة الحضور: لعبة، اختبار معلّق، مواجهة غير مكتملة، جلسة تجويد، خطوات الرحلة، مراجعة — ولا أثر لطالب آخر');
+ok(collectEvidenceTimestamps({ id: 5 }, {}).length === 0, 'بلا أثر: لا أدلة');
 
 // ---- الختم ----
 const pace = paceFrom([{ newUnits: 40, sessions: 8 }, { newUnits: 56, sessions: 8 }]);
