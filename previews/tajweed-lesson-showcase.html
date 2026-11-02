@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاينة — درس القلقلة للأطفال</title>
+<!-- نموذج درس كامل للأطفال (القلقلة) بنفس ملفات المنصة وترويستها.
+     المحتوى كله من مواد موجودة في المستودع: صور عرض القلقلة (assets/tajweed/qalqalah — إعداد المعلم)، رسوم المخارج من كتاب
+     «التجويد المصوّر» (assets/tajweed/book — منسوبة في كل عرض)، والآيات وتظليلها من بيانات الركن (tajweed/challenge/data/pool.js)،
+     والصوت بصوت المنشاوي (engine/ayahAudio.js). لا نص قرآني مكتوب يدويًا هنا؛ الحروف المفردة بحركاتها رموز تعليمية. -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/kids.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/homeFast.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/landscape.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
+<style>
+#tl{
+  --c:#6d4ad8;--gold:#d4af37;--surface:var(--dh-surface-3);
+  --k-q:#e8743b;--k-t:#3d8fd6;--k-b:#5aa83c;--k-j:#e0b100;--k-d:#d6457a;
+  max-width:1040px;width:calc(100% - 32px);margin:24px auto 28px;background:var(--dh-surface-1);color:var(--dh-ink);border-radius:28px;
+  box-shadow:var(--dh-sh-lift);padding:22px 26px 26px;text-align:start;font-size:17px;line-height:1.75;box-sizing:border-box;display:flex;flex-direction:column;gap:16px
+}
+[data-theme="dark"] #tl{--c:#a78bfa;--gold:#e3c155;--k-q:#f59a66;--k-t:#6cb4f0;--k-b:#86cf68;--k-j:#f2cc3d;--k-d:#f27aa6}
+#tl *,#tl *::before,#tl *::after{box-sizing:border-box}
+#tl button{font-family:inherit;margin:0;min-width:0;box-shadow:none;cursor:pointer}
+#tl p{margin:0}
+#tl :focus-visible{outline:3px solid var(--dh-focus,var(--dh-gold-500));outline-offset:2px}
+#app-root #tl h1,#app-root #tl h2,#app-root #tl h3{color:var(--dh-ink) !important;text-shadow:none !important;margin:0;line-height:1.35;text-align:start}
+/* تحييد إطار .quran-text العام في adults/kids/global (تخطيط فقط: الخلفية والحشوة والحجم؛ الخط والوزن والتباعد كما هي) */
+#app-root #tl .quran-text{background:none !important;padding:0 !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;max-width:none}
+#app-root #tl span.quran-text,#app-root #tl b.quran-text{display:inline;color:inherit;font-size:inherit !important}
+
+/* رأس الدرس */
+#tl .tl-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#tl .tl-crumb{font-size:.85rem;color:var(--dh-ink-soft);font-weight:700}
+#tl .tl-sp{flex:1}
+#tl .tl-mode{display:flex;background:var(--dh-surface-0);border:1.5px solid var(--dh-border);border-radius:14px;padding:3px;gap:3px}
+#tl .tl-mode button{border:0;background:transparent;color:var(--dh-ink-soft);font-weight:700;border-radius:11px;padding:7px 14px;font-size:.88rem;min-height:40px}
+#tl .tl-mode button[aria-pressed="true"]{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#tl .tl-prog{display:flex;gap:5px;align-items:center}
+#tl .tl-prog button{width:30px;height:8px;border-radius:99px;border:0;background:var(--dh-border-soft);padding:0}
+#tl .tl-prog button.done{background:color-mix(in srgb,var(--c) 55%,var(--dh-border-soft))}
+#tl .tl-prog button.cur{background:var(--c);width:44px}
+
+/* الشريحة */
+#tl .sl{display:flex;flex-direction:column;gap:16px;animation:tlIn .35s ease-out}
+#tl.is-scroll .sl{padding-bottom:26px;border-bottom:2px dashed var(--dh-border)}
+#tl.is-scroll .sl:last-of-type{border-bottom:0}
+@keyframes tlIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#tl .kick{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;background:color-mix(in srgb,var(--c) 14%,var(--dh-surface-3));color:color-mix(in srgb,var(--c) 80%,var(--dh-ink));font-weight:700;font-size:.82rem;border-radius:99px;padding:4px 14px}
+#tl .sl h2{font-size:clamp(1.45rem,2.6vw + .7rem,2.1rem)}
+#tl .lead{font-size:1.12rem;color:var(--dh-ink)}
+#tl .muted{color:var(--dh-ink-soft)}
+#tl .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:center}
+#tl .card{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:20px;padding:16px 18px}
+#tl .kid{position:relative;background:color-mix(in srgb,var(--gold) 14%,var(--dh-surface-3));border:1.5px solid color-mix(in srgb,var(--gold) 45%,var(--dh-border));border-radius:22px;padding:16px 18px 16px 18px;font-size:1.12rem}
+#tl .kid b.who{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--dh-gold-ink,var(--dh-ink));margin-bottom:4px}
+
+/* صورة العرض (شرائح المعلم) */
+#tl figure{margin:0}
+#tl .deck{border-radius:20px;overflow:hidden;border:1.5px solid var(--dh-border);background:#fbf6e9}
+#tl .deck img{display:block;width:100%;height:auto}
+#tl .deck figcaption,#tl .book figcaption{font-size:.8rem;color:var(--dh-ink-soft);padding:6px 12px;background:var(--dh-surface-3);border-top:1px solid var(--dh-border-soft)}
+#tl .book{border-radius:18px;overflow:hidden;border:1.5px solid var(--dh-border);background:#fff}
+#tl .book img{display:block;width:100%;height:auto;max-height:340px;object-fit:contain;background:#fff}
+
+/* أهداف ومعلومات */
+#tl .chips{display:flex;gap:8px;flex-wrap:wrap}
+#tl .chip{display:inline-flex;align-items:center;gap:6px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:99px;padding:4px 12px;font-size:.85rem;font-weight:700}
+#tl .goals{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+#tl .goals li{display:flex;gap:10px;align-items:flex-start}
+#tl .goals li i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--dh-ok-bg);color:var(--dh-ok);display:grid;place-items:center;font-weight:700;flex:none;font-size:.85rem}
+
+/* رسم الكرة */
+#tl .bounce{width:100%;max-width:420px;height:auto;display:block;margin:auto}
+#tl .bounce .gr{stroke:var(--dh-border-strong);stroke-width:4;stroke-linecap:round}
+#tl .bounce .blk{fill:color-mix(in srgb,var(--c) 16%,var(--dh-surface-3));stroke:var(--c);stroke-width:3}
+#app-root #tl .bounce .let{fill:var(--dh-ink);font-size:46px !important}
+#tl .bounce .ball{fill:var(--gold);stroke:color-mix(in srgb,var(--gold) 60%,#000);stroke-width:2.5}
+#tl .bounce .echo{fill:none;stroke:var(--c);stroke-width:3.5;stroke-linecap:round}
+#tl .bounce .face{fill:#5b3d00}
+@media (prefers-reduced-motion:no-preference){
+  #tl .bounce .ballg{animation:tlBounce 1.6s cubic-bezier(.3,0,.4,1) infinite}
+  #tl .bounce .echo{animation:tlEcho 1.6s ease-out infinite}
+  @keyframes tlBounce{0%,100%{transform:translateY(-70px)}48%{transform:translateY(0)}52%{transform:translateY(0) scaleY(.92)}}
+  @keyframes tlEcho{0%,40%{opacity:0}52%{opacity:1}80%,100%{opacity:0}}
+}
+
+/* حروف القلقلة */
+#tl .coins{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+#tl .coin{width:84px;height:84px;border-radius:50%;border:4px solid color-mix(in srgb,var(--k) 70%,#000 0%);background:var(--k);color:#fff;font-size:2.3rem;display:grid;place-items:center;
+  box-shadow:inset 0 -6px 0 rgba(0,0,0,.15),0 6px 14px color-mix(in srgb,var(--k) 35%,transparent);transition:transform .15s}
+#tl .coin:hover{transform:translateY(-4px)}
+#tl .coin[aria-pressed="true"]{transform:translateY(-6px) scale(1.06);outline:4px solid color-mix(in srgb,var(--k) 35%,transparent);outline-offset:3px}
+#app-root #tl .coin .quran-text{line-height:1 !important;font-size:2.3rem !important;padding-bottom:.25em !important}
+#tl .mn{display:flex;align-items:center;justify-content:center;gap:10px;font-size:1rem;color:var(--dh-ink-soft)}
+#app-root #tl .mn b{font-size:1.9rem !important;color:var(--dh-ink)}
+#tl .mkh{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center;border-top:5px solid var(--k);background:var(--dh-surface-3);border-radius:20px;border-inline:1.5px solid var(--dh-border);border-bottom:1.5px solid var(--dh-border);padding:16px}
+#tl .mkh h3{font-size:1.3rem}
+#app-root #tl .mkh .big{font-size:3.4rem !important;color:var(--k);line-height:1.4 !important}
+#tl .credit{font-size:.75rem;color:var(--dh-ink-soft)}
+
+/* متى تقفز */
+#tl .eq{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-size:1.05rem;font-weight:700}
+#tl .eq .box{min-width:92px;min-height:92px;border-radius:22px;background:var(--dh-surface-3);border:2px solid var(--dh-border-strong);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;text-align:center}
+#app-root #tl .eq .box .quran-text{font-size:2.4rem !important;line-height:1.3 !important}
+#tl .eq .box small{font-size:.74rem;color:var(--dh-ink-soft);font-weight:700}
+#tl .eq .op{font-size:2rem;color:var(--dh-ink-soft)}
+#tl .eq .res{background:color-mix(in srgb,var(--gold) 20%,var(--dh-surface-3));border-color:var(--gold);font-size:2.2rem}
+#tl .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#tl .vs .card{text-align:center}
+#app-root #tl .vs .card .quran-text{font-size:3rem !important;line-height:1.4 !important;display:block}
+#tl .vs .yes{border-color:var(--dh-ok);background:var(--dh-ok-bg)}
+#tl .q4{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+#tl .q4 button{width:86px;height:86px;border-radius:20px;border:2px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);font-size:2.3rem}
+#tl .q4 button .quran-text{line-height:1.3 !important}
+#tl .q4 button.ok{border-color:var(--dh-ok);background:var(--dh-ok-bg);animation:tlPop .35s}
+#tl .q4 button.no{border-color:var(--dh-danger);background:var(--dh-danger-bg);animation:tlShake .4s}
+#tl .fb{min-height:1.6em;text-align:center;font-weight:700}
+#tl .fb.ok{color:var(--dh-ok)} #tl .fb.no{color:var(--dh-danger)}
+@keyframes tlPop{50%{transform:scale(1.12)}}
+@keyframes tlShake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+
+/* الآيات */
+#tl .exs{display:flex;flex-direction:column;gap:12px}
+#tl .ex{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:20px;padding:12px 16px}
+#tl .ex .coin{width:58px;height:58px;font-size:1.6rem;border-width:3px}
+#app-root #tl .ex .coin .quran-text{font-size:1.6rem !important;line-height:1 !important;padding-bottom:.2em !important}
+#app-root #tl .ayah .quran-text{font-size:clamp(1.55rem,3.6vw + .5rem,2.3rem) !important}
+#tl .ayah{font-size:clamp(1.55rem,3.6vw + .5rem,2.3rem);text-align:center;line-height:2.2;color:var(--dh-ink)}
+#tl .ayah .waqf{font-size:.7em;color:var(--dh-ink-soft)}
+#tl .decor{position:relative;isolation:isolate}
+#tl .ayah .w{position:relative;z-index:1}
+#tl .hlbox{position:absolute;z-index:0;border-radius:.35em;pointer-events:none}
+#tl .hlbox.cause{background:color-mix(in srgb,var(--k,var(--c)) 34%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--k,var(--c)) 80%,transparent)}
+#tl .ex-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px dashed var(--dh-border);padding-top:6px;font-size:.85rem;color:var(--dh-ink-soft)}
+#app-root #tl .ex-meta .quran-text{font-size:1.05rem !important;line-height:1.6 !important}
+#tl .play{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--dh-emerald-600);background:var(--dh-surface-3);color:var(--dh-emerald-700);border-radius:99px;padding:4px 14px;font-weight:700;font-size:.85rem;min-height:38px}
+[data-theme="dark"] #tl .play{color:var(--dh-ink)}
+#tl .play.on{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#tl .why{font-size:.9rem;color:var(--dh-ink)}
+
+/* كيف أنطقها */
+#tl .how{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+#tl .how li{display:flex;gap:12px;align-items:flex-start;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:10px 14px}
+#tl .how li .n{width:34px;height:34px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+[data-theme="dark"] #tl .how li .n{color:var(--dh-surface-0)}
+#tl .dd{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#tl .dd .card{display:flex;gap:10px;align-items:flex-start;font-size:.95rem}
+#tl .dd .bad{border-color:var(--dh-danger);background:var(--dh-danger-bg)}
+#tl .dd .good{border-color:var(--dh-ok);background:var(--dh-ok-bg)}
+
+/* المستويات */
+#tl .lv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#tl .lv .card{display:flex;flex-direction:column;gap:6px;padding:0;overflow:hidden}
+#tl .lv .card img{display:block;width:100%;height:auto;background:#fbf6e9}
+#tl .lv .card div{padding:10px 14px 14px}
+#tl .lv .card b{font-size:1rem}
+#tl .lv .card small{color:var(--dh-ink-soft);font-size:.86rem;display:block}
+#tl .adv{display:inline-flex;gap:6px;align-items:center;background:var(--dh-info-bg);color:var(--dh-info);border-radius:99px;padding:3px 12px;font-size:.8rem;font-weight:700;align-self:flex-start}
+
+/* اللعبة */
+#tl .game{display:flex;flex-direction:column;gap:12px;align-items:center}
+#tl .score{display:flex;gap:6px}
+#tl .score i{width:34px;height:34px;border-radius:50%;background:var(--dh-surface-0);border:2px solid var(--dh-border);display:grid;place-items:center;font-style:normal;font-size:1rem}
+#tl .score i.ok{background:var(--gold);border-color:var(--gold)}
+#tl .gq{width:100%;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:22px;padding:14px 16px;text-align:center}
+#tl .tws{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;direction:rtl}
+#app-root #tl .tw .quran-text{font-size:clamp(1.5rem,3.4vw + .4rem,2.1rem) !important}
+#tl .tw{border:2px solid var(--dh-border-strong);background:var(--dh-surface-1);color:var(--dh-ink);border-radius:16px;padding:2px 14px;font-size:clamp(1.5rem,3.4vw + .4rem,2.1rem);min-height:64px}
+#tl .tw .quran-text{line-height:2 !important}
+#tl .tw:hover{border-color:var(--c)}
+#tl .tw.ok{border-color:var(--dh-ok);background:var(--dh-ok-bg);animation:tlPop .35s}
+#tl .tw.no{border-color:var(--dh-danger);background:var(--dh-danger-bg);animation:tlShake .4s}
+#tl .gnav{display:flex;gap:10px;justify-content:center}
+#tl .win{text-align:center;font-size:1.3rem;font-weight:700}
+
+/* الملخص */
+#tl .note{background:var(--dh-surface-3);border:1.5px dashed var(--dh-border-strong);border-radius:20px;padding:16px 18px;white-space:pre-line;font-size:.98rem}
+#tl .tb{display:inline-flex;align-items:center;gap:8px;border-radius:14px;padding:10px 20px;font-weight:700;min-height:var(--dh-tap);border:1.5px solid transparent;font-size:.98rem}
+#tl .tb.em{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+#tl .tb.line{background:var(--dh-surface-3);color:var(--dh-ink);border-color:var(--dh-border-strong)}
+#tl .tb.gold{background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold)}
+#tl .tb[disabled]{opacity:.45;cursor:not-allowed}
+
+/* معرض الدروس القادمة (رسوم الركن الحالية) */
+#tl .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+#tl .gal .card{display:flex;flex-direction:column;gap:6px;border-top:5px solid var(--g)}
+#tl .gal svg{width:100%;height:auto;--c:var(--g)}
+#tl .gal b{font-size:1rem}
+#tl .gal small{color:var(--dh-ink-soft);font-size:.86rem}
+#tl .vz-block rect{fill:var(--dh-surface-1);stroke:var(--dh-border-strong);stroke-width:3}
+#tl .vz-block text{fill:var(--dh-ink)}
+#tl .vz-block.cause rect{fill:color-mix(in srgb,var(--c) 18%,var(--dh-surface-3));stroke:var(--c)}
+#tl .vz-block.trigger rect{fill:color-mix(in srgb,var(--gold) 22%,var(--dh-surface-3));stroke:var(--gold)}
+#tl .vz-block.ghost{opacity:.5} #tl .vz-block.dashed rect{stroke-dasharray:7 6}
+#tl .vz-wave,#tl .vz-arrow,#tl .vz-hide,#tl .vz-brace{fill:none;stroke:var(--c);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+#tl .vz-arrow{stroke:var(--dh-ink-soft);stroke-width:3} #tl .vz-hide{stroke-dasharray:5 7;opacity:.6}
+#tl .vz-gap{stroke:var(--dh-danger);stroke-width:3;stroke-dasharray:5 6;fill:none;opacity:.55}
+#tl .vz-check circle{fill:var(--dh-ok-bg);stroke:var(--dh-ok);stroke-width:2.5} #tl .vz-check path{fill:none;stroke:var(--dh-ok);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+#tl .vz-no circle{fill:var(--dh-danger-bg);stroke:var(--dh-danger);stroke-width:2.5} #tl .vz-no path{stroke:var(--dh-danger);stroke-width:3;stroke-linecap:round}
+#tl .vz-dot{fill:var(--gold)} #tl .vz-cap{fill:var(--dh-ink-soft);font-size:15px;font-weight:700}
+#tl .vz-ground{stroke:var(--dh-border-strong);stroke-width:4;stroke-linecap:round} #tl .vz-ball{fill:var(--gold)}
+#tl .vz-moon{fill:var(--gold)} #tl .vz-sun circle{fill:var(--gold)} #tl .vz-sun path{stroke:var(--gold);stroke-width:4;stroke-linecap:round;fill:none}
+#tl .vz-seg{fill:var(--c)} #tl .vz-seg.opt{fill:color-mix(in srgb,var(--c) 35%,var(--dh-surface-3));stroke:var(--c);stroke-width:2;stroke-dasharray:5 4}
+
+/* نصيحة المعلم */
+#tl details.tip{background:var(--dh-info-bg);border-radius:16px;padding:10px 14px;font-size:.92rem;color:var(--dh-ink)}
+#tl details.tip summary{cursor:pointer;font-weight:700;color:var(--dh-info);list-style:none}
+#tl details.tip summary::-webkit-details-marker{display:none}
+#tl details.tip p{margin-top:6px}
+
+/* تنقّل الشرائح */
+#tl .nav{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid var(--dh-border-soft);padding-top:14px}
+#tl .nav .tb.em .arr::after{content:"←"} [dir="ltr"] #tl .nav .tb.em .arr::after{content:"→"}
+#tl .nav .tb.line .arr::after{content:"→"} [dir="ltr"] #tl .nav .tb.line .arr::after{content:"←"}
+#tl .nav small{color:var(--dh-ink-soft);font-weight:700}
+
+@media(max-width:760px){
+  #tl{width:calc(100% - 16px);margin:12px auto 18px;padding:16px 14px 20px;border-radius:22px;font-size:16px}
+  #tl .two,#tl .mkh,#tl .dd,#tl .lv,#tl .vs{grid-template-columns:1fr}
+  #tl .coin{width:62px;height:62px}
+  #app-root #tl .coin .quran-text{font-size:1.8rem !important}
+  #tl .ex{grid-template-columns:1fr}
+  #tl .ex .coin{justify-self:center}
+  #tl .tl-prog button{width:16px} #tl .tl-prog button.cur{width:26px}
+  #tl .nav .tb{padding:10px 14px}
+}
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.pv-bar a{color:#f3d77a}
+.pv-toast{position:fixed;bottom:80px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
+.pv-toast.on{opacity:1}
+body{padding-bottom:80px}
+@media(max-width:480px){.pv-bar{font-size:.68rem;padding:6px 8px}}
+</style>
+</head>
+<body class="adult-theme" id="main-body">
+
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
+
+<div id="app-root"><div class="screen active"><main id="tl" tabindex="-1"></main></div></div>
+
+<div class="pv-toast" id="toast" role="status"></div>
+<div class="pv-bar" id="pvBar"></div>
+
+<script src="../core/brandLogo.js"></script>
+<script type="module">
+import { POOL, SURAHS } from '../tajweed/challenge/data/pool.js';
+import { RULES } from '../tajweed/challenge/data/rules.js';
+import { lessonExamples, occsOf, whyOf } from '../tajweed/challenge/js/engine.js';
+import { locate, initDecor } from '../tajweed/challenge/js/quran.js';
+import { ayahHTML } from '../tajweed/challenge/js/ui.js';
+import { setLangSource } from '../tajweed/challenge/js/i18n.js';
+import { vizFor, VIZ_CAPTION } from '../tajweed/challenge/js/viz.js';
+import { ayahAudioUrl } from '../engine/ayahAudio.js';
+import { BOOK_IMAGES, bookImageUrl } from '../engine/tajweedBookImages.js';
+
+const IMG = (id) => '../' + bookImageUrl(id);
+
+/* ===== النصوص بالعربية والإنجليزية ===== */
+const T = {
+ar: {
+ pv_note: 'نموذج درس كامل للأطفال (القلقلة) — من موادك الموجودة: صور عرض القلقلة، ورسوم «التجويد المصوّر»، وآيات الركن بصوت المنشاوي. لا شيء يُحفظ.',
+ pv_link: 'معاينة ترتيب الركن',
+ header_title: '🏆 رحلة إتقان القرآن', header_sub: 'منصة حمٓ', h_home: 'الرئيسية',
+ crumb: 'ركن التجويد › أصوات خاصة › القلقلة', m_slides: '📽 عرض الحصة', m_scroll: '📜 تصفّح الدرس',
+ prev: 'السابق', next: 'التالي', finish: 'إنهاء الدرس', of: '{i} من {n}', tip: '💡 فكرة للمعلم داخل الفصل',
+ kid_who: '🧒 بكلمات الأطفال', credit_book: 'رسم من كتاب «التجويد المصوّر» — د. أيمن رشدي سويد', credit_deck: 'من عرض القلقلة الذي أعدّه المعلم',
+ // ٠ الغلاف
+ s0_k: 'درس جديد', s0_t: 'الحروف النطّاطة 🏀', s0_s: 'درس القلقلة — للأطفال من ٦ إلى ١٢ سنة',
+ s0_c1: '⏱ ١٢ دقيقة', s0_c2: '🎯 ٣ أهداف', s0_c3: '🎧 أمثلة بصوت المنشاوي', s0_c4: '🎮 لعبة في الختام',
+ s0_g: 'في نهاية الدرس سيستطيع الطفل أن:', g1: 'يذكر حروف القلقلة الخمسة «قطب جد».', g2: 'يعرف متى تقفز: إذا كان الحرف ساكنًا.', g3: 'يقرؤها بنبرة خفيفة دون أن يضيف حركة.',
+ s0_tip: 'ابدأ بسؤال: «من لعب بكرة تنطّ؟» ثم قل: «اليوم سنتعرّف على حروف تنطّ مثل الكرة!»',
+ // ١ المعنى
+ s1_k: 'الخطوة ١ · ما القلقلة؟', s1_t: 'حرفٌ لا يستطيع أن يسكت!',
+ s1_kid: 'القلقلة يعني: الاهتزاز والحركة.\nبعض الحروف إذا وضعنا عليها سكونًا لا تبقى هادئة… بل تقفز قفزة صغيرة مثل الكرة حين تضرب الأرض.',
+ s1_def: 'التعريف عند العلماء', s1_cap: 'الحرف ينحبس لحظة… ثم يرتدّ بنبرة',
+ s1_tip: 'ارمِ كرة صغيرة على الأرض أمام الأطفال، وقل مع ارتدادها: «أَبْ!». ثم اطلب منهم أن يقلّدوا الكرة بأيديهم.',
+ // ٢ الحروف
+ s2_k: 'الخطوة ٢ · الأبطال الخمسة', s2_t: 'أبطال القلقلة: «قطب جد»', s2_s: 'اضغط على كل حرف لترى من أين يخرج صوته.',
+ s2_mn: 'الكلمة السرّية التي تجمعها:', s2_why: 'لماذا هذه الحروف بالذات؟', s2_why_kid: 'لأن الصوت ينحبس عندها تمامًا (لا يخرج نفَس ولا صوت)، ثم ينفتح فجأة… فتسمع صوت القفزة!',
+ s2_why_t: 'للمعلم: تجمع حروف القلقلة صفتَي الشدّة والجهر.',
+ s2_where: 'من أين يخرج؟',
+ s2_tip: 'وزّع بطاقات الحروف الخمسة على خمسة أطفال؛ كل طفل «بطل حرفه»: يقف ويقفز حين تنطق حرفه ساكنًا.',
+ L: {
+  'ق': { n: 'القاف', kid: 'من آخر لسانك، قريبًا من حلقك، حين يرتفع إلى سقف الفم.', ex: 'أقصى اللسان مع ما يحاذيه من الحنك الأعلى.' },
+  'ط': { n: 'الطاء', kid: 'طرف لسانك يلتصق خلف أسنانك العليا، ولسانك كلّه يرتفع.', ex: 'طرف اللسان مع أصول الثنايا العليا.' },
+  'ب': { n: 'الباء', kid: 'شفتاك تنطبقان معًا ثم تنفتحان.', ex: 'الشفتان معًا.' },
+  'ج': { n: 'الجيم', kid: 'وسط لسانك يرتفع ويلمس سقف فمك.', ex: 'وسط اللسان مع ما يحاذيه من الحنك الأعلى.' },
+  'د': { n: 'الدال', kid: 'طرف لسانك يلمس خلف أسنانك العليا (مثل التاء).', ex: 'طرف اللسان مع أصول الثنايا العليا.' }
+ },
+ // ٣ متى
+ s3_k: 'الخطوة ٣ · متى تقفز؟', s3_t: 'السرّ في السكون', s3_s: 'الحرف يقفز فقط إذا اجتمع شرطان:',
+ s3_a: 'حرف من «قطب جد»', s3_b: 'عليه سكون', s3_c: 'قلقلة!',
+ s3_mov: 'متحرّك: يمشي بهدوء 🚶', s3_sak: 'ساكن: يقفز! 🏀',
+ s3_q: 'اختبر نفسك: أيّ الحروف يقفز؟', s3_ok: 'صحيح! حرف من «قطب جد» عليه سكون 🏀', s3_mv: 'عليه حركة، فلا يقفز 🚶', s3_nl: 'ليس من «قطب جد»، فلا يقفز', s3_done: 'أحسنت! وجدت الحرفين النطّاطين ⭐',
+ s3_tip: 'اكتب حرف الباء على السبورة، وغيّر عليه الحركة كل مرة: الأطفال يقفزون فقط عندما يرون السكون.',
+ // ٤ القرآن
+ s4_k: 'الخطوة ٤ · شاهدها في القرآن', s4_t: 'الحروف النطّاطة في سور جزء عمّ', s4_s: 'استمع، وانظر إلى الحرف الملوَّن، ثم ردّد.',
+ listen: '🎧 استمع', stop: '⏸ إيقاف', from: 'سورة {s} · الآية {a}', reciter: 'بصوت الشيخ المنشاوي',
+ s4_tip: 'شغّل الآية مرتين: مرة للاستماع فقط، ومرة يردّد الأطفال ويرفعون أيديهم لحظة القفزة.',
+ // ٥ النطق
+ s5_k: 'الخطوة ٥ · كيف أنطقها؟', s5_t: 'قفزة صغيرة… لا أكثر', s5_book: 'الباء الساكنة المقلقلة: تتباعد الشفتان دون الفكّين',
+ s5_no: 'لا تفعل', s5_yes: 'افعل',
+ s5_n1: 'لا تُضِف بعد الحرف فتحة أو ضمّة أو كسرة.', s5_n2: 'لا تُسكّنه سكونًا ميّتًا بلا صوت.', s5_y1: 'احبس الحرف لحظة ثم أطلقه بنبرة خفيفة.', s5_y2: 'تكون القفزة أوضح إذا وقفتَ على الحرف في آخر الكلمة.',
+ s5_tip: 'انتبه لمن يضيف حركة بعد الحرف، وصحّح بلطف: «قفزة صغيرة فقط، بلا فتحة».',
+ // ٦ المستويات
+ s6_k: 'الخطوة ٦ · مقياس القفزة', s6_t: 'ثلاث قفزات: خفيفة وعالية وعملاقة', s6_adv: '⭐ للمتقدّمين — يمكن تأجيله لحصة قادمة',
+ s6_1: 'القلقلة الصغرى', s6_1d: 'الحرف الساكن في وسط الكلمة: قفزة خفيفة.', s6_2: 'القلقلة الكبرى', s6_2d: 'نقف على الحرف في آخر الكلمة: قفزة أعلى.', s6_3: 'الكبرى المشدّدة', s6_3d: 'نقف على حرف مشدّد: أعلى قفزة.',
+ s6_tip: 'هذا الجزء للمتقدّمين. مع الصغار يكفي أن يعرفوا أن القفزة تكبر عند الوقف.',
+ // ٧ اللعبة
+ s7_k: 'الخطوة ٧ · العب!', s7_t: 'اصطد الكلمة النطّاطة 🎯', s7_s: 'اضغط الكلمة التي فيها حرف يقفز.',
+ g_ok: 'أحسنت! ', g_no: 'ليست هذه. ابحث عن حرف من «ق ط ب ج د» عليه سكون.', g_next: 'الآية التالية', g_win: '🏆 اصطدت {n} من {m} كلمات نطّاطة!', g_again: 'العب مرة أخرى',
+ s7_tip: 'اجعلها مسابقة بين فريقين على الشاشة الكبيرة: كل كلمة صحيحة نقطة للفريق.',
+ // ٨ الملخص
+ s8_k: 'الخطوة ٨ · ماذا تعلّمنا؟', s8_t: 'خريطة الدرس ورسالة لوليّ الأمر',
+ s8_msg: 'السلام عليكم ورحمة الله،\nتعلّم ابنكم اليوم درس «القلقلة» 🏀:\n• حروفها خمسة تجمعها كلمة «قطب جد».\n• تقفز إذا كانت ساكنة، بنبرة خفيفة بلا حركة.\nاطلبوا منه أن يقرأ لكم من سورة النازعات قوله تعالى في الآية التاسعة، ويُريكم الحرف النطّاط فيها.\nجزاكم الله خيرًا.',
+ copy: '📋 نسخ الرسالة', copied: 'نُسخت الرسالة — الصقها في الواتساب',
+ s8_tip: 'أرسل الرسالة لأولياء الأمور بعد الحصة ليُراجعوا مع أبنائهم في البيت.',
+ // ٩ المعرض
+ s9_k: 'وبنفس الطريقة', s9_t: 'كل درس له صورة تشرح فكرته', s9_s: 'هذه الرسوم موجودة الآن في الركن؛ القالب نفسه (حكاية + صورة + آيات بصوت + لعبة) يُطبَّق على كل الدروس.',
+ G: { ghunna: ['الغنّة', 'نحلة تطنّ في الأنف 🐝'], noon_ikhfa: ['الإخفاء', 'النون تختبئ خلف ستارة ☁️'], noon_iqlab: ['الإقلاب', 'النون تتحوّل إلى ميم 🎩'], noon_idgham_ghunna: ['الإدغام بغنّة', 'النون تذوب في صاحبتها 💧'], lam_shamsi: ['اللام الشمسية', 'الشمس تُخفي اللام ☀️'], madd_tabii: ['المدّ الطبيعي', 'نمدّ الصوت بإصبعين ✌️'] },
+ toast: 'في المنصة: ', hint_audio: 'تعذّر تشغيل الصوت (يحتاج اتصالًا بالإنترنت)'
+},
+en: {
+ pv_note: 'A complete lesson for children (Qalqalah) — from your existing material: the qalqalah slides, “Illustrated Tajweed” drawings, and the corner’s verses recited by Minshawi. Nothing is saved.',
+ pv_link: 'Corner layout preview',
+ header_title: '🏆 Quran Mastery Journey', header_sub: 'Ham Platform', h_home: 'Home',
+ crumb: 'Tajweed corner › Special sounds › Qalqalah', m_slides: '📽 Present', m_scroll: '📜 Read through',
+ prev: 'Previous', next: 'Next', finish: 'Finish lesson', of: '{i} of {n}', tip: '💡 Classroom idea for the teacher',
+ kid_who: '🧒 In children’s words', credit_book: 'Drawing from “Illustrated Tajweed” — Dr. Ayman Rushdi Suwayd', credit_deck: 'From the teacher’s qalqalah slides (text in Arabic)',
+ s0_k: 'New lesson', s0_t: 'The Bouncing Letters 🏀', s0_s: 'The Qalqalah lesson — for children aged 6 to 12',
+ s0_c1: '⏱ 12 minutes', s0_c2: '🎯 3 goals', s0_c3: '🎧 Examples recited by Minshawi', s0_c4: '🎮 A closing game',
+ s0_g: 'By the end of the lesson the child can:', g1: 'Name the five qalqalah letters, “Qutb Jad”.', g2: 'Know when they bounce: when the letter is sakin.', g3: 'Read them with a light echo, without adding a vowel.',
+ s0_tip: 'Open with a question: “Who has played with a bouncy ball?” Then: “Today we meet letters that bounce like a ball!”',
+ s1_k: 'Step 1 · What is qalqalah?', s1_t: 'A letter that cannot stay quiet!',
+ s1_kid: 'Qalqalah means shaking and moving.\nWhen some letters carry a sukun they cannot stay still… they make a small bounce, like a ball hitting the floor.',
+ s1_def: 'The scholarly definition', s1_cap: 'The letter is held for a moment… then bounces out',
+ s1_tip: 'Bounce a small ball in front of the children and say “ab!” as it bounces. Then ask them to copy the ball with their hands.',
+ s2_k: 'Step 2 · The five heroes', s2_t: 'The qalqalah heroes: “Qutb Jad”', s2_s: 'Tap each letter to see where its sound comes from.',
+ s2_mn: 'The secret word that gathers them:', s2_why: 'Why these letters?', s2_why_kid: 'Because the sound is completely blocked at them (no breath, no sound), then it opens suddenly… and you hear the bounce!',
+ s2_why_t: 'For the teacher: the qalqalah letters combine the qualities of shiddah (strength) and jahr (voicing).',
+ s2_where: 'Where does it come from?',
+ s2_tip: 'Give the five letter cards to five children; each is the “hero” of a letter and jumps up when you say it with a sukun.',
+ L: {
+  'ق': { n: 'Qaf', kid: 'From the very back of your tongue, near your throat, as it rises to the roof of your mouth.', ex: 'The back of the tongue against the soft palate above it.' },
+  'ط': { n: 'Taa (emphatic)', kid: 'The tip of your tongue sticks behind your upper teeth, and the whole tongue rises.', ex: 'The tip of the tongue against the roots of the upper front teeth.' },
+  'ب': { n: 'Baa', kid: 'Your lips press together, then open.', ex: 'The two lips together.' },
+  'ج': { n: 'Jeem', kid: 'The middle of your tongue rises and touches the roof of your mouth.', ex: 'The middle of the tongue against the palate above it.' },
+  'د': { n: 'Dal', kid: 'The tip of your tongue touches behind your upper teeth (like taa).', ex: 'The tip of the tongue against the roots of the upper front teeth.' }
+ },
+ s3_k: 'Step 3 · When does it bounce?', s3_t: 'The secret is the sukun', s3_s: 'The letter bounces only when two things meet:',
+ s3_a: 'A letter of “Qutb Jad”', s3_b: 'Carrying a sukun', s3_c: 'Qalqalah!',
+ s3_mov: 'Moving: walks calmly 🚶', s3_sak: 'Sakin: bounces! 🏀',
+ s3_q: 'Test yourself: which letters bounce?', s3_ok: 'Right! A “Qutb Jad” letter with a sukun 🏀', s3_mv: 'It has a vowel, so it does not bounce 🚶', s3_nl: 'Not one of “Qutb Jad”, so it does not bounce', s3_done: 'Well done! You found both bouncing letters ⭐',
+ s3_tip: 'Write baa on the board and change its vowel each time: the children jump only when they see the sukun.',
+ s4_k: 'Step 4 · See it in the Qur’an', s4_t: 'Bouncing letters in Juz ʿAmma', s4_s: 'Listen, look at the coloured letter, then repeat.',
+ listen: '🎧 Listen', stop: '⏸ Stop', from: 'Surah {s} · verse {a}', reciter: 'Recited by Sheikh Minshawi',
+ s4_tip: 'Play the verse twice: once just to listen, then the children repeat and raise their hands at the bounce.',
+ s5_k: 'Step 5 · How do I say it?', s5_t: 'A small bounce… nothing more', s5_book: 'A silent qalqalah baa: the lips part, not the jaws',
+ s5_no: 'Don’t', s5_yes: 'Do',
+ s5_n1: 'Don’t add a fatha, damma or kasra after the letter.', s5_n2: 'Don’t make it a dead, soundless sukun.', s5_y1: 'Hold the letter for an instant, then release it with a light echo.', s5_y2: 'The bounce is clearer when you stop on the letter at the end of a word.',
+ s5_tip: 'Watch for children who add a vowel after the letter, and correct gently: “Just a small bounce, no fatha.”',
+ s6_k: 'Step 6 · The bounce scale', s6_t: 'Three bounces: light, high and giant', s6_adv: '⭐ Advanced — can wait for a later lesson',
+ s6_1: 'Minor qalqalah', s6_1d: 'A sakin letter in the middle of a word: a light bounce.', s6_2: 'Major qalqalah', s6_2d: 'Stopping on the letter at the end of a word: a higher bounce.', s6_3: 'Doubled major', s6_3d: 'Stopping on a doubled letter: the highest bounce.',
+ s6_tip: 'This part is for advanced pupils. Younger children only need to know the bounce grows when we stop.',
+ s7_k: 'Step 7 · Play!', s7_t: 'Catch the bouncing word 🎯', s7_s: 'Tap the word that has a bouncing letter.',
+ g_ok: 'Well done! ', g_no: 'Not this one. Look for ق ط ب ج د carrying a sukun.', g_next: 'Next verse', g_win: '🏆 You caught {n} of {m} bouncing words!', g_again: 'Play again',
+ s7_tip: 'Make it a team contest on the big screen: each correct word is a point for the team.',
+ s8_k: 'Step 8 · What did we learn?', s8_t: 'The lesson map and a note for parents',
+ s8_msg: 'Assalamu alaikum,\nToday your child learned “Qalqalah” 🏀:\n• Its five letters are gathered in the word “Qutb Jad”.\n• They bounce when they are sakin, with a light echo and no vowel.\nAsk your child to read you verse 9 of Surah An-Naziʿat and show you the bouncing letter in it.\nJazakum Allahu khayran.',
+ copy: '📋 Copy the message', copied: 'Copied — paste it into WhatsApp',
+ s8_tip: 'Send the message to parents after class so they can review with their children at home.',
+ s9_k: 'The same way', s9_t: 'Every lesson has a picture of its idea', s9_s: 'These drawings already exist in the corner; the same template (story + picture + recited verses + game) applies to every lesson.',
+ G: { ghunna: ['Ghunna', 'A bee humming in the nose 🐝'], noon_ikhfa: ['Ikhfa', 'The noon hides behind a curtain ☁️'], noon_iqlab: ['Iqlab', 'The noon turns into a meem 🎩'], noon_idgham_ghunna: ['Idgham with ghunna', 'The noon melts into its friend 💧'], lam_shamsi: ['Sun lam', 'The sun hides the lam ☀️'], madd_tabii: ['Natural madd', 'Stretch the sound for two fingers ✌️'] },
+ toast: 'In the platform: ', hint_audio: 'Could not play the audio (needs an internet connection)'
+}};
+
+const S = { lang: 'ar', mode: 'slides', i: 0, letter: 'ق', q3: new Set(), q3last: null, g: 0, gScore: [], gPick: null };
+const L = (k) => T[S.lang][k];
+const tpl = (k, v) => Object.entries(v).reduce((s, [a, b]) => s.split(`{${a}}`).join(b), L(k));
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const AR_D = '٠١٢٣٤٥٦٧٨٩';
+const num = (n) => (S.lang === 'ar' ? String(n).replace(/\d/g, d => AR_D[d]) : String(n));
+const tx = (o) => (o ? (o[S.lang] ?? o.ar) : '');
+const nl = (s) => esc(s).replace(/\n/g, '<br>');
+setLangSource(() => S.lang);
+
+const LETTERS = ['ق', 'ط', 'ب', 'ج', 'د'];
+const KV = { 'ق': '--k-q', 'ط': '--k-t', 'ب': '--k-b', 'ج': '--k-j', 'د': '--k-d' };
+const MAKH = { 'ق': 'p101_0', 'ط': 'p116_1', 'ب': 'p121_0', 'ج': 'p103_0', 'د': 'p116_0' };
+const kvar = (ch) => `--k:var(${KV[ch]})`;
+const coin = (ch, attrs = '') => `<span class="coin" style="${kvar(ch)}" ${attrs}><span class="quran-text" lang="ar">${ch}</span></span>`;
+const DECK = (n, slug) => `../assets/tajweed/qalqalah/${n}-${slug}.webp`;
+const deckFig = (id, n, slug) => `<figure class="deck"><img src="${DECK(n, slug)}" alt="${esc(tx(BOOK_IMAGES[id]))}" loading="lazy"><figcaption>${esc(tx(BOOK_IMAGES[id]))} — ${L('credit_deck')}</figcaption></figure>`;
+const tip = (k) => `<details class="tip"><summary>${L('tip')}</summary><p>${esc(L(k))}</p></details>`;
+const surahName = (s) => (S.lang === 'ar' ? `<span class="quran-text" lang="ar">${esc(SURAHS[s].ar)}</span>` : esc(SURAHS[s].en));
+
+/* ===== الشرائح ===== */
+function s0() {
+  return `<span class="kick">✨ ${L('s0_k')}</span>
+  <div class="two"><div style="display:flex;flex-direction:column;gap:14px"><h2>${L('s0_t')}</h2><p class="lead muted">${L('s0_s')}</p>
+    <div class="chips"><span class="chip">${L('s0_c1')}</span><span class="chip">${L('s0_c2')}</span><span class="chip">${L('s0_c3')}</span><span class="chip">${L('s0_c4')}</span></div>
+    <div class="card"><b>${L('s0_g')}</b><ul class="goals" style="margin-top:8px">${['g1', 'g2', 'g3'].map((g, i) => `<li><i>${num(i + 1)}</i><span>${L(g)}</span></li>`).join('')}</ul></div></div>
+    ${deckFig('q01', '01', 'intro')}</div>${tip('s0_tip')}`;
+}
+const bounceSVG = () => `<svg class="bounce" viewBox="0 0 360 220" role="img" aria-label="${esc(L('s1_cap'))}">
+  <path class="gr" d="M40 186 H320"/>
+  <rect class="blk" x="140" y="120" width="80" height="66" rx="18"/><text class="let quran-text" x="180" y="168" text-anchor="middle" lang="ar">بْ</text>
+  <g class="echo"><path d="M118 176 q-20 -16 0 -32"/><path d="M104 182 q-30 -24 0 -46"/><path d="M242 176 q20 -16 0 -32"/><path d="M256 182 q30 -24 0 -46"/></g>
+  <g class="ballg" style="transform-box:fill-box;transform-origin:center bottom"><circle class="ball" cx="180" cy="96" r="22"/><circle class="face" cx="173" cy="92" r="2.6"/><circle class="face" cx="187" cy="92" r="2.6"/><path d="M172 101 q8 7 16 0" stroke="#5b3d00" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+</svg>`;
+function s1() {
+  return `<span class="kick">🏀 ${L('s1_k')}</span><h2>${L('s1_t')}</h2>
+  <div class="two"><div style="display:flex;flex-direction:column;gap:12px"><div class="kid"><b class="who">${L('kid_who')}</b><p>${nl(L('s1_kid'))}</p></div>
+     <div class="card"><b class="muted" style="font-size:.85rem">${L('s1_def')}</b><p>${esc(tx(RULES.qalqalah.def))}</p></div></div>
+    <figure class="card" style="text-align:center">${bounceSVG()}<figcaption class="muted" style="font-size:.88rem">${L('s1_cap')}</figcaption></figure></div>
+  ${deckFig('q02', '02', 'meaning')}${tip('s1_tip')}`;
+}
+function s2() {
+  const ch = S.letter, info = L('L')[ch];
+  return `<span class="kick">🦸 ${L('s2_k')}</span><h2>${L('s2_t')}</h2><p class="muted">${L('s2_s')}</p>
+  <div class="coins" dir="rtl">${LETTERS.map(c => `<button type="button" class="coin" style="${kvar(c)}" data-letter="${c}" aria-pressed="${c === ch}" aria-label="${esc(L('L')[c].n)}"><span class="quran-text" lang="ar">${c}</span></button>`).join('')}</div>
+  <p class="mn">${L('s2_mn')} <b class="quran-text" lang="ar">قطب جد</b></p>
+  <section class="mkh" style="${kvar(ch)}"><div style="display:flex;flex-direction:column;gap:8px"><span class="big quran-text" lang="ar">${ch}</span><h3>${esc(info.n)}</h3>
+      <div class="kid"><b class="who">${L('s2_where')}</b><p>${esc(info.kid)}</p></div><p class="muted" style="font-size:.88rem">${esc(info.ex)}</p></div>
+    <figure class="book"><img src="${IMG(MAKH[ch])}" alt="${esc(tx(BOOK_IMAGES[MAKH[ch]]))}"><figcaption>${esc(tx(BOOK_IMAGES[MAKH[ch]]))} — ${L('credit_book')}</figcaption></figure></section>
+  <div class="two"><div class="card"><b>${L('s2_why')}</b><p style="margin-top:6px">${esc(L('s2_why_kid'))}</p><p class="muted" style="font-size:.86rem;margin-top:6px">${esc(L('s2_why_t'))}</p></div>${deckFig('q04', '04', 'why')}</div>
+  ${tip('s2_tip')}`;
+}
+const Q4 = [{ s: 'قْ', ok: true }, { s: 'بَ', why: 's3_mv' }, { s: 'دْ', ok: true }, { s: 'مْ', why: 's3_nl' }];
+function s3() {
+  const found = Q4.filter((q, i) => q.ok && S.q3.has(i)).length;
+  const last = S.q3last;
+  const fb = found === 2 ? `<p class="fb ok">${L('s3_done')}</p>` : last === null ? '<p class="fb"></p>' : Q4[last].ok ? `<p class="fb ok">${L('s3_ok')}</p>` : `<p class="fb no">${L(Q4[last].why)}</p>`;
+  return `<span class="kick">🔑 ${L('s3_k')}</span><h2>${L('s3_t')}</h2><p class="muted">${L('s3_s')}</p>
+  <div class="eq" dir="rtl"><span class="box"><span class="quran-text" lang="ar">قطب جد</span><small>${L('s3_a')}</small></span><span class="op">+</span>
+    <span class="box"><span class="quran-text" lang="ar">ـْـ</span><small>${L('s3_b')}</small></span><span class="op">=</span><span class="box res">🏀<small>${L('s3_c')}</small></span></div>
+  <div class="vs"><div class="card"><span class="quran-text" lang="ar">بَ</span><b>${L('s3_mov')}</b></div><div class="card yes"><span class="quran-text" lang="ar">بْ</span><b>${L('s3_sak')}</b></div></div>
+  <div class="card" style="text-align:center"><b>${L('s3_q')}</b>
+    <div class="q4" style="margin-top:10px" dir="rtl">${Q4.map((q, i) => `<button type="button" data-q3="${i}" class="${S.q3.has(i) ? (q.ok ? 'ok' : 'no') : ''}"><span class="quran-text" lang="ar">${q.s}</span></button>`).join('')}</div>${fb}</div>
+  ${tip('s3_tip')}`;
+}
+function s4() {
+  const exs = lessonExamples('qalqalah');
+  return `<span class="kick">📖 ${L('s4_k')}</span><h2>${L('s4_t')}</h2><p class="muted">${L('s4_s')}</p>
+  <div class="exs">${exs.map((e, i) => {
+    const ch = e.occ[3]; const [s, a] = e.key.split(':').map(Number);
+    return `<article class="ex" style="${kvar(ch)}">${coin(ch)}<div>${ayahHTML(e.key, { hl: locate(e.occ, POOL[e.key].w) })}
+      <div class="ex-meta"><span>${tpl('from', { s: surahName(s), a: num(a) })} · ${L('reciter')}</span><button type="button" class="play" data-play="${i}" data-s="${s}" data-a="${a}">${L('listen')}</button></div>
+      <p class="why">✔ ${esc(tx(whyOf('qalqalah', ch)))}</p></div></article>`;
+  }).join('')}</div>${tip('s4_tip')}`;
+}
+function s5() {
+  return `<span class="kick">👄 ${L('s5_k')}</span><h2>${L('s5_t')}</h2>
+  <div class="two"><ol class="how">${RULES.qalqalah.how.map((h, i) => `<li><span class="n">${num(i + 1)}</span><p>${esc(tx(h))}</p></li>`).join('')}</ol>
+    <figure class="book"><img src="${IMG('p185_0')}" alt="${esc(L('s5_book'))}"><figcaption>${esc(L('s5_book'))} — ${L('credit_book')}</figcaption></figure></div>
+  <div class="dd"><div class="card bad"><span>❌</span><div><b>${L('s5_no')}</b><p>${L('s5_n1')}</p><p>${L('s5_n2')}</p></div></div>
+    <div class="card good"><span>✅</span><div><b>${L('s5_yes')}</b><p>${L('s5_y1')}</p><p>${L('s5_y2')}</p></div></div></div>${tip('s5_tip')}`;
+}
+function s6() {
+  const c = (n, slug, id, t, d) => `<div class="card"><img src="${DECK(n, slug)}" alt="${esc(tx(BOOK_IMAGES[id]))}" loading="lazy"><div><b>${L(t)}</b><small>${L(d)}</small></div></div>`;
+  return `<span class="kick">📏 ${L('s6_k')}</span><h2>${L('s6_t')}</h2><span class="adv">${L('s6_adv')}</span>
+  ${deckFig('q05', '05', 'levels')}
+  <div class="lv">${c('06', 'minor', 'q06', 's6_1', 's6_1d')}${c('07', 'major', 'q07', 's6_2', 's6_2d')}${c('08', 'shaddah', 'q08', 's6_3', 's6_3d')}</div>${tip('s6_tip')}`;
+}
+// اللعبة: آيات قصيرة من بنك الركن، والإجابة الصحيحة كل كلمة فيها موضع قلقلة (أي درجة ثقة)
+const GAME = ['79:9', '56:75', '51:31', '79:13', '79:4'];
+const goodWords = (k) => { const s = new Set(); occsOf(k, 'qalqalah', 1).forEach(o => { for (let w = o[1]; w <= o[2]; w++) s.add(w); }); return s; };
+function s7() {
+  if (S.g >= GAME.length) {
+    const n = S.gScore.filter(Boolean).length;
+    return `<span class="kick">🎮 ${L('s7_k')}</span><h2>${L('s7_t')}</h2><div class="game"><div class="score">${GAME.map((_, i) => `<i class="${S.gScore[i] ? 'ok' : ''}">${S.gScore[i] ? '⭐' : '·'}</i>`).join('')}</div>
+      <p class="win">${tpl('g_win', { n: num(n), m: num(GAME.length) })}</p><button type="button" class="tb gold" data-g="again">${L('g_again')}</button></div>${tip('s7_tip')}`;
+  }
+  const k = GAME[S.g]; const good = goodWords(k); const words = POOL[k].w; const [s, a] = k.split(':').map(Number);
+  const pick = S.gPick; const done = pick !== null && good.has(pick);
+  const occ = occsOf(k, 'qalqalah', 1).find(o => pick !== null && pick >= o[1] && pick <= o[2]);
+  const fb = pick === null ? '<p class="fb"></p>' : done ? `<p class="fb ok">${L('g_ok')}${esc(tx(whyOf('qalqalah', occ[3])))}</p>` : `<p class="fb no">${L('g_no')}</p>`;
+  return `<span class="kick">🎮 ${L('s7_k')}</span><h2>${L('s7_t')}</h2><p class="muted">${L('s7_s')}</p>
+  <div class="game"><div class="score">${GAME.map((_, i) => `<i class="${S.gScore[i] ? 'ok' : ''}">${S.gScore[i] ? '⭐' : num(i + 1)}</i>`).join('')}</div>
+    <div class="gq"><div class="tws" lang="ar">${words.map((w, i) => `<button type="button" class="tw ${pick === i ? (good.has(i) ? 'ok' : 'no') : (done && good.has(i) ? 'ok' : '')}" data-w="${i}" ${done ? 'disabled' : ''}><span class="quran-text">${esc(w)}</span></button>`).join('')}</div>
+      <p class="muted" style="font-size:.85rem;margin-top:6px">${tpl('from', { s: surahName(s), a: num(a) })}</p></div>
+    ${fb}${done ? `<button type="button" class="tb em" data-g="next">${L('g_next')}</button>` : ''}</div>${tip('s7_tip')}`;
+}
+function s8() {
+  return `<span class="kick">🗺 ${L('s8_k')}</span><h2>${L('s8_t')}</h2>
+  ${deckFig('q09', '09', 'map')}
+  <div class="note" id="msg">${esc(L('s8_msg'))}</div>
+  <div><button type="button" class="tb em" data-copy="1">${L('copy')}</button></div>${tip('s8_tip')}`;
+}
+function s9() {
+  const G = L('G'); const HUE = { ghunna: '#6d4ad8', noon_ikhfa: '#0d7a5c', noon_iqlab: '#0d7a5c', noon_idgham_ghunna: '#0d7a5c', lam_shamsi: '#b86a00', madd_tabii: '#0b79b5' };
+  return `<span class="kick">🧩 ${L('s9_k')}</span><h2>${L('s9_t')}</h2><p class="muted">${L('s9_s')}</p>
+  <div class="gal">${Object.keys(G).map(id => `<div class="card" style="--g:${HUE[id]}">${vizFor(id).replace(/font-size:(\d+)px/g, 'font-size:$1px !important')}<b>${esc(G[id][0])}</b><small>${esc(G[id][1])}</small><small>${esc(tx(VIZ_CAPTION[id]))}</small></div>`).join('')}</div>`;
+}
+const SLIDES = [s0, s1, s2, s3, s4, s5, s6, s7, s8, s9];
+
+/* ===== الرسم ===== */
+const root = document.getElementById('tl');
+let audio = null;
+function stopAudio() { if (audio) { audio.pause(); audio = null; } root.querySelectorAll('.play.on').forEach(b => { b.classList.remove('on'); b.textContent = L('listen'); }); }
+function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2400); }
+function syncChrome() {
+  const h = document.documentElement; h.lang = S.lang; h.dir = S.lang === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('header-title').textContent = L('header_title');
+  document.getElementById('top-student-name').textContent = L('header_sub');
+  document.getElementById('hdr-home').textContent = L('h_home');
+  document.getElementById('lang-toggle-btn').title = S.lang === 'ar' ? 'English' : 'العربية';
+  document.querySelectorAll('#lang-toggle-btn .lb-opt').forEach((e, i) => e.classList.toggle('is-on', (i === 0) === (S.lang === 'ar')));
+  document.getElementById('pvBar').innerHTML = `<div>${esc(L('pv_note'))} <a href="tajweed-corner-redesign.html">${L('pv_link')}</a></div>`;
+}
+function render(top = false) {
+  stopAudio(); syncChrome();
+  const n = SLIDES.length, i = S.i;
+  const head = `<div class="tl-top"><span class="tl-crumb">${L('crumb')}</span><span class="tl-sp"></span>
+    <div class="tl-mode" role="group"><button type="button" data-mode="slides" aria-pressed="${S.mode === 'slides'}">${L('m_slides')}</button><button type="button" data-mode="scroll" aria-pressed="${S.mode === 'scroll'}">${L('m_scroll')}</button></div></div>`;
+  root.classList.toggle('is-scroll', S.mode === 'scroll');
+  if (S.mode === 'scroll') { root.innerHTML = head + SLIDES.map((f, k) => `<section class="sl" id="sl${k}">${f()}</section>`).join(''); }
+  else {
+    const prog = `<div class="tl-prog" aria-label="${esc(tpl('of', { i: num(i + 1), n: num(n) }))}">${SLIDES.map((_, k) => `<button type="button" data-go="${k}" class="${k < i ? 'done' : k === i ? 'cur' : ''}" aria-label="${k + 1}"></button>`).join('')}</div>`;
+    root.innerHTML = `${head}${prog}<section class="sl" id="sl${i}">${SLIDES[i]()}</section>
+      <nav class="nav"><button type="button" class="tb line" data-step="-1" ${i === 0 ? 'disabled' : ''}><span class="arr"></span> ${L('prev')}</button><small>${tpl('of', { i: num(i + 1), n: num(n) })}</small>
+      ${i === n - 1 ? `<button type="button" class="tb gold" data-step="0">✔ ${L('finish')}</button>` : `<button type="button" class="tb em" data-step="1">${L('next')} <span class="arr"></span></button>`}</nav>`;
+  }
+  if (top) window.scrollTo({ top: 0 });
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'lang-toggle-btn') { S.lang = S.lang === 'ar' ? 'en' : 'ar'; return render(); }
+  if (b.id === 'theme-toggle-btn') { window.DHTheme && window.DHTheme.cycle(); return paintTheme(); }
+  if (b.id === 'header-home-btn' || b.id === 'header-account-btn') return toast(L('toast') + b.title);
+  const d = b.dataset;
+  const keep = (fn) => { const y = window.scrollY; fn(); render(); window.scrollTo({ top: y }); };
+  if (d.mode) { S.mode = d.mode; return render(true); }
+  if (d.go) { S.i = +d.go; return render(true); }
+  if (d.step) { if (+d.step === 0) { S.i = 0; return render(true); } S.i = Math.max(0, Math.min(SLIDES.length - 1, S.i + +d.step)); return render(true); }
+  if (d.letter) return keep(() => { S.letter = d.letter; });
+  if (d.q3 !== undefined) return keep(() => { S.q3.add(+d.q3); S.q3last = +d.q3; });
+  if (d.w !== undefined) return keep(() => { const k = GAME[S.g]; const first = S.gScore[S.g] === undefined; S.gPick = +d.w; if (first) S.gScore[S.g] = goodWords(k).has(+d.w); });
+  if (d.g === 'next') return keep(() => { S.g++; S.gPick = null; });
+  if (d.g === 'again') return keep(() => { S.g = 0; S.gScore = []; S.gPick = null; });
+  if (d.copy) { try { navigator.clipboard.writeText(L('s8_msg')); } catch (_) { /* لا حافظة */ } return toast(L('copied')); }
+  if (d.play !== undefined) {
+    const on = b.classList.contains('on'); stopAudio(); if (on) return;
+    audio = new Audio(ayahAudioUrl(+d.s, +d.a)); b.classList.add('on'); b.textContent = L('stop');
+    audio.addEventListener('ended', stopAudio);
+    audio.play().catch(() => { stopAudio(); toast(L('hint_audio')); });
+  }
+});
+document.addEventListener('keydown', e => {
+  if (S.mode !== 'slides' || e.target.closest('input,textarea')) return;
+  const fwd = S.lang === 'ar' ? 'ArrowLeft' : 'ArrowRight', back = S.lang === 'ar' ? 'ArrowRight' : 'ArrowLeft';
+  if (e.key === fwd && S.i < SLIDES.length - 1) { S.i++; render(true); } else if (e.key === back && S.i > 0) { S.i--; render(true); }
+});
+
+const TI = { auto: '<path d="M12 3a9 9 0 1 0 0 18V3z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/>', light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', dark: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>' };
+function paintTheme() { const p = window.DHTheme ? window.DHTheme.get() : 'auto'; const s = document.querySelector('#theme-toggle-btn svg'); if (s) s.innerHTML = TI[p] || TI.auto; }
+document.addEventListener('app-theme-changed', paintTheme);
+const startAt = Number(new URLSearchParams(location.search).get('s'));
+if (startAt >= 0 && startAt < SLIDES.length) S.i = startAt;
+paintTheme(); render(); initDecor(root);
+</script>
+</body>
+</html>
