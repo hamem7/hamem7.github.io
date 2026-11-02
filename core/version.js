@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.70';
+export const APP_VERSION = '1.0.71';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.71',
+        date: '2026-11-02',
+        items: [
+            { type: 'new', text: { ar: 'ركن التجويد: «الدرس المصوَّر» للأطفال في كل الدروس الخمسة والعشرين: حكاية بكلمات الأطفال، رسوم توضيحية جديدة (قطار الآيات، كعكة الأجزاء، إشارات مرور الوقف، قبعة الإقلاب…)، صور حقيقية من المصحف ورسوم مخارج الحروف، آيات بالحرف ملوَّنًا وصوت المنشاوي، أسئلة سريعة، فكرة للمعلم في كل شريحة، ورسالة جاهزة لوليّ الأمر.', en: 'Tajweed corner: a “picture lesson” for children in all 25 lessons: a story in children’s words, new drawings (the ayah train, the juz cake, stop-sign traffic lights, the iqlab magic hat…), real mushaf images and articulation drawings, verses with the letter coloured and recited by Minshawi, quick checks, a classroom idea for the teacher on every slide, and a ready message for parents.' } },
+            { type: 'improved', text: { ar: 'قسم «تعرّف على مصحفك» أُعيدت كتابته للأطفال، ويُعرض الدرس بطريقتين: «عرض الحصة» شريحة شريحة للشاشة الكبيرة، أو «تصفّح الدرس» كاملًا.', en: 'The “Know Your Mushaf” section was rewritten for children, and every lesson can be shown two ways: “Present” slide by slide for the big screen, or “Read through” in full.' } },
+            { type: 'fixed', text: { ar: 'تعريف السكون في المصحف: «رأس خاء صغيرة بلا نقطة» (كان مكتوبًا «رأس حاء»). وصوت ركن التجويد صار المنشاوي مثل بقية المنصة.', en: 'The mushaf sukun is now described as “a small head of khā’ without its dot” (it said ḥā’). The Tajweed corner now uses Minshawi’s recitation, like the rest of the platform.' } }
+        ]
+    },
     {
         version: '1.0.70',
         date: '2026-11-02',
