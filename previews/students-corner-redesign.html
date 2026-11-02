@@ -43,7 +43,7 @@
 #app-root #ms-screen .ms-now.is-clear .ms-now-ic{background:transparent}
 
 /* الاختصارات */
-#app-root #ms-screen .ms-quick{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#app-root #ms-screen .ms-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #app-root #ms-screen .ms-q{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong);border-radius:16px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;cursor:pointer;margin:0;min-width:0;box-shadow:none;transition:transform .15s}
 #app-root #ms-screen .ms-q:hover{transform:translateY(-2px);border-color:var(--dh-emerald-600)}
 #app-root #ms-screen .ms-q svg{color:var(--dh-gold-ink,var(--dh-ink))}
@@ -149,10 +149,13 @@ html[dir="rtl"] #ms-screen .ms-chev{transform:scaleX(-1)}
 #add-modal .nbtn.ghost{background:none;color:var(--dh-ink-soft)}
 
 /* شريط المعاينة السفلي (ليس جزءًا من المنصة) + رسالة */
-.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center}
-.pv-toast{position:fixed;bottom:56px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.pv-bar .pv-sw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pv-bar button{border:1.5px solid #d4af37;background:transparent;color:#fbf3d5;border-radius:99px;padding:5px 14px;font:inherit;font-weight:700;cursor:pointer}
+.pv-bar button.on{background:#d4af37;color:#2b2100}
+.pv-toast{position:fixed;bottom:100px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
 .pv-toast.on{opacity:1}
-body{padding-bottom:70px}
+body{padding-bottom:110px}
 @media(max-width:480px){#app-root #ms-screen{padding:16px 12px !important}#app-root #ms-screen .ms-quick{grid-template-columns:repeat(2,minmax(0,1fr))}#app-root #ms-screen .ms-now{flex-wrap:wrap}#app-root #ms-screen .ms-now-go{width:100%}#app-root #ms-screen .ms-act{grid-template-columns:1fr 1fr}#app-root #ms-screen .ms-act .ms-btn:first-child{grid-column:1/-1}}
 </style>
 </head>
@@ -224,7 +227,8 @@ ar:{pv_note:'معاينة لتصميم مقترح لركن «طلابي» — ب
  a_name:'الاسم (ثلاثي) — مطلوب',a_gender:'الجنس — مطلوب',a_boy:'👦🏻 ولد',a_girl:'👧🏻 بنت',
  a_grade:'الصف (اختياري)',a_dob:'تاريخ الميلاد (اختياري)',a_phone:'رقم ولي الأمر (اختياري)',a_memo:'الحفظ: من سورة — إلى سورة (إلزامي)',
  a_next:'التالي ←',a_prev:'→ رجوع',a_save:'حفظ ✔️',a_cancel:'إلغاء',a_saved:'✅ تمت إضافة الطالب (معاينة فقط)',
- toast:'في المنصة الفعلية: ',
+ toast:'في المنصة الفعلية: ',var_a:'الاقتراح ١: بلا اختصارات (الأنظف)',var_b:'الاقتراح ٢: زران فقط',
+ lgA:'لا توجد اختصارات: «المطلوب الآن» ثم التبويبات فقط، وكل شيء له مكان واحد.',lgB:'زران فقط: «طالب جديد» و«تقرير شهري» — وحُذف الزر المكرر من داخل تبويب «الطلاب».',
  lg_t:'ما الذي تغيّر عن الشكل الحالي؟',
  lg:['«المطلوب الآن» في أعلى الشاشة: يدلّ المعلم على أول خطوة بدل أن يخمّن.','أربعة اختصارات للمهام الأكثر استعمالًا (طالب جديد، حفظ، تقرير، فتح ملف).','ثلاثة تبويبات فقط بدل ست مساحات متفرقة: الطلاب · هذا الشهر · الحصص.','زر «طالب جديد» واحد (كان في مكانين).','«هذا الشهر» مرتّب كخطوتين: ١) الحفظ ثم ٢) التقارير، مع عدّاد تقدّم.','ملف الطالب: إجراء رئيسي واحد (بدء تقييم) وأربعة أقسام بدل صفحة طويلة.','كل الألوان من رموز الهوية فتعمل في المظهر الداكن، واللغتان والاتجاه مدعومان.']},
 en:{pv_note:'Preview of a proposed "My Students" corner — sample data, does not touch the live platform',header_title:'🏆 Quran Mastery Journey',header_sub:'Ham Platform',h_home:'Home',
@@ -254,11 +258,12 @@ en:{pv_note:'Preview of a proposed "My Students" corner — sample data, does no
  a_name:'Full name — required',a_gender:'Gender — required',a_boy:'👦🏻 Boy',a_girl:'👧🏻 Girl',
  a_grade:'Grade (optional)',a_dob:'Birth date (optional)',a_phone:'Parent phone (optional)',a_memo:'Memorized: from surah — to surah (required)',
  a_next:'Next →',a_prev:'← Back',a_save:'Save ✔️',a_cancel:'Cancel',a_saved:'✅ Student added (preview only)',
- toast:'In the real platform: ',
+ toast:'In the real platform: ',var_a:'Proposal 1: no shortcuts (cleanest)',var_b:'Proposal 2: two shortcuts',
+ lgA:'No shortcuts: "Needed now" then the tabs only — every action has exactly one place.',lgB:'Only two shortcuts: "New student" and "Monthly report" — the duplicate button inside the Students tab was removed.',
  lg_t:'What changed from the current layout?',
  lg:['"Needed now" at the top: tells the teacher the first step instead of guessing.','Four shortcuts for the most common tasks (new student, memorization, report, open a file).','Three tabs instead of six scattered areas: Students · This month · Schedule.','One "New student" button (it used to exist in two places).','"This month" is two clear steps: 1) memorization, then 2) reports, with progress.','Student file: one main action (Start evaluation) and four sections instead of one long page.','All colors come from identity tokens so dark mode works; both languages and directions supported.']}
 };
-const S={lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0};
+const S={v:'a',lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0};
 const L=k=>T[S.lang][k];
 const STU=[
  {n:{ar:'أحمد محمد علي',en:'Ahmed Mohamed Ali'},g:{ar:'الثالث الابتدائي',en:'3rd Primary'},st:'wait',i:{ar:'أ',en:'A'}},
@@ -291,7 +296,7 @@ function stuRow(s,idx){
 function paneStudents(){
   const q=S.q.trim().toLowerCase();
   const list=STU.map((s,i)=>[s,i]).filter(([s])=>(S.filter==='all'||(S.filter==='wait'&&s.st==='wait'))&&(!q||s.n[S.lang].toLowerCase().includes(q)));
-  return `<div class="ms-tools"><input type="search" class="ms-search" id="search" placeholder="${L('search')}" value="${esc(S.q)}"><button type="button" class="ms-btn gold" data-act="add">${L('add')}</button></div>
+  return `<div class="ms-tools"><input type="search" class="ms-search" id="search" placeholder="${L('search')}" value="${esc(S.q)}">${S.v==='a'?`<button type="button" class="ms-btn gold" data-act="add">${L('add')}</button>`:''}</div>
   <div class="ms-chips"><button type="button" class="ms-chip ${S.filter==='all'?'on':''}" data-f="all">${L('f_all')} (${STU.length})</button><button type="button" class="ms-chip ${S.filter==='wait'?'on':''}" data-f="wait">${L('f_wait')} (${waitCount()})</button><button type="button" class="ms-chip" data-f="hid">${L('f_hid')} (0)</button></div>
   <div class="ms-list">${list.map(([s,i])=>stuRow(s,i)).join('')||'<p class="ms-hint">—</p>'}</div>
   <p class="ms-hint">${L('hint_row')}</p>
@@ -313,7 +318,7 @@ function paneSched(){
   return `<div class="ms-sched"><span>${L('sc_time')}</span><button type="button" class="ms-btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
   <div class="ms-list">${STU.slice(0,4).map((s,i)=>`<div class="ms-row static"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="ms-days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button type="button" class="ms-btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
 }
-function legend(){return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${L('lg').map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function legend(){const a=L('lg').slice();a[1]=S.v==='a'?L('lgA'):L('lgB');return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 
 function hub(){
   const n=waitCount();
@@ -321,7 +326,7 @@ function hub(){
    :`<div class="ms-now is-clear"><span class="ms-now-ic">✅</span><span class="ms-now-tx"><b>${L('now_ok')}</b></span></div>`;
   return `<div class="ms-head"><button type="button" class="ms-back" data-back="1" aria-label="${L('back')}">${ic.back}</button><div class="ms-titles"><h1 class="ms-title">${L('title')}<small>${L('sub')}</small></h1></div></div>
   ${now}
-  <div class="ms-quick"><button type="button" class="ms-q is-main" data-act="add">${ic.add}${L('q_add')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.memo}${L('q_memo')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.rep}${L('q_rep')}</button><button type="button" class="ms-q" data-act="find">${ic.find}${L('q_find')}</button></div>
+  ${S.v==='b'?`<div class="ms-quick"><button type="button" class="ms-q is-main" data-act="add">${ic.add}${L('q_add')}</button><button type="button" class="ms-q" data-act="tabMonth">${ic.rep}${L('q_rep')}</button></div>`:''}
   <div class="ms-tabs" role="tablist">
    <button type="button" class="ms-tab ${S.tab==='students'?'on':''}" data-tab="students">${L('t_students')}</button>
    <button type="button" class="ms-tab ${S.tab==='month'?'on':''}" data-tab="month">${L('t_month')}${n?`<span class="n">${n}</span>`:''}</button>
@@ -358,7 +363,7 @@ function syncChrome(){
   document.getElementById('top-student-name').textContent=L('header_sub');
   document.getElementById('hdr-home').textContent=L('h_home');
   document.querySelectorAll('#lang-toggle-btn .lb-opt').forEach((e,i)=>e.classList.toggle('is-on',(i===0)===(S.lang==='ar')));
-  document.getElementById('pvBar').textContent=L('pv_note');
+  document.getElementById('pvBar').innerHTML=`<div>${esc(L('pv_note'))}</div><div class="pv-sw"><button type="button" data-v="a" class="${S.v==='a'?'on':''}">${L('var_a')}</button><button type="button" data-v="b" class="${S.v==='b'?'on':''}">${L('var_b')}</button></div>`;
 }
 function render(){
   syncChrome();
@@ -368,6 +373,7 @@ function render(){
 }
 document.addEventListener('click',e=>{
   const t=e.target.closest('button,.ms-row');if(!t)return;
+  if(t.dataset.v){S.v=t.dataset.v;return render()}
   if(t.id==='lang-toggle-btn'){S.lang=S.lang==='ar'?'en':'ar';return render()}
   if(t.id==='theme-toggle-btn'){window.DHTheme&&window.DHTheme.cycle();return paintTheme()}
   if(t.id==='header-home-btn'||t.id==='header-account-btn')return real(t.title);
