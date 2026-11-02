@@ -8,7 +8,7 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.73';
+export const APP_VERSION = '1.0.74';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
@@ -16,11 +16,18 @@ export const APP_VERSION = '1.0.73';
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
     {
-        version: '1.0.73',
+        version: '1.0.74',
         date: '2026-11-02',
         items: [
             { type: 'improved', text: { ar: 'رئيسية ركن التجويد أسهل وأسرع: بطاقة «الدرس التالي» بزر «ابدأ الشرح»، وسبعة مستويات بالترتيب (مصحفي ← القلقلة ← الغنّة ← التفخيم والترقيق ← الحرف الساكن ← المخارج والصفات ← المدّ والوقف) يظهر منها مستوى واحد في كل مرة، ولكل درس زرّا «الشرح» و«تدريب» مباشرة.', en: 'The Tajweed corner home is simpler and faster: a “next lesson” card with a “Start the lesson” button, and seven levels in teaching order (My Mushaf → Qalqalah → Ghunna → Heavy & Light → The Silent Letter → Articulation & Qualities → Madd & Stopping), one level shown at a time, with direct “Lesson” and “Practice” buttons for every lesson.' } },
             { type: 'improved', text: { ar: 'قُسّم «تعرّف على مصحفك» إلى ثلاث محطات: «أتعرّف على مصحفي»، و«حركات الحروف وعلاماتها»، و«علامات الوقف والعلامات النادرة»، وصارت القلقلة والغنّة محطتين مستقلتين.', en: '“Know Your Mushaf” is split into three stops — “Meet My Mushaf”, “Vowels and Letter Marks”, “Stop Signs and Rare Marks” — and qalqalah and ghunna are now separate stops.' } }
+        ]
+    },
+    {
+        version: '1.0.73',
+        date: '2026-11-02',
+        items: [
+            { type: 'improved', text: { ar: 'أسئلة التجويد في الواجب صارت تُسحب من ملف التجويد الخاص بالطالب: تُبنى من شرح الحكم الذي درسه فعلًا («قيل لك في درس التجويد…، ما اسم هذا الحكم؟») أو من كلمة مظلّلة في آية من حفظه، وتُصحَّح آليًا. من لم يبدأ التجويد يبقى له السؤال العام.', en: "Tajweed homework questions are now drawn from the student's own Tajweed file: built from the explanation of a rule they actually studied (\"You were taught in the Tajweed lesson… what is this rule?\") or from a highlighted word in an ayah they memorized, and auto-graded. Students who haven't started Tajweed still get the general question." } }
         ]
     },
     {
