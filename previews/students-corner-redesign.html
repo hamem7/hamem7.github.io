@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — إعادة ترتيب ركن «طلابي»</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ok:#15803d;--ok-bg:#e7f4ee;--warn:#b45309;--warn-bg:#fef3c7;--info:#0369a1;--info-bg:#e0f2fe;--danger:#b91c1c;
+  --s0:#f6f3e8;--s1:#fffdf6;--s2:#fffdf6;--s3:#ffffff;
+  --bs:#e4dfcc;--b:#cfc7a8;--bst:#a89f84;
+  --ink:#10241c;--soft:#5a6b63;--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--gold:#d4af37;--gold-bg:#fbf3d5;
+  --on-em:#fffdf6;--on-gold:#2b2100;
+  --r:16px;--sh:0 6px 18px rgba(6,35,28,.10);
+}
+:root[data-theme="dark"]{
+  --ok:#4ade80;--ok-bg:#12372a;--warn:#fbbf24;--warn-bg:#3a2d0a;--info:#7dd3fc;--info-bg:#0c2a3d;--danger:#f87171;
+  --s0:#0b1511;--s1:#111f19;--s2:#16271f;--s3:#1c3028;
+  --bs:#22382f;--b:#2f4a3f;--bst:#5f8576;
+  --ink:#e8f1ec;--soft:#a4b9af;--g7:#3fbf93;--g6:#2aa57b;--gold-bg:#3a3110;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--s0);color:var(--ink);line-height:1.6;min-height:100vh;padding-bottom:60px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+/* شريط المعاينة (ليس جزءًا من المنصة) */
+.pv{background:var(--gold-bg);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.82rem;padding:8px 0}
+:root[data-theme="dark"] .pv{color:#e9d27a;border-color:#5a4c1c}
+.pv .wrap{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pv b{flex:1;min-width:200px}
+.pv button{border:1.5px solid currentColor;border-radius:99px;padding:3px 12px;font-weight:700;font-size:.8rem}
+
+/* ترويسة المنصة (محاكاة #main-header — لا تُبنى ترويسة خاصة بالركن) */
+header.top{background:linear-gradient(120deg,var(--g9),#0d5c46 55%,#147c5e);border-bottom:3px solid var(--gold);color:#fffdf6}
+.top .wrap{display:flex;align-items:center;gap:10px;padding-block:10px}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#f0d878,var(--gold));display:grid;place-items:center;font-weight:700;color:var(--g9)}
+.top h1{font-size:1rem;flex:1}
+.pill{border:1.5px solid rgba(255,253,246,.4);border-radius:30px;padding:5px 14px;font-weight:600;font-size:.85rem;background:rgba(255,255,255,.12);color:#fffdf6}
+
+/* رأس الشاشة */
+.head{display:flex;align-items:center;gap:10px;margin:18px 0 14px}
+.back{width:44px;height:44px;border-radius:14px;border:1.5px solid var(--bst);background:var(--s3);color:var(--g7);display:grid;place-items:center;flex:none}
+html[dir="ltr"] .back svg{transform:scaleX(-1)}
+.head h2{font-size:1.6rem;color:var(--g7);flex:1;line-height:1.3}
+.head .sub{font-size:.85rem;color:var(--soft);font-weight:400;display:block}
+
+/* ١) المطلوب الآن — أهم عنصر: يقول للمعلم ماذا يفعل أولًا */
+.now{background:linear-gradient(135deg,var(--g7),#147c5e);color:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh);display:flex;gap:14px;align-items:center;margin-bottom:14px}
+:root[data-theme="dark"] .now{background:linear-gradient(135deg,#0f4d3b,#16654d)}
+.now .ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:1.4rem;flex:none}
+.now .tx{flex:1;min-width:0}
+.now small{display:block;font-size:.78rem;opacity:.85;font-weight:600}
+.now b{font-size:1.05rem;line-height:1.4}
+.now .go{background:var(--gold);color:var(--on-gold);font-weight:700;border-radius:12px;padding:10px 18px;min-height:44px;white-space:nowrap}
+.now.clear{background:var(--ok-bg);color:var(--ok)}
+.now.clear .ic{background:transparent}
+:root[data-theme="dark"] .now.clear{background:var(--ok-bg)}
+
+/* ٢) أربع مهام شائعة */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.q{background:var(--s2);border:1.5px solid var(--bs);border-radius:14px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;transition:.15s}
+.q:hover{border-color:var(--g6);transform:translateY(-2px)}
+.q i{font-style:normal;font-size:1.5rem}
+.q.main{background:var(--g7);color:#fff;border-color:var(--g7)}
+:root[data-theme="dark"] .q.main{background:#14644b}
+
+/* ٣) التبويبات */
+.tabs{display:flex;gap:4px;background:var(--s2);border:1.5px solid var(--bs);border-radius:14px;padding:4px;margin-bottom:14px;position:sticky;top:0;z-index:5}
+.tab{flex:1;border-radius:10px;padding:10px 6px;font-weight:700;font-size:.92rem;color:var(--soft);min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab.on{background:var(--g7);color:#fff}
+:root[data-theme="dark"] .tab.on{background:#14644b}
+.tab .n{background:var(--warn-bg);color:var(--warn);border-radius:99px;font-size:.72rem;padding:0 7px;font-weight:700}
+.tab.on .n{background:rgba(255,255,255,.25);color:#fff}
+.pane{display:none}.pane.on{display:block}
+
+.card{background:var(--s2);border:1px solid var(--b);border-radius:var(--r);padding:14px}
+.tools{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.search{flex:1;min-width:150px;border:1.5px solid var(--bst);background:var(--s3);border-radius:99px;padding:8px 16px;min-height:44px}
+.btn{border-radius:12px;padding:9px 16px;font-weight:700;min-height:44px}
+.btn.gold{background:var(--gold);color:var(--on-gold)}
+.btn.em{background:var(--g7);color:#fff}
+:root[data-theme="dark"] .btn.em{background:#14644b}
+.btn.line{border:1.5px solid var(--bst);background:var(--s3)}
+.chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--bst);background:var(--s3);border-radius:99px;padding:4px 14px;font-size:.84rem;font-weight:600;min-height:36px}
+.chip.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+:root[data-theme="dark"] .chip.on{background:#14644b}
+
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:start;width:100%}
+.row:hover{border-color:var(--g6)}
+.av{width:44px;height:44px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-weight:700;flex:none}
+.nm{flex:1;min-width:0}.nm b{display:block}.nm small{color:var(--soft);font-size:.8rem}
+.tag{font-size:.74rem;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap}
+.tag.wait{background:var(--warn-bg);color:var(--warn)}.tag.done{background:var(--ok-bg);color:var(--ok)}.tag.open{background:var(--info-bg);color:var(--info)}
+.chev{color:var(--soft)}
+html[dir="rtl"] .chev{transform:scaleX(-1)}
+.menu{position:relative}
+.dots{width:40px;height:40px;border-radius:10px;font-size:1.3rem;color:var(--soft)}
+.dots:hover{background:var(--s3)}
+.pop{display:none;position:absolute;inset-inline-end:0;top:42px;background:var(--s3);border:1px solid var(--bst);border-radius:12px;box-shadow:var(--sh);padding:6px;min-width:190px;z-index:10}
+.menu.open .pop{display:grid}
+.pop button{text-align:start;padding:10px 12px;border-radius:8px;font-weight:600}
+.pop button:hover{background:var(--s0)}.pop .dng{color:var(--danger)}
+.hint{color:var(--soft);font-size:.85rem;margin:10px 0 0}
+
+/* هذا الشهر: خطوتان واضحتان */
+.step{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1.5px solid var(--b);border-radius:var(--r);background:var(--s2);margin-bottom:10px}
+.step .no{width:34px;height:34px;border-radius:50%;background:var(--g7);color:#fff;display:grid;place-items:center;font-weight:700;flex:none}
+:root[data-theme="dark"] .step .no{background:#14644b}
+.step.done .no{background:var(--ok)}
+.step .bd{flex:1;min-width:0}.step h3{font-size:1.02rem}.step p{color:var(--soft);font-size:.86rem;margin:2px 0 8px}
+.bar{height:8px;background:var(--bs);border-radius:99px;overflow:hidden;margin:6px 0 10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--g6),var(--g7))}
+.mini{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.mini span{background:var(--warn-bg);color:var(--warn);border-radius:99px;padding:2px 12px;font-size:.82rem;font-weight:700}
+
+/* الحصص */
+.sched{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--s3);border:1.5px dashed var(--bst);border-radius:14px;padding:10px 12px;margin-bottom:10px;flex-wrap:wrap}
+.days{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px}
+.days i{font-style:normal;font-size:.74rem;background:var(--ok-bg);color:var(--ok);border-radius:99px;padding:0 8px;font-weight:700}
+.days i.off{background:var(--s0);color:var(--soft);font-weight:400}
+
+/* ملف الطالب */
+.prof-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.prof-top .av{width:64px;height:64px;font-size:1.5rem}
+.prof-top h3{font-size:1.25rem}
+.act{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--s2);border:1px solid var(--b);border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:1.3rem;color:var(--g7)}.stat small{color:var(--soft);font-size:.78rem}
+.sub-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px}
+.sub-tabs .chip{white-space:nowrap}
+.sec{display:none}.sec.on{display:block}
+.todo{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-weight:700;margin-bottom:10px;justify-content:space-between}
+.hist{width:100%;border-collapse:collapse;font-size:.88rem}
+.hist td,.hist th{padding:8px;border-bottom:1px solid var(--bs);text-align:start}
+.badges{display:flex;gap:8px;flex-wrap:wrap}.badges span{background:var(--gold-bg);border-radius:12px;padding:8px 12px;font-weight:700;font-size:.85rem}
+
+/* نافذة طالب جديد */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+.ov.on{display:flex}
+.modal{background:var(--s1);border:1.5px solid var(--bst);border-radius:20px;padding:20px;width:min(480px,100%);display:grid;gap:12px;max-height:92vh;overflow:auto}
+.modal h3{text-align:center;color:var(--g7);font-size:1.25rem}
+.modal label{font-size:.84rem;font-weight:700;color:var(--soft);display:block;margin-bottom:3px}
+.modal input,.modal select{width:100%;border:1.5px solid var(--bst);background:var(--s3);border-radius:12px;padding:10px 12px;min-height:46px}
+.seg{display:flex;gap:8px}.seg button{flex:1;border:2px solid var(--bst);border-radius:12px;padding:9px;font-weight:700;background:var(--s3)}
+.seg button.on{border-color:var(--gold);background:var(--gold-bg)}
+.dots2{display:flex;justify-content:center;gap:6px}.dots2 i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:700;font-size:.85rem;border:2px solid var(--b);color:var(--soft)}
+.dots2 i.on{background:var(--g7);color:#fff;border-color:var(--g7)}
+.nav{display:flex;gap:8px}.nav>*{flex:1}
+.toast{position:fixed;bottom:20px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--g9);color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:60}
+.toast.on{opacity:1}
+.legend{margin-top:22px;border:1.5px dashed var(--bst);border-radius:var(--r);padding:14px;font-size:.88rem;color:var(--soft)}
+.legend h4{color:var(--ink);margin-bottom:6px}.legend li{margin-inline-start:18px}
+@media(max-width:480px){.quick{grid-template-columns:repeat(2,1fr)}.now{flex-wrap:wrap}.now .go{width:100%}.act{grid-template-columns:1fr 1fr}.act .btn:first-child{grid-column:1/-1}}
+</style>
+</head>
+<body>
+
+<div class="pv"><div class="wrap">
+  <b data-i="pv_note"></b>
+  <button id="bLang"></button><button id="bTheme"></button>
+</div></div>
+
+<header class="top"><div class="wrap">
+  <div class="logo">ه</div><h1 data-i="platform"></h1>
+  <span class="pill" data-i="h_home"></span><span class="pill" data-i="h_acc"></span>
+</div></header>
+
+<main class="wrap" id="main"></main>
+
+<div class="ov" id="ovAdd"><div class="modal" id="addBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== اللغتان (نفس مبدأ المنصة: كل نص بالعربية والإنجليزية معًا) ===== */
+const T={
+ar:{pv_note:'معاينة تصميم مقترح لركن «طلابي» — بيانات تجريبية، لا تمس المنصة الحالية. جرّب كل الأزرار.',platform:'دار الهمم',h_home:'الرئيسية',h_acc:'حسابي',
+ title:'طلابي',sub:'كل ما يخص طلابك في مكان واحد',back:'رجوع',
+ now_k:'المطلوب الآن',now_t:'٣ طلاب بانتظار تسجيل أين توقفوا هذا الشهر',now_go:'ابدأ التسجيل',
+ now_ok:'كل شيء جاهز ✓ لا يوجد مطلوب منك الآن',
+ q_add:'طالب جديد',q_memo:'تسجيل الحفظ',q_rep:'تقرير شهري',q_find:'فتح ملف طالب',
+ t_students:'الطلاب',t_month:'هذا الشهر',t_sched:'الحصص والحضور',
+ search:'ابحث باسم الطالب…',add:'➕ طالب جديد',f_all:'الكل',f_wait:'بانتظار الحفظ',f_hid:'المخفيون',
+ s_wait:'بانتظار',s_done:'تم',s_open:'جارٍ',
+ m_edit:'✏️ تعديل البيانات',m_hide:'🙈 إخفاء',m_eval:'▶️ بدء تقييم',m_del:'🗑️ حذف نهائي',
+ tools:'أدوات',tl_exp:'📥 تصدير الطلاب',tl_imp:'📤 استيراد الطلاب',
+ hint_row:'اضغط على اسم الطالب لفتح ملفه. زر ⋯ للتعديل والإخفاء.',
+ st1_t:'سجّل أين توقف كل طالب',st1_p:'سورة وآية لكل طالب، تُحفظ تلقائيًا.',st1_b:'افتح تسجيل الحفظ',st1_c:'سُجّل ٩ من ١٢',
+ st2_t:'أصدر تقارير الشهر',st2_p:'واتساب لولي الأمر أو PDF، بعد تسجيل الحفظ.',st2_b:'افتح تقارير الشهر',st2_c:'صُدّر ٥ من ١٢',
+ waiting:'بانتظارك:',month:'نوفمبر ٢٠٢٦',
+ sc_time:'⏰ سؤال الحضور: كل يوم ٧ مساءً',sc_edit:'تغيير الوقت',sc_edit2:'تعديل',
+ days:['س','ح','ن','ث','ر','خ','ج'],
+ p_eval:'▶️ بدء تقييم',p_edit:'✏️ تعديل',p_rep:'📄 التقرير',
+ ps_pts:'نقاط',ps_ev:'تقييمات',ps_win:'انتصارات',
+ p_todo:'عند الطالب ٣ أخطاء للعلاج',p_fix:'ابدأ العلاج',
+ pt_over:'نظرة عامة',pt_prog:'التقدّم والمهارات',pt_badge:'الأوسمة والحصص',pt_hist:'سجل التقييمات',
+ ov_memo:'آخر موضع حفظ',ov_memo_v:'سورة الأحقاف — آية ١٥',ov_par:'ولي الأمر',ov_par_v:'٠١٠٢٧٨١٤٩٤٨',
+ pg_skill:'ملف المهارات',pg_sim:'إتقان المتشابهات',pg_taj:'مسار التجويد',pg_arch:'أرشيف الأخطاء المعالَجة',
+ pb_cab:'خزانة الأوسمة',pb_sched:'جدول حصص الطالب',pb_dual:'أوسمة الاختبارات الثنائية',
+ h_date:'التاريخ',h_range:'النطاق',h_pct:'النسبة',
+ a_title:'إضافة طالب جديد',a_s1:'الاسم والجنس',a_s2:'الصف وتاريخ الميلاد',a_s3:'ولي الأمر والحفظ',
+ a_name:'الاسم (ثلاثي) — مطلوب',a_gender:'الجنس — مطلوب',a_boy:'👦🏻 ولد',a_girl:'👧🏻 بنت',
+ a_grade:'الصف (اختياري)',a_dob:'تاريخ الميلاد (اختياري)',a_phone:'رقم ولي الأمر (اختياري)',a_memo:'الحفظ: من سورة — إلى سورة (إلزامي)',
+ a_next:'التالي ←',a_prev:'→ رجوع',a_save:'حفظ ✔️',a_cancel:'إلغاء',a_saved:'✅ تمت إضافة الطالب (معاينة فقط)',
+ toast:'في المنصة الفعلية: ',
+ lg_t:'ما الذي تغيّر عن الشكل الحالي؟',
+ lg:['«المطلوب الآن» في أعلى الشاشة: يدلّ المعلم على أول خطوة بدل أن يخمّن.','أربعة اختصارات للمهام الأكثر استعمالًا (طالب جديد، حفظ، تقرير، فتح ملف).','ثلاثة تبويبات فقط بدل ست مساحات متفرقة: الطلاب · هذا الشهر · الحصص.','زر «طالب جديد» واحد (كان في مكانين).','«هذا الشهر» مرتّب كخطوتين: ١) الحفظ ثم ٢) التقارير، مع عدّاد تقدّم.','ملف الطالب: إجراء رئيسي واحد (بدء تقييم) وأربعة أقسام بدل صفحة طويلة.','كل الألوان من رموز الهوية فتعمل في المظهر الداكن، واللغتان والاتجاه مدعومان.']},
+en:{pv_note:'Design proposal preview for the "My Students" corner — sample data, does not touch the live platform. Try every button.',platform:'Dar Al-Himam',h_home:'Home',h_acc:'My account',
+ title:'My Students',sub:'Everything about your students in one place',back:'Back',
+ now_k:'Needed now',now_t:'3 students are waiting for this month\'s stopping point',now_go:'Start recording',
+ now_ok:'All set ✓ nothing needed from you right now',
+ q_add:'New student',q_memo:'Record memorization',q_rep:'Monthly report',q_find:'Open a student file',
+ t_students:'Students',t_month:'This month',t_sched:'Schedule & attendance',
+ search:'Search by student name…',add:'➕ New student',f_all:'All',f_wait:'Awaiting memorization',f_hid:'Hidden',
+ s_wait:'Waiting',s_done:'Done',s_open:'In progress',
+ m_edit:'✏️ Edit details',m_hide:'🙈 Hide',m_eval:'▶️ Start evaluation',m_del:'🗑️ Delete permanently',
+ tools:'Tools',tl_exp:'📥 Export students',tl_imp:'📤 Import students',
+ hint_row:'Tap a student\'s name to open their file. Use ⋯ to edit or hide.',
+ st1_t:'Record where each student stopped',st1_p:'Surah and ayah per student, saved automatically.',st1_b:'Open memorization record',st1_c:'9 of 12 recorded',
+ st2_t:'Export this month\'s reports',st2_p:'WhatsApp to the parent, or PDF, after recording memorization.',st2_b:'Open monthly reports',st2_c:'5 of 12 exported',
+ waiting:'Waiting for you:',month:'November 2026',
+ sc_time:'⏰ Attendance question: every day at 7 PM',sc_edit:'Change time',sc_edit2:'Edit',
+ days:['Sa','Su','Mo','Tu','We','Th','Fr'],
+ p_eval:'▶️ Start evaluation',p_edit:'✏️ Edit',p_rep:'📄 Report',
+ ps_pts:'Points',ps_ev:'Evaluations',ps_win:'Duel wins',
+ p_todo:'This student has 3 errors to fix',p_fix:'Start fixing',
+ pt_over:'Overview',pt_prog:'Progress & skills',pt_badge:'Badges & sessions',pt_hist:'History',
+ ov_memo:'Last memorization position',ov_memo_v:'Surah Al-Ahqaf — ayah 15',ov_par:'Parent',ov_par_v:'01027814948',
+ pg_skill:'Skills profile',pg_sim:'Similar-verses mastery',pg_taj:'Tajweed path',pg_arch:'Resolved errors archive',
+ pb_cab:'Badge cabinet',pb_sched:'Student session schedule',pb_dual:'Duel test badges',
+ h_date:'Date',h_range:'Range',h_pct:'Score',
+ a_title:'Add a new student',a_s1:'Name & gender',a_s2:'Grade & birth date',a_s3:'Parent & memorization',
+ a_name:'Full name — required',a_gender:'Gender — required',a_boy:'👦🏻 Boy',a_girl:'👧🏻 Girl',
+ a_grade:'Grade (optional)',a_dob:'Birth date (optional)',a_phone:'Parent phone (optional)',a_memo:'Memorized: from surah — to surah (required)',
+ a_next:'Next →',a_prev:'← Back',a_save:'Save ✔️',a_cancel:'Cancel',a_saved:'✅ Student added (preview only)',
+ toast:'In the real platform: ',
+ lg_t:'What changed from the current layout?',
+ lg:['"Needed now" at the top: tells the teacher the first step instead of guessing.','Four shortcuts for the most common tasks (new student, memorization, report, open a file).','Three tabs instead of six scattered areas: Students · This month · Schedule.','One "New student" button (it used to exist in two places).','"This month" is two clear steps: 1) memorization, then 2) reports, with progress.','Student file: one main action (Start evaluation) and four sections instead of one long page.','All colors come from identity tokens so dark mode works; both languages and directions supported.']}
+};
+const S={lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0,pendingDone:false};
+const L=k=>T[S.lang][k];
+const STU=[
+ {n:{ar:'أحمد محمد علي',en:'Ahmed Mohamed Ali'},g:{ar:'الثالث الابتدائي',en:'3rd Primary'},st:'wait',i:'أ'},
+ {n:{ar:'يوسف خالد سعيد',en:'Yousef Khaled Saeed'},g:{ar:'الخامس الابتدائي',en:'5th Primary'},st:'wait',i:'ي'},
+ {n:{ar:'مريم عبدالله حسن',en:'Maryam Abdullah Hassan'},g:{ar:'الأول الإعدادي',en:'1st Prep'},st:'wait',i:'م'},
+ {n:{ar:'عمر إبراهيم فتحي',en:'Omar Ibrahim Fathy'},g:{ar:'الرابع الابتدائي',en:'4th Primary'},st:'done',i:'ع'},
+ {n:{ar:'فاطمة أحمد نصر',en:'Fatima Ahmed Nasr'},g:{ar:'الثاني الإعدادي',en:'2nd Prep'},st:'done',i:'ف'},
+ {n:{ar:'خالد حسام الدين',en:'Khaled Hossam El-Din'},g:{ar:'الأول الثانوي',en:'1st Secondary'},st:'open',i:'خ'}
+];
+const ic={back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
+ chev:'<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="9 6 15 12 9 18"/></svg>'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const waitCount=()=>STU.filter(s=>s.st==='wait').length;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2200)}
+const real=a=>toast(L('toast')+a);
+
+function stuRow(s,idx){
+  const tg=s.st==='wait'?`<span class="tag wait">${L('s_wait')}</span>`:s.st==='done'?`<span class="tag done">${L('s_done')}</span>`:`<span class="tag open">${L('s_open')}</span>`;
+  return `<div style="display:flex;gap:4px;align-items:center"><button class="row" data-open="${idx}"><span class="av">${s.i}</span><span class="nm"><b>${esc(s.n[S.lang])}</b><small>${esc(s.g[S.lang])}</small></span>${tg}${ic.chev}</button>
+  <div class="menu ${S.menu===idx?'open':''}"><button class="dots" data-menu="${idx}" aria-label="⋯">⋯</button><div class="pop"><button data-real="${L('m_eval')}">${L('m_eval')}</button><button data-real="${L('m_edit')}">${L('m_edit')}</button><button data-real="${L('m_hide')}">${L('m_hide')}</button><button class="dng" data-real="${L('m_del')}">${L('m_del')}</button></div></div></div>`;
+}
+
+function paneStudents(){
+  const q=S.q.trim().toLowerCase();
+  const list=STU.map((s,i)=>[s,i]).filter(([s])=>(S.filter==='all'||(S.filter==='wait'&&s.st==='wait')||(S.filter==='hid'&&false))&&(!q||s.n[S.lang].toLowerCase().includes(q)));
+  return `<div class="tools"><input class="search" id="search" placeholder="${L('search')}" value="${esc(S.q)}"><button class="btn gold" data-act="add">${L('add')}</button></div>
+  <div class="chips"><button class="chip ${S.filter==='all'?'on':''}" data-f="all">${L('f_all')} (${STU.length})</button><button class="chip ${S.filter==='wait'?'on':''}" data-f="wait">${L('f_wait')} (${waitCount()})</button><button class="chip" data-f="hid">${L('f_hid')} (0)</button></div>
+  <div class="list">${list.map(([s,i])=>stuRow(s,i)).join('')||'<p class="hint">—</p>'}</div>
+  <p class="hint">${L('hint_row')}</p>
+  <details style="margin-top:14px"><summary style="cursor:pointer;color:var(--soft);font-weight:600">${L('tools')}</summary><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn line" data-real="${L('tl_exp')}">${L('tl_exp')}</button><button class="btn line" data-real="${L('tl_imp')}">${L('tl_imp')}</button></div></details>`;
+}
+function paneMonth(){
+  const w=STU.filter(s=>s.st==='wait');
+  return `<p class="hint" style="margin:0 0 10px;font-weight:700">${L('month')}</p>
+  <div class="step ${waitCount()?'':'done'}"><span class="no">1</span><div class="bd"><h3>${L('st1_t')}</h3><p>${L('st1_p')}</p>
+   <div class="bar"><i style="width:${waitCount()?75:100}%"></i></div>
+   ${waitCount()?`<div class="mini"><b style="font-size:.82rem;color:var(--soft)">${L('waiting')}</b>${w.map(s=>`<span>${esc(s.n[S.lang].split(' ')[0])}</span>`).join('')}</div>`:''}
+   <button class="btn em" data-real="${L('st1_b')}">${L('st1_b')}</button> <small style="color:var(--soft);margin-inline-start:8px">${L('st1_c')}</small></div></div>
+  <div class="step"><span class="no">2</span><div class="bd"><h3>${L('st2_t')}</h3><p>${L('st2_p')}</p>
+   <div class="bar"><i style="width:42%"></i></div>
+   <button class="btn em" data-real="${L('st2_b')}">${L('st2_b')}</button> <small style="color:var(--soft);margin-inline-start:8px">${L('st2_c')}</small></div></div>`;
+}
+function paneSched(){
+  const d=L('days'),on=[1,0,1,0,1,0,0];
+  return `<div class="sched"><span>${L('sc_time')}</span><button class="btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
+  <div class="list">${STU.slice(0,4).map((s,i)=>`<div class="row" style="cursor:default"><span class="av">${s.i}</span><span class="nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button class="btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
+}
+
+function hub(){
+  const n=waitCount();
+  const now=n?`<div class="now"><span class="ic">📖</span><span class="tx"><small>${L('now_k')}</small><b>${S.lang==='ar'?`${n} طلاب بانتظار تسجيل أين توقفوا هذا الشهر`:`${n} students are waiting for this month's stopping point`}</b></span><button class="go" data-act="tabMonth">${L('now_go')}</button></div>`
+   :`<div class="now clear"><span class="ic">✅</span><span class="tx"><b>${L('now_ok')}</b></span></div>`;
+  return `<div class="head"><button class="back" aria-label="${L('back')}">${ic.back}</button><h2>${L('title')}<span class="sub">${L('sub')}</span></h2></div>
+  ${now}
+  <div class="quick"><button class="q main" data-act="add"><i>➕</i>${L('q_add')}</button><button class="q" data-act="tabMonth"><i>📖</i>${L('q_memo')}</button><button class="q" data-act="tabMonth"><i>📄</i>${L('q_rep')}</button><button class="q" data-act="find"><i>🔍</i>${L('q_find')}</button></div>
+  <div class="tabs" role="tablist">
+   <button class="tab ${S.tab==='students'?'on':''}" data-tab="students">${L('t_students')}</button>
+   <button class="tab ${S.tab==='month'?'on':''}" data-tab="month">${L('t_month')}${n?`<span class="n">${n}</span>`:''}</button>
+   <button class="tab ${S.tab==='sched'?'on':''}" data-tab="sched">${L('t_sched')}</button></div>
+  ${S.tab==='students'?paneStudents():S.tab==='month'?paneMonth():paneSched()}`;
+}
+
+function profile(){
+  const s=STU[S.prof],sec={
+   over:`<div class="todo"><span>🛠️ ${L('p_todo')}</span><button class="btn gold" data-real="${L('p_fix')}">${L('p_fix')}</button></div>
+     <div class="card"><p><b>${L('ov_memo')}:</b> ${L('ov_memo_v')}</p><p style="margin-top:6px"><b>${L('ov_par')}:</b> <span dir="ltr">${L('ov_par_v')}</span></p></div>`,
+   prog:['pg_skill','pg_sim','pg_taj','pg_arch'].map(k=>`<div class="row" data-real="${L(k)}"><span class="nm"><b>${L(k)}</b></span>${ic.chev}</div>`).join('<div style="height:8px"></div>'),
+   badge:`<div class="card" style="margin-bottom:10px"><b>${L('pb_cab')}</b><div class="badges" style="margin-top:8px"><span>🏅 ٣ أجزاء</span><span>🌟 الأحقاف</span><span>📅 حضور</span></div></div><div class="card" style="margin-bottom:10px"><b>${L('pb_sched')}</b><div class="days" style="margin-top:6px">${L('days').map((x,k)=>`<i class="${[1,0,1,0,1,0,0][k]?'':'off'}">${x}</i>`).join('')}</div></div><div class="card"><b>${L('pb_dual')}</b><div class="badges" style="margin-top:8px"><span>⚔️ ٢</span></div></div>`,
+   hist:`<div class="card"><table class="hist"><tr><th>${L('h_date')}</th><th>${L('h_range')}</th><th>${L('h_pct')}</th></tr><tr><td>١٢/١٠</td><td>${S.lang==='ar'?'الأحقاف':'Al-Ahqaf'}</td><td>٩٢٪</td></tr><tr><td>٠٥/١٠</td><td>${S.lang==='ar'?'الجاثية':'Al-Jathiyah'}</td><td>٨٨٪</td></tr></table></div>`};
+  return `<div class="head"><button class="back" id="pback" aria-label="${L('back')}">${ic.back}</button><h2>${esc(s.n[S.lang])}<span class="sub">${esc(s.g[S.lang])}</span></h2></div>
+  <div class="act"><button class="btn gold" data-real="${L('p_eval')}">${L('p_eval')}</button><button class="btn line" data-real="${L('p_edit')}">${L('p_edit')}</button><button class="btn line" data-real="${L('p_rep')}">${L('p_rep')}</button></div>
+  <div class="stats"><div class="stat"><b>٣٤٠</b><small>${L('ps_pts')}</small></div><div class="stat"><b>١٧</b><small>${L('ps_ev')}</small></div><div class="stat"><b>٢</b><small>${L('ps_win')}</small></div></div>
+  <div class="sub-tabs">${['over','prog','badge','hist'].map(k=>`<button class="chip ${S.sub===k?'on':''}" data-sub="${k}">${L('pt_'+k)}</button>`).join('')}</div>
+  <div>${sec[S.sub]}</div>`;
+}
+
+function addModal(){
+  const st=S.step,tt=['a_s1','a_s2','a_s3'];
+  const body=[`<div><label>${L('a_name')}</label><input></div><div><label>${L('a_gender')}</label><div class="seg"><button class="on">${L('a_boy')}</button><button>${L('a_girl')}</button></div></div>`,
+   `<div><label>${L('a_grade')}</label><select><option>—</option></select></div><div><label>${L('a_dob')}</label><div style="display:grid;grid-template-columns:.8fr 1.3fr 1fr;gap:6px"><select><option>—</option></select><select><option>—</option></select><select><option>—</option></select></div></div>`,
+   `<div><label>${L('a_phone')}</label><input inputmode="tel"></div><div><label>${L('a_memo')}</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><select><option>${S.lang==='ar'?'الناس':'An-Nas'}</option></select><select><option>—</option></select></div></div>`][st];
+  document.getElementById('addBox').innerHTML=`<h3>${L('a_title')}</h3><div class="dots2">${[0,1,2].map(i=>`<i class="${i<=st?'on':''}">${i+1}</i>`).join('')}</div><p class="hint" style="text-align:center;margin:0">${L(tt[st])}</p>${body}
+   <div class="nav">${st?`<button class="btn line" data-a="prev">${L('a_prev')}</button>`:''}${st<2?`<button class="btn em" data-a="next">${L('a_next')}</button>`:`<button class="btn gold" data-a="save">${L('a_save')}</button>`}</div>
+   <button class="btn" style="color:var(--soft)" data-a="cancel">${L('a_cancel')}</button>`;
+}
+
+function render(){
+  document.documentElement.lang=S.lang;document.documentElement.dir=S.lang==='ar'?'rtl':'ltr';
+  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=L(e.dataset.i));
+  document.getElementById('bLang').textContent=S.lang==='ar'?'English':'العربية';
+  document.getElementById('bTheme').textContent=document.documentElement.dataset.theme==='dark'?'☀️':'🌙';
+  document.getElementById('main').innerHTML=(S.prof===null?hub():profile())+
+   `<div class="legend"><h4>${L('lg_t')}</h4><ul>${L('lg').map(x=>`<li>${x}</li>`).join('')}</ul></div>`;
+  if(document.getElementById('ovAdd').classList.contains('on'))addModal();
+  const si=document.getElementById('search');if(si&&S.keepFocus){si.focus();si.setSelectionRange(si.value.length,si.value.length);S.keepFocus=false}
+}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,.row');if(!t)return;
+  if(!t.closest('.menu')&&S.menu!==null){S.menu=null;}
+  if(t.id==='bLang'){S.lang=S.lang==='ar'?'en':'ar';return render()}
+  if(t.id==='bTheme'){const h=document.documentElement;h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';return render()}
+  if(t.dataset.tab){S.tab=t.dataset.tab;return render()}
+  if(t.dataset.f){S.filter=t.dataset.f;return render()}
+  if(t.dataset.sub){S.sub=t.dataset.sub;return render()}
+  if(t.dataset.open!==undefined){S.prof=+t.dataset.open;S.sub='over';window.scrollTo(0,0);return render()}
+  if(t.id==='pback'){S.prof=null;return render()}
+  if(t.classList.contains('back')){return real(L('back'))}
+  if(t.dataset.menu!==undefined){const i=+t.dataset.menu;S.menu=S.menu===i?null:i;return render()}
+  if(t.dataset.real){S.menu=null;render();return real(t.dataset.real)}
+  if(t.dataset.act==='tabMonth'){S.tab='month';return render()}
+  if(t.dataset.act==='find'){S.tab='students';S.keepFocus=true;render();return}
+  if(t.dataset.act==='add'){S.step=0;document.getElementById('ovAdd').classList.add('on');return addModal()}
+  if(t.dataset.a){const a=t.dataset.a;
+    if(a==='next')S.step++;else if(a==='prev')S.step--;
+    else{document.getElementById('ovAdd').classList.remove('on');if(a==='save')toast(L('a_saved'));return}
+    return addModal()}
+  if(S.menu!==null)render();
+});
+document.addEventListener('input',e=>{if(e.target.id==='search'){S.q=e.target.value;S.keepFocus=true;render()}});
+render();
+</script>
+</body>
+</html>
