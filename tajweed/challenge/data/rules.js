@@ -53,7 +53,7 @@ export const SOURCES = {
   audio: {
     id: 'audio',
     title: T('التلاوة الصوتية (اختيارية)', 'Recitation audio (optional)'),
-    ref: T('everyayah.com — قارئ: محمود خليل الحصري (مرتّل)، ملفات MP3 لكل آية. نمط الرابط: /data/Husary_128kbps/SSSAAA.mp3', 'everyayah.com — reciter: Mahmoud Khalil al-Husary (murattal), one MP3 per verse. URL pattern: /data/Husary_128kbps/SSSAAA.mp3'),
+    ref: T('everyayah.com — قارئ: محمد صديق المنشاوي (مرتّل)، نفس قارئ المنصة كلها، ملفات MP3 لكل آية. نمط الرابط: /data/Minshawy_Murattal_128kbps/SSSAAA.mp3', 'everyayah.com — reciter: Muhammad Siddiq al-Minshawi (murattal), the same reciter as the rest of the platform, one MP3 per verse. URL pattern: /data/Minshawy_Murattal_128kbps/SSSAAA.mp3'),
     status: 'review',
     note: T('تعذّر اختبار الروابط من بيئة التطوير (محجوبة). صحة التلاوة وتوفّر الروابط تحتاج سماعًا ومراجعة بشرية. يعمل التطبيق كاملًا دون الصوت.', 'The links could not be tested from the development environment (blocked). The correctness of the recitation and availability of the links need a human listen. The app works fully without audio.')
   }

@@ -77,6 +77,17 @@ async function answer(p, correct) {
   return q.type;
 }
 
+// الدرس المصوَّر (js/story.js): يمرّ على كل الشرائح بزر «التالي»، ويستدعي onSlide(i, n) في كل شريحة
+async function walkStory(p, onSlide) {
+  await p.waitForSelector('.story .st-slide');
+  const n = await p.$$eval('.st-prog button', (a) => a.length);
+  for (let i = 0; i < n; i++) {
+    if (onSlide) await onSlide(i, n);
+    if (i < n - 1) { await p.click('.st-nav [data-st="step"][data-d="1"]'); await p.waitForTimeout(60); }
+  }
+  return n;
+}
+
 // ═══ 1) الرئيسية والتنقل على ٣ أحجام ═══
 const sizes = [['phone', 390, 844], ['tablet', 820, 1180], ['desktop', 1366, 800]];
 for (const [name, w, h] of sizes) {
@@ -85,9 +96,8 @@ for (const [name, w, h] of sizes) {
   await p.screenshot({ path: path.join(SHOTS, `home-${name}.png`), fullPage: true });
   await go(p, `#/rule/noon_ikhfa`); await p.waitForSelector('.rule-hero'); await noOverflow(p, `${name}/rule`);
   await p.screenshot({ path: path.join(SHOTS, `rule-${name}.png`), fullPage: true });
-  await go(p, `#/learn/madd_munfasil`); await p.waitForSelector('.lesson');
-  for (let i = 0; i < 4; i++) { await noOverflow(p, `${name}/learn${i}`); if (i === 2) await p.screenshot({ path: path.join(SHOTS, `lesson-${name}.png`), fullPage: true }); await p.click('#l-next'); await p.waitForTimeout(120); }
-  await noOverflow(p, `${name}/learn4`);
+  await go(p, `#/learn/madd_munfasil`);
+  await walkStory(p, async (i) => { await p.waitForTimeout(60); await noOverflow(p, `${name}/learn${i}`); if (i === 3) await p.screenshot({ path: path.join(SHOTS, `lesson-${name}.png`), fullPage: true }); });
   await go(p, `#/play/qalqalah/1`); await p.waitForSelector('.quiz'); await noOverflow(p, `${name}/play`);
   await p.screenshot({ path: path.join(SHOTS, `quiz-${name}.png`), fullPage: true });
   await ctx.close();
@@ -100,16 +110,23 @@ for (const rid of [...Object.keys(RULES), ...Object.keys(MUSHAF)]) {
   const isM = !!MUSHAF[rid]; const noV = isM && !!MUSHAF[rid].noVerses;
   await go(p, `#/rule/${rid}`); await p.waitForSelector('.rule-hero');
   ok(await p.$eval('.steps .step:nth-child(2) .btn', (e) => e.classList.contains('disabled')), `${rid}: المستوى ١ يجب أن يكون مقفل\u064Bا قبل الدرس`);
-  await p.click('.steps .step:first-child .btn'); await p.waitForSelector('.lesson');
-  for (let step = 0; step < (noV ? 3 : 4); step++) {
-    if (isM && [1, 2, 3].includes(step)) { await p.waitForTimeout(250); const bad = await p.$$eval('.lesson-body img', (a) => a.filter((i) => !(i.complete && i.naturalWidth > 0)).map((i) => i.getAttribute('src'))); ok(bad.length === 0, `${rid}: صور لم ت\u064Fحم\u064E\u0651ل ${bad.join(',')}`); const nImg = await p.$$eval('.lesson-body img', (a) => a.length); ok(nImg >= 1 || (rid === 'mushaf_ayah_number' && step === 3), `${rid}: خطوة ${step} بلا صور مصحف`); }
-    if (isM && step === 1) { await p.waitForSelector('.pin'); const np = (await p.$$('.pin')).length; ok(np >= 1, `${rid}: دبابيس الصفحة ${np}`); await p.click('.pin >> nth=0'); await p.waitForSelector('.info-card'); ok((await p.$eval('.info-card', (e) => e.innerText.length)) > 20, `${rid}: بطاقة العلامة فارغة`); await p.click('.pin-leg >> nth=' + (np - 1)); await p.waitForSelector('.pin.sel'); }
-    if (isM && step === 3 && !noV) { await p.waitForSelector('.ayah'); ok(await p.$eval('.lesson-body', (e) => e.innerText.length > 40), `${rid}: خطوة المثال فارغة`); const tabs = await p.$$('[data-sign]'); if (tabs.length > 1) { await tabs[1].click(); await p.waitForSelector('.ayah'); } }
-    if (step === 2 && !isM) { const n = RULES[rid].examples.length; for (let e = 0; e < n - 1; e++) { await p.click('[data-ex="1"]'); await p.waitForSelector('.lesson-ayah'); } for (let e = 0; e < n - 1; e++) await p.click('[data-ex="-1"]'); ok(await p.$eval('.lesson-ayah .ayah', (a) => a.innerText.length > 5), `${rid}: آية المثال فارغة`); await p.waitForSelector('.hlbox', { state: 'attached', timeout: 3000 }).catch(() => {}); ok((await p.$$('.hlbox')).length >= 1, `${rid}: لا تلوين في المثال`); }
-    await p.click('#l-next'); await p.waitForTimeout(80);
-  }
-  if (!isM) ok(await p.$eval('.poem', (e) => e.innerText.length > 10), `${rid}: لا أبيات`);
-  await p.click('#l-done'); await p.waitForSelector('.quiz');
+  await p.click('.steps .step:first-child .btn');
+  let poems = 0, ayahs = 0, pins = 0;
+  await walkStory(p, async (i, n) => {
+    await p.waitForTimeout(isM ? 220 : 120);
+    const bad = await p.$$eval('.st-slide img', (a) => a.filter((im) => !(im.complete && im.naturalWidth > 0)).map((im) => im.getAttribute('src'))); ok(bad.length === 0, `${rid}/${i}: صور لم تُحمَّل ${bad}`);
+    const txt = await p.$eval('.st-slide', (e) => e.innerText); ok(!/⟦|undefined|NaN/.test(txt) && txt.length > 30, `${rid}/${i}: نص معطوب أو فارغ`);
+    poems += (await p.$$('.st-poem')).length; ayahs += (await p.$$('.st-slide .ayah')).length;
+    if (await p.$('.st-slide .pin')) { pins++; await p.click('.st-slide .pin >> nth=0'); await p.waitForSelector('.info-card'); }
+    const ntab = Math.min(3, (await p.$$('.st-slide [data-tab]')).length); for (let k = ntab - 1; k >= 0; k--) { await p.click(`.st-slide [data-tab] >> nth=${k}`); await p.waitForTimeout(60); }
+    let guard = 0; while (guard++ < 8) { const b = await p.$('.st-slide .st-opt:not([disabled]):not(.ok):not(.no)'); if (!b) break; await b.click(); await p.waitForTimeout(40); }
+    if (await p.$('.st-slide .st-check')) ok(await p.$('.st-slide .st-fb.ok, .st-slide .st-fb.no'), `${rid}/${i}: لا تغذية راجعة للسؤال`);
+    if (i === n - 1) ok((await p.$('.st-msg')) && (await p.$eval('.st-msg', (e) => e.innerText.length)) > 60, `${rid}: رسالة وليّ الأمر`);
+  });
+  if (!isM) { ok(poems >= 1, `${rid}: لا أبيات`); ok(ayahs >= 3, `${rid}: آيات الدرس ${ayahs}`); }
+  if (isM) ok(pins >= 1, `${rid}: صفحة الاستكشاف`);
+  if (isM && !noV) ok(ayahs >= 1 || rid === 'mushaf_ayah_number', `${rid}: لا آيات`);
+  await p.click('.st-nav [data-st="train"]'); await p.waitForSelector('.quiz');
   for (const lv of [1, 2, 3]) {
     if (lv > 1) { await go(p, `#/play/${rid}/${lv}`); await p.waitForSelector('.quiz'); }
     for (let i = 0; i < 5; i++) { types.add(await answer(p, true)); }
@@ -130,7 +147,7 @@ await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
     await p2.waitForSelector('.who-card'); ok((await p2.$$('.who-card')).length === 8, 'اختيار الطالب: ٨ بطاقات');
     await p2.fill('#who-q', 'سا'); ok((await p2.$$('.who-card')).length === 1, 'بحث الطالب'); await p2.fill('#who-q', '');
     await p2.click('.who-card >> nth=0'); await p2.waitForSelector('.hero'); const nm = await p2.$eval('.who-chip b', (e) => e.textContent); ok(nm.length > 1, 'شريحة الطالب');
-    await go(p2, '#/learn/mushaf_waqf'); await p2.waitForSelector('.lesson'); for (let i = 0; i < 4; i++) await p2.click('#l-next'); await p2.click('#l-done'); await p2.waitForSelector('.quiz');
+    await go(p2, '#/learn/mushaf_waqf'); await walkStory(p2); await p2.click('.st-nav [data-st="train"]'); await p2.waitForSelector('.quiz');
     ok(await p2.evaluate(() => Object.keys(localStorage).some((k) => /^tjc\.progress\.v1\.\d+/.test(k))), 'التقدم يُحفظ باسم الطالب');
     for (let i = 0; i < 5; i++) await answer(p2, true); await p2.waitForSelector('.result');
     await p2.waitForTimeout(400);
@@ -160,8 +177,8 @@ for (const lang of ['ar', 'en']) {
   ok((await pg.evaluate(() => document.documentElement.dir)) === (lang === 'ar' ? 'rtl' : 'ltr'), `${lang}: الاتجاه`);
   const txt = await pg.evaluate(() => document.body.innerText); ok(!/⟦/.test(txt), `${lang}: مفتاح ترجمة مفقود`);
   if (lang === 'en') ok(!/[\u0600-ۿ]{4,}.*[\u0600-ۿ]{4,}.*[\u0600-ۿ]{4,}/.test(await pg.$eval('.hero-text', (e) => e.innerText)), 'en: عربي في الواجهة');
-  await go(pg, `#/learn/noon_iqlab`); await pg.waitForSelector('.lesson');
-  for (let i = 0; i < 4; i++) { const t = await pg.locator('.lesson-body').innerText(); ok(!/⟦|undefined/.test(t), `${lang}: نص معطوب في الدرس ${i}`); await pg.click('#l-next'); await pg.waitForTimeout(100); }
+  await go(pg, `#/learn/noon_iqlab`);
+  await walkStory(pg, async (i) => { const t = await pg.locator('.st-slide').innerText(); ok(!/⟦|undefined/.test(t), `${lang}: نص معطوب في الدرس ${i}`); if (lang === 'en') ok(!/[\u0600-\u06FF]{4,}(?:\s+[\u0600-\u06FF]{4,}){5,}/.test((await pg.$$eval('.st-slide :is(h1,h2,.st-kid p,.st-def p,.st-steps p,.st-goals span)', (a) => a.map((e) => e.innerText).join(' ')))), `en: جمل عربية في نص الدرس ${i}`); });
   await pg.screenshot({ path: path.join(SHOTS, `lesson-source-${lang}.png`), fullPage: true });
   await go(pg, `#/play/lam_shamsi/2`); await pg.waitForSelector('.quiz'); await pg.screenshot({ path: path.join(SHOTS, `quiz-${lang}${lang === 'en' ? '-dark' : ''}.png`), fullPage: true });
   for (let i = 0; i < 5; i++) await answer(pg, i !== 1);

@@ -14,6 +14,7 @@ import { esc, badge, reviewNote, isReview, setReview, ayahHTML, spanHTML, legend
 import { runQuiz, bindAudio } from './play.js';
 import { stopAudio } from './audio.js';
 import { setToastHost } from './play.js';
+import { hasStory, renderStory, leaveStory } from './story.js';
 
 let root = null; // <main id="app"> داخل Shadow DOM (يُنشأ في start)
 let host = null, wrap = null, opts = {};
@@ -156,6 +157,8 @@ function renderRule(id) {
 
 // ───────── الدرس ─────────
 function renderLearn(id, step = 0, exIdx = 0) {
+  // الدرس المصوَّر (حكاية للأطفال بشرائح): متاح لكل الدروس؛ والدرس القديم يبقى احتياطًا لأي درس بلا حكاية
+  if (hasStory(id)) return renderStory(id, { shell, crumb, stageStyle, root: () => root, onDone: () => { store.setLearned(id); go(`#/play/${id}/1`); }, onExit: () => go(`#/rule/${id}`) });
   if (MUSHAF[id]) return M.renderMushafLearn(id, step);
   const rule = RULES[id]; const st = stageOf(id); const exs = lessonExamples(id);
   const N = 5; const L = rule.letters; const src = SOURCES[rule.poem.src];
@@ -306,6 +309,7 @@ function render() {
     if (opts.students?.length && !student && !(guest && p[0] !== 'who')) return renderWho();
     if (!p.length) return renderHome();
     if (p[0] === 'rule' && META[p[1]]) return renderRule(p[1]);
+    if (!(p[0] === 'learn' && META[p[1]])) leaveStory();
     if (p[0] === 'learn' && META[p[1]]) return renderLearn(p[1]);
     if (p[0] === 'play' && META[p[1]] && LEVELS.some((l) => l.id === Number(p[2]))) return playRun('level', p[1], Number(p[2]));
     if (p[0] === 'stage' && STAGES.some((s) => s.id === p[1])) return playRun('stage', null, null, p[1]);
@@ -374,7 +378,7 @@ export async function start(hostEl, options = {}) {
   store.setSink((e) => { if (student) opts.onProgress?.(e, student); });
   student = null; guest = false; store.setProfile(options.students?.length ? '' : (options.profile || ''));
   const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
-  const css = ['challenge.css', 'mushaf.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
+  const css = ['challenge.css', 'mushaf.css', 'story.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
   sr.innerHTML = `${css.map((h) => `<link rel="stylesheet" href="${h}">`).join('')}<div class="tjc" id="tjc"><div id="tjc-bar"></div><main id="app" tabindex="-1"></main></div>`;
   wrap = sr.getElementById('tjc'); root = sr.getElementById('app'); setToastHost(wrap);
   await Promise.all([...sr.querySelectorAll('link')].map((l) => new Promise((res) => { if (l.sheet) res(); else { l.addEventListener('load', res); l.addEventListener('error', res); } })));

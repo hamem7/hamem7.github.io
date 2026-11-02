@@ -124,6 +124,48 @@ for (const sg of Object.values(SIGNS)) if (sg.lesson === 'sin_saad' || sg.lesson
 notes.push(`صور العلامات الحقيقية: ${Object.keys(SIGNS).length} علامة، ${Object.keys(prov).length} مقتطع\u064Bا موث\u064E\u0651ق\u064Bا`);
 notes.push(`دروس المصحف: ${Object.keys(MUSHAF).length} — علامات: ${Object.keys(SIGNS).length}`);
 
+// 11) الدروس المصوَّرة (data/stories.js): كل درس له حكاية، كل نص بلغتين، كل إحالة (آية، علامة، رسم، صورة، حكم) موجودة،
+//     ولا نص قرآني مكتوب يدويًا، وصور الكتاب والعروض نسخ مطابقة لأصلها في المنصة.
+{
+  const { STORIES, BOOK_CAPS } = await import('../data/stories.js');
+  const { ART_IDS } = await import('../js/art.js');
+  const allIds = STAGES.flatMap((st) => st.rules);
+  for (const id of allIds) if (!STORIES[id]) fail(`[حكاية] ${id} بلا درس مصوَّر`);
+  const walkT = (o, where) => { if (!o || typeof o !== 'object') return; if ('ar' in o || 'en' in o) { needBoth(o, where); return; } for (const [k, v] of Object.entries(o)) walkT(v, `${where}.${k}`); };
+  let nBlocks = 0, nChecks = 0;
+  const blockOk = (b, where) => {
+    nBlocks++;
+    if (b.row) return b.row.forEach((x, i) => blockOk(x, `${where}.row${i}`));
+    if (b.art && !ART_IDS.includes(b.art)) fail(`[حكاية] رسم غير موجود ${b.art} في ${where}`);
+    if (b.viz && !VIZ[b.viz]) fail(`[حكاية] رسم حكم غير موجود ${b.viz} في ${where}`);
+    if (b.img && !fs.existsSync(path.join(ROOT, 'assets', b.img))) fail(`[حكاية] صورة مفقودة ${b.img} في ${where}`);
+    if (b.signs) for (const s of b.signs) if (!SIGNS[s.id]) fail(`[حكاية] علامة غير موجودة ${s.id} في ${where}`);
+    if (b.signAyahs) for (const s of b.signAyahs) if (!SIGNS[s]) fail(`[حكاية] علامة غير موجودة ${s} في ${where}`);
+    if (b.ayah && !POOL[b.ayah]) fail(`[حكاية] آية خارج البنك ${b.ayah} في ${where}`);
+    if (b.ayah && b.hl) for (const w of Object.keys(b.hl)) if (!POOL[b.ayah].w[Number(w)]) fail(`[حكاية] كلمة غير موجودة ${b.ayah}:${w} في ${where}`);
+    for (const k of ['ayahs', 'letters', 'steps', 'vs', 'poem']) if (b[k] && !RULES[b[k]]) fail(`[حكاية] حكم غير موجود ${b[k]} في ${where}`);
+    if (b.explore && !EXPLORE[b.explore]) fail(`[حكاية] صفحة استكشاف غير موجودة ${b.explore}`);
+    if (b.book) for (const id of b.book) { if (!BOOK_CAPS[id]) fail(`[حكاية] صورة كتاب بلا عنوان ${id}`); if (!fs.existsSync(path.join(ROOT, 'assets/book', id + '.webp'))) fail(`[حكاية] صورة كتاب مفقودة ${id}`); }
+    if (b.makhraj) for (const id of Object.values(b.makhraj)) if (!fs.existsSync(path.join(ROOT, 'assets/book', id + '.webp')) || !BOOK_CAPS[id]) fail(`[حكاية] مخرج بلا صورة ${id}`);
+    for (const d of [...(b.deck || []), ...(b.levels || [])]) if (!fs.existsSync(path.join(ROOT, 'assets/deck', d.f + '.webp'))) fail(`[حكاية] شريحة مفقودة ${d.f}`);
+    if (b.check) { nChecks++; if (!b.check.opts.some((o) => o.ok)) fail(`[حكاية] سؤال بلا إجابة صحيحة في ${where}`); if (!b.check.multi && b.check.opts.filter((o) => o.ok).length !== 1) fail(`[حكاية] سؤال مفرد بأكثر من إجابة في ${where}`); }
+  };
+  for (const [id, L] of Object.entries(STORIES)) {
+    walkT({ title: L.title, hook: L.hook, goals: L.goals, recap: L.recap }, `story.${id}`);
+    if (!L.cover || !ART_IDS.includes(L.cover.art)) fail(`[حكاية] ${id}: غلاف بلا رسم`);
+    if (L.goals.length < 3 || L.recap.length < 3) fail(`[حكاية] ${id}: أقل من ٣ أهداف أو خلاصات`);
+    L.slides.forEach((sl, i) => { walkT({ k: sl.k, t: sl.t, tip: sl.tip }, `story.${id}.s${i}`); walkT(sl.b, `story.${id}.s${i}.b`); sl.b.forEach((b, j) => blockOk(b, `${id}.s${i}.b${j}`)); });
+  }
+  for (const [id, c] of Object.entries(BOOK_CAPS)) needBoth(c, `book.${id}`);
+  // نص قرآني مكتوب يدويًا في المحتوى الجديد
+  for (const f of ['data/stories.js']) { const src = fs.readFileSync(path.join(ROOT, f), 'utf8'); for (const w of marked) if (src.includes(w)) fail(`[قرآن] كلمة من البنك مكتوبة يدويًا في ${f}: ${w}`); }
+  // نسخ مطابقة لأصل المنصة
+  for (const [dir, orig] of [['assets/book', 'assets/tajweed/book'], ['assets/deck', 'assets/tajweed/qalqalah']]) for (const f of fs.readdirSync(path.join(ROOT, dir)).filter((x) => x.endsWith('.webp'))) {
+    const o = path.join(PLATFORM, orig, f); if (!fs.existsSync(o) || !fs.readFileSync(o).equals(fs.readFileSync(path.join(ROOT, dir, f)))) fail(`[صور] ${dir}/${f} لا يطابق أصله ${orig}/${f}`);
+  }
+  notes.push(`الدروس المصوَّرة: ${Object.keys(STORIES).length} درسًا — ${nBlocks} كتلة، ${nChecks} سؤالًا سريعًا، ${ART_IDS.length} رسمًا`);
+}
+
 console.log(notes.join('\n'));
 if (errors.length) { console.error(`\n✗ ${errors.length} مخالفة:\n` + errors.join('\n')); process.exit(1); }
 console.log('✓ المحتوى سليم: نص مطابق، أمثلة موث\u064E\u0651قة بمصدرين، لغتان كاملتان، حروف مطابقة، خط قرآني سليم');

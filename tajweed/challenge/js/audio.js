@@ -1,6 +1,6 @@
 // js/audio.js — تشغيل تلاوة الآية (اختياري). المصدر قابل للتبديل بسطر واحد؛ التطبيق يعمل كاملا دون الصوت.
 // ⚠ لم يتحقق من الروابط وصحة التلاوة من بيئة التطوير (الشبكة محجوبة) — البند مسجل في docs/REVIEW_CHECKLIST.md.
-export const AUDIO_BASE = 'https://everyayah.com/data/Husary_128kbps/';
+export const AUDIO_BASE = 'https://everyayah.com/data/Minshawy_Murattal_128kbps/'; // نفس قارئ المنصة كلها (engine/ayahAudio.js)
 export const ayahAudioUrl = (key) => { const [s, a] = key.split(':').map(Number); return `${AUDIO_BASE}${String(s).padStart(3, '0')}${String(a).padStart(3, '0')}.mp3`; };
 
 let el = null;
