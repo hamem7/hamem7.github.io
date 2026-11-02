@@ -3,12 +3,13 @@
 // 🎬 المشهد السينمائي للوسام: وسام يصعد بدوران ثلاثي الأبعاد مع إضاءة وجزيئات تتناسب مع الدرجة، ثم اسم الوسام والدرجة
 // وسببه بالرقم الحقيقي وشريط ما بقي للدرجة التالية. يُستدعى بعد نهاية الألعاب/المواجهات/جلسات التجويد (maybeShowNewBadges)
 // ومن «خزانة الأوسمة» (replay) ومن حفل نهاية الشهر (showCeremony). مدّته ~4 ثوانٍ ويُتخطّى بلمسة، ويحترم «تقليل الحركة».
-// الصوت مكتوم افتراضيًا (localStorage.dh_badge_sound = '1' لتفعيله). الأنماط معزولة تحت #dhBadgeStage.
+// الصوت مفعّل افتراضيًا، ويتبع زر 🔊/🔇 نفسه في شاشتي الاختبار الفردي (localStorage.darham_sfx_muted). الأنماط معزولة تحت #dhBadgeStage.
 // =============================================================================
 import { AppState, t } from '../core/app.js';
 import { tf } from '../core/i18n.js';
 import '../core/i18n-badges.js';
 import { TIER_KEYS, getBadgeDef } from '../engine/badgesEngine.js';
+import { isSfxMuted, setSfxMuted } from './gameSound.js'; // نفس كتم المؤثرات الصوتية في شاشتي الاختبار (darham_sfx_muted): مفعّل افتراضيًا
 
 const STYLE_ID = 'dh-badge-reveal-style';
 const CSS = `/* ===== المسرح ===== */
@@ -137,7 +138,7 @@ function startFx(cv, tierKey, mode) {
   fxRAF = requestAnimationFrame(frame);
 }
 
-const soundOn = () => { try { return localStorage.getItem('dh_badge_sound') === '1'; } catch (e) { return false; } };
+const soundOn = () => !isSfxMuted();
 function chime(tierKey, delay = 1.3) {
   if (!soundOn()) return;
   try {
@@ -181,7 +182,7 @@ export function playBadge(r, student, opts = {}) {
     setTimeout(() => st.classList.add('shown'), 60);
     const keep = !!opts.keepOpen;
     st.querySelector('.snd').onclick = (e) => {
-      const on = !soundOn(); try { localStorage.setItem('dh_badge_sound', on ? '1' : '0'); } catch (err) { /* اختياري */ }
+      const on = !soundOn(); setSfxMuted(!on);
       e.currentTarget.textContent = on ? '🔔' : '🔇'; e.currentTarget.title = on ? t('bdg_sound_off') : t('bdg_sound_on'); if (on) chime(r.tierKey, 0);
     };
     st.querySelectorAll('.acts button').forEach(btn => { btn.onclick = async () => {

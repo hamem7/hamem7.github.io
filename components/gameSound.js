@@ -9,6 +9,8 @@ export function isSfxMuted() {
     try { return localStorage.getItem(KEY) === '1'; } catch (_) { return false; }
 }
 
+export function setSfxMuted(muted) { setMuted(muted); }
+
 function setMuted(muted) {
     try { localStorage.setItem(KEY, muted ? '1' : '0'); } catch (_) { /* التخزين غير متاح: يبقى الكتم لهذه الجلسة فقط */ }
 }
