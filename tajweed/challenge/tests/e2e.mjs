@@ -6,7 +6,7 @@ import fs from 'node:fs'; import path from 'node:path'; import { fileURLToPath }
 const require = createRequire(import.meta.url); const { chromium } = require('playwright');
 const BASE = process.argv[2] || 'http://localhost:8130'; const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SHOTS = path.join(HERE, '..', 'docs', 'screenshots'); fs.mkdirSync(SHOTS, { recursive: true });
-const { RULES, STAGES } = await import('../data/rules.js');
+const { RULES, STAGES, GROUPS } = await import('../data/rules.js');
 const { MUSHAF } = await import('../data/mushaf.js');
 const { KNOW } = await import('../data/know.js');
 const errors = [], log = []; let checks = 0;
@@ -93,7 +93,11 @@ async function walkStory(p, onSlide) {
 const sizes = [['phone', 390, 844], ['tablet', 820, 1180], ['desktop', 1366, 800]];
 for (const [name, w, h] of sizes) {
   const { ctx, p } = await open(w, h);
-  ok((await p.$$('.stage')).length === STAGES.length, `${name}: عدد المحطات`); await noOverflow(p, `${name}/home`);
+  ok((await p.$$('.lv-btn')).length === GROUPS.length, `${name}: عدد المستويات`); await noOverflow(p, `${name}/home`);
+  // كل مستوى يعرض محطاته فقط، ومجموع صفوف الدروس = كل الدروس، وزر «الشرح» يفتح الدرس المصوّر مباشرة
+  { let rows = 0; for (const g of GROUPS) { await p.click(`[data-level="${g.id}"]`); await p.waitForTimeout(60); ok((await p.$$('.stage')).length === STAGES.filter((st) => st.level === g.id).length, `${name}: محطات ${g.id}`); rows += (await p.$$('.lrow')).length; await noOverflow(p, `${name}/home/${g.id}`); }
+    ok(rows === STAGES.flatMap((st) => st.rules).length, `${name}: صفوف الدروس ${rows}`); await p.click(`[data-level="${GROUPS[0].id}"]`); }
+  await p.click('.hero-cta .btn.primary'); await p.waitForSelector('.story .st-slide'); await go(p, '#/');
   await p.screenshot({ path: path.join(SHOTS, `home-${name}.png`), fullPage: true });
   await go(p, `#/rule/noon_ikhfa`); await p.waitForSelector('.rule-hero'); await noOverflow(p, `${name}/rule`);
   await p.screenshot({ path: path.join(SHOTS, `rule-${name}.png`), fullPage: true });
@@ -161,7 +165,7 @@ await go(p, `#/explorer`); await p.waitForSelector('.explore .pin');
     await c2.close(); } }
 // التقدم محفوظ ومفتوح الآن
 await go(p, `#/`); await p.waitForSelector('.hero');
-ok(await p.$eval('.ring-txt b', (e) => e.innerText !== '٠'), 'النجوم لا ت\u064Fحفظ');
+ok(await p.$eval('.ring-txt b', (e) => !e.innerText.startsWith('٠/')), 'التقدم لا يُحفظ');
 // مستوى باجابات خاطئة
 await go(p, `#/play/noon_ikhfa/1`); await p.waitForSelector('.quiz');
 for (let i = 0; i < 5; i++) await answer(p, false);

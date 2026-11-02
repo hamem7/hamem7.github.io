@@ -295,3 +295,32 @@ button.rosette { cursor: pointer; width: 46px; height: 46px; min-width: 0; paddi
 .plate-art .art { max-height: 64px; }
 .rh-viz.know-art .art { max-height: 220px; }
 .opt.opt-glyph b { font-size: 1.9rem; }
+
+/* ── الرئيسية: الدرس التالي + شريط المستويات + صفوف الدروس (المعلم يصل إلى الشرح بضغطة) ── */
+.next-card { display: flex; align-items: center; gap: 12px; background: var(--surface-3); border: 1.5px solid var(--c-mid); border-inline-start: 6px solid var(--c); border-radius: 18px; padding: 10px 14px; margin: 6px 0 14px; max-width: 520px; }
+.next-card > div { display: flex; flex-direction: column; min-width: 0; } .next-card b { font-size: 1.35rem; line-height: 1.35; } .next-card small { color: var(--c-ink); font-weight: 700; font-size: .82rem; }
+.next-card small.muted { color: var(--ink-soft); font-weight: 500; }
+.lr-plate { width: 52px; height: 52px; border-radius: 14px; background: var(--c-soft); border: 1.5px solid var(--c-mid); display: grid; place-items: center; overflow: hidden; flex: none; }
+.lr-plate img { max-width: 86%; max-height: 86%; object-fit: contain; mix-blend-mode: multiply; } .tjc[data-theme="dark"] .lr-plate img { mix-blend-mode: normal; filter: invert(.88) hue-rotate(180deg); }
+.lr-plate .art { width: 100%; height: auto; } .lr-plate b.quran-text { font-size: 1rem; line-height: 1.2 !important; color: var(--c-ink); text-align: center; padding: 0 2px; }
+.lv-strip { display: flex; gap: 8px; overflow-x: auto; padding: 14px 2px 8px; margin: 4px 0 12px; scroll-snap-type: x mandatory; }
+.lv-btn { position: relative; flex: 1 0 118px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; background: var(--surface-2); border: 2px solid var(--line); border-radius: 18px; padding: 10px 8px; min-height: 120px; color: var(--ink); }
+.lv-btn:hover { border-color: var(--line-strong); }
+.lv-btn.on { border-color: var(--emerald); background: color-mix(in srgb, var(--emerald) 10%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 22%, transparent); }
+.lv-btn b { font-size: .95rem; line-height: 1.3; } .lv-btn small { color: var(--ink-soft); font-size: .74rem; } .lv-ico { font-size: 1.6rem; line-height: 1.2; }
+.lv-prog { width: 70%; height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 4px; } .lv-prog i { display: block; height: 100%; background: var(--emerald); }
+.lv-here { position: absolute; top: -11px; font-style: normal; background: var(--gold); color: var(--on-gold); font-size: .68rem; font-weight: 800; border-radius: 99px; padding: 1px 10px; white-space: nowrap; }
+.lv-stages { grid-template-columns: 1fr !important; }
+.lrows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.lrow { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1.5px solid var(--line); border-radius: 16px; padding: 6px 10px; }
+.lrow.is-next { border-color: var(--gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 25%, transparent); }
+.lr-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); min-height: var(--tap); }
+.lr-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; } .lr-tx b { font-size: 1.02rem; } .lr-tx small { color: var(--ink-soft); font-size: .82rem; }
+.lr-next { font-style: normal; background: var(--gold); color: var(--on-gold); font-size: .72rem; font-weight: 800; border-radius: 99px; padding: 1px 10px; }
+.lr-acts { display: flex; gap: 6px; flex: none; }
+.btn.sm { min-height: 40px; padding: 6px 12px; font-size: .88rem; }
+@media (max-width: 640px) {
+  .lrow { flex-wrap: wrap; } .lr-acts { width: 100%; } .lr-acts .btn { flex: 1; }
+  .lv-btn { flex-basis: 104px; min-height: 112px; }
+  .next-card b { font-size: 1.15rem; }
+}

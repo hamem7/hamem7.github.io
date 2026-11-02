@@ -78,23 +78,37 @@ export const L_SHAMSI = ['ط', 'ث', 'ص', 'ر', 'ت', 'ض', 'ذ', 'ن', 'د', '
 
 // ترتيب المراحل المقترح: من الأبسط (صوتان) ← ثلاثة أحكام للميم ← النون (٥) ← لام «ال» ← المدود
 export const STAGES = [
-  { id: 'mushaf', hue: 'teal', icon: 'book', name: T('تعرّف على مصحفك', 'Know Your Mushaf'), blurb: T('أرقام الآيات، الجزء والحزب، الحركات والتنوين، الألف والهمزة، علامات الوقف والسكون والمدّ والسجدة', 'Ayah numbers, juz and hizb, vowel marks and tanween, alif and hamza, and the signs of stopping, sukun, madd and sajdah'), rules: ['mushaf_adab', 'mushaf_ayah_number', 'mushaf_surahs', 'mushaf_juz_hizb', 'mushaf_find', 'mushaf_harakat', 'mushaf_hamza', 'mushaf_waqf', 'mushaf_silent_sukun', 'mushaf_madd_letters', 'mushaf_special', 'mushaf_sin_saad', 'mushaf_sajda'] },
-  { id: 'makharij', hue: 'sky', icon: 'mouth', name: T('المخارج والصفات', 'Articulation & Qualities'), blurb: T('من أين يخرج كل حرف؟ وما الحروف الهامسة والثقيلة والنطّاطة؟', 'Where does each letter come from? Which letters whisper, which are heavy, which bounce?'), rules: ['know_makharij', 'know_sifat'] },
-  { id: 'sounds', hue: 'violet', icon: 'wave', name: T('الغنّة والقلقلة', 'Ghunna & Qalqalah'), blurb: T('صوتان يميّزان تلاوتك: رنين الأنف وقفزة الحرف', 'Two sounds that colour your recitation: the nasal hum and the letter’s bounce'), rules: ['ghunna', 'qalqalah'] },
-  { id: 'meem', hue: 'rose', icon: 'lips', name: T('الميم الساكنة', 'Meem Sakinah'), blurb: T('ثلاثة أحكام للميم الساكنة (مْ)', 'Three rulings for the silent meem (مْ)'), rules: ['meem_ikhfa', 'meem_idgham', 'meem_izhar'] },
-  { id: 'noon', hue: 'emerald', icon: 'noon', name: T('النون الساكنة والتنوين', 'Noon Sakinah & Tanween'), blurb: T('خمس صور: إظهار، إدغام بغنة، إدغام بلا غنة، إقلاب، إخفاء', 'Five forms: izhar, idgham with/without ghunna, iqlab, ikhfa'), rules: ['noon_izhar', 'noon_idgham_ghunna', 'noon_idgham_no_ghunna', 'noon_iqlab', 'noon_ikhfa'] },
-  { id: 'lam', hue: 'amber', icon: 'sun', name: T('لام «أل»', 'The Lam of “Al”'), blurb: T('قمرية تظهر وشمسية تختفي', 'Moon letters show, sun letters hide'), rules: ['lam_qamari', 'lam_shamsi'] },
-  { id: 'idgham', hue: 'rose', icon: 'merge', name: T('المثلان والمتجانسان والمتقاربان', 'Identical, Related & Neighbouring Letters'), blurb: T('حرفان يلتقيان فيصيران حرفًا مشدّدًا واحدًا', 'Two letters meet and become one doubled letter'), rules: ['mithlain', 'mutajanisain', 'mutaqaribain'] },
-  { id: 'tafkhim', hue: 'amber', icon: 'weight', name: T('التفخيم والترقيق', 'Heavy & Light Letters'), blurb: T('الراء ولام لفظ الجلالة: متى تكون سمينة ومتى نحيفة؟', 'The raa and the lam of “Allah”: when heavy, when light?'), rules: ['ra_tafkhim', 'ra_tarqiq', 'lam_jalala_tafkhim', 'lam_jalala_tarqiq'] },
-  { id: 'madd', hue: 'sky', icon: 'madd', name: T('المدود', 'Maddat (Elongation)'), blurb: T('المد الطبيعي والمتصل والمنفصل', 'Natural, connected and separated elongation'), rules: ['madd_tabii', 'madd_muttasil', 'madd_munfasil'] },
-  { id: 'madd2', hue: 'teal', icon: 'madd', name: T('مدود أخرى', 'More Maddat'), blurb: T('العارض للسكون واللين والبدل واللازم', 'ʿArid, leen, badal and lazim'), rules: ['madd_aridh', 'madd_leen', 'madd_badal', 'madd_lazim'] },
-  { id: 'waqf', hue: 'violet', icon: 'stop', name: T('الوقف على أواخر الكلمات', 'Stopping at Word Ends'), blurb: T('كيف ننطق آخر الكلمة إذا وقفنا عليها؟', 'How do we say the end of a word when we stop on it?'), rules: ['know_waqf'] }
+  { id: 'mushaf', level: 'l_mushaf', hue: 'teal', icon: 'book', name: T('أتعرّف على مصحفي', 'Meet My Mushaf'), blurb: T('الآداب، رقم الآية، السور، الأجزاء، كيف أجد الآية، والسجدة', 'Manners, ayah numbers, surahs, juz, finding an ayah, and sajdah'), rules: ['mushaf_adab', 'mushaf_ayah_number', 'mushaf_surahs', 'mushaf_juz_hizb', 'mushaf_find', 'mushaf_sajda'] },
+  { id: 'mushaf_marks', level: 'l_mushaf', hue: 'sky', icon: 'book', name: T('حركات الحروف وعلاماتها', 'Vowels and Letter Marks'), blurb: T('الحركات والتنوين، الهمزة، السكون والحروف الصامتة، والحروف الصغيرة', 'Vowels and tanween, hamza, sukun and silent letters, small letters'), rules: ['mushaf_harakat', 'mushaf_hamza', 'mushaf_silent_sukun', 'mushaf_madd_letters'] },
+  { id: 'mushaf_signs', level: 'l_mushaf', hue: 'violet', icon: 'stop', name: T('علامات الوقف والعلامات النادرة', 'Stop Signs and Rare Marks'), blurb: T('علامات الوقف، السين مكان الصاد، وعلامتان نادرتان', 'Stop signs, seen in place of saad, and two rare marks'), rules: ['mushaf_waqf', 'mushaf_sin_saad', 'mushaf_special'] },
+  { id: 'qalqalah_s', level: 'l_qalqalah', hue: 'sky', icon: 'wave', name: T('القلقلة', 'Qalqalah'), blurb: T('الحروف النطّاطة «قطب جد»', 'The bouncing letters «قطب جد»'), rules: ['qalqalah'] },
+  { id: 'ghunna_s', level: 'l_ghunna', hue: 'violet', icon: 'wave', name: T('الغنّة', 'Ghunna'), blurb: T('النون والميم المشدّدتان: رنين من الأنف', 'Doubled noon and meem: a hum from the nose'), rules: ['ghunna'] },
+  { id: 'tafkhim', level: 'l_tafkhim', hue: 'amber', icon: 'weight', name: T('التفخيم والترقيق', 'Heavy & Light Letters'), blurb: T('الراء ولام لفظ الجلالة: متى تكون سمينة ومتى نحيفة؟', 'The raa and the lam of “Allah”: when heavy, when light?'), rules: ['ra_tafkhim', 'ra_tarqiq', 'lam_jalala_tafkhim', 'lam_jalala_tarqiq'] },
+  { id: 'meem', level: 'l_sakin', hue: 'rose', icon: 'lips', name: T('الميم الساكنة', 'Meem Sakinah'), blurb: T('ثلاثة أحكام للميم الساكنة (مْ)', 'Three rulings for the silent meem (مْ)'), rules: ['meem_ikhfa', 'meem_idgham', 'meem_izhar'] },
+  { id: 'noon', level: 'l_sakin', hue: 'emerald', icon: 'noon', name: T('النون الساكنة والتنوين', 'Noon Sakinah & Tanween'), blurb: T('خمس صور: إظهار، إدغام بغنة، إدغام بلا غنة، إقلاب، إخفاء', 'Five forms: izhar, idgham with/without ghunna, iqlab, ikhfa'), rules: ['noon_izhar', 'noon_idgham_ghunna', 'noon_idgham_no_ghunna', 'noon_iqlab', 'noon_ikhfa'] },
+  { id: 'lam', level: 'l_sakin', hue: 'amber', icon: 'sun', name: T('لام «أل»', 'The Lam of “Al”'), blurb: T('قمرية تظهر وشمسية تختفي', 'Moon letters show, sun letters hide'), rules: ['lam_qamari', 'lam_shamsi'] },
+  { id: 'idgham', level: 'l_sakin', hue: 'rose', icon: 'merge', name: T('المثلان والمتجانسان والمتقاربان', 'Identical, Related & Neighbouring Letters'), blurb: T('حرفان يلتقيان فيصيران حرفًا مشدّدًا واحدًا', 'Two letters meet and become one doubled letter'), rules: ['mithlain', 'mutajanisain', 'mutaqaribain'] },
+  { id: 'makharij', level: 'l_makharij', hue: 'sky', icon: 'mouth', name: T('المخارج والصفات', 'Articulation & Qualities'), blurb: T('من أين يخرج كل حرف؟ وما الحروف الهامسة والثقيلة والنطّاطة؟', 'Where does each letter come from? Which letters whisper, which are heavy, which bounce?'), rules: ['know_makharij', 'know_sifat'] },
+  { id: 'madd', level: 'l_madd', hue: 'sky', icon: 'madd', name: T('المدود', 'Maddat (Elongation)'), blurb: T('المد الطبيعي والمتصل والمنفصل', 'Natural, connected and separated elongation'), rules: ['madd_tabii', 'madd_muttasil', 'madd_munfasil'] },
+  { id: 'madd2', level: 'l_madd', hue: 'teal', icon: 'madd', name: T('مدود أخرى', 'More Maddat'), blurb: T('العارض للسكون واللين والبدل واللازم', 'ʿArid, leen, badal and lazim'), rules: ['madd_aridh', 'madd_leen', 'madd_badal', 'madd_lazim'] },
+  { id: 'waqf', level: 'l_madd', hue: 'violet', icon: 'stop', name: T('الوقف على أواخر الكلمات', 'Stopping at Word Ends'), blurb: T('كيف ننطق آخر الكلمة إذا وقفنا عليها؟', 'How do we say the end of a word when we stop on it?'), rules: ['know_waqf'] }
 ];
+// المستويات: تجمع المحطات بالترتيب الذي يُدرَّس به (الرئيسية تعرض مستوى واحدًا في كل مرة)
+export const GROUPS = [
+  { id: 'l_mushaf', icon: '📖', name: T('مصحفي', 'My Mushaf') },
+  { id: 'l_qalqalah', icon: '🏀', name: T('القلقلة', 'Qalqalah') },
+  { id: 'l_ghunna', icon: '🐝', name: T('الغنّة', 'Ghunna') },
+  { id: 'l_tafkhim', icon: '🎈', name: T('التفخيم والترقيق', 'Heavy & Light') },
+  { id: 'l_sakin', icon: '🔗', name: T('الحرف الساكن', 'The Silent Letter') },
+  { id: 'l_makharij', icon: '👄', name: T('المخارج والصفات', 'Articulation & Qualities') },
+  { id: 'l_madd', icon: '📏', name: T('المدّ والوقف', 'Madd & Stopping') }
+];
+export const groupOf = (stageId) => GROUPS.find((g) => g.id === STAGES.find((s) => s.id === stageId)?.level);
 
 export const RULES = {
   // ───────────────────────── المرحلة ١: أصوات خاصة ─────────────────────────
   ghunna: {
-    id: 'ghunna', stage: 'sounds', viz: 'ghunna',
+    id: 'ghunna', stage: 'ghunna_s', viz: 'ghunna',
     name: T('الغنّة (النون والميم المشدّدتان)', 'Ghunna (doubled Noon & Meem)'),
     short: T('نّ  مّ', 'نّ  مّ'),
     tagline: T('رنين لطيف في الأنف', 'A gentle hum in the nose'),
@@ -117,7 +131,7 @@ export const RULES = {
   },
 
   qalqalah: {
-    id: 'qalqalah', stage: 'sounds', viz: 'qalqalah',
+    id: 'qalqalah', stage: 'qalqalah_s', viz: 'qalqalah',
     name: T('القلقلة', 'Qalqalah (the bounce)'),
     short: T('قطب جد', 'قطب جد'),
     tagline: T('نبرة ترتدّ كالكرة', 'A bounce like a ball'),

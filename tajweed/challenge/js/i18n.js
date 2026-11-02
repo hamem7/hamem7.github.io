@@ -210,6 +210,13 @@ const D = {
   ws_circle: { ar: 'ضع دائرة حول موضع «{rule}» في الآية:', en: 'Circle where “{rule}” happens in this ayah:' },
   ws_write: { ar: 'اكتب مثالًا رأيته في مصحفك:', en: 'Write an example you found in your mushaf:' },
   ws_foot: { ar: 'ركن التجويد — منصة حمٓ', en: 'Tajweed corner — Ham platform' },
+  path_here: { ar: 'أنت هنا', en: 'You are here' },
+  lv_n: { ar: 'المستوى {n}', en: 'Level {n}' },
+  next_k: { ar: 'الدرس التالي', en: 'Next lesson' },
+  lr_next: { ar: 'التالي', en: 'Next' },
+  lr_learn: { ar: 'الشرح', en: 'Lesson' },
+  lr_train: { ar: 'تدريب', en: 'Practice' },
+  lr_start_learn: { ar: 'ابدأ الشرح', en: 'Start the lesson' },
   know_lvl_d: { ar: 'أسئلة متنوّعة من الدرس', en: 'Mixed questions from the lesson' },
   stage_done: { ar: 'اكتمل', en: 'Done' },
   none_yet: { ar: 'لم تبدأ بعد', en: 'Not started yet' }

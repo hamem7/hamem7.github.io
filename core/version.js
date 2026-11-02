@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.72';
+export const APP_VERSION = '1.0.73';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.73',
+        date: '2026-11-02',
+        items: [
+            { type: 'improved', text: { ar: 'رئيسية ركن التجويد أسهل وأسرع: بطاقة «الدرس التالي» بزر «ابدأ الشرح»، وسبعة مستويات بالترتيب (مصحفي ← القلقلة ← الغنّة ← التفخيم والترقيق ← الحرف الساكن ← المخارج والصفات ← المدّ والوقف) يظهر منها مستوى واحد في كل مرة، ولكل درس زرّا «الشرح» و«تدريب» مباشرة.', en: 'The Tajweed corner home is simpler and faster: a “next lesson” card with a “Start the lesson” button, and seven levels in teaching order (My Mushaf → Qalqalah → Ghunna → Heavy & Light → The Silent Letter → Articulation & Qualities → Madd & Stopping), one level shown at a time, with direct “Lesson” and “Practice” buttons for every lesson.' } },
+            { type: 'improved', text: { ar: 'قُسّم «تعرّف على مصحفك» إلى ثلاث محطات: «أتعرّف على مصحفي»، و«حركات الحروف وعلاماتها»، و«علامات الوقف والعلامات النادرة»، وصارت القلقلة والغنّة محطتين مستقلتين.', en: '“Know Your Mushaf” is split into three stops — “Meet My Mushaf”, “Vowels and Letter Marks”, “Stop Signs and Rare Marks” — and qalqalah and ghunna are now separate stops.' } }
+        ]
+    },
     {
         version: '1.0.72',
         date: '2026-11-02',

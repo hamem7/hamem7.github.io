@@ -1,6 +1,6 @@
 // js/app.js — الموجه والشاشات: الرئيسية، الحكم، الدرس، اللعب، النتيجة، المصادر.
 import { POOL } from '../data/pool.js';
-import { STAGES, RULES, META, SOURCES, stageOf } from '../data/rules.js';
+import { STAGES, RULES, META, SOURCES, stageOf, GROUPS } from '../data/rules.js';
 import { MUSHAF, LESSON_IMG, signImg } from '../data/mushaf.js';
 import { buildMushafLevel, buildMushafStage, mushafMixedQuestion } from './mushaf-engine.js';
 import { initMushaf } from './mushaf.js';
@@ -50,60 +50,80 @@ const crumb = (items) => `<nav class="crumb" aria-label="breadcrumb">${items.map
 const stageStyle = (st) => `style="--hue:var(--h-${st.hue})"`;
 
 // ───────── الرئيسية ─────────
+// المستوى المعروض في الرئيسية (يُحفظ على الجهاز؛ الافتراضي: مستوى الخطوة التالية)
+const LV_KEY = 'tjc.level';
+let homeLevel = (() => { try { return localStorage.getItem(LV_KEY) || ''; } catch { return ''; } })();
+const setHomeLevel = (id) => { homeLevel = id; try { localStorage.setItem(LV_KEY, id); } catch { /* لا تخزين */ } };
+const lessonPlate = (id) => (KNOW[id] ? `<span class="lr-plate">${art(KNOW[id].art)}</span>` : MUSHAF[id] ? `<span class="lr-plate"><img src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span>` : `<span class="lr-plate"><b class="quran-text">${esc(tx(META[id].short))}</b></span>`);
+
 function renderHome() {
   const tot = store.totals(ALL_RULES);
   const pct = Math.round((tot.got / tot.max) * 100);
   const nxt = nextStep();
-  const started = tot.got > 0 || ALL_RULES.some((id) => store.getRule(id).learned);
   const R = 52, C = 2 * Math.PI * R;
-  const stagesHTML = STAGES.map((st, si) => {
+  const nxtStage = nxt.rule ? stageOf(nxt.rule) : null;
+  if (!GROUPS.some((g) => g.id === homeLevel)) homeLevel = nxtStage ? nxtStage.level : GROUPS[0].id;
+  const groupRules = (g) => STAGES.filter((st) => st.level === g.id).flatMap((st) => st.rules);
+  // شريط المستويات
+  const strip = GROUPS.map((g, gi) => {
+    const ids = groupRules(g); const done = ids.filter((id) => store.getRule(id).lv[3] >= 1).length;
+    const here = nxtStage && nxtStage.level === g.id;
+    return `<button type="button" class="lv-btn${g.id === homeLevel ? ' on' : ''}" data-level="${g.id}" aria-pressed="${g.id === homeLevel}">
+      ${here ? `<em class="lv-here">${t('path_here')}</em>` : ''}<span class="lv-ico" aria-hidden="true">${g.icon}</span><small>${t('lv_n', { n: num(gi + 1) })}</small><b>${esc(tx(g.name))}</b>
+      <span class="lv-prog"><i style="width:${Math.round((done / ids.length) * 100)}%"></i></span><small>${num(done)}/${num(ids.length)}</small></button>`;
+  }).join('');
+  // محطات المستوى المختار
+  const stagesHTML = STAGES.filter((st) => st.level === homeLevel).map((st) => {
+    const si = STAGES.indexOf(st);
     const got = st.rules.reduce((a, id) => a + ruleProgress(id), 0), max = st.rules.length * 9;
     const mastered = st.rules.filter((id) => store.getRule(id).lv[3] >= 1).length;
     const unlockedChallenge = isReview() || st.rules.some((id) => store.getRule(id).lv[1] >= 1);
-    const stStars = store.getStageStars(st.id);
+    const rows = st.rules.map((id) => {
+      const r = store.getRule(id); const isNext = nxt.rule === id;
+      return `<li class="lrow${isNext ? ' is-next' : ''}">
+        <a class="lr-main" href="#/learn/${id}">${lessonPlate(id)}<span class="lr-tx"><b>${esc(ruleName(id))}</b><small>${esc(tx(META[id].tagline))}</small></span>${isNext ? `<em class="lr-next">${t('lr_next')}</em>` : ''}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a>
+        <span class="lr-acts"><a class="btn ${isNext ? 'primary' : 'ghost'} sm" href="#/learn/${id}">📖 ${t('lr_learn')}</a><a class="btn ghost sm" href="#/rule/${id}" title="${esc(t('lr_train'))}">🎮 <span>${t('lr_train')}</span></a></span></li>`;
+    }).join('');
     return `
-    <article class="stage${st.id === 'mushaf' ? ' mushaf-stage' : ''}" ${stageStyle(st)}>
+    <article class="stage" ${stageStyle(st)}>
       <header class="stage-head">
         <span class="stage-ico" aria-hidden="true">${STAGE_ICONS[st.icon]}</span>
         <div class="stage-title"><small>${t('stage_n', { n: num(si + 1) })}</small><h3>${esc(tx(st.name))}</h3><p>${esc(tx(st.blurb))}</p></div>
         <div class="stage-prog" aria-label="${got}/${max}"><b>${num(mastered)}/${num(st.rules.length)}</b><small>${t('home_mastered')}</small><div class="pbar"><i style="width:${Math.round((got / max) * 100)}%"></i></div></div>
       </header>
-      ${st.id === 'mushaf' ? `<ul class="tiles">${st.rules.map((id) => { const r = store.getRule(id); return `<li><a class="tile" href="#/rule/${id}"><span class="plate">${KNOW[id] ? `<span class="plate-art">${art(KNOW[id].art)}</span>` : `<img class="plate-img" src="${esc(signImg(LESSON_IMG[id]))}" alt="">`}</span><b>${esc(ruleName(id))}</b>${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0))}</a></li>`; }).join('')}</ul>` : `<ul class="rule-list">${st.rules.map((id) => {
-        const r = store.getRule(id);
-        return `<li><a class="rule-row" href="#/rule/${id}"><span class="rr-main"><b>${esc(ruleName(id))}</b><small class="quran-text rr-short">${esc(tx(META[id].short))}</small></span><span class="rr-state">${r.learned ? '' : '<em class="new">●</em>'}${starsHTML(Math.max(...[r.lv[1] || 0, r.lv[2] || 0, r.lv[3] || 0]))}</span></a></li>`;
-      }).join('')}</ul>`}
+      <ul class="lrows">${rows}</ul>
       <footer class="stage-foot">
-        ${st.id === 'mushaf' ? `<a class="btn ghost" href="#/explorer">🔎 ${t('mk_explorer')}</a>` : ''}
         <a class="btn ghost" href="#/review/${st.id}">🗺️ ${t('rv_btn')}</a>
-        <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(stStars)}</button>
-        ${unlockedChallenge ? '' : `<small>${t('stage_challenge_locked')}</small>`}
+        <button type="button" class="btn ${unlockedChallenge ? 'accent' : 'disabled'}" data-stage="${st.id}" ${unlockedChallenge ? '' : 'disabled'}>🏁 ${t('stage_challenge')} ${starsHTML(store.getStageStars(st.id))}</button>
+        ${st.level === 'l_mushaf' && st.id === 'mushaf_signs' ? `<a class="btn ghost" href="#/explorer">🔎 ${t('mk_explorer')}</a>` : ''}
       </footer>
     </article>`;
   }).join('');
+  const nr = nxt.rule; const learnHash = nr ? `#/learn/${nr}` : '#/mixed'; const trainHash = nr ? (nxt.hash.startsWith('#/play') ? nxt.hash : `#/rule/${nr}`) : '#/mixed';
   shell(`
-    <section class="hero">
+    <section class="hero home-next">
       <div class="hero-text">
         <h1>${student ? t('home_hello_name', { name: esc(student.name) }) : t('home_hello')}</h1>
-        <p class="lead">${t('home_lead', { n: num(STAGES.length) })}</p>
+        ${nr ? `<div class="next-card" ${stageStyle(nxtStage)}>${lessonPlate(nr)}<div><small>${t('next_k')} · ${esc(tx(nxtStage.name))}</small><b>${esc(ruleName(nr))}</b><small class="muted">${esc(nxt.label)}</small></div></div>` : `<p class="lead">${t('home_mixed_desc')}</p>`}
         <div class="hero-cta">
-          <a class="btn primary big" href="${nxt.hash}">${started ? t('home_continue') : t('home_start')} <span class="arr" aria-hidden="true"></span></a>
-          ${nxt.rule ? `<small class="muted">${esc(ruleName(nxt.rule))} · ${esc(nxt.label)}</small>` : ''}
+          <a class="btn primary big" href="${learnHash}">📖 ${nr ? t('lr_start_learn') : t('home_mixed')} <span class="arr" aria-hidden="true"></span></a>
+          ${nr ? `<a class="btn ghost" href="${trainHash}">🎮 ${t('lr_train')}</a>` : ''}
         </div>
       </div>
       <div class="hero-ring" role="img" aria-label="${t('home_progress')} ${pct}%">
         <svg viewBox="0 0 130 130"><circle class="ring-bg" cx="65" cy="65" r="${R}"/><circle class="ring-fg" cx="65" cy="65" r="${R}" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}"/></svg>
-        <div class="ring-txt"><b>${num(tot.got)}</b><small>${t('home_progress')} ★</small><small>${num(tot.mastered)} / ${num(ALL_RULES.length)} ${t('home_mastered')}</small></div>
+        <div class="ring-txt"><b>${num(tot.mastered)}/${num(ALL_RULES.length)}</b><small>${t('home_mastered')}</small><small>${num(tot.got)} ★</small></div>
       </div>
     </section>
     ${isReview() ? `<p class="review-banner">${t('review_mode_on')}</p>` : ''}
-    <h2 class="sec-title">${t('path_title')}</h2>
-    <div class="stages">${stagesHTML}</div>
+    <nav class="lv-strip" aria-label="${esc(t('path_title'))}">${strip}</nav>
+    <div class="stages lv-stages">${stagesHTML}</div>
     <section class="mixed">
       <div><h3>🎯 ${t('home_mixed')}</h3><p>${t('home_mixed_desc')}</p></div>
       <a class="btn accent" href="#/mixed">${t('start')} ${starsHTML(store.getMixed())}</a>
-    </section>
-    <p class="muted center small">${t('data_version', { n: num(Object.keys(POOL).length) })}</p>`);
+    </section>`);
   root.querySelectorAll('[data-stage]').forEach((b) => b.addEventListener('click', () => go(`#/stage/${b.dataset.stage}`)));
+  root.querySelectorAll('[data-level]').forEach((b) => b.addEventListener('click', () => { setHomeLevel(b.dataset.level); const y = window.scrollY; renderHome(); window.scrollTo({ top: y }); }));
 }
 
 // ───────── صفحة الحكم ─────────
@@ -262,8 +282,10 @@ function playRun(kind, ruleId, level, stageId) {
   else if (kind === 'stage') {
     // تحدي المحطة: أحكام المحطة (من الكاشف) + أسئلة دروس المعرفة فيها
     const sObj = STAGES.find((s) => s.id === stageId); const rr = rng(Date.now()); const know = sObj.rules.filter((id) => KNOW[id]); const hasRules = sObj.rules.some((id) => RULES[id]);
-    const base = stageId === 'mushaf' ? buildMushafStage() : hasRules ? buildStageChallenge(stageId) : [];
-    const extra = []; const want = Math.max(know.length ? 2 : 0, 8 - base.length); for (let k = 0; know.length && k < want; k++) extra.push(knowQuestion(know[k % know.length], rr));
+    const mush = sObj.rules.filter((id) => MUSHAF[id]);
+    const base = hasRules ? buildStageChallenge(stageId) : [];
+    const side = [...mush, ...know]; const extra = []; const want = Math.max(side.length ? Math.min(8, side.length * 2) : 0, 8 - base.length);
+    for (let k = 0; side.length && k < want; k++) { const id = side[k % side.length]; extra.push(MUSHAF[id] ? mushafMixedQuestion(id, rr) : knowQuestion(id, rr)); }
     qs = shuffle([...base, ...extra], rr).slice(0, 8); head = `<b>${esc(tx(sObj.name))}</b> · ${t('stage_challenge')}`;
   }
   else { const learned = ALL_RULES.filter((id) => store.getRule(id).learned); const pool = learned.length >= 2 ? learned : ALL_RULES; const tajweed = pool.filter((id) => RULES[id]); const mush = pool.filter((id) => MUSHAF[id]); const know = pool.filter((id) => KNOW[id]); const rr = rng(Date.now());

@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { POOL, SURAHS } from '../data/pool.js';
-import { RULES, STAGES, SOURCES, CONFUSABLES, SINGLE_SOURCE, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
+import { RULES, STAGES, GROUPS, SOURCES, CONFUSABLES, SINGLE_SOURCE, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
 import { UI_DICT } from '../js/i18n.js';
 import { VIZ, VIZ_CAPTION, STAGE_ICONS } from '../js/viz.js';
 import { KNOW, BANKS, AREAS, SIFAT } from '../data/know.js';
@@ -62,6 +62,9 @@ for (const r of Object.values(RULES)) {
   if (!CONFUSABLES[r.id] || CONFUSABLES[r.id].length < 3) fail(`[confusables] ${r.id}`);
 }
 for (const s of STAGES) { needBoth(s.name, `stage.${s.id}`); needBoth(s.blurb, `stage.${s.id}.blurb`); if (!STAGE_ICONS[s.icon]) fail(`[مرحلة] ${s.id} بلا أيقونة`); }
+// كل محطة في مستوى معرّف، وكل مستوى فيه محطة، وترتيب المحطات متصل داخل كل مستوى
+for (const g of GROUPS) { needBoth(g.name, `group.${g.id}`); if (!STAGES.some((st) => st.level === g.id)) fail(`[مستوى] ${g.id} بلا محطات`); }
+{ const order = STAGES.map((st) => st.level); for (const st of STAGES) if (!GROUPS.some((g) => g.id === st.level)) fail(`[مستوى] ${st.id} بلا مستوى`); if (order.join() !== order.filter((x, i) => i === 0 || x !== order[i - 1]).map((x) => order.filter((y) => y === x)).flat().join()) fail('[مستوى] محطات المستوى الواحد غير متتالية'); }
 // كل درس في المراحل معرَّف مرة واحدة (حكم أو درس مصحف أو درس معرفة)
 { const seen = new Set(); for (const s of STAGES) for (const id of s.rules) { if (seen.has(id)) fail(`[مرحلة] ${id} مكرر`); seen.add(id); if (!RULES[id] && !MUSHAF[id] && !KNOW[id]) fail(`[مرحلة] ${id} غير معرّف`); } }
 // دروس المعرفة: لغتان، بنوك أسئلة بخيارات ثنائية اللغة، ورسم موجود
