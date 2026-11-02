@@ -74,6 +74,33 @@
 #app-root #ms-screen .ms-side-step .no{width:26px;height:26px;border-radius:50%;background:var(--dh-emerald-700);color:var(--dh-on-emerald);display:grid;place-items:center;font-weight:700;font-size:.8rem;flex:none}
 #app-root #ms-screen .ms-side-step small{margin-inline-start:auto;color:var(--dh-ink-soft)}
 
+
+/* زر التعديل الظاهر بجوار الاسم */
+#app-root #ms-screen .ms-card3{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;padding:10px 12px}
+#app-root #ms-screen .ms-card3:hover{border-color:var(--dh-emerald-600)}
+#app-root #ms-screen .ms-open{flex:1 1 230px;display:flex;align-items:center;gap:12px;background:none;border:0;color:var(--dh-ink);text-align:start;padding:0;margin:0;cursor:pointer;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-acts{display:flex;align-items:center;gap:8px;margin-inline-start:auto}
+
+#app-root #ms-screen .ms-edit{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--dh-emerald-600);background:var(--dh-surface-3);color:var(--dh-emerald-700);border-radius:12px;padding:6px 12px;min-height:40px;font-weight:700;font-size:.88rem;cursor:pointer;margin:0;min-width:0;box-shadow:none;white-space:nowrap;flex:none}
+[data-theme="dark"] #app-root #ms-screen .ms-edit{color:var(--dh-ink);border-color:var(--dh-gold-500)}
+#app-root #ms-screen .ms-edit:hover{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#app-root #ms-screen .ms-line .ms-row{flex:1;min-width:0}
+/* الحصص: بطاقة منسدلة لكل طالب */
+#app-root #ms-screen .ms-acc{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:16px;overflow:hidden}
+#app-root #ms-screen .ms-acc.open{border-color:var(--dh-emerald-600)}
+#app-root #ms-screen .ms-acc-h{display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;color:var(--dh-ink);text-align:start;padding:10px 12px;cursor:pointer;margin:0;min-width:0;box-shadow:none}
+#app-root #ms-screen .ms-acc-h .ms-nm b{white-space:normal}
+#app-root #ms-screen .ms-acc-h .ms-chev{transition:transform .2s;transform:rotate(90deg)}
+#app-root #ms-screen .ms-acc.open .ms-acc-h .ms-chev{transform:rotate(-90deg)}
+#app-root #ms-screen .ms-acc-b{display:none;padding:4px 14px 14px;border-top:1px dashed var(--dh-border);flex-direction:column;gap:12px}
+#app-root #ms-screen .ms-acc.open .ms-acc-b{display:flex}
+#app-root #ms-screen .ms-acc-b label{font-size:.82rem;font-weight:700;color:var(--dh-ink-soft);display:block;margin:10px 0 4px}
+#app-root #ms-screen .ms-dayp{display:flex;gap:6px;flex-wrap:wrap}
+#app-root #ms-screen .ms-dayp button{min-width:46px;min-height:42px;border-radius:12px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);font-weight:700;cursor:pointer;margin:0;padding:0 10px;box-shadow:none;font-size:.95rem}
+#app-root #ms-screen .ms-dayp button.on{background:var(--dh-emerald-700);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#app-root #ms-screen .ms-dur{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:12px;padding:8px 12px;min-height:44px;margin:0;width:auto;font-size:1rem}
+#app-root #ms-screen .ms-saved{color:var(--dh-ok);font-weight:700;font-size:.85rem;min-height:1.3em}
+
 /* الاختصارات */
 #app-root #ms-screen .ms-quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 #app-root #ms-screen .ms-q{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong);border-radius:16px;padding:12px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.8rem;font-weight:700;text-align:center;min-height:84px;cursor:pointer;margin:0;min-width:0;box-shadow:none;transition:transform .15s}
@@ -259,7 +286,7 @@ ar:{pv_note:'معاينة لتصميم مقترح لركن «طلابي» — ب
  a_name:'الاسم (ثلاثي) — مطلوب',a_gender:'الجنس — مطلوب',a_boy:'👦🏻 ولد',a_girl:'👧🏻 بنت',
  a_grade:'الصف (اختياري)',a_dob:'تاريخ الميلاد (اختياري)',a_phone:'رقم ولي الأمر (اختياري)',a_memo:'الحفظ: من سورة — إلى سورة (إلزامي)',
  a_next:'التالي ←',a_prev:'→ رجوع',a_save:'حفظ ✔️',a_cancel:'إلغاء',a_saved:'✅ تمت إضافة الطالب (معاينة فقط)',
- toast:'في المنصة الفعلية: ',stat_students:'عدد الطلاب',stat_memo:'بانتظار الحفظ',stat_reports:'تقارير أكتوبر صُدِّرت',side_t:'ملخص الشهر',lgS:'شريط الأرقام الثلاثة (عدد الطلاب · بانتظار الحفظ · تقارير الشهر) يبقى ظاهرًا أعلى الركن كما في المنصة اليوم.',lgW:'على الشاشات العريضة (حاسوب/لوحي) يتحول الركن إلى عمودين: القائمة والتبويبات في الأساس، وفي الجانب «المطلوب الآن» والأرقام وملخص الشهر — فلا تبقى مساحة فارغة. على الجوال يبقى عمودًا واحدًا.',var_a:'الاقتراح ١: بلا اختصارات (الأنظف)',var_b:'الاقتراح ٢: زران فقط',
+ toast:'في المنصة الفعلية: ',edit_btn:'تعديل',edit_tip:'تعديل بيانات الطالب',sc_days:'أيام الحصص',sc_dur:'مدة الحصة',sc_min:'دقيقة',sc_saved:'✓ حُفظ تلقائيًا',sc_none:'لا توجد حصص محددة',sc_open:'اضغط على الاسم لتعديل الأيام',sc_auto:'يُحفظ أي تعديل تلقائيًا بمجرد الاختيار — بلا زر حفظ.',lgE:'زر «تعديل» ظاهر بجوار اسم كل طالب مباشرة، فلا يبحث المعلم عنه في قائمة مخفية.',lgH:'«الحصص والحضور»: الاسم كاملًا، وبالضغط عليه تنزل قائمة بالأيام ومدة الحصة، ويُحفظ كل اختيار تلقائيًا.',stat_students:'عدد الطلاب',stat_memo:'بانتظار الحفظ',stat_reports:'تقارير أكتوبر صُدِّرت',side_t:'ملخص الشهر',lgS:'شريط الأرقام الثلاثة (عدد الطلاب · بانتظار الحفظ · تقارير الشهر) يبقى ظاهرًا أعلى الركن كما في المنصة اليوم.',lgW:'على الشاشات العريضة (حاسوب/لوحي) يتحول الركن إلى عمودين: القائمة والتبويبات في الأساس، وفي الجانب «المطلوب الآن» والأرقام وملخص الشهر — فلا تبقى مساحة فارغة. على الجوال يبقى عمودًا واحدًا.',var_a:'الاقتراح ١: بلا اختصارات (الأنظف)',var_b:'الاقتراح ٢: زران فقط',
  lgA:'لا توجد اختصارات: «المطلوب الآن» ثم التبويبات فقط، وكل شيء له مكان واحد.',lgB:'زران فقط: «طالب جديد» و«تقرير شهري» — وحُذف الزر المكرر من داخل تبويب «الطلاب».',
  lg_t:'ما الذي تغيّر عن الشكل الحالي؟',
  lg:['«المطلوب الآن» في أعلى الشاشة: يدلّ المعلم على أول خطوة بدل أن يخمّن.','أربعة اختصارات للمهام الأكثر استعمالًا (طالب جديد، حفظ، تقرير، فتح ملف).','ثلاثة تبويبات فقط بدل ست مساحات متفرقة: الطلاب · هذا الشهر · الحصص.','زر «طالب جديد» واحد (كان في مكانين).','«هذا الشهر» مرتّب كخطوتين: ١) الحفظ ثم ٢) التقارير، مع عدّاد تقدّم.','ملف الطالب: إجراء رئيسي واحد (بدء تقييم) وأربعة أقسام بدل صفحة طويلة.','كل الألوان من رموز الهوية فتعمل في المظهر الداكن، واللغتان والاتجاه مدعومان.']},
@@ -290,12 +317,12 @@ en:{pv_note:'Preview of a proposed "My Students" corner — sample data, does no
  a_name:'Full name — required',a_gender:'Gender — required',a_boy:'👦🏻 Boy',a_girl:'👧🏻 Girl',
  a_grade:'Grade (optional)',a_dob:'Birth date (optional)',a_phone:'Parent phone (optional)',a_memo:'Memorized: from surah — to surah (required)',
  a_next:'Next →',a_prev:'← Back',a_save:'Save ✔️',a_cancel:'Cancel',a_saved:'✅ Student added (preview only)',
- toast:'In the real platform: ',stat_students:'Students',stat_memo:'Awaiting memorization',stat_reports:'October reports exported',side_t:'Month summary',lgS:'The three-number strip (Students · Awaiting memorization · Month reports) stays at the top of the corner, as in the platform today.',lgW:'On wide screens (desktop/tablet) the corner becomes two columns: the list and tabs as the main column, and "Needed now", the numbers and a month summary in the side column — no empty space. On mobile it stays a single column.',var_a:'Proposal 1: no shortcuts (cleanest)',var_b:'Proposal 2: two shortcuts',
+ toast:'In the real platform: ',edit_btn:'Edit',edit_tip:'Edit student details',sc_days:'Session days',sc_dur:'Session length',sc_min:'min',sc_saved:'✓ Saved automatically',sc_none:'No sessions set',sc_open:'Tap a name to edit the days',sc_auto:'Every change is saved automatically as soon as you choose — no save button.',lgE:'An "Edit" button sits right next to each student\'s name, so the teacher never has to hunt for it in a hidden menu.',lgH:'"Schedule & attendance": full names; tapping one drops down the days and session length, and every choice saves automatically.',stat_students:'Students',stat_memo:'Awaiting memorization',stat_reports:'October reports exported',side_t:'Month summary',lgS:'The three-number strip (Students · Awaiting memorization · Month reports) stays at the top of the corner, as in the platform today.',lgW:'On wide screens (desktop/tablet) the corner becomes two columns: the list and tabs as the main column, and "Needed now", the numbers and a month summary in the side column — no empty space. On mobile it stays a single column.',var_a:'Proposal 1: no shortcuts (cleanest)',var_b:'Proposal 2: two shortcuts',
  lgA:'No shortcuts: "Needed now" then the tabs only — every action has exactly one place.',lgB:'Only two shortcuts: "New student" and "Monthly report" — the duplicate button inside the Students tab was removed.',
  lg_t:'What changed from the current layout?',
  lg:['"Needed now" at the top: tells the teacher the first step instead of guessing.','Four shortcuts for the most common tasks (new student, memorization, report, open a file).','Three tabs instead of six scattered areas: Students · This month · Schedule.','One "New student" button (it used to exist in two places).','"This month" is two clear steps: 1) memorization, then 2) reports, with progress.','Student file: one main action (Start evaluation) and four sections instead of one long page.','All colors come from identity tokens so dark mode works; both languages and directions supported.']}
 };
-const S={v:'a',lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0};
+const S={sch:{0:{days:[0,2,4],min:60},1:{days:[1,3],min:45},3:{days:[0,4],min:60}},sopen:null,saved:null,v:'a',lang:'ar',tab:'students',filter:'all',q:'',prof:null,sub:'over',menu:null,step:0};
 const L=k=>T[S.lang][k];
 const STU=[
  {n:{ar:'أحمد محمد علي',en:'Ahmed Mohamed Ali'},g:{ar:'الثالث الابتدائي',en:'3rd Primary'},st:'wait',i:{ar:'أ',en:'A'}},
@@ -322,8 +349,9 @@ const real=a=>toast(L('toast')+a);
 
 function stuRow(s,idx){
   const tg=s.st==='wait'?`<span class="ms-tag wait">${L('s_wait')}</span>`:s.st==='done'?`<span class="ms-tag done">${L('s_done')}</span>`:`<span class="ms-tag open">${L('s_open')}</span>`;
-  return `<div class="ms-line"><button type="button" class="ms-row" data-open="${idx}"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang])}</b><small>${esc(s.g[S.lang])}</small></span>${tg}${ic.chev}</button>
-  <div class="ms-menu ${S.menu===idx?'open':''}"><button type="button" class="ms-dots" data-menu="${idx}" aria-label="⋯">⋯</button><div class="ms-pop"><button type="button" data-real="${L('m_eval')}">${L('m_eval')}</button><button type="button" data-real="${L('m_edit')}">${L('m_edit')}</button><button type="button" data-real="${L('m_hide')}">${L('m_hide')}</button><button type="button" class="dng" data-real="${L('m_del')}">${L('m_del')}</button></div></div></div>`;
+  return `<div class="ms-card3"><button type="button" class="ms-open" data-open="${idx}"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang])}</b><small>${esc(s.g[S.lang])}</small></span></button>
+  <div class="ms-acts">${tg}<button type="button" class="ms-edit" data-real="${L('edit_tip')}" title="${L('edit_tip')}">✏️ ${L('edit_btn')}</button>
+  <div class="ms-menu ${S.menu===idx?'open':''}"><button type="button" class="ms-dots" data-menu="${idx}" aria-label="⋯">⋯</button><div class="ms-pop"><button type="button" data-real="${L('m_eval')}">${L('m_eval')}</button><button type="button" data-real="${L('m_hide')}">${L('m_hide')}</button><button type="button" class="dng" data-real="${L('m_del')}">${L('m_del')}</button></div></div></div></div>`;
 }
 function paneStudents(){
   const q=S.q.trim().toLowerCase();
@@ -345,12 +373,18 @@ function paneMonth(){
    <div class="ms-bar"><i style="width:42%"></i></div>
    <button type="button" class="ms-btn em" data-real="${L('st2_b')}">${L('st2_b')}</button> <small style="color:var(--dh-ink-soft);margin-inline-start:8px">${L('st2_c')}</small></div></div>`;
 }
+function schedOf(i){return S.sch[i]||(S.sch[i]={days:[],min:60})}
+function schedSum(i){const x=schedOf(i);if(!x.days.length)return L('sc_none');return x.days.map(k=>L('days')[k]).join(S.lang==='ar'?'، ':', ')+' · '+x.min+' '+L('sc_min')}
 function paneSched(){
-  const d=L('days'),on=[1,0,1,0,1,0,0];
+  const d=L('days');
   return `<div class="ms-sched"><span>${L('sc_time')}</span><button type="button" class="ms-btn line" data-real="${L('sc_edit')}">${L('sc_edit')}</button></div>
-  <div class="ms-list">${STU.slice(0,4).map((s,i)=>`<div class="ms-row static"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang].split(' ')[0])}</b><div class="ms-days">${d.map((x,k)=>`<i class="${(on[k]^(i%2&&k<3))?'':'off'}">${x}</i>`).join('')}</div></span><button type="button" class="ms-btn line" data-real="${L('sc_edit2')}">${L('sc_edit2')}</button></div>`).join('')}</div>`;
+  <p class="ms-hint">${L('sc_open')}</p>
+  <div class="ms-list">${STU.map((s,i)=>{const x=schedOf(i),open=S.sopen===i;return `<div class="ms-acc ${open?'open':''}"><button type="button" class="ms-acc-h" data-sopen="${i}" aria-expanded="${open}"><span class="ms-av">${s.i[S.lang]}</span><span class="ms-nm"><b>${esc(s.n[S.lang])}</b><small>${esc(schedSum(i))}</small></span>${ic.chev}</button>
+   <div class="ms-acc-b"><div><label>${L('sc_days')}</label><div class="ms-dayp">${d.map((n,k)=>`<button type="button" class="${x.days.includes(k)?'on':''}" data-sd="${i}:${k}" aria-pressed="${x.days.includes(k)}">${n}</button>`).join('')}</div></div>
+   <div><label>${L('sc_dur')}</label><select class="ms-dur" data-sm="${i}">${[30,45,60,90,120].map(m=>`<option value="${m}" ${x.min===m?'selected':''}>${m} ${L('sc_min')}</option>`).join('')}</select></div>
+   <div class="ms-saved">${S.saved===i?L('sc_saved'):L('sc_auto')}</div></div></div>`}).join('')}</div>`;
 }
-function legend(){const a=L('lg').slice();a[1]=S.v==='a'?L('lgA'):L('lgB');a.push(L('lgS'),L('lgW'));return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
+function legend(){const a=L('lg').slice();a[1]=S.v==='a'?L('lgA'):L('lgB');a.push(L('lgE'),L('lgH'),L('lgS'),L('lgW'));return `<div class="ms-legend"><h4>${L('lg_t')}</h4><ul>${a.map(x=>`<li>${x}</li>`).join('')}</ul></div>`}
 
 function hub(){
   const n=waitCount();
@@ -427,6 +461,8 @@ document.addEventListener('click',e=>{
   if(t.id==='theme-toggle-btn'){window.DHTheme&&window.DHTheme.cycle();return paintTheme()}
   if(t.id==='header-home-btn'||t.id==='header-account-btn')return real(t.title);
   if(!t.closest('.ms-menu')&&S.menu!==null){S.menu=null;render()}
+  if(t.dataset.sopen!==undefined){const i=+t.dataset.sopen;S.sopen=S.sopen===i?null:i;S.saved=null;return render()}
+  if(t.dataset.sd){const [i,k]=t.dataset.sd.split(':').map(Number),x=schedOf(i),p=x.days.indexOf(k);p<0?x.days.push(k):x.days.splice(p,1);x.days.sort((a,b)=>a-b);S.saved=i;return render()}
   if(t.dataset.tab){S.tab=t.dataset.tab;return render()}
   if(t.dataset.f){S.filter=t.dataset.f;return render()}
   if(t.dataset.sub){S.sub=t.dataset.sub;return render()}
@@ -443,6 +479,7 @@ document.addEventListener('click',e=>{
     else{document.getElementById('add-modal').style.display='none';if(a==='save')toast(L('a_saved'));return}
     return addModal()}
 });
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.sm!==undefined){const i=+e.target.dataset.sm;schedOf(i).min=+e.target.value;S.saved=i;render()}});
 document.addEventListener('input',e=>{if(e.target.id==='search'){S.q=e.target.value;S.keepFocus=true;render()}});
 /* أيقونة المظهر كما في core/theme.js */
 const TI={auto:'<path d="M12 3a9 9 0 1 0 0 18V3z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',dark:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'};
