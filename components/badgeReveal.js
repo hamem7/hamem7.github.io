@@ -75,6 +75,14 @@ const CSS = `/* ===== المسرح ===== */
 #dhBadgeStage .acts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; opacity: 0; animation: dhbr_up .6s 3.3s forwards; }
 #dhBadgeStage .acts button { border: 1.5px solid rgba(255,255,255,.45); background: rgba(255,255,255,.1); color: #fff; border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
 #dhBadgeStage .acts button:disabled { opacity: .5; }
+#dhBadgeStage .intro { position: relative; display: grid; gap: 12px; justify-items: center; width: min(560px, 94vw); max-height: 100%; overflow-y: auto; padding: 20px; }
+#dhBadgeStage .intro .ttl2 { margin: 0; font-size: 1.7rem; font-weight: 800; color: #f6d57a; opacity: 0; animation: dhbr_up .5s .1s forwards; }
+#dhBadgeStage .intro .sub { margin: 0; color: rgba(255,255,255,.8); opacity: 0; animation: dhbr_up .5s .25s forwards; }
+#dhBadgeStage .intro .grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+#dhBadgeStage .intro .mini { width: 96px; display: grid; justify-items: center; gap: 2px; font-size: .8rem; opacity: 0; transform: scale(.4); animation: dhbr_pop .5s forwards; }
+#dhBadgeStage .intro .mini svg { width: 78px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+#dhBadgeStage .intro .mini small { color: rgba(255,255,255,.7); font-size: .72rem; }
+#dhBadgeStage .intro .next { animation-delay: .6s; }
 #dhBadgeStage .snd { position: absolute; top: 14px; inset-inline-start: 14px; z-index: 3; background: rgba(255,255,255,.12); border: 0; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1.05rem; cursor: pointer; }
 `;
 
@@ -152,7 +160,7 @@ function chime(tierKey, delay = 1.3) {
   try { navigator.vibrate && navigator.vibrate([40, 40, 80]); } catch (e) { /* اختياري */ }
 }
 
-function closeStage() { stopFx(); if (stage) { stage.classList.remove('on', 'shown'); stage.innerHTML = ''; } document.body.style.overflow = ''; }
+function closeStage() { stopFx(); if (stage) { stage.classList.remove('on', 'shown'); stage.innerHTML = ''; } document.body.style.overflow = ''; if (stage) stage.style.top = ''; }
 
 /** مشهد وسام واحد. r = {key, icon, tier, tierKey, value, next}. opts.btn = نص الزر. يحلّ الوعد عند «التالي» أو الإغلاق. */
 export function playBadge(r, student, opts = {}) {
@@ -225,6 +233,33 @@ export async function showCeremony(earned, student) {
   const tick = setInterval(() => { n++; if (el) el.textContent = num(Math.min(n, items.length)); if (n >= items.length) clearInterval(tick); }, 380);
   const end = () => { clearInterval(tick); closeStage(); };
   st.querySelector('.next').onclick = end; st.querySelector('.x').onclick = end;
+}
+
+/** لوحة «أوسمتي» عند بدء أي لعبة: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). تحلّ الوعد عند «ابدأ» أو الإغلاق،
+ *  وتحلّ فورًا بلا عرض إن لم يكن للطالب وسام أو تأخّر الحساب أو حدث أي خطأ — فلا تحجب اللعبة أبدًا. */
+export async function showBadgesIntro(student) {
+  try {
+    if (!student) return;
+    const svc = await import('../core/badgeService.js');
+    const hist = await Promise.race([svc.badgeHistory(student), new Promise(r => setTimeout(() => r(null), 3000))]);
+    if (!hist) return;
+    const defs = await import('../engine/badgesEngine.js');
+    const items = hist.best.filter(b => b.bestTier >= 0).sort((a, b) => b.bestTier - a.bestTier);
+    if (!items.length) return;
+    const st = ensureStage(), mode = AppState.isKidsMode ? 'kids' : 'adult';
+    st.dataset.mode = mode; st.dataset.tier = 'gold'; st.className = 'on'; st.classList.remove('shown'); document.body.style.overflow = 'hidden';
+    const hd = document.getElementById('main-header');
+    if (hd) st.style.top = Math.max(0, Math.round(hd.getBoundingClientRect().bottom)) + 'px'; // تحت الترويسة الوحيدة
+    const minis = items.map((b, i) => { const tk = TIER_KEYS[b.bestTier], d = defs.getBadgeDef(b.key);
+      return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk).replace('class="shine"', 'class="shine" style="display:none"')}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small></div>`; }).join('');
+    st.innerHTML = `<button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
+      <div class="intro"><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
+      <div class="grid">${minis}</div><button class="next">${esc(t('bdg_intro_start'))}</button></div>`;
+    await new Promise((resolve) => {
+      const end = () => { closeStage(); resolve(); };
+      st.querySelector('.next').onclick = end; st.querySelector('.x').onclick = end;
+    });
+  } catch (e) { console.warn('[badgeReveal] تعذّر عرض لوحة الأوسمة:', e); try { closeStage(); } catch (_) { /* لا شيء */ } }
 }
 
 /** نقطة الدخول للألعاب/المواجهات/التجويد: تقيّم وتعرض الجديد فقط. لا ترمي أخطاء أبدًا ولا تحجب المستدعي. */

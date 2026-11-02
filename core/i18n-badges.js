@@ -44,6 +44,7 @@ const ar = {
     // المجموعات
     bdg_group_games: 'الألعاب الفردية', bdg_group_memorize: 'الحفظ والمراجعة', bdg_group_engage: 'الالتزام', bdg_group_tajweed: 'التجويد', bdg_group_duels: 'الاختبارات الثنائية',
     // المشهد السينمائي
+    bdg_intro_title: 'أوسمتي', bdg_intro_count: 'نِلتَ {n} أوسمة — واصل لترتقي بها!', bdg_intro_start: 'ابدأ اللعب',
     bdg_kicker: 'وسام جديد!', bdg_tier_chip: 'الدرجة {tier}', bdg_next_left: 'باقي {k} للدرجة {tier}', bdg_continue: 'متابعة', bdg_next: 'التالي', bdg_summary: 'عرض الملخص', bdg_close: 'إغلاق',
     bdg_board_title: 'أوسمتك هذا الشهر', bdg_board_count: 'أوسمة', bdg_board_note: 'أحسنت! هذه ثمرة جهدك الصادق. ننتظر المزيد الشهر القادم.',
     bdg_reason: '{desc}: {n}',
@@ -106,6 +107,7 @@ const en = {
     bdg_tier_bronze: 'Bronze', bdg_tier_silver: 'Silver', bdg_tier_gold: 'Gold', bdg_tier_diamond: 'Diamond',
     bdg_tier_n_bronze: 'Bronze', bdg_tier_n_silver: 'Silver', bdg_tier_n_gold: 'Gold', bdg_tier_n_diamond: 'Diamond',
     bdg_group_games: 'Individual games', bdg_group_memorize: 'Memorization & review', bdg_group_engage: 'Commitment', bdg_group_tajweed: 'Tajweed', bdg_group_duels: 'Head-to-head tests',
+    bdg_intro_title: 'My badges', bdg_intro_count: 'you earned {n} badges — keep going to level them up!', bdg_intro_start: 'Start playing',
     bdg_kicker: 'NEW BADGE!', bdg_tier_chip: '{tier} tier', bdg_next_left: '{k} left for {tier}', bdg_continue: 'Continue', bdg_next: 'Next', bdg_summary: 'Show summary', bdg_close: 'Close',
     bdg_board_title: 'Your badges this month', bdg_board_count: 'badges', bdg_board_note: 'Well done! This is the fruit of your honest effort. See you next month.',
     bdg_reason: '{desc}: {n}',

@@ -593,7 +593,8 @@ function initGameUI() {
 
     document.getElementById('btn-submit-all-errors')?.addEventListener('click', submitAllErrors);
 
-    playNextMission();
+    // 🌟 [جديد] لوحة «أوسمتي» قبل أول سؤال: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). لا تحجب اللعبة عند أي فشل.
+    import('../components/badgeReveal.js').then(m => m.showBadgesIntro(AppState.currentStudent)).catch(() => {}).then(() => playNextMission());
 }
 
 function updateTrackerUI() { 
