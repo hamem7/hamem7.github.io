@@ -385,6 +385,8 @@ async function bootSystem() {
         bindReminderAlerts();
         startReminderWatcher();
         // 🌟 [جديد] سؤال الحضور آخر اليوم (للطلاب المجدولين بلا أي نشاط فقط) — components/attendancePrompt.js
+        // 🌟 [جديد] أوسمة الأجزاء والمراحل الكبرى: تُقيَّم عند حفظ موضع الحفظ الشهري (components/badgeReveal.js)
+        import('../components/badgeReveal.js').then(m => m.initGoalListener()).catch(e => console.warn('[goals]', e));
         import('../components/attendancePrompt.js').then(m => m.startAttendancePromptWatcher()).catch(e => console.warn('[attendance]', e));
 
         // 🧑‍🏫 ملف المعلم الشخصي (اسم/صورة/تاريخ ميلاد/ختم) — تحميل ما هو محفوظ

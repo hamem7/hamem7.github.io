@@ -19,6 +19,8 @@ import { ayahIndex, juzBounds, JUZ_COUNT, summarizeReview } from '../engine/revi
 import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { SKILLS } from '../engine/skillMap.js';
 import { skillLabel } from '../components/skillProfile.js';
+import { loadGoalState, goalsEarnedInMonth, goalName, goalIcon, nextGoalHint } from '../core/goalsService.js';
+import { juzTierKey, MILESTONES } from '../engine/goalsEngine.js';
 
 const TIER_COLORS = { bronze: ['#e7b58a', '#b87333'], silver: ['#f4f7fb', '#9aa6b6'], gold: ['#fff0b3', '#d4a017'], diamond: ['#e0f7ff', '#4fb3e8'] };
 const isEn = () => AppState.currentLang === 'en';
@@ -179,7 +181,13 @@ export async function collectExtras(d) {
   else if (att.unconfirmed > 0) issues.push({ k: 'cmp_unconfirmed', n: att.unconfirmed, att: true });
   if (!(d.journey && d.journey.hasEnding)) issues.push({ k: 'cmp_no_ending' });
   if (!d.gameEvalEntries || !d.gameEvalEntries.length) issues.push({ k: 'cmp_no_games' });
-  return { results, summary, closest: closestToNext(results), att, khatm, tj, plan, issues, hasReview: !!rev };
+  // أهداف الحفظ الدائمة (أوسمة الأجزاء والمراحل)
+  let goals = null;
+  try {
+    const gs = await loadGoalState(student);
+    if (gs) goals = { state: gs, newEarned: gs.earned.filter(e => goalsEarnedInMonth(student, y, m).includes(e.id)), hint: nextGoalHint(gs, null) };
+  } catch (e) { /* اختياري */ }
+  return { results, summary, closest: closestToNext(results), att, khatm, tj, plan, issues, hasReview: !!rev, goals };
 }
 
 // ---------- العرض ----------
@@ -212,6 +220,17 @@ function badgesSection(d, x) {
   }).join('');
   return `<div class="mrx pdf-block" id="mr-badges-block">${head}${body}${closest}</div>
     <div class="mrx pdf-block" id="mr-badges-legend"><div class="section-title">${esc(t('bdg_rep_legend'))}</div><div class="section-sub">${esc(t('bdg_rep_legend_sub'))}</div>${legend}</div>`;
+}
+
+function goalsSection(d, x) {
+  const g = x.goals;
+  if (!g) return '';
+  const tierOf = (e) => e.tierKey || (e.kind === 'juz' ? juzTierKey(e.juz) : 'gold');
+  const chip = (e) => { const [c1, c2] = TIER_COLORS[tierOf(e)]; return `<span class="mrx-chip" style="background:linear-gradient(135deg,${c1},${c2});margin:3px;font-size:12.5px;padding:3px 12px;">${esc(goalIcon(e))} ${esc(goalName(e))}</span>`; };
+
+  const news = g.newEarned.length ? `<div class="mrx-group">${esc(t('goal_rep_new'))}</div><div>${g.newEarned.map(chip).join('')}</div>` : `<div class="mrx-note">${esc(t('goal_rep_none'))}</div>`;
+  const next = g.hint ? `<div class="mrx-closest">${esc(g.hint.text)}</div><div style="height:9px;border-radius:999px;background:#eadfbd;overflow:hidden;margin-top:6px;"><i style="display:block;height:100%;width:${Math.max(4, Math.round(g.hint.pct * 100))}%;background:linear-gradient(90deg,#d4a017,#f6d57a);"></i></div>` : '';
+  return `<div class="mrx pdf-block" id="mr-goals-block"><div class="section-title">${esc(t('goal_rep_title'))}</div><div class="section-sub">${esc(tf('goal_juz_count', { n: num(g.state.fullJuz) }))}</div>${news}${next}<div class="mrx-note">${esc(t('goal_rep_basis'))}</div></div>`;
 }
 
 function attendanceSection(d, x) {
@@ -286,7 +305,7 @@ export function renderExtras(d) {
   document.querySelectorAll('.mrx-wrap').forEach(n => n.remove());
   const wrap = document.createElement('div');
   wrap.className = 'mrx-wrap';
-  wrap.innerHTML = badgesSection(d, x) + attendanceSection(d, x) + tajweedSection(d, x) + khatmSection(d, x) + planSection(d, x) + completenessSection(x);
+  wrap.innerHTML = badgesSection(d, x) + goalsSection(d, x) + attendanceSection(d, x) + tajweedSection(d, x) + khatmSection(d, x) + planSection(d, x) + completenessSection(x);
   host.parentNode.insertBefore(wrap, host);
   host.style.display = 'none';
   const btn = wrap.querySelector('#mrx-open-att');

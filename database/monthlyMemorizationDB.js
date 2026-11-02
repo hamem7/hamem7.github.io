@@ -137,6 +137,7 @@ export class MonthlyMemorizationManager {
         if (typeof this.onEndingSaved === 'function') {
             try { await this.onEndingSaved(studentId, position); } catch (e) { console.error('[monthlyMemorizationDB] تعذر تمديد نطاق الحفظ:', e); }
         }
+        try { if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dh:memorization-saved', { detail: { studentId } })); } catch (e) { /* اختياري */ }
         return record;
     }
 
@@ -156,6 +157,7 @@ export class MonthlyMemorizationManager {
         if (typeof this.onEndingSaved === 'function') {
             try { await this.onEndingSaved(studentId, position); } catch (e) { console.error('[monthlyMemorizationDB] تعذر تمديد نطاق الحفظ:', e); }
         }
+        try { if (typeof document !== 'undefined') document.dispatchEvent(new CustomEvent('dh:memorization-saved', { detail: { studentId } })); } catch (e) { /* اختياري */ }
         return record;
     }
 

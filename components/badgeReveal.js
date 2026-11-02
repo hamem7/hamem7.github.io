@@ -158,19 +158,21 @@ export function playBadge(r, student, opts = {}) {
   return new Promise((resolve) => {
     const st = ensureStage(), mode = AppState.isKidsMode ? 'kids' : 'adult';
     st.dataset.mode = mode; st.dataset.tier = r.tierKey; st.className = 'on'; st.classList.remove('shown'); document.body.style.overflow = 'hidden';
-    const def = getBadgeDef(r.key), tierName = t('bdg_tier_' + r.tierKey);
-    const reason = esc(tf('bdg_reason', { desc: t('bdg_' + r.key + '_desc'), n: `@@${num(Math.round(r.value))}@@` })).replace(/@@(.+?)@@/, '<em>$1</em>');
+    const def = getBadgeDef(r.key), tierName = t('bdg_tier_' + r.tierKey), cu = r.custom || null;
+    const reason = cu ? esc(cu.reason) : esc(tf('bdg_reason', { desc: t('bdg_' + r.key + '_desc'), n: `@@${num(Math.round(r.value))}@@` })).replace(/@@(.+?)@@/, '<em>$1</em>');
     let prog = '';
-    if (r.next && r.tier < 3) {
+    if (cu) {
+      if (cu.nextText) prog = `<div class="prog" style="--p:${Math.max(6, Math.min(97, Math.round(cu.nextPct * 100)))}%"><div class="bar"><i></i></div><small>${esc(cu.nextText)}</small></div>`;
+    } else if (r.next && r.tier < 3) {
       const nextTier = t('bdg_tier_' + TIER_KEYS[r.tier + 1]), pct = Math.max(8, Math.min(95, Math.round((r.value / r.next.at) * 100)));
       prog = `<div class="prog" style="--p:${pct}%"><div class="bar"><i></i></div><small>${esc(tf('bdg_next_left', { k: num(Math.ceil(r.next.remaining)), tier: nextTier }))}</small></div>`;
     }
     st.innerHTML = `<canvas class="fx"></canvas><button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
       <button class="snd" aria-label="${esc(soundOn() ? t('bdg_sound_off') : t('bdg_sound_on'))}" title="${esc(soundOn() ? t('bdg_sound_off') : t('bdg_sound_on'))}">${soundOn() ? '🔔' : '🔇'}</button>
-      <div class="content"><div class="rays"></div><div class="kicker">${esc(t('bdg_kicker'))}</div>
-      <div class="medal">${medalSVG(def ? def.icon : r.icon, r.tierKey)}</div>
-      <div class="name" role="heading" aria-level="2">${esc(t('bdg_' + r.key + '_name'))}</div>
-      <span class="tierchip">${esc(tf('bdg_tier_chip', { tier: tierName }))}</span>
+      <div class="content"><div class="rays"></div><div class="kicker">${esc(cu ? cu.kicker : t('bdg_kicker'))}</div>
+      <div class="medal">${medalSVG(cu ? cu.icon : (def ? def.icon : r.icon), r.tierKey)}</div>
+      <div class="name" role="heading" aria-level="2">${esc(cu ? cu.name : t('bdg_' + r.key + '_name'))}</div>
+      <span class="tierchip">${esc(cu ? cu.chip : tf('bdg_tier_chip', { tier: tierName }))}</span>
       <div class="who">${esc(firstName(student && student.name))}</div>
       <p class="why">${reason}</p>${prog}
       <button class="next">${esc(opts.btn || t('bdg_continue'))}</button>
@@ -213,7 +215,7 @@ export async function showCeremony(earned, student) {
   }
   const st = ensureStage(), mode = AppState.isKidsMode ? 'kids' : 'adult';
   stopFx(); st.dataset.tier = 'gold'; st.dataset.mode = mode;
-  const minis = items.map((r, i) => `<div class="mini" style="${VARS[r.tierKey]};animation-delay:${.8 + i * .2}s">${medalSVG(r.icon, r.tierKey).replace('class="shine"', 'class="shine" style="display:none"')}<span>${esc(t('bdg_' + r.key + '_name'))}</span></div>`).join('');
+  const minis = items.map((r, i) => `<div class="mini" style="${VARS[r.tierKey]};animation-delay:${.8 + i * .2}s">${medalSVG(r.icon, r.tierKey).replace('class="shine"', 'class="shine" style="display:none"')}<span>${esc(r.custom ? r.custom.name : t('bdg_' + r.key + '_name'))}</span></div>`).join('');
   st.innerHTML = `<canvas class="fx"></canvas><button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
     <div class="board"><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_board_title'))}</div><div class="count" id="dhBadgeCount">0</div><div>${esc(t('bdg_board_count'))}</div>
     <div class="grid">${minis}</div><p>${esc(t('bdg_board_note'))}</p><button class="next" style="animation-delay:2.2s">${esc(t('bdg_close'))}</button></div>`;
@@ -234,4 +236,31 @@ export function maybeShowNewBadges(student) {
     const fresh = await svc.awardNewBadges(student);
     if (fresh.length) await showBadges(fresh, student);
   }).catch(e => console.warn('[badgeReveal] تعذّر عرض الأوسمة:', e));
+}
+
+/** أهداف الحفظ الدائمة (أوسمة الأجزاء والمراحل): تُقيَّم بعد تسجيل موضع الحفظ، وتُعرض الجديدة فقط بالتتابع مع باقي المشاهد. */
+export function maybeShowNewGoals(student) {
+  if (!student) return;
+  _queue = _queue.then(async () => {
+    const svc = await import('../core/goalsService.js');
+    const { fresh } = await svc.awardNewGoals(student);
+    for (let i = 0; i < fresh.length; i++) {
+      const last = i === fresh.length - 1;
+      const res = await playBadge(fresh[i], student, { keepOpen: !last, btn: last ? t('bdg_continue') : t('bdg_next') });
+      if (res === 'closed') break;
+    }
+  }).catch(e => console.warn('[badgeReveal] تعذّر عرض الأهداف:', e));
+}
+
+/** يربط حدث حفظ الموضع الشهري بتقييم الأهداف (يُستدعى مرة عند إقلاع المنصة). */
+let _goalListener = false;
+export function initGoalListener() {
+  if (_goalListener) return; _goalListener = true;
+  document.addEventListener('dh:memorization-saved', async (e) => {
+    try {
+      const id = e.detail && e.detail.studentId;
+      const s = (await AppState.studentManager.getAllStudents()).find(x => String(x.id) === String(id));
+      if (s) maybeShowNewGoals(s);
+    } catch (err) { console.warn('[badgeReveal] مستمع الأهداف:', err); }
+  });
 }

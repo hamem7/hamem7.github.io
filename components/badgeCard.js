@@ -16,7 +16,7 @@ const nf = (n) => (isEn() ? String(n) : Number(n).toLocaleString('ar-EG', { useG
 
 function medalImage(r) {
   const [c1, c2, c3] = COLORS[r.tierKey];
-  const svg = medalSVG(getBadgeDef(r.key) ? getBadgeDef(r.key).icon : r.icon, r.tierKey)
+  const svg = medalSVG(r.custom ? r.custom.icon : (getBadgeDef(r.key) ? getBadgeDef(r.key).icon : r.icon), r.tierKey)
     .replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ')
     .replace(/var\(--t1\)/g, c1).replace(/var\(--t2\)/g, c2).replace(/var\(--t3\)/g, c3)
     .replace(/<g clip-path[^>]*><rect class="shine"[^>]*\/><\/g>/, '');
@@ -44,21 +44,21 @@ export async function buildBadgeCard(r, student) {
   const img = await medalImage(r); ctx.drawImage(img, W / 2 - 250, 150, 500, 625);
   const dir = isEn() ? 'ltr' : 'rtl'; ctx.direction = dir; ctx.textAlign = 'center';
   const font = (w, px) => `${w} ${px}px "IBM Plex Sans Arabic", system-ui, sans-serif`;
-  ctx.fillStyle = '#ffffffcc'; ctx.font = font(700, 40); ctx.fillText(t('bdg_kicker'), W / 2, 112);
+  ctx.fillStyle = '#ffffffcc'; ctx.font = font(700, 40); ctx.fillText(r.custom ? r.custom.kicker : t('bdg_kicker'), W / 2, 112);
   const g = ctx.createLinearGradient(0, 800, 0, 880); g.addColorStop(0, '#fff'); g.addColorStop(1, c2);
-  ctx.fillStyle = g; ctx.font = font(800, 96); ctx.fillText(t('bdg_' + r.key + '_name'), W / 2, 870);
-  ctx.fillStyle = c2; ctx.font = font(800, 46); ctx.fillText(tf('bdg_tier_chip', { tier: t('bdg_tier_' + r.tierKey) }), W / 2, 940);
+  ctx.fillStyle = g; ctx.font = font(800, 96); ctx.fillText(r.custom ? r.custom.name : t('bdg_' + r.key + '_name'), W / 2, 870);
+  ctx.fillStyle = c2; ctx.font = font(800, 46); ctx.fillText(r.custom ? r.custom.chip : tf('bdg_tier_chip', { tier: t('bdg_tier_' + r.tierKey) }), W / 2, 940);
   ctx.fillStyle = '#fff'; ctx.font = font(700, 58); ctx.fillText(first(student && student.name), W / 2, 1030);
   ctx.fillStyle = '#ffffffd9'; ctx.font = font(500, 40);
-  const reason = tf('bdg_reason', { desc: t('bdg_' + r.key + '_desc'), n: nf(Math.round(r.value)) });
+  const reason = r.custom ? r.custom.reason : tf('bdg_reason', { desc: t('bdg_' + r.key + '_desc'), n: nf(Math.round(r.value)) });
   wrap(ctx, reason, W - 220).slice(0, 3).forEach((ln, i) => ctx.fillText(ln, W / 2, 1104 + i * 56));
   ctx.fillStyle = '#ffffff99'; ctx.font = font(600, 34); ctx.fillText(t('bdg_card_footer'), W / 2, H - 70);
   return new Promise((resolve) => cv.toBlob(resolve, 'image/png'));
 }
 
 // اسم ملف بحروف لاتينية فقط (يسلم من تشويه الأسماء العربية في بعض المتصفحات وتطبيقات المشاركة)
-const fileName = (r, student) => `badge-${r.key}-${r.tierKey}-${student && student.id != null ? student.id : 'x'}.png`;
-const message = (r, student) => tf('bdg_card_msg', { name: first(student && student.name), badge: t('bdg_' + r.key + '_name'), tier: t('bdg_tier_n_' + r.tierKey) });
+const fileName = (r, student) => `badge-${r.custom ? r.id : r.key}-${r.tierKey}-${student && student.id != null ? student.id : 'x'}.png`;
+const message = (r, student) => tf('bdg_card_msg', { name: first(student && student.name), badge: r.custom ? r.custom.name : t('bdg_' + r.key + '_name'), tier: r.custom ? r.custom.chip : t('bdg_tier_n_' + r.tierKey) });
 
 function download(blob, name) {
   const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name;
