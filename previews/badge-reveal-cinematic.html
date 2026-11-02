@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — المشهد السينمائي للأوسمة</title>
+<script src="../core/themeInit.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<style>
+* { box-sizing: border-box; font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif; }
+body { margin: 0; background: var(--dh-surface-0); color: var(--dh-ink); min-height: 100vh; }
+.pv { max-width: 760px; margin: 0 auto; padding: 22px 16px 60px; display: grid; gap: 16px; }
+.pv h1 { margin: 0; font-size: 1.35rem; }
+.pv .note { margin: 0; color: var(--dh-ink-soft); font-size: .9rem; line-height: 1.7; }
+.panel { background: var(--dh-surface-1); border: 1.5px solid var(--dh-border); border-radius: 18px; padding: 16px; display: grid; gap: 14px; }
+.row { display: grid; gap: 6px; }
+.row > b { font-size: .85rem; color: var(--dh-ink-soft); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); border-radius: 999px; padding: 7px 14px; font-size: .9rem; font-weight: 700; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--dh-primary, #0f5b3f); color: #fff; border-color: transparent; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { border: 0; border-radius: 14px; padding: 12px 20px; font-size: 1rem; font-weight: 800; cursor: pointer; background: #e8b923; color: #2b2100; }
+.btn.alt { background: var(--dh-surface-3); color: var(--dh-ink); border: 1.5px solid var(--dh-border-strong); }
+
+/* ===== المسرح ===== */
+.stage { position: fixed; inset: 0; z-index: 9999; display: none; overflow: hidden; color: #fff; text-align: center;
+  --t1: #f6d57a; --t2: #e8b923; --t3: #9a6b00; --glow: 232,185,35; }
+.stage.on { display: grid; place-items: center; }
+.stage[data-mode="adult"] { background: radial-gradient(120% 90% at 50% 18%, #12382c 0%, #07130f 55%, #020605 100%); }
+.stage[data-mode="kids"] { background: radial-gradient(120% 90% at 50% 18%, #5b3fd6 0%, #2a1a74 55%, #130b3d 100%); }
+.stage::before { content: ""; position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 40%, rgba(var(--glow),.18), transparent 70%); opacity: 0; animation: fadeIn 1.2s .2s forwards; }
+.stage[data-tier="bronze"] { --t1:#e7b58a; --t2:#b87333; --t3:#6b3d17; --glow:184,115,51; }
+.stage[data-tier="silver"] { --t1:#f4f7fb; --t2:#b9c3d1; --t3:#6d7787; --glow:185,195,209; }
+.stage[data-tier="gold"]   { --t1:#fff0b3; --t2:#e8b923; --t3:#9a6b00; --glow:232,185,35; }
+.stage[data-tier="diamond"]{ --t1:#e0f7ff; --t2:#7dd3fc; --t3:#6366f1; --glow:125,211,252; }
+canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.content { position: relative; display: grid; gap: 10px; justify-items: center; padding: 20px; width: min(520px, 100%); perspective: 900px; }
+.rays { position: absolute; top: 12%; left: 50%; width: 120vmin; height: 120vmin; margin-left: -60vmin; border-radius: 50%; opacity: 0;
+  background: repeating-conic-gradient(from 0deg, rgba(var(--glow),.22) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0 22%, transparent 62%); mask: radial-gradient(circle, #000 0 22%, transparent 62%);
+  animation: fadeIn 1.4s .5s forwards, spin 40s linear infinite; }
+.kicker { font-size: .95rem; letter-spacing: .08em; font-weight: 700; color: rgba(255,255,255,.75); opacity: 0; animation: up .6s .15s forwards; }
+.medal { width: min(46vw, 210px); filter: drop-shadow(0 18px 30px rgba(0,0,0,.55)) drop-shadow(0 0 28px rgba(var(--glow),.55));
+  opacity: 0; transform: translateY(160px) scale(.45) rotateY(720deg); animation: rise 1.5s .35s cubic-bezier(.2,.9,.25,1.05) forwards, bob 3.2s 2s ease-in-out infinite; }
+.stage[data-mode="kids"] .medal { width: min(56vw, 250px); }
+.shine { transform: translateX(-260px) skewX(-18deg); animation: sweep 1.1s 1.5s ease-in-out 1 forwards, sweep 1.1s 3.6s ease-in-out 1 forwards; }
+.name { font-size: clamp(1.9rem, 6vw, 2.6rem); font-weight: 800; margin: 6px 0 0; opacity: 0; animation: up .7s 1.5s forwards;
+  background: linear-gradient(180deg, #fff, rgb(var(--glow))); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.stage[data-mode="kids"] .name { font-size: clamp(2.1rem, 7vw, 3rem); }
+.tierchip { display: inline-block; padding: 4px 16px; border-radius: 999px; font-weight: 800; font-size: .9rem; color: #1a1300; opacity: 0; animation: pop .5s 1.8s forwards;
+  background: linear-gradient(135deg, var(--t1), var(--t2)); }
+.who { font-size: 1.15rem; font-weight: 700; opacity: 0; animation: up .6s 2.0s forwards; }
+.why { font-size: 1.02rem; line-height: 1.8; color: rgba(255,255,255,.85); max-width: 30em; opacity: 0; animation: up .6s 2.3s forwards; }
+.why em { font-style: normal; font-weight: 800; color: rgb(var(--glow)); font-size: 1.2em; }
+.prog { width: min(360px, 86%); display: grid; gap: 6px; opacity: 0; animation: up .6s 2.7s forwards; }
+.prog .bar { height: 10px; border-radius: 999px; background: rgba(255,255,255,.14); overflow: hidden; }
+.prog .bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--t2), var(--t1)); transition: width 1.4s 3s cubic-bezier(.2,.8,.2,1); }
+.stage.shown .prog .bar i { width: var(--p, 60%); }
+.prog small { color: rgba(255,255,255,.7); font-size: .85rem; }
+.next { margin-top: 8px; border: 0; border-radius: 14px; padding: 12px 34px; font-size: 1.05rem; font-weight: 800; cursor: pointer; opacity: 0; animation: up .6s 3.1s forwards;
+  background: linear-gradient(135deg, var(--t1), var(--t2)); color: #1a1300; }
+.x { position: absolute; top: 14px; inset-inline-end: 14px; z-index: 3; background: rgba(255,255,255,.12); border: 0; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; }
+/* لوحة الحفل */
+.board { position: relative; display: grid; gap: 14px; justify-items: center; width: min(560px, 94vw); padding: 20px; }
+.board h2 { margin: 0; font-size: 1.7rem; opacity: 0; animation: up .6s .2s forwards; }
+.board .count { font-size: 4rem; font-weight: 800; line-height: 1; color: #f6d57a; opacity: 0; animation: pop .6s .5s forwards; }
+.board .grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.board .mini { width: 92px; display: grid; justify-items: center; gap: 4px; font-size: .8rem; opacity: 0; transform: scale(.4); animation: pop .55s forwards; }
+.board .mini svg { width: 84px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
+.board p { margin: 0; color: rgba(255,255,255,.8); opacity: 0; animation: up .6s 1.7s forwards; }
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.4); } 70% { transform: scale(1.12); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes rise { to { opacity: 1; transform: translateY(0) scale(1) rotateY(0); } }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-9px) rotate(1.5deg); } }
+@keyframes sweep { to { transform: translateX(300px) skewX(-18deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .medal, .rays, .kicker, .name, .tierchip, .who, .why, .prog, .next, .board * { animation-duration: .01s !important; animation-delay: 0s !important; }
+  .shine { display: none; } canvas.fx { display: none; }
+}
+</style>
+</head>
+<body>
+<main class="pv">
+  <h1 id="ui-title"></h1>
+  <p class="note" id="ui-note"></p>
+  <section class="panel">
+    <div class="row"><b id="l-badge"></b><div class="chips" id="c-badge"></div></div>
+    <div class="row"><b id="l-tier"></b><div class="chips" id="c-tier"></div></div>
+    <div class="row"><b id="l-mode"></b><div class="chips" id="c-mode"></div></div>
+    <div class="row"><b id="l-lang"></b><div class="chips" id="c-lang"></div></div>
+    <div class="row"><b id="l-sound"></b><div class="chips" id="c-sound"></div></div>
+    <div class="actions">
+      <button class="btn" id="b-play"></button>
+      <button class="btn alt" id="b-ceremony"></button>
+    </div>
+  </section>
+</main>
+
+<div class="stage" id="stage" aria-live="polite"></div>
+
+<script>
+/* ============ النصوص (عربي / English) ============ */
+const UI = {
+  ar: { title: 'معاينة المشهد السينمائي للأوسمة', note: 'معاينة تصميمية مستقلة لا تغيّر المنصة. الأسماء والأرقام أمثلة. اضغط «شغّل المشهد» أو «حفل أوسمة الشهر».',
+    badge: 'الوسام', tier: 'الدرجة', mode: 'النمط', lang: 'اللغة', sound: 'الصوت', adult: 'كبار', kids: 'أطفال', on: 'مفعّل', off: 'مكتوم',
+    play: '▶ شغّل المشهد', ceremony: '🎬 حفل أوسمة الشهر', kicker: 'وسام جديد!', tierWord: 'الدرجة', cont: 'متابعة', nextBtn: 'التالي',
+    summary: 'عرض الملخص', boardTitle: 'أوسمتك هذا الشهر', boardCount: 'أوسمة', boardNote: 'أحسنت! هذه ثمرة جهدك الصادق. ننتظر المزيد الشهر القادم.', student: 'يوسف', close: 'إغلاق', left: 'باقي', for: 'للدرجة' },
+  en: { title: 'Cinematic badge reveal — preview', note: 'A standalone design preview; it does not change the platform. Names and numbers are samples. Press “Play scene” or “Monthly ceremony”.',
+    badge: 'Badge', tier: 'Tier', mode: 'Style', lang: 'Language', sound: 'Sound', adult: 'Adults', kids: 'Kids', on: 'On', off: 'Muted',
+    play: '▶ Play scene', ceremony: '🎬 Monthly ceremony', kicker: 'NEW BADGE!', tierWord: 'Tier', cont: 'Continue', nextBtn: 'Next',
+    summary: 'Show summary', boardTitle: 'Your badges this month', boardCount: 'badges', boardNote: 'Well done! This is the fruit of your honest effort. See you next month.', student: 'Yusuf', close: 'Close', left: '', for: 'to reach' }
+};
+const TIERS = { bronze: { ar: 'البرونزية', en: 'Bronze' }, silver: { ar: 'الفضية', en: 'Silver' }, gold: { ar: 'الذهبية', en: 'Gold' }, diamond: { ar: 'الماسية', en: 'Diamond' } };
+const TIER_KEYS = ['bronze', 'silver', 'gold', 'diamond'];
+/* th: عتبة كل درجة (أرقام تجريبية يعدّلها المعلم) — tpl: سبب الحصول مع الرقم الحقيقي */
+const BADGES = {
+  hero:    { icon: '🏅', ar: 'البطل', en: 'The Champion', th: [1, 3, 6, 10],
+             tpl: { ar: n => `<em>${n}</em> ${n === 1 ? 'حصة' : 'حصص'} سمّعتَ فيها الحفظ الجديد بلا أخطاء هذا الشهر`, en: n => `<em>${n}</em> new-memorization ${n === 1 ? 'session' : 'sessions'} recited with no mistakes this month` },
+             next: { ar: k => `${k} ${k === 1 ? 'حصة' : 'حصص'}`, en: k => `${k} more ${k === 1 ? 'session' : 'sessions'}` } },
+  rasikh:  { icon: '🧠', ar: 'الراسخ', en: 'The Steadfast', th: [1, 3, 6, 10],
+             tpl: { ar: n => `<em>${n}</em> ${n === 1 ? 'حصة' : 'حصص'} راجعتَ فيها وأتقنتَ المراجعة هذا الشهر`, en: n => `<em>${n}</em> ${n === 1 ? 'session' : 'sessions'} of review mastered this month` },
+             next: { ar: k => `${k} ${k === 1 ? 'حصة' : 'حصص'}`, en: k => `${k} more ${k === 1 ? 'session' : 'sessions'}` } },
+  skilled: { icon: '🎯', ar: 'الماهر', en: 'The Skilled', th: [4, 8, 12, 16],
+             tpl: { ar: n => `<em>${n}</em> لعبة فردية بنتيجة ٩٠٪ فأكثر هذا الشهر`, en: n => `<em>${n}</em> individual games scored 90%+ this month` },
+             next: { ar: k => `${k} ${k <= 10 ? 'ألعاب' : 'لعبة'}`, en: k => `${k} more games` } },
+  steady:  { icon: '📅', ar: 'المواظب', en: 'The Dedicated', th: [75, 90, 100, 100],
+             tpl: { ar: n => `حضرتَ <em>${n}٪</em> من حصص هذا الشهر`, en: n => `You attended <em>${n}%</em> of this month's sessions` },
+             next: { ar: k => `${k}٪`, en: k => `${k}% more` } },
+  star:    { icon: '⭐', ar: 'النجم', en: 'The Star', th: [3, 6, 10, 15],
+             tpl: { ar: n => `أجبتَ <em>${n}</em> من «الأسئلة المميزة» إجابة صحيحة هذا الشهر`, en: n => `<em>${n}</em> featured questions answered correctly this month` },
+             next: { ar: k => `${k} ${k <= 10 ? 'أسئلة' : 'سؤالًا'}`, en: k => `${k} more questions` } },
+  tajweed: { icon: '📖', ar: 'متقن التجويد', en: 'Tajweed Master', th: [1, 2, 3, 5],
+             tpl: { ar: n => `اعتمد معلمك لك <em>${n}</em> ${n <= 2 ? (n === 1 ? 'حكمًا' : 'حكمين') : 'أحكام'} من التجويد هذا الشهر`, en: n => `Your teacher approved <em>${n}</em> tajweed ${n === 1 ? 'rule' : 'rules'} this month` },
+             next: { ar: k => `${k} ${k === 1 ? 'حكم' : 'أحكام'}`, en: k => `${k} more ${k === 1 ? 'rule' : 'rules'}` } }
+};
+const TIER_VARS = { bronze: '--t1:#e7b58a;--t2:#b87333;--t3:#6b3d17', silver: '--t1:#f4f7fb;--t2:#b9c3d1;--t3:#6d7787', gold: '--t1:#fff0b3;--t2:#e8b923;--t3:#9a6b00', diamond: '--t1:#e0f7ff;--t2:#7dd3fc;--t3:#6366f1' };
+const S = { badge: 'hero', tier: 'gold', mode: 'adult', lang: 'ar', sound: false };
+const $ = id => document.getElementById(id);
+const num = n => S.lang === 'ar' ? n.toLocaleString('ar-EG') : String(n);
+const fixDigits = html => S.lang === 'ar' ? html.replace(/\d+/g, d => Number(d).toLocaleString('ar-EG', { useGrouping: false })) : html;
+
+/* ============ شكل الوسام (SVG) ============ */
+let uid = 0;
+function medalSVG(icon, tierKey) {
+  const id = ++uid, stars = TIER_KEYS.indexOf(tierKey) + 1;
+  const starRow = Array.from({ length: stars }, (_, i) => `<text x="${100 + (i - (stars - 1) / 2) * 20}" y="186" font-size="15" text-anchor="middle" fill="#fff7d6">★</text>`).join('');
+  return `<svg viewBox="0 0 200 250" role="img" aria-hidden="true">
+    <defs>
+      <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--t1)"/><stop offset=".5" stop-color="var(--t2)"/><stop offset="1" stop-color="var(--t3)"/></linearGradient>
+      <linearGradient id="h${id}" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--t3)"/><stop offset=".55" stop-color="var(--t2)"/><stop offset="1" stop-color="var(--t1)"/></linearGradient>
+      <clipPath id="c${id}"><circle cx="100" cy="100" r="82"/></clipPath>
+    </defs>
+    <polygon points="62,150 100,150 84,244 66,226 44,236" fill="#b3261e"/>
+    <polygon points="100,150 138,150 156,236 134,226 116,244" fill="#8f1d17"/>
+    <circle cx="100" cy="100" r="90" fill="url(#g${id})"/>
+    <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
+    <circle cx="100" cy="100" r="72" fill="url(#h${id})"/>
+    <circle cx="100" cy="100" r="72" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2.5"/>
+    <circle cx="100" cy="100" r="64" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5" stroke-dasharray="3 5"/>
+    <text x="100" y="124" font-size="78" text-anchor="middle">${icon}</text>
+    ${starRow}
+    <g clip-path="url(#c${id})"><rect class="shine" x="-30" y="0" width="38" height="200" fill="rgba(255,255,255,.55)"/></g>
+  </svg>`;
+}
+
+/* ============ الجزيئات (canvas) ============ */
+let fxRAF = 0;
+function stopFx() { cancelAnimationFrame(fxRAF); fxRAF = 0; }
+function startFx(cv, tierKey, mode) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = cv.getContext('2d'), dpr = Math.min(devicePixelRatio || 1, 2);
+  const W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr;
+  const idx = TIER_KEYS.indexOf(tierKey), count = [40, 80, 150, 230][idx] * (mode === 'kids' ? 1.2 : 1);
+  const tierCols = { bronze: ['#e7b58a', '#b87333', '#fff'], silver: ['#f4f7fb', '#b9c3d1', '#fff'], gold: ['#fff0b3', '#e8b923', '#fff'], diamond: ['#e0f7ff', '#7dd3fc', '#a5b4fc', '#fff'] }[tierKey];
+  const kidCols = ['#ff5d8f', '#ffd23f', '#3ddc97', '#4cc9f0', '#b388ff', '#ff9f1c'];
+  const cols = mode === 'kids' ? kidCols : tierCols;
+  const cx = W / 2, cy = H * 0.38, ps = [];
+  const t0 = performance.now(), burstAt = 1500;
+  let burst = false;
+  function spawn() {
+    for (let i = 0; i < count; i++) {
+      const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.25, sp = (6 + Math.random() * 11) * dpr;
+      ps.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: .22 * dpr, w: (5 + Math.random() * 7) * dpr * (mode === 'kids' ? 1.3 : 1), h: (3 + Math.random() * 5) * dpr,
+        r: Math.random() * 6.28, vr: (Math.random() - .5) * .35, c: cols[Math.floor(Math.random() * cols.length)], shape: mode === 'kids' ? Math.floor(Math.random() * 3) : 0, life: 1, drag: .985 });
+    }
+  }
+  function sparkle() { // نجوم صغيرة تتساقط ببطء للماسي/الذهبي
+    ps.push({ x: Math.random() * W, y: -10, vx: (Math.random() - .5) * 1.2 * dpr, vy: (1.2 + Math.random() * 1.6) * dpr, g: .004, w: (3 + Math.random() * 4) * dpr, h: 0, r: 0, vr: 0, c: '#fff', shape: 3, life: 1, drag: 1 });
+  }
+  function frame(now) {
+    const t = now - t0;
+    ctx.clearRect(0, 0, W, H);
+    if (!burst && t > burstAt) { burst = true; spawn(); }
+    if (t > burstAt && t < 5200 && idx >= 2 && Math.random() < (idx === 3 ? .6 : .25)) sparkle();
+    for (let i = ps.length - 1; i >= 0; i--) {
+      const p = ps[i];
+      p.vx *= p.drag; p.vy = p.vy * p.drag + p.g; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      if (t > 4200) p.life -= .02;
+      if (p.y > H + 30 || p.life <= 0) { ps.splice(i, 1); continue; }
+      ctx.save(); ctx.globalAlpha = Math.max(p.life, 0); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c;
+      if (p.shape === 0) ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      else if (p.shape === 1) { ctx.beginPath(); ctx.arc(0, 0, p.w / 2, 0, 6.283); ctx.fill(); }
+      else if (p.shape === 2) { ctx.font = `${p.w * 2}px serif`; ctx.fillText('★', -p.w, p.w); }
+      else { ctx.font = `${p.w * 2.6}px serif`; ctx.fillText('✦', -p.w, p.w); }
+      ctx.restore();
+    }
+    if (t < 9000) fxRAF = requestAnimationFrame(frame); else stopFx();
+  }
+  fxRAF = requestAnimationFrame(frame);
+}
+
+/* ============ الصوت والاهتزاز ============ */
+let actx;
+function chime(tierKey) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5].slice(0, TIER_KEYS.indexOf(tierKey) + 2);
+    notes.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + 1.3 + i * .16;
+      o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.18, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 1.3);
+    });
+  } catch (e) { /* الصوت اختياري */ }
+  try { navigator.vibrate && navigator.vibrate([40, 40, 80]); } catch (e) { /* اختياري */ }
+}
+
+/* ============ تشغيل المشهد ============ */
+const stage = $('stage');
+function open(tierKey) { stage.dataset.mode = S.mode; stage.dataset.tier = tierKey; stage.classList.add('on'); stage.classList.remove('shown'); document.body.style.overflow = 'hidden'; }
+function closeStage() { stopFx(); stage.classList.remove('on', 'shown'); stage.innerHTML = ''; document.body.style.overflow = ''; }
+
+function playBadge(badgeKey, tierKey, opts = {}) {
+  return new Promise(resolve => {
+    const u = UI[S.lang], b = BADGES[badgeKey], ti = TIER_KEYS.indexOf(tierKey), L = S.lang;
+    open(tierKey);
+    const reason = fixDigits(b.tpl[L](b.th[ti]));
+    let nextHTML = '';
+    if (ti < 3) {
+      const cur = b.th[ti], nxt = b.th[ti + 1], k = Math.max(nxt - cur, 1), pct = Math.round(((cur) / nxt) * 100);
+      const txt = L === 'ar' ? `${u.left} ${b.next.ar(k)} ${u.for} ${TIERS[TIER_KEYS[ti + 1]].ar}` : `${b.next.en(k)} ${u.for} ${TIERS[TIER_KEYS[ti + 1]].en}`;
+      nextHTML = `<div class="prog" style="--p:${pct}%"><div class="bar"><i></i></div><small>${fixDigits(txt)}</small></div>`;
+    }
+    stage.innerHTML = `
+      <canvas class="fx"></canvas>
+      <button class="x" aria-label="${u.close}">✕</button>
+      <div class="content">
+        <div class="rays"></div>
+        <div class="kicker">${u.kicker}</div>
+        <div class="medal">${medalSVG(b.icon, tierKey)}</div>
+        <h2 class="name">${L === 'ar' ? 'وسام ' + b.ar : b.en}</h2>
+        <span class="tierchip">${u.tierWord} ${TIERS[tierKey][L]}</span>
+        <div class="who">${u.student}</div>
+        <p class="why">${reason}</p>
+        ${nextHTML}
+        <button class="next">${opts.last === false ? u.nextBtn : (opts.last === true ? u.summary : u.cont)}</button>
+      </div>`;
+    startFx(stage.querySelector('canvas'), tierKey, S.mode);
+    chime(tierKey);
+    setTimeout(() => stage.classList.add('shown'), 60);
+    const done = (final) => { stopFx(); resolve(final); };
+    stage.querySelector('.next').onclick = () => { if (opts.keepOpen) done('next'); else { closeStage(); done('closed'); } };
+    stage.querySelector('.x').onclick = () => { closeStage(); done('closed'); };
+  });
+}
+
+async function ceremony() {
+  const u = UI[S.lang], list = [['hero', 'gold'], ['rasikh', 'silver'], ['skilled', 'bronze'], ['star', 'silver']];
+  for (let i = 0; i < list.length; i++) {
+    const r = await playBadge(list[i][0], list[i][1], { keepOpen: true, last: i === list.length - 1 ? true : false });
+    if (r === 'closed') return;
+  }
+  stopFx(); stage.dataset.tier = 'gold';
+  const minis = list.map(([bk, tk], i) => `<div class="mini" style="${TIER_VARS[tk]};animation-delay:${.8 + i * .25}s">${medalSVG(BADGES[bk].icon, tk).replace('class="shine"', 'class="shine" style="display:none"')}<span>${S.lang === 'ar' ? BADGES[bk].ar : BADGES[bk].en}</span></div>`).join('');
+  stage.innerHTML = `<canvas class="fx"></canvas><button class="x" aria-label="${u.close}">✕</button>
+    <div class="board"><h2>${u.boardTitle}</h2><div class="count" id="cnt">0</div><div>${u.boardCount}</div><div class="grid">${minis}</div><p>${u.boardNote}</p><button class="next" style="animation-delay:2.2s">${u.close}</button></div>`;
+  startFx(stage.querySelector('canvas'), 'gold', S.mode);
+  let n = 0; const el = $('cnt'), total = list.length;
+  const tick = setInterval(() => { n++; el.textContent = num(Math.min(n, total)); if (n >= total) clearInterval(tick); }, 380);
+  const end = () => { clearInterval(tick); closeStage(); };
+  stage.querySelector('.next').onclick = end; stage.querySelector('.x').onclick = end;
+}
+
+/* ============ لوحة التحكم ============ */
+function chips(id, items, key) {
+  $(id).innerHTML = items.map(([v, label]) => `<button class="chip" data-v="${v}" aria-pressed="${S[key] === v || (key === 'sound' && S.sound === (v === 'on'))}">${label}</button>`).join('');
+  $(id).onclick = e => {
+    const v = e.target.closest('.chip')?.dataset.v; if (!v) return;
+    if (key === 'sound') S.sound = v === 'on'; else S[key] = v;
+    if (key === 'lang') { document.documentElement.lang = v; document.documentElement.dir = v === 'ar' ? 'rtl' : 'ltr'; }
+    render();
+  };
+}
+function render() {
+  const u = UI[S.lang], L = S.lang;
+  $('ui-title').textContent = u.title; $('ui-note').textContent = u.note; document.title = u.title;
+  $('l-badge').textContent = u.badge; $('l-tier').textContent = u.tier; $('l-mode').textContent = u.mode; $('l-lang').textContent = u.lang; $('l-sound').textContent = u.sound;
+  chips('c-badge', Object.keys(BADGES).map(k => [k, `${BADGES[k].icon} ${BADGES[k][L]}`]), 'badge');
+  chips('c-tier', TIER_KEYS.map(k => [k, TIERS[k][L]]), 'tier');
+  chips('c-mode', [['adult', u.adult], ['kids', u.kids]], 'mode');
+  chips('c-lang', [['ar', 'العربية'], ['en', 'English']], 'lang');
+  chips('c-sound', [['off', u.off], ['on', u.on]], 'sound');
+  $('b-play').textContent = u.play; $('b-ceremony').textContent = u.ceremony;
+}
+$('b-play').onclick = () => playBadge(S.badge, S.tier);
+$('b-ceremony').onclick = ceremony;
+addEventListener('keydown', e => { if (e.key === 'Escape' && stage.classList.contains('on')) closeStage(); });
+render();
+</script>
+</body>
+</html>
