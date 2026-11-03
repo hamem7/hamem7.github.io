@@ -1,0 +1,14 @@
+name: check-syntax
+on:
+  push:
+    paths: ['**.js', '**.mjs', 'tools/check-syntax.mjs']
+  pull_request:
+    paths: ['**.js', '**.mjs', 'tools/check-syntax.mjs']
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node tools/check-syntax.mjs
