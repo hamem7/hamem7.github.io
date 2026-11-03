@@ -2,7 +2,7 @@
 import { POOL, SURAHS } from '../data/pool.js';
 import { META, LETTER_NAMES } from '../data/rules.js';
 import { X } from '../data/mushaf-texts.js';
-import { A, quarterMarker, JUZ_ORDINALS_AR, pageImg, pageWindow, PAGE_W } from '../data/mushaf.js';
+import { A, quarterMarker, JUZ_ORDINALS_AR, pageImg, pageWindow, pinLines, PAGE_W, PAGE_H } from '../data/mushaf.js';
 import { wordHTML, hlAttr } from './quran.js';
 import { t, tx, num, getLang } from './i18n.js';
 
@@ -53,11 +53,18 @@ export const bannerHTML = (surahNo) => `<div class="banner" role="img" aria-labe
 // إطار «سجدة» على الهامش: إطار الفانوس الحقيقي من المصحف مكتوب فيه النص (كما في المنصة)
 export const frameHTML = (text) => `<div class="lant frame" role="img" aria-label="${esc(text)}"><img src="${ASSET}lantern-frame.webp" alt=""><div class="lant-text quran-text" dir="rtl" style="left:18%;right:19%;top:17%;bottom:21%;font-size:21cqw"><span>${esc(text)}</span></div></div>`;
 // رأس الصفحة (اسم الجزء يمينًا واسم السورة يسارًا) — صور الصفحات بلا هوامش فالنص مكتوب كما في المنصة
-export const pageHeadHTML = (juz, s) => `<div class="pagehead" dir="rtl"><span class="quran-text">الجزء ${JUZ_ORDINALS_AR[juz - 1]}</span><span class="quran-text">س\u064Fور\u064Eة\u064F ${esc(SURAHS[s].ar)}</span></div><small class="pagehead-cap">${esc(tx(X('mu_juz_caption', { n: num(juz) })))}</small>`;
-// صفحة مصحف حقيقية بنافذة مكبّرة ودبوس ذهبي واحد
+export const pageHeadHTML = (juz, s, cap = true) => `<div class="pagehead" dir="rtl"><span class="quran-text">الجزء ${JUZ_ORDINALS_AR[juz - 1]}</span><span class="quran-text">س\u064Fور\u064Eة\u064F ${esc(SURAHS[s].ar)}</span></div>${cap ? `<small class="pagehead-cap">${esc(tx(X('mu_juz_caption', { n: num(juz) })))}</small>` : ''}`;
+// صفحة مصحف حقيقية: ثلاثة أسطر كاملة بعرض الصفحة (لا أنصاف كلمات) وحلقة ذهبية شفافة حول العلامة فتبقى العلامة نفسها ظاهرة.
+// على الشاشات الضيقة تُعرض الأسطر بحجم مقروء داخل شريط يُمرَّر أفقيًا ويتوسّط عند العلامة (centerPins).
 export function pagePinHTML(page, x, y) {
-  const { W, H, left, top } = pageWindow([{ x, y }]);
-  return `<figure class="realpage pinq"><div class="rp-frame" style="aspect-ratio:${W.toFixed(0)} / ${H.toFixed(0)}"><img class="rp-img" src="${pageImg(page)}" alt="${esc(t('mk_page_alt', { n: num(page) }))}" style="width:${(PAGE_W / W * 100).toFixed(2)}%;left:${(-left / W * 100).toFixed(3)}%;top:${(-top / H * 100).toFixed(3)}%"><span class="pin static" style="left:${((x - left) / W * 100).toFixed(2)}%;top:${((y - top) / H * 100).toFixed(2)}%" aria-hidden="true">★</span></div></figure>`;
+  const w = pinLines(page, y);
+  if (!w) { const { W, H, left, top } = pageWindow([{ x, y }]); return `<figure class="realpage pinq"><div class="rp-frame" style="aspect-ratio:${W.toFixed(0)} / ${H.toFixed(0)}"><img class="rp-img" src="${pageImg(page)}" alt="${esc(t('mk_page_alt', { n: num(page) }))}" style="width:${(PAGE_W / W * 100).toFixed(2)}%;left:${(-left / W * 100).toFixed(3)}%;top:${(-top / H * 100).toFixed(3)}%"><span class="pin ring" style="left:${((x - left) / W * 100).toFixed(2)}%;top:${((y - top) / H * 100).toFixed(2)}%" aria-hidden="true"></span></div></figure>`; }
+  const H = w.bot - w.top;
+  return `<figure class="realpage pinq"><div class="pq-scroll" dir="ltr"><div class="rp-frame pq-frame" style="aspect-ratio:${PAGE_W} / ${H}"><img class="rp-img" src="${pageImg(page)}" alt="${esc(t('mk_page_alt', { n: num(page) }))}" style="width:100%;left:0;top:0;transform:translateY(${(-w.top / PAGE_H * 100).toFixed(3)}%)"><span class="pin ring" style="left:${(x / PAGE_W * 100).toFixed(2)}%;top:${((y - w.top) / H * 100).toFixed(2)}%" aria-hidden="true"></span></div></div></figure>`;
+}
+// يمرّر شريط الصفحة (على الشاشات الضيقة) حتى تتوسّط الحلقة
+export function centerPins(scope) {
+  scope.querySelectorAll('.pq-scroll').forEach((s) => { const p = s.querySelector('.pin'); if (p && s.scrollWidth > s.clientWidth) s.scrollLeft = p.offsetLeft - s.clientWidth / 2; });
 }
 export function mediaHTML(m) {
   if (!m) return '';
@@ -66,7 +73,7 @@ export function mediaHTML(m) {
   if (m.kind === 'verse') return `<div class="ayah-wrap">${ayahHTML(m.key)}<div class="ayah-meta"><span>${esc(ayahLabel(m.key))}</span></div></div>`;
   if (m.kind === 'lantern') return `<div class="media-lantern">${lanternHTML(m.q)}</div>`;
   if (m.kind === 'banner') return bannerHTML(m.surah);
-  if (m.kind === 'pagehead') return `<div class="pagehead-box">${pageHeadHTML(m.juz, m.surah)}</div>`;
+  if (m.kind === 'pagehead') return `<div class="pagehead-box">${pageHeadHTML(m.juz, m.surah, !m.nocap)}</div>`; // في الأسئلة بلا تعليق «الجزء ٢٩» لأنه يكشف الإجابة
   if (m.kind === 'pagepin') return pagePinHTML(m.page, m.x, m.y);
   if (m.kind === 'frame') return `<div class="media-lantern">${frameHTML(m.text)}</div>`;
   return '';

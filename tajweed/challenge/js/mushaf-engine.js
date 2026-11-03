@@ -99,9 +99,9 @@ export function genAyahNum(r, { maxWords = 6 } = {}) {
 
 const BANK = {
   mushaf_ayah_number: [
-    { id: 'meaning', media: { kind: 'img', src: A('mushaf/ayah-number.webp'), alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_meaning'),
+    { id: 'meaning', media: { kind: 'img', src: signImg('ayah_end'), alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_meaning'),
       options: [X('mo_ayah_end_num'), X('mo_surah_start'), X('mo_stop_sign'), X('mo_sajda_place')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
-    { id: 'where', media: { kind: 'img', src: A('mushaf/ayah-number.webp'), alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_place'),
+    { id: 'where', media: { kind: 'img', src: signImg('ayah_end'), alt: T('وردة رقم الآية', 'Ayah-number rosette') }, stem: X('mq_an_place'),
       options: [X('mo_end_of_ayah'), X('mo_start_of_ayah'), T('في أعلى الصفحة', 'At the top of the page'), T('على هامش الصفحة', 'In the page margin')], answer: 0, explain: SIGNS_EXPLAIN('ayah_end') },
     { id: 'banner', media: { kind: 'img', src: partImg('banner'), alt: T('لوحة اسم السورة', 'The surah title panel'), cls: 'banner-photo' }, stem: T('ما هذه اللوحة المزخرفة؟', 'What is this ornamental panel?'),
       options: [T('لوحة اسم السورة', 'The surah title panel'), T('علامة بداية الجزء', 'The start-of-juz mark'), T('علامة السجدة', 'The sajdah mark'), T('رقم الآية', 'The ayah number')], answer: 0, explain: T('قبل أول آية في كل سورة لوحة مزخرفة فيها اسمها.', 'Before the first ayah of every surah there is an ornamental panel with its name.') },
@@ -115,7 +115,7 @@ const BANK = {
       options: [T('هنا موضع سجود التلاوة', 'Here is a place of prostration'), T('هنا بداية جزء جديد', 'Here a new juz begins'), T('هنا تنتهي السورة', 'Here the surah ends'), T('هنا وقف لازم', 'Here is a compulsory stop')], answer: 0, explain: SIGNS_EXPLAIN('sajda_sign'), review: 'خيارات هذا السؤال صياغتي (التعريف نفسه من المنصة)' },
     { id: 'overline', media: { kind: 'img', src: A('mushaf/sajda-overline.webp'), alt: T('خط فوق كلمات السجود', 'A line above the words of prostration') }, stem: T('ما معنى هذا الخط فوق الكلمات؟', 'What does this line above the words mean?'),
       options: [T('هذه كلمات السجود', 'These are the words at which you prostrate'), T('هذه كلمات ت\u064Fقرأ بسرعة', 'These words are read quickly'), T('هذه كلمات ت\u064Fكر\u064E\u0651ر', 'These words are repeated'), T('هذه كلمات لا ت\u064Fقرأ', 'These words are not read')], answer: 0, explain: SIGNS_EXPLAIN('sajda_sign'), review: 'خيارات هذا السؤال صياغتي' },
-    { id: 'mark', media: { kind: 'img', src: A('mushaf/sajda-mark.webp'), alt: T('علامة السجدة', 'Sajdah mark') }, stem: T('ما هذه العلامة التي تشبه قبة المسجد؟', 'What is this sign that looks like a mosque dome?'),
+    { id: 'mark', media: { kind: 'img', src: signImg('sajda_sign'), alt: T('علامة السجدة', 'Sajdah mark') }, stem: T('ما هذه العلامة التي تشبه قبة المسجد؟', 'What is this sign that looks like a mosque dome?'),
       options: [T('علامة السجدة', 'The sajdah sign'), T('علامة الربع', 'The quarter mark'), T('رقم الآية', 'The ayah number'), T('وقف جائز', 'A permissible stop')], answer: 0, explain: SIGNS_EXPLAIN('sajda_sign') }
   ]
 };
@@ -185,12 +185,12 @@ export function genBannerName(r) {
 }
 export function genPageJuz(r) {
   const keys = Object.keys(POOL).filter((k) => POOL[k].j !== 30); const key = pick(r() < 0.7 && keys.length ? keys : Object.keys(POOL), r); const j = POOL[key].j; const s = Number(key.split(':')[0]);
-  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_juz', stem: X('mq_sh_page_juz'), media: { kind: 'pagehead', juz: j, surah: s }, layout: 'text',
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_juz', stem: X('mq_sh_page_juz'), media: { kind: 'pagehead', juz: j, surah: s, nocap: true }, layout: 'text',
     options: numOptions(j, r, 1, 30).map((o) => ({ id: o.id, label: X('mo_juz_n', { n: numLabel(Number(o.id)) }) })), answer: String(j), explain: X('ex_pagehead') };
 }
 export function genPageSurah(r) {
   const key = pick(Object.keys(POOL).filter((k) => Number(k.split(':')[0]) !== 9), r); const s = Number(key.split(':')[0]);
-  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_surah', stem: X('mq_sh_page_surah'), media: { kind: 'pagehead', juz: POOL[key].j, surah: s }, layout: 'text', options: surahOptions(s, r), answer: String(s), explain: X('ex_pagehead') };
+  return { type: 'choice', lesson: 'mushaf_ayah_number', kind: 'sh_page_surah', stem: X('mq_sh_page_surah'), media: { kind: 'pagehead', juz: POOL[key].j, surah: s, nocap: true }, layout: 'text', options: surahOptions(s, r), answer: String(s), explain: X('ex_pagehead') };
 }
 export function genAfterBanner(r) {
   const s = pick(surahPool().filter((x) => x >= 78 || x === 1), r);

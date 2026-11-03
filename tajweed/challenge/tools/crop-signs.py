@@ -49,6 +49,45 @@ CROPS.update({
   'ishmam':      (236, [265, 872, 385, 935], '12:11 «تأمنّا»'),
   'imala':       (226, [485, 535, 610, 600], '11:41 «مجراها»'),
 })
+# قصّ «الكلمة كاملة» (يحلّ محلّ الصناديق أعلاه للعلامات): كل صورة علامة = الكلمة التي تحمل العلامة كاملةً بسطرها من الفراغ إلى الفراغ،
+# لا أنصاف كلمات ولا أطراف كلمات مجاورة. الحدود الأفقية مقيسة من فراغات الكلمات في الصفحة نفسها، والعمودية من الفراغ بين السطور.
+# تُحاط الكلمة بهامش من لون الورق (PAD) فلا تلتصق بحافة الإطار. علامة ۞ ووردة رقم الآية وعلامة السجدة مقصوصة كاملة من صفحاتها.
+WORD = {
+  'rub_mark': (39, [170, 679, 207, 761]),
+  'waqf_sala': (588, [576, 254, 614, 344]),
+  'saktah': (588, [543, 254, 573, 344]),
+  'waqf_lazim': (528, [546, 1184, 637, 1294]),
+  'waqf_jaiz': (584, [87, 338, 153, 426]),
+  'waqf_qala': (443, [240, 935, 300, 1016]),
+  'waqf_muanaqa': (2, [245, 228, 358, 299]),
+  'shadda': (582, [739, 179, 774, 259]),
+  'zero_round': (582, [415, 1094, 502, 1177]),
+  'zero_rect': (584, [554, 259, 580, 338]),
+  'small_meem': (585, [322, 752, 426, 834]),
+  'sukun': (2, [288, 228, 358, 299]),
+  'madd': (582, [557, 592, 595, 680]),
+  'small_yaa': (582, [310, 592, 348, 680]),
+  'small_waw': (585, [175, 165, 203, 249]),
+  'dagger_alif': (2, [473, 228, 523, 299]),
+  'sin_over': (39, [354, 1177, 465, 1294]),
+  'sin_under': (525, [483, 354, 636, 439]),
+  'kasra': (583, [579, 175, 626, 257]),
+  'fatha': (583, [544, 257, 582, 344]),
+  'damma': (583, [420, 257, 483, 344]),
+  'fathatan': (582, [490, 592, 551, 680]),
+  'dammatan': (226, [226, 511, 300, 605]),
+  'kasratan': (585, [27, 332, 103, 417]),
+  'alif_wasla': (582, [476, 179, 528, 259]),
+  'hamza_below': (582, [613, 680, 644, 762]),
+  'hamza_above': (585, [446, 165, 474, 249]),
+  'hamza_line': (585, [318, 332, 361, 417]),
+  'ishmam': (236, [285, 853, 362, 939]),
+  'imala': (226, [499, 511, 595, 605]),
+  'sajda_sign': (528, [103, 598, 139, 676]),
+  'ayah_end': (582, [570, 184, 632, 260]),
+}
+PAD = 12
+for sid, (page, box) in WORD.items(): CROPS[sid] = (page, box, (CROPS.get(sid) or (0, 0, 'علامة كاملة'))[2])
 PAGES = [2, 39, 226, 236, 443, 525, 528, 582, 583, 584, 585, 588]
 def load(p):
     im = Image.open(os.path.join(PLATFORM, 'assets/mushaf', f'page{p:03d}.webp')).convert('RGBA')
@@ -57,7 +96,9 @@ out = os.path.join(ROOT, 'assets/mushaf/signs'); os.makedirs(out, exist_ok=True)
 pg = os.path.join(ROOT, 'assets/mushaf/pages'); os.makedirs(pg, exist_ok=True)
 cache = {}; prov = {}
 for sid, (page, box, note) in CROPS.items():
-    im = cache.setdefault(page, load(page)); c = im.crop(tuple(box)); c = c.resize((round(c.width * SCALE), round(c.height * SCALE)), Image.LANCZOS)
+    im = cache.setdefault(page, load(page)); c = im.crop(tuple(box))
+    if sid in WORD: p = Image.new('RGB', (c.width + 2 * PAD, c.height + PAD), PAPER); p.paste(c, (PAD, PAD // 2)); c = p
+    c = c.resize((round(c.width * SCALE), round(c.height * SCALE)), Image.LANCZOS)
     c.save(os.path.join(out, sid + '.webp'), quality=90); prov[sid] = {'page': page, 'box': box, 'at': note, 'w': c.width, 'h': c.height}
 for p in PAGES:
     im = cache.setdefault(p, load(p)); im.save(os.path.join(pg, f'page{p:03d}.webp'), quality=85)

@@ -135,7 +135,7 @@ p { margin: 0 0 .7em; }
 .lt-hit { position: absolute; z-index: 2; background: transparent; border: 2px solid transparent; border-radius: .3em; padding: 0; cursor: pointer; }
 .lt-hit:hover { background: color-mix(in srgb, var(--c) 16%, transparent); border-color: var(--c); }
 .lt-hit.miss { background: var(--bad-bg); border-color: var(--bad); opacity: .85; } .lt-hit.hl-cause { background: color-mix(in srgb, var(--c) 32%, transparent); border-color: var(--c); }
-.big-letter { display: grid; place-items: center; margin: 12px 0; } .big-letter .lchip { transform: scale(1.8); margin: 26px 0; } .big-letter .lchip b { font-size: 3rem; }
+.big-letter { display: grid; place-items: center; margin: 12px 0; } .big-letter .lchip { min-width: 150px; padding: 10px 26px 14px; border-radius: 24px; gap: 6px; } .big-letter .lchip b { font-size: 5.2rem; line-height: 1.5 !important; } .big-letter .lchip small { font-size: 1.05rem; }
 .lesson-ayah .ayah { font-size: clamp(2rem, 5.6vw + .4rem, 3.2rem); }
 
 /* ── الدرس ── */

@@ -1,7 +1,7 @@
 // js/play.js — واجهة تشغيل الأسئلة (identify / spot / tapletter / sort / letters) مع التغذية الراجعة المفسرة.
 import { RULES } from '../data/rules.js';
 import { checkIdentify, checkSpot, checkTap, checkSortPlacement, checkLetters, whyOf } from './engine.js';
-import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML } from './ui.js';
+import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML, centerPins } from './ui.js';
 import { checkChoice, checkSignTap, checkAyahNum, checkMatch } from './mushaf-engine.js';
 import { X } from '../data/mushaf-texts.js';
 import { POOL } from '../data/pool.js';
@@ -199,14 +199,15 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   function renderChoice(q) {
     const lay = q.layout || 'text';
     const optHTML = (o) => lay === 'glyphs'
-      ? `<button type="button" class="opt glyph-opt" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
+      ? `<button type="button" class="opt glyph-opt${/part_/.test(o.img) ? ' wide-opt' : ''}" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
       : `<button type="button" class="opt${o.glyph ? ' opt-glyph' : ''}" data-o="${esc(o.id)}"><b${o.glyph ? ' class="quran-text" lang="ar"' : ''}>${esc(tx(o.label))}</b></button>`;
-    const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? 'glyphs' : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
+    const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? (q.options.some((o) => /part_/.test(o.img)) ? 'glyphs wide' : 'glyphs') : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
     frame(q, `
       <p class="q-prompt">${esc(tx(q.stem))}</p>
       <div class="media">${mediaHTML(q.media)}</div>
       <div class="opts layout-${cols}" role="group">${q.options.map(optHTML).join('')}</div>
       <div class="fb-slot"></div>`);
+    centerPins(root);
     root.querySelectorAll('.opt').forEach((b) => b.addEventListener('click', () => {
       const res = checkChoice(q, b.dataset.o);
       root.querySelectorAll('.opt').forEach((x) => { x.disabled = true; if (x.dataset.o === q.answer) x.classList.add('right'); });

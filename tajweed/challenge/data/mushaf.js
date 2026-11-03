@@ -166,51 +166,52 @@ export const PLATES = {
 
 // ───── صور حقيقية من المصحف المطبوع ─────
 // كل صورة مقتطعة من صفحة مصحف حقيقية (tools/crop-signs.py، والتوثيق في assets/mushaf/signs/PROVENANCE.json)، أو من مقتطعات المنصة (assets/tajweed/mushaf).
-export const SIGN_IMG = { ayah_end: A('mushaf/ayah-number.webp'), rub_mark: A('mushaf/hizb-mark.webp'), sajda_sign: A('mushaf/sajda-mark.webp') };
+// كل العلامات (ومنها ۞ ووردة رقم الآية والسجدة) مقصوصة كاملة في mushaf/signs/ (tools/crop-signs.py)
+export const SIGN_IMG = {};
 export const signImg = (id) => SIGN_IMG[id] || A(`mushaf/signs/${id}.webp`);
 export const partImg = (id) => A(`mushaf/signs/part_${id}.webp`);
 export const pageImg = (n) => A(`mushaf/pages/page${String(n).padStart(3, '0')}.webp`);
 export const PAGE_W = 800, PAGE_H = 1294;
 
-// «استكشف الصفحة»: صفحات حقيقية بدبابيس على مواضع العلامات (إحداثيات بكسلات الصفحة ٨٠٠×١٢٩٤)
+// «استكشف الصفحة»: صفحات حقيقية بدبابيس على مواضع العلامات (إحداثيات بكسلات الصفحة ٨٠٠×١٢٩٤ — مركز العلامة نفسها مقيسًا من الصورة، لا الكلمة)
 export const EXPLORE = {
   mushaf_ayah_number: [{ page: 582, label: T('أول سورة النبأ', 'The start of Surah An-Naba'), pins: [{ part: 'banner', x: 400, y: 48 }, { part: 'basmala', x: 400, y: 138 }, { sign: 'ayah_end', x: 603, y: 222 }, { sign: 'ayah_end', x: 358, y: 222 }] }],
-  mushaf_juz_hizb: [{ page: 39, label: T('علامة الربع ۞ في السطر', 'The ۞ mark inside a line'), pins: [{ sign: 'rub_mark', x: 237, y: 711 }] }],
+  mushaf_juz_hizb: [{ page: 39, label: T('علامة الربع ۞ في السطر', 'The ۞ mark inside a line'), pins: [{ sign: 'rub_mark', x: 187, y: 721 }] }],
   mushaf_waqf: [
-    { page: 588, label: T('الوصل أولى والسكتة', 'Continue-preferred and the saktah'), pins: [{ sign: 'waqf_sala', x: 600, y: 256 }, { sign: 'saktah', x: 528, y: 262 }] },
-    { page: 528, label: T('وقف لازم', 'Compulsory stop'), pins: [{ sign: 'waqf_lazim', x: 555, y: 1195 }] },
-    { page: 584, label: T('وقف جائز', 'Permissible stop'), pins: [{ sign: 'waqf_jaiz', x: 100, y: 352 }] },
-    { page: 443, label: T('الوقف أولى', 'Stopping is preferred'), pins: [{ sign: 'waqf_qala', x: 300, y: 942 }] },
-    { page: 2, label: T('تعانق الوقف', 'Paired stops'), pins: [{ sign: 'waqf_muanaqa', x: 300, y: 232 }] }
+    { page: 588, label: T('الوصل أولى والسكتة', 'Continue-preferred and the saktah'), pins: [{ sign: 'waqf_sala', x: 585, y: 267 }, { sign: 'saktah', x: 556, y: 268 }] },
+    { page: 528, label: T('وقف لازم', 'Compulsory stop'), pins: [{ sign: 'waqf_lazim', x: 562, y: 1200 }] },
+    { page: 584, label: T('وقف جائز', 'Permissible stop'), pins: [{ sign: 'waqf_jaiz', x: 91, y: 354 }] },
+    { page: 443, label: T('الوقف أولى', 'Stopping is preferred'), pins: [{ sign: 'waqf_qala', x: 297, y: 945 }] },
+    { page: 2, label: T('تعانق الوقف', 'Paired stops'), pins: [{ sign: 'waqf_muanaqa', x: 295, y: 235 }] }
   ],
   mushaf_silent_sukun: [
-    { page: 582, label: T('الشدّة والصفر الدائري', 'Shadda and the round zero'), pins: [{ sign: 'shadda', x: 735, y: 205 }, { sign: 'zero_round', x: 410, y: 1105 }] },
-    { page: 584, label: T('الصفر المستطيل', 'The rectangular zero'), pins: [{ sign: 'zero_rect', x: 548, y: 283 }] },
-    { page: 585, label: T('الميم الصغيرة', 'The small meem'), pins: [{ sign: 'small_meem', x: 370, y: 766 }] },
-    { page: 2, label: T('السكون', 'The sukun'), pins: [{ sign: 'sukun', x: 340, y: 262 }] }
+    { page: 582, label: T('الشدّة والصفر الدائري', 'Shadda and the round zero'), pins: [{ sign: 'shadda', x: 748, y: 207 }, { sign: 'zero_round', x: 417, y: 1115 }] },
+    { page: 584, label: T('الصفر المستطيل', 'The rectangular zero'), pins: [{ sign: 'zero_rect', x: 555, y: 284 }] },
+    { page: 585, label: T('الميم الصغيرة', 'The small meem'), pins: [{ sign: 'small_meem', x: 381, y: 779 }] },
+    { page: 2, label: T('السكون', 'The sukun'), pins: [{ sign: 'sukun', x: 317, y: 252 }] }
   ],
   mushaf_madd_letters: [
-    { page: 582, label: T('المدّة والياء الصغيرة', 'The madd sign and the small yaa'), pins: [{ sign: 'madd', x: 556, y: 618 }, { sign: 'small_yaa', x: 345, y: 638 }] },
-    { page: 585, label: T('الواو الصغيرة', 'The small waw'), pins: [{ sign: 'small_waw', x: 222, y: 218 }] },
-    { page: 2, label: T('الألف الخنجرية', 'The dagger alif'), pins: [{ sign: 'dagger_alif', x: 505, y: 245 }] }
+    { page: 582, label: T('المدّة والياء الصغيرة', 'The madd sign and the small yaa'), pins: [{ sign: 'madd', x: 575, y: 613 }, { sign: 'small_yaa', x: 315, y: 647 }] },
+    { page: 585, label: T('الواو الصغيرة', 'The small waw'), pins: [{ sign: 'small_waw', x: 179, y: 217 }] },
+    { page: 2, label: T('الألف الخنجرية', 'The dagger alif'), pins: [{ sign: 'dagger_alif', x: 509, y: 255 }] }
   ],
   mushaf_sin_saad: [
-    { page: 39, label: T('س فوق الصاد', 'Seen above the saad'), pins: [{ sign: 'sin_over', x: 402, y: 1205 }] },
-    { page: 525, label: T('س تحت الصاد', 'Seen below the saad'), pins: [{ sign: 'sin_under', x: 585, y: 402 }] }
+    { page: 39, label: T('س فوق الصاد', 'Seen above the saad'), pins: [{ sign: 'sin_over', x: 403, y: 1217 }] },
+    { page: 525, label: T('س تحت الصاد', 'Seen below the saad'), pins: [{ sign: 'sin_under', x: 588, y: 419 }] }
   ],
   mushaf_harakat: [
-    { page: 583, label: T('الفتحة والضمّة والكسرة', 'Fatha, damma and kasra'), pins: [{ sign: 'kasra', x: 605, y: 218 }, { sign: 'fatha', x: 537, y: 310 }, { sign: 'damma', x: 470, y: 307 }] },
-    { page: 582, label: T('تنوين الفتح', 'Fathatan'), pins: [{ sign: 'fathatan', x: 532, y: 646 }] },
-    { page: 226, label: T('تنوين الضمّ', 'Dammatan'), pins: [{ sign: 'dammatan', x: 268, y: 565 }] },
-    { page: 585, label: T('تنوين الكسر', 'Kasratan'), pins: [{ sign: 'kasratan', x: 80, y: 380 }] }
+    { page: 583, label: T('الفتحة والضمّة والكسرة', 'Fatha, damma and kasra'), pins: [{ sign: 'kasra', x: 593, y: 244 }, { sign: 'fatha', x: 575, y: 287 }, { sign: 'damma', x: 428, y: 286 }] },
+    { page: 582, label: T('تنوين الفتح', 'Fathatan'), pins: [{ sign: 'fathatan', x: 502, y: 619 }] },
+    { page: 226, label: T('تنوين الضمّ', 'Dammatan'), pins: [{ sign: 'dammatan', x: 241, y: 541 }] },
+    { page: 585, label: T('تنوين الكسر', 'Kasratan'), pins: [{ sign: 'kasratan', x: 34, y: 396 }] }
   ],
   mushaf_hamza: [
-    { page: 582, label: T('ألف الوصل والهمزة تحت الألف', 'Alif wasla and hamza below alif'), pins: [{ sign: 'alif_wasla', x: 485, y: 218 }, { sign: 'hamza_below', x: 612, y: 725 }] },
-    { page: 585, label: T('الهمزة فوق الألف وعلى السطر', 'Hamza above alif and on the line'), pins: [{ sign: 'hamza_above', x: 455, y: 214 }, { sign: 'hamza_line', x: 345, y: 385 }] }
+    { page: 582, label: T('ألف الوصل والهمزة تحت الألف', 'Alif wasla and hamza below alif'), pins: [{ sign: 'alif_wasla', x: 525, y: 201 }, { sign: 'hamza_below', x: 638, y: 739 }] },
+    { page: 585, label: T('الهمزة فوق الألف وعلى السطر', 'Hamza above alif and on the line'), pins: [{ sign: 'hamza_above', x: 468, y: 192 }, { sign: 'hamza_line', x: 325, y: 384 }] }
   ],
   mushaf_special: [
-    { page: 236, label: T('الإشمام (سورة يوسف)', 'Ishmam (Surah Yusuf)'), pins: [{ sign: 'ishmam', x: 325, y: 903 }] },
-    { page: 226, label: T('الإمالة (سورة هود)', 'Imala (Surah Hud)'), pins: [{ sign: 'imala', x: 548, y: 567 }] }
+    { page: 236, label: T('الإشمام (سورة يوسف)', 'Ishmam (Surah Yusuf)'), pins: [{ sign: 'ishmam', x: 314, y: 894 }] },
+    { page: 226, label: T('الإمالة (سورة هود)', 'Imala (Surah Hud)'), pins: [{ sign: 'imala', x: 549, y: 590 }] }
   ],
   mushaf_sajda: [{ page: 528, label: T('سجدة سورة النجم', 'The sajdah of Surah An-Najm'), pins: [{ sign: 'sajda_sign', x: 118, y: 640 }, { part: 'overline', x: 300, y: 612 }] }]
 };
@@ -226,6 +227,14 @@ export const LESSON_IMG = { mushaf_ayah_number: 'ayah_end', mushaf_juz_hizb: 'ru
 // نصوص المقدمة والنصيحة لكل درس (من نصوص المنصة المعتمدة، انظر data/mushaf-texts.js)
 export const LESSON_TXT = { ayah_number: ['mul_an_intro', 'mul_an_tip'], juz_hizb: ['mul_jh_intro', 'mul_jh_tip'], waqf: ['mul_wq_intro', 'mul_wq_tip'], silent_sukun: ['mul_sk_intro', 'mul_sk_tip'], madd_letters: ['mul_md_intro', 'mul_md_tip'], sin_saad: ['mul_sn_intro', 'mul_sn_tip'], sajda: ['mul_sj_intro', 'mul_sj_tip'] };
 
+// حدود الأسطر في صفحات «استكشف» (y للفراغ بين كل سطرين، مقيسة من الصورة) — لعرض أسطر كاملة في سؤال الدبوس بلا قصّ كلمات
+export const PAGE_LINES = { 2: [0, 87, 129, 228, 299, 367, 437, 502, 577, 631, 1294], 39: [0, 87, 177, 260, 342, 429, 513, 596, 679, 761, 845, 930, 1011, 1100, 1177, 1294], 226: [0, 96, 180, 267, 347, 432, 511, 605, 687, 769, 852, 937, 1017, 1102, 1184, 1294], 236: [0, 101, 187, 270, 355, 437, 518, 608, 691, 775, 853, 939, 1026, 1105, 1187, 1294], 443: [0, 100, 188, 268, 353, 435, 516, 601, 685, 769, 854, 935, 1016, 1102, 1191, 1294], 525: [0, 103, 186, 270, 354, 439, 523, 604, 688, 772, 855, 940, 1021, 1108, 1183, 1294], 528: [0, 96, 179, 261, 351, 430, 513, 598, 676, 779, 855, 934, 1015, 1101, 1184, 1294], 582: [0, 103, 179, 259, 341, 425, 508, 592, 680, 762, 845, 926, 1011, 1094, 1177, 1294], 583: [0, 91, 175, 257, 344, 425, 513, 590, 690, 766, 845, 928, 1014, 1093, 1180, 1294], 584: [0, 89, 177, 259, 338, 426, 513, 595, 674, 762, 844, 928, 1011, 1096, 1173, 1249, 1294], 585: [0, 85, 165, 249, 332, 417, 500, 583, 670, 752, 834, 918, 1002, 1088, 1168, 1246, 1294], 588: [0, 92, 172, 254, 344, 428, 510, 593, 678, 761, 842, 927, 1012, 1091, 1178, 1294] };
+// نافذة سؤال الدبوس: سطر العلامة مع سطر قبله وسطر بعده، بعرض الصفحة كاملًا
+export function pinLines(page, y) {
+  const L = PAGE_LINES[page]; if (!L) return null;
+  let k = L.findIndex((v, i) => i < L.length - 1 && v <= y && y < L[i + 1]); if (k < 0) k = L.length - 2;
+  return { top: L[Math.max(0, k - 1)], bot: L[Math.min(L.length - 1, k + 2)] };
+}
 // نافذة مكبّرة حول دبابيس الصفحة (بكسلات الصفحة الأصلية) — تُستعمل في «استكشف» وفي أسئلة «ما العلامة عند الدبوس؟»
 export function pageWindow(pins) {
   const xs = pins.map((p) => p.x), ys = pins.map((p) => p.y);
