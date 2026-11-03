@@ -40,10 +40,21 @@ export const EXTRAS_STYLES = `
   #report-screen .mrx-chip{display:inline-block; margin-top:3px; padding:1px 10px; border-radius:999px; font-size:11.5px; font-weight:700; color:#1a1300;}
   #report-screen .mrx-total{font-size:15px; font-weight:800; color:#164f40; margin-bottom:8px;}
   #report-screen .mrx-closest{margin-top:10px; font-size:13px; color:#8a6221;}
-  #report-screen .mrx-legend-row{display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-top:1px dashed #e6dcbc; font-size:12.5px; color:#3a3a35;}
-  #report-screen .mrx-legend-row .ic{font-size:20px; width:28px; text-align:center;}
+  #report-screen details.mrx-legend-box > summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  #report-screen details.mrx-legend-box > summary::-webkit-details-marker{display:none;}
+  #report-screen details.mrx-legend-box > summary .section-title{margin:0;}
+  #report-screen details.mrx-legend-box > summary .hint{font-size:12px; color:#8a6221; font-weight:700;}
+  #report-screen details.mrx-legend-box > summary .hint::before{content:'▸ '; display:inline-block;}
+  #report-screen details.mrx-legend-box[open] > summary .hint::before{content:'▾ ';}
+  #report-screen details.mrx-legend-box[open] > summary{margin-bottom:6px;}
+  #report-screen .mrx-tiers-key{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 6px;}
+  #report-screen .mrx-legend-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:6px 14px;}
+  #report-screen .mrx-legend-row{display:flex; gap:8px; align-items:flex-start; padding:5px 0; border-top:1px dashed #e6dcbc; font-size:12px; line-height:1.55; color:#3a3a35;}
+  #report-screen .mrx-legend-row .ic{font-size:17px; width:22px; text-align:center; flex:none;}
   #report-screen .mrx-legend-row b{color:#164f40;}
-  #report-screen .mrx-legend-row .th{display:block; color:#6b6b63; margin-top:2px;}
+  #report-screen .mrx-legend-row .ds{display:block; color:#6b6b63; font-size:11.5px;}
+  #report-screen .mrx-legend-row .th{display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;}
+  #report-screen .mrx-tp{display:inline-block; min-width:26px; padding:0 7px; border-radius:999px; font-size:11px; font-weight:800; color:#1a1300; text-align:center;}
   #report-screen .mrx-group{font-size:12.5px; font-weight:800; color:#8a6221; margin:10px 0 2px;}
   #report-screen .mrx-kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin:6px 0;}
   #report-screen .mrx-kv div{background:#fff; border:1px solid #eadfbd; border-radius:12px; padding:8px 10px; text-align:center;}
@@ -213,13 +224,18 @@ function badgesSection(d, x) {
   const c = x.closest;
   const closest = c ? `<div class="mrx-closest">${esc(tf('bdg_rep_closest', { badge: t('bdg_' + c.key + '_name'), k: num(Math.ceil(c.next.remaining)) }))}</div>` : '';
   // مفتاح الأوسمة: كل وسام وعتباته (يُظهر للوالد كيف يُنال كل وسام)
+  const TIERS = ['bronze', 'silver', 'gold', 'diamond'];
+  const pill = (k, txt) => { const [c1, c2] = TIER_COLORS[k]; return `<span class="mrx-tp" style="background:linear-gradient(135deg,${c1},${c2});">${esc(txt)}</span>`; };
+  const tiersKey = `<div class="mrx-tiers-key">${TIERS.map(k => pill(k, tierName(k))).join('')}</div>`;
   const legend = BADGE_GROUPS.map(g => {
-    const rows = BADGE_DEFS.filter(b => b.group === g).map(b => `<div class="mrx-legend-row"><span class="ic">${b.icon}</span><div><b>${esc(t('bdg_' + b.key + '_name'))}</b> — ${esc(t('bdg_' + b.key + '_desc'))}
-      <span class="th">${esc(tf('bdg_rep_tiers_line', { a: num(b.th[0]), b: num(b.th[1]), c: num(b.th[2]), d: num(b.th[3]) }))}</span></div></div>`).join('');
-    return `<div class="mrx-group">${esc(t('bdg_group_' + g))}</div>${rows}`;
+    const rows = BADGE_DEFS.filter(b => b.group === g).map(b => `<div class="mrx-legend-row"><span class="ic">${b.icon}</span><div><b>${esc(t('bdg_' + b.key + '_name'))}</b>
+      <span class="ds">${esc(t('bdg_' + b.key + '_desc'))}</span>
+      <span class="th" title="${esc(tf('bdg_rep_tiers_line', { a: num(b.th[0]), b: num(b.th[1]), c: num(b.th[2]), d: num(b.th[3]) }))}">${TIERS.map((k, i) => pill(k, num(b.th[i]))).join('')}</span></div></div>`).join('');
+    return `<div class="mrx-group">${esc(t('bdg_group_' + g))}</div><div class="mrx-legend-grid">${rows}</div>`;
   }).join('');
+  // مطويّ افتراضيًا حتى لا يأخذ مساحة كبيرة من التقرير (ويُصدَّر مطويًّا ما لم يفتحه المعلم)
   return `<div class="mrx pdf-block" id="mr-badges-block">${head}${body}${closest}</div>
-    <div class="mrx pdf-block" id="mr-badges-legend"><div class="section-title">${esc(t('bdg_rep_legend'))}</div><div class="section-sub">${esc(t('bdg_rep_legend_sub'))}</div>${legend}</div>`;
+    <details class="mrx pdf-block mrx-legend-box" id="mr-badges-legend"><summary><span class="section-title">${esc(t('bdg_rep_legend'))}</span><span class="hint">${esc(t('bdg_rep_legend_hint'))}</span></summary><div class="section-sub">${esc(t('bdg_rep_legend_sub'))}</div>${tiersKey}${legend}</details>`;
 }
 
 function goalsSection(d, x) {
