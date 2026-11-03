@@ -27,6 +27,9 @@ import { showStudentWelcome } from '../components/welcomeBanner.js';
 import { showNewStudentChoice } from '../components/newStudentChoice.js';
 // 🌟 [إصلاح فحص الأزرار] لتوجيه ملف "النسخة الشاملة" المرفوع بالخطأ هنا إلى مسار استرجاعه الصحيح
 import { restoreFromBackupFile } from '../core/backupRestore.js';
+// 🌟 [جديد] «سور إضافية خارج المسار المتصل» (student.memoExtra) — محرّر مشترك بين إضافة الطالب وتعديله وملفه
+import { mountScopeExtras } from '../components/scopeExtrasEditor.js';
+import { renderProfileScope } from '../components/profileScopeCard.js';
 
 export async function populateStudentsDropdown() {
     const students = await AppState.studentManager.getAllStudents();
@@ -515,6 +518,23 @@ function memoDirectionOk(fromName, toName) {
     return a != null && b != null && a >= b;
 }
 
+// يركّب محرّر السور الإضافية داخل holder مرة واحدة (يُعاد استعماله عند كل فتح) ويضبط قيمته الحالية
+function scopeExtrasEditor(hostId, fromId, toId, value) {
+    const host = document.getElementById(hostId);
+    if (!host) return null;
+    if (!host._dhx) host._dhx = mountScopeExtras(host, { fromId, toId });
+    host._dhx.setValue(value || []);
+    return host._dhx;
+}
+function readScopeExtras(hostId) {
+    const host = document.getElementById(hostId);
+    return host && host._dhx ? host._dhx.getValue() : [];
+}
+// الحقل اختياري: القائمة الفارغة تُحذف بدل أن تُخزَّن
+function applyScopeExtras(student, list) {
+    if (list && list.length) student.memoExtra = list; else delete student.memoExtra;
+}
+
 async function saveNewStudentAction(addAnother) {
     const data = {
         name: document.getElementById('stu-name').value.trim(),
@@ -525,6 +545,7 @@ async function saveNewStudentAction(addAnother) {
         gender: document.getElementById('stu-gender')?.value || '',
         memoFrom: document.getElementById('stu-memo-from').value,
         memoTo: document.getElementById('stu-memo-to').value,
+        memoExtra: readScopeExtras('stu-extra-box'),
         avatar: document.getElementById('selected-avatar').value,
         isHidden: false,
         weaknesses: [],
@@ -533,6 +554,7 @@ async function saveNewStudentAction(addAnother) {
         // kidsGame.js في recordAnswer) 🌟
         resolvedWeaknesses: []
     };
+    if (!data.memoExtra.length) delete data.memoExtra;
     if (!data.name) return alert(t("stu_name_required"));
     if (data.gender !== 'boy' && data.gender !== 'girl') { setAddStep(1); return alert(t("stu_gender_required_alert")); }
     // 🌟 [إلزامي — 2026-10-17] نطاق الحفظ يحدد آيات الواجب والأسئلة، فلا يُسجَّل طالب بدونه
@@ -607,6 +629,7 @@ function resetAddStudentForm() {
     ['stu-name', 'stu-country', 'stu-phone', 'stu-dob'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     ['stu-grade', 'stu-dob-d', 'stu-dob-m', 'stu-dob-y', 'stu-memo-from', 'stu-memo-to'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
     { const nas = AppState.surahsData.find(x => x.number === 114), f = document.getElementById('stu-memo-from'); if (nas && f) f.value = nas.name; }
+    scopeExtrasEditor('stu-extra-box', 'stu-memo-from', 'stu-memo-to', []);
     const age = document.getElementById('age-display'); if (age) age.textContent = '';
     const toast = document.getElementById('add-saved-toast'); if (toast) toast.style.display = 'none';
     const fileInput = document.getElementById('stu-avatar'); if (fileInput) fileInput.value = '';
@@ -1168,6 +1191,8 @@ export async function loadStudentProfileScreen() {
             });
 
             document.getElementById('prof-name').innerText = student.name;
+            renderProfileScope(document.getElementById('prof-scope-card'), student);
+            document.addEventListener('app-lang-changed', function _psc() { const h = document.getElementById('prof-scope-card'); if (!h || !h.isConnected) { document.removeEventListener('app-lang-changed', _psc); return; } renderProfileScope(h, AppState.currentStudent); });
             document.getElementById('prof-grade').innerText = (student.grade ? trStored(student.grade) : t("stu_grade_not_set"));
             document.getElementById('prof-points').innerText = student.totalScore || 0;
 
@@ -1716,6 +1741,7 @@ async function openEditStudentModal(id) {
     document.getElementById('edit-stu-phone').value = s.phone || '';
     if (s.memoFrom) document.getElementById('edit-stu-memo-from').value = s.memoFrom;  // وإلا يبقى الافتراضي (الناس) من populateSurahOptions
     document.getElementById('edit-stu-memo-to').value = s.memoTo || '';
+    scopeExtrasEditor('edit-extra-box', 'edit-stu-memo-from', 'edit-stu-memo-to', s.memoExtra);
     // 🌟 [إصلاح فحص الأزرار] كان حقل "الجنس (للصورة الرمزية)" يظهر بلا أي ربط بالحفظ. الآن يعكس نوع
     // الصورة الرمزية الحالية (لو كانت رمزًا تعبيريًا) ويُطبَّق عند الحفظ؛ ولا أثر له إن كان للطالب صورة مرفوعة 🌟
     const _genderSel = document.getElementById('edit-stu-gender');
@@ -1771,6 +1797,7 @@ function openProfileEditModal(student) {
     $('pfe-phone').value = student.phone || '';
     if (student.memoFrom) $('pfe-memo-from').value = student.memoFrom;
     $('pfe-memo-to').value = student.memoTo || '';
+    scopeExtrasEditor('pfe-extra-box', 'pfe-memo-from', 'pfe-memo-to', student.memoExtra);
     $('pfe-gender').value = studentGenderOf(student);
     $('pfe-avatar').value = '';
     $('pfe-error').hidden = true;
@@ -1815,6 +1842,7 @@ async function saveProfileEditAction() {
     s.phone = $('pfe-phone').value;
     s.memoFrom = memoFrom;
     s.memoTo = memoTo;
+    applyScopeExtras(s, readScopeExtras('pfe-extra-box'));
     { const _pg = $('pfe-gender').value; if (_pg) s.gender = _pg; }
     if (pfeNewAvatar) {
         s.avatar = pfeNewAvatar;
@@ -1847,6 +1875,7 @@ async function saveEditedStudentAction() {
     s.memoTo = document.getElementById('edit-stu-memo-to').value;
     if (!s.memoFrom || !s.memoTo) return alert(t("stu_memo_required_alert"));
     if (!memoDirectionOk(s.memoFrom, s.memoTo)) return alert(t("stu_memo_direction_alert"));
+    applyScopeExtras(s, readScopeExtras('edit-extra-box'));
     // 🌟 [إصلاح فحص الأزرار] تطبيق اختيار الجنس على الصورة الرمزية (رمز تعبيري فقط، لا الصور المرفوعة) 🌟
     const _g = document.getElementById('edit-stu-gender')?.value;
     if (_g) s.gender = _g;

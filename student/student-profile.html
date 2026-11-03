@@ -267,9 +267,10 @@
             <section>
                 <h3 class="pfe-sec-t" data-i18n="pfe_sec_memo">مستوى الحفظ</h3>
                 <div class="pfe-f">
-                    <label for="pfe-memo-from"><span data-i18n="as_memo_label">مقدار الحفظ (من سورة - إلى سورة):</span> <span class="pfe-tag is-req" data-i18n="stu_required_tag">(إلزامي)</span></label>
+                    <label for="pfe-memo-from"><span data-i18n="sx_main_label">المسار المتصل (من سورة - إلى سورة):</span> <span class="pfe-tag is-req" data-i18n="stu_required_tag">(إلزامي)</span></label>
                     <div class="pfe-range"><select id="pfe-memo-from" aria-label="من سورة"></select><select id="pfe-memo-to" aria-label="إلى سورة"></select></div>
                     <p class="pfe-help" data-i18n="stu_memo_help">يبدأ الحفظ من الناس صعودًا نحو البقرة: «من» = أول سورة حفظها (غالبًا الناس) و«إلى» = آخر سورة وصل إليها.</p>
+                    <div id="pfe-extra-box"></div>
                 </div>
             </section>
             <p class="pfe-error" id="pfe-error" role="alert" hidden></p>
@@ -290,6 +291,9 @@
         <!-- أرشيف الأخطاء المصححة (resolvedWeaknesses) — معطّل ما لم يوجد أرشيف -->
         <button class="pf-tile" id="btn-prof-archive" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-folder"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
     </div>
+
+    <!-- نطاق الحفظ: المسار المتصل + السور الإضافية (components/profileScopeCard.js) -->
+    <div id="prof-scope-card" hidden></div>
 
     <div class="pf-stats">
         <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-points">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_total_points">إجمالي النقاط المكتسبة</p></div></div>
