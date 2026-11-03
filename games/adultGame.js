@@ -1446,6 +1446,7 @@ function showLinkRevealCard(data, id, onDone) {
     const title = document.createElement('div');
     title.className = 'link-reveal-title';
     title.textContent = t('link_unknown_reveal');
+    let pendingRef = null;
     const body = document.createElement('div');
     body.className = 'link-reveal-body quran-text';
     if (/word_surah/.test(data.type || '')) {
@@ -1464,12 +1465,24 @@ function showLinkRevealCard(data, id, onDone) {
         body.className = 'link-reveal-body';
         body.append(w, document.createTextNode(' ⟵ '), sur);
     } else {
-        body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
+        // اربط أول الآية بآخرها: الآية كاملة بين قوسين + اسم السورة ورقم الآية
+        const full = Array.isArray(data.original) ? data.original.find(a => `${a.surahNumber}-${a.numberInSurah}` === String(id)) : null;
+        if (full && full.text) {
+            body.textContent = '﴿\u00A0' + full.text + '\u00A0﴾';
+            const ref = document.createElement('div');
+            ref.className = 'link-reveal-ref';
+            ref.textContent = tf('game_ref_label', { name: surahNameLocal(full.surahName), n: full.numberInSurah });
+            pendingRef = ref;
+        } else {
+            body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
+        }
     }
     const bar = document.createElement('div');
     bar.className = 'link-reveal-bar';
     bar.style.animationDuration = LINK_REVEAL_MS + 'ms';
-    card.append(title, body, bar);
+    card.append(title, body);
+    if (pendingRef) card.append(pendingRef);
+    card.append(bar);
     let done = false;
     const finish = () => {
         if (done) return;
