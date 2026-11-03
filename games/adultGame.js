@@ -602,8 +602,8 @@ function initGameUI() {
 
     document.getElementById('btn-submit-all-errors')?.addEventListener('click', submitAllErrors);
 
-    // 🌟 [جديد] لوحة «أوسمتي» قبل أول سؤال: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). لا تحجب اللعبة عند أي فشل.
-    import('../components/badgeReveal.js').then(m => m.showBadgesIntro(AppState.currentStudent, ['games', 'engage'])).catch(() => {}).then(() => playNextMission());
+    // لوحة «أوسمتي» لم تعد تظهر قبل اللعب (بطلب صاحب المنصة) — تظهر في نهاية اللعبة الفردية فقط
+    playNextMission();
 }
 
 function updateTrackerUI() { 
@@ -708,7 +708,7 @@ async function playNextMission() {
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
             // 🌟 [جديد] تقييم الأوسمة الشهرية وعرض الجديد منها بالمشهد السينمائي (لا يحجب ولا يرمي)
-            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent, ['games', 'engage'])).catch(() => {});
+            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent, ['games', 'engage'], { summary: true })).catch(() => {});
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (best-effort) حتى لا تظهر
             // بطاقة "اختبار غير مكتمل" مرة أخرى. اختبار جديد عادي لا يمسّ أي لقطة موجودة
             if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {

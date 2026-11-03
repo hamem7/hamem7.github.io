@@ -8,7 +8,7 @@
 // =============================================================================
 import { AppState } from './app.js';
 import './i18n-badges.js';
-import { computeMonthBadges, summarizeEarned, getBadgeDef, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
+import { computeMonthBadges, summarizeEarned, getBadgeDef, BADGE_DEFS, TIER_KEYS, RISER_MIN_GAMES } from '../engine/badgesEngine.js';
 import { starsInMonth } from './goldStars.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { summarizeReview } from '../engine/reviewParts.js';
@@ -73,6 +73,31 @@ function tajweedCounts(ctx, y, m) {
     return c;
 }
 
+// جلسات التجويد التي ليست «ألعابًا» (اختبار الحكم واعتماد المعلم) لا تُعدّ في «مطبّق التجويد»
+const NON_GAME_TJ = new Set(['exam', 'teacher_checkpoint']);
+function tajweedCorrectInMonth(ctx, y, m) {
+    if (!ctx.tjSessions.length) return null;
+    let n = 0;
+    for (const s of ctx.tjSessions) {
+        if (!s || NON_GAME_TJ.has(s.activityType)) continue;
+        const ts = typeof s.timestamp === 'number' ? s.timestamp : Date.parse(s.timestamp);
+        if (inRange(ts, y, m) && Number.isFinite(s.correctCount)) n += Math.max(0, s.correctCount);
+    }
+    return n;
+}
+
+/** متوسط نتائج الألعاب لهذا الشهر وما قبله (حتى ٦ أشهر)؛ null لشهر بلا عدد كافٍ من الألعاب. */
+function monthAverages(ctx, y, m, back = 6) {
+    const out = [];
+    let yy = y, mm = m;
+    for (let i = 0; i <= back; i++) {
+        const gs = ctx.games.filter(g => inRange(g.timestamp, yy, mm));
+        out.push(gs.length >= RISER_MIN_GAMES ? gs.reduce((a, g) => a + g.score, 0) / gs.length : null);
+        [yy, mm] = prevMonth(yy, mm);
+    }
+    return out;
+}
+
 /** مدخلات محرّك الأوسمة لشهر (y, m0). now يحدّد «حتى اليوم» للشهر الجاري في حساب الحضور. */
 export function inputsForMonth(ctx, y, m, now = new Date()) {
     const s = ctx.student;
@@ -81,8 +106,9 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
     const prevGames = ctx.games.filter(g => inRange(g.timestamp, py, pm));
     const rec = ctx.records.find(r => r.year === y && r.month === m + 1) || null;
     const hasEnding = !!(rec && rec.ending && typeof rec.newAyahs === 'number');
-    let reviewParts = null;
-    if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; }
+    let reviewParts = null, reviewAyahs = null;
+    // مراجعة الشهر المسجَّلة في ملف الطالب (شاشة مراجعة الشهر): عدد الأجزاء وعدد الآيات المُراجَعة
+    if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; reviewAyahs = sum ? sum.totalAyahs : 0; }
     const monthMatches = ctx.matches.filter(mm => inRange(new Date(mm.finishedAt).getTime(), y, m));
     let attendance = null;
     if (hasSchedule(s)) {
@@ -98,9 +124,12 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
     return {
         games: games.length || ctx.games.length ? games : null,
         prevGames: prevGames.length ? prevGames : null,
+        monthAvgs: monthAverages(ctx, y, m),
         stars: starsInMonth(s, y, m),
         newAyahs: hasEnding ? rec.newAyahs : null,
         reviewParts,
+        reviewAyahs,
+        tajweedCorrect: tajweedCorrectInMonth(ctx, y, m),
         duelWins: monthMatches.length ? monthMatches.filter(mm => studentOutcomeInMatch(mm, s.id) === 'win').length : null,
         attendance,
         tajweed: tajweedCounts(ctx, y, m)

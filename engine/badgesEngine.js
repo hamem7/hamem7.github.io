@@ -10,26 +10,28 @@
 
 export const TIER_KEYS = ['bronze', 'silver', 'gold', 'diamond'];
 export const MAX_GAMES_PER_DAY = 2;
-export const SKILLED_MIN_SCORE = 90;     // الماهر
-export const ACTIVE_MIN_SCORE = 50;      // المثابر: لعبة جادّة لا مجرد ضغط
-export const FIXER_MIN_SCORE = 80;       // المُصلِح
-export const PERFECT_SCORE = 100;        // الكامل
-export const RISER_MIN_GAMES = 3;        // الصاعد: عدد ألعاب كل شهر ليصحّ القياس
+export const ACTIVE_MIN_SCORE = 50;      // المجتهد في الألعاب: لعبة جادّة لا مجرد ضغط
+export const PERFECT_SCORE = 100;        // العلامة الكاملة، والماهر بالقرآن، ومصحّح الأخطاء
+export const RISER_MIN_GAMES = 3;        // النجم الصاعد: عدد ألعاب كل شهر ليصحّ القياس
+// «حلقة» = يوم لعب فيه الطالب. الماهر بالقرآن/مصحّح الأخطاء = أطول سلسلة حلقات متتالية في كل منها لعبة بنتيجة ١٠٠٪
+// (أي حلقة لعب فيها دون ١٠٠٪ تقطع السلسلة). مصحّح الأخطاء يعدّ حلقات «تحدي الأخطاء» فقط.
+// تجويد التطبيق: مجموع الأسئلة الصحيحة في ألعاب التجويد خلال الشهر.
 export const STEADY_DIAMOND_MIN_SESSIONS = 8;
 
-// الأوسمة (14 درجاتية). unit: مفتاح وحدة العرض؛ group: مجموعة العرض في التقرير والخزانة.
+// الأوسمة (15 درجاتية). unit: مفتاح وحدة العرض؛ group: مجموعة العرض في التقرير والخزانة.
 export const BADGE_DEFS = [
-    { key: 'skilled',  icon: '🎯', group: 'games',     th: [4, 8, 12, 16],  unit: 'games' },
+    { key: 'skilled',  icon: '🎯', group: 'games',     th: [3, 5, 7, 10],   unit: 'sessions' },
     { key: 'perfect',  icon: '💯', group: 'games',     th: [1, 3, 5, 8],    unit: 'games' },
     { key: 'active',   icon: '🎮', group: 'games',     th: [4, 8, 12, 20],  unit: 'games' },
-    { key: 'fixer',    icon: '🛠️', group: 'games',     th: [1, 3, 5, 8],    unit: 'games' },
-    { key: 'riser',    icon: '📈', group: 'games',     th: [1, 5, 10, 15],  unit: 'points' },
-    { key: 'hero',     icon: '🏅', group: 'memorize',  th: [10, 25, 50, 100], unit: 'ayahs' },
-    { key: 'rasikh',   icon: '🧠', group: 'memorize',  th: [1, 2, 3, 5],    unit: 'parts' },
-    { key: 'star',     icon: '⭐', group: 'engage',    th: [3, 6, 10, 15],  unit: 'questions' },
+    { key: 'fixer',    icon: '🛠️', group: 'games',     th: [3, 5, 7, 10],   unit: 'sessions' },
+    { key: 'riser',    icon: '📈', group: 'games',     th: [2, 3, 4, 6],    unit: 'months' },
+    { key: 'hero',     icon: '🏅', group: 'memorize',  th: [40, 80, 120, 200], unit: 'ayahs' },
+    { key: 'reviewer', icon: '🔁', group: 'memorize',  th: [500, 1000, 1500, 2500], unit: 'ayahs' },
+    { key: 'rasikh',   icon: '🧠', group: 'memorize',  th: [5, 10, 20, 30], unit: 'parts' },
+    { key: 'star',     icon: '⭐', group: 'engage',    th: [20, 30, 40, 60], unit: 'questions' },
     { key: 'steady',   icon: '📅', group: 'engage',    th: [75, 90, 100, 100], unit: 'percent' },
     { key: 'tjLearn',  icon: '📚', group: 'tajweed',   th: [1, 2, 4, 6],    unit: 'rules' },
-    { key: 'tjApply',  icon: '✍️', group: 'tajweed',   th: [1, 2, 4, 6],    unit: 'rules' },
+    { key: 'tjApply',  icon: '✍️', group: 'tajweed',   th: [50, 100, 200, 300], unit: 'questions' },
     { key: 'tjExam',   icon: '💡', group: 'tajweed',   th: [1, 2, 3, 5],    unit: 'rules' },
     { key: 'tjMaster', icon: '📖', group: 'tajweed',   th: [1, 2, 3, 5],    unit: 'rules' },
     { key: 'duelist',  icon: '⚔️', group: 'duels',     th: [1, 3, 6, 10],   unit: 'wins' }
@@ -52,6 +54,29 @@ export function countCappedPerDay(games, predicate, cap = MAX_GAMES_PER_DAY) {
     return n;
 }
 
+/** أطول سلسلة «حلقات» (أيام لعب) متتالية كل منها فيه لعبة بنتيجة ١٠٠٪. include: أي الألعاب تُعدّ حلقة. */
+export function perfectSessionStreak(games, include = () => true) {
+    const days = {};
+    for (const g of games || []) {
+        if (!g || typeof g.timestamp !== 'number' || !include(g)) continue;
+        const d = new Date(g.timestamp), k = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        days[k] = days[k] || (typeof g.score === 'number' && g.score >= PERFECT_SCORE);
+    }
+    let best = 0, run = 0;
+    for (const k of Object.keys(days).map(Number).sort((a, b) => a - b)) { run = days[k] ? run + 1 : 0; best = Math.max(best, run); }
+    return best;
+}
+
+/** النجم الصاعد: عدد الأشهر المتتالية (حتى هذا الشهر) التي ارتفع فيها متوسط النتائج عن الشهر الذي قبله.
+ *  monthAvgs: [متوسط هذا الشهر، الذي قبله، ...] و null لشهر بلا ألعاب كافية. يُرجع null إن تعذّر القياس أصلًا. */
+export function risingMonths(monthAvgs) {
+    const a = Array.isArray(monthAvgs) ? monthAvgs : [];
+    if (a.length < 2 || a[0] == null || a[1] == null) return null;
+    let n = 0;
+    for (let i = 0; i + 1 < a.length && a[i] != null && a[i + 1] != null && a[i] > a[i + 1]; i++) n++;
+    return n;
+}
+
 const avgScore = (games) => {
     const a = (games || []).filter(g => g && typeof g.score === 'number');
     return a.length ? a.reduce((s, g) => s + g.score, 0) / a.length : null;
@@ -67,30 +92,35 @@ export function tierIndexFor(value, th) {
 /**
  * يحسب قيمة كل وسام من مدخلات الشهر. المدخلات (كلها اختيارية؛ المفقود = null = لا يُحسب):
  *  games: [{timestamp, score, mode}]  ألعاب فردية في الشهر (بلا واجبات)     prevGames: ألعاب الشهر السابق
+ *  monthAvgs: [متوسط هذا الشهر، السابق، ...] (null لشهر بلا ٣ ألعاب) — للنجم الصاعد؛ إن غاب يُقاس من games/prevGames
  *  stars: عدد الإجابات المميزة في الشهر  | newAyahs: آيات الحفظ الجديد | reviewParts: أجزاء المراجعة المسجَّلة
+ *  reviewAyahs: آيات المراجعة المسجَّلة في مراجعة الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
  *  attendance: {expected, present} | tajweed: {learned, practiced, examFirstTry, approved} | duelWins
  */
 export function computeBadgeValues(input = {}) {
     const g = Array.isArray(input.games) ? input.games : null;
     const v = {};
     if (g) {
-        v.skilled = countCappedPerDay(g, x => x.score >= SKILLED_MIN_SCORE);
+        v.skilled = perfectSessionStreak(g);
         v.perfect = countCappedPerDay(g, x => x.score >= PERFECT_SCORE);
         v.active = countCappedPerDay(g, x => x.score >= ACTIVE_MIN_SCORE);
-        v.fixer = countCappedPerDay(g, x => x.mode === 'weakness' && x.score >= FIXER_MIN_SCORE);
+        v.fixer = perfectSessionStreak(g, x => x.mode === 'weakness');
+    }
+    if (Array.isArray(input.monthAvgs)) v.riser = risingMonths(input.monthAvgs);
+    else if (g) {
         const prev = Array.isArray(input.prevGames) ? input.prevGames : null;
-        if (prev && g.length >= RISER_MIN_GAMES && prev.length >= RISER_MIN_GAMES) {
-            v.riser = Math.max(0, Math.round(avgScore(g) - avgScore(prev)));
-        } else v.riser = null;
+        const ok = (x) => x && x.length >= RISER_MIN_GAMES;
+        v.riser = ok(g) && ok(prev) ? risingMonths([avgScore(g), avgScore(prev)]) : null;
     }
     v.hero = Number.isFinite(input.newAyahs) ? Math.max(0, input.newAyahs) : null;
+    v.reviewer = Number.isFinite(input.reviewAyahs) ? Math.max(0, input.reviewAyahs) : null;
     v.rasikh = Number.isFinite(input.reviewParts) ? Math.max(0, input.reviewParts) : null;
     v.star = Number.isFinite(input.stars) ? Math.max(0, input.stars) : null;
     const a = input.attendance;
     v.steady = a && a.expected > 0 ? Math.min(100, Math.round((a.present / a.expected) * 100)) : null;
     const tj = input.tajweed;
     v.tjLearn = tj ? tj.learned : null;
-    v.tjApply = tj ? tj.practiced : null;
+    v.tjApply = Number.isFinite(input.tajweedCorrect) ? input.tajweedCorrect : null;
     v.tjExam = tj ? tj.examFirstTry : null;
     v.tjMaster = tj ? tj.approved : null;
     v.duelist = Number.isFinite(input.duelWins) ? input.duelWins : null;

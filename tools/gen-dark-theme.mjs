@@ -33,7 +33,7 @@ const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'cs
   'css/teacherAuthGate.css', 'core/dialog.js',
   // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
   'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',
-  // مشهد الوسام السينمائي: مسرح داكن دائمًا بقصد (إضاءة وجزيئات ومعادن الأوسمة) فلا يتبدّل بمظهر المنصة
+  // مشهد الوسام السينمائي: مسرح فاتح افتراضيًا وداكن في المظهر الداكن — كلاهما مكتوب يدويًا داخل الملف (html:not([data-theme="dark"]))
   'components/badgeReveal.js',
   // ورقة عمل التجويد للطباعة (js/review.js): ورقة بيضاء على الورق دائمًا بقصد، تُفتح في نافذة مستقلة للطباعة
   'tajweed/challenge/js/review.js']);

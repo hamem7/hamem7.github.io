@@ -91,8 +91,34 @@ const CSS = `/* ===== المسرح ===== */
 #dhBadgeStage .intro .mini .shine { display: block !important; }
 #dhBadgeStage .intro .mini { transform-style: preserve-3d; }
 #dhBadgeStage .snd { position: absolute; top: 14px; inset-inline-start: 14px; z-index: 3; background: rgba(255,255,255,.12); border: 0; color: #fff; width: 38px; height: 38px; border-radius: 50%; font-size: 1.05rem; cursor: pointer; }
+/* ===== المسرح الفاتح (الافتراضي) — المظهر الداكن للمنصة يُبقي المسرح الداكن أعلاه ===== */
+html:not([data-theme="dark"]) #dhBadgeStage { color: #1f2a24; }
+html:not([data-theme="dark"]) #dhBadgeStage[data-mode="adult"] { background: radial-gradient(120% 90% at 50% 18%, #fffdf4 0%, #f6f1df 55%, #e9e6d6 100%); }
+html:not([data-theme="dark"]) #dhBadgeStage[data-mode="kids"] { background: radial-gradient(120% 90% at 50% 18%, #ffffff 0%, #f1ecff 55%, #e2d9ff 100%); }
+html:not([data-theme="dark"]) #dhBadgeStage::before { background: radial-gradient(60% 50% at 50% 40%, rgba(var(--glow),.22), transparent 70%); }
+html:not([data-theme="dark"]) #dhBadgeStage .rays { background: repeating-conic-gradient(from 0deg, rgba(var(--glow),.16) 0 6deg, transparent 6deg 18deg); }
+html:not([data-theme="dark"]) #dhBadgeStage .kicker,
+html:not([data-theme="dark"]) #dhBadgeStage .why,
+html:not([data-theme="dark"]) #dhBadgeStage .intro .sub,
+html:not([data-theme="dark"]) #dhBadgeStage .board p { color: #3d4a43; }
+html:not([data-theme="dark"]) #dhBadgeStage .prog small,
+html:not([data-theme="dark"]) #dhBadgeStage .intro .mini small { color: #5b6660; }
+html:not([data-theme="dark"]) #dhBadgeStage .intro .how { color: #5b6660; }
+html:not([data-theme="dark"]) #dhBadgeStage .intro .mini span { font-weight: 700; color: #1f2a24; }
+html:not([data-theme="dark"]) #dhBadgeStage .name { background: linear-gradient(180deg, var(--t3), #2b1d00); -webkit-background-clip: text; background-clip: text; }
+html:not([data-theme="dark"]) #dhBadgeStage[data-tier="silver"] .name { background: linear-gradient(180deg, #6d7787, #2c3440); -webkit-background-clip: text; background-clip: text; }
+html:not([data-theme="dark"]) #dhBadgeStage .why em { color: var(--t3); }
+html:not([data-theme="dark"]) #dhBadgeStage .intro .ttl2,
+html:not([data-theme="dark"]) #dhBadgeStage .intro .count,
+html:not([data-theme="dark"]) #dhBadgeStage .board .count { color: #8a5f00; }
+html:not([data-theme="dark"]) #dhBadgeStage .prog .bar { background: rgba(0,0,0,.08); }
+html:not([data-theme="dark"]) #dhBadgeStage .x,
+html:not([data-theme="dark"]) #dhBadgeStage .snd { background: rgba(0,0,0,.07); color: #1f2a24; }
+html:not([data-theme="dark"]) #dhBadgeStage .acts button { border-color: rgba(0,0,0,.25); background: rgba(255,255,255,.7); color: #1f2a24; }
+html:not([data-theme="dark"]) #dhBadgeStage .medal { filter: drop-shadow(0 14px 22px rgba(0,0,0,.22)) drop-shadow(0 0 22px rgba(var(--glow),.45)); }
+html:not([data-theme="dark"]) #dhBadgeStage .intro .mini svg,
+html:not([data-theme="dark"]) #dhBadgeStage .board .mini svg { filter: drop-shadow(0 6px 10px rgba(0,0,0,.2)) drop-shadow(0 0 12px var(--t2)); }
 `;
-
 const isEn = () => AppState.currentLang === 'en';
 const num = (n) => (isEn() ? String(n) : Number(n).toLocaleString('ar-EG', { useGrouping: false }));
 const fixDigits = (s) => (isEn() ? s : String(s).replace(/\d+/g, d => Number(d).toLocaleString('ar-EG', { useGrouping: false })));
@@ -131,12 +157,15 @@ function startFx(cv, tierKey, mode) {
   const W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr;
   const idx = TIER_KEYS.indexOf(tierKey), count = [40, 80, 150, 230][idx] * (mode === 'kids' ? 1.2 : 1);
   const tierCols = { bronze: ['#e7b58a', '#b87333', '#fff'], silver: ['#f4f7fb', '#b9c3d1', '#fff'], gold: ['#fff0b3', '#e8b923', '#fff'], diamond: ['#e0f7ff', '#7dd3fc', '#a5b4fc', '#fff'] }[tierKey];
-  const cols = mode === 'kids' ? ['#ff5d8f', '#ffd23f', '#3ddc97', '#4cc9f0', '#b388ff', '#ff9f1c'] : tierCols;
+  // المسرح فاتح إلا في المظهر الداكن: الجزيئات البيضاء لا تُرى على الفاتح فتُستبدل بلون الدرجة
+  const light = document.documentElement.getAttribute('data-theme') !== 'dark';
+  const cols = mode === 'kids' ? ['#ff5d8f', '#ffd23f', '#3ddc97', '#4cc9f0', '#b388ff', '#ff9f1c'] : (light ? tierCols.filter(c => c !== '#fff').concat(tierCols[1]) : tierCols);
+  const sparkCol = light ? tierCols[1] : '#fff';
   const cx = W / 2, cy = H * 0.38, ps = [], t0 = performance.now();
   let burst = false;
   const spawn = () => { for (let i = 0; i < count; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.25, sp = (6 + Math.random() * 11) * dpr;
     ps.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: .22 * dpr, w: (5 + Math.random() * 7) * dpr * (mode === 'kids' ? 1.3 : 1), h: (3 + Math.random() * 5) * dpr, r: Math.random() * 6.28, vr: (Math.random() - .5) * .35, c: cols[Math.floor(Math.random() * cols.length)], shape: mode === 'kids' ? Math.floor(Math.random() * 3) : 0, life: 1, drag: .985 }); } };
-  const sparkle = () => ps.push({ x: Math.random() * W, y: -10, vx: (Math.random() - .5) * 1.2 * dpr, vy: (1.2 + Math.random() * 1.6) * dpr, g: .004, w: (3 + Math.random() * 4) * dpr, h: 0, r: 0, vr: 0, c: '#fff', shape: 3, life: 1, drag: 1 });
+  const sparkle = () => ps.push({ x: Math.random() * W, y: -10, vx: (Math.random() - .5) * 1.2 * dpr, vy: (1.2 + Math.random() * 1.6) * dpr, g: .004, w: (3 + Math.random() * 4) * dpr, h: 0, r: 0, vr: 0, c: sparkCol, shape: 3, life: 1, drag: 1 });
   const frame = (now) => {
     const tt = now - t0; ctx.clearRect(0, 0, W, H);
     if (!burst && tt > 1500) { burst = true; spawn(); }
@@ -244,7 +273,7 @@ export async function showCeremony(earned, student) {
 
 /** لوحة «أوسمتي» عند بدء أي لعبة: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). تحلّ الوعد عند «ابدأ» أو الإغلاق،
  *  وتحلّ فورًا بلا عرض إن لم يكن للطالب وسام أو تأخّر الحساب أو حدث أي خطأ — فلا تحجب اللعبة أبدًا. */
-export async function showBadgesIntro(student, groups = null) {
+export async function showBadgesIntro(student, groups = null, opts = {}) {
   try {
     if (!student) return;
     const svc = await import('../core/badgeService.js');
@@ -261,7 +290,7 @@ export async function showBadgesIntro(student, groups = null) {
       return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk)}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small><em class="how">${esc(t('bdg_' + b.key + '_how'))}</em></div>`; }).join('');
     st.innerHTML = `<button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
       <canvas class="fx"></canvas><div class="rays intro-rays"></div><div class="intro"><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><div class="count" id="dhIntroCount">0</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
-      <div class="grid">${minis}</div><button class="next">${esc(t('bdg_intro_start'))}</button></div>`;
+      <div class="grid">${minis}</div><button class="next">${esc(opts.btn || t('bdg_intro_start'))}</button></div>`;
     startFx(st.querySelector('canvas'), 'gold', mode); chime('gold', .4);
     setTimeout(() => st.classList.add('shown'), 60);
     let n = 0; const cnt = st.querySelector('#dhIntroCount');
@@ -275,7 +304,8 @@ export async function showBadgesIntro(student, groups = null) {
 
 /** نقطة الدخول للألعاب/المواجهات/التجويد: تقيّم وتعرض الجديد فقط. لا ترمي أخطاء أبدًا ولا تحجب المستدعي. */
 let _queue = Promise.resolve();
-export function maybeShowNewBadges(student, groups = null) {
+// opts.summary: إن لم يُنَل وسام جديد تُعرض لوحة «أوسمتي» بدلًا منه (نهاية الألعاب الفردية فقط — لا تُعرض قبل اللعب)
+export function maybeShowNewBadges(student, groups = null, opts = {}) {
   if (!student) return;
   // groups: لا يُعرض إلا أوسمة هذه المجموعات (كل وسام في مكانه): games/engage للألعاب الفردية، tajweed للتجويد، duels للمواجهات، memorize للحفظ
   // بالتتابع: طالبان في مواجهة واحدة لا يتداخل مشهداهما
@@ -283,6 +313,7 @@ export function maybeShowNewBadges(student, groups = null) {
     const svc = await import('../core/badgeService.js');
     const fresh = await svc.awardNewBadges(student, new Date(), groups);
     if (fresh.length) await showBadges(fresh, student);
+    else if (opts.summary) await showBadgesIntro(student, groups, { btn: t('bdg_continue') });
   }).catch(e => console.warn('[badgeReveal] تعذّر عرض الأوسمة:', e));
 }
 

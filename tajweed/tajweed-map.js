@@ -39,8 +39,7 @@ export async function initTajweedMap() {
     if (!host) return;
     try {
         const { start } = await import('./challenge/js/app.js');
-        // 🏅 عند دخول ركن التجويد: لوحة أوسمة التجويد فقط (تعلّم/تطبيق/ألمعي/متقن) إن كان للطالب الحالي أوسمة؛ لا تحجب الدخول أبدًا
-        try { const rv = await import('../components/badgeReveal.js'); await rv.showBadgesIntro(AppState.currentStudent, ['tajweed']); } catch (e) { /* اختياري */ }
+        // لا لوحة أوسمة عند الدخول: الأوسمة تظهر بعد انتهاء النشاط فقط
         // قائمة الطلاب الظاهرين من قاعدة المنصة (بدونها يعمل الركن بلا اسم)
         let students = [];
         try { students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden).map(s => ({ id: s.id, name: s.name })); } catch (e) { /* بلا قائمة */ }

@@ -8,37 +8,45 @@ const at = (y, m, d, h = 10) => new Date(y, m, d, h).getTime();
 const by = (res, k) => res.find(r => r.key === k);
 
 // ---- الأوسمة ----
-ok(BADGE_DEFS.length === 14, '14 وسامًا درجاتيًا');
+ok(BADGE_DEFS.length === 15, '15 وسامًا درجاتيًا');
 ok(BADGE_DEFS.every(b => b.th.length === 4 && b.th.every((x, i, a) => i === 0 || x >= a[i - 1])), 'عتبات كل وسام 4 وتصاعدية');
+// الماهر بالقرآن: ١٠٠٪ في ٣ حلقات (أيام لعب) متتالية
 const g = [];
-for (let d = 1; d <= 9; d++) g.push({ timestamp: at(2026, 9, d), score: 95, mode: 'eval' });
-g.push({ timestamp: at(2026, 9, 10), score: 100, mode: 'eval' });
-g.push({ timestamp: at(2026, 9, 11), score: 85, mode: 'weakness' });
+[1, 2, 3].forEach(d => g.push({ timestamp: at(2026, 9, d), score: 100, mode: 'eval' }));
+g.push({ timestamp: at(2026, 9, 3, 15), score: 60, mode: 'eval' }); // لعبة أخرى في نفس الحلقة لا تقطع السلسلة
+g.push({ timestamp: at(2026, 9, 6), score: 90, mode: 'eval' });    // حلقة بلا ١٠٠٪ تقطع السلسلة
+[8, 9].forEach(d => g.push({ timestamp: at(2026, 9, d), score: 100, mode: 'eval' }));
 let r = computeMonthBadges({ games: g });
-ok(by(r, 'skilled').value === 10 && by(r, 'skilled').tierKey === 'silver', 'الماهر: 10 ألعاب ≥90 → فضي');
-ok(by(r, 'perfect').value === 1 && by(r, 'perfect').tierKey === 'bronze', 'الكامل: لعبة 100% → برونزي');
-ok(by(r, 'fixer').value === 1 && by(r, 'fixer').tierKey === 'bronze', 'المُصلِح: تحدي أخطاء ≥80 → برونزي');
-ok(!by(r, 'hero') && !by(r, 'star') && !by(r, 'steady'), 'بلا بيانات (null) لا يظهر الوسام');
-ok(by(r, 'riser') === undefined, 'الصاعد بلا شهر سابق: لا يُحسب');
+ok(by(r, 'skilled').value === 3 && by(r, 'skilled').tierKey === 'bronze', 'الماهر بالقرآن: ٣ حلقات متتالية بـ١٠٠٪ → برونزي');
+const g2 = [1, 2, 4, 5].map(d => ({ timestamp: at(2026, 9, d), score: 100, mode: 'eval' })); g2.splice(2, 0, { timestamp: at(2026, 9, 3), score: 95, mode: 'eval' });
+ok(computeMonthBadges({ games: g2 }).find(x => x.key === 'skilled').tier === -1, 'الماهر بالقرآن: حلقة دون ١٠٠٪ في الوسط تقطع السلسلة');
+// مصحّح الأخطاء: «تحدي الأخطاء» ١٠٠٪ في ٣ حلقات متتالية (حلقات الألعاب الأخرى لا تُعدّ)
+const fx = [1, 3, 5].map(d => ({ timestamp: at(2026, 9, d), score: 100, mode: 'weakness' })).concat([{ timestamp: at(2026, 9, 2), score: 40, mode: 'eval' }]);
+r = computeMonthBadges({ games: fx });
+ok(by(r, 'fixer').value === 3 && by(r, 'fixer').tierKey === 'bronze', 'مصحّح الأخطاء: ٣ حلقات تحدي أخطاء متتالية بـ١٠٠٪ → برونزي');
+r = computeMonthBadges({ games: fx.map((x, i) => i === 1 ? { ...x, score: 80 } : x) });
+ok(by(r, 'fixer').tier === -1, 'مصحّح الأخطاء: ٨٠٪ لا تكفي');
+ok(by(r, 'perfect').value === 2 && by(r, 'perfect').tierKey === 'bronze', 'العلامة الكاملة: لعبة 100% → برونزي');
+ok(!by(r, 'hero') && !by(r, 'star') && !by(r, 'steady') && !by(r, 'reviewer'), 'بلا بيانات (null) لا يظهر الوسام');
+ok(by(r, 'riser') === undefined, 'النجم الصاعد بلا شهر سابق: لا يُحسب');
 // سقف اليوم
 const spam = Array.from({ length: 12 }, (_, i) => ({ timestamp: at(2026, 9, 5, 8 + (i % 10)), score: 99 }));
 ok(countCappedPerDay(spam, x => x.score >= 90) === 2, 'سقف لعبتين في اليوم يمنع التكديس');
 r = computeMonthBadges({ games: spam });
-ok(by(r, 'skilled').tier === -1, 'تكديس يوم واحد لا يمنح وسامًا');
-// الصاعد
-const prev = [70, 72, 75].map((s, i) => ({ timestamp: at(2026, 8, 3 + i), score: s }));
-const cur = [80, 85, 90].map((s, i) => ({ timestamp: at(2026, 9, 3 + i), score: s }));
-r = computeMonthBadges({ games: cur, prevGames: prev });
-ok(by(r, 'riser').value === 13 && by(r, 'riser').tierKey === 'gold', 'الصاعد: +13 نقطة → ذهبي');
-r = computeMonthBadges({ games: cur.slice(0, 2), prevGames: prev });
-ok(by(r, 'riser') === undefined, 'الصاعد يحتاج 3 ألعاب على الأقل في الشهرين');
+ok(by(r, 'active').tier === -1 && by(r, 'skilled').tier === -1, 'تكديس يوم واحد لا يمنح وسامًا');
+// النجم الصاعد: شهران متتاليان أعلى من الشهر الذي قبلهما
+ok(by(computeMonthBadges({ monthAvgs: [85, 78, 70, null] }), 'riser').tierKey === 'bronze', 'النجم الصاعد: شهران صاعدان → برونزي');
+ok(by(computeMonthBadges({ monthAvgs: [85, 78] }), 'riser').tier === -1, 'النجم الصاعد: شهر صاعد واحد لا يكفي');
+ok(by(computeMonthBadges({ monthAvgs: [85, 90, 70] }), 'riser').tier === -1, 'النجم الصاعد: هبوط هذا الشهر → لا وسام');
+ok(by(computeMonthBadges({ monthAvgs: [null, 90] }), 'riser') === undefined, 'النجم الصاعد يحتاج ٣ ألعاب في الشهر');
 // بقية المصادر
-r = computeMonthBadges({ newAyahs: 52, reviewParts: 2, stars: 3, duelWins: 6, tajweed: { learned: 1, practiced: 2, examFirstTry: 0, approved: 3 } });
-ok(by(r, 'hero').tierKey === 'gold' && by(r, 'rasikh').tierKey === 'silver' && by(r, 'star').tierKey === 'bronze', 'البطل/الراسخ/النجم');
-ok(by(r, 'duelist').tierKey === 'gold' && by(r, 'tjMaster').tierKey === 'gold' && by(r, 'tjExam').tier === -1, 'المنافس + التجويد (والاختبار 0 ← بلا درجة)');
-ok(by(r, 'hero').next.at === 100 && by(r, 'hero').next.remaining === 48, 'المتبقي للدرجة التالية');
+r = computeMonthBadges({ newAyahs: 40, reviewAyahs: 520, reviewParts: 5, stars: 20, duelWins: 6, tajweedCorrect: 50, tajweed: { learned: 1, practiced: 2, examFirstTry: 0, approved: 3 } });
+ok(by(r, 'hero').tierKey === 'bronze' && by(r, 'reviewer').tierKey === 'bronze' && by(r, 'rasikh').tierKey === 'bronze' && by(r, 'star').tierKey === 'bronze', 'بطل الحفظ ٤٠ / بطل المراجعة ٥٠٠ / الراسخ ٥ / نجم السؤال ٢٠');
+ok(by(computeMonthBadges({ newAyahs: 39, reviewAyahs: 499, reviewParts: 4, stars: 19, tajweedCorrect: 49 }), 'hero').tier === -1, 'دون العتبة: لا وسام');
+ok(by(r, 'tjApply').tierKey === 'bronze' && by(r, 'duelist').tierKey === 'gold' && by(r, 'tjMaster').tierKey === 'gold' && by(r, 'tjExam').tier === -1, 'مطبّق التجويد ٥٠ سؤالًا + المواجهات + التجويد');
+ok(by(r, 'hero').next.at === 80 && by(r, 'hero').next.remaining === 40, 'المتبقي للدرجة التالية');
 const s = summarizeEarned(r);
-ok(s.total === 7 && s.byTier.gold === 3, 'الملخص: العدد والمجموع حسب الدرجة');
+ok(s.total === 8 && s.byTier.gold === 2, 'الملخص: العدد والمجموع حسب الدرجة');
 ok(closestToNext(r) !== null, 'أقرب وسام قادم');
 // المواظب
 r = computeMonthBadges({ attendance: { expected: 8, present: 8 } });
