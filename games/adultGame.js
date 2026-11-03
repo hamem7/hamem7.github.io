@@ -1448,7 +1448,24 @@ function showLinkRevealCard(data, id, onDone) {
     title.textContent = t('link_unknown_reveal');
     const body = document.createElement('div');
     body.className = 'link-reveal-body quran-text';
-    body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
+    if (/word_surah/.test(data.type || '')) {
+        // اربط الكلمة بسورتها: الكلمة (قرآنية) ← اسم السورة (بحروف لاتينية في الإنجليزية)
+        const w = document.createElement('span');
+        w.className = 'quran-text';
+        w.textContent = s ? s.text : '';
+        const sur = document.createElement('span');
+        let nm = e ? e.text : '';
+        if (AppState.currentLang === 'en') {
+            const tr = surahNameLocal(nm);
+            if (tr && tr !== nm && /^[\x20-\x7E]+$/.test(tr)) nm = tr;
+        }
+        sur.textContent = nm;
+        sur.className = 'link-reveal-surah';
+        body.className = 'link-reveal-body';
+        body.append(w, document.createTextNode(' ⟵ '), sur);
+    } else {
+        body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
+    }
     const bar = document.createElement('div');
     bar.className = 'link-reveal-bar';
     bar.style.animationDuration = LINK_REVEAL_MS + 'ms';
