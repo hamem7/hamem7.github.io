@@ -10,30 +10,22 @@
 
 export const TIER_KEYS = ['bronze', 'silver', 'gold', 'diamond'];
 export const MAX_GAMES_PER_DAY = 2;
-export const ACTIVE_MIN_SCORE = 50;      // المجتهد في الألعاب: لعبة جادّة لا مجرد ضغط
 export const PERFECT_SCORE = 100;        // العلامة الكاملة، والماهر بالقرآن، ومصحّح الأخطاء
 export const RISER_MIN_GAMES = 3;        // النجم الصاعد: عدد ألعاب كل شهر ليصحّ القياس
 // «حلقة» = يوم لعب فيه الطالب. الماهر بالقرآن/مصحّح الأخطاء = أطول سلسلة حلقات متتالية في كل منها لعبة بنتيجة ١٠٠٪
 // (أي حلقة لعب فيها دون ١٠٠٪ تقطع السلسلة). مصحّح الأخطاء يعدّ حلقات «تحدي الأخطاء» فقط.
 // تجويد التطبيق: مجموع الأسئلة الصحيحة في ألعاب التجويد خلال الشهر.
-export const STEADY_DIAMOND_MIN_SESSIONS = 8;
 
-// الأوسمة (15 درجاتية). unit: مفتاح وحدة العرض؛ group: مجموعة العرض في التقرير والخزانة.
+// الأوسمة (٩ درجاتية — بطلب صاحب المنصة لا أوسمة غيرها). unit: مفتاح وحدة العرض؛ group: مجموعة العرض في التقرير والخزانة.
 export const BADGE_DEFS = [
     { key: 'skilled',  icon: '🎯', group: 'games',     th: [3, 5, 7, 10],   unit: 'sessions' },
-    { key: 'perfect',  icon: '💯', group: 'games',     th: [1, 3, 5, 8],    unit: 'games' },
-    { key: 'active',   icon: '🎮', group: 'games',     th: [4, 8, 12, 20],  unit: 'games' },
     { key: 'fixer',    icon: '🛠️', group: 'games',     th: [3, 5, 7, 10],   unit: 'sessions' },
     { key: 'riser',    icon: '📈', group: 'games',     th: [2, 3, 4, 6],    unit: 'months' },
     { key: 'hero',     icon: '🏅', group: 'memorize',  th: [40, 80, 120, 200], unit: 'ayahs' },
     { key: 'reviewer', icon: '🔁', group: 'memorize',  th: [300, 600, 900, 1500], unit: 'ayahs' },
     { key: 'rasikh',   icon: '🧠', group: 'memorize',  th: [5, 10, 20, 30], unit: 'parts' },
     { key: 'star',     icon: '⭐', group: 'engage',    th: [20, 30, 40, 60], unit: 'questions' },
-    { key: 'steady',   icon: '📅', group: 'engage',    th: [75, 90, 100, 100], unit: 'percent' },
-    { key: 'tjLearn',  icon: '📚', group: 'tajweed',   th: [1, 2, 4, 6],    unit: 'rules' },
     { key: 'tjApply',  icon: '✍️', group: 'tajweed',   th: [50, 100, 200, 300], unit: 'questions' },
-    { key: 'tjExam',   icon: '💡', group: 'tajweed',   th: [1, 2, 3, 5],    unit: 'rules' },
-    { key: 'tjMaster', icon: '📖', group: 'tajweed',   th: [1, 2, 3, 5],    unit: 'rules' },
     { key: 'duelist',  icon: '⚔️', group: 'duels',     th: [1, 3, 6, 10],   unit: 'wins' }
 ];
 export const BADGE_GROUPS = ['games', 'memorize', 'engage', 'tajweed', 'duels'];
@@ -82,7 +74,7 @@ const avgScore = (games) => {
     return a.length ? a.reduce((s, g) => s + g.score, 0) / a.length : null;
 };
 
-/** درجة القيمة: فهرس 0..3 أو -1 إن لم تبلغ العتبة الأولى. العتبات المكرّرة (steady) تُعالَج بقاعدة خاصة. */
+/** درجة القيمة: فهرس 0..3 أو -1 إن لم تبلغ العتبة الأولى.  */
 export function tierIndexFor(value, th) {
     let idx = -1;
     for (let i = 0; i < th.length; i++) if (value >= th[i]) idx = i;
@@ -95,15 +87,13 @@ export function tierIndexFor(value, th) {
  *  monthAvgs: [متوسط هذا الشهر، السابق، ...] (null لشهر بلا ٣ ألعاب) — للنجم الصاعد؛ إن غاب يُقاس من games/prevGames
  *  stars: عدد الإجابات المميزة في الشهر  | newAyahs: آيات الحفظ الجديد | reviewParts: أجزاء المراجعة المسجَّلة
  *  reviewQuestions: «دفتر المراجعة» = آيات ظهرت له في الألعاب الفردية والواجب المنزلي (عند التسليم) خلال الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
- *  attendance: {expected, present} | tajweed: {learned, practiced, examFirstTry, approved} | duelWins
+ *  duelWins
  */
 export function computeBadgeValues(input = {}) {
     const g = Array.isArray(input.games) ? input.games : null;
     const v = {};
     if (g) {
         v.skilled = perfectSessionStreak(g);
-        v.perfect = countCappedPerDay(g, x => x.score >= PERFECT_SCORE);
-        v.active = countCappedPerDay(g, x => x.score >= ACTIVE_MIN_SCORE);
         v.fixer = perfectSessionStreak(g, x => x.mode === 'weakness');
     }
     if (Array.isArray(input.monthAvgs)) v.riser = risingMonths(input.monthAvgs);
@@ -116,13 +106,7 @@ export function computeBadgeValues(input = {}) {
     v.reviewer = Number.isFinite(input.reviewQuestions) ? Math.max(0, input.reviewQuestions) : null;
     v.rasikh = Number.isFinite(input.reviewParts) ? Math.max(0, input.reviewParts) : null;
     v.star = Number.isFinite(input.stars) ? Math.max(0, input.stars) : null;
-    const a = input.attendance;
-    v.steady = a && a.expected > 0 ? Math.min(100, Math.round((a.present / a.expected) * 100)) : null;
-    const tj = input.tajweed;
-    v.tjLearn = tj ? tj.learned : null;
     v.tjApply = Number.isFinite(input.tajweedCorrect) ? input.tajweedCorrect : null;
-    v.tjExam = tj ? tj.examFirstTry : null;
-    v.tjMaster = tj ? tj.approved : null;
     v.duelist = Number.isFinite(input.duelWins) ? input.duelWins : null;
     return v;
 }
@@ -134,14 +118,8 @@ export function computeMonthBadges(input = {}) {
     for (const def of BADGE_DEFS) {
         const value = values[def.key];
         if (value == null) continue; // لا بيانات ← لا وسام ولا عدّاد
-        let tier = tierIndexFor(value, def.th);
-        // المواظب: الماسي = حضور كامل مع حدّ أدنى للحصص حتى لا يُمنح عن حصة أو حصتين
-        if (def.key === 'steady') {
-            const exp = input.attendance ? input.attendance.expected : 0;
-            tier = value >= 100 && exp >= STEADY_DIAMOND_MIN_SESSIONS ? 3 : Math.min(tierIndexFor(value, def.th), 2);
-        }
-        // المواظب: بعد ١٠٠٪ لا عدّاد نسبة؛ الماسي يحتاج ٨ حصص على الأقل لا نسبة أعلى
-        const nextAt = tier >= 3 ? null : (def.key === 'steady' && tier === 2 ? (value >= 100 ? null : 100) : def.th[tier + 1]);
+        const tier = tierIndexFor(value, def.th);
+        const nextAt = tier >= 3 ? null : def.th[tier + 1];
         out.push({
             key: def.key, icon: def.icon, group: def.group, unit: def.unit, value, tier,
             tierKey: tier >= 0 ? TIER_KEYS[tier] : null,

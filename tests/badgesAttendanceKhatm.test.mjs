@@ -8,7 +8,8 @@ const at = (y, m, d, h = 10) => new Date(y, m, d, h).getTime();
 const by = (res, k) => res.find(r => r.key === k);
 
 // ---- الأوسمة ----
-ok(BADGE_DEFS.length === 15, '15 وسامًا درجاتيًا');
+ok(BADGE_DEFS.length === 9, '٩ أوسمة درجاتية فقط');
+ok(['perfect','active','steady','tjLearn','tjExam','tjMaster'].every(k => !BADGE_DEFS.some(b => b.key === k)), 'الأوسمة المحذوفة غير موجودة');
 ok(BADGE_DEFS.every(b => b.th.length === 4 && b.th.every((x, i, a) => i === 0 || x >= a[i - 1])), 'عتبات كل وسام 4 وتصاعدية');
 // الماهر بالقرآن: ١٠٠٪ في ٣ حلقات (أيام لعب) متتالية
 const g = [];
@@ -26,14 +27,13 @@ r = computeMonthBadges({ games: fx });
 ok(by(r, 'fixer').value === 3 && by(r, 'fixer').tierKey === 'bronze', 'مصحّح الأخطاء: ٣ حلقات تحدي أخطاء متتالية بـ١٠٠٪ → برونزي');
 r = computeMonthBadges({ games: fx.map((x, i) => i === 1 ? { ...x, score: 80 } : x) });
 ok(by(r, 'fixer').tier === -1, 'مصحّح الأخطاء: ٨٠٪ لا تكفي');
-ok(by(r, 'perfect').value === 2 && by(r, 'perfect').tierKey === 'bronze', 'العلامة الكاملة: لعبة 100% → برونزي');
-ok(!by(r, 'hero') && !by(r, 'star') && !by(r, 'steady') && !by(r, 'reviewer'), 'بلا بيانات (null) لا يظهر الوسام');
+ok(!by(r, 'hero') && !by(r, 'star') && !by(r, 'reviewer'), 'بلا بيانات (null) لا يظهر الوسام');
 ok(by(r, 'riser') === undefined, 'النجم الصاعد بلا شهر سابق: لا يُحسب');
 // سقف اليوم
 const spam = Array.from({ length: 12 }, (_, i) => ({ timestamp: at(2026, 9, 5, 8 + (i % 10)), score: 99 }));
 ok(countCappedPerDay(spam, x => x.score >= 90) === 2, 'سقف لعبتين في اليوم يمنع التكديس');
 r = computeMonthBadges({ games: spam });
-ok(by(r, 'active').tier === -1 && by(r, 'skilled').tier === -1, 'تكديس يوم واحد لا يمنح وسامًا');
+ok(by(r, 'skilled').tier === -1, 'تكديس يوم واحد لا يمنح وسامًا');
 // النجم الصاعد: شهران متتاليان أعلى من الشهر الذي قبلهما
 ok(by(computeMonthBadges({ monthAvgs: [85, 78, 70, null] }), 'riser').tierKey === 'bronze', 'النجم الصاعد: شهران صاعدان → برونزي');
 ok(by(computeMonthBadges({ monthAvgs: [85, 78] }), 'riser').tier === -1, 'النجم الصاعد: شهر صاعد واحد لا يكفي');
@@ -43,19 +43,11 @@ ok(by(computeMonthBadges({ monthAvgs: [null, 90] }), 'riser') === undefined, 'ا
 r = computeMonthBadges({ newAyahs: 40, reviewQuestions: 320, reviewParts: 5, stars: 20, duelWins: 6, tajweedCorrect: 50, tajweed: { learned: 1, practiced: 2, examFirstTry: 0, approved: 3 } });
 ok(by(r, 'hero').tierKey === 'bronze' && by(r, 'reviewer').tierKey === 'bronze' && by(r, 'rasikh').tierKey === 'bronze' && by(r, 'star').tierKey === 'bronze', 'بطل الحفظ ٤٠ / بطل المراجعة ٣٠٠ / الراسخ ٥ / نجم السؤال ٢٠');
 ok(by(computeMonthBadges({ newAyahs: 39, reviewQuestions: 299, reviewParts: 4, stars: 19, tajweedCorrect: 49 }), 'hero').tier === -1, 'دون العتبة: لا وسام');
-ok(by(r, 'tjApply').tierKey === 'bronze' && by(r, 'duelist').tierKey === 'gold' && by(r, 'tjMaster').tierKey === 'gold' && by(r, 'tjExam').tier === -1, 'مطبّق التجويد ٥٠ سؤالًا + المواجهات + التجويد');
+ok(by(r, 'tjApply').tierKey === 'bronze' && by(r, 'duelist').tierKey === 'gold', 'مطبّق التجويد ٥٠ سؤالًا + المواجهات');
 ok(by(r, 'hero').next.at === 80 && by(r, 'hero').next.remaining === 40, 'المتبقي للدرجة التالية');
 const s = summarizeEarned(r);
-ok(s.total === 8 && s.byTier.gold === 2, 'الملخص: العدد والمجموع حسب الدرجة');
+ok(s.total === 6 && s.byTier.gold === 1, 'الملخص: العدد والمجموع حسب الدرجة');
 ok(closestToNext(r) !== null, 'أقرب وسام قادم');
-// المواظب
-r = computeMonthBadges({ attendance: { expected: 8, present: 8 } });
-ok(by(r, 'steady').tierKey === 'diamond', 'المواظب: 100% من 8 حصص → ماسي');
-r = computeMonthBadges({ attendance: { expected: 2, present: 2 } });
-ok(by(r, 'steady').tierKey === 'gold', 'المواظب: 100% من حصتين فقط → ذهبي (لا ماسي)');
-r = computeMonthBadges({ attendance: { expected: 8, present: 6 } });
-ok(by(r, 'steady').tierKey === 'bronze' && by(r, 'steady').value === 75, 'المواظب: 75% → برونزي');
-ok(computeMonthBadges({ attendance: { expected: 0, present: 0 } }).length === 0, 'بلا حصص متوقعة: لا وسام حضور');
 
 // ---- الحضور ----
 const st = { schedule: { days: [0, 2], minutes: 30 } }; // الأحد والثلاثاء

@@ -134,10 +134,9 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
         newAyahs: hasEnding ? rec.newAyahs : null,
         reviewParts,
         reviewQuestions,
-        tajweedCorrect: tajweedCorrectInMonth(ctx, y, m),
+        tajweedCorrect: tajweedCorrectInMonth(ctx, y, m)
         duelWins: monthMatches.length ? monthMatches.filter(mm => studentOutcomeInMatch(mm, s.id) === 'win').length : null,
         attendance,
-        tajweed: tajweedCounts(ctx, y, m)
     };
 }
 
