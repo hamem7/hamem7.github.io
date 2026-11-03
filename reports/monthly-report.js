@@ -1859,7 +1859,7 @@ function buildFileName(ext, suffix) {
     .trim();
   const namePart = clean(slugifyForFilename(reportData.name));
   const periodPart = clean(slugifyForFilename(reportData.periodLabel));
-  return `تقرير شهري ${namePart} ${periodPart}${suffix ? ' ' + suffix : ''}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
+  return `${t('mr_file_prefix')} ${namePart} ${periodPart}${suffix ? ' ' + suffix : ''}.${ext}`.replace(/_/g, ' ').replace(/\s+/g, ' ');
 }
 const HQ_SCALE = 3;
 // 🌟 [جديد — مقاس واتساب جاهز، القسم 1 من طلب المعلم] عرض مستهدف بالبكسل لصورة
@@ -2117,7 +2117,7 @@ async function shareViaWhatsApp(kind) {
     // الإنشاء استغرق وقتًا فانتهت صلاحية «النقرة» الأصلية؛ إن رفض المتصفح المشاركة نطلب نقرة جديدة ثم نكرّرها
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        await navigator.share({ files: [file], text: msg });
+        await navigator.share({ files: [file], title: t('mr_title'), text: name });
         return;
       } catch (e) {
         if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
