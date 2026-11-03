@@ -86,7 +86,7 @@ export function dayStatus(student, key, evidence) {
 /**
  * ملخص حضور شهر. expected = الحصص المجدولة (بلا الملغاة)، present/absent..، unconfirmed.
  * الأيام غير المجدولة التي حضرها الطالب (نشاط بلا جدول) تُحتسب حضورًا إضافيًا (extra) ولا ترفع expected.
- * hours = حصص حاضرة × مدة الحصة (تقدير من الجدول).
+ * hours = حصص حاضرة × مدة الحصة (تقدير من الجدول). pct = null ما دام في الشهر يوم غير مؤكَّد (complete = false).
  */
 export function summarizeMonth(student, year, monthIndex0, evidence, now = null) {
     const minutes = (student && student.schedule && Number(student.schedule.minutes)) || DEFAULT_MINUTES;
@@ -104,7 +104,9 @@ export function summarizeMonth(student, year, monthIndex0, evidence, now = null)
     const prefix = `${year}-${pad(monthIndex0 + 1)}-`;
     if (evidence) for (const k of evidence) if (k.startsWith(prefix) && !sset.has(k) && dayStatus(student, k, evidence) === 'present') res.extra++;
     res.hours = Math.round(((res.present + res.extra) * minutes / 60) * 10) / 10;
-    res.pct = res.expected > 0 ? Math.round((res.present / res.expected) * 100) : null;
+    // لا تخمين: النسبة لا تُحسب إلا إذا تأكدت كل الحصص المجدولة (يوم بلا دليل ولا تأكيد ≠ غياب)
+    res.complete = res.unconfirmed === 0;
+    res.pct = res.expected > 0 && res.complete ? Math.round((res.present / res.expected) * 100) : null;
     return res;
 }
 

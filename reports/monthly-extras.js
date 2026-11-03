@@ -247,9 +247,15 @@ function attendanceSection(d, x) {
   if (a.absent) cells.push(kv(a.absent, t('att_rep_absent')));
   if (a.cancelled) cells.push(kv(a.cancelled, t('att_rep_cancelled')));
   if (a.extra) cells.push(kv(a.extra, t('att_rep_extra')));
+  // لا تخمين: ما دام في الشهر حصة غير مؤكَّدة لا تُعرض الساعات ولا النسبة، ويُذكر النقص صراحةً
+  // (والتصدير نفسه محجوب حتى يستكمل المعلم البيانات — انظر ensureReportDataComplete في monthly-report.js)
+  if (a.unconfirmed > 0) {
+    cells.push(kv(a.unconfirmed, t('att_rep_unconfirmed')));
+    return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-kv">${cells.join('')}</div>
+    <div class="mrx-plan-warn" style="margin:8px 0 0;">${esc(tf('att_rep_incomplete', { n: num(a.unconfirmed) }))}</div></div>`;
+  }
   cells.push(`<div><b>${num(a.hours)}</b><span>${esc(t('att_rep_hours'))}</span></div>`);
   if (a.pct != null) cells.push(`<div><b>${num(a.pct)}٪</b><span>${esc(t('att_rep_pct'))}</span></div>`.replace('٪', isEn() ? '%' : '٪'));
-  // الأيام غير المؤكَّدة لا تُعرض لولي الأمر (لا غيابًا ولا حضورًا)؛ تظهر للمعلم في مؤشر الاكتمال فقط
   return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-kv">${cells.join('')}</div>
     <div class="mrx-note">${esc(tf('att_rep_session_len', { n: num(a.minutes) }))} · ${esc(t('att_rep_note_hours'))}</div></div>`;
 }
@@ -314,5 +320,10 @@ export function renderExtras(d) {
   host.parentNode.insertBefore(wrap, host);
   host.style.display = 'none';
   const btn = wrap.querySelector('#mrx-open-att');
-  if (btn) btn.onclick = async () => { try { (await import('../components/attendancePrompt.js')).openAttendancePrompt({ reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } }); } catch (e) { console.warn(e); } };
+  if (btn) btn.onclick = async () => {
+    try {
+      const done = await (await import('../components/attendancePrompt.js')).confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } });
+      if (done && typeof d.onDataChanged === 'function') d.onDataChanged();
+    } catch (e) { console.warn(e); }
+  };
 }

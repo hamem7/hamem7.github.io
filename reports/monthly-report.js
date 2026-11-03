@@ -923,7 +923,8 @@ async function buildMonthlyReportData(year, monthIndex0) {
     achievementsThisMonth,
     resolvedThisMonth,
     reviewSchedule, reviewedWithinThisMonth,
-    journey, reviewSummary, comparison, trend, skillSummary, coverage, reviewAyahs
+    journey, reviewSummary, comparison, trend, skillSummary, coverage, reviewAyahs,
+    onDataChanged: () => { refreshReport().catch(e => console.error(e)); }
   };
   // 🌟 [جديد] الأقسام الإضافية (أوسمة، حضور، تجويد، ختم، خطة): أي فشل فيها لا يمنع بقية التقرير
   try { result.extras = await collectExtras(result); } catch (e) { console.error('[monthly-report.js] تعذر بناء الأقسام الإضافية:', e); result.extras = null; }
@@ -1822,6 +1823,18 @@ async function ensureFontsReady() {
     } catch (e) { /* تجاهل */ }
   }
 }
+// 🔒 صدق التقرير: لا يُصدَّر تقرير فيه حصص مجدولة غير مؤكَّدة (حضر/غاب/لم تُعقد) — نطلب من المعلم استكمالها أولًا.
+async function ensureReportDataComplete() {
+  const d = reportData;
+  const a = d && d.extras && d.extras.att;
+  if (!a || !a.unconfirmed) return true;
+  const { confirmMissingAttendance } = await import('../components/attendancePrompt.js');
+  const ok = await confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } });
+  if (!ok) return false;
+  await refreshReport();   // يُعاد الحساب بالتأكيدات الجديدة قبل الالتقاط
+  return true;
+}
+function gated(fn) { return async () => { if (!(await ensureReportDataComplete())) return; await fn(); }; }
 function withBusyLabel(btn, busyText, fn) {
   return async function () {
     const original = btn.innerHTML;
@@ -2256,11 +2269,11 @@ function initMonthlyReportScreen() {
   const whatsappBtn = $('btn-mr-whatsapp');
   const waImgBtn = $('btn-mr-wa-img');
   const waPdfBtn = $('btn-mr-wa-pdf');
-  if (waImgBtn) waImgBtn.addEventListener('click', withBusyLabel(waImgBtn, t('mr_exporting'), () => shareViaWhatsApp('image')));
-  if (waPdfBtn) waPdfBtn.addEventListener('click', withBusyLabel(waPdfBtn, t('mr_exporting'), () => shareViaWhatsApp('pdf')));
-  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('mr_exporting'), () => withExportView('full', exportPng)));
-  if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('mr_exporting'), exportPdf));
-  if (whatsappBtn) whatsappBtn.addEventListener('click', withBusyLabel(whatsappBtn, t('mr_exporting'), exportWhatsApp));
+  if (waImgBtn) waImgBtn.addEventListener('click', withBusyLabel(waImgBtn, t('mr_exporting'), gated(() => shareViaWhatsApp('image'))));
+  if (waPdfBtn) waPdfBtn.addEventListener('click', withBusyLabel(waPdfBtn, t('mr_exporting'), gated(() => shareViaWhatsApp('pdf'))));
+  if (pngBtn) pngBtn.addEventListener('click', withBusyLabel(pngBtn, t('mr_exporting'), gated(() => withExportView('full', exportPng))));
+  if (pdfBtn) pdfBtn.addEventListener('click', withBusyLabel(pdfBtn, t('mr_exporting'), gated(exportPdf)));
+  if (whatsappBtn) whatsappBtn.addEventListener('click', withBusyLabel(whatsappBtn, t('mr_exporting'), gated(exportWhatsApp)));
 
   const backBtn = $('btn-mr-back');
   const backBtn2 = $('btn-mr-back-2');

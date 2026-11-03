@@ -28,7 +28,10 @@ const CSS = `
 #dhAttPrompt .opts{display:flex;flex-wrap:wrap;gap:6px}
 #dhAttPrompt .opts button{border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer}
 #dhAttPrompt .opts button.ok{background:var(--dh-ok-bg,#e7f4ee);border-color:var(--dh-ok,#15803d)}
-#dhAttPrompt .foot{display:flex;justify-content:flex-end}
+#dhAttPrompt .foot{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap}
+#dhAttPrompt .foot .left{margin-inline-end:auto;font-size:.85rem;font-weight:700;color:var(--dh-warn,#b45309)}
+#dhAttPrompt .foot button.sec{background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border:1.5px solid var(--dh-border-strong,#aaa)}
+#dhAttPrompt .foot button:disabled{opacity:.45;cursor:not-allowed}
 #dhAttPrompt .foot button{border:0;border-radius:12px;padding:9px 18px;font-weight:800;cursor:pointer;background:var(--dh-primary,#0f5b3f);color:#fff}
 `;
 
@@ -50,7 +53,8 @@ export async function collectPending(opts = {}) {
   for (const s of students) {
     // أي أثر للطالب في الألعاب الفردية/الثنائية/التجويد (ولو لم يكتمل) = حاضر ذلك اليوم
     const ev = evidenceDays(collectEvidenceTimestamps(s, { games: individualGames(readHistory(s.id)), matches, tjSessions: sessions, mastery, ruleReviews: reviews }));
-    const sinceKey = s.schedule.since ? dateKey(s.schedule.since) : '0000-00-00';
+    // في وضع التقرير لا نتجاوز أيام ما قبل حفظ الجدول: التقرير يعدّها حصصًا مجدولة، فيجب أن تُؤكَّد هي أيضًا
+    const sinceKey = !opts.reportMonth && s.schedule.since ? dateKey(s.schedule.since) : '0000-00-00';
     const keys = [];
     if (opts.reportMonth) {
       const last = new Date(opts.reportMonth.year, opts.reportMonth.monthIndex0 + 1, 0).getDate();
@@ -63,43 +67,83 @@ export async function collectPending(opts = {}) {
   return out.sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
 }
 
-export async function openAttendancePrompt(opts = {}) {
-  const pending = await collectPending(opts);
-  if (!pending.length) return false;
+/**
+ * يعرض نافذة التأكيد. opts.gate = وضع «قبل إصدار التقرير»: عنوان خاص، وزر المتابعة لا يُفعَّل إلا بعد تحديد كل الحصص.
+ * يرجع Promise<boolean>: true = اكتملت كل الحصص المعروضة، false = أُغلقت قبل الإكمال (أو لا شيء معلّق → null).
+ */
+function showPrompt(pending, opts = {}) {
   if (!document.getElementById(STYLE)) { const st = document.createElement('style'); st.id = STYLE; st.textContent = CSS; document.head.appendChild(st); }
   document.getElementById('dhAttPrompt')?.remove();
-  const root = document.createElement('div'); root.id = 'dhAttPrompt'; root.setAttribute('role', 'dialog');
+  const gate = !!opts.gate;
+  const root = document.createElement('div'); root.id = 'dhAttPrompt'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
   const choices = [['present', 'att_prompt_present'], ['absent', 'att_prompt_absent'], ['cancelled', 'att_prompt_cancelled']];
-  root.innerHTML = `<div class="box"><h3>${esc(t('att_prompt_title'))}</h3><p>${esc(t('att_prompt_sub'))}</p>
+  const foot = gate
+    ? `<div class="foot"><span class="left" id="dhAttLeft"></span><button type="button" class="sec" id="dhAttClose">${esc(t('att_gate_cancel'))}</button><button type="button" id="dhAttGo" disabled>${esc(t('att_gate_continue'))}</button></div>`
+    : `<div class="foot"><button type="button" id="dhAttClose">${esc(t('att_prompt_later'))}</button></div>`;
+  root.innerHTML = `<div class="box"><h3>${esc(t(gate ? 'att_gate_title' : 'att_prompt_title'))}</h3><p>${esc(t(gate ? 'att_gate_sub' : 'att_prompt_sub'))}</p>
     ${pending.length > 1 ? `<button type="button" class="all" id="dhAttAll">✓ ${esc(t('att_prompt_all_present'))}</button>` : ''}
     ${pending.map((p, i) => `<div class="row" data-i="${i}"><div><span class="who">${esc(String(p.student.name || '').trim())}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
       <div class="opts">${choices.map(([v, k]) => `<button type="button" data-v="${v}">${esc(t(k))}</button>`).join('')}</div></div>`).join('')}
-    <div class="foot"><button type="button" id="dhAttClose">${esc(t('att_prompt_later'))}</button></div></div>`;
+    ${foot}</div>`;
   document.body.appendChild(root);
-  const finish = () => {
-    if (root.querySelector('.row:not(.done)')) return;
-    root.querySelector('#dhAttAll')?.remove();
-    root.querySelector('#dhAttClose').textContent = t('att_prompt_done');
-    setTimeout(() => root.remove(), 700);
-  };
-  const mark = async (row, value) => {
-    const p = pending[Number(row.dataset.i)];
-    setDayStatus(p.student, p.key, value);
-    try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return; }
-    row.classList.add('done'); row.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('ok', x.dataset.v === value); });
-  };
-  root.addEventListener('click', async (e) => {
-    if (e.target.closest('#dhAttAll')) {
-      for (const row of root.querySelectorAll('.row:not(.done)')) await mark(row, 'present');
-      finish(); return;
-    }
-    const b = e.target.closest('.opts button');
-    if (!b) return;
-    await mark(b.closest('.row'), b.dataset.v);
-    finish();
+  return new Promise((resolve) => {
+    let settled = false;
+    const close = (val, delay = 0) => { if (settled) return; settled = true; setTimeout(() => root.remove(), delay); resolve(val); };
+    const left = () => root.querySelectorAll('.row:not(.done)').length;
+    const sync = () => {
+      if (!gate) return;
+      const n = left();
+      const go = root.querySelector('#dhAttGo'), lbl = root.querySelector('#dhAttLeft');
+      if (go) go.disabled = n > 0;
+      if (lbl) lbl.textContent = n > 0 ? tf('att_gate_left', { n: isEn() ? String(n) : Number(n).toLocaleString('ar-EG') }) : '';
+    };
+    sync();
+    const finish = () => {
+      if (left()) { sync(); return; }
+      root.querySelector('#dhAttAll')?.remove();
+      if (gate) { sync(); return; }   // في وضع التقرير يضغط المعلم «متابعة» بنفسه
+      root.querySelector('#dhAttClose').textContent = t('att_prompt_done');
+      close(true, 700);
+    };
+    const mark = async (row, value) => {
+      const p = pending[Number(row.dataset.i)];
+      setDayStatus(p.student, p.key, value);
+      try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return; }
+      // نسخة الطالب المفتوحة حاليًا (التقرير/الملف) تأخذ التأكيد فورًا
+      const cur = AppState.currentStudent;
+      if (cur && cur !== p.student && String(cur.id) === String(p.student.id)) cur.attendance = { ...(p.student.attendance || {}) };
+      row.classList.add('done'); row.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('ok', x.dataset.v === value); });
+    };
+    root.addEventListener('click', async (e) => {
+      if (e.target.closest('#dhAttAll')) {
+        for (const row of root.querySelectorAll('.row:not(.done)')) await mark(row, 'present');
+        finish(); return;
+      }
+      if (e.target.closest('#dhAttGo')) { if (!left()) close(true); return; }
+      if (e.target.closest('#dhAttClose')) { close(!left()); return; }
+      const b = e.target.closest('.opts button');
+      if (!b) return;
+      await mark(b.closest('.row'), b.dataset.v);
+      finish();
+    });
   });
-  root.querySelector('#dhAttClose').onclick = () => root.remove();
+}
+
+export async function openAttendancePrompt(opts = {}) {
+  const pending = await collectPending(opts);
+  if (!pending.length) return false;
+  showPrompt(pending, opts);
   return true;
+}
+
+/**
+ * بوابة التقرير الشهري: إن وُجدت حصص مجدولة غير مؤكَّدة في شهر التقرير يُطلب من المعلم استكمالها.
+ * يرجع true إن لم يبقَ نقص (أو استُكمل الآن)، وfalse إن أُلغي — فلا يُصدَر التقرير بأرقام مخمَّنة.
+ */
+export async function confirmMissingAttendance({ studentId, reportMonth }) {
+  const pending = await collectPending({ studentId, reportMonth });
+  if (!pending.length) return true;
+  return showPrompt(pending, { gate: true });
 }
 
 // ---------- وقت السؤال لكل معلم ----------

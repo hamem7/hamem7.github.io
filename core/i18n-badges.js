@@ -87,6 +87,10 @@ const ar = {
     cmp_title: 'اكتمال بيانات التقرير', cmp_ok: 'البيانات مكتملة لهذا الشهر.', cmp_missing: 'بيانات ناقصة قد تُنقص دقة التقرير:',
     cmp_no_schedule: 'لم يُحدَّد جدول الحصص (لا يمكن حساب الحضور).', cmp_unconfirmed: '{n} حصة مجدولة بلا تأكيد حضور.', cmp_no_ending: 'لم يُسجَّل موضع نهاية الشهر.', cmp_no_games: 'لا ألعاب فردية مسجَّلة هذا الشهر.',
     cmp_open_att: 'تأكيد الحضور الآن',
+    // بوابة الإصدار: لا تقرير بأرقام حضور مخمَّنة
+    att_gate_title: 'بيانات ناقصة قبل إصدار التقرير', att_gate_sub: 'حتى يكون التقرير صادقًا: هذه حصص مجدولة في شهر التقرير لم يُسجَّل فيها أي نشاط ولا تأكيد. حدِّد حالة كل حصة، ولن تُحسب نسبة الحضور قبل ذلك.',
+    att_gate_continue: 'متابعة إصدار التقرير', att_gate_cancel: 'إلغاء', att_gate_left: 'باقي {n} حصة',
+    att_rep_incomplete: 'بيانات الحضور غير مكتملة: {n} حصة لم تُؤكَّد بعد، فلا تُعرض نسبة الحضور حتى تُستكمل.',
     // الاختبارات الثنائية (أول اسم الخصم)
     dual_opponent_first: 'اسم الخصم يظهر بالاسم الأول فقط',
     tier_word: 'الدرجة'
@@ -142,6 +146,9 @@ const en = {
     cmp_title: 'Report data completeness', cmp_ok: 'Data is complete for this month.', cmp_missing: 'Missing data that may reduce the report’s accuracy:',
     cmp_no_schedule: 'No session schedule set (attendance cannot be computed).', cmp_unconfirmed: '{n} scheduled sessions without attendance confirmation.', cmp_no_ending: 'The month-end position was not recorded.', cmp_no_games: 'No individual games recorded this month.',
     cmp_open_att: 'Confirm attendance now',
+    att_gate_title: 'Missing data before issuing the report', att_gate_sub: 'To keep the report accurate: these scheduled sessions in the report month have no recorded activity and no confirmation. Set the status of each one; the attendance rate is not calculated until then.',
+    att_gate_continue: 'Continue issuing the report', att_gate_cancel: 'Cancel', att_gate_left: '{n} sessions left',
+    att_rep_incomplete: 'Attendance data is incomplete: {n} sessions are not confirmed yet, so the attendance rate is not shown until they are completed.',
     dual_opponent_first: 'Opponent shown by first name only',
     tier_word: 'Tier'
 };
