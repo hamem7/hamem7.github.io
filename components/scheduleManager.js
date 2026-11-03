@@ -34,11 +34,26 @@ export async function renderScheduleTab(container) {
   if (!container.isConnected) return;
   let openId = null;        // الطالب المفتوح (واحد في كل مرة)
   let savedId = null;       // آخر طالب حُفظ له (لإظهار «حُفظ تلقائيًا»)
+  let query = '';           // نص مربع البحث فوق الأسماء
+
+  // الهيكل يُرسم مرة واحدة فيبقى مربع البحث ثابتًا (لا يفقد التركيز أثناء الكتابة)؛ draw يحدّث الوقت والقائمة فقط
+  container.innerHTML = `<div class="ms-sched"><span data-sm-when></span><button type="button" class="ms-btn line" data-sm-time>${esc(t('ms_sched_time_btn'))}</button></div>
+      <p class="ms-hint">${esc(t('ms_sched_hint'))}</p>
+      <input type="search" class="ms-search" data-sm-search placeholder="${esc(t('as_search_ph'))}" aria-label="${esc(t('as_search_ph'))}">
+      <div class="as-list" data-sm-list></div>`;
+  const whenEl = container.querySelector('[data-sm-when]');
+  const listEl = container.querySelector('[data-sm-list]');
+  const searchEl = container.querySelector('[data-sm-search]');
+  const norm = (v) => String(v || '').toLowerCase().normalize('NFKD').replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/\s+/g, ' ').trim();
 
   const draw = () => {
-    container.innerHTML = `<div class="ms-sched"><span>⏰ ${esc(describePromptSettings())}</span><button type="button" class="ms-btn line" data-sm-time>${esc(t('ms_sched_time_btn'))}</button></div>
-      <p class="ms-hint">${esc(t('ms_sched_hint'))}</p>
-      <div class="as-list">${students.length ? students.map(s => {
+    whenEl.textContent = `⏰ ${describePromptSettings()}`;
+    const q = norm(query);
+    const shown = q ? students.filter(s => norm(s.name).includes(q)) : students;
+    listEl.innerHTML = !students.length ? `<div class="as-empty">${esc(t('att_mgr_empty'))}</div>`
+      : !shown.length ? `<div class="as-empty">${esc(t('as_no_match'))}</div>`
+      : shown.map(s => {
         const open = openId === s.id, cur = hasSchedule(s) ? s.schedule : { days: [], minutes: 60 };
         const days = new Set((cur.days || []).map(Number)), mins = Number(cur.minutes) || 60;
         return `<div class="ms-acc${open ? ' open' : ''}" data-id="${esc(s.id)}">
@@ -54,8 +69,9 @@ export async function renderScheduleTab(container) {
             <div class="ms-saved" role="status">${savedId === s.id ? esc(t('att_sched_saved')) : ''}</div>
           </div>
         </div>`;
-      }).join('') : `<div class="as-empty">${esc(t('att_mgr_empty'))}</div>`}</div>`;
+      }).join('');
   };
+  searchEl.addEventListener('input', () => { query = searchEl.value; draw(); });
 
   // حفظ تلقائي: كل ضغطة على يوم أو مدة تُكتب فورًا في سجل الطالب
   async function save(student, days, minutes) {
@@ -70,6 +86,7 @@ export async function renderScheduleTab(container) {
   }
 
   container.onclick = async (e) => {
+    if (e.target.closest('[data-sm-search]')) return;
     if (e.target.closest('[data-sm-time]')) { askAttendanceTime().then(draw); return; }
     const head = e.target.closest('[data-sm-open]');
     if (head) { const id = head.dataset.smOpen; openId = String(openId) === id ? null : students.find(s => String(s.id) === id)?.id; savedId = null; draw(); return; }
