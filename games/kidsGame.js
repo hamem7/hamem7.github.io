@@ -1003,9 +1003,49 @@ function markLinkPairUnknown(id) {
     data.matchedPairs.push(id);
     data.selectedStart = null;
     data.justMatchedId = id;
+    // 🌟 [جديد] تُعرض الإجابة الصحيحة (البداية + النهاية) على الشاشة لثوانٍ ليتذكرها الطالب، ويُقفل اللعب
+    // خلالها؛ ويمكن إغلاقها بالضغط عليها. إنهاء السؤال (لو كان آخر زوج) يُؤجَّل حتى تنتهي المدة 🌟
+    data.locked = true;
     buildLinkGameUI();
     data.justMatchedId = null;
-    if (data.matchedPairs.length === data.starts.length) setTimeout(finishLinkQuestion, 400);
+    showLinkRevealCard(data, id, () => {
+        data.locked = false;
+        if (GameState.currentData !== data) return;
+        if (data.matchedPairs.length === data.starts.length) { finishLinkQuestion(); }
+        else { buildLinkGameUI(); }
+    });
+}
+
+const LINK_REVEAL_MS = 4500;
+function showLinkRevealCard(data, id, onDone) {
+    const old = document.getElementById('link-reveal-card');
+    if (old) old.remove();
+    const s = data.starts.find(x => x.id === id);
+    const e = data.ends.find(x => x.id === id);
+    const card = document.createElement('div');
+    card.id = 'link-reveal-card';
+    card.setAttribute('role', 'status');
+    const title = document.createElement('div');
+    title.className = 'link-reveal-title';
+    title.textContent = t('link_unknown_reveal');
+    const body = document.createElement('div');
+    body.className = 'link-reveal-body quran-text';
+    body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
+    const bar = document.createElement('div');
+    bar.className = 'link-reveal-bar';
+    bar.style.animationDuration = LINK_REVEAL_MS + 'ms';
+    card.append(title, body, bar);
+    let done = false;
+    const finish = () => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        card.remove();
+        onDone();
+    };
+    const timer = setTimeout(finish, LINK_REVEAL_MS);
+    card.onclick = finish;
+    document.body.appendChild(card);
 }
 
 function finishLinkQuestion() {

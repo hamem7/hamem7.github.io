@@ -2214,6 +2214,7 @@ export const translations = {
         // 🌟 [جديد] زر «لا أعرف هذه» في ألعاب الربط (الكبار) 🌟
         link_unknown_btn: "🤷 لا أعرف هذه",
         link_unknown_err: "لا يعرف نهاية:",
+        link_unknown_reveal: "الإجابة الصحيحة — تذكّرها 👀",
         report_focus_not_resolved: "لم يُعالَج بعد",
         report_note_focus_past_prefix: "بند سابق:",
         report_focus_more_one: "بند آخر",
@@ -5424,6 +5425,7 @@ export const translations = {
         // 🌟 [New] "I don't know this one" button in linking games (adults) 🌟
         link_unknown_btn: "🤷 I don't know this",
         link_unknown_err: "Doesn't know the ending of:",
+        link_unknown_reveal: "The correct answer — remember it 👀",
         report_focus_not_resolved: "not resolved yet",
         report_note_focus_past_prefix: "an earlier item:",
         report_focus_more_one: "more item",
