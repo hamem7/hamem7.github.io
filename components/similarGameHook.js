@@ -88,7 +88,7 @@ export function kidsSimilarOptionLabel(opt, kind, cd) {
 
 // ---------------- الكبار ----------------
 // سؤال المتشابهات في لعبة الكبار: خياراته أزرار يضغطها الطالب فتُقيَّم إجابته تلقائياً (راجع adultGame.js).
-const ADULT_TITLES = { sim_missing: 'ما الكلمة الناقصة؟ 🔀', sim_named: 'اقرأ الآية من السورة المذكورة 🔀', sim_pair: 'في أي سورتين؟ 🔀', sim_notin: 'أيُّ سورة لم ترد؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
+const ADULT_TITLES = { sim_missing: 'ما الكلمة الناقصة؟ 🔀', sim_named: 'اذكر الآية التالية من السورة المذكورة 🔀', sim_pair: 'في أي سورتين؟ 🔀', sim_notin: 'أيُّ سورة لم ترد؟ 🔀', sim_complete: 'أكمل الآية 🔀', sim_which: 'أيُّ الآيتين من السورة؟ 🔀', sim_next: 'ماذا بعدها؟ 🔀', sim_prev: 'ما الآية التي قبلها؟ 🔀' };
 
 export function formatAdultSimilar(sim, pool) {
     if (!sim || !ADULT_TITLES[sim.kind]) return null;
@@ -124,7 +124,7 @@ const verseHTML = (v, markRange) => {
     const on = (i) => markRange ? (i >= m[0] && i < m[1]) : m.includes(i);
     return `<span class="quran-text">﴿\u00A0${w.map((x, i) => on(i) ? `<mark>${x}</mark>` : x).join(' ')}\u00A0﴾</span>`;
 };
-const placeOf = (v) => `<div style="font-size:1rem; color:var(--secondary); margin:10px 0 2px;">${esc(tf('sim_inj_surah_label', { name: surahLabel(v.surahName) }))} · ${esc(tf('sim_inj_ayah_label', { n: v.ayahNumber }))}</div>`;
+const placeOf = (v, next) => `<div style="font-size:1rem; color:var(--secondary); margin:10px 0 2px;">${next ? esc(t('sim_ans_next')) + ' — ' : ''}${esc(tf('sim_inj_surah_label', { name: surahLabel(v.surahName) }))} · ${esc(tf('sim_inj_ayah_label', { n: v.ayahNumber }))}</div>`;
 
 function recallAnswerHTML(sim) {
     const r = sim.reveal;
@@ -133,13 +133,14 @@ function recallAnswerHTML(sim) {
         return `<div style="font-size:1.1rem; margin-bottom:6px;">${esc(tf('sim_missing_res', { word: toQuranicSukun(x), name: surahLabel(r.a.surahName), other: toQuranicSukun(y), sto: surahLabel(r.b.surahName) }))}</div>` +
             placeOf(r.a) + verseHTML(r.a) + placeOf(r.b) + verseHTML(r.b);
     }
-    return placeOf(r.target) + verseHTML(r.target, true) + r.others.map(o => placeOf(o) + verseHTML(o, true)).join('');
+    return placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map(o => placeOf(o, true) + verseHTML(o, true)).join('');
 }
 
 function recallHintStages(sim) {
     const target = sim.reveal.target;
     return sim.hints.map(h => {
         if (h.k === 'first') return `<div style="font-size:1.1rem;">${esc(t('sim_hint_first'))} <span class="quran-text">${esc(toQuranicSukun(h.word))}</span></div>`;
+        if (h.k === 'cur') return `<div style="font-size:1.1rem;">${esc(tf('sim_hint_cur', { name: surahLabel(h.surahName) }))}</div><span class="quran-text">﴿\u00A0${esc(toQuranicSukun(h.text))}\u00A0﴾</span>`;
         if (h.k === 'prev') return `<div style="font-size:1.1rem;">${esc(tf('sim_hint_prev', { name: surahLabel(h.surahName) }))}</div><span class="quran-text">﴿\u00A0${esc(toQuranicSukun(h.text))}\u00A0﴾</span>`;
         return `<div style="font-size:1.1rem;">${esc(tf('sim_hint_opts', { name: surahLabel(target.surahName) }))}</div>` +
             h.verses.map(v => `<div class="quran-text" style="margin:8px 0;">﴿\u00A0${esc(toQuranicSukun(v))}\u00A0﴾</div>`).join('');

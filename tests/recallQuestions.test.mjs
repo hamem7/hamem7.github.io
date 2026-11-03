@@ -77,7 +77,9 @@ test('«اقرأ الآية من السورة المذكورة»: 2–5 سور،
         assert.ok(all.every(v => mem.has(v.surahNumber)));
         assert.equal(q.correctIndex, -1); assert.deepEqual(q.options, []);
         const phrase = norm(q.anchorPhrase);
-        for (const v of all) assert.ok(norm(verseAt(Q, v.surahNumber, v.ayahNumber).w.join(' ')).includes(phrase), 'الآية بلا العبارة');
+        // المعروض هو الآية التالية؛ والآية التي قبلها في كل موضع تحوي العبارة المشتركة
+        for (const v of all) assert.ok(norm(verseAt(Q, v.surahNumber, v.ayahNumber - 1).w.join(' ')).includes(phrase), 'الآية السابقة بلا العبارة');
+        assert.ok(q.text.includes('اذكر الآية التي تأتي بعد هذه الآية'));
         assert.ok(q.text.includes('من محفوظك') && !q.text.includes('محفوظ الطالب'));
         assert.ok(q.text.includes('سورة ' + q.reveal.target.surahName));
         assert.ok(!/آية\s*[0-9٠-٩]|الآية\s*[0-9٠-٩]/.test(q.text), 'رقم آية في نص السؤال');
