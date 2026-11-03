@@ -1376,16 +1376,17 @@ function renderCoverageBlock(d) {
   if (!c && !(gq > 0)) return;
   setText('mr-cov-title', t('mr_cov_title'));
   const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
-  // «دفتر المراجعة»: الإجمالي ثم التفصيل (الألعاب الفردية / الواجب المنزلي)
-  const gqLine = gq > 0 ? `<div style="margin-bottom:12px;"><div style="font-size:1.15rem;font-weight:800;">${esc(fill('mr_rev_total', { n: gq }))}</div>
-    <div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div></div>` : '';
-  setText('mr-cov-sub', c ? t('mr_cov_sub') : '');
-  if (!c) { $('mr-cov-content').innerHTML = gqLine; return; }
+  // «دفتر المراجعة»: مصطلح واحد «راجع» — الإجمالي (والنسبة من محفوظه إن وُجد نطاق) ثم التفصيل (الألعاب الفردية / الواجب المنزلي)
+  const head = c ? fill('mr_rev_main', { n: c.tested, total: c.total, pct: c.pct }) : fill('mr_rev_total', { n: gq });
+  const detail = gq > 0 ? `<div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div>` : '';
+  const headHtml = `<div style="font-size:1.15rem;font-weight:800;">${esc(head)}</div>${detail}`;
+  setText('mr-cov-sub', t('mr_cov_sub'));
+  if (!c) { $('mr-cov-content').innerHTML = headHtml; return; }
   const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));
   const names = shown.join(AppState.currentLang === 'en' ? ', ' : '، ') + (c.missing.length > 3 ? ' ' + t('mr_cov_others') : '');
   const color = c.pct >= 60 ? '#047857' : (c.pct >= 30 ? '#f59e0b' : '#64748b');
-  $('mr-cov-content').innerHTML = `${gqLine}<div style="font-size:1.05rem;font-weight:700;">${esc(fill('mr_cov_main', { n: c.tested, total: c.total, pct: c.pct }))}</div>
-    <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:8px;"><i style="display:block;height:100%;width:${c.pct}%;background:${color};border-radius:5px;"></i></div>
+  $('mr-cov-content').innerHTML = `${headHtml}
+    <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:10px;"><i style="display:block;height:100%;width:${c.pct}%;background:${color};border-radius:5px;"></i></div>
     <div style="margin-top:10px;font-size:0.95rem;line-height:1.8;">${esc(fill('mr_cov_surahs', { c: c.surahsCovered, t: c.surahsTotal }))}${c.missing.length ? '<br>' + esc(fill('mr_cov_missing', { names })) : ''}</div>`;
 }
 
