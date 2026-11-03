@@ -1,7 +1,7 @@
 // js/play.js — واجهة تشغيل الأسئلة (identify / spot / tapletter / sort / letters) مع التغذية الراجعة المفسرة.
 import { RULES } from '../data/rules.js';
 import { checkIdentify, checkSpot, checkTap, checkSortPlacement, checkLetters, whyOf } from './engine.js';
-import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML, centerPins } from './ui.js';
+import { ayahHTML, spanHTML, legendHTML, ruleName, ayahLabel, audioBtn, chip, esc, mediaHTML, centerPins, signImgHTML } from './ui.js';
 import { checkChoice, checkSignTap, checkAyahNum, checkMatch } from './mushaf-engine.js';
 import { X } from '../data/mushaf-texts.js';
 import { POOL } from '../data/pool.js';
@@ -199,7 +199,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   function renderChoice(q) {
     const lay = q.layout || 'text';
     const optHTML = (o) => lay === 'glyphs'
-      ? `<button type="button" class="opt glyph-opt${/part_/.test(o.img) ? ' wide-opt' : ''}" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}"><img class="opt-img" src="${esc(o.img)}" alt="">${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
+      ? `<button type="button" class="opt glyph-opt${/part_/.test(o.img) ? ' wide-opt' : ''}" data-o="${esc(o.id)}" aria-label="${esc(tx(o.label))}">${signImgHTML(o.img, 'opt-img')}${o.abbr ? `<small>${esc(o.abbr)}</small>` : ''}</button>`
       : `<button type="button" class="opt${o.glyph ? ' opt-glyph' : ''}" data-o="${esc(o.id)}"><b${o.glyph ? ' class="quran-text" lang="ar"' : ''}>${esc(tx(o.label))}</b></button>`;
     const cols = lay === 'num' ? 'num' : lay === 'yn' ? 'yn' : lay === 'glyphs' ? (q.options.some((o) => /part_/.test(o.img)) ? 'glyphs wide' : 'glyphs') : (q.options.length > 3 && q.options.every((o) => tx(o.label).length < 28) ? '2' : '1');
     frame(q, `
@@ -222,7 +222,7 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
     frame(q, `
       <p class="q-prompt">${esc(tx(q.stem))}</p>
       <div class="match" role="group">
-        <div class="match-col left">${q.pairs.map((p) => `<button type="button" class="m-item m-left" data-id="${esc(p.id)}" aria-label="${esc(tx(p.label))}"><img class="m-img" src="${esc(p.img)}" alt="">${p.abbr ? `<small>${esc(p.abbr)}</small>` : ''}</button>`).join('')}</div>
+        <div class="match-col left">${q.pairs.map((p) => `<button type="button" class="m-item m-left" data-id="${esc(p.id)}" aria-label="${esc(tx(p.label))}">${signImgHTML(p.img, 'm-img')}${p.abbr ? `<small>${esc(p.abbr)}</small>` : ''}</button>`).join('')}</div>
         <div class="match-col right">${q.right.map((p) => `<button type="button" class="m-item m-right" data-id="${esc(p.id)}"><b>${esc(tx(p.label))}</b></button>`).join('')}</div>
       </div>
       <div class="hint-slot" aria-live="polite"></div>

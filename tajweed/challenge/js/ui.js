@@ -2,7 +2,7 @@
 import { POOL, SURAHS } from '../data/pool.js';
 import { META, LETTER_NAMES } from '../data/rules.js';
 import { X } from '../data/mushaf-texts.js';
-import { A, quarterMarker, JUZ_ORDINALS_AR, pageImg, pageWindow, pinLines, PAGE_W, PAGE_H } from '../data/mushaf.js';
+import { A, quarterMarker, JUZ_ORDINALS_AR, pageImg, pageWindow, pinLines, PAGE_W, PAGE_H, SIGN_FOCUS } from '../data/mushaf.js';
 import { wordHTML, hlAttr } from './quran.js';
 import { t, tx, num, getLang } from './i18n.js';
 
@@ -66,10 +66,20 @@ export function pagePinHTML(page, x, y) {
 export function centerPins(scope) {
   scope.querySelectorAll('.pq-scroll').forEach((s) => { const p = s.querySelector('.pin'); if (p && s.scrollWidth > s.clientWidth) s.scrollLeft = p.offsetLeft - s.clientWidth / 2; });
 }
+// صورة علامة مع حلقة صغيرة على موضع العلامة داخل الكلمة (إن كانت الصورة من signs/ ولها موضع معروف)
+export function signImgHTML(src, cls = '', alt = '') {
+  const id = (/\/signs\/(\w+)\.webp$/.exec(src || '') || [])[1]; const f = id && SIGN_FOCUS[id];
+  const img = `<img class="${esc(cls)}" src="${esc(src)}" alt="${esc(alt)}">`;
+  if (!f) return img;
+  // حشوة الصورة وإطارها (من CSS) حتى تقع الحلقة على العلامة نفسها لا على الإطار
+  const [bx, by] = /sign-photo/.test(cls) ? [18, 12] : /media-img/.test(cls) ? [6, 6] : /opt-img/.test(cls) ? [6, 3] : [0, 0];
+  const pos = (p, b) => `calc(${b}px + (100% - ${2 * b}px) * ${p / 100})`;
+  return `<span class="sfocus">${img}<i class="sf-ring" style="left:${pos(f[0], bx)};top:${pos(f[1], by)}" aria-hidden="true"></i></span>`;
+}
 export function mediaHTML(m) {
   if (!m) return '';
   if (m.kind === 'glyph') return `<div class="glyph-big quran-text" dir="rtl" aria-hidden="true">${esc(m.glyph)}</div>`;
-  if (m.kind === 'img') return `<img class="media-img ${esc(m.cls || '')}" src="${esc(m.src)}" alt="${esc(tx(m.alt))}">`;
+  if (m.kind === 'img') return signImgHTML(m.src, `media-img ${m.cls || ''}`, tx(m.alt));
   if (m.kind === 'verse') return `<div class="ayah-wrap">${ayahHTML(m.key)}<div class="ayah-meta"><span>${esc(ayahLabel(m.key))}</span></div></div>`;
   if (m.kind === 'lantern') return `<div class="media-lantern">${lanternHTML(m.q)}</div>`;
   if (m.kind === 'banner') return bannerHTML(m.surah);

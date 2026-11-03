@@ -130,3 +130,9 @@
 .glyph-opt.wide-opt .opt-img { width: 100%; max-height: 76px; object-fit: contain; }
 /* الفانوس في السؤال أكبر حتى يُقرأ نصّه */
 .media .media-lantern .lant { width: 150px; }
+
+/* حلقة صغيرة على العلامة المقصودة داخل صورة الكلمة (signImgHTML) */
+.sfocus { position: relative; display: inline-block; line-height: 0; max-width: 100%; }
+.sfocus > img { display: block; }
+.sf-ring { position: absolute; width: 30%; max-width: 46px; min-width: 18px; aspect-ratio: 1; transform: translate(-50%, -50%); border: 2.5px solid var(--gilt); border-radius: 50%; box-shadow: 0 0 0 1.5px var(--paper); pointer-events: none; }
+.m-img { max-height: 76px; }

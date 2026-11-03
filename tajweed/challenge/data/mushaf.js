@@ -168,6 +168,9 @@ export const PLATES = {
 // كل صورة مقتطعة من صفحة مصحف حقيقية (tools/crop-signs.py، والتوثيق في assets/mushaf/signs/PROVENANCE.json)، أو من مقتطعات المنصة (assets/tajweed/mushaf).
 // كل العلامات (ومنها ۞ ووردة رقم الآية والسجدة) مقصوصة كاملة في mushaf/signs/ (tools/crop-signs.py)
 export const SIGN_IMG = {};
+// موضع العلامة داخل صورتها (٪ من العرض والارتفاع): الصورة كلمة كاملة قد تحمل أكثر من علامة، فتُرسم حلقة صغيرة على العلامة المقصودة.
+// محسوبة من دبوس العلامة في EXPLORE وصندوق القصّ في tools/crop-signs.py (signs/PROVENANCE.json، هامش PAD=12).
+export const SIGN_FOCUS = { waqf_lazim: [24.3, 18.0], waqf_jaiz: [17.8, 22.0], waqf_sala: [33.9, 18.6], saktah: [46.3, 19.6], waqf_qala: [82.1, 17.2], waqf_muanaqa: [45.3, 15.7], zero_round: [12.6, 28.4], zero_rect: [26.0, 34.1], sukun: [43.6, 36.1], shadda: [35.6, 37.0], small_meem: [55.5, 35.1], madd: [48.4, 27.0], dagger_alif: [64.9, 39.8], small_waw: [30.8, 60.4], small_yaa: [27.4, 61.0], sin_over: [45.2, 35.7], sin_under: [66.1, 73.2], fatha: [69.4, 36.4], damma: [23.0, 35.4], kasra: [36.6, 79.8], fathatan: [28.2, 33.0], dammatan: [27.6, 34.0], kasratan: [19.0, 72.2], alif_wasla: [80.3, 30.4], hamza_above: [65.4, 34.4], hamza_below: [67.3, 69.1], hamza_line: [28.4, 59.8], ishmam: [40.6, 48.0], imala: [51.7, 80.2] };
 export const signImg = (id) => SIGN_IMG[id] || A(`mushaf/signs/${id}.webp`);
 export const partImg = (id) => A(`mushaf/signs/part_${id}.webp`);
 export const pageImg = (n) => A(`mushaf/pages/page${String(n).padStart(3, '0')}.webp`);
