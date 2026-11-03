@@ -14,7 +14,7 @@ import { loadStudentContext, inputsForMonth, evidenceTimestamps } from '../core/
 import { computeMonthBadges, summarizeEarned, closestToNext, BADGE_DEFS } from '../engine/badgesEngine.js';
 import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceEngine.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
-import { paceFrom, projectMilestones, buildPathMap, weightsFromPages, unitsBetween, buildNextMonthPlan, DEFAULT_SESSIONS_PER_MONTH, sessionsToFinish } from '../engine/khatmPlan.js';
+import { paceFrom, projectMilestones, buildPathMap, weightsFromPages, unitsBetween, buildNextMonthPlan, sessionsToFinish } from '../engine/khatmPlan.js';
 import { ayahIndex, juzBounds, JUZ_COUNT, summarizeReview } from '../engine/reviewParts.js';
 import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { SKILLS } from '../engine/skillMap.js';
@@ -104,16 +104,23 @@ async function buildKhatm(d, ctx, att) {
   const cum = (n) => { let s = 0; for (let i = 0; i < Math.floor(n); i++) s += juzPages[i]; if (n % 1) s += juzPages[Math.floor(n)] * (n % 1); return s; };
   let curJuz = 1; while (curJuz < JUZ_COUNT && cum(curJuz) <= doneUnits) curJuz++;
   const remaining = { juz: Math.max(cum(curJuz) - doneUnits, 0), five: cum(5) - doneUnits, quarter: cum(7.5) - doneUnits, half: cum(15) - doneUnits, khatm: cum(30) - doneUnits };
-  // الوتيرة: آخر 3 أشهر مقفلة ببيانات
-  const months = recs.filter(r => r.locked || r.ending).map(r => {
+  // الوتيرة: آخر 3 أشهر مقفلة ببيانات. لا تخمين: يُحسب الشهر فقط إذا وُجد جدول وتأكدت كل حصصه (حضر/غاب/لم تُعقد)؛
+  // وإلا يُستبعد (لا نقسم الحفظ على حصص لم نتأكد منها ولا على عدد افتراضي)
+  const evAll = evidenceDays(evidenceTimestamps(ctx));
+  let excludedMonths = 0;
+  const months = [];
+  for (const r of recs.filter(r => r.locked || r.ending)) {
     const lo = beginIdx(surahs, r), hi = currentPositionIdx(surahs, r);
-    const sessions = hasSchedule(ctx.student) ? summarizeMonth(ctx.student, r.year, r.month - 1, evidenceDays(evidenceTimestamps(ctx))).expected || DEFAULT_SESSIONS_PER_MONTH : DEFAULT_SESSIONS_PER_MONTH;
-    return { newUnits: hi > lo ? unit(lo, hi) * scale : 0, sessions };
-  });
-  const sessionsPerMonth = hasSchedule(ctx.student) ? Math.max(ctx.student.schedule.days.length * 4, 1) : DEFAULT_SESSIONS_PER_MONTH;
+    if (!(hi > lo)) continue;
+    const sm = hasSchedule(ctx.student) ? summarizeMonth(ctx.student, r.year, r.month - 1, evAll) : null;
+    if (!sm || !sm.complete || !(sm.present > 0)) { excludedMonths++; continue; }
+    months.push({ newUnits: unit(lo, hi) * scale, sessions: sm.present });
+  }
+  const sessionsPerMonth = hasSchedule(ctx.student) ? Math.max(ctx.student.schedule.days.length * 4, 1) : null;
+  if (!sessionsPerMonth) return { pace: { perSession: 0, perMonth: 0, basis: 'none', monthsUsed: 0 }, proj: [], remaining, curJuz, sessionsPerMonth: null, sessionsToFinishJuz: null, monthsUsed: 0, excludedMonths };
   const pace = paceFrom(months, sessionsPerMonth);
   const proj = projectMilestones({ pace, remaining, sessionsPerMonth, attendancePct: att && att.pct != null ? att.pct : null, now: new Date() });
-  return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed };
+  return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed, excludedMonths };
 }
 
 function tajweedMonth(d, ctx) {
@@ -164,7 +171,7 @@ export async function collectExtras(d) {
     const memorized = []; for (let j = 30; j >= Math.max(31 - khatm.curJuz, 1); j--) memorized.push(j);
     memorized.sort((a, b) => (last[a] ?? -1) - (last[b] ?? -1) || b - a).slice(0, 4).forEach(j => farParts.push(j));
   }
-  const sessionsNext = khatm ? khatm.sessionsPerMonth : (hasSchedule(student) ? Math.max(student.schedule.days.length * 4, 1) : DEFAULT_SESSIONS_PER_MONTH);
+  const sessionsNext = khatm ? khatm.sessionsPerMonth : (hasSchedule(student) ? Math.max(student.schedule.days.length * 4, 1) : null);
   const plan = buildNextMonthPlan({
     pace: khatm ? khatm.pace : null,
     sessionsNext,
@@ -280,7 +287,7 @@ function khatmSection(d, x) {
   const rows = k.proj.map(p => `<div class="mrx-row"><span>${esc(t(keyName[p.key]))}</span>
     <b>${p.done ? esc(t('khm_done')) : esc(tf('khm_row', { s: num(p.sessions), d: fmtDate(p.dateFull) }))}</b></div>
     ${!p.done && p.dateAvg.getTime() !== p.dateFull.getTime() ? `<div class="mrx-note" style="margin:0 0 4px;">${esc(tf('khm_row_avg', { d: fmtDate(p.dateAvg) }))}</div>` : ''}`).join('');
-  const pace = `<div class="mrx-note">${esc(tf('khm_pace', { p: num(Math.round(k.pace.perSession * 10) / 10), m: num(Math.round(k.pace.perMonth)) }))}${k.monthsUsed < 2 ? ' · ' + esc(t('khm_basis_default')) : ''}</div>`;
+  const pace = `<div class="mrx-note">${esc(tf('khm_pace', { p: num(Math.round(k.pace.perSession * 10) / 10), m: num(Math.round(k.pace.perMonth)) }))}${k.monthsUsed < 2 ? ' · ' + esc(t('khm_basis_default')) : ''}${k.excludedMonths ? ' · ' + esc(tf('khm_excluded', { n: num(k.excludedMonths) })) : ''}</div>`;
   return `<div class="mrx pdf-block" id="mr-khm-block">${head}${pace}${rows}<div class="mrx-note">${esc(t('khm_foot'))}</div></div>`;
 }
 

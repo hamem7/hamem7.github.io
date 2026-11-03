@@ -68,7 +68,7 @@ const ar = {
     // التقرير: الختم
     khm_title: 'الطريق إلى ختم القرآن', khm_sub: 'تقدير مبني على وتيرة حفظ {name} الفعلية — وهو تقدير وليس وعدًا', khm_pos: 'موضع الحفظ الحالي', khm_pace: 'الوتيرة: ≈ {p} صفحة لكل حصة ({m} صفحة شهريًا)',
     khm_basis_default: 'تقدير مبدئي: لا بيانات كافية بعد', khm_m_juz: 'إتمام الجزء الحالي', khm_m_five: 'خمسة أجزاء', khm_m_quarter: 'ربع القرآن', khm_m_half: 'نصف القرآن', khm_m_khatm: 'ختم القرآن',
-    khm_row: '≈ {s} حصة — حتى {d}', khm_row_avg: 'وعلى نسبة حضوره الفعلية: حتى {d}', khm_done: 'أتمّه ✓', khm_none: 'لا بيانات كافية لتقدير الختم بعد (يلزم شهر واحد مقفل على الأقل).',
+    khm_row: '≈ {s} حصة — حتى {d}', khm_row_avg: 'وعلى نسبة حضوره الفعلية: حتى {d}', khm_done: 'أتمّه ✓', khm_none: 'لا يمكن تقدير الختم بصدق بعد: يلزم جدول حصص وشهر مقفل واحد على الأقل مؤكَّدة كل حصصه (حضر/غاب/لم تُعقد).', khm_excluded: 'استُبعد {n} شهر لعدم اكتمال تأكيد حضوره',
     khm_foot: 'المسار من سورة الناس إلى الفاتحة. التقدير يتغيّر بتغيّر الوتيرة والحضور.',
     // التقرير: خطة الشهر القادم
     pln_title: 'خطة الشهر القادم', pln_disclaimer: 'تصوّر مبدئي مقترح بناءً على أداء هذا الشهر، وهو قابل للتغيير حسب مستوى الطالب وظروف الحلقة، وليس التزامًا نهائيًا.',
@@ -129,7 +129,7 @@ const en = {
     tjr_learned: 'Rules whose lesson was completed', tjr_practiced: 'Rules whose practice was passed', tjr_exam: 'Rules whose exam was passed', tjr_exam_first: 'of them on first attempt', tjr_approved: 'Rules approved by the teacher', tjr_none: 'No tajweed activity recorded this month.',
     khm_title: 'The road to completing the Quran', khm_sub: 'An estimate based on {name}’s actual memorization pace — an estimate, not a promise', khm_pos: 'Current memorization position', khm_pace: 'Pace: ≈ {p} pages per session ({m} pages a month)',
     khm_basis_default: 'Preliminary estimate: not enough data yet', khm_m_juz: 'Finish the current juz', khm_m_five: 'Five juz', khm_m_quarter: 'A quarter of the Quran', khm_m_half: 'Half of the Quran', khm_m_khatm: 'Complete the Quran',
-    khm_row: '≈ {s} sessions — by {d}', khm_row_avg: 'At his/her actual attendance rate: by {d}', khm_done: 'Done ✓', khm_none: 'Not enough data to estimate yet (at least one closed month is needed).',
+    khm_row: '≈ {s} sessions — by {d}', khm_row_avg: 'At his/her actual attendance rate: by {d}', khm_done: 'Done ✓', khm_none: 'The completion estimate cannot be made honestly yet: a session schedule and at least one closed month with every session confirmed (attended/absent/not held) are required.', khm_excluded: '{n} month(s) left out: attendance not fully confirmed',
     khm_foot: 'The path runs from Surat An-Nas to Al-Fatihah. The estimate changes with pace and attendance.',
     pln_title: 'Next month’s plan', pln_disclaimer: 'A preliminary proposal based on this month’s performance. It may change according to the student’s level and circumstances, and is not a final commitment.',
     pln_new: 'New memorization', pln_new_val: 'About {n} pages over {s} sessions', pln_new_none: 'Set by the teacher once a closed month is recorded',
