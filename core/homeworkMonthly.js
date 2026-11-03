@@ -6,7 +6,8 @@
 // أي خلل هنا لا يجوز أن يمنع الواجب: كل الدوال المُصدَّرة محاطة بـ try/catch وتتجاهل الفشل (تبقى الشاشة بمظهرها العادي).
 // ==========================================================
 import { AppState } from './app.js';
-import { activeMonth, getTheme, themeColors, assetUrl, encouragement, FLAGS, COLOR_KEYS } from '../config/monthly-themes.js';
+import { activeMonth, getTheme, themeColors, assetUrl, encouragement, FLAGS, COLOR_KEYS, medalGoal, medalProgress, hijriKey } from '../config/monthly-themes.js';
+import { tf } from './i18n.js';
 
 let cssLoaded = false;
 const lang = () => (AppState.currentLang === 'en' ? 'en' : 'ar');
@@ -107,9 +108,25 @@ export function monthlyEncouragement(n, total) {
     try { const th = currentTheme(); return th ? encouragement(th, lang(), n, total) : null; } catch (e) { return null; }
 }
 
+// ---------- عدّاد الواجبات المؤكَّدة في الشهر الهجري (على جهاز الطالب) ----------
+// الوسام لا يُمنح بواجب واحد: يلزم medalGoal() واجبات مؤكَّدة في الشهر. التسجيل idempotent (نفس الواجب لا يُعدّ مرتين).
+const DONE_KEY = 'dh_hw_done';
+const nameKey = (s) => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+export function recordConfirmedHomework(studentName, hwId, ts) {
+    let store = {};
+    const mk = hijriKey(ts ? new Date(ts) : new Date()), key = nameKey(studentName) + '|' + mk;
+    try { store = JSON.parse(localStorage.getItem(DONE_KEY)) || {}; } catch (e) { store = {}; }
+    const list = Array.isArray(store[key]) ? store[key] : [];
+    if (hwId != null && !list.includes(String(hwId))) {
+        list.push(String(hwId)); store[key] = list;
+        try { localStorage.setItem(DONE_KEY, JSON.stringify(store)); } catch (e) { /* العدّ يبقى في الذاكرة لهذه المرة */ }
+    }
+    return medalProgress(list.length, medalGoal());
+}
+
 // ---------- نافذة الإنجاز (آخر صفحة) ----------
 // يُستدعى من renderSubmissionStatus: عند التأكيد الحقيقي من الخادم فقط تظهر مكافأة الشهر؛ في بقية الحالات تُزال.
-export function renderResultExtras(confirmed) {
+export function renderResultExtras(confirmed, ctx) {
     try {
         const modal = document.getElementById('hp-result-modal'); if (!modal) return;
         const icon = document.getElementById('hp-result-icon');
@@ -118,8 +135,19 @@ export function renderResultExtras(confirmed) {
         const th = currentTheme();
         if (!th || !confirmed) { if (icon) icon.style.display = ''; return; }
         activate(modal, th);
+        const prog = ctx ? recordConfirmedHomework(ctx.studentName, ctx.hwId, ctx.ts) : null;
         const x = th[lang()], box = document.createElement('div'); box.className = 'hm-result';
         const add = (el) => { if (el) box.appendChild(el); return el; };
+        if (prog && !prog.earned) {   // لم يبلغ العدد المطلوب بعد: تقدّم نحو الوسام بدل الوسام
+            const p = document.createElement('p'); p.className = 'hm-done';
+            p.textContent = tf('hm_goal_progress', { n: prog.count, goal: prog.goal });
+            const r = document.createElement('span'); r.className = 'hm-medal-label'; r.textContent = tf('hm_goal_remaining', { n: prog.remaining });
+            add(p); add(r);
+            if (icon) icon.style.display = '';
+            const score0 = document.getElementById('hp-result-score');
+            if (score0) score0.parentNode.insertBefore(box, score0.nextSibling); else card.insertBefore(box, card.firstChild);
+            return;
+        }
         if (FLAGS.DECO[th.n]) { const d = document.createElement('img'); d.className = 'hm-deco'; d.alt = ''; d.src = assetUrl(th.n, 'deco'); d.onerror = () => d.remove(); add(d); }
         if (FLAGS.MEDAL_IMG[th.n]) { const m = document.createElement('img'); m.className = 'hm-medal-img'; m.alt = x.medal; m.src = assetUrl(th.n, 'medal'); add(m); }
         else { const m = document.createElement('div'); m.className = 'hm-medal'; m.setAttribute('role', 'img'); m.setAttribute('aria-label', x.medal); const g = document.createElement('b'); g.textContent = th.glyph; m.appendChild(g); add(m); }

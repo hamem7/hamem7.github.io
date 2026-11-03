@@ -701,5 +701,5 @@ function renderSubmissionStatus(a) {
     }
     if (a.attempts) meta.push(t('hw_st_attempts') + ' ' + a.attempts);
     set('hp-result-meta', meta.join(' • '));
-    renderResultExtras(a.state === 'confirmed');   // 🌙 مكافأة الشهر (وسام/عبارة/شعار) عند التأكيد الحقيقي فقط
+    renderResultExtras(a.state === 'confirmed', { studentName: a.studentName || (typeof student !== 'undefined' && student ? student.name : ''), hwId: hw && hw.id, ts: a.confirmedAt });   // 🌙 مكافأة الشهر (وسام/عبارة/شعار) عند التأكيد الحقيقي فقط
 }

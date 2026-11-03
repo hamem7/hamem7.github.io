@@ -97,6 +97,30 @@ export function hijriMonth(date) {
     } catch (e) { return 0; }
 }
 
+// 🏅 شرط الوسام: إتمام عدد معيّن من الواجبات (المؤكَّدة) داخل الشهر الهجري الواحد، لا واجب واحد.
+// الافتراضي 5؛ للتجربة/الضبط: localStorage.dh_hm_goal = 1..50 على الجهاز.
+export const MEDAL_GOAL_DEFAULT = 5;
+export function medalGoal() {
+    try {
+        const g = parseInt(typeof localStorage !== 'undefined' ? localStorage.getItem('dh_hm_goal') : null, 10);
+        if (g >= 1 && g <= 50) return g;
+    } catch (e) { /* الافتراضي */ }
+    return MEDAL_GOAL_DEFAULT;
+}
+// مفتاح الشهر الهجري «سنة-شهر» (لفصل شهر عن نفس الشهر في سنة أخرى)؛ '' إن تعذّر.
+export function hijriKey(date) {
+    try {
+        const p = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { year: 'numeric', month: 'numeric' }).formatToParts(date || new Date());
+        const y = (p.find(x => x.type === 'year') || {}).value, m = (p.find(x => x.type === 'month') || {}).value;
+        return y && m ? parseInt(y, 10) + '-' + parseInt(m, 10) : '';
+    } catch (e) { return ''; }
+}
+// تقدّم الوسام: { count, goal, earned, remaining }
+export function medalProgress(count, goal) {
+    const g = goal >= 1 ? goal : MEDAL_GOAL_DEFAULT, c = Math.max(0, count | 0);
+    return { count: c, goal: g, earned: c >= g, remaining: Math.max(g - c, 0) };
+}
+
 // الشهر المعتمد: تجاوز اختباري (?hm= أو localStorage.dh_hm) ثم الشهر الهجري الحالي. 'off' = بلا ثيمة.
 export function activeMonth(opts) {
     const o = opts || {};

@@ -60,7 +60,7 @@ import { collectExtras, renderExtras } from './monthly-extras.js';
 import { getSurahInfo, calcMemorizationProgress } from '../engine/memorizationEngine.js';
 // 🌟 [جديد] "رحلة المراجعة" — ملخص مراجعة الأجزاء الخمسة (دالة خالصة، راجع engine/reviewParts.js)
 import { summarizeReview, ayahIndex, juzBounds, juzLabel, JUZ_COUNT } from '../engine/reviewParts.js';
-import { getTheme, hijriMonth } from '../config/monthly-themes.js';
+import { getTheme, hijriMonth, hijriKey, medalGoal } from '../config/monthly-themes.js';
 // 🌟 [تحديث] getAllSubmissionsFromCloud لم تعد تُستورد بشكل ثابت هنا فوق — راجع
 // سبب ذلك بالتفصيل عند نقطة استخدامها الوحيدة داخل buildMonthlyReportData أدناه
 // (قسم "2) الواجبات المنزلية").
@@ -665,11 +665,12 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // 🏅 وسام الشهر الهجري الذي يظهر للطالب في نهاية الواجب: لكل شهر هجري سُلِّم فيه واجب هذا الشهر
   const monthMedals = [];
   try {
-    const seenH = new Set();
+    const seenH = new Set(), perMonth = {}, goal = medalGoal();   // الوسام بعد إتمام goal واجبات في الشهر الهجري الواحد
+    homeworkEntries.forEach(e => { const k = hijriKey(new Date(e.timestamp)); perMonth[k] = (perMonth[k] || 0) + 1; });
     homeworkEntries.forEach(e => {
       const hm = hijriMonth(new Date(e.timestamp));
       const th = hm ? getTheme(hm) : null;
-      if (th && th.ar && th.ar.medal && !seenH.has(hm)) { seenH.add(hm); monthMedals.push({ n: hm, ar: th.ar.medal, en: th.en && th.en.medal }); }
+      if (th && th.ar && th.ar.medal && !seenH.has(hm) && perMonth[hijriKey(new Date(e.timestamp))] >= goal) { seenH.add(hm); monthMedals.push({ n: hm, ar: th.ar.medal, en: th.en && th.en.medal }); }
     });
   } catch (e) { /* لا ثيمة = لا وسام */ }
   const homeworkAvg = homeworkEntries.length

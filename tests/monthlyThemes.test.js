@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { THEMES, FLAGS, COLOR_KEYS, hijriMonth, activeMonth, getTheme, themeColors, assetUrl, encouragement } from '../config/monthly-themes.js';
+import { THEMES, FLAGS, COLOR_KEYS, hijriMonth, activeMonth, getTheme, themeColors, assetUrl, encouragement, medalProgress, MEDAL_GOAL_DEFAULT, hijriKey } from '../config/monthly-themes.js';
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('✅', m); } else { fail++; console.log('❌', m); } };
@@ -50,6 +50,14 @@ ok(assetUrl(3, 'hero', 'http://x/a/').endsWith('/a/m03-hero.webp'), 'مسار ا
 const th = getTheme(9);
 ok(encouragement(th, 'ar', 1, 10) === th.ar.enc[0] && encouragement(th, 'en', 3, 10) === th.en.enc[1] && encouragement(th, 'ar', 6, 10) === th.ar.enc[2] && encouragement(th, 'ar', 10, 10) === null, 'اختيار عبارة التشجيع حسب التقدّم');
 ok(COLOR_KEYS.length === 12, 'مفاتيح الألوان 12');
+
+
+// 🏅 شرط الوسام: عدد واجبات لا واجب واحد
+{ const a = medalProgress(1, 5), b = medalProgress(5, 5);
+  ok(!a.earned && a.remaining === 4, 'medalProgress: واجب واحد من 5 لا يكفي للوسام');
+  ok(b.earned && b.remaining === 0, 'medalProgress: يُمنح الوسام عند بلوغ العدد');
+  ok(medalProgress(0, 0).goal === MEDAL_GOAL_DEFAULT, 'medalProgress: هدف غير صالح ← الافتراضي');
+  ok(/^\d+-\d+$/.test(hijriKey(new Date('2026-03-01'))), 'hijriKey: صيغة سنة-شهر'); }
 
 console.log(`\n${pass} ناجح، ${fail} فاشل`);
 process.exit(fail ? 1 : 0);
