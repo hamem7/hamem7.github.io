@@ -847,7 +847,7 @@ export class QuranEngine {
                     const stem = wordStem(keys[i]);
                     if (keys[i].length < 4 || COMMON_WORDS.has(stem) || singles.has(stem)) continue;
                     const set = index.stemSurahs.get(stem);
-                    singles.set(stem, { text: words[i], stems: [stem], phrase: false, surahs: set ? set.size : 1 });
+                    singles.set(stem, { text: words[i], stems: [stem], phrase: false, surahs: set ? set.size : 1, ayah });
                 }
                 // 🌟 للأطفال: كلمتان فقط تسهيلاً عليهم، ويجب أن تحوي إحداهما كلمة مميِّزة (ليست وظيفية/شائعة)
                 for (let len = 2; len <= (isKids ? 2 : 3); len++) {
@@ -855,7 +855,7 @@ export class QuranEngine {
                         const stems = keys.slice(i, i + len).map(wordStem);
                         if (stems.some(st => st.length < 2)) continue;
                         if (isKids && !stems.some((st, j) => keys[i + j].length >= 4 && !COMMON_WORDS.has(st))) continue;
-                        phrases.push({ text: words.slice(i, i + len).join(' '), stems, keys: keys.slice(i, i + len), phrase: true });
+                        phrases.push({ text: words.slice(i, i + len).join(' '), stems, keys: keys.slice(i, i + len), phrase: true, ayah });
                     }
                 }
             }
@@ -906,7 +906,7 @@ export class QuranEngine {
             if (acc.length > best.length || (acc.length === best.length && score(acc) > score(best))) best = acc;
         }
         if (best.length < 2) return null;
-        const pairs = best.map(p => ({ number: p.number, name: p.name, word: p.text }));
+        const pairs = best.map(p => ({ number: p.number, name: p.name, word: p.text, ayah: p.ayah }));
 
         let starts = pairs.map(p => ({ id: p.number, text: p.word })).sort(() => Math.random() - 0.5);
         let ends = pairs.map(p => ({ id: p.number, text: p.name })).sort(() => Math.random() - 0.5);
@@ -923,6 +923,8 @@ export class QuranEngine {
             // 🌟 نفس شكل original الذي كانت تُرجعه generateOrderSurahsGame (numberInSurah = رقم
             // السورة) — يبقى مفيداً لـrecordAnswer في كلا ملفي اللعبة كخط رجوع عند غياب ayahObj 🌟
             original: pairs.map(p => ({ text: p.name, numberInSurah: p.number, surahNumber: p.number, surahName: p.name })),
+            // الآية التي أُخذت منها الكلمة (تُعرض كاملة مع اسم السورة عند «لا أعرف هذه»)
+            ayahRefs: pairs.filter(p => p.ayah).map(p => ({ id: p.number, text: p.ayah.text, numberInSurah: p.ayah.numberInSurah, surahName: p.name })),
             surahName: namesList,
             reportText: `${isKids ? "ربط كلمة بسورتها" : "ربط كلمات بسورها"}: ${namesList}`
         };

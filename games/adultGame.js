@@ -1449,8 +1449,18 @@ function showLinkRevealCard(data, id, onDone) {
     let pendingRef = null;
     const body = document.createElement('div');
     body.className = 'link-reveal-body quran-text';
-    if (/word_surah/.test(data.type || '')) {
-        // اربط الكلمة بسورتها: الكلمة (قرآنية) ← اسم السورة (بحروف لاتينية في الإنجليزية)
+    // الآية كاملة بين قوسين + اسم السورة ورقم الآية (في «اربط أول الآية بآخرها» و«اربط الكلمة بسورتها»)
+    const isWS = /word_surah/.test(data.type || '');
+    const full = isWS
+        ? (Array.isArray(data.ayahRefs) ? data.ayahRefs.find(a => a.id === id) : null)
+        : (Array.isArray(data.original) ? data.original.find(a => `${a.surahNumber}-${a.numberInSurah}` === String(id)) : null);
+    if (full && full.text) {
+        body.textContent = '﴿\u00A0' + full.text + '\u00A0﴾';
+        pendingRef = document.createElement('div');
+        pendingRef.className = 'link-reveal-ref';
+        pendingRef.textContent = tf('game_ref_label', { name: surahNameLocal(full.surahName), n: full.numberInSurah });
+    } else if (isWS) {
+        // احتياط (سؤال مُعاد بناؤه من سجل الضعف بلا آيته): الكلمة ← اسم السورة
         const w = document.createElement('span');
         w.className = 'quran-text';
         w.textContent = s ? s.text : '';
@@ -1465,17 +1475,7 @@ function showLinkRevealCard(data, id, onDone) {
         body.className = 'link-reveal-body';
         body.append(w, document.createTextNode(' ⟵ '), sur);
     } else {
-        // اربط أول الآية بآخرها: الآية كاملة بين قوسين + اسم السورة ورقم الآية
-        const full = Array.isArray(data.original) ? data.original.find(a => `${a.surahNumber}-${a.numberInSurah}` === String(id)) : null;
-        if (full && full.text) {
-            body.textContent = '﴿\u00A0' + full.text + '\u00A0﴾';
-            const ref = document.createElement('div');
-            ref.className = 'link-reveal-ref';
-            ref.textContent = tf('game_ref_label', { name: surahNameLocal(full.surahName), n: full.numberInSurah });
-            pendingRef = ref;
-        } else {
-            body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
-        }
+        body.textContent = (s ? s.text : '') + ' ' + (e ? e.text : '');
     }
     const bar = document.createElement('div');
     bar.className = 'link-reveal-bar';
