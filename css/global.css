@@ -34,6 +34,9 @@
 
 /* إعدادات الشاشات والانتقالات */
 .screen { display: none; width: 100%; max-width: 1200px; padding: 2rem; animation: fadeIn 0.5s ease; text-align: center; margin: 0 auto; }
+/* ركن التجويد (tajweed/tajweed-map.html): صفحة أعرض وهوامش أقل حتى يتّسع الخط الكبير للأطفال */
+.screen.tjc-screen { max-width: 1400px; padding: 1.5rem 1rem; }
+@media (max-width: 560px) { .screen.tjc-screen { padding: .75rem .4rem; } }
 .screen.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
