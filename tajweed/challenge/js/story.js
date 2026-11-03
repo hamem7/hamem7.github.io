@@ -14,8 +14,8 @@ import { art } from './art.js';
 import { t, tx, num, getLang } from './i18n.js';
 import { esc, ayahHTML, audioBtn, lanternHTML, mediaHTML, ayahLabel, ruleName, badge } from './ui.js';
 import { exploreHTML, bindExplore } from './mushaf-explore.js';
-import { AREAS, AREA_IDS, SIFAT } from '../data/know.js';
-import { stopCandidates, STOP_LABEL } from './know-engine.js';
+import { AREAS, AREA_IDS, SIFAT, MAKHARIJ17, SIFA_PAIRS, SIFA_SINGLE } from '../data/know.js';
+import { stopCandidates, STOP_LABEL, silahCandidates, waslCandidates, waqfExamples } from './know-engine.js';
 import { bindAudio, showToast } from './play.js';
 import { stopAudio } from './audio.js';
 import * as store from './store.js';
@@ -25,6 +25,7 @@ export const hasStory = (id) => !!STORIES[id];
 const MODE_KEY = 'tjc.story.mode';
 const getMode = () => { try { return localStorage.getItem(MODE_KEY) === 'scroll' ? 'scroll' : 'slides'; } catch { return 'slides'; } };
 const setMode = (m) => { try { localStorage.setItem(MODE_KEY, m); } catch { /* لا تخزين */ } };
+const T2 = (ar, en) => ({ ar, en });
 const nl = (s) => esc(s).replace(/\n/g, '<br>');
 const COIN_HUES = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
 
@@ -121,6 +122,14 @@ function block(b, key) {
   if (b.stepsT) return `<ol class="st-steps">${b.stepsT.map((h, i) => `<li><span class="n">${num(i + 1)}</span><p>${esc(tx(h))}</p></li>`).join('')}</ol>`;
   if (b.areas) return `<div class="st-areas">${AREA_IDS.map((a, i) => { const A2 = AREAS[a]; return `<div class="st-area"><div class="st-area-h"><b>${esc(tx(A2.name))}</b><small>${esc(tx(A2.kid))}</small></div><div class="st-coins small" dir="rtl">${A2.letters.map((ch, k) => coin(ch, i + k)).join('') || '<span class="st-hum">〰️ 〰️</span>'}</div>${bookFig(A2.book)}</div>`; }).join('')}</div>`;
   if (b.sifat) return `<div class="st-sifat">${Object.values(SIFAT).map((g, i) => `<div class="st-sifa"><b>${esc(tx(g.name))}</b><p class="quran-text st-mn-line" lang="ar" dir="rtl">${esc(g.mn)}</p><div class="st-coins small" dir="rtl">${g.letters.map((ch, k) => coin(ch, i * 2 + k)).join('')}</div><p class="muted">${esc(tx(g.kid))}</p></div>`).join('')}</div>`;
+  // أمثلة من بنك الآيات للدروس الجديدة (الكلمة المعنية مظلّلة، والوسم يشرح الحكم)
+  const tagged = (tag, key, hl) => `<div class="st-stop"><span class="st-stop-tag">${esc(tag)}</span>${ayahCard(key, hl)}</div>`;
+  if (b.silahEx) { const c = silahCandidates(); const short = (arr) => arr.slice().sort((a, b2) => POOL[a.key].w.length - POOL[b2.key].w.length)[0]; return `<div class="st-ayahs">${[['sughra', T2('صلة صغرى: حركتان', 'Lesser silah: 2 counts')], ['kubra', T2('صلة كبرى قبل همزة: ٤ أو ٥', 'Greater silah before a hamza: 4–5')], ['stop', T2('في آخر الآية: نقف بهاء ساكنة', 'At the ayah end: stop with a silent haa')]].map(([k, lab]) => { const x = short(c[k]); return x ? tagged(tx(lab), x.key, { [x.i]: { [x.c]: 'cause' } }) : ''; }).join('')}</div>`; }
+  if (b.waslEx) { const c = waslCandidates(); const first = (arr) => arr.find((x) => POOL[x.key].w.length <= 7) || arr[0]; return `<div class="st-ayahs">${[['fatha', T2('«ال»: نبدأ بالفتح', '“al”: start with fatha')], ['kasra', T2('ثالثه مفتوح أو مكسور: نبدأ بالكسر', 'Third letter fatha or kasra: start with kasra')], ['damma', T2('ثالثه مضموم: نبدأ بالضمّ', 'Third letter damma: start with damma')]].map(([k, lab]) => { const x = first(c[k]); return x ? tagged(tx(lab), x.key, { [x.i]: { 0: 'cause' } }) : ''; }).join('')}</div>`; }
+  if (b.waqfEx) return `<div class="st-ayahs">${waqfExamples().map((e) => tagged(`🛑 ${tx(e.label)}`, e.key, e.hl)).join('')}</div>`;
+  if (b.makharij17) return `<ol class="st-m17">${MAKHARIJ17.map((m, i) => `<li class="st-sifa"><b>${num(m.n)} · ${esc(tx(m.name))}</b><div class="st-coins small" dir="rtl">${m.letters.map((ch, k) => coin(ch === 'ه' ? 'هـ' : ch, i + k)).join('') || '<span class="st-hum">〰️ 〰️</span>'}</div><p class="muted">${esc(tx(m.kid))}</p></li>`).join('')}</ol>`;
+  if (b.sifaPairs) return `<div class="st-sifat">${SIFA_PAIRS.map((p, i) => `<div class="st-sifa">${p.parts.map((x) => `<b>${esc(tx(x.name))}</b>${x.mn ? `<p class="quran-text st-mn-line" lang="ar" dir="rtl">${esc(x.mn)}</p>` : `<p class="muted">${esc(t('st_rest_letters'))}</p>`}<p class="muted">${esc(tx(x.kid))}</p>`).join('<hr class="st-vs">')}</div>`).join('')}</div>`;
+  if (b.sifaSingle) return `<div class="st-sifat">${SIFA_SINGLE.map((g, i) => `<div class="st-sifa"><b>${esc(tx(g.name))}</b><div class="st-coins small" dir="rtl">${g.letters.map((ch, k) => coin(ch, i + k)).join('')}</div><p class="muted">${esc(tx(g.kid))}</p></div>`).join('')}</div>`;
   if (b.stops) { const c = stopCandidates(); return `<div class="st-ayahs">${['sukun', 'alif', 'ha', 'asis'].map((k) => { const key = c[k].find((x) => POOL[x].w.length <= 6) || c[k][0]; const w = POOL[key].w.length - 1; return `<div class="st-stop"><span class="st-stop-tag">🛑 ${esc(tx(STOP_LABEL[k]))}</span>${ayahCard(key, { [w]: { [wordClusters(POOL[key].w[w]).length - 1]: 'cause' } })}</div>`; }).join('')}</div>`; }
   return '';
 }

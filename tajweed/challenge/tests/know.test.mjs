@@ -1,7 +1,9 @@
 // tests/know.test.mjs — أسئلة «دروس المعرفة» (js/know-engine.js): كل مستوى ٥ أسئلة، إجابة واحدة صحيحة موجودة بين الخيارات،
 // خيارات بلا تكرار، شرح بلغتين؛ وقواعد ثابتة: مخرج الحرف، عضوية الصفات، طريقة الوقف من رسم الكلمة.
 import { KNOW, buildKnowLevel, areaOf, stopKind, SIFAT, AREAS, genSifaYesNo, genSifaWhich, genAreaLetter, genSameArea, genAreaOdd, genSifaBoth, genSifaCount, sifaCount } from '../js/know-engine.js';
-import { BANKS } from '../data/know.js';
+import { BANKS, MAKHARIJ17 } from '../data/know.js';
+import * as KE from '../js/know-engine.js';
+import { POOL } from '../data/pool.js';
 import { rng } from '../js/engine.js';
 
 let n = 0, asserts = 0; const errors = [];
@@ -23,6 +25,22 @@ for (const id of Object.keys(KNOW)) for (const lv of [1, 2, 3]) for (let seed = 
 }
 // آداب التلاوة: كل مستوى من بنكه (lv)
 for (let seed = 1; seed <= 40; seed++) for (const lv of [1, 3]) { const lvOf = Object.fromEntries(BANKS.mushaf_adab.map((b) => [b.id, b.lv])); const qs = buildKnowLevel('mushaf_adab', lv, seed); ok(qs.filter((q) => lvOf[q.kind.split(':')[1]] === lv).length >= (lv === 1 ? 5 : 4), `آداب L${lv}: أسئلة من مستوى آخر`); }
+// الدروس الجديدة: قواعد ثابتة
+{ const c = KE.silahCandidates(); ok(c.sughra.length > 20 && c.kubra.length >= 3 && c.stop.length >= 3, 'صلة: أمثلة قليلة');
+  for (const x of c.kubra) ok(/^[\u0621\u0623\u0625\u0622]/.test(POOL[x.key].w[x.i + 1]), `صلة كبرى بلا همزة بعدها ${x.key}`);
+  for (const x of c.sughra) ok(!/^[\u0621\u0623\u0625\u0622]/.test(POOL[x.key].w[x.i + 1]), `صلة صغرى بعدها همزة ${x.key}`);
+  for (const x of c.stop) ok(x.i === POOL[x.key].w.length - 1, 'صلة الوقف ليست آخر الآية');
+  for (const x of c.none) ok(!/[\u06E5\u06E6]/.test(POOL[x.key].w[x.i]) && POOL[x.key].w[x.i + 1].startsWith('\u0671'), `لا صلة ${x.key}`); }
+{ const w = KE.waslCandidates(); ok(w.fatha.length && w.kasra.length, 'همزة وصل: أمثلة');
+  for (const x of w.fatha) ok(POOL[x.key].w[x.i].startsWith('\u0671\u0644'), 'فتح بلا «ال»');
+  ok(KE.waslKind('ٱسۡجُدُوا۟').v === 'damma' && KE.waslKind('ٱهۡدِنَا').v === 'kasra' && KE.waslKind('ٱسۡمَ').v === 'kasra' && KE.waslKind('ٱلۡحَمۡدُ').v === 'fatha' && KE.waslKind('ٱمۡشُوا۟').v === 'kasra', 'همزة وصل: القاعدة'); }
+ok(MAKHARIJ17.length === 17 && MAKHARIJ17.reduce((n, m) => n + (m.area === 'lisan' ? 1 : 0), 0) === 10, '١٧ مخرجًا، ١٠ في اللسان');
+{ const r2 = rng(9); for (let i = 0; i < 300; i++) {
+  const a = KE.genM17Area(r2, { hard: i % 2 === 0 }); ok(MAKHARIJ17.find((m) => String(m.n) === a.answer).letters.includes(a.media.letter) && a.options.filter((o) => MAKHARIJ17.find((m) => String(m.n) === o.id).letters.includes(a.media.letter)).length === 1, 'مخرج تفصيلي: إجابة واحدة');
+  const b = KE.genM17Letter(r2); const m = MAKHARIJ17.find((x) => String(x.n) === b.kind.split(':')[1]); ok(b.options.filter((o) => m.letters.includes(o.id)).length === 1, 'حرف المخرج: إجابة واحدة');
+  const p = KE.genSifaPairOf(r2); ok(KE.sifatOf(p.media.letter).includes(p.answer) && p.options.filter((o) => KE.sifatOf(p.media.letter).includes(o.id)).length === 1, 'زوج الصفات: إجابة واحدة');
+  const h = KE.genSifaHas(r2); ok(h.options.filter((o) => KE.sifatOf(h.media.letter).includes(o.id)).length === 1, 'صفة الحرف: إجابة واحدة');
+  const s1 = KE.genSifaSingle(r2); ok(s1.options.filter((o) => KE.sifatOf(o.id).includes(s1.kind.split(':')[1])).length === 1, 'صفة مميّزة: إجابة واحدة'); } }
 // قواعد ثابتة
 ok(areaOf('ع') === 'halq' && areaOf('ق') === 'lisan' && areaOf('ب') === 'shafatan' && areaOf('ف') === 'shafatan', 'مخارج');
 const r = rng(5);

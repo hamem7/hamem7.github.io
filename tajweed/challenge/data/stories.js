@@ -463,6 +463,101 @@ const KNOW_STORIES = {
     ],
     recap: [T('الهمس: «فحثه شخص سكت» يجري معها النفَس.', 'Hams: «فحثه شخص سكت», breath flows.'), T('الاستعلاء: «خص ضغط قظ» حروف مفخّمة دائمًا.', 'Istiʿla’: «خص ضغط قظ», always heavy.'), T('القلقلة: «قطب جد» تقفز إذا سكنت.', 'Qalqalah: «قطب جد», bounce when silent.')]
   },
+  know_silah: {
+    title: T('الهاء التي تمسك بيد صديقتها 🤝', 'The Haa That Holds a Friend’s Hand 🤝'), mins: 8, cover: { art: 'silah' },
+    hook: T('لماذا نمدّ الهاء في «لَهُو» ولا نمدّها في «لَهْ» عند الوقف؟', 'Why do we stretch the haa when reading on, but not when we stop?'),
+    goals: [T('يعرف علامة الصلة: واو أو ياء صغيرة بعد هاء الضمير.', 'Knows the silah mark: a small waw or yaa after the pronoun haa.'), T('يفرّق بين الصلة الصغرى (حركتان) والكبرى قبل الهمزة (٤ أو ٥).', 'Tells lesser silah (2 counts) from greater silah before a hamza (4–5).'), T('يقف على الهاء ساكنة بلا مدّ.', 'Stops on the haa as silent, with no madd.')],
+    slides: [
+      { icon: '🤝', k: T('الحكاية', 'The story'), t: T('هاء تمسك بيد واو صغيرة', 'A haa holding a small waw’s hand'),
+        b: [{ row: [{ kid: T('هاء الضمير (لهُ، بهِ) إذا كانت بين حرفين متحرّكين أمسكت بيد صديقة صغيرة:\n• المضمومة تمسك واوًا صغيرة.\n• المكسورة تمسك ياءً صغيرة.\nفنمدّها كأنّ الحرف الصغير مكتوب.', 'When the pronoun haa sits between two voweled letters it holds a little friend’s hand:\n• with damma it holds a small waw;\n• with kasra it holds a small yaa.\nSo we stretch it as if that little letter were written.') }, { art: 'silah' }] }],
+        tip: T('اكتب «لَهُ» على السبورة ثم أضف واوًا صغيرة بلون مختلف، واطلب من الأطفال قراءتها بالمدّ.', 'Write the haa on the board, then add a small waw in a different colour and ask the children to read it stretched.') },
+      { icon: '📏', k: T('نوعان', 'Two kinds'), t: T('صغرى وكبرى', 'Lesser and greater'),
+        b: [{ def: T('الصلة الصغرى: لا يأتي بعد الهاء همزة، فتُمدّ حركتين.\nالصلة الكبرى: يأتي بعد الهاء همزة قطع، فتُمدّ أربعًا أو خمسًا كالمد المنفصل، وتُكتب فوق الحرف الصغير مدّة.', 'Lesser silah: no hamza after the haa — two counts.\nGreater silah: a hamza comes after the haa — four or five counts like munfasil, with a madd sign over the small letter.') },
+          { check: { q: T('جاءت بعد الهاء همزة. كم حركة نمدّ؟', 'A hamza comes after the haa. How many counts?'), opts: [{ t: T('أربع أو خمس', 'Four or five'), ok: true, fb: T('أحسنت! هذه صلة كبرى.', 'Well done! That is greater silah.') }, { t: T('حركتان', 'Two'), fb: T('حركتان للصغرى، أما قبل الهمزة فأربع أو خمس.', 'Two is for the lesser one; before a hamza it is four or five.') }] } }],
+        tip: T('اجعل الأطفال يعدّون على أصابعهم: إصبعان للصغرى، وأربعة أو خمسة للكبرى.', 'Have the children count on their fingers: two for lesser, four or five for greater.') },
+      { icon: '📖', k: T('في القرآن', 'In the Qur’an'), t: T('شاهدها واسمعها', 'See and hear it'), b: [{ silahEx: true }],
+        tip: T('شغّل كل آية واطلب من الأطفال أن يرفعوا إصبعين عند الصغرى وخمسة عند الكبرى.', 'Play each ayah; children raise two fingers for lesser silah and five for greater.') },
+      { icon: '🛑', k: T('انتبه', 'Watch out'), t: T('لا صلة عند الوقف', 'No silah when stopping'),
+        b: [{ warn: T('إذا وقفنا على الهاء نقف بهاء ساكنة ولا نمدّ.\nوإذا جاء بعد الهاء حرف ساكن (مثل «ال») لا تُكتب الواو الصغيرة ولا نمدّ.', 'If we stop on the haa we stop with a silent haa and no madd.\nIf a silent letter follows the haa (like “al”), no small waw is written and there is no madd.') },
+          { check: { q: T('وقفنا على كلمة آخرها هاء بعدها واو صغيرة. كيف ننطقها؟', 'We stop on a word ending in a haa with a small waw. How do we say it?'), opts: [{ t: T('هاء ساكنة', 'A silent haa'), ok: true, fb: T('صحيح! الصلة في الوصل فقط.', 'Right! Silah is only when reading on.') }, { t: T('نمدّ حركتين', 'Stretch two counts'), fb: T('عند الوقف لا نمدّ.', 'When stopping we do not stretch.') }] } }],
+        tip: T('اقرأ آخر آية مرة بالوصل ومرة بالوقف، ودع الأطفال يميّزون الفرق.', 'Read an ayah end once joined and once stopped; let the children hear the difference.') }
+    ],
+    recap: [T('هاء الضمير بين متحرّكين: واو أو ياء صغيرة نمدّها.', 'The pronoun haa between two voweled letters: a small waw or yaa we stretch.'), T('صغرى: حركتان · كبرى قبل الهمزة: ٤ أو ٥.', 'Lesser: 2 counts · greater before a hamza: 4–5.'), T('عند الوقف، أو قبل ساكن: لا صلة.', 'When stopping, or before a silent letter: no silah.')]
+  },
+  know_wasl: {
+    title: T('الهمزة المختفية 🫥', 'The Disappearing Hamza 🫥'), mins: 8, cover: { art: 'hamza_wasla' },
+    hook: T('همزة تختفي إذا وصلنا، وتظهر إذا بدأنا. فبأيّ حركة تظهر؟', 'A hamza that hides when we join and appears when we start. With which vowel does it appear?'),
+    goals: [T('يعرف أن همزة الوصل تسقط في وسط الكلام.', 'Knows hamzat al-wasl drops mid-speech.'), T('يبدأ «ال» بالفتح.', 'Starts “al” with fatha.'), T('ينظر إلى الحرف الثالث في الفعل: مضموم ← ضمّ، وإلا ← كسر.', 'Looks at the verb’s third letter: damma → damma, otherwise → kasra.')],
+    slides: [
+      { icon: '🫥', k: T('الحكاية', 'The story'), t: T('همزة تلعب الغمّيضة', 'A hamza playing hide-and-seek'),
+        b: [{ row: [{ kid: T('همزة الوصل (ٱ) تختبئ إذا وصلنا الكلام، فلا نسمعها.\nفإذا بدأنا بها خرجت من مخبئها، ولبست واحدة من ثلاث حركات:\n• فتحة في «ال».\n• ضمّة إذا كان ثالث الفعل مضمومًا.\n• كسرة في غير ذلك.', 'Hamzat al-wasl (ٱ) hides when we join speech, so we do not hear it.\nWhen we start with it, it comes out and wears one of three vowels:\n• fatha in “al”;\n• damma if the verb’s third letter has damma;\n• kasra otherwise.') }, { art: 'hamza_wasla' }] }],
+        tip: T('العب «اختبئ واظهر»: يصل الأطفال كلمتين فتختفي الهمزة، ثم يبدؤون بالثانية فتظهر.', 'Play “hide and appear”: join two words so the hamza hides, then start with the second so it appears.') },
+      { icon: '🔢', k: T('القاعدة', 'The rule'), t: T('عُدّ إلى الحرف الثالث', 'Count to the third letter'),
+        b: [{ stepsT: [T('هل الكلمة تبدأ بـ«ال»؟ ابدأ بالفتح: أَلْ.', 'Does the word start with “al”? Start with fatha: al-.'), T('هل هي من الأسماء: اسم، ابن، امرؤ، اثنان…؟ ابدأ بالكسر.', 'Is it one of the nouns ism, ibn, imru’, ithnan…? Start with kasra.'), T('هل هي فعل؟ انظر إلى الحرف الثالث: مضموم ← ابدأ بالضمّ، مفتوح أو مكسور ← ابدأ بالكسر.', 'Is it a verb? Look at the third letter: damma → start with damma; fatha or kasra → start with kasra.')] },
+          { check: { q: T('ثالث الفعل مكسور. بأيّ حركة نبدأ؟', 'The verb’s third letter has kasra. Which vowel do we start with?'), opts: [{ t: T('الكسرة', 'Kasra'), ok: true, fb: T('أحسنت!', 'Well done!') }, { t: T('الضمّة', 'Damma'), fb: T('الضمّ فقط إذا كان الثالث مضمومًا.', 'Damma only if the third letter has damma.') }, { t: T('الفتحة', 'Fatha'), fb: T('الفتح في «ال» فقط.', 'Fatha is only for “al”.') }] } }],
+        tip: T('اكتب أفعالًا تعليمية (اُكتب، اِذهب، اِرجع) وعدّوا الحروف معًا حتى الثالث.', 'Write practice verbs (uktub, idhhab, irjiʿ) and count the letters together up to the third.') },
+      { icon: '📖', k: T('في القرآن', 'In the Qur’an'), t: T('ثلاث حركات للبدء', 'Three starting vowels'), b: [{ waslEx: true }],
+        tip: T('اطلب من كل طفل أن يبدأ القراءة من الكلمة المظلّلة بصوت عالٍ.', 'Ask each child to start reading aloud from the highlighted word.') },
+      { icon: '⚠️', k: T('انتبه', 'Watch out'), t: T('ضمّ عارض', 'A temporary damma'),
+        b: [{ warn: T('في أفعال قليلة ضمّ الحرف الثالث عارض لأجل الواو بعده، فنبدأ بالكسر: اِمشوا، اِقضوا، اِبنوا، اِئتوا.', 'In a few verbs the third letter’s damma is only there because of the waw after it, so we start with kasra: imshū, iqḍū, ibnū, i’tū.') }],
+        tip: T('هذه للمتقدّمين؛ يكفي الصغار «ال» بالفتح والقاعدة العامة.', 'This is for advanced pupils; young ones only need “al” with fatha and the general rule.') }
+    ],
+    recap: [T('همزة الوصل تسقط في الوصل وتُنطق في البدء.', 'Hamzat al-wasl drops when joining and is said when starting.'), T('«ال» ← فتح · ثالث الفعل مضموم ← ضمّ.', '“al” → fatha · verb’s third letter damma → damma.'), T('ثالثه مفتوح أو مكسور، والأسماء (اسم، ابن…) ← كسر.', 'Third letter fatha or kasra, and the nouns (ism, ibn…) → kasra.')]
+  },
+  know_waqf_types: {
+    title: T('أين أقف؟ 🚦', 'Where Do I Stop? 🚦'), mins: 9, cover: { art: 'waqf_types' },
+    hook: T('إذا انقطع نفَسك في وسط الآية، أين تقف؟ ومن أين تكمل؟', 'If you run out of breath mid-ayah, where do you stop, and where do you continue?'),
+    goals: [T('يعرف أنواع الوقف الأربعة: التامّ والكافي والحسن والقبيح.', 'Knows the four kinds of stop: complete, sufficient, good and bad.'), T('يعرف أن الوقف على رؤوس الآي سنّة.', 'Knows that stopping at ayah ends is a sunnah.'), T('يبتدئ من كلام يستقيم به المعنى.', 'Starts again from words whose meaning is sound.')],
+    slides: [
+      { icon: '🚦', k: T('الحكاية', 'The story'), t: T('محطات القطار', 'Train stations'),
+        b: [{ row: [{ kid: T('الآية مثل رحلة قطار، وفيها محطات:\n• محطة كبيرة ينتهي عندها الكلام كله (تامّ).\n• محطة جيدة تمّ عندها المعنى (كافٍ وحسن).\n• ومكان ليس محطة؛ لو نزلت فيه ضاع المعنى (قبيح).', 'An ayah is like a train ride with stations:\n• a big station where everything ends (complete);\n• good stations where the meaning is done (sufficient and good);\n• and places that are not stations — get off there and the meaning is lost (bad).') }, { art: 'waqf_types' }] }],
+        tip: T('ارسم خط قطار على السبورة وضع عليه محطات بألوان الأنواع الأربعة.', 'Draw a railway on the board with stations coloured by the four kinds.') },
+      { icon: '📘', k: T('الأنواع الأربعة', 'The four kinds'), t: T('من الأتمّ إلى القبيح', 'From complete to bad'),
+        b: [{ def: T('التامّ: يتمّ المعنى ولا يتعلّق ما بعده به لفظًا ولا معنى.\nالكافي: يتمّ المعنى ويتعلّق ما بعده به في المعنى فقط.\nالحسن: يتمّ المعنى ويتعلّق ما بعده به في اللفظ.\nالقبيح: لا يتمّ المعنى.', 'Complete: the meaning is done; what follows is not linked in wording or meaning.\nSufficient: the meaning is done; what follows is linked in meaning only.\nGood: the meaning is done; what follows is linked in wording.\nBad: the meaning is not done.') },
+          { check: { q: T('وقف لم يتمّ عنده المعنى:', 'A stop where the meaning is not complete:'), opts: [{ t: T('قبيح', 'Bad'), ok: true, fb: T('صحيح! لا نقف عليه إلا لضرورة.', 'Right! Only out of need.') }, { t: T('تامّ', 'Complete'), fb: T('التامّ يتمّ عنده المعنى كله.', 'Complete means the meaning is fully done.') }] } }],
+        tip: T('أعطِ كل نوع حركة يد: كفّ مفتوحة للتامّ، وإبهام للكافي والحسن، وعلامة ✋ للقبيح.', 'Give each kind a hand sign: open palm for complete, thumbs up for sufficient/good, a stop hand for bad.') },
+      { icon: '📖', k: T('في القرآن', 'In the Qur’an'), t: T('أمثلة مشهورة', 'Famous examples'), b: [{ waqfEx: true }],
+        tip: T('اقرأ كل مثال وقف عند الكلمة المظلّلة، واسأل الأطفال: هل تمّ المعنى؟', 'Read each example and stop at the highlighted word; ask the children: is the meaning complete?') },
+      { icon: '↩️', k: T('الابتداء', 'Starting again'), t: T('من أين أكمل؟', 'Where do I continue?'),
+        b: [{ stepsT: [T('على رأس آية: قف، فهو سنّة، ثم ابدأ بالآية التالية.', 'At an ayah end: stop — it is a sunnah — then start the next ayah.'), T('بعد وقف تامّ أو كافٍ: ابدأ بما بعده.', 'After a complete or sufficient stop: start with what follows.'), T('بعد وقف حسن في وسط الآية أو وقف قبيح: ارجع إلى كلمة يصحّ البدء بها.', 'After a good stop mid-ayah, or a bad stop: go back to a word where it is right to start.')] }],
+        tip: T('درّبهم على «الرجوع خطوة»: وقفة للنفَس ثم إعادة كلمة أو كلمتين قبلها.', 'Practise “one step back”: a breath, then repeat a word or two before.') }
+    ],
+    recap: [T('التامّ والكافي: نقف ونبدأ بما بعده.', 'Complete and sufficient: stop and start with what follows.'), T('الحسن في وسط الآية والقبيح: نرجع عند الابتداء.', 'Good mid-ayah, and bad: go back when starting again.'), T('الوقف على رؤوس الآي سنّة.', 'Stopping at ayah ends is a sunnah.')]
+  },
+  know_makharij2: {
+    title: T('عناوين الحروف في الفم 🏠', 'The Letters’ Addresses in the Mouth 🏠'), mins: 12, cover: { art: 'makharij17' },
+    hook: T('عرفنا الأحياء الخمسة؛ فما عنوان كل حرف بالضبط؟', 'We know the five neighbourhoods — but what is each letter’s exact address?'),
+    goals: [T('يعرف أن المخارج التفصيلية سبعة عشر.', 'Knows there are seventeen detailed points.'), T('يعرف مخارج الحلق الثلاثة وحروفها.', 'Knows the three throat points and their letters.'), T('يربط كل حرف من حروف اللسان بمخرجه.', 'Links each tongue letter to its point.')],
+    slides: [
+      { icon: '🏠', k: T('الحكاية', 'The story'), t: T('من الحيّ إلى البيت', 'From neighbourhood to house'),
+        b: [{ row: [{ kid: T('في درس المخارج عرفنا خمسة أحياء.\nواليوم نعرف عنوان كل حرف بالضبط:\nفي الجوف بيت واحد، وفي الحلق ثلاثة، وفي اللسان عشرة، وفي الشفتين اثنان، وفي الخيشوم واحد.\nالمجموع سبعة عشر بيتًا!', 'In the articulation lesson we met five neighbourhoods.\nToday we learn each letter’s exact address:\none house in the jawf, three in the throat, ten on the tongue, two at the lips and one in the nose.\nSeventeen houses in all!') }, { art: 'makharij17' }] }],
+        tip: T('ابدأ هذا الدرس بعد إتقان المخارج الخمسة؛ وراجعها أولًا بلعبة سريعة.', 'Start this lesson only after the five areas are mastered; review them first with a quick game.') },
+      { icon: '🗺️', k: T('السبعة عشر', 'The seventeen'), t: T('عنوان كل حرف', 'Every letter’s address'), b: [{ makharij17: true }],
+        tip: T('خذ كل يوم مخرجًا أو اثنين: انطق الحرف ساكنًا بعد همزة مفتوحة (أَقْ، أَكْ) لتحسّ بمكانه.', 'Take one or two points a day: say the letter silent after a hamza with fatha (aq, ak) to feel its place.') },
+      { icon: '✅', k: T('اختبر نفسك', 'Test yourself'), t: T('أين يسكن؟', 'Where does it live?'),
+        b: [{ check: { q: T('من أين تخرج الضاد؟', 'Where does ḍaad come from?'), opts: [{ t: T('حافّة اللسان مع الأضراس العليا', 'The edge of the tongue with the upper molars'), ok: true, fb: T('أحسنت! وهذا سرّ صعوبتها.', 'Well done! That is why it is hard.') }, { t: T('طرف اللسان مع الثنايا', 'The tongue tip with the front teeth'), fb: T('هذا مخرج الطاء والدال والتاء.', 'That is the point of ṭaa, dal and taa.') }] } }],
+        tip: T('قارن بين الظاء والضاد: مخرجان مختلفان رغم تشابه الشكل.', 'Compare ẓaa and ḍaad: two different points despite similar shapes.') }
+    ],
+    recap: [T('١٧ مخرجًا: ١ جوف، ٣ حلق، ١٠ لسان، ٢ شفتان، ١ خيشوم.', '17 points: 1 jawf, 3 throat, 10 tongue, 2 lips, 1 nose.'), T('الحلق: ء هـ · ع ح · غ خ.', 'Throat: ء هـ · ع ح · غ خ.'), T('ق ثم ك من أقصى اللسان، وج ش ي من وسطه.', 'ق then ك from the back of the tongue; ج ش ي from its middle.')]
+  },
+  know_sifat2: {
+    title: T('أزواج الحروف وصفاتها الخاصة 🎭', 'Letter Pairs and Special Qualities 🎭'), mins: 12, cover: { art: 'sifat_pairs' },
+    hook: T('لكل حرف خمس صفات من خمسة أزواج، وبعض الحروف لها صفة خاصة!', 'Every letter has five qualities from five pairs — and some letters have a special one!'),
+    goals: [T('يعرف الأزواج الخمسة المتضادة.', 'Knows the five opposite pairs.'), T('يحفظ الكلمات الجامعة: فحثه شخص سكت، أجد قط بكت، لن عمر، خص ضغط قظ، فرّ من لبّ.', 'Memorises the phrases for each pair.'), T('يعرف الصفات السبع المميّزة وحروفها.', 'Knows the seven special qualities and their letters.')],
+    slides: [
+      { icon: '🎭', k: T('الحكاية', 'The story'), t: T('بطاقة هوية لكل حرف', 'An ID card for every letter'),
+        b: [{ row: [{ kid: T('لكل حرف بطاقة هوية فيها خمس خانات، في كل خانة يختار واحدة من زوج:\nهامس أو مجهور، شديد أو متوسّط أو رخو، مستعلٍ أو مستفل، مُطبَق أو منفتح، مُذلَق أو مُصمَت.\nوبعض الحروف لها خانة إضافية خاصة بها!', 'Every letter has an ID card with five boxes; in each box it picks one from a pair:\nwhispered or voiced, strong/in-between/soft, raised or lowered, closed or open, fluent or restrained.\nAnd some letters have an extra special box!') }, { art: 'sifat_pairs' }] }],
+        tip: T('اصنع مع الأطفال «بطاقة هوية» لحرف واحد كل حصة واملأوا خاناتها معًا.', 'Make an “ID card” for one letter each lesson and fill in its boxes together.') },
+      { icon: '⚖️', k: T('الأزواج الخمسة', 'The five pairs'), t: T('لكل صفة ضدّ', 'Every quality has an opposite'), b: [{ sifaPairs: true }],
+        tip: T('احفظوا الكلمات الجامعة بإيقاع، والحروف الباقية تأخذ الصفة المقابلة.', 'Chant the phrases; the remaining letters take the opposite quality.') },
+      { icon: '⭐', k: T('صفات مميّزة', 'Special qualities'), t: T('سبع صفات بلا ضدّ', 'Seven with no opposite'), b: [{ sifaSingle: true }],
+        tip: T('اربط كل صفة بصوت: صفّارة للصفير، كرة للقلقلة، رشّاش للتفشّي.', 'Link each to a sound: a whistle for safir, a ball for qalqalah, a sprinkler for tafashi.') },
+      { icon: '✅', k: T('اختبر نفسك', 'Test yourself'), t: T('من صاحب الصفة؟', 'Whose quality is it?'),
+        b: [{ check: { q: T('أيّ حرف فيه صفة التفشّي؟', 'Which letter has the quality of spreading (tafashi)?'), opts: [{ g: 'ش', ok: true, fb: T('صحيح! ينتشر الهواء مع الشين.', 'Right! The air spreads with sheen.') }, { g: 'س', fb: T('السين فيها الصفير.', 'Seen has whistling.') }, { g: 'ر', fb: T('الراء فيها التكرير والانحراف.', 'Raa has repetition and deviation.') }] } }],
+        tip: T('هذا درس للمستوى المتقدّم؛ لا تطلب من الصغار حفظ الصفات كلها دفعة واحدة.', 'This is an advanced lesson; do not ask young pupils to memorise all the qualities at once.') }
+    ],
+    recap: [T('خمسة أزواج متضادة: لكل حرف واحدة من كل زوج.', 'Five opposite pairs: every letter has one from each.'), T('الكلمات الجامعة: فحثه شخص سكت · أجد قط بكت · لن عمر · خص ضغط قظ · فرّ من لبّ.', 'Phrases: فحثه شخص سكت · أجد قط بكت · لن عمر · خص ضغط قظ · فرّ من لبّ.'), T('سبع صفات مميّزة: الصفير والقلقلة واللين والانحراف والتكرير والتفشّي والاستطالة.', 'Seven special: whistling, bouncing, softness, deviation, repetition, spreading, lengthening.')]
+  },
   know_waqf: {
     title: T('كيف أقف؟ 🛑', 'How Do I Stop? 🛑'), mins: 7, cover: { art: 'waqf_end' },
     hook: T('ماذا يحدث لآخر الكلمة إذا وقفنا عليها؟', 'What happens to the end of a word when we stop on it?'),

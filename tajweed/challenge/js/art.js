@@ -234,5 +234,28 @@ Object.assign(ART, {
 });
 void getLang;
 
+// ───────────── الصلة، أنواع الوقف، المستوى المتقدّم ─────────────
+Object.assign(ART, {
+  silah: () => svg(420, 210, `<g class="a-word"><rect x="236" y="20" width="160" height="80" rx="20"/>${glyph(316, 78, 'ـهُۥ', 50, 'cause')}</g><g class="a-word"><rect x="26" y="20" width="160" height="80" rx="20"/>${glyph(106, 78, L('كلمة', 'word'), 26)}</g>
+      <path class="a-bridge" d="M236 60 q-25 -34 -50 0"/>${cap(316, 116, L('واو صغيرة بعد الهاء', 'small waw after haa'), 'soft', 12.5)}
+      ${counts(90, 150, 2, 'gold')}${cap(110, 182, L('صغرى: حركتان', 'lesser: 2 counts'), 'b', 13)}${counts(250, 150, 5, 'gold')}${cap(305, 182, L('كبرى قبل همزة: ٤ أو ٥', 'greater before hamza: 4–5'), 'b', 13)}`,
+    L('مد الصلة: هاء الضمير تتصل بواو أو ياء صغيرة', 'Madd as-silah: the pronoun haa joins with a small waw or yaa')),
+  waqf_types: () => {
+    const st = (x, cls, icon, a, e, sa, se) => `<g class="a-sgrp ${cls}"><rect x="${x - 46}" y="24" width="92" height="140" rx="18"/><text x="${x}" y="72" text-anchor="middle" font-size="32">${icon}</text>${cap(x, 104, L(a, e), 'b', 14)}${cap(x, 126, L(sa[0], se[0]), 'soft', 11.5)}${cap(x, 142, L(sa[1], se[1]), 'soft', 11.5)}</g>`;
+    return svg(420, 190, `${st(362, 'g1', '🏁', 'تامّ', 'Complete', ['تمّ المعنى', 'لا تعلّق'], ['meaning done', 'no link'])}${st(260, 'g2', '✅', 'كافٍ', 'Sufficient', ['تمّ المعنى', 'تعلّق معنى'], ['meaning done', 'linked meaning'])}${st(158, 'g3', '👍', 'حسن', 'Good', ['تمّ المعنى', 'تعلّق لفظ'], ['meaning done', 'linked words'])}${st(56, 'g4', '⛔', 'قبيح', 'Bad', ['لم يتمّ', 'المعنى'], ['meaning', 'not done'])}
+      ${cap(210, 182, L('كلما اتجهنا يسارًا قلّ تمام المعنى', 'Further left, the meaning is less complete'), 'b gold', 12.5)}`, L('أنواع الوقف الأربعة', 'The four kinds of stopping'));
+  },
+  makharij17: () => {
+    const zone = (x, y, w, n, a, e) => `<g class="a-sgrp g${(n % 4) + 1}"><rect x="${x}" y="${y}" width="${w}" height="44" rx="14"/>${cap(x + w / 2, y + 20, num(n), 'b', 16)}${cap(x + w / 2, y + 37, L(a, e), 'soft', 11)}</g>`;
+    return svg(420, 220, `${zone(330, 20, 80, 1, 'الجوف', 'jawf')}${zone(230, 20, 90, 3, 'الحلق', 'throat')}${zone(30, 20, 190, 10, 'اللسان', 'tongue')}${zone(230, 80, 90, 2, 'الشفتان', 'lips')}${zone(330, 80, 80, 1, 'الخيشوم', 'nose')}
+      ${cap(210, 160, L('١ + ٣ + ١٠ + ٢ + ١ = ١٧ مخرجًا', '1 + 3 + 10 + 2 + 1 = 17 points'), 'b gold', 16)}${cap(210, 190, L('المخارج الخمسة العامة تتفرّع إلى ١٧', 'The five general areas branch into 17'), 'soft', 12.5)}`, L('سبعة عشر مخرجًا', 'Seventeen articulation points'));
+  },
+  sifat_pairs: () => {
+    const pair = (y, a, b, ea, eb) => `<g class="a-sgrp g1"><rect x="230" y="${y}" width="150" height="30" rx="12"/>${cap(305, y + 20, L(a, ea), 'b', 12.5)}</g><path class="a-line" d="M228 ${y + 15} H192"/><g class="a-sgrp g2"><rect x="40" y="${y}" width="150" height="30" rx="12"/>${cap(115, y + 20, L(b, eb), 'b', 12.5)}</g>`;
+    return svg(420, 230, `${cap(210, 18, L('خمسة أزواج متضادة: لكل حرف واحدة من كل زوج', 'Five opposite pairs: each letter has one of each'), 'b gold', 12.5)}
+      ${pair(30, 'الهمس', 'الجهر', 'whisper', 'voiced')}${pair(66, 'الشدّة', 'الرخاوة (والتوسّط)', 'strong', 'soft (in-between)')}${pair(102, 'الاستعلاء', 'الاستفال', 'raised', 'lowered')}${pair(138, 'الإطباق', 'الانفتاح', 'closed', 'open')}${pair(174, 'الإذلاق', 'الإصمات', 'fluent', 'restrained')}
+      ${cap(210, 224, L('وسبع صفات مميّزة: الصفير، القلقلة، اللين، الانحراف، التكرير، التفشّي، الاستطالة', '+ 7 special: whistle, bounce, soft, deviate, repeat, spread, lengthen'), 'soft', 11)}`, L('صفات الحروف كلها', 'All the letter qualities'));
+  }
+});
 export const ART_IDS = Object.keys(ART);
 export function art(id) { return ART[id] ? ART[id]() : ''; }

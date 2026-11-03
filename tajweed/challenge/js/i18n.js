@@ -167,6 +167,7 @@ const D = {
   st_begin: { ar: 'هيا نبدأ', en: 'Let’s begin' },
   st_tip: { ar: 'فكرة للمعلم داخل الفصل', en: 'Classroom idea for the teacher' },
   st_kid: { ar: 'حكيم يحكي لك', en: 'Hakeem the owl says' },
+  st_rest_letters: { ar: 'بقية الحروف', en: 'All the other letters' },
   st_def: { ar: 'للمعلم: التعريف عند العلماء', en: 'For the teacher: the scholarly definition' },
   st_cr_mushaf: { ar: 'من المصحف المطبوع', en: 'From the printed mushaf' },
   st_cr_book: { ar: 'رسم من كتاب «التجويد المصوّر» — د. أيمن رشدي سويد', en: 'Drawing from “Illustrated Tajweed” — Dr. Ayman Rushdi Suwayd' },

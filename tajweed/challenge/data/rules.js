@@ -90,8 +90,9 @@ export const STAGES = [
   { id: 'idgham', level: 'l_sakin', hue: 'rose', icon: 'merge', name: T('المثلان والمتجانسان والمتقاربان', 'Identical, Related & Neighbouring Letters'), blurb: T('حرفان يلتقيان فيصيران حرفًا مشدّدًا واحدًا', 'Two letters meet and become one doubled letter'), rules: ['mithlain', 'mutajanisain', 'mutaqaribain'] },
   { id: 'makharij', level: 'l_makharij', hue: 'sky', icon: 'mouth', name: T('المخارج والصفات', 'Articulation & Qualities'), blurb: T('من أين يخرج كل حرف؟ وما الحروف الهامسة والثقيلة والنطّاطة؟', 'Where does each letter come from? Which letters whisper, which are heavy, which bounce?'), rules: ['know_makharij', 'know_sifat'] },
   { id: 'madd', level: 'l_madd', hue: 'sky', icon: 'madd', name: T('المدود', 'Maddat (Elongation)'), blurb: T('المد الطبيعي والمتصل والمنفصل', 'Natural, connected and separated elongation'), rules: ['madd_tabii', 'madd_muttasil', 'madd_munfasil'] },
-  { id: 'madd2', level: 'l_madd', hue: 'teal', icon: 'madd', name: T('مدود أخرى', 'More Maddat'), blurb: T('العارض للسكون واللين والبدل واللازم', 'ʿArid, leen, badal and lazim'), rules: ['madd_aridh', 'madd_leen', 'madd_badal', 'madd_lazim'] },
-  { id: 'waqf', level: 'l_madd', hue: 'violet', icon: 'stop', name: T('الوقف على أواخر الكلمات', 'Stopping at Word Ends'), blurb: T('كيف ننطق آخر الكلمة إذا وقفنا عليها؟', 'How do we say the end of a word when we stop on it?'), rules: ['know_waqf'] }
+  { id: 'madd2', level: 'l_madd', hue: 'teal', icon: 'madd', name: T('مدود أخرى', 'More Maddat'), blurb: T('العارض للسكون واللين والبدل واللازم والصلة', 'ʿArid, leen, badal, lazim and silah'), rules: ['madd_aridh', 'madd_leen', 'madd_badal', 'madd_lazim', 'know_silah'] },
+  { id: 'waqf', level: 'l_madd', hue: 'violet', icon: 'stop', name: T('الوقف والابتداء', 'Stopping and Starting'), blurb: T('كيف أقف على آخر الكلمة؟ وأين أقف؟ وكيف أبدأ بهمزة الوصل؟', 'How do I stop on a word? Where do I stop? How do I start with hamzat al-wasl?'), rules: ['know_waqf', 'know_waqf_types', 'know_wasl'] },
+  { id: 'advanced', level: 'l_advanced', hue: 'rose', icon: 'mouth', name: T('المخارج والصفات بالتفصيل', 'Articulation & Qualities in Detail'), blurb: T('مستوى لاحق: ١٧ مخرجًا وصفات الحروف كلها', 'A later level: 17 articulation points and all the letter qualities'), rules: ['know_makharij2', 'know_sifat2'] }
 ];
 // المستويات: تجمع المحطات بالترتيب الذي يُدرَّس به (الرئيسية تعرض مستوى واحدًا في كل مرة)
 export const GROUPS = [
@@ -101,7 +102,8 @@ export const GROUPS = [
   { id: 'l_tafkhim', icon: '🎈', name: T('التفخيم والترقيق', 'Heavy & Light') },
   { id: 'l_sakin', icon: '🔗', name: T('الحرف الساكن', 'The Silent Letter') },
   { id: 'l_makharij', icon: '👄', name: T('المخارج والصفات', 'Articulation & Qualities') },
-  { id: 'l_madd', icon: '📏', name: T('المدّ والوقف', 'Madd & Stopping') }
+  { id: 'l_madd', icon: '📏', name: T('المدّ والوقف', 'Madd & Stopping') },
+  { id: 'l_advanced', icon: '🎓', name: T('مستوى متقدّم', 'Advanced Level') }
 ];
 export const groupOf = (stageId) => GROUPS.find((g) => g.id === STAGES.find((s) => s.id === stageId)?.level);
 
