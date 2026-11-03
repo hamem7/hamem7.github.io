@@ -3,6 +3,8 @@ import { starsSuffix } from '../core/goldStars.js';
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
 import { resolveRange, monthlyStaleness } from '../engine/trackingEngine.js';
 import { juzBounds, ayahIndex } from '../engine/reviewParts.js';
+import { studentExtras, extraSurahSlices, scopeSlices, describeExtra } from '../engine/memoScope.js';   // السور الإضافية خارج المسار المتصل
+import '../core/i18n-memoscope.js';
 import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../components/juzAmmaCoverageNote.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
 import { openKidsGameScreen } from '../games/kidsGame.js';   
@@ -13,6 +15,7 @@ const KIDS_MIN_JUZ = 26;
 
 export function populateDashboardData() {
     studentRange = null;
+    extraSegs = []; extraSlices = [];
     try { adultScope = localStorage.getItem('dh_adult_scope') === 'student' ? 'student' : 'all'; } catch (e) { adultScope = 'all'; }
     // 🌟 [إصلاح فحص الأزرار] عرض اسم الطالب في شريحة اللوحة (كانت فارغة بمعرّف مكرر) 🌟
     const _chip = document.getElementById('dash-student-chip');
@@ -72,6 +75,12 @@ export function populateDashboardData() {
 let studentRange = null;      // نتيجة resolveRange الصالحة للطالب الحالي أو null
 let adultScope = 'all';       // تفضيل المعلم: 'all' | 'student'
 let _rangeLoadRun = 0;
+// 🌟 السور الإضافية للطالب الحالي (student.memoExtra بعد التنظيف): مقاطع + شرائح لكل سورة. تُحمَّل مع النطاق وتُستعمل داخل «نطاق حفظ الطالب» فقط.
+let extraSegs = [];
+let extraSlices = [];
+const extraSliceOf = (n) => extraSlices.find(x => x.surah === n) || null;
+const extraAyahTotal = () => extraSlices.reduce((a, x) => a + x.count, 0);
+const nameForAr = (n) => ((AppState.surahsData || []).find(s => s.number === n) || {}).name || String(n);
 
 function effectiveScope() {
     return (!AppState.isKidsMode && adultScope === 'student' && studentRange) ? 'student' : 'all';
@@ -80,10 +89,12 @@ function effectiveScope() {
 function scopeRange() { return effectiveScope() === 'student' ? studentRange : null; }
 function inStudentScope(n) {
     const r = scopeRange();
-    return !r || (n <= r.fromSurah && n >= r.toSurah && n !== 1);
+    return !r || (n <= r.fromSurah && n >= r.toSurah && n !== 1) || !!extraSliceOf(n);
 }
 function partialSuffix(surah) {
     const r = scopeRange();
+    const x = r && extraSliceOf(surah.number);
+    if (x) return ' — ' + t('sx_tag') + (x.full ? '' : ` (${x.from}–${x.to})`);   // سورة إضافية (كاملة أو جزء منها)
     if (!r || surah.number !== r.toSurah || r.frontierAyah >= surah.ayahsCount) return '';
     return ' — ' + tf('scope_partial', { a: r.frontierAyah });
 }
@@ -96,6 +107,7 @@ function juzCoverage(k) {
     const cnt = (n) => (sd.find(x => x.number === n) || {}).ayahsCount || 0;
     const mem = [[ayahIndex(sd, r.toSurah, 1), ayahIndex(sd, r.toSurah, Math.min(r.frontierAyah, cnt(r.toSurah)))]];
     if (r.toSurah + 1 <= r.fromSurah) mem.push([ayahIndex(sd, r.toSurah + 1, 1), ayahIndex(sd, r.fromSurah, cnt(r.fromSurah))]);
+    extraSegs.forEach(e => mem.push([ayahIndex(sd, e.s1, e.a1), ayahIndex(sd, e.s2, e.a2)]));   // السور الإضافية تُحتسب في تغطية الجزء
     const covered = mem.reduce((sum, [a, z]) => sum + Math.max(0, Math.min(hi, z) - Math.max(lo, a) + 1), 0);
     return covered <= 0 ? 'none' : covered >= hi - lo + 1 ? 'full' : 'part';
 }
@@ -110,7 +122,11 @@ async function loadStudentRange() {
         const r = resolveRange(AppState.surahsData, student, records);
         if (r.ok) found = r;
     }
-    if (run === _rangeLoadRun) studentRange = found;
+    if (run === _rangeLoadRun) {
+        studentRange = found;
+        extraSegs = (found && student) ? studentExtras(AppState.surahsData, student) : [];
+        extraSlices = extraSurahSlices(AppState.surahsData, extraSegs);
+    }
 }
 
 function applyAdultScope() {
@@ -129,6 +145,7 @@ function applyAdultScope() {
         const nm = (n) => surahNameLocal((AppState.surahsData.find(s => s.number === n) || {}).name || '');
         note.textContent = !studentRange ? t('scope_no_range')
             : eff === 'student' ? tf('scope_student_note', { name: AppState.currentStudent.name, from: nm(studentRange.fromSurah), to: nm(studentRange.toSurah) })
+                + (extraSlices.length ? ' — ' + tf('sx_game_extra_note', { n: extraAyahTotal().toLocaleString('en-US') }) : '')
             : t('scope_all_note');
     }
     const pill = document.getElementById('eval-all-pill'), lbl = document.getElementById('eval-all-label');
@@ -271,7 +288,8 @@ async function refreshAllInfo() {
     allRange = { from, to };
     const nm = (n) => surahNameLocal(AppState.surahsData.find(s => s.number === n).name);
     rangeEl.textContent = tf('kids_all_range', { from: nm(from), to: nm(to) })
-        + (kids && r.toSurah < KIDS_MIN_SURAH ? ' — ' + t('kids_all_capped') : '');
+        + (kids && r.toSurah < KIDS_MIN_SURAH ? ' — ' + t('kids_all_capped') : '')
+        + (!kids && extraSegs.length ? ' + ' + extraSegs.map(e => describeExtra(e, AppState.surahsData, surahNameLocal, { ayah: t('sx_ayah_word'), to: '←' })).join('، ') : '');
 
     const st = monthlyStaleness(records, Date.now());
     const stale = !st.hasRecords || st.days > KIDS_ALL_STALE_DAYS;
@@ -314,6 +332,10 @@ export function setupDashboardListeners() {
             surahNum: parseInt(document.getElementById('surah-select')?.value),
             startAyah: parseInt(document.getElementById('ayah-from')?.value),
             endAyah: parseInt(document.getElementById('ayah-to')?.value),
+            // 🌟 سور إضافية: «كل النطاق» = المتصل + الإضافي، و«من - إلى» داخل نطاق الطالب يُقصر على ما حفظه
+            extraSlices: (isRangeMode && isAll && extraSlices.length) ? extraSlices.map(x => ({ surah: x.surah, from: x.from, to: x.to })) : undefined,
+            extraSegs: (isRangeMode && isAll && extraSegs.length) ? extraSegs : undefined,
+            scopeSlices: (isRangeMode && !isAll && effectiveScope() === 'student' && extraSlices.length) ? scopeSlices(AppState.surahsData, Object.assign({}, AppState.currentStudent, { memoExtra: extraSegs })) : undefined,
             rangeFrom: (isRangeMode && isAll && allRange) ? allRange.from : parseInt(document.getElementById('range-from-surah')?.value),
             rangeTo: (isRangeMode && isAll && allRange) ? allRange.to : parseInt(document.getElementById('range-to-surah')?.value),
             juzNum: parseInt(document.getElementById('juz-select')?.value),
@@ -401,4 +423,7 @@ function updateAyahRange() {
         toSelect.appendChild(new Option(tf('dash_ayah_label', { n: i }), i)); 
     }
     toSelect.value = surah.ayahsCount;
+    // سورة إضافية جزئية: يبدأ المدى على الجزء الذي حفظه الطالب فقط (يمكن للمعلم تغييره)
+    const ex = scopeRange() && extraSliceOf(surahNum);
+    if (ex && !ex.full) { fromSelect.value = ex.from; toSelect.value = ex.to; }
 }

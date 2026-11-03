@@ -11,6 +11,7 @@ import { openReportScreen } from '../reports/report.js';
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
 import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, setActiveChunkOffset, newChunkOffset, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
 import { setSeenStudent, recordSeen } from '../engine/seenLedger.js';
+import { filterPoolBySlices, describeExtra } from '../engine/memoScope.js';   // نطاق الطالب مع السور الإضافية
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 // 🌟 [جديد] ملخص نهاية "جلسة إصلاح الأخطاء عند الدخول" — راجع components/fixErrorsPrompt.js
@@ -384,9 +385,17 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 GameState.evalRangeText = tfAr('adult_juz_text', { n: config.juzNum });
             } else if(config.isRangeMode) {
                 ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.rangeFrom, config.rangeTo);
+                // 🌟 نطاق الطالب فيه سور إضافية: «من - إلى» يُقصر على ما حفظه فعلاً (لا تدخل السور غير المحفوظة بين المقطعين)
+                if (Array.isArray(config.scopeSlices) && config.scopeSlices.length) ayahsPool = filterPoolBySlices(ayahsPool, config.scopeSlices);
                 let sNameF = AppState.surahsData.find(s => s.number === config.rangeFrom).name; 
                 let sNameT = AppState.surahsData.find(s => s.number === config.rangeTo).name; 
                 GameState.evalRangeText = tfAr('adult_range_text', { sfrom: sNameF, sto: sNameT });
+                // 🌟 «كل النطاق»: المسار المتصل + السور الإضافية معاً (يُذكر الإضافي في نص التقرير)
+                if (Array.isArray(config.extraSlices) && config.extraSlices.length) {
+                    ayahsPool = ayahsPool.concat(await AppState.quranEngine.getAyahsBySlices(config.extraSlices));
+                    const nm = (n) => (AppState.surahsData.find(s => s.number === n) || {}).name || String(n);
+                    GameState.evalRangeText += ' + ' + (config.extraSegs || []).map(e => describeExtra(e, AppState.surahsData, nm)).join('، ');
+                }
             } else {
                 let surah = await AppState.quranEngine.getSurah(config.surahNum); 
                 ayahsPool = AppState.quranEngine.getAyahsInRange(surah, config.startAyah, config.endAyah); 
