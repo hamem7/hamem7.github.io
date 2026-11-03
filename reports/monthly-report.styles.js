@@ -122,7 +122,7 @@ export const MONTHLY_REPORT_STYLES = `
   #report-screen .note-bar textarea{border-radius:12px; min-height:56px;}
 
   #report-screen .mr-err-surah{font-size:11.5px; color:#6f644e; font-weight:700; margin-bottom:3px;}
-  #report-screen .mr-err-ayah{font-size:1.15rem; line-height:2; text-align:start;}
+  #report-screen .mr-err-ayah{font-size:inherit; text-align:start; display:block; background:none; border:0; border-radius:0; padding:0; color:inherit;}
 
   /* ============== 🌟 [جديد] مفتاح "نبرة الملاحظة التلقائية" (رسمية/دافئة) ============== */
   #report-screen .mr-tone-toggle{display:inline-flex; align-items:center; gap:8px; margin-top:8px;}
