@@ -365,13 +365,13 @@ export function skillSummaryForWindow(events, fromTs, toTs) {
 
 // تغطية المراجعة في نافذة زمنية: كم آية مختلفة من مسار حفظ الطالب ظهرت في اختباراته وواجباته، وأي السور لم يُسأل عنها.
 // تُحسب الأحداث الحيّة فقط (اختبار/واجب)، لا أخطاء القائمة ولا الاستيراد القديم، وبشرط رقم آية داخل المسار (الحدث بلا آية لا يُحتسب).
-export function coverageForWindow(events, path, fromTs, toTs, extraKeys = null) {
+export function coverageForWindow(events, path, fromTs, toTs, extraKeys = null, onlyKeys = false) {
     if (!path || !path.total) return null;
     const seen = new Set();
     // آية داخل المسار؟ (حتى حد التقدّم في كل مقطع)
     const inPath = (s, a) => path.segments.some(seg => seg.surah === s && a >= seg.from && a <= seg.limit);
     const add = (k) => { const m = /^(\d+):(\d+)$/.exec(String(k)); if (m && inPath(+m[1], +m[2])) seen.add(`${+m[1]}:${+m[2]}`); };
-    (events || []).forEach(e => {
+    (onlyKeys ? [] : (events || [])).forEach(e => {
         if (e.ts < fromTs || e.ts >= toTs || (e.source !== 'game' && e.source !== 'homework')) return;
         const seg = path.byId.get(e.segment);
         if (!seg || !Number.isInteger(e.ayah) || e.ayah < seg.from || e.ayah > seg.limit) return;   // الحدث بلا آية داخل المسار لا يُحتسب
@@ -387,7 +387,7 @@ export function coverageForWindow(events, path, fromTs, toTs, extraKeys = null) 
     seen.forEach(k => surahSeen.add(+k.split(':')[0]));
     const missing = [...surahTotals.keys()].filter(n => !surahSeen.has(n));
     return {
-        tested: seen.size, total: path.total, pct: Math.round(seen.size / path.total * 100),
+        keys: [...seen], tested: seen.size, total: path.total, pct: Math.round(seen.size / path.total * 100),
         surahsCovered: surahSeen.size, surahsTotal: surahTotals.size, missing
     };
 }

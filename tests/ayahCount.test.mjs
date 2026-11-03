@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 const store = new Map();
 globalThis.localStorage = { getItem: k => store.has(k) ? store.get(k) : null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
-const { gameQuestionAyahCount, estimateGameEventAyahs, homeworkQuestionAyahCount, homeworkAyahTotal, reviewCountsForMonth, shownAyahKeys, gameShownAyahKeys } = await import('../engine/ayahCount.js');
+const { gameQuestionAyahCount, estimateGameEventAyahs, homeworkQuestionAyahCount, homeworkAyahTotal, reviewCountsForMonth, shownAyahKeys, gameShownAyahKeys, distinctReviewForMonth } = await import('../engine/ayahCount.js');
 
 let pass = 0, fail = 0;
 const t = (n, f) => { try { f(); pass++; console.log('PASS ', n); } catch (e) { fail++; console.log('FAIL ', n, '\n   ', e.message); } };
@@ -72,6 +72,14 @@ t('الآيات الظاهرة في سؤال اللعبة', () => {
     assert.deepEqual(gameShownAyahKeys({ type: 'link_ends', original: [a(2, 3), a(2, 9)], ayahObj: a(2, 3) }), ['2:3', '2:9']);
     assert.deepEqual(gameShownAyahKeys({ type: 'recite', reciteAyahs: [{ num: 4 }, { num: 5 }], ayahObj: a(60, 4) }), ['60:4', '60:5']);
     assert.deepEqual(gameShownAyahKeys({ type: 'link_word_surah', ayahObj: a(1, 1) }), []);
+});
+t('الآيات المختلفة: تكرار الآية يُحسب مرة، والمشتركة بين الألعاب والواجب تُنسب للألعاب', () => {
+    const nov = new Date(2026, 10, 5).getTime(), oct = new Date(2026, 9, 5).getTime();
+    const r = distinctReviewForMonth({
+        games: [{ ts: nov, k: ['2:1', '2:2'] }, { ts: nov + 1, k: ['2:2', '2:3'] }, { ts: oct, k: ['9:9'] }],
+        homework: [{ ts: nov, k: ['2:3', '2:4', '2:5'] }]
+    }, 2026, 10);
+    assert.equal(r.games, 3); assert.equal(r.homework, 2); assert.equal(r.total, 5); assert.equal(new Set(r.keys).size, 5);
 });
 console.log(`\n${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);

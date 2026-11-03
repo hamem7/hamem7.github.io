@@ -882,26 +882,23 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب ملخص المهارات:', e);
   }
 
-  // تغطية المراجعة لهذا الشهر (null لو لا نطاق حفظ أو لا أحداث بآيات)
+  // «دفتر المراجعة» وتغطية المراجعة من مصدر واحد: الآيات المختلفة التي ظهرت للطالب هذا الشهر (ألعاب + واجب عند التسليم).
+  // الإجمالي = عدد الآيات في «اختُبر الطالب في X من Y آية» نفسه (الآية تُحسب مرة واحدة ولو تكررت)
   let coverage = null, reviewAyahs = null;
   try {
-    const svc = await import('../core/trackingService.js');
-    // آيات الواجب المسلَّم (من «دفتر المراجعة») تدخل التغطية أيضاً فيتّفق الرقمان
-    let hwKeys = [];
-    try {
-      const rl0 = await import('../core/reviewLog.js');
-      await Promise.race([rl0.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);   // آيات الواجبات من الخادم (مهلة قصيرة)
-      hwKeys = rl0.homeworkKeysInMonth(student, year, monthIndex0);
-    } catch (e) { /* اختياري */ }
-    coverage = await svc.getMonthCoverage(student, year, monthIndex0, hwKeys);
-  } catch (e) {
-    console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
-  }
-  // «دفتر المراجعة»: كم آية ظهرت للطالب هذا الشهر (الألعاب الفردية + الواجب المنزلي عند التسليم) — مصدر وسام «بطل المراجعة».
-  // نحدّث آيات الواجبات من الخادم أولاً (مهلة قصيرة؛ بلا اتصال نكتفي بالنسخة المحلية)
-  try {
     const rl = await import('../core/reviewLog.js');
-    reviewAyahs = rl.reviewCountsForMonth(await rl.reviewAyahItems(student), year, monthIndex0);
+    await Promise.race([rl.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);   // آيات الواجبات من الخادم (مهلة قصيرة)
+    const dm = (await import('../engine/ayahCount.js')).distinctReviewForMonth(await rl.reviewAyahItems(student), year, monthIndex0);
+    reviewAyahs = { games: dm.games, homework: dm.homework, total: dm.total };
+    try {
+      const svc = await import('../core/trackingService.js');
+      coverage = await svc.getMonthCoverage(student, year, monthIndex0, dm.keys, true);
+    } catch (e) { console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e); }
+    if (coverage) {   // نحصر الإجمالي في الآيات داخل محفوظ الطالب ليتطابق الرقمان تماماً
+      const inCov = new Set(coverage.keys);
+      const g = dm.gameKeys.filter(k => inCov.has(k)).length, h = dm.homeworkKeys.filter(k => inCov.has(k)).length;
+      reviewAyahs = { games: g, homework: h, total: g + h };
+    }
   } catch (e) {
     console.error('[monthly-report.js] تعذر حساب دفتر المراجعة:', e);
   }

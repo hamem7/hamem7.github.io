@@ -17,6 +17,7 @@ import { summarizeMonth, evidenceDays, hasSchedule, collectEvidenceTimestamps } 
 
 const monthKey = (y, m) => `${y}-${String(m + 1).padStart(2, '0')}`;
 const range = (y, m) => [new Date(y, m, 1).getTime(), new Date(y, m + 1, 1).getTime()];
+import { distinctReviewForMonth } from '../engine/ayahCount.js';
 const inRange = (ts, y, m) => { const [a, b] = range(y, m); return typeof ts === 'number' && ts >= a && ts < b; };
 const prevMonth = (y, m) => (m === 0 ? [y - 1, 11] : [y, m - 1]);
 
@@ -112,8 +113,7 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
     // مراجعة الشهر المسجَّلة في ملف الطالب (شاشة مراجعة الشهر): عدد الأجزاء المُراجَعة (وسام الراسخ)
     if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; }
     const rv = ctx.reviewAyahs;
-    const sumIn = (items) => (items || []).reduce((n, x) => n + (x && inRange(x.ts, y, m) ? (Number(x.n) || 0) : 0), 0);
-    const reviewQuestions = rv && (Array.isArray(rv.games) || Array.isArray(rv.homework)) ? sumIn(rv.games) + sumIn(rv.homework) : null;
+    const reviewQuestions = rv && (Array.isArray(rv.games) || Array.isArray(rv.homework)) ? distinctReviewForMonth(rv, y, m).total : null;
     const monthMatches = ctx.matches.filter(mm => inRange(new Date(mm.finishedAt).getTime(), y, m));
     let attendance = null;
     if (hasSchedule(s)) {

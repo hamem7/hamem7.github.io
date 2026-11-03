@@ -19,7 +19,7 @@ import {
 import { HW_FORMATS } from '../engine/skillMap.js';
 import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
 import { buildHomeworkSimilarityQuestion } from '../engine/similarityEngine.js';
-import { estimateGameEventAyahs } from '../engine/ayahCount.js';
+import { estimateGameEventAyahs, shownAyahKeys } from '../engine/ayahCount.js';
 import { ensureSimilarityQuran } from '../engine/similarityQuestions.js';
 import { buildTajweedHomeworkProfile } from './tajweedHomeworkProfile.js';
 import { readStudentHistory } from './homeworkRecords.js';
@@ -220,17 +220,18 @@ export async function gameAyahItems(student) {
     const ayahsOf = new Map((AppState.surahsData || []).map(s => [s.number, s.ayahsCount || (s.ayahs ? s.ayahs.length : 0)]));
     return ev.map(e => ({
         ts: e.ts,
+        k: shownAyahKeys({ surah: e.surah, ayah: e.ayah, fmt: e.fmt, n: Number.isInteger(e.ayahN) ? e.ayahN : 0, ayahs: e.ayahs }),
         n: Number.isInteger(e.ayahN) ? e.ayahN
             : estimateGameEventAyahs(e, { kidsSession: kidsRefs.has(String(e.refId)), surahAyahs: ayahsOf.get(e.surah) || 0 })
     }));
 }
 
 // تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
-export async function getMonthCoverage(student, year, monthIndex, extraKeys = null) {
+export async function getMonthCoverage(student, year, monthIndex, extraKeys = null, onlyKeys = false) {
     if (!manager()) return null;
     const ctx = await loadContext(student);
     if (!ctx || !ctx.path) return null;
-    return coverageForWindow(ctx.events, ctx.path, new Date(year, monthIndex, 1).getTime(), new Date(year, monthIndex + 1, 1).getTime(), extraKeys);
+    return coverageForWindow(ctx.events, ctx.path, new Date(year, monthIndex, 1).getTime(), new Date(year, monthIndex + 1, 1).getTime(), extraKeys, onlyKeys);
 }
 
 // ------------------------------------------

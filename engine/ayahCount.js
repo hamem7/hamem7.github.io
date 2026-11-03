@@ -116,3 +116,14 @@ export function gameShownAyahKeys(data) {
     const fmt = (type === 'listen_next' || type === 'kids_mcq') && dir === 'prev' ? 'previous' : (type === 'kids_mcq' && data.shownAyahs === 2 ? 'next' : type);
     return shownAyahKeys({ surah: a.surahNumber, ayah: a.numberInSurah, fmt, n: gameQuestionAyahCount(data) });
 }
+
+/** «دفتر المراجعة» بالآيات المختلفة: لشهر، الآيات التي ظهرت للطالب (مفاتيح "سورة:آية") من الألعاب (items.games[].k) والواجب (items.homework[].k).
+ *  الآية تُحسب مرة واحدة في الشهر مهما تكررت؛ وآية ظهرت في اللعبة والواجب معاً تُنسب للألعاب فقط، فيكون المجموع = ألعاب + واجب دائماً.
+ *  keys = كل الآيات المختلفة (للتغطية «اختُبر الطالب في X من Y»). */
+export function distinctReviewForMonth(items, year, monthIndex) {
+    const a = new Date(year, monthIndex, 1).getTime(), b = new Date(year, monthIndex + 1, 1).getTime();
+    const pick = (list) => { const set = new Set(); (list || []).forEach(x => { if (x && x.ts >= a && x.ts < b) (x.k || []).forEach(k => set.add(k)); }); return set; };
+    const g = pick(items && items.games), h = pick(items && items.homework);
+    h.forEach(k => { if (g.has(k)) h.delete(k); });
+    return { games: g.size, homework: h.size, total: g.size + h.size, gameKeys: [...g], homeworkKeys: [...h], keys: [...g, ...h] };
+}
