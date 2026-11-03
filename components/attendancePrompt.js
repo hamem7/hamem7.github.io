@@ -1,7 +1,7 @@
 // components/attendancePrompt.js
 // =============================================================================
 // 📅 سؤال الحضور: لا يُسأل المعلم إلا عن طالب لديه حصة مجدولة ولم يُسجَّل له أي نشاط في ذلك اليوم (لعبة فردية، مواجهة،
-// جلسة تجويد). يظهر مرة يوميًا بعد الوقت الذي يختاره كل معلم (localStorage.dh_att_prompt_time، الافتراضي 17:00؛ ويمكن إيقافه) ويلتقط الأيام المفوَّتة (آخر 7 أيام).
+// جلسة تجويد). يسأل أيضًا عن مدة الحصص الحاضرة (بنشاط تلقائي) بلا مدة. يظهر مرة يوميًا بعد الوقت الذي يختاره كل معلم (localStorage.dh_att_prompt_time، الافتراضي 17:00؛ ويمكن إيقافه) ويلتقط الأيام المفوَّتة (آخر 7 أيام).
 // الإجابات تُحفظ في student.attendance عبر engine/attendanceEngine.js (حضر، غاب، لم تُعقد).
 // ⚠️ قيد: المنصة تعمل في المتصفح فلا إشعار والتطبيق مغلق؛ السؤال يظهر عند الفتح بعد الساعة المحددة.
 // =============================================================================
@@ -69,8 +69,8 @@ export async function collectPending(opts = {}) {
     }
     keys.filter(k => k <= todayKey && k >= sinceKey).forEach(k => {
       if (needsConfirmation(s, k, ev)) out.push({ student: s, key: k, need: 'status' });
-      // في وضع التقرير: يوم حضور (بتأكيد أو بنشاط) بلا مدة فعلية مسجَّلة يُسأل عن مدته — ليست كل الحصص ساعة
-      else if (opts.reportMonth && dayStatus(s, k, ev) === 'present' && !(Number((s.attendanceMinutes || {})[k]) > 0)) out.push({ student: s, key: k, need: 'minutes' });
+      // يوم حضور (بتأكيد أو بنشاط تلقائي) بلا مدة فعلية مسجَّلة يُسأل عن مدته أيضًا في السؤال اليومي — ليست كل الحصص ساعة
+      else if (dayStatus(s, k, ev) === 'present' && !(Number((s.attendanceMinutes || {})[k]) > 0)) out.push({ student: s, key: k, need: 'minutes' });
     });
   }
   return out.sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));

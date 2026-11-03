@@ -60,7 +60,7 @@ const ar = {
     // الحضور: الجدول والسؤال
     att_sched_title: 'جدول الحصص', att_sched_days: 'أيام الحصص', att_sched_minutes: 'مدة الحصة (دقيقة)', att_sched_save: 'حفظ الجدول', att_sched_saved: 'تم حفظ الجدول', att_sched_hint: 'يُحسب منه الحضور المتوقع والساعات. أي نشاط للطالب في يوم حصته يسجّل حضوره تلقائيًا.',
     att_day_0: 'الأحد', att_day_1: 'الإثنين', att_day_2: 'الثلاثاء', att_day_3: 'الأربعاء', att_day_4: 'الخميس', att_day_5: 'الجمعة', att_day_6: 'السبت',
-    att_prompt_title: 'تأكيد حضور اليوم', att_prompt_sub: 'طلاب لهم حصة اليوم ولم يُسجَّل لهم أي نشاط. هل حضروا؟', att_prompt_present: 'حضر', att_prompt_absent: 'غاب', att_prompt_cancelled: 'لم تُعقد',
+    att_prompt_title: 'تأكيد حضور اليوم', att_prompt_sub: 'حصص ينقصها تأكيد الحضور (لا نشاط مسجَّل) أو مدتها الفعلية. حدِّد حالة كل حصة، ومدتها إن حضرت.', att_prompt_present: 'حضر', att_prompt_absent: 'غاب', att_prompt_cancelled: 'لم تُعقد',
     att_prompt_later: 'لاحقًا', att_prompt_all_present: 'الكل حضر', att_prompt_done: 'تم', att_prompt_day: 'حصة يوم {d}',
     // التقرير: التجويد
     tjr_title: 'التجويد هذا الشهر', tjr_sub: 'خطوات رحلة الأحكام المسجَّلة هذا الشهر', tjr_theory: 'النظري (شرح، تطبيق، اختبار)', tjr_practice: 'العملي (تسميع المعلم)',
@@ -125,7 +125,7 @@ const en = {
     att_rep_no_schedule: 'No session schedule has been set for this student yet.', att_rep_note_hours: 'Hours = the sum of the actual session lengths recorded by the teacher.',
     att_sched_title: 'Session schedule', att_sched_days: 'Session days', att_sched_minutes: 'Session length (minutes)', att_sched_save: 'Save schedule', att_sched_saved: 'Schedule saved', att_sched_hint: 'Used to compute expected attendance and hours. Any activity by the student on a session day records attendance automatically.',
     att_day_0: 'Sunday', att_day_1: 'Monday', att_day_2: 'Tuesday', att_day_3: 'Wednesday', att_day_4: 'Thursday', att_day_5: 'Friday', att_day_6: 'Saturday',
-    att_prompt_title: 'Confirm today’s attendance', att_prompt_sub: 'These students had a session today and no activity was recorded. Did they attend?', att_prompt_present: 'Attended', att_prompt_absent: 'Absent', att_prompt_cancelled: 'Not held',
+    att_prompt_title: 'Confirm today’s attendance', att_prompt_sub: 'Sessions missing attendance confirmation (no activity recorded) or their actual length. Set each status, and the length if attended.', att_prompt_present: 'Attended', att_prompt_absent: 'Absent', att_prompt_cancelled: 'Not held',
     att_prompt_later: 'Later', att_prompt_all_present: 'All attended', att_prompt_done: 'Done', att_prompt_day: 'Session on {d}',
     tjr_title: 'Tajweed this month', tjr_sub: 'Rule-journey steps recorded this month', tjr_theory: 'Theory (lesson, practice, exam)', tjr_practice: 'Practical (teacher recitation)',
     tjr_learned: 'Rules whose lesson was completed', tjr_practiced: 'Rules whose practice was passed', tjr_exam: 'Rules whose exam was passed', tjr_exam_first: 'of them on first attempt', tjr_approved: 'Rules approved by the teacher', tjr_none: 'No tajweed activity recorded this month.',
