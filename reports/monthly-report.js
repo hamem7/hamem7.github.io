@@ -1704,6 +1704,12 @@ function autoArchiveOnOpen() {
     kind: 'monthly', pageId: 'mreport-page', getMeta: monthlyArchiveMeta,
     prepare: async () => { await ensureHtml2Canvas(); await ensureFontsReady(); ensureStampCleaned(); }
   })).catch(() => {});
+  prewarmExport();
+}
+// تسخين مسبق (صامت) لكل ما يبطئ الإنشاء بعد النقر: html2canvas وjsPDF والخطوط والختم، حتى يصل
+// navigator.share قبل انتهاء «نقرة المستخدم» فتظهر شاشة المشاركة مباشرة بلا رسالة وسيطة.
+function prewarmExport() {
+  Promise.all([ensureHtml2Canvas(), ensureJsPdf(), ensureFontsReady(), ensureStampCleaned()]).catch(() => {});
 }
 
 function renderAll(d) {
@@ -2115,21 +2121,15 @@ async function shareViaWhatsApp(kind) {
   const askTap = (text, okKey) => (typeof window.hamConfirm === 'function'
     ? window.hamConfirm(text, { ok: t(okKey), cancel: t('mr_wa_cancel_btn') })
     : Promise.resolve(true));
+  // نفس سلوك التقرير الفردي (report.js): استدعاء مباشر لشاشة المشاركة بلا رسالة وسيطة «اضغط مشاركة الآن».
+  // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    // الإنشاء استغرق وقتًا فانتهت صلاحية «النقرة» الأصلية؛ إن رفض المتصفح المشاركة نطلب نقرة جديدة ثم نكرّرها
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        await navigator.share({ files: [file], title: t('mr_title'), text: name });
-        return;
-      } catch (e) {
-        if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
-        console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة:', e);
-        if (attempt === 0 && e && e.name === 'NotAllowedError') {
-          if (!(await askTap(t('mr_wa_ready_share'), 'mr_wa_share_btn'))) return;
-          continue;
-        }
-        break;
-      }
+    try {
+      await navigator.share({ files: [file], title: t('mr_title'), text: name });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
+      console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة:', e);
     }
   }
   // الحاسوب (أو متصفح بلا مشاركة ملفات): ننزّل الملف ثم نفتح واتساب برسالة جاهزة بنقرة جديدة من المعلم (كي لا يحجبها المتصفح)
