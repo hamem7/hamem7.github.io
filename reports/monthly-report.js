@@ -2125,7 +2125,7 @@ async function shareViaWhatsApp(kind) {
   // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: t('mr_title'), text: name });
+      await navigator.share({ files: [file], title: t('mr_title'), text: msg });
       return;
     } catch (e) {
       if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
