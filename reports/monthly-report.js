@@ -882,23 +882,18 @@ async function buildMonthlyReportData(year, monthIndex0) {
     console.error('[monthly-report.js] تعذر جلب ملخص المهارات:', e);
   }
 
-  // «دفتر المراجعة» وتغطية المراجعة من مصدر واحد: الآيات المختلفة التي ظهرت للطالب هذا الشهر (ألعاب + واجب عند التسليم).
-  // الإجمالي = عدد الآيات في «اختُبر الطالب في X من Y آية» نفسه (الآية تُحسب مرة واحدة ولو تكررت)
+  // «دفتر المراجعة»: الإجمالي = كل آية ظهرت أمام الطالب (ألعاب + واجب عند التسليم) بتكرارها؛ والتغطية (السور) من الآيات المختلفة
   let coverage = null, reviewAyahs = null;
   try {
     const rl = await import('../core/reviewLog.js');
     await Promise.race([rl.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);   // آيات الواجبات من الخادم (مهلة قصيرة)
-    const dm = (await import('../engine/ayahCount.js')).distinctReviewForMonth(await rl.reviewAyahItems(student), year, monthIndex0);
-    reviewAyahs = { games: dm.games, homework: dm.homework, total: dm.total };
+    const items = await rl.reviewAyahItems(student);
+    const dm = (await import('../engine/ayahCount.js')).distinctReviewForMonth(items, year, monthIndex0);   // للسور المغطّاة فقط
+    reviewAyahs = (await import('../engine/ayahCount.js')).reviewCountsForMonth(items, year, monthIndex0);   // كل آية ظهرت أمام الطالب تُحسب
     try {
       const svc = await import('../core/trackingService.js');
       coverage = await svc.getMonthCoverage(student, year, monthIndex0, dm.keys, true);
     } catch (e) { console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e); }
-    if (coverage) {   // نحصر الإجمالي في الآيات داخل محفوظ الطالب ليتطابق الرقمان تماماً
-      const inCov = new Set(coverage.keys);
-      const g = dm.gameKeys.filter(k => inCov.has(k)).length, h = dm.homeworkKeys.filter(k => inCov.has(k)).length;
-      reviewAyahs = { games: g, homework: h, total: g + h };
-    }
   } catch (e) {
     console.error('[monthly-report.js] تعذر حساب دفتر المراجعة:', e);
   }
@@ -1376,17 +1371,14 @@ function renderCoverageBlock(d) {
   if (!c && !(gq > 0)) return;
   setText('mr-cov-title', t('mr_cov_title'));
   const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
-  // «دفتر المراجعة»: مصطلح واحد «راجع» — الإجمالي (والنسبة من محفوظه إن وُجد نطاق) ثم التفصيل (الألعاب الفردية / الواجب المنزلي)
-  const head = c ? fill('mr_rev_main', { n: c.tested, total: c.total, pct: c.pct }) : fill('mr_rev_total', { n: gq });
-  const detail = gq > 0 ? `<div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div>` : '';
-  const headHtml = `<div style="font-size:1.15rem;font-weight:800;">${esc(head)}</div>${detail}`;
+  // «دفتر المراجعة»: كل آية ظهرت أمام الطالب تُحسب — الإجمالي ثم التفصيل (الألعاب الفردية / الواجب المنزلي) ثم تغطية السور
+  const detail = gq > 0 ? `<div style="font-size:1.15rem;font-weight:800;">${esc(fill('mr_rev_total', { n: gq }))}</div>
+    <div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div>` : '';
   setText('mr-cov-sub', t('mr_cov_sub'));
-  if (!c) { $('mr-cov-content').innerHTML = headHtml; return; }
+  if (!c) { $('mr-cov-content').innerHTML = detail; return; }
   const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));
   const names = shown.join(AppState.currentLang === 'en' ? ', ' : '، ') + (c.missing.length > 3 ? ' ' + t('mr_cov_others') : '');
-  const color = c.pct >= 60 ? '#047857' : (c.pct >= 30 ? '#f59e0b' : '#64748b');
-  $('mr-cov-content').innerHTML = `${headHtml}
-    <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:10px;"><i style="display:block;height:100%;width:${c.pct}%;background:${color};border-radius:5px;"></i></div>
+  $('mr-cov-content').innerHTML = `${detail}
     <div style="margin-top:10px;font-size:0.95rem;line-height:1.8;">${esc(fill('mr_cov_surahs', { c: c.surahsCovered, t: c.surahsTotal }))}${c.missing.length ? '<br>' + esc(fill('mr_cov_missing', { names })) : ''}</div>`;
 }
 

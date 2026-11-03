@@ -65,14 +65,14 @@ export function homeworkAyahTotal(questions, tracking = null) {
     return (questions || []).reduce((n, q) => n + homeworkQuestionAyahCount(q, tracking && q && tracking[q.id] ? tracking[q.id].fmt : null), 0);
 }
 
-/** جمع عناصر [{ts, n}] داخل شهر (monthIndex من 0). */
+/** جمع عناصر [{ts, n, k?}] داخل شهر (monthIndex من 0): كل آية ظهرت تُحسب (بتكرارها) — عدد مفاتيح k إن وُجدت وإلا n. */
 export function sumInMonth(items, year, monthIndex) {
     if (!Array.isArray(items)) return 0;
     const a = new Date(year, monthIndex, 1).getTime(), b = new Date(year, monthIndex + 1, 1).getTime();
-    return items.reduce((n, x) => n + (x && x.ts >= a && x.ts < b ? (Number(x.n) || 0) : 0), 0);
+    return items.reduce((n, x) => n + (x && x.ts >= a && x.ts < b ? ((Array.isArray(x.k) && x.k.length) ? x.k.length : (Number(x.n) || 0)) : 0), 0);
 }
 
-/** { games, homework, total } لشهر من { games: [{ts,n}], homework: [{ts,n}] } — للتقرير الشهري ووسام «بطل المراجعة». */
+/** { games, homework, total } لشهر من { games: [{ts,n,k}], homework: [{ts,n,k}] } — كل الآيات التي ظهرت أمام الطالب (التقرير الشهري ووسام «بطل المراجعة»). */
 export function reviewCountsForMonth(items, year, monthIndex) {
     const games = sumInMonth(items && items.games, year, monthIndex);
     const homework = sumInMonth(items && items.homework, year, monthIndex);

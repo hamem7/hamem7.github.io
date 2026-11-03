@@ -4,7 +4,7 @@
 // المصدر: core/reviewLog.js (ألعاب من سجل الأداء، وواجب عند التسليم). الألوان برموز الهوية فتنقلب مع المظهر الداكن.
 import { AppState, t } from '../core/app.js';
 import { esc } from '../core/escape.js';
-import { distinctReviewForMonth } from '../engine/ayahCount.js';
+import { reviewCountsForMonth } from '../engine/ayahCount.js';
 
 const MONTHS_CHART = 12;
 const fmt = (n) => Number(n || 0).toLocaleString(AppState.currentLang === 'en' ? 'en-US' : 'ar-EG');
@@ -18,7 +18,7 @@ function monthsList(items, now = new Date()) {
     const out = [];
     const first = all.length ? new Date(Math.min(...all.map(x => x.ts))) : null;
     while (true) {
-        out.push({ y, m, ...distinctReviewForMonth(items, y, m) });
+        out.push({ y, m, ...reviewCountsForMonth(items, y, m) });
         if (out.length >= 60) break;
         if (out.length >= MONTHS_CHART && (!first || (y < first.getFullYear() || (y === first.getFullYear() && m <= first.getMonth())))) break;
         if (first && y === first.getFullYear() && m === first.getMonth()) break;
