@@ -1785,8 +1785,9 @@ function populateMonthYearSelects() {
   }
   yearSel.value = String(curYear);
 
-  monthSel.addEventListener('change', refreshReport);
-  yearSel.addEventListener('change', refreshReport);
+  const onPeriodChange = async () => { await refreshReport(); await ensureReportDataComplete(); };
+  monthSel.addEventListener('change', onPeriodChange);
+  yearSel.addEventListener('change', onPeriodChange);
 }
 
 // -----------------------------------------------------------------------------
@@ -2203,7 +2204,8 @@ function initMonthlyReportScreen() {
     }
     if (mSel) mSel.value = String(opts.monthIndex0);
   }
-  refreshReport().then(() => {
+  // 🔒 عند فتح التقرير (معاينة أو تصدير) إن وُجدت حصص مجدولة بلا نشاط ولا تأكيد تظهر شاشة «بيانات ناقصة» فورًا
+  refreshReport().then(() => ensureReportDataComplete()).then(() => {
     if (opts && opts.autoExport) {
       const btn = $(opts.autoExport === 'pdf' ? 'btn-mr-pdf' : 'btn-mr-whatsapp');
       if (btn) btn.click();
