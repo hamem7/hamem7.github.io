@@ -78,7 +78,7 @@ function ensureStylesInjected() {
   color: #fff; padding: 22px 30px; text-align: center;
   border-radius: 22px 22px 0 0;
 }
-.mmb-header-title { margin: 0 0 6px 0; font-size: 1.5rem; font-weight: 800; }
+.mmb-header-title { margin: 0 0 6px 0; font-size: 1.5rem; font-weight: 800; color: #fff; }
 .mmb-progress-track { background: rgba(255,255,255,0.2); border-radius: 999px; height: 8px; margin-top: 14px; overflow: hidden; }
 .mmb-progress-fill { background: var(--dh-gold-500, #d4af37); height: 100%; border-radius: 999px; transition: width .3s ease; }
 .mmb-progress-text { margin-top: 8px; font-size: 0.9rem; opacity: 0.9; }
@@ -100,6 +100,20 @@ function ensureStylesInjected() {
   border: 2px solid #e2d9c4; font-size: 1.1rem; font-family: inherit; background: #fff;
 }
 .mmb-field select:focus, .mmb-field input:focus { outline: none; border-color: var(--dh-gold-500, #d4af37); }
+.mmb-last { display: flex; align-items: center; gap: 14px; border: 2px solid var(--dh-gold-500, #d4af37); background: var(--dh-gold-soft, #fbf3d5); border-radius: 18px; padding: 12px 16px; margin-bottom: 18px; }
+.mmb-last-ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--dh-gold-500, #d4af37); color: #2b2100; flex-shrink: 0; }
+.mmb-last small { display: block; font-size: .78rem; font-weight: 700; color: var(--dh-gold-ink, #8a6221); }
+.mmb-last strong { font-size: 1.2rem; color: var(--dh-ink, #10241c); }
+.mmb-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.mmb-chip { border: 1.5px solid var(--dh-border-strong, #a89f84); background: var(--dh-surface-3, #fff); color: var(--dh-ink, #10241c); border-radius: 999px; padding: 6px 14px; font-size: .85rem; font-weight: 700; font-family: inherit; cursor: pointer; }
+.mmb-chip:hover { border-color: var(--dh-emerald-700, #0d5c46); }
+.mmb-step { display: flex; align-items: stretch; gap: 8px; }
+.mmb-step-btn { width: 54px; flex-shrink: 0; border-radius: 12px; border: 2px solid var(--dh-border-strong, #a89f84); background: var(--dh-surface-3, #fff); font-size: 1.6rem; font-weight: 700; color: var(--dh-emerald-700, #0d5c46); cursor: pointer; font-family: inherit; }
+.mmb-step input[type="number"] { flex: 1; min-width: 0; text-align: center; font-size: 1.6rem; font-weight: 800; direction: ltr; }
+.mmb-delta { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; font-weight: 700; margin-top: 16px; background: var(--dh-ok-bg, #e7f4ee); color: var(--dh-emerald-700, #0d5c46); }
+.mmb-delta strong { font-size: 1.3rem; direction: ltr; unicode-bidi: isolate; }
+.mmb-delta.zero { background: var(--dh-warn-bg, #fef3c7); color: var(--dh-warn, #b45309); }
+.mmb-delta.bad { background: var(--dh-danger-bg, #fde8e8); color: var(--dh-danger, #b91c1c); }
 .mmb-hint { font-size: 0.85rem; color: #92400e; margin-top: 4px; }
 .mmb-warning {
   background: var(--dh-danger-bg, #fde8e8); border: 2px solid #fca5a5; color: var(--dh-danger, #b91c1c); border-radius: 12px;
@@ -292,6 +306,12 @@ function runStep(overlay, item) {
 
   return new Promise((resolve) => {
     function showPicker(prefill) {
+      const ordered = getSurahsInMemorizationOrder(surahsData);
+      const startInfo = isEnding ? getSurahInfo(surahsData, item.beginningPosition.surahNumber) : null;
+      const startSurahName = startInfo ? surahNameLocal(startInfo.name) : '؟';
+      const startLabel = isEnding ? `${startSurahName} — ${item.beginningPosition.ayahNumber}` : '';
+      const startIdx = isEnding ? ordered.findIndex(x => x.number === item.beginningPosition.surahNumber) : -1;
+      const nextSurah = startIdx >= 0 ? ordered[startIdx + 1] : null;
       body.innerHTML = `
         <div class="mmb-student-row">
           <div class="mmb-avatar">${studentAvatarHtml(item.student)}</div>
@@ -301,15 +321,32 @@ function runStep(overlay, item) {
           </div>
         </div>
         ${item.lateHint ? `<div class="mmb-warning" style="background:#fffbeb;border-color:#fcd34d;color:#92400e;">📌 ${item.lateHint}</div>` : ''}
+        ${isEnding ? `<div class="mmb-last">
+          <span class="mmb-last-ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+          <div><small>${t('mmb_last_title')}</small><strong>${esc(startLabel)}</strong></div>
+        </div>` : ''}
         <div class="mmb-field">
           <label>${t('mmp_surah_label')}</label>
           <select id="mmb-surah-select">${surahOptionsHtml(surahsData, prefill.surahNumber)}</select>
+          ${isEnding ? `<div class="mmb-chips">
+            <button type="button" class="mmb-chip" id="mmb-chip-same">${t('mmb_same_surah')} · ${esc(startSurahName)}</button>
+            ${nextSurah ? `<button type="button" class="mmb-chip" id="mmb-chip-next">${t('mmb_next_surah')} · ${esc(surahNameLocal(nextSurah.name))}</button>` : ''}
+          </div>` : ''}
         </div>
         <div class="mmb-field">
           <label>${t('mmp_ayah_label')}</label>
-          <input type="number" id="mmb-ayah-input" min="1" value="${prefill.ayahNumber}">
+          <div class="mmb-step">
+            <button type="button" class="mmb-step-btn" id="mmb-ayah-minus" aria-label="-1">−</button>
+            <input type="number" id="mmb-ayah-input" min="1" inputmode="numeric" value="${prefill.ayahNumber}">
+            <button type="button" class="mmb-step-btn" id="mmb-ayah-plus" aria-label="+1">+</button>
+          </div>
           <div class="mmb-hint" id="mmb-ayah-hint"></div>
+          <div class="mmb-chips">
+            <button type="button" class="mmb-chip" id="mmb-chip-end"></button>
+            ${isEnding ? `<button type="button" class="mmb-chip" id="mmb-chip-reset">↺ ${t('mmb_reset_last')}</button>` : ''}
+          </div>
         </div>
+        ${isEnding ? '<div class="mmb-delta" id="mmb-delta"></div>' : ''}
         <div class="mmb-actions">
           <button class="mmb-btn mmb-btn-skip" id="mmb-btn-skip">${t('mmb_skip_btn')}</button>
           <button class="mmb-btn mmb-btn-primary" id="mmb-btn-next">${isEnding ? t('mmp_next_btn') : t('mmp_confirm_btn')}</button>
@@ -319,15 +356,40 @@ function runStep(overlay, item) {
       const ayahInput = body.querySelector('#mmb-ayah-input');
       const ayahHint = body.querySelector('#mmb-ayah-hint');
 
+      const nextBtn = body.querySelector('#mmb-btn-next');
+      const deltaBox = body.querySelector('#mmb-delta');
+      const endChip = body.querySelector('#mmb-chip-end');
+      function maxAyah() { const info = getSurahInfo(surahsData, parseInt(surahSelect.value, 10)); return info ? info.ayahsCount : 1; }
       function updateBounds() {
-        const surahNumber = parseInt(surahSelect.value, 10);
-        const info = getSurahInfo(surahsData, surahNumber);
-        const max = info ? info.ayahsCount : 1;
+        const max = maxAyah();
         ayahInput.max = String(max);
+        let v = parseInt(ayahInput.value, 10);
+        if (!(v >= 1)) v = 1;
+        if (v > max) v = max;
+        ayahInput.value = String(v);
         ayahHint.textContent = t('mmp_ayah_range_hint').replace('{max}', max);
-        if (parseInt(ayahInput.value, 10) > max) ayahInput.value = String(max);
+        endChip.textContent = `${t('mmb_finish_surah')} (${max})`;
+        if (deltaBox) {
+          const r = calcMemorizationProgress(surahsData, item.beginningPosition, { surahNumber: parseInt(surahSelect.value, 10), ayahNumber: v });
+          const n = r.valid ? r.newAyahs : -1;
+          deltaBox.className = 'mmb-delta' + (n < 0 ? ' bad' : n === 0 ? ' zero' : '');
+          deltaBox.innerHTML = `<span>${n < 0 ? t('mmp_warning_backward') : n === 0 ? t('mmb_no_progress') : t('mmp_new_ayahs_label')}</span><strong>${n > 0 ? '+' + n : n === 0 ? '0' : '!'}</strong>`;
+          nextBtn.disabled = n < 0;
+        }
       }
+      function setPos(sn, an) { surahSelect.value = String(sn); ayahInput.value = String(an); updateBounds(); }
       surahSelect.addEventListener('change', updateBounds);
+      ayahInput.addEventListener('input', updateBounds);
+      body.querySelector('#mmb-ayah-minus').addEventListener('click', () => { ayahInput.value = String((parseInt(ayahInput.value, 10) || 1) - 1); updateBounds(); });
+      body.querySelector('#mmb-ayah-plus').addEventListener('click', () => { ayahInput.value = String((parseInt(ayahInput.value, 10) || 0) + 1); updateBounds(); });
+      endChip.addEventListener('click', () => setPos(parseInt(surahSelect.value, 10), maxAyah()));
+      if (isEnding) {
+        const bp = item.beginningPosition;
+        body.querySelector('#mmb-chip-same').addEventListener('click', () => setPos(bp.surahNumber, parseInt(ayahInput.value, 10) || 1));
+        const nx = body.querySelector('#mmb-chip-next');
+        if (nx) nx.addEventListener('click', () => setPos(nextSurah.number, 1));
+        body.querySelector('#mmb-chip-reset').addEventListener('click', () => setPos(bp.surahNumber, bp.ayahNumber));
+      }
       updateBounds();
 
       body.querySelector('#mmb-btn-skip').addEventListener('click', () => resolve({ action: 'skipped' }));

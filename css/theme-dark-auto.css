@@ -728,13 +728,15 @@ html[data-theme="dark"] body:not(.dh-light) .mmp-journey-new { color: #b8edde !i
 html[data-theme="dark"] body:not(.dh-light) .mmp-btn-primary:disabled { background: #29323c !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmp-btn-ghost { background: #18222b !important; color: var(--dh-ink, #e8f2ec) !important; }
 
-/* ===== components/monthlyMemorizationBulkScreen.js (25) ===== */
+/* ===== components/monthlyMemorizationBulkScreen.js (27) ===== */
 html[data-theme="dark"] body:not(.dh-light) .mmb-screen { background: #1a231f !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-progress-track { background: #14241f33 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-avatar { color: #b8edde !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-student-name { color: #ccd5e5 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-student-kind { color: #e6b699 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-field label { color: #e4d8cc !important; }
+html[data-theme="dark"] body:not(.dh-light) .mmb-step-btn { color: #b8edde !important; }
+html[data-theme="dark"] body:not(.dh-light) .mmb-delta { color: #b8edde !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-hint { color: #e6b699 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-warning { border: 2px solid #6c4242 !important; }
 html[data-theme="dark"] body:not(.dh-light) .mmb-journey-row { color: #ccd5e5 !important; }
