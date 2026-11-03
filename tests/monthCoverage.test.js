@@ -26,4 +26,10 @@ t('حدّ المسار: آية بعد نقطة التوقف لا تُحتسب', 
     const c = coverageForWindow([ev(112, 2, D(9)), ev(112, 4, D(9))], p2, from, to);
     assert.equal(c.tested, 1);
 });
+t('كل الآيات التي ظهرت في السؤال تُحسب (ترتيب ٣ آيات) + آيات الواجب الإضافية', () => {
+    const e = { ...ev(114, 1, D(9)), fmt: 'order', ayahN: 3 };
+    assert.equal(coverageForWindow([e], path, from, to).tested, 3);
+    assert.equal(coverageForWindow([e], path, from, to, ['114:2', '113:1', '999:1']).tested, 4);
+    assert.equal(coverageForWindow([{ ...e, ayahs: ['113:1', '113:2'] }], path, from, to).tested, 3, 'ayahs المحفوظة + المستهدفة');
+});
 console.log(`\n${pass} نجح، ${fail} فشل`); process.exit(fail ? 1 : 0);

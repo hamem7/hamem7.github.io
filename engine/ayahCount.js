@@ -78,3 +78,41 @@ export function reviewCountsForMonth(items, year, monthIndex) {
     const homework = sumInMonth(items && items.homework, year, monthIndex);
     return { games, homework, total: games + homework };
 }
+
+// ------------------------------------------
+// «أي آيات ظهرت؟» (مفاتيح "سورة:آية") — يوحّد عدّ الإجمالي في «دفتر المراجعة» مع «اختُبر الطالب في X من Y آية»:
+// كلاهما يعدّ الآيات التي ظهرت فعلاً في السؤال، لا آيته المستهدفة وحدها.
+// ------------------------------------------
+const PREV = new Set(['previous', 'mcq_prev']);
+const AROUND = new Set(['between', 'around', 'around_ayah']);
+const RUN = new Set(['order', 'matrix_order', 'matching', 'write_3_ayahs', 'recite', 'kids_recite', 'tajweed_extract']);
+const NEXT2 = new Set(['next', 'listen_next', 'mcq_next']);
+const keyOf = (s, a) => `${s}:${a}`;
+
+/** مفاتيح الآيات التي ظهرت في حدث: ayahs (محفوظة بدقة) وإلا تقدير من النوع (fmt) والعدد (n) وموضع الآية المستهدفة. */
+export function shownAyahKeys({ surah, ayah, fmt = null, n = 0, ayahs = null } = {}) {
+    if (Array.isArray(ayahs) && ayahs.length) return ayahs;
+    if (!Number.isInteger(surah) || !Number.isInteger(ayah) || ayah < 1) return [];
+    if (PREV.has(fmt)) return [keyOf(surah, ayah - 1), keyOf(surah, ayah)].filter(k => !k.endsWith(':0'));
+    if (AROUND.has(fmt)) return [ayah - 1, ayah, ayah + 1].filter(a => a >= 1).map(a => keyOf(surah, a));
+    if (NEXT2.has(fmt) || (n === 2 && !RUN.has(fmt))) return [keyOf(surah, ayah), keyOf(surah, ayah + 1)];
+    if (RUN.has(fmt) && n > 1) return Array.from({ length: n }, (_, i) => keyOf(surah, ayah + i));
+    return [keyOf(surah, ayah)];
+}
+
+/** الآيات التي ظهرت في سؤال لعبة فردية (currentData) كمفاتيح — تُحفظ مع الحدث فيعدّ التقرير بدقة. */
+export function gameShownAyahKeys(data) {
+    if (!data || typeof data !== 'object' || NO_AYAH_TYPES.has(data.type || '')) return [];
+    const a = data.ayahObj;
+    if (Array.isArray(data.reciteAyahs) && data.reciteAyahs.length && a && Number.isInteger(a.surahNumber)) {
+        return data.reciteAyahs.filter(x => Number.isInteger(x.num)).map(x => keyOf(a.surahNumber, x.num));
+    }
+    if (Array.isArray(data.original) && data.original.length) {
+        return data.original.filter(x => x && Number.isInteger(x.surahNumber) && Number.isInteger(x.numberInSurah)).map(x => keyOf(x.surahNumber, x.numberInSurah));
+    }
+    if (!a || !Number.isInteger(a.surahNumber) || !Number.isInteger(a.numberInSurah)) return [];
+    const type = data.type || '';
+    const dir = data.dir || data.listenDir;
+    const fmt = (type === 'listen_next' || type === 'kids_mcq') && dir === 'prev' ? 'previous' : (type === 'kids_mcq' && data.shownAyahs === 2 ? 'next' : type);
+    return shownAyahKeys({ surah: a.surahNumber, ayah: a.numberInSurah, fmt, n: gameQuestionAyahCount(data) });
+}

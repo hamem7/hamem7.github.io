@@ -12,6 +12,7 @@
 // ==========================================
 
 import { SKILLS, HW_FORMATS, QUALITY, SKILLS_NOT_TRAINABLE_BY_HOMEWORK } from './skillMap.js';
+import { shownAyahKeys } from './ayahCount.js';   // الآيات التي ظهرت في السؤال (تغطية المراجعة)
 import { studentExtras } from './memoScope.js';   // السور الإضافية خارج المسار المتصل (student.memoExtra)
 
 export const SEGMENT_SIZE = 10;
@@ -364,15 +365,22 @@ export function skillSummaryForWindow(events, fromTs, toTs) {
 
 // تغطية المراجعة في نافذة زمنية: كم آية مختلفة من مسار حفظ الطالب ظهرت في اختباراته وواجباته، وأي السور لم يُسأل عنها.
 // تُحسب الأحداث الحيّة فقط (اختبار/واجب)، لا أخطاء القائمة ولا الاستيراد القديم، وبشرط رقم آية داخل المسار (الحدث بلا آية لا يُحتسب).
-export function coverageForWindow(events, path, fromTs, toTs) {
+export function coverageForWindow(events, path, fromTs, toTs, extraKeys = null) {
     if (!path || !path.total) return null;
     const seen = new Set();
+    // آية داخل المسار؟ (حتى حد التقدّم في كل مقطع)
+    const inPath = (s, a) => path.segments.some(seg => seg.surah === s && a >= seg.from && a <= seg.limit);
+    const add = (k) => { const m = /^(\d+):(\d+)$/.exec(String(k)); if (m && inPath(+m[1], +m[2])) seen.add(`${+m[1]}:${+m[2]}`); };
     (events || []).forEach(e => {
         if (e.ts < fromTs || e.ts >= toTs || (e.source !== 'game' && e.source !== 'homework')) return;
         const seg = path.byId.get(e.segment);
-        if (!seg || !Number.isInteger(e.ayah) || e.ayah < seg.from || e.ayah > seg.limit) return;
-        seen.add(`${seg.surah}:${e.ayah}`);
+        if (!seg || !Number.isInteger(e.ayah) || e.ayah < seg.from || e.ayah > seg.limit) return;   // الحدث بلا آية داخل المسار لا يُحتسب
+        // كل الآيات التي ظهرت في السؤال (لا المستهدفة وحدها): ayahs المحفوظة أو تقدير من النوع والعدد
+        shownAyahKeys({ surah: seg.surah, ayah: e.ayah, fmt: e.fmt, n: e.ayahN || 0, ayahs: e.ayahs }).forEach(add);
+        add(`${seg.surah}:${e.ayah}`);
     });
+    // آيات إضافية جاهزة (الواجب عند التسليم من «دفتر المراجعة»)
+    (extraKeys || []).forEach(add);
     if (!seen.size) return null;
     const surahTotals = new Map(), surahSeen = new Set();
     path.segments.forEach(s => surahTotals.set(s.surah, true));

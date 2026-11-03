@@ -8,9 +8,9 @@
 //    بلا اتصال. التسليمات القديمة كلها موجودة على الخادم، فالعدّ بأثر رجعي.
 import { AppState } from './app.js';
 import { normalizeName } from './homeworkRecords.js';
-import { homeworkAyahTotal } from '../engine/ayahCount.js';
+import { homeworkAyahTotal, homeworkQuestionAyahCount, shownAyahKeys } from '../engine/ayahCount.js';
 
-const KEY = 'dh_review_hw_v1';
+const KEY = 'dh_review_hw_v2';   // v2: يحفظ مفاتيح الآيات (k) لتطابق «اختُبر الطالب في X من Y آية»
 const SKIP_STATUS = new Set(['cancelled', 'canceled', 'deleted', 'rejected']);
 
 function load() {
@@ -26,23 +26,28 @@ function save(data) {
 
 const subTs = (s) => Number(s && s.timestamp) || Date.parse((s && s.submittedAt) || '') || 0;
 
-// مجموع آيات واجب (من النسخة المحلية للواجب، وإلا من الخادم). null = تعذّر معرفته الآن (يُعاد لاحقاً).
-async function hwAyahTotal(hwId, localHws, cache) {
+// آيات واجب: { n: العدد, k: مفاتيح "سورة:آية" التي ظهرت } من النسخة المحلية للواجب، وإلا من الخادم. null = تعذّر الآن (يُعاد لاحقاً).
+async function hwAyahInfo(hwId, localHws, cache) {
     const id = String(hwId || '');
     if (!id) return null;
-    if (Number.isInteger(cache[id])) return cache[id];
+    if (cache[id] && Number.isInteger(cache[id].n)) return cache[id];
     let hw = localHws.find(h => String(h.id) === id) || null;
     let questions = hw && Array.isArray(hw.questions) ? hw.questions : null;
     let tracking = (hw && hw.tracking) || null;
-    if (!questions) {
+    if (!questions || !tracking) {
         try {
             const { fetchHomeworkFull } = await import('./homeworkApi.js');
             const full = await fetchHomeworkFull(id);
-            if (full) { questions = full.questions || null; tracking = tracking || (full.meta && full.meta.tracking) || null; }
+            if (full) { questions = questions || full.questions || null; tracking = tracking || (full.meta && full.meta.tracking) || null; }
         } catch (e) { /* بلا اتصال */ }
     }
     if (!Array.isArray(questions)) return null;
-    cache[id] = homeworkAyahTotal(questions, tracking);
+    const keys = new Set();
+    questions.forEach(q => {
+        const m = tracking && tracking[q.id];
+        if (m && Number.isInteger(m.surah) && Number.isInteger(m.ayah)) shownAyahKeys({ surah: m.surah, ayah: m.ayah, fmt: m.fmt, n: homeworkQuestionAyahCount(q, m.fmt) }).forEach(k => keys.add(k));
+    });
+    cache[id] = { n: homeworkAyahTotal(questions, tracking), k: [...keys] };
     return cache[id];
 }
 
@@ -79,9 +84,9 @@ export function refreshHomeworkReview(list = null) {
                 const st = findStudent(sub);
                 const ts = subTs(sub);
                 if (!st || !ts) continue;
-                const n = await hwAyahTotal(sub.hwId, localHws, data.hw);
-                if (n === null) continue;
-                data.subs[id] = { sid: String(st.id), ts, n };
+                const info = await hwAyahInfo(sub.hwId, localHws, data.hw);
+                if (info === null) continue;
+                data.subs[id] = { sid: String(st.id), ts, n: info.n, k: info.k };
             }
             // تسليم أُلغي/حُذف من الخادم لا يُحسب
             Object.keys(data.subs).forEach(id => { if (!live.has(id)) delete data.subs[id]; });
@@ -99,7 +104,7 @@ export function refreshHomeworkReview(list = null) {
 export function homeworkAyahItems(student) {
     if (!student) return [];
     const sid = String(student.id);
-    return Object.values(load().subs).filter(x => x && x.sid === sid).map(x => ({ ts: x.ts, n: x.n }));
+    return Object.values(load().subs).filter(x => x && x.sid === sid).map(x => ({ ts: x.ts, n: x.n, k: x.k || [] }));
 }
 
 /** كل آيات المراجعة لطالب: { games: [{ts,n}] | null, homework: [{ts,n}] }. */
@@ -111,3 +116,11 @@ export async function reviewAyahItems(student) {
 
 // العدّ الشهري دالة خالصة في engine/ayahCount.js
 export { sumInMonth, reviewCountsForMonth } from '../engine/ayahCount.js';
+
+/** مفاتيح كل الآيات التي ظهرت للطالب في شهر (واجب عند التسليم) — تُمرَّر لتغطية المراجعة لتتّفق مع الإجمالي. */
+export function homeworkKeysInMonth(student, year, monthIndex) {
+    const a = new Date(year, monthIndex, 1).getTime(), b = new Date(year, monthIndex + 1, 1).getTime();
+    const out = new Set();
+    homeworkAyahItems(student).forEach(x => { if (x.ts >= a && x.ts < b) (x.k || []).forEach(k => out.add(k)); });
+    return [...out];
+}

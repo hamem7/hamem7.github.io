@@ -886,7 +886,14 @@ async function buildMonthlyReportData(year, monthIndex0) {
   let coverage = null, reviewAyahs = null;
   try {
     const svc = await import('../core/trackingService.js');
-    coverage = await svc.getMonthCoverage(student, year, monthIndex0);
+    // آيات الواجب المسلَّم (من «دفتر المراجعة») تدخل التغطية أيضاً فيتّفق الرقمان
+    let hwKeys = [];
+    try {
+      const rl0 = await import('../core/reviewLog.js');
+      await Promise.race([rl0.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);   // آيات الواجبات من الخادم (مهلة قصيرة)
+      hwKeys = rl0.homeworkKeysInMonth(student, year, monthIndex0);
+    } catch (e) { /* اختياري */ }
+    coverage = await svc.getMonthCoverage(student, year, monthIndex0, hwKeys);
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
   }
@@ -894,7 +901,6 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // نحدّث آيات الواجبات من الخادم أولاً (مهلة قصيرة؛ بلا اتصال نكتفي بالنسخة المحلية)
   try {
     const rl = await import('../core/reviewLog.js');
-    await Promise.race([rl.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);
     reviewAyahs = rl.reviewCountsForMonth(await rl.reviewAyahItems(student), year, monthIndex0);
   } catch (e) {
     console.error('[monthly-report.js] تعذر حساب دفتر المراجعة:', e);

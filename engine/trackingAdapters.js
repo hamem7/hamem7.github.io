@@ -105,7 +105,8 @@ export function eventsFromGameDetails({ studentId, details, surahsData, ts, refI
             timeSec: typeof d.timeTaken === 'number' ? Math.round(d.timeTaken) : null,
             quality: parseQualityCodes(d.errors),
             // «دفتر المراجعة»: كم آية عرضها السؤال (engine/ayahCount.js) — غيابه في الأحداث القديمة يُقدَّر عند العدّ
-            ...(Number.isInteger(d.ayahN) ? { ayahN: d.ayahN } : {})
+            ...(Number.isInteger(d.ayahN) ? { ayahN: d.ayahN } : {}),
+            ...(Array.isArray(d.ayahs) && d.ayahs.length ? { ayahs: d.ayahs } : {})
         });
     });
     return events;

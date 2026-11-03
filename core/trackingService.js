@@ -226,11 +226,11 @@ export async function gameAyahItems(student) {
 }
 
 // تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
-export async function getMonthCoverage(student, year, monthIndex) {
+export async function getMonthCoverage(student, year, monthIndex, extraKeys = null) {
     if (!manager()) return null;
     const ctx = await loadContext(student);
     if (!ctx || !ctx.path) return null;
-    return coverageForWindow(ctx.events, ctx.path, new Date(year, monthIndex, 1).getTime(), new Date(year, monthIndex + 1, 1).getTime());
+    return coverageForWindow(ctx.events, ctx.path, new Date(year, monthIndex, 1).getTime(), new Date(year, monthIndex + 1, 1).getTime(), extraKeys);
 }
 
 // ------------------------------------------

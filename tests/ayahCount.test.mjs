@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 const store = new Map();
 globalThis.localStorage = { getItem: k => store.has(k) ? store.get(k) : null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k) };
-const { gameQuestionAyahCount, estimateGameEventAyahs, homeworkQuestionAyahCount, homeworkAyahTotal, reviewCountsForMonth } = await import('../engine/ayahCount.js');
+const { gameQuestionAyahCount, estimateGameEventAyahs, homeworkQuestionAyahCount, homeworkAyahTotal, reviewCountsForMonth, shownAyahKeys, gameShownAyahKeys } = await import('../engine/ayahCount.js');
 
 let pass = 0, fail = 0;
 const t = (n, f) => { try { f(); pass++; console.log('PASS ', n); } catch (e) { fail++; console.log('FAIL ', n, '\n   ', e.message); } };
@@ -56,6 +56,22 @@ t('العدّ الشهري: إجمالي = ألعاب + واجب، داخل ال
     const r = reviewCountsForMonth({ games: [{ ts: nov, n: 4 }, { ts: nov, n: 2 }, { ts: oct, n: 9 }], homework: [{ ts: nov, n: 20 }] }, 2026, 10);
     assert.deepEqual(r, { games: 6, homework: 20, total: 26 });
     assert.deepEqual(reviewCountsForMonth({ games: null, homework: [] }, 2026, 10), { games: 0, homework: 0, total: 0 });
+});
+t('الآيات الظاهرة: تقدير من النوع والموضع', () => {
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'next', n: 2 }), ['2:5', '2:6']);
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'previous', n: 2 }), ['2:4', '2:5']);
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'between', n: 3 }), ['2:4', '2:5', '2:6']);
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'order', n: 4 }), ['2:5', '2:6', '2:7', '2:8']);
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'catch', n: 1 }), ['2:5']);
+    assert.deepEqual(shownAyahKeys({ surah: 2, ayah: 5, fmt: 'order', ayahs: ['3:1'] }), ['3:1'], 'المحفوظة أولى');
+});
+t('الآيات الظاهرة في سؤال اللعبة', () => {
+    const a = (s, n) => ({ surahNumber: s, numberInSurah: n });
+    assert.deepEqual(gameShownAyahKeys({ type: 'next', ayahObj: a(2, 5) }), ['2:5', '2:6']);
+    assert.deepEqual(gameShownAyahKeys({ type: 'listen_next', dir: 'prev', ayahObj: a(50, 9) }), ['50:8', '50:9']);
+    assert.deepEqual(gameShownAyahKeys({ type: 'link_ends', original: [a(2, 3), a(2, 9)], ayahObj: a(2, 3) }), ['2:3', '2:9']);
+    assert.deepEqual(gameShownAyahKeys({ type: 'recite', reciteAyahs: [{ num: 4 }, { num: 5 }], ayahObj: a(60, 4) }), ['60:4', '60:5']);
+    assert.deepEqual(gameShownAyahKeys({ type: 'link_word_surah', ayahObj: a(1, 1) }), []);
 });
 console.log(`\n${pass} pass, ${fail} fail`);
 if (fail) process.exit(1);
