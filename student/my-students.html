@@ -130,7 +130,8 @@
     #app-root #ms-screen .ms-side-month { display: none; }
     /* التبويبات */
     #app-root #ms-screen .ms-tabs { display: flex; gap: 4px; background: var(--dh-surface-0); border: 1.5px solid var(--dh-border); border-radius: 16px; padding: 4px; }
-    #app-root #ms-screen .ms-tab { flex: 1; border: 0; border-radius: 12px; padding: 10px 6px; font-weight: 700; font-size: .92rem; color: var(--dh-ink-soft); background: transparent; min-height: var(--dh-tap); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-tab { flex: 1; border: 0; border-radius: 12px; padding: 10px 6px; font-weight: 700; font-size: .92rem; color: var(--dh-ink-soft); background: transparent; min-height: var(--dh-tap); display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; margin: 0; min-width: 0; box-shadow: none; text-align: center; line-height: 1.25; }
+    #app-root #ms-screen .ms-tab[data-tab="month"] { flex: 1.7; }
     #app-root #ms-screen .ms-tab.on { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
     #app-root #ms-screen .ms-tab .n { background: var(--dh-warn-bg); color: var(--dh-warn); border-radius: 99px; font-size: .72rem; padding: 0 7px; font-weight: 700; }
     #app-root #ms-screen .ms-tab .n[hidden] { display: none; }
@@ -291,7 +292,7 @@
             <div class="ms-main">
                 <div class="ms-tabs" id="ms-tabs" role="tablist">
                     <button type="button" class="ms-tab on" role="tab" data-tab="students" data-i18n="ms_tab_students">الطلاب</button>
-                    <button type="button" class="ms-tab" role="tab" data-tab="month"><span data-i18n="ms_tab_month">هذا الشهر</span><span class="n" id="ms-tab-memo-n" hidden></span></button>
+                    <button type="button" class="ms-tab" role="tab" data-tab="month"><span data-i18n="ms_tab_month">تقرير الشهر وأين توقف؟</span><span class="n" id="ms-tab-memo-n" hidden></span></button>
                     <button type="button" class="ms-tab" role="tab" data-tab="sched" data-i18n="ms_tab_sched">الحصص والحضور</button>
                 </div>
 
