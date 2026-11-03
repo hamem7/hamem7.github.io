@@ -57,7 +57,7 @@ const ar = {
     bdg_title_steady: 'ثابت', bdg_title_radiant: 'متألق', bdg_title_legend: 'أسطورة', att_sched_none: 'لا جدول بعد', att_sched_clear: 'مسح الجدول',
     // التقرير: الأوسمة
     bdg_rep_title: 'أوسمة هذا الشهر', bdg_rep_sub: 'أوسمة نالها {name} هذا الشهر من أدائه المسجَّل فقط', bdg_rep_total: '{n} أوسمة', bdg_rep_none: 'لم يُسجَّل وسام هذا الشهر بعد.',
-    bdg_rep_closest: 'أقرب وسام قادم: {badge} — باقي {k}', bdg_rep_legend: 'مفتاح الأوسمة وكيف تُنال', bdg_rep_legend_hint: 'اضغط لعرض شروط كل وسام', bdg_rep_legend_sub: 'كل وسام له أربع درجات، والرقم هو الحد الأدنى للحصول على الدرجة في الشهر الواحد',
+    bdg_rep_closest: 'أقرب وسام قادم: {badge} — باقي {k}', bdg_rep_how: '{unit}: {v} (حدّ الدرجة {tier}: {th})',
     bdg_rep_value: 'حقّق {n}', bdg_rep_tiers_line: 'برونزي {a} · فضي {b} · ذهبي {c} · ماسي {d}',
     // التقرير: الحضور
     att_rep_title: 'الحضور والالتزام', att_rep_sub: 'حسب سجل المعلم لهذا الشهر', att_rep_expected: 'الحصص المقررة', att_rep_present: 'حضر', att_rep_absent: 'غياب',
@@ -118,7 +118,7 @@ const en = {
     bdg_cabinet_how: 'How to earn it', bdg_cabinet_thresholds: 'Thresholds', bdg_cabinet_gold_months: 'Gold or higher in {n} months', bdg_cabinet_this_month: 'This month', bdg_cabinet_tap: 'Tap any badge to see how to earn it',
     bdg_title_steady: 'Steady', bdg_title_radiant: 'Radiant', bdg_title_legend: 'Legend', att_sched_none: 'No schedule yet', att_sched_clear: 'Clear schedule',
     bdg_rep_title: 'Badges this month', bdg_rep_sub: 'Badges {name} earned this month, from recorded performance only', bdg_rep_total: '{n} badges', bdg_rep_none: 'No badge recorded this month yet.',
-    bdg_rep_closest: 'Closest next badge: {badge} — {k} to go', bdg_rep_legend: 'Badge key and how to earn them', bdg_rep_legend_hint: 'Tap to show how each badge is earned', bdg_rep_legend_sub: 'Each badge has four tiers; the number is the minimum needed in a single month',
+    bdg_rep_closest: 'Closest next badge: {badge} — {k} to go', bdg_rep_how: '{unit}: {v} ({tier} tier from {th})',
     bdg_rep_value: 'Achieved {n}', bdg_rep_tiers_line: 'Bronze {a} · Silver {b} · Gold {c} · Diamond {d}',
     att_rep_title: 'Attendance & commitment', att_rep_sub: 'According to the teacher’s record this month', att_rep_expected: 'Scheduled sessions', att_rep_present: 'Attended', att_rep_absent: 'Absent',
     att_rep_hours: 'Hours (estimate)', att_rep_pct: 'Attendance', att_rep_cancelled: 'Sessions not held', att_rep_extra: 'Extra sessions', att_rep_unconfirmed: 'Unconfirmed', att_rep_session_len: 'Session length {n} min',

@@ -11,7 +11,7 @@ import { tf } from '../core/i18n.js';
 import { esc } from '../core/escape.js';
 import '../core/i18n-badges.js';
 import { loadStudentContext, inputsForMonth, evidenceTimestamps } from '../core/badgeService.js';
-import { computeMonthBadges, summarizeEarned, closestToNext, BADGE_DEFS, BADGE_GROUPS, TIER_KEYS } from '../engine/badgesEngine.js';
+import { computeMonthBadges, summarizeEarned, closestToNext, BADGE_DEFS } from '../engine/badgesEngine.js';
 import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceEngine.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { paceFrom, projectMilestones, buildPathMap, weightsFromPages, unitsBetween, buildNextMonthPlan, DEFAULT_SESSIONS_PER_MONTH, sessionsToFinish } from '../engine/khatmPlan.js';
@@ -32,29 +32,16 @@ const tierName = (k) => t('bdg_tier_n_' + k);
 export const EXTRAS_STYLES = `
   #report-screen .mrx{margin:18px 0; padding:16px 18px; border-radius:16px; background:#fffdf6; border:1.5px solid #e6dcbc; page-break-inside:avoid;}
   #report-screen .mrx .section-sub{margin-bottom:10px;}
-  #report-screen .mrx-grid{display:flex; flex-wrap:wrap; gap:12px; justify-content:flex-start;}
-  #report-screen .mrx-medal{width:132px; text-align:center; padding:10px 6px 8px; border-radius:14px; background:#ffffff; border:1.5px solid #eadfbd;}
-  #report-screen .mrx-medal .disc{width:64px; height:64px; margin:0 auto 6px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; border:3px solid rgba(255,255,255,.7);}
-  #report-screen .mrx-medal b{display:block; font-size:14px; color:#164f40;}
+  #report-screen .mrx-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px 12px;}
+  #report-screen .mrx-medal{display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border-radius:12px; background:#ffffff; border:1.5px solid #eadfbd; page-break-inside:avoid; break-inside:avoid;}
+  #report-screen .mrx-medal .disc{width:42px; height:42px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:21px; border:2px solid rgba(255,255,255,.7);}
+  #report-screen .mrx-medal .tx{min-width:0; flex:1;}
+  #report-screen .mrx-medal b{font-size:13.5px; color:#164f40;}
   #report-screen .mrx-medal small{display:block; font-size:11.5px; color:#6b6b63; line-height:1.5;}
-  #report-screen .mrx-chip{display:inline-block; margin-top:3px; padding:1px 10px; border-radius:999px; font-size:11.5px; font-weight:700; color:#1a1300;}
+  #report-screen .mrx-medal .how{display:block; font-size:11.5px; color:#3a3a35; line-height:1.5; margin-top:2px;}
+  #report-screen .mrx-chip{display:inline-block; margin-inline-start:6px; padding:0 8px; border-radius:999px; font-size:11.5px; font-weight:700; color:#1a1300;}
   #report-screen .mrx-total{font-size:15px; font-weight:800; color:#164f40; margin-bottom:8px;}
   #report-screen .mrx-closest{margin-top:10px; font-size:13px; color:#8a6221;}
-  #report-screen details.mrx-legend-box > summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
-  #report-screen details.mrx-legend-box > summary::-webkit-details-marker{display:none;}
-  #report-screen details.mrx-legend-box > summary .section-title{margin:0;}
-  #report-screen details.mrx-legend-box > summary .hint{font-size:12px; color:#8a6221; font-weight:700;}
-  #report-screen details.mrx-legend-box > summary .hint::before{content:'▸ '; display:inline-block;}
-  #report-screen details.mrx-legend-box[open] > summary .hint::before{content:'▾ ';}
-  #report-screen details.mrx-legend-box[open] > summary{margin-bottom:6px;}
-  #report-screen .mrx-tiers-key{display:flex; flex-wrap:wrap; gap:6px; margin:4px 0 6px;}
-  #report-screen .mrx-legend-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:6px 14px;}
-  #report-screen .mrx-legend-row{display:flex; gap:8px; align-items:flex-start; padding:5px 0; border-top:1px dashed #e6dcbc; font-size:12px; line-height:1.55; color:#3a3a35;}
-  #report-screen .mrx-legend-row .ic{font-size:17px; width:22px; text-align:center; flex:none;}
-  #report-screen .mrx-legend-row b{color:#164f40;}
-  #report-screen .mrx-legend-row .ds{display:block; color:#6b6b63; font-size:11.5px;}
-  #report-screen .mrx-legend-row .th{display:flex; flex-wrap:wrap; gap:4px; margin-top:3px;}
-  #report-screen .mrx-tp{display:inline-block; min-width:26px; padding:0 7px; border-radius:999px; font-size:11px; font-weight:800; color:#1a1300; text-align:center;}
   #report-screen .mrx-group{font-size:12.5px; font-weight:800; color:#8a6221; margin:10px 0 2px;}
   #report-screen .mrx-kv{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin:6px 0;}
   #report-screen .mrx-kv div{background:#fff; border:1px solid #eadfbd; border-radius:12px; padding:8px 10px; text-align:center;}
@@ -202,12 +189,16 @@ export async function collectExtras(d) {
 }
 
 // ---------- العرض ----------
+// وسام مكتسب: اسمه ودرجته + سطر «كيف حصل عليه» (الشرط والنتيجة وحدّ الدرجة) — بدل مفتاح كل الأوسمة
+const BADGE_TH = Object.fromEntries(BADGE_DEFS.map(b => [b.key, b.th]));
+const howOf = (r) => String(t('bdg_' + r.key + '_desc') || '').replace(/\s*\([^()]*\)\s*$/, '');
 const medalHtml = (r) => {
   const [c1, c2] = TIER_COLORS[r.tierKey];
+  const th = (BADGE_TH[r.key] || [])[r.tier];
   return `<div class="mrx-medal"><div class="disc" style="background:linear-gradient(135deg,${c1},${c2});">${r.icon}</div>
-    <b>${esc(t('bdg_' + r.key + '_name'))}</b>
-    <span class="mrx-chip" style="background:linear-gradient(135deg,${c1},${c2});">${esc(tierName(r.tierKey))}</span>
-    <small>${esc(t('bdg_' + r.key + '_unit'))}: ${num(Math.round(r.value))}</small></div>`;
+    <div class="tx"><b>${esc(t('bdg_' + r.key + '_name'))}</b><span class="mrx-chip" style="background:linear-gradient(135deg,${c1},${c2});">${esc(tierName(r.tierKey))}</span>
+    <span class="how">${esc(howOf(r))}</span>
+    <small>${esc(tf('bdg_rep_how', { unit: t('bdg_' + r.key + '_unit'), v: num(Math.round(r.value)), tier: tierName(r.tierKey), th: num(th ?? '') }))}</small></div></div>`;
 };
 
 function badgesSection(d, x) {
@@ -223,19 +214,7 @@ function badgesSection(d, x) {
   }
   const c = x.closest;
   const closest = c ? `<div class="mrx-closest">${esc(tf('bdg_rep_closest', { badge: t('bdg_' + c.key + '_name'), k: num(Math.ceil(c.next.remaining)) }))}</div>` : '';
-  // مفتاح الأوسمة: كل وسام وعتباته (يُظهر للوالد كيف يُنال كل وسام)
-  const TIERS = ['bronze', 'silver', 'gold', 'diamond'];
-  const pill = (k, txt) => { const [c1, c2] = TIER_COLORS[k]; return `<span class="mrx-tp" style="background:linear-gradient(135deg,${c1},${c2});">${esc(txt)}</span>`; };
-  const tiersKey = `<div class="mrx-tiers-key">${TIERS.map(k => pill(k, tierName(k))).join('')}</div>`;
-  const legend = BADGE_GROUPS.map(g => {
-    const rows = BADGE_DEFS.filter(b => b.group === g).map(b => `<div class="mrx-legend-row"><span class="ic">${b.icon}</span><div><b>${esc(t('bdg_' + b.key + '_name'))}</b>
-      <span class="ds">${esc(t('bdg_' + b.key + '_desc'))}</span>
-      <span class="th" title="${esc(tf('bdg_rep_tiers_line', { a: num(b.th[0]), b: num(b.th[1]), c: num(b.th[2]), d: num(b.th[3]) }))}">${TIERS.map((k, i) => pill(k, num(b.th[i]))).join('')}</span></div></div>`).join('');
-    return `<div class="mrx-group">${esc(t('bdg_group_' + g))}</div><div class="mrx-legend-grid">${rows}</div>`;
-  }).join('');
-  // مطويّ افتراضيًا حتى لا يأخذ مساحة كبيرة من التقرير (ويُصدَّر مطويًّا ما لم يفتحه المعلم)
-  return `<div class="mrx pdf-block" id="mr-badges-block">${head}${body}${closest}</div>
-    <details class="mrx pdf-block mrx-legend-box" id="mr-badges-legend"><summary><span class="section-title">${esc(t('bdg_rep_legend'))}</span><span class="hint">${esc(t('bdg_rep_legend_hint'))}</span></summary><div class="section-sub">${esc(t('bdg_rep_legend_sub'))}</div>${tiersKey}${legend}</details>`;
+  return `<div class="mrx pdf-block" id="mr-badges-block">${head}${body}${closest}</div>`;
 }
 
 function goalsSection(d, x) {
