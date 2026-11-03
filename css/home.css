@@ -1188,16 +1188,16 @@
 .home-menu-secondary .home-card-similarities .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-gold-500)); }
 .home-menu-secondary .home-card-similarities .home-card-title { color: var(--dh-emerald-800); }
 
-/* 🎓 بطاقة «أبطال التجويد» في الصف الثانوي: بحجم عادي مثل جاراتها وقبل الشهادات، بصبغة تيل/سماوي خفيفة (تميّزها عن الزمرّدي والبنفسجي والذهبي) */
+/* 🎓 بطاقة «أبطال التجويد» في الصف الثانوي: بحجم عادي مثل جاراتها وقبل الشهادات، بصبغة برتقالية خفيفة (تميّزها عن الزمرّدي والبنفسجي والذهبي) */
 .home-menu-secondary .home-card-tajweed {
-    background: rgba(14, 116, 144, 0.12);
-    border-top: 3px solid #0e7490;
+    background: rgba(234, 88, 12, 0.14);
+    border-top: 3px solid #ea580c;
     color: inherit;
     box-shadow: none;
 }
-.home-menu-secondary .home-card-tajweed .home-card-icon { background: linear-gradient(135deg, #0e7490, #0d5c46); }
-.home-menu-secondary .home-card-tajweed .home-card-title { color: #0b5568; }
-.home-menu-secondary .home-card-tajweed .home-card-badge { position: static; order: 3; margin-inline-start: auto; background: #0e7490; color: #fff; white-space: nowrap; }
+.home-menu-secondary .home-card-tajweed .home-card-icon { background: linear-gradient(135deg, #ea580c, #f59e0b); }
+.home-menu-secondary .home-card-tajweed .home-card-title { color: #9a3412; }
+.home-menu-secondary .home-card-tajweed .home-card-badge { position: static; order: 3; margin-inline-start: auto; background: #ea580c; color: #fff; white-space: nowrap; }
 
 /* 🌟 [جديد] سهم بطاقات الصف الثانوي (طلابي/الواجبات/الثنائية) — القاعدة العامة
    .home-card-arrow أعلاه (position:absolute، bottom:20px) مصمَّمة لبطاقات الصف الأساسي
