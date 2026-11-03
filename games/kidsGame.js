@@ -335,7 +335,7 @@ function initGameUI() {
     document.getElementById('btn-submit-all-errors')?.addEventListener('click', submitAllErrors);
 
     // 🌟 [جديد] لوحة «أوسمتي» قبل أول سؤال: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). لا تحجب اللعبة عند أي فشل.
-    import('../components/badgeReveal.js').then(m => m.showBadgesIntro(AppState.currentStudent)).catch(() => {}).then(() => playNextMission());
+    import('../components/badgeReveal.js').then(m => m.showBadgesIntro(AppState.currentStudent, ['games', 'engage'])).catch(() => {}).then(() => playNextMission());
 }
 
 function updateTrackerUI() { 
@@ -441,7 +441,7 @@ async function playNextMission() {
             // persistEvaluationToHistory أعلاه لتفاصيل السبب والافتراضات
             persistEvaluationToHistory();
             // 🌟 [جديد] تقييم الأوسمة الشهرية وعرض الجديد منها بالمشهد السينمائي (لا يحجب ولا يرمي)
-            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent)).catch(() => {});
+            import('../components/badgeReveal.js').then(m => m.maybeShowNewBadges(AppState.currentStudent, ['games', 'engage'])).catch(() => {});
             // 🌟 [جديد] اكتمل اختبار كان معلّقاً ← نحذف لقطته من سجل الطالب (راجع adultGame.js)
             if (ownsPaused(GameState) && AppState.currentStudent && AppState.currentStudent.pausedEvaluation) {
                 clearPausedEvaluation(AppState.currentStudent);

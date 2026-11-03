@@ -1094,7 +1094,7 @@ async function finishMatch() {
         try {
             const everyone = await AppState.studentManager.getAllStudents();
             const { maybeShowNewBadges } = await import('../components/badgeReveal.js');
-            [match.studentIdA, match.studentIdB].forEach(id => { const s = everyone.find(x => String(x.id) === String(id)); if (s) maybeShowNewBadges(s); });
+            [match.studentIdA, match.studentIdB].forEach(id => { const s = everyone.find(x => String(x.id) === String(id)); if (s) maybeShowNewBadges(s, ['duels']); });
         } catch (e) { /* اختياري */ }
     } catch (e) { /* best-effort — فشل تقييم الأوسمة لا يعطّل عرض النتيجة النهائية */ }
     renderBadgesReveal(newBadgesA, newBadgesB);

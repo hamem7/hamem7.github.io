@@ -39,6 +39,8 @@ export async function initTajweedMap() {
     if (!host) return;
     try {
         const { start } = await import('./challenge/js/app.js');
+        // 🏅 عند دخول ركن التجويد: لوحة أوسمة التجويد فقط (تعلّم/تطبيق/ألمعي/متقن) إن كان للطالب الحالي أوسمة؛ لا تحجب الدخول أبدًا
+        try { const rv = await import('../components/badgeReveal.js'); await rv.showBadgesIntro(AppState.currentStudent, ['tajweed']); } catch (e) { /* اختياري */ }
         // قائمة الطلاب الظاهرين من قاعدة المنصة (بدونها يعمل الركن بلا اسم)
         let students = [];
         try { students = (await AppState.studentManager.getAllStudents()).filter(s => !s.isHidden).map(s => ({ id: s.id, name: s.name })); } catch (e) { /* بلا قائمة */ }
@@ -46,7 +48,12 @@ export async function initTajweedMap() {
             getLang: () => AppState.currentLang,
             onExit: loadSplashScreen,
             students,
-            onProgress: (evt, student) => recordProgress(evt, student).catch(err => console.warn('تعذر حفظ تقدم التجويد في قاعدة المنصة:', err)),
+            onProgress: (evt, student) => recordProgress(evt, student).then(async () => {
+                // 🏅 وسام جديد في التجويد يظهر بعد حفظ التقدّم مباشرة (مجموعة التجويد فقط)
+                if (!student || student.id == null) return;
+                const full = (await AppState.studentManager.getAllStudents()).find(x => String(x.id) === String(student.id));
+                if (full) (await import('../components/badgeReveal.js')).maybeShowNewBadges(full, ['tajweed']);
+            }).catch(err => console.warn('تعذر حفظ تقدم التجويد في قاعدة المنصة:', err)),
             profile: AppState.currentStudent && AppState.currentStudent.id ? String(AppState.currentStudent.id) : ''
         });
     } catch (err) {

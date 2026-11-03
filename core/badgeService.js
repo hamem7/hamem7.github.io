@@ -8,7 +8,7 @@
 // =============================================================================
 import { AppState } from './app.js';
 import './i18n-badges.js';
-import { computeMonthBadges, summarizeEarned, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
+import { computeMonthBadges, summarizeEarned, getBadgeDef, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
 import { starsInMonth } from './goldStars.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { summarizeReview } from '../engine/reviewParts.js';
@@ -114,7 +114,8 @@ export async function computeBadgesForMonth(student, y, m, ctx = null, now = new
 }
 
 /** يقارن بالسجل ويحفظ الجديد. يُرجع [{key, icon, tier, tierKey, value, next, prevTier}] للأوسمة التي ارتفعت درجتها فقط. */
-export async function awardNewBadges(student, now = new Date()) {
+// groups (اختياري): مجموعات تُقيَّم/تُعرض الآن فقط (games|memorize|engage|tajweed|duels)؛ غيرها لا يُسجَّل في السجل فيُعرض في مكانه لاحقًا.
+export async function awardNewBadges(student, now = new Date(), groups = null) {
     try {
         const y = now.getFullYear(), m = now.getMonth();
         const { results } = await computeBadgesForMonth(student, y, m, null, now);
@@ -123,6 +124,7 @@ export async function awardNewBadges(student, now = new Date()) {
         const fresh = [];
         for (const r of results) {
             if (r.tier < 0) continue;
+            if (groups) { const d = getBadgeDef(r.key); if (!d || !groups.includes(d.group)) continue; }
             const had = typeof cur[r.key] === 'number' ? cur[r.key] : -1;
             if (r.tier > had) { cur[r.key] = r.tier; fresh.push({ ...r, prevTier: had }); }
         }
@@ -135,7 +137,7 @@ export async function awardNewBadges(student, now = new Date()) {
 }
 
 /** كل الأشهر التي فيها وسام + أعلى درجة لكل وسام + أشهر ذهبي فأعلى (الاستمرارية). */
-export async function badgeHistory(student, now = new Date(), maxMonths = 24) {
+export async function badgeHistory(student, now = new Date(), maxMonths = 24, groups = null) {
     const ctx = await loadStudentContext(student);
     const months = [];
     let y = now.getFullYear(), m = now.getMonth();
@@ -146,9 +148,9 @@ export async function badgeHistory(student, now = new Date(), maxMonths = 24) {
         [y, m] = prevMonth(y, m);
     }
     const best = {};
-    BADGE_DEFS.forEach(d => { best[d.key] = { key: d.key, bestTier: -1, months: 0, goldMonths: 0 }; });
+    BADGE_DEFS.filter(d => !groups || groups.includes(d.group)).forEach(d => { best[d.key] = { key: d.key, bestTier: -1, months: 0, goldMonths: 0 }; });
     months.forEach(mo => mo.earned.forEach(r => {
-        const b = best[r.key];
+        const b = best[r.key]; if (!b) return;
         b.bestTier = Math.max(b.bestTier, r.tier); b.months++;
         if (r.tier >= 2) b.goldMonths++;
     }));

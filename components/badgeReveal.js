@@ -242,11 +242,11 @@ export async function showCeremony(earned, student) {
 
 /** لوحة «أوسمتي» عند بدء أي لعبة: الطالب هو من يرى هذه الشاشة (ملف الطالب للمعلم فقط). تحلّ الوعد عند «ابدأ» أو الإغلاق،
  *  وتحلّ فورًا بلا عرض إن لم يكن للطالب وسام أو تأخّر الحساب أو حدث أي خطأ — فلا تحجب اللعبة أبدًا. */
-export async function showBadgesIntro(student) {
+export async function showBadgesIntro(student, groups = null) {
   try {
     if (!student) return;
     const svc = await import('../core/badgeService.js');
-    const hist = await Promise.race([svc.badgeHistory(student), new Promise(r => setTimeout(() => r(null), 3000))]);
+    const hist = await Promise.race([svc.badgeHistory(student, new Date(), 24, groups),new Promise(r => setTimeout(() => r(null), 3000))]);
     if (!hist) return;
     const defs = await import('../engine/badgesEngine.js');
     const items = hist.best.filter(b => b.bestTier >= 0).sort((a, b) => b.bestTier - a.bestTier);
@@ -273,12 +273,13 @@ export async function showBadgesIntro(student) {
 
 /** نقطة الدخول للألعاب/المواجهات/التجويد: تقيّم وتعرض الجديد فقط. لا ترمي أخطاء أبدًا ولا تحجب المستدعي. */
 let _queue = Promise.resolve();
-export function maybeShowNewBadges(student) {
+export function maybeShowNewBadges(student, groups = null) {
   if (!student) return;
+  // groups: لا يُعرض إلا أوسمة هذه المجموعات (كل وسام في مكانه): games/engage للألعاب الفردية، tajweed للتجويد، duels للمواجهات، memorize للحفظ
   // بالتتابع: طالبان في مواجهة واحدة لا يتداخل مشهداهما
   _queue = _queue.then(async () => {
     const svc = await import('../core/badgeService.js');
-    const fresh = await svc.awardNewBadges(student);
+    const fresh = await svc.awardNewBadges(student, new Date(), groups);
     if (fresh.length) await showBadges(fresh, student);
   }).catch(e => console.warn('[badgeReveal] تعذّر عرض الأوسمة:', e));
 }
@@ -305,7 +306,7 @@ export function initGoalListener() {
     try {
       const id = e.detail && e.detail.studentId;
       const s = (await AppState.studentManager.getAllStudents()).find(x => String(x.id) === String(id));
-      if (s) maybeShowNewGoals(s);
+      if (s) { maybeShowNewGoals(s); maybeShowNewBadges(s, ['memorize']); }
     } catch (err) { console.warn('[badgeReveal] مستمع الأهداف:', err); }
   });
 }
