@@ -75,15 +75,17 @@ const CSS = `/* ===== المسرح ===== */
 #dhBadgeStage .acts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; opacity: 0; animation: dhbr_up .6s 3.3s forwards; }
 #dhBadgeStage .acts button { border: 1.5px solid rgba(255,255,255,.45); background: rgba(255,255,255,.1); color: #fff; border-radius: 999px; padding: 8px 16px; font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; }
 #dhBadgeStage .acts button:disabled { opacity: .5; }
-#dhBadgeStage .intro { position: relative; display: grid; gap: 12px; justify-items: center; width: min(560px, 94vw); max-height: 100%; overflow-y: auto; padding: 20px; }
+#dhBadgeStage .intro { position: relative; display: grid; gap: 12px; justify-items: center; width: min(560px, 94vw); max-height: 100%; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; padding: 20px; }
+#dhBadgeStage .intro::-webkit-scrollbar { display: none; }
 #dhBadgeStage .intro .ttl2 { margin: 0; font-size: 1.7rem; font-weight: 800; color: #f6d57a; opacity: 0; animation: dhbr_up .5s .1s forwards; }
 #dhBadgeStage .intro .sub { margin: 0; color: rgba(255,255,255,.8); opacity: 0; animation: dhbr_up .5s .25s forwards; }
 #dhBadgeStage .intro .grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-#dhBadgeStage .intro .mini { width: 96px; display: grid; justify-items: center; gap: 2px; font-size: .8rem; opacity: 0; transform: scale(.4); animation: dhbr_pop .5s forwards; }
+#dhBadgeStage .intro .mini { width: 112px; display: grid; justify-items: center; gap: 2px; font-size: .8rem; opacity: 0; transform: scale(.4); animation: dhbr_pop .5s forwards; }
 #dhBadgeStage .intro .mini svg { width: 78px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.5)); }
 #dhBadgeStage .intro .mini small { color: rgba(255,255,255,.7); font-size: .72rem; }
 #dhBadgeStage .intro .next { animation-delay: 1.2s; }
-#dhBadgeStage .intro .rays { top: -8%; }
+#dhBadgeStage .intro-rays { top: -8%; } /* خارج .intro حتى لا يُنشئ أشرطة تمرير */
+#dhBadgeStage .intro .how { font-style: normal; font-size: .68rem; line-height: 1.35; color: rgba(255,255,255,.62); }
 #dhBadgeStage .intro .count { font-size: 3.4rem; font-weight: 800; line-height: 1; color: #f6d57a; opacity: 0; animation: dhbr_pop .6s .3s forwards; }
 #dhBadgeStage .intro .mini svg { filter: drop-shadow(0 8px 12px rgba(0,0,0,.55)) drop-shadow(0 0 16px var(--t2)); animation: dhbr_bob 3.4s ease-in-out infinite; }
 #dhBadgeStage .intro .mini .shine { display: block !important; }
@@ -256,9 +258,9 @@ export async function showBadgesIntro(student, groups = null) {
     const hd = document.getElementById('main-header');
     if (hd) st.style.top = Math.max(0, Math.round(hd.getBoundingClientRect().bottom)) + 'px'; // تحت الترويسة الوحيدة
     const minis = items.map((b, i) => { const tk = TIER_KEYS[b.bestTier], d = defs.getBadgeDef(b.key);
-      return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk)}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small></div>`; }).join('');
+      return `<div class="mini" style="${VARS[tk]};animation-delay:${.3 + i * .08}s">${medalSVG(d ? d.icon : '🏅', tk)}<span>${esc(t('bdg_' + b.key + '_name'))}</span><small>${esc(t('bdg_tier_n_' + tk))}</small><em class="how">${esc(t('bdg_' + b.key + '_how'))}</em></div>`; }).join('');
     st.innerHTML = `<button class="x" aria-label="${esc(t('bdg_close'))}">✕</button>
-      <canvas class="fx"></canvas><div class="intro"><div class="rays"></div><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><div class="count" id="dhIntroCount">0</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
+      <canvas class="fx"></canvas><div class="rays intro-rays"></div><div class="intro"><div class="ttl2" role="heading" aria-level="2">${esc(t('bdg_intro_title'))}</div><div class="count" id="dhIntroCount">0</div><p class="sub">${esc(firstName(student.name))} — ${esc(tf('bdg_intro_count', { n: num(items.length) }))}</p>
       <div class="grid">${minis}</div><button class="next">${esc(t('bdg_intro_start'))}</button></div>`;
     startFx(st.querySelector('canvas'), 'gold', mode); chime('gold', .4);
     setTimeout(() => st.classList.add('shown'), 60);

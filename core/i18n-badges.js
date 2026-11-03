@@ -6,20 +6,20 @@
 import { translations } from './i18n.js';
 
 const BADGES = {
-    skilled:  ['الماهر', 'The Skilled', 'ألعاب فردية بنتيجة ٩٠٪ فأكثر (حتى لعبتين في اليوم)', 'Individual games scoring 90%+ (max 2 per day)', 'الألعاب', 'games'],
-    perfect:  ['الكامل', 'The Perfect', 'ألعاب فردية بنتيجة ١٠٠٪ (حتى لعبتين في اليوم)', 'Individual games scoring 100% (max 2 per day)', 'الألعاب', 'games'],
-    active:   ['المثابر', 'The Persistent', 'ألعاب فردية جادّة بنتيجة ٥٠٪ فأكثر (حتى لعبتين في اليوم)', 'Serious individual games scoring 50%+ (max 2 per day)', 'الألعاب', 'games'],
-    fixer:    ['المُصلِح', 'The Fixer', 'جلسات «تحدي الأخطاء» بنتيجة ٨٠٪ فأكثر', '“Fix the mistakes” challenge sessions scoring 80%+', 'الجلسات', 'sessions'],
-    riser:    ['الصاعد', 'The Riser', 'ارتفاع متوسط نتائج الألعاب عن الشهر السابق (٣ ألعاب على الأقل في كل شهر)', 'Rise in average game score vs. last month (at least 3 games each month)', 'النقاط', 'points'],
-    hero:     ['البطل', 'The Champion', 'آيات حفظ جديدة سُجّلت هذا الشهر', 'New memorized ayahs recorded this month', 'الآيات', 'ayahs'],
-    rasikh:   ['الراسخ', 'The Steadfast', 'أجزاء راجعها الطالب وسُجّلت مراجعتها هذا الشهر', 'Parts reviewed and recorded this month', 'الأجزاء', 'parts'],
-    star:     ['النجم', 'The Star', 'إجابات صحيحة على «السؤال المميز»', 'Correct answers on the “featured question”', 'الأسئلة', 'questions'],
-    steady:   ['المواظب', 'The Dedicated', 'نسبة الحضور من الحصص المجدولة (الماسي: ١٠٠٪ مع ٨ حصص على الأقل)', 'Attendance of scheduled sessions (Diamond: 100% with at least 8 sessions)', 'النسبة ٪', 'percent'],
-    tjLearn:  ['المتعلّم', 'The Learner', 'أحكام تجويد أنهى شرحها هذا الشهر', 'Tajweed rules whose lesson was completed this month', 'الأحكام', 'rules'],
-    tjApply:  ['المطبِّق', 'The Practitioner', 'أحكام تجويد اجتاز تطبيقها (ألعابها) هذا الشهر', 'Tajweed rules whose practice games were passed this month', 'الأحكام', 'rules'],
-    tjExam:   ['الألمعي', 'The Brilliant', 'أحكام اجتاز اختبارها من أول محاولة', 'Tajweed rules whose exam was passed on the first attempt', 'الأحكام', 'rules'],
-    tjMaster: ['متقن التجويد', 'Tajweed Master', 'أحكام تجويد اعتمدها المعلم هذا الشهر', 'Tajweed rules approved by the teacher this month', 'الأحكام', 'rules'],
-    duelist:  ['المنافس', 'The Duelist', 'مواجهات ثنائية فاز بها هذا الشهر', 'Head-to-head matches won this month', 'الانتصارات', 'wins']
+    skilled:  ['المتفوّق في الألعاب', 'Game High-Scorer', 'ألعاب فردية بنتيجة ٩٠٪ فأكثر (حتى لعبتين في اليوم)', 'Individual games scoring 90%+ (max 2 per day)', 'الألعاب', 'games', 'لعبة بنتيجة ٩٠٪ فأكثر', 'A game scoring 90%+'],
+    perfect:  ['العلامة الكاملة', 'Full Marks', 'ألعاب فردية بنتيجة ١٠٠٪ (حتى لعبتين في اليوم)', 'Individual games scoring 100% (max 2 per day)', 'الألعاب', 'games', 'لعبة بنتيجة ١٠٠٪', 'A game scoring 100%'],
+    active:   ['المجتهد في الألعاب', 'Keen Player', 'ألعاب فردية جادّة بنتيجة ٥٠٪ فأكثر (حتى لعبتين في اليوم)', 'Serious individual games scoring 50%+ (max 2 per day)', 'الألعاب', 'games', 'لعبة بنتيجة ٥٠٪ فأكثر', 'A game scoring 50%+'],
+    fixer:    ['مصحّح الأخطاء', 'Mistake Fixer', 'جلسات «تحدي الأخطاء» بنتيجة ٨٠٪ فأكثر', '“Fix the mistakes” challenge sessions scoring 80%+', 'الجلسات', 'sessions', '«تحدي الأخطاء» بنتيجة ٨٠٪ فأكثر', '“Fix the mistakes” at 80%+'],
+    riser:    ['المتحسّن', 'The Improver', 'ارتفاع متوسط نتائج الألعاب عن الشهر السابق (٣ ألعاب على الأقل في كل شهر)', 'Rise in average game score vs. last month (at least 3 games each month)', 'النقاط', 'points', 'نتائجك أعلى من الشهر الماضي', 'Better scores than last month'],
+    hero:     ['بطل الحفظ', 'Memorization Hero', 'آيات حفظ جديدة سُجّلت هذا الشهر', 'New memorized ayahs recorded this month', 'الآيات', 'ayahs', 'آيات حفظ جديدة هذا الشهر', 'New ayahs memorized this month'],
+    rasikh:   ['بطل المراجعة', 'Review Champion', 'أجزاء راجعها الطالب وسُجّلت مراجعتها هذا الشهر', 'Parts reviewed and recorded this month', 'الأجزاء', 'parts', 'أجزاء راجعتها هذا الشهر', 'Parts reviewed this month'],
+    star:     ['نجم السؤال المميز', 'Featured Question Star', 'إجابات صحيحة على «السؤال المميز»', 'Correct answers on the “featured question”', 'الأسئلة', 'questions', 'إجابات صحيحة على السؤال المميز', 'Correct featured-question answers'],
+    steady:   ['المواظب على الحضور', 'Regular Attender', 'نسبة الحضور من الحصص المجدولة (الماسي: ١٠٠٪ مع ٨ حصص على الأقل)', 'Attendance of scheduled sessions (Diamond: 100% with at least 8 sessions)', 'النسبة ٪', 'percent', 'حضور الحصص في مواعيدها', 'Attending scheduled sessions'],
+    tjLearn:  ['متعلّم التجويد', 'Tajweed Learner', 'أحكام تجويد أنهى شرحها هذا الشهر', 'Tajweed rules whose lesson was completed this month', 'الأحكام', 'rules', 'أحكام تجويد أنهيت شرحها', 'Tajweed lessons completed'],
+    tjApply:  ['مطبّق التجويد', 'Tajweed Practitioner', 'أحكام تجويد اجتاز تطبيقها (ألعابها) هذا الشهر', 'Tajweed rules whose practice games were passed this month', 'الأحكام', 'rules', 'أحكام تجويد اجتزت ألعابها', 'Tajweed practice games passed'],
+    tjExam:   ['المتفوّق في اختبار التجويد', 'Tajweed Exam Ace', 'أحكام اجتاز اختبارها من أول محاولة', 'Tajweed rules whose exam was passed on the first attempt', 'الأحكام', 'rules', 'اختبار تجويد من أول محاولة', 'Tajweed exam passed first try'],
+    tjMaster: ['متقن التجويد', 'Tajweed Master', 'أحكام تجويد اعتمدها المعلم هذا الشهر', 'Tajweed rules approved by the teacher this month', 'الأحكام', 'rules', 'أحكام اعتمدها المعلم', 'Rules approved by the teacher'],
+    duelist:  ['بطل المواجهات', 'Duel Champion', 'مواجهات ثنائية فاز بها هذا الشهر', 'Head-to-head matches won this month', 'الانتصارات', 'wins', 'مواجهات ثنائية فزت بها', 'Head-to-head matches won']
 };
 const UNITS_EN = { games: 'Games', sessions: 'Sessions', points: 'Points', ayahs: 'Ayahs', parts: 'Parts', questions: 'Questions', percent: 'Attendance %', rules: 'Rules', wins: 'Wins' };
 
@@ -147,6 +147,7 @@ for (const [k, v] of Object.entries(BADGES)) {
     ar['bdg_' + k + '_name'] = v[0]; en['bdg_' + k + '_name'] = v[1];
     ar['bdg_' + k + '_desc'] = v[2]; en['bdg_' + k + '_desc'] = v[3];
     ar['bdg_' + k + '_unit'] = v[4]; en['bdg_' + k + '_unit'] = UNITS_EN[v[5]];
+    ar['bdg_' + k + '_how'] = v[6]; en['bdg_' + k + '_how'] = v[7];
 }
 Object.assign(translations.ar, ar);
 Object.assign(translations.en, en);

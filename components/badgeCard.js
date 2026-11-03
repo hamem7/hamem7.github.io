@@ -46,7 +46,9 @@ export async function buildBadgeCard(r, student) {
   const font = (w, px) => `${w} ${px}px "IBM Plex Sans Arabic", system-ui, sans-serif`;
   ctx.fillStyle = '#ffffffcc'; ctx.font = font(700, 40); ctx.fillText(r.custom ? r.custom.kicker : t('bdg_kicker'), W / 2, 112);
   const g = ctx.createLinearGradient(0, 800, 0, 880); g.addColorStop(0, '#fff'); g.addColorStop(1, c2);
-  ctx.fillStyle = g; ctx.font = font(800, 96); ctx.fillText(r.custom ? r.custom.name : t('bdg_' + r.key + '_name'), W / 2, 870);
+  ctx.fillStyle = g; const bname = r.custom ? r.custom.name : t('bdg_' + r.key + '_name'); let fpx = 96; ctx.font = font(800, fpx);
+  while (fpx > 48 && ctx.measureText(bname).width > W - 140) { fpx -= 4; ctx.font = font(800, fpx); } // الأسماء الطويلة تُصغَّر لتتّسع
+  ctx.fillText(bname, W / 2, 870);
   ctx.fillStyle = c2; ctx.font = font(800, 46); ctx.fillText(r.custom ? r.custom.chip : tf('bdg_tier_chip', { tier: t('bdg_tier_' + r.tierKey) }), W / 2, 940);
   ctx.fillStyle = '#fff'; ctx.font = font(700, 58); ctx.fillText(first(student && student.name), W / 2, 1030);
   ctx.fillStyle = '#ffffffd9'; ctx.font = font(500, 40);
