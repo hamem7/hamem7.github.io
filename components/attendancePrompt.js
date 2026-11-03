@@ -9,7 +9,7 @@ import { AppState, t } from '../core/app.js';
 import { tf } from '../core/i18n.js';
 import '../core/i18n-badges.js';
 import { esc } from '../core/escape.js';
-import { needsConfirmation, setDayStatus, evidenceDays, dateKey, hasSchedule, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
+import { needsConfirmation, setDayStatus, setDayMinutes, dayStatus, evidenceDays, dateKey, hasSchedule, collectEvidenceTimestamps, DEFAULT_MINUTES } from '../engine/attendanceEngine.js';
 import { individualGames, readHistory } from '../core/badgeService.js';
 
 const DAY_KEY = 'dh_att_prompt_day', TIME_KEY = 'dh_att_prompt_time', OFF_KEY = 'dh_att_prompt_off', STYLE = 'dh-att-prompt-style';
@@ -28,6 +28,11 @@ const CSS = `
 #dhAttPrompt .opts{display:flex;flex-wrap:wrap;gap:6px}
 #dhAttPrompt .opts button{border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border-radius:999px;padding:6px 12px;font-weight:700;cursor:pointer}
 #dhAttPrompt .opts button.ok{background:var(--dh-ok-bg,#e7f4ee);border-color:var(--dh-ok,#15803d)}
+#dhAttPrompt [hidden]{display:none!important}
+#dhAttPrompt .dur{display:grid;gap:8px}#dhAttPrompt .dq{font-weight:700;font-size:.9rem}
+#dhAttPrompt .custom{display:flex;gap:8px}#dhAttPrompt .custom input{flex:1;min-width:0;font:inherit;padding:7px 10px;border-radius:10px;border:1.5px solid var(--dh-border-strong,#aaa);background:var(--dh-surface-3,#fff);color:var(--dh-ink,#222)}
+#dhAttPrompt .custom button{border:1.5px solid var(--dh-ok,#15803d);background:var(--dh-ok-bg,#e7f4ee);color:var(--dh-ink,#222);border-radius:10px;padding:7px 14px;font-weight:800;cursor:pointer}
+#dhAttPrompt .tagdone{font-weight:800;color:var(--dh-ok,#15803d);font-size:.9rem}
 #dhAttPrompt .foot{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap}
 #dhAttPrompt .foot .left{margin-inline-end:auto;font-size:.85rem;font-weight:700;color:var(--dh-warn,#b45309)}
 #dhAttPrompt .foot button.sec{background:var(--dh-surface-2,#fff);color:var(--dh-ink,#222);border:1.5px solid var(--dh-border-strong,#aaa)}
@@ -43,7 +48,7 @@ function dayLabel(key) {
 export async function collectPending(opts = {}) {
   const mgr = AppState.studentManager;
   if (!mgr) return [];
-  const students = (await mgr.getAllStudents()).filter(s => hasSchedule(s) && (opts.studentId == null || String(s.id) === String(opts.studentId)));
+  const students = (await mgr.getAllStudents()).filter(s => (hasSchedule(s) || !!opts.reportMonth) && (opts.studentId == null || String(s.id) === String(opts.studentId)));
   if (!students.length) return [];
   let matches = [], sessions = [], mastery = [], reviews = [];
   try { if (AppState.dualTestsManager) matches = await AppState.dualTestsManager.getAllMatches(); } catch (e) { /* اختياري */ }
@@ -54,7 +59,7 @@ export async function collectPending(opts = {}) {
     // أي أثر للطالب في الألعاب الفردية/الثنائية/التجويد (ولو لم يكتمل) = حاضر ذلك اليوم
     const ev = evidenceDays(collectEvidenceTimestamps(s, { games: individualGames(readHistory(s.id)), matches, tjSessions: sessions, mastery, ruleReviews: reviews }));
     // في وضع التقرير لا نتجاوز أيام ما قبل حفظ الجدول: التقرير يعدّها حصصًا مجدولة، فيجب أن تُؤكَّد هي أيضًا
-    const sinceKey = !opts.reportMonth && s.schedule.since ? dateKey(s.schedule.since) : '0000-00-00';
+    const sinceKey = !opts.reportMonth && s.schedule && s.schedule.since ? dateKey(s.schedule.since) : '0000-00-00';
     const keys = [];
     if (opts.reportMonth) {
       const last = new Date(opts.reportMonth.year, opts.reportMonth.monthIndex0 + 1, 0).getDate();
@@ -62,30 +67,43 @@ export async function collectPending(opts = {}) {
     } else {
       for (let i = 0; i < 7; i++) keys.push(dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)));
     }
-    keys.filter(k => k <= todayKey && k >= sinceKey && needsConfirmation(s, k, ev)).forEach(k => out.push({ student: s, key: k }));
+    keys.filter(k => k <= todayKey && k >= sinceKey).forEach(k => {
+      if (needsConfirmation(s, k, ev)) out.push({ student: s, key: k, need: 'status' });
+      // في وضع التقرير: يوم حضور (بتأكيد أو بنشاط) بلا مدة فعلية مسجَّلة يُسأل عن مدته — ليست كل الحصص ساعة
+      else if (opts.reportMonth && dayStatus(s, k, ev) === 'present' && !(Number((s.attendanceMinutes || {})[k]) > 0)) out.push({ student: s, key: k, need: 'minutes' });
+    });
   }
   return out.sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
 }
 
 /**
- * يعرض نافذة التأكيد. opts.gate = وضع «قبل إصدار التقرير»: عنوان خاص، وزر المتابعة لا يُفعَّل إلا بعد تحديد كل الحصص.
- * يرجع Promise<boolean>: true = اكتملت كل الحصص المعروضة، false = أُغلقت قبل الإكمال (أو لا شيء معلّق → null).
+ * يعرض نافذة التأكيد. لكل حصة: الحالة (حضر/غاب/لم تُعقد) ثم — إن حضر — مدتها الفعلية بالدقائق (ليست كل الحصص ساعة).
+ * opts.gate = وضع «قبل إصدار التقرير»: عنوان خاص، وزر المتابعة لا يُفعَّل إلا بعد استكمال كل الحصص.
+ * يرجع Promise<boolean>: true = اكتملت كل الحصص المعروضة، false = أُغلقت قبل الإكمال.
  */
+const DUR_CHOICES = [15, 30, 45, 60, 90, 120];
+const nf = (n) => (isEn() ? String(n) : Number(n).toLocaleString('ar-EG', { useGrouping: false }));
 function showPrompt(pending, opts = {}) {
   if (!document.getElementById(STYLE)) { const st = document.createElement('style'); st.id = STYLE; st.textContent = CSS; document.head.appendChild(st); }
   document.getElementById('dhAttPrompt')?.remove();
   const gate = !!opts.gate;
   const root = document.createElement('div'); root.id = 'dhAttPrompt'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
   const choices = [['present', 'att_prompt_present'], ['absent', 'att_prompt_absent'], ['cancelled', 'att_prompt_cancelled']];
+  const schedMin = (st) => Number(st.schedule && st.schedule.minutes) || DEFAULT_MINUTES;
   const foot = gate
     ? `<div class="foot"><span class="left" id="dhAttLeft"></span><button type="button" class="sec" id="dhAttClose">${esc(t('att_gate_cancel'))}</button><button type="button" id="dhAttGo" disabled>${esc(t('att_gate_continue'))}</button></div>`
     : `<div class="foot"><button type="button" id="dhAttClose">${esc(t('att_prompt_later'))}</button></div>`;
+  const durHtml = `<div class="dur" hidden><div class="dq">${esc(t('att_prompt_dur_q'))}</div>
+      <div class="opts">${DUR_CHOICES.map(m => `<button type="button" data-m="${m}">${esc(tf('att_prompt_dur_min', { n: nf(m) }))}</button>`).join('')}</div>
+      <div class="custom"><input type="number" min="1" max="600" inputmode="numeric" placeholder="${esc(t('att_prompt_dur_custom'))}"><button type="button" class="durok">${esc(t('att_prompt_dur_ok'))}</button></div></div>`;
   root.innerHTML = `<div class="box"><h3>${esc(t(gate ? 'att_gate_title' : 'att_prompt_title'))}</h3><p>${esc(t(gate ? 'att_gate_sub' : 'att_prompt_sub'))}</p>
-    ${pending.length > 1 ? `<button type="button" class="all" id="dhAttAll">✓ ${esc(t('att_prompt_all_present'))}</button>` : ''}
-    ${pending.map((p, i) => `<div class="row" data-i="${i}"><div><span class="who">${esc(String(p.student.name || '').trim())}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
-      <div class="opts">${choices.map(([v, k]) => `<button type="button" data-v="${v}">${esc(t(k))}</button>`).join('')}</div></div>`).join('')}
+    ${pending.length > 1 ? `<button type="button" class="all" id="dhAttAll">✓ ${esc(t('att_prompt_all_sched'))}</button>` : ''}
+    ${pending.map((p, i) => `<div class="row" data-i="${i}" data-need="${p.need || 'status'}"><div><span class="who">${esc(String(p.student.name || '').trim())}</span> <span class="day">· ${esc(tf('att_prompt_day', { d: dayLabel(p.key) }))}</span></div>
+      <div class="opts st">${choices.map(([v, k]) => `<button type="button" data-v="${v}">${esc(t(k))}</button>`).join('')}</div>${durHtml}</div>`).join('')}
     ${foot}</div>`;
   document.body.appendChild(root);
+  // حصة حضرت بالفعل (بنشاط/تأكيد سابق) وينقصها المدة: تبدأ من سؤال المدة مباشرة
+  root.querySelectorAll('.row[data-need="minutes"]').forEach(row => { row.querySelector('.st').hidden = true; row.querySelector('.dur').hidden = false; });
   return new Promise((resolve) => {
     let settled = false;
     const close = (val, delay = 0) => { if (settled) return; settled = true; setTimeout(() => root.remove(), delay); resolve(val); };
@@ -95,7 +113,7 @@ function showPrompt(pending, opts = {}) {
       const n = left();
       const go = root.querySelector('#dhAttGo'), lbl = root.querySelector('#dhAttLeft');
       if (go) go.disabled = n > 0;
-      if (lbl) lbl.textContent = n > 0 ? tf('att_gate_left', { n: isEn() ? String(n) : Number(n).toLocaleString('ar-EG') }) : '';
+      if (lbl) lbl.textContent = n > 0 ? tf('att_gate_left', { n: nf(n) }) : '';
     };
     sync();
     const finish = () => {
@@ -105,26 +123,40 @@ function showPrompt(pending, opts = {}) {
       root.querySelector('#dhAttClose').textContent = t('att_prompt_done');
       close(true, 700);
     };
-    const mark = async (row, value) => {
+    // يحفظ الحالة (+ المدة للحاضر) ثم يغلق الصف
+    const mark = async (row, value, minutes = null) => {
       const p = pending[Number(row.dataset.i)];
       setDayStatus(p.student, p.key, value);
-      try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return; }
+      if (value === 'present') setDayMinutes(p.student, p.key, minutes);
+      try { await AppState.studentManager.updateStudent(p.student); } catch (err) { console.warn(err); return false; }
       // نسخة الطالب المفتوحة حاليًا (التقرير/الملف) تأخذ التأكيد فورًا
       const cur = AppState.currentStudent;
-      if (cur && cur !== p.student && String(cur.id) === String(p.student.id)) cur.attendance = { ...(p.student.attendance || {}) };
-      row.classList.add('done'); row.querySelectorAll('button').forEach(x => { x.disabled = true; x.classList.toggle('ok', x.dataset.v === value); });
+      if (cur && cur !== p.student && String(cur.id) === String(p.student.id)) { cur.attendance = { ...(p.student.attendance || {}) }; cur.attendanceMinutes = { ...(p.student.attendanceMinutes || {}) }; }
+      row.classList.add('done'); row.querySelectorAll('button,input').forEach(x => { x.disabled = true; });
+      row.querySelectorAll('.st button').forEach(x => x.classList.toggle('ok', x.dataset.v === value));
+      const tag = row.querySelector('.tagdone') || row.appendChild(Object.assign(document.createElement('div'), { className: 'tagdone' }));
+      tag.textContent = value === 'present' ? `✓ ${t('att_prompt_present')} — ${tf('att_prompt_dur_min', { n: nf(minutes) })}` : '✓ ' + t(value === 'absent' ? 'att_prompt_absent' : 'att_prompt_cancelled');
+      return true;
     };
+    const askDuration = (row) => { row.querySelector('.st').hidden = true; row.querySelector('.dur').hidden = false; row.querySelector('.dur input')?.focus?.(); };
     root.addEventListener('click', async (e) => {
       if (e.target.closest('#dhAttAll')) {
-        for (const row of root.querySelectorAll('.row:not(.done)')) await mark(row, 'present');
+        for (const row of root.querySelectorAll('.row:not(.done)')) await mark(row, 'present', schedMin(pending[Number(row.dataset.i)].student));
         finish(); return;
       }
       if (e.target.closest('#dhAttGo')) { if (!left()) close(true); return; }
       if (e.target.closest('#dhAttClose')) { close(!left()); return; }
-      const b = e.target.closest('.opts button');
-      if (!b) return;
-      await mark(b.closest('.row'), b.dataset.v);
-      finish();
+      const row = e.target.closest('.row');
+      if (!row || row.classList.contains('done')) return;
+      const sb = e.target.closest('.st button');
+      if (sb) { if (sb.dataset.v === 'present') { askDuration(row); return; } await mark(row, sb.dataset.v); finish(); return; }
+      const db = e.target.closest('.dur .opts button');
+      if (db) { if (await mark(row, 'present', Number(db.dataset.m))) finish(); return; }
+      if (e.target.closest('.durok')) {
+        const v = Number(row.querySelector('.dur input').value);
+        if (!(v > 0 && v <= 600)) { row.querySelector('.dur input').focus(); return; }
+        if (await mark(row, 'present', v)) finish();
+      }
     });
   });
 }

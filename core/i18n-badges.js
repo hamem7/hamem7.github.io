@@ -55,8 +55,8 @@ const ar = {
     bdg_rep_value: 'حقّق {n}', bdg_rep_tiers_line: 'برونزي {a} · فضي {b} · ذهبي {c} · ماسي {d}',
     // التقرير: الحضور
     att_rep_title: 'الحضور والالتزام', att_rep_sub: 'حسب سجل المعلم لهذا الشهر', att_rep_expected: 'الحصص المقررة', att_rep_present: 'حضر', att_rep_absent: 'غياب',
-    att_rep_hours: 'الساعات (تقدير)', att_rep_pct: 'نسبة الحضور', att_rep_cancelled: 'حصص لم تُعقد', att_rep_extra: 'حصص إضافية', att_rep_unconfirmed: 'غير مؤكَّدة', att_rep_session_len: 'مدة الحصة {n} دقيقة',
-    att_rep_no_schedule: 'لم يُحدَّد جدول حصص لهذا الطالب بعد.', att_rep_note_hours: 'الساعات = الحصص الحاضرة × مدة الحصة.',
+    att_rep_hours: 'الساعات', att_rep_pct: 'نسبة الحضور', att_rep_cancelled: 'حصص لم تُعقد', att_rep_extra: 'حصص إضافية', att_rep_unconfirmed: 'غير مؤكَّدة', att_rep_session_len: 'مدة الحصة {n} دقيقة',
+    att_rep_no_schedule: 'لم يُحدَّد جدول حصص لهذا الطالب بعد.', att_rep_note_hours: 'الساعات = مجموع مدد الحصص الفعلية التي سجّلها المعلم.',
     // الحضور: الجدول والسؤال
     att_sched_title: 'جدول الحصص', att_sched_days: 'أيام الحصص', att_sched_minutes: 'مدة الحصة (دقيقة)', att_sched_save: 'حفظ الجدول', att_sched_saved: 'تم حفظ الجدول', att_sched_hint: 'يُحسب منه الحضور المتوقع والساعات. أي نشاط للطالب في يوم حصته يسجّل حضوره تلقائيًا.',
     att_day_0: 'الأحد', att_day_1: 'الإثنين', att_day_2: 'الثلاثاء', att_day_3: 'الأربعاء', att_day_4: 'الخميس', att_day_5: 'الجمعة', att_day_6: 'السبت',
@@ -82,7 +82,9 @@ const ar = {
     cmp_no_schedule: 'لم يُحدَّد جدول الحصص (لا يمكن حساب الحضور).', cmp_unconfirmed: '{n} حصة مجدولة بلا تأكيد حضور.', cmp_no_ending: 'لم يُسجَّل موضع نهاية الشهر.', cmp_no_games: 'لا ألعاب فردية مسجَّلة هذا الشهر.',
     cmp_open_att: 'تأكيد الحضور الآن',
     // بوابة الإصدار: لا تقرير بأرقام حضور مخمَّنة
-    att_gate_title: 'بيانات ناقصة قبل إصدار التقرير', att_gate_sub: 'حتى يكون التقرير صادقًا: هذه حصص مجدولة في شهر التقرير لم يُسجَّل فيها أي نشاط ولا تأكيد. حدِّد حالة كل حصة، ولن تُحسب نسبة الحضور قبل ذلك.',
+    att_prompt_dur_q: 'كم دقيقة استمرت الحصة؟', att_prompt_dur_min: '{n} د', att_prompt_dur_custom: 'مدة أخرى (دقيقة)', att_prompt_dur_ok: 'حفظ', att_prompt_all_sched: 'الكل حضر بمدة حصته في الجدول',
+    att_rep_hours_incomplete: 'مدة {n} حصة حاضرة غير مسجَّلة، فلا تُعرض الساعات حتى تُستكمل.', cmp_hours_missing: 'مدة {n} حصة حاضرة غير مسجَّلة (لا تُحسب الساعات بدونها).',
+    att_gate_title: 'بيانات ناقصة قبل إصدار التقرير', att_gate_sub: 'حتى يكون التقرير صادقًا: هذه حصص في شهر التقرير ينقصها تأكيد الحضور أو مدتها الفعلية (ليست كل الحصص ساعة). حدِّد حالة كل حصة ومدتها؛ ولن تُحسب نسبة الحضور ولا الساعات قبل ذلك.',
     att_gate_continue: 'متابعة إصدار التقرير', att_gate_cancel: 'إلغاء', att_gate_left: 'باقي {n} حصة',
     att_rep_incomplete: 'بيانات الحضور غير مكتملة: {n} حصة لم تُؤكَّد بعد، فلا تُعرض نسبة الحضور حتى تُستكمل.',
     // الاختبارات الثنائية (أول اسم الخصم)
@@ -119,8 +121,8 @@ const en = {
     bdg_rep_closest: 'Closest next badge: {badge} — {k} to go',
     bdg_rep_value: 'Achieved {n}', bdg_rep_tiers_line: 'Bronze {a} · Silver {b} · Gold {c} · Diamond {d}',
     att_rep_title: 'Attendance & commitment', att_rep_sub: 'According to the teacher’s record this month', att_rep_expected: 'Scheduled sessions', att_rep_present: 'Attended', att_rep_absent: 'Absent',
-    att_rep_hours: 'Hours (estimate)', att_rep_pct: 'Attendance', att_rep_cancelled: 'Sessions not held', att_rep_extra: 'Extra sessions', att_rep_unconfirmed: 'Unconfirmed', att_rep_session_len: 'Session length {n} min',
-    att_rep_no_schedule: 'No session schedule has been set for this student yet.', att_rep_note_hours: 'Hours = attended sessions × session length.',
+    att_rep_hours: 'Hours', att_rep_pct: 'Attendance', att_rep_cancelled: 'Sessions not held', att_rep_extra: 'Extra sessions', att_rep_unconfirmed: 'Unconfirmed', att_rep_session_len: 'Session length {n} min',
+    att_rep_no_schedule: 'No session schedule has been set for this student yet.', att_rep_note_hours: 'Hours = the sum of the actual session lengths recorded by the teacher.',
     att_sched_title: 'Session schedule', att_sched_days: 'Session days', att_sched_minutes: 'Session length (minutes)', att_sched_save: 'Save schedule', att_sched_saved: 'Schedule saved', att_sched_hint: 'Used to compute expected attendance and hours. Any activity by the student on a session day records attendance automatically.',
     att_day_0: 'Sunday', att_day_1: 'Monday', att_day_2: 'Tuesday', att_day_3: 'Wednesday', att_day_4: 'Thursday', att_day_5: 'Friday', att_day_6: 'Saturday',
     att_prompt_title: 'Confirm today’s attendance', att_prompt_sub: 'These students had a session today and no activity was recorded. Did they attend?', att_prompt_present: 'Attended', att_prompt_absent: 'Absent', att_prompt_cancelled: 'Not held',
@@ -140,7 +142,9 @@ const en = {
     cmp_title: 'Report data completeness', cmp_ok: 'Data is complete for this month.', cmp_missing: 'Missing data that may reduce the report’s accuracy:',
     cmp_no_schedule: 'No session schedule set (attendance cannot be computed).', cmp_unconfirmed: '{n} scheduled sessions without attendance confirmation.', cmp_no_ending: 'The month-end position was not recorded.', cmp_no_games: 'No individual games recorded this month.',
     cmp_open_att: 'Confirm attendance now',
-    att_gate_title: 'Missing data before issuing the report', att_gate_sub: 'To keep the report accurate: these scheduled sessions in the report month have no recorded activity and no confirmation. Set the status of each one; the attendance rate is not calculated until then.',
+    att_prompt_dur_q: 'How many minutes did the session last?', att_prompt_dur_min: '{n} min', att_prompt_dur_custom: 'Other (minutes)', att_prompt_dur_ok: 'Save', att_prompt_all_sched: 'All attended, with their scheduled length',
+    att_rep_hours_incomplete: 'The length of {n} attended sessions is not recorded, so hours are not shown until completed.', cmp_hours_missing: 'The length of {n} attended sessions is not recorded (hours cannot be computed without it).',
+    att_gate_title: 'Missing data before issuing the report', att_gate_sub: 'To keep the report accurate: these sessions in the report month are missing attendance confirmation or their actual length (not every session is an hour). Set the status and length of each; the attendance rate and hours are not calculated until then.',
     att_gate_continue: 'Continue issuing the report', att_gate_cancel: 'Cancel', att_gate_left: '{n} sessions left',
     att_rep_incomplete: 'Attendance data is incomplete: {n} sessions are not confirmed yet, so the attendance rate is not shown until they are completed.',
     dual_opponent_first: 'Opponent shown by first name only',

@@ -1,6 +1,6 @@
 // tests/badgesAttendanceKhatm.test.mjs — تشغيل: node tests/badgesAttendanceKhatm.test.mjs
 import { computeMonthBadges, summarizeEarned, countCappedPerDay, closestToNext, BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
-import { summarizeMonth, evidenceDays, setDayStatus, needsConfirmation, dateKey, scheduledDaysInMonth, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
+import { summarizeMonth, evidenceDays, setDayStatus, setDayMinutes, needsConfirmation, dateKey, scheduledDaysInMonth, collectEvidenceTimestamps } from '../engine/attendanceEngine.js';
 import { paceFrom, projectMilestones, unitsBetween, sessionsToFinish, buildNextMonthPlan, buildPathMap, weightsFromPages } from '../engine/khatmPlan.js';
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) { pass++; console.log('✅', m); } else { fail++; console.log('❌', m); } };
@@ -60,7 +60,12 @@ setDayStatus(st, '2026-10-13', 'absent'); setDayStatus(st, '2026-10-18', 'cancel
 setDayStatus(st, '2026-10-20', 'present');
 sm = summarizeMonth(st, 2026, 9, ev);
 ok(sm.absent === 1 && sm.cancelled === 1 && sm.expected === 7 && sm.present === 3, 'تأكيد المعلم: غاب/لم تُعقد (لا تُحتسب)/حضر');
-ok(sm.hours === 2 && sm.minutes === 30, 'الساعات = (حاضر+إضافي) × مدة الحصة (4 × 30د = 2س)');
+ok(sm.hours === 0 && sm.hoursMissing === 4 && sm.complete === false, 'لا ساعات بلا مدد مسجَّلة (لا افتراض بمدة الجدول)');
+st.attendanceMinutes = { '2026-10-04': 30, '2026-10-06': 45, '2026-10-08': 60, '2026-10-20': 15 };
+sm = summarizeMonth(st, 2026, 9, ev);
+ok(sm.hours === 2.5 && sm.hoursMissing === 0 && sm.totalMinutes === 150, 'الساعات = مجموع المدد الفعلية (30+45+60+15 = 150د = 2.5س)');
+const st2 = { id: 9, schedule: { days: [0], minutes: 60 } }; setDayMinutes(st2, '2026-10-04', 40); setDayMinutes(st2, '2026-10-11', 0); setDayMinutes(st2, '2026-10-18', 9999);
+ok(st2.attendanceMinutes['2026-10-04'] === 40 && !('2026-10-11' in st2.attendanceMinutes) && !('2026-10-18' in st2.attendanceMinutes), 'setDayMinutes يقبل مدة معقولة فقط');
 ok(needsConfirmation(st, '2026-10-25', ev) === true && needsConfirmation(st, '2026-10-04', ev) === false, 'يُسأل فقط عن مجدول بلا دليل');
 ok(needsConfirmation({}, '2026-10-25', ev) === false, 'بلا جدول: لا أسئلة');
 ok(summarizeMonth({}, 2026, 9, ev).hasSchedule === false && summarizeMonth({}, 2026, 9, ev).pct === null, 'بلا جدول: لا نسبة حضور');
