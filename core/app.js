@@ -346,19 +346,36 @@ async function bootSystem() {
         // 🌟 [2026-10-03 — سرعة الفتح] كانت قواعد البيانات العشر تُفتح واحدة تلو الأخرى (await بعد await) رغم استقلالها التام
         // عن بعضها، فيتراكم زمن فتحها قبل ظهور الشاشة الرئيسية. الآن تُفتح كلها معاً؛ ترتيب إسناد الـ Managers ونتيجتها كما هي
         // تماماً، وأي فشل في أي منها يصل لنفس catch أدناه (showBootFailure) كما كان.
-        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB, trackingDB] = await Promise.all([
-            ensureQuranLoaded(),
-            initKidsAudioDB(),
-            initStudentDB(),
-            initHomeworkDB(),
-            initTeacherDB(),
-            initReviewScheduleDB(),
-            initDualTestsDB(),
-            initSimilaritiesDB(),
-            initTajweedDB(),
-            initMonthlyMemorizationDB(),
-            initTrackingDB()
+        // 🌟 [إصلاح تعليق «جاري التجهيز»] أحياناً يبقى فتح IndexedDB (أو طلب الشبكة) معلّقاً بلا نجاح ولا فشل (تبويب قديم/عامل خدمة
+        // عالق/متصفح الجوال بعد استئناف التطبيق من الخلفية) فتبقى شاشة الإقلاع للأبد ولا يحلّها إلا إغلاق المنصة وفتحها. الآن: مهلة 20 ثانية
+        // ثم إعادة تحميل تلقائية مرة واحدة (تحلّ الحالة كما كان المستخدم يفعل يدوياً)، فإن تكرر التعليق تظهر رسالة فشل مع زر «إعادة المحاولة».
+        const BOOT_TIMEOUT_MS = 20000;
+        let bootTimer;
+        const bootTimeout = new Promise((_, reject) => {
+            bootTimer = setTimeout(() => {
+                const err = new Error('BOOT_TIMEOUT');
+                err.code = 'BOOT_TIMEOUT';
+                reject(err);
+            }, BOOT_TIMEOUT_MS);
+        });
+        const [quranDB, kidsAudioDB, studentDB, hwDB, teacherDB, reviewScheduleDB, dualTestsDB, similaritiesDB, tajweedDB, monthlyMemorizationDB, trackingDB] = await Promise.race([
+            Promise.all([
+                ensureQuranLoaded(),
+                initKidsAudioDB(),
+                initStudentDB(),
+                initHomeworkDB(),
+                initTeacherDB(),
+                initReviewScheduleDB(),
+                initDualTestsDB(),
+                initSimilaritiesDB(),
+                initTajweedDB(),
+                initMonthlyMemorizationDB(),
+                initTrackingDB()
+            ]),
+            bootTimeout
         ]);
+        clearTimeout(bootTimer);
+        try { sessionStorage.removeItem('dh_boot_auto_retry'); } catch (e) { /* لا شيء */ }
 
         AppState.quranEngine = new QuranEngine(quranDB);
         AppState.kidsEngine = new KidsEngine(AppState.quranEngine);
@@ -494,6 +511,16 @@ async function bootSystem() {
         import('../components/guidedTour.js').then(m => m.maybeStartTour('home')).catch(() => {});
     } catch (error) {
         console.error("خطأ قاتل أثناء إقلاع النظام:", error);
+        // تعليق الإقلاع (مهلة): إعادة تحميل تلقائية مرة واحدة فقط لتفادي حلقة لا نهائية
+        if (error && error.code === 'BOOT_TIMEOUT') {
+            try {
+                if (!sessionStorage.getItem('dh_boot_auto_retry')) {
+                    sessionStorage.setItem('dh_boot_auto_retry', '1');
+                    window.location.reload();
+                    return;
+                }
+            } catch (e) { /* لا شيء: نعرض رسالة الفشل */ }
+        }
         // 🌟 [إصلاح تدقيق ما قبل الإطلاق] كان الخطأ يُسجَّل في الكونسول فقط فتبقى الشاشة فارغة بلا أي تفسير
         // (مثلاً أول تشغيل بلا إنترنت لتنزيل نص القرآن). الآن تظهر رسالة مفهومة مع زر إعادة المحاولة.
         showBootFailure(error);
