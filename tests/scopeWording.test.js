@@ -24,4 +24,10 @@ assert.equal(run('hizb', ['hizb:59']), 'سورة النبأ');
 assert.equal(run('hizb', ['hizb:60', 'hizb:59'], en), 'Juz Amma in full');
 assert.equal(run('surah', [114, 113, 86], en), 'From Surah الناس to Surah الطارق');
 assert.equal(describeScope({ model: null, selection: { mode: 'all' }, L: ar, surahName }), null);
+// السور الإضافية خارج المسار المتصل: تُذكر مقاطعها على حدة ولا تُدمج في «من … إلى …» المتصلة
+{
+    const mx = { ...model, surahs: [{ number: 78, extra: true }, { number: 79, extra: true }, { number: 67, extra: true }, ...model.surahs.slice(0, 3)] };
+    assert.equal(describeScope({ model: mx, selection: { mode: 'all' }, L: ar, surahName }), 'من سورة الناس إلى سورة الطارق، من سورة النبأ إلى سورة 79، سورة الملك');
+    assert.equal(describeScope({ model: mx, selection: { mode: 'surah', ids: [78, 79, 67, 114] }, L: ar, surahName }), 'من سورة النبأ إلى سورة 79، سورة الملك، سورة الناس');
+}
 console.log('✅ scopeWording');

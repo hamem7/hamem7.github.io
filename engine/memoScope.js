@@ -11,16 +11,17 @@
 // =============================================================================
 
 function layout(surahsData) {
-    const start = [], count = [];
+    const start = [], count = [], nums = [];
     let c = 0;
-    (surahsData || []).slice().sort((a, b) => a.number - b.number).forEach(s => { start[s.number] = c; count[s.number] = s.ayahsCount; c += s.ayahsCount; });
-    return { start, count, total: c };
+    (surahsData || []).slice().sort((a, b) => a.number - b.number).forEach(s => { start[s.number] = c; count[s.number] = s.ayahsCount; nums.push(s.number); c += s.ayahsCount; });
+    return { start, count, nums, total: c };
 }
 const toIndex = (L, s, a) => L.start[s] + a - 1;
 function fromIndex(L, i) {
-    let lo = 1, hi = L.start.length - 1;
-    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (L.start[mid] <= i) lo = mid; else hi = mid - 1; }
-    return { s: lo, a: i - L.start[lo] + 1 };
+    let lo = 0, hi = L.nums.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (L.start[L.nums[mid]] <= i) lo = mid; else hi = mid - 1; }
+    const s = L.nums[lo];
+    return { s, a: i - L.start[s] + 1 };
 }
 
 // مجال المسار المتصل بفهارس الآيات المطلقة [lo, hi] أو null عند غياب نطاق صالح (يتطابق مع resolveRange: «من» ≥ «إلى»)
@@ -51,7 +52,7 @@ export function normalizeExtras(surahsData, extras, student) {
     const L = layout(surahsData);
     if (!L.total) return [];
     let ivs = toIntervals(L, extras);
-    const cut = [[0, L.count[1] - 1]];               // الفاتحة لا تدخل أي نطاق
+    const cut = L.count[1] != null ? [[0, L.count[1] - 1]] : [];   // الفاتحة لا تدخل أي نطاق
     const m = mainInterval(surahsData, student || {});
     if (m) cut.push(m);
     cut.forEach(([lo, hi]) => {
@@ -133,7 +134,7 @@ export function memoStats(surahsData, student) {
         main = m[1] - m[0] + 1;
         const lo = fromIndex(L, m[0]).s, hi = fromIndex(L, m[1]).s;
         mainSurahs = hi - lo + 1;
-        if (lo <= 1) { main -= L.count[1]; mainSurahs -= 1; }
+        if (lo <= 1 && L.count[1] != null) { main -= L.count[1]; mainSurahs -= 1; }
     }
     const ex = studentExtras(surahsData, student);
     const slices = extraSurahSlices(surahsData, ex);

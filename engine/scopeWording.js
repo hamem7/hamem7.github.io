@@ -22,14 +22,19 @@ export function describeScope({ model, selection, L, surahName }) {
     const sep = L('، ', ', ');
     const mode = selection && selection.mode;
 
+    // 🌟 السور الإضافية خارج المسار المتصل (surah.extra) لا تُكتب ضمن «من … إلى …» المتصلة: كل مقطع منها يُذكر على حدة
+    // (وإلا أوحت العبارة بحفظ ما بين المسار والإضافي). نماذج بلا extra (الطلاب العاديون) تبقى صياغتها كما كانت.
+    const adjNum = (prev, cur) => !!prev.extra === !!cur.extra && (!cur.extra || Math.abs(prev.number - cur.number) === 1);
     if (!mode || mode === 'all') {
-        const nums = model.surahs.map(s => s.number);
-        return span(nums[0], nums[nums.length - 1]);
+        const mainNums = model.surahs.filter(s => !s.extra).map(s => s.number);
+        const parts = mainNums.length ? [span(mainNums[0], mainNums[mainNums.length - 1])] : [];
+        contiguousRuns(model.surahs, s => !!s.extra, adjNum).forEach(r => parts.push(span(r[0].number, r[r.length - 1].number)));
+        return parts.join(sep);
     }
 
     if (mode === 'surah') {
         const picked = new Set(selection.ids);
-        const runs = contiguousRuns(model.surahs, s => picked.has(s.number), (a, b) => true);
+        const runs = contiguousRuns(model.surahs, s => picked.has(s.number), adjNum);
         if (!runs.length) return null;
         return runs.map(r => span(r[0].number, r[r.length - 1].number)).join(sep);
     }

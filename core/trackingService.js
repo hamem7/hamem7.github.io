@@ -285,7 +285,7 @@ async function loadMemorizedPool(ctx) {
     return all.filter(a => {
         const id = segmentIdFor(AppState.surahsData, a.surahNumber, a.numberInSurah);
         const seg = id && ctx.path.byId.get(id);
-        return seg && a.numberInSurah <= seg.limit;
+        return seg && a.numberInSurah <= seg.limit && a.numberInSurah >= seg.from;   // الحد الأدنى يهم المقاطع الإضافية الجزئية
     }).map(a => ({ ...a }));
 }
 
@@ -353,7 +353,7 @@ export async function buildSelectionModel(student, ctx, { unit = null, cycleWeek
     groups.forEach((g, i) => { if (i < groups.length - 1) g.pctMemorized = 100; });
     const bySurah = new Map();
     ctx.path.segments.forEach(seg => {
-        if (!bySurah.has(seg.surah)) bySurah.set(seg.surah, { number: seg.surah, name: (AppState.surahsData.find(x => x.number === seg.surah) || {}).name || String(seg.surah), segIds: [] });
+        if (!bySurah.has(seg.surah)) bySurah.set(seg.surah, { number: seg.surah, name: (AppState.surahsData.find(x => x.number === seg.surah) || {}).name || String(seg.surah), segIds: [], extra: !!seg.extra });   // extra: سورة إضافية خارج المسار المتصل
         bySurah.get(seg.surah).segIds.push(seg.id);
     });
     const surahs = [...bySurah.values()].map(x => ({ ...x, cov: cov(x.segIds) }));

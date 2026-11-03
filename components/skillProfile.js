@@ -241,8 +241,12 @@ export function renderSkillProfileHTML(ctx, student) {
     const diag = diagnosisLines(ctx);
     const q = ctx.quality || {};
     const qHtml = Object.keys(QUALITY).map(k => `<div class="sk-kv"><span>${esc(qualityLabel(k))}${k === 'haraka' ? ` <span class="sk-note">${L('— ضبط تلاوة/تجويد، لا يُعالَج بالواجب', '— recitation/tajweed, not fixed by homework')}</span>` : ''}</span><b>${q[k] || 0}</b></div>`).join('');
+    // السور الإضافية (extra) أول المسار: نطاق المسار المتصل يُعرض من مقاطعه وحدها، والإضافي يُذكر عدداً
+    const allSegs = (ctx.path && ctx.path.segments) || [];
+    const mainSegs = allSegs.filter(x => !x.extra).length ? allSegs.filter(x => !x.extra) : allSegs;
+    const extraAyahs = allSegs.filter(x => x.extra).reduce((n, x) => n + x.count, 0);
     const rangeNote = ctx.range && ctx.range.ok
-        ? `<div class="sk-note">${L('نطاق الحفظ المعتمد', 'Memorization range used')}: ${esc(segLabel(ctx.path.segments[0].id))} → ${esc(segLabel(ctx.path.segments[ctx.path.segments.length - 1].id))} (${ctx.path.total} ${L('آية', 'ayahs')}, ${segCount(ctx.path.segments.length)})</div>`
+        ? `<div class="sk-note">${L('نطاق الحفظ المعتمد', 'Memorization range used')}: ${esc(segLabel(mainSegs[0].id))} → ${esc(segLabel(mainSegs[mainSegs.length - 1].id))} (${ctx.path.total - extraAyahs} ${L('آية', 'ayahs')}, ${segCount(mainSegs.length)})${extraAyahs ? ` + ${extraAyahs} ${L('آية من السور الإضافية', 'ayahs from the extra surahs')}` : ''}</div>`
         : `<div class="sk-note" style="color:var(--dh-danger, #b91c1c)">${L('لا يوجد نطاق حفظ مسجَّل لهذا الطالب.', 'No memorization range is recorded for this student.')}</div>`;
     return `
     <div class="sk-note">${esc(status.text)}</div>${rangeNote}

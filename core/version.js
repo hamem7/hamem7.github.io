@@ -8,13 +8,22 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.75';
+export const APP_VERSION = '1.0.76';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.76',
+        date: '2026-11-03',
+        items: [
+            { type: 'new', text: { ar: 'سور إضافية خارج المسار المتصل: عند إضافة الطالب أو تعديله، تحت «المسار المتصل» زرّان «سورة متفرقة» و«عدة سور» لتسجيل ما يحفظه الطالب بعيدًا عن مساره (سورة كاملة أو جزء منها)، مع إحصاء عدد الآيات.', en: 'Extra surahs outside the continuous track: when adding or editing a student, under “Continuous track” there are two buttons, “A scattered surah” and “Several surahs”, to record what the student has memorized away from the track (a whole surah or a part), with an ayah count.' } },
+            { type: 'new', text: { ar: 'تظهر السور الإضافية في ملف الطالب (بطاقة نطاق الحفظ)، وفي الألعاب الفردية (سورة محددة وعدة سور وكل النطاق والأجزاء)، وتدخل مراجعةً في الواجب الذكي دون أن تحرّك نقطة توقف الحفظ المتصل.', en: 'Extra surahs appear in the student file (memorization scope card), in solo games (a surah, several surahs, the whole scope and juz), and join the smart homework as review without moving the continuous stopping point.' } },
+            { type: 'improved', text: { ar: 'صياغة نطاق رسالة ولي الأمر تذكر المسار المتصل والسور الإضافية كلًّا على حدة، فلا توحي بحفظ ما بينهما.', en: 'The parent-message scope wording lists the continuous track and the extra surahs separately, so it never implies the surahs in between were memorized.' } }
+        ]
+    },
     {
         version: '1.0.75',
         date: '2026-11-02',

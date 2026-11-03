@@ -12,6 +12,7 @@
 // ==========================================
 
 import { SKILLS, HW_FORMATS, QUALITY, SKILLS_NOT_TRAINABLE_BY_HOMEWORK } from './skillMap.js';
+import { studentExtras } from './memoScope.js';   // السور الإضافية خارج المسار المتصل (student.memoExtra)
 
 export const SEGMENT_SIZE = 10;
 export const DAY_MS = 86400000;
@@ -87,11 +88,18 @@ function recordTimestamp(r) {
 }
 
 // أبعد موضع معروف في السجلات الشهرية (بداية أو نهاية أي شهر) على مسار الحفظ
-function furthestMonthlyPosition(surahsData, records) {
+// موضع داخل السور الإضافية (مقاطع {s1,a1,s2,a2} بترتيب المصحف)؟ مواضع هذا المسار لا تحرّك موضع توقّف المسار المتصل
+export function posInExtras(extras, surahNumber, ayahNumber) {
+    return (extras || []).some(e => (surahNumber > e.s1 || (surahNumber === e.s1 && ayahNumber >= e.a1))
+        && (surahNumber < e.s2 || (surahNumber === e.s2 && ayahNumber <= e.a2)));
+}
+
+function furthestMonthlyPosition(surahsData, records, extras) {
     let best = null;
     (records || []).forEach(r => {
         [r.beginning, r.ending].forEach(pos => {
             if (!validPosition(surahsData, pos)) return;
+            if (posInExtras(extras, pos.surahNumber, pos.ayahNumber)) return;   // موضع في سورة إضافية: ليس من المسار المتصل
             const idx = memorizationIndex(surahsData, pos.surahNumber, pos.ayahNumber);
             if (!best || idx > best.idx) best = { surah: pos.surahNumber, ayah: pos.ayahNumber, idx };
         });
@@ -117,15 +125,30 @@ export function resolveRange(surahsData, student, records) {
     let source = 'student';
     // 🌟 [إصلاح — 2026-10-17] نهاية النطاق المعلَن (memoTo) سقف لا يتجاوزه السجل الشهري: السجل قد يحمل موضعاً
     // خاطئاً أو أبعد (مثل البقرة) فيدخل الواجب كل السور بين المجادلة والبقرة. السجل يضبط الآية داخل سورة memoTo فقط.
-    const monthly = furthestMonthlyPosition(surahsData, records);
+    const extras = studentExtras(surahsData, student);
+    const monthly = furthestMonthlyPosition(surahsData, records, extras);
     if (monthly && monthly.surah === toS.number) { frontier = { surah: monthly.surah, ayah: monthly.ayah }; source = 'monthly'; }
-    return { ok: true, direction: 'backward', fromSurah: fromS.number, toSurah: frontier.surah, frontierAyah: frontier.ayah, source };
+    return { ok: true, direction: 'backward', fromSurah: fromS.number, toSurah: frontier.surah, frontierAyah: frontier.ayah, source, extras };
 }
 
 // يبني مسار الحفظ كقائمة مقاطع مرتّبة (الأقدم حفظاً أولاً)
 export function buildPath(surahsData, range) {
     const segments = [];
     let cum = 0;
+    // 🌟 السور الإضافية خارج المسار المتصل تُوضَع أولاً (الأقدم/البعيد): تدخل المراجعة ولا تؤثر في «الجديد/القريب» ولا في نقطة التوقف
+    (range.extras || []).forEach(e => {
+        for (let n = e.s1; n <= e.s2; n++) {
+            const surah = surahsData.find(s => s.number === n);
+            if (!surah || n === 1) continue;
+            const lo = n === e.s1 ? e.a1 : 1, hi = n === e.s2 ? e.a2 : surah.ayahsCount;
+            segmentsOfSurah(n, surah.ayahsCount).forEach(seg => {
+                if (seg.to < lo || seg.from > hi) return;
+                const from = Math.max(seg.from, lo), lim = Math.min(seg.to, hi), count = lim - from + 1;
+                segments.push({ ...seg, from, limit: lim, count, cumBefore: cum, cumEnd: cum + count, extra: true });
+                cum += count;
+            });
+        }
+    });
     const step = range.direction === 'backward' ? -1 : 1;
     for (let n = range.fromSurah; step < 0 ? n >= range.toSurah : n <= range.toSurah; n += step) {
         const surah = surahsData.find(s => s.number === n);
@@ -151,15 +174,21 @@ export function pathPosition(path, surah, ayah) {
 // تصنيف المقاطع: new (حفظ الشهر الحالي) / near (الشهر السابق) / far (ما قبله)
 export function classifyPath(path, surahsData, records) {
     const classes = new Map();
-    const N = path.total;
+    // 🌟 التصنيف على المسار المتصل وحده: السور الإضافية (extra) دائماً «بعيد»، وما سجّله المعلم داخلها لا يغيّر حدّ «الجديد/القريب»
+    const mainSegs = path.segments.filter(s => !s.extra);
+    path.segments.forEach(s => { if (s.extra) classes.set(s.id, 'far'); });
+    const base = mainSegs.length ? mainSegs[0].cumBefore : 0;
+    const N = path.total - base;
     if (!N) return classes;
+    const mainPos = (surah, ayah) => { const seg = mainSegs.find(s => s.surah === surah && ayah >= s.from && ayah <= s.to); return seg ? seg.cumBefore - base + Math.min(ayah, seg.limit) - seg.from + 1 : null; };
 
+    const inExtraSeg = (pos) => path.segments.some(s => s.extra && s.surah === pos.surahNumber && pos.ayahNumber >= s.from && pos.ayahNumber <= s.limit);
     const dated = (records || [])
-        .filter(r => validPosition(surahsData, r.beginning))
+        .filter(r => validPosition(surahsData, r.beginning) && !inExtraSeg(r.beginning))   // موضع داخل السور الإضافية لا يحدّ «الجديد/القريب»
         .sort((a, b) => (a.year - b.year) || (a.month - b.month));
     let newStart, nearStart;
     if (dated.length) {
-        const posOf = (r) => pathPosition(path, r.beginning.surahNumber, r.beginning.ayahNumber);
+        const posOf = (r) => mainPos(r.beginning.surahNumber, r.beginning.ayahNumber);
         const last = posOf(dated[dated.length - 1]);
         const prev = dated.length > 1 ? posOf(dated[dated.length - 2]) : null;
         newStart = (last != null) ? last - 1 : N - Math.max(10, Math.round(N * 0.1));
@@ -168,8 +197,9 @@ export function classifyPath(path, surahsData, records) {
         newStart = N - Math.max(10, Math.round(N * 0.1));
         nearStart = newStart - Math.max(20, Math.round(N * 0.2));
     }
-    path.segments.forEach(seg => {
-        classes.set(seg.id, seg.cumEnd > newStart ? 'new' : (seg.cumEnd > nearStart ? 'near' : 'far'));
+    mainSegs.forEach(seg => {
+        const end = seg.cumEnd - base;
+        classes.set(seg.id, end > newStart ? 'new' : (end > nearStart ? 'near' : 'far'));
     });
     return classes;
 }

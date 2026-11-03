@@ -564,5 +564,60 @@ await test('الواجب الذكي يختار «معاني الكلمات» و�
   assert.equal(inferHwFormat({ type: 'mcq', title: 'ما معنى «كلمة» في هذه الآية؟' }), 'word_meaning');
 });
 
+
+// ============ السور الإضافية خارج المسار المتصل (student.memoExtra) ============
+const stuX = { memoFrom: 'الناس', memoTo: 'الإخلاص', memoExtra: [{ s1: 80, a1: 1, s2: 80, a2: 42 }, { s1: 78, a1: 11, s2: 78, a2: 25 }, { s1: 113, a1: 1, s2: 113, a2: 5 }] };
+await test('السور الإضافية: resolveRange يُرجعها منظَّمة (ما داخل المتصل يُطرح)', () => {
+  const r = resolveRange(surahsData, stuX, []);
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.extras, [{ s1: 78, a1: 11, s2: 78, a2: 25 }, { s1: 80, a1: 1, s2: 80, a2: 42 }]);   // 113 داخل المتصل فسقطت، وصُرِّفت بترتيب المصحف
+  assert.deepEqual(resolveRange(surahsData, { memoFrom: 'الناس', memoTo: 'الإخلاص' }, []).extras, []);
+});
+await test('السور الإضافية: buildPath تضعها أولاً (extra) والمجموع = المتصل + الإضافي، والمقطع الجزئي يبدأ من آيته', () => {
+  const r = resolveRange(surahsData, stuX, []);
+  const p = buildPath(surahsData, r);
+  const base = buildPath(surahsData, { ...r, extras: [] });
+  const ex = p.segments.filter(s => s.extra), main = p.segments.filter(s => !s.extra);
+  assert.equal(main.length, base.segments.length);
+  assert.equal(p.total, base.total + 15 + 42);
+  assert.equal(ex[0].surah, 78); assert.equal(ex[0].from, 11); assert.equal(ex[0].limit, 20);   // مقطع 11–20 كاملاً
+  assert.equal(ex[1].from, 21); assert.equal(ex[1].limit, 25); assert.equal(ex[1].count, 5);    // 21–25 جزئي
+  assert.ok(p.segments.slice(0, ex.length).every(s => s.extra), 'الإضافي أولاً في المسار');
+  assert.equal(p.byId.size, p.segments.length);
+});
+await test('السور الإضافية: classifyPath تجعلها بعيدة وتُبقي تصنيف المتصل كما هو', () => {
+  const r = resolveRange(surahsData, stuX, []);
+  const p = buildPath(surahsData, r), base = buildPath(surahsData, { ...r, extras: [] });
+  const recs = [{ year: 2026, month: 9, beginning: { surahNumber: 114, ayahNumber: 1 } }, { year: 2026, month: 10, beginning: { surahNumber: 113, ayahNumber: 2 } }];
+  const c = classifyPath(p, surahsData, recs), cb = classifyPath(base, surahsData, recs);
+  p.segments.filter(s => s.extra).forEach(s => assert.equal(c.get(s.id), 'far'));
+  base.segments.forEach(s => assert.equal(c.get(s.id), cb.get(s.id), s.id));
+  // بلا سجلات شهرية: النتيجة نفسها للمتصل
+  const c2 = classifyPath(p, surahsData, []), cb2 = classifyPath(base, surahsData, []);
+  base.segments.forEach(s => assert.equal(c2.get(s.id), cb2.get(s.id), s.id));
+  // موضع شهري داخل الإضافي لا يغيّر شيئاً
+  const c3 = classifyPath(p, surahsData, [...recs, { year: 2026, month: 10, beginning: { surahNumber: 80, ayahNumber: 5 } }]);
+  base.segments.forEach(s => assert.equal(c3.get(s.id), cb.get(s.id), s.id));
+});
+await test('السور الإضافية: موضع السجل الشهري داخل الإضافي لا يزيح نقطة توقف المسار المتصل', () => {
+  const recs = [{ year: 2026, month: 10, beginning: { surahNumber: 114, ayahNumber: 1 }, ending: { surahNumber: 112, ayahNumber: 2 } },
+    { year: 2026, month: 9, ending: { surahNumber: 80, ayahNumber: 5 } }];
+  const r = resolveRange(surahsData, stuX, recs);
+  assert.equal(r.toSurah, 112); assert.equal(r.frontierAyah, 2); assert.equal(r.source, 'monthly');
+});
+await test('السور الإضافية: buildContext والواجب الذكي يشملانها (فئة بعيد) بلا أخطاء', () => {
+  const recs = [{ year: 2026, month: 10, beginning: { surahNumber: 114, ayahNumber: 1 } }];
+  const ctx = buildContext({ surahsData, student: stuX, records: recs, events: [], now: NOW });
+  assert.equal(ctx.range.ok, true);
+  assert.ok(ctx.path.segments.some(s => s.extra));
+  let sawExtra = false;
+  for (let seed = 1; seed <= 20; seed++) {
+    const plan = planHomework({ n: 12, path: ctx.path, classes: ctx.classes, states: ctx.states, skillStats: ctx.stats, now: NOW, rng: rngSeed(seed) });
+    plan.items.forEach(it => { if (it.seg.extra) { sawExtra = true; assert.equal(it.cat === 'far' || it.cat === 'err', true); } });
+    assert.ok(plan.items.length > 0);
+  }
+  assert.ok(sawExtra, 'السور الإضافية لم تدخل أي خطة في 20 محاولة');
+});
+
 console.log(`\nالنتيجة: ${pass} ناجح، ${fail} فاشل، من إجمالي ${pass + fail} اختبار.`);
 if (fail) { console.log('الفاشلة:', failures.join(' | ')); process.exit(1); }

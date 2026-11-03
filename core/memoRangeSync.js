@@ -6,6 +6,7 @@
 // فإذا كانت سورة الموضع الجديد أصغر رقمًا من سورة memoTo صار memoTo = تلك السورة.
 // =============================================================================
 import { AppState, tf, surahNameLocal } from './app.js';
+import { studentExtras } from '../engine/memoScope.js';
 
 function showRangeToast(msg) {
     try {
@@ -35,6 +36,8 @@ export async function extendMemoRangeOnProgress(studentId, position, opts = {}) 
 
     // داخل النطاق أصلًا، أو قبل بدايته (موضع غير منطقي لهذا النطاق): لا تغيير
     if (reached.number >= toN || reached.number > fromN) return false;
+    // 🌟 موضع داخل «السور الإضافية» خارج المسار المتصل لا يوسّع المسار المتصل (إلا إن كان السورة التالية مباشرة له: استمرار طبيعي)
+    if (reached.number !== toN - 1 && studentExtras(surahs, student).some(e => reached.number >= e.s1 && reached.number <= e.s2)) return false;
 
     student.memoTo = reached.name;
     await AppState.studentManager.updateStudent(student);
