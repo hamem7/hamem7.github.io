@@ -3,7 +3,7 @@
 // 📅 محرّك الحضور — دوال خالصة. الأساس:
 //   • جدول الطالب student.schedule = { days: [0..6] (0 = الأحد)، minutes: 30|45|60... }
 //   • سجل الطالب student.attendance = { 'YYYY-MM-DD': 'present'|'absent'|'cancelled' } (تأكيد المعلم: حضر / غاب / لم تُعقد)
-//   • مدة الحصص الفعلية student.attendanceMinutes = { 'YYYY-MM-DD': دقائق } — تُسأل من المعلم لكل يوم حضور (ليست كل الحصص ساعة)؛ الساعات = مجموعها فقط.
+//   • مدة الحصة: student.schedule.minutes (تُسجَّل في ملف الطالب مرة واحدة)؛ ويمكن تجاوزها ليوم بعينه بـ student.attendanceMinutes = { 'YYYY-MM-DD': دقائق }.
 //   • الأدلة التلقائية: أي نشاط مسجَّل في اليوم (لعبة فردية، مواجهة ثنائية، جلسة تجويد، تصحيح واجب...) = حاضر.
 // يوم مجدول بلا دليل ولا تأكيد = «unconfirmed» — لا يُحتسب حضورًا ولا غيابًا، ويظهر في مؤشر اكتمال البيانات.
 // =============================================================================
@@ -87,7 +87,7 @@ export function dayStatus(student, key, evidence) {
 /**
  * ملخص حضور شهر. expected = الحصص المجدولة (بلا الملغاة)، present/absent..، unconfirmed.
  * الأيام غير المجدولة التي حضرها الطالب (نشاط بلا جدول) تُحتسب حضورًا إضافيًا (extra) ولا ترفع expected.
- * hours = مجموع المدد الفعلية المسجَّلة (hoursMissing = أيام حضور بلا مدة مسجَّلة). pct = null ما دام في الشهر يوم غير مؤكَّد (complete = false).
+ * hours = حصص الحضور × مدة حصة الطالب في ملفه (hoursMissing = حصص حاضرة لا مدة لها في الملف). pct = null ما دام في الشهر يوم غير مؤكَّد (complete = false).
  */
 export function summarizeMonth(student, year, monthIndex0, evidence, now = null) {
     const minutes = (student && student.schedule && Number(student.schedule.minutes)) || DEFAULT_MINUTES;
@@ -104,13 +104,15 @@ export function summarizeMonth(student, year, monthIndex0, evidence, now = null)
     }
     const prefix = `${year}-${pad(monthIndex0 + 1)}-`;
     if (evidence) for (const k of evidence) if (k.startsWith(prefix) && !sset.has(k) && dayStatus(student, k, evidence) === 'present') res.extra++;
-    // الساعات = مجموع المدد الفعلية المسجَّلة لأيام الحضور (المجدولة والإضافية). يوم حضور بلا مدة مسجَّلة = ناقص (لا نفترض مدة الجدول)
+    // الساعات = حصص الحضور (المجدولة والإضافية) × مدة حصة الطالب المسجَّلة في ملفه (schedule.minutes) — بلا سؤال المعلم مرة أخرى.
+    // مدة يوم بعينه (attendanceMinutes) إن وُجدت تغلب مدة الجدول. بلا مدة مسجَّلة في الملف لا تُحسب الساعات (لا افتراض).
+    const profileMin = Number(student && student.schedule && student.schedule.minutes) > 0 ? Number(student.schedule.minutes) : null;
     const mins = (student && student.attendanceMinutes) || {};
     const presentKeys = scheduled.filter(k => dayStatus(student, k, evidence) === 'present');
     if (evidence) for (const k of evidence) if (k.startsWith(prefix) && !sset.has(k) && dayStatus(student, k, evidence) === 'present') presentKeys.push(k);
     let totalMin = 0;
     res.minutesMissingDays = [];
-    for (const k of presentKeys) { const m = Number(mins[k]); if (m > 0) totalMin += m; else res.minutesMissingDays.push(k); }
+    for (const k of presentKeys) { const m = Number(mins[k]) > 0 ? Number(mins[k]) : profileMin; if (m) totalMin += m; else res.minutesMissingDays.push(k); }
     res.hoursMissing = res.minutesMissingDays.length;
     res.totalMinutes = totalMin;
     res.hours = Math.round((totalMin / 60) * 10) / 10;

@@ -1835,7 +1835,7 @@ async function ensureFontsReady() {
 async function ensureReportDataComplete() {
   const d = reportData;
   const a = d && d.extras && d.extras.att;
-  if (!a || !(a.unconfirmed || a.hoursMissing)) return true;
+  if (!a || !a.unconfirmed) return true;
   const { confirmMissingAttendance } = await import('../components/attendancePrompt.js');
   const ok = await confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } });
   if (!ok) return false;

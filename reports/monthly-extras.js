@@ -184,7 +184,7 @@ export async function collectExtras(d) {
   const issues = [];
   if (!hasSchedule(student)) issues.push({ k: 'cmp_no_schedule' });
   else if (att.unconfirmed > 0) issues.push({ k: 'cmp_unconfirmed', n: att.unconfirmed, att: true });
-  if (att.hoursMissing > 0) issues.push({ k: 'cmp_hours_missing', n: att.hoursMissing, att: true });
+  if (att.hoursMissing > 0) issues.push({ k: 'cmp_hours_missing' });
   if (!(d.journey && d.journey.hasEnding)) issues.push({ k: 'cmp_no_ending' });
   if (!d.gameEvalEntries || !d.gameEvalEntries.length) issues.push({ k: 'cmp_no_games' });
   // أهداف الحفظ الدائمة (أوسمة الأجزاء والمراحل)
@@ -263,11 +263,11 @@ function attendanceSection(d, x) {
     <div class="mrx-plan-warn" style="margin:8px 0 0;">${esc(tf('att_rep_incomplete', { n: num(a.unconfirmed) }))}</div></div>`;
   }
   const warns = [];
-  if (a.hoursMissing > 0) warns.push(esc(tf('att_rep_hours_incomplete', { n: num(a.hoursMissing) })));
+  if (a.hoursMissing > 0) warns.push(esc(t('att_rep_hours_incomplete')));
   else cells.push(`<div><b>${num(a.hours)}</b><span>${esc(t('att_rep_hours'))}</span></div>`);
   if (a.pct != null) cells.push(`<div><b>${num(a.pct)}٪</b><span>${esc(t('att_rep_pct'))}</span></div>`.replace('٪', isEn() ? '%' : '٪'));
   return `<div class="mrx pdf-block" id="mr-att-block">${head}<div class="mrx-kv">${cells.join('')}</div>
-    ${warns.length ? `<div class="mrx-plan-warn" style="margin:8px 0 0;">${warns.join('<br>')}</div>` : `<div class="mrx-note">${esc(t('att_rep_note_hours'))}</div>`}</div>`;
+    ${warns.length ? `<div class="mrx-plan-warn" style="margin:8px 0 0;">${warns.join('<br>')}</div>` : `<div class="mrx-note">${esc(tf('att_rep_session_len', { n: num(a.minutes) }))} · ${esc(t('att_rep_note_hours'))}</div>`}</div>`;
 }
 
 function tajweedSection(d, x) {

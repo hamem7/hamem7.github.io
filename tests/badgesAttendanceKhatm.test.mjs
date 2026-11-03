@@ -60,10 +60,12 @@ setDayStatus(st, '2026-10-13', 'absent'); setDayStatus(st, '2026-10-18', 'cancel
 setDayStatus(st, '2026-10-20', 'present');
 sm = summarizeMonth(st, 2026, 9, ev);
 ok(sm.absent === 1 && sm.cancelled === 1 && sm.expected === 7 && sm.present === 3, 'تأكيد المعلم: غاب/لم تُعقد (لا تُحتسب)/حضر');
-ok(sm.hours === 0 && sm.hoursMissing === 4 && sm.complete === false, 'لا ساعات بلا مدد مسجَّلة (لا افتراض بمدة الجدول)');
-st.attendanceMinutes = { '2026-10-04': 30, '2026-10-06': 45, '2026-10-08': 60, '2026-10-20': 15 };
+ok(sm.hours === 2 && sm.minutes === 30 && sm.hoursMissing === 0, 'الساعات = (حاضر+إضافي) × مدة حصة الطالب في ملفه (4 × 30د = 2س) بلا سؤال');
+st.attendanceMinutes = { '2026-10-04': 90 };
 sm = summarizeMonth(st, 2026, 9, ev);
-ok(sm.hours === 2.5 && sm.hoursMissing === 0 && sm.totalMinutes === 150, 'الساعات = مجموع المدد الفعلية (30+45+60+15 = 150د = 2.5س)');
+ok(sm.hours === 3 && sm.totalMinutes === 180, 'مدة يوم بعينه تغلب مدة الجدول (90+3×30 = 180د)');
+const noMin = { id: 5, schedule: { days: [0] } }; const smN = summarizeMonth(noMin, 2026, 9, evidenceDays([at(2026, 9, 4)]));
+ok(smN.hours === 0 && smN.hoursMissing === 1, 'بلا مدة في ملف الطالب: لا ساعات (لا افتراض)');
 const st2 = { id: 9, schedule: { days: [0], minutes: 60 } }; setDayMinutes(st2, '2026-10-04', 40); setDayMinutes(st2, '2026-10-11', 0); setDayMinutes(st2, '2026-10-18', 9999);
 ok(st2.attendanceMinutes['2026-10-04'] === 40 && !('2026-10-11' in st2.attendanceMinutes) && !('2026-10-18' in st2.attendanceMinutes), 'setDayMinutes يقبل مدة معقولة فقط');
 ok(needsConfirmation(st, '2026-10-25', ev) === true && needsConfirmation(st, '2026-10-04', ev) === false, 'يُسأل فقط عن مجدول بلا دليل');
