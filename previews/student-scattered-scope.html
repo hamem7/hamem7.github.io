@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاينة — السور المتفرقة في نطاق الطالب</title>
+<!-- معاينة تفاعلية (ليست جزءًا من المنصة): تحمّل نفس ملفات التنسيق وكتلة #main-header كما هي. كل الألوان برموز الهوية فتنقلب في الداكن -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/kids.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/homeFast.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/landscape.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
+<style>
+#app-root #sc-screen{max-width:760px;text-align:start;padding:22px 18px !important;display:flex;flex-direction:column;gap:14px;color:var(--dh-ink)}
+#app-root #sc-screen button{font-family:inherit}
+#app-root #sc-screen h1{margin:0 !important;font-size:1.6rem !important;font-weight:700 !important;color:var(--dh-emerald-700) !important;text-shadow:none !important;text-align:start;line-height:1.3}
+#app-root #sc-screen h1 small{display:block;font-size:.85rem;font-weight:400;color:var(--dh-ink-soft);margin-top:2px}
+#app-root #sc-screen h2{margin:0 !important;font-size:1.05rem !important;font-weight:700 !important;color:var(--dh-ink) !important;text-shadow:none !important;text-align:start}
+#app-root #sc-screen p{margin:0}
+
+/* تبويبات الشاشات */
+.sc-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.sc-tabs button{flex:none;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:99px;padding:8px 14px;font-weight:700;font-size:.9rem;cursor:pointer;min-height:40px;margin:0;min-width:0;box-shadow:none}
+.sc-tabs button.on{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+
+.sc-card{background:var(--dh-surface-3);border:1.5px solid var(--dh-border);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.sc-card.accent{border-color:var(--dh-gold-500)}
+.sc-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sc-note{font-size:.84rem;color:var(--dh-ink-soft);line-height:1.6}
+.sc-lbl{font-size:.82rem;font-weight:700;color:var(--dh-ink-soft)}
+#app-root #sc-screen select,#app-root #sc-screen input[type=number]{min-height:44px;border-radius:12px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);padding:6px 10px;font:inherit;margin:0;width:auto;min-width:0;max-width:100%}
+#app-root #sc-screen input[type=number]{width:84px;text-align:center}
+.sc-btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;min-height:44px;cursor:pointer;margin:0;min-width:0;font-size:.95rem;box-shadow:none;background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+.sc-btn.line{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong)}
+.sc-btn.gold{background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold)}
+.sc-btn.sm{min-height:36px;padding:6px 12px;font-size:.85rem}
+.sc-btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* خريطة السور 114 */
+.sc-map{display:grid;grid-template-columns:repeat(19,minmax(0,1fr));gap:3px;direction:ltr}
+.sc-map i{aspect-ratio:1;border-radius:5px;border:1px solid var(--dh-border);background:var(--dh-surface-0);font-style:normal;font-size:.55rem;display:grid;place-items:center;color:var(--dh-ink-soft);position:relative;overflow:hidden}
+.sc-map i.m{background:var(--dh-emerald-600);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+.sc-map i.s{background:var(--dh-gold-500);border-color:var(--dh-gold-500);color:var(--dh-on-gold)}
+.sc-map i.p{border-color:var(--dh-gold-500)}
+.sc-map i.p::before{content:"";position:absolute;inset:0;background:var(--dh-gold-500);width:var(--w);inset-inline-start:0}
+.sc-map i.p span{position:relative}
+.sc-map i.mp::after{content:"";position:absolute;inset:0;background:var(--dh-emerald-600);width:var(--w2)}
+.sc-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--dh-ink-soft)}
+.sc-legend b{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-inline-end:4px;border:1px solid var(--dh-border)}
+.sc-legend .m{background:var(--dh-emerald-600)}.sc-legend .s{background:var(--dh-gold-500)}.sc-legend .e{background:var(--dh-surface-0)}
+
+/* مقاطع متفرقة */
+.sc-seg{border:1.5px solid var(--dh-border-strong);border-radius:14px;padding:10px;background:var(--dh-surface-0);display:flex;flex-direction:column;gap:8px}
+.sc-seg .sc-sum{font-weight:700;font-size:.92rem}
+.sc-tag{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:3px 10px;font-size:.78rem;font-weight:700;background:var(--dh-info-bg);color:var(--dh-info)}
+.sc-tag.warn{background:var(--dh-warn-bg);color:var(--dh-warn)}.sc-tag.ok{background:var(--dh-ok-bg);color:var(--dh-ok)}.sc-tag.gold{background:var(--dh-gold-500);color:var(--dh-on-gold)}.sc-tag.em{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+.sc-x{border:0;background:var(--dh-danger-bg);color:var(--dh-danger);border-radius:10px;width:36px;height:36px;cursor:pointer;margin:0;min-width:0;font-size:1rem;padding:0;box-shadow:none}
+
+/* شبكة الشارات */
+.sc-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sc-chip{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:99px;padding:6px 12px;font-size:.85rem;font-weight:600;cursor:pointer;min-height:36px;margin:0;min-width:0;box-shadow:none}
+.sc-chip.on{background:var(--dh-gold-500);color:var(--dh-on-gold);border-color:var(--dh-gold-500)}
+.sc-chip.main{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+.sc-chip.lock{opacity:.55;cursor:not-allowed;background:var(--dh-surface-0);border-style:dashed}
+.sc-chip.part{border-color:var(--dh-gold-500)}
+.sc-search{width:100%}
+.sc-grp{max-height:240px;overflow:auto;padding:2px}
+details.sc-d{border:1.5px solid var(--dh-border);border-radius:14px;padding:8px 10px;background:var(--dh-surface-0)}
+details.sc-d>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details.sc-d>summary::-webkit-details-marker{display:none}
+
+/* ملخص */
+.sc-sumbox{background:linear-gradient(135deg,var(--dh-emerald-700),var(--dh-emerald-600));color:var(--dh-on-emerald);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.sc-sumbox b{font-size:1.05rem;line-height:1.5}.sc-sumbox small{opacity:.9}
+.sc-nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.sc-num{background:var(--dh-surface-0);border:1.5px solid var(--dh-border);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:2px}
+.sc-num b{font-size:1.3rem}.sc-num span{font-size:.78rem;color:var(--dh-ink-soft)}
+
+/* الألعاب */
+.sc-seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sc-seg3 button{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:12px;padding:10px 6px;font-weight:700;font-size:.88rem;cursor:pointer;margin:0;min-width:0;box-shadow:none;line-height:1.35}
+.sc-seg3 button.on{background:var(--dh-emerald-700);color:var(--dh-on-emerald);border-color:var(--dh-emerald-700)}
+.sc-q{display:flex;gap:10px;align-items:center;background:var(--dh-ok-bg);color:var(--dh-ok);border-radius:14px;padding:10px 12px;font-weight:700}
+
+/* أين تُضاف */
+.sc-where{display:flex;gap:12px;align-items:flex-start}
+.sc-where .n{width:34px;height:34px;border-radius:50%;background:var(--dh-emerald-700);color:var(--dh-on-emerald);display:grid;place-items:center;font-weight:700;flex:none}
+.sc-where.new .n{background:var(--dh-gold-500);color:var(--dh-on-gold)}
+.sc-where b{display:block}
+
+/* مسارات (ملف الطالب) */
+.sc-track{display:flex;gap:10px;align-items:center;border:1.5px solid var(--dh-border);border-radius:14px;padding:10px;background:var(--dh-surface-0)}
+.sc-track .bar{flex:1;height:8px;border-radius:99px;background:var(--dh-surface-2,var(--dh-border));overflow:hidden}
+.sc-track .bar i{display:block;height:100%;background:var(--dh-emerald-600)}
+.sc-track.g .bar i{background:var(--dh-gold-500)}
+.sc-track .tx{flex:1;min-width:0}.sc-track .tx b{display:block;font-size:.92rem}.sc-track .tx small{color:var(--dh-ink-soft)}
+
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 14px;text-align:center}
+.pv-toast{position:fixed;bottom:60px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:#06231c;color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:3001}
+.pv-toast.on{opacity:1}
+body{padding-bottom:70px}
+#app-root .screen.active,#app-root #sc-screen{animation:none !important;opacity:1 !important;transform:none !important}
+@media(max-width:480px){#app-root #sc-screen{padding:14px 10px !important}.sc-map{grid-template-columns:repeat(12,minmax(0,1fr))}.sc-nums{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body class="adult-theme" id="main-body">
+
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
+
+
+<div id="app-root"></div>
+<div class="pv-toast" id="toast"></div>
+<div class="pv-bar" id="pvBar"></div>
+
+<script src="../core/brandLogo.js"></script>
+<script>
+/* ============ بيانات السور (الاسم + عدد الآيات) ============ */
+const AY=[7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
+const NAR='الفاتحة،البقرة،آل عمران،النساء،المائدة،الأنعام،الأعراف،الأنفال،التوبة،يونس،هود،يوسف،الرعد،إبراهيم،الحجر،النحل،الإسراء،الكهف،مريم،طه،الأنبياء،الحج،المؤمنون،النور،الفرقان،الشعراء،النمل،القصص،العنكبوت،الروم،لقمان،السجدة،الأحزاب،سبأ،فاطر،يس،الصافات،ص،الزمر،غافر،فصلت،الشورى،الزخرف،الدخان،الجاثية،الأحقاف،محمد،الفتح،الحجرات،ق،الذاريات،الطور،النجم،القمر،الرحمن،الواقعة،الحديد،المجادلة،الحشر،الممتحنة،الصف،الجمعة،المنافقون،التغابن،الطلاق،التحريم،الملك،القلم،الحاقة،المعارج،نوح،الجن،المزمل،المدثر،القيامة،الإنسان،المرسلات،النبأ،النازعات،عبس،التكوير،الانفطار،المطففين،الانشقاق،البروج،الطارق،الأعلى،الغاشية،الفجر،البلد،الشمس،الليل،الضحى،الشرح،التين،العلق،القدر،البينة،الزلزلة،العاديات،القارعة،التكاثر،العصر،الهمزة،الفيل،قريش،الماعون،الكوثر،الكافرون،النصر،المسد،الإخلاص،الفلق،الناس'.split('،');
+const NEN="Al-Fatihah,Al-Baqarah,Aal-Imran,An-Nisa,Al-Ma'idah,Al-An'am,Al-A'raf,Al-Anfal,At-Tawbah,Yunus,Hud,Yusuf,Ar-Ra'd,Ibrahim,Al-Hijr,An-Nahl,Al-Isra,Al-Kahf,Maryam,Ta-Ha,Al-Anbiya,Al-Hajj,Al-Mu'minun,An-Nur,Al-Furqan,Ash-Shu'ara,An-Naml,Al-Qasas,Al-Ankabut,Ar-Rum,Luqman,As-Sajdah,Al-Ahzab,Saba,Fatir,Ya-Sin,As-Saffat,Sad,Az-Zumar,Ghafir,Fussilat,Ash-Shura,Az-Zukhruf,Ad-Dukhan,Al-Jathiyah,Al-Ahqaf,Muhammad,Al-Fath,Al-Hujurat,Qaf,Adh-Dhariyat,At-Tur,An-Najm,Al-Qamar,Ar-Rahman,Al-Waqi'ah,Al-Hadid,Al-Mujadila,Al-Hashr,Al-Mumtahanah,As-Saff,Al-Jumu'ah,Al-Munafiqun,At-Taghabun,At-Talaq,At-Tahrim,Al-Mulk,Al-Qalam,Al-Haqqah,Al-Ma'arij,Nuh,Al-Jinn,Al-Muzzammil,Al-Muddaththir,Al-Qiyamah,Al-Insan,Al-Mursalat,An-Naba,An-Nazi'at,Abasa,At-Takwir,Al-Infitar,Al-Mutaffifin,Al-Inshiqaq,Al-Buruj,At-Tariq,Al-A'la,Al-Ghashiyah,Al-Fajr,Al-Balad,Ash-Shams,Al-Layl,Ad-Duha,Ash-Sharh,At-Tin,Al-Alaq,Al-Qadr,Al-Bayyinah,Az-Zalzalah,Al-Adiyat,Al-Qari'ah,At-Takathur,Al-Asr,Al-Humazah,Al-Fil,Quraysh,Al-Ma'un,Al-Kawthar,Al-Kafirun,An-Nasr,Al-Masad,Al-Ikhlas,Al-Falaq,An-Nas".split(',');
+const START=[];{let c=0;AY.forEach((n,i)=>{START[i+1]=c;c+=n});}   // فهرس أول آية لكل سورة
+const TOTAL=AY.reduce((a,b)=>a+b,0);
+const idx=(s,a)=>START[s]+a-1;                                   // فهرس الآية المطلق (ترتيب المصحف)
+const sName=n=>S.lang==='ar'?NAR[n-1]:NEN[n-1];
+const ayah=n=>S.lang==='ar'?'آية':'ayah';
+
+/* ============ النصوص ============ */
+const T={ar:{
+ header_title:'🏆 رحلة إتقان القرآن',header_sub:'منصة حمٓ',h_home:'الرئيسية',
+ pv:'معاينة تفاعلية فقط — لا تحفظ شيئًا. جرّب التعديل في «الإعداد» ثم شاهد أثره في بقية الشاشات',
+ t_setup:'⚙️ الإعداد',t_profile:'👤 ملف الطالب',t_games:'🎮 الألعاب الفردية',t_hw:'📝 الواجب الذكي',t_where:'📍 أين تُضاف؟',
+ stu:'الطالب: أحمد',
+ setup_h:'نطاق الحفظ',setup_s:'المسار المتصل + مقاطع متفرقة',
+ main_h:'١) المسار المتصل',main_note:'يبدأ من الناس ويصعد نحو الأصغر (كما هو الآن في المنصة). لا يتغير.',
+ from:'من سورة',to:'إلى سورة',
+ segs_h:'٢) مقاطع متفرقة (اختياري)',segs_note:'أي سور كاملة أو أجزاء من سور خارج المسار المتصل. المقطع بترتيب المصحف (من الأصغر إلى الأكبر).',
+ add_seg:'➕ مقطع جديد',seg_from:'من',seg_to:'إلى',seg_ayah:'آية',
+ pick_h:'اختيار سور كاملة بنقرة',pick_search:'ابحث عن سورة…',pick_note:'السور داخل المسار المتصل مقفلة 🔒 (تُحسب تلقائيًا ولا تتكرر).',
+ presets:'مجموعات جاهزة',p_fri:'سور الجمعة',p_amma:'جزء عمّ',p_zah:'الزهراوان',p_mus:'المسبّحات',
+ sum_h:'ما سيُحفظ في ملف الطالب',sum_main:'متصل',sum_scat:'متفرق',
+ n_surah:'سورة',n_ayah:'آية',n_pct:'من المصحف',
+ overlap:'جزء منه داخل المسار المتصل — سيُستثنى تلقائيًا',whole:'سورة كاملة',
+ map_h:'خريطة الحفظ',lg_m:'متصل',lg_s:'متفرق',lg_e:'غير محفوظ',
+ save:'حفظ ✔️',cancel:'إلغاء',saved:'✅ تم الحفظ (معاينة فقط)',
+ none_seg:'لا مقاطع متفرقة بعد. أضف مقطعًا أو اختر سورًا من الشبكة.',
+ in_seg:'هذه السورة ضمن مقطع أكبر — عدّله من القائمة أعلاه',
+ prof_h:'ملف الطالب',prof_s:'أحمد · الحلقة الأولى',tracks:'مسارات الحفظ',
+ tr_main:'المسار المتصل',tr_scat:'مقطع متفرق',stop_at:'توقف عند',done:'محفوظ كاملًا',edit_scope:'✏️ تعديل النطاق',
+ rec_pos:'🎯 تسجيل موضع التوقف',rec_on:'على أي مسار؟',last_rec:'آخر تسميع',
+ g_h:'الألعاب الفردية',g_s:'اختر ما تلعب فيه من نطاق الطالب',
+ g_all:'كل نطاقي',g_pick:'سور محددة',g_part:'جزء من سورة',
+ g_grp_main:'المسار المتصل',g_grp_scat:'السور المتفرقة',g_sel_all:'تحديد الكل',g_clear:'مسح',
+ g_range:'الآيات المختارة',g_play:'▶ ابدأ اللعب',g_count:'مجموعة الأسئلة',g_pick_one:'اختر سورة واحدة من القائمة ثم حدّد الآيات',
+ g_none:'لم تختر شيئًا بعد',g_surahs:'سور',
+ hw_h:'الواجب الذكي',hw_s:'كيف تدخل المقاطع المتفرقة في المراجعة',
+ hw_review:'مراجعة مقترحة اليوم',hw_new:'الحفظ الجديد',hw_new_on:'يُضاف الحفظ الجديد على',hw_new_note:'المقاطع المتفرقة مراجعة فقط افتراضيًا؛ والمعلّم يختار متى يبدأ حفظًا جديدًا فيها.',
+ hw_label:'المصدر',far:'بعيد',near:'قريب',
+ w_h:'أين تُضاف هذه الميزة؟',w_s:'نفس «محرّر النطاق» يُستخدم في كل المواضع',
+ w1:'إضافة طالب — الخطوة 3 (مقدار الحفظ)',w1d:'يظهر بعد حقلَي «من/إلى» مباشرة، قسم «مقاطع متفرقة (اختياري)».',
+ w2:'تعديل بيانات الطالب',w2d:'نفس القسم داخل نافذة التعديل (edit-stu-memo).',
+ w3:'تعديل سريع من ملف الطالب',w3d:'زر «تعديل النطاق» في بطاقة المسارات (pfe-memo).',
+ w4:'أين توقف حفظ الطالب؟ — السجل الشهري',w4d:'يبقى كما هو ويُضاف إليه سؤال «على أي مسار؟» فلا يتحرك موضع التوقف المتصل بالخطأ عند تسجيل مقطع متفرق.',
+ w_new:'جديد',w_rule:'القاعدة: المحرّر لا يعرض ولا يخزّن أي سورة تقع داخل المسار المتصل؛ يخزّن فقط «المتبقي» بعد الطرح والدمج.',
+ q_ex:'مثال: الناس ← يس (متصل) + البقرة ← منتصف يونس (متفرق)'
+},en:{
+ header_title:'🏆 Journey of Mastering the Quran',header_sub:'HAM Platform',h_home:'Home',
+ pv:'Interactive preview only — nothing is saved. Edit in “Setup” and watch the other screens change',
+ t_setup:'⚙️ Setup',t_profile:'👤 Student file',t_games:'🎮 Solo games',t_hw:'📝 Smart homework',t_where:'📍 Where it goes',
+ stu:'Student: Ahmad',
+ setup_h:'Memorization scope',setup_s:'Continuous track + scattered segments',
+ main_h:'1) Continuous track',main_note:'Starts at An-Nas and climbs toward the smaller numbers (as in the platform today). Unchanged.',
+ from:'From surah',to:'To surah',
+ segs_h:'2) Scattered segments (optional)',segs_note:'Any whole surahs or parts of surahs outside the continuous track. Segments follow mushaf order (small to large).',
+ add_seg:'➕ New segment',seg_from:'From',seg_to:'To',seg_ayah:'ayah',
+ pick_h:'Pick whole surahs in one tap',pick_search:'Search a surah…',pick_note:'Surahs inside the continuous track are locked 🔒 (counted automatically, never duplicated).',
+ presets:'Ready-made sets',p_fri:'Friday surahs',p_amma:'Juz Amma',p_zah:'Al-Zahrawan',p_mus:'Al-Musabbihat',
+ sum_h:'What will be stored on the student file',sum_main:'Continuous',sum_scat:'Scattered',
+ n_surah:'surahs',n_ayah:'ayahs',n_pct:'of the Mushaf',
+ overlap:'Part of it is inside the continuous track — excluded automatically',whole:'Whole surah',
+ map_h:'Memorization map',lg_m:'Continuous',lg_s:'Scattered',lg_e:'Not memorized',
+ save:'Save ✔️',cancel:'Cancel',saved:'✅ Saved (preview only)',
+ none_seg:'No scattered segments yet. Add a segment or pick surahs from the grid.',
+ in_seg:'This surah is part of a larger segment — edit it in the list above',
+ prof_h:'Student file',prof_s:'Ahmad · Circle 1',tracks:'Memorization tracks',
+ tr_main:'Continuous track',tr_scat:'Scattered segment',stop_at:'Stopped at',done:'Fully memorized',edit_scope:'✏️ Edit scope',
+ rec_pos:'🎯 Record stopping point',rec_on:'On which track?',last_rec:'Last recitation',
+ g_h:'Solo games',g_s:'Choose what to play from the student’s scope',
+ g_all:'My whole scope',g_pick:'Chosen surahs',g_part:'Part of a surah',
+ g_grp_main:'Continuous track',g_grp_scat:'Scattered surahs',g_sel_all:'Select all',g_clear:'Clear',
+ g_range:'Selected ayahs',g_play:'▶ Start playing',g_count:'Question pool',g_pick_one:'Pick one surah from the list, then set the ayahs',
+ g_none:'Nothing chosen yet',g_surahs:'surahs',
+ hw_h:'Smart homework',hw_s:'How scattered segments enter the review',
+ hw_review:'Suggested review today',hw_new:'New memorization',hw_new_on:'New memorization goes on',hw_new_note:'Scattered segments are review-only by default; the teacher decides when to start new memorization in them.',
+ hw_label:'Source',far:'Far',near:'Near',
+ w_h:'Where does this feature go?',w_s:'The same “scope editor” is reused everywhere',
+ w1:'Add student — step 3 (memorization amount)',w1d:'Right after the “from / to” fields: a “Scattered segments (optional)” section.',
+ w2:'Edit student details',w2d:'The same section inside the edit dialog (edit-stu-memo).',
+ w3:'Quick edit from the student file',w3d:'An “Edit scope” button on the tracks card (pfe-memo).',
+ w4:'Where did the student stop? — monthly record',w4d:'Stays as it is, plus a “which track?” question so the continuous stopping point never moves by mistake when a scattered segment is recorded.',
+ w_new:'New',w_rule:'Rule: the editor never shows or stores any surah inside the continuous track; it stores only the remainder after subtraction and merging.',
+ q_ex:'Example: An-Nas → Ya-Sin (continuous) + Al-Baqarah → middle of Yunus (scattered)'
+}};
+const S={lang:'ar',tab:'setup',main:{from:114,to:36,frontier:83},
+ segs:[{id:1,f:{s:2,a:1},t:{s:10,a:55}}],nid:2,q:'',
+ g:{mode:'all',picked:new Set(),part:{s:10,a:1,b:55}},recOn:0};
+const L=(k)=>T[S.lang][k]||k;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>n.toLocaleString('en-US');
+
+/* ============ المنطق: طرح المسار المتصل ثم دمج المتبقي ============ */
+function mainIv(){return [idx(S.main.to,1),idx(S.main.from,AY[S.main.from-1])]}   // يس←الناس بترتيب المصحف
+function segIv(g){const a=idx(g.f.s,g.f.a),b=idx(g.t.s,g.t.a);return a<=b?[a,b]:[b,a]}
+function cover(){
+  const c=new Uint8Array(TOTAL);                       // 1 متصل، 2 متفرق
+  const [m0,m1]=mainIv();for(let i=m0;i<=m1;i++)c[i]=1;
+  S.segs.forEach(g=>{const [a,b]=segIv(g);for(let i=a;i<=b;i++)if(!c[i])c[i]=2});
+  return c;
+}
+function surahOf(i){let s=1;while(s<114&&START[s+1]<=i)s++;return s}
+function stats(c){
+  let mem=0,scat=0;const per=[];
+  for(let s=1;s<=114;s++){let m=0,x=0;for(let i=START[s];i<START[s]+AY[s-1];i++){if(c[i]===1)m++;else if(c[i]===2)x++}
+    per[s]={m,x,n:AY[s-1]};mem+=m;scat+=x}
+  return {per,mem,scat};
+}
+function ranges(c){                                    // المتفرق بعد الطرح والدمج (نطاقات متتالية بترتيب المصحف)
+  const out=[];let st=-1;
+  for(let i=0;i<=TOTAL;i++){const on=i<TOTAL&&c[i]===2;
+    if(on&&st<0)st=i;if(!on&&st>=0){out.push([st,i-1]);st=-1}}
+  return out;
+}
+const pos=i=>{const s=surahOf(i);return {s,a:i-START[s]+1}};
+function rangeText(r){const a=pos(r[0]),b=pos(r[1]);
+  const full=(p,first)=>first?p.a===1:p.a===AY[p.s-1];
+  if(a.s===b.s){return full(a,1)&&full(b,0)?sName(a.s):`${sName(a.s)} (${a.a}–${b.a})`}
+  const A=full(a,1)?sName(a.s):`${sName(a.s)} ${ayah()} ${a.a}`,B=full(b,0)?sName(b.s):`${sName(b.s)} ${ayah()} ${b.a}`;
+  return `${A} ← ${B}`;
+}
+const cnt=r=>r[1]-r[0]+1;
+const surahsIn=r=>{const a=pos(r[0]).s,b=pos(r[1]).s;return b-a+1};
+
+/* ============ واجهات ============ */
+function selOpts(v,mx){let h='';for(let n=1;n<=114;n++)if(n!==1)h+=`<option value="${n}"${n===v?' selected':''}>${n}. ${esc(sName(n))}</option>`;return h}
+function mapHtml(c,st){
+  let h='';for(let s=1;s<=114;s++){const p=st.per[s],n=p.n;
+    let cls='',style='';const w=Math.round(p.x/n*100),w2=Math.round(p.m/n*100);
+    if(p.m===n)cls='m';else if(p.x===n)cls='s';
+    else if(p.x>0&&p.m>0){cls='p mp';style=`--w:${w}%;--w2:${w2}%`}
+    else if(p.x>0){cls='p';style=`--w:${w}%`}
+    else if(p.m>0){cls='m p mp';style=`--w2:${w2}%`}
+    h+=`<i class="${cls}" style="${style}" title="${esc(sName(s))}"><span>${s}</span></i>`}
+  return `<div class="sc-map">${h}</div><div class="sc-legend"><span><b class="m"></b>${L('lg_m')}</span><span><b class="s"></b>${L('lg_s')}</span><span><b class="e"></b>${L('lg_e')}</span></div>`;
+}
+function summaryHtml(){
+  const c=cover(),st=stats(c),rs=ranges(c);
+  const mSur=S.main.from-S.main.to+1;
+  const scSur=rs.reduce((a,r)=>a+surahsIn(r),0);
+  const tot=st.mem+st.scat,pct=(tot/TOTAL*100).toFixed(1);
+  return {c,st,rs,html:`
+  <div class="sc-sumbox"><small>${L('q_ex')}</small>
+   <b>${L('sum_main')}: ${esc(sName(S.main.from))} ← ${esc(sName(S.main.to))} (${mSur} ${L('n_surah')})</b>
+   <b>${L('sum_scat')}: ${rs.length?rs.map(r=>esc(rangeText(r))).join(' ، '):'—'}</b></div>
+  <div class="sc-nums"><div class="sc-num"><b>${fmt(tot)}</b><span>${L('n_ayah')}</span></div><div class="sc-num"><b>${mSur+scSur}</b><span>${L('n_surah')}</span></div><div class="sc-num"><b>${pct}%</b><span>${L('n_pct')}</span></div></div>`};
+}
+function segRow(g){
+  const [a,b]=segIv(g),m=mainIv();
+  const ov=!(b<m[0]||a>m[1]);
+  const sameWhole=g.f.s===g.t.s&&g.f.a===1&&g.t.a===AY[g.t.s-1];
+  const r=[a,b];
+  return `<div class="sc-seg" data-id="${g.id}">
+   <div class="sc-row"><span class="sc-lbl">${L('seg_from')}</span>
+    <select data-k="fs" data-id="${g.id}">${selOpts(g.f.s)}</select>
+    <input type="number" min="1" max="${AY[g.f.s-1]}" value="${g.f.a}" data-k="fa" data-id="${g.id}" aria-label="${L('seg_ayah')}">
+    <span class="sc-lbl">${L('seg_to')}</span>
+    <select data-k="ts" data-id="${g.id}">${selOpts(g.t.s)}</select>
+    <input type="number" min="1" max="${AY[g.t.s-1]}" value="${g.t.a}" data-k="ta" data-id="${g.id}" aria-label="${L('seg_ayah')}">
+    <button class="sc-x" data-del="${g.id}" aria-label="x">✕</button></div>
+   <div class="sc-row"><span class="sc-sum">${esc(rangeText(r))}</span>
+    <span class="sc-tag gold">${fmt(cnt(r))} ${L('n_ayah')}</span>${sameWhole?`<span class="sc-tag ok">${L('whole')}</span>`:''}
+    ${ov?`<span class="sc-tag warn">⚠️ ${L('overlap')}</span>`:''}</div></div>`;
+}
+function chipsHtml(c,st){
+  const q=S.q.trim().toLowerCase();let h='';
+  for(let s=2;s<=114;s++){
+    const nm=sName(s);if(q&&!nm.toLowerCase().includes(q)&&String(s)!==q)continue;
+    const p=st.per[s],full=p.m===p.n,xfull=p.x===p.n;
+    const cls=full?'sc-chip lock main':xfull?'sc-chip on':p.x>0?'sc-chip part':'sc-chip';
+    h+=`<button class="${cls}" data-chip="${s}"${full?' disabled':''}>${full?'🔒 ':''}${esc(nm)}</button>`}
+  return h;
+}
+function presets(list){list.forEach(s=>{if(s===1)return;const c=cover();for(let i=START[s];i<START[s]+AY[s-1];i++)if(c[i]===0){S.segs.push({id:S.nid++,f:{s,a:1},t:{s,a:AY[s-1]}});break}})}
+
+function setup(){
+  const {c,st,html}=summaryHtml();
+  return `<h1>${L('setup_h')}<small>${L('stu')} · ${L('setup_s')}</small></h1>
+  <div class="sc-card"><h2>${L('main_h')}</h2><p class="sc-note">${L('main_note')}</p>
+   <div class="sc-row"><span class="sc-lbl">${L('from')}</span><select id="mf">${selOpts(S.main.from)}</select>
+   <span class="sc-lbl">${L('to')}</span><select id="mt">${selOpts(S.main.to)}</select></div></div>
+  <div class="sc-card accent"><h2>${L('segs_h')}</h2><p class="sc-note">${L('segs_note')}</p>
+   ${S.segs.length?S.segs.map(segRow).join(''):`<p class="sc-note">${L('none_seg')}</p>`}
+   <div class="sc-row"><button class="sc-btn gold" id="addSeg">${L('add_seg')}</button></div>
+   <details class="sc-d" open><summary>${L('pick_h')}</summary>
+    <p class="sc-note" style="margin:6px 0">${L('pick_note')}</p>
+    <div class="sc-row" style="margin-bottom:6px"><span class="sc-lbl">${L('presets')}:</span>
+     <button class="sc-chip" data-pre="fri">${L('p_fri')}</button><button class="sc-chip" data-pre="amma">${L('p_amma')}</button>
+     <button class="sc-chip" data-pre="zah">${L('p_zah')}</button><button class="sc-chip" data-pre="mus">${L('p_mus')}</button></div>
+    <input id="q" class="sc-search" type="search" placeholder="${L('pick_search')}" value="${esc(S.q)}" style="width:100%">
+    <div class="sc-grp sc-chips" style="margin-top:8px">${chipsHtml(c,st)}</div></details></div>
+  <div class="sc-card"><h2>${L('sum_h')}</h2>${html}<h2>${L('map_h')}</h2>${mapHtml(c,st)}</div>
+  <div class="sc-row"><button class="sc-btn" data-save="1" style="flex:1">${L('save')}</button><button class="sc-btn line" data-cancel="1" style="flex:1">${L('cancel')}</button></div>`;
+}
+
+function trackList(){
+  const c=cover(),rs=ranges(c);
+  const mSur=S.main.from-S.main.to+1;
+  const mainPct=100;
+  let h=`<div class="sc-track"><span class="sc-tag em">${L('tr_main')}</span><div class="tx"><b>${esc(sName(S.main.from))} ← ${esc(sName(S.main.to))}</b>
+   <small>${L('stop_at')}: ${esc(sName(S.main.to))} ${ayah()} ${S.main.frontier}</small></div><div class="bar"><i style="width:${Math.min(100,S.main.frontier/AY[S.main.to-1]*100).toFixed(0)}%"></i></div></div>`;
+  rs.forEach((r,i)=>{h+=`<div class="sc-track g"><span class="sc-tag gold">${L('tr_scat')} ${i+1}</span><div class="tx"><b>${esc(rangeText(r))}</b>
+   <small>${fmt(cnt(r))} ${L('n_ayah')} · ${L('done')}</small></div><div class="bar"><i style="width:100%"></i></div></div>`});
+  return {h,rs};
+}
+function profile(){
+  const {c,st,html}=summaryHtml(),tl=trackList();
+  const opts=['m'].concat(tl.rs.map((_,i)=>i)).map(x=>x==='m'?L('tr_main'):`${L('tr_scat')} ${x+1}`);
+  return `<h1>${L('prof_h')}<small>${L('prof_s')}</small></h1>
+  <div class="sc-card">${html}</div>
+  <div class="sc-card"><div class="sc-row" style="justify-content:space-between"><h2>${L('tracks')}</h2><button class="sc-btn line sm" data-tab="setup">${L('edit_scope')}</button></div>${tl.h}</div>
+  <div class="sc-card"><h2>${L('map_h')}</h2>${mapHtml(c,st)}</div>
+  <div class="sc-card"><h2>${L('rec_pos')}</h2><p class="sc-note">${L('rec_on')}</p>
+   <div class="sc-chips">${opts.map((o,i)=>`<button class="sc-chip${S.recOn===i?' on':''}" data-rec="${i}">${esc(o)}</button>`).join('')}</div>
+   <button class="sc-btn" data-toast="saved">${L('save')}</button></div>`;
+}
+
+/* ألعاب: عناصر قابلة للاختيار = المتصل (مطويّ) + كل سورة فيها مقطع متفرق */
+function scatSurahs(c){const st=stats(c),o=[];for(let s=2;s<=114;s++){const p=st.per[s];if(p.x>0)o.push({s,x:p.x,n:p.n})}return o}
+function games(){
+  const c=cover(),G=S.g,sc=scatSurahs(c),mainList=[];
+  for(let s=S.main.from;s>=S.main.to;s--)if(s!==1)mainList.push(s);
+  let pool=0,desc='';
+  const m=G.mode;
+  if(m==='all'){pool=stats(c).mem+stats(c).scat;desc=`${mainList.length+sc.length} ${L('g_surahs')}`}
+  else if(m==='pick'){const arr=[...G.picked];arr.forEach(s=>{const p=stats(c).per[s];pool+=p.m+p.x});desc=arr.length?`${arr.length} ${L('g_surahs')}`:L('g_none')}
+  else{const p=G.part;pool=Math.max(0,p.b-p.a+1);desc=`${sName(p.s)} (${p.a}–${p.b})`}
+  const chipBtn=(s,tag)=>`<button class="sc-chip${G.mode==='pick'&&G.picked.has(s)||G.mode==='part'&&G.part.s===s?' on':''}${tag==='sc'?' part':''}" data-gs="${s}">${esc(sName(s))}${tag==='sc'&&c?` <small>(${stats(c).per[s].x===AY[s-1]?AY[s-1]:stats(c).per[s].x+'/'+AY[s-1]})</small>`:''}</button>`;
+  const partUI=m==='part'?`<div class="sc-card"><p class="sc-note">${L('g_pick_one')}</p>
+   <div class="sc-row"><b>${esc(sName(G.part.s))}</b><span class="sc-lbl">${L('g_range')}</span>
+   <input type="number" min="1" max="${AY[G.part.s-1]}" value="${G.part.a}" data-gp="a"><span>–</span><input type="number" min="1" max="${AY[G.part.s-1]}" value="${G.part.b}" data-gp="b"></div></div>`:'';
+  const lists=m==='all'?'':`
+   <details class="sc-d" open><summary>${L('g_grp_scat')} <span class="sc-tag gold">${sc.length}</span></summary>
+    <div class="sc-chips" style="margin-top:8px">${sc.map(o=>chipBtn(o.s,'sc')).join('')||'—'}</div></details>
+   <details class="sc-d"><summary>${L('g_grp_main')} <span class="sc-tag em">${mainList.length}</span>
+    ${m==='pick'?`<button class="sc-btn line sm" data-gmain="1">${L('g_sel_all')}</button>`:''}</summary>
+    <div class="sc-chips sc-grp" style="margin-top:8px">${mainList.map(s=>chipBtn(s,'m')).join('')}</div></details>`;
+  return `<h1>${L('g_h')}<small>${L('stu')} · ${L('g_s')}</small></h1>
+  <div class="sc-seg3"><button class="${m==='all'?'on':''}" data-gm="all">${L('g_all')}</button><button class="${m==='pick'?'on':''}" data-gm="pick">${L('g_pick')}</button><button class="${m==='part'?'on':''}" data-gm="part">${L('g_part')}</button></div>
+  ${lists}${partUI}
+  <div class="sc-q">🎯 ${L('g_count')}: ${fmt(pool)} ${L('n_ayah')} · ${esc(desc)}</div>
+  <button class="sc-btn gold" data-toast="g_play" ${pool?'':'disabled'}>${L('g_play')}</button>`;
+}
+function hw(){
+  const c=cover(),rs=ranges(c);
+  const items=[{lbl:L('tr_main'),t:`${sName(S.main.to+1)} ← ${sName(S.main.to+3>S.main.from?S.main.from:S.main.to+3)}`,tg:L('near'),cl:'ok'}];
+  rs.forEach((r,i)=>items.push({lbl:`${L('tr_scat')} ${i+1}`,t:rangeText([r[0],Math.min(r[1],r[0]+39)]),tg:L('far'),cl:'warn'}));
+  return `<h1>${L('hw_h')}<small>${L('hw_s')}</small></h1>
+  <div class="sc-card"><h2>${L('hw_review')}</h2>
+   ${items.map(x=>`<div class="sc-track"><span class="sc-tag ${x.cl}">${x.tg}</span><div class="tx"><b>${esc(x.t)}</b><small>${L('hw_label')}: ${x.lbl}</small></div></div>`).join('')}</div>
+  <div class="sc-card accent"><h2>${L('hw_new')}</h2><p class="sc-note">${L('hw_new_note')}</p>
+   <div class="sc-chips"><span class="sc-lbl">${L('hw_new_on')}:</span><button class="sc-chip on">${L('tr_main')}</button>${rs.map((_,i)=>`<button class="sc-chip">${L('tr_scat')} ${i+1}</button>`).join('')}</div></div>`;
+}
+function where(){
+  const row=(n,t,d,nw)=>`<div class="sc-where${nw?' new':''}"><span class="n">${n}</span><div><b>${L(t)} ${nw?`<span class="sc-tag gold">${L('w_new')}</span>`:''}</b><span class="sc-note">${L(d)}</span></div></div>`;
+  return `<h1>${L('w_h')}<small>${L('w_s')}</small></h1>
+  <div class="sc-card">${row(1,'w1','w1d')}${row(2,'w2','w2d')}${row(3,'w3','w3d')}${row(4,'w4','w4d',1)}</div>
+  <div class="sc-card accent"><p class="sc-note">${L('w_rule')}</p></div>`;
+}
+
+const root=document.getElementById('app-root');
+function render(){
+  const h=document.documentElement;h.lang=S.lang;h.dir=S.lang==='ar'?'rtl':'ltr';
+  document.getElementById('header-title').textContent=L('header_title');document.getElementById('top-student-name').textContent=L('header_sub');
+  document.getElementById('hdr-home').textContent=L('h_home');
+  document.querySelectorAll('#lang-toggle-btn .lb-opt').forEach((e,i)=>e.classList.toggle('is-on',(i===0)===(S.lang==='ar')));
+  document.getElementById('pvBar').textContent=L('pv');
+  const tabs=['setup','profile','games','hw','where'];
+  const body={setup,profile,games,hw,where}[S.tab]();
+  const ae=document.activeElement,keep=ae&&ae.id==='q'?ae.selectionStart:null;
+  root.innerHTML=`<div class="screen active"><div class="login-container" id="sc-screen">
+   <div class="sc-tabs">${tabs.map(t=>`<button class="${S.tab===t?'on':''}" data-tab="${t}">${L('t_'+t)}</button>`).join('')}</div>${body}</div></div>`;
+  if(keep!==null){const q=document.getElementById('q');if(q){q.focus();q.setSelectionRange(keep,keep)}}
+}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1800)}
+const PRE={fri:[18,32,36,67],amma:Array.from({length:37},(_,i)=>78+i),zah:[2,3],mus:[57,59,61,62,64,87]};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button');if(!t)return;
+  if(t.id==='lang-toggle-btn'){S.lang=S.lang==='ar'?'en':'ar';return render()}
+  if(t.id==='theme-toggle-btn'){window.DHTheme&&window.DHTheme.cycle();return paintTheme()}
+  if(t.id==='header-home-btn'||t.id==='header-account-btn')return toast(t.title);
+  if(t.dataset.tab){S.tab=t.dataset.tab;window.scrollTo(0,0);return render()}
+  if(t.id==='addSeg'){S.segs.push({id:S.nid++,f:{s:18,a:1},t:{s:18,a:AY[17]}});return render()}
+  if(t.dataset.del){S.segs=S.segs.filter(g=>g.id!=t.dataset.del);return render()}
+  if(t.dataset.pre){presets(PRE[t.dataset.pre]);return render()}
+  if(t.dataset.chip){const s=+t.dataset.chip,hit=S.segs.find(g=>g.f.s===s&&g.t.s===s&&g.f.a===1&&g.t.a===AY[s-1]);
+    const c=cover(),p=stats(c).per[s];
+    if(hit)S.segs=S.segs.filter(g=>g!==hit);else if(p.x>0)return toast(L('in_seg'));else S.segs.push({id:S.nid++,f:{s,a:1},t:{s,a:AY[s-1]}});return render()}
+  if(t.dataset.save)return toast(L('saved'));
+  if(t.dataset.cancel)return toast('—');
+  if(t.dataset.rec!==undefined){S.recOn=+t.dataset.rec;return render()}
+  if(t.dataset.toast)return toast(t.dataset.toast==='saved'?L('saved'):'▶ …');
+  if(t.dataset.gm){S.g.mode=t.dataset.gm;return render()}
+  if(t.dataset.gmain){for(let s=S.main.from;s>=S.main.to;s--)if(s!==1)S.g.picked.add(s);return render()}
+  if(t.dataset.gs){const s=+t.dataset.gs;if(S.g.mode==='pick'){S.g.picked.has(s)?S.g.picked.delete(s):S.g.picked.add(s)}
+    else{S.g.part={s,a:1,b:AY[s-1]}}return render()}
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.id==='mf'){S.main.from=+el.value;if(S.main.to>S.main.from)S.main.to=S.main.from;S.main.frontier=AY[S.main.to-1];return render()}
+  if(el.id==='mt'){S.main.to=+el.value;if(S.main.to>S.main.from)S.main.from=S.main.to;S.main.frontier=Math.min(S.main.frontier,AY[S.main.to-1]);return render()}
+  if(el.dataset.k){const g=S.segs.find(x=>x.id==el.dataset.id),k=el.dataset.k,v=+el.value;
+    if(k==='fs'){g.f.s=v;g.f.a=1}else if(k==='ts'){g.t.s=v;g.t.a=AY[v-1]}
+    else if(k==='fa')g.f.a=Math.max(1,Math.min(AY[g.f.s-1],v||1));else g.t.a=Math.max(1,Math.min(AY[g.t.s-1],v||1));return render()}
+  if(el.dataset.gp){const p=S.g.part;p[el.dataset.gp]=Math.max(1,Math.min(AY[p.s-1],+el.value||1));if(p.a>p.b)[p.a,p.b]=[p.b,p.a];return render()}
+});
+document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;render()}});
+const TI={auto:'<path d="M12 3a9 9 0 1 0 0 18V3z" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',dark:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'};
+function paintTheme(){const p=window.DHTheme?window.DHTheme.get():'auto';const s=document.querySelector('#theme-toggle-btn svg');if(s)s.innerHTML=TI[p]||TI.auto}
+document.addEventListener('app-theme-changed',paintTheme);
+paintTheme();render();
+</script>
+</body>
+</html>
