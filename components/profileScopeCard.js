@@ -12,7 +12,7 @@ function ensureStyle() {
     st.id = STYLE_ID;
     st.textContent = `
 .dhp-card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;margin-bottom:14px;border-radius:var(--dh-r-lg,16px);background:var(--dh-surface);border:1px solid var(--dh-line);box-shadow:var(--dh-sh-soft);text-align:start}
-.dhp-card h3{margin:0;font-size:1.05rem;color:var(--dh-emerald-700)}
+.dhp-card h3{margin:0;font-size:1.05rem;color:var(--dh-ink)}
 .dhp-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .dhp-lbl{font-size:.82rem;font-weight:700;color:var(--dh-ink-soft)}
 .dhp-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:99px;font-weight:700;font-size:.9rem;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink)}
