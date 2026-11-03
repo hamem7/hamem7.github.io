@@ -19,6 +19,7 @@ export function signCandidates(signId) {
     const words = [], marks = [];
     if (s.where === 'wq') Object.entries(v.wq).forEach(([i, str]) => str.split(' ').forEach((t, k) => { if (t === s.code) marks.push(`${i}:${k}`); }));
     else if (s.where === 'word') v.w.forEach((w, i) => { if (w.includes(s.code)) words.push(i); });
+    else if (s.tap) { v.w.forEach((w, i) => { if (s.tap.some((c) => w.includes(c))) words.push(i); }); if (s.tapAvoid && v.w.some((w, i) => !words.includes(i) && s.tapAvoid.test(w))) words.length = 0; }
     else if (s.where === 'lead') { if (v.rb) marks.push('lead'); }
     if (words.length || marks.length) out.push({ key, words, marks, n: v.w.length });
   }
@@ -26,8 +27,8 @@ export function signCandidates(signId) {
 }
 // مجموعات المقاطع الملونة لكلمات تحمل علامة (مقطع الحرف الذي يحمل العلامة)
 export function hlForWords(key, signId, words) {
-  const code = SIGNS[signId].code; const hl = {};
-  for (const i of words) { const cs = wordClusters(POOL[key].w[i]); const ci = cs.findIndex((c) => c.raw.includes(code)); if (ci >= 0) (hl[i] ||= {})[ci] = 'cause'; }
+  const codes = SIGNS[signId].tap || [SIGNS[signId].code]; const hl = {};
+  for (const i of words) { const cs = wordClusters(POOL[key].w[i]); const ci = cs.findIndex((c) => codes.some((code) => c.raw.includes(code))); if (ci >= 0) (hl[i] ||= {})[ci] = 'cause'; }
   return hl;
 }
 export function signExamples(signId, n = 3, { exclude = new Set(), maxWords = 10 } = {}) {
@@ -109,6 +110,32 @@ const BANK = {
       options: [T('البسملة ثم أول آية', 'The basmala, then the first ayah'), T('علامة الربع', 'The quarter mark'), T('علامة السجدة', 'The sajdah mark'), T('رقم الصفحة', 'The page number')], answer: 0, explain: T('بعد لوحة اسم السورة تأتي البسملة (إلا في سورة التوبة)، ثم أول آية.', 'After the title panel comes the basmala (except in Surah At-Tawbah), then the first ayah.') },
     { id: 'pagehead', media: null, stem: T('في أعلى صفحة المصحف: ما الذي على اليمين وما الذي على اليسار؟', 'At the top of a mushaf page: what is on the right and what is on the left?'),
       options: [T('اسم الجزء على اليمين واسم السورة على اليسار', 'The juz name on the right, the surah name on the left'), T('اسم السورة على اليمين واسم الجزء على اليسار', 'The surah name on the right, the juz name on the left'), T('رقم الآية على اليمين ورقم الصفحة على اليسار', 'The ayah number on the right, the page number on the left'), T('علامة الوقف على اليمين والسجدة على اليسار', 'A stop sign on the right, a sajdah on the left')], answer: 0, explain: T('في أعلى الصفحة اسم الجزء على اليمين واسم السورة على اليسار.', 'At the top of the page: the juz name on the right and the surah name on the left.') }
+  ],
+  mushaf_sin_saad: [
+    { id: 'read_over', media: { kind: 'img', src: signImg('sin_over'), alt: T('كلمة عليها سين فوق الصاد', 'A word with a seen above the saad'), cls: 'sign-photo' }, stem: T('كيف يقرأ حفص الحرف الذي فوقه السين الصغيرة في هذه الكلمة؟', 'How does Hafs read the letter with the small seen above it in this word?'),
+      options: [T('سينًا', 'As a seen'), T('صادًا', 'As a saad'), T('زايًا', 'As a zay')], answer: 0, explain: T('السين الصغيرة فوق الصاد: يقرؤها حفص سينًا (البقرة ٢٤٥ والأعراف ٦٩).', 'A small seen above the saad: Hafs reads it as a seen (Al-Baqarah 245, Al-A‘raf 69).') },
+    { id: 'read_under', media: { kind: 'img', src: signImg('sin_under'), alt: T('كلمة تحت صادها سين صغيرة', 'A word with a small seen under its saad'), cls: 'sign-photo' }, stem: T('السين الصغيرة هنا تحت الصاد. بماذا يقرأ حفص أشهر؟', 'Here the small seen is under the saad. Which reading of Hafs is better known?'),
+      options: [T('بالصاد، ويجوز السين', 'With saad; seen is also allowed'), T('بالسين فقط', 'Only with seen'), T('بالزاي', 'With zay')], answer: 0, explain: SIGNS_EXPLAIN('sin_under') },
+    { id: 'not_saktah', media: null, stem: T('سين صغيرة على الصاد داخل الكلمة: هل هي علامة سكتة؟', 'A small seen on a saad inside a word: is it a saktah sign?'),
+      options: [T('لا، هي تغيّر نطق الحرف', 'No, it changes how the letter is said'), T('نعم، نسكت عندها', 'Yes, we pause there'), T('هي وقف لازم', 'It is a compulsory stop')], answer: 0, explain: T('السكتة تأتي وحدها بين كلمتين، أما هذه فعلى الصاد داخل الكلمة نفسها.', 'The saktah stands alone between two words; this one sits on the saad inside the word.') },
+    { id: 'letter', media: null, stem: T('على أيّ حرف تُكتب السين الصغيرة في هذا الدرس؟', 'On which letter is the small seen written in this lesson?'),
+      options: [T('الصاد', 'Saad'), T('السين', 'Seen'), T('الطاء', 'Ṭaa'), T('الضاد', 'Ḍaad')], answer: 0, explain: T('تُكتب السين الصغيرة فوق الصاد أو تحتها.', 'The small seen is written above or below a saad.') },
+    { id: 'few', media: null, stem: T('هل كلمات هذا الدرس كثيرة في المصحف؟', 'Are the words of this lesson common in the mushaf?'),
+      options: [T('لا، قليلة جدًا', 'No, very few'), T('نعم، في كل صفحة', 'Yes, on every page'), T('في أول كل سورة', 'At the start of every surah')], answer: 0, explain: T('هي كلمات قليلة جدًا، فإذا رأيتها فانتبه لطريقة نطقها.', 'They are very few words, so pay attention when you meet one.') }
+  ],
+  mushaf_special: [
+    { id: 'ishmam_surah', media: { kind: 'img', src: signImg('ishmam'), alt: T('كلمة فيها علامة الإشمام', 'A word with the ishmam sign'), cls: 'sign-photo' }, stem: T('في أيّ سورة تأتي هذه الكلمة التي فيها علامة الإشمام؟', 'In which surah does this word with the ishmam sign appear?'),
+      options: [T('يوسف', 'Yusuf'), T('هود', 'Hud'), T('البقرة', 'Al-Baqarah'), T('الكهف', 'Al-Kahf')], answer: 0, explain: T('علامة الإشمام في سورة يوسف (الآية ١١).', 'The ishmam sign is in Surah Yusuf (ayah 11).') },
+    { id: 'imala_surah', media: { kind: 'img', src: signImg('imala'), alt: T('كلمة فيها علامة الإمالة', 'A word with the imala sign'), cls: 'sign-photo' }, stem: T('في أيّ سورة تأتي هذه الكلمة التي فيها علامة الإمالة؟', 'In which surah does this word with the imala sign appear?'),
+      options: [T('هود', 'Hud'), T('يوسف', 'Yusuf'), T('مريم', 'Maryam'), T('الكهف', 'Al-Kahf')], answer: 0, explain: T('علامة الإمالة في سورة هود (الآية ٤١).', 'The imala sign is in Surah Hud (ayah 41).') },
+    { id: 'how_many', media: null, stem: T('كم مرة تأتي كل واحدة من هاتين العلامتين في المصحف؟', 'How many times does each of these two signs appear in the mushaf?'),
+      options: [T('مرة واحدة', 'Once'), T('في كل جزء', 'In every juz'), T('في كل صفحة', 'On every page')], answer: 0, explain: T('كل واحدة منهما لا تأتي إلا في موضع واحد.', 'Each of them appears in only one place.') },
+    { id: 'learn', media: null, stem: T('كيف نتعلّم نطق علامتي الإشمام والإمالة؟', 'How do we learn to pronounce the ishmam and imala signs?'),
+      options: [T('بالسماع من المعلّم', 'By listening to a teacher'), T('من الصورة وحدها', 'From the picture alone'), T('لا تُنطقان أبدًا', 'They are never pronounced')], answer: 0, explain: T('هاتان العلامتان تُتعلَّمان بالسماع من المعلّم: الصورة تعرّفك بهما فقط.', 'These two signs are learned by listening to a teacher; the picture only helps you recognise them.') },
+    { id: 'lips', media: null, stem: T('في الإشمام: ماذا نفعل بالشفتين؟', 'In ishmam: what do we do with the lips?'),
+      options: [T('نضمّهما', 'We round them'), T('نفتحهما واسعًا', 'We open them wide'), T('لا نحرّكهما', 'We do not move them')], answer: 0, explain: SIGNS_EXPLAIN('ishmam') },
+    { id: 'imala_how', media: null, stem: T('في الإمالة: نحو أيّ صوت نميل الألف؟', 'In imala: towards which sound do we tilt the alif?'),
+      options: [T('نحو الياء (والفتحة نحو الكسرة)', 'Towards yaa (and the fatha towards kasra)'), T('نحو الواو', 'Towards waw'), T('لا نغيّرها', 'We do not change it')], answer: 0, explain: SIGNS_EXPLAIN('imala') }
   ],
   mushaf_sajda: [
     { id: 'margin', media: null, stem: T('ما معنى كلمة «سجدة» المكتوبة على هامش الصفحة؟', 'What does the word “سجدة” written in the page margin mean?'),
@@ -268,14 +295,16 @@ export function buildMushafLevel(id, level, seed = Date.now()) {
   const used = new Set(); const bank = () => { const q = genBank(id, r, used); used.add(q.kind.split(':')[1]); return q; };
   const fact = () => { const q = genFact(r, used); used.add(q.kind.split(':')[1]); return q; };
   const num = () => genAyahNum(r, level === 3 ? { maxWords: 8 } : {});
-  const spare = L === 'ayah_number' ? [num, bank, () => genBannerName(r)] : L === 'juz_hizb' ? [fact, () => genLantern(r), () => genLanternRead(r)] : L === 'sajda' ? [() => genSajdaHas(r), bank, () => genSajdaCount(r)] : [name, mean, rev];
+  const spare = BANK[id] && !['ayah_number', 'sajda'].includes(L) ? [name, mean, rev, bank] : L === 'ayah_number' ? [num, bank, () => genBannerName(r)] : L === 'juz_hizb' ? [fact, () => genLantern(r), () => genLanternRead(r)] : L === 'sajda' ? [() => genSajdaHas(r), bank, () => genSajdaCount(r)] : [name, mean, rev];
   let plan;
   if (L === 'ayah_number') plan = level === 1 ? [num, bank, () => genBannerName(r), num, () => genTapBasmala(r)] : level === 2 ? [bank, num, () => genPageJuz(r), () => genBannerName(r), () => genAfterBanner(r)] : [num, () => genPageSurah(r), num, () => genPageJuz(r), bank];
   else if (L === 'juz_hizb') plan = level === 1 ? [fact, () => genLantern(r), () => genLanternRead(r), fact, () => genRubMeaning(r)] : level === 2 ? [() => genLantern(r), () => genLanternRead(r), () => genVerseJuz(r), sign, fact] : [() => genVerseJuz(r), () => genLanternRead(r), sign, () => genLantern(r), () => genVerseJuz(r)];
   else if (L === 'sajda') plan = level === 1 ? [bank, () => genSajdaHas(r), bank, () => genSajdaCount(r), sign] : level === 2 ? [() => genSajdaHas(r), bank, sign, () => genSajdaCount(r), () => genSajdaHas(r)] : [() => genSajdaHas(r, { maxWords: 20 }), sign, bank, () => genSajdaHas(r, { maxWords: 20 }), sign];
   else if (L === 'waqf') plan = level === 1 ? [name, () => genWaqfMatch(r, 3), () => genWaqfTapAny(r), mean, sign] : level === 2 ? [rev, () => genWaqfMatch(r, 4), name, sign, () => genWaqfTapAny(r)] : [sign, () => genWaqfTapAny(r, { maxWords: 12 }), () => genWaqfMatch(r, 5), rev, sign];
-  else if (L === 'silent_sukun') plan = level === 1 ? [name, mean, () => genSkWhen(r), name, () => genSkShape(r)] : level === 2 ? [() => genSkShape(r), sign, () => genSkWhen(r), rev, pin] : [sign, () => genSkWhen(r), sign, () => genSkShape(r), rev];
-  else if (L === 'sin_saad') plan = level === 1 ? [() => genSinWord(r), () => genSinWhich(r), mean, () => genSinWord(r), () => genSinWhich(r)] : level === 2 ? [() => genSinWhich(r), sign, () => genSinWord(r), pin, () => genSinWhich(r)] : [sign, () => genSinWhich(r), sign, () => genSinWord(r), rev];
+  else if (L === 'silent_sukun') plan = level === 1 ? [name, mean, () => genSkWhen(r), () => genSignTap(id, r, { onlyIds: ['small_meem', 'zero_round'], maxWords: 8 }), () => genSkShape(r)] : level === 2 ? [() => genSkShape(r), sign, () => genSkWhen(r), rev, pin] : [sign, () => genSkWhen(r), sign, () => genSkShape(r), rev];
+  else if (L === 'sin_saad') plan = level === 1 ? [() => genSinWord(r), bank, mean, () => genSinWhich(r), bank] : level === 2 ? [() => genSinWhich(r), sign, bank, pin, () => genSinWord(r)] : [sign, bank, pin, () => genSinWord(r), bank];
+  else if (L === 'special') plan = level === 1 ? [name, bank, mean, pin, bank] : level === 2 ? [pin, bank, rev, bank, name] : [bank, pin, bank, rev, mean];
+  else if (L === 'harakat' || L === 'hamza') { const tap = () => genSignTap(id, r, { maxWords: level === 3 ? 12 : 8 }); plan = level === 1 ? [name, mean, tap, name, pin] : level === 2 ? [pin, rev, tap, name, tap] : [tap, pin, rev, tap, pin]; }
   else if (noVerses) plan = level === 1 ? [name, mean, pin, name, mean] : level === 2 ? [pin, rev, name, pin, mean] : [pin, pin, rev, name, pin];
   else plan = level === 1 ? [name, mean, sign, name, sign] : level === 2 ? [rev, name, sign, mean, pin] : [sign, sign, name, rev, pin];
   const qs = plan.map((f) => f());

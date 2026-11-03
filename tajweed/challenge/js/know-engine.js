@@ -10,13 +10,17 @@ import { genVerseJuz, genPageSurah, genAyahNum, genBannerName } from './mushaf-e
 const T = (ar, en) => ({ ar, en });
 const pick = (arr, r) => arr[Math.floor(r() * arr.length)];
 const AR = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
-const letterOpt = (l) => ({ id: l, label: T(l, l), glyph: true });
+// الهاء المفردة بخط المصحف تشبه الرقم ٥، فتُعرض «هـ» (المعرّف يبقى الحرف نفسه)
+const disp = (l) => (l === 'ه' ? 'هـ' : l);
+const glyphOf = (l) => ({ kind: 'glyph', glyph: disp(l), letter: l });
+const letterOpt = (l) => ({ id: l, label: T(disp(l), disp(l)), glyph: true });
 
 export const isKnow = (id) => !!KNOW[id];
 
 // ───────── بنك الأسئلة المكتوبة ─────────
-export function genKnowBank(id, r, used = new Set()) {
-  const items = BANKS[id].filter((b) => !used.has(b.id)); const b = pick(items.length ? items : BANKS[id], r);
+export function genKnowBank(id, r, used = new Set(), lvs = null) {
+  const all = lvs ? BANKS[id].filter((b) => lvs.includes(b.lv || 1)) : BANKS[id];
+  const items = all.filter((b) => !used.has(b.id)); const b = pick(items.length ? items : all, r);
   return { type: 'choice', lesson: id, kind: 'bank:' + b.id, stem: b.stem, media: null, layout: b.layout || 'text',
     options: shuffle(b.options.map((o, i) => ({ id: String(i), label: o })), r), answer: '0', explain: b.explain };
 }
@@ -43,7 +47,7 @@ const AMBIG = new Set(['ا', 'و', 'ي']);   // الواو والياء والأ
 export function areaOf(letter) { for (const a of ['halq', 'lisan', 'shafatan']) if (AREAS[a].letters.includes(letter)) return a; return null; }
 export function genLetterArea(r) {
   const area = pick(['halq', 'lisan', 'shafatan'], r); const l = pick(AREAS[area].letters.filter((x) => !AMBIG.has(x)), r);
-  return { type: 'choice', lesson: 'know_makharij', kind: 'area', stem: T(`من أين يخرج حرف «${l}»؟`, `Where does the letter «${l}» come from?`), media: { kind: 'glyph', glyph: l }, layout: 'text',
+  return { type: 'choice', lesson: 'know_makharij', kind: 'area', stem: T(`من أين يخرج حرف «${l}»؟`, `Where does the letter «${l}» come from?`), media: glyphOf(l), layout: 'text',
     options: shuffle(['halq', 'lisan', 'shafatan', 'jawf'], r).map((a) => ({ id: a, label: AREAS[a].name })), answer: area,
     explain: T(`حرف «${l}» يخرج من ${AREAS[area].name.ar}. ${AREAS[area].kid.ar}`, `«${l}» comes from ${AREAS[area].name.en}. ${AREAS[area].kid.en}`) };
 }
@@ -54,12 +58,29 @@ export function genAreaLetter(r) {
     options: shuffle([right, ...others], r).map(letterOpt), answer: right, explain: T(`${AREAS[area].kid.ar}`, `${AREAS[area].kid.en}`) };
 }
 
+// المستوى الثالث: بلا ذكر اسم المخرج — «أيّ حرف من مخرج «X» نفسه؟» و«أيّ الحروف ليس من مخرج البقية؟»
+const AREA3 = ['halq', 'lisan', 'shafatan'];
+const lettersOf = (a) => AREAS[a].letters.filter((x) => !AMBIG.has(x));
+export function genSameArea(r) {
+  const area = pick(AREA3, r); const [given, right] = shuffle(lettersOf(area), r);
+  const others = shuffle(AREA3.filter((a) => a !== area).flatMap(lettersOf), r).slice(0, 3);
+  return { type: 'choice', lesson: 'know_makharij', kind: 'same', stem: T(`أيّ هذه الحروف يخرج من مخرج حرف «${given}» نفسه؟`, `Which of these letters comes from the same place as «${given}»?`), media: glyphOf(given), layout: 'num',
+    options: shuffle([right, ...others], r).map(letterOpt), answer: right,
+    explain: T(`«${given}» و«${right}» يخرجان من ${AREAS[area].name.ar}. ${AREAS[area].kid.ar}`, `«${given}» and «${right}» both come from ${AREAS[area].name.en}. ${AREAS[area].kid.en}`) };
+}
+export function genAreaOdd(r) {
+  const area = pick(AREA3, r); const three = shuffle(lettersOf(area), r).slice(0, 3); const oddArea = pick(AREA3.filter((a) => a !== area), r); const odd = pick(lettersOf(oddArea), r);
+  return { type: 'choice', lesson: 'know_makharij', kind: 'odd', stem: T('ثلاثة من هذه الحروف من مخرج واحد. أيّها ليس معها؟', 'Three of these letters share one place of articulation. Which one does not?'), media: null, layout: 'num',
+    options: shuffle([odd, ...three], r).map(letterOpt), answer: odd,
+    explain: T(`«${three.join(' ')}» من ${AREAS[area].name.ar}، أما «${odd}» فمن ${AREAS[oddArea].name.ar}.`, `«${three.join(' ')}» come from ${AREAS[area].name.en}, but «${odd}» comes from ${AREAS[oddArea].name.en}.`) };
+}
+
 // ───────── الصفات ─────────
 export function genSifaYesNo(r) {
   const g = pick(Object.keys(SIFAT), r); const inG = r() < 0.5;
   const all = ['ء', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه'];
   const l = pick(inG ? SIFAT[g].letters : all.filter((x) => !SIFAT[g].letters.includes(x)), r);
-  return { type: 'choice', lesson: 'know_sifat', kind: 'yn:' + g, stem: T(`هل حرف «${l}» من حروف «${SIFAT[g].mn}»؟`, `Is «${l}» one of the letters «${SIFAT[g].mn}»?`), media: { kind: 'glyph', glyph: l }, layout: 'yn',
+  return { type: 'choice', lesson: 'know_sifat', kind: 'yn:' + g, stem: T(`هل حرف «${l}» من حروف «${SIFAT[g].mn}»؟`, `Is «${l}» one of the letters «${SIFAT[g].mn}»?`), media: glyphOf(l), layout: 'yn',
     options: [{ id: 'yes', label: T('نعم', 'Yes') }, { id: 'no', label: T('لا', 'No') }], answer: inG ? 'yes' : 'no',
     explain: T(`حروف ${SIFAT[g].name.ar}: «${SIFAT[g].mn}». ${SIFAT[g].kid.ar}`, `The ${SIFAT[g].name.en} letters: «${SIFAT[g].mn}». ${SIFAT[g].kid.en}`) };
 }
@@ -68,6 +89,26 @@ export function genSifaWhich(r) {
   const outside = ['ء', 'ب', 'ج', 'د', 'ذ', 'ر', 'ز', 'ع', 'ل', 'م', 'ن', 'ض', 'غ', 'ظ', 'ث', 'ف', 'ك'].filter((x) => !SIFAT[g].letters.includes(x));
   return { type: 'choice', lesson: 'know_sifat', kind: 'which:' + g, stem: T(`أيّ هذه الحروف من حروف ${SIFAT[g].name.ar} «${SIFAT[g].mn}»؟`, `Which of these is a ${SIFAT[g].name.en} letter «${SIFAT[g].mn}»?`), media: null, layout: 'num',
     options: shuffle([right, ...shuffle(outside, r).slice(0, 3)], r).map(letterOpt), answer: right, explain: T(SIFAT[g].kid.ar, SIFAT[g].kid.en) };
+}
+
+// المستوى الثالث: حرف يجمع صفتين، وعدد صفات الحرف من المجموعات الثلاث
+const BOTH = [['hams', 'istila'], ['istila', 'qalqalah']];
+export function genSifaBoth(r) {
+  const [a, b] = pick(BOTH, r); const A = SIFAT[a].letters, B = SIFAT[b].letters;
+  const right = pick(A.filter((x) => B.includes(x)), r);
+  const onlyOne = shuffle([...A, ...B].filter((x) => !(A.includes(x) && B.includes(x))), r).filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 3);
+  return { type: 'choice', lesson: 'know_sifat', kind: `both:${a}+${b}`, stem: T(`أيّ هذه الحروف يجمع ${SIFAT[a].name.ar} و${SIFAT[b].name.ar} معًا؟`, `Which of these letters has both ${SIFAT[a].name.en} and ${SIFAT[b].name.en}?`), media: null, layout: 'num',
+    options: shuffle([right, ...onlyOne], r).map(letterOpt), answer: right,
+    explain: T(`«${right}» من «${SIFAT[a].mn}» ومن «${SIFAT[b].mn}». أما البقية ففي مجموعة واحدة فقط.`, `«${right}» is in «${SIFAT[a].mn}» and in «${SIFAT[b].mn}»; the others are in only one of them.`) };
+}
+const ALL_L = ['ء', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه'];
+export const sifaCount = (l) => Object.values(SIFAT).filter((g) => g.letters.includes(l)).length;
+export function genSifaCount(r) {
+  const want = pick([0, 1, 1, 2, 2], r); const l = pick(ALL_L.filter((x) => sifaCount(x) === want), r);
+  const has = Object.values(SIFAT).filter((g) => g.letters.includes(l));
+  return { type: 'choice', lesson: 'know_sifat', kind: 'count', stem: T(`في كم مجموعة من الثلاث («فحثه شخص سكت» و«خص ضغط قظ» و«قطب جد») يقع حرف «${l}»؟`, `In how many of the three groups («فحثه شخص سكت», «خص ضغط قظ», «قطب جد») is the letter «${l}»?`), media: glyphOf(l), layout: 'num',
+    options: [0, 1, 2, 3].map((n) => ({ id: String(n), label: T(AR(n), String(n)) })), answer: String(want),
+    explain: has.length ? T(`«${l}» في: ${has.map((g) => g.name.ar).join(' و')}.`, `«${l}» is in: ${has.map((g) => g.name.en).join(' and ')}.`) : T(`«${l}» ليس في أيّ من المجموعات الثلاث.`, `«${l}» is in none of the three groups.`) };
 }
 
 // ───────── الوقف على آخر الكلمة: من رسم آخر كلمة في الآية ─────────
@@ -99,12 +140,14 @@ export function genStopWord(r) {
 export function buildKnowLevel(id, level, seed = Date.now()) {
   const r = rng(seed); const used = new Set();
   const bank = () => { const q = genKnowBank(id, r, used); used.add(q.kind.split(':')[1]); return q; };
+  const lvb = (lvs) => () => { const q = genKnowBank(id, r, used, lvs); used.add(q.kind.split(':')[1]); return q; };
   const P = {
-    mushaf_adab: [bank, bank, bank, bank, bank],
+    // آداب التلاوة: المستوى ١ أساسيات، ٢ معرفة، ٣ مواقف عملية (lv في data/know.js)
+    mushaf_adab: level === 1 ? [lvb([1]), lvb([1]), lvb([1]), lvb([1]), lvb([1])] : level === 2 ? [lvb([2]), lvb([1]), lvb([2]), lvb([2]), lvb([1, 2])] : [lvb([3]), lvb([3]), lvb([2]), lvb([3]), lvb([3])],
     mushaf_surahs: level === 1 ? [bank, () => genSurahBefore(r), bank, () => genBannerName(r), () => genSurahNext(r)] : [() => genSurahBefore(r), () => genSurahNext(r), bank, () => genSurahNext(r), () => genSurahBefore(r)],
     mushaf_find: level === 1 ? [bank, () => genAyahNum(r), bank, () => genPageSurah(r), bank] : [() => genVerseJuz(r), () => genAyahNum(r, level === 3 ? { maxWords: 8 } : {}), bank, () => genPageSurah(r), () => genVerseJuz(r)],
-    know_makharij: level === 1 ? [bank, () => genLetterArea(r), bank, () => genAreaLetter(r), () => genLetterArea(r)] : [() => genLetterArea(r), () => genAreaLetter(r), bank, () => genLetterArea(r), () => genAreaLetter(r)],
-    know_sifat: level === 1 ? [bank, () => genSifaYesNo(r), () => genSifaWhich(r), bank, () => genSifaYesNo(r)] : [() => genSifaWhich(r), () => genSifaYesNo(r), bank, () => genSifaWhich(r), () => genSifaYesNo(r)],
+    know_makharij: level === 1 ? [bank, () => genLetterArea(r), bank, () => genAreaLetter(r), () => genLetterArea(r)] : level === 2 ? [() => genLetterArea(r), () => genAreaLetter(r), bank, () => genSameArea(r), () => genAreaLetter(r)] : [() => genSameArea(r), () => genAreaOdd(r), () => genLetterArea(r), () => genAreaOdd(r), () => genSameArea(r)],
+    know_sifat: level === 1 ? [bank, () => genSifaYesNo(r), () => genSifaWhich(r), bank, () => genSifaYesNo(r)] : level === 2 ? [() => genSifaWhich(r), () => genSifaYesNo(r), bank, () => genSifaBoth(r), () => genSifaYesNo(r)] : [() => genSifaBoth(r), () => genSifaCount(r), () => genSifaWhich(r), () => genSifaCount(r), () => genSifaBoth(r)],
     know_waqf: level === 1 ? [bank, () => genStopWord(r), () => genStopWord(r), bank, () => genStopWord(r)] : [() => genStopWord(r), () => genStopWord(r), bank, () => genStopWord(r), () => genStopWord(r)]
   }[id];
   return P.map((f) => f()).filter(Boolean);

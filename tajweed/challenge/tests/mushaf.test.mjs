@@ -20,7 +20,8 @@ function check(q, tag) {
   } else if (q.type === 'signtap') {
     const v = POOL[q.key]; ok(q.accept.words.length + q.accept.marks.length > 0, `${tag} signtap بلا مقبول`);
     ok(v.w.length - q.accept.words.length >= 2, `${tag} signtap كلمات خاطئة قليلة`);
-    q.accept.words.forEach((w) => { ok(v.w[w].includes(SIGNS[q.signId].code), `${tag} كلمة لا تحمل العلامة`); ok(checkSignTap(q, { w }).ok, `${tag} قبول كلمة`); });
+    if (SIGNS[q.signId].tap) v.w.forEach((w, i) => { if (!q.accept.words.includes(i)) ok(!SIGNS[q.signId].tap.some((c) => w.includes(c)), `${tag} كلمة تحمل العلامة خارج المقبول`); });
+    q.accept.words.forEach((w) => { ok((SIGNS[q.signId].tap || [SIGNS[q.signId].code]).some((c) => v.w[w].includes(c)), `${tag} كلمة لا تحمل العلامة`); ok(checkSignTap(q, { w }).ok, `${tag} قبول كلمة`); });
     v.w.forEach((w, i) => ok(checkSignTap(q, { w: i }).ok === q.accept.words.includes(i), `${tag} حكم الكلمة ${i}`));
     q.accept.marks.forEach((m) => { if (m === 'lead') { ok(!!v.rb && q.signId === 'rub_mark', `${tag} علامة الربع`); return; } const [i, k] = m.split(':').map(Number); ok((q.codes || [SIGNS[q.signId].code]).includes(v.wq[i]?.split(' ')[k]), `${tag} علامة وقف غير صحيحة`); });
     if (q.codes) { const all = []; Object.entries(v.wq).forEach(([i, str]) => str.split(' ').forEach((tk, k) => { if (q.codes.includes(tk)) all.push(`${i}:${k}`); })); ok(all.length === q.accept.marks.length, `${tag} أي علامة وقف: ناقصة`); }
