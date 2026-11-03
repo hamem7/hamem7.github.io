@@ -3,8 +3,8 @@
 // سؤالان لقياس «استحضار المتشابهات» في لعبة الكبار (منطق بحت بلا DOM ولا IndexedDB فيُختبر بـ Node):
 //   sim_missing  «ما الكلمة الناقصة؟»  — آية من نطاق الاختبار وفيها كلمة ناقصة عند موضع افتراقها عن آية شبيهة؛ الخيارات:
 //                كلمتها الصحيحة وكلمة الآية الشبيهة في سورة أخرى وكلمة ثالثة. تُصحَّح آلياً.
-//   sim_named    «اقرأ الآية من السورة المذكورة» — تُذكر للطالب السور التي وردت فيها العبارة ويُطلب منه قراءة الآية في إحداها.
-//                استحضار حر يقيّمه المعلم، وله مساعدات متدرجة: أول كلمة ← الآية التي قبلها ← ثلاث آيات للاختيار.
+//   sim_named    «اقرأ الآية من السورة المذكورة» — تُذكر للطالب السور التي وردت فيها العبارة ويُطلب منه ذكر الآية التي تأتي بعد الآية المشتركة في إحداها.
+//                استحضار حر يقيّمه المعلم، وله مساعدات متدرجة: أول كلمة من الآية التالية ← الآية المذكورة نفسها ← ثلاث آيات للاختيار.
 //
 // الفكرة: التشابه يُستخرج من نص المصحف نفسه (لا من بيانات المتشابهات اليدوية) داخل «محفوظ الطالب كله» لا داخل نطاق الاختبار
 // وحده؛ فآية من الأحقاف تُقارَن بشبيهاتها في أي سورة يحفظها الطالب. وكل أسئلتها وخياراتها من القرآن نفسه.
@@ -229,24 +229,26 @@ function mkNamed(Q, bank, g, rng) {
     for (const l of g.locs) if (!by.has(l.v.s)) by.set(l.v.s, l);
     const locs = [...by.values()].sort((x, y) => x.v.s - y.v.s);
     if (locs.length < 2 || locs.length > NAMED_MAX) return null;
-    const tg = shuffled(locs, rng)[0];
-    const prev = tg.v.n > 1 ? verseAt(Q, tg.v.s, tg.v.n - 1) : null;
-    const hints = [{ k: 'first', word: tg.v.w[0] }];
-    if (prev) hints.push({ k: 'prev', surahName: Q.surahName(prev.s), ayahNumber: prev.n, text: prev.w.join(' ') });
-    const pool = g.locs.filter(l => l.v.s !== tg.v.s).map(l => l.v);
-    for (const r of tailsAfterRun(bank, tg.v.x.slice(tg.p, tg.p + 3))) pool.push(r.v);
-    const seen = new Set([tg.v.key]), d = [];
-    for (const v of shuffled(pool, rng)) if (v.s !== tg.v.s && !seen.has(v.key)) { seen.add(v.key); d.push(v); }
-    if (d.length >= 2) hints.push({ k: 'opts', verses: shuffled([tg.v, ...d.slice(0, 2)], rng).map(v => v.w.join(' ')) });
+    // المطلوب: الآية التي تأتي بعد الآية المشتركة في السورة المذكورة؛ فلكل موضع آية تالية (لا يكون آخر آية في سورته)
+    const nextOf = (l) => verseAt(Q, l.v.s, l.v.n + 1);
+    if (!locs.every(nextOf)) return null;
+    const tg = shuffled(locs, rng)[0], tn = nextOf(tg);
+    const hints = [{ k: 'first', word: tn.w[0] }, { k: 'cur', surahName: Q.surahName(tg.v.s), ayahNumber: tg.v.n, text: tg.v.w.join(' ') }];
+    const pool = locs.filter(l => l !== tg).map(nextOf);
+    for (const r of tailsAfterRun(bank, tg.v.x.slice(tg.p, tg.p + 3))) { const nv = verseAt(Q, r.v.s, r.v.n + 1); if (nv) pool.push(nv); }
+    const seen = new Set([tn.key]), d = [];
+    for (const v of shuffled(pool, rng)) if (!seen.has(v.key)) { seen.add(v.key); d.push(v); }
+    if (d.length >= 2) hints.push({ k: 'opts', verses: shuffled([tn, ...d.slice(0, 2)], rng).map(v => v.w.join(' ')) });
     const names = locs.map(l => Q.surahName(l.v.s)), name = Q.surahName(tg.v.s);
     const two = locs.length === 2;
     const text = two
-        ? `الآية ﴿${g.phrase}﴾ وردت في سورتين من محفوظك، هما: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`
-        : `الآية ﴿${g.phrase}﴾ وردت في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اقرأ من حفظك الآية الواردة في سورة ${name}.`;
+        ? `الآية ﴿${g.phrase}﴾ وردت في سورتين من محفوظك، هما: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`
+        : `الآية ﴿${g.phrase}﴾ وردت في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`;
+    const rec = (v) => ({ surahNumber: v.s, surahName: Q.surahName(v.s), ayahNumber: v.n, words: v.w.slice(), mark: [] });
     return { ...baseOf(Q, g, 'sim_named'), text,
         tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: g.phrase, n: locs.length, names: names.join('، '), name } },
-        options: [], optionsDisplay: [], correctAnswer: tg.v.w.join(' '), correctIndex: -1, hints,
-        reveal: { target: verseRec(Q, tg, [tg.p, tg.p + tg.k]), others: locs.filter(l => l !== tg).map(l => verseRec(Q, l, [l.p, l.p + l.k])) } };
+        options: [], optionsDisplay: [], correctAnswer: tn.w.join(' '), correctIndex: -1, hints,
+        reveal: { target: rec(tn), others: locs.filter(l => l !== tg).map(l => rec(nextOf(l))) } };
 }
 
 const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };
@@ -255,8 +257,8 @@ const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };
 // النص المخزَّن عربي دائماً (يُترجم عند العرض فقط)؛ في Node أو قبل تسجيل المترجم يرجع العربي نفسه. القوالب في core/i18n.js بالمفاتيح نفسها.
 const TPL_AR = {
     sim_q_missing: 'في سورة {name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟',
-    sim_q_named_2: 'الآية ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.',
-    sim_q_named_n: 'الآية ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اقرأ من حفظك الآية الواردة في سورة {name}.'
+    sim_q_named_2: 'الآية ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.',
+    sim_q_named_n: 'الآية ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.'
 };
 export function localizedRecallText(q) {
     if (!q || !q.tpl || !TPL_AR[q.tpl.key]) return q ? q.text : '';
