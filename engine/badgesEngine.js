@@ -94,7 +94,7 @@ export function tierIndexFor(value, th) {
  *  games: [{timestamp, score, mode}]  ألعاب فردية في الشهر (بلا واجبات)     prevGames: ألعاب الشهر السابق
  *  monthAvgs: [متوسط هذا الشهر، السابق، ...] (null لشهر بلا ٣ ألعاب) — للنجم الصاعد؛ إن غاب يُقاس من games/prevGames
  *  stars: عدد الإجابات المميزة في الشهر  | newAyahs: آيات الحفظ الجديد | reviewParts: أجزاء المراجعة المسجَّلة
- *  reviewQuestions: «دفتر المراجعة» = أسئلة (آيات) سُئلها في الألعاب الفردية خلال الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
+ *  reviewQuestions: «دفتر المراجعة» = آيات ظهرت له في الألعاب الفردية والواجب المنزلي (عند التسليم) خلال الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
  *  attendance: {expected, present} | tajweed: {learned, practiced, examFirstTry, approved} | duelWins
  */
 export function computeBadgeValues(input = {}) {

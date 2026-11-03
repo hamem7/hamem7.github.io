@@ -883,14 +883,21 @@ async function buildMonthlyReportData(year, monthIndex0) {
   }
 
   // تغطية المراجعة لهذا الشهر (null لو لا نطاق حفظ أو لا أحداث بآيات)
-  let coverage = null, gameQuestions = null;
+  let coverage = null, reviewAyahs = null;
   try {
     const svc = await import('../core/trackingService.js');
     coverage = await svc.getMonthCoverage(student, year, monthIndex0);
-    // «دفتر المراجعة»: عدد أسئلة الألعاب الفردية هذا الشهر (مصدر وسام «بطل المراجعة»)
-    gameQuestions = await svc.countGameQuestionsInMonth(student, year, monthIndex0);
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
+  }
+  // «دفتر المراجعة»: كم آية ظهرت للطالب هذا الشهر (الألعاب الفردية + الواجب المنزلي عند التسليم) — مصدر وسام «بطل المراجعة».
+  // نحدّث آيات الواجبات من الخادم أولاً (مهلة قصيرة؛ بلا اتصال نكتفي بالنسخة المحلية)
+  try {
+    const rl = await import('../core/reviewLog.js');
+    await Promise.race([rl.refreshHomeworkReview(), new Promise(r => setTimeout(r, 8000))]);
+    reviewAyahs = rl.reviewCountsForMonth(await rl.reviewAyahItems(student), year, monthIndex0);
+  } catch (e) {
+    console.error('[monthly-report.js] تعذر حساب دفتر المراجعة:', e);
   }
 
   const result = {
@@ -918,7 +925,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     achievementsThisMonth,
     resolvedThisMonth,
     reviewSchedule, reviewedWithinThisMonth,
-    journey, reviewSummary, comparison, trend, skillSummary, coverage, gameQuestions
+    journey, reviewSummary, comparison, trend, skillSummary, coverage, reviewAyahs
   };
   // 🌟 [جديد] الأقسام الإضافية (أوسمة، حضور، تجويد، ختم، خطة): أي فشل فيها لا يمنع بقية التقرير
   try { result.extras = await collectExtras(result); } catch (e) { console.error('[monthly-report.js] تعذر بناء الأقسام الإضافية:', e); result.extras = null; }
@@ -1361,12 +1368,14 @@ function renderSkillsBlock(d) {
 }
 
 function renderCoverageBlock(d) {
-  const c = d.coverage, gq = d.gameQuestions;
+  const c = d.coverage, ra = d.reviewAyahs, gq = ra ? ra.total : 0;
   setBlockVisible('mr-cov-block', !!c || gq > 0);
   if (!c && !(gq > 0)) return;
   setText('mr-cov-title', t('mr_cov_title'));
   const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
-  const gqLine = gq > 0 ? `<div style="font-size:1.05rem;font-weight:700;margin-bottom:10px;">${esc(fill('mr_cov_games_q', { n: gq }))}</div>` : '';
+  // «دفتر المراجعة»: الإجمالي ثم التفصيل (الألعاب الفردية / الواجب المنزلي)
+  const gqLine = gq > 0 ? `<div style="margin-bottom:12px;"><div style="font-size:1.15rem;font-weight:800;">${esc(fill('mr_rev_total', { n: gq }))}</div>
+    <div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div></div>` : '';
   setText('mr-cov-sub', c ? t('mr_cov_sub') : '');
   if (!c) { $('mr-cov-content').innerHTML = gqLine; return; }
   const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));

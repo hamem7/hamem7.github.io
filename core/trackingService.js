@@ -19,6 +19,7 @@ import {
 import { HW_FORMATS } from '../engine/skillMap.js';
 import { splitAyahWords, cleanAyahText } from '../engine/quranEngine.js';
 import { buildHomeworkSimilarityQuestion } from '../engine/similarityEngine.js';
+import { estimateGameEventAyahs } from '../engine/ayahCount.js';
 import { ensureSimilarityQuran } from '../engine/similarityQuestions.js';
 import { buildTajweedHomeworkProfile } from './tajweedHomeworkProfile.js';
 import { readStudentHistory } from './homeworkRecords.js';
@@ -209,22 +210,22 @@ export async function getMonthSkillSummary(student, year, monthIndex) {
     return sum.eventCount ? sum : null;
 }
 
-// تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
-/** «دفتر المراجعة»: أوقات الأسئلة التي سُئلها الطالب في الألعاب الفردية (حدث لكل سؤال، source = 'game'). null بلا مدير تتبّع. */
-export async function gameQuestionTimes(student) {
+/** «دفتر المراجعة»: آيات الألعاب الفردية [{ts, n}] — حدث لكل سؤال (source = 'game') وn = عدد الآيات التي عرضها السؤال.
+ *  الأحداث القديمة بلا ayahN تُقدَّر من نوع السؤال (engine/ayahCount.js → estimateGameEventAyahs) فيعمل العدّ بأثر رجعي.
+ *  null بلا مدير تتبّع. */
+export async function gameAyahItems(student) {
     if (!manager() || !student) return null;
-    const ev = await manager().getEventsForStudent(student.id);
-    return (ev || []).filter(e => e && e.source === 'game' && typeof e.ts === 'number').map(e => e.ts);
+    const ev = ((await manager().getEventsForStudent(student.id)) || []).filter(e => e && e.source === 'game' && typeof e.ts === 'number');
+    const kidsRefs = new Set(ev.filter(e => /^kids_/.test(e.fmt || '')).map(e => String(e.refId)));
+    const ayahsOf = new Map((AppState.surahsData || []).map(s => [s.number, s.ayahsCount || (s.ayahs ? s.ayahs.length : 0)]));
+    return ev.map(e => ({
+        ts: e.ts,
+        n: Number.isInteger(e.ayahN) ? e.ayahN
+            : estimateGameEventAyahs(e, { kidsSession: kidsRefs.has(String(e.refId)), surahAyahs: ayahsOf.get(e.surah) || 0 })
+    }));
 }
 
-/** عدد أسئلة الألعاب الفردية في شهر (لدفتر المراجعة في التقرير الشهري ووسام «بطل المراجعة»). */
-export async function countGameQuestionsInMonth(student, year, monthIndex) {
-    const times = await gameQuestionTimes(student);
-    if (!times) return null;
-    const a = new Date(year, monthIndex, 1).getTime(), b = new Date(year, monthIndex + 1, 1).getTime();
-    return times.filter(x => x >= a && x < b).length;
-}
-
+// تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
 export async function getMonthCoverage(student, year, monthIndex) {
     if (!manager()) return null;
     const ctx = await loadContext(student);

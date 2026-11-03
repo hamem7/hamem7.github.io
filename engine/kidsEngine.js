@@ -162,7 +162,7 @@ export class KidsEngine {
         for(let txt of pickSimilar(nextAyahText, otherAyahs.map(a => cleanAyahText(a.text)), 2, ayahShapeScore)) { if(options.length >= 3) break; if(txt !== nextAyahText) options.push(txt); }
         await this.fillAyahOptions(options, nextAyahText, ayahsPool, targetAyah.surahNumber); options.sort(() => Math.random() - 0.5); 
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
-        return { type: 'kids_mcq', questionTitle: t("ماذا بعد هذه الآية يا بطل؟ ⬅️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div><div style="font-size:1.8rem; font-weight:bold;">${t('kids_choose_next_ayah')}</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
+        return { type: 'kids_mcq', shownAyahs: 2, questionTitle: t("ماذا بعد هذه الآية يا بطل؟ ⬅️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div><div style="font-size:1.8rem; font-weight:bold;">${t('kids_choose_next_ayah')}</div>`, correctAns: nextAyahText, options: options, ayahObj: targetAyah, reportText: targetText }; 
     }
     
     async generateKidsWordOrderGame(ayahsPool, chunkIndex, totalChunks) {
@@ -283,7 +283,7 @@ export class KidsEngine {
         options.sort(() => Math.random() - 0.5);
         
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
-        return { type: 'kids_mcq', questionTitle: t("ماذا قبل هذه الآية؟ ➡️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
+        return { type: 'kids_mcq', shownAyahs: 2, questionTitle: t("ماذا قبل هذه الآية؟ ➡️"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#d97706; margin-bottom:15px;">﴿\u00A0${targetText}\u00A0﴾</div>`, correctAns: prevAyahText, options: options, ayahObj: targetAyah, reportText: targetText };
     }
     // 🎧 [جديد 2026-10-18] «استمع وكمّل يا بطل»: صوت آية بصوت المنشاوي ثم يختار الطفل الآية التي بعدها (أو التي قبلها) من 3 خيارات.
     // يبني على «ماذا بعد؟» و«ماذا قبل؟» نفسيهما (نفس الخيارات والمشتتات الذكية) ويستبدل نص الآية بزر الصوت المعتمد للأطفال (kids-listen-play-btn).

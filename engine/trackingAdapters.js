@@ -103,7 +103,9 @@ export function eventsFromGameDetails({ studentId, details, surahsData, ts, refI
             score: d.isCorrect ? (reordered ? 0.75 : 1) : 0,
             weight: 1, hint: !!d.usedHint,
             timeSec: typeof d.timeTaken === 'number' ? Math.round(d.timeTaken) : null,
-            quality: parseQualityCodes(d.errors)
+            quality: parseQualityCodes(d.errors),
+            // «دفتر المراجعة»: كم آية عرضها السؤال (engine/ayahCount.js) — غيابه في الأحداث القديمة يُقدَّر عند العدّ
+            ...(Number.isInteger(d.ayahN) ? { ayahN: d.ayahN } : {})
         });
     });
     return events;

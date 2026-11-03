@@ -228,6 +228,8 @@ async function pollOnce() {
     pollInFlight = true;
     try {
         const list = await listAllSubmissionsForNotifications();
+        // «دفتر المراجعة»: آيات الواجبات تُحسب عند التسليم — نحدّث نسختها المحلية من نفس القائمة (غير حاجز، بلا أي أثر عند الفشل)
+        import('./reviewLog.js').then(m => m.refreshHomeworkReview(list)).catch(() => {});
         const seen = loadSeenIds();
 
         let firstRun = false;

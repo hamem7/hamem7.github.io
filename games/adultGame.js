@@ -11,6 +11,7 @@ import { openReportScreen } from '../reports/report.js';
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
 import { normalizeForCompare, planSurahCoverage, setActiveSurahPlan, setActiveChunkOffset, newChunkOffset, JUZ_AMMA_NUMBER } from '../engine/quranEngine.js';
 import { setSeenStudent, recordSeen } from '../engine/seenLedger.js';
+import { gameQuestionAyahCount } from '../engine/ayahCount.js';
 import { filterPoolBySlices, describeExtra } from '../engine/memoScope.js';   // نطاق الطالب مع السور الإضافية
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
@@ -1208,7 +1209,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         if (reciteRec) { reportText = reciteRec.reportText; ayahNum = reciteRec.num; }
     }
 
-    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null, reciteRanges: reciteRec ? reciteRec.ranges : null });
+    GameState.reportDetails.push({ label: typeLabel, num: ayahNum, surahName: surahName, text: reportText, ayahN: gameQuestionAyahCount(GameState.currentData), isCorrect: isCorrect, errors: errorTypes, usedHint: GameState.hintUsed, timeTaken: timeTaken, orderAttempts: GameState.orderAttempts, type: GameState.currentData.type || null, title: GameState.currentData.questionTitle || null, reciteRanges: reciteRec ? reciteRec.ranges : null });
     autoSavePaused(GameState, false, AppState.currentStudent, AppState.studentManager); // 🌟 حفظ تلقائي صامت بعد كل إجابة (يحمي من إغلاق المتصفح)
 
     // 🌟 تتبّع عدد الأسئلة المُجابة وعدد الإجابات الصحيحة لكل طالب — أساس حساب نسبة

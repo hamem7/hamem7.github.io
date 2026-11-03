@@ -50,8 +50,8 @@ export async function loadStudentContext(student) {
     try { if (AppState.reviewScheduleManager) ctx.ruleReviews = await AppState.reviewScheduleManager.getRuleSchedulesByStudent(student.id); } catch (e) { /* اختياري */ }
     try { if (AppState.tajweedManager) { ctx.mastery = await AppState.tajweedManager.getMasteryByStudent(student.id); ctx.tjSessions = await AppState.tajweedManager.getSessionsByStudent(student.id); } } catch (e) { /* اختياري */ }
     try { if (AppState.monthlyMemorizationManager) ctx.records = await AppState.monthlyMemorizationManager.getAllForStudent(student.id); } catch (e) { /* اختياري */ }
-    // «دفتر المراجعة»: أسئلة الألعاب الفردية (سؤال = آية) — مصدر وسام «بطل المراجعة»
-    try { ctx.gameQuestionTimes = await (await import('./trackingService.js')).gameQuestionTimes(student); } catch (e) { ctx.gameQuestionTimes = null; }
+    // «دفتر المراجعة»: آيات الألعاب الفردية + الواجب المنزلي (عند التسليم) — مصدر وسام «بطل المراجعة»
+    try { ctx.reviewAyahs = await (await import('./reviewLog.js')).reviewAyahItems(student); } catch (e) { ctx.reviewAyahs = null; }
     return ctx;
 }
 
@@ -111,7 +111,9 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
     let reviewParts = null;
     // مراجعة الشهر المسجَّلة في ملف الطالب (شاشة مراجعة الشهر): عدد الأجزاء المُراجَعة (وسام الراسخ)
     if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; }
-    const reviewQuestions = Array.isArray(ctx.gameQuestionTimes) ? ctx.gameQuestionTimes.filter(ts => inRange(ts, y, m)).length : null;
+    const rv = ctx.reviewAyahs;
+    const sumIn = (items) => (items || []).reduce((n, x) => n + (x && inRange(x.ts, y, m) ? (Number(x.n) || 0) : 0), 0);
+    const reviewQuestions = rv && (Array.isArray(rv.games) || Array.isArray(rv.homework)) ? sumIn(rv.games) + sumIn(rv.homework) : null;
     const monthMatches = ctx.matches.filter(mm => inRange(new Date(mm.finishedAt).getTime(), y, m));
     let attendance = null;
     if (hasSchedule(s)) {
