@@ -26,7 +26,7 @@ export const BADGE_DEFS = [
     { key: 'fixer',    icon: '🛠️', group: 'games',     th: [3, 5, 7, 10],   unit: 'sessions' },
     { key: 'riser',    icon: '📈', group: 'games',     th: [2, 3, 4, 6],    unit: 'months' },
     { key: 'hero',     icon: '🏅', group: 'memorize',  th: [40, 80, 120, 200], unit: 'ayahs' },
-    { key: 'reviewer', icon: '🔁', group: 'memorize',  th: [500, 1000, 1500, 2500], unit: 'ayahs' },
+    { key: 'reviewer', icon: '🔁', group: 'memorize',  th: [300, 600, 900, 1500], unit: 'ayahs' },
     { key: 'rasikh',   icon: '🧠', group: 'memorize',  th: [5, 10, 20, 30], unit: 'parts' },
     { key: 'star',     icon: '⭐', group: 'engage',    th: [20, 30, 40, 60], unit: 'questions' },
     { key: 'steady',   icon: '📅', group: 'engage',    th: [75, 90, 100, 100], unit: 'percent' },
@@ -94,7 +94,7 @@ export function tierIndexFor(value, th) {
  *  games: [{timestamp, score, mode}]  ألعاب فردية في الشهر (بلا واجبات)     prevGames: ألعاب الشهر السابق
  *  monthAvgs: [متوسط هذا الشهر، السابق، ...] (null لشهر بلا ٣ ألعاب) — للنجم الصاعد؛ إن غاب يُقاس من games/prevGames
  *  stars: عدد الإجابات المميزة في الشهر  | newAyahs: آيات الحفظ الجديد | reviewParts: أجزاء المراجعة المسجَّلة
- *  reviewAyahs: آيات المراجعة المسجَّلة في مراجعة الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
+ *  reviewQuestions: «دفتر المراجعة» = أسئلة (آيات) سُئلها في الألعاب الفردية خلال الشهر | tajweedCorrect: أسئلة صحيحة في ألعاب التجويد
  *  attendance: {expected, present} | tajweed: {learned, practiced, examFirstTry, approved} | duelWins
  */
 export function computeBadgeValues(input = {}) {
@@ -113,7 +113,7 @@ export function computeBadgeValues(input = {}) {
         v.riser = ok(g) && ok(prev) ? risingMonths([avgScore(g), avgScore(prev)]) : null;
     }
     v.hero = Number.isFinite(input.newAyahs) ? Math.max(0, input.newAyahs) : null;
-    v.reviewer = Number.isFinite(input.reviewAyahs) ? Math.max(0, input.reviewAyahs) : null;
+    v.reviewer = Number.isFinite(input.reviewQuestions) ? Math.max(0, input.reviewQuestions) : null;
     v.rasikh = Number.isFinite(input.reviewParts) ? Math.max(0, input.reviewParts) : null;
     v.star = Number.isFinite(input.stars) ? Math.max(0, input.stars) : null;
     const a = input.attendance;

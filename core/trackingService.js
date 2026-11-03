@@ -210,6 +210,21 @@ export async function getMonthSkillSummary(student, year, monthIndex) {
 }
 
 // تغطية المراجعة لشهر (null لو لا نطاق حفظ أو لا أحداث بآيات في الشهر)
+/** «دفتر المراجعة»: أوقات الأسئلة التي سُئلها الطالب في الألعاب الفردية (حدث لكل سؤال، source = 'game'). null بلا مدير تتبّع. */
+export async function gameQuestionTimes(student) {
+    if (!manager() || !student) return null;
+    const ev = await manager().getEventsForStudent(student.id);
+    return (ev || []).filter(e => e && e.source === 'game' && typeof e.ts === 'number').map(e => e.ts);
+}
+
+/** عدد أسئلة الألعاب الفردية في شهر (لدفتر المراجعة في التقرير الشهري ووسام «بطل المراجعة»). */
+export async function countGameQuestionsInMonth(student, year, monthIndex) {
+    const times = await gameQuestionTimes(student);
+    if (!times) return null;
+    const a = new Date(year, monthIndex, 1).getTime(), b = new Date(year, monthIndex + 1, 1).getTime();
+    return times.filter(x => x >= a && x < b).length;
+}
+
 export async function getMonthCoverage(student, year, monthIndex) {
     if (!manager()) return null;
     const ctx = await loadContext(student);

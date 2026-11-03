@@ -50,6 +50,8 @@ export async function loadStudentContext(student) {
     try { if (AppState.reviewScheduleManager) ctx.ruleReviews = await AppState.reviewScheduleManager.getRuleSchedulesByStudent(student.id); } catch (e) { /* اختياري */ }
     try { if (AppState.tajweedManager) { ctx.mastery = await AppState.tajweedManager.getMasteryByStudent(student.id); ctx.tjSessions = await AppState.tajweedManager.getSessionsByStudent(student.id); } } catch (e) { /* اختياري */ }
     try { if (AppState.monthlyMemorizationManager) ctx.records = await AppState.monthlyMemorizationManager.getAllForStudent(student.id); } catch (e) { /* اختياري */ }
+    // «دفتر المراجعة»: أسئلة الألعاب الفردية (سؤال = آية) — مصدر وسام «بطل المراجعة»
+    try { ctx.gameQuestionTimes = await (await import('./trackingService.js')).gameQuestionTimes(student); } catch (e) { ctx.gameQuestionTimes = null; }
     return ctx;
 }
 
@@ -106,9 +108,10 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
     const prevGames = ctx.games.filter(g => inRange(g.timestamp, py, pm));
     const rec = ctx.records.find(r => r.year === y && r.month === m + 1) || null;
     const hasEnding = !!(rec && rec.ending && typeof rec.newAyahs === 'number');
-    let reviewParts = null, reviewAyahs = null;
-    // مراجعة الشهر المسجَّلة في ملف الطالب (شاشة مراجعة الشهر): عدد الأجزاء وعدد الآيات المُراجَعة
-    if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; reviewAyahs = sum ? sum.totalAyahs : 0; }
+    let reviewParts = null;
+    // مراجعة الشهر المسجَّلة في ملف الطالب (شاشة مراجعة الشهر): عدد الأجزاء المُراجَعة (وسام الراسخ)
+    if (rec) { const sum = rec.review ? summarizeReview(rec.review, ctx.surahsData) : null; reviewParts = sum ? sum.juzCount : 0; }
+    const reviewQuestions = Array.isArray(ctx.gameQuestionTimes) ? ctx.gameQuestionTimes.filter(ts => inRange(ts, y, m)).length : null;
     const monthMatches = ctx.matches.filter(mm => inRange(new Date(mm.finishedAt).getTime(), y, m));
     let attendance = null;
     if (hasSchedule(s)) {
@@ -128,7 +131,7 @@ export function inputsForMonth(ctx, y, m, now = new Date()) {
         stars: starsInMonth(s, y, m),
         newAyahs: hasEnding ? rec.newAyahs : null,
         reviewParts,
-        reviewAyahs,
+        reviewQuestions,
         tajweedCorrect: tajweedCorrectInMonth(ctx, y, m),
         duelWins: monthMatches.length ? monthMatches.filter(mm => studentOutcomeInMatch(mm, s.id) === 'win').length : null,
         attendance,

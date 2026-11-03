@@ -40,9 +40,9 @@ ok(by(computeMonthBadges({ monthAvgs: [85, 78] }), 'riser').tier === -1, 'الن
 ok(by(computeMonthBadges({ monthAvgs: [85, 90, 70] }), 'riser').tier === -1, 'النجم الصاعد: هبوط هذا الشهر → لا وسام');
 ok(by(computeMonthBadges({ monthAvgs: [null, 90] }), 'riser') === undefined, 'النجم الصاعد يحتاج ٣ ألعاب في الشهر');
 // بقية المصادر
-r = computeMonthBadges({ newAyahs: 40, reviewAyahs: 520, reviewParts: 5, stars: 20, duelWins: 6, tajweedCorrect: 50, tajweed: { learned: 1, practiced: 2, examFirstTry: 0, approved: 3 } });
-ok(by(r, 'hero').tierKey === 'bronze' && by(r, 'reviewer').tierKey === 'bronze' && by(r, 'rasikh').tierKey === 'bronze' && by(r, 'star').tierKey === 'bronze', 'بطل الحفظ ٤٠ / بطل المراجعة ٥٠٠ / الراسخ ٥ / نجم السؤال ٢٠');
-ok(by(computeMonthBadges({ newAyahs: 39, reviewAyahs: 499, reviewParts: 4, stars: 19, tajweedCorrect: 49 }), 'hero').tier === -1, 'دون العتبة: لا وسام');
+r = computeMonthBadges({ newAyahs: 40, reviewQuestions: 320, reviewParts: 5, stars: 20, duelWins: 6, tajweedCorrect: 50, tajweed: { learned: 1, practiced: 2, examFirstTry: 0, approved: 3 } });
+ok(by(r, 'hero').tierKey === 'bronze' && by(r, 'reviewer').tierKey === 'bronze' && by(r, 'rasikh').tierKey === 'bronze' && by(r, 'star').tierKey === 'bronze', 'بطل الحفظ ٤٠ / بطل المراجعة ٣٠٠ / الراسخ ٥ / نجم السؤال ٢٠');
+ok(by(computeMonthBadges({ newAyahs: 39, reviewQuestions: 299, reviewParts: 4, stars: 19, tajweedCorrect: 49 }), 'hero').tier === -1, 'دون العتبة: لا وسام');
 ok(by(r, 'tjApply').tierKey === 'bronze' && by(r, 'duelist').tierKey === 'gold' && by(r, 'tjMaster').tierKey === 'gold' && by(r, 'tjExam').tier === -1, 'مطبّق التجويد ٥٠ سؤالًا + المواجهات + التجويد');
 ok(by(r, 'hero').next.at === 80 && by(r, 'hero').next.remaining === 40, 'المتبقي للدرجة التالية');
 const s = summarizeEarned(r);

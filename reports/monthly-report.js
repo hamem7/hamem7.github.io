@@ -883,10 +883,12 @@ async function buildMonthlyReportData(year, monthIndex0) {
   }
 
   // تغطية المراجعة لهذا الشهر (null لو لا نطاق حفظ أو لا أحداث بآيات)
-  let coverage = null;
+  let coverage = null, gameQuestions = null;
   try {
     const svc = await import('../core/trackingService.js');
     coverage = await svc.getMonthCoverage(student, year, monthIndex0);
+    // «دفتر المراجعة»: عدد أسئلة الألعاب الفردية هذا الشهر (مصدر وسام «بطل المراجعة»)
+    gameQuestions = await svc.countGameQuestionsInMonth(student, year, monthIndex0);
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب تغطية المراجعة:', e);
   }
@@ -916,7 +918,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     achievementsThisMonth,
     resolvedThisMonth,
     reviewSchedule, reviewedWithinThisMonth,
-    journey, reviewSummary, comparison, trend, skillSummary, coverage
+    journey, reviewSummary, comparison, trend, skillSummary, coverage, gameQuestions
   };
   // 🌟 [جديد] الأقسام الإضافية (أوسمة، حضور، تجويد، ختم، خطة): أي فشل فيها لا يمنع بقية التقرير
   try { result.extras = await collectExtras(result); } catch (e) { console.error('[monthly-report.js] تعذر بناء الأقسام الإضافية:', e); result.extras = null; }
@@ -1359,16 +1361,18 @@ function renderSkillsBlock(d) {
 }
 
 function renderCoverageBlock(d) {
-  const c = d.coverage;
-  setBlockVisible('mr-cov-block', !!c);
-  if (!c) return;
+  const c = d.coverage, gq = d.gameQuestions;
+  setBlockVisible('mr-cov-block', !!c || gq > 0);
+  if (!c && !(gq > 0)) return;
   setText('mr-cov-title', t('mr_cov_title'));
-  setText('mr-cov-sub', t('mr_cov_sub'));
   const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
+  const gqLine = gq > 0 ? `<div style="font-size:1.05rem;font-weight:700;margin-bottom:10px;">${esc(fill('mr_cov_games_q', { n: gq }))}</div>` : '';
+  setText('mr-cov-sub', c ? t('mr_cov_sub') : '');
+  if (!c) { $('mr-cov-content').innerHTML = gqLine; return; }
   const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));
   const names = shown.join(AppState.currentLang === 'en' ? ', ' : '، ') + (c.missing.length > 3 ? ' ' + t('mr_cov_others') : '');
   const color = c.pct >= 60 ? '#047857' : (c.pct >= 30 ? '#f59e0b' : '#64748b');
-  $('mr-cov-content').innerHTML = `<div style="font-size:1.05rem;font-weight:700;">${esc(fill('mr_cov_main', { n: c.tested, total: c.total, pct: c.pct }))}</div>
+  $('mr-cov-content').innerHTML = `${gqLine}<div style="font-size:1.05rem;font-weight:700;">${esc(fill('mr_cov_main', { n: c.tested, total: c.total, pct: c.pct }))}</div>
     <div style="height:10px;background:#e2e8f0;border-radius:5px;overflow:hidden;margin-top:8px;"><i style="display:block;height:100%;width:${c.pct}%;background:${color};border-radius:5px;"></i></div>
     <div style="margin-top:10px;font-size:0.95rem;line-height:1.8;">${esc(fill('mr_cov_surahs', { c: c.surahsCovered, t: c.surahsTotal }))}${c.missing.length ? '<br>' + esc(fill('mr_cov_missing', { names })) : ''}</div>`;
 }
