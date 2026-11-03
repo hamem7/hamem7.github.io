@@ -37,7 +37,7 @@
 .sc-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sc-note{font-size:.84rem;color:var(--dh-ink-soft);line-height:1.6}
 .sc-lbl{font-size:.82rem;font-weight:700;color:var(--dh-ink-soft)}
-#app-root #sc-screen select,#app-root #sc-screen input[type=number]{min-height:44px;border-radius:12px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);padding:6px 10px;font:inherit;margin:0;width:auto;min-width:0;max-width:100%}
+#app-root #sc-screen select,#app-root #sc-screen input[type=search],#app-root #sc-screen input[type=number]{min-height:44px;border-radius:12px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);padding:6px 10px;font:inherit;margin:0;width:auto;min-width:0;max-width:100%}
 #app-root #sc-screen input[type=number]{width:84px;text-align:center}
 .sc-btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;min-height:44px;cursor:pointer;margin:0;min-width:0;font-size:.95rem;box-shadow:none;background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
 .sc-btn.line{background:var(--dh-surface-3);color:var(--dh-ink);border:1.5px solid var(--dh-border-strong)}
@@ -85,6 +85,9 @@ details.sc-d>summary::-webkit-details-marker{display:none}
 .sc-num{background:var(--dh-surface-0);border:1.5px solid var(--dh-border);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:2px}
 .sc-num b{font-size:1.3rem}.sc-num span{font-size:.78rem;color:var(--dh-ink-soft)}
 
+.sc-lbtn{flex:1;min-width:0;display:flex;gap:8px;align-items:center;border:0;background:none;color:var(--dh-ink);font-weight:700;font-size:.95rem;text-align:start;cursor:pointer;margin:0;padding:6px 0;box-shadow:none;min-height:40px}
+.sc-lbtn .t{flex:1;min-width:0}.sc-lbtn .car{color:var(--dh-ink-soft)}
+.sc-pick{border-top:1.5px dashed var(--dh-border-strong);padding-top:10px;display:flex;flex-direction:column;gap:8px}
 /* الألعاب */
 .sc-seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .sc-seg3 button{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:12px;padding:10px 6px;font-weight:700;font-size:.88rem;cursor:pointer;margin:0;min-width:0;box-shadow:none;line-height:1.35}
@@ -164,12 +167,12 @@ const ayah=n=>S.lang==='ar'?'آية':'ayah';
 const T={ar:{
  header_title:'🏆 رحلة إتقان القرآن',header_sub:'منصة حمٓ',h_home:'الرئيسية',
  pv:'معاينة تفاعلية فقط — لا تحفظ شيئًا. جرّب التعديل في «الإعداد» ثم شاهد أثره في بقية الشاشات',
- t_setup:'⚙️ الإعداد',t_profile:'👤 ملف الطالب',t_games:'🎮 الألعاب الفردية',t_hw:'📝 الواجب الذكي',t_where:'📍 أين تُضاف؟',
+ t_setup:'⚙️ الإعداد',t_profile:'👤 ملف الطالب',t_games:'🎮 الألعاب الفردية',t_hw:'📝 الواجب الذكي',t_where:'📍 أين تُضاف؟',add_whole:'➕ سور كاملة',add_range:'➕ مدى / جزء من سورة',ok_btn:'تم',show_map:'🗺️ عرض الخريطة',hide_map:'إخفاء الخريطة',
  stu:'الطالب: أحمد',
  setup_h:'نطاق الحفظ',setup_s:'المسار المتصل + مقاطع متفرقة',
- main_h:'١) المسار المتصل',main_note:'يبدأ من الناس ويصعد نحو الأصغر (كما هو الآن في المنصة). لا يتغير.',
+ main_h:'١) المسار المتصل',main_note:'من الناس نحو الأصغر (كما هو الآن في المنصة)',
  from:'من سورة',to:'إلى سورة',
- segs_h:'٢) مقاطع متفرقة (اختياري)',segs_note:'أي سور كاملة أو أجزاء من سور خارج المسار المتصل. المقطع بترتيب المصحف (من الأصغر إلى الأكبر).',
+ segs_h:'٢) سور متفرقة (اختياري)',segs_note:'أي سور كاملة أو أجزاء من سور خارج المسار المتصل. المقطع بترتيب المصحف (من الأصغر إلى الأكبر).',
  add_seg:'➕ مقطع جديد',seg_from:'من',seg_to:'إلى',seg_ayah:'آية',
  pick_h:'اختيار سور كاملة بنقرة',pick_search:'ابحث عن سورة…',pick_note:'السور داخل المسار المتصل مقفلة 🔒 (تُحسب تلقائيًا ولا تتكرر).',
  presets:'مجموعات جاهزة',p_fri:'سور الجمعة',p_amma:'جزء عمّ',p_zah:'الزهراوان',p_mus:'المسبّحات',
@@ -178,8 +181,8 @@ const T={ar:{
  overlap:'جزء منه داخل المسار المتصل — سيُستثنى تلقائيًا',whole:'سورة كاملة',
  map_h:'خريطة الحفظ',lg_m:'متصل',lg_s:'متفرق',lg_e:'غير محفوظ',
  save:'حفظ ✔️',cancel:'إلغاء',saved:'✅ تم الحفظ (معاينة فقط)',
- none_seg:'لا مقاطع متفرقة بعد. أضف مقطعًا أو اختر سورًا من الشبكة.',
- in_seg:'هذه السورة ضمن مقطع أكبر — عدّله من القائمة أعلاه',
+ none_seg:'لا سور متفرقة بعد.',
+ in_seg:'كلها داخل المسار المتصل أو مضافة مسبقًا',
  prof_h:'ملف الطالب',prof_s:'أحمد · الحلقة الأولى',tracks:'مسارات الحفظ',
  tr_main:'المسار المتصل',tr_scat:'مقطع متفرق',stop_at:'توقف عند',done:'محفوظ كاملًا',edit_scope:'✏️ تعديل النطاق',
  rec_pos:'🎯 تسجيل موضع التوقف',rec_on:'على أي مسار؟',last_rec:'آخر تسميع',
@@ -201,12 +204,12 @@ const T={ar:{
 },en:{
  header_title:'🏆 Journey of Mastering the Quran',header_sub:'HAM Platform',h_home:'Home',
  pv:'Interactive preview only — nothing is saved. Edit in “Setup” and watch the other screens change',
- t_setup:'⚙️ Setup',t_profile:'👤 Student file',t_games:'🎮 Solo games',t_hw:'📝 Smart homework',t_where:'📍 Where it goes',
+ t_setup:'⚙️ Setup',t_profile:'👤 Student file',t_games:'🎮 Solo games',t_hw:'📝 Smart homework',t_where:'📍 Where it goes',add_whole:'➕ Whole surahs',add_range:'➕ Range / part of a surah',ok_btn:'Done',show_map:'🗺️ Show map',hide_map:'Hide map',
  stu:'Student: Ahmad',
  setup_h:'Memorization scope',setup_s:'Continuous track + scattered segments',
- main_h:'1) Continuous track',main_note:'Starts at An-Nas and climbs toward the smaller numbers (as in the platform today). Unchanged.',
+ main_h:'1) Continuous track',main_note:'From An-Nas toward the smaller numbers (as today)',
  from:'From surah',to:'To surah',
- segs_h:'2) Scattered segments (optional)',segs_note:'Any whole surahs or parts of surahs outside the continuous track. Segments follow mushaf order (small to large).',
+ segs_h:'2) Scattered surahs (optional)',segs_note:'Any whole surahs or parts of surahs outside the continuous track. Segments follow mushaf order (small to large).',
  add_seg:'➕ New segment',seg_from:'From',seg_to:'To',seg_ayah:'ayah',
  pick_h:'Pick whole surahs in one tap',pick_search:'Search a surah…',pick_note:'Surahs inside the continuous track are locked 🔒 (counted automatically, never duplicated).',
  presets:'Ready-made sets',p_fri:'Friday surahs',p_amma:'Juz Amma',p_zah:'Al-Zahrawan',p_mus:'Al-Musabbihat',
@@ -215,8 +218,8 @@ const T={ar:{
  overlap:'Part of it is inside the continuous track — excluded automatically',whole:'Whole surah',
  map_h:'Memorization map',lg_m:'Continuous',lg_s:'Scattered',lg_e:'Not memorized',
  save:'Save ✔️',cancel:'Cancel',saved:'✅ Saved (preview only)',
- none_seg:'No scattered segments yet. Add a segment or pick surahs from the grid.',
- in_seg:'This surah is part of a larger segment — edit it in the list above',
+ none_seg:'No scattered surahs yet.',
+ in_seg:'All already inside the continuous track or added',
  prof_h:'Student file',prof_s:'Ahmad · Circle 1',tracks:'Memorization tracks',
  tr_main:'Continuous track',tr_scat:'Scattered segment',stop_at:'Stopped at',done:'Fully memorized',edit_scope:'✏️ Edit scope',
  rec_pos:'🎯 Record stopping point',rec_on:'On which track?',last_rec:'Last recitation',
@@ -237,7 +240,7 @@ const T={ar:{
  q_ex:'Example: An-Nas → Ya-Sin (continuous) + Al-Baqarah → middle of Yunus (scattered)'
 }};
 const S={lang:'ar',tab:'setup',main:{from:114,to:36,frontier:83},
- segs:[{id:1,f:{s:2,a:1},t:{s:10,a:55}}],nid:2,q:'',
+ segs:[{id:1,f:{s:2,a:1},t:{s:10,a:55}}],nid:2,q:'',openSeg:null,pick:false,showMap:false,
  g:{mode:'all',picked:new Set(),part:{s:10,a:1,b:55}},recOn:0};
 const L=(k)=>T[S.lang][k]||k;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -293,27 +296,23 @@ function summaryHtml(){
   const scSur=rs.reduce((a,r)=>a+surahsIn(r),0);
   const tot=st.mem+st.scat,pct=(tot/TOTAL*100).toFixed(1);
   return {c,st,rs,html:`
-  <div class="sc-sumbox"><small>${L('q_ex')}</small>
+  <div class="sc-sumbox">
    <b>${L('sum_main')}: ${esc(sName(S.main.from))} ← ${esc(sName(S.main.to))} (${mSur} ${L('n_surah')})</b>
    <b>${L('sum_scat')}: ${rs.length?rs.map(r=>esc(rangeText(r))).join(' ، '):'—'}</b></div>
   <div class="sc-nums"><div class="sc-num"><b>${fmt(tot)}</b><span>${L('n_ayah')}</span></div><div class="sc-num"><b>${mSur+scSur}</b><span>${L('n_surah')}</span></div><div class="sc-num"><b>${pct}%</b><span>${L('n_pct')}</span></div></div>`};
 }
-function segRow(g){
-  const [a,b]=segIv(g),m=mainIv();
-  const ov=!(b<m[0]||a>m[1]);
-  const sameWhole=g.f.s===g.t.s&&g.f.a===1&&g.t.a===AY[g.t.s-1];
-  const r=[a,b];
-  return `<div class="sc-seg" data-id="${g.id}">
-   <div class="sc-row"><span class="sc-lbl">${L('seg_from')}</span>
-    <select data-k="fs" data-id="${g.id}">${selOpts(g.f.s)}</select>
-    <input type="number" min="1" max="${AY[g.f.s-1]}" value="${g.f.a}" data-k="fa" data-id="${g.id}" aria-label="${L('seg_ayah')}">
-    <span class="sc-lbl">${L('seg_to')}</span>
-    <select data-k="ts" data-id="${g.id}">${selOpts(g.t.s)}</select>
-    <input type="number" min="1" max="${AY[g.t.s-1]}" value="${g.t.a}" data-k="ta" data-id="${g.id}" aria-label="${L('seg_ayah')}">
-    <button class="sc-x" data-del="${g.id}" aria-label="x">✕</button></div>
-   <div class="sc-row"><span class="sc-sum">${esc(rangeText(r))}</span>
-    <span class="sc-tag gold">${fmt(cnt(r))} ${L('n_ayah')}</span>${sameWhole?`<span class="sc-tag ok">${L('whole')}</span>`:''}
-    ${ov?`<span class="sc-tag warn">⚠️ ${L('overlap')}</span>`:''}</div></div>`;
+function commit(c){S.segs=ranges(c).map((r,i)=>({id:i,f:pos(r[0]),t:pos(r[1])}));if(S.openSeg!==null&&S.openSeg>=S.segs.length)S.openSeg=null}
+function indexOfKey(k){return S.segs.findIndex(g=>{const [a,b]=segIv(g);return a<=k&&k<=b})}
+function segLine(g,i){
+  const r=segIv(g),open=S.openSeg===i;
+  let h=`<div class="sc-seg"><div class="sc-row" style="flex-wrap:nowrap">
+   <button class="sc-lbtn" data-open="${i}" aria-expanded="${open}"><span class="t">${esc(rangeText(r))}</span><span class="sc-tag gold">${fmt(cnt(r))} ${L('n_ayah')}</span><span class="car">${open?'▴':'▾'}</span></button>
+   <button class="sc-x" data-del="${i}" aria-label="x">✕</button></div>`;
+  if(open)h+=`<div class="sc-row"><span class="sc-lbl">${L('seg_from')}</span>
+    <select data-k="fs" data-id="${i}">${selOpts(g.f.s)}</select><input type="number" min="1" max="${AY[g.f.s-1]}" value="${g.f.a}" data-k="fa" data-id="${i}" aria-label="${L('seg_ayah')}"></div>
+   <div class="sc-row"><span class="sc-lbl">${L('seg_to')}</span>
+    <select data-k="ts" data-id="${i}">${selOpts(g.t.s)}</select><input type="number" min="1" max="${AY[g.t.s-1]}" value="${g.t.a}" data-k="ta" data-id="${i}" aria-label="${L('seg_ayah')}"></div>`;
+  return h+'</div>';
 }
 function chipsHtml(c,st){
   const q=S.q.trim().toLowerCase();let h='';
@@ -324,25 +323,23 @@ function chipsHtml(c,st){
     h+=`<button class="${cls}" data-chip="${s}"${full?' disabled':''}>${full?'🔒 ':''}${esc(nm)}</button>`}
   return h;
 }
-function presets(list){list.forEach(s=>{if(s===1)return;const c=cover();for(let i=START[s];i<START[s]+AY[s-1];i++)if(c[i]===0){S.segs.push({id:S.nid++,f:{s,a:1},t:{s,a:AY[s-1]}});break}})}
-
+function toggleSurah(c,s){const st=stats(c).per[s],full=st.x===st.n;
+  for(let i=START[s];i<START[s]+AY[s-1];i++){if(full){if(c[i]===2)c[i]=0}else if(c[i]===0)c[i]=2}}
 function setup(){
-  const {c,st,html}=summaryHtml();
-  return `<h1>${L('setup_h')}<small>${L('stu')} · ${L('setup_s')}</small></h1>
-  <div class="sc-card"><h2>${L('main_h')}</h2><p class="sc-note">${L('main_note')}</p>
-   <div class="sc-row"><span class="sc-lbl">${L('from')}</span><select id="mf">${selOpts(S.main.from)}</select>
-   <span class="sc-lbl">${L('to')}</span><select id="mt">${selOpts(S.main.to)}</select></div></div>
-  <div class="sc-card accent"><h2>${L('segs_h')}</h2><p class="sc-note">${L('segs_note')}</p>
-   ${S.segs.length?S.segs.map(segRow).join(''):`<p class="sc-note">${L('none_seg')}</p>`}
-   <div class="sc-row"><button class="sc-btn gold" id="addSeg">${L('add_seg')}</button></div>
-   <details class="sc-d" open><summary>${L('pick_h')}</summary>
-    <p class="sc-note" style="margin:6px 0">${L('pick_note')}</p>
-    <div class="sc-row" style="margin-bottom:6px"><span class="sc-lbl">${L('presets')}:</span>
-     <button class="sc-chip" data-pre="fri">${L('p_fri')}</button><button class="sc-chip" data-pre="amma">${L('p_amma')}</button>
-     <button class="sc-chip" data-pre="zah">${L('p_zah')}</button><button class="sc-chip" data-pre="mus">${L('p_mus')}</button></div>
-    <input id="q" class="sc-search" type="search" placeholder="${L('pick_search')}" value="${esc(S.q)}" style="width:100%">
-    <div class="sc-grp sc-chips" style="margin-top:8px">${chipsHtml(c,st)}</div></details></div>
-  <div class="sc-card"><h2>${L('sum_h')}</h2>${html}<h2>${L('map_h')}</h2>${mapHtml(c,st)}</div>
+  commit(cover());
+  const c=cover(),st=stats(c),tot=st.mem+st.scat,mSur=S.main.from-S.main.to+1;
+  const pick=S.pick?`<div class="sc-pick"><div class="sc-row"><input id="q" type="search" placeholder="${L('pick_search')}" value="${esc(S.q)}" style="flex:1"><button class="sc-btn sm" data-pickdone="1">${L('ok_btn')}</button></div>
+    <div class="sc-row"><span class="sc-lbl">${L('presets')}:</span><button class="sc-chip" data-pre="fri">${L('p_fri')}</button><button class="sc-chip" data-pre="zah">${L('p_zah')}</button><button class="sc-chip" data-pre="mus">${L('p_mus')}</button></div>
+    <div class="sc-grp sc-chips">${chipsHtml(c,st)}</div><p class="sc-note">${L('pick_note')}</p></div>`:'';
+  return `<h1>${L('setup_h')}<small>${L('stu')}</small></h1>
+  <div class="sc-card"><h2>${L('main_h')}</h2>
+   <div class="sc-row"><select id="mf" aria-label="${L('from')}">${selOpts(S.main.from)}</select><span aria-hidden="true">←</span><select id="mt" aria-label="${L('to')}">${selOpts(S.main.to)}</select></div>
+   <p class="sc-note">${L('main_note')}</p></div>
+  <div class="sc-card accent"><div class="sc-row" style="justify-content:space-between"><h2>${L('segs_h')}</h2>${S.segs.length?`<span class="sc-tag gold">${S.segs.length}</span>`:''}</div>
+   ${S.segs.length?S.segs.map(segLine).join(''):`<p class="sc-note">${L('none_seg')}</p>`}
+   <div class="sc-row"><button class="sc-btn gold sm" data-pick="1">${L('add_whole')}</button><button class="sc-btn line sm" id="addRange">${L('add_range')}</button></div>${pick}</div>
+  <div class="sc-card"><div class="sc-nums"><div class="sc-num"><b>${fmt(tot)}</b><span>${L('n_ayah')}</span></div><div class="sc-num"><b>${mSur+ranges(c).reduce((a,r)=>a+surahsIn(r),0)}</b><span>${L('n_surah')}</span></div><div class="sc-num"><b>${(tot/TOTAL*100).toFixed(1)}%</b><span>${L('n_pct')}</span></div></div>
+   <button class="sc-btn line sm" data-map="1">${S.showMap?L('hide_map'):L('show_map')}</button>${S.showMap?mapHtml(c,st):''}</div>
   <div class="sc-row"><button class="sc-btn" data-save="1" style="flex:1">${L('save')}</button><button class="sc-btn line" data-cancel="1" style="flex:1">${L('cancel')}</button></div>`;
 }
 
@@ -433,12 +430,15 @@ document.addEventListener('click',e=>{
   if(t.id==='theme-toggle-btn'){window.DHTheme&&window.DHTheme.cycle();return paintTheme()}
   if(t.id==='header-home-btn'||t.id==='header-account-btn')return toast(t.title);
   if(t.dataset.tab){S.tab=t.dataset.tab;window.scrollTo(0,0);return render()}
-  if(t.id==='addSeg'){S.segs.push({id:S.nid++,f:{s:18,a:1},t:{s:18,a:AY[17]}});return render()}
-  if(t.dataset.del){S.segs=S.segs.filter(g=>g.id!=t.dataset.del);return render()}
-  if(t.dataset.pre){presets(PRE[t.dataset.pre]);return render()}
-  if(t.dataset.chip){const s=+t.dataset.chip,hit=S.segs.find(g=>g.f.s===s&&g.t.s===s&&g.f.a===1&&g.t.a===AY[s-1]);
-    const c=cover(),p=stats(c).per[s];
-    if(hit)S.segs=S.segs.filter(g=>g!==hit);else if(p.x>0)return toast(L('in_seg'));else S.segs.push({id:S.nid++,f:{s,a:1},t:{s,a:AY[s-1]}});return render()}
+  if(t.id==='addRange'){const c=cover();let n=2;while(n<114&&stats(c).per[n].m+stats(c).per[n].x>0)n++;
+    S.segs.push({id:99,f:{s:n,a:1},t:{s:n,a:AY[n-1]}});commit(cover());S.openSeg=indexOfKey(idx(n,1));return render()}
+  if(t.dataset.open!==undefined){const i=+t.dataset.open;S.openSeg=S.openSeg===i?null:i;return render()}
+  if(t.dataset.del){S.segs.splice(+t.dataset.del,1);S.openSeg=null;return render()}
+  if(t.dataset.pick){S.pick=true;return render()}
+  if(t.dataset.pickdone){S.pick=false;S.q='';return render()}
+  if(t.dataset.map){S.showMap=!S.showMap;return render()}
+  if(t.dataset.pre){const c=cover();let ch=0;PRE[t.dataset.pre].forEach(s=>{if(s>1)for(let i=START[s];i<START[s]+AY[s-1];i++)if(c[i]===0){c[i]=2;ch=1}});if(!ch)toast(L('in_seg'));commit(c);return render()}
+  if(t.dataset.chip){const c=cover();toggleSurah(c,+t.dataset.chip);commit(c);return render()}
   if(t.dataset.save)return toast(L('saved'));
   if(t.dataset.cancel)return toast('—');
   if(t.dataset.rec!==undefined){S.recOn=+t.dataset.rec;return render()}
@@ -454,7 +454,8 @@ document.addEventListener('change',e=>{
   if(el.id==='mt'){S.main.to=+el.value;if(S.main.to>S.main.from)S.main.from=S.main.to;S.main.frontier=Math.min(S.main.frontier,AY[S.main.to-1]);return render()}
   if(el.dataset.k){const g=S.segs.find(x=>x.id==el.dataset.id),k=el.dataset.k,v=+el.value;
     if(k==='fs'){g.f.s=v;g.f.a=1}else if(k==='ts'){g.t.s=v;g.t.a=AY[v-1]}
-    else if(k==='fa')g.f.a=Math.max(1,Math.min(AY[g.f.s-1],v||1));else g.t.a=Math.max(1,Math.min(AY[g.t.s-1],v||1));return render()}
+    else if(k==='fa')g.f.a=Math.max(1,Math.min(AY[g.f.s-1],v||1));else g.t.a=Math.max(1,Math.min(AY[g.t.s-1],v||1));
+    const key=segIv(g)[0];commit(cover());S.openSeg=indexOfKey(key);return render()}
   if(el.dataset.gp){const p=S.g.part;p[el.dataset.gp]=Math.max(1,Math.min(AY[p.s-1],+el.value||1));if(p.a>p.b)[p.a,p.b]=[p.b,p.a];return render()}
 });
 document.addEventListener('input',e=>{if(e.target.id==='q'){S.q=e.target.value;render()}});
