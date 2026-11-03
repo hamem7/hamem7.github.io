@@ -9,7 +9,7 @@
 import { AppState, t } from '../core/app.js';
 import '../core/i18n-badges.js';
 import { esc } from '../core/escape.js';
-import { hasSchedule } from '../engine/attendanceEngine.js';
+import { hasSchedule, WEEK_ORDER, weekRank } from '../engine/attendanceEngine.js';
 import { askAttendanceTime, describePromptSettings } from './attendancePrompt.js';
 
 export const SCHEDULE_MINUTES = [30, 45, 60];
@@ -17,7 +17,7 @@ const isEn = () => AppState.currentLang === 'en';
 
 function daysSummary(s) {
   if (!hasSchedule(s)) return t('ms_sched_none');
-  const days = [...s.schedule.days].map(Number).sort((a, b) => a - b).map(d => t('att_day_' + d)).join(isEn() ? ', ' : '، ');
+  const days = [...s.schedule.days].map(Number).sort((a, b) => weekRank(a) - weekRank(b)).map(d => t('att_day_' + d)).join(isEn() ? ', ' : '، ');
   return `${days} · ${s.schedule.minutes} ${t('ms_min_unit')}`;
 }
 
@@ -63,7 +63,7 @@ export async function renderScheduleTab(container) {
           </button>
           <div class="ms-acc-b">
             <label>${esc(t('att_sched_days'))}</label>
-            <div class="ms-dayp">${[0, 1, 2, 3, 4, 5, 6].map(d => `<button type="button" class="${days.has(d) ? 'on' : ''}" data-sm-day="${d}" aria-pressed="${days.has(d)}">${esc(t('att_day_' + d))}</button>`).join('')}</div>
+            <div class="ms-dayp">${WEEK_ORDER.map(d => `<button type="button" class="${days.has(d) ? 'on' : ''}" data-sm-day="${d}" aria-pressed="${days.has(d)}">${esc(t('att_day_' + d))}</button>`).join('')}</div>
             <label>${esc(t('att_sched_minutes'))}</label>
             <div class="ms-minp">${minutesOptions(mins).map(m => `<button type="button" class="${m === mins ? 'on' : ''}" data-sm-min="${m}" aria-pressed="${m === mins}">${m}</button>`).join('')}</div>
             <div class="ms-saved" role="status">${savedId === s.id ? esc(t('att_sched_saved')) : ''}</div>

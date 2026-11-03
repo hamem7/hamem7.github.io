@@ -9,6 +9,9 @@
 
 export const ATTENDANCE_STATUSES = ['present', 'absent', 'cancelled'];
 export const DEFAULT_MINUTES = 60;
+/** ترتيب عرض أيام الأسبوع: يبدأ الأسبوع يوم السبت (6) ثم الأحد (0) … الجمعة (5). القيم المخزّنة تبقى أرقام getDay(). */
+export const WEEK_ORDER = [6, 0, 1, 2, 3, 4, 5];
+export const weekRank = (d) => WEEK_ORDER.indexOf(Number(d));
 
 const pad = (n) => String(n).padStart(2, '0');
 export const dateKey = (d) => { const x = d instanceof Date ? d : new Date(d); return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`; };
