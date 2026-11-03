@@ -38,7 +38,7 @@ export const EXTRAS_STYLES = `
   #report-screen .mrx-medal .tx{min-width:0; flex:1;}
   #report-screen .mrx-medal b{font-size:13.5px; color:#164f40;}
   #report-screen .mrx-medal small{display:block; font-size:11.5px; color:#6b6b63; line-height:1.5;}
-  #report-screen .mrx-medal .how{display:block; font-size:11.5px; color:#3a3a35; line-height:1.5; margin-top:2px;}
+  #report-screen .mrx-medal small.why{font-size:11px; margin-top:2px;}
   #report-screen .mrx-chip{display:inline-block; margin-inline-start:6px; padding:0 8px; border-radius:999px; font-size:11.5px; font-weight:700; color:#1a1300;}
   #report-screen .mrx-total{font-size:15px; font-weight:800; color:#164f40; margin-bottom:8px;}
   #report-screen .mrx-closest{margin-top:10px; font-size:13px; color:#8a6221;}
@@ -189,16 +189,26 @@ export async function collectExtras(d) {
 }
 
 // ---------- العرض ----------
-// وسام مكتسب: اسمه ودرجته + سطر «كيف حصل عليه» (الشرط والنتيجة وحدّ الدرجة) — بدل مفتاح كل الأوسمة
-const BADGE_TH = Object.fromEntries(BADGE_DEFS.map(b => [b.key, b.th]));
-const howOf = (r) => String(t('bdg_' + r.key + '_desc') || '').replace(/\s*\([^()]*\)\s*$/, '');
-const medalHtml = (r) => {
+// وسام مكتسب: اسمه ودرجته + سطر صغير «لماذا حصل عليه» بالعدد الفعلي (مذكّر/مؤنث، والمعدود مطابَق للعدد)
+const isFemaleStudent = (st) => !!st && (st.gender === 'girl' || st.gender === 'female' || ['👧🏻', '👩🏻', '🧕🏻'].includes(st.avatar));
+function countPhrase(noun, n) {
+  const f = String(t('bdg_cnt_' + noun) || '').split('|');
+  if (isEn()) return `${num(n)} ${n === 1 ? f[0] : (f[1] || f[0])}`;
+  if (n === 1) return f[4];
+  if (n === 2) return f[1];
+  if (n >= 3 && n <= 10) return `${num(n)} ${f[2]}`;
+  return `${num(n)} ${f[3]}`;
+}
+const whyOf = (r, female) => {
+  const n = Math.round(r.value);
+  const noun = t('bdg_' + r.key + '_why_noun');
+  return tf('bdg_' + r.key + (female ? '_why_f' : '_why'), { n: num(n), c: noun ? countPhrase(noun, n) : num(n) });
+};
+const medalHtml = (r, female) => {
   const [c1, c2] = TIER_COLORS[r.tierKey];
-  const th = (BADGE_TH[r.key] || [])[r.tier];
   return `<div class="mrx-medal"><div class="disc" style="background:linear-gradient(135deg,${c1},${c2});">${r.icon}</div>
     <div class="tx"><b>${esc(t('bdg_' + r.key + '_name'))}</b><span class="mrx-chip" style="background:linear-gradient(135deg,${c1},${c2});">${esc(tierName(r.tierKey))}</span>
-    <span class="how">${esc(howOf(r))}</span>
-    <small>${esc(tf('bdg_rep_how', { unit: t('bdg_' + r.key + '_unit'), v: num(Math.round(r.value)), tier: tierName(r.tierKey), th: num(th ?? '') }))}</small></div></div>`;
+    <small class="why">${esc(whyOf(r, female))}</small></div></div>`;
 };
 
 function badgesSection(d, x) {
@@ -210,7 +220,7 @@ function badgesSection(d, x) {
   } else {
     const order = { diamond: 0, gold: 1, silver: 2, bronze: 3 };
     const sorted = [...x.summary.earned].sort((a, b) => order[a.tierKey] - order[b.tierKey]);
-    body = `<div class="mrx-total">${esc(tf('bdg_rep_total', { n: num(x.summary.total) }))}</div><div class="mrx-grid">${sorted.map(medalHtml).join('')}</div>`;
+    body = `<div class="mrx-total">${esc(tf('bdg_rep_total', { n: num(x.summary.total) }))}</div><div class="mrx-grid">${sorted.map(r => medalHtml(r, isFemaleStudent(d.student))).join('')}</div>`;
   }
   const c = x.closest;
   const closest = c ? `<div class="mrx-closest">${esc(tf('bdg_rep_closest', { badge: t('bdg_' + c.key + '_name'), k: num(Math.ceil(c.next.remaining)) }))}</div>` : '';

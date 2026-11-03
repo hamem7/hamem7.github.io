@@ -57,7 +57,7 @@ const ar = {
     bdg_title_steady: 'ثابت', bdg_title_radiant: 'متألق', bdg_title_legend: 'أسطورة', att_sched_none: 'لا جدول بعد', att_sched_clear: 'مسح الجدول',
     // التقرير: الأوسمة
     bdg_rep_title: 'أوسمة هذا الشهر', bdg_rep_sub: 'أوسمة نالها {name} هذا الشهر من أدائه المسجَّل فقط', bdg_rep_total: '{n} أوسمة', bdg_rep_none: 'لم يُسجَّل وسام هذا الشهر بعد.',
-    bdg_rep_closest: 'أقرب وسام قادم: {badge} — باقي {k}', bdg_rep_how: '{unit}: {v} (حدّ الدرجة {tier}: {th})',
+    bdg_rep_closest: 'أقرب وسام قادم: {badge} — باقي {k}',
     bdg_rep_value: 'حقّق {n}', bdg_rep_tiers_line: 'برونزي {a} · فضي {b} · ذهبي {c} · ماسي {d}',
     // التقرير: الحضور
     att_rep_title: 'الحضور والالتزام', att_rep_sub: 'حسب سجل المعلم لهذا الشهر', att_rep_expected: 'الحصص المقررة', att_rep_present: 'حضر', att_rep_absent: 'غياب',
@@ -118,7 +118,7 @@ const en = {
     bdg_cabinet_how: 'How to earn it', bdg_cabinet_thresholds: 'Thresholds', bdg_cabinet_gold_months: 'Gold or higher in {n} months', bdg_cabinet_this_month: 'This month', bdg_cabinet_tap: 'Tap any badge to see how to earn it',
     bdg_title_steady: 'Steady', bdg_title_radiant: 'Radiant', bdg_title_legend: 'Legend', att_sched_none: 'No schedule yet', att_sched_clear: 'Clear schedule',
     bdg_rep_title: 'Badges this month', bdg_rep_sub: 'Badges {name} earned this month, from recorded performance only', bdg_rep_total: '{n} badges', bdg_rep_none: 'No badge recorded this month yet.',
-    bdg_rep_closest: 'Closest next badge: {badge} — {k} to go', bdg_rep_how: '{unit}: {v} ({tier} tier from {th})',
+    bdg_rep_closest: 'Closest next badge: {badge} — {k} to go',
     bdg_rep_value: 'Achieved {n}', bdg_rep_tiers_line: 'Bronze {a} · Silver {b} · Gold {c} · Diamond {d}',
     att_rep_title: 'Attendance & commitment', att_rep_sub: 'According to the teacher’s record this month', att_rep_expected: 'Scheduled sessions', att_rep_present: 'Attended', att_rep_absent: 'Absent',
     att_rep_hours: 'Hours (estimate)', att_rep_pct: 'Attendance', att_rep_cancelled: 'Sessions not held', att_rep_extra: 'Extra sessions', att_rep_unconfirmed: 'Unconfirmed', att_rep_session_len: 'Session length {n} min',
@@ -150,6 +150,44 @@ for (const [k, v] of Object.entries(BADGES)) {
     ar['bdg_' + k + '_desc'] = v[2]; en['bdg_' + k + '_desc'] = v[3];
     ar['bdg_' + k + '_unit'] = v[4]; en['bdg_' + k + '_unit'] = UNITS_EN[v[5]];
     ar['bdg_' + k + '_how'] = v[6]; en['bdg_' + k + '_how'] = v[7];
+}
+// سطر «لماذا حصل على الوسام» تحت كل وسام في التقرير الشهري: {c} = العدد مع المعدود (مطابَق نحويًا)، {n} = الرقم وحده
+// [مذكّر عربي، مؤنث عربي، إنجليزي، مفتاح المعدود]
+const BADGE_WHY = {
+    skilled:  ['لأنه لعب لعبة بنتيجة ١٠٠٪ في {c} على التوالي', 'لأنها لعبت لعبة بنتيجة ١٠٠٪ في {c} على التوالي', 'Because they scored 100% in a game in {c} in a row', 'session'],
+    perfect:  ['لأنه أنهى {c} بنتيجة ١٠٠٪', 'لأنها أنهت {c} بنتيجة ١٠٠٪', 'Because they finished {c} with a 100% score', 'game'],
+    active:   ['لأنه لعب {c} بنتيجة ٥٠٪ فأكثر', 'لأنها لعبت {c} بنتيجة ٥٠٪ فأكثر', 'Because they played {c} scoring 50% or more', 'game'],
+    fixer:    ['لأنه أصلح «تحدي الأخطاء» بنتيجة ١٠٠٪ في {c} على التوالي', 'لأنها أصلحت «تحدي الأخطاء» بنتيجة ١٠٠٪ في {c} على التوالي', 'Because they fixed “the mistakes” at 100% in {c} in a row', 'session'],
+    riser:    ['لأن متوسط نتائجه ارتفع لمدة {c} على التوالي', 'لأن متوسط نتائجها ارتفع لمدة {c} على التوالي', 'Because their average score rose for {c} in a row', 'month'],
+    hero:     ['لأنه حفظ هذا الشهر {c}', 'لأنها حفظت هذا الشهر {c}', 'Because they newly memorized {c} this month', 'ayah'],
+    reviewer: ['لأنه راجع {c} في الألعاب والواجبات هذا الشهر', 'لأنها راجعت {c} في الألعاب والواجبات هذا الشهر', 'Because they reviewed {c} in games and homework this month', 'ayah'],
+    rasikh:   ['لأنه راجع {c} هذا الشهر', 'لأنها راجعت {c} هذا الشهر', 'Because they reviewed {c} this month', 'part'],
+    star:     ['لأنه أجاب إجابة صحيحة على «السؤال المميز» {c}', 'لأنها أجابت إجابة صحيحة على «السؤال المميز» {c}', 'Because they answered the “featured question” correctly {c}', 'time'],
+    steady:   ['لأنه حضر {n}٪ من الحصص المجدولة', 'لأنها حضرت {n}٪ من الحصص المجدولة', 'Because they attended {n}% of scheduled sessions', ''],
+    tjLearn:  ['لأنه أنهى شرح {c} من أحكام التجويد', 'لأنها أنهت شرح {c} من أحكام التجويد', 'Because they completed the lessons of {c}', 'rule'],
+    tjApply:  ['لأنه أجاب إجابة صحيحة عن {c} في ألعاب التجويد', 'لأنها أجابت إجابة صحيحة عن {c} في ألعاب التجويد', 'Because they answered {c} correctly in Tajweed games', 'question'],
+    tjExam:   ['لأنه اجتاز اختبار {c} من أول محاولة', 'لأنها اجتازت اختبار {c} من أول محاولة', 'Because they passed the exam of {c} on the first attempt', 'rule'],
+    tjMaster: ['لأن المعلم اعتمد له {c} في التجويد', 'لأن المعلم اعتمد لها {c} في التجويد', 'Because the teacher approved {c} for them', 'rule'],
+    duelist:  ['لأنه فاز في {c}', 'لأنها فازت في {c}', 'Because they won {c}', 'duel']
+};
+// المعدود: عربي [مفرد، مثنى، جمع ٣–١٠، تمييز ١١+، «واحد»]، إنجليزي [مفرد، جمع]
+const COUNT_NOUNS = {
+    game:     ['لعبة', 'لعبتين', 'ألعاب', 'لعبة', 'لعبة واحدة', 'game', 'games'],
+    session:  ['حلقة', 'حلقتين', 'حلقات', 'حلقة', 'حلقة واحدة', 'session', 'sessions'],
+    month:    ['شهر', 'شهرين', 'أشهر', 'شهرًا', 'شهرًا واحدًا', 'month', 'months'],
+    ayah:     ['آية', 'آيتين', 'آيات', 'آية', 'آية واحدة', 'ayah', 'ayahs'],
+    part:     ['جزء', 'جزأين', 'أجزاء', 'جزءًا', 'جزءًا واحدًا', 'part', 'parts'],
+    time:     ['مرة', 'مرتين', 'مرات', 'مرة', 'مرة واحدة', 'time', 'times'],
+    rule:     ['حكم', 'حكمين', 'أحكام', 'حكمًا', 'حكمًا واحدًا', 'Tajweed rule', 'Tajweed rules'],
+    question: ['سؤال', 'سؤالين', 'أسئلة', 'سؤالًا', 'سؤالًا واحدًا', 'question', 'questions'],
+    duel:     ['مواجهة', 'مواجهتين', 'مواجهات', 'مواجهة', 'مواجهة واحدة', 'head-to-head match', 'head-to-head matches']
+};
+for (const [k, v] of Object.entries(BADGE_WHY)) {
+    ar['bdg_' + k + '_why'] = v[0]; ar['bdg_' + k + '_why_f'] = v[1]; en['bdg_' + k + '_why'] = v[2]; en['bdg_' + k + '_why_f'] = v[2];
+    ar['bdg_' + k + '_why_noun'] = en['bdg_' + k + '_why_noun'] = v[3];
+}
+for (const [k, v] of Object.entries(COUNT_NOUNS)) {
+    ar['bdg_cnt_' + k] = v.slice(0, 5).join('|'); en['bdg_cnt_' + k] = v.slice(5).join('|');
 }
 Object.assign(translations.ar, ar);
 Object.assign(translations.en, en);
