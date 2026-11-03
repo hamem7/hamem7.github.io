@@ -296,7 +296,8 @@
     <div id="prof-scope-card" hidden></div>
 
     <div class="pf-stats">
-        <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-points">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_total_points">إجمالي النقاط المكتسبة</p></div></div>
+        <!-- «دفتر المراجعة»: آيات هذا الشهر (ألعاب + واجب) بدل إجمالي النقاط — يُملأ من components/reviewLogCard.js -->
+        <div class="pf-stat"><span class="pf-stat-ic"><svg class="pf-i"><use href="#pfi-trophy"/></svg></span><div><p class="pf-stat-v" id="prof-review-ayahs">0</p><p class="pf-stat-l pf-lbl" id="prof-review-lbl" data-i18n="rvl_stat_label">آيات المراجعة هذا الشهر</p><p class="pf-stat-l" id="prof-review-sub" style="font-size:.78rem;margin:2px 0 0"></p></div></div>
         <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-trend"/></svg></span><div><p class="pf-stat-v" id="prof-evals">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_eval_count">عدد التقييمات السابقة</p></div></div>
         <!-- انتصارات "الاختبارات الثنائية" — يُملأ من renderDualTestAchievements في student.js -->
         <div class="pf-stat"><span class="pf-stat-ic is-g"><svg class="pf-i"><use href="#pfi-swords"/></svg></span><div><p class="pf-stat-v" id="prof-duel-wins">0</p><p class="pf-stat-l pf-lbl" data-i18n="pfx_dual_wins">انتصارات الاختبارات الثنائية</p></div></div>
@@ -304,6 +305,11 @@
 
     <div class="pf-extras">
     <!-- 🌟 [جديد] خزانة الأوسمة الشهرية (components/badgeCabinet.js) وجدول حصص الطالب (components/studentSchedule.js) -->
+    <!-- «دفتر المراجعة»: إحصائية شهرية بالإجمالي والتفصيل (components/reviewLogCard.js) -->
+    <div class="simp-section" id="rvl-section">
+        <h3 class="simp-title" data-i18n="rvl_title">دفتر المراجعة</h3>
+        <div id="rvl-content"></div>
+    </div>
     <div class="simp-section" id="bdgc-section">
         <h3 class="simp-title" data-i18n="bdg_cabinet_title">خزانة الأوسمة</h3>
         <div id="bdgc-content"></div>

@@ -1194,7 +1194,6 @@ export async function loadStudentProfileScreen() {
             renderProfileScope(document.getElementById('prof-scope-card'), student);
             document.addEventListener('app-lang-changed', function _psc() { const h = document.getElementById('prof-scope-card'); if (!h || !h.isConnected) { document.removeEventListener('app-lang-changed', _psc); return; } renderProfileScope(h, AppState.currentStudent); });
             document.getElementById('prof-grade').innerText = (student.grade ? trStored(student.grade) : t("stu_grade_not_set"));
-            document.getElementById('prof-points').innerText = student.totalScore || 0;
 
             let ageStr = t("stu_age_not_set");
             if(student.dob) {
@@ -1341,6 +1340,7 @@ export async function loadStudentProfileScreen() {
             // 🌟 [جديد — المرحلة 5] قسم "مسار التجويد" — راجع الدالة أدناه
             renderTajweedProfileSection(student);
             // 🌟 [جديد] خزانة الأوسمة وجدول الحصص (best-effort: فشلهما لا يمنع بقية الملف)
+            import('../components/reviewLogCard.js').then(m => m.renderReviewLogCard(student, document.getElementById('rvl-content'))).catch(e => console.warn('[student] دفتر المراجعة:', e));
             import('../components/badgeCabinet.js').then(m => m.renderBadgeCabinet(student, document.getElementById('bdgc-content'))).catch(e => console.warn('[student] الأوسمة:', e));
             import('../components/studentSchedule.js').then(m => m.renderScheduleSection(student, document.getElementById('sched-content'))).catch(e => console.warn('[student] الجدول:', e));
             renderSimilaritiesProfileSection(student);
