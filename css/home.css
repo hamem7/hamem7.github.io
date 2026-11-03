@@ -1188,9 +1188,8 @@
 .home-menu-secondary .home-card-similarities .home-card-icon { background: linear-gradient(135deg, var(--dh-emerald-600), var(--dh-gold-500)); }
 .home-menu-secondary .home-card-similarities .home-card-title { color: var(--dh-emerald-800); }
 
-/* 🎓 بطاقة «أبطال التجويد» في الصف الثانوي: بعرض الصف كاملاً فوق الشهادات والمتشابهات، بصبغة تيل/سماوي خفيفة (تميّزها عن الزمرّدي والبنفسجي والذهبي) */
+/* 🎓 بطاقة «أبطال التجويد» في الصف الثانوي: بحجم عادي مثل جاراتها وقبل الشهادات، بصبغة تيل/سماوي خفيفة (تميّزها عن الزمرّدي والبنفسجي والذهبي) */
 .home-menu-secondary .home-card-tajweed {
-    grid-column: 1 / -1;
     background: rgba(14, 116, 144, 0.12);
     border-top: 3px solid #0e7490;
     color: inherit;
