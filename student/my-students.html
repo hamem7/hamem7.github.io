@@ -215,6 +215,43 @@
     #app-root #ms-screen .ms-dayp button, #app-root #ms-screen .ms-minp button { min-width: 46px; min-height: 42px; border-radius: 12px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); font-weight: 700; cursor: pointer; margin: 0; padding: 0 12px; box-shadow: none; font-size: .95rem; }
     #app-root #ms-screen .ms-dayp button.on, #app-root #ms-screen .ms-minp button.on { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: var(--dh-on-emerald); }
     #app-root #ms-screen .ms-saved { color: var(--dh-ok); font-weight: 700; font-size: .85rem; min-height: 1.3em; margin-top: 6px; }
+    /* الحصص والحضور — عرض «حسب اليوم» */
+    #app-root #ms-screen .ms-seg { display: flex; background: var(--dh-surface-0); border: 1.5px solid var(--dh-border); border-radius: 14px; padding: 4px; gap: 4px; }
+    #app-root #ms-screen .ms-seg button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; color: var(--dh-ink-soft); font-weight: 700; cursor: pointer; margin: 0; box-shadow: none; font-size: .95rem; }
+    #app-root #ms-screen .ms-seg button.on { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 8px 0 14px; }
+    #app-root #ms-screen .ms-day { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 6px; min-width: 0; min-height: var(--dh-tap); border-radius: 14px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); cursor: pointer; margin: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-day b { font-size: .82rem; }
+    #app-root #ms-screen .ms-day .n { display: grid; place-items: center; min-width: 26px; height: 26px; border-radius: 99px; background: var(--dh-surface-0); color: var(--dh-ink); font-weight: 700; font-size: .85rem; }
+    #app-root #ms-screen .ms-day.today { border-color: var(--dh-gold-500); }
+    #app-root #ms-screen .ms-day.sel { background: var(--dh-emerald-700); border-color: var(--dh-emerald-700); color: var(--dh-on-emerald); }
+    #app-root #ms-screen .ms-day.sel .n { background: var(--dh-gold-500); color: var(--dh-on-gold); }
+    #app-root #ms-screen .ms-dh { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    #app-root #ms-screen .ms-dh h3 { margin: 0; font-size: 1.1rem; color: var(--dh-ink); text-align: start; text-shadow: none; }
+    #app-root #ms-screen .ms-dh small { color: var(--dh-ink-soft); font-weight: 600; }
+    #app-root #ms-screen .ms-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    #app-root #ms-screen .ms-pill { border-radius: 99px; padding: 2px 10px; font-size: .78rem; font-weight: 700; border: 1px solid currentColor; }
+    #app-root #ms-screen .ms-pill.ok { background: var(--dh-ok-bg); color: var(--dh-ok); }
+    #app-root #ms-screen .ms-pill.bad { background: var(--dh-danger-bg); color: var(--dh-danger); }
+    #app-root #ms-screen .ms-pill.warn { background: var(--dh-warn-bg); color: var(--dh-warn); }
+    #app-root #ms-screen .ms-dst { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--dh-surface-3); border: 1.5px solid var(--dh-border); border-radius: 16px; padding: 10px 12px; }
+    #app-root #ms-screen .ms-dst .av { width: 38px; height: 38px; border-radius: 50%; background: var(--dh-surface-0); border: 1.5px solid var(--dh-border-strong); color: var(--dh-ink); display: grid; place-items: center; font-weight: 700; flex: none; }
+    #app-root #ms-screen .ms-dst .nm { flex: 1; min-width: 120px; }
+    #app-root #ms-screen .ms-dst .nm b { display: block; color: var(--dh-ink); }
+    #app-root #ms-screen .ms-dst .nm small { color: var(--dh-ink-soft); font-size: .8rem; }
+    #app-root #ms-screen .ms-dst .att { display: flex; gap: 4px; flex-wrap: wrap; }
+    #app-root #ms-screen .ms-dst .att button { min-height: 40px; padding: 0 10px; border-radius: 10px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); font-weight: 700; font-size: .82rem; cursor: pointer; margin: 0; box-shadow: none; }
+    #app-root #ms-screen .ms-dst .att button.present.on { background: var(--dh-ok); border-color: var(--dh-ok); color: #fff; }
+    #app-root #ms-screen .ms-dst .att button.absent.on { background: var(--dh-danger); border-color: var(--dh-danger); color: #fff; }
+    #app-root #ms-screen .ms-dst .att button.cancelled.on { background: var(--dh-warn); border-color: var(--dh-warn); color: #fff; }
+    #app-root #ms-screen .ms-add { width: 100%; min-height: var(--dh-tap); margin: 10px 0 0; border: 1.5px dashed var(--dh-emerald-600); border-radius: 12px; background: var(--dh-surface-3); color: var(--dh-ink); font-weight: 700; cursor: pointer; box-shadow: none; }
+    #app-root #ms-screen .ms-addsheet { display: none; margin-top: 8px; background: var(--dh-surface-3); border: 1.5px solid var(--dh-border-strong); border-radius: 14px; padding: 6px; max-height: 260px; overflow: auto; }
+    #app-root #ms-screen .ms-addsheet.open { display: block; }
+    #app-root #ms-screen .ms-addsheet button { display: flex; width: 100%; justify-content: space-between; gap: 8px; min-height: 42px; align-items: center; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--dh-ink); font-weight: 600; cursor: pointer; margin: 0; box-shadow: none; text-align: start; }
+    #app-root #ms-screen .ms-addsheet button:hover { background: var(--dh-surface-0); }
+    #app-root #ms-screen .ms-addsheet small { color: var(--dh-ink-soft); font-weight: 400; }
+    #app-root #ms-screen .ms-unsch { margin-top: 14px; background: var(--dh-warn-bg); color: var(--dh-warn); border-radius: 14px; padding: 10px 14px; font-size: .88rem; font-weight: 600; }
+    @media (max-width: 420px) { #app-root #ms-screen .ms-day b { font-size: .72rem; } #app-root #ms-screen .ms-dst .att button { padding: 0 7px; } }
     /* الشاشات العريضة: عمودان بدل عمود ضيق وسط فراغ. ⚠️ adults.css يفرض max-width:700px !important على كل .login-container، لذلك !important هنا. */
     @media (min-width: 900px) {
         #app-root #ms-screen { max-width: 1120px !important; width: calc(100% - 48px); margin: 28px auto !important; padding: 28px 36px !important; }

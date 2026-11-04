@@ -78,6 +78,23 @@ try {
 
   console.log('\n=== تبويب الحصص والحضور (حفظ تلقائي) ===');
   await page.click('#ms-tabs [data-tab="sched"]'); await sleep(800);
+  // العرض الافتراضي «حسب اليوم»: شريط الأيام السبعة + اليوم الحالي مختار؛ نجرّب إضافة طالب لليوم وتسجيل حضوره ثم ننتقل لـ«حسب الطالب»
+  check('D1 العرض الافتراضي «حسب اليوم» بسبعة أيام واليوم الحالي مختار', (await page.locator('#ms-sched-body .ms-day').count()) === 7 && (await page.locator('#ms-sched-body .ms-day.sel.today').count()) === 1);
+  const khaledDays = [0, 2];
+  const pickD = khaledDays[0];
+  await page.locator(`#ms-sched-body [data-sm-pick="${pickD}"]`).click(); await sleep(200);
+  check('D2 اختيار يوم يعرض طلابه (خالد يوم الأحد)', (await page.locator('#ms-sched-body .ms-dst .nm b').allTextContents()).some(x => x.includes('خالد')));
+  await page.locator('#ms-sched-body .ms-dst', { hasText: 'خالد' }).locator('[data-sm-att="present"]').click(); await sleep(500);
+  const kh = (await students()).find(s => s.name.startsWith('خالد'));
+  check('D3 ضغطة «حاضر» تُسجَّل في student.attendance', kh.attendance && Object.values(kh.attendance).includes('present'), JSON.stringify(kh.attendance));
+  await page.locator('#ms-sched-body [data-sm-addbtn]').click(); await sleep(150);
+  check('D4 زر «إضافة طالب لهذا اليوم» يفتح قائمة بباقي الطلاب', (await page.locator('#ms-sched-body .ms-addsheet.open button').count()) >= 1);
+  await page.locator('#ms-sched-body .ms-addsheet.open button', { hasText: 'أحمد' }).click(); await sleep(600);
+  const timeAsked = await page.isVisible('#dhAttTime');
+  await page.evaluate(() => document.querySelector('#dhAttTime button')?.click()); await sleep(300);
+  const ah = (await students()).find(s => s.name.startsWith('أحمد'));
+  check('D5 إضافة الطالب لليوم تحفظ اليوم في جدوله', ah.schedule && ah.schedule.days.includes(pickD), JSON.stringify(ah.schedule));
+  await page.locator('#ms-sched-body [data-sm-view="student"]').click(); await sleep(200);
   check('H1 الأسماء كاملة', (await page.locator('#ms-sched-body .ms-acc-h .nm b').allTextContents()).includes('مريم عبدالله حسن'));
   check('H2 لا يوجد أي زر «حفظ» في هذا التبويب', (await page.locator('#ms-sched-body #sched-save, #ms-sched-body [data-sm-save]').count()) === 0);
   await page.locator('#ms-sched-body .ms-acc', { hasText: 'مريم' }).locator('.ms-acc-h').click(); await sleep(200);
@@ -86,7 +103,7 @@ try {
   check('H4 خيارات المدة ٣٠ و٤٥ و٦٠ فقط', (await box.locator('.ms-minp button').allTextContents()).join(',') === '30,45,60');
   await box.locator('[data-sm-day="1"]').click(); await sleep(500);
   // أول جدول يُحفظ في المنصة يفتح سؤال «متى يظهر سؤال الحضور؟» مرة واحدة (سلوك قائم): نختار أول خيار كما يفعل المعلم
-  check('H3b أول جدول يُحفظ يفتح سؤال وقت الحضور مرة واحدة', await page.isVisible('#dhAttTime'));
+  check('H3b أول جدول يُحفظ يفتح سؤال وقت الحضور مرة واحدة (ظهر عند إضافة أحمد لليوم)', timeAsked);
   await page.evaluate(() => document.querySelector('#dhAttTime button')?.click()); await sleep(500);
   await page.locator('#ms-sched-body .ms-acc.open [data-sm-day="3"]').click(); await sleep(400);
   await page.locator('#ms-sched-body .ms-acc.open [data-sm-min="45"]').click(); await sleep(600);
