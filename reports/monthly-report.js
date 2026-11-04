@@ -2069,6 +2069,10 @@ function buildFileName(ext, suffix) {
     .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06F0))
     .replace(/[​-‏‪-‮⁦-⁩؜﻿  ]/g, ' ')
     .replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ')
+    // قائمة سماح صارمة: حروف (عربية/لاتينية) وعلاماتها وأرقام ومسافة وشرطة فقط؛ أي رمز آخر (شرطة طويلة، إيموجي، محارف خفية)
+    // يُستبدل بمسافة، ثم نوحّد الترميز NFC — فلا يصل لواتساب اسم بترميز ملتبس يظهر مشوَّهاً (Ø§Ù„...).
+    .replace(/[^\p{L}\p{M}\p{N} \-]/gu, ' ')
+    .normalize('NFC')
     .trim();
   const namePart = clean(slugifyForFilename(reportData.name));
   const periodPart = clean(slugifyForFilename(reportData.periodLabel));
@@ -2366,7 +2370,7 @@ async function shareViaWhatsApp(kind) {
   // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     const doShare = (withText) => navigator.share(withText
-      ? { files: [file], title: t('mr_title'), text: msg }
+      ? { files: [file], title: t('mr_title'), text: name }   // اسم الطالب فقط كالتقرير الفردي (الجملة الطويلة بشرطتها كانت تُربك واتساب في ترميز اسم الملف)
       : { files: [file], title: t('mr_title') });
     try {
       await doShare(true);
