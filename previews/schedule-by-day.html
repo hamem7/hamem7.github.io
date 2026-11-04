@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — الحصص والحضور «حسب اليوم»</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g9:#06231c;--g7:#0d5c46;--g6:#147c5e;--g1:#e7f4ee;--gold:#d4af37;--gold-soft:#fbf3d5;--ink:#10241c;--ink2:#5a6b63;--line:#e4dfcc;--line2:#cfc7a8;--bg:#f6f3e8;--card:#fffdf6;--ok:#15803d;--ok-bg:#e7f4ee;--bad:#b91c1c;--bad-bg:#fde8e8;--warn:#b45309;--warn-bg:#fef3c7;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+body{background:var(--bg);color:var(--ink);line-height:1.6;padding-bottom:60px}
+button{cursor:pointer;border:0;background:none;font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px}
+.note{background:var(--gold-soft);border-bottom:1px solid #ecd98a;color:#6b5410;font-size:.85rem;padding:8px 0;text-align:center}
+.note .wrap{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;align-items:center}
+.note button{background:#fff;border:1px solid #ecd98a;border-radius:99px;padding:2px 12px;font-weight:700;font-size:.8rem}
+header.top{background:linear-gradient(120deg,var(--g9),var(--g7) 55%,var(--g6));border-bottom:3px solid var(--gold);color:#fffdf6;padding:12px 0;font-weight:700}
+/* التبويبات الثلاثة الحالية */
+.tabs{display:flex;gap:6px;margin:14px 0}
+.tabs span{flex:1;text-align:center;padding:9px 4px;border-radius:12px;background:#fff;border:1.5px solid var(--line2);font-weight:600;font-size:.9rem;color:var(--ink2)}
+.tabs span.on{background:var(--g7);border-color:var(--g7);color:#fffdf6}
+/* مبدّل العرض */
+.seg{display:flex;background:#ece6cf;border-radius:14px;padding:4px;margin-bottom:12px}
+.seg button{flex:1;padding:8px;border-radius:11px;font-weight:700;font-size:.92rem;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--g7);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+/* شريط الأيام */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:14px}
+.day{background:var(--card);border:1.5px solid var(--line2);border-radius:14px;padding:8px 2px 6px;text-align:center;position:relative;transition:.15s}
+.day b{display:block;font-size:.88rem}
+.day .n{display:inline-grid;place-items:center;min-width:26px;height:26px;border-radius:99px;margin-top:4px;font-weight:700;font-size:.85rem;background:var(--g1);color:var(--g7)}
+.day.zero .n{background:#eee;color:#999}
+.day.sel{background:var(--g7);border-color:var(--g7);color:#fffdf6;transform:translateY(-2px);box-shadow:0 6px 14px rgba(13,92,70,.3)}
+.day.sel .n{background:var(--gold);color:var(--g9)}
+.day.today::after{content:attr(data-today);position:absolute;top:-9px;inset-inline:0;margin:auto;width:max-content;background:var(--gold);color:var(--g9);font-size:.62rem;font-weight:700;padding:0 7px;border-radius:99px}
+/* رأس اليوم */
+.dh{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.dh h2{font-size:1.2rem}
+.dh small{color:var(--ink2);font-weight:600}
+.prog{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border-radius:99px;padding:2px 10px;font-size:.78rem;font-weight:700}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}.pill.bad{background:var(--bad-bg);color:var(--bad)}.pill.warn{background:var(--warn-bg);color:var(--warn)}
+/* بطاقة طالب */
+.list{display:grid;gap:8px}
+.st{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.av{width:38px;height:38px;border-radius:50%;background:var(--g1);color:var(--g7);display:grid;place-items:center;font-weight:700;flex:none}
+.nm{flex:1;min-width:120px}.nm b{display:block}.nm small{color:var(--ink2);font-size:.8rem}
+.att{display:flex;gap:4px}
+.att button{border:1.5px solid var(--line2);background:#fff;border-radius:10px;padding:5px 9px;font-size:.8rem;font-weight:700;min-height:34px}
+.att button.p.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.att button.a.on{background:var(--bad);border-color:var(--bad);color:#fff}
+.att button.c.on{background:var(--warn);border-color:var(--warn);color:#fff}
+.empty{text-align:center;color:var(--ink2);padding:26px 10px;background:var(--card);border:1.5px dashed var(--line2);border-radius:var(--r)}
+.add{width:100%;margin-top:10px;border:1.5px dashed var(--g6);border-radius:12px;padding:10px;font-weight:700;color:var(--g7);background:#fff}
+.unsch{margin-top:16px;background:var(--warn-bg);border-radius:var(--r);padding:10px 14px;font-size:.88rem;color:var(--warn);font-weight:600}
+.sheet{display:none;margin-top:8px;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:8px}
+.sheet.open{display:block}
+.sheet button{display:flex;width:100%;justify-content:space-between;padding:9px 10px;border-radius:10px;font-weight:600}
+.sheet button:hover{background:var(--g1)}
+.sheet small{color:var(--ink2);font-weight:400}
+/* عرض الطالب (الحالي) */
+.byst .st{cursor:pointer}
+.chips{display:flex;gap:4px;flex-wrap:wrap}.chips i{font-style:normal;background:var(--g1);color:var(--g7);border-radius:99px;padding:0 9px;font-size:.78rem;font-weight:700}
+@media(max-width:420px){.day b{font-size:.75rem}.att button{padding:5px 7px}}
+</style>
+</head>
+<body>
+<div class="note"><div class="wrap"><span id="noteTxt"></span><button id="langBtn">English</button></div></div>
+<header class="top"><div class="wrap" id="hdr"></div></header>
+<div class="wrap">
+  <div class="tabs" id="tabs"></div>
+  <div class="seg"><button id="vDay" class="on"></button><button id="vSt"></button></div>
+  <div id="view"></div>
+</div>
+
+<script>
+const I = {
+  ar:{note:'معاينة فقط — لم يُنفَّذ شيء في الموقع بعد',hdr:'طلابي',tabs:['الطلاب','هذا الشهر','الحصص والحضور'],byDay:'📅 حسب اليوم',byStudent:'👤 حسب الطالب',today:'اليوم',
+      days:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],students:'طالب',min:'دقيقة',total:'المجموع',present:'حضر',absent:'غاب',cancel:'أُلغيت',
+      p:'حاضر',a:'غائب',c:'ملغاة',pending:'بانتظار التسجيل',noOne:'لا حصص في هذا اليوم 🌿',addTo:'＋ إضافة طالب لهذا اليوم',pick:'اختر طالبًا',
+      unsch:'طلاب بلا جدول:',future:'يوم قادم — يُسجَّل الحضور يوم الحصة',hint:'اضغط على أي يوم لترى طلابه. الحضور يُسجَّل بضغطة من نفس الشاشة.'},
+  en:{note:'Preview only — nothing has been built yet',hdr:'My students',tabs:['Students','This month','Sessions & attendance'],byDay:'📅 By day',byStudent:'👤 By student',today:'Today',
+      days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],students:'students',min:'min',total:'Total',present:'Present',absent:'Absent',cancel:'Cancelled',
+      p:'Present',a:'Absent',c:'Cancelled',pending:'Awaiting record',noOne:'No sessions on this day 🌿',addTo:'＋ Add a student to this day',pick:'Pick a student',
+      unsch:'Students without a schedule:',future:'Upcoming day — attendance is recorded on the day',hint:'Tap any day to see its students. Attendance is one tap, right here.'}
+};
+const DAY_SHORT={ar:['أحد','إثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']};
+// بيانات تجريبية (أيام: 0=الأحد … 6=السبت)
+const S=[
+ {id:1,n:'أحمد محمد',e:'Ahmad Mohammed',d:[6,1,3],m:60},{id:2,n:'سارة خالد',e:'Sara Khaled',d:[6,2],m:45},
+ {id:3,n:'يوسف علي',e:'Yousef Ali',d:[0,3],m:30},{id:4,n:'مريم حسن',e:'Mariam Hassan',d:[1,3,4],m:45},
+ {id:5,n:'عمر إبراهيم',e:'Omar Ibrahim',d:[3],m:60},{id:6,n:'نور الهدى',e:'Nour Al-Huda',d:[2,4],m:60},
+ {id:7,n:'خالد سالم',e:'Khaled Salem',d:[0,2],m:30},{id:8,n:'ليان أحمد',e:'Layan Ahmad',d:[],m:60}
+];
+const status={}; // `${id}|${dayIdx}` -> p/a/c
+status['1|3']=null;status['4|3']='p';status['5|3']='a';
+let lang='ar',view='day',sel=new Date().getDay(),openAdd=false;
+const todayIdx=new Date().getDay();
+const T=()=>I[lang], nm=s=>lang==='ar'?s.n:s.e;
+const on=d=>S.filter(s=>s.d.includes(d));
+const order=[6,0,1,2,3,4,5];
+
+function render(){
+  const t=T();
+  document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  document.getElementById('noteTxt').textContent=t.note;
+  document.getElementById('langBtn').textContent=lang==='ar'?'English':'العربية';
+  document.getElementById('hdr').textContent='🕌 '+t.hdr;
+  document.getElementById('tabs').innerHTML=t.tabs.map((x,i)=>`<span class="${i===2?'on':''}">${x}</span>`).join('');
+  vDay.textContent=t.byDay;vSt.textContent=t.byStudent;
+  vDay.className=view==='day'?'on':'';vSt.className=view==='st'?'on':'';
+  view==='day'?renderDay():renderSt();
+}
+function renderDay(){
+  const t=T(), list=on(sel), mins=list.reduce((a,s)=>a+s.m,0);
+  const strip=order.map(d=>{const n=on(d).length;
+    return `<button class="day ${d===sel?'sel':''} ${n?'':'zero'} ${d===todayIdx?'today':''}" data-today="${t.today}" data-d="${d}"><b>${DAY_SHORT[lang][d]}</b><span class="n">${n}</span></button>`}).join('');
+  let cnt={p:0,a:0,c:0};list.forEach(s=>{const v=status[s.id+'|'+sel];if(v)cnt[v]++});
+  const isFuture=order.indexOf(sel)>order.indexOf(todayIdx)&&false; // في النموذج نسمح بالتسجيل لكل الأيام
+  const rows=list.map(s=>{const v=status[s.id+'|'+sel]||'';
+    return `<div class="st"><div class="av">${nm(s).trim()[0]}</div>
+      <div class="nm"><b>${nm(s)}</b><small>${s.m} ${t.min}</small></div>
+      <div class="att" data-id="${s.id}">
+        <button class="p ${v==='p'?'on':''}" data-v="p">✓ ${t.p}</button>
+        <button class="a ${v==='a'?'on':''}" data-v="a">✗ ${t.a}</button>
+        <button class="c ${v==='c'?'on':''}" data-v="c">⊘ ${t.c}</button></div></div>`}).join('');
+  const others=S.filter(s=>!s.d.includes(sel));
+  const none=S.filter(s=>!s.d.length);
+  view_.innerHTML=`<div class="days">${strip}</div>
+   <div class="dh"><div><h2>${t.days[sel]}${sel===todayIdx?' · '+t.today:''}</h2><small>${list.length} ${t.students} · ${t.total} ${mins} ${t.min}</small></div>
+     <div class="prog">${cnt.p?`<span class="pill ok">${t.present} ${cnt.p}</span>`:''}${cnt.a?`<span class="pill bad">${t.absent} ${cnt.a}</span>`:''}${cnt.c?`<span class="pill warn">${t.cancel} ${cnt.c}</span>`:''}${list.length-cnt.p-cnt.a-cnt.c>0?`<span class="pill warn">${t.pending} ${list.length-cnt.p-cnt.a-cnt.c}</span>`:''}</div></div>
+   <div class="list">${rows||`<div class="empty">${t.noOne}</div>`}</div>
+   <button class="add" id="addBtn">${t.addTo}</button>
+   <div class="sheet ${openAdd?'open':''}">${others.filter(s=>true).map(s=>`<button data-add="${s.id}"><span>${nm(s)}</span><small>${s.d.length?s.d.map(d=>DAY_SHORT[lang][d]).join(' · '):''}</small></button>`).join('')}</div>
+   ${none.length?`<div class="unsch">⚠️ ${t.unsch} ${none.map(nm).join('، ')}</div>`:''}`;
+}
+function renderSt(){
+  const t=T();
+  view_.innerHTML=`<p style="color:var(--ink2);font-size:.9rem;margin-bottom:10px">${lang==='ar'?'هذا هو العرض الحالي (قائمة الطلاب وتعديل أيام كل طالب) يبقى كما هو.':'This is today\'s view (list of students; edit each student\'s days). It stays as it is.'}</p>
+   <div class="list byst">${S.map(s=>`<div class="st"><div class="av">${nm(s).trim()[0]}</div><div class="nm"><b>${nm(s)}</b><small>${s.m} ${t.min}</small></div><div class="chips">${s.d.slice().sort((a,b)=>order.indexOf(a)-order.indexOf(b)).map(d=>`<i>${DAY_SHORT[lang][d]}</i>`).join('')}</div></div>`).join('')}</div>`;
+}
+const view_=document.getElementById('view'),vDay=document.getElementById('vDay'),vSt=document.getElementById('vSt');
+vDay.onclick=()=>{view='day';render()};vSt.onclick=()=>{view='st';render()};
+document.getElementById('langBtn').onclick=()=>{lang=lang==='ar'?'en':'ar';render()};
+view_.addEventListener('click',e=>{
+  const d=e.target.closest('[data-d]');if(d){sel=+d.dataset.d;openAdd=false;render();return}
+  const b=e.target.closest('.att button');if(b){const id=b.parentNode.dataset.id,k=id+'|'+sel;status[k]=status[k]===b.dataset.v?null:b.dataset.v;render();return}
+  if(e.target.closest('#addBtn')){openAdd=!openAdd;render();return}
+  const a=e.target.closest('[data-add]');if(a){const s=S.find(x=>x.id==a.dataset.add);s.d.push(sel);openAdd=false;render()}
+});
+render();
+</script>
+</body>
+</html>
