@@ -187,7 +187,6 @@ const ART = {
 Object.assign(ART, {
   adab: () => svg(420, 210, `<path class="a-ground" d="M40 182 H380"/>
       <image class="a-mushaf" href="${A('art/mushaf.webp')}" x="135" y="36" width="150" height="143" preserveAspectRatio="xMidYMid meet"/>
-      <g class="a-hands"><path d="M70 120 q10 -40 34 -36 l-8 44z"/><path d="M350 120 q-10 -40 -34 -36 l8 44z"/></g>
       ${cap(210, 26, L('نستعيذ، ونجلس بأدب، ونقرأ بتمهّل', 'Seek refuge, sit politely, read slowly'), 'b gold')}${cap(210, 204, L('ونضع المصحف في مكان طاهر مرتفع', 'and keep the mushaf in a clean, raised place'), 'soft', 13)}`,
     L('آداب التلاوة', 'Manners of recitation')),
   shelf: () => {
