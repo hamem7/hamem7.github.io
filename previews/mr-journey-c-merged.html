@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة ج — رحلة الحفظ (النموذج المدمج)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--em:#0b3d30;--em2:#072a21;--gold:#d4af37;--gl:#f0d878;--tx:#f6f3e8;--mut:#9fb8ad;--page:#f6f3e8;--card:#fffdf6;--line:#e3dbbd;--ink:#0b3d30}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:16px 16px 60px}
+button{font:inherit;border:0;cursor:pointer}
+.bar{max-width:860px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#4a6058}
+.bar b{color:var(--ink)}
+.pill{background:var(--em);color:var(--gl);border-radius:99px;padding:6px 16px;font-weight:700;font-size:13px}
+.sec{max-width:860px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 26px}
+.sec h2{font:700 22px 'Amiri',serif;color:var(--ink);display:flex;align-items:center;gap:14px}
+.sec h2::after{content:"";flex:1;height:2px;background:var(--line)}
+.sec>p{font-size:14px;color:#4a6058;margin:4px 0 14px}
+
+.jb{background:radial-gradient(circle at 85% 10%,#14594599,transparent 50%),linear-gradient(170deg,var(--em),var(--em2));border:1px solid var(--gold);border-radius:18px;padding:22px;color:var(--tx);display:grid;grid-template-columns:290px 1fr;gap:26px;align-items:center}
+
+/* الحلقة */
+.ring{position:relative;width:290px;height:290px}
+.ring svg{width:100%;height:100%;overflow:visible}
+.ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+.ring .c b{font:700 60px/1 'Amiri',serif;color:var(--gl)}
+.ring .c strong{font-size:15px;font-weight:700;margin-top:2px}
+.ring .c small{font-size:11.5px;color:var(--mut);margin-top:8px;border-top:1px solid rgba(240,216,120,.25);padding-top:6px;line-height:1.5}
+.ring .c small em{font-style:normal;color:#d9c27a;font-weight:700}
+.ring text{font-family:'IBM Plex Sans Arabic';font-size:10.5px;font-weight:600;fill:var(--mut)}
+.ring text.done{fill:#d9c27a}.ring text.cur{fill:var(--gl);font-weight:800}
+
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px}
+
+/* من ← إلى */
+.route{display:flex;align-items:center;gap:12px}
+.pt{display:flex;flex-direction:column}
+.pt small{font-size:11.5px;color:var(--mut);font-weight:600}
+.pt b{font:700 20px/1.3 'Amiri',serif;color:var(--gl);white-space:nowrap}
+.way{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:40px}
+.way i{display:block;width:100%;height:2px;background:linear-gradient(var(--dirg),rgba(212,175,55,.2),var(--gold))}
+[dir=rtl]{--dirg:to left}[dir=ltr]{--dirg:to right}
+.way em{font-style:normal;font-size:11px;font-weight:700;color:var(--gold);text-align:center}
+
+/* الوتيرة */
+.cmp{display:flex;flex-direction:column;gap:8px}
+.cmp h4{font-size:12.5px;font-weight:700;color:#d7e4dd;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.up{font-size:11.5px;color:#0b3d30;background:#9ee0bf;border-radius:99px;padding:1px 10px;white-space:nowrap}
+.row{display:grid;grid-template-columns:86px 1fr 64px;gap:8px;align-items:center;font-size:11.5px;color:var(--mut)}
+.row .b{height:10px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden}
+.row .b i{display:block;height:100%;border-radius:6px}
+.row b{font:700 17px/1 'Amiri',serif;color:var(--gl);text-align:end}
+.row b span{font:500 10.5px 'IBM Plex Sans Arabic';color:var(--mut);margin-inline-start:3px}
+.row.prev b{color:#c9d8d0}
+
+/* موعد الختم المتوقع */
+.eta{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(212,175,55,.05));border-color:rgba(212,175,55,.55)}
+.eta .ic{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:rgba(240,216,120,.15);font-size:22px}
+.eta small{display:block;font-size:11.5px;color:#d7e4dd;font-weight:600}
+.eta b{display:block;font:700 22px/1.35 'Amiri',serif;color:var(--gl)}
+.eta p{font-size:11.5px;color:var(--mut);line-height:1.6}
+
+.legend{grid-column:1/-1;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--mut);border-top:1px solid rgba(240,216,120,.18);padding-top:12px}
+.legend i{display:inline-block;width:22px;height:10px;border-radius:5px;vertical-align:middle;margin-inline-end:6px}
+.note{max-width:860px;margin:14px auto 0;font-size:12.5px;color:#4a6058;line-height:1.9}
+.note b{color:var(--ink)}
+@media (max-width:700px){
+  .sec{padding:16px}.jb{grid-template-columns:1fr;padding:16px}
+  .ring{width:270px;height:270px;margin:0 auto}
+  .pt b{font-size:18px}
+  .route{flex-wrap:wrap;justify-content:space-between}.way{order:3;flex-basis:100%}
+  .ring .c b{font-size:50px}.ring .c strong{font-size:13px;max-width:150px}.ring .c small{font-size:10.5px;max-width:150px}
+}
+</style>
+</head>
+<body>
+<div class="bar"><span><b data-i="tag">نموذج ج — الدمج (حلقة + وتيرة + موعد الختم)</b> · <span data-i="tagS">معاينة ببيانات تجريبية</span></span><button class="pill" id="lang">English</button></div>
+
+<section class="sec">
+  <h2 data-i="title">رحلة الحفظ هذا الشهر</h2>
+  <p data-i="sub">من أين إلى أين وصل الطالب في حفظه خلال هذا الشهر</p>
+  <div class="jb">
+    <div class="ring">
+      <svg viewBox="-140 -140 280 280" id="svg"></svg>
+      <div class="c"><b>42</b><strong data-i="cNew">آية جديدة هذا الشهر</strong><small data-i="cJuz">حفظ <em>196</em> آية من <em>399</em><br>في جزء الذاريات (27)</small></div>
+    </div>
+
+    <div class="side">
+      <div class="box route">
+        <div class="pt"><small data-i="from">بداية الشهر</small><b data-i="fromP">الواقعة — 62</b></div>
+        <div class="way"><i></i><em data-i="dir">باتجاه سورة الذاريات ←</em></div>
+        <div class="pt"><small data-i="to">نهاية الشهر</small><b data-i="toP">الرحمن — 8</b></div>
+      </div>
+
+      <div class="box cmp">
+        <h4><span data-i="cmpT">وتيرة الحفظ مقارنة بالشهر الماضي</span><span class="up" data-i="upT">▲ 12 آية</span></h4>
+        <div class="row prev"><span data-i="prev">الشهر الماضي</span><span class="b"><i style="width:60%;background:rgba(201,216,208,.55)"></i></span><b>30<span data-i="ay">آية</span></b></div>
+        <div class="row"><span data-i="cur">هذا الشهر</span><span class="b"><i style="width:84%;background:linear-gradient(90deg,#e6c75a,#f6e59a)"></i></span><b>42<span data-i="ay2">آية</span></b></div>
+      </div>
+
+      <div class="box eta">
+        <div class="ic">⏳</div>
+        <div><small data-i="etaT">لو استمرّ على هذه الوتيرة</small><b data-i="etaB">يختم الجزء خلال ≈ 5 أشهر</b><p data-i="etaP">أي نحو أبريل 2027 — بقي 203 آية، بمعدل 42 آية شهريًا</p></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#a88a32"></i><span data-i="lg1">حُفظ قبل هذا الشهر</span></span>
+      <span><i style="background:#f3df8c;box-shadow:0 0 6px #f0d878"></i><span data-i="lg2">حُفظ هذا الشهر</span></span>
+      <span><i style="background:rgba(255,255,255,.12)"></i><span data-i="lg3">متبقٍّ من الجزء</span></span>
+    </div>
+  </div>
+</section>
+
+<p class="note" data-i="note"><b>الدمج:</b> حلقة الجزء من النموذج ب، وفي وسطها <b>عدد الآيات</b> بدل النسبة المئوية (42 آية جديدة هذا الشهر، ثم 196 من 399 آية في الجزء). وبجانبها: من أين إلى أين، ووتيرة الحفظ مقارنة بالشهر الماضي (من ب)، وموعد ختم الجزء المتوقع لو استمرّ على الوتيرة نفسها (من أ).</p>
+
+<script>
+const S=[['الحديد','Al-Hadid',29],['الواقعة',"Al-Waqi'ah",96],['الرحمن','Ar-Rahman',78],['القمر','Al-Qamar',55],['النجم','An-Najm',62],['الطور','At-Tur',49],['الذاريات','Adh-Dhariyat',30]];
+const TOT=399, DONE=196, MONTH=42, BEFORE=DONE-MONTH, R=96, W=22;
+const D={ar:{tag:'نموذج ج — الدمج (حلقة + وتيرة + موعد الختم)',tagS:'معاينة ببيانات تجريبية',title:'رحلة الحفظ هذا الشهر',sub:'من أين إلى أين وصل الطالب في حفظه خلال هذا الشهر',
+cNew:'آية جديدة هذا الشهر',cJuz:'حفظ <em>196</em> آية من <em>399</em><br>في جزء الذاريات (27)',from:'بداية الشهر',fromP:'الواقعة — 62',to:'نهاية الشهر',toP:'الرحمن — 8',dir:'باتجاه سورة الذاريات ←',
+cmpT:'وتيرة الحفظ مقارنة بالشهر الماضي',upT:'▲ 12 آية',prev:'الشهر الماضي',cur:'هذا الشهر',ay:'آية',ay2:'آية',
+etaT:'لو استمرّ على هذه الوتيرة',etaB:'يختم الجزء خلال ≈ 5 أشهر',etaP:'أي نحو أبريل 2027 — بقي 203 آية، بمعدل 42 آية شهريًا',
+lg1:'حُفظ قبل هذا الشهر',lg2:'حُفظ هذا الشهر',lg3:'متبقٍّ من الجزء',me:'ف',
+note:'<b>الدمج:</b> حلقة الجزء من النموذج ب، وفي وسطها <b>عدد الآيات</b> بدل النسبة المئوية (42 آية جديدة هذا الشهر، ثم 196 من 399 آية في الجزء). وبجانبها: من أين إلى أين، ووتيرة الحفظ مقارنة بالشهر الماضي (من ب)، وموعد ختم الجزء المتوقع لو استمرّ على الوتيرة نفسها (من أ).'},
+en:{tag:'Model C — Merged (ring + pace + finish date)',tagS:'Preview with sample data',title:"This Month's Memorization Journey",sub:"Where the student's memorization started and ended this month",
+cNew:'new ayahs this month',cJuz:'Memorized <em>196</em> of <em>399</em> ayahs<br>in Juz Adh-Dhariyat (27)',from:'Start of month',fromP:"Al-Waqi'ah — 62",to:'End of month',toP:'Ar-Rahman — 8',dir:'heading to Adh-Dhariyat →',
+cmpT:'Pace compared with last month',upT:'▲ 12 ayahs',prev:'Last month',cur:'This month',ay:'ayahs',ay2:'ayahs',
+etaT:'If this pace continues',etaB:'Finishes the juz in ≈ 5 months',etaP:'around April 2027 — 203 ayahs left, at 42 ayahs per month',
+lg1:'Memorized before this month',lg2:'Memorized this month',lg3:'Remaining in the juz',me:'F',
+note:'<b>The merge:</b> the juz ring from Model B, with the <b>number of ayahs</b> in the centre instead of a percentage (42 new ayahs this month, then 196 of 399 ayahs in the juz). Beside it: where the month started and ended, the pace compared with last month (from B), and the expected date to finish the juz at the same pace (from A).'}};
+let L='ar';
+const ang=v=>v/TOT*2*Math.PI-Math.PI/2;
+const pt=(v,r)=>[Math.cos(ang(v))*r,Math.sin(ang(v))*r];
+function arc(a,b,col,extra=''){const [x1,y1]=pt(a,R),[x2,y2]=pt(b,R);const lg=(b-a)/TOT>.5?1:0;return `<path d="M${x1.toFixed(2)} ${y1.toFixed(2)} A${R} ${R} 0 ${lg} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}" fill="none" stroke="${col}" stroke-width="${W}" ${extra}/>`}
+function render(){
+  const d=D[L],en=L==='en';
+  document.documentElement.lang=L;document.documentElement.dir=en?'ltr':'rtl';
+  document.querySelectorAll('[data-i]').forEach(e=>{const v=d[e.dataset.i];if(v!=null)e.innerHTML=v});
+  document.getElementById('lang').textContent=en?'العربية':'English';
+  let g=`<defs><filter id="gl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter><linearGradient id="mg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e59a"/><stop offset="1" stop-color="#e6c75a"/></linearGradient></defs>`;
+  g+=`<circle r="${R}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="${W}"/>`;
+  g+=arc(0,BEFORE,'#a88a32');
+  g+=arc(BEFORE,DONE,'#f0d878','filter="url(#gl)" opacity=".7"');
+  g+=arc(BEFORE,DONE,'url(#mg)');
+  let acc=0;S.forEach(s=>{const a=acc;acc+=s[2];
+    const [x1,y1]=pt(a,R-W/2-2),[x2,y2]=pt(a,R+W/2+2);g+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0a3a2d" stroke-width="2.5"/>`;
+    const [tx,ty]=pt(a+s[2]/2,R+W/2+16);const cls=acc<=DONE?'done':(a<DONE?'cur':'');
+    g+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" class="${cls}">${en?s[1]:s[0]}</text>`;});
+  const [bx,by]=pt(BEFORE,R);g+=`<circle cx="${bx}" cy="${by}" r="5" fill="#072a21" stroke="#f0d878" stroke-width="2"/>`;
+  const [nx,ny]=pt(DONE,R);g+=`<circle cx="${nx}" cy="${ny}" r="15" fill="rgba(240,216,120,.25)"/><circle cx="${nx}" cy="${ny}" r="10" fill="#0b3d30" stroke="#f0d878" stroke-width="3"/><text x="${nx}" y="${ny+1}" text-anchor="middle" dominant-baseline="middle" style="fill:#f0d878;font:700 11px Amiri">${d.me}</text>`;
+  document.getElementById('svg').innerHTML=g;
+}
+document.getElementById('lang').onclick=()=>{L=L==='ar'?'en':'ar';render()};
+render();
+</script>
+</body>
+</html>
