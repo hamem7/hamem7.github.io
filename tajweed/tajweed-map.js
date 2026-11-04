@@ -8,6 +8,11 @@ import { AppState, loadSplashScreen } from '../core/app.js';
 import { applySessionToMastery } from '../engine/tajweedEngine.js';
 import { applyLearned } from '../engine/tajweedJourney.js';
 
+// ⚡ تسريع الفتح: وحدات الركن (~٧٠٠ ك.ب في ٣٠+ ملفًا متداخلة الاستيراد، وكل ملف يُتحقَّق منه من الخادم عبر service-worker بـ no-cache)
+// كانت تبدأ بالتحميل بعد جلب قالب الشاشة فقط، متسلسلةً بعمق الاستيراد. نبدأ تحميلها هنا فور استيراد هذا الملف (يتزامن مع جلب القالب)،
+// وتُسخَّن أيضًا من الصفحة الرئيسية وقت الفراغ (انظر warmTajweed في core/app.js). الاستيراد اللاحق في initTajweedMap يعود فورًا.
+export const challengeModule = import('./challenge/js/app.js').catch(() => null);
+
 // ربط الركن بسجلات الإتقان والجلسات في قاعدة المنصة (TajweedManager) باسم الطالب المختار، فتظهر في شاشات المتابعة وملخص ولي الأمر.
 // الأحكام الأصلية فقط؛ دروس «الحركات» و«الألف والهمزة» و«العلامات النادرة» جديدة ولا تقابلها قاعدة في كتالوج المنصة فتبقى في تقدّم الركن وحده.
 const RULE_MAP = {
@@ -38,7 +43,7 @@ export async function initTajweedMap() {
     const host = document.getElementById('tjc-host');
     if (!host) return;
     try {
-        const { start } = await import('./challenge/js/app.js');
+        const { start } = await import('./challenge/js/app.js');   // محمَّلة مسبقًا غالبًا (challengeModule)
         // لا لوحة أوسمة عند الدخول: الأوسمة تظهر بعد انتهاء النشاط فقط
         // قائمة الطلاب الظاهرين من قاعدة المنصة (بدونها يعمل الركن بلا اسم)
         let students = [];

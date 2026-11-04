@@ -745,7 +745,13 @@ function setupSplashListeners() {
     // مجلد tajweed/)، أصبحت البطاقة تفتح شاشات "أبطال التجويد" الحقيقية عبر
     // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
     // بالضبط. كانت تعرض توست "قيد التطوير" فقط (لا شاشة فعلية بعد) قبل هذه المرحلة.
-    if (btnTajweed) btnTajweed.addEventListener('click', openTajweedSection);
+    if (btnTajweed) {
+        btnTajweed.addEventListener('click', openTajweedSection);
+        // ⚡ تسخين مسبق: تحميل وحدات ركن التجويد في الخلفية (وقت الفراغ، أو فور لمس/مرور المؤشر على البطاقة) فيفتح فورًا عند الضغط
+        const warmTajweed = () => { import('../tajweed/tajweed-map.js').catch(() => {}); };
+        ['pointerenter', 'touchstart', 'focus'].forEach(ev => btnTajweed.addEventListener(ev, warmTajweed, { once: true, passive: true }));
+        (window.requestIdleCallback || ((f) => setTimeout(f, 2500)))(warmTajweed, { timeout: 4000 });
+    }
     // 🌟 [2026-10-03] بطاقة «خصوصية» تفتح شاشة الخصوصية داخل المنصة (href="privacy.html" يبقى رجوعاً لو تعذّر الجافاسكريبت
     // أو فُتح الرابط في تبويب جديد بزر الفأرة الأوسط/Ctrl)
     document.querySelectorAll('#app-root a[href="privacy.html"]').forEach(a => a.addEventListener('click', (e) => {
