@@ -184,7 +184,8 @@ export class KidsEngine {
     async generateKidsGuessSurah(ayahsPool, chunkIndex, totalChunks) {
         // 🌟 [ذكاء] لا نسأل عن آية يظهر اسم سورتها فيها (ألهاكم التكاثر / والعصر...) والمشتتات سور مجاورة
         const ayah = pickTargetAyah(withoutNameLeak(ayahsPool), chunkIndex, totalChunks); if(!ayah) return null; let correctSurah = ayah.surahName; let allSurahNames = nearSurahNames(ayah.surahNumber, correctSurah, ayah.text, ayahsPool, 4); 
-        if (allSurahNames.length < 2) { let allQuranSurahs = await this.quranEngine.getAllSurahsList(); let extraNames = allQuranSurahs.filter(s => s.name !== correctSurah && s.number >= 46 /* نطاق ركن الأطفال */ && !leaksSurahName(ayah.text, s.name)).map(s => ({ nm: s.name, d: Math.abs(s.number - ayah.surahNumber) + Math.random() * 3 })).sort((a, b) => a.d - b.d).map(o => o.nm); allSurahNames = allSurahNames.concat(extraNames); }
+        // 🌟 لا نخرج أبداً عن نطاق حفظ الطالب: لو النطاق فيه سورتان فقط يظهر خياران، ولو سورة واحدة تتحول اللعبة لبديلة
+        if (allSurahNames.length < 1) return null;
         let options = [correctSurah]; while(options.length < 3 && allSurahNames.length > 0) { let choice = allSurahNames.shift(); if(!options.includes(choice)) options.push(choice); } options.sort(() => Math.random() - 0.5); 
         let cleanText = cleanAyahText(ayah.text); return { type: 'kids_mcq', questionTitle: t("خمن السورة يا بطل! 🌟"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7;">﴿\u00A0${cleanText}\u00A0﴾</div>`, correctAns: correctSurah, options: options, optionsKind: 'surah', ayahObj: ayah, reportText: cleanText }; 
     }
