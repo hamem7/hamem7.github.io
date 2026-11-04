@@ -236,10 +236,10 @@ const MONTHLY_REPORT_TEMPLATE = `
         </div>
 
         <!-- 🌟 "منازل هذا الشهر": بطاقات المؤشرات + دليل المنازل الأربعة (هلال/تربيع/أحدب/بدر) -->
-        <div class="pdf-block mr2-body-top" id="mr-summary-block">
+        <div class="pdf-block mr2-body-top" id="mr-summary-block" data-pdf-split>
           <div class="section-title" data-i18n="mr2_summary_title">منازل هذا الشهر</div>
           <div class="section-sub" data-i18n="mr2_summary_sub">المنزل يدل على مستوى الإتقان في كل مؤشر</div>
-          <div class="mr-summary-grid" id="mr-summary-grid"></div>
+          <div class="mr-summary-grid" id="mr-summary-grid" data-pdf-rows></div>
           <div class="mr2-legend" id="mr-legend"></div>
         </div>
 
@@ -2006,12 +2006,48 @@ async function exportWhatsAppRaw(share = false) {
   logReportGenerated(canvas);
 }
 
+// القسم الكبير الموسوم data-pdf-split يُقسَّم لوحدات أصغر (عنوانه، ثم كل صف بطاقات على حدة؛
+// الأب data-pdf-rows تُجمَّع أبناؤه بحسب الصف) كي يملأ الصفحة الأولى بعد الترويسة بدل أن يقفز
+// كاملاً للصفحة التالية فتبقى الأولى شبه فارغة (ويكبر الملف بلا فائدة).
 function collectPdfBlocks(target) {
   const targetRect = target.getBoundingClientRect();
-  return Array.from(target.querySelectorAll('.pdf-block')).map(el => {
+  const out = [];
+  const push = (top, height) => { if (height > 0) out.push({ top: top - targetRect.top, height }); };
+  target.querySelectorAll('.pdf-block').forEach(el => {
     const rect = el.getBoundingClientRect();
-    return { top: rect.top - targetRect.top, height: rect.height };
-  }).filter(b => b.height > 0);
+    if (!el.hasAttribute('data-pdf-split')) { push(rect.top, rect.height); return; }
+    if (rect.height <= 0) return;
+    const units = [];
+    let headTop = rect.top;          // أول وحدة تبدأ من أعلى القسم (العنوان + الوصف يلتصقان بأول صف)
+    Array.from(el.children).forEach(ch => {
+      const r = ch.getBoundingClientRect();
+      if (r.height <= 0) return;
+      if (ch.hasAttribute('data-pdf-rows')) {
+        const rows = new Map();
+        Array.from(ch.children).forEach(card => {
+          const cr = card.getBoundingClientRect();
+          if (cr.height <= 0) return;
+          const key = Math.round(cr.top);
+          const row = rows.get(key);
+          if (row) row.bottom = Math.max(row.bottom, cr.bottom);
+          else rows.set(key, { top: cr.top, bottom: cr.bottom });
+        });
+        Array.from(rows.values()).sort((x, y) => x.top - y.top).forEach(rw => {
+          units.push({ top: headTop !== null ? headTop : rw.top, bottom: rw.bottom });
+          headTop = null;
+        });
+      } else if (headTop !== null && units.length === 0 && !ch.hasAttribute('data-pdf-unit')) {
+        // عنصر قبل الشبكة (عنوان/وصف): يُضمّ إلى أول صف لاحق
+      } else {
+        units.push({ top: headTop !== null ? headTop : r.top, bottom: r.bottom });
+        headTop = null;
+      }
+    });
+    if (!units.length) { push(rect.top, rect.height); return; }
+    units[units.length - 1].bottom = rect.bottom;
+    units.forEach(u => push(u.top, u.bottom - u.top));
+  });
+  return out;
 }
 function splitOversizedRange(top, height, maxPageHeight) {
   const parts = [];
