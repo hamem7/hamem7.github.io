@@ -4,6 +4,7 @@
 // فتنقلب تلقائيًا مع المظهر الداكن. الحروف المفردة بحركاتها رموز تعليمية (لا آيات) وتحمل الصنف quran-text فتُرسم بخط المصحف نفسه.
 // التسميات داخل الرسم ثنائية اللغة عبر L(ar, en).
 import { tx, num, getLang } from './i18n.js';
+import { A } from '../data/mushaf.js';
 
 const L = (ar, en) => tx({ ar, en });
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -185,8 +186,7 @@ const ART = {
 // ───────────── دروس المعرفة والأحكام الجديدة ─────────────
 Object.assign(ART, {
   adab: () => svg(420, 210, `<path class="a-ground" d="M40 182 H380"/>
-      <g class="a-stand"><path d="M150 180 L210 120 L270 180" /><path d="M170 180 L210 140 L250 180"/></g>
-      <g class="a-book"><path d="M210 118 q-46 -20 -92 -6 v-62 q46 -14 92 6z"/><path d="M210 118 q46 -20 92 -6 v-62 q-46 -14 -92 6z"/>${lines(130, 66, 64, 3, 12)}${lines(220, 66, 64, 3, 12)}</g>
+      <image class="a-mushaf" href="${A('art/mushaf.webp')}" x="135" y="36" width="150" height="143" preserveAspectRatio="xMidYMid meet"/>
       <g class="a-hands"><path d="M70 120 q10 -40 34 -36 l-8 44z"/><path d="M350 120 q-10 -40 -34 -36 l8 44z"/></g>
       ${cap(210, 26, L('نستعيذ، ونجلس بأدب، ونقرأ بتمهّل', 'Seek refuge, sit politely, read slowly'), 'b gold')}${cap(210, 204, L('ونضع المصحف في مكان طاهر مرتفع', 'and keep the mushaf in a clean, raised place'), 'soft', 13)}`,
     L('آداب التلاوة', 'Manners of recitation')),
