@@ -2370,7 +2370,7 @@ async function shareViaWhatsApp(kind) {
   // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     const doShare = (withText) => navigator.share(withText
-      ? { files: [file], title: t('mr_title'), text: msg }   // النص الكامل (الاسم والشهر) ليميّز ولي الأمر التقرير؛ بلا شرطة
+      ? { files: [file], title: t('mr_title'), text: name }   // اسم الطالب فقط كالتقرير الفردي: الجملة الطويلة المرافقة كانت تُشوِّه اسم الملف داخل واتساب (الاسم سليم في شاشة مشاركة ويندوز). الشهر واضح في اسم الملف
       : { files: [file], title: t('mr_title') });
     try {
       await doShare(true);
