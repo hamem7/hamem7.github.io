@@ -2362,7 +2362,12 @@ async function shareViaWhatsApp(kind) {
   const period = (reportData && reportData.periodLabel) || '';
   const msg = t('mr_wa_msg').replace('{name}', name).replace('{period}', period);
   // مثل التقرير الفردي (report.js): تظهر شاشة المشاركة مباشرة متى دعمها المتصفح، والاسم العربي كما هو.
-  const file = new File([res.blob], res.filename, { type: res.mime });
+  // اسم الملف المُرسَل بحروف إنجليزية فقط: واتساب يُشوِّه الأسماء العربية القادمة من شاشة مشاركة ويندوز (Ø§Ù„...) رغم سلامتها عند الخروج من المنصة.
+  // ولي الأمر يميّز التقرير من النص المرافق (اسم الطالب والشهر بالعربية). التنزيل العادي يبقى باسمه العربي.
+  const ext = (String(res.filename).match(/\.([A-Za-z0-9]+)$/) || [, 'pdf'])[1];
+  const mm = String((reportData && reportData.monthIndex0 != null ? reportData.monthIndex0 : 0) + 1).padStart(2, '0');
+  const safeName = `Monthly Report ${(reportData && reportData.year) || ''} ${mm}${kind === 'pdf' ? '' : ' WhatsApp'}.${ext}`.replace(/\s+/g, ' ');
+  const file = new File([res.blob], safeName, { type: res.mime });
   const askTap = (text, okKey) => (typeof window.hamConfirm === 'function'
     ? window.hamConfirm(text, { ok: t(okKey), cancel: t('mr_wa_cancel_btn') })
     : Promise.resolve(true));
@@ -2370,7 +2375,7 @@ async function shareViaWhatsApp(kind) {
   // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     const doShare = (withText) => navigator.share(withText
-      ? { files: [file], title: t('mr_title'), text: name }   // اسم الطالب فقط كالتقرير الفردي: الجملة الطويلة المرافقة كانت تُشوِّه اسم الملف داخل واتساب (الاسم سليم في شاشة مشاركة ويندوز). الشهر واضح في اسم الملف
+      ? { files: [file], title: t('mr_title'), text: msg }   // النص الكامل (الاسم والشهر) ليميّز ولي الأمر التقرير
       : { files: [file], title: t('mr_title') });
     try {
       await doShare(true);
