@@ -1013,8 +1013,8 @@ function renderSummaryTiles(d) {
   });
 
   // «أوسمة جديدة»: مصدرها الاختبارات الثنائية (+ وسام الشهر الهجري من الواجبات)، فلا تُعرض
-  // أصلًا إن لم تُجرَ أي مواجهة هذا الشهر ولا وسام شهر (كبطاقة سجل الاختبارات الثنائية)
-  if (dualTotal || d.monthMedals.length) tiles.push({
+  // أصلًا إن لم تُجرَ أي مواجهة هذا الشهر ولا وسام مكتسَب (من الاختبارات أو وسام الشهر الهجري)
+  if (dualTotal || d.achievementsThisMonth.length || d.monthMedals.length) tiles.push({
     label: t('mr_tile_achievements'),
     value: String(d.achievementsThisMonth.length + d.monthMedals.length),
     sub: t(d.achievementsThisMonth.length && d.monthMedals.length ? 'mr_tile_achievements_sub_both' : (d.monthMedals.length ? 'mr_tile_achievements_sub_medal' : 'mr_tile_achievements_sub')),
