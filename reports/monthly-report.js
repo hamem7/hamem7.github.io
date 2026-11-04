@@ -1012,12 +1012,35 @@ function renderSummaryTiles(d) {
     color: '#8a6221'
   });
 
-  tiles.push({
+  // «أوسمة جديدة»: مصدرها الاختبارات الثنائية (+ وسام الشهر الهجري من الواجبات)، فلا تُعرض
+  // أصلًا إن لم تُجرَ أي مواجهة هذا الشهر ولا وسام شهر (كبطاقة سجل الاختبارات الثنائية)
+  if (dualTotal || d.monthMedals.length) tiles.push({
     label: t('mr_tile_achievements'),
     value: String(d.achievementsThisMonth.length + d.monthMedals.length),
     sub: t(d.achievementsThisMonth.length && d.monthMedals.length ? 'mr_tile_achievements_sub_both' : (d.monthMedals.length ? 'mr_tile_achievements_sub_medal' : 'mr_tile_achievements_sub')),
     color: '#8a6221'
   });
+
+  // «دفتر المراجعة»: الرقم الإجمالي للآيات التي روجعت (نفس رقم قسم دفتر المراجعة أدناه، والتفاصيل تبقى هناك)
+  if (d.reviewAyahs && d.reviewAyahs.total > 0) tiles.push({
+    label: t('mr_tile_review_ledger'),
+    value: String(d.reviewAyahs.total),
+    sub: t('mr_tile_review_ledger_sub'),
+    color: '#8a6221'
+  });
+
+  // «الحضور والالتزام»: عدد الحصص التي حضرها من المقررة (من سجل الحضور نفسه في قسم الحضور أدناه)؛
+  // لا يُخمَّن شيء: لو بقيت حصص غير مؤكَّدة تظهر الخانة بشرطة وملاحظة بدل رقم ناقص
+  const att = d.extras && d.extras.att;
+  if (att && (att.hasSchedule || att.extra)) {
+    const pending = att.unconfirmed > 0;
+    tiles.push({
+      label: t('mr_tile_attendance'),
+      value: pending ? '—' : String(att.present),
+      sub: pending ? t('mr_tile_attendance_pending').replace('{n}', att.unconfirmed) : t('mr_tile_attendance_sub').replace('{n}', att.expected),
+      color: '#8a6221'
+    });
+  }
 
   // 🌟 [هوية "منازل القمر"] البطاقات المئوية (غرفة اللعب، الواجبات) تحمل قمرًا بمنزلها +
   // شارة المستوى (ممتاز/متقدّم/في تقدّم/بداية الطريق)؛ بطاقات العدّ تحمل أيقونة الخاتم بلا
