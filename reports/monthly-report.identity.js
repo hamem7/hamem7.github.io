@@ -162,41 +162,48 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mr-journey-arrow{color:#d4af37;}
   #report-screen .page.mr2 .mr-journey-new{font-family:'Amiri',serif; color:#f6f3e8; font-size:20px;}
 
-  /* رحلة الحفظ — خريطة الأجزاء */
-  #report-screen .page.mr2 .mr-jm{display:flex; align-items:stretch; gap:22px; padding:20px 22px; text-align:start;}
-  #report-screen .page.mr2 .mr-jm-stat{flex:none; width:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-inline-end:1px solid rgba(240,216,120,.28); padding-inline-end:22px;}
-  #report-screen .page.mr2 .mr-jm-num{font-family:'Amiri',serif; font-size:68px; line-height:1; font-weight:700; color:#f0d878;}
-  #report-screen .page.mr2 .mr-jm-cap{margin-top:6px; font-size:13px; font-weight:700; color:#f6f3e8;}
-  #report-screen .page.mr2 .mr-jm-name{margin-top:10px; font-size:11.5px; font-weight:600; color:#9fb8ad;}
-  #report-screen .page.mr2 .mr-jm-main{flex:1; min-width:0; display:flex; flex-direction:column; gap:14px;}
-  #report-screen .page.mr2 .mr-jm-route{display:flex; align-items:center; gap:12px;}
+  /* رحلة الحفظ — «حلقة الجزء»: حلقة بعدد الآيات + من/إلى + وتيرة الحفظ + موعد الختم المتوقع */
+  #report-screen .page.mr2 .mr-jm{display:grid; grid-template-columns:250px 1fr; gap:22px; align-items:center; padding:20px 22px; text-align:start;}
+  #report-screen .page.mr2 .mr-jm-ring{position:relative; width:250px; height:250px;}
+  #report-screen .page.mr2 .mr-jm-ring svg{display:block; width:100%; height:100%; overflow:visible;}
+  #report-screen .page.mr2 .mr-jm-ring-c{position:absolute; top:0; right:0; bottom:0; left:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  #report-screen .page.mr2 .mr-jm-ring-c b{font-family:'Amiri',serif; font-size:54px; line-height:1; font-weight:700; color:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-ring-c strong{font-size:13px; font-weight:700; color:#f6f3e8; margin-top:2px; max-width:140px;}
+  #report-screen .page.mr2 .mr-jm-ring-c small{font-size:10.5px; color:#9fb8ad; margin-top:7px; padding-top:6px; border-top:1px solid rgba(240,216,120,.25); line-height:1.5; max-width:140px;}
+  #report-screen .page.mr2 .mr-jm-ring-c small em{font-style:normal; font-weight:700; color:#d9c27a;}
+  #report-screen .page.mr2 .mr-jm-side{min-width:0; display:flex; flex-direction:column; gap:12px;}
+  #report-screen .page.mr2 .mr-jm-box{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:11px 14px;}
+  #report-screen .page.mr2 .mr-jm-route{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:8px 12px;}
   #report-screen .page.mr2 .mr-jm-pt{display:flex; flex-direction:column; gap:2px;}
-  #report-screen .page.mr2 .mr-jm-way{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; min-width:60px;}
-  #report-screen .page.mr2 .mr-jm-way i{display:block; width:100%; height:0; border-top:2px dashed rgba(240,216,120,.7);}
-  #report-screen .page.mr2 .mr-jm-way em{font-style:normal; font-size:10.5px; font-weight:700; color:#d4af37;}
-  #report-screen .page.mr2 .mr-jm-tracks{display:flex; flex-direction:column; gap:18px;}
-  #report-screen .page.mr2 .mr-jt{display:flex; flex-direction:column; gap:8px;}
-  #report-screen .page.mr2 .mr-jt-head{display:flex; align-items:center; gap:12px;}
-  #report-screen .page.mr2 .mr-jt-med{flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; background:#0b3d30; color:#f0d878; font-family:'Amiri',serif; font-weight:700; font-size:20px; box-shadow:0 0 0 2px #0b3d30, 0 0 0 3.5px #d4af37;}
-  #report-screen .page.mr2 .mr-jt-ttl{min-width:0; display:flex; flex-direction:column;}
-  #report-screen .page.mr2 .mr-jt-ttl b{font-size:14px; color:#f6f3e8;}
-  #report-screen .page.mr2 .mr-jt-ttl small{font-size:11.5px; color:#9fb8ad;}
-  #report-screen .page.mr2 .mr-jt-pct{margin-inline-start:auto; text-align:end; display:flex; flex-direction:column;}
-  #report-screen .page.mr2 .mr-jt-pct b{font-family:'Amiri',serif; font-size:30px; line-height:1; color:#f0d878;}
-  #report-screen .page.mr2 .mr-jt-pct small{font-size:10.5px; color:#9fb8ad;}
-  #report-screen .page.mr2 .mr-jt-bar{position:relative; height:26px; border-radius:9px; overflow:hidden; border:1px solid rgba(255,255,255,.16); background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 6px,rgba(255,255,255,.03) 6px 12px);}
-  #report-screen .page.mr2 .mr-jt-on{position:absolute; inset-block:0; background:linear-gradient(180deg,#f3df8c,#d4af37); box-shadow:0 0 12px rgba(240,216,120,.5);}
-  #report-screen .page.mr2 .mr-jt-tick{position:absolute; inset-block:0; width:1px; background:rgba(11,61,48,.55);}
-  #report-screen .page.mr2 .mr-jt-names{display:flex; align-items:flex-start; gap:2px; font-size:11px; font-weight:600; color:#9fb8ad; line-height:1.45;}
-  #report-screen .page.mr2 .mr-jt-names span{text-align:center; min-width:0; overflow-wrap:anywhere; padding:0 1px;}
-  #report-screen .page.mr2 .mr-jt-names span.mem{color:#f0d878; font-weight:800;}
-  @media (max-width:560px){
-    #report-screen .page.mr2 .mr-jm{flex-direction:column; gap:16px;}
-    #report-screen .page.mr2 .mr-jm-stat{width:auto; border-inline-end:0; padding-inline-end:0; border-bottom:1px solid rgba(240,216,120,.28); padding-bottom:14px;}
-    #report-screen .page.mr2 .mr-jm-route{flex-wrap:wrap;}
-  }
+  #report-screen .page.mr2 .mr-jm-pt .mr-journey-pos{font-size:20px;}
+  #report-screen .page.mr2 .mr-jm-way + .mr-jm-pt{text-align:end;}
+  #report-screen .page.mr2 .mr-jm-way{order:3; flex-basis:100%; display:flex; flex-direction:column; align-items:center; gap:4px;}
+  #report-screen .page.mr2 .mr-jm-way i{display:block; width:100%; height:2px; background:#d4af37; opacity:.75;}
+  #report-screen .page.mr2 .mr-jm-way em{font-style:normal; font-size:11px; font-weight:700; color:#d4af37; text-align:center;}
+  #report-screen .page.mr2 .mr-jm-pace{display:flex; flex-direction:column; gap:7px;}
+  #report-screen .page.mr2 .mr-jm-ph{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:#d7e4dd;}
+  #report-screen .page.mr2 .mr-jm-delta{font-size:11.5px; font-weight:700; border-radius:99px; padding:1px 10px; white-space:nowrap;}
+  #report-screen .page.mr2 .mr-jm-delta.up{background:#9ee0bf; color:#0b3d30;}
+  #report-screen .page.mr2 .mr-jm-delta.down{background:#efe6c8; color:#6b4f0a;}
+  #report-screen .page.mr2 .mr-jm-delta.same{background:#c9d8d0; color:#0b3d30;}
+  #report-screen .page.mr2 .mr-jm-prow{display:grid; grid-template-columns:86px 1fr 66px; gap:8px; align-items:center; font-size:11.5px; color:#9fb8ad;}
+  #report-screen .page.mr2 .mr-jm-pbar{display:block; height:10px; border-radius:6px; background:rgba(255,255,255,.08); overflow:hidden;}
+  #report-screen .page.mr2 .mr-jm-pbar i{display:block; height:100%; border-radius:6px; background:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-prow.prev .mr-jm-pbar i{background:#7f948b;}
+  #report-screen .page.mr2 .mr-jm-prow b{font-family:'Amiri',serif; font-size:17px; line-height:1; color:#f0d878; text-align:end; white-space:nowrap;}
+  #report-screen .page.mr2 .mr-jm-prow.prev b{color:#c9d8d0;}
+  #report-screen .page.mr2 .mr-jm-prow b small{font-family:'IBM Plex Sans Arabic',sans-serif; font-size:10.5px; font-weight:500; color:#9fb8ad; margin-inline-start:3px;}
+  #report-screen .page.mr2 .mr-jm-eta{display:flex; align-items:center; gap:14px; background:rgba(212,175,55,.13); border-color:rgba(212,175,55,.55);}
+  #report-screen .page.mr2 .mr-jm-eta-ic{flex:none; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(240,216,120,.15); font-size:21px;}
+  #report-screen .page.mr2 .mr-jm-eta small{display:block; font-size:11.5px; font-weight:600; color:#d7e4dd;}
+  #report-screen .page.mr2 .mr-jm-eta b{display:block; font-family:'Amiri',serif; font-size:21px; line-height:1.35; color:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-eta p{margin:0; font-size:11.5px; color:#9fb8ad; line-height:1.6;}
   #report-screen .page.mr2 .mr-jm-foot{font-size:11.5px; font-weight:600; color:#9fb8ad;}
-  #report-screen .page.mr2 .mr-jm-foot b{color:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-legend{grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:16px; font-size:11px; color:#9fb8ad; border-top:1px solid rgba(240,216,120,.18); padding-top:11px;}
+  #report-screen .page.mr2 .mr-jm-legend i{display:inline-block; width:22px; height:10px; border-radius:5px; vertical-align:middle; margin-inline-end:6px;}
+  #report-screen .page.mr2 .mr-jm-legend i.b{background:#a88a32;}
+  #report-screen .page.mr2 .mr-jm-legend i.m{background:#f0d878;}
+  #report-screen .page.mr2 .mr-jm-legend i.r{background:#2a5446;}
   #report-screen .page.mr2 .mr-err-surah{color:#4a6058;}
 
   /* اتجاه الحفظ */

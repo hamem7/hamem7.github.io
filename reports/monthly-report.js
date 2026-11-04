@@ -1163,8 +1163,11 @@ function renderJourneyBlock(d) {
     `;
     return;
   }
-  // تصميم "مسار الجزء": شريط لكل جزء مرّ به حفظ هذا الشهر، مقسَّم بأطوال السور الفعلية داخل الجزء،
-  // ويُضاء المدى المحفوظ هذا الشهر فقط. لا نفترض ما حُفظ قبل الشهر ولا ما تبقّى (لا بيانات له) — فلا اختلاق.
+  // تصميم "حلقة الجزء": الجزء الحالي (جزء موضع نهاية الشهر) حلقة واحدة مقسومة بأطوال سوره الفعلية، تمتلئ مع عقارب الساعة
+  // في اتجاه سير الطالب (لو كان الحفظ نحو الفاتحة تبدأ الحلقة من آخر سورة في الجزء). في وسطها عدد الآيات الجديدة (لا نسبة).
+  // يُفترض أن الحفظ يمضي في اتجاه واحد من بداية الجزء عند الطالب (نفس الافتراض السابق): الملوَّن = ما أُنجز حتى موضع نهاية
+  // الشهر، ويُميَّز منه ما بين موضع بداية الشهر ونهايته. بجانبها: من ← إلى، ووتيرة الحفظ مقابل الشهر الماضي (سجل حقيقي فقط)،
+  // وموعد ختم الجزء المتوقع بنفس الوتيرة (يُخفى إن لم يُحفظ شيء أو كان الختام مؤقتًا من منتصف الشهر).
   const sd = AppState.surahsData || [];
   const ib = d.journey.beginPos ? ayahIndex(sd, d.journey.beginPos.s, d.journey.beginPos.a) : null;
   const ie = d.journey.endPos ? ayahIndex(sd, d.journey.endPos.s, d.journey.endPos.a) : null;
@@ -1180,76 +1183,122 @@ function renderJourneyBlock(d) {
   }
   const lo = Math.min(ib, ie), hi = Math.max(ib, ie);
   const en = AppState.currentLang === 'en';
-  const juzList = [];
+  const backward = ie < ib;
+  let cur = null, passed = 0;
   for (let n = 1; n <= JUZ_COUNT; n++) {
     const bd = juzBounds(sd, n);
     const j0 = ayahIndex(sd, bd.start.surah, bd.start.ayah), j1 = ayahIndex(sd, bd.end.surah, bd.end.ayah);
-    if (Math.min(hi, j1) - Math.max(lo, j0) + 1 > 0) juzList.push({ n, bd, j0, j1, from: Math.max(lo, j0), to: Math.min(hi, j1) });
+    if (Math.min(hi, j1) - Math.max(lo, j0) + 1 <= 0) continue;
+    if (ie >= j0 && ie <= j1) cur = { n, bd, j0, j1 }; else passed++;
   }
-  // الملوَّن = ما أنجزه الطالب في الجزء حتى موضعه الحالي (نهاية الشهر)، والباقي بلا لون. يُفترض أن الحفظ يمضي في اتجاه
-  // واحد من بداية الجزء عنده: لو كان الاتجاه نحو الفاتحة (النهاية قبل البداية في ترتيب المصحف) فبدايته آخر الجزء (مثل الحديد
-  // ثم النجم)، وإلا فأول الجزء. الأجزاء التي تجاوزها كاملة. الجزء الحالي = جزء موضع نهاية الشهر.
-  const backward = ie < ib;
-  const curJuz = (juzList.find(j => ie >= j.j0 && ie <= j.j1) || juzList[juzList.length - 1]).n;
-  juzList.forEach(j => {
-    if (j.n === curJuz) { j.from = backward ? ie : j.j0; j.to = backward ? j.j1 : ie; }
-    else { j.from = j.j0; j.to = j.j1; }
+  if (!cur) {   // احتياط: موضع النهاية خارج كل الأجزاء (لا يحدث عمليًا)
+    el.innerHTML = `<div class="mr-journey-box">
+      <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
+      <div class="mr-journey-arrow">↓</div>
+      <div class="mr-journey-row"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>${sentence}</div>`;
+    return;
+  }
+  const len = cur.j1 - cur.j0 + 1;
+  const unit = x => backward ? cur.j1 - x : x - cur.j0;          // موضع آية بوحدات "المسافة المقطوعة" داخل الجزء
+  const done = Math.max(0, Math.min(len, unit(ie) + 1));
+  const before = Math.max(0, Math.min(done, unit(ib) + 1));
+  const remaining = len - done;
+  // السور بترتيب السير
+  const surahs = [];
+  for (let sn = cur.bd.start.surah; sn <= cur.bd.end.surah; sn++) {
+    const info = getSurahInfo(sd, sn);
+    const a0 = sn === cur.bd.start.surah ? cur.bd.start.ayah : 1;
+    const a1 = sn === cur.bd.end.surah ? cur.bd.end.ayah : (info ? info.ayahsCount : a0);
+    surahs.push({ name: surahNameLocal(sn), cnt: a1 - a0 + 1 });
+  }
+  if (backward) surahs.reverse();
+  // الحلقة (SVG بألوان ثابتة وبلا مرشّحات — لأجل html2canvas في التصدير)
+  const R = 96, W = 22, TAU = Math.PI * 2;
+  const ang = v => v / len * TAU - Math.PI / 2;
+  const pt = (v, r) => [(Math.cos(ang(v)) * r).toFixed(2), (Math.sin(ang(v)) * r).toFixed(2)];
+  const arc = (a, b, col, w) => {
+    if (b - a <= 0) return '';
+    if (b - a >= len) return `<circle r="${R}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
+    const [x1, y1] = pt(a, R), [x2, y2] = pt(b, R);
+    return `<path d="M${x1} ${y1} A${R} ${R} 0 ${(b - a) / len > 0.5 ? 1 : 0} 1 ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
+  };
+  let svg = `<circle r="${R}" fill="none" stroke="#2a5446" stroke-width="${W}"/>`
+    + arc(0, before, '#a88a32', W)
+    + arc(before, done, '#f0d878', W + 10).replace('stroke="#f0d878"', 'stroke="#f0d878" stroke-opacity="0.28"')
+    + arc(before, done, '#f0d878', W);
+  let acc = 0;
+  surahs.forEach(s => {
+    const a = acc; acc += s.cnt;
+    const [x1, y1] = pt(a, R - W / 2 - 2), [x2, y2] = pt(a, R + W / 2 + 2);
+    svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0b3d30" stroke-width="2.5"/>`;
+    // اسم السورة خارج الحلقة — يُكتب فقط إن اتسع قوسها (الأجزاء كثيرة السور القصيرة مثل عمّ) أو كانت سورة الموضع الحالي
+    const isCur = a < done && acc > done;
+    if (s.cnt / len < 0.035 && !isCur) return;
+    const [tx, ty] = pt(a + s.cnt / 2, R + W / 2 + 7);
+    const anchor = tx > 12 ? 'start' : (tx < -12 ? 'end' : 'middle');
+    const col = acc <= done ? '#d9c27a' : (isCur ? '#f0d878' : '#9fb8ad');
+    svg += `<text x="${tx}" y="${ty}" text-anchor="${anchor}" dominant-baseline="middle" fill="${col}" font-size="10.5" font-weight="${isCur ? 800 : 600}" font-family="IBM Plex Sans Arabic, sans-serif">${esc(s.name)}</text>`;
   });
-  juzList.sort((a, b) => (a.n === curJuz ? -1 : b.n === curJuz ? 1 : a.n - b.n));   // الجزء الحالي أولًا
-  const MAX_TRACKS = 3;
-  const tracksHtml = juzList.slice(0, MAX_TRACKS).map(j => {
-    const len = j.j1 - j.j0 + 1, cov = j.to - j.from + 1;
-    const pct = cov / len * 100;
-    const pctTxt = pct < 1 ? '<1' : String(Math.round(pct));
-    // أسماء السور: كل سور الجزء مكتوبة. السور الضيقة المتجاورة (من نفس الحالة: محفوظة/غير محفوظة) تُجمَّع في خانة واحدة
-    // بأسمائها كي يتسع لها المكان. السور التي مرّ بها حفظ هذا الشهر تُلوَّن بلون موحّد (ذهبي) هي ومدى الشريط.
-    const groups = [];
-    let ticks = '', acc = 0;
-    for (let sn = j.bd.start.surah; sn <= j.bd.end.surah; sn++) {
-      const info = getSurahInfo(sd, sn);
-      const a0 = sn === j.bd.start.surah ? j.bd.start.ayah : 1;
-      const a1 = sn === j.bd.end.surah ? j.bd.end.ayah : (info ? info.ayahsCount : a0);
-      const cnt = a1 - a0 + 1;
-      const g0 = ayahIndex(sd, sn, a0), g1 = g0 + cnt - 1;
-      const mem = Math.min(g1, j.to) - Math.max(g0, j.from) + 1 > 0;
-      const cur = groups[groups.length - 1];
-      if (cur && cur.mem === mem && cur.cnt / len < 0.11) { cur.cnt += cnt; cur.names.push(surahNameLocal(sn)); }
-      else groups.push({ mem, cnt, names: [surahNameLocal(sn)] });
-      acc += cnt;
-      if (sn < j.bd.end.surah) ticks += `<i class="mr-jt-tick" style="inset-inline-start:${(acc / len * 100).toFixed(3)}%"></i>`;
-    }
-    const names = groups.map(g => `<span class="${g.mem ? 'mem' : ''}" style="flex:${g.cnt}">${esc(g.names.join(en ? ', ' : '، '))}</span>`).join('');
-    const startPct = ((j.from - j.j0) / len * 100).toFixed(3), widthPct = Math.max(pct, 0.8).toFixed(3);
-    const cover = t('mr_jm_cover').replace('{c}', cov).replace('{t}', len);
-    return `<div class="mr-jt">
-      <div class="mr-jt-head">
-        <span class="mr-jt-med">${j.n}</span>
-        <div class="mr-jt-ttl"><b>${esc(juzLabel(j.n, t))}</b><small>${cover}</small></div>
-        <div class="mr-jt-pct"><b>${pctTxt}%</b><small>${t('mr_jm_pct_cap')}</small></div>
+  if (before > 0 && before < done) { const [bx, by] = pt(before, R); svg += `<circle cx="${bx}" cy="${by}" r="5" fill="#072a21" stroke="#f0d878" stroke-width="2"/>`; }
+  const [nx, ny] = pt(Math.max(done, 0.001), R);
+  const initial = esc(Array.from(first || '')[0] || '★');
+  svg += `<circle cx="${nx}" cy="${ny}" r="15" fill="#f0d878" fill-opacity="0.25"/><circle cx="${nx}" cy="${ny}" r="10.5" fill="#0b3d30" stroke="#f0d878" stroke-width="3"/>`
+    + `<text x="${nx}" y="${(+ny + 1).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" fill="#f0d878" font-size="11" font-weight="700" font-family="Amiri, serif">${initial}</text>`;
+  const nA = d.journey.newAyahs;
+  const juzName = esc(juzLabel(cur.n, t));
+  const ringHtml = `<div class="mr-jm-ring">
+      <svg viewBox="-140 -140 280 280" direction="ltr" style="direction:ltr" aria-hidden="true">${svg}</svg>
+      <div class="mr-jm-ring-c">
+        <b>${nA != null ? nA : '—'}</b>
+        <strong>${t('mr_jm_ring_new_cap')}</strong>
+        <small>${t('mr_jm_ring_cover').replace('{c}', '<em>' + done + '</em>').replace('{t}', '<em>' + len + '</em>').replace('{juz}', juzName)}</small>
       </div>
-      <div class="mr-jt-bar">${ticks}<i class="mr-jt-on" style="inset-inline-start:${startPct}%;width:${widthPct}%"></i></div>
-      <div class="mr-jt-names">${names}</div>
     </div>`;
-  }).join('');
-  const moreHtml = juzList.length > MAX_TRACKS
-    ? `<div class="mr-jm-foot">${t('mr_jm_more').replace('{n}', juzList.length - MAX_TRACKS)}</div>` : '';
-  const nA = d.journey.newAyahs != null ? d.journey.newAyahs : '';
-  // الهدف المؤقت: إتمام الجزء الذي يحفظ فيه الطالب الآن (جزء موضع نهاية الشهر)
-  const toward = t('mr_jm_toward').replace('{juz}', juzLabel(curJuz, t));
+  // من ← إلى
+  const toward = t('mr_jm_toward_surah').replace('{s}', esc(surahs[surahs.length - 1].name)) + (en ? ' →' : ' ←');
+  const routeHtml = `<div class="mr-jm-box mr-jm-route">
+      <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
+      <div class="mr-jm-way"><i></i><em>${remaining > 0 ? toward : ''}</em></div>
+      <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>
+    </div>`;
+  // الوتيرة مقابل الشهر الماضي — فقط لو للشهرين رقم حقيقي (والختام غير مؤقت)
+  const prevN = d.comparison && d.comparison.previous ? d.comparison.previous.newAyahs : null;
+  let paceHtml = '';
+  if (!d.journey.provisional && typeof prevN === 'number' && typeof nA === 'number') {
+    const mx = Math.max(prevN, nA, 1), diff = nA - prevN;
+    const badge = diff > 0 ? `<span class="mr-jm-delta up">${t('mr_jm_pace_up').replace('{n}', diff)}</span>`
+      : diff < 0 ? `<span class="mr-jm-delta down">${t('mr_jm_pace_down').replace('{n}', -diff)}</span>`
+      : `<span class="mr-jm-delta same">${t('mr_jm_pace_same')}</span>`;
+    const row = (cls, lbl, v) => `<div class="mr-jm-prow ${cls}"><span>${lbl}</span><span class="mr-jm-pbar"><i style="width:${Math.max(v / mx * 100, v > 0 ? 3 : 0).toFixed(1)}%"></i></span><b>${v}<small>${t('mr_jm_ayah_unit')}</small></b></div>`;
+    paceHtml = `<div class="mr-jm-box mr-jm-pace">
+      <div class="mr-jm-ph"><span>${t('mr_jm_pace_title')}</span>${badge}</div>
+      ${row('prev', t('mr_jm_pace_prev'), prevN)}${row('cur', t('mr_jm_pace_cur'), nA)}
+    </div>`;
+  }
+  // موعد ختم الجزء المتوقع بنفس الوتيرة
+  let etaHtml = '';
+  if (remaining <= 0) {
+    etaHtml = `<div class="mr-jm-box mr-jm-eta"><div class="mr-jm-eta-ic">🎉</div><div><b>${t('mr_jm_eta_done').replace('{juz}', juzName)}</b></div></div>`;
+  } else if (!d.journey.provisional && typeof nA === 'number' && nA > 0) {
+    const months = Math.ceil(remaining / nA);
+    const dur = months === 1 ? t('mr_jm_m1') : months === 2 ? t('mr_jm_m2')
+      : (months <= 10 ? t('mr_jm_m3_10') : t('mr_jm_m11')).replace('{n}', months);
+    const target = new Date(d.year, d.monthIndex0 + months, 1);
+    etaHtml = `<div class="mr-jm-box mr-jm-eta"><div class="mr-jm-eta-ic">⏳</div><div>
+      <small>${t('mr_jm_eta_title')}</small>
+      <b>${t('mr_jm_eta_main').replace('{d}', dur)}</b>
+      <p>${t('mr_jm_eta_sub').replace('{month}', monthYearLabel(target.getFullYear(), target.getMonth())).replace('{r}', remaining).replace('{n}', nA)}</p>
+    </div></div>`;
+  }
+  const moreHtml = passed > 0 ? `<div class="mr-jm-foot">${t('mr_jm_more').replace('{n}', passed)}</div>` : '';
   el.innerHTML = `
     <div class="mr-journey-box mr-jm">
-      <div class="mr-jm-stat">
-        <div class="mr-jm-num">${nA !== '' ? nA : '—'}</div>
-        <div class="mr-jm-cap">${t('mr_jm_new_ayahs_cap')}</div>
-        <div class="mr-jm-name">${esc(first)}</div>
-      </div>
-      <div class="mr-jm-main">
-        <div class="mr-jm-route">
-          <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_begin_label')}</span><span class="mr-journey-pos">${d.journey.beginLabel}</span></div>
-          <div class="mr-jm-way"><i></i><em>${toward}</em></div>
-          <div class="mr-jm-pt"><span class="mr-journey-label">${t('mr_journey_end_label')}</span><span class="mr-journey-pos">${d.journey.endLabel}</span></div>
-        </div>
-        <div class="mr-jm-tracks">${tracksHtml}</div>${moreHtml}
+      ${ringHtml}
+      <div class="mr-jm-side">${routeHtml}${paceHtml}${etaHtml}${moreHtml}</div>
+      <div class="mr-jm-legend">
+        <span><i class="b"></i>${t('mr_jm_lg_before')}</span>
+        <span><i class="m"></i>${t('mr_jm_lg_month')}</span>
+        <span><i class="r"></i>${t('mr_jm_lg_left')}</span>
       </div>
     </div>`;
 }
