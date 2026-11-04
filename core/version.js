@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.76';
+export const APP_VERSION = '1.0.77';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.77',
+        date: '2026-11-04',
+        items: [
+            { type: 'new', text: { ar: 'تقرير المعلم الشهري: شاشة تحفيزية تلخّص عطاءك في الشهر — الحلقات وساعاتها، الطلاب الذين حفظوا معك وعدد الآيات، آيات وسور وأجزاء المراجعة، الألعاب الفردية ووقتها، المواجهات الثنائية، أيام العطاء، ومقارنة بالشهر الماضي.', en: 'Teacher monthly report: a motivating screen that sums up your month — circles and their hours, students who memorized with you and how many ayahs, ayahs/surahs/juz reviewed, solo games and their time, duels, days of giving, and a comparison with last month.' } },
+            { type: 'new', text: { ar: 'مستوى المعلم وأوسمته (برونزي/فضي/ذهبي)، وخريطة السور التي رُوجعت، ونجوم طلابك، وهدفك القادم. يُفتح من الرئيسية («تقرير إنجازاتي هذا الشهر») أو من «المزيد»، مع نسخ ملخص للواتساب وطباعة/PDF.', en: 'Teacher level and badges (bronze/silver/gold), a map of reviewed surahs, your students’ stars, and your next goal. Open it from Home (“My achievements this month”) or from “More”, with a WhatsApp-ready summary and print/PDF.' } }
+        ]
+    },
     {
         version: '1.0.76',
         date: '2026-11-03',

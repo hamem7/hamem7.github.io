@@ -68,6 +68,8 @@ const NEW_KEYS = {
         sheet_homework: 'إعداد الواجب الذكي',
         sheet_dual: 'الاختبارات الثنائية',
         sheet_reports: 'تقارير الشهر',
+        sheet_teacher_report: 'تقرير المعلم الشهري',
+        home_teacher_report_btn: '📊 تقرير إنجازاتي هذا الشهر',
         sheet_all_students: 'سجل الطلاب العام',
         sheet_memo_bulk: 'الحفظ الشهري',
         sheet_profile: 'حسابي والنسخ الاحتياطي',
@@ -125,6 +127,8 @@ const NEW_KEYS = {
         sheet_homework: 'Smart Homework Setup',
         sheet_dual: 'Dual Tests',
         sheet_reports: 'Monthly reports',
+        sheet_teacher_report: 'Teacher monthly report',
+        home_teacher_report_btn: '📊 My achievements this month',
         sheet_all_students: 'All students record',
         sheet_memo_bulk: 'Monthly memorization',
         sheet_profile: 'My account & backup',
@@ -388,6 +392,7 @@ const IC = {
     dual: '<path d="M5 5l6 6M19 5l-6 6M5 19l6-6M19 19l-6-6"/>',
     certs: '<circle cx="12" cy="9" r="5.5"/><path d="M9 14l-2 7 5-3 5 3-2-7"/>',
     reports: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2.5v3M16 2.5v3M4 9.5h16M8 14h3M8 17h6"/>',
+    teacherReport: '<path d="M4 19h16M7 19v-6M12 19V6M17 19v-9"/><path d="M5 8l3-3 3 2 4-4"/>',
     table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
     memo: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/>',
     profile: '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 3.8-5.5 7-5.5s5.8 1.9 7 5.5"/><path d="M18.5 4.5l1 1"/>',
@@ -409,12 +414,14 @@ const ITEMS = [
 // ---------------------------------------------------------------------------
 // 🌟 اللوحتان السفليتان (Bottom Sheets): عنصر واحد يُعاد ملؤه. لا تخزين ولا حالة؛ كل عنصر يستدعي دالة موجودة أصلاً.
 function openReportsHub() { return import('../components/monthlyReportsHub.js').then(m => m.openMonthlyReportsHub()).catch(err => console.error('تعذر فتح مركز التقارير الشهرية:', err)); }
+function openTeacherReport() { return import('../components/teacherMonthlyReport.js').then(m => m.openTeacherMonthlyReport()).catch(err => console.error('تعذر فتح تقرير المعلم الشهري:', err)); }
 function openMemoBulk() { return import('../components/studentsHubScreen.js').then(m => m.openStudentsHubScreen()).catch(err => console.error('تعذر فتح شاشة الحفظ الشهري:', err)); }
 function sheetItems(kind) {
     return [
         { key: 'sheet_homework', icon: IC.homework, run: openHomeworkPrep, badge: () => getHwNew() },
         { key: 'sheet_dual', icon: IC.dual, run: openDualTestSetup },
         { key: 'sheet_reports', icon: IC.reports, run: openReportsHub },
+        { key: 'sheet_teacher_report', icon: IC.teacherReport, run: openTeacherReport },
         { key: 'sheet_certs', icon: IC.certs, run: () => openCertificates() },
         { key: 'sheet_all_students', icon: IC.table, run: () => { switchTheme('adult'); document.body.style.backgroundImage = ''; return loadAllStudentsScreen(); } },
         { key: 'sheet_memo_bulk', icon: IC.memo, run: openMemoBulk },

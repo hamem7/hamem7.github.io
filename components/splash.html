@@ -279,6 +279,9 @@
         font-weight: 600;
     }
     .home-quickcard .home-qc-reports-mid { margin-bottom: 14px; }
+    .home-teacher-report-btn { display: block; width: 100%; min-height: 44px; margin: -4px 0 14px; padding: 10px 14px; border-radius: 14px; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.95rem; color: var(--dh-on-gold, #2b2100); background: var(--dh-gold-500, #d4af37); border: 1px solid var(--dh-gold-ink, #8a6221); }
+    .home-teacher-report-btn:hover { filter: brightness(1.05); }
+    .home-teacher-report-btn:focus-visible { outline: 3px solid var(--dh-focus, #d4af37); outline-offset: 2px; }
     .home-quickcard .home-qc-quote-last { margin-bottom: 0; padding-bottom: 2px; border-bottom: none; }
 </style>
 <div class="screen active home-screen">
@@ -490,6 +493,8 @@
                         </span>
                         <b id="home-reports-count">0</b>
                     </div>
+
+                    <button type="button" class="home-teacher-report-btn" id="home-teacher-report-btn" data-i18n="home_teacher_report_btn">📊 تقرير إنجازاتي هذا الشهر</button>
 
                     <!-- 🌟 آية أو حديث أو دعاء يتغيّر يومياً — مجموعة صغيرة مختارة يدوياً
                          (وليست كل القرآن) لتذكير لطيف عند فتح المنصة -->

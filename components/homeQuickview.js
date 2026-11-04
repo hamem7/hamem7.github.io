@@ -789,6 +789,9 @@ export function initHomeQuickview() {
     renderDailyQuote();
     renderMasteryAverage();
     renderReportsCount();
+    // تقرير المعلم الشهري (شاشة تحفيزية بإنجازات المعلم) — يُحمَّل عند أول نقرة فقط
+    const trBtn = document.getElementById('home-teacher-report-btn');
+    if (trBtn) trBtn.onclick = () => import('./teacherMonthlyReport.js').then(m => m.openTeacherMonthlyReport()).catch(err => console.error('تعذر فتح تقرير المعلم الشهري:', err));
     // 🌟 [تعديل] الدوال الثلاث الخاصة بمجموعة "يحتاج منك اليوم" تُنفَّذ معاً ثم نحدّث المجموعة
     // بعد اكتمالها كلها (allSettled: فشل إحداها لا يمنع تحديث المجموعة). كانت تُستدعى سابقاً
     // منفصلة بلا انتظار، بنفس الترتيب والنتيجة لكل واحدة منها.

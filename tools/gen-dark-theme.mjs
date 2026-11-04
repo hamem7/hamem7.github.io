@@ -35,6 +35,8 @@ const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'cs
   'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',
   // مشهد الوسام السينمائي: مسرح فاتح افتراضيًا وداكن في المظهر الداكن — كلاهما مكتوب يدويًا داخل الملف (html:not([data-theme="dark"]))
   'components/badgeReveal.js',
+  // تقرير المعلم الشهري: كل ألوانه رموز --dh-* تنقلب تلقائياً؛ المتبقي بطل أخضر داكن مقصود (نص فاتح على تدرّج زمردي) وطبقات بيضاء شفافة فوقه، وهو داكن في المظهرين
+  'components/teacherMonthlyReport.js',
   // ورقة عمل التجويد للطباعة (js/review.js): ورقة بيضاء على الورق دائمًا بقصد، تُفتح في نافذة مستقلة للطباعة
   'tajweed/challenge/js/review.js']);
 const SCAN_SKIP_DIRS = new Set(['node_modules', '.git', 'previews', 'docs', 'tools', 'tests', 'backend', 'Dar-Ham-Homework-Lab', 'assets', 'icons', 'database', 'engine', 'similarities-data']);
