@@ -2365,12 +2365,27 @@ async function shareViaWhatsApp(kind) {
   // نفس سلوك التقرير الفردي (report.js): استدعاء مباشر لشاشة المشاركة بلا رسالة وسيطة «اضغط مشاركة الآن».
   // (سرعة الإنشاء تُضمن بتسخين المكتبات والخطوط مسبقًا — راجع prewarmExport — كي لا تنتهي صلاحية النقرة.)
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    const doShare = (withText) => navigator.share(withText
+      ? { files: [file], title: t('mr_title'), text: msg }
+      : { files: [file], title: t('mr_title') });
     try {
-      await navigator.share({ files: [file], title: t('mr_title'), text: msg });
+      await doShare(true);
       return;
     } catch (e) {
       if (e && e.name === 'AbortError') return;   // ألغى المستخدم المشاركة
       console.warn('[monthly-report.js] تعذرت مشاركة الملف مباشرة:', e);
+      // السبب المعتاد: انتهت صلاحية «نقرة المستخدم» أثناء توليد الملف الثقيل (NotAllowedError). الملف جاهز في الذاكرة،
+      // فنطلب نقرة جديدة ونستدعي شاشة مشاركة النظام بالملف نفسه (تعمل دائمًا لأن النقرة طازجة) بدل التنزيل + فتح واتساب.
+      if (!(await askTap(t('mr_wa_ready_share'), 'mr_wa_share_btn'))) return;
+      try {
+        await doShare(true);
+        return;
+      } catch (e2) {
+        if (e2 && e2.name === 'AbortError') return;
+        console.warn('[monthly-report.js] فشلت المشاركة بعد النقرة الجديدة، نعيد بلا نص:', e2);
+        try { await doShare(false); return; }
+        catch (e3) { if (e3 && e3.name === 'AbortError') return; /* ثم المسار الاحتياطي أدناه */ }
+      }
     }
   }
   // الحاسوب (أو متصفح بلا مشاركة ملفات): ننزّل الملف ثم نفتح واتساب برسالة جاهزة بنقرة جديدة من المعلم (كي لا يحجبها المتصفح)
