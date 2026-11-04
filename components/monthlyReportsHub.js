@@ -94,7 +94,7 @@ function ensureStyles() {
 .mrh-fix{background:#b45309;color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:inherit;font-weight:800;cursor:pointer;}
 .mrh-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0 8px;}
 .mrh-btn{padding:14px;border-radius:14px;border:1.5px solid #e4dfcc;font-family:inherit;font-weight:700;font-size:1rem;cursor:pointer;background:#fff;color:#10241c;}
-.mrh-btn#mrh-wa{grid-column:1/-1;background:var(--dh-emerald-700,#0d5c46);border-color:var(--dh-emerald-700,#0d5c46);color:#fff;font-weight:800;font-size:1.05rem;padding:15px;box-shadow:0 8px 18px rgba(13,92,70,.3);}
+.mrh-btn#mrh-preview{grid-column:1/-1;background:var(--dh-emerald-700,#0d5c46);border-color:var(--dh-emerald-700,#0d5c46);color:#fff;font-weight:800;font-size:1.05rem;padding:15px;box-shadow:0 8px 18px rgba(13,92,70,.3);}
 .mrh-ov{background:linear-gradient(135deg,#0d5c46,#0a4736);color:#fff;border-radius:20px;padding:14px 16px;margin-bottom:12px;}
 .mrh-ov-top{display:flex;align-items:baseline;gap:8px;font-weight:800;font-size:1.05rem;}
 .mrh-ov-top b{font-size:1.7rem;color:#f0d878;}
@@ -708,9 +708,8 @@ export async function openMonthlyReportsHub(opts = {}) {
         </div>
         ${done ? `<div class="mrh-note">${esc(t('mrh_exported_before').replace('{date}', new Date(done).toLocaleDateString(locale())))}</div>` : ''}
         <div class="mrh-actions">
-          <button class="mrh-btn" id="mrh-wa">${esc(t('mrh_btn_whatsapp'))}</button>
-          <button class="mrh-btn gold" id="mrh-pdf">${esc(t('mrh_btn_pdf'))}</button>
-          <button class="mrh-btn ghost" id="mrh-preview">${esc(t('mrh_btn_preview'))}</button>
+          <button class="mrh-btn" id="mrh-preview">${esc(t('mrh_btn_preview'))}</button>
+          <button class="mrh-btn gold" id="mrh-pdf" style="grid-column:1/-1">${esc(t('mrh_btn_pdf'))}</button>
         </div>`;
       renderFoot();
 
@@ -741,7 +740,6 @@ export async function openMonthlyReportsHub(opts = {}) {
       });
 
       const go = (autoExport) => openReport(student, sel, autoExport);
-      host.querySelector('#mrh-wa').addEventListener('click', () => go('whatsapp'));
       host.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
       host.querySelector('#mrh-preview').addEventListener('click', () => go(null));
     }
