@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة أ — خطة الشهر القادم (بطاقة التوقعات)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--em:#0b3d30;--em2:#072a21;--gold:#d4af37;--gl:#f0d878;--tx:#f6f3e8;--mut:#9fb8ad;--page:#f6f3e8;--card:#fffdf6;--line:#e3dbbd;--ink:#0b3d30;--soft:#4a6058}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:16px 16px 60px}
+button{font:inherit;border:0;cursor:pointer}
+.bar{max-width:860px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--soft)}
+.bar b{color:var(--ink)}
+.pill{background:var(--em);color:var(--gl);border-radius:99px;padding:6px 16px;font-weight:700;font-size:13px}
+.sec{max-width:860px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 26px}
+.sec h2{font:700 22px 'Amiri',serif;color:var(--ink);display:flex;align-items:center;gap:14px}
+.sec h2::after{content:"";flex:1;height:2px;background:var(--line)}
+.draft{display:flex;align-items:flex-start;gap:10px;margin:10px 0 16px;background:#fbf4dc;border:1px dashed #d9bf6a;border-radius:12px;padding:9px 12px;font-size:12.5px;line-height:1.8;color:#6f5410}
+.draft .stamp{flex:none;font-size:11px;font-weight:800;color:#8a6a12;border:1.5px solid #c9a643;border-radius:7px;padding:1px 8px;transform:rotate(-4deg);background:#fffaf0;white-space:nowrap;margin-top:3px}
+
+.jb{background:radial-gradient(circle at 88% 0,#14594599,transparent 50%),linear-gradient(170deg,var(--em),var(--em2));border:1px solid var(--gold);border-radius:18px;padding:20px 22px;color:var(--tx);display:flex;flex-direction:column;gap:16px}
+
+/* الهدف الرئيسي */
+.goal{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.target{width:150px;height:150px;border-radius:50%;position:relative;display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle,#0b3d30 52%,transparent 53%),repeating-conic-gradient(from 0deg,#f0d878 0 2deg,transparent 2deg 15deg);}
+.target::before{content:"";position:absolute;inset:8px;border-radius:50%;border:2px solid rgba(240,216,120,.55)}
+.target::after{content:"";position:absolute;inset:22px;border-radius:50%;border:1.5px dashed rgba(240,216,120,.35)}
+.target div{position:relative;z-index:1}
+.target b{display:block;font:700 46px/1 'Amiri',serif;color:var(--gl)}
+.target span{display:block;font-size:12px;font-weight:700;margin-top:2px}
+.target small{display:block;font-size:10.5px;color:var(--mut)}
+.gtxt small{display:block;font-size:12px;font-weight:700;color:var(--gold)}
+.gtxt h3{font:700 23px/1.45 'Amiri',serif;color:#fffdf6;margin:2px 0 8px}
+.gtxt h3 em{font-style:normal;color:var(--gl)}
+.route{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(240,216,120,.25);border-radius:12px;padding:8px 12px;font-size:12px;color:var(--mut)}
+.route b{font:700 17px 'Amiri',serif;color:var(--gl);white-space:nowrap}
+.route i{flex:1;height:2px;min-width:30px;background:repeating-linear-gradient(var(--dg),var(--gold) 0 6px,transparent 6px 11px)}
+[dir=rtl]{--dg:to left}[dir=ltr]{--dg:to right}
+.route .to{color:#d7e4dd}
+.meter{margin-top:10px}
+.meter .t{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-bottom:4px}
+.meter .t b{color:var(--gl)}
+.mbar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}
+.mbar i{position:absolute;top:0;bottom:0;border-radius:7px}
+.mbar .now{inset-inline-start:0;width:49%;background:#a88a32}
+.mbar .next{inset-inline-start:49%;width:13%;background:repeating-linear-gradient(135deg,#f6e59a 0 6px,#e6c75a 6px 12px)}
+
+/* البطاقات الأربع */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.c{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 14px;display:flex;gap:12px}
+.c .ic{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:rgba(240,216,120,.13);border:1px solid rgba(240,216,120,.3)}
+.c h4{font-size:13.5px;font-weight:700;color:#fffdf6}
+.c p{font-size:12px;color:#c9d8d0;line-height:1.7;margin-top:2px}
+.c p b{color:var(--gl)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 10px;background:rgba(240,216,120,.14);border:1px solid rgba(240,216,120,.45);color:var(--gl)}
+.chip.m{background:transparent;border-style:dashed;color:var(--mut);border-color:rgba(159,184,173,.5)}
+.focus{display:flex;align-items:center;gap:12px;background:linear-gradient(90deg,rgba(212,175,55,.22),rgba(212,175,55,.06));border:1px solid rgba(212,175,55,.55);border-radius:14px;padding:11px 14px}
+.focus .ic{font-size:22px}
+.focus small{display:block;font-size:11.5px;color:#d7e4dd;font-weight:600}
+.focus b{font:700 19px 'Amiri',serif;color:var(--gl)}
+.focus .why{margin-inline-start:auto;font-size:11px;color:var(--mut);max-width:220px;line-height:1.6}
+.sign{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--mut);border-top:1px solid rgba(240,216,120,.18);padding-top:11px}
+.sign b{color:#d7e4dd}
+.note{max-width:860px;margin:14px auto 0;font-size:12.5px;color:var(--soft);line-height:1.9}
+.note b{color:var(--ink)}
+@media (max-width:640px){
+  .sec{padding:16px}.jb{padding:16px}
+  .goal{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .gtxt{width:100%;min-width:0}.route{text-align:start}.route b{white-space:normal}.meter .t{flex-wrap:wrap;gap:4px}
+  .grid{grid-template-columns:1fr}
+  .focus{flex-wrap:wrap}.focus .why{margin-inline-start:0;max-width:none}
+}
+</style>
+</head>
+<body>
+<div class="bar"><span><b data-i="tag">نموذج أ — «بطاقة التوقعات»</b> · <span data-i="tagS">معاينة ببيانات تجريبية</span></span><button class="pill" id="lang">English</button></div>
+
+<section class="sec">
+  <h2 data-i="title">خطة الشهر القادم</h2>
+  <div class="draft"><span class="stamp" data-i="stamp">✎ تصوّر مبدئي</span><span data-i="disc">تصوّر مبدئي مقترح بناءً على أداء هذا الشهر، وهو قابل للتغيير حسب مستوى الطالب وظروف الحلقة، وليس التزامًا نهائيًا.</span></div>
+
+  <div class="jb">
+    <div class="goal">
+      <div class="target"><div><b>≈ 6</b><span data-i="tU">صفحات متوقَّعة</span><small data-i="tS">خلال 12 حصة</small></div></div>
+      <div class="gtxt">
+        <small data-i="gK">📈 الحفظ الجديد المتوقَّع</small>
+        <h3 data-i="gH">إن استمرّت فاطمة على وتيرتها، يُتوقَّع أن تُكمل سورة <em>الرحمن</em> وتبدأ سورة <em>القمر</em></h3>
+        <div class="route"><span><span data-i="r1">الآن</span><br><b data-i="r1p">الرحمن — 8</b></span><i></i><span class="to"><span data-i="r2">المتوقَّع آخر الشهر</span><br><b data-i="r2p">القمر — 40 تقريبًا</b></span></div>
+        <div class="meter">
+          <div class="t"><span data-i="mL">جزء الذاريات</span><span data-i="mR">من <b>49%</b> إلى نحو <b>62%</b> (تقديرًا)</span></div>
+          <div class="mbar"><i class="now"></i><i class="next"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="c"><div class="ic">🔁</div><div><h4 data-i="c1">المراجعة القريبة</h4><p data-i="c1p">تثبيت محفوظ هذا الشهر (<b>42 آية</b>) موزّعًا على أسابيع الشهر الأربعة — نحو <b>11 آية</b> أسبوعيًا.</p></div></div>
+      <div class="c"><div class="ic">📚</div><div><h4 data-i="c2">المراجعة البعيدة</h4><p data-i="c2p">الأجزاء الأقدم مراجعةً، جزء لكل أسبوع:</p><div class="chips"><span class="chip" data-i="j1">جزء عمّ</span><span class="chip" data-i="j2">جزء تبارك</span><span class="chip" data-i="j3">جزء قد سمع</span><span class="chip m" data-i="j4">الأسبوع 4: حسب الحاجة</span></div></div></div>
+      <div class="c"><div class="ic">🎙️</div><div><h4 data-i="c3">التجويد</h4><p data-i="c3p">متابعة المسار: <b>الإدغام بغنّة</b> — تعلّم الشرح ثم التطبيق ثم الاختبار.</p></div></div>
+      <div class="c"><div class="ic">🗓️</div><div><h4 data-i="c4">الحضور</h4><p data-i="c4p"><b>12 حصة</b> متوقعة (3 أيام أسبوعيًا). التوقع مبنيّ على حضورها كاملة.</p></div></div>
+    </div>
+
+    <div class="focus"><span class="ic">💡</span><div><small data-i="fK">محور تركيز مقترح</small><b data-i="fV">ضبط المتشابهات</b></div><span class="why" data-i="fW">أضعف مهارة في تقييمات هذا الشهر، فنخصّص لها جزءًا من كل حصة.</span></div>
+
+    <div class="sign"><span data-i="sg1">تقديرات محسوبة آليًا من: وتيرة الحفظ (0.5 صفحة/حصة) · جدول الحصص · سجل المراجعة</span><span data-i="sg2">يعدّلها المعلم حسب الحلقة</span></div>
+  </div>
+</section>
+
+<p class="note" data-i="note"><b>الفكرة:</b> الخطة توقعات لا التزام، فتُعرض كـ«تقدير» واضح بدل قائمة: رقم واحد كبير للحفظ المتوقَّع، وترجمته إلى ما يفهمه وليّ الأمر (من أين إلى أين، وكم سيصل في الجزء)، ثم أربع بطاقات للمراجعة والتجويد والحضور، ومحور تركيز واحد واضح. وعبارة «تصوّر مبدئي» بختم مسودة ظاهر حتى لا تُفهم الخطة كالتزام.</p>
+
+<script>
+const D={ar:{},en:{tag:'Model A — "Forecast Card"',tagS:'Preview with sample data',title:'Next Month’s Plan',stamp:'✎ Draft proposal',
+disc:'A preliminary proposal based on this month’s performance. It may change according to the student’s level and the circle’s circumstances, and is not a final commitment.',
+tU:'pages expected',tS:'over 12 sessions',gK:'📈 Expected new memorization',gH:'If Fatima keeps her pace, she is expected to finish Surat <em>Ar-Rahman</em> and start Surat <em>Al-Qamar</em>',
+r1:'Now',r1p:'Ar-Rahman — 8',r2:'Expected by month end',r2p:'Al-Qamar — about 40',mL:'Juz Adh-Dhariyat',mR:'from <b>49%</b> to about <b>62%</b> (estimate)',
+c1:'Near review',c1p:'Consolidate this month’s memorization (<b>42 ayahs</b>) spread over the four weeks — about <b>11 ayahs</b> a week.',
+c2:'Far review',c2p:'The parts reviewed longest ago, one part a week:',j1:'Juz ʿAmma',j2:'Juz Tabarak',j3:'Juz Qad Samiʿa',j4:'Week 4: as needed',
+c3:'Tajweed',c3p:'Continue the path: <b>Idgham with ghunnah</b> — learn, practise, then the test.',
+c4:'Attendance',c4p:'<b>12 sessions</b> expected (3 days a week). The estimate assumes she attends all of them.',
+fK:'Suggested focus',fV:'Mastering similar verses',fW:'The weakest skill in this month’s evaluations, so part of every session goes to it.',
+sg1:'Estimates calculated automatically from: memorization pace (0.5 page/session) · class schedule · review log',sg2:'The teacher adjusts them to the circle',
+note:'<b>The idea:</b> the plan is a forecast, not a commitment, so it is shown as a clear <b>estimate</b> rather than a list: one big number for expected new memorization, translated into what parents understand (from where to where, and how far into the juz), then four cards for review, tajweed and attendance, and one clear focus. The “draft” stamp keeps it from being read as a commitment.'}};
+document.querySelectorAll('[data-i]').forEach(e=>D.ar[e.dataset.i]=e.innerHTML);
+let L='ar';
+document.getElementById('lang').onclick=()=>{L=L==='ar'?'en':'ar';const d=D[L];
+  document.documentElement.lang=L;document.documentElement.dir=L==='en'?'ltr':'rtl';
+  document.querySelectorAll('[data-i]').forEach(e=>{const v=d[e.dataset.i];if(v!=null)e.innerHTML=v});
+  document.getElementById('lang').textContent=L==='en'?'العربية':'English';};
+</script>
+</body>
+</html>

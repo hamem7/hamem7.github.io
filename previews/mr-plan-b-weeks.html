@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة ب — خطة الشهر القادم (خريطة الأسابيع)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--em:#0b3d30;--em2:#072a21;--gold:#d4af37;--gl:#f0d878;--tx:#f6f3e8;--mut:#9fb8ad;--page:#f6f3e8;--card:#fffdf6;--line:#e3dbbd;--ink:#0b3d30;--soft:#4a6058}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:16px 16px 60px}
+button{font:inherit;border:0;cursor:pointer}
+.bar{max-width:860px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--soft)}
+.bar b{color:var(--ink)}
+.pill{background:var(--em);color:var(--gl);border-radius:99px;padding:6px 16px;font-weight:700;font-size:13px}
+.sec{max-width:860px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 26px}
+.sec h2{font:700 22px 'Amiri',serif;color:var(--ink);display:flex;align-items:center;gap:14px}
+.sec h2::after{content:"";flex:1;height:2px;background:var(--line)}
+.sec h2 .tag{order:3;font:800 11px 'IBM Plex Sans Arabic';color:#8a6a12;border:1.5px dashed #c9a643;background:#fbf4dc;border-radius:99px;padding:3px 12px}
+.sec>p{font-size:13px;color:var(--soft);margin:6px 0 14px;line-height:1.8}
+
+.jb{background:radial-gradient(circle at 88% 0,#14594599,transparent 50%),linear-gradient(170deg,var(--em),var(--em2));border:1px solid var(--gold);border-radius:18px;padding:20px 22px;color:var(--tx);display:flex;flex-direction:column;gap:18px}
+
+/* الملخص */
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.s{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.s .ic{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(240,216,120,.13);font-size:18px}
+.s b{display:block;font:700 25px/1.1 'Amiri',serif;color:var(--gl)}
+.s span{display:block;font-size:11.5px;color:#d7e4dd;margin-top:2px;line-height:1.45}
+
+/* خريطة الأسابيع */
+.wk-h{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#d7e4dd}
+.wk-h small{font-size:11px;color:var(--mut);font-weight:500}
+.track{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-top:26px}
+.track::before{content:"";position:absolute;top:10px;right:6%;left:6%;height:2px;background:repeating-linear-gradient(var(--dg),rgba(240,216,120,.65) 0 7px,transparent 7px 12px)}
+[dir=rtl]{--dg:to left}[dir=ltr]{--dg:to right}
+.w{position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 11px 11px;display:flex;flex-direction:column;gap:8px}
+.w::before{content:attr(data-n);position:absolute;top:-28px;left:50%;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:700 12px 'Amiri',serif;background:var(--em2);border:2px solid var(--gold);color:var(--gl)}
+.w.first::before{background:var(--gl);color:var(--em);box-shadow:0 0 0 4px rgba(240,216,120,.22)}
+.w h5{font-size:12.5px;font-weight:800;color:var(--gl);text-align:center}
+.it{display:flex;flex-direction:column;gap:1px;border-top:1px dashed rgba(240,216,120,.2);padding-top:6px}
+.it small{font-size:10.5px;font-weight:700;color:var(--mut);display:flex;align-items:center;gap:5px}
+.it small i{width:8px;height:8px;border-radius:50%;flex:none}
+.it span{font-size:12px;color:#f6f3e8;line-height:1.55}
+.it span b{font:700 14.5px 'Amiri',serif;color:var(--gl)}
+.d-new{background:#f0d878}.d-near{background:#9ee0bf}.d-far{background:#8fb7e8}
+.it.opt span{color:var(--mut)}
+
+/* أسفل */
+.foot{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px}
+.f h4{font-size:12.5px;font-weight:700;color:#d7e4dd;margin-bottom:6px}
+.f ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+.f li{font-size:12px;color:#c9d8d0;line-height:1.6;display:flex;gap:7px}
+.f li::before{content:"✓";color:var(--gl);font-weight:800}
+.f.chg li::before{content:"↻";color:#e9b97a}
+.side{display:flex;gap:10px;flex-wrap:wrap}
+.tg{flex:1;min-width:170px;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,rgba(212,175,55,.2),rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.5);border-radius:14px;padding:10px 13px}
+.tg .ic{font-size:20px}
+.tg small{display:block;font-size:11px;color:#d7e4dd;font-weight:600}
+.tg b{font:700 17px 'Amiri',serif;color:var(--gl)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--mut)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:5px}
+.note{max-width:860px;margin:14px auto 0;font-size:12.5px;color:var(--soft);line-height:1.9}
+.note b{color:var(--ink)}
+@media (max-width:700px){
+  .sec{padding:16px}.jb{padding:16px}
+  .sum{grid-template-columns:1fr}
+  .track{grid-template-columns:1fr 1fr;row-gap:36px}
+  .track::before{display:none}
+  .foot{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="bar"><span><b data-i="tag">نموذج ب — «خريطة الأسابيع»</b> · <span data-i="tagS">معاينة ببيانات تجريبية</span></span><button class="pill" id="lang">English</button></div>
+
+<section class="sec">
+  <h2><span data-i="title">خطة الشهر القادم</span><span class="tag" data-i="badge">توقعات · ليست التزامًا</span></h2>
+  <p data-i="disc">تصوّر مبدئي مقترح بناءً على أداء هذا الشهر، وهو قابل للتغيير حسب مستوى الطالب وظروف الحلقة، وليس التزامًا نهائيًا.</p>
+
+  <div class="jb">
+    <div class="sum">
+      <div class="s"><div class="ic">📖</div><div><b>≈ 6</b><span data-i="s1">صفحات حفظ جديد متوقَّعة (12 حصة)</span></div></div>
+      <div class="s"><div class="ic">🔁</div><div><b>42</b><span data-i="s2">آية مراجعة قريبة (محفوظ هذا الشهر)</span></div></div>
+      <div class="s"><div class="ic">📚</div><div><b>3</b><span data-i="s3">أجزاء مراجعة بعيدة مستحقة</span></div></div>
+    </div>
+
+    <div>
+      <div class="wk-h"><span data-i="wkT">كيف قد يبدو الشهر أسبوعًا بأسبوع؟</span><small data-i="wkS">تقدير تقريبي — يحدّد المعلم التفاصيل في الحصة</small></div>
+      <div class="track">
+        <div class="w first" data-n="1"><h5 data-i="w1">الأسبوع 1</h5>
+          <div class="it"><small><i class="d-new"></i><span data-i="lN">حفظ جديد</span></small><span data-i="w1n"><b>≈ 1.5</b> صفحة · الرحمن 9–33</span></div>
+          <div class="it"><small><i class="d-near"></i><span data-i="lR">مراجعة قريبة</span></small><span data-i="w1r">الربع الأول من محفوظ الشهر</span></div>
+          <div class="it"><small><i class="d-far"></i><span data-i="lF">مراجعة بعيدة</span></small><span data-i="w1f">جزء عمّ</span></div>
+        </div>
+        <div class="w" data-n="2"><h5 data-i="w2">الأسبوع 2</h5>
+          <div class="it"><small><i class="d-new"></i><span data-i="lN2">حفظ جديد</span></small><span data-i="w2n"><b>≈ 1.5</b> صفحة · الرحمن 34–60</span></div>
+          <div class="it"><small><i class="d-near"></i><span data-i="lR2">مراجعة قريبة</span></small><span data-i="w2r">الربع الثاني</span></div>
+          <div class="it"><small><i class="d-far"></i><span data-i="lF2">مراجعة بعيدة</span></small><span data-i="w2f">جزء تبارك</span></div>
+        </div>
+        <div class="w" data-n="3"><h5 data-i="w3">الأسبوع 3</h5>
+          <div class="it"><small><i class="d-new"></i><span data-i="lN3">حفظ جديد</span></small><span data-i="w3n"><b>≈ 1.5</b> صفحة · الرحمن 61–78</span></div>
+          <div class="it"><small><i class="d-near"></i><span data-i="lR3">مراجعة قريبة</span></small><span data-i="w3r">الربع الثالث</span></div>
+          <div class="it"><small><i class="d-far"></i><span data-i="lF3">مراجعة بعيدة</span></small><span data-i="w3f">جزء قد سمع</span></div>
+        </div>
+        <div class="w" data-n="4"><h5 data-i="w4">الأسبوع 4</h5>
+          <div class="it"><small><i class="d-new"></i><span data-i="lN4">حفظ جديد</span></small><span data-i="w4n"><b>≈ 1.5</b> صفحة · بداية القمر</span></div>
+          <div class="it"><small><i class="d-near"></i><span data-i="lR4">مراجعة قريبة</span></small><span data-i="w4r">الربع الأخير + سرد الشهر كاملًا</span></div>
+          <div class="it opt"><small><i class="d-far"></i><span data-i="lF4">مراجعة بعيدة</span></small><span data-i="w4f">حسب حاجة الطالب</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="tg"><span class="ic">🎙️</span><div><small data-i="tjK">التجويد — الخطوة التالية في مساره</small><b data-i="tjV">الإدغام بغنّة</b></div></div>
+      <div class="tg"><span class="ic">💡</span><div><small data-i="fcK">محور تركيز مقترح (أضعف مهارة هذا الشهر)</small><b data-i="fcV">ضبط المتشابهات</b></div></div>
+    </div>
+
+    <div class="foot">
+      <div class="f"><h4 data-i="aT">على ماذا بُنيت هذه التوقعات؟</h4><ul>
+        <li data-i="a1">وتيرة فاطمة في الأشهر المقفلة: نحو 0.5 صفحة لكل حصة</li>
+        <li data-i="a2">جدول الحلقة: 3 حصص أسبوعيًا ≈ 12 حصة في الشهر</li>
+        <li data-i="a3">سجل المراجعة: الأجزاء الأقدم مراجعةً أولًا</li></ul></div>
+      <div class="f chg"><h4 data-i="bT">قد تتغيّر إذا…</h4><ul>
+        <li data-i="b1">تغيّر عدد الحصص (غياب، إجازة، أو حصص إضافية)</li>
+        <li data-i="b2">احتاج الطالب وقتًا أطول للتثبيت قبل الجديد</li>
+        <li data-i="b3">رأى المعلم تقديم المراجعة على الحفظ</li></ul></div>
+    </div>
+
+    <div class="legend"><span><i class="d-new"></i><span data-i="lg1">حفظ جديد</span></span><span><i class="d-near"></i><span data-i="lg2">مراجعة قريبة</span></span><span><i class="d-far"></i><span data-i="lg3">مراجعة بعيدة</span></span></div>
+  </div>
+</section>
+
+<p class="note" data-i="note"><b>الفكرة:</b> بما أن الخطة توقعات، تُعرض كخريطة تقريبية للشهر أسبوعًا بأسبوع (حفظ جديد + مراجعة قريبة + مراجعة بعيدة لكل أسبوع)، مع وسم ظاهر «توقعات · ليست التزامًا»، وصندوقين يشرحان لوليّ الأمر <b>على ماذا بُنيت</b> و<b>متى قد تتغيّر</b> — فتكون الخطة شفّافة ومفهومة بلا وعود.</p>
+
+<script>
+const D={ar:{},en:{tag:'Model B — "Week Map"',tagS:'Preview with sample data',title:'Next Month’s Plan',badge:'Forecast · not a commitment',
+disc:'A preliminary proposal based on this month’s performance. It may change according to the student’s level and the circle’s circumstances, and is not a final commitment.',
+s1:'pages of new memorization expected (12 sessions)',s2:'ayahs of near review (this month’s memorization)',s3:'far-review parts due',
+wkT:'How the month might look, week by week',wkS:'Rough estimate — the teacher sets the details in class',
+w1:'Week 1',w2:'Week 2',w3:'Week 3',w4:'Week 4',lN:'New',lN2:'New',lN3:'New',lN4:'New',lR:'Near review',lR2:'Near review',lR3:'Near review',lR4:'Near review',lF:'Far review',lF2:'Far review',lF3:'Far review',lF4:'Far review',
+w1n:'<b>≈ 1.5</b> pages · Ar-Rahman 9–33',w2n:'<b>≈ 1.5</b> pages · Ar-Rahman 34–60',w3n:'<b>≈ 1.5</b> pages · Ar-Rahman 61–78',w4n:'<b>≈ 1.5</b> pages · start of Al-Qamar',
+w1r:'First quarter of this month’s memorization',w2r:'Second quarter',w3r:'Third quarter',w4r:'Last quarter + recite the whole month',
+w1f:'Juz ʿAmma',w2f:'Juz Tabarak',w3f:'Juz Qad Samiʿa',w4f:'As the student needs',
+tjK:'Tajweed — next step on the path',tjV:'Idgham with ghunnah',fcK:'Suggested focus (weakest skill this month)',fcV:'Mastering similar verses',
+aT:'What are these estimates based on?',a1:'Fatima’s pace in closed months: about 0.5 page per session',a2:'Class schedule: 3 sessions a week ≈ 12 a month',a3:'Review log: the parts reviewed longest ago come first',
+bT:'They may change if…',b1:'The number of sessions changes (absence, holiday or extra sessions)',b2:'The student needs more time to consolidate before new material',b3:'The teacher decides to put review before memorization',
+lg1:'New memorization',lg2:'Near review',lg3:'Far review',
+note:'<b>The idea:</b> since the plan is a forecast, it is shown as a rough map of the month, week by week (new memorization + near review + far review each week), with a visible “Forecast · not a commitment” tag and two boxes telling parents <b>what it is based on</b> and <b>when it may change</b> — transparent and clear, with no promises.'}};
+document.querySelectorAll('[data-i]').forEach(e=>D.ar[e.dataset.i]=e.innerHTML);
+let L='ar';
+document.getElementById('lang').onclick=()=>{L=L==='ar'?'en':'ar';const d=D[L];
+  document.documentElement.lang=L;document.documentElement.dir=L==='en'?'ltr':'rtl';
+  document.querySelectorAll('[data-i]').forEach(e=>{const v=d[e.dataset.i];if(v!=null)e.innerHTML=v});
+  document.getElementById('lang').textContent=L==='en'?'العربية':'English';};
+</script>
+</body>
+</html>
