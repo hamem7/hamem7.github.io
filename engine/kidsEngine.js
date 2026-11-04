@@ -61,10 +61,12 @@ function pickSimilar(target, candidates, n, scoreFn, keyFn = x => x) {
 }
 
 // أسماء السور الأقرب رقماً للسورة الصحيحة (جارتها في المصحف) — أصعب من اختيار سورة بعيدة
+// 🌟 maxDist: لا تُقبل سورة بعيدة رقماً (مثل الحج مع الانشقاق) لأن الطالب يستبعدها فوراً
+const MAX_SURAH_DIST = 12;
 function nearSurahNames(correctNum, correctName, text, pool, n) {
     const byNum = new Map();
     pool.forEach(a => { if (a.surahNumber !== correctNum && !byNum.has(a.surahNumber)) byNum.set(a.surahNumber, a.surahName); });
-    let cands = [...byNum.entries()].filter(([, nm]) => nm !== correctName && !leaksSurahName(text, nm));
+    let cands = [...byNum.entries()].filter(([num, nm]) => nm !== correctName && Math.abs(num - correctNum) <= MAX_SURAH_DIST && !leaksSurahName(text, nm));
     cands = cands.map(([num, nm]) => ({ nm, d: Math.abs(num - correctNum) + Math.random() * 4 })).sort((a, b) => a.d - b.d);
     return cands.slice(0, n).map(o => o.nm);
 }
@@ -182,7 +184,7 @@ export class KidsEngine {
     async generateKidsGuessSurah(ayahsPool, chunkIndex, totalChunks) {
         // 🌟 [ذكاء] لا نسأل عن آية يظهر اسم سورتها فيها (ألهاكم التكاثر / والعصر...) والمشتتات سور مجاورة
         const ayah = pickTargetAyah(withoutNameLeak(ayahsPool), chunkIndex, totalChunks); if(!ayah) return null; let correctSurah = ayah.surahName; let allSurahNames = nearSurahNames(ayah.surahNumber, correctSurah, ayah.text, ayahsPool, 4); 
-        if (allSurahNames.length < 2) { let allQuranSurahs = await this.quranEngine.getAllSurahsList(); let extraNames = allQuranSurahs.map(s => s.name).filter(n => n !== correctSurah); extraNames.sort(() => Math.random() - 0.5); allSurahNames = allSurahNames.concat(extraNames); }
+        if (allSurahNames.length < 2) { let allQuranSurahs = await this.quranEngine.getAllSurahsList(); let extraNames = allQuranSurahs.filter(s => s.name !== correctSurah && s.number >= 46 /* نطاق ركن الأطفال */ && !leaksSurahName(ayah.text, s.name)).map(s => ({ nm: s.name, d: Math.abs(s.number - ayah.surahNumber) + Math.random() * 3 })).sort((a, b) => a.d - b.d).map(o => o.nm); allSurahNames = allSurahNames.concat(extraNames); }
         let options = [correctSurah]; while(options.length < 3 && allSurahNames.length > 0) { let choice = allSurahNames.shift(); if(!options.includes(choice)) options.push(choice); } options.sort(() => Math.random() - 0.5); 
         let cleanText = cleanAyahText(ayah.text); return { type: 'kids_mcq', questionTitle: t("خمن السورة يا بطل! 🌟"), questionBody: `<div class="quran-text" style="font-size:3.5rem; color:#0284c7;">﴿\u00A0${cleanText}\u00A0﴾</div>`, correctAns: correctSurah, options: options, optionsKind: 'surah', ayahObj: ayah, reportText: cleanText }; 
     }
