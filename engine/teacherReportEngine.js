@@ -11,7 +11,7 @@
 //     homework:{ submitted }, hwAssigned,             // واجبات سلّمها / صُنعت له
 //     memo: { newAyahs } | null,
 //     review:{ total, surahs:[رقم], juz:[رقم] },
-//     similarity:{ rounds }, tajweed:{ sessions, challenge } }
+//     similarity:{ rounds }, tajweed:{ sessions, challenge, learned }, stars }
 // =============================================================================
 
 // بداية كل جزء [سورة، آية] — نسخة هنا ليبقى المحرك خالصًا (يختبر tests مطابقتها لـengine/reviewParts.js)
@@ -76,11 +76,15 @@ export function buildTeacherReport({ facts, teacher = null, year, monthIndex0 })
         duels: matchIds.size,
         homework: { made: num(teacher && teacher.hwMade), submitted: sum(list, s => s.homework && s.homework.submitted) },
         similarity: sum(list, s => s.similarity && s.similarity.rounds),
-        tajweed: { challenge: sum(list, s => s.tajweed && s.tajweed.challenge), sessions: sum(list, s => s.tajweed && s.tajweed.sessions) }
+        tajweed: { challenge: sum(list, s => s.tajweed && s.tajweed.challenge), sessions: sum(list, s => s.tajweed && s.tajweed.sessions), learned: sum(list, s => s.tajweed && s.tajweed.learned) },
+        stars: sum(list, s => s.stars)
     };
+    const isActive = (s) => num(s.att && s.att.present) || num(s.adult && s.adult.games) || num(s.kids && s.kids.games) || (s.duels || []).length
+        || num(s.homework && s.homework.submitted) || num(s.memo && s.memo.newAyahs) || num(s.review && s.review.total) || num(s.similarity && s.similarity.rounds) || num(s.tajweed && s.tajweed.sessions);
+    rep.studentsActive = list.filter(isActive).length;
     rep.gamesMinutes = rep.adult.minutes + rep.kids.minutes;
     rep.empty = !(rep.circles || rep.memo.ayahs || rep.review.ayahs || rep.adult.games || rep.kids.games || rep.duels
-        || rep.homework.made || rep.homework.submitted || rep.similarity || rep.tajweed.sessions);
+        || rep.homework.made || rep.homework.submitted || rep.similarity || rep.tajweed.sessions || rep.stars);
     // صفوف الطلاب: كل الطلاب، الأكثر نشاطًا أولًا
     rep.students = list.map(s => ({
         id: s.id, name: s.name, hidden: !!s.hidden,

@@ -13,6 +13,8 @@ import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceE
 import { distinctReviewForMonth, reviewCountsForMonth } from '../engine/ayahCount.js';
 import { normalizeReview } from '../engine/reviewParts.js';
 import { normalizeName } from './homeworkRecords.js';
+import { ensureJourney } from '../engine/tajweedJourney.js';
+import { starsInMonth } from './goldStars.js';
 import { buildTeacherReport, juzOfAyah, gameSecondsByKind } from '../engine/teacherReportEngine.js';
 
 const inMonth = (ts, y, m) => Number.isFinite(ts) && ts >= new Date(y, m, 1).getTime() && ts < new Date(y, m + 1, 1).getTime();
@@ -80,6 +82,8 @@ export function factsForMonth(ctx, extra, y, m, now = new Date()) {
     }
 
     const tjMonth = (ctx.tjSessions || []).filter(x => x && inMonth(tsOf(x.timestamp), y, m));
+    const at = (iso) => (iso ? Date.parse(iso) : NaN);
+    const learned = (ctx.mastery || []).filter(rec => inMonth(at(ensureJourney(rec).learnedAt), y, m)).length;
     const sims = (extra.similaritySessions || []).filter(x => x && inMonth(Number(x.at), y, m)).length;
     const duels = ctx.matches.filter(mm => inMonth(new Date(mm.finishedAt).getTime(), y, m)).map(mm => ({ id: mm.id }));
 
@@ -89,13 +93,14 @@ export function factsForMonth(ctx, extra, y, m, now = new Date()) {
         duels, homework: { submitted: hwSubs }, memo,
         review: { total: reviewCountsForMonth(rv, y, m).total, surahs: [...surahs], juz: [...juz] },
         similarity: { rounds: sims },
-        tajweed: { sessions: tjMonth.length, challenge: tjMonth.filter(x => CHALLENGE_TYPES.has(x.activityType)).length },
+        tajweed: { sessions: tjMonth.length, challenge: tjMonth.filter(x => CHALLENGE_TYPES.has(x.activityType)).length, learned },
+        stars: starsInMonth(s, y, m) || 0,
         hwAssigned: (extra.hwByName && extra.hwByName.get(normalizeName(s.name))) || 0
     };
 }
 
 const emptyFacts = (s) => ({ id: s.id, name: s.name || '', hidden: !!s.isHidden, att: null, adult: { games: 0, seconds: 0 }, kids: { games: 0, seconds: 0 }, duels: [],
-    homework: { submitted: 0 }, memo: null, review: { total: 0, surahs: [], juz: [] }, similarity: { rounds: 0 }, tajweed: { sessions: 0, challenge: 0 }, hwAssigned: 0 });
+    homework: { submitted: 0 }, memo: null, review: { total: 0, surahs: [], juz: [] }, similarity: { rounds: 0 }, tajweed: { sessions: 0, challenge: 0, learned: 0 }, stars: 0, hwAssigned: 0 });
 
 /** تقرير الشهر (y, m0) لكل الطلاب بلا استثناء. */
 export async function loadTeacherMonthReport(year, monthIndex0, { now = new Date() } = {}) {

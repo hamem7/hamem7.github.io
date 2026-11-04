@@ -38,6 +38,13 @@ const K = {
     tr_sim_rounds: ['جولة', 'Rounds'],
     tr_tj: ['التجويد', 'Tajweed'],
     tr_tj_challenge: ['جلسة تحدي التجويد', 'Challenge sessions'],
+    tr_games_group: ['الألعاب الفردية', 'Solo games'],
+    tr_other: ['أخرى', 'Other'],
+    tr_active: ['طلاب نشطون هذا الشهر', 'Active students this month'],
+    tr_active_v: ['{a} من {n}', '{a} of {n}'],
+    tr_tj_learned: ['قاعدة تجويد تعلّموها', 'Tajweed rules learned'],
+    tr_stars: ['نجوم ذهبية منحتَها', 'Gold stars you gave'],
+    tr_show_students: ['تفصيل كل طالب', 'Show each student'],
     tr_tj_all: ['كل جلسات التجويد', 'All tajweed sessions'],
     tr_dur_m: ['{m} دقيقة', '{m} min'],
     tr_dur_h: ['{h} ساعة', '{h} h'],
@@ -73,6 +80,8 @@ const K = {
     tr_share_duels: ['المواجهات الثنائية: {n}', 'Duels: {n}'],
     tr_share_hw: ['الواجبات: صنعتُ {m} · سلّمها الطلاب {s}', 'Homework: created {m} · submitted {s}'],
     tr_share_sim: ['المتشابهات: {n} جولة', 'Similar verses: {n} rounds'],
+    tr_share_active: ['الطلاب النشطون: {a} من {n}', 'Active students: {a} of {n}'],
+    tr_share_stars: ['النجوم الذهبية: {n}', 'Gold stars: {n}'],
     tr_share_tj: ['تحدي التجويد: {n} جلسة', 'Tajweed challenge: {n} sessions']
 };
 

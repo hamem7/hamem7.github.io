@@ -50,6 +50,12 @@ function ensureStyles() {
 .tmr-row:first-of-type{border-top:0;}
 .tmr-row span{color:var(--dh-ink-soft);font-size:.95rem;}
 .tmr-row b{font-size:1.5rem;font-weight:700;color:var(--dh-ink);}
+.tmr-list{columns:2 300px;column-gap:32px;background:var(--dh-surface-2);border:1px solid var(--dh-border);border-radius:16px;padding:6px 16px 10px;margin-bottom:16px;}
+.tmr-row,.tmr-group{break-inside:avoid;}
+.tmr-list .tmr-row b{font-size:1.2rem;}
+.tmr-group{margin-top:12px;padding-bottom:2px;font-weight:700;color:var(--dh-ok-ink);border-bottom:2px solid var(--dh-border);}
+.tmr-sec summary{cursor:pointer;font-weight:700;color:var(--dh-ok-ink);font-size:1.02rem;min-height:32px;}
+.tmr-sec[open] summary{margin-bottom:10px;}
 .tmr-total{background:var(--dh-surface-2);border:1px solid var(--dh-border);border-radius:16px;padding:12px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;}
 .tmr-total b{font-size:1.4rem;color:var(--dh-ok-ink);}
 .tmr-sec{background:var(--dh-surface-2);border:1px solid var(--dh-border);border-radius:16px;padding:14px;margin-bottom:16px;}
@@ -80,24 +86,26 @@ function placeBelowMainHeader(overlay) {
     if (h) overlay.style.top = Math.max(0, Math.round(h.getBoundingClientRect().bottom)) + 'px';
 }
 
-const row = (label, value) => `<div class="tmr-row"><span>${esc(label)}</span><b>${esc(value)}</b></div>`;
-const card = (title, rows) => `<section class="tmr-card"><h3>${esc(title)}</h3>${rows.join('')}</section>`;
 
 function reportHtml(r) {
     if (r.empty) return `<div class="tmr-center">${esc(t('tr_empty'))}</div>`;
-    const cards = [
-        card(t('tr_circles'), [row(t('tr_circles_n'), nf(r.circles))]),
-        card(t('tr_memo'), [row(t('tr_memo_students'), nf(r.memo.students)), row(t('tr_memo_ayahs'), nf(r.memo.ayahs))]),
-        card(t('tr_review'), [row(t('tr_review_ayahs'), nf(r.review.ayahs)), row(t('tr_review_surahs'), nf(r.review.surahs)), row(t('tr_review_juz'), nf(r.review.juz))]),
-        card(t('tr_adult'), [row(t('tr_games_count'), nf(r.adult.games)), row(t('tr_games_time'), formatMinutes(r.adult.minutes))]),
-        card(t('tr_kids'), [row(t('tr_games_count'), nf(r.kids.games)), row(t('tr_games_time'), formatMinutes(r.kids.minutes))]),
-        card(t('tr_duels'), [row(t('tr_duels_n'), nf(r.duels))]),
-        card(t('tr_hw'), [row(t('tr_hw_made'), nf(r.homework.made)), row(t('tr_hw_submitted'), nf(r.homework.submitted))]),
-        card(t('tr_sim'), [row(t('tr_sim_rounds'), nf(r.similarity))]),
-        card(t('tr_tj'), [row(t('tr_tj_challenge'), nf(r.tajweed.challenge)), row(t('tr_tj_all'), nf(r.tajweed.sessions))])
+    const L = (label, value) => `<div class="tmr-row"><span>${esc(label)}</span><b>${esc(value)}</b></div>`;
+    const G = (title) => `<div class="tmr-group">${esc(title)}</div>`;
+    const list = [
+        L(t('tr_active'), tf('tr_active_v', { a: nf(r.studentsActive), n: nf(r.studentsTotal) })),
+        L(t('tr_circles'), nf(r.circles)),
+        G(t('tr_memo')), L(t('tr_memo_students'), nf(r.memo.students)), L(t('tr_memo_ayahs'), nf(r.memo.ayahs)),
+        G(t('tr_review')), L(t('tr_review_ayahs'), nf(r.review.ayahs)), L(t('tr_review_surahs'), nf(r.review.surahs)), L(t('tr_review_juz'), nf(r.review.juz)),
+        G(t('tr_games_group')), L(t('tr_adult') + ' — ' + t('tr_games_count'), nf(r.adult.games)), L(t('tr_adult') + ' — ' + t('tr_games_time'), formatMinutes(r.adult.minutes)),
+        L(t('tr_kids') + ' — ' + t('tr_games_count'), nf(r.kids.games)), L(t('tr_kids') + ' — ' + t('tr_games_time'), formatMinutes(r.kids.minutes)),
+        L(t('tr_games_total_time'), formatMinutes(r.gamesMinutes)),
+        L(t('tr_duels'), nf(r.duels)),
+        G(t('tr_hw')), L(t('tr_hw_made'), nf(r.homework.made)), L(t('tr_hw_submitted'), nf(r.homework.submitted)),
+        G(t('tr_sim')), L(t('tr_sim_rounds'), nf(r.similarity)),
+        G(t('tr_tj')), L(t('tr_tj_challenge'), nf(r.tajweed.challenge)), L(t('tr_tj_all'), nf(r.tajweed.sessions)), L(t('tr_tj_learned'), nf(r.tajweed.learned)),
+        G(t('tr_other')), L(t('tr_stars'), nf(r.stars))
     ];
-    return `<div class="tmr-total"><span>${esc(t('tr_games_total_time'))}</span><b>${esc(formatMinutes(r.gamesMinutes))}</b></div>
-      <div class="tmr-grid">${cards.join('')}</div>${tableHtml(r)}<p class="tmr-note">${esc(t('tr_note'))}</p>`;
+    return `<section class="tmr-list">${list.join('')}</section>${tableHtml(r)}<p class="tmr-note">${esc(t('tr_note'))}</p>`;
 }
 
 function tableHtml(r) {
@@ -106,13 +114,14 @@ function tableHtml(r) {
     const d = (n) => (n ? nf(n) : '—');
     const body = rows.map(s => `<tr><td>${esc(s.name)}${s.hidden ? ` <span class="tmr-tag">(${esc(t('tr_hidden_tag'))})</span>` : ''}</td><td>${d(s.circles)}</td><td>${d(s.adult)}</td><td>${d(s.kids)}</td><td>${d(s.duels)}</td><td>${d(s.newAyahs)}</td><td>${d(s.review)}</td><td>${d(s.hwAssigned)}</td><td>${d(s.hwSubmitted)}</td><td>${d(s.similarity)}</td><td>${d(s.tajweed)}</td></tr>`).join('');
     const cols = ['student', 'circles', 'adult', 'kids', 'duels', 'memo', 'review', 'hwmade', 'hwsub', 'sim', 'tj'].map(k => `<th>${esc(t('tr_col_' + k))}</th>`).join('');
-    return `<section class="tmr-sec"><h3>${esc(t('tr_tbl_title'))} — ${esc(tf('tr_students_count', { n: nf(rows.length) }))}</h3><div class="tmr-scroll"><table class="tmr-table"><thead><tr>${cols}</tr></thead><tbody>${body}</tbody></table></div></section>`;
+    return `<details class="tmr-sec"><summary>${esc(t('tr_show_students'))} (${nf(rows.length)})</summary><div class="tmr-scroll"><table class="tmr-table"><thead><tr>${cols}</tr></thead><tbody>${body}</tbody></table></div></details>`;
 }
 
 /** نص ملخص قابل للنسخ (واتساب) بلغة الواجهة. */
 export function shareText(r) {
     return [
         tf('tr_share_head', { month: monthLabel(r.year, r.monthIndex0) }),
+        tf('tr_share_active', { a: nf(r.studentsActive), n: nf(r.studentsTotal) }),
         tf('tr_share_circles', { n: nf(r.circles) }),
         tf('tr_share_memo', { s: nf(r.memo.students), n: nf(r.memo.ayahs) }),
         tf('tr_share_review', { n: nf(r.review.ayahs), s: nf(r.review.surahs), j: nf(r.review.juz) }),
@@ -121,7 +130,8 @@ export function shareText(r) {
         tf('tr_share_duels', { n: nf(r.duels) }),
         tf('tr_share_hw', { m: nf(r.homework.made), s: nf(r.homework.submitted) }),
         tf('tr_share_sim', { n: nf(r.similarity) }),
-        tf('tr_share_tj', { n: nf(r.tajweed.challenge) })
+        tf('tr_share_tj', { n: nf(r.tajweed.challenge) }),
+        tf('tr_share_stars', { n: nf(r.stars) })
     ].join('\n');
 }
 
