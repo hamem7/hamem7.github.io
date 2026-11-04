@@ -20,6 +20,14 @@ const BADGES = {
 const UNITS_EN = { games: 'Games', sessions: 'Sessions', points: 'Points', ayahs: 'Ayahs', parts: 'Parts', questions: 'Questions', percent: 'Attendance %', rules: 'Rules', wins: 'Wins', months: 'Months' };
 
 const ar = {
+    // 🌟 [2026-11] التقرير الشهري — الأوسمة والحضور والتجويد بتصميمها الجديد
+    bdg_rep_month_total: 'مجموع أوسمة الشهر', bdg_rep_next_title: 'أقرب وسام قادم', bdg_rep_next_prog: '{v} من {at} · باقٍ {k}',
+    goal_rep_juz_title: 'أوسمة الأجزاء', goal_rep_new_short: 'جديد هذا الشهر', goal_rep_earned_n: 'أوسمة أجزاء سابقة: {n}', goal_rep_earned_short: 'نِيلت',
+    att_rep_sub2: 'حسب سجل المعلم — كل مربع حصة مجدولة بتاريخها ويومها', att_rep_week: 'الأسبوع {n}', att_rep_present_of: 'حصة حضرها', att_rep_min_session: 'دقيقة للحصة',
+    att_rep_key_p: 'حضر', att_rep_key_a: 'غاب', att_rep_key_c: 'لم تُعقد', att_rep_key_x: 'حصة إضافية', att_rep_key_u: 'لم يُؤكَّد بعد',
+    tjr_sub2: 'رحلة كل حكم: شرح ← تطبيق ← اختبار ← اعتماد المعلم في التلاوة', tjr_theory_short: 'النظري', tjr_practice_short: 'العملي', tjr_first_n: '{n} من أول محاولة',
+    tjr_st_approved: 'اعتمده المعلم', tjr_st_wait: 'ينتظر التسميع', tjr_st_exam: 'يستعد للاختبار', tjr_st_practice: 'في التطبيق', tjr_next_rule: 'الحكم التالي في الرحلة: {rule}',
+    cmp_title_ok: 'بيانات الشهر مكتملة', cmp_title_missing: 'ينقص قبل الإرسال:', cmp_ok_short: 'الحفظ والحضور والتقييمات مسجَّلة', cmp_teacher_only: 'للمعلم فقط — لا يظهر في الصورة أو PDF',
     goal_kicker: 'إنجاز جديد!', goal_chip_juz: 'وسام جزء', goal_juz_name: 'حافظ {juz}', goal_juz_reason: 'أتمّ حفظ {juz} كاملًا — بارك الله فيه',
     goal_next_juz: 'الهدف التالي: {name} — أنجز {pct}',
     goal_sec_title: 'أهدافي وأوسمة الأجزاء', goal_sec_sub: 'وسام لكل جزء يُتمّ حفظه', goal_juz_count: '{n} من ٣٠ جزءًا محفوظًا',
@@ -95,6 +103,14 @@ const ar = {
     tier_word: 'الدرجة'
 };
 const en = {
+    // 🌟 [2026-11] Monthly report — redesigned badges, attendance and tajweed
+    bdg_rep_month_total: 'total this month', bdg_rep_next_title: 'Closest next badge', bdg_rep_next_prog: '{v} of {at} · {k} to go',
+    goal_rep_juz_title: 'Juz medals', goal_rep_new_short: 'New this month', goal_rep_earned_n: 'Earlier juz medals: {n}', goal_rep_earned_short: 'Earned',
+    att_rep_sub2: "According to the teacher's record — each box is a scheduled class with its date and day", att_rep_week: 'Week {n}', att_rep_present_of: 'classes attended', att_rep_min_session: 'min per class',
+    att_rep_key_p: 'Present', att_rep_key_a: 'Absent', att_rep_key_c: 'Not held', att_rep_key_x: 'Extra class', att_rep_key_u: 'Not confirmed yet',
+    tjr_sub2: 'Each rule’s journey: lesson → practice → exam → teacher approval in recitation', tjr_theory_short: 'Theory', tjr_practice_short: 'Practical', tjr_first_n: '{n} on first try',
+    tjr_st_approved: 'Approved by teacher', tjr_st_wait: 'Awaiting recitation check', tjr_st_exam: 'Preparing for the exam', tjr_st_practice: 'In practice', tjr_next_rule: 'Next rule on the journey: {rule}',
+    cmp_title_ok: "This month's data is complete", cmp_title_missing: 'Missing before sending:', cmp_ok_short: 'memorization, attendance and evaluations recorded', cmp_teacher_only: 'Teacher only — not in the image or PDF',
     goal_kicker: 'NEW ACHIEVEMENT!', goal_chip_juz: 'Juz badge', goal_juz_name: 'Memorized {juz}', goal_juz_reason: 'Completed memorizing {juz} — may Allah bless him/her',
     goal_next_juz: 'Next goal: {name} — {pct} done',
     goal_sec_title: 'My goals & juz badges', goal_sec_sub: 'A badge for every juz you complete', goal_juz_count: '{n} of 30 juz memorized',

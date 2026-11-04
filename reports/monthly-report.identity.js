@@ -90,10 +90,13 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   }
   #report-screen .page.mr2 .mr2-verse{font-family:'Amiri Quran','Amiri',serif; font-size:20px; line-height:1.5; color:#f0d878; flex:1; text-align:center;}
   #report-screen .page.mr2 .mr2-figures{display:flex; gap:22px; align-items:center; margin-top:2px;}
-  #report-screen .page.mr2 .mr2-fig-num{font-family:'Reem Kufi','Amiri',serif; font-size:30px; line-height:1; color:#f0d878; font-weight:500;}
-  #report-screen .page.mr2 .mr2-fig-num small{font-size:16px;}
-  #report-screen .page.mr2 .mr2-fig-lbl{font-size:12.5px; color:#c9d8d0; margin-top:4px; font-weight:500;}
-  #report-screen .page.mr2 .mr2-fig-sep{width:1px; height:34px; background:rgba(212,175,55,.45);}
+  /* 🌟 [2026-11] أرقام الهيرو بلا صندوق: خط أقوى وأبيض صريح، مع ظلّ ناعم يفصله عن الزخرفة خلفه */
+  #report-screen .page.mr2 .mr2-fig-num{font-family:'Reem Kufi','Amiri',serif; font-size:36px; line-height:1; color:#f0d878; font-weight:700; text-shadow:0 2px 10px rgba(0,0,0,.75);}
+  #report-screen .page.mr2 .mr2-fig-num small{font-size:18px;}
+  #report-screen .page.mr2 .mr2-fig-lbl{font-size:14.5px; color:#ffffff; margin-top:6px; font-weight:700; text-shadow:0 1px 8px rgba(0,0,0,.85);}
+  #report-screen .page.mr2 .mr2-fig-ev{font-size:12px; color:#ffffff; margin-top:3px; font-weight:500; max-width:300px; line-height:1.6; text-shadow:0 1px 6px rgba(0,0,0,.9);}
+  #report-screen .page.mr2 .mr2-fig-ev:empty{display:none;}
+  #report-screen .page.mr2 .mr2-fig-sep{width:1px; height:44px; background:rgba(212,175,55,.6);}
   #report-screen .page.mr2 .mr2-moon{flex:none; width:150px; height:150px;}
 
   /* ============== عناوين الأقسام ============== */
@@ -123,6 +126,8 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mr2-chip.gibbous{background:#cfe7dc; color:#0b3d30;}
   #report-screen .page.mr2 .mr2-chip.quarter{background:#f3e7b5; color:#5c4508;}
   #report-screen .page.mr2 .mr2-chip.crescent{background:#efe6c8; color:#6b4f0a;}
+  /* 🌟 [2026-11] مؤشر أدلّته أقل من 3: لا منزل */
+  #report-screen .page.mr2 .mr2-chip.mr2-chip-na{background:#eceae3; color:#6b6b63; border:1px dashed #b9b4a4;}
 
   /* دليل المنازل */
   #report-screen .page.mr2 .mr2-legend{
@@ -287,5 +292,99 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
     #report-screen .page.mr2 .mr-summary-grid{grid-template-columns:repeat(2, minmax(0, 1fr));}
     #report-screen .page.mr2 .mr2-legend{flex-direction:column; align-items:flex-start;}
     #report-screen .page.mr2 .mr2-legend-items{flex-wrap:wrap;}
+  }
+
+  /* =====================================================================================
+     🌟 [2026-11] أقسام معاد تصميمها: تقييمات غرفة اللعب · الواجبات (تذاكر) · أخطاء عولجت (مجمّعة) · المقارنة الشهرية
+     · «بُني هذا التقرير على». ألوان ثابتة وSVG فقط (html2canvas)، بلا var() ولا letter-spacing.
+     ===================================================================================== */
+  #report-screen .page.mr2 .mrp-panel{background:#0b3d30; border:1px solid #d4af37; border-radius:16px; padding:12px 14px; color:#f6f3e8;}
+  #report-screen .page.mr2 .mrp-panel small{font-size:11px; color:#a9c7ba;}
+  #report-screen .page.mr2 .mrp-num{font-family:'Reem Kufi','Amiri',serif; color:#f0d878; line-height:1.05; font-weight:600;}
+  /* تقييمات غرفة اللعب */
+  #report-screen .page.mr2 .mrp-ge{display:grid; grid-template-columns:200px 1fr; gap:14px; align-items:stretch;}
+  #report-screen .page.mr2 .mrp-ge .mrp-panel{display:flex; flex-direction:column; gap:6px;}
+  #report-screen .page.mr2 .mrp-ge-avg{display:flex; align-items:center; gap:10px;}
+  #report-screen .page.mr2 .mrp-ge-avg .mrp-num{display:block; font-size:34px; margin-bottom:4px;}
+  #report-screen .page.mr2 .mrp-kv3{display:grid; grid-template-columns:repeat(3,1fr); gap:4px; text-align:center; border-top:1px solid rgba(255,255,255,.12); border-bottom:1px solid rgba(255,255,255,.12); padding:8px 0;}
+  #report-screen .page.mr2 .mrp-kv3 .mrp-num{display:block; font-size:18px;}
+  #report-screen .page.mr2 .mrp-kv3 span{font-size:10.5px; color:#c9d8d0;}
+  #report-screen .page.mr2 .mrp-tags{display:flex; flex-direction:column; gap:4px; font-size:11px; color:#d7e4dd;}
+  #report-screen .page.mr2 .mrp-tags span{background:rgba(255,255,255,.07); border-radius:8px; padding:2px 8px;}
+  #report-screen .page.mr2 .mrp-ge-chart{background:#ffffff; border:1px solid #eadfbd; border-radius:16px; padding:10px 12px 8px; display:flex; flex-direction:column; justify-content:space-between;}
+  #report-screen .page.mr2 .mrp-ge-chart svg{display:block; width:100%; height:auto;}
+  #report-screen .page.mr2 .mrp-ge-note{font-size:11.5px; color:#4a6058; border-top:1px dashed #e6dcbc; padding-top:6px; margin-top:4px;}
+  #report-screen .page.mr2 .mrp-ge-note .xl{display:inline-block; width:22px; border-top:2px dashed #d4af37; vertical-align:middle; margin-inline-end:6px;}
+  /* الواجبات — تذاكر مدمجة (5 في الصف: 10 واجبات في صفّين) */
+  #report-screen .page.mr2 .mrp-hw{display:grid; grid-template-columns:180px 1fr; gap:14px; align-items:stretch;}
+  #report-screen .page.mr2 .mrp-hw .mrp-panel{display:flex; flex-direction:column; gap:8px; justify-content:center;}
+  #report-screen .page.mr2 .mrp-hw-top{display:flex; align-items:baseline; gap:8px; border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:6px;}
+  #report-screen .page.mr2 .mrp-hw-top .mrp-num{font-size:34px;}
+  #report-screen .page.mr2 .mrp-hw-top span{font-size:12px; color:#d7e4dd;}
+  #report-screen .page.mr2 .mrp-hw-avg{display:flex; align-items:center; gap:8px;}
+  #report-screen .page.mr2 .mrp-hw-avg .mrp-num{display:block; font-size:24px; margin-bottom:3px;}
+  #report-screen .page.mr2 .mrp-kv2{display:grid; grid-template-columns:1fr 1fr; gap:4px; text-align:center; border-top:1px solid rgba(255,255,255,.12); padding-top:6px;}
+  #report-screen .page.mr2 .mrp-kv2 .mrp-num{display:block; font-size:17px;}
+  #report-screen .page.mr2 .mrp-kv2 span{font-size:10.5px; color:#c9d8d0;}
+  #report-screen .page.mr2 .mrp-tk-grid{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; align-content:start;}
+  #report-screen .page.mr2 .mrp-tk{background:#ffffff; border:1px solid #eadfbd; border-top:3px solid #0b3d30; border-radius:10px; padding:6px 8px 7px; min-width:0;}
+  #report-screen .page.mr2 .mrp-tk-r1{display:flex; align-items:baseline; justify-content:space-between; gap:4px;}
+  #report-screen .page.mr2 .mrp-tk-dt{font-size:10.5px; font-weight:700; color:#8a6221; white-space:nowrap;}
+  #report-screen .page.mr2 .mrp-tk-sc{font-family:'Reem Kufi','Amiri',serif; font-size:20px; line-height:1; font-weight:600;}
+  #report-screen .page.mr2 .mrp-tk-sc small{font-size:11px;}
+  #report-screen .page.mr2 .mrp-tk-scope{font-size:11px; color:#4a6058; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  #report-screen .page.mr2 .mrp-tk-bar{display:block; height:4px; border-radius:99px; background:#f1ecdc; margin-top:5px; overflow:hidden;}
+  #report-screen .page.mr2 .mrp-tk-bar i{display:block; height:100%; border-radius:99px;}
+  /* أخطاء عولجت — مجمّعة حسب السورة */
+  #report-screen .page.mr2 .mrp-err{display:grid; grid-template-columns:150px 1fr; gap:12px; align-items:stretch;}
+  #report-screen .page.mr2 .mrp-err .mrp-panel{display:flex; flex-direction:column; justify-content:center; text-align:center;}
+  #report-screen .page.mr2 .mrp-err .mrp-num{font-size:34px;}
+  #report-screen .page.mr2 .mrp-err .mrp-panel span{font-size:12px; color:#c9d8d0; margin-top:4px;}
+  #report-screen .page.mr2 .mrp-err .mrp-panel em{font-style:normal; font-size:11px; font-weight:700; color:#06231c; background:#f3e7b5; border-radius:99px; padding:1px 8px; margin:6px auto 0;}
+  #report-screen .page.mr2 .mrp-err-list{display:flex; flex-direction:column; gap:6px;}
+  #report-screen .page.mr2 .mrp-err-g{display:grid; grid-template-columns:120px 1fr 28px; gap:8px; align-items:center; background:#ffffff; border:1px solid #eadfbd; border-radius:10px; padding:6px 10px;}
+  #report-screen .page.mr2 .mrp-err-g .s{font-size:13px; font-weight:700; color:#164f40;}
+  #report-screen .page.mr2 .mrp-err-g .a{display:flex; flex-wrap:wrap; gap:4px;}
+  #report-screen .page.mr2 .mrp-err-g .a i{font-style:normal; font-size:11.5px; background:#eef6f2; color:#0b3d30; border:1px solid #cfe5da; border-radius:99px; padding:0 8px;}
+  #report-screen .page.mr2 .mrp-err-g .n{font-family:'Reem Kufi','Amiri',serif; font-size:15px; color:#8a6221; text-align:center;}
+  #report-screen .page.mr2 .mrp-err-g.pend{background:#fffaf0; border-style:dashed;}
+  #report-screen .page.mr2 .mrp-err-g.pend .s{color:#8a6221;}
+  #report-screen .page.mr2 .mrp-err-g.pend .a i{background:#fbf1d6; border-color:#ecd58a; color:#6f5410;}
+  /* المقارنة الشهرية — لوحة نتائج: بطاقة لكل مؤشر (القيمة الآن، والسابقة، والفرق، وشريطان صغيران) */
+  #report-screen .page.mr2 .mrp-cmp-head{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:2px 0 10px;}
+  #report-screen .page.mr2 .mrp-cmp-head .up, #report-screen .page.mr2 .mrp-cmp-head .down, #report-screen .page.mr2 .mrp-cmp-head .same{font-size:12px; font-weight:700; border-radius:99px; padding:3px 12px;}
+  #report-screen .page.mr2 .mrp-cmp-head .up{background:#e5f4ec; color:#1f7a55;}
+  #report-screen .page.mr2 .mrp-cmp-head .down{background:#fbe7e3; color:#a63a2a;}
+  #report-screen .page.mr2 .mrp-cmp-head .same{background:#f1efe8; color:#6b6b63;}
+  #report-screen .page.mr2 .mrp-cmp-head .months{margin-inline-start:auto; font-size:12px; color:#4a6058; font-weight:600;}
+  #report-screen .page.mr2 .mrp-cmp-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px;}
+  #report-screen .page.mr2 .mrp-cc{position:relative; background:#ffffff; border:1px solid #eadfbd; border-radius:14px; padding:10px 12px 11px; overflow:hidden;}
+  #report-screen .page.mr2 .mrp-cc::before{content:''; position:absolute; top:0; right:0; left:0; height:4px; background:#cfc6a8;}
+  #report-screen .page.mr2 .mrp-cc.up::before{background:#1f7a55;}
+  #report-screen .page.mr2 .mrp-cc.down::before{background:#c0613f;}
+  #report-screen .page.mr2 .mrp-cc-h{display:flex; justify-content:space-between; align-items:flex-start; gap:6px;}
+  #report-screen .page.mr2 .mrp-cc-h b{font-size:12.5px; color:#4a6058; font-weight:700; line-height:1.4;}
+  #report-screen .page.mr2 .mrp-cc-d{flex:none; font-size:12px; font-weight:800; border-radius:99px; padding:1px 9px; white-space:nowrap;}
+  #report-screen .page.mr2 .mrp-cc.up .mrp-cc-d{background:#e5f4ec; color:#1f7a55;}
+  #report-screen .page.mr2 .mrp-cc.down .mrp-cc-d{background:#fbe7e3; color:#a63a2a;}
+  #report-screen .page.mr2 .mrp-cc.same .mrp-cc-d{background:#f1efe8; color:#6b6b63;}
+  #report-screen .page.mr2 .mrp-cc-v{display:flex; align-items:baseline; gap:8px; margin:6px 0 2px;}
+  #report-screen .page.mr2 .mrp-cc-v .mrp-num{font-size:30px; color:#0b3d30;}
+  #report-screen .page.mr2 .mrp-cc-v span{font-size:12px; color:#8a7d5c;}
+  #report-screen .page.mr2 .mrp-cc-bars{display:flex; flex-direction:column; gap:3px; margin-top:6px;}
+  #report-screen .page.mr2 .mrp-cc-bars i{display:block; height:6px; border-radius:99px; min-width:3px;}
+  #report-screen .page.mr2 .mrp-cc-bars i.pv{background:#d9d1b6;}
+  #report-screen .page.mr2 .mrp-cc-bars i.cu{background:#0b3d30;}
+  #report-screen .page.mr2 .mrp-cc.down .mrp-cc-bars i.cu{background:#c0613f;}
+  #report-screen .page.mr2 .mrp-cc-prev{font-size:11px; color:#8a7d5c; margin-top:4px;}
+  #report-screen .page.mr2 .mrp-cmp-note{font-size:11px; color:#8a7d5c; margin-top:8px;}
+  /* «بُني هذا التقرير على» */
+  #report-screen .page.mr2 .mr2-sources{padding:10px 14px; background:#f7f2e2; border:1px solid #e6dcbc; border-radius:12px; font-size:12px; line-height:1.9; color:#4a6058;}
+  #report-screen .page.mr2 .mr2-sources:empty{display:none;}
+  #report-screen .page.mr2 .mr2-sources b{color:#164f40;}
+  @media (max-width:640px){
+    #report-screen .page.mr2 .mrp-ge, #report-screen .page.mr2 .mrp-hw, #report-screen .page.mr2 .mrp-err{grid-template-columns:1fr;}
+    #report-screen .page.mr2 .mrp-tk-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+    #report-screen .page.mr2 .mrp-cmp-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
   }
 `;

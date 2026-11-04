@@ -50,6 +50,7 @@ import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // 🌟 [جديد] هوية "منازل القمر" الخاصة بالتقرير الشهري (ملف مستقل معزول تحت .mr2 —
 // راجع تعليق أعلى reports/monthly-report.identity.js). لا تمسّ REPORT_STYLES ولا أي CSS عام.
 import { MONTHLY_REPORT_FONTS_IMPORT, MONTHLY_REPORT_IDENTITY_STYLES } from './monthly-report.identity.js';
+import { MR2_ORNAMENT_PATH, MR2_ORNAMENT_TILE } from './monthly-report.ornament.js';
 import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.js';
 // 🌟 [جديد] أقسام الأوسمة/الحضور/التجويد/الختم/خطة الشهر القادم (reports/monthly-extras.js)
 import { collectExtras, renderExtras } from './monthly-extras.js';
@@ -165,15 +166,21 @@ const MONTHLY_REPORT_TEMPLATE = `
              بصورته وصفّه ونطاق حفظه + قمر الشهر (الإنجاز العام). كل المعرّفات (mr-student-name،
              mr-avatar-circle...) محفوظة كما كانت حتى تعمل دوال العرض بلا تغيير. -->
         <div class="pdf-block mr2-hero" id="mr-intro-block">
-          <svg class="mr2-hero-bg" viewBox="0 0 794 420" preserveAspectRatio="none" aria-hidden="true">
+          <!-- 🌟 [2026-11] زخرفة النجوم الثمانية المتشابكة (reports/monthly-report.ornament.js) بدل نقش الخاتم: تتلاشى من الأسفل
+               للأعلى. slice بدل none حتى لا تتمطّط البلاطة مع ارتفاع الهيرو. ألوان ثابتة وSVG مضمَّن لأجل html2canvas. -->
+          <svg class="mr2-hero-bg" viewBox="0 0 794 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
-              <pattern id="mr2-khatam" width="64" height="64" patternUnits="userSpaceOnUse">
-                <g fill="none" stroke="#d4af37" stroke-opacity=".15" stroke-width="1"><rect x="12" y="12" width="40" height="40"/><rect x="12" y="12" width="40" height="40" transform="rotate(45 32 32)"/></g>
+              <pattern id="mr2-orn" width="${MR2_ORNAMENT_TILE}" height="${MR2_ORNAMENT_TILE}" patternUnits="userSpaceOnUse" patternTransform="translate(-20 6)">
+                <path d="${MR2_ORNAMENT_PATH}" fill="#d4af37" fill-rule="evenodd"/>
               </pattern>
+              <linearGradient id="mr2-orn-fade" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0" stop-color="#fff" stop-opacity=".26"/><stop offset=".45" stop-color="#fff" stop-opacity=".1"/><stop offset=".85" stop-color="#fff" stop-opacity="0"/>
+              </linearGradient>
+              <mask id="mr2-orn-mask"><rect width="794" height="420" fill="url(#mr2-orn-fade)"/></mask>
               <radialGradient id="mr2-glow" cx="24%" cy="55%" r="50%"><stop offset="0" stop-color="#147c5e" stop-opacity=".55"/><stop offset="1" stop-color="#06231c" stop-opacity="0"/></radialGradient>
             </defs>
             <rect width="794" height="420" fill="url(#mr2-glow)"/>
-            <rect width="794" height="420" fill="url(#mr2-khatam)"/>
+            <rect width="794" height="420" fill="url(#mr2-orn)" mask="url(#mr2-orn-mask)"/>
           </svg>
           <div class="mr2-hero-frame"></div>
           <div class="mr2-hero-inner">
@@ -213,6 +220,8 @@ const MONTHLY_REPORT_TEMPLATE = `
                   <div id="mr-fig-overall">
                     <div class="mr2-fig-num" id="mr-fig-overall-num">--</div>
                     <div class="mr2-fig-lbl" data-i18n="mr2_hero_overall">الإنجاز العام هذا الشهر</div>
+                    <!-- 🌟 [2026-11] مصدر الرقم: ما دخل المتوسط وما استُبعد لقلّة أدلته (renderMoonHero) -->
+                    <div class="mr2-fig-ev" id="mr-fig-overall-ev"></div>
                   </div>
                   <div class="mr2-fig-sep" id="mr-fig-sep"></div>
                   <div id="mr-fig-memo">
@@ -322,12 +331,6 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div id="mr-trend-content"></div>
         </div>
 
-        <!-- 🌟 رسالة المعلم لولي الأمر (نفس المعرّف mr-note-text ونفس منطق الملاحظة اليدوية/التلقائية) -->
-        <div class="note-box pdf-block">
-          <div class="note-label" data-i18n="mr_note_box_label">رسالة المعلم لولي الأمر</div>
-          <p class="note-text" id="mr-note-text"></p>
-        </div>
-
         <!-- 🌟 [جديد] خطة الشهر القادم — رسالة تحفيز ثابتة النص (ليست بيانات) تحثّ على المراجعة
              وحفظ آيات جديدة وإتقان التجويد. تُملأ من renderPlanBlock بالاسم الأول للطالب. -->
         <div class="mr-plan-block pdf-block" id="mr-plan-block">
@@ -342,6 +345,12 @@ const MONTHLY_REPORT_TEMPLATE = `
           </div>
         </div>
 
+        <!-- 🌟 رسالة المعلم لولي الأمر — [2026-11] نُقلت لآخر التقرير بعد كل البيانات (نفس المعرّف mr-note-text ونفس منطق الملاحظة اليدوية/التلقائية) -->
+        <div class="note-box pdf-block">
+          <div class="note-label" data-i18n="mr_note_box_label">رسالة المعلم لولي الأمر</div>
+          <p class="note-text" id="mr-note-text"></p>
+        </div>
+
         <!-- 🌟 التوقيع (يمين) وختم المعلم الرسمي المرفوع في "ملف المعلم" (يسار). الختم يُخفى
              كليًا لو لم يرفع المعلم ختمًا — لا مكان فارغ يُطبع. المعرّفات كما كانت. -->
         <div class="closing pdf-block">
@@ -352,6 +361,9 @@ const MONTHLY_REPORT_TEMPLATE = `
           </div>
           <div class="mr2-stamp-wrap"><img id="mr-sign-img" style="display:none;" alt=""></div>
         </div>
+
+        <!-- 🌟 [2026-11] «بُني هذا التقرير على»: مصادر الأرقام وعدد أدلّتها (renderSourcesLine) -->
+        <div class="pdf-block mr2-sources" id="mr-sources"></div>
 
         <div class="pdf-block mr2-footer">
           <div class="mr2-footer-bless" data-i18n="mr2_footer_bless">بارك الله في جهدكم · معًا نرعى الحفظ</div>
@@ -468,8 +480,18 @@ function khatamGlyphSvg() {
 // فعليًا في المنصة لهذا الشهر فقط (متوسط تقييمات غرفة اللعب + متوسط الواجبات)، ويُحسَب مما
 // وُجد منهما. لا اختبارات ثنائية (نتيجتها فوز/خسارة لا نسبة) ولا حضور (غير متتبَّع) ولا
 // أي رقم مُختلَق. لو لم يوجد أي منهما يبقى القمر بلا جزء مضيء ويُخفى الرقم.
+// 🌟 [2026-11 — صدق التقرير] لا يدخل المتوسطَ مؤشرٌ أدلّته أقل من MR_MIN_EVIDENCE (جلسة/واجب واحد أو اثنان لا يصنعان
+// «مستوى»)؛ ويُذكر تحت الرقم ما دخل وما استُبعد (overallParts). لو لم يكفِ أي مؤشر يُخفى الرقم والقمر بلا جزء مضيء.
+const MR_MIN_EVIDENCE = 3;
+function overallParts(d) {
+  const all = [
+    { key: 'games', avg: d.gameEvalAvg, n: (d.gameEvalEntries || []).length },
+    { key: 'hw', avg: d.homeworkAvg, n: (d.homeworkEntries || []).length }
+  ].filter(p => typeof p.avg === 'number');
+  return { used: all.filter(p => p.n >= MR_MIN_EVIDENCE), excluded: all.filter(p => p.n < MR_MIN_EVIDENCE) };
+}
 function computeOverallScore(d) {
-  const vals = [d.gameEvalAvg, d.homeworkAvg].filter(v => typeof v === 'number');
+  const vals = overallParts(d).used.map(p => p.avg);
   return vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length) : null;
 }
 
@@ -815,7 +837,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
   try {
     const prevMonthIndex0 = monthIndex0 === 0 ? 11 : monthIndex0 - 1;
     const prevYear = monthIndex0 === 0 ? year - 1 : year;
-    previousMonthStats = await getLightMonthStats(student.id, prevYear, prevMonthIndex0);
+    previousMonthStats = await getLightMonthStats(student.id, prevYear, prevMonthIndex0, student);
   } catch (e) {
     console.error('[monthly-report.js] تعذر جلب مؤشرات الشهر السابق للمقارنة:', e);
   }
@@ -824,7 +846,9 @@ async function buildMonthlyReportData(year, monthIndex0) {
     current: {
       newAyahs: journey ? journey.newAyahs : null,
       gameEvalCount: gameEvalEntries.length,
-      gameEvalAvg
+      gameEvalAvg,
+      homeworkAvg,
+      errorsResolved: resolvedThisMonth.length
     }
   };
 
@@ -954,7 +978,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
 
 // 🌟 [جديد] مؤشرات خفيفة محليًا فقط لشهر بعينه (بلا أي اتصال بالسحابة) — تُستخدم
 // حصرًا لبناء "المقارنة الشهرية" بالشهر السابق (راجع تعليق القسم 8 أعلاه للسبب).
-async function getLightMonthStats(studentId, year, monthIndex0) {
+async function getLightMonthStats(studentId, year, monthIndex0, student = null) {
   const monthStart = new Date(year, monthIndex0, 1).getTime();
   const monthEnd = new Date(year, monthIndex0 + 1, 1).getTime();
   let gameEvalCount = 0, gameEvalAvg = null;
@@ -976,14 +1000,36 @@ async function getLightMonthStats(studentId, year, monthIndex0) {
     }
   } catch (e) { /* تجاهل */ }
 
-  const hasAnyData = gameEvalCount > 0 || newAyahs != null;
-  return { gameEvalCount, gameEvalAvg, newAyahs, hasAnyData };
+  // 🌟 [2026-11] متوسط الواجبات المعتمدة من السجل المحلي (يحفظ كل واجب معتمد على هذا الجهاز) والأخطاء المعالَجة في الشهر
+  let homeworkAvg = null, errorsResolved = 0;
+  try {
+    const raw = localStorage.getItem(`history_${studentId}`);
+    const hw = (JSON.parse(raw) || []).filter(h => h && h.source === 'homework' && h.approved && typeof h.timestamp === 'number' && h.timestamp >= monthStart && h.timestamp < monthEnd);
+    if (hw.length) homeworkAvg = Math.round(hw.reduce((s, h) => s + (h.score || 0), 0) / hw.length);
+  } catch (e) { /* تجاهل */ }
+  try {
+    errorsResolved = ((student && student.resolvedWeaknesses) || []).filter(w => { const ts = w && w.dateResolved ? new Date(w.dateResolved).getTime() : NaN; return ts >= monthStart && ts < monthEnd; }).length;
+  } catch (e) { /* تجاهل */ }
+  const hasAnyData = gameEvalCount > 0 || newAyahs != null || homeworkAvg != null || errorsResolved > 0;
+  return { gameEvalCount, gameEvalAvg, newAyahs, homeworkAvg, errorsResolved, hasAnyData };
 }
 
 // -----------------------------------------------------------------------------
 // 3) العرض
 // -----------------------------------------------------------------------------
 let reportData = null;
+
+// 🌟 [2026-11] أدوات مشتركة للأقسام المعاد تصميمها (ألوان ثابتة لأجل html2canvas)
+function tierFill(score) { return score >= 90 ? '#0b3d30' : score >= 75 ? '#147c5e' : score >= 60 ? '#c9a643' : '#c0613f'; }
+function dayMonthLabel(ts) {
+  try { return new Date(ts).toLocaleDateString(heroLocale(), { day: 'numeric', month: 'short' }); } catch (e) { return ''; }
+}
+function phaseChip(score, n) {
+  if (typeof score !== 'number') return '';
+  if (n != null && n < MR_MIN_EVIDENCE) return `<span class="mr2-chip mr2-chip-na">${t('mr2_lvl_na')}</span>`;
+  const ph = moonPhaseOf(score);
+  return `<span class="mr2-chip ${ph.key}">${t('mr2_lvl_' + ph.key)}</span>`;
+}
 
 function renderSummaryTiles(d) {
   const grid = $('mr-summary-grid');
@@ -1005,7 +1051,8 @@ function renderSummaryTiles(d) {
     value: d.gameEvalAvg != null ? `${d.gameEvalAvg}%` : '—',
     sub: t('mr_tile_gameeval_count').replace('{n}', d.gameEvalEntries.length),
     color: d.gameEvalAvg != null ? scoreTierColor(d.gameEvalAvg) : '#6f644e',
-    pct: d.gameEvalAvg // 🌟 نسبة → تُرسَم بمنزل القمر مع شارة المستوى
+    pct: d.gameEvalAvg, // 🌟 نسبة → تُرسَم بمنزل القمر مع شارة المستوى
+    n: d.gameEvalEntries.length
   });
 
   tiles.push({
@@ -1013,7 +1060,8 @@ function renderSummaryTiles(d) {
     value: d.homeworkAvg != null ? `${d.homeworkAvg}%` : '—',
     sub: t('mr_tile_homework_count').replace('{n}', d.homeworkEntries.length),
     color: d.homeworkAvg != null ? scoreTierColor(d.homeworkAvg) : '#6f644e',
-    pct: d.homeworkAvg
+    pct: d.homeworkAvg,
+    n: d.homeworkEntries.length
   });
 
   const dualTotal = d.dualWins + d.dualLosses + d.dualTies;
@@ -1073,12 +1121,14 @@ function renderSummaryTiles(d) {
   // شارة (لا يوجد "مستوى" لعدد آيات أو أوسمة). اللون صار من CSS الهوية لا من inline.
   grid.innerHTML = tiles.map(tile => {
     const hasPct = typeof tile.pct === 'number';
-    const phase = hasPct ? moonPhaseOf(tile.pct) : null;
+    // 🌟 [2026-11] نسبة من أقل من 3 أدلة: قمر بلا إضاءة + «بيانات غير كافية» بدل المنزل (الرقم نفسه يبقى ظاهرًا)
+    const enough = hasPct && (tile.n == null || tile.n >= MR_MIN_EVIDENCE);
+    const phase = enough ? moonPhaseOf(tile.pct) : null;
     return `
     <div class="mr-tile${(tile.value === '—' || tile.value === '0') ? ' mr-tile-empty' : ''}">
       <div class="mr-tile-top">
-        ${hasPct ? moonGlyphSvg(tile.pct) : khatamGlyphSvg()}
-        ${phase ? `<span class="mr2-chip ${phase.key}">${t('mr2_lvl_' + phase.key)}</span>` : ''}
+        ${hasPct ? moonGlyphSvg(enough ? tile.pct : 0) : khatamGlyphSvg()}
+        ${phase ? `<span class="mr2-chip ${phase.key}">${t('mr2_lvl_' + phase.key)}</span>` : (hasPct ? `<span class="mr2-chip mr2-chip-na">${t('mr2_lvl_na')}</span>` : '')}
       </div>
       <div class="mr-tile-value">${tile.value}</div>
       <div class="mr-tile-label">${tile.label}</div>
@@ -1124,6 +1174,15 @@ function renderMoonHero(d) {
   const overallNum = $('mr-fig-overall-num');
   if (overallWrap) overallWrap.style.display = overall != null ? '' : 'none';
   if (overallNum && overall != null) overallNum.innerHTML = `${overall}<small>%</small>`;
+  const ev = $('mr-fig-overall-ev');
+  if (ev) {
+    const { used, excluded } = overallParts(d);
+    const name = (p) => t(p.key === 'games' ? 'mr2_ev_games' : 'mr2_ev_hw');
+    const parts = [];
+    if (used.length) parts.push(t('mr2_ev_from').replace('{list}', used.map(p => `${name(p)} (${p.n})`).join(t('mr2_ev_sep'))));
+    excluded.forEach(p => parts.push(t('mr2_ev_excluded').replace('{what}', name(p)).replace('{n}', p.n)));
+    ev.textContent = parts.join(' · ');
+  }
 
   const hasMemo = !!(d.journey && d.journey.hasEnding && d.journey.newAyahs != null);
   const memoWrap = $('mr-fig-memo');
@@ -1306,40 +1365,52 @@ function renderJourneyBlock(d) {
 // 🌟 [جديد] "المقارنة الشهرية" — تُعرض فقط لو توفرت أي بيانة فعلية للشهر السابق
 // (وإلا نعرض رسالة صريحة بدل جدول فارغ يوحي بصفر إنجاز، راجع القسم 15 من طلب
 // الميزة: "لا نعرض صفراً إلا لو كان صفراً موثَّقاً فعليًا")
+// 🌟 [2026-11 — تصميم جديد] «المقارنة الشهرية» لوحة نتائج: بطاقة لكل مؤشر له رقم حقيقي في الشهرين (القيمة الآن بخط كبير، والسابقة،
+// والفرق ملوّنًا، وشريطان صغيران)، وفوقها ملخص «تحسّن في … · تراجع في …». لا يُعرض مؤشر ينقصه أحد الشهرين (لا صفر مُختلَق).
 function renderComparisonBlock(d) {
   const el = $('mr-compare-content');
   if (!el) return;
   const prev = d.comparison && d.comparison.previous;
-  if (!prev || !prev.hasAnyData) {
+  const cur = d.comparison && d.comparison.current;
+  const x = d.extras || {};
+  const attCur = x.att && x.att.hasSchedule && x.att.pct != null ? x.att : null;
+  const attPrev = x.attPrev && x.attPrev.hasSchedule && x.attPrev.pct != null ? x.attPrev : null;
+  const rows = !prev ? [] : [
+    { l: t('mr_compare_row_memo'), u: t('mr_cmp_u_ayah'), p: prev.newAyahs, c: cur.newAyahs },
+    { l: t('mr_compare_row_gameeval'), u: t('mr_cmp_u_session'), p: prev.gameEvalCount || null, c: cur.gameEvalCount || null },
+    { l: t('mr_compare_row_gameeval_avg'), pct: true, p: prev.gameEvalAvg, c: cur.gameEvalAvg },
+    { l: t('mr_cmp_row_hw_avg'), pct: true, p: prev.homeworkAvg, c: cur.homeworkAvg },
+    { l: t('mr_cmp_row_errors'), u: t('mr_cmp_u_error'), p: prev.errorsResolved || null, c: cur.errorsResolved || null },
+    { l: t('mr_cmp_row_att'), of: true, p: attPrev ? attPrev.present : null, c: attCur ? attCur.present : null, pe: attPrev && attPrev.expected, ce: attCur && attCur.expected }
+  ].filter(r => typeof r.p === 'number' && typeof r.c === 'number');
+  if (!rows.length) {
     el.innerHTML = `<div class="mr-empty-row">${t('mr_compare_no_data')}</div>`;
     return;
   }
-  const cur = d.comparison.current;
-  const fmt = (v, unit) => (v == null ? '—' : `${v}${unit || ''}`);
-  const delta = (curV, prevV) => {
-    if (curV == null || prevV == null) return '';
-    const diff = curV - prevV;
-    if (diff === 0) return '';
-    return `<span class="mr-badge ${diff > 0 ? 'mr-badge-win' : 'mr-badge-loss'}">${diff > 0 ? '+' : ''}${diff}</span>`;
-  };
-  const rows = [
-    { label: t('mr_compare_row_memo'), prevV: fmt(prev.newAyahs), curV: fmt(cur.newAyahs), d: delta(cur.newAyahs, prev.newAyahs) },
-    { label: t('mr_compare_row_gameeval'), prevV: fmt(prev.gameEvalCount), curV: fmt(cur.gameEvalCount), d: delta(cur.gameEvalCount, prev.gameEvalCount) },
-    { label: t('mr_compare_row_gameeval_avg'), prevV: fmt(prev.gameEvalAvg, '%'), curV: fmt(cur.gameEvalAvg, '%'), d: delta(cur.gameEvalAvg, prev.gameEvalAvg) }
-  ];
+  const up = rows.filter(r => r.c > r.p).length, down = rows.filter(r => r.c < r.p).length, same = rows.length - up - down;
+  const py = d.monthIndex0 === 0 ? d.year - 1 : d.year, pm = d.monthIndex0 === 0 ? 11 : d.monthIndex0 - 1;
+  const mName = (yy, mm) => new Date(yy, mm, 1).toLocaleDateString(heroLocale(), { month: 'long' });
+  const fmt = (r, v, e) => r.pct ? `${v}%` : r.of ? `${v}/${e}` : String(v);
   el.innerHTML = `
-    <table class="mr-table">
-      <thead><tr>
-        <th>${t('mr_compare_col_indicator')}</th>
-        <th>${t('mr_compare_col_prev')}</th>
-        <th>${t('mr_compare_col_current')}</th>
-        <th>${t('mr_compare_col_change')}</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map(r => `<tr><td>${r.label}</td><td>${r.prevV}</td><td>${r.curV}</td><td>${r.d}</td></tr>`).join('')}
-      </tbody>
-    </table>
-  `;
+    <div class="mrp-cmp-head">
+      ${up ? `<span class="up">▲ ${t('mr_cmp_up').replace('{n}', up)}</span>` : ''}
+      ${down ? `<span class="down">▼ ${t('mr_cmp_down').replace('{n}', down)}</span>` : ''}
+      ${same ? `<span class="same">= ${t('mr_cmp_same').replace('{n}', same)}</span>` : ''}
+      <span class="months">${esc(mName(py, pm))} ${AppState.currentLang === 'en' ? '→' : '←'} ${esc(mName(d.year, d.monthIndex0))}</span>
+    </div>
+    <div class="mrp-cmp-grid">
+      ${rows.map(r => {
+        const dlt = r.c - r.p, cls = dlt > 0 ? 'up' : dlt < 0 ? 'down' : 'same';
+        const mx = r.pct ? 100 : r.of ? Math.max(r.pe || 0, r.ce || 0, r.p, r.c, 1) : Math.max(r.p, r.c, 1);
+        return `<div class="mrp-cc ${cls}">
+          <div class="mrp-cc-h"><b>${esc(r.l)}</b><span class="mrp-cc-d">${dlt > 0 ? '▲' : dlt < 0 ? '▼' : '='} ${Math.abs(dlt)}${r.pct ? '%' : ''}</span></div>
+          <div class="mrp-cc-v"><b class="mrp-num">${fmt(r, r.c, r.ce)}</b>${r.u ? `<span>${esc(r.u)}</span>` : ''}</div>
+          <div class="mrp-cc-bars"><i class="pv" style="width:${(r.p / mx * 100).toFixed(1)}%"></i><i class="cu" style="width:${(r.c / mx * 100).toFixed(1)}%"></i></div>
+          <div class="mrp-cc-prev">${esc(mName(py, pm))}: ${fmt(r, r.p, r.pe)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="mrp-cmp-note">${t('mr_cmp_note')}</div>`;
 }
 
 // 🌟 [جديد] "اتجاه الحفظ التراكمي" — رسم SVG بسيط مبني يدويًا (بلا أي مكتبة رسم
@@ -1375,36 +1446,69 @@ function renderTrendBlock(d) {
   `;
 }
 
+// 🌟 [2026-11 — تصميم جديد] تقييمات غرفة اللعب: لوحة (المتوسط ومنزله، العدد، الأعلى والأدنى، المصدر والنطاق) + رسم أعمدة لكل جلسة
+// بتاريخها مع «خط الامتياز 90%»، وسطر يلخّص كم جلسة فوق الخط واتجاه الشهر (النصف الأول مقابل الثاني، من الدرجات نفسها).
 function renderGameEvalBlock(d) {
   const el = $('mr-gameeval-content');
   if (!el) return;
-  if (!d.gameEvalEntries.length) {
+  const ev = d.gameEvalEntries || [];
+  if (!ev.length) {
     el.innerHTML = `<div class="mr-empty-row">${t('mr_gameeval_empty')}</div>`;
     return;
   }
+  const scores = ev.map(e => e.score);
+  const n = ev.length, avg = d.gameEvalAvg, best = Math.max(...scores), low = Math.min(...scores);
+  const enough = n >= MR_MIN_EVIDENCE;
+  const ar = AppState.currentLang !== 'en';
+  // الرسم: محور 0–100 لو نزلت درجة تحت 50، وإلا 50–100 (فرق الأعمدة أوضح)
+  const floor = low < 50 ? 0 : 50;
+  const W = 470, H = 172, pl = 30, pr = 8, pt = 22, pb = 34;
+  const y = (v) => pt + (100 - v) / (100 - floor) * (H - pt - pb);
+  const slot = (W - pl - pr) / n, bw = Math.min(38, slot * 0.62);
+  const xs = (i) => pl + i * slot + (slot - bw) / 2;
+  const showMonth = n <= 7, showLabel = n <= 16;
+  const order = ar ? ev.slice().reverse() : ev;   // في العربية يجري الزمن من اليمين
+  const font = 'IBM Plex Sans Arabic, sans-serif';
+  const bars = order.map((e, i) => {
+    const top = y(e.score), x = xs(i);
+    const day = new Date(e.timestamp).getDate();
+    return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${(H - pb - top).toFixed(1)}" rx="${Math.min(7, bw / 3).toFixed(1)}" fill="${tierFill(e.score)}"/>`
+      + (e.score >= 90 ? `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="5" rx="2.5" fill="#f0d878"/>` : '')
+      + (showLabel ? `<text x="${(x + bw / 2).toFixed(1)}" y="${(top - 6).toFixed(1)}" text-anchor="middle" font-size="${n > 10 ? 10 : 12.5}" font-weight="700" fill="#0b3d30" font-family="Reem Kufi, ${font}">${e.score}%</text>` : '')
+      + `<text x="${(x + bw / 2).toFixed(1)}" y="${H - pb + 16}" text-anchor="middle" font-size="${n > 10 ? 9.5 : 11}" fill="#4a6058" font-family="${font}">${showMonth ? esc(dayMonthLabel(e.timestamp)) : day}</text>`;
+  }).join('');
+  const ticks = [floor, (floor + 100) / 2, 100].map(v => `<line x1="${pl - 4}" x2="${W - pr}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="#e6dcbc" stroke-width="1"/><text x="${pl - 8}" y="${(y(v) + 4).toFixed(1)}" text-anchor="end" font-size="10" fill="#8a7d5c" font-family="${font}">${v}</text>`).join('');
+  const line90 = `<line x1="${pl - 4}" x2="${W - pr}" y1="${y(90).toFixed(1)}" y2="${y(90).toFixed(1)}" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  // الاتجاه: من 4 جلسات فأكثر، متوسط النصف الثاني مقابل الأول (فرق 3 نقاط فأكثر)
+  let trend = '';
+  if (n >= 4) {
+    const h = Math.floor(n / 2), a1 = scores.slice(0, h), a2 = scores.slice(n - h);
+    const m = (a) => a.reduce((x, v) => x + v, 0) / a.length, diff = m(a2) - m(a1);
+    trend = ' · ' + t(diff >= 3 ? 'mr_ge_trend_up' : diff <= -3 ? 'mr_ge_trend_down' : 'mr_ge_trend_flat');
+  }
+  const above = scores.filter(v => v >= 90).length;
   const sourceLabel = { adult_game: t('mr_source_adult'), kids_game: t('mr_source_kids') };
+  const bySource = {};
+  ev.forEach(e => { const k = sourceLabel[e.source] || sourceLabel.adult_game; bySource[k] = (bySource[k] || 0) + 1; });
+  const ranges = [...new Set(ev.map(e => localizeGenerated(trStored(String(e.range || '')))).filter(Boolean))];
+  const rangeTxt = ranges.length === 1 ? ranges[0] : t('mr_ge_ranges_n').replace('{n}', ranges.length);
   el.innerHTML = `
-    <table class="mr-table">
-      <thead><tr>
-        <th>${t('mr_table_col_date')}</th>
-        <th>${t('mr_table_col_range')}</th>
-        <th>${t('mr_table_col_section')}</th>
-        <th>${t('mr_table_col_score')}</th>
-      </tr></thead>
-      <tbody>
-        ${d.gameEvalEntries.map(e => `
-          <tr>
-            <td>${e.date}</td>
-            <td>${localizeGenerated(trStored(String(e.range || '')))}</td>
-            <td>${sourceLabel[e.source] || '—'}</td>
-            <td style="color:${scoreTierColor(e.score)}; font-weight:800;">${e.score}%</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+    <div class="mrp-ge">
+      <div class="mrp-panel">
+        <div class="mrp-ge-avg">${moonGlyphSvg(enough ? avg : 0)}<div><b class="mrp-num">${avg}%</b>${phaseChip(avg, n)}</div></div>
+        <small>${t('mr_ge_avg_of').replace('{n}', n)}</small>
+        <div class="mrp-kv3"><div><b class="mrp-num">${n}</b><span>${t('mr_ge_sessions')}</span></div><div><b class="mrp-num">${best}%</b><span>${t('mr_ge_best')}</span></div><div><b class="mrp-num">${low}%</b><span>${t('mr_ge_low')}</span></div></div>
+        <div class="mrp-tags">${Object.entries(bySource).map(([k, v]) => `<span>${esc(k)} · ${v}</span>`).join('')}${rangeTxt ? `<span>${t('mr_ge_range')}: ${esc(rangeTxt)}</span>` : ''}</div>
+      </div>
+      <div class="mrp-ge-chart">
+        <svg viewBox="0 0 ${W} ${H}" aria-hidden="true">${ticks}${line90}${bars}</svg>
+        <div class="mrp-ge-note"><span class="xl"></span>${t('mr_ge_line')} · ${t('mr_ge_above').replace('{a}', above).replace('{n}', n)}${trend}</div>
+      </div>
+    </div>`;
 }
 
+// 🌟 [2026-11 — تصميم جديد مدمج] الواجبات: لوحة (العدد، المتوسط ومنزله أو «بيانات غير كافية»، الأعلى والأدنى) + «تذكرة» صغيرة لكل
+// واجب (التاريخ، الدرجة، النطاق، شريط بلون المستوى) — 5 في الصف فتكفي 10 واجبات في صفّين.
 function renderHomeworkBlock(d) {
   const el = $('mr-homework-content');
   if (!el) return;
@@ -1412,28 +1516,33 @@ function renderHomeworkBlock(d) {
     el.innerHTML = `<div class="mr-empty-row">⚠️ ${d.homeworkErrorMsg}</div>`;
     return;
   }
-  if (!d.homeworkEntries.length) {
+  const hw = d.homeworkEntries || [];
+  if (!hw.length) {
     el.innerHTML = `<div class="mr-empty-row">${t('mr_homework_empty')}</div>`;
     return;
   }
+  const n = hw.length, avg = d.homeworkAvg, sc = hw.map(e => e.score);
+  const enough = n >= MR_MIN_EVIDENCE;
+  const cnt = AppState.currentLang === 'en' ? t('mr_hw_count_lbl') : (n === 1 ? t('mr_hw_count_1') : n === 2 ? t('mr_hw_count_2') : n <= 10 ? t('mr_hw_count_3_10') : t('mr_hw_count_11'));
   el.innerHTML = `
-    <table class="mr-table">
-      <thead><tr>
-        <th>${t('mr_table_col_date')}</th>
-        <th>${t('mr_table_col_homework')}</th>
-        <th>${t('mr_table_col_score')}</th>
-      </tr></thead>
-      <tbody>
-        ${d.homeworkEntries.map(e => `
-          <tr>
-            <td>${e.date}</td>
-            <td>${e.scope ? `<b>${esc(localizeGenerated(e.scope))}</b>${e.title ? `<div class="mr-err-surah">${esc(e.title)}</div>` : ''}` : esc(e.title || t('mr_hw_untitled'))}</td>
-            <td style="color:${scoreTierColor(e.score)}; font-weight:800;">${e.score}%</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+    <div class="mrp-hw">
+      <div class="mrp-panel">
+        <div class="mrp-hw-top"><b class="mrp-num">${n}</b><span>${cnt}</span></div>
+        <div class="mrp-hw-avg">${moonGlyphSvg(enough ? avg : 0)}<div><b class="mrp-num">${avg}%</b>${phaseChip(avg, n)}</div></div>
+        <div class="mrp-kv2"><div><b class="mrp-num">${Math.max(...sc)}%</b><span>${t('mr_ge_best')}</span></div><div><b class="mrp-num">${Math.min(...sc)}%</b><span>${t('mr_ge_low')}</span></div></div>
+      </div>
+      <div class="mrp-tk-grid">
+        ${hw.map(e => {
+          const label = e.scope ? localizeGenerated(e.scope) : (e.title || t('mr_hw_untitled'));
+          const c = tierFill(e.score);
+          return `<div class="mrp-tk" style="border-top-color:${c};">
+            <div class="mrp-tk-r1"><span class="mrp-tk-dt">${esc(e.timestamp ? dayMonthLabel(e.timestamp) : e.date)}</span><b class="mrp-tk-sc" style="color:${c};">${e.score}<small>%</small></b></div>
+            <div class="mrp-tk-scope">${esc(label)}</div>
+            <span class="mrp-tk-bar"><i style="width:${Math.max(0, Math.min(100, e.score))}%; background:${c};"></i></span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
 }
 
 // 🌟 [مُعدَّل — بطلب صريح من المعلم] هذان القسمان تحديدًا (الاختبارات الثنائية
@@ -1528,6 +1637,8 @@ function renderAchievementsBlock(d) {
   }).join('')}</div>`;
 }
 
+// 🌟 [2026-11 — تصميم جديد مدمج] أخطاء عولجت: عدد ما عولج (وما بقي قيد الإصلاح) في لوحة، وسطر لكل سورة بأرقام آياتها،
+// وسطر أخير لما لا يزال قيد الإصلاح — بدل جدول طويل بسطر لكل خطأ.
 function renderErrorsBlock(d) {
   const el = $('mr-errors-content');
   if (!el) return;
@@ -1535,26 +1646,27 @@ function renderErrorsBlock(d) {
     el.innerHTML = `<div class="mr-empty-row">${t('mr_errors_empty')}</div>`;
     return;
   }
+  const groups = new Map(), other = [];
+  d.resolvedThisMonth.forEach(w => {
+    if (w.surahName) {
+      const k = surahNameLocal(w.surahName);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(w.num ? String(w.num) : '•');
+    } else other.push(localizeGenerated(w.text) || '—');
+  });
+  const pendingAll = (d.isCurrentMonth && Array.isArray(d.student.weaknesses)) ? d.student.weaknesses : [];
+  const pend = pendingAll.slice(0, 8).map(w => w.surahName ? `${surahNameLocal(w.surahName)}${w.num ? ' ' + w.num : ''}` : (localizeGenerated(w.text) || '—'));
+  const ayah = t('mr_err_ayah');
+  const row = (label, items, cls, count) => `<div class="mrp-err-g${cls ? ' ' + cls : ''}"><span class="s">${esc(label)}</span><span class="a">${items.map(x => `<i>${esc(x)}</i>`).join('')}</span><span class="n">${count}</span></div>`;
   el.innerHTML = `
-    <table class="mr-table">
-      <thead><tr>
-        <th>${t('mr_table_col_date')}</th>
-        <th>${t('mr_table_col_location')}</th>
-      </tr></thead>
-      <tbody>
-        ${d.resolvedThisMonth.map(w => `
-          <tr>
-            <td>${new Date(w.dateResolved).toLocaleDateString(AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US')}</td>
-            <td>${w.surahName
-              ? (w.ayahText
-                ? `<div class="mr-err-surah">${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)} (${w.num})</div><div class="mr-err-ayah quran-text" dir="rtl">${esc(w.ayahText)}</div>`
-                : `${t('mr_surah_prefix')} ${surahNameLocal(w.surahName)}${w.num ? ' - ' + w.num : ''}`)
-              : (localizeGenerated(w.text) || '—')}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
+    <div class="mrp-err">
+      <div class="mrp-panel"><b class="mrp-num">${d.resolvedThisMonth.length}</b><span>${t('mr_err_fixed_lbl')}</span>${pendingAll.length ? `<em>${t('mr_err_pending').replace('{n}', pendingAll.length)}</em>` : ''}</div>
+      <div class="mrp-err-list">
+        ${[...groups.entries()].map(([sname, nums]) => row(t('mr_surah_prefix') + ' ' + sname, nums.map(x => x === '•' ? x : `${ayah} ${x}`), '', nums.length)).join('')}
+        ${other.length ? row(t('mr_err_other'), other, '', other.length) : ''}
+        ${pend.length ? row(t('mr_err_pending_lbl'), pend, 'pend', pendingAll.length) : ''}
+      </div>
+    </div>`;
 }
 
 function renderReviewBlock(d) {
@@ -1672,6 +1784,20 @@ function buildAutoNote(d) {
   if (d.hasMemoRange) parts.push(t(tk('mr_auto_note_memo')).replace('{scope}', d.memoScope));
   if (tone === 'warm') parts.push(t(pickNoteKey('mr_auto_note_close_warm', d)).replace('{name}', String(d.name || '').trim().split(/\s+/)[0] || d.name));
   return parts.join(' ');
+}
+
+// 🌟 [2026-11] «بُني هذا التقرير على»: ما دخل التقرير من أدلّة فعلية (لا يُذكر مصدر بلا بيانات)، وقاعدة «3 أدلّة على الأقل للمنزل».
+function renderSourcesLine(d) {
+  const el = $('mr-sources');
+  if (!el) return;
+  const parts = [];
+  if (d.gameEvalEntries.length) parts.push(t('mr_src_games').replace('{n}', d.gameEvalEntries.length));
+  if (d.homeworkEntries.length) parts.push(t('mr_src_hw').replace('{n}', d.homeworkEntries.length));
+  const att = d.extras && d.extras.att;
+  if (att && att.hasSchedule && att.expected) parts.push(t('mr_src_att').replace('{p}', att.present).replace('{e}', att.expected));
+  if (d.journey && d.journey.hasEnding) parts.push(t('mr_src_memo'));
+  if (d.resolvedThisMonth.length) parts.push(t('mr_src_errors').replace('{n}', d.resolvedThisMonth.length));
+  el.innerHTML = parts.length ? `<b>${t('mr_src_title')}</b> ${esc(parts.join(' · '))}. ${t('mr_src_rule')}` : '';
 }
 
 function renderNoteBox() {
@@ -1853,6 +1979,7 @@ function renderAll(d) {
   renderComparisonBlock(d);
   renderTrendBlock(d);
   renderNoteBox();
+  renderSourcesLine(d);
   renderTeacherSign(d);
   autoArchiveOnOpen();
 }
