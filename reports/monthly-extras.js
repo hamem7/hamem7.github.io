@@ -354,6 +354,9 @@ export async function collectExtras(d) {
   // عزل الشهور: في شهر سابق نقصّ السياق عند نهاية ذلك الشهر فلا تدخل سجلات/إتقان أشهر لاحقة في الختم والمراجعة والتجويد،
   // ونحسب التوقعات من آخر يوم في الشهر لا من تاريخ اليوم.
   const asOf = isCurrent ? now : new Date(y, m + 1, 0, 12);
+  // أدلة الحضور تُحسب من السياق الكامل قبل التقصير: نفس مصدر شاشة «تأكيد الحضور» (attendancePrompt.collectPending)،
+  // وإلا اختلف عدّ الحصص غير المؤكدة بين التقرير والشاشة فلا تظهر الشاشة لشهر سابق.
+  const ev = evidenceDays(evidenceTimestamps(ctx));
   if (!isCurrent) {
     const cut = y * 12 + m;
     const endTs = new Date(y, m + 1, 1).getTime();
@@ -366,7 +369,6 @@ export async function collectExtras(d) {
   const input = inputsForMonth(ctx, y, m, now);
   const results = computeMonthBadges(input);
   const summary = summarizeEarned(results);
-  const ev = evidenceDays(evidenceTimestamps(ctx));
   const att = summarizeMonth(student, y, m, ev, isCurrent ? now : null);
   // 🌟 [2026-11] كل حصة مجدولة بحالتها (لعرضها مرتّبة بالأسابيع) + الحصص الإضافية؛ وحضور الشهر السابق للمقارنة الشهرية
   try {
@@ -623,7 +625,7 @@ export function renderExtras(d) {
   const btn = wrap.querySelector('#mrx-open-att');
   if (btn) btn.onclick = async () => {
     try {
-      const done = await (await import('../components/attendancePrompt.js')).confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } });
+      const done = await (await import('../components/attendancePrompt.js')).confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 }, days: d.extras && d.extras.att && d.extras.att.unconfirmedDays });
       if (done && typeof d.onDataChanged === 'function') d.onDataChanged();
     } catch (e) { console.warn(e); }
   };

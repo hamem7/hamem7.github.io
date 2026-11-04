@@ -2066,7 +2066,7 @@ async function ensureReportDataComplete() {
   const a = d && d.extras && d.extras.att;
   if (!a || !a.unconfirmed) return true;
   const { confirmMissingAttendance } = await import('../components/attendancePrompt.js');
-  const ok = await confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 } });
+  const ok = await confirmMissingAttendance({ studentId: d.student && d.student.id, reportMonth: { year: d.year, monthIndex0: d.monthIndex0 }, days: d.extras && d.extras.att && d.extras.att.unconfirmedDays });
   if (!ok) return false;
   await refreshReport();   // يُعاد الحساب بالتأكيدات الجديدة قبل الالتقاط
   return true;

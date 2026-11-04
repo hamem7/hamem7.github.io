@@ -63,6 +63,11 @@ export async function collectPending(opts = {}) {
       for (let i = 0; i < 7; i++) keys.push(dateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)));
     }
     keys.filter(k => k <= todayKey && k >= sinceKey && needsConfirmation(s, k, ev)).forEach(k => out.push({ student: s, key: k }));
+    // الأيام التي عدّها التقرير نفسه غير مؤكدة (opts.days) تُعرض أيضًا ولو اختلف مصدر الأدلة، فلا تُخفى الشاشة بصمت
+    if (opts.reportMonth && Array.isArray(opts.days)) {
+      const have = new Set(out.filter(o => o.student === s).map(o => o.key));
+      opts.days.filter(k => k <= todayKey && !have.has(k) && !['present', 'absent', 'cancelled'].includes(s.attendance && s.attendance[k])).forEach(k => out.push({ student: s, key: k }));
+    }
   }
   return out.sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
 }
@@ -140,8 +145,8 @@ export async function openAttendancePrompt(opts = {}) {
  * بوابة التقرير الشهري: إن وُجدت حصص مجدولة غير مؤكَّدة في شهر التقرير يُطلب من المعلم استكمالها.
  * يرجع true إن لم يبقَ نقص (أو استُكمل الآن)، وfalse إن أُلغي — فلا يُصدَر التقرير بأرقام مخمَّنة.
  */
-export async function confirmMissingAttendance({ studentId, reportMonth }) {
-  const pending = await collectPending({ studentId, reportMonth });
+export async function confirmMissingAttendance({ studentId, reportMonth, days }) {
+  const pending = await collectPending({ studentId, reportMonth, days });
   if (!pending.length) return true;
   return showPrompt(pending, { gate: true });
 }
