@@ -10,7 +10,7 @@ import { POOL, SURAHS } from '../data/pool.js';
 import { RULES, STAGES, GROUPS, SOURCES, CONFUSABLES, SINGLE_SOURCE, L_IZHAR, L_IDGHAM_G, L_IDGHAM_N, L_IKHFA, L_QALQALAH, L_QAMARI, L_SHAMSI } from '../data/rules.js';
 import { UI_DICT } from '../js/i18n.js';
 import { VIZ, VIZ_CAPTION, STAGE_ICONS } from '../js/viz.js';
-import { KNOW, BANKS, AREAS, SIFAT } from '../data/know.js';
+import { KNOW, BANKS, AREAS, SIFAT, MAKHARIJ17 } from '../data/know.js';
 import { loadQuran, loadAnnotations, annotationOccurrences, ayahText, PLATFORM, inPool } from './lib/source.mjs';
 import { detectAyah, IZHAR_LETTERS, IDGHAM_GHUNNA_LETTERS, IDGHAM_NO_GHUNNA_LETTERS, IKHFA_LETTERS, QALQALAH_LETTERS, QAMARI_LETTERS, SHAMSI_LETTERS } from './lib/detect.mjs';
 import { tokenize, isWaqfToken } from '../js/arabic.js';
@@ -161,6 +161,7 @@ notes.push(`دروس المصحف: ${Object.keys(MUSHAF).length} — علاما�
     for (const k of ['ayahs', 'letters', 'steps', 'vs', 'poem']) if (b[k] && !RULES[b[k]]) fail(`[حكاية] حكم غير موجود ${b[k]} في ${where}`);
     if (b.explore && !EXPLORE[b.explore]) fail(`[حكاية] صفحة استكشاف غير موجودة ${b.explore}`);
     if (b.book) for (const id of b.book) { if (!BOOK_CAPS[id]) fail(`[حكاية] صورة كتاب بلا عنوان ${id}`); if (!fs.existsSync(path.join(ROOT, 'assets/book', id + '.webp'))) fail(`[حكاية] صورة كتاب مفقودة ${id}`); }
+    if (b.makharij17) for (const m of MAKHARIJ17) { if (!m.book?.length) fail(`[حكاية] مخرج ${m.n} بلا صورة من الكتاب`); for (const id of m.book || []) if (!fs.existsSync(path.join(ROOT, 'assets/book', id + '.webp')) || !BOOK_CAPS[id]) fail(`[حكاية] مخرج ${m.n}: صورة ${id} مفقودة أو بلا عنوان`); }
     if (b.makhraj) for (const id of Object.values(b.makhraj)) if (!fs.existsSync(path.join(ROOT, 'assets/book', id + '.webp')) || !BOOK_CAPS[id]) fail(`[حكاية] مخرج بلا صورة ${id}`);
     for (const d of [...(b.deck || []), ...(b.levels || [])]) if (!fs.existsSync(path.join(ROOT, 'assets/deck', d.f + '.webp'))) fail(`[حكاية] شريحة مفقودة ${d.f}`);
     if (b.check) { nChecks++; if (!b.check.opts.some((o) => o.ok)) fail(`[حكاية] سؤال بلا إجابة صحيحة في ${where}`); if (!b.check.multi && b.check.opts.filter((o) => o.ok).length !== 1) fail(`[حكاية] سؤال مفرد بأكثر من إجابة في ${where}`); }

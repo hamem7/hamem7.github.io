@@ -579,6 +579,9 @@ const KNOW_STORIES = {
 
 // عناوين رسوم «التجويد المصوّر» المستعملة (منسوخة من engine/tajweedBookImages.js في المنصة)
 export const BOOK_CAPS = {
+  p102_0: T('الكاف', 'Kaf (ك)'), p104_0: T('الشين', 'Sheen (ش)'), p105_0: T('الياء غير المدّية', 'The non-madd yaa (ي)'), p107_0: T('الضاد', 'Ḍaad (ض)'),
+  p117_0: T('السين والزاي', 'Seen and zay (س ز)'), p117_1: T('الصاد', 'Sad (ص)'), p118_0: T('الذال والثاء', 'Dhal and thaa (ذ ث)'), p118_1: T('الظاء', 'Zaa (ظ)'),
+  p119_0: T('الفاء', 'Faa (ف)'), p120_0: T('الواو غير المدّية', 'The non-madd waw (و)'),
   p089_0: T('الألف المدّية', 'The madd alif'), p090_0: T('الواو المدّية', 'The madd waw'), p091_0: T('الياء المدّية', 'The madd yaa'), p094_0: T('الجوف: مخرج حروف المد', 'The jawf: where the madd letters come from'),
   p098_0: T('أقصى الحلق: الهمزة والهاء', 'Deepest throat: hamzah and haa'), p099_0: T('الحاء', 'Haa (ح)'), p099_1: T('العين', 'Ayn (ع)'), p100_0: T('الخاء', 'Khaa (خ)'), p100_1: T('الغين', 'Ghayn (غ)'),
   p101_0: T('القاف', 'Qaf (ق)'), p103_0: T('الجيم', 'Jeem (ج)'), p112_0: T('النون', 'Noon (ن)'), p116_0: T('الدال والتاء', 'Dal and taa (د ت)'), p116_1: T('الطاء', 'Taa, emphatic (ط)'),

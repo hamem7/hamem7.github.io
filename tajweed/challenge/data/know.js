@@ -80,23 +80,23 @@ export const KNOW = {
 
 // المخارج السبعة عشر (ابن الجزري) — الحروف رموز تعليمية لا آيات
 export const MAKHARIJ17 = [
-  { n: 1, area: 'jawf', name: T('الجوف', 'The jawf'), letters: ['ا', 'و', 'ي'], kid: T('حروف المد الثلاثة: فراغ الفم والحلق.', 'The three madd letters: the space of the mouth and throat.') },
-  { n: 2, area: 'halq', name: T('أقصى الحلق', 'Deepest throat'), letters: ['ء', 'ه'], kid: T('أبعد مكان في الحلق.', 'The farthest point in the throat.') },
-  { n: 3, area: 'halq', name: T('وسط الحلق', 'Middle of the throat'), letters: ['ع', 'ح'], kid: T('في منتصف الحلق.', 'In the middle of the throat.') },
-  { n: 4, area: 'halq', name: T('أدنى الحلق', 'Nearest throat'), letters: ['غ', 'خ'], kid: T('أقرب الحلق إلى الفم.', 'The part of the throat nearest the mouth.') },
-  { n: 5, area: 'lisan', name: T('أقصى اللسان (القاف)', 'Back of the tongue (qaf)'), letters: ['ق'], kid: T('آخر اللسان مع ما فوقه من الحنك الأعلى.', 'The back of the tongue against the roof of the mouth above it.') },
-  { n: 6, area: 'lisan', name: T('أقصى اللسان أسفل القاف (الكاف)', 'Back of the tongue, a little lower (kaf)'), letters: ['ك'], kid: T('تحت مخرج القاف قليلًا.', 'Slightly lower than the qaf.') },
-  { n: 7, area: 'lisan', name: T('وسط اللسان', 'Middle of the tongue'), letters: ['ج', 'ش', 'ي'], kid: T('وسط اللسان مع الحنك الأعلى (والياء هنا غير المدّية).', 'The middle of the tongue against the palate (the yaa here is not a madd letter).') },
-  { n: 8, area: 'lisan', name: T('حافّة اللسان (الضاد)', 'Edge of the tongue (ḍaad)'), letters: ['ض'], kid: T('إحدى حافّتي اللسان مع الأضراس العليا.', 'One edge of the tongue against the upper molars.') },
-  { n: 9, area: 'lisan', name: T('أدنى حافّة اللسان (اللام)', 'Front edge of the tongue (lam)'), letters: ['ل'], kid: T('حافّة اللسان إلى طرفه مع لثة الأسنان العليا.', 'The edge of the tongue up to its tip against the upper gums.') },
-  { n: 10, area: 'lisan', name: T('طرف اللسان (النون)', 'Tip of the tongue (noon)'), letters: ['ن'], kid: T('طرف اللسان تحت مخرج اللام قليلًا.', 'The tip of the tongue, slightly below the lam.') },
-  { n: 11, area: 'lisan', name: T('طرف اللسان مع ظهره (الراء)', 'Tip and back of the tongue (raa)'), letters: ['ر'], kid: T('قريب من مخرج النون، ويدخل فيه ظهر اللسان.', 'Close to the noon, with the top of the tongue taking part.') },
-  { n: 12, area: 'lisan', name: T('طرف اللسان مع أصول الثنايا العليا', 'Tongue tip at the roots of the upper front teeth'), letters: ['ط', 'د', 'ت'], kid: T('طرف اللسان يلمس أصول الأسنان الأمامية العليا.', 'The tongue tip touches the roots of the upper front teeth.') },
-  { n: 13, area: 'lisan', name: T('طرف اللسان فوق الثنايا السفلى', 'Tongue tip above the lower front teeth'), letters: ['ص', 'س', 'ز'], kid: T('حروف الصفير: يمرّ الصوت بين الأسنان كالصفّارة.', 'The whistling letters: the sound passes between the teeth like a whistle.') },
-  { n: 14, area: 'lisan', name: T('طرف اللسان مع أطراف الثنايا العليا', 'Tongue tip with the edges of the upper front teeth'), letters: ['ظ', 'ذ', 'ث'], kid: T('يخرج طرف اللسان قليلًا تحت الأسنان العليا.', 'The tongue tip comes out a little under the upper teeth.') },
-  { n: 15, area: 'shafatan', name: T('باطن الشفة السفلى مع الثنايا العليا', 'Inner lower lip with the upper front teeth'), letters: ['ف'], kid: T('الأسنان العليا تلمس الشفة السفلى.', 'The upper teeth touch the lower lip.') },
-  { n: 16, area: 'shafatan', name: T('الشفتان', 'Both lips'), letters: ['و', 'ب', 'م'], kid: T('الباء والميم بانطباق الشفتين، والواو (غير المدّية) بانفتاحهما.', 'Baa and meem close the lips; waw (not madd) rounds them open.') },
-  { n: 17, area: 'khayshum', name: T('الخيشوم', 'The nasal passage'), letters: [], kid: T('مخرج الغنّة في النون والميم.', 'Where the ghunna of noon and meem comes from.') }
+  { n: 1, area: 'jawf', name: T('الجوف', 'The jawf'), letters: ['ا', 'و', 'ي'], kid: T('حروف المد الثلاثة: فراغ الفم والحلق.', 'The three madd letters: the space of the mouth and throat.'), book: ['p094_0', 'p089_0', 'p090_0', 'p091_0'] },
+  { n: 2, area: 'halq', name: T('أقصى الحلق', 'Deepest throat'), letters: ['ء', 'ه'], kid: T('أبعد مكان في الحلق.', 'The farthest point in the throat.'), book: ['p098_0'] },
+  { n: 3, area: 'halq', name: T('وسط الحلق', 'Middle of the throat'), letters: ['ع', 'ح'], kid: T('في منتصف الحلق.', 'In the middle of the throat.'), book: ['p099_1', 'p099_0'] },
+  { n: 4, area: 'halq', name: T('أدنى الحلق', 'Nearest throat'), letters: ['غ', 'خ'], kid: T('أقرب الحلق إلى الفم.', 'The part of the throat nearest the mouth.'), book: ['p100_1', 'p100_0'] },
+  { n: 5, area: 'lisan', name: T('أقصى اللسان (القاف)', 'Back of the tongue (qaf)'), letters: ['ق'], kid: T('آخر اللسان مع ما فوقه من الحنك الأعلى.', 'The back of the tongue against the roof of the mouth above it.'), book: ['p101_0'] },
+  { n: 6, area: 'lisan', name: T('أقصى اللسان أسفل القاف (الكاف)', 'Back of the tongue, a little lower (kaf)'), letters: ['ك'], kid: T('تحت مخرج القاف قليلًا.', 'Slightly lower than the qaf.'), book: ['p102_0'] },
+  { n: 7, area: 'lisan', name: T('وسط اللسان', 'Middle of the tongue'), letters: ['ج', 'ش', 'ي'], kid: T('وسط اللسان مع الحنك الأعلى (والياء هنا غير المدّية).', 'The middle of the tongue against the palate (the yaa here is not a madd letter).'), book: ['p103_0', 'p104_0', 'p105_0'] },
+  { n: 8, area: 'lisan', name: T('حافّة اللسان (الضاد)', 'Edge of the tongue (ḍaad)'), letters: ['ض'], kid: T('إحدى حافّتي اللسان مع الأضراس العليا.', 'One edge of the tongue against the upper molars.'), book: ['p107_0'] },
+  { n: 9, area: 'lisan', name: T('أدنى حافّة اللسان (اللام)', 'Front edge of the tongue (lam)'), letters: ['ل'], kid: T('حافّة اللسان إلى طرفه مع لثة الأسنان العليا.', 'The edge of the tongue up to its tip against the upper gums.'), book: ['p109_1'] },
+  { n: 10, area: 'lisan', name: T('طرف اللسان (النون)', 'Tip of the tongue (noon)'), letters: ['ن'], kid: T('طرف اللسان تحت مخرج اللام قليلًا.', 'The tip of the tongue, slightly below the lam.'), book: ['p112_0'] },
+  { n: 11, area: 'lisan', name: T('طرف اللسان مع ظهره (الراء)', 'Tip and back of the tongue (raa)'), letters: ['ر'], kid: T('قريب من مخرج النون، ويدخل فيه ظهر اللسان.', 'Close to the noon, with the top of the tongue taking part.'), book: ['p113_0'] },
+  { n: 12, area: 'lisan', name: T('طرف اللسان مع أصول الثنايا العليا', 'Tongue tip at the roots of the upper front teeth'), letters: ['ط', 'د', 'ت'], kid: T('طرف اللسان يلمس أصول الأسنان الأمامية العليا.', 'The tongue tip touches the roots of the upper front teeth.'), book: ['p116_1', 'p116_0'] },
+  { n: 13, area: 'lisan', name: T('طرف اللسان فوق الثنايا السفلى', 'Tongue tip above the lower front teeth'), letters: ['ص', 'س', 'ز'], kid: T('حروف الصفير: يمرّ الصوت بين الأسنان كالصفّارة.', 'The whistling letters: the sound passes between the teeth like a whistle.'), book: ['p117_1', 'p117_0'] },
+  { n: 14, area: 'lisan', name: T('طرف اللسان مع أطراف الثنايا العليا', 'Tongue tip with the edges of the upper front teeth'), letters: ['ظ', 'ذ', 'ث'], kid: T('يخرج طرف اللسان قليلًا تحت الأسنان العليا.', 'The tongue tip comes out a little under the upper teeth.'), book: ['p118_1', 'p118_0'] },
+  { n: 15, area: 'shafatan', name: T('باطن الشفة السفلى مع الثنايا العليا', 'Inner lower lip with the upper front teeth'), letters: ['ف'], kid: T('الأسنان العليا تلمس الشفة السفلى.', 'The upper teeth touch the lower lip.'), book: ['p119_0'] },
+  { n: 16, area: 'shafatan', name: T('الشفتان', 'Both lips'), letters: ['و', 'ب', 'م'], kid: T('الباء والميم بانطباق الشفتين، والواو (غير المدّية) بانفتاحهما.', 'Baa and meem close the lips; waw (not madd) rounds them open.'), book: ['p121_0', 'p122_0', 'p120_0'] },
+  { n: 17, area: 'khayshum', name: T('الخيشوم', 'The nasal passage'), letters: [], kid: T('مخرج الغنّة في النون والميم.', 'Where the ghunna of noon and meem comes from.'), book: ['p123_1', 'p123_0'] }
 ];
 
 // الصفات السبع عشرة: خمسة أزواج متضادة + سبع صفات لا ضدّ لها

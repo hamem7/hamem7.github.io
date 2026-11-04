@@ -271,6 +271,9 @@
 .st-resume { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: color-mix(in srgb, var(--info) 12%, var(--surface-3)); border: 1.5px solid var(--info); border-radius: 14px; padding: 8px 12px; font-weight: 700; color: var(--info); }
 
 /* المخارج السبعة عشر وأزواج الصفات */
-.st-m17 { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.st-m17 { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.st-m17 .st-gallery { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.st-m17 .st-fig.book img { max-height: 220px; }
+.st-m17-credit { margin: 8px 0 0; text-align: center; }
 .st-m17 .st-sifa b { font-size: calc(.95 * var(--fs, 1rem)); }
 .st-sifa hr.st-vs { border: 0; border-top: 1.5px dashed var(--line); margin: 2px 0; width: 100%; }
