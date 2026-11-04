@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة — التقرير الشهري (الكشف الموثَّق) · Monthly report preview (Statement)</title>
+<link rel="stylesheet" href="../css/fonts.css">
+<style>
+:root{
+  --paper:#fffdf7; --ink:#14302a; --ink2:#4d5f58; --ink3:#7b8a84;
+  --em:#0b3d30; --em2:#147c5e; --gold:#b8913a; --gold2:#d4af37; --goldbg:#fbf5e3;
+  --line:#e7dfc9; --line2:#d8cca8;
+  --ok:#1f7a55; --okbg:#e5f4ec; --warn:#a46a10; --warnbg:#fdf1d8; --bad:#a63a2a; --badbg:#fbe7e3; --na:#6f7b77; --nabg:#eef0ef;
+  --page:#ebe6d8;
+}
+@media (prefers-color-scheme: dark){ :root{ --page:#0f1714; } }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;color:var(--ink);padding:16px 16px 60px;line-height:1.6}
+button{font:inherit;cursor:pointer}
+.quran-text{font-family:'Amiri Quran',serif}
+
+/* شريط المعاينة */
+.bar{max-width:794px;margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.bar .g{display:flex;gap:6px;flex-wrap:wrap}
+.pill{border:1px solid #c9bc95;background:#fffdf6;color:#3d4a44;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600}
+.pill.on{background:var(--em);border-color:var(--em);color:#fff}
+@media (prefers-color-scheme: dark){ .pill{background:#1a2722;border-color:#2e4239;color:#d9e6e0} .pill.on{background:var(--gold2);border-color:var(--gold2);color:#1d1a10} }
+
+/* الورقة */
+.paper{max-width:794px;margin:0 auto;background:var(--paper);border-radius:6px;box-shadow:0 20px 50px rgba(20,48,42,.18);position:relative;overflow:hidden}
+.paper::before{content:"";position:absolute;inset:10px;border:1px solid var(--line2);border-radius:3px;pointer-events:none}
+.paper::after{content:"";position:absolute;inset:14px;border:.5px solid var(--line);border-radius:2px;pointer-events:none}
+.in{position:relative;padding:34px 40px 28px}
+
+/* الترويسة */
+.head{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;padding-bottom:14px;border-bottom:2px solid var(--em)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:46px;height:46px}
+.brand b{display:block;font:700 22px/1 'Amiri',serif;color:var(--em)}
+.brand small{font-size:11.5px;color:var(--ink3)}
+.title{text-align:center}
+.title h1{font:700 23px/1.2 'Amiri',serif;color:var(--em)}
+.title .quran-text{font-size:15px;color:var(--gold);margin-top:2px}
+.meta{font-size:11.5px;color:var(--ink2);text-align:end;line-height:1.7}
+.meta b{color:var(--ink);font-weight:600}
+.head-rule{height:3px;margin-top:2px;background:linear-gradient(90deg,transparent,var(--gold2),transparent)}
+
+/* بطاقة الطالب */
+.who{display:flex;align-items:center;gap:16px;margin:18px 0 6px;padding:12px 16px;background:var(--goldbg);border:1px solid var(--line2);border-radius:10px}
+.av{width:58px;height:58px;border-radius:50%;flex:none;background:var(--em);border:3px solid var(--gold2);display:grid;place-items:center;font:700 26px 'Amiri',serif;color:#f0d878}
+.who h2{font:700 22px/1.2 'Amiri',serif;color:var(--em)}
+.who .kv{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12.5px;color:var(--ink2);margin-top:3px}
+.who .kv b{color:var(--ink);font-weight:600}
+
+/* الأقسام */
+.sec{margin-top:22px;break-inside:avoid}
+.sh{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+.sh .no{font:700 13px 'Amiri',serif;color:#fff;background:var(--em);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none;transform:translateY(4px)}
+.sh h3{font:700 18px 'Amiri',serif;color:var(--em)}
+.sh p{font-size:12px;color:var(--ink3)}
+.sh .rule{flex:1;height:1px;background:var(--line2);transform:translateY(-4px)}
+
+/* الخلاصة */
+.verdict{display:grid;grid-template-columns:1fr 150px;gap:16px;align-items:stretch}
+.vtext{border-inline-start:4px solid var(--gold2);padding:6px 14px;font-size:14.5px;line-height:1.9;background:#fff}
+.facts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.facts span{font-size:12px;font-weight:600;color:var(--em);background:#eef6f2;border:1px solid #cfe5da;border-radius:999px;padding:2px 10px}
+.seal{border:1.5px solid var(--gold);border-radius:10px;text-align:center;padding:10px 6px;display:flex;flex-direction:column;justify-content:center;background:#fff}
+.seal small{font-size:11px;color:var(--ink3)}
+.seal b{display:block;font:700 24px/1.3 'Amiri',serif;color:var(--em)}
+.seal .dots{display:flex;gap:3px;justify-content:center;margin-top:6px}
+.seal .dots i{width:16px;height:5px;border-radius:3px;background:var(--line)}
+.seal .dots i.on{background:var(--gold2)}
+
+/* جدول الخطة */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11.5px;font-weight:600;color:var(--ink3);text-align:start;padding:6px 8px;border-bottom:1.5px solid var(--em)}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n{font-weight:700;color:var(--ink);white-space:nowrap}
+td.n small{font-weight:400;color:var(--ink3);font-size:11px}
+.bar2{position:relative;height:8px;background:#f0ece0;border-radius:4px;min-width:110px}
+.bar2 i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:4px}
+.bar2 em{position:absolute;inset-block:-3px;width:2px;background:var(--ink);opacity:.5}
+.pc{font-size:11.5px;color:var(--ink2);margin-top:2px;font-weight:600}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.chip.met{color:var(--ok);background:var(--okbg)} .chip.near{color:var(--warn);background:var(--warnbg)} .chip.miss{color:var(--bad);background:var(--badbg)}
+
+/* الإتقان */
+.mast{display:grid;gap:8px}
+.mrow{display:grid;grid-template-columns:170px 1fr 104px 90px;gap:12px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.mrow .nm b{display:block;font-size:13.5px}
+.mrow .nm small{font-size:11px;color:var(--ink3)}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+.scale i{height:22px;border-radius:3px;background:#f1eee4;font-style:normal;font-size:10px;color:var(--ink3);display:grid;place-items:center;white-space:nowrap;overflow:hidden}
+.scale i.on{background:var(--em);color:#fff;font-weight:700}
+.scale i.past{background:#cfe0d8}
+.scale.na i{background:repeating-linear-gradient(45deg,#f3f1ea 0 6px,#ebe8de 6px 12px)}
+.lvl{font-size:13px;font-weight:700;color:var(--em)} .lvl small{display:block;font-size:11px;color:var(--ink3);font-weight:400}
+.lvl.na{color:var(--na)}
+.dl{font-size:12px;font-weight:700;text-align:center;border-radius:6px;padding:4px}
+.dl.up{color:var(--ok);background:var(--okbg)} .dl.down{color:var(--bad);background:var(--badbg)} .dl.flat,.dl.none{color:var(--na);background:var(--nabg)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink3);margin-top:8px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-inline-end:5px;vertical-align:-1px;background:var(--c)}
+
+/* القوة / العناية */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.box{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fff}
+.box h4{font:700 15px 'Amiri',serif;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.box.ok h4{color:var(--ok)} .box.bad h4{color:var(--bad)}
+.box.ok{border-top:3px solid var(--ok)} .box.bad{border-top:3px solid var(--bad)}
+.box ul{list-style:none;display:grid;gap:6px}
+.box li{font-size:13px;line-height:1.75;padding-inline-start:16px;position:relative}
+.box li::before{content:"";position:absolute;inset-inline-start:0;top:.7em;width:7px;height:7px;border-radius:50%}
+.box.ok li::before{background:var(--ok)} .box.bad li::before{background:var(--bad)}
+
+/* المسيرة */
+.juz{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;direction:ltr}
+.juz i{height:20px;border-radius:2px;background:#efebdf;position:relative}
+.juz i.f{background:var(--em)}
+.juz i.p{background:linear-gradient(to left,var(--gold2) var(--p),#efebdf var(--p))}
+.juzlbl{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-top:4px;direction:ltr}
+.juzsum{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:6px}
+.juzsum span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-inline-end:5px;vertical-align:-1px;background:var(--c)}
+.juzsum b{color:var(--em)}
+
+/* الخطة القادمة */
+.plan{display:grid;grid-template-columns:1.3fr 1fr;gap:12px}
+.goals{counter-reset:g;list-style:none;display:grid;gap:7px}
+.goals li{counter-increment:g;display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.7;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.goals li::before{content:counter(g);flex:none;width:22px;height:22px;border-radius:4px;background:var(--goldbg);border:1px solid var(--gold);color:var(--gold);font-weight:700;font-size:12px;display:grid;place-items:center}
+.homebox{background:#f3f8f5;border:1px dashed #9cc4b0;border-radius:10px;padding:10px 14px}
+.homebox h4{font:700 14.5px 'Amiri',serif;color:var(--em);margin-bottom:4px}
+.homebox li{font-size:12.5px;line-height:1.8;margin-inline-start:16px}
+
+/* كلمة المعلم والتوقيع */
+.note{position:relative;padding:14px 18px;background:#fff;border:1px solid var(--line2);border-radius:10px;font:400 16px/2 'Amiri',serif;color:var(--ink)}
+.note::before{content:"”";position:absolute;inset-inline-start:10px;top:-18px;font:700 56px 'Amiri',serif;color:var(--gold2);opacity:.5}
+.sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;gap:20px}
+.sign .s{text-align:center;min-width:180px}
+.sign .s i{display:block;height:34px;border-bottom:1px solid var(--ink3);margin-bottom:4px;font:italic 400 20px 'Amiri',serif;color:var(--em)}
+.sign .s small{font-size:11.5px;color:var(--ink3)}
+.stampph{width:82px;height:82px;border-radius:50%;border:2px dashed var(--line2);display:grid;place-items:center;font-size:11px;color:var(--ink3)}
+
+/* المصادر */
+.src{margin-top:20px;padding:10px 14px;background:#f7f4ea;border-radius:8px;font-size:11.5px;color:var(--ink2);line-height:1.9}
+.src b{color:var(--ink)}
+.src .ok{color:var(--ok);font-weight:700}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:10.5px;color:var(--ink3);margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+
+@media (max-width:640px){
+  .in{padding:22px 18px}
+  .head{grid-template-columns:1fr;text-align:center}.brand{justify-content:center}.meta{text-align:center}
+  .verdict,.two,.plan{grid-template-columns:1fr}
+  .mrow{grid-template-columns:1fr 90px}.mrow .scale{grid-column:1/-1;order:3}.mrow .dl{order:4;grid-column:1/-1}
+  table th:nth-child(4),table td:nth-child(4){display:none}
+}
+@media print{ body{background:#fff;padding:0} .bar{display:none} .paper{box-shadow:none;border-radius:0} }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="g">
+    <button class="pill" data-sc="strong" data-ui="strong"></button>
+    <button class="pill" data-sc="needs" data-ui="needs"></button>
+  </div>
+  <div class="g">
+    <button class="pill" id="btn-print" data-ui="print"></button>
+    <button class="pill" id="btn-lang" data-ui="lang"></button>
+  </div>
+</div>
+<div class="paper"><div class="in" id="root"></div></div>
+
+<script type="module">
+import { setupPreview, SCALE, levelOf, levelIndex, goalStatus, pct, delta, MIN_EVIDENCE } from './mr-honest-shared.js';
+
+setupPreview(({ T, D, tx, lang }) => {
+  const sec = (no, title, hint, body) => `
+    <section class="sec">
+      <div class="sh"><span class="no">${no}</span><h3>${title}</h3>${hint ? `<p>${hint}</p>` : ''}<span class="rule"></span></div>
+      ${body}
+    </section>`;
+
+  const tg = levelOf(D.teacherGrade.score), tgi = levelIndex(D.teacherGrade.score);
+
+  const planRows = D.plan.map(p => {
+    const st = goalStatus(p.done, p.planned), r = pct(p.done, p.planned);
+    const w = Math.min(r, 100), over = r > 100;
+    const col = st.key === 'met' ? 'var(--ok)' : st.key === 'near' ? 'var(--warn)' : 'var(--bad)';
+    return `<tr>
+      <td><b>${tx(p)}</b></td>
+      <td class="n">${p.planned} <small>${tx(p.unit)}</small></td>
+      <td class="n">${p.done} <small>${tx(p.unit)}</small></td>
+      <td><div class="bar2"><i style="width:${w}%;background:${col}"></i>${over ? '' : '<em style="inset-inline-end:0"></em>'}</div><div class="pc">${r}%${over ? ' ▲' : ''}</div></td>
+      <td><span class="chip ${st.key}">${tx(st)}</span></td>
+    </tr>`;
+  }).join('');
+
+  const mastRows = D.mastery.map(m => {
+    const enough = m.n >= MIN_EVIDENCE;
+    const li = levelIndex(m.score), lv = levelOf(m.score);
+    const cells = SCALE.slice().reverse().map((s, i) => `<i class="${enough ? (i === li ? 'on' : i < li ? 'past' : '') : ''}">${enough && i === li ? tx(s) : ''}</i>`).join('');
+    const d = enough ? delta(m.score, m.prev) : null;
+    const dl = d == null ? `<div class="dl none">—</div>`
+      : d > 0 ? `<div class="dl up">▲ ${d}% <small>${T.vsLast}</small></div>`
+      : d < 0 ? `<div class="dl down">▼ ${Math.abs(d)}% <small>${T.vsLast}</small></div>`
+      : `<div class="dl flat">${T.same}</div>`;
+    return `<div class="mrow">
+      <div class="nm"><b>${tx(m)}</b><small>${tx(m.src)} · ${T.evidence(m.n)}</small></div>
+      <div class="scale${enough ? '' : ' na'}">${cells}</div>
+      <div class="lvl${enough ? '' : ' na'}">${enough ? `${m.score}%<small>${tx(lv)}</small>` : `—<small>${T.insufficient}</small>`}</div>
+      ${dl}
+    </div>`;
+  }).join('');
+
+  const juzCells = Array.from({ length: 30 }, (_, i) => {
+    const j = 30 - i; // من جزء 30 (عمّ) بداية الحفظ
+    const idx = 30 - j; // 0 = جزء 30
+    if (idx < D.juz.full) return `<i class="f" title="${j}"></i>`;
+    if (idx === D.juz.full && D.juz.partialPct) return `<i class="p" style="--p:${D.juz.partialPct}%" title="${j}"></i>`;
+    return `<i title="${j}"></i>`;
+  }).join('');
+
+  const s = D.sources;
+  const srcLine = lang === 'ar'
+    ? `<b>${T.sources}:</b> ${s.sessions} حصة حضرها · ${s.tests} اختبارات تسميع · ${s.homework} واجبات مصحَّحة · ${s.reviews} جلسات مراجعة · ${s.notes} ملاحظات تلاوة · سجل الحضور الآلي.<br><b>${T.completeness}:</b> <span class="ok">✓</span> ${tx(D.complete)}. السُّلَّم: ممتاز ≥90 · جيد جدًا ≥80 · جيد ≥70 · مقبول ≥60.`
+    : `<b>${T.sources}:</b> ${s.sessions} classes attended · ${s.tests} recitation tests · ${s.homework} graded homework · ${s.reviews} revision sessions · ${s.notes} recitation notes · automatic attendance log.<br><b>${T.completeness}:</b> <span class="ok">✓</span> ${tx(D.complete)}. Scale: Excellent ≥90 · Very good ≥80 · Good ≥70 · Fair ≥60.`;
+
+  document.getElementById('root').innerHTML = `
+    <header class="head">
+      <div class="brand"><img src="../assets/brand/ham-mark.svg" alt=""><div><b>حمٓ</b><small>${T.brandSub}</small></div></div>
+      <div class="title"><h1>${T.statementTitle}</h1><div class="quran-text">${T.verse}</div></div>
+      <div class="meta">${T.reportNo}: <b dir="ltr">${D.reportNo}</b><br>${T.period}: <b>${tx(D.monthShort)}</b><br><span style="font-size:10.5px">${tx(D.period).split('·')[1] || ''}</span></div>
+    </header>
+    <div class="head-rule"></div>
+
+    <div class="who">
+      <div class="av">${tx(D.initial)}</div>
+      <div>
+        <h2>${tx(D.name)}</h2>
+        <div class="kv"><span>${T.grade}: <b>${tx(D.grade)}</b></span><span>${T.teacher}: <b>${tx(D.teacher)}</b></span><span>${T.scope}: <b>${tx(D.scope)}</b></span></div>
+      </div>
+    </div>
+
+    ${sec(1, T.summary, T.summaryHint, `
+      <div class="verdict">
+        <div class="vtext">${tx(D.verdict)}<div class="facts">${D.facts.map(f => `<span>${tx(f)}</span>`).join('')}</div></div>
+        <div class="seal"><small>${T.teacherGrade}</small><b>${tx(tg)}</b><div class="dots">${[0,1,2,3,4].map(i => `<i class="${i <= tgi ? 'on' : ''}"></i>`).join('')}</div></div>
+      </div>`)}
+
+    ${sec(2, T.planVsDone, T.planVsDoneHint, `
+      <table><thead><tr><th>${T.item}</th><th>${T.planned}</th><th>${T.done}</th><th>${T.ratio}</th><th>${T.status}</th></tr></thead><tbody>${planRows}</tbody></table>`)}
+
+    ${sec(3, T.mastery, T.masteryHint, `<div class="mast">${mastRows}</div>`)}
+
+    ${sec(4, `${T.strengths} · ${T.needs}`, '', `
+      <div class="two">
+        <div class="box ok"><h4>✓ ${T.strengths}</h4><ul>${D.strengths.map(x => `<li>${tx(x)}</li>`).join('')}</ul></div>
+        <div class="box bad"><h4>! ${T.needs}</h4><ul>${D.needs.map(x => `<li>${tx(x)}</li>`).join('')}</ul></div>
+      </div>`)}
+
+    ${sec(5, T.journey, T.juzOf(D.juz.total), `
+      <div class="juz">${juzCells}</div>
+      <div class="juzlbl"><span>30</span><span>20</span><span>10</span><span>1</span></div>
+      <div class="juzsum"><span style="--c:var(--em)">${T.juzDone}</span><span style="--c:var(--gold2)">${T.juzPart}</span><span style="--c:#efebdf">${T.juzTodo}</span></div>`)}
+
+    ${sec(6, T.nextPlan, T.nextPlanHint, `
+      <div class="plan">
+        <ol class="goals">${D.next.map(x => `<li>${tx(x)}</li>`).join('')}</ol>
+        <div class="homebox"><h4>${T.homeRole}</h4><ul>${D.home.map(x => `<li>${tx(x)}</li>`).join('')}</ul></div>
+      </div>`)}
+
+    ${sec(7, T.teacherNote, '', `
+      <div class="note">${tx(D.note)}</div>
+      <div class="sign">
+        <div class="s"><i>${tx(D.teacher)}</i><small>${T.signature}</small></div>
+        <div class="stampph">${T.stamp}</div>
+      </div>`)}
+
+    <div class="src">${srcLine}</div>
+    <div class="foot"><span>${T.issued}: ${tx(D.issued)}</span><span dir="ltr">${D.reportNo}</span><span>حمٓ · ${T.brandSub}</span></div>
+  `;
+});
+</script>
+</body>
+</html>
