@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>معاينة أ — رحلة الحفظ (طريق الجزء)</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--em:#0b3d30;--em2:#072a21;--gold:#d4af37;--gl:#f0d878;--tx:#f6f3e8;--mut:#9fb8ad;--page:#f6f3e8;--card:#fffdf6;--line:#e3dbbd;--ink:#0b3d30}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--page);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;padding:16px 16px 60px}
+button{font:inherit;border:0;cursor:pointer}
+.bar{max-width:860px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#4a6058}
+.bar b{color:var(--ink)}
+.pill{background:var(--em);color:var(--gl);border-radius:99px;padding:6px 16px;font-weight:700;font-size:13px}
+.sec{max-width:860px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px 26px}
+.sec h2{font:700 22px 'Amiri',serif;color:var(--ink);display:flex;align-items:center;gap:14px}
+.sec h2::after{content:"";flex:1;height:2px;background:var(--line)}
+.sec>p{font-size:14px;color:#4a6058;margin:4px 0 14px}
+
+.jb{background:radial-gradient(circle at 90% 0,#14594599,transparent 50%),linear-gradient(170deg,var(--em),var(--em2));border:1px solid var(--gold);border-radius:18px;padding:20px 22px;color:var(--tx);display:flex;flex-direction:column;gap:20px}
+
+/* ① الخلاصة */
+.hero{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.big{display:flex;align-items:baseline;gap:10px}
+.big b{font:700 64px/1 'Amiri',serif;color:var(--gl);letter-spacing:-1px}
+.big span{font-size:14px;font-weight:700;max-width:90px;line-height:1.35}
+.move{flex:1;min-width:min(260px,100%);display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:1px solid rgba(240,216,120,.25);border-radius:14px;padding:10px 14px}
+.pt{display:flex;flex-direction:column}
+.pt small{font-size:11.5px;color:var(--mut);font-weight:600}
+.pt b{font:700 21px/1.3 'Amiri',serif;color:var(--gl)}
+.arr{flex:1;display:flex;align-items:center;gap:6px;color:var(--gold);font-size:11.5px;font-weight:700;justify-content:center}
+.arr i{flex:1;height:2px;background:linear-gradient(var(--dirg),transparent,var(--gold));min-width:20px}
+[dir=rtl]{--dirg:to left}[dir=ltr]{--dirg:to right}
+.arr em{font-style:normal;white-space:nowrap}
+
+/* ② الطريق */
+.road{position:relative}
+.ends{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--mut);margin-bottom:6px}
+.ends span:last-child{color:var(--gl)}
+.pins{position:relative;height:58px}
+.pin{position:absolute;bottom:0;display:flex;flex-direction:column;align-items:center;gap:3px;white-space:nowrap}
+[dir=rtl] .pin{transform:translateX(50%)}[dir=ltr] .pin{transform:translateX(-50%)}
+.pin .lb{font-size:11px;font-weight:700;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:2px 8px;color:#d7e4dd}
+.pin .stem{width:2px;height:10px;background:rgba(240,216,120,.6)}
+.pin.now .lb{background:var(--gl);color:var(--em);border-color:var(--gl);font-size:12px}
+.pin.now .stem{background:var(--gl);height:32px}
+.track{position:relative;height:30px;border-radius:15px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(240,216,120,.35);overflow:visible}
+.seg{position:absolute;inset-block:3px;border-radius:12px}
+.seg.before{background:linear-gradient(180deg,#b89a3c,#8d7426);}
+.seg.month{background:repeating-linear-gradient(135deg,#f6e59a 0 8px,#e6c75a 8px 16px);box-shadow:0 0 16px rgba(240,216,120,.7);border-start-start-radius:0;border-end-start-radius:0}
+.seg.before{border-start-end-radius:0;border-end-end-radius:0}
+.tick{position:absolute;inset-block:-4px;width:2px;background:var(--em);opacity:.9}
+.me{position:absolute;top:50%;width:30px;height:30px;border-radius:50%;background:var(--em);border:3px solid var(--gl);display:grid;place-items:center;font:700 15px 'Amiri',serif;color:var(--gl);box-shadow:0 0 0 5px rgba(240,216,120,.25)}
+[dir=rtl] .me{transform:translate(50%,-50%)}[dir=ltr] .me{transform:translate(-50%,-50%)}
+.flag{position:absolute;top:50%;font-size:18px;inset-inline-end:-6px;transform:translateY(-60%)}
+.names{display:flex;margin-top:8px;font-size:11px;font-weight:600;color:var(--mut);text-align:center}
+.names span{min-width:0;overflow-wrap:anywhere;padding:0 2px;line-height:1.3}
+.names span.done{color:#d9c27a}.names span.cur{color:var(--gl);font-weight:800}
+
+/* ③ المؤشرات */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.st{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.st svg{flex:none}
+.st b{display:block;font:700 26px/1 'Amiri',serif;color:var(--gl)}
+.st span{display:block;font-size:11.5px;color:#d7e4dd;margin-top:4px;line-height:1.4}
+.st .ic{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:rgba(240,216,120,.12);font-size:20px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--mut);border-top:1px solid rgba(240,216,120,.18);padding-top:12px}
+.legend i{display:inline-block;width:22px;height:10px;border-radius:5px;vertical-align:middle;margin-inline-end:6px}
+.note{max-width:860px;margin:14px auto 0;font-size:12.5px;color:#4a6058;line-height:1.9}
+.note b{color:var(--ink)}
+@media (max-width:620px){
+  .sec{padding:16px}.jb{padding:16px}
+  .stats{grid-template-columns:1fr}
+  .names span{font-size:9.5px}
+  .big b{font-size:52px}
+  .move{flex-wrap:wrap;justify-content:space-between}.arr{order:3;flex-basis:100%}.pt b{white-space:nowrap;font-size:19px}
+}
+</style>
+</head>
+<body>
+<div class="bar"><span><b data-i="tag">نموذج أ — «طريق الجزء»</b> · <span data-i="tagS">معاينة ببيانات تجريبية</span></span><button class="pill" id="lang">English</button></div>
+
+<section class="sec">
+  <h2 data-i="title">رحلة الحفظ هذا الشهر</h2>
+  <p data-i="sub">من أين إلى أين وصل الطالب في حفظه خلال هذا الشهر</p>
+  <div class="jb">
+    <div class="hero">
+      <div class="big"><b dir="ltr">+42</b><span data-i="newA">آية جديدة حُفظت هذا الشهر</span></div>
+      <div class="move">
+        <div class="pt"><small data-i="from">بداية الشهر</small><b data-i="fromP">الواقعة — 62</b></div>
+        <div class="arr"><i></i><em data-i="dir">باتجاه سورة الذاريات</em><span data-i="arrow">←</span></div>
+        <div class="pt"><small data-i="to">نهاية الشهر</small><b data-i="toP">الرحمن — 8</b></div>
+      </div>
+    </div>
+
+    <div class="road">
+      <div class="ends"><span data-i="endA">بدأ الجزء من: الحديد</span><span data-i="endB">🏁 خط النهاية: الذاريات</span></div>
+      <div class="pins" id="pins"></div>
+      <div class="track" id="track"></div>
+      <div class="names" id="names"></div>
+    </div>
+
+    <div class="stats">
+      <div class="st">
+        <svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="6"/><circle cx="24" cy="24" r="19" fill="none" stroke="#f0d878" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="49 100" transform="rotate(-90 24 24)"/></svg>
+        <div><b>49%</b><span data-i="s1">من جزء الذاريات (196 من 399 آية)</span></div>
+      </div>
+      <div class="st"><div class="ic">🏁</div><div><b>203</b><span data-i="s2">آية متبقية لإتمام الجزء</span></div></div>
+      <div class="st"><div class="ic">⏳</div><div><b data-i="s3n">≈ 5 أشهر</b><span data-i="s3">لإتمام الجزء بنفس معدل هذا الشهر</span></div></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:#a88a32"></i><span data-i="lg1">حُفظ قبل هذا الشهر</span></span>
+      <span><i style="background:repeating-linear-gradient(135deg,#f6e59a 0 4px,#e6c75a 4px 8px);box-shadow:0 0 6px #f0d878"></i><span data-i="lg2">حُفظ هذا الشهر</span></span>
+      <span><i style="border:1.5px dashed rgba(240,216,120,.6)"></i><span data-i="lg3">متبقٍّ</span></span>
+    </div>
+  </div>
+</section>
+
+<p class="note" data-i="note"><b>الفكرة:</b> الشريط يمتلئ دائمًا <b>في اتجاه سير الطالب</b> (هنا من الحديد نحو الذاريات)، فيقرأه وليّ الأمر كطريق: أين بدأ الشهر، وأين هو الآن («أنت هنا»)، وكم بقي حتى خط النهاية. ويفرّق اللون بين ما حُفظ قبل الشهر وما أُضيف هذا الشهر، مع ثلاثة مؤشرات واضحة: النسبة، المتبقي، والمدة المتوقعة.</p>
+
+<script>
+// ترتيب السير (من بداية الطالب في الجزء نحو خط النهاية)
+const S=[['الحديد','Al-Hadid',29],['الواقعة',"Al-Waqi'ah",96],['الرحمن','Ar-Rahman',78],['القمر','Al-Qamar',55],['النجم','An-Najm',62],['الطور','At-Tur',49],['الذاريات','Adh-Dhariyat',30]];
+const TOT=399, DONE=196, MONTH=42, BEFORE=DONE-MONTH;
+const pc=v=>(v/TOT*100).toFixed(2)+'%';
+const D={ar:{tag:'نموذج أ — «طريق الجزء»',tagS:'معاينة ببيانات تجريبية',title:'رحلة الحفظ هذا الشهر',sub:'من أين إلى أين وصل الطالب في حفظه خلال هذا الشهر',newA:'آية جديدة حُفظت هذا الشهر',from:'بداية الشهر',fromP:'الواقعة — 62',to:'نهاية الشهر',toP:'الرحمن — 8',dir:'باتجاه سورة الذاريات',arrow:'←',endA:'بدأ الجزء من: الحديد',endB:'🏁 خط النهاية: الذاريات',s1:'من جزء الذاريات (196 من 399 آية)',s2:'آية متبقية لإتمام الجزء',s3n:'≈ 5 أشهر',s3:'لإتمام الجزء بنفس معدل هذا الشهر',lg1:'حُفظ قبل هذا الشهر',lg2:'حُفظ هذا الشهر',lg3:'متبقٍّ',pinStart:'بداية الشهر',pinNow:'هنا الآن · الرحمن 8',me:'ف',
+note:'<b>الفكرة:</b> الشريط يمتلئ دائمًا <b>في اتجاه سير الطالب</b> (هنا من الحديد نحو الذاريات)، فيقرأه وليّ الأمر كطريق: أين بدأ الشهر، وأين هو الآن («هنا الآن»)، وكم بقي حتى خط النهاية. ويفرّق اللون بين ما حُفظ قبل الشهر وما أُضيف هذا الشهر، مع ثلاثة مؤشرات واضحة: النسبة، المتبقي، والمدة المتوقعة.'},
+en:{tag:'Model A — "Juz Road"',tagS:'Preview with sample data',title:"This Month's Memorization Journey",sub:"Where the student's memorization started and ended this month",newA:'new ayahs memorized this month',from:'Start of month',fromP:"Al-Waqi'ah — 62",to:'End of month',toP:'Ar-Rahman — 8',dir:'heading to Adh-Dhariyat',arrow:'→',endA:'Started the juz at: Al-Hadid',endB:'🏁 Finish line: Adh-Dhariyat',s1:'of Juz Adh-Dhariyat (196 of 399 ayahs)',s2:'ayahs left to finish the juz',s3n:'≈ 5 months',s3:"to finish the juz at this month's pace",lg1:'Memorized before this month',lg2:'Memorized this month',lg3:'Remaining',pinStart:'Start of month',pinNow:'Now here · Ar-Rahman 8',me:'F',
+note:'<b>The idea:</b> the bar always fills <b>in the direction the student is moving</b> (here from Al-Hadid toward Adh-Dhariyat), so parents read it like a road: where the month began, where the student is now ("Now here"), and how far the finish line is. Colour separates what was memorized before this month from what was added this month, plus three clear indicators: percentage, remaining, and expected time.'}};
+let L='ar';
+function render(){
+  const d=D[L],en=L==='en';
+  document.documentElement.lang=L;document.documentElement.dir=en?'ltr':'rtl';
+  document.querySelectorAll('[data-i]').forEach(e=>{const v=d[e.dataset.i];if(v!=null)e.innerHTML=v});
+  document.getElementById('lang').textContent=en?'العربية':'English';
+  let acc=0,ticks='';S.slice(0,-1).forEach(s=>{acc+=s[2];ticks+=`<i class="tick" style="inset-inline-start:${pc(acc)}"></i>`});
+  document.getElementById('track').innerHTML=
+    `<i class="seg before" style="inset-inline-start:0;width:${pc(BEFORE)}"></i>`+
+    `<i class="seg month" style="inset-inline-start:${pc(BEFORE)};width:${pc(MONTH)}"></i>`+ticks+
+    `<span class="me" style="inset-inline-start:${pc(DONE)}">${d.me}</span><span class="flag">🏁</span>`;
+  document.getElementById('pins').innerHTML=
+    `<div class="pin" style="inset-inline-start:${pc(BEFORE)}"><span class="lb">${d.pinStart}</span><span class="stem"></span></div>`+
+    `<div class="pin now" style="inset-inline-start:${pc(DONE)}"><span class="lb">${d.pinNow}</span><span class="stem"></span></div>`;
+  acc=0;document.getElementById('names').innerHTML=S.map(s=>{const a=acc;acc+=s[2];const cls=acc<=DONE?'done':(a<DONE?'cur':'');return `<span class="${cls}" style="flex:${s[2]}">${en?s[1]:s[0]}</span>`}).join('');
+}
+document.getElementById('lang').onclick=()=>{L=L==='ar'?'en':'ar';render()};
+render();
+</script>
+</body>
+</html>
