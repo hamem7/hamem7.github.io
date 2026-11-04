@@ -1008,16 +1008,22 @@ function renderSummaryTiles(d) {
   tiles.push({
     label: t('mr_tile_errors_resolved'),
     value: String(d.resolvedThisMonth.length),
-    sub: t('mr_tile_errors_sub'),
+    // العدّاد = ما عولج وثُبّت هذا الشهر؛ والسطر الثاني يذكر ما لا يزال قيد الإصلاح (الأخطاء النشطة الآن)
+    sub: (d.student.weaknesses && d.student.weaknesses.length)
+      ? t('mr_tile_errors_pending').replace('{n}', d.student.weaknesses.length)
+      : t('mr_tile_errors_sub'),
     color: '#8a6221'
   });
 
-  // «أوسمة جديدة»: مصدرها الاختبارات الثنائية (+ وسام الشهر الهجري من الواجبات)، فلا تُعرض
-  // أصلًا إن لم تُجرَ أي مواجهة هذا الشهر ولا وسام مكتسَب (من الاختبارات أو وسام الشهر الهجري)
-  if (dualTotal || d.achievementsThisMonth.length || d.monthMedals.length) tiles.push({
+  // «أوسمة جديدة»: مجموع كل ما نالَه الطالب هذا الشهر — الاختبارات الثنائية + وسام الشهر الهجري (الواجبات)
+  // + أوسمة الأداء الشهرية (ألعاب/واجبات/التزام) + أهداف الحفظ (أجزاء ومراحل). تُخفى فقط إن كان المجموع صفرًا.
+  const ex = d.extras || {};
+  const badgesTotal = d.achievementsThisMonth.length + d.monthMedals.length
+    + (ex.summary ? ex.summary.total : 0) + (ex.goals && ex.goals.newEarned ? ex.goals.newEarned.length : 0);
+  if (badgesTotal > 0) tiles.push({
     label: t('mr_tile_achievements'),
-    value: String(d.achievementsThisMonth.length + d.monthMedals.length),
-    sub: t(d.achievementsThisMonth.length && d.monthMedals.length ? 'mr_tile_achievements_sub_both' : (d.monthMedals.length ? 'mr_tile_achievements_sub_medal' : 'mr_tile_achievements_sub')),
+    value: String(badgesTotal),
+    sub: t('mr_tile_achievements_sub_all'),
     color: '#8a6221'
   });
 
