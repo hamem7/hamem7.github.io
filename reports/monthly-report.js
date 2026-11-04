@@ -309,11 +309,6 @@ const MONTHLY_REPORT_TEMPLATE = `
           <div id="mr-errors-content"></div>
         </div>
 
-        <div class="mr-block pdf-block" id="mr-review-block">
-          <div class="section-title" data-i18n="mr_review_section_title">انتظام المراجعة المتباعدة</div>
-          <div id="mr-review-content"></div>
-        </div>
-
         <!-- 🌟 [جديد] "المقارنة الشهرية" — مقارنة فعلية بمؤشرات الشهر السابق (لو توفرت
              بياناته)، بلا أي أحكام أو أوصاف مبالغ فيها (راجع القسم 15 من طلب الميزة) -->
         <div class="mr-block pdf-block" id="mr-compare-block">
@@ -1669,31 +1664,6 @@ function renderErrorsBlock(d) {
     </div>`;
 }
 
-function renderReviewBlock(d) {
-  const el = $('mr-review-content');
-  if (!el) return;
-  setBlockVisible('mr-review-block', !d.reviewHidden);
-  if (d.reviewHidden) return;
-  if (!d.reviewSchedule) {
-    el.innerHTML = `<div class="mr-empty-row">${t('mr_review_never')}</div>`;
-    return;
-  }
-  const lang = AppState.currentLang === 'ar' ? 'ar-EG' : 'en-US';
-  const lastDate = new Date(d.reviewSchedule.lastReviewedAt).toLocaleDateString(lang);
-  const nextDate = new Date(d.reviewSchedule.nextDueAt).toLocaleDateString(lang);
-  const badge = d.reviewedWithinThisMonth
-    ? `<span class="mr-badge mr-badge-win">${t('mr_reviewed_this_month')}</span>`
-    : `<span class="mr-badge mr-badge-tie">${t('mr_not_reviewed_this_month')}</span>`;
-  // شهر سابق: لا نعرض «الموعد القادم» (حالة اليوم)، فقط مراجعة ذلك الشهر
-  const nextPart = d.reviewHistorical ? '' : `${t('mr_review_next')} <b>${nextDate}</b> — `;
-  el.innerHTML = `
-    <div class="mr-note-inline">
-      ${t('mr_review_last')} <b>${lastDate}</b> (${t('mr_review_last_score')} ${d.reviewSchedule.lastScore}%) —
-      ${nextPart}${badge}
-    </div>
-  `;
-}
-
 // 🌟 [جديد] نبرة الملاحظة التلقائية — "رسمية" (الافتراضية، كما كانت دائمًا) أو
 // "دافئة" (صياغة أكثر تشجيعًا لولي الأمر). تؤثر فقط على الجملة التلقائية المبنية
 // هنا؛ أي ملاحظة كتبها المعلم يدويًا في مربع النص لا تتأثر بها إطلاقًا (راجع
@@ -1975,7 +1945,6 @@ function renderAll(d) {
   renderDualBlock(d);
   renderAchievementsBlock(d);
   renderErrorsBlock(d);
-  renderReviewBlock(d);
   renderComparisonBlock(d);
   renderTrendBlock(d);
   renderNoteBox();
@@ -2334,7 +2303,7 @@ async function exportPdfRaw(share = false) {
 // ⚠️ [افتراض صريح] بطاقة "بلا قيمة فعلية" = قيمتها "—" أو "0".
 // -----------------------------------------------------------------------------
 const MR_COMPACT_HIDE_IDS = ['mr-legend', 'mr-gameeval-block', 'mr-homework-block', 'mr-dual-block',
-  'mr-achv-block', 'mr-errors-block', 'mr-review-block', 'mr-compare-block', 'mr-trend-block',
+  'mr-achv-block', 'mr-errors-block', 'mr-compare-block', 'mr-trend-block',
   'mr-att-block', 'mr-tjr-block'];
 function mrIsEmptyBlock(el) {
   return !!el.querySelector('.mr-empty-row') &&
