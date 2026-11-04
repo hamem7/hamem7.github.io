@@ -33,7 +33,7 @@ export function formatMinutes(totalMin) {
 }
 
 const MEDAL = { 1: '🥉', 2: '🥈', 3: '🥇' };
-const ACH_ICON = { sessions: '🕌', hours: '⏳', memoStudents: '🌱', memoAyahs: '📖', reviewAyahs: '🔁', reviewSurahs: '🧭', games: '🎮', duels: '⚔️', activeDays: '🌙' };
+const ACH_ICON = { sessions: '🕌', hours: '⏳', memoStudents: '🌱', memoAyahs: '📖', reviewAyahs: '🔁', reviewSurahs: '🧭', games: '🎮', duels: '⚔️', activeDays: '🌙', homeworkMade: '📝', similarity: '🔀', tajweedChallenge: '🎙️' };
 
 function ensureStyles() {
     if (document.getElementById(STYLE_ID)) return;
@@ -170,8 +170,11 @@ function statsHtml(r) {
     statCard('⚔️', r.duels.matches, t('tr_c_duels'), tf('tr_c_duels_sub', { n: nf(r.duels.participants) }), r.delta ? d.duels : null),
     statCard('🌙', r.activeDays, t('tr_c_days'), tf('tr_c_days_sub', { n: nf(r.longestStreak) }), null)
   ];
-  if (r.homework.count) cards.push(statCard('📝', r.homework.count, t('tr_c_hw'), '', null));
-  if (r.tajweed.sessions) cards.push(statCard('🎙️', r.tajweed.sessions, t('tr_c_tajweed'), '', null));
+  const acc = (c, q) => (q > 0 ? Math.round((c / q) * 100) : 0);
+  cards.push(statCard('📝', r.homework.made, t('tr_c_hwmade'), tf('tr_c_hwmade_sub', { q: nf(r.homework.madeQuestions), s: nf(r.homework.assignedStudents) }), r.delta ? d.homeworkMade : null));
+  cards.push(statCard('📥', r.homework.submitted, t('tr_c_hwsub'), '', null));
+  cards.push(statCard('🔀', r.similarity.rounds, t('tr_c_sim'), r.similarity.questions ? tf('tr_c_acc_sub', { n: nf(r.similarity.questions), p: nf(acc(r.similarity.correct, r.similarity.questions)) }) : tf('tr_c_players_sub', { n: nf(r.similarity.players) }), r.delta ? d.similarity : null));
+  cards.push(statCard('🎙️', r.tajweed.challenge, t('tr_c_tjc'), tf('tr_c_tjc_sub', { n: nf(r.tajweed.sessions), l: nf(r.tajweed.learned) }), r.delta ? d.tajweed : null));
   return `<div class="tmr-grid">${cards.join('')}</div>`;
 }
 
@@ -226,11 +229,12 @@ function achievementsHtml(r) {
 }
 
 function tableHtml(r) {
-  const rows = (r.students || []).filter(s => s.sessions || s.games || s.duels || s.newAyahs || s.reviewAyahs);
+  const rows = r.students || [];
   if (!rows.length) return '';
-  const body = rows.map(s => `<tr><td>${esc(s.name)}</td><td>${nf(s.sessions)}</td><td>${nf(s.games)}</td><td>${s.newAyahs ? nf(s.newAyahs) : '—'}</td><td>${s.reviewAyahs ? nf(s.reviewAyahs) : '—'}</td><td>${s.stars ? nf(s.stars) + ' ⭐' : '—'}</td></tr>`).join('');
-  return `<section class="tmr-sec"><h4>👥 ${esc(t('tr_tbl_title'))}</h4><div class="tmr-scroll"><table class="tmr-table"><thead><tr>
-    <th>${esc(t('tr_col_student'))}</th><th>${esc(t('tr_col_sessions'))}</th><th>${esc(t('tr_col_games'))}</th><th>${esc(t('tr_col_memo'))}</th><th>${esc(t('tr_col_review'))}</th><th>${esc(t('tr_col_stars'))}</th>
+  const dash = (n, suf = '') => (n ? nf(n) + suf : '—');
+  const body = rows.map(s => `<tr><td>${esc(s.name)}${s.hidden ? ` <small class="tmr-subtxt">(${esc(t('tr_hidden_tag'))})</small>` : ''}</td><td>${nf(s.sessions)}</td><td>${nf(s.games)}</td><td>${dash(s.duels)}</td><td>${dash(s.newAyahs)}</td><td>${dash(s.reviewAyahs)}</td><td>${dash(s.hwAssigned)}</td><td>${dash(s.hwSubmitted)}</td><td>${dash(s.similarity)}</td><td>${dash(s.tajweed)}</td><td>${dash(s.stars, ' ⭐')}</td></tr>`).join('');
+  return `<section class="tmr-sec"><h4>👥 ${esc(tf('tr_tbl_title_n', { n: nf(rows.length) }))}</h4><div class="tmr-scroll"><table class="tmr-table"><thead><tr>
+    <th>${esc(t('tr_col_student'))}</th><th>${esc(t('tr_col_sessions'))}</th><th>${esc(t('tr_col_games'))}</th><th>${esc(t('tr_col_duels'))}</th><th>${esc(t('tr_col_memo'))}</th><th>${esc(t('tr_col_review'))}</th><th>${esc(t('tr_col_hwmade'))}</th><th>${esc(t('tr_col_hwsub'))}</th><th>${esc(t('tr_col_sim'))}</th><th>${esc(t('tr_col_tj'))}</th><th>${esc(t('tr_col_stars'))}</th>
   </tr></thead><tbody>${body}</tbody></table></div></section>`;
 }
 
@@ -247,6 +251,9 @@ export function shareText(r) {
     tf('tr_share_review', { n: nf(r.review.ayahs), s: nf(r.review.surahs) }),
     tf('tr_share_games', { n: nf(r.games.total), m: nf(r.games.minutes) }),
     tf('tr_share_duels', { n: nf(r.duels.matches) }),
+    tf('tr_share_hw', { m: nf(r.homework.made), s: nf(r.homework.submitted) }),
+    tf('tr_share_sim', { n: nf(r.similarity.rounds) }),
+    tf('tr_share_tj', { n: nf(r.tajweed.challenge) }),
     tf('tr_share_level', { name: t('tr_lvl_' + r.level.key) })
   ];
   return lines.join('\n');

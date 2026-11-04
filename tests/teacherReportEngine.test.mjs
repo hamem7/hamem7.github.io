@@ -12,7 +12,7 @@ const stu = (id, o = {}) => ({
   games: { total: 10, weakness: 2, seconds: 600 },
   duels: [], homework: { count: 1 }, memo: { newAyahs: 20 },
   review: { total: 100, distinct: 60, surahs: [112, 113], juz: [30] },
-  tajweed: { sessions: 1 }, stars: 1, days: ['2026-10-01', '2026-10-02'], ...o
+  tajweed: { sessions: 1, challenge: 1, questions: 10, correct: 8, learned: 1, examPassed: 0, approved: 0 }, similarity: { rounds: 2, questions: 20, correct: 15 }, hwAssigned: 1, stars: 1, days: ['2026-10-01', '2026-10-02'], ...o
 });
 
 await test('المجاميع: حلقات وساعات وألعاب ووقت', () => {
@@ -102,6 +102,31 @@ await test('رقم الجزء لآية', () => {
 
 await test('جدول بدايات الأجزاء مطابق للأصل في reviewParts', () => {
   REAL_STARTS.forEach(([s, a], i) => assert.equal(juzOfAyah(s, a), i + 1));
+});
+
+await test('الواجبات المصنوعة والمتشابهات وتحدي التجويد تُجمَّع', () => {
+  const a = aggregateMonth([stu(1), stu(2, { hwAssigned: 0 })], { hwMade: 7, hwQuestions: 140 });
+  assert.equal(a.homework.made, 7);
+  assert.equal(a.homework.madeQuestions, 140);
+  assert.equal(a.homework.assignedStudents, 1);
+  assert.equal(a.homework.submitted, 2);
+  assert.equal(a.similarity.rounds, 4);
+  assert.equal(a.similarity.correct, 30);
+  assert.equal(a.tajweed.challenge, 2);
+  assert.equal(a.tajweed.learned, 2);
+});
+
+await test('معلم صنع واجبات فقط (بلا نشاط طلاب) ليس شهراً فارغاً', () => {
+  const r = buildTeacherReport({ curFacts: [], curTeacher: { hwMade: 3, hwQuestions: 30 }, year: 2026, monthIndex0: 9 });
+  assert.equal(r.empty, false);
+  assert.equal(r.homework.made, 3);
+});
+
+await test('طالب بلا أي نشاط يبقى في الحساب الكلي ولا يُسقط التقرير', () => {
+  const blank = { id: 9, name: 'خامل', att: null, games: { total: 0, weakness: 0, seconds: 0 }, duels: [], homework: { count: 0 }, memo: null, review: { total: 0, distinct: 0, surahs: [], juz: [] }, tajweed: { sessions: 0 }, stars: 0, days: [] };
+  const a = aggregateMonth([stu(1), blank]);
+  assert.equal(a.studentsTotal, 2);
+  assert.equal(a.studentsActive, 1);
 });
 
 if (failed) { console.log(`\n✗ ${failed} اختبار فشل`); process.exit(1); }

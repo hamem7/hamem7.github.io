@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.77';
+export const APP_VERSION = '1.0.78';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.78',
+        date: '2026-11-04',
+        items: [
+            { type: 'improved', text: { ar: 'تقرير المعلم الشهري صار شاملاً: عدد الواجبات التي صنعتها وأسئلتها، وجولات المتشابهات ودقتها، وجلسات تحدي التجويد والقواعد التي تعلّمها الطلاب، مع ثلاثة أوسمة جديدة.', en: 'The teacher monthly report is now comprehensive: homework you created and its questions, similar-verses rounds and accuracy, tajweed challenge sessions and rules students learned, with three new badges.' } },
+            { type: 'improved', text: { ar: 'جدول التقرير يضم كل الطلاب بلا استثناء، حتى المخفيين ومن لا نشاط لهم، بأعمدة الحلقات والألعاب والمواجهات والحفظ والمراجعة والواجبات والمتشابهات والتجويد.', en: 'The report table now lists every student without exception, even hidden or inactive ones, with columns for circles, games, duels, memorization, review, homework, similar verses and tajweed.' } }
+        ]
+    },
     {
         version: '1.0.77',
         date: '2026-11-04',

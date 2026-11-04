@@ -14,9 +14,11 @@
 //     games:{ total, weakness, seconds },                       // الألعاب الفردية (بلا الواجبات)
 //     duels:[{ id, won }],                                      // مواجهات مكتملة في الشهر (won: true|false|null)
 //     homework:{ count },                                       // واجبات سلّمها في الشهر
+//     hwAssigned: عدد الواجبات التي صنعها المعلم لهذا الطالب في الشهر
+//     similarity:{ rounds, questions, correct },                // جولات المتشابهات
 //     memo: { newAyahs } | null,                                // حفظ الشهر المؤكَّد (null = لم يُسجَّل)
 //     review:{ total, distinct, surahs:[رقم], juz:[رقم] },      // مراجعة الشهر
-//     tajweed:{ sessions },
+//     tajweed:{ sessions, challenge, questions, correct, learned, examPassed, approved }, // challenge = جلسات «تحدي التجويد»
 //     stars, days:['YYYY-MM-DD'] }                              // أيام فيها أي نشاط
 // =============================================================================
 
@@ -33,12 +35,15 @@ export const LADDERS = {
     reviewSurahs: [10, 30, 60],
     games:        [30, 120, 400],
     duels:        [3, 10, 30],
-    activeDays:   [8, 15, 22]
+    activeDays:   [8, 15, 22],
+    homeworkMade: [4, 12, 30],
+    similarity:   [5, 20, 60],
+    tajweedChallenge: [5, 20, 60]
 };
 export const LADDER_KEYS = Object.keys(LADDERS);
 
 /** حدود النقاط الدنيا لمستويات المعلم (النقاط = مجموع الدرجات المنالة، أقصاها 27). */
-export const LEVEL_MIN_POINTS = [0, 2, 6, 11, 17, 23];
+export const LEVEL_MIN_POINTS = [0, 3, 8, 14, 22, 30];
 export const LEVEL_KEYS = ['starter', 'steady', 'shining', 'star', 'diamond', 'legend'];
 
 // بداية كل جزء [سورة، آية] — نسخة هنا ليبقى المحرك خالصًا (مطابقة لـengine/reviewParts.js → JUZ_STARTS ويختبرها tests)
@@ -96,7 +101,7 @@ function topBy(list, f) {
 }
 
 /** مجاميع شهر واحد من حقائق الطلاب. */
-export function aggregateMonth(facts) {
+export function aggregateMonth(facts, teacher = null) {
     const list = Array.isArray(facts) ? facts.filter(Boolean) : [];
     const att = list.filter(s => s.att);
     const sessions = sum(att, s => s.att.present);
@@ -115,7 +120,7 @@ export function aggregateMonth(facts) {
     list.forEach(s => {
         const touched = (s.att && num(s.att.present) > 0) || num(s.games && s.games.total) > 0 || (s.duels && s.duels.length)
             || num(s.homework && s.homework.count) > 0 || (s.memo && num(s.memo.newAyahs) > 0) || num(s.review && s.review.total) > 0
-            || num(s.tajweed && s.tajweed.sessions) > 0;
+            || num(s.tajweed && s.tajweed.sessions) > 0 || num(s.similarity && s.similarity.rounds) > 0 || num(s.hwAssigned) > 0;
         if (touched) activeIds.add(s.id);
     });
     return {
@@ -131,7 +136,18 @@ export function aggregateMonth(facts) {
             players: list.filter(s => num(s.games && s.games.total) > 0).length
         },
         duels: { matches: matchIds.size, participants: duelParticipants, wins: sum(list, s => (s.duels || []).filter(d => d && d.won === true).length) },
-        homework: { count: sum(list, s => s.homework && s.homework.count) },
+        homework: {
+            submitted: sum(list, s => s.homework && s.homework.count),
+            made: num(teacher && teacher.hwMade),                         // واجبات صنعها المعلم
+            madeQuestions: num(teacher && teacher.hwQuestions),
+            assignedStudents: list.filter(s => num(s.hwAssigned) > 0).length
+        },
+        similarity: {
+            rounds: sum(list, s => s.similarity && s.similarity.rounds),
+            questions: sum(list, s => s.similarity && s.similarity.questions),
+            correct: sum(list, s => s.similarity && s.similarity.correct),
+            players: list.filter(s => num(s.similarity && s.similarity.rounds) > 0).length
+        },
         memo: {
             students: memoList.length,
             ayahs: memoAyahs,
@@ -146,7 +162,16 @@ export function aggregateMonth(facts) {
             juz: juzSet.size,
             students: list.filter(s => num(s.review && s.review.total) > 0).length
         },
-        tajweed: { sessions: sum(list, s => s.tajweed && s.tajweed.sessions) },
+        tajweed: {
+            sessions: sum(list, s => s.tajweed && s.tajweed.sessions),
+            challenge: sum(list, s => s.tajweed && s.tajweed.challenge),
+            questions: sum(list, s => s.tajweed && s.tajweed.questions),
+            correct: sum(list, s => s.tajweed && s.tajweed.correct),
+            learned: sum(list, s => s.tajweed && s.tajweed.learned),
+            examPassed: sum(list, s => s.tajweed && s.tajweed.examPassed),
+            approved: sum(list, s => s.tajweed && s.tajweed.approved),
+            players: list.filter(s => num(s.tajweed && s.tajweed.sessions) > 0).length
+        },
         stars: sum(list, s => s.stars),
         activeDays: days.size,
         longestStreak: longestStreak([...days]),
@@ -171,6 +196,9 @@ export function ladderValue(key, agg) {
         case 'games': return agg.games.total;
         case 'duels': return agg.duels.matches;
         case 'activeDays': return agg.activeDays;
+        case 'homeworkMade': return agg.homework.made;
+        case 'similarity': return agg.similarity.rounds;
+        case 'tajweedChallenge': return agg.tajweed.challenge;
         default: return 0;
     }
 }
@@ -210,26 +238,29 @@ export function achievementsOf(agg) {
 
 /** فرق الشهر عن السابق (null لو لا شهر سابق فيه بيانات فعلية فلا نقارن بصفر مضلِّل). */
 export function deltaOf(cur, prev) {
-    if (!prev || !prev.studentsActive) return null;
+    if (!prev || (!prev.studentsActive && !prev.homework.made)) return null;
     return {
         sessions: cur.sessions.count - prev.sessions.count,
         games: cur.games.total - prev.games.total,
         duels: cur.duels.matches - prev.duels.matches,
         memoAyahs: cur.memo.ayahs - prev.memo.ayahs,
         reviewAyahs: cur.review.ayahs - prev.review.ayahs,
-        gameMinutes: cur.games.minutes - prev.games.minutes
+        gameMinutes: cur.games.minutes - prev.games.minutes,
+        homeworkMade: cur.homework.made - prev.homework.made,
+        similarity: cur.similarity.rounds - prev.similarity.rounds,
+        tajweed: cur.tajweed.sessions - prev.tajweed.sessions
     };
 }
 
 /** التقرير الكامل: curFacts (الشهر المطلوب) و prevFacts (الشهر السابق، اختياري). */
-export function buildTeacherReport({ curFacts, prevFacts = null, year, monthIndex0 }) {
-    const cur = aggregateMonth(curFacts);
-    const prev = prevFacts ? aggregateMonth(prevFacts) : null;
+export function buildTeacherReport({ curFacts, prevFacts = null, curTeacher = null, prevTeacher = null, year, monthIndex0 }) {
+    const cur = aggregateMonth(curFacts, curTeacher);
+    const prev = prevFacts ? aggregateMonth(prevFacts, prevTeacher) : null;
     return {
         year, monthIndex0,
         ...cur,
         ...achievementsOf(cur),
         delta: deltaOf(cur, prev),
-        empty: cur.studentsActive === 0
+        empty: cur.studentsActive === 0 && cur.homework.made === 0
     };
 }
