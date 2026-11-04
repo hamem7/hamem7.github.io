@@ -6,7 +6,7 @@
 // الألوان قيم ثابتة (لا var()) لأن html2canvas يلتقط الصفحة للتصدير — نفس قاعدة monthly-report.identity.js.
 // كل نص عبر t()/tf() من i18n-badges.js (عربي/English). لا تمسّ أي نص قرآني ولا خطًا قرآنيًا هنا.
 // =============================================================================
-import { AppState, t } from '../core/app.js';
+import { AppState, t, surahNameLocal } from '../core/app.js';
 import { tf } from '../core/i18n.js';
 import { esc } from '../core/escape.js';
 import '../core/i18n-badges.js';
@@ -15,7 +15,7 @@ import { computeMonthBadges, summarizeEarned, closestToNext, BADGE_DEFS } from '
 import { summarizeMonth, evidenceDays, hasSchedule } from '../engine/attendanceEngine.js';
 import { ensureJourney } from '../engine/tajweedJourney.js';
 import { paceFrom, projectMilestones, buildPathMap, weightsFromPages, unitsBetween, buildNextMonthPlan, sessionsToFinish } from '../engine/khatmPlan.js';
-import { ayahIndex, juzBounds, JUZ_COUNT, summarizeReview } from '../engine/reviewParts.js';
+import { ayahIndex, juzBounds, juzLabel, JUZ_COUNT, summarizeReview } from '../engine/reviewParts.js';
 import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { SKILLS } from '../engine/skillMap.js';
 import { skillLabel } from '../components/skillProfile.js';
@@ -51,6 +51,45 @@ export const EXTRAS_STYLES = `
   #report-screen .mrx-row{display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-top:1px dashed #e6dcbc; font-size:13px;}
   #report-screen .mrx-row b{color:#164f40;}
   #report-screen .mrx-plan-warn{background:#fff6dc; border:1px solid #ecd58a; color:#6f5410; border-radius:12px; padding:9px 12px; font-size:12.5px; line-height:1.8; margin-bottom:8px;}
+  /* خطة الشهر القادم — نفس هوية «رحلة الحفظ» الزمردية (ألوان ثابتة لأجل html2canvas، بلا inset/var/letter-spacing) */
+  #report-screen .mrx-pl-head{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;}
+  #report-screen .mrx-pl-tag{font-size:11px; font-weight:800; color:#8a6a12; border:1.5px dashed #c9a643; background:#fbf4dc; border-radius:99px; padding:3px 12px;}
+  #report-screen .mrx-pl-disc{font-size:12.5px; color:#4a6058; line-height:1.8; margin:6px 0 12px;}
+  #report-screen .mrx-pl-box{background:#0b3d30; border:1px solid #d4af37; border-radius:16px; padding:18px 18px 16px; color:#f6f3e8; display:flex; flex-direction:column; gap:16px;}
+  #report-screen .mrx-pl-sum{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  #report-screen .mrx-pl-s{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px 12px; display:flex; align-items:center; gap:10px;}
+  #report-screen .mrx-pl-s .ic{flex:none; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(240,216,120,.13); font-size:17px;}
+  #report-screen .mrx-pl-s b{display:block; font-family:'Amiri',serif; font-size:23px; line-height:1.1; color:#f0d878;}
+  #report-screen .mrx-pl-s span{display:block; font-size:11px; color:#d7e4dd; margin-top:2px; line-height:1.45;}
+  #report-screen .mrx-pl-wh{display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px; font-weight:700; color:#d7e4dd;}
+  #report-screen .mrx-pl-wh small{font-size:11px; font-weight:500; color:#9fb8ad;}
+  #report-screen .mrx-pl-track{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:-4px;}
+  #report-screen .mrx-pl-w{position:relative; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:13px; padding:10px 10px 9px; display:flex; flex-direction:column; gap:7px; min-width:0;}
+  #report-screen .mrx-pl-w .n{display:flex; align-items:center; justify-content:center; width:22px; height:22px; margin:0 auto; border-radius:50%; font-family:'Amiri',serif; font-weight:700; font-size:12px; background:#072a21; border:2px solid #d4af37; color:#f0d878;}
+  #report-screen .mrx-pl-w.first .n{background:#f0d878; color:#0b3d30;}
+  #report-screen .mrx-pl-w h5{margin:0; font-size:12px; font-weight:800; color:#f0d878; text-align:center;}
+  #report-screen .mrx-pl-it{display:flex; flex-direction:column; gap:1px; border-top:1px dashed rgba(240,216,120,.22); padding-top:6px;}
+  #report-screen .mrx-pl-it small{font-size:10.5px; font-weight:700; color:#9fb8ad; display:flex; align-items:center; gap:5px;}
+  #report-screen .mrx-pl-it small i{width:8px; height:8px; border-radius:50%; flex:none; display:inline-block;}
+  #report-screen .mrx-pl-it span{font-size:11.5px; color:#f6f3e8; line-height:1.55;}
+  #report-screen .mrx-pl-it span b{font-family:'Amiri',serif; font-size:14px; color:#f0d878;}
+  #report-screen .mrx-pl-it span em{font-style:normal; color:#9fb8ad;}
+  #report-screen .mrx-pl-it.opt span{color:#9fb8ad;}
+  #report-screen .mrx-pl .d-new{background:#f0d878;}
+  #report-screen .mrx-pl .d-near{background:#9ee0bf;}
+  #report-screen .mrx-pl .d-far{background:#8fb7e8;}
+  #report-screen .mrx-pl-side{display:flex; gap:10px; flex-wrap:wrap;}
+  #report-screen .mrx-pl-tg{flex:1; min-width:200px; display:flex; align-items:center; gap:10px; background:rgba(212,175,55,.14); border:1px solid rgba(212,175,55,.5); border-radius:14px; padding:9px 12px;}
+  #report-screen .mrx-pl-tg .ic{font-size:19px;}
+  #report-screen .mrx-pl-tg small{display:block; font-size:10.5px; color:#d7e4dd; font-weight:600;}
+  #report-screen .mrx-pl-tg b{font-family:'Amiri',serif; font-size:16px; color:#f0d878;}
+  #report-screen .mrx-pl-foot{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  #report-screen .mrx-pl-f{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px 12px;}
+  #report-screen .mrx-pl-f h4{margin:0 0 5px; font-size:12px; font-weight:700; color:#d7e4dd;}
+  #report-screen .mrx-pl-f ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px;}
+  #report-screen .mrx-pl-f li{font-size:11.5px; color:#c9d8d0; line-height:1.6; display:flex; gap:6px;}
+  #report-screen .mrx-pl-f li::before{content:"✓"; color:#f0d878; font-weight:800;}
+  #report-screen .mrx-pl-f.chg li::before{content:"↻"; color:#e9b97a;}
   #report-screen .mrx-teacher{background:#eef6ff; border:1.5px dashed #8ab4e8; color:#1f4c85;}
   #report-screen .mrx-teacher button{margin-top:8px; border:0; border-radius:10px; padding:7px 14px; font-weight:700; background:#1f4c85; color:#fff; cursor:pointer;}
 `;
@@ -117,10 +156,10 @@ async function buildKhatm(d, ctx, att, asOf = new Date()) {
     months.push({ newUnits: unit(lo, hi) * scale, sessions: sm.present });
   }
   const sessionsPerMonth = hasSchedule(ctx.student) ? Math.max(ctx.student.schedule.days.length * 4, 1) : null;
-  if (!sessionsPerMonth) return { pace: { perSession: 0, perMonth: 0, basis: 'none', monthsUsed: 0 }, proj: [], remaining, curJuz, sessionsPerMonth: null, sessionsToFinishJuz: null, monthsUsed: 0, excludedMonths };
+  if (!sessionsPerMonth) return { pace: { perSession: 0, perMonth: 0, basis: 'none', monthsUsed: 0 }, proj: [], remaining, curJuz, sessionsPerMonth: null, sessionsToFinishJuz: null, monthsUsed: 0, excludedMonths, posIdx, weights, pathMap, pageMode };
   const pace = paceFrom(months, sessionsPerMonth);
   const proj = projectMilestones({ pace, remaining, sessionsPerMonth, attendancePct: att && att.pct != null ? att.pct : null, now: asOf });
-  return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed, excludedMonths };
+  return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed, excludedMonths, posIdx, weights, pathMap, pageMode };
 }
 
 function tajweedMonth(d, ctx) {
@@ -145,6 +184,46 @@ function nextTajweedRuleKey(ctx) {
   const done = new Set(ctx.mastery.filter(r => ensureJourney(r).teacherApprovedAt).map(r => r.ruleId));
   const hit = getAllRulesFlat().find(x => !done.has(x.rule.id));
   return hit ? hit.rule.nameKey : null;
+}
+
+// ---------- خطة الشهر القادم: نطاقات أسبوعية تقريبية (مسار المنصة: الناس ← الفاتحة، والآيات تصاعديًا داخل السورة) ----------
+const PATH_TOTAL = 6236;
+/** فهرس الحفظ (1 = أول آية في الناس) لموضع {s,a} — نفس صيغة currentPositionIdx. */
+function pathIdxOf(surahsData, s, a) {
+  let sum = 0; for (const x of surahsData) if (x.number > s) sum += x.ayahsCount;
+  return sum + a;
+}
+/** عكس pathIdxOf: فهرس الحفظ ← {s,a}. */
+function pathRef(surahsData, k) {
+  const sorted = [...surahsData].sort((x, y) => y.number - x.number);
+  let acc = 0;
+  for (const x of sorted) { if (k <= acc + x.ayahsCount) return { s: x.number, a: k - acc }; acc += x.ayahsCount; }
+  return null;
+}
+/** الحفظ الجديد للأسابيع الأربعة: من الآية التالية لموضع الطالب، بمقدار ربع الوحدات المتوقعة لكل أسبوع (أهداف تراكمية فلا يتراكم التقريب). */
+/* مُصدَّرة للاختبار */ export function weeklyNewRanges(surahsData, khatm, newUnits) {
+  if (!khatm || !(newUnits > 0) || !(khatm.posIdx >= 0)) return null;
+  const w = (k) => (khatm.pageMode ? (khatm.weights[khatm.pathMap[k - 1]] || 0) : 604 / 6236);
+  const out = [];
+  let k = khatm.posIdx + 1, cum = 0;
+  for (let wk = 1; wk <= 4; wk++) {
+    if (k > PATH_TOTAL) { out.push(null); continue; }
+    const start = k, target = newUnits * wk / 4;
+    while (k <= PATH_TOTAL && (cum < target || k === start)) { cum += w(k); k++; }
+    out.push({ from: pathRef(surahsData, start), to: pathRef(surahsData, k - 1) });
+  }
+  return out;
+}
+/** المراجعة القريبة: محفوظ هذا الشهر (بين موضعي البداية والنهاية) مقسومًا أربعة أرباع متتالية. */
+export function weeklyNearRanges(surahsData, journey) {
+  if (!journey || !journey.hasEnding || !journey.beginPos || !journey.endPos) return null;
+  const b = pathIdxOf(surahsData, journey.beginPos.s, journey.beginPos.a), e = pathIdxOf(surahsData, journey.endPos.s, journey.endPos.a);
+  const lo = Math.min(b, e), hi = Math.max(b, e), n = hi - lo + 1;
+  if (!(n > 1)) return null;
+  return [0, 1, 2, 3].map(i => {
+    const a = lo + Math.round(n * i / 4), z = lo + Math.round(n * (i + 1) / 4) - 1;
+    return z >= a ? { from: pathRef(surahsData, a), to: pathRef(surahsData, z) } : null;
+  });
 }
 
 export async function collectExtras(d) {
@@ -192,6 +271,12 @@ export async function collectExtras(d) {
     farReviewParts: farParts,
     nextTajweedRule: nextRule, focusSkill: weak
   });
+  plan.scheduleKnown = sessionsNext != null;
+  plan.pacePerSession = khatm && khatm.pace && khatm.pace.perSession > 0 ? khatm.pace.perSession : null;
+  try {
+    plan.weeksNew = weeklyNewRanges(ctx.surahsData, khatm, plan.newUnits);
+    plan.weeksNear = weeklyNearRanges(ctx.surahsData, d.journey);
+  } catch (e) { plan.weeksNew = plan.weeksNear = null; }
   // اكتمال البيانات (للمعلم)
   const issues = [];
   if (!hasSchedule(student)) issues.push({ k: 'cmp_no_schedule' });
@@ -295,17 +380,58 @@ function tajweedSection(d, x) {
     ${row(t('tjr_approved'), c.approved)}</div>`;
 }
 
+// «خطة الشهر القادم» — توقعات لا التزام: ملخص بثلاثة أرقام، ثم خريطة الأسابيع الأربعة (حفظ جديد/مراجعة قريبة/بعيدة بنطاقات
+// تقريبية)، ثم التجويد ومحور التركيز، ثم «على ماذا بُنيت» و«قد تتغيّر إذا…». كل الأرقام من بيانات حقيقية؛ ما لا يُحسب يُترك للمعلم.
+const half = (x) => Math.max(Math.round(x * 2) / 2, 0.5);
+function refRange(r) {
+  if (!r || !r.from || !r.to) return '';
+  const sn = (n) => surahNameLocal(n);
+  if (r.from.s === r.to.s) return r.from.a === r.to.a ? `${sn(r.from.s)} ${num(r.from.a)}` : `${sn(r.from.s)} ${num(r.from.a)}–${num(r.to.a)}`;
+  return `${sn(r.from.s)} ${num(r.from.a)} – ${sn(r.to.s)} ${num(r.to.a)}`;
+}
 function planSection(d, x) {
   const p = x.plan;
-  const rows = [];
-  rows.push([t('pln_new'), p.newUnits != null ? tf('pln_new_val', { n: num(Math.max(Math.round(p.newUnits), 1)), s: num(p.sessions) }) : t('pln_new_none')]);
-  rows.push([t('pln_near'), p.thisMonthNewAyahs != null ? tf('pln_near_val', { n: num(p.thisMonthNewAyahs) }) : t('pln_near_none')]);
-  rows.push([t('pln_far'), p.farReviewParts.length ? tf('pln_far_val', { parts: p.farReviewParts.map(num).join(isEn() ? ', ' : '، ') }) : t('pln_far_none')]);
-  rows.push([t('pln_tajweed'), p.nextTajweedRule ? tf('pln_tajweed_val', { rule: t(p.nextTajweedRule) }) : t('pln_tajweed_none')]);
-  if (p.focusSkill) rows.push([t('pln_focus'), tf('pln_focus_val', { skill: p.focusSkill })]);
-  const list = rows.map(([a, b]) => `<div class="mrx-row"><b>${esc(a)}</b><span>${esc(b)}</span></div>`).join('');
-  return `<div class="mrx pdf-block" id="mr-plan2-block"><div class="section-title">${esc(t('pln_title'))}</div>
-    <div class="mrx-plan-warn">${esc(t('pln_disclaimer'))}</div>${list}</div>`;
+  const name = firstName(d.name);
+  const hasNew = p.newUnits != null && p.newUnits > 0;
+  const tile = (ic, val, label) => `<div class="mrx-pl-s"><div class="ic">${ic}</div><div><b>${val}</b><span>${esc(label)}</span></div></div>`;
+  const tiles = tile('📖', hasNew ? '≈ ' + num(half(p.newUnits)) : '—', hasNew ? tf('pln_s_new', { s: num(p.sessions) }) : t('pln_new_none'))
+    + tile('🔁', p.thisMonthNewAyahs != null ? num(p.thisMonthNewAyahs) : '—', t('pln_s_near'))
+    + tile('📚', p.farReviewParts.length ? num(Math.min(p.farReviewParts.length, 4)) : '—', t('pln_s_far'));
+  const item = (cls, label, html, opt) => `<div class="mrx-pl-it${opt ? ' opt' : ''}"><small><i class="${cls}"></i>${esc(label)}</small><span>${html}</span></div>`;
+  const weeks = [0, 1, 2, 3].map(i => {
+    const nw = p.weeksNew && p.weeksNew[i];
+    const newHtml = hasNew
+      ? (nw ? `<b>≈ ${num(half(p.newUnits / 4))}</b> ${esc(t('pln_w_pages'))} · ${esc(refRange(nw))}` : esc(t('pln_w_done')))
+      : esc(t('pln_w_teacher'));
+    const nr = p.weeksNear && p.weeksNear[i];
+    const nearHtml = nr ? esc(refRange(nr)) + (i === 3 ? ` <em>${esc(t('pln_w_near_all'))}</em>` : '') : esc(t('pln_w_near_q' + (i + 1)));
+    const fj = p.farReviewParts[i];
+    const farHtml = fj != null ? esc(juzLabel(fj, t)) : esc(t('pln_w_far_any'));
+    return `<div class="mrx-pl-w${i === 0 ? ' first' : ''}"><span class="n">${num(i + 1)}</span><h5>${esc(tf('pln_week', { n: num(i + 1) }))}</h5>
+      ${item('d-new', t('pln_new'), newHtml, !hasNew)}${item('d-near', t('pln_near'), nearHtml)}${item('d-far', t('pln_far'), farHtml, fj == null)}</div>`;
+  }).join('');
+  const tj = `<div class="mrx-pl-tg"><span class="ic">🎙️</span><div><small>${esc(t('pln_tj_k'))}</small><b>${esc(p.nextTajweedRule ? t(p.nextTajweedRule) : t('pln_tajweed_none'))}</b></div></div>`;
+  const fc = p.focusSkill ? `<div class="mrx-pl-tg"><span class="ic">💡</span><div><small>${esc(t('pln_fc_k'))}</small><b>${esc(p.focusSkill)}</b></div></div>` : '';
+  const basis = [
+    p.pacePerSession ? tf('pln_b_pace', { name, p: num(Math.round(p.pacePerSession * 10) / 10) }) : t('pln_b_nopace'),
+    p.scheduleKnown ? tf('pln_b_sched', { s: num(p.sessions) }) : t('pln_b_nosched'),
+    t('pln_b_review')
+  ];
+  const li = (arr) => arr.map(v => `<li>${esc(v)}</li>`).join('');
+  return `<div class="mrx mrx-pl pdf-block" id="mr-plan2-block">
+    <div class="mrx-pl-head"><div class="section-title">${esc(t('pln_title'))}</div><span class="mrx-pl-tag">${esc(t('pln_tag'))}</span></div>
+    <div class="mrx-pl-disc">${esc(t('pln_disclaimer'))}</div>
+    <div class="mrx-pl-box">
+      <div class="mrx-pl-sum">${tiles}</div>
+      <div class="mrx-pl-wh"><span>${esc(t('pln_weeks_title'))}</span><small>${esc(t('pln_weeks_sub'))}</small></div>
+      <div class="mrx-pl-track">${weeks}</div>
+      <div class="mrx-pl-side">${tj}${fc}</div>
+      <div class="mrx-pl-foot">
+        <div class="mrx-pl-f"><h4>${esc(t('pln_b_title'))}</h4><ul>${li(basis)}</ul></div>
+        <div class="mrx-pl-f chg"><h4>${esc(t('pln_c_title'))}</h4><ul>${li([t('pln_c1'), t('pln_c2'), t('pln_c3')])}</ul></div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function completenessSection(x) {
