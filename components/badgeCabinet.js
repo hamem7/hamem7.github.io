@@ -8,24 +8,23 @@ import { BADGE_DEFS, TIER_KEYS } from '../engine/badgesEngine.js';
 import { badgeHistory, consistencyTitle } from '../core/badgeService.js';
 import { medalSVG, TIER_VARS, playBadge, showCeremony, maybeShowNewGoals } from './badgeReveal.js';
 import { loadGoalState, goalName, goalIcon, goalToReveal, nextGoalHint, pctText } from '../core/goalsService.js';
-import { MILESTONES, juzTierKey } from '../engine/goalsEngine.js';
+import { juzTierKey } from '../engine/goalsEngine.js';
 import { juzLabel } from '../engine/reviewParts.js';
 
 const isEn = () => AppState.currentLang === 'en';
 const num = (n) => (isEn() ? String(n) : Number(n).toLocaleString('ar-EG', { useGrouping: false }));
 
-// قسم «أهدافي»: وسام لكل جزء (30) + المراحل الكبرى (7) + الهدف التالي بشريط تقدم
+// قسم «أهدافي»: وسام لكل جزء (30) + الهدف التالي بشريط تقدم
 function goalsBlock(state) {
   const earnedIds = new Set(state.earned.map(e => e.id));
   const mini = (id, icon, tierKey, label, kind, ref) => `<button type="button" class="gl-card${earnedIds.has(id) ? '' : ' locked'}" data-id="${id}" title="${esc(label)}" style="${earnedIds.has(id) ? TIER_VARS[tierKey] : '--t1:#9aa0a6;--t2:#7b8086;--t3:#555a60'}">
       <span class="m">${medalSVG(icon, earnedIds.has(id) ? tierKey : 'bronze').replace('class="shine"', 'class="shine" style="display:none"')}</span><small>${esc(label)}</small></button>`;
   const juz = Array.from({ length: 30 }, (_, i) => 30 - i).map(j => mini('juz_' + j, num(j), juzTierKey(j), juzLabel(j, t))).join('');
-  const ms = MILESTONES.map(m => mini(m.id, ({ ms_3: '🌱', ms_5: '🌿', ms_quarter: '🌙', ms_10: '⛰️', ms_half: '🌓', ms_20: '🏆', ms_khatm: '👑' })[m.id], m.tierKey, t('goal_' + m.id + '_name'))).join('');
-  const hint = nextGoalHint(state, null);
+  const hint = nextGoalHint(state);
   return `<div class="gl-sec"><div class="gl-head"><b>${esc(t('goal_sec_title'))}</b><span>${esc(tf('goal_juz_count', { n: num(state.fullJuz) }))}</span></div>
     <p style="margin:2px 0 8px;color:var(--dh-ink-soft);font-size:.85rem">${esc(t('goal_sec_sub'))}</p>
     ${hint ? `<div class="gl-next"><div>${esc(hint.text)}</div><div class="gl-bar"><i style="width:${Math.max(4, Math.round(hint.pct * 100))}%"></i></div></div>` : ''}
-    <div class="gl-grid gl-ms">${ms}</div><div class="gl-grid">${juz}</div></div>`;
+    <div class="gl-grid">${juz}</div></div>`;
 }
 
 export async function renderBadgeCabinet(student, container) {

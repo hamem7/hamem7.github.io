@@ -20,13 +20,9 @@ const BADGES = {
 const UNITS_EN = { games: 'Games', sessions: 'Sessions', points: 'Points', ayahs: 'Ayahs', parts: 'Parts', questions: 'Questions', percent: 'Attendance %', rules: 'Rules', wins: 'Wins', months: 'Months' };
 
 const ar = {
-    goal_kicker: 'إنجاز جديد!', goal_chip_juz: 'وسام جزء', goal_chip_ms: 'وسام إنجاز كبير', goal_juz_name: 'حافظ {juz}', goal_juz_reason: 'أتمّ حفظ {juz} كاملًا — بارك الله فيه',
-    goal_ms_3_name: 'حافظ ٣ أجزاء', goal_ms_3_reason: 'بلغ حفظه ٣ أجزاء كاملة', goal_ms_5_name: 'حافظ ٥ أجزاء', goal_ms_5_reason: 'بلغ حفظه ٥ أجزاء كاملة',
-    goal_ms_quarter_name: 'حافظ ربع القرآن', goal_ms_quarter_reason: 'بلغ حفظه ربع القرآن الكريم', goal_ms_10_name: 'حافظ ١٠ أجزاء', goal_ms_10_reason: 'بلغ حفظه ١٠ أجزاء كاملة',
-    goal_ms_half_name: 'حافظ نصف القرآن', goal_ms_half_reason: 'بلغ حفظه نصف القرآن الكريم', goal_ms_20_name: 'حافظ ٢٠ جزءًا', goal_ms_20_reason: 'بلغ حفظه ٢٠ جزءًا كاملة',
-    goal_ms_khatm_name: 'حافظ القرآن كاملًا', goal_ms_khatm_reason: 'أتمّ حفظ القرآن الكريم كاملًا — ما شاء الله وبارك الله فيه',
-    goal_next_juz: 'الهدف التالي: {name} — أنجز {pct}', goal_next_ms: 'الهدف الكبير التالي: {name} — أنجز {pct}',
-    goal_sec_title: 'أهدافي وأوسمة الأجزاء', goal_sec_sub: 'وسام لكل جزء يُتمّ حفظه، وأوسمة كبرى عند ٣ أجزاء و٥ وربع القرآن و١٠ ونصفه و٢٠ والقرآن كاملًا', goal_juz_count: '{n} من ٣٠ جزءًا محفوظًا',
+    goal_kicker: 'إنجاز جديد!', goal_chip_juz: 'وسام جزء', goal_juz_name: 'حافظ {juz}', goal_juz_reason: 'أتمّ حفظ {juz} كاملًا — بارك الله فيه',
+    goal_next_juz: 'الهدف التالي: {name} — أنجز {pct}',
+    goal_sec_title: 'أهدافي وأوسمة الأجزاء', goal_sec_sub: 'وسام لكل جزء يُتمّ حفظه', goal_juz_count: '{n} من ٣٠ جزءًا محفوظًا',
     goal_empty: 'لم يُسجَّل موضع حفظ بعد. يُحسب من سجل الحفظ الشهري.', goal_locked: 'لم يُنَل بعد', goal_rep_title: 'أهداف الحفظ وأوسمة الأجزاء', goal_rep_new: 'أوسمة نالها هذا الشهر', goal_rep_none: 'لا وسام جديد هذا الشهر — الهدف التالي قريب.', goal_rep_basis: 'يُحسب من موضع الحفظ المسجَّل في سجل الحفظ الشهري.',
     ms_card_sched_title: 'جدول الحصص والحضور', ms_card_sched_desc: 'أيام كل طالب ووقت سؤال الحضور',
     att_time_title: 'متى تحب أن يظهر سؤال الحضور؟', att_time_sub: 'يظهر مرة يوميًا بعد هذا الوقت، وفقط عن طلاب لهم حصة اليوم ولم يُسجَّل لهم أي نشاط. اختر وقتًا يناسب عملك (صباحًا أو مساءً).', att_time_enable: 'اسألني عن الحضور', att_time_save: 'حفظ', att_time_label: 'وقت السؤال',
@@ -91,13 +87,9 @@ const ar = {
     tier_word: 'الدرجة'
 };
 const en = {
-    goal_kicker: 'NEW ACHIEVEMENT!', goal_chip_juz: 'Juz badge', goal_chip_ms: 'Major milestone', goal_juz_name: 'Memorized {juz}', goal_juz_reason: 'Completed memorizing {juz} — may Allah bless him/her',
-    goal_ms_3_name: 'Memorized 3 Juz', goal_ms_3_reason: 'Reached 3 full juz of memorization', goal_ms_5_name: 'Memorized 5 Juz', goal_ms_5_reason: 'Reached 5 full juz of memorization',
-    goal_ms_quarter_name: 'Memorized a Quarter', goal_ms_quarter_reason: 'Reached a quarter of the Holy Quran', goal_ms_10_name: 'Memorized 10 Juz', goal_ms_10_reason: 'Reached 10 full juz of memorization',
-    goal_ms_half_name: 'Memorized Half', goal_ms_half_reason: 'Reached half of the Holy Quran', goal_ms_20_name: 'Memorized 20 Juz', goal_ms_20_reason: 'Reached 20 full juz of memorization',
-    goal_ms_khatm_name: 'Memorized the Whole Quran', goal_ms_khatm_reason: 'Completed memorizing the entire Holy Quran — ma sha’ Allah',
-    goal_next_juz: 'Next goal: {name} — {pct} done', goal_next_ms: 'Next big goal: {name} — {pct} done',
-    goal_sec_title: 'My goals & juz badges', goal_sec_sub: 'A badge for every juz completed, plus major badges at 3 juz, 5, a quarter, 10, half, 20 and the whole Quran', goal_juz_count: '{n} of 30 juz memorized',
+    goal_kicker: 'NEW ACHIEVEMENT!', goal_chip_juz: 'Juz badge', goal_juz_name: 'Memorized {juz}', goal_juz_reason: 'Completed memorizing {juz} — may Allah bless him/her',
+    goal_next_juz: 'Next goal: {name} — {pct} done',
+    goal_sec_title: 'My goals & juz badges', goal_sec_sub: 'A badge for every juz you complete', goal_juz_count: '{n} of 30 juz memorized',
     goal_empty: 'No memorization position recorded yet. It is computed from the monthly memorization record.', goal_locked: 'Not earned yet', goal_rep_title: 'Memorization goals & juz badges', goal_rep_new: 'Badges earned this month', goal_rep_none: 'No new badge this month — the next goal is close.', goal_rep_basis: 'Computed from the position recorded in the monthly memorization record.',
     ms_card_sched_title: 'Schedule & attendance', ms_card_sched_desc: 'Each student’s days and the attendance question time',
     att_time_title: 'When should the attendance question appear?', att_time_sub: 'It appears once a day after this time, only for students with a session today and no recorded activity. Pick a time that fits your work (morning or evening).', att_time_enable: 'Ask me about attendance', att_time_save: 'Save', att_time_label: 'Question time',

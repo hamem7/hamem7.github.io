@@ -20,7 +20,7 @@ import { getAllRulesFlat } from '../engine/tajweedRulesCatalog.js';
 import { SKILLS } from '../engine/skillMap.js';
 import { skillLabel } from '../components/skillProfile.js';
 import { loadGoalState, goalsEarnedInMonth, goalName, goalIcon, nextGoalHint } from '../core/goalsService.js';
-import { juzTierKey, MILESTONES } from '../engine/goalsEngine.js';
+import { juzTierKey } from '../engine/goalsEngine.js';
 
 const TIER_COLORS = { bronze: ['#e7b58a', '#b87333'], silver: ['#f4f7fb', '#9aa6b6'], gold: ['#fff0b3', '#d4a017'], diamond: ['#e0f7ff', '#4fb3e8'] };
 const isEn = () => AppState.currentLang === 'en';
@@ -191,7 +191,7 @@ export async function collectExtras(d) {
   let goals = null;
   try {
     const gs = await loadGoalState(student);
-    if (gs) goals = { state: gs, newEarned: gs.earned.filter(e => goalsEarnedInMonth(student, y, m).includes(e.id)), hint: nextGoalHint(gs, null) };
+    if (gs) goals = { state: gs, newEarned: gs.earned.filter(e => goalsEarnedInMonth(student, y, m).includes(e.id)), hint: nextGoalHint(gs) };
   } catch (e) { /* اختياري */ }
   return { results, summary, closest: closestToNext(results), att, khatm, tj, plan, issues, hasReview: !!rev, goals };
 }
