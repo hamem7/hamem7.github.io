@@ -2208,7 +2208,7 @@ async function exportPdfRaw(share = false) {
 // -----------------------------------------------------------------------------
 const MR_COMPACT_HIDE_IDS = ['mr-legend', 'mr-gameeval-block', 'mr-homework-block', 'mr-dual-block',
   'mr-achv-block', 'mr-errors-block', 'mr-review-block', 'mr-compare-block', 'mr-trend-block',
-  'mr-att-block', 'mr-tjr-block', 'mr-khm-block'];
+  'mr-att-block', 'mr-tjr-block'];
 function mrIsEmptyBlock(el) {
   return !!el.querySelector('.mr-empty-row') &&
     !el.querySelector('table, .mr-journey-box, svg, .mr-achv-chip, .mr-tile');

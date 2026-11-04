@@ -295,18 +295,6 @@ function tajweedSection(d, x) {
     ${row(t('tjr_approved'), c.approved)}</div>`;
 }
 
-function khatmSection(d, x) {
-  const k = x.khatm;
-  const head = `<div class="section-title">${esc(t('khm_title'))}</div><div class="section-sub">${esc(tf('khm_sub', { name: firstName(d.name) }))}</div>`;
-  if (!k || !k.proj.length) return `<div class="mrx pdf-block" id="mr-khm-block">${head}<div class="mrx-note">${esc(t('khm_none'))}</div></div>`;
-  const keyName = { juz: 'khm_m_juz', five: 'khm_m_five', quarter: 'khm_m_quarter', half: 'khm_m_half', khatm: 'khm_m_khatm' };
-  const rows = k.proj.map(p => `<div class="mrx-row"><span>${esc(t(keyName[p.key]))}</span>
-    <b>${p.done ? esc(t('khm_done')) : esc(tf('khm_row', { s: num(p.sessions), d: fmtDate(p.dateFull) }))}</b></div>
-    ${!p.done && p.dateAvg.getTime() !== p.dateFull.getTime() ? `<div class="mrx-note" style="margin:0 0 4px;">${esc(tf('khm_row_avg', { d: fmtDate(p.dateAvg) }))}</div>` : ''}`).join('');
-  const pace = `<div class="mrx-note">${esc(tf('khm_pace', { p: num(Math.round(k.pace.perSession * 10) / 10), m: num(Math.round(k.pace.perMonth)) }))}${k.monthsUsed < 2 ? ' · ' + esc(t('khm_basis_default')) : ''}${k.excludedMonths ? ' · ' + esc(tf('khm_excluded', { n: num(k.excludedMonths) })) : ''}</div>`;
-  return `<div class="mrx pdf-block" id="mr-khm-block">${head}${pace}${rows}<div class="mrx-note">${esc(t('khm_foot'))}</div></div>`;
-}
-
 function planSection(d, x) {
   const p = x.plan;
   const rows = [];
@@ -339,7 +327,7 @@ export function renderExtras(d) {
   document.querySelectorAll('.mrx-wrap').forEach(n => n.remove());
   const wrap = document.createElement('div');
   wrap.className = 'mrx-wrap';
-  wrap.innerHTML = badgesSection(d, x) + goalsSection(d, x) + attendanceSection(d, x) + tajweedSection(d, x) + khatmSection(d, x) + planSection(d, x) + completenessSection(x);
+  wrap.innerHTML = badgesSection(d, x) + goalsSection(d, x) + attendanceSection(d, x) + tajweedSection(d, x) + planSection(d, x) + completenessSection(x);
   host.parentNode.insertBefore(wrap, host);
   host.style.display = 'none';
   const btn = wrap.querySelector('#mrx-open-att');
