@@ -1,132 +1,84 @@
 // tests/teacherReportEngine.test.mjs — محرك «تقرير المعلم الشهري» (دوال خالصة)
 import assert from 'node:assert/strict';
-import { aggregateMonth, buildTeacherReport, achievementsOf, tierOf, longestStreak, LADDERS, deltaOf, gameSecondsFromEvents, juzOfAyah } from '../engine/teacherReportEngine.js';
+import { buildTeacherReport, gameSecondsByKind, juzOfAyah } from '../engine/teacherReportEngine.js';
 import { JUZ_STARTS as REAL_STARTS } from '../engine/reviewParts.js';
 
 let failed = 0;
 const test = async (name, fn) => { try { await fn(); console.log('PASS', name); } catch (e) { failed++; console.log('FAIL', name, e.message); } };
-
 const stu = (id, o = {}) => ({
-  id, name: 'طالب ' + id,
-  att: { present: 4, absent: 0, expected: 4, minutes: 180 },
-  games: { total: 10, weakness: 2, seconds: 600 },
-  duels: [], homework: { count: 1 }, memo: { newAyahs: 20 },
-  review: { total: 100, distinct: 60, surahs: [112, 113], juz: [30] },
-  tajweed: { sessions: 1, challenge: 1, questions: 10, correct: 8, learned: 1, examPassed: 0, approved: 0 }, similarity: { rounds: 2, questions: 20, correct: 15 }, hwAssigned: 1, stars: 1, days: ['2026-10-01', '2026-10-02'], ...o
+  id, name: 'طالب ' + id, hidden: false, att: { present: 4 },
+  adult: { games: 5, seconds: 600 }, kids: { games: 2, seconds: 120 }, duels: [],
+  homework: { submitted: 1 }, hwAssigned: 1, memo: { newAyahs: 20 },
+  review: { total: 100, surahs: [112, 113], juz: [30] }, similarity: { rounds: 2 }, tajweed: { sessions: 3, challenge: 1 }, ...o
 });
 
-await test('المجاميع: حلقات وساعات وألعاب ووقت', () => {
-  const a = aggregateMonth([stu(1), stu(2, { att: { present: 6, absent: 1, expected: 7, minutes: 360 } })]);
-  assert.equal(a.sessions.count, 10);
-  assert.equal(a.sessions.hours, 9);
-  assert.equal(a.games.total, 20);
-  assert.equal(a.games.minutes, 20);
-  assert.equal(a.studentsActive, 2);
+await test('المجاميع: حلقات وألعاب كبار وصغار ووقت كل منهما', () => {
+  const r = buildTeacherReport({ facts: [stu(1), stu(2, { adult: { games: 3, seconds: 300 }, kids: { games: 0, seconds: 0 } })], year: 2026, monthIndex0: 9 });
+  assert.equal(r.circles, 8);
+  assert.equal(r.adult.games, 8);
+  assert.equal(r.adult.minutes, 15);
+  assert.equal(r.kids.games, 2);
+  assert.equal(r.kids.minutes, 2);
+  assert.equal(r.gamesMinutes, 17);
 });
 
-await test('المواجهة المشتركة بين طالبين تُعدّ مرة واحدة للمعلم', () => {
-  const a = aggregateMonth([stu(1, { duels: [{ id: 7, won: true }] }), stu(2, { duels: [{ id: 7, won: false }, { id: 8, won: null }] })]);
-  assert.equal(a.duels.matches, 2);
-  assert.equal(a.duels.wins, 1);
+await test('المواجهة المشتركة بين طالبين تُعدّ مرة واحدة', () => {
+  const r = buildTeacherReport({ facts: [stu(1, { duels: [{ id: 7 }] }), stu(2, { duels: [{ id: 7 }, { id: 8 }] })] });
+  assert.equal(r.duels, 2);
 });
 
-await test('الحفظ: عدد الطلاب والآيات والنسبة؛ من لم يسجَّل حفظه لا يُعدّ', () => {
-  const a = aggregateMonth([stu(1), stu(2, { memo: null }), stu(3, { memo: { newAyahs: 30 } })]);
-  assert.equal(a.memo.students, 2);
-  assert.equal(a.memo.ayahs, 50);
-  assert.equal(a.memo.pctQuran, 0.8);
+await test('الحفظ: من لم يُسجَّل حفظه لا يُعدّ', () => {
+  const r = buildTeacherReport({ facts: [stu(1), stu(2, { memo: null }), stu(3, { memo: { newAyahs: 30 } })] });
+  assert.equal(r.memo.students, 2);
+  assert.equal(r.memo.ayahs, 50);
 });
 
-await test('المراجعة: السور المختلفة تُدمج بين الطلاب بلا تكرار', () => {
-  const a = aggregateMonth([stu(1), stu(2, { review: { total: 40, distinct: 10, surahs: [113, 114], juz: [30, 29] } })]);
-  assert.deepEqual(a.review.surahNumbers, [112, 113, 114]);
-  assert.equal(a.review.juz, 2);
-  assert.equal(a.review.ayahs, 140);
+await test('المراجعة: السور والأجزاء تُدمج بلا تكرار', () => {
+  const r = buildTeacherReport({ facts: [stu(1), stu(2, { review: { total: 40, surahs: [113, 114], juz: [30, 29] } })] });
+  assert.equal(r.review.surahs, 3);
+  assert.equal(r.review.juz, 2);
+  assert.equal(r.review.ayahs, 140);
 });
 
-await test('أطول سلسلة أيام متتالية', () => {
-  assert.equal(longestStreak(['2026-10-01', '2026-10-02', '2026-10-03', '2026-10-07', '2026-10-08']), 3);
-  assert.equal(longestStreak([]), 0);
-  assert.equal(longestStreak(['2026-10-31', '2026-11-01']), 2);
+await test('الواجبات والمتشابهات وتحدي التجويد', () => {
+  const r = buildTeacherReport({ facts: [stu(1), stu(2)], teacher: { hwMade: 7 } });
+  assert.equal(r.homework.made, 7);
+  assert.equal(r.homework.submitted, 2);
+  assert.equal(r.similarity, 4);
+  assert.equal(r.tajweed.challenge, 2);
+  assert.equal(r.tajweed.sessions, 6);
 });
 
-await test('الدرجات والمستوى والهدف التالي', () => {
-  assert.equal(tierOf(7, LADDERS.sessions), 0);
-  assert.equal(tierOf(8, LADDERS.sessions), 1);
-  assert.equal(tierOf(40, LADDERS.sessions), 3);
-  const empty = achievementsOf(aggregateMonth([]));
-  assert.equal(empty.level.key, 'starter');
-  assert.equal(empty.earned.length, 0);
-  const rich = achievementsOf(aggregateMonth(Array.from({ length: 16 }, (_, i) => stu(i, { att: { present: 3, absent: 0, expected: 3, minutes: 180 }, memo: { newAyahs: 40 }, duels: [{ id: i, won: true }] }))));
-  assert.ok(rich.level.index >= 3, 'مستوى متقدّم لنشاط غزير: ' + rich.level.key);
-  assert.ok(rich.nextGoal && rich.nextGoal.remaining > 0);
+await test('كل الطلاب في الجدول ولو بلا نشاط، والأنشط أولاً', () => {
+  const idle = { id: 9, name: 'خامل', hidden: true, att: null, adult: { games: 0, seconds: 0 }, kids: { games: 0, seconds: 0 }, duels: [], homework: { submitted: 0 }, hwAssigned: 0, memo: null, review: { total: 0, surahs: [], juz: [] }, similarity: { rounds: 0 }, tajweed: { sessions: 0, challenge: 0 } };
+  const r = buildTeacherReport({ facts: [idle, stu(1)] });
+  assert.equal(r.students.length, 2);
+  assert.equal(r.students[0].id, 1);
+  assert.equal(r.students[1].hidden, true);
 });
 
-await test('الفرق عن الشهر السابق: null إن لم يكن فيه نشاط (لا مقارنة مضلِّلة بصفر)', () => {
-  const cur = aggregateMonth([stu(1)]);
-  assert.equal(deltaOf(cur, aggregateMonth([])), null);
-  const prev = aggregateMonth([stu(1, { games: { total: 4, weakness: 0, seconds: 100 } })]);
-  assert.equal(deltaOf(cur, prev).games, 6);
+await test('تقرير فارغ؛ والواجب المصنوع وحده ليس فارغاً', () => {
+  assert.equal(buildTeacherReport({ facts: [] }).empty, true);
+  assert.equal(buildTeacherReport({ facts: [], teacher: { hwMade: 2 } }).empty, false);
 });
 
-await test('تقرير فارغ: empty=true ولا ينهار', () => {
-  const r = buildTeacherReport({ curFacts: [], prevFacts: [], year: 2026, monthIndex0: 9 });
-  assert.equal(r.empty, true);
-  assert.equal(r.sessions.count, 0);
-});
-
-await test('أبرز الطلاب: لا يُسمّى طالب بقيمة صفر', () => {
-  const a = aggregateMonth([stu(1, { memo: null }), stu(2, { memo: { newAyahs: 55 } })]);
-  assert.equal(a.spotlight.memorizer.id, 2);
-  const b = aggregateMonth([stu(1, { memo: null })]);
-  assert.equal(b.spotlight.memorizer, null);
-});
-
-await test('وقت الألعاب: المسجَّل + تقدير الأسئلة بلا زمن بمتوسط المسجَّل، وخارج الشهر مستبعد', () => {
+await test('وقت الألعاب: الكبار والصغار منفصلان، والمقدَّر بمتوسط المسجَّل، وخارج الشهر مستبعد', () => {
   const ts = new Date(2026, 9, 5).getTime(), old = new Date(2026, 8, 5).getTime();
   const ev = [
-    { source: 'game', ts, timeSec: 10 }, { source: 'game', ts, timeSec: 30 }, { source: 'game', ts, timeSec: null },
-    { source: 'game', ts: old, timeSec: 999 }, { source: 'homework', ts, timeSec: 999 }
+    { source: 'game', ts, refId: 'a', fmt: 'next', timeSec: 10 }, { source: 'game', ts, refId: 'a', fmt: 'next', timeSec: 30 }, { source: 'game', ts, refId: 'a', fmt: 'next', timeSec: null },
+    { source: 'game', ts, refId: 'k', fmt: 'kids_mcq', timeSec: 50 },
+    { source: 'game', ts: old, refId: 'o', fmt: 'next', timeSec: 999 }, { source: 'homework', ts, refId: 'h', timeSec: 999 }
   ];
-  assert.equal(gameSecondsFromEvents(ev, 2026, 9), 60);
-  assert.equal(gameSecondsFromEvents([], 2026, 9), 0);
+  const r = gameSecondsByKind(ev, 2026, 9);
+  assert.equal(r.kids, 50);
+  assert.equal(r.adult, 10 + 30 + 30);   // المتوسط (10+30+50)/3 = 30
+  assert.deepEqual(gameSecondsByKind([], 2026, 9), { adult: 0, kids: 0 });
 });
 
-await test('رقم الجزء لآية', () => {
-  assert.equal(juzOfAyah(1, 1), 1);
-  assert.equal(juzOfAyah(2, 142), 2);
+await test('رقم الجزء لآية، والجدول مطابق للأصل', () => {
   assert.equal(juzOfAyah(112, 1), 30);
-  assert.equal(juzOfAyah(67, 1), 29);
   assert.equal(juzOfAyah(null, 1), null);
-});
-
-await test('جدول بدايات الأجزاء مطابق للأصل في reviewParts', () => {
   REAL_STARTS.forEach(([s, a], i) => assert.equal(juzOfAyah(s, a), i + 1));
-});
-
-await test('الواجبات المصنوعة والمتشابهات وتحدي التجويد تُجمَّع', () => {
-  const a = aggregateMonth([stu(1), stu(2, { hwAssigned: 0 })], { hwMade: 7, hwQuestions: 140 });
-  assert.equal(a.homework.made, 7);
-  assert.equal(a.homework.madeQuestions, 140);
-  assert.equal(a.homework.assignedStudents, 1);
-  assert.equal(a.homework.submitted, 2);
-  assert.equal(a.similarity.rounds, 4);
-  assert.equal(a.similarity.correct, 30);
-  assert.equal(a.tajweed.challenge, 2);
-  assert.equal(a.tajweed.learned, 2);
-});
-
-await test('معلم صنع واجبات فقط (بلا نشاط طلاب) ليس شهراً فارغاً', () => {
-  const r = buildTeacherReport({ curFacts: [], curTeacher: { hwMade: 3, hwQuestions: 30 }, year: 2026, monthIndex0: 9 });
-  assert.equal(r.empty, false);
-  assert.equal(r.homework.made, 3);
-});
-
-await test('طالب بلا أي نشاط يبقى في الحساب الكلي ولا يُسقط التقرير', () => {
-  const blank = { id: 9, name: 'خامل', att: null, games: { total: 0, weakness: 0, seconds: 0 }, duels: [], homework: { count: 0 }, memo: null, review: { total: 0, distinct: 0, surahs: [], juz: [] }, tajweed: { sessions: 0 }, stars: 0, days: [] };
-  const a = aggregateMonth([stu(1), blank]);
-  assert.equal(a.studentsTotal, 2);
-  assert.equal(a.studentsActive, 1);
 });
 
 if (failed) { console.log(`\n✗ ${failed} اختبار فشل`); process.exit(1); }
