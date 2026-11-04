@@ -899,7 +899,15 @@
 </style>
 <style>
 /* ===== تحسينات المعاينة (ألوان ثابتة كباقي هوية التقرير لأجل التصدير) ===== */
-#report-screen .page.mr2 .mrv-ev{font-size:11px;color:#9fc3b3;margin-top:3px;font-weight:500;max-width:220px;line-height:1.5}
+#report-screen .page.mr2 .mrv-ev{font-size:11px;color:#b9d6c9;margin-top:4px;font-weight:500;max-width:230px;line-height:1.5}
+#report-screen .page.mr2 .mr2-figures.mrv-figs{display:inline-flex;align-items:stretch;gap:0;margin-top:10px;padding:0;border-radius:16px;overflow:hidden;
+  background:#06231c;border:1px solid rgba(212,175,55,.55);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+#report-screen .page.mr2 .mr2-figures.mrv-figs>div:not(.mr2-fig-sep):not(.imp-badge){padding:10px 18px 11px}
+#report-screen .page.mr2 .mr2-figures.mrv-figs .mr2-fig-sep{width:1px;height:auto;background:rgba(212,175,55,.4)}
+#report-screen .page.mr2 .mr2-figures.mrv-figs .mr2-fig-num{font-size:34px}
+#report-screen .page.mr2 .mr2-figures.mrv-figs .mr2-fig-lbl{color:#e8efe9;font-weight:600}
+#report-screen .page.mr2 .mr2-figures.mrv-figs #mr-fig-overall{background:#0b3d30}
+#report-screen .page.mr2 .mr2-figures.mrv-figs.imp-host{overflow:visible}
 #report-screen .page.mr2 .mrv-verdict{margin-top:12px;background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.55);border-radius:14px;padding:9px 13px;font-size:13px;line-height:1.85;color:#f6f0da;max-width:560px}
 #report-screen .page.mr2 .mrv-verdict b{display:block;font-size:11.5px;color:#f0d878;font-weight:700;margin-bottom:1px}
 #report-screen .page.mr2 .mrv-plan{margin-top:6px;font-size:11.5px;color:#4a6058;border-top:1px dashed #e6dcbc;padding-top:5px}
@@ -1065,6 +1073,69 @@
   #report-screen .mrp-wk .ss{width:100%}
   #report-screen .mrp-att-stats{grid-template-columns:1fr 1fr}
 }
+/* تقييمات غرفة اللعب */
+#report-screen .mrp-ge{display:grid;grid-template-columns:200px 1fr;gap:14px;margin-top:6px;align-items:stretch}
+#report-screen .mrp-ge-side{background:#0b3d30;border:1px solid #d4af37;border-radius:16px;padding:12px 14px;color:#f6f3e8;display:flex;flex-direction:column;gap:6px}
+#report-screen .mrp-ge-avg{display:flex;align-items:center;gap:10px}
+#report-screen .mrp-ge-avg b{display:block;font-family:'Reem Kufi','Amiri',serif;font-size:34px;line-height:1;color:#f0d878;margin-bottom:4px}
+#report-screen .mrp-ge-side>small{font-size:11px;color:#a9c7ba}
+#report-screen .mrp-ge-kv{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);padding:8px 0;text-align:center}
+#report-screen .mrp-ge-kv b{display:block;font-family:'Reem Kufi','Amiri',serif;font-size:18px;color:#f0d878;line-height:1.1}
+#report-screen .mrp-ge-kv span{font-size:10.5px;color:#c9d8d0}
+#report-screen .mrp-ge-src{display:flex;flex-direction:column;gap:4px;font-size:11px;color:#d7e4dd}
+#report-screen .mrp-ge-src span{background:rgba(255,255,255,.07);border-radius:8px;padding:2px 8px}
+#report-screen .mrp-ge-chart{background:#ffffff;border:1px solid #eadfbd;border-radius:16px;padding:10px 12px 8px;display:flex;flex-direction:column;justify-content:space-between}
+#report-screen .mrp-ge-note .xl{display:inline-block;width:22px;border-top:2px dashed #d4af37;vertical-align:middle;margin-inline-end:6px}
+#report-screen .mrp-ge-note{font-size:11.5px;color:#4a6058;border-top:1px dashed #e6dcbc;padding-top:6px;margin-top:4px}
+/* الواجبات — تذاكر مدمجة */
+#report-screen .mrp-hw{display:grid;grid-template-columns:180px 1fr;gap:14px;margin-top:6px;align-items:stretch}
+#report-screen .mrp-hw-sum{background:#0b3d30;border:1px solid #d4af37;border-radius:16px;padding:10px 12px;color:#f6f3e8;display:flex;flex-direction:column;gap:8px;justify-content:center}
+#report-screen .mrp-hw-sum .top{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid rgba(255,255,255,.12);padding-bottom:6px}
+#report-screen .mrp-hw-sum .top b{font-family:'Reem Kufi','Amiri',serif;font-size:34px;line-height:1;color:#f0d878}
+#report-screen .mrp-hw-sum .top span{font-size:12px;color:#d7e4dd}
+#report-screen .mrp-hw-sum .avg{display:flex;align-items:center;gap:8px}
+#report-screen .mrp-hw-sum .avg b{display:block;font-family:'Reem Kufi','Amiri',serif;font-size:24px;line-height:1.1;color:#f0d878;margin-bottom:3px}
+#report-screen .mrp-hw-sum .kv{display:grid;grid-template-columns:1fr 1fr;gap:4px;text-align:center;border-top:1px solid rgba(255,255,255,.12);padding-top:6px}
+#report-screen .mrp-hw-sum .kv b{display:block;font-family:'Reem Kufi','Amiri',serif;font-size:17px;color:#f0d878;line-height:1.1}
+#report-screen .mrp-hw-sum .kv span{font-size:10.5px;color:#c9d8d0}
+#report-screen .mrp-tk-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;align-content:start}
+#report-screen .mrp-tk{background:#ffffff;border:1px solid #eadfbd;border-top:3px solid #0b3d30;border-radius:10px;padding:6px 8px 7px;min-width:0}
+#report-screen .mrp-tk .r1{display:flex;align-items:baseline;justify-content:space-between;gap:4px}
+#report-screen .mrp-tk .dt{font-size:10.5px;font-weight:700;color:#8a6221;white-space:nowrap}
+#report-screen .mrp-tk .r1 b{font-family:'Reem Kufi','Amiri',serif;font-size:20px;line-height:1}
+#report-screen .mrp-tk .r1 b small{font-size:11px}
+#report-screen .mrp-tk .sc{font-size:11px;color:#4a6058;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#report-screen .mrp-tk .br{display:block;height:4px;border-radius:99px;background:#f1ecdc;margin-top:5px;overflow:hidden}
+#report-screen .mrp-tk .br i{display:block;height:100%;border-radius:99px}
+/* المقارنة الشهرية */
+#report-screen .mrp-cmp-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0 10px}
+#report-screen .mrp-cmp-head .up,#report-screen .mrp-cmp-head .down{font-size:12px;font-weight:700;border-radius:99px;padding:3px 12px}
+#report-screen .mrp-cmp-head .up{background:#e5f4ec;color:#1f7a55}
+#report-screen .mrp-cmp-head .down{background:#fbe7e3;color:#a63a2a}
+#report-screen .mrp-cmp-head .lg{font-size:11.5px;color:#4a6058;margin-inline-start:6px}
+#report-screen .mrp-cmp-head .lg:first-of-type{margin-inline-start:auto}
+#report-screen .mrp-cmp-head .lg i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-inline-end:5px;vertical-align:0}
+#report-screen .mrp-cmp-head i.pv{background:#cfc6a8}#report-screen .mrp-cmp-head i.cu{background:#0b3d30}
+#report-screen .mrp-cmp{display:flex;flex-direction:column;gap:6px}
+#report-screen .mrp-cmp-row{display:grid;grid-template-columns:150px 1fr 74px;gap:14px;align-items:center;background:#ffffff;border:1px solid #eadfbd;border-radius:12px;padding:8px 12px}
+#report-screen .mrp-cmp-row .l b{display:block;font-size:13.5px;color:#0b3d30}
+#report-screen .mrp-cmp-row .l small{font-size:11px;color:#8a7d5c}
+#report-screen .mrp-cmp-row .bars{display:flex;flex-direction:column;gap:4px}
+#report-screen .mrp-cmp-row .b{display:flex;align-items:center;gap:8px}
+#report-screen .mrp-cmp-row .b i{display:block;height:9px;border-radius:99px;min-width:4px}
+#report-screen .mrp-cmp-row .b.pv i{background:#cfc6a8}
+#report-screen .mrp-cmp-row .b.cu i{background:#0b3d30;height:12px}
+#report-screen .mrp-cmp-row .b span{font-size:12px;font-weight:700;color:#8a7d5c;white-space:nowrap}
+#report-screen .mrp-cmp-row .b.cu span{font-family:'Reem Kufi','Amiri',serif;font-size:15px;color:#0b3d30}
+#report-screen .mrp-cmp-row .d{text-align:center;font-size:13px;font-weight:800;border-radius:10px;padding:6px 4px}
+#report-screen .mrp-cmp-row .d.up{background:#e5f4ec;color:#1f7a55}
+#report-screen .mrp-cmp-row .d.down{background:#fbe7e3;color:#a63a2a}
+#report-screen .mrp-cmp-row .d.same{background:#f1efe8;color:#6b6b63}
+@media (max-width:640px){
+  #report-screen .mrp-ge,#report-screen .mrp-hw{grid-template-columns:1fr}
+  #report-screen .mrp-tk-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #report-screen .mrp-cmp-row{grid-template-columns:96px 1fr 56px;gap:8px}
+}
 /* علامات التحسين (للمعاينة فقط) */
 .imp-host{position:relative}
 .imp-badge{display:none;position:absolute;top:-12px;inset-inline-end:8px;z-index:5;font:700 11px 'IBM Plex Sans Arabic',sans-serif;color:#1d1a10;background:#ffd84a;border-radius:99px;padding:2px 10px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
@@ -1077,6 +1148,7 @@ body{background:#ece6d6;margin:0;padding:0 0 60px}
 .pv-bar button,.pv-bar label{font:600 13px 'IBM Plex Sans Arabic',sans-serif;border:1px solid #2c5446;background:#132a23;color:#dcebe4;border-radius:999px;padding:6px 14px;cursor:pointer}
 .pv-bar button.on{background:#d4af37;border-color:#d4af37;color:#1d1a10}
 .pv-bar label{display:inline-flex;gap:6px;align-items:center}
+.pv-hw{display:inline-flex;gap:4px}
 .pv-info{max-width:794px;margin:16px auto 0;background:#fffdf6;border:1px solid #e6dcbc;border-radius:14px;padding:12px 18px;font-family:'IBM Plex Sans Arabic',sans-serif;color:#164f40}
 .pv-info h2{font:700 19px 'Reem Kufi','Amiri',serif;margin:0 0 6px}
 .pv-info ol{margin:0;padding-inline-start:20px;font-size:13px;line-height:1.9;color:#36504a}
@@ -1088,6 +1160,7 @@ body{background:#ece6d6;margin:0;padding:0 0 60px}
 <div class="pv-bar">
   <button id="pv-before"></button><button id="pv-after" class="on"></button>
   <label><input type="checkbox" id="pv-marks" checked><span id="pv-marks-l"></span></label>
+  
   <button id="pv-lang"></button>
 </div>
 <div class="pv-info" id="pv-info"></div>
@@ -2956,7 +3029,7 @@ body{background:#ece6d6;margin:0;padding:0 0 60px}
         </div>
       </div></template>
 <script>
-const UI = {"ar":{"lang":"English","before":"التقرير الحالي","after":"بعد التحسين","marks":"إظهار علامات التحسين"},"en":{"lang":"العربية","before":"Current report","after":"Improved","marks":"Show improvement marks"}}, INFO = {"ar":{"t":"النموذج 1 — تحسين في المكان","items":["رقم «الإنجاز العام» في القمر صار صادقًا: لا يدخله مؤشر أقل من 3 أدلة، ويُكتب تحته مصدره.","سطر «خلاصة الشهر» في الهيرو: ما تحقق وما يحتاج عناية في جملتين.","بطاقة الحفظ الجديد تعرض المقرَّر مقابل المُنجَز.","بطاقة الواجبات: «بيانات غير كافية» بدل منزل مبني على واجبين.","قسم جديد «يحتاج إلى عناية» بعد البطاقات، بمصدر كل بند.","المقارنة الشهرية: أُضيف متوسط الواجبات والأخطاء المعالَجة والحضور.","رسالة المعلم انتقلت لآخر التقرير قبل التوقيع، مع جملة صادقة عن الشهر القادم.","سطر «بُني هذا التقرير على» قبل التذييل."]},"en":{"t":"Model 1 — improve in place","items":["The moon's overall figure is now honest: no indicator under 3 records enters it, and its source is written below.","A \"Month in brief\" line in the hero: what was achieved and what needs attention, in two sentences.","The new-memorization tile shows planned vs. achieved.","Homework tile: \"Not enough data\" instead of a phase built on two tasks.","A new \"Needs attention\" section after the tiles, with each item's source.","Monthly comparison: homework average, fixed mistakes and attendance added.","The teacher's message moved to the end, before the signature, with an honest line about next month.","A \"This report is based on\" line above the footer."]}};
+const UI = {"ar":{"lang":"English","before":"التقرير الحالي","after":"بعد التحسين","marks":"إظهار علامات التحسين","hw2":"واجبان","hw10":"10 واجبات"},"en":{"lang":"العربية","before":"Current report","after":"Improved","marks":"Show improvement marks","hw2":"2 homework","hw10":"10 homework"}}, INFO = {"ar":{"t":"النموذج 1 — تحسين في المكان","items":["رقم «الإنجاز العام» في القمر صار صادقًا: لا يدخله مؤشر أقل من 3 أدلة، ويُكتب تحته مصدره.","سطر «خلاصة الشهر» في الهيرو: ما تحقق وما يحتاج عناية في جملتين.","بطاقة الحفظ الجديد تعرض المقرَّر مقابل المُنجَز.","بطاقة الواجبات: «بيانات غير كافية» بدل منزل مبني على واجبين.","قسم جديد «يحتاج إلى عناية» بعد البطاقات، بمصدر كل بند.","المقارنة الشهرية: أُضيف متوسط الواجبات والأخطاء المعالَجة والحضور.","رسالة المعلم انتقلت لآخر التقرير قبل التوقيع، مع جملة صادقة عن الشهر القادم.","سطر «بُني هذا التقرير على» قبل التذييل."]},"en":{"t":"Model 1 — improve in place","items":["The moon's overall figure is now honest: no indicator under 3 records enters it, and its source is written below.","A \"Month in brief\" line in the hero: what was achieved and what needs attention, in two sentences.","The new-memorization tile shows planned vs. achieved.","Homework tile: \"Not enough data\" instead of a phase built on two tasks.","A new \"Needs attention\" section after the tiles, with each item's source.","Monthly comparison: homework average, fixed mistakes and attendance added.","The teacher's message moved to the end, before the signature, with an honest line about next month.","A \"This report is based on\" line above the footer."]}};
 const qs = new URLSearchParams(location.search);
 const st = { lang: qs.get('lang') === 'en' ? 'en' : 'ar', view: qs.get('v') === 'before' ? 'before' : 'after' };
 function render() {
@@ -2969,11 +3042,16 @@ function render() {
   document.getElementById('pv-info').innerHTML = '<h2>' + inf.t + '</h2><ol>' + inf.items.map(i => '<li>' + i + '</li>').join('') + '</ol>';
   const host = document.getElementById('pv-host');
   host.innerHTML = document.getElementById(st.lang + '-' + st.view).innerHTML;
+  const b2 = document.getElementById('pv-hw2'), b10 = document.getElementById('pv-hw10');
+  if (b2) { b2.textContent = u.hw2; b10.textContent = u.hw10; b2.classList.toggle('on', !st.hw10); b10.classList.toggle('on', !!st.hw10);
+    const m = host.querySelector('#mr-homework-block'), a = host.querySelector('#mr-homework-block-10');
+    if (m && a) { m.style.display = st.hw10 ? 'none' : ''; a.style.display = st.hw10 ? '' : 'none'; } }
   fit();
   const url = new URL(location.href); url.searchParams.set('lang', st.lang); url.searchParams.set('v', st.view); history.replaceState(null, '', url);
 }
 document.getElementById('pv-before').onclick = () => { st.view = 'before'; render(); };
 document.getElementById('pv-after').onclick = () => { st.view = 'after'; render(); };
+const _b2 = document.getElementById('pv-hw2'); if (_b2) { _b2.onclick = () => { st.hw10 = false; render(); }; document.getElementById('pv-hw10').onclick = () => { st.hw10 = true; render(); }; }
 document.getElementById('pv-lang').onclick = () => { st.lang = st.lang === 'ar' ? 'en' : 'ar'; render(); };
 document.getElementById('pv-marks').onchange = (e) => document.body.classList.toggle('show-imp', e.target.checked);
 function fit() {
