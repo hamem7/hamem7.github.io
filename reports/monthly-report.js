@@ -889,12 +889,19 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // عزل الشهور: نطاق ملف الطالب (memoFrom/memoTo) هو نطاق «اليوم». في شهر غير الحالي يُشتقّ النطاق من سجل ذلك الشهر
   // نفسه (سورة بداية الشهر ← سورة آخر موضع مسجَّل فيه)، ويُخفى لو لا سجل.
   let scopeFrom = student.memoFrom, scopeTo = student.memoTo;
+  // النطاق العام للطالب: بدايته ثابتة (memoFrom، مثل الناس) في كل الشهور، ونهايته آخر سورة وصل إليها حتى نهاية ذلك الشهر.
+  // هذا ليس تداخلًا بين الشهور: أرقام الشهر (الآيات الجديدة والمراجعة...) تبقى معزولة، والنطاق يوضّح «حفظه كله من … إلى …».
   if (!isCurrentMonth) {
-    scopeFrom = scopeTo = null;
-    if (journey && journey.beginPos) {
-      const bi = getSurahInfo(AppState.surahsData, journey.beginPos.s);
-      const ei = journey.endPos ? getSurahInfo(AppState.surahsData, journey.endPos.s) : null;
-      if (bi && ei) { scopeFrom = bi.name; scopeTo = ei.name; }
+    scopeTo = null;
+    if (journey && journey.endPos) {
+      const ei = getSurahInfo(AppState.surahsData, journey.endPos.s);
+      if (ei) {
+        scopeTo = ei.name;
+        if (!scopeFrom && journey.beginPos) {
+          const bi = getSurahInfo(AppState.surahsData, journey.beginPos.s);
+          if (bi) scopeFrom = bi.name;
+        }
+      }
     }
   }
   const hasMemoRange = !!(scopeFrom && scopeTo);
