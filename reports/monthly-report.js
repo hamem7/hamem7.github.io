@@ -754,6 +754,15 @@ async function buildMonthlyReportData(year, monthIndex0) {
     const ts = new Date(reviewSchedule.lastReviewedAt).getTime();
     reviewedWithinThisMonth = !isNaN(ts) && ts >= monthStart && ts < monthEnd;
   }
+  // عزل الشهور: الجدول يحمل «آخر مراجعة/الموعد القادم» الآن فقط. في شهر غير الحالي لا نعرض إلا مراجعة وقعت داخل
+  // ذلك الشهر نفسه (بلا الموعد القادم)، وإلا يُخفى القسم بدل عرض حالة اليوم على أنها حالة شهر قديم.
+  const nowD = new Date();
+  const isCurrentMonth = nowD.getFullYear() === year && nowD.getMonth() === monthIndex0;
+  let reviewHidden = false, reviewHistorical = false;
+  if (!isCurrentMonth) {
+    if (reviewedWithinThisMonth) reviewHistorical = true;
+    else { reviewHidden = true; reviewSchedule = null; }
+  }
 
   // --- 7) 🌟 [جديد] رحلة الحفظ الشهرية — من database/monthlyMemorizationDB.js
   // (سجل حقيقي بموضع بداية/نهاية الشهر + عدد آيات جديدة محسوب آليًا)، بدل نطاق
@@ -858,9 +867,20 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // 🌟 [تحديث] صياغة النطاق صارت "من الناس إلى عبس" (بدل "الناس ← عبس") — تُستخدم في شارة
   // الهيرو وفي الملاحظة التلقائية. hasMemoRange يُخفي الشارة كلها لو لم يُسجَّل نطاق (بيانة
   // اختيارية لا تُطلب إجباريًا).
-  const hasMemoRange = !!(student.memoFrom && student.memoTo);
+  // عزل الشهور: نطاق ملف الطالب (memoFrom/memoTo) هو نطاق «اليوم». في شهر غير الحالي يُشتقّ النطاق من سجل ذلك الشهر
+  // نفسه (سورة بداية الشهر ← سورة آخر موضع مسجَّل فيه)، ويُخفى لو لا سجل.
+  let scopeFrom = student.memoFrom, scopeTo = student.memoTo;
+  if (!isCurrentMonth) {
+    scopeFrom = scopeTo = null;
+    if (journey && journey.beginPos) {
+      const bi = getSurahInfo(AppState.surahsData, journey.beginPos.s);
+      const ei = journey.endPos ? getSurahInfo(AppState.surahsData, journey.endPos.s) : null;
+      if (bi && ei) { scopeFrom = bi.name; scopeTo = ei.name; }
+    }
+  }
+  const hasMemoRange = !!(scopeFrom && scopeTo);
   const memoScope = hasMemoRange
-    ? t('mr2_memo_scope_fmt').replace('{from}', surahNameLocal(student.memoFrom)).replace('{to}', surahNameLocal(student.memoTo))
+    ? t('mr2_memo_scope_fmt').replace('{from}', surahNameLocal(scopeFrom)).replace('{to}', surahNameLocal(scopeTo))
     : t('mr_no_memo_range');
 
   // 🌟 [جديد] ملخص مراجعة الأجزاء الخمسة لهذا الشهر (null لو لم تُسجَّل)
@@ -923,7 +943,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     dualEntries, dualWins, dualLosses, dualTies,
     achievementsThisMonth,
     resolvedThisMonth,
-    reviewSchedule, reviewedWithinThisMonth,
+    reviewSchedule, reviewedWithinThisMonth, reviewHidden, reviewHistorical, isCurrentMonth,
     journey, reviewSummary, comparison, trend, skillSummary, coverage, reviewAyahs,
     onDataChanged: () => { refreshReport().catch(e => console.error(e)); }
   };
@@ -1491,6 +1511,8 @@ function renderErrorsBlock(d) {
 function renderReviewBlock(d) {
   const el = $('mr-review-content');
   if (!el) return;
+  setBlockVisible('mr-review-block', !d.reviewHidden);
+  if (d.reviewHidden) return;
   if (!d.reviewSchedule) {
     el.innerHTML = `<div class="mr-empty-row">${t('mr_review_never')}</div>`;
     return;
@@ -1501,10 +1523,12 @@ function renderReviewBlock(d) {
   const badge = d.reviewedWithinThisMonth
     ? `<span class="mr-badge mr-badge-win">${t('mr_reviewed_this_month')}</span>`
     : `<span class="mr-badge mr-badge-tie">${t('mr_not_reviewed_this_month')}</span>`;
+  // شهر سابق: لا نعرض «الموعد القادم» (حالة اليوم)، فقط مراجعة ذلك الشهر
+  const nextPart = d.reviewHistorical ? '' : `${t('mr_review_next')} <b>${nextDate}</b> — `;
   el.innerHTML = `
     <div class="mr-note-inline">
       ${t('mr_review_last')} <b>${lastDate}</b> (${t('mr_review_last_score')} ${d.reviewSchedule.lastScore}%) —
-      ${t('mr_review_next')} <b>${nextDate}</b> — ${badge}
+      ${nextPart}${badge}
     </div>
   `;
 }

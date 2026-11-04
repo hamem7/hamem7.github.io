@@ -76,7 +76,7 @@ const beginIdx = (surahsData, rec) => {
   return sum + b.ayahNumber;
 };
 
-async function buildKhatm(d, ctx, att) {
+async function buildKhatm(d, ctx, att, asOf = new Date()) {
   const surahs = ctx.surahsData;
   if (!surahs || surahs.length !== 114) return null;
   const recs = ctx.records.filter(r => r.ending && r.beginning).sort((a, b) => (a.year * 12 + a.month) - (b.year * 12 + b.month));
@@ -119,7 +119,7 @@ async function buildKhatm(d, ctx, att) {
   const sessionsPerMonth = hasSchedule(ctx.student) ? Math.max(ctx.student.schedule.days.length * 4, 1) : null;
   if (!sessionsPerMonth) return { pace: { perSession: 0, perMonth: 0, basis: 'none', monthsUsed: 0 }, proj: [], remaining, curJuz, sessionsPerMonth: null, sessionsToFinishJuz: null, monthsUsed: 0, excludedMonths };
   const pace = paceFrom(months, sessionsPerMonth);
-  const proj = projectMilestones({ pace, remaining, sessionsPerMonth, attendancePct: att && att.pct != null ? att.pct : null, now: new Date() });
+  const proj = projectMilestones({ pace, remaining, sessionsPerMonth, attendancePct: att && att.pct != null ? att.pct : null, now: asOf });
   return { pace, proj, remaining, curJuz, sessionsPerMonth, sessionsToFinishJuz: sessionsToFinish(remaining.juz, pace), monthsUsed: pace.monthsUsed, excludedMonths };
 }
 
@@ -149,15 +149,27 @@ function nextTajweedRuleKey(ctx) {
 
 export async function collectExtras(d) {
   const student = d.student, y = d.year, m = d.monthIndex0;
-  const ctx = await loadStudentContext(student);
+  let ctx = await loadStudentContext(student);
   const now = new Date();
+  const isCurrent = now.getFullYear() === y && now.getMonth() === m;
+  // عزل الشهور: في شهر سابق نقصّ السياق عند نهاية ذلك الشهر فلا تدخل سجلات/إتقان أشهر لاحقة في الختم والمراجعة والتجويد،
+  // ونحسب التوقعات من آخر يوم في الشهر لا من تاريخ اليوم.
+  const asOf = isCurrent ? now : new Date(y, m + 1, 0, 12);
+  if (!isCurrent) {
+    const cut = y * 12 + m;
+    const endTs = new Date(y, m + 1, 1).getTime();
+    ctx = {
+      ...ctx,
+      records: (ctx.records || []).filter(r => r.year * 12 + (r.month - 1) <= cut),
+      mastery: (ctx.mastery || []).filter(rec => { const a = ensureJourney(rec).teacherApprovedAt; return !a || Date.parse(a) < endTs; })
+    };
+  }
   const input = inputsForMonth(ctx, y, m, now);
   const results = computeMonthBadges(input);
   const summary = summarizeEarned(results);
   const ev = evidenceDays(evidenceTimestamps(ctx));
-  const isCurrent = now.getFullYear() === y && now.getMonth() === m;
   const att = summarizeMonth(student, y, m, ev, isCurrent ? now : null);
-  const khatm = await buildKhatm(d, ctx, att);
+  const khatm = await buildKhatm(d, ctx, att, asOf);
   const tj = tajweedMonth(d, ctx);
   const weak = await weakestSkill(d);
   const nextRule = nextTajweedRuleKey(ctx);
@@ -191,7 +203,8 @@ export async function collectExtras(d) {
   let goals = null;
   try {
     const gs = await loadGoalState(student);
-    if (gs) goals = { state: gs, newEarned: gs.earned.filter(e => goalsEarnedInMonth(student, y, m).includes(e.id)), hint: nextGoalHint(gs) };
+    // شهر سابق: نعرض فقط ما نِيل في ذلك الشهر؛ عدد الأجزاء الكلي و«الهدف التالي» حالة اليوم فلا تظهر
+    if (gs) goals = { state: gs, current: isCurrent, newEarned: gs.earned.filter(e => goalsEarnedInMonth(student, y, m).includes(e.id)), hint: isCurrent ? nextGoalHint(gs) : null };
   } catch (e) { /* اختياري */ }
   return { results, summary, closest: closestToNext(results), att, khatm, tj, plan, issues, hasReview: !!rev, goals };
 }
@@ -243,7 +256,7 @@ function goalsSection(d, x) {
 
   const news = g.newEarned.length ? `<div class="mrx-group">${esc(t('goal_rep_new'))}</div><div>${g.newEarned.map(chip).join('')}</div>` : `<div class="mrx-note">${esc(t('goal_rep_none'))}</div>`;
   const next = g.hint ? `<div class="mrx-closest">${esc(g.hint.text)}</div><div style="height:9px;border-radius:999px;background:#eadfbd;overflow:hidden;margin-top:6px;"><i style="display:block;height:100%;width:${Math.max(4, Math.round(g.hint.pct * 100))}%;background:linear-gradient(90deg,#d4a017,#f6d57a);"></i></div>` : '';
-  return `<div class="mrx pdf-block" id="mr-goals-block"><div class="section-title">${esc(t('goal_rep_title'))}</div><div class="section-sub">${esc(tf('goal_juz_count', { n: num(g.state.fullJuz) }))}</div>${news}${next}<div class="mrx-note">${esc(t('goal_rep_basis'))}</div></div>`;
+  return `<div class="mrx pdf-block" id="mr-goals-block"><div class="section-title">${esc(t('goal_rep_title'))}</div>${g.current === false ? '' : `<div class="section-sub">${esc(tf('goal_juz_count', { n: num(g.state.fullJuz) }))}</div>`}${news}${next}<div class="mrx-note">${esc(t('goal_rep_basis'))}</div></div>`;
 }
 
 function attendanceSection(d, x) {
