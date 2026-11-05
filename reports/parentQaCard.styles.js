@@ -70,7 +70,8 @@ export const QA_STYLES = `
 .qac .steps li:before{content:"☐";color:#8a6221;font-weight:700;flex:none}
 .qac .steps li.pen{background:rgba(255,246,224,.85);border:1px dashed #e6c98a;border-radius:9px;padding:3px 7px}
 .qac .steps li.pen:before{content:"✎"}
-.qac .ft{position:absolute;display:flex;justify-content:flex-start;align-items:center;gap:12px}
+.qac .ft{position:absolute;left:0;right:0;display:flex;justify-content:center;align-items:center}
+.qac .fbox{display:flex;align-items:center;gap:12px}
 .qac .tname{display:flex;align-items:baseline;gap:8px;line-height:1.3}
 .qac .tname .n{font-family:'Amiri',serif;font-size:20px;font-weight:700;color:var(--ttl);border-bottom:1px solid var(--cbd);padding:0 10px 2px}
 .qac .tname .l{font-size:14px;font-weight:600;color:var(--sub)}
@@ -84,8 +85,8 @@ export const QA_STYLES = `
 .qac.t1 .k{color:#125a57}
 .qac.t1 .hd .d{background:rgba(255,251,238,.85);border:1px solid #e0cc95;border-radius:10px;padding:3px 10px}
 .qac.t1 .hm{--c:#125a57;--bg:rgba(220,236,234,.72);--bd:#a9cbc8}
-.qac.t1 .tl i{background:rgba(210,174,85,.35)}
-.qac.t1 .ft{left:130px;right:130px;bottom:24px}
+.qac.t1 .tl i{background:#e2cd93}
+.qac.t1 .ft{bottom:24px}
 .qac.t1 .hd .brand{background:rgba(255,251,238,.88);border:4px double #d2ae55;border-radius:16px;padding:6px 16px 6px 12px}
 
 /* ---------- تصميم 2: سماء الصباح ---------- */
@@ -94,9 +95,11 @@ export const QA_STYLES = `
 .qac.t2 .c:before{display:none}
 .qac.t2 .k em{width:32px;height:32px;border-radius:11px}
 .qac.t2 .ok{--c:#119174;--bg:rgba(226,246,238,.75);--bd:#a6e0c9}.qac.t2 .pa{--c:#c47f00;--bg:rgba(255,243,214,.78);--bd:#f6d58a}.qac.t2 .no{--c:#d0473a;--bg:rgba(255,232,228,.78);--bd:#f6b5ab}.qac.t2 .hm{--c:#2a6fb0;--bg:rgba(230,240,251,.78);--bd:#b5d0ee}
-.qac.t2 .hd{background:rgba(255,255,255,.6);border-radius:22px;padding:8px 14px}
-.qac.t2 .tl i{background:rgba(255,255,255,.9)}
-.qac.t2 .ft{left:26px;right:26px;bottom:14px;background:rgba(255,255,255,.7);border:2px solid rgba(255,255,255,.95);border-radius:22px;padding:6px 18px}
+.qac.t2 .hd .brand{background:rgba(255,255,255,.85);border:2px solid #fff;border-radius:20px;padding:6px 16px 6px 12px;box-shadow:0 4px 14px rgba(31,95,80,.12)}
+.qac.t2 .hd .d{background:rgba(255,255,255,.8);border:2px solid #fff;border-radius:16px;padding:4px 12px}
+.qac.t2 .tl i{background:#a9ddd0}
+.qac.t2 .ft{bottom:16px}
+.qac.t2 .fbox{background:rgba(255,255,255,.82);border:2px solid #fff;border-radius:22px;padding:6px 22px}
 
 /* ---------- تصميم 3: ورق المندالا (مؤشرات أقوى حتى لا تذوب في الورق، والعنوان في مربع) ---------- */
 .qac.t3{background-image:url(assets/report/parent-bg/bg-mandala-paper.webp);--cbg:rgba(251,250,247,.74);--cbd:#9d9b95;--cr:8px;--csh:0 1px 0 rgba(0,0,0,.04);--ttl:#2f2f2d;--acc:#3a3a38;--acc2:#2f2f2d;--sub:#5e5e5a;--kbg:rgba(238,237,233,.8);--kbd:#c9c7c1}
@@ -109,12 +112,13 @@ export const QA_STYLES = `
 .qac.t3 .sbar{background:#d8d6d0}
 .qac.t3 .c.hm .k svg rect{fill:#3a3a38}
 .qac.t3 .av{border-color:#3a3a38}
-.qac.t3 .tl i{background:rgba(160,158,152,.35)}
+.qac.t3 .tl i{background:#bcb9b1}
 .qac.t3 .tl div.now i{background:#3a3a38}
 .qac.t3 .steps li.pen{background:#f2e4c4;border-color:#c9a55a}
 .qac.t3 .hd .brand{background:rgba(251,250,247,.92);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px 4px 10px}
 .qac.t3 .hd .d{background:rgba(251,250,247,.92);border:1px solid #c9c7c1;border-radius:8px;padding:4px 10px;color:#4a4a48}
-.qac.t3 .ft{left:30px;right:30px;bottom:14px;width:max-content;max-width:660px;background:rgba(251,250,247,.94);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px}
+.qac.t3 .ft{bottom:16px}
+.qac.t3 .fbox{background:rgba(251,250,247,.95);border:1px solid #9d9b95;border-radius:8px;padding:4px 18px}
 
 /* ---------- تصميم 4: إطار زمردي ---------- */
 .qac.t4{background:#0b3d30;--cbg:rgba(255,253,247,.78);--cbd:#e0cfa3;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:rgba(246,239,222,.75)}
@@ -130,10 +134,11 @@ export const QA_STYLES = `
 .qac.t4 .k{background:var(--c);color:#fff;padding:7px 14px;margin:0}
 .qac.t4 .k em{background:#fff;color:var(--c)}
 .qac.t4 .k svg rect{fill:#fff}.qac.t4 .k svg path{fill:#0b3d30}
-.qac.t4 .hd{background:#0b3d30;border-radius:14px;padding:8px 16px;border:1px solid rgba(242,214,132,.55)}
+.qac.t4 .hd .brand{background:#0b3d30;border:4px double #c9a13b;border-radius:14px;padding:6px 16px 6px 12px}
+.qac.t4 .hd .d{background:rgba(255,253,247,.9);border:1px solid #e0cfa3;border-radius:10px;padding:4px 12px}
 .qac.t4 .hd img{width:52px}
-.qac.t4 .hd .t b{color:#f2d684}.qac.t4 .hd .t small,.qac.t4 .hd .d{color:#cfe0d6}
-.qac.t4 .ft{left:40px;right:40px;bottom:24px}
+.qac.t4 .hd .t b{color:#f2d684}.qac.t4 .hd .t small{color:#cfe0d6}.qac.t4 .hd .d{color:#4b4a40}
+.qac.t4 .ft{bottom:26px}
 
 .qac .tl div.now i{background:var(--acc)}
 `;

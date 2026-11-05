@@ -43,8 +43,8 @@ export function resolveQaTheme(d){
 // المساحة الآمنة لكل تصميم داخل 720×900: لا تغطي زخارف الخلفية ولا منطقة التذييل
 const SAFE = {
   t1: { top: 22, right: 30, bottom: 162, left: 30 },
-  t2: { top: 20, right: 28, bottom: 112, left: 28 },
-  t3: { top: 26, right: 30, bottom: 104, left: 30 },
+  t2: { top: 20, right: 28, bottom: 122, left: 28 },
+  t3: { top: 26, right: 30, bottom: 114, left: 30 },
   t4: { top: 34, right: 36, bottom: 116, left: 36 }
 };
 
@@ -232,10 +232,10 @@ export function buildQaCardHtml(d, deps){
         ${card('hm', 4, t('qa_q4'), hw.head, '', `<ul class="steps">${tasks.map(x => `<li${x.pen ? ' class="pen"' : ''}>${E(x.text)}</li>`).join('')}</ul>`, HOUSE)}
       </div>
     </div></div>
-    <div class="ft">
+    <div class="ft"><div class="fbox">
       <div class="tname"><span class="l">${E(t('qa_teacher'))}</span><span class="n">${E(d.teacher && d.teacher.name)}</span></div>
-      <div class="tstamp">${stampSrc ? `<img src="${E(stampSrc)}" alt="">` : ''}</div>
-    </div>
+      ${stampSrc ? `<div class="tstamp"><img src="${E(stampSrc)}" alt=""></div>` : ''}
+    </div></div>
   </div>`;
 }
 
