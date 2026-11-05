@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>أسئلة ولي الأمر</title>
+<!-- معاينة للنقاش فقط — نموذج «أسئلة ولي الأمر» لصورة التقرير الفردي (720×900 لواتساب).
+     بالعربية فقط بطلب المعلم؛ الإنجليزية تُضاف بعد اعتماد الشكل النهائي. لا تمسّ أي شاشة. البيانات تجريبية. -->
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+:root{--pg:#f3eee3;--panel:#fffdf8;--ink:#1f2a24;--soft:#6b6b63;--line:#e6dcc6;--strong:#b9a983;--em:#0d5c46;--em2:#147c5e;--gold:#c9a13b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}}
+:root[data-theme="dark"]{--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.6}
+button{font-family:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:16px}
+.top h1{font-size:20px;margin:0;display:flex;align-items:center;gap:10px}
+.top h1 img{width:30px}
+.top p{margin:2px 0 10px;color:var(--soft);font-size:13px}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:14px}
+.ctrls label{font-size:12.5px;font-weight:700;color:var(--soft)}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--pg);border:1px solid var(--strong);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--ink);padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--em);color:#fff}
+.lay{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.lay{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.box h3{margin:0 0 6px;font-size:15px;color:var(--em2)}
+.box ul{margin:0;padding-inline-start:18px;font-size:13.5px}
+.box li{margin:3px 0}
+.box p{margin:0 0 4px;font-size:13.5px}
+.box table{width:100%;border-collapse:collapse;font-size:12.5px}
+.box td,.box th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:start;vertical-align:top}
+.box th{color:var(--soft);font-weight:700}
+.fit{width:100%;overflow:hidden;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.fit>.img{width:720px;transform-origin:top right}
+
+/* ============ الصورة المصدَّرة 720×900 (ألوان ثابتة) ============ */
+.img{position:relative;height:900px;background:#f9f4ea;color:#23302a;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;line-height:1.5;overflow:hidden;padding:18px 28px 12px;display:flex;flex-direction:column;gap:10px}
+.img .orn{position:absolute;width:46px;opacity:.7;pointer-events:none}
+.img .orn.tr{top:6px;right:6px}.img .orn.tl{top:6px;left:6px;transform:scaleX(-1)}
+.img .orn.br{bottom:6px;right:6px;transform:scaleY(-1)}.img .orn.bl{bottom:6px;left:6px;transform:scale(-1)}
+.img .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.img .sq{background:#fffdf8;border:1.5px solid #ddd0b3;border-radius:16px}
+.ok{--c:#147c5e;--bg:#e6f3ec;--bd:#9fcdb5}
+.pa{--c:#9a6b18;--bg:#fbf1dc;--bd:#e6c98a}
+.no{--c:#a8402f;--bg:#fae6e2;--bd:#e7b0a6}
+.hm{--c:#0b3d30;--bg:#e9efe9;--bd:#b7c9bd}
+.hd{display:flex;align-items:center;gap:12px;padding:0 32px 8px;border-bottom:1px solid #e6dcc6}
+.hd img{width:46px}
+.hd .t{flex:1}
+.hd .t small{display:block;font-size:11px;color:#6f644e}
+.hd .t b{font-family:'Amiri',serif;font-size:24px;color:#0b3d30;line-height:1.15}
+.hd .d{font-size:11.5px;color:#6f644e;text-align:left;line-height:1.5}
+.idr{display:grid;grid-template-columns:1fr 160px;gap:10px}
+.who{padding:10px 14px;display:flex;gap:14px;align-items:center}
+.av{flex:none;width:70px;height:70px;border-radius:50%;border:3px solid #147c5e;box-shadow:0 0 0 4px #e7f1ec;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;font-family:'Amiri',serif;font-size:32px;color:#0d5c46}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.emo{font-family:inherit;font-size:36px}
+.who .nm{font-family:'Amiri',serif;font-size:26px;font-weight:700;color:#14231c;line-height:1.2}
+.who .nm small{font-family:'IBM Plex Sans Arabic';font-size:13px;color:#6f644e;font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.facts span{background:#f6f0e2;border:1px solid #e6dcc6;border-radius:10px;padding:2px 10px;font-size:12px;color:#6f644e}
+.facts b{color:#14231c}
+.sc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;text-align:center}
+.sc .p{font-size:42px;font-weight:700;color:#8a6221;line-height:1}
+.sc .tier{margin-top:4px;background:#b8863b;color:#fff;border-radius:999px;padding:0 14px;font-size:12.5px;font-weight:700}
+
+.qa{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:10px;flex:1;min-height:0}
+.c{padding:12px 14px;display:flex;flex-direction:column;justify-content:center;gap:8px;position:relative;overflow:hidden}
+.c:before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--c)}
+.k{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:#6f644e}
+.k em{font-style:normal;flex:none;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.k svg{flex:none}
+.ans{margin-top:22px;font-size:28px;font-weight:700;color:var(--c);line-height:1.25}
+.det{font-size:12.5px;color:#4b4a40}
+.vis{margin-top:6px}
+/* عدّ الأسئلة */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tile{background:var(--bg);border:1.5px solid var(--bd);border-radius:12px;padding:5px 4px;text-align:center;color:var(--c);line-height:1.25}
+.tile b{display:block;font-size:24px}
+.tile span{font-size:11px;font-weight:700}
+.tile.zero{opacity:.45}
+.sbar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:#eee6d4;margin-top:7px}
+.sbar i{display:block;background:var(--c)}
+/* المواضع */
+.rows{display:flex;flex-direction:column;gap:5px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row .s{flex:none;min-width:62px;font-weight:700;font-size:13px;color:#14231c}
+.chip{background:var(--bg);border:1.5px solid var(--bd);color:var(--c);border-radius:9px;padding:0 9px;font-weight:700;font-size:13px}
+.more{font-size:12px;color:#6f644e;font-weight:600}
+.happy{font-size:13px;color:#147c5e;font-weight:700;background:#e6f3ec;border:1.5px solid #9fcdb5;border-radius:12px;padding:8px 10px;text-align:center}
+/* التقدّم */
+.tl{display:flex;align-items:flex-end;gap:10px;height:84px}
+.tl div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:#6f644e}
+.tl i{display:block;width:100%;border-radius:6px 6px 0 0;background:#e2d4b3}
+.tl .now i{background:#c9a13b}.tl b{font-size:12.5px;color:#14231c}
+/* البيت */
+.steps{margin:0;padding:0;list-style:none;font-size:12.5px}
+.steps li{display:flex;gap:7px;margin:4px 0;align-items:flex-start;line-height:1.45}
+.steps li:before{content:"☐";color:#8a6221;font-weight:700;flex:none}
+.steps li.pen{background:#fff6e0;border:1px dashed #e6c98a;border-radius:9px;padding:3px 6px}
+.steps li.pen:before{content:"✎"}
+/* التذييل والختم */
+.ft{display:flex;justify-content:space-between;align-items:flex-end;padding:0 34px 4px}
+.ft .pl{font-size:11px;color:#6f644e;display:flex;align-items:center;gap:6px}
+.ft .pl img{width:18px}
+.sign{text-align:center;min-width:150px;line-height:1.3}
+.sign .stamp{height:58px;display:block;margin:0 auto -6px;opacity:.9}
+.sign .n{font-family:'Amiri',serif;font-size:17px;font-weight:700;color:#0b3d30;border-top:1px solid #b9a983;padding-top:3px}
+.sign .l{font-size:11px;color:#6f644e}
+
+/* التصميم البديل: شرائط أفقية */
+.img.bands .qa{grid-template-columns:1fr;grid-template-rows:repeat(4,1fr)}
+.img.bands .c{display:grid;grid-template-columns:190px 1fr;grid-template-rows:auto 1fr;column-gap:16px;row-gap:2px;padding:10px 14px 10px 14px;align-items:center}
+.img.bands .c:before{inset:0 0 0 auto;width:6px;height:auto}
+.img.bands .k{position:static;grid-column:1;grid-row:1}
+.img.bands .ans{margin-top:0;grid-column:1;grid-row:2;align-self:start;font-size:21px}
+.img.bands .det{grid-column:2;grid-row:1}
+.img.bands .vis{grid-column:2;grid-row:2;margin:0;align-self:start}
+.img.bands .tl{height:58px}
+.img.bands .steps li{margin:2px 0}
+
+.wa{display:flex;justify-content:center}
+.phone{width:200px;background:#e5ddd5;border-radius:22px;padding:10px;border:6px solid #222}
+.phone .bub{background:#d9fdd3;border-radius:10px;padding:4px;margin-inline-start:auto;width:164px}
+.phone .bub .t{font-size:10px;color:#667;text-align:left;padding:2px 4px 0}
+.phone .bub .fit{border-radius:7px;box-shadow:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1><img src="assets/brand/ham-logo.svg" alt="">نموذج «أسئلة ولي الأمر» — معاينة تفصيلية</h1>
+    <p>غيّر الحالة من الأزرار لترى كيف يتصرّف التصميم مع: نطاق قصير، نطاق كبير (عدة سور أو جزء و37 سؤالًا)، طالب ممتاز، طالب يحتاج دعمًا.</p>
+  </div>
+  <div class="ctrls">
+    <label>الحالة:</label>
+    <div class="seg" id="seg-sc"><button data-v="s1" class="on">سورة واحدة · 8 أسئلة</button><button data-v="s2">جزء تبارك · 37 سؤالًا</button><button data-v="s3">3 سور · ممتاز</button><button data-v="s4">سورة · يحتاج دعمًا</button></div>
+    <label>التصميم:</label>
+    <div class="seg" id="seg-ly"><button data-v="grid" class="on">مربعات 2×2</button><button data-v="bands">شرائط أفقية (بديل)</button></div>
+    <label>صورة الطالب:</label>
+    <div class="seg" id="seg-av"><button data-v="img" class="on">صورة مرفوعة</button><button data-v="emoji">إيموجي</button><button data-v="letter">أول حرف</button></div>
+    <label>الختم:</label>
+    <div class="seg" id="seg-st"><button data-v="1" class="on">مرفوع</button><button data-v="0">غير مرفوع</button></div>
+    <div class="seg" id="seg-theme"><button data-v="light" class="on">فاتح</button><button data-v="dark">داكن</button></div>
+  </div>
+
+  <div class="lay">
+    <div class="fit"><div class="img" id="img"></div></div>
+    <div class="side">
+      <div class="box"><h3>1) العدّ مع كثرة الأسئلة</h3>
+        <p>اقتراحك هو الأفضل: لا نرسم مربعًا لكل سؤال. نضع <b>3 مربعات عدّ ثابتة</b> مهما كان عدد الأسئلة (8 أو 37): صحيحة / بمساعدة / تحتاج مراجعة، وتحتها شريط نسبة واحد.</p>
+        <p>التمييز (العدد والمعدود) تكتبه المنصة تلقائيًا بقواعد العربية:</p>
+        <table><tr><th>العدد</th><th>صحيحة</th><th>تحتاج مراجعة</th></tr>
+          <tr><td>1</td><td>سؤال صحيح</td><td>سؤال يحتاج مراجعة</td></tr>
+          <tr><td>2</td><td>سؤالان صحيحان</td><td>سؤالان يحتاجان مراجعة</td></tr>
+          <tr><td>3–10</td><td>أسئلة صحيحة</td><td>أسئلة تحتاج مراجعة</td></tr>
+          <tr><td>11+</td><td>سؤالًا صحيحًا</td><td>سؤالًا يحتاج مراجعة</td></tr></table>
+        <p style="margin-top:6px">الجواب الكبير بحسب النسبة: ≥90% «يحفظها بإتقان» · ≥75% «يحفظ أغلبها جيدًا» · ≥60% «يحفظ أغلبها» · ≥40% «يحفظ جزءًا منها» · أقل «يحتاج إلى مراجعة». ويتغيّر السؤال حسب النطاق: «هل يحفظ السورة؟ / السور؟ / الجزء؟».</p>
+      </div>
+      <div class="box"><h3>2) النطاق الكبير في الترويسة</h3><ul>
+        <li>سورة واحدة: «سورة الملك».</li>
+        <li>2–3 سور: «الملك · القلم · الحاقة».</li>
+        <li>جزء أو أكثر من 3 سور: «جزء تبارك (11 سورة)» أو «الملك و5 سور أخرى».</li></ul></div>
+      <div class="box"><h3>3) «أين تعثّر؟» دون زحمة</h3><ul>
+        <li>الجواب الكبير: «في 4 مواضع» أو «في 9 مواضع من 5 سور».</li>
+        <li><b>3 أسطر فقط كحدّ أقصى</b>، سطر لكل سورة (الأكثر أخطاءً أولًا) وفيه 4 أرقام آيات على الأكثر، والباقي «+2».</li>
+        <li>ما زاد يُختصر بجملة: «و3 مواضع أخرى في سورتين — التفاصيل في ملف PDF».</li>
+        <li>سورة واحدة بأخطاء كثيرة (أكثر من 6): تُجمع حسب أجزاء السورة: «أولها 1–10: 4 مواضع · وسطها · آخرها».</li>
+        <li>بلا أخطاء: «لا توجد أخطاء» مع رسالة تشجيع.</li>
+        <li>لون الرقم: أحمر خطأ، ذهبي بمساعدة.</li></ul></div>
+      <div class="box"><h3>4) «ماذا نفعل في البيت؟» — نصوص لكل الأحوال</h3>
+        <p>علامة المنزل بجانب العنوان. تُختار <b>3 مهام فقط</b>: مهمة حسب المستوى، ثم مهمة حسب نوع الخطأ الأكثر تكرارًا، ثم مهمة الكتابة (مميَّزة ✎). ويبقى للمعلم حق تعديلها قبل الإرسال.</p>
+        <table><tr><th>الحالة</th><th>العنوان والمهام</th></tr>
+          <tr><td>ممتاز ≥90%</td><td><b>حافظوا على المستوى</b> · يراجع النطاق مرة أسبوعيًا · يبدأ المقطع التالي مع المعلم · شجّعوه وكافئوه</td></tr>
+          <tr><td>جيد/متوسط</td><td><b>10 دقائق يوميًا</b> · يقرأ مواضع الخطأ من المصحف مرتين · يسمّعها لكم غيبًا بعد الفجر أو قبل النوم</td></tr>
+          <tr><td>يحتاج دعمًا &lt;60%</td><td><b>15 دقيقة يوميًا</b> · يستمع للسورة من قارئ متقن ثم يقرأ معه · يقسّمها مقاطع صغيرة (5 آيات) ومقطعًا كل يوم</td></tr>
+          <tr><td>الآية التالية</td><td>يقرأ آخر الآية وأول التي بعدها معًا 3 مرات حتى يرتبطا</td></tr>
+          <tr><td>الآية السابقة</td><td>يقرأ الآية التي قبل الموضع ثم يسمّع الموضع</td></tr>
+          <tr><td>رتّب الكلمات</td><td>يقرأ الآية كلمة كلمة بإصبعه على المصحف</td></tr>
+          <tr><td>نسي كلمة/تلميح</td><td>يضع خطًا بالرصاص تحت الكلمة في المصحف ويقرأها 5 مرات</td></tr>
+          <tr><td>الكتابة ✎</td><td>يكتب الآيات (أو أول كل موضع إن كثرت) في ورقة بخطه ويرسل صورتها للمعلم</td></tr>
+          <tr><td>صغار السن</td><td>يسمّع لأحد والديه وينال نجمة على لوحة في البيت</td></tr></table>
+      </div>
+      <div class="box"><h3>5) هل تحسّن؟</h3><ul>
+        <li>+5 فأكثر: «تحسّن واضح» · +1 إلى +4: «تحسّن بسيط» · −2 إلى 0: «ثابت تقريبًا» · −3 فأقل: «تراجع قليلًا».</li>
+        <li>أول اختبار: «أول اختبار له» بلا أعمدة، مع جملة «سنقارن به الاختبارات القادمة».</li></ul></div>
+      <div class="box"><h3>6) ما أخذته من ملاحظاتك</h3><ul>
+        <li>اسم الطالب وصورته بنفس آلية المنصة الحالية: صورة مرفوعة، أو إيموجي، أو أول حرف من اسمه (جرّبها من الأزرار).</li>
+        <li>اسم المعلم وختمه من «ملف المعلم» كما في التقرير الحالي، وتحتهما كلمة «المعلم». إن لم يُرفع ختم يبقى الاسم وحده دون فراغ.</li>
+        <li>حذف «التلميحات» من سطر البيانات أعلى الصورة (تظهر فقط داخل «أين تعثّر؟» عند الحاجة).</li>
+        <li>بلا ملاحظة المعلم.</li></ul></div>
+      <div class="box"><h3>كيف تظهر في محادثة واتساب</h3><div class="wa" id="wa"></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ART = 'assets/report/';
+// صورة طالب تجريبية (رسم بسيط) بدل صورة حقيقية
+const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cfe3d8"/><circle cx="50" cy="40" r="19" fill="#8a6a4f"/><path d="M14 100c4-24 18-34 36-34s32 10 36 34z" fill="#1d6b52"/><path d="M31 36c0-14 9-21 19-21s19 7 19 21c-5-6-12-8-19-8s-14 2-19 8z" fill="#2b2118"/></svg>');
+// ختم تجريبي يمثّل teacherDB.stamp
+const STAMP = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><g fill="none" stroke="#1f4fa3" stroke-width="3" opacity=".85"><circle cx="60" cy="60" r="54"/><circle cx="60" cy="60" r="42"/></g><text x="60" y="56" text-anchor="middle" font-family="Amiri,serif" font-size="17" font-weight="700" fill="#1f4fa3">أ. محمد</text><text x="60" y="76" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1f4fa3">معلم القرآن</text></svg>');
+
+const SC = {
+  s1:{ scope:{kind:'one', list:['الملك']}, total:8, ok:4, pa:2, no:2, pct:70, hist:[62,71,70], dur:'2:56',
+       errs:[{s:'الملك', items:[['3–4','no'],['22','no'],['12','pa'],['19','pa']]}], types:['next','order'] },
+  s2:{ scope:{kind:'juz', name:'جزء تبارك', n:11}, total:37, ok:28, pa:4, no:5, pct:81, hist:[68,74,81], dur:'11:20',
+       errs:[{s:'الملك', items:[['3','no'],['12','pa'],['19','pa']]},{s:'القلم', items:[['7','no'],['42','no']]},{s:'الحاقة', items:[['18','no'],['30','pa']]},{s:'المعارج', items:[['12','no']]},{s:'نوح', items:[['6','pa']]}], types:['next','prev'] },
+  s3:{ scope:{kind:'few', list:['الملك','القلم','الحاقة']}, total:20, ok:19, pa:1, no:0, pct:97, hist:[88,92,97], dur:'6:05',
+       errs:[{s:'القلم', items:[['22','pa']]}], types:[] },
+  s4:{ scope:{kind:'one', list:['الملك']}, total:20, ok:7, pa:3, no:10, pct:42, hist:[50,45,42], dur:'7:40',
+       errs:[{s:'الملك', items:[['2','no'],['3','no'],['5','pa'],['8','no'],['11','no'],['13','no'],['16','pa'],['19','no'],['22','no'],['25','no'],['27','pa'],['29','no'],['30','no']]}], types:['next','order'] },
+};
+let st = { sc:'s1', ly:'grid', av:'img', stamp:'1' };
+
+const plural = (n, one, two, few, many) => n===1?one : n===2?two : (n>=3&&n<=10)?few : many;
+const W = {
+  ok:n=>plural(n,'سؤال صحيح','سؤالان صحيحان','أسئلة صحيحة','سؤالًا صحيحًا'),
+  pa:n=>plural(n,'سؤال بمساعدة','سؤالان بمساعدة','أسئلة بمساعدة','سؤالًا بمساعدة'),
+  no:n=>plural(n,'سؤال يحتاج مراجعة','سؤالان يحتاجان مراجعة','أسئلة تحتاج مراجعة','سؤالًا يحتاج مراجعة'),
+  q:n=>plural(n,'سؤال واحد','سؤالان',n+' أسئلة',n+' سؤالًا'),
+  place:n=>plural(n,'موضع واحد','موضعين',n+' مواضع',n+' موضعًا'),
+  surah:n=>plural(n,'سورة واحدة','سورتين',n+' سور',n+' سورة'),
+};
+const tier = p => p>=90?'ممتاز':p>=75?'جيد جدًا':p>=60?'جيد':p>=40?'متوسط':'يحتاج دعمًا';
+const knows = p => p>=90?'يحفظها بإتقان':p>=75?'يحفظ أغلبها جيدًا':p>=60?'يحفظ أغلبها':p>=40?'يحفظ جزءًا منها':'يحتاج إلى مراجعة';
+const scopeText = s => s.kind==='one' ? 'سورة '+s.list[0] : s.kind==='few' ? s.list.join(' · ') : `${s.name} (${s.n} سورة)`;
+const askKnow = s => s.kind==='one' ? 'هل يحفظ السورة؟' : s.kind==='few' ? 'هل يحفظ السور؟' : 'هل يحفظ الجزء؟';
+
+function placesBox(d){
+  const all = d.errs.reduce((a,e)=>a+e.items.length,0);
+  if (!all) return { ans:'لا توجد أخطاء', det:'لم يتعثّر في أي موضع، ما شاء الله.', vis:`<div class="happy">🌟 أتمّ الاختبار دون أخطاء</div>` };
+  const sorted = [...d.errs].sort((a,b)=>b.items.length-a.items.length);
+  const ns = sorted.length;
+  const ans = ns>1 ? `في ${W.place(all)} من ${W.surah(ns)}` : `في ${W.place(all)}`;
+  let rows;
+  if (ns===1 && all>6){ // سورة واحدة بأخطاء كثيرة: تجميع حسب أجزاء السورة
+    const parts=[['أولها','1–10',1,10],['وسطها','11–20',11,20],['آخرها','21–30',21,30]];
+    rows = parts.map(([n,r,a,b])=>{const c=sorted[0].items.filter(([x])=>{const v=parseInt(x);return v>=a&&v<=b}).length;
+      return c?`<div class="row"><span class="s">${n} <small class="ltr" style="font-weight:600;color:#6f644e">${r}</small></span><span class="chip no">${plural(c,'موضع واحد','موضعان',c+' مواضع',c+' موضعًا')}</span></div>`:''}).join('');
+  } else {
+    rows = sorted.slice(0,3).map(e=>`<div class="row"><span class="s">${e.s}</span>${e.items.slice(0,4).map(([a,c])=>`<span class="chip ${c}">${a}</span>`).join('')}${e.items.length>4?`<span class="more">+${e.items.length-4}</span>`:''}</div>`).join('');
+    const rest = sorted.slice(3); const rc = rest.reduce((a,e)=>a+e.items.length,0);
+    if (rest.length) rows += `<div class="more">${plural(rc,'وموضع آخر','وموضعان آخران','و'+rc+' مواضع أخرى','و'+rc+' موضعًا آخر')} في ${W.surah(rest.length)} — التفاصيل في ملف PDF</div>`;
+  }
+  const det = ns===1 && all>6 ? 'الأخطاء موزّعة على السورة كلها، والأكثر في آخرها.' : 'الأحمر خطأ، والذهبي صحّ بمساعدة.';
+  return { ans, det, vis:`<div class="rows">${rows}</div>` };
+}
+function progressBox(d){
+  const [a,b,c]=d.hist; const diff=c-b;
+  const ans = diff>=5?'تحسّن واضح':diff>=1?'تحسّن بسيط':diff>=-2?'ثابت تقريبًا':'تراجع قليلًا';
+  const det = `<span class="ltr">${diff>=0?'+':''}${diff}%</span> عن المحاولة السابقة (<span class="ltr">${b}%</span>)`;
+  const bar=(v,l,now)=>`<div class="${now?'now':''}"><b class="ltr">${v}%</b><i style="height:${Math.max(8,Math.round(v*0.6))}px"></i>${l}</div>`;
+  const cls = diff>=1?'ok':diff>=-2?'pa':'no';
+  return { cls, ans, det, vis:`<div class="tl">${bar(a,'قبل أسبوعين')}${bar(b,'السابقة')}${bar(c,'اليوم',1)}</div>` };
+}
+function homeBox(d){
+  const p=d.pct; const places = d.errs.flatMap(e=>e.items.map(([a])=>a)); const sName = d.errs[0]?.s;
+  let ans, t=[];
+  if (p>=90){ ans='حافظوا على المستوى'; t=['يراجع ما اختُبر فيه مرة كل أسبوع حتى لا يُنسى.','يبدأ المقطع التالي مع المعلم.','شجّعوه وكافئوه على إتقانه 🌟']; }
+  else if (p>=60){ ans='10 دقائق يوميًا';
+    const where = d.errs.length>1 ? 'مواضع الخطأ' : `الآيات ${places.slice(0,4).join(' و')} من سورة ${sName}`;
+    t=[`يقرأ ${where} من المصحف مرتين يوميًا.`, d.types[0]==='next'?'يقرأ آخر كل آية مع أول التي بعدها 3 مرات حتى يرتبطا.':'يقرأ الآية التي قبل الموضع ثم يسمّع الموضع غيبًا.','pen:يكتب أول كل موضع في ورقة بخطه ويرسل صورتها للمعلم.']; }
+  else { ans='15 دقيقة يوميًا'; t=[`يستمع لسورة ${sName} من قارئ متقن ثم يقرؤها معكم.`,'يقسّم السورة مقاطع صغيرة (5 آيات) ويراجع مقطعًا كل يوم.','pen:يكتب مقطع اليوم في ورقة ويرسل صورتها للمعلم.']; }
+  return { ans, vis:`<ul class="steps">${t.map(x=>x.startsWith('pen:')?`<li class="pen">${x.slice(4)}</li>`:`<li>${x}</li>`).join('')}</ul>` };
+}
+
+const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="12" fill="#0b3d30"/><path d="M6.5 11.5 12 7l5.5 4.5V17a.8.8 0 0 1-.8.8h-2.9v-3.6h-3.6v3.6H7.3a.8.8 0 0 1-.8-.8z" fill="#fffdf8"/></svg>`;
+
+function render(){
+  const d = SC[st.sc]; const s = d.scope;
+  const av = st.av==='img' ? `<div class="av"><img src="${PHOTO}" alt=""></div>` : st.av==='emoji' ? `<div class="av emo">👦</div>` : `<div class="av">ي</div>`;
+  const pl = placesBox(d), pr = progressBox(d), hm = homeBox(d);
+  const kcls = d.pct>=60?'ok':d.pct>=40?'pa':'no';
+  const tile = (k,n) => `<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):(k==='no'?'لا شيء يحتاج مراجعة':'لا يوجد')}</span></div>`;
+  const html = `${['tr','tl','br','bl'].map(c=>`<img class="orn ${c}" src="${ART}report-corner-orn.png" alt="">`).join('')}
+  <div class="hd"><img src="assets/brand/ham-logo.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
+  <div class="idr">
+    <div class="sq who">${av}<div><div class="nm">يوسف أحمد <small>· الصف الرابع</small></div>
+      <div class="facts"><span>النطاق: <b>${scopeText(s)}</b></span><span>الأسئلة: <b>${d.total}</b></span><span>المدة: <b class="ltr">${d.dur}</b></span></div></div></div>
+    <div class="sq sc"><div class="p ltr">${d.pct}%</div><div class="tier">${tier(d.pct)}</div></div>
+  </div>
+  <div class="qa">
+    <div class="sq c ${kcls}"><div class="k"><em>1</em>${askKnow(s)}</div><div class="ans">${knows(d.pct)}</div>
+      <div class="det">من أصل ${W.q(d.total)}</div>
+      <div class="vis"><div class="tiles">${tile('ok',d.ok)}${tile('pa',d.pa)}${tile('no',d.no)}</div>
+      <div class="sbar"><i class="ok" style="width:${d.ok/d.total*100}%"></i><i class="pa" style="width:${d.pa/d.total*100}%"></i><i class="no" style="width:${d.no/d.total*100}%"></i></div></div></div>
+    <div class="sq c ${d.no?'no':d.pa?'pa':'ok'}"><div class="k"><em>2</em>أين تعثّر؟</div><div class="ans">${pl.ans}</div><div class="det">${pl.det}</div><div class="vis">${pl.vis}</div></div>
+    <div class="sq c ${pr.cls}"><div class="k"><em>3</em>هل تحسّن؟</div><div class="ans">${pr.ans}</div><div class="det">${pr.det}</div><div class="vis">${pr.vis}</div></div>
+    <div class="sq c hm"><div class="k">${HOUSE}ماذا نفعل في البيت؟</div><div class="ans">${hm.ans}</div><div class="det"></div><div class="vis">${hm.vis}</div></div>
+  </div>
+  <div class="ft"><div class="pl"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>
+    <div class="sign">${st.stamp==='1'?`<img class="stamp" src="${STAMP}" alt="">`:''}<div class="n">أ. محمد</div><div class="l">المعلم</div></div></div>`;
+  img.className = 'img ' + st.ly; img.innerHTML = html;
+  document.getElementById('wa').innerHTML = `<div class="phone"><div class="bub"><div class="fit" data-w="156"><div class="img ${st.ly}">${html}</div></div><div class="t">10:42 ✓✓</div></div></div>`;
+  requestAnimationFrame(fitAll);
+}
+function fitAll(){
+  document.querySelectorAll('.fit').forEach(f => {
+    const el = f.firstElementChild; const w = f.dataset.w ? +f.dataset.w : f.clientWidth; if (!w) return;
+    const s = Math.min(1, w/720); el.style.transform = `scale(${s})`; f.style.height = (900*s)+'px';
+  });
+}
+[['seg-sc','sc'],['seg-ly','ly'],['seg-av','av'],['seg-st','stamp']].forEach(([id,key]) =>
+  document.querySelectorAll('#'+id+' button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#'+id+' button').forEach(x => x.classList.toggle('on', x===b)); st[key]=b.dataset.v; render();
+  })));
+document.querySelectorAll('#seg-theme button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#seg-theme button').forEach(x => x.classList.toggle('on', x===b)); document.documentElement.dataset.theme = b.dataset.v;
+}));
+window.addEventListener('resize', fitAll); window.addEventListener('load', fitAll);
+if (document.fonts) document.fonts.ready.then(fitAll);
+render();
+</script>
+</body>
+</html>
