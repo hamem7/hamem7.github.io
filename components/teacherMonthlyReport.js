@@ -33,11 +33,17 @@ function ensureStyles() {
     const st = document.createElement('style');
     st.id = STYLE_ID;
     st.textContent = `
-.tmr-overlay{position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;background:var(--dh-surface-0);overflow-y:auto;font-family:'IBM Plex Sans Arabic',sans-serif;color:var(--dh-ink);}
-.tmr-wrap{max-width:900px;margin:0 auto;padding:14px 16px 40px;box-sizing:border-box;}
+.tmr-overlay{position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;overflow-y:auto;font-family:'IBM Plex Sans Arabic',sans-serif;color:var(--dh-ink);padding:16px;box-sizing:border-box;background-color:#092b46;}
+.tmr-wrap{max-width:900px;margin:0 auto;padding:22px 20px 28px;box-sizing:border-box;background:var(--dh-surface);border-radius:30px;box-shadow:0 25px 60px rgba(0,0,0,.3);}
 .tmr-wrap[dir="rtl"]{direction:rtl;}.tmr-wrap[dir="ltr"]{direction:ltr;}
 .tmr-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-.tmr-bar h2{margin:0;font-size:1.35rem;font-weight:700;flex:1;min-width:160px;color:var(--dh-ink) !important;text-shadow:none !important;}
+.tmr-head{display:flex;align-items:center;gap:10px;flex:1 1 100%;}
+.tmr-bar h2{margin:0 !important;font-size:1.9rem !important;font-weight:700 !important;flex:1;min-width:0;color:var(--dh-emerald-700) !important;text-shadow:none !important;line-height:1.3;text-align:start;}
+html[data-theme="dark"] .tmr-bar h2{color:var(--dh-dk-title) !important;}
+.tmr-back{width:44px;height:44px;min-width:0;flex-shrink:0;border-radius:14px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-emerald-700);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;margin:0;}
+html[data-theme="dark"] .tmr-back{color:var(--dh-dk-title);}
+.tmr-back:focus-visible{outline:3px solid var(--dh-focus);outline-offset:2px;}
+.tmr-wrap[dir="ltr"] .tmr-back svg{transform:scaleX(-1);}
 .tmr-btn{background:var(--dh-surface-3);border:1px solid var(--dh-border-strong);color:var(--dh-ink);min-height:44px;min-width:44px;border-radius:12px;padding:0 14px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.92rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 .tmr-btn:focus-visible{outline:3px solid var(--dh-focus);outline-offset:2px;}
 .tmr-btn[disabled]{opacity:.4;cursor:default;}
@@ -69,10 +75,12 @@ function ensureStyles() {
 .tmr-note{color:var(--dh-ink-soft);font-size:.8rem;line-height:1.8;margin-top:6px;}
 .tmr-center{text-align:center;padding:50px 16px;font-weight:700;color:var(--dh-ink-soft);}
 .tmr-toast{position:fixed;bottom:22px;inset-inline:0;margin:auto;width:max-content;max-width:90vw;background:var(--dh-surface-3);color:var(--dh-ink);border:1px solid var(--dh-border-strong);padding:10px 18px;border-radius:99px;font-weight:700;z-index:10001;}
-@media (max-width:600px){.tmr-wrap{padding:10px 12px 90px;}.tmr-bar h2{font-size:1.15rem;}}
+@media (max-width:600px){.tmr-overlay{padding:10px;}.tmr-wrap{padding:16px 14px 28px;border-radius:24px;}}
 @media print{
   body>*:not(.tmr-overlay){display:none !important;}
-  .tmr-overlay{position:static !important;overflow:visible !important;background:transparent !important;}
+  .tmr-overlay{position:static !important;overflow:visible !important;background:transparent !important;padding:0 !important;}
+  .tmr-wrap{box-shadow:none !important;border-radius:0 !important;}
+  .tmr-back{display:none !important;}
   .tmr-noprint{display:none !important;}
   .tmr-card,.tmr-sec{break-inside:avoid;}
 }
@@ -170,6 +178,7 @@ export function openTeacherMonthlyReport(opts = {}) {
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', t('tr_title'));
   placeBelowMainHeader(overlay);
+  try { const cs = getComputedStyle(document.body); overlay.style.backgroundColor = cs.backgroundColor; overlay.style.backgroundImage = cs.backgroundImage; overlay.style.backgroundSize = cs.backgroundSize; overlay.style.backgroundBlendMode = cs.backgroundBlendMode; overlay.style.backgroundAttachment = 'fixed'; } catch (e) { /* الاحتياطي: لون ثابت من الأنماط */ }
   document.body.appendChild(overlay);
   const onResize = () => placeBelowMainHeader(overlay);
   window.addEventListener('resize', onResize);
@@ -188,8 +197,10 @@ export function openTeacherMonthlyReport(opts = {}) {
     const back = monthsBack(sel.y, sel.m);
     return `<div class="tmr-wrap" dir="${isAr() ? 'rtl' : 'ltr'}">
       <div class="tmr-bar">
-        <button type="button" class="tmr-btn tmr-noprint" id="tmr-close" aria-label="${esc(t('tr_close'))}"><span aria-hidden="true">✕</span> ${esc(t('tr_close'))}</button>
-        <h2>${esc(t('tr_title'))}</h2>
+        <div class="tmr-head">
+          <button type="button" class="tmr-back tmr-noprint" id="tmr-close" aria-label="${esc(t('tr_close'))}" title="${esc(t('tr_close'))}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+          <h2>${esc(t('tr_title'))}</h2>
+        </div>
         <div class="tmr-monthnav tmr-noprint">
           <button type="button" class="tmr-btn" id="tmr-prev" aria-label="${esc(t('tr_prev_month'))}"${back >= MONTHS_BACK - 1 ? ' disabled' : ''}><span aria-hidden="true">${isAr() ? '▶' : '◀'}</span></button>
           <span class="tmr-month" aria-live="polite">${esc(monthLabel(sel.y, sel.m))}</span>
