@@ -134,7 +134,7 @@ const REPORT_TEMPLATE = `
     <span class="hint" data-i18n="rep_tb_extra_hint">يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا</span>
   </div>
 
-  <div class="note-bar">
+  <div class="note-bar" id="report-home-task-bar">
     <label for="report-home-task-input" data-i18n="rep_tb_home_label">مهمة البيت في صورة واتساب (يمكنك تعديلها):</label>
     <textarea id="report-home-task-input" data-i18n-placeholder="rep_tb_home_ph" placeholder="تُبنى تلقائيًا من آيات أخطاء الطالب ونطاق الاختبار."></textarea>
     <span class="hint" data-i18n="rep_tb_home_hint">تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة</span>
@@ -1805,7 +1805,7 @@ async function withExportWidth(fn){
 // للرجوع الفوري عند أي خطأ: غيّر القيمة الافتراضية هنا إلى 'legacy'، أو من وحدة تحكم المتصفح:
 //   localStorage.setItem('dh_report_png_design', 'legacy')   (وللعودة للجديد: removeItem)
 // ملف الـ PDF الشامل لا يتأثر بهذا الخيار إطلاقًا. آخر إيداع قبل التغيير: 50d811d.
-const PNG_DESIGN_DEFAULT = 'card';
+const PNG_DESIGN_DEFAULT = 'legacy'; // أُعيد الشكل السابق بطلب المعلم؛ للبطاقة الجديدة اجعلها 'card' (أو localStorage dh_report_png_design = 'card')
 function pngDesign(){
   try {
     const v = localStorage.getItem('dh_report_png_design');
@@ -2073,6 +2073,8 @@ function goAnotherStudent(){
 
 function initReportScreen(){
   homeTaskOverride = null;
+  // خانة تعديل مهمة البيت خاصة بالبطاقة الجديدة فقط — تُخفى مع الشكل السابق
+  const hwBar = $('report-home-task-bar'); if (hwBar && pngDesign() === 'legacy') hwBar.style.display = 'none';
   renderAll();
   renderNoteBox();
   renderExtraNote();
