@@ -8,13 +8,21 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.82';
+export const APP_VERSION = '1.0.83';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.83',
+        date: '2026-11-05',
+        items: [
+            { type: 'new', text: { ar: 'صورة تقرير التقييم الفردي (تحميل/واتساب) صارت «أسئلة ولي الأمر» بمقاس 4:5 تظهر كاملة في واتساب: هل يحفظ السورة/الجزء؟ (عدد الصحيح وما احتاج مساعدة وما يحتاج مراجعة)، أين تعثّر؟ (بأرقام الآيات ولو كان النطاق عدة سور)، هل تحسّن؟، وماذا نفعل في البيت؟ (مهام حسب المستوى قابلة للتعديل)، مع اسم المعلم وختمه.', en: 'The individual evaluation report image (download/WhatsApp) is now “Parent’s questions” in a 4:5 size that shows fully in WhatsApp: does the student know the surah/juz (correct, with help, to review), where did they stumble (by verse number, even across several surahs), have they improved, and what to do at home (level-based, editable tasks), with the teacher’s name and stamp.' } },
+            { type: 'new', text: { ar: 'أربعة تصاميم للصورة تتبدّل تلقائيًا كل 3 شهور حسب تاريخ الاختبار (أرابيسك ذهبي، سماء الصباح، ورق المندالا، إطار زمردي)، ويمكن تثبيت أحدها من شريط أدوات التقرير. ملف PDF الشامل بلا تغيير.', en: 'Four image designs that change automatically every 3 months by test date (golden arabesque, morning sky, mandala paper, emerald frame); you can pin one from the report toolbar. The full PDF is unchanged.' } }
+        ]
+    },
     {
         version: '1.0.82',
         date: '2026-11-05',

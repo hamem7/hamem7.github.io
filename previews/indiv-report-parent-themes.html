@@ -50,7 +50,8 @@ button{font-family:inherit}
 .hm{--c:#0b3d30;--bg:rgba(226,236,229,.72);--bd:#b7c9bd}
 .sq{background:var(--cbg);border:1.5px solid var(--cbd);border-radius:var(--cr);box-shadow:var(--csh)}
 /* ترويسة */
-.hd{display:flex;align-items:center;gap:12px}
+.hd{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.hd .brand{display:flex;align-items:center;gap:12px}
 .hd img{width:48px}
 .hd .t{flex:1}
 .hd .t small{display:block;font-size:11.5px;color:var(--sub)}
@@ -112,7 +113,8 @@ button{font-family:inherit}
 .plat img{width:18px}
 
 /* ---------- تصميم 1: أرابيسك ذهبي ---------- */
-.t1{background-image:url(assets/report/parent-bg/bg-geo-arch.webp);--cbg:rgba(255,251,238,.80);--cbd:#d2ae55;--cr:16px;--csh:inset 0 0 0 3px rgba(255,251,238,.55),inset 0 0 0 4px rgba(210,174,85,.45),0 3px 10px rgba(120,90,20,.10);--ttl:#125a57;--acc:#1d7a74;--acc2:#125a57;--sub:#6e6450;--kbg:rgba(246,236,208,.7);--kbd:#e0cc95}
+.t1{background-image:url(assets/report/parent-bg/bg-geo-arch.webp);--cbg:rgba(255,251,238,.80);--cbd:#d2ae55;--cr:16px;--csh:0 3px 10px rgba(120,90,20,.10);--ttl:#125a57;--acc:#1d7a74;--acc2:#125a57;--sub:#6e6450;--kbg:rgba(246,236,208,.7);--kbd:#e0cc95}
+.t1 .sq{border:4px double #d2ae55}
 .t1 .c:before{height:4px;background:linear-gradient(90deg,#c9a13b,#f3dc95,#c9a13b)}
 .t1 .k{color:#125a57}
 .t1 .hd .t b{color:#125a57}
@@ -139,7 +141,11 @@ button{font-family:inherit}
 .t3 .k{color:#2f2f2d;border-bottom:1px dashed #c9c7c1;padding-bottom:5px}
 .t3 .k em{border-radius:6px;background:#3a3a38}
 .t3 .k svg rect{fill:#3a3a38}
-.t3 .ok{--c:#3f7a5e;--bg:rgba(232,240,235,.7);--bd:#b9cfc2}.t3 .pa{--c:#8a6a2a;--bg:rgba(244,238,224,.7);--bd:#dccca5}.t3 .no{--c:#9a4436;--bg:rgba(244,232,229,.7);--bd:#dbbab2}.t3 .hm{--c:#2f2f2d;--bg:rgba(238,237,233,.7);--bd:#d2d0ca}
+.t3 .ok{--c:#2e7556;--bg:#dcebe2;--bd:#7fae95}.t3 .pa{--c:#8a6418;--bg:#f2e4c4;--bd:#c9a55a}.t3 .no{--c:#a03a2b;--bg:#f2d9d3;--bd:#cf8f82}.t3 .hm{--c:#2f2f2d;--bg:rgba(232,231,226,.9);--bd:#bdbbb4}
+.t3 .tile,.t3 .chip{border-width:2px}
+.t3 .sbar{background:#d8d6d0}
+.t3 .k em{background:var(--c)}
+.t3 .hd .brand{background:rgba(251,250,247,.92);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px 4px 10px}
 .t3 .ans{color:#2f2f2d}
 .t3 .c.ok .ans{color:#3f7a5e}.t3 .c.no .ans{color:#9a4436}.t3 .c.pa .ans{color:#8a6a2a}
 .t3 .av{border-color:#3a3a38}
@@ -275,11 +281,11 @@ function homeBox(d){
   const what = one && places.length && places.length<=4 ? `الآيات ${sortedP.join(' و')}` : 'مواضع الخطأ';
   let ans, t;
   if (p>=90){ ans='دوام المراجعة';
-    t=['يداوم على مراجعة ما حفظه باستمرار.', `يصلّي بـ${pray} في الصلوات الخمس.`, 'add:يسمّع لكم مقطعًا منه مرة كل أسبوع حتى يبقى ثابتًا.']; }
+    t=['يداوم على مراجعة ما حفظه باستمرار.', `يصلّي ب${pray} في الصلوات الخمس.`, `يقرأ التفسير الميسّر ل${pray} ليربط الحفظ بالمعنى.`, 'يسمّع لكم مقطعًا منه مرة كل أسبوع حتى يبقى ثابتًا.']; }
   else if (p>=60){ ans='10 دقائق يوميًا';
-    t=[`يراجع 10 دقائق يوميًا ${what}.`, `يصلّي بها في الصلوات الخمس.`, 'يسمّعها لأحد الوالدين.', `يستمع لـ${listen} من قارئ متقن.`]; }
+    t=[`يراجع ${what} 10 دقائق يوميًا.`, `يصلّي بها في الصلوات الخمس.`, 'يسمّعها لأحد الوالدين، ويقرؤها قبل النوم.', `يستمع ل${listen} من قارئ متقن، ويقرأ تفسيرها الميسّر.`]; }
   else { ans='15 دقيقة يوميًا';
-    t=[`يراجع 15 دقيقة يوميًا مقطعًا صغيرًا (5 آيات).`, `يصلّي بـ${pray} في الصلوات الخمس.`, 'pen:يكتب الآيات في الدفتر ويصوّرها ويرسلها للمعلم.', `يستمع لـ${listen} من قارئ متقن.`]; }
+    t=[`يراجع 15 دقيقة يوميًا مقطعًا صغيرًا (5 آيات).`, `يصلّي ب${pray} في الصلوات الخمس، ويقرأ مقطع اليوم قبل النوم.`, 'pen:يكتب الآيات في الدفتر ويصوّرها ويرسلها للمعلم.', `يستمع ل${listen} من قارئ متقن، ويقرأ تفسيرها الميسّر.`]; }
   return { ans, vis:`<ul class="steps">${t.map(x=>x.startsWith('pen:')?`<li class="pen">${x.slice(4)}</li>`:`<li>${x.replace(/^add:/,'')}</li>`).join('')}</ul>` };
 }
 const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="12" fill="#0b3d30"/><path d="M6.5 11.5 12 7l5.5 4.5V17a.8.8 0 0 1-.8.8h-2.9v-3.6h-3.6v3.6H7.3a.8.8 0 0 1-.8-.8z" fill="#fffdf8"/></svg>`;
@@ -287,7 +293,7 @@ const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect
 function content(d, t){
   const s=d.scope, pl=placesBox(d), pr=progressBox(d), hm=homeBox(d), kcls=d.pct>=60?'ok':d.pct>=40?'pa':'no';
   const tile=(k,n)=>`<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):(k==='no'?'لا شيء يحتاج مراجعة':'لا يوجد')}</span></div>`;
-  return `<div class="hd"><img src="assets/brand/${t==='t4'?'ham-logo-light':'ham-logo'}.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
+  return `<div class="hd"><div class="brand"><img src="assets/brand/${t==='t4'?'ham-logo-light':'ham-logo'}.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
   <div class="idr">
     <div class="sq who"><div class="av"><img src="${PHOTO}" alt=""></div><div><div class="nm">يوسف أحمد <small>· الصف الرابع</small></div>
       <div class="facts"><span>النطاق: <b>${scopeText(s)}</b></span><span>الأسئلة: <b>${d.total}</b></span><span>المدة: <b class="ltr">${d.dur}</b></span></div></div></div>
@@ -305,7 +311,6 @@ function content(d, t){
 // التذييل: اسم المعلم يمينًا، المنصة في الوسط، الختم يسارًا (من ملف المعلم teacherDB.stamp؛ يختفي مكانه إن لم يُرفع)
 const footer = (t) => `<div class="ft">
   <div class="tname"><div class="n">أ. محمد</div><div class="l">المعلم</div></div>
-  <div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>
   <div class="tstamp">${st.stamp==='1'?`<img src="${STAMP}" alt="">`:''}</div></div>`;
 
 // ملء المساحة الآمنة: نبحث عن أكبر مقياس يجعل المحتوى يتّسع فيها، ثم نمدّ ما تبقّى من ارتفاع داخل المربعات

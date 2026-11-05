@@ -73,6 +73,10 @@ export const REPORT_STYLES = `
     padding:8px 12px; color:#2b2620;
   }
   #report-screen .note-bar .hint{color:#a89f8a; font-size:10px; font-weight:600; flex:none;}
+  #report-screen .note-bar .qa-theme-select{
+    flex:0 1 280px; font-family:'IBM Plex Sans Arabic',sans-serif; font-size:12.5px; font-weight:600;
+    background:#f9f4ea; border:1px solid #55503f; border-radius:8px; padding:6px 10px; color:#2b2620;
+  }
 
   #report-screen .report-stage{display:flex; justify-content:center; padding:36px 16px 60px; background:#e9e4d8; border-radius:0 0 12px 12px;}
 

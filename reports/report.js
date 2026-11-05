@@ -31,6 +31,8 @@ import { t, tf, localizeGenerated, surahNamesLocal, trStored } from '../core/i18
 // 🌟 بطاقة «متابعة ولي الأمر» = «صورة واتساب» الجديدة (النموذج أ المعتمد). الـ PDF الشامل يبقى بتصميم الورقة الحالي.
 import { buildCardHtml, computeHomeTask } from './reportCard.js';
 import { RC_STYLES } from './reportCard.styles.js';
+import { buildQaCardHtml, fitQaCard, qaHomeTasksText, qaThemeBackground, resolveQaTheme, getQaThemePref, setQaThemePref } from './parentQaCard.js';
+import { QA_STYLES } from './parentQaCard.styles.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -137,8 +139,19 @@ const REPORT_TEMPLATE = `
   <div class="note-bar" id="report-home-task-bar">
     <label for="report-home-task-input" data-i18n="rep_tb_home_label">مهمة البيت في صورة واتساب (يمكنك تعديلها):</label>
     <textarea id="report-home-task-input" data-i18n-placeholder="rep_tb_home_ph" placeholder="تُبنى تلقائيًا من آيات أخطاء الطالب ونطاق الاختبار."></textarea>
-    <span class="hint" data-i18n="rep_tb_home_hint">تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة</span>
+    <span class="hint" id="report-home-task-hint" data-i18n="rep_tb_home_hint">تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة</span>
     <button type="button" class="rbtn ghost" id="btn-report-home-task-restore" data-i18n="rep_tb_home_restore">استعادة الصياغة التلقائية</button>
+  </div>
+
+  <div class="note-bar" id="report-qa-theme-bar">
+    <label for="report-qa-theme" data-i18n="qa_theme_label">تصميم صورة واتساب:</label>
+    <select id="report-qa-theme" class="qa-theme-select">
+      <option value="auto" data-i18n="qa_theme_auto">تلقائي (يتغيّر كل 3 شهور)</option>
+      <option value="t1" data-i18n="qa_theme_t1">أرابيسك ذهبي</option>
+      <option value="t2" data-i18n="qa_theme_t2">سماء الصباح</option>
+      <option value="t3" data-i18n="qa_theme_t3">ورق المندالا</option>
+      <option value="t4" data-i18n="qa_theme_t4">إطار زمردي</option>
+    </select>
   </div>
 
   <div class="report-stage">
@@ -975,6 +988,25 @@ function persistTeacherIdentity(partial){
   } catch (e) { console.warn("تعذر حفظ بيانات المعلم في الملف الدائم:", e); }
 }
 
+// سور نطاق الاختبار بترتيب المصحف: { name (الاسم العربي الخام), num, from, to, total (آيات السورة كاملة) }
+function scopeSurahsOf(gs){
+  const pool = gs && Array.isArray(gs.pool) ? gs.pool : [];
+  const by = new Map();
+  pool.forEach(a => {
+    if (!a || !a.surahName) return;
+    const k = a.surahNumber || a.surahName;
+    const n = Number(a.numberInSurah) || 0;
+    if (!by.has(k)) by.set(k, { name: a.surahName, num: Number(a.surahNumber) || 0, from: n, to: n, total: 0 });
+    const e = by.get(k); if (n && (!e.from || n < e.from)) e.from = n; if (n > e.to) e.to = n;
+  });
+  const meta = AppState.surahsData || [];
+  return [...by.values()].sort((x, y) => x.num - y.num).map(e => {
+    const m = meta.find(s => s.number === e.num);
+    e.total = m && m.ayahsCount ? m.ayahsCount : 0;
+    return e;
+  });
+}
+
 function buildReportData(){
   const student = AppState.currentStudent || {};
   const questionResults = getQuestionResults();
@@ -1105,6 +1137,12 @@ function buildReportData(){
     dateLong: formatDateLongLatn(now),
     dateHijriLatn: formatDateHijriLatn(now),
     scopeAyahCount: (activeGameState && Array.isArray(activeGameState.pool)) ? activeGameState.pool.length : 0,
+    // حقول صورة «أسئلة ولي الأمر» (parentQaCard.js): سور النطاق الفعلية من مجمّع الآيات، ورقم الجزء
+    // إن كان الاختبار على جزء (من نص النطاق المحفوظ بالعربية دائمًا: «الجزء {n}»)، وتاريخ الاختبار لتدوير التصميم
+    scopeSurahs: scopeSurahsOf(activeGameState),
+    scopeJuz: (() => { const m = /^\s*الجزء\s+(\d+)\s*$/.exec(String(scope || '')); return m ? Number(m[1]) : null; })(),
+    isWeakness: isWeaknessReport,
+    testDate: now,
     homeTaskOverride: homeTaskOverride,
     score,
     tier,
@@ -1589,10 +1627,14 @@ function renderReport(d){
 const CARD_DEPS = { focusVerseInfo, focusJoin, stripLeadingEmoji, escapeHtml, localizeGenerated };
 
 // خانة تعديل مهمة البيت: تُملأ بالنص التلقائي ما لم يعدّلها المعلم، وتتبع لغة الواجهة بعد إعادة البناء
+function autoHomeTaskText(){
+  if (!reportData) return '';
+  return pngDesign() === 'qa' ? qaHomeTasksText(reportData, CARD_DEPS) : computeHomeTask(reportData, CARD_DEPS).text;
+}
 function renderHomeTaskInput(){
   const ta = $('report-home-task-input');
   if (!ta || !reportData) return;
-  const auto = computeHomeTask(reportData, CARD_DEPS).text;
+  const auto = autoHomeTaskText();
   ta.value = homeTaskOverride != null ? homeTaskOverride : auto;
 }
 
@@ -1805,18 +1847,20 @@ async function withExportWidth(fn){
 // للرجوع الفوري عند أي خطأ: غيّر القيمة الافتراضية هنا إلى 'legacy'، أو من وحدة تحكم المتصفح:
 //   localStorage.setItem('dh_report_png_design', 'legacy')   (وللعودة للجديد: removeItem)
 // ملف الـ PDF الشامل لا يتأثر بهذا الخيار إطلاقًا. آخر إيداع قبل التغيير: 50d811d.
-const PNG_DESIGN_DEFAULT = 'legacy'; // أُعيد الشكل السابق بطلب المعلم؛ للبطاقة الجديدة اجعلها 'card' (أو localStorage dh_report_png_design = 'card')
+// 'qa' = صورة «أسئلة ولي الأمر» 4:5 (parentQaCard.js) — المعتمدة حاليًا. للرجوع: 'legacy' أو 'card'.
+const PNG_DESIGN_DEFAULT = 'qa';
 function pngDesign(){
   try {
     const v = localStorage.getItem('dh_report_png_design');
-    if (v === 'legacy' || v === 'card') return v;
+    if (v === 'legacy' || v === 'card' || v === 'qa') return v;
   } catch (e) { /* تجاهل */ }
   return PNG_DESIGN_DEFAULT;
 }
 async function exportPng(){ return withExportWidth(() => exportPngAtPageWidth(false)); }
 async function sharePng(){ return withExportWidth(() => exportPngAtPageWidth(true)); }
 async function exportPngAtPageWidth(share){
-  return pngDesign() === 'legacy' ? exportPngLegacyAtPageWidth(share) : exportCardPng(share);
+  const des = pngDesign();
+  return des === 'legacy' ? exportPngLegacyAtPageWidth(share) : des === 'qa' ? exportQaPng(share) : exportCardPng(share);
 }
 
 // ---- البطاقة الجديدة: تُبنى في حاوية خارج الشاشة بعرض 540px وتُلتقط ×2 (= 1080 بكسل) ----
@@ -1847,6 +1891,35 @@ async function exportCardPng(share){
     })));
     await nextFrames();
     canvas = await window.html2canvas(host.querySelector('.rc'), { scale: 2, backgroundColor: '#f8f3e8', useCORS: true });
+  } finally {
+    host.remove();
+  }
+  await finishPngExport(canvas, share);
+}
+// ---- صورة «أسئلة ولي الأمر»: 720×900 خارج الشاشة، يُملأ محتواها مساحتها، وتُلتقط ×1.5 (= 1080×1350) ----
+async function exportQaPng(share){
+  await ensureHtml2Canvas();
+  await ensureCardFontsReady();
+  if (document.fonts && document.fonts.load) { try { await document.fonts.load('700 27px "Amiri"'); } catch (e) { /* تجاهل */ } }
+  await ensureStampCleaned();
+  if (reportData) reportData.homeTaskOverride = homeTaskOverride;
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;width:720px;pointer-events:none;';
+  host.innerHTML = `<style>${QA_STYLES}</style>` + buildQaCardHtml(reportData, CARD_DEPS);
+  document.body.appendChild(host);
+  let canvas;
+  try {
+    const root = host.querySelector('.qac');
+    const imgs = Array.from(host.querySelectorAll('img'));
+    const bgSrc = qaThemeBackground(resolveQaTheme(reportData));
+    if (bgSrc) { const bg = new Image(); bg.src = bgSrc; imgs.push(bg); }
+    await Promise.all(imgs.map(img => (img.complete && img.naturalWidth > 0) ? null : new Promise(res => {
+      img.addEventListener('load', res, { once: true }); img.addEventListener('error', res, { once: true });
+    })));
+    await nextFrames();
+    fitQaCard(root);
+    await nextFrames();
+    canvas = await window.html2canvas(root, { scale: 1.5, backgroundColor: '#f9f4ea', useCORS: true });
   } finally {
     host.remove();
   }
@@ -2075,6 +2148,12 @@ function initReportScreen(){
   homeTaskOverride = null;
   // خانة تعديل مهمة البيت خاصة بالبطاقة الجديدة فقط — تُخفى مع الشكل السابق
   const hwBar = $('report-home-task-bar'); if (hwBar && pngDesign() === 'legacy') hwBar.style.display = 'none';
+  // اختيار تصميم صورة «أسئلة ولي الأمر» (تلقائي كل 3 شهور أو تثبيت واحد) — يظهر مع هذا التصميم فقط
+  const qaBar = $('report-qa-theme-bar'), qaSel = $('report-qa-theme');
+  if (qaBar && pngDesign() !== 'qa') qaBar.style.display = 'none';
+  if (qaSel) { qaSel.value = getQaThemePref(); qaSel.addEventListener('change', () => setQaThemePref(qaSel.value)); }
+  const hwHint = $('report-home-task-hint');
+  if (hwHint && pngDesign() === 'qa') { hwHint.setAttribute('data-i18n', 'qa_tb_home_hint'); hwHint.textContent = t('qa_tb_home_hint'); }
   renderAll();
   renderNoteBox();
   renderExtraNote();
@@ -2084,7 +2163,7 @@ function initReportScreen(){
 
   const homeTaskInput = $('report-home-task-input');
   if (homeTaskInput) homeTaskInput.addEventListener('input', () => {
-    const auto = reportData ? computeHomeTask(reportData, CARD_DEPS).text : '';
+    const auto = autoHomeTaskText();
     homeTaskOverride = homeTaskInput.value.trim() && homeTaskInput.value !== auto ? homeTaskInput.value : null;
     if (reportData) reportData.homeTaskOverride = homeTaskOverride;
   });
