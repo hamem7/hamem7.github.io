@@ -51,7 +51,7 @@ export const QA_STYLES = `
 .qac .tile{background:var(--bg);border:1.5px solid var(--bd);border-radius:12px;padding:5px 4px;text-align:center;color:var(--c);line-height:1.25}
 .qac .tile b{display:block;font-size:25px}
 .qac .tile span{font-size:11.5px;font-weight:700}
-.qac .tile.zero{opacity:.45}
+.qac .tile.zero{opacity:.9}
 .qac .sbar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:rgba(220,210,185,.6);margin-top:7px}
 .qac .sbar i{display:block;background:var(--c)}
 .qac .rows{display:flex;flex-direction:column;gap:6px}
