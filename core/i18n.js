@@ -3109,7 +3109,7 @@ export const translations = {
         rep_tb_home_hint: "تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة",
         rep_tb_home_restore: "استعادة الصياغة التلقائية",
         // ===== صورة «أسئلة ولي الأمر» (واتساب 4:5) — reports/parentQaCard.js — المؤنث بلاحقة _f =====
-        qa_title: "تقرير اختبار الطالب", qa_brand_small: "منصة حمٓ · تحفيظ القرآن الكريم", qa_report_no: "رقم",
+        qa_title: "تقرير اختبار الطالب", qa_brand_small: "منصة حمٓ لتثبيت الحفظ و المراجعة", qa_report_no: "رقم",
         qa_f_scope: "النطاق", qa_f_q: "الأسئلة", qa_f_dur: "المدة", qa_teacher: "المعلم", qa_today: "اليوم",
         qa_tier_ex: "ممتاز", qa_tier_vg: "جيد جدًا", qa_tier_g: "جيد", qa_tier_av: "متوسط", qa_tier_low: "يحتاج دعمًا",
         qa_sc_surah: "سورة {s}", qa_sc_part: "سورة {s} ({a}–{b})", qa_sc_juz: "الجزء {n} ({c})",
@@ -6492,7 +6492,7 @@ export const translations = {
         rep_tb_home_hint: "Shown in the “Your home task” card of the brief image",
         rep_tb_home_restore: "Restore the automatic wording",
         // ===== "Parent's questions" image (WhatsApp 4:5) — reports/parentQaCard.js =====
-        qa_title: "Student Test Report", qa_brand_small: "Ham Platform · Quran memorization", qa_report_no: "No.",
+        qa_title: "Student Test Report", qa_brand_small: "Ham Platform for Memorization & Revision", qa_report_no: "No.",
         qa_f_scope: "Scope", qa_f_q: "Questions", qa_f_dur: "Time", qa_teacher: "Teacher", qa_today: "Today",
         qa_tier_ex: "Excellent", qa_tier_vg: "Very good", qa_tier_g: "Good", qa_tier_av: "Average", qa_tier_low: "Needs support",
         qa_sc_surah: "Surah {s}", qa_sc_part: "Surah {s} ({a}–{b})", qa_sc_juz: "Juz {n} ({c})",

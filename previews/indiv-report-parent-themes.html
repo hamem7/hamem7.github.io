@@ -54,8 +54,8 @@ button{font-family:inherit}
 .hd .brand{display:flex;align-items:center;gap:12px}
 .hd img{width:48px}
 .hd .t{flex:1}
-.hd .t small{display:block;font-size:11.5px;color:var(--sub)}
-.hd .t b{font-family:'Amiri',serif;font-size:27px;color:var(--ttl);line-height:1.15}
+.hd .t small{display:block;font-size:12px;color:var(--sub);margin-bottom:7px;line-height:1.5}
+.hd .t b{display:block;font-family:'Amiri',serif;font-size:27px;color:var(--ttl);line-height:1.4}
 .hd .d{font-size:11.5px;color:var(--sub);text-align:left;line-height:1.5}
 /* الهوية */
 .idr{display:grid;grid-template-columns:1fr 150px;gap:9px}
@@ -103,11 +103,11 @@ button{font-family:inherit}
 .steps li.pen:before{content:"✎"}
 /* التذييل */
 .ft{position:absolute;display:flex;align-items:flex-end;gap:16px}
-.ft{justify-content:space-between;align-items:center}
-.tname{text-align:center;min-width:140px;line-height:1.3}
+.ft{justify-content:flex-start;align-items:center;gap:12px}
+.tname{display:flex;align-items:baseline;gap:8px;line-height:1.3}
 .tname .n{font-family:'Amiri',serif;font-size:20px;font-weight:700;color:var(--ttl);border-bottom:1px solid var(--cbd);padding:0 10px 2px}
-.tname .l{font-size:11.5px;color:var(--sub);margin-top:2px}
-.tstamp{min-width:84px;text-align:center}
+.tname .l{font-size:14px;font-weight:600;color:var(--sub)}
+.tstamp{text-align:center}
 .tstamp img{height:74px;display:inline-block}
 .plat{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:6px;padding-bottom:4px}
 .plat img{width:18px}
@@ -121,7 +121,8 @@ button{font-family:inherit}
 .t1 .hd .d{background:rgba(255,251,238,.85);border:1px solid #e0cc95;border-radius:10px;padding:3px 10px}
 .t1 .hm{--c:#125a57;--bg:rgba(220,236,234,.72);--bd:#a9cbc8}
 .t1 .tl i{background:rgba(210,174,85,.35)}
-.t1 .ft{left:150px;right:150px;bottom:18px}
+.t1 .ft{left:130px;right:130px;bottom:24px}
+.t1 .hd .brand{background:rgba(255,251,238,.88);border:4px double #d2ae55;border-radius:16px;padding:6px 16px 6px 12px}
 .t1 .ft .plat{flex-direction:column;gap:2px;text-align:center}
 
 /* ---------- تصميم 2: سماء الصباح ---------- */
@@ -152,7 +153,7 @@ button{font-family:inherit}
 .t3 .tl i{background:rgba(160,158,152,.3)}
 .t3 .steps li.pen{background:rgba(244,238,224,.7);border-color:#dccca5}
 .t3 .hd .d{background:rgba(251,250,247,.9);border:1px solid #d2d0ca;border-radius:8px;padding:4px 10px;color:#4a4a48}
-.t3 .ft{left:30px;right:250px;bottom:12px}
+.t3 .ft{left:30px;right:30px;bottom:14px;width:max-content;max-width:660px;background:rgba(251,250,247,.94);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px}
 
 /* ---------- تصميم 4 (مقترحي): إطار زمردي ---------- */
 .t4{background:#0b3d30;--cbg:rgba(255,253,247,.78);--cbd:#e0cfa3;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:rgba(246,239,222,.75)}
@@ -292,8 +293,8 @@ const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect
 
 function content(d, t){
   const s=d.scope, pl=placesBox(d), pr=progressBox(d), hm=homeBox(d), kcls=d.pct>=60?'ok':d.pct>=40?'pa':'no';
-  const tile=(k,n)=>`<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):(k==='no'?'لا شيء يحتاج مراجعة':'لا يوجد')}</span></div>`;
-  return `<div class="hd"><div class="brand"><img src="assets/brand/${t==='t4'?'ham-logo-light':'ham-logo'}.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
+  const tile=(k,n)=>`<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):({ok:'أسئلة صحيحة',pa:'أسئلة بمساعدة',no:'أسئلة تحتاج مراجعة'})[k]}</span></div>`;
+  return `<div class="hd"><div class="brand"><img src="assets/brand/${t==='t4'?'ham-logo-light':'ham-logo'}.svg" alt=""><div class="t"><small>منصة حمٓ لتثبيت الحفظ و المراجعة</small><b>تقرير اختبار الطالب</b></div></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
   <div class="idr">
     <div class="sq who"><div class="av"><img src="${PHOTO}" alt=""></div><div><div class="nm">يوسف أحمد <small>· الصف الرابع</small></div>
       <div class="facts"><span>النطاق: <b>${scopeText(s)}</b></span><span>الأسئلة: <b>${d.total}</b></span><span>المدة: <b class="ltr">${d.dur}</b></span></div></div></div>
@@ -310,7 +311,7 @@ function content(d, t){
 }
 // التذييل: اسم المعلم يمينًا، المنصة في الوسط، الختم يسارًا (من ملف المعلم teacherDB.stamp؛ يختفي مكانه إن لم يُرفع)
 const footer = (t) => `<div class="ft">
-  <div class="tname"><div class="n">أ. محمد</div><div class="l">المعلم</div></div>
+  <div class="tname"><span class="l">المعلم</span><span class="n">أ. محمد</span></div>
   <div class="tstamp">${st.stamp==='1'?`<img src="${STAMP}" alt="">`:''}</div></div>`;
 
 // ملء المساحة الآمنة: نبحث عن أكبر مقياس يجعل المحتوى يتّسع فيها، ثم نمدّ ما تبقّى من ارتفاع داخل المربعات

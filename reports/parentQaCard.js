@@ -61,6 +61,7 @@ function gf(key, params){
 }
 // صيغ العدد: _one (1) / _two (2) / _few (3–10) / _many (11+) — والإنجليزية _one/_many
 function nForm(base, n){
+  if (n === 0 && base.startsWith('qa_') && /^qa_(ok|pa|no)$/.test(base)) return t(base + (isEn() ? '_many' : '_few'));
   if (isEn()) return tf(base + (n === 1 ? '_one' : '_many'), { n });
   return tf(base + (n === 1 ? '_one' : n === 2 ? '_two' : n <= 10 ? '_few' : '_many'), { n });
 }
@@ -203,7 +204,7 @@ export function buildQaCardHtml(d, deps){
   const hw = computeQaHomeTasks(d, deps);
   const override = d.homeTaskOverride && d.homeTaskOverride.trim();
   const tasks = override ? override.split(/\n+/).map(s => s.trim()).filter(Boolean).map(text => ({ text })) : hw.tasks;
-  const tile = (k, v) => `<div class="tile ${k}${v ? '' : ' zero'}"><b>${v}</b><span>${E(v ? nForm('qa_' + k, v) : t(k === 'no' ? 'qa_none_no' : 'qa_none_ok'))}</span></div>`;
+  const tile = (k, v) => `<div class="tile ${k}${v ? '' : ' zero'}"><b>${v}</b><span>${E(nForm('qa_' + k, v))}</span></div>`;
   const pct = x => n ? (x / n * 100).toFixed(2) : 0;
 
   const av = d.avatar || { type: 'letter', value: (d.name || '؟').charAt(0) };
@@ -232,7 +233,7 @@ export function buildQaCardHtml(d, deps){
       </div>
     </div></div>
     <div class="ft">
-      <div class="tname"><div class="n">${E(d.teacher && d.teacher.name)}</div><div class="l">${E(t('qa_teacher'))}</div></div>
+      <div class="tname"><span class="l">${E(t('qa_teacher'))}</span><span class="n">${E(d.teacher && d.teacher.name)}</span></div>
       <div class="tstamp">${stampSrc ? `<img src="${E(stampSrc)}" alt="">` : ''}</div>
     </div>
   </div>`;

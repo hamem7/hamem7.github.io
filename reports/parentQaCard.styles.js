@@ -22,8 +22,8 @@ export const QA_STYLES = `
 .qac .hd{display:flex;align-items:center;gap:12px;justify-content:space-between}
 .qac .hd .brand{display:flex;align-items:center;gap:12px}
 .qac .hd img{width:48px}
-.qac .hd .t small{display:block;font-size:11.5px;color:var(--sub)}
-.qac .hd .t b{font-family:'Amiri',serif;font-size:27px;color:var(--ttl);line-height:1.15}
+.qac .hd .t small{display:block;font-size:12px;color:var(--sub);margin-bottom:7px;line-height:1.5}
+.qac .hd .t b{display:block;font-family:'Amiri',serif;font-size:27px;color:var(--ttl);line-height:1.4}
 .qac .hd .d{font-size:11.5px;color:var(--sub);line-height:1.5;text-align:end}
 .qac .idr{display:grid;grid-template-columns:1fr 150px;gap:9px}
 .qac .who{padding:10px 14px;display:flex;gap:14px;align-items:center}
@@ -70,11 +70,11 @@ export const QA_STYLES = `
 .qac .steps li:before{content:"☐";color:#8a6221;font-weight:700;flex:none}
 .qac .steps li.pen{background:rgba(255,246,224,.85);border:1px dashed #e6c98a;border-radius:9px;padding:3px 7px}
 .qac .steps li.pen:before{content:"✎"}
-.qac .ft{position:absolute;display:flex;justify-content:space-between;align-items:center}
-.qac .tname{text-align:center;min-width:140px;line-height:1.3}
+.qac .ft{position:absolute;display:flex;justify-content:flex-start;align-items:center;gap:12px}
+.qac .tname{display:flex;align-items:baseline;gap:8px;line-height:1.3}
 .qac .tname .n{font-family:'Amiri',serif;font-size:20px;font-weight:700;color:var(--ttl);border-bottom:1px solid var(--cbd);padding:0 10px 2px}
-.qac .tname .l{font-size:11.5px;color:var(--sub);margin-top:2px}
-.qac .tstamp{min-width:84px;text-align:center}
+.qac .tname .l{font-size:14px;font-weight:600;color:var(--sub)}
+.qac .tstamp{text-align:center}
 .qac .tstamp img{height:74px;display:inline-block}
 
 /* ---------- تصميم 1: أرابيسك ذهبي ---------- */
@@ -85,7 +85,8 @@ export const QA_STYLES = `
 .qac.t1 .hd .d{background:rgba(255,251,238,.85);border:1px solid #e0cc95;border-radius:10px;padding:3px 10px}
 .qac.t1 .hm{--c:#125a57;--bg:rgba(220,236,234,.72);--bd:#a9cbc8}
 .qac.t1 .tl i{background:rgba(210,174,85,.35)}
-.qac.t1 .ft{left:150px;right:150px;bottom:20px}
+.qac.t1 .ft{left:130px;right:130px;bottom:24px}
+.qac.t1 .hd .brand{background:rgba(255,251,238,.88);border:4px double #d2ae55;border-radius:16px;padding:6px 16px 6px 12px}
 
 /* ---------- تصميم 2: سماء الصباح ---------- */
 .qac.t2{background-image:url(assets/report/parent-bg/bg-sky-mosque.webp);--cbg:rgba(255,255,255,.72);--cbd:rgba(255,255,255,.95);--cr:22px;--csh:0 6px 18px rgba(31,95,80,.12);--ttl:#0e6a5a;--acc:#e9a100;--acc2:#c47f00;--sub:#4f6b62;--kbg:rgba(238,248,243,.75);--kbd:#cfe9de}
@@ -113,7 +114,7 @@ export const QA_STYLES = `
 .qac.t3 .steps li.pen{background:#f2e4c4;border-color:#c9a55a}
 .qac.t3 .hd .brand{background:rgba(251,250,247,.92);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px 4px 10px}
 .qac.t3 .hd .d{background:rgba(251,250,247,.92);border:1px solid #c9c7c1;border-radius:8px;padding:4px 10px;color:#4a4a48}
-.qac.t3 .ft{left:30px;right:250px;bottom:12px}
+.qac.t3 .ft{left:30px;right:30px;bottom:14px;width:max-content;max-width:660px;background:rgba(251,250,247,.94);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px}
 
 /* ---------- تصميم 4: إطار زمردي ---------- */
 .qac.t4{background:#0b3d30;--cbg:rgba(255,253,247,.78);--cbd:#e0cfa3;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:rgba(246,239,222,.75)}
