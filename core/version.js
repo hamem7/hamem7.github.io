@@ -8,13 +8,20 @@
 // 🌟 ارفع هذا الرقم مع كل تحديث فعلي تنزّله، وضيف عنصر جديد أول مصفوفة CHANGELOG تحته
 // (الأحدث دائماً في الأعلى). النظام تلقائياً هيجمع كل الإصدارات اللي فاتت المعلم منذ آخر
 // مرة فتح فيها المنصة على هذا الجهاز، مش بس آخر إصدار. 🌟
-export const APP_VERSION = '1.0.80';
+export const APP_VERSION = '1.0.81';
 
 // كل عنصر تغيير: type من ('new' | 'improved' | 'fixed') + نص ثنائي اللغة {ar, en}.
 // ⚠️ افتراض صريح: هذه ليست مفاتيح i18n.js عمداً — لأنها محتوى تاريخي متراكم يكبر مع كل
 // إصدار (لو حُطّت في i18n.js هتتضخّم قائمة الترجمة للأبد بمفاتيح قديمة لن تُستخدم تاني).
 // النصوص الثابتة فقط (عنوان الشاشة، زر الإغلاق، تسميات التصنيفات) موجودة في i18n.js كالمعتاد.
 export const CHANGELOG = [
+    {
+        version: '1.0.81',
+        date: '2026-11-05',
+        items: [
+            { type: 'new', text: { ar: 'صورة تقرير التقييم الفردي (واتساب) صارت بطاقة «متابعة ولي الأمر»: زخرفة، صورة الطالب، مدة الاختبار، رسالة قصيرة، آخر التقييمات، ما أتقنه وما يحتاج مراجعة بأرقام الآيات، و«مهمتكم في البيت» المبنية من أخطاء الطالب ونطاق الاختبار وقابلة للتعديل قبل الإرسال. ملف PDF الشامل بلا تغيير.', en: 'The individual evaluation report image (WhatsApp) is now a “parent follow-up” card: ornament, student photo, test time, a short message, recent evaluations, what was mastered and what to review by āyah number, and a “home task” built from the student’s mistakes and the test range, editable before sending. The full PDF is unchanged.' } }
+        ]
+    },
     {
         version: '1.0.80',
         date: '2026-11-04',

@@ -28,6 +28,9 @@ import { playApplauseOnce, stopApplause, isApplauseMuted, setApplauseMuted } fro
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
 import { t, tf, localizeGenerated, surahNamesLocal, trStored } from '../core/i18n.js';
+// 🌟 بطاقة «متابعة ولي الأمر» = «صورة واتساب» الجديدة (النموذج أ المعتمد). الـ PDF الشامل يبقى بتصميم الورقة الحالي.
+import { buildCardHtml, computeHomeTask } from './reportCard.js';
+import { RC_STYLES } from './reportCard.styles.js';
 
 // 🌟 [إصلاح] كان هذا الملف يستورد GameState بشكل ثابت من games/adultGame.js فقط
 // (راجع تعليق TODO القديم اللي كان هنا)، فلما كانت لعبة الأطفال (kidsGame.js) هي
@@ -129,6 +132,13 @@ const REPORT_TEMPLATE = `
     <label for="report-extra-note-input" data-i18n="rep_tb_extra_label">نص إضافي داخل التقرير (اختياري):</label>
     <textarea id="report-extra-note-input" data-i18n-placeholder="rep_tb_extra_ph" placeholder="أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه."></textarea>
     <span class="hint" data-i18n="rep_tb_extra_hint">يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا</span>
+  </div>
+
+  <div class="note-bar">
+    <label for="report-home-task-input" data-i18n="rep_tb_home_label">مهمة البيت في صورة واتساب (يمكنك تعديلها):</label>
+    <textarea id="report-home-task-input" data-i18n-placeholder="rep_tb_home_ph" placeholder="تُبنى تلقائيًا من آيات أخطاء الطالب ونطاق الاختبار."></textarea>
+    <span class="hint" data-i18n="rep_tb_home_hint">تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة</span>
+    <button type="button" class="rbtn ghost" id="btn-report-home-task-restore" data-i18n="rep_tb_home_restore">استعادة الصياغة التلقائية</button>
   </div>
 
   <div class="report-stage">
@@ -356,6 +366,21 @@ function formatDateArabic(d){
 function formatDateHijri(d){
   try {
     return new Intl.DateTimeFormat((AppState.currentLang === 'en' ? 'en-US' : 'ar-SA') + '-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).format(d);
+  } catch (e) { return ''; }
+}
+// تاريخ البطاقة: اليوم باسمه («الخميس 5 نوفمبر 2026») والهجري بأرقام لاتينية — Intl مدمج بلا مكتبة
+function formatDateLongLatn(d){
+  try {
+    return new Intl.DateTimeFormat((AppState.currentLang === 'en' ? 'en-GB' : 'ar') + '-u-ca-gregory-nu-latn', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    }).format(d).replace('،', '');
+  } catch (e) { return ''; }
+}
+function formatDateHijriLatn(d){
+  try {
+    return new Intl.DateTimeFormat((AppState.currentLang === 'en' ? 'en-US' : 'ar-SA') + '-u-ca-islamic-umalqura-nu-latn', {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(d);
   } catch (e) { return ''; }
@@ -1075,6 +1100,12 @@ function buildReportData(){
     scope: scope || '',
     date: dateLabel,
     dateHijri: formatDateHijri(now),
+    // حقول بطاقة واتساب (reportCard.js): جنس الطالب من ملفه، وتاريخ باليوم، وحجم نطاق الاختبار (عدد الآيات المسحوبة)
+    gender: student.gender === 'girl' ? 'girl' : (student.gender === 'boy' ? 'boy' : ''),
+    dateLong: formatDateLongLatn(now),
+    dateHijriLatn: formatDateHijriLatn(now),
+    scopeAyahCount: (activeGameState && Array.isArray(activeGameState.pool)) ? activeGameState.pool.length : 0,
+    homeTaskOverride: homeTaskOverride,
     score,
     tier,
     stars: STARS_BY_TIER[tier] != null ? STARS_BY_TIER[tier] : 0,
@@ -1104,6 +1135,8 @@ function buildReportData(){
 // -----------------------------------------------------------------------------
 
 let reportData = null;
+// تعديل المعلم على نص «مهمتكم في البيت» قبل الإرسال (null = الصياغة التلقائية)
+let homeTaskOverride = null;
 
 // 🛡️ دوال آمنة للوصول للعناصر: بدل ما ينهار الكود لو عنصر مش موجود، بنكتفي
 // بتحذير واضح في الـ console يوضح رقم العنصر الناقص بالظبط، ونكمل عرض الباقي.
@@ -1552,9 +1585,21 @@ function renderReport(d){
   renderTeacherSign(d);
 }
 
+// دوال مساعدة تُمرَّر لبطاقة واتساب (بدل استيراد دائري بين الملفين)
+const CARD_DEPS = { focusVerseInfo, focusJoin, stripLeadingEmoji, escapeHtml, localizeGenerated };
+
+// خانة تعديل مهمة البيت: تُملأ بالنص التلقائي ما لم يعدّلها المعلم، وتتبع لغة الواجهة بعد إعادة البناء
+function renderHomeTaskInput(){
+  const ta = $('report-home-task-input');
+  if (!ta || !reportData) return;
+  const auto = computeHomeTask(reportData, CARD_DEPS).text;
+  ta.value = homeTaskOverride != null ? homeTaskOverride : auto;
+}
+
 function renderAll(){
   reportData = buildReportData();
   renderReport(reportData);
+  renderHomeTaskInput();
 }
 
 // -----------------------------------------------------------------------------
@@ -1755,9 +1800,74 @@ async function withExportWidth(fn){
   }
 }
 
+// 🗂️ تصميم الصورة المختصرة (واتساب): 'card' = بطاقة «متابعة ولي الأمر» الجديدة (reportCard.js)،
+// 'legacy' = التصميم السابق المؤرشف (الورقة بعد إخفاء جدول الأسئلة، exportPngLegacyAtPageWidth أدناه).
+// للرجوع الفوري عند أي خطأ: غيّر القيمة الافتراضية هنا إلى 'legacy'، أو من وحدة تحكم المتصفح:
+//   localStorage.setItem('dh_report_png_design', 'legacy')   (وللعودة للجديد: removeItem)
+// ملف الـ PDF الشامل لا يتأثر بهذا الخيار إطلاقًا. آخر إيداع قبل التغيير: 50d811d.
+const PNG_DESIGN_DEFAULT = 'card';
+function pngDesign(){
+  try {
+    const v = localStorage.getItem('dh_report_png_design');
+    if (v === 'legacy' || v === 'card') return v;
+  } catch (e) { /* تجاهل */ }
+  return PNG_DESIGN_DEFAULT;
+}
 async function exportPng(){ return withExportWidth(() => exportPngAtPageWidth(false)); }
 async function sharePng(){ return withExportWidth(() => exportPngAtPageWidth(true)); }
 async function exportPngAtPageWidth(share){
+  return pngDesign() === 'legacy' ? exportPngLegacyAtPageWidth(share) : exportCardPng(share);
+}
+
+// ---- البطاقة الجديدة: تُبنى في حاوية خارج الشاشة بعرض 540px وتُلتقط ×2 (= 1080 بكسل) ----
+async function ensureCardFontsReady(){
+  if (document.fonts && document.fonts.load) {
+    try {
+      await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 16px "IBM Plex Sans Arabic"`)));
+      await document.fonts.ready;
+    } catch (e) { /* تجاهل — لن نمنع التصدير بسبب هذا فقط */ }
+  }
+}
+async function exportCardPng(share){
+  await ensureHtml2Canvas();
+  await ensureCardFontsReady();
+  await ensureStampCleaned();
+  if (reportData) reportData.homeTaskOverride = homeTaskOverride;
+  const host = document.createElement('div');
+  host.style.cssText = 'position:fixed;left:-10000px;top:0;width:540px;pointer-events:none;';
+  host.innerHTML = `<style>${RC_STYLES}</style>` + buildCardHtml(reportData, CARD_DEPS);
+  document.body.appendChild(host);
+  let canvas;
+  try {
+    const imgs = Array.from(host.querySelectorAll('img'));
+    // خلفية الزخرفة (background-image) لا تُرى كوسم img — نحمّلها صراحةً قبل الالتقاط
+    const orn = new Image(); orn.src = ART_DIR + 'report-geo-orn.png';
+    await Promise.all(imgs.concat([orn]).map(img => (img.complete && img.naturalWidth > 0) ? null : new Promise(res => {
+      img.addEventListener('load', res, { once: true }); img.addEventListener('error', res, { once: true });
+    })));
+    await nextFrames();
+    canvas = await window.html2canvas(host.querySelector('.rc'), { scale: 2, backgroundColor: '#f8f3e8', useCORS: true });
+  } finally {
+    host.remove();
+  }
+  await finishPngExport(canvas, share);
+}
+async function finishPngExport(canvas, share){
+  if (share) {
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    await shareToWhatsApp(blob, buildFileName('png'), 'image/png');
+    logReportGenerated(canvas);
+    return;
+  }
+  const link = document.createElement('a');
+  link.download = buildFileName('png');
+  link.href = canvas.toDataURL('image/png');
+  document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  logReportGenerated(canvas);
+}
+
+// ---- التصميم السابق (مؤرشف): نفس الكود الذي كان يعمل قبل البطاقة الجديدة، بلا أي تغيير ----
+async function exportPngLegacyAtPageWidth(share){
   await ensureHtml2Canvas();
   await ensureFontsReady();
   await ensureStampCleaned();
@@ -1962,12 +2072,26 @@ function goAnotherStudent(){
 }
 
 function initReportScreen(){
+  homeTaskOverride = null;
   renderAll();
   renderNoteBox();
   renderExtraNote();
 
   const noteInput = $('report-custom-note-input');
   if (noteInput) noteInput.addEventListener('input', renderNoteBox);
+
+  const homeTaskInput = $('report-home-task-input');
+  if (homeTaskInput) homeTaskInput.addEventListener('input', () => {
+    const auto = reportData ? computeHomeTask(reportData, CARD_DEPS).text : '';
+    homeTaskOverride = homeTaskInput.value.trim() && homeTaskInput.value !== auto ? homeTaskInput.value : null;
+    if (reportData) reportData.homeTaskOverride = homeTaskOverride;
+  });
+  const homeTaskRestore = $('btn-report-home-task-restore');
+  if (homeTaskRestore) homeTaskRestore.addEventListener('click', () => {
+    homeTaskOverride = null;
+    if (reportData) reportData.homeTaskOverride = null;
+    renderHomeTaskInput();
+  });
 
   const extraNoteInput = $('report-extra-note-input');
   if (extraNoteInput) extraNoteInput.addEventListener('input', renderExtraNote);
