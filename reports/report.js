@@ -130,19 +130,6 @@ const REPORT_TEMPLATE = `
     <textarea id="report-custom-note-input" data-i18n-placeholder="rep_tb_note_ph" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار."></textarea>
     <span class="hint" data-i18n="rep_tb_note_hint">تظهر في صندوق "ملاحظة المعلم" بالأسفل</span>
   </div>
-  <div class="note-bar">
-    <label for="report-extra-note-input" data-i18n="rep_tb_extra_label">نص إضافي داخل التقرير (اختياري):</label>
-    <textarea id="report-extra-note-input" data-i18n-placeholder="rep_tb_extra_ph" placeholder="أي نص إضافي تحب إضافته داخل التقرير — اتركه فارغًا إن لم تكن بحاجة إليه."></textarea>
-    <span class="hint" data-i18n="rep_tb_extra_hint">يظهر كصندوق منفصل، ولا يظهر إطلاقًا لو تُرك فارغًا</span>
-  </div>
-
-  <div class="note-bar" id="report-home-task-bar">
-    <label for="report-home-task-input" data-i18n="rep_tb_home_label">مهمة البيت في صورة واتساب (يمكنك تعديلها):</label>
-    <textarea id="report-home-task-input" data-i18n-placeholder="rep_tb_home_ph" placeholder="تُبنى تلقائيًا من آيات أخطاء الطالب ونطاق الاختبار."></textarea>
-    <span class="hint" id="report-home-task-hint" data-i18n="rep_tb_home_hint">تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة</span>
-    <button type="button" class="rbtn ghost" id="btn-report-home-task-restore" data-i18n="rep_tb_home_restore">استعادة الصياغة التلقائية</button>
-  </div>
-
   <div class="note-bar" id="report-qa-theme-bar">
     <label for="report-qa-theme" data-i18n="qa_theme_label">تصميم صورة واتساب:</label>
     <select id="report-qa-theme" class="qa-theme-select">
@@ -1353,7 +1340,7 @@ function renderNoteBox(){
 // صندوق "ملاحظة إضافية" اختياري بالكامل: يظهر فقط لو المعلم كتب فيه نصًا،
 // ويختفي تمامًا (بلا أي مساحة فارغة في الصورة أو PDF) لو تُرك فارغًا.
 function renderExtraNote(){
-  const input = $('report-extra-note-input');
+  const input = document.getElementById('report-extra-note-input'); // حُذفت الخانة من الشاشة بطلب المعلم
   const block = $('report-extra-note-block');
   if (!input || !block) return;
   const text = input.value.trim();
@@ -1632,7 +1619,7 @@ function autoHomeTaskText(){
   return pngDesign() === 'qa' ? qaHomeTasksText(reportData, CARD_DEPS) : computeHomeTask(reportData, CARD_DEPS).text;
 }
 function renderHomeTaskInput(){
-  const ta = $('report-home-task-input');
+  const ta = document.getElementById('report-home-task-input'); // حُذفت الخانة من الشاشة بطلب المعلم (المهام تلقائية)
   if (!ta || !reportData) return;
   const auto = autoHomeTaskText();
   ta.value = homeTaskOverride != null ? homeTaskOverride : auto;
@@ -2147,13 +2134,10 @@ function goAnotherStudent(){
 function initReportScreen(){
   homeTaskOverride = null;
   // خانة تعديل مهمة البيت خاصة بالبطاقة الجديدة فقط — تُخفى مع الشكل السابق
-  const hwBar = $('report-home-task-bar'); if (hwBar && pngDesign() === 'legacy') hwBar.style.display = 'none';
   // اختيار تصميم صورة «أسئلة ولي الأمر» (تلقائي كل 3 شهور أو تثبيت واحد) — يظهر مع هذا التصميم فقط
   const qaBar = $('report-qa-theme-bar'), qaSel = $('report-qa-theme');
   if (qaBar && pngDesign() !== 'qa') qaBar.style.display = 'none';
   if (qaSel) { qaSel.value = getQaThemePref(); qaSel.addEventListener('change', () => setQaThemePref(qaSel.value)); }
-  const hwHint = $('report-home-task-hint');
-  if (hwHint && pngDesign() === 'qa') { hwHint.setAttribute('data-i18n', 'qa_tb_home_hint'); hwHint.textContent = t('qa_tb_home_hint'); }
   renderAll();
   renderNoteBox();
   renderExtraNote();
@@ -2161,20 +2145,20 @@ function initReportScreen(){
   const noteInput = $('report-custom-note-input');
   if (noteInput) noteInput.addEventListener('input', renderNoteBox);
 
-  const homeTaskInput = $('report-home-task-input');
+  const homeTaskInput = document.getElementById('report-home-task-input');
   if (homeTaskInput) homeTaskInput.addEventListener('input', () => {
     const auto = autoHomeTaskText();
     homeTaskOverride = homeTaskInput.value.trim() && homeTaskInput.value !== auto ? homeTaskInput.value : null;
     if (reportData) reportData.homeTaskOverride = homeTaskOverride;
   });
-  const homeTaskRestore = $('btn-report-home-task-restore');
+  const homeTaskRestore = document.getElementById('btn-report-home-task-restore');
   if (homeTaskRestore) homeTaskRestore.addEventListener('click', () => {
     homeTaskOverride = null;
     if (reportData) reportData.homeTaskOverride = null;
     renderHomeTaskInput();
   });
 
-  const extraNoteInput = $('report-extra-note-input');
+  const extraNoteInput = document.getElementById('report-extra-note-input');
   if (extraNoteInput) extraNoteInput.addEventListener('input', renderExtraNote);
 
   // -- رفع صورة الطالب (سحب وإفلات أو ضغط) --

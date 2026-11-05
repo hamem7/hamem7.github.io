@@ -211,6 +211,9 @@ export function buildQaCardHtml(d, deps){
   const avHtml = av.type === 'image' ? `<img src="${E(av.value)}" alt="">` : `<span class="${av.type === 'emoji' ? 'emo' : 'ltr0'}">${E(av.value)}</span>`;
   const hasDur = d.stats && d.stats.totalTime && d.stats.totalTime !== '—';
   const stampSrc = d.teacher && d.teacher.stamp ? (d.teacher.stampClean || d.teacher.stamp) : '';
+  // اسم المعلم من ملفه؛ إن لم يُسجَّل (الاسم الافتراضي «المعلم») لا نكرّره بجوار كلمة «المعلم»
+  const rawName = String((d.teacher && d.teacher.name) || '').trim();
+  const tName = rawName && rawName !== t('rp_default_teacher') && rawName !== t('qa_teacher') ? rawName : '';
   const corner = theme === 't4' ? ['o1', 'o2', 'o3', 'o4'].map(c => `<img class="${c}" src="assets/report/report-corner-orn.png" alt="">`).join('') : '';
   const card = (cls, num, ask, ans, det, vis, icon) => `<div class="sq c ${cls}"><div class="k">${icon || `<em>${num}</em>`}${E(ask)}</div><div class="ans">${E(ans)}</div>${det ? `<div class="det">${det}</div>` : ''}${vis ? `<div class="vis">${vis}</div>` : ''}</div>`;
 
@@ -233,7 +236,7 @@ export function buildQaCardHtml(d, deps){
       </div>
     </div></div>
     <div class="ft"><div class="fbox">
-      <div class="tname"><span class="l">${E(t('qa_teacher'))}</span><span class="n">${E(d.teacher && d.teacher.name)}</span></div>
+      <div class="tname"><span class="l">${E(t('qa_teacher'))}</span>${tName ? `<span class="n">${E(tName)}</span>` : ''}</div>
       ${stampSrc ? `<div class="tstamp"><img src="${E(stampSrc)}" alt=""></div>` : ''}
     </div></div>
   </div>`;
