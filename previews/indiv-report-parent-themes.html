@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>تصاميم أسئلة ولي الأمر</title>
+<!-- معاينة للنقاش فقط — نفس محتوى «أسئلة ولي الأمر» بأربعة تصاميم (3 خلفيات من المعلم + تصميم رابع).
+     بالعربية فقط حتى اعتماد الشكل. لا تمسّ أي شاشة. البيانات تجريبية.
+     المحتوى يملأ المساحة الآمنة تلقائيًا (fitPage): يُحسب له مقياس يجعله يملأ المساحة بلا فراغات مهما كان عدد الأسئلة. -->
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+:root{--pg:#f3eee3;--panel:#fffdf8;--ink:#1f2a24;--soft:#6b6b63;--line:#e6dcc6;--strong:#b9a983;--em:#0d5c46;--em2:#147c5e;--gold:#c9a13b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}}
+:root[data-theme="dark"]{--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.6}
+button{font-family:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:16px}
+.top h1{font-size:20px;margin:0;display:flex;align-items:center;gap:10px}
+.top h1 img{width:30px}
+.top p{margin:2px 0 10px;color:var(--soft);font-size:13px}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:14px;position:sticky;top:0;z-index:5}
+.ctrls label{font-size:12.5px;font-weight:700;color:var(--soft)}
+.seg{display:inline-flex;flex-wrap:wrap;background:var(--pg);border:1px solid var(--strong);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--ink);padding:5px 11px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--em);color:#fff}
+.gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+@media (max-width:860px){.gal{grid-template-columns:1fr}}
+.item h2{margin:0 0 2px;font-size:16px;display:flex;align-items:center;gap:8px}
+.item h2 span{background:var(--em);color:#fff;border-radius:999px;font-size:12px;padding:1px 10px}
+.item p{margin:0 0 8px;font-size:13px;color:var(--soft)}
+.fit{width:100%;overflow:hidden;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.14)}
+.fit>.img{transform-origin:top right}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-top:18px}
+.box h3{margin:0 0 6px;font-size:15px;color:var(--em2)}
+.box ul{margin:0;padding-inline-start:18px;font-size:13.5px}
+
+/* ======================= الصورة 720×900 ======================= */
+.img{position:relative;width:720px;height:900px;overflow:hidden;background:#f9f4ea center/cover no-repeat;color:#23302a;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;line-height:1.45;
+  --cbg:#fffdf8;--cbd:#ddd0b3;--cr:16px;--csh:none;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:#f6f0e2;--kbd:#e6dcc6}
+.img .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.safe{position:absolute}
+.pg{transform-origin:top right;display:flex;flex-direction:column;gap:9px}
+.ok{--c:#147c5e;--bg:#e6f3ec;--bd:#9fcdb5}
+.pa{--c:#9a6b18;--bg:#fbf1dc;--bd:#e6c98a}
+.no{--c:#a8402f;--bg:#fae6e2;--bd:#e7b0a6}
+.hm{--c:#0b3d30;--bg:#e9efe9;--bd:#b7c9bd}
+.sq{background:var(--cbg);border:1.5px solid var(--cbd);border-radius:var(--cr);box-shadow:var(--csh)}
+/* ترويسة */
+.hd{display:flex;align-items:center;gap:12px}
+.hd img{width:48px}
+.hd .t{flex:1}
+.hd .t small{display:block;font-size:11.5px;color:var(--sub)}
+.hd .t b{font-family:'Amiri',serif;font-size:27px;color:var(--ttl);line-height:1.15}
+.hd .d{font-size:11.5px;color:var(--sub);text-align:left;line-height:1.5}
+/* الهوية */
+.idr{display:grid;grid-template-columns:1fr 150px;gap:9px}
+.who{padding:10px 14px;display:flex;gap:14px;align-items:center}
+.av{flex:none;width:68px;height:68px;border-radius:50%;border:3px solid var(--ttl);box-shadow:0 0 0 4px var(--kbg);background:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.av img{width:100%;height:100%;object-fit:cover}
+.who .nm{font-family:'Amiri',serif;font-size:27px;font-weight:700;color:#14231c;line-height:1.2}
+.who .nm small{font-family:'IBM Plex Sans Arabic';font-size:13px;color:var(--sub);font-weight:600}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.facts span{background:var(--kbg);border:1px solid var(--kbd);border-radius:10px;padding:2px 10px;font-size:12.5px;color:var(--sub)}
+.facts b{color:#14231c}
+.sc{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;text-align:center}
+.sc .p{font-size:44px;font-weight:700;color:var(--acc2,#8a6221);line-height:1}
+.sc .tier{margin-top:5px;background:var(--acc);color:#fff;border-radius:999px;padding:0 14px;font-size:13px;font-weight:700}
+/* الأسئلة الأربعة */
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1}
+.c{padding:11px 14px 12px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden}
+.c:before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--c)}
+.k{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--sub)}
+.k em{font-style:normal;flex:none;width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ans{font-size:27px;font-weight:700;color:var(--c);line-height:1.2}
+.det{font-size:13px;color:#4b4a40}
+.vis{flex:1;display:flex;flex-direction:column;justify-content:center}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tile{background:var(--bg);border:1.5px solid var(--bd);border-radius:12px;padding:5px 4px;text-align:center;color:var(--c);line-height:1.25}
+.tile b{display:block;font-size:25px}
+.tile span{font-size:11.5px;font-weight:700}
+.tile.zero{opacity:.45}
+.sbar{display:flex;height:9px;border-radius:999px;overflow:hidden;background:#eee6d4;margin-top:7px}
+.sbar i{display:block;background:var(--c)}
+.rows{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.row .s{flex:none;min-width:62px;font-weight:700;font-size:13.5px;color:#14231c}
+.chip{background:var(--bg);border:1.5px solid var(--bd);color:var(--c);border-radius:9px;padding:0 10px;font-weight:700;font-size:14px}
+.more{font-size:12px;color:var(--sub);font-weight:600}
+.happy{font-size:14px;color:#147c5e;font-weight:700;background:#e6f3ec;border:1.5px solid #9fcdb5;border-radius:12px;padding:10px;text-align:center}
+.tl{display:flex;align-items:flex-end;gap:10px;height:76px}
+.tl div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11.5px;color:var(--sub)}
+.tl i{display:block;width:100%;border-radius:6px 6px 0 0;background:#e2d4b3}
+.tl .now i{background:var(--acc)}.tl b{font-size:13px;color:#14231c}
+.steps{margin:0;padding:0;list-style:none;font-size:13px}
+.steps li{display:flex;gap:7px;margin:3px 0;align-items:flex-start;line-height:1.45}
+.steps li:before{content:"☐";color:#8a6221;font-weight:700;flex:none}
+.steps li.pen{background:#fff6e0;border:1px dashed #e6c98a;border-radius:9px;padding:3px 7px}
+.steps li.pen:before{content:"✎"}
+/* التذييل */
+.ft{position:absolute;display:flex;align-items:flex-end;gap:16px}
+.sign{text-align:center;min-width:140px;line-height:1.3}
+.sign .stamp{height:56px;display:block;margin:0 auto -6px}
+.sign .n{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:var(--ttl);border-top:1px solid var(--cbd);padding-top:3px}
+.sign .l{font-size:11.5px;color:var(--sub)}
+.plat{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:6px;padding-bottom:4px}
+.plat img{width:18px}
+
+/* ---------- تصميم 1: أرابيسك ذهبي (خلفية القوس الفيروزي) ---------- */
+.t1{background-image:url(assets/report/parent-bg/bg-geo-arch.webp);--cbg:#fffdf6;--cbd:#d8b866;--cr:14px;--csh:0 2px 0 #e9d6a3;--ttl:#125a57;--acc:#b8892a;--acc2:#8f6416;--sub:#6e6450;--kbg:#f5eedb;--kbd:#e3d2a4}
+.t1 .hm{--c:#125a57;--bg:#e3efee;--bd:#a9cbc8}
+.t1 .hd .t b{color:#125a57}
+.t1 .ft{left:0;right:0;bottom:14px;justify-content:center;flex-direction:column;align-items:center;gap:2px}
+.t1 .ft .plat{padding:0}
+
+/* ---------- تصميم 2: سماء الصباح (مسجد وزهور) ---------- */
+.t2{background-image:url(assets/report/parent-bg/bg-sky-mosque.webp);--cbg:rgba(255,255,255,.9);--cbd:#ffffff;--cr:22px;--csh:0 6px 18px rgba(31,95,80,.14);--ttl:#0e6a5a;--acc:#e9a100;--acc2:#c47f00;--sub:#4f6b62;--kbg:#eef8f3;--kbd:#cfe9de}
+.t2 .c:before{inset:auto 0 0 0;height:0}
+.t2 .k em{width:32px;height:32px;border-radius:11px}
+.t2 .ok{--c:#119174;--bg:#e2f6ee;--bd:#a6e0c9}.t2 .pa{--c:#c47f00;--bg:#fff3d6;--bd:#f6d58a}.t2 .no{--c:#d0473a;--bg:#ffe8e4;--bd:#f6b5ab}.t2 .hm{--c:#2a6fb0;--bg:#e6f0fb;--bd:#b5d0ee}
+.t2 .hd{background:rgba(255,255,255,.78);border-radius:22px;padding:8px 14px}
+.t2 .ft{left:0;right:0;bottom:16px;justify-content:center}
+.t2 .ft .sign{background:rgba(255,255,255,.88);border-radius:18px;padding:4px 18px 6px}
+
+/* ---------- تصميم 3: ورق المندالا (هادئ أحادي اللون) ---------- */
+.t3{background-image:url(assets/report/parent-bg/bg-mandala-paper.webp);--cbg:rgba(255,255,255,.93);--cbd:#4a4a48;--cr:6px;--csh:none;--ttl:#2c2c2a;--acc:#2c2c2a;--acc2:#2c2c2a;--sub:#6a6a66;--kbg:#f2f1ee;--kbd:#cfcdc7}
+.t3 .sq{border-width:1px}
+.t3 .c:before{display:none}
+.t3 .k{color:#2c2c2a;letter-spacing:0;border-bottom:1px solid #d8d6d0;padding-bottom:5px}
+.t3 .k em{border-radius:4px;background:#2c2c2a}
+.t3 .ok{--c:#3f7a5e;--bg:#eef3ef;--bd:#b9cfc2}.t3 .pa{--c:#8a6a2a;--bg:#f6f1e6;--bd:#dccca5}.t3 .no{--c:#9a4436;--bg:#f6ece9;--bd:#dbbab2}.t3 .hm{--c:#2c2c2a;--bg:#f2f1ee;--bd:#cfcdc7}
+.t3 .ans{color:#2c2c2a}
+.t3 .c.ok .ans{color:#3f7a5e}.t3 .c.no .ans{color:#9a4436}.t3 .c.pa .ans{color:#8a6a2a}
+.t3 .av{border-color:#2c2c2a}
+.t3 .sc .tier{background:#2c2c2a}
+.t3 .tl i{background:#d8d6d0}
+.t3 .ft{left:34px;bottom:14px}
+.t3 .hd .d{background:rgba(255,255,255,.95);border:1px solid #cfcdc7;border-radius:6px;padding:4px 10px;color:#4a4a48}
+
+/* ---------- تصميم 4 (مقترحي): إطار زمردي بعناوين شريطية ---------- */
+.t4{background:#0b3d30;--cbg:#fffdf7;--cbd:#e3d4ae;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e}
+.t4:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(201,161,59,.12) 0 2px,transparent 3px) 0 0/22px 22px}
+.t4 .frame{position:absolute;inset:14px;background:#faf5e8;border-radius:18px;box-shadow:inset 0 0 0 2px #c9a13b,inset 0 0 0 6px #faf5e8,inset 0 0 0 7px #c9a13b}
+.t4 .frame img{position:absolute;width:44px;opacity:.8}
+.t4 .frame .o1{top:10px;right:10px}.t4 .frame .o2{top:10px;left:10px;transform:scaleX(-1)}
+.t4 .frame .o3{bottom:10px;right:10px;transform:scaleY(-1)}.t4 .frame .o4{bottom:10px;left:10px;transform:scale(-1)}
+.t4 .c{padding:0 0 11px;gap:6px}
+.t4 .c:before{display:none}
+.t4 .c>*:not(.k){margin:0 14px}
+.t4 .k{background:var(--c);color:#fff;padding:7px 14px;margin:0}
+.t4 .k em{background:#fff;color:var(--c)}
+.t4 .k svg rect{fill:#fff}.t4 .k svg path{fill:#0b3d30}
+.t4 .hd{background:#0b3d30;border-radius:14px;padding:8px 16px}
+.t4 .hd .t b{color:#f2d684}.t4 .hd .t small,.t4 .hd .d{color:#cfe0d6}
+.t4 .ft{left:40px;right:40px;bottom:26px;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1><img src="assets/brand/ham-logo.svg" alt="">«أسئلة ولي الأمر» بأربعة تصاميم</h1>
+    <p>نفس المحتوى الأخير على خلفياتك الثلاث، ورابع من اقتراحي. المحتوى يملأ المساحة تلقائيًا بلا فراغات مهما كان عدد الأسئلة. غيّر الحالة لتراه مع 8 أسئلة أو 37 سؤالًا.</p>
+  </div>
+  <div class="ctrls">
+    <label>الحالة:</label>
+    <div class="seg" id="seg-sc"><button data-v="s1" class="on">سورة واحدة · 8 أسئلة</button><button data-v="s2">جزء تبارك · 37 سؤالًا</button><button data-v="s3">3 سور · ممتاز</button><button data-v="s4">سورة · يحتاج دعمًا</button></div>
+    <label>الختم:</label>
+    <div class="seg" id="seg-st"><button data-v="1" class="on">مرفوع</button><button data-v="0">غير مرفوع</button></div>
+    <div class="seg" id="seg-theme"><button data-v="light" class="on">فاتح</button><button data-v="dark">داكن</button></div>
+  </div>
+
+  <div class="gal">
+    <div class="item"><h2><span>1</span>أرابيسك ذهبي</h2><p>خلفيتك الأولى: مربعات عاجية بإطار ذهبي، والعناوين فيروزية بلون القوس، والتوقيع والختم في وسط القوس أسفل الصورة.</p><div class="fit"><div class="img t1" id="i1"></div></div></div>
+    <div class="item"><h2><span>2</span>سماء الصباح</h2><p>خلفيتك الثانية: مربعات بيضاء شبه شفافة بزوايا كبيرة وظل ناعم وألوان مبهجة. الأنسب للصغار. التوقيع في الوسط بين الزهور.</p><div class="fit"><div class="img t2" id="i2"></div></div></div>
+    <div class="item"><h2><span>3</span>ورق المندالا</h2><p>خلفيتك الثالثة: تصميم هادئ أحادي اللون بخطوط فحمية رفيعة وزوايا حادة وألوان حالة باهتة. رسمي وأنيق.</p><div class="fit"><div class="img t3" id="i3"></div></div></div>
+    <div class="item"><h2><span>4</span>إطار زمردي (مقترحي)</h2><p>بلا صورة خلفية: إطار أخضر زمردي بخطين ذهبيين كإطار صفحة المصحف، وكل مربع عنوانه شريط ملوّن بلون حالته. يُقرأ بسرعة ويليق بهوية حمٓ.</p><div class="fit"><div class="img t4" id="i4"></div></div></div>
+  </div>
+
+  <div class="box"><h3>ما تغيّر عن المعاينة السابقة</h3><ul>
+    <li>نفس المحتوى تمامًا، بألوان ومربعات وتصميم عام مختلف لكل خلفية.</li>
+    <li>لا فراغات: كل تصميم له «مساحة آمنة» لا تغطي زخارف الخلفية، والمحتوى يكبر أو يصغر تلقائيًا ليملأها. مع 8 أسئلة يكبر الخط، ومع 37 سؤالًا وأخطاء في 5 سور يصغر قليلًا حتى يتّسع.</li>
+    <li>التوقيع والختم يوضعان في مكان يناسب كل خلفية: وسط القوس، أو بين الزهور، أو الزاوية الخالية من المندالا.</li>
+  </ul></div>
+</div>
+
+<script>
+const ART = 'assets/report/';
+const PHOTO = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#cfe3d8"/><circle cx="50" cy="40" r="19" fill="#8a6a4f"/><path d="M14 100c4-24 18-34 36-34s32 10 36 34z" fill="#1d6b52"/><path d="M31 36c0-14 9-21 19-21s19 7 19 21c-5-6-12-8-19-8s-14 2-19 8z" fill="#2b2118"/></svg>');
+const STAMP = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><g fill="none" stroke="#1f4fa3" stroke-width="3" opacity=".85"><circle cx="60" cy="60" r="54"/><circle cx="60" cy="60" r="42"/></g><text x="60" y="56" text-anchor="middle" font-family="Amiri,serif" font-size="17" font-weight="700" fill="#1f4fa3">أ. محمد</text><text x="60" y="76" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#1f4fa3">معلم القرآن</text></svg>');
+
+const SC = {
+  s1:{ scope:{kind:'one', list:['الملك']}, total:8, ok:4, pa:2, no:2, pct:70, hist:[62,71,70], dur:'2:56',
+       errs:[{s:'الملك', items:[['3–4','no'],['22','no'],['12','pa'],['19','pa']]}], types:['next','order'] },
+  s2:{ scope:{kind:'juz', name:'جزء تبارك', n:11}, total:37, ok:28, pa:4, no:5, pct:81, hist:[68,74,81], dur:'11:20',
+       errs:[{s:'الملك', items:[['3','no'],['12','pa'],['19','pa']]},{s:'القلم', items:[['7','no'],['42','no']]},{s:'الحاقة', items:[['18','no'],['30','pa']]},{s:'المعارج', items:[['12','no']]},{s:'نوح', items:[['6','pa']]}], types:['next','prev'] },
+  s3:{ scope:{kind:'few', list:['الملك','القلم','الحاقة']}, total:20, ok:19, pa:1, no:0, pct:97, hist:[88,92,97], dur:'6:05',
+       errs:[{s:'القلم', items:[['22','pa']]}], types:[] },
+  s4:{ scope:{kind:'one', list:['الملك']}, total:20, ok:7, pa:3, no:10, pct:42, hist:[50,45,42], dur:'7:40',
+       errs:[{s:'الملك', items:[['2','no'],['3','no'],['5','pa'],['8','no'],['11','no'],['13','no'],['16','pa'],['19','no'],['22','no'],['25','no'],['27','pa'],['29','no'],['30','no']]}], types:['next','order'] },
+};
+// المساحة الآمنة لكل تصميم (بالبكسل داخل 720×900) — لا تغطي زخارف الخلفية ولا منطقة التوقيع
+const SAFE = { t1:{top:22,right:30,bottom:168,left:30}, t2:{top:20,right:28,bottom:118,left:28}, t3:{top:26,right:30,bottom:100,left:30}, t4:{top:34,right:36,bottom:112,left:36} };
+let st = { sc:'s1', stamp:'1' };
+
+const plural = (n, one, two, few, many) => n===1?one : n===2?two : (n>=3&&n<=10)?few : many;
+const W = {
+  ok:n=>plural(n,'سؤال صحيح','سؤالان صحيحان','أسئلة صحيحة','سؤالًا صحيحًا'),
+  pa:n=>plural(n,'سؤال بمساعدة','سؤالان بمساعدة','أسئلة بمساعدة','سؤالًا بمساعدة'),
+  no:n=>plural(n,'سؤال يحتاج مراجعة','سؤالان يحتاجان مراجعة','أسئلة تحتاج مراجعة','سؤالًا يحتاج مراجعة'),
+  q:n=>plural(n,'سؤال واحد','سؤالين',n+' أسئلة',n+' سؤالًا'),
+  place:n=>plural(n,'موضع واحد','موضعين',n+' مواضع',n+' موضعًا'),
+  surah:n=>plural(n,'سورة واحدة','سورتين',n+' سور',n+' سورة'),
+};
+const tier = p => p>=90?'ممتاز':p>=75?'جيد جدًا':p>=60?'جيد':p>=40?'متوسط':'يحتاج دعمًا';
+const knows = p => p>=90?'يحفظها بإتقان':p>=75?'يحفظ أغلبها جيدًا':p>=60?'يحفظ أغلبها':p>=40?'يحفظ جزءًا منها':'يحتاج إلى مراجعة';
+const scopeText = s => s.kind==='one' ? 'سورة '+s.list[0] : s.kind==='few' ? s.list.join(' · ') : `${s.name} (${s.n} سورة)`;
+const askKnow = s => s.kind==='one' ? 'هل يحفظ السورة؟' : s.kind==='few' ? 'هل يحفظ السور؟' : 'هل يحفظ الجزء؟';
+
+function placesBox(d){
+  const all = d.errs.reduce((a,e)=>a+e.items.length,0);
+  if (!all) return { ans:'لا توجد أخطاء', det:'لم يتعثّر في أي موضع، ما شاء الله.', vis:`<div class="happy">🌟 أتمّ الاختبار دون أخطاء</div>` };
+  const sorted = [...d.errs].sort((a,b)=>b.items.length-a.items.length), ns = sorted.length;
+  const ans = ns>1 ? `في ${W.place(all)} من ${W.surah(ns)}` : `في ${W.place(all)}`;
+  let rows;
+  if (ns===1 && all>6){
+    const parts=[['أولها','1–10',1,10],['وسطها','11–20',11,20],['آخرها','21–30',21,30]];
+    rows = parts.map(([n,r,a,b])=>{const c=sorted[0].items.filter(([x])=>{const v=parseInt(x);return v>=a&&v<=b}).length;
+      return c?`<div class="row"><span class="s">${n} <small class="ltr" style="font-weight:600;color:var(--sub)">${r}</small></span><span class="chip no">${plural(c,'موضع واحد','موضعان',c+' مواضع',c+' موضعًا')}</span></div>`:''}).join('');
+  } else {
+    rows = sorted.slice(0,3).map(e=>`<div class="row"><span class="s">${e.s}</span>${e.items.slice(0,4).map(([a,c])=>`<span class="chip ${c}">${a}</span>`).join('')}${e.items.length>4?`<span class="more">+${e.items.length-4}</span>`:''}</div>`).join('');
+    const rest = sorted.slice(3), rc = rest.reduce((a,e)=>a+e.items.length,0);
+    if (rest.length) rows += `<div class="more">${plural(rc,'وموضع آخر','وموضعان آخران','و'+rc+' مواضع أخرى','و'+rc+' موضعًا آخر')} في ${W.surah(rest.length)} — التفاصيل في ملف PDF</div>`;
+  }
+  const det = ns===1 && all>6 ? 'الأخطاء موزّعة على السورة كلها، والأكثر في آخرها.' : 'الأحمر خطأ، والذهبي صحّ بمساعدة.';
+  return { ans, det, vis:`<div class="rows">${rows}</div>` };
+}
+function progressBox(d){
+  const [a,b,c]=d.hist, diff=c-b;
+  const ans = diff>=5?'تحسّن واضح':diff>=1?'تحسّن بسيط':diff>=-2?'ثابت تقريبًا':'تراجع قليلًا';
+  const det = `<span class="ltr">${diff>=0?'+':''}${diff}%</span> عن المحاولة السابقة (<span class="ltr">${b}%</span>)`;
+  const bar=(v,l,now)=>`<div class="${now?'now':''}"><b class="ltr">${v}%</b><i style="height:${Math.max(8,Math.round(v*0.55))}px"></i>${l}</div>`;
+  return { cls: diff>=1?'ok':diff>=-2?'pa':'no', ans, det, vis:`<div class="tl">${bar(a,'قبل أسبوعين')}${bar(b,'السابقة')}${bar(c,'اليوم',1)}</div>` };
+}
+function homeBox(d){
+  const p=d.pct, places=d.errs.flatMap(e=>e.items.map(([a])=>a)), sName=d.errs[0]?.s;
+  let ans, t;
+  if (p>=90){ ans='حافظوا على المستوى'; t=['يراجع ما اختُبر فيه مرة كل أسبوع حتى لا يُنسى.','يبدأ المقطع التالي مع المعلم.','شجّعوه وكافئوه على إتقانه 🌟']; }
+  else if (p>=60){ ans='10 دقائق يوميًا';
+    const where = d.errs.length>1 ? 'مواضع الخطأ' : `الآيات ${places.slice(0,4).join(' و')} من سورة ${sName}`;
+    t=[`يقرأ ${where} من المصحف مرتين يوميًا.`, d.types[0]==='next'?'يقرأ آخر كل آية مع أول التي بعدها 3 مرات حتى يرتبطا.':'يقرأ الآية التي قبل الموضع ثم يسمّع الموضع غيبًا.','pen:يكتب أول كل موضع في ورقة بخطه ويرسل صورتها للمعلم.']; }
+  else { ans='15 دقيقة يوميًا'; t=[`يستمع لسورة ${sName} من قارئ متقن ثم يقرؤها معكم.`,'يقسّم السورة مقاطع صغيرة (5 آيات) ويراجع مقطعًا كل يوم.','pen:يكتب مقطع اليوم في ورقة ويرسل صورتها للمعلم.']; }
+  return { ans, vis:`<ul class="steps">${t.map(x=>x.startsWith('pen:')?`<li class="pen">${x.slice(4)}</li>`:`<li>${x}</li>`).join('')}</ul>` };
+}
+const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="12" fill="#0b3d30"/><path d="M6.5 11.5 12 7l5.5 4.5V17a.8.8 0 0 1-.8.8h-2.9v-3.6h-3.6v3.6H7.3a.8.8 0 0 1-.8-.8z" fill="#fffdf8"/></svg>`;
+
+function content(d){
+  const s=d.scope, pl=placesBox(d), pr=progressBox(d), hm=homeBox(d), kcls=d.pct>=60?'ok':d.pct>=40?'pa':'no';
+  const tile=(k,n)=>`<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):(k==='no'?'لا شيء يحتاج مراجعة':'لا يوجد')}</span></div>`;
+  return `<div class="hd"><img src="assets/brand/ham-logo.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
+  <div class="idr">
+    <div class="sq who"><div class="av"><img src="${PHOTO}" alt=""></div><div><div class="nm">يوسف أحمد <small>· الصف الرابع</small></div>
+      <div class="facts"><span>النطاق: <b>${scopeText(s)}</b></span><span>الأسئلة: <b>${d.total}</b></span><span>المدة: <b class="ltr">${d.dur}</b></span></div></div></div>
+    <div class="sq sc"><div class="p ltr">${d.pct}%</div><div class="tier">${tier(d.pct)}</div></div>
+  </div>
+  <div class="qa">
+    <div class="sq c ${kcls}"><div class="k"><em>1</em>${askKnow(s)}</div><div class="ans">${knows(d.pct)}</div><div class="det">من أصل ${W.q(d.total)}</div>
+      <div class="vis"><div class="tiles">${tile('ok',d.ok)}${tile('pa',d.pa)}${tile('no',d.no)}</div>
+      <div class="sbar"><i class="ok" style="width:${d.ok/d.total*100}%"></i><i class="pa" style="width:${d.pa/d.total*100}%"></i><i class="no" style="width:${d.no/d.total*100}%"></i></div></div></div>
+    <div class="sq c ${d.no?'no':d.pa?'pa':'ok'}"><div class="k"><em>2</em>أين تعثّر؟</div><div class="ans">${pl.ans}</div><div class="det">${pl.det}</div><div class="vis">${pl.vis}</div></div>
+    <div class="sq c ${pr.cls}"><div class="k"><em>3</em>هل تحسّن؟</div><div class="ans">${pr.ans}</div><div class="det">${pr.det}</div><div class="vis">${pr.vis}</div></div>
+    <div class="sq c hm"><div class="k">${HOUSE}ماذا نفعل في البيت؟</div><div class="ans">${hm.ans}</div><div class="vis">${hm.vis}</div></div>
+  </div>`;
+}
+const footer = (t) => `<div class="ft">${t!=='t1'&&t!=='t2'?`<div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>`:''}
+  <div class="sign">${st.stamp==='1'?`<img class="stamp" src="${STAMP}" alt="">`:''}<div class="n">أ. محمد</div><div class="l">المعلم</div></div>
+  ${t==='t1'?`<div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>`:''}</div>`;
+
+// ملء المساحة الآمنة: نبحث عن أكبر مقياس يجعل المحتوى يتّسع فيها، ثم نمدّ ما تبقّى من ارتفاع داخل المربعات
+function fitPage(el){
+  const safe = el.querySelector('.safe'), pg = el.querySelector('.pg');
+  const W0 = safe.clientWidth, H0 = safe.clientHeight;
+  const fits = s => { pg.style.width = (W0/s)+'px'; pg.style.minHeight = '0'; return pg.scrollHeight*s <= H0; };
+  let lo=0.7, hi=1.35;
+  for (let i=0;i<14;i++){ const m=(lo+hi)/2; if (fits(m)) lo=m; else hi=m; }
+  fits(lo); pg.style.transform = `scale(${lo})`; pg.style.minHeight = (H0/lo)+'px';
+}
+function render(){
+  const d = SC[st.sc];
+  ['t1','t2','t3','t4'].forEach((t,i) => {
+    const el = document.getElementById('i'+(i+1)), sf = SAFE[t];
+    el.innerHTML = (t==='t4' ? `<div class="frame"><img class="o1" src="${ART}report-corner-orn.png" alt=""><img class="o2" src="${ART}report-corner-orn.png" alt=""><img class="o3" src="${ART}report-corner-orn.png" alt=""><img class="o4" src="${ART}report-corner-orn.png" alt=""></div>` : '')
+      + `<div class="safe" style="top:${sf.top}px;right:${sf.right}px;bottom:${sf.bottom}px;left:${sf.left}px"><div class="pg">${content(d)}</div></div>` + footer(t);
+    fitPage(el);
+  });
+  scaleAll();
+}
+function scaleAll(){
+  document.querySelectorAll('.fit').forEach(f => { const s=Math.min(1,f.clientWidth/720); f.firstElementChild.style.transform=`scale(${s})`; f.style.height=(900*s)+'px'; });
+}
+[['seg-sc','sc'],['seg-st','stamp']].forEach(([id,key]) =>
+  document.querySelectorAll('#'+id+' button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#'+id+' button').forEach(x => x.classList.toggle('on', x===b)); st[key]=b.dataset.v; render();
+  })));
+document.querySelectorAll('#seg-theme button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#seg-theme button').forEach(x => x.classList.toggle('on', x===b)); document.documentElement.dataset.theme = b.dataset.v;
+}));
+window.addEventListener('resize', scaleAll);
+window.addEventListener('load', render);
+if (document.fonts) document.fonts.ready.then(render);
+render();
+</script>
+</body>
+</html>
