@@ -196,6 +196,87 @@ button{font-family:inherit}
   .tbl td:first-child{padding-top:10px}.tbl td:last-child{padding-bottom:10px}
   .r1 .row,.r1 .ins{grid-template-columns:1fr}
 }
+
+/* ============ النموذج ب: خريطة الآيات (شهادة) ============ */
+.mb{width:100%;position:relative;overflow:hidden;background:#fbf6ea;color:#2a2418;font-family:'IBM Plex Sans Arabic',sans-serif;
+  padding:4.2cqw;box-shadow:0 18px 40px rgba(0,0,0,.18);border-radius:1.4cqw}
+.mb .frame{border:.5cqw solid #b8913a;outline:.25cqw solid #b8913a;outline-offset:-1.6cqw;border-radius:1cqw;padding:5cqw 5cqw 4cqw;position:relative;
+  background:radial-gradient(circle at 50% 0%,#fffdf6 0,#fbf6ea 60%)}
+.mb .corner{position:absolute;width:9cqw;opacity:.8}
+.mb .corner.a{top:1.2cqw;right:1.2cqw}.mb .corner.b{top:1.2cqw;left:1.2cqw;transform:scaleX(-1)}
+.mb .corner.c{bottom:1.2cqw;right:1.2cqw;transform:scaleY(-1)}.mb .corner.d{bottom:1.2cqw;left:1.2cqw;transform:scale(-1)}
+.mb .mtop{text-align:center}
+.mb .mtop img{width:9cqw;display:block;margin:0 auto}
+.mb .mtop .k{font-size:2.6cqw;color:#8a6d2a;letter-spacing:.1cqw;margin-top:.6cqw}
+.mb .mtop h2{margin:.4cqw 0 0;font-family:'Amiri',serif;font-size:6.4cqw;color:#0b3d30;line-height:1.25}
+.mb .orn{display:flex;align-items:center;justify-content:center;gap:2cqw;color:#b8913a;margin:1.2cqw 0}
+.mb .orn i{height:.25cqw;width:18cqw;background:linear-gradient(90deg,transparent,#b8913a)}.mb .orn i:last-child{transform:scaleX(-1)}
+.mb .orn svg{width:3.4cqw;height:3.4cqw}
+.mb .who{text-align:center;font-size:3cqw;color:#5a5140}
+.mb .who b{display:block;font-family:'Amiri',serif;font-size:7.4cqw;color:#2a2418;line-height:1.25}
+.mb .mid{display:grid;grid-template-columns:30cqw 1fr;gap:4cqw;align-items:center;margin-top:3cqw}
+.mb .medal{position:relative;width:30cqw;height:30cqw}
+.mb .medal svg{width:100%;height:100%}
+.mb .medal .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+.mb .medal .pct{font-size:8cqw;font-weight:800;line-height:1}
+.mb .medal .tl{font-size:2.7cqw;font-weight:700;margin-top:.6cqw}
+.mb .medal .st{display:flex;gap:.5cqw;margin-bottom:.4cqw}.mb .medal .st svg{width:3cqw;height:3cqw}
+.mb .say{font-family:'Amiri',serif;font-size:4.4cqw;line-height:1.55;color:#2a2418}
+.mb .say small{display:block;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:2.7cqw;color:#7a6a45;margin-top:1cqw;font-weight:600}
+.mb .maph{display:flex;justify-content:space-between;align-items:baseline;margin-top:4cqw;border-top:.25cqw solid #e3d3a8;padding-top:2.4cqw}
+.mb .maph h4{margin:0;font-size:3.4cqw;color:#0b3d30}
+.mb .maph span{font-size:2.5cqw;color:#7a6a45}
+.mb .map{display:grid;grid-template-columns:repeat(10,1fr);gap:1.4cqw;margin-top:2cqw}
+.mb .map i{font-style:normal;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.6cqw;font-weight:700;
+  background:#fff;border:.3cqw solid #e3d9c2;color:#b3a98f}
+.mb .map i.f{background:#0d5c46;border-color:#0d5c46;color:#fff}
+.mb .map i.h{background:#e9c46a;border-color:#d4a73c;color:#4a3200}
+.mb .map i.w{background:#fff;border:.6cqw solid #b4432f;color:#b4432f}
+.mb .lg{display:flex;flex-wrap:wrap;justify-content:center;gap:1.2cqw 3.6cqw;margin-top:2cqw;font-size:2.6cqw;color:#4a4232}
+.mb .lg span{display:inline-flex;align-items:center;gap:1cqw}
+.mb .lg span i{width:2.8cqw;height:2.8cqw;border-radius:50%;display:inline-block}
+.mb .hw{margin-top:3.4cqw;background:#0b3d30;color:#fdf6e3;border-radius:2cqw;padding:2.6cqw 3.4cqw;text-align:center}
+.mb .hw h5{margin:0;color:#f0d878;font-size:3.2cqw}
+.mb .hw p{margin:.6cqw 0 0;font-size:3cqw;line-height:1.55}
+.mb .sig{display:flex;justify-content:space-between;align-items:flex-end;margin-top:3.6cqw;font-size:2.5cqw;color:#6f644e}
+.mb .sig .s{text-align:center;min-width:30cqw}
+.mb .sig .s .ln{border-top:.25cqw solid #8a7a58;margin-bottom:.6cqw}
+.mb .sig .s b{display:block;color:#0b3d30;font-size:3cqw}
+.mb .sig .seal{width:12cqw;height:12cqw;border-radius:50%;border:.4cqw dashed #b8913a;display:flex;align-items:center;justify-content:center;color:#a08446;font-size:2.2cqw;text-align:center}
+.mb.kids{background:#eef7ff}
+.mb.kids .frame{border-color:#4a90e2;outline-color:#ffc94a;background:radial-gradient(circle at 50% 0%,#ffffff 0,#eef7ff 65%)}
+.mb.kids .mtop h2,.mb.kids .maph h4{color:#2f5fb3}
+.mb.kids .map i.f{background:#2fae74;border-color:#2fae74}
+.mb.kids .map i{border-radius:30%}
+.mb.kids .hw{background:#2f6fd6}
+
+/* ============ النموذج ج: البطاقة المربعة ============ */
+.mc{width:100%;aspect-ratio:1;position:relative;overflow:hidden;border-radius:3cqw;box-shadow:0 18px 40px rgba(0,0,0,.18);
+  background:#0b3d30;color:#fff;font-family:'IBM Plex Sans Arabic',sans-serif;display:grid;grid-template-rows:auto 1fr auto auto}
+.mc::before{content:"";position:absolute;width:90cqw;height:90cqw;border-radius:50%;background:radial-gradient(closest-side,rgba(240,216,120,.18),transparent);top:-30cqw;inset-inline-start:-30cqw}
+.mc .h{display:flex;justify-content:space-between;align-items:center;padding:4.4cqw 5.4cqw 0;position:relative}
+.mc .h .b{display:flex;align-items:center;gap:1.8cqw;font-size:2.8cqw;opacity:.9}
+.mc .h img{width:6cqw}
+.mc .h .d{font-size:2.7cqw;opacity:.85}
+.mc .main{display:grid;grid-template-columns:1fr 34cqw;gap:3cqw;align-items:center;padding:2cqw 5.4cqw;position:relative}
+.mc .nm{font-size:7.2cqw;font-weight:800;line-height:1.15}
+.mc .sc{font-size:3cqw;opacity:.85;margin-top:1cqw}
+.mc .ms{font-size:3.8cqw;font-weight:700;margin-top:2.6cqw;line-height:1.45;color:#f0d878}
+.mc .ring{position:relative;width:34cqw;height:34cqw}
+.mc .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mc .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc .ring .pct{font-size:10cqw;font-weight:800;line-height:1}
+.mc .ring .tl{font-size:3cqw;font-weight:700;margin-top:.6cqw;opacity:.95}
+.mc .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0 5.4cqw;border-top:.25cqw solid rgba(255,255,255,.18);border-bottom:.25cqw solid rgba(255,255,255,.18);position:relative}
+.mc .nums div{text-align:center;padding:2cqw 0}
+.mc .nums div+div{border-inline-start:.25cqw solid rgba(255,255,255,.18)}
+.mc .nums b{display:block;font-size:6.6cqw;line-height:1.1}
+.mc .nums span{font-size:2.7cqw;opacity:.85}
+.mc .task{margin:3cqw 5.4cqw 4.6cqw;background:#f0d878;color:#2b2000;border-radius:2.4cqw;padding:2.2cqw 3cqw;font-size:3.1cqw;font-weight:700;line-height:1.5;position:relative}
+.mc .task small{display:block;font-size:2.5cqw;font-weight:600;opacity:.8;margin-top:.4cqw}
+.mc.kids{background:linear-gradient(150deg,#2f6fd6,#45a3e6 60%,#5cc8c2)}
+.mc.kids .ms{color:#fff3b0}
+.mc.kids .task{background:#ffd54a}
 </style>
 </head>
 <body>
@@ -216,6 +297,8 @@ button{font-family:inherit}
   <div class="tabs">
     <button data-tab="t1" class="on" data-t="tab1"></button>
     <button data-tab="t2" data-t="tab2"></button>
+    <button data-tab="t4" data-t="tab4"></button>
+    <button data-tab="t5" data-t="tab5"></button>
     <button data-tab="t3" data-t="tab3"></button>
   </div>
 
@@ -246,6 +329,24 @@ button{font-family:inherit}
     </div>
   </section>
 
+  <!-- ===================== النموذج الجديد ب: خريطة الآيات ===================== -->
+  <section class="tab" id="t4">
+    <div class="lead" data-t="t4_lead"></div>
+    <div class="m2">
+      <div class="cardwrap" id="mb-wrap"><div id="mb-host"></div></div>
+      <div class="spec" id="spec-b"></div>
+    </div>
+  </section>
+
+  <!-- ===================== النموذج الجديد ج: البطاقة المربعة ===================== -->
+  <section class="tab" id="t5">
+    <div class="lead" data-t="t5_lead"></div>
+    <div class="m2">
+      <div class="cardwrap" id="mc-wrap"><div id="mc-host"></div></div>
+      <div class="spec" id="spec-c"></div>
+    </div>
+  </section>
+
   <!-- ===================== التبويب 3 ===================== -->
   <section class="tab" id="t3">
     <div class="lead" data-t="t3_lead"></div>
@@ -262,7 +363,9 @@ const UI = {
   title:'تقرير التقييم الفردي — مقترحات للنقاش',
   subtitle:'معاينة فقط ببيانات تجريبية، لم يُعدَّل شيء داخل المنصة بعد.',
   c_exc:'ممتاز', c_avg:'متوسط', c_weak:'يحتاج دعمًا', c_adult:'الكبار', c_kids:'الصغار', c_boy:'طالب', c_girl:'طالبة',
-  tab1:'① تحسين التقرير الحالي', tab2:'② تصميم جديد للصورة (واتساب)', tab3:'③ ملاحظات على النصوص',
+  tab1:'① تحسين التقرير الحالي', tab2:'② نموذج جديد أ · بطاقة المتابعة', tab4:'③ نموذج جديد ب · خريطة الآيات', tab5:'④ نموذج جديد ج · البطاقة المربعة', tab3:'⑤ ملاحظات على النصوص',
+  t4_lead:'شكل <b>كلاسيكي على هيئة شهادة</b> بإطار مذهَّب، وقلبه <b>خريطة آيات السورة</b>: كل آية دائرة ملوّنة حسب نتيجتها اليوم، فيرى ولي الأمر في لمحة أين الإتقان وأين المراجعة دون قراءة جداول.',
+  t5_lead:'أقصر نموذج: <b>صورة مربعة 1080×1080</b> تظهر في محادثة واتساب كاملة دون قصّ ودون فتح. فيها الأساسيات فقط: النتيجة، والأرقام الثلاثة، والآيات المطلوبة، ومهمة البيت في سطر واحد.',
   t1_lead:'نفس هوية التقرير الحالي وترتيبه العام، مع <b>12 تحسينًا</b> مرقّمة. غيّر المستوى أو (طالب/طالبة) من الأعلى لترى كيف تتغيّر الصياغة. على اليمين لقطة حقيقية من التقرير الحالي كما يُصدَّر صورةً اليوم.',
   t1_cur:'التقرير الحالي (لقطة حقيقية)', t1_cur_cap:'720×1400 تقريبًا — صورة طويلة، نصّها صغير عند فتحها في واتساب.',
   t1_new:'بعد التحسين', t1_new_cap:'الأرقام الذهبية تشير إلى التحسينات المشروحة بالأسفل.',
@@ -270,13 +373,15 @@ const UI = {
   t2_lead:'بطاقة مصمَّمة <b>للهاتف وواتساب أولًا</b>: عرض 1080 بكسل، خط كبير يُقرأ دون تكبير، ورسالة واحدة واضحة لولي الأمر + مهمة منزلية محددة. جرّب «الصغار» لترى نسخة ركن الأطفال، واضغط «تنزيل الصورة» لترى الجودة الفعلية.',
   t3_lead:'كل الملاحظات على نصوص التقرير الحالي: <span class="tag fix">تصحيح</span> خطأ لغوي أو منطقي، <span class="tag clr">توضيح</span> صياغة أوضح لولي الأمر، <span class="tag add">إضافة</span> نص جديد غير موجود.',
   th_where:'الموضع', th_old:'النص الحالي', th_new:'المقترح', th_why:'السبب',
-  dl:'تنزيل الصورة (عرض 1080)', busy:'جارِ التجهيز…'
+  dl:'تنزيل الصورة (عرض 1080)', dl_b:'تنزيل الصورة (عرض 1080)', dl_c:'تنزيل الصورة (1080×1080)', busy:'جارِ التجهيز…'
  },
  en:{
   title:'Individual evaluation report — proposals for discussion',
   subtitle:'Preview only with sample data; nothing has been changed inside the platform yet.',
   c_exc:'Excellent', c_avg:'Average', c_weak:'Needs support', c_adult:'Adults', c_kids:'Kids', c_boy:'Boy', c_girl:'Girl',
-  tab1:'① Improve the current report', tab2:'② New image design (WhatsApp)', tab3:'③ Notes on the wording',
+  tab1:'① Improve the current report', tab2:'② New design A · Follow-up card', tab4:'③ New design B · Āyah map', tab5:'④ New design C · Square card', tab3:'⑤ Notes on the wording',
+  t4_lead:'A <b>classic certificate look</b> with a gilded frame, built around a <b>map of the surah\'s āyāt</b>: each āyah is a dot coloured by today\'s result, so the parent sees at a glance where it is solid and where to review — no tables.',
+  t5_lead:'The shortest design: a <b>square 1080×1080 image</b> that shows whole inside a WhatsApp chat, without cropping or opening. Essentials only: score, three numbers, the āyāt to review, and the home task in one line.',
   t1_lead:'Same identity and overall order as today\'s report, with <b>12 numbered improvements</b>. Switch the level or boy/girl above to see how the wording adapts. On the side is a real capture of today\'s report as exported.',
   t1_cur:'Current report (real capture)', t1_cur_cap:'About 720×1400 — a tall image whose text is small when opened in WhatsApp.',
   t1_new:'After improvement', t1_new_cap:'Gold numbers point to the improvements explained below.',
@@ -284,7 +389,7 @@ const UI = {
   t2_lead:'A card designed <b>phone and WhatsApp first</b>: 1080 px wide, large type readable without zooming, one clear message for the parent + one concrete home task. Try “Kids” for the kids-corner version, and press “Download image” to see the real quality.',
   t3_lead:'All notes on the current report wording: <span class="tag fix">Fix</span> a language or logic error, <span class="tag clr">Clarify</span> clearer wording for parents, <span class="tag add">Add</span> new text.',
   th_where:'Where', th_old:'Current text', th_new:'Proposed', th_why:'Why',
-  dl:'Download image (1080 wide)', busy:'Preparing…'
+  dl:'Download image (1080 wide)', dl_b:'Download image (1080 wide)', dl_c:'Download image (1080×1080)', busy:'Preparing…'
  }
 };
 
@@ -445,7 +550,7 @@ function renderR1(){
     <img class="orn br" src="assets/report/report-corner-orn.png" alt=""><img class="orn bl" src="assets/report/report-corner-orn.png" alt="">
     ${pin(1,'top:40px;inset-inline-start:30%')}
     <div class="head"><img class="logo" src="assets/brand/ham-logo.svg" alt="">
-      <div class="t"><div class="eye">${L.eye}</div><h2>${L.h}</h2><div class="sub">${L.sub}</div></div>
+      <div class="t"><div class="eye">${L.eye}</div><h2>${L.title}</h2><div class="sub">${L.sub}</div></div>
       <img class="rehl" src="assets/report/report-quran-rehl.png" alt=""></div>
     <div class="row">
       <div class="card">${pin(2,'top:-8px;inset-inline-end:10px')}
@@ -561,7 +666,7 @@ function renderPC(){
     </div>
   </div>
   <button class="btn" id="dl">${UI[S.lang].dl}</button>`;
-  document.getElementById('dl').onclick = downloadCard;
+  document.getElementById('dl').onclick = () => downloadCard('pc','dl','a');
 
   document.getElementById('spec').innerHTML = ar ? `
     <h3>لماذا هذا الشكل؟</h3>
@@ -604,18 +709,126 @@ function loadH2C(){
   if (!h2cPromise) h2cPromise = new Promise((res, rej) => { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
   return h2cPromise;
 }
-async function downloadCard(){
-  const btn = document.getElementById('dl'); btn.disabled = true; btn.textContent = UI[S.lang].busy;
-  const host = document.querySelector('.cardwrap'); const prevW = host.style.width;
+async function downloadCard(cardId, btnId, prefix){
+  cardId = typeof cardId === 'string' ? cardId : 'pc'; btnId = btnId || 'dl'; prefix = prefix || 'a';
+  const btn = document.getElementById(btnId); btn.disabled = true; btn.textContent = UI[S.lang].busy;
+  const host = document.getElementById(cardId).closest('.cardwrap'); const prevW = host.style.width;
   try {
     await loadH2C(); await document.fonts.ready;
     host.style.width = '540px';
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-    const el = document.getElementById('pc');
+    const el = document.getElementById(cardId);
     const canvas = await html2canvas(el, { scale: 1080 / el.offsetWidth, backgroundColor: null, useCORS: true });
-    const a = document.createElement('a'); a.download = `ham-report-${S.tier}-${S.aud}.png`; a.href = canvas.toDataURL('image/png'); a.click();
+    const a = document.createElement('a'); a.download = `ham-report-${prefix}-${S.tier}-${S.aud}.png`; a.href = canvas.toDataURL('image/png'); a.click();
   } catch (e) { alert(e.message || e); }
-  finally { host.style.width = prevW; btn.disabled = false; btn.textContent = UI[S.lang].dl; }
+  finally { host.style.width = prevW; btn.disabled = false; btn.textContent = UI[S.lang][btn.dataset.lbl || 'dl']; }
+}
+
+/* ===================== النموذج ب: خريطة الآيات ===================== */
+// حالة كل آية مُختبَرة اليوم (سورة الملك 30 آية): f كاملة · h بمساعدة · w تحتاج مراجعة
+const AYAH_MAP = {
+  excellent:{f:[1,3,8,12,15,27,29], h:[20], w:[]},
+  average:  {f:[1,3,8,29], h:[12,20], w:[15,27]},
+  weak:     {f:[1,3], h:[12,20], w:[9,15,22,27]}
+};
+function renderMB(){
+  const T = texts(), d = DATA[S.tier], ar = isAr(), kid = S.aud==='kids';
+  const col = kid ? {excellent:'#2f6fd6',average:'#f29d0c',weak:'#e2604a'}[S.tier] : COLORS[S.tier];
+  const M = AYAH_MAP[S.tier];
+  const st = n => M.f.includes(n)?'f':M.h.includes(n)?'h':M.w.includes(n)?'w':'';
+  const cells = Array.from({length:30},(_,i)=>`<i class="${st(i+1)}">${i+1}</i>`).join('');
+  const L = ar ? {k:T.brand, title:kid?'شهادة نجم المراجعة':'شهادة متابعة المراجعة', for:'يُقدَّم هذا التقرير لولي أمر', map:'خريطة آيات سورة الملك اليوم', mapS:`اختُبر${G('','ت')} في ${arCount(d.n,'آية','آيتين','آيات','آية')} من 30`,
+      f:'أتقنها', h:'بمساعدة', w:'تُراجَع', n:'لم تُختبر اليوم', hw:T.taskH, seal:'ختم المعلم'}
+    : {k:T.brand, title:kid?'Review Star Certificate':'Review Follow-up Certificate', for:'This report is presented to the parent of', map:'Today\'s map of Surah Al-Mulk', mapS:`Tested on ${d.n} of 30 āyāt`,
+      f:'Mastered', h:'With help', w:'To review', n:'Not tested today', hw:T.taskH, seal:'Teacher stamp'};
+  // ميدالية نجمة ثمانية
+  const star8 = (() => { const pts=[]; for(let i=0;i<16;i++){ const r=i%2?40:48, a=Math.PI/8*i-Math.PI/2; pts.push((50+r*Math.cos(a)).toFixed(1)+','+(50+r*Math.sin(a)).toFixed(1)); } return pts.join(' '); })();
+  document.getElementById('mb-host').innerHTML = `
+  <div class="mb${kid?' kids':''}" id="mb" dir="${ar?'rtl':'ltr'}">
+    <div class="frame">
+      <img class="corner a" src="assets/report/report-corner-orn.png" alt=""><img class="corner b" src="assets/report/report-corner-orn.png" alt="">
+      <img class="corner c" src="assets/report/report-corner-orn.png" alt=""><img class="corner d" src="assets/report/report-corner-orn.png" alt="">
+      <div class="mtop"><img src="assets/brand/ham-logo.svg" alt=""><div class="k">${L.k}</div><h2>${L.title}</h2></div>
+      <div class="orn"><i></i><svg viewBox="0 0 20 20"><path d="M10 1l2.6 6.4L19 10l-6.4 2.6L10 19l-2.6-6.4L1 10l6.4-2.6z" fill="currentColor"/></svg><i></i></div>
+      <div class="who">${L.for}<b>${full()}</b>${T.scope} · ${T.dateLong} · ${T.hijri}</div>
+      <div class="mid">
+        <div class="medal"><svg viewBox="0 0 100 100"><polygon points="${star8}" fill="${col}"/><circle cx="50" cy="50" r="33" fill="none" stroke="#f0d878" stroke-width="1.6"/></svg>
+          <div class="c"><div class="st">${[0,1,2].map(i=>starSvg(i<STARS[S.tier])).join('')}</div><div class="pct">${d.score}%</div><div class="tl">${T.tierLabel}</div></div></div>
+        <div class="say">${T.msg}<small>${T.trend}</small></div>
+      </div>
+      <div class="maph"><h4>${L.map}</h4><span>${L.mapS}</span></div>
+      <div class="map">${cells}</div>
+      <div class="lg"><span><i style="background:${kid?'#2fae74':'#0d5c46'}"></i>${L.f} (${M.f.length})</span><span><i style="background:#e9c46a"></i>${L.h} (${M.h.length})</span><span><i style="border:2px solid #b4432f"></i>${L.w} (${M.w.length})</span><span><i style="border:2px solid #e3d9c2;background:#fff"></i>${L.n}</span></div>
+      <div class="hw"><h5>${L.hw}</h5><p>${T.task}</p></div>
+      <div class="sig"><div class="seal">${L.seal}</div><div class="s"><div class="ln"></div><b>${T.teacher}</b>${T.teacherRole}</div></div>
+    </div>
+  </div>
+  <button class="btn" id="dl-b" data-lbl="dl_b">${UI[S.lang].dl_b}</button>`;
+  document.getElementById('dl-b').onclick = () => downloadCard('mb','dl-b','b');
+  document.getElementById('spec-b').innerHTML = ar ? `
+    <h3>فكرة هذا النموذج</h3>
+    <ul>
+      <li><b>خريطة الآيات هي البطل</b>: 30 دائرة لآيات سورة الملك؛ الأخضر أتقنها، والذهبي بمساعدة، والمحاط بالأحمر يُراجَع، والباهت لم يُختبر اليوم. ولي الأمر يعرف مكان الخطأ في المصحف دون قراءة أي جدول.</li>
+      <li><b>طابع الشهادة</b> (إطار مذهّب، خط النسخ، ميدالية نجمة ثمانية) يجعل الصورة شيئًا يُحتفَظ به ويُعرض على العائلة، لا مجرد إشعار.</li>
+      <li>المهمة المنزلية في شريط واضح أسفل الخريطة، ومرتبطة بالآيات الملوّنة فوقها.</li>
+      <li>نسخة الصغار: «شهادة نجم المراجعة» بألوان زرقاء ومربعات مستديرة بدل الدوائر.</li>
+      <li>في النطاقات الطويلة (جزء كامل أو عدة سور) تُعرض خريطة السورة التي فيها أكثر الأخطاء، وتُذكر بقية السور في سطر.</li>
+    </ul>
+    <h3>للنقاش</h3>
+    <ul><li>هل نعرض أرقام الآيات داخل الدوائر (كما هنا) أم نكتفي بالألوان؟</li><li>المقاس: عرض 1080 وطول ≈ 1700 بكسل.</li></ul>` : `
+    <h3>The idea</h3>
+    <ul>
+      <li><b>The āyah map is the hero</b>: 30 dots for Surah Al-Mulk — green mastered, gold with help, red-ringed to review, faded not tested today. The parent finds the spot in the Mushaf without reading a table.</li>
+      <li><b>Certificate feel</b> (gilded frame, naskh type, eight-point star medal) makes it something to keep and show the family, not just a notification.</li>
+      <li>The home task sits in a clear band under the map, tied to the coloured āyāt above.</li>
+      <li>Kids version: “Review Star Certificate” in blue with rounded squares.</li>
+      <li>For long ranges (a whole juz' or several surahs) show the surah with most mistakes, and list the others in one line.</li>
+    </ul>
+    <h3>To discuss</h3>
+    <ul><li>Show āyah numbers inside the dots (as here) or colours only?</li><li>Size: 1080 wide, ≈ 1700 tall.</li></ul>`;
+}
+
+/* ===================== النموذج ج: البطاقة المربعة ===================== */
+function renderMC(){
+  const T = texts(), d = DATA[S.tier], ar = isAr(), kid = S.aud==='kids';
+  const col = kid ? {excellent:'#c6ffe0',average:'#fff3b0',weak:'#ffe0d6'}[S.tier] : {excellent:'#7be0b0',average:'#f0d878',weak:'#ff9b85'}[S.tier];
+  const rev = T.review.slice(0,4).map(r=>+r[0]).sort((x,y)=>x-y);
+  const revTxt = rev.length ? (ar ? `${rev.length>1?'الآيات':'الآية'} ${rev.join(' و ')}` : `āyāt ${rev.join(', ')}`) : '';
+  const task = ar
+    ? (rev.length ? `في البيت: ${G('يسمّع','تسمّع')} ${name()} ${revTxt} من سورة الملك مرتين يوميًا` : `في البيت: تلاوة سورة الملك كاملة غيبًا مرة هذا الأسبوع`)
+    : (rev.length ? `At home: ${name()} recites ${revTxt} of Al-Mulk twice a day` : `At home: recite all of Al-Mulk from memory once this week`);
+  const sub = ar ? `${T.teacher} · ${T.teacherRole}` : `${T.teacher} · ${T.teacherRole}`;
+  document.getElementById('mc-host').innerHTML = `
+  <div class="mc${kid?' kids':''}" id="mc" dir="${ar?'rtl':'ltr'}">
+    <div class="h"><div class="b"><img src="assets/brand/ham-logo-light.svg" alt="">${ar?'منصة حمٓ':'Ham'}</div><div class="d">${T.dateLong}</div></div>
+    <div class="main">
+      <div><div class="nm">${full()}</div><div class="sc">${T.scope} · ${T.facts}</div><div class="ms">${T.msg}</div></div>
+      <div class="ring">${ring(d.score,col,7,'rgba(255,255,255,.16)')}<div class="c"><div class="pct" style="color:${col}">${d.score}%</div><div class="tl">${T.tierLabel}</div></div></div>
+    </div>
+    <div class="nums"><div><b>${d.full}</b><span>${T.tFull}</span></div><div><b>${d.help}</b><span>${T.tHelp}</span></div><div><b>${d.wrong}</b><span>${T.tWrong}</span></div></div>
+    <div class="task">${task}<small>${sub}</small></div>
+  </div>
+  <button class="btn" id="dl-c" data-lbl="dl_c">${UI[S.lang].dl_c}</button>`;
+  document.getElementById('dl-c').onclick = () => downloadCard('mc','dl-c','c');
+  document.getElementById('spec-c').innerHTML = ar ? `
+    <h3>فكرة هذا النموذج</h3>
+    <ul>
+      <li><b>مربع 1080×1080</b>: المقاس الوحيد الذي يعرضه واتساب كاملًا داخل المحادثة دون قصّ، فيقرؤه ولي الأمر دون أن يفتح الصورة أصلًا.</li>
+      <li><b>4 معلومات فقط</b>: من؟ وكم؟ (النتيجة + الأرقام الثلاثة) وأين الخطأ؟ وماذا أفعل؟ — والتفاصيل كلها في ملف PDF لمن يريد.</li>
+      <li>خلفية داكنة بهوية المنصة تلفت النظر بين صور المحادثة، والنتيجة بلون المستوى (أخضر/ذهبي/مرجاني).</li>
+      <li>مناسب للإرسال اليومي المتكرر؛ النموذج أ أو ب يناسبان التقرير الأسبوعي أو المهم.</li>
+    </ul>
+    <h3>للنقاش</h3>
+    <ul><li>هل يكفي هذا القدر يوميًا، مع إرسال PDF الشامل عند الحاجة فقط؟</li><li>هل نضيف سطر ملاحظة المعلم (سيصغر الخط قليلًا)؟</li></ul>` : `
+    <h3>The idea</h3>
+    <ul>
+      <li><b>Square 1080×1080</b>: the one size WhatsApp shows whole inside the chat without cropping — the parent reads it without even opening the image.</li>
+      <li><b>Only 4 facts</b>: who? how much? (score + three numbers) where are the mistakes? what do I do? — details stay in the PDF.</li>
+      <li>A dark background in the platform identity stands out among chat photos; the score takes the level colour.</li>
+      <li>Fits frequent daily sending; designs A or B suit weekly or important reports.</li>
+    </ul>
+    <h3>To discuss</h3>
+    <ul><li>Is this enough daily, with the full PDF only when needed?</li><li>Add the teacher's note line (type gets a bit smaller)?</li></ul>`;
 }
 
 /* ===================== التبويب 3: النصوص ===================== */
@@ -651,7 +864,7 @@ function applyUI(){
   document.documentElement.lang = S.lang; document.documentElement.dir = isAr() ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = L[el.dataset.t] || ''; });
   document.title = L.title;
-  renderR1(); renderPC(); renderTable();
+  renderR1(); renderPC(); renderMB(); renderMC(); renderTable();
 }
 function bindSeg(id, key){
   document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
