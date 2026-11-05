@@ -111,6 +111,13 @@ button{font-family:inherit}
   background:#f8f3e8;color:#1c2a23;font-family:'IBM Plex Sans Arabic',sans-serif;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
 .pc .band{background:linear-gradient(135deg,#0b3d30,#0d5c46 60%,#147c5e);color:#fff;padding:3.4cqw 5cqw 8cqw;position:relative}
 .pc .band::after{content:"";position:absolute;inset:auto 0 -1px 0;height:6cqw;background:#f8f3e8;border-radius:6cqw 6cqw 0 0}
+.pc .band>*{position:relative;z-index:1}
+.pc .band>.gorn{position:absolute;z-index:0;inset:0 0 0 0;background:url(assets/report/report-geo-orn.png) repeat-x 0 0/auto 125%;opacity:.95;pointer-events:none}
+.pc.kids .band>.gorn{opacity:.8}
+.pc .chips{display:flex;flex-wrap:wrap;gap:1.2cqw;margin-top:1.2cqw}
+.pc .chips .scope{margin-top:0;display:inline-flex;align-items:center;gap:1cqw}
+.pc .chips .scope svg{width:3.2cqw;height:3.2cqw;flex:none}
+.pc .chips .dur{background:rgba(240,216,120,.22);border-color:rgba(240,216,120,.6)}
 .pc .brandrow{display:flex;align-items:center;justify-content:space-between;gap:2cqw}
 .pc .brandrow .b{display:flex;align-items:center;gap:2cqw;font-size:2.7cqw;font-weight:600;opacity:.95}
 .pc .brandrow img{width:6.4cqw}
@@ -173,6 +180,11 @@ button{font-family:inherit}
 .pc.kids .kidmsg{display:flex;gap:2.2cqw;align-items:center;background:linear-gradient(90deg,#ffe37a,#ffd0e1);border-radius:4.4cqw;padding:2cqw 3cqw;font-size:3.2cqw;font-weight:800;color:#5a3a00}
 .pc.kids .kidmsg svg{width:7cqw;height:7cqw;flex:none}
 .pc.kids .note{display:none}
+.hwl{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.hwl li{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:13px}
+.hwl .hwm{display:inline-block;background:var(--gold);color:#2b2000;border-radius:99px;padding:0 8px;font-size:11.5px;font-weight:700;margin-inline-start:6px}
+.hwl .hwt{display:block;margin-top:3px;color:var(--soft)}
+.hwn{font-size:13px;color:var(--soft);margin:0 0 8px}
 .pc .confetti{display:none}
 .pc.kids .confetti{display:block;position:absolute;inset:0;pointer-events:none}
 
@@ -468,10 +480,11 @@ const UI = {
 
 /* ------------------------- بيانات تجريبية لكل مستوى ------------------------- */
 const DATA = {
-  excellent:{ score:95, prev:[78,88], full:7, help:1, wrong:0, n:8, mins:6, avg:18 },
-  average:  { score:70, prev:[62,71], full:4, help:2, wrong:2, n:8, mins:7, avg:22 },
-  weak:     { score:45, prev:[52,48], full:2, help:2, wrong:4, n:8, mins:9, avg:31 }
+  excellent:{ score:95, prev:[78,88], full:7, help:1, wrong:0, n:8, mins:6, avg:18, wrongA:[], helpA:[{s:'mulk',a:20}] },
+  average:  { score:70, prev:[62,71], full:4, help:2, wrong:2, n:8, mins:7, avg:22, wrongA:[{s:'mulk',a:15},{s:'mulk',a:27}], helpA:[{s:'mulk',a:12},{s:'mulk',a:22}] },
+  weak:     { score:45, prev:[52,48], full:2, help:2, wrong:4, n:8, mins:9, avg:31, wrongA:[{s:'mulk',a:9},{s:'mulk',a:15},{s:'mulk',a:22},{s:'mulk',a:27}], helpA:[{s:'mulk',a:12},{s:'mulk',a:18}] }
 };
+const SCOPE_A = { s:'mulk', from:1, to:30, pages:2, whole:true };   // نطاق الاختبار التجريبي: سورة الملك كاملة
 const COLORS = { excellent:'#0d5c46', average:'#b8863b', weak:'#a15230' };
 // آخر 4 اختبارات (3 سابقة + اليوم) — نفس منطق «مستوى التقدّم العام» في المنصة (هذا التقييم + حتى 3 محاولات سابقة)
 const HIST4 = { excellent:[72,78,88], average:[58,62,71], weak:[55,52,48] };
@@ -613,6 +626,120 @@ function texts(){
   return T;
 }
 
+
+/* ===== الملاحظات 2 و4: رسالة البطاقة ومهمة البيت تُبنيان من الأرقام الفعلية ===== */
+const SURAH = { mulk:{ar:'الملك',en:'Al-Mulk'}, qalam:{ar:'القلم',en:'Al-Qalam'}, baqara:{ar:'البقرة',en:'Al-Baqarah'} };
+const band4 = p => p>=90 ? 'excellent' : p>=75 ? 'good' : p>=60 ? 'average' : p>=30 ? 'weak' : 'veryweak';
+// «4 من 8 أسئلة»
+function kOfN(k, n){
+  const kp = k===1?'سؤالًا واحدًا':k===2?'سؤالين':String(k);
+  return `${kp} من ${arCount(n,'سؤال واحد','سؤالين','أسئلة','سؤالًا')}`;
+}
+function remAr(r){ return r===1?'بقي سؤال واحد':r===2?'بقي سؤالان':r<=10?`بقيت ${r} أسئلة`:`بقي ${r} سؤالًا`; }
+function remEn(r){ return r===1?'1 question left':`${r} questions left`; }
+function scoreMsg(c, kid, N){
+  const n=c.n, f=c.full, r=n-f, b=band4(c.score), ar=isAr(), all=(f===n);
+  if (ar){
+    const v = G('','ت');
+    if (kid) return all ? `${G('أحسنت يا بطل','أحسنتِ يا بطلة')}! ${N} أتقن${v} الأسئلة كلها (${n} من ${n})`
+      : {excellent:`${G('أحسنت يا بطل','أحسنتِ يا بطلة')}! ${N} أتقن${v} ${kOfN(f,n)}`,
+         good:`رائع! ${N} أتقن${v} ${kOfN(f,n)}، و${remAr(r)} فقط`,
+         average:`${N} أتقن${v} ${kOfN(f,n)}.. و${remAr(r)} لنتقنها معًا!`,
+         weak:`${N} أتقن${v} ${kOfN(f,n)} بشجاعة، ومعًا نتقن البقية!`,
+         veryweak:`${N} ${G('تدرّب','تدرّبت')} بشجاعة اليوم، ومعًا نبدأ من جديد!`}[b];
+    return all ? `ما شاء الله! أتقن${v} ${N} الأسئلة كلها (${n} من ${n}) دون مساعدة`
+      : {excellent:`ما شاء الله! أتقن${v} ${N} ${kOfN(f,n)} دون مساعدة`,
+         good:`أتقن${v} ${N} ${kOfN(f,n)} دون مساعدة، و${remAr(r)} للتثبيت`,
+         average:`أتقن${v} ${N} ${kOfN(f,n)} دون مساعدة، و${remAr(r)} تحتاج تثبيتًا`,
+         weak:`أتقن${v} ${N} ${f===0?'أيّ سؤال':kOfN(f,n)} فقط دون مساعدة، والنطاق يحتاج مراجعة مكثّفة`,
+         veryweak:f===0 ? `لم ${G('يُتقن','تُتقن')} ${N} أيّ سؤال دون مساعدة؛ النطاق يحتاج إعادة تثبيت`
+                        : `لم ${G('يُتقن','تُتقن')} ${N} سوى ${kOfN(f,n)} دون مساعدة؛ النطاق يحتاج إعادة تثبيت`}[b];
+  }
+  const he = G('he','she');
+  if (kid) return all ? `Well done, champion! ${N} mastered every question (${n} of ${n})`
+    : {excellent:`Well done, champion! ${N} mastered ${f} of ${n} questions`,
+       good:`Great! ${N} mastered ${f} of ${n} questions — only ${r} left`,
+       average:`${N} mastered ${f} of ${n} questions… ${remEn(r)} to master together!`,
+       weak:`${N} bravely mastered ${f} of ${n}, and together we'll master the rest!`,
+       veryweak:`${N} practised bravely today; together we start fresh!`}[b];
+  return all ? `Masha'Allah! ${N} mastered every question (${n} of ${n}) without help`
+    : {excellent:`Masha'Allah! ${N} mastered ${f} of ${n} questions without help`,
+       good:`${N} mastered ${f} of ${n} questions without help; ${remEn(r)} to reinforce`,
+       average:`${N} mastered ${f} of ${n} questions without help; ${remEn(r)} need reinforcing`,
+       weak:`${N} mastered only ${f} of ${n} questions without help; this range needs intensive review`,
+       veryweak:f===0?`${N} did not master any question without help; this range needs re-memorizing`
+                     :`${N} mastered just ${f} of ${n} without help; this range needs re-memorizing`}[b];
+}
+
+// آيات تحتاج مراجعة: الخطأ أولًا ثم ما أجاب عنه بمساعدة، بحدّ أقصى 6 آيات، مدمجة في مدى متصل وموزّعة على السور
+const HW_MAX = 6;
+function reviewSet(c){
+  const seen = new Set(), pick = [];
+  [...c.wrongA, ...c.helpA].forEach(x => { const k = x.s+':'+x.a; if(!seen.has(k)){ seen.add(k); pick.push(x); } });
+  return { shown: pick.slice(0,HW_MAX), more: pick.length > HW_MAX, total: pick.length };
+}
+function fmtAyat(items){
+  const ar = isAr(), bySurah = new Map();
+  items.forEach(x => { if(!bySurah.has(x.s)) bySurah.set(x.s, []); bySurah.get(x.s).push(x.a); });
+  const parts = [];
+  bySurah.forEach((arr, s) => {
+    arr = [...new Set(arr)].sort((a,b)=>a-b);
+    const rg = []; arr.forEach(a => { const l = rg[rg.length-1]; (l && a===l[1]+1) ? l[1]=a : rg.push([a,a]); });
+    const txt = rg.map(([a,b]) => a===b ? `${a}` : `${a}–${b}`);
+    const j = txt.length>1 ? txt.slice(0,-1).join(ar?'، ':', ')+(ar?' و':' and ')+txt[txt.length-1] : txt[0];
+    const cnt = arr.length, nm = SURAH[s][ar?'ar':'en'];
+    parts.push(ar ? `${cnt===1?'الآية':cnt===2?'الآيتين':'الآيات'} ${j} من سورة ${nm}` : `${cnt===1?'āyah':'āyāt'} ${j} of Surah ${nm}`);
+  });
+  return parts.join(ar?' و':' and ');
+}
+// نطاق الاختبار صغير (≤ صفحتين) ← تُتلى كاملة؛ أكبر ← صفحة واحدة كل يوم
+const scopeLabel = sc => isAr() ? `${sc.whole?'سورة':'الآيات '+sc.from+'–'+sc.to+' من سورة'} ${SURAH[sc.s].ar}`.replace('سورة سورة','سورة') : `${sc.whole?'Surah':'āyāt '+sc.from+'–'+sc.to+' of Surah'} ${SURAH[sc.s].en}`;
+function homeTask(c, N){
+  const ar = isAr(), b = band4(c.score), rs = reviewSet(c), sc = c.scope, small = sc.pages <= 2;
+  const nothing = rs.total === 0;
+  const min = (b==='weak' || b==='veryweak' || rs.total>10) ? 10 : 5;
+  const A = fmtAyat(rs.shown);
+  const tail = rs.more ? (ar ? '، ثم نكمل بقية الآيات الأسبوع القادم' : ', then we continue with the rest next week') : '';
+  const rd = G('he','she');
+  let key, text;
+  if (c.noData){
+    key='nodata';
+    text = ar ? `راجعوا مع ${N} ${scopeLabel(sc)} مرة كل يوم، وأخبروا المعلم بما ${G('يتعثّر','تتعثّر')} فيه.`
+              : `Review ${scopeLabel(sc)} with ${N} once a day and tell the teacher where ${rd} struggles.`;
+  } else if (b==='veryweak'){
+    key='veryweak';
+    text = small
+      ? (ar ? `${G('يقرأ','تقرأ')} ${N} ${scopeLabel(sc)} من المصحف مرتين كل يوم بهدوء، ثم ${G('يسمّع','تسمّع')} لكم ما ${G('حفظ','حفظت')}، وتواصلوا مع المعلم لخطة تثبيت.`
+             : `${N} reads ${scopeLabel(sc)} from the Mushaf twice a day, calmly, then recites what ${rd} knows to you; talk to the teacher about a re-memorizing plan.`)
+      : (ar ? `${G('يقرأ','تقرأ')} ${N} ${A||'صفحة واحدة من النطاق'} من المصحف مرتين كل يوم، ثم ${G('يسمّعها','تسمّعها')} لكم، وتواصلوا مع المعلم لتقسيم النطاق${tail}.`
+             : `${N} reads ${A||'one page of the range'} from the Mushaf twice a day, then recites it to you; talk to the teacher about splitting the range${tail}.`);
+  } else if (b==='weak'){
+    key='weak';
+    text = ar ? `${G('يقرأ','تقرأ')} ${N} ${A} من المصحف ثلاث مرات، ثم ${G('يسمّعها','تسمّعها')} لكم غيبًا آيةً آية${tail}.`
+              : `${N} reads ${A} from the Mushaf three times, then recites ${rs.shown.length>1?'them':'it'} to you from memory, one āyah at a time${tail}.`;
+  } else if (b==='average'){
+    key='average';
+    text = ar ? `استمعوا من ${N} إلى ${A} غيبًا مرتين، وصحّحوا ${G('له','لها')} بلطف${tail}.`
+              : `Listen to ${N} recite ${A} from memory twice, and correct gently${tail}.`;
+  } else if (b==='good'){
+    key='good';
+    text = ar ? `اطلبوا من ${N} تلاوة ${A} غيبًا مرتين هذا الأسبوع${tail}.`
+              : `Ask ${N} to recite ${A} from memory twice this week${tail}.`;
+  } else if (nothing){
+    key='perfect';
+    text = small
+      ? (ar ? `ثبّتوا الإنجاز: اطلبوا من ${N} تلاوة ${scopeLabel(sc)} غيبًا مرة هذا الأسبوع، وامدحوا${G('ه','ها')}.` : `Lock it in: ask ${N} to recite ${scopeLabel(sc)} from memory once this week, and praise ${G('him','her')}.`)
+      : (ar ? `ثبّتوا الإنجاز: اختاروا كل يوم صفحة من نطاق ${N} واطلبوا تلاوتها غيبًا، وامدحوا${G('ه','ها')}.` : `Lock it in: each day pick one page of ${N}'s range and ask for it from memory, and praise ${G('him','her')}.`);
+  } else {
+    key='excellent';
+    text = ar ? `ثبّتوا ${A}: اطلبوا من ${N} تلاوتها غيبًا مرتين هذا الأسبوع${tail}.`
+              : `Reinforce ${A}: ask ${N} to recite ${rs.shown.length>1?'them':'it'} from memory twice this week${tail}.`;
+  }
+  const head = ar ? `${min===10?'مهمتكم معًا':'مهمتكم في البيت'}: ${arCount(min,'دقيقة','دقيقتان','دقائق','دقيقة')} يوميًا`
+                  : `${min===10?'Your task together':'Your home task'}: ${min} minutes a day`;
+  return { min, key, text, head };
+}
+
 // 🔖 ختم تجريبي فقط — في المنصة يُستبدل بصورة الختم المرفوعة في «ملف المعلم» (teacher.stamp عبر getTeacherIdentity)
 function stampSvg(){
   const ar = isAr(), nm = ar ? 'عبد الله محمود' : 'A. Mahmoud', top = ar ? 'معلم القرآن الكريم' : 'QURAN TEACHER';
@@ -726,12 +853,43 @@ function renderR1(){
 }
 
 /* ===================== النموذج 2 ===================== */
+
+/* كل السيناريوهات المحتملة لـ «مهمتكم في البيت» — تُولَّد بنفس الدالة الحقيقية */
+function scenarioHtml(){
+  const ar = isAr(), N = name(), M = a => a.map(x=>({s:'mulk',a:x}));
+  const mk = (score,full,wrong,help,extra) => ({ score, full, n:8, help:help.length, wrong:wrong.length, wrongA:wrong, helpA:help, scope:SCOPE_A, ...extra });
+  const BIG = { s:'baqara', from:1, to:286, pages:48, whole:true };
+  const R = [
+    [ar?'إتقان تام (100%)، نطاق صغير (حتى صفحتين)':'Perfect (100%), small range (up to 2 pages)', mk(100,8,[],[])],
+    [ar?'إتقان تام (100%)، نطاق كبير (أكثر من صفحتين)':'Perfect (100%), large range (over 2 pages)', mk(100,8,[],[],{scope:BIG})],
+    [ar?'ممتاز (90% فأكثر) مع هفوات قليلة':'Excellent (90%+), a few slips', mk(95,7,[],M([20]))],
+    [ar?'جيد (75–89%)':'Good (75–89%)', mk(82,6,M([20]),M([8]))],
+    [ar?'متوسط (60–74%)':'Average (60–74%)', mk(70,4,M([15,27]),M([12,22]))],
+    [ar?'متوسط وآيات المراجعة أكثر من 6: نختصر ونؤجّل الباقي':'Average with more than 6 āyāt: trim and defer the rest', mk(66,3,M([3,5,9,12,15,19]),M([22,25,27,29]))],
+    [ar?'ضعيف (30–59%) — المدة 10 دقائق':'Weak (30–59%) — 10 minutes', mk(45,2,M([9,15,22,27]),M([12,18]))],
+    [ar?'ضعيف جدًا (أقل من 30%)، نطاق صغير: إعادة تثبيت':'Very weak (under 30%), small range: re-memorize', mk(25,1,M([2,5,9,11,16,20,24]),[])],
+    [ar?'ضعيف جدًا (0 صحيحة)، نطاق كبير: نقسّم النطاق مع المعلم':'Very weak (0 correct), large range: split with the teacher', mk(0,0,[{s:'baqara',a:3},{s:'baqara',a:7},{s:'baqara',a:12}],[],{scope:BIG})],
+    [ar?'الأخطاء في أكثر من سورة (نطاق متعدد السور)':'Mistakes across several surahs', mk(70,4,[{s:'mulk',a:15},{s:'qalam',a:3},{s:'qalam',a:4}],[{s:'mulk',a:12}])],
+    [ar?'لا تتوفّر آيات أخطاء (اختبار قديم/بيانات ناقصة)':'No mistake data available', mk(70,4,[],[],{noData:true})]
+  ];
+  const list = R.map(([t,c]) => { const h = homeTask(c,N); return `<li><b>${t}</b> <span class="hwm">${ar?arCount(h.min,'دقيقة','دقيقتان','دقائق','دقيقة'):h.min+' min'}</span><span class="hwt">${h.text}</span></li>`; }).join('');
+  return `<h3>${ar?'سيناريوهات «مهمتكم في البيت»':'“Home task” scenarios'}</h3>
+    <p class="hwn">${ar
+      ? 'تُبنى المهمة من: <b>درجة الاختبار</b> (تحدّد الأسلوب والمدة) + <b>آيات الأخطاء ثم آيات المساعدة</b> (تحدّد ماذا يراجعون، بحدّ 6 آيات) + <b>حجم نطاق الحفظ</b> (يحدّد هل يُتلى كله أم صفحة كل يوم) + <b>عدد السور</b> في النطاق. كل الآيات من نطاق الاختبار نفسه، ولا تُذكر سورة خارجه.'
+      : 'Built from: <b>the score</b> (sets the method and the time) + <b>mistaken then helped āyāt</b> (what to review, max 6) + <b>the size of the memorized range</b> (recite it all, or a page a day) + <b>number of surahs</b>. Every āyah comes from the tested range; no surah outside it is named.'}</p>
+    <ol class="hwl">${list}</ol>`;
+}
+
 function renderPC(){
   const T = texts(), d = DATA[S.tier], col = COLORS[S.tier], ar = isAr(), kid = S.aud==='kids';
   const kcol = kid ? {excellent:'#2f6fd6',average:'#f29d0c',weak:'#e2604a'}[S.tier] : col;
   const bars = [...d.prev.map((p,i)=>({p,w:T.prevDates[i]})),{p:d.score,w:T.today,cur:true}]
     .map(b=>`<div class="bar${b.cur?' cur':''}"><b>${b.p}%</b><i style="height:${(b.p/100*9).toFixed(1)}cqw"></i>${b.w}</div>`).join('');
   const trendCol = {up:'#0d5c46',down:'#9e3b2d',flat:'#6f644e'}[T.trendCls];
+  const qCount = ar ? arCount(d.n,'سؤال','سؤالان','أسئلة','سؤالًا') : `${d.n} questions`;
+  const dur = ar ? arCount(d.mins,'دقيقة','دقيقتان','دقائق','دقيقة') : `${d.mins} min`;
+  const clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#f0d878" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const HW = homeTask({ ...d, scope:SCOPE_A }, name());
   const rev = T.review.length ? T.review.slice(0,3).map(([a,w])=>`<li><b>${T.ayah} ${a}</b>: ${w}</li>`).join('') : `<li>${T.noReview}</li>`;
   const confetti = kid ? `<svg class="confetti" viewBox="0 0 100 125" preserveAspectRatio="none">${
      [[8,6,'#ffd54a'],[22,3,'#ff8fb1'],[40,8,'#7be0c6'],[63,4,'#ffd54a'],[80,7,'#ff8fb1'],[92,3,'#fff'],[14,15,'#fff'],[71,14,'#7be0c6']]
@@ -739,13 +897,14 @@ function renderPC(){
   document.getElementById('pc-host').innerHTML = `
   <div class="pc${kid?' kids':''}" id="pc" dir="${ar?'rtl':'ltr'}" style="--tc:${kcol}">
     ${confetti}
-    <div class="band">
+    <div class="band"><div class="gorn"></div>
       <div class="brandrow">
         <div class="b"><img src="assets/brand/ham-logo-light.svg" alt="">${T.cardTitle}</div>
         <div class="dt">${T.dateLong}<br>${T.hijri}</div>
       </div>
       <div class="hello"><div class="av">${name()[0]}</div>
-        <div><div class="nm">${full()}</div><span class="scope">${T.scope} · ${T.facts}</span></div></div>
+        <div><div class="nm">${full()}</div>
+          <div class="chips"><span class="scope">${T.scope}</span><span class="scope">${qCount}</span><span class="scope dur">${clockSvg}${ar?'مدة الاختبار: ':'Test time: '}${dur}</span></div></div></div>
     </div>
     <div class="body">
       <div class="hero">
@@ -754,7 +913,7 @@ function renderPC(){
           <div class="pct" style="color:${kcol}">${d.score}%</div>
           <div class="tier" style="background:${kcol}">${T.tierLabel}</div></div></div>
         <div>
-          <div class="msg">${T.msg}</div>
+          <div class="msg">${scoreMsg(d, kid, name())}</div>
           <div class="trend">${bars}</div><div class="trendtx" style="color:${trendCol}">${T.trend}</div>
         </div>
       </div>
@@ -768,9 +927,8 @@ function renderPC(){
         <div class="box"><h5><i style="background:#9e3b2d"></i>${T.toReview}</h5><ul>${rev}</ul></div>
       </div>
       <div class="task"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></div>
-        <div><h5>${T.taskH}</h5><p>${T.task}</p></div></div>
+        <div><h5>${HW.head}</h5><p>${HW.text}</p></div></div>
       <div class="kidmsg"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 16.9 6.1 20.1l1.3-6.6L2.5 8.9l6.6-.8z" fill="#f2b705" stroke="#c98a00" stroke-width=".8"/></svg><span>${T.kid}</span></div>
-      <div class="note">${T.note}</div>
       <div class="foot">
         <div>${T.brand}</div>
         <div class="sg"><div><b>${T.teacher}</b>${T.teacherRole}</div><div class="stamp">${T.stamp}</div></div>
@@ -813,6 +971,7 @@ function renderPC(){
       <li>Should the home task be <b>editable</b> by the teacher before sending (like the note today)?</li>
       <li>Make this the default “WhatsApp image”, and keep the (improved) current design for the full PDF?</li>
     </ul>`;
+  document.getElementById('spec').insertAdjacentHTML('beforeend', scenarioHtml());
 }
 
 let h2cPromise = null;
