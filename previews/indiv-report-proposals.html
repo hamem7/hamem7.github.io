@@ -944,7 +944,7 @@ function renderPC(){
     <h4>${ar?'قبل الإرسال: تعديل المعلم (لا يظهر في الصورة)':'Before sending: teacher edits (not in the image)'}</h4>
     <textarea id="hw-ta" dir="${ar?'rtl':'ltr'}"></textarea>
     <div class="row"><button class="btn" id="hw-reset" type="button">${ar?'استعادة الصياغة التلقائية':'Restore the automatic wording'}</button>
-      <label><input type="checkbox" id="ph-ck" ${S.photo?'checked':''}> ${ar?'صورة الطالب في الدائرة (وإلا الحرف الأول)':'Student photo in the circle (else the initial)'}</label></div>
+      <label><input type="checkbox" id="ph-ck" ${S.photo?'checked':''}> ${ar?'محاكاة: للطالب صورة في ملفه (وإلا يظهر أول حرف من اسمه)':'Simulate: the student has a photo on their profile (else the first letter of the name)'}</label></div>
     <p class="hint">${ar?'المعلم يعدّل نص «مهمتكم في البيت» ويُعاين النتيجة فورًا؛ المقترح التلقائي يُبنى من أخطاء الطالب، والتعديل يخصّ هذا التقرير فقط.':'The teacher edits the “home task” text and sees the result live; the automatic text is built from the student\'s mistakes, and the edit applies to this report only.'}</p>
   </div>`;
   document.getElementById('dl').onclick = () => downloadCard('pc','dl','a');
