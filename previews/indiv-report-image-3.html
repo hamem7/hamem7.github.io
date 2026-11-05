@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>صورة التقرير الفردي · Report image</title>
+<!-- معاينة للنقاش فقط: ثلاثة نماذج لتحسين صورة التقرير الفردي التي تُرسل لولي الأمر (تحميل/واتساب).
+     لا تمسّ أي شاشة في المنصة. البيانات تجريبية مطابقة لصورة previews/indiv-report-current.jpg -->
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+:root{
+  --pg:#f3eee3; --panel:#fffdf8; --ink:#1f2a24; --soft:#6b6b63; --line:#e6dcc6; --strong:#b9a983;
+  --em:#0d5c46; --em2:#147c5e; --gold:#c9a13b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}
+}
+:root[data-theme="dark"]{--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c;--em2:#5fc9a0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.6}
+button{font-family:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:16px}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.top h1{font-size:20px;margin:0;display:flex;align-items:center;gap:10px}
+.top h1 img{width:30px}
+.top p{margin:2px 0 0;color:var(--soft);font-size:13px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--strong);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--em);color:#fff}
+.ctrls{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:8px 0 16px}
+.tabs button{border:0;background:transparent;color:var(--soft);padding:10px 12px;font-size:15px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--em2);border-color:var(--gold)}
+.tab{display:none}.tab.on{display:block}
+.lay{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.lay{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.box h3{margin:0 0 6px;font-size:15px}
+.box ul{margin:0;padding-inline-start:18px;font-size:14px}
+.box li{margin:3px 0}
+.box p{margin:0;font-size:14px}
+.tag{display:inline-block;background:var(--em);color:#fff;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-bottom:6px}
+.fit{width:100%;overflow:hidden;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.fit>.img{width:720px;transform-origin:top right}
+[dir="ltr"] .fit>.img{transform-origin:top left}
+.cur{width:100%;border-radius:12px;display:block;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+.note{font-size:12.5px;color:var(--soft);margin-top:6px}
+
+/* ============ الصورة المصدَّرة (ألوان ثابتة دائمًا: الصورة تُرسل فاتحة) ============ */
+.img{position:relative;background:#f9f4ea;color:#23302a;font-family:'IBM Plex Sans Arabic',sans-serif;font-size:14px;line-height:1.6;overflow:hidden}
+.img .orn{position:absolute;width:56px;opacity:.75;pointer-events:none}
+.img .orn.tr{top:8px;right:8px}.img .orn.tl{top:8px;left:8px;transform:scaleX(-1)}
+.img .orn.br{bottom:8px;right:8px;transform:scaleY(-1)}.img .orn.bl{bottom:8px;left:8px;transform:scale(-1)}
+.img .amiri{font-family:'Amiri',serif}
+.img .card{background:#fffdf8;border:1px solid #e6dcc6;border-radius:18px}
+.img b{font-weight:700}
+.img .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+/* ---- نموذج أ ---- */
+.A{padding:26px 44px 22px}
+.A .head{display:grid;grid-template-columns:110px 1fr 110px;align-items:center;text-align:center}
+.A .head .logo{width:78px;justify-self:start}
+.A .head .art{width:130px;justify-self:end}
+[dir="ltr"] .A .head .logo{justify-self:end}[dir="ltr"] .A .head .art{justify-self:start}
+.A .eye{font-size:11.5px;color:#6f644e}
+.A h2{margin:0;font-family:'Amiri',serif;font-size:34px;color:#0b3d30;line-height:1.2}
+.A .sub{font-family:'Amiri',serif;font-size:19px;color:#3a3a30}
+.A .hero{display:grid;grid-template-columns:1fr 210px;gap:14px;margin-top:16px}
+.A .who{padding:16px 18px;display:flex;gap:16px;align-items:center}
+.A .av{flex:none;width:76px;height:76px;border-radius:50%;border:3px solid #147c5e;box-shadow:0 0 0 5px #e7f1ec;display:flex;align-items:center;justify-content:center;font-family:'Amiri',serif;font-size:34px;color:#0d5c46;background:#fff}
+.A .nm{font-size:23px;font-weight:700;color:#14231c;line-height:1.3}
+.A .facts{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:8px}
+.A .fact{background:#f4efe3;border:1px solid #e6dcc6;border-radius:999px;padding:2px 10px;font-size:12.5px;color:#4b4a40}
+.A .fact b{color:#14231c}
+.A .score{padding:12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.A .ring{position:relative;width:132px;height:132px}
+.A .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.A .ring .p{font-size:34px;font-weight:700;color:#8a6221;line-height:1}
+.A .ring .t{margin-top:4px;background:#b8863b;color:#fff;border-radius:999px;padding:0 12px;font-size:12px;font-weight:700}
+.A .delta{font-size:12px;font-weight:700;color:#9e3b2d;background:#fbecea;border:1px solid #efc9c2;border-radius:999px;padding:1px 10px}
+.A .verdict{margin:14px 0 0;text-align:center;font-weight:700;font-size:15px;color:#2b2620}
+.A .sec{margin-top:14px;padding:14px 18px}
+.A .sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.A .sh h4{margin:0;font-size:15.5px;color:#0b3d30}
+.A .sh span{font-size:12px;color:#6f644e}
+.A .bar{display:flex;height:14px;border-radius:999px;overflow:hidden;background:#eee6d4}
+.A .bar i{display:block}
+.A .leg{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:13.5px}
+.A .leg span{display:flex;align-items:center;gap:6px;font-weight:600}
+.A .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.A .mini{display:flex;justify-content:center;gap:22px;margin-top:10px;padding-top:8px;border-top:1px dashed #e6dcc6;font-size:12.5px;color:#4b4a40}
+.A .trend{display:flex;align-items:flex-end;justify-content:space-around;height:118px;padding:0 20px;border-bottom:1px solid #e6dcc6}
+.A .col{display:flex;flex-direction:column;align-items:center;gap:4px;width:110px}
+.A .col .v{font-weight:700;font-size:14px}
+.A .col .b{width:46px;border-radius:8px 8px 0 0;background:#e2d4b3}
+.A .col.now .b{background:#c9a13b}
+.A .lbls{display:flex;justify-content:space-around;padding:6px 20px 0;font-size:12px;color:#4b4a40;text-align:center}
+.A .lbls div{width:110px}
+.A .lbls .now{color:#8a6221;font-weight:700}
+.A .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.A .ins{padding:14px 16px;border-radius:18px}
+.A .ins.good{background:#edf5f0;border:1px solid #b9d9c8}
+.A .ins.focus{background:#fbf0ee;border:1px solid #ebc4bc}
+.A .ins h4{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:8px}
+.A .ins.good h4{color:#0d5c46}.A .ins.focus h4{color:#9e3b2d}
+.A .ins ul{margin:0;padding:0;list-style:none;font-size:13.5px}
+.A .ins li{display:flex;gap:8px;margin:6px 0;align-items:flex-start}
+.A .ref{flex:none;background:#fff;border:1px solid #ebc4bc;border-radius:8px;padding:0 7px;font-size:11.5px;font-weight:700;color:#9e3b2d;margin-top:2px}
+.A .tick{flex:none;color:#147c5e;font-weight:700}
+.A .tnote{margin-top:14px;padding:14px 20px;border-top:4px solid #c9a13b}
+.A .tnote h4{margin:0 0 4px;font-size:14.5px;color:#0b3d30}
+.A .tnote p{margin:0;font-family:'Amiri',serif;font-size:17.5px;line-height:1.9;text-align:center;color:#2b2620}
+.A .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px;padding:12px 6px 0;border-top:1px solid #e6dcc6;font-size:12px;color:#4b4a40}
+.A .foot img{width:22px;vertical-align:middle}
+.A .sign{text-align:center;min-width:160px}
+.A .sign .n{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:#0b3d30;border-top:1px solid #b9a983;padding-top:4px}
+
+/* ---- نموذج ب ---- */
+.B{padding:22px 40px 20px}
+.B .head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 30px 12px;border-bottom:1px solid #e6dcc6}
+.B .head .brand{display:flex;align-items:center;gap:10px}
+.B .head .brand img{width:46px}
+.B .head .brand div{font-size:12px;color:#6f644e;line-height:1.3}
+.B .head .brand b{display:block;font-family:'Amiri',serif;font-size:22px;color:#0b3d30}
+.B .head .date{font-size:12px;color:#6f644e;text-align:end}
+.B .hero{margin-top:16px;border-radius:22px;background:linear-gradient(135deg,#0d5c46,#0b3d30);color:#fff;padding:20px 24px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;position:relative;overflow:hidden}
+.B .hero:after{content:"";position:absolute;inset:auto -40px -60px auto;width:220px;height:220px;border-radius:50%;border:30px solid rgba(201,161,59,.16)}
+[dir="ltr"] .B .hero:after{inset:auto auto -60px -40px}
+.B .hero .hi{font-size:13px;opacity:.85}
+.B .hero .nm{font-family:'Amiri',serif;font-size:30px;font-weight:700;line-height:1.25}
+.B .hero .v{margin-top:6px;font-size:15px;line-height:1.7;max-width:420px}
+.B .hero .sc{position:relative;z-index:1;text-align:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:18px;padding:10px 18px}
+.B .hero .sc .p{font-size:40px;font-weight:700;color:#f2d684;line-height:1.1}
+.B .hero .sc .t{font-size:13px;font-weight:700}
+.B .hero .sc .d{font-size:11.5px;opacity:.85;margin-top:2px}
+.B .meta{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.B .meta span{background:#fffdf8;border:1px solid #e6dcc6;border-radius:999px;padding:2px 12px;font-size:12.5px;color:#4b4a40}
+.B .step{margin-top:14px;padding:14px 18px 14px;display:grid;grid-template-columns:40px 1fr;gap:12px}
+.B .num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff}
+.B .s1 .num{background:#147c5e}.B .s2 .num{background:#b8863b}.B .s3 .num{background:#0b3d30}
+.B .step h4{margin:2px 0 6px;font-size:16.5px;color:#14231c}
+.B .step ul{margin:0;padding:0;list-style:none}
+.B .step li{margin:5px 0;font-size:14px;display:flex;gap:8px}
+.B .step li:before{content:"•";color:#b9a983;font-weight:700}
+.B .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.B .chips span{border-radius:10px;padding:3px 10px;font-size:13px;font-weight:700}
+.B .ok{background:#e4f2ea;color:#0d5c46}.B .pa{background:#f8eedb;color:#8a6221}.B .no{background:#f8e3df;color:#9e3b2d}
+.B .ayah{display:flex;flex-direction:column;gap:6px}
+.B .ayah div{background:#fbf5ea;border:1px solid #ecdcbf;border-radius:12px;padding:6px 12px;font-size:13.5px}
+.B .ayah b{color:#8a6221}
+.B .s3{background:#fff8e8;border-color:#e8d29c}
+.B .s3 li:before{content:"☐";color:#8a6221}
+.B .tr{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 18px;font-size:13px;color:#4b4a40}
+.B .tr .lbl{font-weight:700;color:#0b3d30;white-space:nowrap}
+.B .tr .pts{flex:1;display:flex;align-items:center;justify-content:space-between;position:relative}
+.B .tr .pts:before{content:"";position:absolute;inset:50% 8% auto 8%;border-top:2px dashed #d9c9a4}
+.B .tr .pt{position:relative;background:#fffdf8;padding:0 6px;text-align:center;line-height:1.3}
+.B .tr .pt b{display:block;font-size:15px}
+.B .tr .pt.now b{color:#8a6221}
+.B .tnote{margin-top:14px;padding:12px 20px;display:flex;gap:14px;align-items:flex-start}
+.B .tnote .q{font-family:'Amiri',serif;font-size:54px;line-height:.8;color:#c9a13b}
+.B .tnote p{margin:0;font-family:'Amiri',serif;font-size:17px;line-height:1.85;color:#2b2620}
+.B .tnote .by{margin-top:4px;font-size:12.5px;font-weight:700;color:#0b3d30}
+.B .foot{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:14px;font-size:11.5px;color:#6f644e}
+.B .foot img{width:18px}
+
+/* ---- نموذج ج (4:5) ---- */
+.C{height:900px;padding:24px 40px 22px;display:flex;flex-direction:column;justify-content:space-between}
+.C .head{text-align:center;position:relative}
+.C .head img.logo{width:58px;position:absolute;top:0;right:24px}
+[dir="ltr"] .C .head img.logo{right:auto;left:24px}
+.C .head .eye{font-size:11.5px;color:#6f644e}
+.C .head h2{margin:0;font-family:'Amiri',serif;font-size:30px;color:#0b3d30;line-height:1.2}
+.C .head .s{font-family:'Amiri',serif;font-size:16px;color:#3a3a30}
+.C .main{padding:18px;display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center}
+.C .ring{position:relative;width:170px;height:170px}
+.C .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.C .ring .p{font-size:44px;font-weight:700;color:#8a6221;line-height:1}
+.C .ring .t{margin-top:6px;background:#b8863b;color:#fff;border-radius:999px;padding:0 14px;font-size:13px;font-weight:700}
+.C .nm{font-family:'Amiri',serif;font-size:30px;font-weight:700;color:#14231c;line-height:1.2}
+.C .ln{font-size:13.5px;color:#4b4a40;margin-top:4px}
+.C .ln b{color:#14231c}
+.C .cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.C .cnt div{border-radius:12px;padding:6px 4px;text-align:center;font-size:12px;font-weight:600}
+.C .cnt b{display:block;font-size:22px;line-height:1.2}
+.C .ok{background:#e4f2ea;color:#0d5c46}.C .pa{background:#f8eedb;color:#8a6221}.C .no{background:#f8e3df;color:#9e3b2d}
+.C .trend{display:flex;justify-content:center;gap:6px;margin-top:10px;font-size:12px;color:#4b4a40;align-items:center}
+.C .trend span.n{font-weight:700;color:#8a6221}
+.C .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.C .pill{border-radius:16px;padding:12px 14px}
+.C .pill h4{margin:0 0 4px;font-size:14px}
+.C .pill p{margin:0;font-size:13.5px;line-height:1.7}
+.C .pill.g{background:#edf5f0;border:1px solid #b9d9c8}.C .pill.g h4{color:#0d5c46}
+.C .pill.f{background:#fbf0ee;border:1px solid #ebc4bc}.C .pill.f h4{color:#9e3b2d}
+.C .tnote{padding:14px 18px;border-top:4px solid #c9a13b}
+.C .home{display:flex;gap:12px;align-items:center;background:#fff8e8;border:1px solid #e8d29c;border-radius:16px;padding:12px 16px;font-size:14px}
+.C .home b{color:#8a6221;white-space:nowrap}
+.C .head img.art{width:104px;position:absolute;top:0;left:18px}
+[dir="ltr"] .C .head img.art{left:auto;right:18px}
+.C .tnote h4{margin:0 0 4px;font-size:14px;color:#0b3d30}
+.C .tnote p{margin:0;font-family:'Amiri',serif;font-size:17px;line-height:1.85;text-align:center;color:#2b2620}
+.C .foot{display:flex;justify-content:space-between;align-items:center;padding:0 40px;font-size:11.5px;color:#6f644e}
+.C .foot .t{font-family:'Amiri',serif;font-size:16px;font-weight:700;color:#0b3d30}
+
+/* ---- محاكاة واتساب ---- */
+.wa{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.phone{width:220px;background:#e5ddd5;border-radius:22px;padding:10px;border:6px solid #222}
+.phone .bub{background:#d9fdd3;border-radius:10px;padding:4px;margin-inline-start:auto;width:180px}
+.phone .bub .frame{height:220px;overflow:hidden;border-radius:7px;position:relative}
+.phone .bub .frame .fit{border-radius:0;box-shadow:none}
+.phone .bub .t{font-size:10px;color:#667;text-align:end;padding:2px 4px 0}
+.phone .cap{font-size:11.5px;text-align:center;color:#333;margin-top:6px;font-weight:600}
+.phone .frame.crop:after{content:"";position:absolute;inset:auto 0 0 0;height:40px;background:linear-gradient(transparent,rgba(0,0,0,.35))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1><img src="assets/brand/ham-logo.svg" alt=""><span data-t="title"></span></h1>
+      <p data-t="subtitle"></p>
+    </div>
+    <div class="ctrls">
+      <div class="seg" id="seg-lang"><button data-v="ar" class="on">العربية</button><button data-v="en">English</button></div>
+      <div class="seg" id="seg-theme"><button data-v="light" class="on" data-t="light"></button><button data-v="dark" data-t="dark"></button></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button data-tab="a" class="on" data-t="tabA"></button>
+    <button data-tab="b" data-t="tabB"></button>
+    <button data-tab="c" data-t="tabC"></button>
+    <button data-tab="cur" data-t="tabCur"></button>
+  </div>
+
+  <section class="tab on" id="a">
+    <div class="lay">
+      <div class="fit"><div class="img A" id="imgA"></div></div>
+      <div class="side" id="sideA"></div>
+    </div>
+  </section>
+  <section class="tab" id="b">
+    <div class="lay">
+      <div class="fit"><div class="img B" id="imgB"></div></div>
+      <div class="side" id="sideB"></div>
+    </div>
+  </section>
+  <section class="tab" id="c">
+    <div class="lay">
+      <div class="fit"><div class="img C" id="imgC"></div></div>
+      <div class="side" id="sideC"></div>
+    </div>
+  </section>
+  <section class="tab" id="cur">
+    <div class="lay">
+      <img class="cur" src="previews/indiv-report-current.jpg" alt="">
+      <div class="side" id="sideCur"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const ART = 'assets/report/';
+const D = { pct:70, prev:71, older:62, full:4, part:2, wrong:2, total:8 };
+const T = {
+  ar:{
+    title:'صورة التقرير الفردي لولي الأمر — 3 نماذج تحسين',
+    subtitle:'الصورة التي تُحمَّل أو تُرسل بواتساب. البيانات تجريبية ومطابقة للصورة الحالية حتى تكون المقارنة عادلة.',
+    light:'فاتح', dark:'داكن',
+    tabA:'أ · نفس الورقة بوضوح أكبر', tabB:'ب · ولي الأمر أولًا', tabC:'ج · مقاس واتساب 4:5', tabCur:'الصورة الحالية',
+    eye:'منصة حمٓ · تحفيظ القرآن الكريم', title2:'تقرير تقدّم الطالب', sub:'في حفظ القرآن الكريم',
+    name:'يوسف أحمد', grade:'الصف', gradeV:'الرابع', scope:'النطاق', scopeV:'سورة الملك', dur:'المدة', durV:'2 د 56 ث', date:'التاريخ', dateV:'5 نوفمبر 2026 · 25 جمادى الأولى 1448هـ',
+    tier:'متوسط', thisEval:'نتيجة هذا التقييم',
+    delta:'▼ 1% عن المحاولة السابقة (71%)',
+    verdict:'نتيجة متوسطة تُظهر أساسًا موجودًا يمكن تقويته بمراجعة أكثر انتظامًا.',
+    resTitle:'نتيجة الأسئلة', resSub:'8 أسئلة',
+    full:'صحيحة بالكامل', part:'صحيحة جزئيًا', wrong:'غير صحيحة',
+    avg:'متوسط الإجابة', hints:'تلميحات', reord:'إعادة ترتيب',
+    trTitle:'مستوى التقدّم', trSub:'آخر 3 محاولات',
+    t3:'20 أكتوبر', t2:'27 أكتوبر', t1:'هذا التقييم · 5 نوفمبر',
+    good:'نقاط القوة', focus:'بحاجة إلى تركيز',
+    g1:'حفظ صحيح ودقيق في 4 من 8 أسئلة دون أي مساعدة',
+    g2:'ثبات في الحفظ عبر أكثر من سؤال دون الحاجة لتلميح',
+    f1r:'الملك 3–4', f1:'الآية التالية — نسيان كلمة',
+    f2r:'الملك 12', f2:'ترتيب الكلمات — احتاج محاولة إضافية',
+    f3r:'الملك 19', f3:'إكمال الآية — استعان بتلميح',
+    noteT:'ملاحظة المعلم لولي الأمر',
+    note:'أداء يوسف أحمد كان متوسطًا بشكل عام، وهناك نقاط محددة يمكن تحسينها بمراجعة منتظمة. ننصح بمراجعة سورة الملك مراجعةً هادئة مع التركيز على «رتّب الكلمات» و«ما الآية التالية»، وسنتابع التقدم معًا أولًا بأول.',
+    repNo:'رقم التقرير', teacher:'المعلم', teacherN:'أ. محمد',
+    // B
+    bBrand:'تقرير تقدّم الطالب', hi:'تقرير اليوم عن',
+    bVerdict:'أداء متوسط في سورة الملك: يحفظ نصف الأسئلة بإتقان، ويحتاج تثبيت 3 مواضع.',
+    b1:'ما أتقنه', b2:'ما يحتاج مراجعة', b3:'كيف تساعده في البيت هذا الأسبوع',
+    h1:'يقرأ معكم الآيات 3–4 و12 و19 من سورة الملك مرتين يوميًا من المصحف.',
+    h2:'اطلبوا منه تسميعها غيبًا بعد الفجر أو قبل النوم.',
+    h3:'شجّعوه: هو قريب جدًا من مستوى «جيد».',
+    bTr:'تقدّمه', bBy:'— المعلم أ. محمد',
+    // C
+    cIn:'في', cOf:'من 8',
+    cTrend:'آخر المحاولات:', cHome:'في البيت:',
+    cGood:'حفظ صحيح ودقيق لـ 4 من 8 أسئلة دون مساعدة.',
+    cFocus:'سورة الملك: الآيات 3–4 و12 و19.',
+    // side
+    whatA:'فكرة النموذج', whatB:'فكرة النموذج', whatC:'فكرة النموذج', fixes:'ما الذي يتغيّر عن الحالي', ask:'للنقاش',
+    ideaA:'نفس الورقة ونفس الهوية والترتيب تقريبًا — تحسينات تنظيف ووضوح فقط، أقل مخاطرة.',
+    fixA:['حذف أيقونة الكاميرا من صورة الطالب (أداة تعديل لا معنى لها في الصورة).',
+      'سهم الفرق صار واضحًا: «▼ 1% عن المحاولة السابقة (71%)» بدل «1 عن المحاولة السابقة».',
+      'دمج شرائط العدّ والإحصاءات في صندوق واحد مع شريط ملوّن يبيّن النسبة بلمحة.',
+      'مستوى التقدّم صار أعمدة صغيرة تُقرأ زمنيًا (الأقدم ← الأحدث) بدل ثلاث نجوم متشابهة.',
+      '«بحاجة إلى تركيز»: كل نقطة تبدأ برقم الآية فيعرف ولي الأمر ماذا يراجع بالضبط.',
+      'التذييل: اسم المعلم مرة واحدة (الحالي يكرر «المعلم المعلم»).'],
+    askA:'هل نطبّق هذا كتحديث للشكل الحالي مباشرة؟',
+    ideaB:'ترتيب يجيب عن أسئلة ولي الأمر الثلاثة بالترتيب: كيف حاله؟ ما المشكلة بالضبط؟ ماذا أفعل في البيت؟',
+    fixB:['بطاقة علوية خضراء فيها الاسم والنتيجة والحكم في جملة واحدة — تُفهم في ثوانٍ.',
+      'ثلاث خطوات مرقّمة بدل صناديق متجاورة: ① ما أتقنه ② ما يحتاج مراجعة (بأرقام الآيات) ③ مهام بيت كقائمة تحقق.',
+      'خط تقدّم مختصر في سطر واحد.',
+      'ملاحظة المعلم بعلامة اقتباس وتوقيعه تحتها.',
+      'الترويسة مختصرة بسطر واحد (الشعار + العنوان + التاريخ) لتوفير المساحة.'],
+    askB:'قسم «كيف تساعده في البيت» يُبنى تلقائيًا من الأخطاء، ويمكن للمعلم تعديله. هل تريده ظاهرًا دائمًا أم اختياريًا؟',
+    ideaC:'صورة بمقاس ثابت 4:5 (مثل منشورات إنستغرام) تظهر كاملة في فقاعة واتساب دون قصّ ودون حاجة لفتحها.',
+    fixC:['الحالي طويل جدًا (720×1400 تقريبًا) فيقصّه واتساب في المعاينة ولا يظهر إلا الجزء العلوي.',
+      'كل المعلومات الأساسية في شاشة واحدة: النتيجة، العدّ، آخر المحاولات، القوة، التركيز، خطوة البيت، الملاحظة.',
+      'تفاصيل الأخطاء الكاملة تبقى في ملف PDF الشامل.',
+      'خط أكبر للاسم والنتيجة لأن الصورة تُرى على الجوال.'],
+    askC:'إن طالت ملاحظة المعلم تُختصر إلى 3 أسطر تقريبًا. هل هذا مقبول؟',
+    waT:'كيف تظهر في محادثة واتساب', waCur:'الحالية: تُقصّ', waNew:'ج: تظهر كاملة',
+    curIdea:'الصورة الحالية المرسلة (الشكل السابق الذي أُعيد).',
+    curIssues:['أيقونة الكاميرا تظهر على صورة الطالب.', '«1 عن المحاولة السابقة» غير واضح (1 ماذا؟).',
+      'مستوى التقدّم: ثلاث نجوم متطابقة لا تبيّن صعودًا أو هبوطًا.', 'العدّ والإحصاءات في شريطين منفصلين.',
+      '«بحاجة إلى تركيز» بلا أرقام آيات.', 'التذييل يكرر «المعلم المعلم».', 'طولها يجعل واتساب يقصّها في المعاينة.'],
+    curIssT:'ملاحظات على الحالي',
+    pick:'اختر النموذج (أ أو ب أو ج) أو اطلب الدمج بينها، وسأطبّقه على الصورة الفعلية مع إبقاء الحالي مؤرشفًا للرجوع.'
+  },
+  en:{
+    title:'Individual report image for parents — 3 improvement options',
+    subtitle:'The image that is downloaded or sent via WhatsApp. Sample data matches the current image for a fair comparison.',
+    light:'Light', dark:'Dark',
+    tabA:'A · Same sheet, clearer', tabB:'B · Parent first', tabC:'C · WhatsApp 4:5 size', tabCur:'Current image',
+    eye:'Ham Platform · Quran memorization', title2:'Student Progress Report', sub:'in Quran memorization',
+    name:'Yusuf Ahmad', grade:'Grade', gradeV:'4th', scope:'Scope', scopeV:'Surat Al-Mulk', dur:'Time', durV:'2m 56s', date:'Date', dateV:'5 Nov 2026 · 25 Jumada I 1448 AH',
+    tier:'Average', thisEval:'This assessment',
+    delta:'▼ 1% vs previous attempt (71%)',
+    verdict:'An average result showing a real foundation that more regular revision can strengthen.',
+    resTitle:'Question results', resSub:'8 questions',
+    full:'Fully correct', part:'Partly correct', wrong:'Incorrect',
+    avg:'Avg. answer', hints:'Hints', reord:'Re-orders',
+    trTitle:'Progress', trSub:'Last 3 attempts',
+    t3:'20 Oct', t2:'27 Oct', t1:'This one · 5 Nov',
+    good:'Strengths', focus:'Needs focus',
+    g1:'Accurate recall in 4 of 8 questions without any help',
+    g2:'Steady memorization across several questions without hints',
+    f1r:'Mulk 3–4', f1:'Next verse — forgot a word',
+    f2r:'Mulk 12', f2:'Word order — needed an extra try',
+    f3r:'Mulk 19', f3:'Complete the verse — used a hint',
+    noteT:'Teacher’s note to the parent',
+    note:'Yusuf’s performance was average overall, with specific points that regular revision can improve. We recommend a calm review of Surat Al-Mulk focusing on “word order” and “next verse”, and we will follow his progress together.',
+    repNo:'Report no.', teacher:'Teacher', teacherN:'Mr. Mohammed',
+    bBrand:'Student Progress Report', hi:'Today’s report on',
+    bVerdict:'Average in Surat Al-Mulk: half the questions recalled perfectly; 3 spots need consolidation.',
+    b1:'What he has mastered', b2:'What needs revision', b3:'How to help at home this week',
+    h1:'Read verses 3–4, 12 and 19 of Al-Mulk with him twice a day from the Mushaf.',
+    h2:'Ask him to recite them from memory after Fajr or before bed.',
+    h3:'Encourage him: he is very close to “Good”.',
+    bTr:'Progress', bBy:'— Teacher, Mr. Mohammed',
+    cIn:'in', cOf:'of 8',
+    cTrend:'Recent attempts:', cHome:'At home:',
+    cGood:'Accurate recall in 4 of 8 questions without help.',
+    cFocus:'Al-Mulk: verses 3–4, 12 and 19.',
+    whatA:'The idea', whatB:'The idea', whatC:'The idea', fixes:'What changes vs. current', ask:'To discuss',
+    ideaA:'Same sheet, same identity and almost the same order — cleanup and clarity only. Lowest risk.',
+    fixA:['Camera icon removed from the student photo (an edit control that means nothing in an image).',
+      'Clear difference badge: “▼ 1% vs previous attempt (71%)” instead of “1 vs previous attempt”.',
+      'Counts and stats merged into one box with a coloured bar showing the split at a glance.',
+      'Progress is now small bars read in time order (oldest → newest) instead of three identical stars.',
+      '“Needs focus”: each point starts with the verse number so parents know exactly what to revise.',
+      'Footer: teacher’s name once (current shows “Teacher Teacher”).'],
+    askA:'Shall we apply this as a direct update to the current design?',
+    ideaB:'Ordered to answer the parent’s three questions in turn: How is he doing? What exactly is the problem? What do I do at home?',
+    fixB:['A green top card with name, score and a one-sentence verdict — understood in seconds.',
+      'Three numbered steps instead of side-by-side boxes: ① mastered ② needs revision (with verse numbers) ③ home tasks as a checklist.',
+      'Compact one-line progress strip.',
+      'Teacher’s note with a quote mark and signature.',
+      'One-line header (logo + title + date) to save space.'],
+    askB:'“How to help at home” is built automatically from mistakes and the teacher can edit it. Always shown or optional?',
+    ideaC:'A fixed 4:5 image (like an Instagram post) that shows fully in the WhatsApp bubble — no cropping, no need to open it.',
+    fixC:['The current image is very tall (≈720×1400), so WhatsApp crops the preview to its top part.',
+      'All key information on one screen: score, counts, recent attempts, strength, focus, home step, note.',
+      'Full mistake details stay in the comprehensive PDF.',
+      'Larger name and score because it is viewed on a phone.'],
+    askC:'A long teacher note is trimmed to about 3 lines. Is that acceptable?',
+    waT:'How it looks in a WhatsApp chat', waCur:'Current: cropped', waNew:'C: fully visible',
+    curIdea:'The image currently sent (the earlier design that was restored).',
+    curIssues:['Camera icon shows on the student photo.', '“1 vs previous attempt” is unclear (1 what?).',
+      'Progress: three identical stars that don’t show rise or fall.', 'Counts and stats are in two separate strips.',
+      '“Needs focus” has no verse numbers.', 'Footer repeats “Teacher Teacher”.', 'Its height makes WhatsApp crop the preview.'],
+    curIssT:'Notes on the current image',
+    pick:'Pick an option (A, B or C) or ask for a mix, and I will apply it to the real image while keeping the current one archived for rollback.'
+  }
+};
+let lang = 'ar';
+const L = () => T[lang];
+const orn = () => ['tr','tl','br','bl'].map(c=>`<img class="orn ${c}" src="${ART}report-corner-orn.png" alt="">`).join('');
+const ring = (size, r, sw, pct) => { const C = 2*Math.PI*r, h=size/2; return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="#e4d9c4" stroke-width="${sw}"/><circle cx="${h}" cy="${h}" r="${r}" fill="none" stroke="#c9a13b" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct/100)).toFixed(1)}" transform="rotate(-90 ${h} ${h})"/></svg>`; };
+const pc = v => `<span class="ltr">${v}%</span>`;
+
+function renderA(){
+  const t = L(); const w = n => (n/D.total*100)+'%';
+  return `${orn()}
+  <div class="head">
+    <img class="logo" src="assets/brand/ham-logo.svg" alt="">
+    <div><div class="eye">${t.eye}</div><h2>${t.title2}</h2><div class="sub">${t.sub}</div></div>
+    <img class="art" src="${ART}report-quran-rehl.png" alt="">
+  </div>
+  <div class="hero">
+    <div class="card who">
+      <div class="av">${t.name[0]}</div>
+      <div><div class="nm">${t.name}</div>
+        <div class="facts"><span class="fact">${t.grade}: <b>${t.gradeV}</b></span><span class="fact">${t.scope}: <b>${t.scopeV}</b></span><span class="fact">${t.dur}: <b>${t.durV}</b></span></div></div>
+    </div>
+    <div class="card score">
+      <div class="ring">${ring(132,56,14,D.pct)}<div class="c"><div class="p">${pc(D.pct)}</div><div class="t">${t.tier}</div></div></div>
+      <div class="delta">${t.delta}</div>
+    </div>
+  </div>
+  <p class="verdict">${t.verdict}</p>
+  <div class="card sec">
+    <div class="sh"><h4>${t.resTitle}</h4><span>${t.resSub}</span></div>
+    <div class="bar"><i style="width:${w(D.full)};background:#147c5e"></i><i style="width:${w(D.part)};background:#c9a13b"></i><i style="width:${w(D.wrong)};background:#b9493a"></i></div>
+    <div class="leg"><span><i class="dot" style="background:#147c5e"></i>${t.full}: ${D.full}</span><span><i class="dot" style="background:#c9a13b"></i>${t.part}: ${D.part}</span><span><i class="dot" style="background:#b9493a"></i>${t.wrong}: ${D.wrong}</span></div>
+    <div class="mini"><span>${t.avg}: <b>22 ${lang==='ar'?'ث':'s'}</b></span><span>${t.hints}: <b>1</b></span><span>${t.reord}: <b>1</b></span></div>
+  </div>
+  <div class="card sec">
+    <div class="sh"><h4>${t.trTitle}</h4><span>${t.trSub}</span></div>
+    <div class="trend">${[[D.older,0],[D.prev,0],[D.pct,1]].map(([v,n])=>`<div class="col ${n?'now':''}"><span class="v">${pc(v)}</span><span class="b" style="height:${Math.round(v*1.1)}px"></span></div>`).join('')}</div>
+    <div class="lbls"><div>${t.t3}</div><div>${t.t2}</div><div class="now">${t.t1}</div></div>
+  </div>
+  <div class="two">
+    <div class="ins good"><h4>★ ${t.good}</h4><ul><li><span class="tick">✓</span>${t.g1}</li><li><span class="tick">✓</span>${t.g2}</li></ul></div>
+    <div class="ins focus"><h4>◎ ${t.focus}</h4><ul>
+      <li><span class="ref">${t.f1r}</span>${t.f1}</li><li><span class="ref">${t.f2r}</span>${t.f2}</li><li><span class="ref">${t.f3r}</span>${t.f3}</li></ul></div>
+  </div>
+  <div class="card tnote"><h4>${t.noteT}</h4><p>${t.note}</p></div>
+  <div class="foot">
+    <div><img src="assets/brand/ham-mark.svg" alt=""> ${t.repNo}: <b class="ltr">#demo1</b><br>${t.date}: <b>${t.dateV}</b></div>
+    <div class="sign"><div class="n">${t.teacherN}</div>${t.teacher}</div>
+  </div>`;
+}
+
+function renderB(){
+  const t = L();
+  return `${orn()}
+  <div class="head">
+    <div class="brand"><img src="assets/brand/ham-logo.svg" alt=""><div>${t.eye}<b>${t.bBrand}</b></div></div>
+    <div class="date">${t.dateV}<br>${t.repNo}: <span class="ltr">#demo1</span></div>
+  </div>
+  <div class="hero">
+    <div><div class="hi">${t.hi}</div><div class="nm">${t.name}</div><div class="v">${t.bVerdict}</div></div>
+    <div class="sc"><div class="p">${pc(D.pct)}</div><div class="t">${t.tier}</div><div class="d">${t.delta}</div></div>
+  </div>
+  <div class="meta"><span>${t.grade}: <b>${t.gradeV}</b></span><span>${t.scope}: <b>${t.scopeV}</b></span><span>${t.dur}: <b>${t.durV}</b></span></div>
+  <div class="card step s1"><div class="num">1</div><div><h4>${t.b1}</h4>
+    <div class="chips"><span class="ok">✓ ${t.full}: ${D.full}</span><span class="pa">≈ ${t.part}: ${D.part}</span><span class="no">✗ ${t.wrong}: ${D.wrong}</span></div>
+    <ul><li>${t.g1}</li><li>${t.g2}</li></ul></div></div>
+  <div class="card step s2"><div class="num">2</div><div><h4>${t.b2}</h4>
+    <div class="ayah"><div><b>${t.f1r}</b> · ${t.f1}</div><div><b>${t.f2r}</b> · ${t.f2}</div><div><b>${t.f3r}</b> · ${t.f3}</div></div></div></div>
+  <div class="card step s3"><div class="num">3</div><div><h4>${t.b3}</h4>
+    <ul><li>${t.h1}</li><li>${t.h2}</li><li>${t.h3}</li></ul></div></div>
+  <div class="card tr"><span class="lbl">${t.bTr}</span><div class="pts">
+    <div class="pt"><b>${pc(D.older)}</b>${t.t3}</div><div class="pt"><b>${pc(D.prev)}</b>${t.t2}</div><div class="pt now"><b>${pc(D.pct)}</b>${t.t1}</div></div></div>
+  <div class="card tnote"><div class="q">“</div><div><p>${t.note}</p><div class="by">${t.bBy}</div></div></div>
+  <div class="foot"><img src="assets/brand/ham-mark.svg" alt="">${t.eye}</div>`;
+}
+
+function renderC(){
+  const t = L();
+  return `${orn()}
+  <div class="head"><img class="logo" src="assets/brand/ham-logo.svg" alt=""><img class="art" src="${ART}report-quran-rehl.png" alt=""><div class="eye">${t.eye}</div><h2>${t.title2}</h2><div class="s">${t.sub}</div></div>
+  <div class="card main">
+    <div class="ring">${ring(170,72,17,D.pct)}<div class="c"><div class="p">${pc(D.pct)}</div><div class="t">${t.tier}</div></div></div>
+    <div>
+      <div class="nm">${t.name}</div>
+      <div class="ln">${t.grade} <b>${t.gradeV}</b> · ${t.scopeV} · ${t.durV}</div>
+      <div class="cnt"><div class="ok"><b>${D.full}</b>${t.full}</div><div class="pa"><b>${D.part}</b>${t.part}</div><div class="no"><b>${D.wrong}</b>${t.wrong}</div></div>
+      <div class="trend">${t.cTrend} ${pc(D.older)} ${lang==='ar'?'←':'→'} ${pc(D.prev)} ${lang==='ar'?'←':'→'} <span class="n">${pc(D.pct)}</span></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="pill g"><h4>★ ${t.good}</h4><p>${t.cGood}</p></div>
+    <div class="pill f"><h4>◎ ${t.focus}</h4><p>${t.cFocus}</p></div>
+  </div>
+  <div class="home"><b>${t.cHome}</b><span>${t.h1}</span></div>
+  <div class="card tnote"><h4>${t.noteT}</h4><p>${t.note}</p></div>
+  <div class="foot"><span>${t.dateV} · <span class="ltr">#demo1</span></span><span class="t">${t.teacherN}</span></div>`;
+}
+
+const side = (idea, fixes, ask) => { const t=L(); return `
+  <div class="box"><span class="tag">${t.whatA}</span><p>${idea}</p></div>
+  <div class="box"><h3>${t.fixes}</h3><ul>${fixes.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+  <div class="box"><h3>${t.ask}</h3><p>${ask}</p></div>`; };
+
+function waDemo(){
+  const t = L();
+  return `<div class="box"><h3>${t.waT}</h3><div class="wa">
+    <div class="phone"><div class="bub"><div class="frame crop"><img src="previews/indiv-report-current.jpg" alt="" style="width:100%;display:block"></div><div class="t">10:42 ✓✓</div></div><div class="cap">${t.waCur}</div></div>
+    <div class="phone"><div class="bub"><div class="frame" style="height:auto"><div class="fit" data-w="172"><div class="img C">${renderC()}</div></div></div><div class="t">10:42 ✓✓</div></div><div class="cap">${t.waNew}</div></div>
+  </div></div>`;
+}
+
+function fitAll(){
+  document.querySelectorAll('.fit').forEach(f => {
+    const img = f.firstElementChild; if (!img) return;
+    const w = f.dataset.w ? +f.dataset.w : f.clientWidth; if (!w) return;
+    const s = Math.min(1, w/720);
+    img.style.transform = `scale(${s})`;
+    f.style.height = (img.offsetHeight*s)+'px';
+  });
+}
+
+function render(){
+  const t = L();
+  document.documentElement.lang = lang; document.documentElement.dir = lang==='ar'?'rtl':'ltr';
+  document.title = lang==='ar' ? 'صورة التقرير الفردي' : 'Report image';
+  document.querySelectorAll('[data-t]').forEach(el => el.textContent = t[el.dataset.t]);
+  document.querySelectorAll('.img').forEach(el => el.setAttribute('dir', document.documentElement.dir));
+  imgA.innerHTML = renderA(); imgB.innerHTML = renderB(); imgC.innerHTML = renderC();
+  const pick = `<div class="box"><p><b>${t.pick}</b></p></div>`;
+  sideA.innerHTML = side(t.ideaA, t.fixA, t.askA) + pick;
+  sideB.innerHTML = side(t.ideaB, t.fixB, t.askB) + pick;
+  sideC.innerHTML = side(t.ideaC, t.fixC, t.askC) + waDemo() + pick;
+  sideCur.innerHTML = `<div class="box"><p>${t.curIdea}</p></div><div class="box"><h3>${t.curIssT}</h3><ul>${t.curIssues.map(x=>`<li>${x}</li>`).join('')}</ul></div>` + pick;
+  document.querySelectorAll('#sideC .img').forEach(el => el.setAttribute('dir', document.documentElement.dir));
+  requestAnimationFrame(fitAll);
+}
+
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x===b));
+  document.querySelectorAll('.tab').forEach(s => s.classList.toggle('on', s.id===b.dataset.tab));
+  history.replaceState(null,'','#'+b.dataset.tab); requestAnimationFrame(fitAll);
+}));
+document.querySelectorAll('#seg-lang button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#seg-lang button').forEach(x => x.classList.toggle('on', x===b)); lang = b.dataset.v; render();
+}));
+document.querySelectorAll('#seg-theme button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#seg-theme button').forEach(x => x.classList.toggle('on', x===b)); document.documentElement.dataset.theme = b.dataset.v;
+}));
+window.addEventListener('resize', fitAll);
+window.addEventListener('load', fitAll);
+if (document.fonts) document.fonts.ready.then(fitAll);
+render();
+const h = (location.hash||'').slice(1); if (h) { const b = document.querySelector(`.tabs button[data-tab="${h}"]`); if (b) b.click(); }
+</script>
+</body>
+</html>
