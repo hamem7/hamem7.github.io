@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>معاينة — تقرير التقييم الفردي · Individual report preview</title>
+<!-- معاينة للنقاش فقط: لا تمسّ أي شاشة في المنصة. البيانات تجريبية. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+:root{
+  --pg:#f3eee3; --panel:#fffdf8; --ink:#1f2a24; --soft:#6b6b63; --line:#e6dcc6; --strong:#b9a983;
+  --em:#0d5c46; --em2:#147c5e; --gold:#c9a13b; --gold2:#8a6221; --red:#9e3b2d; --amber:#b8863b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c}
+}
+:root[data-theme="dark"]{--pg:#121614;--panel:#1b211e;--ink:#e9eee9;--soft:#a9b2ac;--line:#2d3632;--strong:#56635c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pg);color:var(--ink);font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;line-height:1.6}
+button{font-family:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+.top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.top h1{font-size:20px;margin:0;display:flex;align-items:center;gap:10px}
+.top h1 img{width:30px}
+.top p{margin:2px 0 0;color:var(--soft);font-size:13px}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--strong);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--em);color:#fff}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:8px 0 18px}
+.tabs button{border:0;background:transparent;color:var(--soft);padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--em2);border-color:var(--gold)}
+.tab{display:none}.tab.on{display:block}
+.lead{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:16px;font-size:14px}
+.lead b{color:var(--em2)}
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.cmp h3{margin:0 0 8px;font-size:15px}
+.cmp .cap{color:var(--soft);font-size:12.5px;margin:-4px 0 8px}
+.shot{width:100%;border-radius:12px;border:1px solid var(--line);display:block}
+.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:16px}
+.legend h3{margin:0 0 6px;font-size:15px}
+.legend ol{margin:0;padding-inline-start:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:8px 18px}
+.legend li{display:flex;gap:8px;font-size:13.5px}
+.legend li b{display:block}
+.pin{flex:none;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#2b2000;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+@media (max-width:860px){.cmp{grid-template-columns:1fr}}
+
+/* ============ النموذج 1: التقرير الحالي بعد التحسين (ألوان ثابتة لأنه صورة تُصدَّر) ============ */
+.r1{position:relative;background:#f9f4ea;color:#23302a;border-radius:12px;padding:18px 20px 16px;border:1px solid #e6dcc6;overflow:hidden;font-size:13px}
+.r1 .pin{position:absolute;z-index:3}
+.r1 .orn{position:absolute;width:38px;opacity:.7}
+.r1 .orn.tr{top:6px;right:6px}.r1 .orn.tl{top:6px;left:6px;transform:scaleX(-1)}
+.r1 .orn.br{bottom:6px;right:6px;transform:scaleY(-1)}.r1 .orn.bl{bottom:6px;left:6px;transform:scale(-1)}
+.r1 .head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 26px}
+.r1 .head .t{text-align:center;flex:1}
+.r1 .head .eye{font-size:10.5px;color:#6f644e}
+.r1 .head h2{margin:0;font-size:22px;color:#0b3d30;line-height:1.25}
+.r1 .head .sub{font-family:'Amiri',serif;font-size:14px;color:#3a3a30}
+.r1 .head img.logo{width:40px}.r1 .head img.rehl{width:78px}
+.r1 .card{background:#fffdf8;border:1px solid #e6dcc6;border-radius:14px;padding:12px 14px;position:relative}
+.r1 .row{display:grid;grid-template-columns:1.55fr 1fr;gap:10px;margin-top:10px}
+.r1 .stu{display:flex;gap:12px;align-items:center}
+.r1 .av{width:58px;height:58px;border-radius:50%;border:3px solid #147c5e;display:flex;align-items:center;justify-content:center;font-size:24px;color:#0d5c46;font-weight:700;flex:none;background:#fff}
+.r1 .nm{font-size:19px;font-weight:800;color:#13231c}
+.r1 .facts{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11.5px;color:#4b4b40;margin-top:2px}
+.r1 .facts b{color:#1d2a24}
+.r1 .gauge{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.r1 .gauge .ring{position:relative;width:104px;height:104px}
+.r1 .gauge .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.r1 .gauge .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.r1 .gauge .pct{font-size:26px;font-weight:800;line-height:1}
+.r1 .gauge .tier{font-size:11px;font-weight:700;color:#fff;border-radius:999px;padding:1px 10px;margin-top:3px}
+.r1 .delta{margin-top:6px;font-size:11px;font-weight:700;border-radius:999px;padding:2px 10px}
+.r1 .honest{text-align:center;font-weight:700;font-size:12.5px;margin:10px 0 4px}
+.r1 h4{margin:0 0 6px;font-size:13.5px;color:#0b3d30}
+.r1 .ladder{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.r1 .st{text-align:center;font-size:10.5px;color:#4b4b40;flex:1}
+.r1 .st i{display:block;margin:0 auto 3px;width:28px;height:28px;border-radius:50%;color:#fff;font-style:normal;font-weight:800;font-size:11px;line-height:28px}
+.r1 .st.cur i{box-shadow:0 0 0 3px #f0dfb2}
+.r1 .arr{color:#b9a983;font-size:16px}
+.r1 .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.r1 .chip{border-radius:12px;padding:6px 8px;text-align:center;font-size:11.5px;font-weight:700;border:1px solid}
+.r1 .chip b{display:block;font-size:17px}
+.r1 .chip small{display:block;font-weight:500;font-size:9.5px;opacity:.85}
+.r1 .full{background:#e8f2ec;border-color:#bcd9c8;color:#0d5c46}
+.r1 .help{background:#f8efd9;border-color:#e6cf98;color:#8a6221}
+.r1 .wrong{background:#f6e4df;border-color:#e2bcb1;color:#9e3b2d}
+.r1 .stats{display:flex;justify-content:center;gap:16px;font-size:11px;color:#4b4b40;margin-top:8px;flex-wrap:wrap}
+.r1 .ins{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.r1 .ins ul{margin:0;padding-inline-start:16px;font-size:11.5px}
+.r1 .ins li{margin-bottom:3px}
+.r1 .ins .g{background:#eef5f0;border-color:#cfe2d6}.r1 .ins .f{background:#f9eeea;border-color:#ebcdc3}
+.r1 .home{margin-top:10px;background:#0d5c46;color:#fff;border-radius:14px;padding:10px 14px;position:relative}
+.r1 .home h4{color:#f0d878}
+.r1 .home p{margin:0;font-size:12px}
+.r1 .note{margin-top:10px;border-top:3px solid #c9a13b}
+.r1 .note p{margin:0;font-family:'Amiri',serif;font-size:14px;line-height:1.75}
+.r1 .foot{display:flex;justify-content:space-between;align-items:flex-end;margin-top:12px;padding-top:8px;border-top:1px solid #e6dcc6;font-size:10.5px;color:#6f644e}
+.r1 .foot .sg{text-align:center;min-width:130px}
+.r1 .foot .sg .ln{border-top:1px solid #8a7a58;margin-bottom:3px}
+.r1 .foot .sg b{display:block;color:#0b3d30;font-size:12px}
+.r1 .foot .id{font-size:9px;opacity:.75}
+
+/* ============ النموذج 2: بطاقة ولي الأمر (عرض 1080 عند التصدير) ============ */
+.m2{display:grid;grid-template-columns:minmax(0,540px) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.m2{grid-template-columns:1fr}}
+.cardwrap{width:100%;max-width:540px;container-type:inline-size}
+.pc{width:100%;position:relative;overflow:hidden;border-radius:3cqw;
+  background:#f8f3e8;color:#1c2a23;font-family:'IBM Plex Sans Arabic',sans-serif;box-shadow:0 18px 40px rgba(0,0,0,.18);display:flex;flex-direction:column}
+.pc .band{background:linear-gradient(135deg,#0b3d30,#0d5c46 60%,#147c5e);color:#fff;padding:3.4cqw 5cqw 8cqw;position:relative}
+.pc .band::after{content:"";position:absolute;inset:auto 0 -1px 0;height:6cqw;background:#f8f3e8;border-radius:6cqw 6cqw 0 0}
+.pc .brandrow{display:flex;align-items:center;justify-content:space-between;gap:2cqw}
+.pc .brandrow .b{display:flex;align-items:center;gap:2cqw;font-size:2.7cqw;font-weight:600;opacity:.95}
+.pc .brandrow img{width:6.4cqw}
+.pc .brandrow .dt{font-size:2.5cqw;opacity:.9;text-align:end;line-height:1.35}
+.pc .hello{margin-top:2.2cqw;display:flex;align-items:center;gap:3.4cqw}
+.pc .av{width:13cqw;height:13cqw;border-radius:50%;background:#fff;color:#0d5c46;display:flex;align-items:center;justify-content:center;font-size:7cqw;font-weight:800;flex:none;border:.8cqw solid #f0d878}
+.pc .nm{font-size:6.2cqw;font-weight:800;line-height:1.2}
+.pc .scope{display:inline-block;margin-top:1cqw;font-size:2.8cqw;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);padding:.4cqw 2.4cqw;border-radius:99cqw}
+.pc .body{padding:0 5cqw 3.4cqw;margin-top:-4cqw;position:relative;z-index:1;display:flex;flex-direction:column;gap:2.4cqw;flex:1}
+.pc .hero{display:grid;grid-template-columns:27cqw 1fr;gap:3.4cqw;align-items:center;background:#fff;border:1px solid #e6dcc6;border-radius:3.4cqw;padding:3cqw 3.4cqw}
+.pc .ring{position:relative;width:27cqw;height:27cqw}
+.pc .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.pc .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pc .stars{display:flex;gap:.6cqw;margin-bottom:.4cqw}
+.pc .stars svg{width:3.6cqw;height:3.6cqw}
+.pc .pct{font-size:8cqw;font-weight:800;line-height:1}
+.pc .tier{font-size:2.8cqw;font-weight:700;color:#fff;padding:.2cqw 2.4cqw;border-radius:99cqw;margin-top:.8cqw}
+.pc .msg{font-size:4.1cqw;font-weight:800;line-height:1.4}
+.pc .trend{margin-top:1.4cqw;display:flex;align-items:flex-end;gap:2cqw}
+.pc .trend .bar{display:flex;flex-direction:column;align-items:center;font-size:2.3cqw;color:#6b6b63;gap:.6cqw}
+.pc .trend .bar i{display:block;width:6cqw;border-radius:1.2cqw 1.2cqw .4cqw .4cqw;background:#d9cfb8}
+.pc .trend .bar.cur i{background:var(--tc)}
+.pc .trend .bar b{color:#1c2a23;font-size:2.6cqw}
+.pc .trendtx{font-size:2.8cqw;font-weight:700;margin-top:1cqw;line-height:1.45}
+.pc .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:2cqw}
+.pc .tile{border-radius:2.8cqw;padding:1.4cqw 1cqw;border:1px solid;display:flex;align-items:center;justify-content:center;gap:1.8cqw}
+.pc .tile b{font-size:5.6cqw;line-height:1.1}
+.pc .tile span{font-size:2.9cqw;font-weight:700}
+.pc .t1{background:#e8f2ec;border-color:#bcd9c8;color:#0d5c46}
+.pc .t2{background:#f8efd9;border-color:#e6cf98;color:#8a6221}
+.pc .t3{background:#f6e4df;border-color:#e2bcb1;color:#9e3b2d}
+.pc .two{display:grid;grid-template-columns:1fr 1fr;gap:2cqw}
+.pc .box{background:#fff;border:1px solid #e6dcc6;border-radius:2.8cqw;padding:2.2cqw 2.6cqw}
+.pc .box h5{margin:0 0 .8cqw;font-size:3.1cqw;display:flex;align-items:center;gap:1.2cqw}
+.pc .box h5 i{width:2.4cqw;height:2.4cqw;border-radius:50%;display:inline-block}
+.pc .box ul{margin:0;padding:0;list-style:none;font-size:2.8cqw;line-height:1.5}
+.pc .box li{margin-bottom:.5cqw}
+.pc .box li b{color:#9e3b2d}
+.pc .task{background:#fff6dc;border:.5cqw dashed #c9a13b;border-radius:3cqw;padding:2.4cqw 3cqw;display:flex;gap:2.4cqw;align-items:flex-start}
+.pc .task .ic{flex:none;width:8cqw;height:8cqw;border-radius:50%;background:#c9a13b;display:flex;align-items:center;justify-content:center}
+.pc .task .ic svg{width:4.6cqw;height:4.6cqw}
+.pc .task h5{margin:0;font-size:3.3cqw;color:#6b4a10}
+.pc .task p{margin:.3cqw 0 0;font-size:3cqw;line-height:1.5;font-weight:600}
+.pc .kidmsg{display:none}
+.pc .note{font-family:'Amiri',serif;font-size:3.5cqw;line-height:1.6;color:#2a352f;border-inline-start:.8cqw solid #c9a13b;padding-inline-start:2.4cqw}
+.pc .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-size:2.4cqw;color:#6b6b63;gap:2cqw}
+.pc .foot .sg{text-align:center}
+.pc .foot .sg b{display:block;color:#0b3d30;font-size:2.9cqw}
+.pc .foot .sg{display:flex;align-items:center;gap:2cqw;text-align:start}
+.pc .foot .sg .stamp{flex:none;width:10cqw;height:10cqw;border-radius:50%;border:.4cqw dashed #9eb8ad;display:flex;align-items:center;justify-content:center;font-size:2cqw;color:#7a978b}
+
+/* ---- نسخة ركن الأطفال: نفس الهيكل بألوان مرحة ---- */
+.pc.kids{background:#f2f8ff}
+.pc.kids .band{background:linear-gradient(135deg,#2f6fd6,#45a3e6 55%,#5cc8c2)}
+.pc.kids .band::after{background:#f2f8ff}
+.pc.kids .av{border-color:#ffd54a;color:#2f6fd6}
+.pc.kids .hero,.pc.kids .box{border-color:#cfe1f5;border-radius:4.4cqw}
+.pc.kids .tile{border-radius:4cqw}
+.pc.kids .task{background:#fff4cf;border-color:#f2b705;border-radius:4.4cqw}
+.pc.kids .kidmsg{display:flex;gap:2.2cqw;align-items:center;background:linear-gradient(90deg,#ffe37a,#ffd0e1);border-radius:4.4cqw;padding:2cqw 3cqw;font-size:3.2cqw;font-weight:800;color:#5a3a00}
+.pc.kids .kidmsg svg{width:7cqw;height:7cqw;flex:none}
+.pc.kids .note{display:none}
+.pc .confetti{display:none}
+.pc.kids .confetti{display:block;position:absolute;inset:0;pointer-events:none}
+
+.spec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:13.5px}
+.spec h3{margin:0 0 6px;font-size:15px}
+.spec ul{margin:0 0 10px;padding-inline-start:18px}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--em);color:#fff;font-weight:700;font-size:14px;padding:10px 16px;border-radius:10px;cursor:pointer;margin-top:12px}
+.btn[disabled]{opacity:.6;cursor:wait}
+
+/* ============ ملاحظات النصوص ============ */
+.tbl{width:100%;border-collapse:separate;border-spacing:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:13.5px}
+.tbl th,.tbl td{padding:10px 12px;text-align:start;vertical-align:top;border-bottom:1px solid var(--line)}
+.tbl th{background:color-mix(in srgb,var(--em) 12%,var(--panel));font-size:13px}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.old{color:var(--soft);text-decoration:line-through;text-decoration-color:color-mix(in srgb,#9e3b2d 55%,transparent)}
+.tbl td.new{color:var(--em2);font-weight:600}
+.tbl .tag{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:0 8px;margin-bottom:4px}
+.tag.fix{background:#f6e4df;color:#9e3b2d}.tag.clr{background:#f8efd9;color:#8a6221}.tag.add{background:#e8f2ec;color:#0d5c46}
+@media (max-width:760px){
+  .tbl thead{display:none}.tbl tr{display:block;border-bottom:1px solid var(--line)}.tbl td{display:block;border:0;padding:4px 12px}
+  .tbl td:first-child{padding-top:10px}.tbl td:last-child{padding-bottom:10px}
+  .r1 .row,.r1 .ins{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1><img src="assets/brand/ham-logo.svg" alt=""><span data-t="title"></span></h1>
+      <p data-t="subtitle"></p>
+    </div>
+    <div class="ctrls">
+      <div class="seg" id="seg-tier"><button data-v="excellent" data-t="c_exc"></button><button data-v="average" class="on" data-t="c_avg"></button><button data-v="weak" data-t="c_weak"></button></div>
+      <div class="seg" id="seg-aud"><button data-v="adult" class="on" data-t="c_adult"></button><button data-v="kids" data-t="c_kids"></button></div>
+      <div class="seg" id="seg-g"><button data-v="boy" class="on" data-t="c_boy"></button><button data-v="girl" data-t="c_girl"></button></div>
+      <div class="seg" id="seg-lang"><button data-v="ar" class="on">العربية</button><button data-v="en">English</button></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button data-tab="t1" class="on" data-t="tab1"></button>
+    <button data-tab="t2" data-t="tab2"></button>
+    <button data-tab="t3" data-t="tab3"></button>
+  </div>
+
+  <!-- ===================== التبويب 1 ===================== -->
+  <section class="tab on" id="t1">
+    <div class="lead" data-t="t1_lead"></div>
+    <div class="cmp">
+      <div>
+        <h3 data-t="t1_cur"></h3>
+        <p class="cap" data-t="t1_cur_cap"></p>
+        <img class="shot" src="previews/indiv-report-current.jpg" alt="">
+      </div>
+      <div>
+        <h3 data-t="t1_new"></h3>
+        <p class="cap" data-t="t1_new_cap"></p>
+        <div id="r1"></div>
+      </div>
+    </div>
+    <div class="legend"><h3 data-t="t1_legend"></h3><ol id="r1-legend"></ol></div>
+  </section>
+
+  <!-- ===================== التبويب 2 ===================== -->
+  <section class="tab" id="t2">
+    <div class="lead" data-t="t2_lead"></div>
+    <div class="m2">
+      <div class="cardwrap"><div id="pc-host"></div></div>
+      <div class="spec" id="spec"></div>
+    </div>
+  </section>
+
+  <!-- ===================== التبويب 3 ===================== -->
+  <section class="tab" id="t3">
+    <div class="lead" data-t="t3_lead"></div>
+    <table class="tbl"><thead><tr><th data-t="th_where"></th><th data-t="th_old"></th><th data-t="th_new"></th><th data-t="th_why"></th></tr></thead><tbody id="tbl"></tbody></table>
+  </section>
+</div>
+
+<script>
+const S = { tier:'average', aud:'adult', g:'boy', lang:'ar' };
+
+/* ------------------------- نصوص واجهة المعاينة ------------------------- */
+const UI = {
+ ar:{
+  title:'تقرير التقييم الفردي — مقترحات للنقاش',
+  subtitle:'معاينة فقط ببيانات تجريبية، لم يُعدَّل شيء داخل المنصة بعد.',
+  c_exc:'ممتاز', c_avg:'متوسط', c_weak:'يحتاج دعمًا', c_adult:'الكبار', c_kids:'الصغار', c_boy:'طالب', c_girl:'طالبة',
+  tab1:'① تحسين التقرير الحالي', tab2:'② تصميم جديد للصورة (واتساب)', tab3:'③ ملاحظات على النصوص',
+  t1_lead:'نفس هوية التقرير الحالي وترتيبه العام، مع <b>12 تحسينًا</b> مرقّمة. غيّر المستوى أو (طالب/طالبة) من الأعلى لترى كيف تتغيّر الصياغة. على اليمين لقطة حقيقية من التقرير الحالي كما يُصدَّر صورةً اليوم.',
+  t1_cur:'التقرير الحالي (لقطة حقيقية)', t1_cur_cap:'720×1400 تقريبًا — صورة طويلة، نصّها صغير عند فتحها في واتساب.',
+  t1_new:'بعد التحسين', t1_new_cap:'الأرقام الذهبية تشير إلى التحسينات المشروحة بالأسفل.',
+  t1_legend:'ما الذي تغيّر؟',
+  t2_lead:'بطاقة مصمَّمة <b>للهاتف وواتساب أولًا</b>: عرض 1080 بكسل، خط كبير يُقرأ دون تكبير، ورسالة واحدة واضحة لولي الأمر + مهمة منزلية محددة. جرّب «الصغار» لترى نسخة ركن الأطفال، واضغط «تنزيل الصورة» لترى الجودة الفعلية.',
+  t3_lead:'كل الملاحظات على نصوص التقرير الحالي: <span class="tag fix">تصحيح</span> خطأ لغوي أو منطقي، <span class="tag clr">توضيح</span> صياغة أوضح لولي الأمر، <span class="tag add">إضافة</span> نص جديد غير موجود.',
+  th_where:'الموضع', th_old:'النص الحالي', th_new:'المقترح', th_why:'السبب',
+  dl:'تنزيل الصورة (عرض 1080)', busy:'جارِ التجهيز…'
+ },
+ en:{
+  title:'Individual evaluation report — proposals for discussion',
+  subtitle:'Preview only with sample data; nothing has been changed inside the platform yet.',
+  c_exc:'Excellent', c_avg:'Average', c_weak:'Needs support', c_adult:'Adults', c_kids:'Kids', c_boy:'Boy', c_girl:'Girl',
+  tab1:'① Improve the current report', tab2:'② New image design (WhatsApp)', tab3:'③ Notes on the wording',
+  t1_lead:'Same identity and overall order as today\'s report, with <b>12 numbered improvements</b>. Switch the level or boy/girl above to see how the wording adapts. On the side is a real capture of today\'s report as exported.',
+  t1_cur:'Current report (real capture)', t1_cur_cap:'About 720×1400 — a tall image whose text is small when opened in WhatsApp.',
+  t1_new:'After improvement', t1_new_cap:'Gold numbers point to the improvements explained below.',
+  t1_legend:'What changed?',
+  t2_lead:'A card designed <b>phone and WhatsApp first</b>: 1080 px wide, large type readable without zooming, one clear message for the parent + one concrete home task. Try “Kids” for the kids-corner version, and press “Download image” to see the real quality.',
+  t3_lead:'All notes on the current report wording: <span class="tag fix">Fix</span> a language or logic error, <span class="tag clr">Clarify</span> clearer wording for parents, <span class="tag add">Add</span> new text.',
+  th_where:'Where', th_old:'Current text', th_new:'Proposed', th_why:'Why',
+  dl:'Download image (1080 wide)', busy:'Preparing…'
+ }
+};
+
+/* ------------------------- بيانات تجريبية لكل مستوى ------------------------- */
+const DATA = {
+  excellent:{ score:95, prev:[78,88], full:7, help:1, wrong:0, n:8, mins:6, avg:18 },
+  average:  { score:70, prev:[62,71], full:4, help:2, wrong:2, n:8, mins:7, avg:22 },
+  weak:     { score:45, prev:[52,48], full:2, help:2, wrong:4, n:8, mins:9, avg:31 }
+};
+const COLORS = { excellent:'#0d5c46', average:'#b8863b', weak:'#a15230' };
+const STARS = { excellent:3, average:1, weak:0 };
+
+const isAr = () => S.lang === 'ar';
+const G = (b, g) => S.g === 'girl' ? g : b;   // صياغة مذكر/مؤنث
+const name = () => isAr() ? G('يوسف','مريم') : G('Yusuf','Maryam');
+const full = () => isAr() ? G('يوسف أحمد','مريم أحمد') : G('Yusuf Ahmed','Maryam Ahmed');
+// تمييز العدد في العربية: 1 سؤال، 2 سؤالان، 3–10 أسئلة، 11+ سؤالًا
+function arCount(n, one, two, few, many){ if(n===1) return one; if(n===2) return two; if(n<=10) return n+' '+few; return n+' '+many; }
+function pts(n){ return isAr() ? arCount(n,'نقطة واحدة','نقطتين','نقاط','نقطة') : (n===1?'1 point':n+' points'); }
+// «بنقطة» / «بنقطتين» / «بـ 7 نقاط»
+const bi = (n) => (n<=2 ? 'ب' : 'بـ ') + pts(n);
+
+function texts(){
+  const d = DATA[S.tier], t = S.tier, kid = S.aud==='kids', N = name();
+  const last = d.prev[d.prev.length-1], diff = d.score - last, ad = Math.abs(diff);
+  const ar = isAr();
+  const T = {};
+  T.tierLabel = ar ? {excellent:'ممتاز',average:'متوسط',weak:'يحتاج دعمًا'}[t] : {excellent:'Excellent',average:'Average',weak:'Needs support'}[t];
+  T.trend = ar
+    ? (ad<=2 ? (ad===0 ? `ثابت (مثل المرة السابقة ${last}%)` : `ثابت تقريبًا (${diff<0?'أقل':'أعلى'} ${bi(ad)} من المرة السابقة ${last}%)`) : diff>0 ? `أعلى ${bi(ad)} من المرة السابقة (${last}%)` : `أقل ${bi(ad)} من المرة السابقة (${last}%)`)
+    : (ad<=2 ? `About the same (${ad} ${diff<0?'lower':'higher'} than last time, ${last}%)` : diff>0 ? `${pts(ad)} higher than last time (${last}%)` : `${pts(ad)} lower than last time (${last}%)`);
+  T.trendCls = ad<=2 ? 'flat' : diff>0 ? 'up' : 'down';
+  T.dateLong = ar ? 'الخميس 5 نوفمبر 2026' : 'Thursday, 5 November 2026';
+  T.hijri = ar ? '25 جمادى الأولى 1448هـ' : '25 Jumada al-Ula 1448 AH';
+  T.scope = ar ? 'سورة الملك' : 'Surah Al-Mulk';
+  T.facts = ar ? `${arCount(d.n,'سؤال','سؤالان','أسئلة','سؤالًا')} · ${arCount(d.mins,'دقيقة','دقيقتان','دقائق','دقيقة')}` : `${d.n} questions · ${d.mins} min`;
+  T.honest = ar ? {
+     excellent:`نتيجة تعكس إتقانًا حقيقيًا لمعظم أسئلة اليوم.`,
+     average:`الأساس موجود، وبقيت مواضع محددة تحتاج مراجعة منتظمة.`,
+     weak:`النتيجة اليوم أقل مما نطمح إليه، والمواضع التي تحتاج مراجعة محددة بالأسفل.`}[t]
+   : {excellent:`A result that reflects real mastery of most of today's questions.`,
+     average:`The foundation is there; a few specific places need regular review.`,
+     weak:`Today's result is below what we hope for; the places to review are listed below.`}[t];
+  // رسالة البطاقة الكبيرة
+  T.msg = ar ? (kid ? {
+      excellent:`${G('أحسنت يا بطل','أحسنتِ يا بطلة')}! ${N} ${G('نجم','نجمة')} المراجعة اليوم`,
+      average:`${N} ${G('يتقدّم','تتقدّم')} خطوة بخطوة.. وبقي القليل!`,
+      weak:`${N} ${G('تدرّب','تدرّبت')} بشجاعة اليوم، ومعًا ${G('سيتقن','ستتقن')} آياته${G('','ا')}`.replace('آياتها','آياتها')}[t]
+    : {
+      excellent:`ما شاء الله! ${N} ${G('أتقن','أتقنت')} مراجعة اليوم`,
+      average:`${N} على الطريق الصحيح، وبقيت مواضع قليلة`,
+      weak:`${N} ${G('بذل','بذلت')} جهدًا اليوم، ${G('ويحتاج','وتحتاج')} دعمكم هذا الأسبوع`}[t])
+   : (kid ? {
+      excellent:`Well done, champion! ${N} is today's review star`,
+      average:`${N} is moving forward step by step — almost there!`,
+      weak:`${N} practised bravely today; together ${G('he','she')}'ll master it`}[t]
+    : {
+      excellent:`Masha'Allah! ${N} mastered today's review`,
+      average:`${N} is on the right track, with a few places left`,
+      weak:`${N} made an effort today and needs your support this week`}[t]);
+  if (ar && kid && t==='weak') T.msg = `${N} ${G('تدرّب','تدرّبت')} بشجاعة اليوم، ومعًا ${G('سيتقنها','ستتقنها')}!`;
+  // أتقن / يراجع
+  const goodAr = {
+    excellent:[`أجاب${G('','ت')} إجابة كاملة عن 7 من 8 أسئلة دون مساعدة`, `سرعة ممتازة: 18 ثانية للسؤال`],
+    average:[`أجاب${G('','ت')} إجابة كاملة عن 4 من 8 أسئلة`, `أوائل السورة ثابتة (الآيات 1–8)`],
+    weak:[`أكمل${G('','ت')} الاختبار حتى آخر سؤال`, `بداية السورة حاضرة (الآية 1)`]}[t];
+  const goodEn = {
+    excellent:['Fully correct in 7 of 8 questions without help','Excellent speed: 18 s per question'],
+    average:['Fully correct in 4 of 8 questions','The opening of the surah is solid (āyāt 1–8)'],
+    weak:['Completed the test to the last question','Remembers the start of the surah (āyah 1)']}[t];
+  T.good = ar ? goodAr : goodEn;
+  const revAr = {
+    excellent:[['20','بداية الآية (استعان بتلميح)'.replace('استعان',G('استعان','استعانت'))]],
+    average:[['15','الانتقال إلى الآية التالية'],['27','تذكّر الآية السابقة'],['12','ترتيب كلمات الآية']],
+    weak:[['9','الانتقال إلى الآية التالية'],['15','الانتقال إلى الآية التالية'],['22','نسيان كلمة'],['27','تذكّر الآية السابقة']]}[t];
+  const revEn = {
+    excellent:[['20','start of the āyah (used a hint)']],
+    average:[['15','moving on to the next āyah'],['27','recalling the previous āyah'],['12','word order of the āyah']],
+    weak:[['9','moving on to the next āyah'],['15','moving on to the next āyah'],['22','a forgotten word'],['27','recalling the previous āyah']]}[t];
+  T.review = ar ? revAr : revEn;
+  T.ayah = ar ? 'الآية' : 'Āyah';
+  // مهمة البيت
+  T.taskH = ar ? (t==='weak' ? 'مهمتكم معًا: 10 دقائق يوميًا' : 'مهمتكم في البيت: 5 دقائق يوميًا') : (t==='weak' ? 'Your task together: 10 minutes a day' : 'Your home task: 5 minutes a day');
+  T.task = ar ? {
+      excellent:`ثبّتوا الإنجاز: ${G('اطلبوا من','اطلبوا من')} ${N} تلاوة سورة الملك كاملة غيبًا مرة هذا الأسبوع، وامدحو${G('ه','ها')} أمام العائلة.`,
+      average:`استمعوا من ${N} إلى الآيات 12–15 و 26–27 من سورة الملك غيبًا مرتين، وصحّحوا ${G('له','لها')} بلطف.`,
+      weak:`${G('يقرأ','تقرأ')} ${N} من المصحف الآيات 9–27 ثلاث مرات، ثم ${G('يسمّعها','تسمّعها')} لكم غيبًا آيةً آية.`}[t]
+    : {
+      excellent:`Lock it in: ask ${N} to recite all of Surah Al-Mulk from memory once this week, and praise ${G('him','her')} in front of the family.`,
+      average:`Listen to ${N} recite āyāt 12–15 and 26–27 of Surah Al-Mulk from memory twice, and correct gently.`,
+      weak:`${N} reads āyāt 9–27 from the Mushaf three times, then recites them to you from memory, one āyah at a time.`}[t];
+  // ملاحظة المعلم المختصرة
+  T.note = ar ? {
+      excellent:`أداء ${N} اليوم ممتاز ويعكس حفظًا متينًا. نسأل الله ${G('له','لها')} الثبات والبركة.`,
+      average:`أداء ${N} اليوم متوسط والأساس موجود؛ مراجعة قصيرة كل يوم ستُحدث الفرق بإذن الله.`,
+      weak:`${N} ${G('بذل','بذلت')} جهدًا، ونثق أن متابعتكم القريبة هذا الأسبوع ستُحدث فرقًا واضحًا بإذن الله.`}[t]
+    : {
+      excellent:`${N}'s performance today was excellent and reflects solid memorization. May Allah grant ${G('him','her')} steadfastness.`,
+      average:`${N}'s performance today was average and the foundation is there; a short daily review will make the difference, in shā' Allāh.`,
+      weak:`${N} made an effort, and we trust that your close follow-up this week will make a clear difference, in shā' Allāh.`}[t];
+  T.kid = ar ? {
+      excellent:`رسالة إلى ${N}: نجومك الثلاث تلمع! استمر${G('','ي')} يا ${G('بطل','بطلة')} ⭐`,
+      average:`رسالة إلى ${N}: راجع${G('','ي')} آياتك الثلاث وستربح${G('','ين')} النجمة القادمة!`,
+      weak:`رسالة إلى ${N}: كل يوم آية.. و${G('ستصبح بطل','ستصبحين بطلة')} المراجعة!`}[t]
+    : {
+      excellent:`A message to ${N}: your three stars are shining! Keep going, champion ⭐`,
+      average:`A message to ${N}: review your three āyāt and win the next star!`,
+      weak:`A message to ${N}: one āyah a day… and you'll be a review champion!`}[t];
+  T.teacher = ar ? 'أ. عبد الله محمود' : 'Mr. Abdullah Mahmoud';
+  T.teacherRole = ar ? 'معلم الحلقة' : 'Halaqah teacher';
+  T.stamp = ar ? 'ختم المعلم' : 'Stamp';
+  T.brand = ar ? 'منصة حمٓ لتثبيت الحفظ والمراجعة' : 'Ham — Memorization & Review Platform';
+  T.cardTitle = ar ? 'متابعة يومية لولي الأمر' : 'Daily update for parents';
+  T.mastered = ar ? 'ما أتقنه' + G('','ت') + ' اليوم' : 'Mastered today';
+  T.toReview = ar ? 'يحتاج مراجعة' : 'To review';
+  T.tFull = ar ? 'كاملة' : 'Fully correct';
+  T.tHelp = ar ? 'بمساعدة' : 'With help';
+  T.tWrong = ar ? 'تحتاج مراجعة' : 'To review';
+  T.today = ar ? 'اليوم' : 'Today';
+  T.prevDates = ['20/10','27/10'];
+  T.noReview = ar ? 'لا شيء اليوم — ما شاء الله' : 'Nothing today — well done';
+  return T;
+}
+
+function starSvg(on){ return `<svg viewBox="0 0 20 20"><path d="M10 1.6l2.5 5.3 5.6.7-4.1 4 1.1 5.6L10 14.5l-5.1 2.7 1.1-5.6-4.1-4 5.6-.7z" ${on?'fill="#d4af37"':'fill="none" stroke="#d9cfb8" stroke-width="1.5"'}/></svg>`; }
+function ring(score, color, stroke, track){
+  const r=42, c=2*Math.PI*r, off=c*(1-score/100);
+  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="${track}" stroke-width="${stroke}"/><circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/></svg>`;
+}
+
+/* ===================== النموذج 1 ===================== */
+function renderR1(){
+  const T = texts(), d = DATA[S.tier], col = COLORS[S.tier], ar = isAr();
+  const pin = (n, pos) => `<span class="pin" style="${pos}">${n}</span>`;
+  const deltaStyle = {up:'background:#e8f2ec;color:#0d5c46',down:'background:#f6e4df;color:#9e3b2d',flat:'background:#efe9dc;color:#6f644e'}[T.trendCls];
+  const steps = [...d.prev.map((p,i)=>({p, w:T.prevDates[i], cur:false})), {p:d.score, w:T.today, cur:true}];
+  const stepCol = p => p>=90?'#0d5c46':p>=75?'#147c5e':p>=60?'#b8863b':'#a15230';
+  const ladder = steps.map(s=>`<div class="st${s.cur?' cur':''}"><i style="background:${stepCol(s.p)}">${s.p}</i>${s.w}</div>`).join(`<span class="arr">${ar?'←':'→'}</span>`);
+  const L = ar ? {
+    eye:T.brand, h:'تقرير تقييم المراجعة', sub:'خطوة بخطوة… نحو كتاب الله',
+    grade:'الصف', gradeV:'الرابع', scope:'النطاق', date:'التاريخ', qs:'الأسئلة',
+    ladder:'تطوّر النتيجة (من الأقدم إلى اليوم)', full:'صحيحة كاملة', help:'صحيحة بمساعدة', helpS:'تلميح أو إعادة ترتيب', wrong:'غير صحيحة',
+    avg:'متوسط وقت الإجابة', hints:'تلميحات', reord:'إعادة ترتيب الكلمات', s:'ث',
+    good:'نقاط القوة', focus:'يحتاج مراجعة', home:'خطوة لولي الأمر في البيت', note:'ملاحظة المعلم لولي الأمر', no:'رقم التقرير'
+  } : {
+    eye:T.brand, h:'Review evaluation report', sub:'Step by step… towards the Book of Allah',
+    grade:'Grade', gradeV:'4', scope:'Range', date:'Date', qs:'Questions',
+    ladder:'Score over time (oldest to today)', full:'Fully correct', help:'Correct with help', helpS:'hint or re-ordering', wrong:'Incorrect',
+    avg:'Average answer time', hints:'Hints', reord:'Word re-ordering', s:'s',
+    good:'Strengths', focus:'To review', home:'A step for the parent at home', note:"Teacher's note to the parent", no:'Report no.'
+  };
+  const stats = [`${L.avg}: <b>${d.avg} ${L.s}</b>`];
+  if (d.help) stats.push(`${L.hints}: <b>1</b>`, `${L.reord}: <b>1</b>`);
+  const rev = T.review.length ? T.review.map(([a,w])=>`<li><b>${T.ayah} ${a}</b> — ${w}</li>`).join('') : `<li>${T.noReview}</li>`;
+  document.getElementById('r1').innerHTML = `
+  <div class="r1" dir="${ar?'rtl':'ltr'}">
+    <img class="orn tr" src="assets/report/report-corner-orn.png" alt=""><img class="orn tl" src="assets/report/report-corner-orn.png" alt="">
+    <img class="orn br" src="assets/report/report-corner-orn.png" alt=""><img class="orn bl" src="assets/report/report-corner-orn.png" alt="">
+    ${pin(1,'top:40px;inset-inline-start:30%')}
+    <div class="head"><img class="logo" src="assets/brand/ham-logo.svg" alt="">
+      <div class="t"><div class="eye">${L.eye}</div><h2>${L.h}</h2><div class="sub">${L.sub}</div></div>
+      <img class="rehl" src="assets/report/report-quran-rehl.png" alt=""></div>
+    <div class="row">
+      <div class="card">${pin(2,'top:-8px;inset-inline-end:10px')}
+        <div class="stu"><div class="av">${name()[0]}</div><div style="min-width:0">
+          <div class="nm">${full()}</div>
+          <div class="facts"><span>${L.grade}: <b>${L.gradeV}</b></span><span>${L.scope}: <b>${T.scope}</b></span>
+          <span style="grid-column:1/-1">${L.date}: <b>${T.dateLong}</b></span><span style="grid-column:1/-1">${L.qs}: <b>${T.facts}</b></span></div></div></div>
+      </div>
+      <div class="card gauge">${pin(3,'top:-8px;inset-inline-end:10px')}
+        <div class="ring">${ring(d.score,col,9,'#e4d9c4')}<div class="c"><div class="pct" style="color:${col}">${d.score}%</div><div class="tier" style="background:${col}">${T.tierLabel}</div></div></div>
+        <div class="delta" style="${deltaStyle}">${T.trend}</div>
+      </div>
+    </div>
+    <p class="honest">${T.honest}</p>
+    <div class="card">${pin(4,'top:-8px;inset-inline-end:10px')}<h4>${L.ladder}</h4><div class="ladder">${ladder}</div></div>
+    <div class="chips" style="position:relative">${pin(5,'top:-8px;inset-inline-end:33%')}
+      <div class="chip full">${L.full}<b>${d.full}</b></div>
+      <div class="chip help">${L.help}<b>${d.help}</b><small>${L.helpS}</small></div>
+      <div class="chip wrong">${L.wrong}<b>${d.wrong}</b></div>
+    </div>
+    <div class="stats" style="position:relative">${pin(6,'top:-4px;inset-inline-end:0')}${stats.map(s=>`<span>${s}</span>`).join('')}</div>
+    <div class="ins">
+      <div class="card g">${pin(7,'top:-8px;inset-inline-end:10px')}<h4>${L.good}</h4><ul>${T.good.map(g=>`<li>${g}</li>`).join('')}</ul></div>
+      <div class="card f">${pin(8,'top:-8px;inset-inline-end:10px')}<h4>${L.focus} — ${T.scope}</h4><ul>${rev}</ul></div>
+    </div>
+    <div class="home">${pin(9,'top:-8px;inset-inline-end:10px')}<h4>${L.home}</h4><p>${T.task}</p></div>
+    <div class="card note">${pin(12,'top:-8px;inset-inline-end:10px')}<h4>${L.note}</h4><p>${T.note}</p></div>
+    <div class="foot">
+      <div>${T.dateLong} · ${T.hijri}<div class="id">${pin(11,'position:static;width:16px;height:16px;font-size:9px;display:inline-flex;vertical-align:middle')} ${L.no}: <span dir="ltr">IR-2611-0412</span></div></div>
+      <div class="sg" style="position:relative">${pin(10,'top:-14px;inset-inline-end:-6px')}<div class="ln"></div><b>${T.teacher}</b>${T.teacherRole}</div>
+    </div>
+  </div>`;
+  const LG = ar ? [
+    ['ترويسة أقصر','العنوان صار «تقرير تقييم المراجعة» (أدق من «تقدّم الطالب في حفظ القرآن» لأن الجلسة مراجعة)، وحُذف السطر الثالث فوُفّرت ~25% من الارتفاع للمحتوى المهم.'],
+    ['معلومات الجلسة في مكان واحد','التاريخ (باليوم) وعدد الأسئلة والمدة صارت في بطاقة الطالب بدل أسفل التقرير؛ ولي الأمر يعرف «متى وعلى ماذا» من أول نظرة.'],
+    ['شارة الفرق بلغة مفهومة','بدل «▼ 1 عن المحاولة السابقة» صارت «ثابت تقريبًا (أقل بنقطة واحدة عن المرة السابقة 71%)»، ولون محايد عندما يكون الفرق نقطتين أو أقل حتى لا يُفهم تراجعًا.'],
+    ['سُلّم التقدّم بالترتيب الزمني','من الأقدم إلى اليوم مع أسهم، والنسبة داخل الدائرة؛ الحالي كان يبدأ بـ«هذا التقييم» ثم يرجع للخلف فيصعب قراءة الاتجاه.'],
+    ['«صحيحة جزئيًا» ← «صحيحة بمساعدة»','مع سطر صغير «تلميح أو إعادة ترتيب»؛ كلمة «جزئيًا» توحي بأن الإجابة ناقصة، والحقيقة أنها صحيحة احتاجت مساعدة.'],
+    ['سطر الإحصاءات','«محاولات ترتيب متكررة» ← «إعادة ترتيب الكلمات»، وتُخفى أي قيمة صفرية بدل عرض «0».'],
+    ['نقاط القوة: تصحيح لغوي ومنطقي','«4 من 8 سؤالًا» ← «4 من 8 أسئلة» (تمييز العدد)، ولا تُكتب «حفظ صحيح ودقيق» إذا كانت الصحيحة نصف الأسئلة أو أقل.'],
+    ['«بحاجة إلى تركيز» بأرقام الآيات','بدل «ما الآية التالية + ما الآية السابقة — خطأ: نسيان كلمة» (أسماء أنواع أسئلة تقنية) صار: «الآية 15 — الانتقال إلى الآية التالية». ولي الأمر يفتح المصحف مباشرة.'],
+    ['جديد: خطوة لولي الأمر في البيت','مهمة واحدة محددة بالآيات والوقت (5–10 دقائق)، مبنية تلقائيًا من أخطاء اليوم. هذا أكثر ما يحتاجه ولي الأمر: «ماذا أفعل الآن؟».'],
+    ['إصلاح تكرار «المعلم / المعلم»','حين لا يوجد اسم معلم يظهر سطر التوقيع فقط، وحين يوجد: الاسم + «معلم الحلقة» (والختم إن رُفع).'],
+    ['رقم التقرير أصغر','لا يعني ولي الأمر شيئًا؛ بقي للأرشفة بخط صغير، وصار بصيغة مقروءة (IR-2611-0412) بدل المعرّف الداخلي.'],
+    ['ملاحظة المعلم أقصر ومراعية للجنس','جملتان بدل ثلاث؛ وصارت الأفعال تُصرَّف حسب جنس الطالب/الطالبة (حاليًا: «لكنه… احتاج» حتى للطالبات رغم أن الجنس مسجَّل في ملف الطالب).']
+  ] : [
+    ['Shorter header','Title is now “Review evaluation report” (more accurate — the session is a review), and the third line is dropped, saving ~25% height for what matters.'],
+    ['Session info in one place','Date (with weekday), number of questions and duration sit on the student card instead of the footer: “when and what” at first glance.'],
+    ['Plain-language change badge','Instead of “▼ 1 vs. previous attempt”: “About the same (1 lower than last time, 71%)”, with a neutral colour when the change is 2 points or less.'],
+    ['Chronological progress ladder','Oldest to today with arrows and the score inside the dot; today the ladder starts with “this evaluation” and goes backwards.'],
+    ['“Partially correct” → “Correct with help”','Plus a small “hint or re-ordering” line; “partially” suggests an incomplete answer, while it was right but needed help.'],
+    ['Stats line','“Repeated ordering attempts” → “Word re-ordering”, and zero values are hidden.'],
+    ['Strengths: grammar & logic','Arabic number agreement fixed (“4 من 8 أسئلة”), and “accurate memorization” is not claimed when half or fewer were correct.'],
+    ['“Needs focus” by āyah number','Instead of internal question-type names (“next āyah + previous āyah — error: forgotten word”): “Āyah 15 — moving on to the next āyah”. The parent can open the Mushaf right away.'],
+    ['New: a step for the parent at home','One concrete task with āyāt and time (5–10 min), built automatically from today\'s mistakes — the parent\'s real question: “what do I do now?”.'],
+    ['“Teacher / Teacher” duplication fixed','With no teacher name only the signature line shows; with a name: name + “Halaqah teacher” (and the stamp if uploaded).'],
+    ['Smaller report number','Meaningless to parents; kept small for archiving, in a readable format (IR-2611-0412).'],
+    ['Shorter, gender-aware teacher note','Two sentences instead of three; verbs follow the student\'s gender (today Arabic uses masculine forms even for girls, although gender is stored).']
+  ];
+  document.getElementById('r1-legend').innerHTML = LG.map((x,i)=>`<li><span class="pin">${i+1}</span><span><b>${x[0]}</b>${x[1]}</span></li>`).join('');
+}
+
+/* ===================== النموذج 2 ===================== */
+function renderPC(){
+  const T = texts(), d = DATA[S.tier], col = COLORS[S.tier], ar = isAr(), kid = S.aud==='kids';
+  const kcol = kid ? {excellent:'#2f6fd6',average:'#f29d0c',weak:'#e2604a'}[S.tier] : col;
+  const bars = [...d.prev.map((p,i)=>({p,w:T.prevDates[i]})),{p:d.score,w:T.today,cur:true}]
+    .map(b=>`<div class="bar${b.cur?' cur':''}"><b>${b.p}%</b><i style="height:${(b.p/100*9).toFixed(1)}cqw"></i>${b.w}</div>`).join('');
+  const trendCol = {up:'#0d5c46',down:'#9e3b2d',flat:'#6f644e'}[T.trendCls];
+  const rev = T.review.length ? T.review.slice(0,3).map(([a,w])=>`<li><b>${T.ayah} ${a}</b>: ${w}</li>`).join('') : `<li>${T.noReview}</li>`;
+  const confetti = kid ? `<svg class="confetti" viewBox="0 0 100 125" preserveAspectRatio="none">${
+     [[8,6,'#ffd54a'],[22,3,'#ff8fb1'],[40,8,'#7be0c6'],[63,4,'#ffd54a'],[80,7,'#ff8fb1'],[92,3,'#fff'],[14,15,'#fff'],[71,14,'#7be0c6']]
+     .map(([x,y,c],i)=>`<rect x="${x}" y="${y}" width="1.8" height="1.8" rx=".5" fill="${c}" transform="rotate(${i*23} ${x} ${y})" opacity=".9"/>`).join('')}</svg>` : '';
+  document.getElementById('pc-host').innerHTML = `
+  <div class="pc${kid?' kids':''}" id="pc" dir="${ar?'rtl':'ltr'}" style="--tc:${kcol}">
+    ${confetti}
+    <div class="band">
+      <div class="brandrow">
+        <div class="b"><img src="assets/brand/ham-logo-light.svg" alt="">${T.cardTitle}</div>
+        <div class="dt">${T.dateLong}<br>${T.hijri}</div>
+      </div>
+      <div class="hello"><div class="av">${name()[0]}</div>
+        <div><div class="nm">${full()}</div><span class="scope">${T.scope} · ${T.facts}</span></div></div>
+    </div>
+    <div class="body">
+      <div class="hero">
+        <div class="ring">${ring(d.score,kcol,8,'#ece4d2')}<div class="c">
+          <div class="stars">${[0,1,2].map(i=>starSvg(i<STARS[S.tier])).join('')}</div>
+          <div class="pct" style="color:${kcol}">${d.score}%</div>
+          <div class="tier" style="background:${kcol}">${T.tierLabel}</div></div></div>
+        <div>
+          <div class="msg">${T.msg}</div>
+          <div class="trend">${bars}</div><div class="trendtx" style="color:${trendCol}">${T.trend}</div>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile t1"><b>${d.full}</b><span>${T.tFull}</span></div>
+        <div class="tile t2"><b>${d.help}</b><span>${T.tHelp}</span></div>
+        <div class="tile t3"><b>${d.wrong}</b><span>${T.tWrong}</span></div>
+      </div>
+      <div class="two">
+        <div class="box"><h5><i style="background:#0d5c46"></i>${T.mastered}</h5><ul>${T.good.map(g=>`<li>${g}</li>`).join('')}</ul></div>
+        <div class="box"><h5><i style="background:#9e3b2d"></i>${T.toReview}</h5><ul>${rev}</ul></div>
+      </div>
+      <div class="task"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></div>
+        <div><h5>${T.taskH}</h5><p>${T.task}</p></div></div>
+      <div class="kidmsg"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 16.9 6.1 20.1l1.3-6.6L2.5 8.9l6.6-.8z" fill="#f2b705" stroke="#c98a00" stroke-width=".8"/></svg><span>${T.kid}</span></div>
+      <div class="note">${T.note}</div>
+      <div class="foot">
+        <div>${T.brand}</div>
+        <div class="sg"><div><b>${T.teacher}</b>${T.teacherRole}</div><div class="stamp">${T.stamp}</div></div>
+      </div>
+    </div>
+  </div>
+  <button class="btn" id="dl">${UI[S.lang].dl}</button>`;
+  document.getElementById('dl').onclick = downloadCard;
+
+  document.getElementById('spec').innerHTML = ar ? `
+    <h3>لماذا هذا الشكل؟</h3>
+    <ul>
+      <li><b>عرض 1080 بكسل وطول ≈ 1800</b> (أقصر نسبيًا من الحالية التي طولها ضعف عرضها تقريبًا)، وكل المحتوى في «شاشة ونصف» من الهاتف بدل تمرير طويل وتكبير.</li>
+      <li><b>أصغر خط في البطاقة ≈ 26px</b> عند 1080 عرضًا (الحالي ≈ 11–12px عند 720)، فيُقرأ على الهاتف دون تكبير، ويبقى واضحًا بعد ضغط واتساب للصور.</li>
+      <li><b>ترتيب القراءة</b>: من؟ ← النتيجة ورسالة واحدة ← الأرقام الثلاثة ← ما أتقنه/ما يراجعه بأرقام الآيات ← <b>ماذا أفعل في البيت؟</b> ← كلمة المعلم وختمه.</li>
+      <li><b>اتجاه النتيجة بأعمدة صغيرة</b> لآخر 3 تقييمات بدل السُّلّم، مع جملة مفهومة للفرق.</li>
+      <li><b>حد أقصى 3 آيات للمراجعة</b> في الصورة؛ القائمة الكاملة وجدول الأسئلة يبقيان في ملف PDF الشامل.</li>
+      <li><b>نسخة الصغار</b>: نفس الهيكل بألوان مرحة ونجوم + «رسالة إلى الطفل» بدل ملاحظة المعلم الطويلة، والمهمة المنزلية موجّهة لولي الأمر.</li>
+      <li>الصياغة تتغيّر تلقائيًا حسب <b>المستوى</b> و<b>جنس الطالب</b> و<b>اللغة</b>.</li>
+    </ul>
+    <h3>للنقاش معك</h3>
+    <ul>
+      <li>هل نُبقي <b>صورة الطالب</b> في الدائرة (إن رُفعت) أم الحرف الأول فقط؟</li>
+      <li>هل تفضّل أن تكون المهمة المنزلية <b>قابلة للتعديل</b> من المعلم قبل الإرسال (مثل الملاحظة الآن)؟</li>
+      <li>هل نجعل هذا الشكل هو «صورة واتساب» الافتراضية ونُبقي التصميم الحالي (بعد التحسين) لملف PDF الشامل؟</li>
+    </ul>` : `
+    <h3>Why this layout?</h3>
+    <ul>
+      <li><b>1080 px wide, ≈ 1800 tall</b> (relatively shorter than today's image, which is about twice as tall as wide); everything fits in about one and a half phone screens instead of long scrolling and zooming.</li>
+      <li><b>Smallest text ≈ 26px</b> at 1080 width (today ≈ 11–12px at 720), readable on a phone and still sharp after WhatsApp compression.</li>
+      <li><b>Reading order</b>: who? → score and one message → three numbers → mastered / to review by āyah → <b>what do I do at home?</b> → teacher's word and stamp.</li>
+      <li><b>Score trend as small bars</b> for the last 3 evaluations, with a plain sentence for the change.</li>
+      <li><b>At most 3 āyāt to review</b> in the image; the full list and the question table stay in the full PDF.</li>
+      <li><b>Kids version</b>: same structure with playful colours and stars + “a message to the child” instead of the long teacher note; the home task still speaks to the parent.</li>
+      <li>Wording adapts automatically to <b>level</b>, <b>student gender</b> and <b>language</b>.</li>
+    </ul>
+    <h3>Questions for you</h3>
+    <ul>
+      <li>Keep the <b>student photo</b> in the circle (if uploaded), or the initial only?</li>
+      <li>Should the home task be <b>editable</b> by the teacher before sending (like the note today)?</li>
+      <li>Make this the default “WhatsApp image”, and keep the (improved) current design for the full PDF?</li>
+    </ul>`;
+}
+
+let h2cPromise = null;
+function loadH2C(){
+  if (window.html2canvas) return Promise.resolve();
+  if (!h2cPromise) h2cPromise = new Promise((res, rej) => { const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  return h2cPromise;
+}
+async function downloadCard(){
+  const btn = document.getElementById('dl'); btn.disabled = true; btn.textContent = UI[S.lang].busy;
+  const host = document.querySelector('.cardwrap'); const prevW = host.style.width;
+  try {
+    await loadH2C(); await document.fonts.ready;
+    host.style.width = '540px';
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const el = document.getElementById('pc');
+    const canvas = await html2canvas(el, { scale: 1080 / el.offsetWidth, backgroundColor: null, useCORS: true });
+    const a = document.createElement('a'); a.download = `ham-report-${S.tier}-${S.aud}.png`; a.href = canvas.toDataURL('image/png'); a.click();
+  } catch (e) { alert(e.message || e); }
+  finally { host.style.width = prevW; btn.disabled = false; btn.textContent = UI[S.lang].dl; }
+}
+
+/* ===================== التبويب 3: النصوص ===================== */
+function renderTable(){
+  const ar = isAr();
+  const tag = (k) => `<span class="tag ${k}">${ar?{fix:'تصحيح',clr:'توضيح',add:'إضافة'}[k]:{fix:'Fix',clr:'Clarify',add:'Add'}[k]}</span><br>`;
+  const R = [
+    ['fix', ar?'نقاط القوة':'Strengths', 'حفظ صحيح ودقيق لعدد {c} من {n} سؤالًا دون أي مساعدة', 'أجاب{ت} إجابة كاملة دون مساعدة عن {c} من {n} أسئلة', ar?'تمييز العدد: من 3 إلى 10 يأتي جمعًا «أسئلة»، و«سؤالًا» من 11 فأكثر. و«حفظ دقيق» لا يناسب من أجاب عن نصف الأسئلة فقط.':'Arabic number agreement (3–10 takes the plural). “Accurate memorization” does not fit when only half were correct.'],
+    ['fix', ar?'ملاحظة المعلم (ضعيف)':'Teacher note (weak)', 'بذل {name} جهدًا في هذا الاختبار، لكنه ما زال بحاجة إلى دعم إضافي في بعض الجوانب.', 'بذل{ت} {name} جهدًا في هذا الاختبار، و{يحتاج/تحتاج} دعمًا إضافيًا في مواضع محددة بالأسفل.', ar?'الجنس مسجَّل في ملف الطالب (ولد/بنت) لكن التقرير يخاطب الطالبات بصيغة المذكر («لكنه»، «احتاج»، «استخدم»).':'Gender is stored on the student profile, yet the Arabic report uses masculine forms for girls.'],
+    ['fix', ar?'ملاحظات الأسئلة':'Question notes', 'احتاج محاولة إضافية لترتيب الكلمات بشكل صحيح / استخدم تلميحًا للوصول إلى الإجابة', 'احتاج{ت} محاولة إضافية لترتيب الكلمات / استعان{ت} بتلميح للوصول إلى الإجابة', ar?'نفس مشكلة الجنس، و«بشكل صحيح» زائدة.':'Same gender issue; “correctly” is redundant.'],
+    ['fix', ar?'التوقيع':'Signature', 'المعلم / المعلم', ar?'الاسم + «معلم الحلقة»، أو سطر التوقيع فقط':'Name + “Halaqah teacher”, or the signature line only', ar?'حين لا يوجد اسم معلم يظهر الافتراضي «المعلم» مرتين فوق بعض.':'With no teacher name, the default “Teacher” appears twice.'],
+    ['fix', ar?'الترويسة/التذييل':'Header/footer', 'منصة حمٓ لتثبيت الحفظ و المراجعة / منصة حمٓ · تحفيظ القرآن الكريم', 'منصة حمٓ لتثبيت الحفظ والمراجعة', ar?'مسافة زائدة قبل واو العطف، واسمان مختلفان للمنصة في التقرير نفسه — يُوحَّد.':'Extra space before “و”, and two different platform names in one report — unify.'],
+    ['clr', ar?'عنوان التقرير':'Report title', 'تقرير تقدّم الطالب — في حفظ القرآن الكريم', 'تقرير تقييم المراجعة', ar?'الجلسة تقييم مراجعة لنطاق محدد، لا تقرير تقدّم عام في الحفظ (هذا دور التقرير الشهري).':'The session evaluates a review of a given range; overall progress is the monthly report\'s job.'],
+    ['clr', ar?'شارة الفرق':'Change badge', '▼ 1 عن المحاولة السابقة', 'أقل بنقطة واحدة من المرة السابقة (71%) — أو «ثابت تقريبًا» إن كان الفرق ≤ 2', ar?'الرقم وحده مع سهم لا يوضح «نقطة أم سؤال؟»، وفرق نقطة واحدة باللون الأحمر يُقلق ولي الأمر بلا داعٍ.':'A bare number with an arrow is unclear, and a 1-point drop in red worries parents needlessly.'],
+    ['clr', ar?'شرائط العدّ':'Count chips', 'صحيحة جزئيًا', 'صحيحة بمساعدة (تلميح أو إعادة ترتيب)', ar?'«جزئيًا» توحي بإجابة ناقصة، والحقيقة أنها صحيحة لكن بمساعدة.':'“Partially” suggests an incomplete answer.'],
+    ['clr', ar?'الإحصاءات':'Stats', 'محاولات ترتيب متكررة: 0', ar?'إعادة ترتيب الكلمات: 1 (وتُخفى عند الصفر)':'Word re-ordering: 1 (hidden when zero)', ar?'مصطلح داخلي غير مفهوم لولي الأمر، والأصفار تشغل مساحة بلا فائدة.':'Internal term; zeros waste space.'],
+    ['clr', ar?'بحاجة إلى تركيز':'Needs focus', 'ما الآية التالية + ما الآية السابقة — خطأ: نسيان كلمة', ar?'الآية 15 — الانتقال إلى الآية التالية · الآية 27 — تذكّر الآية السابقة':'Āyah 15 — moving on to the next āyah · Āyah 27 — recalling the previous āyah', ar?'أسماء أنواع الأسئلة داخلية؛ ولي الأمر يحتاج رقم الآية ليفتح المصحف ويراجع.':'Question-type names are internal; parents need the āyah number.'],
+    ['clr', ar?'مستوى «ضعيف»':'“Weak” level', 'بحاجة إلى دعم إضافي', 'يحتاج دعمًا', ar?'التسمية الحالية طويلة لا تتسع داخل دائرة النتيجة، والمقترح أقصر وألطف.':'Too long for the gauge; shorter and gentler.'],
+    ['clr', ar?'سطر الصدق (ضعيف)':'Honesty line (weak)', 'الأداء في هذا الاختبار ما زال دون المستوى المطلوب، وهذه فرصة جيدة لتكثيف المراجعة معًا خطوة بخطوة.', 'النتيجة اليوم أقل مما نطمح إليه، والمواضع التي تحتاج مراجعة محددة بالأسفل.', ar?'«دون المستوى المطلوب» قاسية على ولي أمر طفل؛ المقترح صادق ويحيل مباشرة إلى الحل.':'“Below the required level” is harsh for a child\'s parent; the proposal is honest and points to the fix.'],
+    ['clr', ar?'سطر الصدق (جيد)':'Honesty line (good)', 'نتيجة جيدة تدل على حفظ متين لمعظم الأسئلة، مع بعض الجوانب التي تستحق مزيدًا من المراجعة والتثبيت.', 'نتيجة جيدة وحفظ متين لمعظم الأسئلة، وبقيت مواضع قليلة للتثبيت.', ar?'أقصر بالنصف بنفس المعنى.':'Half the length, same meaning.'],
+    ['clr', ar?'أول تقييم':'First evaluation', 'هذه أول محاولة مسجَّلة في سجل الطالب — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.', 'هذا أول تقييم مسجَّل، وستظهر المقارنة من التقييم القادم.', ar?'اختصار.':'Shorter.'],
+    ['add', ar?'جديد':'New', '—', ar?'مهمتكم في البيت (5 دقائق يوميًا): استمعوا من {name} إلى الآيات 12–15 و26–27 من سورة الملك غيبًا مرتين…':'Your home task (5 min a day): listen to {name} recite āyāt 12–15 and 26–27 from memory twice…', ar?'أهم سؤال عند ولي الأمر «ماذا أفعل؟» — تُبنى تلقائيًا من آيات الأخطاء، وتتغيّر مدتها حسب المستوى.':'The parent\'s key question is “what do I do?” — built from the mistaken āyāt.'],
+    ['add', ar?'جديد':'New', '—', ar?'التاريخ باليوم: «الخميس 5 نوفمبر 2026»':'Date with weekday', ar?'الحالي «2026 / 11 / 05» بصيغة معكوسة غير مألوفة لولي الأمر.':'Today it shows “2026 / 11 / 05”, an unfamiliar order.'],
+    ['add', ar?'جديد (الصغار)':'New (kids)', '—', ar?'رسالة إلى {name}: راجع{ي} آياتك الثلاث وستربح{ين} النجمة القادمة!':'A message to {name}: review your three āyāt and win the next star!', ar?'الطفل يرى الصورة مع والديه؛ جملة موجهة له تحفّزه.':'Children see the image with their parents; a line for them motivates.'],
+    ['add', ar?'ختام اختياري':'Optional closing', 'وسنتابع التقدم معًا أولًا بأول.', 'وسنتابع التقدم معًا أولًا بأول، ونسعد بتواصلكم في أي وقت.', ar?'يفتح باب التواصل مع المعلم.':'Opens the door to contact the teacher.']
+  ];
+  document.getElementById('tbl').innerHTML = R.map(([k,w,o,n,y]) => `<tr><td>${tag(k)}<b>${w}</b></td><td class="old">${o}</td><td class="new">${n}</td><td>${y}</td></tr>`).join('');
+}
+
+/* ===================== التحكم ===================== */
+function applyUI(){
+  const L = UI[S.lang];
+  document.documentElement.lang = S.lang; document.documentElement.dir = isAr() ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = L[el.dataset.t] || ''; });
+  document.title = L.title;
+  renderR1(); renderPC(); renderTable();
+}
+function bindSeg(id, key){
+  document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
+    S[key] = b.dataset.v;
+    document.querySelectorAll(`#${id} button`).forEach(x => x.classList.toggle('on', x === b));
+    applyUI();
+  }));
+}
+bindSeg('seg-tier','tier'); bindSeg('seg-aud','aud'); bindSeg('seg-g','g'); bindSeg('seg-lang','lang');
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.id === b.dataset.tab));
+  try { location.hash = b.dataset.tab; } catch(e){}
+}));
+const h = (location.hash || '').slice(1); if (h) { const b = document.querySelector(`.tabs button[data-tab="${h}"]`); if (b) b.click(); }
+applyUI();
+</script>
+</body>
+</html>
