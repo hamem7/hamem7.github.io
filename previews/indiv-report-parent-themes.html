@@ -28,6 +28,8 @@ button{font-family:inherit}
 .gal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
 @media (max-width:860px){.gal{grid-template-columns:1fr}}
 .item h2{margin:0 0 2px;font-size:16px;display:flex;align-items:center;gap:8px}
+.item h2 .q{font-size:11.5px;font-weight:700;color:var(--soft);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:0 8px}
+.item h2 .q.now{color:#fff;background:var(--gold);border-color:var(--gold)}
 .item h2 span{background:var(--em);color:#fff;border-radius:999px;font-size:12px;padding:1px 10px}
 .item p{margin:0 0 8px;font-size:13px;color:var(--soft)}
 .fit{width:100%;overflow:hidden;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.14)}
@@ -42,10 +44,10 @@ button{font-family:inherit}
 .img .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
 .safe{position:absolute}
 .pg{transform-origin:top right;display:flex;flex-direction:column;gap:9px}
-.ok{--c:#147c5e;--bg:#e6f3ec;--bd:#9fcdb5}
-.pa{--c:#9a6b18;--bg:#fbf1dc;--bd:#e6c98a}
-.no{--c:#a8402f;--bg:#fae6e2;--bd:#e7b0a6}
-.hm{--c:#0b3d30;--bg:#e9efe9;--bd:#b7c9bd}
+.ok{--c:#147c5e;--bg:rgba(220,240,230,.72);--bd:#9fcdb5}
+.pa{--c:#9a6b18;--bg:rgba(250,236,205,.72);--bd:#e6c98a}
+.no{--c:#a8402f;--bg:rgba(250,222,216,.72);--bd:#e7b0a6}
+.hm{--c:#0b3d30;--bg:rgba(226,236,229,.72);--bd:#b7c9bd}
 .sq{background:var(--cbg);border:1.5px solid var(--cbd);border-radius:var(--cr);box-shadow:var(--csh)}
 /* ترويسة */
 .hd{display:flex;align-items:center;gap:12px}
@@ -100,48 +102,56 @@ button{font-family:inherit}
 .steps li.pen:before{content:"✎"}
 /* التذييل */
 .ft{position:absolute;display:flex;align-items:flex-end;gap:16px}
-.sign{text-align:center;min-width:140px;line-height:1.3}
-.sign .stamp{height:56px;display:block;margin:0 auto -6px}
-.sign .n{font-family:'Amiri',serif;font-size:18px;font-weight:700;color:var(--ttl);border-top:1px solid var(--cbd);padding-top:3px}
-.sign .l{font-size:11.5px;color:var(--sub)}
+.ft{justify-content:space-between;align-items:center}
+.tname{text-align:center;min-width:140px;line-height:1.3}
+.tname .n{font-family:'Amiri',serif;font-size:20px;font-weight:700;color:var(--ttl);border-bottom:1px solid var(--cbd);padding:0 10px 2px}
+.tname .l{font-size:11.5px;color:var(--sub);margin-top:2px}
+.tstamp{min-width:84px;text-align:center}
+.tstamp img{height:74px;display:inline-block}
 .plat{font-size:11px;color:var(--sub);display:flex;align-items:center;gap:6px;padding-bottom:4px}
 .plat img{width:18px}
 
-/* ---------- تصميم 1: أرابيسك ذهبي (خلفية القوس الفيروزي) ---------- */
-.t1{background-image:url(assets/report/parent-bg/bg-geo-arch.webp);--cbg:#fffdf6;--cbd:#d8b866;--cr:14px;--csh:0 2px 0 #e9d6a3;--ttl:#125a57;--acc:#b8892a;--acc2:#8f6416;--sub:#6e6450;--kbg:#f5eedb;--kbd:#e3d2a4}
-.t1 .hm{--c:#125a57;--bg:#e3efee;--bd:#a9cbc8}
+/* ---------- تصميم 1: أرابيسك ذهبي ---------- */
+.t1{background-image:url(assets/report/parent-bg/bg-geo-arch.webp);--cbg:rgba(255,251,238,.80);--cbd:#d2ae55;--cr:16px;--csh:inset 0 0 0 3px rgba(255,251,238,.55),inset 0 0 0 4px rgba(210,174,85,.45),0 3px 10px rgba(120,90,20,.10);--ttl:#125a57;--acc:#1d7a74;--acc2:#125a57;--sub:#6e6450;--kbg:rgba(246,236,208,.7);--kbd:#e0cc95}
+.t1 .c:before{height:4px;background:linear-gradient(90deg,#c9a13b,#f3dc95,#c9a13b)}
+.t1 .k{color:#125a57}
 .t1 .hd .t b{color:#125a57}
-.t1 .ft{left:0;right:0;bottom:14px;justify-content:center;flex-direction:column;align-items:center;gap:2px}
-.t1 .ft .plat{padding:0}
+.t1 .hd .d{background:rgba(255,251,238,.85);border:1px solid #e0cc95;border-radius:10px;padding:3px 10px}
+.t1 .hm{--c:#125a57;--bg:rgba(220,236,234,.72);--bd:#a9cbc8}
+.t1 .tl i{background:rgba(210,174,85,.35)}
+.t1 .ft{left:150px;right:150px;bottom:18px}
+.t1 .ft .plat{flex-direction:column;gap:2px;text-align:center}
 
-/* ---------- تصميم 2: سماء الصباح (مسجد وزهور) ---------- */
-.t2{background-image:url(assets/report/parent-bg/bg-sky-mosque.webp);--cbg:rgba(255,255,255,.9);--cbd:#ffffff;--cr:22px;--csh:0 6px 18px rgba(31,95,80,.14);--ttl:#0e6a5a;--acc:#e9a100;--acc2:#c47f00;--sub:#4f6b62;--kbg:#eef8f3;--kbd:#cfe9de}
-.t2 .c:before{inset:auto 0 0 0;height:0}
+/* ---------- تصميم 2: سماء الصباح ---------- */
+.t2{background-image:url(assets/report/parent-bg/bg-sky-mosque.webp);--cbg:rgba(255,255,255,.72);--cbd:rgba(255,255,255,.95);--cr:22px;--csh:0 6px 18px rgba(31,95,80,.12);--ttl:#0e6a5a;--acc:#e9a100;--acc2:#c47f00;--sub:#4f6b62;--kbg:rgba(238,248,243,.75);--kbd:#cfe9de}
+.t2 .sq{border-width:2px}
+.t2 .c:before{display:none}
 .t2 .k em{width:32px;height:32px;border-radius:11px}
-.t2 .ok{--c:#119174;--bg:#e2f6ee;--bd:#a6e0c9}.t2 .pa{--c:#c47f00;--bg:#fff3d6;--bd:#f6d58a}.t2 .no{--c:#d0473a;--bg:#ffe8e4;--bd:#f6b5ab}.t2 .hm{--c:#2a6fb0;--bg:#e6f0fb;--bd:#b5d0ee}
-.t2 .hd{background:rgba(255,255,255,.78);border-radius:22px;padding:8px 14px}
-.t2 .ft{left:0;right:0;bottom:16px;justify-content:center}
-.t2 .ft .sign{background:rgba(255,255,255,.88);border-radius:18px;padding:4px 18px 6px}
+.t2 .ok{--c:#119174;--bg:rgba(226,246,238,.75);--bd:#a6e0c9}.t2 .pa{--c:#c47f00;--bg:rgba(255,243,214,.78);--bd:#f6d58a}.t2 .no{--c:#d0473a;--bg:rgba(255,232,228,.78);--bd:#f6b5ab}.t2 .hm{--c:#2a6fb0;--bg:rgba(230,240,251,.78);--bd:#b5d0ee}
+.t2 .hd{background:rgba(255,255,255,.6);border-radius:22px;padding:8px 14px}
+.t2 .tl i{background:rgba(255,255,255,.9)}
+.t2 .ft{left:26px;right:26px;bottom:14px;background:rgba(255,255,255,.7);border:2px solid rgba(255,255,255,.95);border-radius:22px;padding:6px 18px}
 
-/* ---------- تصميم 3: ورق المندالا (هادئ أحادي اللون) ---------- */
-.t3{background-image:url(assets/report/parent-bg/bg-mandala-paper.webp);--cbg:rgba(255,255,255,.93);--cbd:#4a4a48;--cr:6px;--csh:none;--ttl:#2c2c2a;--acc:#2c2c2a;--acc2:#2c2c2a;--sub:#6a6a66;--kbg:#f2f1ee;--kbd:#cfcdc7}
+/* ---------- تصميم 3: ورق المندالا ---------- */
+.t3{background-image:url(assets/report/parent-bg/bg-mandala-paper.webp);--cbg:rgba(251,250,247,.70);--cbd:#9d9b95;--cr:8px;--csh:0 1px 0 rgba(0,0,0,.04);--ttl:#2f2f2d;--acc:#3a3a38;--acc2:#2f2f2d;--sub:#6a6a66;--kbg:rgba(238,237,233,.7);--kbd:#d2d0ca}
 .t3 .sq{border-width:1px}
 .t3 .c:before{display:none}
-.t3 .k{color:#2c2c2a;letter-spacing:0;border-bottom:1px solid #d8d6d0;padding-bottom:5px}
-.t3 .k em{border-radius:4px;background:#2c2c2a}
-.t3 .ok{--c:#3f7a5e;--bg:#eef3ef;--bd:#b9cfc2}.t3 .pa{--c:#8a6a2a;--bg:#f6f1e6;--bd:#dccca5}.t3 .no{--c:#9a4436;--bg:#f6ece9;--bd:#dbbab2}.t3 .hm{--c:#2c2c2a;--bg:#f2f1ee;--bd:#cfcdc7}
-.t3 .ans{color:#2c2c2a}
+.t3 .k{color:#2f2f2d;border-bottom:1px dashed #c9c7c1;padding-bottom:5px}
+.t3 .k em{border-radius:6px;background:#3a3a38}
+.t3 .k svg rect{fill:#3a3a38}
+.t3 .ok{--c:#3f7a5e;--bg:rgba(232,240,235,.7);--bd:#b9cfc2}.t3 .pa{--c:#8a6a2a;--bg:rgba(244,238,224,.7);--bd:#dccca5}.t3 .no{--c:#9a4436;--bg:rgba(244,232,229,.7);--bd:#dbbab2}.t3 .hm{--c:#2f2f2d;--bg:rgba(238,237,233,.7);--bd:#d2d0ca}
+.t3 .ans{color:#2f2f2d}
 .t3 .c.ok .ans{color:#3f7a5e}.t3 .c.no .ans{color:#9a4436}.t3 .c.pa .ans{color:#8a6a2a}
-.t3 .av{border-color:#2c2c2a}
-.t3 .sc .tier{background:#2c2c2a}
-.t3 .tl i{background:#d8d6d0}
-.t3 .ft{left:34px;bottom:14px}
-.t3 .hd .d{background:rgba(255,255,255,.95);border:1px solid #cfcdc7;border-radius:6px;padding:4px 10px;color:#4a4a48}
+.t3 .av{border-color:#3a3a38}
+.t3 .tl i{background:rgba(160,158,152,.3)}
+.t3 .steps li.pen{background:rgba(244,238,224,.7);border-color:#dccca5}
+.t3 .hd .d{background:rgba(251,250,247,.9);border:1px solid #d2d0ca;border-radius:8px;padding:4px 10px;color:#4a4a48}
+.t3 .ft{left:30px;right:250px;bottom:12px}
 
-/* ---------- تصميم 4 (مقترحي): إطار زمردي بعناوين شريطية ---------- */
-.t4{background:#0b3d30;--cbg:#fffdf7;--cbd:#e3d4ae;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e}
-.t4:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(201,161,59,.12) 0 2px,transparent 3px) 0 0/22px 22px}
-.t4 .frame{position:absolute;inset:14px;background:#faf5e8;border-radius:18px;box-shadow:inset 0 0 0 2px #c9a13b,inset 0 0 0 6px #faf5e8,inset 0 0 0 7px #c9a13b}
+/* ---------- تصميم 4 (مقترحي): إطار زمردي ---------- */
+.t4{background:#0b3d30;--cbg:rgba(255,253,247,.78);--cbd:#e0cfa3;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:rgba(246,239,222,.75)}
+.t4:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(201,161,59,.14) 0 2px,transparent 3px) 0 0/22px 22px}
+.t4 .frame{position:absolute;inset:14px;border-radius:18px;background:radial-gradient(circle,rgba(201,161,59,.16) 1.4px,transparent 2px) 0 0/18px 18px,#f8f1e1;box-shadow:inset 0 0 0 2px #c9a13b,inset 0 0 0 6px #f8f1e1,inset 0 0 0 7px #c9a13b}
 .t4 .frame img{position:absolute;width:44px;opacity:.8}
 .t4 .frame .o1{top:10px;right:10px}.t4 .frame .o2{top:10px;left:10px;transform:scaleX(-1)}
 .t4 .frame .o3{bottom:10px;right:10px;transform:scaleY(-1)}.t4 .frame .o4{bottom:10px;left:10px;transform:scale(-1)}
@@ -151,9 +161,11 @@ button{font-family:inherit}
 .t4 .k{background:var(--c);color:#fff;padding:7px 14px;margin:0}
 .t4 .k em{background:#fff;color:var(--c)}
 .t4 .k svg rect{fill:#fff}.t4 .k svg path{fill:#0b3d30}
-.t4 .hd{background:#0b3d30;border-radius:14px;padding:8px 16px}
+.t4 .hd{background:#0b3d30;border-radius:14px;padding:8px 16px;box-shadow:inset 0 0 0 1px rgba(242,214,132,.5)}
+.t4 .hd img{width:52px}
 .t4 .hd .t b{color:#f2d684}.t4 .hd .t small,.t4 .hd .d{color:#cfe0d6}
-.t4 .ft{left:40px;right:40px;bottom:26px;justify-content:space-between}
+.t4 .ft{left:40px;right:40px;bottom:24px}
+.img .tl .now i{background:var(--acc)}
 </style>
 </head>
 <body>
@@ -171,17 +183,27 @@ button{font-family:inherit}
   </div>
 
   <div class="gal">
-    <div class="item"><h2><span>1</span>أرابيسك ذهبي</h2><p>خلفيتك الأولى: مربعات عاجية بإطار ذهبي، والعناوين فيروزية بلون القوس، والتوقيع والختم في وسط القوس أسفل الصورة.</p><div class="fit"><div class="img t1" id="i1"></div></div></div>
-    <div class="item"><h2><span>2</span>سماء الصباح</h2><p>خلفيتك الثانية: مربعات بيضاء شبه شفافة بزوايا كبيرة وظل ناعم وألوان مبهجة. الأنسب للصغار. التوقيع في الوسط بين الزهور.</p><div class="fit"><div class="img t2" id="i2"></div></div></div>
-    <div class="item"><h2><span>3</span>ورق المندالا</h2><p>خلفيتك الثالثة: تصميم هادئ أحادي اللون بخطوط فحمية رفيعة وزوايا حادة وألوان حالة باهتة. رسمي وأنيق.</p><div class="fit"><div class="img t3" id="i3"></div></div></div>
-    <div class="item"><h2><span>4</span>إطار زمردي (مقترحي)</h2><p>بلا صورة خلفية: إطار أخضر زمردي بخطين ذهبيين كإطار صفحة المصحف، وكل مربع عنوانه شريط ملوّن بلون حالته. يُقرأ بسرعة ويليق بهوية حمٓ.</p><div class="fit"><div class="img t4" id="i4"></div></div></div>
+    <div class="item"><h2><span>1</span>أرابيسك ذهبي <small class="q" data-q="0"></small></h2><p>مربعات عاجية شبه شفافة بإطار ذهبي مزدوج وشريط ذهبي أعلى كل مربع، والعناوين فيروزية بلون القوس. الاسم والختم داخل القوس.</p><div class="fit"><div class="img t1" id="i1"></div></div></div>
+    <div class="item"><h2><span>2</span>سماء الصباح <small class="q" data-q="1"></small></h2><p>مربعات زجاجية شبه شفافة تظهر السماء من خلفها. التذييل شريط بعرض الصورة: اسم المعلم يمينًا والختم يسارًا.</p><div class="fit"><div class="img t2" id="i2"></div></div></div>
+    <div class="item"><h2><span>3</span>ورق المندالا <small class="q" data-q="2"></small></h2><p>مربعات بلون الورق نفسه وشفافة فيظهر ملمس الورق والمندالا من خلفها، بخطوط رمادية رفيعة وفواصل منقطة.</p><div class="fit"><div class="img t3" id="i3"></div></div></div>
+    <div class="item"><h2><span>4</span>إطار زمردي (مقترحي) <small class="q" data-q="3"></small></h2><p>إطار أخضر بخطين ذهبيين، والشعار بالنسخة الفاتحة الذهبية ليناسب الترويسة الخضراء. أرضية نقشية خفيفة تظهر من خلف المربعات الشفافة.</p><div class="fit"><div class="img t4" id="i4"></div></div></div>
   </div>
 
-  <div class="box"><h3>ما تغيّر عن المعاينة السابقة</h3><ul>
-    <li>نفس المحتوى تمامًا، بألوان ومربعات وتصميم عام مختلف لكل خلفية.</li>
-    <li>لا فراغات: كل تصميم له «مساحة آمنة» لا تغطي زخارف الخلفية، والمحتوى يكبر أو يصغر تلقائيًا ليملأها. مع 8 أسئلة يكبر الخط، ومع 37 سؤالًا وأخطاء في 5 سور يصغر قليلًا حتى يتّسع.</li>
-    <li>التوقيع والختم يوضعان في مكان يناسب كل خلفية: وسط القوس، أو بين الزهور، أو الزاوية الخالية من المندالا.</li>
-  </ul></div>
+  <div class="box"><h3>صور جاهزة (1080×1350) للحالة الأولى</h3><ul>
+    <li><a href="previews/parent-qa/design-1.png" target="_blank">التصميم 1 · أرابيسك ذهبي</a></li>
+    <li><a href="previews/parent-qa/design-2.png" target="_blank">التصميم 2 · سماء الصباح</a></li>
+    <li><a href="previews/parent-qa/design-3.png" target="_blank">التصميم 3 · ورق المندالا</a></li>
+    <li><a href="previews/parent-qa/design-4.png" target="_blank">التصميم 4 · إطار زمردي</a></li></ul></div>
+  <div class="box"><h3>تغيير التصميم تلقائيًا كل 3 شهور</h3><ul>
+    <li>يناير–مارس: التصميم 1 · أبريل–يونيو: التصميم 2 · يوليو–سبتمبر: التصميم 3 · أكتوبر–ديسمبر: التصميم 4.</li>
+    <li>يُختار التصميم حسب <b>تاريخ الاختبار</b> لا تاريخ اليوم، فإذا أعاد المعلم تحميل تقرير قديم يخرج بنفس شكله الأول.</li>
+    <li>اقتراح: خيار في الإعدادات لتثبيت تصميم واحد لمن لا يريد التغيير.</li></ul></div>
+  <div class="box"><h3>«ماذا نفعل في البيت؟» — نصوصك مع إضافاتي</h3><ul>
+    <li><b>ممتاز:</b> دوام المراجعة باستمرار · الصلاة بالآيات في الصلوات الخمس · <i>(إضافتي)</i> يسمّع لكم مقطعًا مرة كل أسبوع.</li>
+    <li><b>متوسط:</b> مراجعة الآيات 10 دقائق يوميًا · الصلاة بها في الصلوات الخمس · تسميعها لأحد الوالدين · الاستماع للسورة من قارئ متقن.</li>
+    <li><b>يحتاج دعمًا:</b> 15 دقيقة يوميًا لمقطع صغير · الصلاة بالآيات · كتابة الآيات في الدفتر وتصويرها وإرسالها للمعلم ✎ · الاستماع للسورة من قارئ متقن.</li>
+    <li>الفراغ «يستمع لسورة .....» يُملأ تلقائيًا: «سورة الملك»، أو «سور الملك والقلم والحاقة»، أو «سور جزء تبارك».</li>
+    <li><b>إضافات أخرى مقترحة (اختر منها):</b> قراءة تفسير ميسّر مختصر لمواضع الخطأ ليربط الحفظ بالمعنى · قراءة المواضع قبل النوم · للصغار: نجمة على لوحة في البيت عند كل تسميع.</li></ul></div>
 </div>
 
 <script>
@@ -200,7 +222,7 @@ const SC = {
        errs:[{s:'الملك', items:[['2','no'],['3','no'],['5','pa'],['8','no'],['11','no'],['13','no'],['16','pa'],['19','no'],['22','no'],['25','no'],['27','pa'],['29','no'],['30','no']]}], types:['next','order'] },
 };
 // المساحة الآمنة لكل تصميم (بالبكسل داخل 720×900) — لا تغطي زخارف الخلفية ولا منطقة التوقيع
-const SAFE = { t1:{top:22,right:30,bottom:168,left:30}, t2:{top:20,right:28,bottom:118,left:28}, t3:{top:26,right:30,bottom:100,left:30}, t4:{top:34,right:36,bottom:112,left:36} };
+const SAFE = { t1:{top:22,right:30,bottom:162,left:30}, t2:{top:20,right:28,bottom:112,left:28}, t3:{top:26,right:30,bottom:104,left:30}, t4:{top:34,right:36,bottom:116,left:36} };
 let st = { sc:'s1', stamp:'1' };
 
 const plural = (n, one, two, few, many) => n===1?one : n===2?two : (n>=3&&n<=10)?few : many;
@@ -213,7 +235,9 @@ const W = {
   surah:n=>plural(n,'سورة واحدة','سورتين',n+' سور',n+' سورة'),
 };
 const tier = p => p>=90?'ممتاز':p>=75?'جيد جدًا':p>=60?'جيد':p>=40?'متوسط':'يحتاج دعمًا';
-const knows = p => p>=90?'يحفظها بإتقان':p>=75?'يحفظ أغلبها جيدًا':p>=60?'يحفظ أغلبها':p>=40?'يحفظ جزءًا منها':'يحتاج إلى مراجعة';
+// السورة/السور: ضمير مؤنث (ها)، الجزء: ضمير مذكر (ه). «مقدارًا» لا «جزءًا» لأن الجزء مصطلح (8 أرباع)
+const knows = (p, kind) => { const h = kind==='juz' ? 'ه' : 'ها';
+  return p>=90?`يحفظ${h} بإتقان`:p>=75?`يحفظ أغلب${h} جيدًا`:p>=60?`يحفظ أغلب${h}`:p>=40?`يحفظ مقدارًا من${h}`:'يحتاج إلى مراجعة'; };
 const scopeText = s => s.kind==='one' ? 'سورة '+s.list[0] : s.kind==='few' ? s.list.join(' · ') : `${s.name} (${s.n} سورة)`;
 const askKnow = s => s.kind==='one' ? 'هل يحفظ السورة؟' : s.kind==='few' ? 'هل يحفظ السور؟' : 'هل يحفظ الجزء؟';
 
@@ -243,28 +267,34 @@ function progressBox(d){
   return { cls: diff>=1?'ok':diff>=-2?'pa':'no', ans, det, vis:`<div class="tl">${bar(a,'قبل أسبوعين')}${bar(b,'السابقة')}${bar(c,'اليوم',1)}</div>` };
 }
 function homeBox(d){
-  const p=d.pct, places=d.errs.flatMap(e=>e.items.map(([a])=>a)), sName=d.errs[0]?.s;
+  const p=d.pct, s=d.scope, places=d.errs.flatMap(e=>e.items.map(([a])=>a));
+  const one = s.kind==='one';
+  const listen = one ? `سورة ${s.list[0]}` : s.kind==='few' ? `سور ${s.list.join(' و')}` : `سور ${s.name}`;
+  const pray = one ? `آيات سورة ${s.list[0]}` : s.kind==='few' ? 'آيات هذه السور' : `سور ${s.name}`;
+  const sortedP = [...places].sort((a,b)=>parseInt(a)-parseInt(b));
+  const what = one && places.length && places.length<=4 ? `الآيات ${sortedP.join(' و')}` : 'مواضع الخطأ';
   let ans, t;
-  if (p>=90){ ans='حافظوا على المستوى'; t=['يراجع ما اختُبر فيه مرة كل أسبوع حتى لا يُنسى.','يبدأ المقطع التالي مع المعلم.','شجّعوه وكافئوه على إتقانه 🌟']; }
+  if (p>=90){ ans='دوام المراجعة';
+    t=['يداوم على مراجعة ما حفظه باستمرار.', `يصلّي بـ${pray} في الصلوات الخمس.`, 'add:يسمّع لكم مقطعًا منه مرة كل أسبوع حتى يبقى ثابتًا.']; }
   else if (p>=60){ ans='10 دقائق يوميًا';
-    const where = d.errs.length>1 ? 'مواضع الخطأ' : `الآيات ${places.slice(0,4).join(' و')} من سورة ${sName}`;
-    t=[`يقرأ ${where} من المصحف مرتين يوميًا.`, d.types[0]==='next'?'يقرأ آخر كل آية مع أول التي بعدها 3 مرات حتى يرتبطا.':'يقرأ الآية التي قبل الموضع ثم يسمّع الموضع غيبًا.','pen:يكتب أول كل موضع في ورقة بخطه ويرسل صورتها للمعلم.']; }
-  else { ans='15 دقيقة يوميًا'; t=[`يستمع لسورة ${sName} من قارئ متقن ثم يقرؤها معكم.`,'يقسّم السورة مقاطع صغيرة (5 آيات) ويراجع مقطعًا كل يوم.','pen:يكتب مقطع اليوم في ورقة ويرسل صورتها للمعلم.']; }
-  return { ans, vis:`<ul class="steps">${t.map(x=>x.startsWith('pen:')?`<li class="pen">${x.slice(4)}</li>`:`<li>${x}</li>`).join('')}</ul>` };
+    t=[`يراجع 10 دقائق يوميًا ${what}.`, `يصلّي بها في الصلوات الخمس.`, 'يسمّعها لأحد الوالدين.', `يستمع لـ${listen} من قارئ متقن.`]; }
+  else { ans='15 دقيقة يوميًا';
+    t=[`يراجع 15 دقيقة يوميًا مقطعًا صغيرًا (5 آيات).`, `يصلّي بـ${pray} في الصلوات الخمس.`, 'pen:يكتب الآيات في الدفتر ويصوّرها ويرسلها للمعلم.', `يستمع لـ${listen} من قارئ متقن.`]; }
+  return { ans, vis:`<ul class="steps">${t.map(x=>x.startsWith('pen:')?`<li class="pen">${x.slice(4)}</li>`:`<li>${x.replace(/^add:/,'')}</li>`).join('')}</ul>` };
 }
 const HOUSE = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="12" fill="#0b3d30"/><path d="M6.5 11.5 12 7l5.5 4.5V17a.8.8 0 0 1-.8.8h-2.9v-3.6h-3.6v3.6H7.3a.8.8 0 0 1-.8-.8z" fill="#fffdf8"/></svg>`;
 
-function content(d){
+function content(d, t){
   const s=d.scope, pl=placesBox(d), pr=progressBox(d), hm=homeBox(d), kcls=d.pct>=60?'ok':d.pct>=40?'pa':'no';
   const tile=(k,n)=>`<div class="tile ${k} ${n?'':'zero'}"><b>${n}</b><span>${n?W[k](n):(k==='no'?'لا شيء يحتاج مراجعة':'لا يوجد')}</span></div>`;
-  return `<div class="hd"><img src="assets/brand/ham-logo.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
+  return `<div class="hd"><img src="assets/brand/${t==='t4'?'ham-logo-light':'ham-logo'}.svg" alt=""><div class="t"><small>منصة حمٓ · تحفيظ القرآن الكريم</small><b>تقرير اختبار الطالب</b></div><div class="d">الخميس 5 نوفمبر 2026<br>25 جمادى الأولى 1448هـ<br>رقم <span class="ltr">#demo1</span></div></div>
   <div class="idr">
     <div class="sq who"><div class="av"><img src="${PHOTO}" alt=""></div><div><div class="nm">يوسف أحمد <small>· الصف الرابع</small></div>
       <div class="facts"><span>النطاق: <b>${scopeText(s)}</b></span><span>الأسئلة: <b>${d.total}</b></span><span>المدة: <b class="ltr">${d.dur}</b></span></div></div></div>
     <div class="sq sc"><div class="p ltr">${d.pct}%</div><div class="tier">${tier(d.pct)}</div></div>
   </div>
   <div class="qa">
-    <div class="sq c ${kcls}"><div class="k"><em>1</em>${askKnow(s)}</div><div class="ans">${knows(d.pct)}</div><div class="det">من أصل ${W.q(d.total)}</div>
+    <div class="sq c ${kcls}"><div class="k"><em>1</em>${askKnow(s)}</div><div class="ans">${knows(d.pct, s.kind)}</div><div class="det">من أصل ${W.q(d.total)}</div>
       <div class="vis"><div class="tiles">${tile('ok',d.ok)}${tile('pa',d.pa)}${tile('no',d.no)}</div>
       <div class="sbar"><i class="ok" style="width:${d.ok/d.total*100}%"></i><i class="pa" style="width:${d.pa/d.total*100}%"></i><i class="no" style="width:${d.no/d.total*100}%"></i></div></div></div>
     <div class="sq c ${d.no?'no':d.pa?'pa':'ok'}"><div class="k"><em>2</em>أين تعثّر؟</div><div class="ans">${pl.ans}</div><div class="det">${pl.det}</div><div class="vis">${pl.vis}</div></div>
@@ -272,9 +302,11 @@ function content(d){
     <div class="sq c hm"><div class="k">${HOUSE}ماذا نفعل في البيت؟</div><div class="ans">${hm.ans}</div><div class="vis">${hm.vis}</div></div>
   </div>`;
 }
-const footer = (t) => `<div class="ft">${t!=='t1'&&t!=='t2'?`<div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>`:''}
-  <div class="sign">${st.stamp==='1'?`<img class="stamp" src="${STAMP}" alt="">`:''}<div class="n">أ. محمد</div><div class="l">المعلم</div></div>
-  ${t==='t1'?`<div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>`:''}</div>`;
+// التذييل: اسم المعلم يمينًا، المنصة في الوسط، الختم يسارًا (من ملف المعلم teacherDB.stamp؛ يختفي مكانه إن لم يُرفع)
+const footer = (t) => `<div class="ft">
+  <div class="tname"><div class="n">أ. محمد</div><div class="l">المعلم</div></div>
+  <div class="plat"><img src="assets/brand/ham-mark.svg" alt="">منصة حمٓ لتثبيت الحفظ والمراجعة</div>
+  <div class="tstamp">${st.stamp==='1'?`<img src="${STAMP}" alt="">`:''}</div></div>`;
 
 // ملء المساحة الآمنة: نبحث عن أكبر مقياس يجعل المحتوى يتّسع فيها، ثم نمدّ ما تبقّى من ارتفاع داخل المربعات
 function fitPage(el){
@@ -290,7 +322,7 @@ function render(){
   ['t1','t2','t3','t4'].forEach((t,i) => {
     const el = document.getElementById('i'+(i+1)), sf = SAFE[t];
     el.innerHTML = (t==='t4' ? `<div class="frame"><img class="o1" src="${ART}report-corner-orn.png" alt=""><img class="o2" src="${ART}report-corner-orn.png" alt=""><img class="o3" src="${ART}report-corner-orn.png" alt=""><img class="o4" src="${ART}report-corner-orn.png" alt=""></div>` : '')
-      + `<div class="safe" style="top:${sf.top}px;right:${sf.right}px;bottom:${sf.bottom}px;left:${sf.left}px"><div class="pg">${content(d)}</div></div>` + footer(t);
+      + `<div class="safe" style="top:${sf.top}px;right:${sf.right}px;bottom:${sf.bottom}px;left:${sf.left}px"><div class="pg">${content(d, t)}</div></div>` + footer(t);
     fitPage(el);
   });
   scaleAll();
@@ -305,6 +337,8 @@ function scaleAll(){
 document.querySelectorAll('#seg-theme button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('#seg-theme button').forEach(x => x.classList.toggle('on', x===b)); document.documentElement.dataset.theme = b.dataset.v;
 }));
+const QN=['يناير–مارس','أبريل–يونيو','يوليو–سبتمبر','أكتوبر–ديسمبر'], curQ=Math.floor(new Date(2026,10,5).getMonth()/3);
+document.querySelectorAll('.item h2 .q').forEach(el=>{const q=+el.dataset.q; el.textContent=QN[q]+(q===curQ?' · الحالي':''); el.classList.toggle('now', q===curQ);});
 window.addEventListener('resize', scaleAll);
 window.addEventListener('load', render);
 if (document.fonts) document.fonts.ready.then(render);
