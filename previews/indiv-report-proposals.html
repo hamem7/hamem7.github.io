@@ -112,8 +112,7 @@ button{font-family:inherit}
 .pc .band{background:linear-gradient(135deg,#0b3d30,#0d5c46 60%,#147c5e);color:#fff;padding:3.4cqw 5cqw 8cqw;position:relative}
 .pc .band::after{content:"";position:absolute;inset:auto 0 -1px 0;height:6cqw;background:#f8f3e8;border-radius:6cqw 6cqw 0 0}
 .pc .band>*{position:relative;z-index:1}
-.pc .band>.gorn{position:absolute;z-index:0;inset:0 0 0 0;background:url(assets/report/report-geo-orn.png) repeat-x 0 0/auto 125%;opacity:.95;pointer-events:none}
-.pc.kids .band>.gorn{opacity:.8}
+.pc .band>.gorn{position:absolute;z-index:0;inset:0 0 0 0;background:url(assets/report/report-geo-orn.png) repeat 0 0/32cqw;opacity:.3;pointer-events:none}
 .pc .chips{display:flex;flex-wrap:wrap;gap:1.2cqw;margin-top:1.2cqw}
 .pc .chips .scope{margin-top:0;display:inline-flex;align-items:center;gap:1cqw}
 .pc .chips .scope svg{width:3.2cqw;height:3.2cqw;flex:none}
@@ -124,6 +123,12 @@ button{font-family:inherit}
 .pc .brandrow .dt{font-size:2.5cqw;opacity:.9;text-align:end;line-height:1.35}
 .pc .hello{margin-top:2.2cqw;display:flex;align-items:center;gap:3.4cqw}
 .pc .av{width:13cqw;height:13cqw;border-radius:50%;background:#fff;color:#0d5c46;display:flex;align-items:center;justify-content:center;font-size:7cqw;font-weight:800;flex:none;border:.8cqw solid #f0d878}
+.pc .av img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+.edp{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px}
+.edp h4{margin:0 0 6px;font-size:14px}
+.edp textarea{width:100%;min-height:78px;border:1px solid var(--strong);border-radius:8px;padding:8px;font:inherit;background:var(--pg);color:var(--ink);resize:vertical}
+.edp .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.edp .hint{color:var(--soft);font-size:12px;margin:4px 0 0}
 .pc .nm{font-size:6.2cqw;font-weight:800;line-height:1.2}
 .pc .scope{display:inline-block;margin-top:1cqw;font-size:2.8cqw;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);padding:.4cqw 2.4cqw;border-radius:99cqw}
 .pc .body{padding:0 5cqw 3.4cqw;margin-top:-4cqw;position:relative;z-index:1;display:flex;flex-direction:column;gap:2.4cqw;flex:1}
@@ -438,7 +443,10 @@ button{font-family:inherit}
 </div>
 
 <script>
-const S = { tier:'average', aud:'adult', g:'boy', lang:'ar' };
+const S = { tier:'average', aud:'adult', g:'boy', lang:'ar', photo:true };
+const HWE = {};   // تعديلات المعلم على مهمة البيت (تجريبية لهذه المعاينة)
+const _av = (bg, skin, hair, girl) => 'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="${bg}"/><path d="M20 100c2-24 16-34 30-34s28 10 30 34z" fill="#fff"/><rect x="43" y="52" width="14" height="16" rx="6" fill="${skin}"/><ellipse cx="50" cy="40" rx="17" ry="19" fill="${skin}"/>${girl?`<path d="M31 42c-4-26 10-30 19-30s23 4 19 30c-3-12-9-17-19-17s-16 5-19 17z" fill="${hair}"/><path d="M31 40c-3 14-1 26 5 30l3-24zM69 40c3 14 1 26-5 30l-3-24z" fill="${hair}"/>`:`<path d="M32 38c0-16 9-22 18-22s18 6 18 22c-4-8-10-11-18-11s-14 3-18 11z" fill="${hair}"/>`}<circle cx="43" cy="42" r="1.8" fill="#222"/><circle cx="57" cy="42" r="1.8" fill="#222"/><path d="M44 49q6 5 12 0" stroke="#7a3b2a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>`);
+const PHOTO = { boy:_av('#bfe3d4','#e0b48f','#2b1d14',false), girl:_av('#f3d9b8','#e8bf9c','#3a2418',true) };   // صورة تجريبية فقط
 
 /* ------------------------- نصوص واجهة المعاينة ------------------------- */
 const UI = {
@@ -881,8 +889,8 @@ function scenarioHtml(){
 }
 
 function renderPC(){
-  const T = texts(), d = DATA[S.tier], col = COLORS[S.tier], ar = isAr(), kid = S.aud==='kids';
-  const kcol = kid ? {excellent:'#2f6fd6',average:'#f29d0c',weak:'#e2604a'}[S.tier] : col;
+  const T = texts(), d = DATA[S.tier], col = COLORS[S.tier], ar = isAr(), kid = false;   // تصميم واحد للكبار والصغار (ملاحظة المستخدم)
+  const kcol = col;
   const bars = [...d.prev.map((p,i)=>({p,w:T.prevDates[i]})),{p:d.score,w:T.today,cur:true}]
     .map(b=>`<div class="bar${b.cur?' cur':''}"><b>${b.p}%</b><i style="height:${(b.p/100*9).toFixed(1)}cqw"></i>${b.w}</div>`).join('');
   const trendCol = {up:'#0d5c46',down:'#9e3b2d',flat:'#6f644e'}[T.trendCls];
@@ -890,19 +898,16 @@ function renderPC(){
   const dur = ar ? arCount(d.mins,'دقيقة','دقيقتان','دقائق','دقيقة') : `${d.mins} min`;
   const clockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="#f0d878" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
   const HW = homeTask({ ...d, scope:SCOPE_A }, name());
+  const hwKey = `${S.tier}|${S.g}|${S.lang}`, edited = HWE[hwKey] !== undefined, hwText = edited ? HWE[hwKey] : HW.text;
   const rev = T.review.length ? T.review.slice(0,3).map(([a,w])=>`<li><b>${T.ayah} ${a}</b>: ${w}</li>`).join('') : `<li>${T.noReview}</li>`;
-  const confetti = kid ? `<svg class="confetti" viewBox="0 0 100 125" preserveAspectRatio="none">${
-     [[8,6,'#ffd54a'],[22,3,'#ff8fb1'],[40,8,'#7be0c6'],[63,4,'#ffd54a'],[80,7,'#ff8fb1'],[92,3,'#fff'],[14,15,'#fff'],[71,14,'#7be0c6']]
-     .map(([x,y,c],i)=>`<rect x="${x}" y="${y}" width="1.8" height="1.8" rx=".5" fill="${c}" transform="rotate(${i*23} ${x} ${y})" opacity=".9"/>`).join('')}</svg>` : '';
   document.getElementById('pc-host').innerHTML = `
-  <div class="pc${kid?' kids':''}" id="pc" dir="${ar?'rtl':'ltr'}" style="--tc:${kcol}">
-    ${confetti}
+  <div class="pc" id="pc" dir="${ar?'rtl':'ltr'}" style="--tc:${kcol}">
     <div class="band"><div class="gorn"></div>
       <div class="brandrow">
         <div class="b"><img src="assets/brand/ham-logo-light.svg" alt="">${T.cardTitle}</div>
         <div class="dt">${T.dateLong}<br>${T.hijri}</div>
       </div>
-      <div class="hello"><div class="av">${name()[0]}</div>
+      <div class="hello"><div class="av">${S.photo ? `<img src="${PHOTO[S.g]}" alt="">` : name()[0]}</div>
         <div><div class="nm">${full()}</div>
           <div class="chips"><span class="scope">${T.scope}</span><span class="scope">${qCount}</span><span class="scope dur">${clockSvg}${ar?'مدة الاختبار: ':'Test time: '}${dur}</span></div></div></div>
     </div>
@@ -927,16 +932,26 @@ function renderPC(){
         <div class="box"><h5><i style="background:#9e3b2d"></i>${T.toReview}</h5><ul>${rev}</ul></div>
       </div>
       <div class="task"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></div>
-        <div><h5>${HW.head}</h5><p>${HW.text}</p></div></div>
-      <div class="kidmsg"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 16.9 6.1 20.1l1.3-6.6L2.5 8.9l6.6-.8z" fill="#f2b705" stroke="#c98a00" stroke-width=".8"/></svg><span>${T.kid}</span></div>
+        <div><h5>${HW.head}</h5><p id="hw-p">${hwText}</p></div></div>
       <div class="foot">
         <div>${T.brand}</div>
         <div class="sg"><div><b>${T.teacher}</b>${T.teacherRole}</div><div class="stamp">${T.stamp}</div></div>
       </div>
     </div>
   </div>
-  <button class="btn" id="dl">${UI[S.lang].dl}</button>`;
+  <button class="btn" id="dl">${UI[S.lang].dl}</button>
+  <div class="edp">
+    <h4>${ar?'قبل الإرسال: تعديل المعلم (لا يظهر في الصورة)':'Before sending: teacher edits (not in the image)'}</h4>
+    <textarea id="hw-ta" dir="${ar?'rtl':'ltr'}"></textarea>
+    <div class="row"><button class="btn" id="hw-reset" type="button">${ar?'استعادة الصياغة التلقائية':'Restore the automatic wording'}</button>
+      <label><input type="checkbox" id="ph-ck" ${S.photo?'checked':''}> ${ar?'صورة الطالب في الدائرة (وإلا الحرف الأول)':'Student photo in the circle (else the initial)'}</label></div>
+    <p class="hint">${ar?'المعلم يعدّل نص «مهمتكم في البيت» ويُعاين النتيجة فورًا؛ المقترح التلقائي يُبنى من أخطاء الطالب، والتعديل يخصّ هذا التقرير فقط.':'The teacher edits the “home task” text and sees the result live; the automatic text is built from the student\'s mistakes, and the edit applies to this report only.'}</p>
+  </div>`;
   document.getElementById('dl').onclick = () => downloadCard('pc','dl','a');
+  const ta = document.getElementById('hw-ta'); ta.value = hwText;
+  ta.oninput = () => { HWE[hwKey] = ta.value; document.getElementById('hw-p').textContent = ta.value; };
+  document.getElementById('hw-reset').onclick = () => { delete HWE[hwKey]; renderPC(); };
+  document.getElementById('ph-ck').onchange = e => { S.photo = e.target.checked; renderPC(); };
 
   document.getElementById('spec').innerHTML = ar ? `
     <h3>لماذا هذا الشكل؟</h3>
@@ -946,13 +961,10 @@ function renderPC(){
       <li><b>ترتيب القراءة</b>: من؟ ← النتيجة ورسالة واحدة ← الأرقام الثلاثة ← ما أتقنه/ما يراجعه بأرقام الآيات ← <b>ماذا أفعل في البيت؟</b> ← كلمة المعلم وختمه.</li>
       <li><b>اتجاه النتيجة بأعمدة صغيرة</b> لآخر 3 تقييمات بدل السُّلّم، مع جملة مفهومة للفرق.</li>
       <li><b>حد أقصى 3 آيات للمراجعة</b> في الصورة؛ القائمة الكاملة وجدول الأسئلة يبقيان في ملف PDF الشامل.</li>
-      <li><b>نسخة الصغار</b>: نفس الهيكل بألوان مرحة ونجوم + «رسالة إلى الطفل» بدل ملاحظة المعلم الطويلة، والمهمة المنزلية موجّهة لولي الأمر.</li>
       <li>الصياغة تتغيّر تلقائيًا حسب <b>المستوى</b> و<b>جنس الطالب</b> و<b>اللغة</b>.</li>
     </ul>
     <h3>للنقاش معك</h3>
     <ul>
-      <li>هل نُبقي <b>صورة الطالب</b> في الدائرة (إن رُفعت) أم الحرف الأول فقط؟</li>
-      <li>هل تفضّل أن تكون المهمة المنزلية <b>قابلة للتعديل</b> من المعلم قبل الإرسال (مثل الملاحظة الآن)؟</li>
       <li>هل نجعل هذا الشكل هو «صورة واتساب» الافتراضية ونُبقي التصميم الحالي (بعد التحسين) لملف PDF الشامل؟</li>
     </ul>` : `
     <h3>Why this layout?</h3>
@@ -962,13 +974,10 @@ function renderPC(){
       <li><b>Reading order</b>: who? → score and one message → three numbers → mastered / to review by āyah → <b>what do I do at home?</b> → teacher's word and stamp.</li>
       <li><b>Score trend as small bars</b> for the last 3 evaluations, with a plain sentence for the change.</li>
       <li><b>At most 3 āyāt to review</b> in the image; the full list and the question table stay in the full PDF.</li>
-      <li><b>Kids version</b>: same structure with playful colours and stars + “a message to the child” instead of the long teacher note; the home task still speaks to the parent.</li>
       <li>Wording adapts automatically to <b>level</b>, <b>student gender</b> and <b>language</b>.</li>
     </ul>
     <h3>Questions for you</h3>
     <ul>
-      <li>Keep the <b>student photo</b> in the circle (if uploaded), or the initial only?</li>
-      <li>Should the home task be <b>editable</b> by the teacher before sending (like the note today)?</li>
       <li>Make this the default “WhatsApp image”, and keep the (improved) current design for the full PDF?</li>
     </ul>`;
   document.getElementById('spec').insertAdjacentHTML('beforeend', scenarioHtml());
