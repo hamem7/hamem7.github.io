@@ -118,7 +118,6 @@ export const QA_STYLES = `
 .qac.t3 .hd .brand{background:rgba(251,250,247,.92);border:1px solid #9d9b95;border-radius:8px;padding:4px 14px 4px 10px}
 .qac.t3 .hd .d{background:rgba(251,250,247,.92);border:1px solid #c9c7c1;border-radius:8px;padding:4px 10px;color:#4a4a48}
 .qac.t3 .ft{bottom:16px}
-.qac.t3 .fbox{background:rgba(251,250,247,.95);border:1px solid #9d9b95;border-radius:8px;padding:4px 18px}
 
 /* ---------- تصميم 4: إطار زمردي ---------- */
 .qac.t4{background:#0b3d30;--cbg:rgba(255,253,247,.78);--cbd:#e0cfa3;--cr:12px;--ttl:#0b3d30;--acc:#c9a13b;--sub:#6f644e;--kbg:rgba(246,239,222,.75)}
