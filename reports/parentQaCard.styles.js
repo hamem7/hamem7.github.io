@@ -99,7 +99,6 @@ export const QA_STYLES = `
 .qac.t2 .hd .d{background:rgba(255,255,255,.8);border:2px solid #fff;border-radius:16px;padding:4px 12px}
 .qac.t2 .tl i{background:#a9ddd0}
 .qac.t2 .ft{bottom:16px}
-.qac.t2 .fbox{background:rgba(255,255,255,.82);border:2px solid #fff;border-radius:22px;padding:6px 22px}
 
 /* ---------- تصميم 3: ورق المندالا (مؤشرات أقوى حتى لا تذوب في الورق، والعنوان في مربع) ---------- */
 .qac.t3{background-image:url(assets/report/parent-bg/bg-mandala-paper.webp);--cbg:rgba(251,250,247,.74);--cbd:#9d9b95;--cr:8px;--csh:0 1px 0 rgba(0,0,0,.04);--ttl:#2f2f2d;--acc:#3a3a38;--acc2:#2f2f2d;--sub:#5e5e5a;--kbg:rgba(238,237,233,.8);--kbd:#c9c7c1}
