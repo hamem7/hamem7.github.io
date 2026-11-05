@@ -403,6 +403,23 @@ function shortDateLabel(dateStr){
 const HISTORY_MAX = 7; // نقرأ ونحفظ آخر 7 محاولات فقط — نفس السقف الذي كان معمولاً به
 function historyKey(studentId){ return `history_${studentId}`; }
 
+// 🌟 رقم التقرير التراكمي لكل طالب: يستكمل من آخر رقم وصل إليه ولا يبدأ من جديد عند أي تغيير
+// في التصميم. يُخزَّن في localStorage مستقلاً عن history_<id> (المحدود بـ HISTORY_MAX). لا يزيد
+// عند إعادة بناء نفس التقرير (نفس التاريخ والنتيجة والنطاق). الطلاب الذين لا عدّاد لهم يبدأون
+// من عدد محاولاتهم المسجَّلة، فلا يعودون إلى 1.
+function nextReportSeq(studentId, sig, fallbackCount){
+  if (studentId == null) return 1;
+  const key = `dh_report_seq_${studentId}`;
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || 'null');
+    let n = raw && Number.isFinite(raw.n) ? raw.n : 0;
+    if (raw && raw.sig === sig) return n || 1;
+    n = Math.max(n, Math.max(0, fallbackCount - 1)) + 1;
+    localStorage.setItem(key, JSON.stringify({ n, sig }));
+    return n;
+  } catch (e) { return Math.max(1, fallbackCount); }
+}
+
 function getHistory(studentId){
   try {
     const raw = localStorage.getItem(historyKey(studentId));
@@ -1111,7 +1128,7 @@ function buildReportData(){
   });
 
   return {
-    id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
+    id: '#' + String(nextReportSeq(student.id, [dateLabel, score, scope].join('|'), allHistory.length)).padStart(5, '0'),
     name: student.name || t('rp_default_student'),
     // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
     // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
