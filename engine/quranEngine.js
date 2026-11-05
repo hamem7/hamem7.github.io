@@ -393,8 +393,8 @@ export class QuranEngine {
         // تظهر أول آية من السورة التالية كإجابة خاطئة. أضفنا شرط تطابق surahNumber، وعند عدم التطابق
         // يقع الكود في فرع الرجوع لقاعدة البيانات الذي يُرجع null لآخر آية في السورة (فتُختار لعبة أخرى).
         let nextAyahText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex !== -1 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { nextAyahText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
-        else { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
+        // ⚠️ المجاور الحقيقي يُقرأ من السورة الكاملة دائماً: النطاق (pool) تُحذف منه آيات التكرار (ويل يومئذ للمكذبين / فبأي آلاء)، فمجاورها فيه ليس مجاورها الفعلي
+        { let surah = await this.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما بعد الآية يقع إلى يسارها، فالسهم ⬅️ 🌟
         return { type: 'next', questionTitle: "ماذا بعدها؟ ⬅️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: nextAyahText, ayahObj: targetAyah, reportText: targetText }; 
@@ -403,8 +403,8 @@ export class QuranEngine {
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
         let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
         let prevAyahText = ""; let hintText = tl('qe_none', 'لا يوجد'); let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex > 0) { prevAyahText = cleanAyahText(ayahsPool[currentIndex - 1].text); if(currentIndex > 1) { let prev2 = cleanAyahText(ayahsPool[currentIndex - 2].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_range_start', 'أول النطاق'); } } 
-        else { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
+        // المجاور من السورة الكاملة (لا من النطاق المفلتر من آيات التكرار)
+        { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
         let targetText = cleanAyahText(targetAyah.text);
         // 🌟 [تصحيح] اتجاه السهم عُكِس ليوافق اتجاه القراءة العربية (RTL): ما قبل الآية يقع إلى يمينها، فالسهم ➡️ 🌟
         return { type: 'previous', questionTitle: "ماذا قبلها؟ ➡️", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${targetText}\u00A0﴾</div>`, fullAnswer: prevAyahText, ayahObj: targetAyah, hint: hintText, reportText: targetText }; 
@@ -471,8 +471,8 @@ export class QuranEngine {
         // 🌟 [إصلاح] نفس علة "الآية التالية": الآيتان المحيطتان لازم تكونا من نفس سورة الآية المختارة، وإلا
         // نرجع لقاعدة البيانات (التي ترفض آخر آية في السورة بإرجاع null) بدل عرض آية من سورة أخرى.
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
-        if(currentIndex > 0 && currentIndex < ayahsPool.length - 1 && ayahsPool[currentIndex - 1].surahNumber === targetAyah.surahNumber && ayahsPool[currentIndex + 1].surahNumber === targetAyah.surahNumber) { prevText = cleanAyahText(ayahsPool[currentIndex - 1].text); nextText = cleanAyahText(ayahsPool[currentIndex + 1].text); } 
-        else { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
+        // المجاورتان من السورة الكاملة (النطاق المفلتر يحذف آيات التكرار)
+        { let surah = await this.getSurah(targetAyah.surahNumber); if(targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null; prevText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); nextText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); }
         return { type: 'between', questionTitle: "الآية بين آيتين ↔️", questionBody: `<div class="quran-text" style="font-size:3rem; margin-top:10px; line-height:1.5;">﴿\u00A0${prevText}\u00A0﴾<br><span class="between-gap" aria-label="آية ناقصة" style="display:block; margin:18px auto; font-family:'Amiri Quran',serif !important; font-weight:400; font-size:inherit; text-align:center;">........</span>﴿\u00A0${nextText}\u00A0﴾</div>`, fullAnswer: cleanAyahText(targetAyah.text), ayahObj: targetAyah, reportText: cleanAyahText(targetAyah.text) }; 
     }
     
