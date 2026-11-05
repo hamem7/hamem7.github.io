@@ -251,32 +251,93 @@ button{font-family:inherit}
 .mb.kids .hw{background:#2f6fd6}
 
 /* ============ النموذج ج: البطاقة المربعة ============ */
-.mc{width:100%;aspect-ratio:1;position:relative;overflow:hidden;border-radius:3cqw;box-shadow:0 18px 40px rgba(0,0,0,.18);
+.mc{width:100%;aspect-ratio:4/5;position:relative;overflow:hidden;border-radius:3cqw;box-shadow:0 18px 40px rgba(0,0,0,.18);
   background:#0b3d30;color:#fff;font-family:'IBM Plex Sans Arabic',sans-serif;display:grid;grid-template-rows:auto 1fr auto auto}
 .mc::before{content:"";position:absolute;width:90cqw;height:90cqw;border-radius:50%;background:radial-gradient(closest-side,rgba(240,216,120,.18),transparent);top:-30cqw;inset-inline-start:-30cqw}
-.mc .h{display:flex;justify-content:space-between;align-items:center;padding:4.4cqw 5.4cqw 0;position:relative}
+.mc .h{display:flex;justify-content:space-between;align-items:center;padding:3.4cqw 5.4cqw 0;position:relative}
 .mc .h .b{display:flex;align-items:center;gap:1.8cqw;font-size:2.8cqw;opacity:.9}
 .mc .h img{width:6cqw}
 .mc .h .d{font-size:2.7cqw;opacity:.85}
-.mc .main{display:grid;grid-template-columns:1fr 34cqw;gap:3cqw;align-items:center;padding:2cqw 5.4cqw;position:relative}
-.mc .nm{font-size:7.2cqw;font-weight:800;line-height:1.15}
+.mc .main{display:grid;grid-template-columns:1fr 24cqw;gap:3cqw;align-items:center;padding:.6cqw 5.4cqw 1.4cqw;position:relative}
+.mc .nm{font-size:6.4cqw;font-weight:800;line-height:1.15}
 .mc .sc{font-size:3cqw;opacity:.85;margin-top:1cqw}
-.mc .ms{font-size:3.8cqw;font-weight:700;margin-top:2.6cqw;line-height:1.45;color:#f0d878}
-.mc .ring{position:relative;width:34cqw;height:34cqw}
+.mc .ms{font-size:3cqw;font-weight:700;margin-top:1cqw;line-height:1.45;color:#f0d878}
+.mc .ring{position:relative;width:24cqw;height:24cqw}
 .mc .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
 .mc .ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.mc .ring .pct{font-size:10cqw;font-weight:800;line-height:1}
+.mc .ring .pct{font-size:7cqw;font-weight:800;line-height:1}
 .mc .ring .tl{font-size:3cqw;font-weight:700;margin-top:.6cqw;opacity:.95}
-.mc .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:0 5.4cqw;border-top:.25cqw solid rgba(255,255,255,.18);border-bottom:.25cqw solid rgba(255,255,255,.18);position:relative}
-.mc .nums div{text-align:center;padding:2cqw 0}
+.mc .nums{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:0 5.4cqw;border-top:.25cqw solid rgba(255,255,255,.18);border-bottom:.25cqw solid rgba(255,255,255,.18);position:relative}
+.mc .nums div{text-align:center;padding:1cqw .6cqw;line-height:1.3}
 .mc .nums div+div{border-inline-start:.25cqw solid rgba(255,255,255,.18)}
-.mc .nums b{display:block;font-size:6.6cqw;line-height:1.1}
+.mc .nums b{display:block;font-size:5.6cqw;line-height:1.1}
 .mc .nums span{font-size:2.7cqw;opacity:.85}
-.mc .task{margin:3cqw 5.4cqw 4.6cqw;background:#f0d878;color:#2b2000;border-radius:2.4cqw;padding:2.2cqw 3cqw;font-size:3.1cqw;font-weight:700;line-height:1.5;position:relative}
+.mc .task{margin:1.8cqw 5.4cqw 4cqw;background:#f0d878;color:#2b2000;border-radius:2.4cqw;padding:1.6cqw 3cqw;font-size:2.9cqw;font-weight:700;line-height:1.45;position:relative}
 .mc .task small{display:block;font-size:2.5cqw;font-weight:600;opacity:.8;margin-top:.4cqw}
 .mc.kids{background:linear-gradient(150deg,#2f6fd6,#45a3e6 60%,#5cc8c2)}
 .mc.kids .ms{color:#fff3b0}
 .mc.kids .task{background:#ffd54a}
+.mc .task{margin-bottom:1.6cqw}
+.mc .sig,.md .sig{display:flex;align-items:center;gap:2.4cqw;position:relative}
+.mc .sig{justify-content:space-between;margin:0 5.4cqw 2.8cqw;font-size:2.6cqw}
+.mc .sig .who b,.md .sig .who b{display:block;font-size:3.1cqw}
+.mc .sig .who span,.md .sig .who span{opacity:.85;font-size:2.5cqw}
+.mc .sig .me{display:flex;align-items:center;gap:2.4cqw}
+.mc .sig .sw,.md .sig .sw{flex:none;width:12cqw;height:12cqw;border-radius:2.4cqw;background:#fffdf6;display:flex;align-items:center;justify-content:center;padding:.8cqw}
+.mc .sig .sw svg,.md .sig .sw svg{width:100%;height:100%}
+.mc .sig .br{display:flex;align-items:center;gap:1.4cqw;opacity:.8}
+.mc .sig .br img{width:5cqw}
+.mc .nums .tm b,.md .rows .tm b{font-size:4.6cqw}
+.md .rows .r4c{background:#eef1f6;border-color:#cdd5e3;color:#2e4a73}
+.md .sig{margin:2cqw 5cqw 0;padding:1.2cqw 2.4cqw;background:#fff;border:.3cqw solid #ece3cf;border-radius:2.4cqw}
+.md .sig .sw{background:transparent;border:0;padding:0;width:11cqw;height:11cqw}
+.md .sig .who{color:#0b3d30}
+.md .sig .lbl{margin-inline-start:auto;font-size:2.3cqw;color:#8a7a58;text-align:end;line-height:1.4}
+
+.mc{grid-template-rows:auto 1fr auto auto auto auto}
+.mc .prog{margin:0 5.4cqw 1.8cqw;background:rgba(255,255,255,.08);border:.25cqw solid rgba(255,255,255,.16);border-radius:2.4cqw;padding:1.2cqw 2.6cqw;position:relative}
+.mc .prog .ph{display:flex;justify-content:space-between;align-items:baseline;font-size:2.7cqw;gap:2cqw}
+.mc .prog .ph b{font-size:3cqw}
+.mc .prog .ph .lv{border-radius:99cqw;padding:.1cqw 2cqw;font-weight:800;color:#13231c}
+.mc .lad{display:flex;align-items:flex-start;margin-top:.8cqw}
+.mc .lad .s{flex:1;text-align:center;font-size:2.4cqw;line-height:1.3;opacity:.92}
+.mc .lad .s i{display:flex;align-items:center;justify-content:center;margin:0 auto .6cqw;width:7cqw;height:7cqw;border-radius:50%;font-style:normal;font-weight:800;font-size:2.6cqw;color:#fff;border:.4cqw solid rgba(255,255,255,.55)}
+.mc .lad .s.cur{opacity:1;font-weight:800}
+.mc .lad .s.cur i{width:8.4cqw;height:8.4cqw;font-size:3cqw;border-color:#f0d878;box-shadow:0 0 0 .8cqw rgba(240,216,120,.25)}
+.mc .lad .cn{flex:.5;height:.3cqw;background:rgba(255,255,255,.3);margin-top:3.6cqw}
+
+/* ============ النموذج د: المربع الفاتح بمنحنى التقدّم ============ */
+.md{width:100%;aspect-ratio:4/5;position:relative;overflow:hidden;border-radius:3cqw;box-shadow:0 18px 40px rgba(0,0,0,.18);
+  background:#fbf7ee;color:#1c2a23;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;flex-direction:column}
+.md .hd{display:flex;align-items:center;gap:3cqw;padding:3cqw 5cqw 2.4cqw;background:#fff;border-bottom:.3cqw solid #ece3cf}
+.md .hd .av{width:12cqw;height:12cqw;border-radius:50%;background:#0d5c46;color:#fff;display:flex;align-items:center;justify-content:center;font-size:6cqw;font-weight:800;flex:none}
+.md .hd .nm{font-size:5.6cqw;font-weight:800;line-height:1.15}
+.md .hd .sc{font-size:2.7cqw;color:#6b6b63}
+.md .hd .sp{margin-inline-start:auto;text-align:center}
+.md .hd .sp .pct{font-size:8.4cqw;font-weight:800;line-height:1}
+.md .hd .sp .tl{display:inline-block;white-space:nowrap;margin-top:.6cqw;color:#fff;border-radius:99cqw;padding:.1cqw 2.2cqw;font-size:2.6cqw;font-weight:700}
+.md .chart{margin:2.6cqw 5cqw 0;background:#fff;border:.3cqw solid #ece3cf;border-radius:2.6cqw;padding:2cqw 2.6cqw 1.2cqw}
+.md .chart .ch{display:flex;justify-content:space-between;align-items:baseline;gap:2cqw;font-size:2.7cqw}
+.md .chart .ch b{font-size:3.1cqw;color:#0b3d30}
+.md .chart .ch .lv{font-weight:800;border-radius:99cqw;padding:.1cqw 2cqw;color:#fff}
+.md .chart svg{width:100%;height:auto;display:block;margin-top:.6cqw;overflow:visible}
+.md .rows{margin:2.4cqw 5cqw 0;display:grid;grid-template-columns:repeat(4,1fr);gap:1.8cqw}
+.md .rows div{border-radius:2.2cqw;padding:1.4cqw 1cqw;text-align:center;border:.3cqw solid}
+.md .rows b{font-size:5.4cqw;line-height:1.1;display:block}
+.md .rows span{font-size:2.5cqw;font-weight:700;line-height:1.3;display:block}
+.md .r1c{background:#e8f2ec;border-color:#bcd9c8;color:#0d5c46}.md .r2c{background:#f8efd9;border-color:#e6cf98;color:#8a6221}.md .r3c{background:#f6e4df;border-color:#e2bcb1;color:#9e3b2d}
+.md .tk{margin:2cqw 5cqw 0;display:flex;gap:2cqw;align-items:center;font-size:3cqw;font-weight:700;line-height:1.45;color:#0b3d30}
+.md .tk .ic{flex:none;width:7cqw;height:7cqw;border-radius:50%;background:#c9a13b;display:flex;align-items:center;justify-content:center}
+.md .tk .ic svg{width:4cqw;height:4cqw}
+.md .chart{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.md .ft{margin-top:2.4cqw;display:flex;justify-content:space-between;align-items:center;padding:2cqw 5cqw;background:#0d5c46;color:#fff;font-size:2.5cqw}
+.md .ft img{width:5cqw;vertical-align:middle;margin-inline-end:1.2cqw}
+.md.kids{background:#f2f8ff}
+.md.kids .hd .av{background:#2f6fd6}
+.md.kids .ft{background:linear-gradient(90deg,#2f6fd6,#5cc8c2)}
+.md.kids .chart,.md.kids .hd{border-color:#cfe1f5}
+.md.kids .rows div{border-radius:4cqw}
+
 </style>
 </head>
 <body>
@@ -299,6 +360,7 @@ button{font-family:inherit}
     <button data-tab="t2" data-t="tab2"></button>
     <button data-tab="t4" data-t="tab4"></button>
     <button data-tab="t5" data-t="tab5"></button>
+    <button data-tab="t6" data-t="tab6"></button>
     <button data-tab="t3" data-t="tab3"></button>
   </div>
 
@@ -347,6 +409,15 @@ button{font-family:inherit}
     </div>
   </section>
 
+  <!-- ===================== النموذج الجديد د: المربع الفاتح بمنحنى التقدّم ===================== -->
+  <section class="tab" id="t6">
+    <div class="lead" data-t="t6_lead"></div>
+    <div class="m2">
+      <div class="cardwrap" id="md-wrap"><div id="md-host"></div></div>
+      <div class="spec" id="spec-d"></div>
+    </div>
+  </section>
+
   <!-- ===================== التبويب 3 ===================== -->
   <section class="tab" id="t3">
     <div class="lead" data-t="t3_lead"></div>
@@ -363,9 +434,10 @@ const UI = {
   title:'تقرير التقييم الفردي — مقترحات للنقاش',
   subtitle:'معاينة فقط ببيانات تجريبية، لم يُعدَّل شيء داخل المنصة بعد.',
   c_exc:'ممتاز', c_avg:'متوسط', c_weak:'يحتاج دعمًا', c_adult:'الكبار', c_kids:'الصغار', c_boy:'طالب', c_girl:'طالبة',
-  tab1:'① تحسين التقرير الحالي', tab2:'② نموذج جديد أ · بطاقة المتابعة', tab4:'③ نموذج جديد ب · خريطة الآيات', tab5:'④ نموذج جديد ج · البطاقة المربعة', tab3:'⑤ ملاحظات على النصوص',
+  tab1:'① تحسين التقرير الحالي', tab2:'② نموذج جديد أ · بطاقة المتابعة', tab4:'③ نموذج جديد ب · خريطة الآيات', tab5:'④ نموذج جديد ج · البطاقة المختصرة', tab6:'⑤ نموذج جديد د · المختصرة الفاتحة', tab3:'⑥ ملاحظات على النصوص',
+  t6_lead:'شكل إضافي <b>بنفس فكرة النموذج ج</b> (1080×1350 بنفس المحتوى) لكن <b>بخلفية فاتحة</b>، والتقدّم العام لآخر 4 اختبارات معروض <b>كمنحنى</b> بدل الدوائر، والنتيجة بجانب الاسم في الأعلى.',
   t4_lead:'شكل <b>كلاسيكي على هيئة شهادة</b> بإطار مذهَّب، وقلبه <b>خريطة آيات السورة</b>: كل آية دائرة ملوّنة حسب نتيجتها اليوم، فيرى ولي الأمر في لمحة أين الإتقان وأين المراجعة دون قراءة جداول.',
-  t5_lead:'أقصر نموذج: <b>صورة مربعة 1080×1080</b> تظهر في محادثة واتساب كاملة دون قصّ ودون فتح. فيها الأساسيات فقط: النتيجة، والأرقام الثلاثة، والآيات المطلوبة، ومهمة البيت في سطر واحد.',
+  t5_lead:'نموذج مختصر <b>1080×1350 (4:5)</b> يظهر في محادثة واتساب كاملًا تقريبًا. فيه: النتيجة، و<b>مستوى التقدّم العام لآخر 4 اختبارات</b>، والأرقام بصيغة «4 أسئلة صحيحة»، و<b>وقت الإجابة</b>، ومهمة البيت، و<b>اسم المعلم وختمه من ملفه في المنصة</b>.',
   t1_lead:'نفس هوية التقرير الحالي وترتيبه العام، مع <b>12 تحسينًا</b> مرقّمة. غيّر المستوى أو (طالب/طالبة) من الأعلى لترى كيف تتغيّر الصياغة. على اليمين لقطة حقيقية من التقرير الحالي كما يُصدَّر صورةً اليوم.',
   t1_cur:'التقرير الحالي (لقطة حقيقية)', t1_cur_cap:'720×1400 تقريبًا — صورة طويلة، نصّها صغير عند فتحها في واتساب.',
   t1_new:'بعد التحسين', t1_new_cap:'الأرقام الذهبية تشير إلى التحسينات المشروحة بالأسفل.',
@@ -373,15 +445,16 @@ const UI = {
   t2_lead:'بطاقة مصمَّمة <b>للهاتف وواتساب أولًا</b>: عرض 1080 بكسل، خط كبير يُقرأ دون تكبير، ورسالة واحدة واضحة لولي الأمر + مهمة منزلية محددة. جرّب «الصغار» لترى نسخة ركن الأطفال، واضغط «تنزيل الصورة» لترى الجودة الفعلية.',
   t3_lead:'كل الملاحظات على نصوص التقرير الحالي: <span class="tag fix">تصحيح</span> خطأ لغوي أو منطقي، <span class="tag clr">توضيح</span> صياغة أوضح لولي الأمر، <span class="tag add">إضافة</span> نص جديد غير موجود.',
   th_where:'الموضع', th_old:'النص الحالي', th_new:'المقترح', th_why:'السبب',
-  dl:'تنزيل الصورة (عرض 1080)', dl_b:'تنزيل الصورة (عرض 1080)', dl_c:'تنزيل الصورة (1080×1080)', busy:'جارِ التجهيز…'
+  dl:'تنزيل الصورة (عرض 1080)', dl_b:'تنزيل الصورة (عرض 1080)', dl_c:'تنزيل الصورة (1080×1350)', dl_d:'تنزيل الصورة (1080×1350)', busy:'جارِ التجهيز…'
  },
  en:{
   title:'Individual evaluation report — proposals for discussion',
   subtitle:'Preview only with sample data; nothing has been changed inside the platform yet.',
   c_exc:'Excellent', c_avg:'Average', c_weak:'Needs support', c_adult:'Adults', c_kids:'Kids', c_boy:'Boy', c_girl:'Girl',
-  tab1:'① Improve the current report', tab2:'② New design A · Follow-up card', tab4:'③ New design B · Āyah map', tab5:'④ New design C · Square card', tab3:'⑤ Notes on the wording',
+  tab1:'① Improve the current report', tab2:'② New design A · Follow-up card', tab4:'③ New design B · Āyah map', tab5:'④ New design C · Compact card', tab6:'⑤ New design D · Light compact', tab3:'⑥ Notes on the wording',
+  t6_lead:'An extra design <b>on the same idea as C</b> (1080×1350, same content) but on a <b>light background</b>, with overall progress over the last 4 tests drawn as a <b>line chart</b> instead of dots, and the score next to the name at the top.',
   t4_lead:'A <b>classic certificate look</b> with a gilded frame, built around a <b>map of the surah\'s āyāt</b>: each āyah is a dot coloured by today\'s result, so the parent sees at a glance where it is solid and where to review — no tables.',
-  t5_lead:'The shortest design: a <b>square 1080×1080 image</b> that shows whole inside a WhatsApp chat, without cropping or opening. Essentials only: score, three numbers, the āyāt to review, and the home task in one line.',
+  t5_lead:'A compact <b>1080×1350 (4:5)</b> card that shows almost whole in a WhatsApp chat. It has: the score, <b>overall progress over the last 4 tests</b>, the counts as “4 questions correct”, <b>answer time</b>, the home task, and <b>the teacher name and stamp from their platform profile</b>.',
   t1_lead:'Same identity and overall order as today\'s report, with <b>12 numbered improvements</b>. Switch the level or boy/girl above to see how the wording adapts. On the side is a real capture of today\'s report as exported.',
   t1_cur:'Current report (real capture)', t1_cur_cap:'About 720×1400 — a tall image whose text is small when opened in WhatsApp.',
   t1_new:'After improvement', t1_new_cap:'Gold numbers point to the improvements explained below.',
@@ -389,7 +462,7 @@ const UI = {
   t2_lead:'A card designed <b>phone and WhatsApp first</b>: 1080 px wide, large type readable without zooming, one clear message for the parent + one concrete home task. Try “Kids” for the kids-corner version, and press “Download image” to see the real quality.',
   t3_lead:'All notes on the current report wording: <span class="tag fix">Fix</span> a language or logic error, <span class="tag clr">Clarify</span> clearer wording for parents, <span class="tag add">Add</span> new text.',
   th_where:'Where', th_old:'Current text', th_new:'Proposed', th_why:'Why',
-  dl:'Download image (1080 wide)', dl_b:'Download image (1080 wide)', dl_c:'Download image (1080×1080)', busy:'Preparing…'
+  dl:'Download image (1080 wide)', dl_b:'Download image (1080 wide)', dl_c:'Download image (1080×1350)', dl_d:'Download image (1080×1350)', busy:'Preparing…'
  }
 };
 
@@ -400,6 +473,32 @@ const DATA = {
   weak:     { score:45, prev:[52,48], full:2, help:2, wrong:4, n:8, mins:9, avg:31 }
 };
 const COLORS = { excellent:'#0d5c46', average:'#b8863b', weak:'#a15230' };
+// آخر 4 اختبارات (3 سابقة + اليوم) — نفس منطق «مستوى التقدّم العام» في المنصة (هذا التقييم + حتى 3 محاولات سابقة)
+const HIST4 = { excellent:[72,78,88], average:[58,62,71], weak:[55,52,48] };
+const HIST4_DATES = ['13/10','20/10','27/10'];
+const tierOf = p => p>=90?'excellent':p>=75?'good':p>=60?'average':'weak';
+const TIER_COL = { excellent:'#0d5c46', good:'#147c5e', average:'#b8863b', weak:'#a15230' };
+const tierName = k => isAr() ? {excellent:'ممتاز',good:'جيد',average:'متوسط',weak:'يحتاج دعمًا'}[k] : {excellent:'Excellent',good:'Good',average:'Average',weak:'Needs support'}[k];
+function progress4(){
+  const d = DATA[S.tier], arr = [...HIST4[S.tier], d.score];
+  const avg = Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
+  const diff = arr[3]-arr[0];
+  const dir = isAr()
+    ? (Math.abs(diff)<=3 ? 'مستقر' : diff>0 ? `في تحسّن (${diff>0?'+':''}${diff} منذ ${HIST4_DATES[0]})` : `في تراجع يحتاج متابعة`)
+    : (Math.abs(diff)<=3 ? 'steady' : diff>0 ? `improving (+${diff} since ${HIST4_DATES[0]})` : 'declining — needs follow-up');
+  const steps = arr.map((p,i)=>({p, w: i<3 ? HIST4_DATES[i] : (isAr()?'اليوم':'Today'), cur: i===3, t: tierOf(p)}));
+  return { avg, avgTier: tierOf(avg), dir, steps, up: diff>3, down: diff<-3 };
+}
+// «4 أسئلة صحيحة» بتمييز عدد صحيح: 1 سؤال، 2 سؤالان، 3–10 أسئلة، 11+ سؤالًا (والصفر: أسئلة)
+function qLabel(n, kind){
+  if (!isAr()) return { full: n===1?'question correct':'questions correct', help: n===1?'question with help':'questions with help', wrong: n===1?'question to review':'questions to review' }[kind];
+  const f = n===1?0 : n===2?1 : (n===0||n<=10)?2 : 3;
+  return {
+    full:  ['سؤال صحيح','سؤالان صحيحان','أسئلة صحيحة','سؤالًا صحيحًا'],
+    help:  ['سؤال بمساعدة','سؤالان بمساعدة','أسئلة بمساعدة','سؤالًا بمساعدة'],
+    wrong: ['سؤال يحتاج مراجعة','سؤالان يحتاجان مراجعة','أسئلة تحتاج مراجعة','سؤالًا يحتاج مراجعة']
+  }[kind][f];
+}
 const STARS = { excellent:3, average:1, weak:0 };
 
 const isAr = () => S.lang === 'ar';
@@ -514,6 +613,19 @@ function texts(){
   return T;
 }
 
+// 🔖 ختم تجريبي فقط — في المنصة يُستبدل بصورة الختم المرفوعة في «ملف المعلم» (teacher.stamp عبر getTeacherIdentity)
+function stampSvg(){
+  const ar = isAr(), nm = ar ? 'عبد الله محمود' : 'A. Mahmoud', top = ar ? 'معلم القرآن الكريم' : 'QURAN TEACHER';
+  return `<svg viewBox="0 0 100 100" style="transform:rotate(-8deg)"><g fill="none" stroke="#2a4f9a" opacity=".85">
+    <circle cx="50" cy="50" r="46" stroke-width="3"/><circle cx="50" cy="50" r="36" stroke-width="1.4"/></g>
+    <text x="50" y="30" font-size="9" fill="#2a4f9a" text-anchor="middle" font-family="IBM Plex Sans Arabic" font-weight="700">${top}</text>
+    <text x="50" y="55" font-size="12" fill="#2a4f9a" text-anchor="middle" font-family="Amiri" font-weight="700">${nm}</text>
+    <text x="50" y="74" font-size="8" fill="#2a4f9a" text-anchor="middle" font-family="IBM Plex Sans Arabic">${ar?'منصة حمٓ':'HAM'}</text></svg>`;
+}
+const timeTile = (d) => isAr() ? { v:`${d.avg} ث`, l:'متوسط وقت الإجابة' } : { v:`${d.avg} s`, l:'avg. answer time' };
+function teacherSig(){
+  return `<div class="sw">${stampSvg()}</div><div class="who"><b>${texts().teacher}</b><span>${texts().teacherRole}</span></div>`;
+}
 function starSvg(on){ return `<svg viewBox="0 0 20 20"><path d="M10 1.6l2.5 5.3 5.6.7-4.1 4 1.1 5.6L10 14.5l-5.1 2.7 1.1-5.6-4.1-4 5.6-.7z" ${on?'fill="#d4af37"':'fill="none" stroke="#d9cfb8" stroke-width="1.5"'}/></svg>`; }
 function ring(score, color, stroke, track){
   const r=42, c=2*Math.PI*r, off=c*(1-score/100);
@@ -797,7 +909,11 @@ function renderMC(){
   const task = ar
     ? (rev.length ? `في البيت: ${G('يسمّع','تسمّع')} ${name()} ${revTxt} من سورة الملك مرتين يوميًا` : `في البيت: تلاوة سورة الملك كاملة غيبًا مرة هذا الأسبوع`)
     : (rev.length ? `At home: ${name()} recites ${revTxt} of Al-Mulk twice a day` : `At home: recite all of Al-Mulk from memory once this week`);
-  const sub = ar ? `${T.teacher} · ${T.teacherRole}` : `${T.teacher} · ${T.teacherRole}`;
+  const sub = `${T.teacher} · ${T.teacherRole}`;
+  const P = progress4();
+  const lightCol = { excellent:'#7be0b0', good:'#a8e6c4', average:'#f0d878', weak:'#ff9b85' };
+  const lvCol = lightCol[P.avgTier];
+  const ladC = P.steps.map(st=>`<div class="s${st.cur?' cur':''}"><i style="background:${TIER_COL[st.t]}">${st.p}</i>${st.w}<br>${tierName(st.t)}</div>`).join('<div class="cn"></div>');
   document.getElementById('mc-host').innerHTML = `
   <div class="mc${kid?' kids':''}" id="mc" dir="${ar?'rtl':'ltr'}">
     <div class="h"><div class="b"><img src="assets/brand/ham-logo-light.svg" alt="">${ar?'منصة حمٓ':'Ham'}</div><div class="d">${T.dateLong}</div></div>
@@ -805,16 +921,26 @@ function renderMC(){
       <div><div class="nm">${full()}</div><div class="sc">${T.scope} · ${T.facts}</div><div class="ms">${T.msg}</div></div>
       <div class="ring">${ring(d.score,col,7,'rgba(255,255,255,.16)')}<div class="c"><div class="pct" style="color:${col}">${d.score}%</div><div class="tl">${T.tierLabel}</div></div></div>
     </div>
-    <div class="nums"><div><b>${d.full}</b><span>${T.tFull}</span></div><div><b>${d.help}</b><span>${T.tHelp}</span></div><div><b>${d.wrong}</b><span>${T.tWrong}</span></div></div>
-    <div class="task">${task}<small>${sub}</small></div>
+    <div class="prog">
+      <div class="ph"><b>${ar?'مستوى التقدّم العام · آخر 4 اختبارات':'Overall progress · last 4 tests'}</b>
+        <span><span class="lv" style="background:${lvCol}">${tierName(P.avgTier)} · <span dir="ltr">${P.avg}%</span></span></span></div>
+      <div class="lad">${ladC}</div>
+      <div class="ph" style="margin-top:.6cqw;opacity:.85"><span>${ar?'الاتجاه':'Trend'}: <b>${P.dir}</b></span><span>${ar?'مدة الاختبار':'Test duration'}: <b>${ar?arCount(d.mins,'دقيقة','دقيقتان','دقائق','دقيقة'):d.mins+' min'}</b></span></div>
+    </div>
+    <div class="nums"><div><b>${d.full}</b><span>${qLabel(d.full,'full')}</span></div><div><b>${d.help}</b><span>${qLabel(d.help,'help')}</span></div><div><b>${d.wrong}</b><span>${qLabel(d.wrong,'wrong')}</span></div><div class="tm"><b>${timeTile(d).v}</b><span>${timeTile(d).l}</span></div></div>
+    <div class="task">${task}</div>
+    <div class="sig"><div class="me">${teacherSig()}</div><div class="br"><img src="assets/brand/ham-logo-light.svg" alt="">${T.brand}</div></div>
   </div>
   <button class="btn" id="dl-c" data-lbl="dl_c">${UI[S.lang].dl_c}</button>`;
   document.getElementById('dl-c').onclick = () => downloadCard('mc','dl-c','c');
   document.getElementById('spec-c').innerHTML = ar ? `
     <h3>فكرة هذا النموذج</h3>
     <ul>
-      <li><b>مربع 1080×1080</b>: المقاس الوحيد الذي يعرضه واتساب كاملًا داخل المحادثة دون قصّ، فيقرؤه ولي الأمر دون أن يفتح الصورة أصلًا.</li>
-      <li><b>4 معلومات فقط</b>: من؟ وكم؟ (النتيجة + الأرقام الثلاثة) وأين الخطأ؟ وماذا أفعل؟ — والتفاصيل كلها في ملف PDF لمن يريد.</li>
+      <li><b>1080×1350 (4:5)</b>: كان مربعًا، لكن بعد إضافة التقدّم العام ووقت الإجابة والختم لم يعد المحتوى يتسع بخط مقروء، فصار 4:5 — وهو أيضًا مقاس يعرضه واتساب كاملًا تقريبًا داخل المحادثة.</li>
+      <li><b>وقت الإجابة</b>: مربع رابع «متوسط وقت الإجابة» بجانب الأرقام، و«مدة الاختبار» بجانب الاتجاه.</li>
+      <li><b>اسم المعلم وختمه</b> يُسحبان من «ملف المعلم» كما في التقرير الحالي (<code>getTeacherIdentity()</code>: الاسم والختم المرفوع). الختم يوضع على مربع فاتح حتى يظهر حبره على الخلفية الداكنة؛ وإن لم يُرفع ختم يظهر الاسم فقط. الختم المعروض هنا تجريبي.</li>
+      <li><b>الأساسيات فقط</b>: من؟ وكم؟ (النتيجة + الأرقام الثلاثة بصيغة «4 أسئلة صحيحة») وأين الخطأ؟ وماذا أفعل؟ — والتفاصيل كلها في ملف PDF لمن يريد.</li>
+      <li><b>جديد: مستوى التقدّم العام لآخر 4 اختبارات</b> كما في المنصة (هذا التقييم + 3 سابقة): كل اختبار دائرة بلون مستواه وتاريخه، مع المستوى العام (متوسط الأربعة) واتجاه التقدّم.</li>
       <li>خلفية داكنة بهوية المنصة تلفت النظر بين صور المحادثة، والنتيجة بلون المستوى (أخضر/ذهبي/مرجاني).</li>
       <li>مناسب للإرسال اليومي المتكرر؛ النموذج أ أو ب يناسبان التقرير الأسبوعي أو المهم.</li>
     </ul>
@@ -822,13 +948,85 @@ function renderMC(){
     <ul><li>هل يكفي هذا القدر يوميًا، مع إرسال PDF الشامل عند الحاجة فقط؟</li><li>هل نضيف سطر ملاحظة المعلم (سيصغر الخط قليلًا)؟</li></ul>` : `
     <h3>The idea</h3>
     <ul>
-      <li><b>Square 1080×1080</b>: the one size WhatsApp shows whole inside the chat without cropping — the parent reads it without even opening the image.</li>
-      <li><b>Only 4 facts</b>: who? how much? (score + three numbers) where are the mistakes? what do I do? — details stay in the PDF.</li>
+      <li><b>1080×1350 (4:5)</b>: it was square, but with overall progress, answer time and the stamp the content no longer fit at a readable size; 4:5 is also shown almost whole inside a WhatsApp chat.</li>
+      <li><b>Answer time</b>: a fourth tile “avg. answer time” next to the counts, and “test duration” next to the trend.</li>
+      <li><b>Teacher name and stamp</b> come from the teacher profile, as in today's report (<code>getTeacherIdentity()</code>). The stamp sits on a light tile so its ink shows on the dark background; without a stamp only the name shows. The stamp here is a sample.</li>
+      <li><b>Essentials only</b>: who? how much? (score + three numbers as “4 questions correct”) where are the mistakes? what do I do? — details stay in the PDF.</li>
+      <li><b>New: overall progress over the last 4 tests</b>, as in the platform (this evaluation + 3 previous): each test a dot in its level colour with its date, plus the overall level (average of the four) and the trend.</li>
       <li>A dark background in the platform identity stands out among chat photos; the score takes the level colour.</li>
       <li>Fits frequent daily sending; designs A or B suit weekly or important reports.</li>
     </ul>
     <h3>To discuss</h3>
     <ul><li>Is this enough daily, with the full PDF only when needed?</li><li>Add the teacher's note line (type gets a bit smaller)?</li></ul>`;
+}
+
+/* ===================== النموذج د: المربع الفاتح بمنحنى التقدّم ===================== */
+function renderMD(){
+  const T = texts(), d = DATA[S.tier], ar = isAr(), kid = S.aud==='kids';
+  const col = kid ? {excellent:'#2f6fd6',average:'#f29d0c',weak:'#e2604a'}[S.tier] : COLORS[S.tier];
+  const P = progress4();
+  const rev = T.review.slice(0,4).map(r=>+r[0]).sort((x,y)=>x-y);
+  const revTxt = rev.length ? (ar ? `${rev.length>1?'الآيات':'الآية'} ${rev.join(' و ')}` : `āyāt ${rev.join(', ')}`) : '';
+  const task = ar
+    ? (rev.length ? `في البيت: ${G('يسمّع','تسمّع')} ${name()} ${revTxt} من سورة الملك مرتين يوميًا` : `في البيت: تلاوة سورة الملك كاملة غيبًا مرة هذا الأسبوع`)
+    : (rev.length ? `At home: ${name()} recites ${revTxt} of Al-Mulk twice a day` : `At home: recite all of Al-Mulk from memory once this week`);
+  // منحنى بسيط: محور أفقي زمني (الأقدم ← اليوم حسب اتجاه اللغة)، ونطاق رأسي 30–100
+  const W = 400, H = 108, padX = 28, top = 20, bot = 24;
+  const xs = P.steps.map((_,i) => { const x = padX + i*(W-2*padX)/3; return ar ? W - x : x; });
+  const y = p => top + (100 - Math.max(30,Math.min(100,p))) / 70 * (H - top - bot);
+  const pts = P.steps.map((st,i)=>[xs[i], y(st.p)]);
+  const line = pts.map(p=>p.join(',')).join(' ');
+  const area = `${pts[0][0]},${H-bot} ${line} ${pts[3][0]},${H-bot}`;
+  const lineCol = kid ? '#2f6fd6' : '#0d5c46';
+  const bands = [[90,'#e8f2ec'],[75,'#f1f7f3'],[60,'#fbf3e1']].map(([v,c],i,a)=>{ const y1=y(i?a[i-1][0]:100), y2=y(v); return `<rect x="0" y="${y1}" width="${W}" height="${y2-y1}" fill="${c}" opacity=".7"/>`; }).join('');
+  const svg = `<svg viewBox="0 0 ${W} ${H}" style="direction:ltr">${bands}
+    <line x1="0" x2="${W}" y1="${y(P.avg)}" y2="${y(P.avg)}" stroke="#b9a983" stroke-dasharray="4 4" stroke-width="1"/>
+    <text x="${ar?W-4:4}" y="${y(P.avg)+12}" font-size="10" fill="#8a7a58" text-anchor="${ar?'end':'start'}" font-family="IBM Plex Sans Arabic">${ar?'المتوسط':'avg'} ${P.avg}%</text>
+    <polygon points="${area}" fill="${lineCol}" opacity=".08"/>
+    <polyline points="${line}" fill="none" stroke="${lineCol}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+    ${P.steps.map((st,i)=>`<circle cx="${pts[i][0]}" cy="${pts[i][1]}" r="${st.cur?7:5}" fill="${TIER_COL[st.t]}" stroke="#fff" stroke-width="2"/>
+      <text x="${pts[i][0]}" y="${pts[i][1]-11}" font-size="${st.cur?13:11}" font-weight="800" fill="#1c2a23" text-anchor="middle" font-family="IBM Plex Sans Arabic">${st.p}%</text>
+      <text x="${pts[i][0]}" y="${H-8}" font-size="10.5" fill="#6b6b63" text-anchor="middle" font-family="IBM Plex Sans Arabic" ${st.cur?'font-weight="800"':''}>${st.w}</text>`).join('')}
+  </svg>`;
+  document.getElementById('md-host').innerHTML = `
+  <div class="md${kid?' kids':''}" id="md" dir="${ar?'rtl':'ltr'}">
+    <div class="hd"><div class="av">${name()[0]}</div>
+      <div><div class="nm">${full()}</div><div class="sc">${T.scope} · ${T.facts}<br>${T.dateLong}</div></div>
+      <div class="sp"><div class="pct" style="color:${col}">${d.score}%</div><span class="tl" style="background:${col}">${T.tierLabel}</span></div></div>
+    <div class="chart">
+      <div class="ch"><b>${ar?'مستوى التقدّم العام · آخر 4 اختبارات':'Overall progress · last 4 tests'}</b><span class="lv" style="background:${TIER_COL[P.avgTier]}">${tierName(P.avgTier)} · <span dir="ltr">${P.avg}%</span></span></div>
+      ${svg}
+      <div class="ch" style="justify-content:center;color:${P.up?'#0d5c46':P.down?'#9e3b2d':'#6f644e'}"><span>${ar?'الاتجاه':'Trend'}: <b style="color:inherit">${P.dir}</b></span></div>
+    </div>
+    <div class="rows">
+      <div class="r1c"><b>${d.full}</b><span>${qLabel(d.full,'full')}</span></div>
+      <div class="r2c"><b>${d.help}</b><span>${qLabel(d.help,'help')}</span></div>
+      <div class="r3c"><b>${d.wrong}</b><span>${qLabel(d.wrong,'wrong')}</span></div>
+      <div class="r4c tm"><b>${timeTile(d).v}</b><span>${timeTile(d).l}</span></div>
+    </div>
+    <div class="tk"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></div><span>${task}</span></div>
+    <div class="sig">${teacherSig()}<div class="lbl">${ar?'الاسم والختم من «ملف المعلم»':'Name & stamp from the teacher profile'}</div></div>
+    <div class="ft"><span><img src="assets/brand/ham-logo-light.svg" alt="">${T.brand}</span><span>${ar?'مدة الاختبار':'Test duration'}: ${ar?arCount(d.mins,'دقيقة','دقيقتان','دقائق','دقيقة'):d.mins+' min'}</span></div>
+  </div>
+  <button class="btn" id="dl-d" data-lbl="dl_d">${UI[S.lang].dl_d}</button>`;
+  document.getElementById('dl-d').onclick = () => downloadCard('md','dl-d','d');
+  document.getElementById('spec-d').innerHTML = ar ? `
+    <h3>الفرق عن النموذج ج</h3>
+    <ul>
+      <li><b>خلفية فاتحة</b> بهوية التقرير الحالي (كريمي + أخضر) بدل الداكنة — أقرب لما اعتاده أولياء الأمور، ويُطبع بوضوح لو احتاجوا.</li>
+      <li><b>التقدّم العام كمنحنى</b> لآخر 4 اختبارات: نقطة لكل اختبار بلون مستواه، وخط متقطع لمتوسط الأربعة، وخلفية ملوّنة خفيفة لنطاقات المستويات؛ فيُرى الصعود أو الهبوط بنظرة.</li>
+      <li><b>النتيجة بجانب الاسم</b> في الأعلى، فتبقى المساحة الوسطى كلها للتقدّم.</li>
+      <li>نفس الأرقام بصيغة «4 أسئلة صحيحة» + <b>متوسط وقت الإجابة</b> ومدة الاختبار، ونفس سطر مهمة البيت، و<b>اسم المعلم وختمه من ملفه</b> في صندوق مستقل (الختم هنا تجريبي).</li>
+    </ul>
+    <h3>ملاحظة على العدّ</h3>
+    <ul><li>كتبتُ «4 أسئلة صحيحة» و«سؤالان بمساعدة» و«سؤال يحتاج مراجعة» بتمييز العدد الصحيح في العربية بدل «4 سؤال صحيح» حرفيًا؛ إن أردت الصيغة الحرفية أغيّرها.</li></ul>` : `
+    <h3>How it differs from C</h3>
+    <ul>
+      <li><b>Light background</b> in the current report identity (cream + green) instead of dark — closer to what parents know, and prints clearly.</li>
+      <li><b>Overall progress as a line chart</b> over the last 4 tests: a point per test in its level colour, a dashed line for the four-test average, and faint level bands, so rise or fall is visible at a glance.</li>
+      <li><b>Score next to the name</b> at the top, leaving the middle for progress.</li>
+      <li>Same counts as “4 questions correct” + <b>average answer time</b> and test duration, same home-task line, and <b>the teacher name and stamp from their profile</b> in its own box (sample stamp here).</li>
+    </ul>`;
 }
 
 /* ===================== التبويب 3: النصوص ===================== */
@@ -864,7 +1062,7 @@ function applyUI(){
   document.documentElement.lang = S.lang; document.documentElement.dir = isAr() ? 'rtl' : 'ltr';
   document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = L[el.dataset.t] || ''; });
   document.title = L.title;
-  renderR1(); renderPC(); renderMB(); renderMC(); renderTable();
+  renderR1(); renderPC(); renderMB(); renderMC(); renderMD(); renderTable();
 }
 function bindSeg(id, key){
   document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
