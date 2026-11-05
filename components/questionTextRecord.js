@@ -7,6 +7,19 @@
 // بأواخرها: 3، 5") بلا نصوص الآيات نفسها. هنا نبني من عمودي السؤال (starts/ends) نص السؤال
 // (البدايات المطلوب استكمالها) وإجابته (كل بداية مع نهايتها الصحيحة) حسب المعرّف id المشترك.
 
+// الآية الكاملة لزوجٍ معيّن: «اربط الكلمة بسورتها» من ayahRefs، و«اربط أول الآية بآخرها» من original.
+function fullAyahFor(cd, id) {
+    if (Array.isArray(cd.ayahRefs)) {
+        const r = cd.ayahRefs.find(a => a && a.id === id);
+        if (r && r.text) return { text: r.text, surahName: r.surahName, numberInSurah: r.numberInSurah };
+    }
+    if (Array.isArray(cd.original)) {
+        const a = cd.original.find(x => x && `${x.surahNumber}-${x.numberInSurah}` === String(id));
+        if (a && a.text) return { text: a.text, surahName: a.surahName, numberInSurah: a.numberInSurah };
+    }
+    return null;
+}
+
 export function buildLinkQuestionRecord(cd) {
     if (!cd || !Array.isArray(cd.starts) || !Array.isArray(cd.ends) || cd.starts.length === 0) return null;
     const endById = new Map(cd.ends.map(e => [e.id, e.text]));
@@ -20,7 +33,12 @@ export function buildLinkQuestionRecord(cd) {
         questionBody: `<div style="margin-top:10px;">${qRows}</div>`,
         fullAnswer: aRows,
         // 🌟 [جديد] الأزواج الخام (id/بداية/نهاية) لإعادة بناء لعبة الربط التفاعلية في "علاج الخطأ"
-        linkPairs: rows.map(s => ({ id: s.id, start: s.text, end: endById.get(s.id) }))
+        // + نص الآية كاملة واسم السورة ورقمها (إن وُجدت) ليعرضها «لا أعرف هذه» كاملةً في علاج الخطأ أيضاً
+        linkPairs: rows.map(s => {
+            const f = fullAyahFor(cd, s.id);
+            return Object.assign({ id: s.id, start: s.text, end: endById.get(s.id) },
+                f ? { full: f.text, surahName: f.surahName, numberInSurah: f.numberInSurah } : {});
+        })
     };
 }
 
@@ -67,7 +85,11 @@ export function rebuildLinkFromRecord(wItem) {
         arranged = aligned.map((_, i) => aligned[(i + k) % aligned.length]);
     }
     ends = arranged;
-    return { starts, ends, answerHTML: pairs.map(p => `${p.start} ${(wItem.questionType || '').includes('word_surah') ? '⟷' : '…'} ${p.end}`).join('<br>') };
+    // الآيات الكاملة (إن حُفظت) لبطاقة «لا أعرف هذه»؛ السجلات القديمة بلا linkPairs.full تعرض ما لديها
+    const ayahRefs = Array.isArray(wItem.linkPairs)
+        ? wItem.linkPairs.filter(p => p && p.full).map(p => ({ id: p.id, text: p.full, surahName: p.surahName, numberInSurah: p.numberInSurah }))
+        : [];
+    return { starts, ends, ayahRefs, answerHTML: pairs.map(p => `${p.start} ${(wItem.questionType || '').includes('word_surah') ? '⟷' : '…'} ${p.end}`).join('<br>') };
 }
 
 // 🌟 [جديد] ترويسة "ما هو السؤال؟" في شاشة "علاج الخطأ السابق" — الطالب (والمعلم) أول ما يسأله: "كان إيه السؤال؟".

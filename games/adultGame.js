@@ -868,6 +868,8 @@ async function playNextMission() {
             if (linkRebuilt) {
                 const isWS = wItem.questionType.includes('word_surah');
                 GameState.currentData.starts = linkRebuilt.starts;
+                GameState.currentData.ayahRefs = linkRebuilt.ayahRefs;
+                GameState.currentData.linkKind = isWS ? 'word_surah' : 'ends';
                 GameState.currentData.ends = linkRebuilt.ends;
                 GameState.currentData.matchedPairs = [];
                 GameState.currentData.selectedStart = null;
@@ -1450,10 +1452,9 @@ function showLinkRevealCard(data, id, onDone) {
     const body = document.createElement('div');
     body.className = 'link-reveal-body quran-text';
     // الآية كاملة بين قوسين + اسم السورة ورقم الآية (في «اربط أول الآية بآخرها» و«اربط الكلمة بسورتها»)
-    const isWS = /word_surah/.test(data.type || '');
-    const full = isWS
-        ? (Array.isArray(data.ayahRefs) ? data.ayahRefs.find(a => a.id === id) : null)
-        : (Array.isArray(data.original) ? data.original.find(a => `${a.surahNumber}-${a.numberInSurah}` === String(id)) : null);
+    const isWS = /word_surah/.test(data.type || '') || (data.type === 'weakness' && !Array.isArray(data.original) && data.starts && data.starts.some(x => x.id === id) && data.linkKind === 'word_surah');
+    const full = (Array.isArray(data.ayahRefs) ? data.ayahRefs.find(a => a.id === id) : null)
+        || (Array.isArray(data.original) ? data.original.find(a => `${a.surahNumber}-${a.numberInSurah}` === String(id)) : null);
     if (full && full.text) {
         body.textContent = '﴿\u00A0' + full.text + '\u00A0﴾';
         pendingRef = document.createElement('div');
