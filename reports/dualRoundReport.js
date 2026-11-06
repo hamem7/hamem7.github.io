@@ -77,12 +77,19 @@ async function buildData(match, test, idx) {
     };
   };
   const A = side('A'), B = side('B');
+  // «هل تحسّن عن الجولة السابقة؟» (من الجولة 2): مستوى الإتقان = درجاته ÷ (عدد أسئلته × 10)
+  const prev = idx > 0 ? match.rounds[idx - 1] : null;
+  if (prev) [A, B].forEach(sd => {
+    const n = (prev.questionsLog || []).filter(e => e.student === sd.key).length;
+    const sc = sd.key === 'A' ? prev.scoreA : prev.scoreB;
+    sd.prevPct = n ? Math.round((sc || 0) / (n * QUESTION_POINTS) * 100) : null;
+  });
   [A.avatar, B.avatar] = await Promise.all([avatarOf(A.id), avatarOf(B.id)]);
   const done = match.rounds.slice(0, idx + 1);
   const series = { a: done.filter(x => x.roundWinner === 'A').length, b: done.filter(x => x.roundWinner === 'B').length };
   const next = idx < 2 ? (test.rounds || [])[idx + 1] : null;
   return {
-    idx, n: idx + 1, A, B, winner: r.roundWinner, series,
+    idx, n: idx + 1, A, B, winner: r.roundWinner, series, hasPrev: !!prev,
     starter: r.roundStarter ? (r.roundStarter === 'A' ? A.name : B.name) : '',
     date: formatRoundDate(r.playedAt || match.pausedAt),
     range: dualRoundRangeLabel(tRound),
@@ -93,6 +100,19 @@ async function buildData(match, test, idx) {
 
 const refOf = q => (q && q.meta && q.meta.surah) ? `${surahLabel(q.meta.surah)} ${q.meta.fromAyah}–${q.meta.toAyah}` : '';
 const noOf = e => e.kind === 'swap' ? tr('drr_swap_no', { c: e.ref }) : String(e.ref);
+
+// «أين تعثّر؟»: مواضع الأسئلة التي وقع فيها خطأ (السورة والآيات، وإلا رقم السؤال) مع عدد الأخطاء
+function stumbleTxt(s) {
+  if (!s.entries.length) return t('drr_no_answers');
+  const bad = s.entries.filter(e => e.mistakes > 0).sort((a, b) => b.mistakes - a.mistakes);
+  if (!bad.length) return t('drr_no_stumble');
+  return bad.slice(0, 3).map(e => tr('drr_stumble_item', { p: refOf(e.q) || tr('drr_q_no', { n: noOf(e) }), n: e.mistakes })).join(isEn() ? ', ' : '، ');
+}
+function improveTxt(s) {
+  if (s.prevPct == null || !s.entries.length) return t('drr_improve_na');
+  const dlt = s.pct - s.prevPct, p = { a: s.prevPct, b: s.pct, d: Math.abs(dlt) };
+  return tr(dlt > 0 ? 'drr_improve_up' : dlt < 0 ? 'drr_improve_down' : 'drr_improve_same', p);
+}
 
 function homeTasks(d) {
   const tasks = [];
@@ -195,7 +215,9 @@ function cardHtml(d) {
       ${box(2, t('drr_q2'), ln(d.A, helpTxt(d.A)) + ln(d.B, helpTxt(d.B)))}
       ${box(3, t('drr_q3'), ln(d.A, E(tr('drr_q3_val', { n: d.A.mistakes, d: d.A.deduction }))) + ln(d.B, E(tr('drr_q3_val', { n: d.B.mistakes, d: d.B.deduction }))))}
       ${box(4, t('drr_q4'), `<div class="big">${d.winner === 'tie' ? '🤝' : '🏆'} ${E(winTxt)}</div>${d.winner !== 'tie' ? `<div style="font-size:12.5px;color:#5d6486">${E(tr('drr_diff', { n: r2(Math.abs(d.A.score - d.B.score)) }))}</div>` : ''}`)}
-      ${box(5, d.n < 3 ? tr('drr_q5_next', { n: d.n + 1 }) : t('drr_q5_last'), tasksHtml(d), 'full')}
+      ${box(5, t('drr_q_stumble'), ln(d.A, E(stumbleTxt(d.A))) + ln(d.B, E(stumbleTxt(d.B))), d.hasPrev ? '' : 'full')}
+      ${d.hasPrev ? box(6, t('drr_q_improve'), ln(d.A, E(improveTxt(d.A))) + ln(d.B, E(improveTxt(d.B)))) : ''}
+      ${box(d.hasPrev ? 7 : 6, d.n < 3 ? tr('drr_q5_next', { n: d.n + 1 }) : t('drr_q5_last'), tasksHtml(d), 'full')}
     </div>
     ${footHtml(d)}
   </div></div>`;
@@ -215,9 +237,12 @@ function pdfHtml(d) {
     return `<div class="sec ${s.key.toLowerCase()} pdf-block"><h3>${E(tr('drr_pdf_questions_of', { name: s.name }))} — <span class="ltr">${s.score} / ${s.max}</span></h3>
       <table><thead><tr><th style="width:80px">${E(t('drr_col_no'))}</th><th>${E(t('drr_col_text'))}</th><th style="width:70px">${E(t('drr_col_mistakes'))}</th><th style="width:90px">${E(t('drr_col_points'))}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   };
+  const ln2 = (s, v) => `<div class="ln"><span class="who ${s.key.toLowerCase()}">${E(s.name)}</span><span>${E(v)}</span></div>`;
   const stat = s => `<div class="ln"><span class="who ${s.key.toLowerCase()}">${E(s.name)}</span><span>${E(tr('drr_q1_val', { n: s.entries.length, f: s.clean }))} · ${E(tr('drr_q3_val', { n: s.mistakes, d: s.deduction }))}${s.helper ? ' · ' + E(t('drr_help')) : ''}${s.swap ? ' · ' + E(t('drr_swap')) : ''}</span></div>`;
   return `<div class="drr drr-pdf" dir="${isEn() ? 'ltr' : 'rtl'}">
-    <div class="pdf-block" style="display:flex;flex-direction:column;gap:10px">${headHtml(d)}${vsHtml(d)}<div class="bx">${stat(d.A)}${stat(d.B)}</div></div>
+    <div class="pdf-block" style="display:flex;flex-direction:column;gap:10px">${headHtml(d)}${vsHtml(d)}<div class="bx">${stat(d.A)}${stat(d.B)}</div>
+      <div class="qs"><div class="bx${d.hasPrev ? '' : ' full'}"><div class="k"><em>📍</em>${E(t('drr_q_stumble'))}</div>${ln2(d.A, stumbleTxt(d.A))}${ln2(d.B, stumbleTxt(d.B))}</div>
+      ${d.hasPrev ? `<div class="bx"><div class="k"><em>📈</em>${E(t('drr_q_improve'))}</div>${ln2(d.A, improveTxt(d.A))}${ln2(d.B, improveTxt(d.B))}</div>` : ''}</div></div>
     ${sec(d.A)}${sec(d.B)}
     <div class="bx pdf-block"><div class="k"><em>🏠</em>${E(d.n < 3 ? tr('drr_q5_next', { n: d.n + 1 }) : t('drr_q5_last'))}</div>${tasksHtml(d)}</div>
     <div class="pdf-block">${footHtml(d)}</div>

@@ -1065,6 +1065,8 @@ export const translations = {
         // 🌟 [جديد] زر إنهاء الجلسة بعد كل جولة + سطر التطمين تحته
         dtp_end_session_btn: "💾 إنهاء الجلسة وحفظ التقدّم",
         dtp_session_saved_note: "✅ تم حفظ نتيجة هذه الجولة. المواجهة ستبقى محفوظة بنفس الطالبَين، وتُستكمَل من الجولة {n} في جلسة قادمة من: الاختبارات الثنائية ← ⏸️ مواجهات معلقة.",
+        drr_q_stumble: "أين تعثّر؟", drr_stumble_item: "{p} ({n} أخطاء)", drr_q_no: "السؤال {n}", drr_no_stumble: "لم يتعثّر — كل إجاباته بلا خطأ", drr_no_answers: "لم يُجب عن أسئلة في هذه الجولة",
+        drr_q_improve: "هل تحسّن عن الجولة السابقة؟", drr_improve_up: "نعم ⬆ تحسّن من {a}% إلى {b}% (بزيادة {d}%)", drr_improve_down: "تراجع ⬇ من {a}% إلى {b}% (بنقص {d}%)", drr_improve_same: "ثابت عند {b}%", drr_improve_na: "لا تتوفر مقارنة",
         drr_title: "تقرير جولة — مواجهة ثنائية", drr_round_of: "الجولة {n} من 3", drr_range: "نطاق الجولة", drr_starter: "بدأ الجولة",
         drr_series: "حصيلة المواجهة: {a} {x} — {y} {b}", drr_winner: "الفائز", drr_mastery: "مستوى الإتقان",
         drr_q1: "كم سؤالاً أجاب كل طالب؟", drr_q1_val: "أجاب: {n} · بلا خطأ: {f}",
@@ -4437,6 +4439,8 @@ export const translations = {
         // 🌟 [جديد] One round per session: end the session and resume later
         dtp_end_session_btn: "💾 End session & save progress",
         dtp_session_saved_note: "✅ This round's result is saved. The match stays saved with the same students and resumes at round {n} in a later session from: Dual Tests → ⏸️ Unfinished matches.",
+        drr_q_stumble: "Where did they stumble?", drr_stumble_item: "{p} ({n} mistakes)", drr_q_no: "Question {n}", drr_no_stumble: "No stumbles — every answer was mistake-free", drr_no_answers: "Answered no questions this round",
+        drr_q_improve: "Did they improve on the last round?", drr_improve_up: "Yes ⬆ from {a}% to {b}% (+{d})", drr_improve_down: "Dropped ⬇ from {a}% to {b}% (−{d})", drr_improve_same: "Steady at {b}%", drr_improve_na: "No comparison available",
         drr_title: "Round report — Duel", drr_round_of: "Round {n} of 3", drr_range: "Round range", drr_starter: "Started the round",
         drr_series: "Match so far: {a} {x} — {y} {b}", drr_winner: "Winner", drr_mastery: "Mastery",
         drr_q1: "How many questions did each student answer?", drr_q1_val: "Answered: {n} · mistake-free: {f}",
