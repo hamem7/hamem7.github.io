@@ -114,19 +114,26 @@ function improveTxt(s) {
   return tr(dlt > 0 ? 'drr_improve_up' : dlt < 0 ? 'drr_improve_down' : 'drr_improve_same', p);
 }
 
+// «ماذا نفعل في البيت؟» مبنية على ما حدث فعلاً مع الطالب في الجولة: مواضع أخطائه وعددها،
+// السؤال الذي استعان فيه بالمساعدة، استخدامه للتبديل، تراجعه عن الجولة السابقة، أو إتقانه
+function studentTasks(s, d) {
+  const place = e => refOf(e.q) || tr('drr_q_no', { n: noOf(e) });
+  if (!s.entries.length) return [t('drr_task_none')];
+  const out = [];
+  const bad = s.entries.filter(e => e.mistakes > 0).sort((a, b) => b.mistakes - a.mistakes);
+  bad.slice(0, 3).forEach(e => out.push(tr(e.mistakes >= 3 ? 'drr_task_fix_hard' : 'drr_task_fix_one', { p: place(e), n: e.mistakes })));
+  s.entries.filter(e => e.helperUsed).forEach(e => out.push(tr('drr_task_helper', { p: place(e) })));
+  if (s.swap) out.push(t('drr_task_swap'));
+  if (s.prevPct != null && s.pct < s.prevPct) out.push(tr('drr_task_drop', { a: s.prevPct, b: s.pct }));
+  if (!out.length) out.push(t(s.pct >= 90 ? 'drr_task_keep' : 'drr_task_clean2'));
+  return out;
+}
 function homeTasks(d) {
   const tasks = [];
+  if (d.focus) studentTasks(d.A, d).forEach(x => tasks.push(x));
+  else [d.A, d.B].forEach(s => studentTasks(s, d).forEach(x => tasks.push(`${s.name}: ${x}`)));
   if (d.n < 3) tasks.push(tr('drr_task_next_range', { n: d.n + 1, r: d.nextRange || d.range }));
-  // صورة ولي أمر طالب بعينه: مهام البيت لطالبه فقط
-  [d.A, d.B].filter(s => !d.focus || s.key === d.focus).forEach(s => {
-    const bad = s.entries.filter(e => e.mistakes > 0);
-    if (!s.entries.length) return;
-    if (!bad.length) { tasks.push(tr('drr_task_clean', { name: s.name })); return; }
-    const list = [...new Set(bad.map(e => refOf(e.q) || ('#' + noOf(e))))].slice(0, 3).join(isEn() ? ', ' : '، ');
-    tasks.push(tr('drr_task_fix', { name: s.name, list }));
-  });
-  tasks.push(t('drr_task_daily'));
-  return tasks;
+  return d.focus ? tasks.slice(0, 6) : tasks;
 }
 
 // html2canvas يرسم نقاط القوائم في الجهة الخاطئة مع RTL — فنكتب النقطة بأنفسنا
