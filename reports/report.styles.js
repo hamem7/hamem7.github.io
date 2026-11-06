@@ -87,7 +87,21 @@ export const REPORT_STYLES = `
     min-width:0; max-width:100%; box-sizing:border-box; overflow-x:auto; justify-content:safe center;
     -webkit-overflow-scrolling:touch;
   }
-  #report-screen .report-stage:has(#report-stage-inner) > #report-stage-inner{flex:none;}
+  #report-screen .report-stage:has(#report-stage-inner) #report-stage-inner{flex:none;}
+
+  /* 🌟 [جديد] تقسيم المعاينة: يمين = صورة واتساب، يسار = ملف PDF. direction:rtl ثابت هنا (تخطيط فيزيائي) حتى يبقى واتساب
+     يمينًا في اللغتين؛ ويتكدّس الجزءان رأسيًا (واتساب أولًا) إذا ضاق العرض. المحتوى داخل كل جزء يحتفظ باتجاهه الأصلي. */
+  #report-screen .report-split{display:flex; flex-wrap:wrap; direction:rtl; gap:28px; align-items:flex-start; justify-content:center; width:100%; min-width:0;}
+  #report-screen .split-pane{min-width:0; direction:ltr;}
+  #report-screen .pdf-pane{flex:none; width:720px; max-width:100%;}
+  #report-screen .wa-pane{flex:1 1 360px; max-width:720px;}
+  #report-screen .pane-title{unicode-bidi:plaintext;
+    margin:0 0 12px; text-align:center; font-size:14px; font-weight:800; color:#5b5240; letter-spacing:0;
+  }
+  #report-screen .wa-frame{position:relative; width:100%; overflow:hidden; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,0.12); background:#f9f4ea;}
+  #report-screen .wa-scaler{position:absolute; top:0; inset-inline-start:0; transform-origin:top left; direction:ltr;}
+  #report-screen .wa-scaler .qac, #report-screen .wa-scaler .rc{direction:inherit;}
+  #report-screen .wa-scaler .qac[dir="rtl"]{direction:rtl;}
 
   /* ============== إطار الصفحة ============== */
   #report-screen .page{
@@ -388,8 +402,10 @@ export const REPORT_STYLES = `
        مقصوصة داخل إطار يُمرَّر أفقيًا (يرى المعلم جزءًا من التقرير فقط)، فلا تعمل قواعد الهاتف أدناه أصلًا. أثناء التصدير يضيف
        report.js الكلاس dh-export-width فتعود الورقة 720px كما كانت تمامًا، فلا يتغير ناتج الصورة/PDF. */
     #report-screen .report-stage:has(#report-stage-inner){padding:12px 8px 24px;}
-    #report-screen .report-stage:has(#report-stage-inner) > #report-stage-inner{flex:1 1 auto; width:100%; min-width:0;}
-    #report-screen .report-stage.dh-export-width:has(#report-stage-inner) > #report-stage-inner{flex:none; width:auto;}
+    #report-screen .pdf-pane{flex:1 1 100%; width:100%; min-width:0;}
+    #report-screen .report-stage:has(#report-stage-inner) #report-stage-inner{flex:1 1 auto; width:100%; min-width:0;}
+    #report-screen .report-stage.dh-export-width:has(#report-stage-inner) #report-stage-inner{flex:none; width:auto;}
+    #report-screen .report-stage.dh-export-width .pdf-pane{flex:none; width:720px;}
     #report-screen .page{padding:30px 18px 26px;}
     #report-screen .r-title{font-size:28px;}
     #report-screen .r-subtitle{font-size:18px;}

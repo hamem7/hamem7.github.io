@@ -142,6 +142,14 @@ const REPORT_TEMPLATE = `
   </div>
 
   <div class="report-stage">
+   <div class="report-split" id="report-split">
+    <!-- 🌟 [جديد] تقسيم المعاينة: على اليمين شكل صورة واتساب، وعلى اليسار شكل ملف PDF (يتكدّس الجزءان رأسيًا في الشاشات الضيقة) -->
+    <section class="split-pane wa-pane" id="report-wa-pane">
+      <h3 class="pane-title" dir="auto"><span data-i18n="rep_pane_wa">معاينة صورة واتساب</span></h3>
+      <div class="wa-frame" id="report-wa-frame"><div class="wa-scaler" id="report-wa-scaler"></div></div>
+    </section>
+    <section class="split-pane pdf-pane">
+    <h3 class="pane-title" dir="auto"><span data-i18n="rep_pane_pdf">معاينة ملف PDF</span></h3>
     <div id="report-stage-inner" class="tier-excellent">
       <div>
 
@@ -345,6 +353,8 @@ const REPORT_TEMPLATE = `
 
       </div>
     </div>
+    </section>
+   </div>
   </div>
 </div>
 
@@ -1642,10 +1652,54 @@ function renderHomeTaskInput(){
   ta.value = homeTaskOverride != null ? homeTaskOverride : auto;
 }
 
+// 🌟 [جديد] معاينة صورة واتساب الحيّة (النصف الأيمن): نفس البطاقة التي تُصدَّر فعليًا، تُبنى على الشاشة وتُصغَّر لتناسب عرض الجزء.
+// التصدير نفسه لا يتأثر: يبني نسخته الخاصة خارج الشاشة كما كان (exportQaPng / exportCardPng).
+let waResizeObs = null, waObsFrame = null;
+function scaleWaPreview(){
+  const frame = $('report-wa-frame'), scaler = $('report-wa-scaler');
+  if (!frame || !scaler) return;
+  const root = scaler.firstElementChild && scaler.querySelector('.qac, .rc');
+  if (!root) return;
+  const w = root.offsetWidth || 720, h = root.offsetHeight || 900;
+  const avail = frame.clientWidth || w;
+  const k = Math.min(1, avail / w);
+  scaler.style.width = w + 'px';
+  scaler.style.transform = `scale(${k})`;
+  frame.style.height = Math.ceil(h * k) + 'px';
+}
+function renderWaPreview(){
+  const pane = $('report-wa-pane'), scaler = $('report-wa-scaler'), frame = $('report-wa-frame');
+  if (!pane || !scaler || !reportData) return;
+  const des = pngDesign();
+  if (des === 'legacy') { pane.style.display = 'none'; return; }
+  pane.style.display = '';
+  try {
+    reportData.homeTaskOverride = homeTaskOverride;
+    scaler.innerHTML = des === 'qa'
+      ? `<style>${QA_STYLES}</style>` + buildQaCardHtml(reportData, CARD_DEPS)
+      : `<style>${RC_STYLES}</style>` + buildCardHtml(reportData, CARD_DEPS);
+    scaler.querySelectorAll('[id]').forEach(el => el.removeAttribute('id')); // لا تتكرر المعرّفات مع نسخة التصدير
+    const root = scaler.querySelector('.qac');
+    if (root) fitQaCard(root);
+    scaleWaPreview();
+    // الصور والخطوط قد تصل بعد البناء الأول: نعيد الضبط عند اكتمالها
+    const again = () => { if (root && root.isConnected) fitQaCard(root); scaleWaPreview(); };
+    scaler.querySelectorAll('img').forEach(img => { if (!img.complete) img.addEventListener('load', again, { once: true }); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(again).catch(() => {});
+  } catch (e) { console.warn('[report] wa preview', e); }
+  if (frame && waObsFrame !== frame && typeof ResizeObserver !== 'undefined') {
+    if (waResizeObs) waResizeObs.disconnect();
+    waResizeObs = new ResizeObserver(() => scaleWaPreview());
+    waResizeObs.observe(frame);
+    waObsFrame = frame;
+  }
+}
+
 function renderAll(){
   reportData = buildReportData();
   renderReport(reportData);
   renderHomeTaskInput();
+  renderWaPreview();
 }
 
 // -----------------------------------------------------------------------------
@@ -2154,7 +2208,7 @@ function initReportScreen(){
   // اختيار تصميم صورة «أسئلة ولي الأمر» (تلقائي كل 3 شهور أو تثبيت واحد) — يظهر مع هذا التصميم فقط
   const qaBar = $('report-qa-theme-bar'), qaSel = $('report-qa-theme');
   if (qaBar && pngDesign() !== 'qa') qaBar.style.display = 'none';
-  if (qaSel) { qaSel.value = getQaThemePref(); qaSel.addEventListener('change', () => setQaThemePref(qaSel.value)); }
+  if (qaSel) { qaSel.value = getQaThemePref(); qaSel.addEventListener('change', () => { setQaThemePref(qaSel.value); renderWaPreview(); }); }
   renderAll();
   renderNoteBox();
   renderExtraNote();
