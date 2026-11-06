@@ -79,16 +79,27 @@ const REPORT_TEMPLATE = `
 
 <div id="report-screen">
 
-  <div class="report-toolbar">
-    <div class="grp">
-      <span class="grp-label" data-i18n="rep_tb_teacher_data">بيانات المعلم</span>
-      <input type="text" id="report-teacher-name-input" class="teacher-name-input" data-i18n-placeholder="rep_tb_teacher_name_ph" placeholder="اسم المعلم">
-      <button class="rbtn ghost" id="btn-teacher-sig">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <span data-i18n="rep_tb_upload_stamp">رفع ختم المعلم</span>
-      </button>
-      <input type="file" id="report-teacher-sig-input" accept="image/*" style="display:none;">
+  <div class="res-hero" id="res-hero">
+    <div class="res-ring">
+      <svg viewBox="0 0 208 208" width="132" height="132" aria-hidden="true">
+        <circle cx="104" cy="104" r="86" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="15"></circle>
+        <circle id="res-ring-arc" cx="104" cy="104" r="86" fill="none" stroke="#f1c75b" stroke-width="15" stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="540.35" transform="rotate(-90 104 104)"></circle>
+      </svg>
+      <div class="res-ring-c"><b id="res-pct">--</b><span id="res-tier">--</span></div>
     </div>
+    <div class="res-main">
+      <div class="res-kicker" data-i18n="rep_hero_done">اكتمل الاختبار</div>
+      <h2 class="res-name" id="res-name">--</h2>
+      <p class="res-msg" id="res-msg"></p>
+      <div class="res-tiles">
+        <div class="res-tile ok"><b id="res-full">0</b><span data-i18n="rep_chip_full">صحيحة بالكامل</span></div>
+        <div class="res-tile mid"><b id="res-partial">0</b><span data-i18n="rep_chip_partial">صحيحة جزئيًا</span></div>
+        <div class="res-tile bad"><b id="res-wrong">0</b><span data-i18n="rep_chip_wrong">غير صحيحة</span></div>
+        <div class="res-tile"><b id="res-time">--</b><span data-i18n="rep_fact_duration">مدة التقييم</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="report-toolbar">
     <div class="grp">
       <span class="grp-label" data-i18n="rep_tb_export">تصدير</span>
       <button class="rbtn primary" id="btn-report-png">
@@ -125,6 +136,19 @@ const REPORT_TEMPLATE = `
       </button>
     </div>
   </div>
+  <details class="rep-custom">
+    <summary data-i18n="rep_custom_title">⚙️ تخصيص التقرير (اسم المعلم والختم وملاحظة لولي الأمر)</summary>
+    <div class="rep-custom-body">
+    <div class="grp">
+      <span class="grp-label" data-i18n="rep_tb_teacher_data">بيانات المعلم</span>
+      <input type="text" id="report-teacher-name-input" class="teacher-name-input" data-i18n-placeholder="rep_tb_teacher_name_ph" placeholder="اسم المعلم">
+      <button class="rbtn ghost" id="btn-teacher-sig">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span data-i18n="rep_tb_upload_stamp">رفع ختم المعلم</span>
+      </button>
+      <input type="file" id="report-teacher-sig-input" accept="image/*" style="display:none;">
+    </div>
+    </div>
   <div class="note-bar">
     <label for="report-custom-note-input" data-i18n="rep_tb_note_label">ملاحظة لولي الأمر (اختياري):</label>
     <textarea id="report-custom-note-input" data-i18n-placeholder="rep_tb_note_ph" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار."></textarea>
@@ -140,6 +164,8 @@ const REPORT_TEMPLATE = `
       <option value="t4" data-i18n="qa_theme_t4">إطار زمردي</option>
     </select>
   </div>
+
+  </details>
 
   <div class="report-stage">
    <div class="report-split" id="report-split">
@@ -1616,6 +1642,13 @@ function renderReport(d){
   // النجمات الثلاث: الممتلئ منها بعدد مستوى النتيجة، والباقي حدٌّ باهت
   setHTML('report-gauge-stars', [0, 1, 2].map(i => starSvg(i < d.stars)).join(''));
   setText('report-honesty-line', d.honestyLine);
+  // بطاقة النتيجة العلوية (ملخص سريع قبل أدوات التصدير)
+  const hero = $('res-hero'); if (hero) hero.className = 'res-hero tier-' + d.tier;
+  const ra = $('res-ring-arc'); if (ra) ra.style.strokeDashoffset = String(d.gaugeOffset);
+  setText('res-pct', d.score + '%'); setText('res-tier', d.tierLabel);
+  setText('res-name', d.name); setText('res-msg', d.honestyLine);
+  setText('res-full', d.counts.full); setText('res-partial', d.counts.partial); setText('res-wrong', d.counts.wrong);
+  setText('res-time', (d.stats && d.stats.totalTime) || (($('report-time-val') && $('report-time-val').textContent) || '--'));
 
   // 🌟 [جديد] صوت تصفيق احتفالي عند نتيجة "ممتاز" (راجع تعليق playExcellentReportSound أعلاه)
   // 👏 99% فأكثر: ملف التصفيق (core/applauseSound.js) مرة واحدة لكل فتح للتقرير؛ دون ذلك نغمة «ممتاز» المولَّدة

@@ -30,6 +30,47 @@ export const REPORT_STYLES = `
   #report-screen{font-family:'Cairo',sans-serif;}
   #report-screen *{box-sizing:border-box;}
 
+
+  /* ============== بطاقة النتيجة العلوية + لوحة التخصيص (لا تظهر في الصورة/الملف) ============== */
+  #report-screen .res-hero{
+    --hg1:#0d5c46; --hg2:#0b3d30;
+    display:flex; align-items:center; gap:26px; padding:22px 28px; flex-wrap:wrap; justify-content:center;
+    background:linear-gradient(135deg,var(--hg1),var(--hg2)); color:#fffdf8; border-radius:12px 12px 0 0;
+  }
+  #report-screen .res-hero.tier-excellent{--hg1:#0d5c46; --hg2:#0b3d30;}
+  #report-screen .res-hero.tier-good{--hg1:#147c5e; --hg2:#0d4d3a;}
+  #report-screen .res-hero.tier-average{--hg1:#b8863b; --hg2:#6f4f1c;}
+  #report-screen .res-hero.tier-weak{--hg1:#a15230; --hg2:#5e2a16;}
+  #report-screen .res-ring{position:relative; width:132px; height:132px; flex:none;}
+  #report-screen .res-ring-arc{transition:stroke-dashoffset 1s ease;}
+  #report-screen #res-ring-arc{transition:stroke-dashoffset 1s ease;}
+  #report-screen .res-ring-c{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1;}
+  #report-screen .res-ring-c b{font-size:2rem; font-weight:900;}
+  #report-screen .res-ring-c span{font-size:.78rem; font-weight:800; background:rgba(255,255,255,.16); padding:2px 10px; border-radius:999px; margin-top:5px;}
+  #report-screen .res-main{flex:1 1 320px; min-width:0; max-width:620px;}
+  #report-screen .res-kicker{font-size:.8rem; font-weight:800; color:#f1c75b; letter-spacing:.02em;}
+  #report-screen .res-name{margin:2px 0 4px; font-size:1.7rem; font-weight:900; color:#fffdf8 !important;}
+  #report-screen .res-msg{margin:0 0 14px; font-size:.95rem; font-weight:600; opacity:.92; line-height:1.6;}
+  #report-screen .res-tiles{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; text-align:center;}
+  #report-screen .res-tile{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:9px 6px; text-align:center; display:flex; flex-direction:column; gap:2px;}
+  #report-screen .res-tile b{font-size:1.4rem; font-weight:900;}
+  #report-screen .res-tile span{font-size:.7rem; font-weight:700; opacity:.85;}
+  #report-screen .res-tile.ok b{color:#8ee0b4;} #report-screen .res-tile.mid b{color:#f1c75b;} #report-screen .res-tile.bad b{color:#ffa79a;}
+  #report-screen .report-toolbar{border-radius:0; padding:14px 16px;}
+  #report-screen .rep-custom{background:#332d24; border-top:1px solid #46403690;}
+  #report-screen .rep-custom > summary{cursor:pointer; padding:11px 18px; color:#e8dcc0; font-weight:800; font-size:.85rem; list-style:none;}
+  #report-screen .rep-custom > summary::-webkit-details-marker{display:none;}
+  #report-screen .rep-custom[open] > summary{border-bottom:1px solid #46403690;}
+  #report-screen .rep-custom-body{display:flex; justify-content:center; padding:12px 16px;}
+  @media (max-width:640px){
+    #report-screen .res-hero{padding:14px 12px; gap:8px; flex-direction:column; text-align:center;}
+    #report-screen .res-main{flex:none; width:100%;} #report-screen .res-ring{width:104px; height:104px;} #report-screen .res-ring svg{width:104px; height:104px;}
+    #report-screen .res-ring-c b{font-size:1.6rem;}
+    #report-screen .res-msg{margin-bottom:10px; font-size:.85rem;}
+    #report-screen .res-tiles{gap:6px;} #report-screen .res-tile b{font-size:1.1rem;} #report-screen .res-tile span{font-size:.6rem;}
+    #report-screen .res-name{font-size:1.4rem;}
+  }
+
   /* ============== أدوات التحكم أعلى الشاشة (لا تظهر في الصورة/الملف) ============== */
   #report-screen .report-toolbar{
     display:flex; align-items:center; justify-content:center; gap:10px;
