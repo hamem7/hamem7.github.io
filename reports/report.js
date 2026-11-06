@@ -2113,7 +2113,7 @@ async function exportPdfAtPageWidth(share){
   await ensureArtReady();
   const target = currentTarget();
 
-  // PDF مختصر الوسط: نخفي «مستوى التقدّم العام» وسطر الصراحة فقط أثناء الالتقاط
+  // PDF مختصر الوسط: نخفي سطر الصراحة فقط (مستوى التقدّم يبقى) أثناء الالتقاط
   // فتأتي الأسئلة مباشرة بعد الاسم والبيانات والدرجة (واتساب/الصورة لا يتأثران).
   target.classList.add('dh-pdf-lean');
   let domBlocks, canvas;

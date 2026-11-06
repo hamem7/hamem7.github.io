@@ -397,9 +397,8 @@ export const REPORT_STYLES = `
      فعليًا فلا يبقى فراغ أبيض أسفل الصورة بمقدار ارتفاع الجدول المحذوف. */
   #report-screen .page.dh-brief .pdf-only{display:none !important;}
 
-  /* وضع PDF المباشر: الاسم والبيانات والدرجة ثم الأسئلة مباشرة — بلا نص «مستوى التقدّم العام» ولا سطر الصراحة.
+  /* وضع PDF المباشر: الاسم والبيانات والدرجة ثم الأسئلة مباشرة — بلا سطر الصراحة (بطاقة مستوى التقدّم تبقى).
      يُفعَّل أثناء التقاط PDF فقط (exportPdfAtPageWidth) ويُزال في finally. */
-  #report-screen .page.dh-pdf-lean .ladder-card,
   #report-screen .page.dh-pdf-lean .honesty-line{display:none !important;}
 
   @media (max-width:760px){
