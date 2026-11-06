@@ -34,7 +34,7 @@ import { setLeaveGuard } from '../core/leaveGuard.js';
 // تحديث/إغلاق غير متوقع للصفحة (راجع persistInProgressRound أدناه)
 import { openModal, closeModal, triggerConfetti, showToastEncouragement } from '../components/ui.js';
 import {
-    computeQuestionScore, QUESTION_POINTS, computeRoundWinner, computeSeriesResult,
+    computeQuestionScore, QUESTION_POINTS, MISTAKE_DEDUCTION, computeRoundWinner, computeSeriesResult,
     evaluateMatchAchievements, BADGE_CATALOG, shuffleArray
 } from '../engine/dualTestEngine.js';
 // 🌟 [جديد] أصوات بسيطة (نغمة خطأ/نجاح/فوز) — ملف مستقل معزول، راجع تعليقاته لتفاصيل الأسلوب
@@ -44,6 +44,7 @@ import {
 import { playMistakeSound, playSuccessSound, playWinSound, playDrawTickSound, playDrawLandSound, playRoundWinSound } from './dual-test-sounds.js';
 // 🌟 [جديد] فتح تقرير المواجهة الكامل من شاشة النتيجة النهائية — راجع reports/dual-test-report.js
 import { openDualTestReportScreen } from '../reports/dual-test-report.js';
+import { shareDualRoundWhatsApp, exportDualRoundPdf, dualRoundRangeLabel, formatRoundDate } from '../reports/dualRoundReport.js';
 
 const QUESTION_SECONDS = 60; // 🌟 افتراض رقم 1 أعلاه — القيمة الافتراضية، غير مستخدمة فعلياً حالياً (المؤقت مُعطَّل، انظر TIMER_ENABLED)
 
@@ -169,8 +170,8 @@ async function renderRoundNotReady(roundIndex) {
     document.getElementById('dtp-round-label').textContent = t('dtp_round_not_ready_label').replace('{n}', roundIndex + 1);
     document.getElementById('dtp-name-a').textContent = match.studentNameA;
     document.getElementById('dtp-name-b').textContent = match.studentNameB;
-    document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
-    document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+    document.getElementById('dtp-roundswon-a').textContent = computeSeriesResult(match.rounds).roundsWonA;
+    document.getElementById('dtp-roundswon-b').textContent = computeSeriesResult(match.rounds).roundsWonB;
     const avatarA = await getStudentAvatar(match.studentIdA);
     const avatarB = await getStudentAvatar(match.studentIdB);
     document.getElementById('dtp-avatar-a').innerHTML = renderAvatarHTML(match.studentNameA, avatarA);
@@ -230,8 +231,8 @@ async function startRoundFlow() {
         document.getElementById('dtp-round-label').textContent = t('dtp_round_label').replace('{n}', roundIndex + 1);
         document.getElementById('dtp-name-a').textContent = match.studentNameA;
         document.getElementById('dtp-name-b').textContent = match.studentNameB;
-        document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
-        document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+        document.getElementById('dtp-roundswon-a').textContent = computeSeriesResult(match.rounds).roundsWonA;
+        document.getElementById('dtp-roundswon-b').textContent = computeSeriesResult(match.rounds).roundsWonB;
 
         showToastEncouragement('toast-encouragement', t('dtp_round_restored_toast'));
         renderBoardView(); // نتجاوز شاشتي الترحيب والقرعة تماماً — القرعة سبق إجراؤها فعلاً
@@ -247,12 +248,11 @@ async function startRoundFlow() {
     }
 
     // 🌟 تحديد من يبدأ الاختيار في هذه الجولة (افتراض رقم 2 أعلاه)
-    let starter;
-    if (roundIndex === 0) {
-        starter = Math.random() < 0.5 ? 'A' : 'B';
-    } else {
-        starter = match.lastRoundStarter === 'A' ? 'B' : 'A';
-    }
+    // 🌟 [مُحدَّث بطلب المعلم] الجولة 1: قرعة · الجولة 2: يبدأ من لم يبدأ الجولة الأولى (بلا قرعة) ·
+    // الجولة 3 (الأخيرة): قرعة من جديد. من بدأ كل جولة يُحفَظ في match.rounds[i].roundStarter
+    const prevStarter = (match.rounds[roundIndex - 1] && match.rounds[roundIndex - 1].roundStarter) || match.lastRoundStarter;
+    const isTurnRound = roundIndex === 1 && (prevStarter === 'A' || prevStarter === 'B');
+    const starter = isTurnRound ? (prevStarter === 'A' ? 'B' : 'A') : (Math.random() < 0.5 ? 'A' : 'B');
 
     // 🌟 [جديد] عشوائية ترتيب الأسئلة الأساسية المعروضة على اللوحة — بطلب صريح من المعلم ألا
     // يرى الطلاب الأسئلة بنفس الترتيب الذي أدخله في شاشة الإعداد. الترتيب يُخلَط مرة واحدة فقط
@@ -291,8 +291,8 @@ async function startRoundFlow() {
     document.getElementById('dtp-round-label').textContent = t('dtp_round_label').replace('{n}', roundIndex + 1);
     document.getElementById('dtp-name-a').textContent = match.studentNameA;
     document.getElementById('dtp-name-b').textContent = match.studentNameB;
-    document.getElementById('dtp-roundswon-a').textContent = match.roundsWonA || 0;
-    document.getElementById('dtp-roundswon-b').textContent = match.roundsWonB || 0;
+    document.getElementById('dtp-roundswon-a').textContent = computeSeriesResult(match.rounds).roundsWonA;
+    document.getElementById('dtp-roundswon-b').textContent = computeSeriesResult(match.rounds).roundsWonB;
 
     const avatarA = await getStudentAvatar(match.studentIdA);
     const avatarB = await getStudentAvatar(match.studentIdB);
@@ -309,9 +309,10 @@ async function startRoundFlow() {
         runNameDraw(starter, () => {
             startBtn.disabled = false;
             renderBoardView();
-        });
+        }, isTurnRound);
     };
 
+    renderRoundRecap(roundIndex, isTurnRound ? starter : null);
     showView('dtp-welcome-view');
 }
 
@@ -320,7 +321,37 @@ async function startRoundFlow() {
 // في startRoundFlow) ثم يستقران بالضبط على اسم الطالب starter بخط ضخم يملأ جزءاً كبيراً من
 // الشاشة. بديل عجلة الدوران القديمة (spinWheelTo سابقاً) بطلب صريح من المعلم. لا مكتبة خارجية
 // — فقط setTimeout متتالية بفواصل زمنية متزايدة + الأصوات المستقلة في dual-test-sounds.js.
-function runNameDraw(starter, onDone) {
+// 🌟 [جديد] بطاقة «تذكير قبل الجولة» في شاشة الترحيب (الجولة 2 و3): متى كانت آخر جولة وفي أي نطاق،
+// من فاز ومن بدأ، ومن يبدأ الآن (بالتناوب أو بالقرعة)، وتذكير بطريقة احتساب الخطأ
+function renderRoundRecap(roundIndex, turnStarter) {
+    let el = document.getElementById('dtp-round-recap');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'dtp-round-recap';
+        el.className = 'dtp-recap';
+        document.getElementById('dtp-start-round-btn')?.before(el);
+    }
+    const last = match.rounds[roundIndex - 1];
+    if (!last) { el.style.display = 'none'; return; }
+    const when = last.playedAt || match.pausedAt;
+    const days = when ? Math.floor((Date.now() - new Date(when).getTime()) / 86400000) : null;
+    const ago = days == null ? '' : (days <= 0 ? t('dtp_recap_today') : t('dtp_recap_days').replace('{n}', days));
+    const nm = k => (k === 'A' ? match.studentNameA : k === 'B' ? match.studentNameB : '');
+    const row = (icon, txt) => `<div class="dtp-recap-row"><span>${icon}</span><span>${txt}</span></div>`;
+    const now = turnStarter
+        ? t('dtp_recap_now_turn').replace('{name}', esc(nm(turnStarter))).replace('{other}', esc(nm(turnStarter === 'A' ? 'B' : 'A')))
+        : t('dtp_recap_now_draw');
+    el.innerHTML = `<div class="dtp-recap-title">📌 ${t('dtp_recap_title').replace('{n}', roundIndex + 1)}</div>
+        ${row('🗓️', t('dtp_recap_last').replace('{n}', roundIndex).replace('{date}', esc(formatRoundDate(when))) + (ago ? ` — ${ago}` : ''))}
+        ${row('📖', t('dtp_recap_range').replace('{r}', esc(dualRoundRangeLabel(test.rounds[roundIndex - 1]))))}
+        ${row(last.roundWinner === 'tie' ? '🤝' : '🏆', last.roundWinner === 'tie' ? t('dtp_recap_tie') : t('dtp_recap_winner').replace('{name}', esc(nm(last.roundWinner))))}
+        ${last.roundStarter ? row('🚩', t('dtp_recap_starter').replace('{name}', esc(nm(last.roundStarter)))) : ''}
+        ${row('▶️', now)}
+        <div class="dtp-recap-rule">⚖️ ${t('dtp_recap_rule').replace('{p}', QUESTION_POINTS).replace('{d}', MISTAKE_DEDUCTION)}</div>`;
+    el.style.display = '';
+}
+
+function runNameDraw(starter, onDone, isTurn) {
     const heading = document.getElementById('dtp-draw-heading');
     const nameEl = document.getElementById('dtp-draw-name');
     const resultEl = document.getElementById('dtp-draw-result');
@@ -332,6 +363,17 @@ function runNameDraw(starter, onDone) {
     heading.textContent = t('dtp_coin_flip_start_msg');
     resultEl.textContent = '';
     nameEl.classList.remove('dtp-draw-landed');
+
+    // 🌟 الجولة الثانية: لا قرعة — يبدأ من لم يبدأ الجولة الأولى (عرض مباشر بلا تبديل أسماء)
+    if (isTurn) {
+        heading.textContent = t('dtp_turn_heading');
+        nameEl.textContent = finalName;
+        nameEl.classList.add('dtp-draw-landed');
+        resultEl.textContent = t('dtp_turn_result').replace('{name}', finalName).replace('{other}', otherName);
+        playDrawLandSound();
+        setTimeout(onDone, 2200);
+        return;
+    }
 
     // 🌟 احترام تفضيل تقليل الحركة — نستقر مباشرة على الاسم النهائي بلا أي تبديل متكرر
     const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -842,6 +884,8 @@ async function finishRound() {
         swapUsedA: roundState.swapUsed.A, swapUsedB: roundState.swapUsed.B,
         swapCodeA: roundState.swapCode.A, swapCodeB: roundState.swapCode.B,
         roundWinner,
+        roundStarter: roundState.roundStarter,
+        playedAt: new Date().toISOString(),
         questionsLog: roundState.questionsLog
     };
 
@@ -896,6 +940,21 @@ async function finishRound() {
             loadSplashScreen();
         }
     };
+
+    // 🌟 [جديد] تقرير هذه الجولة لولي الأمر: واتساب (صورة) يميناً و PDF يساراً
+    const roundIdx = match.rounds.length - 1;
+    const bindReport = (id, fn) => {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.onclick = async () => {
+            if (b.disabled) return;
+            const old = b.innerHTML; b.disabled = true; b.textContent = t('dtr_busy_label');
+            try { await fn(match, test, roundIdx); } catch (e) { console.error(e); alert(t('drr_export_error')); }
+            finally { b.disabled = false; b.innerHTML = old; }
+        };
+    };
+    bindReport('dtp-summary-wa-btn', shareDualRoundWhatsApp);
+    bindReport('dtp-summary-pdf-btn', exportDualRoundPdf);
 
     showView('dtp-round-summary-view');
 
