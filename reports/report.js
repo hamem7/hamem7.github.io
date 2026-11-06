@@ -163,21 +163,10 @@ const REPORT_TEMPLATE = `
         ${cornerOrnImg('br')}
         ${cornerOrnImg('bl')}
 
-        <div class="pdf-block" id="report-intro-block">
-
-          <div class="dh-head">
-            <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
-            <!-- 🌟 [2026-10-03] شعار المنصة مكان عنقود النجوم أعلى يمين الترويسة (ملف SVG ثابت لأن html2canvas يلتقط الصور المحمَّلة) -->
-            <img class="head-logo" src="assets/brand/ham-logo.svg" alt="">
-            <div class="eyebrow" data-i18n="rep_eyebrow">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
-            <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
-            <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
-            <div class="r-tagline" data-i18n="rep_tagline">خطوة بخطوة ... نحو كتاب الله</div>
-          </div>
-
-          <div class="top-row">
-            <div class="student-card">
-              <div class="avatar-wrap">
+        <div class="pdf-block sb-intro" id="report-intro-block">
+          <aside class="sb-side">
+            <div class="sb-logo"><img class="head-logo" src="assets/brand/ham-logo.svg" alt=""></div>
+            <div class="avatar-wrap">
                 <div class="avatar-circle" id="report-avatar-circle" data-i18n-title="rep_avatar_hint" title="اضغط أو اسحب صورة لتغيير صورة الطالب">
                   <img id="report-avatar-img" style="display:none;" alt="">
                 </div>
@@ -186,30 +175,28 @@ const REPORT_TEMPLATE = `
                 </button>
                 <input type="file" id="report-avatar-input" accept="image/*" style="display:none;">
               </div>
-              <div class="student-body">
+            <div class="sb-body">
                 <div class="student-name" id="report-student-name">--</div>
 
                 <div class="fact" id="report-fact-grade" style="display:none;">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f1c75b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>
                   <span><span data-i18n="rep_fact_grade">الصف</span>: <b id="report-grade-val">--</b></span>
                 </div>
 
                 <div class="fact" id="report-fact-scope" style="display:none;">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f1c75b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1"/></svg>
                   <span><span data-i18n="rep_fact_scope">نطاق التقييم</span>: <b id="report-scope-val">--</b></span>
                 </div>
 
                 <div class="fact" id="report-fact-time" style="display:none;">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#147c5e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l2.9 1.7"/></svg>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#f1c75b" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6V12l2.9 1.7"/></svg>
                   <span><span data-i18n="rep_fact_duration">مدة التقييم</span>: <b id="report-time-val">--</b></span>
                 </div>
-              </div>
             </div>
-
             <div class="gauge-card">
               <div class="gauge-wrap">
                 <svg width="158" height="158" viewBox="0 0 208 208">
-                  <circle cx="104" cy="104" r="86" fill="none" stroke="#e4d9c4" stroke-width="17"></circle>
+                  <circle cx="104" cy="104" r="86" fill="none" stroke="#2c7a62" stroke-width="17"></circle>
                   <circle class="gauge-arc" id="report-gauge-arc" cx="104" cy="104" r="86" fill="none" stroke-width="17"
                     stroke-linecap="round" stroke-dasharray="540.35" stroke-dashoffset="0"
                     transform="rotate(-90 104 104)"></circle>
@@ -225,17 +212,41 @@ const REPORT_TEMPLATE = `
                 <span class="delta" id="report-delta" style="display:none;"></span>
               </div>
             </div>
-          </div>
-
-          <p class="honesty-line" id="report-honesty-line"></p>
-        </div>
-
-        <div class="ladder-card pdf-block">
+            <div class="sb-counts">
+          <span class="chip-status chip-full">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M6.4 10.2l2.4 2.4 4.8-5.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="rep_chip_full">صحيحة بالكامل</span>: <span id="report-count-full">0</span>
+          </span>
+          <span class="chip-status chip-partial">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M10 5.6V10l3 1.8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            <span data-i18n="rep_chip_partial">صحيحة جزئيًا</span>: <span id="report-count-partial">0</span>
+          </span>
+          <span class="chip-status chip-wrong">
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M7.4 7.4l5.2 5.2M12.6 7.4l-5.2 5.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+            <span data-i18n="rep_chip_wrong">غير صحيحة</span>: <span id="report-count-wrong">0</span>
+          </span>
+            </div>
+          </aside>
+          <div class="sb-main">
+            <div class="dh-head">
+              <img class="head-art" src="${ART_DIR}report-quran-rehl.png" alt="">
+              <div class="eyebrow" data-i18n="rep_eyebrow">منصة حمٓ لتثبيت الحفظ و المراجعة</div>
+            <h1 class="r-title" data-i18n="rep_title">تقرير تقدّم الطالب</h1>
+            <div class="r-subtitle" data-i18n="rep_subtitle">في حفظ القرآن الكريم</div>
+            <div class="r-tagline" data-i18n="rep_tagline">خطوة بخطوة ... نحو كتاب الله</div>
+            </div>
+            <p class="honesty-line" id="report-honesty-line"></p>
+            <h3 class="sb-h" data-i18n="rep_qmap_title">خريطة الأسئلة</h3>
+            <div class="qmap" id="report-qmap"></div>
+        <div class="ladder-card sb-ladder">
           <div class="sec-head">
             <h3 class="section-title" data-i18n="rep_ladder_title">مستوى التقدّم العام</h3>
             <p class="section-sub" data-i18n="rep_ladder_sub">مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة</p>
           </div>
           <div id="report-ladder-wrap"></div>
+        </div>
+
+          </div>
         </div>
 
         <!-- 🌟 جدول الأسئلة — الجزء الوحيد الذي يختفي في الصورة المختصرة (class="pdf-only") -->
@@ -255,22 +266,6 @@ const REPORT_TEMPLATE = `
             <div id="report-qrow-first"></div>
           </div>
           <div id="report-qrows-rest"></div>
-        </div>
-
-        <!-- ⚠️ شرائط العدّ خارج بطاقة الجدول عمدًا حتى تبقى ظاهرة في الصورة المختصرة -->
-        <div class="chips-row pdf-block">
-          <span class="chip-status chip-full">
-            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M6.4 10.2l2.4 2.4 4.8-5.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            <span data-i18n="rep_chip_full">صحيحة بالكامل</span>: <span id="report-count-full">0</span>
-          </span>
-          <span class="chip-status chip-partial">
-            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M10 5.6V10l3 1.8" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-            <span data-i18n="rep_chip_partial">صحيحة جزئيًا</span>: <span id="report-count-partial">0</span>
-          </span>
-          <span class="chip-status chip-wrong">
-            <svg width="17" height="17" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8.2" stroke="currentColor" stroke-width="1.7"/><path d="M7.4 7.4l5.2 5.2M12.6 7.4l-5.2 5.2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
-            <span data-i18n="rep_chip_wrong">غير صحيحة</span>: <span id="report-count-wrong">0</span>
-          </span>
         </div>
 
         <div class="stat-line pdf-block">
@@ -1328,6 +1323,15 @@ function renderQuestions(d){
     return;
   }
   if (gridHead) gridHead.style.display = '';
+  // أسئلة كثيرة ← تنسيق مضغوط تلقائياً (صفوف أقصر وخريطة أصغر) حتى لا تطول الورقة بلا داع
+  const pg = $('report-page');
+  if (pg) { pg.classList.toggle('q-many', d.ledger.length > 10); pg.classList.toggle('q-huge', d.ledger.length > 20); }
+  const qmap = $('report-qmap');
+  if (qmap) qmap.innerHTML = d.ledger.map((r, i) => {
+    const st = r.status === 'full' ? 'g' : (r.status === 'wrong' ? 'r' : 'y');
+    const ic = st === 'g' ? '✓' : (st === 'r' ? '✗' : '◐');
+    return `<span class="qm qm-${st}">${i + 1} ${ic}</span>`;
+  }).join('');
   firstWrap.innerHTML = qrowHtml(d.ledger[0], false);
   restWrap.innerHTML = d.ledger.slice(1).map(r => qrowHtml(r, true)).join('');
 }
@@ -1614,7 +1618,7 @@ function renderReport(d){
   applyAvatar('report', d.avatar);
 
   const arc = $('report-gauge-arc');
-  if (arc) { arc.style.stroke = d.toneColor; arc.style.strokeDashoffset = String(d.gaugeOffset); }
+  if (arc) { arc.style.stroke = '#f1c75b'; arc.style.strokeDashoffset = String(d.gaugeOffset); }
   const pctEl = $('report-gauge-pct'); if (pctEl) pctEl.textContent = d.score + '%';
   const tierEl = $('report-gauge-tier'); if (tierEl) tierEl.textContent = d.tierLabel;
   // النجمات الثلاث: الممتلئ منها بعدد مستوى النتيجة، والباقي حدٌّ باهت

@@ -505,4 +505,57 @@ export const REPORT_STYLES = `
     #report-screen .tb-sp{display:none;}
     #report-screen .tb-dd{position:fixed; top:auto; bottom:70px; inset-inline:12px; width:auto; max-height:70vh; overflow:auto;}
   }
+
+  /* ============== ورقة PDF (نموذج ب): شريط جانبي أخضر للملخص + محتوى واضح ==============
+     ⚠️ كل الألوان ثابتة (بلا color-mix ولا conic-gradient) لأن html2canvas لا يدعمها.
+     المقدمة كلها قسم واحد (.pdf-block) فلا يتأثر تقسيم صفحات PDF. */
+  #report-screen .page .corner-orn.tr, #report-screen .page .corner-orn.tl{display:none;}
+  #report-screen .sb-intro{display:grid; grid-template-columns:212px minmax(0,1fr); margin:-44px -46px 22px;}
+  #report-screen .sb-side{background:linear-gradient(180deg,#0d5c46,#0b3d30); color:#fffdf8; padding:24px 14px 20px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;}
+  #report-screen .sb-logo{width:70px; height:70px; border-radius:50%; background:#fffdf8; display:flex; align-items:center; justify-content:center;}
+  #report-screen .sb-logo .head-logo{position:static; width:50px;}
+  #report-screen .sb-side .avatar-circle{border-color:#f1c75b; box-shadow:0 0 0 4px #0d5c46, 0 0 0 5px #2c7a62;}
+  #report-screen .sb-body{width:100%;}
+  #report-screen .sb-side .student-name{color:#fffdf8; font-size:20px; text-align:center;}
+  #report-screen .sb-side .fact{background:#1d6a53; border:none; border-radius:9px; padding:6px 8px; margin-top:6px; color:#d8eadf; font-size:11.5px; text-align:start;}
+  #report-screen .sb-side .fact.is-first{padding-top:6px;}
+  #report-screen .sb-side .fact b{color:#f1c75b;}
+  #report-screen .sb-side .gauge-card{flex:none; width:100%; background:transparent; border:none; padding:0;}
+  #report-screen .sb-side .gauge-pct{color:#f1c75b;}
+  #report-screen .sb-side .gauge-tier{background:#f1c75b; color:#4a3410;}
+  #report-screen .sb-side .gauge-label{background:#1d6a53; border-color:#2c7a62; color:#d8eadf;}
+  #report-screen .sb-counts{width:100%; display:flex; flex-direction:column; gap:7px;}
+  #report-screen .sb-counts .chip-status{flex:0 0 auto; display:flex; align-items:center; gap:7px; justify-content:flex-start; width:100%; margin:0; background:#1d6a53; border:none; border-radius:10px; padding:8px 10px; font-size:12px; color:#e8f1ec;}
+  #report-screen .sb-counts .chip-full{color:#9fe6bf;} #report-screen .sb-counts .chip-partial{color:#f6d77f;} #report-screen .sb-counts .chip-wrong{color:#ffb3a7;}
+  #report-screen .sb-main{padding:30px 26px 18px; min-width:0;}
+  #report-screen .sb-main .dh-head{text-align:start; padding:0 0 12px; padding-inline-end:118px; min-height:0; border-bottom:3px solid #0d5c46; margin-bottom:14px;}
+  #report-screen .sb-main .head-art{top:-8px; left:auto; right:auto; inset-inline-end:-10px; width:120px;}
+  #report-screen .sb-main .r-title{font-size:32px;}
+  #report-screen .sb-main .r-subtitle{font-size:18px;}
+  #report-screen .sb-main .r-tagline{margin-top:6px; font-size:12px;}
+  #report-screen .sb-main .r-tagline::before{display:none;}
+  #report-screen .sb-main .honesty-line{text-align:start; background:#f7efdd; color:#6f4f1c; border-radius:10px; padding:10px 12px; font-size:13.5px; margin-bottom:14px;}
+  #report-screen .sb-h{font-size:14px; font-weight:800; color:#0b3d30; margin:4px 0 8px; display:flex; align-items:center; gap:8px;}
+  #report-screen .sb-h::before{content:''; width:6px; height:16px; border-radius:3px; background:#c9932f;}
+  #report-screen .qmap{display:grid; grid-template-columns:repeat(auto-fill,minmax(54px,1fr)); gap:6px;}
+  #report-screen .qm{border-radius:8px; padding:6px 4px; text-align:center; font-size:11px; font-weight:800;}
+  #report-screen .qm-g{background:#e8f1ec; color:#0d5c46;} #report-screen .qm-y{background:#f7efdd; color:#8a6428;} #report-screen .qm-r{background:#f6e8e6; color:#a15230;}
+  #report-screen .section-title{display:flex; align-items:center; gap:8px; color:#0b3d30;}
+  #report-screen .section-title::before{content:''; width:6px; height:17px; border-radius:3px; background:#c9932f; flex:none;}
+  #report-screen .sb-ladder{margin-top:16px; padding:14px 14px 12px;}
+  @media (max-width:760px){
+    #report-screen .report-stage:not(.dh-export-width) .sb-intro{grid-template-columns:1fr; margin:-30px -18px 18px; min-height:0;}
+    #report-screen .report-stage:not(.dh-export-width) .sb-main .dh-head{padding-inline-end:0;}
+    #report-screen .report-stage:not(.dh-export-width) .sb-main .head-art{display:none;}
+    #report-screen .report-stage:not(.dh-export-width) .sb-logo .head-logo{display:block;}
+  }
+
+  /* أسئلة كثيرة (>10): صفوف مضغوطة، النوع والموضع في سطر واحد، والنص بسطر واحد مختصر؛ (>20): بلا نص السؤال */
+  #report-screen .page.q-many .qrow{padding:6px 8px; font-size:12px;}
+  #report-screen .page.q-many .qsubject{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px;}
+  #report-screen .page.q-many .qtext{flex:1 1 100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px;}
+  #report-screen .page.q-many .qnote{font-size:11px;}
+  #report-screen .page.q-many .qmap{grid-template-columns:repeat(auto-fill,minmax(42px,1fr)); gap:4px;}
+  #report-screen .page.q-many .qm{padding:4px 2px; font-size:10px;}
+  #report-screen .page.q-huge .qtext{display:none;}
 `;
