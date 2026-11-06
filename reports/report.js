@@ -2113,13 +2113,21 @@ async function exportPdfAtPageWidth(share){
   await ensureArtReady();
   const target = currentTarget();
 
-  // نقيس حدود الأقسام قبل الالتقاط (بوحدات بكسل DOM الفعلية).
-  const domBlocks = collectPdfBlocks(target);
-
-  const canvas = await window.html2canvas(target, {
-    scale: HQ_SCALE, backgroundColor: '#f9f4ea', useCORS: true,
-    ignoreElements: ignoreNoExport
-  });
+  // PDF مختصر الوسط: نخفي «مستوى التقدّم العام» وسطر الصراحة فقط أثناء الالتقاط
+  // فتأتي الأسئلة مباشرة بعد الاسم والبيانات والدرجة (واتساب/الصورة لا يتأثران).
+  target.classList.add('dh-pdf-lean');
+  let domBlocks, canvas;
+  try {
+    await nextFrames();
+    // نقيس حدود الأقسام بعد إعادة التخطيط (بوحدات بكسل DOM الفعلية).
+    domBlocks = collectPdfBlocks(target);
+    canvas = await window.html2canvas(target, {
+      scale: HQ_SCALE, backgroundColor: '#f9f4ea', useCORS: true,
+      ignoreElements: ignoreNoExport
+    });
+  } finally {
+    target.classList.remove('dh-pdf-lean');
+  }
 
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'portrait' });

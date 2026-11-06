@@ -397,6 +397,11 @@ export const REPORT_STYLES = `
      فعليًا فلا يبقى فراغ أبيض أسفل الصورة بمقدار ارتفاع الجدول المحذوف. */
   #report-screen .page.dh-brief .pdf-only{display:none !important;}
 
+  /* وضع PDF المباشر: الاسم والبيانات والدرجة ثم الأسئلة مباشرة — بلا نص «مستوى التقدّم العام» ولا سطر الصراحة.
+     يُفعَّل أثناء التقاط PDF فقط (exportPdfAtPageWidth) ويُزال في finally. */
+  #report-screen .page.dh-pdf-lean .ladder-card,
+  #report-screen .page.dh-pdf-lean .honesty-line{display:none !important;}
+
   @media (max-width:760px){
     /* 🌟 [2026-10-03 — مراجعة تجربة الهاتف] الورقة بعرض الشاشة على الهاتف: كانت #report-stage-inner بـ flex:none فتبقى الورقة 720px
        مقصوصة داخل إطار يُمرَّر أفقيًا (يرى المعلم جزءًا من التقرير فقط)، فلا تعمل قواعد الهاتف أدناه أصلًا. أثناء التصدير يضيف
