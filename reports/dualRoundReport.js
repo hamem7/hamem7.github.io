@@ -130,10 +130,13 @@ function studentTasks(s, d) {
 }
 function homeTasks(d) {
   const tasks = [];
-  if (d.focus) studentTasks(d.A, d).forEach(x => tasks.push(x));
+  if (d.focus) studentTasks(d.A, d).slice(0, 4).forEach(x => tasks.push(x));
   else [d.A, d.B].forEach(s => studentTasks(s, d).forEach(x => tasks.push(`${s.name}: ${x}`)));
-  if (d.n < 3) tasks.push(tr('drr_task_next_range', { n: d.n + 1, r: d.nextRange || d.range }));
-  return d.focus ? tasks.slice(0, 6) : tasks;
+  const r = (d.n < 3 && d.nextRange) || d.range;
+  if (d.n < 3) tasks.push(tr('drr_task_next_range', { n: d.n + 1, r }));
+  // نصائح ثابتة لولي الأمر (بطلب المعلم): تدريب يشبه المواجهة، وقت ثابت، والاستماع لقارئ متقن
+  tasks.push(tr('drr_tip_practice', { r }), t('drr_tip_time'), tr('drr_tip_listen', { r }));
+  return tasks;
 }
 
 // html2canvas يرسم نقاط القوائم في الجهة الخاطئة مع RTL — فنكتب النقطة بأنفسنا
