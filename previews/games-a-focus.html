@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الألعاب — نموذج أ: مسرح التركيز</title>
+<link rel="stylesheet" href="games-shared.css">
+<style>
+/* نموذج أ: «مسرح التركيز» — شريط علوي واحد للتقدم، القائمة الجانبية تتحول لزر «⋯»، سؤال واحد في الوسط */
+.gbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.who{display:flex;align-items:center;gap:8px;font-weight:700;white-space:nowrap}
+.av{width:38px;height:38px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;border:2px solid var(--g7)}
+.prog{flex:1;min-width:0}
+.prog-l{font-size:.8rem;color:var(--ink2);font-weight:600;margin-bottom:4px}
+.segs{display:flex;gap:4px}.seg{flex:1;height:8px;border-radius:99px;background:var(--line)}
+.seg.ok{background:var(--ok)}.seg.no{background:var(--gold)}.seg.cur{background:var(--g7);opacity:.45;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.9}}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:var(--surface2);font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.warn{background:var(--badbg);color:var(--bad)}
+.menu{position:relative}
+.menu summary{list-style:none;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--surface2);cursor:pointer;font-size:1.3rem;font-weight:900}
+.menu summary::-webkit-details-marker{display:none}
+.menu-pop{position:absolute;inset-inline-end:0;top:52px;width:230px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);padding:6px;display:grid}
+.menu-pop button{text-align:start;padding:12px;border-radius:10px;font-weight:600}.menu-pop button:hover{background:var(--surface2)}
+.menu-pop .danger{color:var(--bad)}
+.stage{max-width:820px;margin:22px auto 120px;padding:0 16px}
+.card{background:var(--surface);border-radius:24px;box-shadow:var(--sh);padding:26px 22px;text-align:center}
+.q-chip{color:var(--g7)}
+.ayah{background:var(--surface2);border-radius:18px;border-inline-start:5px solid var(--gold)}
+.opt,.word{background:var(--surface);border:2px solid var(--line2);border-radius:16px}
+.opt:hover,.word:hover{border-color:var(--g7);transform:translateY(-2px)}
+.evalbar{position:fixed;inset-inline:0;bottom:0;z-index:25;display:flex;justify-content:center;gap:12px;padding:12px;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(0,0,0,.06)}
+.evalbar .b{flex:1;max-width:260px}
+/* ——— الصغار: نفس الهيكل لكن بهوية مرحة ——— */
+body.kids{background:linear-gradient(180deg,#bfe7ff 0%,#e9f7ff 45%,#fff6dc 100%)}
+:root[data-theme="dark"] body.kids{background:linear-gradient(180deg,#0d2238,#0f1d2a 60%,#1d1a10)}
+body.kids .gbar{background:rgba(255,255,255,.75);backdrop-filter:blur(8px)}
+:root[data-theme="dark"] body.kids .gbar{background:rgba(19,33,27,.8)}
+body.kids .seg{height:14px}
+body.kids .card{border-radius:32px;border:4px solid #ffd76a}
+body.kids .q-chip{background:#fff3c4;color:#9a3412;padding:6px 18px;border-radius:99px}
+body.kids .ayah{border:none;background:#f0f9ff;color:#0c4a6e;border-radius:24px}
+:root[data-theme="dark"] body.kids .ayah{background:#0c2a3f;color:#bae6fd}
+:root[data-theme="dark"] body.kids .q-chip{background:#3b2a07;color:#fcd34d}
+body.kids .opt,body.kids .word{border:none;border-radius:22px;color:#3b1d00;box-shadow:0 6px 0 rgba(0,0,0,.18);font-size:1.8rem}
+body.kids .opt:nth-child(3n+1),body.kids .word:nth-child(4n+1){background:#ffd166}
+body.kids .opt:nth-child(3n+2),body.kids .word:nth-child(4n+2){background:#8bd3ff}
+body.kids .opt:nth-child(3n+3),body.kids .word:nth-child(4n+3){background:#b7f0a8}
+body.kids .word:nth-child(4n+4){background:#ffb3c7}
+body.kids .opt:active,body.kids .word:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.stars{display:none}body.kids .stars{display:inline-flex}body.kids #timer{display:none}
+.confetti{position:fixed;top:-20px;font-size:1.6rem;pointer-events:none;z-index:40;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+@media (max-width:560px){.who span{display:none}.gbar{gap:8px;padding:8px 10px}.card{padding:18px 12px}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-brand">🕌 <div><span data-t="brand"></span><small data-t="sub"></small></div></div>
+  <div class="hdr-btns"><button class="hb">⌂ <span data-t="home"></span></button><button class="hb" id="theme-btn" aria-label="theme">🌓</button><button class="hb" id="lang-btn"></button></div>
+</header>
+<div class="pv-bar">نموذج أ · Model A — <button data-mode="adult" data-t="adult"></button><button data-mode="kids" data-t="kids"></button><a href="games-b-adventure.html">← نموذج ب / Model B</a></div>
+
+<div class="gbar">
+  <div class="who"><div class="av">👤</div><span data-t="student"></span></div>
+  <div class="prog"><div class="prog-l" id="prog-l"></div><div class="segs" id="segs"></div></div>
+  <span class="chip" id="timer">⏱ 30:00</span>
+  <span class="chip stars" id="stars">⭐ 0</span>
+  <details class="menu"><summary aria-label="more">⋯</summary>
+    <div class="menu-pop"><button>⏸️ <span data-t="pause"></span></button><button>⛶ <span data-t="full"></span></button><button>🔊 <span data-t="sound"></span></button><button class="danger">🚪 <span data-t="exit"></span></button></div>
+  </details>
+</div>
+
+<main class="stage"><div class="card" id="q-body"></div></main>
+
+<div class="evalbar" id="evalbar" hidden>
+  <button class="b b-ok" id="btn-right">✓ <span id="right-l"></span></button>
+  <button class="b b-bad" id="btn-note">📝 <span data-t="note"></span></button>
+</div>
+<div class="feedback" id="feedback"><div><span id="fb-text"></span><button class="b b-pri" id="fb-next" data-t="next"></button></div></div>
+
+<script type="module">
+import { boot, t2 } from './games-shared.js';
+const TOTAL = 8;
+boot({
+  progress(S) {
+    const n = S.res.length;
+    document.getElementById('segs').innerHTML = Array.from({ length: TOTAL }, (_, i) =>
+      `<i class="seg ${i < n ? (S.res[i] ? 'ok' : 'no') : i === n ? 'cur' : ''}"></i>`).join('');
+    document.getElementById('prog-l').textContent = t2('qOf')(Math.min(n + 1, TOTAL), TOTAL);
+    document.getElementById('stars').textContent = '⭐ ' + S.res.filter(Boolean).length;
+    document.getElementById('right-l').textContent = t2(S.mode === 'kids' ? 'rightK' : 'right');
+  },
+  teacher(on) { document.getElementById('evalbar').hidden = !on; },
+  tick(S) {
+    const m = Math.floor(S.secs / 60), s = String(S.secs % 60).padStart(2, '0'), el = document.getElementById('timer');
+    el.textContent = `⏱ ${m}:${s}`; el.classList.toggle('warn', S.secs < 300);
+  },
+  celebrate() {
+    for (let i = 0; i < 18; i++) { const c = document.createElement('span'); c.className = 'confetti'; c.textContent = ['⭐', '🎉', '✨', '🌟'][i % 4];
+      c.style.insetInlineStart = Math.random() * 100 + 'vw'; c.style.animationDelay = Math.random() * .4 + 's'; document.body.append(c); setTimeout(() => c.remove(), 2200); }
+  }
+});
+</script>
+</body>
+</html>

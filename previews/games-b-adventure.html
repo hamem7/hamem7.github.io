@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الألعاب — نموذج ب: رحلة المغامرة</title>
+<link rel="stylesheet" href="games-shared.css">
+<style>
+/* نموذج ب: «رحلة المغامرة» — مسار محطات بدل أرقام الأسئلة، إحصاءات حيّة (دقة/متتالية)، لوح السؤال بإطار زخرفي */
+.wrap>*{min-width:0}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 120px;display:grid;grid-template-columns:250px 1fr;gap:18px}
+.side{background:var(--surface);border-radius:var(--r);box-shadow:var(--sh);padding:16px;align-self:start;position:sticky;top:12px}
+.who{display:flex;align-items:center;gap:10px;font-weight:800;margin-bottom:14px}
+.av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);border:3px solid var(--gold);font-size:1.3rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.stat{background:var(--surface2);border-radius:12px;padding:8px 4px;text-align:center}
+.stat b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}.stat small{color:var(--ink2);font-size:.72rem;font-weight:600}
+.path-t{font-size:.8rem;font-weight:700;color:var(--ink2);margin-bottom:8px}
+.path{position:relative;display:grid;gap:10px;padding-inline-start:8px}
+.path::before{content:"";position:absolute;inset-inline-start:25px;top:18px;bottom:18px;border-inline-start:3px dotted var(--line2)}
+.stn{position:relative;display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--ink2)}
+.dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:3px solid var(--line2);font-weight:800;z-index:1;flex:none;font-size:.85rem}
+.stn.ok .dot{background:var(--ok);border-color:var(--ok);color:#fff}.stn.no .dot{background:var(--gold);border-color:var(--gold);color:#3b2a00}
+.stn.cur .dot{border-color:var(--g7);box-shadow:0 0 0 5px color-mix(in srgb,var(--g7) 25%,transparent);transform:scale(1.12)}
+.stn.cur{color:var(--ink);font-weight:700}
+.side-act{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.side-act button{min-height:44px;border-radius:12px;background:var(--surface2);font-size:1.1rem}
+.board{position:relative;background:var(--surface);border-radius:28px;box-shadow:var(--sh);padding:30px 26px;text-align:center;border:2px solid var(--gold);outline:6px solid var(--surface);outline-offset:-12px}
+.board::before,.board::after{content:"۞";position:absolute;top:10px;color:var(--gold);font-size:1.4rem}.board::before{inset-inline-start:16px}.board::after{inset-inline-end:16px}
+.q-chip{color:var(--g7);border-bottom:3px solid var(--gold);padding-bottom:4px}
+.ayah{border-radius:18px;background:var(--surface2)}
+.opt,.word{background:var(--surface2);border:2px solid transparent;border-radius:18px}
+.opt:hover,.word:hover{border-color:var(--gold)}
+.eval{display:flex;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap}
+/* ——— الصغار: خريطة جزر ونجوم ——— */
+body.kids{background:#dff3ff url("../kids-bg.jpg") center/cover fixed}
+:root[data-theme="dark"] body.kids{background-color:#0c1a26;background-blend-mode:multiply}
+body.kids .board{border:none;outline:none;border-radius:36px;background:var(--surface);box-shadow:0 10px 0 #f59e0b,0 18px 30px rgba(0,0,0,.18)}
+body.kids .board::before,body.kids .board::after{content:none}
+body.kids .mascot{display:flex}
+.mascot{display:none;align-items:center;gap:10px;justify-content:center;margin:-56px auto 10px;width:max-content;background:#fff3c4;color:#7c2d12;border-radius:99px;padding:6px 16px 6px 6px;font-weight:800;box-shadow:0 4px 0 #f59e0b}
+:root[data-theme="dark"] .mascot{background:#3b2a07;color:#fcd34d}
+.mascot i{font-style:normal;font-size:2.2rem;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+body.kids .dot{width:40px;height:40px;font-size:1.1rem}
+body.kids .stn.ok .dot::after{content:"⭐";position:absolute;font-size:1.2rem}body.kids .stn.ok .dot{color:transparent}
+body.kids .opt,body.kids .word{background:#fff;border:3px solid #7dd3fc;border-radius:26px;box-shadow:0 5px 0 #38bdf8;font-size:1.8rem}
+:root[data-theme="dark"] body.kids .opt,:root[data-theme="dark"] body.kids .word{background:#0c2a3f}
+body.kids .adult-only{display:none}
+.kid-only{display:none}body.kids .kid-only{display:block}
+.pop{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:40;font-size:7rem;animation:pop .9s ease-out forwards}
+@keyframes pop{0%{transform:scale(.2);opacity:0}40%{transform:scale(1.15);opacity:1}100%{transform:scale(1);opacity:0}}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}.side{position:static}
+  .path{display:flex;overflow-x:auto;padding:4px}.path::before{inset-inline:18px;top:18px;bottom:auto;border-inline-start:0;border-top:3px dotted var(--line2)}
+  .stn span{display:none}.board{padding:22px 12px}}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-brand">🕌 <div><span data-t="brand"></span><small data-t="sub"></small></div></div>
+  <div class="hdr-btns"><button class="hb">⌂ <span data-t="home"></span></button><button class="hb" id="theme-btn" aria-label="theme">🌓</button><button class="hb" id="lang-btn"></button></div>
+</header>
+<div class="pv-bar">نموذج ب · Model B — <button data-mode="adult" data-t="adult"></button><button data-mode="kids" data-t="kids"></button><a href="games-a-focus.html">← نموذج أ / Model A</a></div>
+
+<div class="wrap">
+  <aside class="side">
+    <div class="who"><div class="av">👤</div><div><span data-t="student"></span><div class="stat-time adult-only" id="timer" style="font-size:.85rem;color:var(--ink2)">⏱ 30:00</div></div></div>
+    <div class="stats">
+      <div class="stat"><b id="s-acc">—</b><small data-t="acc"></small></div>
+      <div class="stat"><b id="s-streak">0🔥</b><small data-t="streak"></small></div>
+      <div class="stat"><b id="s-stars">0⭐</b><small data-t="stars"></small></div>
+    </div>
+    <div class="path-t" data-t="path"></div>
+    <div class="path" id="path"></div>
+    <div class="side-act"><button title="pause" aria-label="pause">⏸️</button><button title="sound" aria-label="sound">🔊</button><button title="full screen" aria-label="full screen">⛶</button><button title="exit" aria-label="exit">🚪</button></div>
+  </aside>
+  <main>
+    <div style="height:46px" class="kid-only"></div>
+    <div class="board">
+      <div class="mascot"><i>🦉</i><span id="mascot-t"></span></div>
+      <div id="q-body"></div>
+      <div class="eval" id="eval" hidden>
+        <button class="b b-ok" id="btn-right">✓ <span id="right-l"></span></button>
+        <button class="b b-bad" id="btn-note">📝 <span data-t="note"></span></button>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="feedback" id="feedback"><div><span id="fb-text"></span><button class="b b-pri" id="fb-next" data-t="next"></button></div></div>
+
+<script type="module">
+import { boot, t2 } from './games-shared.js';
+const TOTAL = 8, $ = (i) => document.getElementById(i);
+boot({
+  progress(S) {
+    const n = S.res.length, okN = S.res.filter(Boolean).length, st = t2('st');
+    $('path').innerHTML = Array.from({ length: TOTAL }, (_, i) =>
+      `<div class="stn ${i < n ? (S.res[i] ? 'ok' : 'no') : i === n ? 'cur' : ''}"><div class="dot">${i + 1}</div><span>${i === 0 ? st[0] : i === 3 ? st[1] : i === 5 ? st[2] : i === TOTAL - 1 ? st[3] : ''}</span></div>`).join('');
+    $('s-acc').textContent = n ? Math.round(okN / n * 100) + '%' : '—';
+    $('s-streak').textContent = S.streak + '🔥';
+    $('s-stars').textContent = okN + '⭐';
+    $('right-l').textContent = t2(S.mode === 'kids' ? 'rightK' : 'right');
+    $('mascot-t').textContent = t2('qOf')(Math.min(n + 1, TOTAL), TOTAL);
+  },
+  teacher(on) { $('eval').hidden = !on; },
+  tick(S) { $('timer').textContent = `⏱ ${Math.floor(S.secs / 60)}:${String(S.secs % 60).padStart(2, '0')}`; },
+  celebrate() { const p = document.createElement('div'); p.className = 'pop'; p.textContent = '⭐'; document.body.append(p); setTimeout(() => p.remove(), 1000); }
+});
+</script>
+</body>
+</html>
