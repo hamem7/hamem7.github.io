@@ -126,7 +126,7 @@ const REPORT_TEMPLATE = `
     </div>
   <div class="note-bar">
     <label for="report-custom-note-input" data-i18n="rep_tb_note_label">ملاحظة لولي الأمر (اختياري):</label>
-    <textarea id="report-custom-note-input" data-i18n-placeholder="rep_tb_note_ph" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — إن تركتها فارغة سيظهر تعليق تلقائي مبني على نتيجة الاختبار."></textarea>
+    <textarea id="report-custom-note-input" data-i18n-placeholder="rep_tb_note_ph" placeholder="اكتب هنا ملاحظتك الخاصة لولي الأمر — تظهر في التقرير فقط إن كتبتها، وإن تركتها فارغة لا يظهر صندوق الملاحظة."></textarea>
     <span class="hint" data-i18n="rep_tb_note_hint">تظهر في صندوق "ملاحظة المعلم" بالأسفل</span>
   </div>
   <div class="note-bar" id="report-qa-theme-bar">
@@ -300,7 +300,7 @@ const REPORT_TEMPLATE = `
           </div>
         </div>
 
-        <div class="note-box pdf-block">
+        <div class="note-box pdf-block" id="report-note-block" style="display:none;">
           <div class="note-head">
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#0b3d30" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2 2 0 0 1 6 4h4.5v16H6a2 2 0 0 1-2-2z"/><path d="M20 5.5A2 2 0 0 0 18 4h-4.5v16H18a2 2 0 0 0 2-2z"/></svg>
             <span class="note-label" data-i18n="rep_note_label">ملاحظة المعلم لولي الأمر</span>
@@ -1368,8 +1368,9 @@ function needsFocusHtml(items, dotIcon){
 function renderNoteBox(){
   const input = $('report-custom-note-input');
   const custom = input ? input.value.trim() : '';
-  const text = custom || (reportData ? reportData.autoNote : '');
-  setText('report-note-text', text);
+  // لا تعليق تلقائي في الورقة (بطلب صاحب المنصة): الصندوق يظهر فقط إن كتب المعلم ملاحظته
+  setText('report-note-text', custom);
+  const block = $('report-note-block'); if (block) block.style.display = custom ? '' : 'none';
 }
 
 // صندوق "ملاحظة إضافية" اختياري بالكامل: يظهر فقط لو المعلم كتب فيه نصًا،
