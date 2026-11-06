@@ -44,6 +44,7 @@ import {
 import { playMistakeSound, playSuccessSound, playWinSound, playDrawTickSound, playDrawLandSound, playRoundWinSound } from './dual-test-sounds.js';
 // 🌟 [جديد] فتح تقرير المواجهة الكامل من شاشة النتيجة النهائية — راجع reports/dual-test-report.js
 import { openDualTestReportScreen } from '../reports/dual-test-report.js';
+import { playApplauseOnce } from '../core/applauseSound.js';
 import { shareDualRoundWhatsApp, exportDualRoundPdf, dualRoundRangeLabel, formatRoundDate } from '../reports/dualRoundReport.js';
 
 const QUESTION_SECONDS = 60; // 🌟 افتراض رقم 1 أعلاه — القيمة الافتراضية، غير مستخدمة فعلياً حالياً (المؤقت مُعطَّل، انظر TIMER_ENABLED)
@@ -978,6 +979,9 @@ async function finishRound() {
         try { triggerConfetti(); } catch (e) { /* best-effort */ }
         try { playRoundWinSound(); } catch (e) { /* best-effort */ }
     }
+    // 👏 [جديد بطلب المعلم] تصفيق الألعاب الفردية نفسه (core/applauseSound.js) عند نهاية كل جولة في
+    // كل الأحوال (فوز أو تعادل) — مرة واحدة لكل جولة، يحترم كتم التصفيق، ويتوقف عند مغادرة شاشة اللعب
+    try { playApplauseOnce(`dual-round-${match.id}-${roundResult.roundNumber}`, 'dtp-round-summary-view'); } catch (e) { /* best-effort */ }
 }
 
 // 🌟 [جديد بالكامل] بناء محتوى شاشة "نتيجة الجولة" الجديدة (طبقة ملء الشاشة — راجع
