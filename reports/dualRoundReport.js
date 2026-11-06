@@ -90,6 +90,8 @@ async function buildData(match, test, idx) {
   const next = idx < 2 ? (test.rounds || [])[idx + 1] : null;
   return {
     idx, n: idx + 1, A, B, winner: r.roundWinner, series, hasPrev: !!prev,
+    // الجولات المنتهية حتى هذه الجولة (لـ«نتيجة الجولة السابقة» و«ملخص المواجهة» في الجولة الأخيرة)
+    history: done.map((x, i) => ({ n: i + 1, range: dualRoundRangeLabel((test.rounds || [])[i]), a: r2(x.scoreA), b: r2(x.scoreB), winner: x.roundWinner, starter: x.roundStarter || '' })),
     starterKey: r.roundStarter || '',
     date: formatRoundDate(r.playedAt || match.pausedAt),
     range: dualRoundRangeLabel(tRound),
@@ -173,6 +175,13 @@ const CSS = `
 .drr .ln{display:flex;gap:8px;align-items:baseline;font-size:13px}
 .drr .ln .who{flex:none;min-width:70px;font-weight:800}.drr .ln .who.a{color:var(--a)}.drr .ln .who.b{color:var(--b)}
 .drr .big{font-size:21px;font-weight:800;color:var(--nv)}
+.drr .hist{background:#eef0fb}
+.drr .hrow{display:grid;grid-template-columns:70px 1fr 110px 130px;gap:8px;align-items:center;font-size:13px;padding:3px 6px;border-radius:8px}
+.drr .hrow.cur{background:#fff;border:1px solid #cfd3ef}
+.drr .hn{font-weight:800;color:var(--nv)}.drr .hr{color:var(--sub)}.drr .hs{text-align:center}.drr .hw{font-weight:700}
+.drr .ca{color:var(--a)}.drr .cb{color:var(--b)}
+.drr .hfin{margin-top:4px;padding-top:6px;border-top:1.5px dashed #cfd3ef;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;font-size:13px;color:var(--sub)}
+.drr .hfin b{font-size:16px;color:var(--nv)}
 .drr .tasks{display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.6}.drr .li{display:flex;gap:7px}.drr .li>span:first-child{color:var(--a);font-weight:800}
 .drr .ft{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:2px dashed #cfd3ef;padding-top:8px;font-size:13px;color:var(--sub)}
 .drr .ft b{color:var(--ink)}.drr .ft img{height:62px;max-width:150px;object-fit:contain}
@@ -195,6 +204,24 @@ const CSS = `
 
 // ---------- أجزاء مشتركة ----------
 const sideOf = (d, key) => (d.A.key === key ? d.A : d.B);
+// الجولة 2: نتيجة الجولات السابقة · الجولة 3 (الأخيرة): ملخص سريع للجولات الثلاث ونتيجة المواجهة كلها
+function historyHtml(d) {
+  if (d.n < 2) return '';
+  const sc = (h, s) => (s.key === 'A' ? h.a : h.b);
+  const winName = h => (h.winner === 'tie' ? `🤝 ${t('drr_tie')}` : `🏆 ${sideOf(d, h.winner).name}`);
+  const rows = (d.n >= 3 ? d.history : d.history.slice(0, -1)).map(h => `<div class="hrow${h.n === d.n ? ' cur' : ''}">
+      <span class="hn">${E(tr('drr_round_short', { n: h.n }))}</span><span class="hr">${E(h.range)}</span>
+      <span class="hs"><b class="ca">${sc(h, d.A)}</b> — <b class="cb">${sc(h, d.B)}</b></span><span class="hw">${E(winName(h))}</span></div>`).join('');
+  if (d.n < 3) return `<div class="bx hist"><div class="k"><em>⏮</em>${E(t('drr_prev_title'))}</div>${rows}</div>`;
+  const tot = s => r2(d.history.reduce((x, h) => x + sc(h, s), 0));
+  const won = s => d.history.filter(h => h.winner === s.key).length;
+  const wa = won(d.A), wb = won(d.B);
+  // نفس قاعدة computeSeriesResult في المحرّك: الفائز بالمواجهة من كسب جولات أكثر، وإلا تعادل
+  const champ = wa === wb ? null : (wa > wb ? d.A : d.B);
+  const fin = champ ? tr('drr_match_winner', { name: champ.name }) : t('drr_match_tie');
+  return `<div class="bx hist"><div class="k"><em>🏁</em>${E(t('drr_summary_title'))}</div>${rows}
+    <div class="hfin"><b>${E(fin)}</b><span>${E(tr('drr_match_totals', { a: d.A.name, b: d.B.name, wa, wb, pa: tot(d.A), pb: tot(d.B) }))}</span></div></div>`;
+}
 // صورة خاصة بولي أمر طالب: طالبه أولاً (يمين في العربية) باسمه كاملاً، والمنافس باسمه الأول فقط
 function forParent(d, key) {
   const me = key === 'A' ? d.A : d.B, other = key === 'A' ? d.B : d.A;
@@ -228,7 +255,7 @@ function cardHtml(d) {
   const winTxt = d.winner === 'tie' ? t('drr_tie') : sideOf(d, d.winner).name;
   const box = (num, ask, body, cls) => `<div class="bx ${cls || ''}"><div class="k"><em>${num}</em>${E(ask)}</div>${body}</div>`;
   return `<div class="drr drr-card" dir="${isEn() ? 'ltr' : 'rtl'}"><div class="pg">
-    ${headHtml(d)}${vsHtml(d)}
+    ${headHtml(d)}${vsHtml(d)}${historyHtml(d)}
     <div class="qs">
       ${box(1, t('drr_q1'), ln(d.A, E(tr('drr_q1_val', { n: d.A.entries.length, f: d.A.clean }))) + ln(d.B, E(tr('drr_q1_val', { n: d.B.entries.length, f: d.B.clean }))))}
       ${box(2, t('drr_q2'), ln(d.A, helpTxt(d.A)) + ln(d.B, helpTxt(d.B)))}
@@ -259,7 +286,7 @@ function pdfHtml(d) {
   const ln2 = (s, v) => `<div class="ln"><span class="who ${s.key.toLowerCase()}">${E(s.name)}</span><span>${E(v)}</span></div>`;
   const stat = s => `<div class="ln"><span class="who ${s.key.toLowerCase()}">${E(s.name)}</span><span>${E(tr('drr_q1_val', { n: s.entries.length, f: s.clean }))} · ${E(tr('drr_q3_val', { n: s.mistakes, d: s.deduction }))}${s.helper ? ' · ' + E(t('drr_help')) : ''}${s.swap ? ' · ' + E(t('drr_swap')) : ''}</span></div>`;
   return `<div class="drr drr-pdf" dir="${isEn() ? 'ltr' : 'rtl'}">
-    <div class="pdf-block" style="display:flex;flex-direction:column;gap:10px">${headHtml(d)}${vsHtml(d)}<div class="bx">${stat(d.A)}${stat(d.B)}</div>
+    <div class="pdf-block" style="display:flex;flex-direction:column;gap:10px">${headHtml(d)}${vsHtml(d)}${historyHtml(d)}<div class="bx">${stat(d.A)}${stat(d.B)}</div>
       <div class="qs"><div class="bx${d.hasPrev ? '' : ' full'}"><div class="k"><em>📍</em>${E(t('drr_q_stumble'))}</div>${ln2(d.A, stumbleTxt(d.A))}${ln2(d.B, stumbleTxt(d.B))}</div>
       ${d.hasPrev ? `<div class="bx"><div class="k"><em>📈</em>${E(t('drr_q_improve'))}</div>${ln2(d.A, improveTxt(d.A))}${ln2(d.B, improveTxt(d.B))}</div>` : ''}</div></div>
     ${sec(d.A)}${sec(d.B)}
