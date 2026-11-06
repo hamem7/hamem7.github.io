@@ -379,9 +379,12 @@
     .dtp-rs-next-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(0,0,0,0.36); }
     .dtp-rs-next-btn:active { transform: scale(0.97); }
     /* 🌟 [جديد] أزرار تقرير الجولة (واتساب/PDF) + بطاقة التذكير قبل الجولة 2 و3 */
-    .dtp-rs-report { display: flex; gap: 10px; justify-content: center; margin: 22px auto 0 auto; max-width: 460px; }
+    .dtp-rs-report { display: flex; flex-direction: column; gap: 8px; margin: 22px auto 0 auto; max-width: 460px; }
+    .dtp-rs-report-row { display: flex; gap: 8px; }
+    .dtp-rs-report-row .dtp-rs-report-btn:first-child { flex: 1; }
+    .dtp-rs-report-btn.dtp-rs-dl { flex: none; width: 54px; padding: 12px 0; background: rgba(255,253,246,0.12); }
     .dtp-rs-report-btn {
-        flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
         padding: 12px 14px; border-radius: 14px; font-size: 1rem; font-weight: 800; cursor: pointer;
         color: #fffdf6; border: 1.5px solid rgba(255,253,246,0.35);
     }
@@ -1341,10 +1344,7 @@
                 <!-- 🌟 [جديد] سطر يوضّح للمعلم أن تقدّم المواجهة محفوظ وأن الجولة التالية
                      تُستكمَل في جلسة لاحقة (يختفي تماماً في الجولة الثالثة الأخيرة) -->
                 <!-- 🌟 [جديد] تقرير الجولة لولي الأمر: واتساب يميناً و PDF يساراً (reports/dualRoundReport.js) -->
-                <div class="dtp-rs-report" role="group">
-                    <button type="button" class="dtp-rs-report-btn dtp-rs-wa" id="dtp-summary-wa-btn"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l1.6-4.7A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.5 2 2.5 4 4.5 4.5l1.2-1.2 2 1-.5 1.5c-3.5.3-7.7-3.9-7.4-7.4l1.5-.5 1 2z"/></svg><span data-i18n="drr_wa_btn">تقرير واتساب</span></button>
-                    <button type="button" class="dtp-rs-report-btn dtp-rs-pdf" id="dtp-summary-pdf-btn"><svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg><span data-i18n="drr_pdf_btn">تقرير PDF</span></button>
-                </div>
+                <div class="dtp-rs-report" id="dtp-summary-report" role="group"></div>
                 <div class="dtp-rs-note" id="dtp-summary-note" style="display:none;"></div>
                 <button class="dtp-rs-next-btn" id="dtp-summary-next-btn"></button>
             </div>

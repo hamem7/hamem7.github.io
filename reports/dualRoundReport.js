@@ -90,7 +90,7 @@ async function buildData(match, test, idx) {
   const next = idx < 2 ? (test.rounds || [])[idx + 1] : null;
   return {
     idx, n: idx + 1, A, B, winner: r.roundWinner, series, hasPrev: !!prev,
-    starter: r.roundStarter ? (r.roundStarter === 'A' ? A.name : B.name) : '',
+    starterKey: r.roundStarter || '',
     date: formatRoundDate(r.playedAt || match.pausedAt),
     range: dualRoundRangeLabel(tRound),
     nextRange: next ? dualRoundRangeLabel(next) : '',
@@ -117,7 +117,8 @@ function improveTxt(s) {
 function homeTasks(d) {
   const tasks = [];
   if (d.n < 3) tasks.push(tr('drr_task_next_range', { n: d.n + 1, r: d.nextRange || d.range }));
-  [d.A, d.B].forEach(s => {
+  // صورة ولي أمر طالب بعينه: مهام البيت لطالبه فقط
+  [d.A, d.B].filter(s => !d.focus || s.key === d.focus).forEach(s => {
     const bad = s.entries.filter(e => e.mistakes > 0);
     if (!s.entries.length) return;
     if (!bad.length) { tasks.push(tr('drr_task_clean', { name: s.name })); return; }
@@ -183,10 +184,18 @@ const CSS = `
 `;
 
 // ---------- أجزاء مشتركة ----------
+const sideOf = (d, key) => (d.A.key === key ? d.A : d.B);
+// صورة خاصة بولي أمر طالب: طالبه أولاً (يمين في العربية) باسمه كاملاً، والمنافس باسمه الأول فقط
+function forParent(d, key) {
+  const me = key === 'A' ? d.A : d.B, other = key === 'A' ? d.B : d.A;
+  const first = String(other.name || '').trim().split(/\s+/)[0] || other.name;
+  return Object.assign({}, d, { focus: key, A: me, B: Object.assign({}, other, { name: first }) });
+}
+
 function headHtml(d) {
   return `<div class="hd"><div class="br"><img src="assets/brand/ham-logo-light.svg" alt=""><div><small>${E(t('qa_brand_small'))}</small><b>${E(t('drr_title'))}</b></div></div>
     <div class="rd"><b>${E(tr('drr_round_of', { n: d.n }))}</b><br>${E(d.date)}</div></div>
-  <div class="strip"><span class="chip">${E(t('drr_range'))}: <b>${E(d.range)}</b></span>${d.starter ? `<span class="chip">${E(t('drr_starter'))}: <b>${E(d.starter)}</b></span>` : ''}<span class="chip">${E(tr('drr_series', { a: d.A.name, b: d.B.name, x: d.series.a, y: d.series.b }))}</span></div>`;
+  <div class="strip">${d.focus ? `<span class="chip">${E(t('drr_to_parent'))}: <b>${E(d.A.name)}</b></span>` : ''}<span class="chip">${E(t('drr_range'))}: <b>${E(d.range)}</b></span>${d.starterKey ? `<span class="chip">${E(t('drr_starter'))}: <b>${E(sideOf(d, d.starterKey).name)}</b></span>` : ''}<span class="chip">${E(tr('drr_series', { a: d.A.name, b: d.B.name, x: d.series[d.A.key.toLowerCase()], y: d.series[d.B.key.toLowerCase()] }))}</span></div>`;
 }
 function playerHtml(s, d) {
   const win = d.winner === s.key;
@@ -206,7 +215,7 @@ function footHtml(d) {
 function cardHtml(d) {
   const ln = (s, v) => `<div class="ln"><span class="who ${s.key.toLowerCase()}">${E(s.name)}</span><span>${v}</span></div>`;
   const helpTxt = s => [s.helper ? t('drr_help') : '', s.swap ? `${t('drr_swap')} (${E(s.swapCode || '')})` : ''].filter(Boolean).join(' · ') || E(t('drr_none'));
-  const winTxt = d.winner === 'tie' ? t('drr_tie') : (d.winner === 'A' ? d.A.name : d.B.name);
+  const winTxt = d.winner === 'tie' ? t('drr_tie') : sideOf(d, d.winner).name;
   const box = (num, ask, body, cls) => `<div class="bx ${cls || ''}"><div class="k"><em>${num}</em>${E(ask)}</div>${body}</div>`;
   return `<div class="drr drr-card" dir="${isEn() ? 'ltr' : 'rtl'}"><div class="pg">
     ${headHtml(d)}${vsHtml(d)}
@@ -271,11 +280,12 @@ async function mount(html) {
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
   return host;
 }
-const fileName = (d, ext) => `${t('drr_file')}_${d.n}_${d.A.name}_${d.B.name}.${ext}`.replace(/[\\/:*?"<>|،,()]/g, ' ').replace(/\s+/g, '_');
+const fileName = (d, ext) => `${t('drr_file')}_${d.n}_${d.A.name}_${d.B.name}${d.focus ? '_' + t('drr_parent_file') : ''}.${ext}`.replace(/[\\/:*?"<>|،,()]/g, ' ').replace(/\s+/g, '_');
 
-async function share(blob, name, mime) {
+// download=true: تحميل مباشر على الجهاز بلا نافذة مشاركة
+async function share(blob, name, mime, download) {
   const file = new File([blob], name, { type: mime });
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  if (!download && navigator.canShare && navigator.canShare({ files: [file] })) {
     try { await navigator.share({ files: [file], title: t('drr_title') }); }
     catch (err) { if (!err || err.name !== 'AbortError') throw err; }
     return;
@@ -284,11 +294,12 @@ async function share(blob, name, mime) {
   const a = document.createElement('a'); a.download = name; a.href = url;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
-  if (mime === 'image/png') { alert(t('rep_wa_unsupported_note')); window.open('https://wa.me/', '_blank', 'noopener'); }
+  if (!download && mime === 'image/png') { alert(t('rep_wa_unsupported_note')); window.open('https://wa.me/', '_blank', 'noopener'); }
 }
 
-export async function shareDualRoundWhatsApp(match, test, idx) {
-  const d = await buildData(match, test, idx);
+// key = 'A' | 'B': صورة ولي أمر هذا الطالب (رسالة مستقلة لكل ولي أمر)
+export async function shareDualRoundWhatsApp(match, test, idx, key, download) {
+  const d = forParent(await buildData(match, test, idx), key || 'A');
   await prepare();
   const host = await mount(cardHtml(d));
   let canvas;
@@ -306,10 +317,10 @@ export async function shareDualRoundWhatsApp(match, test, idx) {
     canvas = await window.html2canvas(card, { scale: 1.5, backgroundColor: '#f4f5fc', useCORS: true });
   } finally { host.remove(); }
   const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-  await share(blob, fileName(d, 'png'), 'image/png');
+  await share(blob, fileName(d, 'png'), 'image/png', download);
 }
 
-export async function exportDualRoundPdf(match, test, idx) {
+export async function exportDualRoundPdf(match, test, idx, download) {
   const d = await buildData(match, test, idx);
   await prepare();
   if (!(window.jspdf && window.jspdf.jsPDF)) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -342,6 +353,6 @@ export async function exportDualRoundPdf(match, test, idx) {
       if (i) pdf.addPage();
       pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, i ? TOP : 0, pw, (b - a) / pxPerPt, undefined, 'FAST');
     });
-    await share(pdf.output('blob'), fileName(d, 'pdf'), 'application/pdf');
+    await share(pdf.output('blob'), fileName(d, 'pdf'), 'application/pdf', download);
   } finally { host.remove(); }
 }

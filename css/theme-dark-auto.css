@@ -543,7 +543,7 @@ html[data-theme="dark"] body:not(.dh-light) .dts-test-row-actions button.dts-btn
 html[data-theme="dark"] body:not(.dh-light) [style*="border:2px solid #cbd5e1"] { border: 2px solid #495565 !important; }
 html[data-theme="dark"] body:not(.dh-light) [style*="color:#64748b"]:not([style*="gradient"]) { color: var(--dh-ink-soft, #9db8ac) !important; }
 
-/* ===== dualtests/dual-test-play.html (85) ===== */
+/* ===== dualtests/dual-test-play.html (86) ===== */
 html[data-theme="dark"] body:not(.dh-light) .dtp-vs-avatar { background: var(--dh-surface-2, #182a23) !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-range-row.dtp-range-to { background: #1d2722 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-range-label { color: var(--dh-ink-soft, #9db8ac) !important; }
@@ -585,6 +585,7 @@ html[data-theme="dark"] body:not(.dh-light) .dtp-rs-series-dot.dtp-rs-dot-a { ba
 html[data-theme="dark"] body:not(.dh-light) .dtp-rs-series-dot.dtp-rs-dot-tie { background: #1a231f59 !important; color: #dcf6f0 !important; border-color: #6c624280 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-rs-stat-row { border-top: 1px solid #6c624224 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-rs-note { background: #1a231f1a !important; }
+html[data-theme="dark"] body:not(.dh-light) .dtp-rs-report-btn.dtp-rs-dl { background: #1a231f1f !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-rs-report-btn { border: 1.5px solid #6c624259 !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-recap { background: #1a231f1a !important; }
 html[data-theme="dark"] body:not(.dh-light) .dtp-badges-reveal { background: linear-gradient(135deg, #1d2722, var(--dh-surface-2, #182a23)) !important; }

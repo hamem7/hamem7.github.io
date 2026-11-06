@@ -941,20 +941,32 @@ async function finishRound() {
         }
     };
 
-    // 🌟 [جديد] تقرير هذه الجولة لولي الأمر: واتساب (صورة) يميناً و PDF يساراً
+    // 🌟 [مُحدَّث] تقرير الجولة: صورة واتساب مستقلة لولي أمر كل طالب + PDF واحد، ولكل منها زر ⬇ تحميل على الجهاز
     const roundIdx = match.rounds.length - 1;
-    const bindReport = (id, fn) => {
-        const b = document.getElementById(id);
-        if (!b) return;
-        b.onclick = async () => {
-            if (b.disabled) return;
-            const old = b.innerHTML; b.disabled = true; b.textContent = t('dtr_busy_label');
-            try { await fn(match, test, roundIdx); } catch (e) { console.error(e); alert(t('drr_export_error')); }
-            finally { b.disabled = false; b.innerHTML = old; }
-        };
-    };
-    bindReport('dtp-summary-wa-btn', shareDualRoundWhatsApp);
-    bindReport('dtp-summary-pdf-btn', exportDualRoundPdf);
+    const ICON_WA = '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l1.6-4.7A8.5 8.5 0 1 1 8 19.6z"/><path d="M9 9.5c.5 2 2.5 4 4.5 4.5l1.2-1.2 2 1-.5 1.5c-3.5.3-7.7-3.9-7.4-7.4l1.5-.5 1 2z"/></svg>';
+    const ICON_PDF = '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+    const ICON_DL = '<svg class="dtp-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></svg>';
+    const firstName = (n) => esc(String(n || '').trim().split(/\s+/)[0] || n);
+    const items = [
+        { cls: 'dtp-rs-wa', icon: ICON_WA, label: t('drr_wa_parent_btn').replace('{name}', firstName(match.studentNameA)), run: (dl) => shareDualRoundWhatsApp(match, test, roundIdx, 'A', dl) },
+        { cls: 'dtp-rs-wa', icon: ICON_WA, label: t('drr_wa_parent_btn').replace('{name}', firstName(match.studentNameB)), run: (dl) => shareDualRoundWhatsApp(match, test, roundIdx, 'B', dl) },
+        { cls: 'dtp-rs-pdf', icon: ICON_PDF, label: t('drr_pdf_btn'), run: (dl) => exportDualRoundPdf(match, test, roundIdx, dl) }
+    ];
+    const reportBox = document.getElementById('dtp-summary-report');
+    if (reportBox) {
+        reportBox.innerHTML = items.map((it, i) => `<div class="dtp-rs-report-row">
+            <button type="button" class="dtp-rs-report-btn ${it.cls}" data-rep="${i}" data-dl="0">${it.icon}<span>${it.label}</span></button>
+            <button type="button" class="dtp-rs-report-btn dtp-rs-dl" data-rep="${i}" data-dl="1" title="${t('drr_download_btn')}" aria-label="${t('drr_download_btn')}">${ICON_DL}</button>
+        </div>`).join('');
+        reportBox.querySelectorAll('button[data-rep]').forEach(b => {
+            b.onclick = async () => {
+                if (b.disabled) return;
+                const old = b.innerHTML; b.disabled = true; b.textContent = b.dataset.dl === '1' ? '…' : t('dtr_busy_label');
+                try { await items[+b.dataset.rep].run(b.dataset.dl === '1'); } catch (e) { console.error(e); alert(t('drr_export_error')); }
+                finally { b.disabled = false; b.innerHTML = old; }
+            };
+        });
+    }
 
     showView('dtp-round-summary-view');
 
