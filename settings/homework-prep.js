@@ -409,7 +409,7 @@ async function loadHomeworkDashboard() {
                     <!-- 🌟🌟 [جديد] مخفية افتراضياً؛ تظهرها loadOverdueHomeworkStat فقط لو كان هذا
                          الواجب مخصَّصاً لطالب محدد، منشوراً منذ HW_OVERDUE_DAYS يوماً أو أكثر، ولم
                          يصل أي تسليم منه بعد لهذا الطالب — راجع الدالة أسفل هذا الملف -->
-                    <div id="hw-overdue-${hw.id}" style="display:none; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.85rem; padding:4px 12px; border-radius:12px; font-weight:bold;">⏰ ${hw.assignedStudentName ? t('hw_overdue_not_solved').replace('{name}', esc(hw.assignedStudentName)) : t('hw_overdue_row_badge')}</div>
+                    <div id="hw-overdue-${hw.id}" class="hw-overdue-copy" role="button" tabindex="0" data-hw-link="${encodeURIComponent(hwLink)}" data-hw-student="${encodeURIComponent(hw.assignedStudentName || '')}" title="${t('hw_overdue_copy_hint')}" style="display:none; cursor:pointer; margin-top:6px; background:#ffedd5; color:#9a3412; font-size:0.85rem; padding:4px 12px; border-radius:12px; font-weight:bold;">⏰ ${hw.assignedStudentName ? t('hw_overdue_not_solved').replace('{name}', esc(hw.assignedStudentName)) : t('hw_overdue_row_badge')}</div>
                 </td>
                 <!-- 🌟🌟 [إعادة تصميم] أزرار الإجراءات أصبحت دائرية أكبر وأوضح (hwp2-action-btn
                      المعرَّفة في settings/homework-prep.html) بدل الأزرار المستطيلة الصغيرة
@@ -491,6 +491,30 @@ async function loadHomeworkDashboard() {
                     .then(() => alert(t('hw_link_copied')))
                     .catch(() => alert(t("يرجى نسخ الرابط يدوياً.")));
             });
+        });
+
+        // 🌟 الضغط على شارة «⏰ الطالب ... لم يحلّ الواجب بعد» ينسخ فوراً رسالة تذكير جاهزة للواتساب (اسم الطالب + رابط الواجب)
+        document.querySelectorAll('.hw-overdue-copy').forEach(badge => {
+            const copyReminder = async () => {
+                const link = decodeURIComponent(badge.getAttribute('data-hw-link') || '');
+                const name = decodeURIComponent(badge.getAttribute('data-hw-student') || '');
+                const text = `${t('hw_remind_msg').replace('{name}', name)}\n${link}`;
+                try {
+                    await navigator.clipboard.writeText(text);
+                } catch (err) {
+                    // احتياط للمتصفحات التي ترفض clipboard API
+                    const ta = document.createElement('textarea');
+                    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+                    document.body.appendChild(ta); ta.select();
+                    try { document.execCommand('copy'); } catch (e2) { /* تجاهل */ }
+                    ta.remove();
+                }
+                const original = badge.innerHTML;
+                badge.innerHTML = `✅ ${t('hw_link_copied')}`;
+                setTimeout(() => { badge.innerHTML = original; }, 1500);
+            };
+            badge.addEventListener('click', copyReminder);
+            badge.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); copyReminder(); } });
         });
 
         bindHwRowExtras();

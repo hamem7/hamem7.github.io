@@ -1528,6 +1528,7 @@ export const translations = {
         hw_delete_q_title: "حذف السؤال",
         hw_delete_q_body: "هل أنت متأكد من حذف هذا السؤال من الواجب؟",
         hw_overdue_not_solved: "الطالب {name} لم يحلّ الواجب بعد",
+        hw_overdue_copy_hint: "اضغط لنسخ رسالة تذكير جاهزة للطالب",
         // 🌟🌟 [جديد] زر ونافذة "النتائج النهائية للطلاب" — قائمة كل الواجبات المصحَّحة والمعتمدة
         // مع إمكانية إعادة فتح شهادة أي طالب منها
         hw_final_results_btn: "🎓 النتائج النهائية للطلاب",
@@ -4951,6 +4952,7 @@ export const translations = {
         hw_delete_q_title: "Delete question",
         hw_delete_q_body: "Are you sure you want to delete this question from the homework?",
         hw_overdue_not_solved: "{name} has not solved the homework yet",
+        hw_overdue_copy_hint: "Click to copy a ready reminder message for the student",
         hw_final_results_btn: "🎓 Students' Final Results",
         hw_final_results_title: "🎓 Graded Tests & Final Results",
         hw_final_results_empty: "No approved results yet.",
