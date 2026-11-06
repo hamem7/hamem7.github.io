@@ -99,46 +99,21 @@ const REPORT_TEMPLATE = `
       </div>
     </div>
   </div>
-  <div class="report-toolbar">
-    <div class="grp">
-      <span class="grp-label" data-i18n="rep_tb_export">تصدير</span>
-      <button class="rbtn primary" id="btn-report-png">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>
-        <span data-i18n="rep_tb_png">صورة مختصرة</span>
-      </button>
-      <button class="rbtn" id="btn-report-pdf">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
-        <span data-i18n="rep_tb_pdf">ملف PDF شامل</span>
-      </button>
-      <button class="rbtn" id="btn-report-wa-png">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
-        <span data-i18n="rep_tb_wa_png">واتساب: صورة</span>
-      </button>
-      <button class="rbtn ghost" id="btn-report-applause" type="button">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
-        <span id="btn-report-applause-label"></span>
-      </button>
-      <button class="rbtn" id="btn-report-wa-pdf">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg>
-        <span data-i18n="rep_tb_wa_pdf">واتساب: ملف PDF</span>
-      </button>
+  <div class="report-toolbar tb-a">
+    <div class="tb-split">
+      <button class="rbtn primary" id="btn-report-png"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="rep_tb_dl_png">تحميل صورة</span></button>
+      <button class="rbtn primary" id="btn-report-pdf"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span data-i18n="rep_tb_dl_pdf">تحميل PDF</span></button>
     </div>
-    <div class="grp">
-      <!-- 🌟 [جديد 2026-10-01 — فحص سهولة الاستخدام] "تقييم طالب آخر": يفتح شاشة اختيار الطالب مباشرة بنفس الوضع الحالي
-           (كبار/أطفال) بدل الرجوع للوحة التقييم أو الرئيسية ثم البدء من الأول -->
-      <button class="rbtn primary" id="btn-report-another">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.6 3-5.4 6-5.4s5.2 1.8 6 5.4"/><path d="M19 8v6M16 11h6"/></svg>
-        <span data-i18n="rep_tb_another">تقييم طالب آخر</span>
-      </button>
-      <button class="rbtn ghost" id="btn-report-home">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg>
-        <span data-i18n="rep_tb_home">العودة للرئيسية</span>
-      </button>
+    <div class="tb-split">
+      <button class="rbtn wa" id="btn-report-wa-png"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.6-.9-2.200-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.100 2.900 1.200 3.100c.1.2 2.100 3.200 5.100 4.5.7.3 1.300.5 1.7.6.7.2 1.4.2 1.900.1.6-.1 1.7-.7 2-1.4.2-.7.2-1.300.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15L2 22l5.200-1.4A10 10 0 1 0 12 2zm0 18.200c-1.5 0-3-.4-4.200-1.200l-.3-.2-3.100.8.8-3-.2-.3A8.200 8.200 0 1 1 12 20.200z"/></svg><span data-i18n="rep_tb_wa_png">واتساب: صورة</span></button>
+      <button class="rbtn wa" id="btn-report-wa-pdf"><span>PDF</span></button>
     </div>
-  </div>
-  <details class="rep-custom">
-    <summary data-i18n="rep_custom_title">⚙️ تخصيص التقرير (اسم المعلم والختم وملاحظة لولي الأمر)</summary>
-    <div class="rep-custom-body">
+    <span class="tb-sp"></span>
+    <button class="rbtn ghost ic" id="btn-report-applause" type="button" data-i18n-title="rep_applause_tip" title="صوت التصفيق"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg><span id="btn-report-applause-label" class="tb-sr"></span></button>
+    <details class="rep-custom tb-menu">
+      <summary class="rbtn ghost"><span data-i18n="rep_tb_customize">⚙️ تخصيص</span> ▾</summary>
+      <div class="tb-dd">
+      <div class="rep-custom-body">
     <div class="grp">
       <span class="grp-label" data-i18n="rep_tb_teacher_data">بيانات المعلم</span>
       <input type="text" id="report-teacher-name-input" class="teacher-name-input" data-i18n-placeholder="rep_tb_teacher_name_ph" placeholder="اسم المعلم">
@@ -164,8 +139,11 @@ const REPORT_TEMPLATE = `
       <option value="t4" data-i18n="qa_theme_t4">إطار زمردي</option>
     </select>
   </div>
-
-  </details>
+      </div>
+    </details>
+    <button class="rbtn" id="btn-report-another"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.6 3-5.4 6-5.4s5.2 1.8 6 5.4"/><path d="M19 8v6M16 11h6"/></svg><span data-i18n="rep_tb_another_short">طالب آخر</span></button>
+    <button class="rbtn ghost ic" id="btn-report-home" data-i18n-title="rep_tb_home" title="العودة للوحة التقييم"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7"/><path d="M9 22V12h6v10"/></svg></button>
+  </div>
 
   <div class="report-stage">
    <div class="report-split" id="report-split">
@@ -2379,6 +2357,8 @@ export function openReportScreen(gameState){
     return;
   }
   root.innerHTML = REPORT_TEMPLATE;
+  // الترويسة الموحّدة للمنصة تظهر فوق التقرير (شاشة مستقلة، خارج وضع ملء الشاشة للاختبار)
+  try { document.body.dataset.dhScreen = 'reports/report.html'; document.dispatchEvent(new CustomEvent('dh:screen', { detail: { screen: 'reports/report.html' } })); } catch (e) { /* غير حرِج */ }
   // 🌟 [إصلاح] اتجاه صفحة التقرير يتبع لغة الواجهة (كان rtl ثابتًا فتنقلب علامات الترقيم في الإنجليزية)
   const reportPage = document.getElementById('report-page');
   if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');

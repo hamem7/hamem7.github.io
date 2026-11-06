@@ -482,4 +482,27 @@ export const REPORT_STYLES = `
     #report-screen .report-toolbar .grp{flex-wrap:wrap; justify-content:center; padding-inline-end:0; border-inline-end:none;}
     #report-screen .teacher-name-input{min-width:0; max-width:100%;}
   }
+
+  /* ============== شريط الأدوات (نموذج أ): تحميل + واتساب + قائمة تخصيص ============== */
+  #report-screen .tb-a{justify-content:flex-start; gap:10px; position:relative; z-index:5;}
+  #report-screen .tb-split{display:inline-flex; border-radius:10px; overflow:hidden;}
+  #report-screen .tb-split .rbtn{border-radius:0;}
+  #report-screen .tb-split .rbtn + .rbtn{border-inline-start:1px solid rgba(0,0,0,.18);}
+  #report-screen .rbtn.wa{background:#1fa855; color:#fff;}
+  #report-screen .rbtn.ic{padding:9px 11px;}
+  #report-screen .tb-sp{flex:1;}
+  #report-screen .tb-sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  #report-screen .tb-menu{position:relative; background:none; border:none;}
+  #report-screen .tb-menu > summary{list-style:none; padding:9px 14px; font-size:12.5px; color:#f3ede1;}
+  #report-screen .tb-menu > summary::-webkit-details-marker{display:none;}
+  #report-screen .tb-menu[open] > summary{border-bottom:1px solid #55503f; background:#3a352a;}
+  #report-screen .tb-dd{position:absolute; top:calc(100% + 8px); inset-inline-end:0; width:min(520px, calc(100vw - 32px)); background:#332d24; border:1px solid #55503f; border-radius:14px; box-shadow:0 14px 34px rgba(0,0,0,.4); padding:8px 0; z-index:20;}
+  #report-screen .tb-dd .rep-custom-body{padding:8px 14px;}
+  #report-screen .tb-dd .note-bar{flex-wrap:wrap; border-top:1px solid #46403690;}
+  #report-screen .tb-dd .note-bar textarea{flex:1 1 100%; min-width:0;}
+  @media (max-width:640px){
+    #report-screen .tb-a{justify-content:center;}
+    #report-screen .tb-sp{display:none;}
+    #report-screen .tb-dd{position:fixed; top:auto; bottom:70px; inset-inline:12px; width:auto; max-height:70vh; overflow:auto;}
+  }
 `;
