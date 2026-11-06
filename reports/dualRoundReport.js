@@ -85,6 +85,11 @@ async function buildData(match, test, idx) {
     sd.prevPct = n ? Math.round((sc || 0) / (n * QUESTION_POINTS) * 100) : null;
   });
   [A.avatar, B.avatar] = await Promise.all([avatarOf(A.id), avatarOf(B.id)]);
+  // الجنس من ملف الطالب (لصيغة المؤنث في رسالة الفوز الحقيقي بصورة واتساب)
+  try {
+    const all = AppState.studentManager ? await AppState.studentManager.getAllStudents() : [];
+    [A, B].forEach(sd => { const st = all.find(x => String(x.id) === String(sd.id)); sd.girl = !!(st && st.gender === 'girl'); });
+  } catch (e) { /* تجاهل */ }
   const done = match.rounds.slice(0, idx + 1);
   const series = { a: done.filter(x => x.roundWinner === 'A').length, b: done.filter(x => x.roundWinner === 'B').length };
   const next = idx < 2 ? (test.rounds || [])[idx + 1] : null;
@@ -176,6 +181,7 @@ const CSS = `
 .drr .ln .who{flex:none;min-width:70px;font-weight:800}.drr .ln .who.a{color:var(--a)}.drr .ln .who.b{color:var(--b)}
 .drr .big{font-size:21px;font-weight:800;color:var(--nv)}
 .drr .hist{background:#eef0fb}
+.drr .tw{background:#fff6dc;border:1.5px solid #e6b422;border-radius:14px;padding:9px 14px;font-size:14px;font-weight:700;line-height:1.7;color:#5a4300;text-align:center}
 .drr .hrow{display:grid;grid-template-columns:70px 1fr 110px 130px;gap:8px;align-items:center;font-size:13px;padding:3px 6px;border-radius:8px}
 .drr .hrow.cur{background:#fff;border:1px solid #cfd3ef}
 .drr .hn{font-weight:800;color:var(--nv)}.drr .hr{color:var(--sub)}.drr .hs{text-align:center}.drr .hw{font-weight:700}
@@ -244,6 +250,12 @@ function playerHtml(s, d) {
       <div class="bar"><i style="width:${Math.max(3, s.pct)}%"></i></div></div></div>`;
 }
 const vsHtml = d => `<div class="vs">${playerHtml(d.A, d)}<div class="vsx">VS</div>${playerHtml(d.B, d)}</div>`;
+// 🌟 رسالة «الفائز الحقيقي» (بطلب المعلم) قبل اسم المعلم: صورة واتساب تخاطب الطالب صاحبها (مذكر/مؤنث)،
+// وملف PDF (للطالبين معاً) بالحديث النبوي
+function trueWinnerHtml(d) {
+  const txt = d.focus ? t(d.A.girl ? 'drr_true_winner_wa_f' : 'drr_true_winner_wa') : t('drr_true_winner_pdf');
+  return `<div class="tw${d.focus ? '' : ' pdf-block'}">🌟 ${E(txt)}</div>`;
+}
 function footHtml(d) {
   return `<div class="ft"><div>${E(t('qa_teacher'))}${d.teacher.name ? `: <b>${E(d.teacher.name)}</b>` : ''}</div>${d.teacher.stamp ? `<img src="${E(d.teacher.stamp)}" alt="">` : ''}</div>`;
 }
@@ -265,7 +277,7 @@ function cardHtml(d) {
       ${d.hasPrev ? box(6, t('drr_q_improve'), ln(d.A, E(improveTxt(d.A))) + ln(d.B, E(improveTxt(d.B)))) : ''}
       ${box(d.hasPrev ? 7 : 6, d.n < 3 ? tr('drr_q5_next', { n: d.n + 1 }) : t('drr_q5_last'), tasksHtml(d), 'full')}
     </div>
-    ${footHtml(d)}
+    ${trueWinnerHtml(d)}${footHtml(d)}
   </div></div>`;
 }
 
@@ -291,6 +303,7 @@ function pdfHtml(d) {
       ${d.hasPrev ? `<div class="bx"><div class="k"><em>📈</em>${E(t('drr_q_improve'))}</div>${ln2(d.A, improveTxt(d.A))}${ln2(d.B, improveTxt(d.B))}</div>` : ''}</div></div>
     ${sec(d.A)}${sec(d.B)}
     <div class="bx pdf-block"><div class="k"><em>🏠</em>${E(d.n < 3 ? tr('drr_q5_next', { n: d.n + 1 }) : t('drr_q5_last'))}</div>${tasksHtml(d)}</div>
+    ${trueWinnerHtml(d)}
     <div class="pdf-block">${footHtml(d)}</div>
   </div>`;
 }
