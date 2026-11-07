@@ -110,15 +110,12 @@ html[data-theme="dark"] .home-menu-secondary .home-card-similarities { --hc: 52,
 html[data-theme="dark"] .home-card-homework { --hc: 167, 139, 250; }
 html[data-theme="dark"] .home-card-dual { --hc: 148, 163, 184; }
 html[data-theme="dark"] .home-card-certs { --hc: 232, 190, 70; }
-html[data-theme="dark"] .home-card-surahintro { --hc: 56, 189, 220; }
-html[data-theme="dark"] .home-card-surahintro .home-card-title { color: #8ee3f5; }
 html[data-theme="dark"] .home-menu-secondary .home-card-tajweed { --hc: 232, 110, 130; }
 html[data-theme="dark"] .home-menu-primary .home-card-students,
 html[data-theme="dark"] .home-card-students,
 html[data-theme="dark"] .home-card-homework,
 html[data-theme="dark"] .home-card-dual,
 html[data-theme="dark"] .home-card-certs,
-html[data-theme="dark"] .home-card-surahintro,
 html[data-theme="dark"] .home-menu-secondary .home-card-similarities,
 html[data-theme="dark"] .home-menu-secondary .home-card-tajweed {
     background: linear-gradient(160deg, rgba(var(--hc, 148, 163, 184), .20), rgba(var(--hc, 148, 163, 184), .07) 70%), #1a2c25;
@@ -613,3 +610,9 @@ html[data-theme="dark"] body.kids-theme :is(.kids-mcq-btn, .link-item, .order-it
 html[data-theme="dark"] body:not(.dh-light) .mrh-btn.pri,
 html[data-theme="dark"] body:not(.dh-light) .mrh-btn.mrh-nc-go { background: var(--dh-emerald-600, #147c5e) !important; border-color: var(--dh-emerald-600, #147c5e) !important; color: #fff !important; }
 html[data-theme="dark"] body:not(.dh-light) .mrh-seq .mrh-btn.gold { background: var(--dh-gold-500, #d4af37) !important; border-color: var(--dh-gold-500, #d4af37) !important; color: #2b2208 !important; }
+
+/* 📖 «تعرّف على السورة»: تبقى مميّزة في الداكن بتعبئة أزرق/بنفسجي أعمق (تتغلب على قاعدة الصبغة العامة لبطاقات الرئيسية) */
+html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro { background: linear-gradient(135deg, #1d4ed8, #6d28d9); border: 1px solid rgba(196, 181, 253, .5); border-top: 3px solid #fbbf24; }
+html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-title { color: #fff; }
+html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-desc { color: rgba(255, 255, 255, .88); }
+html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-arrow { color: #fff; }

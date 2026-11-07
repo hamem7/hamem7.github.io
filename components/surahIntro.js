@@ -3,6 +3,17 @@
 // + البطاقة الصوتية والفيديو) مع التنقل للسابقة/التالية وتكبير الخط. البيانات في components/surahIntroData.js.
 import { t, tf, surahNameLocal, isEnglish } from '../core/i18n.js';
 import { SURAH_INTRO } from './surahIntroData.js';
+import { loadScreen, switchTheme } from '../core/navigation.js';
+
+// فتح الشاشة (يُستدعى من onclick زر الرئيسية مباشرة)؛ الرجوع يستورد الرئيسية عند الحاجة فقط
+export function openSurahIntro() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return loadScreen({
+        templateUrl: 'components/surah-intro-screen.html',
+        initFunction: () => initSurahIntro({ onBack: () => import('../core/app.js').then(m => m.loadSplashScreen()) })
+    });
+}
 
 const JUZ = [26, 27, 28, 29, 30];
 const st = { juz: 30, q: '', cur: null, fs: 1.15 };

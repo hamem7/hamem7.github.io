@@ -716,20 +716,10 @@
                 </span>
             </button>
 
-            <!-- 🏅 [جديد] بطاقة "الشهادات": شهادات تقدير جاهزة بقوالب متعددة (إتمام سورة/جزء، التميز في المراجعة...) + سجل بما صدر —
-                 راجع certificates/certificates.js. تُفتح الشاشة بـ import ديناميكي من core/app.js (setupSplashListeners) -->
-            <button class="home-card home-card-certs" id="btn-certs-main">
-                <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="M9 14l-2 7 5-3 5 3-2-7"/><path d="M12 6.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.6l2-.3Z"/></svg></span>
-                <span class="home-card-title" data-i18n="btn_certs">الشهادات</span>
-                <span class="home-card-desc" data-i18n="card_certs_desc">شهادات تقدير جاهزة لطلابك</span>
-                <span class="home-card-arrow" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
-                </span>
-            </button>
-
             <!-- 📖 [جديد] «تعرّف على السورة»: بطاقات تعريفية مبسّطة للأطفال لسور آخر خمسة أجزاء يعرضها المعلم قبل حفظ السورة —
-                 من كتاب «البطاقات» د. ياسر بن إسماعيل راضي (بإذن مؤلفه). راجع components/surahIntro.js -->
-            <button class="home-card home-card-surahintro" id="btn-surah-intro-main">
+                 من كتاب «البطاقات» د. ياسر بن إسماعيل راضي (بإذن مؤلفه). راجع components/surahIntro.js.
+                 الفتح بـ onclick يستورد الشاشة مباشرة (لا يعتمد على نسخة core/app.js المخزّنة في كاش المتصفح) -->
+            <button class="home-card home-card-surahintro" id="btn-surah-intro-main" onclick="import('./components/surahIntro.js').then(function (m) { m.openSurahIntro(); })">
                 <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10.3 5 7.6 4.5 4 5v13c3.6-.5 6.3 0 8 1.5 1.7-1.5 4.4-2 8-1.5V5c-3.6-.5-6.3 0-8 1.5Z"/><path d="M12 6.5v13"/></svg></span>
                 <span class="home-card-title" data-i18n="btn_surah_intro">تعرّف على السورة</span>
                 <span class="home-card-desc" data-i18n="card_surah_intro_desc">بطاقات مبسّطة للأطفال قبل حفظ كل سورة</span>
@@ -743,6 +733,17 @@
                 <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6.2"/><circle cx="15" cy="12" r="6.2"/></svg></span>
                 <span class="home-card-title" data-i18n="btn_similarities">تحدي المتشابهات</span>
                 <span class="home-card-desc" data-i18n="card_similarities_desc">قارن بين الآيات المتشابهة واختبر دقة حفظك (قيد التطوير)</span>
+                <span class="home-card-arrow" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                </span>
+            </button>
+
+            <!-- 🏅 [جديد] بطاقة "الشهادات": شهادات تقدير جاهزة بقوالب متعددة (إتمام سورة/جزء، التميز في المراجعة...) + سجل بما صدر —
+                 راجع certificates/certificates.js. تُفتح الشاشة بـ import ديناميكي من core/app.js (setupSplashListeners) -->
+            <button class="home-card home-card-certs" id="btn-certs-main">
+                <span class="home-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="M9 14l-2 7 5-3 5 3-2-7"/><path d="M12 6.5l.9 1.8 2 .3-1.45 1.4.35 2-1.8-.95-1.8.95.35-2L9.1 8.6l2-.3Z"/></svg></span>
+                <span class="home-card-title" data-i18n="btn_certs">الشهادات</span>
+                <span class="home-card-desc" data-i18n="card_certs_desc">شهادات تقدير جاهزة لطلابك</span>
                 <span class="home-card-arrow" aria-hidden="true">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
                 </span>
