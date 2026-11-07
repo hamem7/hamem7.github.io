@@ -624,3 +624,9 @@ html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, 
 }
 html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) :is(.home-card-title, .home-card-arrow) { color: #fff; }
 html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-desc { color: rgba(255, 255, 255, .88); }
+
+/* 🎨 بطاقات الصف الأساسي الملوّنة (راجع آخر css/home.css): نفس التدرّج مع تعتيم خفيف في الداكن */
+html[data-theme="dark"] .home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) { filter: brightness(.86); border: 1px solid rgba(255, 255, 255, .2); border-top: 3px solid rgba(255, 255, 255, .5); }
+html[data-theme="dark"] .home-menu-primary .home-card.home-card-students { background: linear-gradient(135deg, #0f766e, #0891b2); }
+html[data-theme="dark"] .home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) :is(.home-card-title, .home-card-arrow) { color: #fff; }
+html[data-theme="dark"] .home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) .home-card-desc { color: rgba(255, 255, 255, .9); }

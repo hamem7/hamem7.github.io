@@ -1743,3 +1743,21 @@ h1.home-title .home-title-ha {
 .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-desc { color: rgba(255, 255, 255, .9); opacity: 1; }
 .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-arrow { color: #fff; }
 .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-badge { box-shadow: 0 0 0 2px rgba(255, 255, 255, .85); }
+
+/* 🎨 [بطلب صاحب المنصة] لمسات بطاقات الصف الأساسي (طلابي/الكبار/الصغار) بنفس روح الصف الثانوي:
+   تدرّج غني لكل بطاقة + دوائر زخرفية شفافة في الزاوية + أيقونة على دائرة فاتحة + نص أبيض/داكن حسب الخلفية. */
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) { position: relative; overflow: hidden; isolation: isolate; border-top: 3px solid rgba(255, 255, 255, .55); }
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids)::before,
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids)::after {
+    content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; background: rgba(255, 255, 255, .13);
+}
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids)::before { width: 170px; height: 170px; inset-inline-end: -55px; top: -70px; }
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids)::after { width: 90px; height: 90px; inset-inline-start: -30px; bottom: -40px; background: rgba(255, 255, 255, .10); }
+.home-menu-primary .home-card.home-card-students { background: linear-gradient(135deg, #0f766e, #0891b2); color: #fff; box-shadow: 0 14px 30px rgba(8, 145, 178, .30); }
+.home-menu-primary .home-card.home-card-adult { background: linear-gradient(135deg, #064e3b, #047857 60%, #10b981); color: #fff; border-top-color: #d4af37; box-shadow: 0 18px 36px rgba(6, 78, 59, .38); }
+.home-menu-primary .home-card.home-card-kids { background: linear-gradient(135deg, #f97316, #ec4899 55%, #a855f7); color: #fff; box-shadow: 0 18px 36px rgba(236, 72, 153, .32); }
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) :is(.home-card-title, .home-card-arrow) { color: #fff; }
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) .home-card-desc { color: rgba(255, 255, 255, .9); opacity: 1; }
+.home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) .home-card-icon { background: rgba(255, 255, 255, .22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4); }
+.home-menu-primary .home-card.home-card-adult .home-card-icon { background: #d4af37; color: #064e3b; }
+.home-menu-primary .home-card.home-card-kids .home-card-icon { background: #fde047; color: #9d174d; }

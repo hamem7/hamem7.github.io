@@ -1,4 +1,4 @@
-// components/surahIntro.js — 📖 شاشة «تعرّف على السورة» (سور الأجزاء 26–30).
+// components/surahIntro.js — 📖 شاشة «تعرّف على السورة» (كل سور القرآن، مع تبويب بالأجزاء 1–30).
 // قائمة السور (تبويبات الأجزاء + بحث) ← بطاقة السورة للعرض على الطلاب (ملخّص مبسّط + معنى الاسم + رسالة السورة + الأسماء
 // + البطاقة الصوتية والفيديو) مع التنقل للسابقة/التالية وتكبير الخط. البيانات في components/surahIntroData.js.
 import { t, tf, surahNameLocal, isEnglish } from '../core/i18n.js';
@@ -15,7 +15,9 @@ export function openSurahIntro() {
     });
 }
 
-const JUZ = [26, 27, 28, 29, 30];
+const JUZ = Array.from({ length: 30 }, (_, i) => i + 1);
+const inJuz = (s, j) => s.j[0] <= j && j <= s.j[1];
+const juzLabel = s => s.j[0] === s.j[1] ? s.j[0] : `${s.j[0]}–${s.j[1]}`;
 const st = { juz: 30, q: '', cur: null, fs: 1.15 };
 let onBack = null;
 // إعادة البناء عند تبديل اللغة (والشاشة مفتوحة فقط)
@@ -48,10 +50,13 @@ function renderList() {
     const q = norm(st.q.trim());
     const list = SURAH_INTRO.filter(s => q
         ? norm(surahNameLocal(s.n)).includes(q) || String(s.n) === q
-        : s.j === st.juz);
+        : inJuz(s, st.juz));
     body().innerHTML = `
-        <div class="si-tools" role="tablist">
-            ${JUZ.map(j => `<button type="button" class="si-tab${!q && j === st.juz ? ' is-on' : ''}" data-juz="${j}" role="tab" aria-selected="${!q && j === st.juz}">${esc(tf('si_juz', { n: j }))}</button>`).join('')}
+        <div class="si-tools si-juz-row" role="tablist">
+            ${JUZ.map(j => `<button type="button" class="si-tab${!q && j === st.juz ? ' is-on' : ''}" data-juz="${j}" role="tab" aria-selected="${!q && j === st.juz}" title="${esc(tf('si_juz', { n: j }))}">${j}</button>`).join('')}
+        </div>
+        <div class="si-tools" style="margin-top:10px">
+            <span class="si-juz-now">${esc(q ? '' : tf('si_juz', { n: st.juz }))}</span>
             <input type="search" class="si-search" id="si-q" value="${esc(st.q)}" placeholder="${esc(t('si_search'))}" aria-label="${esc(t('si_search'))}">
         </div>
         <div class="si-grid" style="margin-top:12px">
@@ -90,7 +95,7 @@ function renderCard() {
                         <span class="si-chip">${esc(tf('si_num', { n: s.n }))}</span>
                         <span class="si-chip">${esc(tf('si_ayahs', { n: s.ay }))}</span>
                         <span class="si-chip${s.md ? ' md' : ''}">${esc(t(s.md ? 'si_madani' : 'si_makki'))}</span>
-                        <span class="si-chip">${esc(tf('si_juz', { n: s.j }))}</span>
+                        <span class="si-chip">${esc(tf('si_juz', { n: juzLabel(s) }))}</span>
                     </div>
                 </div>
             </div>
@@ -111,8 +116,8 @@ function renderCard() {
             <button type="button" class="si-btn" id="si-prev" ${prev ? '' : 'disabled'}>${en ? '←' : '→'} ${esc(t('si_prev'))}${prev ? ' · ' + esc(surahNameLocal(prev.n)) : ''}</button>
             <button type="button" class="si-btn" id="si-next" ${next ? '' : 'disabled'}>${esc(t('si_next'))}${next ? ' · ' + esc(surahNameLocal(next.n)) : ''} ${en ? '→' : '←'}</button>
         </div>`;
-    const go = n => { st.cur = n; st.juz = SURAH_INTRO.find(x => x.n === n).j; render(); window.scrollTo({ top: 0 }); };
-    document.getElementById('si-list').addEventListener('click', () => { st.juz = s.j; st.q = ''; st.cur = null; render(); });
+    const go = n => { st.cur = n; if (!inJuz(SURAH_INTRO.find(x => x.n === n), st.juz)) st.juz = SURAH_INTRO.find(x => x.n === n).j[0]; render(); window.scrollTo({ top: 0 }); };
+    document.getElementById('si-list').addEventListener('click', () => { if (!inJuz(s, st.juz)) st.juz = s.j[0]; st.q = ''; st.cur = null; render(); });
     document.getElementById('si-big').addEventListener('click', () => { st.fs = Math.min(2, st.fs + 0.15); render(); });
     document.getElementById('si-small').addEventListener('click', () => { st.fs = Math.max(0.95, st.fs - 0.15); render(); });
     if (prev) document.getElementById('si-prev').addEventListener('click', () => go(prev.n));

@@ -13,6 +13,9 @@
     #si-screen .si-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     #si-screen .si-tab { font: inherit; font-size: .9rem; font-weight: 700; min-height: 40px; padding: 6px 14px; border-radius: 99px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); }
     #si-screen .si-tab.is-on { background: var(--dh-ok); border-color: var(--dh-ok); color: var(--dh-on-ok); }
+    #si-screen .si-juz-row { gap: 6px; }
+    #si-screen .si-juz-row .si-tab { min-width: 42px; min-height: 38px; padding: 4px 8px; justify-content: center; }
+    #si-screen .si-juz-now { font-weight: 800; font-size: 1.05rem; color: var(--dh-ink); }
     #si-screen .si-search { font: inherit; flex: 1 1 200px; min-height: 40px; padding: 6px 14px; border-radius: 12px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); }
     #si-screen .si-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
     #si-screen .si-tile { font: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 16px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); box-shadow: var(--dh-sh-soft); transition: transform .15s; }
@@ -54,7 +57,7 @@
             </button>
             <div>
                 <h1 class="si-title" data-i18n="si_title">تعرّف على السورة</h1>
-                <p class="si-sub" data-i18n="si_sub">بطاقات مبسّطة لسور آخر خمسة أجزاء، يعرضها المعلم على طلابه قبل البدء في حفظ السورة</p>
+                <p class="si-sub" data-i18n="si_sub">بطاقات مبسّطة لكل سور القرآن، يعرضها المعلم على طلابه قبل البدء في حفظ السورة</p>
             </div>
         </div>
         <div id="si-body"></div>
