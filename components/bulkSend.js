@@ -416,8 +416,22 @@ export async function openBulkSend({ onClose, asPage = false, container = null }
     const renderRow = (r) => {
         const el = rowEl(r);
         if (!el) return;
+        // إعادة بناء الصف تهدم صندوق السور وتصفّر تمريره (وقد ينكمش ارتفاع الصفحة فيقفز التمرير للأعلى):
+        // نحفظ تمرير صندوق البلاطات وكل الأسلاف القابلة للتمرير ونستعيدها بعد إعادة البناء.
+        const saved = [];
+        const tilesOld = el.querySelector('.bs-tiles');
+        if (tilesOld) saved.push([tilesOld, tilesOld.scrollTop]);
+        for (let p = el.parentElement; p; p = p.parentElement) if (p.scrollTop) saved.push([p, p.scrollTop]);
+        const winY = window.scrollY;
+        const minH = el.offsetHeight;
+        el.style.minHeight = minH + 'px';   // يمنع انكماش الارتفاع أثناء الاستبدال فلا يُقصّ التمرير
         el.className = rowCls(r);
         el.innerHTML = rowInner(r);
+        const tilesNew = el.querySelector('.bs-tiles');
+        if (tilesOld && tilesNew) saved[0][0] = tilesNew;
+        for (const [node, top] of saved) node.scrollTop = top;
+        if (window.scrollY !== winY) window.scrollTo(window.scrollX, winY);
+        el.style.minHeight = '';
     };
     const selectable = (r) => r.status !== 'norange' && r.state !== 'pub' && r.state !== 'publishing' && r.state !== 'planning';
     const renderMeta = () => {
