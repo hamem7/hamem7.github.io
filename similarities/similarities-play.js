@@ -18,7 +18,9 @@
 // PlayState أصبح يحمل مصفوفة groups بدل مجموعة واحدة، وكل سؤال يحمل بيانات مجموعته الخاصة
 // (anchorPhrase/scope) بدل الاعتماد على مجموعة ثابتة للجولة كلها (راجع buildOccurrenceHTML/
 // renderQuestion أدناه).
-import { AppState, loadSplashScreen, openSimilaritiesBrowser, t, surahNameLocal } from '../core/app.js';
+import { AppState, loadSplashScreen, openSimilaritiesBrowser, t, tf, surahNameLocal } from '../core/app.js';
+import { buildSessionMessage, weakPlaces } from '../engine/similarityParentMsg.js';
+import { toggleParentShare } from '../components/simParentShare.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
@@ -28,7 +30,7 @@ import { memorizedSurahsOf } from '../engine/recallQuestions.js';
 const studentMemorized = () => PlayState.dailyStudent
     ? coachMemo(memorizedSurahsOf(PlayState.dailyStudent, AppState.surahsData)).memo
     : memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
-import { planStudentRound, coachMemo, isMultiSurah, SINGLE_SURAH_TYPES, comparePlaces } from '../engine/similarityCoach.js';
+import { planStudentRound, studentCoachSummary, coachMemo, isMultiSurah, SINGLE_SURAH_TYPES, comparePlaces } from '../engine/similarityCoach.js';
 import { toQuranicSukun } from '../engine/quranEngine.js';
 import { isSimScopeDisabled, generateQuestionsForGroup } from '../engine/similarityEngine.js';
 import { generateRecallQuestions } from '../engine/recallQuestions.js';
@@ -380,6 +382,21 @@ function handleAnswer(btn, q) {
     setTimeout(nextQuestion, 1400);
 }
 
+// نص رسالة ولي الأمر بعد الجلسة (الإتقان محسوب بعد حفظ الجولة، فيشمل نتيجة اليوم)
+async function sessionParentText(student, total, correct, answers) {
+    let mastered = 0, eligible = 0;
+    try {
+        const all = await AppState.similaritiesManager.getAllSimilarities();
+        const records = await AppState.similaritiesManager.getProgressByStudent(student.id);
+        const { memo } = coachMemo(memorizedSurahsOf(student, AppState.surahsData));
+        const sum = studentCoachSummary(all, records, memo, { isPlayable: g => !isSimScopeDisabled(g) });
+        mastered = sum.mastered; eligible = sum.total;
+    } catch (e) { /* الرسالة تُبنى بلا سطر الإتقان */ }
+    const weak = weakPlaces(answers).map(w => ({ phrase: stripHizbMark(w.phrase), surahNames: w.surahs.map(n => surahNameLocal(n)) }));
+    const teacher = AppState.teacherName || (AppState.currentTeacher && AppState.currentTeacher.name) || '';
+    return buildSessionMessage(tf, { name: student.name, girl: student.gender === 'girl', correct, total, mastered, eligible, weak, teacher });
+}
+
 // تسجيل الإجابة لنموذج الإتقان. أسئلة الاستحضار ليست من مجموعات قاعدة المتشابهات: مفتاحها ثابت بموضع الآية المرجعية
 function recordAnswer(q, isCorrect) {
     const recall = q.scope === 'recall';
@@ -602,7 +619,14 @@ async function renderResultsScreen() {
             ${detailsHTML}
             <button class="btn btn-outline" id="simplay-btn-again">${t('sim_game_play_again_btn')}</button>
             ${PlayState.dailyStudent ? `<button class="btn sim-back-students" id="simplay-btn-students">${t('sim_back_to_students')}</button>` : ''}
+            ${changes ? `<div class="sim-pm-wrap"><button class="btn btn-outline sim-pm-btn" id="simplay-btn-parent">${t('sim_pm_btn')}</button></div>` : ''}
         </div>`;
+    // 🌟 [2026-11-07] «إرسال لولي الأمر»: النتيجة + ما أتقنه + مواضع خطئه اليوم + توصية للبيت (راجع engine/similarityParentMsg.js)
+    document.getElementById('simplay-btn-parent')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const text = await sessionParentText(PlayState.student, total, PlayState.correctCount, PlayState.answers);
+        toggleParentShare(btn, text, PlayState.student && PlayState.student.phone);
+    });
     document.getElementById('simplay-btn-students')?.addEventListener('click', () => openSimilaritiesBrowser());
     document.getElementById('simplay-btn-again')?.addEventListener('click', () => {
         // 🌟 إعادة بناء الجولة من الصفر (وليس فقط خلط نفس المصفوفة القديمة) حتى تتغيّر

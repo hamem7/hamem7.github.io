@@ -1298,3 +1298,29 @@
 .sim-group-card .sim-grade-btn.sim-grade-ok { background: var(--dh-ok) !important; color: var(--dh-on-ok) !important; }
 .sim-group-card .sim-grade-btn.sim-grade-no { background: var(--dh-danger) !important; color: var(--dh-on-danger) !important; }
 @media (max-width: 600px) { .sim-match-board { grid-template-columns: 1fr; } }
+
+
+/* ---- 🌟 [2026-11-07] «إرسال لولي الأمر»: لوحة مراجعة الرسالة تحت الزر ---- */
+.sim-pm-wrap { margin-top: 10px; }
+.sim-stu-card .sim-pm-weekly { width: 100%; }
+.sim-pm-panel {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: var(--dh-r-md);
+    background: var(--dh-surface-2);
+    border: 1px solid var(--dh-border-strong);
+    text-align: start;
+}
+.sim-pm-label { display: block; font-size: 0.9rem; color: var(--dh-ink-soft); }
+.sim-pm-text {
+    display: block; width: 100%; box-sizing: border-box; margin-top: 6px;
+    padding: 10px; border-radius: var(--dh-r-sm);
+    border: 1px solid var(--dh-border-strong);
+    background: var(--dh-surface-3); color: var(--dh-ink);
+    font-family: inherit; font-size: 0.95rem; line-height: 1.7; resize: vertical;
+}
+.sim-pm-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--dh-ink-soft); }
+.sim-pm-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+/* «يخلط في» في بطاقة الطالب: سطر نصي لا صندوق آية (يبقى الخط كما هو) */
+.sim-stu-card .sim-stu-mix span.quran-text { background: none; border: 0; padding: 0 !important; display: inline; box-shadow: none; }

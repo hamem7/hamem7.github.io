@@ -59,7 +59,7 @@
 //   نفس السورة من جديد في القائمة، وليس عبر أزرار الأجزاء. لو المعلم احتاج زر تصفح دائم لهذه
 //   السور لاحقاً، هذا يحتاج قرار/تصميم إضافي منفصل (مثلاً بطاقة سادسة "سور أخرى" في الشاشة
 //   الرئيسية). 🌟
-import { AppState, loadSplashScreen, openSimilarityGame, t, isEnglish, surahNameLocal } from '../core/app.js';
+import { AppState, loadSplashScreen, openSimilarityGame, t, tf, isEnglish, surahNameLocal } from '../core/app.js';
 // 🌟 [عدّل] دوال المطابقة النصية العربية النقية (تظليل/تقسيم نطاقات الآيات) انتقلت لملف
 // core/quranTextUtils.js المشترك عند بناء الألعاب التفاعلية، لتصبح قابلة لإعادة الاستخدام
 // من engine/similarityEngine.js وsimilarities-play.js بلا ازدواجية — بلا أي تغيير في السلوك
@@ -68,6 +68,8 @@ import { highlightAnchorInText, splitRangeFullTextIntoAyahs } from '../core/qura
 import { stripHizbMark } from '../engine/similarityQuestions.js';
 // 🌟 [2026-11-07] «طلابي في المتشابهات»: بطاقة لكل طالب + «تدريب اليوم» (راجع engine/similarityCoach.js)
 import { studentCoachSummary, coachMemo } from '../engine/similarityCoach.js';
+import { buildWeeklyMessage } from '../engine/similarityParentMsg.js';
+import { toggleParentShare } from '../components/simParentShare.js';
 import { memorizedSurahsOf } from '../engine/recallQuestions.js';
 import { isSimScopeDisabled } from '../engine/similarityEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
@@ -256,6 +258,9 @@ async function handleContainerClick(e) {
     // 🌟 [2026-11-07] «تدريب اليوم» لطالب محدد: جولة من متشابهات محفوظه (حان موعده ← ضعيف ← جديد)
     else if (action === 'select-student') {
         selectCoachStudent(btn.dataset.student);
+    }
+    else if (action === 'parent-weekly') {
+        openWeeklyParent(btn, btn.dataset.student);
     }
     else if (action === 'train-student') {
         openSimilarityGame({ type: 'student', studentId: btn.dataset.student });
@@ -640,6 +645,7 @@ async function renderStudentsCoachHTML() {
         return { st, isDefault, sum: studentCoachSummary(allSimilarities, recs, memo, { now, isPlayable: playable }) };
     });
     // من حان موعده أو يحتاج تثبيتاً أولاً، ثم الأبجدية
+    coachRows = new Map(rows.map(r => [String(r.st.id), r]));
     rows.sort((a, b) => ((b.sum.due + b.sum.weak) > 0) - ((a.sum.due + a.sum.weak) > 0) || String(a.st.name).localeCompare(String(b.st.name), 'ar'));
     const name = (n) => escapeHtml(surahNameLocal ? surahNameLocal(n) : n);
     // المختار افتراضياً: آخر طالب تدرّب (dh_sim_last_student)، وإلا أول القائمة (من حان موعده أولاً)
@@ -660,7 +666,8 @@ async function renderStudentsCoachHTML() {
                 <small>${t('sim_stu_mastered_of').replace('{m}', sum.mastered).replace('{n}', sum.total)}</small></div>
             <div class="sim-stu-chips">${chip(sum.due, 'due', 'sim_stu_due')}${chip(sum.weak, 'weak', 'sim_stu_weak')}${chip(sum.fresh, 'fresh', 'sim_stu_fresh')}</div>
             ${hard ? `<p class="sim-stu-mix"><span>${t('sim_stu_mixes')}</span> <span class="quran-text">« ${escapeHtml(stripHizbMark(hard.anchorPhrase))} »</span></p>` : ''}
-            <button class="btn sim-stu-train" data-action="train-student" data-student="${escapeAttr(st.id)}">${t('sim_stu_train')}</button>`
+            <button class="btn sim-stu-train" data-action="train-student" data-student="${escapeAttr(st.id)}">${t('sim_stu_train')}</button>
+            <button class="btn btn-outline sim-pm-btn sim-pm-weekly" data-action="parent-weekly" data-student="${escapeAttr(st.id)}">${t('sim_pm_weekly_btn')}</button>`
             : `<p class="sim-stu-none">${t('sim_stu_none')}</p>`}
         </article>`;
     }).join('');
@@ -683,6 +690,23 @@ async function renderStudentsCoachHTML() {
         </div>
         <div class="sim-stu-detail">${cards}</div>
     </div>`;
+}
+
+// 🌟 [2026-11-07] بيانات بطاقات «طلابي» (لملخّص ولي الأمر الأسبوعي بلا إعادة حساب)
+let coachRows = new Map();
+
+async function openWeeklyParent(btn, id) {
+    const row = coachRows.get(String(id));
+    if (!row) return;
+    let sessions = 0;
+    try {
+        const weekAgo = Date.now() - 7 * 86400000;
+        sessions = (await AppState.similaritiesManager.getSessionsByStudent(row.st.id)).filter(x => (x.at || 0) >= weekAgo).length;
+    } catch (e) { sessions = 0; }
+    const teacher = AppState.teacherName || (AppState.currentTeacher && AppState.currentTeacher.name) || '';
+    const text = buildWeeklyMessage(tf, { name: row.st.name, girl: row.st.gender === 'girl', sessions,
+        mastered: row.sum.mastered, eligible: row.sum.total, needWork: row.sum.due + row.sum.weak, teacher });
+    toggleParentShare(btn, text, row.st.phone);
 }
 
 function selectCoachStudent(id) {
