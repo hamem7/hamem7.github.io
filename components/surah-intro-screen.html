@@ -38,6 +38,9 @@
     body #app-root #si-screen .si-sec .quran-text { display: inline !important; font-size: 1.15em !important; line-height: inherit !important; background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: none; }
     #si-screen .si-book-note { font-size: .78rem; color: var(--dh-ink-soft); }
     #si-screen .si-media { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    #si-screen .si-words { margin-top: 14px; }
+    #si-screen .si-words-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+    #si-screen .si-words-grid img { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--dh-border); background: var(--dh-surface-3); display: block; }
     #si-screen .si-media audio { width: 100%; max-width: 420px; }
     #si-screen .si-btn { font: inherit; font-size: .9rem; font-weight: 700; min-height: 42px; padding: 8px 16px; border-radius: 12px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
     #si-screen .si-btn[disabled] { opacity: .45; cursor: default; }

@@ -3,6 +3,7 @@
 // + البطاقة الصوتية والفيديو) مع التنقل للسابقة/التالية وتكبير الخط. البيانات في components/surahIntroData.js.
 import { t, tf, surahNameLocal, isEnglish } from '../core/i18n.js';
 import { SURAH_INTRO } from './surahIntroData.js';
+import { surahCardUrls } from '../engine/surahCards.js';
 import { loadScreen, switchTheme } from '../core/navigation.js';
 
 // فتح الشاشة (يُستدعى من onclick زر الرئيسية مباشرة)؛ الرجوع يستورد الرئيسية عند الحاجة فقط
@@ -79,6 +80,7 @@ function renderCard() {
     const i = SURAH_INTRO.findIndex(s => s.n === st.cur);
     const s = SURAH_INTRO[i], prev = SURAH_INTRO[i - 1], next = SURAH_INTRO[i + 1];
     const en = isEnglish();
+    const cards = surahCardUrls(s.n);
     const book = (k, txt) => `<div class="si-sec"><h2>${esc(t(k))}</h2><p lang="ar" dir="rtl">${withQuran(txt)}</p>${en ? `<div class="si-book-note">${esc(t('si_book_note'))}</div>` : ''}</div>`;
     body().innerHTML = `
         <div class="si-tools" style="margin-bottom:12px">
@@ -111,6 +113,7 @@ function renderCard() {
                 ${s.audio ? `<audio controls preload="none" src="${esc(s.audio)}" aria-label="${esc(t('si_audio'))}" title="${esc(t('si_audio'))}"></audio>` : ''}
                 ${s.yt ? `<a class="si-btn" href="https://www.youtube.com/watch?v=${esc(s.yt)}" target="_blank" rel="noopener">▶ ${esc(t('si_video'))}</a>` : ''}
             </div>
+            ${cards.length ? `<div class="si-sec si-words"><h2>🖼️ ${esc(t('si_words'))}</h2><div class="si-words-grid">${cards.map((u, k) => `<img src="${u}" loading="lazy" decoding="async" alt="${esc(tf('si_words_img', { n: k + 1, total: cards.length }))}">`).join('')}</div></div>` : ''}
         </article>
         <div class="si-nav" style="margin-top:12px">
             <button type="button" class="si-btn" id="si-prev" ${prev ? '' : 'disabled'}>${en ? '←' : '→'} ${esc(t('si_prev'))}${prev ? ' · ' + esc(surahNameLocal(prev.n)) : ''}</button>
