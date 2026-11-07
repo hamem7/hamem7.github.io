@@ -1761,3 +1761,27 @@ h1.home-title .home-title-ha {
 .home-menu-primary .home-card:is(.home-card-students, .home-card-adult, .home-card-kids) .home-card-icon { background: rgba(255, 255, 255, .22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4); }
 .home-menu-primary .home-card.home-card-adult .home-card-icon { background: #d4af37; color: #064e3b; }
 .home-menu-primary .home-card.home-card-kids .home-card-icon { background: #fde047; color: #9d174d; }
+
+/* 🕌 [بطلب صاحب المنصة — الفكرة 1 «إطار المصحف»] إطار ذهبي مزدوج حول واجهة الرئيسية كترويسة سور المصحف،
+   مع هالة ذهبية خفيفة من الأعلى وميدالية نجمة ثمانية في منتصف الحافة العليا. لا يمسّ خط الآية (تخطيط حولها فقط). */
+.home-hero-text {
+    border: 2px solid rgba(240, 216, 120, .6);
+    outline: 1px solid rgba(240, 216, 120, .28);
+    outline-offset: 7px;
+    border-radius: 30px;
+    padding-block: 26px 20px;
+    padding-inline-start: 34px;
+    background: radial-gradient(ellipse at 60% 0%, rgba(240, 216, 120, .16), transparent 60%), rgba(0, 0, 0, .18);
+    box-shadow: inset 0 0 40px rgba(240, 216, 120, .12);
+}
+.home-hero-text::after {
+    content: ""; position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 2px solid rgba(240, 216, 120, .75);
+    background: #0b3b2e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f0d878' stroke-width='1.5' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='12' height='12'/%3E%3Crect x='6' y='6' width='12' height='12' transform='rotate(45 12 12)'/%3E%3Ccircle cx='12' cy='12' r='2' fill='%23f0d878'/%3E%3C/svg%3E") center / 24px no-repeat;
+    box-shadow: 0 0 16px rgba(240, 216, 120, .35);
+    pointer-events: none;
+}
+@media (max-width: 768px) {
+    .home-hero-text { padding: 30px 14px 16px; outline-offset: 5px; margin-top: 14px; border-radius: 22px; margin-inline: 8px; }
+}
