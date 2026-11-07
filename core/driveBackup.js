@@ -36,6 +36,7 @@ const LS_NEEDS_RECONNECT = 'dh_drive_needs_reconnect';
 const LS_EMAIL = 'dh_drive_email';          // بريد حساب Drive المرتبط (للعرض ولاقتراح الحساب عند إعادة الربط)
 const LS_CUSTOM = 'dh_drive_custom';        // '1' = المعلم اختار حساباً لـDrive غير حساب الواجبات عمداً
 const LS_STUDENTS = 'dh_drive_last_students'; // عدد طلاب آخر نسخة ناجحة (للعرض)
+const LS_BYTES = 'dh_drive_bytes';          // مجموع حجم نسخ Drive بالبايت (للعرض بلا اتصال)
 const LS_COUNT = 'dh_drive_count';          // آخر عدد معروف للنسخ على Drive (للعرض بلا اتصال)
 const LS_FREQ = 'dh_drive_freq';            // تكرار النسخ التلقائي: daily | weekly | monthly
 const FREQ_MS = { daily: 24 * 3600 * 1000, weekly: 7 * 24 * 3600 * 1000, monthly: 30 * 24 * 3600 * 1000 };
@@ -64,6 +65,7 @@ export function getDriveLastOk() { return lsGet(LS_LAST_OK); }
 export function driveNeedsReconnect() { return lsGet(LS_NEEDS_RECONNECT) === '1'; }
 export function getDriveAccountEmail() { return lsGet(LS_EMAIL) || null; }
 export function getDriveLastStudents() { const n = parseInt(lsGet(LS_STUDENTS) || '', 10); return Number.isFinite(n) ? n : null; }
+export function getDriveBackupBytes() { const n = parseInt(lsGet(LS_BYTES) || '', 10); return Number.isFinite(n) ? n : null; }
 export function getDriveBackupCount() { const n = parseInt(lsGet(LS_COUNT) || '', 10); return Number.isFinite(n) ? n : null; }
 export function isDriveCustomAccount() { return lsGet(LS_CUSTOM) === '1'; }
 export function setDriveCustomAccount(on) { if (on) lsSet(LS_CUSTOM, '1'); else lsDel(LS_CUSTOM); }
@@ -146,7 +148,7 @@ async function refreshAccountEmail(token) {
         const mail = ((await res.json()).user || {}).emailAddress;
         if (!mail) return;
         const prev = getDriveAccountEmail();
-        if (prev && !sameMail(prev, mail)) { lsDel(LS_LAST_OK); lsDel(LS_COUNT); lsDel(LS_STUDENTS); }   // حساب جديد: آخر نسخة وعددها يخصان الحساب السابق
+        if (prev && !sameMail(prev, mail)) { lsDel(LS_LAST_OK); lsDel(LS_COUNT); lsDel(LS_BYTES); lsDel(LS_STUDENTS); }   // حساب جديد: آخر نسخة وعددها يخصان الحساب السابق
         lsSet(LS_EMAIL, mail);
     } catch (e) { /* نكمل بلا بريد */ }
 }
@@ -267,10 +269,13 @@ export function runDriveBackup({ interactive = true } = {}) {
             let deleted = 0;
             try {
                 const all = await listDriveBackups(token);
+                const gone = new Set();
                 for (const id of selectBackupsToDelete(all.map(f => ({ id: f.id, createdTime: f.createdTime })))) {
-                    try { await deleteFile(token, id); deleted++; } catch (e) { console.warn('تعذر حذف نسخة قديمة:', e); }
+                    try { await deleteFile(token, id); deleted++; gone.add(id); } catch (e) { console.warn('تعذر حذف نسخة قديمة:', e); }
                 }
-                lsSet(LS_COUNT, String(Math.max(0, all.length - deleted)));
+                const left = all.filter(f => !gone.has(f.id));
+                lsSet(LS_COUNT, String(left.length));
+                lsSet(LS_BYTES, String(left.reduce((a, f) => a + (parseInt(f.size, 10) || 0), 0)));
             } catch (e) { console.warn('تعذر تطبيق سياسة الاحتفاظ (النسخة الجديدة سليمة):', e); }
 
             try { document.dispatchEvent(new CustomEvent('dh:drive-backup-done')); } catch (e) { /* لا شيء */ }
@@ -290,6 +295,7 @@ export async function listBackupsForRestore() {
     const token = await getToken({ interactive: true });
     const list = await listDriveBackups(token);
     lsSet(LS_COUNT, String(list.length));
+    lsSet(LS_BYTES, String(list.reduce((a, f) => a + (parseInt(f.size, 10) || 0), 0)));
     return list;
 }
 
@@ -322,7 +328,7 @@ export async function downloadBackupAsFile(id, name = 'drive-backup.json') {
 export function disconnectDrive() {
     const token = tokenState && tokenState.token;
     tokenState = null;
-    [LS_ENABLED, LS_AUTO, LS_NEEDS_RECONNECT, LS_CUSTOM, LS_COUNT, LS_STUDENTS].forEach(lsDel);   // البريد يبقى اقتراحاً لإعادة الربط
+    [LS_ENABLED, LS_AUTO, LS_NEEDS_RECONNECT, LS_CUSTOM, LS_COUNT, LS_BYTES, LS_STUDENTS].forEach(lsDel);   // البريد يبقى اقتراحاً لإعادة الربط
     lsDel(LS_LAST_OK);
     try { if (token && window.google && window.google.accounts && window.google.accounts.oauth2) window.google.accounts.oauth2.revoke(token, () => {}); } catch (e) { /* لا شيء */ }
 }

@@ -193,7 +193,10 @@ export async function initAccountScreen() {
             $('acct-drive-email').textContent = drive.getDriveAccountEmail() || t('acct_drive_email_unknown');
             $('acct-drive-last').textContent = last ? `${fmtDateTime(last)} (${relDays(last)})` : t('acct_drive_never');
             const n = drive.getDriveBackupCount();
-            $('acct-drive-count').textContent = n === null ? '—' : t('acct_drive_count_n').replace('{n}', n);
+            const bytes = drive.getDriveBackupBytes();
+            const kb = bytes === null ? null : bytes / 1024;
+            const sizeTxt = kb === null ? '' : (kb >= 1024 ? (kb / 1024).toFixed(1) + ' ' + t('acct_unit_mb') : Math.max(1, Math.round(kb)) + ' ' + t('acct_unit_kb'));
+            $('acct-drive-count').textContent = n === null ? '—' : t('acct_drive_count_n').replace('{n}', n) + (sizeTxt ? ' · ' + sizeTxt : '');
         }
         $('acct-drive-info').textContent = info;
         $('acct-drive-info').style.display = info ? '' : 'none';
