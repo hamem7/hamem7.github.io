@@ -684,6 +684,8 @@ function persistEvaluationToHistory() {
             // الشهري من عدّ جلسات الإصلاح بدقة بدل تخمينها من نص range (السجلات القديمة بلا
             // هذا الحقل يتعرّف عليها التقرير من نص range كخط رجوع) 🌟
             mode: GameState.isWeaknessMode ? 'weakness' : 'eval',
+            // 🌟 [جديد] تفصيل جلسة العلاج للتقرير الشهري: كم أُصلح نهائياً وكم ينتظر المراجعة الثانية وكم تبقّى
+            ...(GameState.isWeaknessMode ? { fix: summarizeFixSession(student, GameState.weaknessSnapshot, (a, b) => normalizeForCompare(a.text) === normalizeForCompare(b.text)) } : {}),
             // 🌟 [جديد] حقل اختياري: الاختبار أُكمل على مرحلتين (حفظ والعودة لاحقًا). غيابه = جلسة واحدة
             ...(GameState.resumedFromPause ? { resumed: true } : {}),
             timestamp: Date.now()

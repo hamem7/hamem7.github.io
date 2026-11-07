@@ -4,6 +4,7 @@ import { stripHizbMark } from '../engine/similarityQuestions.js';
 import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
+import { isFixSessionEntry, fixDetail } from '../core/fixSessionLog.js';
 import { purgeStudentRelatedData } from '../core/studentCleanup.js';
 import { openModal, closeModal } from '../components/ui.js';
 import { openAdultGameScreen } from '../games/adultGame.js';
@@ -1323,11 +1324,17 @@ export async function loadStudentProfileScreen() {
                 histData.reverse().forEach((record, index) => {
                     let color = record.score >= 90 ? 'var(--dh-ok, #15803d)' : (record.score >= 80 ? 'var(--dh-emerald-700)' : (record.score >= 70 ? 'var(--dh-warn, #b45309)' : 'var(--dh-danger, #b91c1c)'));
                     const barW = Math.max(0, Math.min(100, Number(record.score) || 0));
+                    // 🌟 جلسة علاج وتصحيح الأخطاء: شارة واضحة + سطر تفصيل (أُصلح/ينتظر/تبقّى) للجلسات الجديدة
+                    const isFix = isFixSessionEntry(record);
+                    const fd = isFix ? fixDetail(record) : null;
+                    const fixBadge = isFix
+                        ? `<div style="margin-bottom:4px;"><span style="display:inline-block;font-size:11.5px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--dh-ok-bg,#e7f4ee);color:var(--dh-ok-ink,#166534);border:1px solid var(--dh-border-strong,#a89f84);">🛠️ ${esc(t('fx_badge'))}</span>${fd ? `<div style="font-size:12px;color:var(--dh-ink-soft,#6f644e);margin-top:2px;">${esc(t('fx_row_line').replace('{resolved}', fd.resolved).replace('{pending}', fd.pending).replace('{remaining}', fd.remaining))}</div>` : ''}</div>`
+                        : '';
                     tbody.innerHTML += `
-                        <tr>
+                        <tr${isFix ? ' style="background:var(--dh-ok-bg,#e7f4ee);"' : ''}>
                             <td>${index + 1}</td>
                             <td>${record.date}</td>
-                            <td>${esc(localizeGenerated(trStored(String(record.range || ''))))}</td>
+                            <td>${fixBadge}${isFix ? '' : esc(localizeGenerated(trStored(String(record.range || ''))))}</td>
                             <td><div class="pf-pct"><div class="pf-pct-bar"><i style="width:${barW}%; background:${color};"></i></div><b style="color:${color};">${record.score}%</b></div></td>
                         </tr>
                     `;

@@ -43,6 +43,7 @@
 
 import { SKILLS } from '../engine/skillMap.js';
 import { esc } from '../core/escape.js';
+import { isFixSessionEntry, collectFixSessions } from '../core/fixSessionLog.js';
 import { skillLabel, monthlySummaryLines } from '../components/skillProfile.js';
 import { AppState, applyLanguage, t, localizeGenerated, trStored, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
@@ -575,12 +576,15 @@ async function buildMonthlyReportData(year, monthIndex0) {
   // فقط العناصر التي أضافتها persistEvaluationToHistory الجديدة (بلا hwId، ومعها
   // timestamp رقمي). لا رجعية — راجع تعليق أعلى الملف.
   let gameEvalEntries = [];
+  // 🌟 جلسات «علاج وتصحيح الأخطاء»: خارج متوسط/عدد الألعاب (أسئلتها أُخطئ فيها سابقاً)، وتظهر في قسمها المستقل
+  let fixSessions = collectFixSessions([], monthStart, monthEnd);
   try {
     const raw = localStorage.getItem(`history_${student.id}`);
     const historyArray = raw ? JSON.parse(raw) : [];
     if (Array.isArray(historyArray)) {
+      fixSessions = collectFixSessions(historyArray, monthStart, monthEnd);
       gameEvalEntries = historyArray
-        .filter(e => !e.hwId && typeof e.timestamp === 'number' && e.timestamp >= monthStart && e.timestamp < monthEnd)
+        .filter(e => !e.hwId && !isFixSessionEntry(e) && typeof e.timestamp === 'number' && e.timestamp >= monthStart && e.timestamp < monthEnd)
         .map(e => ({
           timestamp: e.timestamp,
           date: e.date || '',
@@ -964,7 +968,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     memoScope, hasMemoRange,
     avatar: getAvatarHtml(student),
     teacher,
-    gameEvalEntries, gameEvalAvg,
+    gameEvalEntries, gameEvalAvg, fixSessions,
     homeworkEntries, homeworkAvg, homeworkErrorMsg, monthMedals,
     dualEntries, dualWins, dualLosses, dualTies,
     achievementsThisMonth,
@@ -988,7 +992,7 @@ async function getLightMonthStats(studentId, year, monthIndex0, student = null) 
     const raw = localStorage.getItem(`history_${studentId}`);
     const historyArray = raw ? JSON.parse(raw) : [];
     if (Array.isArray(historyArray)) {
-      const entries = historyArray.filter(e => !e.hwId && typeof e.timestamp === 'number' && e.timestamp >= monthStart && e.timestamp < monthEnd);
+      const entries = historyArray.filter(e => !e.hwId && !isFixSessionEntry(e) && typeof e.timestamp === 'number' && e.timestamp >= monthStart && e.timestamp < monthEnd);
       gameEvalCount = entries.length;
       gameEvalAvg = entries.length ? Math.round(entries.reduce((s, e) => s + (e.score || 0), 0) / entries.length) : null;
     }
@@ -1641,11 +1645,41 @@ function renderAchievementsBlock(d) {
 
 // 🌟 [2026-11 — تصميم جديد مدمج] أخطاء عولجت: عدد ما عولج (وما بقي قيد الإصلاح) في لوحة، وسطر لكل سورة بأرقام آياتها،
 // وسطر أخير لما لا يزال قيد الإصلاح — بدل جدول طويل بسطر لكل خطأ.
+// 🌟 جلسات «علاج وتصحيح الأخطاء» هذا الشهر: بطاقات (عدد الجلسات/أُصلح/ينتظر/تبقّى) + بطاقة لكل جلسة بشريط ملوّن.
+// ألوان ثابتة (html2canvas) — الأنماط في monthly-report.identity.js تحت .mrp-fx
+function fixSessionsHtml(d) {
+  const fs = d.fixSessions;
+  if (!fs || !fs.count) return '';
+  const tile = (cls, lk, v, sk) => `<div class="mrp-fx-tile ${cls}"><span class="l">${t(lk)}</span><b>${v}</b><span class="s">${t(sk)}</span></div>`;
+  const tiles = tile('', 'mr_fx_t_sessions', fs.count, 'mr_fx_t_sessions_s')
+    + (fs.hasDetail ? tile('ok', 'mr_fx_t_fixed', fs.fixed, 'mr_fx_t_fixed_s')
+      + tile('wait', 'mr_fx_t_wait', fs.waiting, 'mr_fx_t_wait_s')
+      + tile('left', 'mr_fx_t_left', fs.left, 'mr_fx_t_left_s') : '');
+  const cards = fs.list.slice().reverse().map(s => {
+    const when = esc(dayMonthLabel(s.timestamp) || s.date);
+    const f = s.detail;
+    if (!f || !f.total) {
+      return `<div class="mrp-fx-sess"><div class="h"><span class="d">${when}</span></div><div class="mrp-fx-nd">${esc(t('mr_fx_nodetail').replace('{score}', s.score))}</div></div>`;
+    }
+    const w = (n) => (n / f.total * 100).toFixed(1) + '%';
+    return `<div class="mrp-fx-sess">
+      <div class="h"><span class="d">${when}</span><span class="chip">${esc(t('mr_fx_correct').replace('{c}', f.correct).replace('{n}', f.total))}</span></div>
+      <div class="seg"><i class="ok" style="width:${w(f.resolved)}"></i><i class="wait" style="width:${w(f.pending)}"></i><i class="left" style="width:${w(f.remaining)}"></i></div>
+      <div class="lg"><span><em class="ok"></em>${t('mr_fx_lg_ok')} <b>${f.resolved}</b></span><span><em class="wait"></em>${t('mr_fx_lg_wait')} <b>${f.pending}</b></span><span><em class="left"></em>${t('mr_fx_lg_left')} <b>${f.remaining}</b></span></div>
+    </div>`;
+  }).join('');
+  const nextN = fs.waiting + fs.left;
+  const next = (fs.hasDetail && nextN > 0)
+    ? `<div class="mrp-fx-next">${esc(t('mr_fx_next').replace('{n}', nextN).replace('{w}', fs.waiting).replace('{l}', fs.left))}</div>` : '';
+  return `<div class="mrp-fx"><div class="mrp-fx-title">${t('mr_fx_title')}</div><div class="mrp-fx-tiles">${tiles}</div><div class="mrp-fx-list">${cards}</div>${next}</div>`;
+}
+
 function renderErrorsBlock(d) {
   const el = $('mr-errors-content');
   if (!el) return;
+  const fxHtml = fixSessionsHtml(d);
   if (!d.resolvedThisMonth.length) {
-    el.innerHTML = `<div class="mr-empty-row">${t('mr_errors_empty')}</div>`;
+    el.innerHTML = fxHtml || `<div class="mr-empty-row">${t('mr_errors_empty')}</div>`;
     return;
   }
   const groups = new Map(), other = [];
@@ -1660,7 +1694,7 @@ function renderErrorsBlock(d) {
   const pend = pendingAll.slice(0, 8).map(w => w.surahName ? `${surahNameLocal(w.surahName)}${w.num ? ' ' + w.num : ''}` : (localizeGenerated(w.text) || '—'));
   const ayah = t('mr_err_ayah');
   const row = (label, items, cls, count) => `<div class="mrp-err-g${cls ? ' ' + cls : ''}"><span class="s">${esc(label)}</span><span class="a">${items.map(x => `<i>${esc(x)}</i>`).join('')}</span><span class="n">${count}</span></div>`;
-  el.innerHTML = `
+  el.innerHTML = fxHtml + `
     <div class="mrp-err">
       <div class="mrp-panel"><b class="mrp-num">${d.resolvedThisMonth.length}</b><span>${t('mr_err_fixed_lbl')}</span>${pendingAll.length ? `<em>${t('mr_err_pending').replace('{n}', pendingAll.length)}</em>` : ''}</div>
       <div class="mrp-err-list">

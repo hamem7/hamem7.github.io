@@ -417,6 +417,8 @@ function persistEvaluationToHistory() {
             source: 'kids_game',
             // 🌟 [جديد] نوع الجلسة ('weakness' لتحدي الأخطاء) — راجع نفس التعليق في adultGame.js 🌟
             mode: GameState.isWeaknessMode ? 'weakness' : 'eval',
+            // 🌟 [جديد] تفصيل جلسة العلاج للتقرير الشهري — راجع adultGame.js
+            ...(GameState.isWeaknessMode ? { fix: summarizeFixSession(student, GameState.weaknessSnapshot, (a, b) => normalizeForCompare(a.text) === normalizeForCompare(b.text)) } : {}),
             // 🌟 [جديد] حقل اختياري: الاختبار أُكمل على مرحلتين (حفظ والعودة لاحقًا) — راجع adultGame.js
             ...(GameState.resumedFromPause ? { resumed: true } : {}),
             timestamp: Date.now()

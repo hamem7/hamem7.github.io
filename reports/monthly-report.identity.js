@@ -347,6 +347,33 @@ export const MONTHLY_REPORT_IDENTITY_STYLES = `
   #report-screen .page.mr2 .mrp-err-g .a{display:flex; flex-wrap:wrap; gap:4px;}
   #report-screen .page.mr2 .mrp-err-g .a i{font-style:normal; font-size:11.5px; background:#eef6f2; color:#0b3d30; border:1px solid #cfe5da; border-radius:99px; padding:0 8px;}
   #report-screen .page.mr2 .mrp-err-g .n{font-family:'Reem Kufi','Amiri',serif; font-size:15px; color:#8a6221; text-align:center;}
+  /* جلسات علاج وتصحيح الأخطاء */
+  #report-screen .page.mr2 .mrp-fx{margin-bottom:12px;}
+  #report-screen .page.mr2 .mrp-fx-title{font-size:13px; font-weight:700; color:#164f40; margin-bottom:8px;}
+  #report-screen .page.mr2 .mrp-fx-tiles{display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;}
+  #report-screen .page.mr2 .mrp-fx-tile{background:#ffffff; border:1px solid #eadfbd; border-radius:12px; padding:8px 10px; text-align:center;}
+  #report-screen .page.mr2 .mrp-fx-tile .l{display:block; font-size:11.5px; font-weight:700; color:#6f644e;}
+  #report-screen .page.mr2 .mrp-fx-tile b{display:block; font-family:'Reem Kufi','Amiri',serif; font-size:26px; line-height:1.2; color:#8a6221;}
+  #report-screen .page.mr2 .mrp-fx-tile .s{display:block; font-size:10.5px; color:#6f644e;}
+  #report-screen .page.mr2 .mrp-fx-tile.ok b{color:#15803d;}
+  #report-screen .page.mr2 .mrp-fx-tile.wait b{color:#b45309;}
+  #report-screen .page.mr2 .mrp-fx-tile.left b{color:#b91c1c;}
+  #report-screen .page.mr2 .mrp-fx-list{display:flex; flex-direction:column; gap:6px;}
+  #report-screen .page.mr2 .mrp-fx-sess{background:#ffffff; border:1px solid #eadfbd; border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:6px;}
+  #report-screen .page.mr2 .mrp-fx-sess .h{display:flex; justify-content:space-between; align-items:center; gap:8px;}
+  #report-screen .page.mr2 .mrp-fx-sess .d{font-size:13px; font-weight:700; color:#164f40;}
+  #report-screen .page.mr2 .mrp-fx-sess .chip{font-size:11.5px; font-weight:700; color:#0b3d30; background:#eef6f2; border:1px solid #cfe5da; border-radius:99px; padding:0 10px;}
+  #report-screen .page.mr2 .mrp-fx-sess .seg{display:flex; height:9px; border-radius:99px; overflow:hidden; background:#eadfbd;}
+  #report-screen .page.mr2 .mrp-fx-sess .seg i{display:block; height:100%;}
+  #report-screen .page.mr2 .mrp-fx-sess .lg{display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:#6f644e;}
+  #report-screen .page.mr2 .mrp-fx-sess .lg b{color:#1f2a24;}
+  #report-screen .page.mr2 .mrp-fx-sess .lg em{display:inline-block; width:8px; height:8px; border-radius:3px; margin-inline-end:4px;}
+  #report-screen .page.mr2 .mrp-fx .ok{background:#15803d;}
+  #report-screen .page.mr2 .mrp-fx .wait{background:#b45309;}
+  #report-screen .page.mr2 .mrp-fx .left{background:#b91c1c;}
+  #report-screen .page.mr2 .mrp-fx-tile.ok, #report-screen .page.mr2 .mrp-fx-tile.wait, #report-screen .page.mr2 .mrp-fx-tile.left{background:#ffffff;}
+  #report-screen .page.mr2 .mrp-fx-nd{font-size:12px; color:#6f644e;}
+  #report-screen .page.mr2 .mrp-fx-next{margin-top:8px; padding:8px 12px; border-radius:10px; background:#fbf1d6; border:1px solid #ecd58a; color:#6f5410; font-size:12.5px;}
   #report-screen .page.mr2 .mrp-err-g.pend{background:#fffaf0; border-style:dashed;}
   #report-screen .page.mr2 .mrp-err-g.pend .s{color:#8a6221;}
   #report-screen .page.mr2 .mrp-err-g.pend .a i{background:#fbf1d6; border-color:#ecd58a; color:#6f5410;}
