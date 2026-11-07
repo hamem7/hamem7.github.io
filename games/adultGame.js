@@ -25,6 +25,7 @@ import { bindNoteSheet, bindWeaknessButtons, toggleNoteSheet, closeNoteSheet, re
 // 🌟 [جديد] "حفظ والعودة لاحقًا" لاختبار الطالب — راجع components/pausedSession.js لكل التفاصيل والافتراضات
 import { initGameFullscreen } from '../components/gameFullscreen.js';
 import { initQuestionFit } from '../components/questionFit.js';
+import { showVisualHighlights, hideVisualHighlights, paintZoomHighlights } from '../components/visualMemoryHighlight.js';   // تظليل الآية بالأصفر عند «إظهار الإجابة» في الذاكرة البصرية
 import { initGameSoundToggle, isSfxMuted } from '../components/gameSound.js'; // زر كتم المؤثرات الصوتية
 import '../components/listenAyahAudio.js';   // 🎧 مشغّل سؤال «استمع للشيخ… ثم كمّل»
 import { LISTEN_MIN_SURAH } from '../engine/ayahAudio.js';
@@ -507,10 +508,11 @@ function shuffleInPlace(arr) {
 }
 
 function initGameUI() {
-    window.openZoomVisual = function(imgR, imgL) {
+    window.openZoomVisual = function(imgR, imgL, surahNum, ayahNum) {
         document.getElementById('zoom-img-right').src = imgR;
         document.getElementById('zoom-img-left').src = imgL;
         document.getElementById('zoomModal').style.display = 'flex';
+        paintZoomHighlights(imgR, imgL, surahNum, ayahNum);
     };
 
     initGameSoundToggle();
@@ -1122,8 +1124,10 @@ function toggleAnswer() {
         // 🌟 تطبيق الترجمة هنا 🌟
         btn.innerHTML = t('hide_ans'); 
         document.querySelectorAll('.visual-blur-img').forEach(img => { img.style.filter = 'none'; });
+        showVisualHighlights();   // 🟡 الآية المطلوبة تُظلَّل في الحال (وليس قبل «إظهار الإجابة»)
     } else { 
         ansDiv.style.display = 'none'; 
+        hideVisualHighlights();
         // 🌟 تطبيق الترجمة هنا 🌟
         btn.innerHTML = t('show_ans_match'); 
     } 

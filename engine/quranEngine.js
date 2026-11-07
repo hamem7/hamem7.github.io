@@ -330,11 +330,11 @@ export class QuranEngine {
             <div dir="rtl" style="display: flex; flex-direction: row; direction: rtl; justify-content: center; gap: 15px; box-sizing: border-box; width: 100%; align-items: flex-end; margin-top: 15px;">
                 <div style="width: 48%; position: relative;">
                     <div style="background:#64748b; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_right', 'الصفحة اليمنى')}</div>
-                    <img src="${imgRight}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <div style="position:relative;"><img src="${imgRight}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="display:block; width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'"><div class="vm-hl-layer" data-page="${pageRight}" data-s="${ayah.surahNumber || 0}" data-a="${ayah.numberInSurah || 0}" style="position:absolute; inset:3px; pointer-events:none; display:none;"></div></div>
                 </div>
                 <div style="width: 48%; position: relative;">
                     <div style="background:#64748b; color:white; padding:5px; border-radius:5px 5px 0 0; font-weight:bold; font-size:1.2rem;">${tl('qe_page_left', 'الصفحة اليسرى')}</div>
-                    <img src="${imgLeft}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'">
+                    <div style="position:relative;"><img src="${imgLeft}" class="visual-blur-img" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='https://android.quran.com/data/width_1024/'+this.src.split('/').pop().replace('.webp','.png');}" style="display:block; width: 100%; height: auto; border: 3px solid #cbd5e1; border-radius: 0 0 5px 5px; cursor:pointer; filter: blur(10px); transition: 0.3s;" onclick="this.style.filter='none'"><div class="vm-hl-layer" data-page="${pageLeft}" data-s="${ayah.surahNumber || 0}" data-a="${ayah.numberInSurah || 0}" style="position:absolute; inset:3px; pointer-events:none; display:none;"></div></div>
                 </div>
             </div>
             <div style="font-size:1rem; color:#64748b; margin-top:10px;">${tl('qe_tap_unblur', '(اضغط على الصورة لرفع الضباب عنها)')}</div>
@@ -343,7 +343,7 @@ export class QuranEngine {
         let ansHTML = `
         <div style="text-align: center; margin-top: 10px;">
             <div style="font-size:1.8rem; font-weight:bold; color:#10b981; margin-bottom:15px; background:#f0fdf4; padding:10px; border-radius:10px; border:2px dashed #10b981;">${tl('qe_correct_page', '( الإجابة الصحيحة: الصفحة {side} )', { side: (ayah.page % 2 !== 0) ? tl('qe_side_right', 'اليمنى') : tl('qe_side_left', 'اليسرى') })}</div>
-            <button class="btn btn-outline" style="font-size:1.2rem; padding:10px 20px; border-radius:10px; background:#157e8d; color:white; border:none; margin-top: 5px; cursor:pointer;" onclick="window.openZoomVisual('${imgRight}', '${imgLeft}')">${tl('qe_zoom_mushaf', '🔍 تكبير المصحف للمراجعة')}</button>
+            <button class="btn btn-outline" style="font-size:1.2rem; padding:10px 20px; border-radius:10px; background:#157e8d; color:white; border:none; margin-top: 5px; cursor:pointer;" onclick="window.openZoomVisual('${imgRight}', '${imgLeft}', ${ayah.surahNumber || 0}, ${ayah.numberInSurah || 0})">${tl('qe_zoom_mushaf', '🔍 تكبير المصحف للمراجعة')}</button>
         </div>`;
 
         return { 

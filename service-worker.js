@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
         }
     } catch (e) { /* لا نتدخل */ }
     // صور المصحف: الكاش أولاً (لا تتغير)، وإن لم تكن مخزّنة تُجلب وتُخزَّن لتعمل لاحقاً بلا إنترنت
-    if (req.url.includes('/assets/mushaf/') && req.url.endsWith('.webp')) {
+    if (req.url.includes('/assets/mushaf/') && (req.url.endsWith('.webp') || req.url.endsWith('.json'))) {
         event.respondWith((async () => {
             const cache = await caches.open(MUSHAF_CACHE);
             const hit = await cache.match(req);
