@@ -158,9 +158,10 @@ body.dh-home-screen .home-hero-text > h1.home-title { grid-column: 2; grid-row: 
    لأن ::before و::after مستخدمان للأقواس ﴿ ﴾، وjustify-self:start يجعل الضوء بعرض الآية فقط لا العمود كله */
 body.dh-home-screen .home-hero-text > h1.home-title {
     justify-self: start;
-    padding-inline: .4em;
-    margin-inline-start: -.4em;
-    background: radial-gradient(closest-side, rgba(231, 194, 106, 0.30), rgba(231, 194, 106, 0.10) 55%, transparent) !important;
+    padding-inline: .7em;
+    margin-inline-start: -.7em;
+    /* [تحديث بطلب صاحب المنصة] إضاءة أوضح قليلاً خلف الآية فقط */
+    background: radial-gradient(closest-side, rgba(255, 226, 150, 0.42), rgba(240, 205, 120, 0.16) 60%, transparent) !important;
 }
 body.dh-home-screen .home-hero-text > .home-subtitle { grid-column: 2; grid-row: 2; margin: 0; font-size: 1.05rem; text-align: start; animation: none; max-width: none; }
 body.dh-home-screen .home-hero-text > .home-hero-eyebrow { grid-column: 2; grid-row: 3; justify-self: start; margin: 4px 0 0; animation: none; }
