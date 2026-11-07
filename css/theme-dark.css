@@ -616,3 +616,11 @@ html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro { b
 html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-title { color: #fff; }
 html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-desc { color: rgba(255, 255, 255, .88); }
 html[data-theme="dark"] .home-menu-secondary .home-card.home-card-surahintro .home-card-arrow { color: #fff; }
+
+/* 🎨 بطاقات الصف الثانوي الملوّنة (راجع آخر css/home.css): تبقى بتدرّجها في الداكن مع تعتيم خفيف وحدّ فاتح */
+html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) {
+    background: linear-gradient(rgba(0, 0, 0, .18), rgba(0, 0, 0, .18)), linear-gradient(135deg, var(--g1), var(--g2));
+    border: 1px solid rgba(255, 255, 255, .22); border-top: 3px solid rgba(255, 255, 255, .5);
+}
+html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) :is(.home-card-title, .home-card-arrow) { color: #fff; }
+html[data-theme="dark"] .home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-desc { color: rgba(255, 255, 255, .88); }

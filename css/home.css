@@ -1721,3 +1721,25 @@ h1.home-title .home-title-ha {
 .home-greeting-row #teacher-profile-edit-btn { display: none; }
 .home-greeting-row .home-greeting-break { order: 4; flex: 0 0 100%; height: 0; }
 .home-greeting-row .home-account-btn { order: 5; }
+
+/* 🎨 [بطلب صاحب المنصة] بقية بطاقات الصف الثانوي بنفس لمسة «تعرّف على السورة»: تعبئة كاملة بتدرّج لوني لكل بطاقة
+   + نص أبيض + أيقونة على دائرة شفافة فاتحة + ظل ملوّن. الألوان متمايزة: بنفسجي/وردي (الواجب)، رمادي فولاذي (الثنائية)،
+   برتقالي (التجويد)، زمرّدي (المتشابهات)، ذهبي (الشهادات). النسخة الداكنة في css/theme-dark.css */
+.home-menu-secondary .home-card.home-card-homework { --g1: #7c3aed; --g2: #db2777; --gs: 157, 23, 77; }
+.home-menu-secondary .home-card.home-card-dual { --g1: #334155; --g2: #64748b; --gs: 30, 41, 59; }
+.home-menu-secondary .home-card.home-card-tajweed { --g1: #ea580c; --g2: #f59e0b; --gs: 194, 65, 12; }
+.home-menu-secondary .home-card.home-card-similarities { --g1: #047857; --g2: #0d9488; --gs: 4, 120, 87; }
+.home-menu-secondary .home-card.home-card-certs { --g1: #a16207; --g2: #d4a017; --gs: 161, 98, 7; }
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) {
+    background: linear-gradient(135deg, var(--g1), var(--g2));
+    border-top: 3px solid rgba(255, 255, 255, .55);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(var(--gs), .28);
+}
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-icon {
+    background: rgba(255, 255, 255, .22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35);
+}
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-title { color: #fff; }
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-desc { color: rgba(255, 255, 255, .9); opacity: 1; }
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-arrow { color: #fff; }
+.home-menu-secondary .home-card:is(.home-card-homework, .home-card-dual, .home-card-tajweed, .home-card-similarities, .home-card-certs) .home-card-badge { box-shadow: 0 0 0 2px rgba(255, 255, 255, .85); }
