@@ -30,7 +30,10 @@ const studentMemorized = () => PlayState.dailyStudent
     : memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
 import { planStudentRound, coachMemo, isMultiSurah, SINGLE_SURAH_TYPES, comparePlaces } from '../engine/similarityCoach.js';
 import { toQuranicSukun } from '../engine/quranEngine.js';
-import { isSimScopeDisabled, generateQuestionsForGroup, STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
+import { isSimScopeDisabled, generateQuestionsForGroup } from '../engine/similarityEngine.js';
+import { generateRecallQuestions } from '../engine/recallQuestions.js';
+import { recallAnswerHTML, recallHintStages } from '../components/similarGameHook.js';
+import { localizedRecallText } from '../engine/recallQuestions.js';
 import { ensureSimilarityQuran, getSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
@@ -98,23 +101,74 @@ function escapeHtmlText(str) {
 
 // 🌟 [جديد] يحل مجموعات اللعب الفعلية + عنوان النطاق من كائن scope الممرَّر عبر
 // AppState.similarityGamePlayScope — راجع تعليق رأس الملف وتعليق الحقل في core/app.js.
-// 🌟 [2026-11-07] أنواع أسئلة «تدريب اليوم»: الممتدة على سورتين ← «في أي سورتين؟/أي سورة لم ترد؟»،
-// ومتشابهات السورة مع نفسها ← «أكمل الآية» (النوعان الأولان لا يُولَّدان لها). الألعاب الأخرى بلا تغيير.
-const dailyTypesFor = (g) => isMultiSurah(g) ? STUDENT_SIM_TYPES : SINGLE_SURAH_TYPES;
-const typesFor = (g) => PlayState.dailyStudent ? dailyTypesFor(g) : STUDENT_SIM_TYPES;
+// 🌟 [2026-11-07 — بطلب المعلم] أنواع أسئلة ركن المتشابهات (تدريب اليوم + لعبة السورة/الجزء):
+//   مجموعة ممتدة على سورتين فأكثر ← «في أي سورتين؟» و«أي سورة لم ترد؟» و«أيّ الآيتين من سورة كذا؟» و«صِل الآية بسورتها»
+//   متشابهات السورة مع نفسها      ← «أكمل الآية» (الأنواع السابقة لا تُولَّد لها)
+//   ومن محفوظ الطالب كله           ← «اقرأ الآية من السورة المذكورة» (شفهي يقيّمه المعلم، من engine/recallQuestions.js)
+// لعبة الكبار والواجب بلا تغيير (STUDENT_SIM_TYPES هناك كما هو).
+const MULTI_TYPES = ['sim_pair', 'sim_notin', 'sim_which', 'sim_match'];
+const typesFor = (g) => isMultiSurah(g) ? MULTI_TYPES : SINGLE_SURAH_TYPES;
 const MAX_DAILY_QUESTIONS = 18;
 const MAX_RETRIES = 3;   // «فرصة ثانية»: أقصى عدد أسئلة إعادة تُضاف لآخر الجولة
+const RECALL_PER_ROUND = 2;   // «اقرأ الآية من السورة المذكورة» في الجولة
+const shuffleArr = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
 
-// جولة «تدريب اليوم»: سؤالان على الأكثر من كل مجموعة (فتظهر كل المجموعات المختارة) ثم خلط
-function buildDailyRound(groups) {
-    const memo = studentMemorized();
-    const shuffle = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
-    let all = [];
-    groups.forEach(g => { all = all.concat(shuffle(generateQuestionsForGroup(g, { types: dailyTypesFor(g), memorized: memo })).slice(0, 2)); });
-    const questions = shuffle(all).slice(0, MAX_DAILY_QUESTIONS);
-    return { groupIds: groups.map(g => g.groupId), questions, hasEnoughData: questions.length > 0, totalAvailable: all.length };
+// سور نطاق اللعبة (سورة/جزء)؛ «تدريب اليوم» نطاقه محفوظ الطالب كله فيعيد null
+function scopeSurahSet(scope) {
+    if (!scope) return null;
+    if (scope.type === 'surah') return new Set([Number(scope.surahNumber)]);
+    if (scope.type === 'juz') {
+        const b = scope.juzId === 'amma' ? { from: 78, to: 114 } : JUZ_BUCKETS.find(x => x.id === scope.juzId);
+        if (!b) return null;
+        const out = new Set(); for (let n = b.from; n <= b.to; n++) out.add(n); return out;
+    }
+    return null;
 }
-const buildRound = (groups) => PlayState.dailyStudent ? buildDailyRound(groups) : buildGameRound(groups, { memorized: studentMemorized() });
+
+// آيات نطاق الجولة (لأسئلة «اقرأ الآية من السورة المذكورة»: الآية المرجعية من النطاق دائماً، راجع CLAUDE.md)
+function scopePoolOf(surahSet) {
+    const Q = getSimilarityQuran();
+    const pool = [];
+    if (!Q || !surahSet) return pool;
+    surahSet.forEach(sn => { const sd = Q.surahs.get(sn); if (sd) sd.verses.forEach((v, n) => pool.push({ surahNumber: sn, numberInSurah: n })); });
+    return pool;
+}
+
+// سؤالان على الأكثر من كل مجموعة (فتظهر كل المجموعات) + أسئلة الاستحضار، ثم خلط بسقف 18
+function buildPlayRound(groups) {
+    const memo = studentMemorized();
+    // «أي الآيتين من سورة كذا؟»: السورة المسمّاة يجب أن تكون من نطاق الجولة (سورة/جزء)، لا سورة شبيهة خارجه
+    const scopeSet = PlayState.scopeSurahs || null;
+    // توازن الأنواع: من كل مجموعة سؤالان من نوعين مختلفين، ويُفضَّل الأقل ظهوراً في الجولة حتى الآن
+    // (كان «أيّ الآيتين» نصف الجولة لأنه يتولّد مع كل مجموعة)، وبسقف: «أيّ الآيتين» 4 و«صِل» 2 (أطول)
+    const used = {};
+    const CAP = { sim_match: 2, sim_which: 4 };   // سقف بعض الأنواع في الجولة الواحدة
+    let all = [];
+    shuffleArr(groups.filter(g => !isSimScopeDisabled(g))).forEach(g => {
+        let qs = generateQuestionsForGroup(g, { types: typesFor(g), memorized: memo, match: true });
+        if (scopeSet) qs = qs.filter(q => q.type !== 'sim_which' || scopeSet.has(q.occurrence.surahNumber));
+        qs = shuffleArr(qs);
+        const picked = [];
+        for (let k = 0; k < 2; k++) {
+            const pool = qs.filter(q => !picked.some(x => x.type === q.type) && (used[q.type] || 0) < (CAP[q.type] ?? Infinity));
+            if (!pool.length) break;
+            pool.sort((x, y) => (used[x.type] || 0) - (used[y.type] || 0));
+            picked.push(pool[0]);
+            used[pool[0].type] = (used[pool[0].type] || 0) + 1;
+        }
+        all = all.concat(picked);
+    });
+    let recall = [];
+    try {
+        const area = scopeSet || memo;
+        const mem = memo || area;
+        if (mem && area) recall = generateRecallQuestions(getSimilarityQuran(), mem, scopePoolOf(area), { count: RECALL_PER_ROUND, types: ['sim_named'] })
+            .map(r => ({ ...r, type: r.kind }));
+    } catch (e) { console.warn('تعذّر توليد «اقرأ الآية من السورة المذكورة»:', e); }
+    const questions = shuffleArr(shuffleArr(all).slice(0, MAX_DAILY_QUESTIONS - recall.length).concat(recall));
+    return { groupIds: groups.map(g => g.groupId), questions, hasEnoughData: questions.length > 0, totalAvailable: all.length + recall.length };
+}
+const buildRound = (groups) => buildPlayRound(groups);
 
 async function resolveScopeGroups(scope) {
     if (!scope || !AppState.similaritiesManager) return { groups: [], title: '' };
@@ -149,7 +203,7 @@ async function resolveScopeGroups(scope) {
         const { memo } = coachMemo(memorizedSurahsOf(student, AppState.surahsData));
         // نتأكد أن كل مجموعة مختارة تولّد سؤالاً فعلاً لهذا الطالب (الخيارات مقيّدة بمحفوظه)
         try { await ensureSimilarityQuran(AppState.quranEngine); } catch (e) { /* يُعالَج لاحقاً في initSimilarityGamePlay */ }
-        const canAsk = (g) => generateQuestionsForGroup(g, { types: dailyTypesFor(g), memorized: memo }).length > 0;
+        const canAsk = (g) => generateQuestionsForGroup(g, { types: typesFor(g), memorized: memo, match: true }).length > 0;
         const plan = planStudentRound(all, records, memo, { isPlayable: g => !isSimScopeDisabled(g), canAsk });
         return { groups: plan.groups, title: `${t('sim_daily_title')} — ${student.name}`, student };
     }
@@ -176,6 +230,7 @@ export async function initSimilarityGamePlay() {
 
     const { groups, title, student: dailyStudent } = await resolveScopeGroups(scope);
     PlayState.dailyStudent = dailyStudent || null;
+    PlayState.scopeSurahs = scopeSurahSet(scope);
     if (groups.length === 0) {
         container.innerHTML = `<div class="sim-empty">${t('sim_no_data')}</div>`;
         return;
@@ -200,7 +255,7 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [], dailyStudent: dailyStudent || null, retries: 0,
+    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [], dailyStudent: dailyStudent || null, retries: 0, scopeSurahs: PlayState.scopeSurahs,
         sigById: new Map(groups.map(g => [g.groupId, groupSignature(g)])) };
     // «تدريب اليوم»: الطالب محدد مسبقاً فلا حاجة لشاشة اختياره
     if (dailyStudent) { PlayState.student = dailyStudent; writeLastStudentId(dailyStudent.id); initAudio(); renderQuestion(); return; }
@@ -271,6 +326,9 @@ async function renderQuestion() {
     const anchorEl = document.getElementById('simplay-anchor');
     if (anchorEl) anchorEl.textContent = `« ${stripHizbMark(q.anchorPhrase)} »`;
 
+    if (q.type === 'sim_match') { renderMatchQuestion(container, q); return; }
+    if (q.type === 'sim_named') { renderNamedQuestion(container, q); return; }
+
     const optionsExtraClass = SURAH_OPTION_TYPES.has(q.type) ? '' : ' sim-play-options-fulltext';
     container.innerHTML = `
         <div class="sim-group-card">
@@ -292,11 +350,7 @@ function handleAnswer(btn, q) {
     const chosen = decodeURIComponent(btn.dataset.opt);
     const isCorrect = String(chosen) === String(q.correctAnswer);
     const feedbackEl = document.getElementById('simplay-feedback');
-    PlayState.answers.push({
-        sig: PlayState.sigById.get(q.groupId) || q.groupId, groupId: q.groupId, anchorPhrase: q.anchorPhrase,
-        surahs: (PlayState.groups.find(g => g.groupId === q.groupId) || {}).surahs || [],
-        scope: q.scope, type: q.type, isCorrect
-    });
+    recordAnswer(q, isCorrect);
 
     if (isCorrect) {
         // 🌟 نفس فئات .btn-correct/.btn-wrong المستخدمة فعلياً في شاشات التقييم الأخرى تحت
@@ -326,12 +380,148 @@ function handleAnswer(btn, q) {
     setTimeout(nextQuestion, 1400);
 }
 
+// تسجيل الإجابة لنموذج الإتقان. أسئلة الاستحضار ليست من مجموعات قاعدة المتشابهات: مفتاحها ثابت بموضع الآية المرجعية
+function recordAnswer(q, isCorrect) {
+    const recall = q.scope === 'recall';
+    const occ = q.occurrence || {};
+    PlayState.answers.push({
+        sig: recall ? `recall:${occ.surahNumber}:${occ.ayahNumber}` : (PlayState.sigById.get(q.groupId) || q.groupId),
+        groupId: q.groupId, anchorPhrase: q.anchorPhrase,
+        surahs: recall ? [occ.surahNumber] : ((PlayState.groups.find(g => g.groupId === q.groupId) || {}).surahs || []),
+        scope: q.scope, type: q.type, isCorrect
+    });
+}
+
+// صحيحة: تشجيع ثم السؤال التالي آلياً. خاطئة: «قارن» + «فرصة ثانية» + زر «التالي»
+function afterAnswer(q, isCorrect, feedbackEl) {
+    if (isCorrect) {
+        playSuccessSound();
+        PlayState.correctCount++;
+        if (feedbackEl) feedbackEl.textContent = t('sim_game_correct_feedback');
+        showToastEncouragement('toast-encouragement');
+        setTimeout(nextQuestion, 1400);
+        return;
+    }
+    playErrorSound();
+    if (feedbackEl) feedbackEl.textContent = t('sim_game_wrong_feedback');
+    queueRetry(q);
+    showComparison(q, feedbackEl);
+}
+
+// ---- «صِل الآية بسورتها»: اضغط آية ثم سورتها؛ الضغط على زوج مربوط يفكّه؛ «تحقّق» حين تكتمل الأزواج ----
+function renderMatchQuestion(container, q) {
+    const m = q.match;
+    const pairs = new Map();   // leftId -> rightId
+    let selLeft = null;
+    const leftHTML = m.left.map(l => `<button type="button" class="sim-match-item sim-match-left" data-id="${l.id}"><span class="quran-text">﴿ ${escapeHtmlText(toQuranicSukun(l.text))} ﴾</span></button>`).join('');
+    const rightHTML = m.right.map(r => `<button type="button" class="sim-match-item sim-match-right" data-id="${r.id}">${escapeHtmlText(surahNameLocal(r.text))}</button>`).join('');
+    container.innerHTML = `
+        <div class="sim-group-card">
+            ${q.retry ? `<div class="sim-retry-badge">${t('sim_retry_badge')}</div>` : ''}
+            <div class="sim-play-prompt sim-q-text sim-q-platform">${t('sim_q_match_play')}</div>
+            <p class="sim-match-hint">${t('sim_match_hint')}</p>
+            <div class="sim-match-board"><div class="sim-match-col">${leftHTML}</div><div class="sim-match-col sim-match-col-r">${rightHTML}</div></div>
+            <button class="btn sim-next-btn" id="simplay-match-check" disabled>${t('sim_match_check_btn')}</button>
+            <div class="sim-play-feedback" id="simplay-feedback"></div>
+        </div>`;
+    const paint = () => {
+        const rightUsed = new Map([...pairs].map(([l, r]) => [r, l]));
+        const num = new Map([...pairs.keys()].map((l, i) => [l, i + 1]));
+        container.querySelectorAll('.sim-match-left').forEach(b => {
+            const id = b.dataset.id; b.classList.toggle('is-sel', id === selLeft); b.classList.toggle('is-paired', pairs.has(id));
+            b.dataset.n = pairs.has(id) ? num.get(id) : '';
+        });
+        container.querySelectorAll('.sim-match-right').forEach(b => {
+            const l = rightUsed.get(b.dataset.id); b.classList.toggle('is-paired', !!l); b.dataset.n = l ? num.get(l) : '';
+        });
+        const chk = document.getElementById('simplay-match-check');
+        if (chk) chk.disabled = pairs.size !== m.left.length;
+    };
+    container.querySelectorAll('.sim-match-left').forEach(b => b.addEventListener('click', () => {
+        if (b.disabled) return;
+        const id = b.dataset.id;
+        if (pairs.has(id)) { pairs.delete(id); selLeft = null; } else selLeft = selLeft === id ? null : id;
+        paint();
+    }));
+    container.querySelectorAll('.sim-match-right').forEach(b => b.addEventListener('click', () => {
+        if (b.disabled) return;
+        const id = b.dataset.id;
+        const owner = [...pairs].find(([, r]) => r === id);
+        if (owner) { pairs.delete(owner[0]); paint(); return; }
+        if (!selLeft) return;
+        pairs.set(selLeft, id); selLeft = null; paint();
+    }));
+    document.getElementById('simplay-match-check').addEventListener('click', (e) => {
+        e.currentTarget.disabled = true;
+        container.querySelectorAll('.sim-match-item').forEach(b => { b.disabled = true; });
+        const truth = new Map(m.pairs.map(p => [p.left, p.right]));
+        let ok = true;
+        container.querySelectorAll('.sim-match-left').forEach(b => {
+            const good = pairs.get(b.dataset.id) === truth.get(b.dataset.id);
+            if (!good) ok = false;
+            b.classList.add(good ? 'is-right' : 'is-wrong');
+            // الخاطئ يعرض سورته الصحيحة
+            if (!good) {
+                const r = m.right.find(x => x.id === truth.get(b.dataset.id));
+                b.insertAdjacentHTML('beforeend', `<span class="sim-match-fix">← ${escapeHtmlText(surahNameLocal(r ? r.text : ''))}</span>`);
+            }
+        });
+        recordAnswer(q, ok);
+        afterAnswer(q, ok, document.getElementById('simplay-feedback'));
+    });
+}
+
+// ---- «اقرأ الآية من السورة المذكورة»: سؤال شفهي — الطالب يقرأ، والمعلم يكشف الجواب ويقيّم (كما في لعبة الكبار) ----
+function renderNamedQuestion(container, q) {
+    const hints = (() => { try { return recallHintStages(q); } catch (e) { return []; } })();
+    let shown = 0;
+    container.innerHTML = `
+        <div class="sim-group-card">
+            ${q.retry ? `<div class="sim-retry-badge">${t('sim_retry_badge')}</div>` : ''}
+            <div class="sim-oral-badge">${t('sim_oral_badge')}</div>
+            <div class="sim-play-prompt sim-q-text sim-q-platform">${questionTextToHTML(localizedRecallText(q), toQuranicSukun)}</div>
+            <div class="sim-named-hints" id="simplay-hints"></div>
+            <div class="sim-named-answer" id="simplay-answer" hidden></div>
+            <div class="sim-named-actions" id="simplay-named-actions">
+                ${hints.length ? `<button class="btn btn-outline" id="simplay-hint">${t('sim_hint_btn')}</button>` : ''}
+                <button class="btn" id="simplay-reveal">${t('sim_reveal_btn')}</button>
+            </div>
+            <div class="sim-play-feedback" id="simplay-feedback"></div>
+        </div>`;
+    document.getElementById('simplay-hint')?.addEventListener('click', (e) => {
+        if (shown >= hints.length) return;
+        document.getElementById('simplay-hints').insertAdjacentHTML('beforeend', `<div class="sim-named-hint">${hints[shown++]}</div>`);
+        if (shown >= hints.length) e.currentTarget.disabled = true;
+    });
+    document.getElementById('simplay-reveal').addEventListener('click', () => {
+        const ans = document.getElementById('simplay-answer');
+        try { ans.innerHTML = recallAnswerHTML(q); } catch (e) { ans.innerHTML = `<span class="quran-text">﴿ ${escapeHtmlText(toQuranicSukun(q.correctAnswer))} ﴾</span>`; }
+        ans.hidden = false;
+        document.getElementById('simplay-named-actions').innerHTML = `
+            <button class="btn sim-grade-btn sim-grade-ok" id="simplay-grade-ok">${t('sim_grade_ok')}</button>
+            <button class="btn sim-grade-btn sim-grade-no" id="simplay-grade-no">${t('sim_grade_no')}</button>`;
+        const grade = (ok) => {
+            document.querySelectorAll('.sim-grade-btn').forEach(b => { b.disabled = true; });
+            recordAnswer(q, ok);
+            // الجواب معروض أصلاً: لا مقارنة ولا «فرصة ثانية» هنا (ليس من مجموعات القاعدة)، فقط زر «التالي» عند الخطأ
+            if (ok) { afterAnswer(q, true, document.getElementById('simplay-feedback')); return; }
+            playErrorSound();
+            const fb = document.getElementById('simplay-feedback');
+            if (fb) { fb.textContent = t('sim_game_wrong_feedback'); fb.insertAdjacentHTML('afterend', `<button class="btn sim-next-btn" id="simplay-btn-next">${t('sim_next_btn')}</button>`); }
+            document.getElementById('simplay-btn-next')?.addEventListener('click', () => nextQuestion(), { once: true });
+        };
+        document.getElementById('simplay-grade-ok').addEventListener('click', () => grade(true));
+        document.getElementById('simplay-grade-no').addEventListener('click', () => grade(false));
+    });
+}
+
 // يضيف لآخر الجولة سؤالاً آخر من المجموعة نفسها (بنص مختلف إن أمكن) — مرة واحدة لكل سؤال، وبحد MAX_RETRIES للجولة
 function queueRetry(q) {
     if (q.retry || (PlayState.retries || 0) >= MAX_RETRIES) return;
     const g = PlayState.groups.find(x => x.groupId === q.groupId);
     if (!g) return;
-    const fresh = generateQuestionsForGroup(g, { types: typesFor(g), memorized: studentMemorized() });
+    let fresh = generateQuestionsForGroup(g, { types: typesFor(g), memorized: studentMemorized(), match: true });
+    if (PlayState.scopeSurahs) fresh = fresh.filter(x => x.type !== 'sim_which' || PlayState.scopeSurahs.has(x.occurrence.surahNumber));
     if (!fresh.length) return;
     const pick = fresh.find(x => x.text !== q.text || x.correctAnswer !== q.correctAnswer) || fresh[0];
     PlayState.round.questions.push({ ...pick, retry: true });

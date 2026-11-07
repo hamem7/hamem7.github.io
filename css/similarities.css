@@ -1252,3 +1252,49 @@
 .sim-play-option-btn.sim-play-option-fulltext { font-size: clamp(1.3rem, 4.8vw, 1.7rem) !important; line-height: 2; }
 .sim-play-option-btn:not(.quran-text) { font-size: clamp(1.1rem, 4vw, 1.4rem) !important; }
 .sim-play-options { max-width: 760px; margin-inline: auto; }
+
+
+/* ---- 🌟 [2026-11-07] «صِل الآية بسورتها» و«اقرأ الآية من السورة المذكورة» داخل ركن المتشابهات ---- */
+.sim-match-hint { color: var(--dh-ink-soft); font-size: 0.9rem; margin: -6px 0 12px; }
+.sim-match-board { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; max-width: 860px; margin: 0 auto; }
+.sim-match-col { display: flex; flex-direction: column; gap: 8px; }
+.sim-match-item {
+    position: relative;
+    padding: 10px 14px;
+    padding-inline-start: 38px;
+    border-radius: var(--dh-r-md);
+    border: 2px solid var(--dh-border-strong);
+    background: var(--dh-surface-3);
+    color: var(--dh-ink);
+    font-family: inherit;
+    font-size: clamp(1.05rem, 3.6vw, 1.25rem);
+    cursor: pointer;
+    text-align: center;
+}
+.sim-match-left .quran-text { font-size: clamp(1.2rem, 4.2vw, 1.5rem); color: var(--dh-ink); }
+.sim-group-card .sim-match-left span.quran-text { background: none; border: 0; padding: 0 !important; display: inline; }
+.sim-match-item.is-sel { border-color: var(--dh-gold-500); box-shadow: 0 0 0 3px var(--dh-warn-bg); }
+.sim-match-item.is-paired { border-color: var(--dh-emerald-600); background: var(--dh-ok-bg); }
+.sim-match-item[data-n]:not([data-n=""])::before {
+    content: attr(data-n);
+    position: absolute; inset-inline-start: 8px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 800;
+    background: var(--dh-emerald-700); color: var(--dh-on-emerald);
+}
+.sim-match-item.is-right { border-color: var(--dh-ok); background: var(--dh-ok-bg); }
+.sim-match-item.is-wrong { border-color: var(--dh-danger); background: var(--dh-danger-bg); }
+.sim-match-item:disabled { cursor: default; }
+.sim-match-fix { display: block; font-size: 0.9rem; color: var(--dh-danger-ink); margin-top: 4px; }
+.sim-oral-badge {
+    display: inline-block; margin-bottom: 10px; padding: 4px 12px; border-radius: 999px; font-size: 0.85rem;
+    background: var(--dh-warn-bg); color: var(--dh-ink); border: 1px solid var(--dh-warn);
+}
+.sim-named-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 14px; }
+.sim-named-hint { margin-top: 10px; padding: 10px 12px; border-radius: var(--dh-r-md); background: var(--dh-surface-2); border: 1px solid var(--dh-border-soft); }
+.sim-named-answer { margin-top: 14px; padding: 12px; border-radius: var(--dh-r-md); background: var(--dh-surface-2); border: 1px solid var(--dh-border); }
+.sim-named-answer .quran-text, .sim-named-hint .quran-text { font-size: clamp(1.3rem, 4.6vw, 1.7rem); }
+.sim-group-card .sim-grade-btn.sim-grade-ok { background: var(--dh-ok) !important; color: var(--dh-on-ok) !important; }
+.sim-group-card .sim-grade-btn.sim-grade-no { background: var(--dh-danger) !important; color: var(--dh-on-danger) !important; }
+@media (max-width: 600px) { .sim-match-board { grid-template-columns: 1fr; } }

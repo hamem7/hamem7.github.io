@@ -126,7 +126,7 @@ const verseHTML = (v, markRange) => {
 };
 const placeOf = (v, next) => `<div style="font-size:1rem; color:var(--secondary); margin:10px 0 2px;">${next ? esc(t('sim_ans_next')) + ' — ' : ''}${esc(tf('sim_inj_surah_label', { name: surahLabel(v.surahName) }))} · ${esc(tf('sim_inj_ayah_label', { n: v.ayahNumber }))}</div>`;
 
-function recallAnswerHTML(sim) {
+export function recallAnswerHTML(sim) {
     const r = sim.reveal;
     if (sim.kind === 'sim_missing') {
         const [x, y] = [r.a.words[r.a.mark[0]], r.b.words[r.b.mark[0]]];
@@ -136,7 +136,7 @@ function recallAnswerHTML(sim) {
     return placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map(o => placeOf(o, true) + verseHTML(o, true)).join('');
 }
 
-function recallHintStages(sim) {
+export function recallHintStages(sim) {
     const target = sim.reveal.target;
     return sim.hints.map(h => {
         if (h.k === 'first') return `<div style="font-size:1.1rem;">${esc(t('sim_hint_first'))} <span class="quran-text">${esc(toQuranicSukun(h.word))}</span></div>`;
