@@ -1771,7 +1771,7 @@ h1.home-title .home-title-ha {
     background-image: url("../assets/brand/hero-pattern.webp");
     background-size: 520px auto;
     background-repeat: repeat;
-    opacity: 0.22;
+    opacity: 0.18;
     -webkit-mask-image: radial-gradient(ellipse 80% 90% at 80% 30%, #000 20%, transparent 85%);
     mask-image: radial-gradient(ellipse 80% 90% at 80% 30%, #000 20%, transparent 85%);
 }
