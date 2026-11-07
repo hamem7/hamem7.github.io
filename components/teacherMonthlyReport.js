@@ -33,6 +33,7 @@ function ensureStyles() {
     const st = document.createElement('style');
     st.id = STYLE_ID;
     st.textContent = `
+body.tmr-open #main-header{display:flex !important;position:fixed !important;top:0;left:0;right:0;transform:none !important;z-index:10050;}
 .tmr-overlay{position:fixed;top:0;right:0;bottom:0;left:0;z-index:10000;overflow-y:auto;font-family:'IBM Plex Sans Arabic',sans-serif;color:var(--dh-ink);padding:16px;box-sizing:border-box;background-color:#092b46;}
 .tmr-wrap{max-width:900px;margin:0 auto;padding:22px 20px 28px;box-sizing:border-box;background:var(--dh-surface);border-radius:30px;box-shadow:0 25px 60px rgba(0,0,0,.3);}
 .tmr-wrap[dir="rtl"]{direction:rtl;}.tmr-wrap[dir="ltr"]{direction:ltr;}
@@ -166,6 +167,7 @@ async function copyText(text) {
 export function openTeacherMonthlyReport(opts = {}) {
   ensureStyles();
   document.getElementById('tmr-overlay')?.remove();
+  document.body.classList.remove('tmr-open');
   const now = new Date();
   const base = { y: now.getFullYear(), m: now.getMonth() };
   let sel = { y: opts.year != null ? opts.year : base.y, m: opts.monthIndex0 != null ? opts.monthIndex0 : base.m };
@@ -177,17 +179,21 @@ export function openTeacherMonthlyReport(opts = {}) {
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-label', t('tr_title'));
+  document.body.classList.add('tmr-open');   // الترويسة الموحّدة ظاهرة دائماً (حتى لو فُتح التقرير من الرئيسية حيث تُخفى)
   placeBelowMainHeader(overlay);
   try { const cs = getComputedStyle(document.body); overlay.style.backgroundColor = cs.backgroundColor; overlay.style.backgroundImage = cs.backgroundImage; overlay.style.backgroundSize = cs.backgroundSize; overlay.style.backgroundBlendMode = cs.backgroundBlendMode; overlay.style.backgroundAttachment = 'fixed'; } catch (e) { /* الاحتياطي: لون ثابت من الأنماط */ }
   document.body.appendChild(overlay);
   const onResize = () => placeBelowMainHeader(overlay);
   window.addEventListener('resize', onResize);
+  const headerHome = document.getElementById('header-home-btn');
+  if (headerHome) headerHome.addEventListener('click', () => close());
 
   const monthsBack = (y, m) => (base.y - y) * 12 + (base.m - m);
   const close = () => {
     window.removeEventListener('resize', onResize);
     document.removeEventListener('keydown', onKey);
     document.removeEventListener('app-lang-changed', rerender);
+    document.body.classList.remove('tmr-open');
     overlay.remove();
   };
   const onKey = (e) => { if (e.key === 'Escape') close(); };

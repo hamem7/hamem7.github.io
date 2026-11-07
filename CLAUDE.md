@@ -17,6 +17,7 @@
 - المرجع الثابت: `#main-header` في `index.html` (تنسيقها في `css/home.css`، والشعار من `core/brandLogo.js`) — يشمل الشعار والنص، وأزرار «الرئيسية» و«حسابي» (صورة المعلم) و«English» بنفس الترتيب والأحجام.
 - شاشات المنصة تُحقن داخل `#app-root` وتظهر تحت هذه الترويسة الوحيدة: **لا تنشئ ترويسة خاصة بشاشة**. الشاشات الكاملة التي تغطي الصفحة (overlays) تبدأ من أسفل الترويسة (انظر `placeBelowMainHeader` في `components/monthlyMemorizationBulkScreen.js`).
 - أي صفحة HTML مستقلة جديدة (ذات `<html>`) تنسخ كتلة `#main-header` من `index.html` كما هي وتحمّل `css/tokens.css` و`css/global.css` و`css/home.css` و`core/brandLogo.js` (المثال: `privacy.html`).
+- **كل شاشة أو صفحة جديدة يجب أن تظهر فيها الترويسة الموحّدة دائماً**، حتى لو فُتحت من الشاشة الرئيسية (حيث `body.dh-home-screen #main-header` مخفية). الشاشة الـ overlay تضيف صنفاً على `<body>` يفرض ظهور الترويسة (`display:flex !important; position:fixed; top:0; z-index:10050`) وتزيله عند الإغلاق، وتبدأ من أسفلها بـ `placeBelowMainHeader` (أمثلة: `mmt-open` في `components/monthlyMemorizationBulkScreen.js` و`tmr-open` في `components/teacherMonthlyReport.js`). افتح الشاشة من الرئيسية فعلياً وتأكد من ظهور الترويسة.
 - قبل أي رفع: شغّل `node tools/check-header.mjs` — يجب أن ينجح (يعمل أيضًا في GitHub Actions: `.github/workflows/check-header.yml`). لا تُقبل صفحة تفشل فيه.
 
 ## المظهر الداكن (فاتح/داكن)
