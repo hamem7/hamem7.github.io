@@ -32,7 +32,7 @@ const HANDLED = new Set(['css/home.css', 'css/adults.css', 'css/tokens.css', 'cs
   'student/my-students.html', 'student/login.html', 'student/student-profile.html', 'components/account-screen.html', 'settings/dashboard.html',
   'css/teacherAuthGate.css', 'core/dialog.js',
   // «تحدي التجويد»: داخل Shadow DOM فلا تصله قواعد المنصة؛ يستعمل رموز --dh-* ويعرّف مظهره الداكن بنفسه (.tjc[data-theme="dark"]) والباقي ألوان ثابتة مقصودة (ورق المصحف العاجي، ذهب الدبابيس)
-  'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css',
+  'tajweed/challenge/css/challenge.css', 'tajweed/challenge/css/mushaf.css', 'tajweed/challenge/css/colormushaf.css',
   // مشهد الوسام السينمائي: مسرح فاتح افتراضيًا وداكن في المظهر الداكن — كلاهما مكتوب يدويًا داخل الملف (html:not([data-theme="dark"]))
   'components/badgeReveal.js',
   // تقرير المعلم الشهري: كل ألوانه رموز --dh-* تنقلب تلقائياً؛ المتبقي بطل أخضر داكن مقصود (نص فاتح على تدرّج زمردي) وطبقات بيضاء شفافة فوقه، وهو داكن في المظهرين

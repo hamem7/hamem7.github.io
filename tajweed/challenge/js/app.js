@@ -4,6 +4,8 @@ import { STAGES, RULES, META, SOURCES, stageOf, GROUPS } from '../data/rules.js'
 import { MUSHAF, LESSON_IMG, signImg } from '../data/mushaf.js';
 import { buildMushafLevel, buildMushafStage, mushafMixedQuestion } from './mushaf-engine.js';
 import { initMushaf } from './mushaf.js';
+import { initColorMushaf, CM_LEGEND } from './colormushaf.js';
+import { CM_PALETTE } from '../data/mushaf-color-index.js';
 import { rng, shuffle } from './engine.js';
 import { lessonExamples, buildLevel, buildStageChallenge, buildMixed, stars as calcStars, whyOf, LEVELS } from './engine.js';
 import { locate, initDecor } from './quran.js';
@@ -24,7 +26,7 @@ let root = null; // <main id="app"> داخل Shadow DOM (يُنشأ في start)
 let host = null, wrap = null, opts = {};
 let guest = false; // اختار «بدون اسم»
 let student = null; // الطالب المختار {id, name} أو null (بدون اسم)
-let M;
+let M, CM;
 const ALL_RULES = STAGES.flatMap((s) => s.rules);
 
 // ───────── مساعدات ─────────
@@ -103,6 +105,11 @@ function renderHome() {
   }).join('');
   const nr = nxt.rule; const learnHash = nr ? `#/learn/${nr}` : '#/mixed'; const trainHash = nr ? (nxt.hash.startsWith('#/play') ? nxt.hash : `#/rule/${nr}`) : '#/mixed';
   shell(`
+    <a class="cm-entry" href="#/quran" aria-label="${esc(t('cm_entry_title'))}">
+      <span class="cm-entry-ico" aria-hidden="true">📖</span>
+      <span class="cm-entry-tx"><b>${t('cm_entry_title')}</b><small>${t('cm_entry_sub')}</small><span class="cm-entry-dots" aria-hidden="true">${CM_LEGEND.map((e) => `<i style="background:${CM_PALETTE[e.c[0]]}"></i>`).join('')}</span></span>
+      <span class="cm-entry-go">${t('cm_entry_go')} <span class="arr" aria-hidden="true"></span></span>
+    </a>
     <section class="hero home-next">
       <div class="hero-text">
         <h1>${student ? t('home_hello_name', { name: esc(student.name) }) : t('home_hello')}</h1>
@@ -379,6 +386,7 @@ function render() {
     if (p[0] === 'mixed') return playRun('mixed');
     if (p[0] === 'who') return renderWho();
     if (p[0] === 'explorer') return M.renderExplorer();
+    if (p[0] === 'quran') { const n = Number(p[1]); return p[1] === undefined ? CM.renderIndex() : Number.isInteger(n) && n >= 1 && n <= 114 ? CM.renderSurah(n) : bad(); }
     if (p[0] === 'about') return renderAbout();
     if (p[0] === 'review' && STAGES.some((s) => s.id === p[1])) return renderReview(p[1]);
     return bad();
@@ -425,6 +433,7 @@ const barHTML = () => `
   ${student ? `<button type="button" class="who-chip" data-act="who" style="--hue:var(--h-${hueOf(student.name)})" title="${esc(t('who_change'))}"><span class="who-av sm" aria-hidden="true">${esc(initial(student.name))}</span><b>${esc(student.name)}</b><small>${t('who_change')}</small></button>` : ''}
   <nav class="tbar" aria-label="${esc(t('app_title'))}">
     <button type="button" class="btn ghost sm" data-act="home">🏠 <span>${esc(t('nav_home'))}</span></button>
+    <button type="button" class="btn ghost sm" data-act="quran">📖 <span>${esc(t('nav_quran'))}</span></button>
     <button type="button" class="btn ghost sm" data-act="about">📚 <span>${esc(t('nav_about'))}</span></button>
     <button type="button" class="btn ghost sm${isReview() ? ' on' : ''}" data-act="review" aria-pressed="${isReview()}" title="${esc(t('nav_review'))}">🔍 <span>${esc(t('nav_review'))}</span></button>
     ${opts.onExit ? `<button type="button" class="btn ghost sm tbar-exit" data-act="exit"><span>${esc(t('nav_exit'))}</span></button>` : ''}
@@ -443,16 +452,17 @@ export async function start(hostEl, options = {}) {
   store.setSink((e) => { if (student) opts.onProgress?.(e, student); });
   student = null; guest = false; store.setProfile(options.students?.length ? '' : (options.profile || ''));
   const sr = host.shadowRoot || host.attachShadow({ mode: 'open' });
-  const css = ['challenge.css', 'mushaf.css', 'story.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
+  const css = ['challenge.css', 'mushaf.css', 'story.css', 'colormushaf.css'].map((f) => new URL(`../css/${f}`, import.meta.url).href);
   sr.innerHTML = `${css.map((h) => `<link rel="stylesheet" href="${h}">`).join('')}<div class="tjc" id="tjc"><div id="tjc-bar"></div><main id="app" tabindex="-1"></main></div>`;
   wrap = sr.getElementById('tjc'); root = sr.getElementById('app'); setToastHost(wrap);
   await Promise.all([...sr.querySelectorAll('link')].map((l) => new Promise((res) => { if (l.sheet) res(); else { l.addEventListener('load', res); l.addEventListener('error', res); } })));
   wrap.querySelector('#tjc-bar').addEventListener('click', (e) => {
     const b = e.target.closest('[data-act]'); if (!b) return;
-    if (b.dataset.act === 'home') go('#/'); else if (b.dataset.act === 'who') go('#/who'); else if (b.dataset.act === 'about') go('#/about'); else if (b.dataset.act === 'exit') opts.onExit?.();
+    if (b.dataset.act === 'home') go('#/'); else if (b.dataset.act === 'who') go('#/who'); else if (b.dataset.act === 'about') go('#/about'); else if (b.dataset.act === 'quran') go('#/quran'); else if (b.dataset.act === 'exit') opts.onExit?.();
     else if (b.dataset.act === 'review') { setReview(!isReview()); syncAttrs(); render(); }
   });
   M = initMushaf({ shell, crumb, stageStyle, go, root: () => root });
+  CM = initColorMushaf({ shell, crumb, go, root: () => root });
   initDecor(root);
   syncAttrs();
   // مظهر المنصة (فاتح/داكن) واللغة: نتابعهما من المنصة نفسها
