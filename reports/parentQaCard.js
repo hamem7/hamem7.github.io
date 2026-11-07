@@ -119,6 +119,11 @@ function problemPlaces(d, deps){
   return [...by.values()].map(e => ({ s: e.s, items: e.items, count: e.items.length + e.loose }))
     .filter(e => e.count > 0).sort((a, b) => b.count - a.count);
 }
+// «تسميع السورة من الآية أ إلى الآية ب» (نطاق الاختبار في هذه السورة)، وإن لم يُعرف النطاق نرجع لصيغة العدد
+function reciteLabel(e, sc){
+  const si = (sc.surahs || []).find(x => x.name === e.s);
+  return si && si.from > 0 && si.to >= si.from ? tf('qa_recite_range', { a: si.from, b: si.to }) : nForm('qa_recite', e.count);
+}
 function placesBox(d, sc, deps){
   const ask = gf('qa_q2', he());
   const groups = problemPlaces(d, deps);
@@ -144,7 +149,7 @@ function placesBox(d, sc, deps){
     rows = groups.slice(0, 3).map(e => {
       const name = e.s ? surahNamesLocal(e.s) : '';
       const chips = e.items.length ? e.items.slice(0, 4).map(chip).join('') + (e.items.length > 4 ? `<span class="more">+${e.items.length - 4}</span>` : '')
-        : `<span class="chip ${cls}">${E(nForm('qa_recite', e.count))}</span>`;
+        : `<span class="chip ${cls}">${E(reciteLabel(e, sc))}</span>`;
       return `<div class="row">${name ? `<span class="s">${E(name)}</span>` : ''}${chips}</div>`;
     }).join('');
     const rest = groups.slice(3), rc = rest.reduce((a, e) => a + e.count, 0);
