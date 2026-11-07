@@ -94,10 +94,14 @@ function renderCard() {
                     </div>
                 </div>
             </div>
-            <div class="si-sec kid"><h2>🌟 ${esc(t('si_simple'))}</h2><p>${esc(en ? s.ke : s.ka)}</p></div>
-            ${book('si_meaning', s.mean)}
-            ${book('si_goal', s.goal)}
-            ${book('si_names', s.names)}
+            <div class="si-card-row">
+                <div class="si-sec kid"><h2>🌟 ${esc(t('si_simple'))}</h2><p>${esc(en ? s.ke : s.ka)}</p></div>
+                ${book('si_goal', s.goal)}
+            </div>
+            <div class="si-books">
+                ${book('si_meaning', s.mean)}
+                ${book('si_names', s.names)}
+            </div>
             <div class="si-media">
                 ${s.audio ? `<audio controls preload="none" src="${esc(s.audio)}" aria-label="${esc(t('si_audio'))}" title="${esc(t('si_audio'))}"></audio>` : ''}
                 ${s.yt ? `<a class="si-btn" href="https://www.youtube.com/watch?v=${esc(s.yt)}" target="_blank" rel="noopener">▶ ${esc(t('si_video'))}</a>` : ''}

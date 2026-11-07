@@ -2,7 +2,8 @@
 <!-- 📖 [جديد] شاشة «تعرّف على السورة»: تُحقن داخل #app-root تحت الترويسة الموحّدة (بلا ترويسة خاصة)، بنفس نمط رأس الشاشات الداخلية
      (زر رجوع + عنوان، مثل سياسة الخصوصية). كل الألوان من رموز الهوية فتنقلب تلقائياً في المظهر الداكن. المنطق في components/surahIntro.js -->
 <style>
-    #app-root #si-screen { max-width: 860px; text-align: start; padding: 22px 18px !important; display: flex; flex-direction: column; gap: 16px; color: var(--dh-ink); --si-fs: 1.15rem; }
+    #app-root .screen.si-wrap { max-width: none; padding: 12px 14px; }
+    #app-root #si-screen.login-container { max-width: none !important; width: 100%; margin: 0 !important; box-sizing: border-box; text-align: start; padding: 22px 18px !important; display: flex; flex-direction: column; gap: 16px; color: var(--dh-ink); --si-fs: 1.15rem; }
     #si-screen .si-head { display: flex; align-items: center; gap: 10px; }
     #si-screen .si-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
     #si-screen .si-back:focus-visible, #si-screen button:focus-visible, #si-screen a:focus-visible, #si-screen input:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
@@ -39,9 +40,13 @@
     #si-screen .si-btn[disabled] { opacity: .45; cursor: default; }
     #si-screen .si-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
     #si-screen .si-credit { font-size: .78rem; color: var(--dh-ink-soft); line-height: 1.7; border-top: 1px dashed var(--dh-border); padding-top: 10px; }
+    /* ملء عرض الصفحة (بطلب صاحب المنصة) وتقليل النزول: أقسام الكتاب الثلاثة متجاورة على الشاشات العريضة */
+    #si-screen .si-books { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    #si-screen .si-card-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    @media (min-width: 900px) { #si-screen .si-card-row { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; } }
     @media (max-width: 600px) { #si-screen .si-card-name { font-size: 1.6rem !important; } #si-screen .si-card-ic { font-size: 2.6rem; } #si-screen .si-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); } }
 </style>
-<div class="screen active">
+<div class="screen active si-wrap">
     <div class="login-container" id="si-screen">
         <div class="si-head">
             <button type="button" class="si-back" id="btn-back-surah-intro">
