@@ -127,7 +127,7 @@ function placesBox(d, sc, deps){
   const ns = groups.filter(e => e.s).length || 1;
   const ans = ns > 1 ? tf('qa_pl_in_many', { p: nForm('qa_place', all), s: nForm('qa_surah', ns) }) : tf('qa_pl_in_one', { p: nForm('qa_place', all) });
   const cls = (d.ledger || []).some(r => r.status === 'wrong') ? 'no' : 'pa';
-  const chip = it => `<span class="chip ${it.cls}">${E(it.a)}</span>`;
+  const chip = it => `<span class="chip ${it.cls}">${E(tf(/–/.test(it.a) ? 'qa_ayahs' : 'qa_ayah', { n: it.a }))}</span>`;
   let rows = '', det = t('qa_pl_legend');
   const sInfo = sc.surahs.find(s => s.name === groups[0].s);
   // سورة واحدة بأخطاء كثيرة: تجميع حسب أجزاء السورة (أولها/وسطها/آخرها) بدل سرد الأرقام
@@ -144,7 +144,7 @@ function placesBox(d, sc, deps){
     rows = groups.slice(0, 3).map(e => {
       const name = e.s ? surahNamesLocal(e.s) : '';
       const chips = e.items.length ? e.items.slice(0, 4).map(chip).join('') + (e.items.length > 4 ? `<span class="more">+${e.items.length - 4}</span>` : '')
-        : `<span class="chip ${cls}">${E(nForm('qa_placeN', e.count))}</span>`;
+        : `<span class="chip ${cls}">${E(nForm('qa_recite', e.count))}</span>`;
       return `<div class="row">${name ? `<span class="s">${E(name)}</span>` : ''}${chips}</div>`;
     }).join('');
     const rest = groups.slice(3), rc = rest.reduce((a, e) => a + e.count, 0);
