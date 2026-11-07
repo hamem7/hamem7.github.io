@@ -76,7 +76,8 @@ function renderList() {
     });
 }
 
-// تكبير صورة كلمات السورة: طبقة فوق الشاشة تبدأ من أسفل الترويسة؛ تُغلق بالضغط أو Esc
+// تكبير صورة كلمات السورة: طبقة فوق الشاشة تبدأ من أسفل الترويسة؛ تُغلق بالضغط على الخلفية أو ✕ أو Esc.
+// داخل الطبقة: تكبير إضافي بأزرار + / − أو عجلة الفأرة أو القرص بإصبعين أو النقر المزدوج، والسحب للتنقل.
 function openZoom(src, alt) {
     document.getElementById('si-zoom')?.remove();
     const ov = document.createElement('div');
@@ -86,13 +87,45 @@ function openZoom(src, alt) {
     ov.setAttribute('aria-label', alt);
     const h = document.getElementById('main-header');
     ov.style.top = (h ? Math.max(0, Math.round(h.getBoundingClientRect().bottom)) : 0) + 'px';
-    ov.innerHTML = `<button type="button" class="si-zoom-x" aria-label="${esc(t('si_close'))}" title="${esc(t('si_close'))}">✕</button><img src="${esc(src)}" alt="${esc(alt)}">`;
+    const zi = t('si_zoom_in'), zo = t('si_zoom_out'), cl = t('si_close');
+    ov.innerHTML = `<button type="button" class="si-zoom-x" data-a="close" aria-label="${esc(cl)}" title="${esc(cl)}">✕</button>
+        <div class="si-zoom-ctl"><button type="button" data-a="in" aria-label="${esc(zi)}" title="${esc(zi)}">+</button><button type="button" data-a="out" aria-label="${esc(zo)}" title="${esc(zo)}">−</button></div>
+        <img src="${esc(src)}" alt="${esc(alt)}" draggable="false">`;
+    const img = ov.querySelector('img');
+    let sc = 1, x = 0, y = 0;
+    const apply = () => {
+        if (sc <= 1) { sc = 1; x = 0; y = 0; }
+        img.style.transform = `translate(${x}px,${y}px) scale(${sc})`;
+        ov.classList.toggle('is-zoomed', sc > 1);
+    };
+    const setScale = v => { sc = Math.min(5, Math.max(1, v)); apply(); };
     const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
-    const onKey = e => { if (e.key === 'Escape') close(); };
-    ov.addEventListener('click', close);
+    const onKey = e => { if (e.key === 'Escape') close(); else if (e.key === '+' || e.key === '=') setScale(sc * 1.4); else if (e.key === '-') setScale(sc / 1.4); };
+    // سحب بإصبع واحد/فأرة + قرص بإصبعين
+    const ptrs = new Map(); let pinch = 0, moved = false;
+    img.addEventListener('pointerdown', e => { img.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); moved = false; if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); } });
+    img.addEventListener('pointermove', e => {
+        const p = ptrs.get(e.pointerId); if (!p) return;
+        if (ptrs.size === 2) {
+            p.x = e.clientX; p.y = e.clientY;
+            const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+            if (pinch) setScale(sc * d / pinch); pinch = d; moved = true;
+        } else if (sc > 1) {
+            x += e.clientX - p.x; y += e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; moved = true; apply();
+        }
+    });
+    const up = e => { ptrs.delete(e.pointerId); pinch = 0; };
+    img.addEventListener('pointerup', up); img.addEventListener('pointercancel', up);
+    img.addEventListener('click', e => { e.stopPropagation(); });
+    img.addEventListener('dblclick', e => { e.stopPropagation(); if (!moved) setScale(sc > 1 ? 1 : 2.5); });
+    ov.addEventListener('wheel', e => { e.preventDefault(); setScale(sc * (e.deltaY < 0 ? 1.2 : 1 / 1.2)); }, { passive: false });
+    ov.addEventListener('click', e => {
+        const a = e.target.closest?.('[data-a]')?.dataset.a;
+        if (a === 'in') setScale(sc * 1.4); else if (a === 'out') setScale(sc / 1.4); else close();
+    });
     document.addEventListener('keydown', onKey);
     document.body.appendChild(ov);
-    ov.querySelector('button').focus();
+    ov.querySelector('.si-zoom-x').focus();
 }
 
 function renderCard() {
