@@ -6,4 +6,4 @@
 
 ## مواضع الآيات (assets/mushaf/ayah/)
 - من https://android.quran.com/data/databases/ayahinfo/ayahinfo_1024.zip (مشروع quran_android)، حُوّلت بـ `tools/build-ayah-rects.py` عبر `.github/workflows/fetch-ayah-rects.yml`.
-- لكل صفحة ملف `pNNN.json` بنِسَب مئوية من الصورة الأصلية (1024×1656) فتصلح لأي حجم عرض. تُستعمل لتظليل الآية في سؤال الذاكرة البصرية.
+- 31 ملفاً `gNN.json` (كل منها 20 صفحة) بنِسَب مئوية من الصورة الأصلية (1024×1656) فتصلح لأي حجم عرض. تُستعمل لتظليل الآية في سؤال الذاكرة البصرية.

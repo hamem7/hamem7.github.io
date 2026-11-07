@@ -1,6 +1,6 @@
 name: Fetch Ayah Rects
 
-# تشغيل يدوي فقط: ينزّل قاعدة مواضع الآيات على صور المصحف (ayahinfo من مشروع quran_android) ويحوّلها إلى JSON لكل صفحة في assets/mushaf/ayah/
+# تشغيل يدوي فقط: ينزّل قاعدة مواضع الآيات على صور المصحف (ayahinfo من مشروع quran_android) ويحوّلها إلى ملفات JSON (31 ملفاً، كل منها 20 صفحة) في assets/mushaf/ayah/
 # تُستعمل لتظليل الآية بالأصفر عند «إظهار الإجابة» في سؤال الذاكرة البصرية.
 on:
   workflow_dispatch:
@@ -28,6 +28,7 @@ jobs:
           set -euo pipefail
           db=$(find work/ayahinfo -name '*.db' | head -1)
           test -n "$db"
+          rm -rf assets/mushaf/ayah
           python3 tools/build-ayah-rects.py "$db" assets/mushaf/ayah
           du -sh assets/mushaf/ayah
 
@@ -37,7 +38,7 @@ jobs:
 
           ## مواضع الآيات (assets/mushaf/ayah/)
           - من https://android.quran.com/data/databases/ayahinfo/ayahinfo_1024.zip (مشروع quran_android)، حُوّلت بـ `tools/build-ayah-rects.py` عبر `.github/workflows/fetch-ayah-rects.yml`.
-          - لكل صفحة ملف `pNNN.json` بنِسَب مئوية من الصورة الأصلية (1024×1656) فتصلح لأي حجم عرض. تُستعمل لتظليل الآية في سؤال الذاكرة البصرية.
+          - 31 ملفاً `gNN.json` (كل منها 20 صفحة) بنِسَب مئوية من الصورة الأصلية (1024×1656) فتصلح لأي حجم عرض. تُستعمل لتظليل الآية في سؤال الذاكرة البصرية.
           MD
 
       - name: رفع الملفات

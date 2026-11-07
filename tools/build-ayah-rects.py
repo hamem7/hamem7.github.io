@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """يحوّل قاعدة ayahinfo_1024.db (مشروع quran_android) إلى ملفات JSON صغيرة لكل صفحة مصحف:
-assets/mushaf/ayah/pNNN.json  =>  { "سورة:آية": [[x1,y1,x2,y2], ...] }  (نِسَب مئوية من أبعاد الصورة الأصلية 1024×1656)
+assets/mushaf/ayah/gNN.json (كل ملف 20 صفحة، لتقليل عدد الملفات المنشورة)  =>  { "رقم الصفحة": { "سورة:آية": [[x1,y1,x2,y2], ...] } }  (نِسَب مئوية من أبعاد الصورة الأصلية 1024×1656)
 تُستعمل لتظليل الآية في سؤال الذاكرة البصرية (components/visualMemoryHighlight.js). تُشغَّل عبر .github/workflows/fetch-ayah-rects.yml
 الاستعمال: build-ayah-rects.py <ayahinfo_1024.db> <مجلد الإخراج>"""
 import json, os, sqlite3, sys
 from collections import defaultdict
 
 W, H = 1024.0, 1656.0
+PAGES_PER_FILE = 20   # يطابق components/visualMemoryHighlight.js
 db_path, out_dir = sys.argv[1], sys.argv[2]
 con = sqlite3.connect(db_path)
 cols = [r[1] for r in con.execute("PRAGMA table_info(glyphs)")]
@@ -36,6 +37,7 @@ def pct(v, total):
 
 os.makedirs(out_dir, exist_ok=True)
 ayahs = set()
+chunks = defaultdict(dict)
 for page, items in pages.items():
     out = {}
     for key, rects in items.items():
@@ -47,8 +49,10 @@ for page, items in pages.items():
                 a[3] = mid; b[1] = mid
         out[key] = [[pct(r[0], W), pct(r[1], H), pct(r[2], W), pct(r[3], H)] for r in rects]
         ayahs.add(key)
-    with open(os.path.join(out_dir, f"p{page:03d}.json"), "w", encoding="utf-8") as f:
-        json.dump(out, f, separators=(",", ":"))
+    chunks[(page - 1) // PAGES_PER_FILE][str(page)] = out
+for c, data in chunks.items():
+    with open(os.path.join(out_dir, f"g{c:02d}.json"), "w", encoding="utf-8") as f:
+        json.dump(data, f, separators=(",", ":"))
 
 print(f"صفحات: {len(pages)} — آيات: {len(ayahs)}")
 if len(pages) != 604 or len(ayahs) < 6200:

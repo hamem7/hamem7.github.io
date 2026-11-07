@@ -1,15 +1,17 @@
 // components/visualMemoryHighlight.js
 // تظليل الآية المطلوبة بالأصفر على صورة صفحة المصحف في سؤال «الذاكرة البصرية» — يظهر فقط عند «إظهار الإجابة».
-// البيانات: assets/mushaf/ayah/pNNN.json (نِسَب مئوية من الصورة؛ تُولَّد عبر .github/workflows/fetch-ayah-rects.yml).
+// البيانات: assets/mushaf/ayah/gNN.json — كل ملف يضم 20 صفحة { "رقم الصفحة": { "سورة:آية": [[x1,y1,x2,y2],..] } } بنِسَب مئوية من الصورة (تُولَّد عبر .github/workflows/fetch-ayah-rects.yml).
 // الطبقة <div class="vm-hl-layer" data-page data-s data-a> موضوعة فوق الصورة؛ إن لم توجد البيانات تبقى فارغة ولا يتأثر السؤال.
-const pageCache = new Map();
+const PAGES_PER_FILE = 20;   // يطابق tools/build-ayah-rects.py
+const chunkCache = new Map();
 
 function loadPage(n) {
-    if (!pageCache.has(n)) {
-        const url = `assets/mushaf/ayah/p${String(n).padStart(3, '0')}.json`;
-        pageCache.set(n, fetch(url).then(r => (r.ok ? r.json() : null)).catch(() => null));
+    const c = Math.floor((n - 1) / PAGES_PER_FILE);
+    if (!chunkCache.has(c)) {
+        const url = `assets/mushaf/ayah/g${String(c).padStart(2, '0')}.json`;
+        chunkCache.set(c, fetch(url).then(r => (r.ok ? r.json() : null)).catch(() => null));
     }
-    return pageCache.get(n);
+    return chunkCache.get(c).then(d => (d && d[n]) || null);
 }
 
 export async function paintHighlightLayer(layer) {
