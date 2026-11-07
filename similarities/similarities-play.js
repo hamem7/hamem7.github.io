@@ -18,13 +18,18 @@
 // PlayState أصبح يحمل مصفوفة groups بدل مجموعة واحدة، وكل سؤال يحمل بيانات مجموعته الخاصة
 // (anchorPhrase/scope) بدل الاعتماد على مجموعة ثابتة للجولة كلها (راجع buildOccurrenceHTML/
 // renderQuestion أدناه).
-import { AppState, loadSplashScreen, t } from '../core/app.js';
+import { AppState, loadSplashScreen, openSimilaritiesBrowser, t } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
 import { memorizedSurahsOf } from '../engine/recallQuestions.js';
 // سور محفوظ الطالب الحالي (إن وُجد طالب بنطاق حفظ) لئلا تُسأل أسئلة جوابها أو خياراتها سور لم يحفظها؛ null = بلا قيد
-const studentMemorized = () => memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
+// 🌟 [2026-11-07] في «تدريب اليوم» الطالب معروف مسبقاً فنقيّد الخيارات بمحفوظه هو (لا بالطالب الحالي في ركن الكبار)
+const studentMemorized = () => PlayState.dailyStudent
+    ? coachMemo(memorizedSurahsOf(PlayState.dailyStudent, AppState.surahsData)).memo
+    : memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
+import { planStudentRound, coachMemo } from '../engine/similarityCoach.js';
+import { isSimScopeDisabled, generateQuestionsForGroup, STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
 import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
@@ -114,6 +119,22 @@ async function resolveScopeGroups(scope) {
         return { groups, title: bucketTitle(bucket) };
     }
 
+    // 🌟 [2026-11-07] «تدريب اليوم» لطالب: مجموعات من محفوظه فقط بترتيب حان موعده ← ضعيف ← جديد
+    if (scope.type === 'student') {
+        let student = null;
+        try { student = (await AppState.studentManager.getAllStudents()).find(st => String(st.id) === String(scope.studentId)) || null; } catch (e) { student = null; }
+        if (!student) return { groups: [], title: '' };
+        const all = await AppState.similaritiesManager.getAllSimilarities();
+        let records = [];
+        try { records = await AppState.similaritiesManager.getProgressByStudent(student.id); } catch (e) { records = []; }
+        const { memo } = coachMemo(memorizedSurahsOf(student, AppState.surahsData));
+        // نتأكد أن كل مجموعة مختارة تولّد سؤالاً فعلاً لهذا الطالب (الخيارات مقيّدة بمحفوظه)
+        try { await ensureSimilarityQuran(AppState.quranEngine); } catch (e) { /* يُعالَج لاحقاً في initSimilarityGamePlay */ }
+        const canAsk = (g) => generateQuestionsForGroup(g, { types: STUDENT_SIM_TYPES, memorized: memo }).length > 0;
+        const plan = planStudentRound(all, records, memo, { isPlayable: g => !isSimScopeDisabled(g), canAsk });
+        return { groups: plan.groups, title: `${t('sim_daily_title')} — ${student.name}`, student };
+    }
+
     return { groups: [], title: '' };
 }
 
@@ -134,7 +155,8 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    const { groups, title } = await resolveScopeGroups(scope);
+    const { groups, title, student: dailyStudent } = await resolveScopeGroups(scope);
+    PlayState.dailyStudent = dailyStudent || null;
     if (groups.length === 0) {
         container.innerHTML = `<div class="sim-empty">${t('sim_no_data')}</div>`;
         return;
@@ -159,8 +181,10 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [],
+    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [], dailyStudent: dailyStudent || null,
         sigById: new Map(groups.map(g => [g.groupId, groupSignature(g)])) };
+    // «تدريب اليوم»: الطالب محدد مسبقاً فلا حاجة لشاشة اختياره
+    if (dailyStudent) { PlayState.student = dailyStudent; writeLastStudentId(dailyStudent.id); initAudio(); renderQuestion(); return; }
     await showStudentPicker();
 }
 
@@ -330,7 +354,9 @@ async function renderResultsScreen() {
             <div class="sim-play-results-score">${PlayState.correctCount} / ${total}</div>
             ${detailsHTML}
             <button class="btn btn-outline" id="simplay-btn-again">${t('sim_game_play_again_btn')}</button>
+            ${PlayState.dailyStudent ? `<button class="btn sim-back-students" id="simplay-btn-students">${t('sim_back_to_students')}</button>` : ''}
         </div>`;
+    document.getElementById('simplay-btn-students')?.addEventListener('click', () => openSimilaritiesBrowser());
     document.getElementById('simplay-btn-again')?.addEventListener('click', () => {
         // 🌟 إعادة بناء الجولة من الصفر (وليس فقط خلط نفس المصفوفة القديمة) حتى تتغيّر
         // المشتتات عشوائياً أيضاً في كل محاولة — ولأن buildGameRound تختار عشوائياً من كل

@@ -66,6 +66,10 @@ import { AppState, loadSplashScreen, openSimilarityGame, t, isEnglish, surahName
 // (نفس الدوال المُختبَرة فعلياً على الـ 800 موضع الحقيقية، فقط استيراد بدل تعريف محلي) 🌟
 import { highlightAnchorInText, splitRangeFullTextIntoAyahs } from '../core/quranTextUtils.js';
 import { stripHizbMark } from '../engine/similarityQuestions.js';
+// 🌟 [2026-11-07] «طلابي في المتشابهات»: بطاقة لكل طالب + «تدريب اليوم» (راجع engine/similarityCoach.js)
+import { studentCoachSummary, coachMemo } from '../engine/similarityCoach.js';
+import { memorizedSurahsOf } from '../engine/recallQuestions.js';
+import { isSimScopeDisabled } from '../engine/similarityEngine.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
 
@@ -248,6 +252,10 @@ async function handleContainerClick(e) {
     // راجع renderSurahListHTML/renderWordsListHTML أسفل هذا الملف لمكان الزر.
     else if (action === 'start-game-juz') {
         openSimilarityGame({ type: 'juz', juzId: btn.dataset.juz });
+    }
+    // 🌟 [2026-11-07] «تدريب اليوم» لطالب محدد: جولة من متشابهات محفوظه (حان موعده ← ضعيف ← جديد)
+    else if (action === 'train-student') {
+        openSimilarityGame({ type: 'student', studentId: btn.dataset.student });
     }
     // 🌟 [عدّل — الجولة الثالثة] بداية مسار "➕ إضافة متشابهة يدويًا" من الشاشة الرئيسية —
     // كانت تعرض أولاً اختيار الجزء (4 أجزاء 46-77 فقط)، وأصبحت الآن تفتح مباشرة قائمة كل
@@ -525,7 +533,7 @@ async function render() {
     let html = '';
 
     if (view === 'home') {
-        html = renderHomeHTML();
+        html = await renderHomeHTML();
     } else if (view === 'juzSurahList') {
         const bucket = JUZ_BUCKETS.find(b => b.id === params.juzId);
         titleText = bucketTitle(bucket);
@@ -594,35 +602,68 @@ async function render() {
 // ============================================================
 // شاشات الرسم الفرعية
 // ============================================================
-function renderHomeHTML() {
-    // 🌟 [تحسين الهيئة — 2026-10-09] شريط إحصاء سريع + بطاقات الأجزاء تعرض نطاق السور وعدد المجموعات
+// 🌟 [2026-11-07 — إعادة تصميم بطلب المعلم] الرئيسية صارت تبدأ من «كيف أستفيد مع طلابي؟»:
+// (1) شريط ثلاث خطوات، (2) بطاقة لكل طالب: محفوظه، كم متشابهة فيه، ما أتقنه وما حان موعده وما يخلط فيه + زر «تدريب اليوم»،
+// (3) التصفّح حسب الموضع بمربعات خفيفة مدمجة (كانت 23 بطاقة خضراء كبيرة متطابقة تملأ الشاشة).
+async function renderHomeHTML() {
+    const steps = [1, 2, 3].map(i => `<li class="sim-howto-step"><span class="sim-howto-num">${i}</span><span><b>${t('sim_howto_' + i)}</b><small>${t('sim_howto_' + i + '_d')}</small></span></li>`).join('');
+    let html = `<ol class="sim-howto">${steps}</ol>`;
+    html += `<section class="sim-sec"><h2 class="sim-sec-h">${t('sim_sec_students')}</h2>${await renderStudentsCoachHTML()}</section>`;
+    html += `<section class="sim-sec"><h2 class="sim-sec-h">${t('sim_sec_browse')}</h2><p class="sim-sec-hint">${t('sim_sec_browse_hint')}</p>${renderBrowseTilesHTML()}`;
+    html += `<button class="btn btn-outline sim-add-group-btn" data-action="add-group-start">${t('sim_add_group_btn')}</button></section>`;
+    return html;
+}
+
+async function renderStudentsCoachHTML() {
+    let students = [], progress = [];
+    try { students = AppState.studentManager ? await AppState.studentManager.getAllStudents() : []; } catch (e) { students = []; }
+    if (!students.length) return `<div class="sim-empty sim-coach-empty">${t('sim_no_students_home')}</div>`;
+    try { progress = AppState.similaritiesManager && AppState.similaritiesManager.getAllProgress ? await AppState.similaritiesManager.getAllProgress() : []; } catch (e) { progress = []; }
+    const playable = (g) => !isSimScopeDisabled(g);
+    const now = Date.now();
+    const rows = students.map(st => {
+        const { memo, isDefault } = coachMemo(memorizedSurahsOf(st, AppState.surahsData));
+        const recs = progress.filter(r => String(r.studentId) === String(st.id));
+        return { st, isDefault, sum: studentCoachSummary(allSimilarities, recs, memo, { now, isPlayable: playable }) };
+    });
+    // من حان موعده أو يحتاج تثبيتاً أولاً، ثم الأبجدية
+    rows.sort((a, b) => ((b.sum.due + b.sum.weak) > 0) - ((a.sum.due + a.sum.weak) > 0) || String(a.st.name).localeCompare(String(b.st.name), 'ar'));
+    const name = (n) => escapeHtml(surahNameLocal ? surahNameLocal(n) : n);
+    const cards = rows.map(({ st, isDefault, sum }) => {
+        const memoLine = isDefault
+            ? `${t('sim_stu_no_memo')} · ${sum.total}`
+            : `${t('sim_stu_memo')} ${name(st.memoFrom)} ${isEnglish() ? '→' : '←'} ${name(st.memoTo)} · ${sum.total} ${t('sim_stu_groups')}`;
+        const chip = (n, cls, key) => n ? `<span class="sim-stu-chip sim-stu-chip-${cls}"><b>${n}</b> ${t(key)}</span>` : '';
+        const hard = sum.hardest[0];
+        const initial = escapeHtml(String(st.name || '؟').trim().charAt(0));
+        return `<article class="sim-stu-card">
+            <div class="sim-stu-head"><span class="sim-stu-av" aria-hidden="true">${initial}</span>
+                <div class="sim-stu-id"><b>${escapeHtml(st.name)}</b><small>${memoLine}</small></div></div>
+            ${sum.total ? `<div class="sim-stu-prog"><div class="sim-stu-bar" title="${sum.masteredPct}%"><i style="width:${sum.masteredPct}%"></i></div>
+                <small>${t('sim_stu_mastered_of').replace('{m}', sum.mastered).replace('{n}', sum.total)}</small></div>
+            <div class="sim-stu-chips">${chip(sum.due, 'due', 'sim_stu_due')}${chip(sum.weak, 'weak', 'sim_stu_weak')}${chip(sum.fresh, 'fresh', 'sim_stu_fresh')}</div>
+            ${hard ? `<p class="sim-stu-mix"><span>${t('sim_stu_mixes')}</span> <span class="quran-text">« ${escapeHtml(stripHizbMark(hard.anchorPhrase))} »</span></p>` : ''}
+            <button class="btn sim-stu-train" data-action="train-student" data-student="${escapeAttr(st.id)}">${t('sim_stu_train')}</button>`
+            : `<p class="sim-stu-none">${t('sim_stu_none')}</p>`}
+        </article>`;
+    }).join('');
+    return `<div class="sim-stu-grid">${cards}</div>`;
+}
+
+function renderBrowseTilesHTML() {
     const internal = allSimilarities.filter(r => r.scope === 'internal');
-    const totalPositions = allSimilarities.reduce((n, r) => n + (r.occurrences || []).length, 0);
-    let html = `<div class="sim-stats">
-        <div class="sim-stat"><span class="sim-stat-num">${allSimilarities.length}</span><span class="sim-stat-label">${t('sim_stat_groups')}</span></div>
-        <div class="sim-stat"><span class="sim-stat-num">${totalPositions}</span><span class="sim-stat-label">${t('sim_stat_positions')}</span></div>
-    </div>`;
-    html += `<div class="sim-grid sim-grid-juz">`;
+    let html = `<div class="sim-tiles">`;
     JUZ_BUCKETS.forEach(b => {
         const n = internal.filter(r => (r.surahs || []).some(sn => sn >= b.from && sn <= b.to)).length;
-        html += `<button class="sim-card sim-juz-card" data-action="open-juz" data-juz="${b.id}">
-            <span class="sim-juz-icon" aria-hidden="true">📖</span>
-            <span class="sim-juz-title">${bucketTitle(b)}</span>
-            <span class="sim-juz-meta"><span>${b.from === b.to ? b.from : `${b.from} – ${b.to}`}</span><span>${n} ${t('sim_groups_count_suffix')}</span></span>
-        </button>`;
+        html += `<button class="sim-tile" data-action="open-juz" data-juz="${b.id}">
+            <span class="sim-tile-title">${bucketTitle(b)}</span>
+            <span class="sim-tile-meta">${b.from === b.to ? b.from : `${b.from}–${b.to}`} · ${n}</span></button>`;
     });
     const ammaN = allSimilarities.filter(r => r.scope === 'juzAmma').length;
-    html += `<button class="sim-card sim-juz-card sim-juz-amma-card" data-action="open-amma">
-        <span class="sim-juz-icon" aria-hidden="true">✨</span>
-        <span class="sim-juz-title">${t('sim_juz_amma')}</span>
-        <span class="sim-juz-meta"><span>78 – 114</span><span>${ammaN} ${t('sim_groups_count_suffix')}</span></span>
-    </button>`;
-    html += `</div>`;
-    // 🌟 [جديد — 2026-09-16، الجولة الثانية] زر "➕ إضافة متشابهة يدويًا" انتقل هنا من شاشة
-    // تفصيل السورة (بطلب صريح من المعلم) — يبدأ مسار اختيار الجزء ثم السورة (راجع تعليق
-    // action='add-group-start' في handleContainerClick أعلى الملف)
-    html += `<button class="btn btn-outline sim-add-group-btn" data-action="add-group-start">${t('sim_add_group_btn')}</button>`;
-    return html;
+    html += `<button class="sim-tile sim-tile-amma" data-action="open-amma">
+        <span class="sim-tile-title">${t('sim_juz_amma')}</span>
+        <span class="sim-tile-meta">78–114 · ${ammaN}</span></button>`;
+    return html + `</div>`;
 }
 
 // 🌟 [محذوف — الجولة الثالثة] renderJuzPickerForAddHTML حُذفت — خطوة "اختيار الجزء" (46-77

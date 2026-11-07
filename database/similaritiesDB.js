@@ -182,6 +182,11 @@ export class SimilaritiesManager {
         });
     }
 
+    // 🌟 [2026-11-07] كل سجلات التقدّم دفعة واحدة (لبطاقات «طلابي في المتشابهات» في الرئيسية)
+    async getAllProgress() {
+        return this._getAll(SIMILARITY_PROGRESS_STORE);
+    }
+
     async getProgressByStudent(studentId) {
         return (await this._getAll(SIMILARITY_PROGRESS_STORE)).filter(r => r.studentId === studentId);
     }

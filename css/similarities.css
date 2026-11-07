@@ -984,3 +984,124 @@
 /* أسئلة المتشابهات الأربعة: نص السؤال كاملاً (آيات بين ﴿ ﴾ + سياق) بأسطر مستقلة وخط المصحف للآيات */
 .sim-q-text { line-height: 2.2; text-align: center; }
 .sim-q-text .sim-q-verse { display: inline-block; font-size: 1.35em; color: var(--primary, var(--dh-ok, #15803d)); line-height: 1.9; }
+
+/* =====================================================================
+   🌟 [2026-11-07] الرئيسية الجديدة: «كيف أستفيد مع طلابي؟» — ثلاث خطوات + بطاقة لكل طالب + تصفّح مدمج.
+   كلها برموز الهوية (أسطح/حدود/حالات) فتنقلب تلقائياً في المظهر الداكن.
+   ===================================================================== */
+.sim-howto {
+    list-style: none;
+    margin: 0 0 26px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+.sim-howto-step {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: var(--dh-r-md);
+    background: var(--dh-surface-2);
+    border: 1px solid var(--dh-border-soft);
+    text-align: start;
+}
+.sim-howto-step b { display: block; color: var(--dh-ink); font-size: 1rem; }
+.sim-howto-step small { display: block; color: var(--dh-ink-soft); font-size: 0.86rem; line-height: 1.5; margin-top: 2px; }
+.sim-howto-num {
+    flex: 0 0 auto;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    background: var(--dh-emerald-700);
+    color: var(--dh-on-emerald);
+}
+
+.sim-sec { margin-top: 8px; margin-bottom: 30px; }
+.sim-sec-h {
+    margin: 0 0 6px;
+    font-size: 1.3rem;
+    color: var(--dh-ink);
+    text-align: start;
+    display: flex; align-items: center; gap: 10px;
+}
+.sim-sec-h::before {
+    content: "";
+    width: 6px; height: 22px; border-radius: 3px;
+    background: var(--dh-gold-500);
+}
+.sim-sec-hint { margin: 0 0 14px; color: var(--dh-ink-soft); font-size: 0.92rem; text-align: start; }
+
+/* ---- بطاقات الطلاب ---- */
+.sim-stu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 12px;
+}
+.sim-stu-card {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 16px;
+    border-radius: var(--dh-r-lg);
+    background: var(--dh-surface-3);
+    border: 1px solid var(--dh-border-strong);
+    box-shadow: var(--dh-sh-soft);
+    text-align: start;
+}
+.sim-stu-head { display: flex; gap: 12px; align-items: center; }
+.sim-stu-av {
+    flex: 0 0 auto;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.2rem;
+    background: var(--dh-ok-bg); color: var(--dh-ok-ink);
+    border: 2px solid var(--dh-gold-500);
+}
+.sim-stu-id { min-width: 0; }
+.sim-stu-id b { display: block; color: var(--dh-ink); font-size: 1.08rem; }
+.sim-stu-id small { display: block; color: var(--dh-ink-soft); font-size: 0.82rem; line-height: 1.5; }
+.sim-stu-prog small { color: var(--dh-ink-soft); font-size: 0.82rem; }
+.sim-stu-bar { height: 8px; border-radius: 999px; background: var(--dh-surface-1); border: 1px solid var(--dh-border-soft); overflow: hidden; margin-bottom: 4px; }
+.sim-stu-bar i { display: block; height: 100%; background: var(--dh-ok); border-radius: inherit; }
+.sim-stu-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sim-stu-chip { font-size: 0.8rem; padding: 3px 10px; border-radius: 999px; border: 1px solid transparent; }
+.sim-stu-chip-due { background: var(--dh-warn-bg); color: var(--dh-ink); border-color: var(--dh-warn); }
+.sim-stu-chip-weak { background: var(--dh-danger-bg); color: var(--dh-danger-ink); border-color: var(--dh-danger); }
+.sim-stu-chip-fresh { background: var(--dh-info-bg); color: var(--dh-ink); border-color: var(--dh-info); }
+.sim-stu-mix { margin: 0; font-size: 0.85rem; color: var(--dh-ink-soft); line-height: 1.9; }
+.sim-stu-mix .quran-text { color: var(--dh-ink); font-size: 1.15rem; }
+.sim-stu-none { margin: 0; color: var(--dh-ink-soft); font-size: 0.88rem; }
+.sim-stu-train { margin-top: auto; width: 100%; }
+.sim-coach-empty { padding: 18px; border-radius: var(--dh-r-md); background: var(--dh-surface-2); border: 1px dashed var(--dh-border-strong); color: var(--dh-ink-soft); }
+
+/* ---- التصفّح المدمج حسب الموضع ---- */
+.sim-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+}
+.sim-tile {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 10px 12px;
+    border-radius: var(--dh-r-md);
+    background: var(--dh-surface-3);
+    border: 1px solid var(--dh-border);
+    color: var(--dh-ink);
+    font-family: inherit;
+    cursor: pointer;
+    text-align: start;
+    transition: border-color .15s ease, transform .15s ease;
+}
+.sim-tile:hover, .sim-tile:focus-visible { border-color: var(--dh-emerald-600); transform: translateY(-1px); }
+.sim-tile-title { font-weight: 700; font-size: 0.98rem; }
+.sim-tile-meta { font-size: 0.78rem; color: var(--dh-ink-soft); }
+.sim-tile-amma { border-color: var(--dh-gold-500); border-width: 2px; }
+.sim-back-students { margin-top: 10px; }
+
+@media (max-width: 520px) {
+    .sim-wrap { padding: 14px 12px; }
+    .sim-howto { grid-template-columns: 1fr; }
+    .sim-tiles { grid-template-columns: repeat(2, 1fr); }
+}
