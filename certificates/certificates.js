@@ -13,6 +13,7 @@
 // ==========================================================
 import { AppState } from '../core/app.js';
 import { esc } from '../core/escape.js';
+import { getStarRank } from '../core/goldStars.js';
 import { t, SURAH_NAMES_AR_BARE, SURAH_NAMES_EN } from '../core/i18n.js';
 import { TEMPLATES, templateImage, templateThumb, getTemplate } from './templates.js';
 import { TYPES, getType, VERSES, getVerse, juzName, L } from './texts.js';
@@ -447,13 +448,19 @@ async function shareOrDownload(blob, filename, title, text) {
 // ⭐ إصدار شهادة «النجوم الذهبية» تلقائياً عند بلوغ طالب عتبة نجوم (يستدعيها games/adultGame.js). تُسجَّل في سجل الشهادات
 // الصادرة فتظهر في تبويب «السجل» ويفتحها المعلم لتعديلها/حفظها/مشاركتها. القالب والخط من آخر اختيارات المعلم.
 // best-effort: أي فشل يُسجَّل في الـconsole ولا يعطّل اللعبة. تُرجع true عند النجاح.
+// نص الشهادة بالرتبة: «رتبة «وسام التميّز» (10 نجوم ذهبية)»
+function starCertWhat(stars, lang) {
+    const r = getStarRank(stars);
+    if (!r) return lang === 'en' ? `${stars} golden stars` : `${stars} نجوم ذهبية`;
+    return lang === 'en' ? `the rank “${r.en}” (${stars} golden stars)` : `رتبة «${r.ar}» (${stars} نجوم ذهبية)`;
+}
 export async function autoIssueStarCertificate(student, stars) {
     try {
         let prefs = {};
         try { prefs = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') || {}; } catch (e) { prefs = {}; }
         const type = getType('star');
         const lang = prefs.lang === 'en' ? 'en' : 'ar';
-        const values = { surah: 1, juz: 1, half: 'first', text: lang === 'en' ? `${stars} golden stars` : `${stars} نجوم ذهبية` };
+        const values = { surah: 1, juz: 1, half: 'first', text: starCertWhat(stars, lang) };
         const spec = {
             typeId: 'star', name: String(student.name || '').trim(),
             female: GIRL_AVATARS.includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',

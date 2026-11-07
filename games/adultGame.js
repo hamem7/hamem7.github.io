@@ -5,6 +5,7 @@ import { loadScreen } from '../core/navigation.js';
 import { localizeHomeworkText, wrapQuranWordTitle } from '../core/i18n.js';   // معاني الكلمات بالإنجليزية وقت العرض
 import { excludeRefrainAyahs } from '../engine/refrainRules.js';
 import { addGoldStar, starsSuffix } from '../core/goldStars.js';
+import { starRankName, starProgressLine } from '../core/i18n-stars.js';
 import { openModal, closeModal, showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { openReportScreen } from '../reports/report.js';
 // 🌟 [جديد] لمقارنة نصوص "نقاط الضعف" المحفوظة سابقًا مع النص المُولَّد حالياً بأمان (راجع
@@ -1162,7 +1163,9 @@ function showSpecialReward(starRes, certIssued) {
         const box = document.createElement('div');
         box.id = 'special-reward';
         box.className = 'special-reward';
-        box.innerHTML = `<div class="special-reward-medal">🏅</div><div class="special-reward-title">${t("ما شاء الله! حافظ مميز")}</div><div class="special-reward-sub">${t("وسام النجمة الذهبية ⭐ + 5 نقاط إضافية")}</div>${starRes ? `<div class="special-reward-sub">⭐ ${t("مجموع نجومك:")} ${starRes.count}</div>` : ''}${certIssued ? `<div class="special-reward-cert">🎓 ${t("حصلتَ على شهادة النجوم الذهبية! ستجدها في «الشهادات والتقارير»")}</div>` : ''}`;
+        const rank = starRes && starRes.rank;
+        const stu = AppState.currentStudent;
+        box.innerHTML = `<div class="special-reward-medal">${rank ? rank.icon : '🏅'}</div><div class="special-reward-title">${t("ما شاء الله! حافظ مميز")}</div><div class="special-reward-sub">${t("وسام النجمة الذهبية ⭐ + 5 نقاط إضافية")}</div>${starRes ? `<div class="special-reward-sub">⭐ ${t("مجموع نجومك:")} ${starRes.count}</div>` : ''}${starRes && starRes.rankUp && rank && rank.at > 1 ? `<div class="special-reward-rank">${rank.icon} ${tf('star_rank_up', { rank: starRankName(rank) })}</div>` : ''}${starRes ? `<div class="special-reward-sub special-reward-next">${starProgressLine(stu)}</div>` : ''}${certIssued ? `<div class="special-reward-cert">🎓 ${t("حصلتَ على شهادة النجوم الذهبية! ستجدها في «الشهادات والتقارير»")}</div>` : ''}`;
         document.body.appendChild(box);
         setTimeout(() => box.remove(), certIssued ? 4000 : 2400);
     } catch (e) { console.warn(e); }

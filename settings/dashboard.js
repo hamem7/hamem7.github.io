@@ -1,5 +1,6 @@
 // settings/dashboard.js
 import { starsSuffix } from '../core/goldStars.js';
+import { starRankLine, starProgressLine } from '../core/i18n-stars.js';
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
 import { resolveRange, monthlyStaleness } from '../engine/trackingEngine.js';
 import { juzBounds, ayahIndex } from '../engine/reviewParts.js';
@@ -19,7 +20,11 @@ export function populateDashboardData() {
     try { adultScope = localStorage.getItem('dh_adult_scope') === 'student' ? 'student' : 'all'; } catch (e) { adultScope = 'all'; }
     // 🌟 [إصلاح فحص الأزرار] عرض اسم الطالب في شريحة اللوحة (كانت فارغة بمعرّف مكرر) 🌟
     const _chip = document.getElementById('dash-student-chip');
-    if (_chip) _chip.textContent = AppState.currentStudent ? `🏅 ${AppState.currentStudent.name}${starsSuffix(AppState.currentStudent)}` : '';
+    if (_chip) {
+        _chip.textContent = AppState.currentStudent ? `🏅 ${AppState.currentStudent.name}${starsSuffix(AppState.currentStudent)}` : '';
+        // تلميح الرتبة والهدف التالي (يظهر عند التمرير/الضغط المطوّل)
+        _chip.title = AppState.currentStudent ? [starRankLine(AppState.currentStudent), starProgressLine(AppState.currentStudent)].filter(Boolean).join(' — ') : '';
+    }
 
     const headerTitle = document.getElementById('header-title');
     
