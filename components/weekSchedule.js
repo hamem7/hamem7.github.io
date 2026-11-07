@@ -41,6 +41,13 @@ function injectStyle() {
     .ws-tbl tbody tr:nth-child(even) td{background:#f4f7fa}
     .ws-tbl tbody tr td{border-bottom:2px solid var(--dh-border-strong, #94a3b8)}
     .ws-tbl td.ws-name{text-align:right;padding:6px 10px;font-weight:600;min-width:110px}
+    .ws-scroll{overflow:auto;max-height:70vh}
+    .ws-tbl thead th{position:sticky;top:0;z-index:2}
+    .ws-tbl thead th:first-child{inset-inline-start:0;z-index:4}
+    .ws-tbl td.ws-name{position:sticky;inset-inline-start:0;z-index:1}
+    .ws-tbl th.ws-today{box-shadow:inset 0 -4px 0 var(--dh-warn, #f59e0b)}
+    .ws-tbl td.ws-today{background:#fff4d6}
+    .ws-tbl tbody tr:nth-child(even) td.ws-today{background:#ffedbd}
     .ws-tbl td.ws-st{font-size:.78rem;color:#b45309;min-width:70px}
     .ws-d{width:36px;height:30px;border-radius:8px;border:2px solid #cbd5e1;background:#fff;cursor:pointer;font-family:inherit;font-size:.85rem;color:#94a3b8}
     .ws-d.on{background:var(--dh-ok, #15803d);border-color:var(--dh-ok, #15803d);color:#fff;font-weight:800}
@@ -71,26 +78,27 @@ export async function openWeekSchedule({ onClose, container = null } = {}) {
         const allDays = [...m.workDays];
         m.students.forEach(s => ((s.hwSchedule && s.hwSchedule.days) || []).forEach(d => { if (!allDays.includes(d)) allDays.push(d); }));   // يوم مُسنَد خارج أيام العمل لا يختفي
         const order = [6, 0, 1, 2, 3, 4, 5];
+        const todayDow = new Date().getDay();
         allDays.sort((a, b) => order.indexOf(a) - order.indexOf(b));
         const sum = new Map(m.summary.perDay.map(x => [x.day, x]));
         const head = allDays.map(d => {
             const x = sum.get(d);
             const cnt = x ? x.count : m.students.filter(s => ((s.hwSchedule && s.hwSchedule.days) || []).includes(d)).length;
             const over = x ? x.over : cnt > 0;
-            return `<th>${esc(dayName(d, true))}<small class="${over ? 'ws-over' : 'ws-ok'}">${cnt}/${m.summary.capacity}</small></th>`;
+            return `<th${d === todayDow ? ' class="ws-today"' : ''}>${esc(dayName(d, true))}<small class="${over ? 'ws-over' : 'ws-ok'}">${cnt}/${m.summary.capacity}</small></th>`;
         }).join('');
         const rows = m.students.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'ar')).map(s => {
             const days = (s.hwSchedule && s.hwSchedule.days) || [];
             const gap = days.length > 1 && Math.min(...gapsOf(days)) < MIN_GAP_DAYS;
             const status = days.length === 0 ? L('موقوف', 'Paused') : (gap ? L('أيام متلاصقة', 'Adjacent days') : '');
-            return `<tr data-id="${esc(s.id)}"><td class="ws-name">${esc(s.name)}</td>${allDays.map(d => `<td><button type="button" class="ws-d${days.includes(d) ? ' on' : ''}${m.workDays.includes(d) ? '' : ' off'}" data-d="${d}" aria-pressed="${days.includes(d)}">${days.includes(d) ? '✓' : ''}</button></td>`).join('')}<td class="ws-st">${esc(status)}</td></tr>`;
+            return `<tr data-id="${esc(s.id)}"><td class="ws-name">${esc(s.name)}</td>${allDays.map(d => `<td${d === todayDow ? ' class="ws-today"' : ''}><button type="button" class="ws-d${days.includes(d) ? ' on' : ''}${m.workDays.includes(d) ? '' : ' off'}" data-d="${d}" aria-pressed="${days.includes(d)}">${days.includes(d) ? '✓' : ''}</button></td>`).join('')}<td class="ws-st">${esc(status)}</td></tr>`;
         }).join('');
         const wdBoxes = [6, 0, 1, 2, 3, 4, 5].map(d => `<label class="ws-wd"><input type="checkbox" data-wd="${d}" ${m.workDays.includes(d) ? 'checked' : ''}> ${esc(dayName(d))}</label>`).join('');
         body.innerHTML = `
             <div class="ws-note">${esc(L(`كل طالب له يومان أسبوعياً يوزّعهما النظام بفاصل يومين على الأقل حتى لا تزدحم أيامك. الطاقة المتوازنة لليوم الواحد: ${m.summary.capacity} (إجمالي ${m.summary.totalSlots} خانة ÷ ${m.workDays.length} أيام عمل). اضغط على يوم لإضافته أو إزالته، وإزالة كل أيام طالب توقف تذكيره.`,
                 `Each student has two spaced days a week assigned by the system so your days stay balanced. Balanced capacity per day: ${m.summary.capacity} (${m.summary.totalSlots} slots ÷ ${m.workDays.length} work days). Tap a day to add or remove it; removing all days pauses the student's reminders.`))}</div>
             <div class="ws-bar"><b>${esc(L('أيام العمل:', 'Work days:'))}</b>${wdBoxes}<button type="button" class="ws-btn" id="ws-rebalance">⚖️ ${esc(L('وزّع تلقائياً', 'Auto-distribute'))}</button></div>
-            ${m.students.length ? `<div style="overflow-x:auto"><table class="ws-tbl"><thead><tr><th></th>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`
+            ${m.students.length ? `<div class="ws-scroll"><table class="ws-tbl"><thead><tr><th></th>${head}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`
                 : `<div class="ws-note">${esc(L('لا طلاب مسجَّلون بعد.', 'No students yet.'))}</div>`}`;
 
         body.querySelectorAll('.ws-d').forEach(btn => btn.addEventListener('click', async () => {
