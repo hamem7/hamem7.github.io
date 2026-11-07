@@ -58,6 +58,11 @@ let homeLevel = '', levelPinned = false;
 const setHomeLevel = (id) => { homeLevel = id; levelPinned = true; };
 const lessonPlate = (id) => (KNOW[id] ? `<span class="lr-plate">${art(KNOW[id].art)}</span>` : MUSHAF[id] ? `<span class="lr-plate"><img src="${esc(signImg(LESSON_IMG[id]))}" alt=""></span>` : `<span class="lr-plate"><b class="quran-text">${esc(tx(META[id].short))}</b></span>`);
 
+const quranEntryHTML = () => `<a class="cm-entry" href="#/quran" aria-label="${esc(t('cm_entry_title'))}">
+      <span class="cm-entry-ico" aria-hidden="true">📖</span>
+      <span class="cm-entry-tx"><b>${t('cm_entry_title')}</b><small>${t('cm_entry_sub')}</small><span class="cm-entry-dots" aria-hidden="true">${CM_LEGEND.map((e) => `<i style="background:${CM_PALETTE[e.c[0]]}"></i>`).join('')}</span></span>
+      <span class="cm-entry-go">${t('cm_entry_go')} <span class="arr" aria-hidden="true"></span></span>
+    </a>`;
 function renderHome() {
   const tot = store.totals(ALL_RULES);
   const pct = Math.round((tot.got / tot.max) * 100);
@@ -105,11 +110,7 @@ function renderHome() {
   }).join('');
   const nr = nxt.rule; const learnHash = nr ? `#/learn/${nr}` : '#/mixed'; const trainHash = nr ? (nxt.hash.startsWith('#/play') ? nxt.hash : `#/rule/${nr}`) : '#/mixed';
   shell(`
-    <a class="cm-entry" href="#/quran" aria-label="${esc(t('cm_entry_title'))}">
-      <span class="cm-entry-ico" aria-hidden="true">📖</span>
-      <span class="cm-entry-tx"><b>${t('cm_entry_title')}</b><small>${t('cm_entry_sub')}</small><span class="cm-entry-dots" aria-hidden="true">${CM_LEGEND.map((e) => `<i style="background:${CM_PALETTE[e.c[0]]}"></i>`).join('')}</span></span>
-      <span class="cm-entry-go">${t('cm_entry_go')} <span class="arr" aria-hidden="true"></span></span>
-    </a>
+    ${quranEntryHTML()}
     <section class="hero home-next">
       <div class="hero-text">
         <h1>${student ? t('home_hello_name', { name: esc(student.name) }) : t('home_hello')}</h1>
@@ -377,7 +378,7 @@ function render() {
   const bad = () => { go('#/'); };
   if (!(p[0] === 'learn' && META[p[1]])) leaveStory();   // مغادرة الدرس إلى أي شاشة أخرى: يُستكمل لاحقًا من الموضع المحفوظ
   try {
-    if (opts.students?.length && !student && !(guest && p[0] !== 'who')) return renderWho();
+    if (opts.students?.length && !student && p[0] !== 'quran' && !(guest && p[0] !== 'who')) return renderWho();
     if (!p.length) return renderHome();
     if (p[0] === 'rule' && META[p[1]]) return renderRule(p[1]);
     if (p[0] === 'learn' && META[p[1]]) return renderLearn(p[1]);
@@ -413,6 +414,7 @@ function renderWho(filter = '') {
   all.sort((x, y) => (String(y.id) === last) - (String(x.id) === last) || sum.get(String(y.id)).t - sum.get(String(x.id)).t || String(x.name).localeCompare(String(y.name), 'ar'));
   const q = normName(filter); const list = q ? all.filter((s) => normName(s.name).includes(q)) : all;
   shell(`
+    ${quranEntryHTML()}
     <section class="who">
       <header class="who-head"><span class="who-ico" aria-hidden="true">👤</span><div><h1>${t('who_title')}</h1><p class="muted">${t('who_lead')}</p></div><span class="pill who-count">${t('who_count', { n: num(all.length) })}</span></header>
       ${all.length > 6 ? `<label class="who-search"><span aria-hidden="true">🔍</span><input type="search" id="who-q" value="${esc(filter)}" placeholder="${esc(t('who_search'))}" autocomplete="off" aria-label="${esc(t('who_search'))}"></label>` : ''}
