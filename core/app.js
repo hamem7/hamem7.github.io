@@ -741,6 +741,9 @@ function setupSplashListeners() {
     const btnCerts = document.getElementById('btn-certs-main');
     if (btnCerts) btnCerts.addEventListener('click', openCertificates);
 
+    // 📖 [جديد] «تعرّف على السورة» — شاشة تُحمَّل عند الطلب (components/surahIntro.js)
+    document.getElementById('btn-surah-intro-main')?.addEventListener('click', openSurahIntro);
+
     // 🌟 [عدّل] بعد بناء المرحلة 1 (كتالوج القلقلة والنون الساكنة + شاشات تصفّح فعلية في
     // مجلد tajweed/)، أصبحت البطاقة تفتح شاشات "أبطال التجويد" الحقيقية عبر
     // openTajweedSection أسفل هذا الملف — بنفس نمط openHomeworkPrep/openSimilaritiesBrowser
@@ -874,6 +877,20 @@ export function openCertificates(opts) {
     return import('../certificates/certificates.js').then(m => m.openCertificatesHub(o)).catch(err => {
         console.error('تعذر تحميل شاشة الشهادات:', err);
         alert(t('جاري تجهيز شاشة الشهادات 🛠️'));
+    });
+}
+
+// 📖 [جديد] «تعرّف على السورة»: بطاقات تعريفية مبسّطة للأطفال لسور الأجزاء 26–30 (من كتاب «البطاقات» بإذن مؤلفه)،
+// تُحقن داخل #app-root تحت الترويسة الموحّدة كبقية الشاشات. راجع components/surahIntro.js
+export function openSurahIntro() {
+    switchTheme('adult');
+    document.body.style.backgroundImage = '';
+    return import('../components/surahIntro.js').then(module => loadScreen({
+        templateUrl: 'components/surah-intro-screen.html',
+        initFunction: () => module.initSurahIntro({ onBack: loadSplashScreen })
+    })).catch(err => {
+        console.error('تعذر تحميل شاشة تعرّف على السورة:', err);
+        alert(t('جاري تجهيز شاشة تعرّف على السورة 🛠️'));
     });
 }
 

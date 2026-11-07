@@ -110,12 +110,15 @@ html[data-theme="dark"] .home-menu-secondary .home-card-similarities { --hc: 52,
 html[data-theme="dark"] .home-card-homework { --hc: 167, 139, 250; }
 html[data-theme="dark"] .home-card-dual { --hc: 148, 163, 184; }
 html[data-theme="dark"] .home-card-certs { --hc: 232, 190, 70; }
+html[data-theme="dark"] .home-card-surahintro { --hc: 56, 189, 220; }
+html[data-theme="dark"] .home-card-surahintro .home-card-title { color: #8ee3f5; }
 html[data-theme="dark"] .home-menu-secondary .home-card-tajweed { --hc: 232, 110, 130; }
 html[data-theme="dark"] .home-menu-primary .home-card-students,
 html[data-theme="dark"] .home-card-students,
 html[data-theme="dark"] .home-card-homework,
 html[data-theme="dark"] .home-card-dual,
 html[data-theme="dark"] .home-card-certs,
+html[data-theme="dark"] .home-card-surahintro,
 html[data-theme="dark"] .home-menu-secondary .home-card-similarities,
 html[data-theme="dark"] .home-menu-secondary .home-card-tajweed {
     background: linear-gradient(160deg, rgba(var(--hc, 148, 163, 184), .20), rgba(var(--hc, 148, 163, 184), .07) 70%), #1a2c25;

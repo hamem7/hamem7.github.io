@@ -1178,6 +1178,11 @@
 }
 .home-card-certs .home-card-title { color: #7a5a0e; }
 
+/* 📖 بطاقة «تعرّف على السورة»: صبغة سماوية خفيفة بنفس منطق بقية بطاقات الصف الثانوي */
+.home-card-surahintro { background: rgba(14, 116, 144, 0.12); border-top: 3px solid #0e7490; }
+.home-card-surahintro .home-card-icon { background: linear-gradient(135deg, #0891b2, #0e7490); }
+.home-card-surahintro .home-card-title { color: #155e75; }
+
 /* بطاقة المتشابهات في الصف الثانوي بجوار الشهادات: صبغة زمرّدية خفيفة بنفس منطق بقية البطاقات */
 .home-menu-secondary .home-card-similarities {
     background: rgba(13, 92, 70, 0.14);

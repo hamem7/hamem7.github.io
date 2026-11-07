@@ -1,0 +1,58 @@
+<!-- components/surah-intro-screen.html -->
+<!-- 📖 [جديد] شاشة «تعرّف على السورة»: تُحقن داخل #app-root تحت الترويسة الموحّدة (بلا ترويسة خاصة)، بنفس نمط رأس الشاشات الداخلية
+     (زر رجوع + عنوان، مثل سياسة الخصوصية). كل الألوان من رموز الهوية فتنقلب تلقائياً في المظهر الداكن. المنطق في components/surahIntro.js -->
+<style>
+    #app-root #si-screen { max-width: 860px; text-align: start; padding: 22px 18px !important; display: flex; flex-direction: column; gap: 16px; color: var(--dh-ink); --si-fs: 1.15rem; }
+    #si-screen .si-head { display: flex; align-items: center; gap: 10px; }
+    #si-screen .si-back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    #si-screen .si-back:focus-visible, #si-screen button:focus-visible, #si-screen a:focus-visible, #si-screen input:focus-visible { outline: 3px solid var(--dh-focus); outline-offset: 2px; }
+    html[lang="en"] #si-screen .si-back svg { transform: scaleX(-1); }
+    #app-root #si-screen .si-title { margin: 0 !important; font-size: 1.8rem !important; font-weight: 700 !important; color: var(--dh-ink) !important; text-shadow: none !important; line-height: 1.3; }
+    #si-screen .si-sub { margin: 2px 0 0; font-size: .92rem; color: var(--dh-ink-soft); line-height: 1.6; }
+    #si-screen .si-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #si-screen .si-tab { font: inherit; font-size: .9rem; font-weight: 700; min-height: 40px; padding: 6px 14px; border-radius: 99px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); }
+    #si-screen .si-tab.is-on { background: var(--dh-ok); border-color: var(--dh-ok); color: var(--dh-on-ok); }
+    #si-screen .si-search { font: inherit; flex: 1 1 200px; min-height: 40px; padding: 6px 14px; border-radius: 12px; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); }
+    #si-screen .si-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    #si-screen .si-tile { font: inherit; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 16px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); box-shadow: var(--dh-sh-soft); transition: transform .15s; }
+    #si-screen .si-tile:hover { transform: translateY(-2px); }
+    #si-screen .si-tile-ic { font-size: 1.9rem; line-height: 1; }
+    #si-screen .si-tile-name { font-weight: 700; font-size: 1.05rem; }
+    #si-screen .si-tile-meta { font-size: .78rem; color: var(--dh-ink-soft); }
+    #si-screen .si-empty { color: var(--dh-ink-soft); text-align: center; padding: 20px; }
+    #si-screen .si-card { background: var(--dh-surface-2); border: 1px solid var(--dh-border); border-radius: 22px; padding: 20px 18px; display: flex; flex-direction: column; gap: 14px; font-size: var(--si-fs); line-height: 1.9; }
+    #si-screen .si-card-top { display: flex; align-items: center; gap: 14px; }
+    #si-screen .si-card-ic { font-size: 3.2rem; line-height: 1; }
+    #app-root #si-screen .si-card-name { margin: 0 !important; font-size: 2.1rem !important; font-weight: 800 !important; color: var(--dh-ink) !important; text-shadow: none !important; line-height: 1.3; }
+    #si-screen .si-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    #si-screen .si-chip { font-size: .8rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: var(--dh-info-bg); color: var(--dh-ink); }
+    #si-screen .si-chip.md { background: var(--dh-warn-bg); }
+    #si-screen .si-sec { background: var(--dh-surface-3); border: 1px solid var(--dh-border-strong); border-radius: 16px; padding: 12px 14px; }
+    #si-screen .si-sec.kid { background: var(--dh-ok-bg); border-color: var(--dh-ok); }
+    #app-root #si-screen .si-sec h2 { margin: 0 0 4px !important; font-size: .95em !important; font-weight: 800 !important; color: var(--dh-ink) !important; text-shadow: none !important; }
+    #si-screen .si-sec p { margin: 0; color: var(--dh-ink); }
+    body #app-root #si-screen .si-sec .quran-text { display: inline !important; font-size: 1.15em !important; line-height: inherit !important; background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; max-width: none; }
+    #si-screen .si-book-note { font-size: .78rem; color: var(--dh-ink-soft); }
+    #si-screen .si-media { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    #si-screen .si-media audio { width: 100%; max-width: 420px; }
+    #si-screen .si-btn { font: inherit; font-size: .9rem; font-weight: 700; min-height: 42px; padding: 8px 16px; border-radius: 12px; cursor: pointer; border: 1px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    #si-screen .si-btn[disabled] { opacity: .45; cursor: default; }
+    #si-screen .si-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+    #si-screen .si-credit { font-size: .78rem; color: var(--dh-ink-soft); line-height: 1.7; border-top: 1px dashed var(--dh-border); padding-top: 10px; }
+    @media (max-width: 600px) { #si-screen .si-card-name { font-size: 1.6rem !important; } #si-screen .si-card-ic { font-size: 2.6rem; } #si-screen .si-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); } }
+</style>
+<div class="screen active">
+    <div class="login-container" id="si-screen">
+        <div class="si-head">
+            <button type="button" class="si-back" id="btn-back-surah-intro">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <div>
+                <h1 class="si-title" data-i18n="si_title">تعرّف على السورة</h1>
+                <p class="si-sub" data-i18n="si_sub">بطاقات مبسّطة لسور آخر خمسة أجزاء، يعرضها المعلم على طلابه قبل البدء في حفظ السورة</p>
+            </div>
+        </div>
+        <div id="si-body"></div>
+        <p class="si-credit" data-i18n="si_credit">المادة العلمية من كتاب «البطاقات» د. ياسر بن إسماعيل راضي (الطبعة الثالثة الرقمية)؛ نص الكتاب بإذن مؤلفه، وحقوقه محفوظة له.</p>
+    </div>
+</div>
