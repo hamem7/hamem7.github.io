@@ -62,6 +62,14 @@ function injectStyle() {
     .bs-btn{background:#0d5c46;color:#fff;border:0;border-radius:12px;padding:9px 16px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit}
     .bs-btn:hover{background:#0a3d2f}.bs-btn.sec{background:var(--dh-ok-bg, #e7f4ee);color:#0d5c46}
     .bs-btn:disabled{opacity:.45;cursor:not-allowed}
+    /* زرّا الشريط السفلي خطوتان متتاليتان: ① تجهيز (إطار فقط) ثم ② نشر (ممتلئ وأكبر) */
+    .bs-btn.step{display:inline-flex;align-items:center;gap:7px}
+    .bs-btn.step .n{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:50%;font-size:.75rem;font-weight:800;background:#0d5c46;color:#fff}
+    .bs-btn.step.sec{background:transparent;color:#0d5c46;border:2px solid #0d5c46;padding:7px 14px}
+    .bs-btn.step.pub{padding:10px 20px;font-size:.95rem;box-shadow:0 2px 8px rgba(13,92,70,.35)}
+    .bs-btn.step.pub .n{background:#fff;color:#0d5c46}
+    .bs-btn.step.pub:disabled{box-shadow:none}
+    .bs-flow{color:#4a6058;font-weight:800}
     /* شريط البحث عن طالب (تصفية الصفوف فقط؛ المحدَّدون يبقون محدَّدين ولو أخفاهم البحث) */
     .bs-search{background:#fff;border:1px solid #e3ebe6;border-radius:14px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
     .bs-search .ic{font-size:1.05rem}
@@ -231,8 +239,9 @@ export async function openBulkSend({ onClose, asPage = false, container = null }
             <div class="bs-cnt" id="bs-cnt"></div>
             <div class="bs-prog" id="bs-prog"><div><i id="bs-prog-i"></i></div><small id="bs-prog-t"></small></div>
             <div class="bs-sp"></div>
-            <button type="button" class="bs-btn sec" id="bs-prep" disabled>⚙️ ${esc(L('جهّز المحدَّدين', 'Prepare selected'))}</button>
-            <button type="button" class="bs-btn" id="bs-pub" disabled>🚀 ${esc(L('انشر المجهَّزين', 'Publish prepared'))}</button>
+            <button type="button" class="bs-btn step sec" id="bs-prep" disabled title="${esc(L('الخطوة 1: يُنشئ الواجب لكل طالب محدَّد للمراجعة دون إرساله', 'Step 1: builds the homework for each selected student for review — nothing is sent'))}"><span class="n">1</span>⚙️ ${esc(L('جهّز المحدَّدين', 'Prepare selected'))}<span id="bs-prep-n"></span></button>
+            <span class="bs-flow" aria-hidden="true">${document.documentElement.dir === 'ltr' ? '→' : '←'}</span>
+            <button type="button" class="bs-btn step pub" id="bs-pub" disabled title="${esc(L('الخطوة 2: يرسل للطلاب ما جُهِّز فعلاً', 'Step 2: actually sends the prepared homework to the students'))}"><span class="n">2</span>🚀 ${esc(L('انشر المجهَّزين', 'Publish prepared'))}<span id="bs-pub-n"></span></button>
         </div></div>`;
     if (!asPage) document.body.appendChild(ov);
 
@@ -429,6 +438,8 @@ export async function openBulkSend({ onClose, asPage = false, container = null }
         $('#bs-cnt').innerHTML = `${esc(L(`${n} محدَّد`, `${n} selected`))}<small>${esc(pub ? L(`نُشر ${pub}${ready ? ` · جُهّز ${ready}` : ''}${fail ? ` · تعذّر ${fail}` : ''}`, `Published ${pub}${ready ? ` · prepared ${ready}` : ''}${fail ? ` · failed ${fail}` : ''}`) : ready ? L(`جُهّز ${ready} — راجعهم ثم انشر`, `${ready} prepared — review then publish`) : L('لم يُجهَّز شيء بعد', 'Nothing prepared yet'))}</small>`;
         $('#bs-prep').disabled = busy || !n;
         $('#bs-pub').disabled = busy || !ready;
+        $('#bs-prep-n').textContent = n ? ` (${n})` : '';
+        $('#bs-pub-n').textContent = ready ? ` (${ready})` : '';
     };
     const renderAll = () => { rowsEl.innerHTML = visible().map(rowWrap).join(''); renderMeta(); renderFoot(); };
     const listRow = (r, { top = false, flash = false } = {}) => {
