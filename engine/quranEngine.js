@@ -536,7 +536,7 @@ export class QuranEngine {
             for(let attempt=0; attempt<10; attempt++) { let randAyah = otherAyahs[Math.floor(Math.random() * otherAyahs.length)]; let randWords = splitAyahWords(randAyah.text); let matchingWords = randWords.filter(w => Math.abs(w.length - targetLen) <= 2 && w !== words[replaceIdx] && !used.has(w)); if(matchingWords.length > 0) { stolenWord = matchingWords[Math.floor(Math.random() * matchingWords.length)]; break; } } }
             used.add(stolenWord); wrongWords[replaceIdx] = stolenWord;
         });
-        const mistakeTitle = replaceIdxs.length > 1 ? "اكتشف الخطأين 🔍" : "اكتشف الخطأ 🔍";
+        const mistakeTitle = replaceIdxs.length > 1 ? "اكتشف الخطأين وقُل الصواب 🔍" : "اكتشف الخطأ وقُل الصواب 🔍";
         return { type: 'mistake', questionTitle: mistakeTitle, questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${wrongWords.join(" ")}\u00A0﴾</div>`, fullAnswer: cleanText, ayahObj: ayah, reportText: cleanText }; 
     }
 

@@ -4712,6 +4712,8 @@ export const translations = {
         "تسميع مقطع 🎙️": "Recite a Passage 🎙️",
         "اكتشف الخطأ 🔍": "Spot the Mistake 🔍",
         "اكتشف الخطأين 🔍": "Spot the Two Mistakes 🔍",
+        "اكتشف الخطأ وقُل الصواب 🔍": "Spot the Mistake and Say It Correctly 🔍",
+        "اكتشف الخطأين وقُل الصواب 🔍": "Spot the Two Mistakes and Say Them Correctly 🔍",
         "أكمل الجزء الناقص من الآية الكريمة 🧩": "Complete the Missing Part of the Noble Ayah 🧩",
 
         // عناوين ألعاب ركن الأطفال (engine/kidsEngine.js)
