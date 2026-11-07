@@ -18,7 +18,7 @@
 // PlayState أصبح يحمل مصفوفة groups بدل مجموعة واحدة، وكل سؤال يحمل بيانات مجموعته الخاصة
 // (anchorPhrase/scope) بدل الاعتماد على مجموعة ثابتة للجولة كلها (راجع buildOccurrenceHTML/
 // renderQuestion أدناه).
-import { AppState, loadSplashScreen, openSimilaritiesBrowser, t } from '../core/app.js';
+import { AppState, loadSplashScreen, openSimilaritiesBrowser, t, surahNameLocal } from '../core/app.js';
 import { showToastEncouragement, triggerConfetti } from '../components/ui.js';
 import { JUZ_BUCKETS, bucketTitle } from './similarities.js';
 import { buildGameRound } from '../engine/similarityEngine.js';
@@ -28,9 +28,10 @@ import { memorizedSurahsOf } from '../engine/recallQuestions.js';
 const studentMemorized = () => PlayState.dailyStudent
     ? coachMemo(memorizedSurahsOf(PlayState.dailyStudent, AppState.surahsData)).memo
     : memorizedSurahsOf(AppState.currentStudent, AppState.surahsData);
-import { planStudentRound, coachMemo } from '../engine/similarityCoach.js';
+import { planStudentRound, coachMemo, isMultiSurah, SINGLE_SURAH_TYPES, comparePlaces } from '../engine/similarityCoach.js';
+import { toQuranicSukun } from '../engine/quranEngine.js';
 import { isSimScopeDisabled, generateQuestionsForGroup, STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
-import { ensureSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
+import { ensureSimilarityQuran, getSimilarityQuran, questionTextToHTML, stripHizbMark, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { groupSignature, groupAnswersBySignature, summarizeByType, levelOf } from '../engine/similarityMastery.js';
 
 // 🌟 نفس آلية الصوت المستخدمة في games/kidsGame.js بالضبط (Web Audio API المدمجة في
@@ -97,6 +98,24 @@ function escapeHtmlText(str) {
 
 // 🌟 [جديد] يحل مجموعات اللعب الفعلية + عنوان النطاق من كائن scope الممرَّر عبر
 // AppState.similarityGamePlayScope — راجع تعليق رأس الملف وتعليق الحقل في core/app.js.
+// 🌟 [2026-11-07] أنواع أسئلة «تدريب اليوم»: الممتدة على سورتين ← «في أي سورتين؟/أي سورة لم ترد؟»،
+// ومتشابهات السورة مع نفسها ← «أكمل الآية» (النوعان الأولان لا يُولَّدان لها). الألعاب الأخرى بلا تغيير.
+const dailyTypesFor = (g) => isMultiSurah(g) ? STUDENT_SIM_TYPES : SINGLE_SURAH_TYPES;
+const typesFor = (g) => PlayState.dailyStudent ? dailyTypesFor(g) : STUDENT_SIM_TYPES;
+const MAX_DAILY_QUESTIONS = 18;
+const MAX_RETRIES = 3;   // «فرصة ثانية»: أقصى عدد أسئلة إعادة تُضاف لآخر الجولة
+
+// جولة «تدريب اليوم»: سؤالان على الأكثر من كل مجموعة (فتظهر كل المجموعات المختارة) ثم خلط
+function buildDailyRound(groups) {
+    const memo = studentMemorized();
+    const shuffle = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
+    let all = [];
+    groups.forEach(g => { all = all.concat(shuffle(generateQuestionsForGroup(g, { types: dailyTypesFor(g), memorized: memo })).slice(0, 2)); });
+    const questions = shuffle(all).slice(0, MAX_DAILY_QUESTIONS);
+    return { groupIds: groups.map(g => g.groupId), questions, hasEnoughData: questions.length > 0, totalAvailable: all.length };
+}
+const buildRound = (groups) => PlayState.dailyStudent ? buildDailyRound(groups) : buildGameRound(groups, { memorized: studentMemorized() });
+
 async function resolveScopeGroups(scope) {
     if (!scope || !AppState.similaritiesManager) return { groups: [], title: '' };
     // 🌟 [2026-10-03] ننتظر تحميل الـ Seed الذي صار في الخلفية أثناء الإقلاع (core/app.js)
@@ -130,7 +149,7 @@ async function resolveScopeGroups(scope) {
         const { memo } = coachMemo(memorizedSurahsOf(student, AppState.surahsData));
         // نتأكد أن كل مجموعة مختارة تولّد سؤالاً فعلاً لهذا الطالب (الخيارات مقيّدة بمحفوظه)
         try { await ensureSimilarityQuran(AppState.quranEngine); } catch (e) { /* يُعالَج لاحقاً في initSimilarityGamePlay */ }
-        const canAsk = (g) => generateQuestionsForGroup(g, { types: STUDENT_SIM_TYPES, memorized: memo }).length > 0;
+        const canAsk = (g) => generateQuestionsForGroup(g, { types: dailyTypesFor(g), memorized: memo }).length > 0;
         const plan = planStudentRound(all, records, memo, { isPlayable: g => !isSimScopeDisabled(g), canAsk });
         return { groups: plan.groups, title: `${t('sim_daily_title')} — ${student.name}`, student };
     }
@@ -171,7 +190,7 @@ export async function initSimilarityGamePlay() {
     try { await ensureSimilarityQuran(AppState.quranEngine); }
     catch (e) { console.warn('تعذّر تحميل المصحف لأسئلة المتشابهات:', e); container.innerHTML = `<div class="sim-empty">${t('sim_no_data')}</div>`; return; }
 
-    const round = buildGameRound(groups, { memorized: studentMemorized() });
+    const round = buildRound(groups);
     // 🛡️ خط دفاع صريح (لا نفترض صمتاً أن كل مجموعة صالحة للعب): لو لم تتوفر بيانات كافية
     // (كل المجموعات بموضع واحد، أو كل مواضعها بنفس رقم آية/سورة...) نعرض رسالة ودّية للمعلم
     // بدل شاشة أسئلة فارغة أو خطأ برمجي — راجع تعليق buildGameRound في
@@ -181,7 +200,7 @@ export async function initSimilarityGamePlay() {
         return;
     }
 
-    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [], dailyStudent: dailyStudent || null,
+    PlayState = { groups, scopeTitle: title, round, currentIndex: 0, correctCount: 0, student: null, answers: [], dailyStudent: dailyStudent || null, retries: 0,
         sigById: new Map(groups.map(g => [g.groupId, groupSignature(g)])) };
     // «تدريب اليوم»: الطالب محدد مسبقاً فلا حاجة لشاشة اختياره
     if (dailyStudent) { PlayState.student = dailyStudent; writeLastStudentId(dailyStudent.id); initAudio(); renderQuestion(); return; }
@@ -235,7 +254,9 @@ function buildOptionsHTML(q) {
     return q.options.map((opt, i) => {
         const classes = ['btn', 'btn-outline', 'sim-play-option-btn'];
         if (!isSurah) classes.push('quran-text', 'sim-play-option-fulltext');
-        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(SURAH_OPTION_TYPES.has(q.type) ? pairOptionLabel(opt) : ((q.optionsDisplay && q.optionsDisplay[i]) || opt))}</button>`;
+        // 🌟 [2026-11-07] نفس عرض أسئلة المتشابهات في لعبة الكبار (components/similarGameHook.js): الآية بين ﴿ ﴾ وبالسكون القرآني
+        const label = isSurah ? pairOptionLabel(opt) : '﴿ ' + toQuranicSukun((q.optionsDisplay && q.optionsDisplay[i]) || opt) + ' ﴾';
+        return `<button class="${classes.join(' ')}" data-opt="${encodeURIComponent(String(opt))}">${escapeHtmlText(label)}</button>`;
     }).join('');
 }
 
@@ -253,7 +274,8 @@ async function renderQuestion() {
     const optionsExtraClass = SURAH_OPTION_TYPES.has(q.type) ? '' : ' sim-play-options-fulltext';
     container.innerHTML = `
         <div class="sim-group-card">
-            <div class="sim-play-prompt sim-q-text">${questionTextToHTML(localizedQuestionText(q))}</div>
+            ${q.retry ? `<div class="sim-retry-badge">${t('sim_retry_badge')}</div>` : ''}
+            <div class="sim-play-prompt sim-q-text sim-q-platform">${questionTextToHTML(localizedQuestionText(q), toQuranicSukun)}</div>
             <div class="sim-play-options${optionsExtraClass}">${buildOptionsHTML(q)}</div>
             <div class="sim-play-feedback" id="simplay-feedback"></div>
         </div>`;
@@ -294,9 +316,44 @@ function handleAnswer(btn, q) {
             if (decodeURIComponent(b.dataset.opt) === String(q.correctAnswer)) b.classList.add('btn-correct');
         });
         if (feedbackEl) feedbackEl.textContent = t('sim_game_wrong_feedback');
+        // 🌟 [2026-11-07] بدل الانتقال الآلي: «قارن بين المتشابهات» (الكلمات المختلفة مميَّزة) + «فرصة ثانية» آخر الجولة،
+        // ثم ينتقل الطالب بزر «التالي» حين يفرغ من المقارنة
+        queueRetry(q);
+        showComparison(q, feedbackEl);
+        return;
     }
 
     setTimeout(nextQuestion, 1400);
+}
+
+// يضيف لآخر الجولة سؤالاً آخر من المجموعة نفسها (بنص مختلف إن أمكن) — مرة واحدة لكل سؤال، وبحد MAX_RETRIES للجولة
+function queueRetry(q) {
+    if (q.retry || (PlayState.retries || 0) >= MAX_RETRIES) return;
+    const g = PlayState.groups.find(x => x.groupId === q.groupId);
+    if (!g) return;
+    const fresh = generateQuestionsForGroup(g, { types: typesFor(g), memorized: studentMemorized() });
+    if (!fresh.length) return;
+    const pick = fresh.find(x => x.text !== q.text || x.correctAnswer !== q.correctAnswer) || fresh[0];
+    PlayState.round.questions.push({ ...pick, retry: true });
+    PlayState.retries = (PlayState.retries || 0) + 1;
+}
+
+function showComparison(q, feedbackEl) {
+    if (!feedbackEl) { setTimeout(nextQuestion, 1400); return; }
+    const g = PlayState.groups.find(x => x.groupId === q.groupId);
+    const places = comparePlaces(getSimilarityQuran(), g, studentMemorized());
+    const esc = escapeHtmlText;
+    const word = (w) => { const x = esc(toQuranicSukun(w.w)); return w.diff ? `<span class="quran-text sim-diff">${x}</span>` : x; };
+    const rows = places.map(p => `<div class="sim-compare-row">
+            <span class="sim-compare-surah">${esc(surahNameLocal(p.name))}</span>
+            <div class="quran-text sim-compare-verse">${p.words.map(word).join(' ')}</div>
+        </div>`).join('');
+    feedbackEl.insertAdjacentHTML('afterend', `
+        ${rows ? `<div class="sim-compare"><div class="sim-compare-h">${t('sim_compare_title')}</div>${rows}</div>` : ''}
+        <button class="btn sim-next-btn" id="simplay-btn-next">${t('sim_next_btn')}</button>`);
+    const nb = document.getElementById('simplay-btn-next');
+    nb?.addEventListener('click', () => nextQuestion(), { once: true });
+    nb?.focus({ preventScroll: true });
 }
 
 function nextQuestion() {
@@ -363,7 +420,8 @@ async function renderResultsScreen() {
         // الأسئلة المتاحة (سقف MAX_ROUND_QUESTIONS)، هذا يعني أيضاً مجموعة فرعية مختلفة من
         // الأسئلة نفسها في كل محاولة لو النطاق أكبر من السقف، بدل تكرار نفس الخيارات بالضبط
         // (نفس الطالب يستمر في الجولة التالية بلا إعادة اختيار)
-        PlayState.round = buildGameRound(PlayState.groups, { memorized: studentMemorized() });
+        PlayState.round = buildRound(PlayState.groups);
+        PlayState.retries = 0;
         PlayState.currentIndex = 0;
         PlayState.correctCount = 0;
         PlayState.answers = [];

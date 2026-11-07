@@ -1105,3 +1105,150 @@
     .sim-howto { grid-template-columns: 1fr; }
     .sim-tiles { grid-template-columns: repeat(2, 1fr); }
 }
+
+
+/* ---- 🌟 [2026-11-07] «قارن بين المتشابهات» بعد الإجابة الخاطئة + «فرصة ثانية» ----
+   (التخطيط والألوان فقط: لا يُمسّ خط النص القرآني ولا وزنه — .quran-text على كل عنصر يحوي نصاً قرآنياً) */
+.sim-compare {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: var(--dh-r-md);
+    background: var(--dh-surface-2);
+    border: 1px solid var(--dh-border);
+    text-align: start;
+}
+.sim-compare-h { font-size: 0.9rem; color: var(--dh-ink-soft); margin-bottom: 8px; }
+.sim-compare-row {
+    display: grid;
+    grid-template-columns: minmax(70px, auto) 1fr;
+    gap: 10px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-top: 1px dashed var(--dh-border-soft);
+}
+.sim-compare-row:first-of-type { border-top: 0; }
+.sim-compare-surah {
+    font-size: 0.82rem;
+    color: var(--dh-ok-ink);
+    background: var(--dh-ok-bg);
+    border-radius: 999px;
+    padding: 2px 10px;
+    justify-self: start;
+    white-space: nowrap;
+}
+.sim-compare-verse { color: var(--dh-ink); font-size: 1.35rem; line-height: 2.1; }
+.sim-diff {
+    background: var(--dh-warn-bg);
+    color: var(--dh-ink);
+    border-bottom: 2px solid var(--dh-warn);
+    border-radius: 4px;
+    padding: 0 3px;
+}
+.sim-next-btn { margin-top: 14px; min-width: 160px; }
+.sim-retry-badge {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    background: var(--dh-info-bg);
+    color: var(--dh-ink);
+    border: 1px solid var(--dh-info);
+}
+@media (max-width: 520px) {
+    .sim-compare-row { grid-template-columns: 1fr; gap: 4px; }
+}
+
+
+/* ---- 🌟 [2026-11-07] «طلابي في المتشابهات»: بحث + قائمة أسماء + بطاقة الطالب المختار فقط ---- */
+.sim-stu-layout {
+    display: grid;
+    grid-template-columns: minmax(230px, 300px) 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-top: 12px;
+}
+.sim-stu-picker {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 10px;
+    border-radius: var(--dh-r-lg);
+    background: var(--dh-surface-2);
+    border: 1px solid var(--dh-border);
+}
+.sim-stu-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border-radius: var(--dh-r-md);
+    border: 1px solid var(--dh-border-strong);
+    background: var(--dh-surface-3);
+    color: var(--dh-ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+}
+.sim-stu-search:focus { outline: 2px solid var(--dh-focus); outline-offset: 1px; }
+.sim-stu-list { display: flex; flex-direction: column; gap: 4px; max-height: 340px; overflow-y: auto; }
+.sim-stu-row {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: var(--dh-r-md);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--dh-ink);
+    font-family: inherit;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: start;
+}
+.sim-stu-row:hover { background: var(--dh-surface-3); }
+.sim-stu-row.is-active { background: var(--dh-surface-3); border-color: var(--dh-emerald-600); }
+.sim-stu-row[hidden] { display: none; }
+.sim-stu-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-stu-row-badge {
+    min-width: 24px; padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 0.78rem; text-align: center;
+    background: var(--dh-warn-bg); color: var(--dh-ink); border: 1px solid var(--dh-warn);
+}
+.sim-stu-av.sim-stu-av-sm { width: 30px; height: 30px; font-size: 0.9rem; border-width: 1px; }
+.sim-stu-noresult { margin: 6px 4px; color: var(--dh-ink-soft); font-size: 0.88rem; }
+.sim-stu-noresult[hidden] { display: none; }
+.sim-stu-count { color: var(--dh-ink-soft); font-size: 0.8rem; padding-inline-start: 4px; }
+.sim-stu-detail .sim-stu-card[hidden] { display: none; }
+@media (max-width: 720px) {
+    .sim-stu-layout { grid-template-columns: 1fr; }
+    .sim-stu-list { max-height: 210px; }
+}
+
+/* «قارن بين المتشابهات»: صندوق الآية العام (حدود متقطعة وخلفية في ركن الكبار) لا يناسب المقارنة — يبقى الخط كما هو */
+.sim-group-card .sim-compare div.quran-text.sim-compare-verse,
+.sim-group-card .sim-compare span.quran-text.sim-diff {
+    border: 0;
+    border-radius: 4px;
+    box-shadow: none;
+}
+.sim-group-card .sim-compare div.quran-text.sim-compare-verse { display: block; background: none; padding: 0 !important; }
+.sim-group-card .sim-compare span.quran-text.sim-diff {
+    display: inline;
+    background: var(--dh-warn-bg);
+    border-bottom: 2px solid var(--dh-warn);
+    padding: 0 3px !important;
+}
+/* زر الإجابة الخاطئة/الصحيحة واضح دائماً (كان نصه باهتاً على خلفية فاتحة خارج ثيم الكبار) */
+.sim-group-card .sim-play-options .sim-play-option-btn.btn-wrong { background: var(--dh-danger) !important; color: var(--dh-on-danger) !important; border-color: var(--dh-danger) !important; opacity: 1 !important; }
+.sim-group-card .sim-play-options .sim-play-option-btn.btn-correct { background: var(--dh-ok) !important; color: var(--dh-on-ok) !important; border-color: var(--dh-ok) !important; opacity: 1 !important; }
+
+
+/* ---- 🌟 [2026-11-07 — بطلب المعلم] شكل السؤال كبقية المنصة (لعبة الكبار): نص السؤال 1.8rem عريض، الآيات بخط المصحف
+   المعتمد (.quran-text) بحجم أكبر، وخيارات الآيات 1.7rem. الأحجام فقط — الخط ووزنه من .quran-text كما هو ---- */
+.sim-play-prompt.sim-q-platform {
+    font-size: clamp(1.25rem, 4.6vw, 1.8rem);
+    font-weight: bold;
+    line-height: 1.9;
+    margin: 10px 0 16px;
+}
+.sim-play-prompt.sim-q-platform .sim-q-verse { font-size: 1.15em; }
+.sim-play-option-btn.sim-play-option-fulltext { font-size: clamp(1.3rem, 4.8vw, 1.7rem) !important; line-height: 2; }
+.sim-play-option-btn:not(.quran-text) { font-size: clamp(1.1rem, 4vw, 1.4rem) !important; }
+.sim-play-options { max-width: 760px; margin-inline: auto; }

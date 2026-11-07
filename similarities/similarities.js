@@ -254,6 +254,9 @@ async function handleContainerClick(e) {
         openSimilarityGame({ type: 'juz', juzId: btn.dataset.juz });
     }
     // 🌟 [2026-11-07] «تدريب اليوم» لطالب محدد: جولة من متشابهات محفوظه (حان موعده ← ضعيف ← جديد)
+    else if (action === 'select-student') {
+        selectCoachStudent(btn.dataset.student);
+    }
     else if (action === 'train-student') {
         openSimilarityGame({ type: 'student', studentId: btn.dataset.student });
     }
@@ -361,6 +364,16 @@ async function handleContainerClick(e) {
 // إعادة render() الكاملة — لو أعدنا الرسم مع كل حرف يكتبه المعلم، كان التركيز (focus) ومكان
 // المؤشر في مربع البحث نفسه هيضيع لأن innerHTML بيُستبدل بالكامل.
 function handleContainerInput(e) {
+    // 🌟 [2026-11-07] بحث «طلابي في المتشابهات»: فلترة قائمة الأسماء مباشرة بلا إعادة رسم
+    if (e.target.id === 'sim-stu-search') {
+        const q = normalizeSearchText(e.target.value);
+        const rows = document.querySelectorAll('#sim-stu-list .sim-stu-row');
+        let shown = 0;
+        rows.forEach(r => { const ok = !q || normalizeSearchText(r.dataset.name).includes(q); r.hidden = !ok; if (ok) shown++; });
+        const none = document.getElementById('sim-stu-noresult');
+        if (none) none.hidden = shown > 0;
+        return;
+    }
     if (e.target.id !== 'sim-add-surah-search') return;
     const query = normalizeSearchText(e.target.value);
     const grid = document.getElementById('sim-add-surah-grid');
@@ -629,6 +642,10 @@ async function renderStudentsCoachHTML() {
     // من حان موعده أو يحتاج تثبيتاً أولاً، ثم الأبجدية
     rows.sort((a, b) => ((b.sum.due + b.sum.weak) > 0) - ((a.sum.due + a.sum.weak) > 0) || String(a.st.name).localeCompare(String(b.st.name), 'ar'));
     const name = (n) => escapeHtml(surahNameLocal ? surahNameLocal(n) : n);
+    // المختار افتراضياً: آخر طالب تدرّب (dh_sim_last_student)، وإلا أول القائمة (من حان موعده أولاً)
+    let lastId = null;
+    try { lastId = localStorage.getItem('dh_sim_last_student'); } catch (e) { lastId = null; }
+    const selId = String((rows.find(r => String(r.st.id) === String(lastId)) || rows[0]).st.id);
     const cards = rows.map(({ st, isDefault, sum }) => {
         const memoLine = isDefault
             ? `${t('sim_stu_no_memo')} · ${sum.total}`
@@ -636,7 +653,7 @@ async function renderStudentsCoachHTML() {
         const chip = (n, cls, key) => n ? `<span class="sim-stu-chip sim-stu-chip-${cls}"><b>${n}</b> ${t(key)}</span>` : '';
         const hard = sum.hardest[0];
         const initial = escapeHtml(String(st.name || '؟').trim().charAt(0));
-        return `<article class="sim-stu-card">
+        return `<article class="sim-stu-card" data-student="${escapeAttr(st.id)}"${String(st.id) === selId ? '' : ' hidden'}>
             <div class="sim-stu-head"><span class="sim-stu-av" aria-hidden="true">${initial}</span>
                 <div class="sim-stu-id"><b>${escapeHtml(st.name)}</b><small>${memoLine}</small></div></div>
             ${sum.total ? `<div class="sim-stu-prog"><div class="sim-stu-bar" title="${sum.masteredPct}%"><i style="width:${sum.masteredPct}%"></i></div>
@@ -647,7 +664,35 @@ async function renderStudentsCoachHTML() {
             : `<p class="sim-stu-none">${t('sim_stu_none')}</p>`}
         </article>`;
     }).join('');
-    return `<div class="sim-stu-grid">${cards}</div>`;
+    // 🌟 [2026-11-07 — بطلب المعلم] بدل عرض كل بطاقات الطلاب معاً: بحث + قائمة أسماء مدمجة، وبطاقة الطالب المختار فقط.
+    // المختار افتراضياً: آخر طالب تدرّب (dh_sim_last_student)، وإلا أول القائمة (من حان موعده أولاً).
+    const list = rows.map(({ st, sum }) => {
+        const need = sum.due + sum.weak;
+        const on = String(st.id) === selId;
+        return `<button class="sim-stu-row${on ? ' is-active' : ''}" data-action="select-student" data-student="${escapeAttr(st.id)}" data-name="${escapeAttr(st.name)}" aria-pressed="${on}">
+            <span class="sim-stu-av sim-stu-av-sm" aria-hidden="true">${escapeHtml(String(st.name || '؟').trim().charAt(0))}</span>
+            <span class="sim-stu-row-name">${escapeHtml(st.name)}</span>
+            ${need ? `<span class="sim-stu-row-badge" title="${escapeAttr(t('sim_stu_due') + ' / ' + t('sim_stu_weak'))}">${need}</span>` : ''}
+        </button>`;
+    }).join('');
+    return `<div class="sim-stu-layout">
+        <div class="sim-stu-picker">
+            <input type="search" class="sim-stu-search" id="sim-stu-search" placeholder="${escapeAttr(t('sim_stu_search_ph'))}" aria-label="${escapeAttr(t('sim_stu_search_ph'))}" autocomplete="off">
+            <div class="sim-stu-list" id="sim-stu-list">${list}<p class="sim-stu-noresult" id="sim-stu-noresult" hidden>${t('sim_stu_no_match')}</p></div>
+            <small class="sim-stu-count">${rows.length} ${t('sim_stu_count_suffix')}</small>
+        </div>
+        <div class="sim-stu-detail">${cards}</div>
+    </div>`;
+}
+
+function selectCoachStudent(id) {
+    document.querySelectorAll('#sim-stu-list .sim-stu-row').forEach(r => {
+        const on = r.dataset.student === String(id);
+        r.classList.toggle('is-active', on);
+        r.setAttribute('aria-pressed', String(on));
+    });
+    document.querySelectorAll('.sim-stu-detail .sim-stu-card').forEach(c => { c.hidden = c.dataset.student !== String(id); });
+    try { localStorage.setItem('dh_sim_last_student', String(id)); } catch (e) { /* لا شيء */ }
 }
 
 function renderBrowseTilesHTML() {

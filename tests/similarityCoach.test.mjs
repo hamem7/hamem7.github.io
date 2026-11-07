@@ -1,7 +1,7 @@
 // اختبار «مدرّب المتشابهات»: ترتيب تدريب اليوم (حان موعده ← ضعيف ← جديد) والتقيّد بمحفوظ الطالب
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planStudentRound, studentCoachSummary, groupInMemo } from '../engine/similarityCoach.js';
+import { planStudentRound, studentCoachSummary, groupInMemo, diffWords } from '../engine/similarityCoach.js';
 import { groupSignature } from '../engine/similarityMastery.js';
 
 // المجموعة تمتد على سورتين (أسئلة الطالب «في أي سورتين؟» لا تُولَّد لمتشابهات السورة مع نفسها)
@@ -15,8 +15,10 @@ const memo = new Set([100, 101, 102, 103, 110, 111, 112, 113]);
 test('خارج المحفوظ لا يدخل', () => {
   assert.equal(groupInMemo(groups[4], memo), false);
   const p = planStudentRound(groups, [], memo, { now, limit: 10 });
-  assert.ok(!p.groups.some(x => x.groupId === 'out' || x.groupId === 'single'));
-  assert.equal(p.eligible, 4);
+  assert.ok(!p.groups.some(x => x.groupId === 'out'));
+  // متشابهات السورة مع نفسها تدخل التدريب (بسؤال «أكمل الآية»)
+  assert.ok(p.groups.some(x => x.groupId === 'single'));
+  assert.equal(p.eligible, 5);
 });
 
 test('الترتيب: حان موعده ثم الضعيف ثم الجديد ثم المتقن', () => {
@@ -26,7 +28,13 @@ test('الترتيب: حان موعده ثم الضعيف ثم الجديد ثم
     rec(groups[2], { box: 3, correct: 3, dueAt: now - DAY }),             // c حان موعده
   ];
   const p = planStudentRound(groups, records, memo, { now, limit: 4 });
-  assert.deepEqual(p.groups.map(x => x.groupId), ['c', 'b', 'd', 'a']);
+  assert.deepEqual(p.groups.map(x => x.groupId), ['c', 'b', 'single', 'd']);
   const s = studentCoachSummary(groups, records, memo, { now });
-  assert.equal(s.total, 4); assert.equal(s.fresh, 1); assert.equal(s.due, 1); assert.equal(s.mastered, 1);
+  assert.equal(s.total, 5); assert.equal(s.fresh, 2); assert.equal(s.due, 1); assert.equal(s.mastered, 1);
+});
+
+test('قارن بين الموضعين: تمييز الكلمات المختلفة فقط', () => {
+  const [a, b] = diffWords(['إِنَّ ٱللَّهَ غَفُورٌ رَّحِيمٌ', 'إِنَّ ٱللَّهَ عَزِيزٌ حَكِيمٌ']);
+  assert.deepEqual(a.filter(x => x.diff).map(x => x.w), ['غَفُورٌ', 'رَّحِيمٌ']);
+  assert.deepEqual(b.filter(x => !x.diff).map(x => x.w), ['إِنَّ', 'ٱللَّهَ']);
 });

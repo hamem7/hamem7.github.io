@@ -37,10 +37,12 @@ export function groupInMemo(g, memo) {
 }
 
 // المجموعات المتاحة للطالب (المعطّلة عن الطلاب تُستبعد بالمرشّح الممرَّر من الشاشة إن وُجد)
-// ⚠️ أسئلة الطالب في الألعاب («في أي سورتين؟» و«أي سورة لم ترد؟» — STUDENT_SIM_TYPES في similarityEngine) لا تُولَّد
-// إلا لمجموعة تمتد على سورتين فأكثر؛ متشابهات السورة مع نفسها تبقى للتصفّح والواجب ولا تُحسب في التدريب.
+// نوع السؤال حسب المجموعة في «تدريب اليوم»: الممتدة على سورتين فأكثر ← «في أي سورتين؟» و«أي سورة لم ترد؟»
+// (STUDENT_SIM_TYPES)، ومتشابهات السورة مع نفسها ← «أكمل الآية» (sim_complete)، لأن النوعين الأولين لا يُولَّدان لها.
+export const SINGLE_SURAH_TYPES = ['sim_complete'];
+export const isMultiSurah = (g) => groupSurahs(g).length >= 2;
 export function eligibleGroups(groups, memo, isPlayable = () => true) {
-    return (groups || []).filter(g => g && isPlayable(g) && groupSurahs(g).length >= 2 && groupInMemo(g, memo));
+    return (groups || []).filter(g => g && isPlayable(g) && (g.occurrences || []).length >= 2 && groupInMemo(g, memo));
 }
 
 // خطة «تدريب اليوم»: due ← ضعيفة (الأقل دقة أولاً) ← جديدة ← متقنة (احتياط لملء الجولة فقط)
@@ -86,4 +88,49 @@ export function studentCoachSummary(groups, records, memo, { now = Date.now(), i
         .sort((a, b) => accuracyOf(a) - accuracyOf(b))
         .slice(0, 3);
     return { total, practiced, due, weak, fresh, mastered, masteredPct, hardest };
+}
+
+// ============================================================
+// 🌟 [2026-11-07] «قارن بين الموضعين» — بعد الإجابة الخاطئة يرى الطالب الآيات المتشابهة متجاورة،
+// والكلمات التي تختلف بها كل آية عن شبيهاتها مميَّزة. هذا هو موضع الخلط نفسه، لا مجرد الجواب الصحيح.
+// ============================================================
+import { norm } from './similarityQuestions.js';
+
+// أول آية في موضع (ayahNumber مفرد أو بداية ayahRange مثل "15-19")
+export function firstAyahOf(o) {
+    const n = Number(o && o.ayahNumber);
+    if (n) return n;
+    const m = String(o && o.ayahRange || '').match(/\d+/);
+    return m ? Number(m[0]) : 0;
+}
+
+// texts: نصوص الآيات. يعيد لكل نص كلماته مع diff=true للكلمة التي تغيب عن آية أخرى واحدة على الأقل
+export function diffWords(texts) {
+    const toks = texts.map(tx => String(tx || '').split(/\s+/).filter(Boolean));
+    const sets = toks.map(ws => new Set(ws.map(norm).filter(Boolean)));
+    return toks.map((ws, i) => ws.map(w => {
+        const k = norm(w);
+        // علامات الوقف المنفردة ليست كلمات: لا تُميَّز
+        const diff = !!k && sets.some((s, j) => j !== i && !s.has(k));
+        return { w, diff };
+    }));
+}
+
+// مواضع المجموعة للمقارنة (داخل محفوظ الطالب إن وُجد، حتى max): [{ s, name, n, words }]
+// Q: QuranIndex (getSimilarityQuran). المواضع ذات النص المكرر حرفياً تُعرض مرة واحدة.
+export function comparePlaces(Q, group, memo = null, max = 4) {
+    if (!Q || !group) return [];
+    const seen = new Set(), out = [];
+    for (const o of group.occurrences || []) {
+        const s = Number(o.surahNumber), n = firstAyahOf(o);
+        if (!s || !n || (memo && !memo.has(s))) continue;
+        const sd = Q.surahs.get(s), v = sd && sd.verses.get(n);
+        if (!v || seen.has(v.norm)) continue;
+        seen.add(v.norm);
+        out.push({ s, name: sd.name, n, text: v.text });
+        if (out.length >= max) break;
+    }
+    if (out.length < 2) return [];
+    const d = diffWords(out.map(p => p.text));
+    return out.map((p, i) => ({ s: p.s, name: p.name, n: p.n, words: d[i] }));
 }
