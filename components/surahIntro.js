@@ -76,6 +76,25 @@ function renderList() {
     });
 }
 
+// تكبير صورة كلمات السورة: طبقة فوق الشاشة تبدأ من أسفل الترويسة؛ تُغلق بالضغط أو Esc
+function openZoom(src, alt) {
+    document.getElementById('si-zoom')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'si-zoom';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.setAttribute('aria-label', alt);
+    const h = document.getElementById('main-header');
+    ov.style.top = (h ? Math.max(0, Math.round(h.getBoundingClientRect().bottom)) : 0) + 'px';
+    ov.innerHTML = `<button type="button" class="si-zoom-x" aria-label="${esc(t('si_close'))}" title="${esc(t('si_close'))}">✕</button><img src="${esc(src)}" alt="${esc(alt)}">`;
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    ov.addEventListener('click', close);
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(ov);
+    ov.querySelector('button').focus();
+}
+
 function renderCard() {
     const i = SURAH_INTRO.findIndex(s => s.n === st.cur);
     const s = SURAH_INTRO[i], prev = SURAH_INTRO[i - 1], next = SURAH_INTRO[i + 1];
@@ -123,6 +142,7 @@ function renderCard() {
     document.getElementById('si-list').addEventListener('click', () => { if (!inJuz(s, st.juz)) st.juz = s.j[0]; st.q = ''; st.cur = null; render(); });
     document.getElementById('si-big').addEventListener('click', () => { st.fs = Math.min(2, st.fs + 0.15); render(); });
     document.getElementById('si-small').addEventListener('click', () => { st.fs = Math.max(0.95, st.fs - 0.15); render(); });
+    body().querySelectorAll('.si-words-grid img').forEach(img => img.addEventListener('click', () => openZoom(img.src, img.alt)));
     if (prev) document.getElementById('si-prev').addEventListener('click', () => go(prev.n));
     if (next) document.getElementById('si-next').addEventListener('click', () => go(next.n));
 }
