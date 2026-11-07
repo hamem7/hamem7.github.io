@@ -870,8 +870,8 @@ html[data-theme="dark"] body:not(.dh-light) .ws-note { color: var(--dh-ink-soft,
 html[data-theme="dark"] body:not(.dh-light) .ws-btn.alt { background: #1f2731 !important; color: var(--dh-ink, #e8f2ec) !important; }
 html[data-theme="dark"] body:not(.dh-light) .ws-wd { background: #18222b !important; }
 html[data-theme="dark"] body:not(.dh-light) .ws-tbl th { color: var(--dh-ink, #e8f2ec) !important; }
-html[data-theme="dark"] body:not(.dh-light) .ws-tbl td { background: #161f27 !important; }
-html[data-theme="dark"] body:not(.dh-light) .ws-tbl td.ws-name { background: #161f27 !important; }
+html[data-theme="dark"] body:not(.dh-light) .ws-tbl td { background: var(--dh-surface-2, #182a23) !important; }
+html[data-theme="dark"] body:not(.dh-light) .ws-tbl tbody tr:nth-child(even) td { background: #182029 !important; }
 html[data-theme="dark"] body:not(.dh-light) .ws-tbl td.ws-st { color: #e1af89 !important; }
 html[data-theme="dark"] body:not(.dh-light) .ws-d { background: var(--dh-surface-2, #182a23) !important; border: 2px solid #495565 !important; }
 
