@@ -196,7 +196,6 @@ function ensureStyles() {
         .hwcert-close { position: absolute; left: ${U('var(--cl)')}; width: ${U('var(--cw)')}; top: ${U('var(--ct)')}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
         .hwcert-row { display: flex; justify-content: center; align-items: flex-end; gap: ${U(2.5)}; margin-bottom: ${U(1)}; }
         .hwcert-sig { min-width: ${U(20)}; font-size: ${U(2.6)}; }
-        .hwcert-sig-line { border-bottom: ${U(.35)} solid #6a5a44; height: ${U(3.4)}; margin-bottom: ${U(.7)}; }
         .hwcert-sig b { display: block; color: #2a1e10; font-size: ${U(2.9)}; line-height: 1.5; white-space: nowrap; }
         .hwcert-stamp { width: ${U(10)}; height: ${U(10)}; display: flex; align-items: center; justify-content: center; }
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
@@ -451,7 +450,7 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
                 <div class="hwcert-close">
                     <div class="hwcert-row">
                         ${teacher.stamp ? `<div class="hwcert-stamp"><img src="${esc(teacher.stamp)}" alt=""></div>` : ''}
-                        <div class="hwcert-sig"><div class="hwcert-sig-line"></div>${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
+                        <div class="hwcert-sig">${t('hwcert_teacher_label')}<b>${esc(teacher.name)}</b></div>
                     </div>
                     <div class="hwcert-when">${t('hwcert_issued_on')} <b>${esc(dates.hijri || dates.greg)}</b>${dates.hijri ? `<br><b>${esc(dates.greg)}</b>` : ''}</div>
                 </div>
