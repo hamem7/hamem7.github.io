@@ -96,13 +96,13 @@ const U = (n) => `calc(var(--u) * ${n})`;
 const S = (n) => `calc(var(--u) * ${n} * var(--f))`;
 
 // 🌟 [2026-11-08] أربعة قوالب، كل قالب لربع سنة (ثلاثة أشهر) بحسب تاريخ اعتماد الواجب (فتبقى الشهادة القديمة بقالبها عند إعادة فتحها):
-// يناير–مارس: كحلي | أبريل–يونيو: فانوس ذهبي | يوليو–سبتمبر: أخضر | أكتوبر–ديسمبر: المصحف (القالب الأصلي المعتمد).
+// يناير–مارس: كحلي | أبريل–يونيو: أزرق بمسجد | يوليو–سبتمبر: أخضر | أكتوبر–ديسمبر: المصحف (القالب الأصلي المعتمد).
 // ratio = ارتفاع/عرض الصورة. mt/ml/mr = موضع العمود الرئيسي، limit = أقصى امتداد له (يسبق كتلة المعلم). cl/ct/cw = كتلة المعلم (يسار/أعلى/عرض).
-// hl = إزاحة الترويسة عن الفانوس (يسار فعلياً)، num = موضع رقم الشهادة. الألوان: c1 الشعار، c3 العناوين، c2 الاسم.
+// hl = إزاحة الترويسة عن عنصر زخرفي (يسار فعلياً) (يسار فعلياً)، num = موضع رقم الشهادة. الألوان: c1 الشعار، c3 العناوين، c2 الاسم.
 const CERT_TEMPLATES = [
     { id: 'quran', img: 'template-quran.jpg', ratio: 1608 / 1200, mt: 11, ml: 13.5, mr: 13.5, limit: 102, cl: 11, ct: 102.8, cw: 46, hl: 0, num: 'right:5u', c1: '#276b59', c2: '#6b4a1e', c3: '#2c6f73' },
     { id: 'navy', img: 'template-navy.jpg', ratio: 1697 / 1200, mt: 15, ml: 14, mr: 14, limit: 110, cl: 27, ct: 111.5, cw: 46, hl: 0, num: 'center', c1: '#1b3d6b', c2: '#12335f', c3: '#1b3d6b' },
-    { id: 'lantern', img: 'template-lantern.jpg', ratio: 1350 / 1080, mt: 3, ml: 8, mr: 8, limit: 91, cl: 2, ct: 92.5, cw: 96, hl: 21, hb: 8, num: 'right:3u', c1: '#6b4a10', c2: '#4a2f0a', c3: '#5a4210', panel: true },
+    { id: 'blue', img: 'template-blue.jpg', ratio: 1697 / 1200, mt: 24, ml: 8, mr: 8, limit: 108, cl: 37, ct: 109, cw: 61, hl: 0, hb: 0, num: 'center', panel: true, pn: 'rgba(255,255,255,.72)', c1: '#2a3a8c', c2: '#1f2f78', c3: '#2a3a8c' },
     { id: 'green', img: 'template-green.jpg', ratio: 1697 / 1200, mt: 17, ml: 10, mr: 10, limit: 103, cl: 27, ct: 104.5, cw: 46, hl: 0, num: 'center', c1: '#3d5a30', c2: '#5b4318', c3: '#3d5a30' }
 ];
 // 0=يناير … 11=ديسمبر → فهرس القالب
@@ -205,12 +205,12 @@ function ensureStyles() {
             background: rgba(255,255,255,.85); border-radius: ${U(1.2)}; padding: ${U(.4)} ${U(1.6)}; white-space: nowrap; }
         .hwcert-number bdi { letter-spacing: ${U(.1)}; }
         .hwcert-card.num-center .hwcert-number { right: auto; left: 50%; transform: translateX(-50%); }
-        .hwcert-card.has-panel .hwcert-result { background: rgba(253,246,227,.8); border-radius: ${S(2.6)}; padding: ${S(1.2)} ${S(2)}; box-sizing: border-box; }
+        .hwcert-card.has-panel .hwcert-result { background: var(--pn); border-radius: ${S(2.6)}; padding: ${S(1.2)} ${S(2)}; box-sizing: border-box; }
         .hwcert-card.has-panel .hwcert-close { display: flex; direction: ltr; justify-content: space-between; align-items: stretch; }
         .hwcert-card.has-panel[dir=rtl] .hwcert-close > * { direction: rtl; }
-        .hwcert-card.has-panel .hwcert-row { order: 1; width: ${U(33)}; margin: 0; box-sizing: border-box; background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} 0; }
+        .hwcert-card.has-panel .hwcert-row { order: 1; width: ${U(33)}; margin: 0; box-sizing: border-box; background: var(--pn); border-radius: ${U(2.4)}; padding: ${U(1.2)} 0; }
         .hwcert-card.has-panel .hwcert-when br { display: none; }
-        .hwcert-card.has-panel .hwcert-when { order: 2; width: ${U(27)}; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-sizing: border-box; background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} ${U(2.4)}; }
+        .hwcert-card.has-panel .hwcert-when { order: 2; width: ${U(27)}; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-sizing: border-box; background: var(--pn); border-radius: ${U(2.4)}; padding: ${U(1.2)} ${U(2.4)}; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
@@ -386,7 +386,7 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
     const tier = getTier(score);
     const issuedAt = new Date(Date.parse(submission.approvedAt) || Date.now());
     const tpl = (opts && CERT_TEMPLATES.find(x => x.id === opts.template)) || certTemplateFor(issuedAt);
-    const tplVars = `--mt:${tpl.mt};--ml:${tpl.ml};--mr:${tpl.mr};--cl:${tpl.cl};--ct:${tpl.ct};--cw:${tpl.cw};--hl:${tpl.hl};--hb:${tpl.hb || 0};--nr:${tpl.num === 'center' ? 5 : parseFloat(tpl.num.split(':')[1])};--c1:${tpl.c1};--c2:${tpl.c2};--c3:${tpl.c3};background-image:url(assets/certificates/${tpl.img});`;
+    const tplVars = `--mt:${tpl.mt};--ml:${tpl.ml};--mr:${tpl.mr};--cl:${tpl.cl};--ct:${tpl.ct};--cw:${tpl.cw};--hl:${tpl.hl};--hb:${tpl.hb || 0};--nr:${tpl.num === 'center' ? 5 : parseFloat(tpl.num.split(':')[1])};--c1:${tpl.c1};--c2:${tpl.c2};--c3:${tpl.c3};--pn:${tpl.pn || 'rgba(253,246,227,.88)'};background-image:url(assets/certificates/${tpl.img});`;
     const certNo = certificateNumber(submission, issuedAt);
     const dates = formatCertDates(issuedAt);
     const teacher = getTeacherForCertificate();
