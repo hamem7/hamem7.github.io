@@ -102,7 +102,7 @@ const S = (n) => `calc(var(--u) * ${n} * var(--f))`;
 const CERT_TEMPLATES = [
     { id: 'quran', img: 'template-quran.jpg', ratio: 1608 / 1200, mt: 11, ml: 13.5, mr: 13.5, limit: 102, cl: 11, ct: 102.8, cw: 46, hl: 0, num: 'right:5u', c1: '#276b59', c2: '#6b4a1e', c3: '#2c6f73' },
     { id: 'navy', img: 'template-navy.jpg', ratio: 1697 / 1200, mt: 15, ml: 14, mr: 14, limit: 110, cl: 27, ct: 111.5, cw: 46, hl: 0, num: 'center', c1: '#1b3d6b', c2: '#12335f', c3: '#1b3d6b' },
-    { id: 'lantern', img: 'template-lantern.jpg', ratio: 1350 / 1080, mt: 3, ml: 8, mr: 8, limit: 91, cl: 2, ct: 92.5, cw: 33, hl: 21, hb: 8, num: 'right:3u', c1: '#6b4a10', c2: '#4a2f0a', c3: '#5a4210', panel: true },
+    { id: 'lantern', img: 'template-lantern.jpg', ratio: 1350 / 1080, mt: 3, ml: 8, mr: 8, limit: 91, cl: 2, ct: 92.5, cw: 96, hl: 21, hb: 8, num: 'right:3u', c1: '#6b4a10', c2: '#4a2f0a', c3: '#5a4210', panel: true },
     { id: 'green', img: 'template-green.jpg', ratio: 1697 / 1200, mt: 17, ml: 10, mr: 10, limit: 103, cl: 27, ct: 104.5, cw: 46, hl: 0, num: 'center', c1: '#3d5a30', c2: '#5b4318', c3: '#3d5a30' }
 ];
 // 0=يناير … 11=ديسمبر → فهرس القالب
@@ -207,7 +207,11 @@ function ensureStyles() {
         .hwcert-number bdi { letter-spacing: ${U(.1)}; }
         .hwcert-card.num-center .hwcert-number { right: auto; left: 50%; transform: translateX(-50%); }
         .hwcert-card.has-panel .hwcert-result { background: rgba(253,246,227,.8); border-radius: ${S(2.6)}; padding: ${S(1.2)} ${S(2)}; box-sizing: border-box; }
-        .hwcert-card.has-panel .hwcert-close { background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} 0; box-sizing: border-box; }
+        .hwcert-card.has-panel .hwcert-close { display: flex; direction: ltr; justify-content: space-between; align-items: stretch; }
+        .hwcert-card.has-panel[dir=rtl] .hwcert-close > * { direction: rtl; }
+        .hwcert-card.has-panel .hwcert-row { order: 1; width: ${U(33)}; margin: 0; box-sizing: border-box; background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} 0; }
+        .hwcert-card.has-panel .hwcert-when br { display: none; }
+        .hwcert-card.has-panel .hwcert-when { order: 2; width: ${U(27)}; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-sizing: border-box; background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} ${U(2.4)}; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
