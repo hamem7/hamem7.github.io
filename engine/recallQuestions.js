@@ -249,7 +249,7 @@ function mkNamed(Q, bank, g, rng) {
     return { ...baseOf(Q, g, 'sim_named'), text,
         tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: g.phrase, n: locs.length, names: names.join('، '), name } },
         options: [], optionsDisplay: [], correctAnswer: tn.w.join(' '), correctIndex: -1, hints,
-        reveal: { target: rec(tn), others: locs.filter(l => l !== tg).map(l => rec(nextOf(l))) } };
+        reveal: { cur: rec(tg.v), target: rec(tn), others: locs.filter(l => l !== tg).map(l => rec(nextOf(l))) } };
 }
 
 const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };

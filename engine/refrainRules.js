@@ -21,7 +21,7 @@ export function refrainSkeleton(text) {
         .replace(/[^ء-ي]/g, '');
 }
 
-const REFRAINS = ['فبايالاربكماتكذبان', 'ويليومئذللمكذبين'].map(refrainSkeleton);
+const REFRAINS = ['فبايالاربكماتكذبان', 'ويليومئذللمكذبين', 'فكيفكانعذابيونذر'].map(refrainSkeleton);
 
 export const RAHMAN_SURAH = 55;
 

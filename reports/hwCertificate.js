@@ -95,6 +95,23 @@ function formatScope(scope) {
 const U = (n) => `calc(var(--u) * ${n})`;
 const S = (n) => `calc(var(--u) * ${n} * var(--f))`;
 
+// 🌟 [2026-11-08] أربعة قوالب، كل قالب لربع سنة (ثلاثة أشهر) بحسب تاريخ اعتماد الواجب (فتبقى الشهادة القديمة بقالبها عند إعادة فتحها):
+// يناير–مارس: كحلي | أبريل–يونيو: فانوس ذهبي | يوليو–سبتمبر: أخضر | أكتوبر–ديسمبر: المصحف (القالب الأصلي المعتمد).
+// ratio = ارتفاع/عرض الصورة. mt/ml/mr = موضع العمود الرئيسي، limit = أقصى امتداد له (يسبق كتلة المعلم). cl/ct/cw = كتلة المعلم (يسار/أعلى/عرض).
+// hl = إزاحة الترويسة عن الفانوس (يسار فعلياً)، num = موضع رقم الشهادة. الألوان: c1 الشعار، c3 العناوين، c2 الاسم.
+const CERT_TEMPLATES = [
+    { id: 'quran', img: 'template-quran.jpg', ratio: 1608 / 1200, mt: 11, ml: 13.5, mr: 13.5, limit: 102, cl: 11, ct: 102.8, cw: 46, hl: 0, num: 'right:5u', c1: '#276b59', c2: '#6b4a1e', c3: '#2c6f73' },
+    { id: 'navy', img: 'template-navy.jpg', ratio: 1697 / 1200, mt: 15, ml: 14, mr: 14, limit: 110, cl: 27, ct: 111.5, cw: 46, hl: 0, num: 'center', c1: '#1b3d6b', c2: '#12335f', c3: '#1b3d6b' },
+    { id: 'lantern', img: 'template-lantern.jpg', ratio: 1350 / 1080, mt: 3, ml: 8, mr: 8, limit: 91, cl: 2, ct: 92.5, cw: 33, hl: 21, hb: 8, num: 'right:3u', c1: '#6b4a10', c2: '#4a2f0a', c3: '#5a4210', panel: true },
+    { id: 'green', img: 'template-green.jpg', ratio: 1697 / 1200, mt: 17, ml: 10, mr: 10, limit: 103, cl: 27, ct: 104.5, cw: 46, hl: 0, num: 'center', c1: '#3d5a30', c2: '#5b4318', c3: '#3d5a30' }
+];
+// 0=يناير … 11=ديسمبر → فهرس القالب
+const QUARTER_TEMPLATE = [1, 1, 1, 2, 2, 2, 3, 3, 3, 0, 0, 0];
+export function certTemplateFor(date) {
+    const m = (date instanceof Date && !isNaN(date)) ? date.getMonth() : new Date().getMonth();
+    return CERT_TEMPLATES[QUARTER_TEMPLATE[m]];
+}
+
 function ensureStyles() {
     if (document.getElementById('hwcert-style')) return;
     const style = document.createElement('style');
@@ -104,10 +121,11 @@ function ensureStyles() {
             display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
         .hwcert-card-wrap { max-width: 600px; width: 100%; margin: auto; }
         .hwcert-card { --u: 6px; --f: 1; position: relative; width: 100%; overflow: hidden; text-align: center;
-            background: #fdf6e3 url(assets/certificates/template-quran.jpg) center/100% 100% no-repeat;
+            background: #fdf6e3 center/100% 100% no-repeat;
             box-shadow: 0 30px 60px rgba(0,0,0,0.35); font-family: 'Reem Kufi', 'Cairo', sans-serif; color: #2a1e10; }
-        .hwcert-main { position: absolute; top: ${U(11)}; left: ${U(13.5)}; right: ${U(13.5)}; display: flex; flex-direction: column; align-items: center; }
-        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: #276b59; font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
+        .hwcert-main { position: absolute; top: ${U('var(--mt)')}; left: ${U('var(--ml)')}; right: ${U('var(--mr)')}; display: flex; flex-direction: column; align-items: center; }
+        .hwcert-head { width: 100%; box-sizing: border-box; padding-left: ${U('var(--hl)')}; padding-bottom: ${U('var(--hb)')}; display: flex; flex-direction: column; align-items: center; }
+        .hwcert-brand { display: flex; align-items: center; gap: ${S(1.6)}; color: var(--c1); font-size: ${S(2.4)}; white-space: nowrap; letter-spacing: 0; word-spacing: 0; }
         .hwcert-brand img { width: ${S(4.4)}; height: auto; display: block; }
         .hwcert-title { margin: ${S(.3)} 0 0; line-height: 0; }
         .hwcert-title img { height: ${S(8.4)}; width: auto; display: block; margin: 0 auto; }
@@ -121,7 +139,7 @@ function ensureStyles() {
             font-size: ${S(5)}; background: #2f7f6a; color: #fdf6e3; border: ${S(.7)} solid #d4af37; box-shadow: 0 ${S(.8)} ${S(1.8)} rgba(0,0,0,.2); }
         .hwcert-who { text-align: start; min-width: 0; }
         .hwcert-grant { font-family: 'Amiri', serif; color: #6a5a44; font-size: ${S(2.8)}; }
-        .hwcert-name { font-family: 'Amiri', serif; font-size: ${S(7.2)}; font-weight: 700; color: #6b4a1e; line-height: 1.2; word-break: break-word; }
+        .hwcert-name { font-family: 'Amiri', serif; font-size: ${S(7.2)}; font-weight: 700; color: var(--c2); line-height: 1.2; word-break: break-word; }
         .hwcert-result { display: grid; grid-template-columns: ${S(17)} 1fr; gap: ${S(3)}; align-items: center; width: 100%; margin-top: ${S(1.4)}; }
         .hwcert-medalcol { text-align: center; }
         .hwcert-medalwrap { position: relative; width: ${S(13)}; height: ${S(15.8)}; margin: 0 auto; }
@@ -135,10 +153,10 @@ function ensureStyles() {
         .hwcert-side { display: flex; flex-direction: column; gap: ${S(1.3)}; text-align: start; min-width: 0; }
         .hwcert-scope { background: rgba(44,111,115,.08); border: 1px solid rgba(44,111,115,.3); border-radius: ${S(2.2)}; padding: ${S(1)} ${S(2.4)}; }
         .hwcert-scope small { display: block; font-size: ${S(2)}; color: #6a5a44; }
-        .hwcert-scope b { font-family: 'Amiri', serif; font-size: ${S(2.8)}; color: #2c6f73; line-height: 1.45; }
+        .hwcert-scope b { font-family: 'Amiri', serif; font-size: ${S(2.8)}; color: var(--c3); line-height: 1.45; }
         .hwcert-enc { font-family: 'Amiri', serif; font-size: ${S(2.7)}; line-height: 1.5; background: rgba(212,175,55,.16); border-radius: ${S(2.2)}; padding: ${S(1)} ${S(2.4)}; }
         .hwcert-ladder { width: 100%; margin-top: ${S(1.6)}; background: rgba(255,255,255,.82); border: 1px solid #e0cd98; border-radius: ${S(2.4)}; padding: ${S(1.1)} ${S(2)} ${S(1)}; box-sizing: border-box; }
-        .hwcert-ladder h3 { font-size: ${S(2.5)}; color: #2c6f73; font-weight: 700; margin: 0 0 ${S(1)}; text-align: center; }
+        .hwcert-ladder h3 { font-size: ${S(2.5)}; color: var(--c3); font-weight: 700; margin: 0 0 ${S(1)}; text-align: center; }
             border: ${S(.35)} solid #fffdf8; box-shadow: 0 0 0 ${S(.25)} currentColor; }
         .hwcert-lfirst { font-size: ${S(1.9)}; color: #6a5a44; text-align: center; margin-top: ${S(.8)}; }
         .hwcert-split { display: flex; align-items: stretch; gap: ${S(1.6)}; width: 100%; margin-top: ${S(1.6)}; }
@@ -175,7 +193,7 @@ function ensureStyles() {
             border-radius: ${S(2.4)}; padding: ${S(.9)} ${S(2.4)}; box-sizing: border-box; }
         .hwcert-note b { font-size: ${S(2.3)}; color: #2f7f6a; margin-inline-end: ${S(1)}; }
         .hwcert-note span { font-family: 'Amiri', serif; font-size: ${S(2.5)}; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
-        .hwcert-close { position: absolute; left: ${U(11)}; width: ${U(46)}; top: ${U(102.8)}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
+        .hwcert-close { position: absolute; left: ${U('var(--cl)')}; width: ${U('var(--cw)')}; top: ${U('var(--ct)')}; text-align: center; font-family: 'Amiri', serif; color: #6a5a44; }
         .hwcert-row { display: flex; justify-content: center; align-items: flex-end; gap: ${U(2.5)}; margin-bottom: ${U(1)}; }
         .hwcert-sig { min-width: ${U(20)}; font-size: ${U(2.6)}; }
         .hwcert-sig-line { border-bottom: ${U(.35)} solid #6a5a44; height: ${U(3.4)}; margin-bottom: ${U(.7)}; }
@@ -184,9 +202,12 @@ function ensureStyles() {
         .hwcert-stamp img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
         .hwcert-when { font-size: ${U(2.3)}; line-height: 1.5; white-space: nowrap; }
         .hwcert-when b { color: #2a1e10; }
-        .hwcert-number { position: absolute; right: ${U(5)}; bottom: ${U(1.2)}; font-family: 'Reem Kufi', sans-serif; font-size: ${U(2.3)}; font-weight: 700; color: #1f4d40;
+        .hwcert-number { position: absolute; right: ${U('var(--nr)')}; bottom: ${U(1.2)}; font-family: 'Reem Kufi', sans-serif; font-size: ${U(2.3)}; font-weight: 700; color: #1f4d40;
             background: rgba(255,255,255,.85); border-radius: ${U(1.2)}; padding: ${U(.4)} ${U(1.6)}; white-space: nowrap; }
         .hwcert-number bdi { letter-spacing: ${U(.1)}; }
+        .hwcert-card.num-center .hwcert-number { right: auto; left: 50%; transform: translateX(-50%); }
+        .hwcert-card.has-panel .hwcert-result { background: rgba(253,246,227,.8); border-radius: ${S(2.6)}; padding: ${S(1.2)} ${S(2)}; box-sizing: border-box; }
+        .hwcert-card.has-panel .hwcert-close { background: rgba(253,246,227,.88); border-radius: ${U(2.4)}; padding: ${U(1.2)} 0; box-sizing: border-box; }
         .hwcert-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
         .hwcert-actions button { flex: 1 1 140px; padding: 12px 10px; border: none; border-radius: 12px; font-size: 1rem;
             font-weight: bold; cursor: pointer; font-family: inherit; }
@@ -200,15 +221,14 @@ function ensureStyles() {
 
 // يضبط وحدة القياس --u من عرض البطاقة الفعلي وارتفاعها بنسبة القالب، ثم يُصغّر نصوص العمود الرئيسي (--f)
 // بالقدر اللازم حتى لا يتجاوز آخر عنصر فيه موضع ذيل المعلم (يسار المصحف).
-const CERT_RATIO = 1608 / 1200;
-function fitCertificate(card, maxF = 1) {
+function fitCertificate(card, maxF = 1, tpl = CERT_TEMPLATES[0]) {
     const w = card.clientWidth;
     if (!w) return;
     card.style.setProperty('--u', (w / 100) + 'px');
-    card.style.height = (w * CERT_RATIO) + 'px';
+    card.style.height = (w * tpl.ratio) + 'px';
     card.style.setProperty('--f', String(maxF));
     const main = card.querySelector('.hwcert-main');
-    const limit = 102 * w / 100;
+    const limit = tpl.limit * w / 100;
     let f = maxF;
     while (f > 0.5 && main.offsetTop + main.offsetHeight > limit) {
         f = Math.round((f - 0.03) * 100) / 100;
@@ -353,7 +373,7 @@ function downloadBlob(blob, filename) {
 // submission = نتيجة gradeSubmissionOnServer المُعتمَدة (finalScore/details/studentName/...)
 // student = سجل الطالب المحلي (قد يكون null لو لم يُربط التسليم بأي طالب في سجل المعلم)
 // 🌟 scope = نطاق الواجب الحقيقي المسجَّل مع الواجب وقت نشره (اختياري؛ null لواجب قديم بلا نطاق مسجَّل)
-export function showHomeworkCertificate(submission, student, scope) {
+export function showHomeworkCertificate(submission, student, scope, opts) {
     ensureStyles();
     ensureCertFonts();
     const scopeText = formatScope(scope);
@@ -362,6 +382,8 @@ export function showHomeworkCertificate(submission, student, scope) {
     const score = Math.round(submission.finalScore);
     const tier = getTier(score);
     const issuedAt = new Date(Date.parse(submission.approvedAt) || Date.now());
+    const tpl = (opts && CERT_TEMPLATES.find(x => x.id === opts.template)) || certTemplateFor(issuedAt);
+    const tplVars = `--mt:${tpl.mt};--ml:${tpl.ml};--mr:${tpl.mr};--cl:${tpl.cl};--ct:${tpl.ct};--cw:${tpl.cw};--hl:${tpl.hl};--hb:${tpl.hb || 0};--nr:${tpl.num === 'center' ? 5 : parseFloat(tpl.num.split(':')[1])};--c1:${tpl.c1};--c2:${tpl.c2};--c3:${tpl.c3};background-image:url(assets/certificates/${tpl.img});`;
     const certNo = certificateNumber(submission, issuedAt);
     const dates = formatCertDates(issuedAt);
     const teacher = getTeacherForCertificate();
@@ -380,11 +402,13 @@ export function showHomeworkCertificate(submission, student, scope) {
     const titleText = t('hwcert_title').replace(/\s*🏅/, '');
     overlay.innerHTML = `
         <div class="hwcert-card-wrap">
-            <div class="hwcert-card" id="hwcert-card" dir="${dir}">
+            <div class="hwcert-card${tpl.num === 'center' ? ' num-center' : ''}${tpl.panel ? ' has-panel' : ''}" id="hwcert-card" dir="${dir}" data-tpl="${tpl.id}" style="${tplVars}">
                 <div class="hwcert-main">
+                    <div class="hwcert-head">
                     <div class="hwcert-brand"><img src="assets/brand/ham-mark.svg" alt="${t('hwcert_logo_alt')}">${t('hwcert_subtitle')}</div>
                     <h2 class="hwcert-title"><img src="assets/certificates/title-thuluth.png" alt="${titleText}"></h2>
                     <div class="hwcert-orn"><i></i>✦<i></i></div>
+                    </div>
                     <div class="hwcert-person">
                         ${avatarUrl
                             ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
@@ -442,8 +466,8 @@ export function showHomeworkCertificate(submission, student, scope) {
     const cardEl = overlay.querySelector('#hwcert-card');
     // بلا كلمة معلم: يُوزَّع المكان الفارغ بتكبير نصوص العمود الرئيسي (حتى 1.3×) بدل تركه خالياً
     const maxF = teacherNote ? 1 : 1.3;
-    fitCertificate(cardEl, maxF);
-    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl, maxF)); } catch (e) { /* تجاهل */ }
+    fitCertificate(cardEl, maxF, tpl);
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitCertificate(cardEl, maxF, tpl)); } catch (e) { /* تجاهل */ }
     // إكمال المحطات السابقة من الخادم بعد ظهور الشهادة (لا تُحجب بالشبكة؛ الفشل صامت ويبقى السجل المحلي)
     if (student && student.id != null) {
         fetchCloudPrevious(student).then(cloudPrev => {
@@ -451,7 +475,7 @@ export function showHomeworkCertificate(submission, student, scope) {
             const holder = document.createElement('div');
             holder.innerHTML = ladderHtml(buildHwLadder(submission, student, score, issuedAt, cloudPrev));
             const old = overlay.querySelector('.hwcert-ladder');
-            if (old && holder.firstElementChild) { old.replaceWith(holder.firstElementChild); fitCertificate(cardEl, maxF); }
+            if (old && holder.firstElementChild) { old.replaceWith(holder.firstElementChild); fitCertificate(cardEl, maxF, tpl); }
         });
     }
     const noteEl = overlay.querySelector('#hwcert-note');

@@ -124,7 +124,7 @@ const verseHTML = (v, markRange) => {
     const on = (i) => markRange ? (i >= m[0] && i < m[1]) : m.includes(i);
     return `<span class="quran-text">﴿\u00A0${w.map((x, i) => on(i) ? `<mark>${x}</mark>` : x).join(' ')}\u00A0﴾</span>`;
 };
-const placeOf = (v, next) => `<div style="font-size:1rem; color:var(--secondary); margin:10px 0 2px;">${next ? esc(t('sim_ans_next')) + ' — ' : ''}${esc(tf('sim_inj_surah_label', { name: surahLabel(v.surahName) }))} · ${esc(tf('sim_inj_ayah_label', { n: v.ayahNumber }))}</div>`;
+const placeOf = (v, next, cur) => `<div style="font-size:1rem; color:var(--secondary); margin:10px 0 2px;">${cur ? esc(t('sim_ans_shown')) + ' — ' : next ? esc(t('sim_ans_next')) + ' — ' : ''}${esc(tf('sim_inj_surah_label', { name: surahLabel(v.surahName) }))} · ${esc(tf('sim_inj_ayah_label', { n: v.ayahNumber }))}</div>`;
 
 export function recallAnswerHTML(sim) {
     const r = sim.reveal;
@@ -133,7 +133,8 @@ export function recallAnswerHTML(sim) {
         return `<div style="font-size:1.1rem; margin-bottom:6px;">${esc(tf('sim_missing_res', { word: toQuranicSukun(x), name: surahLabel(r.a.surahName), other: toQuranicSukun(y), sto: surahLabel(r.b.surahName) }))}</div>` +
             placeOf(r.a) + verseHTML(r.a) + placeOf(r.b) + verseHTML(r.b);
     }
-    return placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map(o => placeOf(o, true) + verseHTML(o, true)).join('');
+    // الآية المعروضة كاملةً (قد يكون السؤال جزءاً من آيتها) ثم التالية لها
+    return (r.cur ? placeOf(r.cur, false, true) + verseHTML(r.cur) : '') + placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map(o => placeOf(o, true) + verseHTML(o, true)).join('');
 }
 
 export function recallHintStages(sim) {
