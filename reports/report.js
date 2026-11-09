@@ -27,7 +27,7 @@ import { playApplauseOnce, stopApplause, isApplauseMuted, setApplauseMuted } fro
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
-import { t, tf, localizeGenerated, surahNamesLocal, trStored } from '../core/i18n.js';
+import { t, tf, localizeGenerated, surahNamesLocal, trStored, gradeLabel } from '../core/i18n.js';
 // 🌟 بطاقة «متابعة ولي الأمر» = «صورة واتساب» الجديدة (النموذج أ المعتمد). الـ PDF الشامل يبقى بتصميم الورقة الحالي.
 import { buildCardHtml, computeHomeTask } from './reportCard.js';
 import { RC_STYLES } from './reportCard.styles.js';
@@ -1141,7 +1141,7 @@ function buildReportData(){
     name: student.name || t('rp_default_student'),
     // 🌟 بيانات اختيارية بالكامل: تُعرض فقط إن كانت مسجَّلة فعلاً في ملف الطالب،
     // ولا تُطلب منه إجباريًا في أي لحظة (نفس فلسفة بيانات المعلم والختم).
-    grade: student.grade ? trStored(student.grade) : '',
+    grade: student.grade ? gradeLabel(student.grade) : '',
     scope: scope || '',
     date: dateLabel,
     dateHijri: formatDateHijri(now),

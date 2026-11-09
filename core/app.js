@@ -42,7 +42,7 @@ import { initHomeReminders, bindReminderAlerts } from '../components/reminders.j
 import { startReminderWatcher } from './reminders.js';
 // 🌟 توست التنويه أسفل الشاشة — يُستخدم في شاشة "الاختبارات الثنائية" (بدل alert())
 import { showToastEncouragement } from '../components/ui.js';
-import { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage } from './i18n.js';
+import { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, gradeLabel, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage } from './i18n.js';
 // 🌟 رقم إصدار المنصة وسجل التحديثات — لشاشة "الجديد في هذا التحديث" 🌟
 import { APP_VERSION, getUnseenChangelog } from './version.js';
 // 🌟🌟 [محدَّث — دمج نظام الواجبات الجديد] كان هنا استيراد flushPendingHomeworkSync/flushPendingSubmissions من
@@ -61,7 +61,7 @@ import { exportFullBackup } from './backupRestore.js';
 import { initThemeToggle } from './theme.js';
 
 // 🛡️ إعادة تصدير دوال الترجمة لضمان عدم كسر أي ملف خارجي يستوردها من app.js
-export { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage };
+export { translations, t, tf, isEnglish, surahNameLocal, surahLabel, isSurahName, trStored, gradeLabel, localizeGenerated, localizeErrorTypes, tfAr, applyLanguage, toggleLanguage };
 
 export const AppState = {
     studentManager: null,

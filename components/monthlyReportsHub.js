@@ -23,7 +23,7 @@
 //   4) الطلاب المخفيون (isHidden) لا يظهرون في البحث.
 // =============================================================================
 
-import { AppState, t, surahNameLocal } from '../core/app.js';
+import { AppState, t, surahNameLocal, gradeLabel } from '../core/app.js';
 import { getSurahInfo } from '../engine/memorizationEngine.js';
 import { summarizeReview } from '../engine/reviewParts.js';
 
@@ -484,7 +484,7 @@ export async function openMonthlyReportsHub(opts = {}) {
         return `
         <div class="mrh-item ${q && i === 0 ? 'mrh-first' : ''} ${String(r.s.id) === selId ? 'mrh-sel' : ''}" data-id="${esc(r.s.id)}" role="button" tabindex="0">
           <span class="mrh-av">${avatarHtml(r.s)}</span>
-          <span class="mrh-who"><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade || '')}${r.s.grade && stat ? ' · ' : ''}${stat}</div></span>
+          <span class="mrh-who"><div class="mrh-nm">${esc(r.s.name)}${badgesOf(r)}</div><div class="mrh-gr">${esc(r.s.grade ? gradeLabel(r.s.grade) : '')}${r.s.grade && stat ? ' · ' : ''}${stat}</div></span>
           <span class="mrh-chip ${r.state}" title="${esc(chipLabel[r.state])}">${esc(chip)}</span>
         </div>`;
       }).join('');
@@ -694,7 +694,7 @@ export async function openMonthlyReportsHub(opts = {}) {
       host.innerHTML = `
         <div class="mrh-stu-row">
           <span class="mrh-av">${avatarHtml(student)}</span>
-          <span><div class="mrh-nm">${esc(student.name)}</div><div class="mrh-gr">${esc([student.grade, embedHost ? mName : ''].filter(Boolean).join(' · '))}</div></span>
+          <span><div class="mrh-nm">${esc(student.name)}</div><div class="mrh-gr">${esc([student.grade ? gradeLabel(student.grade) : '', embedHost ? mName : ''].filter(Boolean).join(' · '))}</div></span>
           <button class="mrh-link" id="mrh-change">${esc(embedHost ? '✕ ' + t('mrh_back_summary') : t('mrh_change_student'))}</button>
         </div>
         ${embedHost ? '' : `<div class="mrh-months">

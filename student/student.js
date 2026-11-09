@@ -2,7 +2,7 @@
 import { calcAge, stampGradeYear, currentAcademicYear } from '../core/studentRollover.js';
 import { starsSuffix } from '../core/goldStars.js';
 import { stripHizbMark } from '../engine/similarityQuestions.js';
-import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
+import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, gradeLabel, localizeErrorTypes } from '../core/app.js';
 import { loadScreen } from '../core/navigation.js';
 import { esc } from '../core/escape.js';
 import { isFixSessionEntry, fixDetail } from '../core/fixSessionLog.js';
@@ -701,7 +701,7 @@ function renderAddStudentPreview() {
     const name = document.getElementById('stu-name')?.value.trim() || '—';
     const grade = document.getElementById('stu-grade')?.value;
     const age = document.getElementById('age-display')?.textContent || '';
-    const parts = [grade ? trStored(grade) : t('stu_not_set')];
+    const parts = [grade ? gradeLabel(grade) : t('stu_not_set')];
     if (age) parts.push(age.replace(/[()]/g, '').trim());
     box.innerHTML = `<span class="avatar-opt active">${active ? active.innerHTML : '👦🏻'}</span><div><b>${esc(name)}</b><span>${esc(parts.join(' · '))}</span></div>`;
 }
@@ -870,7 +870,7 @@ function allStudentsAvatarHtml(s) {
 
 function allStudentsRowHtml(s) {
     const id = esc(s.id);
-    const details = [s.grade ? trStored(s.grade) : t('stu_not_set')];
+    const details = [s.grade ? gradeLabel(s.grade) : t('stu_not_set')];
     if (s.dob) {
         const ageNow = calcAge(s.dob);
         if (ageNow !== null) details.push(tf("stu_age_years", { n: ageNow }));
@@ -1195,7 +1195,7 @@ export async function loadStudentProfileScreen() {
             document.getElementById('prof-name').innerText = student.name;
             renderProfileScope(document.getElementById('prof-scope-card'), student);
             document.addEventListener('app-lang-changed', function _psc() { const h = document.getElementById('prof-scope-card'); if (!h || !h.isConnected) { document.removeEventListener('app-lang-changed', _psc); return; } renderProfileScope(h, AppState.currentStudent); });
-            document.getElementById('prof-grade').innerText = (student.grade ? trStored(student.grade) : t("stu_grade_not_set"));
+            document.getElementById('prof-grade').innerText = (student.grade ? gradeLabel(student.grade) : t("stu_grade_not_set"));
 
             let ageStr = t("stu_age_not_set");
             if(student.dob) {
@@ -1649,7 +1649,7 @@ function setupInlineProfileEditing(student) {
     bindInlineFieldEdit(document.getElementById('prof-grade'), {
         getValue: () => student.grade || '',
         setValue: (v) => { student.grade = v.trim(); },
-        render: () => (student.grade ? trStored(student.grade) : t("stu_grade_not_set")),
+        render: () => (student.grade ? gradeLabel(student.grade) : t("stu_grade_not_set")),
         onAfterSave: () => refreshProfileMeta(student)
     });
 

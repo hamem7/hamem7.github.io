@@ -7320,6 +7320,18 @@ export function trStored(text) {
     return (s in _revEn) ? _revEn[s] : text;
 }
 
+// 🌟 [جديد] جمع تسميتَي الصف: بعض الدول تقول «الأول الإعدادي» وأخرى «الصف السابع» (والثانوي 10–12).
+// القيمة المخزَّنة تبقى كما هي (الاسم العربي القديم)؛ العرض فقط يُلحق بها المقابل: «الأول الإعدادي (الصف السابع)» / "Preparatory 1 (Grade 7)".
+const GRADE_NUM = { 'الأول الإعدادي': 7, 'الثاني الإعدادي': 8, 'الثالث الإعدادي': 9, 'الأول الثانوي': 10, 'الثاني الثانوي': 11, 'الثالث الثانوي': 12 };
+const GRADE_AR = { 7: 'السابع', 8: 'الثامن', 9: 'التاسع', 10: 'العاشر', 11: 'الحادي عشر', 12: 'الثاني عشر' };
+export function gradeLabel(grade) {
+    if (typeof grade !== 'string' || !grade) return grade || '';
+    const base = trStored(grade);
+    const n = GRADE_NUM[grade.trim()];
+    if (!n) return base;
+    return AppState.currentLang === 'en' ? `${base} (Grade ${n})` : `${base} (الصف ${GRADE_AR[n]})`;
+}
+
 // 🌟 تسجيل المترجم في جسر المحرّكات النقية (راجع core/langBridge.js للشرح)
 registerTranslator({ t, tf, surahNameLocal, surahLabel, isEn: isEnglish });
 try { if (AppState.currentLang === 'en') loadWordMeaningsEn(); } catch (e) { /* غير حرِج */ }
@@ -7477,6 +7489,8 @@ export function applyLanguage() {
         const key = el.getAttribute('data-i18n');
         if (translations[lang] && translations[lang][key]) {
             el.innerHTML = translations[lang][key];
+            // خيارات الصف في القوائم تعرض التسميتين معاً (راجع gradeLabel)
+            if (el.tagName === 'OPTION' && el.value in GRADE_NUM) el.textContent = gradeLabel(el.value);
         }
     });
 

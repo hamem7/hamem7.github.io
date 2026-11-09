@@ -45,7 +45,7 @@ import { SKILLS } from '../engine/skillMap.js';
 import { esc } from '../core/escape.js';
 import { isFixSessionEntry, collectFixSessions } from '../core/fixSessionLog.js';
 import { skillLabel, monthlySummaryLines } from '../components/skillProfile.js';
-import { AppState, applyLanguage, t, localizeGenerated, trStored, surahNameLocal } from '../core/app.js';
+import { AppState, applyLanguage, t, localizeGenerated, trStored, gradeLabel, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
 // 🌟 [جديد] هوية "منازل القمر" الخاصة بالتقرير الشهري (ملف مستقل معزول تحت .mr2 —
@@ -964,7 +964,7 @@ async function buildMonthlyReportData(year, monthIndex0) {
     // الجنس لصياغة الرسالة (نفس قاعدة الشهادات: الصورة الرمزية أو حقل gender)
     female: ['👧🏻', '👩🏻', '🧕🏻'].includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',
     // الصف من ملف الطالب (student.grade) — اختياري، يُخفى لو فارغ
-    grade: student.grade ? trStored(student.grade) : '',
+    grade: student.grade ? gradeLabel(student.grade) : '',
     memoScope, hasMemoRange,
     avatar: getAvatarHtml(student),
     teacher,
