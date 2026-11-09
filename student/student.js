@@ -1,4 +1,5 @@
 // student/student.js
+import { calcAge, stampGradeYear, currentAcademicYear } from '../core/studentRollover.js';
 import { starsSuffix } from '../core/goldStars.js';
 import { stripHizbMark } from '../engine/similarityQuestions.js';
 import { AppState, loadSplashScreen, loadDashboardScreen, loadLoginScreen, setEvaluationMode, t, tf, surahNameLocal, localizeGenerated, trStored, localizeErrorTypes } from '../core/app.js';
@@ -54,10 +55,9 @@ function calcAgeDynamic(inputId, displayId) {
     const dobInput = document.getElementById(inputId);
     const displaySpan = document.getElementById(displayId);
     if (!dobInput || !displaySpan) return;
-    const dob = new Date(dobInput.value);
-    if (isNaN(dob)) return;
-    const ageDate = new Date(Date.now() - dob.getTime());
-    displaySpan.innerText = tf('stu_age_paren', { n: Math.abs(ageDate.getUTCFullYear() - 1970) });
+    const age = calcAge(dobInput.value);
+    if (age === null) return;
+    displaySpan.innerText = tf('stu_age_paren', { n: age });
 }
 
 // 🌟 تاريخ الميلاد بثلاث قوائم (يوم/شهر/سنة) لنافذتي التعديل (كل الطلاب + ملف الطالب): نفس ترتيب شاشة الإضافة، بدل
@@ -548,6 +548,7 @@ async function saveNewStudentAction(addAnother) {
         memoTo: document.getElementById('stu-memo-to').value,
         memoExtra: readScopeExtras('stu-extra-box'),
         avatar: document.getElementById('selected-avatar').value,
+        gradeYear: currentAcademicYear(),
         isHidden: false,
         weaknesses: [],
         // 🌟 أرشيف الأخطاء المصححة — يحتفظ بتفاصيل كل خطأ بعد حله بدل حذفه نهائياً،
@@ -871,8 +872,8 @@ function allStudentsRowHtml(s) {
     const id = esc(s.id);
     const details = [s.grade ? trStored(s.grade) : t('stu_not_set')];
     if (s.dob) {
-        const d = new Date(s.dob);
-        details.push(tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) }));
+        const ageNow = calcAge(s.dob);
+        if (ageNow !== null) details.push(tf("stu_age_years", { n: ageNow }));
     }
     const weakness = (s.weaknesses && s.weaknesses.length > 0)
         ? `<button class="btn-weakness" data-id="${id}">${tf('as_fix_errors', { n: s.weaknesses.length })}</button>` : '';
@@ -1198,8 +1199,8 @@ export async function loadStudentProfileScreen() {
 
             let ageStr = t("stu_age_not_set");
             if(student.dob) {
-                let d = new Date(student.dob);
-                ageStr = tf("stu_age_years", { n: Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970) });
+                const ageNow = calcAge(student.dob);
+                if (ageNow !== null) ageStr = tf("stu_age_years", { n: ageNow });
             }
             document.getElementById('prof-age').innerText = ageStr;
             document.getElementById('prof-country').innerText = student.country ? student.country : stripEmoji(t("stu_country_not_set"));
@@ -1589,9 +1590,8 @@ function setupProfileUi(student) {
 
 function computeAgeLabel(dob) {
     if (!dob) return t("stu_age_not_set");
-    const d = new Date(dob);
-    if (isNaN(d)) return t("stu_age_not_set");
-    const years = Math.abs(new Date(Date.now() - d.getTime()).getUTCFullYear() - 1970);
+    const years = calcAge(dob);
+    if (years === null) return t("stu_age_not_set");
     return tf("stu_age_years", { n: years });
 }
 
@@ -1845,6 +1845,7 @@ async function saveProfileEditAction() {
     s.name = name;
     s.dob = $('pfe-dob').value;
     s.grade = $('pfe-grade').value;
+    stampGradeYear(s);
     s.country = $('pfe-country').value;
     s.phone = $('pfe-phone').value;
     s.memoFrom = memoFrom;
@@ -1876,6 +1877,7 @@ async function saveEditedStudentAction() {
     s.name = document.getElementById('edit-stu-name').value.trim();
     s.dob = document.getElementById('edit-stu-dob').value;
     s.grade = document.getElementById('edit-stu-grade').value;
+    stampGradeYear(s);
     s.country = document.getElementById('edit-stu-country').value;
     s.phone = document.getElementById('edit-stu-phone').value;
     s.memoFrom = document.getElementById('edit-stu-memo-from').value;

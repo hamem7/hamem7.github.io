@@ -385,6 +385,15 @@ async function bootSystem() {
 
         AppState.studentManager = new StudentManager(studentDB);
 
+        // 🌟 [جديد] ترقية الصف الدراسي تلقائياً مع بداية العام الدراسي (core/studentRollover.js) + إشعار المعلم بمن رُقّي
+        import('./studentRollover.js').then(async m => {
+            const changes = await m.rolloverStudentGrades(AppState.studentManager);
+            if (changes.length) {
+                const lines = changes.map(c => `• ${c.name}: ${trStored(c.from)} ← ${trStored(c.to)}`).join('\n');
+                alert(tf('stu_grade_rollover_msg', { n: changes.length }) + '\n\n' + lines);
+            }
+        }).catch(e => console.warn('[rollover]', e));
+
         // 📚 قاعدة بيانات الواجبات المستقلة
         AppState.homeworkManager = new HomeworkManager(hwDB);
 
