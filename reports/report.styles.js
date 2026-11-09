@@ -49,7 +49,7 @@ export const REPORT_STYLES = `
   #report-screen .res-ring-c span{font-size:.78rem; font-weight:800; background:rgba(255,255,255,.16); padding:2px 10px; border-radius:999px; margin-top:5px;}
   #report-screen .res-main{flex:1 1 320px; min-width:0; max-width:620px;}
   #report-screen .res-kicker{font-size:.8rem; font-weight:800; color:#f1c75b; letter-spacing:.02em;}
-  #report-screen .res-name{margin:2px 0 4px; font-size:1.7rem; font-weight:900; color:#fffdf8 !important;}
+  #report-screen .res-name{margin:2px 0 4px; font-size:1.7rem; font-weight:900; color:#fffdf8 !important; text-shadow:none !important; /* kids.css يفرض ظلاً أبيض سميكاً على كل h2 فيصنع هالة حول الاسم الأبيض */}
   #report-screen .res-msg{margin:0 0 14px; font-size:.95rem; font-weight:600; opacity:.92; line-height:1.6;}
   #report-screen .res-tiles{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; text-align:center;}
   #report-screen .res-tile{background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18); border-radius:12px; padding:9px 6px; text-align:center; display:flex; flex-direction:column; gap:2px;}
