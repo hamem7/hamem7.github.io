@@ -370,11 +370,11 @@ export async function openMonthlyReportsHub(opts = {}) {
   overlay.querySelector('#mrh-close').addEventListener('click', closeHub);
 
   // فتح شاشة التقرير (مع تصدير تلقائي اختياري) ثم الرجوع للمركز تلقائيًا بعدها
-  function openReport(student, m, autoExport) {
+  function openReport(student, m, autoExport, view) {
     lastExportMode = autoExport || null;
     import('../reports/monthly-report.js').then(mod => {
       dropHub();
-      mod.openMonthlyReportScreen({ student, year: m.year, monthIndex0: m.month1 - 1, autoExport, returnTo: 'hub' });
+      mod.openMonthlyReportScreen({ student, year: m.year, monthIndex0: m.month1 - 1, autoExport, returnTo: 'hub', view: view || 'month' });
     }).catch(err => { console.error('[monthlyReportsHub.js] تعذر فتح التقرير:', err); alert(t('mr_export_error')); });
   }
 
@@ -710,6 +710,8 @@ export async function openMonthlyReportsHub(opts = {}) {
         <div class="mrh-actions">
           <button class="mrh-btn" id="mrh-preview">${esc(t('mrh_btn_preview'))}</button>
           <button class="mrh-btn gold" id="mrh-pdf" style="grid-column:1/-1">${esc(t('mrh_btn_pdf'))}</button>
+          <!-- 🌟 [جديد] «حصاد 3 أشهر»: نفس شاشة التقرير بالوضع الفصلي (الشهر المختار والشهرين السابقين) -->
+          <button class="mrh-btn" id="mrh-quarter" style="grid-column:1/-1">${esc(t('mrh_btn_quarter'))}</button>
         </div>`;
       renderFoot();
 
@@ -742,6 +744,7 @@ export async function openMonthlyReportsHub(opts = {}) {
       const go = (autoExport) => openReport(student, sel, autoExport);
       host.querySelector('#mrh-pdf').addEventListener('click', () => go('pdf'));
       host.querySelector('#mrh-preview').addEventListener('click', () => go(null));
+      host.querySelector('#mrh-quarter').addEventListener('click', () => openReport(student, sel, null, 'quarter'));
     }
     await render();
   }
