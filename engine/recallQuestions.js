@@ -241,13 +241,13 @@ function mkNamed(Q, bank, g, rng) {
     for (const v of shuffled(pool, rng)) if (!seen.has(v.key)) { seen.add(v.key); d.push(v); }
     if (d.length >= 2) hints.push({ k: 'opts', verses: shuffled([tn, ...d.slice(0, 2)], rng).map(v => v.w.join(' ')) });
     const names = locs.map(l => Q.surahName(l.v.s)), name = Q.surahName(tg.v.s);
-    const two = locs.length === 2;
+    const two = locs.length === 2, full = tg.v.w.join(' ');   // تُعرض الآية كلها (لا العبارة المشتركة وحدها) ثم يُسأل عن التي تليها
     const text = two
-        ? `الآية ﴿${g.phrase}﴾ وردت في سورتين من محفوظك، هما: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`
-        : `الآية ﴿${g.phrase}﴾ وردت في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`;
+        ? `الآية ﴿${full}﴾ تكررت عبارة منها في سورتين من محفوظك، هما: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`
+        : `الآية ﴿${full}﴾ تكررت عبارة منها في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`;
     const rec = (v) => ({ surahNumber: v.s, surahName: Q.surahName(v.s), ayahNumber: v.n, words: v.w.slice(), mark: [] });
     return { ...baseOf(Q, g, 'sim_named'), text,
-        tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: g.phrase, n: locs.length, names: names.join('، '), name } },
+        tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: full, n: locs.length, names: names.join('، '), name } },
         options: [], optionsDisplay: [], correctAnswer: tn.w.join(' '), correctIndex: -1, hints,
         reveal: { cur: rec(tg.v), target: rec(tn), others: locs.filter(l => l !== tg).map(l => rec(nextOf(l))) } };
 }
@@ -258,8 +258,8 @@ const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };
 // النص المخزَّن عربي دائماً (يُترجم عند العرض فقط)؛ في Node أو قبل تسجيل المترجم يرجع العربي نفسه. القوالب في core/i18n.js بالمفاتيح نفسها.
 const TPL_AR = {
     sim_q_missing: 'في سورة {name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟',
-    sim_q_named_2: 'الآية ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.',
-    sim_q_named_n: 'الآية ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.'
+    sim_q_named_2: 'الآية ﴿{word}﴾ تكررت عبارة منها في سورتين من محفوظك، هما: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.',
+    sim_q_named_n: 'الآية ﴿{word}﴾ تكررت عبارة منها في {n} سور من محفوظك، هي: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.'
 };
 export function localizedRecallText(q) {
     if (!q || !q.tpl || !TPL_AR[q.tpl.key]) return q ? q.text : '';
