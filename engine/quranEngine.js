@@ -455,7 +455,7 @@ export class QuranEngine {
     }
 
     async generateOrderGame(ayahsPool, isKids, chunkIndex, totalChunks) { 
-        let count = isKids ? 3 : 4; if(ayahsPool.length < count) return null; 
+        let count = 4; /* 🌟 أربع آيات للكبار والصغار معاً (بطلب المعلم) */ if(ayahsPool.length < count) return null; 
         let ayah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); let startIdx = ayahsPool.findIndex(a => a.numberInSurah === ayah.numberInSurah && a.surahNumber === ayah.surahNumber);
         if (startIdx > ayahsPool.length - count) startIdx = ayahsPool.length - count;
         if (ayahsPool[startIdx].surahNumber !== ayahsPool[startIdx + count - 1].surahNumber) { let validStarts = []; for(let i=0; i<=ayahsPool.length - count; i++) { if(ayahsPool[i].surahNumber === ayahsPool[i+count-1].surahNumber) validStarts.push(i); } if(validStarts.length === 0) return null; startIdx = validStarts[Math.floor(Math.random() * validStarts.length)]; }

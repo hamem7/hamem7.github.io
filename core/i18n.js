@@ -1335,6 +1335,7 @@ export const translations = {
         hint_btn: "💡 تلميح",
         kids_club: "🎈 نادي الأبطال الصغار",
         kids_order_inst: "اضغط على الكلمة لنقلها وتكوين الآية الصحيحة! 👆",
+        kids_order_ayahs_inst: "اضغط على الآية لنقلها وترتيبها، وللإرجاع اضغط عليها في الترتيب الصحيح 👆",
         correct_ayah: "الآية الصحيحة",
         shuffled_words: "الكلمات المبعثرة",
 
@@ -4837,6 +4838,7 @@ export const translations = {
         hint_btn: "💡 Hint",
         kids_club: "🎈 Little Champions Club",
         kids_order_inst: "Click the word to move it and form the correct Ayah! 👆",
+        kids_order_ayahs_inst: "Click an Ayah to move it into order. To return it, click it in the correct order 👆",
         correct_ayah: "Correct Ayah",
         shuffled_words: "Shuffled Words",
 

@@ -94,6 +94,8 @@ async function genKidsQuestion(type, activePool, chunkIndex, totalChunks) {
     else if(type === 'kids_guess_surah') d = await AppState.kidsEngine.generateKidsGuessSurah(activePool, chunkIndex, totalChunks);
     else if(type === 'kids_recite') d = await AppState.quranEngine.generateReciteGame(activePool, false, true, chunkIndex, totalChunks);
     else if(type === 'kids_word_order') d = await AppState.kidsEngine.generateKidsWordOrderGame(activePool, chunkIndex, totalChunks);
+    // 🌟 [جديد] «رتب الآيات يا بطل»: نفس مولّد الكبار (٤ آيات متتالية من نفس السورة) بعنوان الصغار
+    else if(type === 'order') d = await AppState.quranEngine.generateOrderGame(activePool, true, chunkIndex, totalChunks);
     else if(type === 'kids_start_surah') d = await AppState.kidsEngine.generateKidsStartSurah(activePool, chunkIndex, totalChunks);
     else if(type === 'kids_extra_word') d = await AppState.kidsEngine.generateKidsExtraWord(activePool, chunkIndex, totalChunks);
     else if(type === 'kids_previous') d = await AppState.kidsEngine.generateKidsPrevious(activePool, chunkIndex, totalChunks);
@@ -211,7 +213,7 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
             // 🌟 [جديد] 'kids_listen_ayah' — لعبة "استمع وخمّن الآية" (راجع تعليق
             // generateKidsListenAyah في engine/kidsEngine.js لتفاصيل الفكرة والافتراضات
             // الكاملة). تعتمد على نفس ayahsPool بالضبط كباقي ألعاب هذه القائمة (بلا نطاق مستقل)
-            let gamesList = ['kids_catch', 'kids_next', 'kids_word_order', 'kids_tf', 'kids_guess_surah', 'kids_recite', 'kids_start_surah', 'kids_extra_word', 'kids_previous', 'kids_link_ends', 'kids_link_word_surah', 'kids_listen_ayah', 'kids_listen_next'];
+            let gamesList = ['kids_catch', 'kids_next', 'kids_word_order', 'order', 'kids_tf', 'kids_guess_surah', 'kids_recite', 'kids_start_surah', 'kids_extra_word', 'kids_previous', 'kids_link_ends', 'kids_link_word_surah', 'kids_listen_ayah', 'kids_listen_next'];
             // ألعاب تحتاج أكثر من سورة لا معنى لها لو النطاق سورة واحدة
             if (new Set(ayahsPool.map(a => a.surahNumber)).size < 2) {
                 gamesList = gamesList.filter(g => g !== 'kids_guess_surah' && g !== 'kids_link_word_surah');
@@ -494,6 +496,7 @@ async function playNextMission() {
         document.getElementById('teacher-eval-buttons').style.display = 'none'; 
         document.getElementById('teacher-eval-area').style.display = 'none'; 
         document.getElementById('kids-word-order-area').style.display = 'none';
+        document.getElementById('kids-order-ayahs-area').style.display = 'none';
         // 🌟 [جديد] إخفاء منطقة لعبة "اربط بداية الآية بنهايتها" عند بداية كل سؤال جديد 🌟
         document.getElementById('kids-link-area').style.display = 'none';
         // 🌟 [جديد] إخفاء منطقة لعبة "رتب السور" عند بداية كل سؤال جديد 🌟
@@ -543,11 +546,17 @@ async function playNextMission() {
             // (تكشف الإجابة). لو السجل بلا كلمات كافية نرجع للعرض الثابت القديم بلا كسر 🌟
             const isInteractiveWordOrder = wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) &&
                 wItem.originalWords.length > 1 && wItem.originalWords.every(w => typeof w === 'string' && w);
+            // 🌟 [جديد] «رتب الآيات» تُعاد تفاعلية في علاج الخطأ (نفس منطق نسخة الكبار) 🌟
+            const isInteractiveOrder = wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length > 1 &&
+                wItem.orderAyahs.every(a => a && a.text && a.numberInSurah != null) &&
+                new Set(wItem.orderAyahs.map(a => a.numberInSurah)).size === wItem.orderAyahs.length;
             // 🌟 [جديد] أسئلة الربط تُعاد كلعبة تفاعلية أيضًا (نفس منطق نسخة الكبار) 🌟
             const linkRebuilt = (wItem.questionType === 'kids_link_ends' || wItem.questionType === 'kids_link_word_surah' ||
                 wItem.questionType === 'link_ends' || wItem.questionType === 'link_word_surah') ? rebuildLinkFromRecord(wItem) : null;
-            if (isInteractiveWordOrder || linkRebuilt) {
+            if (isInteractiveWordOrder || isInteractiveOrder || linkRebuilt) {
                 originalBodyHTML = '';
+            } else if (wItem.questionType === 'order' && Array.isArray(wItem.orderAyahs) && wItem.orderAyahs.length) {
+                originalBodyHTML = wItem.orderAyahs.map((a, i) => `<div class="quran-text" style="font-size:clamp(1.6rem, 3.6vh, 2.2rem); margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
             } else if (wItem.questionType === 'kids_word_order' && Array.isArray(wItem.originalWords) && wItem.originalWords.length) {
                 originalBodyHTML = `<div class="quran-text" style="font-size:3.5rem;">﴿\u00A0${wItem.originalWords.join(' ')}\u00A0﴾</div>`;
             } else if (wItem.questionBody) {
@@ -589,6 +598,19 @@ async function playNextMission() {
                 GameState.currentData.studentAnswerIndices = [];
                 document.getElementById('kids-word-order-area').style.display = 'block';
                 buildWordOrderUI();
+            }
+
+            if (isInteractiveOrder) {
+                const orig = wItem.orderAyahs.map(a => ({ text: a.text, numberInSurah: a.numberInSurah, surahName: a.surahName }));
+                GameState.currentData.original = orig;
+                GameState.currentData.shuffled = shuffleDifferentFromOriginal(orig, a => a.numberInSurah);
+                GameState.currentData.studentAnswer = [];
+                document.getElementById('kids-order-ayahs-area').style.display = 'block';
+                buildOrderAyahsUI();
+                document.getElementById('game-answer').innerHTML = `${t("الإجابة الصحيحة:")}<br><div style="font-size:1.3rem; font-weight:bold; margin:10px 0;">${t('correct_order')}:</div>` +
+                    orig.map((a, i) => `<div class="quran-text" style="font-size:clamp(1.6rem, 3.6vh, 2.2rem); margin-bottom:8px;">${i + 1}) ﴿\u00A0${a.text}\u00A0﴾</div>`).join('');
+                document.getElementById('show-ans-btn').style.display = 'inline-block';
+                return;
             }
 
             if (linkRebuilt) {
@@ -643,7 +665,11 @@ async function playNextMission() {
         
         document.getElementById('game-title').innerHTML = `<span style="background:white; padding:10px 30px; border-radius:50px; display:inline-block; font-size:1.8rem; border:2px solid var(--kids-accent); color:var(--kids-primary); font-weight:bold;">${t(GameState.currentData.questionTitle)}</span>`;
         
-        if(GameState.currentData.type === 'kids_word_order') {
+        if(GameState.currentData.type === 'order') {
+            GameState.currentData.studentAnswer = [];
+            document.getElementById('kids-order-ayahs-area').style.display = 'block';
+            buildOrderAyahsUI();
+        } else if(GameState.currentData.type === 'kids_word_order') {
             GameState.currentData.studentAnswer = [];
             GameState.currentData.studentAnswerIndices = [];
             document.getElementById('kids-word-order-area').style.display = 'block';
@@ -850,7 +876,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 questionType: cd.type || null,
                 questionTypeLabel: typeLabel,
                 questionTitle: cd.questionTitle || null,
-                questionBody: reciteRec ? reciteRec.questionBody : (linkRec ? linkRec.questionBody : ((cd.type !== 'kids_word_order' && cd.questionBody) ? cd.questionBody : null)),
+                questionBody: reciteRec ? reciteRec.questionBody : (linkRec ? linkRec.questionBody : ((cd.type !== 'kids_word_order' && cd.type !== 'order' && cd.questionBody) ? cd.questionBody : null)),
                 fullAnswer: reciteRec ? reciteRec.fullAnswer : (linkRec ? linkRec.fullAnswer : (cd.fullAnswer || null)),
                 reciteRanges: reciteRec ? reciteRec.ranges : null,
                 linkPairs: linkRec ? linkRec.linkPairs : null,
@@ -858,6 +884,7 @@ async function recordAnswer(isCorrect, errorTypes = []) {
                 options: Array.isArray(cd.options) ? cd.options : null,
                 optionsKind: cd.optionsKind || null,
                 originalWords: (cd.type === 'kids_word_order' && Array.isArray(cd.originalWords)) ? cd.originalWords : null,
+                orderAyahs: (cd.type === 'order' && Array.isArray(cd.original)) ? cd.original.map(a => ({ text: a.text, numberInSurah: a.numberInSurah, surahName: a.surahName })) : null,
                 sourceSection: 'kids',
                 dateRecorded: new Date().toISOString()
             };
@@ -918,6 +945,67 @@ async function recordAnswer(isCorrect, errorTypes = []) {
         }
         GameState.currentIndex++; 
         setTimeout(playNextMission, 1000); 
+    }
+}
+
+// 🌟 [جديد] «رتب الآيات يا بطل» — نسخة مطابقة لـ buildOrderGameUI في games/adultGame.js (ملفا اللعبتين مستقلان
+// بالتصميم ولا يستوردان من بعض). آية مكررة النص تُحسب صحيحة لو طابق نصها نص الآية المطلوبة في الموضع.
+function getOrderTextSizeClass(text) {
+    const len = (text || '').length;
+    if (len > 140) return ' order-text-xlong';
+    if (len > 70) return ' order-text-long';
+    return '';
+}
+function shuffleDifferentFromOriginal(arr, keyFn) {
+    const sameAsOrig = (s) => s.every((x, i) => keyFn(x) === keyFn(arr[i]));
+    for (let attempt = 0; attempt < 20; attempt++) {
+        const s = arr.slice();
+        for (let i = s.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [s[i], s[j]] = [s[j], s[i]]; }
+        if (!sameAsOrig(s)) return s;
+    }
+    return arr.slice().reverse();
+}
+function buildOrderAyahsUI() {
+    const shufDiv = document.getElementById('order-shuffled');
+    const slotDiv = document.getElementById('order-slots');
+    shufDiv.innerHTML = ""; slotDiv.innerHTML = "";
+    const d = GameState.currentData;
+    d.shuffled.forEach((ayah) => {
+        if (!d.studentAnswer.some(a => a.numberInSurah === ayah.numberInSurah)) {
+            const item = document.createElement('div');
+            item.className = 'order-item quran-text' + getOrderTextSizeClass(ayah.text);
+            item.innerText = ayah.text;
+            item.onclick = () => {
+                d.studentAnswer.push(ayah);
+                buildOrderAyahsUI();
+                if (d.studentAnswer.length === d.original.length) {
+                    let isCorrect = true;
+                    for (let i = 0; i < d.original.length; i++) {
+                        const picked = d.studentAnswer[i], expected = d.original[i];
+                        if (picked.numberInSurah !== expected.numberInSurah && picked.text !== expected.text) isCorrect = false;
+                    }
+                    if (isCorrect) { recordAnswer(true); }
+                    else {
+                        playErrorSound(); GameState.orderAttempts++;
+                        setTimeout(() => { d.studentAnswer = []; buildOrderAyahsUI(); }, 800);
+                    }
+                }
+            };
+            shufDiv.appendChild(item);
+        }
+    });
+    for (let i = 0; i < d.original.length; i++) {
+        const slot = document.createElement('div');
+        if (d.studentAnswer[i]) {
+            slot.className = 'order-slot filled quran-text' + getOrderTextSizeClass(d.studentAnswer[i].text);
+            slot.innerText = d.studentAnswer[i].text;
+            slot.onclick = () => { d.studentAnswer.splice(i, 1); buildOrderAyahsUI(); };
+        } else {
+            slot.className = 'order-slot'; slot.innerHTML = `<span style="color:#cbd5e1;">${t("مكان فارغ...")}</span>`;
+        }
+        const num = document.createElement('span'); num.className = 'order-slot-num'; num.textContent = String(i + 1);
+        slot.insertBefore(num, slot.firstChild);
+        slotDiv.appendChild(slot);
     }
 }
 

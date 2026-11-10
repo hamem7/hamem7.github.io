@@ -33,7 +33,7 @@ t('ألعاب: الكلمة بالسورة ورتب السور بلا آيات',
 t('أحداث قديمة: تقدير من نوع السؤال', () => {
     assert.equal(estimateGameEventAyahs({ fmt: 'next', ayah: 3 }), 2);
     assert.equal(estimateGameEventAyahs({ fmt: 'order', ayah: 3 }), 4);
-    assert.equal(estimateGameEventAyahs({ fmt: 'order', ayah: 3 }, { kidsSession: true }), 3);
+    assert.equal(estimateGameEventAyahs({ fmt: 'order', ayah: 3 }, { kidsSession: true }), 4);   // الصغار أيضاً ٤ آيات الآن
     assert.equal(estimateGameEventAyahs({ fmt: 'recite', ayah: 1 }, { surahAyahs: 5 }), 5);
     assert.equal(estimateGameEventAyahs({ fmt: 'recite', ayah: 1 }, { surahAyahs: 40 }), 8);
     assert.equal(estimateGameEventAyahs({ fmt: 'catch', ayah: 1 }), 1);

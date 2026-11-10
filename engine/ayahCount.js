@@ -25,14 +25,14 @@ export function gameQuestionAyahCount(data) {
 }
 
 /** تقدير لأحداث قديمة سُجّلت قبل حفظ العدد (حدث بنوع السؤال fmt وموضعه فقط) — للعدّ بأثر رجعي.
- *  kidsSession: الجلسة من ركن الأطفال (رتب الآيات ٣ بدل ٤). surahAyahs: عدد آيات سورة الحدث (للتسميع). */
+ *  kidsSession: الجلسة من ركن الأطفال (رتب الآيات ٤ مثل الكبار). surahAyahs: عدد آيات سورة الحدث (للتسميع). */
 export function estimateGameEventAyahs(ev, { kidsSession = false, surahAyahs = 0 } = {}) {
     if (!ev) return 0;
     const fmt = ev.fmt || '';
     if (NO_AYAH_TYPES.has(fmt)) return 0;
     if (TWO.has(fmt)) return 2;
     if (THREE.has(fmt)) return 3;
-    if (fmt === 'order') return kidsSession ? 3 : 4;
+    if (fmt === 'order') return 4;   // أربع آيات في ركن الكبار والصغار
     if (fmt === 'link_ends' || fmt === 'kids_link_ends') return 6;
     if (fmt === 'recite' || fmt === 'kids_recite') return surahAyahs > 0 && surahAyahs <= 10 ? surahAyahs : 8;   // مقطع ٧–١٠ آيات
     return (ev.ayah || ev.segment || ev.surah) ? 1 : 0;
