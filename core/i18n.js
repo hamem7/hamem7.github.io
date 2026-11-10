@@ -7758,9 +7758,9 @@ export function applyLanguage() {
         if (translations[lang] && translations[lang][key + '_f'] && el.closest('[data-gender="f"]')) key += '_f';
         if (translations[lang] && translations[lang][key]) {
             el.innerHTML = translations[lang][key];
-            // خيارات الصف في القوائم تعرض التسميتين معاً (راجع gradeLabel)
-            if (el.tagName === 'OPTION' && el.value in GRADE_NUM) el.textContent = gradeLabel(el.value);
         }
+        // خيارات الصف في القوائم تعرض التسميتين معاً (راجع gradeLabel) — خارج الشرط لأن قاموس العربية لا يحوي مفاتيح الصفوف
+        if (el.tagName === 'OPTION' && el.value in GRADE_NUM) el.textContent = gradeLabel(el.value);
     });
 
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
