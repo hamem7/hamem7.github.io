@@ -1511,6 +1511,7 @@ export const translations = {
         hw_err_not_persisted: "لم يتأكد الخادم من حفظ البيانات. حاول مرة أخرى.",
         hw_err_ungraded: "يوجد أسئلة تحتاج تصحيحاً يدوياً لم تُدخل لها درجة.",
         hw_err_conflict: "تم تعديل هذا التسليم من مكان آخر. حدّث الصفحة ثم حاول.",
+        hw_err_limit: "وصلت إلى الحد المسموح به في الخادم (واجبات أو مساحة مزامنة). تواصل مع مشرف المنصة.",
         hw_err_generic: "حدث خطأ غير متوقع",
         // 🌟 [جديد] شاشة فشل الإقلاع (تدقيق ما قبل الإطلاق)
         boot_fail_quran_title: "تعذّر تحميل نص القرآن",
@@ -5206,6 +5207,7 @@ export const translations = {
         hw_err_not_persisted: "The server could not confirm saving the data. Try again.",
         hw_err_ungraded: "Some manual questions still have no score.",
         hw_err_conflict: "This submission was changed elsewhere. Refresh and try again.",
+        hw_err_limit: "You reached a server limit (homeworks or sync storage). Please contact the platform admin.",
         hw_err_generic: "Unexpected error",
         // 🌟 [new] startup failure screen (pre-launch audit)
         boot_fail_quran_title: "Could not load the Quran text",

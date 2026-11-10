@@ -39,7 +39,7 @@ function ss_() {
   return SPREADSHEET_ID ? SpreadsheetApp.openById(SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
 }
 
-var VERSION = '1.4.1';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
+var VERSION = '1.5.0';   // 🌟 1.3.0: Google Sign-In is the ONLY teacher auth (Teacher Key + email allowlist removed)
 // 🌟 [جديد 2026-10-01] Client ID العلني للواجهة (نفس GOOGLE_CLIENT_ID في core/api.js) — احتياطي لو لم تُضبط الخاصية في Script Properties
 var DEFAULT_GOOGLE_CLIENT_ID = '52157264045-l30vua64vk6018jjv53j14qpf716rmr8.apps.googleusercontent.com';
 var SHEET_HW = 'Homeworks';
@@ -74,6 +74,7 @@ var SYNC_FIXED = ['rowKey', 'ownerId', 'key', 'updatedAt'];
 var MAX_SYNC_ITEMS_PER_CALL = 20;
 var MAX_SYNC_PULL_KEYS = 8;
 var MAX_SYNC_ROWS_PER_TEACHER = 3000;
+var MAX_SYNC_ROWS_TOTAL = 20000;           // 🌟 سقف إجمالي لكل المعلمين (حدّ الشيت 10 ملايين خلية؛ نبقى بعيدين عنه)
 var MAX_SYNC_ITEM_CHARS = 330000;          // أقل من MAX_CHUNKS * CHUNK_SIZE مع هامش لغلاف {key,rev,data}
 
 // 🌟 [جديد 2026-10-13 — مراقبة الأخطاء] ورقة ClientLogs: أخطاء صفحة الطالب (فشل إرسال/تحميل/خطأ جافاسكربت) مرتبطة
@@ -432,6 +433,7 @@ function syncPush_(req, auth) {
     if (cur) { rowIndex = cur.rowIndex; }
     else {
       if (rowsCount >= MAX_SYNC_ROWS_PER_TEACHER) throw err_('LIMIT_REACHED', 'Sync storage limit reached for this teacher');
+      if (r.all.length + (rowsCount - r.mine.length) >= MAX_SYNC_ROWS_TOTAL) throw err_('LIMIT_REACHED', 'Sync storage is full on the server');
       rowIndex = nextRow_(r.sh, SYNC_FIXED);
       rowsCount++;
     }
@@ -1314,11 +1316,109 @@ function previewCleanup() {
   return r;
 }
 
-/** هذه هي الدالة التي يستدعيها المشغِّل اليومي. */
+/** هذه هي الدالة التي يستدعيها المشغِّل اليومي. عند أي فشل يصل مالك السكربت بريد تنبيه (ولا يصله شيء عند النجاح). */
 function dailyCleanup() {
-  var r = withLock_(function () { return runCleanup_(false); });
+  var r;
+  try { r = withLock_(function () { return runCleanup_(false); }); }
+  catch (e) { notifyOwnerFailure_('التنظيف اليومي (dailyCleanup)', e); throw e; }
   Logger.log('CLEANUP: ' + JSON.stringify(r));
+  if (r && r.errors && r.errors.length) notifyOwnerFailure_('التنظيف اليومي (dailyCleanup)', r.errors.join(' | '));
   return r;
+}
+
+// =====================================================================================
+// 🌟 [جديد] نسخ احتياطي أسبوعي للشيت + بريد تنبيه للمالك عند فشل أي عملية آلية
+// =====================================================================================
+// الشيت هو النسخة السحابية الوحيدة للواجبات غير المصحَّحة وسجل الطلاب (SyncData). النسخة تُحفظ في مجلد Drive باسم
+// DarHam-Backups بالاسم DarHam-Backup-YYYY-MM-DD_HHmm، ونحتفظ بآخر BACKUP_KEEP نسخة فقط (الأقدم تذهب لسلة المهملات).
+var BACKUP_FOLDER_NAME = 'DarHam-Backups';
+var BACKUP_PREFIX = 'DarHam-Backup-';
+var BACKUP_KEEP = 8;
+
+/** سبب مرجَّح + خطوة علاج بالعربية من نص الخطأ، ليصل المالك تنبيه مفهوم بلا تخمين. */
+function failureHint_(msg) {
+  var m = String(msg || '').toLowerCase();
+  if (m.indexOf('authorization') >= 0 || m.indexOf('permission') >= 0 || m.indexOf('scope') >= 0)
+    return 'السبب المرجّح: صلاحيات السكربت ناقصة أو منتهية. الخطوة: شغّل الدالة يدوياً من محرر Apps Script ووافق على الصلاحيات.';
+  if (m.indexOf('busy') >= 0 || m.indexOf('lock') >= 0)
+    return 'السبب المرجّح: الخادم كان مشغولاً وقت التنفيذ (غالباً مؤقت). الخطوة: شغّل الدالة يدوياً مرة واحدة، فإن تكرر الأمر فأرسل الخطأ لكلود.';
+  if (m.indexOf('too many times') >= 0 || m.indexOf('quota') >= 0 || m.indexOf('limit exceeded') >= 0)
+    return 'السبب المرجّح: تجاوز حصة جوجل اليومية. الخطوة: انتظر حتى الغد وراقب إن تكرر.';
+  if (m.indexOf('storage') >= 0 || m.indexOf('space') >= 0)
+    return 'السبب المرجّح: مساحة Drive ممتلئة. الخطوة: احذف ملفات أو نسخاً قديمة غير لازمة.';
+  if (m.indexOf('no item with the given id') >= 0 || m.indexOf('not found') >= 0 || m.indexOf('unable to open') >= 0)
+    return 'السبب المرجّح: الشيت أو المجلد حُذف أو تغيّر معرّفه. الخطوة: أعلم كلود فوراً.';
+  return 'السبب غير معروف. الخطوة: أرسل نص الخطأ لكلود ليشرح السبب.';
+}
+
+/** يرسل بريداً لمالك السكربت. لا يرمي أبداً (فشل التنبيه لا يجوز أن يُسقط العملية الأصلية). */
+function notifyOwnerFailure_(opName, error) {
+  try {
+    var msg = (error && error.message) ? error.message : String(error);
+    var to = Session.getEffectiveUser().getEmail();
+    if (!to) return false;
+    var body = 'العملية: ' + opName + '\n' +
+      'وقت الفشل: ' + nowIso_() + '\n' +
+      'نص الخطأ: ' + msg + '\n\n' +
+      failureHint_(msg) + '\n\n' +
+      'افتح Apps Script > Executions وأرسل نص الخطأ لكلود.';
+    MailApp.sendEmail(to, '⚠️ دار حم: فشل ' + opName, body);
+    return true;
+  } catch (e) { Logger.log('notifyOwnerFailure_ failed: ' + e); return false; }
+}
+
+function pad2_(n) { return (n < 10 ? '0' : '') + n; }
+function backupStamp_(d) {
+  return d.getUTCFullYear() + '-' + pad2_(d.getUTCMonth() + 1) + '-' + pad2_(d.getUTCDate()) + '_' + pad2_(d.getUTCHours()) + pad2_(d.getUTCMinutes());
+}
+
+/** دالة نقية: من قائمة أسماء النسخ تُرجع الأسماء الواجب حذفها (كل ما عدا أحدث keep نسخة). الاسم المؤرَّخ يُرتَّب أبجدياً = زمنياً. */
+function backupNamesToTrim_(names, keep) {
+  var mine = names.filter(function (n) { return String(n).indexOf(BACKUP_PREFIX) === 0; }).sort();
+  return mine.length > keep ? mine.slice(0, mine.length - keep) : [];
+}
+
+function getBackupFolder_() {
+  var it = DriveApp.getFoldersByName(BACKUP_FOLDER_NAME);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(BACKUP_FOLDER_NAME);
+}
+
+function runBackup_() {
+  var folder = getBackupFolder_();
+  var name = BACKUP_PREFIX + backupStamp_(new Date());
+  var copy = DriveApp.getFileById(SPREADSHEET_ID).makeCopy(name, folder);
+  var files = [], it = folder.getFiles();
+  while (it.hasNext()) files.push(it.next());
+  var drop = backupNamesToTrim_(files.map(function (f) { return f.getName(); }), BACKUP_KEEP);
+  var trimmed = 0;
+  files.forEach(function (f) { if (drop.indexOf(f.getName()) >= 0) { f.setTrashed(true); trimmed++; } });
+  return { name: name, id: copy.getId(), trimmed: trimmed };
+}
+
+/** المشغِّل الأسبوعي. القفل يمنع أخذ نسخة في منتصف كتابة تسليم. عند الفشل يصل بريد تنبيه. */
+function backupSpreadsheet() {
+  if (!SPREADSHEET_ID) { var e0 = err_('SERVER_ERROR', 'SPREADSHEET_ID is empty'); notifyOwnerFailure_('النسخ الاحتياطي (backupSpreadsheet)', e0); throw e0; }
+  var r;
+  try { r = withLock_(runBackup_); }
+  catch (e) { notifyOwnerFailure_('النسخ الاحتياطي (backupSpreadsheet)', e); throw e; }
+  Logger.log('BACKUP: ' + JSON.stringify(r));
+  return r;
+}
+
+/** شغّلها مرة واحدة من المحرر: نسخة احتياطية كل أحد قرابة الساعة 4 صباحاً. تمنع تكرار المشغِّل. */
+function installBackupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'backupSpreadsheet') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('backupSpreadsheet').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(4).create();
+  Logger.log('Weekly backup trigger installed.');
+}
+
+function removeBackupTrigger() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'backupSpreadsheet') ScriptApp.deleteTrigger(t);
+  });
+  Logger.log('Weekly backup trigger removed.');
 }
 
 /** شغّلها مرة واحدة من محرر Apps Script لتفعيل التنظيف اليومي (الساعة 3 صباحاً تقريباً). تمنع تكرار المشغِّل. */

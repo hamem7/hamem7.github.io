@@ -1,0 +1,14 @@
+name: check-backend-version
+# يكشف اختلاف نسخة Apps Script المنشورة عن backend/Code.gs. لا يمنع أي رفع: يعمل يدوياً وأسبوعياً فقط.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * 1'
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node tools/check-backend-version.mjs

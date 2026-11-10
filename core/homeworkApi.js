@@ -42,7 +42,8 @@ export function friendlyErrorText(e) {
         UNAUTHORIZED: 'hw_err_unauthorized', NOT_FOUND: 'hw_err_not_found',
         CLOSED: 'hw_err_closed', DELETED: 'hw_err_deleted', ALREADY_SUBMITTED: 'hw_err_already', BUSY: 'hw_err_busy',
         NOT_PERSISTED: 'hw_err_not_persisted', PERSIST_VERIFY_FAILED: 'hw_err_not_persisted',
-        UNGRADED_QUESTIONS: 'hw_err_ungraded', VERSION_CONFLICT: 'hw_err_conflict'
+        UNGRADED_QUESTIONS: 'hw_err_ungraded', VERSION_CONFLICT: 'hw_err_conflict',
+        LIMIT: 'hw_err_limit', LIMIT_REACHED: 'hw_err_limit'
     };
     return map[e.code] ? t(map[e.code]) : (t('hw_err_generic') + ' (' + (e.code || e.kind) + ')');
 }
