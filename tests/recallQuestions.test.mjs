@@ -79,11 +79,11 @@ test('«اقرأ الآية من السورة المذكورة»: 2–5 سور،
         const phrase = norm(q.anchorPhrase);
         // المعروض هو الآية التالية؛ والآية التي قبلها في كل موضع تحوي العبارة المشتركة
         for (const v of all) assert.ok(norm(verseAt(Q, v.surahNumber, v.ayahNumber - 1).w.join(' ')).includes(phrase), 'الآية السابقة بلا العبارة');
-        assert.ok(q.text.includes('اذكر الآية التي تأتي بعد هذه الآية'));
+        assert.ok(q.text.includes('اذكر هذه الآية كاملة') && q.text.includes('ثم الآية التي تأتي بعدها'));
         assert.ok(q.text.includes('من محفوظك') && !q.text.includes('محفوظ الطالب'));
         assert.ok(q.text.includes('سورة ' + q.reveal.target.surahName));
         assert.ok(!/آية\s*[0-9٠-٩]|الآية\s*[0-9٠-٩]/.test(q.text), 'رقم آية في نص السؤال');
-        assert.equal(q.hints[0].k, 'cur'); assert.equal(q.hints[1].k, 'first'); assert.ok(q.reveal.target.words.join(' ').startsWith(q.hints[1].word) && q.hints[1].word !== q.reveal.target.words.join(' '));
+        assert.ok(['cur', 'prev'].includes(q.hints[0].k) || q.hints[0].k === 'first'); const fh = q.hints.find(h => h.k === 'first'); assert.ok(fh && q.reveal.target.words.join(' ').startsWith(fh.word) && fh.word !== q.reveal.target.words.join(' '));
         for (const h of q.hints) if (h.k === 'opts') {
             assert.equal(h.verses.length, 3); assert.equal(new Set(h.verses.map(norm)).size, 3);
             assert.ok(h.verses.includes(q.reveal.target.words.join(' ')));

@@ -234,22 +234,26 @@ function mkNamed(Q, bank, g, rng) {
     if (!locs.every(nextOf)) return null;
     // السورة المطلوبة هي سورة الآية المرجعية (من نطاق الاختبار)؛ فاختبار «الشورى» لا يطلب آية من «سبأ». العشوائي احتياطٌ فقط.
     const tg = by.get(g.anchor.v.s) || shuffled(locs, rng)[0], tn = nextOf(tg);
-    // التلميح على مراحل: (1) عدة كلمات من آخر الآية المعروضة (2) أول كلمات الآية المطلوبة — لا الآية كلها فلا تُكشف الإجابة بسهولة
-    const tailN = Math.min(4, Math.max(2, tg.v.w.length - 1)), headN = Math.min(3, Math.max(1, tn.w.length - 1));
-    const hints = [{ k: 'cur', surahName: Q.surahName(tg.v.s), ayahNumber: tg.v.n, text: (tg.v.w.length > tailN ? '… ' : '') + tg.v.w.slice(-tailN).join(' ') }, { k: 'first', word: tn.w.slice(0, headN).join(' ') }];
+    // التلميح على مراحل: إن كانت العبارة من وسط آيتها فأول كلمتين من أول الآية؛ وإن كانت من أولها فأول الآية التي قبلها ليسترجع الطالب سياقها.
+    // ثم أول كلمات الآية التالية المطلوبة (لا الآية كلها).
+    const headN = Math.min(3, Math.max(1, tn.w.length - 1)), prev = verseAt(Q, tg.v.s, tg.v.n - 1);
+    const hints = [];
+    if (tg.p > 0) hints.push({ k: 'cur', surahName: Q.surahName(tg.v.s), ayahNumber: tg.v.n, text: tg.v.w.slice(0, Math.min(2, tg.p)).join(' ') + ' …' });
+    else if (prev) hints.push({ k: 'prev', surahName: Q.surahName(tg.v.s), ayahNumber: prev.n, text: prev.w.slice(0, Math.min(3, Math.max(1, prev.w.length - 1))).join(' ') + ' …' });
+    hints.push({ k: 'first', word: tn.w.slice(0, headN).join(' ') });
     const pool = locs.filter(l => l !== tg).map(nextOf);
     for (const r of tailsAfterRun(bank, tg.v.x.slice(tg.p, tg.p + 3))) { const nv = verseAt(Q, r.v.s, r.v.n + 1); if (nv) pool.push(nv); }
     const seen = new Set([tn.key]), d = [];
     for (const v of shuffled(pool, rng)) if (!seen.has(v.key)) { seen.add(v.key); d.push(v); }
     if (d.length >= 2) hints.push({ k: 'opts', verses: shuffled([tn, ...d.slice(0, 2)], rng).map(v => v.w.join(' ')) });
     const names = locs.map(l => Q.surahName(l.v.s)), name = Q.surahName(tg.v.s);
-    const two = locs.length === 2, full = tg.v.w.join(' ');   // تُعرض الآية كلها (لا العبارة المشتركة وحدها) ثم يُسأل عن التي تليها
+    const two = locs.length === 2;
     const text = two
-        ? `الآية ﴿${full}﴾ تكررت عبارة منها في سورتين من محفوظك، هما: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`
-        : `الآية ﴿${full}﴾ تكررت عبارة منها في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اذكر الآية التي تأتي بعد هذه الآية من سورة ${name}.`;
+        ? `الآية ﴿${g.phrase}﴾ وردت في سورتين من محفوظك، هما: ${names.join('، ')}. اذكر هذه الآية كاملة من سورة ${name}، ثم الآية التي تأتي بعدها.`
+        : `الآية ﴿${g.phrase}﴾ وردت في ${locs.length} سور من محفوظك، هي: ${names.join('، ')}. اذكر هذه الآية كاملة من سورة ${name}، ثم الآية التي تأتي بعدها.`;
     const rec = (v) => ({ surahNumber: v.s, surahName: Q.surahName(v.s), ayahNumber: v.n, words: v.w.slice(), mark: [] });
     return { ...baseOf(Q, g, 'sim_named'), text,
-        tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: full, n: locs.length, names: names.join('، '), name } },
+        tpl: { key: two ? 'sim_q_named_2' : 'sim_q_named_n', params: { word: g.phrase, n: locs.length, names: names.join('، '), name } },
         options: [], optionsDisplay: [], correctAnswer: tn.w.join(' '), correctIndex: -1, hints,
         reveal: { cur: rec(tg.v), target: rec(tn), others: locs.filter(l => l !== tg).map(l => rec(nextOf(l))) } };
 }
@@ -260,8 +264,8 @@ const BUILDERS = { sim_missing: mkMissing, sim_named: mkNamed };
 // النص المخزَّن عربي دائماً (يُترجم عند العرض فقط)؛ في Node أو قبل تسجيل المترجم يرجع العربي نفسه. القوالب في core/i18n.js بالمفاتيح نفسها.
 const TPL_AR = {
     sim_q_missing: 'في سورة {name} جاءت الآية الآتية وفيها كلمة ناقصة. ما الكلمة الناقصة؟',
-    sim_q_named_2: 'الآية ﴿{word}﴾ تكررت عبارة منها في سورتين من محفوظك، هما: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.',
-    sim_q_named_n: 'الآية ﴿{word}﴾ تكررت عبارة منها في {n} سور من محفوظك، هي: {names}. اذكر الآية التي تأتي بعد هذه الآية من سورة {name}.'
+    sim_q_named_2: 'الآية ﴿{word}﴾ وردت في سورتين من محفوظك، هما: {names}. اذكر هذه الآية كاملة من سورة {name}، ثم الآية التي تأتي بعدها.',
+    sim_q_named_n: 'الآية ﴿{word}﴾ وردت في {n} سور من محفوظك، هي: {names}. اذكر هذه الآية كاملة من سورة {name}، ثم الآية التي تأتي بعدها.'
 };
 export function localizedRecallText(q) {
     if (!q || !q.tpl || !TPL_AR[q.tpl.key]) return q ? q.text : '';
