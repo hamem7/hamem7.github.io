@@ -239,6 +239,7 @@ export function buildQaCardHtml(d, deps){
         ${card(k3.cls, 3, k3.ask, k3.ans, k3.detHtml || E(k3.det), k3.vis)}
         ${card('hm', 4, t('qa_q4'), hw.head, '', `<ul class="steps">${tasks.map(x => `<li${x.pen ? ' class="pen"' : ''}>${E(x.text)}</li>`).join('')}</ul>`, HOUSE)}
       </div>
+      <div class="disc">${E(t('rep_scope_disclaimer'))}</div>
     </div></div>
     <div class="ft"><div class="fbox">
       <div class="tname"><span class="l">${E(t('qa_teacher'))}</span>${tName ? `<span class="n">${E(tName)}</span>` : ''}</div>

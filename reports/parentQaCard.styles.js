@@ -70,6 +70,7 @@ export const QA_STYLES = `
 .qac .steps li:before{content:"☐";color:#8a6221;font-weight:700;flex:none}
 .qac .steps li.pen{background:rgba(255,246,224,.85);border:1px dashed #e6c98a;border-radius:9px;padding:3px 7px}
 .qac .steps li.pen:before{content:"✎"}
+.qac .disc{flex:none;text-align:center;font-size:11.5px;line-height:1.6;color:var(--sub);padding:0 8px}
 .qac .ft{position:absolute;left:0;right:0;display:flex;justify-content:center;align-items:center}
 .qac .fbox{display:flex;align-items:center;gap:12px}
 .qac .tname{display:flex;align-items:baseline;gap:8px;line-height:1.3}

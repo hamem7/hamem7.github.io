@@ -321,6 +321,9 @@ const REPORT_TEMPLATE = `
           <p class="note-text" id="report-extra-note-text"></p>
         </div>
 
+        <!-- تنبيه ثابت: نطاق هذا التقييم (أسئلة الاختبار الفردي فقط) وليس حكمًا نهائيًا -->
+        <p class="scope-disclaimer pdf-block" data-i18n="rep_scope_disclaimer">هذا التقييم يخص أسئلة الاختبار الفردي فقط، وليس حكمًا نهائيًا. للحكم النهائي يلزم تسميع السورة أو الآيات كاملة سردًا.</p>
+
         <div class="closing pdf-block">
           <div class="footer-meta">
             <img class="footer-logo" src="assets/brand/ham-mark.svg" alt="">

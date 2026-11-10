@@ -2532,6 +2532,7 @@ export const translations = {
         rep_needs: "بحاجة إلى تركيز",
         rep_note_label: "ملاحظة المعلم لولي الأمر",
         rep_extra_label: "ملاحظة إضافية",
+        rep_scope_disclaimer: "هذا التقييم يخص أسئلة الاختبار الفردي فقط، وليس حكمًا نهائيًا. للحكم النهائي يلزم تسميع السورة أو الآيات كاملة سردًا.",
 
         rep_report_no: "رقم التقرير",
         rep_date: "التاريخ",
@@ -6167,6 +6168,7 @@ export const translations = {
         rep_needs: "Needs focus",
         rep_note_label: "Teacher's note to the parent",
         rep_extra_label: "Additional note",
+        rep_scope_disclaimer: "This assessment covers only the individual test questions and is not a final judgment. A final ruling requires reciting the whole surah or verses in full.",
 
         rep_report_no: "Report no.",
         rep_date: "Date",

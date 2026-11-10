@@ -60,6 +60,7 @@ export const RC_STYLES = `
 .rc .task .ic svg{width:24.84px;height:24.84px}
 .rc .task h5{margin:0;font-size:17.82px;color:#6b4a10}
 .rc .task p{margin:1.62px 0 0;font-size:16.2px;line-height:1.5;font-weight:600}
+.rc .disc{text-align:center;font-size:12.96px;line-height:1.6;color:#6f644e;padding:0 8px}
 .rc .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;font-size:12.96px;color:#6b6b63;gap:10.8px}
 .rc .foot .sg{text-align:center}
 .rc .foot .sg b{display:block;color:#0b3d30;font-size:15.66px}

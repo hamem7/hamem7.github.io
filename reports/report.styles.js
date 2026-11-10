@@ -400,6 +400,7 @@ export const REPORT_STYLES = `
   #report-screen .note-head{display:flex; align-items:center; gap:9px; margin-bottom:10px;}
   #report-screen .note-label{font-size:14.5px; font-weight:800; color:#0b3d30;}
   #report-screen .note-text{font-family:'Amiri',serif; font-size:17.5px; line-height:1.95; color:#2b2620; margin:0; text-align:center;}
+  #report-screen .scope-disclaimer{margin:14px 6px 0; font-size:13px; line-height:1.9; color:#6f644e; text-align:center;}
 
   /* ============== الختم والتوقيع والتذييل ============== */
   #report-screen .closing{

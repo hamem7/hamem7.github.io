@@ -250,6 +250,7 @@ export function buildCardHtml(d, deps){
       </div>
       <div class="task"><div class="ic">${homeSvg}</div>
         <div><h5>${E(hw.head)}</h5><p>${E(hwText)}</p></div></div>
+      <div class="disc">${E(t('rep_scope_disclaimer'))}</div>
       <div class="foot">
         <div>${E(t('rc_brand'))}</div>
         <div class="sg"><div><b>${E(d.teacher.name)}</b>${E(t(stampSrc ? 'rep_sign_label_stamp' : 'rep_sign_label_plain'))}</div>${stampSrc ? `<img class="stampimg" src="${E(stampSrc)}" alt="">` : ''}</div>
