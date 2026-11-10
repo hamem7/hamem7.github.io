@@ -577,7 +577,8 @@ function maxPoints_(q) {
 
 /**
  * 🌟 [إصلاح] مقارنة إجابات الطالب بالمفتاح كانت حرفية (===) فتفشل نصوص قرآنية متطابقة بصرياً لاختلاف خفي في
- * ترتيب علامات التشكيل (شدّة+فتحة ≠ فتحة+شدّة)، أو شكل السكون (U+0652/U+06E1)، أو مسافة/رمز غير مرئي.
+ * ترتيب علامات التشكيل (شدّة+فتحة ≠ فتحة+شدّة). السبب المؤكَّد: بعض الأجهزة القديمة (مثل iPhone بـ iOS 15) تُرجع النص
+ * بترتيب NFC بينما المفتاح مخزَّن بترتيب المصحف الأصلي (الشدّة أولاً)، أو شكل السكون (U+0652/U+06E1)، أو مسافة/رمز غير مرئي.
  * نوحّد الطرفين (NFC + السكون + إزالة الرموز غير المرئية + ضغط المسافات) قبل المقارنة فقط؛ الحروف نفسها لا تُتجاهل.
  */
 function normAns_(s) {
@@ -627,21 +628,6 @@ function autoGradeQuestion_(q, ans) {
     earned = isCorrect ? pts : 0;
   }
   return { earned: Math.min(earned, pts), isCorrect: isCorrect };
-}
-
-/** 🌟 تشخيص: رموز Unicode (hex) لنصّ، لتحديد سبب اختلاف نصّين يبدوان متطابقين. */
-function hexOf_(s) {
-  var out = [];
-  for (var i = 0; i < Math.min(String(s).length, 400); i++) out.push(String(s).charCodeAt(i).toString(16));
-  return out.join(' ');
-}
-/** يُرجع وصف الفرق الحرفي بين إجابة الطالب والمفتاح (إن كانا نصّين مختلفين حرفياً)، وإلا null. */
-function rawDiff_(ans, key) {
-  if (typeof ans !== 'string' || typeof key !== 'string' || ans === key) return null;
-  var n = 0;
-  while (n < ans.length && n < key.length && ans.charAt(n) === key.charAt(n)) n++;
-  return { sameAfterNormalize: sameAns_(ans, key), firstDiffAt: n,
-           ansHex: hexOf_(ans.substr(Math.max(0, n - 3), 12)), keyHex: hexOf_(key.substr(Math.max(0, n - 3), 12)) };
 }
 
 function displayAnswer_(q, ans) {
@@ -720,10 +706,6 @@ function gradeSubmissionData_(questions, answers, manualScores) {
       // الجزئية (matrix_order، dual_dropdown، matching) قد تكسب بعض النقاط دون كل النقاط، وعرضها
       // كـ"خطأ" مطلق يضلّل المعلم. راجع settings/homework-prep.js (openGradingRoom) لمكان الاستخدام.
       d.earnedPoints = g.earned;
-      if ((q.type === 'mcq' || q.type === 'dropdown') && typeof ans === 'string') {
-        var df = rawDiff_(ans, q.correctAnswer);
-        if (df && df.sameAfterNormalize) d.diag = df;   // نصّان متطابقان بصرياً اختلفا حرفياً (يُسجَّل لتحديد المصدر)
-      }
       autoTotal += pts; autoEarned += g.earned;
       earnedAll += g.earned;
     }
