@@ -20,6 +20,8 @@
 // =============================================================================
 
 import { AppState, t, surahNameLocal } from '../core/app.js';
+import { tg } from '../core/i18n.js';
+import { isFemaleStudent } from '../core/studentGender.js';
 import { esc } from '../core/escape.js';
 import { isFixSessionEntry } from '../core/fixSessionLog.js';
 import { studentOutcomeInMatch } from '../engine/dualTestEngine.js';
@@ -345,10 +347,10 @@ function renderOverview(q) {
   const vText = fmt(t('mrq_verdict_' + verdict + '_txt'), { n: tot.activeMonths });
   return `<div class="pdf-block mrq-sec mrq-first" id="mrq-overview">
     <div class="section-title">${esc(t('mrq_title'))}</div>
-    <div class="section-sub">${esc(fmt(t('mrq_sub'), { a: months[0].name, b: months[months.length - 1].name }))}</div>
+    <div class="section-sub">${esc(fmt(tg('mrq_sub', isFemaleStudent(AppState.currentStudent)), { a: months[0].name, b: months[months.length - 1].name }))}</div>
     <div class="mrq-verdict v-${verdict}">
       <div class="mrq-vbadge"><span>${VERDICT_ICON[verdict]}</span></div>
-      <div class="mrq-vtext"><small>${esc(t('mrq_verdict_lbl'))}</small><b>${esc(t('mrq_verdict_' + verdict))}</b><p>${esc(vText)}</p></div>
+      <div class="mrq-vtext"><small>${esc(tg('mrq_verdict_lbl', isFemaleStudent(AppState.currentStudent)))}</small><b>${esc(t('mrq_verdict_' + verdict))}</b><p>${esc(vText)}</p></div>
       <div class="mrq-vmonths">${months.map(m => `<span class="${m.active ? 'on' : ''}"><i></i>${esc(m.short)}</span>`).join('')}</div>
     </div>
     <div class="mrq-kpis">${cards}</div>
@@ -548,7 +550,7 @@ export function renderQuarterHtml(q) {
   if (!q || !q.hasAnyData) {
     return `<div class="pdf-block mrq-sec mrq-first" id="mrq-overview">
       <div class="section-title">${esc(t('mrq_title'))}</div>
-      <div class="mrq-empty">${esc(t('mrq_empty'))}</div></div>`;
+      <div class="mrq-empty">${esc(tg('mrq_empty', isFemaleStudent(AppState.currentStudent)))}</div></div>`;
   }
   return renderOverview(q) + renderLevel(q) + renderMatrix(q) + renderLink(q) + renderInsights(q);
 }

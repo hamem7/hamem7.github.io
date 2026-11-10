@@ -13,7 +13,8 @@
 // 🌟 العزل التقني: ملف مستقل تماماً (بادئة CSS/DOM خاصة به hwcert-)، بلا استيراد أو لمس أي
 // سطر من reports/report.js أو reports/dual-test-report.js — نفس فلسفة العزل المتّبعة فعلاً في
 // كل ملفات التقارير بالمنصة، حتى لو كرّرنا هنا تحميل html2canvas محلياً.
-import { t, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i18n.js';
+import { t, tg, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i18n.js';
+import { isFemaleStudent } from '../core/studentGender.js';
 // 🌟 [جديد — إصلاح XSS] تنظيف اسم الطالب وإجاباته (قادمة من الخادم) قبل الحقن في innerHTML
 import { esc } from '../core/escape.js';
 // 🌟 ملف المعلم (الاسم + الختم) من AppState — نفس مصدر reports/dual-test-report.js، مع حماية لو لم يُحمَّل بعد
@@ -276,13 +277,14 @@ async function fetchCloudPrevious(student) {
 }
 // يدمج المحلي والسحابي بلا تكرار (المفتاح submissionId؛ المحلي يغلب)، يستبعد هذا التسليم وما بعد تاريخه.
 function buildHwLadder(submission, student, score, issuedAt, cloudPrev) {
+    const fem = isFemaleStudent(student);
     const currentMs = issuedAt.getTime();
     const step = (label, ms, sc, isCurrent) => {
         const tier = getTier(sc);
-        return { label, date: shortDate(ms), score: Math.round(sc), tierLabel: t('hwcert_tier_name_' + tier), color: LADDER_COLOR[tier], isCurrent };
+        return { label, date: shortDate(ms), score: Math.round(sc), tierLabel: tg('hwcert_tier_name_' + tier, fem), color: LADDER_COLOR[tier], isCurrent };
     };
     const current = step(t('hwcert_step_current'), currentMs, score, true);
-    if (!student || student.id == null) return { steps: [current], unlinked: true };
+    if (!student || student.id == null) return { steps: [current], unlinked: true, fem };
     const seen = new Set();
     const merged = [];
     localPreviousHomework(student).concat(cloudPrev || []).forEach(h => {
@@ -295,15 +297,15 @@ function buildHwLadder(submission, student, score, issuedAt, cloudPrev) {
         .sort((a, b) => (Number(a.timestamp) || 0) - (Number(b.timestamp) || 0))
         .slice(-3).reverse();
     const labels = [t('hwcert_step_prev1'), t('hwcert_step_prev2'), t('hwcert_step_prev3')];
-    return { steps: [current].concat(previous.map((h, i) => step(labels[i], Number(h.timestamp) || currentMs, h.score, false))), unlinked: false };
+    return { steps: [current].concat(previous.map((h, i) => step(labels[i], Number(h.timestamp) || currentMs, h.score, false))), unlinked: false, fem };
 }
-function ladderHtml({ steps, unlinked }) {
+function ladderHtml({ steps, unlinked, fem }) {
     const rows = steps.map((s, i) => `<div class="hwcert-vstep${s.isCurrent ? ' cur' : ''}" style="color:${s.color};">
             <div class="hwcert-vdotcol"><i class="hwcert-vdot" style="background:${s.color};"></i>${i < steps.length - 1 ? '<i class="hwcert-vline"></i>' : ''}</div>
             <div class="hwcert-vtxt"><small>${esc(s.label)}</small><b>${s.score}% · ${esc(s.tierLabel)}</b><span dir="ltr">${esc(s.date)}</span></div>
         </div>`).join('');
     const foot = unlinked ? `<div class="hwcert-lfirst">${t('hwcert_ladder_unlinked')}</div>`
-        : steps.length < 2 ? `<div class="hwcert-lfirst">${t('hwcert_ladder_first')}</div>` : '';
+        : steps.length < 2 ? `<div class="hwcert-lfirst">${tg('hwcert_ladder_first', fem)}</div>` : '';
     return `<div class="hwcert-ladder vt"><h3>${t('hwcert_ladder_title')}</h3>${rows}${foot}</div>`;
 }
 
@@ -381,7 +383,8 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
     ensureCertFonts();
     const scopeText = formatScope(scope);
 
-    const studentName = (student && student.name) || submission.studentName || t('hwcert_default_student');
+    const fem = isFemaleStudent(student);   // صيغة المؤنث لو الطالب بنت
+    const studentName = (student && student.name) || submission.studentName || tg('hwcert_default_student', fem);
     const score = Math.round(submission.finalScore);
     const tier = getTier(score);
     const issuedAt = new Date(Date.parse(submission.approvedAt) || Date.now());
@@ -417,7 +420,7 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
                             ? `<img class="hwcert-avatar" src="${esc(avatarUrl)}" alt="">`
                             : `<div class="hwcert-avatar-fallback">🎓</div>`}
                         <div class="hwcert-who">
-                            <div class="hwcert-grant">${t('hwcert_granted_to')}</div>
+                            <div class="hwcert-grant">${tg('hwcert_granted_to', fem)}</div>
                             <div class="hwcert-name">${esc(studentName)}</div>
                         </div>
                     </div>
@@ -425,13 +428,13 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
                         <div class="hwcert-medalcol">
                             <div class="hwcert-medalwrap">
                                 <svg class="hwcert-tails" viewBox="0 0 80 54"><polygon points="0,0 35,0 35,54 17.5,42 0,54" fill="#2a7f84"/><polygon points="45,0 80,0 80,54 62.5,42 45,54" fill="#1f6468"/></svg>
-                                <div class="hwcert-medal" style="background:${MEDAL_BG[tier]};"><b>${score}%</b><span>${t('hwcert_tier_name_' + tier)}</span></div>
+                                <div class="hwcert-medal" style="background:${MEDAL_BG[tier]};"><b>${score}%</b><span>${tg('hwcert_tier_name_' + tier, fem)}</span></div>
                             </div>
                             <div class="hwcert-cap">${t('hwcert_score_label')}</div>
                         </div>
                         <div class="hwcert-side">
                             ${scopeText ? `<div class="hwcert-scope"><small>${t('hwcert_scope_title')}</small><b>${esc(scopeText)}</b></div>` : ''}
-                            <div class="hwcert-enc">${t('hwcert_tier_' + tier)}</div>
+                            <div class="hwcert-enc">${tg('hwcert_tier_' + tier, fem)}</div>
                         </div>
                     </div>
                     <div class="hwcert-split">${ladderBlock}
@@ -522,7 +525,7 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
                 await navigator.share({ files: [file], title: t('hwcert_title'), text: studentName });
             } else {
                 downloadBlob(blob, filename);
-                showNote(t('hwcert_share_unsupported_note'));
+                showNote(tg('hwcert_share_unsupported_note', fem));
             }
         } catch (err) {
             // 🌟 المستخدم قد يُلغي نافذة المشاركة نفسها (AbortError) — ليست خطأً فعلياً

@@ -45,6 +45,8 @@ import { SKILLS } from '../engine/skillMap.js';
 import { esc } from '../core/escape.js';
 import { isFixSessionEntry, collectFixSessions } from '../core/fixSessionLog.js';
 import { skillLabel, monthlySummaryLines } from '../components/skillProfile.js';
+import { tg } from '../core/i18n.js';
+import { isFemaleStudent } from '../core/studentGender.js';
 import { AppState, applyLanguage, t, localizeGenerated, trStored, gradeLabel, surahNameLocal } from '../core/app.js';
 import { REPORT_STYLES } from './report.styles.js';
 import { MONTHLY_REPORT_STYLES } from './monthly-report.styles.js';
@@ -970,9 +972,9 @@ async function buildMonthlyReportData(year, monthIndex0) {
     periodHijri: hijriPeriodLabel(year, monthIndex0),
     generatedDate: formatDateArabicOrEn(new Date()),
     id: student.id != null ? ('#' + String(student.id).padStart(5, '0')) : '#00000',
-    name: student.name || t('mr_default_student_label'),
+    name: student.name || tg('mr_default_student_label', isFemaleStudent(student)),
     // الجنس لصياغة الرسالة (نفس قاعدة الشهادات: الصورة الرمزية أو حقل gender)
-    female: ['👧🏻', '👩🏻', '🧕🏻'].includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',
+    female: isFemaleStudent(student),
     // الصف من ملف الطالب (student.grade) — اختياري، يُخفى لو فارغ
     grade: student.grade ? gradeLabel(student.grade) : '',
     memoScope, hasMemoRange,
@@ -1226,7 +1228,7 @@ function renderJourneyBlock(d) {
   const el = $('mr-journey-content');
   if (!el) return;
   if (!d.journey) {
-    el.innerHTML = `<div class="mr-empty-row">${t('mr_journey_no_data')}</div>`;
+    el.innerHTML = `<div class="mr-empty-row">${tg('mr_journey_no_data', isFemaleStudent(AppState.currentStudent))}</div>`;
     return;
   }
   if (!d.journey.hasEnding) {
@@ -1577,7 +1579,7 @@ function renderSkillsBlock(d) {
   const sum = d.skillSummary;
   setBlockVisible('mr-skills-block', !!sum);
   if (!sum) return;
-  setText('mr-skills-title', t('mr_skills_title'));
+  setText('mr-skills-title', tg('mr_skills_title', isFemaleStudent(AppState.currentStudent)));
   setText('mr-skills-sub', t('mr_skills_sub'));
   const rows = SKILLS.map(sk => ({ sk, st: sum.stats[sk] })).filter(x => x.st && x.st.count > 0 && x.st.acc !== null);
   const bars = rows.map(({ sk, st }) => {
@@ -1595,11 +1597,11 @@ function renderCoverageBlock(d) {
   setBlockVisible('mr-cov-block', !!c || gq > 0);
   if (!c && !(gq > 0)) return;
   setText('mr-cov-title', t('mr_cov_title'));
-  const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), t(k));
+  const fill = (k, o) => Object.keys(o).reduce((s, key) => s.replace(`{${key}}`, o[key]), tg(k, isFemaleStudent(AppState.currentStudent)));
   // «دفتر المراجعة»: كل آية ظهرت أمام الطالب تُحسب — الإجمالي ثم التفصيل (الألعاب الفردية / الواجب المنزلي) ثم تغطية السور
   const detail = gq > 0 ? `<div style="font-size:1.15rem;font-weight:800;">${esc(fill('mr_rev_total', { n: gq }))}</div>
     <div style="font-size:0.98rem;line-height:1.9;margin-top:4px;">• ${esc(fill('mr_rev_games', { n: ra.games }))}<br>• ${esc(fill('mr_rev_hw', { n: ra.homework }))}</div>` : '';
-  setText('mr-cov-sub', t('mr_cov_sub'));
+  setText('mr-cov-sub', tg('mr_cov_sub', isFemaleStudent(AppState.currentStudent)));
   if (!c) { $('mr-cov-content').innerHTML = detail; return; }
   const shown = c.missing.slice(0, 3).map(n => surahNameLocal(n));
   const names = shown.join(AppState.currentLang === 'en' ? ', ' : '، ') + (c.missing.length > 3 ? ' ' + t('mr_cov_others') : '');
@@ -2490,7 +2492,7 @@ async function shareViaWhatsApp(kind) {
   if (!res || !res.blob) throw new Error('empty export');
   const name = (reportData && reportData.name) || '';
   const period = currentPeriodLabel();
-  const msg = t(isQuarterView() ? 'mrq_wa_msg' : 'mr_wa_msg').replace('{name}', name).replace('{period}', period);
+  const msg = tg(isQuarterView() ? 'mrq_wa_msg' : 'mr_wa_msg', isFemaleStudent(AppState.currentStudent)).replace('{name}', name).replace('{period}', period);
   // مثل التقرير الفردي (report.js): تظهر شاشة المشاركة مباشرة متى دعمها المتصفح، والاسم العربي كما هو.
   // اسم الملف المُرسَل بحروف إنجليزية فقط: واتساب يُشوِّه الأسماء العربية القادمة من شاشة مشاركة ويندوز (Ø§Ù„...) رغم سلامتها عند الخروج من المنصة.
   // ولي الأمر يميّز التقرير من النص المرافق (اسم الطالب والشهر بالعربية). التنزيل العادي يبقى باسمه العربي.
@@ -2704,7 +2706,11 @@ export function openMonthlyReportScreen(options) {
   root.innerHTML = MONTHLY_REPORT_TEMPLATE;
   // 🌟 [إصلاح] اتجاه صفحة التقرير يتبع لغة الواجهة (كان rtl ثابتًا فيتشوّه ترتيب الإنجليزية وعلامات الترقيم)
   const mrPage = document.getElementById('mreport-page');
-  if (mrPage) mrPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
+  if (mrPage) {
+    mrPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
+    // 🌟 صيغة المؤنث لعناوين التقرير الثابتة لو الطالب بنت (راجع applyLanguage في core/i18n.js)
+    if (isFemaleStudent(AppState.currentStudent)) mrPage.setAttribute('data-gender', 'f'); else mrPage.removeAttribute('data-gender');
+  }
   try { applyLanguage(); } catch (e) { /* غير حرِج */ }
   initMonthlyReportScreen();
 }

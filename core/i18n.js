@@ -399,19 +399,24 @@ export const translations = {
         mrh_back_summary: "العودة إلى الملخص",
         mr_revparts_title: "رحلة المراجعة هذا الشهر",
         mr_revparts_sub: "من أين بدأ الطالب مراجعة كل جزء وإلى أين وصل",
+        mr_revparts_sub_f: "من أين بدأت الطالبة مراجعة كل جزء وإلى أين وصلت",
         mr_cov_title: "دفتر المراجعة",
         mr_rev_total: "📖 راجع الطالب هذا الشهر {n} آية",
+        mr_rev_total_f: "📖 راجعت الطالبة هذا الشهر {n} آية",
         mr_rev_games: "في الألعاب الفردية: {n} آية",
         mr_rev_hw: "في الواجب المنزلي: {n} آية",
         mr_cov_sub: "كل آية ظهرت أمام الطالب في ألعابه الفردية وواجباته المسلَّمة (لا تُحتسب الأسئلة التي بلا رقم آية)",
+        mr_cov_sub_f: "كل آية ظهرت أمام الطالبة في ألعابها الفردية وواجباتها المسلَّمة (لا تُحتسب الأسئلة التي بلا رقم آية)",
         mr_cov_surahs: "غطّى {c} سورة من {t}",
         mr_cov_missing: "لم يُسأل بعد عن: {names}",
         mr_cov_others: "وغيرها",
         mr_skills_title: "مهارات الطالب هذا الشهر",
+        mr_skills_title_f: "مهارات الطالبة هذا الشهر",
         mr_skills_sub: "دقة كل مهارة من واجبات الشهر واختباراته الفردية وملاحظات المعلم",
         mr_revparts_none: "لم تُسجَّل مراجعة هذا الشهر بعد.",
         mr_revparts_count_fmt: "{n} آية",
         mr_revparts_total_fmt: "راجع الطالب {n} آية من {k} أجزاء هذا الشهر",
+        mr_revparts_total_fmt_f: "راجعت الطالبة {n} آية من {k} أجزاء هذا الشهر",
         mr_journey_sentence: "حفظ {name} {n} آية جديدة خلال هذا الشهر",
         mmb_progress: "الطالب {i} من {n}",
         mmb_skip_btn: "تخطٍّ",
@@ -1589,10 +1594,12 @@ export const translations = {
         hwcert_logo_alt: "شعار منصة حمٓ",
         hwcert_number_label: "رقم الشهادة",
         hwcert_granted_to: "تُمنح هذه الشهادة للطالب",
+        hwcert_granted_to_f: "تُمنح هذه الشهادة للطالبة",
         hwcert_tier_name_excellent: "ممتاز",
         hwcert_tier_name_good: "جيد جدًا",
         hwcert_tier_name_average: "جيد",
         hwcert_tier_name_weak: "واصل",
+        hwcert_tier_name_weak_f: "واصلي",
         hwcert_verse: "﴿ وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا ﴾",
         hwcert_verse_ref: "سورة المزمل: 4",
         hwcert_teacher_label: "المعلم",
@@ -1602,6 +1609,7 @@ export const translations = {
         hwcert_subtitle: "منصة حمٓ لتثبيت الحفظ و المراجعة", // 🌟 الاسم المعتمد بعلامة المد (U+0653) وبدون "دار"
         hwcert_ladder_title: "مستوى التقدّم العام",
         hwcert_ladder_first: "هذا أول واجب معتمد في سجل الطالب — ستظهر المقارنة بالواجبات السابقة بدءًا من الواجب القادم.",
+        hwcert_ladder_first_f: "هذا أول واجب معتمد في سجل الطالبة — ستظهر المقارنة بالواجبات السابقة بدءًا من الواجب القادم.",
         hwcert_ladder_unlinked: "غير مربوط بسجل طالب — لا توجد مقارنة بالواجبات السابقة.",
         hwcert_step_current: "هذا الواجب",
         hwcert_step_prev1: "الواجب السابق",
@@ -1609,9 +1617,12 @@ export const translations = {
         hwcert_step_prev3: "أقدم واجب",
         hwcert_score_label: "النتيجة النهائية",
         hwcert_tier_excellent: "🌟 أداء رائع ومتميز! استمر بهذا التألق، أنت قدوة لزملائك.",
+        hwcert_tier_excellent_f: "🌟 أداء رائع ومتميز! استمري بهذا التألق، أنتِ قدوة لزميلاتك.",
         hwcert_tier_good: "👏 عمل جيد جدًا! خطوة كبيرة نحو الإتقان، واصل بهذا الجهد.",
+        hwcert_tier_good_f: "👏 عمل جيد جدًا! خطوة كبيرة نحو الإتقان، واصلي بهذا الجهد.",
         hwcert_tier_average: "💪 بداية طيبة، وبمزيد من المراجعة ستصل بإذن الله للتميز.",
         hwcert_tier_weak: "🌱 كل محاولة تتعلم منها هي تقدم حقيقي — لا تستسلم وواصل المحاولة، نحن معك.",
+        hwcert_tier_weak_f: "🌱 كل محاولة تتعلمين منها هي تقدم حقيقي — لا تستسلمي وواصلي المحاولة، نحن معكِ.",
         hwcert_mistakes_title: "📝 نقاط تحتاج مراجعة",
         hwcert_no_mistakes: "🎉 بلا أي أخطاء — إجابات كاملة في كل الأسئلة!",
         hwcert_correct_answer_label: "الصواب:",
@@ -1619,8 +1630,10 @@ export const translations = {
         hwcert_share_btn: "📲 إرسال عبر واتساب",
         hwcert_close_btn: "إغلاق ✖️",
         hwcert_share_unsupported_note: "تم تنزيل الشهادة كصورة — أرفقها يدوياً في محادثة واتساب مع الطالب.",
+        hwcert_share_unsupported_note_f: "تم تنزيل الشهادة كصورة — أرفقها يدوياً في محادثة واتساب مع الطالبة.",
         hwcert_save_failed: "❌ تعذّر إنشاء صورة الشهادة. حاول مرة أخرى.",
         hwcert_default_student: "الطالب",
+        hwcert_default_student_f: "الطالبة",
         // 🌟 [جديد] مربع "كلمة من المعلم" الاختياري في غرفة التصحيح + ظهوره في شهادة التقدير
         hw_teacher_note_label: "كلمة من المعلم للطالب (اختياري)",
         hw_teacher_note_placeholder: "اكتب هنا كلمة تشجيع أو توجيه تظهر في شهادة التقدير…",
@@ -1830,6 +1843,7 @@ export const translations = {
         mr_wa_img_hint: "يرسل التقرير المختصر كصورة عبر واتساب",
         mr_wa_pdf_hint: "يرسل التقرير الكامل كملف PDF عبر واتساب",
         mr_wa_msg: "التقرير الشهري للطالب {name} عن شهر {period}",
+        mr_wa_msg_f: "التقرير الشهري للطالبة {name} عن شهر {period}",
         mr_wa_fallback_note: "نُزّل الملف على جهازك. اضغط «فتح واتساب» لفتح محادثة برسالة جاهزة، ثم اختر جهة الاتصال وأرفق الملف المُنزَّل.",
         mr_wa_open_btn: "فتح واتساب",
         mr_wa_share_btn: "مشاركة الآن",
@@ -1867,10 +1881,14 @@ export const translations = {
         mrq_period_range: "من {a} إلى {b}",
         mrq_file_suffix: "حصاد 3 أشهر",
         mrq_wa_msg: "تقرير حصاد ثلاثة أشهر للطالب {name} ({period})",
+        mrq_wa_msg_f: "تقرير حصاد ثلاثة أشهر للطالبة {name} ({period})",
         mrq_title: "حصاد ثلاثة أشهر",
         mrq_sub: "مستوى الطالب من {a} إلى {b}: الحفظ والألعاب الفردية والواجبات والاختبارات الثنائية",
+        mrq_sub_f: "مستوى الطالبة من {a} إلى {b}: الحفظ والألعاب الفردية والواجبات والاختبارات الثنائية",
         mrq_empty: "لا توجد بيانات مسجَّلة لهذا الطالب في الأشهر الثلاثة المختارة بعد. اختر شهرًا آخر أو عُد إلى التقرير الشهري.",
+        mrq_empty_f: "لا توجد بيانات مسجَّلة لهذه الطالبة في الأشهر الثلاثة المختارة بعد. اختر شهرًا آخر أو عُد إلى التقرير الشهري.",
         mrq_verdict_lbl: "مسار الطالب خلال الفترة",
+        mrq_verdict_lbl_f: "مسار الطالبة خلال الفترة",
         mrq_verdict_rising: "مسار تصاعدي",
         mrq_verdict_steady: "مسار مستقر",
         mrq_verdict_support: "يحتاج دعمًا ومتابعة",
@@ -2018,6 +2036,7 @@ export const translations = {
         mr_note_tone_formal: "رسمية",
         mr_note_tone_warm: "دافئة",
         mr_back_btn: "العودة لملف الطالب",
+        mr_back_btn_f: "العودة لملف الطالبة",
         mr_back_hub_btn: "العودة لتقارير الشهر",
         mr_month_label: "الشهر:",
         mr_year_label: "السنة:",
@@ -2029,10 +2048,13 @@ export const translations = {
         mr_meta_generated: "تاريخ الإصدار:",
         mr_summary_title: "ملخص الشهر",
         mr_summary_sub: "نظرة عامة سريعة على نشاط الطالب خلال هذا الشهر",
+        mr_summary_sub_f: "نظرة عامة سريعة على نشاط الطالبة خلال هذا الشهر",
         mr_homework_section_title: "الواجبات المنزلية هذا الشهر",
         mr_homework_section_sub: "كل واجب سلَّمه الطالب هذا الشهر مع درجته النهائية المعتمدة",
+        mr_homework_section_sub_f: "كل واجب سلَّمته الطالبة هذا الشهر مع درجته النهائية المعتمدة",
         mr_dual_section_title: "الاختبارات الثنائية هذا الشهر",
         mr_dual_section_sub: "كل مواجهة مكتملة خاض فيها الطالب هذا الشهر",
+        mr_dual_section_sub_f: "كل مواجهة مكتملة خاضت فيها الطالبة هذا الشهر",
         mr_achv_section_title: "إنجازات وأوسمة جديدة هذا الشهر",
         mr_errors_section_title: "أخطاء عولجت هذا الشهر",
         mr_note_box_label: "رسالة المعلم لولي الأمر",
@@ -2109,6 +2131,7 @@ export const translations = {
         mr_no_student_selected: "لم يتم تحديد طالب لعرض تقريره.",
         mr_default_teacher_label: "المعلم",
         mr_default_student_label: "الطالب",
+        mr_default_student_label_f: "الطالبة",
         mr_no_memo_range: "نطاق الحفظ غير مسجَّل",
         mr_hw_untitled: "واجب بلا عنوان",
         mr_hw_not_signed_in: "نتائج الواجبات المنزلية تظهر هنا بعد تسجيل الدخول بجوجل داخل نظام الواجبات على هذا الجهاز.",
@@ -2117,6 +2140,7 @@ export const translations = {
         // راجع reports/monthly-report.js وengine/memorizationEngine.js
         mr_journey_section_title: "رحلة الحفظ هذا الشهر",
         mr_journey_section_sub: "من أين إلى أين وصل الطالب في حفظه خلال هذا الشهر",
+        mr_journey_section_sub_f: "من أين إلى أين وصلت الطالبة في حفظها خلال هذا الشهر",
         mr_journey_begin_label: "بداية الشهر",
         mr_jm_more: "+ {n} أجزاء أخرى مرّ بها الحفظ هذا الشهر (مكتملة)",
         mr_jm_ring_new_cap: "آية جديدة هذا الشهر",
@@ -2143,6 +2167,7 @@ export const translations = {
         mr_journey_end_label: "نهاية الشهر",
         mr_journey_new_label: "حفظ جديد هذا الشهر",
         mr_journey_no_data: "لم يتم تسجيل موقع حفظ الطالب لهذا الشهر بعد.",
+        mr_journey_no_data_f: "لم يتم تسجيل موقع حفظ الطالبة لهذا الشهر بعد.",
         mr_journey_no_ending_yet: "تم تسجيل بداية الشهر، ولم تُسجَّل نهايته بعد.",
         mr_tile_new_memo: "حفظ جديد",
         mr_tile_new_memo_sub: "آية هذا الشهر",
@@ -2273,6 +2298,7 @@ export const translations = {
         hist_eval_default_range: "جلسة تقييم",
         mr_gameeval_section_title: "تقييمات غرفة اللعب هذا الشهر",
         mr_gameeval_section_sub: "كل جلسة تقييم فردية (كبار/أطفال) خاضها الطالب هذا الشهر",
+        mr_gameeval_section_sub_f: "كل جلسة تقييم فردية (كبار/أطفال) خاضتها الطالبة هذا الشهر",
         mr_gameeval_empty: "لم تُسجَّل أي جلسة تقييم فردية (كبار/أطفال) هذا الشهر — الجلسات المُلعَبة قبل تفعيل هذا الحفظ لا تظهر هنا.",
         mr_tile_gameeval_avg: "متوسط تقييمات غرفة اللعب",
         mr_tile_gameeval_count: "عدد الجلسات: {n}",
@@ -2455,11 +2481,14 @@ export const translations = {
 
         rep_eyebrow: "منصة حمٓ · تحفيظ القرآن الكريم",
         rep_title: "تقرير تقدّم الطالب",
+        rep_title_f: "تقرير تقدّم الطالبة",
         rep_subtitle: "في حفظ القرآن الكريم",
         rep_tagline: "خطوة بخطوة ... نحو كتاب الله",
 
         rep_avatar_hint: "اضغط أو اسحب صورة لتغيير صورة الطالب",
+        rep_avatar_hint_f: "اضغط أو اسحب صورة لتغيير صورة الطالبة",
         rep_avatar_change: "تغيير صورة الطالب",
+        rep_avatar_change_f: "تغيير صورة الطالبة",
 
         rep_fact_grade: "الصف",
         rep_fact_scope: "نطاق التقييم",
@@ -2471,8 +2500,11 @@ export const translations = {
 
         rep_ladder_title: "مستوى التقدّم العام",
         rep_ladder_sub: "مقارنة هذا التقييم بآخر محاولات الطالب المسجَّلة",
+        rep_ladder_sub_f: "مقارنة هذا التقييم بآخر محاولات الطالبة المسجَّلة",
         rep_ladder_no_regular: "لا توجد تقييمات عادية سابقة في سجل الطالب بعد — جلسات علاج الأخطاء لا تدخل في هذا السُّلّم.",
+        rep_ladder_no_regular_f: "لا توجد تقييمات عادية سابقة في سجل الطالبة بعد — جلسات علاج الأخطاء لا تدخل في هذا السُّلّم.",
         rep_ladder_first_attempt: "هذه أول محاولة مسجَّلة في سجل الطالب — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.",
+        rep_ladder_first_attempt_f: "هذه أول محاولة مسجَّلة في سجل الطالبة — ستظهر المقارنة مع المحاولات السابقة بدءًا من التقييم القادم.",
         rep_step_current: "هذا التقييم",
         rep_step_prev1: "المحاولة السابقة",
         rep_step_prev2: "قبلها",
@@ -3370,6 +3402,7 @@ export const translations = {
         rc_ay_one: "الآية {r} من سورة {s}", rc_ay_two: "الآيتين {r} من سورة {s}", rc_ay_many: "الآيات {r} من سورة {s}",
         rep_tb_home_label: "مهمة البيت في صورة واتساب (يمكنك تعديلها):",
         rep_tb_home_ph: "تُبنى تلقائيًا من آيات أخطاء الطالب ونطاق الاختبار.",
+        rep_tb_home_ph_f: "تُبنى تلقائيًا من آيات أخطاء الطالبة ونطاق الاختبار.",
         rep_tb_home_hint: "تظهر في بطاقة «مهمتكم في البيت» بالصورة المختصرة",
         rep_tb_home_restore: "استعادة الصياغة التلقائية",
         // ===== صورة «أسئلة ولي الأمر» (واتساب 4:5) — reports/parentQaCard.js — المؤنث بلاحقة _f =====
@@ -7447,6 +7480,16 @@ export function t(key) {
     return key;
 }
 
+// 🌟 [توحيد صيغة المذكر/المؤنث] tg: مثل t() لكن للطالبة (female=true) تُفضَّل صيغة المفتاح + '_f' إن وُجدت،
+// وإلا رجعت للصيغة العامة (الإنجليزية محايدة فلا تحتاج مفاتيح _f). أي نص جديد يذكر «الطالب» يُضاف له مفتاح _f بالعربية.
+export function tg(key, female) {
+    if (female) {
+        const lang = AppState.currentLang;
+        if (translations[lang] && translations[lang][key + '_f']) return translations[lang][key + '_f'];
+    }
+    return t(key);
+}
+
 // 🌟 [جديد — إصلاح شامل لنظام الترجمة] أدوات مركزية لترجمة النصوص المولَّدة ديناميكياً داخل JS
 // (محرّكات الأسئلة، الألعاب، التقارير، الرسائل). كلها إضافات فقط — لم يُعدَّل أي سلوك قائم.
 // ملاحظة صريحة: نص القرآن نفسه (الآيات وكلماتها) لا يمر على هذه الدوال أبداً؛ تُستخدم فقط للنصوص
@@ -7708,7 +7751,9 @@ export function applyLanguage() {
     document.documentElement.lang = lang;
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
+        let key = el.getAttribute('data-i18n');
+        // 🌟 داخل شاشة/تقرير يحمل data-gender="f" (طالبة) تُستعمل صيغة المؤنث key_f إن وُجدت
+        if (translations[lang] && translations[lang][key + '_f'] && el.closest('[data-gender="f"]')) key += '_f';
         if (translations[lang] && translations[lang][key]) {
             el.innerHTML = translations[lang][key];
             // خيارات الصف في القوائم تعرض التسميتين معاً (راجع gradeLabel)
@@ -7717,7 +7762,8 @@ export function applyLanguage() {
     });
 
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-        const key = el.getAttribute('data-i18n-placeholder');
+        let key = el.getAttribute('data-i18n-placeholder');
+        if (translations[lang] && translations[lang][key + '_f'] && el.closest('[data-gender="f"]')) key += '_f';
         if (translations[lang] && translations[lang][key]) {
             el.placeholder = translations[lang][key];
         }
@@ -7726,7 +7772,8 @@ export function applyLanguage() {
     // 🌟 [جديد] دعم ترجمة سمة title (تلميحات الأزرار الصغيرة) — نفس فلسفة
     // data-i18n-placeholder أعلاه بالحرف، لكن لسمة title بدل placeholder
     document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
+        let key = el.getAttribute('data-i18n-title');
+        if (translations[lang] && translations[lang][key + '_f'] && el.closest('[data-gender="f"]')) key += '_f';
         if (translations[lang] && translations[lang][key]) {
             el.title = translations[lang][key];
         }

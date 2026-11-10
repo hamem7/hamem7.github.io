@@ -16,12 +16,12 @@ import { esc } from '../core/escape.js';
 import { getStarRank } from '../core/goldStars.js';
 import { t, SURAH_NAMES_AR_BARE, SURAH_NAMES_EN } from '../core/i18n.js';
 import { TEMPLATES, templateImage, templateThumb, getTemplate } from './templates.js';
-import { TYPES, getType, VERSES, getVerse, juzName, L } from './texts.js';
+import { TYPES, getType, VERSES, getVerse, juzName, L, typeTitle, typeLabel } from './texts.js';
+import { isFemaleStudent } from '../core/studentGender.js';   // جنس الطالب (الحقل المسجَّل ثم الصورة الرمزية)
 import { addCertificate, getAllCertificates, deleteCertificate } from './certificatesDB.js';
 import { listArchivedReports, getArchivedReportFile, deleteArchivedReport } from '../reports/reportArchive.js';
 
 const PAGE_W = 1000, PAGE_H = 707;               // مقاس التصميم الداخلي (نسبة A4 أفقي)، ويُصدَّر بدقة ×2 = 2000×1414
-const GIRL_AVATARS = ['👧🏻', '👩🏻', '🧕🏻'];     // نفس قائمة student/student.js لتحديد الجنس تلقائياً من الصورة الرمزية
 const PREFS_KEY = 'darham_cert_prefs';
 const EXTRA_MAX = 140;
 // خطوط الشهادة العربية التي يختار منها المعلم ('' = خط القالب الافتراضي). css: اسم العائلة في Google Fonts
@@ -354,10 +354,10 @@ function boxHtml(spec, teacher) {
     const d = formatDates(parseISO(spec.dateISO), lang);
     const b = tpl.box;
     const extra = String(spec.extra || '').trim();
-    const placeholder = (lang === 'en' ? "Student's name" : 'اسم الطالب');
+    const placeholder = (lang === 'en' ? "Student's name" : (spec.female ? 'اسم الطالبة' : 'اسم الطالب'));
     return `<div class="cc-box" style="left:${b.x}%;top:${b.y}%;width:${b.w}%;height:${b.h}%;"><div class="cc-inner">
         ${spec.basmala && !tpl.noBasmala ? `<div class="cc-basmala">${BASMALA}</div>` : ''}
-        ${tpl.noTitle ? '' : `<div class="cc-title">${esc(L(type.title, lang))}</div><div class="cc-rule"><i></i><b>✦</b><i></i></div>`}
+        ${tpl.noTitle ? '' : `<div class="cc-title">${esc(typeTitle(type, lang, spec.female))}</div><div class="cc-rule"><i></i><b>✦</b><i></i></div>`}
         <div class="cc-name">${esc(spec.name || placeholder)}</div>
         <div class="cc-body">
             <div class="cc-text">${bodyHtml(spec)}</div>
@@ -463,7 +463,7 @@ export async function autoIssueStarCertificate(student, stars) {
         const values = { surah: 1, juz: 1, half: 'first', text: starCertWhat(stars, lang) };
         const spec = {
             typeId: 'star', name: String(student.name || '').trim(),
-            female: GIRL_AVATARS.includes(student.avatar) || student.gender === 'girl' || student.gender === 'female',
+            female: isFemaleStudent(student),
             lang, what: buildWhat(type, values, todayISO(), lang), values, bodyIdx: 0, extra: '', verseId: type.verse,
             basmala: prefs.basmala !== false,
             templateId: TEMPLATES.some(x => x.id === prefs.templateId) ? prefs.templateId : TEMPLATES[0].id,
@@ -691,7 +691,7 @@ export async function openCertificatesHub(opts = {}) {
             + `<option value="other">${esc(t('cc_other_name'))}</option>`;
         studentSel.value = S.studentId;
     }
-    const genderFromStudent = (st) => !!(st && (GIRL_AVATARS.includes(st.avatar) || st.gender === 'girl' || st.gender === 'female'));
+    const genderFromStudent = (st) => isFemaleStudent(st);
     studentSel.addEventListener('change', () => {
         S.studentId = studentSel.value;
         const st = students.find(x => String(x.id) === String(S.studentId));
@@ -865,7 +865,7 @@ export async function openCertificatesHub(opts = {}) {
             } finally { btn.disabled = false; btn.textContent = original; }
         };
     }
-    const fileBase = (spec) => `${spec.lang === 'en' ? 'certificate' : 'شهادة'}-${safeName(L(getType(spec.typeId).label, spec.lang))}-${safeName(spec.name)}`;
+    const fileBase = (spec) => `${spec.lang === 'en' ? 'certificate' : 'شهادة'}-${safeName(typeLabel(getType(spec.typeId), spec.lang, spec.female))}-${safeName(spec.name)}`;
 
     $('#cc-png').addEventListener('click', withBusy($('#cc-png'), async (spec) => {
         downloadBlob(await toPngBlob(await renderCanvas(spec)), fileBase(spec) + '.png');
@@ -881,7 +881,7 @@ export async function openCertificatesHub(opts = {}) {
         const blob = await toPngBlob(await renderCanvas(spec));
         await saveToHistory(spec);
         // Web Share API مع ملف مرفَق: الطريقة الوحيدة لوصول الصورة جاهزة إلى واتساب (رابط wa.me يدعم نصاً فقط)
-        const shared = await shareOrDownload(blob, fileBase(spec) + '.png', L(getType(spec.typeId).title, spec.lang), spec.name);
+        const shared = await shareOrDownload(blob, fileBase(spec) + '.png', typeTitle(getType(spec.typeId), spec.lang, spec.female), spec.name);
         if (!shared) showNote(t('cc_share_fallback'));
     }));
     $('#cc-keep').addEventListener('click', async () => {
@@ -925,7 +925,7 @@ export async function openCertificatesHub(opts = {}) {
             return `<div class="cc-row" data-id="${r.id}">
                 <img src="${templateThumb(getTemplate(r.templateId).id)}" alt="" loading="lazy">
                 <div class="cc-row-main"><div class="cc-row-name">${esc(r.name)}</div>
-                    <div class="cc-row-meta">${esc(L(type.title, uiLang()))}${r.what ? ' — ' + esc(r.what) : ''}<br>${esc(d.greg)}</div></div>
+                    <div class="cc-row-meta">${esc(typeTitle(type, uiLang(), r.female))}${r.what ? ' — ' + esc(r.what) : ''}<br>${esc(d.greg)}</div></div>
                 <div class="cc-row-btns"><button type="button" data-act="open">${esc(t('cc_open_edit'))}</button><button type="button" class="cc-del" data-act="del" aria-label="${esc(t('cc_delete'))}">🗑️</button></div>
             </div>`;
         }).join('');

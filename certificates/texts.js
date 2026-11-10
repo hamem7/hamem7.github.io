@@ -155,7 +155,7 @@ export const TYPES = [
       bodies: { ar: HIFZ_AR, en: HIFZ_EN } },
     { id: 'review', icon: '🔁', fields: ['text'], verse: 'maher',
       label: { ar: 'التميز في المراجعة', en: 'Excellence in review' }, title: { ar: 'شهادة التميز في المراجعة', en: 'Certificate of Excellence in Review' },
-      textLabel: { ar: 'ما الذي تميّز فيه؟ (اختياري)', en: 'What did they excel in? (optional)' },
+      textLabel: { ar: 'ما مجال التميّز؟ (اختياري)', en: 'What did they excel in? (optional)' },
       textPlaceholder: { ar: 'مثال: مراجعة جزء عمّ', en: "e.g. reviewing Juz' Amma" },
       whatDefault: { ar: 'مراجعة المحفوظ', en: 'reviewing the memorized portions' },
       bodies: { ar: REVIEW_AR, en: REVIEW_EN } },
@@ -169,6 +169,7 @@ export const TYPES = [
       bodies: { ar: TAJWEED_AR, en: TAJWEED_EN } },
     { id: 'month', icon: '🏆', fields: ['monthAuto'], verse: 'yassarna',
       label: { ar: 'طالب الشهر', en: 'Student of the month' }, title: { ar: 'شهادة طالب الشهر', en: 'Student of the Month Certificate' },
+      labelF: { ar: 'طالبة الشهر', en: 'Student of the month' }, titleF: { ar: 'شهادة طالبة الشهر', en: 'Student of the Month Certificate' },   // صيغة المؤنث للطالبة
       bodies: { ar: MONTH_AR, en: MONTH_EN } },
     { id: 'commit', icon: '⏰', fields: ['text'], verse: 'zidni',
       label: { ar: 'المواظبة والالتزام', en: 'Commitment & attendance' }, title: { ar: 'شهادة المواظبة والالتزام', en: 'Certificate of Commitment & Attendance' },
@@ -177,16 +178,19 @@ export const TYPES = [
       bodies: { ar: COMMIT_AR, en: COMMIT_EN } },
     { id: 'star', icon: '⭐', fields: ['text'], verse: 'maher',
       label: { ar: 'نجوم التميّز الذهبية', en: 'Golden stars' }, title: { ar: 'شهادة النجوم الذهبية', en: 'Golden Stars Certificate' },
-      textLabel: { ar: 'ما الذي نالَه؟ (اختياري)', en: 'What did they earn? (optional)' },
+      textLabel: { ar: 'ما الذي يُمنح؟ (اختياري)', en: 'What did they earn? (optional)' },
       textPlaceholder: { ar: 'مثال: ٥ نجوم ذهبية', en: 'e.g. 5 golden stars' },
       whatDefault: { ar: 'نجوم التميّز الذهبية', en: 'golden stars' },
       bodies: { ar: STAR_AR, en: STAR_EN } },
     { id: 'thanks', icon: '🤝', fields: ['text'], verse: 'shukr',
       label: { ar: 'شكر وتقدير', en: 'Thanks & appreciation' }, title: { ar: 'شهادة شكر وتقدير', en: 'Certificate of Appreciation' },
       textLabel: { ar: 'سبب الشكر (اختياري)', en: 'Reason for thanks (optional)' },
-      textPlaceholder: { ar: 'مثال: على مساعدته لزملائه', en: 'e.g. for helping classmates' },
+      textPlaceholder: { ar: 'مثال: على مساعدة الزملاء', en: 'e.g. for helping classmates' },
       bodies: { ar: THANKS_AR, en: THANKS_EN } }
 ];
+// عنوان/تسمية النوع بصيغة الجنس: للطالبة تُفضَّل labelF/titleF إن وُجدت (الإنجليزية محايدة)
+export const typeTitle = (type, lang, female) => L((female && type.titleF) || type.title, lang);
+export const typeLabel = (type, lang, female) => L((female && type.labelF) || type.label, lang);
 export const getType = (id) => TYPES.find(x => x.id === id) || TYPES[0];
 // نص بحسب اللغة مع رجوع للعربية
 export const L = (obj, lang) => (obj && (obj[lang] || obj.ar)) || '';

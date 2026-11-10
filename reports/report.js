@@ -27,6 +27,8 @@ import { playApplauseOnce, stopApplause, isApplauseMuted, setApplauseMuted } fro
 // لم نغيّر ذلك في النصوص القديمة (حتى لا نمسّ شيئًا يعمل حاليًا)، لكن كل نص *جديد*
 // أضفناه في صندوق "بحاجة إلى تركيز" يمرّ عبر t() وله مفتاحان (عربي/إنجليزي) في
 // core/i18n.js — التزامًا بقاعدة "كل نص جديد في الواجهة يدعم اللغتين" 🌟
+import { tg } from '../core/i18n.js';
+import { isFemaleStudent } from '../core/studentGender.js';
 import { t, tf, localizeGenerated, surahNamesLocal, trStored, gradeLabel } from '../core/i18n.js';
 // 🌟 بطاقة «متابعة ولي الأمر» = «صورة واتساب» الجديدة (النموذج أ المعتمد). الـ PDF الشامل يبقى بتصميم الورقة الحالي.
 import { buildCardHtml, computeHomeTask } from './reportCard.js';
@@ -1146,7 +1148,7 @@ function buildReportData(){
     date: dateLabel,
     dateHijri: formatDateHijri(now),
     // حقول بطاقة واتساب (reportCard.js): جنس الطالب من ملفه، وتاريخ باليوم، وحجم نطاق الاختبار (عدد الآيات المسحوبة)
-    gender: student.gender === 'girl' ? 'girl' : (student.gender === 'boy' ? 'boy' : ''),
+    gender: isFemaleStudent(student) ? 'girl' : (student.gender === 'boy' ? 'boy' : ''),
     dateLong: formatDateLongLatn(now),
     dateHijriLatn: formatDateHijriLatn(now),
     scopeAyahCount: (activeGameState && Array.isArray(activeGameState.pool)) ? activeGameState.pool.length : 0,
@@ -1239,11 +1241,11 @@ function renderLadder(d){
   // أول محاولة مسجَّلة للطالب: محطة واحدة فقط. نوضّح ذلك صراحةً بدل ترك السُلّم
   // يبدو ناقصًا أو موحيًا بأن بقية المحطات اختفت لسبب ما.
   if (d.ladder.length === 0) {
-    wrap.innerHTML = `<p class="ladder-empty">${escapeHtml(t('rep_ladder_no_regular'))}</p>`;
+    wrap.innerHTML = `<p class="ladder-empty">${escapeHtml(tg('rep_ladder_no_regular', isFemaleStudent(AppState.currentStudent)))}</p>`;
     return;
   }
   const firstNote = d.ladder.length < 2
-    ? `<p class="ladder-empty">${escapeHtml(t('rep_ladder_first_attempt'))}</p>`
+    ? `<p class="ladder-empty">${escapeHtml(tg('rep_ladder_first_attempt', isFemaleStudent(AppState.currentStudent)))}</p>`
     : '';
 
   wrap.innerHTML = ladderHtml + firstNote;
@@ -2053,7 +2055,7 @@ async function shareToWhatsApp(blob, filename, mime){
   const file = new File([blob], filename, { type: mime });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: t('rep_title'), text: reportData ? reportData.name : '' });
+      await navigator.share({ files: [file], title: tg('rep_title', isFemaleStudent(AppState.currentStudent)), text: reportData ? reportData.name : '' });
     } catch (err) {
       if (!err || err.name !== 'AbortError') throw err; // إلغاء المستخدم لنافذة المشاركة ليس خطأً
     }
@@ -2366,7 +2368,11 @@ export function openReportScreen(gameState){
   try { document.body.dataset.dhScreen = 'reports/report.html'; document.dispatchEvent(new CustomEvent('dh:screen', { detail: { screen: 'reports/report.html' } })); } catch (e) { /* غير حرِج */ }
   // 🌟 [إصلاح] اتجاه صفحة التقرير يتبع لغة الواجهة (كان rtl ثابتًا فتنقلب علامات الترقيم في الإنجليزية)
   const reportPage = document.getElementById('report-page');
-  if (reportPage) reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
+  if (reportPage) {
+    reportPage.setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
+    // 🌟 صيغة المؤنث لعناوين التقرير الثابتة لو الطالب بنت (راجع applyLanguage في core/i18n.js)
+    if (isFemaleStudent(AppState.currentStudent)) reportPage.setAttribute('data-gender', 'f'); else reportPage.removeAttribute('data-gender');
+  }
   try { applyLanguage(); } catch (e) { /* غير حرِج — نكمل حتى لو لم تتوفر */ }
   initReportScreen();
   initApplauseToggle();
