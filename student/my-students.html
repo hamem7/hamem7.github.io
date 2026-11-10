@@ -145,11 +145,12 @@
     #app-root #ms-screen .ms-search { flex: 1; min-width: 140px; border: 1.5px solid var(--dh-border-strong); background: var(--dh-surface-3); color: var(--dh-ink); border-radius: 99px; padding: 8px 16px; min-height: var(--dh-tap); margin: 0; width: auto; font-size: 1rem; box-sizing: border-box; }
     #app-root #ms-screen .ms-btn { border: 0; border-radius: 12px; padding: 9px 16px; font-weight: 700; min-height: var(--dh-tap); cursor: pointer; margin: 0; min-width: 0; font-size: 1rem; box-shadow: none; }
     #app-root #ms-screen .ms-btn.gold { background: linear-gradient(135deg, var(--dh-gold-300), var(--dh-gold-500)); color: var(--dh-on-gold); }
-    /* زر «طالب جديد» الكبير المميّز في تبويب الطلاب */
-    #app-root #ms-screen .ms-btn.ms-add-big { flex: 1 1 100%; order: -1; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 64px; padding: 14px 24px; font-size: 1.35rem; font-weight: 800; border-radius: 18px; border: 2px solid var(--dh-gold-500); box-shadow: 0 6px 18px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.45); transition: transform .15s ease, box-shadow .15s ease; }
-    #app-root #ms-screen .ms-btn.ms-add-big .ms-add-plus { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: var(--dh-on-gold); color: var(--dh-gold-300); font-size: 1.6rem; line-height: 1; font-weight: 800; }
-    #app-root #ms-screen .ms-btn.ms-add-big:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.45); }
+    /* زر «طالب جديد» الكبير المميّز في تبويب الطلاب (بنمط أزرار التقارير الزمردية الكبيرة) */
+    #app-root #ms-screen .ms-btn.ms-add-big { flex: 1 1 100%; order: -1; display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 72px; padding: 16px 26px; font-size: 1.4rem; font-weight: 800; border-radius: 20px; background: linear-gradient(135deg, var(--dh-emerald-600, #12805f), var(--dh-emerald-700, #0d5c46)); color: var(--dh-on-emerald, #fff); border: 2.5px solid var(--dh-gold-400, #d4af37); box-shadow: 0 10px 24px rgba(13,92,70,.35), 0 0 0 4px rgba(212,175,55,.22); transition: transform .15s ease, box-shadow .15s ease; }
+    #app-root #ms-screen .ms-btn.ms-add-big .ms-add-plus { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: var(--dh-gold-300, #e8cf6a); color: var(--dh-on-gold, #2b2208); font-size: 2rem; line-height: 1; font-weight: 800; flex: none; }
+    #app-root #ms-screen .ms-btn.ms-add-big:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(13,92,70,.42), 0 0 0 5px rgba(212,175,55,.3); }
     #app-root #ms-screen .ms-btn.ms-add-big:active { transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) { #app-root #ms-screen .ms-btn.ms-add-big { transition: none; } }
     #app-root #ms-screen .ms-btn.em { background: var(--dh-emerald-700); color: var(--dh-on-emerald); }
     #app-root #ms-screen .ms-btn.line { background: var(--dh-surface-3); color: var(--dh-ink); border: 1.5px solid var(--dh-border-strong); }
     #app-root #ms-screen .ms-hint { color: var(--dh-ink-soft); font-size: .85rem; margin: 0; }
@@ -342,7 +343,7 @@
                 <section class="ms-pane" id="ms-pane-students" data-pane="students">
                     <div class="ms-tools">
                         <input type="search" class="ms-search" id="as-search" data-i18n-placeholder="as_search_ph" placeholder="🔎 ابحث عن طالب...">
-                        <button type="button" class="ms-btn gold ms-add-big" id="btn-add-student"><span class="ms-add-plus" aria-hidden="true">+</span> <span data-i18n="ms_card_add_title">طالب جديد</span></button>
+                        <button type="button" class="ms-btn em ms-add-big" id="btn-add-student"><span class="ms-add-plus" aria-hidden="true">+</span> <span data-i18n="ms_card_add_title">طالب جديد</span></button>
                     </div>
                     <div id="all-students-body"></div>
                     <p class="ms-hint" data-i18n="ms_students_hint">اضغط على اسم الطالب لفتح ملفه. زر «تعديل» لتغيير بياناته، و⋯ للإخفاء والحذف.</p>
