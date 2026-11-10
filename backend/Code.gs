@@ -843,6 +843,21 @@ function maxPoints_(q) {
   if (q.type === 'written_blank') return 1;
   return (typeof q.points === 'number' && q.points > 0) ? q.points : 1; }
 
+/**
+ * 🌟 [إصلاح] مقارنة إجابات الطالب بالمفتاح كانت حرفية (===) فتفشل نصوص قرآنية متطابقة بصرياً لاختلاف خفي في
+ * ترتيب علامات التشكيل (شدّة+فتحة ≠ فتحة+شدّة)، أو شكل السكون (U+0652/U+06E1)، أو مسافة/رمز غير مرئي.
+ * نوحّد الطرفين (NFC + السكون + إزالة الرموز غير المرئية + ضغط المسافات) قبل المقارنة فقط؛ الحروف نفسها لا تُتجاهل.
+ */
+function normAns_(s) {
+  if (s === undefined || s === null) return s;
+  if (typeof s !== 'string') return s;
+  var t = s;
+  try { t = t.normalize('NFC'); } catch (e) { /* بيئة بلا normalize */ }
+  return t.replace(/\u0652/g, '\u06E1').replace(/[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF\u0640]/g, '')
+          .replace(/[\u00A0\s]+/g, ' ').replace(/^ | $/g, '');
+}
+function sameAns_(a, b) { return normAns_(a) === normAns_(b); }
+
 /** Returns {earned, isCorrect} for an auto-graded question. Mirrors games/homework-play.js exactly. */
 function autoGradeQuestion_(q, ans) {
   var pts = maxPoints_(q);
@@ -850,19 +865,19 @@ function autoGradeQuestion_(q, ans) {
   if (q.type === 'matrix_order') {
     var rows = 0;
     if (Array.isArray(ans) && Array.isArray(q.correctAnswer)) {
-      for (i = 0; i < q.correctAnswer.length; i++) if (ans[i] === q.correctAnswer[i]) rows++;
+      for (i = 0; i < q.correctAnswer.length; i++) if (sameAns_(ans[i], q.correctAnswer[i])) rows++;
     }
     earned = rows; isCorrect = (rows === pts);
   } else if (q.type === 'dual_dropdown') {
     var parts = 0;
     if (Array.isArray(ans) && Array.isArray(q.correctAnswer)) {
-      if (ans[0] === q.correctAnswer[0]) parts++;
-      if (ans[1] === q.correctAnswer[1]) parts++;
+      if (sameAns_(ans[0], q.correctAnswer[0])) parts++;
+      if (sameAns_(ans[1], q.correctAnswer[1])) parts++;
     }
     earned = parts; isCorrect = (parts === pts);
   } else if (q.type === 'checkbox') {
     if (Array.isArray(ans) && Array.isArray(q.correctAnswer) && ans.length === q.correctAnswer.length) {
-      var a = ans.slice().sort(), b = q.correctAnswer.slice().sort();
+      var a = ans.map(normAns_).sort(), b = q.correctAnswer.map(normAns_).sort();
       isCorrect = a.every(function (v, idx) { return v === b[idx]; });
     }
     earned = isCorrect ? pts : 0;
@@ -872,11 +887,11 @@ function autoGradeQuestion_(q, ans) {
     // الصحيحة الفعلية من بيانات التوليد (لا تخميناً)، فمطابقة ans[p.left] === p.right دقيقة 100%.
     var pairsCorrect = 0;
     if (ans && typeof ans === 'object' && Array.isArray(q.correctAnswer)) {
-      q.correctAnswer.forEach(function (p) { if (ans[p.left] === p.right) pairsCorrect++; });
+      q.correctAnswer.forEach(function (p) { if (sameAns_(ans[p.left], p.right)) pairsCorrect++; });
     }
     earned = pairsCorrect; isCorrect = (pts > 0 && pairsCorrect === pts);
   } else {
-    isCorrect = (ans === q.correctAnswer);
+    isCorrect = sameAns_(ans, q.correctAnswer);
     earned = isCorrect ? pts : 0;
   }
   return { earned: Math.min(earned, pts), isCorrect: isCorrect };
