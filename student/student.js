@@ -1295,6 +1295,14 @@ export async function loadStudentProfileScreen() {
                 });
             });
 
+            // 🌟 [جديد] زر «حصاد 3 أشهر» — نفس شاشة التقرير الشهري مفتوحة على الوضع الفصلي
+            document.getElementById('btn-prof-quarter-report')?.addEventListener('click', () => {
+                import('../reports/monthly-report.js').then(m => m.openMonthlyReportScreen({ view: 'quarter' })).catch(err => {
+                    console.error('تعذر تحميل شاشة حصاد 3 أشهر:', err);
+                    alert(t('stu_screen_preparing'));
+                });
+            });
+
             // 🌟 [جديد — الواجب الذكي] زر «ملف المهارات» (استيراد ديناميكي كالزر السابق تفادياً لأي حلقة استيراد)
             const skillsBtn = document.getElementById('btn-prof-skills');
             if (skillsBtn) {

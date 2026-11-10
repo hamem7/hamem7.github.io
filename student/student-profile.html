@@ -50,7 +50,7 @@
     .pf-bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .2); overflow: hidden; }
     .pf-bar > i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--dh-emerald-600), var(--dh-gold-500)); }
 
-    .pf-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .pf-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
     .pf-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-align: start; padding: 16px; border-radius: var(--dh-r-lg); background: var(--dh-surface); border: 1px solid var(--dh-line); box-shadow: var(--dh-sh-soft); min-height: 96px; font: inherit; color: var(--dh-ink); cursor: pointer; transition: transform .15s, border-color .15s; }
     .pf-tile:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--dh-emerald-600); }
     .pf-tile:disabled { background: var(--dh-surface-alt); color: var(--dh-ink-soft); box-shadow: none; cursor: default; }
@@ -124,7 +124,7 @@
 
     .dtpa-badges-title { display: flex; align-items: center; gap: 8px; }
 
-    @media (max-width: 860px) { .pf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 860px) { .pf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pf-tiles > .pf-tile:last-child:nth-child(odd) { grid-column: 1 / -1; } }
     @media (max-width: 640px) {
         .pf-page { padding: 12px 12px 32px; }
         .pf-hero { padding: 20px; gap: 18px; }
@@ -286,6 +286,8 @@
         <button class="pf-tile is-warn" id="btn-prof-weakness" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-wrench"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span><span class="pf-badge"></span></span></button>
         <!-- تقرير الإنجاز الشهري: الواجبات والاختبارات الثنائية والأخطاء المعالَجة وانتظام المراجعة (reports/monthly-report.js) -->
         <button class="pf-tile" id="btn-prof-monthly-report" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-cal"/></svg></span><span class="pf-tile-t"><span class="pf-t pf-lbl" data-i18n="monthly_report_btn">تقرير الإنجاز الشهري</span></span></button>
+        <!-- 🌟 [جديد] «حصاد 3 أشهر»: نفس شاشة التقرير بالوضع الفصلي — مقارنة مستوى الطالب في الشهر الحالي والشهرين السابقين (reports/monthly-quarter.js) -->
+        <button class="pf-tile" id="btn-prof-quarter-report" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-trend"/></svg></span><span class="pf-tile-t"><span class="pf-t pf-lbl" data-i18n="quarter_report_btn">حصاد 3 أشهر</span></span></button>
         <!-- ملف المهارات (components/skillProfile.js) — النص يُضبط من student.js بلغة الواجهة -->
         <button class="pf-tile" id="btn-prof-skills" type="button"><span class="pf-tile-ic"><svg class="pf-i"><use href="#pfi-chart"/></svg></span><span class="pf-tile-t"><span class="pf-t"></span></span></button>
         <!-- أرشيف الأخطاء المصححة (resolvedWeaknesses) — معطّل ما لم يوجد أرشيف -->

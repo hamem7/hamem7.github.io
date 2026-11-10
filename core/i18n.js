@@ -1809,6 +1809,7 @@ export const translations = {
         // الأخطاء المعالَجة + انتظام المراجعة المتباعدة عبر شهر كامل (راجع
         // reports/monthly-report.js ومستند المشروع "تصميم-تقرير-الإنجاز-الشهري-المقترح.md") 🌟
         monthly_report_btn: "📅 تقرير الإنجاز الشهري",
+        quarter_report_btn: "📈 حصاد 3 أشهر",
         mr_title: "تقرير إنجاز شهري",
         mr_eyebrow: "منصة حمٓ · تحفيظ القرآن الكريم",
         mr_teacher_group_label: "بيانات المعلم",
@@ -5464,6 +5465,7 @@ export const translations = {
         // resolved mistakes + spaced-review consistency over a full month (see
         // reports/monthly-report.js) 🌟
         monthly_report_btn: "📅 Monthly Achievement Report",
+        quarter_report_btn: "📈 3-Month Review",
         mr_title: "Monthly Achievement Report",
         mr_eyebrow: "Ham Platform · Quran Memorization",
         mr_teacher_group_label: "Teacher Info",
