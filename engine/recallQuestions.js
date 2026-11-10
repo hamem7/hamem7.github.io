@@ -234,7 +234,9 @@ function mkNamed(Q, bank, g, rng) {
     if (!locs.every(nextOf)) return null;
     // السورة المطلوبة هي سورة الآية المرجعية (من نطاق الاختبار)؛ فاختبار «الشورى» لا يطلب آية من «سبأ». العشوائي احتياطٌ فقط.
     const tg = by.get(g.anchor.v.s) || shuffled(locs, rng)[0], tn = nextOf(tg);
-    const hints = [{ k: 'first', word: tn.w[0] }, { k: 'cur', surahName: Q.surahName(tg.v.s), ayahNumber: tg.v.n, text: tg.v.w.join(' ') }];
+    // التلميح على مراحل: (1) عدة كلمات من آخر الآية المعروضة (2) أول كلمات الآية المطلوبة — لا الآية كلها فلا تُكشف الإجابة بسهولة
+    const tailN = Math.min(4, Math.max(2, tg.v.w.length - 1)), headN = Math.min(3, Math.max(1, tn.w.length - 1));
+    const hints = [{ k: 'cur', surahName: Q.surahName(tg.v.s), ayahNumber: tg.v.n, text: (tg.v.w.length > tailN ? '… ' : '') + tg.v.w.slice(-tailN).join(' ') }, { k: 'first', word: tn.w.slice(0, headN).join(' ') }];
     const pool = locs.filter(l => l !== tg).map(nextOf);
     for (const r of tailsAfterRun(bank, tg.v.x.slice(tg.p, tg.p + 3))) { const nv = verseAt(Q, r.v.s, r.v.n + 1); if (nv) pool.push(nv); }
     const seen = new Set([tn.key]), d = [];
