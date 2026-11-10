@@ -7591,12 +7591,15 @@ export function trStored(text) {
 // القيمة المخزَّنة تبقى كما هي (الاسم العربي القديم)؛ العرض فقط يُلحق بها المقابل: «الأول الإعدادي (الصف السابع)» / "Preparatory 1 (Grade 7)".
 const GRADE_NUM = { 'الأول الإعدادي': 7, 'الثاني الإعدادي': 8, 'الثالث الإعدادي': 9, 'الأول الثانوي': 10, 'الثاني الثانوي': 11, 'الثالث الثانوي': 12 };
 const GRADE_AR = { 7: 'السابع', 8: 'الثامن', 9: 'التاسع', 10: 'العاشر', 11: 'الحادي عشر', 12: 'الثاني عشر' };
-export function gradeLabel(grade) {
+// lang اختياري: لغة الناتج (للشهادات التي تختار لغتها مستقلة عن لغة الواجهة)؛ الافتراضي لغة الواجهة
+export function gradeLabel(grade, lang) {
     if (typeof grade !== 'string' || !grade) return grade || '';
-    const base = trStored(grade);
-    const n = GRADE_NUM[grade.trim()];
+    const L = lang || AppState.currentLang;
+    const g = grade.trim();
+    const base = lang ? (L === 'en' ? ((translations.en && translations.en[g]) || grade) : grade) : trStored(grade);
+    const n = GRADE_NUM[g];
     if (!n) return base;
-    return AppState.currentLang === 'en' ? `${base} (Grade ${n})` : `${base} (الصف ${GRADE_AR[n]})`;
+    return L === 'en' ? `${base} (Grade ${n})` : `${base} (الصف ${GRADE_AR[n]})`;
 }
 
 // 🌟 تسجيل المترجم في جسر المحرّكات النقية (راجع core/langBridge.js للشرح)

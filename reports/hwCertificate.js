@@ -13,7 +13,7 @@
 // 🌟 العزل التقني: ملف مستقل تماماً (بادئة CSS/DOM خاصة به hwcert-)، بلا استيراد أو لمس أي
 // سطر من reports/report.js أو reports/dual-test-report.js — نفس فلسفة العزل المتّبعة فعلاً في
 // كل ملفات التقارير بالمنصة، حتى لو كرّرنا هنا تحميل html2canvas محلياً.
-import { t, tg, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i18n.js';
+import { t, tg, gradeLabel, surahNameLocal, isSurahName, localizeHomeworkText } from '../core/i18n.js';
 import { isFemaleStudent } from '../core/studentGender.js';
 // 🌟 [جديد — إصلاح XSS] تنظيف اسم الطالب وإجاباته (قادمة من الخادم) قبل الحقن في innerHTML
 import { esc } from '../core/escape.js';
@@ -422,6 +422,7 @@ export function showHomeworkCertificate(submission, student, scope, opts) {
                         <div class="hwcert-who">
                             <div class="hwcert-grant">${tg('hwcert_granted_to', fem)}</div>
                             <div class="hwcert-name">${esc(studentName)}</div>
+                            ${student && student.grade ? `<div class="hwcert-grade" style="font-size:.7em;opacity:.85;margin-top:2px;">${esc(gradeLabel(student.grade))}</div>` : ''}
                         </div>
                     </div>
                     <div class="hwcert-result">

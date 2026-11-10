@@ -14,7 +14,7 @@
 import { AppState } from '../core/app.js';
 import { esc } from '../core/escape.js';
 import { getStarRank } from '../core/goldStars.js';
-import { t, SURAH_NAMES_AR_BARE, SURAH_NAMES_EN } from '../core/i18n.js';
+import { t, gradeLabel, SURAH_NAMES_AR_BARE, SURAH_NAMES_EN } from '../core/i18n.js';
 import { TEMPLATES, templateImage, templateThumb, getTemplate } from './templates.js';
 import { TYPES, getType, VERSES, getVerse, juzName, L, typeTitle, typeLabel } from './texts.js';
 import { isFemaleStudent } from '../core/studentGender.js';   // جنس الطالب (الحقل المسجَّل ثم الصورة الرمزية)
@@ -226,6 +226,7 @@ function ensureStyles() {
     .cc-rule i { flex: 1; height: 2px; background: linear-gradient(90deg, transparent, var(--acc), transparent); }
     .cc-rule b { font-size: calc(14px * var(--s)); }
     .cc-name { font-family: var(--hf); font-weight: 700; font-size: calc(40px * var(--s)); color: var(--name); line-height: 1.35; overflow-wrap: anywhere; }
+    .cc-grade { font-size: calc(18px * var(--s)); color: var(--ink); opacity: .85; line-height: 1.4; margin-top: calc(2px * var(--s)); }
     .cc-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6px * var(--s)); width: 100%; }
     .cc-text { font-size: calc(22px * var(--s)); line-height: 1.85; color: var(--ink); }
     .cc-text b { color: var(--title); font-weight: 700; }
@@ -359,6 +360,7 @@ function boxHtml(spec, teacher) {
         ${spec.basmala && !tpl.noBasmala ? `<div class="cc-basmala">${BASMALA}</div>` : ''}
         ${tpl.noTitle ? '' : `<div class="cc-title">${esc(typeTitle(type, lang, spec.female))}</div><div class="cc-rule"><i></i><b>✦</b><i></i></div>`}
         <div class="cc-name">${esc(spec.name || placeholder)}</div>
+        ${spec.grade ? `<div class="cc-grade">${esc(gradeLabel(spec.grade, lang))}</div>` : ''}
         <div class="cc-body">
             <div class="cc-text">${bodyHtml(spec)}</div>
             ${extra ? `<div class="cc-extra">${esc(extra)}</div>` : ''}
@@ -463,7 +465,7 @@ export async function autoIssueStarCertificate(student, stars) {
         const values = { surah: 1, juz: 1, half: 'first', text: starCertWhat(stars, lang) };
         const spec = {
             typeId: 'star', name: String(student.name || '').trim(),
-            female: isFemaleStudent(student),
+            female: isFemaleStudent(student), grade: student.grade || '',
             lang, what: buildWhat(type, values, todayISO(), lang), values, bodyIdx: 0, extra: '', verseId: type.verse,
             basmala: prefs.basmala !== false,
             templateId: TEMPLATES.some(x => x.id === prefs.templateId) ? prefs.templateId : TEMPLATES[0].id,
@@ -505,6 +507,10 @@ export async function openCertificatesHub(opts = {}) {
     let reports = [];
     const objectUrls = [];     // صور مصغّرة مؤقتة لقائمة التقارير (تُحرَّر عند إعادة الرسم/الإغلاق)
 
+    const currentGrade = () => {
+        if (S.studentId && S.studentId !== 'other') { const st = students.find(x => String(x.id) === String(S.studentId)); if (st) return st.grade || ''; }
+        return '';
+    };
     const currentName = () => {
         if (S.studentId && S.studentId !== 'other') { const st = students.find(x => String(x.id) === String(S.studentId)); if (st) return st.name; }
         return S.manualName.trim();
@@ -512,7 +518,7 @@ export async function openCertificatesHub(opts = {}) {
     const buildSpec = () => {
         const type = getType(S.typeId);
         return {
-            typeId: S.typeId, name: currentName(), female: S.female, lang: S.lang, what: buildWhat(type, S.values, S.dateISO, S.lang),
+            typeId: S.typeId, name: currentName(), grade: currentGrade(), female: S.female, lang: S.lang, what: buildWhat(type, S.values, S.dateISO, S.lang),
             values: { ...S.values }, bodyIdx: S.bodyIdx, extra: S.extra, verseId: S.verseId, basmala: S.basmala,
             templateId: S.templateId, dateISO: S.dateISO, studentId: S.studentId, manualName: S.manualName, font: S.font
         };
@@ -836,7 +842,7 @@ export async function openCertificatesHub(opts = {}) {
     }
 
     // ----- الحفظ في السجل + التصدير -----
-    const specKey = (spec) => JSON.stringify([spec.typeId, spec.name, spec.female, spec.lang, spec.what, spec.bodyIdx, spec.extra, spec.verseId, spec.basmala, spec.templateId, spec.dateISO, spec.font || '']);
+    const specKey = (spec) => JSON.stringify([spec.typeId, spec.name, spec.grade, spec.female, spec.lang, spec.what, spec.bodyIdx, spec.extra, spec.verseId, spec.basmala, spec.templateId, spec.dateISO, spec.font || '']);
     async function saveToHistory(spec) {
         const key = specKey(spec);
         if (key === lastSavedKey) return false;
