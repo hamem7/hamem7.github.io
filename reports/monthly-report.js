@@ -56,7 +56,7 @@ import { BADGE_CATALOG, studentOutcomeInMatch } from '../engine/dualTestEngine.j
 // 🌟 [جديد] أقسام الأوسمة/الحضور/التجويد/الختم/خطة الشهر القادم (reports/monthly-extras.js)
 import { collectExtras, renderExtras } from './monthly-extras.js';
 // 🌟 [جديد] «حصاد ثلاثة أشهر»: وضع ثانٍ لنفس الشاشة يجمع مستوى الطالب في الشهر المختار والشهرين السابقين ويقارن بينها
-import { collectQuarterData, renderQuarterHtml, buildQuarterNote, quarterSourcesHtml, QUARTER_STYLES } from './monthly-quarter.js';
+import { collectQuarterData, renderQuarterHtml, buildQuarterNote, quarterSourcesHtml, applyQuarterSvgTheme, QUARTER_STYLES } from './monthly-quarter.js';
 // 🌟 [جديد] "رحلة الحفظ الشهرية" — تُقرأ من AppState.monthlyMemorizationManager
 // (database/monthlyMemorizationDB.js) بدل نطاق student.memoFrom/memoTo الحالي فقط،
 // ساداً بذلك فجوة البيانات الموثَّقة صراحةً في تعليق هذا الملف وفي مستند التصميم
@@ -2021,6 +2021,7 @@ function renderAll(d) {
   const quarter = isQuarterView();
   const page = $('mreport-page');
   if (page) page.classList.toggle('mrq-on', quarter);
+  applyQuarterSvgTheme($('mr-intro-block'), quarter);   // هوية «حصاد 3 أشهر»: كحلي ونحاسي بدل الزمردي والذهبي
   syncViewToggleUi();
   setText('mr-eyebrow', t(quarter ? 'mrq_eyebrow' : 'mr2_eyebrow'));
   setText('mr-fig-overall-lbl', t(quarter ? 'mrq_hero_level' : 'mr2_hero_overall'));

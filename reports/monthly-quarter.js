@@ -29,8 +29,9 @@ export const QUARTER_MONTHS = 3;
 const MIN_EVIDENCE = 3;          // نفس قاعدة التقرير الشهري: لا «مستوى» من أقل من 3 أدلّة
 const CLOUD_TIMEOUT_MS = 9000;
 
-// ألوان المسلسلات (مُتحقَّق منها لعمى الألوان): ألعاب زمردي · واجبات ذهبي · ثنائية أزرق
-const C_GAMES = '#147c5e', C_HW = '#c9a643', C_DUAL = '#5b6fb5', C_MEMO = '#0b3d30';
+// 🎨 هوية «حصاد 3 أشهر» مستقلة عن الشهري (زمردي وذهبي): «ليل وأصيل» — كحلي ليلي + نحاسي/كهرماني.
+// ألوان المسلسلات (مُتحقَّق منها لعمى الألوان، والقيم مكتوبة على كل عمود): ألعاب أزرق · واجبات نحاسي · ثنائية فيروزي
+const C_GAMES = '#3a6bc4', C_HW = '#d0803a', C_DUAL = '#23998b', C_MEMO = '#12234d';
 
 const isEn = () => AppState.currentLang === 'en';
 const locale = () => (isEn() ? 'en-US' : 'ar-EG') + '-u-nu-latn';
@@ -316,10 +317,10 @@ function kpiCard({ icon, label, total, unit, sub, bars, chip }) {
 }
 
 const ICONS = {
-  memo: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>`,
-  games: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>`,
-  hw: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>`,
-  dual: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 15.5c.6-.3 1.3-.5 2-.5 3 0 6 2 6 5"/></svg>`
+  memo: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f2c27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H2z"/><path d="M22 4h-7a3 3 0 0 0-3 3v13a2 2 0 0 1 2-2h8z"/></svg>`,
+  games: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f2c27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>`,
+  hw: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f2c27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>`,
+  dual: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f2c27e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5"/><path d="M14 15.5c.6-.3 1.3-.5 2-.5 3 0 6 2 6 5"/></svg>`
 };
 
 function renderOverview(q) {
@@ -366,8 +367,8 @@ function renderLevel(q) {
   const yMin = 40;
   const yOf = (v) => padT + (H - padT - padB) * (1 - (Math.max(yMin, v) - yMin) / (100 - yMin));
   const bands = [
-    { from: 90, to: 100, fill: '#e6f1ec', key: 'full' }, { from: 75, to: 90, fill: '#f1f7f3', key: 'gibbous' },
-    { from: 60, to: 75, fill: '#fbf6e6', key: 'quarter' }, { from: yMin, to: 60, fill: '#fdf8f1', key: 'crescent' }
+    { from: 90, to: 100, fill: '#e3e9f6', key: 'full' }, { from: 75, to: 90, fill: '#eef2fa', key: 'gibbous' },
+    { from: 60, to: 75, fill: '#fbf1e6', key: 'quarter' }, { from: yMin, to: 60, fill: '#fdf8f3', key: 'crescent' }
   ];
   const bandSvg = bands.map(b => {
     const y1 = yOf(b.to), y2 = yOf(b.from);
@@ -375,7 +376,7 @@ function renderLevel(q) {
     return `<rect x="0" y="${y1.toFixed(1)}" width="${W}" height="${(y2 - y1).toFixed(1)}" fill="${b.fill}"/>
       <text x="${lx}" y="${((y1 + y2) / 2 + 4).toFixed(1)}" text-anchor="${rtl ? 'start' : 'end'}" class="mrq-band-t">${esc(t('mr2_moon_' + b.key))}</text>`;
   }).join('');
-  const grid = [60, 75, 90].map(v => `<line x1="${rtl ? 44 : padL - 10}" x2="${rtl ? W - padR + 10 : W - 44}" y1="${yOf(v).toFixed(1)}" y2="${yOf(v).toFixed(1)}" stroke="#d9cfae" stroke-dasharray="3 4"/>
+  const grid = [60, 75, 90].map(v => `<line x1="${rtl ? 44 : padL - 10}" x2="${rtl ? W - padR + 10 : W - 44}" y1="${yOf(v).toFixed(1)}" y2="${yOf(v).toFixed(1)}" stroke="#c3cadb" stroke-dasharray="3 4"/>
     <text x="${rtl ? W - 6 : 6}" y="${(yOf(v) + 4).toFixed(1)}" text-anchor="${rtl ? 'end' : 'start'}" class="mrq-ax">${v}%</text>`).join('');
   const series = [
     { key: 'gamesAvg', nKey: 'gamesN', color: C_GAMES, label: t('mrq_s_games') },
@@ -455,8 +456,8 @@ function renderMatrix(q) {
   </div>`;
 }
 function heat(k) {
-  // من الأبيض إلى أخضر فاتح (#cfe7dc) — تظليل نسبي داخل الصف، لا يحمل معنى وحده (القيمة مكتوبة)
-  const a = [255, 255, 255], b = [207, 231, 220];
+  // من الأبيض إلى أزرق فاتح (#cfdbf2) — تظليل نسبي داخل الصف، لا يحمل معنى وحده (القيمة مكتوبة)
+  const a = [255, 255, 255], b = [207, 219, 242];
   const c = a.map((x, i) => Math.round(x + (b[i] - x) * Math.max(0, Math.min(1, k))));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }
@@ -473,7 +474,7 @@ function renderLink(q) {
   const xOf = (i) => { const p = 30 + (W - 60) * (i + 0.5) / n; return rtl ? W - p : p; };
   const base = H - padB, plotH = H - padT - padB;
   const xl = months.map((m, i) => `<text x="${xOf(i).toFixed(1)}" y="${H - 9}" text-anchor="middle" class="mrq-xl">${esc(m.short)}</text>`).join('');
-  const axis = `<line x1="12" x2="${W - 12}" y1="${base}" y2="${base}" stroke="#cfc6a8"/>`;
+  const axis = `<line x1="12" x2="${W - 12}" y1="${base}" y2="${base}" stroke="#c3cadb"/>`;
   const rr = (x, y, w, h, fill, title, roundTop) => {
     if (h <= 0) return '';
     const r = Math.min(4, h);
@@ -581,6 +582,27 @@ export function quarterSourcesHtml(q) {
 }
 
 // -----------------------------------------------------------------------------
+// 5ب) ألوان SVG الهيرو في الوضع الفصلي: تُبدَّل كسمات (fill/stroke/stop-color) لا كـ CSS، لأن html2canvas يرسم
+// SVG المضمَّن كصورة مستقلة بلا تنسيقات الصفحة — فتطابق الصورة/PDF المصدَّر ما يظهر على الشاشة. الأصل يُحفظ ويُعاد.
+// -----------------------------------------------------------------------------
+const HERO_SVG_MAP = { '#06231c': '#0a1631', '#0b3d30': '#12234d', '#164f40': '#1b2d5e', '#147c5e': '#2b4a94', '#d4af37': '#d0803a', '#f0d878': '#f2c27e' };
+const SVG_ATTRS = ['fill', 'stroke', 'stop-color'];
+export function applyQuarterSvgTheme(root, on) {
+  if (!root) return;
+  root.querySelectorAll('svg, svg *').forEach(el => {
+    SVG_ATTRS.forEach(a => {
+      const key = 'data-mrq-' + a;
+      if (on) {
+        const cur = (el.getAttribute(a) || '').toLowerCase();
+        if (HERO_SVG_MAP[cur]) { el.setAttribute(key, el.getAttribute(a)); el.setAttribute(a, HERO_SVG_MAP[cur]); }
+      } else if (el.hasAttribute(key)) {
+        el.setAttribute(a, el.getAttribute(key)); el.removeAttribute(key);
+      }
+    });
+  });
+}
+
+// -----------------------------------------------------------------------------
 // 6) التنسيق — محصور تحت .page.mr2 #mrq-root، ألوان ثابتة (html2canvas)
 // -----------------------------------------------------------------------------
 export const QUARTER_STYLES = `
@@ -597,107 +619,143 @@ export const QUARTER_STYLES = `
   #report-screen .page.mr2 > #mrq-root > .pdf-block{margin:0 48px 22px;}
   #report-screen .page.mr2 > #mrq-root > .mrq-first{margin-top:40px;}
 
-  #report-screen .page.mr2 .mrq-empty{background:#fbf7ea; border:1px dashed #d9cfae; border-radius:14px; padding:22px; text-align:center; color:#4a6058; font-weight:600; margin-top:12px; line-height:1.9;}
+  /* =====================================================================================
+     🎨 هوية الوضع الفصلي على الصفحة كلها (.mrq-on): «ليل وأصيل» — كحلي ليلي + نحاسي/كهرماني + ورق أبيض مائل للزرقة،
+     حتى يتميّز «حصاد 3 أشهر» عن التقرير الشهري (زمردي + ذهبي + ورق كريمي) من أول نظرة. ألوان SVG في الهيرو (القمر، الزخرفة،
+     النجمة) تُبدَّل كسمات من JS (applyQuarterSvgTheme) لأن html2canvas يرسم SVG المضمَّن بلا تنسيقات الصفحة.
+     ===================================================================================== */
+  #report-screen .page.mr2.mrq-on{background-color:#fbfcff; color:#13203f;}
+  #report-screen .page.mr2.mrq-on .mr2-hero{background:#0a1631; border-bottom-color:#d0803a;}
+  #report-screen .page.mr2.mrq-on .mr2-hero-frame{border-color:rgba(208,128,58,.45);}
+  #report-screen .page.mr2.mrq-on .mr2-brand-sub, #report-screen .page.mr2.mrq-on .mr2-eyebrow{color:#e9a866;}
+  #report-screen .page.mr2.mrq-on .mr2-eyebrow::before{background:#d0803a;}
+  #report-screen .page.mr2.mrq-on .mr2-period-month, #report-screen .page.mr2.mrq-on .mr2-verse,
+  #report-screen .page.mr2.mrq-on .mr2-fig-num, #report-screen .page.mr2.mrq-on .mr2-scope{color:#f2c27e;}
+  #report-screen .page.mr2.mrq-on .mr2-period-hijri, #report-screen .page.mr2.mrq-on .mr2-grade{color:#b9c4e0;}
+  #report-screen .page.mr2.mrq-on .mr2-scope{border-color:rgba(208,128,58,.65);}
+  #report-screen .page.mr2.mrq-on .mr2-avatar{background:#d0803a;}
+  #report-screen .page.mr2.mrq-on .mr2-avatar-inner{background:#12234d; color:#f2c27e;}
+  #report-screen .page.mr2.mrq-on .mr2-fig-sep{background:rgba(208,128,58,.6);}
+  #report-screen .page.mr2.mrq-on .section-title{color:#12234d;}
+  #report-screen .page.mr2.mrq-on .section-title::before{background:#d0803a;}
+  #report-screen .page.mr2.mrq-on .section-title::after{background:#d9deea;}
+  #report-screen .page.mr2.mrq-on .section-sub{color:#4b5878;}
+  #report-screen .page.mr2.mrq-on .note-box{background:#12234d;}
+  #report-screen .page.mr2.mrq-on .note-box::after{color:#d0803a;}
+  #report-screen .page.mr2.mrq-on .note-label{color:#f2c27e;}
+  #report-screen .page.mr2.mrq-on .note-text{color:#eef1f8;}
+  #report-screen .page.mr2.mrq-on .closing{border-top-color:#d9deea;}
+  #report-screen .page.mr2.mrq-on .sig-name{color:#12234d;}
+  #report-screen .page.mr2.mrq-on .teacher-line{border-bottom-color:#4b5878;}
+  #report-screen .page.mr2.mrq-on .teacher-label{color:#4b5878;}
+  #report-screen .page.mr2.mrq-on .mr2-sources{background:#f1f4fa; border-color:#dfe3ee; color:#4b5878;}
+  #report-screen .page.mr2.mrq-on .mr2-sources b{color:#12234d;}
+  #report-screen .page.mr2.mrq-on .mr2-footer{background:#0a1631; border-top-color:#d0803a;}
+  #report-screen .page.mr2.mrq-on .mr2-footer-bless{color:#f2c27e;}
+  #report-screen .page.mr2.mrq-on .mr2-footer-meta{color:#b9c4e0;}
+  #report-screen .page.mr2.mrq-on .mr2-footer-meta b{color:#eef1f8;}
+
+  #report-screen .page.mr2 .mrq-empty{background:#f1f4fa; border:1px dashed #cfd6e6; border-radius:14px; padding:22px; text-align:center; color:#4b5878; font-weight:600; margin-top:12px; line-height:1.9;}
 
   /* شارة المسار */
-  #report-screen .page.mr2 .mrq-verdict{display:flex; align-items:center; gap:16px; margin:14px 0 14px; background:#0b3d30; border:1px solid #d4af37; border-radius:18px; padding:14px 18px; color:#f6f3e8; position:relative; overflow:hidden;}
-  #report-screen .page.mr2 .mrq-verdict::after{content:''; position:absolute; top:-40px; bottom:-40px; width:160px; background:#147c5e; opacity:.35; transform:skewX(-18deg); right:-60px;}
+  #report-screen .page.mr2 .mrq-verdict{display:flex; align-items:center; gap:16px; margin:14px 0 14px; background:#12234d; border:1px solid #d0803a; border-radius:18px; padding:14px 18px; color:#eef1f8; position:relative; overflow:hidden;}
+  #report-screen .page.mr2 .mrq-verdict::after{content:''; position:absolute; top:-40px; bottom:-40px; width:160px; background:#2b4a94; opacity:.35; transform:skewX(-18deg); right:-60px;}
   #report-screen .page.mr2[dir="ltr"] .mrq-verdict::after{right:auto; left:-60px;}
-  #report-screen .page.mr2 .mrq-vbadge{flex:none; width:58px; height:58px; border-radius:50%; border:2px solid #d4af37; background:#06231c; display:flex; align-items:center; justify-content:center; position:relative; z-index:1;}
-  #report-screen .page.mr2 .mrq-vbadge span{font-size:24px; color:#f0d878; line-height:1;}
+  #report-screen .page.mr2 .mrq-vbadge{flex:none; width:58px; height:58px; border-radius:50%; border:2px solid #d0803a; background:#0a1631; display:flex; align-items:center; justify-content:center; position:relative; z-index:1;}
+  #report-screen .page.mr2 .mrq-vbadge span{font-size:24px; color:#f2c27e; line-height:1;}
   #report-screen .page.mr2 .v-support .mrq-vbadge span{color:#f3b49b;}
   #report-screen .page.mr2 .mrq-vtext{flex:1; min-width:0; position:relative; z-index:1;}
-  #report-screen .page.mr2 .mrq-vtext small{display:block; font-size:11.5px; color:#a9c7ba; font-weight:600;}
-  #report-screen .page.mr2 .mrq-vtext b{display:block; font-family:'Reem Kufi','Amiri',serif; font-size:22px; color:#f0d878; font-weight:600; line-height:1.35;}
-  #report-screen .page.mr2 .mrq-vtext p{margin:2px 0 0; font-size:12.5px; color:#e3ece7; line-height:1.7;}
+  #report-screen .page.mr2 .mrq-vtext small{display:block; font-size:11.5px; color:#a9b6d6; font-weight:600;}
+  #report-screen .page.mr2 .mrq-vtext b{display:block; font-family:'Reem Kufi','Amiri',serif; font-size:22px; color:#f2c27e; font-weight:600; line-height:1.35;}
+  #report-screen .page.mr2 .mrq-vtext p{margin:2px 0 0; font-size:12.5px; color:#e8ecf6; line-height:1.7;}
   #report-screen .page.mr2 .mrq-vmonths{display:flex; gap:6px; position:relative; z-index:1; flex:none;}
-  #report-screen .page.mr2 .mrq-vmonths span{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#a9c7ba; font-weight:600; min-width:40px;}
-  #report-screen .page.mr2 .mrq-vmonths i{width:14px; height:14px; border-radius:50%; border:2px solid #6f8f83; display:block; box-sizing:border-box;}
-  #report-screen .page.mr2 .mrq-vmonths .on{color:#f6f3e8;}
-  #report-screen .page.mr2 .mrq-vmonths .on i{background:#f0d878; border-color:#f0d878;}
+  #report-screen .page.mr2 .mrq-vmonths span{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:#a9b6d6; font-weight:600; min-width:40px;}
+  #report-screen .page.mr2 .mrq-vmonths i{width:14px; height:14px; border-radius:50%; border:2px solid #6c7aa3; display:block; box-sizing:border-box;}
+  #report-screen .page.mr2 .mrq-vmonths .on{color:#eef1f8;}
+  #report-screen .page.mr2 .mrq-vmonths .on i{background:#f2c27e; border-color:#f2c27e;}
 
   /* البطاقات الأربع */
   #report-screen .page.mr2 .mrq-kpis{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;}
-  #report-screen .page.mr2 .mrq-kpi{background:#ffffff; border:1px solid #e3dbbd; border-radius:16px; padding:11px 12px 10px; display:flex; flex-direction:column; gap:3px; min-width:0; box-shadow:0 2px 0 #efe7cd;}
+  #report-screen .page.mr2 .mrq-kpi{background:#ffffff; border:1px solid #d9deea; border-radius:16px; padding:11px 12px 10px; display:flex; flex-direction:column; gap:3px; min-width:0; box-shadow:0 2px 0 #e4e8f1;}
   #report-screen .page.mr2 .mrq-kpi-h{display:flex; align-items:center; gap:6px;}
-  #report-screen .page.mr2 .mrq-kpi-h b{font-size:12.5px; color:#10241c; font-weight:700; flex:1; min-width:0; line-height:1.35;}
-  #report-screen .page.mr2 .mrq-kpi-ic{flex:none; width:28px; height:28px; border-radius:9px; background:#0b3d30; display:flex; align-items:center; justify-content:center;}
+  #report-screen .page.mr2 .mrq-kpi-h b{font-size:12.5px; color:#13203f; font-weight:700; flex:1; min-width:0; line-height:1.35;}
+  #report-screen .page.mr2 .mrq-kpi-ic{flex:none; width:28px; height:28px; border-radius:9px; background:#12234d; display:flex; align-items:center; justify-content:center;}
   #report-screen .page.mr2 .mrq-kpi-v{display:flex; align-items:baseline; gap:6px; margin-top:4px;}
-  #report-screen .page.mr2 .mrq-n{font-family:'Reem Kufi','Amiri',serif; font-size:34px; color:#0b3d30; line-height:1; font-weight:600;}
-  #report-screen .page.mr2 .mrq-u{font-size:12px; color:#4a6058; font-weight:600;}
-  #report-screen .page.mr2 .mrq-kpi-s{font-size:11.5px; color:#4a6058; font-weight:600; min-height:18px;}
-  #report-screen .page.mr2 .mrq-kpi-s em{font-style:normal; font-size:10.5px; color:#8a7d5c; background:#f3efe2; border-radius:99px; padding:0 6px;}
-  #report-screen .page.mr2 .mrq-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; align-items:end; height:84px; border-top:1px dashed #e6dcbc; padding-top:6px; margin-top:4px;}
+  #report-screen .page.mr2 .mrq-n{font-family:'Reem Kufi','Amiri',serif; font-size:34px; color:#12234d; line-height:1; font-weight:600;}
+  #report-screen .page.mr2 .mrq-u{font-size:12px; color:#4b5878; font-weight:600;}
+  #report-screen .page.mr2 .mrq-kpi-s{font-size:11.5px; color:#4b5878; font-weight:600; min-height:18px;}
+  #report-screen .page.mr2 .mrq-kpi-s em{font-style:normal; font-size:10.5px; color:#7d86a3; background:#eef1f8; border-radius:99px; padding:0 6px;}
+  #report-screen .page.mr2 .mrq-mini{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; align-items:end; height:84px; border-top:1px dashed #dfe3ee; padding-top:6px; margin-top:4px;}
   #report-screen .page.mr2 .mrq-mini-c{display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:2px; height:100%;}
-  #report-screen .page.mr2 .mrq-mini-c b{font-size:11px; color:#10241c; font-weight:700;}
+  #report-screen .page.mr2 .mrq-mini-c b{font-size:11px; color:#13203f; font-weight:700;}
   #report-screen .page.mr2 .mrq-mini-c i{display:block; width:70%; max-width:26px; border-radius:4px 4px 0 0;}
-  #report-screen .page.mr2 .mrq-mini-c span{font-size:10px; color:#6f644e; font-weight:600; white-space:nowrap;}
+  #report-screen .page.mr2 .mrq-mini-c span{font-size:10px; color:#6a7390; font-weight:600; white-space:nowrap;}
   #report-screen .page.mr2 .mrq-dc{flex:none; font-size:11px; font-weight:800; border-radius:99px; padding:1px 8px; white-space:nowrap;}
   #report-screen .page.mr2 .mrq-dc.up{background:#e5f4ec; color:#1f7a55;}
   #report-screen .page.mr2 .mrq-dc.down{background:#fbe7e3; color:#a63a2a;}
   #report-screen .page.mr2 .mrq-dc.same{background:#f1efe8; color:#6b6b63;}
-  #report-screen .page.mr2 .mrq-dc.na{background:transparent; color:#b3aa92;}
+  #report-screen .page.mr2 .mrq-dc.na{background:transparent; color:#b0b6c9;}
 
   /* بطاقات الرسوم */
-  #report-screen .page.mr2 .mrq-chart-card{background:#ffffff; border:1px solid #eadfbd; border-radius:16px; padding:10px 12px 10px; margin-top:12px; min-width:0;}
+  #report-screen .page.mr2 .mrq-chart-card{background:#ffffff; border:1px solid #d9deea; border-radius:16px; padding:10px 12px 10px; margin-top:12px; min-width:0;}
   /* direction:ltr: إحداثيات SVG فيزيائية (text-anchor start = يسار) في الاتجاهين؛ النص العربي داخلها يُشكَّل كما هو */
   #report-screen .page.mr2 .mrq-svg{display:block; width:100%; height:auto; direction:ltr;}
-  #report-screen .page.mr2 .mrq-ax{font-family:'Cairo',sans-serif; font-size:11px; font-weight:600; fill:#8a7d5c;}
-  #report-screen .page.mr2 .mrq-band-t{font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:700; fill:#9c9277;}
-  #report-screen .page.mr2 .mrq-val{font-family:'Cairo',sans-serif; font-size:12px; font-weight:800; fill:#10241c;}
-  #report-screen .page.mr2 .mrq-val.mute{fill:#b3aa92;}
-  #report-screen .page.mr2 .mrq-xl{font-family:'Cairo',sans-serif; font-size:12px; font-weight:700; fill:#4a6058;}
-  #report-screen .page.mr2 .mrq-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; font-weight:600; color:#10241c; margin-bottom:4px;}
+  #report-screen .page.mr2 .mrq-ax{font-family:'Cairo',sans-serif; font-size:11px; font-weight:600; fill:#7d86a3;}
+  #report-screen .page.mr2 .mrq-band-t{font-family:'Cairo',sans-serif; font-size:10.5px; font-weight:700; fill:#8e96b0;}
+  #report-screen .page.mr2 .mrq-val{font-family:'Cairo',sans-serif; font-size:12px; font-weight:800; fill:#13203f;}
+  #report-screen .page.mr2 .mrq-val.mute{fill:#b0b6c9;}
+  #report-screen .page.mr2 .mrq-xl{font-family:'Cairo',sans-serif; font-size:12px; font-weight:700; fill:#4b5878;}
+  #report-screen .page.mr2 .mrq-legend{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:12px; font-weight:600; color:#13203f; margin-bottom:4px;}
   #report-screen .page.mr2 .mrq-legend.sm{font-size:11px; gap:4px 12px; margin:4px 0 0; justify-content:center;}
   #report-screen .page.mr2 .mrq-legend span{display:inline-flex; align-items:center; gap:6px;}
   #report-screen .page.mr2 .mrq-legend i{display:inline-block; width:12px; height:12px; border-radius:3px;}
-  #report-screen .page.mr2 .mrq-legend .hollow i{border-radius:50%; border:2.5px solid #8a7d5c; background:#ffffff; box-sizing:border-box;}
-  #report-screen .page.mr2 .mrq-lvrow{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; border-top:1px dashed #e6dcbc; padding-top:8px; margin-top:4px;}
-  #report-screen .page.mr2 .mrq-lv{text-align:center; background:#f7f4ea; border-radius:12px; padding:6px 4px;}
-  #report-screen .page.mr2 .mrq-lv span{display:block; font-size:11px; color:#4a6058; font-weight:600;}
-  #report-screen .page.mr2 .mrq-lv b{display:block; font-family:'Reem Kufi','Amiri',serif; font-size:22px; color:#0b3d30; font-weight:600; line-height:1.2;}
-  #report-screen .page.mr2 .mrq-lv small{font-size:10.5px; color:#8a6612; font-weight:700;}
-  #report-screen .page.mr2 .mrq-lv.na b{color:#b3aa92;}
+  #report-screen .page.mr2 .mrq-legend .hollow i{border-radius:50%; border:2.5px solid #7d86a3; background:#ffffff; box-sizing:border-box;}
+  #report-screen .page.mr2 .mrq-lvrow{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; border-top:1px dashed #dfe3ee; padding-top:8px; margin-top:4px;}
+  #report-screen .page.mr2 .mrq-lv{text-align:center; background:#f1f4fa; border-radius:12px; padding:6px 4px;}
+  #report-screen .page.mr2 .mrq-lv span{display:block; font-size:11px; color:#4b5878; font-weight:600;}
+  #report-screen .page.mr2 .mrq-lv b{display:block; font-family:'Reem Kufi','Amiri',serif; font-size:22px; color:#12234d; font-weight:600; line-height:1.2;}
+  #report-screen .page.mr2 .mrq-lv small{font-size:10.5px; color:#a65f22; font-weight:700;}
+  #report-screen .page.mr2 .mrq-lv.na b{color:#b0b6c9;}
 
   /* مصفوفة المقارنة */
-  #report-screen .page.mr2 .mrq-table{width:100%; border-collapse:separate; border-spacing:0; margin-top:12px; background:#ffffff; border:1px solid #e3dbbd; border-radius:14px; overflow:hidden;}
-  #report-screen .page.mr2 .mrq-table thead th{background:#0b3d30; color:#f6f3e8; font-size:12.5px; font-weight:700; padding:9px 8px; text-align:center; border:0;}
-  #report-screen .page.mr2 .mrq-table thead th small{display:block; font-size:10px; color:#a9c7ba; font-weight:600;}
+  #report-screen .page.mr2 .mrq-table{width:100%; border-collapse:separate; border-spacing:0; margin-top:12px; background:#ffffff; border:1px solid #d9deea; border-radius:14px; overflow:hidden;}
+  #report-screen .page.mr2 .mrq-table thead th{background:#12234d; color:#eef1f8; font-size:12.5px; font-weight:700; padding:9px 8px; text-align:center; border:0;}
+  #report-screen .page.mr2 .mrq-table thead th small{display:block; font-size:10px; color:#a9b6d6; font-weight:600;}
   #report-screen .page.mr2 .mrq-table thead th:first-child{text-align:start; padding-inline-start:14px;}
-  #report-screen .page.mr2 .mrq-table tbody th{text-align:start; font-size:12.5px; color:#10241c; font-weight:600; padding:8px 14px; border-top:1px solid #f0e9db; background:#fffdf6; white-space:nowrap;}
-  #report-screen .page.mr2 .mrq-table tbody td{text-align:center; font-family:'Reem Kufi','Cairo',sans-serif; font-size:16px; color:#10241c; font-weight:600; padding:7px 6px; border-top:1px solid #f0e9db; border-inline-start:1px solid #f4efe1; position:relative;}
-  #report-screen .page.mr2 .mrq-table tbody td.hi{color:#0b3d30;}
-  #report-screen .page.mr2 .mrq-table tbody td.na{color:#c3baa2;}
-  #report-screen .page.mr2 .mrq-table tbody td.chg{background:#fffdf6; font-family:'IBM Plex Sans Arabic','Cairo',sans-serif;}
-  #report-screen .page.mr2 .mrq-table tbody td sup{font-size:10px; color:#8a6612;}
-  #report-screen .page.mr2 .mrq-table tr.strong th, #report-screen .page.mr2 .mrq-table tr.strong td{border-top:2px solid #d4af37; font-weight:700;}
-  #report-screen .page.mr2 .mrq-star{position:absolute; top:3px; inset-inline-end:5px; font-size:11px; color:#b8862b;}
-  #report-screen .page.mr2 .mrq-foot{font-size:11px; color:#6f644e; margin-top:6px; line-height:1.7;}
+  #report-screen .page.mr2 .mrq-table tbody th{text-align:start; font-size:12.5px; color:#13203f; font-weight:600; padding:8px 14px; border-top:1px solid #e8ebf3; background:#fbfcff; white-space:nowrap;}
+  #report-screen .page.mr2 .mrq-table tbody td{text-align:center; font-family:'Reem Kufi','Cairo',sans-serif; font-size:16px; color:#13203f; font-weight:600; padding:7px 6px; border-top:1px solid #e8ebf3; border-inline-start:1px solid #eef0f6; position:relative;}
+  #report-screen .page.mr2 .mrq-table tbody td.hi{color:#12234d;}
+  #report-screen .page.mr2 .mrq-table tbody td.na{color:#b0b6c9;}
+  #report-screen .page.mr2 .mrq-table tbody td.chg{background:#fbfcff; font-family:'IBM Plex Sans Arabic','Cairo',sans-serif;}
+  #report-screen .page.mr2 .mrq-table tbody td sup{font-size:10px; color:#a65f22;}
+  #report-screen .page.mr2 .mrq-table tr.strong th, #report-screen .page.mr2 .mrq-table tr.strong td{border-top:2px solid #d0803a; font-weight:700;}
+  #report-screen .page.mr2 .mrq-star{position:absolute; top:3px; inset-inline-end:5px; font-size:11px; color:#c8742f;}
+  #report-screen .page.mr2 .mrq-foot{font-size:11px; color:#6a7390; margin-top:6px; line-height:1.7;}
 
   /* الحفظ والتدريب */
   #report-screen .page.mr2 .mrq-pair{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
-  #report-screen .page.mr2 .mrq-ch-t{font-size:12.5px; font-weight:700; color:#10241c; margin-bottom:2px;}
-  #report-screen .page.mr2 .mrq-link-note{margin-top:10px; background:#f4f8ee; border-inline-start:4px solid #147c5e; border-radius:10px; padding:9px 12px; font-size:12.5px; color:#10241c; line-height:1.8;}
-  #report-screen .page.mr2 .mrq-link-note b{color:#0b3d30;}
-  #report-screen .page.mr2 .mrq-journey{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:10px; border:1px dashed #c9932f; border-radius:12px; padding:9px 12px; background:#fffdf6;}
-  #report-screen .page.mr2 .mrq-j-lbl{font-size:11.5px; color:#6b6252; font-weight:700;}
-  #report-screen .page.mr2 .mrq-j-pos, #report-screen .page.mr2 .mrq-j-st{font-family:'Amiri',serif; font-size:15px; font-weight:700; color:#0d5c46;}
-  #report-screen .page.mr2 .mrq-j-st small{font-family:'IBM Plex Sans Arabic','Cairo',sans-serif; font-size:10px; color:#8a7d5c; font-weight:600; margin-inline-end:4px;}
-  #report-screen .page.mr2 .mrq-j-arr{color:#c9932f; font-weight:800;}
+  #report-screen .page.mr2 .mrq-ch-t{font-size:12.5px; font-weight:700; color:#13203f; margin-bottom:2px;}
+  #report-screen .page.mr2 .mrq-link-note{margin-top:10px; background:#eef2fa; border-inline-start:4px solid #2b4a94; border-radius:10px; padding:9px 12px; font-size:12.5px; color:#13203f; line-height:1.8;}
+  #report-screen .page.mr2 .mrq-link-note b{color:#12234d;}
+  #report-screen .page.mr2 .mrq-journey{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin-top:10px; border:1px dashed #d0803a; border-radius:12px; padding:9px 12px; background:#fbfcff;}
+  #report-screen .page.mr2 .mrq-j-lbl{font-size:11.5px; color:#4b5878; font-weight:700;}
+  #report-screen .page.mr2 .mrq-j-pos, #report-screen .page.mr2 .mrq-j-st{font-family:'Amiri',serif; font-size:15px; font-weight:700; color:#1c3470;}
+  #report-screen .page.mr2 .mrq-j-st small{font-family:'IBM Plex Sans Arabic','Cairo',sans-serif; font-size:10px; color:#7d86a3; font-weight:600; margin-inline-end:4px;}
+  #report-screen .page.mr2 .mrq-j-arr{color:#d0803a; font-weight:800;}
 
   /* قراءة في الأداء */
   #report-screen .page.mr2 .mrq-ins{display:grid; grid-template-columns:1.45fr 1fr; gap:12px; margin-top:12px;}
   #report-screen .page.mr2 .mrq-ins-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px;}
-  #report-screen .page.mr2 .mrq-ins-list li{display:flex; align-items:flex-start; gap:10px; background:#ffffff; border:1px solid #eadfbd; border-radius:12px; padding:8px 12px; font-size:12.5px; color:#10241c; line-height:1.75; font-weight:500;}
+  #report-screen .page.mr2 .mrq-ins-list li{display:flex; align-items:flex-start; gap:10px; background:#ffffff; border:1px solid #d9deea; border-radius:12px; padding:8px 12px; font-size:12.5px; color:#13203f; line-height:1.75; font-weight:500;}
   #report-screen .page.mr2 .mrq-ins-ic{flex:none; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; margin-top:2px; background:#f1efe8; color:#6b6b63;}
   #report-screen .page.mr2 .mrq-ins-list li.up .mrq-ins-ic{background:#e5f4ec; color:#1f7a55;}
   #report-screen .page.mr2 .mrq-ins-list li.down .mrq-ins-ic{background:#fbe7e3; color:#a63a2a;}
-  #report-screen .page.mr2 .mrq-ins-list li.info .mrq-ins-ic{background:#fbf3d5; color:#8a6612;}
-  #report-screen .page.mr2 .mrq-tips{background:#0b3d30; border:1px solid #d4af37; border-radius:16px; padding:12px 14px; color:#f6f3e8;}
-  #report-screen .page.mr2 .mrq-tips-h{font-family:'Reem Kufi','Amiri',serif; font-size:17px; color:#f0d878; font-weight:600; margin-bottom:6px;}
+  #report-screen .page.mr2 .mrq-ins-list li.info .mrq-ins-ic{background:#fbeedd; color:#a65f22;}
+  #report-screen .page.mr2 .mrq-tips{background:#12234d; border:1px solid #d0803a; border-radius:16px; padding:12px 14px; color:#eef1f8;}
+  #report-screen .page.mr2 .mrq-tips-h{font-family:'Reem Kufi','Amiri',serif; font-size:17px; color:#f2c27e; font-weight:600; margin-bottom:6px;}
   #report-screen .page.mr2 .mrq-tips ul{margin:0; padding-inline-start:18px; display:flex; flex-direction:column; gap:6px;}
-  #report-screen .page.mr2 .mrq-tips li{font-size:12.5px; line-height:1.75; color:#e9f1ec;}
-  #report-screen .page.mr2 .mrq-tips li::marker{color:#d4af37;}
+  #report-screen .page.mr2 .mrq-tips li{font-size:12.5px; line-height:1.75; color:#e8ecf6;}
+  #report-screen .page.mr2 .mrq-tips li::marker{color:#d0803a;}
 
   @media (max-width:760px){
     #report-screen .page.mr2 > #mrq-root > .pdf-block{margin:0 16px 16px;}
