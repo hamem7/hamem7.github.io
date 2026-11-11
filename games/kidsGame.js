@@ -9,6 +9,7 @@ import { openReportScreen } from '../reports/report.js';
 // تعليق normalizeForCompare في quranEngine.js لتفاصيل السبب)
 import { normalizeForCompare, setActiveSurahPlan, setActiveChunkOffset, newChunkOffset } from '../engine/quranEngine.js';
 import { setSeenStudent, recordSeen } from '../engine/seenLedger.js';
+import { filterPoolBySlices } from '../engine/memoScope.js';   // نطاق «كل حفظ الطالب» حتى نقطة التوقف
 import { gameQuestionAyahCount, gameShownAyahKeys } from '../engine/ayahCount.js';
 // 🌟 [جديد] نظام "تلميحات الأقسام عند أول دخول" — راجع components/sectionHint.js
 import { showSectionHintOnce } from '../components/sectionHint.js';
@@ -175,6 +176,8 @@ export async function openKidsGameScreen(config, isWeakness = false, resumeSnaps
                 GameState.evalRangeText = tfAr('adult_juz_text', { n: config.juzNum });
             } else if (config.isKidsRange || !(config.surahNum > 0)) {
                 ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.kidsFrom, config.kidsTo);
+                // 🌟 «كل حفظ الطالب»: تتوقف الأسئلة عند آخر آية حفظها في سورة التوقف (لا كل السورة)
+                if (Array.isArray(config.scopeSlices) && config.scopeSlices.length) ayahsPool = filterPoolBySlices(ayahsPool, config.scopeSlices);
                 let sNameF = AppState.surahsData.find(s => s.number === config.kidsFrom).name; 
                 let sNameT = AppState.surahsData.find(s => s.number === config.kidsTo).name; 
                 GameState.evalRangeText = tfAr('kids_range_text', { sfrom: sNameF, sto: sNameT });

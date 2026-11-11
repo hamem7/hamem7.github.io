@@ -8,7 +8,7 @@ import { AppState, t, tf, surahNameLocal } from '../core/app.js';
 import { buildSimilarQuestions, cleanOccurrenceText } from '../engine/similarityInject.js';
 import { ensureSimilarityQuran, getSimilarityQuran, questionTextToHTML, localizedQuestionText, pairOptionLabel } from '../engine/similarityQuestions.js';
 import { STUDENT_SIM_TYPES } from '../engine/similarityEngine.js';
-import { generateRecallQuestions, memorizedSurahsOf, localizedRecallText } from '../engine/recallQuestions.js';
+import { generateRecallQuestions, memorizedSurahsOf, scopedMemorized, localizedRecallText } from '../engine/recallQuestions.js';
 import { toQuranicSukun } from '../engine/quranEngine.js';
 
 // 🌟 كل نص قرآني معروض هنا يمر على السكون القرآني (U+06E1) كباقي المنصة (راجع cleanAyahText في quranEngine.js)،
@@ -25,7 +25,7 @@ const GAME_OLD_TYPES = STUDENT_SIM_TYPES;
 // 🌟 [2026-10-28] المتشابهات خانة داخل «الكيس» نفسه (type:'similar' بلا sim، راجع buildGameQueue في adultGame.js) فتكتمل دورة الأنواع
 // ولا يُستبدل سؤال عادي بها. هنا تُملأ هذه الخانات بأسئلة فعلية؛ و«اقرأ الآية من السورة المذكورة» لا يزيد على نصف الخانات (يتناوب مع
 // «في أي سورتين؟» و«أي سورة لم ترد؟»). أي خانة لم يتوفر لها سؤال تبقى type:'similar' بلا sim فيُبدِّلها adultGame.js بنوع عادي.
-export async function injectSimilarQuestions(queue, pool, qCount, kids) {
+export async function injectSimilarQuestions(queue, pool, qCount, kids, memoSlices = null) {
     try {
         if (kids || !Array.isArray(queue)) return queue;
         const slots = [];
@@ -35,7 +35,9 @@ export async function injectSimilarQuestions(queue, pool, qCount, kids) {
         if (AppState.similaritiesReady) await AppState.similaritiesReady;
         await ensureSimilarityQuran(AppState.quranEngine); // نص الآيات من مصحف المنصة
         const allGroups = await AppState.similaritiesManager.getAllSimilarities();
-        const memorized = memorizedSurahsOf(AppState.currentStudent, AppState.surahsData) || new Set((pool || []).map(a => a.surahNumber));
+        // 🌟 «نطاق حفظ الطالب» بشرائح (حتى نقطة التوقف): لا يظهر في السؤال ولا في خياراته موضع بعد آخر آية حفظها
+        const memorized = (Array.isArray(memoSlices) && memoSlices.length) ? scopedMemorized(memoSlices)
+            : (memorizedSurahsOf(AppState.currentStudent, AppState.surahsData) || new Set((pool || []).map(a => a.surahNumber)));
         const old = buildSimilarQuestions({ allGroups, pool, count, kids: false, types: GAME_OLD_TYPES, memorized });
         let fresh = [];
         try {

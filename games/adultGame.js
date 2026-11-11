@@ -386,9 +386,12 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             if(config.isJuzMode) {
                 ayahsPool = await AppState.quranEngine.getAyahsByJuz(config.juzNum); 
                 GameState.evalRangeText = tfAr('adult_juz_text', { n: config.juzNum });
+                // 🌟 «نطاق حفظ الطالب»: الجزء يُقصر على ما حفظه فعلاً (لا آيات بعد نقطة التوقف)
+                if (Array.isArray(config.scopeSlices) && config.scopeSlices.length) ayahsPool = filterPoolBySlices(ayahsPool, config.scopeSlices);
             } else if(config.isRangeMode) {
                 ayahsPool = await AppState.quranEngine.getAyahsBySurahRange(config.rangeFrom, config.rangeTo);
                 // 🌟 نطاق الطالب فيه سور إضافية: «من - إلى» يُقصر على ما حفظه فعلاً (لا تدخل السور غير المحفوظة بين المقطعين)
+                // (بما فيها نقطة التوقف: آيات سورة التوقف بعد آخر ما حفظه الطالب لا تدخل)
                 if (Array.isArray(config.scopeSlices) && config.scopeSlices.length) ayahsPool = filterPoolBySlices(ayahsPool, config.scopeSlices);
                 let sNameF = AppState.surahsData.find(s => s.number === config.rangeFrom).name; 
                 let sNameT = AppState.surahsData.find(s => s.number === config.rangeTo).name; 
@@ -402,6 +405,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
             } else {
                 let surah = await AppState.quranEngine.getSurah(config.surahNum); 
                 ayahsPool = AppState.quranEngine.getAyahsInRange(surah, config.startAyah, config.endAyah); 
+                if (Array.isArray(config.scopeSlices) && config.scopeSlices.length) ayahsPool = filterPoolBySlices(ayahsPool, config.scopeSlices);   // 🌟 لا آيات بعد نقطة التوقف
                 let cleanName = surah.name.replace(/سُورَةُ\s*/g, '').replace(/سورة\s*/g, '').trim(); 
                 GameState.evalRangeText = tfAr('adult_surah_text', { name: cleanName, a: config.startAyah, b: config.endAyah });
             }
@@ -479,7 +483,7 @@ export async function openAdultGameScreen(config, isWeakness = false, resumeSnap
                 // chunkIndex + surahNum معاً) فيبقى توزيع النطاق وتغطية السور كما هي لكن بترتيب العرض عشوائياً.
                 shuffleInPlace(GameState.queue);
                 // 🌟 سؤال متشابهات لكل 10 أسئلة (يستبدل خانات عشوائية بعد الخلط؛ بلا مجموعات في النطاق = لا يتغير شيء)
-                await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, false);
+                await injectSimilarQuestions(GameState.queue, ayahsPool, qCount, false, config.scopeSlices);
                 // خانة متشابهات لم يتوفر لها سؤال (لا مجموعات في النطاق...) تأخذ أقل الأنواع العادية ظهوراً بدل «صيد الآية»
                 for (const q of GameState.queue) {
                     if (q.type !== 'similar' || q.sim) continue;

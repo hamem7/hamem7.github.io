@@ -39,6 +39,19 @@ export function memorizedSurahsOf(student, surahsData) {
     return out;
 }
 
+// 🌟 محفوظ بدقة الآية: مجموعة سور (للتوافق مع بقية الكود) + hasAyah(s, n) لا تقبل إلا آيات الشرائح (مثل الملك ١–١٥ فقط).
+// slices: [{surah, from, to}] كما في memoScope.rangeSlices. تُستعمل في بنك المقارنة وفي تصفية مواضع المتشابهات.
+export function scopedMemorized(slices) {
+    const set = new Set((slices || []).map(x => x.surah).filter(n => n !== 1));
+    const by = new Map();
+    (slices || []).forEach(x => { if (!by.has(x.surah)) by.set(x.surah, []); by.get(x.surah).push(x); });
+    set.hasAyah = (s, n) => { const l = by.get(s); return !!l && l.some(x => n >= x.from && n <= x.to); };
+    set.sig = (slices || []).map(x => `${x.surah}:${x.from}-${x.to}`).sort().join(',');
+    return set;
+}
+const memoHas = (memorized, s, n) => memorized.has(s) && (!memorized.hasAyah || memorized.hasAyah(s, n));
+export { memoHas };
+
 // ---------------- بنك المقارنة (يُبنى مرة لكل نطاق حفظ) ----------------
 const bankCache = new WeakMap();
 function allVerses(Q) {
@@ -64,11 +77,11 @@ const findRun = (x, run, from = 0) => {
 };
 
 function bankFor(Q, memorized) {
-    const key = [...memorized].sort((a, b) => a - b).join(',');
+    const key = [...memorized].sort((a, b) => a - b).join(',') + (memorized.sig ? '|' + memorized.sig : '');
     let perQ = bankCache.get(Q);
     if (!perQ) { perQ = new Map(); bankCache.set(Q, perQ); }
     if (perQ.has(key)) return perQ.get(key);
-    const M = allVerses(Q).filter(v => memorized.has(v.s) && v.s !== 1), idx = new Map();
+    const M = allVerses(Q).filter(v => memoHas(memorized, v.s, v.n) && v.s !== 1), idx = new Map();
     for (const v of M) for (let i = 0; i + GRAM <= v.x.length; i++) {
         const g = v.x.slice(i, i + GRAM).join(' ');
         let a = idx.get(g); if (!a) { a = new Set(); idx.set(g, a); } a.add(v);
@@ -282,8 +295,8 @@ export function localizedRecallText(q) {
 export function generateRecallQuestions(Q, memorized, scopePool, { count = 1, rng = Math.random, types = RECALL_TYPES } = {}) {
     if (!Q || !memorized || !memorized.size || !count) return [];
     const scopeKeys = new Set((scopePool || []).map(a => a.surahNumber + ':' + a.numberInSurah));
-    const all = new Set(memorized);
-    for (const k of scopeKeys) all.add(+k.split(':')[0]);                  // آيات الاختبار تُقارَن دائماً بشبيهاتها ولو خرجت عن النطاق المسجَّل
+    const all = memorized.hasAyah ? memorized : new Set(memorized);   // محفوظ بدقة الآية: لا نُدخل سوراً كاملة
+    if (!memorized.hasAyah) for (const k of scopeKeys) all.add(+k.split(':')[0]);                  // آيات الاختبار تُقارَن دائماً بشبيهاتها ولو خرجت عن النطاق المسجَّل
     const bank = bankFor(Q, all);
     const groups = shuffled([...buildGroups(bank, scopeKeys), ...buildVariantGroups(bank, scopeKeys)], rng);
     groups.sort((x, y) => (y.nS > 1) - (x.nS > 1));                          // العابرة للسور أولاً (ثبات الترتيب العشوائي داخل كل فئة)

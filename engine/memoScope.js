@@ -154,6 +154,21 @@ export function scopeSlices(surahsData, student) {
     return out.sort((a, b) => a.surah - b.surah || a.from - b.from);
 }
 
+// 🌟 شرائح نطاق الطالب كما يحدّده resolveRange (trackingEngine): كل سور المسار من fromSurah إلى toSurah كاملةً
+// عدا سورة التوقف (toSurah) فتنتهي عند frontierAyah (مثل الملك: ١–١٥ لا كل آياتها)، + السور الإضافية.
+// minSurah: أدنى سورة تدخل (٢ للكبار لاستبعاد الفاتحة، ٤٦ للصغار). maxSurah: أعلى سورة (١١٤).
+export function rangeSlices(surahsData, range, extraSegs, minSurah = 2, maxSurah = 114) {
+    const L = layout(surahsData), out = [];
+    if (range && range.ok !== false && range.fromSurah != null) {
+        for (let s = Math.max(range.toSurah, minSurah, 2); s <= Math.min(range.fromSurah, maxSurah); s++) {
+            if (L.count[s] == null) continue;
+            out.push({ surah: s, from: 1, to: s === range.toSurah ? Math.min(range.frontierAyah || L.count[s], L.count[s]) : L.count[s] });
+        }
+    }
+    if (minSurah <= 2) extraSurahSlices(surahsData, extraSegs || []).forEach(x => out.push({ surah: x.surah, from: x.from, to: x.to }));
+    return out.sort((a, b) => a.surah - b.surah || a.from - b.from);
+}
+
 export function inSlices(slices, surah, ayah) {
     return slices.some(x => x.surah === surah && ayah >= x.from && ayah <= x.to);
 }

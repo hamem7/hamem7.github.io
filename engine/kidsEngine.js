@@ -2,7 +2,7 @@
 // 🌟 splitAyahWords / splitAyahTokens / realWordIndexes: دوال مركزية في quranEngine.js تستبعد
 // علامات الوقف القرآنية (ۚ ۖ ۗ / ج / صلى / قلى...) من "كلمات" الآية، حتى لا تظهر كبطاقة اختيار
 // أو كبطاقة ترتيب أمام الطفل وهي ليست كلمة من كلمات الآية أصلاً 🌟
-import { cleanName, cleanAyahText, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare, wordIsSurahName } from './quranEngine.js';
+import { cleanName, cleanAyahText, neighborOk, pickTargetAyah, splitAyahWords, splitAyahTokens, realWordIndexes, normalizeForCompare, wordIsSurahName } from './quranEngine.js';
 import { t, tf, surahNameLocal } from '../core/i18n.js';
 import { listenBodyHTML } from './ayahAudio.js';
 
@@ -157,9 +157,9 @@ export class KidsEngine {
     }
 
     async generateKidsNextAyahGame(ayahsPool, chunkIndex, totalChunks) {
-        let validAyahs = ayahsPool.filter(a => a.numberInSurah < 50); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; let surah = await this.quranEngine.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; 
+        const inScope = neighborOk(ayahsPool); let validAyahs = ayahsPool.filter(a => a.numberInSurah < 50 && inScope(a, 1)); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; let surah = await this.quranEngine.getSurah(targetAyah.surahNumber); if(!surah || targetAyah.numberInSurah >= surah.ayahs.length) return null; 
         let nextAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah].text); let targetText = cleanAyahText(targetAyah.text);
-        let options = [nextAyahText]; let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1 && cleanAyahText(a.text).length > 5);
+        let options = [nextAyahText]; let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1 && cleanAyahText(a.text).length > 5 && inScope({ surahNumber: targetAyah.surahNumber, numberInSurah: a.numberInSurah }, 0));
         // 🌟 [ذكاء] المشتتات: آيات من نفس السورة الأشبه بالآية الصحيحة (فاصلة/طول) لا عشوائية
         for(let txt of pickSimilar(nextAyahText, otherAyahs.map(a => cleanAyahText(a.text)), 2, ayahShapeScore)) { if(options.length >= 3) break; if(txt !== nextAyahText) options.push(txt); }
         await this.fillAyahOptions(options, nextAyahText, ayahsPool, targetAyah.surahNumber); options.sort(() => Math.random() - 0.5); 
@@ -272,14 +272,15 @@ export class KidsEngine {
     }
 
     async generateKidsPrevious(ayahsPool, chunkIndex, totalChunks) {
-        let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null;
+        const inScope = neighborOk(ayahsPool);
+        let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1 && inScope(a, -1)); if(validAyahs.length === 0) return null;
         const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null;
         let surah = await this.quranEngine.getSurah(targetAyah.surahNumber);
         let prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text);
         let targetText = cleanAyahText(targetAyah.text);
         
         let options = [prevAyahText];
-        let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1);
+        let otherAyahs = surah.ayahs.filter(a => Math.abs(a.numberInSurah - targetAyah.numberInSurah) > 1 && inScope({ surahNumber: targetAyah.surahNumber, numberInSurah: a.numberInSurah }, 0));
         // 🌟 [ذكاء] نفس فكرة "ماذا بعد": المشتتات الأشبه بالآية الصحيحة فاصلةً وطولاً
         for(let txt of pickSimilar(prevAyahText, otherAyahs.map(a => cleanAyahText(a.text)), 2, ayahShapeScore)) { if(options.length >= 3) break; options.push(txt); }
         await this.fillAyahOptions(options, prevAyahText, ayahsPool, targetAyah.surahNumber);

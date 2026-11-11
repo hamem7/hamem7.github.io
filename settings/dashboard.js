@@ -4,7 +4,7 @@ import { starRankLine, starProgressLine } from '../core/i18n-stars.js';
 import { AppState, loadLoginScreen, t, tf, surahNameLocal } from '../core/app.js';
 import { resolveRange, monthlyStaleness } from '../engine/trackingEngine.js';
 import { juzBounds, ayahIndex } from '../engine/reviewParts.js';
-import { studentExtras, extraSurahSlices, scopeSlices, describeExtra } from '../engine/memoScope.js';   // السور الإضافية خارج المسار المتصل
+import { studentExtras, extraSurahSlices, scopeSlices, rangeSlices, describeExtra } from '../engine/memoScope.js';   // السور الإضافية خارج المسار المتصل
 import '../core/i18n-memoscope.js';
 import { attachJuzAmmaCoverageNote, attachKidsRangeCoverageNote } from '../components/juzAmmaCoverageNote.js';
 import { openAdultGameScreen } from '../games/adultGame.js'; 
@@ -290,7 +290,7 @@ async function refreshAllInfo() {
     const from = Math.min(r.fromSurah, 114);
     const to = kids ? Math.max(r.toSurah, KIDS_MIN_SURAH) : Math.max(r.toSurah, 2);
     if (kids && from < KIDS_MIN_SURAH) { rangeEl.textContent = t('kids_all_no_range'); return; }
-    allRange = { from, to };
+    allRange = { from, to, range: r };
     const nm = (n) => surahNameLocal(AppState.surahsData.find(s => s.number === n).name);
     rangeEl.textContent = tf('kids_all_range', { from: nm(from), to: nm(to) })
         + (kids && r.toSurah < KIDS_MIN_SURAH ? ' — ' + t('kids_all_capped') : '')
@@ -340,7 +340,11 @@ export function setupDashboardListeners() {
             // 🌟 سور إضافية: «كل النطاق» = المتصل + الإضافي، و«من - إلى» داخل نطاق الطالب يُقصر على ما حفظه
             extraSlices: (isRangeMode && isAll && extraSlices.length) ? extraSlices.map(x => ({ surah: x.surah, from: x.from, to: x.to })) : undefined,
             extraSegs: (isRangeMode && isAll && extraSegs.length) ? extraSegs : undefined,
-            scopeSlices: (isRangeMode && !isAll && effectiveScope() === 'student' && extraSlices.length) ? scopeSlices(AppState.surahsData, Object.assign({}, AppState.currentStudent, { memoExtra: extraSegs })) : undefined,
+            // 🌟 [نطاق الحفظ] حدود ما حفظه الطالب فعلاً (تتوقف عند آية التوقف في سورة النهاية لا عند آخر السورة) + السور الإضافية.
+            // الكبار داخل «نطاق حفظ الطالب»: لكل الأوضاع (سورة/جزء/من-إلى/كل النطاق)؛ الصغار: «كل حفظ الطالب».
+            scopeSlices: (!AppState.isKidsMode && effectiveScope() === 'student' && studentRange)
+                ? rangeSlices(AppState.surahsData, studentRange, extraSegs, 2)
+                : ((isKidsRange && isAllOn() && allRange && allRange.range) ? rangeSlices(AppState.surahsData, allRange.range, [], KIDS_MIN_SURAH) : undefined),
             rangeFrom: (isRangeMode && isAll && allRange) ? allRange.from : parseInt(document.getElementById('range-from-surah')?.value),
             rangeTo: (isRangeMode && isAll && allRange) ? allRange.to : parseInt(document.getElementById('range-to-surah')?.value),
             juzNum: parseInt(document.getElementById('juz-select')?.value),
@@ -428,6 +432,12 @@ function updateAyahRange() {
         toSelect.appendChild(new Option(tf('dash_ayah_label', { n: i }), i)); 
     }
     toSelect.value = surah.ayahsCount;
+    // 🌟 سورة التوقف داخل «نطاق حفظ الطالب»: لا تُعرض آيات بعد نقطة توقفه (الافتراضي والحدّ الأقصى)
+    const sr = scopeRange();
+    if (sr && surahNum === sr.toSurah && !extraSliceOf(surahNum) && sr.frontierAyah < surah.ayahsCount) {
+        for (let i = toSelect.options.length - 1; i >= 0; i--) if (+toSelect.options[i].value > sr.frontierAyah) { toSelect.remove(i); fromSelect.remove(i); }
+        toSelect.value = sr.frontierAyah;
+    }
     // سورة إضافية جزئية: يبدأ المدى على الجزء الذي حفظه الطالب فقط (يمكن للمعلم تغييره)
     const ex = scopeRange() && extraSliceOf(surahNum);
     if (ex && !ex.full) { fromSelect.value = ex.from; toSelect.value = ex.to; }

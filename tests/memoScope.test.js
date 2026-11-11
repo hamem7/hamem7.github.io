@@ -1,6 +1,6 @@
 // tests/memoScope.test.js — السور الإضافية خارج المسار المتصل: node tests/memoScope.test.js
 import assert from 'node:assert/strict';
-import { normalizeExtras, studentExtras, extraSurahSlices, extraAyahCount, memoStats, scopeSlices, inSlices, filterPoolBySlices, describeExtra } from '../engine/memoScope.js';
+import { normalizeExtras, studentExtras, extraSurahSlices, extraAyahCount, memoStats, scopeSlices, rangeSlices, inSlices, filterPoolBySlices, describeExtra } from '../engine/memoScope.js';
 
 const AY = [7,286,200,176,120,165,206,75,129,109,123,111,43,52,99,128,111,110,98,135,112,78,118,64,77,227,93,88,69,60,34,30,73,54,45,83,182,88,75,85,54,53,89,59,37,35,38,29,18,45,60,49,62,55,78,96,29,22,24,13,14,11,11,18,12,12,30,52,52,44,28,28,20,56,40,31,50,40,46,42,29,19,36,25,22,17,19,26,30,20,15,21,11,8,8,19,5,8,8,11,11,8,3,9,5,4,7,3,6,3,5,4,5,6];
 const NAMES = {114: 'الناس', 36: 'يس', 2: 'البقرة', 10: 'يونس', 18: 'الكهف'};
@@ -78,3 +78,37 @@ assert.equal(surahState(sd, ss, studentExtras(sd, ss), 5), 'extra');
 assert.equal(surahState(sd, ss, studentExtras(sd, ss), 10), 'part');
 assert.equal(surahState(sd, ss, studentExtras(sd, ss), 18), '');
 console.log('memoScope.test.js ✓');
+
+// ٧) نقطة التوقف: الطالب من الناس حتى الملك (٦٧) آية ١٥ — rangeSlices لا تتجاوز آية ١٥ في الملك
+{
+    const sdK = sd;
+    const range = { ok: true, fromSurah: 114, toSurah: 67, frontierAyah: 15 };
+    const sl = rangeSlices(sdK, range, [], 2);
+    assert.deepEqual(sl.find(x => x.surah === 67), { surah: 67, from: 1, to: 15 });
+    assert.deepEqual(sl.find(x => x.surah === 68), { surah: 68, from: 1, to: 52 });   // ما قبلها كاملاً
+    assert.ok(!sl.find(x => x.surah === 66));                                         // لا شيء بعد سورة التوقف
+    const pool = [];
+    for (let s = 66; s <= 68; s++) for (let a = 1; a <= AY[s - 1]; a++) pool.push({ surahNumber: s, numberInSurah: a });
+    const f = filterPoolBySlices(pool, sl);
+    assert.equal(f.filter(a => a.surahNumber === 67).length, 15);
+    assert.ok(!f.some(a => a.surahNumber === 66));
+    // الصغار: أدنى سورة ٤٦ — إن وقف قبلها (٢٠) تُقصّ لتبدأ من ٤٦ كاملةً دون مفاجأة
+    const kidsSl = rangeSlices(sdK, { ok: true, fromSurah: 114, toSurah: 30, frontierAyah: 10 }, [], 46);
+    assert.equal(kidsSl[0].surah, 46);
+    assert.equal(kidsSl[0].to, AY[45]);
+    const kidsSl2 = rangeSlices(sdK, { ok: true, fromSurah: 114, toSurah: 67, frontierAyah: 15 }, [], 46);
+    assert.deepEqual(kidsSl2.find(x => x.surah === 67), { surah: 67, from: 1, to: 15 });
+    console.log('rangeSlices ✓');
+}
+
+// ٨) المجاور داخل النطاق فقط: آخر آية في البِركة (الملك ١٥) لا يُسأل «ماذا بعدها؟»
+{
+    const { neighborOk } = await import('../engine/quranEngine.js');
+    const pool = []; for (let a = 1; a <= 15; a++) pool.push({ surahNumber: 67, numberInSurah: a });
+    const ok = neighborOk(pool);
+    assert.equal(ok(pool[14], 1), false);   // ١٥ → ١٦ خارج
+    assert.equal(ok(pool[13], 1), true);
+    assert.equal(ok(pool[0], -1), false);
+    assert.equal(ok({ surahNumber: 66, numberInSurah: 3 }, 1), false);
+    console.log('neighborOk ✓');
+}

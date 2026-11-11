@@ -228,6 +228,17 @@ export function planSurahCoverage(pool, qCount) {
 // الخطة النشطة للاختبار الجاري: أرقام السور بحسب chunkIndex (null = السلوك القديم). تُحفظ مع طابور الاختبار
 // (queue[i].surahNum) لتُستعاد عند استكمال اختبار معلّق.
 let activeSurahPlan = null;
+// 🌟 [نطاق الحفظ] حدود كل سورة داخل بِركة آيات الاختبار: يُرجع دالة ok(آية، إزاحة) = هل الآية المجاورة (إزاحة ±1) داخل النطاق؟
+// تمنع ألعاب «ماذا بعدها/قبلها/بين آيتين/حولها» والتسميع من قراءة آية خارج ما حفظه الطالب (مثل ما بعد نقطة التوقف في سورة الملك).
+export function neighborOk(pool) {
+    const B = new Map();
+    for (const a of (pool || [])) {
+        const b = B.get(a.surahNumber);
+        if (!b) B.set(a.surahNumber, { lo: a.numberInSurah, hi: a.numberInSurah });
+        else { if (a.numberInSurah < b.lo) b.lo = a.numberInSurah; if (a.numberInSurah > b.hi) b.hi = a.numberInSurah; }
+    }
+    return (a, d = 0) => { const b = B.get(a.surahNumber), n = a.numberInSurah + d; return !!b && n >= b.lo && n <= b.hi; };
+}
 export function setActiveSurahPlan(plan) { activeSurahPlan = Array.isArray(plan) && plan.length ? plan : null; }
 
 // 🌟 إزاحة دائرية عشوائية لحدود شرائح الاختبار (null = بلا إزاحة): تتغير حدود الشرائح من اختبار لآخر فلا تُسأل الخانة
@@ -387,7 +398,7 @@ export class QuranEngine {
     }
     
     async generateNextAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
-        const targetAyah = pickTargetAyah(ayahsPool, chunkIndex, totalChunks); if(!targetAyah) return null; 
+        const inScope = neighborOk(ayahsPool); const targetAyah = pickTargetAyah(ayahsPool.filter(a => inScope(a, 1)), chunkIndex, totalChunks); if(!targetAyah) return null; 
         // 🌟 [إصلاح] كان المولّد يأخذ "الآية التالية" من ترتيب النطاق (pool) دون التأكد أنها من نفس السورة،
         // فإذا كانت الآية المختارة هي آخر آية في سورة داخل نطاق يضم عدة سور (وضع الجزء أو نطاق سور)
         // تظهر أول آية من السورة التالية كإجابة خاطئة. أضفنا شرط تطابق surahNumber، وعند عدم التطابق
@@ -401,7 +412,7 @@ export class QuranEngine {
     }
     
     async generatePreviousAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
-        let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
+        const inScope = neighborOk(ayahsPool); let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1 && inScope(a, -1)); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
         let prevAyahText = ""; let hintText = tl('qe_none', 'لا يوجد'); let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
         // المجاور من السورة الكاملة (لا من النطاق المفلتر من آيات التكرار)
         { let surah = await this.getSurah(targetAyah.surahNumber); prevAyahText = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 2].text); if(targetAyah.numberInSurah > 2) { let prev2 = cleanAyahText(surah.ayahs[targetAyah.numberInSurah - 3].text); hintText = prev2.split(/\s+/).slice(0, 3).join(' ') + '...'; } else { hintText = tl('qe_surah_start', 'أول السورة'); } }
@@ -434,7 +445,7 @@ export class QuranEngine {
     // تظهر مكافأة خاصة (راجع showSpecialReward في adultGame.js). الآيتان المحيطتان من نفس سورة الآية
     // دائماً (تُرفض أول آية وآخر آية في السورة بإرجاع null فيُعاد التوليد). 🌟
     async generateAroundAyahGame(ayahsPool, isJuz, chunkIndex, totalChunks) {
-        const validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null;
+        const inScope = neighborOk(ayahsPool); const validAyahs = ayahsPool.filter(a => a.numberInSurah > 1 && inScope(a, -1) && inScope(a, 1)); if(validAyahs.length === 0) return null;
         const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null;
         const surah = await this.getSurah(targetAyah.surahNumber);
         if(!surah || targetAyah.numberInSurah < 2 || targetAyah.numberInSurah >= surah.ayahs.length) return null;
@@ -467,7 +478,7 @@ export class QuranEngine {
     }
     
     async generateBetweenGame(ayahsPool, isJuz, chunkIndex, totalChunks) { 
-        if(ayahsPool.length < 3) return null; let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
+        if(ayahsPool.length < 3) return null; const inScope = neighborOk(ayahsPool); let validAyahs = ayahsPool.filter(a => a.numberInSurah > 1 && inScope(a, -1) && inScope(a, 1)); if(validAyahs.length === 0) return null; const targetAyah = pickTargetAyah(validAyahs, chunkIndex, totalChunks); if(!targetAyah) return null; 
         // 🌟 [إصلاح] نفس علة "الآية التالية": الآيتان المحيطتان لازم تكونا من نفس سورة الآية المختارة، وإلا
         // نرجع لقاعدة البيانات (التي ترفض آخر آية في السورة بإرجاع null) بدل عرض آية من سورة أخرى.
         let prevText = "", nextText = ""; let currentIndex = ayahsPool.findIndex(a => a.number === targetAyah.number);
@@ -482,7 +493,8 @@ export class QuranEngine {
         // فلا نُسمّع آيات خارج الجزء. في الأوضاع الأخرى تبقى الحدود كل السورة (السلوك القديم بلا تغيير).
         // ⚠️ افتراض صريح: في وضع الجزء لا نستخدم فرع "السورة كاملة" إلا لو كانت السورة كلها داخل الجزء.
         let reciteLo = 0, reciteHi = totalSurahAyahs - 1, surahFullyInPool = true;
-        if (isJuz) {
+        // 🌟 [نطاق الحفظ] الحدود دائماً من بِركة الاختبار (لا من السورة كلها): حتى لا يُسمَّع ما بعد نقطة توقف الطالب
+        {
             const inSurah = ayahsPool.filter(a => a.surahNumber === startAyah.surahNumber);
             if (inSurah.length > 0) {
                 reciteLo = Math.min(...inSurah.map(a => a.numberInSurah)) - 1;
