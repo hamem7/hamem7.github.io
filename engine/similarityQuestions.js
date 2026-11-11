@@ -331,14 +331,16 @@ const NOTIN_MIN = 3, NOTIN_MAX = 5;
 const COUNT_WORD = { 3: 'ثلاث', 4: 'أربع', 5: 'خمس' };
 
 // 🌟 مشتتات «في أي سورتين؟»: سورة قريبة من السورة المقصودة في الطول (عدد الآيات) وفي الموضع من المصحف، مع قدر من العشوائية،
-// فلا يستبعد الطالب سورتين قصيرتين لمجرد أن الجواب من سور كبيرة (ولا العكس)
+// فلا يستبعد الطالب سورتين قصيرتين لمجرد أن الجواب من سور كبيرة (ولا العكس).
+// [2026-11-11] وزن القرب في الموضع صار أعلى بكثير: كانت «القارعة» (101) تظهر مشتتاً لـ«الجمعة» (62) لتقارب عدد الآيات فقط،
+// فيستبعدها الطالب فوراً؛ والآن تُفضَّل الجارات في المصحف (الممتحنة، المنافقون، التغابن...) على البعيدة.
 function surahLen(Q, s) {
     if (!Q._sl) { Q._sl = new Map(); for (const v of Q.flat) Q._sl.set(v.s, (Q._sl.get(v.s) || 0) + 1); }
     return Q._sl.get(s) || 1;
 }
 function pickNear(Q, pool, target, rng, taken) {
     const lt = Math.log(surahLen(Q, target));
-    const scored = pool.filter(s => !taken.has(s)).map(s => ({ s, d: Math.abs(Math.log(surahLen(Q, s)) - lt) + Math.abs(s - target) / 114 + rng() * 0.35 }));
+    const scored = pool.filter(s => !taken.has(s)).map(s => ({ s, d: Math.abs(Math.log(surahLen(Q, s)) - lt) * 0.6 + Math.abs(s - target) / 8 + rng() * 0.35 }));
     if (!scored.length) return null;
     scored.sort((a, b) => a.d - b.d);
     taken.add(scored[0].s);
