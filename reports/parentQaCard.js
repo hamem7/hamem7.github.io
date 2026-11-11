@@ -165,8 +165,14 @@ function progressBox(d){
   const prev = (d.ladder || []).filter(s => !s.isCurrent).slice(0, 2).reverse();
   if (!prev.length) return { ask, cls: 'hm', ans: g('qa_pr_first'), det: t('qa_pr_first_det'), vis: '' };
   const last = prev[prev.length - 1].score, diff = d.score - last;
-  const key = diff >= 5 ? 'qa_pr_up2' : diff >= 1 ? 'qa_pr_up1' : diff >= -2 ? 'qa_pr_flat' : 'qa_pr_down';
-  const cls = diff >= 1 ? 'ok' : diff >= -2 ? 'pa' : 'no';
+  // صياغة محايدة تراعي مستوى الدرجة الحالية: 97 بعد 100 ليست «تراجعاً»، والانخفاض الكبير (≥10) يبقى أحمر
+  const hi = d.score >= 90;
+  const key = diff >= 5 ? 'qa_pr_up2' : diff >= 1 ? 'qa_pr_up1'
+    : diff >= -2 ? (hi ? 'qa_pr_flat_hi' : 'qa_pr_flat')
+    : hi && diff >= -5 ? 'qa_pr_flat_hi'
+    : hi && diff > -10 ? 'qa_pr_down_hi'
+    : diff > -10 ? 'qa_pr_down' : 'qa_pr_down2';
+  const cls = diff >= 1 ? 'ok' : hi && diff > -10 ? 'ok' : diff > -10 ? 'pa' : 'no';
   const det = tf('qa_pr_det', { d: `<span class="ltr">${diff >= 0 ? '+' : ''}${diff}%</span>`, last: `<span class="ltr">${last}%</span>` });
   const bar = (v, l, now) => `<div class="${now ? 'now' : ''}"><b class="ltr">${v}%</b><i style="height:${Math.max(8, Math.round(v * 0.55))}px"></i>${E(l)}</div>`;
   const vis = `<div class="tl">${prev.map(s => bar(s.score, String(s.dateShort || '').slice(0, 5))).join('')}${bar(d.score, t('qa_today'), true)}</div>`;
