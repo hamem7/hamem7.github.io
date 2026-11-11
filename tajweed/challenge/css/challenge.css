@@ -326,3 +326,11 @@ button.rosette { cursor: pointer; width: 46px; height: 46px; min-width: 0; paddi
 }
 .lr-pause { font-style: normal; background: color-mix(in srgb, var(--info) 16%, var(--surface-3)); color: var(--info); border: 1px solid var(--info); font-size: calc(.74 * var(--fs, 1rem)); font-weight: 800; border-radius: 99px; padding: 1px 10px; white-space: nowrap; }
 .who-stop { color: var(--info) !important; font-weight: 700; }
+
+/* ── تكبير/تصغير الخط في الاختبار (A− / A+) — الحجم فقط، دون المساس بنوع الخط ── */
+.q-fs { display: inline-flex; gap: 6px; margin-inline-start: auto; }
+.quiz { --qfs: 1; }
+.quiz .ayah { font-size: calc(clamp(1.7rem, 4.4vw + .5rem, 2.8rem) * var(--qfs)); }
+.quiz .tapword { font-size: calc(clamp(3rem, 12vw, 5rem) * var(--qfs)); }
+.quiz .lesson-ayah .ayah { font-size: calc(clamp(2rem, 5.6vw + .4rem, 3.2rem) * var(--qfs)); }
+@media (min-width: 1100px) { .quiz .ayah { font-size: calc(3 * var(--fs, 1rem) * var(--qfs)); } }

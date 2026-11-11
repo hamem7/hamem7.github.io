@@ -36,9 +36,14 @@ const fbHTML = (ok, title, lines, isLast) => `
     <button type="button" class="btn primary fb-next">${isLast ? t('finish') : t('next')} <span aria-hidden="true" class="arr"></span></button>
   </div>`;
 
+const LS_QFS = 'tjc.quiz.fs', QFS_MIN = 0.8, QFS_MAX = 1.6, QFS_STEP = 0.15;
+const qfsGet = () => { try { const v = parseFloat(localStorage.getItem(LS_QFS)); return v >= QFS_MIN && v <= QFS_MAX ? v : 1; } catch { return 1; } };
+const qfsSet = (v) => { try { localStorage.setItem(LS_QFS, String(v)); } catch { /* لا تخزين */ } };
+
 export function runQuiz(root, { qs, head = '', onDone, onExit }) {
   let i = 0, correct = 0;
   const total = qs.length;
+  let qfs = qfsGet();
 
   function frame(q, bodyHTML) {
     window.__tjcQ = q; // خطاف للاختبارات الآلية (لا أثر له على السلوك)
@@ -48,10 +53,17 @@ export function runQuiz(root, { qs, head = '', onDone, onExit }) {
           <button type="button" class="btn-ghost q-exit">✕ <span>${t('back')}</span></button>
           <div class="q-progress" role="progressbar" aria-valuemin="1" aria-valuemax="${total}" aria-valuenow="${i + 1}">${qs.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'cur' : ''}"></i>`).join('')}</div>
           <span class="q-count">${t('q_n', { i: num(i + 1), n: num(total) })}</span>
+          <span class="q-fs" role="group" aria-label="${esc(t('cm_size'))}"><button type="button" class="btn ghost sm" data-qfs="-1" aria-label="${esc(t('cm_smaller'))}">A−</button><button type="button" class="btn ghost sm" data-qfs="1" aria-label="${esc(t('cm_larger'))}">A+</button></span>
         </div>
         ${head ? `<div class="quiz-head">${head}</div>` : ''}
         <div class="q-card type-${q.type}${q.lesson ? ' mushaf' : ''}">${bodyHTML}</div>
       </section></div>`;
+    const quizEl = root.querySelector('.quiz');
+    quizEl.style.setProperty('--qfs', String(qfs));
+    root.querySelectorAll('[data-qfs]').forEach((b) => b.addEventListener('click', () => {
+      qfs = Math.min(QFS_MAX, Math.max(QFS_MIN, +(qfs + Number(b.dataset.qfs) * QFS_STEP).toFixed(2)));
+      quizEl.style.setProperty('--qfs', String(qfs)); qfsSet(qfs);
+    }));
     root.querySelector('.q-exit').addEventListener('click', () => { stopAudio(); onExit && onExit(); });
     bindAudio(root);
     window.scrollTo({ top: 0 });
