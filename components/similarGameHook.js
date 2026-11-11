@@ -134,7 +134,7 @@ export function recallAnswerHTML(sim) {
             placeOf(r.a) + verseHTML(r.a) + placeOf(r.b) + verseHTML(r.b);
     }
     // الآية المعروضة كاملةً (قد يكون السؤال جزءاً من آيتها) ثم التالية لها
-    return (r.cur ? placeOf(r.cur, false, true) + verseHTML(r.cur) : '') + placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map(o => placeOf(o, true) + verseHTML(o, true)).join('');
+    return (r.cur ? placeOf(r.cur, false, true) + verseHTML(r.cur) : '') + placeOf(r.target, true) + verseHTML(r.target, true) + r.others.map((o, i) => { const c = r.othersCur && r.othersCur[i]; return (c ? placeOf(c, false, true) + verseHTML(c) : '') + placeOf(o, true) + verseHTML(o, true); }).join('');
 }
 
 export function recallHintStages(sim) {
