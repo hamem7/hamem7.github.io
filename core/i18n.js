@@ -3339,6 +3339,7 @@ export const translations = {
         dash_header_other: "🏆 رحلة إتقان القرآن - {label}",
         // 🌟 [جديد] نصوص شاشتَي اللعب (الأطفال والكبار)
         game_ref_label: "( سورة {name} - آية {n} )",
+        qe_same_ending_head: "الآيات التي تنتهي بنفس الكلمات في النطاق:",
         kids_range_text: "ألعاب أطفال (من سورة {sfrom} إلى {sto})",
         adult_range_text: "نطاق (من سورة {sfrom} إلى {sto})",
         adult_juz_text: "الجزء {n}",
@@ -6996,6 +6997,7 @@ export const translations = {
         "سورة": "Surah",
         "آية": "Ayah",
         game_ref_label: "( Surah {name} - Ayah {n} )",
+        qe_same_ending_head: "Ayahs in the range that end with the same words:",
         kids_range_text: "Kids games (from Surah {sfrom} to {sto})",
         adult_range_text: "Range (from Surah {sfrom} to {sto})",
         adult_juz_text: "Juz {n}",

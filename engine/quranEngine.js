@@ -554,7 +554,28 @@ export class QuranEngine {
         const hiddenPart = words.slice(0, cutAt).join(' ');
         const displayWords = ["....."].concat(words.slice(cutAt));
         if (!hiddenPart) return null;
-        return { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
+        // 🌟 [جديد] بطلب المعلم: قد تنتهي أكثر من آية في نطاق الاختبار بنفس الكلمات الظاهرة (مثل «... وَلَهُمۡ عَذَابٌ أَلِیمࣱ»)،
+        // فلا تكون الإجابة آية واحدة. نجمع كل آيات النطاق التي تنتهي بنفس الكلمات الظاهرة (بعد تجريد التشكيل)، ويعرضها
+        // «إظهار الإجابة» كلها بمرجعها. البحث داخل نطاق الاختبار فقط (ayahsPool) فلا يظهر في الإجابة شيء خارج النطاق.
+        const tailKey = (ws) => ws.slice(-visibleCount).map(normalizeForCompare).join(' ');
+        const myKey = tailKey(realIdxs.map(i => words[i]));
+        const seenLoc = new Set([`${ayah.surahNumber}:${ayah.numberInSurah}`]);
+        const matches = [ayah];
+        for (const a of (ayahsPool || [])) {
+            const k = `${a.surahNumber}:${a.numberInSurah}`;
+            if (seenLoc.has(k)) continue;
+            const w = splitAyahWords(a.text);
+            if (w.length > visibleCount && tailKey(w) === myKey) { seenLoc.add(k); matches.push(a); }
+        }
+        const base = { type: 'complete_ayah', questionTitle: "أكمل الجزء الناقص من الآية الكريمة 🧩", questionBody: `<div class="quran-text" style="font-size:3.5rem; margin-top:10px;">﴿\u00A0${displayWords.join(' ')}\u00A0﴾</div>`, fullAnswer: cleanText, correctAns: hiddenPart, ayahObj: ayah, reportText: cleanText };
+        if (matches.length === 1) return base;
+        const hiddenOf = (a) => { const w = cleanAyahText(a.text).split(/\s+/); const ri = realWordIndexes(w); return w.slice(0, ri[ri.length - visibleCount]).join(' '); };
+        const block = (a) => `<div style="margin:10px 0;"><div style="color:var(--secondary); font-size:1.2rem; font-weight:bold;">${tl('game_ref_label', '( سورة {name} - آية {n} )', { name: nameL(a.surahName), n: a.numberInSurah })}</div><span class="quran-text">﴿\u00A0${cleanAyahText(a.text)}\u00A0﴾</span></div>`;
+        return Object.assign(base, {
+            correctAns: matches.map(hiddenOf).join(' / '),
+            answerHTML: `<div style="color:var(--danger); font-size:1.3rem; font-weight:bold; margin:8px 0;">${tl('qe_same_ending_head', 'الآيات التي تنتهي بنفس الكلمات في النطاق:')}</div>` + matches.map(block).join(''),
+            sameEndingCount: matches.length
+        });
     }
 
     // 🌟 [جديد — 2026-10-14] معاني الكلمات (ركن الكبار فقط، بطلب المعلم): "ما معنى «كلمة» في هذه الآية؟"
