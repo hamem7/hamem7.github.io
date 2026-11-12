@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاينة A — «طلابي»: المهام ومساحة عمل واحدة</title>
+<!-- نفس ملفات تنسيق المنصة (index.html) + كتلة #main-header كما هي -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="stylesheet" href="my-students-desk.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
+<style>
+/* ===== A — المهام + مساحة عمل واحدة ===== */
+#msx .a-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
+#msx .a-side{padding:18px;display:flex;flex-direction:column;gap:8px;position:sticky;top:16px}
+#msx .a-side h2{font-size:1rem !important;font-weight:800 !important;color:var(--dh-ink-soft) !important;margin-bottom:4px !important}
+#msx .a-side hr{border:0;border-top:1px solid var(--dh-border-soft);margin:6px 0;width:100%}
+#msx .task{display:flex;align-items:center;gap:12px;width:100%;border:1.5px solid var(--dh-border);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:14px;padding:12px;text-align:start;min-height:64px;transition:border-color .15s,background .15s}
+#msx .task:hover{border-color:var(--dh-border-strong)}
+#msx .task.on{border-color:var(--dh-emerald-700);background:var(--dh-ok-bg);box-shadow:inset 4px 0 0 var(--dh-emerald-700)}
+[dir="rtl"] #msx .task.on{box-shadow:inset -4px 0 0 var(--dh-emerald-700)}
+#msx .task .t-ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--dh-surface-0);color:var(--dh-emerald-700);flex:none}
+[data-theme="dark"] #msx .task .t-ic{color:var(--dh-gold-300)}
+#msx .task .t-tx{flex:1;min-width:0}
+#msx .task b{display:block;font-size:.95rem;line-height:1.35}
+#msx .task small{display:block;font-size:.8rem;color:var(--dh-ink-soft)}
+#msx .task em{font-style:normal;font-weight:800;font-size:.85rem;min-width:28px;height:28px;padding:0 8px;border-radius:99px;display:grid;place-items:center;background:var(--dh-gold-500);color:var(--dh-on-gold)}
+#msx .task.done:not(.all) small{color:var(--dh-ok-ink);font-weight:700}
+#msx .a-work{padding:6px 0 10px;min-height:420px}
+#msx .w-head{display:flex;align-items:center;gap:12px;padding:16px 22px 14px;border-bottom:1px solid var(--dh-border-soft)}
+#msx .w-head h2{font-size:1.25rem !important;font-weight:800 !important}
+#msx .w-head p{margin:3px 0 0;color:var(--dh-ink-soft);font-size:.9rem}
+#msx .w-list{display:flex;flex-direction:column}
+#msx .w-row{display:flex;align-items:center;gap:16px;padding:10px 22px;min-height:64px;border-bottom:1px solid var(--dh-border-soft)}
+#msx .w-row:hover{background:color-mix(in srgb,var(--dh-surface-0) 60%,transparent)}
+#msx .w-row .who{flex:0 1 300px}
+#msx .w-mid{flex:1;min-width:0}
+#msx .w-act{display:flex;gap:8px;align-items:center;margin-inline-start:auto}
+#msx .w-row.quiet{opacity:.75;min-height:56px}
+#msx .w-done{display:flex;flex-direction:column;align-items:center;gap:12px;padding:50px 20px;text-align:center}
+#msx .w-done>span{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--dh-ok-bg);color:var(--dh-ok-ink)}
+#msx .w-done>span svg{width:28px;height:28px}
+#msx .w-done b{font-size:1.1rem}
+#msx .w-grp{margin:12px 22px 6px}
+#msx .w-grp summary{cursor:pointer;font-weight:700;color:var(--dh-ok-ink);padding:6px 0;font-size:.9rem}
+#msx .w-grp .w-row{padding-inline:8px}
+@media(max-width:760px){
+  #msx .a-layout{grid-template-columns:1fr;gap:12px}
+  #msx .a-side{position:static;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  #msx .a-side h2,#msx .a-side hr{grid-column:1/-1}
+  #msx .task{min-height:58px;padding:10px;gap:8px}
+  #msx .task .t-ic{display:none}
+  #msx .task b{font-size:.86rem}
+  #msx .w-head{padding:12px 14px}
+  #msx .w-row{padding:10px 14px;flex-wrap:wrap;gap:8px}
+  #msx .w-row .who{flex:1 1 180px}
+  #msx .w-mid{order:3;flex-basis:100%;padding-inline-start:52px}
+  #msx .w-act .b.line{padding:6px 10px}
+  #msx .pos{flex-wrap:wrap}
+  #msx .pos select{flex:1}
+}
+</style>
+</head>
+<body class="adult-theme" id="main-body">
+
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
+
+<div id="app-root"></div>
+
+<div class="msx-panel-bg" id="panelBg" hidden></div>
+<div class="pv-notes" id="pvNotes" hidden></div>
+<div class="pv-toast" id="toast"></div>
+<div class="pv-bar" id="pvBar"></div>
+
+<script src="../core/brandLogo.js"></script>
+<script>window.MSX_VARIANT = 'a';</script>
+<script src="my-students-desk.js"></script>
+</body>
+</html>

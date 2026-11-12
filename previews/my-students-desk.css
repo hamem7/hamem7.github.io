@@ -1,0 +1,132 @@
+/* =============================================================================
+   معاينة «طلابي» — للكمبيوتر أولًا، ثم الجوال. مبدأ التصميم: هدوء ووضوح — شيء واحد في كل مكان.
+   كل الألوان من رموز الهوية (--dh-*) فتنقلب تلقائيًا في المظهر الداكن، والاتجاه يتبع <html dir>.
+   ============================================================================= */
+#app-root{padding:0 !important}
+#msx{max-width:1240px;margin:24px auto 0;padding:0 24px 24px;color:var(--dh-ink);font-family:var(--dh-font-ui);text-align:start}
+#msx *{box-sizing:border-box}
+#msx button,#msx input,#msx select{font-family:inherit;margin:0;min-width:0;box-shadow:none;text-shadow:none;letter-spacing:normal}
+#msx button{cursor:pointer}
+#msx h1,#msx h2,#msx h3{margin:0 !important;text-shadow:none !important;text-align:start !important;color:var(--dh-ink) !important}
+.msx-ic{width:20px;height:20px;flex:none}
+#msx .card{background:var(--dh-surface-1);border:1px solid var(--dh-border);border-radius:20px;box-shadow:var(--dh-sh-soft)}
+
+/* ===== رأس الركن: العنوان + البحث + طالب جديد (سطر واحد فقط) ===== */
+#msx .top{display:flex;align-items:center;gap:16px;padding:16px 20px;margin-bottom:20px}
+#msx .top-badge{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--dh-emerald-600),var(--dh-emerald-800));color:var(--dh-gold-300)}
+#msx .top-badge svg{width:24px;height:24px}
+#msx .top-t{min-width:0}
+#msx .top-t h1{font-size:1.5rem !important;font-weight:800 !important;line-height:1.25;white-space:nowrap}
+#msx .top-t p{margin:2px 0 0;font-size:.88rem;color:var(--dh-ink-soft)}
+#msx .search{display:flex;align-items:center;gap:8px;background:var(--dh-surface-3);border:1.5px solid var(--dh-border-strong);border-radius:12px;padding:0 12px;min-height:44px;width:min(360px,100%);margin-inline-start:auto}
+#msx .search svg{width:18px;height:18px;color:var(--dh-ink-soft)}
+#msx .search input{flex:1;border:0 !important;background:transparent !important;color:var(--dh-ink) !important;padding:10px 0 !important;font-size:.95rem;outline:none;width:auto;min-height:0}
+#msx .btn-add{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:12px;padding:0 18px;min-height:44px;background:linear-gradient(135deg,var(--dh-gold-300),var(--dh-gold-500));color:var(--dh-on-gold);font-weight:800;font-size:.95rem;white-space:nowrap}
+#msx .btn-add svg{width:18px;height:18px}
+
+/* ===== عناصر مشتركة ===== */
+#msx .ava{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;flex:none;font-size:1.25rem;background:var(--dh-surface-0);border:1.5px solid var(--dh-border-soft)}
+#msx .who{display:flex;align-items:center;gap:12px;min-width:0;border:0;background:none;color:inherit;padding:0;text-align:start}
+#msx .who-t{min-width:0}
+#msx .who-t b{display:block;font-size:.98rem;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#msx .who-t small{display:block;font-size:.8rem;color:var(--dh-ink-soft);line-height:1.4}
+#msx button.who:hover b{color:var(--dh-emerald-700);text-decoration:underline;text-underline-offset:3px}
+[data-theme="dark"] #msx button.who:hover b{color:var(--dh-gold-300)}
+#msx .b{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;min-height:38px;padding:6px 14px;font-weight:700;font-size:.88rem;border:1.5px solid transparent;white-space:nowrap}
+#msx .b svg{width:16px;height:16px}
+#msx .b.em{background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#msx .b.gold{background:var(--dh-gold-500);color:var(--dh-on-gold)}
+#msx .b.line{background:var(--dh-surface-3);color:var(--dh-ink);border-color:var(--dh-border-strong)}
+#msx .b.ok{background:var(--dh-surface-3);color:var(--dh-ok-ink);border-color:var(--dh-ok)}
+#msx .b.ok:hover{background:var(--dh-ok-bg)}
+#msx .b.no{background:var(--dh-surface-3);color:var(--dh-danger-ink);border-color:var(--dh-danger)}
+#msx .b.no:hover{background:var(--dh-danger-bg)}
+#msx .b.link{background:none;border:0;color:var(--dh-emerald-700);padding:4px 6px;min-height:32px;text-decoration:underline;text-underline-offset:3px}
+[data-theme="dark"] #msx .b.link{color:var(--dh-gold-300)}
+#msx .b.ghost{background:none;border:0;color:var(--dh-ink-soft);padding:4px 8px;min-height:32px;font-size:.8rem;font-weight:600}
+#msx .icon-b{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;border:1.5px solid var(--dh-border);background:var(--dh-surface-3);color:var(--dh-ink-soft);padding:0}
+#msx .icon-b:hover{border-color:var(--dh-border-strong);color:var(--dh-ink)}
+[dir="rtl"] #msx .flip svg,[dir="rtl"] #msx svg.flip{transform:scaleX(-1)}
+#msx .st{display:inline-flex;align-items:center;gap:6px;font-size:.86rem;font-weight:600;white-space:nowrap}
+#msx .st::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+#msx .st.ok{color:var(--dh-ok-ink)}
+#msx .st.wait{color:var(--dh-warn)}
+#msx .st.bad{color:var(--dh-danger-ink)}
+#msx .st.mute{color:var(--dh-ink-soft)}
+#msx .st.mute::before{background:var(--dh-border)}
+#msx .pos{display:flex;gap:6px;align-items:center}
+#msx .pos select,#msx .pos input{border:1.5px solid var(--dh-border-strong) !important;background:var(--dh-surface-3) !important;color:var(--dh-ink) !important;border-radius:10px !important;min-height:38px;padding:4px 8px !important;font-size:.9rem;width:auto;margin:0}
+#msx .pos select{width:150px}
+#msx .pos input{width:72px}
+#msx .bar{height:6px;border-radius:99px;background:var(--dh-border-soft);overflow:hidden}
+#msx .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--dh-emerald-600),var(--dh-gold-500));border-radius:99px;transition:width .35s}
+#msx .muted{color:var(--dh-ink-soft);font-size:.85rem}
+#msx .flash{animation:msxFlash 1.2s}
+@keyframes msxFlash{from{background:var(--dh-ok-bg)}to{background:transparent}}
+#msx .foot-links{display:flex;gap:18px;justify-content:center;margin:16px auto 0;width:max-content;max-width:100%;background:var(--dh-surface-1);border:1px solid var(--dh-border);border-radius:99px;padding:2px 14px}
+#msx .foot-links button{background:none;border:0;color:var(--dh-ink-soft);font-weight:600;font-size:.85rem;padding:6px}
+#msx .foot-links button:hover{color:var(--dh-ink)}
+
+/* ===== لوح الطالب الجانبي (كمبيوتر) / ورقة سفلية (جوال) — كل إجراءات الطالب في مكان واحد ===== */
+.msx-panel-bg[hidden],.pv-notes[hidden]{display:none !important}
+.msx-panel-bg{position:fixed;inset:0;background:rgba(6,35,28,.35);z-index:2500;display:flex;justify-content:flex-end;animation:msxFade .18s}
+[dir="rtl"] .msx-panel-bg{justify-content:flex-start}
+.msx-panel{width:420px;max-width:100%;height:100%;background:var(--dh-surface-1);color:var(--dh-ink);padding:24px 22px 130px;box-shadow:var(--dh-sh-overlay);overflow:auto;font-family:var(--dh-font-ui);text-align:start;animation:msxSide .22s ease-out;display:flex;flex-direction:column;gap:14px}
+.msx-panel *{box-sizing:border-box}
+.msx-panel button,.msx-panel select,.msx-panel input{font-family:inherit;margin:0;min-width:0;box-shadow:none;cursor:pointer;text-shadow:none}
+.msx-panel .p-head{display:flex;align-items:center;gap:12px}
+.msx-panel .p-head .ava{width:56px;height:56px;font-size:1.7rem;border-radius:50%;display:grid;place-items:center;background:var(--dh-surface-0);border:2px solid var(--dh-gold-500);flex:none}
+.msx-panel .p-head b{font-size:1.2rem;display:block}
+.msx-panel .p-head small{color:var(--dh-ink-soft);font-size:.86rem}
+.msx-panel .p-close{margin-inline-start:auto;width:38px;height:38px;border-radius:10px;border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);display:grid;place-items:center;padding:0}
+.msx-panel .p-facts{border:1px solid var(--dh-border);border-radius:14px;overflow:hidden}
+.msx-panel .p-facts div{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;font-size:.9rem}
+.msx-panel .p-facts div+div{border-top:1px solid var(--dh-border-soft)}
+.msx-panel .p-facts span{color:var(--dh-ink-soft)}
+.msx-panel .p-main{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;min-height:50px;font-weight:800;font-size:1.02rem;background:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+.msx-panel .p-list{display:flex;flex-direction:column;border:1px solid var(--dh-border);border-radius:14px;overflow:hidden}
+.msx-panel .p-list button{display:flex;align-items:center;gap:12px;border:0;background:var(--dh-surface-3);color:var(--dh-ink);padding:12px 14px;font-weight:700;font-size:.93rem;text-align:start;min-height:54px}
+.msx-panel .p-list button+button{border-top:1px solid var(--dh-border-soft)}
+.msx-panel .p-list button:hover{background:var(--dh-surface-0)}
+.msx-panel .p-list button span{flex:1}
+.msx-panel .p-list button small{display:block;font-weight:500;font-size:.78rem;color:var(--dh-ink-soft)}
+.msx-panel .p-list .msx-ic{color:var(--dh-ink-soft)}
+.msx-panel .p-list .msx-ic.ch{width:16px;height:16px}
+[dir="rtl"] .msx-panel .p-list .msx-ic.ch{transform:scaleX(-1)}
+.msx-panel .p-foot{display:flex;gap:16px;justify-content:center}
+.msx-panel .p-foot button{background:none;border:0;color:var(--dh-ink-soft);font-size:.84rem;font-weight:700;padding:6px}
+.msx-panel .p-foot button.del{color:var(--dh-danger)}
+.msx-panel .p-memo{display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:var(--dh-surface-0);border-radius:12px;padding:10px}
+.msx-panel .p-memo select,.msx-panel .p-memo input{border:1.5px solid var(--dh-border-strong);background:var(--dh-surface-3);color:var(--dh-ink);border-radius:10px;min-height:38px;padding:4px 8px}
+.msx-panel .p-memo select{flex:1}.msx-panel .p-memo input{width:72px}
+.msx-panel .p-memo button{border:0;border-radius:10px;min-height:38px;padding:0 14px;background:var(--dh-emerald-700);color:var(--dh-on-emerald);font-weight:700}
+@keyframes msxSide{from{transform:translateX(30px);opacity:.3}to{transform:none;opacity:1}}
+[dir="rtl"] .msx-panel{animation-name:msxSideR}
+@keyframes msxSideR{from{transform:translateX(-30px);opacity:.3}to{transform:none;opacity:1}}
+@keyframes msxFade{from{opacity:0}to{opacity:1}}
+
+/* ===== شريط المعاينة السفلي (ليس جزءًا من المنصة) ===== */
+.pv-bar{position:fixed;inset-inline:0;bottom:0;z-index:3000;background:#2b2100;color:#fbf3d5;font:600 .8rem 'IBM Plex Sans Arabic',sans-serif;padding:8px 12px;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
+.pv-bar .pv-sw{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pv-bar a,.pv-bar button{border:1.5px solid #d4af37;background:transparent;color:#fbf3d5;border-radius:99px;padding:5px 14px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;margin:0;min-width:0;box-shadow:none}
+.pv-bar a.on{background:#d4af37;color:#2b2100}
+.pv-notes{position:fixed;inset-inline:12px;bottom:70px;z-index:3001;max-width:600px;margin:auto;background:#fffdf6;color:#10241c;border:2px solid #d4af37;border-radius:18px;padding:14px 18px;font:500 .9rem/1.75 'IBM Plex Sans Arabic',sans-serif;box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:65vh;overflow:auto;text-align:start}
+.pv-notes h4{margin:0 0 6px;font-size:1rem}
+.pv-notes ul{margin:0;padding-inline-start:20px}
+.pv-toast{position:fixed;bottom:76px;inset-inline:0;margin:auto;width:max-content;max-width:90%;background:var(--dh-emerald-900);color:#fff;border-radius:99px;padding:10px 20px;font-weight:700;font-family:var(--dh-font-ui);opacity:0;pointer-events:none;transition:.25s;z-index:3002}
+.pv-toast.on{opacity:1}
+body{padding-bottom:90px}
+
+/* ===== الجوال (ثانيًا): نفس البناء مبسّطًا ===== */
+@media(max-width:760px){
+  #msx{padding:0 12px 20px;margin-top:14px}
+  #msx .top{flex-wrap:wrap;padding:12px 14px;gap:10px}
+  #msx .top-t{flex:1}
+  #msx .search{order:3;width:100%;margin:0}
+  #msx .btn-add{padding:0 12px}
+  .msx-panel-bg{align-items:flex-end}
+  .msx-panel{width:100%;height:auto;max-height:88vh;border-radius:22px 22px 0 0;animation:msxUp .22s ease-out !important;padding-bottom:140px}
+  @keyframes msxUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+  .pv-bar{flex-direction:column;gap:6px}
+  body{padding-bottom:120px}
+}

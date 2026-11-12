@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script src="../core/themeInit.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاينة B — «طلابي»: جدول واحد</title>
+<!-- نفس ملفات تنسيق المنصة (index.html) + كتلة #main-header كما هي -->
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/adults.css">
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/mobile.css">
+<link rel="stylesheet" href="../css/theme-dark-auto.css">
+<link rel="stylesheet" href="../css/theme-dark.css">
+<link rel="stylesheet" href="my-students-desk.css">
+<link rel="icon" type="image/svg+xml" href="../icons/favicon.svg">
+<style>
+/* ===== B — جدول واحد ===== */
+#msx .b-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+#msx .b-filters button{display:inline-flex;align-items:center;gap:8px;border:1.5px solid var(--dh-border);background:var(--dh-surface-1);color:var(--dh-ink);border-radius:99px;padding:0 16px;min-height:40px;font-weight:700;font-size:.9rem}
+#msx .b-filters button em{font-style:normal;font-size:.78rem;font-weight:800;min-width:24px;height:22px;padding:0 7px;border-radius:99px;display:grid;place-items:center;background:var(--dh-surface-0);color:var(--dh-ink-soft)}
+#msx .b-filters button.has em{background:var(--dh-gold-500);color:var(--dh-on-gold)}
+#msx .b-filters button.on{background:var(--dh-emerald-700);border-color:var(--dh-emerald-700);color:var(--dh-on-emerald)}
+#msx .b-wrap{overflow:hidden}
+#msx .b-table{width:100%;border-collapse:collapse;table-layout:fixed}
+#msx .b-table th{font-size:.82rem;font-weight:700;color:var(--dh-ink-soft);text-align:start;padding:12px 16px;background:var(--dh-surface-0);border-bottom:1px solid var(--dh-border)}
+#msx .b-table th:nth-child(1){width:23%}#msx .b-table th:nth-child(2){width:19%}#msx .b-table th:nth-child(3){width:24%}#msx .b-table th:nth-child(4){width:17%}#msx .b-table th:nth-child(5){width:170px}
+#msx .b-table td{padding:10px 16px;border-bottom:1px solid var(--dh-border-soft);vertical-align:middle;height:64px}
+#msx .b-table tbody tr:last-child td{border-bottom:0}
+#msx .b-table tbody tr:hover{background:color-mix(in srgb,var(--dh-surface-0) 60%,transparent)}
+#msx .cell{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+#msx .t-time{font-size:.82rem;color:var(--dh-ink-soft);min-width:52px}
+#msx .b.sm{min-height:34px;padding:4px 10px;font-size:.84rem}
+#msx .b.hov{opacity:0;transition:opacity .15s}
+#msx tr:hover .b.hov,#msx .b.hov:focus{opacity:1}
+#msx .c-act .acts{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+#msx .pos select{width:120px}
+@media(max-width:1100px){#msx .c-act .b.line{display:none}#msx .b-table th:nth-child(5){width:64px}}
+@media(max-width:760px){
+  #msx .b-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  #msx .b-filters button{flex:none}
+  #msx .b-table thead{display:none}
+  #msx .b-table,#msx .b-table tbody,#msx .b-table tr,#msx .b-table td{display:block;width:100%}
+  #msx .b-table tr{position:relative;padding:12px 14px;border-bottom:1px solid var(--dh-border)}
+  #msx .b-table td{border:0;height:auto;padding:4px 0}
+  #msx .b-table td[data-l]{display:flex;align-items:center;gap:10px}
+  #msx .b-table td[data-l]::before{content:attr(data-l);font-size:.78rem;color:var(--dh-ink-soft);width:120px;flex:none}
+  #msx .b-table .c-act{position:absolute;top:12px;inset-inline-end:14px;width:auto;padding:0}
+  #msx .b.hov{opacity:1}
+  #msx .pos{flex-wrap:wrap}
+}
+</style>
+</head>
+<body class="adult-theme" id="main-body">
+
+<!-- ═══ #main-header: نفس كتلة index.html (الشعار من core/brandLogo.js) ═══ -->
+<div class="header-bar" id="main-header">
+    <div class="home-header-brand ham-shine-host">
+        <span class="home-header-logo" data-ham-logo="full" data-ham-tone="light" data-ham-shine="1" aria-hidden="true"></span>
+        <div class="home-header-text">
+            <span id="header-title">🏆 رحلة إتقان القرآن</span>
+            <span id="top-student-name">منصة حمٓ</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button id="header-home-btn" class="header-home-btn" title="الرئيسية">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 11.5 12 4l8 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M6.5 10v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="hdr-home">الرئيسية</span>
+        </button>
+        <div class="header-account-wrap" id="header-account-wrap">
+            <button id="header-account-btn" class="header-account-btn" type="button" title="حسابي والنسخ الاحتياطي" aria-label="حسابي">
+                <span class="ha-ic" id="header-account-ic">👤</span><span class="ha-dot" id="header-account-dot" data-level="ok"></span>
+            </button>
+        </div>
+        <button id="theme-toggle-btn" class="theme-btn" type="button" title="المظهر" aria-label="المظهر">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+        </button>
+        <button id="lang-toggle-btn" class="lang-btn" type="button" title="English"><span class="lb-opt is-on">AR</span><span class="lb-sep" aria-hidden="true">|</span><span class="lb-opt">EN</span></button>
+    </div>
+</div>
+
+<div id="app-root"></div>
+
+<div class="msx-panel-bg" id="panelBg" hidden></div>
+<div class="pv-notes" id="pvNotes" hidden></div>
+<div class="pv-toast" id="toast"></div>
+<div class="pv-bar" id="pvBar"></div>
+
+<script src="../core/brandLogo.js"></script>
+<script>window.MSX_VARIANT = 'b';</script>
+<script src="my-students-desk.js"></script>
+</body>
+</html>
